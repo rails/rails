@@ -17,7 +17,7 @@ module ActiveSupport
         ensure_cache_path(File.dirname(real_file_path(name)))
         File.atomic_write(real_file_path(name), cache_path) { |f| Marshal.dump(value, f) }
       rescue => e
-        RAILS_DEFAULT_LOGGER.error "Couldn't create cache directory: #{name} (#{e.message})" if RAILS_DEFAULT_LOGGER
+        logger.error "Couldn't create cache directory: #{name} (#{e.message})" if logger
       end
 
       def delete(name, options = nil)

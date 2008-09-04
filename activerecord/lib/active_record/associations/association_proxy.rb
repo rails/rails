@@ -74,8 +74,8 @@ module ActiveRecord
       end
 
       # Does the proxy or its \target respond to +symbol+?
-      def respond_to?(symbol, include_priv = false)
-        proxy_respond_to?(symbol, include_priv) || (load_target && @target.respond_to?(symbol, include_priv))
+      def respond_to?(*args)
+        proxy_respond_to?(*args) || (load_target && @target.respond_to?(*args))
       end
 
       # Forwards <tt>===</tt> explicitly to the \target because the instance method
@@ -155,18 +155,6 @@ module ActiveRecord
           records.map { |record| record.quoted_id }.join(',')
         end
 
-        # Interpolates the SQL in <tt>options[key]</tt> and assigns the result
-        # back, for any +key+ in +keys+ that's present in +options+.
-        #
-        # Meant to be used like this:
-        #
-        #   interpolate_sql_options!(@reflection.options, :finder_sql)
-        #
-        def interpolate_sql_options!(options, *keys)
-          keys.each { |key| options[key] &&= interpolate_sql(options[key]) }
-        end
-
-        # Forwards the call to the owner.
         def interpolate_sql(sql, record = nil)
           @owner.send(:interpolate_sql, sql, record)
         end
@@ -261,7 +249,7 @@ module ActiveRecord
         # Array#flatten has problems with recursive arrays. Going one level
         # deeper solves the majority of the problems.
         def flatten_deeper(array)
-          array.collect { |element| element.respond_to?(:flatten) ? element.flatten : element }.flatten
+          array.collect { |element| (element.respond_to?(:flatten) && !element.is_a?(Hash)) ? element.flatten : element }.flatten
         end
 
         # Returns the ID of the owner, quoted if needed.

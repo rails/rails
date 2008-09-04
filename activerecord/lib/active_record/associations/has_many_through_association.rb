@@ -31,16 +31,6 @@ module ActiveRecord
         return count
       end
       
-      def count(*args)
-        column_name, options = @reflection.klass.send(:construct_count_options_from_args, *args)
-        if @reflection.options[:uniq]
-          # This is needed because 'SELECT count(DISTINCT *)..' is not valid SQL statement.
-          column_name = "#{@reflection.quoted_table_name}.#{@reflection.klass.primary_key}" if column_name == :all
-          options.merge!(:distinct => true) 
-        end
-        @reflection.klass.send(:with_scope, construct_scope) { @reflection.klass.count(column_name, options) } 
-      end
-
       protected
         def construct_find_options!(options)
           options[:select]  = construct_select(options[:select])
@@ -237,7 +227,7 @@ module ActiveRecord
         end
         
         def build_sti_condition
-          "#{@reflection.through_reflection.quoted_table_name}.#{@reflection.through_reflection.klass.inheritance_column} = #{@reflection.klass.quote_value(@reflection.through_reflection.klass.sti_name)}"
+          @reflection.through_reflection.klass.send(:type_condition)
         end
 
         alias_method :sql_conditions, :conditions

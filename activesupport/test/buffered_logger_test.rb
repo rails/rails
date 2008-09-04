@@ -70,7 +70,7 @@ class BufferedLoggerTest < Test::Unit::TestCase
       end
 
       @logger.flush
-      assert !@output.string.empty?, @logger.buffer.size
+      assert !@output.string.empty?, @logger.send(:buffer).size
     end
 
     define_method "test_disabling_auto_flush_with_#{disable.inspect}_should_flush_at_max_buffer_size_as_failsafe" do
@@ -83,10 +83,10 @@ class BufferedLoggerTest < Test::Unit::TestCase
       end
 
       @logger.info 'there it is.'
-      assert !@output.string.empty?, @logger.buffer.size
+      assert !@output.string.empty?, @logger.send(:buffer).size
     end
   end
-  
+
   def test_should_know_if_its_loglevel_is_below_a_given_level
     ActiveSupport::BufferedLogger::Severity.constants.each do |level|
       @logger.level = ActiveSupport::BufferedLogger::Severity.const_get(level) - 1
@@ -105,7 +105,7 @@ class BufferedLoggerTest < Test::Unit::TestCase
     @logger.info 'there it is.'
     assert !@output.string.empty?, @output.string
   end
-  
+
   def test_should_create_the_log_directory_if_it_doesnt_exist
     tmp_directory = File.join(File.dirname(__FILE__), "tmp")
     log_file = File.join(tmp_directory, "development.log")
@@ -114,5 +114,27 @@ class BufferedLoggerTest < Test::Unit::TestCase
     assert File.exist?(tmp_directory)
   ensure
     FileUtils.rm_rf(tmp_directory)
+  end
+
+  def test_logger_should_maintain_separate_buffers_for_each_thread
+    @logger.auto_flushing = false
+
+    a = Thread.new do
+      @logger.info("a"); Thread.pass;
+      @logger.info("b"); Thread.pass;
+      @logger.info("c"); @logger.flush
+    end
+
+    b = Thread.new do
+      @logger.info("x"); Thread.pass;
+      @logger.info("y"); Thread.pass;
+      @logger.info("z"); @logger.flush
+    end
+
+    a.join
+    b.join
+
+    assert @output.string.include?("a\nb\nc\n")
+    assert @output.string.include?("x\ny\nz\n")
   end
 end

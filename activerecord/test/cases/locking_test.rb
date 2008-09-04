@@ -210,13 +210,6 @@ unless current_adapter?(:SQLServerAdapter, :SybaseAdapter, :OpenBaseAdapter)
     def setup
       # Avoid introspection queries during tests.
       Person.columns; Reader.columns
-
-      @allow_concurrency = ActiveRecord::Base.allow_concurrency
-      ActiveRecord::Base.allow_concurrency = true
-    end
-
-    def teardown
-      ActiveRecord::Base.allow_concurrency = @allow_concurrency
     end
 
     # Test typical find.

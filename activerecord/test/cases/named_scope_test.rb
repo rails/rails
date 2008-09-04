@@ -4,6 +4,7 @@ require 'models/topic'
 require 'models/comment'
 require 'models/reply'
 require 'models/author'
+require 'models/developer'
 
 class NamedScopeTest < ActiveRecord::TestCase
   fixtures :posts, :authors, :topics, :comments, :author_addresses
@@ -49,6 +50,11 @@ class NamedScopeTest < ActiveRecord::TestCase
     assert Topic.approved.respond_to?(:proxy_found)
     assert Topic.approved.respond_to?(:count)
     assert Topic.approved.respond_to?(:length)
+  end
+
+  def test_respond_to_respects_include_private_parameter
+    assert !Topic.approved.respond_to?(:load_found)
+    assert Topic.approved.respond_to?(:load_found, true)
   end
 
   def test_subclasses_inherit_scopes
@@ -237,5 +243,32 @@ class NamedScopeTest < ActiveRecord::TestCase
     topic = Topic.approved.by_lifo.build({})
     assert topic.approved
     assert_equal 'lifo', topic.author_name
+  end
+
+  def test_find_all_should_behave_like_select
+    assert_equal Topic.base.select(&:approved), Topic.base.find_all(&:approved)
+  end
+
+  def test_rand_should_select_a_random_object_from_proxy
+    assert Topic.approved.rand.is_a?(Topic)
+  end
+
+  def test_should_use_where_in_query_for_named_scope
+    assert_equal Developer.find_all_by_name('Jamis'), Developer.find_all_by_id(Developer.jamises)
+  end
+
+  def test_size_should_use_count_when_results_are_not_loaded
+    topics = Topic.base
+    assert_queries(1) do
+      assert_sql(/COUNT/i) { topics.size }
+    end
+  end
+
+  def test_size_should_use_length_when_results_are_loaded
+    topics = Topic.base
+    topics.reload # force load
+    assert_no_queries do
+      topics.size # use loaded (no query)
+    end
   end
 end

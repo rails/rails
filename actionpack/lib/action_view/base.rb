@@ -158,10 +158,10 @@ module ActionView #:nodoc:
   # See the ActionView::Helpers::PrototypeHelper::GeneratorMethods documentation for more details.
   class Base
     include ERB::Util
+    extend ActiveSupport::Memoizable
 
     attr_accessor :base_path, :assigns, :template_extension
     attr_accessor :controller
-    attr_accessor :_first_render, :_last_render
 
     attr_writer :template_format
 
@@ -169,6 +169,7 @@ module ActionView #:nodoc:
 
     class << self
       delegate :erb_trim_mode=, :to => 'ActionView::TemplateHandlers::ERB'
+      delegate :logger, :to => 'ActionController::Base'
     end
 
     def self.cache_template_loading=(*args)
@@ -181,6 +182,17 @@ module ActionView #:nodoc:
       ActiveSupport::Deprecation.warn(
         "config.action_view.cache_template_extensions option has been" +
         "deprecated and has no effect. Please remove it from your config files.", caller)
+    end
+
+    # Templates that are exempt from layouts
+    @@exempt_from_layout = Set.new([/\.rjs$/])
+
+    # Don't render layouts for templates with the given extensions.
+    def self.exempt_from_layout(*extensions)
+      regexps = extensions.collect do |extension|
+        extension.is_a?(Regexp) ? extension : /\.#{Regexp.escape(extension.to_s)}$/
+      end
+      @@exempt_from_layout.merge(regexps)
     end
 
     # Specify whether RJS responses should be wrapped in a try/catch block
@@ -202,27 +214,28 @@ module ActionView #:nodoc:
     end
     include CompiledTemplates
 
-    def self.helper_modules #:nodoc:
-      helpers = []
-      Dir.entries(File.expand_path("#{File.dirname(__FILE__)}/helpers")).sort.each do |file|
-        next unless file =~ /^([a-z][a-z_]*_helper).rb$/
-        require "action_view/helpers/#{$1}"
-        helper_module_name = $1.camelize
-        if Helpers.const_defined?(helper_module_name)
-          helpers << Helpers.const_get(helper_module_name)
-        end
-      end
-      return helpers
-    end
-
     def self.process_view_paths(value)
       ActionView::PathSet.new(Array(value))
+    end
+
+    attr_reader :helpers
+
+    class ProxyModule < Module
+      def initialize(receiver)
+        @receiver = receiver
+      end
+
+      def include(*args)
+        super(*args)
+        @receiver.extend(*args)
+      end
     end
 
     def initialize(view_paths = [], assigns_for_first_render = {}, controller = nil)#:nodoc:
       @assigns = assigns_for_first_render
       @assigns_added = nil
       @controller = controller
+      @helpers = ProxyModule.new(self)
       self.view_paths = view_paths
     end
 
@@ -238,37 +251,27 @@ module ActionView #:nodoc:
       local_assigns ||= {}
 
       if options.is_a?(String)
-        render_file(options, nil, local_assigns)
+        render(:file => options, :locals => local_assigns)
       elsif options == :update
         update_page(&block)
       elsif options.is_a?(Hash)
         options = options.reverse_merge(:locals => {})
-
-        if partial_layout = options.delete(:layout)
-          if block_given?
-            wrap_content_for_layout capture(&block) do
-              concat(render(options.merge(:partial => partial_layout)))
-            end
-          else
-            wrap_content_for_layout render(options) do
-              render(options.merge(:partial => partial_layout))
-            end
-          end
+        if options[:layout]
+          _render_with_layout(options, local_assigns, &block)
         elsif options[:file]
-          render_file(options[:file], nil, options[:locals])
-        elsif options[:partial] && options[:collection]
-          render_partial_collection(options[:partial], options[:collection], options[:spacer_template], options[:locals], options[:as])
+          if options[:use_full_path]
+            ActiveSupport::Deprecation.warn("use_full_path option has been deprecated and has no affect.", caller)
+          end
+
+          _pick_template(options[:file]).render_template(self, options[:locals])
         elsif options[:partial]
-          render_partial(options[:partial], options[:object], options[:locals])
+          render_partial(options)
         elsif options[:inline]
-          render_inline(options[:inline], options[:locals], options[:type])
+          InlineTemplate.new(options[:inline], options[:type]).render(self, options[:locals])
+        elsif options[:text]
+          options[:text]
         end
       end
-    end
-
-    # Returns true is the file may be rendered implicitly.
-    def file_public?(template_path)#:nodoc:
-      template_path.split('/').last[0,1] != '_'
     end
 
     # The format to be used when choosing between multiple templates with
@@ -284,118 +287,95 @@ module ActionView #:nodoc:
       end
     end
 
-    def file_exists?(template_path)
-      pick_template(template_path) ? true : false
-    rescue MissingTemplate
-      false
-    end
-
-    # Gets the extension for an existing template with the given template_path.
-    # Returns the format with the extension if that template exists.
-    #
-    #   pick_template('users/show')
-    #   # => 'users/show.html.erb'
-    #
-    #   pick_template('users/legacy')
-    #   # => 'users/legacy.rhtml'
-    #
-    def pick_template(template_path)
-      return template_path if template_path.respond_to?(:render)
-
-      path = template_path.sub(/^\//, '')
-      if m = path.match(/(.*)\.(\w+)$/)
-        template_file_name, template_file_extension = m[1], m[2]
-      else
-        template_file_name = path
-      end
-
-      # OPTIMIZE: Checks to lookup template in view path
-      if template = self.view_paths["#{template_file_name}.#{template_format}"]
-        template
-      elsif template = self.view_paths[template_file_name]
-        template
-      elsif _first_render && template = self.view_paths["#{template_file_name}.#{_first_render.format_and_extension}"]
-        template
-      elsif template_format == :js && template = self.view_paths["#{template_file_name}.html"]
-        @template_format = :html
-        template
-      else
-        template = Template.new(template_path, view_paths)
-
-        if self.class.warn_cache_misses && logger = ActionController::Base.logger
-          logger.debug "[PERFORMANCE] Rendering a template that was " +
-            "not found in view path. Templates outside the view path are " +
-            "not cached and result in expensive disk operations. Move this " +
-            "file into #{view_paths.join(':')} or add the folder to your " +
-            "view path list"
-        end
-
-        template
-      end
-    end
-
-    extend ActiveSupport::Memoizable
-    memoize :pick_template
-
     private
-      # Renders the template present at <tt>template_path</tt>. The hash in <tt>local_assigns</tt>
-      # is made available as local variables.
-      def render_file(template_path, use_full_path = nil, local_assigns = {}) #:nodoc:
-        unless use_full_path == nil
-          ActiveSupport::Deprecation.warn("use_full_path option has been deprecated and has no affect.", caller)
-        end
-
-        if defined?(ActionMailer) && defined?(ActionMailer::Base) && controller.is_a?(ActionMailer::Base) &&
-            template_path.is_a?(String) && !template_path.include?("/")
-          raise ActionViewError, <<-END_ERROR
-  Due to changes in ActionMailer, you need to provide the mailer_name along with the template name.
-
-    render "user_mailer/signup"
-    render :file => "user_mailer/signup"
-
-  If you are rendering a subtemplate, you must now use controller-like partial syntax:
-
-    render :partial => 'signup' # no mailer_name necessary
-          END_ERROR
-        end
-
-        template = pick_template(template_path)
-        template.render_template(self, local_assigns)
-      end
-
-      def render_inline(text, local_assigns = {}, type = nil)
-        InlineTemplate.new(text, type).render(self, local_assigns)
-      end
-
-      def wrap_content_for_layout(content)
-        original_content_for_layout, @content_for_layout = @content_for_layout, content
-        yield
-      ensure
-        @content_for_layout = original_content_for_layout
-      end
+      attr_accessor :_first_render, :_last_render
 
       # Evaluate the local assigns and pushes them to the view.
-      def evaluate_assigns
+      def _evaluate_assigns_and_ivars #:nodoc:
         unless @assigns_added
-          assign_variables_from_controller
+          @assigns.each { |key, value| instance_variable_set("@#{key}", value) }
+
+          if @controller
+            variables = @controller.instance_variables
+            variables -= @controller.protected_instance_variables if @controller.respond_to?(:protected_instance_variables)
+            variables.each {|name| instance_variable_set(name, @controller.instance_variable_get(name)) }
+          end
+
           @assigns_added = true
         end
       end
 
-      # Assigns instance variables from the controller to the view.
-      def assign_variables_from_controller
-        @assigns.each { |key, value| instance_variable_set("@#{key}", value) }
-      end
-
-      def set_controller_content_type(content_type)
+      def _set_controller_content_type(content_type) #:nodoc:
         if controller.respond_to?(:response)
           controller.response.content_type ||= content_type
         end
       end
 
-      def execute(method, local_assigns = {})
-        send(method, local_assigns) do |*names|
-          instance_variable_get "@content_for_#{names.first || 'layout'}"
+      def _pick_template(template_path)
+        return template_path if template_path.respond_to?(:render)
+
+        path = template_path.sub(/^\//, '')
+        if m = path.match(/(.*)\.(\w+)$/)
+          template_file_name, template_file_extension = m[1], m[2]
+        else
+          template_file_name = path
+        end
+
+        # OPTIMIZE: Checks to lookup template in view path
+        if template = self.view_paths["#{template_file_name}.#{template_format}"]
+          template
+        elsif template = self.view_paths[template_file_name]
+          template
+        elsif _first_render && template = self.view_paths["#{template_file_name}.#{_first_render.format_and_extension}"]
+          template
+        elsif template_format == :js && template = self.view_paths["#{template_file_name}.html"]
+          @template_format = :html
+          template
+        else
+          template = Template.new(template_path, view_paths)
+
+          if self.class.warn_cache_misses && logger
+            logger.debug "[PERFORMANCE] Rendering a template that was " +
+              "not found in view path. Templates outside the view path are " +
+              "not cached and result in expensive disk operations. Move this " +
+              "file into #{view_paths.join(':')} or add the folder to your " +
+              "view path list"
+          end
+
+          template
+        end
+      end
+      memoize :_pick_template
+
+      def _exempt_from_layout?(template_path) #:nodoc:
+        template = _pick_template(template_path).to_s
+        @@exempt_from_layout.any? { |ext| template =~ ext }
+      rescue ActionView::MissingTemplate
+        return false
+      end
+
+      def _render_with_layout(options, local_assigns, &block) #:nodoc:
+        partial_layout = options.delete(:layout)
+
+        if block_given?
+          begin
+            @_proc_for_layout = block
+            concat(render(options.merge(:partial => partial_layout)))
+          ensure
+            @_proc_for_layout = nil
+          end
+        else
+          begin
+            original_content_for_layout, @content_for_layout = @content_for_layout, render(options)
+            if (options[:inline] || options[:file] || options[:text])
+              @cached_content_for_layout = @content_for_layout
+              render(:file => partial_layout, :locals => local_assigns)
+            else
+              render(options.merge(:partial => partial_layout))
+            end
+          ensure
+            @content_for_layout = original_content_for_layout
+          end
         end
       end
   end

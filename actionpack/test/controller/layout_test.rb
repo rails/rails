@@ -41,19 +41,19 @@ class LayoutAutoDiscoveryTest < Test::Unit::TestCase
 
     @request.host = "www.nextangle.com"
   end
-  
+
   def test_application_layout_is_default_when_no_controller_match
     @controller = ProductController.new
     get :hello
     assert_equal 'layout_test.rhtml hello.rhtml', @response.body
   end
-  
+
   def test_controller_name_layout_name_match
     @controller = ItemController.new
     get :hello
     assert_equal 'item.rhtml hello.rhtml', @response.body
   end
-  
+
   def test_third_party_template_library_auto_discovers_layout
     ThirdPartyTemplateLibraryController.view_paths.reload!
     @controller = ThirdPartyTemplateLibraryController.new
@@ -63,14 +63,14 @@ class LayoutAutoDiscoveryTest < Test::Unit::TestCase
     assert_response :success
     assert_equal 'Mab', @response.body
   end
-  
+
   def test_namespaced_controllers_auto_detect_layouts
     @controller = ControllerNameSpace::NestedController.new
     get :hello
     assert_equal 'layouts/controller_name_space/nested', @controller.active_layout
     assert_equal 'controller_name_space/nested.rhtml hello.rhtml', @response.body
   end
-  
+
   def test_namespaced_controllers_auto_detect_layouts
     @controller = MultipleExtensions.new
     get :hello
@@ -78,53 +78,6 @@ class LayoutAutoDiscoveryTest < Test::Unit::TestCase
     assert_equal 'multiple_extensions.html.erb hello.rhtml', @response.body.strip
   end
 end
-
-class ExemptFromLayoutTest < Test::Unit::TestCase
-  def setup
-    @controller = LayoutTest.new
-    @request    = ActionController::TestRequest.new
-    @response   = ActionController::TestResponse.new
-  end
-
-  def test_rjs_exempt_from_layout
-    assert @controller.send!(:template_exempt_from_layout?, 'test.rjs')
-  end
-
-  def test_rhtml_and_rxml_not_exempt_from_layout
-    assert !@controller.send!(:template_exempt_from_layout?, 'test.rhtml')
-    assert !@controller.send!(:template_exempt_from_layout?, 'test.rxml')
-  end
-
-  def test_other_extension_not_exempt_from_layout
-    assert !@controller.send!(:template_exempt_from_layout?, 'test.random')
-  end
-
-  def test_add_extension_to_exempt_from_layout
-    ['rpdf', :rpdf].each do |ext|
-      assert_nothing_raised do
-        ActionController::Base.exempt_from_layout ext
-      end
-      assert @controller.send!(:template_exempt_from_layout?, "test.#{ext}")
-    end
-  end
-
-  def test_add_regexp_to_exempt_from_layout
-    ActionController::Base.exempt_from_layout /\.rdoc/
-    assert @controller.send!(:template_exempt_from_layout?, 'test.rdoc')
-  end
-
-  def test_rhtml_exempt_from_layout_status_should_prevent_layout_render
-    ActionController::Base.exempt_from_layout :rhtml
-    
-    assert @controller.send!(:template_exempt_from_layout?, 'test.rhtml')
-    assert @controller.send!(:template_exempt_from_layout?, 'hello.rhtml')
-
-    get :hello
-    assert_equal 'hello.rhtml', @response.body
-    ActionController::Base.exempt_from_layout.delete(/\.rhtml$/)
-  end
-end
-
 
 class DefaultLayoutController < LayoutTest
 end
@@ -156,19 +109,19 @@ class LayoutSetInResponseTest < Test::Unit::TestCase
     get :hello
     assert_equal 'layouts/layout_test', @response.layout
   end
-  
+
   def test_layout_set_when_set_in_controller
     @controller = HasOwnLayoutController.new
     get :hello
     assert_equal 'layouts/item', @response.layout
   end
-  
+
   def test_layout_set_when_using_render
     @controller = SetsLayoutInRenderController.new
     get :hello
     assert_equal 'layouts/third_party_template_library', @response.layout
   end
-  
+
   def test_layout_is_not_set_when_none_rendered
     @controller = RendersNoLayoutController.new
     get :hello
@@ -178,8 +131,6 @@ class LayoutSetInResponseTest < Test::Unit::TestCase
   def test_exempt_from_layout_honored_by_render_template
     ActionController::Base.exempt_from_layout :rhtml
     @controller = RenderWithTemplateOptionController.new
-
-    assert @controller.send(:template_exempt_from_layout?, 'alt/hello.rhtml')
 
     get :hello
     assert_equal "alt/hello.rhtml", @response.body.strip
@@ -249,4 +200,3 @@ class LayoutSymlinkedIsRenderedTest < Test::Unit::TestCase
     assert_equal "layouts/symlinked/symlinked_layout", @response.layout
   end
 end
-    

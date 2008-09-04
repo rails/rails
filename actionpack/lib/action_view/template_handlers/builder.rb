@@ -6,7 +6,7 @@ module ActionView
       include Compilable
 
       def compile(template)
-        "set_controller_content_type(Mime::XML);" +
+        "_set_controller_content_type(Mime::XML);" +
           "xml = ::Builder::XmlMarkup.new(:indent => 2);" +
           "self.output_buffer = xml.target!;" +
           template.source +

@@ -102,7 +102,13 @@ module ActionController
       args << format if format
       
       named_route = build_named_route_call(record_or_hash_or_array, namespace, inflection, options)
-      send!(named_route, *args)
+
+      url_options = options.except(:action, :routing_type, :format)
+      unless url_options.empty?
+        args.last.kind_of?(Hash) ? args.last.merge!(url_options) : args << url_options
+      end
+
+      __send__(named_route, *args)
     end
 
     # Returns the path component of a URL for the given record. It uses
@@ -114,19 +120,19 @@ module ActionController
 
     %w(edit new formatted).each do |action|
       module_eval <<-EOT, __FILE__, __LINE__
-        def #{action}_polymorphic_url(record_or_hash)
-          polymorphic_url(record_or_hash, :action => "#{action}")
+        def #{action}_polymorphic_url(record_or_hash, options = {})
+          polymorphic_url(record_or_hash, options.merge(:action => "#{action}"))
         end
 
-        def #{action}_polymorphic_path(record_or_hash)
-          polymorphic_url(record_or_hash, :action => "#{action}", :routing_type => :path)
+        def #{action}_polymorphic_path(record_or_hash, options = {})
+          polymorphic_url(record_or_hash, options.merge(:action => "#{action}", :routing_type => :path))
         end
       EOT
     end
 
     private
       def action_prefix(options)
-        options[:action] ? "#{options[:action]}_" : ""
+        options[:action] ? "#{options[:action]}_" : options[:format] ? "formatted_" : ""
       end
 
       def routing_type(options)
@@ -143,7 +149,7 @@ module ActionController
             if parent.is_a?(Symbol) || parent.is_a?(String)
               string << "#{parent}_"
             else
-              string << "#{RecordIdentifier.send!("singular_class_name", parent)}_"
+              string << "#{RecordIdentifier.__send__("singular_class_name", parent)}_"
             end
           end
         end
@@ -151,7 +157,7 @@ module ActionController
         if record.is_a?(Symbol) || record.is_a?(String)
           route << "#{record}_"
         else
-          route << "#{RecordIdentifier.send!("#{inflection}_class_name", record)}_"
+          route << "#{RecordIdentifier.__send__("#{inflection}_class_name", record)}_"
         end
 
         action_prefix(options) + namespace + route + routing_type(options).to_s

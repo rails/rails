@@ -26,12 +26,19 @@ module ActionView
     def render(view, local_assigns = {})
       compile(local_assigns)
 
-      view._first_render ||= self
-      view._last_render = self
+      view.send(:_first_render=, self) unless view.send(:_first_render)
+      view.send(:_last_render=, self)
 
-      view.send(:evaluate_assigns)
-      view.send(:set_controller_content_type, mime_type) if respond_to?(:mime_type)
-      view.send(:execute, method_name(local_assigns), local_assigns)
+      view.send(:_evaluate_assigns_and_ivars)
+      view.send(:_set_controller_content_type, mime_type) if respond_to?(:mime_type)
+
+      view.send(method_name(local_assigns), local_assigns) do |*names|
+        if proc = view.instance_variable_get("@_proc_for_layout")
+          view.capture(*names, &proc)
+        else
+          view.instance_variable_get("@content_for_#{names.first || 'layout'}")
+        end
+      end
     end
 
     def method_name(local_assigns)
@@ -65,7 +72,7 @@ module ActionView
         end_src
 
         begin
-          logger = ActionController::Base.logger
+          logger = defined?(ActionController) && Base.logger
           logger.debug "Compiling template #{render_symbol}" if logger
 
           ActionView::Base::CompiledTemplates.module_eval(source, filename, 0)

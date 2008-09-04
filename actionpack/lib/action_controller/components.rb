@@ -38,6 +38,7 @@ module ActionController #:nodoc:
     def self.included(base) #:nodoc:
       base.class_eval do
         include InstanceMethods
+        include ActiveSupport::Deprecation
         extend ClassMethods
         helper HelperMethods
 
@@ -64,7 +65,7 @@ module ActionController #:nodoc:
 
     module HelperMethods
       def render_component(options)
-        @controller.send!(:render_component_as_string, options)
+        @controller.__send__(:render_component_as_string, options)
       end
     end
 
@@ -82,6 +83,7 @@ module ActionController #:nodoc:
             render_for_text(component_response(options, true).body, response.headers["Status"])
           end
         end
+        deprecate :render_component => "Please install render_component plugin from http://github.com/rails/render_component/tree/master"
 
         # Returns the component response as a string
         def render_component_as_string(options) #:doc:
@@ -95,6 +97,7 @@ module ActionController #:nodoc:
             end
           end
         end
+        deprecate :render_component_as_string => "Please install render_component plugin from http://github.com/rails/render_component/tree/master"
 
         def flash_with_components(refresh = false) #:nodoc:
           if !defined?(@_flash) || refresh

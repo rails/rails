@@ -32,6 +32,10 @@ class StringInflectionsTest < Test::Unit::TestCase
     end
   end
 
+  def test_camelize_lower
+    assert_equal('capital', 'Capital'.camelize(:lower))
+  end
+
   def test_underscore
     CamelToUnderscore.each do |camel, underscore|
       assert_equal(underscore, camel.underscore)

@@ -1,7 +1,7 @@
 require 'abstract_unit'
 
 class DuplicableTest < Test::Unit::TestCase
-  NO  = [nil, false, true, :symbol, 1, 2.3, BigDecimal.new('4.56')]
+  NO  = [nil, false, true, :symbol, 1, 2.3, BigDecimal.new('4.56'), Class.new]
   YES = ['1', Object.new, /foo/, [], {}, Time.now]
 
   def test_duplicable

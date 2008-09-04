@@ -191,6 +191,42 @@ class DirtyTest < ActiveRecord::TestCase
     assert !pirate.changed?
   end
 
+  def test_reverted_changes_are_not_dirty
+    phrase = "shiver me timbers"
+    pirate = Pirate.create!(:catchphrase => phrase)
+    pirate.catchphrase = "*hic*"
+    assert pirate.changed?
+    pirate.catchphrase = phrase
+    assert !pirate.changed?
+  end
+
+  def test_reverted_changes_are_not_dirty_after_multiple_changes
+    phrase = "shiver me timbers"
+    pirate = Pirate.create!(:catchphrase => phrase)
+    10.times do |i|
+      pirate.catchphrase = "*hic*" * i
+      assert pirate.changed?
+    end
+    assert pirate.changed?
+    pirate.catchphrase = phrase
+    assert !pirate.changed?
+  end
+
+
+  def test_reverted_changes_are_not_dirty_going_from_nil_to_value_and_back
+    pirate = Pirate.create!(:catchphrase => "Yar!")
+
+    pirate.parrot_id = 1
+    assert pirate.changed?
+    assert pirate.parrot_id_changed?
+    assert !pirate.catchphrase_changed?
+
+    pirate.parrot_id = nil
+    assert !pirate.changed?
+    assert !pirate.parrot_id_changed?
+    assert !pirate.catchphrase_changed?
+  end
+
   def test_save_should_store_serialized_attributes_even_with_partial_updates
     with_partial_updates(Topic) do
       topic = Topic.create!(:content => {:a => "a"})

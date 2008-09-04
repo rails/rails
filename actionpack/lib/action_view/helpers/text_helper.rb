@@ -1,5 +1,14 @@
 require 'action_view/helpers/tag_helper'
-require 'html/document'
+
+begin
+  require 'html/document'
+rescue LoadError
+  html_scanner_path = "#{File.dirname(__FILE__)}/../../action_controller/vendor/html-scanner"
+  if File.directory?(html_scanner_path)
+    $:.unshift html_scanner_path
+    require 'html/document'
+  end
+end
 
 module ActionView
   module Helpers #:nodoc:
@@ -289,7 +298,7 @@ module ActionView
             ""
           else
             textilized = RedCloth.new(text, [ :hard_breaks ])
-            textilized.hard_breaks = true if textilized.respond_to?("hard_breaks=")
+            textilized.hard_breaks = true if textilized.respond_to?(:hard_breaks=)
             textilized.to_html
           end
         end
@@ -439,8 +448,10 @@ module ActionView
       # array every time it is called. This can be used for example, to alternate
       # classes for table rows.  You can use named cycles to allow nesting in loops.
       # Passing a Hash as the last parameter with a <tt>:name</tt> key will create a
-      # named cycle.  You can manually reset a cycle by calling reset_cycle and passing the
-      # name of the cycle.
+      # named cycle. The default name for a cycle without a +:name+ key is
+      # <tt>"default"</tt>. You can manually reset a cycle by calling reset_cycle
+      # and passing the name of the cycle. The current cycle string can be obtained
+      # anytime using the current_cycle method.
       #
       # ==== Examples
       #   # Alternate CSS classes for even and odd numbers...
@@ -487,6 +498,23 @@ module ActionView
         return cycle.to_s
       end
 
+      # Returns the current cycle string after a cycle has been started. Useful
+      # for complex table highlighing or any other design need which requires
+      # the current cycle string in more than one place.
+      #
+      # ==== Example
+      #   # Alternate background colors
+      #   @items = [1,2,3,4]
+      #   <% @items.each do |item| %>
+      #     <div style="background-color:<%= cycle("red","white","blue") %>">
+      #       <span style="background-color:<%= current_cycle %>"><%= item %></span>
+      #     </div>
+      #   <% end %>
+      def current_cycle(name = "default")
+        cycle = get_cycle(name)
+        cycle.current_value unless cycle.nil?
+      end
+
       # Resets a cycle so that it starts from the first element the next time
       # it is called. Pass in +name+ to reset a named cycle.
       #
@@ -523,10 +551,28 @@ module ActionView
           @index = 0
         end
 
+        def current_value
+          @values[previous_index].to_s
+        end
+
         def to_s
           value = @values[@index].to_s
-          @index = (@index + 1) % @values.size
+          @index = next_index
           return value
+        end
+
+        private
+
+        def next_index
+          step_index(1)
+        end
+
+        def previous_index
+          step_index(-1)
+        end
+
+        def step_index(n)
+          (@index + n) % @values.size
         end
       end
 

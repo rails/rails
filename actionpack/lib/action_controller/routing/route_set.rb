@@ -115,7 +115,7 @@ module ActionController
         def install(destinations = [ActionController::Base, ActionView::Base], regenerate = false)
           reset! if regenerate
           Array(destinations).each do |dest|
-            dest.send! :include, @module
+            dest.__send__(:include, @module)
           end
         end
 
@@ -353,7 +353,7 @@ module ActionController
           if generate_all
             # Used by caching to expire all paths for a resource
             return routes.collect do |route|
-              route.send!(method, options, merged, expire_on)
+              route.__send__(method, options, merged, expire_on)
             end.compact
           end
 
@@ -361,7 +361,7 @@ module ActionController
           routes = routes_by_controller[controller][action][options.keys.sort_by { |x| x.object_id }]
 
           routes.each do |route|
-            results = route.send!(method, options, merged, expire_on)
+            results = route.__send__(method, options, merged, expire_on)
             return results if results && (!results.is_a?(Array) || results.first)
           end
         end

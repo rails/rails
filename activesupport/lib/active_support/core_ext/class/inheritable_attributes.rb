@@ -91,14 +91,14 @@ class Class # :nodoc:
   def inheritable_attributes
     @inheritable_attributes ||= EMPTY_INHERITABLE_ATTRIBUTES
   end
-  
+
   def write_inheritable_attribute(key, value)
     if inheritable_attributes.equal?(EMPTY_INHERITABLE_ATTRIBUTES)
       @inheritable_attributes = {}
     end
     inheritable_attributes[key] = value
   end
-  
+
   def write_inheritable_array(key, elements)
     write_inheritable_attribute(key, []) if read_inheritable_attribute(key).nil?
     write_inheritable_attribute(key, read_inheritable_attribute(key) + elements)
@@ -112,7 +112,7 @@ class Class # :nodoc:
   def read_inheritable_attribute(key)
     inheritable_attributes[key]
   end
-  
+
   def reset_inheritable_attributes
     @inheritable_attributes = EMPTY_INHERITABLE_ATTRIBUTES
   end
@@ -123,7 +123,7 @@ class Class # :nodoc:
 
     def inherited_with_inheritable_attributes(child)
       inherited_without_inheritable_attributes(child) if respond_to?(:inherited_without_inheritable_attributes)
-      
+
       if inheritable_attributes.equal?(EMPTY_INHERITABLE_ATTRIBUTES)
         new_inheritable_attributes = EMPTY_INHERITABLE_ATTRIBUTES
       else
@@ -131,7 +131,7 @@ class Class # :nodoc:
           memo.update(key => value.duplicable? ? value.dup : value)
         end
       end
-      
+
       child.instance_variable_set('@inheritable_attributes', new_inheritable_attributes)
     end
 

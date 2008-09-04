@@ -955,7 +955,7 @@ module Test #:nodoc:
           ActiveRecord::Base.connection.rollback_db_transaction
           ActiveRecord::Base.connection.decrement_open_transactions
         end
-        ActiveRecord::Base.verify_active_connections!
+        ActiveRecord::Base.clear_active_connections!
       end
 
       private

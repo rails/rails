@@ -236,10 +236,17 @@ class RackResponseTest < BaseRackTest
 
   def test_simple_output
     @response.body = "Hello, World!"
+    @response.prepare!
 
     status, headers, body = @response.out(@output)
     assert_equal "200 OK", status
-    assert_equal({"Content-Type" => "text/html", "Cache-Control" => "no-cache", "Set-Cookie" => []}, headers)
+    assert_equal({
+      "Content-Type" => "text/html; charset=utf-8",
+      "Cache-Control" => "private, max-age=0, must-revalidate",
+      "ETag" => '"65a8e27d8879283831b664bd8b7f0ad4"',
+      "Set-Cookie" => [],
+      "Content-Length" => "13"
+    }, headers)
 
     parts = []
     body.each { |part| parts << part }
@@ -250,10 +257,11 @@ class RackResponseTest < BaseRackTest
     @response.body = Proc.new do |response, output|
       5.times { |n| output.write(n) }
     end
+    @response.prepare!
 
     status, headers, body = @response.out(@output)
     assert_equal "200 OK", status
-    assert_equal({"Content-Type" => "text/html", "Cache-Control" => "no-cache", "Set-Cookie" => []}, headers)
+    assert_equal({"Content-Type" => "text/html; charset=utf-8", "Cache-Control" => "no-cache", "Set-Cookie" => []}, headers)
 
     parts = []
     body.each { |part| parts << part }
@@ -265,13 +273,16 @@ class RackResponseTest < BaseRackTest
     @request.cgi.send :instance_variable_set, '@output_cookies', [cookie]
 
     @response.body = "Hello, World!"
+    @response.prepare!
 
     status, headers, body = @response.out(@output)
     assert_equal "200 OK", status
     assert_equal({
-      "Content-Type" => "text/html",
-      "Cache-Control" => "no-cache",
-      "Set-Cookie" => ["name=Josh; path="]
+      "Content-Type" => "text/html; charset=utf-8",
+      "Cache-Control" => "private, max-age=0, must-revalidate",
+      "ETag" => '"65a8e27d8879283831b664bd8b7f0ad4"',
+      "Set-Cookie" => ["name=Josh; path="],
+      "Content-Length" => "13"
     }, headers)
 
     parts = []
@@ -285,18 +296,18 @@ class RackResponseHeadersTest < BaseRackTest
     super
     @response = ActionController::RackResponse.new(@request)
     @output = StringIO.new('')
-    @response.headers['Status'] = 200
+    @response.headers['Status'] = "200 OK"
   end
 
   def test_content_type
     [204, 304].each do |c|
-      @response.headers['Status'] = c
-      assert !response_headers.has_key?("Content-Type")
+      @response.headers['Status'] = c.to_s
+      assert !response_headers.has_key?("Content-Type"), "#{c} should not have Content-Type header"
     end
 
     [200, 302, 404, 500].each do |c|
-      @response.headers['Status'] = c
-      assert response_headers.has_key?("Content-Type")
+      @response.headers['Status'] = c.to_s
+      assert response_headers.has_key?("Content-Type"), "#{c} did not have Content-Type header"
     end
   end
 
@@ -305,8 +316,8 @@ class RackResponseHeadersTest < BaseRackTest
   end
 
   private
-
-  def response_headers
-    @response.out(@output)[1]
-  end
+    def response_headers
+      @response.prepare!
+      @response.out(@output)[1]
+    end
 end

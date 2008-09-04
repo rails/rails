@@ -451,6 +451,18 @@ class ValidationsTest < ActiveRecord::TestCase
     t2.title = nil
     assert t2.valid?, "should validate with nil"
     assert t2.save, "should save with nil"
+
+    with_kcode('UTF8') do
+      t_utf8 = Topic.new("title" => "Я тоже уникальный!")
+      assert t_utf8.save, "Should save t_utf8 as unique"
+
+      # If database hasn't UTF-8 character set, this test fails
+      if Topic.find(t_utf8, :select => 'LOWER(title) AS title').title == "я тоже уникальный!"
+        t2_utf8 = Topic.new("title" => "я тоже УНИКАЛЬНЫЙ!")
+        assert !t2_utf8.valid?, "Shouldn't be valid"
+        assert !t2_utf8.save, "Shouldn't save t2_utf8 as unique"
+      end
+    end
   end
 
   def test_validate_case_sensitive_uniqueness
@@ -1420,8 +1432,8 @@ class ValidatesNumericalityTest < ActiveRecord::TestCase
   def test_validates_numericality_of_with_nil_allowed
     Topic.validates_numericality_of :approved, :allow_nil => true
 
-    invalid!(BLANK + JUNK)
-    valid!(NIL + FLOATS + INTEGERS + BIGDECIMAL + INFINITY)
+    invalid!(JUNK)
+    valid!(NIL + BLANK + FLOATS + INTEGERS + BIGDECIMAL + INFINITY)
   end
 
   def test_validates_numericality_of_with_integer_only
@@ -1434,8 +1446,8 @@ class ValidatesNumericalityTest < ActiveRecord::TestCase
   def test_validates_numericality_of_with_integer_only_and_nil_allowed
     Topic.validates_numericality_of :approved, :only_integer => true, :allow_nil => true
 
-    invalid!(BLANK + JUNK + FLOATS + BIGDECIMAL + INFINITY)
-    valid!(NIL + INTEGERS)
+    invalid!(JUNK + FLOATS + BIGDECIMAL + INFINITY)
+    valid!(NIL + BLANK + INTEGERS)
   end
 
   def test_validates_numericality_with_greater_than

@@ -78,7 +78,7 @@ module ActiveSupport #:nodoc:
         #
         #   Time.utc(2000).in_time_zone('Alaska')  # => Fri, 31 Dec 1999 15:00:00 AKST -09:00
         def in_time_zone(zone = ::Time.zone)
-          ActiveSupport::TimeWithZone.new(utc? ? self : getutc, ::Time.send!(:get_zone, zone))
+          ActiveSupport::TimeWithZone.new(utc? ? self : getutc, ::Time.__send__(:get_zone, zone))
         end
       end
     end

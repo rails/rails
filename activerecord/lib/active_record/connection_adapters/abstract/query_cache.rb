@@ -4,7 +4,6 @@ module ActiveRecord
       class << self
         def included(base)
           base.class_eval do
-            attr_accessor :query_cache_enabled
             alias_method_chain :columns, :query_cache
             alias_method_chain :select_all, :query_cache
           end
@@ -16,7 +15,7 @@ module ActiveRecord
           method_names.each do |method_name|
             base.class_eval <<-end_code, __FILE__, __LINE__
               def #{method_name}_with_query_dirty(*args)
-                clear_query_cache if @query_cache_enabled
+                clear_query_cache if query_cache_enabled
                 #{method_name}_without_query_dirty(*args)
               end
 
@@ -26,22 +25,38 @@ module ActiveRecord
         end
       end
 
+      def query_cache_enabled
+        Thread.current['query_cache_enabled']
+      end
+
+      def query_cache_enabled=(flag)
+        Thread.current['query_cache_enabled'] = flag
+      end
+
+      def query_cache
+        Thread.current['query_cache']
+      end
+
+      def query_cache=(cache)
+        Thread.current['query_cache'] = cache
+      end
+
       # Enable the query cache within the block.
       def cache
-        old, @query_cache_enabled = @query_cache_enabled, true
-        @query_cache ||= {}
+        old, self.query_cache_enabled = query_cache_enabled, true
+        self.query_cache ||= {}
         yield
       ensure
         clear_query_cache
-        @query_cache_enabled = old
+        self.query_cache_enabled = old
       end
 
       # Disable the query cache within the block.
       def uncached
-        old, @query_cache_enabled = @query_cache_enabled, false
+        old, self.query_cache_enabled = query_cache_enabled, false
         yield
       ensure
-        @query_cache_enabled = old
+        self.query_cache_enabled = old
       end
 
       # Clears the query cache.
@@ -51,11 +66,11 @@ module ActiveRecord
       # the same SQL query and repeatedly return the same result each time, silently
       # undermining the randomness you were expecting.
       def clear_query_cache
-        @query_cache.clear if @query_cache
+        query_cache.clear if query_cache
       end
 
       def select_all_with_query_cache(*args)
-        if @query_cache_enabled
+        if query_cache_enabled
           cache_sql(args.first) { select_all_without_query_cache(*args) }
         else
           select_all_without_query_cache(*args)
@@ -63,8 +78,8 @@ module ActiveRecord
       end
 
       def columns_with_query_cache(*args)
-        if @query_cache_enabled
-          @query_cache["SHOW FIELDS FROM #{args.first}"] ||= columns_without_query_cache(*args)
+        if query_cache_enabled
+          query_cache["SHOW FIELDS FROM #{args.first}"] ||= columns_without_query_cache(*args)
         else
           columns_without_query_cache(*args)
         end
@@ -73,11 +88,11 @@ module ActiveRecord
       private
         def cache_sql(sql)
           result =
-            if @query_cache.has_key?(sql)
+            if query_cache.has_key?(sql)
               log_info(sql, "CACHE", 0.0)
-              @query_cache[sql]
+              query_cache[sql]
             else
-              @query_cache[sql] = yield
+              query_cache[sql] = yield
             end
 
           if Array === result

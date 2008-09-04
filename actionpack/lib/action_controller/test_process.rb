@@ -3,6 +3,8 @@ require 'action_controller/test_case'
 
 module ActionController #:nodoc:
   class Base
+    attr_reader :assigns
+
     # Process a test request called with a TestRequest object.
     def self.process_test(request)
       new.process_test(request)
@@ -14,7 +16,12 @@ module ActionController #:nodoc:
 
     def process_with_test(*args)
       returning process_without_test(*args) do
-        add_variables_to_assigns
+        @assigns = {}
+        (instance_variable_names - @@protected_instance_variables).each do |var|
+          value = instance_variable_get(var)
+          @assigns[var[1..-1]] = value
+          response.template.assigns[var[1..-1]] = value if response
+        end
       end
     end
 
@@ -138,7 +145,7 @@ module ActionController #:nodoc:
         @host                    = "test.host"
         @request_uri             = "/"
         @user_agent              = "Rails Testing"
-        self.remote_addr         = "0.0.0.0"        
+        self.remote_addr         = "0.0.0.0"
         @env["SERVER_PORT"]      = 80
         @env['REQUEST_METHOD']   = "GET"
       end
@@ -160,16 +167,16 @@ module ActionController #:nodoc:
   module TestResponseBehavior #:nodoc:
     # The response code of the request
     def response_code
-      headers['Status'][0,3].to_i rescue 0
+      status[0,3].to_i rescue 0
     end
-    
+
     # Returns a String to ensure compatibility with Net::HTTPResponse
     def code
-      headers['Status'].to_s.split(' ')[0]
+      status.to_s.split(' ')[0]
     end
 
     def message
-      headers['Status'].to_s.split(' ',2)[1]
+      status.to_s.split(' ',2)[1]
     end
 
     # Was the response successful?
@@ -211,7 +218,7 @@ module ActionController #:nodoc:
     # Returns the template of the file which was used to
     # render this response (or nil)
     def rendered_template
-      template._first_render
+      template.send(:_first_render)
     end
 
     # A shortcut to the flash. Returns an empty hash if no session flash exists.
@@ -246,11 +253,11 @@ module ActionController #:nodoc:
 
     # Does the specified template object exist?
     def has_template_object?(name=nil)
-      !template_objects[name].nil?      
+      !template_objects[name].nil?
     end
 
     # Returns the response cookies, converted to a Hash of (name => CGI::Cookie) pairs
-    # 
+    #
     #   assert_equal ['AuthorOfNewPage'], r.cookies['author'].value
     def cookies
       headers['cookie'].inject({}) { |hash, cookie| hash[cookie.name] = cookie; hash }
@@ -322,7 +329,7 @@ module ActionController #:nodoc:
   #
   # Usage example, within a functional test:
   #   post :change_avatar, :avatar => ActionController::TestUploadedFile.new(Test::Unit::TestCase.fixture_path + '/files/spongebob.png', 'image/png')
-  # 
+  #
   # Pass a true third parameter to ensure the uploaded file is opened in binary mode (only required for Windows):
   #   post :change_avatar, :avatar => ActionController::TestUploadedFile.new(Test::Unit::TestCase.fixture_path + '/files/spongebob.png', 'image/png', :binary)
   require 'tempfile'
@@ -331,7 +338,7 @@ module ActionController #:nodoc:
     attr_reader :original_filename
 
     # The content type of the "uploaded" file
-    attr_reader :content_type
+    attr_accessor :content_type
 
     def initialize(path, content_type = Mime::TEXT, binary = false)
       raise "#{path} file does not exist" unless File.exist?(path)
@@ -350,7 +357,7 @@ module ActionController #:nodoc:
     alias local_path path
 
     def method_missing(method_name, *args, &block) #:nodoc:
-      @tempfile.send!(method_name, *args, &block)
+      @tempfile.__send__(method_name, *args, &block)
     end
   end
 
@@ -396,20 +403,20 @@ module ActionController #:nodoc:
     def xml_http_request(request_method, action, parameters = nil, session = nil, flash = nil)
       @request.env['HTTP_X_REQUESTED_WITH'] = 'XMLHttpRequest'
       @request.env['HTTP_ACCEPT'] = 'text/javascript, text/html, application/xml, text/xml, */*'
-      returning send!(request_method, action, parameters, session, flash) do
+      returning __send__(request_method, action, parameters, session, flash) do
         @request.env.delete 'HTTP_X_REQUESTED_WITH'
         @request.env.delete 'HTTP_ACCEPT'
       end
     end
     alias xhr :xml_http_request
 
-    def assigns(key = nil) 
-      if key.nil? 
-        @response.template.assigns 
-      else 
-        @response.template.assigns[key.to_s] 
-      end 
-    end 
+    def assigns(key = nil)
+      if key.nil?
+        @response.template.assigns
+      else
+        @response.template.assigns[key.to_s]
+      end
+    end
 
     def session
       @response.session
@@ -429,7 +436,7 @@ module ActionController #:nodoc:
 
     def build_request_uri(action, parameters)
       unless @request.env['REQUEST_URI']
-        options = @controller.send!(:rewrite_options, parameters)
+        options = @controller.__send__(:rewrite_options, parameters)
         options.update(:only_path => true, :action => action)
 
         url = ActionController::UrlRewriter.new(@request, parameters)
@@ -468,7 +475,7 @@ module ActionController #:nodoc:
     #   post :change_avatar, :avatar => fixture_file_upload('/files/spongebob.png', 'image/png', :binary)
     def fixture_file_upload(path, mime_type = nil, binary = false)
       ActionController::TestUploadedFile.new(
-        Test::Unit::TestCase.respond_to?(:fixture_path) ? Test::Unit::TestCase.fixture_path + path : path, 
+        Test::Unit::TestCase.respond_to?(:fixture_path) ? Test::Unit::TestCase.fixture_path + path : path,
         mime_type,
         binary
       )
@@ -476,7 +483,7 @@ module ActionController #:nodoc:
 
     # A helper to make it easier to test different route configurations.
     # This method temporarily replaces ActionController::Routing::Routes
-    # with a new RouteSet instance. 
+    # with a new RouteSet instance.
     #
     # The new instance is yielded to the passed block. Typically the block
     # will create some routes using <tt>map.draw { map.connect ... }</tt>:

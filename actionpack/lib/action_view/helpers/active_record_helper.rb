@@ -189,15 +189,15 @@ module ActionView
           end
           options[:object_name] ||= params.first
 
-          I18n.with_options :locale => options[:locale], :scope => [:active_record, :error] do |locale|
+          I18n.with_options :locale => options[:locale], :scope => [:activerecord, :errors, :template] do |locale|
             header_message = if options.include?(:header_message)
               options[:header_message]
             else
               object_name = options[:object_name].to_s.gsub('_', ' ')
-              object_name = I18n.t(object_name, :default => object_name)
-              locale.t :header_message, :count => count, :object_name => object_name
+              object_name = I18n.t(object_name, :default => object_name, :scope => [:activerecord, :models], :count => 1)
+              locale.t :header, :count => count, :model => object_name
             end
-            message = options.include?(:message) ? options[:message] : locale.t(:message)
+            message = options.include?(:message) ? options[:message] : locale.t(:body)
             error_messages = objects.sum {|object| object.errors.full_messages.map {|msg| content_tag(:li, msg) } }.join
 
             contents = ''
@@ -246,7 +246,7 @@ module ActionView
 
       alias_method :tag_without_error_wrapping, :tag
       def tag(name, options)
-        if object.respond_to?("errors") && object.errors.respond_to?("on")
+        if object.respond_to?(:errors) && object.errors.respond_to?(:on)
           error_wrapping(tag_without_error_wrapping(name, options), object.errors.on(@method_name))
         else
           tag_without_error_wrapping(name, options)
@@ -255,7 +255,7 @@ module ActionView
 
       alias_method :content_tag_without_error_wrapping, :content_tag
       def content_tag(name, value, options)
-        if object.respond_to?("errors") && object.errors.respond_to?("on")
+        if object.respond_to?(:errors) && object.errors.respond_to?(:on)
           error_wrapping(content_tag_without_error_wrapping(name, value, options), object.errors.on(@method_name))
         else
           content_tag_without_error_wrapping(name, value, options)
@@ -264,7 +264,7 @@ module ActionView
 
       alias_method :to_date_select_tag_without_error_wrapping, :to_date_select_tag
       def to_date_select_tag(options = {}, html_options = {})
-        if object.respond_to?("errors") && object.errors.respond_to?("on")
+        if object.respond_to?(:errors) && object.errors.respond_to?(:on)
           error_wrapping(to_date_select_tag_without_error_wrapping(options, html_options), object.errors.on(@method_name))
         else
           to_date_select_tag_without_error_wrapping(options, html_options)
@@ -273,7 +273,7 @@ module ActionView
 
       alias_method :to_datetime_select_tag_without_error_wrapping, :to_datetime_select_tag
       def to_datetime_select_tag(options = {}, html_options = {})
-        if object.respond_to?("errors") && object.errors.respond_to?("on")
+        if object.respond_to?(:errors) && object.errors.respond_to?(:on)
             error_wrapping(to_datetime_select_tag_without_error_wrapping(options, html_options), object.errors.on(@method_name))
           else
             to_datetime_select_tag_without_error_wrapping(options, html_options)
@@ -282,7 +282,7 @@ module ActionView
 
       alias_method :to_time_select_tag_without_error_wrapping, :to_time_select_tag
       def to_time_select_tag(options = {}, html_options = {})
-        if object.respond_to?("errors") && object.errors.respond_to?("on")
+        if object.respond_to?(:errors) && object.errors.respond_to?(:on)
           error_wrapping(to_time_select_tag_without_error_wrapping(options, html_options), object.errors.on(@method_name))
         else
           to_time_select_tag_without_error_wrapping(options, html_options)
@@ -298,7 +298,7 @@ module ActionView
       end
 
       def column_type
-        object.send("column_for_attribute", @method_name).type
+        object.send(:column_for_attribute, @method_name).type
       end
     end
   end

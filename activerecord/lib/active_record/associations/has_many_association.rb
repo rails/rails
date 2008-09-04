@@ -5,23 +5,6 @@ module ActiveRecord
     # If the association has a <tt>:through</tt> option further specialization
     # is provided by its child HasManyThroughAssociation.
     class HasManyAssociation < AssociationCollection #:nodoc:
-      # Count the number of associated records. All arguments are optional.
-      def count(*args)
-        if @reflection.options[:counter_sql]
-          @reflection.klass.count_by_sql(@counter_sql)
-        elsif @reflection.options[:finder_sql]
-          @reflection.klass.count_by_sql(@finder_sql)
-        else
-          column_name, options = @reflection.klass.send(:construct_count_options_from_args, *args)          
-          options[:conditions] = options[:conditions].blank? ?
-            @finder_sql :
-            @finder_sql + " AND (#{sanitize_sql(options[:conditions])})"
-          options[:include] ||= @reflection.options[:include]
-
-          @reflection.klass.count(column_name, options)
-        end
-      end
-
       protected
         def owner_quoted_id
           if @reflection.options[:primary_key]
@@ -49,8 +32,11 @@ module ActiveRecord
           else
             @reflection.klass.count(:conditions => @counter_sql, :include => @reflection.options[:include])
           end
-          
-          @target = [] and loaded if count == 0
+
+          # If there's nothing in the database and @target has no new records
+          # we are certain the current target is an empty array. This is a
+          # documented side-effect of the method that may avoid an extra SELECT.
+          @target ||= [] and loaded if count == 0
           
           if @reflection.options[:limit]
             count = [ @reflection.options[:limit], count ].min

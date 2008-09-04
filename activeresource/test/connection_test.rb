@@ -185,6 +185,6 @@ class ConnectionTest < Test::Unit::TestCase
     end
 
     def handle_response(response)
-      @conn.send!(:handle_response, response)
+      @conn.__send__(:handle_response, response)
     end
 end

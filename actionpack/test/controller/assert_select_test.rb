@@ -433,6 +433,17 @@ class AssertSelectTest < Test::Unit::TestCase
     assert_select_rjs :remove, "test1"
   end
 
+  def test_assert_select_rjs_for_remove_offers_useful_error_when_assertion_fails
+    render_rjs do |page|
+      page.remove "test_with_typo"
+    end
+
+    assert_select_rjs :remove, "test1"
+
+    rescue Test::Unit::AssertionFailedError
+      assert_equal "No RJS statement that removes 'test1' was rendered.", $!.message
+  end
+
   def test_assert_select_rjs_for_remove_ignores_block
     render_rjs do |page|
       page.remove "test1"
@@ -452,6 +463,17 @@ class AssertSelectTest < Test::Unit::TestCase
     end
 
     assert_select_rjs :show, "test1"
+  end
+
+  def test_assert_select_rjs_for_show_offers_useful_error_when_assertion_fails
+    render_rjs do |page|
+      page.show "test_with_typo"
+    end
+
+    assert_select_rjs :show, "test1"
+
+    rescue Test::Unit::AssertionFailedError
+      assert_equal "No RJS statement that shows 'test1' was rendered.", $!.message
   end
 
   def test_assert_select_rjs_for_show_ignores_block
@@ -475,6 +497,17 @@ class AssertSelectTest < Test::Unit::TestCase
     assert_select_rjs :hide, "test1"
   end
 
+  def test_assert_select_rjs_for_hide_offers_useful_error_when_assertion_fails
+    render_rjs do |page|
+      page.hide "test_with_typo"
+    end
+
+    assert_select_rjs :hide, "test1"
+
+    rescue Test::Unit::AssertionFailedError
+      assert_equal "No RJS statement that hides 'test1' was rendered.", $!.message
+  end
+
   def test_assert_select_rjs_for_hide_ignores_block
     render_rjs do |page|
       page.hide "test1"
@@ -494,6 +527,17 @@ class AssertSelectTest < Test::Unit::TestCase
     end
 
     assert_select_rjs :toggle, "test1"
+  end
+
+  def test_assert_select_rjs_for_toggle_offers_useful_error_when_assertion_fails
+    render_rjs do |page|
+      page.toggle "test_with_typo"
+    end
+
+    assert_select_rjs :toggle, "test1"
+
+    rescue Test::Unit::AssertionFailedError
+      assert_equal "No RJS statement that toggles 'test1' was rendered.", $!.message
   end
 
   def test_assert_select_rjs_for_toggle_ignores_block
@@ -553,6 +597,11 @@ class AssertSelectTest < Test::Unit::TestCase
     assert_select_rjs :insert_html do
       assert_select "div", 4
     end
+  end
+
+  def test_assert_select_rjs_raise_errors
+    assert_raises(ArgumentError) { assert_select_rjs(:destroy) }
+    assert_raises(ArgumentError) { assert_select_rjs(:insert, :left) }
   end
 
   # Simple selection from a single result.

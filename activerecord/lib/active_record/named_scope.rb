@@ -101,9 +101,9 @@ module ActiveRecord
     
     class Scope
       attr_reader :proxy_scope, :proxy_options
-
+      NON_DELEGATE_METHODS = %w(nil? send object_id class extend find size count sum average maximum minimum paginate first last empty? any? respond_to?).to_set
       [].methods.each do |m|
-        unless m =~ /(^__|^nil\?|^send|^object_id$|class|extend|find|count|sum|average|maximum|minimum|paginate|first|last|empty?|any?|respond_to?)/
+        unless m =~ /^__/ || NON_DELEGATE_METHODS.include?(m.to_s)
           delegate m, :to => :proxy_found
         end
       end
@@ -136,12 +136,16 @@ module ActiveRecord
         end
       end
 
+      def size
+        @found ? @found.length : count
+      end
+
       def empty?
         @found ? @found.empty? : count.zero?
       end
 
-      def respond_to?(method)
-        super || @proxy_scope.respond_to?(method)
+      def respond_to?(method, include_private = false)
+        super || @proxy_scope.respond_to?(method, include_private)
       end
 
       def any?

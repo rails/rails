@@ -48,7 +48,7 @@ module ActionController #:nodoc:
     def initialize(cgi, session_options = {})
       @cgi = cgi
       @session_options = session_options
-      @env = @cgi.send!(:env_table)
+      @env = @cgi.__send__(:env_table)
       super()
     end
 
@@ -107,7 +107,7 @@ module ActionController #:nodoc:
     end
 
     def method_missing(method_id, *arguments)
-      @cgi.send!(method_id, *arguments) rescue super
+      @cgi.__send__(method_id, *arguments) rescue super
     end
 
     private
@@ -164,7 +164,7 @@ end_msg
       begin
         output.write(@cgi.header(@headers))
 
-        if @cgi.send!(:env_table)['REQUEST_METHOD'] == 'HEAD'
+        if @cgi.__send__(:env_table)['REQUEST_METHOD'] == 'HEAD'
           return
         elsif @body.respond_to?(:call)
           # Flush the output now in case the @body Proc uses
