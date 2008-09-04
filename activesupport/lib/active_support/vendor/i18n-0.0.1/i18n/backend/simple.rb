@@ -4,6 +4,7 @@ module I18n
   module Backend
     class Simple
       INTERPOLATION_RESERVED_KEYS = %w(scope default)
+      DEPRECATED_INTERPOLATORS = { '%d' => '{{count}}', '%s' => '{{value}}' }
       MATCH = /(\\\\)?\{\{([^\}]+)\}\}/
 
       # Accepts a list of paths to translation files. Loads translations from 
@@ -107,7 +108,7 @@ module I18n
           raise InvalidPluralizationData.new(entry, count) unless entry.has_key?(key)
           entry[key]
         end
-  
+
         # Interpolates values into a given string.
         # 
         #   interpolate "file {{file}} opened by \\{{user}}", :file => 'test.txt', :user => 'Mr. X'  
@@ -119,7 +120,11 @@ module I18n
         def interpolate(locale, string, values = {})
           return string unless string.is_a?(String)
 
-          string = string.gsub(/%d/, '{{count}}').gsub(/%s/, '{{value}}')
+          string = string.gsub(/%d|%s/) do |s|
+            instead = DEPRECATED_INTERPOLATORS[s]
+            ActiveSupport::Deprecation.warn "using #{s} in messages is deprecated; use #{instead} instead."
+            instead
+          end
 
           if string.respond_to?(:force_encoding)
             original_encoding = string.encoding
