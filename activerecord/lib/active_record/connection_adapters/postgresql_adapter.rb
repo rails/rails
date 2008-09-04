@@ -518,6 +518,38 @@ module ActiveRecord
         execute "ROLLBACK"
       end
 
+      # ruby-pg defines Ruby constants for transaction status,
+      # ruby-postgres does not.
+      PQTRANS_IDLE = defined?(PGconn::PQTRANS_IDLE) ? PGconn::PQTRANS_IDLE : 0
+
+      # Check whether a transaction is active.
+      def transaction_active?
+        @connection.transaction_status != PQTRANS_IDLE
+      end
+
+      # Wrap a block in a transaction.  Returns result of block.
+      def transaction(start_db_transaction = true)
+        begin
+          if block_given?
+            begin_db_transaction if start_db_transaction
+            yield
+          end
+        rescue Exception => database_transaction_rollback
+          rollback_db_transaction if transaction_active?
+          raise unless database_transaction_rollback.is_a? ActiveRecord::Rollback
+        end
+      ensure
+        if transaction_active?
+          begin
+            commit_db_transaction
+          rescue Exception => database_transaction_rollback
+            rollback_db_transaction
+            raise
+          end
+        end
+      end
+
+
       # SCHEMA STATEMENTS ========================================
 
       def recreate_database(name) #:nodoc:
