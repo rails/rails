@@ -31,6 +31,40 @@ class DurationTest < Test::Unit::TestCase
   end
 
   uses_mocha 'TestDurationSinceAndAgoWithCurrentTime' do
+    def test_fractional_weeks
+      Time.stubs(:now).returns Time.local(2000)
+
+      assert_in_delta((24 * 7 * 1.5).hours, 1.5.weeks, 2 ** -20)
+      assert_in_delta((24 * 7 * 1.7).hours, 1.7.weeks, 2 ** -20)
+    end
+
+    def test_fractional_days
+      Time.stubs(:now).returns Time.local(2000)
+
+      assert_in_delta((24 * 1.5).hours, 1.5.days, 2 ** -20)
+      assert_in_delta((24 * 1.7).hours, 1.7.days, 2 ** -20)
+    end
+
+    def test_since_and_ago_with_fractional_days
+      Time.stubs(:now).returns Time.local(2000)
+      # since
+      assert_equal 36.hours.since, 1.5.days.since
+      assert_equal((24 * 1.7).hours.since, 1.7.days.since)
+      # ago
+      assert_equal 36.hours.ago, 1.5.days.ago
+      assert_equal((24 * 1.7).hours.ago, 1.7.days.ago)
+    end
+
+    def test_since_and_ago_with_fractional_weeks
+      Time.stubs(:now).returns Time.local(2000)
+      # since
+      assert_equal((7 * 36).hours.since, 1.5.weeks.since)
+      assert_equal((7 * 24 * 1.7).hours.since, 1.7.weeks.since)
+      # ago
+      assert_equal((7 * 36).hours.ago, 1.5.weeks.ago)
+      assert_equal((7 * 24 * 1.7).hours.ago, 1.7.weeks.ago)
+    end
+
     def test_since_and_ago_anchored_to_time_now_when_time_zone_default_not_set
       Time.zone_default = nil
       with_env_tz 'US/Eastern' do
