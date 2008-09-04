@@ -265,7 +265,7 @@ task :generate_rails_framework_doc do
 end
 
 task :generate_app_doc do
-  FileUtil.cp "doc/README_FOR_APP", "#{PKG_DESTINATION}/doc/README_FOR_APP"
+  cp "doc/README_FOR_APP", "#{PKG_DESTINATION}/doc/README_FOR_APP"
   system %{cd #{PKG_DESTINATION}; rake doc:app}
 end
 
@@ -284,7 +284,7 @@ Rake::RDocTask.new { |rdoc|
 # Generate GEM ----------------------------------------------------------------------------
 
 task :copy_gem_environment do
-  FileUtil.cp "environments/environment.rb", "#{PKG_DESTINATION}/config/environment.rb"
+  cp "environments/environment.rb", "#{PKG_DESTINATION}/config/environment.rb"
   chmod 0755, dest_file
 end
 
