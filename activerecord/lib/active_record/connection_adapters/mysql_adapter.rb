@@ -286,8 +286,6 @@ module ActiveRecord
           # reset the connection is to change the user to the same user.
           @connection.change_user(@config[:username], @config[:password], @config[:database])
           configure_connection
-        else
-          super
         end
       end
 

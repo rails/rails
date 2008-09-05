@@ -35,7 +35,6 @@ module ActiveRecord
     # * +wait_timeout+: number of seconds to block and wait for a connection
     #   before giving up and raising a timeout error (default 5 seconds).
     class ConnectionPool
-      delegate :verification_timeout, :to => "::ActiveRecord::Base"
       attr_reader :spec
 
       def initialize(spec)
@@ -60,7 +59,6 @@ module ActiveRecord
       # held in a hash keyed by the thread id.
       def connection
         if conn = @reserved_connections[current_connection_id]
-          conn.verify!(verification_timeout)
           conn
         else
           @reserved_connections[current_connection_id] = checkout
@@ -118,7 +116,7 @@ module ActiveRecord
       def verify_active_connections! #:nodoc:
         clear_stale_cached_connections!
         @connections.each do |connection|
-          connection.verify!(verification_timeout)
+          connection.verify!
         end
       end
 
@@ -147,7 +145,7 @@ module ActiveRecord
           if @queue.wait(@timeout)
             checkout_existing_connection
           else
-            raise ConnectionTimeoutError, "could not obtain a database connection in a timely fashion"
+            raise ConnectionTimeoutError, "could not obtain a database connection within #{@timeout} seconds.  The pool size is currently #{@size}, perhaps you need to increase it?"
           end
         end
       end
@@ -166,8 +164,7 @@ module ActiveRecord
 
       private
       def new_connection
-        config = spec.config.reverse_merge(:allow_concurrency => true)
-        ActiveRecord::Base.send(spec.adapter_method, config)
+        ActiveRecord::Base.send(spec.adapter_method, spec.config)
       end
 
       def current_connection_id #:nodoc:
@@ -200,8 +197,8 @@ module ActiveRecord
       end
 
       def checkout_and_verify(c)
+        c.verify!
         c.run_callbacks :checkout
-        c.verify!(verification_timeout)
         @checked_out << c
         c
       end

@@ -1,5 +1,7 @@
 *Edge*
 
+* Changed benchmarks to be reported in milliseconds [DHH]
+
 * Connection pooling.  #936 [Nick Sieger]
 
 * Merge scoped :joins together instead of overwriting them. May expose scoping bugs in your code!  #501 [Andrew White]

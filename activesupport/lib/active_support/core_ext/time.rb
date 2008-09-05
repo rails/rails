@@ -15,7 +15,7 @@ class Time
       alias_method :_original_load, :_load
       def _load(marshaled_time)
         time = _original_load(marshaled_time)
-        utc = time.send(:remove_instance_variable, '@marshal_with_utc_coercion')
+        utc = time.instance_variable_get('@marshal_with_utc_coercion')
         utc ? time.utc : time
       end
     end

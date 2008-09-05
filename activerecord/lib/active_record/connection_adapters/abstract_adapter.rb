@@ -112,9 +112,7 @@ module ActiveRecord
       # ROLLBACK and swallows any exceptions which is probably not enough to
       # ensure the connection is clean.
       def reset!
-        silence_stderr do # postgres prints on stderr when you do this w/o a txn
-          execute "ROLLBACK" rescue nil
-        end
+        # this should be overridden by concrete adapters
       end
 
       # Returns true if its safe to reload the connection between requests for development mode.
@@ -123,14 +121,10 @@ module ActiveRecord
         false
       end
 
-      # Lazily verify this connection, calling <tt>active?</tt> only if it
-      # hasn't been called for +timeout+ seconds.
-      def verify!(timeout)
-        now = Time.now.to_i
-        if (now - @last_verification) > timeout
-          reconnect! unless active?
-          @last_verification = now
-        end
+      # Verify this connection by calling <tt>active?</tt> and reconnecting if
+      # the connection is no longer active.
+      def verify!(*ignored)
+        reconnect! unless active?
       end
 
       # Provides access to the underlying database connection. Useful for
@@ -153,10 +147,10 @@ module ActiveRecord
         @open_transactions -= 1
       end
 
-      def log_info(sql, name, runtime)
+      def log_info(sql, name, seconds)
         if @logger && @logger.debug?
-          name = "#{name.nil? ? "SQL" : name} (#{sprintf("%f", runtime)})"
-          @logger.debug format_log_entry(name, sql.squeeze(' '))
+          name = "#{name.nil? ? "SQL" : name} (#{sprintf("%.1f", seconds * 1000)}ms)"
+          @logger.debug(format_log_entry(name, sql.squeeze(' ')))
         end
       end
 

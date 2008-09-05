@@ -7,11 +7,6 @@ module ActiveRecord
       end
     end
 
-    # Check for activity after at least +verification_timeout+ seconds.
-    # Defaults to 0 (always check.)
-    cattr_accessor :verification_timeout, :instance_writer => false
-    @@verification_timeout = 0
-
     # The connection handler
     cattr_accessor :connection_handler, :instance_writer => false
     @@connection_handler = ConnectionAdapters::ConnectionHandler.new
@@ -99,6 +94,16 @@ module ActiveRecord
       # Deprecated and no longer has any effect.
       def allow_concurrency=(flag)
         ActiveSupport::Deprecation.warn("ActiveRecord::Base.allow_concurrency= has been deprecated and no longer has any effect. Please remove all references to allow_concurrency=.")
+      end
+
+      # Deprecated and no longer has any effect.
+      def verification_timeout
+        ActiveSupport::Deprecation.warn("ActiveRecord::Base.verification_timeout has been deprecated and no longer has any effect. Please remove all references to verification_timeout.")
+      end
+
+      # Deprecated and no longer has any effect.
+      def verification_timeout=(flag)
+        ActiveSupport::Deprecation.warn("ActiveRecord::Base.verification_timeout= has been deprecated and no longer has any effect. Please remove all references to verification_timeout=.")
       end
 
       # Returns the connection currently associated with the class. This can
