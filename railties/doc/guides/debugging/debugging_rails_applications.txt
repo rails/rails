@@ -129,13 +129,13 @@ At any time we can call the *backtrace* command (or alias *where*) to print the 
 [source, shell]
 ----------------------------------------------------------------------------
 (rdb:5) where
-    #0 PostsController.index 
+    #0 PostsController.index
        at line /PathTo/project/app/controllers/posts_controller.rb:6
-    #1 Kernel.send 
+    #1 Kernel.send
        at line /PathTo/project/vendor/rails/actionpack/lib/action_controller/base.rb:1175
-    #2 ActionController::Base.perform_action_without_filters 
+    #2 ActionController::Base.perform_action_without_filters
        at line /PathTo/project/vendor/rails/actionpack/lib/action_controller/base.rb:1175
-    #3 ActionController::Filters::InstanceMethods.call_filters(chain#ActionController::Fil...,...) 
+    #3 ActionController::Filters::InstanceMethods.call_filters(chain#ActionController::Fil...,...)
        at line /PathTo/project/vendor/rails/actionpack/lib/action_controller/filters.rb:617
 ...
 ----------------------------------------------------------------------------
@@ -145,7 +145,7 @@ You move anywhere you want in this trace using the *frame n* command, where _n_ 
 [source, shell]
 ----------------------------------------------------------------------------
 (rdb:5) frame 2
-#2 ActionController::Base.perform_action_without_filters 
+#2 ActionController::Base.perform_action_without_filters
        at line /PathTo/project/vendor/rails/actionpack/lib/action_controller/base.rb:1175
 ----------------------------------------------------------------------------
 
@@ -153,7 +153,7 @@ The available variables are the same as if we were running the code line by line
 
 Moving up and down the stack frame: You can use *up [n]* (*u* for abbreviated) and *down [n]* commands in order to change the context _n_ frames up or down the stack respectively. _n_ defaults to one.
 
-=== Threads 
+=== Threads
 
 The debugger can list, stop, resume and switch between running threads, the command *thread* (or the abbreviated *th*) is used an allows the following options:
 
@@ -340,10 +340,46 @@ In case we want deeper in the stack trace we can move single *steps* and go into
 
 A breakpoint makes your application stop whenever a certain point in the program is reached and the debugger shell is invoked in that line.
 
-You can add breakpoints dynamically with the command *break* (or just *b*), there are 2 possible ways of adding breakpoints manually:
+You can add breakpoints dynamically with the command *break* (or just *b*), there are 3 possible ways of adding breakpoints manually:
 
+* *break line*: set breakpoint in the _line_ in the current source file.
 * *break file:line [if expression]*: set breakpoint in the _line_ number inside the _file_. If an _expression_ is given it must evaluated to _true_ to fire up the debugger.
 * *break class(.|\#)method [if expression]*: set breakpoint in _method_ (. and \# for class and instance method respectively) defined in _class_. The _expression_ works the same way as with file:line.
+
+[source, shell]
+----------------------------------------------------------------------------
+(rdb:5) break 10
+Breakpoint 1 file /PathTo/project/vendor/rails/actionpack/lib/action_controller/filters.rb, line 10
+----------------------------------------------------------------------------
+
+Use *info breakpoints n* or *info break n* lo list breakpoints, is _n_ is defined it shows that breakpoints, otherwise all breakpoints are listed.
+
+[source, shell]
+----------------------------------------------------------------------------
+(rdb:5) info breakpoints
+Num Enb What
+  1 y   at filters.rb:10
+----------------------------------------------------------------------------
+
+Deleting breakpoints: use the command *delete n* to remove the breakpoint number _n_ or all of them if _n_ is not specified.
+
+[source, shell]
+----------------------------------------------------------------------------
+(rdb:5) delete 1
+(rdb:5) info breakpoints
+No breakpoints.
+----------------------------------------------------------------------------
+
+Enabling/Disabling breakpoints:
+
+* *enable breakpoints*: allow a list _breakpoints_ or all of them if none specified, to stop your program (this is the default state when you create a breakpoint).
+* *disable breakpoints*: the _breakpoints_ will have no effect on your program.
+
+=== Catching Exceptions
+
+The command *catch exception-name* (or just *cat exception-name*) can be used to intercept an exception of type _exception-name_ when there would otherwise be is no handler for it.
+
+To list existent catchpoints use *catch*.
 
 === Resuming Execution
 
@@ -354,7 +390,7 @@ You can add breakpoints dynamically with the command *break* (or just *b*), ther
 
 At any time, you may use any of this commands to edit the code you are evaluating:
 
-* *edit [file:line]*: edit _file_ using the editor specified by the EDITOR environment variable. A specific _line_ can also be given. 
+* *edit [file:line]*: edit _file_ using the editor specified by the EDITOR environment variable. A specific _line_ can also be given.
 * *tmate n* (abbreviated *tm*): open the current file in TextMate. It uses n-th frame if _n_ is specified.
 
 === Quitting
