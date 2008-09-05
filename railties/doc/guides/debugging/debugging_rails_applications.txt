@@ -32,14 +32,12 @@ end
 
 If you see the message in the console or logs:
 
-[source, shell]
 ----------------------------------------------------------------------------
 ***** Debugger requested, but was not available: Start server with --debugger to enable *****
 ----------------------------------------------------------------------------
 
 Make sure you have started your web server with the option --debugger:
 
-[source, shell]
 ----------------------------------------------------------------------------
 ~/PathTo/rails_project$ script/server --debugger
 ----------------------------------------------------------------------------
@@ -54,7 +52,6 @@ If you got there by a browser request, the browser will be hanging until the deb
 
 For example:
 
-[source, shell]
 ----------------------------------------------------------------------------
 @posts = Post.find(:all)
 (rdb:7)
@@ -62,7 +59,6 @@ For example:
 
 Now it's time to play and dig into our application. The first we are going to do is ask our debugger for help... so we type: *help* (You didn't see that coming, right?)
 
-[source, shell]
 ----------------------------------------------------------------------------
 (rdb:7) help
 ruby-debug help v0.10.2
@@ -83,7 +79,6 @@ The second command before we move on, is one of the most useful command: *list* 
 
 This command will give us a starting point of where we are by printing 10 lines centered around the current line; the current line here is line 6 and is marked by =>.
 
-[source, shell]
 ----------------------------------------------------------------------------
 (rdb:7) list
 [1, 10] in /PathToProject/posts_controller.rb
@@ -101,7 +96,6 @@ This command will give us a starting point of where we are by printing 10 lines 
 
 If we do it again, this time using just *l*, the next ten lines of the file will be printed out.
 
-[source, shell]
 ----------------------------------------------------------------------------
 (rdb:7) list
 [11, 20] in /PathTo/project/app/controllers/posts_controller.rb
@@ -126,7 +120,6 @@ A context will be created when a stopping point or an event is reached. It has i
 
 At any time we can call the *backtrace* command (or alias *where*) to print the backtrace of the application, this is very helpful to know how we got where we are. If you ever wondered about how you got somewhere in your code, then *backtrace* is your answer.
 
-[source, shell]
 ----------------------------------------------------------------------------
 (rdb:5) where
     #0 PostsController.index
@@ -142,7 +135,6 @@ At any time we can call the *backtrace* command (or alias *where*) to print the 
 
 You move anywhere you want in this trace using the *frame n* command, where _n_ is the specified frame number.
 
-[source, shell]
 ----------------------------------------------------------------------------
 (rdb:5) frame 2
 #2 ActionController::Base.perform_action_without_filters
@@ -171,7 +163,6 @@ Any expression can be evaluated in the current context, just type it!
 
 In the following example we will print the instance_variables defined within the current context.
 
-[source, shell]
 ----------------------------------------------------------------------------
 @posts = Post.find(:all)
 (rdb:11) instance_variables
@@ -180,7 +171,6 @@ In the following example we will print the instance_variables defined within the
 
 As you may have figured out, all variables that you can access from a controller are displayed, lets run the next line, we will use *next* (we will get later into this command).
 
-[source, shell]
 ----------------------------------------------------------------------------
 (rdb:11) next
 Processing PostsController#index (for 127.0.0.1 at 2008-09-04 19:51:34) [GET]
@@ -192,7 +182,6 @@ respond_to do |format|
 
 And we'll ask again for the instance_variables.
 
-[source, shell]
 ----------------------------------------------------------------------------
 (rdb:11) instance_variables.include? "@posts"
 true
@@ -205,7 +194,6 @@ You can also step into *irb* mode with the command *irb* (of course!). This way 
 
 To show variables and their values the *var* method is the most convenient way:
 
-[source, shell]
 ----------------------------------------------------------------------------
 var
 (rdb:1) v[ar] const <object>            show constants of object
@@ -216,7 +204,6 @@ var
 
 This is a great way for inspecting the values of the current context variables. For example:
 
-[source, shell]
 ----------------------------------------------------------------------------
 (rdb:9) var local
   __dbg_verbose_save => false
@@ -224,7 +211,6 @@ This is a great way for inspecting the values of the current context variables. 
 
 You can also inspect for an object method this way:
 
-[source, shell]
 ----------------------------------------------------------------------------
 (rdb:9) var instance Post.new
 @attributes = {"updated_at"=>nil, "body"=>nil, "title"=>nil, "published"=>nil, "created_at"...
@@ -237,7 +223,6 @@ Commands *p* (print) and *pp* (pretty print) can be used to evaluate Ruby expres
 
 We can use also *display* to start watching variables, this is a good way of tracking values of a variable while the execution goes on.
 
-[source, shell]
 ----------------------------------------------------------------------------
 (rdb:1) display @recent_comments
 1: @recent_comments =
@@ -280,7 +265,6 @@ end
 [TIP]
 You can use ruby-debug while using script/console but remember to *require "ruby-debug"* before calling *debugger* method.
 
-[source, shell]
 ----------------------------------------------------------------------------
 /PathTo/project $ script/console
 Loading development environment (Rails 2.1.0)
@@ -295,7 +279,6 @@ Loading development environment (Rails 2.1.0)
 
 Now we are where we wanted to be, lets look around.
 
-[source, shell]
 ----------------------------------------------------------------------------
 (rdb:1) list
 [6, 15] in /PathTo/project/app/models/author.rb
@@ -311,7 +294,6 @@ Now we are where we wanted to be, lets look around.
 
 We are at the end of the line, but... was this line executed? We can inspect the instance variables.
 
-[source, shell]
 ----------------------------------------------------------------------------
 (rdb:1) var instance
 @attributes = {"updated_at"=>"2008-07-31 12:46:10", "id"=>"1", "first_name"=>"Bob", "las...
@@ -320,7 +302,6 @@ We are at the end of the line, but... was this line executed? We can inspect the
 
 @recent_comments hasn't been defined yet, so we can assure this line hasn't been executed yet, lets move on this code.
 
-[source, shell]
 ----------------------------------------------------------------------------
 (rdb:1) next
 /PathTo/project/app/models/author.rb:12
@@ -346,7 +327,6 @@ You can add breakpoints dynamically with the command *break* (or just *b*), ther
 * *break file:line [if expression]*: set breakpoint in the _line_ number inside the _file_. If an _expression_ is given it must evaluated to _true_ to fire up the debugger.
 * *break class(.|\#)method [if expression]*: set breakpoint in _method_ (. and \# for class and instance method respectively) defined in _class_. The _expression_ works the same way as with file:line.
 
-[source, shell]
 ----------------------------------------------------------------------------
 (rdb:5) break 10
 Breakpoint 1 file /PathTo/project/vendor/rails/actionpack/lib/action_controller/filters.rb, line 10
@@ -354,7 +334,6 @@ Breakpoint 1 file /PathTo/project/vendor/rails/actionpack/lib/action_controller/
 
 Use *info breakpoints n* or *info break n* lo list breakpoints, is _n_ is defined it shows that breakpoints, otherwise all breakpoints are listed.
 
-[source, shell]
 ----------------------------------------------------------------------------
 (rdb:5) info breakpoints
 Num Enb What
@@ -363,7 +342,6 @@ Num Enb What
 
 Deleting breakpoints: use the command *delete n* to remove the breakpoint number _n_ or all of them if _n_ is not specified.
 
-[source, shell]
 ----------------------------------------------------------------------------
 (rdb:5) delete 1
 (rdb:5) info breakpoints
@@ -397,6 +375,29 @@ At any time, you may use any of this commands to edit the code you are evaluatin
 To exit the debugger, use the *quit* command (abbreviated *q*), or alias *exit*.
 
 A simple quit tries to terminate all threads in effect. Therefore your server will be stopped and you will have to start it again.
+
+=== Settings
+
+There are some settings that can be configured in ruby-debug to make it easier to debug your code, being among others useful options:
+
+* *set reload*: Reload source code when changed.
+* *set autolist*: Execute 'list' command on every breakpoint.
+* *set listsize _n_*: Set number of source lines to list by default _n_.
+* *set forcestep*: Make sure 'next/step' commands always move to a new line
+
+You can see the full list by using *help set* or *help set subcommand* to inspect any of them.
+
+[TIP]
+You can include any number of this configuration lines inside a .rdebugrc file in your HOME directory, and ruby-debug will read it every time it is loaded
+
+The following lines are recommended to be included in .rdebugrc:
+
+----------------------------------------------------------------------------
+set autolist
+set forcestep
+set listsize 25
+----------------------------------------------------------------------------
+
 
 == References
 
