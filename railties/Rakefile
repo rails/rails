@@ -291,8 +291,7 @@ guides.each do |entry|
   output = "doc/guides/#{guide_folder}/#{guide_name}.html"
   guides_html_files << output
   file output => Dir["doc/guides/#{guide_folder}/*.txt"] do
-    sh "mizuho", input, "--template", "manualsonrails", "--multi-page",
-       "--icons-dir", "../icons"
+    sh "mizuho", input, "--template", "manualsonrails", "--icons-dir", "../icons"
   end
 end
 
