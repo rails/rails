@@ -10,7 +10,7 @@ This guide covers the user-facing features of Rails routing. By referring to thi
 
 == The Dual Purpose of Routing
 
-Rails routing is a two-way piece of machinery - rather as if you could turn pigs into sausage, and then turn sausage back into pigs. Specifically, it both connects incoming HTTP requests to the code in your application's controllers, and helps you generate URLs without having to hard-code them as strings.
+Rails routing is a two-way piece of machinery - rather as if you could turn trees into paper, and then turn paper back into trees. Specifically, it both connects incoming HTTP requests to the code in your application's controllers, and helps you generate URLs without having to hard-code them as strings.
 
 === Connecting URLs to Code
 
@@ -34,6 +34,8 @@ Routing also works in reverse. If your application contains this code:
 
 Then the routing engine is the piece that translates that to a link to a URL such as +http://example.com/patient/17+. By using routing in this way, you can reduce the brittleness of your application as compared to one with hard-coded URLs, and make your code easier to read and understand.
 
+NOTE: Patient needs to be declared as a resource for this style of translation via a named route to be available.
+
 == Quick Tour of Routes.rb
 
 There are two components to routing in Rails: the routing engine itself, which is supplied as part of Rails, and the file +config/routes.rb+, which contains the actual routes that will be used by your application. Learning exactly what you can put in +routes.rb+ is the main topic of this guide, but before we dig in let's get a quick overview.
@@ -45,7 +47,7 @@ In format, +routes.rb+ is nothing more than one big block sent to +ActionControl
 * RESTful Routes
 * Named Routes
 * Nested Routes
-* Regular (old-style) Routes
+* Regular Routes
 * Default Routes
 
 Each of these types of route is covered in more detail later in this guide.
@@ -81,9 +83,9 @@ map.resources :assemblies do |assemblies|
 end
 -------------------------------------------------------
 
-=== Regular (old-style) Routes
+=== Regular Routes
 
-In many applications, you'll still see the older-style (non-RESTful) routing, which explicitly connects the parts of a URL to a particular action. For example,
+In many applications, you'll also see non-RESTful routing, which explicitly connects the parts of a URL to a particular action. For example,
 
 [source, ruby]
 -------------------------------------------------------
@@ -102,9 +104,9 @@ map.connect ':controller/:action/:id.:format'
 
 These default routes are automatically generated when you create a new Rails application. If you're using RESTful routing, you will probably want to remove them.
 
-== RESTful Routing: the New Default
+== RESTful Routing: the Rails Default
 
-RESTful routing is the new standard for routing in Rails, and it's the one that you should prefer for new applications. It can take a little while to understand how RESTful routing works, but it's worth the effort; your code will be easier to read and you'll be working with Rails, rather than fighting against it, when you use this style of routing.
+RESTful routing is the current standard for routing in Rails, and it's the one that you should prefer for new applications. It can take a little while to understand how RESTful routing works, but it's worth the effort; your code will be easier to read and you'll be working with Rails, rather than fighting against it, when you use this style of routing.
 
 === What is REST?
 
@@ -262,7 +264,7 @@ This declaration constrains the +:id+ parameter to match the supplied regular ex
 
 ==== Using :conditions
 
-Conditions in Rails routing are currently used only to set the HTTP verb for individual routes. Although in theory you can set this for RESTful routes, in practice there is no good reason to do so. (You'll learn more about conditions in the discussion of old-style routing later in this guide.)
+Conditions in Rails routing are currently used only to set the HTTP verb for individual routes. Although in theory you can set this for RESTful routes, in practice there is no good reason to do so. (You'll learn more about conditions in the discussion of classic routing later in this guide.)
 
 ==== Using :as
 
@@ -440,8 +442,8 @@ You can nest resources within other nested resources if you like. For example:
 
 [source, ruby]
 -------------------------------------------------------
-map.resources :publisher do |publisher|
-  publisher.resources :magazine do |magazine|
+map.resources :publishers do |publisher|
+  publisher.resources :magazines do |magazine|
     magazine.resources :photos
   end
 end
@@ -461,8 +463,8 @@ The +:shallow+ option provides an elegant solution to the difficulties of deeply
 
 [source, ruby]
 -------------------------------------------------------
-map.resources :publisher, :shallow => true do |publisher|
-  publisher.resources :magazine do |magazine|
+map.resources :publishers, :shallow => true do |publisher|
+  publisher.resources :magazines do |magazine|
     magazine.resources :photos
   end
 end
@@ -530,11 +532,11 @@ This will allow the new action to be invoked by any request to +photos/new+, no 
 
 If you find yourself adding many extra actions to a RESTful route, it's time to stop and ask yourself whether you're disguising the presence of another resource that would be better split off on its own. When the +:member+ and +:collection+ hashes become a dumping-ground, RESTful routes lose the advantage of easy readability that is one of their strongest points.
 
-== Regular (Old-Style) Routes
+== Regular Routes
 
-Before there was RESTful routing, there was simple Rails routing - a way to map URLs to controllers and actions. With regular routing, you don't get the masses of routes automatically generated by RESTful routing. Instead, you must set up each route within your application separately.
+In addition to RESTful routing, Rails supports regular routing - a way to map URLs to controllers and actions. With regular routing, you don't get the masses of routes automatically generated by RESTful routing. Instead, you must set up each route within your application separately.
 
-While RESTful routing has become the Rails standard, there are still plenty of places where the simpler regular routing works fine. You can even mix the two styles within a single application.
+While RESTful routing has become the Rails standard, there are still plenty of places where the simpler regular routing works fine. You can even mix the two styles within a single application. In general, you should prefer RESTful routing _when possible_, because it will make parts of your application easier to write. But there's no need to try to shoehorn every last piece of your application into a RESTful framework if that's not a good fit. 
 
 === Bound Parameters
 
@@ -742,7 +744,11 @@ map.connect '', :controller => "pages", :action => "main"
 
 TIP: If the empty route does not seem to be working in your application, make sure that you have deleted the file +public/index.html+ from your Rails tree.
 
-== Dumping Routes with rake
+== Inspecting and Testing Routes
+
+Routing in your application should not be a "black box" that you never open. Rails offers built-in tools for both inspecting and testing routes.
+
+=== Seeing Existing Routes with rake
 
 If you want a complete list of all of the available routes in your application, run the +rake routes+ command. This will dump all of your routes to the console, in the same order that they appear in +routes.rb+. For each route, you'll see:
 
@@ -761,3 +767,53 @@ formatted_users GET  /users.:format  {:controller=>"users", :action=>"index"}
 -------------------------------------------------------------------------------------------------------
 
 TIP: You'll find that the output from +rake routes+ is much more readable if you widen your terminal window until the output lines don't wrap.
+
+=== Testing Routes
+
+Routes should be included in your testing strategy (just like the rest of your application). Rails offers three link:http://api.rubyonrails.com/classes/ActionController/Assertions/RoutingAssertions.html[built-in assertions] designed to make testing routes simpler:
+
+* +assert_generates+
+* +assert_recognizes+
+* +assert_routing+
+
+==== The +assert_generates+ Assertion
+
+Use +assert_generates+ to assert that a particular set of options generate a particular path. You can use this with default routes or custom routes
+
+[source, ruby]
+-------------------------------------------------------
+assert_generates("/photo/1", { :controller => "photos", :action => "show", :id => "1" })
+assert_generates("/about", :controller => "pages", :action => "about")
+-------------------------------------------------------
+
+==== The +assert_recognizes+ Assertion
+
+The +assert_recognizes+ assertion is the inverse of +assert_generates+. It asserts that Rails recognizes the given path and routes it to a particular spot in your application.
+
+[source, ruby]
+-------------------------------------------------------
+assert_recognizes({ :controller => "photos", :action => "show", :id => "1" }, "/photo/1")
+-------------------------------------------------------
+
+You can supply a +:method+ argument to specify the HTTP verb:
+
+[source, ruby]
+-------------------------------------------------------
+assert_recognizes({ :controller => "photos", :action => "create" }, { :path => "photos", :method => :post })
+-------------------------------------------------------
+
+You can also use the RESTful helpers to test recognition of a RESTful route:
+
+[source, ruby]
+-------------------------------------------------------
+assert_recognizes(new_photo_url, { :path => "photos", :method => :post })
+-------------------------------------------------------
+
+==== The +assert_routing+ Assertion
+
+The +assert_routing+ assertion checks the route both ways: it tests that the path generates the options, and that the options generate the path. Thus, it combines the functions of +assert_generates+ and +assert_recognizes+.
+
+[source, ruby]
+-------------------------------------------------------
+assert_recognizes({ :path => "photos", :method => :post }, { :controller => "photos", :action => "create" })
+-------------------------------------------------------
