@@ -24,7 +24,7 @@ module ActionController #:nodoc:
         if logger && logger.level == log_level
           result = nil
           seconds = Benchmark.realtime { result = use_silence ? silence { yield } : yield }
-          logger.add(log_level, "#{title} (#{('%.2f' % (seconds * 1000))}ms)")
+          logger.add(log_level, "#{title} (#{('%.1f' % (seconds * 1000))}ms)")
           result
         else
           yield
@@ -69,7 +69,7 @@ module ActionController #:nodoc:
           logging_view          = defined?(@view_runtime)
           logging_active_record = Object.const_defined?("ActiveRecord") && ActiveRecord::Base.connected?
 
-          log_message  = "Completed in #{sprintf("%.2f", seconds * 1000)}ms"
+          log_message  = "Completed in #{sprintf("%.0f", seconds * 1000)}ms"
 
           if logging_view || logging_active_record
             log_message << " ("
@@ -86,21 +86,21 @@ module ActionController #:nodoc:
           log_message << " [#{complete_request_uri rescue "unknown"}]"
 
           logger.info(log_message)
-          response.headers["X-Runtime"] = "#{sprintf("%.2f", seconds * 1000)}ms"
+          response.headers["X-Runtime"] = "#{sprintf("%.0f", seconds * 1000)}ms"
         else
           perform_action_without_benchmark
         end
       end
 
       def view_runtime
-        "View: %.2f" % (@view_runtime * 1000)
+        "View: %.0f" % (@view_runtime * 1000)
       end
 
       def active_record_runtime
         db_runtime = ActiveRecord::Base.connection.reset_runtime
         db_runtime += @db_rt_before_render if @db_rt_before_render
         db_runtime += @db_rt_after_render if @db_rt_after_render
-        "DB: %.2f" % (db_runtime * 1000)
+        "DB: %.0f" % (db_runtime * 1000)
       end
   end
 end

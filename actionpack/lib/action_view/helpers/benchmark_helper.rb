@@ -15,7 +15,7 @@ module ActionView
       #    <%= expensive_files_operation %>
       #  <% end %>
       #
-      # That would add something like "Process data files (345.23ms)" to the log,
+      # That would add something like "Process data files (345.2ms)" to the log,
       # which you can then use to compare timings when optimizing your code.
       #
       # You may give an optional logger level as the second argument
@@ -23,7 +23,7 @@ module ActionView
       def benchmark(message = "Benchmarking", level = :info)
         if controller.logger
           seconds = Benchmark.realtime { yield }
-          controller.logger.send(level, "#{message} (#{'%.2f' % (seconds * 1000)}ms)")
+          controller.logger.send(level, "#{message} (#{'%.1f' % (seconds * 1000)}ms)")
         else
           yield
         end

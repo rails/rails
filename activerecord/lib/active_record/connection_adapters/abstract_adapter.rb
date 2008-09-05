@@ -149,7 +149,7 @@ module ActiveRecord
 
       def log_info(sql, name, seconds)
         if @logger && @logger.debug?
-          name = "#{name.nil? ? "SQL" : name} (#{sprintf("%.2f", seconds * 1000)}ms)"
+          name = "#{name.nil? ? "SQL" : name} (#{sprintf("%.1f", seconds * 1000)}ms)"
           @logger.debug(format_log_entry(name, sql.squeeze(' ')))
         end
       end

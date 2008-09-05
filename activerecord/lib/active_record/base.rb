@@ -1313,7 +1313,7 @@ module ActiveRecord #:nodoc:
         if logger && logger.level <= log_level
           result = nil
           seconds = Benchmark.realtime { result = use_silence ? silence { yield } : yield }
-          logger.add(log_level, "#{title} (#{'%.2f' % (seconds * 1000)}ms)")
+          logger.add(log_level, "#{title} (#{'%.1f' % (seconds * 1000)}ms)")
           result
         else
           yield

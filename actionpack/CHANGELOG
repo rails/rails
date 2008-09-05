@@ -6,11 +6,11 @@
 
 * Changed logging format to be millisecond based and skip misleading stats [DHH]. Went from:
 
-    Completed in 0.10000 (4 reqs/sec) | Rendering: 0.40000 (40%) | DB: 0.04000 (4%) | 200 OK [http://example.com]
+    Completed in 0.10000 (4 reqs/sec) | Rendering: 0.04000 (40%) | DB: 0.00400 (4%) | 200 OK [http://example.com]
 
   ...to:
   
-    Completed in 100.00ms (View: 400.00, DB: 40.00) | 200 OK [http://example.com]
+    Completed in 100ms (View: 40, DB: 4) | 200 OK [http://example.com]
 
 * Add support for shallow nesting of routes. #838 [S. Brent Faulkner]
 
