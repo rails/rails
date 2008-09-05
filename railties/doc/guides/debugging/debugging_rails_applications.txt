@@ -54,9 +54,11 @@ In order to use Rails debugging you'll need to be running either *WEBrick* or *M
 
 
 == The debugger
-=== The context
+=== The debugger shell
 
-As soon as your application calls the *debugger* method, the debugger will be started and you will be placed in the ruby-debug's prompt (rdb:n) in the console running the server. The n is the thread number.
+As soon as your application calls the *debugger* method, the debugger will be started in a debugger shell inside the terminal window you've fired up your application server and you will be placed in the ruby-debug's prompt (rdb:n). The n is the thread number.
+
+If you got there by a browser request, the browser will be hanging until the debugger has finished and the trace has completely run as any normal request.
 
 For example:
 
@@ -127,9 +129,11 @@ When we start debugging your application, we will be placed in different context
 
 A context will be created when a stopping point or an event is reached. It has information about the suspended program which enable a debugger to inspect the frame stack, evaluate variables from the perspective of the debugged program, and contains information about the place the debugged program is stopped.
 
-At any time we can call the *backtrace* command to print the backtrace of the application, this is very helpful to know how we got where we are. If you ever wondered about how you got somewhere in your code, then *backtrace* is your answer.
+At any time we can call the *backtrace* command (or alias *where*) to print the backtrace of the application, this is very helpful to know how we got where we are. If you ever wondered about how you got somewhere in your code, then *backtrace* is your answer.
 
 The available variables are the same as if we were running the code line by line, after all, that's what debugging is.
+
+=== Inspecting variables
 
 In the following example we will print the instance_variables defined within the current context.
 
@@ -140,7 +144,7 @@ In the following example we will print the instance_variables defined within the
 ["@_response", "@action_name", "@url", "@_session", "@_cookies", "@performed_render", "@_flash", "@template", "@_params", "@before_filter_chain_aborted", "@request_origin", "@_headers", "@performed_redirect", "@_request"]
 ----------------------------------------------------------------------------
 
-As you may expect, all variables that you can access from a controller are displayed, lets run the next line, we will use *next* (we will get later into this command).
+As you may have figured out, all variables that you can access from a controller are displayed, lets run the next line, we will use *next* (we will get later into this command).
 
 [source, shell]
 ----------------------------------------------------------------------------
@@ -152,7 +156,7 @@ Processing PostsController#index (for 127.0.0.1 at 2008-09-04 19:51:34) [GET]
 respond_to do |format|
 -------------------------------------------------------------------------------
 
-And ask again for the instance_variables.
+And we'll ask again for the instance_variables.
 
 [source, shell]
 ----------------------------------------------------------------------------
@@ -160,18 +164,49 @@ And ask again for the instance_variables.
 ["@_response", "@action_name", "@url", "@_session", "@_cookies", "@performed_render", "@_flash", "@template", "@_params", "@before_filter_chain_aborted", "@posts", "@request_origin", "@_headers", "@performed_redirect", "@_request"]
 ----------------------------------------------------------------------------
 
-Now @posts is a included in them, because the line was executed. 
+Now @posts is a included in them, because the line defining it was executed.
 
-Other useful methods to inspect the current context:
+[NOTE]
+You can also step into *irb* mode with the command *irb* (of course!). This way an irb session will be started within the context you invoked it. But you must know that this is an experimental feature.
 
-* local_variables
-* global_variables
-* methods
-* self, self.class, etc...
+To show variables and their values the *var* method is the most convenient way:
 
-=== Everything as an end
+[source, shell]
+----------------------------------------------------------------------------
+var
+(rdb:1) v[ar] const <object>            show constants of object
+(rdb:1) v[ar] g[lobal]                  show global variables
+(rdb:1) v[ar] i[nstance] <object>       show instance variables of object
+(rdb:1) v[ar] l[ocal]                   show local variables
+----------------------------------------------------------------------------
 
-To exit ruby-debug, use the *quit* command (abbreviated *q*), or alias *exit*.
+This is a great way for inspecting the values of the current context variables. For example:
+
+[source, shell]
+----------------------------------------------------------------------------
+(rdb:9) v l
+  __dbg_verbose_save => false
+----------------------------------------------------------------------------
+
+You can also inspect for an object method this way:
+
+[source, shell]
+----------------------------------------------------------------------------
+(rdb:9) v instance Post.new
+@attributes = {"updated_at"=>nil, "body"=>nil, "title"=>nil, "published"=>nil, "created_at"...
+@attributes_cache = {}
+@new_record = true
+----------------------------------------------------------------------------
+
+== Everything as an end
+=== Let it be
+
+* *continue* [line-specification] (or alias *c*): resume program execution, at the address where your script last stopped; any breakpoints set at that address are bypassed. The optional argument line-specification allows you to specify a line number to set a one-time breakpoint which is deleted when that breakpoint is reached.   
+* *finish* [frame-number]: execute until selected stack frame returns. If no frame number is given, we run until the currently selected frame returns. The currently selected frame starts out the most-recent frame or 0 if no frame positioning (e.g up, down or frame) has been performed. If a frame number is given we run until frame frames returns.
+
+    
+=== Quitting
+To exit the debugger, use the *quit* command (abbreviated *q*), or alias *exit*.
 
 A simple quit tries to terminate all threads in effect. Therefore your server will be stopped and you will have to start it again.
 
@@ -182,3 +217,4 @@ A simple quit tries to terminate all threads in effect. Therefore your server wi
 * link:http://brian.maybeyoureinsane.net/blog/2007/05/07/ruby-debug-basics-screencast/[ruby-debug Basics screencast]
 * link:http://railscasts.com/episodes/54-debugging-with-ruby-debug[Ryan Bate's ruby-debug screencast]
 * link:http://bashdb.sourceforge.net/ruby-debug.html[Debugging with ruby-debug]
+* link:http://cheat.errtheblog.com/s/rdebug/[ruby-debug cheat sheet]
