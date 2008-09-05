@@ -12,6 +12,105 @@ Unfortunately, you won't find always the answer you are looking for this way. In
 If you ever wanted to learn about Rails source code but you didn't know where to start, this may be the best way, just debug any request to your application and use this guide to learn how to move in the code you have written but also go deeper into Rails code.
 
 
+== View helpers for debugging
+
+=== debug
+
+*debug* will return a <pre>-tag that has object dumped by YAML. This creates a very readable way to inspect an object.
+
+[source, html]
+----------------------------------------------------------------------------
+<%= debug @post %>
+<p>
+  <b>Title:</b>
+  <%=h @post.title %>
+</p>
+----------------------------------------------------------------------------
+
+Will render something like this:
+
+----------------------------------------------------------------------------
+--- !ruby/object:Post
+attributes:
+  updated_at: 2008-09-05 22:55:47
+  body: It's a very helpful guide for debugging your Rails app.
+  title: Rails debugging guide
+  published: t
+  id: "1"
+  created_at: 2008-09-05 22:55:47
+attributes_cache: {}
+
+
+Title: Rails debugging guide
+----------------------------------------------------------------------------
+
+
+=== local_assigns
+
+If you need to find out whether a certain local variable has been assigned a value in a particular render call, you need to use the following pattern:
+
+[source, html]
+----------------------------------------------------------------------------
+  <% if local_assigns.has_key? :headline %>
+    <p>Headline: <%= headline %></p>
+  <% end %>
+----------------------------------------------------------------------------
+
+Using defined?(headline) will not work. This is an implementation restriction.
+
+[TIP]
+This is particularly handy inside partials, since you can know which variables have been defined and which haven't.
+
+=== do it yourself
+
+Displaying an instance in yaml format, can be achieved this way:
+
+[source, html]
+----------------------------------------------------------------------------
+<%= simple_format @post.to_yaml %>
+<p>
+  <b>Title:</b>
+  <%=h @post.title %>
+</p>
+----------------------------------------------------------------------------
+
+*to_yaml* converts the method to yaml format leaving it more readable and finally *simple_format* help us to render each line as in the console. This is how *debug* method does it's magic.
+
+As a result of this can see something like this in our view:
+
+----------------------------------------------------------------------------
+--- !ruby/object:Post
+attributes:
+updated_at: 2008-09-05 22:55:47
+body: It's a very helpful guide for debugging your Rails app.
+title: Rails debugging guide
+published: t
+id: "1"
+created_at: 2008-09-05 22:55:47
+attributes_cache: {}
+
+Title: Rails debugging guide
+----------------------------------------------------------------------------
+
+Another great method for displaying object values is *inspect*, especially when working with arrays or hashes, it will print the object value as a string, for example:
+
+[source, html]
+----------------------------------------------------------------------------
+<%= [1, 1, 2, 3, 5].inspect %>
+<p>
+  <b>Title:</b>
+  <%=h @post.title %>
+</p>
+----------------------------------------------------------------------------
+
+Will be rendered as follows:
+
+----------------------------------------------------------------------------
+[1, 2, 3]
+
+Title: Rails debugging guide
+----------------------------------------------------------------------------
+
 == Debugging with ruby-debug
 
 === Setup
