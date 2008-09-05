@@ -5,25 +5,18 @@ You may have heard about debugging:
 
 _Debugging is a methodical process of finding and reducing the number of bugs, or defects, in a computer program or a piece of electronic hardware thus making it behave as expected._
 
-Many times your code may not behave has you expect, sometimes you will try to print in logs or console values to make a diagnostic of the problem.
+Many times your code may not behave as you expect, sometimes you will try to print in logs or console values to make a diagnostic of the problem.
 
 Unfortunately, you won't find always the answer you are looking for this way. In that case, you will need to know what's happening and adventure into Rails, in this journey the debugger will be your best companion.
 
-If you ever wanted to learn about Rails source code but you didn't know where to start, this may be the best way, just debug any request you would normally do and using this guide you will learn how to move in the code you have written but also go deeper into Rails code.
+If you ever wanted to learn about Rails source code but you didn't know where to start, this may be the best way, just debug any request to your application and use this guide to learn how to move in the code you have written but also go deeper into Rails code.
 
-== Introducing the debugger
 
-=== Rails debugging history
+== Debugging with ruby-debug
 
-Rails has built-in support for ruby-debug since April 28, 2007. When the Breakpoint library was removed in favor of ruby-debug, the reason?
+=== Setup
 
-The breakpointer, included in the Breakpoint library, and Binding.of_caller were removed in favor of relying on ruby-debug by Kent Sibilev.
-
-The problem was a bug in Ruby 1.8.4, that was fixed in Ruby 1.8.5 but left unusable the breakpointer. The Breakpoint library is also no longer being maintained, so it's effectively dead.
-
-=== Start debugging your rails app
-
-Inside any Rails application you can invoke the debugger by calling the *debugger* method.
+Rails has built-in support for ruby-debug since April 28, 2007. Inside any Rails application you can invoke the debugger by calling the *debugger* method.
 
 Let's take a look at an example:
 
@@ -53,11 +46,9 @@ Make sure you have started your web server with the option --debugger:
 
 In order to use Rails debugging you'll need to be running either *WEBrick* or *Mongrel*. For the moment, no alternative servers are supported.
 
-
-== The debugger
 === The shell
 
-As soon as your application calls the *debugger* method, the debugger will be started in a debugger shell inside the terminal window you've fired up your application server and you will be placed in the ruby-debug's prompt (rdb:n). The n is the thread number.
+As soon as your application calls the *debugger* method, the debugger will be started in a debugger shell inside the terminal window you've fired up your application server and you will be placed in the ruby-debug's prompt (rdb:n). The _n_ is the thread number.
 
 If you got there by a browser request, the browser will be hanging until the debugger has finished and the trace has completely run as any normal request.
 
@@ -85,7 +76,7 @@ condition  down     finish  list    ps    save     thread  var
 continue   edit     frame   method  putl  set      tmate   where
 ----------------------------------------------------------------------------
 
-[NOTE]
+[TIP]
 To view the help menu for any command use *help <command-name>* in active debug mode. For example: _help var_
 
 The second command before we move on, is one of the most useful command: *list* (or his shorthand *l*).
@@ -112,7 +103,7 @@ If we do it again, this time using just *l*, the next ten lines of the file will
 
 [source, shell]
 ----------------------------------------------------------------------------
-(rdb:7) l
+(rdb:7) list
 [11, 20] in /PathTo/project/app/controllers/posts_controller.rb
    11      end
    12    end
@@ -149,7 +140,7 @@ At any time we can call the *backtrace* command (or alias *where*) to print the 
 ...
 ----------------------------------------------------------------------------
 
-You move anywhere you want in this trace using the *frame n* command, where n is the specified frame number.
+You move anywhere you want in this trace using the *frame n* command, where _n_ is the specified frame number.
 
 [source, shell]
 ----------------------------------------------------------------------------
@@ -162,7 +153,21 @@ The available variables are the same as if we were running the code line by line
 
 Moving up and down the stack frame: You can use *up [n]* (*u* for abbreviated) and *down [n]* commands in order to change the context _n_ frames up or down the stack respectively. _n_ defaults to one.
 
+=== Threads 
+
+The debugger can list, stop, resume and switch between running threads, the command *thread* (or the abbreviated *th*) is used an allows the following options:
+
+* *thread* shows the current thread.
+* *thread list* command is used to list all threads and their statuses. The plus + character and the number indicates the current thread of execution.
+* *thread stop n* stop thread _n_.
+* *thread resume n* resume thread _n_.
+* *thread switch n* switch thread context to _n_.
+
+This command is very helpful, among other occasions, when you are debugging concurrent threads and need to verify that there are no race conditions in your code.
+
 === Inspecting variables
+
+Any expression can be evaluated in the current context, just type it!
 
 In the following example we will print the instance_variables defined within the current context.
 
@@ -177,7 +182,7 @@ As you may have figured out, all variables that you can access from a controller
 
 [source, shell]
 ----------------------------------------------------------------------------
-(rdb:11) n
+(rdb:11) next
 Processing PostsController#index (for 127.0.0.1 at 2008-09-04 19:51:34) [GET]
   Session ID: BAh7BiIKZmxhc2hJQzonQWN0aW9uQ29udHJvbGxlcjo6Rmxhc2g6OkZsYXNoSGFzaHsABjoKQHVzZWR7AA==--b16e91b992453a8cc201694d660147bba8b0fd0e
   Parameters: {"action"=>"index", "controller"=>"posts"}
@@ -189,13 +194,13 @@ And we'll ask again for the instance_variables.
 
 [source, shell]
 ----------------------------------------------------------------------------
-(rdb:11) instance_variables
-["@_response", "@action_name", "@url", "@_session", "@_cookies", "@performed_render", "@_flash", "@template", "@_params", "@before_filter_chain_aborted", "@posts", "@request_origin", "@_headers", "@performed_redirect", "@_request"]
+(rdb:11) instance_variables.include? "@posts"
+true
 ----------------------------------------------------------------------------
 
 Now @posts is a included in them, because the line defining it was executed.
 
-[NOTE]
+[TIP]
 You can also step into *irb* mode with the command *irb* (of course!). This way an irb session will be started within the context you invoked it. But you must know that this is an experimental feature.
 
 To show variables and their values the *var* method is the most convenient way:
@@ -213,7 +218,7 @@ This is a great way for inspecting the values of the current context variables. 
 
 [source, shell]
 ----------------------------------------------------------------------------
-(rdb:9) v l
+(rdb:9) var local
   __dbg_verbose_save => false
 ----------------------------------------------------------------------------
 
@@ -221,13 +226,13 @@ You can also inspect for an object method this way:
 
 [source, shell]
 ----------------------------------------------------------------------------
-(rdb:9) v instance Post.new
+(rdb:9) var instance Post.new
 @attributes = {"updated_at"=>nil, "body"=>nil, "title"=>nil, "published"=>nil, "created_at"...
 @attributes_cache = {}
 @new_record = true
 ----------------------------------------------------------------------------
 
-[NOTE]
+[TIP]
 Commands *p* (print) and *pp* (pretty print) can be used to evaluate Ruby expressions and display the value of variables to the console.
 
 We can use also *display* to start watching variables, this is a good way of tracking values of a variable while the execution goes on.
@@ -238,18 +243,18 @@ We can use also *display* to start watching variables, this is a good way of tra
 1: @recent_comments =
 ----------------------------------------------------------------------------
 
-The variables inside the displaying list will be printed with their values after we move in the stack. To stop displaying a variable use *undisplay n* where n is the variable number (1 in the last example).
+The variables inside the displaying list will be printed with their values after we move in the stack. To stop displaying a variable use *undisplay n* where _n_ is the variable number (1 in the last example).
 
-== Step by step
+=== Step by step
 
 Now you should know where you are in the running trace and be able to print the available variables. But lets continue and move on with the application execution.
 
 Use *step* (abbreviated *s*) to continue running your program until the next logical stopping point and return control to ruby-debug.
 
-[NOTE]
-You can also use *step+ n* and *step- n* to move forward or backward n steps respectively.
+[TIP]
+You can also use *step+ n* and *step- n* to move forward or backward _n_ steps respectively.
 
-You may also use *next* which is similar to step, but function or method calls that appear within the line of code are executed without stopping. As with step, you may use plus sign to move n steps.
+You may also use *next* which is similar to step, but function or method calls that appear within the line of code are executed without stopping. As with step, you may use plus sign to move _n_ steps.
 
 The difference between *next* and "step" is that *step* stops at the next line of code executed, doing just single step, while *next* moves to the next line without descending inside methods.
 
@@ -272,7 +277,7 @@ class Author < ActiveRecord::Base
 end
 ----------------------------------------------------------------------------
 
-[NOTE]
+[TIP]
 You can use ruby-debug while using script/console but remember to *require "ruby-debug"* before calling *debugger* method.
 
 [source, shell]
@@ -317,7 +322,7 @@ We are at the end of the line, but... was this line executed? We can inspect the
 
 [source, shell]
 ----------------------------------------------------------------------------
-(rdb:1) n
+(rdb:1) next
 /PathTo/project/app/models/author.rb:12
 @recent_comments
 (rdb:1) var instance
@@ -331,19 +336,28 @@ Now we can see how @comments relationship was loaded and @recent_comments define
 
 In case we want deeper in the stack trace we can move single *steps* and go into Rails code, this is the best way for finding bugs in your code, or maybe in Ruby or Rails.
 
-== Editing
+=== Breakpoints
 
-At any time, you may use *edit [line specification]* command to edit line specification using the editor specified by the EDITOR environment variable.
+A breakpoint makes your application stop whenever a certain point in the program is reached and the debugger shell is invoked in that line.
 
-If you use TextMate, you can the command *tmate n* to open the current file in TextMate. It uses n-th frame if arg (n) is specified.
+You can add breakpoints dynamically with the command *break* (or just *b*), there are 2 possible ways of adding breakpoints manually:
 
-== Resuming Execution
+* *break file:line [if expression]*: set breakpoint in the _line_ number inside the _file_. If an _expression_ is given it must evaluated to _true_ to fire up the debugger.
+* *break class(.|\#)method [if expression]*: set breakpoint in _method_ (. and \# for class and instance method respectively) defined in _class_. The _expression_ works the same way as with file:line.
+
+=== Resuming Execution
 
 * *continue* [line-specification] (or *c*): resume program execution, at the address where your script last stopped; any breakpoints set at that address are bypassed. The optional argument line-specification allows you to specify a line number to set a one-time breakpoint which is deleted when that breakpoint is reached.
 * *finish* [frame-number] (or *fin*): execute until selected stack frame returns. If no frame number is given, we run until the currently selected frame returns. The currently selected frame starts out the most-recent frame or 0 if no frame positioning (e.g up, down or frame) has been performed. If a frame number is given we run until frame frames returns.
 
+=== Editing
 
-== Quitting
+At any time, you may use any of this commands to edit the code you are evaluating:
+
+* *edit [file:line]*: edit _file_ using the editor specified by the EDITOR environment variable. A specific _line_ can also be given. 
+* *tmate n* (abbreviated *tm*): open the current file in TextMate. It uses n-th frame if _n_ is specified.
+
+=== Quitting
 To exit the debugger, use the *quit* command (abbreviated *q*), or alias *exit*.
 
 A simple quit tries to terminate all threads in effect. Therefore your server will be stopped and you will have to start it again.
