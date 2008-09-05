@@ -1,0 +1,220 @@
+Debugging Rails applications
+============================
+
+You may have heard about debugging:
+
+_Debugging is a methodical process of finding and reducing the number of bugs, or defects, in a computer program or a piece of electronic hardware thus making it behave as expected._
+ 
+Many times your code may not behave has you expect, sometimes you will try to print in logs or console values to make a diagnostic of the problem.
+
+Unfortunately, you won't find always the answer you are looking for this way. In that case, you will need to know what's happening and adventure into Rails, in this journey the debugger will be your best companion.
+
+
+== Introducing the debugger
+
+=== Rails debugging history
+
+Rails has built-in support for ruby-debug since April 28, 2007. When the Breakpoint library was removed in favor of ruby-debug, the reason?
+
+The breakpointer, included in the Breakpoint library, and Binding.of_caller were removed in favor of relying on ruby-debug by Kent Sibilev.
+
+The problem was a bug in Ruby 1.8.4, that was fixed in Ruby 1.8.5 but left unusable the breakpointer. The Breakpoint library is also no longer being maintained, so it's effectively dead.
+
+=== Start debugging your rails app
+
+Inside any Rails application you can invoke the debugger by calling the *debugger* method.
+
+Let's take a look at an example:
+
+[source, ruby]
+----------------------------------------------------------------------------
+class PeopleController < ApplicationController
+  def new
+    debugger
+    @person = Person.new
+  end
+end
+----------------------------------------------------------------------------
+
+If you see the message in the console or logs:
+
+[source, shell]
+----------------------------------------------------------------------------
+***** Debugger requested, but was not available: Start server with --debugger to enable *****
+----------------------------------------------------------------------------
+
+Make sure you have started your web server with the option --debugger:
+
+[source, shell]
+----------------------------------------------------------------------------
+~/PathTo/rails_project$ script/server --debugger
+----------------------------------------------------------------------------
+
+In order to use Rails debugging you'll need to be running either *WEBrick* or *Mongrel*. For the moment, no alternative servers are supported.
+
+
+== The debugger
+=== The debugger shell
+
+As soon as your application calls the *debugger* method, the debugger will be started in a debugger shell inside the terminal window you've fired up your application server and you will be placed in the ruby-debug's prompt (rdb:n). The n is the thread number.
+
+If you got there by a browser request, the browser will be hanging until the debugger has finished and the trace has completely run as any normal request.
+
+For example:
+
+[source, shell]
+----------------------------------------------------------------------------
+@posts = Post.find(:all)
+(rdb:7)
+----------------------------------------------------------------------------
+
+Now it's time to play and dig into our application. The first we are going to do is ask our debugger for help... so we type: *help* (You didn't see that coming, right?)
+
+[source, shell]
+----------------------------------------------------------------------------
+(rdb:7) help
+ruby-debug help v0.10.2
+Type 'help <command-name>' for help on a specific command
+
+Available commands:
+backtrace  delete   enable  help    next  quit     show    trace    
+break      disable  eval    info    p     reload   source  undisplay
+catch      display  exit    irb     pp    restart  step    up       
+condition  down     finish  list    ps    save     thread  var      
+continue   edit     frame   method  putl  set      tmate   where
+----------------------------------------------------------------------------
+
+The second command before we move on, is one of the most useful command: *list* (or his shorthand *l*)
+
+This command will give us a starting point of where we are by printing 10 lines centered around the current line; the current line here is line 6 and is marked by =>.
+
+[source, shell]
+----------------------------------------------------------------------------
+(rdb:7) list
+[1, 10] in /PathToProject/posts_controller.rb
+   1  class PostsController < ApplicationController
+   2    # GET /posts
+   3    # GET /posts.xml
+   4    def index
+   5      debugger
+=> 6      @posts = Post.find(:all)
+   7  
+   8      respond_to do |format|
+   9        format.html # index.html.erb
+   10        format.xml  { render :xml => @posts }
+----------------------------------------------------------------------------
+
+If we do it again, this time using just *l*, the next ten lines of the file will be printed out.
+
+[source, shell]
+----------------------------------------------------------------------------
+(rdb:7) l
+[11, 20] in /Users/miloops/Workspace/rails_edge_app/app/controllers/posts_controller.rb
+   11      end
+   12    end
+   13  
+   14    # GET /posts/1
+   15    # GET /posts/1.xml
+   16    def show
+   17      @post = Post.find(params[:id])
+   18  
+   19      respond_to do |format|
+   20        format.html # show.html.erb
+----------------------------------------------------------------------------
+
+And so on until the end of the current file, when the end of file is reached, it will start again from the beginning of the file and continue again up to the end, acting as a circular buffer.
+
+=== The context
+When we start debugging your application, we will be placed in different contexts as you go through the different parts of the stack. 
+
+A context will be created when a stopping point or an event is reached. It has information about the suspended program which enable a debugger to inspect the frame stack, evaluate variables from the perspective of the debugged program, and contains information about the place the debugged program is stopped.
+
+At any time we can call the *backtrace* command (or alias *where*) to print the backtrace of the application, this is very helpful to know how we got where we are. If you ever wondered about how you got somewhere in your code, then *backtrace* is your answer.
+
+The available variables are the same as if we were running the code line by line, after all, that's what debugging is.
+
+=== Inspecting variables
+
+In the following example we will print the instance_variables defined within the current context.
+
+[source, shell]
+----------------------------------------------------------------------------
+@posts = Post.find(:all)
+(rdb:11) instance_variables
+["@_response", "@action_name", "@url", "@_session", "@_cookies", "@performed_render", "@_flash", "@template", "@_params", "@before_filter_chain_aborted", "@request_origin", "@_headers", "@performed_redirect", "@_request"]
+----------------------------------------------------------------------------
+
+As you may have figured out, all variables that you can access from a controller are displayed, lets run the next line, we will use *next* (we will get later into this command).
+
+[source, shell]
+----------------------------------------------------------------------------
+(rdb:11) n
+Processing PostsController#index (for 127.0.0.1 at 2008-09-04 19:51:34) [GET]
+  Session ID: BAh7BiIKZmxhc2hJQzonQWN0aW9uQ29udHJvbGxlcjo6Rmxhc2g6OkZsYXNoSGFzaHsABjoKQHVzZWR7AA==--b16e91b992453a8cc201694d660147bba8b0fd0e
+  Parameters: {"action"=>"index", "controller"=>"posts"}
+/PathToProject/posts_controller.rb:8
+respond_to do |format|
+-------------------------------------------------------------------------------
+
+And we'll ask again for the instance_variables.
+
+[source, shell]
+----------------------------------------------------------------------------
+(rdb:11) instance_variables
+["@_response", "@action_name", "@url", "@_session", "@_cookies", "@performed_render", "@_flash", "@template", "@_params", "@before_filter_chain_aborted", "@posts", "@request_origin", "@_headers", "@performed_redirect", "@_request"]
+----------------------------------------------------------------------------
+
+Now @posts is a included in them, because the line defining it was executed.
+
+[NOTE]
+You can also step into *irb* mode with the command *irb* (of course!). This way an irb session will be started within the context you invoked it. But you must know that this is an experimental feature.
+
+To show variables and their values the *var* method is the most convenient way:
+
+[source, shell]
+----------------------------------------------------------------------------
+var
+(rdb:1) v[ar] const <object>            show constants of object
+(rdb:1) v[ar] g[lobal]                  show global variables
+(rdb:1) v[ar] i[nstance] <object>       show instance variables of object
+(rdb:1) v[ar] l[ocal]                   show local variables
+----------------------------------------------------------------------------
+
+This is a great way for inspecting the values of the current context variables. For example:
+
+[source, shell]
+----------------------------------------------------------------------------
+(rdb:9) v l
+  __dbg_verbose_save => false
+----------------------------------------------------------------------------
+
+You can also inspect for an object method this way:
+
+[source, shell]
+----------------------------------------------------------------------------
+(rdb:9) v instance Post.new
+@attributes = {"updated_at"=>nil, "body"=>nil, "title"=>nil, "published"=>nil, "created_at"...
+@attributes_cache = {}
+@new_record = true
+----------------------------------------------------------------------------
+
+== Everything as an end
+=== Let it be
+
+* *continue* [line-specification] (or alias *c*): resume program execution, at the address where your script last stopped; any breakpoints set at that address are bypassed. The optional argument line-specification allows you to specify a line number to set a one-time breakpoint which is deleted when that breakpoint is reached.   
+* *finish* [frame-number]: execute until selected stack frame returns. If no frame number is given, we run until the currently selected frame returns. The currently selected frame starts out the most-recent frame or 0 if no frame positioning (e.g up, down or frame) has been performed. If a frame number is given we run until frame frames returns.
+
+    
+=== Quitting
+To exit the debugger, use the *quit* command (abbreviated *q*), or alias *exit*.
+
+A simple quit tries to terminate all threads in effect. Therefore your server will be stopped and you will have to start it again.
+
+== References
+
+* link:http://www.datanoise.com/ruby-debug[ruby-debug Homepage]
+* link:http://www.sitepoint.com/article/debug-rails-app-ruby-debug/[Article: Debugging a Rails application with ruby-debug]
+* link:http://brian.maybeyoureinsane.net/blog/2007/05/07/ruby-debug-basics-screencast/[ruby-debug Basics screencast]
+* link:http://railscasts.com/episodes/54-debugging-with-ruby-debug[Ryan Bate's ruby-debug screencast]
+* link:http://bashdb.sourceforge.net/ruby-debug.html[Debugging with ruby-debug]
+* link:http://cheat.errtheblog.com/s/rdebug/[ruby-debug cheat sheet]
