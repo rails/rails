@@ -1266,7 +1266,7 @@ module ActiveRecord
               association = association_proxy_class.new(self, reflection)
             end
 
-            new_value = reflection.klass.new(new_value) if reflection.options[:accessible] && new_value.is_a?(Hash)
+            new_value = reflection.build_association(new_value) if reflection.options[:accessible] && new_value.is_a?(Hash)
 
             if association_proxy_class == HasOneThroughAssociation
               association.create_through_record(new_value)

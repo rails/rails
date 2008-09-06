@@ -1,6 +1,6 @@
 *Edge*
 
-* Internal API: configurable association options so plugins may extend and override.  #985 [Hongli Lai]
+* Internal API: configurable association options and build_association method for reflections so plugins may extend and override.  #985 [Hongli Lai]
 
 * Changed benchmarks to be reported in milliseconds [DHH]
 
