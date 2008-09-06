@@ -218,7 +218,7 @@ module ActiveRecord
           s = column.class.string_to_binary(value).unpack("H*")[0]
           "x'#{s}'"
         elsif value.kind_of?(BigDecimal)
-          "'#{value.to_s("F")}'"
+          value.to_s("F")
         else
           super
         end
