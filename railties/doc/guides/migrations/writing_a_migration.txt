@@ -115,7 +115,7 @@ will create a `category_id` column of the appropriate type. Note that you pass t
 [source, ruby]
 ---------------------
 create_table :products do |t|
-  t.references :attachement, :polymorphic => {:default => 'Photo'}
+  t.references :attachment, :polymorphic => {:default => 'Photo'}
 end
 ---------------------
 will add an `attachment_id` column and a string `attachment_type` column with a default value of 'Photo'.
