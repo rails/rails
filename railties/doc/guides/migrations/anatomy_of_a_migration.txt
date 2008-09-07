@@ -23,7 +23,7 @@ end
 This migration adds a table called products with a string column called `name` and a text column called `description`. A primary key column called `id` will also be added, however since this is the default we do not need to ask for this. The timestamp columns `created_at` and `updated_at` which Active Record populates automatically will also be added. Reversing this migration is as simple as dropping the table.
 
 === Migrations are classes
-A migration is a subclass of `ActiveRecord::Migration` that implements two class methods: +up+ (perform the required transformations) and +down+ (revert them).
+A migration is a subclass of ActiveRecord::Migration that implements two class methods: +up+ (perform the required transformations) and +down+ (revert them).
 
 Active Record provides methods that perform common data definition tasks in a database independent way (you'll read about them in detail later):
 
@@ -44,7 +44,7 @@ On databases that support transactions with statements that change the schema, m
 
 === What's in a name ===
 
-Migrations are stored in files in db/migrate, one for each migration class. The name of the file is of the form `YYYYMMDDHHMMSS_create_products.rb`, that is to say a UTC timestamp identifying the migration followed by an underscore followed by the name of the migration. The migration class' name must match (the camelcased version of) the latter part of the file name. For example `20080906120000_create_products.rb` should define `CreateProducts` and `20080906120001_add_details_to_products.rb` should define `AddDetailsToProducts`. If you do feel the need to change the file name then you MUST update the name of the class inside or Rails will complain about a missing class.
+Migrations are stored in files in `db/migrate`, one for each migration class. The name of the file is of the form `YYYYMMDDHHMMSS_create_products.rb`, that is to say a UTC timestamp identifying the migration followed by an underscore followed by the name of the migration. The migration class' name must match (the camelcased version of) the latter part of the file name. For example `20080906120000_create_products.rb` should define CreateProducts and `20080906120001_add_details_to_products.rb` should define AddDetailsToProducts. If you do feel the need to change the file name then you MUST update the name of the class inside or Rails will complain about a missing class.
 
 Internally Rails only uses the migration's number (the timestamp) to identify them. Prior to Rails 2.1 the migration number started at 1 and was incremented each time a migration was generated. With multiple developers it was easy for these to clash requiring you to rollback migrations and renumber them. With Rails 2.1 this is largely avoided by using the creation time of the migration to identify them.
 

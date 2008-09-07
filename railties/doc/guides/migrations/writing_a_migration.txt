@@ -154,6 +154,6 @@ class ExampleMigration < ActiveRecord::Migration
   end
 end
 ---------------------
-Sometimes your migration will do something which is just plain irreversible, for example it might destroy some data. In cases like those when you can't reverse the migration you can raise `IrreversibleMigration` from your down method. If someone tries to revert your migration an error message will be
+Sometimes your migration will do something which is just plain irreversible, for example it might destroy some data. In cases like those when you can't reverse the migration you can raise IrreversibleMigration from your down method. If someone tries to revert your migration an error message will be
 displayed saying that it can't be done.
 

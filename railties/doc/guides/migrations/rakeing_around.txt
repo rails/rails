@@ -33,7 +33,7 @@ NOTE: this is not the same as running all the migrations - see the section on sc
 
 === Being Specific ===
 
-If you need to run a specific migration up or down the `db:migrate:up` and `db:migrate:down` tasks will do that. Just specify the appropriate `VERSION` and the corresponding migration will have its up or down method invoked, for example
+If you need to run a specific migration up or down the `db:migrate:up` and `db:migrate:down` tasks will do that. Just specify the appropriate version and the corresponding migration will have its up or down method invoked, for example
 
 `rake db:migrate:up VERSION=20080906120000`
 

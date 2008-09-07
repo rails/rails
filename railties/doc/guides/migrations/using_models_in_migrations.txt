@@ -19,7 +19,7 @@ class AddPartNumberToProducts < ActiveRecord::Migration
   end
 end
 -------------------------
-The migration has its own minimal copy of the `Product` model and no longer cares about the `Product` model defined in the application.
+The migration has its own minimal copy of the Product model and no longer cares about the Product model defined in the application.
 
 === Dealing with changing models ===
 
