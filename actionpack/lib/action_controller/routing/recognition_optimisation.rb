@@ -147,6 +147,15 @@ module ActionController
             end
           }, __FILE__, __LINE__
         end
+
+        def clear_recognize_optimized!
+          instance_eval %{
+            def recognize_optimized(path, environment)
+              write_recognize_optimized!
+              recognize_optimized(path, environment)
+            end
+          }, __FILE__, __LINE__
+        end
     end
   end
 end
