@@ -276,7 +276,8 @@ guides = [
   'securing_rails_applications',
   'testing_rails_applications',
   'creating_plugins',
-  { 'routing' => 'routing_outside_in' }
+  { 'routing' => 'routing_outside_in' },
+  { 'debugging' => 'debugging_rails_applications' }
 ]
 guides_html_files = []
 guides.each do |entry|
