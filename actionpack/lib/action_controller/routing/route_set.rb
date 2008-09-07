@@ -194,6 +194,7 @@ module ActionController
       def initialize
         self.routes = []
         self.named_routes = NamedRouteCollection.new
+        clear_recognize_optimized!
       end
 
       # Subclasses and plugins may override this method to specify a different
@@ -213,9 +214,9 @@ module ActionController
         named_routes.clear
         @combined_regexp = nil
         @routes_by_controller = nil
-        # This will force routing/recognition_optimization.rb
+        # This will force routing/recognition_optimisation.rb
         # to refresh optimisations.
-        @compiled_recognize_optimized = nil
+        clear_recognize_optimized!
       end
 
       def install_helpers(destinations = [ActionController::Base, ActionView::Base], regenerate_code = false)

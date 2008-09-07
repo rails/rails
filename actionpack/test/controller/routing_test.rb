@@ -671,6 +671,35 @@ class LegacyRouteSetTests < Test::Unit::TestCase
       x.send(:foo_with_requirement_url, "I am Against the requirements")
     end
   end
+
+  def test_routes_changed_correctly_after_clear
+    ActionController::Base.optimise_named_routes = true
+    rs = ::ActionController::Routing::RouteSet.new
+    rs.draw do |r|
+      r.connect 'ca', :controller => 'ca', :action => "aa"
+      r.connect 'cb', :controller => 'cb', :action => "ab"
+      r.connect 'cc', :controller => 'cc', :action => "ac"
+      r.connect ':controller/:action/:id'
+      r.connect ':controller/:action/:id.:format'
+    end
+
+    hash = rs.recognize_path "/cc"
+
+    assert_not_nil hash
+    assert_equal %w(cc ac), [hash[:controller], hash[:action]]
+
+    rs.draw do |r|
+      r.connect 'cb', :controller => 'cb', :action => "ab"
+      r.connect 'cc', :controller => 'cc', :action => "ac"    
+      r.connect ':controller/:action/:id'
+      r.connect ':controller/:action/:id.:format'
+    end
+
+    hash = rs.recognize_path "/cc"
+
+    assert_not_nil hash
+    assert_equal %w(cc ac), [hash[:controller], hash[:action]]
+  end
 end
 
 class SegmentTest < Test::Unit::TestCase
