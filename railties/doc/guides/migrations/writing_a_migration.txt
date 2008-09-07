@@ -42,10 +42,10 @@ end
 ---------------------
 Will append `ENGINE=InnoDB` to the sql used to create the table.
 
-The types ActiveRecord supports are `:primary_key`, `:string`, `:text`, `:integer`, `:float`, `:decimal`, `:datetime`, `:timestamp`, `:time`, `:date`, `:binary`, `:boolean`.
+The types Active Record supports are `:primary_key`, `:string`, `:text`, `:integer`, `:float`, `:decimal`, `:datetime`, `:timestamp`, `:time`, `:date`, `:binary`, `:boolean`.
 
 These will be mapped onto an appropriate underlying database type, for example with MySQL `:string` is mapped to `VARCHAR(255)`. You can create columns of 
-types not supported by ActiveRecord when using the non sexy syntax, for example
+types not supported by Active Record when using the non sexy syntax, for example
 
 [source, ruby]
 ---------------------
@@ -83,7 +83,7 @@ You don't have to keep repeating the table name and it groups all the statements
 
 === Special helpers ===
 
-ActiveRecord provides some shortcuts for common functionality. It is for example very common to add both the `created_at` and `updated_at` columns and so there is a method that does exactly that:
+Active Record provides some shortcuts for common functionality. It is for example very common to add both the `created_at` and `updated_at` columns and so there is a method that does exactly that:
 
 [source, ruby]
 ---------------------
@@ -110,7 +110,7 @@ create_table :products do |t|
 end
 ---------------------
 
-will create a `category_id` column of the appropriate type. Note that you pass the model name, not the column name. ActiveRecord adds the `_id` for you. If you have polymorphic belongs_to associations then `references` will add both of the columns required:
+will create a `category_id` column of the appropriate type. Note that you pass the model name, not the column name. Active Record adds the `_id` for you. If you have polymorphic belongs_to associations then `references` will add both of the columns required:
 
 [source, ruby]
 ---------------------
@@ -122,7 +122,7 @@ will add an `attachment_id` column and a string `attachment_type` column with a 
 
 NOTE: The `references` helper does not actually create foreign key constraints for you. You will need to use execute for that.
 
-If the helpers provided by ActiveRecord aren't enough you can use the `execute` function to execute arbitrary SQL.
+If the helpers provided by Active Record aren't enough you can use the `execute` function to execute arbitrary SQL.
 
 For more details and examples of individual methods check the API documentation.
 

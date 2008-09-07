@@ -25,7 +25,7 @@ end
 -----------------------
 
 You can append as many column name/type pairs as you want. By default `t.timestamps` (which creates the `updated_at` and `created_at` columns that
-are automatically populated by ActiveRecord are also created) will be added for you.
+are automatically populated by Active Record are also created) will be added for you.
 
 === Creating a standalone migration ===
 If you are creating migrations for other purposes (for example to add a column to an existing table) then you can use the migration generator:

@@ -23,7 +23,7 @@ The migration has its own minimal copy of the `Product` model and no longer care
 
 === Dealing with changing models ===
 
-For performance reasons information about the columns a model has is cached. For example if you add a column to a table and then try and use the corresponding model to insert a new row it may try and use the old column information. You can force ActiveRecord to re-read the column information with the `reset_column_information` method, for example
+For performance reasons information about the columns a model has is cached. For example if you add a column to a table and then try and use the corresponding model to insert a new row it may try and use the old column information. You can force Active Record to re-read the column information with the `reset_column_information` method, for example
 
 [source, ruby]
 -------------------------

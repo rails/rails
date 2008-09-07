@@ -1,14 +1,14 @@
 Migrations
 ==========
 
-Migrations are a convenient way for you to alter your database in a structured and organised manner. ActiveRecord takes care of working out which migrations have already been run so you can just update your source and run the migrations, leaving ActiveRecord to work out the details.
+Migrations are a convenient way for you to alter your database in a structured and organised manner. Active Record takes care of working out which migrations have already been run so you can just update your source and run the migrations, leaving Active Record to work out the details.
 
 Migrations also allow you to describe these transformation using ruby, in a database independent way (you can drop down to raw SQL for database specific features).
 
 You'll learn all about migrations including:
 
 * The generators you can use to create them
-* The methods ActiveRecord provides to manipulate your database
+* The methods Active Record provides to manipulate your database
 * The rake tasks that manipulate them
 * How they relate to schema.rb
 

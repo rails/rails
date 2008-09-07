@@ -20,12 +20,12 @@ class CreateProducts < ActiveRecord::Migration
 end
 ------------------------
 
-This migration adds a table called products with a string column called `name` and a text column called `description`. A primary key column called `id` will also be added, however since this is the default we do not need to ask for this. The timestamp columns `created_at` and `updated_at` which ActiveRecord populates automatically will also be added. Reversing this migration is as simple as dropping the table.
+This migration adds a table called products with a string column called `name` and a text column called `description`. A primary key column called `id` will also be added, however since this is the default we do not need to ask for this. The timestamp columns `created_at` and `updated_at` which Active Record populates automatically will also be added. Reversing this migration is as simple as dropping the table.
 
 === Migrations are classes
 A migration is a subclass of `ActiveRecord::Migration` that implements two class methods: +up+ (perform the required transformations) and +down+ (revert them).
 
-ActiveRecord provides methods that perform common data definition tasks in a database independent way (you'll read about them in detail later):
+Active Record provides methods that perform common data definition tasks in a database independent way (you'll read about them in detail later):
 
 * `create_table`
 * `change_table`
