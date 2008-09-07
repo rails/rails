@@ -84,7 +84,7 @@ class RemovePartNumberFromProducts < ActiveRecord::Migration
 end
 -----------------------
 
-You aren't limited to one magically generated column, for example
+You are not limited to one magically generated column, for example
 
 `ruby script/generate migration AddDetailsToProducts part_number:string price:decimal`
 

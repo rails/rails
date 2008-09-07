@@ -71,7 +71,7 @@ class CreateProducts < ActiveRecord::Migration
         t.timestamps
       end
     end
-    say "we created a table"
+    say "Created a table"
     suppress_messages {add_index :products, :name}
     say "and an index!", true
     say_with_time 'Waiting for a while' do
@@ -89,7 +89,7 @@ end
 generates the following output
 ----------------------
 == 20080906170109 CreateProducts: migrating ===================================
--- we created a table
+-- Created a table
    -> and an index!
 -- Waiting for a while
    -> 10.0001s

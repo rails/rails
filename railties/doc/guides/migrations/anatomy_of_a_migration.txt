@@ -1,6 +1,6 @@
 == Anatomy Of A Migration ==
 
-Before we dive into the details of a migration, here is a typical example: 
+Before I dive into the details of a migration, here is a typical example: 
 
 [source, ruby]
 ------------------------
@@ -25,7 +25,7 @@ This migration adds a table called products with a string column called `name` a
 === Migrations are classes
 A migration is a subclass of `ActiveRecord::Migration` that implements two class methods: +up+ (perform the required transformations) and +down+ (revert them).
 
-Methods are provided that perform common data definition tasks in a database independent way (we'll look at them in detail later):
+ActiveRecord provides methods that perform common data definition tasks in a database independent way (you'll read about them in detail later):
 
 * `create_table`
 * `change_table`
