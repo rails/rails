@@ -5,7 +5,12 @@ Migrations are a convenient way for you to alter your database in a structured a
 
 Migrations also allow you to describe these transformation using ruby, in a database independent way (you can drop down to raw SQL for database specific features).
 
-Rails packages a number of rake tasks and generators for working with migrations and you'll learn about those too.
+You'll learn all about migrations including:
+
+* The generators you can use to create them
+* The methods ActiveRecord provides to manipulate your database
+* The rake tasks that manipulate them
+* How they relate to schema.rb
 
 include::anatomy_of_a_migration.txt[]
 include::creating_a_migration.txt[]
