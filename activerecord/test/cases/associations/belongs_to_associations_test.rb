@@ -47,6 +47,19 @@ class BelongsToAssociationsTest < ActiveRecord::TestCase
     assert_equal apple.id, citibank.firm_id
   end
 
+  def test_foreign_key_assignment
+    # Test using an existing record
+    signals37 = accounts(:signals37)
+    assert_equal companies(:first_firm), signals37.firm
+    signals37.firm_id = companies(:another_firm).id
+    assert_equal companies(:another_firm), signals37.firm
+
+    # Test using a new record
+    account = Account.new
+    account.firm_id = companies(:another_firm).id
+    assert_equal companies(:another_firm), account.firm
+  end
+
   def test_no_unexpected_aliasing
     first_firm = companies(:first_firm)
     another_firm = companies(:another_firm)
