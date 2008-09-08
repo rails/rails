@@ -313,9 +313,39 @@ module ActiveRecord
       base.define_callbacks *VALIDATIONS
     end
 
-    # All of the following validations are defined in the class scope of the model that you're interested in validating.
-    # They offer a more declarative way of specifying when the model is valid and when it is not. It is recommended to use
-    # these over the low-level calls to +validate+ and +validate_on_create+ when possible.
+    # Active Record models can implement validations using three styles. The most high-level, easiest to read, 
+    # and recommended approach is to use the declarative <tt>validates_...</tt> class methods documented below.
+    # At a lower level, a model can use the class methods +validate+, +validate_on_create+ and +validate_on_update+. 
+    # The lowest level style is to define the instance methods +validate+, +validate_on_create+ and +validate_on_update+
+    # as documented in ActiveRecord::Validations.
+    #
+    # == +validate+, +validate_on_create+ and +validate_on_update+ Class Methods
+    #
+    # Calls to these methods add a validation method or block to the class.
+    #
+    # This can be done with a symbol pointing to a method:
+    #
+    #   class Comment < ActiveRecord::Base
+    #     validate :must_be_friends
+    #
+    #     def must_be_friends
+    #       errors.add_to_base("Must be friends to leave a comment") unless commenter.friend_of?(commentee)
+    #     end
+    #   end
+    #
+    # Or with a block which is passed the current record to be validated:
+    #
+    #   class Comment < ActiveRecord::Base
+    #     validate do |comment|
+    #       comment.must_be_friends
+    #     end
+    #
+    #     def must_be_friends
+    #       errors.add_to_base("Must be friends to leave a comment") unless commenter.friend_of?(commentee)
+    #     end
+    #   end
+    #
+    # This usage applies to +validate_on_create+ and +validate_on_update+ as well.
     module ClassMethods
       DEFAULT_VALIDATION_OPTIONS = {
         :on => :save,
@@ -328,34 +358,6 @@ module ActiveRecord
       ALL_NUMERICALITY_CHECKS = { :greater_than => '>', :greater_than_or_equal_to => '>=',
                                   :equal_to => '==', :less_than => '<', :less_than_or_equal_to => '<=',
                                   :odd => 'odd?', :even => 'even?' }.freeze
-
-      # Adds a validation method or block to the class. This is useful when
-      # overriding the +validate+ instance method becomes too unwieldy and
-      # you're looking for more descriptive declaration of your validations.
-      #
-      # This can be done with a symbol pointing to a method:
-      #
-      #   class Comment < ActiveRecord::Base
-      #     validate :must_be_friends
-      #
-      #     def must_be_friends
-      #       errors.add_to_base("Must be friends to leave a comment") unless commenter.friend_of?(commentee)
-      #     end
-      #   end
-      #
-      # Or with a block which is passed the current record to be validated:
-      #
-      #   class Comment < ActiveRecord::Base
-      #     validate do |comment|
-      #       comment.must_be_friends
-      #     end
-      #
-      #     def must_be_friends
-      #       errors.add_to_base("Must be friends to leave a comment") unless commenter.friend_of?(commentee)
-      #     end
-      #   end
-      #
-      # This usage applies to +validate_on_create+ and +validate_on_update+ as well.
 
       # Validates each attribute against a block.
       #
