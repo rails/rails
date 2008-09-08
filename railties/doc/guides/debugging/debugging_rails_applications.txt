@@ -1,22 +1,18 @@
 Debugging Rails applications
 ============================
 
-You may have heard about debugging:
+This guide covers how to debug Ruby on Rails applications. By referring to this guide, you will be able to:
 
-_Debugging is a methodical process of finding and reducing the number of bugs, or defects, in a computer program or a piece of electronic hardware thus making it behave as expected._
-
-Many times your code may not behave as you expect, sometimes you will try to print in logs or console values to make a diagnostic of the problem.
-
-Unfortunately, you won't find always the answer you are looking for this way. In that case, you will need to know what's happening and adventure into Rails, in this journey the debugger will be your best companion.
-
-If you ever wanted to learn about Rails source code but you didn't know where to start, this may be the best way, just debug any request to your application and use this guide to learn how to move in the code you have written but also go deeper into Rails code.
-
+* Understand the purpose of debugging
+* Track down problems and issues in your application that your tests aren't identifying
+* Learn the different ways of debugging
+* Analyze the stack trace
 
 == View helpers for debugging
 
 === debug
 
-*debug* will return a <pre>-tag that has object dumped by YAML. This creates a very readable way to inspect an object.
+*debug* will return a <pre>-tag that has object dumped by YAML. Generating readable output to inspect any object.
 
 [source, html]
 ----------------------------------------------------------------------------
@@ -45,25 +41,9 @@ Title: Rails debugging guide
 ----------------------------------------------------------------------------
 
 
-=== local_assigns
-
-If you need to find out whether a certain local variable has been assigned a value in a particular render call, you need to use the following pattern:
-
-[source, html]
-----------------------------------------------------------------------------
-  <% if local_assigns.has_key? :headline %>
-    <p>Headline: <%= headline %></p>
-  <% end %>
-----------------------------------------------------------------------------
-
-Using defined?(headline) will not work. This is an implementation restriction.
-
-[TIP]
-This is particularly handy inside partials, since you can know which variables have been defined and which haven't.
-
 === do it yourself
 
-Displaying an instance in yaml format, can be achieved this way:
+Displaying an instance variable, or any other object or method, in yaml format can be achieved this way:
 
 [source, html]
 ----------------------------------------------------------------------------
@@ -74,9 +54,9 @@ Displaying an instance in yaml format, can be achieved this way:
 </p>
 ----------------------------------------------------------------------------
 
-*to_yaml* converts the method to yaml format leaving it more readable and finally *simple_format* help us to render each line as in the console. This is how *debug* method does it's magic.
+*to_yaml* converts the method to yaml format leaving it more readable and finally *simple_format* help us to render each line as in the console. This is how *debug* method does its magic.
 
-As a result of this can see something like this in our view:
+As a result of this, you will have something like this in your view:
 
 ----------------------------------------------------------------------------
 --- !ruby/object:Post
@@ -96,7 +76,7 @@ Another great method for displaying object values is *inspect*, especially when 
 
 [source, html]
 ----------------------------------------------------------------------------
-<%= [1, 1, 2, 3, 5].inspect %>
+<%= [1, 2, 3, 4, 5].inspect %>
 <p>
   <b>Title:</b>
   <%=h @post.title %>
@@ -106,14 +86,124 @@ Another great method for displaying object values is *inspect*, especially when 
 Will be rendered as follows:
 
 ----------------------------------------------------------------------------
-[1, 2, 3]
+[1, 2, 3, 4, 5]
 
 Title: Rails debugging guide
 ----------------------------------------------------------------------------
 
+== The logger
+
+=== What is it?
+
+Rails makes use of ruby’s standard *logger*, *Log4r*, or another logger that provides a similar interface can also be substituted if you wish.
+
+If you want to change the logger you can specify it in your *environment.rb* or any environment file.
+
+[source, ruby]
+----------------------------------------------------------------------------
+ActiveRecord::Base.logger = Logger.new(STDOUT)
+ActiveRecord::Base.logger = Log4r::Logger.new("Application Log")
+----------------------------------------------------------------------------
+
+Or in the __Initializer__ section, add _any_ of the following
+
+[source, ruby]
+----------------------------------------------------------------------------
+config.logger = Logger.new(STDOUT)
+config.logger = Log4r::Logger.new("Application Log")
+----------------------------------------------------------------------------
+
+[TIP]
+By default, each log is created under "__RAILS_ROOT/log/__" and the log file name is "__environment_name.log__".
+
+=== Log levels
+
+When something is logged it's printed into the corresponding log if the message log level is equal or higher than the configured log level. If you want to know the current log level just call *ActiveRecord::Base.logger.level* method.
+
+The available log levels are: *:debug*, *:info*, *:warn*, *:error*, *:fatal*, each level has a log level number from 0 up to 4 respectively. To change the default log level, use
+
+[source, ruby]
+----------------------------------------------------------------------------
+config.log_level = Logger::WARN # In any environment initializer, or
+ActiveRecord::Base.logger.level = 0 # at any time
+----------------------------------------------------------------------------
+
+This is useful when you want to log under development or staging, but you don't want to flood your production log with unnecessary information.
+
+[TIP]
+Rails default log level is *info* in production mode and *debug* in development and test mode.
+
+=== Sending messages
+
+To write in the current log use the *logger.(debug|info|warn|error|fatal)* method from within a controller, model or mailer:
+
+[source, ruby]
+----------------------------------------------------------------------------
+logger.debug "Person attributes hash: #{@person.attributes.inspect}"
+logger.info "Processing the request..."
+logger.fatal "Terminating application, raised unrecoverable error!!!"
+----------------------------------------------------------------------------
+
+A common example:
+
+[source, ruby]
+----------------------------------------------------------------------------
+class PostsController < ApplicationController
+  # ...
+
+  def create
+    @post = Post.new(params[:post])
+    logger.debug "New post: #{@post.attributes.inspect}"
+    logger.debug "Post should be valid: #{@post.valid?}"
+
+    if @post.save
+      flash[:notice] = 'Post was successfully created.'
+      logger.debug "The post was saved and now is the user is going to be redirected..."
+      redirect_to(@post)
+    else
+      render :action => "new"
+    end
+  end
+
+  # ...
+end
+----------------------------------------------------------------------------
+
+Will be logged like this:
+
+----------------------------------------------------------------------------
+Processing PostsController#create (for 127.0.0.1 at 2008-09-08 11:52:54) [POST]
+  Session ID: BAh7BzoMY3NyZl9pZCIlMDY5MWU1M2I1ZDRjODBlMzkyMWI1OTg2NWQyNzViZjYiCmZsYXNoSUM6J0FjdGlvbkNvbnRyb2xsZXI6OkZsYXNoOjpGbGFzaEhhc2h7AAY6CkB1c2VkewA=--b18cd92fba90eacf8137e5f6b3b06c4d724596a4
+  Parameters: {"commit"=>"Create", "post"=>{"title"=>"Debugging Rails", "body"=>"I'm learning how to print in logs!!!", "published"=>"0"}, "authenticity_token"=>"2059c1286e93402e389127b1153204e0d1e275dd", "action"=>"create", "controller"=>"posts"}
+New post: {"updated_at"=>nil, "title"=>"Debugging Rails", "body"=>"I'm learning how to print in logs!!!", "published"=>false, "created_at"=>nil}
+Post should be valid: true
+  Post Create (0.000443)   INSERT INTO "posts" ("updated_at", "title", "body", "published", "created_at") VALUES('2008-09-08 14:52:54', 'Debugging Rails', 'I''m learning how to print in logs!!!', 'f', '2008-09-08 14:52:54')
+The post was saved and now is the user is going to be redirected...
+Redirected to #<Post:0x20af760>
+Completed in 0.01224 (81 reqs/sec) | DB: 0.00044 (3%) | 302 Found [http://localhost/posts]
+----------------------------------------------------------------------------
+
+Notice the logged lines, now you can search for any unexpected behavior in the output.
+
+By now you should know how to use the logs in any environment. Remember to take advantage of the log levels and use them wisely, mostly in production mode.
+
 == Debugging with ruby-debug
 
+Many times your code may not behave as you expect, sometimes you will try to print in logs, console or view values to make a diagnostic of the problem.
+
+Unfortunately, you won't find always the answer you are looking for this way. In that case, you will need to know what's happening and adventure into Rails, in this journey the debugger will be your best companion.
+
+If you ever wanted to learn about Rails source code but you didn't know where to start, this may be the best way, just debug any request to your application and use this guide to learn how to move in the code you have written but also go deeper into Rails code.
+
 === Setup
+
+Ruby-debug comes as a gem so to install, just run:
+
+----------------------------------------------------------------------------
+$ sudo gem in ruby-debug
+----------------------------------------------------------------------------
+
+In case you want to download a particular version or get the source code, refer to link:http://rubyforge.org/projects/ruby-debug/[project's page on rubyforge].
 
 Rails has built-in support for ruby-debug since April 28, 2007. Inside any Rails application you can invoke the debugger by calling the *debugger* method.
 
@@ -504,5 +594,8 @@ set listsize 25
 * link:http://www.sitepoint.com/article/debug-rails-app-ruby-debug/[Article: Debugging a Rails application with ruby-debug]
 * link:http://brian.maybeyoureinsane.net/blog/2007/05/07/ruby-debug-basics-screencast/[ruby-debug Basics screencast]
 * link:http://railscasts.com/episodes/54-debugging-with-ruby-debug[Ryan Bate's ruby-debug screencast]
+* link:http://railscasts.com/episodes/24-the-stack-trace[Ryan Bate's stack trace screencast]
+* link:http://railscasts.com/episodes/56-the-logger[Ryan Bate's logger screencast]
 * link:http://bashdb.sourceforge.net/ruby-debug.html[Debugging with ruby-debug]
 * link:http://cheat.errtheblog.com/s/rdebug/[ruby-debug cheat sheet]
+* link:http://wiki.rubyonrails.org/rails/pages/HowtoConfigureLogging[Ruby on Rails Wiki: How to Configure Logging]
