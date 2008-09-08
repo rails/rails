@@ -1,0 +1,9 @@
+Ruby on Rails guides
+====================
+
+* link:migrations/migrations.html[Guide to Rails Database Migrations]
+* link:testing_rails_applications/testing_rails_applications.html[Testing Rails Applications]
+* link:securing_rails_applications/securing_rails_applications.html[Securing Rails Applications]
+* link:routing/routing_outside_in.html[Routing Outside-In]
+* link:debugging/debugging_rails_applications.html[Debugging Rails Applications]
+* link:creating_plugins/creating_plugins.html[The Basics of Creating Rails Plugins]
