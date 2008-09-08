@@ -904,6 +904,14 @@ class BasicsTest < ActiveRecord::TestCase
     assert_nil keyboard.id
   end
 
+  def test_mass_assigning_invalid_attribute
+    firm = Firm.new
+
+    assert_raises(ActiveRecord::UnknownAttributeError) do
+      firm.attributes = { "id" => 5, "type" => "Client", "i_dont_even_exist" => 20 }
+    end
+  end
+
   def test_mass_assignment_protection_on_defaults
     firm = Firm.new
     firm.attributes = { "id" => 5, "type" => "Client" }
