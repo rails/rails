@@ -509,13 +509,13 @@ module ActiveRecord
       #
       #   class Person < ActiveRecord::Base
       #     validates_length_of :first_name, :maximum=>30
-      #     validates_length_of :last_name, :maximum=>30, :message=>"less than %d if you don't mind"
+      #     validates_length_of :last_name, :maximum=>30, :message=>"less than {{count}} if you don't mind"
       #     validates_length_of :fax, :in => 7..32, :allow_nil => true
       #     validates_length_of :phone, :in => 7..32, :allow_blank => true
       #     validates_length_of :user_name, :within => 6..20, :too_long => "pick a shorter name", :too_short => "pick a longer name"
-      #     validates_length_of :fav_bra_size, :minimum => 1, :too_short => "please enter at least %d character"
-      #     validates_length_of :smurf_leader, :is => 4, :message => "papa is spelled with %d characters... don't play me."
-      #     validates_length_of :essay, :minimum => 100, :too_short => "Your essay must be at least %d words."), :tokenizer => lambda {|str| str.scan(/\w+/) }
+      #     validates_length_of :fav_bra_size, :minimum => 1, :too_short => "please enter at least {{count}} character"
+      #     validates_length_of :smurf_leader, :is => 4, :message => "papa is spelled with {{count}} characters... don't play me."
+      #     validates_length_of :essay, :minimum => 100, :too_short => "Your essay must be at least {{count}} words."), :tokenizer => lambda {|str| str.scan(/\w+/) }
       #   end
       #
       # Configuration options:
@@ -526,9 +526,9 @@ module ActiveRecord
       # * <tt>:in</tt> - A synonym(or alias) for <tt>:within</tt>.
       # * <tt>:allow_nil</tt> - Attribute may be +nil+; skip validation.
       # * <tt>:allow_blank</tt> - Attribute may be blank; skip validation.
-      # * <tt>:too_long</tt> - The error message if the attribute goes over the maximum (default is: "is too long (maximum is %d characters)").
-      # * <tt>:too_short</tt> - The error message if the attribute goes under the minimum (default is: "is too short (min is %d characters)").
-      # * <tt>:wrong_length</tt> - The error message if using the <tt>:is</tt> method and the attribute is the wrong size (default is: "is the wrong length (should be %d characters)").
+      # * <tt>:too_long</tt> - The error message if the attribute goes over the maximum (default is: "is too long (maximum is {{count}} characters)").
+      # * <tt>:too_short</tt> - The error message if the attribute goes under the minimum (default is: "is too short (min is {{count}} characters)").
+      # * <tt>:wrong_length</tt> - The error message if using the <tt>:is</tt> method and the attribute is the wrong size (default is: "is the wrong length (should be {{count}} characters)").
       # * <tt>:message</tt> - The error message to use for a <tt>:minimum</tt>, <tt>:maximum</tt>, or <tt>:is</tt> violation.  An alias of the appropriate <tt>too_long</tt>/<tt>too_short</tt>/<tt>wrong_length</tt> message.
       # * <tt>:on</tt> - Specifies when this validation is active (default is <tt>:save</tt>, other options <tt>:create</tt>, <tt>:update</tt>).
       # * <tt>:if</tt> - Specifies a method, proc or string to call to determine if the validation should
@@ -731,7 +731,7 @@ module ActiveRecord
       #   class Person < ActiveRecord::Base
       #     validates_inclusion_of :gender, :in => %w( m f ), :message => "woah! what are you then!??!!"
       #     validates_inclusion_of :age, :in => 0..99
-      #     validates_inclusion_of :format, :in => %w( jpg gif png ), :message => "extension %s is not included in the list"
+      #     validates_inclusion_of :format, :in => %w( jpg gif png ), :message => "extension {{value}} is not included in the list"
       #   end
       #
       # Configuration options:
@@ -765,7 +765,7 @@ module ActiveRecord
       #   class Person < ActiveRecord::Base
       #     validates_exclusion_of :username, :in => %w( admin superuser ), :message => "You don't belong here"
       #     validates_exclusion_of :age, :in => 30..60, :message => "This site is only for under 30 and over 60"
-      #     validates_exclusion_of :format, :in => %w( mov avi ), :message => "extension %s is not allowed"
+      #     validates_exclusion_of :format, :in => %w( mov avi ), :message => "extension {{value}} is not allowed"
       #   end
       #
       # Configuration options:
