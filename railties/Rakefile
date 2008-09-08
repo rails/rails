@@ -276,6 +276,7 @@ guides = [
   'securing_rails_applications',
   'testing_rails_applications',
   'creating_plugins',
+  'migrations',
   { 'routing' => 'routing_outside_in' },
   { 'debugging' => 'debugging_rails_applications' }
 ]
