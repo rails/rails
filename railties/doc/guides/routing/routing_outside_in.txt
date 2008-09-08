@@ -455,7 +455,9 @@ However, without the use of +name_prefix => nil+, deeply-nested resources quickl
 /publishers/1/magazines/2/photos/3
 -------------------------------------------------------
 
-The corresponding route helper would be +publisher_magazine_photo_url+, requiring you to specify objects at all three levels.
+The corresponding route helper would be +publisher_magazine_photo_url+, requiring you to specify objects at all three levels. Indeed, this situation is confusing enough that a popular link:http://weblog.jamisbuck.org/2007/2/5/nesting-resources[article] by Jamis Buck proposes a rule of thumb for good Rails design:
+
+_Resources should never be nested more than 1 level deep._
 
 ==== Shallow Nesting
 
@@ -478,6 +480,23 @@ This will enable recognition of (among others) these routes:
 /magazines/2            ==> magazine_path(2)
 /magazines/2/photos     ==> magazines_photos_path(2)
 /photos/3               ==> photo_path(3)
+-------------------------------------------------------
+
+With shallow nesting, you need only supply enough information to uniquely identify the resource that you want to work with - but you _can_ supply more information. All of the nested routes continue to work, just as they would without shallow nesting, but less-deeply nested routes (even direct routes) work as well. So, with the declaration above, all of these routes refer to the same resource:
+
+-------------------------------------------------------
+/publishers/1/magazines/2/photos/3   ==> publisher_magazine_photo_path(1,2,3)
+/magazines/2/photos/3                ==> magazine_photo_path(2,3)
+/photos/3                            ==> photo_path(3)
+-------------------------------------------------------
+
+Shallow nesting gives you the flexibility to use the shorter direct routes when you like, while still preserving the longer nested routes for times when they add code clarity.
+
+If you like, you can combine shallow nesting with the +:has_one+ and +:has_many+ options:
+
+[source, ruby]
+-------------------------------------------------------
+map.resources :publishers, :has_many => { :magazines => :photos }, :shallow => true
 -------------------------------------------------------
  
 === Adding More RESTful Actions

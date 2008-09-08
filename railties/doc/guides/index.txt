@@ -1,21 +1,9 @@
-The Book on Rails
-=================
+Ruby on Rails guides
+====================
 
-This book is about Ruby on Rails, a web development framework that saves you time and makes web development a joy. Using Ruby on Rails, you can build and maintain high-quality web applications with minimal fuss.
-
-At its best, web development is an exciting, creative act; at its worst, it can be a repetitive, frustrating nuisance. Ruby on Rails lets you focus on the fun stuff -- the crux of your web application -- while easing the pain of the repetitive bits. In doing so, it provides high-level abstractions of common web development patterns, shortcuts for frequent programming tasks, and clear conventions for how to solve problems.
-
-The goal of this book is to make you familiar with Ruby on Rails. This book assumes that you are already familiar with Ruby -- the programming language that Ruby on Rails is written in -- and that you have basic knowledge about HTML and web development.
-
-The focus of this book is twofold. First, we explain, in depth, what Ruby on Rails does and how to build web applications with it. Second, we discuss higher-level concepts where appropriate, answering the question ``How can I apply these tools effectively in my own projects?'' By reading this book, you'll learn the skills needed to develop powerful web sites quickly, with code that is clean and easy to maintain.
-
-== Introduction to Ruby on Rails ==
-include::introduction.txt[]
-
-== Installing Ruby on Rails ==
-include::installing_rails.txt[]
-
-== Creating a New Rails Project ==
-
-== Deploying Ruby on Rails ==
-
+* link:migrations/migrations.html[Guide to Rails Database Migrations]
+* link:testing_rails_applications/testing_rails_applications.html[Testing Rails Applications]
+* link:securing_rails_applications/securing_rails_applications.html[Securing Rails Applications]
+* link:routing/routing_outside_in.html[Routing Outside-In]
+* link:debugging/debugging_rails_applications.html[Debugging Rails Applications]
+* link:creating_plugins/creating_plugins.html[The Basics of Creating Rails Plugins]
