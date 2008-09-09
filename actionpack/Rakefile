@@ -32,6 +32,7 @@ Rake::TestTask.new(:test_action_pack) { |t|
   t.test_files=Dir.glob( "test/[cft]*/**/*_test.rb" ).sort
 #  t.pattern = 'test/*/*_test.rb'
   t.verbose = true
+  t.warning = true
 }
 
 desc 'ActiveRecord Integration Tests'
