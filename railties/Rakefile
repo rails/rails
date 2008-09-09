@@ -298,14 +298,14 @@ guides.each do |entry|
   input  = "doc/guides/#{guide_folder}/#{guide_name}.txt"
   output = "doc/guides/#{guide_folder}/#{guide_name}.html"
   guides_html_files << output
-  file output => Dir["doc/guides/#{guide_folder}/*.txt"] do
+  task output => Dir["doc/guides/#{guide_folder}/*.txt"] do
     ENV['MANUALSONRAILS_INDEX_URL'] = '../index.html'
     ENV.delete('MANUALSONRAILS_TOC')
     sh "mizuho", input, "--template", "manualsonrails", "--icons-dir", "../icons"
   end
 end
 
-file 'doc/guides/index.html' => 'doc/guides/index.txt' do
+task 'doc/guides/index.html' => 'doc/guides/index.txt' do
   ENV.delete('MANUALSONRAILS_INDEX_URL')
   ENV['MANUALSONRAILS_TOC'] = 'no'
   sh "mizuho", 'doc/guides/index.txt', "--template", "manualsonrails", "--icons-dir", "icons"
