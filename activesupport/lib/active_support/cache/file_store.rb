@@ -65,6 +65,6 @@ module ActiveSupport
             end
           end
         end
-      end
+    end
   end
 end
