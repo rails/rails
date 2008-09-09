@@ -60,7 +60,7 @@ module ActiveSupport
               #{memoized_ivar} ||= {} unless frozen?
               reload = args.pop if args.last == true || args.last == :reload
 
-              if #{memoized_ivar}
+              if defined?(#{memoized_ivar}) && #{memoized_ivar}
                 if !reload && #{memoized_ivar}.has_key?(args)
                   #{memoized_ivar}[args]
                 elsif #{memoized_ivar}
