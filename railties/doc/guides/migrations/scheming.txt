@@ -1,5 +1,5 @@
 == Schema dumping and you ==
-
+[[schema]]
 === What are schema files for? ===
 Migrations, mighty as they may be, are not the authoritative source for your database schema. That role falls to either `schema.rb` or an sql file which Active Record generates by examining the database. They are not designed to be edited, they just represent the current state of the database.
 

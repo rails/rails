@@ -29,7 +29,7 @@ The `db:migrate:redo` task is a shortcut for doing a rollback and then migrating
 
 Lastly, the `db:reset` task will drop the database, recreate it and load the current schema into it.
 
-NOTE: this is not the same as running all the migrations - see the section on schema.rb).
+NOTE: this is not the same as running all the migrations - see the section on <<schema,schema.rb>>).
 
 === Being Specific ===
 

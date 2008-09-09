@@ -37,7 +37,7 @@ Active Record provides methods that perform common data definition tasks in a da
 * `add_index`
 * `remove_index`
 
-If you need to perform tasks specific to your database (for example create a foreign key constraint) then the `execute` function allows you to execute arbitrary SQL. A migration is just a regular ruby class so you're not limited to these functions. For example after adding a column you could
+If you need to perform tasks specific to your database (for example create a <<foreign_key,foreign key>> constraint) then the `execute` function allows you to execute arbitrary SQL. A migration is just a regular ruby class so you're not limited to these functions. For example after adding a column you could
 write code to set the value of that column for existing records (if necessary using your models).
 
 On databases that support transactions with statements that change the schema, migrations are wrapped in a transaction. If the database does not support this (for example Mysql and SQLite) then when a migration fails the parts of it that succeeded will not be rolled back. You will have to unpick the changes that were made by hand.

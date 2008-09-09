@@ -120,7 +120,7 @@ end
 ---------------------
 will add an `attachment_id` column and a string `attachment_type` column with a default value of 'Photo'.
 
-NOTE: The `references` helper does not actually create foreign key constraints for you. You will need to use execute for that.
+NOTE: The `references` helper does not actually create <<foreign_key,foreign key>> constraints for you. You will need to use execute for that.
 
 If the helpers provided by Active Record aren't enough you can use the `execute` function to execute arbitrary SQL.
 
