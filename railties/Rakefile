@@ -281,6 +281,8 @@ guides = [
   'creating_plugins',
   'migrations',
   { 'routing' => 'routing_outside_in' },
+  { 'forms' =>'form_helpers' },
+  { 'activerecord' => 'association_basics' },
   { 'debugging' => 'debugging_rails_applications' }
 ]
 

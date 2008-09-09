@@ -1,9 +1,19 @@
 Ruby on Rails guides
 ====================
 
+.link:activerecord/association_basics.html[Active Record Associations]
+***********************************************************
+Introduction to Active Record associations.
+***********************************************************
+
 .link:migrations/migrations.html[Rails Database Migrations]
 ***********************************************************
 TODO: Insert some description here.
+***********************************************************
+
+.link:forms/form_helpers.html[Action View Form Helpers]
+***********************************************************
+Guide to using built in Form helpers.
 ***********************************************************
 
 .link:testing_rails_applications/testing_rails_applications.html[Testing Rails Applications]
