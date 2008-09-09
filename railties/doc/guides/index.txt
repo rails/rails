@@ -1,9 +1,35 @@
 Ruby on Rails guides
 ====================
 
-* link:migrations/migrations.html[Guide to Rails Database Migrations]
-* link:testing_rails_applications/testing_rails_applications.html[Testing Rails Applications]
-* link:securing_rails_applications/securing_rails_applications.html[Securing Rails Applications]
-* link:routing/routing_outside_in.html[Routing Outside-In]
-* link:debugging/debugging_rails_applications.html[Debugging Rails Applications]
-* link:creating_plugins/creating_plugins.html[The Basics of Creating Rails Plugins]
+.link:migrations/migrations.html[Rails Database Migrations]
+***********************************************************
+TODO: Insert some description here.
+***********************************************************
+
+.link:testing_rails_applications/testing_rails_applications.html[Testing Rails Applications]
+***********************************************************
+This is a rather comprehensive guide to doing both unit and functional tests
+in Rails. It covers everything from ``What is a test?'' to the testing APIs.
+Enjoy.
+***********************************************************
+
+.link:securing_rails_applications/securing_rails_applications.html[Securing Rails Applications]
+***********************************************************
+This manual describes common security problems in web applications and how to
+avoid them with Rails.
+***********************************************************
+
+.link:routing/routing_outside_in.html[Routing Outside-In]
+***********************************************************
+TODO: Insert some description here.
+***********************************************************
+
+.link:debugging/debugging_rails_applications.html[Debugging Rails Applications]
+***********************************************************
+TODO: Insert some description here.
+***********************************************************
+
+.link:creating_plugins/creating_plugins.html[The Basics of Creating Rails Plugins]
+***********************************************************
+TODO: Insert some description here.
+***********************************************************
