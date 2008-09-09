@@ -42,3 +42,4 @@ By definition this will be a perfect copy of the database's structure but this w
 === Schema dumps and source control ===
 
 Because they are the authoritative source for your database schema, it is strongly recommended that you check them into source control.
+
