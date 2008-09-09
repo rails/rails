@@ -19,7 +19,7 @@ This manual describes common security problems in web applications and how to
 avoid them with Rails.
 ***********************************************************
 
-.link:routing/routing_outside_in.html[Routing Outside-In]
+.link:routing/routing_outside_in.html[Rails Routing from the Outside In]
 ***********************************************************
 TODO: Insert some description here.
 ***********************************************************
