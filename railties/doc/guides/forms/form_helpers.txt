@@ -65,7 +65,7 @@ To create that, we will use `form_tag`, `label_tag`, `text_field_tag` and `submi
 <% end %>
 ----------------------------------------------------------------------------
 
- [TIP]
+[TIP]
 ============================================================================
 `search_path` can be a named route specified in "routes.rb":
 
@@ -198,11 +198,11 @@ Forms that deal with model attributes
 When we're dealing with an actual model, we will use a different set of form helpers and have Rails take care of some details in the background. In the following examples we will handle an Article model. First, let us have the controller create one:
 
 .articles_controller.rb
-------------------------
+----------------------------------------------------------------------------
 def new
   @article = Article.new
 end
-------------------------
+----------------------------------------------------------------------------
 
 Now we switch to the view. The first thing to remember is that we should use `form_for` helper instead of `form_tag`, and that we should pass the model name and object as arguments:
 
