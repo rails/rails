@@ -246,10 +246,7 @@ module ActionMailer #:nodoc:
   #   +implicit_parts_order+.
   class Base
     include AdvAttrAccessor, PartContainer
-    if Object.const_defined?(:ActionController)
-      include ActionController::UrlWriter
-      include ActionController::Layout
-    end
+    include ActionController::UrlWriter if Object.const_defined?(:ActionController)
 
     private_class_method :new #:nodoc:
 
@@ -365,7 +362,6 @@ module ActionMailer #:nodoc:
 
     # The mail object instance referenced by this mailer.
     attr_reader :mail
-    attr_reader :template_name, :default_template_name, :action_name
 
     class << self
       attr_writer :mailer_name
@@ -534,7 +530,6 @@ module ActionMailer #:nodoc:
         @content_type ||= @@default_content_type.dup
         @implicit_parts_order ||= @@default_implicit_parts_order.dup
         @template ||= method_name
-        @default_template_name = @action_name = @template
         @mailer_name ||= self.class.name.underscore
         @parts ||= []
         @headers ||= {}
@@ -551,22 +546,7 @@ module ActionMailer #:nodoc:
         if opts[:file] && (opts[:file] !~ /\// && !opts[:file].respond_to?(:render))
           opts[:file] = "#{mailer_name}/#{opts[:file]}"
         end
-
-        begin
-          old_template, @template = @template, initialize_template_class(body)
-          layout = respond_to?(:pick_layout, true) ? pick_layout(opts) : false
-          @template.render(opts.merge(:layout => layout))
-        ensure
-          @template = old_template
-        end
-      end
-
-      def default_template_format
-        :html
-      end
-
-      def candidate_for_layout?(options)
-        !@template.send(:_exempt_from_layout?, default_template_name)
+        initialize_template_class(body).render(opts)
       end
 
       def template_root
