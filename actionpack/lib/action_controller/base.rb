@@ -453,7 +453,7 @@ module ActionController #:nodoc:
       #   ArticleController.prepend_view_path(["views/default", "views/custom"])
       #
       def prepend_view_path(path)
-        @view_paths = superclass.view_paths.dup if @view_paths.nil?
+        @view_paths = superclass.view_paths.dup if !defined?(@view_paths) || @view_paths.nil?
         @view_paths.unshift(*path)
       end
 
