@@ -434,7 +434,11 @@ module ActionController #:nodoc:
       # render("test/template") will be looked up in the view load paths array and the closest match will be
       # returned.
       def view_paths
-        @view_paths || superclass.view_paths
+        if defined? @view_paths
+          @view_paths
+        else
+          superclass.view_paths
+        end
       end
 
       def view_paths=(value)
