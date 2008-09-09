@@ -461,11 +461,11 @@ module Commands
         
         o.on("-r", "--root=DIR", String,
              "Set an explicit rails app directory.",
-             "Default: #{@rails_root}") { |@rails_root| self.environment = RailsEnvironment.new(@rails_root) }
+             "Default: #{@rails_root}") { |rails_root| @rails_root = rails_root; self.environment = RailsEnvironment.new(@rails_root) }
         o.on("-s", "--source=URL1,URL2", Array,
-             "Use the specified plugin repositories instead of the defaults.") { |@sources|}
+             "Use the specified plugin repositories instead of the defaults.") { |sources| @sources = sources}
         
-        o.on("-v", "--verbose", "Turn on verbose output.") { |$verbose| }
+        o.on("-v", "--verbose", "Turn on verbose output.") { |verbose| $verbose = verbose }
         o.on("-h", "--help", "Show this help message.") { puts o; exit }
         
         o.separator ""
@@ -552,12 +552,12 @@ module Commands
         o.separator   "Options:"
         o.separator   ""
         o.on(         "-s", "--source=URL1,URL2", Array,
-                      "Use the specified plugin repositories.") {|@sources|}
+                      "Use the specified plugin repositories.") {|sources| @sources = sources}
         o.on(         "--local", 
-                      "List locally installed plugins.") {|@local| @remote = false}
+                      "List locally installed plugins.") {|local| @local, @remote = local, false}
         o.on(         "--remote",
                       "List remotely available plugins. This is the default behavior",
-                      "unless --local is provided.") {|@remote|}
+                      "unless --local is provided.") {|remote| @remote = remote}
       end
     end
     
@@ -598,7 +598,7 @@ module Commands
         o.separator   "Options:"
         o.separator   ""
         o.on(         "-c", "--check", 
-                      "Report status of repository.") { |@sources|}
+                      "Report status of repository.") { |sources| @sources = sources}
       end
     end
     
@@ -689,7 +689,7 @@ module Commands
         o.separator   "Options:"
         o.separator   ""
         o.on(         "-l", "--list", 
-                      "List but don't prompt or add discovered repositories.") { |@list| @prompt = !@list }
+                      "List but don't prompt or add discovered repositories.") { |list| @list, @prompt = list, !@list }
         o.on(         "-n", "--no-prompt", 
                       "Add all new repositories without prompting.") { |v| @prompt = !v }
       end
