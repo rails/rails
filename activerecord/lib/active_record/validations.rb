@@ -259,6 +259,8 @@ module ActiveRecord
   end
 
 
+  # Please do have a look at ActiveRecord::Validations::ClassMethods for a higher level of validations.
+  #
   # Active Records implement validation by overwriting Base#validate (or the variations, +validate_on_create+ and
   # +validate_on_update+). Each of these methods can inspect the state of the object, which usually means ensuring
   # that a number of attributes have a certain value (such as not empty, within a given range, matching a certain regular expression).
@@ -297,8 +299,6 @@ module ActiveRecord
   #   person.save # => true (and person is now saved in the database)
   #
   # An Errors object is automatically created for every Active Record.
-  #
-  # Please do have a look at ActiveRecord::Validations::ClassMethods for a higher level of validations.
   module Validations
     VALIDATIONS = %w( validate validate_on_create validate_on_update )
 
@@ -313,15 +313,26 @@ module ActiveRecord
       base.define_callbacks *VALIDATIONS
     end
 
-    # Active Record models can implement validations using three styles. The most high-level, easiest to read, 
-    # and recommended approach is to use the declarative <tt>validates_...</tt> class methods documented below.
-    # At a lower level, a model can use the class methods +validate+, +validate_on_create+ and +validate_on_update+. 
+    # Active Record classes can implement validations in several ways. The highest level, easiest to read,
+    # and recommended approach is to use the declarative <tt>validates_..._of</tt> class methods (and
+    # +validates_associated+) documented below. These are sufficient for most model validations.
+    #
+    # Slightly lower level is +validates_each+. It provides some of the same options as the purely declarative
+    # validation methods, but like all the lower-level approaches it requires manually adding to the errors collection
+    # when the record is invalid.
+    #
+    # At a yet lower level, a model can use the class methods +validate+, +validate_on_create+ and +validate_on_update+
+    # to add validation methods or blocks. These are ActiveSupport::Callbacks and follow the same rules of inheritance
+    # and chaining.
+    #
     # The lowest level style is to define the instance methods +validate+, +validate_on_create+ and +validate_on_update+
     # as documented in ActiveRecord::Validations.
     #
     # == +validate+, +validate_on_create+ and +validate_on_update+ Class Methods
     #
-    # Calls to these methods add a validation method or block to the class.
+    # Calls to these methods add a validation method or block to the class. Again, this approach is recommended
+    # only when the higher-level methods documented below (<tt>validates_..._of</tt> and +validates_associated+) are
+    # insufficient to handle the required validation.
     #
     # This can be done with a symbol pointing to a method:
     #
