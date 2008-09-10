@@ -72,12 +72,9 @@ module ActionView
         end_src
 
         begin
-          logger = defined?(ActionController) && Base.logger
-          logger.debug "Compiling template #{render_symbol}" if logger
-
           ActionView::Base::CompiledTemplates.module_eval(source, filename, 0)
         rescue Exception => e # errors from template code
-          if logger
+          if logger = defined?(ActionController) && Base.logger
             logger.debug "ERROR: compiling #{render_symbol} RAISED #{e}"
             logger.debug "Function body: #{source}"
             logger.debug "Backtrace: #{e.backtrace.join("\n")}"

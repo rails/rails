@@ -1,5 +1,7 @@
 *Edge*
 
+* Stopped logging template compiles as it only clogs up the log [DHH]
+
 * Changed the X-Runtime header to report in milliseconds [DHH]
 
 * Changed BenchmarkHelper#benchmark to report in milliseconds [DHH]
