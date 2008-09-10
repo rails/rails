@@ -146,6 +146,8 @@ Rails lets you run in development, test, and production environments (you can al
 
 This will start a process that allows you to connect to your application via a web browser on port 3000.  Open up a browser to +http://localhost:3000/+
 
+You can hit Ctrl+C anytime from the terminal to stop the web server.
+
 You should see the "Welcome Aboard" default Rails screen, and can click on the "About your application's environment" link to see a brief summary of your current configuration.  If you've gotten this far, you're riding rails!  Let's dive into the code!
 
 == Models, Views, and Controllers
@@ -251,10 +253,32 @@ Create the project again and enter the directory by running the commands:
 
 
 === Rails Scaffold
-Whenever you are dealing with a resource and you know you'll need a way to manage that resource in your application, you can start by generating a scaffold.  The reason that this guide did not start with generating the scaffold is because it is not all that useful once you  For our blog, we want our "Post" resource, so let's generate that now:
+Whenever you are dealing with a resource and you know you'll need a way to manage that resource in your application, you can start by generating a scaffold.  The reason that this guide did not start with generating the scaffold is because it is not all that useful once you are using Rails on a regular basis. For our blog, we want a "Post" resource, so let's generate that now:
 
 `./script/generate scaffold Post name:string title:string content:text`
 
+This generates the model, controller, migration, views, tests, and routes for this resource.  It also populates these files with default data to get started.
+
+First, let's make sure our database is up to date by running `rake db:migrate`.  That may generate an error if your database still has the tables from our earlier migration.  In this case, let's completely reset the database and run all migrations by running `rake db:reset`.
+
+Start up the web server with `./script/server` and point your browser to `http://localhost:3000/posts`.
+
+Here you'll see an example of the instant gratification of Rails where you can completely manage the Post resource.  You'll be able to create, edit, and delete blog posts with ease.  Go ahead, try it out.
+
+Now let's see how all this works.  Open up `app/controllers/posts_controller.rb`, and you'll see this time it is filled with code.
+
+Let's take a look at the `index` action:
+
+-----------------------------------------
+def index
+  @posts = Post.find(:all)
+
+  respond_to do |format|
+    format.html # index.html.erb
+    format.xml  { render :xml => @posts }
+  end
+end
+-----------------------------------------
 
 
 === The View
