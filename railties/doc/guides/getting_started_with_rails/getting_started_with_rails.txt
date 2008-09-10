@@ -53,6 +53,7 @@ vendor/		Plugins folder
 Rails comes with built-in support for SQLite, which is a lightweight flat-file based database application.  While it is not designed for a production environment, it works well for development and testing.  Rails defaults to SQLite as the database adapter when creating a new project, but you can always change it later.
 
 Open up +config/database.yml+ and you'll see the following:
+
 --------------------------------------------------------------------
 # SQLite version 3.x
 #   gem install sqlite3-ruby (not necessary on OS X Leopard)
@@ -74,6 +75,7 @@ production:
   database: db/production.sqlite3
   timeout: 5000
 --------------------------------------------------------------------
+
 If you're not running OS X 10.5 or greater, you'll need to install the SQLite gem.  Similar to installing Rails you just need to run:
 
 `gem install sqlite3-ruby`
@@ -81,6 +83,7 @@ If you're not running OS X 10.5 or greater, you'll need to install the SQLite ge
 Because we're using SQLite, there's really nothing else you need to do to setup your database!
 
 === Configure MySQL Database
+
 .MySQL Tip
 *******************************
 If you want to skip directly to using MySQL on your development machine, type the following will get you setup with a MySQL configuration file that assumes MySQL is running locally and that the root password is blank:
@@ -89,7 +92,9 @@ If you want to skip directly to using MySQL on your development machine, type th
 
 You'll need to make sure you have MySQL up and running on your system with the correct permissions.  MySQL installation and configuration is outside the scope of this document.
 *******************************
+
 If you choose to use MySQL, your +config/database.yml+ will look a little different:
+
 --------------------------------------------------------------------
 # MySQL.  Versions 4.1 and 5.0 are recommended.
 #
@@ -161,10 +166,12 @@ Models in Rails use a singular name, and their corresponding database tables use
 `./script/generate model Post`
 
 You'll see that this generates several files, we're going to focus on two.  First, let's take a look at +app/models/post.rb+
+
 -------------------------------
 class Post < ActiveRecord::Base
 end
 -------------------------------
+
 This is what each model you create will look like by default.  Here Rails is making the assumption that your Post model will be tied to a database, because it is telling the Post class to descend from the ActiveRecord::Base class, which is where all the database magic happens.  Let's leave the model alone for now and move onto migrations.
 
 ==== Migrations
@@ -207,6 +214,7 @@ class CreatePosts < ActiveRecord::Migration
   end
 end
 -------------------------------------------
+
 Now that we have our migration just right, we can run the migration (the +self.up+ portion) by returning to the terminal and running:
 
 `rake db:migrate`
@@ -226,9 +234,11 @@ The REST idea will likely take some time to wrap your brain around if you're new
 
 * It is best to keep your controllers RESTful at all times if possible
 * Resources must be defined in +config/routes.rb+ in order for the RESTful architecture to work properly, so let's add that now:
+
 --------------------
 map.resources :posts
 --------------------
+
 * The seven actions that are automatically part of the RESTful design in Rails are +index+, +show+, +new+, +create+, +edit+, +update+, and +destroy+.
 
 Let's generate a controller:
@@ -236,10 +246,12 @@ Let's generate a controller:
 `./script/generate controller Posts`
 
 Open up the controller that it generates in +app/controllers/posts_controller.rb+.  It should look like:
+
 ---------------------------------------------
 class PostsController < ApplicationController
 end
 ---------------------------------------------
+
 Because of the +map.resources :posts+ line in your +config/routes.rb+ file, this controller is ready to take on all seven actions listed above.  But we're going to need some logic in this controller in order to interact with the model, and we're going to need to generate our view files so the user can interact with your application from their browser.
 
 We're going to use the scaffold generator to create all the files and basic logic to make this work, now that you know how to generate models and controllers manually.
