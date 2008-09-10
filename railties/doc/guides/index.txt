@@ -36,7 +36,9 @@ TODO: Insert some description here.
 
 .link:debugging/debugging_rails_applications.html[Debugging Rails Applications]
 ***********************************************************
-TODO: Insert some description here.
+This guide describes how to debug Rails applications. It covers the different
+ways of achieving this and how to understand what is happening "behind the scenes"
+of your code.
 ***********************************************************
 
 .link:creating_plugins/creating_plugins.html[The Basics of Creating Rails Plugins]
