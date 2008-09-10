@@ -116,7 +116,7 @@ module ActionView
 
       # Creates a label field
       #
-      # ==== Options
+      # ==== Options  
       # * Creates standard HTML attributes for the tag.
       #
       # ==== Examples
@@ -351,19 +351,16 @@ module ActionView
           disable_with = "this.value='#{disable_with}'"
           disable_with << ";#{options.delete('onclick')}" if options['onclick']
           
-          options["onclick"] = [
-            "this.setAttribute('originalValue', this.value)",
-            "this.disabled=true",
-            disable_with,
-            "result = (this.form.onsubmit ? (this.form.onsubmit() ? this.form.submit() : false) : this.form.submit())",
-            "if (result == false) { this.value = this.getAttribute('originalValue'); this.disabled = false }",
-            "return result;",
-          ].join(";")
+          options["onclick"]  = "if (window.hiddenCommit) { window.hiddenCommit.setAttribute('value', this.value); }"
+          options["onclick"] << "else { hiddenCommit = this.cloneNode(false);hiddenCommit.setAttribute('type', 'hidden');this.form.appendChild(hiddenCommit); }"
+          options["onclick"] << "this.setAttribute('originalValue', this.value);this.disabled = true;#{disable_with};"
+          options["onclick"] << "result = (this.form.onsubmit ? (this.form.onsubmit() ? this.form.submit() : false) : this.form.submit());"
+          options["onclick"] << "if (result == false) { this.value = this.getAttribute('originalValue');this.disabled = false; }return result;"
         end
         
         if confirm = options.delete("confirm")
           options["onclick"] ||= ''
-          options["onclick"] += "return #{confirm_javascript_function(confirm)};"
+          options["onclick"] << "return #{confirm_javascript_function(confirm)};"
         end
         
         tag :input, { "type" => "submit", "name" => "commit", "value" => value }.update(options.stringify_keys)
