@@ -5,21 +5,18 @@ require 'rexml/entity'
 # http://www.ruby-lang.org/en/news/2008/08/23/dos-vulnerability-in-rexml/
 # This fix is identical to rexml-expansion-fix version 1.0.1
 
-module REXML
-  class Entity < Child
-    undef_method :unnormalized
-    def unnormalized
-      document.record_entity_expansion! if document
-      v = value()
-      return nil if v.nil?
-      @unnormalized = Text::unnormalize(v, parent)
-      @unnormalized
-    end
-  end
-  class Document < Element
-    @@entity_expansion_limit = 10_000
-    def self.entity_expansion_limit= val
-      @@entity_expansion_limit = val
+# Earlier versions of rexml defined REXML::Version, newer ones REXML::VERSION
+unless (defined?(REXML::VERSION) ? REXML::VERSION : REXML::Version) > "3.1.7.2"
+  module REXML
+    class Entity < Child
+      undef_method :unnormalized
+      def unnormalized
+        document.record_entity_expansion! if document
+        v = value()
+        return nil if v.nil?
+        @unnormalized = Text::unnormalize(v, parent)
+        @unnormalized
+      end
     end
 
     def record_entity_expansion!
