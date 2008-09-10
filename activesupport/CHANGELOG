@@ -1,5 +1,7 @@
 *Edge*
 
+* Added Inflector#parameterize for easy slug generation ("Donald E. Knuth".parameterize => "donald-e-knuth") #713 [Matt Darby]
+
 * Changed cache benchmarking to be reported in milliseconds [DHH]
 
 * Fix Ruby's Time marshaling bug in pre-1.9 versions of Ruby: utc instances are now correctly unmarshaled with a utc zone instead of the system local zone [#900 state:resolved] [Luca Guidi, Geoff Buesing]

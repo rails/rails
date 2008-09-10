@@ -76,7 +76,8 @@ module ActionController #:nodoc:
             log_message << view_runtime if logging_view
 
             if logging_active_record
-              log_message << ", " + active_record_runtime + ")"
+              log_message << ", " if logging_view
+              log_message << active_record_runtime + ")"
             else
               ")"
             end

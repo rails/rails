@@ -129,8 +129,43 @@ module ActiveRecord
 
     # Holds all the meta-data about an association as it was specified in the Active Record class.
     class AssociationReflection < MacroReflection #:nodoc:
+      # Returns the target association's class:
+      #
+      #   class Author < ActiveRecord::Base
+      #     has_many :books
+      #   end
+      #
+      #   Author.reflect_on_association(:books).klass
+      #   # => Book
+      #
+      # <b>Note:</b> do not call +klass.new+ or +klass.create+ to instantiate
+      # a new association object. Use +build_association+ or +create_association+
+      # instead. This allows plugins to hook into association object creation.
       def klass
         @klass ||= active_record.send(:compute_type, class_name)
+      end
+
+      # Returns a new, unsaved instance of the associated class. +options+ will
+      # be passed to the class's constructor.
+      def build_association(*options)
+        klass.new(*options)
+      end
+
+      # Creates a new instance of the associated class, and immediates saves it
+      # with ActiveRecord::Base#save. +options+ will be passed to the class's
+      # creation method. Returns the newly created object.
+      def create_association(*options)
+        klass.create(*options)
+      end
+
+      # Creates a new instance of the associated class, and immediates saves it
+      # with ActiveRecord::Base#save!. +options+ will be passed to the class's
+      # creation method. If the created record doesn't pass validations, then an
+      # exception will be raised.
+      #
+      # Returns the newly created object.
+      def create_association!(*options)
+        klass.create!(*options)
       end
 
       def table_name

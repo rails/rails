@@ -76,7 +76,7 @@ class TopicWithProtectedContentAndAccessibleAuthorName < ActiveRecord::Base
 end
 
 class BasicsTest < ActiveRecord::TestCase
-  fixtures :topics, :companies, :developers, :projects, :computers, :accounts, :minimalistics, 'warehouse-things', :authors, :categorizations, :categories
+  fixtures :topics, :companies, :developers, :projects, :computers, :accounts, :minimalistics, 'warehouse-things', :authors, :categorizations, :categories, :posts
 
   def test_table_exists
     assert !NonExistentTable.table_exists?
@@ -664,10 +664,21 @@ class BasicsTest < ActiveRecord::TestCase
     end
   end
 
-  def test_update_all_ignores_order_limit_from_association
-    author = Author.find(1)
+  def test_update_all_ignores_order_without_limit_from_association
+    author = authors(:david)
     assert_nothing_raised do
-      assert_equal author.posts_with_comments_and_categories.length, author.posts_with_comments_and_categories.update_all("body = 'bulk update!'")
+      assert_equal author.posts_with_comments_and_categories.length, author.posts_with_comments_and_categories.update_all([ "body = ?", "bulk update!" ])
+    end
+  end
+
+  def test_update_all_with_order_and_limit_updates_subset_only
+    author = authors(:david)
+    assert_nothing_raised do
+      assert_equal 1, author.posts_sorted_by_id_limited.size
+      assert_equal 2, author.posts_sorted_by_id_limited.find(:all, :limit => 2).size
+      assert_equal 1, author.posts_sorted_by_id_limited.update_all([ "body = ?", "bulk update!" ])
+      assert_equal "bulk update!", posts(:welcome).body
+      assert_not_equal "bulk update!", posts(:thinking).body
     end
   end
 

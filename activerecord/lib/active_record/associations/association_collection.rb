@@ -110,8 +110,6 @@ module ActiveRecord
 
         @owner.transaction do
           flatten_deeper(records).each do |record|
-            record = @reflection.klass.new(record) if @reflection.options[:accessible] && record.is_a?(Hash)
-
             raise_on_type_mismatch(record)
             add_record_to_target_with_callbacks(record) do |r|
               result &&= insert_record(record) unless @owner.new_record?
@@ -286,10 +284,6 @@ module ActiveRecord
       # Replace this collection with +other_array+
       # This will perform a diff and delete/add only records that have changed.
       def replace(other_array)
-        other_array.map! do |val|
-          val.is_a?(Hash) ? @reflection.klass.new(val) : val
-        end if @reflection.options[:accessible]
-
         other_array.each { |val| raise_on_type_mismatch(val) }
 
         load_target
@@ -377,7 +371,9 @@ module ActiveRecord
         def create_record(attrs)
           attrs.update(@reflection.options[:conditions]) if @reflection.options[:conditions].is_a?(Hash)
           ensure_owner_is_not_new
-          record = @reflection.klass.send(:with_scope, :create => construct_scope[:create]) { @reflection.klass.new(attrs) }
+          record = @reflection.klass.send(:with_scope, :create => construct_scope[:create]) do
+            @reflection.build_association(attrs)
+          end
           if block_given?
             add_record_to_target_with_callbacks(record) { |*block_args| yield(*block_args) }
           else
@@ -387,7 +383,7 @@ module ActiveRecord
 
         def build_record(attrs)
           attrs.update(@reflection.options[:conditions]) if @reflection.options[:conditions].is_a?(Hash)
-          record = @reflection.klass.new(attrs)
+          record = @reflection.build_association(attrs)
           if block_given?
             add_record_to_target_with_callbacks(record) { |*block_args| yield(*block_args) }
           else

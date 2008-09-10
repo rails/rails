@@ -156,7 +156,7 @@ module ActiveSupport #:nodoc:
                       XML_FORMATTING[type_name] ? XML_FORMATTING[type_name].call(value) : value,
                       attributes
                     )
-                end
+                  end
               end
             end
             

@@ -523,6 +523,10 @@ module ActiveRecord
         "= BINARY"
       end
 
+      def limited_update_conditions(where_sql, quoted_table_name, quoted_primary_key)
+        where_sql
+      end
+
       private
         def connect
           @connection.reconnect = true if @connection.respond_to?(:reconnect=)

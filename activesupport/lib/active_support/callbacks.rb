@@ -188,7 +188,7 @@ module ActiveSupport
                   "Callbacks must be a symbol denoting the method to call, a string to be evaluated, " +
                   "a block to be invoked, or an object responding to the callback method."
               end
-            end
+          end
         end
 
         def should_run_callback?(*args)
