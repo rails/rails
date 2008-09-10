@@ -5,7 +5,9 @@ require 'rexml/entity'
 # http://www.ruby-lang.org/en/news/2008/08/23/dos-vulnerability-in-rexml/
 # This fix is identical to rexml-expansion-fix version 1.0.1
 
-unless REXML::VERSION > "3.1.7.2"
+#earlier versions of rexml defined REXML::Version, newer ones REXML::VERSION
+version = defined?(REXML::VERSION) ? REXML::VERSION : REXML::Version
+unless version > "3.1.7.2"
   module REXML
     class Entity < Child
       undef_method :unnormalized
