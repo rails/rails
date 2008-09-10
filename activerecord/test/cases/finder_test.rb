@@ -598,7 +598,7 @@ class FinderTest < ActiveRecord::TestCase
     # ensure this test can run independently of order
     class << Topic; self; end.send(:remove_method, :find_last_by_title) if Topic.public_methods.any? { |m| m.to_s == 'find_last_by_title' }
     assert !Topic.public_methods.any? { |m| m.to_s == 'find_last_by_title' }
-    t = Topic.find_last_by_title(Topic.last)
+    t = Topic.find_last_by_title(Topic.last.title)
     assert Topic.public_methods.any? { |m| m.to_s == 'find_last_by_title' }
   end
 
