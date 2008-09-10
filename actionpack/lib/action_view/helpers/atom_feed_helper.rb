@@ -51,6 +51,7 @@ module ActionView
       # * <tt>:schema_date</tt>: The date at which the tag scheme for the feed was first used. A good default is the year you
       #   created the feed. See http://feedvalidator.org/docs/error/InvalidTAG.html for more information. If not specified,
       #   2005 is used (as an "I don't care" value).
+      # * <tt>:instruct</tt>: Hash of XML processing instructions in the form {target => {attribute => value, }} or {target => [{attribute => value, }, ]}
       #
       # Other namespaces can be added to the root element:
       #
@@ -85,6 +86,15 @@ module ActionView
 
         xml = options[:xml] || eval("xml", block.binding)
         xml.instruct!
+        if options[:instruct]
+          options[:instruct].each do |target,attrs|
+            if attrs.respond_to?(:keys)
+              xml.instruct!(target, attrs)
+            elsif attrs.respond_to?(:each)
+              attrs.each { |attr_group| xml.instruct!(target, attr_group) }
+            end
+          end
+        end
 
         feed_opts = {"xml:lang" => options[:language] || "en-US", "xmlns" => 'http://www.w3.org/2005/Atom'}
         feed_opts.merge!(options).reject!{|k,v| !k.to_s.match(/^xml/)}
