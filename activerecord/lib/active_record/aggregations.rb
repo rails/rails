@@ -109,6 +109,45 @@ module ActiveRecord
     # Read more about value objects on http://c2.com/cgi/wiki?ValueObject and on the dangers of not keeping value objects
     # immutable on http://c2.com/cgi/wiki?ValueObjectsShouldBeImmutable
     #
+    # == Custom constructors and converters
+    #
+    # By default value objects are initialized by calling the <tt>new</tt> constructor of the value class passing each of the
+    # mapped attributes, in the order specified by the <tt>:mapping</tt> option, as arguments. If the value class doesn't support
+    # this convention then +composed_of+ allows a custom constructor to be specified.
+    #
+    # When a new value is assigned to the value object the default assumption is that the new value is an instance of the value
+    # class. Specifying a custom converter allows the new value to be automatically converted to an instance of value class if
+    # necessary.
+    #
+    # For example, the NetworkResource model has +network_address+ and +cidr_range+ attributes that should be aggregated using the
+    # NetAddr::CIDR value class (http://netaddr.rubyforge.org). The constructor for the value class is called +create+ and it
+    # expects a CIDR address string as a parameter. New values can be assigned to the value object using either another
+    # NetAddr::CIDR object, a string or an array. The <tt>:constructor</tt> and <tt>:converter</tt> options can be used to
+    # meet these requirements:
+    #
+    #   class NetworkResource < ActiveRecord::Base
+    #     composed_of :cidr,
+    #                 :class_name => 'NetAddr::CIDR',
+    #                 :mapping => [ %w(network_address network), %w(cidr_range bits) ],
+    #                 :allow_nil => true,
+    #                 :constructor => Proc.new { |network_address, cidr_range| NetAddr::CIDR.create("#{network_address}/#{cidr_range}") },
+    #                 :converter => Proc.new { |value| NetAddr::CIDR.create(value.is_a?(Array) ? value.join('/') : value) }
+    #   end
+    #
+    #   # This calls the :constructor
+    #   network_resource = NetworkResource.new(:network_address => '192.168.0.1', :cidr_range => 24)
+    #
+    #   # These assignments will both use the :converter
+    #   network_resource.cidr = [ '192.168.2.1', 8 ]
+    #   network_resource.cidr = '192.168.0.1/24'
+    #
+    #   # This assignment won't use the :converter as the value is already an instance of the value class
+    #   network_resource.cidr = NetAddr::CIDR.create('192.168.2.1/8')
+    #
+    #   # Saving and then reloading will use the :constructor on reload
+    #   network_resource.save
+    #   network_resource.reload
+    #
     # == Finding records by a value object
     #
     # Once a +composed_of+ relationship is specified for a model, records can be loaded from the database by specifying an instance
@@ -122,19 +161,23 @@ module ActiveRecord
       # <tt>composed_of :address</tt> adds <tt>address</tt> and <tt>address=(new_address)</tt> methods.
       #
       # Options are:
-      # * <tt>:class_name</tt>  - specify the class name of the association. Use it only if that name can't be inferred
+      # * <tt>:class_name</tt> - Specifies the class name of the association. Use it only if that name can't be inferred
       #   from the part id. So <tt>composed_of :address</tt> will by default be linked to the Address class, but
       #   if the real class name is CompanyAddress, you'll have to specify it with this option.
-      # * <tt>:mapping</tt> - specifies a number of mapping arrays (attribute, parameter) that bind an attribute name
-      #   to a constructor parameter on the value class.
-      # * <tt>:allow_nil</tt> - specifies that the aggregate object will not be instantiated when all mapped
-      #   attributes are +nil+.  Setting the aggregate class to +nil+ has the effect of writing +nil+ to all mapped attributes.
+      # * <tt>:mapping</tt> - Specifies the mapping of entity attributes to attributes of the value object. Each mapping
+      #   is represented as an array where the first item is the name of the entity attribute and the second item is the
+      #   name the attribute in the value object. The order in which mappings are defined determine the order in which
+      #   attributes are sent to the value class constructor.
+      # * <tt>:allow_nil</tt> - Specifies that the value object will not be instantiated when all mapped
+      #   attributes are +nil+.  Setting the value object to +nil+ has the effect of writing +nil+ to all mapped attributes.
       #   This defaults to +false+.
-      # * <tt>:constructor</tt> - a symbol specifying the name of the constructor method or a Proc that will be used to convert the
-      #   attributes that are mapped to the aggregation to instantiate a <tt>:class_name</tt> object. The default is +:new+.
-      # * <tt>:converter</tt> - a symbol specifying the name of a class method of <tt>:class_name</tt> or a Proc that will be used to convert
-      #   the argument that is passed to the writer method into an instance of <tt>:class_name</tt>. The converter will only be called
-      #   if the argument is not already an instance of <tt>:class_name</tt>.
+      # * <tt>:constructor</tt> - A symbol specifying the name of the constructor method or a Proc that is called to
+      #   initialize the value object. The constructor is passed all of the mapped attributes, in the order that they
+      #   are defined in the <tt>:mapping option</tt>, as arguments and uses them to instantiate a <tt>:class_name</tt> object.
+      #   The default is <tt>:new</tt>.
+      # * <tt>:converter</tt> - A symbol specifying the name of a class method of <tt>:class_name</tt> or a Proc that is
+      #   called when a new value is assigned to the value object. The converter is passed the single value that is used
+      #   in the assignment and is only called if the new value is not an instance of <tt>:class_name</tt>.
       #
       # Option examples:
       #   composed_of :temperature, :mapping => %w(reading celsius)
