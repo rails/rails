@@ -292,6 +292,9 @@ def index
 end
 -----------------------------------------
 
+In this action, we're setting the `@posts` instance variable to a hash of all posts in the database.  `Post.find(:all)` or `Post.all` (in Rails 2.1) calls on our model to return all the Posts in the database with no additional conditions.
+
+The `respond_to` block handles both HTML and XML calls to this action.  If we call http://localhost:3000/posts.xml, we'll see all our posts in XML format.  The HTML format looks for our corresponding view in `app/views/posts/index.html.erb`.
 
 === The View
 The view is where you put all the code that gets seen by the user: divs, tables, text, checkboxes, etc.  Think of the view as the home of your HTML.  If done correctly, there should be no business logic in the view.
