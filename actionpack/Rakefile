@@ -25,15 +25,16 @@ task :default => [ :test ]
 desc "Run all unit tests"
 task :test => [:test_action_pack, :test_active_record_integration]
 
-Rake::TestTask.new(:test_action_pack) { |t|
+Rake::TestTask.new(:test_action_pack) do |t|
   t.libs << "test"
-# make sure we include the tests in alphabetical order as on some systems
-# this will not happen automatically and the tests (as a whole) will error
-  t.test_files=Dir.glob( "test/[cft]*/**/*_test.rb" ).sort
-#  t.pattern = 'test/*/*_test.rb'
+
+  # make sure we include the tests in alphabetical order as on some systems
+  # this will not happen automatically and the tests (as a whole) will error
+  t.test_files = Dir.glob( "test/[cft]*/**/*_test.rb" ).sort
+
   t.verbose = true
-  t.warning = true
-}
+  #t.warning = true
+end
 
 desc 'ActiveRecord Integration Tests'
 Rake::TestTask.new(:test_active_record_integration) do |t|
