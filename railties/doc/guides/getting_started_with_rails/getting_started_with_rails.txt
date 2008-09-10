@@ -279,6 +279,8 @@ Here you'll see an example of the instant gratification of Rails where you can c
 
 Now let's see how all this works.  Open up `app/controllers/posts_controller.rb`, and you'll see this time it is filled with code.
 
+==== Index
+
 Let's take a look at the `index` action:
 
 -----------------------------------------
@@ -294,7 +296,36 @@ end
 
 In this action, we're setting the `@posts` instance variable to a hash of all posts in the database.  `Post.find(:all)` or `Post.all` (in Rails 2.1) calls on our model to return all the Posts in the database with no additional conditions.
 
-The `respond_to` block handles both HTML and XML calls to this action.  If we call http://localhost:3000/posts.xml, we'll see all our posts in XML format.  The HTML format looks for our corresponding view in `app/views/posts/index.html.erb`.
+The `respond_to` block handles both HTML and XML calls to this action.  If we call `http://localhost:3000/posts.xml`, we'll see all our posts in XML format.  The HTML format looks for our corresponding view in `app/views/posts/index.html.erb`.  You can add any number of formats to this block to allow actions to be processed with different file types.
+
+==== Show
+
+Back in your browser, click on the "New post" link and create your first post if you haven't done so already.  Return back to the index, and you'll see the details of your post listed, along with three actions to the right of the post: `show`, `edit`, and `destroy`.  Click the `show` link, which will bring you to the URL `http://localhost:3000/posts/1`.  Now let's look at the `show` action in `app/controllers/posts_controller.rb`:
+
+-----------------------------------------
+def show
+  @post = Post.find(params[:id])
+
+  respond_to do |format|
+    format.html # show.html.erb
+    format.xml  { render :xml => @post }
+  end
+end
+-----------------------------------------
+
+This time, we're setting `@post` to a single record in the database that is searched for by its `id`, which is provided to the controller by the "1" in `http://localhost:3000/posts/1`.  The `show` action is ready to handle HTML or XML with the `respond_to` block:  XML can be accessed at: `http://localhost:3000/posts/1.xml`.
+
+==== New & Create
+
+Description of new and create actions
+
+==== Edit & Update
+
+For the `edit`, `update`, and `destroy` actions, we will use the same `@post = Post.find(params[:id])` to find the appropriate record.
+
+==== Destroy
+
+Description of the destroy action
 
 === The View
 The view is where you put all the code that gets seen by the user: divs, tables, text, checkboxes, etc.  Think of the view as the home of your HTML.  If done correctly, there should be no business logic in the view.
