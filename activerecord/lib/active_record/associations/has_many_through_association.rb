@@ -10,14 +10,14 @@ module ActiveRecord
 
       def create!(attrs = nil)
         @reflection.klass.transaction do
-          self << (object = attrs ? @reflection.klass.send(:with_scope, :create => attrs) { @reflection.klass.create! } : @reflection.klass.create!)
+          self << (object = attrs ? @reflection.klass.send(:with_scope, :create => attrs) { @reflection.create_association! } : @reflection.create_association!)
           object
         end
       end
 
       def create(attrs = nil)
         @reflection.klass.transaction do
-          self << (object = attrs ? @reflection.klass.send(:with_scope, :create => attrs) { @reflection.klass.create } : @reflection.klass.create)
+          self << (object = attrs ? @reflection.klass.send(:with_scope, :create => attrs) { @reflection.create_association } : @reflection.create_association)
           object
         end
       end
@@ -47,8 +47,9 @@ module ActiveRecord
               return false unless record.save
             end
           end
-          klass = @reflection.through_reflection.klass
-          @owner.send(@reflection.through_reflection.name).proxy_target << klass.send(:with_scope, :create => construct_join_attributes(record)) { klass.create! }
+          through_reflection = @reflection.through_reflection
+          klass = through_reflection.klass
+          @owner.send(@reflection.through_reflection.name).proxy_target << klass.send(:with_scope, :create => construct_join_attributes(record)) { through_reflection.create_association! }
         end
 
         # TODO - add dependent option support

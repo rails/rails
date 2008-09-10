@@ -77,9 +77,9 @@ module Enumerable
   #   (1..5).each_with_object(1) { |value, memo| memo *= value } # => 1
   #
   def each_with_object(memo, &block)
-    returning memo do |memo|
+    returning memo do |m|
       each do |element|
-        block.call(element, memo)
+        block.call(element, m)
       end
     end
   end unless [].respond_to?(:each_with_object)

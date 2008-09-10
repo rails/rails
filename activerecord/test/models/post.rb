@@ -33,12 +33,6 @@ class Post < ActiveRecord::Base
   has_and_belongs_to_many :categories
   has_and_belongs_to_many :special_categories, :join_table => "categories_posts", :association_foreign_key => 'category_id'
 
-  belongs_to              :creatable_author,     :class_name => 'Author',   :accessible => true
-  has_one                 :uncreatable_comment,  :class_name => 'Comment',  :accessible => false, :order => 'id desc'
-  has_one                 :creatable_comment,    :class_name => 'Comment',  :accessible => true,  :order => 'id desc'
-  has_many                :creatable_comments,   :class_name => 'Comment',  :accessible => true,  :dependent => :destroy
-  has_and_belongs_to_many :creatable_categories, :class_name => 'Category', :accessible => true
-
   has_many :taggings, :as => :taggable
   has_many :tags, :through => :taggings do
     def add_joins_and_select

@@ -278,9 +278,9 @@ module ActionView #:nodoc:
     # the same name but differing formats.  See +Request#template_format+
     # for more details.
     def template_format
-      return @template_format if @template_format
-
-      if controller && controller.respond_to?(:request)
+      if defined? @template_format
+        @template_format
+      elsif controller && controller.respond_to?(:request)
         @template_format = controller.request.template_format
       else
         @template_format = :html
@@ -366,7 +366,9 @@ module ActionView #:nodoc:
           end
         else
           begin
-            original_content_for_layout, @content_for_layout = @content_for_layout, render(options)
+            original_content_for_layout = @content_for_layout if defined?(@content_for_layout)
+            @content_for_layout = render(options)
+
             if (options[:inline] || options[:file] || options[:text])
               @cached_content_for_layout = @content_for_layout
               render(:file => partial_layout, :locals => local_assigns)

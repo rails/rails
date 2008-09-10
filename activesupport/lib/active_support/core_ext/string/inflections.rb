@@ -87,6 +87,25 @@ module ActiveSupport #:nodoc:
           Inflector.demodulize(self)
         end
 
+        # Replaces special characters in a string so that it may be used as part of a 'pretty' URL.
+        # 
+        # ==== Examples
+        #
+        #   class Person
+        #     def to_param
+        #       "#{id}-#{name.parameterize}"
+        #     end
+        #   end
+        # 
+        #   @person = Person.find(1)
+        #   # => #<Person id: 1, name: "Donald E. Knuth">
+        # 
+        #   <%= link_to(@person.name, person_path %>
+        #   # => <a href="/person/1-donald-e-knuth">Donald E. Knuth</a>
+        def parameterize
+          Inflector.parameterize(self)
+        end
+
         # Creates the name of a table like Rails does for models to table names. This method
         # uses the +pluralize+ method on the last word in the string.
         #

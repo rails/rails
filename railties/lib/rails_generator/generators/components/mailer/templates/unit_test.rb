@@ -1,7 +1,6 @@
 require 'test_helper'
 
 class <%= class_name %>Test < ActionMailer::TestCase
-  tests <%= class_name %>
 <% for action in actions -%>
   test "<%= action %>" do
     @expected.subject = '<%= class_name %>#<%= action %>'

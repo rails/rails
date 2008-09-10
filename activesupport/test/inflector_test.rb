@@ -98,6 +98,12 @@ class InflectorTest < Test::Unit::TestCase
     end
   end
 
+  def test_parameterize
+    StringToParameterized.each do |some_string, parameterized_string|
+      assert_equal(parameterized_string, ActiveSupport::Inflector.parameterize(some_string))
+    end
+  end
+
   def test_classify
     ClassNameToTableName.each do |class_name, table_name|
       assert_equal(class_name, ActiveSupport::Inflector.classify(table_name))

@@ -28,8 +28,24 @@ namespace :db do
 
   def create_database(config)
     begin
-      ActiveRecord::Base.establish_connection(config)
-      ActiveRecord::Base.connection
+      if config['adapter'] =~ /sqlite/
+        if File.exist?(config['database'])
+          $stderr.puts "#{config['database']} already exists"
+        else
+          begin
+            # Create the SQLite database
+            ActiveRecord::Base.establish_connection(config)
+            ActiveRecord::Base.connection
+          rescue
+            $stderr.puts $!, *($!.backtrace)
+            $stderr.puts "Couldn't create database for #{config.inspect}"
+          end
+        end
+        return # Skip the else clause of begin/rescue    
+      else
+        ActiveRecord::Base.establish_connection(config)
+        ActiveRecord::Base.connection
+      end
     rescue
       case config['adapter']
       when 'mysql'
@@ -52,10 +68,6 @@ namespace :db do
           $stderr.puts $!, *($!.backtrace)
           $stderr.puts "Couldn't create database for #{config.inspect}"
         end
-      when 'sqlite'
-        `sqlite "#{config['database']}"`
-      when 'sqlite3'
-        `sqlite3 "#{config['database']}"`
       end
     else
       $stderr.puts "#{config['database']} already exists"
