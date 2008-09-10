@@ -801,8 +801,8 @@ Use +assert_generates+ to assert that a particular set of options generate a par
 
 [source, ruby]
 -------------------------------------------------------
-assert_generates("/photos/1", { :controller => "photos", :action => "show", :id => "1" })
-assert_generates("/about", :controller => "pages", :action => "about")
+assert_generates "/photos/1", { :controller => "photos", :action => "show", :id => "1" }
+assert_generates "/about", :controller => "pages", :action => "about"
 -------------------------------------------------------
 
 ==== The +assert_recognizes+ Assertion
@@ -811,21 +811,21 @@ The +assert_recognizes+ assertion is the inverse of +assert_generates+. It asser
 
 [source, ruby]
 -------------------------------------------------------
-assert_recognizes({ :controller => "photos", :action => "show", :id => "1" }, "/photos/1")
+assert_recognizes { :controller => "photos", :action => "show", :id => "1" }, "/photos/1"
 -------------------------------------------------------
 
 You can supply a +:method+ argument to specify the HTTP verb:
 
 [source, ruby]
 -------------------------------------------------------
-assert_recognizes({ :controller => "photos", :action => "create" }, { :path => "photos", :method => :post })
+assert_recognizes { :controller => "photos", :action => "create" }, { :path => "photos", :method => :post }
 -------------------------------------------------------
 
 You can also use the RESTful helpers to test recognition of a RESTful route:
 
 [source, ruby]
 -------------------------------------------------------
-assert_recognizes(new_photo_url, { :path => "photos", :method => :post })
+assert_recognizes new_photo_url, { :path => "photos", :method => :post }
 -------------------------------------------------------
 
 ==== The +assert_routing+ Assertion
@@ -834,5 +834,5 @@ The +assert_routing+ assertion checks the route both ways: it tests that the pat
 
 [source, ruby]
 -------------------------------------------------------
-assert_recognizes({ :path => "photos", :method => :post }, { :controller => "photos", :action => "create" })
+assert_routing { :path => "photos", :method => :post }, { :controller => "photos", :action => "create" }
 -------------------------------------------------------
