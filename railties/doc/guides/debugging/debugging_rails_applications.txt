@@ -231,6 +231,11 @@ Make sure you have started your web server with the option --debugger:
 ~/PathTo/rails_project$ script/server --debugger
 ----------------------------------------------------------------------------
 
+[TIP]
+----------------------------------------------------------------------------
+In development mode, you can dynamically *require 'ruby-debug'* instead of restarting the server, in case it was started without --debugger.
+----------------------------------------------------------------------------
+
 In order to use Rails debugging you'll need to be running either *WEBrick* or *Mongrel*. For the moment, no alternative servers are supported.
 
 === The shell
