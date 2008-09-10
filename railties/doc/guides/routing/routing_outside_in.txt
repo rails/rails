@@ -139,10 +139,10 @@ HTTP verb  URL             controller  action   used for
 GET        /photos         Photos      index    display a list of all photos
 GET        /photos/new     Photos      new      return an HTML form for creating a new photo
 POST       /photos         Photos      create   create a new photo
-GET        /photo/1        Photos      show     display a specific photo
-GET        /photo/1/edit   Photos      edit     return an HTML form for editing a photo
-PUT        /photo/1        Photos      update   update a specific photo
-DELETE     /photo/1        Photos      destroy  delete a specific photo
+GET        /photos/1       Photos      show     display a specific photo
+GET        /photos/1/edit  Photos      edit     return an HTML form for editing a photo
+PUT        /photos/1       Photos      update   update a specific photo
+DELETE     /photos/1       Photos      destroy  delete a specific photo
 --------------------------------------------------------------------------------------------
 
 For the specific routes (those that reference just a single resource), the identifier for the resource will be available within the corresponding controller action as +params[:id]+.
@@ -232,10 +232,10 @@ HTTP verb  URL             controller  action   used for
 GET        /photos         Images      index    display a list of all images
 GET        /photos/new     Images      new      return an HTML form for creating a new image
 POST       /photos         Images      create   create a new image
-GET        /photo/1        Images      show     display a specific image
-GET        /photo/1/edit   Images      edit     return an HTML form for editing a image
-PUT        /photo/1        Images      update   update a specific image
-DELETE     /photo/1        Images      destroy  delete a specific image
+GET        /photos/1       Images      show     display a specific image
+GET        /photos/1/edit  Images      edit     return an HTML form for editing a image
+PUT        /photos/1       Images      update   update a specific image
+DELETE     /photos/1       Images      destroy  delete a specific image
 --------------------------------------------------------------------------------------------
 
 NOTE: The helpers will be generated with the name of the resource, not the name of the controller. So in this case, you'd still get +photos_path+, +photos_new_path+, and so on.
@@ -284,10 +284,10 @@ HTTP verb  URL             controller  action   used for
 GET        /images         Photos      index    display a list of all photos
 GET        /images/new     Photos      new      return an HTML form for creating a new photo
 POST       /images         Photos      create   create a new photo
-GET        /image/1        Photos      show     display a specific photo
-GET        /image/1/edit   Photos      edit     return an HTML form for editing a photo
-PUT        /image/1        Photos      update   update a specific photo
-DELETE     /image/1        Photos      destroy  delete a specific photo
+GET        /images/1       Photos      show     display a specific photo
+GET        /images/1/edit  Photos      edit     return an HTML form for editing a photo
+PUT        /images/1       Photos      update   update a specific photo
+DELETE     /images/1       Photos      destroy  delete a specific photo
 --------------------------------------------------------------------------------------------
 
 NOTE: The helpers will be generated with the name of the resource, not the path name. So in this case, you'd still get +photos_path+, +photos_new_path+, and so on.
@@ -329,7 +329,7 @@ map.resources photos, :path_prefix => '/photographers/:photographer_id'
 Routes recognized by this entry would include:
 
 -------------------------------------------------------
-/photographers/1/photo/2
+/photographers/1/photos/2
 /photographers/1/photos
 -------------------------------------------------------
 
@@ -380,10 +380,10 @@ HTTP verb  URL                      controller  action   used for
 GET        /magazines/1/ads         Ads         index    display a list of all ads for a specific magazine
 GET        /magazines/1/ads/new     Ads         new      return an HTML form for creating a new ad belonging to a specific magazine
 POST       /magazines/1/ads         Ads         create   create a new photo belonging to a specific magazine
-GET        /magazines/1/ad/1        Ads         show     display a specific photo belonging to a specific magazine
-GET        /magazines/1/ad/1/edit   Ads         edit     return an HTML form for editing a photo belonging to a specific magazine
-PUT        /magazines/1/ad/1        Ads         update   update a specific photo belonging to a specific magazine
-DELETE     /magazines/1/ad/1        Ads         destroy  delete a specific photo belonging to a specific magazine
+GET        /magazines/1/ads/1       Ads         show     display a specific photo belonging to a specific magazine
+GET        /magazines/1/ads/1/edit  Ads         edit     return an HTML form for editing a photo belonging to a specific magazine
+PUT        /magazines/1/ads/1       Ads         update   update a specific photo belonging to a specific magazine
+DELETE     /magazines/1/ads/1       Ads         destroy  delete a specific photo belonging to a specific magazine
 --------------------------------------------------------------------------------------------
 
 This will also create routing helpers such as +magazine_ads_url+ and +magazine_edit_ad_path+.
@@ -801,7 +801,7 @@ Use +assert_generates+ to assert that a particular set of options generate a par
 
 [source, ruby]
 -------------------------------------------------------
-assert_generates("/photo/1", { :controller => "photos", :action => "show", :id => "1" })
+assert_generates("/photos/1", { :controller => "photos", :action => "show", :id => "1" })
 assert_generates("/about", :controller => "pages", :action => "about")
 -------------------------------------------------------
 
@@ -811,7 +811,7 @@ The +assert_recognizes+ assertion is the inverse of +assert_generates+. It asser
 
 [source, ruby]
 -------------------------------------------------------
-assert_recognizes({ :controller => "photos", :action => "show", :id => "1" }, "/photo/1")
+assert_recognizes({ :controller => "photos", :action => "show", :id => "1" }, "/photos/1")
 -------------------------------------------------------
 
 You can supply a +:method+ argument to specify the HTTP verb:
