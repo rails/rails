@@ -92,7 +92,7 @@ end
 
 === The +has_one+ Association
 
-A +has_one_+ association also sets up a one-to-one connection with another model, but with somewhat different semantics (and consequences). This association indicates that each instance of a model contains or possesses one instance of another model. For example, if each supplier in your application has only one account, you'd declare the supplier model like this:
+A +has_one+ association also sets up a one-to-one connection with another model, but with somewhat different semantics (and consequences). This association indicates that each instance of a model contains or possesses one instance of another model. For example, if each supplier in your application has only one account, you'd declare the supplier model like this:
 
 [source, ruby]
 -------------------------------------------------------
@@ -701,7 +701,7 @@ account
 account=
 account.nil?
 build_account
-account_customer
+create_account
 -------------------------------------------------------
 
 ===== +_association_(force_reload = false)+
@@ -789,7 +789,7 @@ end
 
 ===== +:order+
 
-The +:order: option dictates the order in which associated objects will be received (in the syntax used by a SQL +WHERE+ clause). Because a +has_one+ association will only retrieve a single associated object, this option should not be needed.
+The +:order+ option dictates the order in which associated objects will be received (in the syntax used by a SQL +WHERE+ clause). Because a +has_one+ association will only retrieve a single associated object, this option should not be needed.
 
 ===== +:dependent+
 
@@ -910,7 +910,7 @@ When you declare a +has_many+ association, the declaring class automatically gai
 * +_collection_.build(attributes = {}, ...)+
 * +_collection_.create(attributes = {})+
 
-In all of these methods, +_collection_+ is replaced with the symbol passed as the first argument to +has_many+, and +_collection\_singular+ is replaced with the singularized version of that symbol.. For example, given the declaration:
+In all of these methods, +_collection_+ is replaced with the symbol passed as the first argument to +has_many+, and +_collection\_singular_+ is replaced with the singularized version of that symbol.. For example, given the declaration:
 
 [source, ruby]
 -------------------------------------------------------
@@ -971,20 +971,20 @@ WARNING: The +_collection_.delete+ method will destroy the deleted object if the
 
 The +_collection_=+ method makes the collection contain only the supplied objects, by adding and deleting as appropriate.
 
-===== +_collection/_singular_/_ids+
+===== +_collection\_singular_\_ids+
 
 #   Returns an array of the associated objects' ids
 
-The +_collection/_singular_/_ids+ method returns an array of the ids of the objects in the collection.
+The +_collection\_singular_\_ids+ method returns an array of the ids of the objects in the collection.
 
 [source, ruby]
 -------------------------------------------------------
 @order_ids = @customer.order_ids
 -------------------------------------------------------
 
-===== +_collection/_singular_/_ids=ids+
+===== +__collection\_singular_\_ids=ids+
 
-The +_collection/_singular_/_ids=+ method makes the collection contain only the objects identified by the supplied primary key values, by adding and deleting as appropriate.
+The +__collection\_singular_\_ids=+ method makes the collection contain only the objects identified by the supplied primary key values, by adding and deleting as appropriate.
 
 ===== +_collection_.clear+
 
@@ -1087,7 +1087,7 @@ If you use a hash-style +:conditions+ option, then record creation via this asso
 
 ===== +:order+
 
-The +:order: option dictates the order in which associated objects will be received (in the syntax used by a SQL +WHERE+ clause).
+The +:order+ option dictates the order in which associated objects will be received (in the syntax used by a SQL +WHERE+ clause).
 
 [source, ruby]
 -------------------------------------------------------
@@ -1178,7 +1178,7 @@ class Customer < ActiveRecord::Base
 end
 -------------------------------------------------------
 
-===== +:limit:
+===== +:limit+
 
 The +:limit+ option lets you restrict the total number of objects that will be fetched through an association.
 
@@ -1331,20 +1331,20 @@ The +_collection_.delete+ method removes one or more objects from the collection
 
 The +_collection_=+ method makes the collection contain only the supplied objects, by adding and deleting as appropriate.
 
-===== +_collection/_singular_/_ids+
+===== +_collection\_singular_\_ids+
 
 #   Returns an array of the associated objects' ids
 
-The +_collection/_singular_/_ids+ method returns an array of the ids of the objects in the collection.
+The +_collection\_singular_\_ids+ method returns an array of the ids of the objects in the collection.
 
 [source, ruby]
 -------------------------------------------------------
 @assembly_ids = @part.assembly_ids
 -------------------------------------------------------
 
-===== +_collection/_singular_/_ids=ids+
+===== +_collection\_singular_\_ids=ids+
 
-The +_collection/_singular_/_ids=+ method makes the collection contain only the objects identified by the supplied primary key values, by adding and deleting as appropriate.
+The +_collection\_singular_\_ids=+ method makes the collection contain only the objects identified by the supplied primary key values, by adding and deleting as appropriate.
 
 ===== +_collection_.clear+
 
@@ -1469,7 +1469,7 @@ If you use a hash-style +:conditions+ option, then record creation via this asso
 
 ===== +:order+
 
-The +:order: option dictates the order in which associated objects will be received (in the syntax used by a SQL +WHERE+ clause).
+The +:order+ option dictates the order in which associated objects will be received (in the syntax used by a SQL +WHERE+ clause).
 
 
 [source, ruby]
@@ -1520,7 +1520,7 @@ class Parts < ActiveRecord::Base
 end
 -------------------------------------------------------
 
-===== +:limit:
+===== +:limit+
 
 The +:limit+ option lets you restrict the total number of objects that will be fetched through an association.
 
