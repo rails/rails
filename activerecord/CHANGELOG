@@ -1,5 +1,7 @@
 *Edge*
 
+* Added find_last_by dynamic finder #762 [miloops]
+
 * Internal API: configurable association options and build_association method for reflections so plugins may extend and override.  #985 [Hongli Lai]
 
 * Changed benchmarks to be reported in milliseconds [DHH]

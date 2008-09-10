@@ -274,7 +274,7 @@ module ActiveRecord #:nodoc:
   # == Dynamic attribute-based finders
   #
   # Dynamic attribute-based finders are a cleaner way of getting (and/or creating) objects by simple queries without turning to SQL. They work by
-  # appending the name of an attribute to <tt>find_by_</tt> or <tt>find_all_by_</tt>, so you get finders like <tt>Person.find_by_user_name</tt>,
+  # appending the name of an attribute to <tt>find_by_</tt>, <tt>find_last_by_</tt>, or <tt>find_all_by_</tt>, so you get finders like <tt>Person.find_by_user_name</tt>,
   # <tt>Person.find_all_by_last_name</tt>, and <tt>Payment.find_by_transaction_id</tt>. So instead of writing
   # <tt>Person.find(:first, :conditions => ["user_name = ?", user_name])</tt>, you just do <tt>Person.find_by_user_name(user_name)</tt>.
   # And instead of writing <tt>Person.find(:all, :conditions => ["last_name = ?", last_name])</tt>, you just do <tt>Person.find_all_by_last_name(last_name)</tt>.
