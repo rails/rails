@@ -66,7 +66,6 @@
     else
       # render ...
     end
->>>>>>> 184cf27... The FormTagHelper#submit_tag helper will now pass along the original value of the submit button to the params if the :disable_with option is used [status:committed #633]:actionpack/CHANGELOG
 
 * All 2xx requests are considered successful [Josh Peek]
 
