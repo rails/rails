@@ -463,7 +463,8 @@ module ActionView
       end
 
       private
-        COMPUTED_PUBLIC_PATHS = ActiveSupport::Cache::MemoryStore.new.silence!
+        COMPUTED_PUBLIC_PATHS = {}
+        COMPUTED_PUBLIC_PATHS_GUARD = Mutex.new
 
         # Add the the extension +ext+ if not present. Return full URLs otherwise untouched.
         # Prefix with <tt>/dir/</tt> if lacking a leading +/+. Account for relative URL
@@ -483,23 +484,24 @@ module ActionView
                 dir, source, ext, include_host ].join
             end
 
-          source = COMPUTED_PUBLIC_PATHS.fetch(cache_key) do
-            begin
-              source += ".#{ext}" if ext && File.extname(source).blank? || File.exist?(File.join(ASSETS_DIR, dir, "#{source}.#{ext}"))
+          COMPUTED_PUBLIC_PATHS_GUARD.synchronize do
+            source = COMPUTED_PUBLIC_PATHS[cache_key] ||=
+              begin
+                source += ".#{ext}" if ext && File.extname(source).blank? || File.exist?(File.join(ASSETS_DIR, dir, "#{source}.#{ext}"))
 
-              if source =~ %r{^[-a-z]+://}
-                source
-              else
-                source = "/#{dir}/#{source}" unless source[0] == ?/
-                if has_request
-                  unless source =~ %r{^#{ActionController::Base.relative_url_root}/}
-                    source = "#{ActionController::Base.relative_url_root}#{source}"
+                if source =~ %r{^[-a-z]+://}
+                  source
+                else
+                  source = "/#{dir}/#{source}" unless source[0] == ?/
+                  if has_request
+                    unless source =~ %r{^#{ActionController::Base.relative_url_root}/}
+                      source = "#{ActionController::Base.relative_url_root}#{source}"
+                    end
                   end
-                end
 
-                rewrite_asset_path(source)
+                  rewrite_asset_path(source)
+                end
               end
-            end
           end
 
           if include_host && source !~ %r{^[-a-z]+://}
