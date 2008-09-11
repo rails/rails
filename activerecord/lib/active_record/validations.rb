@@ -631,7 +631,7 @@ module ActiveRecord
             # sqlite has case sensitive SELECT query, while MySQL/Postgresql don't.
             # Hence, this is needed only for sqlite.
             condition_sql = "LOWER(#{record.class.quoted_table_name}.#{attr_name}) #{attribute_condition(value)}"
-            condition_params = [value.chars.downcase]
+            condition_params = [value.chars.downcase.to_s]
           end
 
           if scope = configuration[:scope]
