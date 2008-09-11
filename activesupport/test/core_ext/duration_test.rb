@@ -64,6 +64,24 @@ class DurationTest < Test::Unit::TestCase
       assert_equal((7 * 36).hours.ago, 1.5.weeks.ago)
       assert_equal((7 * 24 * 1.7).hours.ago, 1.7.weeks.ago)
     end
+    
+    def test_deprecated_fractional_years
+      assert_deprecated{1.0.years}
+      assert_deprecated{1.5.years}
+      assert_not_deprecated{1.years}
+      assert_deprecated{1.0.year}
+      assert_deprecated{1.5.year}
+      assert_not_deprecated{1.year}
+    end
+    
+    def test_deprecated_fractional_months
+      assert_deprecated{1.5.months}
+      assert_deprecated{1.0.months}
+      assert_not_deprecated{1.months}
+      assert_deprecated{1.5.month}
+      assert_deprecated{1.0.month}
+      assert_not_deprecated{1.month}
+    end
 
     def test_since_and_ago_anchored_to_time_now_when_time_zone_default_not_set
       Time.zone_default = nil
