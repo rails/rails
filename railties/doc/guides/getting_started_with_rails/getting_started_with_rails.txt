@@ -3,11 +3,11 @@ Getting Started With Rails
 
 This guide covers getting up and running with Ruby on Rails.  After reading it, you should be familiar with:
 
-* Installing Rails, create a new Rails application, and connect your application to a database
+* Installing Rails, creating a new Rails application, and connecting your application to a database
 * Understanding the purpose of each folder in the Rails structure
 * Creating a scaffold, and explain what it is creating and why you need each element
-* Understand the basics of model, view, and controller interaction
-* Understand the basics of HTTP and RESTful design
+* The basics of model, view, and controller interaction
+* The basics of HTTP and RESTful design
 
 == How to use this guide
 This guide is designed for beginners who want to get started with a Rails application from scratch.  It assumes that you have no prior experience using the framework.  However, it is highly recommended that you *familiarize yourself with Ruby before diving into Rails*.  Rails isn't going to magically revolutionize the way you write web applications if you have no experience with the language it uses.
@@ -27,7 +27,7 @@ From your terminal, type:
 
 `rails blog`
 
-This will create a folder in your working directory called "blog".  Open up that folder and have a look.  For the majority of this tutorial, we will live in the app/ folder, but here's a basic rundown on the function of each folder in a Rails app:
+This will create a folder in your working directory called "blog".  Open up that folder and have a look at it.  For the majority of this tutorial, we will live in the app/ folder, but here's a basic rundown on the function of each folder in a Rails app:
 
 [grid="all"]
 `-----------`-----------------------------------------------------------------------------------------------------------------------------
@@ -141,7 +141,7 @@ production:
 ----------------------------------------------------------------------
 
 == Starting the web server
-Rails comes bundled with the lightweight Webrick web server, which (like SQLite) works great in development, but is not designed for a production environment.  If you install Mongrel with `gem install mongrel`, Rails will use the Mongrel web server as the default instead (recommended).
+Rails comes bundled with the lightweight Webrick web server, which (like SQLite) works great in development mode, but is not designed for a production environment.  If you install Mongrel with `gem install mongrel`, Rails will use the Mongrel web server as the default instead (recommended).
 *******************
 If you're interested in alternative web servers for development and/or production, check out mod_rails (a.k.a Passenger)
 *******************
@@ -223,7 +223,7 @@ This command will always run any migrations that have not yet been run.
 
 .Singular and Plural Inflections
 **************************************************************************************************************
-Rails is very smart, it knows that if you have a model "Person," the database table should be called "people".  If you have a model "Company", the database table will be called "companies".
+Rails is very smart, it knows that if you have a model "Person," the database table should be called "people".  If you have a model "Company", the database table will be called "companies".  There are a few circumstances where it will not know the correct singular and plural of a model name, but you should have no problem with this as long as you are using common English words.  Fixing these rare circumstances is beyond the scope of this guide.
 **************************************************************************************************************
 
 === The Controller
