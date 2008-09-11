@@ -1,6 +1,6 @@
 == Anatomy Of A Migration ==
 
-Before I dive into the details of a migration, here is a typical example: 
+Before I dive into the details of a migration, here are a few examples of the sorts of things you can do: 
 
 [source, ruby]
 ------------------------
@@ -21,6 +21,29 @@ end
 ------------------------
 
 This migration adds a table called `products` with a string column called `name` and a text column called `description`. A primary key column called `id` will also be added, however since this is the default we do not need to ask for this. The timestamp columns `created_at` and `updated_at` which Active Record populates automatically will also be added. Reversing this migration is as simple as dropping the table.
+
+Migrations are not limited to changing the schema. You can also use them to fix bad data in the database or populate new fields:
+
+[source, ruby]
+------------------------
+class AddReceiveNewsletterToUsers < ActiveRecord::Migration
+  def self.up
+    change_table :users do |t|
+      t.boolean :receive_newsletter, :default => false
+    end
+    User.update_all ["receive_newsletter = ?", true]
+  end
+
+  def self.down
+    remove_column :users, :receive_newsletter
+  end
+end
+------------------------
+
+This migration adds an `receive_newsletter` column to the `users` table. We want it to default to `false` for new users, but existing users are considered
+to have already opted in, so we use the User model to set the flag to true for existing users.
+ 
+NOTE: Some <<models,caveats>> apply to using models in your migrations.
 
 === Migrations are classes
 A migration is a subclass of ActiveRecord::Migration that implements two class methods: +up+ (perform the required transformations) and +down+ (revert them).
