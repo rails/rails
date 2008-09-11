@@ -169,6 +169,12 @@ class FinderTest < ActiveRecord::TestCase
     assert_equal("fixture_3", developers.first.name)
   end
 
+  def test_find_with_group
+    developers =  Developer.find(:all, :group => "salary")
+    assert_equal 4, developers.size
+    assert_equal 4, developers.uniq(&:salary).size
+  end
+
   def test_find_with_entire_select_statement
     topics = Topic.find_by_sql "SELECT * FROM topics WHERE author_name = 'Mary'"
 

@@ -636,6 +636,18 @@ class HasAndBelongsToManyAssociationsTest < ActiveRecord::TestCase
     assert_equal 3, Developer.find(:all, :include => {:projects => :developers}, :conditions => 'developers_projects_join.joined_on IS NOT NULL', :group => group.join(",")).size
   end
 
+  def test_find_grouped
+    all_posts_from_category1 = Post.find(:all, :conditions => "category_id = 1", :joins => :categories)
+    grouped_posts_of_category1 = Post.find(:all, :conditions => "category_id = 1", :group => "author_id", :select => 'count(posts.id) as posts_count', :joins => :categories)
+    assert_equal 4, all_posts_from_category1.size
+    assert_equal 1, grouped_posts_of_category1.size
+  end
+
+  def test_find_scoped_grouped
+    assert_equal 4, categories(:general).posts_gruoped_by_title.size
+    assert_equal 1, categories(:technology).posts_gruoped_by_title.size
+  end
+
   def test_get_ids
     assert_equal projects(:active_record, :action_controller).map(&:id).sort, developers(:david).project_ids.sort
     assert_equal [projects(:active_record).id], developers(:jamis).project_ids
