@@ -170,9 +170,9 @@ class FinderTest < ActiveRecord::TestCase
   end
 
   def test_find_with_group
-    developers =  Developer.find(:all, :group => "salary")
+    developers =  Developer.find(:all, :group => "salary", :select => "salary")
     assert_equal 4, developers.size
-    assert_equal 4, developers.uniq(&:salary).size
+    assert_equal 4, developers.map(&:salary).uniq.size
   end
 
   def test_find_with_entire_select_statement
