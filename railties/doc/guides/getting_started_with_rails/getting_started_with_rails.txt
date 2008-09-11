@@ -1,7 +1,7 @@
 Getting Started With Rails
 ==========================
 
-This guide covers getting up and running with Ruby on Rails.  After reading, you should be familiar with:
+This guide covers getting up and running with Ruby on Rails.  After reading it, you should be familiar with:
 
 * Installing Rails, create a new Rails application, and connect your application to a database
 * Understanding the purpose of each folder in the Rails structure
@@ -27,7 +27,7 @@ From your terminal, type:
 
 `rails blog`
 
-This will create the a folder in your working directory called "blog".  Open up that folder and have a look.  For the majority of this tutorial, we will live in the app/ folder, but here's a basic rundown on the function of each folder in a Rails app:
+This will create a folder in your working directory called "blog".  Open up that folder and have a look.  For the majority of this tutorial, we will live in the app/ folder, but here's a basic rundown on the function of each folder in a Rails app:
 
 [grid="all"]
 `-----------`-----------------------------------------------------------------------------------------------------------------------------
@@ -35,7 +35,7 @@ File/Folder Purpose
 ------------------------------------------------------------------------------------------------------------------------------------------
 README		This is a brief instruction manual for your application.  Use it to tell others what it does, how to set it up, etc.
 Rakefile
-app/		Contains the controllers, models, and views for your application.  We'll focus on on the app folder in this guide
+app/		Contains the controllers, models, and views for your application.  We'll focus on the app folder in this guide
 config/		Configure your application's runtime rules, routes, database, etc.
 db/			Shows your current database schema, as well as the database migrations (we'll get into migrations shortly)
 doc/		In-depth documentation for your application
@@ -86,7 +86,7 @@ Because we're using SQLite, there's really nothing else you need to do to setup 
 
 .MySQL Tip
 *******************************
-If you want to skip directly to using MySQL on your development machine, type the following will get you setup with a MySQL configuration file that assumes MySQL is running locally and that the root password is blank:
+If you want to skip directly to using MySQL on your development machine, typing the following will get you setup with a MySQL configuration file that assumes MySQL is running locally and that the root password is blank:
 
 `rails blog -d mysql`
 
