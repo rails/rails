@@ -201,3 +201,9 @@ class StringInflectionsTest < Test::Unit::TestCase
     end
   end
 end
+
+class StringBehaviourTest < Test::Unit::TestCase
+  def test_acts_like_string
+    assert 'Bambi'.acts_like_string?
+  end
+end

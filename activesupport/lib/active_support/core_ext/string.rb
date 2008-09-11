@@ -6,6 +6,7 @@ require 'active_support/core_ext/string/iterators'
 require 'active_support/core_ext/string/unicode'
 require 'active_support/core_ext/string/xchar'
 require 'active_support/core_ext/string/filters'
+require 'active_support/core_ext/string/behavior'
 
 class String #:nodoc:
   include ActiveSupport::CoreExtensions::String::Access
@@ -15,4 +16,5 @@ class String #:nodoc:
   include ActiveSupport::CoreExtensions::String::StartsEndsWith
   include ActiveSupport::CoreExtensions::String::Iterators
   include ActiveSupport::CoreExtensions::String::Unicode
+  include ActiveSupport::CoreExtensions::String::Behavior
 end
