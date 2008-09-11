@@ -210,6 +210,21 @@ class DateExtCalculationsTest < Test::Unit::TestCase
     end
   end
 
+  uses_mocha 'past?, today? and future?' do
+    def test_today_past_future
+      Date.stubs(:current).returns(Date.civil(2000, 1, 1))
+      t2 = Date.civil(2000, 1, 1)
+      t1, t3 = t2.yesterday, t2.tomorrow
+      t4, t5 = t2 - 1.second, t2 + 1.second
+
+      assert t1.past?
+      assert t2.today?
+      assert t3.future?
+      assert t4.past?
+      assert t5.today?
+    end
+  end
+
   uses_mocha 'TestDateCurrent' do
     def test_current_returns_date_today_when_zone_default_not_set
       with_env_tz 'US/Central' do

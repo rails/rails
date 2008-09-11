@@ -563,6 +563,19 @@ class TimeExtCalculationsTest < Test::Unit::TestCase
     assert_nothing_raised { Time.now.xmlschema }
   end
 
+  uses_mocha 'past?, today? and future?' do
+    def test_past_today_future
+      Date.stubs(:current).returns(Date.civil(2000, 1, 1))
+      Time.stubs(:current).returns(Time.local(2000, 1, 1, 1, 0, 1))
+      t1, t2 = Time.local(2000, 1, 1, 1, 0, 0), Time.local(2000, 1, 1, 1, 0, 2)
+
+      assert t1.past?
+      assert t2.future?
+      assert t1.today?
+      assert t2.today?
+    end
+  end
+
   def test_acts_like_time
     assert Time.new.acts_like_time?
   end
@@ -640,24 +653,24 @@ class TimeExtMarshalingTest < Test::Unit::TestCase
     assert_equal t, unmarshaled
     assert_equal t.zone, unmarshaled.zone
   end
-  
-  def test_marshaling_with_local_instance  
+
+  def test_marshaling_with_local_instance
     t = Time.local(2000)
     marshaled = Marshal.dump t
     unmarshaled = Marshal.load marshaled
     assert_equal t, unmarshaled
     assert_equal t.zone, unmarshaled.zone
   end
-    
-  def test_marshaling_with_frozen_utc_instance  
+
+  def test_marshaling_with_frozen_utc_instance
     t = Time.utc(2000).freeze
     marshaled = Marshal.dump t
     unmarshaled = Marshal.load marshaled
     assert_equal t, unmarshaled
     assert_equal t.zone, unmarshaled.zone
   end
-  
-  def test_marshaling_with_frozen_local_instance  
+
+  def test_marshaling_with_frozen_local_instance
     t = Time.local(2000).freeze
     marshaled = Marshal.dump t
     unmarshaled = Marshal.load marshaled

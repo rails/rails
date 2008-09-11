@@ -207,6 +207,29 @@ class DateTimeExtCalculationsTest < Test::Unit::TestCase
     assert_match(/^2080-02-28T15:15:10-06:?00$/, DateTime.civil(2080, 2, 28, 15, 15, 10, -0.25).xmlschema)
   end
 
+  uses_mocha 'past?, today? and future?' do
+    def test_past_today_future
+      Date.stubs(:current).returns(Date.civil(2000, 1, 1))
+      DateTime.stubs(:current).returns(DateTime.civil(2000, 1, 1, 1, 0, 1))
+      t1, t2 = DateTime.civil(2000, 1, 1, 1, 0, 0), DateTime.civil(2000, 1, 1, 1, 0, 2)
+
+      assert t1.past?
+      assert t2.future?
+      assert t1.today?
+      assert t2.today?
+    end
+  end
+
+  def test_current_without_time_zone
+    assert DateTime.current.is_a?(DateTime)
+  end
+
+  def test_current_with_time_zone
+    with_env_tz 'US/Eastern' do
+      assert DateTime.current.is_a?(DateTime)
+    end
+  end
+
   def test_acts_like_time
     assert DateTime.new.acts_like_time?
   end
