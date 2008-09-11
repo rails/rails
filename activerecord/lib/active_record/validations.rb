@@ -665,7 +665,7 @@ module ActiveRecord
             condition_params = [value]
           else
             condition_sql = "LOWER(#{sql_attribute}) #{comparison_operator}"
-            condition_params = [value.chars.downcase]
+            condition_params = [value.chars.downcase.to_s]
           end
 
           if scope = configuration[:scope]
