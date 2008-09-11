@@ -2,7 +2,7 @@
 
 When creating or updating data in a migration it is often tempting to use one of your models. After all they exist to provide easy access to the underlying data. This can be done but some caution should be observed. Consider for example a migration that uses the Product model to update a row in the corresponding table. Alice later updates the Product model, adding a new column and a validation on it. Bob comes back from holiday, updates the source and runs outstanding migrations with `rake db:migrate`, including the one that used the Product model. When the migration runs the source is up to date and so the Product model has the validation added by Alice. The database however is still old and so does not have that column and an error ensues.
 
-Frequently I just want to update rows in the database without writing out the sql by hand: I'm notusing anything specific to the model. One pattern for this is to define a copy of the model inside the migration itself, for example:
+Frequently I just want to update rows in the database without writing out the SQL by hand: I'm not using anything specific to the model. One pattern for this is to define a copy of the model inside the migration itself, for example:
 
 [source, ruby]
 -------------------------

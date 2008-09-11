@@ -12,7 +12,7 @@ create_table :products do |t|
   t.string :name
 end
 ---------------------
-which creates a products table with a column called name (and as discussed below, an implicit id column).
+which creates a `products` table with a column called `name` (and as discussed below, an implicit `id` column).
 
 The object yielded to the block allows you create columns on the table. There are two ways of the doing this. The first looks like
 
@@ -120,7 +120,7 @@ end
 ---------------------
 will add an `attachment_id` column and a string `attachment_type` column with a default value of 'Photo'.
 
-NOTE: The `references` helper does not actually create <<foreign_key,foreign key>> constraints for you. You will need to use execute for that.
+NOTE: The `references` helper does not actually create <<foreign_key,foreign key>> constraints for you. You will need to use `execute` for that.
 
 If the helpers provided by Active Record aren't enough you can use the `execute` function to execute arbitrary SQL.
 
@@ -128,7 +128,7 @@ For more details and examples of individual methods check the API documentation.
 
 === Writing your down method ===
 
-The `down` method of your migration should revert the transformations done by the up method. In other words the database should be unchanged if you do an up followed by a down. For example if you create a table in the up you should drop it in the down method. It is wise to do things in precisely the reverse order to in the the up method. For example
+The `down` method of your migration should revert the transformations done by the `up` method. In other words the database should be unchanged if you do an `up` followed by a `down`. For example if you create a table in the up you should drop it in the `down` method. It is wise to do things in precisely the reverse order to in the `up` method. For example
 
 [source, ruby]
 ---------------------
@@ -154,6 +154,6 @@ class ExampleMigration < ActiveRecord::Migration
   end
 end
 ---------------------
-Sometimes your migration will do something which is just plain irreversible, for example it might destroy some data. In cases like those when you can't reverse the migration you can raise IrreversibleMigration from your down method. If someone tries to revert your migration an error message will be
+Sometimes your migration will do something which is just plain irreversible, for example it might destroy some data. In cases like those when you can't reverse the migration you can raise IrreversibleMigration from your `down` method. If someone tries to revert your migration an error message will be
 displayed saying that it can't be done.
 
