@@ -1,6 +1,11 @@
 Ruby on Rails guides
 ====================
 
+.link:getting_started_with_rails/getting_started_with_rails.html[Getting Started with Rails]
+***********************************************************
+TODO: Insert some description here.
+***********************************************************
+
 .link:activerecord/association_basics.html[Active Record Associations]
 ***********************************************************
 Introduction to Active Record associations.

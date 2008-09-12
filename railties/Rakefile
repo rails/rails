@@ -274,8 +274,9 @@ Rake::RDocTask.new { |rdoc|
 
 # In this array, one defines the guides for which HTML output should be
 # generated. Specify the folder names of the guides. If the .txt filename
-# doesn't equal its folder name, then specify a hash: { 'folder_name' => 'filename.txt' }
+# doesn't equal its folder name, then specify a hash: { 'folder_name' => 'basename' }
 guides = [
+  'getting_started_with_rails',
   'securing_rails_applications',
   'testing_rails_applications',
   'creating_plugins',
