@@ -919,7 +919,7 @@ module ActiveRecord
         # Create the callbacks to update counter cache
         if options[:counter_cache]
           cache_column = options[:counter_cache] == true ?
-            "#{self.to_s.underscore.pluralize}_count" :
+            "#{self.to_s.demodulize.underscore.pluralize}_count" :
             options[:counter_cache]
 
           method_name = "belongs_to_counter_cache_after_create_for_#{reflection.name}".to_sym
@@ -1582,12 +1582,12 @@ module ActiveRecord
 
         def create_extension_modules(association_id, block_extension, extensions)
           if block_extension
-            extension_module_name = "#{self.to_s}#{association_id.to_s.camelize}AssociationExtension"
+            extension_module_name = "#{self.to_s.demodulize}#{association_id.to_s.camelize}AssociationExtension"
 
             silence_warnings do
-              Object.const_set(extension_module_name, Module.new(&block_extension))
+              self.parent.const_set(extension_module_name, Module.new(&block_extension))
             end
-            Array(extensions).push(extension_module_name.constantize)
+            Array(extensions).push("#{self.parent}::#{extension_module_name}".constantize)
           else
             Array(extensions)
           end
