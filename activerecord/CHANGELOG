@@ -1,5 +1,7 @@
 *Edge*
 
+* Base.skip_time_zone_conversion_for_attributes uses class_inheritable_accessor, so that subclasses don't overwrite Base [#346 state:resolved] [miloops]
+
 * Added find_last_by dynamic finder #762 [miloops]
 
 * Internal API: configurable association options and build_association method for reflections so plugins may extend and override.  #985 [Hongli Lai]

@@ -10,7 +10,7 @@ module ActiveRecord
       base.attribute_types_cached_by_default = ATTRIBUTE_TYPES_CACHED_BY_DEFAULT
       base.cattr_accessor :time_zone_aware_attributes, :instance_writer => false
       base.time_zone_aware_attributes = false
-      base.cattr_accessor :skip_time_zone_conversion_for_attributes, :instance_writer => false
+      base.class_inheritable_accessor :skip_time_zone_conversion_for_attributes, :instance_writer => false
       base.skip_time_zone_conversion_for_attributes = []
     end
 
