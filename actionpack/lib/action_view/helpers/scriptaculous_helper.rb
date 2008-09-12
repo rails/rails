@@ -95,7 +95,7 @@ module ActionView
       # * <tt>:containment</tt> - Takes an element or array of elements to treat as
       #   potential drop targets (defaults to the original target element).
       #                          
-      # * <tt>:only</tt> - A CSS class name or arry of class names used to filter
+      # * <tt>:only</tt> - A CSS class name or array of class names used to filter
       #   out child elements as candidates.
       #                          
       # * <tt>:scroll</tt> - Determines whether to scroll the list during drag
