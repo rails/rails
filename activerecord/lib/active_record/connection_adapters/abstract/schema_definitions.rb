@@ -252,6 +252,10 @@ module ActiveRecord
     class IndexDefinition < Struct.new(:table, :name, :unique, :columns) #:nodoc:
     end
 
+    # Abstract representation of a column definition. Instances of this type
+    # are typically created by methods in TableDefinition, and added to the
+    # +columns+ attribute of said TableDefinition object, in order to be used
+    # for generating a number of table creation or table changing SQL statements.
     class ColumnDefinition < Struct.new(:base, :name, :type, :limit, :precision, :scale, :default, :null) #:nodoc:
 
       def sql_type
