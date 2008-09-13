@@ -341,6 +341,20 @@ class HashExtTest < Test::Unit::TestCase
     assert_equal expected, original.except!(:c)
     assert_equal expected, original
   end
+
+  def test_except_with_original_frozen
+    original = { :a => 'x', :b => 'y' }
+    original.freeze
+    assert_nothing_raised { original.except(:a) }
+  end
+
+  uses_mocha 'except with expectation' do
+    def test_except_with_mocha_expectation_on_original
+      original = { :a => 'x', :b => 'y' }
+      original.expects(:delete).never
+      original.except(:a)
+    end
+  end
 end
 
 class IWriteMyOwnXML
