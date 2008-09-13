@@ -4,7 +4,7 @@ Rails Routing from the Outside In
 This guide covers the user-facing features of Rails routing. By referring to this guide, you will be able to:
 
 * Understand the purpose of routing
-* Decipher the code in +routing.rb+
+* Decipher the code in +routes.rb+
 * Construct your own routes, using either the classic hash style or the now-preferred RESTful style
 * Identify how a route will map to a controller and action
 
