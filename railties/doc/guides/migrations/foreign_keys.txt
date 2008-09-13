@@ -1,0 +1,7 @@
+[[foreign_key]]
+== Active Record and Referential Integrity ==
+The Active Record way is that intelligence belongs in your models, not in the database. As such features such as triggers or foreign key constraints, which push some of that intelligence back into the database are not heavily used.
+
+Validations such as `validates_uniqueness_of` are one way in which models can enforce data integrity. The `:dependent` option on associations allows models to automatically destroy child objects when the parent is destroyed. Like anything which operates at the application level these cannot guarantee referential integrity and so some people augment them with foreign key constraints.
+
+Although Active Record does not provide any tools for working directly with such features, the `execute` method can be used to execute arbitrary SQL. There are also a number of plugins such as http://agilewebdevelopment.com/plugins/search?search=redhillonrails[redhillonrails] which add foreign key support to Active Record (including support for dumping foreign keys in `schema.rb`).

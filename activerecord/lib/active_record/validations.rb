@@ -259,6 +259,8 @@ module ActiveRecord
   end
 
 
+  # Please do have a look at ActiveRecord::Validations::ClassMethods for a higher level of validations.
+  #
   # Active Records implement validation by overwriting Base#validate (or the variations, +validate_on_create+ and
   # +validate_on_update+). Each of these methods can inspect the state of the object, which usually means ensuring
   # that a number of attributes have a certain value (such as not empty, within a given range, matching a certain regular expression).
@@ -297,8 +299,6 @@ module ActiveRecord
   #   person.save # => true (and person is now saved in the database)
   #
   # An Errors object is automatically created for every Active Record.
-  #
-  # Please do have a look at ActiveRecord::Validations::ClassMethods for a higher level of validations.
   module Validations
     VALIDATIONS = %w( validate validate_on_create validate_on_update )
 
@@ -313,9 +313,50 @@ module ActiveRecord
       base.define_callbacks *VALIDATIONS
     end
 
-    # All of the following validations are defined in the class scope of the model that you're interested in validating.
-    # They offer a more declarative way of specifying when the model is valid and when it is not. It is recommended to use
-    # these over the low-level calls to +validate+ and +validate_on_create+ when possible.
+    # Active Record classes can implement validations in several ways. The highest level, easiest to read,
+    # and recommended approach is to use the declarative <tt>validates_..._of</tt> class methods (and
+    # +validates_associated+) documented below. These are sufficient for most model validations.
+    #
+    # Slightly lower level is +validates_each+. It provides some of the same options as the purely declarative
+    # validation methods, but like all the lower-level approaches it requires manually adding to the errors collection
+    # when the record is invalid.
+    #
+    # At a yet lower level, a model can use the class methods +validate+, +validate_on_create+ and +validate_on_update+
+    # to add validation methods or blocks. These are ActiveSupport::Callbacks and follow the same rules of inheritance
+    # and chaining.
+    #
+    # The lowest level style is to define the instance methods +validate+, +validate_on_create+ and +validate_on_update+
+    # as documented in ActiveRecord::Validations.
+    #
+    # == +validate+, +validate_on_create+ and +validate_on_update+ Class Methods
+    #
+    # Calls to these methods add a validation method or block to the class. Again, this approach is recommended
+    # only when the higher-level methods documented below (<tt>validates_..._of</tt> and +validates_associated+) are
+    # insufficient to handle the required validation.
+    #
+    # This can be done with a symbol pointing to a method:
+    #
+    #   class Comment < ActiveRecord::Base
+    #     validate :must_be_friends
+    #
+    #     def must_be_friends
+    #       errors.add_to_base("Must be friends to leave a comment") unless commenter.friend_of?(commentee)
+    #     end
+    #   end
+    #
+    # Or with a block which is passed the current record to be validated:
+    #
+    #   class Comment < ActiveRecord::Base
+    #     validate do |comment|
+    #       comment.must_be_friends
+    #     end
+    #
+    #     def must_be_friends
+    #       errors.add_to_base("Must be friends to leave a comment") unless commenter.friend_of?(commentee)
+    #     end
+    #   end
+    #
+    # This usage applies to +validate_on_create+ and +validate_on_update+ as well.
     module ClassMethods
       DEFAULT_VALIDATION_OPTIONS = {
         :on => :save,
@@ -328,34 +369,6 @@ module ActiveRecord
       ALL_NUMERICALITY_CHECKS = { :greater_than => '>', :greater_than_or_equal_to => '>=',
                                   :equal_to => '==', :less_than => '<', :less_than_or_equal_to => '<=',
                                   :odd => 'odd?', :even => 'even?' }.freeze
-
-      # Adds a validation method or block to the class. This is useful when
-      # overriding the +validate+ instance method becomes too unwieldy and
-      # you're looking for more descriptive declaration of your validations.
-      #
-      # This can be done with a symbol pointing to a method:
-      #
-      #   class Comment < ActiveRecord::Base
-      #     validate :must_be_friends
-      #
-      #     def must_be_friends
-      #       errors.add_to_base("Must be friends to leave a comment") unless commenter.friend_of?(commentee)
-      #     end
-      #   end
-      #
-      # Or with a block which is passed the current record to be validated:
-      #
-      #   class Comment < ActiveRecord::Base
-      #     validate do |comment|
-      #       comment.must_be_friends
-      #     end
-      #
-      #     def must_be_friends
-      #       errors.add_to_base("Must be friends to leave a comment") unless commenter.friend_of?(commentee)
-      #     end
-      #   end
-      #
-      # This usage applies to +validate_on_create+ and +validate_on_update+ as well.
 
       # Validates each attribute against a block.
       #
@@ -509,13 +522,13 @@ module ActiveRecord
       #
       #   class Person < ActiveRecord::Base
       #     validates_length_of :first_name, :maximum=>30
-      #     validates_length_of :last_name, :maximum=>30, :message=>"less than %d if you don't mind"
+      #     validates_length_of :last_name, :maximum=>30, :message=>"less than {{count}} if you don't mind"
       #     validates_length_of :fax, :in => 7..32, :allow_nil => true
       #     validates_length_of :phone, :in => 7..32, :allow_blank => true
       #     validates_length_of :user_name, :within => 6..20, :too_long => "pick a shorter name", :too_short => "pick a longer name"
-      #     validates_length_of :fav_bra_size, :minimum => 1, :too_short => "please enter at least %d character"
-      #     validates_length_of :smurf_leader, :is => 4, :message => "papa is spelled with %d characters... don't play me."
-      #     validates_length_of :essay, :minimum => 100, :too_short => "Your essay must be at least %d words."), :tokenizer => lambda {|str| str.scan(/\w+/) }
+      #     validates_length_of :fav_bra_size, :minimum => 1, :too_short => "please enter at least {{count}} character"
+      #     validates_length_of :smurf_leader, :is => 4, :message => "papa is spelled with {{count}} characters... don't play me."
+      #     validates_length_of :essay, :minimum => 100, :too_short => "Your essay must be at least {{count}} words."), :tokenizer => lambda {|str| str.scan(/\w+/) }
       #   end
       #
       # Configuration options:
@@ -526,9 +539,9 @@ module ActiveRecord
       # * <tt>:in</tt> - A synonym(or alias) for <tt>:within</tt>.
       # * <tt>:allow_nil</tt> - Attribute may be +nil+; skip validation.
       # * <tt>:allow_blank</tt> - Attribute may be blank; skip validation.
-      # * <tt>:too_long</tt> - The error message if the attribute goes over the maximum (default is: "is too long (maximum is %d characters)").
-      # * <tt>:too_short</tt> - The error message if the attribute goes under the minimum (default is: "is too short (min is %d characters)").
-      # * <tt>:wrong_length</tt> - The error message if using the <tt>:is</tt> method and the attribute is the wrong size (default is: "is the wrong length (should be %d characters)").
+      # * <tt>:too_long</tt> - The error message if the attribute goes over the maximum (default is: "is too long (maximum is {{count}} characters)").
+      # * <tt>:too_short</tt> - The error message if the attribute goes under the minimum (default is: "is too short (min is {{count}} characters)").
+      # * <tt>:wrong_length</tt> - The error message if using the <tt>:is</tt> method and the attribute is the wrong size (default is: "is the wrong length (should be {{count}} characters)").
       # * <tt>:message</tt> - The error message to use for a <tt>:minimum</tt>, <tt>:maximum</tt>, or <tt>:is</tt> violation.  An alias of the appropriate <tt>too_long</tt>/<tt>too_short</tt>/<tt>wrong_length</tt> message.
       # * <tt>:on</tt> - Specifies when this validation is active (default is <tt>:save</tt>, other options <tt>:create</tt>, <tt>:update</tt>).
       # * <tt>:if</tt> - Specifies a method, proc or string to call to determine if the validation should
@@ -731,7 +744,7 @@ module ActiveRecord
       #   class Person < ActiveRecord::Base
       #     validates_inclusion_of :gender, :in => %w( m f ), :message => "woah! what are you then!??!!"
       #     validates_inclusion_of :age, :in => 0..99
-      #     validates_inclusion_of :format, :in => %w( jpg gif png ), :message => "extension %s is not included in the list"
+      #     validates_inclusion_of :format, :in => %w( jpg gif png ), :message => "extension {{value}} is not included in the list"
       #   end
       #
       # Configuration options:
@@ -765,7 +778,7 @@ module ActiveRecord
       #   class Person < ActiveRecord::Base
       #     validates_exclusion_of :username, :in => %w( admin superuser ), :message => "You don't belong here"
       #     validates_exclusion_of :age, :in => 30..60, :message => "This site is only for under 30 and over 60"
-      #     validates_exclusion_of :format, :in => %w( mov avi ), :message => "extension %s is not allowed"
+      #     validates_exclusion_of :format, :in => %w( mov avi ), :message => "extension {{value}} is not allowed"
       #   end
       #
       # Configuration options:

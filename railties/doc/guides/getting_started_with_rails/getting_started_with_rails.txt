@@ -1,0 +1,348 @@
+Getting Started With Rails
+==========================
+
+This guide covers getting up and running with Ruby on Rails.  After reading it, you should be familiar with:
+
+* Installing Rails, creating a new Rails application, and connecting your application to a database
+* Understanding the purpose of each folder in the Rails structure
+* Creating a scaffold, and explain what it is creating and why you need each element
+* The basics of model, view, and controller interaction
+* The basics of HTTP and RESTful design
+
+== How to use this guide
+This guide is designed for beginners who want to get started with a Rails application from scratch.  It assumes that you have no prior experience using the framework.  However, it is highly recommended that you *familiarize yourself with Ruby before diving into Rails*.  Rails isn't going to magically revolutionize the way you write web applications if you have no experience with the language it uses.
+
+== What is Rails?
+Rails is a web development framework written in the Ruby language.  It is designed to make programming web applications easier by making several assumptions about what every developer needs to get started.  It allows you to write less code while accomplishing more than other languages and frameworks. 
+
+== Installing Rails
+
+`gem install rails`
+
+== Create a new Rails project
+
+We're going to create a Rails project called "blog", which is the project that we will build off of for this guide.
+
+From your terminal, type:
+
+`rails blog`
+
+This will create a folder in your working directory called "blog".  Open up that folder and have a look at it.  For the majority of this tutorial, we will live in the app/ folder, but here's a basic rundown on the function of each folder in a Rails app:
+
+[grid="all"]
+`-----------`-----------------------------------------------------------------------------------------------------------------------------
+File/Folder Purpose
+------------------------------------------------------------------------------------------------------------------------------------------
+README		This is a brief instruction manual for your application.  Use it to tell others what it does, how to set it up, etc.
+Rakefile
+app/		Contains the controllers, models, and views for your application.  We'll focus on the app folder in this guide
+config/		Configure your application's runtime rules, routes, database, etc.
+db/			Shows your current database schema, as well as the database migrations (we'll get into migrations shortly)
+doc/		In-depth documentation for your application
+lib/		Extended modules for your application (not covered in this guide)
+log/		Application log files
+public/		The only folder seen to the world as-is.  This is where your images, javascript, stylesheets (CSS), and other static files go
+script/		Scripts provided by Rails to do recurring tasks, benchmarking, plugin installation, starting the console or the web server
+test/		Unit tests, fixtures, etc. (not covered in this guide)
+tmp/		Temporary files
+vendor/		Plugins folder
+-------------------------------------------------------------------------------------------------------------------------------------------
+
+=== Configure SQLite Database
+
+Rails comes with built-in support for SQLite, which is a lightweight flat-file based database application.  While it is not designed for a production environment, it works well for development and testing.  Rails defaults to SQLite as the database adapter when creating a new project, but you can always change it later.
+
+Open up +config/database.yml+ and you'll see the following:
+
+--------------------------------------------------------------------
+# SQLite version 3.x
+#   gem install sqlite3-ruby (not necessary on OS X Leopard)
+development:
+  adapter: sqlite3
+  database: db/development.sqlite3
+  timeout: 5000
+
+# Warning: The database defined as "test" will be erased and
+# re-generated from your development database when you run "rake".
+# Do not set this db to the same as development or production.
+test:
+  adapter: sqlite3
+  database: db/test.sqlite3
+  timeout: 5000
+
+production:
+  adapter: sqlite3
+  database: db/production.sqlite3
+  timeout: 5000
+--------------------------------------------------------------------
+
+If you're not running OS X 10.5 or greater, you'll need to install the SQLite gem.  Similar to installing Rails you just need to run:
+
+`gem install sqlite3-ruby`
+
+Because we're using SQLite, there's really nothing else you need to do to setup your database!
+
+=== Configure MySQL Database
+
+.MySQL Tip
+*******************************
+If you want to skip directly to using MySQL on your development machine, typing the following will get you setup with a MySQL configuration file that assumes MySQL is running locally and that the root password is blank:
+
+`rails blog -d mysql`
+
+You'll need to make sure you have MySQL up and running on your system with the correct permissions.  MySQL installation and configuration is outside the scope of this document.
+*******************************
+
+If you choose to use MySQL, your +config/database.yml+ will look a little different:
+
+--------------------------------------------------------------------
+# MySQL.  Versions 4.1 and 5.0 are recommended.
+#
+# Install the MySQL driver:
+#   gem install mysql
+# On Mac OS X:
+#   sudo gem install mysql -- --with-mysql-dir=/usr/local/mysql
+# On Mac OS X Leopard:
+#   sudo env ARCHFLAGS="-arch i386" gem install mysql -- --with-mysql-config=/usr/local/mysql/bin/mysql_config
+#       This sets the ARCHFLAGS environment variable to your native architecture
+# On Windows:
+#   gem install mysql
+#       Choose the win32 build.
+#       Install MySQL and put its /bin directory on your path.
+#
+# And be sure to use new-style password hashing:
+#   http://dev.mysql.com/doc/refman/5.0/en/old-client.html
+development:
+  adapter: mysql
+  encoding: utf8
+  database: blog_development
+  username: root
+  password:
+  socket: /tmp/mysql.sock
+
+# Warning: The database defined as "test" will be erased and
+# re-generated from your development database when you run "rake".
+# Do not set this db to the same as development or production.
+test:
+  adapter: mysql
+  encoding: utf8
+  database: blog_test
+  username: root
+  password:
+  socket: /tmp/mysql.sock
+
+production:
+  adapter: mysql
+  encoding: utf8
+  database: blog_production
+  username: root
+  password:
+  socket: /tmp/mysql.sock
+----------------------------------------------------------------------
+
+== Starting the web server
+Rails comes bundled with the lightweight Webrick web server, which (like SQLite) works great in development mode, but is not designed for a production environment.  If you install Mongrel with `gem install mongrel`, Rails will use the Mongrel web server as the default instead (recommended).
+*******************
+If you're interested in alternative web servers for development and/or production, check out mod_rails (a.k.a Passenger)
+*******************
+Rails lets you run in development, test, and production environments (you can also add an unlimited number of additional environments if necessary).  In this guide, we're going to work with the development environment only, which is the default when starting the server.  From the root of your application folder, simply type the following to startup the web server:
+
+`./script/server`
+
+This will start a process that allows you to connect to your application via a web browser on port 3000.  Open up a browser to +http://localhost:3000/+
+
+You can hit Ctrl+C anytime from the terminal to stop the web server.
+
+You should see the "Welcome Aboard" default Rails screen, and can click on the "About your application's environment" link to see a brief summary of your current configuration.  If you've gotten this far, you're riding rails!  Let's dive into the code!
+
+== Models, Views, and Controllers
+Rails uses Model, View, Controller (MVC) architecture because it isolates business logic from the user interface, ensuring that changes to a template will not affect the underlying code that makes it function.  It also helps keep your code clean and DRY (Don't Repeat Yourself!) by making it perfectly clear where different types of code belong.
+
+=== The Model
+The model represents the information (data) of the application and the rules to manipulate that data.  In the case of Rails, models are primarily used for managing the rules of interaction with a corresponding database table.  Assume that for every table in your database, you will have a corresponding model (not necessarily the other way around, but that's beyond the scope of this guide).
+
+Models in Rails use a singular name, and their corresponding database tables use a plural name.  In the case of our "Blog" application, we're going to need a table for our blog posts.  Because we're generating a model, we want to use the singular name:
+
+`./script/generate model Post`
+
+You'll see that this generates several files, we're going to focus on two.  First, let's take a look at +app/models/post.rb+
+
+-------------------------------
+class Post < ActiveRecord::Base
+end
+-------------------------------
+
+This is what each model you create will look like by default.  Here Rails is making the assumption that your Post model will be tied to a database, because it is telling the Post class to descend from the ActiveRecord::Base class, which is where all the database magic happens.  Let's leave the model alone for now and move onto migrations.
+
+==== Migrations
+Database migrations make it simple to add/remove/modify tables, columns, and indexes while allowing you to roll back or forward between states with ease.
+
+Have a look at +db/migrate/2008XXXXXXXXXX_create_posts.rb+ (Yours will have numbers specific to the time that the file was generated), which was generated when creating our Post model:
+
+-------------------------------------------
+class CreatePosts < ActiveRecord::Migration
+  def self.up
+    create_table :posts do |t|
+
+      t.timestamps
+    end
+  end
+
+  def self.down
+    drop_table :posts
+  end
+end
+-------------------------------------------
+
+By default, Rails creates a database migration that will create the table for "posts" (plural name of model).  The +create_table+ method takes a ruby block, and by default you'll see +t.timestamps+ in there, which automatically creates and automatically handles +created_at+ and +updated_at+ datetime columns.  The +self.up+ section handles progression of the database, whereas the +self.down+ handles regression (or rollback) of the migration.
+
+Let's add some more columns to our migration that suit our post table.  We'll create a +name+ column for the person who wrote the post, a +title+ column for the title of the post, and a +content+ column for the actual post content.
+
+-------------------------------------------
+class CreatePosts < ActiveRecord::Migration
+  def self.up
+    create_table :posts do |t|
+      t.string       :name
+      t.string       :title
+      t.text         :content
+      t.timestamps
+    end
+  end
+
+  def self.down
+    drop_table :posts
+  end
+end
+-------------------------------------------
+
+Now that we have our migration just right, we can run the migration (the +self.up+ portion) by returning to the terminal and running:
+
+`rake db:migrate`
+
+This command will always run any migrations that have not yet been run.
+
+.Singular and Plural Inflections
+**************************************************************************************************************
+Rails is very smart, it knows that if you have a model "Person," the database table should be called "people".  If you have a model "Company", the database table will be called "companies".  There are a few circumstances where it will not know the correct singular and plural of a model name, but you should have no problem with this as long as you are using common English words.  Fixing these rare circumstances is beyond the scope of this guide.
+**************************************************************************************************************
+
+=== The Controller
+The controller communicates input from the user (the view) to the model.
+
+==== RESTful Design
+The REST idea will likely take some time to wrap your brain around if you're new to the concept.  But know the following:
+
+* It is best to keep your controllers RESTful at all times if possible
+* Resources must be defined in +config/routes.rb+ in order for the RESTful architecture to work properly, so let's add that now:
+
+--------------------
+map.resources :posts
+--------------------
+
+* The seven actions that are automatically part of the RESTful design in Rails are +index+, +show+, +new+, +create+, +edit+, +update+, and +destroy+.
+
+Let's generate a controller:
+
+`./script/generate controller Posts`
+
+Open up the controller that it generates in +app/controllers/posts_controller.rb+.  It should look like:
+
+---------------------------------------------
+class PostsController < ApplicationController
+end
+---------------------------------------------
+
+Because of the +map.resources :posts+ line in your +config/routes.rb+ file, this controller is ready to take on all seven actions listed above.  But we're going to need some logic in this controller in order to interact with the model, and we're going to need to generate our view files so the user can interact with your application from their browser.
+
+We're going to use the scaffold generator to create all the files and basic logic to make this work, now that you know how to generate models and controllers manually.
+
+To do that, let's completely start over.  Back out of your Rails project folder, and *remove it completely* (`rm -rf blog`).
+Create the project again and enter the directory by running the commands: 
+
+`rails blog`
+
+`cd blog`
+
+
+=== Rails Scaffold
+Whenever you are dealing with a resource and you know you'll need a way to manage that resource in your application, you can start by generating a scaffold.  The reason that this guide did not start with generating the scaffold is because it is not all that useful once you are using Rails on a regular basis. For our blog, we want a "Post" resource, so let's generate that now:
+
+`./script/generate scaffold Post name:string title:string content:text`
+
+This generates the model, controller, migration, views, tests, and routes for this resource.  It also populates these files with default data to get started.
+
+First, let's make sure our database is up to date by running `rake db:migrate`.  That may generate an error if your database still has the tables from our earlier migration.  In this case, let's completely reset the database and run all migrations by running `rake db:reset`.
+
+Start up the web server with `./script/server` and point your browser to `http://localhost:3000/posts`.
+
+Here you'll see an example of the instant gratification of Rails where you can completely manage the Post resource.  You'll be able to create, edit, and delete blog posts with ease.  Go ahead, try it out.
+
+Now let's see how all this works.  Open up `app/controllers/posts_controller.rb`, and you'll see this time it is filled with code.
+
+==== Index
+
+Let's take a look at the `index` action:
+
+-----------------------------------------
+def index
+  @posts = Post.find(:all)
+
+  respond_to do |format|
+    format.html # index.html.erb
+    format.xml  { render :xml => @posts }
+  end
+end
+-----------------------------------------
+
+In this action, we're setting the `@posts` instance variable to a hash of all posts in the database.  `Post.find(:all)` or `Post.all` (in Rails 2.1) calls on our model to return all the Posts in the database with no additional conditions.
+
+The `respond_to` block handles both HTML and XML calls to this action.  If we call `http://localhost:3000/posts.xml`, we'll see all our posts in XML format.  The HTML format looks for our corresponding view in `app/views/posts/index.html.erb`.  You can add any number of formats to this block to allow actions to be processed with different file types.
+
+==== Show
+
+Back in your browser, click on the "New post" link and create your first post if you haven't done so already.  Return back to the index, and you'll see the details of your post listed, along with three actions to the right of the post: `show`, `edit`, and `destroy`.  Click the `show` link, which will bring you to the URL `http://localhost:3000/posts/1`.  Now let's look at the `show` action in `app/controllers/posts_controller.rb`:
+
+-----------------------------------------
+def show
+  @post = Post.find(params[:id])
+
+  respond_to do |format|
+    format.html # show.html.erb
+    format.xml  { render :xml => @post }
+  end
+end
+-----------------------------------------
+
+This time, we're setting `@post` to a single record in the database that is searched for by its `id`, which is provided to the controller by the "1" in `http://localhost:3000/posts/1`.  The `show` action is ready to handle HTML or XML with the `respond_to` block:  XML can be accessed at: `http://localhost:3000/posts/1.xml`.
+
+==== New & Create
+
+Description of new and create actions
+
+==== Edit & Update
+
+For the `edit`, `update`, and `destroy` actions, we will use the same `@post = Post.find(params[:id])` to find the appropriate record.
+
+==== Destroy
+
+Description of the destroy action
+
+=== The View
+The view is where you put all the code that gets seen by the user: divs, tables, text, checkboxes, etc.  Think of the view as the home of your HTML.  If done correctly, there should be no business logic in the view.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
