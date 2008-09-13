@@ -102,7 +102,7 @@ map.connect ':controller/:action/:id'
 map.connect ':controller/:action/:id.:format'
 -------------------------------------------------------
 
-These default routes are automatically generated when you create a new Rails application. If you're using RESTful routing, you will probably want to remove them.
+These default routes are automatically generated when you create a new Rails application. If you're using RESTful routing for everything in your application, you will probably want to remove them. But be sure you're not using the default routes before you remove them!
 
 == RESTful Routing: the Rails Default
 
@@ -725,7 +725,7 @@ map.connect ':controller/:action/:id.:format'
 
 These routes provide reasonable defaults for many URLs, if you're not using RESTful routing.
 
-NOTE: The default routes will make every action of every controller in your application accessible to GET requests. If you've designed your application to make consistent use of RESTful and named routes, you should comment out the default routes.
+NOTE: The default routes will make every action of every controller in your application accessible to GET requests. If you've designed your application to make consistent use of RESTful and named routes, you should comment out the default routes to prevent access to your controllers through the wrong verbs. If you've had the default routes enabled during development, though, you need to be sure that you haven't unwittingly depended on them somewhere in your application - otherwise you may find mysterious failures when you disable them.
 
 == The Empty Route
 
