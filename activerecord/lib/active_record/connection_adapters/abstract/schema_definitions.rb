@@ -404,6 +404,10 @@ module ActiveRecord
       #  td.column(:huge_integer, :decimal, :precision => 30)
       #  # => huge_integer DECIMAL(30)
       #
+      #  # Defines a column with a database-specific type.
+      #  td.column(:foo, 'polygon')
+      #  # => foo polygon
+      #
       # == Short-hand examples
       #
       # Instead of calling +column+ directly, you can also work with the short-hand definitions for the default types.
