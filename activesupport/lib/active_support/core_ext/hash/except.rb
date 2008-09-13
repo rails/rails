@@ -10,7 +10,7 @@ module ActiveSupport #:nodoc:
       module Except
         # Returns a new hash without the given keys.
         def except(*keys)
-          clone.except!(*keys)
+          dup.except!(*keys)
         end
 
         # Replaces the hash without only the given keys.
