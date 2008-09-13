@@ -275,9 +275,29 @@ module ActiveRecord
         end
     end
 
-    # Represents a SQL table in an abstract way.
-    # Columns are stored as a ColumnDefinition in the +columns+ attribute.
+    # Represents the schema of an SQL table in an abstract way. This class
+    # provides methods for manipulating the schema representation.
+    #
+    # Inside migration files, the +t+ object in +create_table+ and
+    # +change_table+ is actually of this type:
+    #
+    #   class SomeMigration < ActiveRecord::Migration
+    #     def self.up
+    #       create_table :foo do |t|
+    #         puts t.class  # => "ActiveRecord::ConnectionAdapters::TableDefinition"
+    #       end
+    #     end
+    #     
+    #     def self.down
+    #       ...
+    #     end
+    #   end
+    #
+    # The table definitions
+    # The Columns are stored as a ColumnDefinition in the +columns+ attribute.
     class TableDefinition
+      # An array of ColumnDefinition objects, representing the column changes
+      # that have been defined.
       attr_accessor :columns
 
       def initialize(base)
