@@ -40,6 +40,32 @@ class ActiveRecordValidationsI18nTests < Test::Unit::TestCase
     end
   end
 
+  def test_percent_s_interpolation_syntax_in_error_messages_still_works
+    ActiveSupport::Deprecation.silence do
+      result = I18n.t :does_not_exist, :default => "%s interpolation syntax is deprecated", :value => 'this'
+      assert_equal result, "this interpolation syntax is deprecated"
+    end
+  end
+
+  def test_percent_s_interpolation_syntax_in_error_messages_is_deprecated
+    assert_deprecated('using %s in messages') do
+      I18n.t :does_not_exist, :default => "%s interpolation syntax is deprected", :value => 'this'
+    end
+  end
+
+  def test_percent_d_interpolation_syntax_in_error_messages_still_works
+    ActiveSupport::Deprecation.silence do
+      result = I18n.t :does_not_exist, :default => "%d interpolation syntaxes are deprecated", :count => 2
+      assert_equal result, "2 interpolation syntaxes are deprecated"
+    end
+  end
+
+  def test_percent_d_interpolation_syntax_in_error_messages_is_deprecated
+    assert_deprecated('using %d in messages') do
+      I18n.t :does_not_exist, :default => "%d interpolation syntaxes are deprected", :count => 2
+    end
+  end
+
   # ActiveRecord::Errors
   uses_mocha 'ActiveRecord::Errors' do
 

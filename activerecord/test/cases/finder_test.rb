@@ -169,6 +169,12 @@ class FinderTest < ActiveRecord::TestCase
     assert_equal("fixture_3", developers.first.name)
   end
 
+  def test_find_with_group
+    developers =  Developer.find(:all, :group => "salary", :select => "salary")
+    assert_equal 4, developers.size
+    assert_equal 4, developers.map(&:salary).uniq.size
+  end
+
   def test_find_with_entire_select_statement
     topics = Topic.find_by_sql "SELECT * FROM topics WHERE author_name = 'Mary'"
 
@@ -297,7 +303,6 @@ class FinderTest < ActiveRecord::TestCase
     assert_raises(ActiveRecord::RecordNotFound) { Topic.find(1, :conditions => { :author_name => "David", :title => "The First Topic", :replies_count => 1, :approved => true }) }
   end
 
-
   def test_condition_interpolation
     assert_kind_of Firm, Company.find(:first, :conditions => ["name = '%s'", "37signals"])
     assert_nil Company.find(:first, :conditions => ["name = '%s'", "37signals!"])
@@ -392,7 +397,7 @@ class FinderTest < ActiveRecord::TestCase
       Company.find(:first, :conditions => ["id=? AND name = ?", 2])
     }
     assert_raises(ActiveRecord::PreparedStatementInvalid) {
-	   Company.find(:first, :conditions => ["id=?", 2, 3, 4])
+     Company.find(:first, :conditions => ["id=?", 2, 3, 4])
     }
   end
 
@@ -453,6 +458,15 @@ class FinderTest < ActiveRecord::TestCase
 
   def test_bind_string
     assert_equal ActiveRecord::Base.connection.quote(''), bind('?', '')
+  end
+
+  def test_bind_chars
+    quoted_bambi = ActiveRecord::Base.connection.quote("Bambi")
+    quoted_bambi_and_thumper = ActiveRecord::Base.connection.quote("Bambi\nand\nThumper")
+    assert_equal "name=#{quoted_bambi}", bind('name=?', "Bambi")
+    assert_equal "name=#{quoted_bambi_and_thumper}", bind('name=?', "Bambi\nand\nThumper")
+    assert_equal "name=#{quoted_bambi}", bind('name=?', "Bambi".chars)
+    assert_equal "name=#{quoted_bambi_and_thumper}", bind('name=?', "Bambi\nand\nThumper".chars)
   end
 
   def test_bind_record

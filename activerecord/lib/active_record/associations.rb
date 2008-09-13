@@ -1237,7 +1237,7 @@ module ActiveRecord
 
             association = instance_variable_get(ivar) if instance_variable_defined?(ivar)
 
-            if association.nil? || force_reload
+            if association.nil? || !association.loaded? || force_reload
               association = association_proxy_class.new(self, reflection)
               retval = association.reload
               if retval.nil? and association_proxy_class == BelongsToAssociation
@@ -1263,6 +1263,13 @@ module ActiveRecord
             else
               association.replace(new_value)
               instance_variable_set(ivar, new_value.nil? ? nil : association)
+            end
+          end
+
+          if association_proxy_class == BelongsToAssociation
+            define_method("#{reflection.primary_key_name}=") do |target_id|
+              instance_variable_get(ivar).reset if instance_variable_defined?(ivar)
+              write_attribute(reflection.primary_key_name, target_id)
             end
           end
 

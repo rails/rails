@@ -130,12 +130,16 @@ class DeprecatedAggregationsTest < ActiveRecord::TestCase
   end
 
   def test_conversion_block_used_when_converter_option_is_nil
-    Person.composed_of(:balance, :class_name => "Money", :mapping => %w(balance amount)) { |balance| balance.to_money }
+    assert_deprecated 'conversion block has been deprecated' do
+      Person.composed_of(:balance, :class_name => "Money", :mapping => %w(balance amount)) { |balance| balance.to_money }
+    end
     assert_raise(NoMethodError) { Person.new.balance = 5 }
   end
 
   def test_converter_option_overrides_conversion_block
-    Person.composed_of(:balance, :class_name => "Money", :mapping => %w(balance amount), :converter => Proc.new { |balance| Money.new(balance) }) { |balance| balance.to_money }
+    assert_deprecated 'conversion block has been deprecated' do
+      Person.composed_of(:balance, :class_name => "Money", :mapping => %w(balance amount), :converter => Proc.new { |balance| Money.new(balance) }) { |balance| balance.to_money }
+    end
 
     person = Person.new
     assert_nothing_raised { person.balance = 5 }

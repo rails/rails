@@ -1,5 +1,7 @@
 *Edge*
 
+* Fixed Sri Jayawardenepura time zone to map to Asia/Colombo [Jamis Buck]
+
 * Added Inflector#parameterize for easy slug generation ("Donald E. Knuth".parameterize => "donald-e-knuth") #713 [Matt Darby]
 
 * Changed cache benchmarking to be reported in milliseconds [DHH]

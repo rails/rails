@@ -257,7 +257,7 @@ module ActiveSupport
     #   <%= link_to(@person.name, person_path %>
     #   # => <a href="/person/1-donald-e-knuth">Donald E. Knuth</a>
     def parameterize(string, sep = '-')
-      string.gsub(/[^a-z0-9]+/i, sep).downcase
+      string.chars.normalize(:kd).to_s.gsub(/[^\x00-\x7F]+/, '').gsub(/[^a-z0-9_\-]+/i, sep).downcase
     end
 
     # Create the name of a table like Rails does for models to table names. This method

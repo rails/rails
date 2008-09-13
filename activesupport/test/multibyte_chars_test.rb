@@ -167,6 +167,10 @@ class CharsTest < Test::Unit::TestCase
     assert_equal false, 'test'.chars.respond_to?(:a_method_that_doesnt_exist)
   end
   
+  def test_acts_like_string
+    assert 'Bambi'.chars.acts_like_string?
+  end
+
   protected
 
   def with_kcode(kcode)

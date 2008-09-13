@@ -13,6 +13,9 @@ class Category < ActiveRecord::Base
   has_and_belongs_to_many :post_with_conditions,
                           :class_name => 'Post',
                           :conditions => { :title => 'Yet Another Testing Title' }
+
+  has_and_belongs_to_many :posts_gruoped_by_title, :class_name => "Post", :group => "title", :select => "title"
+
   def self.what_are_you
     'a category...'
   end
