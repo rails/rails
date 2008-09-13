@@ -127,7 +127,7 @@ In Rails, a RESTful route provides a mapping between HTTP verbs, controller acti
 
 [source, ruby]
 -------------------------------------------------------
-map.resources photos
+map.resources :photos
 -------------------------------------------------------
 
 creates seven different routes in your application:
@@ -174,7 +174,7 @@ You can also apply RESTful routing to singleton resources within your applicatio
 
 [source, ruby]
 -------------------------------------------------------
-map.resource geocoder
+map.resource :geocoder
 -------------------------------------------------------
 
 creates seven different routes in your application:
@@ -220,7 +220,7 @@ The +:controller+ option lets you use a controller name that is different from t
 
 [source, ruby]
 -------------------------------------------------------
-map.resources photos, :controller => "images"
+map.resources :photos, :controller => "images"
 -------------------------------------------------------
 
 will recognize incoming URLs containing +photo+ but route the requests to the Images controller: 
@@ -257,7 +257,7 @@ You an use the +:requirements+ option in a RESTful route to impose a format on t
 
 [source, ruby]
 -------------------------------------------------------
-map.resources photos, :requirements => {:id => /[A-Z][A-Z][0-9]+/}
+map.resources :photos, :requirements => {:id => /[A-Z][A-Z][0-9]+/}
 -------------------------------------------------------
 
 This declaration constrains the +:id+ parameter to match the supplied regular expression. So, in this case, +/photos/1+ would no longer be recognized by this route, but +/photos/RR27+ would.
@@ -272,7 +272,7 @@ The +:as+ option lets you override the normal naming for the actual generated pa
 
 [source, ruby]
 -------------------------------------------------------
-map.resources photos, :as => "images"
+map.resources :photos, :as => "images"
 -------------------------------------------------------
 
 will recognize incoming URLs containing +image+ but route the requests to the Photos controller: 
@@ -298,7 +298,7 @@ The +:path_names+ option lets you override the automatically-generated "new" and
 
 [source, ruby]
 -------------------------------------------------------
-map.resources photos, :path_names => { :new => 'make', :edit => 'change' }
+map.resources :photos, :path_names => { :new => 'make', :edit => 'change' }
 -------------------------------------------------------
 
 This would cause the routing to recognize URLs such as
@@ -323,7 +323,7 @@ The +:path_prefix+ option lets you add additional parameters that will be prefix
 
 [source, ruby]
 -------------------------------------------------------
-map.resources photos, :path_prefix => '/photographers/:photographer_id'
+map.resources :photos, :path_prefix => '/photographers/:photographer_id'
 -------------------------------------------------------
 
 Routes recognized by this entry would include:
@@ -341,8 +341,8 @@ You can use the :name_prefix option to avoid collisions between routes. This is 
 
 [source, ruby]
 -------------------------------------------------------
-map.resources photos, :path_prefix => '/photographers/:photographer_id', :name_prefix => 'photographer_'
-map.resources photos, :path_prefix => '/agencies/:agency_id', :name_prefix => 'agency_'
+map.resources :photos, :path_prefix => '/photographers/:photographer_id', :name_prefix => 'photographer_'
+map.resources :photos, :path_prefix => '/agencies/:agency_id', :name_prefix => 'agency_'
 -------------------------------------------------------
 
 This combination will give you route helpers such as +photographer_photos_path+ and +agency_photo_edit_path+ to use in your code.

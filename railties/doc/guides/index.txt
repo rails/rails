@@ -36,7 +36,8 @@ avoid them with Rails.
 
 .link:routing/routing_outside_in.html[Rails Routing from the Outside In]
 ***********************************************************
-TODO: Insert some description here.
+This guide covers the user-facing features of Rails routing. If you want to 
+understand how to use routing in your own Rails applications, start here.
 ***********************************************************
 
 .link:debugging/debugging_rails_applications.html[Debugging Rails Applications]
