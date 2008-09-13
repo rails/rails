@@ -14,7 +14,7 @@ end
 ---------------------
 which creates a `products` table with a column called `name` (and as discussed below, an implicit `id` column).
 
-The object yielded to the block allows you create columns on the table. There are two ways of the doing this. The first looks like
+The object yielded to the block allows you create columns on the table. There are two ways of doing this. The first looks like
 
 [source, ruby]
 ---------------------
@@ -40,7 +40,7 @@ create_table :products, :options => "ENGINE=InnoDB" do |t|
   t.string :name, :null => false
 end
 ---------------------
-Will append `ENGINE=InnoDB` to the sql used to create the table (This is Rails' default when using MySQL).
+Will append `ENGINE=InnoDB` to the sql used to create the table (this is Rails' default when using MySQL).
 
 The types Active Record supports are `:primary_key`, `:string`, `:text`, `:integer`, `:float`, `:decimal`, `:datetime`, `:timestamp`, `:time`, `:date`, `:binary`, `:boolean`.
 
@@ -68,7 +68,7 @@ change_table :products do |t|
   t.rename :upccode, :upc_code
 end
 ---------------------
-removes the description column, creates a part_number column and adds an index on it. This is the same as doing
+removes the `description` column, creates a `part_number` column and adds an index on it. Finally it renames the `upccode` column.   This is the same as doing
 
 [source, ruby]
 ---------------------
@@ -120,11 +120,11 @@ end
 ---------------------
 will add an `attachment_id` column and a string `attachment_type` column with a default value of 'Photo'.
 
-NOTE: The `references` helper does not actually create <<foreign_key,foreign key>> constraints for you. You will need to use `execute` for that.
+NOTE: The `references` helper does not actually create foreign key constraints for you. You will need to use `execute` for that or a plugin that adds <<foreign_key,foreign key support>>.
 
 If the helpers provided by Active Record aren't enough you can use the `execute` function to execute arbitrary SQL.
 
-For more details and examples of individual methods check the API documentation.
+For more details and examples of individual methods check the API documentation, in particular the documentation for http://api.rubyonrails.com/classes/ActiveRecord/ConnectionAdapters/SchemaStatements.html[ActiveRecord::ConnectionAdapters::SchemaStatements] (which provides the methods available in the `up` and `down` methods),  http://api.rubyonrails.com/classes/ActiveRecord/ConnectionAdapters/TableDefinition.html[ActiveRecord::ConnectionAdapters::TableDefinition] (which provides the methods available on the object yielded by `create_table`) and http://api.rubyonrails.com/classes/ActiveRecord/ConnectionAdapters/Table.html[ActiveRecord::ConnectionAdapters::Table] (which provides the methods available on the object yielded by `change_table`).
 
 === Writing your down method ===
 
