@@ -306,15 +306,18 @@ guides.each do |entry|
   end
 end
 
-task 'doc/guides/index.html' => 'doc/guides/index.txt' do
-  ENV.delete('MANUALSONRAILS_INDEX_URL')
-  ENV['MANUALSONRAILS_TOC'] = 'no'
-  sh "mizuho", 'doc/guides/index.txt', "--template", "manualsonrails", "--icons-dir", "icons"
+['index', 'authors'].each do |guide|
+  task "doc/guides/#{guide}.html" => "doc/guides/#{guide}.txt" do
+    ENV.delete('MANUALSONRAILS_INDEX_URL')
+    ENV['MANUALSONRAILS_TOC'] = 'no'
+    sh "mizuho", "doc/guides/#{guide}.txt", "--template", "manualsonrails", "--icons-dir", "icons"
+  end
 end
 
 desc "Generate HTML output for the guides"
 task :generate_guides => guides_html_files
 task :generate_guides => 'doc/guides/index.html'
+task :generate_guides => 'doc/guides/authors.html'
 
 # Generate GEM ----------------------------------------------------------------------------
 
