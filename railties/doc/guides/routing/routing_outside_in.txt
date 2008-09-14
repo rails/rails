@@ -836,3 +836,9 @@ The +assert_routing+ assertion checks the route both ways: it tests that the pat
 -------------------------------------------------------
 assert_routing { :path => "photos", :method => :post }, { :controller => "photos", :action => "create" }
 -------------------------------------------------------
+
+== Changelog ==
+
+http://rails.lighthouseapp.com/projects/16213-rails-guides/tickets/3[Lighthouse ticket]
+
+* September 10, 2008: initial version by link:../authors.html#mgunderloy[Mike Gunderloy]

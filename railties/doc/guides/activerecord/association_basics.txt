@@ -1655,3 +1655,9 @@ Extensions can refer to the internals of the association proxy using these three
 * +proxy_owner+ returns the object that the association is a part of.
 * +proxy_reflection+ returns the reflection object that describes the association.
 * +proxy_target+ returns the associated object for +belongs_to+ or +has_one+, or the collection of associated objects for +has_many+ or +has_and_belongs_to_many+.
+
+== Changelog ==
+
+http://rails.lighthouseapp.com/projects/16213-rails-guides/tickets/11[Lighthouse ticket]
+
+* September 14, 2008: initial version by link:../authors.html#mgunderloy[Mike Gunderloy] (not yet approved for publication)
