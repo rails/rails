@@ -36,6 +36,10 @@ Someone   = Struct.new(:name, :place) do
   delegate :upcase, :to => "place.city"
 end
 
+Invoice   = Struct.new(:client) do
+  delegate :street, :city, :name, :to => :client, :prefix => true
+end
+
 class Name
   delegate :upcase, :to => :@full_name
 
@@ -83,6 +87,14 @@ class ModuleTest < Test::Unit::TestCase
   def test_missing_delegation_target
     assert_raises(ArgumentError) { eval($nowhere) }
     assert_raises(ArgumentError) { eval($noplace) }
+  end
+
+  def test_delegation_prefix
+    david = Someone.new("David", Somewhere.new("Paulina", "Chicago"))
+    invoice = Invoice.new(david)
+    assert_equal invoice.client_name, "David"
+    assert_equal invoice.client_street, "Paulina"
+    assert_equal invoice.client_city, "Chicago"
   end
 
   def test_parent
