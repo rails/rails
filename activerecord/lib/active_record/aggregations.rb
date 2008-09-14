@@ -75,7 +75,7 @@ module ActiveRecord
     #
     #   customer.balance = Money.new(20)     # sets the Money value object and the attribute
     #   customer.balance                     # => Money value object
-    #   customer.balance.exchange_to("DKK") # => Money.new(120, "DKK")
+    #   customer.balance.exchange_to("DKK")  # => Money.new(120, "DKK")
     #   customer.balance > Money.new(10)     # => true
     #   customer.balance == Money.new(20)    # => true
     #   customer.balance < Money.new(5)      # => false
