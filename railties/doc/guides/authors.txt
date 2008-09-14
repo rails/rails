@@ -1,0 +1,9 @@
+About the Authors
+=================
+
+.Frederick Cheung
+[[fcheung]]
+***********************************************************
+Frederick Cheung is Chief Wizard at Texperts where he has been using Rails since 2006.
+He is based in Cambridge (UK) and when not consuming fine ales he blogs at http://www.spacevatican.org[spacevatican.org].
+***********************************************************
