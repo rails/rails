@@ -277,10 +277,10 @@ Rake::RDocTask.new { |rdoc|
 # doesn't equal its folder name, then specify a hash: { 'folder_name' => 'basename' }
 guides = [
   'getting_started_with_rails',
-  'securing_rails_applications',
   'testing_rails_applications',
   'creating_plugins',
   'migrations',
+  { 'securing_rails_applications' => 'security' },
   { 'routing' => 'routing_outside_in' },
   { 'forms' =>'form_helpers' },
   { 'activerecord' => 'association_basics' },
