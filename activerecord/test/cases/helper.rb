@@ -46,3 +46,17 @@ end
 class << ActiveRecord::Base
   public :with_scope, :with_exclusive_scope
 end
+
+unless ENV['FIXTURE_DEBUG']
+  module Test #:nodoc:
+    module Unit #:nodoc:
+      class << TestCase #:nodoc:
+        def try_to_load_dependency_with_silence(*args)
+          ActiveRecord::Base.logger.silence { try_to_load_dependency_without_silence(*args)}
+        end
+
+        alias_method_chain :try_to_load_dependency, :silence
+      end
+    end
+  end
+end
