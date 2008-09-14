@@ -40,6 +40,10 @@ module ActiveRecord
         type == :integer || type == :float || type == :decimal
       end
 
+      def has_default?
+        !default.nil?
+      end
+
       # Returns the Ruby class that corresponds to the abstract data type.
       def klass
         case type

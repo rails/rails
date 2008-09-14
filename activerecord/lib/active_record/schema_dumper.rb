@@ -102,7 +102,7 @@ HEADER
             spec[:precision] = column.precision.inspect if !column.precision.nil?
             spec[:scale]     = column.scale.inspect if !column.scale.nil?
             spec[:null]      = 'false' if !column.null
-            spec[:default]   = default_string(column.default) if !column.default.nil?
+            spec[:default]   = default_string(column.default) if column.has_default?
             (spec.keys - [:name, :type]).each{ |k| spec[k].insert(0, "#{k.inspect} => ")}
             spec
           end.compact
