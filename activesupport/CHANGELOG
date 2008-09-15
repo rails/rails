@@ -1,5 +1,7 @@
 *Edge*
 
+* TimeWithZone #wday, #yday and #to_date avoid trip through #method_missing [Geoff Buesing]
+
 * Added Time, Date, DateTime and TimeWithZone #past?, #future? and #today? #720 [Clemens Kofler, Geoff Buesing]
 
 * Fixed Sri Jayawardenepura time zone to map to Asia/Colombo [Jamis Buck]

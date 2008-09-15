@@ -397,7 +397,7 @@ class TimeWithZoneTest < Test::Unit::TestCase
     def test_date_part_value_methods
       silence_warnings do # silence warnings raised by tzinfo gem
         twz = ActiveSupport::TimeWithZone.new(Time.utc(1999,12,31,19,18,17,500), @time_zone)
-        twz.stubs(:method_missing).returns(nil) #ensure these methods are defined directly on class
+        twz.expects(:method_missing).never
         assert_equal 1999, twz.year
         assert_equal 12, twz.month
         assert_equal 31, twz.day
@@ -405,6 +405,8 @@ class TimeWithZoneTest < Test::Unit::TestCase
         assert_equal 18, twz.min
         assert_equal 17, twz.sec
         assert_equal 500, twz.usec
+        assert_equal 5, twz.wday
+        assert_equal 365, twz.yday
       end
     end
   end
