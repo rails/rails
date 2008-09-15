@@ -28,7 +28,7 @@ in Rails. It covers everything from ``What is a test?'' to the testing APIs.
 Enjoy.
 ***********************************************************
 
-.link:securing_rails_applications/securing_rails_applications.html[Securing Rails Applications]
+.link:securing_rails_applications/security.html[Securing Rails Applications]
 ***********************************************************
 This manual describes common security problems in web applications and how to
 avoid them with Rails.
