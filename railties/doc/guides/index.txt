@@ -1,6 +1,8 @@
 Ruby on Rails guides
 ====================
 
+WARNING: This page is the result of ongoing http://hackfest.rubyonrails.org/guide[Rails Guides hackfest] and a work in progress.
+
 .link:getting_started_with_rails/getting_started_with_rails.html[Getting Started with Rails]
 ***********************************************************
 TODO: Insert some description here.
