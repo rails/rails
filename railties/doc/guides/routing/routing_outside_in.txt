@@ -750,7 +750,7 @@ map.index :controller => "pages", :action => "main"
 map.root :index
 -------------------------------------------------------
 
-Because of the top-down processing of the file, the named route must be specified _before_ the call to +map.route+.
+Because of the top-down processing of the file, the named route must be specified _before_ the call to +map.root+.
 
 === Connecting the Empty String
 
