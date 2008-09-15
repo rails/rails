@@ -1,4 +1,4 @@
-require 'strscan'
+require 'yaml'
 
 module I18n
   module Backend
@@ -59,7 +59,16 @@ module I18n
         object.strftime(format)
       end
       
+      def initialized?
+        @initialized ||= false
+      end
+
       protected
+
+        def init_translations
+          load_translations(*I18n.load_path)
+          @initialized = true
+        end
         
         def translations
           @translations ||= {}
@@ -72,6 +81,7 @@ module I18n
         # <tt>%w(currency format)</tt>.
         def lookup(locale, key, scope = [])
           return unless key
+          init_translations unless initialized?
           keys = I18n.send :normalize_translation_keys, locale, key, scope
           keys.inject(translations){|result, k| result[k.to_sym] or return nil }
         end
@@ -94,7 +104,7 @@ module I18n
         rescue MissingTranslationData
           nil
         end
-      
+
         # Picks a translation from an array according to English pluralization
         # rules. It will pick the first translation if count is not equal to 1
         # and the second translation if it is equal to 1. Other backends can
