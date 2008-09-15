@@ -563,16 +563,71 @@ class TimeExtCalculationsTest < Test::Unit::TestCase
     assert_nothing_raised { Time.now.xmlschema }
   end
 
-  uses_mocha 'past?, today? and future?' do
-    def test_past_today_future
-      Date.stubs(:current).returns(Date.civil(2000, 1, 1))
-      Time.stubs(:current).returns(Time.local(2000, 1, 1, 1, 0, 1))
-      t1, t2 = Time.local(2000, 1, 1, 1, 0, 0), Time.local(2000, 1, 1, 1, 0, 2)
-
-      assert t1.past?
-      assert t2.future?
-      assert t1.today?
-      assert t2.today?
+  uses_mocha 'Test Time past?, today? and future?' do    
+    def test_today_with_time_local
+      Date.stubs(:current).returns(Date.new(2000, 1, 1))
+      assert_equal false, Time.local(1999,12,31,23,59,59).today?
+      assert_equal true,  Time.local(2000,1,1,0).today?
+      assert_equal true,  Time.local(2000,1,1,23,59,59).today?
+      assert_equal false, Time.local(2000,1,2,0).today?
+    end
+    
+    def test_today_with_time_utc
+      Date.stubs(:current).returns(Date.new(2000, 1, 1))
+      assert_equal false, Time.utc(1999,12,31,23,59,59).today?
+      assert_equal true,  Time.utc(2000,1,1,0).today?
+      assert_equal true,  Time.utc(2000,1,1,23,59,59).today?
+      assert_equal false, Time.utc(2000,1,2,0).today?
+    end
+    
+    def test_past_with_time_current_as_time_local
+      with_env_tz 'US/Eastern' do
+        Time.stubs(:current).returns(Time.local(2005,2,10,15,30,45))
+        assert_equal true,  Time.local(2005,2,10,15,30,44).past?
+        assert_equal false,  Time.local(2005,2,10,15,30,45).past?
+        assert_equal false,  Time.local(2005,2,10,15,30,46).past?
+        assert_equal true,  Time.utc(2005,2,10,20,30,44).past?
+        assert_equal false,  Time.utc(2005,2,10,20,30,45).past?
+        assert_equal false,  Time.utc(2005,2,10,20,30,46).past?
+      end
+    end
+    
+    def test_past_with_time_current_as_time_with_zone
+      with_env_tz 'US/Eastern' do
+        twz = Time.utc(2005,2,10,15,30,45).in_time_zone('Central Time (US & Canada)')
+        Time.stubs(:current).returns(twz)
+        assert_equal true,  Time.local(2005,2,10,10,30,44).past?
+        assert_equal false,  Time.local(2005,2,10,10,30,45).past?
+        assert_equal false,  Time.local(2005,2,10,10,30,46).past?
+        assert_equal true,  Time.utc(2005,2,10,15,30,44).past?
+        assert_equal false,  Time.utc(2005,2,10,15,30,45).past?
+        assert_equal false,  Time.utc(2005,2,10,15,30,46).past?
+      end
+    end
+    
+    def test_future_with_time_current_as_time_local
+      with_env_tz 'US/Eastern' do
+        Time.stubs(:current).returns(Time.local(2005,2,10,15,30,45))
+        assert_equal false,  Time.local(2005,2,10,15,30,44).future?
+        assert_equal false,  Time.local(2005,2,10,15,30,45).future?
+        assert_equal true,  Time.local(2005,2,10,15,30,46).future?
+        assert_equal false,  Time.utc(2005,2,10,20,30,44).future?
+        assert_equal false,  Time.utc(2005,2,10,20,30,45).future?
+        assert_equal true,  Time.utc(2005,2,10,20,30,46).future?
+      end
+    end
+    
+    def test_future_with_time_current_as_time_with_zone
+      with_env_tz 'US/Eastern' do
+        twz = Time.utc(2005,2,10,15,30,45).in_time_zone('Central Time (US & Canada)')
+        Time.stubs(:current).returns(twz)
+        assert_equal false,  Time.local(2005,2,10,10,30,44).future?
+        assert_equal false,  Time.local(2005,2,10,10,30,45).future?
+        assert_equal true,  Time.local(2005,2,10,10,30,46).future?
+        assert_equal false,  Time.utc(2005,2,10,15,30,44).future?
+        assert_equal false,  Time.utc(2005,2,10,15,30,45).future?
+        assert_equal true,  Time.utc(2005,2,10,15,30,46).future?
+      end
     end
   end
 

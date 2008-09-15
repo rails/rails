@@ -172,7 +172,7 @@ module ActiveSupport
     end
 
     def today?
-      utc.today?
+      time.today?
     end
 
     def future?

@@ -211,17 +211,25 @@ class DateExtCalculationsTest < Test::Unit::TestCase
   end
 
   uses_mocha 'past?, today? and future?' do
-    def test_today_past_future
-      Date.stubs(:current).returns(Date.civil(2000, 1, 1))
-      t2 = Date.civil(2000, 1, 1)
-      t1, t3 = t2.yesterday, t2.tomorrow
-      t4, t5 = t2 - 1.second, t2 + 1.second
-
-      assert t1.past?
-      assert t2.today?
-      assert t3.future?
-      assert t4.past?
-      assert t5.today?
+    def test_today
+      Date.stubs(:current).returns(Date.new(2000, 1, 1))
+      assert_equal false, Date.new(1999, 12, 31).today?
+      assert_equal true, Date.new(2000,1,1).today?
+      assert_equal false, Date.new(2000,1,2).today?
+    end
+    
+    def test_past
+      Date.stubs(:current).returns(Date.new(2000, 1, 1))
+      assert_equal true, Date.new(1999, 12, 31).past?
+      assert_equal false, Date.new(2000,1,1).past?
+      assert_equal false, Date.new(2000,1,2).past?
+    end
+    
+    def test_future
+      Date.stubs(:current).returns(Date.new(2000, 1, 1))
+      assert_equal false, Date.new(1999, 12, 31).future?
+      assert_equal false, Date.new(2000,1,1).future?
+      assert_equal true, Date.new(2000,1,2).future?
     end
   end
 

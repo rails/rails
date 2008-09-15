@@ -152,16 +152,47 @@ class TimeWithZoneTest < Test::Unit::TestCase
     assert_equal false, @twz.between?(Time.utc(2000,1,1,0,0,1), Time.utc(2000,1,1,0,0,2))
   end
 
-  uses_mocha 'past?, today? and future?' do
-    def test_past_today_future
-      Time.stubs(:current).returns(@twz.utc)
-      Date.stubs(:current).returns(@twz.utc.to_date)
-      t1, t2 = @twz - 1.second, @twz + 1.second
-
-      assert t1.past?
-      assert t2.future?
-      assert !t1.today?
-      assert t2.today?
+  uses_mocha 'TimeWithZone past?, today? and future?' do    
+    def test_today
+      Date.stubs(:current).returns(Date.new(2000, 1, 1))
+      assert_equal false, ActiveSupport::TimeWithZone.new( nil, @time_zone, Time.utc(1999,12,31,23,59,59) ).today?
+      assert_equal true,  ActiveSupport::TimeWithZone.new( nil, @time_zone, Time.utc(2000,1,1,0) ).today?
+      assert_equal true,  ActiveSupport::TimeWithZone.new( nil, @time_zone, Time.utc(2000,1,1,23,59,59) ).today?
+      assert_equal false, ActiveSupport::TimeWithZone.new( nil, @time_zone, Time.utc(2000,1,2,0) ).today?
+    end
+    
+    def test_past_with_time_current_as_time_local
+      with_env_tz 'US/Eastern' do
+        Time.stubs(:current).returns(Time.local(2005,2,10,15,30,45))
+        assert_equal true,  ActiveSupport::TimeWithZone.new( nil, @time_zone, Time.local(2005,2,10,15,30,44)).past?
+        assert_equal false,  ActiveSupport::TimeWithZone.new( nil, @time_zone, Time.local(2005,2,10,15,30,45)).past?
+        assert_equal false,  ActiveSupport::TimeWithZone.new( nil, @time_zone, Time.local(2005,2,10,15,30,46)).past?
+      end
+    end
+    
+    def test_past_with_time_current_as_time_with_zone
+      twz = ActiveSupport::TimeWithZone.new( nil, @time_zone, Time.local(2005,2,10,15,30,45) )
+      Time.stubs(:current).returns(twz)
+      assert_equal true,  ActiveSupport::TimeWithZone.new( nil, @time_zone, Time.local(2005,2,10,15,30,44)).past?
+      assert_equal false,  ActiveSupport::TimeWithZone.new( nil, @time_zone, Time.local(2005,2,10,15,30,45)).past?
+      assert_equal false,  ActiveSupport::TimeWithZone.new( nil, @time_zone, Time.local(2005,2,10,15,30,46)).past?
+    end
+    
+    def test_future_with_time_current_as_time_local
+      with_env_tz 'US/Eastern' do
+        Time.stubs(:current).returns(Time.local(2005,2,10,15,30,45))
+        assert_equal false,  ActiveSupport::TimeWithZone.new( nil, @time_zone, Time.local(2005,2,10,15,30,44)).future?
+        assert_equal false,  ActiveSupport::TimeWithZone.new( nil, @time_zone, Time.local(2005,2,10,15,30,45)).future?
+        assert_equal true,  ActiveSupport::TimeWithZone.new( nil, @time_zone, Time.local(2005,2,10,15,30,46)).future?
+      end
+    end
+    
+    def future_with_time_current_as_time_with_zone
+      twz = ActiveSupport::TimeWithZone.new( nil, @time_zone, Time.local(2005,2,10,15,30,45) )
+      Time.stubs(:current).returns(twz)
+      assert_equal false,  ActiveSupport::TimeWithZone.new( nil, @time_zone, Time.local(2005,2,10,15,30,44)).future?
+      assert_equal false,  ActiveSupport::TimeWithZone.new( nil, @time_zone, Time.local(2005,2,10,15,30,45)).future?
+      assert_equal true,  ActiveSupport::TimeWithZone.new( nil, @time_zone, Time.local(2005,2,10,15,30,46)).future?
     end
   end
 
@@ -702,6 +733,14 @@ class TimeWithZoneTest < Test::Unit::TestCase
     assert_equal "Sun, 15 Jul 2007 10:30:00 EDT -04:00", twz.years_ago(1).inspect
     assert_equal "Sun, 15 Jul 2007 10:30:00 EDT -04:00", (twz - 1.year).inspect
   end
+  
+  protected
+    def with_env_tz(new_tz = 'US/Eastern')
+      old_tz, ENV['TZ'] = ENV['TZ'], new_tz
+      yield
+    ensure
+      old_tz ? ENV['TZ'] = old_tz : ENV.delete('TZ')
+    end
 end
 
 class TimeWithZoneMethodsForTimeAndDateTimeTest < Test::Unit::TestCase
