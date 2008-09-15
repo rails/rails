@@ -249,7 +249,9 @@ class HasManyAssociationsTest < ActiveRecord::TestCase
   end
 
   def test_find_scoped_grouped
+    assert_equal 1, companies(:first_firm).clients_grouped_by_firm_id.size
     assert_equal 1, companies(:first_firm).clients_grouped_by_firm_id.length
+    assert_equal 2, companies(:first_firm).clients_grouped_by_name.size
     assert_equal 2, companies(:first_firm).clients_grouped_by_name.length
   end
 
