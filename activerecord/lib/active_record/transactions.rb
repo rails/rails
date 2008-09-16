@@ -101,7 +101,7 @@ module ActiveRecord
     # until it's restarted from the beginning. Here is an example which
     # demonstrates the problem:
     #
-    #   # Suppose that we have a Number class with a unique column called 'i'.
+    #   # Suppose that we have a Number model with a unique column called 'i'.
     #   Number.transaction do
     #     Number.create(:i => 0)
     #     begin
