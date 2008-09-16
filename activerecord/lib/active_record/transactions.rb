@@ -92,6 +92,34 @@ module ActiveRecord
     #
     # One exception is the ActiveRecord::Rollback exception, which will trigger
     # a ROLLBACK when raised, but not be re-raised by the transaction block.
+    #
+    # *Warning*: one should not catch ActiveRecord::StatementInvalid exceptions
+    # inside a transaction block. StatementInvalid exceptions indicate that an
+    # error occurred at the database level, for example when a unique constraint
+    # is violated. On some database systems, such as PostgreSQL, database errors
+    # inside a transaction causes the entire transaction to become unusable
+    # until it's restarted from the beginning. Here is an example which
+    # demonstrates the problem:
+    #
+    #   # Suppose that we have a Number class with a unique column called 'i'.
+    #   Number.transaction do
+    #     Number.create(:i => 0)
+    #     begin
+    #       # This will raise a unique constraint error...
+    #       Number.create(:i => 0)
+    #     rescue ActiveRecord::StatementInvalid
+    #       # ...which we ignore.
+    #     end
+    #     
+    #     # On PostgreSQL, the transaction is now unusable. The following
+    #     # statement will cause a PostgreSQL error, even though the unique
+    #     # constraint is no longer violated:
+    #     Number.create(:i => 1)
+    #     # => "PGError: ERROR:  current transaction is aborted, commands
+    #     #     ignored until end of transaction block"
+    #   end
+    #
+    # One should restart the entire transaction if a StatementError occurred.
     module ClassMethods
       # See ActiveRecord::Transactions::ClassMethods for detailed documentation.
       def transaction(&block)
