@@ -958,6 +958,19 @@ class ValidationsTest < ActiveRecord::TestCase
     assert_equal "boo 5", t.errors["title"]
   end
 
+  def test_validates_length_of_custom_errors_for_in
+    Topic.validates_length_of(:title, :in => 10..20, :message => "hoo {{count}}")
+    t = Topic.create("title" => "uhohuhoh", "content" => "whatever")
+    assert !t.valid?
+    assert t.errors.on(:title)
+    assert_equal "hoo 10", t.errors["title"]
+
+    t = Topic.create("title" => "uhohuhohuhohuhohuhohuhohuhohuhoh", "content" => "whatever")
+    assert !t.valid?
+    assert t.errors.on(:title)
+    assert_equal "hoo 20", t.errors["title"]
+  end
+
   def test_validates_length_of_custom_errors_for_maximum_with_too_long
     Topic.validates_length_of( :title, :maximum=>5, :too_long=>"hoo {{count}}" )
     t = Topic.create("title" => "uhohuhoh", "content" => "whatever")
