@@ -16,20 +16,25 @@ module ActiveRecord
       end
     end
 
-    # Transactions are protective blocks where SQL statements are only permanent if they can all succeed as one atomic action.
-    # The classic example is a transfer between two accounts where you can only have a deposit if the withdrawal succeeded and
-    # vice versa. Transactions enforce the integrity of the database and guard the data against program errors or database break-downs.
-    # So basically you should use transaction blocks whenever you have a number of statements that must be executed together or
-    # not at all. Example:
+    # Transactions are protective blocks where SQL statements are only permanent
+    # if they can all succeed as one atomic action. The classic example is a
+    # transfer between two accounts where you can only have a deposit if the
+    # withdrawal succeeded and vice versa. Transactions enforce the integrity of
+    # the database and guard the data against program errors or database
+    # break-downs. So basically you should use transaction blocks whenever you
+    # have a number of statements that must be executed together or not at all.
+    # Example:
     #
     #   transaction do
     #     david.withdrawal(100)
     #     mary.deposit(100)
     #   end
     #
-    # This example will only take money from David and give to Mary if neither +withdrawal+ nor +deposit+ raises an exception.
-    # Exceptions will force a ROLLBACK that returns the database to the state before the transaction was begun. Be aware, though,
-    # that the objects will _not_ have their instance data returned to their pre-transactional state.
+    # This example will only take money from David and give to Mary if neither
+    # +withdrawal+ nor +deposit+ raises an exception. Exceptions will force a
+    # ROLLBACK that returns the database to the state before the transaction was
+    # begun. Be aware, though, that the objects will _not_ have their instance
+    # data returned to their pre-transactional state.
     #
     # == Different Active Record classes in a single transaction
     #
@@ -63,17 +68,20 @@ module ActiveRecord
     #
     # == Save and destroy are automatically wrapped in a transaction
     #
-    # Both Base#save and Base#destroy come wrapped in a transaction that ensures that whatever you do in validations or callbacks
-    # will happen under the protected cover of a transaction. So you can use validations to check for values that the transaction
-    # depends on or you can raise exceptions in the callbacks to rollback, including <tt>after_*</tt> callbacks.
+    # Both Base#save and Base#destroy come wrapped in a transaction that ensures
+    # that whatever you do in validations or callbacks will happen under the
+    # protected cover of a transaction. So you can use validations to check for
+    # values that the transaction depends on or you can raise exceptions in the
+    # callbacks to rollback, including <tt>after_*</tt> callbacks.
     #
     # == Exception handling and rolling back
     #
-    # Also have in mind that exceptions thrown within a transaction block will be propagated (after triggering the ROLLBACK), so you
-    # should be ready to catch those in your application code.
+    # Also have in mind that exceptions thrown within a transaction block will
+    # be propagated (after triggering the ROLLBACK), so you should be ready to
+    # catch those in your application code.
     #
-    # One exception is the ActiveRecord::Rollback exception, which will trigger a ROLLBACK when raised,
-    # but not be re-raised by the transaction block.
+    # One exception is the ActiveRecord::Rollback exception, which will trigger
+    # a ROLLBACK when raised, but not be re-raised by the transaction block.
     module ClassMethods
       # See ActiveRecord::Transactions::ClassMethods for detailed documentation.
       def transaction(&block)
