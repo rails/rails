@@ -25,7 +25,7 @@ module ActiveRecord
     # have a number of statements that must be executed together or not at all.
     # Example:
     #
-    #   transaction do
+    #   ActiveRecord::Base.transaction do
     #     david.withdrawal(100)
     #     mary.deposit(100)
     #   end
@@ -40,11 +40,21 @@ module ActiveRecord
     #
     # Though the transaction class method is called on some Active Record class,
     # the objects within the transaction block need not all be instances of
-    # that class.
+    # that class. This is because transactions are per-database connection, not
+    # per-model.
+    #
     # In this example a <tt>Balance</tt> record is transactionally saved even
     # though <tt>transaction</tt> is called on the <tt>Account</tt> class:
     #
     #   Account.transaction do
+    #     balance.save!
+    #     account.save!
+    #   end
+    #
+    # Note that the +transaction+ method is also available as a model instance
+    # method. For example, you can also do this:
+    #
+    #   balance.transaction do
     #     balance.save!
     #     account.save!
     #   end
@@ -95,6 +105,7 @@ module ActiveRecord
       end
     end
 
+    # See ActiveRecord::Transactions::ClassMethods for detailed documentation.
     def transaction(&block)
       self.class.transaction(&block)
     end
@@ -131,6 +142,9 @@ module ActiveRecord
     # Executes +method+ within a transaction and captures its return value as a
     # status flag. If the status is true the transaction is committed, otherwise
     # a ROLLBACK is issued. In any case the status flag is returned.
+    #
+    # This method is available within the context of an ActiveRecord::Base
+    # instance.
     def with_transaction_returning_status(method, *args)
       status = nil
       transaction do
