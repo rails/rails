@@ -1,7 +1,8 @@
 require 'thread'
 
 module ActiveRecord
-  module Transactions # :nodoc:
+  # See ActiveRecord::Transactions::ClassMethods for documentation.
+  module Transactions
     class TransactionError < ActiveRecordError # :nodoc:
     end
 
