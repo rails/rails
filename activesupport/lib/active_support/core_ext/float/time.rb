@@ -4,11 +4,11 @@ module ActiveSupport #:nodoc:
       module Time
         # Deprication helper methods not available as core_ext is loaded first.
         def years
-          ::ActiveSupport::Deprecation.warn(self.class.deprecated_method_warning(:years), caller)
+          ::ActiveSupport::Deprecation.warn(self.class.deprecated_method_warning(:years, "Fractional years are not respected. Convert value to integer before calling #years."), caller)
           years_without_deprecation
         end
         def months
-          ::ActiveSupport::Deprecation.warn(self.class.deprecated_method_warning(:months), "Fractional months are not respected. Use .to_i before ", caller)
+          ::ActiveSupport::Deprecation.warn(self.class.deprecated_method_warning(:months, "Fractional months are not respected. Convert value to integer before calling #months."), caller)
           months_without_deprecation
         end
 

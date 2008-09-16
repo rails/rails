@@ -66,20 +66,22 @@ class DurationTest < Test::Unit::TestCase
     end
     
     def test_deprecated_fractional_years
-      assert_deprecated{1.0.years}
-      assert_deprecated{1.5.years}
+      years_re = /Fractional years are not respected\. Convert value to integer before calling #years\./
+      assert_deprecated(years_re){1.0.years}
+      assert_deprecated(years_re){1.5.years}
       assert_not_deprecated{1.years}
-      assert_deprecated{1.0.year}
-      assert_deprecated{1.5.year}
+      assert_deprecated(years_re){1.0.year}
+      assert_deprecated(years_re){1.5.year}
       assert_not_deprecated{1.year}
     end
     
     def test_deprecated_fractional_months
-      assert_deprecated{1.5.months}
-      assert_deprecated{1.0.months}
+      months_re = /Fractional months are not respected\. Convert value to integer before calling #months\./
+      assert_deprecated(months_re){1.5.months}
+      assert_deprecated(months_re){1.0.months}
       assert_not_deprecated{1.months}
-      assert_deprecated{1.5.month}
-      assert_deprecated{1.0.month}
+      assert_deprecated(months_re){1.5.month}
+      assert_deprecated(months_re){1.0.month}
       assert_not_deprecated{1.month}
     end
 
