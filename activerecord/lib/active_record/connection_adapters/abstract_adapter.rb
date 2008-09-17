@@ -13,15 +13,19 @@ require 'active_record/connection_adapters/abstract/query_cache'
 
 module ActiveRecord
   module ConnectionAdapters # :nodoc:
-    # All the concrete database adapters follow the interface laid down in this class.
-    # You can use this interface directly by borrowing the database connection from the Base with
-    # Base.connection.
+    # ActiveRecord supports multiple database systems. AbstractAdapter and
+    # related classes form the abstraction layer which makes this possible.
+    # An AbstractAdapter represents a connection to a database, and provides an
+    # abstract interface for database-specific functionality such as establishing
+    # a connection, escaping values, building the right SQL fragments for ':offset'
+    # and ':limit' options, etc.
     #
-    # Most of the methods in the adapter are useful during migrations.  Most
-    # notably, SchemaStatements#create_table, SchemaStatements#drop_table,
-    # SchemaStatements#add_index, SchemaStatements#remove_index,
-    # SchemaStatements#add_column, SchemaStatements#change_column and
-    # SchemaStatements#remove_column are very useful.
+    # All the concrete database adapters follow the interface laid down in this class.
+    # ActiveRecord::Base.connection returns an AbstractAdapter object, which
+    # you can use.
+    #
+    # Most of the methods in the adapter are useful during migrations. Most
+    # notably, the instance methods provided by SchemaStatement are very useful.
     class AbstractAdapter
       include Quoting, DatabaseStatements, SchemaStatements
       include QueryCache
