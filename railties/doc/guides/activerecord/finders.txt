@@ -1,0 +1,54 @@
+Rails Finders
+=======================
+First Draft
+Ryan Bigg <radarlistener@gmail.com>
+
+== What is this guide about? ==
+This guide is all about the `find` method defined in ActiveRecord::Base, and associated goodness such as named scopes.
+
+== In the beginning... ==
+
+In the beginning there was SQL. SQL looked like this:
+
+[source,SQL]
+SELECT * FROM forums
+SELECT * FROM forums WHERE id = '1'
+SELECT * FROM forums LIMIT 0,1
+SELECT * FROM forums ORDER BY id DESC LIMIT 0,1
+
+In Rails you don't have to type SQL, unlike other languages, because ActiveRecord is there to help you find your records. When you define a model like so,
+
+[source,Ruby on Rails]
+class Forum < ActiveRecord::Base
+
+end
+[/code]
+
+== First, Last and All == 
+
+you're telling Ruby to create a new class called `Forum` and that should inherit from ActiveRecord::Base. ActiveRecord::Base has methods defined on it to make interacting with your database and the tables within it much, much easier. For example if you wanted to find the first forum you would simply type `Forum.find(:first)` and that would find the first forum created in your database, the SQL equivalent of typing `SELECT * FROM forums LIMIT 0,1`. Alternatively, you could use the pre-defined named scope first, calling `Forum.first` instead. `first` has two similiar methods, `all` and `last`, which will find all objects in that model's table, and the last object in that model's table respectively. These can be used exactly like first, `Forum.all` is an alias to `Forum.find(:all)` and `Forum.last` is an alias to `Forum.find(:last)`. 
+
+`Forum.first` and `Forum.last` will both return a single object, where as `Forum.find(:all)` will return an array of Forum objects.
+
+== Conditions == 
+
+If you'd like to add conditions to your find, you could just specify them in there, just like `Forum.find(:first, :conditions => "viewable_by = '2'")`. Now what if that number could vary, say as a parameter from somewhere, or perhaps from the user's level status somewhere? The find then becomes something like `Forum.find(:first, :conditions => ["viewable_by = ?", params[:level]])`. ActiveRecord will go through the first element in the conditions option and any additional elements will replace the question marks (?) in the first element. If you want to specify two conditions, you can do it like `Forum.find(:first, :conditions => ["viewable_by = ? AND locked = ?", params[:level], params[:locked]])`.
+
+
+== Ordering == 
+
+If you're getting a set of records and want to force an order, you can use `Forum.find(:all, :order => "created_at")` which by default will sort the records by ascending order. If you'd like to order it in descending order, just tell it to do that using `Forum.find(:all, :order => "created_at desc")
+
+== Selecting Certain Fields ==
+
+To select certain fields, you can use the select option like this: `Forum.find(:first, :select => "viewable_by, locked")`. This select option does not use an array of fields, but rather requires you to type SQL-like code. The above code will execute `SELECT viewable_by, locked FROM forums LIMIT 0,1` on your database. 
+
+== Includes vs Joins == 
+
+== Named Scopes ==
+
+== Finding on Associations ==
+
+== Making It All Work Together ==
+
+You can chain these options together in no particular order as ActiveRecord will write the correct SQL for you. For example you could do this: `Forum.find(:all, :order => "created_at DESC", :select => "viewable_by, created_at", :conditions => ["viewable_by = ?", params[:level]], :limit => 10), which should execute a query like `SELECT viewable_by, created_at FROM forums WHERE ORDER BY created_at DESC LIMIT 0,10` if you really wanted it.
