@@ -11,6 +11,8 @@ module ActiveRecord
     # Connection pool base class for managing ActiveRecord database
     # connections.
     #
+    # == Introduction
+    #
     # A connection pool synchronizes thread access to a limited number of
     # database connections. The basic idea is that each thread checks out a
     # database connection from the pool, uses that connection, and checks the
@@ -21,6 +23,8 @@ module ActiveRecord
     # connections have been checked out, and a thread tries to checkout a
     # connection anyway, then ConnectionPool will wait until some other thread
     # has checked in a connection.
+    #
+    # == Obtaining (checking out) a connection
     #
     # Connections can be obtained and used from a connection pool in several
     # ways:
@@ -39,14 +43,17 @@ module ActiveRecord
     #    obtains a connection, yields it as the sole argument to the block,
     #    and returns it to the pool after the block completes.
     #
+    # Connections in the pool are actually AbstractAdapter objects (or objects
+    # compatible with AbstractAdapter's interface).
+    #
+    # == Options
+    #
     # There are two connection-pooling-related options that you can add to
     # your database connection configuration:
     #
     # * +pool+: number indicating size of connection pool (default 5)
     # * +wait_timeout+: number of seconds to block and wait for a connection
     #   before giving up and raising a timeout error (default 5 seconds).
-    #
-    # *Note*: connections in the pool are AbstractAdapter objects.
     class ConnectionPool
       attr_reader :spec
 
@@ -106,7 +113,7 @@ module ActiveRecord
         !@connections.empty?
       end
 
-      # Disconnect all connections in the pool.
+      # Disconnects all connections in the pool, and clears the pool.
       def disconnect!
         @reserved_connections.each do |name,conn|
           checkin conn
@@ -154,6 +161,15 @@ module ActiveRecord
       # a new connection. If the maximum number of connections for this pool has
       # already been reached, but the pool is empty (i.e. they're all being used),
       # then this method will wait until a thread has checked in a connection.
+      # The wait time is bounded however: if no connection can be checked out
+      # within the timeout specified for this pool, then a ConnectionTimeoutError
+      # exception will be raised.
+      #
+      # Returns: an AbstractAdapter object.
+      #
+      # Raises:
+      # - ConnectionTimeoutError: no connection can be obtained from the pool
+      #   within the timeout period.
       def checkout
         # Checkout an available connection
         conn = @connection_mutex.synchronize do
@@ -177,6 +193,9 @@ module ActiveRecord
 
       # Check-in a database connection back into the pool, indicating that you
       # no longer need this connection.
+      #
+      # +conn+: an AbstractAdapter object, which was obtained by earlier by
+      # calling +checkout+ on this pool.
       def checkin(conn)
         @connection_mutex.synchronize do
           conn.run_callbacks :checkin
