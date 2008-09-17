@@ -2,7 +2,7 @@ Ruby On Rails Security Guide
 ============================
  
 This manual describes common security problems in web applications and how to avoid them with Rails. If you have any questions or suggestions, please
-mail me at 42 {-et-} rorsecurity.info. After reading it, you should be familiar with:
+mail me at 42 {_et_} rorsecurity.info. After reading it, you should be familiar with:
 
 - All countermeasures [,#fffcdb]#that are highlighted#
 - The concept of sessions in Rails, what to put in there and popular attack methods
