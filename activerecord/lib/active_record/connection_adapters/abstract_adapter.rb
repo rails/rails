@@ -91,17 +91,21 @@ module ActiveRecord
 
       # CONNECTION MANAGEMENT ====================================
 
-      # Is this connection active and ready to perform queries?
+      # Checks whether the connection to the database is still active. This includes
+      # checking whether the database is actually capable of responding, i.e. whether
+      # the connection isn't stale.
       def active?
         @active != false
       end
 
-      # Close this connection and open a new one in its place.
+      # Disconnects from the database if already connected, and establishes a
+      # new connection with the database.
       def reconnect!
         @active = true
       end
 
-      # Close this connection
+      # Disconnects from the database if already connected. Otherwise, this
+      # method does nothing.
       def disconnect!
         @active = false
       end
@@ -121,15 +125,19 @@ module ActiveRecord
         false
       end
 
-      # Verify this connection by calling <tt>active?</tt> and reconnecting if
-      # the connection is no longer active.
+      # Checks whether the connection to the database is still active (i.e. not stale).
+      # This is done under the hood by calling <tt>active?</tt>. If the connection
+      # is no longer active, then this method will reconnect to the database.
       def verify!(*ignored)
         reconnect! unless active?
       end
 
-      # Provides access to the underlying database connection. Useful for
-      # when you need to call a proprietary method such as postgresql's lo_*
-      # methods
+      # Provides access to the underlying database driver for this adapter. For
+      # example, this method returns a Mysql object in case of MysqlAdapter,
+      # and a PGconn object in case of PostgreSQLAdapter.
+      #
+      # This is useful for when you need to call a proprietary method such as
+      # PostgreSQL's lo_* methods.
       def raw_connection
         @connection
       end
