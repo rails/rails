@@ -11,6 +11,17 @@ module ActiveRecord
     # Connection pool base class for managing ActiveRecord database
     # connections.
     #
+    # A connection pool synchronizes thread access to a limited number of
+    # database connections. The basic idea is that each thread checks out a
+    # database connection from the pool, uses that connection, and checks the
+    # connection back in. ConnectionPool is completely thread-safe, and will
+    # ensure that a connection cannot be used by two threads at the same time,
+    # as long as ConnectionPool's contract is correctly followed. It will also
+    # handle cases in which there are more threads than connections: if all
+    # connections have been checked out, and a thread tries to checkout a
+    # connection anyway, then ConnectionPool will wait until some other thread
+    # has checked in a connection.
+    #
     # Connections can be obtained and used from a connection pool in several
     # ways:
     #
@@ -34,9 +45,17 @@ module ActiveRecord
     # * +pool+: number indicating size of connection pool (default 5)
     # * +wait_timeout+: number of seconds to block and wait for a connection
     #   before giving up and raising a timeout error (default 5 seconds).
+    #
+    # *Note*: connections in the pool are AbstractAdapter objects.
     class ConnectionPool
       attr_reader :spec
 
+      # Creates a new ConnectionPool object. +spec+ is a ConnectionSpecification
+      # object which describes database connection information (e.g. adapter,
+      # host name, username, password, etc), as well as the maximum size for
+      # this ConnectionPool.
+      #
+      # The default ConnectionPool maximum size is 5.
       def initialize(spec)
         @spec = spec
         # The cache of reserved connections mapped to threads
@@ -128,7 +147,13 @@ module ActiveRecord
         end
       end
 
-      # Check-out a database connection from the pool.
+      # Check-out a database connection from the pool, indicating that you want
+      # to use it. You should call #checkin when you no longer need this.
+      #
+      # This is done by either returning an existing connection, or by creating
+      # a new connection. If the maximum number of connections for this pool has
+      # already been reached, but the pool is empty (i.e. they're all being used),
+      # then this method will wait until a thread has checked in a connection.
       def checkout
         # Checkout an available connection
         conn = @connection_mutex.synchronize do
@@ -150,7 +175,8 @@ module ActiveRecord
         end
       end
 
-      # Check-in a database connection back into the pool.
+      # Check-in a database connection back into the pool, indicating that you
+      # no longer need this connection.
       def checkin(conn)
         @connection_mutex.synchronize do
           conn.run_callbacks :checkin
