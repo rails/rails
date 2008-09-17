@@ -1,6 +1,8 @@
 Ruby on Rails guides
 ====================
 
+WARNING: This page is the result of ongoing http://hackfest.rubyonrails.org/guide[Rails Guides hackfest] and a work in progress.
+
 .link:getting_started_with_rails/getting_started_with_rails.html[Getting Started with Rails]
 ***********************************************************
 TODO: Insert some description here.
@@ -28,7 +30,7 @@ in Rails. It covers everything from ``What is a test?'' to the testing APIs.
 Enjoy.
 ***********************************************************
 
-.link:securing_rails_applications/securing_rails_applications.html[Securing Rails Applications]
+.link:securing_rails_applications/security.html[Securing Rails Applications]
 ***********************************************************
 This manual describes common security problems in web applications and how to
 avoid them with Rails.
@@ -48,6 +50,11 @@ of your code.
 ***********************************************************
 
 .link:creating_plugins/creating_plugins.html[The Basics of Creating Rails Plugins]
+***********************************************************
+TODO: Insert some description here.
+***********************************************************
+
+.link:caching/caching_with_rails.html[Rails Caching]
 ***********************************************************
 TODO: Insert some description here.
 ***********************************************************

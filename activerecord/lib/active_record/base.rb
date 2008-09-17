@@ -415,6 +415,31 @@ module ActiveRecord #:nodoc:
 
     @@subclasses = {}
 
+    # Contains the database configuration - as is typically stored in config/database.yml -
+    # as a Hash.
+    #
+    # For example, the following database.yml...
+    # 
+    #   development:
+    #     adapter: sqlite3
+    #     database: db/development.sqlite3
+    #   
+    #   production:
+    #     adapter: sqlite3
+    #     database: db/production.sqlite3
+    #
+    # ...would result in ActiveRecord::Base.configurations to look like this:
+    #
+    #   {
+    #      'development' => {
+    #         'adapter'  => 'sqlite3',
+    #         'database' => 'db/development.sqlite3'
+    #      },
+    #      'production' => {
+    #         'adapter'  => 'sqlite3',
+    #         'database' => 'db/production.sqlite3'
+    #      }
+    #   }
     cattr_accessor :configurations, :instance_writer => false
     @@configurations = {}
 
@@ -1221,7 +1246,32 @@ module ActiveRecord #:nodoc:
         end
       end
 
-      # Resets all the cached information about columns, which will cause them to be reloaded on the next request.
+      # Resets all the cached information about columns, which will cause them
+      # to be reloaded on the next request.
+      #
+      # The most common usage pattern for this method is probably in a migration,
+      # when just after creating a table you want to populate it with some default
+      # values, eg:
+      #
+      #  class CreateJobLevels < ActiveRecord::Migration
+      #    def self.up
+      #      create_table :job_levels do |t|
+      #        t.integer :id
+      #        t.string :name
+      #
+      #        t.timestamps
+      #      end
+      #
+      #      JobLevel.reset_column_information
+      #      %w{assistant executive manager director}.each do |type|
+      #        JobLevel.create(:name => type)
+      #      end
+      #    end
+      #
+      #    def self.down
+      #      drop_table :job_levels
+      #    end
+      #  end
       def reset_column_information
         generated_methods.each { |name| undef_method(name) }
         @column_names = @columns = @columns_hash = @content_columns = @dynamic_methods_hash = @generated_methods = @inheritance_column = nil
