@@ -116,9 +116,10 @@ module ActiveRecord
 
       # Reset the state of this connection, directing the DBMS to clear
       # transactions and other connection-related server-side state. Usually a
-      # database-dependent operation; the default method simply executes a
-      # ROLLBACK and swallows any exceptions which is probably not enough to
-      # ensure the connection is clean.
+      # database-dependent operation.
+      #
+      # The default implementation does nothing; the implementation should be
+      # overridden by concrete adapters.
       def reset!
         # this should be overridden by concrete adapters
       end
