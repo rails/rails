@@ -168,6 +168,24 @@ photos_url  # => "http://www.example.com/photos"
 photos_path # => "/photos"
 -------------------------------------------------------
 
+=== Defining Multiple Resources at the Same Time
+
+If you need to create routes for more than one RESTful resource, you can save a bit of typing by defining them all with a single call to +map.resources+:
+
+[source, ruby]
+-------------------------------------------------------
+map.resources :photos, :books, :videos
+-------------------------------------------------------
+
+This has exactly the same effect as 
+
+[source, ruby]
+-------------------------------------------------------
+map.resources :photos
+map.resources :books
+map.resources :videos
+-------------------------------------------------------
+
 === Singular Resources
 
 You can also apply RESTful routing to singleton resources within your application. In this case, you use +map.resource+ instead of +map.resources+ and the route generation is slightly different. For example, a routing entry of
