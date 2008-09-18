@@ -3,37 +3,15 @@ Ruby on Rails guides
 
 WARNING: This page is the result of ongoing http://hackfest.rubyonrails.org/guide[Rails Guides hackfest] and a work in progress.
 
-.link:getting_started_with_rails/getting_started_with_rails.html[Getting Started with Rails]
-***********************************************************
-TODO: Insert some description here.
-***********************************************************
+++++++++++++++++++++++++++++++++++++++
+<h2>Finished Guides</h2>
+++++++++++++++++++++++++++++++++++++++
 
-.link:activerecord/association_basics.html[Active Record Associations]
-***********************************************************
-Introduction to Active Record associations.
-***********************************************************
+These guides are complete and the authors are listed link:authors.html[here].
 
 .link:migrations/migrations.html[Rails Database Migrations]
 ***********************************************************
 TODO: Insert some description here.
-***********************************************************
-
-.link:forms/form_helpers.html[Action View Form Helpers]
-***********************************************************
-Guide to using built in Form helpers.
-***********************************************************
-
-.link:testing_rails_applications/testing_rails_applications.html[Testing Rails Applications]
-***********************************************************
-This is a rather comprehensive guide to doing both unit and functional tests
-in Rails. It covers everything from ``What is a test?'' to the testing APIs.
-Enjoy.
-***********************************************************
-
-.link:securing_rails_applications/security.html[Securing Rails Applications]
-***********************************************************
-This manual describes common security problems in web applications and how to
-avoid them with Rails.
 ***********************************************************
 
 .link:routing/routing_outside_in.html[Rails Routing from the Outside In]
@@ -42,19 +20,64 @@ This guide covers the user-facing features of Rails routing. If you want to
 understand how to use routing in your own Rails applications, start here.
 ***********************************************************
 
+++++++++++++++++++++++++++++++++++++++
+<h2>Guides in progress</h2>
+++++++++++++++++++++++++++++++++++++++
+
+These guides are currently being worked on. While they still might be useful to you, you could always help by reviewing them and posting your 
+findings at the respective Lighthouse ticket.
+
 .link:debugging/debugging_rails_applications.html[Debugging Rails Applications]
 ***********************************************************
+link:http://rails.lighthouseapp.com/projects/16213/tickets/5[Lighthouse Ticket]
+
 This guide describes how to debug Rails applications. It covers the different
 ways of achieving this and how to understand what is happening "behind the scenes"
 of your code.
 ***********************************************************
 
-.link:creating_plugins/creating_plugins.html[The Basics of Creating Rails Plugins]
+.link:getting_started_with_rails/getting_started_with_rails.html[Getting Started with Rails]
 ***********************************************************
-TODO: Insert some description here.
+link:http://rails.lighthouseapp.com/projects/16213/tickets/2[Lighthouse Ticket]
+***********************************************************
+
+.link:activerecord/association_basics.html[Active Record Associations]
+***********************************************************
+link:http://rails.lighthouseapp.com/projects/16213/tickets/11[Lighthouse Ticket]
+***********************************************************
+
+.link:forms/form_helpers.html[Action View Form Helpers]
+***********************************************************
+link:http://rails.lighthouseapp.com/projects/16213/tickets/1[Lighthouse Ticket]
+
+Guide to using built in Form helpers.
+***********************************************************
+
+.link:testing_rails_applications/testing_rails_applications.html[Testing Rails Applications]
+***********************************************************
+link:http://rails.lighthouseapp.com/projects/16213/tickets/8[Lighthouse Ticket]
+
+This is a rather comprehensive guide to doing both unit and functional tests
+in Rails. It covers everything from ``What is a test?'' to the testing APIs.
+Enjoy.
+***********************************************************
+
+.link:securing_rails_applications/security.html[Securing Rails Applications]
+***********************************************************
+link:http://rails.lighthouseapp.com/projects/16213/tickets/7[Lighthouse Ticket]
+
+This manual describes common security problems in web applications and how to
+avoid them with Rails.
 ***********************************************************
 
 .link:caching/caching_with_rails.html[Rails Caching]
 ***********************************************************
+link:http://rails.lighthouseapp.com/projects/16213/tickets/10[Lighthouse Ticket]
+
 TODO: Insert some description here.
+***********************************************************
+
+.link:creating_plugins/creating_plugins.html[The Basics of Creating Rails Plugins]
+***********************************************************
+TODO: Insert some description here. No Lighthouse ticket.
 ***********************************************************
