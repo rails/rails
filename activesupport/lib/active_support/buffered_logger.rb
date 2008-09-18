@@ -116,7 +116,7 @@ module ActiveSupport
       end
 
       def clear_buffer
-        @buffer[Thread.current] = []
+        @buffer.delete(Thread.current)
       end
   end
 end
