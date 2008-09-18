@@ -379,11 +379,11 @@ HTTP verb  URL                      controller  action   used for
 --------------------------------------------------------------------------------------------
 GET        /magazines/1/ads         Ads         index    display a list of all ads for a specific magazine
 GET        /magazines/1/ads/new     Ads         new      return an HTML form for creating a new ad belonging to a specific magazine
-POST       /magazines/1/ads         Ads         create   create a new photo belonging to a specific magazine
-GET        /magazines/1/ads/1       Ads         show     display a specific photo belonging to a specific magazine
-GET        /magazines/1/ads/1/edit  Ads         edit     return an HTML form for editing a photo belonging to a specific magazine
-PUT        /magazines/1/ads/1       Ads         update   update a specific photo belonging to a specific magazine
-DELETE     /magazines/1/ads/1       Ads         destroy  delete a specific photo belonging to a specific magazine
+POST       /magazines/1/ads         Ads         create   create a new ad belonging to a specific magazine
+GET        /magazines/1/ads/1       Ads         show     display a specific ad belonging to a specific magazine
+GET        /magazines/1/ads/1/edit  Ads         edit     return an HTML form for editing an ad belonging to a specific magazine
+PUT        /magazines/1/ads/1       Ads         update   update a specific ad belonging to a specific magazine
+DELETE     /magazines/1/ads/1       Ads         destroy  delete a specific ad belonging to a specific magazine
 --------------------------------------------------------------------------------------------
 
 This will also create routing helpers such as +magazine_ads_url+ and +magazine_edit_ad_path+.
@@ -499,6 +499,29 @@ If you like, you can combine shallow nesting with the +:has_one+ and +:has_many+
 map.resources :publishers, :has_many => { :magazines => :photos }, :shallow => true
 -------------------------------------------------------
  
+=== Namespaced Resources
+
+It's possible to do some quite complex things by combining +:path_prefix+ and +:name_prefix+. For example, you can use the combination of these two options to move administrative resources to their own folder in your application:
+
+[source, ruby]
+-------------------------------------------------------
+map.resources :photos, :path_prefix => 'admin', :controller => 'admin/photos'
+map.resources :tags, :path_prefix => 'admin_photo_', :path_prefix => 'admin/photos/:photo_id', :controller => 'admin/photo_tags'
+map.resources :ratings, :path_prefix => 'admin_photo_', :path_prefix => 'admin/photos/:photo_id', :controller => 'admin/photo_ratings'
+-------------------------------------------------------
+
+The good news is that if you find yourself using this level of complexity, you can stop. Rails supports _namespaced resources_ to make placing resources in their own folder a snap. Here's the namespaced version of those same three routes:
+
+[source, ruby]
+-------------------------------------------------------
+map.namespace(:admin) do |admin|
+	admin.resources :photos,
+	  :has_many => { :tags, :ratings}
+end
+-------------------------------------------------------
+
+As you can see, the namespaced version is much more succinct than the one that spells everything out - but it still creates the same routes. For example, you'll get +admin_photos_url+ that expects to find an +Admin::PhotosController+ and that matches +admin/photos+, and +admin_photos_ratings+path+ that matches +/admin/photos/_photo_id_/ratings+, expecting to use +Admin::RatingsController+.
+
 === Adding More RESTful Actions
 
 You are not limited to the seven routes that RESTful routing creates by default. If you like, you may add additional member routes (those which apply to a single instance of the resource), additional new routes (those that apply to creating a new resource), or additional collection routes (those which apply to the collection of resources as a whole).
@@ -574,7 +597,7 @@ You can set up as many wildcard symbols within a regular route as you like. Anyt
 
 [source, ruby]
 -------------------------------------------------------
-map.connect ':controller/:action/:id/:userid:'
+map.connect ':controller/:action/:id/:user_id:'
 -------------------------------------------------------
 
 An incoming URL of +/photos/show/1/2+ will be dispatched to the +show+ action of the +Photos+ controller. +params[:id]+ will be set to 1, and +params[:user_id]+ will be set to 2.
@@ -611,6 +634,15 @@ map.connect 'photo/:id', :controller => 'photos', :action => 'show'
 -------------------------------------------------------
 
 With this route, an incoming URL of +/photos/12+ would be dispatched to the +show+ action within the +Photos+ controller.
+
+You an also define other defaults in a route by supplying a hash for the +:defaults+ option. This even applies to parameters that are not explicitly defined elsewhere in the route. For example:
+
+[source, ruby]
+-------------------------------------------------------
+map.connect 'photo/:id', :controller => 'photos', :action => 'show', :defaults => { :format => 'jpg' }
+-------------------------------------------------------
+
+With this route, an incoming URL of +photos/12+ would be dispatched to the +show+ action within the +Photos+ controller, and +params[:format]+ will be set to +jpg+.
 
 === Named Routes
 
@@ -655,7 +687,7 @@ As with conditions in RESTful routes, you can specify +:get+, +:post+, +:put+, +
 
 === Route Globbing
 
-Route globbing is a way to specify that a particular parameter (which must be the last parameter in the route) should engulf all the remaining parts of a route. For example
+Route globbing is a way to specify that a particular parameter (which must be the last parameter in the route) should be matched to all the remaining parts of a route. For example
 
 [source, ruby]
 -------------------------------------------------------
@@ -690,7 +722,7 @@ For instance, consider the second of the default routes in the boilerplate +rout
 map.connect ':controller/:action/:id.:format'
 -------------------------------------------------------
 
-This route matches requests such as +/photo/new/1.xml+ or +/photo/show/2.rss+. Within the appropriate action code, you can issue different responses depending on the requested format:
+This route matches requests such as +/photo/edit/1.xml+ or +/photo/show/2.rss+. Within the appropriate action code, you can issue different responses depending on the requested format:
 
 [source, ruby]
 -------------------------------------------------------
