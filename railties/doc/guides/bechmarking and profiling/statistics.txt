@@ -1,0 +1,117 @@
+== A Lession In Statistics ==
+
+Adapted from a blog Article by Zed Shaw. His rant is funnier but will take longer to read. <br /> http://www.zedshaw.com/rants/programmer_stats.html[Programmers Need To Learn Statistics Or I Will Kill Them All]
+
+=== Why Learn Statistics ===
+
+Statistics is a hard discipline. One can study it for years without fully grasping all the complexities. But its a necessary evil for coders of every level to at least  know enough about statistics to know they know nothing about statistics. You can't optimize without it, and if you use it wrong, you'll just waste your time and the rest of your team's. 
+
+You must always question your metrics and try to demolish your supposed reasoning.  Evidence and observation triumph over pure logic. Even the great Knuth once said: “Beware of bugs in the above code; I have only proved it correct, not tried it.”
+
+=== Power-of-Ten Syndrome ===
+
+If you done any benchmarking you have probably heard
+“All you need to do is run that test [insert power-of-ten] times and then do an average.” 
+
+For newbs this whole power of ten comes about because we need enough data to minimize the results being contaminated by outliers. If you loaded a page five times with three of those times being around 75ms and twice 250ms you have no way of knowing the real average processing time for you page. But if we take a 1000 times and 950 are 75ms and 50 are 250ms we have a much clearer picture of the situation. 
+
+But this still begs the question of how you determine that 1000 is the correct number of iterations to improve the power of the experiment? (Power in this context basically means the chance that your experiment is right.)
+
+The first thing that needs to be determined is how you are performing the samplings? 1000 iterations run in a massive sequential row? A set of 10 runs with 100 each? The statistics are different depending on which you do, but the 10 runs of 100 each would be a better approach. This lets you compare sample means and figure out if your repeated runs have any bias. More simply put, this allows you to see if you have a many or few outliers that might be poisoning your averages. 
+
+Another consideration is if a 1000 transactions is enough to get the process into a steady state after the ramp-up period? A common element of process control statistics is that all processes have a period in the beginning where the process isn’t stable. This “ramp-up” period is usually discarded when doing the analysis unless your run length has to include it. Most people think that 1000 is more than enough, but it totally depends on how the system functions. Many complex interacting systems can easily need 1000 iterations to get to a steady state, especially if performing 1000 transactions is very quick. Imagine a banking system that handles 10,000 transactions a second. I could take a good minute to get this system into a steady state, but your 1000 transaction test is only scratching the surface.
+
+We can demonstrate this through R Code with similar means but different deviations. 
+
+Note: R is a system for statistical computation and graphics. It consists of a language plus a run-time environment with graphics, a debugger, access to certain system functions, and the ability to run programs stored in script files.
+
+.R Code Input
+============================================================================
+ a <- rnorm(100, 30, 5)
+ b <- rnorm(100, 30, 20)
+============================================================================
+
+I construct two sets of 100 random samples from the normal distribution. Now, if I just take the average (mean or median) of these two sets they seem almost the same:
+
+.Means of Sample
+============================================================================
+> mean(a)
+  30.05907
+> mean(b)
+ 30.11601
+> median(a)
+ 30.12729
+> median(b)
+ 31.06874
+============================================================================
+
+They’re both around 30. So all good right? Not quite. If one looks at the outliers a different story emerges. 
+
+.Summary Output
+============================================================================
+> summary(a)
+   Min. 1st Qu.  Median    Mean 3rd Qu.    Max.
+  13.33   27.00   30.13   30.06   33.43   47.23
+> summary(b)
+   Min. 1st Qu.  Median    Mean 3rd Qu.    Max.
+ -15.48   16.90   31.07   30.12   43.42   80.86
+============================================================================
+
+They aren't so similar now are they. Averages don't tell you everything. In fact in some cases they tell you almost nothing. 
+
+=== Don't Just Use Averages! ===
+
+One cannot simply say my website “[insert power-of-ten] requests per second”. This is due to it being an Average. Without some form of range or variance error they are useless.  Two averages can be the same, but hide massive differences in behavior. Without a standard deviation it’s not possible to figure out if the two might even be close. An even better approach (with normally distributed data) is to use a Student’s t-test to see if there are differences.
+
+Note: A t-test is any statistical hypothesis test in which the test statistic has a Student's t distribution if the null hypothesis is true. It is applied when the population is assumed to be normally distributed but the sample sizes are small enough that the statistic on which inference is based is not normally distributed because it relies on an uncertain estimate of standard deviation rather than on a precisely known value. #TODO simply this to something I and the rest of the world will actually understand. 
+
+Let’s look at the standard deviation for our two samples:
+
+.Standard Deviation
+============================================================================
+> sd(a)
+ 5.562842
+> sd(b)
+[1] 19.09167
+============================================================================
+
+Stability is vastly different for these two samples If this were a web server performance run I’d say the second server (represented by b) has a major reliability problem. No, it’s not going to crash, but it’s performance response is so erratic that you’d never know how long a request would take. Even though the two servers perform the same on average, users will think the second one is slower because of how it seems to randomly perform.
+
+The moral of the story is that if you give an average without standard deviations then you’re totally missing the entire point of even trying to measure something. A major goal of measurement is to develop a succinct and accurate picture of what’s going on, but if you don’t find out the standard deviation and do at least a couple graphs then you are not gaining anything from the process. There are other thing though that you must be aware of when testing your system. A big one is Confounding
+
+=== Confounding ===
+
+The idea of confounding is pretty simple: If you want to measure something, then don’t measure anything else.  
+
+An example. Imagine that someone tried to tell you that you needed to compare a bunch of flavors of ice cream for their taste, but that half of the tubs of creamy goodness were melted, and half were frozen. Do you think having to slop down a gallon of Heath Crunch flavored warm milk would skew your quality measurement? Of course it would. The temperature of the ice cream is confounding your comparison of taste quality. In order to fix the problem you need to remove this confounding element by having all the ice cream at a constant temperature.
+
+#TODO add more information in how to avoid confounding. 
+
+* Your testing system and your production system must be separate. You can't profile on the same system because you are using resources to run the test that your server should be using to serve the requests. 
+
+=== Define what you are Measuring ===
+
+Before you can measure something you really need to lay down a very concrete definition of what you’re measuring. You should also try to measure the simplest thing you can and try to avoid confounding. 
+
+The most important thing to determine though is how much data you can actually send to your application through it's pipe. 
+
+That’s all there is to performance measurement. Sure, “how much”, “data”, and “pipe” all depend on the application, but if you need 1000 requests/second processing mojo, and you can’t get your web server to push out more than 100 requests/second, then you’ll never get your JSP+EJB+Hibernate+SOAP application anywhere near good enough. If all you can shove down your DS3 is 10k/second then you’ll never get that massive 300k flash animation to your users in time to sell them your latest Gizmodo 9000.
+
+#TODO add a good metaphore
+
+=== Books Recommendations ===
+He's read a lot, I'd trust him on these.
+
+* Statistics; by Freedman, Pisani, Purves, and Adhikari. Norton publishers.
+* Introductory Statistics with R; by Dalgaard. Springer publishers.
+* Statistical Computing: An Introduction to Data Analysis using S-Plus; by Crawley. Wiley publishers.
+* Statistical Process Control; by Grant, Leavenworth. McGraw-Hill publishers.
+* Statistical Methods for the Social Sciences; by Agresti, Finlay.  Prentice-Hall publishers.
+* Methods of Social Research; by Baily. Free Press publishers.
+* Modern Applied Statistics with S-PLUS; by Venables, Ripley. Springer publishers.
+
+=== Back to Business ===
+
+Now I know this was all a bit boring, but these fundamentals a necessary for understanding what we are actually doing here. Now onto the actual code and rails processes. 
+
+

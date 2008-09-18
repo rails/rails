@@ -1,0 +1,271 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.1//EN"
+    "http://www.w3.org/TR/xhtml11/DTD/xhtml11.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en">
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
+<meta name="generator" content="AsciiDoc 8.2.7" />
+<style type="text/css">
+
+.admin {
+  display:none;
+}
+ 
+#navAuthor {
+  text-align: right;
+}
+ 
+.bookinfo, .userinfo, pre {
+  padding: 10px;
+  background: #eee;
+  border: 1px solid #ccc;
+}
+ 
+pre { 
+  overflow: auto; 
+}
+ 
+#content pre, #content ul {
+  margin-bottom: 10px;
+}
+ 
+#content ol>ol {
+  padding-left : 30px;
+}
+ 
+div#header h1 a{
+	color: #333333;
+	text-decoration:  none;		
+}
+ 
+div#header p a{
+  text-decoration:  none;
+	color:            #999;
+}
+ 
+.left-floaty {
+  padding: 3px 15px;
+  float:left;
+}
+ 
+.right-floaty {
+  float:right;
+  padding: 3px 15px;
+}
+ 
+.figure {
+  border: 1px solid black;
+  line-height: normal;
+  background: #FFE;
+  margin: 1em;
+}
+ 
+.figure .caption {
+  background: #B00;
+  color: white;
+  font-weight: bold;
+  padding: 4px 24px 4px 8px;
+  margin-left: -4px;
+  border: 1px dotted #F77;
+}
+ 
+.figure .body {
+  padding: 0.5em;
+  margin-top: 0.5em;
+}
+ 
+.figure pre {
+  padding: 0px;
+  background: transparent;
+  border: none;
+  font-size: small;
+  font-family: mono;
+}
+ 
+.figure .lineno {
+  text-align: right;
+  color: #B00;
+  font-family: mono;
+  font-size: small;
+  padding-right: 1em;
+}
+.admin {
+  display:none;
+}
+ 
+#navAuthor {
+  text-align: right;
+}
+ 
+.bookinfo, .userinfo, pre {
+  padding: 10px;
+  background: #eee;
+  border: 1px solid #ccc;
+}
+ 
+pre { 
+  overflow: auto; 
+}
+ 
+#content pre, #content ul {
+  margin-bottom: 10px;
+}
+ 
+#content ol>ol {
+  padding-left : 30px;
+}
+ 
+div#header h1 a{
+	color: #333333;
+	text-decoration:  none;		
+}
+ 
+div#header p a{
+  text-decoration:  none;
+	color:            #999;
+}
+ 
+.left-floaty {
+  padding: 3px 15px;
+  float:left;
+}
+ 
+.right-floaty {
+  float:right;
+  padding: 3px 15px;
+}
+ 
+.figure {
+  border: 1px solid black;
+  line-height: normal;
+  background: #FFE;
+  margin: 1em;
+}
+ 
+.figure .caption {
+  background: #B00;
+  color: white;
+  font-weight: bold;
+  padding: 4px 24px 4px 8px;
+  margin-left: -4px;
+  border: 1px dotted #F77;
+}
+ 
+.figure .body {
+  padding: 0.5em;
+  margin-top: 0.5em;
+}
+ 
+.figure pre {
+  padding: 0px;
+  background: transparent;
+  border: none;
+  font-size: small;
+  font-family: mono;
+}
+ 
+.figure .lineno {
+  text-align: right;
+  color: #B00;
+  font-family: mono;
+  font-size: small;
+  padding-right: 1em;
+}
+</style>
+<title>Easy way to start on the road to Practical Benchmarking</title>
+</head>
+<body>
+<div id="header">
+<h1>Easy way to start on the road to Practical Benchmarking</h1>
+</div>
+<div id="preamble">
+<div class="sectionbody">
+<div class="para"><p>So how do we start gathering this data? You already have been. Your logs are not just for error detection.</p></div>
+<div class="listingblock">
+<div class="content">
+<pre><tt>Processing MediaController#index (for 127.0.0.1 at 2008-07-17 21:30:21) [GET]
+  Session ID: BAh7BiIKZmxhc2hJQzonQWN0aW9uQ29udHJvbGxlcjo6Rmxhc2g6OkZsYXNo
+SGFzaHsABjoKQHVzZWR7AA==--cb57dad9c5e4704f0e1eddb3d498fef544faaf46
+  Parameters: {"action"=&gt;"index", "controller"=&gt;"media"}
+  [4;35;1mProduct Columns (0.003187)[0m   [0mSHOW FIELDS FROM `products`[0m
+  [4;36;1mProduct Load (0.000597)[0m   [0;1mSELECT * FROM `products` WHERE (`products`.`name` = 'Escape Plane') LIMIT 1[0m
+Rendering template within layouts/standard
+Rendering media/index
+  [4;35;1mTrack Load (0.001507)[0m   [0mSELECT * FROM `tracks` WHERE (`tracks`.product_id = 1) [0m
+  [4;36;1mTrack Columns (0.002280)[0m   [0;1mSHOW FIELDS FROM `tracks`[0m
+Rendered layouts/_header (0.00051)
+Completed in 0.04310 (23 reqs/sec) | Rendering: 0.00819 (19%) | DB: 0.00757 (17%) | 200 OK [http://localhost/media]</tt></pre>
+</div></div>
+<div class="para"><p><strong>SyslogLogger</strong></p></div>
+<div class="para"><p>SyslogLogger is a Logger work-alike that logs via syslog instead of to a file. You can add SyslogLogger to your Rails production environment to aggregate logs between multiple machines.</p></div>
+<div class="para"><p>By default, SyslogLogger uses the program name ‘rails’, but this can be changed via the first argument to SyslogLogger.new.</p></div>
+<div class="para"><p>NOTE! You can only set the SyslogLogger program name when you initialize SyslogLogger for the first time. This is a limitation of the way SyslogLogger uses syslog (and in some ways, a the way syslog(3) works). Attempts to change SyslogLogger’s program name after the first initialization will be ignored.</p></div>
+<div class="para"><p>Sample usage with Rails
+config/environment/production.rb
+Add the following lines:</p></div>
+<div class="literalblock">
+<div class="content">
+<pre><tt>  require 'production_log/syslog_logger'
+  RAILS_DEFAULT_LOGGER = SyslogLogger.new
+config/environment.rb
+In 0.10.0, change this line:</tt></pre>
+</div></div>
+<div class="literalblock">
+<div class="content">
+<pre><tt>  RAILS_DEFAULT_LOGGER = Logger.new("#{RAILS_ROOT}/log/#{RAILS_ENV}.log")
+to:</tt></pre>
+</div></div>
+<div class="literalblock">
+<div class="content">
+<pre><tt>  RAILS_DEFAULT_LOGGER ||= Logger.new("#{RAILS_ROOT}/log/#{RAILS_ENV}.log")
+Other versions of Rails should have a similar change.</tt></pre>
+</div></div>
+<div class="para"><p>/etc/syslog.conf
+Add the following lines:</p></div>
+<div class="literalblock">
+<div class="content">
+<pre><tt> !rails
+ *.*                                             /var/log/production.log
+Then touch /var/log/production.log and signal syslogd with a HUP (killall -HUP syslogd, on FreeBSD).</tt></pre>
+</div></div>
+<div class="para"><p>/etc/newsyslog.conf
+Add the following line:</p></div>
+<div class="literalblock">
+<div class="content">
+<pre><tt>  /var/log/production.log                 640  7     *    @T00  Z
+This creates a log file that is rotated every day at midnight, gzip’d, then kept for 7 days. Consult newsyslog.conf(5) for more details.</tt></pre>
+</div></div>
+<div class="para"><p>Now restart your Rails app. Your production logs should now be showing up in /var/log/production.log. If you have mulitple machines, you can log them all to a central machine with remote syslog logging for analysis. Consult your syslogd(8) manpage for further details.</p></div>
+<div class="para"><p><strong>A Hodel 3000 Compliant Logger for the Rest of Us</strong></p></div>
+<div class="para"><p>If you don't have access to your machines root system or just want something a bit easier to implement there is also a module developed by Geoffrey Grosenbach</p></div>
+<div class="para"><p><a href="http://topfunky.net/svn/plugins/hodel_3000_compliant_logger/lib/hodel_3000_compliant_logger.rb">link to module file</a></p></div>
+<div class="para"><p>Just put the module in your lib directory and this to your environment.rb</p></div>
+<div class="listingblock">
+<div class="content">
+<pre><tt>require 'hodel_3000_compliant_logger'
+config.logger = Hodel3000CompliantLogger.new(config.log_path)</tt></pre>
+</div></div>
+<div class="para"><p>-Hodel 3000 Example</p></div>
+<div class="listingblock">
+<div class="content">
+<pre><tt>Jul 15 11:45:43 matthew-bergmans-macbook-pro-15 rails[16207]: Parameters: {"action"=&gt;"shipping", "controller"=&gt;"checkout"}
+Jul 15 11:45:43 matthew-bergmans-macbook-pro-15 rails[16207]: [4;36;1mBook Columns (0.003155)[0m   [0;1mSHOW FIELDS FROM `books`[0m
+Jul 15 11:45:43 matthew-bergmans-macbook-pro-15 rails[16207]: [4;35;1mBook Load (0.000881)[0m   [0mSELECT * FROM `books` WHERE (`books`.`id` = 1 AND (`books`.`sold` = 1)) [0m
+Jul 15 11:45:43 matthew-bergmans-macbook-pro-15 rails[16207]: [4;36;1mShippingAddress Columns (0.002683)[0m   [0;1mSHOW FIELDS FROM `shipping_addresses`[0m
+Jul 15 11:45:43 matthew-bergmans-macbook-pro-15 rails[16207]: [4;35;1mBook Load (0.000362)[0m   [0mSELECT ounces FROM `books` WHERE (`books`.`id` = 1) [0m
+Jul 15 11:45:43 matthew-bergmans-macbook-pro-15 rails[16207]: Rendering template within layouts/application
+Jul 15 11:45:43 matthew-bergmans-macbook-pro-15 rails[16207]: Rendering checkout/shipping
+Jul 15 11:45:43 matthew-bergmans-macbook-pro-15 rails[16207]: [4;36;1mBook Load (0.000548)[0m   [0;1mSELECT * FROM `books` WHERE (sold = 0) LIMIT 3[0m
+Jul 15 11:45:43 matthew-bergmans-macbook-pro-15 rails[16207]: [4;35;1mAuthor Columns (0.002571)[0m   [0mSHOW FIELDS FROM `authors`[0m
+Jul 15 11:45:43 matthew-bergmans-macbook-pro-15 rails[16207]: [4;36;1mAuthor Load (0.000811)[0m   [0;1mSELECT * FROM `authors` WHERE (`authors`.`id` = 1) [0m
+Jul 15 11:45:43 matthew-bergmans-macbook-pro-15 rails[16207]: Rendered store/_new_books (0.01358)
+Jul 15 11:45:43 matthew-bergmans-macbook-pro-15 rails[16207]: Completed in 0.37297 (2 reqs/sec) | Rendering: 0.02971 (7%) | DB: 0.01697 (4%) | 200 OK [https://secure.jeffbooks/checkout/shipping]</tt></pre>
+</div></div>
+</div>
+</div>
+<div id="footer">
+<div id="footer-text">
+Last updated 2008-09-11 20:38:33 EDT
+</div>
+</div>
+</body>
+</html>
