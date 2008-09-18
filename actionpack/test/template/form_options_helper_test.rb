@@ -656,7 +656,9 @@ uses_mocha "FormOptionsHelperTest" do
 <option value="Zambia">Zambia</option>
 <option value="Zimbabwe">Zimbabwe</option></select>
   COUNTRIES
-      assert_dom_equal(expected_select[0..-2], country_select("post", "origin"))
+      assert_deprecated 'plugin' do
+        assert_dom_equal(expected_select[0..-2], country_select("post", "origin"))
+      end
     end
 
     def test_country_select_with_priority_countries
@@ -911,7 +913,9 @@ uses_mocha "FormOptionsHelperTest" do
 <option value="Zambia">Zambia</option>
 <option value="Zimbabwe">Zimbabwe</option></select>
   COUNTRIES
-      assert_dom_equal(expected_select[0..-2], country_select("post", "origin", ["New Zealand", "Nicaragua"]))
+      assert_deprecated 'plugin' do
+        assert_dom_equal(expected_select[0..-2], country_select("post", "origin", ["New Zealand", "Nicaragua"]))
+      end
     end
 
     def test_country_select_with_selected_priority_country
@@ -1166,7 +1170,9 @@ uses_mocha "FormOptionsHelperTest" do
 <option value="Zambia">Zambia</option>
 <option value="Zimbabwe">Zimbabwe</option></select>
   COUNTRIES
-      assert_dom_equal(expected_select[0..-2], country_select("post", "origin", ["New Zealand", "Nicaragua"]))
+      assert_deprecated 'plugin' do
+        assert_dom_equal(expected_select[0..-2], country_select("post", "origin", ["New Zealand", "Nicaragua"]))
+      end
     end
 
     def test_time_zone_select

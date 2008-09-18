@@ -400,6 +400,7 @@ module ActionView
       end
 
       def to_country_select_tag(priority_countries, options, html_options)
+        ActiveSupport::Deprecation.warn("country_select is deprecated, please install the country_select plugin at http://github.com/rails/country_select/", caller)
         html_options = html_options.stringify_keys
         add_default_name_and_id(html_options)
         value = value(object)
