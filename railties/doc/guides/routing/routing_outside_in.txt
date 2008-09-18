@@ -597,7 +597,7 @@ You can set up as many wildcard symbols within a regular route as you like. Anyt
 
 [source, ruby]
 -------------------------------------------------------
-map.connect ':controller/:action/:id/:user_id:'
+map.connect ':controller/:action/:id/:user_id'
 -------------------------------------------------------
 
 An incoming URL of +/photos/show/1/2+ will be dispatched to the +show+ action of the +Photos+ controller. +params[:id]+ will be set to 1, and +params[:user_id]+ will be set to 2.
@@ -608,7 +608,7 @@ You can specify static text when creating a route. In this case, the static text
 
 [source, ruby]
 -------------------------------------------------------
-map.connect ':controller/:action/:id/with_user/:userid:'
+map.connect ':controller/:action/:id/with_user/:user_id'
 -------------------------------------------------------
 
 This route would respond to URLs such as +/photos/show/1/with_user/2+.
