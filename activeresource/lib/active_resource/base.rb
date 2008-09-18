@@ -843,13 +843,8 @@ module ActiveResource
     #
     #   my_group.to_xml(:skip_instruct => true)
     #   # => <subsidiary_group> [...] </subsidiary_group>
-    def encode(options={})
-      case self.class.format
-        when ActiveResource::Formats[:xml]
-          self.class.format.encode(attributes, {:root => self.class.element_name}.merge(options))
-        else
-          self.class.format.encode(attributes, options)
-      end
+    def to_xml(options={})
+      attributes.to_xml({:root => self.class.element_name}.merge(options))
     end
 
     # A method to reload the attributes of this object from the remote web service.
@@ -934,14 +929,14 @@ module ActiveResource
 
       # Update the resource on the remote service.
       def update
-        returning connection.put(element_path(prefix_options), encode, self.class.headers) do |response|
+        returning connection.put(element_path(prefix_options), to_xml, self.class.headers) do |response|
           load_attributes_from_response(response)
         end
       end
 
       # Create (i.e., save to the remote service) the new resource.
       def create
-        returning connection.post(collection_path, encode, self.class.headers) do |response|
+        returning connection.post(collection_path, to_xml, self.class.headers) do |response|
           self.id = id_from_response(response)
           load_attributes_from_response(response)
         end

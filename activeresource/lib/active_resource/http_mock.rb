@@ -146,7 +146,7 @@ module ActiveResource
     attr_accessor :path, :method, :body, :headers
 
     def initialize(method, path, body = nil, headers = {})
-      @method, @path, @body, @headers = method, path, body, headers.merge(ActiveResource::Connection::HTTP_FORMAT_HEADER_NAMES[method] => 'application/xml')
+      @method, @path, @body, @headers = method, path, body, headers.reverse_merge('Content-Type' => 'application/xml')
     end
 
     def ==(other_request)

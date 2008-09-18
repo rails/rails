@@ -819,7 +819,7 @@ class BaseTest < Test::Unit::TestCase
   
   def test_to_xml
     matz = Person.find(1)
-    xml = matz.encode
+    xml = matz.to_xml
     assert xml.starts_with?('<?xml version="1.0" encoding="UTF-8"?>')
     assert xml.include?('<name>Matz</name>')
     assert xml.include?('<id type="integer">1</id>')
