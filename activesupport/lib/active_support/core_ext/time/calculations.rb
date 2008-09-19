@@ -223,7 +223,7 @@ module ActiveSupport #:nodoc:
 
         # Returns a new Time representing the end of the quarter (last day of march, june, september, december, 23:59:59)
         def end_of_quarter
-          change(:month => [3, 6, 9, 12].detect { |m| m >= self.month }).end_of_month
+          beginning_of_month.change(:month => [3, 6, 9, 12].detect { |m| m >= self.month }).end_of_month
         end
         alias :at_end_of_quarter :end_of_quarter
 

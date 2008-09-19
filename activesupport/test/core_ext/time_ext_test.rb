@@ -117,6 +117,7 @@ class TimeExtCalculationsTest < Test::Unit::TestCase
     assert_equal Time.local(2007,3,31,23,59,59), Time.local(2007,3,31,0,0,0).end_of_quarter
     assert_equal Time.local(2007,12,31,23,59,59), Time.local(2007,12,21,10,10,10).end_of_quarter
     assert_equal Time.local(2007,6,30,23,59,59), Time.local(2007,4,1,0,0,0).end_of_quarter
+    assert_equal Time.local(2008,6,30,23,59,59), Time.local(2008,5,31,0,0,0).end_of_quarter
   end
 
   def test_end_of_year
