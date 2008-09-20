@@ -9,7 +9,7 @@ require 'models/topic'
 require 'models/reply'
 
 class CascadedEagerLoadingTest < ActiveRecord::TestCase
-  fixtures :authors, :mixins, :companies, :posts, :topics
+  fixtures :authors, :mixins, :companies, :posts, :topics, :accounts, :comments, :categorizations
 
   def test_eager_association_loading_with_cascaded_two_levels
     authors = Author.find(:all, :include=>{:posts=>:comments}, :order=>"authors.id")
@@ -65,6 +65,18 @@ class CascadedEagerLoadingTest < ActiveRecord::TestCase
     assert_no_queries do
       assert_equal first, topics[0].replies.size
       assert_equal second, topics[1].replies.size
+    end
+  end
+
+  def test_eager_association_loading_with_has_many_sti_and_subclasses
+    silly = SillyReply.new(:title => "gaga", :content => "boo-boo", :parent_id => 1)
+    silly.parent_id = 1
+    assert silly.save
+
+    topics = Topic.find(:all, :include => :replies, :order => 'topics.id, replies_topics.id')
+    assert_no_queries do
+      assert_equal 2, topics[0].replies.size
+      assert_equal 0, topics[1].replies.size
     end
   end
 

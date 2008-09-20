@@ -356,6 +356,9 @@ module ActiveResource
         # Replace :placeholders with '#{embedded options[:lookups]}'
         prefix_call = value.gsub(/:\w+/) { |key| "\#{options[#{key}]}" }
 
+        # Clear prefix parameters in case they have been cached
+        @prefix_parameters = nil
+
         # Redefine the new methods.
         code = <<-end_code
           def prefix_source() "#{value}" end

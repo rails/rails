@@ -14,7 +14,16 @@ module ActiveRecord
             @finder_sql + " AND (#{sanitize_sql(options[:conditions])})"
           options[:include] ||= @reflection.options[:include]
 
-          @reflection.klass.count(column_name, options)
+          value = @reflection.klass.count(column_name, options)
+
+          limit  = @reflection.options[:limit]
+          offset = @reflection.options[:offset]
+
+          if limit || offset
+            [ [value - offset.to_i, 0].max, limit.to_i ].min
+          else
+            value
+          end
         end
       end
 
@@ -27,8 +36,11 @@ module ActiveRecord
           else
             @reflection.klass.count(:conditions => @counter_sql, :include => @reflection.options[:include])
           end
-          
-          @target = [] and loaded if count == 0
+
+          # If there's nothing in the database and @target has no new records
+          # we are certain the current target is an empty array. This is a
+          # documented side-effect of the method that may avoid an extra SELECT.
+          @target ||= [] and loaded if count == 0
           
           if @reflection.options[:limit]
             count = [ @reflection.options[:limit], count ].min

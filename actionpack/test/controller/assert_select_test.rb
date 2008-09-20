@@ -568,7 +568,12 @@ class AssertSelectTest < Test::Unit::TestCase
       assert_select "div", 4
     end
   end
-  
+
+  def test_assert_select_rjs_raise_errors
+    assert_raises(ArgumentError) { assert_select_rjs(:destroy) }
+    assert_raises(ArgumentError) { assert_select_rjs(:insert, :left) }
+  end
+
   # Simple selection from a single result.
   def test_nested_assert_select_rjs_with_single_result
     render_rjs do |page|

@@ -484,7 +484,16 @@ class BaseTest < Test::Unit::TestCase
       assert_equal "the_prefixthe_param_value", person_class.prefix(:the_param => "the_param_value")
     end
   end
-  
+
+  def test_set_prefix_twice_should_clear_params
+    SetterTrap.rollback_sets(Person) do |person_class|
+      person_class.prefix = "the_prefix/:the_param1"
+      assert_equal Set.new([:the_param1]), person_class.prefix_parameters
+      person_class.prefix = "the_prefix/:the_param2"
+      assert_equal Set.new([:the_param2]), person_class.prefix_parameters
+    end
+  end
+
   def test_set_prefix_with_default_value
     SetterTrap.rollback_sets(Person) do |person_class|
       person_class.set_prefix

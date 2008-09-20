@@ -1111,10 +1111,9 @@ module ActiveRecord
               association.create_through_record(new_value)
               self.send(reflection.name, new_value)
             else
-              association.replace(new_value)              
+              association.replace(new_value)
+              instance_variable_set(ivar, new_value.nil? ? nil : association)
             end
-
-            instance_variable_set(ivar, new_value.nil? ? nil : association)
           end
 
           define_method("set_#{reflection.name}_target") do |target|
@@ -1520,19 +1519,19 @@ module ActiveRecord
               else            all << cond
             end
           end
-          conditions.join(' ').scan(/([\.\w]+).?\./).flatten
+          conditions.join(' ').scan(/([\.a-zA-Z_]+).?\./).flatten
         end
 
         def order_tables(options)
           order = [options[:order], scope(:find, :order) ].join(", ")
           return [] unless order && order.is_a?(String)
-          order.scan(/([\.\w]+).?\./).flatten
+          order.scan(/([\.a-zA-Z_]+).?\./).flatten
         end
 
         def selects_tables(options)
           select = options[:select]
           return [] unless select && select.is_a?(String)
-          select.scan(/"?([\.\w]+)"?.?\./).flatten
+          select.scan(/"?([\.a-zA-Z_]+)"?.?\./).flatten
         end
 
         # Checks if the conditions reference a table other than the current model table
@@ -1734,6 +1733,7 @@ module ActiveRecord
                   collection.target.push(association)
                 when :has_one
                   return if record.id.to_s != join.parent.record_id(row).to_s
+                  return if record.instance_variable_defined?("@#{join.reflection.name}")
                   association = join.instantiate(row) unless row[join.aliased_primary_key].nil?
                   record.send("set_#{join.reflection.name}_target", association)
                 when :belongs_to
@@ -1815,7 +1815,7 @@ module ActiveRecord
                 @aliased_join_table_name = aliased_table_name_for(reflection.options[:join_table], "_join")
               end
         
-              if reflection.macro == :has_many && reflection.options[:through]
+              if [:has_many, :has_one].include?(reflection.macro) && reflection.options[:through]
                 @aliased_join_table_name = aliased_table_name_for(reflection.through_reflection.klass.table_name, "_join")
               end
             end
@@ -1839,7 +1839,7 @@ module ActiveRecord
                      ]
                 when :has_many, :has_one
                   case
-                    when reflection.macro == :has_many && reflection.options[:through]
+                    when reflection.options[:through]
                       through_conditions = through_reflection.options[:conditions] ? "AND #{interpolate_sql(sanitize_sql(through_reflection.options[:conditions]))}" : ''
 
                       jt_foreign_key = jt_as_extra = jt_source_extra = jt_sti_extra = nil
@@ -1875,7 +1875,7 @@ module ActiveRecord
                           jt_sti_extra = " AND %s.%s = %s" % [
                             connection.quote_table_name(aliased_join_table_name),
                             connection.quote_column_name(through_reflection.active_record.inheritance_column),
-                            through_reflection.klass.quote_value(through_reflection.klass.name.demodulize)]
+                            through_reflection.klass.quote_value(through_reflection.klass.sti_name)]
                         end
                       when :belongs_to
                         first_key = primary_key
@@ -1940,10 +1940,8 @@ module ActiveRecord
                 else
                   ""
               end || ''
-              join << %(AND %s.%s = %s ) % [
-                connection.quote_table_name(aliased_table_name),
-                connection.quote_column_name(klass.inheritance_column),
-                klass.quote_value(klass.name.demodulize)] unless klass.descends_from_active_record?
+              join << %(AND %s) % [
+                klass.send(:type_condition, aliased_table_name)] unless klass.descends_from_active_record?
 
               [through_reflection, reflection].each do |ref|
                 join << "AND #{interpolate_sql(sanitize_sql(ref.options[:conditions]))} " if ref && ref.options[:conditions]

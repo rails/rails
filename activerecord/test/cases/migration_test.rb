@@ -237,6 +237,39 @@ if ActiveRecord::Base.connection.supports_migrations?
       end
     end
 
+    def test_create_table_with_timestamps_should_create_datetime_columns
+      table_name = :testings
+
+      Person.connection.create_table table_name do |t|
+        t.timestamps
+      end
+      created_columns = Person.connection.columns(table_name)
+
+      created_at_column = created_columns.detect {|c| c.name == 'created_at' }
+      updated_at_column = created_columns.detect {|c| c.name == 'updated_at' }
+
+      assert created_at_column.null
+      assert updated_at_column.null
+    ensure
+      Person.connection.drop_table table_name rescue nil
+    end
+
+    def test_create_table_with_timestamps_should_create_datetime_columns_with_options
+      table_name = :testings
+
+      Person.connection.create_table table_name do |t|
+        t.timestamps :null => false
+      end
+      created_columns = Person.connection.columns(table_name)
+
+      created_at_column = created_columns.detect {|c| c.name == 'created_at' }
+      updated_at_column = created_columns.detect {|c| c.name == 'updated_at' }
+
+      assert !created_at_column.null
+      assert !updated_at_column.null
+    ensure
+      Person.connection.drop_table table_name rescue nil
+    end
 
     # SQL Server, Sybase, and SQLite3 will not allow you to add a NOT NULL
     # column to a table without a default value.
@@ -409,10 +442,7 @@ if ActiveRecord::Base.connection.supports_migrations?
 
         ActiveRecord::Migration.add_column :people, :intelligence_quotient, :tinyint
         Person.reset_column_information
-        Person.create :intelligence_quotient => 300
-        jonnyg = Person.find(:first)
-        assert_equal 127, jonnyg.intelligence_quotient
-        jonnyg.destroy
+        assert_match /tinyint/, Person.columns_hash['intelligence_quotient'].sql_type
       ensure
         ActiveRecord::Migration.remove_column :people, :intelligence_quotient rescue nil
       end
@@ -1172,8 +1202,8 @@ if ActiveRecord::Base.connection.supports_migrations?
 
       def test_timestamps_creates_updated_at_and_created_at
         with_new_table do |t|
-          t.expects(:column).with(:created_at, :datetime)
-          t.expects(:column).with(:updated_at, :datetime)
+          t.expects(:column).with(:created_at, :datetime, kind_of(Hash))
+          t.expects(:column).with(:updated_at, :datetime, kind_of(Hash))
           t.timestamps
         end
       end

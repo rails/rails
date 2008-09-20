@@ -310,6 +310,20 @@ class HashExtTest < Test::Unit::TestCase
     assert_equal expected, original.except!(:c)
     assert_equal expected, original
   end
+
+  def test_except_with_original_frozen
+    original = { :a => 'x', :b => 'y' }
+    original.freeze
+    assert_nothing_raised { original.except(:a) }
+  end
+
+  uses_mocha 'except with expectation' do
+    def test_except_with_mocha_expectation_on_original
+      original = { :a => 'x', :b => 'y' }
+      original.expects(:delete).never
+      original.except(:a)
+    end
+  end
 end
 
 class IWriteMyOwnXML
@@ -806,6 +820,27 @@ class QueryTest < Test::Unit::TestCase
   def test_array_values_are_not_sorted
     assert_query_equal 'person%5Bid%5D%5B%5D=20&person%5Bid%5D%5B%5D=10',
       :person => {:id => [20, 10]}
+  end
+
+  def test_expansion_count_is_limited
+    assert_raises RuntimeError do
+      attack_xml = <<-EOT
+      <?xml version="1.0" encoding="UTF-8"?>
+      <!DOCTYPE member [
+        <!ENTITY a "&b;&b;&b;&b;&b;&b;&b;&b;&b;&b;">
+        <!ENTITY b "&c;&c;&c;&c;&c;&c;&c;&c;&c;&c;">
+        <!ENTITY c "&d;&d;&d;&d;&d;&d;&d;&d;&d;&d;">
+        <!ENTITY d "&e;&e;&e;&e;&e;&e;&e;&e;&e;&e;">
+        <!ENTITY e "&f;&f;&f;&f;&f;&f;&f;&f;&f;&f;">
+        <!ENTITY f "&g;&g;&g;&g;&g;&g;&g;&g;&g;&g;">
+        <!ENTITY g "xxxxxxxxxxxxxxxxxxxxxxxxxxxxxx">
+      ]>
+      <member>
+      &a;
+      </member>
+      EOT
+      Hash.from_xml(attack_xml)
+    end
   end
 
   private

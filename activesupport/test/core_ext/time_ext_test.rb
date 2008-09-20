@@ -524,12 +524,16 @@ class TimeExtCalculationsTest < Test::Unit::TestCase
     assert_equal Time.time_with_datetime_fallback(:utc, 2039, 2, 21, 17, 44, 30), DateTime.civil(2039, 2, 21, 17, 44, 30, 0, 0)
     assert_equal Time.time_with_datetime_fallback(:local, 2039, 2, 21, 17, 44, 30), DateTime.civil(2039, 2, 21, 17, 44, 30, DateTime.local_offset, 0)
     assert_equal Time.time_with_datetime_fallback(:utc, 1900, 2, 21, 17, 44, 30), DateTime.civil(1900, 2, 21, 17, 44, 30, 0, 0)
-    assert_equal Time.time_with_datetime_fallback(:local, 1900, 2, 21, 17, 44, 30), DateTime.civil(1900, 2, 21, 17, 44, 30, DateTime.local_offset, 0)
     assert_equal Time.time_with_datetime_fallback(:utc, 2005), Time.utc(2005)
     assert_equal Time.time_with_datetime_fallback(:utc, 2039), DateTime.civil(2039, 1, 1, 0, 0, 0, 0, 0)
     assert_equal Time.time_with_datetime_fallback(:utc, 2005, 2, 21, 17, 44, 30, 1), Time.utc(2005, 2, 21, 17, 44, 30, 1) #with usec
-    assert_equal Time.time_with_datetime_fallback(:utc, 2039, 2, 21, 17, 44, 30, 1), DateTime.civil(2039, 2, 21, 17, 44, 30, 0, 0)
-    assert_equal ::Date::ITALY, Time.time_with_datetime_fallback(:utc, 2039, 2, 21, 17, 44, 30, 1).start # use Ruby's default start value
+    # This won't overflow on 64bit linux
+    unless time_is_64bits?
+      assert_equal Time.time_with_datetime_fallback(:local, 1900, 2, 21, 17, 44, 30), DateTime.civil(1900, 2, 21, 17, 44, 30, DateTime.local_offset, 0)
+      assert_equal Time.time_with_datetime_fallback(:utc, 2039, 2, 21, 17, 44, 30, 1),
+                   DateTime.civil(2039, 2, 21, 17, 44, 30, 0, 0)
+      assert_equal ::Date::ITALY, Time.time_with_datetime_fallback(:utc, 2039, 2, 21, 17, 44, 30, 1).start # use Ruby's default start value
+    end
   end
 
   def test_utc_time
@@ -541,7 +545,10 @@ class TimeExtCalculationsTest < Test::Unit::TestCase
   def test_local_time
     assert_equal Time.local_time(2005, 2, 21, 17, 44, 30), Time.local(2005, 2, 21, 17, 44, 30)
     assert_equal Time.local_time(2039, 2, 21, 17, 44, 30), DateTime.civil(2039, 2, 21, 17, 44, 30, DateTime.local_offset, 0)
-    assert_equal Time.local_time(1901, 2, 21, 17, 44, 30), DateTime.civil(1901, 2, 21, 17, 44, 30, DateTime.local_offset, 0)
+
+    unless time_is_64bits?
+      assert_equal Time.local_time(1901, 2, 21, 17, 44, 30), DateTime.civil(1901, 2, 21, 17, 44, 30, DateTime.local_offset, 0)
+    end
   end
 
   def test_next_month_on_31st
@@ -619,4 +626,42 @@ class TimeExtCalculationsTest < Test::Unit::TestCase
     ensure
       old_tz ? ENV['TZ'] = old_tz : ENV.delete('TZ')
     end
+
+    def time_is_64bits?
+      Time.time_with_datetime_fallback(:utc, 2039, 2, 21, 17, 44, 30, 1).is_a?(Time)
+    end
+end
+
+class TimeExtMarshalingTest < Test::Unit::TestCase
+  def test_marshaling_with_utc_instance
+    t = Time.utc(2000)
+    marshaled = Marshal.dump t
+    unmarshaled = Marshal.load marshaled
+    assert_equal t, unmarshaled
+    assert_equal t.zone, unmarshaled.zone
+  end
+  
+  def test_marshaling_with_local_instance  
+    t = Time.local(2000)
+    marshaled = Marshal.dump t
+    unmarshaled = Marshal.load marshaled
+    assert_equal t, unmarshaled
+    assert_equal t.zone, unmarshaled.zone
+  end
+    
+  def test_marshaling_with_frozen_utc_instance  
+    t = Time.utc(2000).freeze
+    marshaled = Marshal.dump t
+    unmarshaled = Marshal.load marshaled
+    assert_equal t, unmarshaled
+    assert_equal t.zone, unmarshaled.zone
+  end
+  
+  def test_marshaling_with_frozen_local_instance  
+    t = Time.local(2000).freeze
+    marshaled = Marshal.dump t
+    unmarshaled = Marshal.load marshaled
+    assert_equal t, unmarshaled
+    assert_equal t.zone, unmarshaled.zone
+  end
 end

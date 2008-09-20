@@ -439,6 +439,10 @@ module ActiveRecord #:nodoc:
     cattr_accessor :schema_format , :instance_writer => false
     @@schema_format = :ruby
 
+    # Specify whether or not to use timestamps for migration numbers
+    cattr_accessor :timestamped_migrations , :instance_writer => false
+    @@timestamped_migrations = true
+
     # Determine whether to store the full constant name including namespace when using STI
     superclass_delegating_accessor :store_full_sti_class
     self.store_full_sti_class = false
@@ -1577,10 +1581,11 @@ module ActiveRecord #:nodoc:
           sql << "WHERE #{merged_conditions} " unless merged_conditions.blank?
         end
 
-        def type_condition
+        def type_condition(table_alias=nil)
+          quoted_table_alias = self.connection.quote_table_name(table_alias || table_name)
           quoted_inheritance_column = connection.quote_column_name(inheritance_column)
-          type_condition = subclasses.inject("#{quoted_table_name}.#{quoted_inheritance_column} = '#{sti_name}' ") do |condition, subclass|
-            condition << "OR #{quoted_table_name}.#{quoted_inheritance_column} = '#{subclass.sti_name}' "
+          type_condition = subclasses.inject("#{quoted_table_alias}.#{quoted_inheritance_column} = '#{sti_name}' ") do |condition, subclass|
+            condition << "OR #{quoted_table_alias}.#{quoted_inheritance_column} = '#{subclass.sti_name}' "
           end
 
           " (#{type_condition}) "
@@ -1717,7 +1722,7 @@ module ActiveRecord #:nodoc:
         def attribute_condition(argument)
           case argument
             when nil   then "IS ?"
-            when Array, ActiveRecord::Associations::AssociationCollection then "IN (?)"
+            when Array, ActiveRecord::Associations::AssociationCollection, ActiveRecord::NamedScope::Scope then "IN (?)"
             when Range then "BETWEEN ? AND ?"
             else            "= ?"
           end
@@ -2578,8 +2583,15 @@ module ActiveRecord #:nodoc:
         quoted = {}
         connection = self.class.connection
         attribute_names.each do |name|
-          if column = column_for_attribute(name)
-            quoted[name] = connection.quote(read_attribute(name), column) unless !include_primary_key && column.primary
+          if (column = column_for_attribute(name)) && (include_primary_key || !column.primary)
+            value = read_attribute(name)
+
+            # We need explicit to_yaml because quote() does not properly convert Time/Date fields to YAML.
+            if value && self.class.serialized_attributes.has_key?(name) && (value.acts_like?(:date) || value.acts_like?(:time))
+              value = value.to_yaml
+            end
+
+            quoted[name] = connection.quote(value, column)
           end
         end
         include_readonly_attributes ? quoted : remove_readonly_attributes(quoted)
@@ -2620,7 +2632,7 @@ module ActiveRecord #:nodoc:
       end
 
       def instantiate_time_object(name, values)
-        if self.class.time_zone_aware_attributes && !self.class.skip_time_zone_conversion_for_attributes.include?(name.to_sym)
+        if self.class.send(:create_time_zone_conversion_attribute?, name, column_for_attribute(name))
           Time.zone.local(*values)
         else
           Time.time_with_datetime_fallback(@@default_timezone, *values)

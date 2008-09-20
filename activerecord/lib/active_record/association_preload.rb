@@ -51,9 +51,7 @@ module ActiveRecord
       
       def add_preloaded_record_to_collection(parent_records, reflection_name, associated_record)
         parent_records.each do |parent_record|
-          association_proxy = parent_record.send(reflection_name)
-          association_proxy.loaded
-          association_proxy.target = associated_record
+          parent_record.send("set_#{reflection_name}_target", associated_record)
         end
       end
 
@@ -97,7 +95,7 @@ module ActiveRecord
         records.each {|record| record.send(reflection.name).loaded}
         options = reflection.options
 
-        conditions = "t0.#{reflection.primary_key_name}  IN (?)"
+        conditions = "t0.#{reflection.primary_key_name} #{in_or_equals_for_ids(ids)}"
         conditions << append_conditions(options, preload_options)
 
         associated_records = reflection.klass.find(:all, :conditions => [conditions, ids],
@@ -112,8 +110,8 @@ module ActiveRecord
       def preload_has_one_association(records, reflection, preload_options={})
         id_to_record_map, ids = construct_id_map(records)        
         options = reflection.options
+        records.each {|record| record.send("set_#{reflection.name}_target", nil)}
         if options[:through]
-          records.each {|record| record.send(reflection.name) && record.send(reflection.name).loaded}
           through_records = preload_through_records(records, reflection, options[:through])
           through_reflection = reflections[options[:through]]
           through_primary_key = through_reflection.primary_key_name
@@ -126,8 +124,6 @@ module ActiveRecord
             end
           end
         else
-          records.each {|record| record.send("set_#{reflection.name}_target", nil)}
-
           set_association_single_records(id_to_record_map, reflection.name, find_associated_records(ids, reflection, preload_options), reflection.primary_key_name)
         end
       end
@@ -226,8 +222,6 @@ module ActiveRecord
 
           table_name = klass.quoted_table_name
           primary_key = klass.primary_key
-          conditions = "#{table_name}.#{connection.quote_column_name(primary_key)} IN (?)"
-          conditions << append_conditions(options, preload_options)
           column_type = klass.columns.detect{|c| c.name == primary_key}.type
           ids = id_map.keys.uniq.map do |id|
             if column_type == :integer
@@ -238,6 +232,8 @@ module ActiveRecord
               id
             end
           end
+          conditions = "#{table_name}.#{connection.quote_column_name(primary_key)} #{in_or_equals_for_ids(ids)}"
+          conditions << append_conditions(options, preload_options)
           associated_records = klass.find(:all, :conditions => [conditions, ids],
                                           :include => options[:include],
                                           :select => options[:select],
@@ -252,10 +248,10 @@ module ActiveRecord
         table_name = reflection.klass.quoted_table_name
 
         if interface = reflection.options[:as]
-          conditions = "#{reflection.klass.quoted_table_name}.#{connection.quote_column_name "#{interface}_id"} IN (?) and #{reflection.klass.quoted_table_name}.#{connection.quote_column_name "#{interface}_type"} = '#{self.base_class.name.demodulize}'"
+          conditions = "#{reflection.klass.quoted_table_name}.#{connection.quote_column_name "#{interface}_id"} #{in_or_equals_for_ids(ids)} and #{reflection.klass.quoted_table_name}.#{connection.quote_column_name "#{interface}_type"} = '#{self.base_class.sti_name}'"
         else
           foreign_key = reflection.primary_key_name
-          conditions = "#{reflection.klass.quoted_table_name}.#{foreign_key} IN (?)"
+          conditions = "#{reflection.klass.quoted_table_name}.#{foreign_key} #{in_or_equals_for_ids(ids)}"
         end
 
         conditions << append_conditions(options, preload_options)
@@ -281,6 +277,9 @@ module ActiveRecord
         sql
       end
 
+      def in_or_equals_for_ids(ids)
+        ids.size > 1 ? "IN (?)" : "= ?"
+      end
     end
   end
 end

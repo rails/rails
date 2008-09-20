@@ -590,7 +590,7 @@ module ActiveRecord
       # Configuration options:
       # * <tt>:message</tt> - Specifies a custom error message (default is: "has already been taken").
       # * <tt>:scope</tt> - One or more columns by which to limit the scope of the uniqueness constraint.
-      # * <tt>:case_sensitive</tt> - Looks for an exact match.  Ignored by non-text columns (+false+ by default).
+      # * <tt>:case_sensitive</tt> - Looks for an exact match.  Ignored by non-text columns (+true+ by default).
       # * <tt>:allow_nil</tt> - If set to true, skips this validation if the attribute is +nil+ (default is +false+).
       # * <tt>:allow_blank</tt> - If set to true, skips this validation if the attribute is blank (default is +false+).
       # * <tt>:if</tt> - Specifies a method, proc or string to call to determine if the validation should
@@ -618,14 +618,20 @@ module ActiveRecord
           # class (which has a database table to query from).
           finder_class = class_hierarchy.detect { |klass| !klass.abstract_class? }
 
-          if value.nil? || (configuration[:case_sensitive] || !finder_class.columns_hash[attr_name.to_s].text?)
+          is_text_column = finder_class.columns_hash[attr_name.to_s].text?
+
+          if !value.nil? && is_text_column
+            value = value.to_s
+          end
+
+          if value.nil? || (configuration[:case_sensitive] || !is_text_column)
             condition_sql = "#{record.class.quoted_table_name}.#{attr_name} #{attribute_condition(value)}"
             condition_params = [value]
           else
             # sqlite has case sensitive SELECT query, while MySQL/Postgresql don't.
             # Hence, this is needed only for sqlite.
             condition_sql = "LOWER(#{record.class.quoted_table_name}.#{attr_name}) #{attribute_condition(value)}"
-            condition_params = [value.downcase]
+            condition_params = [value.chars.downcase.to_s]
           end
 
           if scope = configuration[:scope]

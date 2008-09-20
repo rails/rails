@@ -69,8 +69,8 @@ module ActiveRecord
         @target
       end
 
-      def respond_to?(symbol, include_priv = false)
-        proxy_respond_to?(symbol, include_priv) || (load_target && @target.respond_to?(symbol, include_priv))
+      def respond_to?(*args)
+        proxy_respond_to?(*args) || (load_target && @target.respond_to?(*args))
       end
 
       # Explicitly proxy === because the instance method removal above
@@ -129,10 +129,6 @@ module ActiveRecord
 
         def quoted_record_ids(records)
           records.map { |record| record.quoted_id }.join(',')
-        end
-
-        def interpolate_sql_options!(options, *keys)
-          keys.each { |key| options[key] &&= interpolate_sql(options[key]) }
         end
 
         def interpolate_sql(sql, record = nil)

@@ -58,7 +58,7 @@ module Rails
 
     def load
       return if @loaded || @load_paths_added == false
-      require(@lib || @name)
+      require(@lib || @name) unless @lib == false
       @loaded = true
     rescue LoadError
       puts $!.to_s

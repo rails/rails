@@ -1,4 +1,11 @@
-*2.1.1 (next release)*
+*Edge*
+
+* Multiparameter attributes skip time zone conversion for time-only columns #1030 [Geoff Buesing]
+
+
+*2.1.1 (September 4th, 2008)*
+
+* Set config.active_record.timestamped_migrations = false to have migrations with numeric prefix instead of UTC timestamp. #446. [Andrew Stone, Nik Wakelin]
 
 * Fixed that create database statements would always include "DEFAULT NULL" (Nick Sieger) [#334]
 

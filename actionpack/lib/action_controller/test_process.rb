@@ -171,7 +171,7 @@ module ActionController #:nodoc:
 
     # Was the response successful?
     def success?
-      response_code == 200
+      (200..299).include?(response_code)
     end
 
     # Was the URL not found?
@@ -333,7 +333,7 @@ module ActionController #:nodoc:
     attr_reader :original_filename
 
     # The content type of the "uploaded" file
-    attr_reader :content_type
+    attr_accessor :content_type
 
     def initialize(path, content_type = Mime::TEXT, binary = false)
       raise "#{path} file does not exist" unless File.exist?(path)

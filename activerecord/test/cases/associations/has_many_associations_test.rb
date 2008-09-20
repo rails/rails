@@ -14,7 +14,7 @@ require 'models/reader'
 class HasManyAssociationsTest < ActiveRecord::TestCase
   fixtures :accounts, :categories, :companies, :developers, :projects,
            :developers_projects, :topics, :authors, :comments, :author_addresses,
-           :people, :posts
+           :people, :posts, :readers
 
   def setup
     Client.destroyed_client_ids.clear
@@ -46,6 +46,12 @@ class HasManyAssociationsTest < ActiveRecord::TestCase
 
   def test_counting_with_column_name_and_hash
     assert_equal 2, Firm.find(:first).plain_clients.count(:name)
+  end
+
+  def test_counting_with_association_limit
+    firm = companies(:first_firm)
+    assert_equal firm.limited_clients.length, firm.limited_clients.size
+    assert_equal firm.limited_clients.length, firm.limited_clients.count
   end
 
   def test_finding
@@ -389,6 +395,18 @@ class HasManyAssociationsTest < ActiveRecord::TestCase
     company.clients_of_firm.build("name" => "Another Client")
     company.clients_of_firm.build("name" => "Yet Another Client")
     assert_equal 3, company.clients_of_firm.size
+  end
+
+  def test_collection_size_twice_for_regressions
+    post = posts(:thinking)
+    assert_equal 0, post.readers.size
+    # This test needs a post that has no readers, we assert it to ensure it holds,
+    # but need to reload the post because the very call to #size hides the bug.
+    post.reload
+    post.readers.build
+    size1 = post.readers.size
+    size2 = post.readers.size
+    assert_equal size1, size2
   end
 
   def test_build_many
@@ -993,6 +1011,24 @@ class HasManyAssociationsTest < ActiveRecord::TestCase
     end
 
     assert firm.clients.loaded?
+  end
+
+  def test_joins_with_namespaced_model_should_use_correct_type
+    old = ActiveRecord::Base.store_full_sti_class
+    ActiveRecord::Base.store_full_sti_class = true
+
+    firm = Namespaced::Firm.create({ :name => 'Some Company' })
+    firm.clients.create({ :name => 'Some Client' })
+
+    stats = Namespaced::Firm.find(firm.id, {
+      :select => "#{Namespaced::Firm.table_name}.id, COUNT(#{Namespaced::Client.table_name}.id) AS num_clients",
+      :joins  => :clients,
+      :group  => "#{Namespaced::Firm.table_name}.id"
+    })
+    assert_equal 1, stats.num_clients.to_i
+
+  ensure
+    ActiveRecord::Base.store_full_sti_class = old
   end
 
 end

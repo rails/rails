@@ -36,7 +36,8 @@ module Rails
     end
   
     def env
-      StringQuestioneer.new(RAILS_ENV)
+      require 'active_support/string_inquirer'
+      ActiveSupport::StringInquirer.new(RAILS_ENV)
     end
   
     def cache
@@ -486,6 +487,7 @@ Run `rake gems:install` to install the missing gems.
     end
 
     def prepare_dispatcher
+      return unless configuration.frameworks.include?(:action_controller)
       require 'dispatcher' unless defined?(::Dispatcher)
       Dispatcher.define_dispatcher_callbacks(configuration.cache_classes)
       Dispatcher.new(RAILS_DEFAULT_LOGGER).send :run_callbacks, :prepare_dispatch
@@ -628,13 +630,17 @@ Run `rake gems:install` to install the missing gems.
     # You can add gems with the #gem method.
     attr_accessor :gems
 
-    # Adds a single Gem dependency to the rails application.
+    # Adds a single Gem dependency to the rails application. By default, it will require
+    # the library with the same name as the gem. Use :lib to specify a different name.
     #
     #   # gem 'aws-s3', '>= 0.4.0'
     #   # require 'aws/s3'
     #   config.gem 'aws-s3', :lib => 'aws/s3', :version => '>= 0.4.0', \
     #     :source => "http://code.whytheluckystiff.net"
     #
+    # To require a library be installed, but not attempt to load it, pass :lib => false
+    #
+    #   config.gem 'qrp', :version => '0.4.1', :lib => false
     def gem(name, options = {})
       @gems << Rails::GemDependency.new(name, options)
     end
@@ -706,6 +712,7 @@ Run `rake gems:install` to install the missing gems.
     # contents of the file are processed via ERB before being sent through
     # YAML::load.
     def database_configuration
+      require 'erb'
       YAML::load(ERB.new(IO.read(database_configuration_file)).result)
     end
 

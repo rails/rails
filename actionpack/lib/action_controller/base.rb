@@ -613,7 +613,8 @@ module ActionController #:nodoc:
       #
       # This takes the current URL as is and only exchanges the action. In contrast, <tt>url_for :action => 'print'</tt>
       # would have slashed-off the path components after the changed action.
-      def url_for(options = {}) #:doc:
+      def url_for(options = {})
+        options ||= {}
         case options
           when String
             options
@@ -1150,7 +1151,7 @@ module ActionController #:nodoc:
 
       def log_processing
         if logger && logger.info?
-          logger.info "\n\nProcessing #{controller_class_name}\##{action_name} (for #{request_origin}) [#{request.method.to_s.upcase}]"
+          logger.info "\n\nProcessing #{self.class.name}\##{action_name} (for #{request_origin}) [#{request.method.to_s.upcase}]"
           logger.info "  Session ID: #{@_session.session_id}" if @_session and @_session.respond_to?(:session_id)
           logger.info "  Parameters: #{respond_to?(:filter_parameters) ? filter_parameters(params).inspect : params.inspect}"
         end

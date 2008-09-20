@@ -27,7 +27,7 @@ require 'models/sponsor'
 
 class AssociationsTest < ActiveRecord::TestCase
   fixtures :accounts, :companies, :developers, :projects, :developers_projects,
-           :computers
+           :computers, :people, :readers
 
   def test_include_with_order_works
     assert_nothing_raised {Account.find(:first, :order => 'id', :include => :firm)}
@@ -45,7 +45,7 @@ class AssociationsTest < ActiveRecord::TestCase
     assert_equal [], person.readers.find(:all)
     person.save!
     reader = Reader.create! :person => person, :post => Post.new(:title => "foo", :body => "bar")
-    assert_equal [reader], person.readers.find(:all)
+    assert person.readers.find(reader.id)
   end
 
   def test_force_reload

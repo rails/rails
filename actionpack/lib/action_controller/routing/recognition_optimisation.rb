@@ -68,12 +68,16 @@ module ActionController
         end
       end
 
-      def recognize_optimized(path, env)
-        write_recognize_optimized
-        recognize_optimized(path, env)
+      def clear_recognize_optimized!
+        instance_eval %{
+          def recognize_optimized(path, env)
+            write_recognize_optimized!
+            recognize_optimized(path, env)
+          end
+        }, __FILE__, __LINE__
       end
 
-      def write_recognize_optimized
+      def write_recognize_optimized!
         tree = segment_tree(routes)
         body = generate_code(tree)
         instance_eval %{
