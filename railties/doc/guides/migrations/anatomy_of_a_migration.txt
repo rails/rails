@@ -1,0 +1,85 @@
+== Anatomy Of A Migration ==
+
+Before I dive into the details of a migration, here are a few examples of the sorts of things you can do: 
+
+[source, ruby]
+------------------------
+class CreateProducts < ActiveRecord::Migration
+  def self.up
+    create_table :products do |t|
+      t.string :name
+      t.text :description
+
+      t.timestamps
+    end
+  end
+
+  def self.down
+    drop_table :products
+  end
+end
+------------------------
+
+This migration adds a table called `products` with a string column called `name` and a text column called `description`. A primary key column called `id` will also be added, however since this is the default we do not need to ask for this. The timestamp columns `created_at` and `updated_at` which Active Record populates automatically will also be added. Reversing this migration is as simple as dropping the table.
+
+Migrations are not limited to changing the schema. You can also use them to fix bad data in the database or populate new fields:
+
+[source, ruby]
+------------------------
+class AddReceiveNewsletterToUsers < ActiveRecord::Migration
+  def self.up
+    change_table :users do |t|
+      t.boolean :receive_newsletter, :default => false
+    end
+    User.update_all ["receive_newsletter = ?", true]
+  end
+
+  def self.down
+    remove_column :users, :receive_newsletter
+  end
+end
+------------------------
+
+This migration adds an `receive_newsletter` column to the `users` table. We want it to default to `false` for new users, but existing users are considered
+to have already opted in, so we use the User model to set the flag to `true` for existing users.
+ 
+NOTE: Some <<models,caveats>> apply to using models in your migrations.
+
+=== Migrations are classes
+A migration is a subclass of ActiveRecord::Migration that implements two class methods: +up+ (perform the required transformations) and +down+ (revert them).
+
+Active Record provides methods that perform common data definition tasks in a database independent way (you'll read about them in detail later):
+
+* `create_table`
+* `change_table`
+* `drop_table`
+* `add_column`
+* `remove_column`
+* `change_column`
+* `rename_column` 
+* `add_index`
+* `remove_index`
+
+If you need to perform tasks specific to your database (for example create a <<foreign_key,foreign key>> constraint) then the `execute` function allows you to execute arbitrary SQL. A migration is just a regular Ruby class so you're not limited to these functions. For example after adding a column you could
+write code to set the value of that column for existing records (if necessary using your models).
+
+On databases that support transactions with statements that change the schema (such as PostgreSQL), migrations are wrapped in a transaction. If the database does not support this (for example MySQL and SQLite) then when a migration fails the parts of it that succeeded will not be rolled back. You will have to unpick the changes that were made by hand.
+
+=== What's in a name ===
+
+Migrations are stored in files in `db/migrate`, one for each migration class. The name of the file is of the form `YYYYMMDDHHMMSS_create_products.rb`, that is to say a UTC timestamp identifying the migration followed by an underscore followed by the name of the migration. The migration class' name must match (the camelcased version of) the latter part of the file name. For example `20080906120000_create_products.rb` should define CreateProducts and `20080906120001_add_details_to_products.rb` should define AddDetailsToProducts. If you do feel the need to change the file name then you MUST update the name of the class inside or Rails will complain about a missing class.
+
+Internally Rails only uses the migration's number (the timestamp) to identify them. Prior to Rails 2.1 the migration number started at 1 and was incremented each time a migration was generated. With multiple developers it was easy for these to clash requiring you to rollback migrations and renumber them. With Rails 2.1 this is largely avoided by using the creation time of the migration to identify them. You can revert to the old numbering scheme by setting `config.active_record.timestamped_migrations` to `false` in `environment.rb`.
+
+The combination of timestamps and recording which migrations have been run allows Rails to handle common situations that occur with multiple developers.
+
+For example Alice adds migrations `20080906120000` and `20080906123000` and Bob adds `20080906124500` and runs it. Alice finishes her changes and checks in her migrations and Bob pulls down the latest changes. Rails knows that it has not run Alice's two migrations so `rake db:migrate` would run them (even though Bob's migration with a later timestamp has been run), and similarly migrating down would not run their down methods.
+
+Of course this is no substitution for communication within the team, for example if Alice's migration removed a table that Bob's migration assumed the existence of then trouble will still occur.
+
+=== Changing migrations ===
+
+Occasionally you will make a mistake while writing a migration. If you have already run the migration then you cannot just edit the migration and run the migration again: Rails thinks it has already run the migration and so will do nothing when you run `rake db:migrate`. You must rollback the migration (for example with `rake db:rollback`), edit your migration and then run `rake db:migrate` to run the corrected version.
+
+In general editing existing migrations is not a good idea: you will be creating extra work for yourself and your co-workers and cause major headaches if the existing version of the migration has already been run on production machines. Instead you should write a new migration that performs the changes you require. Editing a freshly generated migration that has not yet been committed to source control (or more generally which has not been propagated beyond your development machine) is relatively harmless. Just use some common sense.
+

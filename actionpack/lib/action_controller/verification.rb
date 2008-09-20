@@ -80,7 +80,7 @@ module ActionController #:nodoc:
       #   array (may also be a single value).
       def verify(options={})
         before_filter :only => options[:only], :except => options[:except] do |c|
-          c.send! :verify_action, options
+          c.__send__ :verify_action, options
         end
       end
     end
@@ -116,7 +116,7 @@ module ActionController #:nodoc:
     end
     
     def apply_redirect_to(redirect_to_option) # :nodoc:
-      (redirect_to_option.is_a?(Symbol) && redirect_to_option != :back) ? self.send!(redirect_to_option) : redirect_to_option
+      (redirect_to_option.is_a?(Symbol) && redirect_to_option != :back) ? self.__send__(redirect_to_option) : redirect_to_option
     end
     
     def apply_remaining_actions(options) # :nodoc:

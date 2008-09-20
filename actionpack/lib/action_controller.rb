@@ -54,6 +54,7 @@ require 'action_controller/rack_process'
 require 'action_controller/record_identifier'
 require 'action_controller/request_forgery_protection'
 require 'action_controller/headers'
+require 'action_controller/translation'
 
 require 'action_view'
 
@@ -74,4 +75,5 @@ ActionController::Base.class_eval do
   include ActionController::Components
   include ActionController::RecordIdentifier
   include ActionController::RequestForgeryProtection
+  include ActionController::Translation
 end

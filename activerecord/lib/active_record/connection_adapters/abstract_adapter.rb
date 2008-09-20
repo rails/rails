@@ -7,6 +7,7 @@ require 'active_record/connection_adapters/abstract/schema_definitions'
 require 'active_record/connection_adapters/abstract/schema_statements'
 require 'active_record/connection_adapters/abstract/database_statements'
 require 'active_record/connection_adapters/abstract/quoting'
+require 'active_record/connection_adapters/abstract/connection_pool'
 require 'active_record/connection_adapters/abstract/connection_specification'
 require 'active_record/connection_adapters/abstract/query_cache'
 
@@ -24,6 +25,9 @@ module ActiveRecord
     class AbstractAdapter
       include Quoting, DatabaseStatements, SchemaStatements
       include QueryCache
+      include ActiveSupport::Callbacks
+      define_callbacks :checkout, :checkin
+      checkout :reset!
       @@row_even = true
 
       def initialize(connection, logger = nil) #:nodoc:
@@ -102,20 +106,25 @@ module ActiveRecord
         @active = false
       end
 
+      # Reset the state of this connection, directing the DBMS to clear
+      # transactions and other connection-related server-side state. Usually a
+      # database-dependent operation; the default method simply executes a
+      # ROLLBACK and swallows any exceptions which is probably not enough to
+      # ensure the connection is clean.
+      def reset!
+        # this should be overridden by concrete adapters
+      end
+
       # Returns true if its safe to reload the connection between requests for development mode.
       # This is not the case for Ruby/MySQL and it's not necessary for any adapters except SQLite.
       def requires_reloading?
         false
       end
 
-      # Lazily verify this connection, calling <tt>active?</tt> only if it hasn't
-      # been called for +timeout+ seconds.
-      def verify!(timeout)
-        now = Time.now.to_i
-        if (now - @last_verification) > timeout
-          reconnect! unless active?
-          @last_verification = now
-        end
+      # Verify this connection by calling <tt>active?</tt> and reconnecting if
+      # the connection is no longer active.
+      def verify!(*ignored)
+        reconnect! unless active?
       end
 
       # Provides access to the underlying database connection. Useful for
@@ -138,10 +147,10 @@ module ActiveRecord
         @open_transactions -= 1
       end
 
-      def log_info(sql, name, runtime)
+      def log_info(sql, name, seconds)
         if @logger && @logger.debug?
-          name = "#{name.nil? ? "SQL" : name} (#{sprintf("%f", runtime)})"
-          @logger.debug format_log_entry(name, sql.squeeze(' '))
+          name = "#{name.nil? ? "SQL" : name} (#{sprintf("%.1f", seconds * 1000)}ms)"
+          @logger.debug(format_log_entry(name, sql.squeeze(' ')))
         end
       end
 

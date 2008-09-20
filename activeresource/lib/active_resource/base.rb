@@ -54,7 +54,7 @@ module ActiveResource
   #
   # Since simple CRUD/lifecycle methods can't accomplish every task, Active Resource also supports
   # defining your own custom REST methods. To invoke them, Active Resource provides the <tt>get</tt>,
-  # <tt>post</tt>, <tt>put</tt> and <tt>delete</tt> methods where you can specify a custom REST method
+  # <tt>post</tt>, <tt>put</tt> and <tt>\delete</tt> methods where you can specify a custom REST method
   # name to invoke.
   #
   #   # POST to the custom 'register' REST method, i.e. POST /people/new/register.xml.
@@ -129,13 +129,19 @@ module ActiveResource
   #
   # <tt>404</tt> is just one of the HTTP error response codes that Active Resource will handle with its own exception. The
   # following HTTP response codes will also result in these exceptions:
-  #
-  # * 200..399 - Valid response, no exception
+  # 
+  # * 200..399 - Valid response, no exception (other than 301, 302)
+  # * 301, 302 - ActiveResource::Redirection
+  # * 400 - ActiveResource::BadRequest
+  # * 401 - ActiveResource::UnauthorizedAccess
+  # * 403 - ActiveResource::ForbiddenAccess
   # * 404 - ActiveResource::ResourceNotFound
+  # * 405 - ActiveResource::MethodNotAllowed
   # * 409 - ActiveResource::ResourceConflict
   # * 422 - ActiveResource::ResourceInvalid (rescued by save as validation errors)
   # * 401..499 - ActiveResource::ClientError
   # * 500..599 - ActiveResource::ServerError
+  # * Other - ActiveResource::ConnectionError
   #
   # These custom exceptions allow you to deal with resource errors more naturally and with more precision
   # rather than returning a general HTTP error.  For example:
@@ -175,7 +181,7 @@ module ActiveResource
   # === Timeouts
   #
   # Active Resource relies on HTTP to access RESTful APIs and as such is inherently susceptible to slow or
-  # unresponsive servers. In such cases, your Active Resource method calls could timeout. You can control the
+  # unresponsive servers. In such cases, your Active Resource method calls could \timeout. You can control the
   # amount of time before Active Resource times out with the +timeout+ variable.
   #
   #   class Person < ActiveResource::Base
@@ -189,7 +195,7 @@ module ActiveResource
   # http://en.wikipedia.org/wiki/Fail-fast) rather than cause cascading failures that could incapacitate your
   # server.
   #
-  # When a timeout occurs, an ActiveResource::TimeoutError is raised. You should rescue from
+  # When a \timeout occurs, an ActiveResource::TimeoutError is raised. You should rescue from
   # ActiveResource::TimeoutError in your Active Resource method calls.
   #
   # Internally, Active Resource relies on Ruby's Net::HTTP library to make HTTP requests. Setting +timeout+
@@ -238,7 +244,7 @@ module ActiveResource
         end
       end
 
-      # Gets the user for REST HTTP authentication.
+      # Gets the \user for REST HTTP authentication.
       def user
         # Not using superclass_delegating_reader. See +site+ for explanation
         if defined?(@user)
@@ -248,13 +254,13 @@ module ActiveResource
         end
       end
 
-      # Sets the user for REST HTTP authentication.
+      # Sets the \user for REST HTTP authentication.
       def user=(user)
         @connection = nil
         @user = user
       end
 
-      # Gets the password for REST HTTP authentication.
+      # Gets the \password for REST HTTP authentication.
       def password
         # Not using superclass_delegating_reader. See +site+ for explanation
         if defined?(@password)
@@ -264,7 +270,7 @@ module ActiveResource
         end
       end
 
-      # Sets the password for REST HTTP authentication.
+      # Sets the \password for REST HTTP authentication.
       def password=(password)
         @connection = nil
         @password = password
@@ -283,13 +289,13 @@ module ActiveResource
         format = mime_type_reference_or_format.is_a?(Symbol) ?
           ActiveResource::Formats[mime_type_reference_or_format] : mime_type_reference_or_format
 
-        write_inheritable_attribute("format", format)
+        write_inheritable_attribute(:format, format)
         connection.format = format if site
       end
 
       # Returns the current format, default is ActiveResource::Formats::XmlFormat.
       def format
-        read_inheritable_attribute("format") || ActiveResource::Formats[:xml]
+        read_inheritable_attribute(:format) || ActiveResource::Formats[:xml]
       end
 
       # Sets the number of seconds after which requests to the REST API should time out.
@@ -307,8 +313,8 @@ module ActiveResource
         end
       end
 
-      # An instance of ActiveResource::Connection that is the base connection to the remote service.
-      # The +refresh+ parameter toggles whether or not the connection is refreshed at every request
+      # An instance of ActiveResource::Connection that is the base \connection to the remote service.
+      # The +refresh+ parameter toggles whether or not the \connection is refreshed at every request
       # or not (defaults to <tt>false</tt>).
       def connection(refresh = false)
         if defined?(@connection) || superclass == Object
@@ -332,9 +338,9 @@ module ActiveResource
 
       attr_accessor_with_default(:collection_name) { element_name.pluralize } #:nodoc:
       attr_accessor_with_default(:primary_key, 'id') #:nodoc:
-
-      # Gets the prefix for a resource's nested URL (e.g., <tt>prefix/collectionname/1.xml</tt>)
-      # This method is regenerated at runtime based on what the prefix is set to.
+      
+      # Gets the \prefix for a resource's nested URL (e.g., <tt>prefix/collectionname/1.xml</tt>)
+      # This method is regenerated at runtime based on what the \prefix is set to.
       def prefix(options={})
         default = site.path
         default << '/' unless default[-1..-1] == '/'
@@ -343,14 +349,14 @@ module ActiveResource
         prefix(options)
       end
 
-      # An attribute reader for the source string for the resource path prefix.  This
-      # method is regenerated at runtime based on what the prefix is set to.
+      # An attribute reader for the source string for the resource path \prefix.  This
+      # method is regenerated at runtime based on what the \prefix is set to.
       def prefix_source
         prefix # generate #prefix and #prefix_source methods first
         prefix_source
       end
 
-      # Sets the prefix for a resource's nested URL (e.g., <tt>prefix/collectionname/1.xml</tt>).
+      # Sets the \prefix for a resource's nested URL (e.g., <tt>prefix/collectionname/1.xml</tt>).
       # Default value is <tt>site.path</tt>.
       def prefix=(value = '/')
         # Replace :placeholders with '#{embedded options[:lookups]}'
@@ -376,12 +382,12 @@ module ActiveResource
       alias_method :set_collection_name, :collection_name=  #:nodoc:
 
       # Gets the element path for the given ID in +id+.  If the +query_options+ parameter is omitted, Rails
-      # will split from the prefix options.
+      # will split from the \prefix options.
       #
       # ==== Options
-      # +prefix_options+ - A hash to add a prefix to the request for nested URLs (e.g., <tt>:account_id => 19</tt>
+      # +prefix_options+ - A \hash to add a \prefix to the request for nested URLs (e.g., <tt>:account_id => 19</tt>
       #                    would yield a URL like <tt>/accounts/19/purchases.xml</tt>).
-      # +query_options+ - A hash to add items to the query string for the request.
+      # +query_options+ - A \hash to add items to the query string for the request.
       #
       # ==== Examples
       #   Post.element_path(1)
@@ -471,7 +477,7 @@ module ActiveResource
       # ==== Options
       #
       # * <tt>:from</tt> - Sets the path or custom method that resources will be fetched from.
-      # * <tt>:params</tt> - Sets query and prefix (nested URL) parameters.
+      # * <tt>:params</tt> - Sets query and \prefix (nested URL) parameters.
       #
       # ==== Examples
       #   Person.find(1)
@@ -519,7 +525,7 @@ module ActiveResource
       # Deletes the resources with the ID in the +id+ parameter.
       #
       # ==== Options
-      # All options specify prefix and query parameters.
+      # All options specify \prefix and query parameters.
       #
       # ==== Examples
       #   Event.delete(2) # sends DELETE /events/2
@@ -630,8 +636,8 @@ module ActiveResource
     attr_accessor :attributes #:nodoc:
     attr_accessor :prefix_options #:nodoc:
 
-    # Constructor method for new resources; the optional +attributes+ parameter takes a hash
-    # of attributes for the new resource.
+    # Constructor method for \new resources; the optional +attributes+ parameter takes a \hash
+    # of attributes for the \new resource.
     #
     # ==== Examples
     #   my_course = Course.new
@@ -647,8 +653,8 @@ module ActiveResource
       load(attributes)
     end
 
-    # Returns a clone of the resource that hasn't been assigned an +id+ yet and
-    # is treated as a new resource.
+    # Returns a \clone of the resource that hasn't been assigned an +id+ yet and
+    # is treated as a \new resource.
     #
     #   ryan = Person.find(1)
     #   not_ryan = ryan.clone
@@ -683,7 +689,7 @@ module ActiveResource
     end
 
 
-    # A method to determine if the resource a new object (i.e., it has not been POSTed to the remote service yet).
+    # A method to determine if the resource a \new object (i.e., it has not been POSTed to the remote service yet).
     #
     # ==== Examples
     #   not_new = Computer.create(:brand => 'Apple', :make => 'MacBook', :vendor => 'MacMall')
@@ -699,12 +705,12 @@ module ActiveResource
       id.nil?
     end
 
-    # Get the +id+ attribute of the resource.
+    # Gets the <tt>\id</tt> attribute of the resource.
     def id
       attributes[self.class.primary_key]
     end
 
-    # Set the +id+ attribute of the resource.
+    # Sets the <tt>\id</tt> attribute of the resource.
     def id=(id)
       attributes[self.class.primary_key] = id
     end
@@ -745,7 +751,7 @@ module ActiveResource
       self == other
     end
 
-    # Delegates to id in order to allow two resources of the same type and id to work with something like:
+    # Delegates to id in order to allow two resources of the same type and \id to work with something like:
     #   [Person.find(1), Person.find(2)] & [Person.find(1), Person.find(4)] # => [Person.find(1)]
     def hash
       id.hash
@@ -770,9 +776,9 @@ module ActiveResource
       end
     end
 
-    # A method to save (+POST+) or update (+PUT+) a resource.  It delegates to +create+ if a new object,
-    # +update+ if it is existing. If the response to the save includes a body, it will be assumed that this body
-    # is XML for the final object as it looked after the save (which would include attributes like +created_at+
+    # A method to \save (+POST+) or \update (+PUT+) a resource.  It delegates to +create+ if a \new object, 
+    # +update+ if it is existing. If the response to the \save includes a body, it will be assumed that this body
+    # is XML for the final object as it looked after the \save (which would include attributes like +created_at+
     # that weren't part of the original submit).
     #
     # ==== Examples
@@ -848,11 +854,16 @@ module ActiveResource
     #
     #   my_group.to_xml(:skip_instruct => true)
     #   # => <subsidiary_group> [...] </subsidiary_group>
-    def to_xml(options={})
-      attributes.to_xml({:root => self.class.element_name}.merge(options))
+    def encode(options={})
+      case self.class.format
+        when ActiveResource::Formats[:xml]
+          self.class.format.encode(attributes, {:root => self.class.element_name}.merge(options))
+        else
+          self.class.format.encode(attributes, options)
+      end
     end
 
-    # A method to reload the attributes of this object from the remote web service.
+    # A method to \reload the attributes of this object from the remote web service.
     #
     # ==== Examples
     #   my_branch = Branch.find(:first)
@@ -867,8 +878,8 @@ module ActiveResource
       self.load(self.class.find(to_param, :params => @prefix_options).attributes)
     end
 
-    # A method to manually load attributes from a hash. Recursively loads collections of
-    # resources.  This method is called in +initialize+ and +create+ when a hash of attributes
+    # A method to manually load attributes from a \hash. Recursively loads collections of
+    # resources.  This method is called in +initialize+ and +create+ when a \hash of attributes
     # is provided.
     #
     # ==== Examples
@@ -910,8 +921,8 @@ module ActiveResource
     alias_method :respond_to_without_attributes?, :respond_to?
 
     # A method to determine if an object responds to a message (e.g., a method call). In Active Resource, a Person object with a
-    # +name+ attribute can answer <tt>true</tt> to <tt>my_person.respond_to?("name")</tt>, <tt>my_person.respond_to?("name=")</tt>, and
-    # <tt>my_person.respond_to?("name?")</tt>.
+    # +name+ attribute can answer <tt>true</tt> to <tt>my_person.respond_to?(:name)</tt>, <tt>my_person.respond_to?(:name=)</tt>, and
+    # <tt>my_person.respond_to?(:name?)</tt>.
     def respond_to?(method, include_priv = false)
       method_name = method.to_s
       if attributes.nil?
@@ -934,14 +945,14 @@ module ActiveResource
 
       # Update the resource on the remote service.
       def update
-        returning connection.put(element_path(prefix_options), to_xml, self.class.headers) do |response|
+        returning connection.put(element_path(prefix_options), encode, self.class.headers) do |response|
           load_attributes_from_response(response)
         end
       end
 
-      # Create (i.e., save to the remote service) the new resource.
+      # Create (i.e., \save to the remote service) the \new resource.
       def create
-        returning connection.post(collection_path, to_xml, self.class.headers) do |response|
+        returning connection.post(collection_path, encode, self.class.headers) do |response|
           self.id = id_from_response(response)
           load_attributes_from_response(response)
         end
@@ -1007,7 +1018,7 @@ module ActiveResource
       end
 
       def split_options(options = {})
-        self.class.send!(:split_options, options)
+        self.class.__send__(:split_options, options)
       end
 
       def method_missing(method_symbol, *arguments) #:nodoc:

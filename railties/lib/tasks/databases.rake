@@ -28,8 +28,24 @@ namespace :db do
 
   def create_database(config)
     begin
-      ActiveRecord::Base.establish_connection(config)
-      ActiveRecord::Base.connection
+      if config['adapter'] =~ /sqlite/
+        if File.exist?(config['database'])
+          $stderr.puts "#{config['database']} already exists"
+        else
+          begin
+            # Create the SQLite database
+            ActiveRecord::Base.establish_connection(config)
+            ActiveRecord::Base.connection
+          rescue
+            $stderr.puts $!, *($!.backtrace)
+            $stderr.puts "Couldn't create database for #{config.inspect}"
+          end
+        end
+        return # Skip the else clause of begin/rescue    
+      else
+        ActiveRecord::Base.establish_connection(config)
+        ActiveRecord::Base.connection
+      end
     rescue
       case config['adapter']
       when 'mysql'
@@ -52,10 +68,6 @@ namespace :db do
           $stderr.puts $!, *($!.backtrace)
           $stderr.puts "Couldn't create database for #{config.inspect}"
         end
-      when 'sqlite'
-        `sqlite "#{config['database']}"`
-      when 'sqlite3'
-        `sqlite3 "#{config['database']}"`
       end
     else
       $stderr.puts "#{config['database']} already exists"
@@ -101,8 +113,16 @@ namespace :db do
   end
 
   namespace :migrate do
-    desc  'Rollbacks the database one migration and re migrate up. If you want to rollback more than one step, define STEP=x'
-    task :redo => [ 'db:rollback', 'db:migrate' ]
+    desc  'Rollbacks the database one migration and re migrate up. If you want to rollback more than one step, define STEP=x. Target specific version with VERSION=x.'
+    task :redo => :environment do
+      if ENV["VERSION"]
+        Rake::Task["db:migrate:down"].invoke
+        Rake::Task["db:migrate:up"].invoke
+      else
+        Rake::Task["db:rollback"].invoke
+        Rake::Task["db:migrate"].invoke
+      end
+    end
 
     desc 'Resets your database using your migrations for the current environment'
     task :reset => ["db:drop", "db:create", "db:migrate"]

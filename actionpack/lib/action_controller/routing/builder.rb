@@ -187,12 +187,14 @@ module ActionController
       private
         def validate_route_conditions(conditions)
           if method = conditions[:method]
-            if method == :head
-              raise ArgumentError, "HTTP method HEAD is invalid in route conditions. Rails processes HEAD requests the same as GETs, returning just the response headers"
-            end
+            [method].flatten.each do |m|
+              if m == :head
+                raise ArgumentError, "HTTP method HEAD is invalid in route conditions. Rails processes HEAD requests the same as GETs, returning just the response headers"
+              end
 
-            unless HTTP_METHODS.include?(method.to_sym)
-              raise ArgumentError, "Invalid HTTP method specified in route conditions: #{conditions.inspect}"
+              unless HTTP_METHODS.include?(m.to_sym)
+                raise ArgumentError, "Invalid HTTP method specified in route conditions: #{conditions.inspect}"
+              end
             end
           end
         end

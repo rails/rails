@@ -80,7 +80,7 @@ module ActiveRecord
       def extract_default(default)
         if type == :binary || type == :text
           if default.blank?
-            nil
+            return null ? nil : ''
           else
             raise ArgumentError, "#{type} columns cannot have a default value: #{default.inspect}"
           end
@@ -89,6 +89,11 @@ module ActiveRecord
         else
           super
         end
+      end
+
+      def has_default?
+        return false if type == :binary || type == :text #mysql forbids defaults on blob and text columns
+        super
       end
 
       private
@@ -280,6 +285,14 @@ module ActiveRecord
         @connection.close rescue nil
       end
 
+      def reset!
+        if @connection.respond_to?(:change_user)
+          # See http://bugs.mysql.com/bug.php?id=33540 -- the workaround way to
+          # reset the connection is to change the user to the same user.
+          @connection.change_user(@config[:username], @config[:password], @config[:database])
+          configure_connection
+        end
+      end
 
       # DATABASE STATEMENTS ======================================
 
@@ -515,6 +528,10 @@ module ActiveRecord
         "= BINARY"
       end
 
+      def limited_update_conditions(where_sql, quoted_table_name, quoted_primary_key)
+        where_sql
+      end
+
       private
         def connect
           @connection.reconnect = true if @connection.respond_to?(:reconnect=)
@@ -529,7 +546,11 @@ module ActiveRecord
           end
 
           @connection.real_connect(*@connection_options)
+          configure_connection
+        end
 
+        def configure_connection
+          encoding = @config[:encoding]
           execute("SET NAMES '#{encoding}'") if encoding
 
           # By default, MySQL 'where id is null' selects the last inserted id.

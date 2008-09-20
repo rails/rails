@@ -28,7 +28,7 @@ module ActiveSupport #:nodoc:
           rescue Errno::ENOENT
             # No old permissions, write a temp file to determine the defaults
             check_name = ".permissions_check.#{Thread.current.object_id}.#{Process.pid}.#{rand(1000000)}"
-            new(check_name, "w")
+            open(check_name, "w") { }
             old_stat = stat(check_name)
             unlink(check_name)
           end

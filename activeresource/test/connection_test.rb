@@ -168,12 +168,20 @@ class ConnectionTest < Test::Unit::TestCase
     assert_equal 200, response.code
   end
 
-  uses_mocha('test_timeout') do
+  uses_mocha('test_timeout, test_accept_http_header') do
     def test_timeout
       @http = mock('new Net::HTTP')
       @conn.expects(:http).returns(@http)
       @http.expects(:get).raises(Timeout::Error, 'execution expired')
-      assert_raises(ActiveResource::TimeoutError) { @conn.get('/people_timeout.xml') }
+      assert_raise(ActiveResource::TimeoutError) { @conn.get('/people_timeout.xml') }
+    end
+
+    def test_accept_http_header
+      @http = mock('new Net::HTTP')
+      @conn.expects(:http).returns(@http)
+      path = '/people/1.xml'
+      @http.expects(:get).with(path,  {'Accept' => 'application/xhtml+xml'}).returns(ActiveResource::Response.new(@matz, 200, {'Content-Type' => 'text/xhtml'}))
+      assert_nothing_raised(Mocha::ExpectationError) { @conn.get(path, {'Accept' => 'application/xhtml+xml'}) }
     end
   end
 
@@ -185,6 +193,6 @@ class ConnectionTest < Test::Unit::TestCase
     end
 
     def handle_response(response)
-      @conn.send!(:handle_response, response)
+      @conn.__send__(:handle_response, response)
     end
 end

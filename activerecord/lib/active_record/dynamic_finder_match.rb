@@ -8,7 +8,8 @@ module ActiveRecord
     def initialize(method)
       @finder = :find_initial
       case method.to_s
-      when /^find_(all_by|by)_([_a-zA-Z]\w*)$/
+      when /^find_(all_by|last_by|by)_([_a-zA-Z]\w*)$/
+        @finder = :find_last if $1 == 'last_by'
         @finder = :find_every if $1 == 'all_by'
         names = $2
       when /^find_by_([_a-zA-Z]\w*)\!$/

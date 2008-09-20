@@ -1,5 +1,14 @@
 require 'action_view/helpers/tag_helper'
-require 'html/document'
+
+begin
+  require 'html/document'
+rescue LoadError
+  html_scanner_path = "#{File.dirname(__FILE__)}/../../action_controller/vendor/html-scanner"
+  if File.directory?(html_scanner_path)
+    $:.unshift html_scanner_path
+    require 'html/document'
+  end
+end
 
 module ActionView
   module Helpers #:nodoc:

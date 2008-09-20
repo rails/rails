@@ -18,8 +18,8 @@ class SchemaAuthorizationTest < ActiveRecord::TestCase
     @connection.execute "SET search_path TO '$user',public"
     set_session_auth
     USERS.each do |u|
-      @connection.execute "CREATE USER #{u}"
-      @connection.execute "CREATE SCHEMA AUTHORIZATION #{u}"
+      @connection.execute "CREATE USER #{u}" rescue nil
+      @connection.execute "CREATE SCHEMA AUTHORIZATION #{u}" rescue nil
       set_session_auth u
       @connection.execute "CREATE TABLE #{TABLE_NAME} (#{COLUMNS.join(',')})"
       @connection.execute "INSERT INTO #{TABLE_NAME} (name) VALUES ('#{u}')"

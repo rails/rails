@@ -396,54 +396,31 @@ module ActionController
       #   # The same, but shorter.
       #   assert_select "ol>li", 4
       def assert_select_rjs(*args, &block)
-        rjs_type = nil
-        arg      = args.shift
+        rjs_type = args.first.is_a?(Symbol) ? args.shift : nil
+        id       = args.first.is_a?(String) ? args.shift : nil
 
         # If the first argument is a symbol, it's the type of RJS statement we're looking
         # for (update, replace, insertion, etc). Otherwise, we're looking for just about
         # any RJS statement.
-        if arg.is_a?(Symbol)
-          rjs_type = arg
-
+        if rjs_type
           if rjs_type == :insert
-            arg = args.shift
-            position  = arg
-            insertion = "insert_#{arg}".to_sym
-            raise ArgumentError, "Unknown RJS insertion type #{arg}" unless RJS_STATEMENTS[insertion]
+            position  = args.shift
+            insertion = "insert_#{position}".to_sym
+            raise ArgumentError, "Unknown RJS insertion type #{position}" unless RJS_STATEMENTS[insertion]
             statement = "(#{RJS_STATEMENTS[insertion]})"
           else
             raise ArgumentError, "Unknown RJS statement type #{rjs_type}" unless RJS_STATEMENTS[rjs_type]
             statement = "(#{RJS_STATEMENTS[rjs_type]})"
           end
-          arg = args.shift
         else
           statement = "#{RJS_STATEMENTS[:any]}"
         end
-        position ||= Regexp.new(RJS_INSERTIONS.join('|'))
 
         # Next argument we're looking for is the element identifier. If missing, we pick
-        # any element.
-        if arg.is_a?(String)
-          id = Regexp.quote(arg)
-          arg = args.shift
-        else
-          id = "[^\"]*"
-        end
-
-        pattern =
-          case rjs_type
-            when :chained_replace, :chained_replace_html
-              Regexp.new("\\$\\(\"#{id}\"\\)#{statement}\\(#{RJS_PATTERN_HTML}\\)", Regexp::MULTILINE)
-            when :remove, :show, :hide, :toggle
-              Regexp.new("#{statement}\\(\"#{id}\"\\)")
-            when :replace, :replace_html
-              Regexp.new("#{statement}\\(\"#{id}\", #{RJS_PATTERN_HTML}\\)")
-            when :insert, :insert_html
-              Regexp.new("Element.insert\\(\\\"#{id}\\\", \\{ #{position}: #{RJS_PATTERN_HTML} \\}\\);")
-             else
-              Regexp.union(Regexp.new("#{statement}\\(\"#{id}\", #{RJS_PATTERN_HTML}\\)"),
-                Regexp.new("Element.insert\\(\\\"#{id}\\\", \\{ #{position}: #{RJS_PATTERN_HTML} \\}\\);"))
-           end
+        # any element, otherwise we replace it in the statement.
+        pattern = Regexp.new(
+          id ? statement.gsub(RJS_ANY_ID, "\"#{id}\"") : statement
+        )
 
         # Duplicate the body since the next step involves destroying it.
         matches = nil
@@ -472,7 +449,13 @@ module ActionController
           matches
         else
           # RJS statement not found.
-          flunk args.shift || "No RJS statement that replaces or inserts HTML content."
+          case rjs_type
+            when :remove, :show, :hide, :toggle
+              flunk_message = "No RJS statement that #{rjs_type.to_s}s '#{id}' was rendered."
+            else
+              flunk_message = "No RJS statement that replaces or inserts HTML content."
+          end
+          flunk args.shift || flunk_message
         end
       end
 
@@ -582,26 +565,23 @@ module ActionController
 
       protected
         unless const_defined?(:RJS_STATEMENTS)
-          RJS_STATEMENTS = {
-            :replace              => /Element\.replace/,
-            :replace_html         => /Element\.update/,
-            :chained_replace      => /\.replace/,
-            :chained_replace_html => /\.update/,
-            :remove               => /Element\.remove/,
-            :show                 => /Element\.show/,
-            :hide                 => /Element\.hide/,
-            :toggle                 => /Element\.toggle/
+          RJS_PATTERN_HTML  = "\"((\\\\\"|[^\"])*)\""
+          RJS_ANY_ID        = "\"([^\"])*\""
+          RJS_STATEMENTS    = {
+            :chained_replace      => "\\$\\(#{RJS_ANY_ID}\\)\\.replace\\(#{RJS_PATTERN_HTML}\\)",
+            :chained_replace_html => "\\$\\(#{RJS_ANY_ID}\\)\\.update\\(#{RJS_PATTERN_HTML}\\)",
+            :replace_html         => "Element\\.update\\(#{RJS_ANY_ID}, #{RJS_PATTERN_HTML}\\)",
+            :replace              => "Element\\.replace\\(#{RJS_ANY_ID}, #{RJS_PATTERN_HTML}\\)"
           }
-          RJS_STATEMENTS[:any] = Regexp.new("(#{RJS_STATEMENTS.values.join('|')})")
-          RJS_PATTERN_HTML = /"((\\"|[^"])*)"/
-          RJS_INSERTIONS = [:top, :bottom, :before, :after]
-          RJS_INSERTIONS.each do |insertion|
-            RJS_STATEMENTS["insert_#{insertion}".to_sym] = /Element.insert\(\"([^\"]*)\", \{ #{insertion.to_s.downcase}: #{RJS_PATTERN_HTML} \}\);/
+          [:remove, :show, :hide, :toggle].each do |action|
+            RJS_STATEMENTS[action] = "Element\\.#{action}\\(#{RJS_ANY_ID}\\)"
           end
-          RJS_STATEMENTS[:insert_html] = Regexp.new(RJS_INSERTIONS.collect do |insertion|
-            /Element.insert\(\"([^\"]*)\", \{ #{insertion.to_s.downcase}: #{RJS_PATTERN_HTML} \}\);/
-          end.join('|'))
-          RJS_PATTERN_EVERYTHING = Regexp.new("#{RJS_STATEMENTS[:any]}\\(\"([^\"]*)\", #{RJS_PATTERN_HTML}\\)", Regexp::MULTILINE)
+          RJS_INSERTIONS = ["top", "bottom", "before", "after"]
+          RJS_INSERTIONS.each do |insertion|
+            RJS_STATEMENTS["insert_#{insertion}".to_sym] = "Element.insert\\(#{RJS_ANY_ID}, \\{ #{insertion}: #{RJS_PATTERN_HTML} \\}\\)"
+          end
+          RJS_STATEMENTS[:insert_html] = "Element.insert\\(#{RJS_ANY_ID}, \\{ (#{RJS_INSERTIONS.join('|')}): #{RJS_PATTERN_HTML} \\}\\)"
+          RJS_STATEMENTS[:any] = Regexp.new("(#{RJS_STATEMENTS.values.join('|')})")
           RJS_PATTERN_UNICODE_ESCAPED_CHAR = /\\u([0-9a-zA-Z]{4})/
         end
 
@@ -615,8 +595,8 @@ module ActionController
             root = HTML::Node.new(nil)
 
             while true
-              next if body.sub!(RJS_PATTERN_EVERYTHING) do |match|
-                html = unescape_rjs($3)
+              next if body.sub!(RJS_STATEMENTS[:any]) do |match|
+                html = unescape_rjs(match)
                 matches = HTML::Document.new(html).root.children.select { |n| n.tag? }
                 root.children.concat matches
                 ""

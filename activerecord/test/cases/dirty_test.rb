@@ -45,6 +45,19 @@ class DirtyTest < ActiveRecord::TestCase
     assert_nil pirate.catchphrase_change
   end
 
+  def test_aliased_attribute_changes
+    # the actual attribute here is name, title is an
+    # alias setup via alias_attribute
+    parrot = Parrot.new
+    assert !parrot.title_changed?
+    assert_nil parrot.title_change
+
+    parrot.name = 'Sam'
+    assert parrot.title_changed?
+    assert_nil parrot.title_was
+    assert_equal parrot.name_change, parrot.title_change
+  end
+
   def test_nullable_integer_not_marked_as_changed_if_new_value_is_blank
     pirate = Pirate.new
 
@@ -189,6 +202,42 @@ class DirtyTest < ActiveRecord::TestCase
     assert pirate.changed?
     pirate.reload
     assert !pirate.changed?
+  end
+
+  def test_reverted_changes_are_not_dirty
+    phrase = "shiver me timbers"
+    pirate = Pirate.create!(:catchphrase => phrase)
+    pirate.catchphrase = "*hic*"
+    assert pirate.changed?
+    pirate.catchphrase = phrase
+    assert !pirate.changed?
+  end
+
+  def test_reverted_changes_are_not_dirty_after_multiple_changes
+    phrase = "shiver me timbers"
+    pirate = Pirate.create!(:catchphrase => phrase)
+    10.times do |i|
+      pirate.catchphrase = "*hic*" * i
+      assert pirate.changed?
+    end
+    assert pirate.changed?
+    pirate.catchphrase = phrase
+    assert !pirate.changed?
+  end
+
+
+  def test_reverted_changes_are_not_dirty_going_from_nil_to_value_and_back
+    pirate = Pirate.create!(:catchphrase => "Yar!")
+
+    pirate.parrot_id = 1
+    assert pirate.changed?
+    assert pirate.parrot_id_changed?
+    assert !pirate.catchphrase_changed?
+
+    pirate.parrot_id = nil
+    assert !pirate.changed?
+    assert !pirate.parrot_id_changed?
+    assert !pirate.catchphrase_changed?
   end
 
   def test_save_should_store_serialized_attributes_even_with_partial_updates

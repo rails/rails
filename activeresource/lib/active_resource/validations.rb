@@ -216,39 +216,25 @@ module ActiveResource
     end
   end
   
-  # Module to allow validation of Active Resource objects, which creates an Errors instance for every resource.
-  # Methods are implemented by overriding Base#validate or its variants   Each of these methods can inspect 
-  # the state of the object, which usually means  ensuring that a number of attributes have a certain value 
-  # (such as not empty, within a given range, matching a certain regular expression and so on).
+  # Module to support validation and errors with Active Resource objects. The module overrides
+  # Base#save to rescue ActiveResource::ResourceInvalid exceptions and parse the errors returned 
+  # in the web service response. The module also adds an +errors+ collection that mimics the interface 
+  # of the errors provided by ActiveRecord::Errors.
   #
   # ==== Example
   #
-  #   class Person < ActiveResource::Base
-  #      self.site = "http://www.localhost.com:3000/"
-  #      protected
-  #        def validate
-  #          errors.add_on_empty %w( first_name last_name )
-  #          errors.add("phone_number", "has invalid format") unless phone_number =~ /[0-9]*/
-  #        end
+  # Consider a Person resource on the server requiring both a +first_name+ and a +last_name+ with a 
+  # <tt>validates_presence_of :first_name, :last_name</tt> declaration in the model:
   #
-  #        def validate_on_create # is only run the first time a new object is saved
-  #          unless valid_member?(self)
-  #            errors.add("membership_discount", "has expired")
-  #          end
-  #        end
-  #
-  #        def validate_on_update
-  #          errors.add_to_base("No changes have occurred") if unchanged_attributes?
-  #        end
-  #   end
-  #   
-  #   person = Person.new("first_name" => "Jim", "phone_number" => "I will not tell you.")
-  #   person.save                         # => false (and doesn't do the save)
-  #   person.errors.empty?                # => false
-  #   person.errors.count                 # => 2
-  #   person.errors.on "last_name"        # => "can't be empty"
-  #   person.attributes = { "last_name" => "Halpert", "phone_number" => "555-5555" }
-  #   person.save                         # => true (and person is now saved to the remote service)
+  #   person = Person.new(:first_name => "Jim", :last_name => "")
+  #   person.save                   # => false (server returns an HTTP 422 status code and errors)
+  #   person.valid?                 # => false
+  #   person.errors.empty?          # => false
+  #   person.errors.count           # => 1
+  #   person.errors.full_messages   # => ["Last name can't be empty"]
+  #   person.errors.on(:last_name)  # => "can't be empty"
+  #   person.last_name = "Halpert"  
+  #   person.save                   # => true (and person is now saved to the remote service)
   #
   module Validations
     def self.included(base) # :nodoc:

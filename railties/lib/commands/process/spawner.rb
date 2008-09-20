@@ -181,10 +181,10 @@ ARGV.options do |opts|
 
   opts.on("  Options:")
 
-  opts.on("-p", "--port=number",      Integer, "Starting port number (default: #{OPTIONS[:port]})")                { |OPTIONS[:port]| }
+  opts.on("-p", "--port=number",      Integer, "Starting port number (default: #{OPTIONS[:port]})")                { |v| OPTIONS[:port] = v }
 
   if spawner_class.can_bind_to_custom_address?
-    opts.on("-a", "--address=ip",     String,  "Bind to IP address (default: #{OPTIONS[:address]})")                { |OPTIONS[:address]| }
+    opts.on("-a", "--address=ip",     String,  "Bind to IP address (default: #{OPTIONS[:address]})")                { |v| OPTIONS[:address] = v }
   end
 
   opts.on("-p", "--port=number",      Integer, "Starting port number (default: #{OPTIONS[:port]})")                { |v| OPTIONS[:port] = v }

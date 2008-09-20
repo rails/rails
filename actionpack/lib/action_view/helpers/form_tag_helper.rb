@@ -116,7 +116,7 @@ module ActionView
 
       # Creates a label field
       #
-      # ==== Options
+      # ==== Options  
       # * Creates standard HTML attributes for the tag.
       #
       # ==== Examples
@@ -155,10 +155,10 @@ module ActionView
       # Creates a file upload field.  If you are using file uploads then you will also need
       # to set the multipart option for the form tag:
       #
-      #   <%= form_tag { :action => "post" }, { :multipart => true } %>
+      #   <% form_tag '/upload', :multipart => true do %>
       #     <label for="file">File to Upload</label> <%= file_field_tag "file" %>
       #     <%= submit_tag %>
-      #   <%= end_form_tag %>
+      #   <% end %>
       #
       # The specified URL will then be passed a File object containing the selected file, or if the field
       # was left blank, a StringIO object.
@@ -351,19 +351,16 @@ module ActionView
           disable_with = "this.value='#{disable_with}'"
           disable_with << ";#{options.delete('onclick')}" if options['onclick']
           
-          options["onclick"] = [
-            "this.setAttribute('originalValue', this.value)",
-            "this.disabled=true",
-            disable_with,
-            "result = (this.form.onsubmit ? (this.form.onsubmit() ? this.form.submit() : false) : this.form.submit())",
-            "if (result == false) { this.value = this.getAttribute('originalValue'); this.disabled = false }",
-            "return result;",
-          ].join(";")
+          options["onclick"]  = "if (window.hiddenCommit) { window.hiddenCommit.setAttribute('value', this.value); }"
+          options["onclick"] << "else { hiddenCommit = this.cloneNode(false);hiddenCommit.setAttribute('type', 'hidden');this.form.appendChild(hiddenCommit); }"
+          options["onclick"] << "this.setAttribute('originalValue', this.value);this.disabled = true;#{disable_with};"
+          options["onclick"] << "result = (this.form.onsubmit ? (this.form.onsubmit() ? this.form.submit() : false) : this.form.submit());"
+          options["onclick"] << "if (result == false) { this.value = this.getAttribute('originalValue');this.disabled = false; }return result;"
         end
 
         if confirm = options.delete("confirm")
           options["onclick"] ||= ''
-          options["onclick"] += "return #{confirm_javascript_function(confirm)};"
+          options["onclick"] << "return #{confirm_javascript_function(confirm)};"
         end
 
         tag :input, { "type" => "submit", "name" => "commit", "value" => value }.update(options.stringify_keys)
@@ -374,6 +371,9 @@ module ActionView
       # <tt>source</tt> is passed to AssetTagHelper#image_path
       #
       # ==== Options
+      # * <tt>:confirm => 'question?'</tt> - This will add a JavaScript confirm
+      #   prompt with the question specified. If the user accepts, the form is
+      #   processed normally, otherwise no action is taken.
       # * <tt>:disabled</tt> - If set to true, the user will not be able to use this input.
       # * Any other key creates standard HTML options for the tag.
       #
@@ -390,6 +390,13 @@ module ActionView
       #   image_submit_tag("agree.png", :disabled => true, :class => "agree-disagree-button")
       #   # => <input class="agree-disagree-button" disabled="disabled" src="/images/agree.png" type="image" />
       def image_submit_tag(source, options = {})
+        options.stringify_keys!
+
+        if confirm = options.delete("confirm")
+          options["onclick"] ||= ''
+          options["onclick"] += "return #{confirm_javascript_function(confirm)};"
+        end
+
         tag :input, { "type" => "image", "src" => path_to_image(source) }.update(options.stringify_keys)
       end
 

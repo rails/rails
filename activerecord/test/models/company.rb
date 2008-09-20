@@ -55,6 +55,8 @@ class Firm < Company
   has_many :readonly_clients, :class_name => 'Client', :readonly => true
   has_many :clients_using_primary_key, :class_name => 'Client',
            :primary_key => 'name', :foreign_key => 'firm_name'
+  has_many :clients_grouped_by_firm_id, :class_name => "Client", :group => "firm_id", :select => "firm_id"
+  has_many :clients_grouped_by_name, :class_name => "Client", :group => "name", :select => "name"
 
   has_one :account, :foreign_key => "firm_id", :dependent => :destroy, :validate => true
   has_one :unvalidated_account, :foreign_key => "firm_id", :class_name => 'Account', :validate => false

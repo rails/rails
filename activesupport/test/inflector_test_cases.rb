@@ -142,6 +142,14 @@ module InflectorTestCases
     "NodeChild"        => "node_children"
   }
 
+  StringToParameterized = {
+    "Donald E. Knuth"                     => "donald-e-knuth",
+    "Random text with *(bad)* characters" => "random-text-with-bad-characters",
+    "Malmö"                               => "malmo",
+    "Garçons"                             => "garcons",
+    "Allow_Under_Scores"                  => "allow_under_scores"
+  }
+
   UnderscoreToHuman = {
     "employee_salary" => "Employee salary",
     "employee_id"     => "Employee",

@@ -1,3 +1,5 @@
+require 'set'
+
 module Mime
   SET              = []
   EXTENSION_LOOKUP = Hash.new { |h, k| h[k] = Type.new(k) unless k.blank? }

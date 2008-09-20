@@ -103,9 +103,10 @@ module ActionController
         end
 
         # This case uses almost the same code as positional arguments,
-        # but add an args.last.to_query on the end
+        # but add a question mark and args.last.to_query on the end,
+        # unless the last arg is empty
         def generation_code
-          super.insert(-2, '?#{args.last.to_query}')
+          super.insert(-2, '#{\'?\' + args.last.to_query unless args.last.empty?}')
         end
 
         # To avoid generating "http://localhost/?host=foo.example.com" we

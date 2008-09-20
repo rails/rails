@@ -1,5 +1,7 @@
 *Edge*
 
+* Fixed that sqlite would report "db/development.sqlite3 already exists" whether true or not on db:create #614 [Antonio Cangiano]
+
 * Added config.threadsafe! to toggle allow concurrency settings and disable the dependency loader [Josh Peek]
 
 * Turn cache_classes on by default [Josh Peek]

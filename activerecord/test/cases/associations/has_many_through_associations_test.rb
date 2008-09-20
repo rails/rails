@@ -196,4 +196,28 @@ class HasManyThroughAssociationsTest < ActiveRecord::TestCase
     # due to Unknown column 'comments.id'
     assert Person.find(1).posts_with_comments_sorted_by_comment_id.find_by_title('Welcome to the weblog')
   end
+
+  def test_count_with_include_should_alias_join_table
+    assert_equal 2, people(:michael).posts.count(:include => :readers)
+  end
+
+  def test_get_ids
+    assert_equal [posts(:welcome).id, posts(:authorless).id].sort, people(:michael).post_ids.sort
+  end
+
+  def test_get_ids_for_loaded_associations
+    person = people(:michael)
+    person.posts(true)
+    assert_queries(0) do
+      person.post_ids
+      person.post_ids
+    end
+  end
+
+  def test_get_ids_for_unloaded_associations_does_not_load_them
+    person = people(:michael)
+    assert !person.posts.loaded?
+    assert_equal [posts(:welcome).id, posts(:authorless).id].sort, person.post_ids.sort
+    assert !person.posts.loaded?
+  end
 end

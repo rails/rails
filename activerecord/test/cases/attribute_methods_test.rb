@@ -1,5 +1,6 @@
 require "cases/helper"
 require 'models/topic'
+require 'models/minimalistic'
 
 class AttributeMethodsTest < ActiveRecord::TestCase
   fixtures :topics
@@ -217,6 +218,14 @@ class AttributeMethodsTest < ActiveRecord::TestCase
       assert_equal ActiveSupport::TimeZone["Pacific Time (US & Canada)"], record.written_on.time_zone
       assert_equal Time.utc(2007, 12, 31, 16), record.written_on.time
     end
+  end
+
+  def test_setting_time_zone_conversion_for_attributes_should_write_value_on_class_variable
+    Topic.skip_time_zone_conversion_for_attributes = [:field_a]
+    Minimalistic.skip_time_zone_conversion_for_attributes = [:field_b]
+    
+    assert_equal [:field_a], Topic.skip_time_zone_conversion_for_attributes 
+    assert_equal [:field_b], Minimalistic.skip_time_zone_conversion_for_attributes 
   end
 
   private

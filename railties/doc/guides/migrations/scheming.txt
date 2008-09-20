@@ -1,0 +1,47 @@
+== Schema dumping and you ==
+[[schema]]
+=== What are schema files for? ===
+Migrations, mighty as they may be, are not the authoritative source for your database schema. That role falls to either `schema.rb` or an SQL file which Active Record generates by examining the database. They are not designed to be edited, they just represent the current state of the database.
+
+There is no need (and it is error prone) to deploy a new instance of an app by replaying the entire migration history. It is much simpler and faster to just load into the database a description of the current schema.
+
+For example, this is how the test database is created: the current development database is dumped (either to `schema.rb` or `development.sql`) and then loaded into the test database.
+
+Schema files are also useful if want a quick look at what attributes an Active Record object has. This information is not in the model's code and is frequently spread across several migrations but is all summed up in the schema file. The http://agilewebdevelopment.com/plugins/annotate_models[annotate_models] plugin, which automatically adds (and updates) comments at the top of each model summarising the schema, may also be of interest.
+
+=== Types of schema dumps === 
+There are two ways to dump the schema. This is set in `config/environment.rb` by the `config.active_record.schema_format` setting, which may be either `:sql` or `:ruby`.
+
+If `:ruby` is selected then the schema is stored in `db/schema.rb`. If you look at this file you'll find that it looks an awful lot like one very big migration:
+
+[source, ruby]
+--------------------------------------
+ActiveRecord::Schema.define(:version => 20080906171750) do
+  create_table "authors", :force => true do |t|
+    t.string   "name"
+    t.datetime "created_at"
+    t.datetime "updated_at"
+  end
+
+  create_table "products", :force => true do |t|
+    t.string   "name"
+    t.text     "description"
+    t.datetime "created_at"
+    t.datetime "updated_at"
+    t.string   "part_number"
+  end
+end
+--------------------------------------
+
+In many ways this is exactly what it is. This file is created by inspecting the database and expressing its structure using `create_table`, `add_index` and so on. Because this is database independent it could be loaded into any database that Active Record supports. This could be very useful if you were to distribute an application that is able to run against multiple databases.
+
+There is however a trade-off: `schema.rb` cannot express database specific items such as foreign key constraints, triggers or stored procedures. While in a migration you can execute custom SQL statements, the schema dumper cannot reconstitute those statements from the database. If you are using features like this then you should set the schema format to `:sql`. 
+
+Instead of using Active Record's schema dumper the database's structure will be dumped using a tool specific to that database (via the `db:structure:dump` Rake task) into `db/#\{RAILS_ENV\}_structure.sql`. For example for PostgreSQL the `pg_dump` utility is used and for MySQL this file will contain the output of SHOW CREATE TABLE for the various tables. Loading this schema is simply a question of executing the SQL statements contained inside.
+
+By definition this will be a perfect copy of the database's structure but this will usually prevent loading the schema into a database other than the one used to create it.
+
+=== Schema dumps and source control ===
+
+Because they are the authoritative source for your database schema, it is strongly recommended that you check them into source control.
+

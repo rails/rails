@@ -25,7 +25,7 @@ module ActiveModel
       # Configuration options:
       # * <tt>:message</tt> - Specifies a custom error message (default is: "has already been taken")
       # * <tt>:scope</tt> - One or more columns by which to limit the scope of the uniqueness constraint.
-      # * <tt>:case_sensitive</tt> - Looks for an exact match.  Ignored by non-text columns (+false+ by default).
+      # * <tt>:case_sensitive</tt> - Looks for an exact match.  Ignored by non-text columns (+true+ by default).
       # * <tt>:allow_nil</tt> - If set to +true+, skips this validation if the attribute is +nil+ (default is: +false+)
       # * <tt>:allow_blank</tt> - If set to +true+, skips this validation if the attribute is blank (default is: +false+)
       # * <tt>:if</tt> - Specifies a method, proc or string to call to determine if the validation should
@@ -79,8 +79,8 @@ module ActiveModel
           results = finder_class.with_exclusive_scope do
             connection.select_all(
               construct_finder_sql(
-                :select     => "#{attr_name}",
-                :from       => "#{finder_class.quoted_table_name}",
+                :select     => attr_name,
+                :from       => finder_class.quoted_table_name,
                 :conditions => [condition_sql, *condition_params]
               )
             )

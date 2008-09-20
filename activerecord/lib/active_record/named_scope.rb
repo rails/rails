@@ -1,10 +1,10 @@
 module ActiveRecord
   module NamedScope
-    # All subclasses of ActiveRecord::Base have two named_scopes:
-    # * <tt>all</tt>, which is similar to a <tt>find(:all)</tt> query, and
-    # * <tt>scoped</tt>, which allows for the creation of anonymous scopes, on the fly: <tt>Shirt.scoped(:conditions => {:color => 'red'}).scoped(:include => :washing_instructions)</tt>
+    # All subclasses of ActiveRecord::Base have two named \scopes:
+    # * <tt>all</tt> - which is similar to a <tt>find(:all)</tt> query, and
+    # * <tt>scoped</tt> - which allows for the creation of anonymous \scopes, on the fly: <tt>Shirt.scoped(:conditions => {:color => 'red'}).scoped(:include => :washing_instructions)</tt>
     #
-    # These anonymous scopes tend to be useful when procedurally generating complex queries, where passing
+    # These anonymous \scopes tend to be useful when procedurally generating complex queries, where passing
     # intermediate values (scopes) around as first-class objects is convenient.
     def self.included(base)
       base.class_eval do
@@ -26,20 +26,20 @@ module ActiveRecord
       #     named_scope :dry_clean_only, :joins => :washing_instructions, :conditions => ['washing_instructions.dry_clean_only = ?', true]
       #   end
       # 
-      # The above calls to <tt>named_scope</tt> define class methods <tt>Shirt.red</tt> and <tt>Shirt.dry_clean_only</tt>. <tt>Shirt.red</tt>, 
+      # The above calls to <tt>named_scope</tt> define class methods Shirt.red and Shirt.dry_clean_only. Shirt.red, 
       # in effect, represents the query <tt>Shirt.find(:all, :conditions => {:color => 'red'})</tt>.
       #
-      # Unlike Shirt.find(...), however, the object returned by <tt>Shirt.red</tt> is not an Array; it resembles the association object
+      # Unlike <tt>Shirt.find(...)</tt>, however, the object returned by Shirt.red is not an Array; it resembles the association object
       # constructed by a <tt>has_many</tt> declaration. For instance, you can invoke <tt>Shirt.red.find(:first)</tt>, <tt>Shirt.red.count</tt>,
       # <tt>Shirt.red.find(:all, :conditions => {:size => 'small'})</tt>. Also, just
-      # as with the association objects, name scopes acts like an Array, implementing Enumerable; <tt>Shirt.red.each(&block)</tt>,
-      # <tt>Shirt.red.first</tt>, and <tt>Shirt.red.inject(memo, &block)</tt> all behave as if Shirt.red really were an Array.
+      # as with the association objects, named \scopes act like an Array, implementing Enumerable; <tt>Shirt.red.each(&block)</tt>,
+      # <tt>Shirt.red.first</tt>, and <tt>Shirt.red.inject(memo, &block)</tt> all behave as if Shirt.red really was an Array.
       #
-      # These named scopes are composable. For instance, <tt>Shirt.red.dry_clean_only</tt> will produce all shirts that are both red and dry clean only.
+      # These named \scopes are composable. For instance, <tt>Shirt.red.dry_clean_only</tt> will produce all shirts that are both red and dry clean only.
       # Nested finds and calculations also work with these compositions: <tt>Shirt.red.dry_clean_only.count</tt> returns the number of garments
       # for which these criteria obtain. Similarly with <tt>Shirt.red.dry_clean_only.average(:thread_count)</tt>.
       #
-      # All scopes are available as class methods on the ActiveRecord::Base descendent upon which the scopes were defined. But they are also available to
+      # All \scopes are available as class methods on the ActiveRecord::Base descendent upon which the \scopes were defined. But they are also available to
       # <tt>has_many</tt> associations. If,
       #
       #   class Person < ActiveRecord::Base
@@ -49,7 +49,7 @@ module ActiveRecord
       # then <tt>elton.shirts.red.dry_clean_only</tt> will return all of Elton's red, dry clean
       # only shirts.
       #
-      # Named scopes can also be procedural.
+      # Named \scopes can also be procedural:
       #
       #   class Shirt < ActiveRecord::Base
       #     named_scope :colored, lambda { |color|
@@ -59,7 +59,7 @@ module ActiveRecord
       #
       # In this example, <tt>Shirt.colored('puce')</tt> finds all puce shirts.
       #
-      # Named scopes can also have extensions, just as with <tt>has_many</tt> declarations:
+      # Named \scopes can also have extensions, just as with <tt>has_many</tt> declarations:
       #
       #   class Shirt < ActiveRecord::Base
       #     named_scope :red, :conditions => {:color => 'red'} do
@@ -70,7 +70,7 @@ module ActiveRecord
       #   end
       #
       #
-      # For testing complex named scopes, you can examine the scoping options using the
+      # For testing complex named \scopes, you can examine the scoping options using the
       # <tt>proxy_options</tt> method on the proxy itself.
       #
       #   class Shirt < ActiveRecord::Base
@@ -101,9 +101,9 @@ module ActiveRecord
     
     class Scope
       attr_reader :proxy_scope, :proxy_options
-
+      NON_DELEGATE_METHODS = %w(nil? send object_id class extend find size count sum average maximum minimum paginate first last empty? any? respond_to?).to_set
       [].methods.each do |m|
-        unless m =~ /(^__|^nil\?|^send|^object_id$|class|extend|^find$|count|sum|average|maximum|minimum|paginate|first|last|empty?|any?|respond_to?)/
+        unless m =~ /^__/ || NON_DELEGATE_METHODS.include?(m.to_s)
           delegate m, :to => :proxy_found
         end
       end
@@ -134,6 +134,10 @@ module ActiveRecord
         else
           find(:last, *args)
         end
+      end
+
+      def size
+        @found ? @found.length : count
       end
 
       def empty?

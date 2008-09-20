@@ -148,7 +148,7 @@ module ActionController #:nodoc:
       end
 
       # Overwrite to implement public exception handling (for requests answering false to <tt>local_request?</tt>).  By
-      # default will call render_optional_error_file.  Override this method to provide more user friendly error messages.s
+      # default will call render_optional_error_file.  Override this method to provide more user friendly error messages.
       def rescue_action_in_public(exception) #:doc:
         render_optional_error_file response_code_for_rescue(exception)
       end
@@ -177,11 +177,8 @@ module ActionController #:nodoc:
       # Render detailed diagnostics for unhandled exceptions rescued from
       # a controller action.
       def rescue_action_locally(exception)
-        add_variables_to_assigns
         @template.instance_variable_set("@exception", exception)
         @template.instance_variable_set("@rescues_path", File.dirname(rescues_path("stub")))
-        @template.send!(:assign_variables_from_controller)
-
         @template.instance_variable_set("@contents", @template.render(:file => template_path_for_local_rescue(exception)))
 
         response.content_type = Mime::HTML

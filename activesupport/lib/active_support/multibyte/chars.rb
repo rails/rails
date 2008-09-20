@@ -49,6 +49,11 @@ module ActiveSupport::Multibyte #:nodoc:
         false
     end
 
+    # Enable more predictable duck-typing on String-like classes. See Object#acts_like?.
+    def acts_like_string?
+      true
+    end
+
     # Create a new Chars instance.
     def initialize(str)
       @string = str.respond_to?(:string) ? str.string : str

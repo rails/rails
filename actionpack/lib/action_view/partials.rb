@@ -196,7 +196,7 @@ module ActionView
           path = "_#{partial_path}"
         end
 
-        pick_template(path)
+        _pick_template(path)
       end
       memoize :_pick_partial_template
   end

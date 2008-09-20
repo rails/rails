@@ -255,6 +255,14 @@ module ActionView
         link_to_function(name, remote_function(options), html_options || options.delete(:html))
       end
 
+      # Creates a button with an onclick event which calls a remote action
+      # via XMLHttpRequest
+      # The options for specifying the target with :url
+      # and defining callbacks is the same as link_to_remote.
+      def button_to_remote(name, options = {}, html_options = {})
+        button_to_function(name, remote_function(options), html_options)
+      end
+
       # Periodically calls the specified url (<tt>options[:url]</tt>) every
       # <tt>options[:frequency]</tt> seconds (default is 10). Usually used to
       # update a specified div (<tt>options[:update]</tt>) with the results
@@ -588,26 +596,8 @@ module ActionView
 
         private
           def include_helpers_from_context
-            unless generator_methods_module = @context.instance_variable_get(:@__javascript_generator_methods__)
-              modules = @context.extended_by - ([ActionView::Helpers] + ActionView::Helpers.included_modules)
-
-              generator_methods_module = Module.new do
-                modules.each do |mod|
-                  begin
-                    include mod
-                  rescue Exception => e
-                    # HACK: Probably not a good idea to suppress these warnings
-                    # AFAIK exceptions are only raised in while testing with mocha
-                    # because the module does not like to be included into other
-                    # non TestUnit classes
-                  end
-                end
-                include GeneratorMethods
-              end
-              @context.instance_variable_set(:@__javascript_generator_methods__, generator_methods_module)
-            end
-
-            extend generator_methods_module
+            extend @context.helpers if @context.respond_to?(:helpers)
+            extend GeneratorMethods
           end
 
         # JavaScriptGenerator generates blocks of JavaScript code that allow you
@@ -624,7 +614,7 @@ module ActionView
         # Example:
         #
         #   # Generates:
-        #   #     new Element.insert("list", { bottom: <li>Some item</li>" });
+        #   #     new Element.insert("list", { bottom: "<li>Some item</li>" });
         #   #     new Effect.Highlight("list");
         #   #     ["status-indicator", "cancel-link"].each(Element.hide);
         #   update_page do |page|
@@ -1070,7 +1060,7 @@ module ActionView
 
         js_options['asynchronous'] = options[:type] != :synchronous
         js_options['method']       = method_option_to_s(options[:method]) if options[:method]
-        js_options['insertion']    = options[:position].to_s.downcase if options[:position]
+        js_options['insertion']    = "'#{options[:position].to_s.downcase}'" if options[:position]
         js_options['evalScripts']  = options[:script].nil? || options[:script]
 
         if options[:form]

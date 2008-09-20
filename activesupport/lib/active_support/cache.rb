@@ -62,7 +62,7 @@ module ActiveSupport
           write(key, value, options)
           @logger_off = false
 
-          log("write (will save #{'%.5f' % seconds})", key, nil)
+          log("write (will save #{'%.2f' % (seconds * 1000)}ms)", key, nil)
 
           value
         end

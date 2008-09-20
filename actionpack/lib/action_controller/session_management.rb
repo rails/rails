@@ -60,6 +60,10 @@ module ActionController #:nodoc:
       #   # the session will only work over HTTPS, but only for the foo action
       #   session :only => :foo, :session_secure => true
       #
+      #   # the session by default uses HttpOnly sessions for security reasons.
+      #   # this can be switched off.
+      #   session :only => :foo, :session_http_only => false
+      #
       #   # the session will only be disabled for 'foo', and only if it is
       #   # requested as a web service
       #   session :off, :only => :foo,
@@ -86,14 +90,14 @@ module ActionController #:nodoc:
           raise ArgumentError, "only one of either :only or :except are allowed"
         end
 
-        write_inheritable_array("session_options", [options])
+        write_inheritable_array(:session_options, [options])
       end
 
       # So we can declare session options in the Rails initializer.
       alias_method :session=, :session
 
       def cached_session_options #:nodoc:
-        @session_options ||= read_inheritable_attribute("session_options") || []
+        @session_options ||= read_inheritable_attribute(:session_options) || []
       end
 
       def session_options_for(request, action) #:nodoc:

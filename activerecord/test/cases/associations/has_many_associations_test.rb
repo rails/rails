@@ -48,6 +48,12 @@ class HasManyAssociationsTest < ActiveRecord::TestCase
     assert_equal 2, Firm.find(:first).plain_clients.count(:name)
   end
 
+  def test_counting_with_association_limit
+    firm = companies(:first_firm)
+    assert_equal firm.limited_clients.length, firm.limited_clients.size
+    assert_equal firm.limited_clients.length, firm.limited_clients.count
+  end
+
   def test_finding
     assert_equal 2, Firm.find(:first).clients.length
   end
@@ -242,6 +248,13 @@ class HasManyAssociationsTest < ActiveRecord::TestCase
     assert_equal 1, grouped_clients_of_firm1.size
   end
 
+  def test_find_scoped_grouped
+    assert_equal 1, companies(:first_firm).clients_grouped_by_firm_id.size
+    assert_equal 1, companies(:first_firm).clients_grouped_by_firm_id.length
+    assert_equal 2, companies(:first_firm).clients_grouped_by_name.size
+    assert_equal 2, companies(:first_firm).clients_grouped_by_name.length
+  end
+
   def test_adding
     force_signal37_to_load_all_clients_of_firm
     natural = Client.new("name" => "Natural Company")
@@ -378,7 +391,7 @@ class HasManyAssociationsTest < ActiveRecord::TestCase
     company = companies(:first_firm)
     new_client = assert_no_queries { company.clients_of_firm.build("name" => "Another Client") }
     assert !company.clients_of_firm.loaded?
-    
+
     assert_equal "Another Client", new_client.name
     assert new_client.new_record?
     assert_equal new_client, company.clients_of_firm.last
@@ -410,7 +423,7 @@ class HasManyAssociationsTest < ActiveRecord::TestCase
   def test_build_many
     company = companies(:first_firm)
     new_clients = assert_no_queries { company.clients_of_firm.build([{"name" => "Another Client"}, {"name" => "Another Client II"}]) }
-    
+
     assert_equal 2, new_clients.size
     company.name += '-changed'
     assert_queries(3) { assert company.save }
@@ -649,10 +662,10 @@ class HasManyAssociationsTest < ActiveRecord::TestCase
 
   def test_creation_respects_hash_condition
     ms_client = companies(:first_firm).clients_like_ms_with_hash_conditions.build
-    
+
     assert        ms_client.save
     assert_equal  'Microsoft', ms_client.name
-    
+
     another_ms_client = companies(:first_firm).clients_like_ms_with_hash_conditions.create
 
     assert        !another_ms_client.new_record?
@@ -824,6 +837,22 @@ class HasManyAssociationsTest < ActiveRecord::TestCase
     assert_equal [companies(:first_client).id, companies(:second_client).id], companies(:first_firm).client_ids
   end
 
+  def test_get_ids_for_loaded_associations
+    company = companies(:first_firm)
+    company.clients(true)
+    assert_queries(0) do
+      company.client_ids
+      company.client_ids
+    end
+  end
+
+  def test_get_ids_for_unloaded_associations_does_not_load_them
+    company = companies(:first_firm)
+    assert !company.clients.loaded?
+    assert_equal [companies(:first_client).id, companies(:second_client).id], company.client_ids
+    assert !company.clients.loaded?
+  end
+
   def test_assign_ids
     firm = Firm.new("name" => "Apple")
     firm.client_ids = [companies(:first_client).id, companies(:second_client).id]
@@ -894,7 +923,7 @@ class HasManyAssociationsTest < ActiveRecord::TestCase
     assert_equal 4, authors(:david).limited_comments.find(:all, :conditions => "comments.type = 'SpecialComment'", :limit => 9_000).length
     assert_equal 4, authors(:david).limited_comments.find_all_by_type('SpecialComment', :limit => 9_000).length
   end
-  
+
   def test_find_all_include_over_the_same_table_for_through
     assert_equal 2, people(:michael).posts.find(:all, :include => :people).length
   end
@@ -931,13 +960,13 @@ class HasManyAssociationsTest < ActiveRecord::TestCase
   def test_include_loads_collection_if_target_uses_finder_sql
     firm = companies(:first_firm)
     client = firm.clients_using_sql.first
-    
+
     firm.reload
     assert ! firm.clients_using_sql.loaded?
     assert firm.clients_using_sql.include?(client)
     assert firm.clients_using_sql.loaded?
   end
-  
+
 
   def test_include_returns_false_for_non_matching_record_to_verify_scoping
     firm = companies(:first_firm)

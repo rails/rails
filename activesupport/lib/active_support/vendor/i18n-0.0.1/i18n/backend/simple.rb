@@ -1,15 +1,11 @@
-require 'strscan'
+require 'yaml'
 
 module I18n
   module Backend
     class Simple
-      # Allow client libraries to pass a block that populates the translation
-      # storage. Decoupled for backends like a db backend that persist their
-      # translations, so the backend can decide whether/when to yield or not.
-      def populate(&block)
-        yield
-      end
-    
+      INTERPOLATION_RESERVED_KEYS = %w(scope default)
+      MATCH = /(\\\\)?\{\{([^\}]+)\}\}/
+
       # Accepts a list of paths to translation files. Loads translations from 
       # plain Ruby (*.rb) or YAML files (*.yml). See #load_rb and #load_yml
       # for details.
@@ -47,12 +43,15 @@ module I18n
         raise ArgumentError, "Object must be a Date, DateTime or Time object. #{object.inspect} given." unless object.respond_to?(:strftime)
         
         type = object.respond_to?(:sec) ? 'time' : 'date'
+        # TODO only translate these if format is a String?
         formats = translate(locale, :"#{type}.formats")
         format = formats[format.to_sym] if formats && formats[format.to_sym]
         # TODO raise exception unless format found?
         format = format.to_s.dup
 
-        format.gsub!(/%a/, translate(locale, :"date.abbr_day_names")[object.wday])
+        # TODO only translate these if the format string is actually present
+        # TODO check which format strings are present, then bulk translate then, then replace them
+        format.gsub!(/%a/, translate(locale, :"date.abbr_day_names")[object.wday]) 
         format.gsub!(/%A/, translate(locale, :"date.day_names")[object.wday])
         format.gsub!(/%b/, translate(locale, :"date.abbr_month_names")[object.mon])
         format.gsub!(/%B/, translate(locale, :"date.month_names")[object.mon])
@@ -60,7 +59,16 @@ module I18n
         object.strftime(format)
       end
       
+      def initialized?
+        @initialized ||= false
+      end
+
       protected
+
+        def init_translations
+          load_translations(*I18n.load_path)
+          @initialized = true
+        end
         
         def translations
           @translations ||= {}
@@ -73,6 +81,7 @@ module I18n
         # <tt>%w(currency format)</tt>.
         def lookup(locale, key, scope = [])
           return unless key
+          init_translations unless initialized?
           keys = I18n.send :normalize_translation_keys, locale, key, scope
           keys.inject(translations){|result, k| result[k.to_sym] or return nil }
         end
@@ -95,7 +104,7 @@ module I18n
         rescue MissingTranslationData
           nil
         end
-      
+
         # Picks a translation from an array according to English pluralization
         # rules. It will pick the first translation if count is not equal to 1
         # and the second translation if it is equal to 1. Other backends can
@@ -108,7 +117,7 @@ module I18n
           raise InvalidPluralizationData.new(entry, count) unless entry.has_key?(key)
           entry[key]
         end
-  
+
         # Interpolates values into a given string.
         # 
         #   interpolate "file {{file}} opened by \\{{user}}", :file => 'test.txt', :user => 'Mr. X'  
@@ -118,29 +127,27 @@ module I18n
         # the <tt>{{...}}</tt> key in a string (once for the string and once for the
         # interpolation).
         def interpolate(locale, string, values = {})
-          return string if !string.is_a?(String)
+          return string unless string.is_a?(String)
 
-          string = string.gsub(/%d/, '{{count}}').gsub(/%s/, '{{value}}')
           if string.respond_to?(:force_encoding)
-             original_encoding = string.encoding
-             string.force_encoding(Encoding::BINARY)
-           end
-          s = StringScanner.new(string)
-          
-          while s.skip_until(/\{\{/)
-            s.string[s.pos - 3, 1] = '' and next if s.pre_match[-1, 1] == '\\'            
-            start_pos = s.pos - 2
-            key = s.scan_until(/\}\}/)[0..-3]
-            end_pos = s.pos - 1            
-
-            raise ReservedInterpolationKey.new(key, string) if %w(scope default).include?(key)
-            raise MissingInterpolationArgument.new(key, string) unless values.has_key? key.to_sym
-
-            s.string[start_pos..end_pos] = values[key.to_sym].to_s
-            s.unscan
+            original_encoding = string.encoding
+            string.force_encoding(Encoding::BINARY)
           end
-          
-          result = s.string
+
+          result = string.gsub(MATCH) do
+            escaped, pattern, key = $1, $2, $2.to_sym
+
+            if escaped
+              pattern
+            elsif INTERPOLATION_RESERVED_KEYS.include?(pattern)
+              raise ReservedInterpolationKey.new(pattern, string)
+            elsif !values.include?(key)
+              raise MissingInterpolationArgument.new(pattern, string)
+            else
+              values[key].to_s
+            end
+          end
+
           result.force_encoding(original_encoding) if original_encoding
           result
         end

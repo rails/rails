@@ -109,7 +109,7 @@ module ActiveSupport
       end
 
       def deprecation_horizon
-        '2.0'
+        '2.3'
       end
     end
 
@@ -159,6 +159,22 @@ module ActiveSupport
         def method_missing(called, *args, &block)
           warn caller, called, args
           target.__send__(called, *args, &block)
+        end
+    end
+
+    class DeprecatedObjectProxy < DeprecationProxy
+      def initialize(object, message)
+        @object = object
+        @message = message
+      end
+
+      private
+        def target
+          @object
+        end
+
+        def warn(callstack, called, args)
+          ActiveSupport::Deprecation.warn(@message, callstack)
         end
     end
 

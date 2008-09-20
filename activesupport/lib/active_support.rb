@@ -28,7 +28,6 @@ require 'active_support/callbacks'
 
 require 'active_support/core_ext'
 
-require 'active_support/clean_logger'
 require 'active_support/buffered_logger'
 
 require 'active_support/gzip'
@@ -55,9 +54,9 @@ require 'active_support/base64'
 
 require 'active_support/time_with_zone'
 
-I18n.populate do
-  I18n.load_translations File.dirname(__FILE__) + '/active_support/locale/en-US.yml'
-end
+require 'active_support/secure_random'
+
+I18n.load_path << File.dirname(__FILE__) + '/active_support/locale/en-US.yml'
 
 Inflector = ActiveSupport::Deprecation::DeprecatedConstantProxy.new('Inflector', 'ActiveSupport::Inflector')
 Dependencies = ActiveSupport::Deprecation::DeprecatedConstantProxy.new('Dependencies', 'ActiveSupport::Dependencies')

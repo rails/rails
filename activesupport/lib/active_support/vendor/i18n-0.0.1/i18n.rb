@@ -10,7 +10,8 @@ require 'i18n/exceptions'
 
 module I18n  
   @@backend = nil
-  @@default_locale = 'en-US'
+  @@load_path = nil
+  @@default_locale = :'en-US'
   @@exception_handler = :default_exception_handler
     
   class << self
@@ -49,26 +50,22 @@ module I18n
       @@exception_handler = exception_handler
     end
     
-    # Allow client libraries to pass a block that populates the translation
-    # storage. Decoupled for backends like a db backend that persist their
-    # translations, so the backend can decide whether/when to yield or not.
-    def populate(&block)
-      backend.populate(&block)
-    end
-    
-    # Allows client libraries to pass arguments that specify a source for 
-    # translation data to be loaded by the backend. The backend defines
-    # acceptable sources. 
+    # Allow clients to register paths providing translation data sources. The
+    # backend defines acceptable sources.
+    #
     # E.g. the provided SimpleBackend accepts a list of paths to translation
     # files which are either named *.rb and contain plain Ruby Hashes or are
-    # named *.yml and contain YAML data.)
-    def load_translations(*args)
-      backend.load_translations(*args)
+    # named *.yml and contain YAML data. So for the SimpleBackend clients may
+    # register translation files like this:
+    #   I18n.load_path << 'path/to/locale/en-US.yml'
+    def load_path
+      @@load_path ||= []
     end
-    
-    # Stores translations for the given locale in the backend. 
-    def store_translations(locale, data)
-      backend.store_translations locale, data
+
+    # Sets the load path instance. Custom implementations are expected to
+    # behave like a Ruby Array.
+    def load_path=(load_path)
+      @@load_path = load_path
     end
     
     # Translates, pluralizes and interpolates a given key using a given locale, 
@@ -188,5 +185,3 @@ module I18n
     end
   end
 end
-
-

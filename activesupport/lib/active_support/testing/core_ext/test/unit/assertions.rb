@@ -36,7 +36,11 @@ module Test
       #     post :delete, :id => ...
       #   end
       def assert_difference(expressions, difference = 1, message = nil, &block)
-        expression_evaluations = Array(expressions).collect{ |expression| lambda { eval(expression, block.send!(:binding)) } }
+        expression_evaluations = Array(expressions).map do |expression|
+          lambda do
+            eval(expression, block.__send__(:binding))
+          end
+        end
 
         original_values = expression_evaluations.inject([]) { |memo, expression| memo << expression.call }
         yield

@@ -1,5 +1,21 @@
 *Edge*
 
+* MySQL: cope with quirky default values for not-null text columns.  #1043 [Frederick Cheung]
+
+* Multiparameter attributes skip time zone conversion for time-only columns [#1030 state:resolved] [Geoff Buesing]
+
+* Base.skip_time_zone_conversion_for_attributes uses class_inheritable_accessor, so that subclasses don't overwrite Base [#346 state:resolved] [miloops]
+
+* Added find_last_by dynamic finder #762 [miloops]
+
+* Internal API: configurable association options and build_association method for reflections so plugins may extend and override.  #985 [Hongli Lai]
+
+* Changed benchmarks to be reported in milliseconds [DHH]
+
+* Connection pooling.  #936 [Nick Sieger]
+
+* Merge scoped :joins together instead of overwriting them. May expose scoping bugs in your code!  #501 [Andrew White]
+
 * before_save, before_validation and before_destroy callbacks that return false will now ROLLBACK the transaction.  Previously this would have been committed before the processing was aborted. #891 [Xavier Noria]
 
 * Transactional migrations for databases which support them.  #834 [divoxx, Adam Wiggins, Tarmo Tänav]
@@ -9,24 +25,6 @@
 * change_column_default preserves the not-null constraint.  #617 [Tarmo Tänav]
 
 * Fixed that create database statements would always include "DEFAULT NULL" (Nick Sieger) [#334]
-
-* Add :accessible option to associations for allowing (opt-in) mass assignment. #474. [David Dollar] Example :
-
-  class Post < ActiveRecord::Base
-    belongs_to :author,   :accessible => true
-    has_many   :comments, :accessible => true
-  end
-
-  post = Post.create({
-    :title    => 'Accessible Attributes',
-    :author   => { :name => 'David Dollar' },
-    :comments => [
-      { :body => 'First Post!' },
-      { :body => 'Nested Hashes are great!' }
-    ]
-  })
-
-  post.comments << { :body => 'Another Comment' }
 
 * Add :tokenizer option to validates_length_of to specify how to split up the attribute string. #507. [David Lowenfels] Example :
 

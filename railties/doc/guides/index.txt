@@ -1,0 +1,53 @@
+Ruby on Rails guides
+====================
+
+.link:getting_started_with_rails/getting_started_with_rails.html[Getting Started with Rails]
+***********************************************************
+TODO: Insert some description here.
+***********************************************************
+
+.link:activerecord/association_basics.html[Active Record Associations]
+***********************************************************
+Introduction to Active Record associations.
+***********************************************************
+
+.link:migrations/migrations.html[Rails Database Migrations]
+***********************************************************
+TODO: Insert some description here.
+***********************************************************
+
+.link:forms/form_helpers.html[Action View Form Helpers]
+***********************************************************
+Guide to using built in Form helpers.
+***********************************************************
+
+.link:testing_rails_applications/testing_rails_applications.html[Testing Rails Applications]
+***********************************************************
+This is a rather comprehensive guide to doing both unit and functional tests
+in Rails. It covers everything from ``What is a test?'' to the testing APIs.
+Enjoy.
+***********************************************************
+
+.link:securing_rails_applications/securing_rails_applications.html[Securing Rails Applications]
+***********************************************************
+This manual describes common security problems in web applications and how to
+avoid them with Rails.
+***********************************************************
+
+.link:routing/routing_outside_in.html[Rails Routing from the Outside In]
+***********************************************************
+This guide covers the user-facing features of Rails routing. If you want to 
+understand how to use routing in your own Rails applications, start here.
+***********************************************************
+
+.link:debugging/debugging_rails_applications.html[Debugging Rails Applications]
+***********************************************************
+This guide describes how to debug Rails applications. It covers the different
+ways of achieving this and how to understand what is happening "behind the scenes"
+of your code.
+***********************************************************
+
+.link:creating_plugins/creating_plugins.html[The Basics of Creating Rails Plugins]
+***********************************************************
+TODO: Insert some description here.
+***********************************************************

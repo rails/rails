@@ -1,8 +1,7 @@
 module ActionView
-  module RenderablePartial
-    # NOTE: The template that this mixin is beening include into is frozen
-    # So you can not set or modify any instance variables
-
+  # NOTE: The template that this mixin is being included into is frozen
+  # so you cannot set or modify any instance variables
+  module RenderablePartial #:nodoc:
     extend ActiveSupport::Memoizable
 
     def variable_name
@@ -16,15 +15,28 @@ module ActionView
     memoize :counter_name
 
     def render(view, local_assigns = {})
-      ActionController::Base.benchmark("Rendered #{path_without_format_and_extension}", Logger::DEBUG, false) do
+      if defined? ActionController
+        ActionController::Base.benchmark("Rendered #{path_without_format_and_extension}", Logger::DEBUG, false) do
+          super
+        end
+      else
         super
       end
     end
 
     def render_partial(view, object = nil, local_assigns = {}, as = nil)
       object ||= local_assigns[:object] ||
-        local_assigns[variable_name] ||
-        view.controller.instance_variable_get("@#{variable_name}") if view.respond_to?(:controller)
+        local_assigns[variable_name]
+
+      if view.respond_to?(:controller)
+        ivar = :"@#{variable_name}"
+        object ||=
+          if view.controller.instance_variable_defined?(ivar)
+            ActiveSupport::Deprecation::DeprecatedObjectProxy.new(
+              view.controller.instance_variable_get(ivar),
+              "#{ivar} will no longer be implicitly assigned to #{variable_name}")
+          end
+      end
 
       # Ensure correct object is reassigned to other accessors
       local_assigns[:object] = local_assigns[variable_name] = object

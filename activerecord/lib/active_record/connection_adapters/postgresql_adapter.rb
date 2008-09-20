@@ -380,7 +380,7 @@ module ActiveRecord
           # There are some incorrectly compiled postgres drivers out there
           # that don't define PGconn.escape.
           self.class.instance_eval do
-            undef_method(:quote_string)
+            remove_method(:quote_string)
           end
         end
         quote_string(s)
@@ -517,6 +517,45 @@ module ActiveRecord
       def rollback_db_transaction
         execute "ROLLBACK"
       end
+
+      # ruby-pg defines Ruby constants for transaction status,
+      # ruby-postgres does not.
+      PQTRANS_IDLE = defined?(PGconn::PQTRANS_IDLE) ? PGconn::PQTRANS_IDLE : 0
+
+      # Check whether a transaction is active.
+      def transaction_active?
+        @connection.transaction_status != PQTRANS_IDLE
+      end
+
+      # Wrap a block in a transaction.  Returns result of block.
+      def transaction(start_db_transaction = true)
+        transaction_open = false
+        begin
+          if block_given?
+            if start_db_transaction
+              begin_db_transaction
+              transaction_open = true
+            end
+            yield
+          end
+        rescue Exception => database_transaction_rollback
+          if transaction_open && transaction_active?
+            transaction_open = false
+            rollback_db_transaction
+          end
+          raise unless database_transaction_rollback.is_a? ActiveRecord::Rollback
+        end
+      ensure
+        if transaction_open && transaction_active?
+          begin
+            commit_db_transaction
+          rescue Exception => database_transaction_rollback
+            rollback_db_transaction
+            raise
+          end
+        end
+      end
+
 
       # SCHEMA STATEMENTS ========================================
 

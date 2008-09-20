@@ -11,7 +11,7 @@ module ActiveSupport
     private
       def method_missing(method, *arguments, &block)
         arguments << (arguments.last.respond_to?(:to_hash) ? @options.deep_merge(arguments.pop) : @options.dup)
-        @context.send!(method, *arguments, &block)
+        @context.__send__(method, *arguments, &block)
       end
   end
 end

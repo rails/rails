@@ -38,8 +38,8 @@ module ActionController #:nodoc:
     #     caches_action :show, :cache_path => { :project => 1 }, :expires_in => 1.hour
     #     caches_action :feed, :cache_path => Proc.new { |controller|
     #       controller.params[:user_id] ?
-    #         controller.send(:user_list_url, c.params[:user_id], c.params[:id]) :
-    #         controller.send(:list_url, c.params[:id]) }
+    #         controller.send(:user_list_url, controller.params[:user_id], controller.params[:id]) :
+    #         controller.send(:list_url, controller.params[:id]) }
     #   end
     #
     # If you pass :layout => false, it will only cache your action content. It is useful when your layout has dynamic information.
@@ -90,7 +90,7 @@ module ActionController #:nodoc:
             set_content_type!(controller, cache_path.extension)
             options = { :text => cache }
             options.merge!(:layout => true) if cache_layout?
-            controller.send!(:render, options)
+            controller.__send__(:render, options)
             false
           else
             controller.action_cache_path = cache_path
@@ -121,7 +121,7 @@ module ActionController #:nodoc:
           end
 
           def content_for_layout(controller)
-            controller.response.layout && controller.response.template.instance_variable_get('@content_for_layout')
+            controller.response.layout && controller.response.template.instance_variable_get('@cached_content_for_layout')
           end
       end
 

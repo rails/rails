@@ -660,8 +660,8 @@ module ActiveRecord
       #
       # === Example
       #
-      # A Firm class declares <tt>has_many :clients</tt>, which will add:
-      # * <tt>Firm#clients</tt> (similar to <tt>Clients.find :all, :conditions => "firm_id = #{id}"</tt>)
+      # Example: A Firm class declares <tt>has_many :clients</tt>, which will add:
+      # * <tt>Firm#clients</tt> (similar to <tt>Clients.find :all, :conditions => ["firm_id = ?", id]</tt>)
       # * <tt>Firm#clients<<</tt>
       # * <tt>Firm#clients.delete</tt>
       # * <tt>Firm#clients=</tt>
@@ -739,9 +739,6 @@ module ActiveRecord
       #   If true, all the associated objects are readonly through the association.
       # [:validate]
       #   If false, don't validate the associated objects when saving the parent object. true by default.
-      # [:accessible]
-      #   Mass assignment is allowed for this assocation (similar to <tt>ActiveRecord::Base#attr_accessible</tt>).
-
       # Option examples:
       #   has_many :comments, :order => "posted_on"
       #   has_many :comments, :include => :author
@@ -855,8 +852,6 @@ module ActiveRecord
       #   If true, the associated object is readonly through the association.
       # [:validate]
       #   If false, don't validate the associated object when saving the parent object. +false+ by default.
-      # [:accessible]
-      #   Mass assignment is allowed for this assocation (similar to <tt>ActiveRecord::Base#attr_accessible</tt>).
       #
       # Option examples:
       #   has_one :credit_card, :dependent => :destroy  # destroys the associated credit card
@@ -878,10 +873,10 @@ module ActiveRecord
 
           method_name = "has_one_after_save_for_#{reflection.name}".to_sym
           define_method(method_name) do
-            association = instance_variable_get("#{ivar}") if instance_variable_defined?("#{ivar}")
+            association = instance_variable_get(ivar) if instance_variable_defined?(ivar)
 
-            if !association.nil? && (new_record? || association.new_record? || association["#{reflection.primary_key_name}"] != id)
-              association["#{reflection.primary_key_name}"] = id
+            if !association.nil? && (new_record? || association.new_record? || association[reflection.primary_key_name] != id)
+              association[reflection.primary_key_name] = id
               association.save(true)
             end
           end
@@ -973,8 +968,6 @@ module ActiveRecord
       #   If true, the associated object is readonly through the association.
       # [:validate]
       #   If false, don't validate the associated objects when saving the parent object. +false+ by default.
-      # [:accessible]
-      #   Mass assignment is allowed for this assocation (similar to <tt>ActiveRecord::Base#attr_accessible</tt>).
       #
       # Option examples:
       #   belongs_to :firm, :foreign_key => "client_of"
@@ -994,7 +987,7 @@ module ActiveRecord
 
           method_name = "polymorphic_belongs_to_before_save_for_#{reflection.name}".to_sym
           define_method(method_name) do
-            association = instance_variable_get("#{ivar}") if instance_variable_defined?("#{ivar}")
+            association = instance_variable_get(ivar) if instance_variable_defined?(ivar)
 
             if association && association.target
               if association.new_record?
@@ -1002,8 +995,8 @@ module ActiveRecord
               end
 
               if association.updated?
-                self["#{reflection.primary_key_name}"] = association.id
-                self["#{reflection.options[:foreign_type]}"] = association.class.base_class.name.to_s
+                self[reflection.primary_key_name] = association.id
+                self[reflection.options[:foreign_type]] = association.class.base_class.name.to_s
               end
             end
           end
@@ -1015,7 +1008,7 @@ module ActiveRecord
 
           method_name = "belongs_to_before_save_for_#{reflection.name}".to_sym
           define_method(method_name) do
-            association = instance_variable_get("#{ivar}") if instance_variable_defined?("#{ivar}")
+            association = instance_variable_get(ivar) if instance_variable_defined?(ivar)
 
             if !association.nil?
               if association.new_record?
@@ -1023,7 +1016,7 @@ module ActiveRecord
               end
 
               if association.updated?
-                self["#{reflection.primary_key_name}"] = association.id
+                self[reflection.primary_key_name] = association.id
               end
             end
           end
@@ -1038,15 +1031,15 @@ module ActiveRecord
 
           method_name = "belongs_to_counter_cache_after_create_for_#{reflection.name}".to_sym
           define_method(method_name) do
-            association = send("#{reflection.name}")
-            association.class.increment_counter("#{cache_column}", send("#{reflection.primary_key_name}")) unless association.nil?
+            association = send(reflection.name)
+            association.class.increment_counter(cache_column, send(reflection.primary_key_name)) unless association.nil?
           end
           after_create method_name
 
           method_name = "belongs_to_counter_cache_before_destroy_for_#{reflection.name}".to_sym
           define_method(method_name) do
-            association = send("#{reflection.name}")
-            association.class.decrement_counter("#{cache_column}", send("#{reflection.primary_key_name}")) unless association.nil?
+            association = send(reflection.name)
+            association.class.decrement_counter(cache_column, send(reflection.primary_key_name)) unless association.nil?
           end
           before_destroy method_name
 
@@ -1164,6 +1157,9 @@ module ActiveRecord
       #   If true, duplicate associated objects will be ignored by accessors and query methods.
       # [:finder_sql]
       #   Overwrite the default generated SQL statement used to fetch the association with a manual statement
+      # [:counter_sql]
+      #   Specify a complete SQL statement to fetch the size of the association. If <tt>:finder_sql</tt> is
+      #   specified but not <tt>:counter_sql</tt>, <tt>:counter_sql</tt> will be generated by replacing <tt>SELECT ... FROM</tt> with <tt>SELECT COUNT(*) FROM</tt>.
       # [:delete_sql]
       #   Overwrite the default generated SQL statement used to remove links between the associated
       #   classes with a manual statement.
@@ -1187,8 +1183,6 @@ module ActiveRecord
       #   If true, all the associated objects are readonly through the association.
       # [:validate]
       #   If false, don't validate the associated objects when saving the parent object. +true+ by default.
-      # [:accessible<]
-      #   Mass assignment is allowed for this assocation (similar to <tt>ActiveRecord::Base#attr_accessible</tt>).
       #
       # Option examples:
       #   has_and_belongs_to_many :projects
@@ -1220,12 +1214,11 @@ module ActiveRecord
       end
 
       private
-        # Generate a join table name from two provided tables names.
-        # The order of names in join name is determined by lexical precedence.
-        #   join_table_name("members", "clubs")
-        #   => "clubs_members"
-        #   join_table_name("members", "special_clubs")
-        #   => "members_special_clubs"
+        # Generates a join table name from two provided table names.
+        # The names in the join table namesme end up in lexicographic order.
+        #
+        #   join_table_name("members", "clubs")         # => "clubs_members"
+        #   join_table_name("members", "special_clubs") # => "members_special_clubs"
         def join_table_name(first_table_name, second_table_name)
           if first_table_name < second_table_name
             join_table = "#{first_table_name}_#{second_table_name}"
@@ -1244,7 +1237,7 @@ module ActiveRecord
 
             association = instance_variable_get(ivar) if instance_variable_defined?(ivar)
 
-            if association.nil? || force_reload
+            if association.nil? || !association.loaded? || force_reload
               association = association_proxy_class.new(self, reflection)
               retval = association.reload
               if retval.nil? and association_proxy_class == BelongsToAssociation
@@ -1264,16 +1257,24 @@ module ActiveRecord
               association = association_proxy_class.new(self, reflection)
             end
 
-            new_value = reflection.klass.new(new_value) if reflection.options[:accessible] && new_value.is_a?(Hash)
-
             if association_proxy_class == HasOneThroughAssociation
               association.create_through_record(new_value)
               self.send(reflection.name, new_value)
             else
-              association.replace(new_value)              
+              association.replace(new_value)
+              instance_variable_set(ivar, new_value.nil? ? nil : association)
             end
+          end
 
-            instance_variable_set(ivar, new_value.nil? ? nil : association)
+          if association_proxy_class == BelongsToAssociation
+            define_method("#{reflection.primary_key_name}=") do |target_id|
+              if instance_variable_defined?(ivar)
+                if association = instance_variable_get(ivar)
+                  association.reset
+                end
+              end
+              write_attribute(reflection.primary_key_name, target_id)
+            end
           end
 
           define_method("set_#{reflection.name}_target") do |target|
@@ -1302,7 +1303,11 @@ module ActiveRecord
           end
 
           define_method("#{reflection.name.to_s.singularize}_ids") do
-            send(reflection.name).map { |record| record.id }
+            if send(reflection.name).loaded?
+              send(reflection.name).map(&:id)
+            else
+              send(reflection.name).all(:select => "#{reflection.quoted_table_name}.#{reflection.klass.primary_key}").map(&:id)
+            end
           end
         end
 
@@ -1323,19 +1328,19 @@ module ActiveRecord
             end
           end
         end
-        
+
         def add_single_associated_validation_callbacks(association_name)
           method_name = "validate_associated_records_for_#{association_name}".to_sym
           define_method(method_name) do
             association = instance_variable_get("@#{association_name}")
             if !association.nil?
-              errors.add "#{association_name}" unless association.target.nil? || association.valid?
+              errors.add association_name unless association.target.nil? || association.valid?
             end
           end
-        
+
           validate method_name
         end
-        
+
         def add_multiple_associated_validation_callbacks(association_name)
           method_name = "validate_associated_records_for_#{association_name}".to_sym
           ivar = "@#{association_name}"
@@ -1351,7 +1356,7 @@ module ActiveRecord
               else
                 association.target.select { |record| record.new_record? }
               end.each do |record|
-                errors.add "#{association_name}" unless record.valid?
+                errors.add association_name unless record.valid?
               end
             end
           end
@@ -1371,7 +1376,7 @@ module ActiveRecord
 
           method_name = "after_create_or_update_associated_records_for_#{association_name}".to_sym
           define_method(method_name) do
-            association = instance_variable_get("#{ivar}") if instance_variable_defined?("#{ivar}")
+            association = instance_variable_get(ivar) if instance_variable_defined?(ivar)
 
             records_to_save = if @new_record_before_save
               association
@@ -1438,7 +1443,7 @@ module ActiveRecord
               when :destroy
                 method_name = "has_many_dependent_destroy_for_#{reflection.name}".to_sym
                 define_method(method_name) do
-                  send("#{reflection.name}").each { |o| o.destroy }
+                  send(reflection.name).each { |o| o.destroy }
                 end
                 before_destroy method_name
               when :delete_all
@@ -1457,22 +1462,22 @@ module ActiveRecord
               when :destroy
                 method_name = "has_one_dependent_destroy_for_#{reflection.name}".to_sym
                 define_method(method_name) do
-                  association = send("#{reflection.name}")
+                  association = send(reflection.name)
                   association.destroy unless association.nil?
                 end
                 before_destroy method_name
               when :delete
                 method_name = "has_one_dependent_delete_for_#{reflection.name}".to_sym
                 define_method(method_name) do
-                  association = send("#{reflection.name}")
+                  association = send(reflection.name)
                   association.class.delete(association.id) unless association.nil?
                 end
                 before_destroy method_name
               when :nullify
                 method_name = "has_one_dependent_nullify_for_#{reflection.name}".to_sym
                 define_method(method_name) do
-                  association = send("#{reflection.name}")
-                  association.update_attribute("#{reflection.primary_key_name}", nil) unless association.nil?
+                  association = send(reflection.name)
+                  association.update_attribute(reflection.primary_key_name, nil) unless association.nil?
                 end
                 before_destroy method_name
               else
@@ -1487,14 +1492,14 @@ module ActiveRecord
               when :destroy
                 method_name = "belongs_to_dependent_destroy_for_#{reflection.name}".to_sym
                 define_method(method_name) do
-                  association = send("#{reflection.name}")
+                  association = send(reflection.name)
                   association.destroy unless association.nil?
                 end
                 before_destroy method_name
               when :delete
                 method_name = "belongs_to_dependent_delete_for_#{reflection.name}".to_sym
                 define_method(method_name) do
-                  association = send("#{reflection.name}")
+                  association = send(reflection.name)
                   association.class.delete(association.id) unless association.nil?
                 end
                 before_destroy method_name
@@ -1504,32 +1509,38 @@ module ActiveRecord
           end
         end
 
-        def create_has_many_reflection(association_id, options, &extension)
-          options.assert_valid_keys(
-            :class_name, :table_name, :foreign_key, :primary_key,
-            :dependent,
-            :select, :conditions, :include, :order, :group, :limit, :offset,
-            :as, :through, :source, :source_type,
-            :uniq,
-            :finder_sql, :counter_sql,
-            :before_add, :after_add, :before_remove, :after_remove,
-            :extend, :readonly,
-            :validate, :accessible
-          )
+        mattr_accessor :valid_keys_for_has_many_association
+        @@valid_keys_for_has_many_association = [
+          :class_name, :table_name, :foreign_key, :primary_key,
+          :dependent,
+          :select, :conditions, :include, :order, :group, :limit, :offset,
+          :as, :through, :source, :source_type,
+          :uniq,
+          :finder_sql, :counter_sql,
+          :before_add, :after_add, :before_remove, :after_remove,
+          :extend, :readonly,
+          :validate
+        ]
 
+        def create_has_many_reflection(association_id, options, &extension)
+          options.assert_valid_keys(valid_keys_for_has_many_association)
           options[:extend] = create_extension_modules(association_id, extension, options[:extend])
 
           create_reflection(:has_many, association_id, options, self)
         end
 
-        def create_has_one_reflection(association_id, options)
-          options.assert_valid_keys(
-            :class_name, :foreign_key, :remote, :select, :conditions, :order, :include, :dependent, :counter_cache, :extend, :as, :readonly, :validate, :primary_key, :accessible
-          )
+        mattr_accessor :valid_keys_for_has_one_association
+        @@valid_keys_for_has_one_association = [
+          :class_name, :foreign_key, :remote, :select, :conditions, :order,
+          :include, :dependent, :counter_cache, :extend, :as, :readonly,
+          :validate, :primary_key
+        ]
 
+        def create_has_one_reflection(association_id, options)
+          options.assert_valid_keys(valid_keys_for_has_one_association)
           create_reflection(:has_one, association_id, options, self)
         end
-        
+
         def create_has_one_through_reflection(association_id, options)
           options.assert_valid_keys(
             :class_name, :foreign_key, :remote, :select, :conditions, :order, :include, :dependent, :counter_cache, :extend, :as, :through, :source, :source_type, :validate
@@ -1537,12 +1548,15 @@ module ActiveRecord
           create_reflection(:has_one, association_id, options, self)
         end
 
-        def create_belongs_to_reflection(association_id, options)
-          options.assert_valid_keys(
-            :class_name, :foreign_key, :foreign_type, :remote, :select, :conditions, :include, :dependent,
-            :counter_cache, :extend, :polymorphic, :readonly, :validate, :accessible
-          )
+        mattr_accessor :valid_keys_for_belongs_to_association
+        @@valid_keys_for_belongs_to_association = [
+          :class_name, :foreign_key, :foreign_type, :remote, :select, :conditions,
+          :include, :dependent, :counter_cache, :extend, :polymorphic, :readonly,
+          :validate
+        ]
 
+        def create_belongs_to_reflection(association_id, options)
+          options.assert_valid_keys(valid_keys_for_belongs_to_association)
           reflection = create_reflection(:belongs_to, association_id, options, self)
 
           if options[:polymorphic]
@@ -1560,7 +1574,7 @@ module ActiveRecord
             :finder_sql, :delete_sql, :insert_sql,
             :before_add, :after_add, :before_remove, :after_remove,
             :extend, :readonly,
-            :validate, :accessible
+            :validate
           )
 
           options[:extend] = create_extension_modules(association_id, extension, options[:extend])
@@ -1597,7 +1611,7 @@ module ActiveRecord
           sql = "SELECT #{column_aliases(join_dependency)} FROM #{(scope && scope[:from]) || options[:from] || quoted_table_name} "
           sql << join_dependency.join_associations.collect{|join| join.association_join }.join
 
-          add_joins!(sql, options, scope)
+          add_joins!(sql, options[:joins], scope)
           add_conditions!(sql, options[:conditions], scope)
           add_limited_ids_condition!(sql, options, join_dependency) if !using_limitable_reflections?(join_dependency.reflections) && ((scope && scope[:limit]) || options[:limit])
 
@@ -1653,7 +1667,7 @@ module ActiveRecord
 
           if is_distinct
             sql << distinct_join_associations.collect { |assoc| assoc.association_join }.join
-            add_joins!(sql, options, scope)
+            add_joins!(sql, options[:joins], scope)
           end
 
           add_conditions!(sql, options[:conditions], scope)
@@ -1921,7 +1935,7 @@ module ActiveRecord
             end
 
             def aliased_primary_key
-              "#{ aliased_prefix }_r0"
+              "#{aliased_prefix}_r0"
             end
 
             def aliased_table_name
@@ -1933,7 +1947,7 @@ module ActiveRecord
                 @column_names_with_alias = []
 
                 ([primary_key] + (column_names - [primary_key])).each_with_index do |column_name, i|
-                  @column_names_with_alias << [column_name, "#{ aliased_prefix }_r#{ i }"]
+                  @column_names_with_alias << [column_name, "#{aliased_prefix}_r#{i}"]
                 end
               end
 
@@ -1970,11 +1984,11 @@ module ActiveRecord
               @aliased_prefix     = "t#{ join_dependency.joins.size }"
               @parent_table_name  = parent.active_record.table_name
               @aliased_table_name = aliased_table_name_for(table_name)
-              
+
               if reflection.macro == :has_and_belongs_to_many
                 @aliased_join_table_name = aliased_table_name_for(reflection.options[:join_table], "_join")
               end
-        
+
               if [:has_many, :has_one].include?(reflection.macro) && reflection.options[:through]
                 @aliased_join_table_name = aliased_table_name_for(reflection.through_reflection.klass.table_name, "_join")
               end
@@ -2111,7 +2125,7 @@ module ActiveRecord
             end
 
             protected
-            
+
               def aliased_table_name_for(name, suffix = nil)
                 if !parent.table_joins.blank? && parent.table_joins.to_s.downcase =~ %r{join(\s+\w+)?\s+#{name.downcase}\son}
                   @join_dependency.table_aliases[name] += 1
@@ -2129,7 +2143,7 @@ module ActiveRecord
 
                 name
               end
-              
+
               def pluralize(table_name)
                 ActiveRecord::Base.pluralize_table_names ? table_name.to_s.pluralize : table_name
               end
