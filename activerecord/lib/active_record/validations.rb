@@ -647,8 +647,8 @@ module ActiveRecord
       # the same time, and a Comment's title must be unique. At the database-level,
       # the actions performed by these users could be interleaved in the following manner:
       #
-      #    User 1                            |  User 2
-      #  ----------                          | ----------
+      #               User 1                 |               User 2
+      #  ------------------------------------+--------------------------------------
       #  # User 1 checks whether there's     |
       #  # already a comment with the title  |
       #  # 'My Post'. This is not the case.  |
