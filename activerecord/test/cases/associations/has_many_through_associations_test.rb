@@ -220,4 +220,13 @@ class HasManyThroughAssociationsTest < ActiveRecord::TestCase
     assert_equal [posts(:welcome).id, posts(:authorless).id].sort, person.post_ids.sort
     assert !person.posts.loaded?
   end
+
+  uses_mocha 'mocking Tag.transaction' do
+    def test_association_proxy_transaction_method_starts_transaction_in_association_class
+      Tag.expects(:transaction)
+      Post.find(:first).tags.transaction do
+        # nothing
+      end
+    end
+  end
 end

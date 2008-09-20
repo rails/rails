@@ -108,7 +108,7 @@ module ActiveRecord
         result = true
         load_target if @owner.new_record?
 
-        @owner.transaction do
+        transaction do
           flatten_deeper(records).each do |record|
             raise_on_type_mismatch(record)
             add_record_to_target_with_callbacks(record) do |r|
@@ -122,6 +122,21 @@ module ActiveRecord
 
       alias_method :push, :<<
       alias_method :concat, :<<
+
+      # Starts a transaction in the association class's database connection.
+      #
+      #   class Author < ActiveRecord::Base
+      #     has_many :books
+      #   end
+      #
+      #   Author.find(:first).books.transaction do
+      #     # same effect as calling Book.transaction
+      #   end
+      def transaction(*args)
+        @reflection.klass.transaction(*args) do
+          yield
+        end
+      end
 
       # Remove all records from this association
       def delete_all
@@ -173,7 +188,7 @@ module ActiveRecord
         records = flatten_deeper(records)
         records.each { |record| raise_on_type_mismatch(record) }
         
-        @owner.transaction do
+        transaction do
           records.each { |record| callback(:before_remove, record) }
           
           old_records = records.reject {|r| r.new_record? }
@@ -200,7 +215,7 @@ module ActiveRecord
       end
       
       def destroy_all
-        @owner.transaction do
+        transaction do
           each { |record| record.destroy }
         end
 
@@ -292,7 +307,7 @@ module ActiveRecord
         other   = other_array.size < 100 ? other_array : other_array.to_set
         current = @target.size < 100 ? @target : @target.to_set
 
-        @owner.transaction do
+        transaction do
           delete(@target.select { |v| !other.include?(v) })
           concat(other_array.select { |v| !current.include?(v) })
         end

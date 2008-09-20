@@ -738,4 +738,13 @@ class HasAndBelongsToManyAssociationsTest < ActiveRecord::TestCase
     # Array#count in Ruby >=1.8.7, which would raise an ArgumentError
     assert_nothing_raised { david.projects.count(:all, :conditions => '1=1') }
   end
+
+  uses_mocha 'mocking Post.transaction' do
+    def test_association_proxy_transaction_method_starts_transaction_in_association_class
+      Post.expects(:transaction)
+      Category.find(:first).posts.transaction do
+        # nothing
+      end
+    end
+  end
 end

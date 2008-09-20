@@ -9,14 +9,14 @@ module ActiveRecord
       alias_method :new, :build
 
       def create!(attrs = nil)
-        @reflection.klass.transaction do
+        transaction do
           self << (object = attrs ? @reflection.klass.send(:with_scope, :create => attrs) { @reflection.create_association! } : @reflection.create_association!)
           object
         end
       end
 
       def create(attrs = nil)
-        @reflection.klass.transaction do
+        transaction do
           self << (object = attrs ? @reflection.klass.send(:with_scope, :create => attrs) { @reflection.create_association } : @reflection.create_association)
           object
         end
