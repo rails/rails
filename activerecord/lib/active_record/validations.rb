@@ -641,7 +641,7 @@ module ActiveRecord
       # === Concurrency and integrity
       #
       # Using this validation method in conjunction with ActiveRecord::Base#save
-      # does not guarantee the absense of duplicate record insertions, because
+      # does not guarantee the absence of duplicate record insertions, because
       # uniqueness checks on the application level are inherently prone to racing
       # conditions. For example, suppose that two users try to post a Comment at
       # the same time, and a Comment's title must be unique. At the database-level,
