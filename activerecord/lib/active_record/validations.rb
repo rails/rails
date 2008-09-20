@@ -680,9 +680,9 @@ module ActiveRecord
       #   saving. However, table locking is very expensive, and thus not
       #   recommended.
       # - By locking a lock file before validating, and unlocking it after saving.
-      #   This does not work if you've Rails application across multiple web
-      #   servers (because they cannot share lock files, or cannot do that
-      #   efficiently), and thus not recommended.
+      #   This does not work if you've scaled your Rails application across
+      #   multiple web servers (because they cannot share lock files, or cannot
+      #   do that efficiently), and thus not recommended.
       # - Creating a unique index on the field, by using
       #   ActiveRecord::ConnectionAdapters::SchemaStatements#add_index. In the
       #   rare case that a racing condition occurs, the database will guarantee
