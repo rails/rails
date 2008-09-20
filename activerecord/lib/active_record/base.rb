@@ -2274,7 +2274,28 @@ module ActiveRecord #:nodoc:
 
       end
 
-      # Enables Active Record objects to be used as URL parameters in Action Pack automatically.
+      # Returns a String, which ActionPack uses for constructing an URL to this
+      # object. The default implementation returns this record's id as a String,
+      # or nil if this record's unsaved.
+      #
+      # For example, suppose that you have a Users model, and that you have a
+      # <tt>map.resources :users</tt> route. Normally, +users_path+ will
+      # construct an URI with the user object's 'id' in it:
+      #
+      #   user = User.find_by_name('Phusion')
+      #   user_path(path)  # => "/users/1"
+      #
+      # You can override +to_param+ in your model to make +users_path+ construct
+      # an URI using the user's name instead of the user's id:
+      #
+      #   class User < ActiveRecord::Base
+      #     def to_param  # overridden
+      #       name
+      #     end
+      #   end
+      #   
+      #   user = User.find_by_name('Phusion')
+      #   user_path(path)  # => "/users/Phusion"
       def to_param
         # We can't use alias_method here, because method 'id' optimizes itself on the fly.
         (id = self.id) ? id.to_s : nil # Be sure to stringify the id for routes
