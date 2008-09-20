@@ -2274,7 +2274,7 @@ module ActiveRecord #:nodoc:
 
       end
 
-      # Returns a String, which ActionPack uses for constructing an URL to this
+      # Returns a String, which Action Pack uses for constructing an URL to this
       # object. The default implementation returns this record's id as a String,
       # or nil if this record's unsaved.
       #
