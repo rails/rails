@@ -38,6 +38,7 @@ end
 
 Invoice   = Struct.new(:client) do
   delegate :street, :city, :name, :to => :client, :prefix => true
+  delegate :street, :city, :name, :to => :client, :prefix => :customer
 end
 
 class Name
@@ -95,6 +96,14 @@ class ModuleTest < Test::Unit::TestCase
     assert_equal invoice.client_name, "David"
     assert_equal invoice.client_street, "Paulina"
     assert_equal invoice.client_city, "Chicago"
+  end
+
+  def test_delegation_custom_prefix
+    david = Someone.new("David", Somewhere.new("Paulina", "Chicago"))
+    invoice = Invoice.new(david)
+    assert_equal invoice.customer_name, "David"
+    assert_equal invoice.customer_street, "Paulina"
+    assert_equal invoice.customer_city, "Chicago"
   end
 
   def test_parent
