@@ -446,7 +446,7 @@ module ActiveSupport #:nodoc:
           begin
             string.unpack 'U*'
           rescue ArgumentError
-            raise EncodingError.new('malformed UTF-8 character')
+            raise EncodingError, 'malformed UTF-8 character'
           end
         end
 
