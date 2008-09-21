@@ -317,7 +317,37 @@ This time, we're setting `@post` to a single record in the database that is sear
 
 ==== New & Create
 
-Description of new and create actions
+In your controller, you'll see the `new` and `create` actions, which are used together to create a new record.  Our `new` action simply instantiates a new Post object without any parameters:
+
+-----------------------------------------
+def new
+  @post = Post.new
+
+  respond_to do |format|
+    format.html # new.html.erb
+    format.xml  { render :xml => @post }
+  end
+end
+----------------------------------------
+
+Our `create` action, on the other hand, instantiates a new Post object while setting its attributes to the parameters that we specify in our form:
+
+----------------------------------------
+def create
+  @post = Post.new(params[:post])
+
+  respond_to do |format|
+    if @post.save
+      flash[:notice] = 'Post was successfully created.'
+      format.html { redirect_to(@post) }
+      format.xml  { render :xml => @post, :status => :created, :location => @post }
+    else
+      format.html { render :action => "new" }
+      format.xml  { render :xml => @post.errors, :status => :unprocessable_entity }
+    end
+  end
+end
+---------------------------------------
 
 ==== Edit & Update
 
