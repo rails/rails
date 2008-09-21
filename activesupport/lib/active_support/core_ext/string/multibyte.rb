@@ -6,7 +6,9 @@ module ActiveSupport #:nodoc:
       # Implements multibyte methods for easier access to multibyte characters in a String instance.
       module Multibyte
         unless '1.9'.respond_to?(:force_encoding)
-          # +mb_chars+ is a multibyte safe proxy method for string methods.
+          # == Multibyte proxy
+          #
+          # +mb_chars+ is a multibyte safe proxy for string methods.
           #
           # In Ruby 1.8 and older it creates and returns an instance of the ActiveSupport::Multibyte::Chars class which
           # encapsulates the original string. A Unicode safe version of all the String methods are defined on this proxy
@@ -19,11 +21,10 @@ module ActiveSupport #:nodoc:
           #   name.mb_chars.reverse.to_s   #=> "rellüM sualC"
           #   name.mb_chars.length         #=> 12
           #
-          # In Ruby 1.9 and newer +mb_chars+ returns +self+ because String is (mostly) encoding aware so we don't need
-          # a proxy class any more. This means that +mb_chars+ makes it easier to write code that runs on multiple Ruby
-          # versions.
+          # In Ruby 1.9 and newer +mb_chars+ returns +self+ because String is (mostly) encoding aware. This means that
+          # it becomes easy to run one version of your code on multiple Ruby versions.
           #
-          # == Method chaining 
+          # == Method chaining
           #
           # All the methods on the Chars proxy which normally return a string will return a Chars object. This allows
           # method chaining on the result of any of these methods.
@@ -32,12 +33,12 @@ module ActiveSupport #:nodoc:
           #
           # == Interoperability and configuration
           #
-          # The Char object tries to be as interchangeable with String objects as possible: sorting and comparing between
+          # The Chars object tries to be as interchangeable with String objects as possible: sorting and comparing between
           # String and Char work like expected. The bang! methods change the internal string representation in the Chars
           # object. Interoperability problems can be resolved easily with a +to_s+ call.
           #
           # For more information about the methods defined on the Chars proxy see ActiveSupport::Multibyte::Chars. For
-          # information about how to change the default Multibyte behaviour, see ActiveSupport::Multibyte.
+          # information about how to change the default Multibyte behaviour see ActiveSupport::Multibyte.
           def mb_chars
             if ActiveSupport::Multibyte.proxy_class.wants?(self)
               ActiveSupport::Multibyte.proxy_class.new(self)
@@ -56,15 +57,11 @@ module ActiveSupport #:nodoc:
             alias chars mb_chars
           end
         else
-          # In Ruby 1.9 and newer +mb_chars+ returns self. In Ruby 1.8 and older +mb_chars+ creates and returns an
-          # Unicode safe proxy for string operations, this makes it easier to write code that runs on multiple Ruby
-          # versions.
-          def mb_chars
+          def mb_chars #:nodoc
             self
           end
           
-          # Returns true if the string has valid UTF-8 encoding.
-          def is_utf8?
+          def is_utf8? #:nodoc
             case encoding
             when Encoding::UTF_8
               valid_encoding?

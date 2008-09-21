@@ -2,7 +2,7 @@
 
 module ActiveSupport #:nodoc:
   module Multibyte #:nodoc:
-    # Chars enables you to work transparently with multibyte encodings in the Ruby String class without having extensive
+    # Chars enables you to work transparently with UTF-8 encoding in the Ruby String class without having extensive
     # knowledge about the encoding. A Chars object accepts a string upon initialization and proxies String methods in an
     # encoding safe manner. All the normal String methods are also implemented on the proxy.
     #
@@ -88,14 +88,14 @@ module ActiveSupport #:nodoc:
       alias to_s wrapped_string
       alias to_str wrapped_string
 
-      # Creates a new Chars instance. +string+ is the wrapped string.
       if '1.9'.respond_to?(:force_encoding)
+        # Creates a new Chars instance by wrapping _string_.
         def initialize(string)
           @wrapped_string = string
           @wrapped_string.force_encoding(Encoding::UTF_8) unless @wrapped_string.frozen?
         end
       else
-        def initialize(string)
+        def initialize(string) #:nodoc:
           @wrapped_string = string
         end
       end
@@ -121,10 +121,10 @@ module ActiveSupport #:nodoc:
         true
       end
 
-      # Returns +true+ if the Chars class can and should act as a proxy for the string +string+. Returns
+      # Returns +true+ if the Chars class can and should act as a proxy for the string _string_. Returns
       # +false+ otherwise.
       def self.wants?(string)
-        RUBY_VERSION < '1.9' && $KCODE == 'UTF8' && consumes?(string)
+        $KCODE == 'UTF8' && consumes?(string)
       end
 
       # Returns +true+ when the proxy class can handle the string. Returns +false+ otherwise.
@@ -138,9 +138,9 @@ module ActiveSupport #:nodoc:
 
       include Comparable
 
-      # Returns -1, 0 or +1 depending on whether the Chars object is to be sorted before, equal or after the
-      # object on the right side of the operation. It accepts any object that implements +to_s+. See String.<=>
-      # for more details.
+      # Returns <tt>-1</tt>, <tt>0</tt> or <tt>+1</tt> depending on whether the Chars object is to be sorted before,
+      # equal or after the object on the right side of the operation. It accepts any object that implements +to_s+.
+      # See <tt>String#<=></tt> for more details.
       #
       # Example:
       #   'é'.mb_chars <=> 'ü'.mb_chars #=> -1
@@ -148,7 +148,7 @@ module ActiveSupport #:nodoc:
         @wrapped_string <=> other.to_s
       end
 
-      # Returns a new Chars object containing the other object concatenated to the string.
+      # Returns a new Chars object containing the _other_ object concatenated to the string.
       #
       # Example:
       #   ('Café'.mb_chars + ' périferôl').to_s #=> "Café périferôl"
@@ -156,7 +156,7 @@ module ActiveSupport #:nodoc:
         self << other
       end
 
-      # Like String.=~ only it returns the character offset (in codepoints) instead of the byte offset.
+      # Like <tt>String#=~</tt> only it returns the character offset (in codepoints) instead of the byte offset.
       #
       # Example:
       #   'Café périferôl'.mb_chars =~ /ô/ #=> 12
@@ -164,7 +164,7 @@ module ActiveSupport #:nodoc:
         translate_offset(@wrapped_string =~ other)
       end
 
-      # Works just like String#split, with the exception that the items in the resulting list are Chars
+      # Works just like <tt>String#split</tt>, with the exception that the items in the resulting list are Chars
       # instances instead of String. This makes chaining methods easier.
       #
       # Example:
@@ -173,7 +173,7 @@ module ActiveSupport #:nodoc:
         @wrapped_string.split(*args).map { |i| i.mb_chars }
       end
 
-      # Inserts the passed string at specified codepoint offsets
+      # Inserts the passed string at specified codepoint offsets.
       #
       # Example:
       #   'Café'.mb_chars.insert(4, ' périferôl').to_s #=> "Café périferôl"
@@ -189,7 +189,7 @@ module ActiveSupport #:nodoc:
         self
       end
 
-      # Returns true if contained string contains +other+. Returns false otherwise.
+      # Returns +true+ if contained string contains _other_. Returns +false+ otherwise.
       #
       # Example:
       #   'Café'.mb_chars.include?('é') #=> true
@@ -198,17 +198,17 @@ module ActiveSupport #:nodoc:
         @wrapped_string.include?(other)
       end
 
-      # Returns the position of the passed argument in the string, counting in codepoints
+      # Returns the position _needle_ in the string, counting in codepoints. Returns +nil+ if _needle_ isn't found.
       #
       # Example:
       #   'Café périferôl'.mb_chars.index('ô') #=> 12
-      def index(*args)
-        index = @wrapped_string.index(*args)
+      #   'Café périferôl'.mb_chars.index(/\w/u) #=> 0
+      def index(needle, offset=0)
+        index = @wrapped_string.index(needle, offset)
         index ? (self.class.u_unpack(@wrapped_string.slice(0...index)).size) : nil
       end
 
-      # Works just like the indexed replace method on string, except instead of byte offsets you specify
-      # character offsets.
+      # Like <tt>String#[]=</tt>, except instead of byte offsets you specify character offsets.
       #
       # Example:
       #
@@ -248,7 +248,7 @@ module ActiveSupport #:nodoc:
         end
       end
 
-      # Works just like String#rjust, only integer specifies characters instead of bytes.
+      # Works just like <tt>String#rjust</tt>, only integer specifies characters instead of bytes.
       #
       # Example:
       #
@@ -261,7 +261,7 @@ module ActiveSupport #:nodoc:
         justify(integer, :right, padstr)
       end
 
-      # Works just like String#ljust, only integer specifies characters instead of bytes.
+      # Works just like <tt>String#ljust</tt>, only integer specifies characters instead of bytes.
       #
       # Example:
       #
@@ -274,7 +274,7 @@ module ActiveSupport #:nodoc:
         justify(integer, :left, padstr)
       end
 
-      # Works just like String#center, only integer specifies characters instead of bytes.
+      # Works just like <tt>String#center</tt>, only integer specifies characters instead of bytes.
       #
       # Example:
       #
@@ -308,7 +308,7 @@ module ActiveSupport #:nodoc:
       end
       alias_method :length, :size
       
-      # Reverses all characters in the string
+      # Reverses all characters in the string.
       #
       # Example:
       #   'Café'.mb_chars.reverse.to_s #=> 'éfaC'
@@ -343,7 +343,7 @@ module ActiveSupport #:nodoc:
       end
       alias_method :[], :slice
 
-      # Convert characters in the string to uppercase
+      # Convert characters in the string to uppercase.
       #
       # Example:
       #   'Laurent, òu sont les tests?'.mb_chars.upcase.to_s #=> "LAURENT, ÒU SONT LES TESTS?"
@@ -351,7 +351,7 @@ module ActiveSupport #:nodoc:
         apply_mapping :uppercase_mapping
       end
 
-      # Convert characters in the string to lowercase
+      # Convert characters in the string to lowercase.
       #
       # Example:
       #   'VĚDA A VÝZKUM'.mb_chars.downcase.to_s #=> "věda a výzkum"
@@ -359,7 +359,7 @@ module ActiveSupport #:nodoc:
         apply_mapping :lowercase_mapping
       end
 
-      # Converts the first character to uppercase and the remainder to lowercase
+      # Converts the first character to uppercase and the remainder to lowercase.
       #
       # Example:
       #  'über'.mb_chars.capitalize.to_s #=> "Über"
@@ -418,6 +418,7 @@ module ActiveSupport #:nodoc:
         self.class.g_unpack(@wrapped_string).length
       end
 
+      # Replaces all ISO-8859-1 or CP1252 characters by their UTF-8 equivalent resulting in a valid UTF-8 string.
       def tidy_bytes
         chars(self.class.tidy_bytes(@wrapped_string))
       end
@@ -435,24 +436,35 @@ module ActiveSupport #:nodoc:
 
       class << self
 
-        # Unpack the string at codepoints boundaries
-        def u_unpack(str)
+        # Unpack the string at codepoints boundaries. Raises an EncodingError when the encoding of the string isn't
+        # valid UTF-8.
+        #
+        # Example:
+        #   Chars.u_unpack('Café') #=> [67, 97, 102, 233]
+        def u_unpack(string)
           begin
-            str.unpack 'U*'
+            string.unpack 'U*'
           rescue ArgumentError
             raise EncodingError.new('malformed UTF-8 character')
           end
         end
 
-        # Detect whether the codepoint is in a certain character class. Primarily used by the
-        # grapheme cluster support.
+        # Detect whether the codepoint is in a certain character class. Returns +true+ when it's in the specified
+        # character class and +false+ otherwise. Valid character classes are: <tt>:cr</tt>, <tt>:lf</tt>, <tt>:l</tt>,
+        # <tt>:v</tt>, <tt>:lv</tt>, <tt>:lvt</tt> and <tt>:t</tt>.
+        #
+        # Primarily used by the grapheme cluster support.
         def in_char_class?(codepoint, classes)
           classes.detect { |c| UCD.boundary[c] === codepoint } ? true : false
         end
 
-        # Unpack the string at grapheme boundaries
-        def g_unpack(str)
-          codepoints = u_unpack(str)
+        # Unpack the string at grapheme boundaries. Returns a list of character lists.
+        #
+        # Example:
+        #   Chars.g_unpack('क्षि') #=> [[2325, 2381], [2359], [2367]]
+        #   Chars.g_unpack('Café') #=> [[67], [97], [102], [233]]
+        def g_unpack(string)
+          codepoints = u_unpack(string)
           unpacked = []
           pos = 0
           marker = 0
@@ -481,13 +493,15 @@ module ActiveSupport #:nodoc:
           unpacked
         end
 
-        # Reverse operation of g_unpack
+        # Reverse operation of g_unpack.
+        #
+        # Example:
+        #   Chars.g_pack(Chars.g_unpack('क्षि')) #=> 'क्षि'
         def g_pack(unpacked)
           (unpacked.flatten).pack('U*')
         end
 
-        # Generates a padding string of a certain size.
-        def padding(padsize, padstr=' ')
+        def padding(padsize, padstr=' ') #:nodoc:
           if padsize != 0
             new(padstr * ((padsize / u_unpack(padstr).size) + 1)).slice(0, padsize)
           else
@@ -495,7 +509,7 @@ module ActiveSupport #:nodoc:
           end
         end
 
-        # Re-order codepoints so the string becomes canonical
+        # Re-order codepoints so the string becomes canonical.
         def reorder_characters(codepoints)
           length = codepoints.length- 1
           pos = 0
@@ -511,7 +525,7 @@ module ActiveSupport #:nodoc:
           codepoints
         end
 
-        # Decompose composed characters to the decomposed form
+        # Decompose composed characters to the decomposed form.
         def decompose_codepoints(type, codepoints)
           codepoints.inject([]) do |decomposed, cp|
             # if it's a hangul syllable starter character
@@ -532,7 +546,7 @@ module ActiveSupport #:nodoc:
           end
         end
 
-        # Compose decomposed characters to the composed form
+        # Compose decomposed characters to the composed form.
         def compose_codepoints(codepoints)
           pos = 0
           eoa = codepoints.length - 1
@@ -591,9 +605,9 @@ module ActiveSupport #:nodoc:
           codepoints
         end
 
-        # Replaces all the non-UTF-8 bytes by their iso-8859-1 or cp1252 equivalent resulting in a valid UTF-8 string
-        def tidy_bytes(str)
-          str.split(//u).map do |c|
+        # Replaces all ISO-8859-1 or CP1252 characters by their UTF-8 equivalent resulting in a valid UTF-8 string.
+        def tidy_bytes(string)
+          string.split(//u).map do |c|
             if !UTF8_PAT.match(c)
               n = c.unpack('C')[0]
               n < 128 ? n.chr :
@@ -608,8 +622,7 @@ module ActiveSupport #:nodoc:
 
       protected
 
-        # Translate a byte offset in the wrapped string to a character offset by looking for the character boundary
-        def translate_offset(byte_offset)
+        def translate_offset(byte_offset) #:nodoc:
           return nil if byte_offset.nil?
           return 0   if @wrapped_string == ''
           chunk = @wrapped_string[0..byte_offset]
@@ -629,9 +642,7 @@ module ActiveSupport #:nodoc:
           end
         end
 
-        # Justifies a string in a certain way. Valid values for <tt>way</tt> are <tt>:right</tt>, <tt>:left</tt> and
-        # <tt>:center</tt>.
-        def justify(integer, way, padstr=' ')
+        def justify(integer, way, padstr=' ') #:nodoc:
           raise ArgumentError, "zero width padding" if padstr.length == 0
           padsize = integer - size
           padsize = padsize > 0 ? padsize : 0
@@ -648,8 +659,7 @@ module ActiveSupport #:nodoc:
           chars(result)
         end
 
-        # Map codepoints to one of it's attributes.
-        def apply_mapping(mapping)
+        def apply_mapping(mapping) #:nodoc:
           chars(self.class.u_unpack(@wrapped_string).map do |codepoint|
             cp = UCD.codepoints[codepoint]
             if cp and (ncp = cp.send(mapping)) and ncp > 0
@@ -660,9 +670,8 @@ module ActiveSupport #:nodoc:
           end.pack('U*'))
         end
 
-        # Creates a new instance
-        def chars(str)
-          self.class.new(str)
+        def chars(string) #:nodoc:
+          self.class.new(string)
         end
     end
   end

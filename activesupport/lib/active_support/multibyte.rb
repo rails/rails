@@ -5,7 +5,7 @@ require 'active_support/multibyte/exceptions'
 require 'active_support/multibyte/unicode_database'
 
 module ActiveSupport #:nodoc:
-  module Multibyte #:nodoc:
+  module Multibyte
     # A list of all available normalization forms. See http://www.unicode.org/reports/tr15/tr15-29.html for more
     # information about normalization.
     NORMALIZATIONS_FORMS = [:c, :kc, :d, :kd]
