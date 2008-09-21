@@ -121,57 +121,57 @@ module ActionView
         end
       end
 
-        # Extracts an excerpt from +text+ that matches the first instance of +phrase+.
-        # The <tt>:radius</tt> option expands the excerpt on each side of the first occurrence of +phrase+ by the number of characters
-        # defined in <tt>:radius</tt> (which defaults to 100). If the excerpt radius overflows the beginning or end of the +text+,
-        # then the <tt>:omission</tt> option (which defaults to "...") will be prepended/appended accordingly. The resulting string
-        # will be stripped in any case. If the +phrase+ isn't found, nil is returned.
-        #
-        # ==== Examples
-        #   excerpt('This is an example', 'an', :radius => 5)
-        #   # => ...s is an exam...
-        #
-        #   excerpt('This is an example', 'is', :radius => 5)
-        #   # => This is a...
-        #
-        #   excerpt('This is an example', 'is')
-        #   # => This is an example
-        #
-        #   excerpt('This next thing is an example', 'ex', :radius => 2)
-        #   # => ...next...
-        #
-        #   excerpt('This is also an example', 'an', :radius => 8, :omission => '<chop> ')
-        #   # => <chop> is also an example
-        #
-        # You can still use <tt>excerpt</tt> with the old API that accepts the
-        # +radius+ as its optional third and the +ellipsis+ as its
-        # optional forth parameter:
-        #   excerpt('This is an example', 'an', 5)                   # => ...s is an exam...
-        #   excerpt('This is also an example', 'an', 8, '<chop> ')   # => <chop> is also an example
-        def excerpt(text, phrase, *args)
-          options = args.extract_options!
-          unless args.empty?
-            options[:radius] = args[0] || 100
-            options[:omission] = args[1] || "..."
-          end
-          options.reverse_merge!(:radius => 100, :omission => "...")
+      # Extracts an excerpt from +text+ that matches the first instance of +phrase+.
+      # The <tt>:radius</tt> option expands the excerpt on each side of the first occurrence of +phrase+ by the number of characters
+      # defined in <tt>:radius</tt> (which defaults to 100). If the excerpt radius overflows the beginning or end of the +text+,
+      # then the <tt>:omission</tt> option (which defaults to "...") will be prepended/appended accordingly. The resulting string
+      # will be stripped in any case. If the +phrase+ isn't found, nil is returned.
+      #
+      # ==== Examples
+      #   excerpt('This is an example', 'an', :radius => 5)
+      #   # => ...s is an exam...
+      #
+      #   excerpt('This is an example', 'is', :radius => 5)
+      #   # => This is a...
+      #
+      #   excerpt('This is an example', 'is')
+      #   # => This is an example
+      #
+      #   excerpt('This next thing is an example', 'ex', :radius => 2)
+      #   # => ...next...
+      #
+      #   excerpt('This is also an example', 'an', :radius => 8, :omission => '<chop> ')
+      #   # => <chop> is also an example
+      #
+      # You can still use <tt>excerpt</tt> with the old API that accepts the
+      # +radius+ as its optional third and the +ellipsis+ as its
+      # optional forth parameter:
+      #   excerpt('This is an example', 'an', 5)                   # => ...s is an exam...
+      #   excerpt('This is also an example', 'an', 8, '<chop> ')   # => <chop> is also an example
+      def excerpt(text, phrase, *args)
+        options = args.extract_options!
+        unless args.empty?
+          options[:radius] = args[0] || 100
+          options[:omission] = args[1] || "..."
+        end
+        options.reverse_merge!(:radius => 100, :omission => "...")
 
-          if text && phrase
-            phrase = Regexp.escape(phrase)
+        if text && phrase
+          phrase = Regexp.escape(phrase)
 
-            if found_pos = text.mb_chars =~ /(#{phrase})/i
-              start_pos = [ found_pos - options[:radius], 0 ].max
-              end_pos   = [ [ found_pos + phrase.mb_chars.length + options[:radius] - 1, 0].max, text.mb_chars.length ].min
+          if found_pos = text.mb_chars =~ /(#{phrase})/i
+            start_pos = [ found_pos - options[:radius], 0 ].max
+            end_pos   = [ [ found_pos + phrase.mb_chars.length + options[:radius] - 1, 0].max, text.mb_chars.length ].min
 
-              prefix  = start_pos > 0 ? options[:omission] : ""
-              postfix = end_pos < text.mb_chars.length - 1 ? options[:omission] : ""
+            prefix  = start_pos > 0 ? options[:omission] : ""
+            postfix = end_pos < text.mb_chars.length - 1 ? options[:omission] : ""
 
-              prefix + text.mb_chars[start_pos..end_pos].strip + postfix
-            else
-              nil
-            end
+            prefix + text.mb_chars[start_pos..end_pos].strip + postfix
+          else
+            nil
           end
         end
+      end
 
       # Attempts to pluralize the +singular+ word unless +count+ is 1. If
       # +plural+ is supplied, it will use that when count is > 1, otherwise
