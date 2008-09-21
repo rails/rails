@@ -1,8 +1,14 @@
+# encoding: utf-8
+
 require 'test/unit'
 
 $:.unshift "#{File.dirname(__FILE__)}/../lib"
 $:.unshift File.dirname(__FILE__)
 require 'active_support'
+
+if RUBY_VERSION < '1.9'
+  $KCODE = 'UTF8'
+end
 
 def uses_gem(gem_name, test_name, version = '> 0')
   require 'rubygems'
