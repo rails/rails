@@ -62,6 +62,10 @@ end
 EOF
 
 class ModuleTest < Test::Unit::TestCase
+  def setup
+    @david = Someone.new("David", Somewhere.new("Paulina", "Chicago"))
+  end
+
   def test_included_in_classes
     assert One.included_in_classes.include?(Ab)
     assert One.included_in_classes.include?(Xy::Bc)
@@ -70,14 +74,12 @@ class ModuleTest < Test::Unit::TestCase
   end
 
   def test_delegation_to_methods
-    david = Someone.new("David", Somewhere.new("Paulina", "Chicago"))
-    assert_equal "Paulina", david.street
-    assert_equal "Chicago", david.city
+    assert_equal "Paulina", @david.street
+    assert_equal "Chicago", @david.city
   end
 
   def test_delegation_down_hierarchy
-    david = Someone.new("David", Somewhere.new("Paulina", "Chicago"))
-    assert_equal "CHICAGO", david.upcase
+    assert_equal "CHICAGO", @david.upcase
   end
 
   def test_delegation_to_instance_variable
@@ -91,16 +93,14 @@ class ModuleTest < Test::Unit::TestCase
   end
 
   def test_delegation_prefix
-    david = Someone.new("David", Somewhere.new("Paulina", "Chicago"))
-    invoice = Invoice.new(david)
+    invoice = Invoice.new(@david)
     assert_equal invoice.client_name, "David"
     assert_equal invoice.client_street, "Paulina"
     assert_equal invoice.client_city, "Chicago"
   end
 
   def test_delegation_custom_prefix
-    david = Someone.new("David", Somewhere.new("Paulina", "Chicago"))
-    invoice = Invoice.new(david)
+    invoice = Invoice.new(@david)
     assert_equal invoice.customer_name, "David"
     assert_equal invoice.customer_street, "Paulina"
     assert_equal invoice.customer_city, "Chicago"
