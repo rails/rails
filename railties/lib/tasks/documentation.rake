@@ -55,6 +55,7 @@ namespace :doc do
   namespace :plugins do
     # Define doc tasks for each plugin
     plugins.each do |plugin|
+      desc "Generate documentation for the #{plugin} plugin"
       task(plugin => :environment) do
         plugin_base   = "vendor/plugins/#{plugin}"
         options       = []
