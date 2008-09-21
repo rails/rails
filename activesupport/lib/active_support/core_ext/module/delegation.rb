@@ -78,7 +78,7 @@ class Module
       raise ArgumentError, "Delegation needs a target. Supply an options hash with a :to key as the last argument (e.g. delegate :hello, :to => :greeter)."
     end
 
-    prefix = options[:prefix] && (options[:prefix] == true ? "#{to}_" : "#{options[:prefix]}_")
+    prefix = options[:prefix] && "#{options[:prefix] == true ? to : options[:prefix]}_"
 
     methods.each do |method|
       module_eval(<<-EOS, "(__DELEGATION__)", 1)
