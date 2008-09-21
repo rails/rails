@@ -21,8 +21,9 @@ module MultibyteTest
 end
 
 class String
-  def __string_for_multibyte_testing; self; end
-  def __string_for_multibyte_testing!; self; end
+  def __method_for_multibyte_testing_with_integer_result; 1; end
+  def __method_for_multibyte_testing; 'result'; end
+  def __method_for_multibyte_testing!; 'result'; end
 end
 
 class MultibyteCharsTest < Test::Unit::TestCase
@@ -40,7 +41,7 @@ class MultibyteCharsTest < Test::Unit::TestCase
 
   def test_should_allow_method_calls_to_string
     assert_nothing_raised do
-      @chars.__string_for_multibyte_testing
+      @chars.__method_for_multibyte_testing
     end
     assert_raises NoMethodError do
       @chars.__unknown_method
@@ -48,17 +49,21 @@ class MultibyteCharsTest < Test::Unit::TestCase
   end
 
   def test_forwarded_method_calls_should_return_new_chars_instance
-    assert @chars.__string_for_multibyte_testing.kind_of?(@proxy_class)
-    assert_not_equal @chars.object_id, @chars.__string_for_multibyte_testing.object_id
+    assert @chars.__method_for_multibyte_testing.kind_of?(@proxy_class)
+    assert_not_equal @chars.object_id, @chars.__method_for_multibyte_testing.object_id
   end
 
   def test_forwarded_bang_method_calls_should_return_the_original_chars_instance
-    assert @chars.__string_for_multibyte_testing!.kind_of?(@proxy_class)
-    assert_equal @chars.object_id, @chars.__string_for_multibyte_testing!.object_id
+    assert @chars.__method_for_multibyte_testing!.kind_of?(@proxy_class)
+    assert_equal @chars.object_id, @chars.__method_for_multibyte_testing!.object_id
   end
 
   def test_methods_are_forwarded_to_wrapped_string_for_byte_strings
     assert_equal BYTE_STRING.class, BYTE_STRING.mb_chars.class
+  end
+
+  def test_forwarded_method_with_non_string_result_should_be_returned_vertabim
+    assert_equal ''.__method_for_multibyte_testing_with_integer_result, @chars.__method_for_multibyte_testing_with_integer_result
   end
 
   def test_should_concatenate
