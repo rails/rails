@@ -1438,15 +1438,17 @@ class BasicsTest < ActiveRecord::TestCase
 
   if RUBY_VERSION < '1.9'
     def test_quote_chars
-      str = 'The Narrator'
-      topic = Topic.create(:author_name => str)
-      assert_equal str, topic.author_name
+      with_kcode('UTF8') do
+        str = 'The Narrator'
+        topic = Topic.create(:author_name => str)
+        assert_equal str, topic.author_name
 
-      assert_kind_of ActiveSupport::Multibyte.proxy_class, str.mb_chars
-      topic = Topic.find_by_author_name(str.mb_chars)
+        assert_kind_of ActiveSupport::Multibyte.proxy_class, str.mb_chars
+        topic = Topic.find_by_author_name(str.mb_chars)
 
-      assert_kind_of Topic, topic
-      assert_equal str, topic.author_name, "The right topic should have been found by name even with name passed as Chars"
+        assert_kind_of Topic, topic
+        assert_equal str, topic.author_name, "The right topic should have been found by name even with name passed as Chars"
+      end
     end
   end
 
@@ -2039,4 +2041,18 @@ class BasicsTest < ActiveRecord::TestCase
   ensure
     ActiveRecord::Base.logger = original_logger
   end
+
+  private
+    def with_kcode(kcode)
+      if RUBY_VERSION < '1.9'
+        orig_kcode, $KCODE = $KCODE, kcode
+        begin
+          yield
+        ensure
+          $KCODE = orig_kcode
+        end
+      else
+        yield
+      end
+    end
 end
