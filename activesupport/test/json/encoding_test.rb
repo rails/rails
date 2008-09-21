@@ -101,18 +101,6 @@ class TestJSONEncoding < Test::Unit::TestCase
   end
 
   protected
-    def with_kcode(code)
-      if RUBY_VERSION < '1.9'
-        begin
-          old_kcode, $KCODE = $KCODE, 'UTF8'
-          yield
-        ensure
-          $KCODE = old_kcode
-        end
-      else
-        yield
-      end
-    end
 
     def object_keys(json_object)
       json_object[1..-2].scan(/([^{}:,\s]+):/).flatten.sort
