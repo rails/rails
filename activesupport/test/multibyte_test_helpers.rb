@@ -1,3 +1,5 @@
+# encoding: utf-8
+
 module MultibyteTestHelpers
   UNICODE_STRING = 'こにちわ'
   ASCII_STRING = 'ohayo'
