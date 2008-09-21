@@ -512,7 +512,7 @@ module ActiveRecord #:nodoc:
       #
       # All approaches accept an options hash as their last parameter.
       #
-      # ==== Attributes
+      # ==== Parameters
       #
       # * <tt>:conditions</tt> - An SQL fragment like "administrator = 1" or <tt>[ "user_name = ?", username ]</tt>. See conditions in the intro.
       # * <tt>:order</tt> - An SQL fragment like "created_at DESC, name".
@@ -697,7 +697,7 @@ module ActiveRecord #:nodoc:
       # Updates an object (or multiple objects) and saves it to the database, if validations pass.
       # The resulting object is returned whether the object was saved successfully to the database or not.
       #
-      # ==== Attributes
+      # ==== Parameters
       #
       # * +id+ - This should be the id or an array of ids to be updated.
       # * +attributes+ - This should be a Hash of attributes to be set on the object, or an array of Hashes.
@@ -727,7 +727,7 @@ module ActiveRecord #:nodoc:
       #
       # Objects are _not_ instantiated with this method.
       #
-      # ==== Attributes
+      # ==== Parameters
       #
       # * +id+ - Can be either an Integer or an Array of Integers.
       #
@@ -750,7 +750,7 @@ module ActiveRecord #:nodoc:
       # This essentially finds the object (or multiple objects) with the given id, creates a new object
       # from the attributes, and then calls destroy on it.
       #
-      # ==== Attributes
+      # ==== Parameters
       #
       # * +id+ - Can be either an Integer or an Array of Integers.
       #
@@ -774,7 +774,7 @@ module ActiveRecord #:nodoc:
       # also be supplied. This method constructs a single SQL UPDATE statement and sends it straight to the
       # database. It does not instantiate the involved models and it does not trigger Active Record callbacks.
       #
-      # ==== Attributes
+      # ==== Parameters
       #
       # * +updates+ - A string of column and value pairs that will be set on any records that match conditions.
       #               What goes into the SET clause.
@@ -820,7 +820,7 @@ module ActiveRecord #:nodoc:
       # many records. If you want to simply delete records without worrying about dependent associations or
       # callbacks, use the much faster +delete_all+ method instead.
       #
-      # ==== Attributes
+      # ==== Parameters
       #
       # * +conditions+ - Conditions are specified the same way as with +find+ method.
       #
@@ -839,7 +839,7 @@ module ActiveRecord #:nodoc:
       # goes straight to the database, much more efficient than +destroy_all+. Careful with relations
       # though, in particular <tt>:dependent</tt> is not taken into account.
       #
-      # ==== Attributes
+      # ==== Parameters
       #
       # * +conditions+ - Conditions are specified the same way as with +find+ method.
       #
@@ -859,7 +859,7 @@ module ActiveRecord #:nodoc:
       # The use of this method should be restricted to complicated SQL queries that can't be executed
       # using the ActiveRecord::Calculations class methods.  Look into those before using this.
       #
-      # ==== Attributes
+      # ==== Parameters
       #
       # * +sql+ - An SQL statement which should return a count query from the database, see the example below.
       #
@@ -877,7 +877,7 @@ module ActiveRecord #:nodoc:
       # with the given ID, altering the given hash of counters by the amount
       # given by the corresponding value:
       #
-      # ==== Attributes
+      # ==== Parameters
       #
       # * +id+ - The id of the object you wish to update a counter on.
       # * +counters+ - An Array of Hashes containing the names of the fields
@@ -907,7 +907,7 @@ module ActiveRecord #:nodoc:
       # For example, a DiscussionBoard may cache post_count and comment_count otherwise every time the board is
       # shown it would have to run an SQL query to find how many posts and comments there are.
       #
-      # ==== Attributes
+      # ==== Parameters
       #
       # * +counter_name+ - The name of the field that should be incremented.
       # * +id+ - The id of the object that should be incremented.
@@ -924,7 +924,7 @@ module ActiveRecord #:nodoc:
       #
       # This works the same as increment_counter but reduces the column value by 1 instead of increasing it.
       #
-      # ==== Attributes
+      # ==== Parameters
       #
       # * +counter_name+ - The name of the field that should be decremented.
       # * +id+ - The id of the object that should be decremented.
@@ -1019,7 +1019,7 @@ module ActiveRecord #:nodoc:
       # The serialization is done through YAML. If +class_name+ is specified, the serialized object must be of that
       # class on retrieval or SerializationTypeMismatch will be raised.
       #
-      # ==== Attributes
+      # ==== Parameters
       #
       # * +attr_name+ - The field name that should be serialized.
       # * +class_name+ - Optional, class name that the object type should be equal to.
