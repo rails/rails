@@ -29,7 +29,8 @@ class MultibyteCharsTest < Test::Unit::TestCase
   include MultibyteTest
 
   def setup
-    @chars = ActiveSupport::Multibyte::Chars.new UNICODE_STRING
+    @proxy_class = ActiveSupport::Multibyte::Chars
+    @chars = @proxy_class.new UNICODE_STRING
   end
 
   def test_wraps_the_original_string
@@ -68,6 +69,12 @@ class MultibyteCharsTest < Test::Unit::TestCase
     assert_equal 'ab', 'a'.mb_chars << 'b'
     assert_equal 'ab', 'a' << 'b'.mb_chars
     assert_equal 'ab', 'a'.mb_chars << 'b'.mb_chars
+  end
+
+  def test_consumes_utf8_strings
+    assert @proxy_class.consumes?(UNICODE_STRING)
+    assert @proxy_class.consumes?(ASCII_STRING)
+    assert !@proxy_class.consumes?(BYTE_STRING)
   end
 
   if RUBY_VERSION < '1.9'
