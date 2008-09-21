@@ -9,12 +9,12 @@ module ActiveSupport #:nodoc:
     # String methods are proxied through the Chars object, and can be accessed through the +mb_chars+ method. Methods
     # which would normally return a String object now return a Chars object so methods can be chained.
     #
-    #   "The Perfect String  ".chars.downcase.strip.normalize #=> "the perfect string"
+    #   "The Perfect String  ".mb_chars.downcase.strip.normalize #=> "the perfect string"
     #
     # Chars objects are perfectly interchangeable with String objects as long as no explicit class checks are made.
     # If certain methods do explicitly check the class, call +to_s+ before you pass chars objects to them.
     #
-    #   bad.explicit_checking_method "T".chars.downcase.to_s
+    #   bad.explicit_checking_method "T".mb_chars.downcase.to_s
     #
     # The default Chars implementation assumes that the encoding of the string is UTF-8, if you want to handle different
     # encodings you can write your own multibyte string handler and configure it through 
@@ -213,12 +213,12 @@ module ActiveSupport #:nodoc:
       # Example:
       #
       #   s = "Müller"
-      #   s.chars[2] = "e" # Replace character with offset 2
+      #   s.mb_chars[2] = "e" # Replace character with offset 2
       #   s
       #   #=> "Müeler"
       #
       #   s = "Müller"
-      #   s.chars[1, 2] = "ö" # Replace 2 characters at character offset 1
+      #   s.mb_chars[1, 2] = "ö" # Replace 2 characters at character offset 1
       #   s
       #   #=> "Möler"
       def []=(*args)
@@ -253,10 +253,10 @@ module ActiveSupport #:nodoc:
       #
       # Example:
       #
-      #   "¾ cup".chars.rjust(8).to_s
+      #   "¾ cup".mb_chars.rjust(8).to_s
       #   #=> "   ¾ cup"
       #
-      #   "¾ cup".chars.rjust(8, " ").to_s # Use non-breaking whitespace
+      #   "¾ cup".mb_chars.rjust(8, " ").to_s # Use non-breaking whitespace
       #   #=> "   ¾ cup"
       def rjust(integer, padstr=' ')
         justify(integer, :right, padstr)
@@ -266,10 +266,10 @@ module ActiveSupport #:nodoc:
       #
       # Example:
       #
-      #   "¾ cup".chars.rjust(8).to_s
+      #   "¾ cup".mb_chars.rjust(8).to_s
       #   #=> "¾ cup   "
       #
-      #   "¾ cup".chars.rjust(8, " ").to_s # Use non-breaking whitespace
+      #   "¾ cup".mb_chars.rjust(8, " ").to_s # Use non-breaking whitespace
       #   #=> "¾ cup   "
       def ljust(integer, padstr=' ')
         justify(integer, :left, padstr)
@@ -279,10 +279,10 @@ module ActiveSupport #:nodoc:
       #
       # Example:
       #
-      #   "¾ cup".chars.center(8).to_s
+      #   "¾ cup".mb_chars.center(8).to_s
       #   #=> " ¾ cup  "
       #
-      #   "¾ cup".chars.center(8, " ").to_s # Use non-breaking whitespace
+      #   "¾ cup".mb_chars.center(8, " ").to_s # Use non-breaking whitespace
       #   #=> " ¾ cup  "
       def center(integer, padstr=' ')
         justify(integer, :center, padstr)
