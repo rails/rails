@@ -1442,8 +1442,8 @@ class BasicsTest < ActiveRecord::TestCase
       topic = Topic.create(:author_name => str)
       assert_equal str, topic.author_name
 
-      assert_kind_of ActiveSupport::Multibyte::Chars, str.chars
-      topic = Topic.find_by_author_name(str.chars)
+      assert_kind_of ActiveSupport::Multibyte.proxy_class, str.mb_chars
+      topic = Topic.find_by_author_name(str.mb_chars)
 
       assert_kind_of Topic, topic
       assert_equal str, topic.author_name, "The right topic should have been found by name even with name passed as Chars"

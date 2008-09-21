@@ -42,65 +42,46 @@ module ActionView
         output_buffer << string
       end
 
-      if RUBY_VERSION < '1.9'
-        # Truncates a given +text+ after a given <tt>:length</tt> if +text+ is longer than <tt>:length</tt>
-        # (defaults to 30). The last characters will be replaced with the <tt>:omission</tt> (defaults to "...").
-        #
-        # ==== Examples
-        #
-        #   truncate("Once upon a time in a world far far away")
-        #   # => Once upon a time in a world f...
-        #
-        #   truncate("Once upon a time in a world far far away", :length => 14)
-        #   # => Once upon a...
-        #
-        #   truncate("And they found that many people were sleeping better.", :length => 25, "(clipped)")
-        #   # => And they found that many (clipped)
-        #
-        #   truncate("And they found that many people were sleeping better.", :omission => "... (continued)", :length => 15)
-        #   # => And they found... (continued)
-        #
-        # You can still use <tt>truncate</tt> with the old API that accepts the
-        # +length+ as its optional second and the +ellipsis+ as its
-        # optional third parameter:
-        #   truncate("Once upon a time in a world far far away", 14)
-        #   # => Once upon a time in a world f...
-        #
-        #   truncate("And they found that many people were sleeping better.", 15, "... (continued)")
-        #   # => And they found... (continued)
-        def truncate(text, *args)
-          options = args.extract_options!
-          unless args.empty?
-            ActiveSupport::Deprecation.warn('truncate takes an option hash instead of separate ' +
-              'length and omission arguments', caller)
+      # Truncates a given +text+ after a given <tt>:length</tt> if +text+ is longer than <tt>:length</tt>
+      # (defaults to 30). The last characters will be replaced with the <tt>:omission</tt> (defaults to "...").
+      #
+      # ==== Examples
+      #
+      #   truncate("Once upon a time in a world far far away")
+      #   # => Once upon a time in a world f...
+      #
+      #   truncate("Once upon a time in a world far far away", :length => 14)
+      #   # => Once upon a...
+      #
+      #   truncate("And they found that many people were sleeping better.", :length => 25, "(clipped)")
+      #   # => And they found that many (clipped)
+      #
+      #   truncate("And they found that many people were sleeping better.", :omission => "... (continued)", :length => 15)
+      #   # => And they found... (continued)
+      #
+      # You can still use <tt>truncate</tt> with the old API that accepts the
+      # +length+ as its optional second and the +ellipsis+ as its
+      # optional third parameter:
+      #   truncate("Once upon a time in a world far far away", 14)
+      #   # => Once upon a time in a world f...
+      #
+      #   truncate("And they found that many people were sleeping better.", 15, "... (continued)")
+      #   # => And they found... (continued)
+      def truncate(text, *args)
+        options = args.extract_options!
+        unless args.empty?
+          ActiveSupport::Deprecation.warn('truncate takes an option hash instead of separate ' +
+            'length and omission arguments', caller)
 
-            options[:length] = args[0] || 30
-            options[:omission] = args[1] || "..."
-          end
-          options.reverse_merge!(:length => 30, :omission => "...")
-
-          if text
-            l = options[:length] - options[:omission].chars.length
-            chars = text.chars
-            (chars.length > options[:length] ? chars[0...l] + options[:omission] : text).to_s
-          end
+          options[:length] = args[0] || 30
+          options[:omission] = args[1] || "..."
         end
-      else
-        def truncate(text, *args) #:nodoc:
-          options = args.extract_options!
-          unless args.empty?
-            ActiveSupport::Deprecation.warn('truncate takes an option hash instead of separate ' +
-              'length and omission arguments', caller)
+        options.reverse_merge!(:length => 30, :omission => "...")
 
-            options[:length] = args[0] || 30
-            options[:omission] = args[1] || "..."
-          end
-          options.reverse_merge!(:length => 30, :omission => "...")
-
-          if text
-            l = options[:length].to_i - options[:omission].length
-            (text.length > options[:length].to_i ? text[0...l] + options[:omission] : text).to_s
-          end
+        if text
+          l = options[:length] - options[:omission].mb_chars.length
+          chars = text.mb_chars
+          (chars.length > options[:length] ? chars[0...l] + options[:omission] : text).to_s
         end
       end
 
@@ -140,7 +121,6 @@ module ActionView
         end
       end
 
-      if RUBY_VERSION < '1.9'
         # Extracts an excerpt from +text+ that matches the first instance of +phrase+.
         # The <tt>:radius</tt> option expands the excerpt on each side of the first occurrence of +phrase+ by the number of characters
         # defined in <tt>:radius</tt> (which defaults to 100). If the excerpt radius overflows the beginning or end of the +text+,
@@ -179,45 +159,19 @@ module ActionView
           if text && phrase
             phrase = Regexp.escape(phrase)
 
-            if found_pos = text.chars =~ /(#{phrase})/i
+            if found_pos = text.mb_chars =~ /(#{phrase})/i
               start_pos = [ found_pos - options[:radius], 0 ].max
-              end_pos   = [ [ found_pos + phrase.chars.length + options[:radius] - 1, 0].max, text.chars.length ].min
+              end_pos   = [ [ found_pos + phrase.mb_chars.length + options[:radius] - 1, 0].max, text.mb_chars.length ].min
 
               prefix  = start_pos > 0 ? options[:omission] : ""
-              postfix = end_pos < text.chars.length - 1 ? options[:omission] : ""
+              postfix = end_pos < text.mb_chars.length - 1 ? options[:omission] : ""
 
-              prefix + text.chars[start_pos..end_pos].strip + postfix
+              prefix + text.mb_chars[start_pos..end_pos].strip + postfix
             else
               nil
             end
           end
         end
-      else
-        def excerpt(text, phrase, *args) #:nodoc:
-          options = args.extract_options!
-          unless args.empty?
-            options[:radius] = args[0] || 100
-            options[:omission] = args[1] || "..."
-          end
-          options.reverse_merge!(:radius => 100, :omission => "...")
-
-          if text && phrase
-            phrase = Regexp.escape(phrase)
-
-            if found_pos = text =~ /(#{phrase})/i
-              start_pos = [ found_pos - options[:radius], 0 ].max
-              end_pos   = [ [ found_pos + phrase.length + options[:radius] - 1, 0].max, text.length ].min
-
-              prefix  = start_pos > 0 ? options[:omission] : ""
-              postfix = end_pos < text.length - 1 ? options[:omission] : ""
-
-              prefix + text[start_pos..end_pos].strip + postfix
-            else
-              nil
-            end
-          end
-        end
-      end
 
       # Attempts to pluralize the +singular+ word unless +count+ is 1. If
       # +plural+ is supplied, it will use that when count is > 1, otherwise
