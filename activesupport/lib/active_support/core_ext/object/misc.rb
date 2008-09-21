@@ -1,24 +1,40 @@
 class Object
-  # A Ruby-ized realization of the K combinator, courtesy of Mikael Brockman.
+  # Returns +value+ after yielding +value+ to the block. This simplifies the
+  # process of constructing an object, performing work on the object, and then
+  # returning the object from a method. It is a Ruby-ized realization of the K
+  # combinator, courtesy of Mikael Brockman.
   #
-  #   def foo
-  #     returning values = [] do
-  #       values << 'bar'
-  #       values << 'baz'
-  #     end
-  #   end
+  # ==== Examples
   #
-  #   foo # => ['bar', 'baz']
+  #  # Without returning
+  #  def foo
+  #    values = []
+  #    values << "bar"
+  #    values << "baz"
+  #    return values
+  #  end
   #
-  #   def foo
-  #     returning [] do |values|
-  #       values << 'bar'
-  #       values << 'baz'
-  #     end
-  #   end
+  #  foo # => ['bar', 'baz']
   #
-  #   foo # => ['bar', 'baz']
+  #  # returning with a local variable
+  #  def foo
+  #    returning values = [] do
+  #      values << 'bar'
+  #      values << 'baz'
+  #    end
+  #  end
   #
+  #  foo # => ['bar', 'baz']
+  #  
+  #  # returning with a block argument
+  #  def foo
+  #    returning [] do |values|
+  #      values << 'bar'
+  #      values << 'baz'
+  #    end
+  #  end
+  #  
+  #  foo # => ['bar', 'baz']
   def returning(value)
     yield(value)
     value
