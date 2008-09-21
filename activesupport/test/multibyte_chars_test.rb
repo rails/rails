@@ -1,24 +1,7 @@
 # encoding: utf-8
 
 require 'abstract_unit'
-
-module MultibyteTest
-  UNICODE_STRING = 'こにちわ'
-  ASCII_STRING = 'ohayo'
-  BYTE_STRING = "\270\236\010\210\245"
-
-  def chars(str)
-    ActiveSupport::Multibyte::Chars.new(str)
-  end
-
-  def inspect_codepoints(str)
-    str.to_s.unpack("U*").map{|cp| cp.to_s(16) }.join(' ')
-  end
-
-  def assert_equal_codepoints(expected, actual, message=nil)
-    assert_equal(inspect_codepoints(expected), inspect_codepoints(actual), message)
-  end
-end
+require 'multibyte_test_helpers'
 
 class String
   def __method_for_multibyte_testing_with_integer_result; 1; end
@@ -27,7 +10,7 @@ class String
 end
 
 class MultibyteCharsTest < Test::Unit::TestCase
-  include MultibyteTest
+  include MultibyteTestHelpers
 
   def setup
     @proxy_class = ActiveSupport::Multibyte::Chars
@@ -113,7 +96,7 @@ class MultibyteCharsTest < Test::Unit::TestCase
 end
 
 class MultibyteCharsUTF8BehaviourTest < Test::Unit::TestCase
-  include MultibyteTest
+  include MultibyteTestHelpers
 
   def setup
     @chars = UNICODE_STRING.dup.mb_chars
@@ -445,7 +428,7 @@ end
 # for the implementation of these features should run on all Ruby versions and shouldn't be tested
 # through the proxy methods.
 class MultibyteCharsExtrasTest < Test::Unit::TestCase
-  include MultibyteTest
+  include MultibyteTestHelpers
 
   if RUBY_VERSION >= '1.9'
     def test_tidy_bytes_is_broken_on_1_9_0

@@ -1,4 +1,8 @@
+# encoding: utf-8
+
 require 'abstract_unit'
+require 'multibyte_test_helpers'
+
 require 'fileutils'
 require 'open-uri'
 require 'tmpdir'
@@ -22,7 +26,7 @@ class Downloader
 end
 
 class MultibyteConformanceTest < Test::Unit::TestCase
-  include MultibyteTest
+  include MultibyteTestHelpers
   
   UNIDATA_URL = "http://www.unicode.org/Public/#{ActiveSupport::Multibyte::UNICODE_VERSION}/ucd"
   UNIDATA_FILE = '/NormalizationTest.txt'
