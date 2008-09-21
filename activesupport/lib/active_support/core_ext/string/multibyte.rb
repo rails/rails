@@ -54,7 +54,10 @@ module ActiveSupport #:nodoc:
           end
 
           unless '1.8.7 and later'.respond_to?(:chars)
-            alias chars mb_chars
+            def chars
+              ActiveSupport::Deprecation.warn('String#chars has been deprecated in favor of String#mb_chars.', caller)
+              mb_chars
+            end
           end
         else
           def mb_chars #:nodoc

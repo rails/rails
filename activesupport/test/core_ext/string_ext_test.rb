@@ -226,6 +226,12 @@ class CoreExtStringMultibyteTest < Test::Unit::TestCase
     def test_core_ext_adds_chars
       assert UNICODE_STRING.respond_to?(:chars)
     end
+
+    def test_chars_warns_about_deprecation
+      assert_deprecated("String#chars") do
+        ''.chars
+      end
+    end
   end
 
   if RUBY_VERSION < '1.9'
