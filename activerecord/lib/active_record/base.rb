@@ -2306,6 +2306,16 @@ module ActiveRecord #:nodoc:
 
       # Deletes the record in the database and freezes this instance to reflect that no changes should
       # be made (since they can't be persisted).
+      #
+      # Unlike #destroy, this method doesn't run any +before_delete+ and +after_delete+
+      # callbacks, nor will it enforce any association +:dependent+ rules.
+      def delete
+        self.class.delete(id) unless new_record?
+        freeze
+      end
+
+      # Deletes the record in the database and freezes this instance to reflect that no changes should
+      # be made (since they can't be persisted).
       def destroy
         unless new_record?
           connection.delete <<-end_sql, "#{self.class.name} Destroy"
