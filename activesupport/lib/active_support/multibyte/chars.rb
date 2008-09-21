@@ -246,7 +246,6 @@ module ActiveSupport #:nodoc:
           result[range] = self.class.u_unpack(replace_by)
           @wrapped_string.replace(result.pack('U*'))
         end
-        self
       end
 
       # Works just like String#rjust, only integer specifies characters instead of bytes.
@@ -365,7 +364,7 @@ module ActiveSupport #:nodoc:
       # Example:
       #  'über'.mb_chars.capitalize.to_s #=> "Über"
       def capitalize
-        (slice(0) || '').upcase + (slice(1..-1) || '').downcase
+        (slice(0) || chars('')).upcase + (slice(1..-1) || chars('')).downcase
       end
 
       # Returns the KC normalization of the string by default. NFKC is considered the best normalization form for

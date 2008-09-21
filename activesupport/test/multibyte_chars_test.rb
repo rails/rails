@@ -48,12 +48,12 @@ class MultibyteCharsTest < Test::Unit::TestCase
   end
 
   def test_forwarded_method_calls_should_return_new_chars_instance
-    assert @chars.__string_for_multibyte_testing.kind_of?(ActiveSupport::Multibyte::Chars)
+    assert @chars.__string_for_multibyte_testing.kind_of?(@proxy_class)
     assert_not_equal @chars.object_id, @chars.__string_for_multibyte_testing.object_id
   end
 
   def test_forwarded_bang_method_calls_should_return_the_original_chars_instance
-    assert @chars.__string_for_multibyte_testing!.kind_of?(ActiveSupport::Multibyte::Chars)
+    assert @chars.__string_for_multibyte_testing!.kind_of?(@proxy_class)
     assert_equal @chars.object_id, @chars.__string_for_multibyte_testing!.object_id
   end
 
@@ -88,10 +88,10 @@ class MultibyteCharsTest < Test::Unit::TestCase
     end
 
     def test_concatenate_should_return_proxy_instance
-      assert(('a'.mb_chars + 'b').kind_of?(ActiveSupport::Multibyte::Chars))
-      assert(('a'.mb_chars + 'b'.mb_chars).kind_of?(ActiveSupport::Multibyte::Chars))
-      assert(('a'.mb_chars << 'b').kind_of?(ActiveSupport::Multibyte::Chars))
-      assert(('a'.mb_chars << 'b'.mb_chars).kind_of?(ActiveSupport::Multibyte::Chars))
+      assert(('a'.mb_chars + 'b').kind_of?(@proxy_class))
+      assert(('a'.mb_chars + 'b'.mb_chars).kind_of?(@proxy_class))
+      assert(('a'.mb_chars << 'b').kind_of?(@proxy_class))
+      assert(('a'.mb_chars << 'b'.mb_chars).kind_of?(@proxy_class))
     end
   end
 end
@@ -111,7 +111,7 @@ class MultibyteCharsUTF8BehaviourTest < Test::Unit::TestCase
   if RUBY_VERSION < '1.9'
     def test_split_should_return_an_array_of_chars_instances
       @chars.split(//).each do |character|
-        assert character.kind_of?(ActiveSupport::Multibyte::Chars)
+        assert character.kind_of?(ActiveSupport::Multibyte.proxy_class)
       end
     end
 
@@ -150,6 +150,35 @@ class MultibyteCharsUTF8BehaviourTest < Test::Unit::TestCase
     end
   end
 
+  def test_identity
+    assert_equal @chars, @chars
+    assert @chars.eql?(@chars)
+    if RUBY_VERSION <= '1.9'
+      assert !@chars.eql?(UNICODE_STRING)
+    else
+      assert @chars.eql?(UNICODE_STRING)
+    end
+  end
+
+  def test_string_methods_are_chainable
+    assert chars('').insert(0, '').kind_of?(ActiveSupport::Multibyte.proxy_class)
+    assert chars('').rjust(1).kind_of?(ActiveSupport::Multibyte.proxy_class)
+    assert chars('').ljust(1).kind_of?(ActiveSupport::Multibyte.proxy_class)
+    assert chars('').center(1).kind_of?(ActiveSupport::Multibyte.proxy_class)
+    assert chars('').rstrip.kind_of?(ActiveSupport::Multibyte.proxy_class)
+    assert chars('').lstrip.kind_of?(ActiveSupport::Multibyte.proxy_class)
+    assert chars('').strip.kind_of?(ActiveSupport::Multibyte.proxy_class)
+    assert chars('').reverse.kind_of?(ActiveSupport::Multibyte.proxy_class)
+    assert chars(' ').slice(0).kind_of?(ActiveSupport::Multibyte.proxy_class)
+    assert chars('').upcase.kind_of?(ActiveSupport::Multibyte.proxy_class)
+    assert chars('').downcase.kind_of?(ActiveSupport::Multibyte.proxy_class)
+    assert chars('').capitalize.kind_of?(ActiveSupport::Multibyte.proxy_class)
+    assert chars('').normalize.kind_of?(ActiveSupport::Multibyte.proxy_class)
+    assert chars('').decompose.kind_of?(ActiveSupport::Multibyte.proxy_class)
+    assert chars('').compose.kind_of?(ActiveSupport::Multibyte.proxy_class)
+    assert chars('').tidy_bytes.kind_of?(ActiveSupport::Multibyte.proxy_class)
+  end
+
   def test_should_be_equal_to_the_wrapped_string
     assert_equal UNICODE_STRING, @chars
     assert_equal @chars, UNICODE_STRING
@@ -158,6 +187,11 @@ class MultibyteCharsUTF8BehaviourTest < Test::Unit::TestCase
   def test_should_not_be_equal_to_an_other_string
     assert_not_equal @chars, 'other'
     assert_not_equal 'other', @chars
+  end
+
+  def test_sortability
+    words = %w(builder armor zebra).map(&:mb_chars).sort
+    assert_equal %w(armor builder zebra), words
   end
 
   def test_should_return_character_offset_for_regexp_matches
@@ -181,6 +215,7 @@ class MultibyteCharsUTF8BehaviourTest < Test::Unit::TestCase
   end
 
   def test_insert_throws_index_error
+    assert_raises(IndexError) { @chars.insert(-12, 'わ')}
     assert_raises(IndexError) { @chars.insert(12, 'わ') }
   end
 
