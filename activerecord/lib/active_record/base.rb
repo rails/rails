@@ -725,7 +725,8 @@ module ActiveRecord #:nodoc:
       # is executed on the database which means that no callbacks are fired off running this.  This is an efficient method
       # of deleting records that don't need cleaning up after or other actions to be taken.
       #
-      # Objects are _not_ instantiated with this method.
+      # Objects are _not_ instantiated with this method, and so +:dependent+ rules
+      # defined on associations are not honered.
       #
       # ==== Parameters
       #
@@ -826,18 +827,22 @@ module ActiveRecord #:nodoc:
       #
       # ==== Example
       #
-      #   Person.destroy_all "last_login < '2004-04-04'"
+      #   Person.destroy_all("last_login < '2004-04-04'")
       #
       # This loads and destroys each person one by one, including its dependent associations and before_ and
       # after_destroy callbacks.
+      #
+      # +conditions+ can be anything that +find+ also accepts:
+      #
+      #   Person.destroy_all(:last_login => 6.hours.ago)
       def destroy_all(conditions = nil)
         find(:all, :conditions => conditions).each { |object| object.destroy }
       end
 
       # Deletes the records matching +conditions+ without instantiating the records first, and hence not
       # calling the +destroy+ method nor invoking callbacks. This is a single SQL DELETE statement that
-      # goes straight to the database, much more efficient than +destroy_all+. Careful with relations
-      # though, in particular <tt>:dependent</tt> is not taken into account.
+      # goes straight to the database, much more efficient than +destroy_all+. Be careful with relations
+      # though, in particular <tt>:dependent</tt> rules defined on associations are not honored.
       #
       # ==== Parameters
       #
@@ -845,9 +850,10 @@ module ActiveRecord #:nodoc:
       #
       # ==== Example
       #
-      #   Post.delete_all "person_id = 5 AND (category = 'Something' OR category = 'Else')"
+      #   Post.delete_all("person_id = 5 AND (category = 'Something' OR category = 'Else')")
+      #   Post.delete_all(["person_id = ? AND (category = ? OR category = ?)", 5, 'Something', 'Else'])
       #
-      # This deletes the affected posts all at once with a single DELETE statement. If you need to destroy dependent
+      # Both calls delete the affected posts all at once with a single DELETE statement. If you need to destroy dependent
       # associations or call your <tt>before_*</tt> or +after_destroy+ callbacks, use the +destroy_all+ method instead.
       def delete_all(conditions = nil)
         sql = "DELETE FROM #{quoted_table_name} "
@@ -1927,6 +1933,9 @@ module ActiveRecord #:nodoc:
         #       end
         #     end
         #   end
+        #
+        # *Note*: the +:find+ scope also has effect on update and deletion methods,
+        # like +update_all+ and +delete_all+.
         def with_scope(method_scoping = {}, action = :merge, &block)
           method_scoping = method_scoping.method_scoping if method_scoping.respond_to?(:method_scoping)
 
