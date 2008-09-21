@@ -2526,10 +2526,25 @@ module ActiveRecord #:nodoc:
       end
 
       # Allows you to set all the attributes at once by passing in a hash with keys
-      # matching the attribute names (which again matches the column names). Sensitive attributes can be protected
-      # from this form of mass-assignment by using the +attr_protected+ macro. Or you can alternatively
-      # specify which attributes *can* be accessed with the +attr_accessible+ macro. Then all the
+      # matching the attribute names (which again matches the column names).
+      #
+      # If +guard_protected_attributes+ is true (the default), then sensitive
+      # attributes can be protected from this form of mass-assignment by using
+      # the +attr_protected+ macro. Or you can alternatively specify which
+      # attributes *can* be accessed with the +attr_accessible+ macro. Then all the
       # attributes not included in that won't be allowed to be mass-assigned.
+      #
+      #   class User < ActiveRecord::Base
+      #     attr_protected :is_admin
+      #   end
+      #   
+      #   user = User.new
+      #   user.attributes = { :username => 'Phusion', :is_admin => true }
+      #   user.username   # => "Phusion"
+      #   user.is_admin?  # => false
+      #   
+      #   user.send(:attributes=, { :username => 'Phusion', :is_admin => true }, false)
+      #   user.is_admin?  # => true
       def attributes=(new_attributes, guard_protected_attributes = true)
         return if new_attributes.nil?
         attributes = new_attributes.dup
