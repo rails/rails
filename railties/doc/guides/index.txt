@@ -53,6 +53,13 @@ link:http://rails.lighthouseapp.com/projects/16213/tickets/1[Lighthouse Ticket]
 Guide to using built in Form helpers.
 ***********************************************************
 
+.link:benchmarking_and_profiling/preamble.html[Benchmarking and Profiling Rails Applications]
+***********************************************************
+link:http://rails.lighthouseapp.com/projects/16213/tickets/4[Lighthouse Ticket]
+
+TODO: Insert some description here.
+***********************************************************
+
 .link:testing_rails_applications/testing_rails_applications.html[Testing Rails Applications]
 ***********************************************************
 link:http://rails.lighthouseapp.com/projects/16213/tickets/8[Lighthouse Ticket]
