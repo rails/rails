@@ -150,12 +150,7 @@ require 'test/performance/test_helper.rb'
 
 === Testing ===
 
-Rails has two types of performance testing :
-
-* profile - For finding out what's slow in something
-* benchmark - For determining how fast is something
-
-In other words, you first _benchmark_ your application to find out if something is not fast. And then _profile_ it to find out what exactly is slowing it down.
+#TODO is there some way to compare multiple request at once like ruby_analyze
 
 Now, if we look at the generated performance test ( one we generated using _script/generate performance_test_ ), it'll look something like :
 
@@ -172,7 +167,6 @@ end
 ----------------------------------------------------------------------------
 
 
-
 The format looks very similar to that of an integration test. And guess what, that's what it is. But that doesn't stop you from testing your Model methods. You could very well write something like :
 
 [source, ruby]
@@ -186,9 +180,6 @@ class UserModelTest < ActionController::PerformanceTest
   end
 end
 ----------------------------------------------------------------------------
-
-
-
 
 
 Which is very useful way to profile individual processes. 

@@ -1,10 +1,11 @@
 == On The Road to Optimization == 
 === Looking at the log file in regards to optimization ===
 
- You actually have been gathering data for benchmarking throughout your development cycle. Your log files are not just for error detection they also contain very useful information on how speedy your action is behaving. 
+You actually have been gathering data for benchmarking throughout your development cycle. Your log files are not just for error detection they also contain very useful information on how speedy your action is behaving. 
 
 .Regular Log Output
-============================================================================
+----------------------------------------------------------------------------
+
 Processing MediaController#index (for 127.0.0.1 at 2008-07-17 21:30:21) [GET]
 
   Session ID: BAh7BiIKZmxhc2hJQzonQWN0aW9uQ29udHJvbGxlcjo6Rmxhc2g6OkZsYXNo
@@ -24,7 +25,7 @@ Rendering media/index
 Rendered layouts/_header (0.00051)
 
 *Completed in 0.04310 (23 reqs/sec) | Rendering: 0.00819 (19%) | DB: 0.00757 (17%) | 200 OK [http://localhost/media]*
-============================================================================
+----------------------------------------------------------------------------
 
 What concerns us here is the last line of the action. 
 

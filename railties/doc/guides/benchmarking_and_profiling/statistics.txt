@@ -1,5 +1,8 @@
 == A Lession In Statistics ==
 
+#TODO COMPRESS DOWN INTO A PARAGRAPH AND A HALF 
+maybe I'll just combine with the methodology portion as an appendix. 
+
 Adapted from a blog Article by Zed Shaw. His rant is funnier but will take longer to read. <br /> http://www.zedshaw.com/rants/programmer_stats.html[Programmers Need To Learn Statistics Or I Will Kill Them All]
 
 === Why Learn Statistics ===
