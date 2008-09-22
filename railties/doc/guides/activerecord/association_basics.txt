@@ -52,12 +52,13 @@ end
 -------------------------------------------------------
 
 With this change, creating a new order for a particular customer is easier:
+
 [source, ruby]
 -------------------------------------------------------
 @order = @customer.orders.create(:order_date => Time.now)
 -------------------------------------------------------
 
-Deleting a customer and all of its orders is much easier:
+Deleting a customer and all of its orders is _much_ easier:
 
 [source, ruby]
 -------------------------------------------------------
@@ -68,7 +69,7 @@ To learn more about the different types of associations, read the next section o
 
 == The Types of Associations
 
-In Rails, an _association_ is a connection between two Active Record models. Associations are implemented using macro-style calls, so that you can declaratively add features to your models. For example, by declaring that one model +belongs_to+ another, you enable Rails to maintain Primary Key-Foreign Key information between instances of the two models, and you also get a number of utility methods added to your model. Rails supports six types of association:
+In Rails, an _association_ is a connection between two Active Record models. Associations are implemented using macro-style calls, so that you can declaratively add features to your models. For example, by declaring that one model +belongs_to+ another, you instruct Rails to maintain Primary Key-Foreign Key information between instances of the two models, and you also get a number of utility methods added to your model. Rails supports six types of association:
 
 * +belongs_to+
 * +has_one+
@@ -90,6 +91,8 @@ class Order < ActiveRecord::Base
 end
 -------------------------------------------------------
 
+image:images/belongs_to.png[belongs_to Association Diagram]
+
 === The +has_one+ Association
 
 A +has_one+ association also sets up a one-to-one connection with another model, but with somewhat different semantics (and consequences). This association indicates that each instance of a model contains or possesses one instance of another model. For example, if each supplier in your application has only one account, you'd declare the supplier model like this:
@@ -100,6 +103,8 @@ class Supplier < ActiveRecord::Base
   has_one :account
 end
 -------------------------------------------------------
+
+image:images/has_one.png[has_one Association Diagram]
 
 === The +has_many+ Association
 
@@ -113,6 +118,8 @@ end
 -------------------------------------------------------
 
 NOTE: The name of the other model is pluralized when declaring a +has_many+ association.
+
+image:images/has_many.png[has_many Association Diagram]
 
 === The +has_many :through+ Association
 
@@ -135,6 +142,8 @@ class Patient < ActiveRecord::Base
   has_many :physicians, :through => :appointments
 -------------------------------------------------------
 
+image:images/has_many_through.png[has_many :through Association Diagram]
+
 === The +has_one :through+ Association
 
 A +has_one :through+ association sets up a one-to-one connection with another model. This association indicates that the declaring model can be matched with one instance of another model by proceeding _through_ a third model. For example, if each supplier has one account, and each account is associated with one account history, then the customer model could look like this:
@@ -147,7 +156,7 @@ class Supplier < ActiveRecord::Base
 end
 
 class Account < ActiveRecord::Base
-  belongs_to :account
+  belongs_to :supplier
   has_one :account_history
 end
 
@@ -155,6 +164,8 @@ class AccountHistory < ActiveRecord::Base
   belongs_to :account
 end
 -------------------------------------------------------
+
+image:images/has_one_through.png[has_one :through Association Diagram]
 
 === The +has_and_belongs_to_many+ Association
 
@@ -170,6 +181,8 @@ class Part < ActiveRecord::Base
   has_and_belongs_to_many :assemblies
 end
 -------------------------------------------------------
+
+image:images/habtm.png[has_and_belongs_to_many Association Diagram]
 
 === Choosing Between +belongs_to+ and +has_one+
 
@@ -212,6 +225,8 @@ class CreateSuppliers < ActiveRecord::Migration
   end
 end
 -------------------------------------------------------
+
+NOTE: Using +t.integer :supplier_id+ makes the foreign key naming obvious and implicit. In current versions of Rails, you can abstract away this implementation detail by using +t.references :supplier+ instead.
 
 === Choosing Between +has_many :through+ and +has_and_belongs_to_many+
 
@@ -291,6 +306,25 @@ class CreatePictures < ActiveRecord::Migration
 end
 -------------------------------------------------------
 
+This migration can be simplified by using the +t.references+ form:
+
+[source, ruby]
+-------------------------------------------------------
+class CreatePictures < ActiveRecord::Migration
+  def self.up
+    create_table :pictures do |t|
+      t.string  :name
+      t.references :imageable, :polymorphic => true
+      t.timestamps
+    end
+  end
+
+  def self.down
+    drop_table :pictures
+  end
+end
+-------------------------------------------------------
+
 == Tips, Tricks, and Warnings
 
 Here are a few things you should know to make efficient use of Active Record associations in your Rails applications:
@@ -322,7 +356,7 @@ customer.orders(true).empty?    # discards the cached copy of orders and goes ba
 
 === Avoiding Name Collisions
 
-You are not free to use just any name for your associations. Because creating an association adds a method with that name to the model, it is a bad idea to give an association a name that is already used for an instance method of ActiveRecord::Base. The association method would override the base method and break things. For instance, +attributes+ or +connection+ are bad names for associations.
+You are not free to use just any name for your associations. Because creating an association adds a method with that name to the model, it is a bad idea to give an association a name that is already used for an instance method of +ActiveRecord::Base+. The association method would override the base method and break things. For instance, +attributes+ or +connection+ are bad names for associations.
 
 === Updating the Schema
 
@@ -356,7 +390,7 @@ end
 
 If you create an association some time after you build the underlying model, you need to remember to create an +add_column+ migration to provide the necessary foreign key.
 
-Second, if you create a +has_and_belongs_to_many+ association, you need to explicitly create the joining table. Unless name of the join table is explicitly specified by using the +:join_table+ option, Active Record create the name by using the lexical order of the class names. So a join between customer and order models will give the default join table name of "customers_orders" because "c" outranks "o" in lexical ordering. 
+Second, if you create a +has_and_belongs_to_many+ association, you need to explicitly create the joining table. Unless the name of the join table is explicitly specified by using the +:join_table+ option, Active Record create the name by using the lexical order of the class names. So a join between customer and order models will give the default join table name of "customers_orders" because "c" outranks "o" in lexical ordering. 
 
 WARNING: The precedence between model names is calculated using the +<+ operator for +String+. This means that if the strings are of different lengths, and the strings are equal when compared up to the shortest length, then the longer string is considered of higher lexical precedence than the shorter one. For example, one would expect the tables "paper_boxes" and "papers" to generate a join table name of "papers_paper_boxes" because of the length of the name "paper_boxes", but it in fact generates a join table name of "paper_boxes_papers".
 
@@ -410,9 +444,26 @@ module MyApplication
 end
 -------------------------------------------------------
 
-This will work fine, because both the +Supplier+ and the +Account+ class are defined within the same scope. 
+This will work fine, because both the +Supplier+ and the +Account+ class are defined within the same scope. But this will not work, because +Supplier+ and +Account+ are defined in different scopes:
 
-You can associate a model with a model in a different scope, but only by specifying the complete class name in your association declaration:
+[source, ruby]
+-------------------------------------------------------
+module MyApplication
+  module Business
+    class Supplier < ActiveRecord::Base
+       has_one :account
+    end
+  end
+
+  module Billing
+    class Account < ActiveRecord::Base
+       belongs_to :supplier
+    end
+  end
+end
+-------------------------------------------------------
+
+To associate a model with a model in a different scope, you must specify the complete class name in your association declaration:
 
 [source, ruby]
 -------------------------------------------------------
@@ -607,7 +658,7 @@ Although the +:counter_cache+ option is specified on the model that includes the
 [source, ruby]
 -------------------------------------------------------
 class Order < ActiveRecord::Base
-  belongs_to :customer, :counter_cache => :customer_count
+  belongs_to :customer, :counter_cache => :count_of_orders
 end
 class Customer < ActiveRecord::Base
   has_many :orders
@@ -654,7 +705,7 @@ end
 
 ===== +:polymorphic+
 
-Passing +true+ to the +:polymorphic+ option indicates that this is a polymorphic association. Polymorphic associations are discussed in detail later in this guide.
+Passing +true+ to the +:polymorphic+ option indicates that this is a polymorphic association. Polymorphic associations were discussed in detail earlier in this guide.
 
 ===== +:readonly+
 
@@ -974,8 +1025,6 @@ The +_collection_=+ method makes the collection contain only the supplied object
 
 ===== +_collection\_singular_\_ids+
 
-#   Returns an array of the associated objects' ids
-
 The +_collection\_singular_\_ids+ method returns an array of the ids of the objects in the collection.
 
 [source, ruby]
@@ -1292,9 +1341,9 @@ Each instance of the part model will have these methods:
 +assemblies.create(attributes = {})+
 -------------------------------------------------------
 
-===== Additional Field Methods
+===== Additional Column Methods
 
-If the join table for a +has_and_belongs_to_many+ association has additional fields beyond the two foreign keys, these fields will be added as attributes to records retrieved via that association. Records returned with additional attributes will always be read-only, because Rails cannot save changes to those attributes.
+If the join table for a +has_and_belongs_to_many+ association has additional columns beyond the two foreign keys, these columns will be added as attributes to records retrieved via that association. Records returned with additional attributes will always be read-only, because Rails cannot save changes to those attributes.
 
 WARNING: The use of extra attributes on the join table in a +has_and_belongs_to_many+ association is deprecated. If you require this sort of complex behavior on the table that joins two models in a many-to-many relationship, you should use a +has_many :through+ association instead of +has_and_belongs_to_many+.
 
@@ -1569,10 +1618,10 @@ Normal callbacks hook into the lifecycle of Active Record objects, allowing you 
 
 Association callbacks are similar to normal callbacks, but they are triggered by events in the lifecycle of a collection. There are four available association callbacks:
 
-* before_add
-* after_add
-* before_remove
-* after_remove
+* +before_add+
+* +after_add+
+* +before_remove+
+* +after_remove+
 
 You define association callbacks by adding options to the association declaration. For example:
 
@@ -1662,3 +1711,4 @@ Extensions can refer to the internals of the association proxy using these three
 http://rails.lighthouseapp.com/projects/16213-rails-guides/tickets/11[Lighthouse ticket]
 
 * September 14, 2008: initial version by link:../authors.html#mgunderloy[Mike Gunderloy] (not yet approved for publication)
+* September 22, 2008: Added diagrams, misc. cleanup by link:../authors.html#mgunderloy[Mike Gunderloy] (not yet approved for publication)
