@@ -1,5 +1,9 @@
 *Edge*
 
+* Switch from String#chars to String#mb_chars for the unicode proxy.  [Manfred Stienstra]
+
+  This helps with 1.8.7 compatibility and also improves performance for some operations by reducing indirection.
+
 * TimeWithZone #wday, #yday and #to_date avoid trip through #method_missing [Geoff Buesing]
 
 * Added Time, Date, DateTime and TimeWithZone #past?, #future? and #today? #720 [Clemens Kofler, Geoff Buesing]
