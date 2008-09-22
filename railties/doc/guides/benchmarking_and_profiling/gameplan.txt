@@ -22,6 +22,6 @@ Formulate a question you need to answer which is simple, tests the smallest meas
 * Run the test.
 * Perform the analysis on the results and determine where to go from there.
 
-Note: Even though we are using the typical scientific method; developing a hypothesis is not always useful in terms of profiling. The argument against using an hypothesis is that it will influence your experimental design and doesn’t really prove anything. 
+Note: Even though we are using the typical scientific method; developing a hypothesis is not always useful in terms of profiling.
 
 
