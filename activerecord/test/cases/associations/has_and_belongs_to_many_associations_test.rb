@@ -253,7 +253,7 @@ class HasAndBelongsToManyAssociationsTest < ActiveRecord::TestCase
     assert !devel.projects.loaded?
 
     assert_equal devel.projects.last, proj
-    assert devel.projects.loaded?
+    assert !devel.projects.loaded?
 
     assert !proj.new_record?
     assert_equal Developer.find(1).projects.sort_by(&:id).last, proj  # prove join table is updated

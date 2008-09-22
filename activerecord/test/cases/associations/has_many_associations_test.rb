@@ -1009,6 +1009,19 @@ class HasManyAssociationsTest < ActiveRecord::TestCase
     assert firm.clients.loaded?
   end
 
+  def test_calling_first_or_last_on_existing_record_with_create_should_not_load_association
+    firm = companies(:first_firm)
+    firm.clients.create(:name => 'Foo')
+    assert !firm.clients.loaded?
+
+    assert_queries 2 do
+      firm.clients.first
+      firm.clients.last
+    end
+
+    assert !firm.clients.loaded?
+  end
+
   def test_calling_first_or_last_on_new_record_should_not_run_queries
     firm = Firm.new
 
