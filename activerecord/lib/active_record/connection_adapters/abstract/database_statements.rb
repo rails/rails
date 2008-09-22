@@ -98,8 +98,14 @@ module ActiveRecord
         add_limit_offset!(sql, options) if options
       end
 
-      # Appends +LIMIT+ and +OFFSET+ options to an SQL statement.
+      # Appends +LIMIT+ and +OFFSET+ options to an SQL statement, or some SQL
+      # fragment that has the same semantics as LIMIT and OFFSET.
+      #
+      # +options+ must be a Hash which contains a +:limit+ option (required)
+      # and an +:offset+ option (optional).
+      #
       # This method *modifies* the +sql+ parameter.
+      #
       # ===== Examples
       #  add_limit_offset!('SELECT * FROM suppliers', {:limit => 10, :offset => 50})
       # generates

@@ -1,30 +1,50 @@
 class Object
-  # A Ruby-ized realization of the K combinator, courtesy of Mikael Brockman.
+  # Returns +value+ after yielding +value+ to the block. This simplifies the
+  # process of constructing an object, performing work on the object, and then
+  # returning the object from a method. It is a Ruby-ized realization of the K
+  # combinator, courtesy of Mikael Brockman.
   #
-  #   def foo
-  #     returning values = [] do
-  #       values << 'bar'
-  #       values << 'baz'
-  #     end
-  #   end
+  # ==== Examples
   #
-  #   foo # => ['bar', 'baz']
+  #  # Without returning
+  #  def foo
+  #    values = []
+  #    values << "bar"
+  #    values << "baz"
+  #    return values
+  #  end
   #
-  #   def foo
-  #     returning [] do |values|
-  #       values << 'bar'
-  #       values << 'baz'
-  #     end
-  #   end
+  #  foo # => ['bar', 'baz']
   #
-  #   foo # => ['bar', 'baz']
+  #  # returning with a local variable
+  #  def foo
+  #    returning values = [] do
+  #      values << 'bar'
+  #      values << 'baz'
+  #    end
+  #  end
   #
+  #  foo # => ['bar', 'baz']
+  #  
+  #  # returning with a block argument
+  #  def foo
+  #    returning [] do |values|
+  #      values << 'bar'
+  #      values << 'baz'
+  #    end
+  #  end
+  #  
+  #  foo # => ['bar', 'baz']
   def returning(value)
     yield(value)
     value
   end
 
-  # An elegant way to refactor out common options
+  # An elegant way to factor duplication out of options passed to a series of
+  # method calls. Each method called in the block, with the block variable as
+  # the receiver, will have its options merged with the default +options+ hash
+  # provided. Each method called on the block variable must take an options
+  # hash as its final argument.
   # 
   #   with_options :order => 'created_at', :class_name => 'Comment' do |post|
   #     post.has_many :comments, :conditions => ['approved = ?', true], :dependent => :delete_all
