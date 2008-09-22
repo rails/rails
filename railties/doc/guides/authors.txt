@@ -23,9 +23,3 @@ Cofounder of http://www.eventioz.com[Eventioz]. He has been using Rails since 20
 Can be found at gmail, twitter, freenode, everywhere as miloops.
 ***********************************************************
 
-.Matthew Bergman
-[[FotoVerit]]
-***********************************************************
-.Matthew Bergman is a young developer and open source contributor. He loves rails, it's the only thing he wants to use. He has released one plugin/gem as of Sept 2008 Awesome USPS for all your USPS API needs. He has been using Rails since 2007 and contributing since early 2008.
-He can be found at gmail, twitter as fotoverite and generally has something intelligent to say.
-***********************************************************
