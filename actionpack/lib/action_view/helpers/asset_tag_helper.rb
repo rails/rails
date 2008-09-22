@@ -601,7 +601,7 @@ module ActionView
 
             def prepend_relative_url_root(source)
               relative_url_root = ActionController::Base.relative_url_root
-              if request? && source !~ %r{^#{relative_url_root}/}
+              if request? && @include_host && source !~ %r{^#{relative_url_root}/}
                 "#{relative_url_root}#{source}"
               else
                 source
