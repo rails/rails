@@ -1470,7 +1470,7 @@ module ActiveRecord
                 method_name = "has_one_dependent_delete_for_#{reflection.name}".to_sym
                 define_method(method_name) do
                   association = send(reflection.name)
-                  association.class.delete(association.id) unless association.nil?
+                  association.delete unless association.nil?
                 end
                 before_destroy method_name
               when :nullify
@@ -1500,7 +1500,7 @@ module ActiveRecord
                 method_name = "belongs_to_dependent_delete_for_#{reflection.name}".to_sym
                 define_method(method_name) do
                   association = send(reflection.name)
-                  association.class.delete(association.id) unless association.nil?
+                  association.delete unless association.nil?
                 end
                 before_destroy method_name
               else
