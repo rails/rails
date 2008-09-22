@@ -1,0 +1,44 @@
+Benchmarking and Profiling Rails
+================================
+Matthew Bergman <MzbPhoto@gmail.com>
+v0.6, September 2008
+
+Benchmarking and Profiling is an important part of the development process that is not nearly enough talked about for  beginning developers. Its hard enough learning a language and successfully writing an application. But without a firm understanding optimization, production ready apps are a near impossibility. No matter how well you code, or how much you know about a language there is always something that will trip up your application. 
+
+This article is my attempt to give the basic knowledge and methodology needed to optimize your application as painlessly as possible. We are are attempting this on two fronts. Both as a straight explanation and also through a real example of how benchmarking can speed up an application. 
+
+The main things that are covered are 
+
+* The basics of statistical analysis
+* Methodology behind benchmarking and profiling
+* Reading the log file for optimization
+* Performance Unit tests
+* Working with Ruby-Prof
+* HTTPREF #because you should know it
+* Overview of dedicated analysis options
+
+There are a lot of areas we need to cover so lets start. 
+
+
+include::definitions.txt[]
+
+include::basics.txt[]
+
+include::statistics.txt[]
+
+include::edge_rails_features.txt[]
+
+include::rubyprof.txt[]
+
+include::digging_deeper.txt[]
+
+include::gameplan.txt[]
+
+include::appendix.txt[]
+
+
+
+ 
+
+
+ 

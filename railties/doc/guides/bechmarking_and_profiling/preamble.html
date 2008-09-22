@@ -1,0 +1,835 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.1//EN"
+    "http://www.w3.org/TR/xhtml11/DTD/xhtml11.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en">
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
+<meta name="generator" content="AsciiDoc 8.2.7" />
+<style type="text/css">
+</style>
+<title>Benchmarking and Profiling Rails</title>
+</head>
+<body>
+<div id="header">
+<h1>Benchmarking and Profiling Rails</h1>
+<span id="author">Matthew Bergman</span><br />
+<span id="email"><tt>&lt;<a href="mailto:MzbPhoto@gmail.com">MzbPhoto@gmail.com</a>&gt;</tt></span><br />
+<span id="revision">version 0.6,</span>
+September 2008
+</div>
+<div id="preamble">
+<div class="sectionbody">
+<div class="para"><p>Benchmarking and Profiling is an important part of the development process that is not nearly enough talked about for  beginning developers. Its hard enough learning a language and successfully writing an application. But without a firm understanding optimization, production ready apps are a near impossibility. No matter how well you code, or how much you know about a language there is always something that will trip up your application.</p></div>
+<div class="para"><p>This article is my attempt to give the basic knowledge and methodology needed to optimize your application as painlessly as possible. We are are attempting this on two fronts. Both as a straight explanation and also through a real example of how benchmarking can speed up an application.</p></div>
+<div class="para"><p>The main things that are covered are</p></div>
+<div class="ilist"><ul>
+<li>
+<p>
+The basics of statistical analysis
+</p>
+</li>
+<li>
+<p>
+Methodology behind benchmarking and profiling
+</p>
+</li>
+<li>
+<p>
+Reading the log file for optimization
+</p>
+</li>
+<li>
+<p>
+Performance Unit tests
+</p>
+</li>
+<li>
+<p>
+Working with Ruby-Prof
+</p>
+</li>
+<li>
+<p>
+HTTPREF #because you should know it
+</p>
+</li>
+<li>
+<p>
+Overview of dedicated analysis options
+</p>
+</li>
+</ul></div>
+<div class="para"><p>There are a lot of areas we need to cover so lets start.</p></div>
+</div>
+</div>
+<h2 id="_terminology">Terminology</h2>
+<div class="sectionbody">
+<h3 id="_what_we_mean_by_benchmarking_and_profiling">What We Mean by Benchmarking and Profiling</h3>
+<div class="para"><p>Benchmarking: If you are new to programing you probably have heard the term mostly in comparative reviews of computer and graphic card specs. If you done a bit of coding you've probably seen in mostly in terms of comparing one language to another or iterations of the same language.</p></div>
+<div class="para"><p>Benchmarking in rails is more fine grained. It entails comparing and contrasting various parts and pages of an application against one another. Mostly one is looking for how long a page requires to render, but memory consumption is also an area of concern.</p></div>
+<div class="para"><p>While benchmarking two different sets of problems can emerge. Either you find that a few pages are performing worse then the rest of your app unexpectedly or that your whole entire application is slower then it reasonably should be. From there you start to profile to find the problem.</p></div>
+<div class="para"><p>Profiling: When a page or process is seen to be problematic due to speed or memory consumption we profile it. Meaning we measures the behavior as the page or process runs, particularly the frequency and duration of function calls. The goal of profiling is not to find bugs, but to eliminate bottlenecks and establish a baseline for future regression testing. It must be engaged in a carefully controlled process of measurement and analysis.</p></div>
+<h4 id="_what_does_that_actually_mean">What does that actually mean?</h4>
+<div class="para"><p>You have to have a clear goal for when you benchmark and profile. It's very comparable to BDD where you are taking small steps towards a solution instead of trying to do it all in one large all encompassing step. A clearly defined set of expectations is essential for meaningful performance testing. We will talk more about this later.</p></div>
+<h4 id="_where_does_this_leave_us">Where Does this Leave Us</h4>
+<div class="para"><p>Numbers and data. You benchmark to compare, your profile to fix. It's all about gaining data to analyze and using that information to better your application. The most important thing you should take away at the moment that this must be done in a systematic way.</p></div>
+<div class="para"><p>So the next logical question is how do we get this data.</p></div>
+</div>
+<h2 id="_on_the_road_to_optimization">On The Road to Optimization</h2>
+<div class="sectionbody">
+<h3 id="_looking_at_the_log_file_in_regards_to_optimization">Looking at the log file in regards to optimization</h3>
+<div class="literalblock">
+<div class="content">
+<pre><tt>You actually have been gathering data for benchmarking throughout your development cycle. Your log files are not just for error detection they also contain very useful information on how speedy your action is behaving.</tt></pre>
+</div></div>
+<div class="exampleblock">
+<div class="title">Example: Regular Log Output</div>
+<div class="content">
+<div class="para"><p>Processing MediaController#index (for 127.0.0.1 at 2008-07-17 21:30:21) [GET]</p></div>
+<div class="literalblock">
+<div class="content">
+<pre><tt>  Session ID: BAh7BiIKZmxhc2hJQzonQWN0aW9uQ29udHJvbGxlcjo6Rmxhc2g6OkZsYXNo
+SGFzaHsABjoKQHVzZWR7AA==--cb57dad9c5e4704f0e1eddb3d498fef544faaf46</tt></pre>
+</div></div>
+<div class="literalblock">
+<div class="content">
+<pre><tt>Parameters: {"action"=&gt;"index", "controller"=&gt;"media"}</tt></pre>
+</div></div>
+<div class="literalblock">
+<div class="content">
+<pre><tt>[4;35;1mProduct Columns (0.003187)[0m   [0mSHOW FIELDS FROM `products`[0m
+[4;36;1mProduct Load (0.000597)[0m   [0;1mSELECT * FROM `products` WHERE (`products`.`name` = 'Escape Plane') LIMIT 1[0m</tt></pre>
+</div></div>
+<div class="para"><p>Rendering template within layouts/standard</p></div>
+<div class="para"><p>Rendering media/index
+  [4;35;1mTrack Load (0.001507)[0m   [0mSELECT * FROM <tt>tracks</tt> WHERE (<tt>tracks</tt>.product_id = 1) [0m
+  [4;36;1mTrack Columns (0.002280)[0m   [0;1mSHOW FIELDS FROM <tt>tracks</tt>[0m</p></div>
+<div class="para"><p>Rendered layouts/_header (0.00051)</p></div>
+<div class="para"><p><strong>Completed in 0.04310 (23 reqs/sec) | Rendering: 0.00819 (19%) | DB: 0.00757 (17%) | 200 OK [http://localhost/media]</strong></p></div>
+</div></div>
+<div class="para"><p>What concerns us here is the last line of the action.</p></div>
+<div class="para"><p>Completed in 0.04310 (23 reqs/sec) gives us the amount of requests this specific action can handle.  0.04310 is the total amount of time the process to complete and 23 reqs/sec is an estimation from this. As we will see this number is not strictly valid since is a single instance of the process. But it does give you a general feel as to how the action is performing.</p></div>
+<div class="para"><p>Rendering: 0.00819 (19%)  is the amount in milliseconds and the percentage of total time needed to complete the action for rendering the view</p></div>
+<div class="para"><p>DB: 0.00757 (17%) is the amount in milliseconds and the percentage of total time needed to complete the action for querying the database</p></div>
+<div class="para"><p>Pretty easy right. But wait 17+19 equals 36. 36%! where  is the rest of the time going?  The rest of the time is being spent processing the controller. It is not shown but it is easy to calculate. Usually there is where most of your time ends on well functions actions.</p></div>
+<h3 id="_why_the_log_file_on_it_s_own_is_not_helpful">Why the Log File on it's Own is not Helpful</h3>
+<div class="para"><p>So why can't we just use this to test our rails application. Technically that could work, but would be very stressful and slow. You don't have time to view your log after every request to see if your code is running quickly. Also a request that runs 100 reqs/sec might simply be an outlier and really usually runs at 20 reqs/sec. It's simply not enough information to do everything we need it to do but it's a start.</p></div>
+<div class="para"><p>But there is something else we must consider.</p></div>
+<h3 id="_a_simple_question_a_complicated_answer">A Simple Question, a Complicated Answer</h3>
+<div class="para"><p>Is Completed in 0.04310 (23 reqs/sec) a good time. Seems like it doesn't it. 43 ms does not outrageous time for a dynamic page load. But is this a dynamic page load. Maybe it was all cached. In which case this is very slow. Or maybe I'm running on five year old equipment and this is actually blazing fast for my G3.  The truth is that we can't answer the question given the data. This is part of benchmarking. We need a baseline. Through comparative analysis of all your pages in your app, and an simple dynamic page for a control we can determine how fast your pages are actually running and if any of them need to be optimized.</p></div>
+<div class="para"><p>And now for something completely different a  short statistic lesson.</p></div>
+</div>
+<h2 id="_a_lession_in_statistics">A Lession In Statistics</h2>
+<div class="sectionbody">
+<div class="para"><p>Adapted from a blog Article by Zed Shaw. His rant is funnier but will take longer to read. &lt;br /&gt; <a href="http://www.zedshaw.com/rants/programmer_stats.html">Programmers Need To Learn Statistics Or I Will Kill Them All</a></p></div>
+<h3 id="_why_learn_statistics">Why Learn Statistics</h3>
+<div class="para"><p>Statistics is a hard discipline. One can study it for years without fully grasping all the complexities. But its a necessary evil for coders of every level to at least know the basics. You can't optimize without it, and if you use it wrong, you'll just waste your time and the rest of your team's.</p></div>
+<h3 id="_power_of_ten_syndrome">Power-of-Ten Syndrome</h3>
+<div class="para"><p>If you done any benchmarking you have probably heard
+“All you need to do is run that test [insert power-of-ten] times and then do an average.”</p></div>
+<div class="para"><p>For new developers this whole power of ten comes about because we need enough data to minimize the results being contaminated by outliers. If you loaded a page five times with three of those times being around 75ms and twice 250ms you have no way of knowing the real average processing time for you page. But if we take a 1000 times and 950 are 75ms and 50 are 250ms we have a much clearer picture of the situation.</p></div>
+<div class="para"><p>But this still begs the question of how you determine that 1000 is the correct number of iterations to improve the power of the experiment? (Power in this context basically means the chance that your experiment is right.)</p></div>
+<div class="para"><p>The first thing that needs to be determined is how you are performing the samplings? 1000 iterations run in a massive sequential row? A set of 10 runs with 100 each? The statistics are different depending on which you do, but the 10 runs of 100 each would be a better approach. This lets you compare sample means and figure out if your repeated runs have any bias. More simply put, this allows you to see if you have a many or few outliers that might be poisoning your averages.</p></div>
+<div class="para"><p>Another consideration is if a 1000 transactions is enough to get the process into a steady state after the ramp-up period? If you are benchmarking a long running process that stabilizes only after a warm-up time you must take that into consideration.</p></div>
+<div class="para"><p>Also remember getting an average is not an end goal in itself. In fact in some cases they tell you almost nothing.</p></div>
+<h3 id="_don_t_just_use_averages">Don't Just Use Averages!</h3>
+<div class="para"><p>One cannot simply say my website “[insert power-of-ten] requests per second”. This is due to it being an Average. Without some form of range or variance error analysis it's a useless number.  Two averages can be the same, but hide massive differences in behavior. Without a standard deviation it’s not possible to figure out if the two might even be close.</p></div>
+<div class="para"><p>Two averages can be the same say 30 requests a second and yet have a completely different standard deviation. Say the first sample has <tt>-3 and the second is </tt>-30</p></div>
+<div class="para"><p>Stability is vastly different for these two samples If this were a web server performance run I’d say the second server has a major reliability problem. No, it’s not going to crash, but it’s performance response is so erratic that you’d never know how long a request would take. Even though the two servers perform the same on average, users will think the second one is slower because of how it seems to randomly perform.</p></div>
+<div class="para"><p>Another big thing to take into consideration when benchmarking and profiling is Confounding</p></div>
+<h3 id="_confounding">Confounding</h3>
+<div class="para"><p>The idea of confounding is pretty simple: If you want to measure something, then don’t measure anything else.</p></div>
+<div class="para"><p>#TODO add more information in how to avoid confounding.</p></div>
+<div class="ilist"><ul>
+<li>
+<p>
+Your testing system and your production system must be separate. You can't profile on the same system because you are using resources to run the test that your server should be using to serve the requests.
+</p>
+</li>
+</ul></div>
+<div class="para"><p>And one more thing.</p></div>
+<h3 id="_define_what_you_are_measuring">Define what you are Measuring</h3>
+<div class="para"><p>Before you can measure something you really need to lay down a very concrete definition of what you’re measuring. You should also try to measure the simplest thing you can and try to avoid confounding.</p></div>
+<div class="para"><p>The most important thing to determine though is how much data you can actually send to your application through it's pipe.</p></div>
+<h3 id="_back_to_business">Back to Business</h3>
+<div class="para"><p>Now I know this was all a bit boring, but these fundamentals a necessary for understanding what we are actually doing here. Now onto the actual code and rails processes.</p></div>
+</div>
+<h2 id="_performance_testing_built_into_rails">Performance Testing Built into Rails</h2>
+<div class="sectionbody">
+<div class="para"><p>As of June 20, 2008 edge rails has had a new type of Unit test geared towards profiling. Of course like most great things, getting it working takes  bit of work. The test relies on statistics gathered from the Garbage Collection that isn't readily available from standard compiled ruby. There is a patch located at <a href="http://rubyforge.org/tracker/download.php/1814/7062/17676/3291/ruby186gc.patch">http://rubyforge.org/tracker/download.php/1814/7062/17676/3291/ruby186gc.patch</a></p></div>
+<div class="para"><p>Also the test requires a new version of Ruby-Prof version of 0.6.1. It is not readily available at the moment and can most easily be found as a tarball on github. It's repository is located at git://github.com/jeremy/ruby-prof.git.</p></div>
+<div class="para"><p>What follows is a description of how to set up an alternative ruby install to use these features</p></div>
+<h3 id="_compiling_the_interpreter">Compiling the Interpreter</h3>
+<div class="listingblock">
+<div class="content"><!-- Generator: GNU source-highlight 2.9
+by Lorenzo Bettini
+http://www.lorenzobettini.it
+http://www.gnu.org/software/src-highlite -->
+<pre><tt><span style="color: #990000">[</span>User <span style="color: #990000">~]</span>$ mkdir rubygc
+<span style="color: #990000">[</span>User <span style="color: #990000">~]</span>$ wget ftp<span style="color: #990000">:</span>//ftp<span style="color: #990000">.</span>ruby-lang<span style="color: #990000">.</span>org/pub/ruby<span style="color: #990000">/</span><span style="color: #993399">1.8</span>/ruby-<span style="color: #993399">1.8</span><span style="color: #990000">.</span><span style="color: #993399">6</span>-p<span style="color: #993399">111</span><span style="color: #990000">.</span>tar<span style="color: #990000">.</span>gz
+<span style="color: #990000">[</span>User <span style="color: #990000">~]</span>$ tar -xzvf ruby-<span style="color: #993399">1.8</span><span style="color: #990000">.</span><span style="color: #993399">6</span>-p<span style="color: #993399">111</span><span style="color: #990000">.</span>tar<span style="color: #990000">.</span>gz
+<span style="color: #990000">[</span>User <span style="color: #990000">~]</span>$ cd ruby-<span style="color: #993399">1.8</span><span style="color: #990000">.</span><span style="color: #993399">6</span>-p<span style="color: #993399">111</span>
+<span style="color: #990000">[</span>User ruby-<span style="color: #993399">1.8</span><span style="color: #990000">.</span><span style="color: #993399">6</span>-p<span style="color: #993399">111</span><span style="color: #990000">]</span>$ curl http<span style="color: #990000">:</span>//rubyforge<span style="color: #990000">.</span>org/tracker/download<span style="color: #990000">.</span>php<span style="color: #990000">/</span><span style="color: #993399">1814</span><span style="color: #990000">/</span><span style="color: #993399">7062</span><span style="color: #990000">/</span><span style="color: #993399">17676</span><span style="color: #990000">/</span><span style="color: #993399">3291</span>/ruby186gc<span style="color: #990000">.</span>patch <span style="color: #990000">|</span> patch -p<span style="color: #993399">0</span>
+
+<span style="font-style: italic"><span style="color: #9A1900">#I like putting my alternative ruby builds in an opt directory, set the prefix to where ever you feel is most comfortable.</span></span>
+
+<span style="color: #990000">[</span>User ruby-<span style="color: #993399">1.8</span><span style="color: #990000">.</span><span style="color: #993399">6</span>-p<span style="color: #993399">111</span><span style="color: #990000">]</span>$ <span style="color: #990000">.</span>/configure --prefix<span style="color: #990000">=</span>/opt/rubygc
+<span style="color: #990000">[</span>User ruby-<span style="color: #993399">1.8</span><span style="color: #990000">.</span><span style="color: #993399">6</span>-p<span style="color: #993399">111</span><span style="color: #990000">]</span>$ sudo make <span style="color: #990000">&amp;&amp;</span> make install
+</tt></pre></div></div>
+<div class="para"><p>Add the following lines in your ~/.profile or ~/.bash_login for convenience.</p></div>
+<div class="listingblock">
+<div class="content">
+<pre><tt>alias gcruby='/opt/rubygc/rubygc/bin/ruby'
+alias gcrake='/opt/rubygc/rubygc/bin/rake'
+alias gcgem='/opt/rubygc/rubygc/bin/gem'
+alias gcirb=/opt/rubygc/rubygc/bin/irb'
+alias gcrails='/opt/rubygc/rubygc/bin/rails'</tt></pre>
+</div></div>
+<h3 id="_installing_rubygems">Installing RubyGems</h3>
+<div class="para"><p>Next we need to install rubygems and rails so that we can use the interpreter properly.</p></div>
+<div class="listingblock">
+<div class="content"><!-- Generator: GNU source-highlight 2.9
+by Lorenzo Bettini
+http://www.lorenzobettini.it
+http://www.gnu.org/software/src-highlite -->
+<pre><tt><span style="color: #990000">[</span>User <span style="color: #990000">~]</span>$ wget http<span style="color: #990000">:</span>//rubyforge<span style="color: #990000">.</span>org/frs/download<span style="color: #990000">.</span>php<span style="color: #990000">/</span><span style="color: #993399">38646</span>/rubygems-<span style="color: #993399">1.2</span><span style="color: #990000">.</span><span style="color: #993399">0</span><span style="color: #990000">.</span>tgz
+<span style="color: #990000">[</span>User <span style="color: #990000">~]</span>$ tar -xzvf rubygems-<span style="color: #993399">1.2</span><span style="color: #990000">.</span><span style="color: #993399">0</span><span style="color: #990000">.</span>tgz
+<span style="color: #990000">[</span>User <span style="color: #990000">~]</span>$ cd rubygems-<span style="color: #993399">1.2</span><span style="color: #990000">.</span><span style="color: #993399">0</span>
+<span style="color: #990000">[</span>User rubygems-<span style="color: #993399">1.2</span><span style="color: #990000">.</span><span style="color: #993399">0</span><span style="color: #990000">]</span>$ gcruby setup<span style="color: #990000">.</span>rb
+<span style="color: #990000">[</span>User rubygems-<span style="color: #993399">1.2</span><span style="color: #990000">.</span><span style="color: #993399">0</span><span style="color: #990000">]</span>$ cd <span style="color: #990000">~</span>
+<span style="color: #990000">[</span>User <span style="color: #990000">~]</span>$ gcgem install rake
+<span style="color: #990000">[</span>User <span style="color: #990000">~]</span>$ gcgem install mysql
+<span style="color: #990000">[</span>User <span style="color: #990000">~]</span>$ gcgem install rails
+</tt></pre></div></div>
+<div class="para"><p>If installing mysql gem fails ( like it did for me ), you will have to manually install it :</p></div>
+<div class="listingblock">
+<div class="content"><!-- Generator: GNU source-highlight 2.9
+by Lorenzo Bettini
+http://www.lorenzobettini.it
+http://www.gnu.org/software/src-highlite -->
+<pre><tt><span style="color: #990000">[</span>User <span style="color: #990000">~]</span>$ cd /Users/lifo/rubygc/lib/ruby/gems<span style="color: #990000">/</span><span style="color: #993399">1.8</span>/gems/mysql-<span style="color: #993399">2.7</span><span style="color: #990000">/</span>
+<span style="color: #990000">[</span>User mysql-<span style="color: #993399">2.7</span><span style="color: #990000">]</span>$ gcruby extconf<span style="color: #990000">.</span>rb --with-mysql-config
+<span style="color: #990000">[</span>User mysql-<span style="color: #993399">2.7</span><span style="color: #990000">]</span>$ make <span style="color: #990000">&amp;&amp;</span> make install
+</tt></pre></div></div>
+<h3 id="_installing_jeremy_kemper_s_ruby_prof">Installing Jeremy Kemper's ruby-prof</h3>
+<div class="para"><p>We are in the home stretch. All we need now is ruby-proff 0.6.1</p></div>
+<div class="listingblock">
+<div class="content"><!-- Generator: GNU source-highlight 2.9
+by Lorenzo Bettini
+http://www.lorenzobettini.it
+http://www.gnu.org/software/src-highlite -->
+<pre><tt><span style="color: #990000">[</span>User <span style="color: #990000">~]</span>$ git clone git<span style="color: #990000">:</span>//github<span style="color: #990000">.</span>com/jeremy/ruby-prof<span style="color: #990000">.</span>git
+<span style="color: #990000">[</span>User <span style="color: #990000">~]</span>$ cd ruby-prof<span style="color: #990000">/</span>
+<span style="color: #990000">[</span>User ruby-prof <span style="color: #990000">(</span>master<span style="color: #990000">)]</span>$ gcrake gem
+<span style="color: #990000">[</span>User ruby-prof <span style="color: #990000">(</span>master<span style="color: #990000">)]</span>$ gcgem install pkg/ruby-prof-<span style="color: #993399">0.6</span><span style="color: #990000">.</span><span style="color: #993399">1</span><span style="color: #990000">.</span>gem
+</tt></pre></div></div>
+<div class="para"><p>Finished, go get yourself a power drink!</p></div>
+<h3 id="_ok_so_i_lied_a_few_more_things_we_need_to_do">Ok so I lied, a few more things we need to do</h3>
+<div class="para"><p>You have everything we need to start profiling through rails Unit Testing. Unfortunately we are still missing a few files. I'm going to do the next step on a fresh Rails app, but it will work just as well on developmental 2.1 rails application.</p></div>
+<h4 id="_the_rails_app">The Rails App</h4>
+<div class="para"><p>First I need to generate a rail app</p></div>
+<div class="listingblock">
+<div class="content"><!-- Generator: GNU source-highlight 2.9
+by Lorenzo Bettini
+http://www.lorenzobettini.it
+http://www.gnu.org/software/src-highlite -->
+<pre><tt><span style="color: #990000">[</span>User <span style="color: #990000">~]</span>$ gcrails profiling_tester -d mysql
+<span style="color: #990000">[</span>User <span style="color: #990000">~]</span>$ cd profiling_tester
+<span style="color: #990000">[</span>User profiling_tester<span style="color: #990000">]</span>$ script/generate scaffold item name<span style="color: #990000">:</span>string
+<span style="color: #990000">[</span>User profiling_tester<span style="color: #990000">]</span>$ gcrake db<span style="color: #990000">:</span>create<span style="color: #990000">:</span>all
+<span style="color: #990000">[</span>User profiling_tester<span style="color: #990000">]</span>$ gcrake db<span style="color: #990000">:</span>migrate
+<span style="color: #990000">[</span>User profiling_tester <span style="color: #990000">(</span>master<span style="color: #990000">)]</span>$ rm public/index<span style="color: #990000">.</span>html
+</tt></pre></div></div>
+<div class="para"><p>Now I'm going to init it as a git repository and add edge rails as a submodule to it.</p></div>
+<div class="listingblock">
+<div class="content"><!-- Generator: GNU source-highlight 2.9
+by Lorenzo Bettini
+http://www.lorenzobettini.it
+http://www.gnu.org/software/src-highlite -->
+<pre><tt><span style="color: #990000">[</span>User profiling_tester<span style="color: #990000">]</span>$ git init
+<span style="color: #990000">[</span>User profiling_tester <span style="color: #990000">(</span>master<span style="color: #990000">)]</span>$ git submodule add git<span style="color: #990000">:</span>//github<span style="color: #990000">.</span>com/rails/rails<span style="color: #990000">.</span>git vendor/rails
+</tt></pre></div></div>
+<div class="para"><p>Finally we want to  change config.cache_classes to true in our environment.rb</p></div>
+<div class="listingblock">
+<div class="content">
+<pre><tt>config.cache_classes = true</tt></pre>
+</div></div>
+<div class="para"><p>If we don't cache classes, then the time Rails spends reloading and compiling our models and controllers will confound our results.  Obviously we will try to make our test setup as similar as possible to our production environment.</p></div>
+<h3 id="_generating_and_fixing_the_tests">Generating and Fixing the tests</h3>
+<div class="para"><p>Ok next we need to generate the test script.</p></div>
+<div class="listingblock">
+<div class="content"><!-- Generator: GNU source-highlight 2.9
+by Lorenzo Bettini
+http://www.lorenzobettini.it
+http://www.gnu.org/software/src-highlite -->
+<pre><tt><span style="color: #990000">[</span>User profiling_tester <span style="color: #990000">(</span>master<span style="color: #990000">)]</span>$ script/generate performance_test homepage
+</tt></pre></div></div>
+<div class="para"><p>This will generate <em>test/performance/homepage_test.rb</em> for you. However, as I have generated the project using Rails 2.1 gem, we'll need to manually generate one more file before we can go ahead.</p></div>
+<div class="para"><p>We need to put the following inside _test/performance/test_helper.rb</p></div>
+<div class="listingblock">
+<div class="content"><!-- Generator: GNU source-highlight 2.9
+by Lorenzo Bettini
+http://www.lorenzobettini.it
+http://www.gnu.org/software/src-highlite -->
+<pre><tt><span style="font-weight: bold"><span style="color: #000080">require</span></span> <span style="color: #FF0000">'test_helper'</span>
+<span style="font-weight: bold"><span style="color: #000080">require</span></span> <span style="color: #FF0000">'performance_test_help'</span>
+</tt></pre></div></div>
+<div class="para"><p>Though this depends where you run your tests from and your system config. I myself run my tests from the Application root directory</p></div>
+<div class="para"><p>so instead of</p></div>
+<div class="listingblock">
+<div class="content"><!-- Generator: GNU source-highlight 2.9
+by Lorenzo Bettini
+http://www.lorenzobettini.it
+http://www.gnu.org/software/src-highlite -->
+<pre><tt><span style="font-weight: bold"><span style="color: #000080">require</span></span> <span style="color: #FF0000">'test_helper'</span>
+
+<span style="font-style: italic"><span style="color: #9A1900">#I have</span></span>
+
+<span style="font-weight: bold"><span style="color: #000080">require</span></span> <span style="color: #FF0000">'test/test_helper'</span>
+</tt></pre></div></div>
+<div class="para"><p>Also I needed to change homepage_test.rb to reflect this also</p></div>
+<div class="listingblock">
+<div class="content"><!-- Generator: GNU source-highlight 2.9
+by Lorenzo Bettini
+http://www.lorenzobettini.it
+http://www.gnu.org/software/src-highlite -->
+<pre><tt><span style="font-weight: bold"><span style="color: #000080">require</span></span> <span style="color: #FF0000">'test/performance/test_helper.rb'</span>
+</tt></pre></div></div>
+<h3 id="_testing">Testing</h3>
+<div class="para"><p>Rails has two types of performance testing :</p></div>
+<div class="ilist"><ul>
+<li>
+<p>
+profile - For finding out what's slow in something
+</p>
+</li>
+<li>
+<p>
+benchmark - For determining how fast is something
+</p>
+</li>
+</ul></div>
+<div class="para"><p>In other words, you first <em>benchmark</em> your application to find out if something is not fast. And then <em>profile</em> it to find out what exactly is slowing it down.</p></div>
+<div class="para"><p>Now, if we look at the generated performance test ( one we generated using <em>script/generate performance_test</em> ), it'll look something like :</p></div>
+<div class="listingblock">
+<div class="content"><!-- Generator: GNU source-highlight 2.9
+by Lorenzo Bettini
+http://www.lorenzobettini.it
+http://www.gnu.org/software/src-highlite -->
+<pre><tt><span style="color: #990000">.</span><span style="font-weight: bold"><span style="color: #000080">require</span></span> <span style="color: #FF0000">'performance/test_helper'</span>
+
+<span style="font-weight: bold"><span style="color: #0000FF">class</span></span> HomepageTest <span style="color: #990000">&lt;</span> ActionController<span style="color: #990000">::</span>PerformanceTest
+  <span style="font-style: italic"><span style="color: #9A1900"># Replace this with your real tests.</span></span>
+  <span style="font-weight: bold"><span style="color: #0000FF">def</span></span> test_homepage
+    get <span style="color: #FF0000">'/'</span>
+  <span style="font-weight: bold"><span style="color: #0000FF">end</span></span>
+<span style="font-weight: bold"><span style="color: #0000FF">end</span></span>
+</tt></pre></div></div>
+<div class="para"><p>The format looks very similar to that of an integration test. And guess what, that's what it is. But that doesn't stop you from testing your Model methods. You could very well write something like :</p></div>
+<div class="listingblock">
+<div class="content"><!-- Generator: GNU source-highlight 2.9
+by Lorenzo Bettini
+http://www.lorenzobettini.it
+http://www.gnu.org/software/src-highlite -->
+<pre><tt><span style="font-weight: bold"><span style="color: #000080">require</span></span> <span style="color: #FF0000">'performance/test_helper'</span>
+
+<span style="font-weight: bold"><span style="color: #0000FF">class</span></span> UserModelTest <span style="color: #990000">&lt;</span> ActionController<span style="color: #990000">::</span>PerformanceTest
+  <span style="font-style: italic"><span style="color: #9A1900"># Replace this with your real tests.</span></span>
+  <span style="font-weight: bold"><span style="color: #0000FF">def</span></span> test_slow_find
+    User<span style="color: #990000">.</span>this_takes_shlong_to_run
+  <span style="font-weight: bold"><span style="color: #0000FF">end</span></span>
+<span style="font-weight: bold"><span style="color: #0000FF">end</span></span>
+</tt></pre></div></div>
+<div class="para"><p>Which is very useful way to profile individual processes.</p></div>
+</div>
+<h2 id="_understanding_performance_tests_outputs">Understanding Performance Tests Outputs</h2>
+<div class="sectionbody">
+<h3 id="_our_first_performance_test">Our First Performance Test</h3>
+<div class="para"><p>So how do we profile a request.</p></div>
+<div class="para"><p>One of the things that is important to us is how long it takes to render the home page - so let's make a request to the home page. Once the request is complete, the results will be outputted in the terminal.</p></div>
+<div class="para"><p>In the terminal run</p></div>
+<div class="para"><p>+
+[source, bash]</p></div>
+<div class="listingblock">
+<div class="content">
+<pre><tt>[User profiling_tester]$ gcruby tests/performance/homepage.rb</tt></pre>
+</div></div>
+<div class="para"><p>After the tests runs for a few seconds you should see something like this.</p></div>
+<div class="listingblock">
+<div class="content">
+<pre><tt>HomepageTest#test_homepage (19 ms warmup)
+        process_time: 26 ms
+              memory: 298.79 KB
+             objects: 1917
+
+Finished in 2.207428 seconds.</tt></pre>
+</div></div>
+<div class="para"><p>Simple but efficient.</p></div>
+<div class="ilist"><ul>
+<li>
+<p>
+Process Time refers to amount of time necessary to complete the action.
+</p>
+</li>
+<li>
+<p>
+memory is the amount of information loaded into memory
+</p>
+</li>
+<li>
+<p>
+object ??? #TODO find a good definition. Is it the amount of objects put into a ruby heap for this process?
+</p>
+</li>
+</ul></div>
+<div class="para"><p>In addition we also gain three types of itemized log files for each of these outputs. They can be found in your tmp directory of your application.</p></div>
+<div class="para"><p><strong>The Three types are</strong></p></div>
+<div class="ilist"><ul>
+<li>
+<p>
+Flat File - A simple text file with the data laid out in a grid
+</p>
+</li>
+<li>
+<p>
+Graphical File - A html colored coded version of the simple text file with hyperlinks between the various methods. Most useful is the bolding of the main processes for each portion of the action.
+</p>
+</li>
+<li>
+<p>
+Tree File - A file output that can be use in conjunction with KCachegrind to visualize the process
+</p>
+</li>
+</ul></div>
+<div class="admonitionblock">
+<table><tr>
+<td class="icon">
+<div class="title">Note</div>
+</td>
+<td class="content">KCachegrind is Linux only. For Mac this means you have to do a full KDE install to have it working in your OS. Which is over 3 gigs in size. For windows there is clone called wincachegrind but it is no longer actively being developed.</td>
+</tr></table>
+</div>
+<div class="para"><p>Below are examples for Flat Files and Graphical Files</p></div>
+<h3 id="_flat_files">Flat Files</h3>
+<div class="exampleblock">
+<div class="title">Example: Flat File Output Processing Time</div>
+<div class="content">
+<div class="para"><p>Thread ID: 2279160
+Total: 0.026097</p></div>
+<div class="literalblock">
+<div class="content">
+<pre><tt>%self     total     self     wait    child    calls  name
+ 6.41      0.06     0.04     0.00     0.02      571  Kernel#===
+ 3.17      0.00     0.00     0.00     0.00      172  Hash#[]
+ 2.42      0.00     0.00     0.00     0.00       13  MonitorMixin#mon_exit
+ 2.05      0.00     0.00     0.00     0.00       15  Array#each
+ 1.56      0.00     0.00     0.00     0.00        6  Logger#add
+ 1.55      0.00     0.00     0.00     0.00       13  MonitorMixin#mon_enter
+ 1.36      0.03     0.00     0.00     0.03        1  ActionController::Integration::Session#process
+ 1.31      0.00     0.00     0.00     0.00       13  MonitorMixin#mon_release
+ 1.15      0.00     0.00     0.00     0.00        8  MonitorMixin#synchronize-1
+ 1.09      0.00     0.00     0.00     0.00       23  Class#new
+ 1.03      0.01     0.00     0.00     0.01        5  MonitorMixin#synchronize
+ 0.89      0.00     0.00     0.00     0.00       74  Hash#default
+ 0.89      0.00     0.00     0.00     0.00        6  Hodel3000CompliantLogger#format_message
+ 0.80      0.00     0.00     0.00     0.00        9  c
+ 0.80      0.00     0.00     0.00     0.00       11  ActiveRecord::ConnectionAdapters::ConnectionHandler#retrieve_connection_pool
+ 0.79      0.01     0.00     0.00     0.01        1  ActionController::Benchmarking#perform_action_without_rescue
+ 0.18      0.00     0.00     0.00     0.00       17  &lt;Class::Object&gt;#allocate</tt></pre>
+</div></div>
+</div></div>
+<div class="para"><p>So what do these columns tell us:</p></div>
+<div class="ilist"><ul>
+<li>
+<p>
+%self - The percentage of time spent processing the method. This is derived from self_time/total_time
+</p>
+</li>
+<li>
+<p>
+total - The time spent in this method and its children.
+</p>
+</li>
+<li>
+<p>
+self - The time spent in this method.
+</p>
+</li>
+<li>
+<p>
+wait - Time processed was queued
+</p>
+</li>
+<li>
+<p>
+child - The time spent in this method's children.
+</p>
+</li>
+<li>
+<p>
+calls - The number of times this method was called.
+</p>
+</li>
+<li>
+<p>
+name - The name of the method.
+</p>
+</li>
+</ul></div>
+<div class="para"><p>Name can be displayed three seperate ways:
+        <strong> #toplevel - The root method that calls all other methods
+        </strong> MyObject#method - Example Hash#each, The class Hash is calling the method each
+        * &lt;Object:MyObject&gt;#test - The &lt;&gt; characters indicate a singleton method on a singleton class. Example &lt;Class::Object&gt;#allocate</p></div>
+<div class="para"><p>Methods are sorted based on %self. Hence the ones taking the most time and resources will be at the top.</p></div>
+<div class="para"><p>So for Array#each which is calling each on the class array. We find that it processing time is 2% of the total and was called 15 times. The rest of the information is 0.00 because the process is so fast it isn't recording times less then 100 ms.</p></div>
+<div class="exampleblock">
+<div class="title">Example: Flat File Memory Output</div>
+<div class="content">
+<div class="para"><p>Thread ID: 2279160
+Total: 509.724609</p></div>
+<div class="literalblock">
+<div class="content">
+<pre><tt>%self     total     self     wait    child    calls  name
+ 4.62     23.57    23.57     0.00     0.00       34  String#split
+ 3.95     57.66    20.13     0.00    37.53        3  &lt;Module::YAML&gt;#quick_emit
+ 2.82     23.70    14.35     0.00     9.34        2  &lt;Module::YAML&gt;#quick_emit-1
+ 1.37     35.87     6.96     0.00    28.91        1  ActionView::Helpers::FormTagHelper#form_tag
+ 1.35      7.69     6.88     0.00     0.81        1  ActionController::HttpAuthentication::Basic::ControllerMethods#authenticate_with_http_basic
+ 1.06      6.09     5.42     0.00     0.67       90  String#gsub
+ 1.01      5.13     5.13     0.00     0.00       27  Array#-</tt></pre>
+</div></div>
+</div></div>
+<div class="para"><p>Very similar to the processing time format. The main difference here is that instead of calculating time we are now concerned with the amount of KB put into memory <strong>(or is it strictly into the heap) can I get clarification on this minor point?</strong></p></div>
+<div class="para"><p>So for &lt;Module::YAML&gt;#quick_emit which is  singleton method on the class YAML it uses 57.66 KB in total, 23.57 through its own actions, 6.69 from actions it calls itself and that it was called twice.</p></div>
+<div class="exampleblock">
+<div class="title">Example: Flat File Objects</div>
+<div class="content">
+<div class="para"><p>Thread ID: 2279160
+Total: 6537.000000</p></div>
+<div class="literalblock">
+<div class="content">
+<pre><tt>%self     total     self     wait    child    calls  name
+15.16   1096.00   991.00     0.00   105.00       66  Hash#each
+ 5.25    343.00   343.00     0.00     0.00        4  Mysql::Result#each_hash
+ 4.74   2203.00   310.00     0.00  1893.00       42  Array#each
+ 3.75   4529.00   245.00     0.00  4284.00        1  ActionView::Base::CompiledTemplates#_run_erb_47app47views47layouts47application46html46erb
+ 2.00    136.00   131.00     0.00     5.00       90  String#gsub
+ 1.73    113.00   113.00     0.00     0.00       34  String#split
+ 1.44    111.00    94.00     0.00    17.00       31  Array#each-1</tt></pre>
+</div></div>
+</div></div>
+<div class="literalblock">
+<div class="content">
+<pre><tt>#TODO Find correct terminology for how to describe what this is exactly profiling as in are there really 2203 array objects or 2203 pointers to array objects?.</tt></pre>
+</div></div>
+<h3 id="_graph_files">Graph Files</h3>
+<div class="para"><p>While the information gleamed from flat files is very useful we still don't know which processes each method is calling. We only know how many. This is not true for a graph file. Below is a text representation of a graph file. The actual graph file is an html entity and an example of which can be found <a href="Examples/graph.html">Here</a></p></div>
+<div class="para"><p>#TODO (Handily the graph file has links both between it many processes and to the files that actually contain them for debugging.
+ )</p></div>
+<div class="exampleblock">
+<div class="title">Example: Graph File</div>
+<div class="content">
+<div class="para"><p>Thread ID: 21277412</p></div>
+<div class="literalblock">
+<div class="content">
+<pre><tt>  %total   %self     total      self    children               calls   Name
+/____________________________________________________________________________/
+100.00%   0.00%      8.77      0.00      8.77                   1     #toplevel*
+                     8.77      0.00      8.77                 1/1     Object#run_primes
+/____________________________________________________________________________/</tt></pre>
+</div></div>
+<div class="literalblock">
+<div class="content">
+<pre><tt>                     8.77      0.00      8.77                 1/1     #toplevel
+100.00%   0.00%      8.77      0.00      8.77                   1     Object#run_primes*
+                     0.02      0.00      0.02                 1/1     Object#make_random_array
+                     2.09      0.00      2.09                 1/1     Object#find_largest
+                     6.66      0.00      6.66                 1/1     Object#find_primes
+/____________________________________________________________________________/
+                     0.02      0.02      0.00                 1/1     Object#make_random_array
+0.18%     0.18%      0.02      0.02      0.00                   1     Array#each_index
+                     0.00      0.00      0.00             500/500     Kernel.rand
+                     0.00      0.00      0.00             500/501     Array#[]=
+/____________________________________________________________________________/</tt></pre>
+</div></div>
+</div></div>
+<div class="para"><p>As you can see the calls have been separated into slices, no longer is the order determined by process time but instead from hierarchy. Each slice profiles a primary entry, with the primary entry's parents being shown above itself and it's children found below. A primary entry can be ascertained by it having values in the %total and %self columns. Here the main entry here have been bolded for connivence.</p></div>
+<div class="para"><p>So if we look at the last slice. The primary entry would be Array#each_index. It takes 0.18% of the total process time and it is only called once. It is called from Object#make_random_array which is only called once. It's children are Kernal.rand which is called by it all 500 its times that it was call in this action and Arry#[]= which was called 500 times by Array#each_index and once by some other entry.</p></div>
+<h3 id="_tree_files">Tree Files</h3>
+<div class="para"><p>It's pointless trying to represent a tree file textually so here's a few pretty pictures of it's usefulness</p></div>
+<div class="para"><div class="title">KCachegrind Graph</div><p><span class="image">
+<img src="Images/KGraph.png" alt="Graph created by KCachegrind" title="Graph created by KCachegrind" />
+</span></p></div>
+<div class="para"><div class="title">KCachegrind List</div><p><span class="image">
+<img src="Images/KList.png" alt="List created by KCachegrind" title="List created by KCachegrind" />
+</span></p></div>
+<div class="para"><p>#TODO Add a bit more information to this.</p></div>
+</div>
+<h2 id="_getting_to_the_point_of_all_of_this">Getting to the Point of all of this</h2>
+<div class="sectionbody">
+<div class="para"><p>Now I know all of this is a bit dry and academic. But it's a very powerful tool when you know how to leverage it properly. Which we are going to take a look at in our next section</p></div>
+</div>
+<h2 id="_real_life_example">Real Life Example</h2>
+<div class="sectionbody">
+<h3 id="_the_setup">The setup</h3>
+<div class="para"><p>So I have been building this application for the last month and feel pretty good about the ruby code. I'm readying it for beta testers when I discover to my shock that with less then twenty people it starts to crash. It's a pretty simple Ecommerce site so I'm very confused by what I'm seeing. On running looking through my log files I find to my shock that the lowest time for a page run is running around 240 ms. My database finds aren't the problems so I'm lost as to what is happening to cause all this. Lets run a benchmark.</p></div>
+<div class="listingblock">
+<div class="content"><!-- Generator: GNU source-highlight 2.9
+by Lorenzo Bettini
+http://www.lorenzobettini.it
+http://www.gnu.org/software/src-highlite -->
+<pre><tt><span style="font-weight: bold"><span style="color: #0000FF">class</span></span> HomepageTest <span style="color: #990000">&lt;</span> ActionController<span style="color: #990000">::</span>PerformanceTest
+  <span style="font-style: italic"><span style="color: #9A1900"># Replace this with your real tests.</span></span>
+  <span style="font-weight: bold"><span style="color: #0000FF">def</span></span> test_homepage
+    get <span style="color: #FF0000">'/'</span>
+  <span style="font-weight: bold"><span style="color: #0000FF">end</span></span>
+<span style="font-weight: bold"><span style="color: #0000FF">end</span></span>
+</tt></pre></div></div>
+<div class="listingblock">
+<div class="title">Example: Output</div>
+<div class="content">
+<pre><tt>HomepageTest#test_homepage (115 ms warmup)
+        process_time: 591 ms
+        memory: 3052.90 KB
+        objects: 59471</tt></pre>
+</div></div>
+<div class="para"><p>Obviously something is very very wrong here. 3052.90 Kb to load my minimal homepage. For Comparison for another site running well I get this for my homepage test.</p></div>
+<div class="listingblock">
+<div class="title">Example: Default</div>
+<div class="content">
+<pre><tt>HomepageTest#test_homepage (19 ms warmup)
+        process_time: 26 ms
+              memory: 298.79 KB
+             objects: 1917</tt></pre>
+</div></div>
+<div class="para"><p>that over a factor of ten difference. Lets look at our flat process time file to see if anything pops out at us.</p></div>
+<div class="listingblock">
+<div class="title">Example: Process time</div>
+<div class="content">
+<pre><tt>20.73      0.39     0.12     0.00     0.27      420  Pathname#cleanpath_aggressive
+17.07      0.14     0.10     0.00     0.04     3186  Pathname#chop_basename
+ 6.47      0.06     0.04     0.00     0.02     6571  Kernel#===
+ 5.04      0.06     0.03     0.00     0.03      840  Pathname#initialize
+ 5.03      0.05     0.03     0.00     0.02        4  ERB::Compiler::ExplicitScanner#scan
+ 4.51      0.03     0.03     0.00     0.00     9504  String#==
+ 2.94      0.46     0.02     0.00     0.44     1393  String#gsub
+ 2.66      0.09     0.02     0.00     0.07      480  Array#each
+ 2.46      0.01     0.01     0.00     0.00     3606  Regexp#to_s</tt></pre>
+</div></div>
+<div class="para"><p>Yes indeed we seem to have found the problem. Pathname#cleanpath_aggressive is taking nearly a quarter our process time and  Pathname#chop_basename another 17%. From here I do a few more benchmarks to make sure that these processes are slowing down the other pages. They are so now I know what I must do. <strong>If we can get rid of or shorten these processes we can make our pages run much quicker</strong>.</p></div>
+<div class="para"><p>Now both of these are main ruby processes so are goal right now is to find out what other process is calling them. Glancing at our Graph file I see that #cleanpath is calling #cleanpath_aggressive. #cleanpath is being called by String#gsub and from there some html template errors. But my page seems to be rendering fine. why would it be calling template errors. I'm decide to check my object flat file to see if I can find any more information.</p></div>
+<div class="listingblock">
+<div class="title">Example: Objects Created</div>
+<div class="content">
+<pre><tt>20.74  34800.00 12324.00     0.00 22476.00      420  Pathname#cleanpath_aggressive
+16.79  18696.00  9978.00     0.00  8718.00     3186  Pathname#chop_basename
+11.47  13197.00  6813.00     0.00  6384.00      480  Array#each
+ 8.51  41964.00  5059.00     0.00 36905.00     1386  String#gsub
+ 6.07   3606.00  3606.00     0.00     0.00     3606  Regexp#to_s</tt></pre>
+</div></div>
+<div class="para"><p>nope nothing new here. Lets look at memory usage</p></div>
+<div class="listingblock">
+<div class="title">Example: Memory Consuption</div>
+<div class="content">
+<pre><tt> 40.17   1706.80  1223.70     0.00   483.10     3186  Pathname#chop_basename
+ 14.92    454.47   454.47     0.00     0.00     3606  Regexp#to_s
+  7.09   2381.36   215.99     0.00  2165.37     1386  String#gsub
+  5.08    231.19   154.73     0.00    76.46      420  Pathname#prepend_prefix
+  2.34     71.35    71.35     0.00     0.00     1265  String#initialize_copy</tt></pre>
+</div></div>
+<div class="para"><p>Ok so it seems Regexp#to_s is the second costliest process. At this point I try to figure out what could be calling a regular expression cause I very rarely use them. Going over my standard layout I discover at the top.</p></div>
+<div class="listingblock">
+<div class="content"><!-- Generator: GNU source-highlight 2.9
+by Lorenzo Bettini
+http://www.lorenzobettini.it
+http://www.gnu.org/software/src-highlite -->
+<pre><tt>&lt;%if request.env["HTTP_USER_AGENT"].match(/Opera/)%&gt;
+&lt;%= stylesheet_link_tag "opera" %&gt;
+&lt;% end %&gt;
+</tt></pre></div></div>
+<div class="para"><p>That's wrong. I mistakenly am using a search function for a simple compare function. Lets fix that.</p></div>
+<div class="listingblock">
+<div class="content"><!-- Generator: GNU source-highlight 2.9
+by Lorenzo Bettini
+http://www.lorenzobettini.it
+http://www.gnu.org/software/src-highlite -->
+<pre><tt>&lt;%if request.env["HTTP_USER_AGENT"] =~ /Opera/%&gt;
+&lt;%= stylesheet_link_tag "opera" %&gt;
+&lt;% end %&gt;
+</tt></pre></div></div>
+<div class="para"><p>I'll now try my test again.</p></div>
+<div class="listingblock">
+<div class="content">
+<pre><tt>process_time: 75 ms
+              memory: 519.95 KB
+             objects: 6537</tt></pre>
+</div></div>
+<div class="para"><p>Much better. The problem has been solved. Now I should have realized earlier due to the String#gsub that my problem had to be with reqexp serch function but such knowledge comes with time. Looking through the mass output data is a skill.</p></div>
+</div>
+<h2 id="_get_yourself_a_game_plan">Get Yourself a Game Plan</h2>
+<div class="sectionbody">
+<div class="para"><p>You end up dealing with a large amount of data whenever you profile an application. It's crucial to use a rigorous approach to analyzing your application's performance else fail miserably in a vortex of numbers. This leads us to -</p></div>
+<h3 id="_the_analysis_process">The Analysis Process</h3>
+<div class="para"><p>I’m going to give an example methodology for conducting your benchmarking and profiling on an application. It is based on your typical scientific method.</p></div>
+<div class="para"><p>For something as complex as Benchmarking you need to take any methodology with a grain of salt but there are some basic strictures that you can depend on.</p></div>
+<div class="para"><p>Formulate a question you need to answer which is simple, tests the smallest measurable thing possible, and is exact. This is typically the hardest part of the experiment. From there some steps that you should follow are.</p></div>
+<div class="ilist"><ul>
+<li>
+<p>
+Develop a set of variables and processes to measure in order to answer this question!
+</p>
+</li>
+<li>
+<p>
+Profile based on the question and variables. Key problems to avoid when designing this experiment are:
+</p>
+<div class="ilist"><ul>
+<li>
+<p>
+Confounding: Test one thing at a time, keep everything the same so you don't poison the data with uncontrolled processes.
+</p>
+</li>
+<li>
+<p>
+Cross Contamination: Make sure that runs from one test do not harm the other tests.
+</p>
+</li>
+<li>
+<p>
+Steady States: If you’re testing long running process. You must take the ramp up time and performance hit into your initial measurements.
+</p>
+</li>
+<li>
+<p>
+Sampling Error: Data should perform have a steady variance or range. If you get wild swings or sudden spikes, etc. then you must either account for the reason why or you have a sampling error.
+</p>
+</li>
+<li>
+<p>
+Measurement Error: Aka Human error, always go through your calculations at least twice to make sure there are no mathematical errors. .
+</p>
+</li>
+</ul></div>
+</li>
+<li>
+<p>
+Do a small run of the experiment to verify the design.
+</p>
+</li>
+<li>
+<p>
+Use the small run to determine a proper sample size.
+</p>
+</li>
+<li>
+<p>
+Run the test.
+</p>
+</li>
+<li>
+<p>
+Perform the analysis on the results and determine where to go from there.
+</p>
+</li>
+</ul></div>
+<div class="para"><p>Note: Even though we are using the typical scientific method; developing a hypothesis is not always useful in terms of profiling.</p></div>
+</div>
+<h2 id="_other_profiling_tools">Other Profiling Tools</h2>
+<div class="sectionbody">
+<div class="para"><p>There are a lot of great profiling tools out there. Some free, some not so free. This is a sort list detailing some of them.</p></div>
+<h3 id="_httperf">httperf</h3>
+<div class="para"><p><a href="http://www.hpl.hp.com/research/linux/httperf/">http://www.hpl.hp.com/research/linux/httperf/</a></p></div>
+<div class="para"><p>A necessary tool in your arsenal. Very useful for load testing your website.</p></div>
+<div class="para"><p>#TODO write and link to a short article on how to use httperf. Anybody have a good tutorial availble.</p></div>
+<h3 id="_rails_analyzer">Rails Analyzer</h3>
+<div class="para"><p>The Rails Analyzer project contains a collection of tools for Rails. It's open source and pretty speedy. It's not being actively worked on but is still contains some very useful tools.</p></div>
+<div class="ilist"><ul>
+<li>
+<p>
+The Production Log Analyzer examines Rails log files and gives back a report. It also includes action_grep which will give you all log results for a particular action.
+</p>
+</li>
+<li>
+<p>
+The Action Profiler similar to Ruby-Prof profiler.
+</p>
+</li>
+<li>
+<p>
+rails_stat which gives a live counter of requests per second of a running Rails app.
+</p>
+</li>
+<li>
+<p>
+The SQL Dependency Grapher allows you to visualize the frequency of table dependencies in a Rails application.
+</p>
+</li>
+</ul></div>
+<div class="para"><p>Their project homepage can be found at <a href="http://rails-analyzer.rubyforge.org/">http://rails-analyzer.rubyforge.org/</a></p></div>
+<div class="para"><p>The one major caveat is that it needs your log to be in a different format from how rails sets it up specifically SyslogLogger.</p></div>
+<h4 id="_sysloglogger">SyslogLogger</h4>
+<div class="para"><p>SyslogLogger is a Logger work-alike that logs via syslog instead of to a file. You can add SyslogLogger to your Rails production environment to aggregate logs between multiple machines.</p></div>
+<div class="para"><p>More information can be found out at <a href="http://rails-analyzer.rubyforge.org/hacks/classes/SyslogLogger.html">http://rails-analyzer.rubyforge.org/hacks/classes/SyslogLogger.html</a></p></div>
+<div class="para"><p>If you don't have access to your machines root system or just want something a bit easier to implement there is also a module developed by Geoffrey Grosenbach</p></div>
+<h4 id="_a_hodel_3000_compliant_logger_for_the_rest_of_us">A Hodel 3000 Compliant Logger for the Rest of Us</h4>
+<div class="para"><p>Directions taken from
+<a href="http://topfunky.net/svn/plugins/hodel_3000_compliant_logger/lib/hodel_3000_compliant_logger.rb">link to module file</a></p></div>
+<div class="para"><p>Just put the module in your lib directory and  add this to your environment.rb in it's config portion.</p></div>
+<div class="listingblock">
+<div class="content">
+<pre><tt>require 'hodel_3000_compliant_logger'
+config.logger = Hodel3000CompliantLogger.new(config.log_path)</tt></pre>
+</div></div>
+<div class="para"><p>It's that simple. Your log output on restart should look like this.</p></div>
+<div class="listingblock">
+<div class="title">Example: Hodel 3000 Example</div>
+<div class="content">
+<pre><tt>Jul 15 11:45:43 matthew-bergmans-macbook-pro-15 rails[16207]:
+Parameters: {"action"=&gt;"shipping", "controller"=&gt;"checkout"}
+Jul 15 11:45:43 matthew-bergmans-macbook-pro-15 rails[16207]: 
+[4;36;1mBook Columns (0.003155)[0m   [0;1mSHOW FIELDS FROM `books`[0m
+Jul 15 11:45:43 matthew-bergmans-macbook-pro-15 rails[16207]: 
+[4;35;1mBook Load (0.000881)[0m   [0mSELECT * FROM `books` WHERE (`books`.`id` = 1 AND (`books`.`sold` = 1)) [0m
+Jul 15 11:45:43 matthew-bergmans-macbook-pro-15 rails[16207]: 
+[4;36;1mShippingAddress Columns (0.002683)[0m   [0;1mSHOW FIELDS FROM `shipping_addresses`[0m
+Jul 15 11:45:43 matthew-bergmans-macbook-pro-15 rails[16207]: 
+[4;35;1mBook Load (0.000362)[0m   [0mSELECT ounces FROM `books` WHERE (`books`.`id` = 1) [0m
+Jul 15 11:45:43 matthew-bergmans-macbook-pro-15 rails[16207]:
+Rendering template within layouts/application
+Jul 15 11:45:43 matthew-bergmans-macbook-pro-15 rails[16207]:
+Rendering checkout/shipping
+Jul 15 11:45:43 matthew-bergmans-macbook-pro-15 rails[16207]: 
+[4;36;1mBook Load (0.000548)[0m   [0;1mSELECT * FROM `books`
+WHERE (sold = 0) LIMIT 3[0m
+Jul 15 11:45:43 matthew-bergmans-macbook-pro-15 rails[16207]: 
+[4;35;1mAuthor Columns (0.002571)[0m   [0mSHOW FIELDS FROM `authors`[0m
+Jul 15 11:45:43 matthew-bergmans-macbook-pro-15 rails[16207]:
+[4;36;1mAuthor Load (0.000811)[0m   [0;1mSELECT * FROM `authors` WHERE (`authors`.`id` = 1) [0m
+Jul 15 11:45:43 matthew-bergmans-macbook-pro-15 rails[16207]:
+Rendered store/_new_books (0.01358)
+Jul 15 11:45:43 matthew-bergmans-macbook-pro-15 rails[16207]:
+Completed in 0.37297 (2 reqs/sec) | Rendering: 0.02971 (7%) | DB: 0.01697 (4%) | 200 OK [https://secure.jeffbooks/checkout/shipping]</tt></pre>
+</div></div>
+<h3 id="_palmist">Palmist</h3>
+<div class="para"><p>An open source mysql query analyzer. Full featured and easy to work with. Also requires Hodel 3000
+<a href="http://www.flyingmachinestudios.com/projects/">http://www.flyingmachinestudios.com/projects/</a></p></div>
+<h3 id="_new_relic">New Relic</h3>
+<div class="para"><p><a href="http://www.newrelic.com/">http://www.newrelic.com/</a></p></div>
+<div class="para"><p>Pretty nifty performance tools, pricey though. They do have a basic free
+service both for when in development and when you put your application into production. Very simple installation and signup.</p></div>
+<div class="para"><p>#TODO more in-depth without being like an advertisement.</p></div>
+<h3 id="_fiveruns">FiveRuns</h3>
+<div class="para"><p><a href="http://www.fiveruns.com/">http://www.fiveruns.com/</a></p></div>
+<div class="para"><p>#TODO give a bit more detail</p></div>
+<h4 id="_tuneup">TuneUp</h4>
+<div class="para"><p>In their words "a new socially networked application profiling tool for Ruby on Rails developers. Designed for rapid application performance analysis in development, both privately or collaboratively with input from the community, FiveRuns TuneUp gives developers visibility into performance trouble spots and bottlenecks before they reach production."</p></div>
+<h4 id="_manage">Manage</h4>
+<div class="para"><p>Like new relic a production monitoring tool.</p></div>
+</div>
+<div id="footer">
+<div id="footer-text">
+Version 0.6<br />
+Last updated 2008-09-21 22:39:21 EDT
+</div>
+</div>
+</body>
+</html>
