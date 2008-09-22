@@ -38,7 +38,8 @@ class AssetTagHelperTest < ActionView::TestCase
     @controller.request = @request
 
     ActionView::Helpers::AssetTagHelper::reset_javascript_include_default
-    COMPUTED_PUBLIC_PATHS.clear
+    AssetTag::Cache.clear
+    AssetCollection::Cache.clear
   end
 
   def teardown
@@ -155,12 +156,12 @@ class AssetTagHelperTest < ActionView::TestCase
     PathToJavascriptToTag.each { |method, tag| assert_dom_equal(tag, eval(method)) }
   end
 
-  def test_javascript_include_tag
+  def test_javascript_include_tag_with_blank_asset_id
     ENV["RAILS_ASSET_ID"] = ""
     JavascriptIncludeToTag.each { |method, tag| assert_dom_equal(tag, eval(method)) }
+  end
 
-    COMPUTED_PUBLIC_PATHS.clear
-
+  def test_javascript_include_tag_with_given_asset_id
     ENV["RAILS_ASSET_ID"] = "1"
     assert_dom_equal(%(<script src="/javascripts/prototype.js?1" type="text/javascript"></script>\n<script src="/javascripts/effects.js?1" type="text/javascript"></script>\n<script src="/javascripts/dragdrop.js?1" type="text/javascript"></script>\n<script src="/javascripts/controls.js?1" type="text/javascript"></script>\n<script src="/javascripts/application.js?1" type="text/javascript"></script>), javascript_include_tag(:defaults))
   end
@@ -169,6 +170,11 @@ class AssetTagHelperTest < ActionView::TestCase
     ENV["RAILS_ASSET_ID"] = ""
     ActionView::Helpers::AssetTagHelper::register_javascript_include_default 'slider'
     assert_dom_equal  %(<script src="/javascripts/prototype.js" type="text/javascript"></script>\n<script src="/javascripts/effects.js" type="text/javascript"></script>\n<script src="/javascripts/dragdrop.js" type="text/javascript"></script>\n<script src="/javascripts/controls.js" type="text/javascript"></script>\n<script src="/javascripts/slider.js" type="text/javascript"></script>\n<script src="/javascripts/application.js" type="text/javascript"></script>), javascript_include_tag(:defaults)
+  end
+
+  def test_register_javascript_include_default_mixed_defaults
+    ENV["RAILS_ASSET_ID"] = ""
+    ActionView::Helpers::AssetTagHelper::register_javascript_include_default 'slider'
     ActionView::Helpers::AssetTagHelper::register_javascript_include_default 'lib1', '/elsewhere/blub/lib2'
     assert_dom_equal  %(<script src="/javascripts/prototype.js" type="text/javascript"></script>\n<script src="/javascripts/effects.js" type="text/javascript"></script>\n<script src="/javascripts/dragdrop.js" type="text/javascript"></script>\n<script src="/javascripts/controls.js" type="text/javascript"></script>\n<script src="/javascripts/slider.js" type="text/javascript"></script>\n<script src="/javascripts/lib1.js" type="text/javascript"></script>\n<script src="/elsewhere/blub/lib2.js" type="text/javascript"></script>\n<script src="/javascripts/application.js" type="text/javascript"></script>), javascript_include_tag(:defaults)
   end
