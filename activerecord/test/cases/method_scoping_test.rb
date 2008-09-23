@@ -138,6 +138,36 @@ class MethodScopingTest < ActiveRecord::TestCase
     assert_equal authors(:david).attributes, scoped_authors.first.attributes
   end
 
+  def test_scoped_find_merges_string_array_style_and_string_style_joins
+    scoped_authors = Author.with_scope(:find => { :joins => ["INNER JOIN posts ON posts.author_id = authors.id"]}) do
+      Author.find(:all, :select => 'DISTINCT authors.*', :joins => 'INNER JOIN comments ON posts.id = comments.post_id', :conditions => 'comments.id = 1')
+    end
+    assert scoped_authors.include?(authors(:david))
+    assert !scoped_authors.include?(authors(:mary))
+    assert_equal 1, scoped_authors.size
+    assert_equal authors(:david).attributes, scoped_authors.first.attributes
+  end
+
+  def test_scoped_find_merges_string_array_style_and_hash_style_joins
+    scoped_authors = Author.with_scope(:find => { :joins => :posts}) do
+      Author.find(:all, :select => 'DISTINCT authors.*', :joins => ['INNER JOIN comments ON posts.id = comments.post_id'], :conditions => 'comments.id = 1')
+    end
+    assert scoped_authors.include?(authors(:david))
+    assert !scoped_authors.include?(authors(:mary))
+    assert_equal 1, scoped_authors.size
+    assert_equal authors(:david).attributes, scoped_authors.first.attributes
+  end
+
+  def test_scoped_find_merges_joins_and_eliminates_duplicate_string_joins
+    scoped_authors = Author.with_scope(:find => { :joins => 'INNER JOIN posts ON posts.author_id = authors.id'}) do
+      Author.find(:all, :select => 'DISTINCT authors.*', :joins => ["INNER JOIN posts ON posts.author_id = authors.id", "INNER JOIN comments ON posts.id = comments.post_id"], :conditions => 'comments.id = 1')
+    end
+    assert scoped_authors.include?(authors(:david))
+    assert !scoped_authors.include?(authors(:mary))
+    assert_equal 1, scoped_authors.size
+    assert_equal authors(:david).attributes, scoped_authors.first.attributes
+  end
+
   def test_scoped_count_include
     # with the include, will retrieve only developers for the given project
     Developer.with_scope(:find => { :include => :projects }) do

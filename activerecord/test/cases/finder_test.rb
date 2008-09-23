@@ -935,6 +935,17 @@ class FinderTest < ActiveRecord::TestCase
     assert_equal 1, first.id
   end
 
+  def test_joins_with_string_array
+    person_with_reader_and_post = Post.find(
+      :all,
+      :joins => [
+        "INNER JOIN categorizations ON categorizations.post_id = posts.id",
+        "INNER JOIN categories ON categories.id = categorizations.category_id AND categories.type = 'SpecialCategory'"
+      ]
+    )
+    assert_equal 1, person_with_reader_and_post.size
+  end
+
   def test_find_by_id_with_conditions_with_or
     assert_nothing_raised do
       Post.find([1,2,3],

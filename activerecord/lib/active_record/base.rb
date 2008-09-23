@@ -1576,19 +1576,19 @@ module ActiveRecord #:nodoc:
          (safe_to_array(first) + safe_to_array(second)).uniq
         end
 
-        def merge_joins(first, second)
-          if first.is_a?(String) && second.is_a?(String)
-            "#{first} #{second}"
-          elsif first.is_a?(String) || second.is_a?(String)
-            if first.is_a?(String)
-              join_dependency = ActiveRecord::Associations::ClassMethods::InnerJoinDependency.new(self, second, nil)
-              "#{first} #{join_dependency.join_associations.collect { |assoc| assoc.association_join }.join}"
-            else
-              join_dependency = ActiveRecord::Associations::ClassMethods::InnerJoinDependency.new(self, first, nil)
-              "#{join_dependency.join_associations.collect { |assoc| assoc.association_join }.join} #{second}"
+        def merge_joins(*joins)
+          if joins.any?{|j| j.is_a?(String) || array_of_strings?(j) }
+            joins = joins.collect do |join|
+              join = [join] if join.is_a?(String)
+              unless array_of_strings?(join)
+                join_dependency = ActiveRecord::Associations::ClassMethods::InnerJoinDependency.new(self, join, nil)
+                join = join_dependency.join_associations.collect { |assoc| assoc.association_join }
+              end
+              join
             end
+            joins.flatten.uniq
           else
-            (safe_to_array(first) + safe_to_array(second)).uniq
+            joins.collect{|j| safe_to_array(j)}.flatten.uniq
           end
         end
 
@@ -1602,6 +1602,10 @@ module ActiveRecord #:nodoc:
           else
             [o]
           end
+        end
+
+        def array_of_strings?(o)
+          o.is_a?(Array) && o.all?{|obj| obj.is_a?(String)}
         end
 
         def add_order!(sql, order, scope = :auto)
@@ -1652,8 +1656,12 @@ module ActiveRecord #:nodoc:
           merged_joins = scope && scope[:joins] && joins ? merge_joins(scope[:joins], joins) : (joins || scope && scope[:joins])
           case merged_joins
           when Symbol, Hash, Array
-            join_dependency = ActiveRecord::Associations::ClassMethods::InnerJoinDependency.new(self, merged_joins, nil)
-            sql << " #{join_dependency.join_associations.collect { |assoc| assoc.association_join }.join} "
+            if array_of_strings?(merged_joins)
+              sql << merged_joins.join(' ') + " "
+            else
+              join_dependency = ActiveRecord::Associations::ClassMethods::InnerJoinDependency.new(self, merged_joins, nil)
+              sql << " #{join_dependency.join_associations.collect { |assoc| assoc.association_join }.join} "
+            end
           when String
             sql << " #{merged_joins} "
           end
