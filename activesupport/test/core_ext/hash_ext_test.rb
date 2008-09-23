@@ -298,6 +298,16 @@ class HashExtTest < Test::Unit::TestCase
     end
   end
 
+  def test_indifferent_slice_access_with_symbols
+    original = {'login' => 'bender', 'password' => 'shiny', 'stuff' => 'foo'}
+    original = original.with_indifferent_access
+
+    slice = original.slice(:login, :password)
+
+    assert_equal 'bender', slice[:login]
+    assert_equal 'bender', slice['login']
+  end
+
   def test_except
     original = { :a => 'x', :b => 'y', :c => 10 }
     expected = { :a => 'x', :b => 'y' }
