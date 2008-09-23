@@ -17,7 +17,7 @@ Rails routing is a two-way piece of machinery - rather as if you could turn tree
 When your Rails application receives an incoming HTTP request, say
 
 -------------------------------------------------------
-GET /patient/17
+GET /patients/17
 -------------------------------------------------------
 
 the routing engine within Rails is the piece of code that dispatches the request to the appropriate spot in your application. In this case, the application would most likely end up running the +show+ action within the +patients+ controller, displaying the details of the patient whose ID is 17.
@@ -32,7 +32,7 @@ Routing also works in reverse. If your application contains this code:
 <%= link_to "Patient Record", patient_path(@patient) %>
 -------------------------------------------------------
 
-Then the routing engine is the piece that translates that to a link to a URL such as +http://example.com/patient/17+. By using routing in this way, you can reduce the brittleness of your application as compared to one with hard-coded URLs, and make your code easier to read and understand.
+Then the routing engine is the piece that translates that to a link to a URL such as +http://example.com/patients/17+. By using routing in this way, you can reduce the brittleness of your application as compared to one with hard-coded URLs, and make your code easier to read and understand.
 
 NOTE: Patient needs to be declared as a resource for this style of translation via a named route to be available.
 
