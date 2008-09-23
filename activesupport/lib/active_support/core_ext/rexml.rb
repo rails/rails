@@ -19,11 +19,19 @@ unless (defined?(REXML::VERSION) ? REXML::VERSION : REXML::Version) > "3.1.7.2"
       end
     end
 
-    def record_entity_expansion!
-      @number_of_expansions ||= 0
-      @number_of_expansions += 1
-      if @number_of_expansions > @@entity_expansion_limit
-        raise "Number of entity expansions exceeded, processing aborted."
+    class Document < Element
+
+      @@entity_expansion_limit = 10_000
+      def self.entity_expansion_limit= val
+        @@entity_expansion_limit = val
+      end
+
+      def record_entity_expansion!
+        @number_of_expansions ||= 0
+        @number_of_expansions += 1
+        if @number_of_expansions > @@entity_expansion_limit
+          raise "Number of entity expansions exceeded, processing aborted."
+        end
       end
     end
   end
