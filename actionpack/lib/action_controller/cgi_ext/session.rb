@@ -6,28 +6,8 @@ class CGI #:nodoc:
   # * Expose the CGI instance to session stores.
   # * Don't require 'digest/md5' whenever a new session id is generated.
   class Session #:nodoc:
-    begin
-      require 'securerandom'
-
-      # Generate a 32-character unique id using SecureRandom.
-      # This is used to generate session ids but may be reused elsewhere.
-      def self.generate_unique_id(constant = nil)
-        SecureRandom.hex(16)
-      end
-    rescue LoadError
-      # Generate an 32-character unique id based on a hash of the current time,
-      # a random number, the process id, and a constant string. This is used
-      # to generate session ids but may be reused elsewhere.
-      def self.generate_unique_id(constant = 'foobar')
-        md5 = Digest::MD5.new
-        now = Time.now
-        md5 << now.to_s
-        md5 << String(now.usec)
-        md5 << String(rand(0))
-        md5 << String($$)
-        md5 << constant
-        md5.hexdigest
-      end
+    def self.generate_unique_id(constant = nil)
+      ActiveSupport::SecureRandom.hex(16)
     end
 
     # Make the CGI instance available to session stores.
