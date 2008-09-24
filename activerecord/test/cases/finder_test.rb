@@ -387,6 +387,14 @@ class FinderTest < ActiveRecord::TestCase
     assert_equal ActiveRecord::Base.connection.quote(''), bind('?', '')
   end
 
+  def test_bind_string_with_nl
+    assert_equal ActiveRecord::Base.connection.quote("a\nb"), bind('?', "a\nb")
+  end
+
+  def test_bind_mb_string_with_nl
+    assert_equal ActiveRecord::Base.connection.quote("a\nb"), bind('?', "a\nb".chars)
+  end
+
   def test_bind_record
     o = Struct.new(:quoted_id).new(1)
     assert_equal '1', bind('?', o)

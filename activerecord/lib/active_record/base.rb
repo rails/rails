@@ -2085,7 +2085,7 @@ module ActiveRecord #:nodoc:
         end
 
         def quote_bound_value(value) #:nodoc:
-          if value.respond_to?(:map) && !value.is_a?(String)
+          if value.respond_to?(:map) && !value.is_a?(String) && !value.is_a?(ActiveSupport::Multibyte::Chars)
             if value.respond_to?(:empty?) && value.empty?
               connection.quote(nil)
             else
