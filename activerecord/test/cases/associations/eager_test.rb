@@ -116,6 +116,13 @@ class EagerAssociationTest < ActiveRecord::TestCase
     assert_equal 2, posts.first.comments.size
   end
 
+  def test_loading_from_an_association_that_has_a_hash_of_conditions
+    assert_nothing_raised do
+      Author.find(:all, :include => :hello_posts_with_hash_conditions)
+    end
+    assert !Author.find(authors(:david).id, :include => :hello_posts_with_hash_conditions).hello_posts.empty?
+  end
+
   def test_loading_with_no_associations
     assert_nil Post.find(posts(:authorless).id, :include => :author).author
   end
