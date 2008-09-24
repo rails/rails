@@ -120,7 +120,9 @@ module Rails
 
       def unpack_command
         cmd = %w(unpack) << @name
-        cmd << "--version" << %("#{@requirement.to_s}") if @requirement
+        # We don't quote this requirement as it's run through GemRunner instead
+        # of shelling out to gem
+        cmd << "--version" << @requirement.to_s if @requirement
         cmd
       end
   end
