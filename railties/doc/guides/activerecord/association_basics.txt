@@ -9,7 +9,7 @@ This guide covers the association features of Active Record. By referring to thi
 
 == Why Associations?
 
-Why do we need associations between models? Because they make common operations simpler and easier in your code. For example, consider a simple Rails application that includes a customers model and an orders model. Each customer can have many orders. Without associations, the model declarations would look like this:
+Why do we need associations between models? Because they make common operations simpler and easier in your code. For example, consider a simple Rails application that includes a model for customers and a model for orders. Each customer can have many orders. Without associations, the model declarations would look like this:
 
 [source, ruby]
 -------------------------------------------------------
@@ -140,9 +140,29 @@ end
 class Patient < ActiveRecord::Base
   has_many :appointments
   has_many :physicians, :through => :appointments
+end
 -------------------------------------------------------
 
 image:images/has_many_through.png[has_many :through Association Diagram]
+
+The +has_many :through+ association is also useful for setting up "shortcuts" through nested :+has_many+ associations. For example, if a document has many sections, and a section has many paragraphs, you may sometimes want to get a simple collection of all paragraphs in the document. You could set that up this way:
+
+[source, ruby]
+-------------------------------------------------------
+class Document < ActiveRecord::Base
+  has_many :sections
+  has_many :paragraphs, :through => :sections
+end
+
+class Section < ActiveRecord::Base
+  belongs_to :document
+  has_many :paragraphs
+end
+
+class Paragraph < ActiveRecord::Base
+  belongs_to :section
+end
+-------------------------------------------------------
 
 === The +has_one :through+ Association
 
@@ -278,15 +298,15 @@ class Picture < ActiveRecord::Base
 end
 
 class Employee < ActiveRecord::Base
-  has_many :pictures, :as => :attachable
+  has_many :pictures, :as => :imageable
 end
 
 class Product < ActiveRecord::Base
-  has_many :pictures, :as => :attachable
+  has_many :pictures, :as => :imageable
 end
 -------------------------------------------------------
 
-You can think of a polymorphic +belongs_to+ declaration as setting up an interface that any other model can use. To make this work, you need to declare both a foreign key column and a type column in the model that declares the polymorphic interface:
+You can think of a polymorphic +belongs_to+ declaration as setting up an interface that any other model can use. From an instance of the +Employee+ model, you can retrieve a collection of pictures: +@employee.pictures+. Similarly, you can retrieve +@product.pictures+. If you have an instance of the +Picture+ model, you can get to its parent via +@picture.imageable+. To make this work, you need to declare both a foreign key column and a type column in the model that declares the polymorphic interface:
 
 [source, ruby]
 -------------------------------------------------------
@@ -324,6 +344,20 @@ class CreatePictures < ActiveRecord::Migration
   end
 end
 -------------------------------------------------------
+
+=== Self Joins
+
+In designing a data model, you will sometimes find a model that should have a relation to itself. For example, you may want to store all employees in a single database model, but be able to trace relationships such as manager and subordinates. This situation can be modeled with self-joining associations:
+
+[source, ruby]
+-------------------------------------------------------
+class Employee < ActiveRecord::Base
+  has_many :subordinates, :class_name => :user, :foreign_key => "manager_id"
+  belongs_to :manager, :class_name => :user
+end
+-------------------------------------------------------
+
+With this setup, you can retrieve +@employee.subordinates+ and +@employee.managers+.
 
 == Tips, Tricks, and Warnings
 
@@ -703,6 +737,8 @@ class Customer < ActiveRecord::Base
 end
 -------------------------------------------------------
 
+NOTE: There's no need to use +:include+ for immediate associations - that is, if you have +Order belongs_to :customer+, then the customer is eager-loaded automatically when it's needed.
+
 ===== +:polymorphic+
 
 Passing +true+ to the +:polymorphic+ option indicates that this is a polymorphic association. Polymorphic associations were discussed in detail earlier in this guide.
@@ -745,7 +781,7 @@ class Supplier < ActiveRecord::Base
 end
 -------------------------------------------------------
 
-Each instance of the order model will have these methods:
+Each instance of the +Supplier+ model will have these methods:
 
 [source, ruby]
 -------------------------------------------------------
@@ -789,7 +825,7 @@ end
 
 ===== +build___association__(attributes = {})+
 
-The +build__\_association__+ method returns a new object of the associated type. This object will be instantiated from the passed attributes, and the link through this its foreign key will be set, but the associated object will _not_ yet be saved.
+The +build__\_association__+ method returns a new object of the associated type. This object will be instantiated from the passed attributes, and the link through its foreign key will be set, but the associated object will _not_ yet be saved.
 
 [source, ruby]
 -------------------------------------------------------
@@ -841,7 +877,7 @@ end
 
 ===== +:order+
 
-The +:order+ option dictates the order in which associated objects will be received (in the syntax used by a SQL +WHERE+ clause). Because a +has_one+ association will only retrieve a single associated object, this option should not be needed.
+The +:order+ option dictates the order in which associated objects will be received (in the syntax used by a SQL +ORDER BY+ clause). Because a +has_one+ association will only retrieve a single associated object, this option should not be needed.
 
 ===== +:dependent+
 
@@ -975,19 +1011,19 @@ Each instance of the customer model will have these methods:
 
 [source, ruby]
 -------------------------------------------------------
-+orders(force_reload = false)+
-+orders<<(object, ...)+
-+orders.delete(object, ...)+
-+orders=objects+
-+order_ids+
-+order_ids=ids+
-+orders.clear+
-+orders.empty?+
-+orders.size+
-+orders.find(...)+
-+orders.exist?(...)+
-+orders.build(attributes = {}, ...)+
-+orders.create(attributes = {})+
+orders(force_reload = false)
+orders<<(object, ...)
+orders.delete(object, ...)
+orders=objects
+order_ids
+order_ids=ids
+orders.clear
+orders.empty?
+orders.size
+orders.find(...)
+orders.exist?(...)
+orders.build(attributes = {}, ...)
+orders.create(attributes = {})
 -------------------------------------------------------
 
 ===== +_collection_(force_reload = false)+
@@ -1001,7 +1037,7 @@ The +_collection_+ method returns an array of all of the associated objects. If 
 
 ===== +_collection_<<(object, ...)+
 
-The +_collection<<+ method adds one or more objects to the collection by setting their foreign keys to the primary key of the calling model.
+The +_collection_<<+ method adds one or more objects to the collection by setting their foreign keys to the primary key of the calling model.
 
 [source, ruby]
 -------------------------------------------------------
@@ -1084,7 +1120,7 @@ The +_collection_.build+ method returns one or more new objects of the associate
 
 ===== +_collection_.create(attributes = {})+
 
-The +_collection_.create+ method returns one a new object of the associated type. This object will be instantiated from the passed attributes, the link through its foreign key will be created, and the associated object _will_ be saved (assuming that it passes any validations).
+The +_collection_.create+ method returns a new object of the associated type. This object will be instantiated from the passed attributes, the link through its foreign key will be created, and the associated object _will_ be saved (assuming that it passes any validations).
 
 [source, ruby]
 -------------------------------------------------------
@@ -1093,7 +1129,7 @@ The +_collection_.create+ method returns one a new object of the associated type
 
 ==== Options for has_many
 
-In many situations, you can use the default behavior for +has_many+ without any customization. But you can alter that behavior in a number of ways. This section cover the options that you can pass when you create a +has_many+ association. For example, an association with several options might look like this:
+In many situations, you can use the default behavior for +has_many+ without any customization. But you can alter that behavior in a number of ways. This section covers the options that you can pass when you create a +has_many+ association. For example, an association with several options might look like this:
 
 [source, ruby]
 -------------------------------------------------------
@@ -1137,7 +1173,7 @@ If you use a hash-style +:conditions+ option, then record creation via this asso
 
 ===== +:order+
 
-The +:order+ option dictates the order in which associated objects will be received (in the syntax used by a SQL +WHERE+ clause).
+The +:order+ option dictates the order in which associated objects will be received (in the syntax used by a SQL +ORDER BY+ clause).
 
 [source, ruby]
 -------------------------------------------------------
@@ -1165,7 +1201,7 @@ By convention, Rails guesses that the column used to hold the primary key of thi
 
 ===== +:dependent+
 
-If you set the +:dependent+ option to +:destroy+, then deleting this object will call the destroy method on the associated objects to delete those objects. If you set the +:dependent+ option to +:delete+, then deleting this object will delete the associated objects _without_ calling their +destroy+ method. If you set the +:dependent+ option to +:nullify+, then deleting this object will set the foreign key in the associated objects to +NULL+.
+If you set the +:dependent+ option to +:destroy+, then deleting this object will call the destroy method on the associated objects to delete those objects. If you set the +:dependent+ option to +:delete_all+, then deleting this object will delete the associated objects _without_ calling their +destroy+ method. If you set the +:dependent+ option to +:nullify+, then deleting this object will set the foreign key in the associated objects to +NULL+.
 
 NOTE: This option is ignored when you use the +:through+ option on the association.
 
@@ -1197,7 +1233,7 @@ class Order < ActiveRecord::Base
   has_many :line_items
 end
 class LineItem < ActiveRecord::Base
-  belongs_to :orders
+  belongs_to :order
 end
 -------------------------------------------------------
 
@@ -1213,7 +1249,7 @@ class Order < ActiveRecord::Base
   has_many :line_items
 end
 class LineItem < ActiveRecord::Base
-  belongs_to :orders
+  belongs_to :order
 end
 -------------------------------------------------------
 
@@ -1313,11 +1349,11 @@ When you declare a +has_and_belongs_to_many+ association, the declaring class au
 * +_collection_.build(attributes = {})+
 * +_collection_.create(attributes = {})+
 
-In all of these methods, +_collection_+ is replaced with the symbol passed as the first argument to +has_many+, and +_collection\_singular+ is replaced with the singularized version of that symbol.. For example, given the declaration:
+In all of these methods, +_collection_+ is replaced with the symbol passed as the first argument to +has_many+, and +_collection_\_singular+ is replaced with the singularized version of that symbol.. For example, given the declaration:
 
 [source, ruby]
 -------------------------------------------------------
-class Parts < ActiveRecord::Base
+class Part < ActiveRecord::Base
   has_and_belongs_to_many :assemblies
 end
 -------------------------------------------------------
@@ -1326,19 +1362,19 @@ Each instance of the part model will have these methods:
 
 [source, ruby]
 -------------------------------------------------------
-+assemblies(force_reload = false)+
-+assemblies<<(object, ...)+
-+assemblies.delete(object, ...)+
-+assemblies=objects+
-+assembly_ids+
-+assembly_ids=ids+
-+assemblies.clear+
-+assemblies.empty?+
-+assemblies.size+
-+assemblies.find(...)+
-+assemblies.exist?(...)+
-+assemblies.build(attributes = {}, ...)+
-+assemblies.create(attributes = {})+
+assemblies(force_reload = false)
+assemblies<<(object, ...)
+assemblies.delete(object, ...)
+assemblies=objects
+assembly_ids
+assembly_ids=ids
+assemblies.clear
+assemblies.empty?
+assemblies.size
+assemblies.find(...)
+assemblies.exist?(...)
+assemblies.build(attributes = {}, ...)
+assemblies.create(attributes = {})
 -------------------------------------------------------
 
 ===== Additional Column Methods
@@ -1359,7 +1395,7 @@ The +_collection_+ method returns an array of all of the associated objects. If 
 
 ===== +_collection_<<(object, ...)+
 
-The +_collection<<+ method adds one or more objects to the collection by creating records in the join table.
+The +_collection_<<+ method adds one or more objects to the collection by creating records in the join table.
 
 [source, ruby]
 -------------------------------------------------------
@@ -1370,7 +1406,7 @@ NOTE: This method is aliased as +_collection_.concat+ and +_collection_.push+.
 
 ===== +_collection_.delete(object, ...)+
 
-The +_collection_.delete+ method removes one or more objects from the collection by deleting records in the join table+. This does not destroy the objects.
+The +_collection_.delete+ method removes one or more objects from the collection by deleting records in the join table. This does not destroy the objects.
 
 [source, ruby]
 -------------------------------------------------------
@@ -1398,7 +1434,7 @@ The +_collection\_singular_\_ids=+ method makes the collection contain only the 
 
 ===== +_collection_.clear+
 
-The +_collection_.clear+ method removes every object from the collection. This does not destroy the associated objects.
+The +_collection_.clear+ method removes every object from the collection by deleting the rows from the joining tableassociation. This does not destroy the associated objects.
 
 ===== +_collection_.empty?+
 
@@ -1519,7 +1555,7 @@ If you use a hash-style +:conditions+ option, then record creation via this asso
 
 ===== +:order+
 
-The +:order+ option dictates the order in which associated objects will be received (in the syntax used by a SQL +WHERE+ clause).
+The +:order+ option dictates the order in which associated objects will be received (in the syntax used by a SQL +ORDER BY+ clause).
 
 
 [source, ruby]
