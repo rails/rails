@@ -549,8 +549,8 @@ module ActionController #:nodoc:
         response
       end
 
-      # Returns a URL that has been rewritten according to the options hash and the defined Routes.
-      # (For doing a complete redirect, use redirect_to).
+      # Returns a URL that has been rewritten according to the options hash and the defined routes.
+      # (For doing a complete redirect, use +redirect_to+).
       #
       # <tt>url_for</tt> is used to:
       #
@@ -590,7 +590,15 @@ module ActionController #:nodoc:
       # missing values in the current request's parameters. Routes attempts to guess when a value should and should not be
       # taken from the defaults. There are a few simple rules on how this is performed:
       #
-      # * If the controller name begins with a slash, no defaults are used: <tt>url_for :controller => '/home'</tt>
+      # * If the controller name begins with a slash no defaults are used:
+      #
+      #     url_for :controller => '/home'
+      #
+      #   In particular, a leading slash ensures no namespace is assumed. Thus,
+      #   while <tt>url_for :controller => 'users'</tt> may resolve to
+      #   <tt>Admin::UsersController</tt> if the current controller lives under
+      #   that module, <tt>url_for :controller => '/users'</tt> ensures you link
+      #   to <tt>::UsersController</tt> no matter what.
       # * If the controller changes, the action will default to index unless provided
       #
       # The final rule is applied while the URL is being generated and is best illustrated by an example. Let us consider the

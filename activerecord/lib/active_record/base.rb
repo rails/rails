@@ -512,7 +512,7 @@ module ActiveRecord #:nodoc:
       #
       # All approaches accept an options hash as their last parameter.
       #
-      # ==== Attributes
+      # ==== Parameters
       #
       # * <tt>:conditions</tt> - An SQL fragment like "administrator = 1" or <tt>[ "user_name = ?", username ]</tt>. See conditions in the intro.
       # * <tt>:order</tt> - An SQL fragment like "created_at DESC, name".
@@ -697,7 +697,7 @@ module ActiveRecord #:nodoc:
       # Updates an object (or multiple objects) and saves it to the database, if validations pass.
       # The resulting object is returned whether the object was saved successfully to the database or not.
       #
-      # ==== Attributes
+      # ==== Parameters
       #
       # * +id+ - This should be the id or an array of ids to be updated.
       # * +attributes+ - This should be a Hash of attributes to be set on the object, or an array of Hashes.
@@ -725,9 +725,10 @@ module ActiveRecord #:nodoc:
       # is executed on the database which means that no callbacks are fired off running this.  This is an efficient method
       # of deleting records that don't need cleaning up after or other actions to be taken.
       #
-      # Objects are _not_ instantiated with this method.
+      # Objects are _not_ instantiated with this method, and so +:dependent+ rules
+      # defined on associations are not honered.
       #
-      # ==== Attributes
+      # ==== Parameters
       #
       # * +id+ - Can be either an Integer or an Array of Integers.
       #
@@ -750,7 +751,7 @@ module ActiveRecord #:nodoc:
       # This essentially finds the object (or multiple objects) with the given id, creates a new object
       # from the attributes, and then calls destroy on it.
       #
-      # ==== Attributes
+      # ==== Parameters
       #
       # * +id+ - Can be either an Integer or an Array of Integers.
       #
@@ -774,7 +775,7 @@ module ActiveRecord #:nodoc:
       # also be supplied. This method constructs a single SQL UPDATE statement and sends it straight to the
       # database. It does not instantiate the involved models and it does not trigger Active Record callbacks.
       #
-      # ==== Attributes
+      # ==== Parameters
       #
       # * +updates+ - A string of column and value pairs that will be set on any records that match conditions.
       #               What goes into the SET clause.
@@ -820,34 +821,39 @@ module ActiveRecord #:nodoc:
       # many records. If you want to simply delete records without worrying about dependent associations or
       # callbacks, use the much faster +delete_all+ method instead.
       #
-      # ==== Attributes
+      # ==== Parameters
       #
       # * +conditions+ - Conditions are specified the same way as with +find+ method.
       #
       # ==== Example
       #
-      #   Person.destroy_all "last_login < '2004-04-04'"
+      #   Person.destroy_all("last_login < '2004-04-04'")
       #
       # This loads and destroys each person one by one, including its dependent associations and before_ and
       # after_destroy callbacks.
+      #
+      # +conditions+ can be anything that +find+ also accepts:
+      #
+      #   Person.destroy_all(:last_login => 6.hours.ago)
       def destroy_all(conditions = nil)
         find(:all, :conditions => conditions).each { |object| object.destroy }
       end
 
       # Deletes the records matching +conditions+ without instantiating the records first, and hence not
       # calling the +destroy+ method nor invoking callbacks. This is a single SQL DELETE statement that
-      # goes straight to the database, much more efficient than +destroy_all+. Careful with relations
-      # though, in particular <tt>:dependent</tt> is not taken into account.
+      # goes straight to the database, much more efficient than +destroy_all+. Be careful with relations
+      # though, in particular <tt>:dependent</tt> rules defined on associations are not honored.
       #
-      # ==== Attributes
+      # ==== Parameters
       #
       # * +conditions+ - Conditions are specified the same way as with +find+ method.
       #
       # ==== Example
       #
-      #   Post.delete_all "person_id = 5 AND (category = 'Something' OR category = 'Else')"
+      #   Post.delete_all("person_id = 5 AND (category = 'Something' OR category = 'Else')")
+      #   Post.delete_all(["person_id = ? AND (category = ? OR category = ?)", 5, 'Something', 'Else'])
       #
-      # This deletes the affected posts all at once with a single DELETE statement. If you need to destroy dependent
+      # Both calls delete the affected posts all at once with a single DELETE statement. If you need to destroy dependent
       # associations or call your <tt>before_*</tt> or +after_destroy+ callbacks, use the +destroy_all+ method instead.
       def delete_all(conditions = nil)
         sql = "DELETE FROM #{quoted_table_name} "
@@ -859,7 +865,7 @@ module ActiveRecord #:nodoc:
       # The use of this method should be restricted to complicated SQL queries that can't be executed
       # using the ActiveRecord::Calculations class methods.  Look into those before using this.
       #
-      # ==== Attributes
+      # ==== Parameters
       #
       # * +sql+ - An SQL statement which should return a count query from the database, see the example below.
       #
@@ -877,7 +883,7 @@ module ActiveRecord #:nodoc:
       # with the given ID, altering the given hash of counters by the amount
       # given by the corresponding value:
       #
-      # ==== Attributes
+      # ==== Parameters
       #
       # * +id+ - The id of the object you wish to update a counter on.
       # * +counters+ - An Array of Hashes containing the names of the fields
@@ -907,7 +913,7 @@ module ActiveRecord #:nodoc:
       # For example, a DiscussionBoard may cache post_count and comment_count otherwise every time the board is
       # shown it would have to run an SQL query to find how many posts and comments there are.
       #
-      # ==== Attributes
+      # ==== Parameters
       #
       # * +counter_name+ - The name of the field that should be incremented.
       # * +id+ - The id of the object that should be incremented.
@@ -924,7 +930,7 @@ module ActiveRecord #:nodoc:
       #
       # This works the same as increment_counter but reduces the column value by 1 instead of increasing it.
       #
-      # ==== Attributes
+      # ==== Parameters
       #
       # * +counter_name+ - The name of the field that should be decremented.
       # * +id+ - The id of the object that should be decremented.
@@ -1019,7 +1025,7 @@ module ActiveRecord #:nodoc:
       # The serialization is done through YAML. If +class_name+ is specified, the serialized object must be of that
       # class on retrieval or SerializationTypeMismatch will be raised.
       #
-      # ==== Attributes
+      # ==== Parameters
       #
       # * +attr_name+ - The field name that should be serialized.
       # * +class_name+ - Optional, class name that the object type should be equal to.
@@ -1927,6 +1933,9 @@ module ActiveRecord #:nodoc:
         #       end
         #     end
         #   end
+        #
+        # *Note*: the +:find+ scope also has effect on update and deletion methods,
+        # like +update_all+ and +delete_all+.
         def with_scope(method_scoping = {}, action = :merge, &block)
           method_scoping = method_scoping.method_scoping if method_scoping.respond_to?(:method_scoping)
 
@@ -2377,6 +2386,9 @@ module ActiveRecord #:nodoc:
 
       # Deletes the record in the database and freezes this instance to reflect that no changes should
       # be made (since they can't be persisted).
+      #
+      # In addition to deleting this record, any defined +before_delete+ and +after_delete+
+      # callbacks are run, and +:dependent+ rules defined on associations are run.
       def destroy
         unless new_record?
           connection.delete <<-end_sql, "#{self.class.name} Destroy"
@@ -2514,10 +2526,25 @@ module ActiveRecord #:nodoc:
       end
 
       # Allows you to set all the attributes at once by passing in a hash with keys
-      # matching the attribute names (which again matches the column names). Sensitive attributes can be protected
-      # from this form of mass-assignment by using the +attr_protected+ macro. Or you can alternatively
-      # specify which attributes *can* be accessed with the +attr_accessible+ macro. Then all the
+      # matching the attribute names (which again matches the column names).
+      #
+      # If +guard_protected_attributes+ is true (the default), then sensitive
+      # attributes can be protected from this form of mass-assignment by using
+      # the +attr_protected+ macro. Or you can alternatively specify which
+      # attributes *can* be accessed with the +attr_accessible+ macro. Then all the
       # attributes not included in that won't be allowed to be mass-assigned.
+      #
+      #   class User < ActiveRecord::Base
+      #     attr_protected :is_admin
+      #   end
+      #   
+      #   user = User.new
+      #   user.attributes = { :username => 'Phusion', :is_admin => true }
+      #   user.username   # => "Phusion"
+      #   user.is_admin?  # => false
+      #   
+      #   user.send(:attributes=, { :username => 'Phusion', :is_admin => true }, false)
+      #   user.is_admin?  # => true
       def attributes=(new_attributes, guard_protected_attributes = true)
         return if new_attributes.nil?
         attributes = new_attributes.dup

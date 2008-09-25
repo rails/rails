@@ -23,47 +23,47 @@ module ActiveSupport #:nodoc:
           self[0..position]
         end
 
-        # Equals to <tt>self[1]</tt>.
+        # Equal to <tt>self[1]</tt>.
         def second
           self[1]
         end
 
-        # Equals to <tt>self[2]</tt>.
+        # Equal to <tt>self[2]</tt>.
         def third
           self[2]
         end
 
-        # Equals to <tt>self[3]</tt>.
+        # Equal to <tt>self[3]</tt>.
         def fourth
           self[3]
         end
 
-        # Equals to <tt>self[4]</tt>.
+        # Equal to <tt>self[4]</tt>.
         def fifth
           self[4]
         end
 
-        # Equals to <tt>self[5]</tt>.
+        # Equal to <tt>self[5]</tt>.
         def sixth
           self[5]
         end
 
-        # Equals to <tt>self[6]</tt>.
+        # Equal to <tt>self[6]</tt>.
         def seventh
           self[6]
         end
 
-        # Equals to <tt>self[7]</tt>.
+        # Equal to <tt>self[7]</tt>.
         def eighth
           self[7]
         end
 
-        # Equals to <tt>self[8]</tt>.
+        # Equal to <tt>self[8]</tt>.
         def ninth
           self[8]
         end
 
-        # Equals to <tt>self[9]</tt>.
+        # Equal to <tt>self[9]</tt>.
         def tenth
           self[9]
         end

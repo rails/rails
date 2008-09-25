@@ -317,7 +317,42 @@ This time, we're setting `@post` to a single record in the database that is sear
 
 ==== New & Create
 
-Description of new and create actions
+In your controller, you'll see the `new` and `create` actions, which are used together to create a new record.  Our `new` action simply instantiates a new Post object without any parameters:
+
+-----------------------------------------
+def new
+  @post = Post.new
+
+  respond_to do |format|
+    format.html # new.html.erb
+    format.xml  { render :xml => @post }
+  end
+end
+----------------------------------------
+
+Our `create` action, on the other hand, instantiates a new Post object while setting its attributes to the parameters that we specify in our form.  It then uses a `flash[:notice]` to inform the user of the status of the action.  If the Post is saved successfully, the action will redirect to the `show` action containing our new Post simply by calling the simple `redirect_to(@post)`.
+
+.The Flash
+**************************************************************************************************************
+Rails provides the Flash so that messages can be carried over to another action, providing the user with useful information on the status of their request.  In our `create` example, the user never actually sees any page rendered during the Post creation process, because it immediately redirects to the new Post as soon as the record is saved.  The Flash allows us to carry over a message to the next action, so once the user is redirected back to the `show` action, they are presented with a message saying "Post was successfully created."
+**************************************************************************************************************
+
+----------------------------------------
+def create
+  @post = Post.new(params[:post])
+
+  respond_to do |format|
+    if @post.save
+      flash[:notice] = 'Post was successfully created.'
+      format.html { redirect_to(@post) }
+      format.xml  { render :xml => @post, :status => :created, :location => @post }
+    else
+      format.html { render :action => "new" }
+      format.xml  { render :xml => @post.errors, :status => :unprocessable_entity }
+    end
+  end
+end
+---------------------------------------
 
 ==== Edit & Update
 

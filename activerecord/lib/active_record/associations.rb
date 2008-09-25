@@ -1452,6 +1452,8 @@ module ActiveRecord
           end
         end
 
+        # Creates before_destroy callback methods that nullify, delete or destroy
+        # has_one associated objects, according to the defined :dependent rule.
         def configure_dependency_for_has_one(reflection)
           if reflection.options.include?(:dependent)
             case reflection.options[:dependent]
@@ -1465,6 +1467,10 @@ module ActiveRecord
               when :delete
                 method_name = "has_one_dependent_delete_for_#{reflection.name}".to_sym
                 define_method(method_name) do
+                  # Retrieve the associated object and delete it. The retrieval
+                  # is necessary because there may be multiple associated objects
+                  # with foreign keys pointing to this object, and we only want
+                  # to delete the correct one, not all of them.
                   association = send(reflection.name)
                   association.class.delete(association.id) unless association.nil?
                 end

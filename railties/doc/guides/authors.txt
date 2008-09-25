@@ -22,3 +22,4 @@ Emilio Tagua -- a.k.a. miloops -- is an Argentinian entrepreneur, developer, ope
 Cofounder of http://www.eventioz.com[Eventioz]. He has been using Rails since 2006 and contributing since early 2008.
 Can be found at gmail, twitter, freenode, everywhere as miloops.
 ***********************************************************
+

@@ -5,24 +5,6 @@ Everyone caches. This guide will teach you what you need to know about
 avoiding that expensive round-trip to your database and returning what you
 need to return to those hungry web clients in the shortest time possible.
 
-Specifically, this guide is split into two parts:
-
-- Basic Caching
-- Advanced Caching
-
-- Basic Caching
-  * Page Caching
-  * Action Caching
-  * Fragment Caching
-  * Cache Sweeping
-  * SQL Caching
-  * Cache stores
-
-- Advanced Caching
-  * Fragment Caching with interlock and memcached
-  * Model Caching with cache_fu and memcached
-  * Things you wish you didn't know
-
 == Basic Caching
 
 This is an introduction to the three types of caching techniques that Rails
@@ -53,7 +35,7 @@ the products
 -----------------------------------------------------
 class ProductController < ActionController
 
-  caches_page :list
+  cache_page :list
 
   def list; end
 
@@ -80,12 +62,12 @@ example controler like this:
 -----------------------------------------------------
 class ProductController < ActionController
 
-  caches_page :list
+  cache_page :list
 
   def list; end
 
   def create
-    expires_page :action => :list
+    expire_page :action => :list
   end
 
 end
@@ -98,11 +80,11 @@ to expire cached objects when things change. This is covered in the section on S
 
 === Action Caching
 
-The issue with page caching is that you cannot use it for pages that require
-to restrict access somehow. This is where Action Caching comes in. Action
-Caching works like Page Caching except for the fact that the incoming web
-request does go from the webserver to the Rails stack and Action Pack so that
-before_filters can be run on it before the cache is served, so that
+One of the issues with page caching is that you cannot use it for pages that
+require to restrict access somehow. This is where Action Caching comes in.
+Action Caching works like Page Caching except for the fact that the incoming
+web request does go from the webserver to the Rails stack and Action Pack so
+that before_filters can be run on it before the cache is served, so that
 authentication and other restrictions can be used while still serving the
 result of the output from a cached copy.
 
@@ -116,13 +98,13 @@ object, but still cache those pages:
 class ProductController < ActionController
 
   before_filter :authenticate, :only => [ :edit, :create ]
-  caches_page :list
+  cache_page :list
   caches_action :edit
 
   def list; end
 
   def create
-    expires_page :action => :list
+    expire_page :action => :list
     expire_action :action => :edit
   end
 
@@ -189,9 +171,11 @@ expire_fragment(:controller => 'producst', :action => 'recent', :action_suffix =
 === Sweepers
 
 Cache sweeping is a mechanism which allows you to get around having a ton of
-expire_{page,action,fragment) calls in your code by moving all the work
-required to expire cached content into an asynchronous process that watches
-for changes to your models and implements callbacks to expire cached content.
+expire_{page,action,fragment} calls in your code by moving all the work
+required to expire cached content into a ActionController::Caching::Sweeper
+class that is an Observer and looks for changes to an object via callbacks,
+and when a change occurs it expires the caches associated with that object n
+an around or after filter.
 
 Continuing with our Product controller example, we could rewrite it with a
 sweeper such as the following:
@@ -228,22 +212,23 @@ end
 -----------------------------------------------------
 
 Then we add it to our controller to tell it to call the sweeper when certain
-actions are called. So, if we wanted to expire the cached content for the list
-and edit actions when the create action was called, we could do the following:
+actions are called. So, if we wanted to expire the cached content for the
+list and edit actions when the create action was called, we could do the
+following:
 
 [source, ruby]
 -----------------------------------------------------
 class ProductController < ActionController
 
   before_filter :authenticate, :only => [ :edit, :create ]
-  caches_page :list
+  cache_page :list
   caches_action :edit
   cache_sweeper :store_sweeper, :only => [ :create ]
 
   def list; end
 
   def create
-    expires_page :action => :list
+    expire_page :action => :list
     expire_action :action => :edit
   end
 
@@ -268,7 +253,7 @@ For example:
 class ProductController < ActionController
 
   before_filter :authenticate, :only => [ :edit, :create ]
-  caches_page :list
+  cache_page :list
   caches_action :edit
   cache_sweeper :store_sweeper, :only => [ :create ]
 
@@ -283,7 +268,7 @@ class ProductController < ActionController
   end
 
   def create
-    expires_page :action => :list
+    expire_page :action => :list
     expire_action :action => :edit
   end
 
@@ -307,30 +292,43 @@ caches. Page caches are always stored on disk.
 The cache stores provided include:
 
 1) Memory store: Cached data is stored in the memory allocated to the Rails
-                 process
+                 process, which is fine for WEBrick and for FCGI (if you
+                 don't care that each FCGI process holds its own fragment
+                 store). It's not suitable for CGI as the process is thrown
+                 away at the end of each request. It can potentially also
+                 take up a lot of memory since each process keeps all the
+                 caches in memory.
+
 [source, ruby]
 -----------------------------------------------------
 ActionController::Base.cache_store = :memory_store
 -----------------------------------------------------
 
 2) File store: Cached data is stored on the disk, this is the default store
-               and the default path for this store is: /tmp/cache
+               and the default path for this store is: /tmp/cache. Works
+               well for all types of environments and allows all processes
+               running from the same application directory to access the
+               cached content.
+
 
 [source, ruby]
 -----------------------------------------------------
 ActionController::Base.cache_store = :file_store, "/path/to/cache/directory"
 -----------------------------------------------------
 
-3) DRb store: Cached data is stored in a separate DRb process that all servers
-communicate with
+3) DRb store: Cached data is stored in a separate shared DRb process that all
+              servers communicate with. This works for all environments and
+              only keeps one cache around for all processes, but requires
+              that you run and manage a separate DRb process.
 
 [source, ruby]
 -----------------------------------------------------
 ActionController::Base.cache_store = :drb_store, "druby://localhost:9192"
 -----------------------------------------------------
 
-4) MemCached store: Cached data is stored using a high-speed caching server
-called memcached
+4) MemCached store: Works like DRbStore, but uses Danga's MemCache instead.
+                    Requires the ruby-memcache library:  
+                    gem install ruby-memcache.
 
 [source, ruby]
 -----------------------------------------------------
@@ -346,5 +344,11 @@ ActionController::Base.cache_store = MyOwnStore.new("parameter")
 
 == Advanced Caching
 
-=== memcached and cache_fu
-=== memcached and interlock
+Along with the built-in mechanisms outlined above, a number of excellent
+plugins exist to help with finer grained control over caching. These include
+Chris Wanstrath's excellent cache_fu plugin (more info here:
+http://errtheblog.com/posts/57-kickin-ass-w-cachefu) and Evan Weaver's
+interlock plugin (more info here:
+http://blog.evanweaver.com/articles/2007/12/13/better-rails-caching/). Both
+of these plugins play nice with memcached and are a must-see for anyone
+seriously considering optimizing their caching needs.

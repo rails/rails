@@ -50,7 +50,7 @@ config.logger = Hodel3000CompliantLogger.new(config.log_path)
 It's that simple. Your log output on restart should look like this. 
 
 .Hodel 3000 Example
-============================================================================
+----------------------------------------------------------------------------
 Jul 15 11:45:43 matthew-bergmans-macbook-pro-15 rails[16207]: 
 Parameters: {"action"=>"shipping", "controller"=>"checkout"}
 Jul 15 11:45:43 matthew-bergmans-macbook-pro-15 rails[16207]: 
@@ -76,7 +76,7 @@ Jul 15 11:45:43 matthew-bergmans-macbook-pro-15 rails[16207]:
 Rendered store/_new_books (0.01358)
 Jul 15 11:45:43 matthew-bergmans-macbook-pro-15 rails[16207]: 
 Completed in 0.37297 (2 reqs/sec) | Rendering: 0.02971 (7%) | DB: 0.01697 (4%) | 200 OK [https://secure.jeffbooks/checkout/shipping]
-============================================================================
+----------------------------------------------------------------------------
 
 === Palmist === 
 An open source mysql query analyzer. Full featured and easy to work with. Also requires Hodel 3000 

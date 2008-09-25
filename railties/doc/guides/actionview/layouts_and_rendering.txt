@@ -1,0 +1,129 @@
+Layouts and Rendering in Rails
+=====================================
+
+This guide covers the basic layout features of Action Controller and Action View. By referring to this guide, you will be able to:
+
+* Use the various rendering methods built in to Rails
+* Create layouts with multiple content sections
+* Use partials to DRY up your views
+
+== Overview: How the Pieces Fit Together
+
+This guide focuses on the interaction between Controller and View in the Model-View-Controller triangle. As you know, the Controller is responsible for orchestrating the whole process of handling a request in Rails, though it normally hands off any heavy code to the Model. But then, when it's time to send a response back to the user, the Controller hands things off to the View. It's that handoff that is the subject of this guide.
+
+In broad strokes, this involves deciding what should be sent as the response and calling an appropriate method to create that response. If the response is a full-blown view, Rails also does some extra work to wrap the view in a layout and possibly to pull in partial views. You'll see all of those paths later in this guide.
+
+== Creating Responses
+
+From the controller's point of view, there are three ways to create an HTTP response:
+
+* Call +render+ to create a full response to send back to the browser
+* Call +redirect_to+ to send an HTTP redirect status code to the browser
+* Call +head+ to create a response consisting solely of HTTP headers to send back to the browser
+
+I'll cover each of these methods in turn. But first, a few words about the very easiest thing that the controller can do to create a response: nothing at all.
+
+=== Rendering by Default: Convention Over Configuration in Action
+
+You've heard that Rails promotes "convention over configuration." Default rendering is an excellent example of this. By default, controllers in Rails automatically render views with names that correspond to actions. For example, if you have this code in your +BooksController+ class:
+
+[source, ruby]
+-------------------------------------------------------
+def show
+  @book = Book.find(params[:id])
+end
+-------------------------------------------------------
+
+Rails will automatically render +app/views/books/show.html.erb+ after running the method. In fact, if you have the default catch-all route in place (+map.connect ':controller/:action/:id'+), Rails will even render views that don't have any code at all in the controller. For example, if you have the default route in place and a request comes in for +/books/sale_list+, Rails will render +app/views/books/sale_list.html.erb+ in response.
+
+NOTE: The actual rendering is done by subclasses of +ActionView::TemplateHandlers+. This guide does not dig into that process, but it's important to know that the file extension on your view controls the choice of template handler. In Rails 2, the standard extensions are +.erb+ for ERB (HTML with embedded Ruby), +.rjs+ for RJS (javascript with embedded ruby) and +.builder+ for Builder (XML generator). You'll also find +.rhtml+ used for ERB templates and .rxml for Builder templates, but those extensions are now formally deprecated and will be removed from a future version of Rails.
+
+=== Using +render+
+
+In most cases, the +ActionController::Base#render+ method does the heavy lifting of rendering your application's content for use by a browser. There are a variety of ways to customize the behavior of +render+. You can render the default view for a Rails template, or a specific template, or a file, or inline code, or nothing at all. You can render text, JSON, or XML. You can specify the content type or HTTP status of the rendered response as well.
+
+TIP: If you want to see the exact results of a call to +render+ without needing to inspect it in a browser, you can call +render_to_string+. This method takes exactly the same options as +render+, but it returns a string instead of sending a response back to the browser.
+
+==== Rendering Nothing
+
+Perhaps the simplest thing you can do with +render+ is to render nothing at all:
+
+[source, ruby]
+-------------------------------------------------------
+render :nothing => true
+-------------------------------------------------------
+
+This will send an empty response to the browser (though it will include any status headers you set with the :status option, discussed below).
+
+TIP: You should probably be using the +head+ method, discussed later in this guide, instead of +render :nothing+. This provides additional flexibility and makes it explicit that you're only generating HTTP headers.
+
+==== Using +render+ with +:action+
+
+If you want to render the view that corresponds to a different action within the same template, you can use +render+ with the +:action+ option:
+
+[source, ruby]
+-------------------------------------------------------
+def update
+  @book = Book.find(params[:id])
+    if @book.update_attributes(params[:book])
+      redirect_to(@book)
+    else
+      render :action => "edit"
+    end
+  end
+end
+-------------------------------------------------------
+
+If the call to +update_attributes_ fails, calling the +update+ action in this controller will render the +edit.html.erb+ template belonging to the same controller.
+
+WARNING: Using +render+ with +:action+ is a frequent source of confusion for Rails newcomers. The specified action is used to determine which view to render, but Rails does _not_ run any of the code for that action in the controller. Any instance variables that you require in the view must be set up in the current action before calling +render+.
+
+==== Using +render+ with +:template+
+
+==== Using +render+ with +:file+
+
+==== Using +render+ with +:inline+
+
+==== Using +render+ with +:update+
+
+==== Rendering Text
+
+==== Rendering JSON
+
+==== Rendering XML
+
+==== Options for +render+
+
+===== The +:content_type+ Option
+
+===== The +:layout+ Option
+
+include :layout => false
+
+===== The +:status+ Option
+
+===== The +:location+ Option
+
+=== Using +redirect_to+
+
+==== Getting a Different Redirect Status Code
+
+=== Using +head+ To Build Header-Only Responses
+
+== Structuring Layouts
+
+=== Include Statements
+
+=== Understanding +yield+
+
+=== Using +content_for+
+
+=== Using Partials
+
+< toc tbd >
+
+== Changelog ==
+
+http://rails.lighthouseapp.com/projects/16213-rails-guides/tickets/15[Lighthouse ticket]
+
+* September 20, 2008: First draft by link:../authors.html#mgunderloy[Mike Gunderloy] (not yet approved for publication)
