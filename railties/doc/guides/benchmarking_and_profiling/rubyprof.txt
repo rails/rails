@@ -8,7 +8,7 @@ One of the things that is important to us is how long it takes to render the hom
 
 In the terminal run
 
-[source, bash]
+[source, ruby]
 ----------------------------------------------------------------------------
 [User profiling_tester]$ gcruby tests/performance/homepage.rb
 ----------------------------------------------------------------------------

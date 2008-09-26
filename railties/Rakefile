@@ -285,6 +285,7 @@ guides = [
   { 'routing' => 'routing_outside_in' },
   { 'forms' =>'form_helpers' },
   { 'activerecord' => 'association_basics' },
+  { 'activerecord' => 'finders' },
   { 'debugging' => 'debugging_rails_applications' },
   { 'caching' => 'caching_with_rails' },
   { 'benchmarking_and_profiling' => 'preamble' }

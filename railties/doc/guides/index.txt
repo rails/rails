@@ -41,6 +41,16 @@ of your code.
 link:http://rails.lighthouseapp.com/projects/16213/tickets/2[Lighthouse Ticket]
 ***********************************************************
 
+.link:actioncontroller/actioncontroller.html[Basics of Action Controller]
+***********************************************************
+link:http://rails.lighthouseapp.com/projects/16213/tickets/17[Lighthouse Ticket]
+***********************************************************
+
+.link:activerecord/finders.html[Active Record Finders]
+***********************************************************
+link:http://rails.lighthouseapp.com/projects/16213/tickets/16[Lighthouse Ticket]
+***********************************************************
+
 .link:activerecord/association_basics.html[Active Record Associations]
 ***********************************************************
 link:http://rails.lighthouseapp.com/projects/16213/tickets/11[Lighthouse Ticket]
