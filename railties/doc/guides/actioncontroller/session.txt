@@ -16,7 +16,7 @@ The default and recommended store, the Cookie Store, does not store session data
 
 If you need a different session storage mechanism, you can change it in the `config/environment.rb` file:
 
-[code, ruby]
+[source, ruby]
 ------------------------------------------
 # Set to one of [:active_record_store, :sql_session_store, :drb_store, :mem_cache_store, :cookie_store]
 config.action_controller.session_store = :active_record_store
@@ -26,7 +26,7 @@ config.action_controller.session_store = :active_record_store
 
 In your controller you can access the session through the `session` method. Session values are stored using key/value pairs like a hash:
 
-[code, ruby]
+[source, ruby]
 ------------------------------------------
 class ApplicationController < ActionController::Base
 
@@ -42,7 +42,7 @@ end
 
 To store something in the session, just assign it to the key like a hash:
 
-[code, ruby]
+[source, ruby]
 ------------------------------------------
 class LoginsController < ApplicationController
 
@@ -60,7 +60,7 @@ end
 
 To remove something from the session, assign that key to be `nil`:
 
-[code, ruby]
+[source, ruby]
 ------------------------------------------
 class LoginsController < ApplicationController
 
@@ -80,7 +80,7 @@ To reset the entire session, use `reset_session`.
 
 The flash is a special part of the session which is cleared with each request. This means that values stored there will only be available in the next request, which is useful for storing error messages etc. It is accessed in much the same way as the session, like a hash. Let's use the act of logging out as an example. The controller can set a message which will be displayed to the user on the next request:
 
-[code, ruby]
+[source, ruby]
 ------------------------------------------
 class LoginsController < ApplicationController
 
@@ -95,7 +95,7 @@ end
 
 The `destroy` action redirects to the application's `root_url`, where the message will be displayed. Note that it's entirely up to the next action to decide what, if anything, it will do with what the previous action put in the flash. It's conventional to a display eventual errors or notices from the flash in the application's layout:
 
-[code, rhtml]
+[source, ruby]
 ------------------------------------------
 <!-- head, etc -->
 <body>
@@ -114,7 +114,7 @@ This way, if an action sets an error or a notice message, the layout will displa
 
 If you want a flash value to be carried over to another request, use the `keep` method:
 
-[code, ruby]
+[source, ruby]
 ------------------------------------------
 class MainController < ApplicationController
 
