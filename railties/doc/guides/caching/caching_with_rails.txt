@@ -113,6 +113,13 @@ class ProductController < ActionController
 end
 -----------------------------------------------------
 
+And you can also use :if (or :unless) to pass a Proc that specifies when the
+action should be cached. Also, you can use :layout => false to cache without
+layout so that dynamic information in the layout such as logged in user info
+or the number of items in the cart can be left uncached. This feature is
+available as of Rails 2.2.
+
+
 [More: more examples? Walk-through of action caching from request to response?
        Description of Rake tasks to clear cached files? Show example of
        subdomain caching? Talk about :cache_path, :if and assing blocks/Procs
