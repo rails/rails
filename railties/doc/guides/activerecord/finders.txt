@@ -1,54 +1,149 @@
-Rails Finders
-=======================
+= Rails Finders =
 First Draft
-Ryan Bigg <radarlistener@gmail.com>
 
 == What is this guide about? ==
-This guide is all about the `find` method defined in ActiveRecord::Base, and associated goodness such as named scopes.
+This guide is all about the `find` method defined in ActiveRecord::Base, finding on associations, and associated goodness such as named scopes.
 
 == In the beginning... ==
 
 In the beginning there was SQL. SQL looked like this:
 
-[source,SQL]
-SELECT * FROM forums
-SELECT * FROM forums WHERE id = '1'
-SELECT * FROM forums LIMIT 0,1
-SELECT * FROM forums ORDER BY id DESC LIMIT 0,1
+[source,sql]
+SELECT * FROM clients
+SELECT * FROM clients WHERE id = '1'
+SELECT * FROM clients LIMIT 0,1
+SELECT * FROM clients ORDER BY id DESC LIMIT 0,1
 
-In Rails you don't have to type SQL, unlike other languages, because ActiveRecord is there to help you find your records. When you define a model like so,
+In Rails you don't have to type SQL, unlike other languages, because ActiveRecord is there to help you find your records.
 
-[source,Ruby on Rails]
-class Forum < ActiveRecord::Base
+== Our Models == 
 
+For this guide we have the following models:
+
+[source,ruby]
+class Client < ActiveRecord::Base
+  has_one :address
+  has_one :mailing_address
+  has_many :orders
+  has_and_belongs_to_many :roles
 end
-[/code]
+
+[source,ruby]
+class Address < ActiveRecord::Base
+  belongs_to :client
+end
+
+[source,ruby]
+class MailingAddress < Address
+end
+
+[source,ruby]
+class Order < ActiveRecord::Base
+  belongs_to :client, :counter_cache => true
+end
+
+[source,ruby]
+class Role < ActiveRecord::Base
+  has_and_belongs_to_many :clients
+end
+
+
 
 == First, Last and All == 
 
-you're telling Ruby to create a new class called `Forum` and that should inherit from ActiveRecord::Base. ActiveRecord::Base has methods defined on it to make interacting with your database and the tables within it much, much easier. For example if you wanted to find the first forum you would simply type `Forum.find(:first)` and that would find the first forum created in your database, the SQL equivalent of typing `SELECT * FROM forums LIMIT 0,1`. Alternatively, you could use the pre-defined named scope first, calling `Forum.first` instead. `first` has two similiar methods, `all` and `last`, which will find all objects in that model's table, and the last object in that model's table respectively. These can be used exactly like first, `Forum.all` is an alias to `Forum.find(:all)` and `Forum.last` is an alias to `Forum.find(:last)`. 
+ActiveRecord::Base has methods defined on it to make interacting with your database and the tables within it much, much easier. For example if you wanted to find the first client you would simply type `Client.find(:first)` and that would find the first client created in your database, the SQL equivalent of typing `SELECT * FROM clients LIMIT 0,1`. Alternatively, you could use the pre-defined named scope `first`, calling `Client.first` instead. `first` has two similiar methods: `all` and `last, which will find all objects in that model's table and the last object in that model's table respectively. These can be used exactly like first, `Client.all` is an alias to `Client.find(:all)` and `Client.last` is an alias to `Client.find(:last)`. 
 
-`Forum.first` and `Forum.last` will both return a single object, where as `Forum.find(:all)` will return an array of Forum objects.
+Be aware that `Client.first` and `Client.last` will both return a single object, where as `Client.find(:all)` will return an array of Client objects.
 
 == Conditions == 
 
-If you'd like to add conditions to your find, you could just specify them in there, just like `Forum.find(:first, :conditions => "viewable_by = '2'")`. Now what if that number could vary, say as a parameter from somewhere, or perhaps from the user's level status somewhere? The find then becomes something like `Forum.find(:first, :conditions => ["viewable_by = ?", params[:level]])`. ActiveRecord will go through the first element in the conditions option and any additional elements will replace the question marks (?) in the first element. If you want to specify two conditions, you can do it like `Forum.find(:first, :conditions => ["viewable_by = ? AND locked = ?", params[:level], params[:locked]])`.
-
+If you'd like to add conditions to your find, you could just specify them in there, just like `Client.find(:first, :conditions => "orders_count = '2'")`. Now what if that number could vary, say as a parameter from somewhere, or perhaps from the user's level status somewhere? The find then becomes something like `Client.find(:first, :conditions => ["orders_count = ?", params[:orders]])`. ActiveRecord will go through the first element in the conditions value and any additional elements will replace the question marks (?) in the first element. If you want to specify two conditions, you can do it like `Client.find(:first, :conditions => ["orders_count = ? AND locked = ?", params[:orders], false])`. In this example, the first question mark will be replaced with the value in params orders and the second will be replaced with true and this will find the first record in the table that has '2' as its value for the orders_count field and 'false' for its locked field.
 
 == Ordering == 
 
-If you're getting a set of records and want to force an order, you can use `Forum.find(:all, :order => "created_at")` which by default will sort the records by ascending order. If you'd like to order it in descending order, just tell it to do that using `Forum.find(:all, :order => "created_at desc")
+If you're getting a set of records and want to force an order, you can use `Client.find(:all, :order => "created_at")` which by default will sort the records by ascending order. If you'd like to order it in descending order, just tell it to do that using `Client.find(:all, :order => "created_at desc")`
 
 == Selecting Certain Fields ==
 
-To select certain fields, you can use the select option like this: `Forum.find(:first, :select => "viewable_by, locked")`. This select option does not use an array of fields, but rather requires you to type SQL-like code. The above code will execute `SELECT viewable_by, locked FROM forums LIMIT 0,1` on your database. 
-
-== Includes vs Joins == 
-
-== Named Scopes ==
-
-== Finding on Associations ==
+To select certain fields, you can use the select option like this: `Client.find(:first, :select => "viewable_by, locked")`. This select option does not use an array of fields, but rather requires you to type SQL-like code. The above code will execute `SELECT viewable_by, locked FROM clients LIMIT 0,1` on your database. 
 
 == Making It All Work Together ==
 
-You can chain these options together in no particular order as ActiveRecord will write the correct SQL for you. For example you could do this: `Forum.find(:all, :order => "created_at DESC", :select => "viewable_by, created_at", :conditions => ["viewable_by = ?", params[:level]], :limit => 10), which should execute a query like `SELECT viewable_by, created_at FROM forums WHERE ORDER BY created_at DESC LIMIT 0,10` if you really wanted it.
+You can chain these options together in no particular order as ActiveRecord will write the correct SQL for you. For example you could do this: `Client.find(:all, :order => "created_at DESC", :select => "viewable_by, created_at", :conditions => ["viewable_by = ?", params[:level]], :limit => 10), which should execute a query like `SELECT viewable_by, created_at FROM clients WHERE ORDER BY created_at DESC LIMIT 0,10` if you really wanted it.
+
+== Eager Loading == 
+
+Eager loading is loading associated records along with any number of records in as few queries as possible. Lets say for example if we wanted to load all the addresses associated with all the clients all in the same query we would use `Client.find(:all, :include => :address)`. If we wanted to include both the address and mailing address for the client we would use `Client.find(:all), :include => [:address, :mailing_address]). Inclue will first find the client records and then load the associated address records. Running script/server in one window, and executing the code through script/console in another window, the output should look similar to this:
+
+`Client Load (0.000383)   SELECT \* FROM clients +
+Address Load (0.119770)   SELECT addresses.\* FROM addresses WHERE (addresses.client_id IN (13,14)) +
+MailingAddress Load (0.001985) SELECT mailing_addresses.\* FROM mailing_addresses WHERE (mailing_addresses.client_id IN (13,14))`
+
+The numbers `13` and `14` in the above SQL are the ids of the clients gathered from the `Client.find(:all)` query. Rails will then run a query to gather all the addresses and mailing addresses that have a client_id of 13 or 14. Although this is done in 3 queries, this is more efficient than not eager loading because without eager loading it would run a query for every time you called `address` or `mailing_address` on one of the objects in the clients array, which may lead to performance issues if you're loading a large number of records at once.
+
+An alternative (and more efficient) way to do eager loading is to use the joins option. For example if we wanted to get all the addresses for a client we would do `Client.find(:all, :joins => :address)` and if we wanted to find the address and mailing address for that client we would do `Client.find(:all, :joins => [:address, :mailing_address])`. This is more efficient because it does all the SQL in one query, as shown by this example:
+
+`Client Load (0.000455)   SELECT clients.* FROM clients INNER JOIN addresses ON addresses.client_id = client.id INNER JOIN mailing_addresses ON mailing_addresses.client_id = client.id
+
+This query is more efficent, but there's a gotcha. If you have a client who does not have an address or a mailing address they will not be returned in this query at all. If you have any association as an optional association, you may want to use include rather than joins.
+
+== Dynamic finders ==
+
+With every field (also known as an attribute) you define in your table, ActiveRecord provides finder methods for these. If you have a field called `name` on your Client model for example, you get `find_by_name` and `find_all_by_name` for free from ActiveRecord. If you have also have a `locked` field on the client model, you also get `find_by_locked` and `find_all_by_locked`. If you want to find both by name and locked, you can chain these finders together by simply typing and between the fields for example `Client.find_by_name_and_locked('Ryan', true)`. These finders are an excellent alternative to using the conditions option, mainly because it's shorter to type `find_by_name(params[:name])` than it is to type `find(:first, :conditions => ["name = ?", params[:name]])`. 
+
+== Working with Associations ==
+
+When you define a has_many association on a model you get the find method and dynamic finders also on that association. This is helpful for finding associated records within the scope of an exisiting record, for example finding all the orders for a client that have been sent and not received by doing something like `Client.find(params[:id]).orders.find_by_sent_and_received(true, false)`. Having this find method available on associations is extremely helpful when using nested controllers. 
+
+== Named Scopes ==
+
+There was mention of named scopes earlier in "First, Last and All" where we covered the named scopes of `first`, `last` and `all` which were aliases of `find(:first)`, `find(:last)`, `find(:all)` respectively. Now we'll cover adding named scopes to the models in the application. Let's say we want to find all clients who are not locked to do this we would use this code:
+
+[source,ruby]
+class Client < ActiveRecord::Base
+  named_scope :unlocked, :conditions => { :locked => false }
+end
+
+We would call this new named_scope by doing `Client.unlocked` and this will do the same query as if we just used `Client.find(:all, :conditions => ["unlocked = ?", false])`. Please be aware that the conditions syntax in named_scope and find is different and the two are not interchangeable. If you want to find the first client within this named scope you could do `Client.first.unlocked`. This is possible because named scopes are stackable.
+
+Now observe the following code:
+
+[source, ruby]
+class Client < ActiveRecord::Base
+  named_scope :recent, :conditions => { :created_at > 2.weeks.ago }
+end
+
+What we see here is what looks to be a standard named scope that defines a method called recent which gathers all records created any time between now and 2 weeks ago. That's correct for the first time the model is loaded but for any time after that, `2.weeks.ago` is set to that same value, so you will consistently get records from a certain date until your model is reloaded by something like your application restarting. The way to fix this is to put the code in a lambda block:
+
+[source, ruby]
+class Client < ActiveRecord::Base
+  named_scope :recent, lambda { { :conditions => ["created_at > ?", 2.weeks.ago] } } } 
+end
+
+And now every time the recent named scope is called, because it's wrapped in a lambda block this code will be parsed every time so you'll get actually 2 weeks ago from the code execution, not 2 weeks ago from the time the model was loaded.
+
+If you want to pass a named scope a compulsory argument, just specify it as a block parameter like this:
+
+[source, ruby]
+class Client < ActiveRecord::Base
+  named_scope :recent, lambda { |time| { :conditions => ["created_at > ?", time] } } }
+end
+
+This will work if we call `Client.recent(2.weeks.ago)` but not if we call `Client.recent`. If we want to add an optional argument for this, we have to use the splat operator as the block's parameter.
+
+[source, ruby]
+class Client < ActiveRecord::Base
+  named_scope :recent, lambda { |*args| { :conditions => ["created_at > ?", args.first || 2.weeks.ago] } } }
+end
+
+This will work with `Client.recent(2.weeks.ago)` and `Client.recent` with the latter always returning records with a created_at date between right now and 2 weeks ago.
+
+Remember that named scopes are stackable, so you will be able to do `Client.recent(2.weeks.ago).unlocked` to find all clients created between right now and 2 weeks ago and have their locked field set to false.
+  
+  
+== Credits == 
+
+Thanks to Ryan Bates for his awesome screencast on named scope #108. The information within the named scope section is intentionally similar to it, and without the cast may have not been possible.
+
+
+
