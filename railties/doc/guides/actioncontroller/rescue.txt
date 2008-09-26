@@ -1,0 +1,3 @@
+== Rescue ==
+
+Describe how to use rescue_from et al to rescue exceptions in controllers.
