@@ -4,7 +4,7 @@ Sometimes you may want to send a file to the user instead of rendering an HTML p
 
 To stream data to the client, use `send_data`:
 
-[code, ruby]
+[source, ruby]
 ----------------------------
 require "prawn"
 class ClientsController < ApplicationController
@@ -35,7 +35,7 @@ The `download_pdf` action in the example above will call a private method which 
 
 If you want to send a file that already exists on disk, use the `send_file` method. This is usually not recommended, but can be useful if you want to perform some authentication before letting the user download the file.
 
-[code, ruby]
+[source, ruby]
 ----------------------------
 class ClientsController < ApplicationController
 
@@ -58,7 +58,7 @@ This will read and stream the file 4Kb at the time, avoiding loading the entire 
 
 While `send_data` works just fine, if you are creating a RESTful application having separate actions for file downloads is a bit ugly. In REST terminology, the PDF file from the example above can be considered just another representation of the client resource. Rails provides an easy and quite sleek way of doing "RESTful downloads". Let's try to rewrite the example so that the PDF download is a part of the `show` action:
 
-[code, ruby]
+[source, ruby]
 ----------------------------
 class ClientsController < ApplicationController
 
@@ -77,7 +77,7 @@ end
 
 In order for this example to work, we have to add the PDF MIME type to Rails. This can be done by adding the following line to the file `config/initializers/mime_types.rb`:
 
-[code, ruby]
+[source, ruby]
 ----------------------------
 Mime::Type.register "application/pdf", :pdf
 ----------------------------

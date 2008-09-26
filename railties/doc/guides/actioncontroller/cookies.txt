@@ -4,7 +4,7 @@ Your application can store small amounts of data on the client - called cookies 
 
 TODO: Find a real-world example where cookies are used
 
-[code, ruby]
+[source, ruby]
 -----------------------------------------
 class FooController < ApplicationController
 

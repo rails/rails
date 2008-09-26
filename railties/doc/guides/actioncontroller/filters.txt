@@ -2,7 +2,7 @@
 
 Filters are methods that are run before, after or "around" a controller action. For example, one filter might check to see if the logged in user has the right credentials to access that particular controller or action. Filters are inherited, so if you set a filter on ApplicationController, it will be run on every controller in your application. A common, simple filter is one which requires that a user is logged in for an action to be run. Let's define the filter method first:
 
-[code, ruby]
+[source, ruby]
 ---------------------------------
 class ApplicationController < ActionController::Base
 
@@ -29,7 +29,7 @@ end
 
 The method simply stores an error message in the flash and redirects to the login form if the user is not logged in. If a before filter (a filter which is run before the action) renders or redirects, the action will not run. If there are additional filters scheduled to run after the rendering/redirecting filter, they are also cancelled. To use this filter in a controller, use the "before_filter":http://api.rubyonrails.org/classes/ActionController/Filters/ClassMethods.html#M000704 method:
 
-[code, ruby]
+[source, ruby]
 ---------------------------------
 class ApplicationController < ActionController::Base
 
@@ -40,7 +40,7 @@ end
 
 In this example, the filter is added to ApplicationController and thus all controllers in the application. This will make everything in the application require the user to be logged in in order to use it. For obvious reasons (the user wouldn't be able to log in in the first place!), not all controllers or actions should require this, so to prevent this filter from running you can use "skip_before_filter":http://api.rubyonrails.org/classes/ActionController/Filters/ClassMethods.html#M000711 :
 
-[code, ruby]
+[source, ruby]
 ---------------------------------
 class LoginsController < Application
 
@@ -57,7 +57,7 @@ In addition to the before filters, you can run filters after an action has run o
 
 TODO: Find a real example for an around filter
 
-[code, ruby]
+[source, ruby]
 ---------------------------------
 class ApplicationController < Application
 
@@ -80,7 +80,7 @@ While the most common way to use filters is by creating private methods and usin
 
 The first is to use a block directly with the *_filter methods. The block receives the controller as an argument, and the `require_login` filter from above could be rewritte to use a block:
 
-[code, ruby]
+[source, ruby]
 ---------------------------------
 class ApplicationController < ActionController::Base
 
@@ -93,7 +93,7 @@ Note that the filter in this case uses `send` because the `logged_in?` method is
 
 The second way is to use a class (actually, any object that responds to the right methods will do) to handle the filtering. This is useful in cases that are more complex than can not be implemented in a readable and reusable way using the two other methods. As an example, we will rewrite the login filter again to use a class:
 
-[code, ruby]
+[source, ruby]
 ---------------------------------
 class ApplicationController < ActionController::Base
 
