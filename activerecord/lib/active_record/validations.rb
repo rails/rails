@@ -428,7 +428,7 @@ module ActiveRecord
 
         db_cols = begin
           column_names
-        rescue ActiveRecord::StatementInvalid
+        rescue Exception # To ignore both statement and connection errors
           []
         end
         names = attr_names.reject { |name| db_cols.include?(name.to_s) }
