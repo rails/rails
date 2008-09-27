@@ -194,6 +194,14 @@ class AssociationProxyTest < ActiveRecord::TestCase
     assert_equal david, welcome.author
   end
 
+  def test_assigning_association_id_after_reload
+    welcome = posts(:welcome)
+    welcome.reload
+    assert_nothing_raised do
+      welcome.author_id = authors(:david).id
+    end
+  end
+
   def test_reload_returns_assocition
     david = developers(:david)
     assert_nothing_raised do

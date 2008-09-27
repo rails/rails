@@ -199,7 +199,7 @@ module ActiveResource
 
       # Builds headers for request to remote service.
       def build_request_headers(headers, http_method=nil)
-        authorization_header.update(default_header).update(headers).update(http_format_header(http_method))
+        authorization_header.update(default_header).update(http_format_header(http_method)).update(headers)
       end
 
       # Sets authorization header

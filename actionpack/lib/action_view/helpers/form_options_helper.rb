@@ -324,9 +324,6 @@ module ActionView
             value == selected
           end
         end
-
-        # All the countries included in the country_options output.
-        COUNTRIES = ActiveSupport::Deprecation::DeprecatedConstantProxy.new 'COUNTRIES', 'ActionView::Helpers::FormCountryHelper::COUNTRIES'
     end
 
     class InstanceTag #:nodoc:

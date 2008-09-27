@@ -42,7 +42,8 @@ module ActionController #:nodoc:
       :prefix           => "ruby_sess.",    # prefix session file names
       :session_path     => "/",             # available to all paths in app
       :session_key      => "_session_id",
-      :cookie_only      => true
+      :cookie_only      => true,
+      :session_http_only=> true
     }
 
     def initialize(cgi, session_options = {})

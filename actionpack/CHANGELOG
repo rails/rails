@@ -1,5 +1,7 @@
 *Edge*
 
+* Set HttpOnly for the cookie session store's cookie.  #1046 
+
 * Added FormTagHelper#image_submit_tag confirm option #784 [Alastair Brunton]
 
 * Fixed FormTagHelper#submit_tag with :disable_with option wouldn't submit the button's value when was clicked #633 [Jose Fernandez]

@@ -1,6 +1,6 @@
 require 'tzinfo'
 module ActiveSupport
-  # A Time-like class that can represent a time in any time zone. Necessary because standard Ruby Time instances are 
+  # A Time-like class that can represent a time in any time zone. Necessary because standard Ruby Time instances are
   # limited to UTC and the system's <tt>ENV['TZ']</tt> zone.
   #
   # You shouldn't ever need to create a TimeWithZone instance directly via <tt>new</tt> -- instead, Rails provides the methods
@@ -32,12 +32,12 @@ module ActiveSupport
   class TimeWithZone
     include Comparable
     attr_reader :time_zone
-  
+
     def initialize(utc_time, time_zone, local_time = nil, period = nil)
       @utc, @time_zone, @time = utc_time, time_zone, local_time
       @period = @utc ? period : get_period_and_ensure_valid_local_time
     end
-  
+
     # Returns a Time or DateTime instance that represents the time in +time_zone+.
     def time
       @time ||= period.to_local(@utc)
@@ -51,7 +51,7 @@ module ActiveSupport
     alias_method :getgm, :utc
     alias_method :getutc, :utc
     alias_method :gmtime, :utc
-  
+
     # Returns the underlying TZInfo::TimezonePeriod.
     def period
       @period ||= time_zone.period_for_utc(@utc)
@@ -62,38 +62,38 @@ module ActiveSupport
       return self if time_zone == new_zone
       utc.in_time_zone(new_zone)
     end
-  
+
     # Returns a <tt>Time.local()</tt> instance of the simultaneous time in your system's <tt>ENV['TZ']</tt> zone
     def localtime
       utc.getlocal
     end
     alias_method :getlocal, :localtime
-  
+
     def dst?
       period.dst?
     end
     alias_method :isdst, :dst?
-  
+
     def utc?
       time_zone.name == 'UTC'
     end
     alias_method :gmt?, :utc?
-  
+
     def utc_offset
       period.utc_total_offset
     end
     alias_method :gmt_offset, :utc_offset
     alias_method :gmtoff, :utc_offset
-  
+
     def formatted_offset(colon = true, alternate_utc_string = nil)
       utc? && alternate_utc_string || utc_offset.to_utc_offset_s(colon)
     end
-  
+
     # Time uses +zone+ to display the time zone abbreviation, so we're duck-typing it.
     def zone
       period.zone_identifier.to_s
     end
-  
+
     def inspect
       "#{time.strftime('%a, %d %b %Y %H:%M:%S')} #{zone} #{formatted_offset}"
     end
@@ -122,7 +122,7 @@ module ActiveSupport
         %("#{time.strftime("%Y/%m/%d %H:%M:%S")} #{formatted_offset(false)}")
       end
     end
-    
+
     def to_yaml(options = {})
       if options.kind_of?(YAML::Emitter)
         utc.to_yaml(options)
@@ -130,19 +130,19 @@ module ActiveSupport
         time.to_yaml(options).gsub('Z', formatted_offset(true, 'Z'))
       end
     end
-    
+
     def httpdate
       utc.httpdate
     end
-  
+
     def rfc2822
       to_s(:rfc822)
     end
     alias_method :rfc822, :rfc2822
-  
+
     # <tt>:db</tt> format outputs time in UTC; all others output time in local.
     # Uses TimeWithZone's +strftime+, so <tt>%Z</tt> and <tt>%z</tt> work correctly.
-    def to_s(format = :default) 
+    def to_s(format = :default)
       return utc.to_s(format) if format == :db
       if formatter = ::Time::DATE_FORMATS[format]
         formatter.respond_to?(:call) ? formatter.call(self).to_s : strftime(formatter)
@@ -150,27 +150,39 @@ module ActiveSupport
         "#{time.strftime("%Y-%m-%d %H:%M:%S")} #{formatted_offset(false, 'UTC')}" # mimicking Ruby 1.9 Time#to_s format
       end
     end
-    
+
     # Replaces <tt>%Z</tt> and <tt>%z</tt> directives with +zone+ and +formatted_offset+, respectively, before passing to
     # Time#strftime, so that zone information is correct
     def strftime(format)
       format = format.gsub('%Z', zone).gsub('%z', formatted_offset(false))
       time.strftime(format)
     end
-  
+
     # Use the time in UTC for comparisons.
     def <=>(other)
       utc <=> other
     end
-    
+
     def between?(min, max)
       utc.between?(min, max)
     end
-    
+
+    def past?
+      utc.past?
+    end
+
+    def today?
+      time.today?
+    end
+
+    def future?
+      utc.future?
+    end
+
     def eql?(other)
       utc == other
     end
-    
+
     def +(other)
       # If we're adding a Duration of variable length (i.e., years, months, days), move forward from #time,
       # otherwise move forward from #utc, for accuracy when moving across DST boundaries
@@ -194,7 +206,7 @@ module ActiveSupport
         result.in_time_zone(time_zone)
       end
     end
-    
+
     def since(other)
       # If we're adding a Duration of variable length (i.e., years, months, days), move forward from #time,
       # otherwise move forward from #utc, for accuracy when moving across DST boundaries
@@ -204,7 +216,7 @@ module ActiveSupport
         utc.since(other).in_time_zone(time_zone)
       end
     end
-    
+
     def ago(other)
       since(-other)
     end
@@ -218,53 +230,53 @@ module ActiveSupport
         utc.advance(options).in_time_zone(time_zone)
       end
     end
-    
-    %w(year mon month day mday hour min sec).each do |method_name|
+
+    %w(year mon month day mday wday yday hour min sec to_date).each do |method_name|
       class_eval <<-EOV
         def #{method_name}
           time.#{method_name}
         end
       EOV
     end
-    
+
     def usec
       time.respond_to?(:usec) ? time.usec : 0
     end
-    
+
     def to_a
       [time.sec, time.min, time.hour, time.day, time.mon, time.year, time.wday, time.yday, dst?, zone]
     end
-    
+
     def to_f
       utc.to_f
-    end    
-    
+    end
+
     def to_i
       utc.to_i
     end
     alias_method :hash, :to_i
     alias_method :tv_sec, :to_i
-  
+
     # A TimeWithZone acts like a Time, so just return +self+.
     def to_time
       self
     end
-    
+
     def to_datetime
       utc.to_datetime.new_offset(Rational(utc_offset, 86_400))
     end
-    
+
     # So that +self+ <tt>acts_like?(:time)</tt>.
     def acts_like_time?
       true
     end
-  
+
     # Say we're a Time to thwart type checking.
     def is_a?(klass)
       klass == ::Time || super
     end
     alias_method :kind_of?, :is_a?
-  
+
     # Neuter freeze because freezing can cause problems with lazy loading of attributes.
     def freeze
       self
@@ -273,7 +285,7 @@ module ActiveSupport
     def marshal_dump
       [utc, time_zone.name, time]
     end
-    
+
     def marshal_load(variables)
       initialize(variables[0].utc, ::Time.__send__(:get_zone, variables[1]), variables[2].utc)
     end
@@ -290,10 +302,10 @@ module ActiveSupport
       result = time.__send__(sym, *args, &block)
       result.acts_like?(:time) ? self.class.new(nil, time_zone, result) : result
     end
-    
-    private      
+
+    private
       def get_period_and_ensure_valid_local_time
-        # we don't want a Time.local instance enforcing its own DST rules as well, 
+        # we don't want a Time.local instance enforcing its own DST rules as well,
         # so transfer time values to a utc constructor if necessary
         @time = transfer_time_values_to_utc_constructor(@time) unless @time.utc?
         begin
@@ -304,11 +316,11 @@ module ActiveSupport
           retry
         end
       end
-      
+
       def transfer_time_values_to_utc_constructor(time)
         ::Time.utc_time(time.year, time.month, time.day, time.hour, time.min, time.sec, time.respond_to?(:usec) ? time.usec : 0)
       end
-      
+
       def duration_of_variable_length?(obj)
         ActiveSupport::Duration === obj && obj.parts.flatten.detect {|p| [:years, :months, :days].include? p }
       end

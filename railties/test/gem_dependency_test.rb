@@ -37,7 +37,7 @@ uses_mocha "Plugin Tests" do
     end
 
     def test_gem_with_version_unpack_install_command
-      assert_equal ["unpack", "hpricot", "--version", '"= 0.6"'], @gem_with_version.unpack_command
+      assert_equal ["unpack", "hpricot", "--version", '= 0.6'], @gem_with_version.unpack_command
     end
 
     def test_gem_adds_load_paths

@@ -271,4 +271,10 @@ class NamedScopeTest < ActiveRecord::TestCase
       topics.size # use loaded (no query)
     end
   end
+
+  def test_chaining_with_duplicate_joins
+    join = "INNER JOIN comments ON comments.post_id = posts.id"
+    post = Post.find(1)
+    assert_equal post.comments.size, Post.scoped(:joins => join).scoped(:joins => join, :conditions => "posts.id = #{post.id}").size
+  end
 end

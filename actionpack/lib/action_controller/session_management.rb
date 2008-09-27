@@ -60,6 +60,10 @@ module ActionController #:nodoc:
       #   # the session will only work over HTTPS, but only for the foo action
       #   session :only => :foo, :session_secure => true
       #
+      #   # the session by default uses HttpOnly sessions for security reasons.
+      #   # this can be switched off.
+      #   session :only => :foo, :session_http_only => false
+      #
       #   # the session will only be disabled for 'foo', and only if it is
       #   # requested as a web service
       #   session :off, :only => :foo,

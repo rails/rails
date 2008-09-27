@@ -117,6 +117,7 @@ class TimeExtCalculationsTest < Test::Unit::TestCase
     assert_equal Time.local(2007,3,31,23,59,59), Time.local(2007,3,31,0,0,0).end_of_quarter
     assert_equal Time.local(2007,12,31,23,59,59), Time.local(2007,12,21,10,10,10).end_of_quarter
     assert_equal Time.local(2007,6,30,23,59,59), Time.local(2007,4,1,0,0,0).end_of_quarter
+    assert_equal Time.local(2008,6,30,23,59,59), Time.local(2008,5,31,0,0,0).end_of_quarter
   end
 
   def test_end_of_year
@@ -563,6 +564,74 @@ class TimeExtCalculationsTest < Test::Unit::TestCase
     assert_nothing_raised { Time.now.xmlschema }
   end
 
+  uses_mocha 'Test Time past?, today? and future?' do    
+    def test_today_with_time_local
+      Date.stubs(:current).returns(Date.new(2000, 1, 1))
+      assert_equal false, Time.local(1999,12,31,23,59,59).today?
+      assert_equal true,  Time.local(2000,1,1,0).today?
+      assert_equal true,  Time.local(2000,1,1,23,59,59).today?
+      assert_equal false, Time.local(2000,1,2,0).today?
+    end
+    
+    def test_today_with_time_utc
+      Date.stubs(:current).returns(Date.new(2000, 1, 1))
+      assert_equal false, Time.utc(1999,12,31,23,59,59).today?
+      assert_equal true,  Time.utc(2000,1,1,0).today?
+      assert_equal true,  Time.utc(2000,1,1,23,59,59).today?
+      assert_equal false, Time.utc(2000,1,2,0).today?
+    end
+    
+    def test_past_with_time_current_as_time_local
+      with_env_tz 'US/Eastern' do
+        Time.stubs(:current).returns(Time.local(2005,2,10,15,30,45))
+        assert_equal true,  Time.local(2005,2,10,15,30,44).past?
+        assert_equal false,  Time.local(2005,2,10,15,30,45).past?
+        assert_equal false,  Time.local(2005,2,10,15,30,46).past?
+        assert_equal true,  Time.utc(2005,2,10,20,30,44).past?
+        assert_equal false,  Time.utc(2005,2,10,20,30,45).past?
+        assert_equal false,  Time.utc(2005,2,10,20,30,46).past?
+      end
+    end
+    
+    def test_past_with_time_current_as_time_with_zone
+      with_env_tz 'US/Eastern' do
+        twz = Time.utc(2005,2,10,15,30,45).in_time_zone('Central Time (US & Canada)')
+        Time.stubs(:current).returns(twz)
+        assert_equal true,  Time.local(2005,2,10,10,30,44).past?
+        assert_equal false,  Time.local(2005,2,10,10,30,45).past?
+        assert_equal false,  Time.local(2005,2,10,10,30,46).past?
+        assert_equal true,  Time.utc(2005,2,10,15,30,44).past?
+        assert_equal false,  Time.utc(2005,2,10,15,30,45).past?
+        assert_equal false,  Time.utc(2005,2,10,15,30,46).past?
+      end
+    end
+    
+    def test_future_with_time_current_as_time_local
+      with_env_tz 'US/Eastern' do
+        Time.stubs(:current).returns(Time.local(2005,2,10,15,30,45))
+        assert_equal false,  Time.local(2005,2,10,15,30,44).future?
+        assert_equal false,  Time.local(2005,2,10,15,30,45).future?
+        assert_equal true,  Time.local(2005,2,10,15,30,46).future?
+        assert_equal false,  Time.utc(2005,2,10,20,30,44).future?
+        assert_equal false,  Time.utc(2005,2,10,20,30,45).future?
+        assert_equal true,  Time.utc(2005,2,10,20,30,46).future?
+      end
+    end
+    
+    def test_future_with_time_current_as_time_with_zone
+      with_env_tz 'US/Eastern' do
+        twz = Time.utc(2005,2,10,15,30,45).in_time_zone('Central Time (US & Canada)')
+        Time.stubs(:current).returns(twz)
+        assert_equal false,  Time.local(2005,2,10,10,30,44).future?
+        assert_equal false,  Time.local(2005,2,10,10,30,45).future?
+        assert_equal true,  Time.local(2005,2,10,10,30,46).future?
+        assert_equal false,  Time.utc(2005,2,10,15,30,44).future?
+        assert_equal false,  Time.utc(2005,2,10,15,30,45).future?
+        assert_equal true,  Time.utc(2005,2,10,15,30,46).future?
+      end
+    end
+  end
+
   def test_acts_like_time
     assert Time.new.acts_like_time?
   end
@@ -640,24 +709,24 @@ class TimeExtMarshalingTest < Test::Unit::TestCase
     assert_equal t, unmarshaled
     assert_equal t.zone, unmarshaled.zone
   end
-  
-  def test_marshaling_with_local_instance  
+
+  def test_marshaling_with_local_instance
     t = Time.local(2000)
     marshaled = Marshal.dump t
     unmarshaled = Marshal.load marshaled
     assert_equal t, unmarshaled
     assert_equal t.zone, unmarshaled.zone
   end
-    
-  def test_marshaling_with_frozen_utc_instance  
+
+  def test_marshaling_with_frozen_utc_instance
     t = Time.utc(2000).freeze
     marshaled = Marshal.dump t
     unmarshaled = Marshal.load marshaled
     assert_equal t, unmarshaled
     assert_equal t.zone, unmarshaled.zone
   end
-  
-  def test_marshaling_with_frozen_local_instance  
+
+  def test_marshaling_with_frozen_local_instance
     t = Time.local(2000).freeze
     marshaled = Marshal.dump t
     unmarshaled = Marshal.load marshaled

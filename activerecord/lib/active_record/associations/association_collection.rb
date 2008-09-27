@@ -63,7 +63,7 @@ module ActiveRecord
       
       # Fetches the first one using SQL if possible.
       def first(*args)
-        if fetch_first_or_last_using_find? args
+        if fetch_first_or_last_using_find?(args)
           find(:first, *args)
         else
           load_target unless loaded?
@@ -73,7 +73,7 @@ module ActiveRecord
 
       # Fetches the last one using SQL if possible.
       def last(*args)
-        if fetch_first_or_last_using_find? args
+        if fetch_first_or_last_using_find?(args)
           find(:last, *args)
         else
           load_target unless loaded?
@@ -108,7 +108,7 @@ module ActiveRecord
         result = true
         load_target if @owner.new_record?
 
-        @owner.transaction do
+        transaction do
           flatten_deeper(records).each do |record|
             raise_on_type_mismatch(record)
             add_record_to_target_with_callbacks(record) do |r|
@@ -122,6 +122,21 @@ module ActiveRecord
 
       alias_method :push, :<<
       alias_method :concat, :<<
+
+      # Starts a transaction in the association class's database connection.
+      #
+      #   class Author < ActiveRecord::Base
+      #     has_many :books
+      #   end
+      #
+      #   Author.find(:first).books.transaction do
+      #     # same effect as calling Book.transaction
+      #   end
+      def transaction(*args)
+        @reflection.klass.transaction(*args) do
+          yield
+        end
+      end
 
       # Remove all records from this association
       def delete_all
@@ -173,7 +188,7 @@ module ActiveRecord
         records = flatten_deeper(records)
         records.each { |record| raise_on_type_mismatch(record) }
         
-        @owner.transaction do
+        transaction do
           records.each { |record| callback(:before_remove, record) }
           
           old_records = records.reject {|r| r.new_record? }
@@ -200,7 +215,7 @@ module ActiveRecord
       end
       
       def destroy_all
-        @owner.transaction do
+        transaction do
           each { |record| record.destroy }
         end
 
@@ -238,6 +253,8 @@ module ActiveRecord
       def size
         if @owner.new_record? || (loaded? && !@reflection.options[:uniq])
           @target.size
+        elsif !loaded? && @reflection.options[:group]
+          load_target.size
         elsif !loaded? && !@reflection.options[:uniq] && @target.is_a?(Array)
           unsaved_records = @target.select { |r| r.new_record? }
           unsaved_records.size + count_records
@@ -290,7 +307,7 @@ module ActiveRecord
         other   = other_array.size < 100 ? other_array : other_array.to_set
         current = @target.size < 100 ? @target : @target.to_set
 
-        @owner.transaction do
+        transaction do
           delete(@target.select { |v| !other.include?(v) })
           concat(other_array.select { |v| !current.include?(v) })
         end
@@ -418,7 +435,8 @@ module ActiveRecord
         end
 
         def fetch_first_or_last_using_find?(args)
-          args.first.kind_of?(Hash) || !(loaded? || @owner.new_record? || @reflection.options[:finder_sql] || !@target.blank? || args.first.kind_of?(Integer))
+          args.first.kind_of?(Hash) || !(loaded? || @owner.new_record? || @reflection.options[:finder_sql] ||
+                                         @target.any? { |record| record.new_record? } || args.first.kind_of?(Integer))
         end
     end
   end

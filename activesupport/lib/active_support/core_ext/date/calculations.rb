@@ -20,18 +20,33 @@ module ActiveSupport #:nodoc:
           def yesterday
             ::Date.today.yesterday
           end
-          
+
           # Returns a new Date representing the date 1 day after today (i.e. tomorrow's date).
           def tomorrow
             ::Date.today.tomorrow
           end
-          
+
           # Returns Time.zone.today when config.time_zone is set, otherwise just returns Date.today.
           def current
             ::Time.zone_default ? ::Time.zone.today : ::Date.today
           end
         end
-        
+
+        # Tells whether the Date object's date lies in the past
+        def past?
+          self < ::Date.current
+        end
+
+        # Tells whether the Date object's date is today
+        def today?
+          self.to_date == ::Date.current # we need the to_date because of DateTime
+        end
+
+        # Tells whether the Date object's date lies in the future
+        def future?
+          self > ::Date.current
+        end
+
         # Converts Date to a Time (or DateTime if necessary) with the time portion set to the beginning of the day (0:00)
         # and then subtracts the specified number of seconds
         def ago(seconds)
@@ -57,7 +72,7 @@ module ActiveSupport #:nodoc:
         def end_of_day
           to_time.end_of_day
         end
-        
+
         def plus_with_duration(other) #:nodoc:
           if ActiveSupport::Duration === other
             other.since(self)
@@ -65,7 +80,7 @@ module ActiveSupport #:nodoc:
             plus_without_duration(other)
           end
         end
-        
+
         def minus_with_duration(other) #:nodoc:
           if ActiveSupport::Duration === other
             plus_with_duration(-other)
@@ -73,8 +88,8 @@ module ActiveSupport #:nodoc:
             minus_without_duration(other)
           end
         end
-        
-        # Provides precise Date calculations for years, months, and days.  The +options+ parameter takes a hash with 
+
+        # Provides precise Date calculations for years, months, and days.  The +options+ parameter takes a hash with
         # any of these keys: <tt>:years</tt>, <tt>:months</tt>, <tt>:weeks</tt>, <tt>:days</tt>.
         def advance(options)
           d = self
@@ -98,7 +113,7 @@ module ActiveSupport #:nodoc:
             options[:day]   || self.day
           )
         end
-        
+
         # Returns a new Date/DateTime representing the time a number of specified months ago
         def months_ago(months)
           advance(:months => -months)
@@ -161,7 +176,7 @@ module ActiveSupport #:nodoc:
           days_into_week = { :monday => 0, :tuesday => 1, :wednesday => 2, :thursday => 3, :friday => 4, :saturday => 5, :sunday => 6}
           result = (self + 7).beginning_of_week + days_into_week[day]
           self.acts_like?(:time) ? result.change(:hour => 0) : result
-        end          
+        end
 
         # Returns a new ; DateTime objects will have time set to 0:00DateTime representing the start of the month (1st of the month; DateTime objects will have time set to 0:00)
         def beginning_of_month

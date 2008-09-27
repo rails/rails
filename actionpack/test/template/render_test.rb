@@ -70,7 +70,23 @@ class ViewRenderTest < Test::Unit::TestCase
   end
 
   def test_render_partial_with_errors
-    assert_raise(ActionView::TemplateError) { @view.render(:partial => "test/raise") }
+    @view.render(:partial => "test/raise")
+    flunk "Render did not raise TemplateError"
+  rescue ActionView::TemplateError => e
+    assert_match "undefined local variable or method `doesnt_exist'", e.message
+    assert_equal "", e.sub_template_message
+    assert_equal "1", e.line_number
+    assert_equal File.expand_path("#{FIXTURE_LOAD_PATH}/test/_raise.html.erb"), e.file_name
+  end
+
+  def test_render_sub_template_with_errors
+    @view.render(:file => "test/sub_template_raise")
+    flunk "Render did not raise TemplateError"
+  rescue ActionView::TemplateError => e
+    assert_match "undefined local variable or method `doesnt_exist'", e.message
+    assert_equal "Trace of template inclusion: #{File.expand_path("#{FIXTURE_LOAD_PATH}/test/sub_template_raise.html.erb")}", e.sub_template_message
+    assert_equal "1", e.line_number
+    assert_equal File.expand_path("#{FIXTURE_LOAD_PATH}/test/_raise.html.erb"), e.file_name
   end
 
   def test_render_partial_collection

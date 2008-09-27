@@ -6,12 +6,16 @@ class ActiveRecordValidationsI18nTests < Test::Unit::TestCase
   def setup
     reset_callbacks Topic
     @topic = Topic.new
+    @old_load_path, @old_backend = I18n.load_path, I18n.backend
+    I18n.load_path.clear
+    I18n.backend = I18n::Backend::Simple.new
     I18n.backend.store_translations('en-US', :activerecord => {:errors => {:messages => {:custom => nil}}})
   end
 
   def teardown
     reset_callbacks Topic
-    I18n.load_translations File.dirname(__FILE__) + '/../../lib/active_record/locale/en-US.yml'
+    I18n.load_path.replace @old_load_path
+    I18n.backend = @old_backend
   end
 
   def unique_topic

@@ -152,6 +152,50 @@ class TimeWithZoneTest < Test::Unit::TestCase
     assert_equal false, @twz.between?(Time.utc(2000,1,1,0,0,1), Time.utc(2000,1,1,0,0,2))
   end
 
+  uses_mocha 'TimeWithZone past?, today? and future?' do    
+    def test_today
+      Date.stubs(:current).returns(Date.new(2000, 1, 1))
+      assert_equal false, ActiveSupport::TimeWithZone.new( nil, @time_zone, Time.utc(1999,12,31,23,59,59) ).today?
+      assert_equal true,  ActiveSupport::TimeWithZone.new( nil, @time_zone, Time.utc(2000,1,1,0) ).today?
+      assert_equal true,  ActiveSupport::TimeWithZone.new( nil, @time_zone, Time.utc(2000,1,1,23,59,59) ).today?
+      assert_equal false, ActiveSupport::TimeWithZone.new( nil, @time_zone, Time.utc(2000,1,2,0) ).today?
+    end
+    
+    def test_past_with_time_current_as_time_local
+      with_env_tz 'US/Eastern' do
+        Time.stubs(:current).returns(Time.local(2005,2,10,15,30,45))
+        assert_equal true,  ActiveSupport::TimeWithZone.new( nil, @time_zone, Time.local(2005,2,10,15,30,44)).past?
+        assert_equal false,  ActiveSupport::TimeWithZone.new( nil, @time_zone, Time.local(2005,2,10,15,30,45)).past?
+        assert_equal false,  ActiveSupport::TimeWithZone.new( nil, @time_zone, Time.local(2005,2,10,15,30,46)).past?
+      end
+    end
+    
+    def test_past_with_time_current_as_time_with_zone
+      twz = ActiveSupport::TimeWithZone.new( nil, @time_zone, Time.local(2005,2,10,15,30,45) )
+      Time.stubs(:current).returns(twz)
+      assert_equal true,  ActiveSupport::TimeWithZone.new( nil, @time_zone, Time.local(2005,2,10,15,30,44)).past?
+      assert_equal false,  ActiveSupport::TimeWithZone.new( nil, @time_zone, Time.local(2005,2,10,15,30,45)).past?
+      assert_equal false,  ActiveSupport::TimeWithZone.new( nil, @time_zone, Time.local(2005,2,10,15,30,46)).past?
+    end
+    
+    def test_future_with_time_current_as_time_local
+      with_env_tz 'US/Eastern' do
+        Time.stubs(:current).returns(Time.local(2005,2,10,15,30,45))
+        assert_equal false,  ActiveSupport::TimeWithZone.new( nil, @time_zone, Time.local(2005,2,10,15,30,44)).future?
+        assert_equal false,  ActiveSupport::TimeWithZone.new( nil, @time_zone, Time.local(2005,2,10,15,30,45)).future?
+        assert_equal true,  ActiveSupport::TimeWithZone.new( nil, @time_zone, Time.local(2005,2,10,15,30,46)).future?
+      end
+    end
+    
+    def future_with_time_current_as_time_with_zone
+      twz = ActiveSupport::TimeWithZone.new( nil, @time_zone, Time.local(2005,2,10,15,30,45) )
+      Time.stubs(:current).returns(twz)
+      assert_equal false,  ActiveSupport::TimeWithZone.new( nil, @time_zone, Time.local(2005,2,10,15,30,44)).future?
+      assert_equal false,  ActiveSupport::TimeWithZone.new( nil, @time_zone, Time.local(2005,2,10,15,30,45)).future?
+      assert_equal true,  ActiveSupport::TimeWithZone.new( nil, @time_zone, Time.local(2005,2,10,15,30,46)).future?
+    end
+  end
+
   def test_eql?
     assert @twz.eql?(Time.utc(2000))
     assert @twz.eql?( ActiveSupport::TimeWithZone.new(Time.utc(2000), ActiveSupport::TimeZone["Hawaii"]) )
@@ -353,7 +397,7 @@ class TimeWithZoneTest < Test::Unit::TestCase
     def test_date_part_value_methods
       silence_warnings do # silence warnings raised by tzinfo gem
         twz = ActiveSupport::TimeWithZone.new(Time.utc(1999,12,31,19,18,17,500), @time_zone)
-        twz.stubs(:method_missing).returns(nil) #ensure these methods are defined directly on class
+        twz.expects(:method_missing).never
         assert_equal 1999, twz.year
         assert_equal 12, twz.month
         assert_equal 31, twz.day
@@ -361,6 +405,8 @@ class TimeWithZoneTest < Test::Unit::TestCase
         assert_equal 18, twz.min
         assert_equal 17, twz.sec
         assert_equal 500, twz.usec
+        assert_equal 5, twz.wday
+        assert_equal 365, twz.yday
       end
     end
   end
@@ -538,7 +584,7 @@ class TimeWithZoneTest < Test::Unit::TestCase
     assert_equal "Sun, 02 Apr 2006 10:30:01 EDT -04:00", twz.since(1.days + 1.second).inspect
     assert_equal "Sun, 02 Apr 2006 10:30:01 EDT -04:00", (twz + 1.days + 1.second).inspect
   end
-  
+
   def test_advance_1_day_across_spring_dst_transition_backwards
     twz = ActiveSupport::TimeWithZone.new(nil, @time_zone, Time.utc(2006,4,2,10,30))
     # In 2006, spring DST transition occurred Apr 2 at 2AM; this day was only 23 hours long
@@ -548,7 +594,7 @@ class TimeWithZoneTest < Test::Unit::TestCase
     assert_equal "Sat, 01 Apr 2006 10:30:00 EST -05:00", (twz - 1.days).inspect
     assert_equal "Sat, 01 Apr 2006 10:30:01 EST -05:00", twz.ago(1.days - 1.second).inspect
   end
-    
+
   def test_advance_1_day_expressed_as_number_of_seconds_minutes_or_hours_across_spring_dst_transition
     twz = ActiveSupport::TimeWithZone.new(nil, @time_zone, Time.utc(2006,4,1,10,30))
     # In 2006, spring DST transition occurred Apr 2 at 2AM; this day was only 23 hours long
@@ -565,7 +611,7 @@ class TimeWithZoneTest < Test::Unit::TestCase
     assert_equal "Sun, 02 Apr 2006 11:30:00 EDT -04:00", twz.since(24.hours).inspect
     assert_equal "Sun, 02 Apr 2006 11:30:00 EDT -04:00", twz.advance(:hours => 24).inspect
   end
-  
+
   def test_advance_1_day_expressed_as_number_of_seconds_minutes_or_hours_across_spring_dst_transition_backwards
     twz = ActiveSupport::TimeWithZone.new(nil, @time_zone, Time.utc(2006,4,2,11,30))
     # In 2006, spring DST transition occurred Apr 2 at 2AM; this day was only 23 hours long
@@ -582,7 +628,7 @@ class TimeWithZoneTest < Test::Unit::TestCase
     assert_equal "Sat, 01 Apr 2006 10:30:00 EST -05:00", twz.ago(24.hours).inspect
     assert_equal "Sat, 01 Apr 2006 10:30:00 EST -05:00", twz.advance(:hours => -24).inspect
   end
-  
+
   def test_advance_1_day_across_fall_dst_transition
     twz = ActiveSupport::TimeWithZone.new(nil, @time_zone, Time.utc(2006,10,28,10,30))
     # In 2006, fall DST transition occurred Oct 29 at 2AM; this day was 25 hours long
@@ -593,7 +639,7 @@ class TimeWithZoneTest < Test::Unit::TestCase
     assert_equal "Sun, 29 Oct 2006 10:30:01 EST -05:00", twz.since(1.days + 1.second).inspect
     assert_equal "Sun, 29 Oct 2006 10:30:01 EST -05:00", (twz + 1.days + 1.second).inspect
   end
-  
+
   def test_advance_1_day_across_fall_dst_transition_backwards
     twz = ActiveSupport::TimeWithZone.new(nil, @time_zone, Time.utc(2006,10,29,10,30))
     # In 2006, fall DST transition occurred Oct 29 at 2AM; this day was 25 hours long
@@ -603,7 +649,7 @@ class TimeWithZoneTest < Test::Unit::TestCase
     assert_equal "Sat, 28 Oct 2006 10:30:00 EDT -04:00", (twz - 1.days).inspect
     assert_equal "Sat, 28 Oct 2006 10:30:01 EDT -04:00", twz.ago(1.days - 1.second).inspect
   end
-  
+
   def test_advance_1_day_expressed_as_number_of_seconds_minutes_or_hours_across_fall_dst_transition
     twz = ActiveSupport::TimeWithZone.new(nil, @time_zone, Time.utc(2006,10,28,10,30))
     # In 2006, fall DST transition occurred Oct 29 at 2AM; this day was 25 hours long
@@ -620,7 +666,7 @@ class TimeWithZoneTest < Test::Unit::TestCase
     assert_equal "Sun, 29 Oct 2006 09:30:00 EST -05:00", twz.since(24.hours).inspect
     assert_equal "Sun, 29 Oct 2006 09:30:00 EST -05:00", twz.advance(:hours => 24).inspect
   end
-  
+
   def test_advance_1_day_expressed_as_number_of_seconds_minutes_or_hours_across_fall_dst_transition_backwards
     twz = ActiveSupport::TimeWithZone.new(nil, @time_zone, Time.utc(2006,10,29,9,30))
     # In 2006, fall DST transition occurred Oct 29 at 2AM; this day was 25 hours long
@@ -669,7 +715,7 @@ class TimeWithZoneTest < Test::Unit::TestCase
     assert_equal "Sat, 28 Oct 2006 10:30:00 EDT -04:00", twz.ago(1.month).inspect
     assert_equal "Sat, 28 Oct 2006 10:30:00 EDT -04:00", (twz - 1.month).inspect
   end
-  
+
   def test_advance_1_year
     twz = ActiveSupport::TimeWithZone.new(nil, @time_zone, Time.utc(2008,2,15,10,30))
     assert_equal "Sun, 15 Feb 2009 10:30:00 EST -05:00", twz.advance(:years => 1).inspect
@@ -679,7 +725,7 @@ class TimeWithZoneTest < Test::Unit::TestCase
     assert_equal "Thu, 15 Feb 2007 10:30:00 EST -05:00", twz.years_ago(1).inspect
     assert_equal "Thu, 15 Feb 2007 10:30:00 EST -05:00", (twz - 1.year).inspect
   end
-  
+
   def test_advance_1_year_during_dst
     twz = ActiveSupport::TimeWithZone.new(nil, @time_zone, Time.utc(2008,7,15,10,30))
     assert_equal "Wed, 15 Jul 2009 10:30:00 EDT -04:00", twz.advance(:years => 1).inspect
@@ -689,6 +735,14 @@ class TimeWithZoneTest < Test::Unit::TestCase
     assert_equal "Sun, 15 Jul 2007 10:30:00 EDT -04:00", twz.years_ago(1).inspect
     assert_equal "Sun, 15 Jul 2007 10:30:00 EDT -04:00", (twz - 1.year).inspect
   end
+  
+  protected
+    def with_env_tz(new_tz = 'US/Eastern')
+      old_tz, ENV['TZ'] = ENV['TZ'], new_tz
+      yield
+    ensure
+      old_tz ? ENV['TZ'] = old_tz : ENV.delete('TZ')
+    end
 end
 
 class TimeWithZoneMethodsForTimeAndDateTimeTest < Test::Unit::TestCase

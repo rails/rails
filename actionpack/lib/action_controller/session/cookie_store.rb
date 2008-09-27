@@ -70,7 +70,8 @@ class CGI::Session::CookieStore
       'path'    => options['session_path'],
       'domain'  => options['session_domain'],
       'expires' => options['session_expires'],
-      'secure'  => options['session_secure']
+      'secure'  => options['session_secure'],
+      'http_only' => options['session_http_only']
     }
 
     # Set no_hidden and no_cookies since the session id is unused and we

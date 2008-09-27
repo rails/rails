@@ -21,7 +21,6 @@ module ActionView #:nodoc:
     include CaptureHelper
     include DateHelper
     include DebugHelper
-    include FormCountryHelper
     include FormHelper
     include FormOptionsHelper
     include FormTagHelper
