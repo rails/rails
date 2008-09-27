@@ -193,6 +193,7 @@ module ActiveRecord
       end
 
       def preload_has_one_association(records, reflection, preload_options={})
+        return if records.first.send("loaded_#{reflection.name}?")
         id_to_record_map, ids = construct_id_map(records)        
         options = reflection.options
         records.each {|record| record.send("set_#{reflection.name}_target", nil)}
@@ -214,6 +215,7 @@ module ActiveRecord
       end
 
       def preload_has_many_association(records, reflection, preload_options={})
+        return if records.first.send(reflection.name).loaded?
         options = reflection.options
 
         primary_key_name = reflection.through_reflection_primary_key_name
@@ -271,6 +273,7 @@ module ActiveRecord
       end
 
       def preload_belongs_to_association(records, reflection, preload_options={})
+        return if records.first.send("loaded_#{reflection.name}?")
         options = reflection.options
         primary_key_name = reflection.primary_key_name
 

@@ -13,6 +13,7 @@ class Post < ActiveRecord::Base
   end
 
   belongs_to :author_with_posts, :class_name => "Author", :foreign_key => :author_id, :include => :posts
+  belongs_to :author_with_address, :class_name => "Author", :foreign_key => :author_id, :include => :author_address
 
   has_one :last_comment, :class_name => 'Comment', :order => 'id desc'
 

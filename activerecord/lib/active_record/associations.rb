@@ -1248,6 +1248,11 @@ module ActiveRecord
             association.target.nil? ? nil : association
           end
 
+          define_method("loaded_#{reflection.name}?") do
+            association = instance_variable_get(ivar) if instance_variable_defined?(ivar)
+            association && association.loaded?
+          end
+
           define_method("#{reflection.name}=") do |new_value|
             association = instance_variable_get(ivar) if instance_variable_defined?(ivar)
 

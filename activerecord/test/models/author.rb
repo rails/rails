@@ -17,6 +17,8 @@ class Author < ActiveRecord::Base
       proxy_target
     end
   end
+  has_one  :post_about_thinking, :class_name => 'Post', :conditions => "posts.title like '%thinking%'"
+  has_one  :post_about_thinking_with_last_comment, :class_name => 'Post', :conditions => "posts.title like '%thinking%'", :include => :last_comment
   has_many :comments, :through => :posts
   has_many :comments_containing_the_letter_e, :through => :posts, :source => :comments
   has_many :comments_with_order_and_conditions, :through => :posts, :source => :comments, :order => 'comments.body', :conditions => "comments.body like 'Thank%'"
