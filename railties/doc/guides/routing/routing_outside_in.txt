@@ -537,8 +537,8 @@ It's possible to do some quite complex things by combining +:path_prefix+ and +:
 [source, ruby]
 -------------------------------------------------------
 map.resources :photos, :path_prefix => 'admin', :controller => 'admin/photos'
-map.resources :tags, :path_prefix => 'admin_photo_', :path_prefix => 'admin/photos/:photo_id', :controller => 'admin/photo_tags'
-map.resources :ratings, :path_prefix => 'admin_photo_', :path_prefix => 'admin/photos/:photo_id', :controller => 'admin/photo_ratings'
+map.resources :tags, :name_prefix => 'admin_photo_', :path_prefix => 'admin/photos/:photo_id', :controller => 'admin/photo_tags'
+map.resources :ratings, :name_prefix => 'admin_photo_', :path_prefix => 'admin/photos/:photo_id', :controller => 'admin/photo_ratings'
 -------------------------------------------------------
 
 The good news is that if you find yourself using this level of complexity, you can stop. Rails supports _namespaced resources_ to make placing resources in their own folder a snap. Here's the namespaced version of those same three routes:
@@ -551,7 +551,7 @@ map.namespace(:admin) do |admin|
 end
 -------------------------------------------------------
 
-As you can see, the namespaced version is much more succinct than the one that spells everything out - but it still creates the same routes. For example, you'll get +admin_photos_url+ that expects to find an +Admin::PhotosController+ and that matches +admin/photos+, and +admin_photos_ratings+path+ that matches +/admin/photos/_photo_id_/ratings+, expecting to use +Admin::RatingsController+.
+As you can see, the namespaced version is much more succinct than the one that spells everything out - but it still creates the same routes. For example, you'll get +admin_photos_url+ that expects to find an +Admin::PhotosController+ and that matches +admin/photos+, and +admin_photos_ratings+path+ that matches +/admin/photos/_photo_id_/ratings+, expecting to use +Admin::RatingsController+. Even though you're not specifying +path_prefix+ explicitly, the routing code will calculate the appropriate +path_prefix+ from the route nesting.
 
 === Adding More RESTful Actions
 
