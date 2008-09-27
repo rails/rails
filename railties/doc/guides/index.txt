@@ -11,7 +11,12 @@ These guides are complete and the authors are listed link:authors.html[here].
 
 .link:migrations/migrations.html[Rails Database Migrations]
 ***********************************************************
-TODO: Insert some description here.
+This guide covers how you can use Active Record migrations to alter your database in a structured and organised manner.
+***********************************************************
+
+.link:activerecord/association_basics.html[Active Record Associations]
+***********************************************************
+This guide covers all the associations provided by Active Record.
 ***********************************************************
 
 .link:routing/routing_outside_in.html[Rails Routing from the Outside In]
@@ -49,11 +54,6 @@ link:http://rails.lighthouseapp.com/projects/16213/tickets/17[Lighthouse Ticket]
 .link:activerecord/finders.html[Active Record Finders]
 ***********************************************************
 link:http://rails.lighthouseapp.com/projects/16213/tickets/16[Lighthouse Ticket]
-***********************************************************
-
-.link:activerecord/association_basics.html[Active Record Associations]
-***********************************************************
-link:http://rails.lighthouseapp.com/projects/16213/tickets/11[Lighthouse Ticket]
 ***********************************************************
 
 .link:forms/form_helpers.html[Action View Form Helpers]
