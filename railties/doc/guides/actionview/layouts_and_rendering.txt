@@ -80,29 +80,141 @@ WARNING: Using +render+ with +:action+ is a frequent source of confusion for Rai
 
 ==== Using +render+ with +:template+
 
+What if you want to render a template from an entirely different controller from the one that contains the action code? You can do that with the +:template+ option to +render+, which accepts the full path (relative to +app/views+) of the template to render. For example, if you're running code in an +AdminProductsController+ that lives in +app/controllers/admin+, you can render the results of an action to a template in +app/views/products+ this way:
+
+[source, ruby]
+-------------------------------------------------------
+render :template => 'products/show'
+-------------------------------------------------------
+
 ==== Using +render+ with +:file+
+
+If you want to use a view that's entirely outside of your application (perhaps you're sharing views between two Rails applications), you can use the +:file+ option to +render+:
+
+[source, ruby]
+-------------------------------------------------------
+render :file => "/u/apps/warehouse_app/current/app/views/products/show"
+-------------------------------------------------------
+
+The +:file+ option takes an absolute file-system path. Of course, you need to have rights to the view that you're using to render the content.
+
+NOTE: By default, if you use the +:file+ option, the file is rendered without using the current layout. If you want Rails to put the file into the current layout, you need to add the +:layout => true+ option
 
 ==== Using +render+ with +:inline+
 
+The +render+ method can do without a view completely, if you're willing to use the +:inline+ option to supply ERB as part of the method call. This is perfectly valid:
+
+[source, ruby]
+-------------------------------------------------------
+render :inline => "<% products.each do |p| %><p><%= p.name %><p><% end %>"
+-------------------------------------------------------
+
+WARNING: There is seldom any good reason to use this option. Mixing ERB into your controllers defeats the MVC orientation of Rails and will make it harder for other developers to follow the logic of your project. Use a separate erb view instead.
+
 ==== Using +render+ with +:update+
+
+You can also render javascript-based page updates inline using the +:update+ option to +render+:
+
+[source, ruby]
+-------------------------------------------------------
+render :update do |page|
+  page.replace_html 'warning', "Invalid options supplied"
+end
+-------------------------------------------------------
+
+WARNING: Placing javascript updates in your controller may seem to streamline small updates, but it defeats the MVC orientation of Rails and will make it harder for other developers to follow the logic of your project. I recommend using a separate rjs template instead, no matter how small the update.
 
 ==== Rendering Text
 
+You can send plain text - with no markup at all - back to the browser by using the +:text+ option to +render+:
+
+[source, ruby]
+-------------------------------------------------------
+render :text => "OK"
+-------------------------------------------------------
+
+TIP: Rendering pure text is most useful when you're responding to AJAX or web service requests that are expecting something other than proper HTML.
+
+NOTE: By default, if you use the +:text+ option, the file is rendered without using the current layout. If you want Rails to put the text into the current layout, you need to add the +:layout => true+ option
+
 ==== Rendering JSON
+
+JSON is a javascript data format used by many AJAX libraries. Rails has built-in support for converting objects to JSON and rendering that JSON back to the browser:
+
+[source, ruby]
+-------------------------------------------------------
+render :json => @product
+-------------------------------------------------------
+
+TIP: You don't need to call +to_json+ on the object that you want to render. If you use the +:json+ option, +render+ will automatically call +to_json+ for you.
 
 ==== Rendering XML
 
+Rails also has built-in support for converting objects to XML and rendering that XML back to the caller:
+
+[source, ruby]
+-------------------------------------------------------
+render :xml => @product
+-------------------------------------------------------
+
+TIP: You don't need to call +to_xml+ on the object that you want to render. If you use the +:xml+ option, +render+ will automatically call +to_xml+ for you.
+
 ==== Options for +render+
+
+Calls to the +render+ method generally accept four options:
+
+* +:content_type+
+* +:layout+
+* +:status+
+* +:location+
 
 ===== The +:content_type+ Option
 
+By default, Rails will serve the results of a rendering operation with the MIME content-type of +text/html+ (or +application/json+ if you use the +:json+ option, or +application/xml+ for the +:xml+ option.). There are times when you might like to change this, and you can do so by setting the +:content_type+ option:
+
+[source, ruby]
+-------------------------------------------------------
+render :file => filename, :content_type => 'application/rss'
+-------------------------------------------------------
+
 ===== The +:layout+ Option
 
-include :layout => false
+With most of the options to +render+, the rendered content is displayed as part of the current layout. You'll learn more about layouts and how to use them later in this guide. To find the current layout, Rails first looks for a file in +app/views/layouts+ with the same base name as the controller. For example, rendering actions from the +PhotosController+ class will use +/app/views/layouts/photos.html.erb+. If there is no such controller-specific layout, Rails will use +/app/views/layouts/application.html.erb+.
+
+You can use the +:layout+ option to tell Rails to use a specific file as the layout for the current action:
+
+[source, ruby]
+-------------------------------------------------------
+render :layout => 'special_layout'
+-------------------------------------------------------
+
+You can also tell Rails to render with no layout at all:
+
+[source, ruby]
+-------------------------------------------------------
+render :layout => false
+-------------------------------------------------------
 
 ===== The +:status+ Option
 
+Rails will automatically generate a response with the correct HTML status code (in most cases, this is +200 OK+). You can use the +:status+ option to change this:
+
+[source, ruby]
+-------------------------------------------------------
+render :status => 500
+render :status => :forbidden
+-------------------------------------------------------
+
+Rails understands either numeric status codes or symbols for status codes. You can find its list of status codes in +actionpack/lib/action_controller/status_codes.rb+. You can also see there how it maps symbols to status codes in that file.
+
 ===== The +:location+ Option
+
+You can use the +:location+ option to set the HTTP +Location+ header:
+
+[source, ruby]
+-------------------------------------------------------
+render :xml => photo, :location => photo_url(photo)
+-------------------------------------------------------
 
 === Using +redirect_to+
 
