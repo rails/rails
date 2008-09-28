@@ -618,7 +618,7 @@ end
 
 The +belongs_to+ association supports these options:
 
-* +:accessible+
+// * +:accessible+
 * +:class_name+
 * +:conditions+
 * +:counter_cache+
@@ -630,10 +630,10 @@ The +belongs_to+ association supports these options:
 * +:select+
 * +:validate+
 
-===== +:accessible+
-
-The +:accessible+ option is the association version of +ActiveRecord::Base#attr_accessible+. If you set the +:accessible+ option to true, then mass assignment is allowed for this association.
-
+// ===== +:accessible+
+//
+// The +:accessible+ option is the association version of +ActiveRecord::Base#attr_accessible+. If you set the +:accessible+ option to true, then mass // assignment is allowed for this association.
+//
 ===== +:class_name+
 
 If the name of the other model cannot be derived from the association name, you can use the +:class_name+ option to supply the model name. For example, if an order belongs to a customer, but the actual name of the model containing customers is patron, you'd set things up this way:
@@ -871,7 +871,7 @@ end
 
 The +has_one+ association supports these options:
 
-* +:accessible+
+// * +:accessible+
 * +:as+
 * +:class_name+
 * +:conditions+
@@ -887,10 +887,10 @@ The +has_one+ association supports these options:
 * +:through+
 * +:validate+
 
-===== +:accessible+
-
-The +:accessible+ option is the association version of +ActiveRecord::Base#attr_accessible+. If you set the +:accessible+ option to true, then mass assignment is allowed for this association.
-
+// ===== +:accessible+
+//
+// The +:accessible+ option is the association version of +ActiveRecord::Base#attr_accessible+. If you set the +:accessible+ option to true, then mass // assignment is allowed for this association.
+//
 ===== +:as+
 
 Setting the +:as+ option indicates that this is a polymorphic association. Polymorphic associations are discussed in detail later in this guide.
@@ -1174,7 +1174,7 @@ end
 
 The +has_many+ association supports these options:
 
-* +:accessible+
+// * +:accessible+
 * +:as+
 * +:class_name+
 * +:conditions+
@@ -1197,10 +1197,10 @@ The +has_many+ association supports these options:
 * +:uniq+
 * +:validate+
 
-===== +:accessible+
-
-The +:accessible+ option is the association version of +ActiveRecord::Base#attr_accessible+. If you set the +:accessible+ option to true, then mass assignment is allowed for this association.
-
+// ===== +:accessible+
+//
+// The +:accessible+ option is the association version of +ActiveRecord::Base#attr_accessible+. If you set the +:accessible+ option to true, then mass // assignment is allowed for this association.
+//
 ===== +:as+
 
 Setting the +:as+ option indicates that this is a polymorphic association, as discussed earlier in this guide.
@@ -1559,7 +1559,7 @@ end
 
 The +has_and_belongs_to_many+ association supports these options:
 
-* +:accessible+
+// * +:accessible+
 * +:association_foreign_key+
 * +:class_name+
 * +:conditions+
@@ -1580,10 +1580,10 @@ The +has_and_belongs_to_many+ association supports these options:
 * +:uniq+
 * +:validate+
 
-===== +:accessible+
-
-The +:accessible+ option is the association version of +ActiveRecord::Base#attr_accessible+. If you set the +:accessible+ option to true, then mass assignment is allowed for this association.
-
+// ===== +:accessible+
+//
+// The +:accessible+ option is the association version of +ActiveRecord::Base#attr_accessible+. If you set the +:accessible+ option to true, then mass // assignment is allowed for this association.
+//
 ===== +:association_foreign_key+
 
 By convention, Rails guesses that the column in the join table used to hold the foreign key pointing to the other model is the name of that model with the suffix +_id+ added. The +:association_foreign_key+ option lets you set the name of the foreign key directly:
