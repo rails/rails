@@ -252,7 +252,7 @@ module ActionController #:nodoc:
   #
   #   def do_something
   #     redirect_to(:action => "elsewhere") and return if monkeys.nil?
-  #     render :action => "overthere" # won't be called unless monkeys is nil
+  #     render :action => "overthere" # won't be called if monkeys is nil
   #   end
   #
   class Base
