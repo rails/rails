@@ -99,7 +99,7 @@ TODO: Insert some description here.
 TODO: Insert some description here. No Lighthouse ticket.
 ***********************************************************
 
-.link:actionview/layouts_and_debugging.html[Layouts and Rendering in Rails]
+.link:actionview/layouts_and_rendering.html[Layouts and Rendering in Rails]
 ***********************************************************
 link:http://rails.lighthouseapp.com/projects/16213/tickets/15[Lighthouse Ticket]
 
