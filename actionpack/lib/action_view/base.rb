@@ -296,9 +296,9 @@ module ActionView #:nodoc:
           @assigns.each { |key, value| instance_variable_set("@#{key}", value) }
 
           if @controller
-            variables = @controller.instance_variables
+            variables = @controller.instance_variable_names
             variables -= @controller.protected_instance_variables if @controller.respond_to?(:protected_instance_variables)
-            variables.each {|name| instance_variable_set(name, @controller.instance_variable_get(name)) }
+            variables.each { |name| instance_variable_set(name, @controller.instance_variable_get(name)) }
           end
 
           @assigns_added = true

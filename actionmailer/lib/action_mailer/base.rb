@@ -296,6 +296,9 @@ module ActionMailer #:nodoc:
     @@default_implicit_parts_order = [ "text/html", "text/enriched", "text/plain" ]
     cattr_accessor :default_implicit_parts_order
 
+    cattr_reader :protected_instance_variables
+    @@protected_instance_variables = %w(@body)
+
     # Specify the BCC addresses for the message
     adv_attr_accessor :bcc
 
