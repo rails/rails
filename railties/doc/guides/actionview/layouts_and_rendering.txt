@@ -111,6 +111,13 @@ render :inline => "<% products.each do |p| %><p><%= p.name %><p><% end %>"
 
 WARNING: There is seldom any good reason to use this option. Mixing ERB into your controllers defeats the MVC orientation of Rails and will make it harder for other developers to follow the logic of your project. Use a separate erb view instead.
 
+By default, inline rendering uses ERb. You can force it to use Builder instead with the +:type+ option:
+
+[source, ruby]
+-------------------------------------------------------
+render :inline => "xml.p {'Horrid coding practice!'}", :type => :builder
+-------------------------------------------------------
+
 ==== Using +render+ with +:update+
 
 You can also render javascript-based page updates inline using the +:update+ option to +render+:
@@ -216,11 +223,112 @@ You can use the +:location+ option to set the HTTP +Location+ header:
 render :xml => photo, :location => photo_url(photo)
 -------------------------------------------------------
 
+==== Avoiding Double Render Errors
+
+Sooner or later, most Rails developers will see the error message "Can only render or redirect once per action". While this is annoying, it's relatively easy to fix. Usually it happens because of a fundamental misunderstanding of the way that +render+ works.
+
+For example, here's some code that will trigger this error:
+
+[source, ruby]
+-------------------------------------------------------
+def show
+  @book = Book.find(params[:id])
+  if @book.special?
+    render :action => "special_show"
+  end
+end
+-------------------------------------------------------
+
+If +@book.special?+ evaluates to +true+, Rails will start the rendering process to dump the +@book+ variable into the +special_show+ view. But this will _not_ stop the rest of the code in the +show+ action from running, and when Rails hits the end of the action, it will start to render the +show+ view - and throw an error. The solution is simple: make sure that you only have one call to +render+ or +redirect+ in a single code path. One thing that can help is +and return+. Here's a patched version of the method:
+
+[source, ruby]
+-------------------------------------------------------
+def show
+  @book = Book.find(params[:id])
+  if @book.special?
+    render :action => "special_show" and return
+  end
+end
+-------------------------------------------------------
+
 === Using +redirect_to+
+
+Another way to handle returning responses to a HTTP request is with +redirect_to+. As you've seen, +render+ tells Rails which view (or other asset) to use in constructing a response. The +redirect_to+ method does something completely different: it tells the browser to send a new request for a different URL. For example, you could redirect from wherever you are in your code to the index of photos in your application with this call:
+
+[source, ruby]
+-------------------------------------------------------
+redirect_to photos_path
+-------------------------------------------------------
+
+You can use +redirect_to+ with any arguments that you could use with +link_to+ or +url_for+. In addition, there's a special redirect that sends the user back to the page they just came from:
+
+-------------------------------------------------------
+redirect_to :back
+-------------------------------------------------------
 
 ==== Getting a Different Redirect Status Code
 
+Rails uses HTTP status code 302 (permanent redirect) when you call +redirect_to+. If you'd like to use a different status code (perhaps 301, temporary redirect), you can do so by using the +:status+ option:
+
+-------------------------------------------------------
+redirect_to photos_path, :status => 301
+-------------------------------------------------------
+
+Just like the +:status+ option for +render+, +:status+ for +redirect_to+ accepts both numeric and symbolic header designations.
+
+==== The Difference Between +render+ and +redirect+
+
+Sometimes inexperienced developers conceive of +redirect_to+ as a sort of +goto+ command, moving execution from one place to another in your Rails code. This is _not_ correct. Your code stops running and waits for a new request for the browser. It just happens that you've told the browser what request it should make next, by sending back a HTTP 302 status code.
+
+Consider these actions to see the difference:
+
+[source, ruby]
+-------------------------------------------------------
+def index
+  @books = Book.find(:all)
+end
+
+def show
+  @book = Book.find(params[:id])
+  if @book.nil?
+    render :action => "index" and return
+  end
+end
+-------------------------------------------------------
+
+With the code in this form, there will be likely be a problem if the +@book+ variable is +nil+. Remember, a +render :action+ doesn't run any code in the target action, so nothing will set up the +@books+ variable that the +index+ view is presumably depending on. One way to fix this is to redirect instead of rendering:
+
+[source, ruby]
+-------------------------------------------------------
+def index
+  @books = Book.find(:all)
+end
+
+def show
+  @book = Book.find(params[:id])
+  if @book.nil?
+    redirect_to :action => "index" and return
+  end
+end
+-------------------------------------------------------
+
+With this code, the browser will make a fresh request for the index page, the code in the +index+ method will run, and all will be well.
+
 === Using +head+ To Build Header-Only Responses
+
+The +head+ method exists to let you send back responses to the browser that have only headers. It provides a more obvious alternative to calling +render :nothing+. The +head+ method takes one response, which is interpreted as a hash of header names and values. For example, you can return only an error header:
+
+[source, ruby]
+-------------------------------------------------------
+head :bad_request
+-------------------------------------------------------
+
+Or you can use other HTTP headers to convey additional information:
+
+[source, ruby]
+-------------------------------------------------------
+head :created, :location => photo_path(@photo)
+-------------------------------------------------------
 
 == Structuring Layouts
 
@@ -239,3 +347,44 @@ render :xml => photo, :location => photo_url(photo)
 http://rails.lighthouseapp.com/projects/16213-rails-guides/tickets/15[Lighthouse ticket]
 
 * September 20, 2008: First draft by link:../authors.html#mgunderloy[Mike Gunderloy] (not yet approved for publication)
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
