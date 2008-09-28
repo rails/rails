@@ -1,8 +1,8 @@
 = Rails Finders =
 First Draft
 
-== What is this guide about? ==
-This guide is all about the `find` method defined in ActiveRecord::Base, finding on associations, and associated goodness such as named scopes.
+== What you will learn ==
+This guide is all about the `find` method defined in ActiveRecord::Base, finding on associations, and associated goodness such as named scopes. You will learn how to be a find master.
 
 == In the beginning... ==
 
@@ -14,7 +14,7 @@ SELECT * FROM clients WHERE id = '1'
 SELECT * FROM clients LIMIT 0,1
 SELECT * FROM clients ORDER BY id DESC LIMIT 0,1
 
-In Rails you don't have to type SQL, unlike other languages, because ActiveRecord is there to help you find your records.
+In Rails you don't usually have to type SQL, unlike other languages, because ActiveRecord is there to help you find your records.
 
 == Our Models == 
 
@@ -42,18 +42,66 @@ class Order < ActiveRecord::Base
   belongs_to :client, :counter_cache => true
 end
 
-[source,ruby]
+[source,txt]
 class Role < ActiveRecord::Base
   has_and_belongs_to_many :clients
 end
 
+== Database Agnostic ==
 
+ActiveRecord will perform queries on the database for you and is compatible with most database systems (MySQL, PostgreSQL and SQLite to name a few). Regardless of which database system you're using, the ActiveRecord method format will always be the same. 
 
-== First, Last and All == 
+== IDs, First, Last and All == 
 
-ActiveRecord::Base has methods defined on it to make interacting with your database and the tables within it much, much easier. For example if you wanted to find the first client you would simply type `Client.find(:first)` and that would find the first client created in your database, the SQL equivalent of typing `SELECT * FROM clients LIMIT 0,1`. Alternatively, you could use the pre-defined named scope `first`, calling `Client.first` instead. `first` has two similiar methods: `all` and `last, which will find all objects in that model's table and the last object in that model's table respectively. These can be used exactly like first, `Client.all` is an alias to `Client.find(:all)` and `Client.last` is an alias to `Client.find(:last)`. 
+ActiveRecord::Base has methods defined on it to make interacting with your database and the tables within it much, much easier: find. This method allows you to pass arguments into it to perform certain queries on your database without the need of SQL. If you wanted to find the record with the id of 1, you could type Client.find(1) which would execute this query on your database:
 
-Be aware that `Client.first` and `Client.last` will both return a single object, where as `Client.find(:all)` will return an array of Client objects.
+[source, sql]
+SELECT * FROM `clients` WHERE (`clients`.`id` = 1) 
+
+NOTE: Please be aware that because this is a standard table created from a migration in Rails that the primary key is defaulted to 'id'. If you have specified a different primary key in your migrations, this is what Rails will find on when you call the find method, not the id column.
+
+If you wanted to find clients with id 1 or 2, you call `Client.find([1,2])` or `Client.find(1,2)` and then this will be executed as:
+
+[source, sql]
+SELECT * FROM `clients` WHERE (`clients`.`id` IN (1,2)) 
+
+[source,txt]
+>> Client.find(1,2)
+=> [#<Client id: 1, name: => "Ryan", locked: false, orders_count: 2, created_at: "2008-09-28 15:38:50", updated_at: "2008-09-28 15:38:50">, #<Client id: 2, name: => "Michael", locked: false, orders_count: 3, created_at: "2008-09-28 13:12:40", updated_at: "2008-09-28 13:12:40">]
+
+Note that if you pass in a list of numbers that the result will be returned as an array, not an object of Client.
+
+If you wanted to find the first client you would simply type `Client.find(:first)` and that would find the first client created in your clients table:
+
+[source,txt]
+>> Client.find(:first)
+=> #<Client id: 1, name: => "Ryan", locked: false, orders_count: 2, created_at: "2008-09-28 15:38:50", updated_at: "2008-09-28 15:38:50">
+
+If you were running script/server you may see the following output:
+
+[source,sql]
+SELECT * FROM clients LIMIT 1
+
+Indicating the query that Rails has performed on your database. 
+
+To find the last client you would simply type `Client.find(:last)` and that would find the last client created in your clients table:
+
+[source,txt]
+>> Client.find(:last)
+=> #<Client id: 2, name: => "Michael", locked: false, orders_count: 3, created_at: "2008-09-28 13:12:40", updated_at: "2008-09-28 13:12:40">
+
+[source,sql]
+SELECT * FROM clients ORDER BY clients.id DESC LIMIT 1
+
+To find all the clients you would simply type `Client.find(:all)` and that would find all the clients in your clients table:
+
+[source,txt]
+>> Client.find(:all)
+=> [#<Client id: 1, name: => "Ryan", locked: false, orders_count: 2, created_at: "2008-09-28 15:38:50", updated_at: "2008-09-28 15:38:50">, #<Client id: 2, name: => "Michael", locked: false, orders_count: 3, created_at: "2008-09-28 13:12:40", updated_at: "2008-09-28 13:12:40">]
+
+Alternatively to calling Client.find(:first)/`Client.find(:last)`/`Client.find(:all)`, you could use the class method of `Client.first`/`Client.last`/`Client.all` instead. `Client.first`, `Client.last` and `Client.all` just call their longer counterparts.
+
+Be aware that `Client.first`/`Client.find(:first)` and `Client.last`/`Client.find(:last)` will both return a single object, where as `Client.all`/`Client.find(:all)` will return an array of Client objects, just as passing in an array of ids to find will do also.
 
 == Conditions == 
 
@@ -66,6 +114,14 @@ If you're getting a set of records and want to force an order, you can use `Clie
 == Selecting Certain Fields ==
 
 To select certain fields, you can use the select option like this: `Client.find(:first, :select => "viewable_by, locked")`. This select option does not use an array of fields, but rather requires you to type SQL-like code. The above code will execute `SELECT viewable_by, locked FROM clients LIMIT 0,1` on your database. 
+
+== Limit & Offset ==
+
+== Group ==
+
+== Read Only ==
+
+== Lock ==
 
 == Making It All Work Together ==
 
@@ -90,6 +146,21 @@ This query is more efficent, but there's a gotcha. If you have a client who does
 == Dynamic finders ==
 
 With every field (also known as an attribute) you define in your table, ActiveRecord provides finder methods for these. If you have a field called `name` on your Client model for example, you get `find_by_name` and `find_all_by_name` for free from ActiveRecord. If you have also have a `locked` field on the client model, you also get `find_by_locked` and `find_all_by_locked`. If you want to find both by name and locked, you can chain these finders together by simply typing and between the fields for example `Client.find_by_name_and_locked('Ryan', true)`. These finders are an excellent alternative to using the conditions option, mainly because it's shorter to type `find_by_name(params[:name])` than it is to type `find(:first, :conditions => ["name = ?", params[:name]])`. 
+
+There's another set of dynamic finders that let you find or create/initialize objects if they aren't find. These work in a similar fashion to the other finders and can be used like `find_or_create_by_name(params[:name])`. Using this will firstly perform a find and then create if the find returns nil, the SQL looks like this for `Client.find_or_create_by_name('Ryan')`:
+
+[source,sql]
+SELECT * FROM `clients` WHERE (`clients`.`name` = 'Ryan') LIMIT 1
+BEGIN
+INSERT INTO `clients` (`name`, `updated_at`, `created_at`, `orders_count`, `locked`) VALUES('Ryan', '2008-09-28 15:39:12', '2008-09-28 15:39:12', '0', '0')
+COMMIT
+
+`find_or_create`'s sibling, find_or_initialize, will find an object and if it does not exist will call `new` with the parameters you passed in. For example:
+
+[source, ruby]
+client = Client.find_or_initialize_by_name('Ryan')
+
+will either assign an existing client object with the name 'Ryan' to the client local variable, or initialize new object similar to calling `Client.new(:name => 'Ryan')`. From here, you can modify other fields in client by calling the attribute setters on it: `client.locked = true` and when you want to write it to the database just call `save` on it.
 
 == Working with Associations ==
 
@@ -140,10 +211,18 @@ This will work with `Client.recent(2.weeks.ago)` and `Client.recent` with the la
 
 Remember that named scopes are stackable, so you will be able to do `Client.recent(2.weeks.ago).unlocked` to find all clients created between right now and 2 weeks ago and have their locked field set to false.
   
-  
 == Credits == 
 
 Thanks to Ryan Bates for his awesome screencast on named scope #108. The information within the named scope section is intentionally similar to it, and without the cast may have not been possible.
+
+== Change Log ==
+
+=== Sunday, 28 September 2008 ===
+1. Changed "In Rails you don't have to type SQL" to "In Rails you don't usually have to type SQL"
+2. Inserted paragraph in dynamic finders about find_or_create and find_or_initialize
+3. Extended "First, Last, All" section.
+4. Renamed "First, Last & All" to "IDs, First, Last and All"
+4. Added finding by id and passing in ids to "IDs, First, Last and All"
 
 
 
