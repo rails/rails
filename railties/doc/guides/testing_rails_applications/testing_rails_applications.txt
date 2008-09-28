@@ -2,15 +2,18 @@ A Guide to Testing Rails Applications
 =====================================
 
 This guide covers built-in mechanisms offered by Rails to test your application. By referring to this guide, you will be able to:
+
 * Understand Rails testing terminologies
 * Write unit, functional and integration tests for your application
 * Read about other popular testing approaches and plugins
 
 Assumptions:
+
  * You have spent more than 15 minutes in building your first application
  * The guide has been written for Rails 2.1 and above
 
-== Why write tests for your Rails applications?
+== Why write tests for your Rails applications? ==
+
  * Since Ruby code that you write in your Rails application is interpreted, you may only find that its broken when you actually run your application server and use it through the browser. Writing tests is a clean way of running through your code and catching syntactical and logic errors.
  * Rails tests can also simulate browser requests and thus you can test your applications response without having to test it through your browser.
  * By simply running your Rails tests you can ensure your code adheres to the desired functionality even after some major code refactoring.
@@ -63,7 +66,7 @@ The 'unit' folder is meant to hold tests for your models, 'functional' folder is
 
 ==== What They Are ====
 
-Fixtures is a fancy word for 'sample data'. Fixtures allow you to populate your testing database with predefined data before your tests run. Fixtures are database independent and assume one of two formats: *YAML* or *CSV*.
+Fixtures is a fancy word for sample data. Fixtures allow you to populate your testing database with predefined data before your tests run. Fixtures are database independent and assume one of two formats: *YAML* or *CSV*.
 
 You'll find fixtures under your 'test/fixtures' directory. When you run `script/generate model` to create a new model, fixture stubs will be automatically created and placed in this directory.
 
@@ -92,7 +95,7 @@ Each fixture is given a 'name' followed by an indented list of colon-separated k
 
 ==== Comma Seperated ====
 
-Fixtures can also be described using the all-too-familiar comma-separated value file format. These files, just like YAML fixtures are placed in the 'test/fixtures directory', but these end with the *.csv* file extension (as in 'celebrity_holiday_figures.csv').
+Fixtures can also be described using the all-too-familiar comma-separated value file format. These files, just like YAML fixtures are placed in the 'test/fixtures' directory, but these end with the *.csv* file extension (as in 'celebrity_holiday_figures.csv').
 
 A CSV fixture looks like this:
 
@@ -111,7 +114,7 @@ The first line is the header. It is a comma-separated list of fields. The rest o
  * don't use blank lines
  * nulls can be achived by just placing a comma, for example, (1,sclaus,,false,) minus the parenthesis of course.
 
-Unlike the YAML format where you give each fixture a name, CSV fixture names are automatically generated. They follow a pattern of ``model-name''-''counter''. In the above example, you would have:
+Unlike the YAML format where you give each fixture a name, CSV fixture names are automatically generated. They follow a pattern of ``model-name-counter''. In the above example, you would have:
 
 --------------------------------------------------------------
 celebrity-holiday-figures-1
@@ -497,7 +500,11 @@ You would get to see the usage of some of these assertions in the next chapter.
 
 == Functional tests for your Controllers ==
 
-In Rails, testing various actions of a single controller is termed as writing functional tests for that controller. Controllers handle the incoming web requests to your application and eventually respond with a rendered view. Thus, you should test for things such as:
+In Rails, testing various actions of a single controller is termed as writing functional tests for that controller. Controllers handle the incoming web requests to your application and eventually respond with a rendered view. 
+
+=== What to include in your Functional Tests ===
+
+You should test for things such as:
 
  * was the web request successful?
  * were we redirected to the right page?
@@ -569,7 +576,7 @@ For those of you familiar with HTTP protocol, you'll know that get is a type of 
  * head
  * delete
 
-All of request types are methods that you can use, however, you'll probably end up using the first two more ofter than the others.
+All of request types are methods that you can use, however, you'll probably end up using the first two more often than the others.
 
 === The 4 Hashes of the Apocolypse ===
 
@@ -577,27 +584,26 @@ After the request has been made by using one of the 5 methods (get, post, etc…
 
 They are (starring in alphabetical order):
 
-assigns
+`assigns`::
 Any objects that are stored as instance variables in actions for use in views.
 
-cookies
+`cookies`::
 Any objects cookies that are set.
 
-flash
+`flash`::
 Any objects living in the flash.
 
-session
+`session`::
 Any object living in session variables.
-
 
 As is the case with normal Hash objects, you can access the values by referencing the keys by string. You can also reference them by symbol name… except assigns. Check it out:
 
-flash["gordon"]               flash[:gordon]
-session["shmession"]          session[:shmession]
-cookies["are_good_for_u"]     cookies[:are_good_for_u]
+  flash["gordon"]               flash[:gordon]
+  session["shmession"]          session[:shmession]
+  cookies["are_good_for_u"]     cookies[:are_good_for_u]
 
 # Because you can't use assigns[:something] for historical reasons:
-assigns["something"]          assigns(:something)
+  assigns["something"]          assigns(:something)
 
 === Instance variables available ===
 
@@ -618,14 +624,58 @@ Another example that uses flash, assert_redirected_to, assert_difference
   end
 --------------------------------------------------
 
-=== Testing Views using assert_select ===
-http://api.rubyonrails.org/classes/ActionController/Assertions/SelectorAssertions.html#M000749
+=== Testing Views ===
+
+Testing the response to your request by asserting the presence of key html elements and their content is a good practice. `assert_select` allows you to do all this by using a simple yet powerful syntax.
+
+[NOTE]
+`assert_tag` is now deprecated in favor of `assert_select`
+
+`assert_select(selector, [equality], [message])`::
+Ensures that the equality condition is met on the selected elements through the selector. The selector may be a CSS selector expression (String), an expression with substitution values, or an HTML::Selector object.
+
+`assert_select(element, selector, [equality], [message])`::
+Ensures that the equality condition is met on all the selected elements through the selector starting from the _element_ (instance of HTML::Node) and its descendants.
+
+For example, you could verify the contents on the title element in your response with:
+
+[source,ruby]
+--------------------------------------------------
+assert_select 'title', "Welcome to Rails Testing Guide"
+--------------------------------------------------
+
+You can also use nested `assert_select` blocks. In this case the inner `assert_select` will run the assertion on each element selected by the outer `assert_select` block.
+
+[source,ruby]
+--------------------------------------------------
+assert_select 'ul.navigation' do
+  assert_select 'li.menu_item'
+end
+--------------------------------------------------
+
+`assert_select` is really powerful and I would recommend you to go through its http://api.rubyonrails.com/classes/ActionController/Assertions/SelectorAssertions.html#M000749[documentation] for its advanced usage.
 
 ==== Additional view based assertions ====
 
- * assert_select_rjs
- * assert_select_email
- * assert_select_encoded
+`assert_select_email`::
+Allows you to make assertions on the body of an e-mail. 
+
+[source,ruby]
+--------------------------------------------------
+assert_select_email do
+  assert_select 'small', 'Please click the "Unsubscribe" link if you want to opt-out.'
+end
+--------------------------------------------------
+
+`assert_select_rjs`::
+Allows you to make assertions on RJS response. `assert_select_rjs` has variants which allow you to narrow down upon the updated element or event a particular operation on an element.
+
+`assert_select_encoded`::
+Allows you to make assertions on encoded HTML. It does this by un-encoding the contents of each element and then calling the block with all the un-encoded elements.
+
+`css_select(selector)`::
+`css_select(element, selector)`::
+Returns an array of all the elements selected by the _selector_. In the second variant it first matches the base _element_ and tries to match the _selector_ expression on any of its children. If there are no matches both variants return an empty array.
 
 == Integration Testing ==
 
@@ -660,25 +710,30 @@ end
 * You will have to include fixtures explicitly unlike unit and functional tests in which all the fixtures are loaded by default (through test_helper)
 * Additional helpers: https?, https!, host!, follow_redirect!, post/get_via_redirect, open_session, reset
 
+== Rake Tasks for Testing
 
-== Guide TODO ==
- * What to test in unit tests
- * Testing views (assert_select)
- * Examples for integration test
- * Updating Rake tasks
- * Update sectino on testing file uploads
- * Updating the section on testing mailers
+The table below lists all rake tasks that come along in the default Rakefile when you initiate a Rail project.
 
-== Rake tasks related to testing
+.Default Rake tasks
+[grid="all"]
+-------------------------
+Tasks Description
+-------------------------
+`rake test`                     Runs all unit, functional and integration tests. You can also simply run `rake` as _test_ target is default.
+`rake test:units`               Runs all the unit tests from 'test/unit'
+`rake test:functionals`         Runs all the functional tests from 'test/functional'
+`rake test:integration`         Runs all the integration tests from 'test/integration'
+`rake test:recent`              Tests recent changes
+`rake test:uncommitted`         Runs all the tests which are uncommitted. Only supports Subversion
+`rake test:plugins`             Run all the plugin tests from vendor/plugins/*/**/test (or specify with `PLUGIN=_name_`)
+`rake db:test:clone`            Recreate the test database from the current environment's database schema
+`rake db:test:clone_structure`  Recreate the test databases from the development structure
+`rake db:test:load`             Recreate the test database from the current schema.rb
+`rake db:test:prepare`          Check for pending migrations and load the test schema
+`rake db:test:purge`            Empty the test database.
+-------------------------
 
-rake db:test:*
-
-rake test
-rake test:units
-rake test:functionals
-rake test:integration
-rake test:plugin
-
+TIP: You can see all these rake task and their descriptions by running `rake --tasks --describe`
 
 == Testing Your Mailers ==
 
@@ -877,3 +932,7 @@ class ActionMailer::Base
 end
 ----------------------------------------------------------------
 
+== Guide TODO ==
+ * Describe _setup_ and _teardown_
+ * Examples for integration test
+ * Updating the section on testing mailers
