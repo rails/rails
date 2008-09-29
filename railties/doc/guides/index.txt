@@ -32,6 +32,15 @@ understand how to use routing in your own Rails applications, start here.
 These guides are currently being worked on. While they still might be useful to you, you could always help by reviewing them and posting your 
 findings at the respective Lighthouse ticket.
 
+.link:actionview/layouts_and_rendering.html[Layouts and Rendering in Rails]
+***********************************************************
+link:http://rails.lighthouseapp.com/projects/16213/tickets/15[Lighthouse Ticket]
+
+This guide covers the basic layout features of Action Controller and Action View,
+including rendering and redirecting, using +content_for_ blocks, and working
+with partials.
+***********************************************************
+
 .link:debugging/debugging_rails_applications.html[Debugging Rails Applications]
 ***********************************************************
 link:http://rails.lighthouseapp.com/projects/16213/tickets/5[Lighthouse Ticket]
@@ -98,13 +107,3 @@ TODO: Insert some description here.
 ***********************************************************
 TODO: Insert some description here. No Lighthouse ticket.
 ***********************************************************
-
-.link:actionview/layouts_and_rendering.html[Layouts and Rendering in Rails]
-***********************************************************
-link:http://rails.lighthouseapp.com/projects/16213/tickets/15[Lighthouse Ticket]
-
-This guide covers the basic layout features of Action Controller and Action View, 
-including rendering and redirecting, using +content_for_ blocks, and working
-with partials.
-***********************************************************
-
