@@ -167,7 +167,7 @@ module ActionController
       parameter_format = parameters[:format]
 
       if parameter_format
-        parameter_format.to_sym
+        parameter_format
       elsif xhr?
         :js
       else
@@ -176,8 +176,7 @@ module ActionController
     end
 
     def cache_format
-      parameter_format = parameters[:format]
-      parameter_format && parameter_format.to_sym
+      parameters[:format]
     end
 
     # Returns true if the request's "X-Requested-With" header contains
