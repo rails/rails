@@ -1250,7 +1250,7 @@ module ActionController #:nodoc:
             action_name = strip_out_controller(action_name)
           end
         end
-        "#{self.class.controller_path}/#{action_name}"
+        "#{self.controller_path}/#{action_name}"
       end
 
       def strip_out_controller(path)
@@ -1258,7 +1258,7 @@ module ActionController #:nodoc:
       end
 
       def template_path_includes_controller?(path)
-        self.class.controller_path.split('/')[-1] == path.split('/')[0]
+        self.controller_path.split('/')[-1] == path.split('/')[0]
       end
 
       def process_cleanup
