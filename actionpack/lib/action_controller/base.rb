@@ -967,13 +967,15 @@ module ActionController #:nodoc:
       # Sets the Last-Modified response header. Returns 304 Not Modified if the
       # If-Modified-Since request header is <= last modified.
       def last_modified!(utc_time)
-        head(:not_modified) if response.last_modified!(utc_time)
+        response.last_modified= utc_time
+        head(:not_modified) if response.last_modified == request.if_modified_since
       end
 
       # Sets the ETag response header. Returns 304 Not Modified if the
       # If-None-Match request header matches.
       def etag!(etag)
-        head(:not_modified) if response.etag!(etag)
+        response.etag = etag
+        head(:not_modified) if response.etag == request.if_none_match
       end
 
       # Clears the rendered results, allowing for another render to be performed.
