@@ -195,7 +195,7 @@ You can also apply RESTful routing to singleton resources within your applicatio
 map.resource :geocoder
 -------------------------------------------------------
 
-creates seven different routes in your application:
+creates six different routes in your application:
 
 [grid="all"]
 `----------`---------------`-----------`--------`-------------------------------------------
