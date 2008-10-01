@@ -240,9 +240,9 @@ module ActiveSupport
     def demodulize(class_name_in_module)
       class_name_in_module.to_s.gsub(/^.*::/, '')
     end
-    
+
     # Replaces special characters in a string so that it may be used as part of a 'pretty' URL.
-    # 
+    #
     # ==== Examples
     #
     #   class Person
@@ -250,14 +250,20 @@ module ActiveSupport
     #       "#{id}-#{name.parameterize}"
     #     end
     #   end
-    # 
+    #
     #   @person = Person.find(1)
     #   # => #<Person id: 1, name: "Donald E. Knuth">
-    # 
+    #
     #   <%= link_to(@person.name, person_path %>
     #   # => <a href="/person/1-donald-e-knuth">Donald E. Knuth</a>
     def parameterize(string, sep = '-')
-      string.chars.normalize(:kd).to_s.gsub(/[^\x00-\x7F]+/, '').gsub(/[^a-z0-9_\-]+/i, sep).downcase
+      re_sep = Regexp.escape(sep)
+      string.mb_chars.normalize(:kd).       # Decompose accented characters
+        gsub(/[^\x00-\x7F]+/, '').          # Remove anything non-ASCII entirely (e.g. diacritics).
+        gsub(/[^a-z0-9\-_\+]+/i, sep).      # Turn unwanted chars into the separator.
+        squeeze(sep).                       # No more than one of the separator in a row.
+        gsub(/^#{re_sep}|#{re_sep}$/i, ''). # Remove leading/trailing separator.
+        downcase
     end
 
     # Create the name of a table like Rails does for models to table names. This method

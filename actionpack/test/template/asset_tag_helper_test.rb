@@ -38,7 +38,8 @@ class AssetTagHelperTest < ActionView::TestCase
     @controller.request = @request
 
     ActionView::Helpers::AssetTagHelper::reset_javascript_include_default
-    COMPUTED_PUBLIC_PATHS.clear
+    AssetTag::Cache.clear
+    AssetCollection::Cache.clear
   end
 
   def teardown
@@ -155,12 +156,12 @@ class AssetTagHelperTest < ActionView::TestCase
     PathToJavascriptToTag.each { |method, tag| assert_dom_equal(tag, eval(method)) }
   end
 
-  def test_javascript_include_tag
+  def test_javascript_include_tag_with_blank_asset_id
     ENV["RAILS_ASSET_ID"] = ""
     JavascriptIncludeToTag.each { |method, tag| assert_dom_equal(tag, eval(method)) }
+  end
 
-    COMPUTED_PUBLIC_PATHS.clear
-
+  def test_javascript_include_tag_with_given_asset_id
     ENV["RAILS_ASSET_ID"] = "1"
     assert_dom_equal(%(<script src="/javascripts/prototype.js?1" type="text/javascript"></script>\n<script src="/javascripts/effects.js?1" type="text/javascript"></script>\n<script src="/javascripts/dragdrop.js?1" type="text/javascript"></script>\n<script src="/javascripts/controls.js?1" type="text/javascript"></script>\n<script src="/javascripts/application.js?1" type="text/javascript"></script>), javascript_include_tag(:defaults))
   end
@@ -169,6 +170,11 @@ class AssetTagHelperTest < ActionView::TestCase
     ENV["RAILS_ASSET_ID"] = ""
     ActionView::Helpers::AssetTagHelper::register_javascript_include_default 'slider'
     assert_dom_equal  %(<script src="/javascripts/prototype.js" type="text/javascript"></script>\n<script src="/javascripts/effects.js" type="text/javascript"></script>\n<script src="/javascripts/dragdrop.js" type="text/javascript"></script>\n<script src="/javascripts/controls.js" type="text/javascript"></script>\n<script src="/javascripts/slider.js" type="text/javascript"></script>\n<script src="/javascripts/application.js" type="text/javascript"></script>), javascript_include_tag(:defaults)
+  end
+
+  def test_register_javascript_include_default_mixed_defaults
+    ENV["RAILS_ASSET_ID"] = ""
+    ActionView::Helpers::AssetTagHelper::register_javascript_include_default 'slider'
     ActionView::Helpers::AssetTagHelper::register_javascript_include_default 'lib1', '/elsewhere/blub/lib2'
     assert_dom_equal  %(<script src="/javascripts/prototype.js" type="text/javascript"></script>\n<script src="/javascripts/effects.js" type="text/javascript"></script>\n<script src="/javascripts/dragdrop.js" type="text/javascript"></script>\n<script src="/javascripts/controls.js" type="text/javascript"></script>\n<script src="/javascripts/slider.js" type="text/javascript"></script>\n<script src="/javascripts/lib1.js" type="text/javascript"></script>\n<script src="/elsewhere/blub/lib2.js" type="text/javascript"></script>\n<script src="/javascripts/application.js" type="text/javascript"></script>), javascript_include_tag(:defaults)
   end
@@ -386,6 +392,31 @@ class AssetTagHelperTest < ActionView::TestCase
     FileUtils.rm_f(File.join(ActionView::Helpers::AssetTagHelper::JAVASCRIPTS_DIR, 'combined.js'))
   end
 
+  def test_caching_javascript_include_tag_with_relative_url_root
+    ENV["RAILS_ASSET_ID"] = ""
+    ActionController::Base.relative_url_root = "/collaboration/hieraki"
+    ActionController::Base.perform_caching = true
+
+    assert_dom_equal(
+      %(<script src="/collaboration/hieraki/javascripts/all.js" type="text/javascript"></script>),
+      javascript_include_tag(:all, :cache => true)
+    )
+
+    assert File.exist?(File.join(ActionView::Helpers::AssetTagHelper::JAVASCRIPTS_DIR, 'all.js'))
+
+    assert_dom_equal(
+      %(<script src="/collaboration/hieraki/javascripts/money.js" type="text/javascript"></script>),
+      javascript_include_tag(:all, :cache => "money")
+    )
+
+    assert File.exist?(File.join(ActionView::Helpers::AssetTagHelper::JAVASCRIPTS_DIR, 'money.js'))
+
+  ensure
+    ActionController::Base.relative_url_root = nil
+    FileUtils.rm_f(File.join(ActionView::Helpers::AssetTagHelper::JAVASCRIPTS_DIR, 'all.js'))
+    FileUtils.rm_f(File.join(ActionView::Helpers::AssetTagHelper::JAVASCRIPTS_DIR, 'money.js'))
+  end
+
   def test_caching_javascript_include_tag_when_caching_off
     ENV["RAILS_ASSET_ID"] = ""
     ActionController::Base.perform_caching = false
@@ -454,6 +485,31 @@ class AssetTagHelperTest < ActionView::TestCase
 
   ensure
     FileUtils.rm_f(File.join(ActionView::Helpers::AssetTagHelper::STYLESHEETS_DIR, 'styles.css'))
+  end
+
+  def test_caching_stylesheet_link_tag_with_relative_url_root
+    ENV["RAILS_ASSET_ID"] = ""
+    ActionController::Base.relative_url_root = "/collaboration/hieraki"
+    ActionController::Base.perform_caching = true
+
+    assert_dom_equal(
+      %(<link href="/collaboration/hieraki/stylesheets/all.css" media="screen" rel="stylesheet" type="text/css" />),
+      stylesheet_link_tag(:all, :cache => true)
+    )
+
+    expected = Dir["#{ActionView::Helpers::AssetTagHelper::STYLESHEETS_DIR}/*.css"].map { |p| File.mtime(p) }.max
+    assert_equal expected, File.mtime(File.join(ActionView::Helpers::AssetTagHelper::STYLESHEETS_DIR, 'all.css'))
+
+    assert_dom_equal(
+      %(<link href="/collaboration/hieraki/stylesheets/money.css" media="screen" rel="stylesheet" type="text/css" />),
+      stylesheet_link_tag(:all, :cache => "money")
+    )
+
+    assert File.exist?(File.join(ActionView::Helpers::AssetTagHelper::STYLESHEETS_DIR, 'money.css'))
+  ensure
+    ActionController::Base.relative_url_root = nil
+    FileUtils.rm_f(File.join(ActionView::Helpers::AssetTagHelper::STYLESHEETS_DIR, 'all.css'))
+    FileUtils.rm_f(File.join(ActionView::Helpers::AssetTagHelper::STYLESHEETS_DIR, 'money.css'))
   end
 
   def test_caching_stylesheet_include_tag_when_caching_off

@@ -465,8 +465,8 @@ class FinderTest < ActiveRecord::TestCase
     quoted_bambi_and_thumper = ActiveRecord::Base.connection.quote("Bambi\nand\nThumper")
     assert_equal "name=#{quoted_bambi}", bind('name=?', "Bambi")
     assert_equal "name=#{quoted_bambi_and_thumper}", bind('name=?', "Bambi\nand\nThumper")
-    assert_equal "name=#{quoted_bambi}", bind('name=?', "Bambi".chars)
-    assert_equal "name=#{quoted_bambi_and_thumper}", bind('name=?', "Bambi\nand\nThumper".chars)
+    assert_equal "name=#{quoted_bambi}", bind('name=?', "Bambi".mb_chars)
+    assert_equal "name=#{quoted_bambi_and_thumper}", bind('name=?', "Bambi\nand\nThumper".mb_chars)
   end
 
   def test_bind_record
@@ -933,6 +933,17 @@ class FinderTest < ActiveRecord::TestCase
       :conditions => 'companies.id = 1'
     )
     assert_equal 1, first.id
+  end
+
+  def test_joins_with_string_array
+    person_with_reader_and_post = Post.find(
+      :all,
+      :joins => [
+        "INNER JOIN categorizations ON categorizations.post_id = posts.id",
+        "INNER JOIN categories ON categories.id = categorizations.category_id AND categories.type = 'SpecialCategory'"
+      ]
+    )
+    assert_equal 1, person_with_reader_and_post.size
   end
 
   def test_find_by_id_with_conditions_with_or

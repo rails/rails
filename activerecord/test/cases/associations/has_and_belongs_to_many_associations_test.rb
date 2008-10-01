@@ -253,7 +253,7 @@ class HasAndBelongsToManyAssociationsTest < ActiveRecord::TestCase
     assert !devel.projects.loaded?
 
     assert_equal devel.projects.last, proj
-    assert devel.projects.loaded?
+    assert !devel.projects.loaded?
 
     assert !proj.new_record?
     assert_equal Developer.find(1).projects.sort_by(&:id).last, proj  # prove join table is updated
@@ -737,5 +737,14 @@ class HasAndBelongsToManyAssociationsTest < ActiveRecord::TestCase
     # Extra parameter just to make sure we aren't falling back to
     # Array#count in Ruby >=1.8.7, which would raise an ArgumentError
     assert_nothing_raised { david.projects.count(:all, :conditions => '1=1') }
+  end
+
+  uses_mocha 'mocking Post.transaction' do
+    def test_association_proxy_transaction_method_starts_transaction_in_association_class
+      Post.expects(:transaction)
+      Category.find(:first).posts.transaction do
+        # nothing
+      end
+    end
   end
 end

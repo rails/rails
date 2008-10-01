@@ -52,15 +52,20 @@ module ActionView #:nodoc:
     end
     memoize :path_without_format_and_extension
 
+    def relative_path
+      path = File.expand_path(filename)
+      path.sub!(/^#{Regexp.escape(File.expand_path(RAILS_ROOT))}\//, '') if defined?(RAILS_ROOT)
+      path
+    end
+    memoize :relative_path
+
     def source
       File.read(filename)
     end
     memoize :source
 
     def method_segment
-      segment = File.expand_path(filename)
-      segment.sub!(/^#{Regexp.escape(File.expand_path(RAILS_ROOT))}/, '') if defined?(RAILS_ROOT)
-      segment.gsub!(/([^a-zA-Z0-9_])/) { $1.ord }
+      relative_path.to_s.gsub(/([^a-zA-Z0-9_])/) { $1.ord }
     end
     memoize :method_segment
 
@@ -69,7 +74,7 @@ module ActionView #:nodoc:
     rescue Exception => e
       raise e unless filename
       if TemplateError === e
-        e.sub_template_of(filename)
+        e.sub_template_of(self)
         raise e
       else
         raise TemplateError.new(self, view.assigns, e)

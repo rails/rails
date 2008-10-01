@@ -7,7 +7,7 @@ module ActiveSupport #:nodoc:
       module Calculations
         def self.included(base) #:nodoc:
           base.extend ClassMethods
-          
+
           base.class_eval do
             alias_method :compare_without_coercion, :<=>
             alias_method :<=>, :compare_with_coercion
@@ -19,6 +19,20 @@ module ActiveSupport #:nodoc:
           def local_offset
             ::Time.local(2007).utc_offset.to_r / 86400
           end
+
+          def current
+            ::Time.zone_default ? ::Time.zone.now.to_datetime : ::Time.now.to_datetime
+          end
+        end
+
+        # Tells whether the DateTime object's datetime lies in the past
+        def past?
+          self < ::DateTime.current
+        end
+
+        # Tells whether the DateTime object's datetime lies in the future
+        def future?
+          self > ::DateTime.current
         end
 
         # Seconds since midnight: DateTime.now.seconds_since_midnight
@@ -78,7 +92,7 @@ module ActiveSupport #:nodoc:
         def end_of_day
           change(:hour => 23, :min => 59, :sec => 59)
         end
-        
+
         # Adjusts DateTime to UTC by adding its offset value; offset is set to 0
         #
         # Example:
@@ -89,17 +103,17 @@ module ActiveSupport #:nodoc:
           new_offset(0)
         end
         alias_method :getutc, :utc
-        
+
         # Returns true if offset == 0
         def utc?
           offset == 0
         end
-        
+
         # Returns the offset value in seconds
         def utc_offset
           (offset * 86400).to_i
         end
-        
+
         # Layers additional behavior on DateTime#<=> so that Time and ActiveSupport::TimeWithZone instances can be compared with a DateTime
         def compare_with_coercion(other)
           other = other.comparable_time if other.respond_to?(:comparable_time)

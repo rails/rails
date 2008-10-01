@@ -80,7 +80,7 @@ module ActiveRecord
       def extract_default(default)
         if type == :binary || type == :text
           if default.blank?
-            nil
+            return null ? nil : ''
           else
             raise ArgumentError, "#{type} columns cannot have a default value: #{default.inspect}"
           end
@@ -89,6 +89,11 @@ module ActiveRecord
         else
           super
         end
+      end
+
+      def has_default?
+        return false if type == :binary || type == :text #mysql forbids defaults on blob and text columns
+        super
       end
 
       private

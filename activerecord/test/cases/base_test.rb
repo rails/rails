@@ -472,6 +472,18 @@ class BasicsTest < ActiveRecord::TestCase
     assert topic.instance_variable_get("@custom_approved")
   end
 
+  def test_delete
+    topic = Topic.find(1)
+    assert_equal topic, topic.delete, 'topic.delete did not return self'
+    assert topic.frozen?, 'topic not frozen after delete'
+    assert_raise(ActiveRecord::RecordNotFound) { Topic.find(topic.id) }
+  end
+
+  def test_delete_doesnt_run_callbacks
+    Topic.find(1).delete
+    assert_not_nil Topic.find(2)
+  end
+
   def test_destroy
     topic = Topic.find(1)
     assert_equal topic, topic.destroy, 'topic.destroy did not return self'
@@ -820,6 +832,20 @@ class BasicsTest < ActiveRecord::TestCase
     assert_equal [ Topic.find(1) ], [ Topic.find(2).topic ] & [ Topic.find(1) ]
   end
 
+  def test_delete_new_record
+    client = Client.new
+    client.delete
+    assert client.frozen?
+  end
+
+  def test_delete_record_with_associations
+    client = Client.find(3)
+    client.delete
+    assert client.frozen?
+    assert_kind_of Firm, client.firm
+    assert_raises(ActiveSupport::FrozenObjectError) { client.name = "something else" }
+  end
+
   def test_destroy_new_record
     client = Client.new
     client.destroy
@@ -1083,6 +1109,24 @@ class BasicsTest < ActiveRecord::TestCase
     ActiveRecord::Base.default_timezone = :local
     Time.zone = nil
     Topic.skip_time_zone_conversion_for_attributes = []
+  end
+  
+  def test_multiparameter_attributes_on_time_only_column_with_time_zone_aware_attributes_does_not_do_time_zone_conversion
+    ActiveRecord::Base.time_zone_aware_attributes = true
+    ActiveRecord::Base.default_timezone = :utc
+    Time.zone = ActiveSupport::TimeZone[-28800]
+    attributes = {
+      "bonus_time(1i)" => "2000", "bonus_time(2i)" => "1", "bonus_time(3i)" => "1",
+      "bonus_time(4i)" => "16", "bonus_time(5i)" => "24"
+    }
+    topic = Topic.find(1)
+    topic.attributes = attributes
+    assert_equal Time.utc(2000, 1, 1, 16, 24, 0), topic.bonus_time
+    assert topic.bonus_time.utc?
+  ensure
+    ActiveRecord::Base.time_zone_aware_attributes = false
+    ActiveRecord::Base.default_timezone = :local
+    Time.zone = nil
   end
 
   def test_multiparameter_attributes_on_time_with_empty_seconds
@@ -1420,15 +1464,17 @@ class BasicsTest < ActiveRecord::TestCase
 
   if RUBY_VERSION < '1.9'
     def test_quote_chars
-      str = 'The Narrator'
-      topic = Topic.create(:author_name => str)
-      assert_equal str, topic.author_name
+      with_kcode('UTF8') do
+        str = 'The Narrator'
+        topic = Topic.create(:author_name => str)
+        assert_equal str, topic.author_name
 
-      assert_kind_of ActiveSupport::Multibyte::Chars, str.chars
-      topic = Topic.find_by_author_name(str.chars)
+        assert_kind_of ActiveSupport::Multibyte.proxy_class, str.mb_chars
+        topic = Topic.find_by_author_name(str.mb_chars)
 
-      assert_kind_of Topic, topic
-      assert_equal str, topic.author_name, "The right topic should have been found by name even with name passed as Chars"
+        assert_kind_of Topic, topic
+        assert_equal str, topic.author_name, "The right topic should have been found by name even with name passed as Chars"
+      end
     end
   end
 
@@ -2021,4 +2067,18 @@ class BasicsTest < ActiveRecord::TestCase
   ensure
     ActiveRecord::Base.logger = original_logger
   end
+
+  private
+    def with_kcode(kcode)
+      if RUBY_VERSION < '1.9'
+        orig_kcode, $KCODE = $KCODE, kcode
+        begin
+          yield
+        ensure
+          $KCODE = orig_kcode
+        end
+      else
+        yield
+      end
+    end
 end

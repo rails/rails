@@ -1,13 +1,11 @@
+# encoding: utf-8
+
 require 'abstract_unit'
+require 'multibyte_test_helpers'
+
+require 'fileutils'
 require 'open-uri'
-
-if RUBY_VERSION < '1.9'
-
-$KCODE = 'UTF8'
-
-UNIDATA_URL = "http://www.unicode.org/Public/#{ActiveSupport::Multibyte::UNICODE_VERSION}/ucd"
-UNIDATA_FILE = '/NormalizationTest.txt'
-CACHE_DIR = File.dirname(__FILE__) + '/cache'
+require 'tmpdir'
 
 class Downloader
   def self.download(from, to)
@@ -27,17 +25,19 @@ class Downloader
   end
 end
 
-class String
-  # Unicode Inspect returns the codepoints of the string in hex
-  def ui
-    "#{self} " + ("[%s]" % unpack("U*").map{|cp| cp.to_s(16) }.join(' '))
-  end unless ''.respond_to?(:ui)
-end
-
-Dir.mkdir(CACHE_DIR) unless File.exist?(CACHE_DIR)
-Downloader.download(UNIDATA_URL + UNIDATA_FILE, CACHE_DIR + UNIDATA_FILE)
-
-module ConformanceTest
+class MultibyteConformanceTest < Test::Unit::TestCase
+  include MultibyteTestHelpers
+  
+  UNIDATA_URL = "http://www.unicode.org/Public/#{ActiveSupport::Multibyte::UNICODE_VERSION}/ucd"
+  UNIDATA_FILE = '/NormalizationTest.txt'
+  CACHE_DIR = File.join(Dir.tmpdir, 'cache')
+  
+  def setup
+    FileUtils.mkdir_p(CACHE_DIR)
+    Downloader.download(UNIDATA_URL + UNIDATA_FILE, CACHE_DIR + UNIDATA_FILE)
+    @proxy = ActiveSupport::Multibyte::Chars
+  end
+  
   def test_normalizations_C
     each_line_of_norm_tests do |*cols|
       col1, col2, col3, col4, col5, comment = *cols
@@ -47,13 +47,13 @@ module ConformanceTest
       #
       #    NFC
       #      c2 ==  NFC(c1) ==  NFC(c2) ==  NFC(c3)
-      assert_equal col2.ui, @handler.normalize(col1, :c).ui, "Form C - Col 2 has to be NFC(1) - #{comment}"
-      assert_equal col2.ui, @handler.normalize(col2, :c).ui, "Form C - Col 2 has to be NFC(2) - #{comment}"
-      assert_equal col2.ui, @handler.normalize(col3, :c).ui, "Form C - Col 2 has to be NFC(3) - #{comment}"
+      assert_equal_codepoints col2, @proxy.new(col1).normalize(:c), "Form C - Col 2 has to be NFC(1) - #{comment}"
+      assert_equal_codepoints col2, @proxy.new(col2).normalize(:c), "Form C - Col 2 has to be NFC(2) - #{comment}"
+      assert_equal_codepoints col2, @proxy.new(col3).normalize(:c), "Form C - Col 2 has to be NFC(3) - #{comment}"
       #
       #      c4 ==  NFC(c4) ==  NFC(c5)
-      assert_equal col4.ui, @handler.normalize(col4, :c).ui, "Form C - Col 4 has to be C(4) - #{comment}"
-      assert_equal col4.ui, @handler.normalize(col5, :c).ui, "Form C - Col 4 has to be C(5) - #{comment}"
+      assert_equal_codepoints col4, @proxy.new(col4).normalize(:c), "Form C - Col 4 has to be C(4) - #{comment}"
+      assert_equal_codepoints col4, @proxy.new(col5).normalize(:c), "Form C - Col 4 has to be C(5) - #{comment}"
     end
   end
   
@@ -63,12 +63,12 @@ module ConformanceTest
       #
       #    NFD
       #      c3 ==  NFD(c1) ==  NFD(c2) ==  NFD(c3)
-      assert_equal col3.ui, @handler.normalize(col1, :d).ui, "Form D - Col 3 has to be NFD(1) - #{comment}"
-      assert_equal col3.ui, @handler.normalize(col2, :d).ui, "Form D - Col 3 has to be NFD(2) - #{comment}"
-      assert_equal col3.ui, @handler.normalize(col3, :d).ui, "Form D - Col 3 has to be NFD(3) - #{comment}"
+      assert_equal_codepoints col3, @proxy.new(col1).normalize(:d), "Form D - Col 3 has to be NFD(1) - #{comment}"
+      assert_equal_codepoints col3, @proxy.new(col2).normalize(:d), "Form D - Col 3 has to be NFD(2) - #{comment}"
+      assert_equal_codepoints col3, @proxy.new(col3).normalize(:d), "Form D - Col 3 has to be NFD(3) - #{comment}"
       #      c5 ==  NFD(c4) ==  NFD(c5)
-      assert_equal col5.ui, @handler.normalize(col4, :d).ui, "Form D - Col 5 has to be NFD(4) - #{comment}"
-      assert_equal col5.ui, @handler.normalize(col5, :d).ui, "Form D - Col 5 has to be NFD(5) - #{comment}"
+      assert_equal_codepoints col5, @proxy.new(col4).normalize(:d), "Form D - Col 5 has to be NFD(4) - #{comment}"
+      assert_equal_codepoints col5, @proxy.new(col5).normalize(:d), "Form D - Col 5 has to be NFD(5) - #{comment}"
     end
   end
   
@@ -78,11 +78,11 @@ module ConformanceTest
       #
       #    NFKC
       #      c4 == NFKC(c1) == NFKC(c2) == NFKC(c3) == NFKC(c4) == NFKC(c5)
-      assert_equal col4.ui, @handler.normalize(col1, :kc).ui, "Form D - Col 4 has to be NFKC(1) - #{comment}"
-      assert_equal col4.ui, @handler.normalize(col2, :kc).ui, "Form D - Col 4 has to be NFKC(2) - #{comment}"
-      assert_equal col4.ui, @handler.normalize(col3, :kc).ui, "Form D - Col 4 has to be NFKC(3) - #{comment}"
-      assert_equal col4.ui, @handler.normalize(col4, :kc).ui, "Form D - Col 4 has to be NFKC(4) - #{comment}"
-      assert_equal col4.ui, @handler.normalize(col5, :kc).ui, "Form D - Col 4 has to be NFKC(5) - #{comment}"
+      assert_equal_codepoints col4, @proxy.new(col1).normalize(:kc), "Form D - Col 4 has to be NFKC(1) - #{comment}"
+      assert_equal_codepoints col4, @proxy.new(col2).normalize(:kc), "Form D - Col 4 has to be NFKC(2) - #{comment}"
+      assert_equal_codepoints col4, @proxy.new(col3).normalize(:kc), "Form D - Col 4 has to be NFKC(3) - #{comment}"
+      assert_equal_codepoints col4, @proxy.new(col4).normalize(:kc), "Form D - Col 4 has to be NFKC(4) - #{comment}"
+      assert_equal_codepoints col4, @proxy.new(col5).normalize(:kc), "Form D - Col 4 has to be NFKC(5) - #{comment}"
     end
   end
   
@@ -92,11 +92,11 @@ module ConformanceTest
       #
       #    NFKD
       #      c5 == NFKD(c1) == NFKD(c2) == NFKD(c3) == NFKD(c4) == NFKD(c5)
-      assert_equal col5.ui, @handler.normalize(col1, :kd).ui, "Form KD - Col 5 has to be NFKD(1) - #{comment}"
-      assert_equal col5.ui, @handler.normalize(col2, :kd).ui, "Form KD - Col 5 has to be NFKD(2) - #{comment}"
-      assert_equal col5.ui, @handler.normalize(col3, :kd).ui, "Form KD - Col 5 has to be NFKD(3) - #{comment}"
-      assert_equal col5.ui, @handler.normalize(col4, :kd).ui, "Form KD - Col 5 has to be NFKD(4) - #{comment}"
-      assert_equal col5.ui, @handler.normalize(col5, :kd).ui, "Form KD - Col 5 has to be NFKD(5) - #{comment}"
+      assert_equal_codepoints col5, @proxy.new(col1).normalize(:kd), "Form KD - Col 5 has to be NFKD(1) - #{comment}"
+      assert_equal_codepoints col5, @proxy.new(col2).normalize(:kd), "Form KD - Col 5 has to be NFKD(2) - #{comment}"
+      assert_equal_codepoints col5, @proxy.new(col3).normalize(:kd), "Form KD - Col 5 has to be NFKD(3) - #{comment}"
+      assert_equal_codepoints col5, @proxy.new(col4).normalize(:kd), "Form KD - Col 5 has to be NFKD(4) - #{comment}"
+      assert_equal_codepoints col5, @proxy.new(col5).normalize(:kd), "Form KD - Col 5 has to be NFKD(5) - #{comment}"
     end
   end
   
@@ -104,7 +104,7 @@ module ConformanceTest
     def each_line_of_norm_tests(&block)
       lines = 0
       max_test_lines = 0 # Don't limit below 38, because that's the header of the testfile
-      File.open(File.dirname(__FILE__) + '/cache' + UNIDATA_FILE, 'r') do | f |
+      File.open(File.join(CACHE_DIR, UNIDATA_FILE), 'r') do | f |
         until f.eof? || (max_test_lines > 38 and lines > max_test_lines)
           lines += 1
           line = f.gets.chomp!
@@ -122,25 +122,8 @@ module ConformanceTest
         end
       end
     end
-end
-
-begin
-  require_library_or_gem('utf8proc_native')
-  require 'active_record/multibyte/handlers/utf8_handler_proc'
-  class ConformanceTestProc < Test::Unit::TestCase
-    include ConformanceTest
-    def setup
-      @handler = ::ActiveSupport::Multibyte::Handlers::UTF8HandlerProc
+    
+    def inspect_codepoints(str)
+      str.to_s.unpack("U*").map{|cp| cp.to_s(16) }.join(' ')
     end
-  end
-rescue LoadError
-end
-
-class ConformanceTestPure < Test::Unit::TestCase
-  include ConformanceTest
-  def setup
-    @handler = ::ActiveSupport::Multibyte::Handlers::UTF8Handler
-  end
-end
-
 end

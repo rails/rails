@@ -1026,7 +1026,7 @@ module ActiveRecord
         # Create the callbacks to update counter cache
         if options[:counter_cache]
           cache_column = options[:counter_cache] == true ?
-            "#{self.to_s.underscore.pluralize}_count" :
+            "#{self.to_s.demodulize.underscore.pluralize}_count" :
             options[:counter_cache]
 
           method_name = "belongs_to_counter_cache_after_create_for_#{reflection.name}".to_sym
@@ -1268,7 +1268,11 @@ module ActiveRecord
 
           if association_proxy_class == BelongsToAssociation
             define_method("#{reflection.primary_key_name}=") do |target_id|
-              instance_variable_get(ivar).reset if instance_variable_defined?(ivar)
+              if instance_variable_defined?(ivar)
+                if association = instance_variable_get(ivar)
+                  association.reset
+                end
+              end
               write_attribute(reflection.primary_key_name, target_id)
             end
           end
@@ -1424,15 +1428,23 @@ module ActiveRecord
           []
         end
 
+        # Creates before_destroy callback methods that nullify, delete or destroy
+        # has_many associated objects, according to the defined :dependent rule.
+        #
         # See HasManyAssociation#delete_records.  Dependent associations
         # delete children, otherwise foreign key is set to NULL.
-        def configure_dependency_for_has_many(reflection)
+        #
+        # The +extra_conditions+ parameter, which is not used within the main
+        # Active Record codebase, is meant to allow plugins to define extra
+        # finder conditions.
+        def configure_dependency_for_has_many(reflection, extra_conditions = nil)
           if reflection.options.include?(:dependent)
             # Add polymorphic type if the :as option is present
             dependent_conditions = []
             dependent_conditions << "#{reflection.primary_key_name} = \#{record.quoted_id}"
             dependent_conditions << "#{reflection.options[:as]}_type = '#{base_class.name}'" if reflection.options[:as]
             dependent_conditions << sanitize_sql(reflection.options[:conditions]) if reflection.options[:conditions]
+            dependent_conditions << extra_conditions if extra_conditions
             dependent_conditions = dependent_conditions.collect {|where| "(#{where})" }.join(" AND ")
 
             case reflection.options[:dependent]
@@ -1443,9 +1455,24 @@ module ActiveRecord
                 end
                 before_destroy method_name
               when :delete_all
-                module_eval "before_destroy { |record| #{reflection.class_name}.delete_all(%(#{dependent_conditions})) }"
+                module_eval %Q{
+                  before_destroy do |record|
+                    delete_all_has_many_dependencies(record,
+                      "#{reflection.name}",
+                      #{reflection.class_name},
+                      "#{dependent_conditions}")
+                  end
+                }
               when :nullify
-                module_eval "before_destroy { |record| #{reflection.class_name}.update_all(%(#{reflection.primary_key_name} = NULL),  %(#{dependent_conditions})) }"
+                module_eval %Q{
+                  before_destroy do |record|
+                    nullify_has_many_dependencies(record,
+                      "#{reflection.name}",
+                      #{reflection.class_name},
+                      "#{reflection.primary_key_name}",
+                      "#{dependent_conditions}")
+                  end
+                }
               else
                 raise ArgumentError, "The :dependent option expects either :destroy, :delete_all, or :nullify (#{reflection.options[:dependent].inspect})"
             end
@@ -1472,7 +1499,7 @@ module ActiveRecord
                   # with foreign keys pointing to this object, and we only want
                   # to delete the correct one, not all of them.
                   association = send(reflection.name)
-                  association.class.delete(association.id) unless association.nil?
+                  association.delete unless association.nil?
                 end
                 before_destroy method_name
               when :nullify
@@ -1502,13 +1529,21 @@ module ActiveRecord
                 method_name = "belongs_to_dependent_delete_for_#{reflection.name}".to_sym
                 define_method(method_name) do
                   association = send(reflection.name)
-                  association.class.delete(association.id) unless association.nil?
+                  association.delete unless association.nil?
                 end
                 before_destroy method_name
               else
                 raise ArgumentError, "The :dependent option expects either :destroy or :delete (#{reflection.options[:dependent].inspect})"
             end
           end
+        end
+
+        def delete_all_has_many_dependencies(record, reflection_name, association_class, dependent_conditions)
+          association_class.delete_all(dependent_conditions)
+        end
+
+        def nullify_has_many_dependencies(record, reflection_name, association_class, primary_key_name, dependent_conditions)
+          association_class.update_all("#{primary_key_name} = NULL", dependent_conditions)
         end
 
         mattr_accessor :valid_keys_for_has_many_association
@@ -1757,12 +1792,12 @@ module ActiveRecord
 
         def create_extension_modules(association_id, block_extension, extensions)
           if block_extension
-            extension_module_name = "#{self.to_s}#{association_id.to_s.camelize}AssociationExtension"
+            extension_module_name = "#{self.to_s.demodulize}#{association_id.to_s.camelize}AssociationExtension"
 
             silence_warnings do
-              Object.const_set(extension_module_name, Module.new(&block_extension))
+              self.parent.const_set(extension_module_name, Module.new(&block_extension))
             end
-            Array(extensions).push(extension_module_name.constantize)
+            Array(extensions).push("#{self.parent}::#{extension_module_name}".constantize)
           else
             Array(extensions)
           end

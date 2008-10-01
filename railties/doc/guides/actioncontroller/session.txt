@@ -1,0 +1,130 @@
+== Session ==
+
+Your application sets up a session for each user which can persist small amounts of data between requests. The session is only available in the controller. It can be stored in a number of different session stores:
+
+TODO: Not sure if all of these are available by default.
+
+ * CookieStore - Stores everything on the client.
+ * SQLSessionStore - Stores the data in a database using SQL.
+ * DRBStore - Stores the data on a DRb client.
+ * MemCacheStore - Stores the data in MemCache.
+ * ActiveRecordStore - Stores the data in a database using Active Record.
+
+All session stores store the session id in a cookie - there is no other way of passing it to the server. Most stores also use this key to locate the session data on the server.
+
+The default and recommended store, the Cookie Store, does not store session data on the server, but in the cookie itself. The data is cryptographically signed to make it tamper-proof, but it is not encrypted, so anyone with access to it can read its contents. It can only store 4Kb of data - much less than the others - but this is usually enough. Storing large amounts of data is discouraged no matter which session store your application uses. Expecially discouraged is storing complex objects (anything other than basic Ruby objects) in the session, as the server might not be able to reassemble them between requests, which will result in an error. The Cookie Store has the added advantage that it does not require any setting up beforehand - Rails will generate a "secret key" which will be used to sign the cookie when you create the application.
+
+If you need a different session storage mechanism, you can change it in the `config/environment.rb` file:
+
+[source, ruby]
+------------------------------------------
+# Set to one of [:active_record_store, :sql_session_store, :drb_store, :mem_cache_store, :cookie_store]
+config.action_controller.session_store = :active_record_store
+------------------------------------------
+
+=== Accessing the session ===
+
+In your controller you can access the session through the `session` method. Session values are stored using key/value pairs like a hash:
+
+[source, ruby]
+------------------------------------------
+class ApplicationController < ActionController::Base
+
+private
+
+  # Finds the User with the ID stored in the session with the key :current_user_id
+  def current_user
+    @_current_user ||= session[:current_user_id] && User.find(session[:current_user_id])
+  end
+
+end
+------------------------------------------
+
+To store something in the session, just assign it to the key like a hash:
+
+[source, ruby]
+------------------------------------------
+class LoginsController < ApplicationController
+
+  # "Create" a login, aka "log the user in"
+  def create
+    if user = User.authenticate(params[:username, params[:password])
+      # Save the user ID in the session so it can be used in subsequent requests
+      session[:current_user_id] = user.id
+      redirect_to root_url
+    end
+  end
+
+end
+------------------------------------------
+
+To remove something from the session, assign that key to be `nil`:
+
+[source, ruby]
+------------------------------------------
+class LoginsController < ApplicationController
+
+  # "Delete" a login, aka "log the user out"
+  def destroy
+    # Remove the user id from the session
+    session[:current_user_id] = nil
+    redirect_to root_url
+  end
+
+end
+------------------------------------------
+
+To reset the entire session, use `reset_session`.
+
+=== The flash ===
+
+The flash is a special part of the session which is cleared with each request. This means that values stored there will only be available in the next request, which is useful for storing error messages etc. It is accessed in much the same way as the session, like a hash. Let's use the act of logging out as an example. The controller can set a message which will be displayed to the user on the next request:
+
+[source, ruby]
+------------------------------------------
+class LoginsController < ApplicationController
+
+  def destroy
+    session[:current_user_id] = nil
+    flash[:notice] = "You have successfully logged out"
+    redirect_to root_url
+  end
+
+end
+------------------------------------------
+
+The `destroy` action redirects to the application's `root_url`, where the message will be displayed. Note that it's entirely up to the next action to decide what, if anything, it will do with what the previous action put in the flash. It's conventional to a display eventual errors or notices from the flash in the application's layout:
+
+[source, ruby]
+------------------------------------------
+<!-- head, etc -->
+<body>
+  <% if flash[:notice] -%>
+    <p class="notice"><%= flash[:notice] %></p>
+  <% end -%>
+  <% if flash[:error] -%>
+    <p class="error"><%= flash[:error] %></p>
+  <% end -%>
+  <!-- more content -->
+</body>
+</html>
+------------------------------------------
+
+This way, if an action sets an error or a notice message, the layout will display it automatically.
+
+If you want a flash value to be carried over to another request, use the `keep` method:
+
+[source, ruby]
+------------------------------------------
+class MainController < ApplicationController
+
+  # Let's say this action corresponds to root_url, but you want all requests here to be redirected to
+  # UsersController#index. If an action sets the flash and redirects here, the values would normally be
+  # lost when another redirect happens, but you can use keep to make it persist for another request.
+  def index
+    flash.keep # Will persist all flash values. You can also use a key to keep only that value: flash.keep(:notice)
+    redirect_to users_url
+  end
+
+end
+------------------------------------------

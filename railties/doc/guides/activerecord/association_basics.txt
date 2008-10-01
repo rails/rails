@@ -345,6 +345,8 @@ class CreatePictures < ActiveRecord::Migration
 end
 -------------------------------------------------------
 
+image:images/polymorphic.png[Polymorphic Association Diagram]
+
 === Self Joins
 
 In designing a data model, you will sometimes find a model that should have a relation to itself. For example, you may want to store all employees in a single database model, but be able to trace relationships such as manager and subordinates. This situation can be modeled with self-joining associations:
@@ -614,6 +616,24 @@ class Order < ActiveRecord::Base
 end
 -------------------------------------------------------
 
+The +belongs_to+ association supports these options:
+
+// * +:accessible+
+* +:class_name+
+* +:conditions+
+* +:counter_cache+
+* +:dependent+
+* +:foreign_key+
+* +:include+
+* +:polymorphic+
+* +:readonly+
+* +:select+
+* +:validate+
+
+// ===== +:accessible+
+//
+// The +:accessible+ option is the association version of +ActiveRecord::Base#attr_accessible+. If you set the +:accessible+ option to true, then mass // assignment is allowed for this association.
+//
 ===== +:class_name+
 
 If the name of the other model cannot be derived from the association name, you can use the +:class_name+ option to supply the model name. For example, if an order belongs to a customer, but the actual name of the model containing customers is patron, you'd set things up this way:
@@ -635,29 +655,6 @@ class Order < ActiveRecord::Base
   belongs_to :customer, :conditions => "active = 1"
 end
 -------------------------------------------------------
-
-===== +:select+
-
-The +:select+ option lets you override the SQL +SELECT+ clause that is used to retrieve data about the associated object. By default, Rails retrieves all columns.
-
-===== +:foreign_key+
-
-By convention, Rails guesses that the column used to hold the foreign key on this model is the name of the association with the suffix +_id+ added. The +:foreign_key+ option lets you set the name of the foreign key directly:
-
-[source, ruby]
--------------------------------------------------------
-class Order < ActiveRecord::Base
-  belongs_to :customer, :class_name => :patron, :foreign_key => "patron_id"
-end
--------------------------------------------------------
-
-TIP: In any case, Rails will not create foreign key columns for you. You need to explicitly define them as part of your migrations.
-
-===== +:dependent+
-
-If you set the +:dependent+ option to +:destroy+, then deleting this object will call the destroy method on the associated object to delete that object. If you set the +:dependent+ option to +:delete+, then deleting this object will delete the associated object _without_ calling its +destroy+ method.
-
-WARNING: You should not specify this option on a +belongs_to+ association that is connected with a +has_many+ association on the other class. Doing so can lead to orphaned records in your database.
 
 ===== +:counter_cache+
 
@@ -703,6 +700,25 @@ Counter cache columns are added to the containing model's list of read-only attr
 
 WARNING: When you create a counter cache column in the database, be sure to specify a default value of zero. Otherwise, Rails will not properly maintain the counter.
 
+===== +:dependent+
+
+If you set the +:dependent+ option to +:destroy+, then deleting this object will call the destroy method on the associated object to delete that object. If you set the +:dependent+ option to +:delete+, then deleting this object will delete the associated object _without_ calling its +destroy+ method.
+
+WARNING: You should not specify this option on a +belongs_to+ association that is connected with a +has_many+ association on the other class. Doing so can lead to orphaned records in your database.
+
+===== +:foreign_key+
+
+By convention, Rails guesses that the column used to hold the foreign key on this model is the name of the association with the suffix +_id+ added. The +:foreign_key+ option lets you set the name of the foreign key directly:
+
+[source, ruby]
+-------------------------------------------------------
+class Order < ActiveRecord::Base
+  belongs_to :customer, :class_name => :patron, :foreign_key => "patron_id"
+end
+-------------------------------------------------------
+
+TIP: In any case, Rails will not create foreign key columns for you. You need to explicitly define them as part of your migrations.
+
 ===== +:include+
 
 You can use the :include option to specify second-order associations that should be eager-loaded when this association is used. For example, consider these models:
@@ -747,15 +763,16 @@ Passing +true+ to the +:polymorphic+ option indicates that this is a polymorphic
 
 If you set the +:readonly+ option to +true+, then the associated object will be read-only when retrieved via the association.
 
+===== +:select+
+
+The +:select+ option lets you override the SQL +SELECT+ clause that is used to retrieve data about the associated object. By default, Rails retrieves all columns.
+
 ===== +:validate+
 
 If you set the +:validate+ option to +true+, then associated objects will be validated whenever you save this object. By default, this is +false+: associated objects will not be validated when this object is saved.
 
-===== +:accessible+
-
-The +:accessible+ option is the association version of +ActiveRecord::Base#attr_accessible+. If you set the +:accessible+ option to true, then mass assignment is allowed for this association.
-
 ==== When are Objects Saved?
+
 Assigning an object to a +belongs_to+ association does _not_ automatically save the object. It does not save the associated object either.
 
 === The has_one Association
@@ -843,7 +860,6 @@ The +create__\_association__+ method returns a new object of the associated type
 
 ==== Options for +has_one+
 
-
 In many situations, you can use the default behavior of +has_one+ without any customization. But despite Rails' emphasis of convention over customization, you can alter that behavior in a number of ways. This section covers the options that you can pass when you create a +has_one+ association. For example, an association with several options might look like this:
 
 [source, ruby]
@@ -852,6 +868,32 @@ class Supplier < ActiveRecord::Base
   has_one :account, :class_name => :billing, :dependent => :nullify
 end
 -------------------------------------------------------
+
+The +has_one+ association supports these options:
+
+// * +:accessible+
+* +:as+
+* +:class_name+
+* +:conditions+
+* +:dependent+
+* +:foreign_key+
+* +:include+
+* +:order+
+* +:primary_key+
+* +:readonly+
+* +:select+
+* +:source+
+* +:source_type+
+* +:through+
+* +:validate+
+
+// ===== +:accessible+
+//
+// The +:accessible+ option is the association version of +ActiveRecord::Base#attr_accessible+. If you set the +:accessible+ option to true, then mass // assignment is allowed for this association.
+//
+===== +:as+
+
+Setting the +:as+ option indicates that this is a polymorphic association. Polymorphic associations are discussed in detail later in this guide.
 
 ===== +:class_name+
 
@@ -875,10 +917,6 @@ class Supplier < ActiveRecord::Base
 end
 -------------------------------------------------------
 
-===== +:order+
-
-The +:order+ option dictates the order in which associated objects will be received (in the syntax used by a SQL +ORDER BY+ clause). Because a +has_one+ association will only retrieve a single associated object, this option should not be needed.
-
 ===== +:dependent+
 
 If you set the +:dependent+ option to +:destroy+, then deleting this object will call the destroy method on the associated object to delete that object. If you set the +:dependent+ option to +:delete+, then deleting this object will delete the associated object _without_ calling its +destroy+ method. If you set the +:dependent+ option to +:nullify+, then deleting this object will set the foreign key in the association object to +NULL+.
@@ -895,10 +933,6 @@ end
 -------------------------------------------------------
 
 TIP: In any case, Rails will not create foreign key columns for you. You need to explicitly define them as part of your migrations.
-
-===== +:primary_key+
-
-By convention, Rails guesses that the column used to hold the primary key of this model is +id+. You can override this and explicitly specify the primary key with the +:primary_key+ option.
 
 ===== +:include+
 
@@ -934,17 +968,21 @@ class Representative < ActiveRecord::Base
 end
 -------------------------------------------------------
 
-===== +:as+
+===== +:order+
 
-Setting the +:as+ option indicates that this is a polymorphic association. Polymorphic associations are discussed in detail later in this guide.
+The +:order+ option dictates the order in which associated objects will be received (in the syntax used by a SQL +ORDER BY+ clause). Because a +has_one+ association will only retrieve a single associated object, this option should not be needed.
+
+===== +:primary_key+
+
+By convention, Rails guesses that the column used to hold the primary key of this model is +id+. You can override this and explicitly specify the primary key with the +:primary_key+ option.
+
+===== +:readonly+
+
+If you set the +:readonly+ option to +true+, then the associated object will be read-only when retrieved via the association.
 
 ===== +:select+
 
 The +:select+ option lets you override the SQL +SELECT+ clause that is used to retrieve data about the associated object. By default, Rails retrieves all columns.
-
-===== +:through+
-
-The +:through+ option specifies a join model through which to perform the query. +has_one :through+ associations are discussed in detail later in this guide.
 
 ===== +:source+
 
@@ -954,17 +992,13 @@ The +:source+ option specifies the source association name for a +has_one :throu
 
 The +:source_type+ option specifies the source association type for a +has_one :through+ association that proceeds through a polymorphic association.
 
-===== +:readonly+
+===== +:through+
 
-If you set the +:readonly+ option to +true+, then the associated object will be read-only when retrieved via the association.
+The +:through+ option specifies a join model through which to perform the query. +has_one :through+ associations are discussed in detail later in this guide.
 
 ===== +:validate+
 
 If you set the +:validate+ option to +true+, then associated objects will be validated whenever you save this object. By default, this is +false+: associated objects will not be validated when this object is saved.
-
-===== +:accessible+
-
-The +:accessible+ option is the association version of +ActiveRecord::Base#attr_accessible+. If you set the +:accessible+ option to true, then mass assignment is allowed for this association.
 
 ==== When are Objects Saved?
 
@@ -1138,6 +1172,39 @@ class Customer < ActiveRecord::Base
 end
 -------------------------------------------------------
 
+The +has_many+ association supports these options:
+
+// * +:accessible+
+* +:as+
+* +:class_name+
+* +:conditions+
+* +:counter_sql+
+* +:dependent+
+* +:extend+
+* +:finder_sql+
+* +:foreign_key+
+* +:group+
+* +:include+
+* +:limit+
+* +:offset+
+* +:order+
+* +:primary_key+
+* +:readonly+
+* +:select+
+* +:source+
+* +:source_type+
+* +:through+
+* +:uniq+
+* +:validate+
+
+// ===== +:accessible+
+//
+// The +:accessible+ option is the association version of +ActiveRecord::Base#attr_accessible+. If you set the +:accessible+ option to true, then mass // assignment is allowed for this association.
+//
+===== +:as+
+
+Setting the +:as+ option indicates that this is a polymorphic association, as discussed earlier in this guide.
+
 ===== +:class_name+
 
 If the name of the other model cannot be derived from the association name, you can use the +:class_name+ option to supply the model name. For example, if a customer has many orders, but the actual name of the model containing orders is transactions, you'd set things up this way:
@@ -1171,16 +1238,25 @@ end
 
 If you use a hash-style +:conditions+ option, then record creation via this association will be automatically scoped using the hash. In this case, using +@customer.confirmed_orders.create+ or +@customer.confirmed_orders.build+ will create orders where the confirmed column has the value +true+.
 
-===== +:order+
+===== +:counter_sql+
 
-The +:order+ option dictates the order in which associated objects will be received (in the syntax used by a SQL +ORDER BY+ clause).
+Normally Rails automatically generates the proper SQL to count the association members. With the +:counter_sql+ option, you can specify a complete SQL statement to count them yourself. 
 
-[source, ruby]
--------------------------------------------------------
-class Customer < ActiveRecord::Base
-  has_many :orders, :order => "date_confirmed DESC"
-end
--------------------------------------------------------
+NOTE: If you specify +:finder_sql+ but not +:counter_sql+, then the counter SQL will be generated by substituting +SELECT COUNT(*) FROM+ for the +SELECT ... FROM+ clause of your +:finder_sql+ statement.
+
+===== +:dependent+
+
+If you set the +:dependent+ option to +:destroy+, then deleting this object will call the destroy method on the associated objects to delete those objects. If you set the +:dependent+ option to +:delete_all+, then deleting this object will delete the associated objects _without_ calling their +destroy+ method. If you set the +:dependent+ option to +:nullify+, then deleting this object will set the foreign key in the associated objects to +NULL+.
+
+NOTE: This option is ignored when you use the +:through+ option on the association.
+
+===== +:extend+
+
+The +:extend+ option specifies a named module to extend the association proxy. Association extensions are discussed in detail later in this guide.
+
+===== +:finder_sql+
+
+Normally Rails automatically generates the proper SQL to fetch the association members. With the +:finder_sql+ option, you can specify a complete SQL statement to fetch them yourself. If fetching objects requires complex multi-table SQL, this may be necessary.
 
 ===== +:foreign_key+
 
@@ -1195,29 +1271,16 @@ end
 
 TIP: In any case, Rails will not create foreign key columns for you. You need to explicitly define them as part of your migrations.
 
-===== +:primary_key+
+===== +:group+
 
-By convention, Rails guesses that the column used to hold the primary key of this model is +id+. You can override this and explicitly specify the primary key with the +:primary_key+ option.
+The +:group+ option supplies an attribute name to group the result set by, using a +GROUP BY+ clause in the finder SQL.
 
-===== +:dependent+
-
-If you set the +:dependent+ option to +:destroy+, then deleting this object will call the destroy method on the associated objects to delete those objects. If you set the +:dependent+ option to +:delete_all+, then deleting this object will delete the associated objects _without_ calling their +destroy+ method. If you set the +:dependent+ option to +:nullify+, then deleting this object will set the foreign key in the associated objects to +NULL+.
-
-NOTE: This option is ignored when you use the +:through+ option on the association.
-
-===== +:finder_sql+
-
-Normally Rails automatically generates the proper SQL to fetch the association members. With the +:finder_sql+ option, you can specify a complete SQL statement to fetch them yourself. If fetching objects requires complex multi-table SQL, this may be necessary.
-
-===== +:counter_sql+
-
-Normally Rails automatically generates the proper SQL to count the association members. With the +:counter_sql+ option, you can specify a complete SQL statement to count them yourself. 
-
-NOTE: If you specify +:finder_sql+ but not +:counter_sql+, then the counter SQL will be generated by substituting +SELECT COUNT(*) FROM+ for the +SELECT ... FROM+ clause of your +:finder_sql+ statement.
-
-===== +:extend+
-
-The +:extend+ option specifies a named module to extend the association proxy. Association extensions are discussed in detail later in this guide.
+[source, ruby]
+-------------------------------------------------------
+class Customer < ActiveRecord::Base
+  has_many :line_items, :through => :orders, :group => "orders.id"
+end
+-------------------------------------------------------
 
 ===== +:include+
 
@@ -1253,17 +1316,6 @@ class LineItem < ActiveRecord::Base
 end
 -------------------------------------------------------
 
-===== +:group+
-
-The +:group+ option supplies an attribute name to group the result set by, using a +GROUP BY+ clause in the finder SQL.
-
-[source, ruby]
--------------------------------------------------------
-class Customer < ActiveRecord::Base
-  has_many :line_items, :through => :orders, :group => "orders.id"
-end
--------------------------------------------------------
-
 ===== +:limit+
 
 The +:limit+ option lets you restrict the total number of objects that will be fetched through an association.
@@ -1279,19 +1331,30 @@ end
 
 The +:offset+ option lets you specify the starting offset for fetching objects via an association. For example, if you set +:offset => 11+, it will skip the first 10 records.
 
+===== +:order+
+
+The +:order+ option dictates the order in which associated objects will be received (in the syntax used by a SQL +ORDER BY+ clause).
+
+[source, ruby]
+-------------------------------------------------------
+class Customer < ActiveRecord::Base
+  has_many :orders, :order => "date_confirmed DESC"
+end
+-------------------------------------------------------
+
+===== +:primary_key+
+
+By convention, Rails guesses that the column used to hold the primary key of this model is +id+. You can override this and explicitly specify the primary key with the +:primary_key+ option.
+
+===== +:readonly+
+
+If you set the +:readonly+ option to +true+, then the associated objects will be read-only when retrieved via the association.
+
 ===== +:select+
 
 The +:select+ option lets you override the SQL +SELECT+ clause that is used to retrieve data about the associated objects. By default, Rails retrieves all columns.
 
 WARNING: If you specify your own +:select+, be sure to include the primary key and foreign key columns of the associated model. If you do not, Rails will throw an error.
-
-===== +:as+
-
-Setting the +:as+ option indicates that this is a polymorphic association, as discussed earlier in this guide.
-
-===== +:through+
-
-The +:through+ option specifies a join model through which to perform the query. +has_many :through+ associations provide a way to implement many-to-many relationships, as discussed earlier in this guide.
 
 ===== +:source+
 
@@ -1301,21 +1364,17 @@ The +:source+ option specifies the source association name for a +has_many :thro
 
 The +:source_type+ option specifies the source association type for a +has_many :through+ association that proceeds through a polymorphic association.
 
+===== +:through+
+
+The +:through+ option specifies a join model through which to perform the query. +has_many :through+ associations provide a way to implement many-to-many relationships, as discussed earlier in this guide.
+
 ===== +:uniq+
 
 Specify the +:uniq => true+ option to remove duplicates from the collection. This is most useful in conjunction with the +:through+ option.
 
-===== +:readonly+
-
-If you set the +:readonly+ option to +true+, then the associated objects will be read-only when retrieved via the association.
-
 ===== +:validate+
 
 If you set the +:validate+ option to +false+, then associated objects will not be validated whenever you save this object. By default, this is +true+: associated objects will be validated when this object is saved.
-
-===== +:accessible+
-
-The +:accessible+ option is the association version of +ActiveRecord::Base#attr_accessible+. If you set the +:accessible+ option to true, then mass assignment is allowed for this association.
 
 ==== When are Objects Saved?
 
@@ -1498,25 +1557,33 @@ class Parts < ActiveRecord::Base
 end
 -------------------------------------------------------
 
-===== +:class_name+
+The +has_and_belongs_to_many+ association supports these options:
 
-If the name of the other model cannot be derived from the association name, you can use the +:class_name+ option to supply the model name. For example, if a part has many assemblies, but the actual name of the model containing assemblies is gadgets, you'd set things up this way:
+// * +:accessible+
+* +:association_foreign_key+
+* +:class_name+
+* +:conditions+
+* +:counter_sql+
+* +:delete_sql+
+* +:extend+
+* +:finder_sql+
+* +:foreign_key+
+* +:group+
+* +:include+
+* +:insert_sql+
+* +:join_table+
+* +:limit+
+* +:offset+
+* +:order+
+* +:readonly+
+* +:select+
+* +:uniq+
+* +:validate+
 
-[source, ruby]
--------------------------------------------------------
-class Parts < ActiveRecord::Base
-  has_and_belongs_to_many :assemblies, :class_name => :gadgets
-end
--------------------------------------------------------
-
-===== +:join_table+
-
-If the default name of the join table, based on lexical ordering, is not what you want, you can use the +:join_table+ option to override the default.
-
-===== +:foreign_key+
-
-By convention, Rails guesses that the column in the join table used to hold the foreign key pointing to this model is the name of this model with the suffix +_id+ added. The +:foreign_key+ option lets you set the name of the foreign key directly:
-
+// ===== +:accessible+
+//
+// The +:accessible+ option is the association version of +ActiveRecord::Base#attr_accessible+. If you set the +:accessible+ option to true, then mass // assignment is allowed for this association.
+//
 ===== +:association_foreign_key+
 
 By convention, Rails guesses that the column in the join table used to hold the foreign key pointing to the other model is the name of that model with the suffix +_id+ added. The +:association_foreign_key+ option lets you set the name of the foreign key directly:
@@ -1528,6 +1595,17 @@ TIP: The +:foreign_key+ and +:association_foreign_key+ options are useful when s
 class User < ActiveRecord::Base
   has_and_belongs_to_many :friends, :class_name => :users, 
     :foreign_key => "this_user_id", :association_foreign_key => "other_user_id"
+end
+-------------------------------------------------------
+
+===== +:class_name+
+
+If the name of the other model cannot be derived from the association name, you can use the +:class_name+ option to supply the model name. For example, if a part has many assemblies, but the actual name of the model containing assemblies is gadgets, you'd set things up this way:
+
+[source, ruby]
+-------------------------------------------------------
+class Parts < ActiveRecord::Base
+  has_and_belongs_to_many :assemblies, :class_name => :gadgets
 end
 -------------------------------------------------------
 
@@ -1553,26 +1631,6 @@ end
 
 If you use a hash-style +:conditions+ option, then record creation via this association will be automatically scoped using the hash. In this case, using +@parts.assemblies.create+ or +@parts.assemblies.build+ will create orders where the factory column has the value "Seattle".
 
-===== +:order+
-
-The +:order+ option dictates the order in which associated objects will be received (in the syntax used by a SQL +ORDER BY+ clause).
-
-
-[source, ruby]
--------------------------------------------------------
-class Parts < ActiveRecord::Base
-  has_and_belongs_to_many :assemblies, :order => "assembly_name ASC"
-end
--------------------------------------------------------
-
-===== +:uniq+
-
-Specify the +:uniq => true+ option to remove duplicates from the collection.
-
-===== +:finder_sql+
-
-Normally Rails automatically generates the proper SQL to fetch the association members. With the +:finder_sql+ option, you can specify a complete SQL statement to fetch them yourself. If fetching objects requires complex multi-table SQL, this may be necessary.
-
 ===== +:counter_sql+
 
 Normally Rails automatically generates the proper SQL to count the association members. With the +:counter_sql+ option, you can specify a complete SQL statement to count them yourself. 
@@ -1583,17 +1641,25 @@ NOTE: If you specify +:finder_sql+ but not +:counter_sql+, then the counter SQL 
 
 Normally Rails automatically generates the proper SQL to remove links between the associated classes. With the +:delete_sql+ option, you can specify a complete SQL statement to delete them yourself.
 
-===== +:insert_sql+
-
-Normally Rails automatically generates the proper SQL to create links between the associated classes. With the +:insert_sql+ option, you can specify a complete SQL statement to insert them yourself.
-
 ===== +:extend+
 
 The +:extend+ option specifies a named module to extend the association proxy. Association extensions are discussed in detail later in this guide.
 
-===== +:include+
+===== +:finder_sql+
 
-You can use the :include option to specify second-order associations that should be eager-loaded when this association is used. 
+Normally Rails automatically generates the proper SQL to fetch the association members. With the +:finder_sql+ option, you can specify a complete SQL statement to fetch them yourself. If fetching objects requires complex multi-table SQL, this may be necessary.
+
+===== +:foreign_key+
+
+By convention, Rails guesses that the column in the join table used to hold the foreign key pointing to this model is the name of this model with the suffix +_id+ added. The +:foreign_key+ option lets you set the name of the foreign key directly:
+
+[source, ruby]
+-------------------------------------------------------
+class User < ActiveRecord::Base
+  has_and_belongs_to_many :friends, :class_name => :users, 
+    :foreign_key => "this_user_id", :association_foreign_key => "other_user_id"
+end
+-------------------------------------------------------
 
 ===== +:group+
 
@@ -1605,6 +1671,18 @@ class Parts < ActiveRecord::Base
   has_and_belongs_to_many :assemblies, :group => "factory"
 end
 -------------------------------------------------------
+
+===== +:include+
+
+You can use the :include option to specify second-order associations that should be eager-loaded when this association is used. 
+
+===== +:insert_sql+
+
+Normally Rails automatically generates the proper SQL to create links between the associated classes. With the +:insert_sql+ option, you can specify a complete SQL statement to insert them yourself.
+
+===== +:join_table+
+
+If the default name of the join table, based on lexical ordering, is not what you want, you can use the +:join_table+ option to override the default.
 
 ===== +:limit+
 
@@ -1621,22 +1699,32 @@ end
 
 The +:offset+ option lets you specify the starting offset for fetching objects via an association. For example, if you set +:offset => 11+, it will skip the first 10 records.
 
-===== +:select+
+===== +:order+
 
-The +:select+ option lets you override the SQL +SELECT+ clause that is used to retrieve data about the associated objects. By default, Rails retrieves all columns.
+The +:order+ option dictates the order in which associated objects will be received (in the syntax used by a SQL +ORDER BY+ clause).
+
+[source, ruby]
+-------------------------------------------------------
+class Parts < ActiveRecord::Base
+  has_and_belongs_to_many :assemblies, :order => "assembly_name ASC"
+end
+-------------------------------------------------------
 
 ===== +:readonly+
 
 If you set the +:readonly+ option to +true+, then the associated objects will be read-only when retrieved via the association.
 
+===== +:select+
+
+The +:select+ option lets you override the SQL +SELECT+ clause that is used to retrieve data about the associated objects. By default, Rails retrieves all columns.
+
+===== +:uniq+
+
+Specify the +:uniq => true+ option to remove duplicates from the collection.
+
 ===== +:validate+
 
 If you set the +:validate+ option to +false+, then associated objects will not be validated whenever you save this object. By default, this is +true+: associated objects will be validated when this object is saved.
-
-===== +:accessible+
-
-The +:accessible+ option is the association version of +ActiveRecord::Base#attr_accessible+. If you set the +:accessible+ option to true, then mass assignment is allowed for this association.
-
 
 ==== When are Objects Saved?
 
@@ -1746,5 +1834,6 @@ Extensions can refer to the internals of the association proxy using these three
 
 http://rails.lighthouseapp.com/projects/16213-rails-guides/tickets/11[Lighthouse ticket]
 
-* September 14, 2008: initial version by link:../authors.html#mgunderloy[Mike Gunderloy] (not yet approved for publication)
+* September 28, 2008: Corrected +has_many :through+ diagram, added polymorphic diagram, some reorganization by link:../authors.html#mgunderloy[Mike Gunderloy] . First release version.
 * September 22, 2008: Added diagrams, misc. cleanup by link:../authors.html#mgunderloy[Mike Gunderloy] (not yet approved for publication)
+* September 14, 2008: initial version by link:../authors.html#mgunderloy[Mike Gunderloy] (not yet approved for publication)

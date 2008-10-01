@@ -195,7 +195,7 @@ You can also apply RESTful routing to singleton resources within your applicatio
 map.resource :geocoder
 -------------------------------------------------------
 
-creates seven different routes in your application:
+creates six different routes in your application:
 
 [grid="all"]
 `----------`---------------`-----------`--------`-------------------------------------------
@@ -256,7 +256,7 @@ PUT        /photos/1       Images      update   update a specific image
 DELETE     /photos/1       Images      destroy  delete a specific image
 --------------------------------------------------------------------------------------------
 
-NOTE: The helpers will be generated with the name of the resource, not the name of the controller. So in this case, you'd still get +photos_path+, +photos_new_path+, and so on.
+NOTE: The helpers will be generated with the name of the resource, not the name of the controller. So in this case, you'd still get +photos_path+, +new_photo_path+, and so on.
 
 === Controller Namespaces and Routing ===
 
@@ -321,7 +321,7 @@ PUT        /images/1       Photos      update   update a specific photo
 DELETE     /images/1       Photos      destroy  delete a specific photo
 --------------------------------------------------------------------------------------------
 
-NOTE: The helpers will be generated with the name of the resource, not the path name. So in this case, you'd still get +photos_path+, +photos_new_path+, and so on.
+NOTE: The helpers will be generated with the name of the resource, not the path name. So in this case, you'd still get +photos_path+, +new_photo_path+, and so on.
 
 ==== Using :path_names
 
@@ -376,7 +376,7 @@ map.resources :photos, :path_prefix => '/photographers/:photographer_id', :name_
 map.resources :photos, :path_prefix => '/agencies/:agency_id', :name_prefix => 'agency_'
 -------------------------------------------------------
 
-This combination will give you route helpers such as +photographer_photos_path+ and +agency_photo_edit_path+ to use in your code.
+This combination will give you route helpers such as +photographer_photos_path+ and +agency_edit_photo_path+ to use in your code.
 
 === Nested Resources
 
@@ -537,8 +537,8 @@ It's possible to do some quite complex things by combining +:path_prefix+ and +:
 [source, ruby]
 -------------------------------------------------------
 map.resources :photos, :path_prefix => 'admin', :controller => 'admin/photos'
-map.resources :tags, :path_prefix => 'admin_photo_', :path_prefix => 'admin/photos/:photo_id', :controller => 'admin/photo_tags'
-map.resources :ratings, :path_prefix => 'admin_photo_', :path_prefix => 'admin/photos/:photo_id', :controller => 'admin/photo_ratings'
+map.resources :tags, :name_prefix => 'admin_photo_', :path_prefix => 'admin/photos/:photo_id', :controller => 'admin/photo_tags'
+map.resources :ratings, :name_prefix => 'admin_photo_', :path_prefix => 'admin/photos/:photo_id', :controller => 'admin/photo_ratings'
 -------------------------------------------------------
 
 The good news is that if you find yourself using this level of complexity, you can stop. Rails supports _namespaced resources_ to make placing resources in their own folder a snap. Here's the namespaced version of those same three routes:
@@ -551,7 +551,7 @@ map.namespace(:admin) do |admin|
 end
 -------------------------------------------------------
 
-As you can see, the namespaced version is much more succinct than the one that spells everything out - but it still creates the same routes. For example, you'll get +admin_photos_url+ that expects to find an +Admin::PhotosController+ and that matches +admin/photos+, and +admin_photos_ratings+path+ that matches +/admin/photos/_photo_id_/ratings+, expecting to use +Admin::RatingsController+.
+As you can see, the namespaced version is much more succinct than the one that spells everything out - but it still creates the same routes. For example, you'll get +admin_photos_url+ that expects to find an +Admin::PhotosController+ and that matches +admin/photos+, and +admin_photos_ratings+path+ that matches +/admin/photos/_photo_id_/ratings+, expecting to use +Admin::RatingsController+. Even though you're not specifying +path_prefix+ explicitly, the routing code will calculate the appropriate +path_prefix+ from the route nesting.
 
 === Adding More RESTful Actions
 

@@ -147,7 +147,10 @@ module InflectorTestCases
     "Random text with *(bad)* characters" => "random-text-with-bad-characters",
     "Malmö"                               => "malmo",
     "Garçons"                             => "garcons",
-    "Allow_Under_Scores"                  => "allow_under_scores"
+    "Allow_Under_Scores"                  => "allow_under_scores",
+    "Trailing bad characters!@#"          => "trailing-bad-characters",
+    "!@#Leading bad characters"           => "leading-bad-characters",
+    "Squeeze   separators"                => "squeeze-separators"
   }
 
   UnderscoreToHuman = {

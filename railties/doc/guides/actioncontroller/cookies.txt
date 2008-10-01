@@ -1,0 +1,26 @@
+== Cookies ==
+
+Your application can store small amounts of data on the client - called cookies - that will be persisted across requests and even sessions. Rails provides easy access to cookies via the `cookies` method, which - much like the `session` - works like a hash:
+
+TODO: Find a real-world example where cookies are used
+
+[source, ruby]
+-----------------------------------------
+class FooController < ApplicationController
+
+  def foo
+    cookies[:foo] = "bar"
+  end
+
+  def display_foo
+    @foo = cookies[:foo]
+  end
+
+  def remove_foo
+    cookies.delete(:foo)
+  end
+
+end
+-----------------------------------------
+
+Note that while for session values, you set the key to `nil`, to delete a cookie value, you use `cookies.delete(:key)`.

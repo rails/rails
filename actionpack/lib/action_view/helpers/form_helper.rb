@@ -442,10 +442,10 @@ module ActionView
       end
 
       # Returns a checkbox tag tailored for accessing a specified attribute (identified by +method+) on an object
-      # assigned to the template (identified by +object+). It's intended that +method+ returns an integer and if that
-      # integer is above zero, then the checkbox is checked. Additional options on the input tag can be passed as a
-      # hash with +options+. The +checked_value+ defaults to 1 while the default +unchecked_value+
-      # is set to 0 which is convenient for boolean values.
+      # assigned to the template (identified by +object+). This object must be an instance object (@object) and not a local object.
+      # It's intended that +method+ returns an integer and if that integer is above zero, then the checkbox is checked. 
+      # Additional options on the input tag can be passed as a hash with +options+. The +checked_value+ defaults to 1 
+      # while the default +unchecked_value+ is set to 0 which is convenient for boolean values.
       #
       # ==== Gotcha
       #

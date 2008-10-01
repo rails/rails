@@ -1,8 +1,14 @@
+# encoding: utf-8
+
 require 'test/unit'
 
 $:.unshift "#{File.dirname(__FILE__)}/../lib"
 $:.unshift File.dirname(__FILE__)
 require 'active_support'
+
+if RUBY_VERSION < '1.9'
+  $KCODE = 'UTF8'
+end
 
 def uses_gem(gem_name, test_name, version = '> 0')
   require 'rubygems'
@@ -22,3 +28,16 @@ end
 
 # Show backtraces for deprecated behavior for quicker cleanup.
 ActiveSupport::Deprecation.debug = true
+
+def with_kcode(code)
+  if RUBY_VERSION < '1.9'
+    begin
+      old_kcode, $KCODE = $KCODE, code
+      yield
+    ensure
+      $KCODE = old_kcode
+    end
+  else
+    yield
+  end
+end

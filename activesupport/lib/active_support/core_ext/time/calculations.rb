@@ -9,13 +9,13 @@ module ActiveSupport #:nodoc:
           base.class_eval do
             alias_method :plus_without_duration, :+
             alias_method :+, :plus_with_duration
-            
+
             alias_method :minus_without_duration, :-
             alias_method :-, :minus_with_duration
-            
+
             alias_method :minus_without_coercion, :-
             alias_method :-, :minus_with_coercion
-            
+
             alias_method :compare_without_coercion, :<=>
             alias_method :<=>, :compare_with_coercion
           end
@@ -28,9 +28,9 @@ module ActiveSupport #:nodoc:
           def ===(other)
             other.is_a?(::Time)
           end
-          
-          # Return the number of days in the given month. 
-          # If no year is specified, it will use the current year. 
+
+          # Return the number of days in the given month.
+          # If no year is specified, it will use the current year.
           def days_in_month(month, year = now.year)
             return 29 if month == 2 && ::Date.gregorian_leap?(year)
             COMMON_YEAR_DAYS_IN_MONTH[month]
@@ -55,6 +55,21 @@ module ActiveSupport #:nodoc:
           def local_time(*args)
             time_with_datetime_fallback(:local, *args)
           end
+        end
+
+        # Tells whether the Time object's time lies in the past
+        def past?
+          self < ::Time.current
+        end
+
+        # Tells whether the Time object's time is today
+        def today?
+          self.to_date == ::Date.current
+        end
+
+        # Tells whether the Time object's time lies in the future
+        def future?
+          self > ::Time.current
         end
 
         # Seconds since midnight: Time.now.seconds_since_midnight
@@ -106,7 +121,7 @@ module ActiveSupport #:nodoc:
             (seconds.abs >= 86400 && initial_dst != final_dst) ? f + (initial_dst - final_dst).hours : f
           end
         rescue
-          self.to_datetime.since(seconds)          
+          self.to_datetime.since(seconds)
         end
         alias :in :since
 
@@ -199,7 +214,7 @@ module ActiveSupport #:nodoc:
           change(:day => last_day, :hour => 23, :min => 59, :sec => 59, :usec => 0)
         end
         alias :at_end_of_month :end_of_month
-		
+
         # Returns  a new Time representing the start of the quarter (1st of january, april, july, october, 0:00)
         def beginning_of_quarter
           beginning_of_month.change(:month => [10, 7, 4, 1].detect { |m| m <= self.month })
@@ -208,7 +223,7 @@ module ActiveSupport #:nodoc:
 
         # Returns a new Time representing the end of the quarter (last day of march, june, september, december, 23:59:59)
         def end_of_quarter
-          change(:month => [3, 6, 9, 12].detect { |m| m >= self.month }).end_of_month
+          beginning_of_month.change(:month => [3, 6, 9, 12].detect { |m| m >= self.month }).end_of_month
         end
         alias :at_end_of_quarter :end_of_quarter
 
@@ -249,7 +264,7 @@ module ActiveSupport #:nodoc:
             minus_without_duration(other)
           end
         end
-        
+
         # Time#- can also be used to determine the number of seconds between two Time instances.
         # We're layering on additional behavior so that ActiveSupport::TimeWithZone instances
         # are coerced into values that Time#- will recognize
@@ -257,7 +272,7 @@ module ActiveSupport #:nodoc:
           other = other.comparable_time if other.respond_to?(:comparable_time)
           minus_without_coercion(other)
         end
-        
+
         # Layers additional behavior on Time#<=> so that DateTime and ActiveSupport::TimeWithZone instances
         # can be chronologically compared with a Time
         def compare_with_coercion(other)

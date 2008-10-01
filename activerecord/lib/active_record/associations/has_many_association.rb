@@ -17,7 +17,10 @@ module ActiveRecord
         # Returns the number of records in this collection.
         #
         # If the association has a counter cache it gets that value. Otherwise
-        # a count via SQL is performed, bounded to <tt>:limit</tt> if there's one.
+        # it will attempt to do a count via SQL, bounded to <tt>:limit</tt> if
+        # there's one.  Some configuration options like :group make it impossible
+        # to do a SQL count, in those cases the array count will be used.
+        #
         # That does not depend on whether the collection has already been loaded
         # or not. The +size+ method is the one that takes the loaded flag into
         # account and delegates to +count_records+ if needed.

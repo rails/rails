@@ -36,7 +36,9 @@ class CookieStoreTest < Test::Unit::TestCase
       'session_key' => '_myapp_session',
       'secret' => 'Keep it secret; keep it safe.',
       'no_cookies' => true,
-      'no_hidden' => true }
+      'no_hidden' => true,
+      'session_http_only' => true
+       }
   end
 
   def self.cookies
@@ -149,6 +151,48 @@ class CookieStoreTest < Test::Unit::TestCase
       assert_equal 1, session.cgi.output_cookies.size
       cookie = session.cgi.output_cookies.first
       assert_cookie cookie, cookie_value(:flashed)
+      assert_http_only_cookie cookie
+      assert_secure_cookie cookie, false
+    end
+  end
+
+  def test_writes_non_secure_cookie_by_default
+    set_cookie! cookie_value(:typical)
+    new_session do |session|
+      session['flash'] = {}
+      session.close
+      cookie = session.cgi.output_cookies.first
+      assert_secure_cookie cookie,false
+    end
+  end
+
+  def test_writes_secure_cookie
+    set_cookie! cookie_value(:typical)
+    new_session('session_secure'=>true) do |session|
+      session['flash'] = {}
+      session.close
+      cookie = session.cgi.output_cookies.first
+      assert_secure_cookie cookie
+    end
+  end
+
+  def test_http_only_cookie_by_default
+    set_cookie! cookie_value(:typical)
+    new_session do |session|
+      session['flash'] = {}
+      session.close
+      cookie = session.cgi.output_cookies.first
+      assert_http_only_cookie cookie
+    end
+  end
+
+  def test_overides_http_only_cookie
+    set_cookie! cookie_value(:typical)
+    new_session('session_http_only'=>false) do |session|
+      session['flash'] = {}
+      session.close
+      cookie = session.cgi.output_cookies.first
+      assert_http_only_cookie cookie, false
     end
   end
 
@@ -195,6 +239,13 @@ class CookieStoreTest < Test::Unit::TestCase
       assert_equal expires, cookie.expires ? cookie.expires.to_date : cookie.expires, message
     end
 
+    def assert_secure_cookie(cookie,value=true)
+      assert cookie.secure==value
+    end
+
+    def assert_http_only_cookie(cookie,value=true)
+      assert cookie.http_only==value
+    end
 
     def cookies(*which)
       self.class.cookies.values_at(*which)
