@@ -143,7 +143,11 @@ module ActiveRecord
             if @queue.wait(@timeout)
               next
             else
-              raise ConnectionTimeoutError, "could not obtain a database connection within #{@timeout} seconds.  The pool size is currently #{@size}, perhaps you need to increase it?"
+              # try looting dead threads
+              clear_stale_cached_connections!
+              if @size == @checked_out.size
+                raise ConnectionTimeoutError, "could not obtain a database connection within #{@timeout} seconds.  The pool size is currently #{@size}, perhaps you need to increase it?"
+              end
             end
           end
         end
