@@ -1724,10 +1724,10 @@ module ActiveRecord #:nodoc:
 
                   #{'result = ' if bang}if options[:conditions]
                     with_scope(:find => finder_options) do
-                      ActiveSupport::Deprecation.silence { send(:#{finder}, options) }
+                      find(:#{finder}, options)
                     end
                   else
-                    ActiveSupport::Deprecation.silence { send(:#{finder}, options.merge(finder_options)) }
+                    find(:#{finder}, options.merge(finder_options))
                   end
                   #{'result || raise(RecordNotFound)' if bang}
                 end
@@ -1750,9 +1750,9 @@ module ActiveRecord #:nodoc:
                   options = { :conditions => find_attributes }
                   set_readonly_option!(options)
 
-                  record = find_initial(options)
+                  record = find(:first, options)
 
-                   if record.nil?
+                  if record.nil?
                     record = self.new { |r| r.send(:attributes=, attributes, guard_protected_attributes) }
                     #{'yield(record) if block_given?'}
                     #{'record.save' if instantiator == :create}

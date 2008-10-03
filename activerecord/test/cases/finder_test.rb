@@ -21,7 +21,7 @@ class DynamicFinderMatchTest < ActiveRecord::TestCase
     match = ActiveRecord::DynamicFinderMatch.match("find_by_age_and_sex_and_location")
     assert_not_nil match
     assert match.finder?
-    assert_equal :find_initial, match.finder
+    assert_equal :first, match.finder
     assert_equal %w(age sex location), match.attribute_names
   end
 
@@ -30,7 +30,7 @@ class DynamicFinderMatchTest < ActiveRecord::TestCase
     assert_not_nil match
     assert match.finder?
     assert match.bang?
-    assert_equal :find_initial, match.finder
+    assert_equal :first, match.finder
     assert_equal %w(age sex location), match.attribute_names
   end
 
@@ -38,7 +38,7 @@ class DynamicFinderMatchTest < ActiveRecord::TestCase
     match = ActiveRecord::DynamicFinderMatch.match("find_all_by_age_and_sex_and_location")
     assert_not_nil match
     assert match.finder?
-    assert_equal :find_every, match.finder
+    assert_equal :all, match.finder
     assert_equal %w(age sex location), match.attribute_names
   end
 
@@ -47,7 +47,7 @@ class DynamicFinderMatchTest < ActiveRecord::TestCase
     assert_not_nil match
     assert !match.finder?
     assert match.instantiator?
-    assert_equal :find_initial, match.finder
+    assert_equal :first, match.finder
     assert_equal :new, match.instantiator
     assert_equal %w(age sex location), match.attribute_names
   end
@@ -57,7 +57,7 @@ class DynamicFinderMatchTest < ActiveRecord::TestCase
     assert_not_nil match
     assert !match.finder?
     assert match.instantiator?
-    assert_equal :find_initial, match.finder
+    assert_equal :first, match.finder
     assert_equal :create, match.instantiator
     assert_equal %w(age sex location), match.attribute_names
   end
@@ -498,6 +498,23 @@ class FinderTest < ActiveRecord::TestCase
     assert_equal(0, Entrant.count_by_sql("SELECT COUNT(*) FROM entrants WHERE id > 3"))
     assert_equal(1, Entrant.count_by_sql(["SELECT COUNT(*) FROM entrants WHERE id > ?", 2]))
     assert_equal(2, Entrant.count_by_sql(["SELECT COUNT(*) FROM entrants WHERE id > ?", 1]))
+  end
+
+  uses_mocha('test_dynamic_finder_should_go_through_the_find_class_method') do
+    def test_dynamic_finders_should_go_through_the_find_class_method
+      Topic.expects(:find).with(:first, :conditions => { :title => 'The First Topic!' })
+      Topic.find_by_title("The First Topic!")
+
+      Topic.expects(:find).with(:last, :conditions => { :title => 'The Last Topic!' })
+      Topic.find_last_by_title("The Last Topic!")
+
+      Topic.expects(:find).with(:all, :conditions => { :title => 'A Topic.' })
+      Topic.find_all_by_title("A Topic.")
+
+      Topic.expects(:find).with(:first, :conditions => { :title => 'Does not exist yet for sure!' }).times(2)
+      Topic.find_or_initialize_by_title('Does not exist yet for sure!')
+      Topic.find_or_create_by_title('Does not exist yet for sure!')
+    end
   end
 
   def test_find_by_one_attribute
