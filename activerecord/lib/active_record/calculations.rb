@@ -217,7 +217,7 @@ module ActiveRecord
 
           sql << " ORDER BY #{options[:order]} "       if options[:order]
           add_limit!(sql, options, scope)
-          sql << ") AS #{aggregate_alias}_subquery" if use_workaround
+          sql << ") #{aggregate_alias}_subquery" if use_workaround
           sql
         end
 
