@@ -371,9 +371,9 @@ module ActiveRecord
         end
       end
 
-      def recreate_database(name) #:nodoc:
+      def recreate_database(name, options = {}) #:nodoc:
         drop_database(name)
-        create_database(name)
+        create_database(name, options)
       end
 
       # Create a new MySQL database with optional <tt>:charset</tt> and <tt>:collation</tt>.
