@@ -278,10 +278,14 @@ module ActiveRecord
           operation = operation.to_s.downcase
           case operation
             when 'count' then value.to_i
-            when 'sum'   then value =~ /\./ ? value.to_f : value.to_i
-            when 'avg'   then value && value.to_f
-            else column ? column.type_cast(value) : value
+            when 'sum'   then type_cast_using_column(value || '0', column)
+            when 'avg'   then value && value.to_d
+            else type_cast_using_column(value, column)
           end
+        end
+
+        def type_cast_using_column(value, column)
+          column ? column.type_cast(value) : value
         end
     end
   end
