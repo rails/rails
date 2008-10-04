@@ -568,7 +568,12 @@ map.resources :photos, :member => { :preview => :get }
 
 This will enable Rails to recognize URLs such as +/photos/1/preview+ using the GET HTTP verb, and route them to the preview action of the Photos controller. It will also create a +preview_photo+ route helper.
 
-Within the hash of member routes, each route name specifies the HTTP verb that it will recognize. You can use +:get+, +:put+, +:post+, +:delete+, or +:any+ here.
+Within the hash of member routes, each route name specifies the HTTP verb that it will recognize. You can use +:get+, +:put+, +:post+, +:delete+, or +:any+ here. You can also specify an array of methods, if you need more than one but you don't want to allow just anything:
+
+[source, ruby]
+-------------------------------------------------------
+map.resources :photos, :member => { :prepare => [:get, :post] }
+-------------------------------------------------------
 
 ==== Adding Collection Routes
 
@@ -580,6 +585,13 @@ map.resources :photos, :collection => { :search => :get }
 -------------------------------------------------------
 
 This will enable Rails to recognize URLs such as +/photos/search+ using the GET HTTP verb, and route them to the search action of the Photos controller. It will also create a +search_photos+ route helper.
+
+Just as with member routes, you can specify an array of methods for a collection route:
+
+[source, ruby]
+-------------------------------------------------------
+map.resources :photos, :collection => { :search => [:get, :post] }
+-------------------------------------------------------
 
 ==== Adding New Routes
 
@@ -904,5 +916,6 @@ assert_routing { :path => "photos", :method => :post }, { :controller => "photos
 
 http://rails.lighthouseapp.com/projects/16213-rails-guides/tickets/3[Lighthouse ticket]
 
-* September 10, 2008: initial version by link:../authors.html#mgunderloy[Mike Gunderloy]
+* October 4, 2008: Added additional detail on specifying verbs for resource member/collection routes , by link:../authors.html#mgunderloy[Mike Gunderloy]
 * September 23, 2008: Added section on namespaced controllers and routing, by link:../authors.html#mgunderloy[Mike Gunderloy]
+* September 10, 2008: initial version by link:../authors.html#mgunderloy[Mike Gunderloy]
