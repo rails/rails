@@ -117,6 +117,11 @@ module ActiveRecord
         @sanitized_conditions ||= klass.send(:sanitize_sql, options[:conditions]) if options[:conditions]
       end
 
+      # Returns +true+ if +self+ is a +belongs_to+ reflection.
+      def belongs_to?
+        macro == :belongs_to
+      end
+
       private
         def derive_class_name
           name.to_s.camelize
@@ -200,6 +205,9 @@ module ActiveRecord
         false
       end
 
+      def through_reflection_primary_key_name
+      end
+
       def source_reflection
         nil
       end
@@ -212,7 +220,7 @@ module ActiveRecord
         end
 
         def derive_primary_key_name
-          if macro == :belongs_to
+          if belongs_to?
             "#{name}_id"
           elsif options[:as]
             "#{options[:as]}_id"
@@ -279,6 +287,14 @@ module ActiveRecord
         unless [:belongs_to, :has_many].include?(source_reflection.macro) && source_reflection.options[:through].nil?
           raise HasManyThroughSourceAssociationMacroError.new(self)
         end
+      end
+
+      def through_reflection_primary_key
+        through_reflection.belongs_to? ? through_reflection.klass.primary_key : through_reflection.primary_key_name
+      end
+
+      def through_reflection_primary_key_name
+        through_reflection.primary_key_name if through_reflection.belongs_to?
       end
 
       private

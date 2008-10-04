@@ -4,28 +4,6 @@ module ActiveRecord
       base.extend(ClassMethods)
     end
 
-    class HasManyAssociationStrategy
-      def initialize(through_reflection)
-        @through_reflection = through_reflection
-      end
-
-      def primary_key
-        if @through_reflection && @through_reflection.macro == :belongs_to
-          @through_reflection.klass.primary_key
-        else
-          @through_reflection.primary_key_name
-        end
-      end
-
-      def primary_key_name
-        if @through_reflection && @through_reflection.macro == :belongs_to
-          @through_reflection.primary_key_name
-        else
-          nil
-        end
-      end
-    end
-
     module ClassMethods
 
       # Loads the named associations for the activerecord record (or records) given
@@ -153,9 +131,9 @@ module ActiveRecord
 
       def preload_has_many_association(records, reflection, preload_options={})
         options = reflection.options
-        through_reflection = reflections[options[:through]]
-        strat = HasManyAssociationStrategy.new(through_reflection)
-        id_to_record_map, ids = construct_id_map(records, strat.primary_key_name)
+
+        primary_key_name = reflection.through_reflection_primary_key_name
+        id_to_record_map, ids = construct_id_map(records, primary_key_name)
         records.each {|record| record.send(reflection.name).loaded}
 
         if options[:through]
@@ -165,7 +143,7 @@ module ActiveRecord
             source = reflection.source_reflection.name
             through_records.first.class.preload_associations(through_records, source, options)
             through_records.each do |through_record|
-              through_record_id = through_record[strat.primary_key].to_s
+              through_record_id = through_record[reflection.through_reflection_primary_key].to_s
               add_preloaded_records_to_collection(id_to_record_map[through_record_id], reflection.name, through_record.send(source))
             end
           end
