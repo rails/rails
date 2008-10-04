@@ -67,7 +67,7 @@ class AssertDifferenceTest < Test::Unit::TestCase
       end
       fail 'should not get to here'
     rescue Test::Unit::AssertionFailedError => e
-      assert_equal "<1 + 1> was expression that failed.\n<3> expected but was\n<2>.", e.message
+      assert_equal "<1 + 1> was the expression that failed.\n<3> expected but was\n<2>.", e.message
     end
 
     def test_array_of_expressions_identify_failure_when_message_provided
@@ -76,7 +76,7 @@ class AssertDifferenceTest < Test::Unit::TestCase
       end
       fail 'should not get to here'
     rescue Test::Unit::AssertionFailedError => e
-      assert_equal "something went wrong.\n<1 + 1> was expression that failed.\n<3> expected but was\n<2>.", e.message
+      assert_equal "something went wrong.\n<1 + 1> was the expression that failed.\n<3> expected but was\n<2>.", e.message
     end
   else
     def default_test; end
