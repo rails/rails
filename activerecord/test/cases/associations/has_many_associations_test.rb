@@ -1081,3 +1081,4 @@ class HasManyAssociationsTest < ActiveRecord::TestCase
   end
 
 end
+

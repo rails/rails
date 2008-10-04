@@ -275,6 +275,15 @@ class EagerAssociationTest < ActiveRecord::TestCase
     assert_equal authors(:david), assert_no_queries { posts_with_comments_and_author.first.author }
   end
 
+  def test_eager_with_has_many_through_a_belongs_to_association
+    author = authors(:mary)
+    post = Post.create!(:author => author, :title => "TITLE", :body => "BODY")
+    author.author_favorites.create(:favorite_author_id => 1)
+    author.author_favorites.create(:favorite_author_id => 2)
+    posts_with_author_favorites = author.posts.find(:all, :include => :author_favorites)
+    assert_no_queries { posts_with_author_favorites.first.author_favorites.first.author_id }
+  end
+
   def test_eager_with_has_many_through_an_sti_join_model
     author = Author.find(:first, :include => :special_post_comments, :order => 'authors.id')
     assert_equal [comments(:does_it_hurt)], assert_no_queries { author.special_post_comments }
