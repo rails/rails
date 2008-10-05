@@ -75,7 +75,7 @@ class RescueController < ActionController::Base
   def method_not_allowed
     raise ActionController::MethodNotAllowed.new(:get, :head, :put)
   end
-  
+
   def not_implemented
     raise ActionController::NotImplemented.new(:get, :put)
   end
@@ -107,7 +107,7 @@ class RescueController < ActionController::Base
   def record_invalid_raise_as_string
     raise RecordInvalidToRescueAsString
   end
-  
+
   def bad_gateway
     raise BadGateway
   end
@@ -135,18 +135,19 @@ class RescueController < ActionController::Base
     end
 end
 
-class RescueTest < Test::Unit::TestCase
+class RescueControllerTest < ActionController::TestCase
   FIXTURE_PUBLIC = "#{File.dirname(__FILE__)}/../fixtures".freeze
 
-  def setup
-    @controller = RescueController.new
-    @request    = ActionController::TestRequest.new
-    @response   = ActionController::TestResponse.new
+  setup :set_all_requests_local
+  setup :populate_exception_object
 
+  def set_all_requests_local
     RescueController.consider_all_requests_local = true
     @request.remote_addr = '1.2.3.4'
     @request.host = 'example.com'
+  end
 
+  def populate_exception_object
     begin
       raise 'foo'
     rescue => @exception
@@ -307,7 +308,7 @@ class RescueTest < Test::Unit::TestCase
       assert_nil @controller.send(:clean_backtrace, Exception.new)
     end
   end
-  
+
   def test_not_implemented
     with_all_requests_local false do
       with_rails_public_path(".") do
@@ -463,14 +464,7 @@ class ExceptionInheritanceRescueController < ActionController::Base
   end
 end
 
-class ExceptionInheritanceRescueTest < Test::Unit::TestCase
-
-  def setup
-    @controller = ExceptionInheritanceRescueController.new
-    @request    = ActionController::TestRequest.new
-    @response   = ActionController::TestResponse.new
-  end
-
+class ExceptionInheritanceRescueControllerTest < ActionController::TestCase
   def test_bottom_first
     get :raise_grandchild_exception
     assert_response :no_content
@@ -500,14 +494,7 @@ class ControllerInheritanceRescueController < ExceptionInheritanceRescueControll
   end
 end
 
-class ControllerInheritanceRescueControllerTest < Test::Unit::TestCase
-
-  def setup
-    @controller = ControllerInheritanceRescueController.new
-    @request    = ActionController::TestRequest.new
-    @response   = ActionController::TestResponse.new
-  end
-
+class ControllerInheritanceRescueControllerTest < ActionController::TestCase
   def test_first_exception_in_child_controller
     get :raise_first_exception_in_child_controller
     assert_response :gone

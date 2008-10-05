@@ -218,7 +218,7 @@ module ActiveRecord
           s = column.class.string_to_binary(value).unpack("H*")[0]
           "x'#{s}'"
         elsif value.kind_of?(BigDecimal)
-          "'#{value.to_s("F")}'"
+          value.to_s("F")
         else
           super
         end
@@ -371,9 +371,9 @@ module ActiveRecord
         end
       end
 
-      def recreate_database(name) #:nodoc:
+      def recreate_database(name, options = {}) #:nodoc:
         drop_database(name)
-        create_database(name)
+        create_database(name, options)
       end
 
       # Create a new MySQL database with optional <tt>:charset</tt> and <tt>:collation</tt>.

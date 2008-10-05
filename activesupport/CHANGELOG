@@ -1,5 +1,7 @@
 *Edge*
 
+* Add ActiveSupport::Rescuable module abstracting ActionController::Base rescue_from features. [Norbert Crombach, Pratik]
+
 * Switch from String#chars to String#mb_chars for the unicode proxy.  [Manfred Stienstra]
 
   This helps with 1.8.7 compatibility and also improves performance for some operations by reducing indirection.

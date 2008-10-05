@@ -271,6 +271,12 @@ class FormTagHelperTest < ActionView::TestCase
 
     expected = %(<fieldset>Hello world!</fieldset>)
     assert_dom_equal expected, output_buffer
+
+    self.output_buffer = ''
+    field_set_tag('', :class => 'format') { concat "Hello world!" }
+
+    expected = %(<fieldset class="format">Hello world!</fieldset>)
+    assert_dom_equal expected, output_buffer
   end
 
   def protect_against_forgery?

@@ -84,7 +84,7 @@ module ActionController
     module RaiseActionExceptions
       attr_accessor :exception
 
-      def rescue_action(e)
+      def rescue_action_without_handler(e)
         self.exception = e
         
         if request.remote_addr == "0.0.0.0"

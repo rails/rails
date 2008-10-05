@@ -172,21 +172,24 @@ module ActiveRecord
       #   within the timeout period.
       def checkout
         # Checkout an available connection
-        conn = @connection_mutex.synchronize do
-          if @checked_out.size < @connections.size
-            checkout_existing_connection
-          elsif @connections.size < @size
-            checkout_new_connection
-          end
-        end
-        return conn if conn
-
-        # No connections available; wait for one
         @connection_mutex.synchronize do
-          if @queue.wait(@timeout)
-            checkout_existing_connection
-          else
-            raise ConnectionTimeoutError, "could not obtain a database connection within #{@timeout} seconds.  The pool size is currently #{@size}, perhaps you need to increase it?"
+          loop do
+            conn = if @checked_out.size < @connections.size
+                     checkout_existing_connection
+                   elsif @connections.size < @size
+                     checkout_new_connection
+                   end
+            return conn if conn
+            # No connections available; wait for one
+            if @queue.wait(@timeout)
+              next
+            else
+              # try looting dead threads
+              clear_stale_cached_connections!
+              if @size == @checked_out.size
+                raise ConnectionTimeoutError, "could not obtain a database connection within #{@timeout} seconds.  The pool size is currently #{@size}, perhaps you need to increase it?"
+              end
+            end
           end
         end
       end

@@ -2,6 +2,8 @@ module ActionController
   # Dispatches requests to the appropriate controller and takes care of
   # reloading the app after each request when Dependencies.load? is true.
   class Dispatcher
+    @@guard = Mutex.new
+
     class << self
       def define_dispatcher_callbacks(cache_classes)
         unless cache_classes
@@ -20,6 +22,7 @@ module ActionController
         end
 
         if defined?(ActiveRecord)
+          after_dispatch :checkin_connections
           before_dispatch { ActiveRecord::Base.verify_active_connections! }
           to_prepare(:activerecord_instantiate_observers) { ActiveRecord::Base.instantiate_observers }
         end
@@ -98,7 +101,7 @@ module ActionController
       @output, @request, @response = output, request, response
     end
 
-    def dispatch
+    def dispatch_unlocked
       begin
         run_callbacks :before_dispatch
         handle_request
@@ -106,6 +109,16 @@ module ActionController
         failsafe_rescue exception
       ensure
         run_callbacks :after_dispatch, :enumerator => :reverse_each
+      end
+    end
+
+    def dispatch
+      if ActionController::Base.allow_concurrency
+        dispatch_unlocked
+      else
+        @@guard.synchronize do
+          dispatch_unlocked
+        end
       end
     end
 
@@ -143,6 +156,21 @@ module ActionController
 
     def flush_logger
       Base.logger.flush
+    end
+
+    def mark_as_test_request!
+      @test_request = true
+      self
+    end
+
+    def test_request?
+      @test_request
+    end
+
+    def checkin_connections
+      # Don't return connection (and peform implicit rollback) if this request is a part of integration test
+      return if test_request?
+      ActiveRecord::Base.clear_active_connections!
     end
 
     protected

@@ -170,6 +170,10 @@ class ReflectionTest < ActiveRecord::TestCase
     assert_nothing_raised { Firm.reflections[:clients] == Object.new }
   end
 
+  def test_has_many_through_reflection
+    assert_kind_of ActiveRecord::Reflection::ThroughReflection, Subscriber.reflect_on_association(:books)
+  end
+
   private
     def assert_reflection(klass, association, options)
       assert reflection = klass.reflect_on_association(association)

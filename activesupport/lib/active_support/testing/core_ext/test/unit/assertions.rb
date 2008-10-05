@@ -37,15 +37,18 @@ module Test
       #   end
       def assert_difference(expressions, difference = 1, message = nil, &block)
         expression_evaluations = Array(expressions).map do |expression|
-          lambda do
+          [expression, lambda do
             eval(expression, block.__send__(:binding))
-          end
+          end]
         end
 
-        original_values = expression_evaluations.inject([]) { |memo, expression| memo << expression.call }
+        original_values = expression_evaluations.inject([]) { |memo, expression| memo << expression[1].call }
         yield
         expression_evaluations.each_with_index do |expression, i|
-          assert_equal original_values[i] + difference, expression.call, message
+          full_message = ""
+          full_message << "#{message}.\n" if message
+          full_message << "<#{expression[0]}> was the expression that failed"
+          assert_equal original_values[i] + difference, expression[1].call, full_message
         end
       end
 

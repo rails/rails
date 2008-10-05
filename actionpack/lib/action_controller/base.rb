@@ -290,8 +290,6 @@ module ActionController #:nodoc:
     @@allow_concurrency = false
     cattr_accessor :allow_concurrency
 
-    @@guard = Monitor.new
-
     # Modern REST web services often need to submit complex data to the web application.
     # The <tt>@@param_parsers</tt> hash lets you register handlers which will process the HTTP body and add parameters to the
     # <tt>params</tt> hash. These handlers are invoked for POST and PUT requests.
@@ -532,12 +530,7 @@ module ActionController #:nodoc:
         assign_names
 
         log_processing
-
-        if @@allow_concurrency
-          send(method, *arguments)
-        else
-          @@guard.synchronize { send(method, *arguments) }
-        end
+        send(method, *arguments)
 
         send_response
       ensure
@@ -975,13 +968,15 @@ module ActionController #:nodoc:
       # Sets the Last-Modified response header. Returns 304 Not Modified if the
       # If-Modified-Since request header is <= last modified.
       def last_modified!(utc_time)
-        head(:not_modified) if response.last_modified!(utc_time)
+        response.last_modified= utc_time
+        head(:not_modified) if response.last_modified == request.if_modified_since
       end
 
       # Sets the ETag response header. Returns 304 Not Modified if the
       # If-None-Match request header matches.
       def etag!(etag)
-        head(:not_modified) if response.etag!(etag)
+        response.etag = etag
+        head(:not_modified) if response.etag == request.if_none_match
       end
 
       # Clears the rendered results, allowing for another render to be performed.
@@ -1256,7 +1251,7 @@ module ActionController #:nodoc:
             action_name = strip_out_controller(action_name)
           end
         end
-        "#{self.class.controller_path}/#{action_name}"
+        "#{self.controller_path}/#{action_name}"
       end
 
       def strip_out_controller(path)
@@ -1264,7 +1259,7 @@ module ActionController #:nodoc:
       end
 
       def template_path_includes_controller?(path)
-        self.class.controller_path.split('/')[-1] == path.split('/')[0]
+        self.controller_path.split('/')[-1] == path.split('/')[0]
       end
 
       def process_cleanup
