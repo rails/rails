@@ -290,18 +290,20 @@ module ActionView #:nodoc:
     private
       attr_accessor :_first_render, :_last_render
 
-      # Evaluate the local assigns and pushes them to the view.
+      # Evaluates the local assigns and controller ivars, pushes them to the view.
       def _evaluate_assigns_and_ivars #:nodoc:
         unless @assigns_added
           @assigns.each { |key, value| instance_variable_set("@#{key}", value) }
-
-          if @controller
-            variables = @controller.instance_variable_names
-            variables -= @controller.protected_instance_variables if @controller.respond_to?(:protected_instance_variables)
-            variables.each { |name| instance_variable_set(name, @controller.instance_variable_get(name)) }
-          end
-
+          _copy_ivars_from_controller
           @assigns_added = true
+        end
+      end
+
+      def _copy_ivars_from_controller #:nodoc:
+        if @controller
+          variables = @controller.instance_variable_names
+          variables -= @controller.protected_instance_variables if @controller.respond_to?(:protected_instance_variables)
+          variables.each { |name| instance_variable_set(name, @controller.instance_variable_get(name)) }
         end
       end
 
