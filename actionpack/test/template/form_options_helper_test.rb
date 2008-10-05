@@ -656,7 +656,7 @@ uses_mocha "FormOptionsHelperTest" do
 <option value="Zambia">Zambia</option>
 <option value="Zimbabwe">Zimbabwe</option></select>
   COUNTRIES
-      assert_deprecated 'plugin' do
+      assert_deprecated 'list-of-countries' do
         assert_dom_equal(expected_select[0..-2], country_select("post", "origin"))
       end
     end
@@ -913,7 +913,7 @@ uses_mocha "FormOptionsHelperTest" do
 <option value="Zambia">Zambia</option>
 <option value="Zimbabwe">Zimbabwe</option></select>
   COUNTRIES
-      assert_deprecated 'plugin' do
+      assert_deprecated 'list-of-countries' do
         assert_dom_equal(expected_select[0..-2], country_select("post", "origin", ["New Zealand", "Nicaragua"]))
       end
     end
@@ -1170,7 +1170,7 @@ uses_mocha "FormOptionsHelperTest" do
 <option value="Zambia">Zambia</option>
 <option value="Zimbabwe">Zimbabwe</option></select>
   COUNTRIES
-      assert_deprecated 'plugin' do
+      assert_deprecated 'list-of-countries' do
         assert_dom_equal(expected_select[0..-2], country_select("post", "origin", ["New Zealand", "Nicaragua"]))
       end
     end
