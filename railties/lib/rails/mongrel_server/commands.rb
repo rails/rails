@@ -44,7 +44,7 @@ module Rails
         env_location = "#{defaults[:cwd]}/config/environment"
         require env_location
 
-        ActionController::AbstractRequest.relative_url_root = defaults[:prefix]
+        ActionController::Base.relative_url_root = defaults[:prefix]
         uri prefix, :handler => Rails::MongrelServer::RailsHandler.new
       end
     end
