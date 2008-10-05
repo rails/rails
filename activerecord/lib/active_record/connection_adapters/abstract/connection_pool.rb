@@ -11,6 +11,21 @@ module ActiveRecord
     # Connection pool base class for managing ActiveRecord database
     # connections.
     #
+    # == Introduction
+    #
+    # A connection pool synchronizes thread access to a limited number of
+    # database connections. The basic idea is that each thread checks out a
+    # database connection from the pool, uses that connection, and checks the
+    # connection back in. ConnectionPool is completely thread-safe, and will
+    # ensure that a connection cannot be used by two threads at the same time,
+    # as long as ConnectionPool's contract is correctly followed. It will also
+    # handle cases in which there are more threads than connections: if all
+    # connections have been checked out, and a thread tries to checkout a
+    # connection anyway, then ConnectionPool will wait until some other thread
+    # has checked in a connection.
+    #
+    # == Obtaining (checking out) a connection
+    #
     # Connections can be obtained and used from a connection pool in several
     # ways:
     #
@@ -28,6 +43,11 @@ module ActiveRecord
     #    obtains a connection, yields it as the sole argument to the block,
     #    and returns it to the pool after the block completes.
     #
+    # Connections in the pool are actually AbstractAdapter objects (or objects
+    # compatible with AbstractAdapter's interface).
+    #
+    # == Options
+    #
     # There are two connection-pooling-related options that you can add to
     # your database connection configuration:
     #
@@ -37,6 +57,12 @@ module ActiveRecord
     class ConnectionPool
       attr_reader :spec
 
+      # Creates a new ConnectionPool object. +spec+ is a ConnectionSpecification
+      # object which describes database connection information (e.g. adapter,
+      # host name, username, password, etc), as well as the maximum size for
+      # this ConnectionPool.
+      #
+      # The default ConnectionPool maximum size is 5.
       def initialize(spec)
         @spec = spec
         # The cache of reserved connections mapped to threads
@@ -87,7 +113,7 @@ module ActiveRecord
         !@connections.empty?
       end
 
-      # Disconnect all connections in the pool.
+      # Disconnects all connections in the pool, and clears the pool.
       def disconnect!
         @reserved_connections.each do |name,conn|
           checkin conn
@@ -128,7 +154,22 @@ module ActiveRecord
         end
       end
 
-      # Check-out a database connection from the pool.
+      # Check-out a database connection from the pool, indicating that you want
+      # to use it. You should call #checkin when you no longer need this.
+      #
+      # This is done by either returning an existing connection, or by creating
+      # a new connection. If the maximum number of connections for this pool has
+      # already been reached, but the pool is empty (i.e. they're all being used),
+      # then this method will wait until a thread has checked in a connection.
+      # The wait time is bounded however: if no connection can be checked out
+      # within the timeout specified for this pool, then a ConnectionTimeoutError
+      # exception will be raised.
+      #
+      # Returns: an AbstractAdapter object.
+      #
+      # Raises:
+      # - ConnectionTimeoutError: no connection can be obtained from the pool
+      #   within the timeout period.
       def checkout
         # Checkout an available connection
         @connection_mutex.synchronize do
@@ -153,7 +194,11 @@ module ActiveRecord
         end
       end
 
-      # Check-in a database connection back into the pool.
+      # Check-in a database connection back into the pool, indicating that you
+      # no longer need this connection.
+      #
+      # +conn+: an AbstractAdapter object, which was obtained by earlier by
+      # calling +checkout+ on this pool.
       def checkin(conn)
         @connection_mutex.synchronize do
           conn.run_callbacks :checkin
@@ -207,6 +252,29 @@ module ActiveRecord
       end
     end
 
+    # ConnectionHandler is a collection of ConnectionPool objects. It is used
+    # for keeping separate connection pools for ActiveRecord models that connect
+    # to different databases.
+    #
+    # For example, suppose that you have 5 models, with the following hierarchy:
+    #
+    #  |
+    #  +-- Book
+    #  |    |
+    #  |    +-- ScaryBook
+    #  |    +-- GoodBook
+    #  +-- Author
+    #  +-- BankAccount
+    #
+    # Suppose that Book is to connect to a separate database (i.e. one other
+    # than the default database). Then Book, ScaryBook and GoodBook will all use
+    # the same connection pool. Likewise, Author and BankAccount will use the
+    # same connection pool. However, the connection pool used by Author/BankAccount
+    # is not the same as the one used by Book/ScaryBook/GoodBook.
+    #
+    # Normally there is only a single ConnectionHandler instance, accessible via
+    # ActiveRecord::Base.connection_handler. ActiveRecord models use this to
+    # determine that connection pool that they should use.
     class ConnectionHandler
       def initialize(pools = {})
         @connection_pools = pools

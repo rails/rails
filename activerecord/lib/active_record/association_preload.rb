@@ -1,14 +1,88 @@
 module ActiveRecord
+  # See ActiveRecord::AssociationPreload::ClassMethods for documentation.
   module AssociationPreload #:nodoc:
     def self.included(base)
       base.extend(ClassMethods)
     end
 
+    # Implements the details of eager loading of ActiveRecord associations.
+    # Application developers should not use this module directly.
+    #
+    # ActiveRecord::Base is extended with this module. The source code in
+    # ActiveRecord::Base references methods defined in this module.
+    #
+    # Note that 'eager loading' and 'preloading' are actually the same thing.
+    # However, there are two different eager loading strategies.
+    #
+    # The first one is by using table joins. This was only strategy available
+    # prior to Rails 2.1. Suppose that you have an Author model with columns
+    # 'name' and 'age', and a Book model with columns 'name' and 'sales'. Using
+    # this strategy, ActiveRecord would try to retrieve all data for an author
+    # and all of its books via a single query:
+    #
+    #   SELECT * FROM authors
+    #   LEFT OUTER JOIN books ON authors.id = books.id
+    #   WHERE authors.name = 'Ken Akamatsu'
+    #
+    # However, this could result in many rows that contain redundant data. After
+    # having received the first row, we already have enough data to instantiate
+    # the Author object. In all subsequent rows, only the data for the joined
+    # 'books' table is useful; the joined 'authors' data is just redundant, and
+    # processing this redundant data takes memory and CPU time. The problem
+    # quickly becomes worse and worse as the level of eager loading increases
+    # (i.e. if ActiveRecord is to eager load the associations' assocations as
+    # well).
+    #
+    # The second strategy is to use multiple database queries, one for each
+    # level of association. Since Rails 2.1, this is the default strategy. In
+    # situations where a table join is necessary (e.g. when the +:conditions+
+    # option references an association's column), it will fallback to the table
+    # join strategy.
+    #
+    # See also ActiveRecord::Associations::ClassMethods, which explains eager
+    # loading in a more high-level (application developer-friendly) manner.
     module ClassMethods
-
-      # Loads the named associations for the activerecord record (or records) given
-      # preload_options is passed only one level deep: don't pass to the child associations when associations is a Hash
       protected
+      
+      # Eager loads the named associations for the given ActiveRecord record(s).
+      #
+      # In this description, 'association name' shall refer to the name passed
+      # to an association creation method. For example, a model that specifies
+      # <tt>belongs_to :author</tt>, <tt>has_many :buyers</tt> has association
+      # names +:author+ and +:buyers+.
+      #
+      # == Parameters
+      # +records+ is an array of ActiveRecord::Base. This array needs not be flat,
+      # i.e. +records+ itself may also contain arrays of records. In any case,
+      # +preload_associations+ will preload the associations all records by
+      # flattening +records+.
+      #
+      # +associations+ specifies one or more associations that you want to
+      # preload. It may be:
+      # - a Symbol or a String which specifies a single association name. For
+      #   example, specifiying +:books+ allows this method to preload all books
+      #   for an Author.
+      # - an Array which specifies multiple association names. This array
+      #   is processed recursively. For example, specifying <tt>[:avatar, :books]</tt>
+      #   allows this method to preload an author's avatar as well as all of his
+      #   books.
+      # - a Hash which specifies multiple association names, as well as
+      #   association names for the to-be-preloaded association objects. For
+      #   example, specifying <tt>{ :author => :avatar }</tt> will preload a
+      #   book's author, as well as that author's avatar.
+      #
+      # +:associations+ has the same format as the +:include+ option for
+      # <tt>ActiveRecord::Base.find</tt>. So +associations+ could look like this:
+      #
+      #   :books
+      #   [ :books, :author ]
+      #   { :author => :avatar }
+      #   [ :books, { :author => :avatar } ]
+      #
+      # +preload_options+ contains options that will be passed to ActiveRecord#find
+      # (which is called under the hood for preloading records). But it is passed
+      # only one level deep in the +associations+ argument, i.e. it's not passed
+      # to the child associations when +associations+ is a Hash.
       def preload_associations(records, associations, preload_options={})
         records = [records].flatten.compact.uniq
         return if records.empty?
@@ -30,6 +104,8 @@ module ActiveRecord
 
       private
 
+      # Preloads a specific named association for the given records. This is
+      # called by +preload_associations+ as its base case.
       def preload_one_association(records, association, preload_options={})
         class_to_reflection = {}
         # Not all records have the same class, so group then preload
@@ -37,6 +113,10 @@ module ActiveRecord
         # unnecessarily
         records.group_by {|record| class_to_reflection[record.class] ||= record.class.reflections[association]}.each do |reflection, records|
           raise ConfigurationError, "Association named '#{ association }' was not found; perhaps you misspelled it?" unless reflection
+          
+          # 'reflection.macro' can return 'belongs_to', 'has_many', etc. Thus,
+          # the following could call 'preload_belongs_to_association',
+          # 'preload_has_many_association', etc.
           send("preload_#{reflection.macro}_association", records, reflection, preload_options)
         end
       end
@@ -77,6 +157,10 @@ module ActiveRecord
         end
       end
 
+      # Given a collection of ActiveRecord objects, constructs a Hash which maps
+      # the objects' IDs to the relevant objects. Returns a 2-tuple
+      # <tt>(id_to_record_map, ids)</tt> where +id_to_record_map+ is the Hash,
+      # and +ids+ is an Array of record IDs.
       def construct_id_map(records, primary_key=nil)
         id_to_record_map = {}
         ids = []

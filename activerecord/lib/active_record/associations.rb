@@ -955,8 +955,6 @@ module ActiveRecord
       #   destroyed. This requires that a column named <tt>#{table_name}_count</tt> (such as +comments_count+ for a belonging Comment class)
       #   is used on the associate class (such as a Post class). You can also specify a custom counter cache column by providing
       #   a column name instead of a +true+/+false+ value to this option (e.g., <tt>:counter_cache => :my_custom_counter</tt>.)
-      #   When creating a counter cache column, the database statement or migration must specify a default value of <tt>0</tt>, failing to do 
-      #   this results in a counter with +NULL+ value, which will never increment.
       #   Note: Specifying a counter cache will add it to that model's list of readonly attributes using +attr_readonly+.
       # [:include]
       #   Specify second-order associations that should be eager loaded when this object is loaded.
@@ -1479,6 +1477,8 @@ module ActiveRecord
           end
         end
 
+        # Creates before_destroy callback methods that nullify, delete or destroy
+        # has_one associated objects, according to the defined :dependent rule.
         def configure_dependency_for_has_one(reflection)
           if reflection.options.include?(:dependent)
             case reflection.options[:dependent]
@@ -1492,6 +1492,10 @@ module ActiveRecord
               when :delete
                 method_name = "has_one_dependent_delete_for_#{reflection.name}".to_sym
                 define_method(method_name) do
+                  # Retrieve the associated object and delete it. The retrieval
+                  # is necessary because there may be multiple associated objects
+                  # with foreign keys pointing to this object, and we only want
+                  # to delete the correct one, not all of them.
                   association = send(reflection.name)
                   association.delete unless association.nil?
                 end

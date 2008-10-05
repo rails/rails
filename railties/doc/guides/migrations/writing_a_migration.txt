@@ -36,11 +36,11 @@ By default `create_table` will create a primary key called `id`. You can change 
 
 [source, ruby]
 ---------------------
-create_table :products, :options => "ENGINE=InnoDB" do |t|
+create_table :products, :options => "ENGINE=BLACKHOLE" do |t|
   t.string :name, :null => false
 end
 ---------------------
-Will append `ENGINE=InnoDB` to the sql used to create the table (this is Rails' default when using MySQL).
+Will append `ENGINE=BLACKHOLE` to the sql used to create the table (when using MySQL the default is "ENGINE=InnoDB").
 
 The types Active Record supports are `:primary_key`, `:string`, `:text`, `:integer`, `:float`, `:decimal`, `:datetime`, `:timestamp`, `:time`, `:date`, `:binary`, `:boolean`.
 

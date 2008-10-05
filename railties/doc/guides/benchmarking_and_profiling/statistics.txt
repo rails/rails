@@ -1,0 +1,57 @@
+== A Lession In Statistics ==
+
+#TODO COMPRESS DOWN INTO A PARAGRAPH AND A HALF 
+maybe I'll just combine with the methodology portion as an appendix. 
+
+Adapted from a blog Article by Zed Shaw. His rant is funnier but will take longer to read. <br /> http://www.zedshaw.com/rants/programmer_stats.html[Programmers Need To Learn Statistics Or I Will Kill Them All]
+
+=== Why Learn Statistics ===
+
+Statistics is a hard discipline. One can study it for years without fully grasping all the complexities. But its a necessary evil for coders of every level to at least know the basics. You can't optimize without it, and if you use it wrong, you'll just waste your time and the rest of your team's.
+
+=== Power-of-Ten Syndrome ===
+
+If you done any benchmarking you have probably heard
+“All you need to do is run that test [insert power-of-ten] times and then do an average.” 
+
+For new developers this whole power of ten comes about because we need enough data to minimize the results being contaminated by outliers. If you loaded a page five times with three of those times being around 75ms and twice 250ms you have no way of knowing the real average processing time for you page. But if we take a 1000 times and 950 are 75ms and 50 are 250ms we have a much clearer picture of the situation. 
+
+But this still begs the question of how you determine that 1000 is the correct number of iterations to improve the power of the experiment? (Power in this context basically means the chance that your experiment is right.)
+
+The first thing that needs to be determined is how you are performing the samplings? 1000 iterations run in a massive sequential row? A set of 10 runs with 100 each? The statistics are different depending on which you do, but the 10 runs of 100 each would be a better approach. This lets you compare sample means and figure out if your repeated runs have any bias. More simply put, this allows you to see if you have a many or few outliers that might be poisoning your averages. 
+
+Another consideration is if a 1000 transactions is enough to get the process into a steady state after the ramp-up period? If you are benchmarking a long running process that stabilizes only after a warm-up time you must take that into consideration. 
+
+Also remember getting an average is not an end goal in itself. In fact in some cases they tell you almost nothing. 
+
+=== Don't Just Use Averages! ===
+
+One cannot simply say my website “[insert power-of-ten] requests per second”. This is due to it being an Average. Without some form of range or variance error analysis it's a useless number.  Two averages can be the same, but hide massive differences in behavior. Without a standard deviation it’s not possible to figure out if the two might even be close. 
+
+Two averages can be the same say 30 requests a second and yet have a completely different standard deviation. Say the first sample has +-3 and the second is +-30
+
+Stability is vastly different for these two samples If this were a web server performance run I’d say the second server has a major reliability problem. No, it’s not going to crash, but it’s performance response is so erratic that you’d never know how long a request would take. Even though the two servers perform the same on average, users will think the second one is slower because of how it seems to randomly perform.
+
+Another big thing to take into consideration when benchmarking and profiling is Confounding
+
+=== Confounding ===
+
+The idea of confounding is pretty simple: If you want to measure something, then don’t measure anything else.  
+
+#TODO add more information in how to avoid confounding. 
+
+* Your testing system and your production system must be separate. You can't profile on the same system because you are using resources to run the test that your server should be using to serve the requests. 
+
+And one more thing. 
+
+=== Define what you are Measuring ===
+
+Before you can measure something you really need to lay down a very concrete definition of what you’re measuring. You should also try to measure the simplest thing you can and try to avoid confounding. 
+
+The most important thing to determine though is how much data you can actually send to your application through it's pipe. 
+
+=== Back to Business ===
+
+Now I know this was all a bit boring, but these fundamentals a necessary for understanding what we are actually doing here. Now onto the actual code and rails processes. 
+
+

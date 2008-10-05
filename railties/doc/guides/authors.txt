@@ -1,0 +1,25 @@
+About the Authors
+=================
+
+.Frederick Cheung
+[[fcheung]]
+***********************************************************
+Frederick Cheung is Chief Wizard at Texperts where he has been using Rails since 2006.
+He is based in Cambridge (UK) and when not consuming fine ales he blogs at http://www.spacevatican.org[spacevatican.org].
+***********************************************************
+
+.Mike Gunderloy
+[[mgunderloy]]
+***********************************************************
+Mike Gunderloy is an independent consultant who brings 25 years of experience in a variety of languages to bear on his current
+work with Rails. His near-daily links and other blogging can be found at http://afreshcup.com[A Fresh Cup].
+***********************************************************
+
+.Emilio Tagua
+[[miloops]]
+***********************************************************
+Emilio Tagua -- a.k.a. miloops -- is an Argentinian entrepreneur, developer, open source contributor and Rails evangelist.
+Cofounder of http://www.eventioz.com[Eventioz]. He has been using Rails since 2006 and contributing since early 2008.
+Can be found at gmail, twitter, freenode, everywhere as miloops.
+***********************************************************
+

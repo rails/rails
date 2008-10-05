@@ -75,7 +75,7 @@ module ActiveRecord
     #
     #   customer.balance = Money.new(20)     # sets the Money value object and the attribute
     #   customer.balance                     # => Money value object
-    #   customer.balance.exchanged_to("DKK") # => Money.new(120, "DKK")
+    #   customer.balance.exchange_to("DKK")  # => Money.new(120, "DKK")
     #   customer.balance > Money.new(10)     # => true
     #   customer.balance == Money.new(20)    # => true
     #   customer.balance < Money.new(5)      # => false
@@ -99,7 +99,7 @@ module ActiveRecord
     # relational unique identifiers (such as primary keys). Normal ActiveRecord::Base classes are entity objects.
     #
     # It's also important to treat the value objects as immutable. Don't allow the Money object to have its amount changed after
-    # creation. Create a new Money object with the new value instead. This is exemplified by the Money#exchanged_to method that
+    # creation. Create a new Money object with the new value instead. This is exemplified by the Money#exchange_to method that
     # returns a new value object instead of changing its own values. Active Record won't persist value objects that have been
     # changed through means other than the writer method.
     #

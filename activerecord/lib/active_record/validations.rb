@@ -625,10 +625,6 @@ module ActiveRecord
       # When the record is created, a check is performed to make sure that no record exists in the database with the given value for the specified
       # attribute (that maps to a column). When the record is updated, the same check is made but disregarding the record itself.
       #
-      # Because this check is performed outside the database there is still a chance that duplicate values
-      # will be inserted in two parallel transactions.  To guarantee against this you should create a
-      # unique index on the field. See +add_index+ for more information.
-      #
       # Configuration options:
       # * <tt>:message</tt> - Specifies a custom error message (default is: "has already been taken").
       # * <tt>:scope</tt> - One or more columns by which to limit the scope of the uniqueness constraint.
@@ -641,6 +637,70 @@ module ActiveRecord
       # * <tt>:unless</tt> - Specifies a method, proc or string to call to determine if the validation should
       #   not occur (e.g. <tt>:unless => :skip_validation</tt>, or <tt>:unless => Proc.new { |user| user.signup_step <= 2 }</tt>).  The
       #   method, proc or string should return or evaluate to a true or false value.
+      #
+      # === Concurrency and integrity
+      #
+      # Using this validation method in conjunction with ActiveRecord::Base#save
+      # does not guarantee the absence of duplicate record insertions, because
+      # uniqueness checks on the application level are inherently prone to race
+      # conditions. For example, suppose that two users try to post a Comment at
+      # the same time, and a Comment's title must be unique. At the database-level,
+      # the actions performed by these users could be interleaved in the following manner:
+      #
+      #               User 1                 |               User 2
+      #  ------------------------------------+--------------------------------------
+      #  # User 1 checks whether there's     |
+      #  # already a comment with the title  |
+      #  # 'My Post'. This is not the case.  |
+      #  SELECT * FROM comments              |
+      #  WHERE title = 'My Post'             |
+      #                                      |
+      #                                      | # User 2 does the same thing and also
+      #                                      | # infers that his title is unique.
+      #                                      | SELECT * FROM comments
+      #                                      | WHERE title = 'My Post'
+      #                                      |
+      #  # User 1 inserts his comment.       |
+      #  INSERT INTO comments                |
+      #  (title, content) VALUES             |
+      #  ('My Post', 'hi!')                  |
+      #                                      |
+      #                                      | # User 2 does the same thing.
+      #                                      | INSERT INTO comments
+      #                                      | (title, content) VALUES
+      #                                      | ('My Post', 'hello!')
+      #                                      |
+      #                                      | # ^^^^^^
+      #                                      | # Boom! We now have a duplicate
+      #                                      | # title!
+      #
+      # This could even happen if you use transactions with the 'serializable'
+      # isolation level. There are several ways to get around this problem:
+      # - By locking the database table before validating, and unlocking it after
+      #   saving. However, table locking is very expensive, and thus not
+      #   recommended.
+      # - By locking a lock file before validating, and unlocking it after saving.
+      #   This does not work if you've scaled your Rails application across
+      #   multiple web servers (because they cannot share lock files, or cannot
+      #   do that efficiently), and thus not recommended.
+      # - Creating a unique index on the field, by using
+      #   ActiveRecord::ConnectionAdapters::SchemaStatements#add_index. In the
+      #   rare case that a race condition occurs, the database will guarantee
+      #   the field's uniqueness.
+      #   
+      #   When the database catches such a duplicate insertion,
+      #   ActiveRecord::Base#save will raise an ActiveRecord::StatementInvalid
+      #   exception. You can either choose to let this error propagate (which
+      #   will result in the default Rails exception page being shown), or you
+      #   can catch it and restart the transaction (e.g. by telling the user
+      #   that the title already exists, and asking him to re-enter the title).
+      #   This technique is also known as optimistic concurrency control:
+      #   http://en.wikipedia.org/wiki/Optimistic_concurrency_control
+      #   
+      #   Active Record currently provides no way to distinguish unique
+      #   index constraint errors from other types of database errors, so you
+      #   will have to parse the (database-specific) exception message to detect
+      #   such a case.
       def validates_uniqueness_of(*attr_names)
         configuration = { :case_sensitive => true }
         configuration.update(attr_names.extract_options!)

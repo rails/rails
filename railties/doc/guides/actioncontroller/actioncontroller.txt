@@ -1,0 +1,28 @@
+Action Controller basics
+=======================
+
+In this guide you will learn how controllers work and how they fit into the request cycle in your application. You will learn how to make use of the many tools provided by Action Controller to work with the session, cookies and filters and how to use the built-in HTTP authentication and data streaming facilities. In the end, we will take a look at some tools that will be useful once your controllers are ready and working, like how to filter sensitive parameters from the log and how to rescue and deal with exceptions that may be raised during the request.
+
+include::introduction.txt[]
+
+include::methods.txt[]
+
+include::params.txt[]
+
+include::session.txt[]
+
+include::cookies.txt[]
+
+include::filters.txt[]
+
+include::request_response_objects.txt[]
+
+include::http_auth.txt[]
+
+include::streaming.txt[]
+
+include::parameter_filtering.txt[]
+
+include::verification.txt[]
+
+include::rescue.txt[]

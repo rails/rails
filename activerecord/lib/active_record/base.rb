@@ -415,6 +415,31 @@ module ActiveRecord #:nodoc:
 
     @@subclasses = {}
 
+    # Contains the database configuration - as is typically stored in config/database.yml -
+    # as a Hash.
+    #
+    # For example, the following database.yml...
+    # 
+    #   development:
+    #     adapter: sqlite3
+    #     database: db/development.sqlite3
+    #   
+    #   production:
+    #     adapter: sqlite3
+    #     database: db/production.sqlite3
+    #
+    # ...would result in ActiveRecord::Base.configurations to look like this:
+    #
+    #   {
+    #      'development' => {
+    #         'adapter'  => 'sqlite3',
+    #         'database' => 'db/development.sqlite3'
+    #      },
+    #      'production' => {
+    #         'adapter'  => 'sqlite3',
+    #         'database' => 'db/production.sqlite3'
+    #      }
+    #   }
     cattr_accessor :configurations, :instance_writer => false
     @@configurations = {}
 
@@ -487,7 +512,7 @@ module ActiveRecord #:nodoc:
       #
       # All approaches accept an options hash as their last parameter.
       #
-      # ==== Attributes
+      # ==== Parameters
       #
       # * <tt>:conditions</tt> - An SQL fragment like "administrator = 1" or <tt>[ "user_name = ?", username ]</tt>. See conditions in the intro.
       # * <tt>:order</tt> - An SQL fragment like "created_at DESC, name".
@@ -585,8 +610,8 @@ module ActiveRecord #:nodoc:
 
       # Executes a custom SQL query against your database and returns all the results.  The results will
       # be returned as an array with columns requested encapsulated as attributes of the model you call
-      # this method from.  If you call +Product.find_by_sql+ then the results will be returned in a Product
-      # object with the attributes you specified in the SQL query.
+      # this method from.  If you call <tt>Product.find_by_sql</tt> then the results will be returned in
+      # a Product object with the attributes you specified in the SQL query.
       #
       # If you call a complicated SQL query which spans multiple tables the columns specified by the
       # SELECT will be attributes of the model, whether or not they are columns of the corresponding
@@ -595,7 +620,7 @@ module ActiveRecord #:nodoc:
       # The +sql+ parameter is a full SQL query as a string.  It will be called as is, there will be
       # no database agnostic conversions performed.  This should be a last resort because using, for example,
       # MySQL specific terms will lock you to using that particular database engine or require you to
-      # change your call if you switch engines
+      # change your call if you switch engines.
       #
       # ==== Examples
       #   # A simple SQL query spanning multiple tables
@@ -672,7 +697,7 @@ module ActiveRecord #:nodoc:
       # Updates an object (or multiple objects) and saves it to the database, if validations pass.
       # The resulting object is returned whether the object was saved successfully to the database or not.
       #
-      # ==== Attributes
+      # ==== Parameters
       #
       # * +id+ - This should be the id or an array of ids to be updated.
       # * +attributes+ - This should be a Hash of attributes to be set on the object, or an array of Hashes.
@@ -700,9 +725,10 @@ module ActiveRecord #:nodoc:
       # is executed on the database which means that no callbacks are fired off running this.  This is an efficient method
       # of deleting records that don't need cleaning up after or other actions to be taken.
       #
-      # Objects are _not_ instantiated with this method.
+      # Objects are _not_ instantiated with this method, and so +:dependent+ rules
+      # defined on associations are not honered.
       #
-      # ==== Attributes
+      # ==== Parameters
       #
       # * +id+ - Can be either an Integer or an Array of Integers.
       #
@@ -725,7 +751,7 @@ module ActiveRecord #:nodoc:
       # This essentially finds the object (or multiple objects) with the given id, creates a new object
       # from the attributes, and then calls destroy on it.
       #
-      # ==== Attributes
+      # ==== Parameters
       #
       # * +id+ - Can be either an Integer or an Array of Integers.
       #
@@ -749,7 +775,7 @@ module ActiveRecord #:nodoc:
       # also be supplied. This method constructs a single SQL UPDATE statement and sends it straight to the
       # database. It does not instantiate the involved models and it does not trigger Active Record callbacks.
       #
-      # ==== Attributes
+      # ==== Parameters
       #
       # * +updates+ - A string of column and value pairs that will be set on any records that match conditions.
       #               What goes into the SET clause.
@@ -795,34 +821,39 @@ module ActiveRecord #:nodoc:
       # many records. If you want to simply delete records without worrying about dependent associations or
       # callbacks, use the much faster +delete_all+ method instead.
       #
-      # ==== Attributes
+      # ==== Parameters
       #
       # * +conditions+ - Conditions are specified the same way as with +find+ method.
       #
       # ==== Example
       #
-      #   Person.destroy_all "last_login < '2004-04-04'"
+      #   Person.destroy_all("last_login < '2004-04-04'")
       #
       # This loads and destroys each person one by one, including its dependent associations and before_ and
       # after_destroy callbacks.
+      #
+      # +conditions+ can be anything that +find+ also accepts:
+      #
+      #   Person.destroy_all(:last_login => 6.hours.ago)
       def destroy_all(conditions = nil)
         find(:all, :conditions => conditions).each { |object| object.destroy }
       end
 
       # Deletes the records matching +conditions+ without instantiating the records first, and hence not
       # calling the +destroy+ method nor invoking callbacks. This is a single SQL DELETE statement that
-      # goes straight to the database, much more efficient than +destroy_all+. Careful with relations
-      # though, in particular <tt>:dependent</tt> is not taken into account.
+      # goes straight to the database, much more efficient than +destroy_all+. Be careful with relations
+      # though, in particular <tt>:dependent</tt> rules defined on associations are not honored.
       #
-      # ==== Attributes
+      # ==== Parameters
       #
       # * +conditions+ - Conditions are specified the same way as with +find+ method.
       #
       # ==== Example
       #
-      #   Post.delete_all "person_id = 5 AND (category = 'Something' OR category = 'Else')"
+      #   Post.delete_all("person_id = 5 AND (category = 'Something' OR category = 'Else')")
+      #   Post.delete_all(["person_id = ? AND (category = ? OR category = ?)", 5, 'Something', 'Else'])
       #
-      # This deletes the affected posts all at once with a single DELETE statement. If you need to destroy dependent
+      # Both calls delete the affected posts all at once with a single DELETE statement. If you need to destroy dependent
       # associations or call your <tt>before_*</tt> or +after_destroy+ callbacks, use the +destroy_all+ method instead.
       def delete_all(conditions = nil)
         sql = "DELETE FROM #{quoted_table_name} "
@@ -834,7 +865,7 @@ module ActiveRecord #:nodoc:
       # The use of this method should be restricted to complicated SQL queries that can't be executed
       # using the ActiveRecord::Calculations class methods.  Look into those before using this.
       #
-      # ==== Attributes
+      # ==== Parameters
       #
       # * +sql+ - An SQL statement which should return a count query from the database, see the example below.
       #
@@ -852,7 +883,7 @@ module ActiveRecord #:nodoc:
       # with the given ID, altering the given hash of counters by the amount
       # given by the corresponding value:
       #
-      # ==== Attributes
+      # ==== Parameters
       #
       # * +id+ - The id of the object you wish to update a counter on.
       # * +counters+ - An Array of Hashes containing the names of the fields
@@ -882,7 +913,7 @@ module ActiveRecord #:nodoc:
       # For example, a DiscussionBoard may cache post_count and comment_count otherwise every time the board is
       # shown it would have to run an SQL query to find how many posts and comments there are.
       #
-      # ==== Attributes
+      # ==== Parameters
       #
       # * +counter_name+ - The name of the field that should be incremented.
       # * +id+ - The id of the object that should be incremented.
@@ -899,7 +930,7 @@ module ActiveRecord #:nodoc:
       #
       # This works the same as increment_counter but reduces the column value by 1 instead of increasing it.
       #
-      # ==== Attributes
+      # ==== Parameters
       #
       # * +counter_name+ - The name of the field that should be decremented.
       # * +id+ - The id of the object that should be decremented.
@@ -994,7 +1025,7 @@ module ActiveRecord #:nodoc:
       # The serialization is done through YAML. If +class_name+ is specified, the serialized object must be of that
       # class on retrieval or SerializationTypeMismatch will be raised.
       #
-      # ==== Attributes
+      # ==== Parameters
       #
       # * +attr_name+ - The field name that should be serialized.
       # * +class_name+ - Optional, class name that the object type should be equal to.
@@ -1221,7 +1252,32 @@ module ActiveRecord #:nodoc:
         end
       end
 
-      # Resets all the cached information about columns, which will cause them to be reloaded on the next request.
+      # Resets all the cached information about columns, which will cause them
+      # to be reloaded on the next request.
+      #
+      # The most common usage pattern for this method is probably in a migration,
+      # when just after creating a table you want to populate it with some default
+      # values, eg:
+      #
+      #  class CreateJobLevels < ActiveRecord::Migration
+      #    def self.up
+      #      create_table :job_levels do |t|
+      #        t.integer :id
+      #        t.string :name
+      #
+      #        t.timestamps
+      #      end
+      #
+      #      JobLevel.reset_column_information
+      #      %w{assistant executive manager director}.each do |type|
+      #        JobLevel.create(:name => type)
+      #      end
+      #    end
+      #
+      #    def self.down
+      #      drop_table :job_levels
+      #    end
+      #  end
       def reset_column_information
         generated_methods.each { |name| undef_method(name) }
         @column_names = @columns = @columns_hash = @content_columns = @dynamic_methods_hash = @generated_methods = @inheritance_column = nil
@@ -1885,6 +1941,9 @@ module ActiveRecord #:nodoc:
         #       end
         #     end
         #   end
+        #
+        # *Note*: the +:find+ scope also has effect on update and deletion methods,
+        # like +update_all+ and +delete_all+.
         def with_scope(method_scoping = {}, action = :merge, &block)
           method_scoping = method_scoping.method_scoping if method_scoping.respond_to?(:method_scoping)
 
@@ -2232,7 +2291,28 @@ module ActiveRecord #:nodoc:
 
       end
 
-      # Enables Active Record objects to be used as URL parameters in Action Pack automatically.
+      # Returns a String, which Action Pack uses for constructing an URL to this
+      # object. The default implementation returns this record's id as a String,
+      # or nil if this record's unsaved.
+      #
+      # For example, suppose that you have a Users model, and that you have a
+      # <tt>map.resources :users</tt> route. Normally, +users_path+ will
+      # construct an URI with the user object's 'id' in it:
+      #
+      #   user = User.find_by_name('Phusion')
+      #   user_path(path)  # => "/users/1"
+      #
+      # You can override +to_param+ in your model to make +users_path+ construct
+      # an URI using the user's name instead of the user's id:
+      #
+      #   class User < ActiveRecord::Base
+      #     def to_param  # overridden
+      #       name
+      #     end
+      #   end
+      #   
+      #   user = User.find_by_name('Phusion')
+      #   user_path(path)  # => "/users/Phusion"
       def to_param
         # We can't use alias_method here, because method 'id' optimizes itself on the fly.
         (id = self.id) ? id.to_s : nil # Be sure to stringify the id for routes
@@ -2317,6 +2397,9 @@ module ActiveRecord #:nodoc:
       #
       # Unlike #destroy, this method doesn't run any +before_delete+ and +after_delete+
       # callbacks, nor will it enforce any association +:dependent+ rules.
+      # 
+      # In addition to deleting this record, any defined +before_delete+ and +after_delete+
+      # callbacks are run, and +:dependent+ rules defined on associations are run.
       def delete
         self.class.delete(id) unless new_record?
         freeze
@@ -2461,10 +2544,25 @@ module ActiveRecord #:nodoc:
       end
 
       # Allows you to set all the attributes at once by passing in a hash with keys
-      # matching the attribute names (which again matches the column names). Sensitive attributes can be protected
-      # from this form of mass-assignment by using the +attr_protected+ macro. Or you can alternatively
-      # specify which attributes *can* be accessed with the +attr_accessible+ macro. Then all the
+      # matching the attribute names (which again matches the column names).
+      #
+      # If +guard_protected_attributes+ is true (the default), then sensitive
+      # attributes can be protected from this form of mass-assignment by using
+      # the +attr_protected+ macro. Or you can alternatively specify which
+      # attributes *can* be accessed with the +attr_accessible+ macro. Then all the
       # attributes not included in that won't be allowed to be mass-assigned.
+      #
+      #   class User < ActiveRecord::Base
+      #     attr_protected :is_admin
+      #   end
+      #   
+      #   user = User.new
+      #   user.attributes = { :username => 'Phusion', :is_admin => true }
+      #   user.username   # => "Phusion"
+      #   user.is_admin?  # => false
+      #   
+      #   user.send(:attributes=, { :username => 'Phusion', :is_admin => true }, false)
+      #   user.is_admin?  # => true
       def attributes=(new_attributes, guard_protected_attributes = true)
         return if new_attributes.nil?
         attributes = new_attributes.dup

@@ -1,0 +1,22 @@
+== Terminology ==
+
+=== What We Mean by Benchmarking and Profiling ===
+
+Benchmarking: If you are new to programing you probably have heard the term mostly in comparative reviews of computer and graphic card specs. If you done a bit of coding you've probably seen in mostly in terms of comparing one language to another or iterations of the same language. 
+
+Benchmarking in rails is more fine grained. It entails comparing and contrasting various parts and pages of an application against one another. Mostly one is looking for how long a page requires to render, but memory consumption is also an area of concern.
+
+While benchmarking two different sets of problems can emerge. Either you find that a few pages are performing worse then the rest of your app unexpectedly or that your whole entire application is slower then it reasonably should be. From there you start to profile to find the problem. 
+
+Profiling: When a page or process is seen to be problematic due to speed or memory consumption we profile it. Meaning we measures the behavior as the page or process runs, particularly the frequency and duration of function calls. The goal of profiling is not to find bugs, but to eliminate bottlenecks and establish a baseline for future regression testing. It must be engaged in a carefully controlled process of measurement and analysis.
+
+==== What does that actually mean? ====
+
+You have to have a clear goal for when you benchmark and profile. It's very comparable to BDD where you are taking small steps towards a solution instead of trying to do it all in one large all encompassing step. A clearly defined set of expectations is essential for meaningful performance testing. We will talk more about this later. 
+
+==== Where Does this Leave Us ====
+
+Numbers and data. You benchmark to compare, your profile to fix. It's all about gaining data to analyze and using that information to better your application. The most important thing you should take away at the moment that this must be done in a systematic way. 
+
+So the next logical question is how do we get this data. 
+

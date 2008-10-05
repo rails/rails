@@ -1,0 +1,37 @@
+== Methods and actions ==
+
+A controller is a Ruby class which inherits from ActionController::Base and has methods just like any other class. Usually these methods correspond to actions in MVC, but they can just as well be helpful methods which can be called by actions. When your application receives a request, the routing will determine which controller and action to run. Then an instance of that controller will be created and the method corresponding to the action (the method with the same name as the action) is run.
+
+[source, ruby]
+----------------------------------------------
+class ClientsController < ActionController::Base
+
+  # Actions are public methods
+  def new
+  end
+
+  # These methods are responsible for producing output
+  def edit
+  end
+
+# Helper methods are private and can not be used as actions
+private
+
+  def foo
+  end
+
+end
+----------------------------------------------
+
+Private methods in a controller are also used as filters, which will be covered later in this guide.
+
+As an example, if the user goes to `/clients/new` in your application to add a new client, a ClientsController instance will be created and the `new` method will be run. Note that the empty method from the example above could work just fine because Rails will by default render the `new.html.erb` view unless the action says otherwise. The `new` method could make available to the view a `@client` instance variable by creating a new Client:
+
+[source, ruby]
+----------------------------------------------
+def new
+  @client = Client.new
+end
+----------------------------------------------
+
+The Layouts & rendering guide explains this in more detail.
