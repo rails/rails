@@ -8,13 +8,13 @@ module ActiveSupport #:nodoc:
   module Multibyte
     # A list of all available normalization forms. See http://www.unicode.org/reports/tr15/tr15-29.html for more
     # information about normalization.
-    NORMALIZATIONS_FORMS = [:c, :kc, :d, :kd]
+    NORMALIZATION_FORMS = [:c, :kc, :d, :kd]
 
     # The Unicode version that is supported by the implementation
     UNICODE_VERSION = '5.1.0'
 
     # The default normalization used for operations that require normalization. It can be set to any of the
-    # normalizations in NORMALIZATIONS_FORMS.
+    # normalizations in NORMALIZATION_FORMS.
     #
     # Example:
     #   ActiveSupport::Multibyte.default_normalization_form = :c
