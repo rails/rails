@@ -230,7 +230,16 @@ An alternative (and more efficient) way to do eager loading is to use the joins 
 
 [source, sql]
 `Client Load (0.000455)   SELECT clients.* FROM clients INNER JOIN addresses ON addresses.client_id = client.id INNER JOIN mailing_addresses ON mailing_addresses.client_id = client.id
+
 This query is more efficent, but there's a gotcha. If you have a client who does not have an address or a mailing address they will not be returned in this query at all. If you have any association as an optional association, you may want to use include rather than joins.
+
+When using eager loading you can specify conditions for the columns of the tables inside the eager loading to get back a smaller subset. If, for example, you want to find a client and all their orders within the last two weeks you could use eager loading with conditions for this:
+
+[source, Ruby]
+
+Client.find(:first, :include => "orders", :conditions => ["orders.created_at >= ? AND orders.created_at <= ?", Time.now - 2.weeks, Time.now])
+
+[source]
 
 == Dynamic finders
 
@@ -341,3 +350,6 @@ Thanks to Mike Gunderloy for his tips on creating this guide.
 1. Extended conditions section to include IN and using operators inside the conditions.
 2. Extended conditions section to include paragraph and example of parameter safety.
 3. Added TODO sections.
+
+=== Monday, 06 October 2008
+1. Added section in Eager Loading about using conditions on tables that are not the model's own.
