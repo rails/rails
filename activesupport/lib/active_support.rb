@@ -56,6 +56,8 @@ require 'active_support/time_with_zone'
 
 require 'active_support/secure_random'
 
+require 'active_support/rescuable'
+
 I18n.load_path << File.dirname(__FILE__) + '/active_support/locale/en-US.yml'
 
 Inflector = ActiveSupport::Deprecation::DeprecatedConstantProxy.new('Inflector', 'ActiveSupport::Inflector')

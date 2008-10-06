@@ -1,6 +1,8 @@
 require 'test/unit'
 
 $:.unshift "#{File.dirname(__FILE__)}/../lib"
+$:.unshift "#{File.dirname(__FILE__)}/../../activesupport/lib"
+$:.unshift "#{File.dirname(__FILE__)}/../../actionpack/lib"
 require 'action_mailer'
 require 'action_mailer/test_case'
 

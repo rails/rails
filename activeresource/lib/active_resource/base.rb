@@ -884,6 +884,7 @@ module ActiveResource
     #
     # ==== Examples
     #   my_attrs = {:name => 'J&J Textiles', :industry => 'Cloth and textiles'}
+    #   my_attrs = {:name => 'Marty', :colors => ["red", "green", "blue"]}
     #
     #   the_supplier = Supplier.find(:first)
     #   the_supplier.name # => 'J&M Textiles'
@@ -906,7 +907,7 @@ module ActiveResource
           case value
             when Array
               resource = find_or_create_resource_for_collection(key)
-              value.map { |attrs| resource.new(attrs) }
+              value.map { |attrs| attrs.is_a?(String) ? attrs.dup : resource.new(attrs) }
             when Hash
               resource = find_or_create_resource_for(key)
               resource.new(value)

@@ -12,4 +12,8 @@ class SecureRandomTest < Test::Unit::TestCase
     b2 = ActiveSupport::SecureRandom.hex(64)
     assert_not_equal b1, b2
   end
+
+  def test_random_number
+    assert ActiveSupport::SecureRandom.random_number(5000) < 5000
+  end
 end

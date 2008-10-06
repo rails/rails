@@ -161,12 +161,13 @@ module ActiveRecord
       # the objects' IDs to the relevant objects. Returns a 2-tuple
       # <tt>(id_to_record_map, ids)</tt> where +id_to_record_map+ is the Hash,
       # and +ids+ is an Array of record IDs.
-      def construct_id_map(records)
+      def construct_id_map(records, primary_key=nil)
         id_to_record_map = {}
         ids = []
         records.each do |record|
-          ids << record.id
-          mapped_records = (id_to_record_map[record.id.to_s] ||= [])
+          primary_key ||= record.class.primary_key
+          ids << record[primary_key]
+          mapped_records = (id_to_record_map[ids.last.to_s] ||= [])
           mapped_records << record
         end
         ids.uniq!
@@ -180,7 +181,7 @@ module ActiveRecord
         options = reflection.options
 
         conditions = "t0.#{reflection.primary_key_name} #{in_or_equals_for_ids(ids)}"
-        conditions << append_conditions(options, preload_options)
+        conditions << append_conditions(reflection, preload_options)
 
         associated_records = reflection.klass.find(:all, :conditions => [conditions, ids],
         :include => options[:include],
@@ -213,23 +214,24 @@ module ActiveRecord
       end
 
       def preload_has_many_association(records, reflection, preload_options={})
-        id_to_record_map, ids = construct_id_map(records)
-        records.each {|record| record.send(reflection.name).loaded}
         options = reflection.options
+
+        primary_key_name = reflection.through_reflection_primary_key_name
+        id_to_record_map, ids = construct_id_map(records, primary_key_name)
+        records.each {|record| record.send(reflection.name).loaded}
 
         if options[:through]
           through_records = preload_through_records(records, reflection, options[:through])
           through_reflection = reflections[options[:through]]
-          through_primary_key = through_reflection.primary_key_name
           unless through_records.empty?
             source = reflection.source_reflection.name
-            #add conditions from reflection!
-            through_records.first.class.preload_associations(through_records, source, reflection.options)
+            through_records.first.class.preload_associations(through_records, source, options)
             through_records.each do |through_record|
-              add_preloaded_records_to_collection(id_to_record_map[through_record[through_primary_key].to_s],
-                                                 reflection.name, through_record.send(source))
+              through_record_id = through_record[reflection.through_reflection_primary_key].to_s
+              add_preloaded_records_to_collection(id_to_record_map[through_record_id], reflection.name, through_record.send(source))
             end
           end
+
         else
           set_association_collection_records(id_to_record_map, reflection.name, find_associated_records(ids, reflection, preload_options),
                                              reflection.primary_key_name)
@@ -317,7 +319,7 @@ module ActiveRecord
             end
           end
           conditions = "#{table_name}.#{connection.quote_column_name(primary_key)} #{in_or_equals_for_ids(ids)}"
-          conditions << append_conditions(options, preload_options)
+          conditions << append_conditions(reflection, preload_options)
           associated_records = klass.find(:all, :conditions => [conditions, ids],
                                           :include => options[:include],
                                           :select => options[:select],
@@ -338,7 +340,7 @@ module ActiveRecord
           conditions = "#{reflection.klass.quoted_table_name}.#{foreign_key} #{in_or_equals_for_ids(ids)}"
         end
 
-        conditions << append_conditions(options, preload_options)
+        conditions << append_conditions(reflection, preload_options)
 
         reflection.klass.find(:all,
                               :select => (preload_options[:select] || options[:select] || "#{table_name}.*"),
@@ -354,9 +356,9 @@ module ActiveRecord
         instance_eval("%@#{sql.gsub('@', '\@')}@")
       end
 
-      def append_conditions(options, preload_options)
+      def append_conditions(reflection, preload_options)
         sql = ""
-        sql << " AND (#{interpolate_sql_for_preload(sanitize_sql(options[:conditions]))})" if options[:conditions]
+        sql << " AND (#{interpolate_sql_for_preload(reflection.sanitized_conditions)})" if reflection.sanitized_conditions
         sql << " AND (#{sanitize_sql preload_options[:conditions]})" if preload_options[:conditions]
         sql
       end

@@ -60,6 +60,24 @@ class AssertDifferenceTest < Test::Unit::TestCase
         @object.increment
       end
     end
+
+    def test_array_of_expressions_identify_failure
+      assert_difference ['@object.num', '1 + 1'] do
+        @object.increment
+      end
+      fail 'should not get to here'
+    rescue Test::Unit::AssertionFailedError => e
+      assert_equal "<1 + 1> was the expression that failed.\n<3> expected but was\n<2>.", e.message
+    end
+
+    def test_array_of_expressions_identify_failure_when_message_provided
+      assert_difference ['@object.num', '1 + 1'], 1, 'something went wrong' do
+        @object.increment
+      end
+      fail 'should not get to here'
+    rescue Test::Unit::AssertionFailedError => e
+      assert_equal "something went wrong.\n<1 + 1> was the expression that failed.\n<3> expected but was\n<2>.", e.message
+    end
   else
     def default_test; end
   end

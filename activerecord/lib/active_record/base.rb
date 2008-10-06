@@ -610,8 +610,8 @@ module ActiveRecord #:nodoc:
 
       # Executes a custom SQL query against your database and returns all the results.  The results will
       # be returned as an array with columns requested encapsulated as attributes of the model you call
-      # this method from.  If you call +Product.find_by_sql+ then the results will be returned in a Product
-      # object with the attributes you specified in the SQL query.
+      # this method from.  If you call <tt>Product.find_by_sql</tt> then the results will be returned in
+      # a Product object with the attributes you specified in the SQL query.
       #
       # If you call a complicated SQL query which spans multiple tables the columns specified by the
       # SELECT will be attributes of the model, whether or not they are columns of the corresponding
@@ -620,7 +620,7 @@ module ActiveRecord #:nodoc:
       # The +sql+ parameter is a full SQL query as a string.  It will be called as is, there will be
       # no database agnostic conversions performed.  This should be a last resort because using, for example,
       # MySQL specific terms will lock you to using that particular database engine or require you to
-      # change your call if you switch engines
+      # change your call if you switch engines.
       #
       # ==== Examples
       #   # A simple SQL query spanning multiple tables
@@ -1780,10 +1780,10 @@ module ActiveRecord #:nodoc:
 
                   #{'result = ' if bang}if options[:conditions]
                     with_scope(:find => finder_options) do
-                      ActiveSupport::Deprecation.silence { send(:#{finder}, options) }
+                      find(:#{finder}, options)
                     end
                   else
-                    ActiveSupport::Deprecation.silence { send(:#{finder}, options.merge(finder_options)) }
+                    find(:#{finder}, options.merge(finder_options))
                   end
                   #{'result || raise(RecordNotFound)' if bang}
                 end
@@ -1806,9 +1806,9 @@ module ActiveRecord #:nodoc:
                   options = { :conditions => find_attributes }
                   set_readonly_option!(options)
 
-                  record = find_initial(options)
+                  record = find(:first, options)
 
-                   if record.nil?
+                  if record.nil?
                     record = self.new { |r| r.send(:attributes=, attributes, guard_protected_attributes) }
                     #{'yield(record) if block_given?'}
                     #{'record.save' if instantiator == :create}

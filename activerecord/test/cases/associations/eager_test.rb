@@ -116,6 +116,13 @@ class EagerAssociationTest < ActiveRecord::TestCase
     assert_equal 2, posts.first.comments.size
   end
 
+  def test_loading_from_an_association_that_has_a_hash_of_conditions
+    assert_nothing_raised do
+      Author.find(:all, :include => :hello_posts_with_hash_conditions)
+    end
+    assert !Author.find(authors(:david).id, :include => :hello_posts_with_hash_conditions).hello_posts.empty?
+  end
+
   def test_loading_with_no_associations
     assert_nil Post.find(posts(:authorless).id, :include => :author).author
   end
@@ -266,6 +273,15 @@ class EagerAssociationTest < ActiveRecord::TestCase
     assert_equal 2, posts_with_comments.inject(0) { |sum, post| sum += post.comments.size }
     assert_equal authors(:david), assert_no_queries { posts_with_author.first.author }
     assert_equal authors(:david), assert_no_queries { posts_with_comments_and_author.first.author }
+  end
+
+  def test_eager_with_has_many_through_a_belongs_to_association
+    author = authors(:mary)
+    post = Post.create!(:author => author, :title => "TITLE", :body => "BODY")
+    author.author_favorites.create(:favorite_author_id => 1)
+    author.author_favorites.create(:favorite_author_id => 2)
+    posts_with_author_favorites = author.posts.find(:all, :include => :author_favorites)
+    assert_no_queries { posts_with_author_favorites.first.author_favorites.first.author_id }
   end
 
   def test_eager_with_has_many_through_an_sti_join_model

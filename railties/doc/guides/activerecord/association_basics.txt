@@ -698,8 +698,6 @@ end
 
 Counter cache columns are added to the containing model's list of read-only attributes through +attr_readonly+.
 
-WARNING: When you create a counter cache column in the database, be sure to specify a default value of zero. Otherwise, Rails will not properly maintain the counter.
-
 ===== +:dependent+
 
 If you set the +:dependent+ option to +:destroy+, then deleting this object will call the destroy method on the associated object to delete that object. If you set the +:dependent+ option to +:delete+, then deleting this object will delete the associated object _without_ calling its +destroy+ method.

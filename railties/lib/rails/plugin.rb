@@ -112,7 +112,7 @@ module Rails
   class GemPlugin < Plugin
     # Initialize this plugin from a Gem::Specification.
     def initialize(spec, gem)
-      directory = (gem.frozen? && gem.unpacked_paths.first) || File.join(spec.full_gem_path)
+      directory = spec.full_gem_path
       super(directory)
       @name = spec.name
     end

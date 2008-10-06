@@ -650,6 +650,15 @@ _form.html.erb:
 
 Although the same partial will be rendered into both views, the label on the submit button is controlled by a local variable passed into the partial.
 
+Every partial also has a local variable with the same name as the partial (minus the underscore). By default, it will look for an instance variable with the same name as the partial in the parent. You can pass an object in to this local variable via the +:object+ option:
+
+[source, html]
+-------------------------------------------------------
+<%= render :partial => "customer", :object => @new_customer %>
+-------------------------------------------------------
+
+Within the +customer+ partial, the +@customer+ variable will refer to +@new_customer+ from the parent view.
+
 ==== Rendering Collections 
 
 Partials are very useful in rendering collections. When you pass a collection to a partial via the +:collection+ option, the partial will be inserted once for each member in the collection:
@@ -666,12 +675,29 @@ _product.html.erb:
 <p>Product Name: <%= product.name %></p>
 -------------------------------------------------------
 
-When a partial is called with a pluralized collection, then the individual instances of the partial have access to the member of the collection being rendered via a singularized variable. In this case, the collection is +@products+, and within the +_product+ partial, you can refer to +product+ to get the instance that is being rendered.
+When a partial is called with a pluralized collection, then the individual instances of the partial have access to the member of the collection being rendered via a variable named after the partial. In this case, the partial is +_product, and within the +_product+ partial, you can refer to +product+ to get the instance that is being rendered. To use a custom local variable name within the partial, specify the +:as+ option in the call to the partial:
+
+[source, html]
+-------------------------------------------------------
+<%= render :partial => "product", :collection => @products, :as => :item %>
+-------------------------------------------------------
+
+With this change, you can access an instance of the +@products+ collection as the +item+ local variable within the partial.
+
+You can also specify a second partial to be rendered between instances of the main partial by using the +:spacer_template+ option:
+
+[source, html]
+-------------------------------------------------------
+<%= render :partial => "product", :collection => @products, :spacer_template => "product_ruler" %>
+-------------------------------------------------------
+
+Rails will render the +_product_ruler+ partial (with no data passed in to it) between each pair of +_product+ partials.
 
 == Changelog ==
 
 http://rails.lighthouseapp.com/projects/16213-rails-guides/tickets/15[Lighthouse ticket]
 
+* October 4, 2008: Additional info on partials (+:object+, +:as+, and +:spacer_template+) by link:../authors.html#mgunderloy[Mike Gunderloy] (not yet approved for publication)
 * September 28, 2008: First draft by link:../authors.html#mgunderloy[Mike Gunderloy] (not yet approved for publication)
 
 

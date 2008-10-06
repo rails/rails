@@ -46,10 +46,24 @@ class BaseTest < Test::Unit::TestCase
                                            :children => [{:name => 'Natacha'}]},
                                           {:name => 'Milena',
                                            :children => []}]}]}.to_xml(:root => 'customer')
+    # - resource with yaml array of strings; for ActiveRecords using serialize :bar, Array
+    @marty = <<-eof
+      <?xml version=\"1.0\" encoding=\"UTF-8\"?>
+      <person>
+        <id type=\"integer\">5</id>
+        <name>Marty</name>
+        <colors type=\"yaml\">---
+      - \"red\"
+      - \"green\"
+      - \"blue\"
+      </colors>
+      </person>
+    eof
 
     ActiveResource::HttpMock.respond_to do |mock|
       mock.get    "/people/1.xml",                {}, @matz
       mock.get    "/people/2.xml",                {}, @david
+      mock.get    "/people/5.xml",                {}, @marty
       mock.get    "/people/Greg.xml",             {}, @greg
       mock.get    "/people/4.xml",                {'key' => 'value'}, nil, 404
       mock.put    "/people/1.xml",                {}, nil, 204
@@ -848,6 +862,16 @@ class BaseTest < Test::Unit::TestCase
         brother.children.each do |child|
           assert_kind_of Customer::Friend::Brother::Child, child
         end
+      end
+    end
+  end
+
+  def test_load_yaml_array
+    assert_nothing_raised do
+      marty = Person.find(5)
+      assert_equal 3, marty.colors.size
+      marty.colors.each do |color|
+        assert_kind_of String, color
       end
     end
   end

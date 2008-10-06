@@ -12,10 +12,10 @@ module Rails
       @spec    = spec
       @gem_dir = gem_dir
     end
-    
+
     # silence the underlying builder
     def say(message)
     end
-    
+
   end
 end

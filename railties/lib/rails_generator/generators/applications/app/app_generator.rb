@@ -5,7 +5,7 @@ class AppGenerator < Rails::Generator::Base
   DEFAULT_SHEBANG = File.join(Config::CONFIG['bindir'],
                               Config::CONFIG['ruby_install_name'])
 
-  DATABASES = %w(mysql oracle postgresql sqlite2 sqlite3 frontbase)
+  DATABASES = %w(mysql oracle postgresql sqlite2 sqlite3 frontbase ibm_db)
   DEFAULT_DATABASE = 'sqlite3'
 
   default_options   :db => (ENV["RAILS_DEFAULT_DATABASE"] || DEFAULT_DATABASE),

@@ -273,6 +273,13 @@ class TestMailer < ActionMailer::Base
     headers      "return-path" => "another@somewhere.test"
   end
 
+  def body_ivar(recipient)
+    recipients   recipient
+    subject      "Body as a local variable"
+    from         "test@example.com"
+    body         :body => "foo", :bar => "baz"
+  end
+
   class <<self
     attr_accessor :received_body
   end
@@ -925,6 +932,11 @@ EOF
     ActionMailer::Base.delivery_method = :smtp
     TestMailer.deliver_return_path
     assert_match %r{^Return-Path: <another@somewhere.test>}, MockSMTP.deliveries[0][0]
+  end
+
+  def test_body_is_stored_as_an_ivar
+    mail = TestMailer.create_body_ivar(@recipient)
+    assert_equal "body: foo\nbar: baz", mail.body
   end
 end
 

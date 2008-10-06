@@ -276,7 +276,7 @@ module ActionController
           ActionController::Base.clear_last_instantiation!
 
           env['rack.input'] = data.is_a?(IO) ? data : StringIO.new(data || '')
-          @status, @headers, result_body = ActionController::Dispatcher.new.call(env)
+          @status, @headers, result_body = ActionController::Dispatcher.new.mark_as_test_request!.call(env)
           @request_count += 1
 
           @controller = ActionController::Base.last_instantiation
