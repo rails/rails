@@ -1,5 +1,7 @@
 *Edge*
 
+* Make PrototypeHelper#submit_to_remote a wrapper around PrototypeHelper#button_to_remote. [Tarmo Tänav]
+
 * Set HttpOnly for the cookie session store's cookie.  #1046 
 
 * Added FormTagHelper#image_submit_tag confirm option #784 [Alastair Brunton]
