@@ -596,7 +596,7 @@ module ActionView
             end
 
             def missing_extension?(source)
-              extension && File.extname(source).blank? || File.exist?(File.join(ASSETS_DIR, directory, "#{source}.#{extension}"))
+              extension && (File.extname(source).blank? || File.exist?(File.join(ASSETS_DIR, directory, "#{source}.#{extension}")))
             end
 
             def prepend_relative_url_root(source)
