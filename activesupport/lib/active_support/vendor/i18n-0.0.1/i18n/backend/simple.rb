@@ -30,7 +30,13 @@ module I18n
         options.delete(:default)
         values = options.reject{|name, value| reserved.include? name }
 
-        entry = lookup(locale, key, scope) || default(locale, default, options) || raise(I18n::MissingTranslationData.new(locale, key, options))
+        entry = lookup(locale, key, scope)
+        if entry.nil?
+          entry = default(locale, default, options)
+          if entry.nil?
+            raise(I18n::MissingTranslationData.new(locale, key, options))
+          end
+        end
         entry = pluralize locale, entry, count
         entry = interpolate locale, entry, values
         entry
@@ -83,7 +89,13 @@ module I18n
           return unless key
           init_translations unless initialized?
           keys = I18n.send :normalize_translation_keys, locale, key, scope
-          keys.inject(translations){|result, k| result[k.to_sym] or return nil }
+          keys.inject(translations) do |result, k|
+            if (x = result[k.to_sym]).nil?
+              return nil
+            else
+              x
+            end
+          end
         end
       
         # Evaluates a default translation. 
