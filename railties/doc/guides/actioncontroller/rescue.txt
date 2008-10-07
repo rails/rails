@@ -1,3 +1,120 @@
 == Rescue ==
 
-Describe how to use rescue_from et al to rescue exceptions in controllers.
+TODO: s/environment/local or public/
+
+Most likely your application is going to contain bugs or otherwise throw an exception that needs to be handled. For example, if the user follows a link to a resource that no longer exists in the database, Active Record will throw the ActiveRecord::RecordNotFound exception. Rails' default exception handling displays a 500 Server Error message for all exceptions. If the application is running in the development environment, a nice traceback and some added information gets displayed so you can figure out what went wrong and deal with it. If the application is in production Rails will just display a simple "500 Server Error" message to the user, or a "404 Not Found" if there was a routing error or a record could not be found. Sometimes you might want to customize how these errors are caught and how they're displayed to the user. There are several levels of exception handling available in a Rails application:
+
+=== The default 500 and 404 templates ===
+
+By default a production application will render either a 404 or a 500 error message. These messages are contained in static HTML files in the `public` folder, in `404.html` and `500.html` respectively. You can customize these files to add some extra information and layout, but remember that they are static; i.e. you can't use RHTML or layouts in them, just plain HTML.
+
+=== `rescue_from` ===
+
+If you want to do something a bit more elaborate when catching errors, you can use "rescue_from":http://api.rubyonrails.org/classes/ActionController/Rescue/ClassMethods.html#M000620, which handles exceptions of a certain type (or multiple types) in an entire controller and its subclasses. When an exception occurs which is caught by a rescue_from directive, the exception object is passed to the handler. The handler can be a method or a Proc object passed to the `:with` option. You can also use a block directly instead of an explicit Proc object.
+
+Let's see how we can use rescue_from to intercept all ActiveRecord::RecordNotFound errors and do something with them.
+
+[source, ruby]
+-----------------------------------
+class ApplicationController < ActionController::Base
+
+  rescue_from ActiveRecord::RecordNotFound, :with => :record_not_found
+
+private
+
+  def record_not_found
+    render :text => "404 Not Found", :status => 404
+  end
+
+end
+-----------------------------------
+
+Of course, this example is anything but elaborate and doesn't improve the default exception handling at all, but once you can catch all those exceptions you're free to do whatever you want with them. For example, you could create custom exception classes that will be thrown when a user doesn't have access to a certain section of your application:
+
+[source, ruby]
+-----------------------------------
+class ApplicationController < ActionController::Base
+
+  rescue_from User::NotAuthorized, :with => :user_not_authorized
+
+private
+
+  def user_not_authorized
+    flash[:error] = "You don't have access to this section."
+    redirect_to :back
+  end
+
+end
+
+class ClientsController < ApplicationController
+
+  # Check that the user has the right authorization to access clients.
+  before_filter :check_authorization
+
+  # Note how the actions don't have to worry about all the auth stuff.
+  def edit
+    @client = Client.find(params[:id])
+  end
+
+private
+
+  # If the user is not authorized, just throw the exception.
+  def check_authorization
+    raise User::NotAuthorized unless current_user.admin?
+  end
+
+end
+-----------------------------------
+
+NOTE: Certain exceptions are only rescuable from the ApplicationController class, as they are raised before the controller gets initialized and the action gets executed. See Partik Naik's "article":http://m.onkey.org/2008/7/20/rescue-from-dispatching on the subject for more information.
+
+=== `rescue_action` ===
+
+The `rescue_from` method was added to make it easier to rescue different kinds of exceptions and deal with each separately. Action Controller has a default method which intercepts *all* exceptions raised, `rescue_action`. You can override this method in a controller or in ApplicationController to rescue all exceptions raised in that particular context. You can get a little bit more granular by using the "rescue_action_in_public":http://api.rubyonrails.org/classes/ActionController/Rescue.html#M000615 and "rescue_action_locally":http://api.rubyonrails.org/classes/ActionController/Rescue.html#M000618 methods which are used to rescue actions for public and local requests. Let's see how the User::NotAuthorized exception could be caught using this technique:
+
+[source, ruby]
+----------------------------------------
+class ApplicationController < ActionController::Base
+
+private
+
+  def rescue_action_in_public(exception)
+    case exception
+      when User::NotAuthorized
+        user_not_authorized
+      else
+        super
+    end
+  end
+
+end
+----------------------------------------
+
+As you can see, this gets a bit messy once you start rescuing various types of error that require separate handlers, so it's a good idea to use `rescue_from` instead.
+
+=== Getting down and dirty ===
+
+Of course you can still use Ruby's `rescue` to rescue exceptions wherever you want. This is usually constrained to single methods, i.e. actions, but is still a very useful technique that should be used when appropriate. For example, you might use an API that raises a timeout error in one of your actions, and you have to handle that if it's raised:
+
+[source, ruby]
+----------------------------------------
+require 'clients_international'
+class ClientsController < ApplicationController
+
+  def update
+    @client = Client.find(params[:id])
+    @client.attributes = params[:client]
+    if @client.save
+      flash[:notice] = "Client was updated"
+      ClientsInternational.send_update(@client.to_xml)
+      redirect_to clients_url
+    else
+      render :action => "new"
+    end
+  rescue ClientsInternational::TimeoutError
+    flash[:error] = "Couldn't send API update"
+    redirect_to @client
+  end
+
+end
+----------------------------------------

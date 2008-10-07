@@ -59,24 +59,27 @@ TODO: Find a real example for an around filter
 
 [source, ruby]
 ---------------------------------
+# Example taken from the Rails API filter documentation:
+# http://api.rubyonrails.org/classes/ActionController/Filters/ClassMethods.html
 class ApplicationController < Application
 
-  around_filter :foo
+  around_filter :catch_exceptions
 
 private
 
-  def foo
-    logger.debug("Action has not been run yet")
-    yield #Run the action
-    logger.debug("Action has been run")
+  def catch_exceptions
+    yield
+  rescue => exception
+    logger.debug "Caught exception! #{exception}"
+    raise
   end
 
 end
 ---------------------------------
 
-=== Other types of filters ===
+=== Other ways to use filters ===
 
-While the most common way to use filters is by creating private methods and using *_filter to add them, there are two other ways.
+While the most common way to use filters is by creating private methods and using *_filter to add them, there are two other ways to do the same thing.
 
 The first is to use a block directly with the *_filter methods. The block receives the controller as an argument, and the `require_login` filter from above could be rewritte to use a block:
 
