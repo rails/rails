@@ -854,6 +854,42 @@ module ActiveResource
     #
     #   my_group.to_xml(:skip_instruct => true)
     #   # => <subsidiary_group> [...] </subsidiary_group>
+    def to_xml(options={})
+      attributes.to_xml({:root => self.class.element_name}.merge(options))
+    end
+
+    # Returns a JSON string representing the model. Some configuration is
+    # available through +options+.
+    #
+    # ==== Options
+    # The +options+ are passed to the +to_json+ method on each
+    # attribute, so the same options as the +to_json+ methods in
+    # Active Support.
+    #
+    # * <tt>:only</tt> - Only include the specified attribute or list of
+    #   attributes in the serialized output. Attribute names must be specified
+    #   as strings.
+    # * <tt>:except</tt> - Do not include the specified attribute or list of
+    #   attributes in the serialized output. Attribute names must be specified
+    #   as strings.
+    #
+    # ==== Examples
+    #   person = Person.new(:first_name => "Jim", :last_name => "Smith")
+    #   person.to_json
+    #   # => {"first_name": "Jim", "last_name": "Smith"}
+    #
+    #   person.to_json(:only => ["first_name"])
+    #   # => {"first_name": "Jim"}
+    #
+    #   person.to_json(:except => ["first_name"])
+    #   # => {"last_name": "Smith"}
+    def to_json(options={})
+      attributes.to_json(options)
+    end
+
+    # Returns the serialized string representation of the resource in the configured
+    # serialization format specified in ActiveResource::Base.format. The options
+    # applicable depend on the configured encoding format.
     def encode(options={})
       case self.class.format
         when ActiveResource::Formats[:xml]
