@@ -1,6 +1,6 @@
 == HTTP Basic Authentication ==
 
-Rails comes with built-in HTTP Basic authentication. This is an authentication scheme that is supported by the majority of browsers and other HTTP clients. As an example, we will create an administration section which will only be available by entering a username and a password into the browser's HTTP Basic dialog window. Using the built-in authentication is quite easy and only requires you to use one method, "authenticate_or_request_with_http_basic":http://api.rubyonrails.org/classes/ActionController/HttpAuthentication/Basic/ControllerMethods.html#M000610
+Rails comes with built-in HTTP Basic authentication. This is an authentication scheme that is supported by the majority of browsers and other HTTP clients. As an example, we will create an administration section which will only be available by entering a username and a password into the browser's HTTP Basic dialog window. Using the built-in authentication is quite easy and only requires you to use one method, link:http://api.rubyonrails.org/classes/ActionController/HttpAuthentication/Basic/ControllerMethods.html#M000610[authenticate_or_request_with_http_basic].
 
 [source, ruby]
 -------------------------------------

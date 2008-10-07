@@ -1,6 +1,6 @@
 == Streaming and file downloads ==
 
-Sometimes you may want to send a file to the user instead of rendering an HTML page. All controllers in Rails have the "send_data":http://api.rubyonrails.org/classes/ActionController/Streaming.html#M000624 and the "send_file":http://api.rubyonrails.org/classes/ActionController/Streaming.html#M000623 methods, that will both stream data to the client. `send_file` is a convenience method which lets you provide the name of a file on the disk and it will stream the contents of that file for you.
+Sometimes you may want to send a file to the user instead of rendering an HTML page. All controllers in Rails have the link:http://api.rubyonrails.org/classes/ActionController/Streaming.html#M000624[send_data] and the link:http://api.rubyonrails.org/classes/ActionController/Streaming.html#M000623[send_file] methods, that will both stream data to the client. `send_file` is a convenience method which lets you provide the name of a file on the disk and it will stream the contents of that file for you.
 
 To stream data to the client, use `send_data`:
 

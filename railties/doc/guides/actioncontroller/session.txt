@@ -21,7 +21,7 @@ config.action_controller.session_store = :active_record_store
 
 === Disabling the session ===
 
-Sometimes you don't need a session, and you can turn it off to avoid the unnecessary overhead. To do this, use the "session":http://api.rubyonrails.org/classes/ActionController/SessionManagement/ClassMethods.html#M000649  class method in your controller:
+Sometimes you don't need a session, and you can turn it off to avoid the unnecessary overhead. To do this, use the link:http://api.rubyonrails.org/classes/ActionController/SessionManagement/ClassMethods.html#M000649[session] class method in your controller:
 
 [source, ruby]
 ------------------------------------------
@@ -108,7 +108,7 @@ class LoginsController < ApplicationController
 end
 ------------------------------------------
 
-To reset the entire session, use "reset_session":http://api.rubyonrails.org/classes/ActionController/Base.html#M000855
+To reset the entire session, use link:http://api.rubyonrails.org/classes/ActionController/Base.html#M000855[reset_session].
 
 === The flash ===
 
