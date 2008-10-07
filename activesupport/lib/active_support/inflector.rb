@@ -259,11 +259,15 @@ module ActiveSupport
     #   # => <a href="/person/1-donald-e-knuth">Donald E. Knuth</a>
     def parameterize(string, sep = '-')
       re_sep = Regexp.escape(sep)
-      transliterate(string).
-        gsub(/[^a-z0-9\-_\+]+/i, sep).      # Turn unwanted chars into the separator.
-        squeeze(sep).                       # No more than one of the separator in a row.
-        gsub(/^#{re_sep}|#{re_sep}$/i, ''). # Remove leading/trailing separator.
-        downcase
+      # replace accented chars with ther ascii equivalents
+      parameterized_string = transliterate(string)
+      # Turn unwanted chars into the seperator
+      parameterized_string.gsub!(/[^a-z0-9\-_\+]+/i, sep)
+      # No more than one of the separator in a row.
+      parameterized_string.squeeze!(sep)
+      # Remove leading/trailing separator.
+      parameterized_string.gsub!(/^#{re_sep}|#{re_sep}$/i, '')
+      parameterized_string.downcase
     end
 
 
