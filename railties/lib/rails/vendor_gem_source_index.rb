@@ -63,8 +63,8 @@ module Rails
       YAML.load_file(spec_file) if File.exist?(spec_file)
     end
 
-    def find_name(gem_name, version_requirement = Gem::Requirement.default)
-      search(/^#{gem_name}$/, version_requirement)
+    def find_name(*args)
+      @installed_source_index.find_name(*args) + @vendor_source_index.find_name(*args)
     end
 
     def search(*args)
