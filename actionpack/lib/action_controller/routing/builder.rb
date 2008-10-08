@@ -60,12 +60,10 @@ module ActionController
       # segments are passed alongside in order to distinguish between default values
       # and requirements.
       def divide_route_options(segments, options)
-        options = options.dup
+        options = options.except(:path_prefix, :name_prefix)
 
         if options[:namespace]
           options[:controller] = "#{options.delete(:namespace).sub(/\/$/, '')}/#{options[:controller]}"
-          options.delete(:path_prefix)
-          options.delete(:name_prefix)
         end
 
         requirements = (options.delete(:requirements) || {}).dup
