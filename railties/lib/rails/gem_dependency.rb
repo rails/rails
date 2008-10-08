@@ -108,6 +108,8 @@ module Rails
       @loaded ||= begin
         if vendor_rails?
           true
+        elsif specification.nil?
+          false
         else
           # check if the gem is loaded by inspecting $"
           # specification.files lists all the files contained in the gem
