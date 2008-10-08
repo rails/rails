@@ -201,19 +201,17 @@ client.save
 
 == Lock
 
-TODO
+If you're wanting to stop race conditions for a specific record, say for example you're incrementing a single field for a record you can use the lock option to ensure that the record is updated correctly. It's recommended this be used inside a transaction.
+
+[source, Ruby]
+Topic.transaction do
+  t = Topic.find(params[:id], :lock => true)
+  t.increment!(:views)
+end
 
 == Making It All Work Together
 
-You can chain these options together in no particular order as ActiveRecord will write the correct SQL for you. For example you could do this:
-
-[source, ruby]
-Client.find(:all, :order => "created_at DESC", :select => "viewable_by, created_at", :conditions => ["viewable_by = ?", params[:level]], :limit => 10, :include => :orders, :joins => :address)
-
-Which should execute a query like 
-
-[source, sql]
-example goes here
+You can chain these options together in no particular order as ActiveRecord will write the correct SQL for you. If you specify two instances of the same options inside the find statement ActiveRecord will use the latter.
 
 == Eager Loading
 
@@ -262,7 +260,12 @@ will either assign an existing client object with the name 'Ryan' to the client 
 
 == Finding By SQL
 
-TODO
+If you'd like to use your own SQL to find records a table you can use `find_by_sql`. `find_by_sql` will return an array of objects even if it only returns a single record in it's call to the database. For example you could run this query:
+
+[source, ruby]
+Client.find_by_sql("SELECT * FROM clients INNER JOIN orders ON clients.id = orders.client_id ORDER clients.created_at desc")
+
+`find_by_sql` provides you with a simple way of making custom calls to the database and converting those to objects.
 
 == Working with Associations
 
@@ -315,11 +318,38 @@ Remember that named scopes are stackable, so you will be able to do `Client.rece
 
 == Existance of Objects
 
-TODO
+If you simply want to check for the existance of the object there's a method called `exists?`. This method will query the database using the same query as find, but instead of returning an object or collection of objects it will return either true or false.
+
+[source, ruby]
+Client.exists?(1)
+
+The above code will check for the existance of a clients table record with the id of 1 and return true if it exists.
+
+[source, ruby]
+Client.exists?(1,2,3)
+# or
+Client.exists?([1,2,3])
+
+`exists?` also takes multiple ids, as shown by the above code, but the catch is that it will return true if any one of those records exists.
+
+Further more, `exists` takes a `conditions` option much like find:
+
+[source, ruby]
+Client.exists?(:conditions => "first_name = 'Ryan'")
 
 == Calculations
 
-TODO
+=== Count
+
+If you want to see how many records are in your models table you could call `Client.count` and that will return the number. If you want to be more specific and find all the clients with their age present in the database you can use `Client.count(:age)`.
+
+`count` takes conditions much in the same way `exists?` does:
+
+[source, ruby]
+Client.count(:conditions => "first_name = 'Ryan'")
+
+[source, sql]
+SELECT count(*) AS count_all FROM `clients` WHERE (first_name = 1) 
 
 == With Scope
 
@@ -353,3 +383,7 @@ Thanks to Mike Gunderloy for his tips on creating this guide.
 
 === Monday, 06 October 2008
 1. Added section in Eager Loading about using conditions on tables that are not the model's own.
+
+=== Thursday, 09 October 2008
+1. Wrote section about lock option and tidied up "Making it all work together" section.
+2. Added section on using count.
