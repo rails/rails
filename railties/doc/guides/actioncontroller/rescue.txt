@@ -66,30 +66,6 @@ end
 
 NOTE: Certain exceptions are only rescuable from the ApplicationController class, as they are raised before the controller gets initialized and the action gets executed. See Partik Naik's link:http://m.onkey.org/2008/7/20/rescue-from-dispatching[article] on the subject for more information.
 
-=== `rescue_action` ===
-
-The `rescue_from` method was added to make it easier to rescue different kinds of exceptions and deal with each separately. Action Controller has a default method which intercepts *all* exceptions raised, `rescue_action`. You can override this method in a controller or in ApplicationController to rescue all exceptions raised in that particular context. You can get a little bit more granular by using the link:http://api.rubyonrails.org/classes/ActionController/Rescue.html#M000615[rescue_action_in_public] and link:http://api.rubyonrails.org/classes/ActionController/Rescue.html#M000618[rescue_action_locally] methods which are used to rescue actions for public and local requests. Let's see how the User::NotAuthorized exception could be caught using this technique:
-
-[source, ruby]
-----------------------------------------
-class ApplicationController < ActionController::Base
-
-private
-
-  def rescue_action_in_public(exception)
-    case exception
-      when User::NotAuthorized
-        user_not_authorized
-      else
-        super
-    end
-  end
-
-end
-----------------------------------------
-
-As you can see, this gets a bit messy once you start rescuing various types of error that require separate handlers, so it's a good idea to use `rescue_from` instead.
-
 === Getting down and dirty ===
 
 Of course you can still use Ruby's `rescue` to rescue exceptions wherever you want. This is usually constrained to single methods, i.e. actions, but is still a very useful technique that should be used when appropriate. For example, you might use an API that raises a timeout error in one of your actions, and you have to handle that if it's raised:
