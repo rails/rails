@@ -8,7 +8,7 @@ class ClientsController < ActionController::Base
 
   # This action uses query string parameters because it gets run by a HTTP GET request,
   # but this does not make any difference to the way in which the parameters are accessed.
-  # The URL for this action would look like this in order to list activated clients: /clients/?status=activated
+  # The URL for this action would look like this in order to list activated clients: /clients?status=activated
   def index
     if params[:status] = "activated"
       @clients = Client.activated
@@ -47,7 +47,7 @@ The value of `params[:ids]` will now be `["1", "2", "3"]`. Note that parameter v
 To send a hash you include the key name inside the brackets:
 
 -------------------------------------
-<form action="/clients">
+<form action="/clients" method="post">
   <input type="text" name="client[name]" value="Acme" />
   <input type="text" name="client[phone]" value="12345" />
   <input type="text" name="client[address][postcode]" value="12345" />

@@ -1,10 +1,10 @@
 == The request and response objects ==
 
-In every controller there are two accessor methods pointing to the request and the response objects associated with the request cycle that is currently in execution. The `request` method contains an instance of "AbstractRequest":http://api.rubyonrails.org/classes/ActionController/AbstractRequest.html and the `response` method contains the "response object":http://github.com/rails/rails/tree/master/actionpack/lib/action_controller/response.rb representing what is going to be sent back to the client.
+In every controller there are two accessor methods pointing to the request and the response objects associated with the request cycle that is currently in execution. The `request` method contains an instance of link:http://api.rubyonrails.org/classes/ActionController/AbstractRequest.html[AbstractRequest] and the `response` method contains the link:http://github.com/rails/rails/tree/master/actionpack/lib/action_controller/response.rb[response object] representing what is going to be sent back to the client.
 
 === The request ===
 
-The request object contains a lot of useful information about the request coming in from the client. To get a full list of the available methods, refer to the "Rails API documentation":http://api.rubyonrails.org/classes/ActionController/AbstractRequest.html
+The request object contains a lot of useful information about the request coming in from the client. To get a full list of the available methods, refer to the link:http://api.rubyonrails.org/classes/ActionController/AbstractRequest.html[API documentation].
 
  * host - The hostname used for this request.
  * domain - The hostname without the first part (usually "www").

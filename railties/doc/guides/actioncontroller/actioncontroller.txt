@@ -15,6 +15,8 @@ include::cookies.txt[]
 
 include::filters.txt[]
 
+include::verification.txt[]
+
 include::request_response_objects.txt[]
 
 include::http_auth.txt[]
@@ -22,7 +24,5 @@ include::http_auth.txt[]
 include::streaming.txt[]
 
 include::parameter_filtering.txt[]
-
-include::verification.txt[]
 
 include::rescue.txt[]
