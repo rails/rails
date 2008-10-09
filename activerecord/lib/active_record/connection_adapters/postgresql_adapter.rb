@@ -537,7 +537,7 @@ module ActiveRecord
         execute("ROLLBACK TO SAVEPOINT #{current_savepoint_name}")
       end
 
-      def release_savepoint(savepoint_number)
+      def release_savepoint
         execute("RELEASE SAVEPOINT #{current_savepoint_name}")
       end
 

@@ -309,7 +309,6 @@ class TransactionTest < ActiveRecord::TestCase
   uses_mocha 'mocking connection.commit_db_transaction' do
     def test_rollback_when_commit_raises
       Topic.connection.expects(:begin_db_transaction)
-      Topic.connection.expects(:transaction_active?).returns(true) if current_adapter?(:PostgreSQLAdapter)
       Topic.connection.expects(:commit_db_transaction).raises('OH NOES')
       Topic.connection.expects(:rollback_db_transaction)
 
