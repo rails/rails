@@ -65,6 +65,12 @@ module ActiveRecord
       def supports_ddl_transactions?
         false
       end
+      
+      # Does this adapter support savepoints? PostgreSQL and MySQL do, SQLite
+      # does not.
+      def supports_savepoints?
+        false
+      end
 
       # Should primary key values be selected from their corresponding
       # sequence before the insert statement?  If true, next_sequence_value

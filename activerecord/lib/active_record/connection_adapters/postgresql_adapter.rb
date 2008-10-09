@@ -272,6 +272,10 @@ module ActiveRecord
       def supports_ddl_transactions?
         true
       end
+      
+      def supports_savepoints?
+        true
+      end
 
       # Returns the configured supported identifier length supported by PostgreSQL,
       # or report the default of 63 on PostgreSQL 7.x.

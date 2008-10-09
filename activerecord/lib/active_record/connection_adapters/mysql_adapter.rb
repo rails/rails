@@ -205,6 +205,10 @@ module ActiveRecord
       def supports_migrations? #:nodoc:
         true
       end
+      
+      def supports_savepoints? #:nodoc:
+        true
+      end
 
       def native_database_types #:nodoc:
         NATIVE_DATABASE_TYPES

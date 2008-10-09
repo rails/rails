@@ -239,7 +239,7 @@ class TransactionTest < ActiveRecord::TestCase
 
     assert @first.reload.approved?
     assert !@second.reload.approved?
-  end
+  end if Topic.connection.supports_savepoints?
 
   def test_no_savepoint_in_nested_transaction_without_force
     Topic.transaction do
@@ -260,7 +260,7 @@ class TransactionTest < ActiveRecord::TestCase
 
     assert !@first.reload.approved?
     assert !@second.reload.approved?
-  end
+  end if Topic.connection.supports_savepoints?
   
   def test_many_savepoints
     Topic.transaction do
@@ -304,7 +304,7 @@ class TransactionTest < ActiveRecord::TestCase
     assert_equal "One", @one
     assert_equal "Two", @two
     assert_equal "Three", @three
-  end
+  end if Topic.connection.supports_savepoints?
 
   uses_mocha 'mocking connection.commit_db_transaction' do
     def test_rollback_when_commit_raises
@@ -411,7 +411,7 @@ class TransactionsWithTransactionalFixturesTest < ActiveRecord::TestCase
 
     assert !@first.reload.approved?
   end
-end
+end if Topic.connection.supports_savepoints?
 
 if current_adapter?(:PostgreSQLAdapter)
   class ConcurrentTransactionTest < TransactionTest
