@@ -53,6 +53,20 @@ module ActiveRecord
       def delete(sql, name = nil)
         delete_sql(sql, name)
       end
+      
+      # Checks whether there is currently no transaction active. This is done
+      # by querying the database driver, and does not use the transaction
+      # house-keeping information recorded by #increment_open_transactions and
+      # friends.
+      #
+      # Returns true if there is no transaction active, false if there is a
+      # transaction active, and nil if this information is unknown.
+      #
+      # Not all adapters supports transaction state introspection. Currently,
+      # only the PostgreSQL adapter supports this.
+      def outside_transaction?
+        nil
+      end
 
       # Runs the given block in a database transaction, and returns the result
       # of the block.
@@ -119,7 +133,7 @@ module ActiveRecord
             yield
           end
         rescue Exception => database_transaction_rollback
-          if transaction_open
+          if transaction_open && !outside_transaction?
             transaction_open = false
             decrement_open_transactions
             if open_transactions == 0
@@ -131,7 +145,9 @@ module ActiveRecord
           raise unless database_transaction_rollback.is_a? ActiveRecord::Rollback
         end
       ensure
-        if transaction_open
+        if outside_transaction?
+          @open_transactions = 0
+        elsif transaction_open
           decrement_open_transactions
           begin
             if open_transactions == 0

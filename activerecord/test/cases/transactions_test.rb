@@ -310,6 +310,7 @@ class TransactionTest < ActiveRecord::TestCase
     def test_rollback_when_commit_raises
       Topic.connection.expects(:begin_db_transaction)
       Topic.connection.expects(:commit_db_transaction).raises('OH NOES')
+      Topic.connection.expects(:outside_transaction?).returns(false)
       Topic.connection.expects(:rollback_db_transaction)
 
       assert_raise RuntimeError do
@@ -317,6 +318,39 @@ class TransactionTest < ActiveRecord::TestCase
           # do nothing
         end
       end
+    end
+  end
+  
+  if current_adapter?(:PostgreSQLAdapter) && PGconn.public_method_defined?(:transaction_status)
+    def test_outside_transaction_works
+      Topic.logger.info("-------------")
+      assert Topic.connection.outside_transaction?
+      Topic.connection.begin_db_transaction
+      assert !Topic.connection.outside_transaction?
+      Topic.connection.rollback_db_transaction
+      assert Topic.connection.outside_transaction?
+    end
+    
+    uses_mocha 'mocking connection.rollback_db_transaction' do
+      def test_rollback_wont_be_executed_if_no_transaction_active
+        assert_raise RuntimeError do
+          Topic.transaction do
+            Topic.connection.rollback_db_transaction
+            Topic.connection.expects(:rollback_db_transaction).never
+            raise "Rails doesn't scale!"
+          end
+        end
+      end
+    end
+    
+    def test_open_transactions_count_is_reset_to_zero_if_no_transaction_active
+      Topic.transaction do
+        Topic.transaction do
+          Topic.connection.rollback_db_transaction
+        end
+        assert_equal 0, Topic.connection.open_transactions
+      end
+      assert_equal 0, Topic.connection.open_transactions
     end
   end
 
