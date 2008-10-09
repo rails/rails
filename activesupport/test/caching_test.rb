@@ -159,11 +159,6 @@ class MemCacheStoreTest < Test::Unit::TestCase
     @cache.read('foo').gsub!(/.*/, 'baz')
     assert_equal 'bar', @cache.read('foo')
   end
-
-  # Disabling increment and decrement tests until issues can be addressed in the
-  # upstream codebase.
-  def test_increment; end
-  def test_decrement; end
 end
 
 class CompressedMemCacheStore < Test::Unit::TestCase
@@ -173,9 +168,4 @@ class CompressedMemCacheStore < Test::Unit::TestCase
   end
 
   include CacheStoreBehavior
-
-  # Disabling increment and decrement tests until issues can be addressed in the
-  # upstream codebase.
-  def test_increment; end
-  def test_decrement; end
 end
