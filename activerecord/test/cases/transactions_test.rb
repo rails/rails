@@ -215,7 +215,7 @@ class TransactionTest < ActiveRecord::TestCase
 
   def test_invalid_keys_for_transaction
     assert_raises ArgumentError do
-      Topic.transaction :forced => true do
+      Topic.transaction :nested => true do
       end
     end
   end
@@ -228,7 +228,7 @@ class TransactionTest < ActiveRecord::TestCase
       @second.save!
 
       begin
-        Topic.transaction :force => true do
+        Topic.transaction :nest => true do
           @first.happy = false
           @first.save!
           raise
@@ -268,17 +268,17 @@ class TransactionTest < ActiveRecord::TestCase
       @first.save!
       
       begin
-        Topic.transaction :force => true do
+        Topic.transaction :nest => true do
           @first.content = "Two"
           @first.save!
           
           begin
-            Topic.transaction :force => true do
+            Topic.transaction :nest => true do
               @first.content = "Three"
               @first.save!
               
               begin
-                Topic.transaction :force => true do
+                Topic.transaction :nest => true do
                   @first.content = "Four"
                   @first.save!
                   raise

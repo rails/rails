@@ -120,14 +120,69 @@ module ActiveRecord
     #   end
     #
     # One should restart the entire transaction if a StatementError occurred.
+    #
+    # == Nested transactions
+    #
+    # #transaction calls can be nested. By default, this makes all database
+    # statements in the nested transaction block become part of the parent
+    # transaction. For example:
+    #
+    #   User.transaction do
+    #     User.create(:username => 'Kotori')
+    #     User.transaction do
+    #       User.create(:username => 'Nemu')
+    #       raise ActiveRecord::Rollback
+    #     end
+    #   end
+    #   
+    #   User.find(:all)  # => empty
+    #
+    # It is also possible to treat a certain #transaction call as its own
+    # sub-transaction, by passing <tt>:nest => true</tt> to #transaction. If
+    # anything goes wrong inside that transaction block, then the parent
+    # transaction will remain unaffected. For example:
+    #
+    #   User.transaction do
+    #     User.create(:username => 'Kotori')
+    #     User.transaction(:nest => true) do
+    #       User.create(:username => 'Nemu')
+    #       raise ActiveRecord::Rollback
+    #     end
+    #   end
+    #   
+    #   User.find(:all)  # => Returns only Kotori
+    #
+    # Most databases don't support true nested transactions. At the time of
+    # writing, the only database that we're aware of that supports true nested
+    # transactions, is MS-SQL. Because of this, Active Record emulates nested
+    # transactions by using savepoints. See
+    # http://dev.mysql.com/doc/refman/5.0/en/savepoints.html
+    # for more information about savepoints.
+    #
+    # === Caveats
+    #
+    # If you're on MySQL, then do not use DDL operations in nested transactions
+    # blocks that are emulated with savepoints. That is, do not execute statements
+    # like 'CREATE TABLE' inside such blocks. This is because MySQL automatically
+    # releases all savepoints upon executing a DDL operation. When #transaction
+    # is finished and tries to release the savepoint it created earlier, a
+    # database error will occur because the savepoint has already been
+    # automatically released. The following example demonstrates the problem:
+    # 
+    #   Model.connection.transaction do          # BEGIN
+    #     Model.connection.transaction(true) do  # CREATE SAVEPOINT rails_savepoint_1
+    #       Model.connection.create_table(...)   # rails_savepoint_1 now automatically released
+    #     end                                    # RELEASE savepoint rails_savepoint_1
+    #                                            # ^^^^ BOOM! database error!
+    #   end
     module ClassMethods
       # See ActiveRecord::Transactions::ClassMethods for detailed documentation.
       def transaction(options = {}, &block)
-        options.assert_valid_keys :force
+        options.assert_valid_keys :nest
         
         # See the API documentation for ConnectionAdapters::DatabaseStatements#transaction
         # for useful information.
-        connection.transaction(options[:force], &block)
+        connection.transaction(options[:nest], &block)
       end
     end
 
