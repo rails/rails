@@ -125,6 +125,8 @@ module ActiveRecord
       def transaction(options = {}, &block)
         options.assert_valid_keys :force
         
+        # See the API documentation for ConnectionAdapters::DatabaseStatements#transaction
+        # for useful information.
         connection.transaction(options[:force], &block)
       end
     end

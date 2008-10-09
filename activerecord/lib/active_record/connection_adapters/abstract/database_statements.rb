@@ -54,14 +54,65 @@ module ActiveRecord
         delete_sql(sql, name)
       end
 
-      # Wrap a block in a transaction.  Returns result of block.
+      # Runs the given block in a database transaction, and returns the result
+      # of the block.
+      #
+      # == Nested transactions support
+      #
+      # Most databases don't support true nested transactions. At the time of
+      # writing, the only database that supports true nested transactions that
+      # we're aware of, is MS-SQL.
+      #
+      # In order to get around this problem, #transaction will emulate the effect
+      # of nested transactions, by using savepoints:
+      # http://dev.mysql.com/doc/refman/5.0/en/savepoints.html
+      # Savepoints are supported by MySQL and PostgreSQL, but not SQLite3.
+      #
+      # It is safe to call this method if a database transaction is already open,
+      # i.e. if #transaction is called within another #transaction block. In case
+      # of a nested call, #transaction will behave as follows:
+      #
+      # - The block will be run without doing anything. All database statements
+      #   that happen within the block are effectively appended to the already
+      #   open database transaction.
+      # - However, if +start_db_transaction+ is set to true, then the block will
+      #   be run inside a new database savepoint, effectively making the block
+      #   a sub-transaction.
+      # - If the #transactional_fixtures attribute is set to true, then the first
+      #   nested call to #transaction will create a new savepoint instead of
+      #   doing nothing. This makes it possible for toplevel transactions in unit
+      #   tests to behave like real transactions, even though a database
+      #   transaction has already been opened.
+      #
+      # === Caveats
+      #
+      # MySQL doesn't support DDL transactions. If you perform a DDL operation,
+      # then any created savepoints will be automatically released. For example,
+      # if you've created a savepoint, then you execute a CREATE TABLE statement,
+      # then the savepoint that was created will be automatically released.
+      #
+      # This means that, on MySQL, you shouldn't execute DDL operations inside
+      # a #transaction call that you know might create a savepoint. Otherwise,
+      # #transaction will raise exceptions when it tries to release the
+      # already-automatically-released savepoints:
+      #
+      #   Model.connection.transaction do  # BEGIN
+      #     Model.connection.transaction(true) do  # CREATE SAVEPOINT rails_savepoint_1
+      #       Model.connection.create_table(...)
+      #       # rails_savepoint_1 now automatically released
+      #     end  # RELEASE savepoint rails_savepoint_1  <--- BOOM! database error!
+      #   end
       def transaction(start_db_transaction = false)
-        start_db_transaction ||= open_transactions.zero? || (open_transactions == 1 && transactional_fixtures)
+        start_db_transaction ||= open_transactions == 0 || (open_transactions == 1 && transactional_fixtures)
         transaction_open = false
         begin
           if block_given?
             if start_db_transaction
-              open_transactions.zero? ? begin_db_transaction : create_savepoint
+              if open_transactions == 0
+                begin_db_transaction
+              else
+                create_savepoint
+              end
               increment_open_transactions
               transaction_open = true
             end
@@ -71,7 +122,11 @@ module ActiveRecord
           if transaction_open
             transaction_open = false
             decrement_open_transactions
-            open_transactions.zero? ? rollback_db_transaction : rollback_to_savepoint
+            if open_transactions == 0
+              rollback_db_transaction
+            else
+              rollback_to_savepoint
+            end
           end
           raise unless database_transaction_rollback.is_a? ActiveRecord::Rollback
         end
@@ -79,9 +134,17 @@ module ActiveRecord
         if transaction_open
           decrement_open_transactions
           begin
-            open_transactions.zero? ? commit_db_transaction : release_savepoint
+            if open_transactions == 0
+              commit_db_transaction
+            else
+              release_savepoint
+            end
           rescue Exception => database_transaction_rollback
-            open_transactions.zero? ? rollback_db_transaction : rollback_to_savepoint
+            if open_transactions == 0
+              rollback_db_transaction
+            else
+              rollback_to_savepoint
+            end
             raise
           end
         end
