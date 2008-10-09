@@ -20,34 +20,7 @@ class DefaultTest < ActiveRecord::TestCase
 
   if current_adapter?(:MysqlAdapter)
 
-    #MySQL 5 and higher is quirky with not null text/blob columns.
-    #With MySQL Text/blob columns cannot have defaults. If the column is not null MySQL will report that the column has a null default
-    #but it behaves as though the column had a default of ''
-    def test_mysql_text_not_null_defaults
-      klass = Class.new(ActiveRecord::Base)
-      klass.table_name = 'test_mysql_text_not_null_defaults'
-      klass.connection.create_table klass.table_name do |t|
-        t.column :non_null_text, :text, :null => false
-        t.column :non_null_blob, :blob, :null => false
-        t.column :null_text, :text, :null => true
-        t.column :null_blob, :blob, :null => true
-      end
-      assert_equal '', klass.columns_hash['non_null_blob'].default
-      assert_equal '', klass.columns_hash['non_null_text'].default
-
-      assert_equal nil, klass.columns_hash['null_blob'].default
-      assert_equal nil, klass.columns_hash['null_text'].default
-
-      assert_nothing_raised do
-        instance = klass.create!
-        assert_equal '', instance.non_null_text
-        assert_equal '', instance.non_null_blob
-        assert_nil instance.null_text
-        assert_nil instance.null_blob
-      end
-    ensure
-      klass.connection.drop_table(klass.table_name) rescue nil
-    end
+    
   end
     
   if current_adapter?(:PostgreSQLAdapter, :SQLServerAdapter, :FirebirdAdapter, :OpenBaseAdapter, :OracleAdapter)
@@ -73,7 +46,45 @@ end
 
 if current_adapter?(:MysqlAdapter)
   class DefaultsTestWithoutTransactionalFixtures < ActiveRecord::TestCase
+    # ActiveRecord::Base#create! (and #save and other related methods) will
+    # open a new transaction. When in transactional fixtures mode, this will
+    # cause ActiveRecord to create a new savepoint. However, since MySQL doesn't
+    # support DDL transactions, creating a table will result in any created
+    # savepoints to be automatically released. This in turn causes the savepoint
+    # release code in AbstractAdapter#transaction to fail.
+    #
+    # We don't want that to happen, so we disable transactional fixtures here.
     self.use_transactional_fixtures = false
+    
+    # MySQL 5 and higher is quirky with not null text/blob columns.
+    # With MySQL Text/blob columns cannot have defaults. If the column is not
+    # null MySQL will report that the column has a null default
+    # but it behaves as though the column had a default of ''
+    def test_mysql_text_not_null_defaults
+      klass = Class.new(ActiveRecord::Base)
+      klass.table_name = 'test_mysql_text_not_null_defaults'
+      klass.connection.create_table klass.table_name do |t|
+        t.column :non_null_text, :text, :null => false
+        t.column :non_null_blob, :blob, :null => false
+        t.column :null_text, :text, :null => true
+        t.column :null_blob, :blob, :null => true
+      end
+      assert_equal '', klass.columns_hash['non_null_blob'].default
+      assert_equal '', klass.columns_hash['non_null_text'].default
+
+      assert_equal nil, klass.columns_hash['null_blob'].default
+      assert_equal nil, klass.columns_hash['null_text'].default
+
+      assert_nothing_raised do
+        instance = klass.create!
+        assert_equal '', instance.non_null_text
+        assert_equal '', instance.non_null_blob
+        assert_nil instance.null_text
+        assert_nil instance.null_blob
+      end
+    ensure
+      klass.connection.drop_table(klass.table_name) rescue nil
+    end
     
     # MySQL uses an implicit default 0 rather than NULL unless in strict mode.
     # We use an implicit NULL so schema.rb is compatible with other databases.
