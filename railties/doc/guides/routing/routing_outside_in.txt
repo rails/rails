@@ -439,7 +439,7 @@ PUT        /magazines/1/ads/1       Ads         update   update a specific ad be
 DELETE     /magazines/1/ads/1       Ads         destroy  delete a specific ad belonging to a specific magazine
 --------------------------------------------------------------------------------------------
 
-This will also create routing helpers such as +magazine_ads_url+ and +magazine_edit_ad_path+.
+This will also create routing helpers such as +magazine_ads_url+ and +edit_magazine_ad_path+.
 
 ==== Using :name_prefix
 
