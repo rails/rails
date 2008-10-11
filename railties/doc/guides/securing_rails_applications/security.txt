@@ -79,7 +79,7 @@ This will also be a good idea, if you modify the structure of an object and old 
 
 -- _Rails provides several storage mechanisms for the session hashes, the most important are ActiveRecordStore and CookieStore._
 
-There are a number of session storages, i.e. where Rails saves the session hash and session id. Mot real-live applications choose ActiveRecordStore (or one of its derivatives) over file storage due to performance and maintenance reasons. ActiveRecordStore keeps the session id and hash in a database table and saves and retrieves the hash on every request.
+There are a number of session storages, i.e. where Rails saves the session hash and session id. Most real-live applications choose ActiveRecordStore (or one of its derivatives) over file storage due to performance and maintenance reasons. ActiveRecordStore keeps the session id and hash in a database table and saves and retrieves the hash on every request.
 
 Rails 2 introduced a new default session storage, CookieStore. CookieStore saves the session hash directly in a cookie on the client-side. The server retrieves the session hash from the cookie and eliminates the need for a session id. That will greatly increase the speed of the application, but it is a controversial storage option and you have to think about the security implications of it:
 
@@ -507,7 +507,7 @@ It is interesting that only 4% of these passwords were dictionary words and the 
 A good password is a long alphanumeric combination of mixed cases. As this is quite hard to remember, it is advisable to enter only the [,#fffcdb]#first letters of a sentence that you can easily remember#. For example "The quick brown fox jumps over the lazy dog" will be "Tqbfjotld". Note that this is just an example, you should not use well known phrases like these, as they might appear in cracker dictionaries, too.
 
 === Regular expressions
--- _A common pitfall in Ruby's regular expressions is to match the string's end and beginning by $ and ^, instead of  \z and \A._
+-- _A common pitfall in Ruby's regular expressions is to match the string's beginning and end by ^ and $, instead of \A and \z._
 
 Ruby uses a slightly different approach to match the end and the beginning of a string. That is why even many Ruby and Rails books make this wrong. So how is this a security threat? Imagine you have a File model and you validate the file name by a regular expression like this:
 
@@ -523,7 +523,7 @@ This means, upon saving, the model will validate the file name to consist only o
 file.txt%0A<script>alert('hello')</script>
 ..........
 
-Whereas %0A is a line feed and %0D is a carriage return, in URL encoding. This file name passes the filter because the regular expression matches – up to the line end, the rest does not matter. The correct expression should read:
+Whereas %0A is a line feed in URL encoding, so Rails automatically converts it to "file.txt\n<script>alert('hello')</script>". This file name passes the filter because the regular expression matches – up to the line end, the rest does not matter. The correct expression should read:
 
 ..........
 /\A[\w\.\-\+]+\z/
