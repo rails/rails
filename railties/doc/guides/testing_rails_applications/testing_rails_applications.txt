@@ -900,38 +900,6 @@ class MyControllerTest < Test::Unit::TestCase
 end
 ----------------------------------------------------------------
 
-=== Filtering emails in development ===
-
-Sometimes you want to be somewhere inbetween the `:test` and `:smtp` settings. Say you're working on your development site, and you have a few testers working with you. The site isn't in production yet, but you'd like the testers to be able to receive emails from the site, but no one else. Here's a handy way to handle that situation, add this to your 'environment.rb' or 'development.rb' file
-
-[source, ruby]
-----------------------------------------------------------------
-class ActionMailer::Base
-
-  def perform_delivery_fixed_email(mail)
-    destinations = mail.destinations
-    if destinations.nil?
-      destinations = ["mymail@me.com"]
-      mail.subject = '[TEST-FAILURE]:'+mail.subject
-    else
-      mail.subject = '[TEST]:'+mail.subject
-    end
-    approved = ["testerone@me.com","testertwo@me.com"]
-    destinations = destinations.collect{|x| approved.collect{|y| (x==y ? x : nil)}}.flatten.compact
-    mail.to = destinations
-    if destinations.size > 0
-      mail.ready_to_send
-      Net::SMTP.start(server_settings[:address], server_settings[:port], server_settings[:domain],
-                    server_settings[:user_name], server_settings[:password], server_settings[:authentication]) do |smtp|
-        smtp.sendmail(mail.encoded, mail.from, destinations)
-      end
-    end
-
-  end
-
-end
-----------------------------------------------------------------
-
 == Guide TODO ==
  * Describe _setup_ and _teardown_
  * Examples for integration test
