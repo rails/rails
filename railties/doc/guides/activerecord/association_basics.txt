@@ -354,8 +354,8 @@ In designing a data model, you will sometimes find a model that should have a re
 [source, ruby]
 -------------------------------------------------------
 class Employee < ActiveRecord::Base
-  has_many :subordinates, :class_name => :user, :foreign_key => "manager_id"
-  belongs_to :manager, :class_name => :user
+  has_many :subordinates, :class_name => "User", :foreign_key => "manager_id"
+  belongs_to :manager, :class_name => "User"
 end
 -------------------------------------------------------
 
@@ -636,12 +636,12 @@ The +belongs_to+ association supports these options:
 //
 ===== +:class_name+
 
-If the name of the other model cannot be derived from the association name, you can use the +:class_name+ option to supply the model name. For example, if an order belongs to a customer, but the actual name of the model containing customers is patron, you'd set things up this way:
+If the name of the other model cannot be derived from the association name, you can use the +:class_name+ option to supply the model name. For example, if an order belongs to a customer, but the actual name of the model containing customers is +Patron+, you'd set things up this way:
 
 [source, ruby]
 -------------------------------------------------------
 class Order < ActiveRecord::Base
-  belongs_to :customer, :class_name => :patron
+  belongs_to :customer, :class_name => "Patron"
 end
 -------------------------------------------------------
 
@@ -711,7 +711,7 @@ By convention, Rails guesses that the column used to hold the foreign key on thi
 [source, ruby]
 -------------------------------------------------------
 class Order < ActiveRecord::Base
-  belongs_to :customer, :class_name => :patron, :foreign_key => "patron_id"
+  belongs_to :customer, :class_name => "Patron", :foreign_key => "patron_id"
 end
 -------------------------------------------------------
 
@@ -863,7 +863,7 @@ In many situations, you can use the default behavior of +has_one+ without any cu
 [source, ruby]
 -------------------------------------------------------
 class Supplier < ActiveRecord::Base
-  has_one :account, :class_name => :billing, :dependent => :nullify
+  has_one :account, :class_name => "Billing", :dependent => :nullify
 end
 -------------------------------------------------------
 
@@ -895,12 +895,12 @@ Setting the +:as+ option indicates that this is a polymorphic association. Polym
 
 ===== +:class_name+
 
-If the name of the other model cannot be derived from the association name, you can use the +:class_name+ option to supply the model name. For example, if a supplier has an account, but the actual name of the model containing accounts is billing, you'd set things up this way:
+If the name of the other model cannot be derived from the association name, you can use the +:class_name+ option to supply the model name. For example, if a supplier has an account, but the actual name of the model containing accounts is Billing, you'd set things up this way:
 
 [source, ruby]
 -------------------------------------------------------
 class Supplier < ActiveRecord::Base
-  has_one :account, :class_name => :billing
+  has_one :account, :class_name => "Billing"
 end
 -------------------------------------------------------
 
@@ -1205,12 +1205,12 @@ Setting the +:as+ option indicates that this is a polymorphic association, as di
 
 ===== +:class_name+
 
-If the name of the other model cannot be derived from the association name, you can use the +:class_name+ option to supply the model name. For example, if a customer has many orders, but the actual name of the model containing orders is transactions, you'd set things up this way:
+If the name of the other model cannot be derived from the association name, you can use the +:class_name+ option to supply the model name. For example, if a customer has many orders, but the actual name of the model containing orders is +Transaction+, you'd set things up this way:
 
 [source, ruby]
 -------------------------------------------------------
 class Customer < ActiveRecord::Base
-  has_many :orders, :class_name => :transaction
+  has_many :orders, :class_name => "Transaction"
 end
 -------------------------------------------------------
 
@@ -1221,7 +1221,7 @@ The +:conditions+ option lets you specify the conditions that the associated obj
 [source, ruby]
 -------------------------------------------------------
 class Customer < ActiveRecord::Base
-  has_many :confirmed_orders, :class_name => :orders, :conditions => "confirmed = 1"
+  has_many :confirmed_orders, :class_name => "Order", :conditions => "confirmed = 1"
 end
 -------------------------------------------------------
 
@@ -1230,7 +1230,7 @@ You can also set conditions via a hash:
 [source, ruby]
 -------------------------------------------------------
 class Customer < ActiveRecord::Base
-  has_many :confirmed_orders, :class_name => :orders, :conditions => { :confirmed => true }
+  has_many :confirmed_orders, :class_name => "Order", :conditions => { :confirmed => true }
 end
 -------------------------------------------------------
 
@@ -1321,7 +1321,7 @@ The +:limit+ option lets you restrict the total number of objects that will be f
 [source, ruby]
 -------------------------------------------------------
 class Customer < ActiveRecord::Base
-  has_many :recent_orders, :class_name => :orders, :order => "order_date DESC", :limit => 100
+  has_many :recent_orders, :class_name => "Order", :order => "order_date DESC", :limit => 100
 end
 -------------------------------------------------------
 
@@ -1591,19 +1591,19 @@ TIP: The +:foreign_key+ and +:association_foreign_key+ options are useful when s
 [source, ruby]
 -------------------------------------------------------
 class User < ActiveRecord::Base
-  has_and_belongs_to_many :friends, :class_name => :users, 
+  has_and_belongs_to_many :friends, :class_name => "User", 
     :foreign_key => "this_user_id", :association_foreign_key => "other_user_id"
 end
 -------------------------------------------------------
 
 ===== +:class_name+
 
-If the name of the other model cannot be derived from the association name, you can use the +:class_name+ option to supply the model name. For example, if a part has many assemblies, but the actual name of the model containing assemblies is gadgets, you'd set things up this way:
+If the name of the other model cannot be derived from the association name, you can use the +:class_name+ option to supply the model name. For example, if a part has many assemblies, but the actual name of the model containing assemblies is +Gadget+, you'd set things up this way:
 
 [source, ruby]
 -------------------------------------------------------
 class Parts < ActiveRecord::Base
-  has_and_belongs_to_many :assemblies, :class_name => :gadgets
+  has_and_belongs_to_many :assemblies, :class_name => "Gadget"
 end
 -------------------------------------------------------
 
@@ -1654,7 +1654,7 @@ By convention, Rails guesses that the column in the join table used to hold the 
 [source, ruby]
 -------------------------------------------------------
 class User < ActiveRecord::Base
-  has_and_belongs_to_many :friends, :class_name => :users, 
+  has_and_belongs_to_many :friends, :class_name => "User", 
     :foreign_key => "this_user_id", :association_foreign_key => "other_user_id"
 end
 -------------------------------------------------------
