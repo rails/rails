@@ -683,19 +683,17 @@ Integration tests are used to test interaction among any number of controllers. 
 
 Unlike Unit and Functional tests they have to be explicitly created under the 'test/integration' folder within our application. Rails provides a generator to create an integration test skeleton for you. 
 
-Example:
-
 --------------------------------------------------
-$ script/generate integration_test create_blog_and_then_post_comments
+$ script/generate integration_test user_flows 
       exists  test/integration/
-      create  test/integration/create_blog_and_then_post_comments_test.rb
+      create  test/integration/user_flows_test.rb
 --------------------------------------------------
 
 [source,ruby]
 --------------------------------------------------
 require 'test_helper'
 
-class CreateBlogAndThenPostCommentsTest < ActionController::IntegrationTest
+class UserFlowsTest < ActionController::IntegrationTest
   # fixtures :your, :models
 
   # Replace this with your real tests.
@@ -705,10 +703,118 @@ class CreateBlogAndThenPostCommentsTest < ActionController::IntegrationTest
 end
 --------------------------------------------------
 
-=== Differences in comparison to unit and functional tests ===
+Noticeable differences include that the test case is inherited from `ActionController::IntegrationTest`. Which makes available some additional helpers to use in your integration tests. Also one will have to explicitly include the fixtures to be made available to the test. 
 
-* You will have to include fixtures explicitly unlike unit and functional tests in which all the fixtures are loaded by default (through test_helper)
-* Additional helpers: https?, https!, host!, follow_redirect!, post/get_via_redirect, open_session, reset
+=== Helpers Available for Integration tests ===
+
+In addition to standard testing helpers you have some additional helpers available.
+
+`https?`::
+Returns `true` if the session is mimicing a secure HTTPS request.
+
+`https!`::
+Allows you to mimic a secure HTTPS request.
+
+`host!`::
+Allows you to set the host name to use in the next request.
+
+`redirect?`::
+Returns `true` if the last request was a redirect.
+
+`follow_redirect!`::
+Follows a single redirect response.
+
+`request_via_redirect(http_method, path, [parameters], [headers])`::
+Allows you to make the a HTTP request and follow any subsequent redirects.
+
+`post_via_redirect(path, [parameters], [headers])`::
+`get_via_redirect(path, [parameters], [headers])`::
+`put_via_redirect(path, [parameters], [headers])`::
+`delete_via_redirect(path, [parameters], [headers])`::
+Allows you to make the a HTTP POST, GET, PUT or DELETE request respectively and follow any subsequent redirects.
+
+`open_session`::
+Opens a new session instance.
+
+=== Examples === 
+
+.Simple Integration test that exercises multiple controllers
+[source,ruby]
+--------------------------------------------------
+require 'test_helper'
+
+class UserFlowsTest < ActionController::IntegrationTest
+  fixtures :users
+
+  def test_login_and_browse_site
+    # login via https
+    https!
+    get "/login"
+    assert_response :success
+    
+    post_via_redirect "/login", :username => users(:avs).username, :password => users(:avs).password
+    assert_equal '/welcome', path
+    assert_equal 'Welcome avs!', flash[:notice]
+    
+    https!(false)
+    get "/posts/all"
+    assert_response :success
+    assert assigns(:products)
+  end
+end
+--------------------------------------------------
+
+As you can see the integration test involves multiple controllers and exercises the entire stack from database to dispatcher. In addition you can have multiple session instances open simultaneously in a test and extend those instances with assertion methods to create a very powerful testing DSL (Domain-specific language) specific to your application.
+
+.Example of multiple sessions and custom DSL in an Integration test
+[source,ruby]
+--------------------------------------------------
+require 'test_helper'
+
+class UserFlowsTest < ActionController::IntegrationTest
+  fixtures :users
+
+  def test_login_and_browse_site
+    
+    # User avs logs in
+    avs = login(:avs)
+    # User guest logs in
+    guest = login(:guest)
+    
+    # Both are now available in different sessions
+    assert_equal 'Welcome avs!', avs.flash[:notice]
+    assert_equal 'Welcome guest!', guest.flash[:notice]
+    
+    # User avs can browse site
+    avs.browses_site
+    # User guest can browse site aswell
+    guest.browses_site
+    
+    # Continue with other assertions
+  end
+  
+  private
+  
+    module CustomDsl
+      def browses_site
+        get "/products/all"
+        assert_response :success
+        assert assigns(:products)
+      end
+    end
+    
+    def login(user)
+      open_session do |sess|
+        sess.extend(CustomDsl)
+        u = users(user)
+        sess.https!
+        sess.post "/login", :username => u.username, :password => u.password
+        assert_equal '/welcome', path
+        sess.https!(false)
+      end
+    end
+end
+--------------------------------------------------
 
 == Rake Tasks for Testing
 
@@ -830,6 +936,4 @@ end
 ----------------------------------------------------------------
 
 == Guide TODO ==
- * Describe _setup_ and _teardown_
- * Examples for integration test
  * Note about other popular testing approaches and plugins
