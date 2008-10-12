@@ -13,6 +13,8 @@ module Rails
     attr_reader :installed_source_index
     attr_reader :vendor_source_index
 
+    @@silence_spec_warnings = false
+
     def self.silence_spec_warnings
       @@silence_spec_warnings
     end
