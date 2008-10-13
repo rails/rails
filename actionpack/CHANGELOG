@@ -1,5 +1,13 @@
 *Edge*
 
+* Added inline builder yield to atom_feed_helper tags where appropriate [Sam Ruby]. Example:
+
+    entry.summary :type => 'xhtml' do |xhtml|
+      xhtml.p pluralize(order.line_items.count, "line item")
+      xhtml.p "Shipped to #{order.address}"
+      xhtml.p "Paid by #{order.pay_type}"
+    end
+
 * Make PrototypeHelper#submit_to_remote a wrapper around PrototypeHelper#button_to_remote. [Tarmo Tänav]
 
 * Set HttpOnly for the cookie session store's cookie.  #1046 

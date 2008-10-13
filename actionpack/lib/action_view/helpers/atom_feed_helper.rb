@@ -75,8 +75,20 @@ module ActionView
       #       end
       #     end
       #
+      # The Atom spec defines five elements (content rights title subtitle
+      # summary) which may directly contain xhtml content if :type => 'xhtml'
+      # is specified as an attribute.  If so, this helper will take care of
+      # the enclosing div and xhtml namespace declaration.  Example usage:
       #
-      # atom_feed yields an AtomFeedBuilder instance.
+      #    entry.summary :type => 'xhtml' do |xhtml|
+      #      xhtml.p pluralize(order.line_items.count, "line item")
+      #      xhtml.p "Shipped to #{order.address}"
+      #      xhtml.p "Paid by #{order.pay_type}"
+      #    end
+      #
+      #
+      # atom_feed yields an AtomFeedBuilder instance.  Nested elements yield
+      # an AtomBuilder instance.
       def atom_feed(options = {}, &block)
         if options[:schema_date]
           options[:schema_date] = options[:schema_date].strftime("%Y-%m-%d") if options[:schema_date].respond_to?(:strftime)
@@ -108,8 +120,38 @@ module ActionView
         end
       end
 
+      class AtomBuilder
+        def initialize(xml)
+          @xml = xml
+        end
 
-      class AtomFeedBuilder
+        private
+          # Delegate to xml builder, first wrapping the element in a xhtml
+          # namespaced div element if the method and arguments indicate
+          # that an xhtml_block? is desired.
+          def method_missing(method, *arguments, &block)
+            if xhtml_block?(method, arguments)
+              @xml.__send__(method, *arguments) do
+                @xml.div(:xmlns => 'http://www.w3.org/1999/xhtml') do |xhtml|
+                  block.call(xhtml)
+                end
+              end
+            else
+              @xml.__send__(method, *arguments, &block)
+            end
+          end
+          
+          # True if the method name matches one of the five elements defined
+          # in the Atom spec as potentially containing XHTML content and
+          # if :type => 'xhtml' is, in fact, specified.
+          def xhtml_block?(method, arguments)
+            %w( content rights title subtitle summary ).include?(method.to_s) && 
+                arguments.last.respond_to?(:[]) && 
+                  arguments.last[:type].to_s == 'xhtml'
+          end
+      end
+
+      class AtomFeedBuilder < AtomBuilder
         def initialize(xml, view, feed_options = {})
           @xml, @view, @feed_options = xml, view, feed_options
         end
@@ -141,15 +183,11 @@ module ActionView
 
             @xml.link(:rel => 'alternate', :type => 'text/html', :href => options[:url] || @view.polymorphic_url(record))
 
-            yield @xml
+            yield AtomBuilder.new(@xml)
           end
         end
-
-        private
-          def method_missing(method, *arguments, &block)
-            @xml.__send__(method, *arguments, &block)
-          end
       end
+
     end
   end
 end
