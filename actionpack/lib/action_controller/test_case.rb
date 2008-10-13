@@ -134,6 +134,9 @@ module ActionController
       @controller = self.class.controller_class.new
       @controller.request = @request = TestRequest.new
       @response = TestResponse.new
+
+      @controller.params = {}
+      @controller.send(:initialize_current_url)
     end
     
     # Cause the action to be rescued according to the regular rules for rescue_action when the visitor is not local
