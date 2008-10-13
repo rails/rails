@@ -428,4 +428,14 @@ class BelongsToAssociationsTest < ActiveRecord::TestCase
     assert log.valid?
     assert log.save
   end
+
+  def test_belongs_to_proxy_should_not_respond_to_private_methods
+    assert_raises(NoMethodError) { companies(:first_firm).private_method }
+    assert_raises(NoMethodError) { companies(:second_client).firm.private_method }
+  end
+
+  def test_belongs_to_proxy_should_respond_to_private_methods_via_send
+    companies(:first_firm).send(:private_method)
+    companies(:second_client).firm.send(:private_method)
+  end
 end

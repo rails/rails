@@ -57,7 +57,7 @@ module ActiveRecord
       protected
         def owner_quoted_id
           if @reflection.options[:primary_key]
-            quote_value(@owner.send(@reflection.options[:primary_key]))
+            @owner.class.quote_value(@owner.send(@reflection.options[:primary_key]))
           else
             @owner.quoted_id
           end
