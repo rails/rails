@@ -273,7 +273,7 @@ module ActiveSupport
 
     # Replaces accented characters with their ascii equivalents.
     def transliterate(string)
-      Iconv.iconv('ascii//translit//IGNORE', 'utf-8', string).to_s
+      Iconv.iconv('ascii//ignore//translit', 'utf-8', string).to_s
     end
 
     # The iconv transliteration code doesn't function correctly
