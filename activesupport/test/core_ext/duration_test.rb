@@ -30,21 +30,17 @@ class DurationTest < Test::Unit::TestCase
     end
   end
 
+  def test_fractional_weeks
+    assert_equal (86400 * 7) * 1.5, 1.5.weeks
+    assert_equal (86400 * 7) * 1.7, 1.7.weeks
+  end
+
+  def test_fractional_days
+    assert_equal 86400 * 1.5, 1.5.days
+    assert_equal 86400 * 1.7, 1.7.days
+  end
+
   uses_mocha 'TestDurationSinceAndAgoWithCurrentTime' do
-    def test_fractional_weeks
-      Time.stubs(:now).returns Time.local(2000)
-
-      assert_in_delta((24 * 7 * 1.5).hours, 1.5.weeks, 2 ** -20)
-      assert_in_delta((24 * 7 * 1.7).hours, 1.7.weeks, 2 ** -20)
-    end
-
-    def test_fractional_days
-      Time.stubs(:now).returns Time.local(2000)
-
-      assert_in_delta((24 * 1.5).hours, 1.5.days, 2 ** -20)
-      assert_in_delta((24 * 1.7).hours, 1.7.days, 2 ** -20)
-    end
-
     def test_since_and_ago_with_fractional_days
       Time.stubs(:now).returns Time.local(2000)
       # since
