@@ -64,4 +64,4 @@ private
 end
 -----------------------------------
 
-NOTE: Certain exceptions are only rescuable from the ApplicationController class, as they are raised before the controller gets initialized and the action gets executed. See Partik Naik's link:http://m.onkey.org/2008/7/20/rescue-from-dispatching[article] on the subject for more information.
+NOTE: Certain exceptions are only rescuable from the ApplicationController class, as they are raised before the controller gets initialized and the action gets executed. See Pratik Naik's link:http://m.onkey.org/2008/7/20/rescue-from-dispatching[article] on the subject for more information.
