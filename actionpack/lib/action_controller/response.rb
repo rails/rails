@@ -114,8 +114,8 @@ module ActionController # :nodoc:
 
     def redirect(url, status)
       self.status = status
-      self.location = url
-      self.body = "<html><body>You are being <a href=\"#{url}\">redirected</a>.</body></html>"
+      self.location = url.gsub(/[\r\n]/, '')
+      self.body = "<html><body>You are being <a href=\"#{CGI.escapeHTML(url)}\">redirected</a>.</body></html>"
     end
 
     def sending_file?
