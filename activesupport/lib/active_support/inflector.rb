@@ -279,6 +279,7 @@ module ActiveSupport
     # The iconv transliteration code doesn't function correctly
     # on some platforms, but it's very fast where it does function.
     if "foo" != Inflector.transliterate("föö")
+      undef_method :transliterate
       def transliterate(string)
         string.mb_chars.normalize(:kd). # Decompose accented characters
           gsub(/[^\x00-\x7F]+/, '')     # Remove anything non-ASCII entirely (e.g. diacritics).
