@@ -4,7 +4,7 @@ class IntegrationTestGenerator < Rails::Generator::NamedBase
   def manifest
     record do |m|
       # Check for class naming collisions.
-      m.class_collisions class_path, class_name, "#{class_name}Test"
+      m.class_collisions class_name, "#{class_name}Test"
 
       # integration test directory
       m.directory File.join('test/integration', class_path)

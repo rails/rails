@@ -4,7 +4,7 @@ class ModelGenerator < Rails::Generator::NamedBase
   def manifest
     record do |m|
       # Check for class naming collisions.
-      m.class_collisions class_path, class_name, "#{class_name}Test"
+      m.class_collisions class_name, "#{class_name}Test"
 
       # Model, test, and fixture directories.
       m.directory File.join('app/models', class_path)

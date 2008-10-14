@@ -10,7 +10,7 @@ class PluginGenerator < Rails::Generator::NamedBase
   def manifest
     record do |m|
       # Check for class naming collisions.
-      m.class_collisions class_path, class_name
+      m.class_collisions class_name
 
       m.directory "#{plugin_path}/lib"
       m.directory "#{plugin_path}/tasks"
