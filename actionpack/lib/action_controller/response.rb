@@ -30,9 +30,9 @@ module ActionController
 
     def redirect(to_url, response_status)
       self.headers["Status"] = response_status
-      self.headers["Location"] = to_url
+      self.headers["Location"] = to_url.gsub(/[\r\n]/, '')
 
-      self.body = "<html><body>You are being <a href=\"#{to_url}\">redirected</a>.</body></html>"
+      self.body = "<html><body>You are being <a href=\"#{CGI.escapeHTML(to_url)}\">redirected</a>.</body></html>"
     end
 
     def prepare!
