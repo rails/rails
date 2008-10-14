@@ -26,6 +26,16 @@ unless defined? uses_mocha
   end
 end
 
+unless defined? uses_memcached
+  def uses_memcached(test_name)
+    require 'memcache'
+    MemCache.new('localhost').stats
+    yield
+  rescue MemCache::MemCacheError
+    $stderr.puts "Skipping #{test_name} tests. Start memcached and try again."
+  end
+end
+
 # Show backtraces for deprecated behavior for quicker cleanup.
 ActiveSupport::Deprecation.debug = true
 

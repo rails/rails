@@ -146,26 +146,28 @@ class MemoryStoreTest < Test::Unit::TestCase
   end
 end
 
-class MemCacheStoreTest < Test::Unit::TestCase
-  def setup
-    @cache = ActiveSupport::Cache.lookup_store(:mem_cache_store)
-    @cache.clear
+uses_memcached 'memcached backed store' do
+  class MemCacheStoreTest < Test::Unit::TestCase
+    def setup
+      @cache = ActiveSupport::Cache.lookup_store(:mem_cache_store)
+      @cache.clear
+    end
+
+    include CacheStoreBehavior
+
+    def test_store_objects_should_be_immutable
+      @cache.write('foo', 'bar')
+      @cache.read('foo').gsub!(/.*/, 'baz')
+      assert_equal 'bar', @cache.read('foo')
+    end
   end
 
-  include CacheStoreBehavior
+  class CompressedMemCacheStore < Test::Unit::TestCase
+    def setup
+      @cache = ActiveSupport::Cache.lookup_store(:compressed_mem_cache_store)
+      @cache.clear
+    end
 
-  def test_store_objects_should_be_immutable
-    @cache.write('foo', 'bar')
-    @cache.read('foo').gsub!(/.*/, 'baz')
-    assert_equal 'bar', @cache.read('foo')
+    include CacheStoreBehavior
   end
-end
-
-class CompressedMemCacheStore < Test::Unit::TestCase
-  def setup
-    @cache = ActiveSupport::Cache.lookup_store(:compressed_mem_cache_store)
-    @cache.clear
-  end
-
-  include CacheStoreBehavior
 end
