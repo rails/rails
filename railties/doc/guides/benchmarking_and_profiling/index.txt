@@ -1,0 +1,101 @@
+Benchmarking and Profiling Rails
+================================
+
+This guide covers the benchmarking and profiling tactics/tools of Rails and Ruby in general. By referring to this guide, you will be able to:
+
+* Understand the various types of benchmarking and profiling metrics
+* Generate performance/benchmarking tests
+* Use GC patched Ruby binary to measure memory usage and object allocation
+* Understand the information provided by Rails inside the log files
+* Learn about various tools facilitating benchmarking and profiling
+
+== Why Benchmark and Profile ?
+
+Benchmarking and Profiling is an integral part of the development cycle. It is very important that you don't make your end users wait for too long before the page is completely loaded. Ensuring a plesant browsing experience to the end users and cutting cost of unnecessary hardwares is important for any web application.
+
+=== What is the difference between benchmarking and profiling ? ===
+
+Benchmarking is the process of finding out if a piece of code is slow or not. Whereas profiling is the process of finding out what exactly is slowing down that piece of code.
+
+== Using and understanding the log files ==
+
+Rails logs files containt basic but very useful information about the time taken to serve every request. A typical log entry looks something like :
+
+[source, ruby]
+----------------------------------------------------------------------------
+Processing ItemsController#index (for 127.0.0.1 at 2008-10-17 00:08:18) [GET]
+  Session ID: BAh7BiIKZmxhc2hJQzonQWN0aHsABjoKQHVzZWR7AA==--83cff4fe0a897074a65335
+  Parameters: {"action"=>"index", "controller"=>"items"}
+Rendering template within layouts/items
+Rendering items/index
+Completed in 5ms (View: 2, DB: 0) | 200 OK [http://localhost/items]
+----------------------------------------------------------------------------
+
+For this section, we're only interested in the last line from that log entry:
+
+[source, ruby]
+----------------------------------------------------------------------------
+Completed in 5ms (View: 2, DB: 0) | 200 OK [http://localhost/items]
+----------------------------------------------------------------------------
+
+This data is fairly straight forward to understand. Rails uses millisecond(ms) as the metric to measures the time taken. The complete request spent 5 ms inside Rails, out of which 2 ms were spent rendering views and none was spent communication with the database. It's safe to assume that the remaining 3 ms were spent inside the controller.
+
+== Helper methods ==
+
+Rails provides various helper methods inside Active Record, Action Controller and Action View to measure the time taken by a specific code. The method is called +benchmark()+ in all three components.
+
+[source, ruby]
+----------------------------------------------------------------------------
+Project.benchmark("Creating project") do
+  project = Project.create("name" => "stuff")
+  project.create_manager("name" => "David")
+  project.milestones << Milestone.find(:all)
+end
+----------------------------------------------------------------------------
+
+The above code benchmarks the multiple statments enclosed inside +Project.benchmark("Creating project") do..end+ block and prints the results inside log files. The statement inside log files will look like:
+
+[source, ruby]
+----------------------------------------------------------------------------
+Creating projectem (185.3ms)
+----------------------------------------------------------------------------
+
+Please refer to http://api.rubyonrails.com/classes/ActiveRecord/Base.html#M001336[API docs] for optional options to +benchmark()+
+
+Similarly, you could use this helper method inside http://api.rubyonrails.com/classes/ActionController/Benchmarking/ClassMethods.html#M000715[controllers] ( Note that it's a class method here ):
+
+[source, ruby]
+----------------------------------------------------------------------------
+def process_projects
+  self.class.benchmark("Processing projects") do
+    Project.process(params[:project_ids])
+    Project.update_cached_projects
+  end
+end
+----------------------------------------------------------------------------
+
+and http://api.rubyonrails.com/classes/ActionController/Benchmarking/ClassMethods.html#M000715[views]:
+
+[source, ruby]
+----------------------------------------------------------------------------
+<% benchmark("Showing projects partial") do %>
+  <%= render :partial => @projects %>
+<% end %>
+----------------------------------------------------------------------------
+
+include::edge_rails_features.txt[]
+
+include::rubyprof.txt[]
+
+include::digging_deeper.txt[]
+
+include::gameplan.txt[]
+
+include::appendix.txt[]
+
+== Changelog ==
+
+http://rails.lighthouseapp.com/projects/16213-rails-guides/tickets/4[Lighthouse ticket]
+
+* October 17, 2008: First revision by Pratik
+* September 6, 2008: Initial version by Matthew Bergman <MzbPhoto@gmail.com>
