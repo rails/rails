@@ -109,7 +109,7 @@ ways of achieving this and how to understand what is happening "behind the scene
 of your code.
 ***********************************************************
 
-.link:benchmarking_and_profiling/preamble.html[Benchmarking and Profiling Rails Applications]
+.link:benchmarking_and_profiling/index.html[Benchmarking and Profiling Rails Applications]
 ***********************************************************
 CAUTION: link:http://rails.lighthouseapp.com/projects/16213/tickets/4[Lighthouse Ticket]
 
