@@ -1764,7 +1764,7 @@ module ActiveRecord #:nodoc:
         #
         # Each dynamic finder or initializer/creator is also defined in the class after it is first invoked, so that future
         # attempts to use it do not run through method_missing.
-        def method_missing(method_id, *arguments)
+        def method_missing(method_id, *arguments, &block)
           if match = DynamicFinderMatch.match(method_id)
             attribute_names = match.attribute_names
             super unless all_attributes_exists?(attribute_names)
@@ -1819,7 +1819,7 @@ module ActiveRecord #:nodoc:
                   end
                 end
               }, __FILE__, __LINE__
-              send(method_id, *arguments)
+              send(method_id, *arguments, &block)
             end
           else
             super
