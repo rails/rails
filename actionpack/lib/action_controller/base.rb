@@ -969,7 +969,9 @@ module ActionController #:nodoc:
       # If-Modified-Since request header is <= last modified.
       def last_modified!(utc_time)
         response.last_modified= utc_time
-        head(:not_modified) if response.last_modified == request.if_modified_since
+        if request.if_modified_since && request.if_modified_since <= utc_time
+          head(:not_modified)
+        end
       end
 
       # Sets the ETag response header. Returns 304 Not Modified if the

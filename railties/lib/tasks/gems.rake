@@ -65,4 +65,14 @@ namespace :gems do
       end
     end
   end
+
+  desc "Regenerate gem specifications in correct format."
+  task :refresh_specs => :base do
+    require 'rubygems'
+    require 'rubygems/gem_runner'
+    Rails.configuration.gems.each do |gem|
+      next unless gem.frozen? && (ENV['GEM'].blank? || ENV['GEM'] == gem.name)
+      gem.refresh_spec(Rails::GemDependency.unpacked_path) if gem.loaded?
+    end
+  end
 end

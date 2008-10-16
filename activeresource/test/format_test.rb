@@ -1,5 +1,6 @@
 require 'abstract_unit'
 require "fixtures/person"
+require "fixtures/street_address"
 
 class FormatTest < Test::Unit::TestCase
   def setup
@@ -82,6 +83,22 @@ class FormatTest < Test::Unit::TestCase
     resource.site   = 'http://37s.sunrise.i:3000'
     assert_equal ActiveResource::Formats[:json], resource.connection.format
   end
+
+  def test_serialization_of_nested_resource
+   address  = { :street => '12345 Street' }
+   person  = { :name=> 'Rus', :address => address}
+
+   [:json, :xml].each do |format|
+     encoded_person = ActiveResource::Formats[format].encode(person)
+     assert_match /12345 Street/, encoded_person
+     remote_person = Person.new(person.update({:address => StreetAddress.new(address)}))
+     assert_kind_of StreetAddress, remote_person.address
+     using_format(Person, format) do
+       ActiveResource::HttpMock.respond_to.post "/people.#{format}", {'Content-Type' => ActiveResource::Formats[format].mime_type}, encoded_person, 201, {'Location' => "/people/5.#{format}"}
+       remote_person.save
+     end
+   end
+ end
 
   private
     def using_format(klass, mime_type_reference)

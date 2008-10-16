@@ -1080,5 +1080,9 @@ class HasManyAssociationsTest < ActiveRecord::TestCase
     end
   end
 
+  def test_sending_new_to_association_proxy_should_have_same_effect_as_calling_new
+    clients_assoc = companies(:first_firm).clients
+    assert_equal clients_assoc.new.attributes, clients_assoc.send(:new).attributes
+  end
 end
 

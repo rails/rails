@@ -140,6 +140,15 @@ module ActiveRecord
         @target.inspect
       end
 
+      def send(method, *args)
+        if proxy_respond_to?(method)
+          super
+        else
+          load_target
+          @target.send(method, *args)
+        end
+      end
+
       protected
         # Does the association have a <tt>:dependent</tt> option?
         def dependent?
@@ -197,6 +206,8 @@ module ActiveRecord
         # Forwards any missing method call to the \target.
         def method_missing(method, *args)
           if load_target
+            raise NoMethodError unless @target.respond_to?(method)
+
             if block_given?
               @target.send(method, *args)  { |*block_args| yield(*block_args) }
             else

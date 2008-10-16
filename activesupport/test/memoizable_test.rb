@@ -100,6 +100,11 @@ uses_mocha 'Memoizable' do
 
     def test_memoization_with_punctuation
       assert_equal true, @person.name?
+
+      assert_nothing_raised(NameError) do
+        @person.memoize_all
+        @person.unmemoize_all
+      end
     end
 
     def test_memoization_with_nil_value

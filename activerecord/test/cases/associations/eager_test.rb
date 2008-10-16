@@ -18,7 +18,7 @@ require 'models/developer'
 require 'models/project'
 
 class EagerAssociationTest < ActiveRecord::TestCase
-  fixtures :posts, :comments, :authors, :categories, :categories_posts,
+  fixtures :posts, :comments, :authors, :author_addresses, :categories, :categories_posts,
             :companies, :accounts, :tags, :taggings, :people, :readers,
             :owners, :pets, :author_favorites, :jobs, :references, :subscribers, :subscriptions, :books,
             :developers, :projects, :developers_projects
@@ -108,6 +108,46 @@ class EagerAssociationTest < ActiveRecord::TestCase
                                  :include => {:posts => :comments})
     categories.each do |category|
       assert_equal [comment], category.posts[0].comments
+    end
+  end
+
+  def test_finding_with_includes_on_has_many_association_with_same_include_includes_only_once
+    author_id = authors(:david).id
+    author = assert_queries(3) { Author.find(author_id, :include => {:posts_with_comments => :comments}) } # find the author, then find the posts, then find the comments
+    author.posts_with_comments.each do |post_with_comments|
+      assert_equal post_with_comments.comments.length, post_with_comments.comments.count
+      assert_equal nil, post_with_comments.comments.uniq!
+    end
+  end
+
+  def test_finding_with_includes_on_has_one_assocation_with_same_include_includes_only_once
+    author = authors(:david)
+    post = author.post_about_thinking_with_last_comment
+    last_comment = post.last_comment
+    author = assert_queries(3) { Author.find(author.id, :include => {:post_about_thinking_with_last_comment => :last_comment})} # find the author, then find the posts, then find the comments
+    assert_no_queries do
+      assert_equal post, author.post_about_thinking_with_last_comment
+      assert_equal last_comment, author.post_about_thinking_with_last_comment.last_comment
+    end
+  end
+
+  def test_finding_with_includes_on_belongs_to_association_with_same_include_includes_only_once
+    post = posts(:welcome)
+    author = post.author
+    author_address = author.author_address
+    post = assert_queries(3) { Post.find(post.id, :include => {:author_with_address => :author_address}) } # find the post, then find the author, then find the address
+    assert_no_queries do
+      assert_equal author, post.author_with_address
+      assert_equal author_address, post.author_with_address.author_address
+    end
+  end
+
+  def test_finding_with_includes_on_null_belongs_to_association_with_same_include_includes_only_once
+    post = posts(:welcome)
+    post.update_attributes!(:author => nil)
+    post = assert_queries(2) { Post.find(post.id, :include => {:author_with_address => :author_address}) } # find the post, then find the author which is null so no query for the address
+    assert_no_queries do
+      assert_equal nil, post.author_with_address
     end
   end
 

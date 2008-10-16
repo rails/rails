@@ -1,3 +1,6 @@
+require 'lib/rails/vendor_gem_source_index'
+Rails::VendorGemSourceIndex.silence_spec_warnings = true
+
 require 'plugin_test_helper'
 
 class Rails::GemDependency
@@ -108,6 +111,23 @@ uses_mocha "Plugin Tests" do
       dummy_gem.load
       assert_not_nil DUMMY_GEM_C_VERSION
       assert_equal '0.6.0', DUMMY_GEM_C_VERSION
+    end
+
+    def test_gem_load_missing_specification
+      dummy_gem = Rails::GemDependency.new "dummy-gem-d"
+      dummy_gem.add_load_paths
+      dummy_gem.load
+      assert_not_nil DUMMY_GEM_D_VERSION
+      assert_equal '1.0.0', DUMMY_GEM_D_VERSION
+      assert_equal ['lib', 'lib/dummy-gem-d.rb'], dummy_gem.specification.files
+    end
+
+    def test_gem_load_bad_specification
+      dummy_gem = Rails::GemDependency.new "dummy-gem-e", :version => "= 1.0.0"
+      dummy_gem.add_load_paths
+      dummy_gem.load
+      assert_not_nil DUMMY_GEM_E_VERSION
+      assert_equal '1.0.0', DUMMY_GEM_E_VERSION
     end
 
   end

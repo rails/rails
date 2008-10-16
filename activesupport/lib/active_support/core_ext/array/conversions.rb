@@ -11,7 +11,8 @@ module ActiveSupport #:nodoc:
           options.assert_valid_keys(:connector, :skip_last_comma, :locale)
           
           default = I18n.translate(:'support.array.sentence_connector', :locale => options[:locale])
-          options.reverse_merge! :connector => default, :skip_last_comma => false
+          default_skip_last_comma = I18n.translate(:'support.array.skip_last_comma', :locale => options[:locale])
+          options.reverse_merge! :connector => default, :skip_last_comma => default_skip_last_comma
           options[:connector] = "#{options[:connector]} " unless options[:connector].nil? || options[:connector].strip == ''
 
           case length

@@ -182,26 +182,6 @@ class AssociationProxyTest < ActiveRecord::TestCase
     assert_nil p.author.reset
   end
 
-  def test_reset_loads_association_next_time
-    welcome = posts(:welcome)
-    david = authors(:david)
-    author_assoc = welcome.author
-
-    assert_equal david, welcome.author # So we can be sure the test works correctly
-    author_assoc.reset
-    assert !author_assoc.loaded?
-    assert_nil author_assoc.target
-    assert_equal david, welcome.author
-  end
-
-  def test_assigning_association_id_after_reload
-    welcome = posts(:welcome)
-    welcome.reload
-    assert_nothing_raised do
-      welcome.author_id = authors(:david).id
-    end
-  end
-
   def test_reload_returns_assocition
     david = developers(:david)
     assert_nothing_raised do

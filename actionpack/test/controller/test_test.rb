@@ -667,6 +667,7 @@ class NamedRoutesControllerTest < ActionController::TestCase
     with_routing do |set|
       set.draw { |map| map.resources :contents }
       assert_equal 'http://test.host/contents/new', new_content_url
+      assert_equal 'http://test.host/contents/1', content_url(:id => 1)
     end
   end
 end
