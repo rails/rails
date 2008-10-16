@@ -608,10 +608,7 @@ end
 
 The +create+ action instantiates a new Post object from the data supplied by the user on the form, which Rails makes available in the +params+ hash. After saving the new post, it uses +flash[:notice]+ to create an informational message for the user, and redirects to the show action for the post. If there's any problem, the +create+ action just shows the +new+ view a second time, with any error messages.
 
-.The Flash
-**************************************************************************************************************
 Rails provides the +flash+ hash (usually just called the Flash) so that messages can be carried over to another action, providing the user with useful information on the status of their request.  In the case of +create+, the user never actually sees any page rendered during the Post creation process, because it immediately redirects to the new Post as soon Rails saves the record. The Flash carries over a message to the next action, so that when the user is redirected back to the +show+ action, they are presented with a message saying "Post was successfully created."
-**************************************************************************************************************
 
 === Showing an Individual Post
 
