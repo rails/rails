@@ -18,6 +18,7 @@ This guide is designed for beginners who want to get started with a Rails applic
 
 It is highly recommended that you *familiarize yourself with Ruby before diving into Rails*. You will find it much easier to follow what's going on with a Rails application if you understand basic Ruby syntax. Rails isn't going to magically revolutionize the way you write web applications if you have no experience with the language it uses. There are some good free resources on the net for learning Ruby, including:
 
+* link:http://www.humblelittlerubybook.com/[Mr. Neigborly’s Humble Little Ruby Book]
 * link:http://www.rubycentral.com/book/[Programming Ruby]
 * link:http://poignantguide.net/ruby/[Why's (Poignant) Guide to Ruby]
 
@@ -510,7 +511,7 @@ This view iterates over the contents of the +@posts+ array to display content an
 * +link_to+ builds a hyperlink to a particular destination
 * +edit_post_path+ is a helper that Rails provides as part of RESTful routing. You’ll see a variety of these helpers for the different actions that the controller includes.
 
-TIP: For more details on the rendering process, see link:../actionview/layouts_and_rendering [Layouts and Rendering in Rails].
+TIP: For more details on the rendering process, see link:../actionview/layouts_and_rendering.html[Layouts and Rendering in Rails].
 
 === Customizing the Layout
 
@@ -584,7 +585,9 @@ The +new.html.erb+ view displays this empty Post to the user:
 <%= link_to 'Back', posts_path %>
 -------------------------------------------------------
 
-The +form_for+ block is used to create an HTML form. Within this block, you have access to methods to build various controls on the form. For example, +f.text_field :name+ tells Rails to create a text input on the form, and to hook it up to the +name+ attribute of the instance being displayed. Rails uses +form_for+ in preference to having your write raw HTML because the code is more succinct, and because it explicitly ties the form to a particular model instance.
+The +form_for+ block is used to create an HTML form. Within this block, you have access to methods to build various controls on the form. For example, +f.text_field :name+ tells Rails to create a text input on the form, and to hook it up to the +name+ attribute of the instance being displayed. You can only use these methods with attributes of the model that the form is based on (in this case +name+, +title+, and +content+). Rails uses +form_for+ in preference to having your write raw HTML because the code is more succinct, and because it explicitly ties the form to a particular model instance.
+
+TIP: If you need to create an HTML form that displays arbitrary fields, not tied to a model, you should use the +form_tag+ method, which provides shortcuts for building forms that are not necessarily tied to a model instance.
 
 When the user clicks the +Create+ button on this form, the browser will send information back to the +create+ method of the controller (Rails knows to call the +create+ method because the form is sent with an HTTP POST request; that's one of the conventions that I mentioned earlier):
 
