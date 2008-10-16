@@ -43,8 +43,6 @@ This guide covers the find method defined in ActiveRecord::Base, as well as name
 
 .link:actionview/layouts_and_rendering.html[Layouts and Rendering in Rails]
 ***********************************************************
-CAUTION: link:http://rails.lighthouseapp.com/projects/16213/tickets/15[Lighthouse Ticket]
-
 This guide covers the basic layout features of Action Controller and Action View,
 including rendering and redirecting, using +content_for_ blocks, and working
 with partials.
