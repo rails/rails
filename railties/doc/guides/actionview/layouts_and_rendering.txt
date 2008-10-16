@@ -427,6 +427,15 @@ If you're loading multiple javascript files, you can create a better user experi
 -------------------------------------------------------
 <%= javascript_include_tag "main", "columns", :cache => true %>
 -------------------------------------------------------
+
+By default, the combined file will be delivered as +javascripts/all.js+. You can specify a location for the cached asset file instead:
+
+[source, ruby]
+-------------------------------------------------------
+<%= javascript_include_tag "main", "columns", :cache => 'cache/main/display' %>
+-------------------------------------------------------
+
+You can even use dynamic paths such as "cache/#{current_site}/main/display"+.
 	
 ==== Linking to CSS Files with +stylesheet_link_tag+
 
@@ -485,6 +494,15 @@ If you're loading multiple CSS files, you can create a better user experience by
 -------------------------------------------------------
 <%= stylesheet_link_tag "main", "columns", :cache => true %>
 -------------------------------------------------------
+	
+By default, the combined file will be delivered as +stylesheets/all.css+. You can specify a location for the cached asset file instead:
+
+[source, ruby]
+-------------------------------------------------------
+<%= stylesheet_link_tag "main", "columns", :cache => 'cache/main/display' %>
+-------------------------------------------------------
+
+You can even use dynamic paths such as "cache/#{current_site}/main/display"+.
 	
 ==== Linking to Images with +image_tag+
 
@@ -697,6 +715,7 @@ Rails will render the +_product_ruler+ partial (with no data passed in to it) be
 
 http://rails.lighthouseapp.com/projects/16213-rails-guides/tickets/15[Lighthouse ticket]
 
+* October 16, 2008: Ready for publication by link:../authors.html#mgunderloy[Mike Gunderloy] 
 * October 4, 2008: Additional info on partials (+:object+, +:as+, and +:spacer_template+) by link:../authors.html#mgunderloy[Mike Gunderloy] (not yet approved for publication)
 * September 28, 2008: First draft by link:../authors.html#mgunderloy[Mike Gunderloy] (not yet approved for publication)
 

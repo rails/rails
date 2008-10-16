@@ -1,6 +1,6 @@
 == Methods and actions ==
 
-A controller is a Ruby class which inherits from ActionController::Base and has methods just like any other class. Usually these methods correspond to actions in MVC, but they can just as well be helpful methods which can be called by actions. When your application receives a request, the routing will determine which controller and action to run. Then an instance of that controller will be created and the method corresponding to the action (the method with the same name as the action) is run.
+A controller is a Ruby class which inherits from ActionController::Base and has methods just like any other class. Usually these methods correspond to actions in MVC, but they can just as well be helpful methods which can be called by actions. When your application receives a request, the routing will determine which controller and action to run. Then an instance of that controller will be created and the method corresponding to the action (the method with the same name as the action) gets run.
 
 [source, ruby]
 ----------------------------------------------

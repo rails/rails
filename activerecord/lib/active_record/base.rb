@@ -514,7 +514,7 @@ module ActiveRecord #:nodoc:
       #
       # ==== Parameters
       #
-      # * <tt>:conditions</tt> - An SQL fragment like "administrator = 1" or <tt>[ "user_name = ?", username ]</tt>. See conditions in the intro.
+      # * <tt>:conditions</tt> - An SQL fragment like "administrator = 1", <tt>[ "user_name = ?", username ]</tt>, or <tt>["user_name = :user_name", { :user_name => user_name }]</tt>. See conditions in the intro.
       # * <tt>:order</tt> - An SQL fragment like "created_at DESC, name".
       # * <tt>:group</tt> - An attribute name by which the result should be grouped. Uses the <tt>GROUP BY</tt> SQL-clause.
       # * <tt>:limit</tt> - An integer determining the limit on the number of rows that should be returned.
@@ -551,6 +551,7 @@ module ActiveRecord #:nodoc:
       #   # find first
       #   Person.find(:first) # returns the first object fetched by SELECT * FROM people
       #   Person.find(:first, :conditions => [ "user_name = ?", user_name])
+      #   Person.find(:first, :conditions => [ "user_name = :u", { :u => user_name }])
       #   Person.find(:first, :order => "created_on DESC", :offset => 5)
       #
       #   # find last

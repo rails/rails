@@ -5,7 +5,7 @@ module ActiveRecord
   # before or after an alteration of the object state. This can be used to make sure that associated and
   # dependent objects are deleted when +destroy+ is called (by overwriting +before_destroy+) or to massage attributes
   # before they're validated (by overwriting +before_validation+). As an example of the callbacks initiated, consider
-  # the <tt>Base#save</tt> call:
+  # the <tt>Base#save</tt> call for a new record:
   #
   # * (-) <tt>save</tt>
   # * (-) <tt>valid</tt>
@@ -22,7 +22,8 @@ module ActiveRecord
   # * (8) <tt>after_save</tt>
   #
   # That's a total of eight callbacks, which gives you immense power to react and prepare for each state in the
-  # Active Record lifecycle.
+  # Active Record lifecycle. The sequence for calling <tt>Base#save</tt> an existing record is similar, except that each 
+  # <tt>_on_create</tt> callback is replaced by the corresponding <tt>_on_update</tt> callback.
   #
   # Examples:
   #   class CreditCard < ActiveRecord::Base
