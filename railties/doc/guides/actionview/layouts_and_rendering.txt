@@ -688,6 +688,15 @@ Every partial also has a local variable with the same name as the partial (minus
 
 Within the +customer+ partial, the +@customer+ variable will refer to +@new_customer+ from the parent view.
 
+If you have an instance of a model to render into a partial, you can use a shorthand syntax:
+
+[source, html]
+-------------------------------------------------------
+<%= render :partial => @customer %>
+-------------------------------------------------------
+
+Assuming that the +@customer+ instance variable contains an instance of the +Customer+ model, this will use +_customer.html.erb+ to render it.
+
 ==== Rendering Collections 
 
 Partials are very useful in rendering collections. When you pass a collection to a partial via the +:collection+ option, the partial will be inserted once for each member in the collection:
