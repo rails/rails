@@ -1,5 +1,7 @@
 *Edge*
 
+* Fix Brasilia timezone #1180 [Marcus Derencius, Kane]
+
 * Time#advance recognizes fractional days and weeks. Deprecate Durations of fractional months and years #970 [Tom Lea]
 
 * Add ActiveSupport::Rescuable module abstracting ActionController::Base rescue_from features. [Norbert Crombach, Pratik]
