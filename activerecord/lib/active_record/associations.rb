@@ -624,7 +624,8 @@ module ActiveRecord
       #   Adds one or more objects to the collection by setting their foreign keys to the collection's primary key.
       # [collection.delete(object, ...)]
       #   Removes one or more objects from the collection by setting their foreign keys to +NULL+.
-      #   This will also destroy the objects if they're declared as +belongs_to+ and dependent on this model.
+      #   Objects will be in addition destroyed if they're associated with <tt>:dependent => :destroy</tt>,
+      #   and deleted if they're associated with <tt>:dependent => :delete_all</tt>.
       # [collection=objects]
       #   Replaces the collections content by deleting and adding objects as appropriate.
       # [collection_singular_ids]

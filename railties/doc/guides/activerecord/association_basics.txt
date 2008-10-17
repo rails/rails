@@ -1085,7 +1085,8 @@ The +_collection_.delete+ method removes one or more objects from the collection
 @customer.orders.delete(@order1)
 -------------------------------------------------------
 
-WARNING: The +_collection_.delete+ method will destroy the deleted object if they are declared as +belongs_to+ and are dependent on this model.
+WARNING: Objects will be in addition destroyed if they're associated with +:dependent => :destroy+, and deleted if they're associated with +:dependent => :delete_all+.
+
 
 ===== +_collection_=objects+
 
