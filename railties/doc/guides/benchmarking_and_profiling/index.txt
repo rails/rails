@@ -83,7 +83,145 @@ and http://api.rubyonrails.com/classes/ActionController/Benchmarking/ClassMethod
 <% end %>
 ----------------------------------------------------------------------------
 
-include::edge_rails_features.txt[]
+== Performance Test Cases ==
+
+Rails provides a very easy to write performance test cases, which look just like the regular integration tests.
+
+If you have a look at +test/performance/browsing_test.rb+ in a newly created Rails application:
+
+[source, ruby]
+----------------------------------------------------------------------------
+require 'performance/test_helper'
+
+# Profiling results for each test method are written to tmp/performance.
+class BrowsingTest < ActionController::PerformanceTest
+  def test_homepage
+    get '/'
+  end
+end
+----------------------------------------------------------------------------
+
+This is an automatically generated example performance test file, for testing performance of homepage('/') of the application.
+
+=== Modes ===
+
+==== Benchmarking ====
+==== Profiling ====
+
+=== Metrics ===
+
+==== Process Time ====
+
+CPU Cycles.
+
+==== Memory ====
+
+Memory taken.
+
+==== Objects ====
+
+Objects allocated.
+
+==== GC Runs ====
+
+Number of times the Ruby GC was run.
+
+==== GC Time ====
+
+Time spent running the Ruby GC.
+
+=== Preparing Ruby and Ruby-prof ===
+
+Before we go ahead, Rails performance testing requires you to build a special Ruby binary with some super powers - GC patch for measuring GC Runs/Time. This process is very straight forward. If you've never compiled a Ruby binary before, you can follow the following steps to build a ruby binary inside your home directory:
+
+==== Compile ====
+
+[source, shell]
+----------------------------------------------------------------------------
+[lifo@null ~]$ mkdir rubygc
+[lifo@null ~]$ wget ftp://ftp.ruby-lang.org/pub/ruby/1.8/ruby-1.8.6-p111.tar.gz
+[lifo@null ~]$ tar -xzvf ruby-1.8.6-p111.tar.gz
+[lifo@null ~]$ cd ruby-1.8.6-p111
+[lifo@null ruby-1.8.6-p111]$ curl http://rubyforge.org/tracker/download.php/1814/7062/17676/3291/ruby186gc.patch | patch -p0
+[lifo@null ruby-1.8.6-p111]$ ./configure --prefix=/Users/lifo/rubygc
+[lifo@null ruby-1.8.6-p111]$ make && make install
+----------------------------------------------------------------------------
+
+==== Prepare aliases ====
+
+Add the following lines in your ~/.profile for convenience:
+
+----------------------------------------------------------------------------
+alias gcruby='/Users/lifo/rubygc/bin/ruby'
+alias gcrake='/Users/lifo/rubygc/bin/rake'
+alias gcgem='/Users/lifo/rubygc/bin/gem'
+alias gcirb='/Users/lifo/rubygc/bin/irb'
+alias gcrails='/Users/lifo/rubygc/bin/rails'
+----------------------------------------------------------------------------
+
+==== Install rubygems and some basic gems ====
+
+----------------------------------------------------------------------------
+[lifo@null ~]$ wget http://rubyforge.org/frs/download.php/38646/rubygems-1.2.0.tgz
+[lifo@null ~]$ tar -xzvf rubygems-1.2.0.tgz
+[lifo@null ~]$ cd rubygems-1.2.0
+[lifo@null rubygems-1.2.0]$ gcruby setup.rb
+[lifo@null rubygems-1.2.0]$ cd ~
+[lifo@null ~]$ gcgem install rake
+[lifo@null ~]$ gcgem install rails
+----------------------------------------------------------------------------
+
+==== Install MySQL gem ====
+
+----------------------------------------------------------------------------
+[lifo@null ~]$ gcgem install mysql
+----------------------------------------------------------------------------
+
+If this fails, you can try to install it manually:
+
+----------------------------------------------------------------------------
+[lifo@null ~]$ cd /Users/lifo/rubygc/lib/ruby/gems/1.8/gems/mysql-2.7/
+[lifo@null mysql-2.7]$ gcruby extconf.rb --with-mysql-config
+[lifo@null mysql-2.7]$ make && make install
+----------------------------------------------------------------------------
+
+=== Installing Jeremy Kemper's ruby-prof ===
+
+We also need to install Jeremy's ruby-prof gem using our newly built ruby:
+
+[source, shell]
+----------------------------------------------------------------------------
+[lifo@null ~]$ git clone git://github.com/jeremy/ruby-prof.git
+[lifo@null ~]$ cd ruby-prof/
+[lifo@null ruby-prof (master)]$ gcrake gem
+[lifo@null ruby-prof (master)]$ gcgem install pkg/ruby-prof-0.6.1.gem
+----------------------------------------------------------------------------
+
+=== Generating performance test ===
+
+Rails provides a simple generator for creating new performance tests:
+
+[source, shell]
+----------------------------------------------------------------------------
+[User profiling_tester (master)]$ script/generate performance_test homepage
+----------------------------------------------------------------------------
+
+This will generate +test/performance/homepage_test.rb+:
+
+----------------------------------------------------------------------------
+require 'performance/test_helper'
+
+class HomepageTest < ActionController::PerformanceTest
+  # Replace this with your real tests.
+  def test_homepage
+    get '/'
+  end
+end
+----------------------------------------------------------------------------
+
+Which you can modify to suit your needs.
+
+=== Running tests ===
 
 include::rubyprof.txt[]
 
