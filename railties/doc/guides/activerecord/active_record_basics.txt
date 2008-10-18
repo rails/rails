@@ -1,2 +1,20 @@
 ActiveRecord Basics
 =================================
+
+== ORM 
+
+== What is ActiveRecord
+
+== Philosophical Approaches & Common Conventions
+
+== How ActiveRecord Maps your Database.
+
+== Growing Your Database Relationships Naturally
+
+== Attributes
+
+== ActiveRecord Magic
+
+== Understanding the life-cycle of an ActiveRecord
+
+== Ensuring data integrity and  
