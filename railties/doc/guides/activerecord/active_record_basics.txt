@@ -2,19 +2,32 @@ ActiveRecord Basics
 =================================
 
 == ORM 
-
+ - Rails Associations
+ 
 == What is ActiveRecord
+ - Automated mapping between classes and tables, attributes and columns
+ - Associations between objects controlled by meta-programming macros.
+ - Validations
+ - Callback
 
 == Philosophical Approaches & Common Conventions
+ - Naming Conventions
+ - ids
+== ActiveRecord Magic
+ - timestamps
+ - updates
 
 == How ActiveRecord Maps your Database.
+- sensible defaults
+- overriding conventions
 
 == Growing Your Database Relationships Naturally
 
 == Attributes
+ - attribute accessor method. How to override them?
+ - attribute?
+ - dirty records
+ - 
+== ActiveRecord handling the CRUD of your Rails application - Understanding the life-cycle of an ActiveRecord
 
-== ActiveRecord Magic
-
-== Understanding the life-cycle of an ActiveRecord
-
-== Ensuring data integrity and  
+== Validations & Callbacks
