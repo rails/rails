@@ -406,15 +406,15 @@ module ActionView
       # ==== Examples
       #   my_time = Time.now + 6.hours
       #
-      #   # Generates a select field for minutes that defaults to the minutes for the time in my_time
-      #   select_minute(my_time)
+      #   # Generates a select field for hours that defaults to the hour for the time in my_time
+      #   select_hour(my_time)
       #
-      #   # Generates a select field for minutes that defaults to the number given
-      #   select_minute(14)
+      #   # Generates a select field for hours that defaults to the number given
+      #   select_hour(13)
       #
-      #   # Generates a select field for minutes that defaults to the minutes for the time in my_time
+      #   # Generates a select field for hours that defaults to the minutes for the time in my_time
       #   # that is named 'stride' rather than 'second'
-      #   select_minute(my_time, :field_name => 'stride')
+      #   select_hour(my_time, :field_name => 'stride')
       #
       def select_hour(datetime, options = {}, html_options = {})
         DateTimeSelector.new(datetime, options, html_options).select_hour
