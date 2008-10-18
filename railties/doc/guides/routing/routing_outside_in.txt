@@ -384,6 +384,8 @@ Routes recognized by this entry would include:
 
 NOTE: In most cases, it's simpler to recognize URLs of this sort by creating nested resources, as discussed in the next section.
 
+NOTE: You can also use +:path_prefix+ with non-RESTful routes.
+
 ==== Using :name_prefix
 
 You can use the :name_prefix option to avoid collisions between routes. This is most useful when you have two resources with the same name that use +:path_prefix+ to map differently. For example:
@@ -395,6 +397,8 @@ map.resources :photos, :path_prefix => '/agencies/:agency_id', :name_prefix => '
 -------------------------------------------------------
 
 This combination will give you route helpers such as +photographer_photos_path+ and +agency_edit_photo_path+ to use in your code.
+
+NOTE: You can also use +:name_prefix+ with non-RESTful routes.
 
 === Nested Resources
 
@@ -435,7 +439,7 @@ PUT        /magazines/1/ads/1       Ads         update   update a specific ad be
 DELETE     /magazines/1/ads/1       Ads         destroy  delete a specific ad belonging to a specific magazine
 --------------------------------------------------------------------------------------------
 
-This will also create routing helpers such as +magazine_ads_url+ and +magazine_edit_ad_path+.
+This will also create routing helpers such as +magazine_ads_url+ and +edit_magazine_ad_path+.
 
 ==== Using :name_prefix
 

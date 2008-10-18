@@ -60,16 +60,6 @@ module ActiveSupport #:nodoc:
         end
         alias :fortnight :fortnights
         
-        def months
-          ActiveSupport::Duration.new(self * 30.days, [[:months, self]])
-        end
-        alias :month :months
-
-        def years
-          ActiveSupport::Duration.new(self * 365.25.days, [[:years, self]])
-        end
-        alias :year :years
-
         # Reads best without arguments:  10.minutes.ago
         def ago(time = ::Time.now)
           time - self

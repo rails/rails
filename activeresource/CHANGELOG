@@ -1,5 +1,7 @@
 *Edge*
 
+* Add ActiveResource::Base#to_xml and ActiveResource::Base#to_json. #1011 [Rasik Pandey, Cody Fauser]
+
 * Add ActiveResource::Base.find(:last). [#754 state:resolved] (Adrian Mugnolo)
 
 * Fixed problems with the logger used if the logging string included %'s [#840 state:resolved] (Jamis Buck)

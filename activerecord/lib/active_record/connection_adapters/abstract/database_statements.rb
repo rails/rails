@@ -120,10 +120,6 @@ module ActiveRecord
         sql
       end
 
-      def sanitize_limit(limit)
-        limit.to_s[/,/] ? limit.split(',').map{ |i| i.to_i }.join(',') : limit.to_i
-      end
-
       # Appends a locking clause to an SQL statement.
       # This method *modifies* the +sql+ parameter.
       #   # SELECT * FROM suppliers FOR UPDATE
@@ -184,6 +180,21 @@ module ActiveRecord
         # Executes the delete statement and returns the number of rows affected.
         def delete_sql(sql, name = nil)
           update_sql(sql, name)
+        end
+
+        # Sanitizes the given LIMIT parameter in order to prevent SQL injection.
+        #
+        # +limit+ may be anything that can evaluate to a string via #to_s. It
+        # should look like an integer, or a comma-delimited list of integers.
+        #
+        # Returns the sanitized limit parameter, either as an integer, or as a
+        # string which contains a comma-delimited list of integers.
+        def sanitize_limit(limit)
+          if limit.to_s =~ /,/
+            limit.to_s.split(',').map{ |i| i.to_i }.join(',')
+          else
+            limit.to_i
+          end
         end
     end
   end

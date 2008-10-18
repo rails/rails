@@ -72,4 +72,20 @@ class I18nTest < Test::Unit::TestCase
   def test_time_pm
     assert_equal 'pm', I18n.translate(:'time.pm')
   end
+
+  def test_sentence_connector
+    assert_equal 'and', I18n.translate(:'support.array.sentence_connector')
+  end
+
+  def test_skip_last_comma
+    assert_equal false, I18n.translate(:'support.array.skip_last_comma')
+  end
+
+  def test_to_sentence
+    assert_equal 'a, b, and c', %w[a b c].to_sentence
+    I18n.backend.store_translations 'en-US', :support => { :array => { :skip_last_comma => true } }
+    assert_equal 'a, b and c', %w[a b c].to_sentence
+  ensure
+    I18n.backend.store_translations 'en-US', :support => { :array => { :skip_last_comma => false } }
+  end
 end

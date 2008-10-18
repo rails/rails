@@ -624,7 +624,8 @@ module ActiveRecord
       #   Adds one or more objects to the collection by setting their foreign keys to the collection's primary key.
       # [collection.delete(object, ...)]
       #   Removes one or more objects from the collection by setting their foreign keys to +NULL+.
-      #   This will also destroy the objects if they're declared as +belongs_to+ and dependent on this model.
+      #   Objects will be in addition destroyed if they're associated with <tt>:dependent => :destroy</tt>,
+      #   and deleted if they're associated with <tt>:dependent => :delete_all</tt>.
       # [collection=objects]
       #   Replaces the collections content by deleting and adding objects as appropriate.
       # [collection_singular_ids]
@@ -1235,7 +1236,7 @@ module ActiveRecord
 
             association = instance_variable_get(ivar) if instance_variable_defined?(ivar)
 
-            if association.nil? || !association.loaded? || force_reload
+            if association.nil? || force_reload
               association = association_proxy_class.new(self, reflection)
               retval = association.reload
               if retval.nil? and association_proxy_class == BelongsToAssociation
@@ -1246,6 +1247,11 @@ module ActiveRecord
             end
 
             association.target.nil? ? nil : association
+          end
+
+          define_method("loaded_#{reflection.name}?") do
+            association = instance_variable_get(ivar) if instance_variable_defined?(ivar)
+            association && association.loaded?
           end
 
           define_method("#{reflection.name}=") do |new_value|
@@ -1261,17 +1267,6 @@ module ActiveRecord
             else
               association.replace(new_value)
               instance_variable_set(ivar, new_value.nil? ? nil : association)
-            end
-          end
-
-          if association_proxy_class == BelongsToAssociation
-            define_method("#{reflection.primary_key_name}=") do |target_id|
-              if instance_variable_defined?(ivar)
-                if association = instance_variable_get(ivar)
-                  association.reset
-                end
-              end
-              write_attribute(reflection.primary_key_name, target_id)
             end
           end
 

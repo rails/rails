@@ -47,19 +47,6 @@ class BelongsToAssociationsTest < ActiveRecord::TestCase
     assert_equal apple.id, citibank.firm_id
   end
 
-  def test_foreign_key_assignment
-    # Test using an existing record
-    signals37 = accounts(:signals37)
-    assert_equal companies(:first_firm), signals37.firm
-    signals37.firm_id = companies(:another_firm).id
-    assert_equal companies(:another_firm), signals37.firm
-
-    # Test using a new record
-    account = Account.new
-    account.firm_id = companies(:another_firm).id
-    assert_equal companies(:another_firm), account.firm
-  end
-
   def test_no_unexpected_aliasing
     first_firm = companies(:first_firm)
     another_firm = companies(:another_firm)
@@ -440,5 +427,15 @@ class BelongsToAssociationsTest < ActiveRecord::TestCase
     assert !log.unvalidated_developer.valid?
     assert log.valid?
     assert log.save
+  end
+
+  def test_belongs_to_proxy_should_not_respond_to_private_methods
+    assert_raises(NoMethodError) { companies(:first_firm).private_method }
+    assert_raises(NoMethodError) { companies(:second_client).firm.private_method }
+  end
+
+  def test_belongs_to_proxy_should_respond_to_private_methods_via_send
+    companies(:first_firm).send(:private_method)
+    companies(:second_client).firm.send(:private_method)
   end
 end

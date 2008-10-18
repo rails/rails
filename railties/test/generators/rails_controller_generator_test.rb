@@ -1,5 +1,8 @@
 require 'generators/generator_test_helper'
 
+module Admin
+end
+
 class RailsControllerGeneratorTest < GeneratorTestCase
 
   def test_controller_generates_controller

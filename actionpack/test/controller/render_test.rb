@@ -1441,6 +1441,12 @@ class LastModifiedRenderTest < Test::Unit::TestCase
     get :conditional_hello_with_bangs
     assert_response :not_modified
   end
+
+  def test_last_modified_works_with_less_than_too
+    @request.if_modified_since = 5.years.ago.httpdate
+    get :conditional_hello_with_bangs
+    assert_response :not_modified
+  end
 end
 
 class RenderingLoggingTest < Test::Unit::TestCase

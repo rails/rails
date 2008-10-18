@@ -92,6 +92,64 @@ class ScrollsController < ActionController::Base
           end
         end
     EOT
+  FEEDS["feed_with_xml_processing_instructions"] = <<-EOT
+        atom_feed(:schema_date => '2008',
+          :instruct => {'xml-stylesheet' => { :href=> 't.css', :type => 'text/css' }}) do |feed|
+          feed.title("My great blog!")
+          feed.updated((@scrolls.first.created_at))
+
+          for scroll in @scrolls
+            feed.entry(scroll) do |entry|
+              entry.title(scroll.title)
+              entry.content(scroll.body, :type => 'html')
+
+              entry.author do |author|
+                author.name("DHH")
+              end
+            end
+          end
+        end
+    EOT
+  FEEDS["feed_with_xml_processing_instructions_duplicate_targets"] = <<-EOT
+        atom_feed(:schema_date => '2008',
+          :instruct => {'target1' => [{ :a => '1', :b => '2' }, { :c => '3', :d => '4' }]}) do |feed|
+          feed.title("My great blog!")
+          feed.updated((@scrolls.first.created_at))
+
+          for scroll in @scrolls
+            feed.entry(scroll) do |entry|
+              entry.title(scroll.title)
+              entry.content(scroll.body, :type => 'html')
+
+              entry.author do |author|
+                author.name("DHH")
+              end
+            end
+          end
+        end
+    EOT
+    FEEDS["feed_with_xhtml_content"] = <<-'EOT'
+        atom_feed do |feed|
+          feed.title("My great blog!")
+          feed.updated((@scrolls.first.created_at))
+
+          for scroll in @scrolls
+            feed.entry(scroll) do |entry|
+              entry.title(scroll.title)
+              entry.summary(:type => 'xhtml') do |xhtml|
+                xhtml.p "before #{scroll.id}"
+                xhtml.p {xhtml << scroll.body}
+                xhtml.p "after #{scroll.id}"
+              end
+              entry.tag!('app:edited', Time.now)
+
+              entry.author do |author|
+                author.name("DHH")
+              end
+            end
+          end
+        end
+    EOT
   def index
     @scrolls = [
       Scroll.new(1, "1", "Hello One", "Something <i>COOL!</i>", Time.utc(2007, 12, 12, 15), Time.utc(2007, 12, 12, 15)),
@@ -194,6 +252,29 @@ class AtomFeedTest < Test::Unit::TestCase
     end
   end
 
+  def test_feed_xml_processing_instructions
+    with_restful_routing(:scrolls) do
+      get :index, :id => 'feed_with_xml_processing_instructions'
+      assert_match %r{<\?xml-stylesheet type="text/css" href="t.css"\?>}, @response.body
+    end
+  end
+
+  def test_feed_xml_processing_instructions_duplicate_targets
+    with_restful_routing(:scrolls) do
+      get :index, :id => 'feed_with_xml_processing_instructions_duplicate_targets'
+      assert_match %r{<\?target1 (a="1" b="2"|b="2" a="1")\?>}, @response.body
+      assert_match %r{<\?target1 (c="3" d="4"|d="4" c="3")\?>}, @response.body
+    end
+  end
+
+  def test_feed_xhtml
+    with_restful_routing(:scrolls) do
+      get :index, :id => "feed_with_xhtml_content"
+      assert_match %r{xmlns="http://www.w3.org/1999/xhtml"}, @response.body
+      assert_select "summary div p", :text => "Something Boring"
+      assert_select "summary div p", :text => "after 2"
+    end
+  end
 private
     def with_restful_routing(resources)
       with_routing do |set|

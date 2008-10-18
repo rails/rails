@@ -635,6 +635,17 @@ Here, the +_ad_banner.html.erb+ and +_footer.html.erb+ partials could contain co
 
 TIP: For content that is shared among all pages in your application, you can use partials directly from layouts.
 
+==== Partial Layouts
+
+A partial can use its own layout file, just as a view can use a layout. For example, you might call a partial like this:
+
+[source, html]
+-------------------------------------------------------
+<%= render :partial => "link_area", :layout => "graybar" %>
+-------------------------------------------------------
+
+This would look for a partial named +_link_area.html.erb+ and render it using the layout +_graybar.html.erb+. Note that layouts for partials follow the same leading-underscore naming as regular partials, and are placed in the same folder with the partial that they belong to (not in the master +layouts+ folder).
+
 ==== Passing Local Variables
 
 You can also pass local variables into partials, making them even more powerful and flexible. For example, you can use this technique to reduce duplication between new and edit pages, while still keeping a bit of distinct content:
@@ -677,6 +688,15 @@ Every partial also has a local variable with the same name as the partial (minus
 
 Within the +customer+ partial, the +@customer+ variable will refer to +@new_customer+ from the parent view.
 
+If you have an instance of a model to render into a partial, you can use a shorthand syntax:
+
+[source, html]
+-------------------------------------------------------
+<%= render :partial => @customer %>
+-------------------------------------------------------
+
+Assuming that the +@customer+ instance variable contains an instance of the +Customer+ model, this will use +_customer.html.erb+ to render it.
+
 ==== Rendering Collections 
 
 Partials are very useful in rendering collections. When you pass a collection to a partial via the +:collection+ option, the partial will be inserted once for each member in the collection:
@@ -711,13 +731,47 @@ You can also specify a second partial to be rendered between instances of the ma
 
 Rails will render the +_product_ruler+ partial (with no data passed in to it) between each pair of +_product+ partials.
 
+There's also a shorthand syntax available for rendering collections. For example, if +@products+ is a collection of products, you can render the collection this way:
+
+[source, html]
+-------------------------------------------------------
+index.rhtml.erb:
+
+<h1>Products</h1>
+<%= render :partial => @products %>
+
+_product.html.erb:
+
+<p>Product Name: <%= product.name %></p>
+-------------------------------------------------------
+
+Rails determines the name of the partial to use by looking at the model name in the collection. In fact, you can even create a heterogeneous collection and render it this way, and Rails will choose the proper partial for each member of the collection:
+
+[source, html]
+-------------------------------------------------------
+index.rhtml.erb:
+
+<h1>Contacts</h1>
+<%= render :partial => [customer1, employee1, customer2, employee2] %>
+
+_customer.html.erb:
+
+<p>Name: <%= customer.name %></p>
+
+_employee.html.erb:
+
+<p>Name: <%= employee.name %></p>
+-------------------------------------------------------
+
+In this case, Rails will use the customer or employee partials as appropriate for each member of the collection.
+
 == Changelog ==
 
 http://rails.lighthouseapp.com/projects/16213-rails-guides/tickets/15[Lighthouse ticket]
 
+* October 16, 2008: Ready for publication by link:../authors.html#mgunderloy[Mike Gunderloy] 
 * October 4, 2008: Additional info on partials (+:object+, +:as+, and +:spacer_template+) by link:../authors.html#mgunderloy[Mike Gunderloy] (not yet approved for publication)
 * September 28, 2008: First draft by link:../authors.html#mgunderloy[Mike Gunderloy] (not yet approved for publication)
-
 
 
 

@@ -924,6 +924,20 @@ uses_mocha 'LegacyRouteSet, Route, RouteSet and RouteLoading' do
 
     end
 
+    def test_named_route_with_name_prefix
+      rs.add_named_route :page, 'page', :controller => 'content', :action => 'show_page', :name_prefix => 'my_'
+      x = setup_for_named_route
+      assert_equal("http://named.route.test/page",
+                   x.send(:my_page_url))
+    end
+
+    def test_named_route_with_path_prefix
+      rs.add_named_route :page, 'page', :controller => 'content', :action => 'show_page', :path_prefix => 'my'
+      x = setup_for_named_route
+      assert_equal("http://named.route.test/my/page",
+                   x.send(:page_url))
+    end
+
     def test_named_route_with_nested_controller
       rs.add_named_route :users, 'admin/user', :controller => 'admin/user', :action => 'index'
       x = setup_for_named_route
@@ -2145,6 +2159,13 @@ uses_mocha 'LegacyRouteSet, Route, RouteSet and RouteLoading' do
       assert_equal "/foo/bar/7?x=y", set.generate(args)
       assert_equal ["/foo/bar/7", [:x]], set.generate_extras(args)
       assert_equal [:x], set.extra_keys(args)
+    end
+
+    def test_generate_with_path_prefix
+      set.draw { |map| map.connect ':controller/:action/:id', :path_prefix => 'my' }
+
+      args = { :controller => "foo", :action => "bar", :id => "7", :x => "y" }
+      assert_equal "/my/foo/bar/7?x=y", set.generate(args)
     end
 
     def test_named_routes_are_never_relative_to_modules

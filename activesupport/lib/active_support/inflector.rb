@@ -1,4 +1,5 @@
 require 'singleton'
+require 'iconv'
 
 module ActiveSupport
   # The Inflector transforms words from singular to plural, class names to table names, modularized class names to ones without,
@@ -258,12 +259,31 @@ module ActiveSupport
     #   # => <a href="/person/1-donald-e-knuth">Donald E. Knuth</a>
     def parameterize(string, sep = '-')
       re_sep = Regexp.escape(sep)
-      string.mb_chars.normalize(:kd).       # Decompose accented characters
-        gsub(/[^\x00-\x7F]+/, '').          # Remove anything non-ASCII entirely (e.g. diacritics).
-        gsub(/[^a-z0-9\-_\+]+/i, sep).      # Turn unwanted chars into the separator.
-        squeeze(sep).                       # No more than one of the separator in a row.
-        gsub(/^#{re_sep}|#{re_sep}$/i, ''). # Remove leading/trailing separator.
-        downcase
+      # replace accented chars with ther ascii equivalents
+      parameterized_string = transliterate(string)
+      # Turn unwanted chars into the seperator
+      parameterized_string.gsub!(/[^a-z0-9\-_\+]+/i, sep)
+      # No more than one of the separator in a row.
+      parameterized_string.squeeze!(sep)
+      # Remove leading/trailing separator.
+      parameterized_string.gsub!(/^#{re_sep}|#{re_sep}$/i, '')
+      parameterized_string.downcase
+    end
+
+
+    # Replaces accented characters with their ascii equivalents.
+    def transliterate(string)
+      Iconv.iconv('ascii//ignore//translit', 'utf-8', string).to_s
+    end
+
+    # The iconv transliteration code doesn't function correctly
+    # on some platforms, but it's very fast where it does function.
+    if "foo" != Inflector.transliterate("föö")
+      undef_method :transliterate
+      def transliterate(string)
+        string.mb_chars.normalize(:kd). # Decompose accented characters
+          gsub(/[^\x00-\x7F]+/, '')     # Remove anything non-ASCII entirely (e.g. diacritics).
+      end
     end
 
     # Create the name of a table like Rails does for models to table names. This method

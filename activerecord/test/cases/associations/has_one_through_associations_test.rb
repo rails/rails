@@ -110,4 +110,14 @@ class HasOneThroughAssociationsTest < ActiveRecord::TestCase
     new_member.club = new_club = Club.create(:name => "LRUG")
     assert_equal new_club, new_member.club.target
   end
+
+  def test_has_one_through_proxy_should_not_respond_to_private_methods
+    assert_raises(NoMethodError) { clubs(:moustache_club).private_method }
+    assert_raises(NoMethodError) { @member.club.private_method }
+  end
+
+  def test_has_one_through_proxy_should_respond_to_private_methods_via_send
+    clubs(:moustache_club).send(:private_method)
+    @member.club.send(:private_method)
+  end
 end
