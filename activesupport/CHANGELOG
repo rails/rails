@@ -1,3 +1,8 @@
+*2.0.5* (October 19th, 2008)
+
+* Included in Rails 2.0.5
+
+
 *2.0.4* (2nd September 2008)
 
 * Fixed the rexml vulnerability disclosed at http://www.ruby-lang.org/en/news/2008/08/23/dos-vulnerability-in-rexml/ [koz]

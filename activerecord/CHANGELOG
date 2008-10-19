@@ -1,3 +1,8 @@
+*2.0.5* (October 19th, 2008)
+
+* Added SQL escaping for :limit and :offset in MySQL [Jonathan Wiess]
+
+
 *2.0.4* (2nd September 2008)
 
 * Migrations: create_table supports primary_key_prefix_type.  #10314 [student, thechrisoshow]

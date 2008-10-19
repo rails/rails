@@ -1,3 +1,8 @@
+*2.0.5* (October 19th, 2008)
+
+* Sanitize the URLs passed to redirect_to to prevent a potential response splitting attack [koz]
+
+
 *2.0.4* (2nd September 2008)
 
 * Avoid remote_ip spoofing.  [Brian Candler]
