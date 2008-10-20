@@ -341,6 +341,19 @@ class TimeWithZoneTest < Test::Unit::TestCase
       assert_equal @twz.inspect, mtime.inspect
     end
   end
+  
+  def test_freeze
+    @twz.freeze
+    assert @twz.frozen?
+  end
+  
+  def test_freeze_preloads_instance_variables
+    @twz.freeze
+    assert_nothing_raised do
+      @twz.period
+      @twz.time
+    end
+  end
 
   uses_mocha 'TestDatePartValueMethods' do
     def test_method_missing_with_non_time_return_value
