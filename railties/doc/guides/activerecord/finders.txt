@@ -192,7 +192,7 @@ Readonly is a find option that you can set in order to make that instance of the
 [source, ruby]
 Client.find(:first, :readonly => true)
 
-If you assign this record to a variable `client` calling the following code will raise an ActiveRecord::ReadOnlyRecord
+If you assign this record to a variable `client` calling the following code will raise an ActiveRecord::ReadOnlyRecord:
 
 [source, ruby]
 client = Client.find(:first, :readonly => true)
@@ -273,14 +273,33 @@ When you define a has_many association on a model you get the find method and dy
 
 == Named Scopes
 
-There was mention of named scopes earlier in "First, Last and All" where we covered the named scopes of `first`, `last` and `all` which were aliases of `find(:first)`, `find(:last)`, `find(:all)` respectively. Now we'll cover adding named scopes to the models in the application. Let's say we want to find all clients who are not locked to do this we would use this code:
+In this section we'll cover adding named scopes to the models in the application. Let's say we want to find all clients who are male we would use this code:
+
+[source, ruby]
+class Client < ActiveRecord::Base
+  named_scope :males, :conditions => { :gender => "male" }
+end
+
+And we could call it like `Client.males` to get all the clients who are male.
+
+If we wanted to find all the clients who are active, we could use this:
 
 [source,ruby]
 class Client < ActiveRecord::Base
-  named_scope :unlocked, :conditions => { :locked => false }
+  named_scope :active, :conditions => { :active => true }
 end
 
-We would call this new named_scope by doing `Client.unlocked` and this will do the same query as if we just used `Client.find(:all, :conditions => ["unlocked = ?", false])`. Please be aware that the conditions syntax in named_scope and find is different and the two are not interchangeable. If you want to find the first client within this named scope you could do `Client.first.unlocked`. This is possible because named scopes are stackable.
+We would call this new named_scope by doing `Client.active` and this will do the same query as if we just used `Client.find(:all, :conditions => ["active = ?", true])`. Please be aware that the conditions syntax in named_scope and find is different and the two are not interchangeable. If you want to find the first client within this named scope you could do `Client.active.first`.
+
+and then if we wanted to find all the clients who are active and male we could stack the named scopes like this:
+
+[source, ruby]
+Client.males.active
+
+If you would then like to do a `find` on that subset of clients, you can. Just like an association, named scopes allow you to call `find` on a set of records:
+
+[source, ruby]
+Client.males.active.find(:all, :conditions => ["age > ?", params[:age]])
 
 Now observe the following code:
 
@@ -293,10 +312,19 @@ What we see here is what looks to be a standard named scope that defines a metho
 
 [source, ruby]
 class Client < ActiveRecord::Base
-  named_scope :recent, lambda { { :conditions => ["created_at > ?", 2.weeks.ago] } } } 
+  named_scope :recent, lambda { { :conditions => ["created_at > ?", 2.weeks.ago] } } 
 end
 
 And now every time the recent named scope is called, because it's wrapped in a lambda block this code will be parsed every time so you'll get actually 2 weeks ago from the code execution, not 2 weeks ago from the time the model was loaded.
+
+In a named scope you can use `:include` and `:joins` options just like in find.
+
+[source, ruby]
+class Client < ActiveRecord::Base
+  named_scope :active_within_2_weeks, :joins => :order, lambda { { :conditions => ["orders.created_at > ?", 2.weeks.ago] } }
+end
+
+This method called as `Client.active_within_2_weeks` will return all clients who have placed orders in the past 2 weeks.
 
 If you want to pass a named scope a compulsory argument, just specify it as a block parameter like this:
 
@@ -315,6 +343,7 @@ end
 This will work with `Client.recent(2.weeks.ago)` and `Client.recent` with the latter always returning records with a created_at date between right now and 2 weeks ago.
 
 Remember that named scopes are stackable, so you will be able to do `Client.recent(2.weeks.ago).unlocked` to find all clients created between right now and 2 weeks ago and have their locked field set to false.
+
 
 == Existance of Objects
 
@@ -387,3 +416,6 @@ Thanks to Mike Gunderloy for his tips on creating this guide.
 === Thursday, 09 October 2008
 1. Wrote section about lock option and tidied up "Making it all work together" section.
 2. Added section on using count.
+
+=== Tuesday, 21 October 2008
+1. Extended named scope guide by adding :include and :joins and find sub-sections.
