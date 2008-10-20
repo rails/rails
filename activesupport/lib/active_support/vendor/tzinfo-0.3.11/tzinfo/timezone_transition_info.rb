@@ -37,7 +37,7 @@ module TZInfo
     attr_reader :numerator_or_time
     protected :numerator_or_time
     
-    # Either the denominator of the DateTime if the transition time is defined
+    # Either the denominotor of the DateTime if the transition time is defined
     # as a DateTime, otherwise nil. 
     attr_reader :denominator
     protected :denominator
@@ -70,17 +70,8 @@ module TZInfo
         unless @denominator 
           @at = TimeOrDateTime.new(@numerator_or_time)
         else
-          r = Rational.send(:new!, @numerator_or_time, @denominator)
-          
-          # Ruby 1.8.6 introduced new! and deprecated new0.
-          # Ruby 1.9.0 removed new0.
-          # We still need to support new0 for older versions of Ruby.
-          if DateTime.respond_to? :new!
-            dt = DateTime.new!(r, 0, Date::ITALY)
-          else
-            dt = DateTime.new0(r, 0, Date::ITALY)
-          end
-          
+          r = RubyCoreSupport.rational_new!(@numerator_or_time, @denominator)
+          dt = RubyCoreSupport.datetime_new!(r, 0, Date::ITALY)
           @at = TimeOrDateTime.new(dt)
         end
       end
