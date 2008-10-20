@@ -1,5 +1,7 @@
 *Edge*
 
+* TimeWithZone#freeze: preload instance variables so that we can actually freeze [Geoff Buesing]
+
 * Fix Brasilia timezone #1180 [Marcus Derencius, Kane]
 
 * Time#advance recognizes fractional days and weeks. Deprecate Durations of fractional months and years #970 [Tom Lea]

@@ -277,9 +277,9 @@ module ActiveSupport
     end
     alias_method :kind_of?, :is_a?
 
-    # Neuter freeze because freezing can cause problems with lazy loading of attributes.
     def freeze
-      self
+      period; utc; time # preload instance variables before freezing
+      super
     end
 
     def marshal_dump
