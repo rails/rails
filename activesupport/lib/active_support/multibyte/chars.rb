@@ -321,7 +321,7 @@ module ActiveSupport #:nodoc:
       # character.
       #
       # Example:
-      #   'こにちわ'.mb_chars.slice(2..3).to_s #=> "ちわ"
+      #   'こんにちは'.mb_chars.slice(2..3).to_s #=> "にち"
       def slice(*args)
         if args.size > 2
           raise ArgumentError, "wrong number of arguments (#{args.size} for 1)" # Do as if we were native
