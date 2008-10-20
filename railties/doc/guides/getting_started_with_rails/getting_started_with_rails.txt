@@ -423,7 +423,7 @@ class Post < ActiveRecord::Base
 end
 -------------------------------------------------------
 
-These changes will ensure that all comments have a body and a commenter, and that the commenter is at least five characters long. Rails can validate a variety of conditions in a model, including the presence or uniqueness of columns, their format, and the existence of associated objects.
+These changes will ensure that all posts have a name and a title, and that the title is at least five characters long. Rails can validate a variety of conditions in a model, including the presence or uniqueness of columns, their format, and the existence of associated objects.
 
 === Using the Console
 
@@ -450,7 +450,7 @@ title: nil, content: "A new post", created_at: nil, updated_at: nil>,
 "is too short (minimum is 5 characters)"]}>
 -------------------------------------------------------
 
-This code shows creating a new +Post+ instance, attempting to save it and getting +false+ for a return value (indicating that the save failed), and inspecting the +errors+ of the comment.
+This code shows creating a new +Post+ instance, attempting to save it and getting +false+ for a return value (indicating that the save failed), and inspecting the +errors+ of the post.
 
 TIP: Unlike the development web server, the console does not automatically load your code afresh for each line. If you make changes, type +reload!+ at the console prompt to load them.
 
