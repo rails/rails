@@ -39,7 +39,7 @@ module ActionController
       # Add a preparation callback. Preparation callbacks are run before every
       # request in development mode, and before the first request in production
       # mode.
-      # 
+      #
       # An optional identifier may be supplied for the callback. If provided,
       # to_prepare may be called again with the same identifier to replace the
       # existing callback. Passing an identifier is a suggested practice if the
@@ -144,6 +144,7 @@ module ActionController
 
       Routing::Routes.reload
       ActionController::Base.view_paths.reload!
+      ActionView::Helpers::AssetTagHelper::AssetTag::Cache.clear
     end
 
     # Cleanup the application by clearing out loaded classes so they can
