@@ -417,14 +417,13 @@ Rails includes methods to help you validate the data that you send to models. Op
 
 [source, ruby]
 -------------------------------------------------------
-class Comment < ActiveRecord::Base
-  belongs_to :post
-  validates_presence_of :commenter, :body
-  validates_length_of :commenter, :minimum => 5
+class Post < ActiveRecord::Base
+  validates_presence_of :name, :title
+  validates_length_of :title, :minimum => 5
 end
 -------------------------------------------------------
 
-These changes will ensure that all comments have a body and a commenter, and that the commenter is at least five characters long. Rails can validate a variety of conditions in a model, including the presence or uniqueness of columns, their format, and the existence of associated objects.
+These changes will ensure that all posts have a name and a title, and that the title is at least five characters long. Rails can validate a variety of conditions in a model, including the presence or uniqueness of columns, their format, and the existence of associated objects.
 
 === Using the Console
 
@@ -439,19 +438,19 @@ After the console loads, you can use it to work with your application's models:
 
 [source, shell]
 -------------------------------------------------------
->> c = Comment.create(:body => "A new comment")
-=> #<Comment id: nil, commenter: nil, body: "A new comment", 
-post_id: nil, created_at: nil, updated_at: nil>
->> c.save
+>> p = Post.create(:content => "A new post")
+=> #<Post id: nil, name: nil, title: nil, content: "A new post", 
+created_at: nil, updated_at: nil>
+>> p.save
 => false
->> c.errors
-=> #<ActiveRecord::Errors:0x227be7c @base=#<Comment id: nil, 
-commenter: nil, body: "A new comment", post_id: nil, created_at: nil, 
-updated_at: nil>, @errors={"commenter"=>["can't be blank", 
+>> p.errors
+=> #<ActiveRecord::Errors:0x23bcf0c @base=#<Post id: nil, name: nil, 
+title: nil, content: "A new post", created_at: nil, updated_at: nil>, 
+@errors={"name"=>["can't be blank"], "title"=>["can't be blank", 
 "is too short (minimum is 5 characters)"]}>
 -------------------------------------------------------
 
-This code shows creating a new +Comment+ instance, attempting to save it and getting +false+ for a return value (indicating that the save failed), and inspecting the +errors+ of the comment.
+This code shows creating a new +Post+ instance, attempting to save it and getting +false+ for a return value (indicating that the save failed), and inspecting the +errors+ of the post.
 
 TIP: Unlike the development web server, the console does not automatically load your code afresh for each line. If you make changes, type +reload!+ at the console prompt to load them.
 
@@ -818,6 +817,8 @@ You'll need to edit the +post.rb+ file to add the other side of the association:
 [source, ruby]
 -------------------------------------------------------
 class Post < ActiveRecord::Base
+  validates_presence_of :name, :title
+  validates_length_of :title, :minimum => 5
   has_many :comments
 end
 -------------------------------------------------------
@@ -929,6 +930,15 @@ end
 -------------------------------------------------------
 
 You'll see a bit more complexity here than you did in the controller for posts. That's a side-effect of the nesting that you've set up; each request for a comment has to keep track of the post to which the comment is attached.
+
+In addition, the code takes advantage of some of the methods available for an association. For example, in the +new+ method, it calls
+
+[source, ruby]
+-------------------------------------------------------
+@comment = @post.comments.build
+-------------------------------------------------------
+
+This creates a new +Comment+ object _and_ sets up the +post_id+ field to have the +id+ from the specified +Post+ object in a single operation.
 
 === Building Views
 

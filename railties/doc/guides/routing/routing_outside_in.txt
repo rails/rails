@@ -551,6 +551,33 @@ If you like, you can combine shallow nesting with the +:has_one+ and +:has_many+
 -------------------------------------------------------
 map.resources :publishers, :has_many => { :magazines => :photos }, :shallow => true
 -------------------------------------------------------
+
+=== Route Generation from Arrays
+
+In addition to using the generated routing helpers, Rails can also generate RESTful routes from an array of parameters. For example, suppose you have a set of routes generated with these entries in routes.rb:
+
+[source, ruby]
+-------------------------------------------------------
+map.resources :magazines do |magazine|
+  magazine.resources :ads
+end
+-------------------------------------------------------
+
+Rails will generate helpers such as magazine_ad_path that you can use in building links:
+
+[source, ruby]
+-------------------------------------------------------
+<%= link_to "Ad details", magazine_ad_path(@magazine, @ad) %>
+-------------------------------------------------------
+
+Another way to refer to the same route is with an array of objects:
+
+[source, ruby]
+-------------------------------------------------------
+<%= link_to "Ad details", [@magazine, @ad] %>
+-------------------------------------------------------
+
+This format is especially useful when you might not know until runtime which of several types of object will be used in a particular link.
  
 === Namespaced Resources
 
