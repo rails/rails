@@ -20,7 +20,7 @@ rescue Gem::LoadError
 end
 
 begin
-  gem 'tzinfo', '~> 0.3.9'
+  gem 'tzinfo', '~> 0.3.11'
 rescue Gem::LoadError
   $:.unshift "#{File.dirname(__FILE__)}/vendor/tzinfo-0.3.9"
 end
