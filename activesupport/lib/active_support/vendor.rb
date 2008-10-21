@@ -22,7 +22,7 @@ end
 begin
   gem 'tzinfo', '~> 0.3.11'
 rescue Gem::LoadError
-  $:.unshift "#{File.dirname(__FILE__)}/vendor/tzinfo-0.3.9"
+  $:.unshift "#{File.dirname(__FILE__)}/vendor/tzinfo-0.3.11"
 end
 
 # TODO I18n gem has not been released yet

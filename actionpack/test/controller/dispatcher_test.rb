@@ -26,9 +26,17 @@ class DispatcherTest < Test::Unit::TestCase
   end
 
   def test_clears_dependencies_after_dispatch_if_in_loading_mode
-    ActionController::Routing::Routes.expects(:reload).once
     ActiveSupport::Dependencies.expects(:clear).once
+    dispatch(@output, false)
+  end
 
+  def test_reloads_routes_before_dispatch_if_in_loading_mode
+    ActionController::Routing::Routes.expects(:reload).once
+    dispatch(@output, false)
+  end
+
+  def test_clears_asset_tag_cache_before_dispatch_if_in_loading_mode
+    ActionView::Helpers::AssetTagHelper::AssetTag::Cache.expects(:clear).once
     dispatch(@output, false)
   end
 
