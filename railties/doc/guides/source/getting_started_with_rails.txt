@@ -164,7 +164,7 @@ File/Folder Purpose
 +log/+		Application log files.
 +public/+		The only folder seen to the world as-is.  This is where your images, javascript, stylesheets (CSS), and other static files go.
 +script/+		Scripts provided by Rails to do recurring tasks, such as benchmarking, plugin installation, and starting the console or the web server.
-+test/+		Unit tests, fixtures, and other test apparatus. These are covered in link:../testing_rails_applications/testing_rails_applications.html[Testing Rails Applications]
++test/+		Unit tests, fixtures, and other test apparatus. These are covered in link:../testing_rails_applications.html[Testing Rails Applications]
 +tmp/+		Temporary files
 +vendor/+		A place for third-party code. In a typical Rails application, this includes Ruby Gems, the Rails source code (if you install it into your project) and plugins containing additional prepackaged functionality.
 -------------------------------------------------------------------------------------------------------------------------------------------
@@ -298,7 +298,7 @@ This line illustrates one tiny bit of the "convention over configuration" approa
 
 Now if you navigate to +http://localhost:3000+ in your browser, you'll see the +home/index+ view.
 
-NOTE: For more information about routing, refer to link:../routing/routing_outside_in.html[Rails Routing from the Outside In].
+NOTE: For more information about routing, refer to link:../routing_outside_in.html[Rails Routing from the Outside In].
 
 == Getting Up and Running Quickly With Scaffolding
 
@@ -362,7 +362,7 @@ class CreatePosts < ActiveRecord::Migration
 end
 -------------------------------------------------------
 
-If you were to translate that into words, it says something like: when this migration is run, create a table named +posts+ with two string columns (+name+ and +title+) and a text column (+content+), and generate timestamp fields to track record creation and updating. You can learn the detailed syntax for migrations in the link:../migrations/migrations.html[Rails Database Migrations] guide.
+If you were to translate that into words, it says something like: when this migration is run, create a table named +posts+ with two string columns (+name+ and +title+) and a text column (+content+), and generate timestamp fields to track record creation and updating. You can learn the detailed syntax for migrations in the link:../migrations.html[Rails Database Migrations] guide.
 
 At this point, you need to do two things: create the database and run the migration. You can use rake commands at the terminal for both of those tasks:
 
@@ -472,7 +472,7 @@ end
 
 This code sets the +@posts+ instance variable to an array of all posts in the database. +Post.find(:all)+ or +Post.all+ calls the +Post+ model to return all of the posts that are currently in the database, with no limiting conditions.
 
-TIP: For more information on finding records with Active Record, see link:../activerecord/finders.html[Active Record Finders].
+TIP: For more information on finding records with Active Record, see link:../finders.html[Active Record Finders].
 
 The +respond_to+ block handles both HTML and XML calls to this action. If you borwse to +http://localhost:3000/posts.xml+, you'll see all of the posts in XML format. The HTML format looks for a view in +app/views/posts/+ with a name that corresponds to the action name. Rails makes all of the instance variables from the action available to the view. Here's +app/view/posts/index.html.erb+:
 
@@ -510,7 +510,7 @@ This view iterates over the contents of the +@posts+ array to display content an
 * +link_to+ builds a hyperlink to a particular destination
 * +edit_post_path+ is a helper that Rails provides as part of RESTful routing. You’ll see a variety of these helpers for the different actions that the controller includes.
 
-TIP: For more details on the rendering process, see link:../actionview/layouts_and_rendering.html[Layouts and Rendering in Rails].
+TIP: For more details on the rendering process, see link:../layouts_and_rendering.html[Layouts and Rendering in Rails].
 
 === Customizing the Layout
 
@@ -825,7 +825,7 @@ end
 
 These two declarations enable a good bit of automatic behavior. For example, if you have an instance variable +@post+ containing a post, you can retrieve all the comments belonging to that post as the array +@post.comments+.
 
-TIP: For more information on Active Record associations, see the link:../activerecord/association_basics.html+[Active Record Associations] guide.
+TIP: For more information on Active Record associations, see the link:../association_basics.html+[Active Record Associations] guide.
 
 === Adding a Route
 
@@ -840,7 +840,7 @@ end
 
 This creates +comments+ as a _nested resource_ within +posts+. This is another part of capturing the hierarchical relationship that exists between posts and comments.
 
-TIP: For more information on routing, see the link:../routing/routing_outside_in[Rails Routing from the Outside In] guide.
+TIP: For more information on routing, see the link:../routing_outside_in[Rails Routing from the Outside In] guide.
 
 === Generating a Controller
 
