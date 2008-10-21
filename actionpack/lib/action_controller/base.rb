@@ -1077,8 +1077,7 @@ module ActionController #:nodoc:
       # Sets the etag and/or last_modified on the response and checks it against
       # the client request. If the request doesn't match the options provided, the
       # request is considered stale and should be generated from scratch. Otherwise,
-      # it's fresh and we don't need to generate anything and can rely on the default
-      # reply of "304 Not Modified".
+      # it's fresh and we don't need to generate anything and a reply of "304 Not Modified" is sent.
       #
       # Example:
       #
@@ -1102,9 +1101,8 @@ module ActionController #:nodoc:
         !stale?(options)
       end
 
-      # Sets the etag, last_modified, or both such that the request can be short-circuited
-      # with a "304 Not Modified" response instead of rendering a template when the request
-      # is already fresh. 
+      # Sets the etag, last_modified, or both on the response and renders a
+      # "304 Not Modified" response if the request is already fresh. 
       #
       # Example:
       #
@@ -1120,6 +1118,10 @@ module ActionController #:nodoc:
 
         response.etag          = options[:etag]          if options[:etag]
         response.last_modified = options[:last_modified] if options[:last_modified]
+
+        if request.fresh?(response)
+          head :not_modified
+        end
       end
 
       # Sets a HTTP 1.1 Cache-Control header. Defaults to issuing a "private" instruction, so that
@@ -1208,11 +1210,7 @@ module ActionController #:nodoc:
       end
 
       def default_render #:nodoc:
-        if request.fresh?(response)
-          head :not_modified
-        else
-          render
-        end
+        render
       end
 
       def perform_action

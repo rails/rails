@@ -41,9 +41,7 @@ class TestController < ActionController::Base
   before_filter :handle_last_modified_and_etags, :only=>:conditional_hello_with_bangs
   
   def handle_last_modified_and_etags
-    if fresh?(:last_modified => Time.now.utc.beginning_of_day, :etag => [ :foo, 123 ])
-      head :not_modified
-    end
+    fresh_when(:last_modified => Time.now.utc.beginning_of_day, :etag => [ :foo, 123 ])
   end
 
   def render_hello_world
