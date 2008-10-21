@@ -121,7 +121,7 @@ module TZInfo
       TimezoneProxy.new(identifier)
     end
     
-    # If identifier is nil calls super(), otherwise calls get. An identifier
+    # If identifier is nil calls super(), otherwise calls get. An identfier 
     # should always be passed in when called externally.
     def self.new(identifier = nil)
       if identifier        

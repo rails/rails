@@ -112,6 +112,14 @@ class Client < Company
   def rating?
     query_attribute :rating
   end
+
+  class << self
+    private
+
+    def private_method
+      "darkness"
+    end
+  end
 end
 
 

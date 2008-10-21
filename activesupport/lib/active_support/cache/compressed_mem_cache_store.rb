@@ -3,12 +3,17 @@ module ActiveSupport
     class CompressedMemCacheStore < MemCacheStore
       def read(name, options = nil)
         if value = super(name, (options || {}).merge(:raw => true))
-          Marshal.load(ActiveSupport::Gzip.decompress(value))
+          if raw?(options)
+            value
+          else
+            Marshal.load(ActiveSupport::Gzip.decompress(value))
+          end
         end
       end
 
       def write(name, value, options = nil)
-        super(name, ActiveSupport::Gzip.compress(Marshal.dump(value)), (options || {}).merge(:raw => true))
+        value = ActiveSupport::Gzip.compress(Marshal.dump(value)) unless raw?(options)
+        super(name, value, (options || {}).merge(:raw => true))
       end
     end
   end

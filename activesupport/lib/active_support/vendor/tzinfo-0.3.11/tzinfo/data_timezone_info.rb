@@ -66,7 +66,7 @@ module TZInfo
     # ArgumentError will be raised if a transition is added out of order.
     # offset_id refers to an id defined with offset. ArgumentError will be 
     # raised if the offset_id cannot be found. numerator_or_time and
-    # denominator specify the time the transition occurs as. See
+    # denomiator specify the time the transition occurs as. See 
     # TimezoneTransitionInfo for more detail about specifying times.
     def transition(year, month, offset_id, numerator_or_time, denominator = nil)
       offset = @offsets[offset_id]      

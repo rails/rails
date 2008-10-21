@@ -120,9 +120,19 @@ module ActionController
     end
 
     # Check response freshness (Last-Modified and ETag) against request
-    # If-Modified-Since and If-None-Match conditions.
+    # If-Modified-Since and If-None-Match conditions. If both headers are
+    # supplied, both must match, or the request is not considered fresh.
     def fresh?(response)
-      not_modified?(response.last_modified) || etag_matches?(response.etag)
+      case
+      when if_modified_since && if_none_match 
+        not_modified?(response.last_modified) && etag_matches?(response.etag) 
+      when if_modified_since 
+        not_modified?(response.last_modified) 
+      when if_none_match 
+        etag_matches?(response.etag) 
+      else 
+        false 
+      end 
     end
 
     # Returns the Mime type for the \format used in the request.

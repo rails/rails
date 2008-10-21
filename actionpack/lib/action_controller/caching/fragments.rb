@@ -26,32 +26,6 @@ module ActionController #:nodoc:
     # 
     #   expire_fragment(:controller => "topics", :action => "list", :action_suffix => "all_topics")
     module Fragments
-      def self.included(base) #:nodoc:
-        base.class_eval do
-          class << self
-            def fragment_cache_store=(store_option) #:nodoc:
-              ActiveSupport::Deprecation.warn('The fragment_cache_store= method is now use cache_store=')
-              self.cache_store = store_option
-            end
-          
-            def fragment_cache_store #:nodoc:
-              ActiveSupport::Deprecation.warn('The fragment_cache_store method is now use cache_store')
-              cache_store
-            end
-          end
-
-          def fragment_cache_store=(store_option) #:nodoc:
-            ActiveSupport::Deprecation.warn('The fragment_cache_store= method is now use cache_store=')
-            self.cache_store = store_option
-          end
-        
-          def fragment_cache_store #:nodoc:
-            ActiveSupport::Deprecation.warn('The fragment_cache_store method is now use cache_store')
-            cache_store
-          end
-        end
-      end
-
       # Given a key (as described in <tt>expire_fragment</tt>), returns a key suitable for use in reading, 
       # writing, or expiring a cached fragment. If the key is a hash, the generated key is the return
       # value of url_for on that hash (without the protocol). All keys are prefixed with "views/" and uses

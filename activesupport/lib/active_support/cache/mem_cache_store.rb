@@ -34,6 +34,9 @@ module ActiveSupport
       def write(key, value, options = nil)
         super
         method = options && options[:unless_exist] ? :add : :set
+        # memcache-client will break the connection if you send it an integer
+        # in raw mode, so we convert it to a string to be sure it continues working.
+        value = value.to_s if raw?(options)
         response = @data.send(method, key, value, expires_in(options), raw?(options))
         response == Response::STORED
       rescue MemCache::MemCacheError => e

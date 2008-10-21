@@ -47,15 +47,42 @@ class Module
   #   Foo.new.min # => 4
   #   Foo.new.max # => 11
   #
+  # Delegates can optionally be prefixed using the <tt>:prefix</tt> option. If the value
+  # is <tt>true</tt>, the delegate methods are prefixed with the name of the object being
+  # delegated to.
+  #
+  #   Person = Struct.new(:name, :address)
+  #
+  #   class Invoice < Struct.new(:client)
+  #     delegate :name, :address, :to => :client, :prefix => true
+  #   end
+  #
+  #   john_doe = Person.new("John Doe", "Vimmersvej 13")
+  #   invoice = Invoice.new(john_doe)
+  #   invoice.client_name    # => "John Doe"
+  #   invoice.client_address # => "Vimmersvej 13"
+  #
+  # It is also possible to supply a custom prefix.
+  #
+  #   class Invoice < Struct.new(:client)
+  #     delegate :name, :address, :to => :client, :prefix => :customer
+  #   end
+  #
+  #   invoice = Invoice.new(john_doe)
+  #   invoice.customer_name    # => "John Doe"
+  #   invoice.customer_address # => "Vimmersvej 13"
+  #
   def delegate(*methods)
     options = methods.pop
     unless options.is_a?(Hash) && to = options[:to]
       raise ArgumentError, "Delegation needs a target. Supply an options hash with a :to key as the last argument (e.g. delegate :hello, :to => :greeter)."
     end
 
+    prefix = options[:prefix] && "#{options[:prefix] == true ? to : options[:prefix]}_"
+
     methods.each do |method|
       module_eval(<<-EOS, "(__DELEGATION__)", 1)
-        def #{method}(*args, &block)
+        def #{prefix}#{method}(*args, &block)
           #{to}.__send__(#{method.inspect}, *args, &block)
         end
       EOS
