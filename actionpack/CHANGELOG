@@ -1,5 +1,39 @@
 *Edge*
 
+* Added stale?/fresh? and fresh_when methods to provide a layer of abstraction above request.fresh? and friends [DHH]. Example:
+
+    class ArticlesController < ApplicationController
+      def show_with_respond_to_block
+        @article = Article.find(params[:id])
+
+
+        # If the request sends headers that differs from the options provided to stale?, then
+        # the request is indeed stale and the respond_to block is triggered (and the options
+        # to the stale? call is set on the response).
+        #
+        # If the request headers match, then the request is fresh and the respond_to block is
+        # not triggered. Instead the default render will occur, which will check the last-modified
+        # and etag headers and conclude that it only needs to send a "304 Not Modified" instead
+        # of rendering the template.
+        if stale?(:last_modified => @article.published_at.utc, :etag => @article)
+          respond_to do |wants|
+            # normal response processing
+          end
+        end
+      end
+
+      def show_with_implied_render
+        @article = Article.find(params[:id])
+
+        # Sets the response headers and checks them against the request, if the request is stale
+        # (i.e. no match of either etag or last-modified), then the default render of the template happens.
+        # If the request is fresh, then the default render will return a "304 Not Modified"
+        # instead of rendering the template.
+        fresh_when(:last_modified => @article.published_at.utc, :etag => @article)
+      end
+    end
+
+
 * Added inline builder yield to atom_feed_helper tags where appropriate [Sam Ruby]. Example:
 
     entry.summary :type => 'xhtml' do |xhtml|

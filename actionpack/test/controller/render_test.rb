@@ -30,24 +30,20 @@ class TestController < ActionController::Base
   end
 
   def conditional_hello
-    response.last_modified = Time.now.utc.beginning_of_day
-    response.etag = [:foo, 123]
-
-    if request.fresh?(response)
-      head :not_modified
-    else
+    if stale?(:last_modified => Time.now.utc.beginning_of_day, :etag => [:foo, 123])
       render :action => 'hello_world'
     end
   end
-  
+
   def conditional_hello_with_bangs
     render :action => 'hello_world'
   end
   before_filter :handle_last_modified_and_etags, :only=>:conditional_hello_with_bangs
   
   def handle_last_modified_and_etags
-    last_modified! Time.now.utc.beginning_of_day
-    etag! [:foo, 123]
+    if fresh?(:last_modified => Time.now.utc.beginning_of_day, :etag => [ :foo, 123 ])
+      head :not_modified
+    end
   end
 
   def render_hello_world
@@ -248,7 +244,7 @@ class TestController < ActionController::Base
     if @alternate_default_render
       @alternate_default_render.call
     else
-      render
+      super
     end
   end
 
@@ -1422,6 +1418,13 @@ class LastModifiedRenderTest < Test::Unit::TestCase
     assert_equal @last_modified, @response.headers['Last-Modified']
   end
 
+  def test_request_not_modified_but_etag_differs
+    @request.if_modified_since = @last_modified
+    @request.if_none_match = "234"
+    get :conditional_hello
+    assert_response :success
+  end
+
   def test_request_modified
     @request.if_modified_since = 'Thu, 16 Jul 2008 00:00:00 GMT'
     get :conditional_hello
@@ -1445,7 +1448,7 @@ class LastModifiedRenderTest < Test::Unit::TestCase
   def test_last_modified_works_with_less_than_too
     @request.if_modified_since = 5.years.ago.httpdate
     get :conditional_hello_with_bangs
-    assert_response :not_modified
+    assert_response :success
   end
 end
 
