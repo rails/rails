@@ -122,3 +122,5 @@ This guide covers how to build a plugin to extend the functionality of Rails.
 ***********************************************************
 
 Authors who have contributed to complete guides are listed link:authors.html[here].
+
+This work is licensed under a link:http://creativecommons.org/licenses/by-nc-sa/3.0/[Creative Commons Attribution-Noncommercial-Share Alike 3.0  License]
