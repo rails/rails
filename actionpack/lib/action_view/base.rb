@@ -172,18 +172,6 @@ module ActionView #:nodoc:
       delegate :logger, :to => 'ActionController::Base'
     end
 
-    def self.cache_template_loading=(*args)
-      ActiveSupport::Deprecation.warn(
-        "config.action_view.cache_template_loading option has been deprecated" +
-        "and has no effect. Please remove it from your config files.", caller)
-    end
-
-    def self.cache_template_extensions=(*args)
-      ActiveSupport::Deprecation.warn(
-        "config.action_view.cache_template_extensions option has been" +
-        "deprecated and has no effect. Please remove it from your config files.", caller)
-    end
-
     # Templates that are exempt from layouts
     @@exempt_from_layout = Set.new([/\.rjs$/])
 
@@ -259,10 +247,6 @@ module ActionView #:nodoc:
         if options[:layout]
           _render_with_layout(options, local_assigns, &block)
         elsif options[:file]
-          if options[:use_full_path]
-            ActiveSupport::Deprecation.warn("use_full_path option has been deprecated and has no affect.", caller)
-          end
-
           _pick_template(options[:file]).render_template(self, options[:locals])
         elsif options[:partial]
           render_partial(options)
