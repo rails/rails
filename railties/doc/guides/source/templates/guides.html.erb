@@ -1,5 +1,5 @@
 <%-
-	manuals_index_url = ENV['MANUALSONRAILS_INDEX_URL'] || "http://guides.rubyonrails.org/"
+	manuals_index_url = ENV['MANUALSONRAILS_INDEX_URL'] || "index.html"
 	show_toc = ENV['MANUALSONRAILS_TOC'] != 'no'
 -%>
 <!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
@@ -20,7 +20,7 @@
 <body>
 	<div id="header" <% if !show_toc %> class="notoc"<% end %>>
 		<div id="logo">
-			<a href="http://guides.rubyonrails.org/" title="Ruby on Rails"><img src="images/rails_logo_remix.gif" alt="Rails" height="140" width="110" /></a>
+			<a href="index.html" title="Ruby on Rails"><img src="images/rails_logo_remix.gif" alt="Rails" height="140" width="110" /></a>
 		</div>
 		
 		<h1 id="site_title"><span>Ruby on Rails</span></h1>
@@ -28,7 +28,7 @@
 
 		<ul id="navMain">
 			<li class="first-child"><a href="http://www.rubyonrails.org/" title="Ruby on Rails" class="ruby_on_rails">Ruby on Rails</a></li>
-			<li><a class="manuals" href="<%=h manuals_index_url %>" title="Manuals Index">Guides Index</a></li>
+			<li><a class="manuals" href="index.html" title="Manuals Index">Guides Index</a></li>
 		</ul>
 	</div>
 
