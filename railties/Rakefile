@@ -299,7 +299,7 @@ task :guides do
       input  = File.join(source, entry)
       output = File.join(html, entry).sub(/\.txt$/, '')
     end
-    
+
     begin
       puts "GENERATING => #{output}"
       ENV['MANUALSONRAILS_TOC'] = 'no' if indexless.include?(entry)
@@ -311,6 +311,10 @@ task :guides do
       ENV.delete('MANUALSONRAILS_TOC')
     end
   end
+
+  # Copy images and css files to html directory. These dirs are in .gitigore and shouldn't be source controlled.
+  FileUtils.cp_r File.join(source, 'images'), File.join(html, 'images')
+  FileUtils.cp_r File.join(source, 'stylesheets'), File.join(html, 'stylesheets')
 end
 
 # Generate GEM ----------------------------------------------------------------------------

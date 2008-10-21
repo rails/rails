@@ -67,7 +67,7 @@ dd {
 }
 
 div#header h1#site_title {
-	background: url('http://web.rubyonrails.com/images/ruby_on_rails_by_mike_rundle2.gif') top left no-repeat;
+	background: url('images/ruby_on_rails_by_mike_rundle2.gif') top left no-repeat;
 	position: absolute;
 	width: 392px;
 	height: 55px;
