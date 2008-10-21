@@ -278,6 +278,9 @@ task :guides do
 
   source = "doc/guides/source/"
   html   = "doc/guides/html/"
+  FileUtils.rm_r(html) if File.directory?(html)
+  FileUtils.mkdir(html)
+
   ignore = ['icons', 'images']
   ignore << 'active_record_basics.txt'
 
@@ -288,7 +291,7 @@ task :guides do
 
     if File.directory?(File.join(source, entry))
       input  = File.join(source, entry, 'index.txt')
-      output = File.join(html, "#{entry}.html")
+      output = File.join(html, entry)
     else
       input  = File.join(source, entry)
       output = File.join(html, entry).sub(/\.txt$/, '')
