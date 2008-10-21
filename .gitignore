@@ -5,7 +5,6 @@ activerecord/doc
 actionpack/doc
 actionmailer/doc
 activesupport/doc
-railties/doc
 activeresource/pkg
 activerecord/pkg
 actionpack/pkg
