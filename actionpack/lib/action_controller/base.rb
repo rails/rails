@@ -1096,11 +1096,6 @@ module ActionController #:nodoc:
         !request.fresh?(response)
       end
 
-      # The opposite of stale? provided for parity when that feels more natural.
-      def fresh?(options)
-        !stale?(options)
-      end
-
       # Sets the etag, last_modified, or both on the response and renders a
       # "304 Not Modified" response if the request is already fresh. 
       #

@@ -1,6 +1,6 @@
 *Edge*
 
-* Added stale?/fresh? and fresh_when methods to provide a layer of abstraction above request.fresh? and friends [DHH]. Example:
+* Added stale? and fresh_when methods to provide a layer of abstraction above request.fresh? and friends [DHH]. Example:
 
     class ArticlesController < ApplicationController
       def show_with_respond_to_block
