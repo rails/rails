@@ -6,9 +6,9 @@
 	<!--[if lt IE 8]>
 	<script src="http://ie7-js.googlecode.com/svn/version/2.0(beta3)/IE8.js" type="text/javascript"></script>
 	<![endif]-->
-	<link href="http://manuals.rubyonrails.org/stylesheets/base.css" media="screen" rel="Stylesheet" type="text/css" />
-	<link href="http://manuals.rubyonrails.org/stylesheets/forms.css" media="screen" rel="Stylesheet" type="text/css" />
-	<link href="http://manuals.rubyonrails.org/stylesheets/more.css" media="screen" rel="Stylesheet" type="text/css" />
+	<link href="stylesheets/base.css" media="screen" rel="Stylesheet" type="text/css" />
+	<link href="stylesheets/forms.css" media="screen" rel="Stylesheet" type="text/css" />
+	<link href="stylesheets/more.css" media="screen" rel="Stylesheet" type="text/css" />
 	<style type="text/css">
 		div#container {
 	max-width: 900px;
@@ -189,7 +189,7 @@ ul#navMain {
 
 		<ul id="navMain">
 			<li class="first-child"><a href="http://www.rubyonrails.org/" title="Ruby on Rails" class="ruby_on_rails">Ruby on Rails</a></li>
-			<li><a class="manuals" href="http://manuals.rubyonrails.org/" title="Manuals Index">Manuals Index</a></li>
+			<li><a class="manuals" href="http://guides.rubyonrails.org/" title="Manuals Index">Guides Index</a></li>
 		</ul>
 	</div>
 
@@ -641,7 +641,7 @@ cellspacing="0" cellpadding="4">
     <tt>test/</tt>
     </td>
     <td align="left">
-    Unit tests, fixtures, and other test apparatus. These are covered in <a href="../testing_rails_applications/testing_rails_applications.html">Testing Rails Applications</a>
+    Unit tests, fixtures, and other test apparatus. These are covered in <a href="../testing_rails_applications.html">Testing Rails Applications</a>
     </td>
   </tr>
   <tr>
@@ -819,7 +819,7 @@ http://www.gnu.org/software/src-highlite -->
 <td class="icon">
 <img src="/Users/lifo/Docs/docrails/railties/doc/guides/source/icons/note.png" alt="Note" />
 </td>
-<td class="content">For more information about routing, refer to <a href="../routing/routing_outside_in.html">Rails Routing from the Outside In</a>.</td>
+<td class="content">For more information about routing, refer to <a href="../routing_outside_in.html">Rails Routing from the Outside In</a>.</td>
 </tr></table>
 </div>
 </div>
@@ -1002,7 +1002,7 @@ http://www.gnu.org/software/src-highlite -->
   <span style="font-weight: bold"><span style="color: #0000FF">end</span></span>
 <span style="font-weight: bold"><span style="color: #0000FF">end</span></span>
 </tt></pre></div></div>
-<div class="para"><p>If you were to translate that into words, it says something like: when this migration is run, create a table named <tt>posts</tt> with two string columns (<tt>name</tt> and <tt>title</tt>) and a text column (<tt>content</tt>), and generate timestamp fields to track record creation and updating. You can learn the detailed syntax for migrations in the <a href="../migrations/migrations.html">Rails Database Migrations</a> guide.</p></div>
+<div class="para"><p>If you were to translate that into words, it says something like: when this migration is run, create a table named <tt>posts</tt> with two string columns (<tt>name</tt> and <tt>title</tt>) and a text column (<tt>content</tt>), and generate timestamp fields to track record creation and updating. You can learn the detailed syntax for migrations in the <a href="../migrations.html">Rails Database Migrations</a> guide.</p></div>
 <div class="para"><p>At this point, you need to do two things: create the database and run the migration. You can use rake commands at the terminal for both of those tasks:</p></div>
 <div class="listingblock">
 <div class="content"><!-- Generator: GNU source-highlight 2.9
@@ -1128,7 +1128,7 @@ http://www.gnu.org/software/src-highlite -->
 <td class="icon">
 <img src="/Users/lifo/Docs/docrails/railties/doc/guides/source/icons/tip.png" alt="Tip" />
 </td>
-<td class="content">For more information on finding records with Active Record, see <a href="../activerecord/finders.html">Active Record Finders</a>.</td>
+<td class="content">For more information on finding records with Active Record, see <a href="../finders.html">Active Record Finders</a>.</td>
 </tr></table>
 </div>
 <div class="para"><p>The <tt>respond_to</tt> block handles both HTML and XML calls to this action. If you borwse to <tt>http://localhost:3000/posts.xml</tt>, you'll see all of the posts in XML format. The HTML format looks for a view in <tt>app/views/posts/</tt> with a name that corresponds to the action name. Rails makes all of the instance variables from the action available to the view. Here's <tt>app/view/posts/index.html.erb</tt>:</p></div>
@@ -1185,7 +1185,7 @@ http://www.gnu.org/software/src-highlite -->
 <td class="icon">
 <img src="/Users/lifo/Docs/docrails/railties/doc/guides/source/icons/tip.png" alt="Tip" />
 </td>
-<td class="content">For more details on the rendering process, see <a href="../actionview/layouts_and_rendering.html">Layouts and Rendering in Rails</a>.</td>
+<td class="content">For more details on the rendering process, see <a href="../layouts_and_rendering.html">Layouts and Rendering in Rails</a>.</td>
 </tr></table>
 </div>
 <h3 id="_customizing_the_layout">6.8. Customizing the Layout</h3>
@@ -1538,7 +1538,7 @@ http://www.gnu.org/software/src-highlite -->
 <td class="icon">
 <img src="/Users/lifo/Docs/docrails/railties/doc/guides/source/icons/tip.png" alt="Tip" />
 </td>
-<td class="content">For more information on Active Record associations, see the <a href="../activerecord/association_basics.html+">Active Record Associations</a> guide.</td>
+<td class="content">For more information on Active Record associations, see the <a href="../association_basics.html+">Active Record Associations</a> guide.</td>
 </tr></table>
 </div>
 <h3 id="_adding_a_route">7.3. Adding a Route</h3>
@@ -1558,7 +1558,7 @@ http://www.gnu.org/software/src-highlite -->
 <td class="icon">
 <img src="/Users/lifo/Docs/docrails/railties/doc/guides/source/icons/tip.png" alt="Tip" />
 </td>
-<td class="content">For more information on routing, see the <a href="../routing/routing_outside_in">Rails Routing from the Outside In</a> guide.</td>
+<td class="content">For more information on routing, see the <a href="../routing_outside_in">Rails Routing from the Outside In</a> guide.</td>
 </tr></table>
 </div>
 <h3 id="_generating_a_controller">7.4. Generating a Controller</h3>

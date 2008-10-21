@@ -1,0 +1,82 @@
+.admin {
+  display:none;
+}
+
+#navAuthor {
+  text-align: right;
+}
+
+.bookinfo, .userinfo, pre {
+  padding: 10px;
+  background: #eee;
+  border: 1px solid #ccc;
+}
+
+pre { 
+  overflow: auto; 
+}
+
+#content pre, #content ul {
+  margin-bottom: 10px;
+}
+
+#content ol>ol {
+  padding-left : 30px;
+}
+
+div#header h1 a{
+	color: #333333;
+	text-decoration:  none;		
+}
+
+div#header p a{
+  text-decoration:  none;
+	color:            #999;
+}
+
+.left-floaty {
+  padding: 3px 15px;
+  float:left;
+}
+
+.right-floaty {
+  float:right;
+  padding: 3px 15px;
+}
+
+.figure {
+  border: 1px solid black;
+  line-height: normal;
+  background: #FFE;
+  margin: 1em;
+}
+
+.figure .caption {
+  background: #B00;
+  color: white;
+  font-weight: bold;
+  padding: 4px 24px 4px 8px;
+  margin-left: -4px;
+  border: 1px dotted #F77;
+}
+
+.figure .body {
+  padding: 0.5em;
+  margin-top: 0.5em;
+}
+
+.figure pre {
+  padding: 0px;
+  background: transparent;
+  border: none;
+  font-size: small;
+  font-family: mono;
+}
+
+.figure .lineno {
+  text-align: right;
+  color: #B00;
+  font-family: mono;
+  font-size: small;
+  padding-right: 1em;
+}
