@@ -91,7 +91,8 @@ If you have a look at +test/performance/browsing_test.rb+ in a newly created Rai
 
 [source, ruby]
 ----------------------------------------------------------------------------
-require 'performance/test_helper'
+require 'test_helper'
+require 'performance_test_help'
 
 # Profiling results for each test method are written to tmp/performance.
 class BrowsingTest < ActionController::PerformanceTest
@@ -209,7 +210,8 @@ Rails provides a simple generator for creating new performance tests:
 This will generate +test/performance/homepage_test.rb+:
 
 ----------------------------------------------------------------------------
-require 'performance/test_helper'
+require 'test_helper'
+require 'performance_test_help'
 
 class HomepageTest < ActionController::PerformanceTest
   # Replace this with your real tests.
