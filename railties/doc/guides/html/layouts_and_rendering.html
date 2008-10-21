@@ -1,0 +1,1199 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" lang="en" xml:lang="en">
+<head>
+	<meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
+	<title>Layouts and Rendering in Rails</title>
+	<!--[if lt IE 8]>
+	<script src="http://ie7-js.googlecode.com/svn/version/2.0(beta3)/IE8.js" type="text/javascript"></script>
+	<![endif]-->
+	<link href="stylesheets/base.css" media="screen" rel="Stylesheet" type="text/css" />
+	<link href="stylesheets/forms.css" media="screen" rel="Stylesheet" type="text/css" />
+	<link href="stylesheets/more.css" media="screen" rel="Stylesheet" type="text/css" />
+	<style type="text/css">
+		div#container {
+	max-width: 900px;
+	padding-bottom: 3em;
+}
+
+div#content {
+	margin-left: 200px;
+}
+
+div#container.notoc {
+	max-width: 600px;
+}
+
+.notoc div#content {
+	margin-left: 0;
+}
+
+pre {
+	line-height: 1.4em;
+}
+
+#content p tt {
+	background: #eeeeee;
+	border: solid 1px #cccccc;
+	padding: 3px;
+}
+
+dt {
+	font-weight: bold;
+}
+
+#content dt tt {
+	font-size: 10pt;
+}
+
+dd {
+	margin-left: 3em;
+}
+
+#content dt tt, #content pre tt {
+	background: none;
+	padding: 0;
+	border: 0;
+}
+
+#content .olist ol {
+	margin-left: 2em;
+}
+
+#header {
+	position: relative;
+	max-width: 840px;
+	margin-left: auto;
+	margin-right: auto;
+}
+
+#header.notoc {
+	max-width: 580px;
+}
+
+#logo {
+	position: absolute;
+	left: 10px;
+	top: 10px;
+	width: 110px;
+	height: 140px;
+}
+
+div#header h1#site_title {
+	background: url('images/ruby_on_rails_by_mike_rundle2.gif') top left no-repeat;
+	position: absolute;
+	width: 392px;
+	height: 55px;
+	left: 145px;
+	top: 20px;
+	margin: 0;
+	padding: 0;
+}
+
+#site_title span {
+	display: none;
+}
+
+#site_title_tagline {
+	display: none;
+}
+
+ul#navMain {
+	position: absolute;
+	margin: 0;
+	padding: 0;
+	top: 97px;
+	left: 145px;
+}
+
+.left-floaty, .right-floaty {
+	padding: 15px;
+}
+
+.admonitionblock,
+.tableblock {
+	margin-left: 1em;
+	margin-right: 1em;
+	margin-top: 0.25em;
+	margin-bottom: 1em;
+}
+
+.admonitionblock .icon {
+	padding-right: 8px;
+}
+
+.admonitionblock .content {
+	border: solid 1px #ffda78;
+	background: #fffebd;
+	padding: 10px;
+	padding-top: 8px;
+	padding-bottom: 8px;
+}
+
+.admonitionblock .title {
+	font-size: 140%;
+	margin-bottom: 0.5em;
+}
+
+.tableblock table {
+	border: solid 1px #aaaaff;
+	background: #f0f0ff;
+}
+
+.tableblock th {
+	background: #e0e0e0;
+}
+
+.tableblock th,
+.tableblock td {
+	padding: 3px;
+	padding-left: 5px;
+	padding-right: 5px;
+}
+
+.sidebarblock {
+	margin-top: 0.25em;
+	margin: 1em;
+	border: solid 1px #ccccbb;
+	padding: 8px;
+	background: #ffffe0;
+}
+
+.sidebarblock .sidebar-title {
+	font-size: 140%;
+	font-weight: 600;
+	margin-bottom: 0.3em;
+}
+
+.sidebarblock .sidebar-content > .para:last-child > p {
+	margin-bottom: 0;
+}
+
+.sidebarblock .sidebar-title a {
+	text-decoration: none;
+}
+
+.sidebarblock .sidebar-title a:hover {
+	text-decoration: underline;
+}
+
+	</style>
+</head>
+<body>
+	<div id="header" >
+		<div id="logo">
+			<a href="index.html" title="Ruby on Rails"><img src="images/rails_logo_remix.gif" alt="Rails" height="140" width="110" /></a>
+		</div>
+		
+		<h1 id="site_title"><span>Ruby on Rails</span></h1>
+		<h2 id="site_title_tagline">Sustainable productivity for web-application development</h2>
+
+		<ul id="navMain">
+			<li class="first-child"><a href="http://www.rubyonrails.org/" title="Ruby on Rails" class="ruby_on_rails">Ruby on Rails</a></li>
+			<li><a class="manuals" href="index.html" title="Manuals Index">Guides Index</a></li>
+		</ul>
+	</div>
+
+	<div id="container">
+		
+		<div id="sidebar">
+			<h2>Chapters</h2>
+			<ol>
+					<li>
+					<a href="#_overview_how_the_pieces_fit_together">Overview: How the Pieces Fit Together</a>
+					</li>
+					<li>
+					<a href="#_creating_responses">Creating Responses</a>
+						<ul>
+						
+							<li><a href="#_rendering_by_default_convention_over_configuration_in_action">Rendering by Default: Convention Over Configuration in Action</a></li>
+						
+							<li><a href="#_using_tt_render_tt">Using <tt>render</tt></a></li>
+						
+							<li><a href="#_using_tt_redirect_to_tt">Using <tt>redirect_to</tt></a></li>
+						
+							<li><a href="#_using_tt_head_tt_to_build_header_only_responses">Using <tt>head</tt> To Build Header-Only Responses</a></li>
+						
+						</ul>
+					</li>
+					<li>
+					<a href="#_structuring_layouts">Structuring Layouts</a>
+						<ul>
+						
+							<li><a href="#_asset_tags">Asset Tags</a></li>
+						
+							<li><a href="#_understanding_tt_yield_tt">Understanding <tt>yield</tt></a></li>
+						
+							<li><a href="#_using_tt_content_for_tt">Using <tt>content_for</tt></a></li>
+						
+							<li><a href="#_using_partials">Using Partials</a></li>
+						
+						</ul>
+					</li>
+					<li>
+					<a href="#_changelog">Changelog</a>
+					</li>
+			</ol>
+		</div>
+		
+		<div id="content">
+				<h1>Layouts and Rendering in Rails</h1>
+			<div id="preamble">
+<div class="sectionbody">
+<div class="para"><p>This guide covers the basic layout features of Action Controller and Action View. By referring to this guide, you will be able to:</p></div>
+<div class="ilist"><ul>
+<li>
+<p>
+Use the various rendering methods built in to Rails
+</p>
+</li>
+<li>
+<p>
+Create layouts with multiple content sections
+</p>
+</li>
+<li>
+<p>
+Use partials to DRY up your views
+</p>
+</li>
+</ul></div>
+</div>
+</div>
+<h2 id="_overview_how_the_pieces_fit_together">1. Overview: How the Pieces Fit Together</h2>
+<div class="sectionbody">
+<div class="para"><p>This guide focuses on the interaction between Controller and View in the Model-View-Controller triangle. As you know, the Controller is responsible for orchestrating the whole process of handling a request in Rails, though it normally hands off any heavy code to the Model. But then, when it's time to send a response back to the user, the Controller hands things off to the View. It's that handoff that is the subject of this guide.</p></div>
+<div class="para"><p>In broad strokes, this involves deciding what should be sent as the response and calling an appropriate method to create that response. If the response is a full-blown view, Rails also does some extra work to wrap the view in a layout and possibly to pull in partial views. You'll see all of those paths later in this guide.</p></div>
+</div>
+<h2 id="_creating_responses">2. Creating Responses</h2>
+<div class="sectionbody">
+<div class="para"><p>From the controller's point of view, there are three ways to create an HTTP response:</p></div>
+<div class="ilist"><ul>
+<li>
+<p>
+Call <tt>render</tt> to create a full response to send back to the browser
+</p>
+</li>
+<li>
+<p>
+Call <tt>redirect_to</tt> to send an HTTP redirect status code to the browser
+</p>
+</li>
+<li>
+<p>
+Call <tt>head</tt> to create a response consisting solely of HTTP headers to send back to the browser
+</p>
+</li>
+</ul></div>
+<div class="para"><p>I'll cover each of these methods in turn. But first, a few words about the very easiest thing that the controller can do to create a response: nothing at all.</p></div>
+<h3 id="_rendering_by_default_convention_over_configuration_in_action">2.1. Rendering by Default: Convention Over Configuration in Action</h3>
+<div class="para"><p>You've heard that Rails promotes "convention over configuration." Default rendering is an excellent example of this. By default, controllers in Rails automatically render views with names that correspond to actions. For example, if you have this code in your <tt>BooksController</tt> class:</p></div>
+<div class="listingblock">
+<div class="content"><!-- Generator: GNU source-highlight 2.9
+by Lorenzo Bettini
+http://www.lorenzobettini.it
+http://www.gnu.org/software/src-highlite -->
+<pre><tt><span style="font-weight: bold"><span style="color: #0000FF">def</span></span> show
+  <span style="color: #009900">@book</span> <span style="color: #990000">=</span> Book<span style="color: #990000">.</span>find<span style="color: #990000">(</span>params<span style="color: #990000">[:</span>id<span style="color: #990000">])</span>
+<span style="font-weight: bold"><span style="color: #0000FF">end</span></span>
+</tt></pre></div></div>
+<div class="para"><p>Rails will automatically render <tt>app/views/books/show.html.erb</tt> after running the method. In fact, if you have the default catch-all route in place (<tt>map.connect <em>:controller/:action/:id</em></tt>), Rails will even render views that don't have any code at all in the controller. For example, if you have the default route in place and a request comes in for <tt>/books/sale_list</tt>, Rails will render <tt>app/views/books/sale_list.html.erb</tt> in response.</p></div>
+<div class="admonitionblock">
+<table><tr>
+<td class="icon">
+<img src="/Users/lifo/Docs/docrails/railties/doc/guides/source/icons/note.png" alt="Note" />
+</td>
+<td class="content">The actual rendering is done by subclasses of <tt>ActionView::TemplateHandlers</tt>. This guide does not dig into that process, but it's important to know that the file extension on your view controls the choice of template handler. In Rails 2, the standard extensions are <tt>.erb</tt> for ERB (HTML with embedded Ruby), <tt>.rjs</tt> for RJS (javascript with embedded ruby) and <tt>.builder</tt> for Builder (XML generator). You'll also find <tt>.rhtml</tt> used for ERB templates and .rxml for Builder templates, but those extensions are now formally deprecated and will be removed from a future version of Rails.</td>
+</tr></table>
+</div>
+<h3 id="_using_tt_render_tt">2.2. Using <tt>render</tt></h3>
+<div class="para"><p>In most cases, the <tt>ActionController::Base#render</tt> method does the heavy lifting of rendering your application's content for use by a browser. There are a variety of ways to customize the behavior of <tt>render</tt>. You can render the default view for a Rails template, or a specific template, or a file, or inline code, or nothing at all. You can render text, JSON, or XML. You can specify the content type or HTTP status of the rendered response as well.</p></div>
+<div class="admonitionblock">
+<table><tr>
+<td class="icon">
+<img src="/Users/lifo/Docs/docrails/railties/doc/guides/source/icons/tip.png" alt="Tip" />
+</td>
+<td class="content">If you want to see the exact results of a call to <tt>render</tt> without needing to inspect it in a browser, you can call <tt>render_to_string</tt>. This method takes exactly the same options as <tt>render</tt>, but it returns a string instead of sending a response back to the browser.</td>
+</tr></table>
+</div>
+<h4 id="_rendering_nothing">2.2.1. Rendering Nothing</h4>
+<div class="para"><p>Perhaps the simplest thing you can do with <tt>render</tt> is to render nothing at all:</p></div>
+<div class="listingblock">
+<div class="content"><!-- Generator: GNU source-highlight 2.9
+by Lorenzo Bettini
+http://www.lorenzobettini.it
+http://www.gnu.org/software/src-highlite -->
+<pre><tt>render <span style="color: #990000">:</span>nothing <span style="color: #990000">=&gt;</span> <span style="font-weight: bold"><span style="color: #0000FF">true</span></span>
+</tt></pre></div></div>
+<div class="para"><p>This will send an empty response to the browser (though it will include any status headers you set with the :status option, discussed below).</p></div>
+<div class="admonitionblock">
+<table><tr>
+<td class="icon">
+<img src="/Users/lifo/Docs/docrails/railties/doc/guides/source/icons/tip.png" alt="Tip" />
+</td>
+<td class="content">You should probably be using the <tt>head</tt> method, discussed later in this guide, instead of <tt>render :nothing</tt>. This provides additional flexibility and makes it explicit that you're only generating HTTP headers.</td>
+</tr></table>
+</div>
+<h4 id="_using_tt_render_tt_with_tt_action_tt">2.2.2. Using <tt>render</tt> with <tt>:action</tt></h4>
+<div class="para"><p>If you want to render the view that corresponds to a different action within the same template, you can use <tt>render</tt> with the <tt>:action</tt> option:</p></div>
+<div class="listingblock">
+<div class="content"><!-- Generator: GNU source-highlight 2.9
+by Lorenzo Bettini
+http://www.lorenzobettini.it
+http://www.gnu.org/software/src-highlite -->
+<pre><tt><span style="font-weight: bold"><span style="color: #0000FF">def</span></span> update
+  <span style="color: #009900">@book</span> <span style="color: #990000">=</span> Book<span style="color: #990000">.</span>find<span style="color: #990000">(</span>params<span style="color: #990000">[:</span>id<span style="color: #990000">])</span>
+    <span style="font-weight: bold"><span style="color: #0000FF">if</span></span> <span style="color: #009900">@book</span><span style="color: #990000">.</span>update_attributes<span style="color: #990000">(</span>params<span style="color: #990000">[:</span>book<span style="color: #990000">])</span>
+      redirect_to<span style="color: #990000">(</span><span style="color: #009900">@book</span><span style="color: #990000">)</span>
+    <span style="font-weight: bold"><span style="color: #0000FF">else</span></span>
+      render <span style="color: #990000">:</span>action <span style="color: #990000">=&gt;</span> <span style="color: #FF0000">"edit"</span>
+    <span style="font-weight: bold"><span style="color: #0000FF">end</span></span>
+  <span style="font-weight: bold"><span style="color: #0000FF">end</span></span>
+<span style="font-weight: bold"><span style="color: #0000FF">end</span></span>
+</tt></pre></div></div>
+<div class="para"><p>If the call to <tt>update_attributes_ fails, calling the +update</tt> action in this controller will render the <tt>edit.html.erb</tt> template belonging to the same controller.</p></div>
+<div class="admonitionblock">
+<table><tr>
+<td class="icon">
+<img src="/Users/lifo/Docs/docrails/railties/doc/guides/source/icons/warning.png" alt="Warning" />
+</td>
+<td class="content">Using <tt>render</tt> with <tt>:action</tt> is a frequent source of confusion for Rails newcomers. The specified action is used to determine which view to render, but Rails does <em>not</em> run any of the code for that action in the controller. Any instance variables that you require in the view must be set up in the current action before calling <tt>render</tt>.</td>
+</tr></table>
+</div>
+<h4 id="_using_tt_render_tt_with_tt_template_tt">2.2.3. Using <tt>render</tt> with <tt>:template</tt></h4>
+<div class="para"><p>What if you want to render a template from an entirely different controller from the one that contains the action code? You can do that with the <tt>:template</tt> option to <tt>render</tt>, which accepts the full path (relative to <tt>app/views</tt>) of the template to render. For example, if you're running code in an <tt>AdminProductsController</tt> that lives in <tt>app/controllers/admin</tt>, you can render the results of an action to a template in <tt>app/views/products</tt> this way:</p></div>
+<div class="listingblock">
+<div class="content"><!-- Generator: GNU source-highlight 2.9
+by Lorenzo Bettini
+http://www.lorenzobettini.it
+http://www.gnu.org/software/src-highlite -->
+<pre><tt>render <span style="color: #990000">:</span>template <span style="color: #990000">=&gt;</span> <span style="color: #FF0000">'products/show'</span>
+</tt></pre></div></div>
+<h4 id="_using_tt_render_tt_with_tt_file_tt">2.2.4. Using <tt>render</tt> with <tt>:file</tt></h4>
+<div class="para"><p>If you want to use a view that's entirely outside of your application (perhaps you're sharing views between two Rails applications), you can use the <tt>:file</tt> option to <tt>render</tt>:</p></div>
+<div class="listingblock">
+<div class="content"><!-- Generator: GNU source-highlight 2.9
+by Lorenzo Bettini
+http://www.lorenzobettini.it
+http://www.gnu.org/software/src-highlite -->
+<pre><tt>render <span style="color: #990000">:</span>file <span style="color: #990000">=&gt;</span> <span style="color: #FF0000">"/u/apps/warehouse_app/current/app/views/products/show"</span>
+</tt></pre></div></div>
+<div class="para"><p>The <tt>:file</tt> option takes an absolute file-system path. Of course, you need to have rights to the view that you're using to render the content.</p></div>
+<div class="admonitionblock">
+<table><tr>
+<td class="icon">
+<img src="/Users/lifo/Docs/docrails/railties/doc/guides/source/icons/note.png" alt="Note" />
+</td>
+<td class="content">By default, if you use the <tt>:file</tt> option, the file is rendered without using the current layout. If you want Rails to put the file into the current layout, you need to add the <tt>:layout &#8658; true</tt> option</td>
+</tr></table>
+</div>
+<h4 id="_using_tt_render_tt_with_tt_inline_tt">2.2.5. Using <tt>render</tt> with <tt>:inline</tt></h4>
+<div class="para"><p>The <tt>render</tt> method can do without a view completely, if you're willing to use the <tt>:inline</tt> option to supply ERB as part of the method call. This is perfectly valid:</p></div>
+<div class="listingblock">
+<div class="content"><!-- Generator: GNU source-highlight 2.9
+by Lorenzo Bettini
+http://www.lorenzobettini.it
+http://www.gnu.org/software/src-highlite -->
+<pre><tt>render <span style="color: #990000">:</span>inline <span style="color: #990000">=&gt;</span> <span style="color: #FF0000">"&lt;% products.each do |p| %&gt;&lt;p&gt;&lt;%= p.name %&gt;&lt;p&gt;&lt;% end %&gt;"</span>
+</tt></pre></div></div>
+<div class="admonitionblock">
+<table><tr>
+<td class="icon">
+<img src="/Users/lifo/Docs/docrails/railties/doc/guides/source/icons/warning.png" alt="Warning" />
+</td>
+<td class="content">There is seldom any good reason to use this option. Mixing ERB into your controllers defeats the MVC orientation of Rails and will make it harder for other developers to follow the logic of your project. Use a separate erb view instead.</td>
+</tr></table>
+</div>
+<div class="para"><p>By default, inline rendering uses ERb. You can force it to use Builder instead with the <tt>:type</tt> option:</p></div>
+<div class="listingblock">
+<div class="content"><!-- Generator: GNU source-highlight 2.9
+by Lorenzo Bettini
+http://www.lorenzobettini.it
+http://www.gnu.org/software/src-highlite -->
+<pre><tt>render <span style="color: #990000">:</span>inline <span style="color: #990000">=&gt;</span> <span style="color: #FF0000">"xml.p {'Horrid coding practice!'}"</span><span style="color: #990000">,</span> <span style="color: #990000">:</span>type <span style="color: #990000">=&gt;</span> <span style="color: #990000">:</span>builder
+</tt></pre></div></div>
+<h4 id="_using_tt_render_tt_with_tt_update_tt">2.2.6. Using <tt>render</tt> with <tt>:update</tt></h4>
+<div class="para"><p>You can also render javascript-based page updates inline using the <tt>:update</tt> option to <tt>render</tt>:</p></div>
+<div class="listingblock">
+<div class="content"><!-- Generator: GNU source-highlight 2.9
+by Lorenzo Bettini
+http://www.lorenzobettini.it
+http://www.gnu.org/software/src-highlite -->
+<pre><tt>render <span style="color: #990000">:</span>update <span style="font-weight: bold"><span style="color: #0000FF">do</span></span> <span style="color: #990000">|</span>page<span style="color: #990000">|</span>
+  page<span style="color: #990000">.</span>replace_html <span style="color: #FF0000">'warning'</span><span style="color: #990000">,</span> <span style="color: #FF0000">"Invalid options supplied"</span>
+<span style="font-weight: bold"><span style="color: #0000FF">end</span></span>
+</tt></pre></div></div>
+<div class="admonitionblock">
+<table><tr>
+<td class="icon">
+<img src="/Users/lifo/Docs/docrails/railties/doc/guides/source/icons/warning.png" alt="Warning" />
+</td>
+<td class="content">Placing javascript updates in your controller may seem to streamline small updates, but it defeats the MVC orientation of Rails and will make it harder for other developers to follow the logic of your project. I recommend using a separate rjs template instead, no matter how small the update.</td>
+</tr></table>
+</div>
+<h4 id="_rendering_text">2.2.7. Rendering Text</h4>
+<div class="para"><p>You can send plain text - with no markup at all - back to the browser by using the <tt>:text</tt> option to <tt>render</tt>:</p></div>
+<div class="listingblock">
+<div class="content"><!-- Generator: GNU source-highlight 2.9
+by Lorenzo Bettini
+http://www.lorenzobettini.it
+http://www.gnu.org/software/src-highlite -->
+<pre><tt>render <span style="color: #990000">:</span>text <span style="color: #990000">=&gt;</span> <span style="color: #FF0000">"OK"</span>
+</tt></pre></div></div>
+<div class="admonitionblock">
+<table><tr>
+<td class="icon">
+<img src="/Users/lifo/Docs/docrails/railties/doc/guides/source/icons/tip.png" alt="Tip" />
+</td>
+<td class="content">Rendering pure text is most useful when you're responding to AJAX or web service requests that are expecting something other than proper HTML.</td>
+</tr></table>
+</div>
+<div class="admonitionblock">
+<table><tr>
+<td class="icon">
+<img src="/Users/lifo/Docs/docrails/railties/doc/guides/source/icons/note.png" alt="Note" />
+</td>
+<td class="content">By default, if you use the <tt>:text</tt> option, the file is rendered without using the current layout. If you want Rails to put the text into the current layout, you need to add the <tt>:layout &#8658; true</tt> option</td>
+</tr></table>
+</div>
+<h4 id="_rendering_json">2.2.8. Rendering JSON</h4>
+<div class="para"><p>JSON is a javascript data format used by many AJAX libraries. Rails has built-in support for converting objects to JSON and rendering that JSON back to the browser:</p></div>
+<div class="listingblock">
+<div class="content"><!-- Generator: GNU source-highlight 2.9
+by Lorenzo Bettini
+http://www.lorenzobettini.it
+http://www.gnu.org/software/src-highlite -->
+<pre><tt>render <span style="color: #990000">:</span>json <span style="color: #990000">=&gt;</span> <span style="color: #009900">@product</span>
+</tt></pre></div></div>
+<div class="admonitionblock">
+<table><tr>
+<td class="icon">
+<img src="/Users/lifo/Docs/docrails/railties/doc/guides/source/icons/tip.png" alt="Tip" />
+</td>
+<td class="content">You don't need to call <tt>to_json</tt> on the object that you want to render. If you use the <tt>:json</tt> option, <tt>render</tt> will automatically call <tt>to_json</tt> for you.</td>
+</tr></table>
+</div>
+<h4 id="_rendering_xml">2.2.9. Rendering XML</h4>
+<div class="para"><p>Rails also has built-in support for converting objects to XML and rendering that XML back to the caller:</p></div>
+<div class="listingblock">
+<div class="content"><!-- Generator: GNU source-highlight 2.9
+by Lorenzo Bettini
+http://www.lorenzobettini.it
+http://www.gnu.org/software/src-highlite -->
+<pre><tt>render <span style="color: #990000">:</span>xml <span style="color: #990000">=&gt;</span> <span style="color: #009900">@product</span>
+</tt></pre></div></div>
+<div class="admonitionblock">
+<table><tr>
+<td class="icon">
+<img src="/Users/lifo/Docs/docrails/railties/doc/guides/source/icons/tip.png" alt="Tip" />
+</td>
+<td class="content">You don't need to call <tt>to_xml</tt> on the object that you want to render. If you use the <tt>:xml</tt> option, <tt>render</tt> will automatically call <tt>to_xml</tt> for you.</td>
+</tr></table>
+</div>
+<h4 id="_options_for_tt_render_tt">2.2.10. Options for <tt>render</tt></h4>
+<div class="para"><p>Calls to the <tt>render</tt> method generally accept four options:</p></div>
+<div class="ilist"><ul>
+<li>
+<p>
+<tt>:content_type</tt>
+</p>
+</li>
+<li>
+<p>
+<tt>:layout</tt>
+</p>
+</li>
+<li>
+<p>
+<tt>:status</tt>
+</p>
+</li>
+<li>
+<p>
+<tt>:location</tt>
+</p>
+</li>
+</ul></div>
+<h5 id="_the_tt_content_type_tt_option">The <tt>:content_type</tt> Option</h5>
+<div class="para"><p>By default, Rails will serve the results of a rendering operation with the MIME content-type of <tt>text/html</tt> (or <tt>application/json</tt> if you use the <tt>:json</tt> option, or <tt>application/xml</tt> for the <tt>:xml</tt> option.). There are times when you might like to change this, and you can do so by setting the <tt>:content_type</tt> option:</p></div>
+<div class="listingblock">
+<div class="content"><!-- Generator: GNU source-highlight 2.9
+by Lorenzo Bettini
+http://www.lorenzobettini.it
+http://www.gnu.org/software/src-highlite -->
+<pre><tt>render <span style="color: #990000">:</span>file <span style="color: #990000">=&gt;</span> filename<span style="color: #990000">,</span> <span style="color: #990000">:</span>content_type <span style="color: #990000">=&gt;</span> <span style="color: #FF0000">'application/rss'</span>
+</tt></pre></div></div>
+<h5 id="_the_tt_layout_tt_option">The <tt>:layout</tt> Option</h5>
+<div class="para"><p>With most of the options to <tt>render</tt>, the rendered content is displayed as part of the current layout. You'll learn more about layouts and how to use them later in this guide. To find the current layout, Rails first looks for a file in <tt>app/views/layouts</tt> with the same base name as the controller. For example, rendering actions from the <tt>PhotosController</tt> class will use <tt>/app/views/layouts/photos.html.erb</tt>. If there is no such controller-specific layout, Rails will use <tt>/app/views/layouts/application.html.erb</tt>.</p></div>
+<div class="para"><p>You can use the <tt>:layout</tt> option to tell Rails to use a specific file as the layout for the current action:</p></div>
+<div class="listingblock">
+<div class="content"><!-- Generator: GNU source-highlight 2.9
+by Lorenzo Bettini
+http://www.lorenzobettini.it
+http://www.gnu.org/software/src-highlite -->
+<pre><tt>render <span style="color: #990000">:</span>layout <span style="color: #990000">=&gt;</span> <span style="color: #FF0000">'special_layout'</span>
+</tt></pre></div></div>
+<div class="para"><p>You can also tell Rails to render with no layout at all:</p></div>
+<div class="listingblock">
+<div class="content"><!-- Generator: GNU source-highlight 2.9
+by Lorenzo Bettini
+http://www.lorenzobettini.it
+http://www.gnu.org/software/src-highlite -->
+<pre><tt>render <span style="color: #990000">:</span>layout <span style="color: #990000">=&gt;</span> <span style="font-weight: bold"><span style="color: #0000FF">false</span></span>
+</tt></pre></div></div>
+<h5 id="_the_tt_status_tt_option">The <tt>:status</tt> Option</h5>
+<div class="para"><p>Rails will automatically generate a response with the correct HTML status code (in most cases, this is <tt>200 OK</tt>). You can use the <tt>:status</tt> option to change this:</p></div>
+<div class="listingblock">
+<div class="content"><!-- Generator: GNU source-highlight 2.9
+by Lorenzo Bettini
+http://www.lorenzobettini.it
+http://www.gnu.org/software/src-highlite -->
+<pre><tt>render <span style="color: #990000">:</span>status <span style="color: #990000">=&gt;</span> <span style="color: #993399">500</span>
+render <span style="color: #990000">:</span>status <span style="color: #990000">=&gt;</span> <span style="color: #990000">:</span>forbidden
+</tt></pre></div></div>
+<div class="para"><p>Rails understands either numeric status codes or symbols for status codes. You can find its list of status codes in <tt>actionpack/lib/action_controller/status_codes.rb</tt>. You can also see there how it maps symbols to status codes in that file.</p></div>
+<h5 id="_the_tt_location_tt_option">The <tt>:location</tt> Option</h5>
+<div class="para"><p>You can use the <tt>:location</tt> option to set the HTTP <tt>Location</tt> header:</p></div>
+<div class="listingblock">
+<div class="content"><!-- Generator: GNU source-highlight 2.9
+by Lorenzo Bettini
+http://www.lorenzobettini.it
+http://www.gnu.org/software/src-highlite -->
+<pre><tt>render <span style="color: #990000">:</span>xml <span style="color: #990000">=&gt;</span> photo<span style="color: #990000">,</span> <span style="color: #990000">:</span>location <span style="color: #990000">=&gt;</span> photo_url<span style="color: #990000">(</span>photo<span style="color: #990000">)</span>
+</tt></pre></div></div>
+<h4 id="_avoiding_double_render_errors">2.2.11. Avoiding Double Render Errors</h4>
+<div class="para"><p>Sooner or later, most Rails developers will see the error message "Can only render or redirect once per action". While this is annoying, it's relatively easy to fix. Usually it happens because of a fundamental misunderstanding of the way that <tt>render</tt> works.</p></div>
+<div class="para"><p>For example, here's some code that will trigger this error:</p></div>
+<div class="listingblock">
+<div class="content"><!-- Generator: GNU source-highlight 2.9
+by Lorenzo Bettini
+http://www.lorenzobettini.it
+http://www.gnu.org/software/src-highlite -->
+<pre><tt><span style="font-weight: bold"><span style="color: #0000FF">def</span></span> show
+  <span style="color: #009900">@book</span> <span style="color: #990000">=</span> Book<span style="color: #990000">.</span>find<span style="color: #990000">(</span>params<span style="color: #990000">[:</span>id<span style="color: #990000">])</span>
+  <span style="font-weight: bold"><span style="color: #0000FF">if</span></span> <span style="color: #009900">@book</span><span style="color: #990000">.</span>special?
+    render <span style="color: #990000">:</span>action <span style="color: #990000">=&gt;</span> <span style="color: #FF0000">"special_show"</span>
+  <span style="font-weight: bold"><span style="color: #0000FF">end</span></span>
+<span style="font-weight: bold"><span style="color: #0000FF">end</span></span>
+</tt></pre></div></div>
+<div class="para"><p>If <tt>@book.special?</tt> evaluates to <tt>true</tt>, Rails will start the rendering process to dump the <tt>@book</tt> variable into the <tt>special_show</tt> view. But this will <em>not</em> stop the rest of the code in the <tt>show</tt> action from running, and when Rails hits the end of the action, it will start to render the <tt>show</tt> view - and throw an error. The solution is simple: make sure that you only have one call to <tt>render</tt> or <tt>redirect</tt> in a single code path. One thing that can help is <tt>and return</tt>. Here's a patched version of the method:</p></div>
+<div class="listingblock">
+<div class="content"><!-- Generator: GNU source-highlight 2.9
+by Lorenzo Bettini
+http://www.lorenzobettini.it
+http://www.gnu.org/software/src-highlite -->
+<pre><tt><span style="font-weight: bold"><span style="color: #0000FF">def</span></span> show
+  <span style="color: #009900">@book</span> <span style="color: #990000">=</span> Book<span style="color: #990000">.</span>find<span style="color: #990000">(</span>params<span style="color: #990000">[:</span>id<span style="color: #990000">])</span>
+  <span style="font-weight: bold"><span style="color: #0000FF">if</span></span> <span style="color: #009900">@book</span><span style="color: #990000">.</span>special?
+    render <span style="color: #990000">:</span>action <span style="color: #990000">=&gt;</span> <span style="color: #FF0000">"special_show"</span> <span style="font-weight: bold"><span style="color: #0000FF">and</span></span> <span style="font-weight: bold"><span style="color: #0000FF">return</span></span>
+  <span style="font-weight: bold"><span style="color: #0000FF">end</span></span>
+<span style="font-weight: bold"><span style="color: #0000FF">end</span></span>
+</tt></pre></div></div>
+<h3 id="_using_tt_redirect_to_tt">2.3. Using <tt>redirect_to</tt></h3>
+<div class="para"><p>Another way to handle returning responses to a HTTP request is with <tt>redirect_to</tt>. As you've seen, <tt>render</tt> tells Rails which view (or other asset) to use in constructing a response. The <tt>redirect_to</tt> method does something completely different: it tells the browser to send a new request for a different URL. For example, you could redirect from wherever you are in your code to the index of photos in your application with this call:</p></div>
+<div class="listingblock">
+<div class="content"><!-- Generator: GNU source-highlight 2.9
+by Lorenzo Bettini
+http://www.lorenzobettini.it
+http://www.gnu.org/software/src-highlite -->
+<pre><tt>redirect_to photos_path
+</tt></pre></div></div>
+<div class="para"><p>You can use <tt>redirect_to</tt> with any arguments that you could use with <tt>link_to</tt> or <tt>url_for</tt>. In addition, there's a special redirect that sends the user back to the page they just came from:</p></div>
+<div class="listingblock">
+<div class="content">
+<pre><tt>redirect_to :back</tt></pre>
+</div></div>
+<h4 id="_getting_a_different_redirect_status_code">2.3.1. Getting a Different Redirect Status Code</h4>
+<div class="para"><p>Rails uses HTTP status code 302 (permanent redirect) when you call <tt>redirect_to</tt>. If you'd like to use a different status code (perhaps 301, temporary redirect), you can do so by using the <tt>:status</tt> option:</p></div>
+<div class="listingblock">
+<div class="content">
+<pre><tt>redirect_to photos_path, :status =&gt; 301</tt></pre>
+</div></div>
+<div class="para"><p>Just like the <tt>:status</tt> option for <tt>render</tt>, <tt>:status</tt> for <tt>redirect_to</tt> accepts both numeric and symbolic header designations.</p></div>
+<h4 id="_the_difference_between_tt_render_tt_and_tt_redirect_tt">2.3.2. The Difference Between <tt>render</tt> and <tt>redirect</tt></h4>
+<div class="para"><p>Sometimes inexperienced developers conceive of <tt>redirect_to</tt> as a sort of <tt>goto</tt> command, moving execution from one place to another in your Rails code. This is <em>not</em> correct. Your code stops running and waits for a new request for the browser. It just happens that you've told the browser what request it should make next, by sending back a HTTP 302 status code.</p></div>
+<div class="para"><p>Consider these actions to see the difference:</p></div>
+<div class="listingblock">
+<div class="content"><!-- Generator: GNU source-highlight 2.9
+by Lorenzo Bettini
+http://www.lorenzobettini.it
+http://www.gnu.org/software/src-highlite -->
+<pre><tt><span style="font-weight: bold"><span style="color: #0000FF">def</span></span> index
+  <span style="color: #009900">@books</span> <span style="color: #990000">=</span> Book<span style="color: #990000">.</span>find<span style="color: #990000">(:</span>all<span style="color: #990000">)</span>
+<span style="font-weight: bold"><span style="color: #0000FF">end</span></span>
+
+<span style="font-weight: bold"><span style="color: #0000FF">def</span></span> show
+  <span style="color: #009900">@book</span> <span style="color: #990000">=</span> Book<span style="color: #990000">.</span>find<span style="color: #990000">(</span>params<span style="color: #990000">[:</span>id<span style="color: #990000">])</span>
+  <span style="font-weight: bold"><span style="color: #0000FF">if</span></span> <span style="color: #009900">@book</span><span style="color: #990000">.</span><span style="font-weight: bold"><span style="color: #0000FF">nil</span></span><span style="color: #990000">?</span>
+    render <span style="color: #990000">:</span>action <span style="color: #990000">=&gt;</span> <span style="color: #FF0000">"index"</span> <span style="font-weight: bold"><span style="color: #0000FF">and</span></span> <span style="font-weight: bold"><span style="color: #0000FF">return</span></span>
+  <span style="font-weight: bold"><span style="color: #0000FF">end</span></span>
+<span style="font-weight: bold"><span style="color: #0000FF">end</span></span>
+</tt></pre></div></div>
+<div class="para"><p>With the code in this form, there will be likely be a problem if the <tt>@book</tt> variable is <tt>nil</tt>. Remember, a <tt>render :action</tt> doesn't run any code in the target action, so nothing will set up the <tt>@books</tt> variable that the <tt>index</tt> view is presumably depending on. One way to fix this is to redirect instead of rendering:</p></div>
+<div class="listingblock">
+<div class="content"><!-- Generator: GNU source-highlight 2.9
+by Lorenzo Bettini
+http://www.lorenzobettini.it
+http://www.gnu.org/software/src-highlite -->
+<pre><tt><span style="font-weight: bold"><span style="color: #0000FF">def</span></span> index
+  <span style="color: #009900">@books</span> <span style="color: #990000">=</span> Book<span style="color: #990000">.</span>find<span style="color: #990000">(:</span>all<span style="color: #990000">)</span>
+<span style="font-weight: bold"><span style="color: #0000FF">end</span></span>
+
+<span style="font-weight: bold"><span style="color: #0000FF">def</span></span> show
+  <span style="color: #009900">@book</span> <span style="color: #990000">=</span> Book<span style="color: #990000">.</span>find<span style="color: #990000">(</span>params<span style="color: #990000">[:</span>id<span style="color: #990000">])</span>
+  <span style="font-weight: bold"><span style="color: #0000FF">if</span></span> <span style="color: #009900">@book</span><span style="color: #990000">.</span><span style="font-weight: bold"><span style="color: #0000FF">nil</span></span><span style="color: #990000">?</span>
+    redirect_to <span style="color: #990000">:</span>action <span style="color: #990000">=&gt;</span> <span style="color: #FF0000">"index"</span> <span style="font-weight: bold"><span style="color: #0000FF">and</span></span> <span style="font-weight: bold"><span style="color: #0000FF">return</span></span>
+  <span style="font-weight: bold"><span style="color: #0000FF">end</span></span>
+<span style="font-weight: bold"><span style="color: #0000FF">end</span></span>
+</tt></pre></div></div>
+<div class="para"><p>With this code, the browser will make a fresh request for the index page, the code in the <tt>index</tt> method will run, and all will be well.</p></div>
+<h3 id="_using_tt_head_tt_to_build_header_only_responses">2.4. Using <tt>head</tt> To Build Header-Only Responses</h3>
+<div class="para"><p>The <tt>head</tt> method exists to let you send back responses to the browser that have only headers. It provides a more obvious alternative to calling <tt>render :nothing</tt>. The <tt>head</tt> method takes one response, which is interpreted as a hash of header names and values. For example, you can return only an error header:</p></div>
+<div class="listingblock">
+<div class="content"><!-- Generator: GNU source-highlight 2.9
+by Lorenzo Bettini
+http://www.lorenzobettini.it
+http://www.gnu.org/software/src-highlite -->
+<pre><tt>head <span style="color: #990000">:</span>bad_request
+</tt></pre></div></div>
+<div class="para"><p>Or you can use other HTTP headers to convey additional information:</p></div>
+<div class="listingblock">
+<div class="content"><!-- Generator: GNU source-highlight 2.9
+by Lorenzo Bettini
+http://www.lorenzobettini.it
+http://www.gnu.org/software/src-highlite -->
+<pre><tt>head <span style="color: #990000">:</span>created<span style="color: #990000">,</span> <span style="color: #990000">:</span>location <span style="color: #990000">=&gt;</span> photo_path<span style="color: #990000">(</span><span style="color: #009900">@photo</span><span style="color: #990000">)</span>
+</tt></pre></div></div>
+</div>
+<h2 id="_structuring_layouts">3. Structuring Layouts</h2>
+<div class="sectionbody">
+<div class="para"><p>When Rails renders a view as a response, it does so by combining the view with the current layout. To find the current layout, Rails first looks for a file in <tt>app/views/layouts</tt> with the same base name as the controller. For example, rendering actions from the <tt>PhotosController</tt> class will use <tt>/app/views/layouts/photos.html.erb</tt>. If there is no such controller-specific layout, Rails will use <tt>/app/views/layouts/application.html.erb</tt>. You can also specify a particular layout by using the <tt>:layout</tt> option to <tt>render</tt>.</p></div>
+<div class="para"><p>Within a layout, you have access to three tools for combining different bits of output to form the overall response:</p></div>
+<div class="ilist"><ul>
+<li>
+<p>
+Asset tags
+</p>
+</li>
+<li>
+<p>
+<tt>yield</tt> and <tt>content_for</tt>
+</p>
+</li>
+<li>
+<p>
+Partials
+</p>
+</li>
+</ul></div>
+<div class="para"><p>I'll discuss each of these in turn.</p></div>
+<h3 id="_asset_tags">3.1. Asset Tags</h3>
+<div class="para"><p>Asset tags provide methods for generating HTML that links views to assets like images, javascript, stylesheets, and feeds. There are four types of include tag:</p></div>
+<div class="ilist"><ul>
+<li>
+<p>
+auto_discovery_link_tag
+</p>
+</li>
+<li>
+<p>
+javascript_include_tag
+</p>
+</li>
+<li>
+<p>
+stylesheet_link_tag
+</p>
+</li>
+<li>
+<p>
+image_tag
+</p>
+</li>
+</ul></div>
+<div class="para"><p>You can use these tags in layouts or other views, although the tags other than <tt>image_tag</tt> are most commonly used in the <tt>&lt;head&gt;</tt> section of a layout.</p></div>
+<div class="admonitionblock">
+<table><tr>
+<td class="icon">
+<img src="/Users/lifo/Docs/docrails/railties/doc/guides/source/icons/warning.png" alt="Warning" />
+</td>
+<td class="content">The asset tags do <em>not</em> verify the existence of the assets at the specified locations; they simply assume that you know what you're doing and generate the link.</td>
+</tr></table>
+</div>
+<h4 id="_linking_to_feeds_with_tt_auto_discovery_link_tag_tt">3.1.1. Linking to Feeds with <tt>auto_discovery_link_tag</tt></h4>
+<div class="para"><p>The <tt>auto_discovery_link_tag helper builds HTML that most browsers and newsreaders can use to detect the presences of RSS or ATOM feeds. It takes the type of the link (</tt>:rss+ or <tt>:atom</tt>), a hash of options that are passed through to url_for, and a hash of options for the tag:</p></div>
+<div class="listingblock">
+<div class="content"><!-- Generator: GNU source-highlight 2.9
+by Lorenzo Bettini
+http://www.lorenzobettini.it
+http://www.gnu.org/software/src-highlite -->
+<pre><tt><span style="color: #FF0000">&lt;%= auto_discovery_link_tag(:rss, {:action =&gt;</span> <span style="color: #FF0000">"feed"</span><span style="color: #FF0000">}</span><span style="color: #990000">,</span> <span style="color: #FF0000">{</span><span style="color: #990000">:</span>title <span style="color: #990000">=&gt;</span> <span style="color: #FF0000">"RSS Feed"</span><span style="color: #FF0000">}</span><span style="color: #990000">)</span> <span style="color: #990000">%&gt;</span>
+</tt></pre></div></div>
+<div class="para"><p>There are three tag options available for <tt>auto_discovery_link_tag</tt>:</p></div>
+<div class="ilist"><ul>
+<li>
+<p>
+<tt>:rel</tt> specifies the <tt>rel</tt> value in the link (defaults to "alternate")
+</p>
+</li>
+<li>
+<p>
+<tt>:type</tt> specifies an explicit MIME type. Rails will generate an appropriate MIME type automatically
+</p>
+</li>
+<li>
+<p>
+<tt>:title</tt> specifies the title of the link
+</p>
+</li>
+</ul></div>
+<h4 id="_linking_to_javascript_files_with_tt_javascript_include_tag_tt">3.1.2. Linking to Javascript Files with <tt>javascript_include_tag</tt></h4>
+<div class="para"><p>The <tt>javascript_include_tag</tt> helper returns an HTML <tt>&lt;script&gt;</tt> tag for each source provided. Rails looks in <tt>public/javascripts</tt> for these files by default, but you can specify a full path relative to the document root, or a URL, if you prefer. For example, to include <tt>public/javascripts/main.js</tt>:</p></div>
+<div class="listingblock">
+<div class="content"><!-- Generator: GNU source-highlight 2.9
+by Lorenzo Bettini
+http://www.lorenzobettini.it
+http://www.gnu.org/software/src-highlite -->
+<pre><tt><span style="color: #FF0000">&lt;%= javascript_include_tag "main" %&gt;</span>
+</tt></pre></div></div>
+<div class="para"><p>To include <tt>public/javascripts/main.js</tt> and <tt>public/javascripts/columns.js</tt>:</p></div>
+<div class="listingblock">
+<div class="content"><!-- Generator: GNU source-highlight 2.9
+by Lorenzo Bettini
+http://www.lorenzobettini.it
+http://www.gnu.org/software/src-highlite -->
+<pre><tt><span style="color: #FF0000">&lt;%= javascript_include_tag "main", "columns" %&gt;</span>
+</tt></pre></div></div>
+<div class="para"><p>To include <tt>public/javascripts/main.js</tt> and <tt>public/photos/columns.js</tt>:</p></div>
+<div class="listingblock">
+<div class="content"><!-- Generator: GNU source-highlight 2.9
+by Lorenzo Bettini
+http://www.lorenzobettini.it
+http://www.gnu.org/software/src-highlite -->
+<pre><tt><span style="color: #FF0000">&lt;%= javascript_include_tag "main", "/photos/columns" %&gt;</span>
+</tt></pre></div></div>
+<div class="para"><p>To include <tt>http://example.com/main.js</tt>:</p></div>
+<div class="listingblock">
+<div class="content"><!-- Generator: GNU source-highlight 2.9
+by Lorenzo Bettini
+http://www.lorenzobettini.it
+http://www.gnu.org/software/src-highlite -->
+<pre><tt><span style="color: #FF0000">&lt;%= javascript_include_tag "http://example.com/main.js" %&gt;</span>
+</tt></pre></div></div>
+<div class="para"><p>The <tt>defaults</tt> option loads the Prototype and Scriptaculous libraries:</p></div>
+<div class="listingblock">
+<div class="content"><!-- Generator: GNU source-highlight 2.9
+by Lorenzo Bettini
+http://www.lorenzobettini.it
+http://www.gnu.org/software/src-highlite -->
+<pre><tt><span style="color: #FF0000">&lt;%= javascript_include_tag :defaults %&gt;</span>
+</tt></pre></div></div>
+<div class="para"><p>The <tt>all</tt> option loads every javascript file in <tt>public/javascripts</tt>, starting with the Prototype and Scriptaculous libraries:</p></div>
+<div class="listingblock">
+<div class="content"><!-- Generator: GNU source-highlight 2.9
+by Lorenzo Bettini
+http://www.lorenzobettini.it
+http://www.gnu.org/software/src-highlite -->
+<pre><tt><span style="color: #FF0000">&lt;%= javascript_include_tag :all %&gt;</span>
+</tt></pre></div></div>
+<div class="para"><p>You can supply the <tt>:recursive</tt> option to load files in subfolders of <tt>public/javascripts</tt> as well:</p></div>
+<div class="listingblock">
+<div class="content"><!-- Generator: GNU source-highlight 2.9
+by Lorenzo Bettini
+http://www.lorenzobettini.it
+http://www.gnu.org/software/src-highlite -->
+<pre><tt><span style="color: #FF0000">&lt;%= javascript_include_tag :all, :recursive %&gt;</span>
+</tt></pre></div></div>
+<div class="para"><p>If you're loading multiple javascript files, you can create a better user experience by combining multiple files into a single download. To make this happen in production, specify <tt>:cache &#8658; true</tt> in your <tt>javascript_include_tag</tt>:</p></div>
+<div class="listingblock">
+<div class="content"><!-- Generator: GNU source-highlight 2.9
+by Lorenzo Bettini
+http://www.lorenzobettini.it
+http://www.gnu.org/software/src-highlite -->
+<pre><tt><span style="color: #FF0000">&lt;%= javascript_include_tag "main", "columns", :cache =&gt;</span> <span style="font-weight: bold"><span style="color: #0000FF">true</span></span> <span style="color: #990000">%&gt;</span>
+</tt></pre></div></div>
+<div class="para"><p>By default, the combined file will be delivered as <tt>javascripts/all.js</tt>. You can specify a location for the cached asset file instead:</p></div>
+<div class="listingblock">
+<div class="content"><!-- Generator: GNU source-highlight 2.9
+by Lorenzo Bettini
+http://www.lorenzobettini.it
+http://www.gnu.org/software/src-highlite -->
+<pre><tt><span style="color: #FF0000">&lt;%= javascript_include_tag "main", "columns", :cache =&gt;</span> <span style="color: #FF0000">'cache/main/display'</span> <span style="color: #990000">%&gt;</span>
+</tt></pre></div></div>
+<div class="para"><p></p></div>
+<h4 id="_linking_to_css_files_with_tt_stylesheet_link_tag_tt">3.1.3. Linking to CSS Files with <tt>stylesheet_link_tag</tt></h4>
+<div class="para"><p>The <tt>stylesheet_link_tag</tt> helper returns an HTML <tt>&lt;link&gt;</tt> tag for each source provided. Rails looks in <tt>public/stylesheets</tt> for these files by default, but you can specify a full path relative to the document root, or a URL, if you prefer. For example, to include <tt>public/stylesheets/main.cs</tt>:</p></div>
+<div class="listingblock">
+<div class="content"><!-- Generator: GNU source-highlight 2.9
+by Lorenzo Bettini
+http://www.lorenzobettini.it
+http://www.gnu.org/software/src-highlite -->
+<pre><tt><span style="color: #FF0000">&lt;%= stylesheet_link_tag "main" %&gt;</span>
+</tt></pre></div></div>
+<div class="para"><p>To include <tt>public/stylesheets/main.css</tt> and <tt>public/stylesheets/columns.css</tt>:</p></div>
+<div class="listingblock">
+<div class="content"><!-- Generator: GNU source-highlight 2.9
+by Lorenzo Bettini
+http://www.lorenzobettini.it
+http://www.gnu.org/software/src-highlite -->
+<pre><tt><span style="color: #FF0000">&lt;%= stylesheet_link_tag "main", "columns" %&gt;</span>
+</tt></pre></div></div>
+<div class="para"><p>To include <tt>public/stylesheets/main.css</tt> and <tt>public/photos/columns.css</tt>:</p></div>
+<div class="listingblock">
+<div class="content"><!-- Generator: GNU source-highlight 2.9
+by Lorenzo Bettini
+http://www.lorenzobettini.it
+http://www.gnu.org/software/src-highlite -->
+<pre><tt><span style="color: #FF0000">&lt;%= stylesheet_link_tag "main", "/photos/columns" %&gt;</span>
+</tt></pre></div></div>
+<div class="para"><p>To include <tt>http://example.com/main.cs</tt>:</p></div>
+<div class="listingblock">
+<div class="content"><!-- Generator: GNU source-highlight 2.9
+by Lorenzo Bettini
+http://www.lorenzobettini.it
+http://www.gnu.org/software/src-highlite -->
+<pre><tt><span style="color: #FF0000">&lt;%= stylesheet_link_tag "http://example.com/main.cs" %&gt;</span>
+</tt></pre></div></div>
+<div class="para"><p>By default, <tt>stylesheet_link_tag</tt> creates links with <tt>media="screen" rel="stylesheet" type="text/css"</tt>. You can override any of these defaults by specifying an appropriate option (:media, :rel, or :type):</p></div>
+<div class="listingblock">
+<div class="content"><!-- Generator: GNU source-highlight 2.9
+by Lorenzo Bettini
+http://www.lorenzobettini.it
+http://www.gnu.org/software/src-highlite -->
+<pre><tt><span style="color: #FF0000">&lt;%= stylesheet_link_tag "main_print", media =&gt;</span> <span style="color: #FF0000">"print"</span> <span style="color: #990000">%&gt;</span>
+</tt></pre></div></div>
+<div class="para"><p>The <tt>all</tt> option links every CSS file in <tt>public/stylesheets</tt>:</p></div>
+<div class="listingblock">
+<div class="content"><!-- Generator: GNU source-highlight 2.9
+by Lorenzo Bettini
+http://www.lorenzobettini.it
+http://www.gnu.org/software/src-highlite -->
+<pre><tt><span style="color: #FF0000">&lt;%= stylesheet_link_tag :all %&gt;</span>
+</tt></pre></div></div>
+<div class="para"><p>You can supply the <tt>:recursive</tt> option to link files in subfolders of <tt>public/stylesheets</tt> as well:</p></div>
+<div class="listingblock">
+<div class="content"><!-- Generator: GNU source-highlight 2.9
+by Lorenzo Bettini
+http://www.lorenzobettini.it
+http://www.gnu.org/software/src-highlite -->
+<pre><tt><span style="color: #FF0000">&lt;%= stylesheet_link_tag :all, :recursive %&gt;</span>
+</tt></pre></div></div>
+<div class="para"><p>If you're loading multiple CSS files, you can create a better user experience by combining multiple files into a single download. To make this happen in production, specify <tt>:cache &#8658; true</tt> in your <tt>stylesheet_link_tag</tt>:</p></div>
+<div class="listingblock">
+<div class="content"><!-- Generator: GNU source-highlight 2.9
+by Lorenzo Bettini
+http://www.lorenzobettini.it
+http://www.gnu.org/software/src-highlite -->
+<pre><tt><span style="color: #FF0000">&lt;%= stylesheet_link_tag "main", "columns", :cache =&gt;</span> <span style="font-weight: bold"><span style="color: #0000FF">true</span></span> <span style="color: #990000">%&gt;</span>
+</tt></pre></div></div>
+<div class="para"><p>By default, the combined file will be delivered as <tt>stylesheets/all.css</tt>. You can specify a location for the cached asset file instead:</p></div>
+<div class="listingblock">
+<div class="content"><!-- Generator: GNU source-highlight 2.9
+by Lorenzo Bettini
+http://www.lorenzobettini.it
+http://www.gnu.org/software/src-highlite -->
+<pre><tt><span style="color: #FF0000">&lt;%= stylesheet_link_tag "main", "columns", :cache =&gt;</span> <span style="color: #FF0000">'cache/main/display'</span> <span style="color: #990000">%&gt;</span>
+</tt></pre></div></div>
+<div class="para"><p></p></div>
+<h4 id="_linking_to_images_with_tt_image_tag_tt">3.1.4. Linking to Images with <tt>image_tag</tt></h4>
+<div class="para"><p>The <tt>image_tag</tt> helper builds an HTML <tt>&lt;image&gt;</tt> tag to the specified file. By default, files are loaded from <tt>public/images</tt>. If you don't specify an extension, .png is assumed by default:</p></div>
+<div class="listingblock">
+<div class="content"><!-- Generator: GNU source-highlight 2.9
+by Lorenzo Bettini
+http://www.lorenzobettini.it
+http://www.gnu.org/software/src-highlite -->
+<pre><tt><span style="color: #FF0000">&lt;%= image_tag "header" %&gt;</span>
+</tt></pre></div></div>
+<div class="para"><p>You can supply a path to the image if you like:</p></div>
+<div class="listingblock">
+<div class="content"><!-- Generator: GNU source-highlight 2.9
+by Lorenzo Bettini
+http://www.lorenzobettini.it
+http://www.gnu.org/software/src-highlite -->
+<pre><tt><span style="color: #FF0000">&lt;%= image_tag "icons/delete.gif" %&gt;</span>
+</tt></pre></div></div>
+<div class="para"><p>You can supply a hash of additional HTML options:</p></div>
+<div class="listingblock">
+<div class="content"><!-- Generator: GNU source-highlight 2.9
+by Lorenzo Bettini
+http://www.lorenzobettini.it
+http://www.gnu.org/software/src-highlite -->
+<pre><tt><span style="color: #FF0000">&lt;%= image_tag "icons/delete.gif", :height =&gt;</span> <span style="color: #993399">45</span> <span style="color: #990000">%&gt;</span>
+</tt></pre></div></div>
+<div class="para"><p>There are also three special options you can use with <tt>image_tag</tt>:</p></div>
+<div class="ilist"><ul>
+<li>
+<p>
+<tt>:alt</tt> specifies the alt text for the image (which defaults to the file name of the file, capitalized and with no extension)
+</p>
+</li>
+<li>
+<p>
+</p>
+</li>
+<li>
+<p>
+<tt>:mouseover</tt> sets an alternate image to be used when the onmouseover event is fired.
+</p>
+</li>
+</ul></div>
+<h3 id="_understanding_tt_yield_tt">3.2. Understanding <tt>yield</tt></h3>
+<div class="para"><p>Within the context of a layout, <tt>yield</tt> identifies a section where content from the view should be inserted. The simplest way to use this is to have a single <tt>yield</tt>, into which the entire contents of the view currently being rendered is inserted:</p></div>
+<div class="listingblock">
+<div class="content"><!-- Generator: GNU source-highlight 2.9
+by Lorenzo Bettini
+http://www.lorenzobettini.it
+http://www.gnu.org/software/src-highlite -->
+<pre><tt><span style="font-weight: bold"><span style="color: #0000FF">&lt;html&gt;</span></span>
+  <span style="font-weight: bold"><span style="color: #0000FF">&lt;head&gt;</span></span>
+  <span style="font-weight: bold"><span style="color: #0000FF">&lt;/head&gt;</span></span>
+  <span style="font-weight: bold"><span style="color: #0000FF">&lt;body&gt;</span></span>
+        &lt;%= yield %&gt;
+  <span style="font-weight: bold"><span style="color: #0000FF">&lt;hbody&gt;</span></span>
+<span style="font-weight: bold"><span style="color: #0000FF">&lt;/html&gt;</span></span>
+</tt></pre></div></div>
+<div class="para"><p>You can also create a layout with multiple yielding regions:</p></div>
+<div class="listingblock">
+<div class="content"><!-- Generator: GNU source-highlight 2.9
+by Lorenzo Bettini
+http://www.lorenzobettini.it
+http://www.gnu.org/software/src-highlite -->
+<pre><tt><span style="font-weight: bold"><span style="color: #0000FF">&lt;html&gt;</span></span>
+  <span style="font-weight: bold"><span style="color: #0000FF">&lt;head&gt;</span></span>
+        &lt;%= yield :head %&gt;
+  <span style="font-weight: bold"><span style="color: #0000FF">&lt;/head&gt;</span></span>
+  <span style="font-weight: bold"><span style="color: #0000FF">&lt;body&gt;</span></span>
+        &lt;%= yield %&gt;
+  <span style="font-weight: bold"><span style="color: #0000FF">&lt;hbody&gt;</span></span>
+<span style="font-weight: bold"><span style="color: #0000FF">&lt;/html&gt;</span></span>
+</tt></pre></div></div>
+<div class="para"><p>The main body of the view will always render into the unnamed <tt>yield</tt>. To render content into a named <tt>yield</tt>, you use the <tt>content_for</tt> method.</p></div>
+<h3 id="_using_tt_content_for_tt">3.3. Using <tt>content_for</tt></h3>
+<div class="para"><p>The <tt>content_for</tt> method allows you to insert content into a <tt>yield</tt> block in your layout. You only use <tt>content_for</tt> to insert content in named yields. For example, this view would work with the layout that you just saw:</p></div>
+<div class="listingblock">
+<div class="content"><!-- Generator: GNU source-highlight 2.9
+by Lorenzo Bettini
+http://www.lorenzobettini.it
+http://www.gnu.org/software/src-highlite -->
+<pre><tt>&lt;% content_for :head do %&gt;
+  <span style="font-weight: bold"><span style="color: #0000FF">&lt;title&gt;</span></span>A simple page<span style="font-weight: bold"><span style="color: #0000FF">&lt;/title&gt;</span></span>
+&lt;% end %&gt;
+
+<span style="font-weight: bold"><span style="color: #0000FF">&lt;p&gt;</span></span>Hello, Rails!<span style="font-weight: bold"><span style="color: #0000FF">&lt;/p&gt;</span></span>
+</tt></pre></div></div>
+<div class="para"><p>The result of rendering this page into the supplied layout would be this HTML:</p></div>
+<div class="listingblock">
+<div class="content"><!-- Generator: GNU source-highlight 2.9
+by Lorenzo Bettini
+http://www.lorenzobettini.it
+http://www.gnu.org/software/src-highlite -->
+<pre><tt><span style="font-weight: bold"><span style="color: #0000FF">&lt;html&gt;</span></span>
+  <span style="font-weight: bold"><span style="color: #0000FF">&lt;head&gt;</span></span>
+        <span style="font-weight: bold"><span style="color: #0000FF">&lt;title&gt;</span></span>A simple page<span style="font-weight: bold"><span style="color: #0000FF">&lt;/title&gt;</span></span>
+  <span style="font-weight: bold"><span style="color: #0000FF">&lt;/head&gt;</span></span>
+  <span style="font-weight: bold"><span style="color: #0000FF">&lt;body&gt;</span></span>
+        <span style="font-weight: bold"><span style="color: #0000FF">&lt;p&gt;</span></span>Hello, Rails!<span style="font-weight: bold"><span style="color: #0000FF">&lt;/p&gt;</span></span>
+  <span style="font-weight: bold"><span style="color: #0000FF">&lt;hbody&gt;</span></span>
+<span style="font-weight: bold"><span style="color: #0000FF">&lt;/html&gt;</span></span>
+</tt></pre></div></div>
+<div class="para"><p>The <tt>content_for</tt> method is very helpful when your layout contains distinct regions such as sidebars and footers that should get their own blocks of content inserted. It's also useful for inserting tags that load page-specific javascript or css files into the header of an otherwise-generic layout.</p></div>
+<h3 id="_using_partials">3.4. Using Partials</h3>
+<div class="para"><p>Partial templates - usually just called "partials" - are another device for breaking apart the rendering process into more manageable chunks. With a partial, you can move the code for rendering a particular piece of a response to its own file.</p></div>
+<h4 id="_naming_partials">3.4.1. Naming Partials</h4>
+<div class="para"><p>To render a partial as part of a view, you use the <tt>render</tt> method within the view, and include the <tt>:partial</tt> option:</p></div>
+<div class="listingblock">
+<div class="content"><!-- Generator: GNU source-highlight 2.9
+by Lorenzo Bettini
+http://www.lorenzobettini.it
+http://www.gnu.org/software/src-highlite -->
+<pre><tt><span style="color: #FF0000">&lt;%= render :partial =&gt;</span> <span style="color: #FF0000">"menu"</span> <span style="color: #990000">%&gt;</span>
+</tt></pre></div></div>
+<div class="para"><p>This will render a file named <tt>_menu.html.erb</tt> at that point within the view being rendered. Note the leading underscore character: partials are named with a leading underscore to distinguish them from regular views, even though they are referred to without the underscore. This holds true even when you're pulling in a partial from another folder:</p></div>
+<div class="listingblock">
+<div class="content"><!-- Generator: GNU source-highlight 2.9
+by Lorenzo Bettini
+http://www.lorenzobettini.it
+http://www.gnu.org/software/src-highlite -->
+<pre><tt><span style="color: #FF0000">&lt;%= render :partial =&gt;</span> <span style="color: #FF0000">"shared/menu"</span> <span style="color: #990000">%&gt;</span>
+</tt></pre></div></div>
+<div class="para"><p>That code will pull in the partial from <tt>app/views/shared/_menu.html.erb</tt>.</p></div>
+<h4 id="_using_partials_to_simplify_views">3.4.2. Using Partials to Simplify Views</h4>
+<div class="para"><p>One way to use partials is to treat them as the equivalent of subroutines: as a way to move details out of a view so that you can grasp what's going on more easily. For example, you might have a view that looked like this:</p></div>
+<div class="listingblock">
+<div class="content"><!-- Generator: GNU source-highlight 2.9
+by Lorenzo Bettini
+http://www.lorenzobettini.it
+http://www.gnu.org/software/src-highlite -->
+<pre><tt>&lt;%= render :partial =&gt; "shared/ad_banner" %&gt;
+
+<span style="font-weight: bold"><span style="color: #0000FF">&lt;h1&gt;</span></span>Products<span style="font-weight: bold"><span style="color: #0000FF">&lt;/h1&gt;</span></span>
+
+<span style="font-weight: bold"><span style="color: #0000FF">&lt;p&gt;</span></span>Here are a few of our fine products:<span style="font-weight: bold"><span style="color: #0000FF">&lt;/p&gt;</span></span>
+...
+
+&lt;%= render :partial =&gt; "shared/footer" %&gt;
+</tt></pre></div></div>
+<div class="para"><p>Here, the <tt>_ad_banner.html.erb</tt> and <tt>_footer.html.erb</tt> partials could contain content that is shared among many pages in your application. You don't need to see the details of these sections when you're concentrating on a particular page.</p></div>
+<div class="admonitionblock">
+<table><tr>
+<td class="icon">
+<img src="/Users/lifo/Docs/docrails/railties/doc/guides/source/icons/tip.png" alt="Tip" />
+</td>
+<td class="content">For content that is shared among all pages in your application, you can use partials directly from layouts.</td>
+</tr></table>
+</div>
+<h4 id="_partial_layouts">3.4.3. Partial Layouts</h4>
+<div class="para"><p>A partial can use its own layout file, just as a view can use a layout. For example, you might call a partial like this:</p></div>
+<div class="listingblock">
+<div class="content"><!-- Generator: GNU source-highlight 2.9
+by Lorenzo Bettini
+http://www.lorenzobettini.it
+http://www.gnu.org/software/src-highlite -->
+<pre><tt>&lt;%= render :partial =&gt; "link_area", :layout =&gt; "graybar" %&gt;
+</tt></pre></div></div>
+<div class="para"><p>This would look for a partial named <tt>_link_area.html.erb</tt> and render it using the layout <tt>_graybar.html.erb</tt>. Note that layouts for partials follow the same leading-underscore naming as regular partials, and are placed in the same folder with the partial that they belong to (not in the master <tt>layouts</tt> folder).</p></div>
+<h4 id="_passing_local_variables">3.4.4. Passing Local Variables</h4>
+<div class="para"><p>You can also pass local variables into partials, making them even more powerful and flexible. For example, you can use this technique to reduce duplication between new and edit pages, while still keeping a bit of distinct content:</p></div>
+<div class="listingblock">
+<div class="content"><!-- Generator: GNU source-highlight 2.9
+by Lorenzo Bettini
+http://www.lorenzobettini.it
+http://www.gnu.org/software/src-highlite -->
+<pre><tt>new.rhtml.erb:
+
+<span style="font-weight: bold"><span style="color: #0000FF">&lt;h1&gt;</span></span>New zone<span style="font-weight: bold"><span style="color: #0000FF">&lt;/h1&gt;</span></span>
+&lt;%= error_messages_for :zone %&gt;
+&lt;%= render :partial =&gt; "form", :locals =&gt; { :button_label =&gt; "Create zone", :zone =&gt; @zone } %&gt;
+
+edit.html.erb:
+
+<span style="font-weight: bold"><span style="color: #0000FF">&lt;h1&gt;</span></span>Editing zone<span style="font-weight: bold"><span style="color: #0000FF">&lt;/h1&gt;</span></span>
+&lt;%= error_messages_for :zone %&gt;
+&lt;%= render :partial =&gt; "form", :locals =&gt; { :button_label =&gt; "Update zone", :zone =&gt; @zone } %&gt;
+
+_form.html.erb:
+
+&lt;% form_for(@zone) do |f| %&gt;
+        <span style="font-weight: bold"><span style="color: #0000FF">&lt;p&gt;</span></span>
+          <span style="font-weight: bold"><span style="color: #0000FF">&lt;b&gt;</span></span>Zone name<span style="font-weight: bold"><span style="color: #0000FF">&lt;/b&gt;&lt;br</span></span> <span style="font-weight: bold"><span style="color: #0000FF">/&gt;</span></span>
+          &lt;%= f.text_field :name %&gt;
+        <span style="font-weight: bold"><span style="color: #0000FF">&lt;/p&gt;</span></span>
+  <span style="font-weight: bold"><span style="color: #0000FF">&lt;p&gt;</span></span>
+    &lt;%= f.submit button_label %&gt;
+  <span style="font-weight: bold"><span style="color: #0000FF">&lt;/p&gt;</span></span>
+&lt;% end %&gt;
+</tt></pre></div></div>
+<div class="para"><p>Although the same partial will be rendered into both views, the label on the submit button is controlled by a local variable passed into the partial.</p></div>
+<div class="para"><p>Every partial also has a local variable with the same name as the partial (minus the underscore). By default, it will look for an instance variable with the same name as the partial in the parent. You can pass an object in to this local variable via the <tt>:object</tt> option:</p></div>
+<div class="listingblock">
+<div class="content"><!-- Generator: GNU source-highlight 2.9
+by Lorenzo Bettini
+http://www.lorenzobettini.it
+http://www.gnu.org/software/src-highlite -->
+<pre><tt>&lt;%= render :partial =&gt; "customer", :object =&gt; @new_customer %&gt;
+</tt></pre></div></div>
+<div class="para"><p>Within the <tt>customer</tt> partial, the <tt>@customer</tt> variable will refer to <tt>@new_customer</tt> from the parent view.</p></div>
+<div class="para"><p>If you have an instance of a model to render into a partial, you can use a shorthand syntax:</p></div>
+<div class="listingblock">
+<div class="content"><!-- Generator: GNU source-highlight 2.9
+by Lorenzo Bettini
+http://www.lorenzobettini.it
+http://www.gnu.org/software/src-highlite -->
+<pre><tt>&lt;%= render :partial =&gt; @customer %&gt;
+</tt></pre></div></div>
+<div class="para"><p>Assuming that the <tt>@customer</tt> instance variable contains an instance of the <tt>Customer</tt> model, this will use <tt>_customer.html.erb</tt> to render it.</p></div>
+<h4 id="_rendering_collections">3.4.5. Rendering Collections</h4>
+<div class="para"><p>Partials are very useful in rendering collections. When you pass a collection to a partial via the <tt>:collection</tt> option, the partial will be inserted once for each member in the collection:</p></div>
+<div class="listingblock">
+<div class="content"><!-- Generator: GNU source-highlight 2.9
+by Lorenzo Bettini
+http://www.lorenzobettini.it
+http://www.gnu.org/software/src-highlite -->
+<pre><tt>index.rhtml.erb:
+
+<span style="font-weight: bold"><span style="color: #0000FF">&lt;h1&gt;</span></span>Products<span style="font-weight: bold"><span style="color: #0000FF">&lt;/h1&gt;</span></span>
+&lt;%= render :partial =&gt; "product", :collection =&gt; @products %&gt;
+
+_product.html.erb:
+
+<span style="font-weight: bold"><span style="color: #0000FF">&lt;p&gt;</span></span>Product Name: &lt;%= product.name %&gt;<span style="font-weight: bold"><span style="color: #0000FF">&lt;/p&gt;</span></span>
+</tt></pre></div></div>
+<div class="para"><p>When a partial is called with a pluralized collection, then the individual instances of the partial have access to the member of the collection being rendered via a variable named after the partial. In this case, the partial is <tt>_product, and within the +_product</tt> partial, you can refer to <tt>product</tt> to get the instance that is being rendered. To use a custom local variable name within the partial, specify the <tt>:as</tt> option in the call to the partial:</p></div>
+<div class="listingblock">
+<div class="content"><!-- Generator: GNU source-highlight 2.9
+by Lorenzo Bettini
+http://www.lorenzobettini.it
+http://www.gnu.org/software/src-highlite -->
+<pre><tt>&lt;%= render :partial =&gt; "product", :collection =&gt; @products, :as =&gt; :item %&gt;
+</tt></pre></div></div>
+<div class="para"><p>With this change, you can access an instance of the <tt>@products</tt> collection as the <tt>item</tt> local variable within the partial.</p></div>
+<div class="para"><p>You can also specify a second partial to be rendered between instances of the main partial by using the <tt>:spacer_template</tt> option:</p></div>
+<div class="listingblock">
+<div class="content"><!-- Generator: GNU source-highlight 2.9
+by Lorenzo Bettini
+http://www.lorenzobettini.it
+http://www.gnu.org/software/src-highlite -->
+<pre><tt>&lt;%= render :partial =&gt; "product", :collection =&gt; @products, :spacer_template =&gt; "product_ruler" %&gt;
+</tt></pre></div></div>
+<div class="para"><p>Rails will render the <tt>_product_ruler</tt> partial (with no data passed in to it) between each pair of <tt>_product</tt> partials.</p></div>
+<div class="para"><p>There's also a shorthand syntax available for rendering collections. For example, if <tt>@products</tt> is a collection of products, you can render the collection this way:</p></div>
+<div class="listingblock">
+<div class="content"><!-- Generator: GNU source-highlight 2.9
+by Lorenzo Bettini
+http://www.lorenzobettini.it
+http://www.gnu.org/software/src-highlite -->
+<pre><tt>index.rhtml.erb:
+
+<span style="font-weight: bold"><span style="color: #0000FF">&lt;h1&gt;</span></span>Products<span style="font-weight: bold"><span style="color: #0000FF">&lt;/h1&gt;</span></span>
+&lt;%= render :partial =&gt; @products %&gt;
+
+_product.html.erb:
+
+<span style="font-weight: bold"><span style="color: #0000FF">&lt;p&gt;</span></span>Product Name: &lt;%= product.name %&gt;<span style="font-weight: bold"><span style="color: #0000FF">&lt;/p&gt;</span></span>
+</tt></pre></div></div>
+<div class="para"><p>Rails determines the name of the partial to use by looking at the model name in the collection. In fact, you can even create a heterogeneous collection and render it this way, and Rails will choose the proper partial for each member of the collection:</p></div>
+<div class="listingblock">
+<div class="content"><!-- Generator: GNU source-highlight 2.9
+by Lorenzo Bettini
+http://www.lorenzobettini.it
+http://www.gnu.org/software/src-highlite -->
+<pre><tt>index.rhtml.erb:
+
+<span style="font-weight: bold"><span style="color: #0000FF">&lt;h1&gt;</span></span>Contacts<span style="font-weight: bold"><span style="color: #0000FF">&lt;/h1&gt;</span></span>
+&lt;%= render :partial =&gt; [customer1, employee1, customer2, employee2] %&gt;
+
+_customer.html.erb:
+
+<span style="font-weight: bold"><span style="color: #0000FF">&lt;p&gt;</span></span>Name: &lt;%= customer.name %&gt;<span style="font-weight: bold"><span style="color: #0000FF">&lt;/p&gt;</span></span>
+
+_employee.html.erb:
+
+<span style="font-weight: bold"><span style="color: #0000FF">&lt;p&gt;</span></span>Name: &lt;%= employee.name %&gt;<span style="font-weight: bold"><span style="color: #0000FF">&lt;/p&gt;</span></span>
+</tt></pre></div></div>
+<div class="para"><p>In this case, Rails will use the customer or employee partials as appropriate for each member of the collection.</p></div>
+</div>
+<h2 id="_changelog">4. Changelog</h2>
+<div class="sectionbody">
+<div class="para"><p><a href="http://rails.lighthouseapp.com/projects/16213-rails-guides/tickets/15">Lighthouse ticket</a></p></div>
+<div class="ilist"><ul>
+<li>
+<p>
+October 16, 2008: Ready for publication by <a href="../authors.html#mgunderloy">Mike Gunderloy</a>
+</p>
+</li>
+<li>
+<p>
+October 4, 2008: Additional info on partials (<tt>:object</tt>, <tt>:as</tt>, and <tt>:spacer_template</tt>) by <a href="../authors.html#mgunderloy">Mike Gunderloy</a> (not yet approved for publication)
+</p>
+</li>
+<li>
+<p>
+September 28, 2008: First draft by <a href="../authors.html#mgunderloy">Mike Gunderloy</a> (not yet approved for publication)
+</p>
+</li>
+</ul></div>
+</div>
+
+		</div>
+	</div>
+</body>
+</html>

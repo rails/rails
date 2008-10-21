@@ -61,6 +61,7 @@ module ActiveRecord
           record.save
         end
 
+        # Deletes the records according to the <tt>:dependent</tt> option.
         def delete_records(records)
           case @reflection.options[:dependent]
             when :destroy

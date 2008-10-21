@@ -1,0 +1,95 @@
+== Other Profiling Tools ==
+
+There are a lot of great profiling tools out there. Some free, some not so free. This is a sort list detailing some of them. 
+
+=== httperf ===
+http://www.hpl.hp.com/research/linux/httperf/[http://www.hpl.hp.com/research/linux/httperf/]
+
+A necessary tool in your arsenal. Very useful for load testing your website.
+
+#TODO write and link to a short article on how to use httperf. Anybody have a good tutorial availble. 
+
+
+=== Rails Analyzer ===
+
+The Rails Analyzer project contains a collection of tools for Rails. It's open source and pretty speedy. It's not being actively worked on but is still contains some very useful tools. 
+
+* The Production Log Analyzer examines Rails log files and gives back a report. It also includes action_grep which will give you all log results for a particular action.
+
+* The Action Profiler similar to Ruby-Prof profiler.
+
+* rails_stat which gives a live counter of requests per second of a running Rails app.
+
+* The SQL Dependency Grapher allows you to visualize the frequency of table dependencies in a Rails application.
+
+Their project homepage can be found at http://rails-analyzer.rubyforge.org/[http://rails-analyzer.rubyforge.org/]
+
+The one major caveat is that it needs your log to be in a different format from how rails sets it up specifically SyslogLogger. 
+
+
+==== SyslogLogger ====
+
+SyslogLogger is a Logger work-alike that logs via syslog instead of to a file. You can add SyslogLogger to your Rails production environment to aggregate logs between multiple machines.
+
+More information can be found out at http://rails-analyzer.rubyforge.org/hacks/classes/SyslogLogger.html[http://rails-analyzer.rubyforge.org/hacks/classes/SyslogLogger.html]
+
+If you don't have access to your machines root system or just want something a bit easier to implement there is also a module developed by Geoffrey Grosenbach
+
+==== A Hodel 3000 Compliant Logger for the Rest of Us ====
+
+Directions taken from 
+http://topfunky.net/svn/plugins/hodel_3000_compliant_logger/lib/hodel_3000_compliant_logger.rb[link to module file]
+
+Just put the module in your lib directory and  add this to your environment.rb in it's config portion. 
+
+------------------------------------------------------------
+require 'hodel_3000_compliant_logger'
+config.logger = Hodel3000CompliantLogger.new(config.log_path)
+-------------------------------------------------------------
+
+It's that simple. Your log output on restart should look like this. 
+
+.Hodel 3000 Example
+----------------------------------------------------------------------------
+Jul 15 11:45:43 matthew-bergmans-macbook-pro-15 rails[16207]: 
+Parameters: {"action"=>"shipping", "controller"=>"checkout"}
+Jul 15 11:45:43 matthew-bergmans-macbook-pro-15 rails[16207]: 
+[4;36;1mBook Columns (0.003155)[0m   [0;1mSHOW FIELDS FROM `books`[0m
+Jul 15 11:45:43 matthew-bergmans-macbook-pro-15 rails[16207]: 
+[4;35;1mBook Load (0.000881)[0m   [0mSELECT * FROM `books` WHERE (`books`.`id` = 1 AND (`books`.`sold` = 1)) [0m
+Jul 15 11:45:43 matthew-bergmans-macbook-pro-15 rails[16207]: 
+[4;36;1mShippingAddress Columns (0.002683)[0m   [0;1mSHOW FIELDS FROM `shipping_addresses`[0m
+Jul 15 11:45:43 matthew-bergmans-macbook-pro-15 rails[16207]: 
+[4;35;1mBook Load (0.000362)[0m   [0mSELECT ounces FROM `books` WHERE (`books`.`id` = 1) [0m
+Jul 15 11:45:43 matthew-bergmans-macbook-pro-15 rails[16207]: 
+Rendering template within layouts/application
+Jul 15 11:45:43 matthew-bergmans-macbook-pro-15 rails[16207]: 
+Rendering checkout/shipping
+Jul 15 11:45:43 matthew-bergmans-macbook-pro-15 rails[16207]: 
+[4;36;1mBook Load (0.000548)[0m   [0;1mSELECT * FROM `books` 
+WHERE (sold = 0) LIMIT 3[0m
+Jul 15 11:45:43 matthew-bergmans-macbook-pro-15 rails[16207]: 
+[4;35;1mAuthor Columns (0.002571)[0m   [0mSHOW FIELDS FROM `authors`[0m
+Jul 15 11:45:43 matthew-bergmans-macbook-pro-15 rails[16207]: 
+[4;36;1mAuthor Load (0.000811)[0m   [0;1mSELECT * FROM `authors` WHERE (`authors`.`id` = 1) [0m
+Jul 15 11:45:43 matthew-bergmans-macbook-pro-15 rails[16207]: 
+Rendered store/_new_books (0.01358)
+Jul 15 11:45:43 matthew-bergmans-macbook-pro-15 rails[16207]: 
+Completed in 0.37297 (2 reqs/sec) | Rendering: 0.02971 (7%) | DB: 0.01697 (4%) | 200 OK [https://secure.jeffbooks/checkout/shipping]
+----------------------------------------------------------------------------
+
+=== Palmist === 
+An open source mysql query analyzer. Full featured and easy to work with. Also requires Hodel 3000 
+http://www.flyingmachinestudios.com/projects/[http://www.flyingmachinestudios.com/projects/]
+
+=== New Relic === 
+http://www.newrelic.com/[http://www.newrelic.com/]
+
+Pretty nifty performance tools, pricey though. They do have a basic free
+service both for when in development and when you put your application into production. Very simple installation and signup.
+
+#TODO more in-depth without being like an advertisement. 
+
+==== Manage ====
+
+Like new relic a production monitoring tool. 

@@ -1,0 +1,570 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" lang="en" xml:lang="en">
+<head>
+	<meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
+	<title>Rails form helpers</title>
+	<!--[if lt IE 8]>
+	<script src="http://ie7-js.googlecode.com/svn/version/2.0(beta3)/IE8.js" type="text/javascript"></script>
+	<![endif]-->
+	<link href="stylesheets/base.css" media="screen" rel="Stylesheet" type="text/css" />
+	<link href="stylesheets/forms.css" media="screen" rel="Stylesheet" type="text/css" />
+	<link href="stylesheets/more.css" media="screen" rel="Stylesheet" type="text/css" />
+	<style type="text/css">
+		div#container {
+	max-width: 900px;
+	padding-bottom: 3em;
+}
+
+div#content {
+	margin-left: 200px;
+}
+
+div#container.notoc {
+	max-width: 600px;
+}
+
+.notoc div#content {
+	margin-left: 0;
+}
+
+pre {
+	line-height: 1.4em;
+}
+
+#content p tt {
+	background: #eeeeee;
+	border: solid 1px #cccccc;
+	padding: 3px;
+}
+
+dt {
+	font-weight: bold;
+}
+
+#content dt tt {
+	font-size: 10pt;
+}
+
+dd {
+	margin-left: 3em;
+}
+
+#content dt tt, #content pre tt {
+	background: none;
+	padding: 0;
+	border: 0;
+}
+
+#content .olist ol {
+	margin-left: 2em;
+}
+
+#header {
+	position: relative;
+	max-width: 840px;
+	margin-left: auto;
+	margin-right: auto;
+}
+
+#header.notoc {
+	max-width: 580px;
+}
+
+#logo {
+	position: absolute;
+	left: 10px;
+	top: 10px;
+	width: 110px;
+	height: 140px;
+}
+
+div#header h1#site_title {
+	background: url('images/ruby_on_rails_by_mike_rundle2.gif') top left no-repeat;
+	position: absolute;
+	width: 392px;
+	height: 55px;
+	left: 145px;
+	top: 20px;
+	margin: 0;
+	padding: 0;
+}
+
+#site_title span {
+	display: none;
+}
+
+#site_title_tagline {
+	display: none;
+}
+
+ul#navMain {
+	position: absolute;
+	margin: 0;
+	padding: 0;
+	top: 97px;
+	left: 145px;
+}
+
+.left-floaty, .right-floaty {
+	padding: 15px;
+}
+
+.admonitionblock,
+.tableblock {
+	margin-left: 1em;
+	margin-right: 1em;
+	margin-top: 0.25em;
+	margin-bottom: 1em;
+}
+
+.admonitionblock .icon {
+	padding-right: 8px;
+}
+
+.admonitionblock .content {
+	border: solid 1px #ffda78;
+	background: #fffebd;
+	padding: 10px;
+	padding-top: 8px;
+	padding-bottom: 8px;
+}
+
+.admonitionblock .title {
+	font-size: 140%;
+	margin-bottom: 0.5em;
+}
+
+.tableblock table {
+	border: solid 1px #aaaaff;
+	background: #f0f0ff;
+}
+
+.tableblock th {
+	background: #e0e0e0;
+}
+
+.tableblock th,
+.tableblock td {
+	padding: 3px;
+	padding-left: 5px;
+	padding-right: 5px;
+}
+
+.sidebarblock {
+	margin-top: 0.25em;
+	margin: 1em;
+	border: solid 1px #ccccbb;
+	padding: 8px;
+	background: #ffffe0;
+}
+
+.sidebarblock .sidebar-title {
+	font-size: 140%;
+	font-weight: 600;
+	margin-bottom: 0.3em;
+}
+
+.sidebarblock .sidebar-content > .para:last-child > p {
+	margin-bottom: 0;
+}
+
+.sidebarblock .sidebar-title a {
+	text-decoration: none;
+}
+
+.sidebarblock .sidebar-title a:hover {
+	text-decoration: underline;
+}
+
+	</style>
+</head>
+<body>
+	<div id="header" >
+		<div id="logo">
+			<a href="index.html" title="Ruby on Rails"><img src="images/rails_logo_remix.gif" alt="Rails" height="140" width="110" /></a>
+		</div>
+		
+		<h1 id="site_title"><span>Ruby on Rails</span></h1>
+		<h2 id="site_title_tagline">Sustainable productivity for web-application development</h2>
+
+		<ul id="navMain">
+			<li class="first-child"><a href="http://www.rubyonrails.org/" title="Ruby on Rails" class="ruby_on_rails">Ruby on Rails</a></li>
+			<li><a class="manuals" href="index.html" title="Manuals Index">Guides Index</a></li>
+		</ul>
+	</div>
+
+	<div id="container">
+		
+		<div id="sidebar">
+			<h2>Chapters</h2>
+			<ol>
+					<li>
+					<a href="#_basic_forms">Basic forms</a>
+						<ul>
+						
+							<li><a href="#_generic_search_form">Generic search form</a></li>
+						
+							<li><a href="#_multiple_hashes_in_form_helper_attributes">Multiple hashes in form helper attributes</a></li>
+						
+							<li><a href="#_checkboxes_radio_buttons_and_other_controls">Checkboxes, radio buttons and other controls</a></li>
+						
+							<li><a href="#_how_do_forms_with_put_or_delete_methods_work">How do forms with PUT or DELETE methods work?</a></li>
+						
+						</ul>
+					</li>
+					<li>
+					<a href="#_forms_that_deal_with_model_attributes">Forms that deal with model attributes</a>
+						<ul>
+						
+							<li><a href="#_relying_on_record_identification">Relying on record identification</a></li>
+						
+						</ul>
+					</li>
+			</ol>
+		</div>
+		
+		<div id="content">
+				<h1>Rails form helpers</h1>
+			<div id="preamble">
+<div class="sectionbody">
+<div class="para"><p>Forms in web applications are an essential interface for user input. They are also often considered the most complex elements of HTML. Rails deals away with these complexities by providing numerous view helpers for generating form markup. However, since they have different use-cases, developers are required to know all the differences between similar helper methods before putting them to use.</p></div>
+<div class="para"><p>In this guide we will:</p></div>
+<div class="ilist"><ul>
+<li>
+<p>
+Create search forms and similar kind of generic forms not representing any specific model in your application;
+</p>
+</li>
+<li>
+<p>
+Make model-centric forms for creation and editing of specific database records;
+</p>
+</li>
+<li>
+<p>
+Generate select boxes from multiple types of data;
+</p>
+</li>
+<li>
+<p>
+Learn what makes a file upload form different;
+</p>
+</li>
+<li>
+<p>
+Build complex, multi-model forms.
+</p>
+</li>
+</ul></div>
+<div class="admonitionblock">
+<table><tr>
+<td class="icon">
+<img src="/Users/lifo/Docs/docrails/railties/doc/guides/source/icons/note.png" alt="Note" />
+</td>
+<td class="content">This guide is not intended to be a complete documentation of available form helpers and their arguments. Please visit <a href="http://api.rubyonrails.org/">the Rails API documentation</a> for a complete reference.</td>
+</tr></table>
+</div>
+</div>
+</div>
+<h2 id="_basic_forms">1. Basic forms</h2>
+<div class="sectionbody">
+<div class="para"><p>The most basic form helper is <tt>form_tag</tt>.</p></div>
+<div class="listingblock">
+<div class="content">
+<pre><tt>&lt;% form_tag do %&gt;
+  Form contents
+&lt;% end %&gt;</tt></pre>
+</div></div>
+<div class="para"><p>When called without arguments like this, it creates a form element that has the current page for action attribute and "POST" as method (some line breaks added for readability):</p></div>
+<div class="listingblock">
+<div class="title">Example: Sample rendering of <tt>form_tag</tt></div>
+<div class="content">
+<pre><tt>&lt;form action="/home/index" method="post"&gt;
+  &lt;div style="margin:0;padding:0"&gt;
+    &lt;input name="authenticity_token" type="hidden" value="f755bb0ed134b76c432144748a6d4b7a7ddf2b71" /&gt;
+  &lt;/div&gt;
+  Form contents
+&lt;/form&gt;</tt></pre>
+</div></div>
+<div class="para"><p>If you carefully observe this output, you can see that the helper generated something we didn't specify: a <tt>div</tt> element with a hidden input inside. This is a security feature of Rails called <strong>cross-site request forgery protection</strong> and form helpers generate it for every form which action isn't "GET" (provided that this security feature is enabled).</p></div>
+<div class="admonitionblock">
+<table><tr>
+<td class="icon">
+<img src="/Users/lifo/Docs/docrails/railties/doc/guides/source/icons/note.png" alt="Note" />
+</td>
+<td class="content">Throughout this guide, this <tt>div</tt> with the hidden input will be stripped away to have clearer code samples.</td>
+</tr></table>
+</div>
+<h3 id="_generic_search_form">1.1. Generic search form</h3>
+<div class="para"><p>Probably the most minimal form often seen on the web is a search form with a single text input for search terms. This form consists of:</p></div>
+<div class="olist"><ol>
+<li>
+<p>
+a form element with "GET" method,
+</p>
+</li>
+<li>
+<p>
+a label for the input,
+</p>
+</li>
+<li>
+<p>
+a text input element, and
+</p>
+</li>
+<li>
+<p>
+a submit element.
+</p>
+</li>
+</ol></div>
+<div class="admonitionblock">
+<table><tr>
+<td class="icon">
+<img src="/Users/lifo/Docs/docrails/railties/doc/guides/source/icons/important.png" alt="Important" />
+</td>
+<td class="content">Always use "GET" as the method for search forms. Benefits are many: users are able to bookmark a specific search and get back to it; browsers cache results of "GET" requests, but not "POST"; and other.</td>
+</tr></table>
+</div>
+<div class="para"><p>To create that, we will use <tt>form_tag</tt>, <tt>label_tag</tt>, <tt>text_field_tag</tt> and <tt>submit_tag</tt>, respectively.</p></div>
+<div class="listingblock">
+<div class="title">Example: A basic search form</div>
+<div class="content">
+<pre><tt>&lt;% form_tag(search_path, :method =&gt; "get") do %&gt;
+  &lt;%= label_tag(:q, "Search for:") %&gt;
+  &lt;%= text_field_tag(:q) %&gt;
+  &lt;%= submit_tag("Search") %&gt;
+&lt;% end %&gt;</tt></pre>
+</div></div>
+<div class="admonitionblock">
+<table><tr>
+<td class="icon">
+<img src="/Users/lifo/Docs/docrails/railties/doc/guides/source/icons/tip.png" alt="Tip" />
+</td>
+<td class="content">
+<div class="para"><p><tt>search_path</tt> can be a named route specified in "routes.rb":</p></div>
+<div class="listingblock">
+<div class="content">
+<pre><tt>map.search "search", :controller =&gt; "search"</tt></pre>
+</div></div>
+</td>
+</tr></table>
+</div>
+<div class="para"><p>The above view code will result in the following markup:</p></div>
+<div class="listingblock">
+<div class="title">Example: Search form HTML</div>
+<div class="content">
+<pre><tt>&lt;form action="/search" method="get"&gt;
+  &lt;label for="q"&gt;Search for:&lt;/label&gt;
+  &lt;input id="q" name="q" type="text" /&gt;
+  &lt;input name="commit" type="submit" value="Search" /&gt;
+&lt;/form&gt;</tt></pre>
+</div></div>
+<div class="para"><p>Besides <tt>text_field_tag</tt> and <tt>submit_tag</tt>, there is a similar helper for <em>every</em> form control in HTML.</p></div>
+<div class="admonitionblock">
+<table><tr>
+<td class="icon">
+<img src="/Users/lifo/Docs/docrails/railties/doc/guides/source/icons/tip.png" alt="Tip" />
+</td>
+<td class="content">For every form input, an ID attribute is generated from its name ("q" in our example). These IDs can be very useful for CSS styling or manipulation of form controls with JavaScript.</td>
+</tr></table>
+</div>
+<h3 id="_multiple_hashes_in_form_helper_attributes">1.2. Multiple hashes in form helper attributes</h3>
+<div class="para"><p>By now we've seen that the <tt>form_tag</tt> helper accepts 2 arguments: the path for the action attribute and an options hash for parameters (like <tt>:method</tt>).</p></div>
+<div class="para"><p>Identical to the <tt>link_to</tt> helper, the path argument doesn't have to be given as string or a named route. It can be a hash of URL parameters that Rails' routing mechanism will turn into a valid URL. Still, we cannot simply write this:</p></div>
+<div class="listingblock">
+<div class="title">Example: A bad way to pass multiple hashes as method arguments</div>
+<div class="content">
+<pre><tt>form_tag(:controller =&gt; "people", :action =&gt; "search", :method =&gt; "get")
+# =&gt; &lt;form action="/people/search?method=get" method="post"&gt;</tt></pre>
+</div></div>
+<div class="para"><p>Here we wanted to pass two hashes, but the Ruby interpreter sees only one hash, so Rails will construct a URL that we didn't want. The solution is to delimit the first hash (or both hashes) with curly brackets:</p></div>
+<div class="listingblock">
+<div class="title">Example: The correct way of passing multiple hashes as arguments</div>
+<div class="content">
+<pre><tt>form_tag({:controller =&gt; "people", :action =&gt; "search"}, :method =&gt; "get")
+# =&gt; &lt;form action="/people/search" method="get"&gt;</tt></pre>
+</div></div>
+<div class="para"><p>This is a common pitfall when using form helpers, since many of them accept multiple hashes. So in future, if a helper produces unexpected output, make sure that you have delimited the hash parameters properly.</p></div>
+<div class="admonitionblock">
+<table><tr>
+<td class="icon">
+<img src="/Users/lifo/Docs/docrails/railties/doc/guides/source/icons/warning.png" alt="Warning" />
+</td>
+<td class="content">Do not delimit the second hash without doing so with the first hash, otherwise your method invocation will result in an ugly <tt>expecting tASSOC</tt> syntax error.</td>
+</tr></table>
+</div>
+<h3 id="_checkboxes_radio_buttons_and_other_controls">1.3. Checkboxes, radio buttons and other controls</h3>
+<div class="para"><p>Checkboxes are form controls that give the user a set of options they can enable or disable:</p></div>
+<div class="listingblock">
+<div class="content">
+<pre><tt>&lt;%= check_box_tag(:pet_dog) %&gt;
+  &lt;%= label_tag(:pet_dog, "I own a dog") %&gt;
+&lt;%= check_box_tag(:pet_cat) %&gt;
+  &lt;%= label_tag(:pet_cat, "I own a cat") %&gt;
+
+output:
+
+&lt;input id="pet_dog" name="pet_dog" type="checkbox" value="1" /&gt;
+  &lt;label for="pet_dog"&gt;I own a dog&lt;/label&gt;
+&lt;input id="pet_cat" name="pet_cat" type="checkbox" value="1" /&gt;
+  &lt;label for="pet_cat"&gt;I own a cat&lt;/label&gt;</tt></pre>
+</div></div>
+<div class="para"><p>Radio buttons, while similar to checkboxes, are controls that specify a set of options in which they are mutually exclusive (user can only pick one):</p></div>
+<div class="listingblock">
+<div class="content">
+<pre><tt>&lt;%= radio_button_tag(:age, "child") %&gt;
+  &lt;%= label_tag(:age_child, "I am younger than 21") %&gt;
+&lt;%= radio_button_tag(:age, "adult") %&gt;
+  &lt;%= label_tag(:age_adult, "I'm over 21") %&gt;
+
+output:
+
+&lt;input id="age_child" name="age" type="radio" value="child" /&gt;
+  &lt;label for="age_child"&gt;I am younger than 21&lt;/label&gt;
+&lt;input id="age_adult" name="age" type="radio" value="adult" /&gt;
+  &lt;label for="age_adult"&gt;I'm over 21&lt;/label&gt;</tt></pre>
+</div></div>
+<div class="admonitionblock">
+<table><tr>
+<td class="icon">
+<img src="/Users/lifo/Docs/docrails/railties/doc/guides/source/icons/important.png" alt="Important" />
+</td>
+<td class="content">Always use labels for each checkbox and radio button. They associate text with a specific option, while also providing a larger clickable region.</td>
+</tr></table>
+</div>
+<div class="para"><p>Other form controls we might mention are the text area, password input and hidden input:</p></div>
+<div class="listingblock">
+<div class="content">
+<pre><tt>&lt;%= text_area_tag(:message, "Hi, nice site", :size =&gt; "24x6") %&gt;
+&lt;%= password_field_tag(:password) %&gt;
+&lt;%= hidden_field_tag(:parent_id, "5") %&gt;
+
+output:
+
+&lt;textarea id="message" name="message" cols="24" rows="6"&gt;Hi, nice site&lt;/textarea&gt;
+&lt;input id="password" name="password" type="password" /&gt;
+&lt;input id="parent_id" name="parent_id" type="hidden" value="5" /&gt;</tt></pre>
+</div></div>
+<div class="para"><p>Hidden inputs are not shown to the user, but they hold data same as any textual input. Values inside them can be changed with JavaScript.</p></div>
+<div class="admonitionblock">
+<table><tr>
+<td class="icon">
+<img src="/Users/lifo/Docs/docrails/railties/doc/guides/source/icons/tip.png" alt="Tip" />
+</td>
+<td class="content">If you're using password input fields (for any purpose), you might want to prevent their values showing up in application logs by activating <tt>filter_parameter_logging(:password)</tt> in your ApplicationController.</td>
+</tr></table>
+</div>
+<h3 id="_how_do_forms_with_put_or_delete_methods_work">1.4. How do forms with PUT or DELETE methods work?</h3>
+<div class="para"><p>Rails framework encourages RESTful design of your applications, which means you'll be making a lot of "PUT" and "DELETE" requests (besides "GET" and "POST"). Still, most browsers <em>don't support</em> methods other than "GET" and "POST" when it comes to submitting forms. How does this work, then?</p></div>
+<div class="para"><p>Rails works around this issue by emulating other methods over POST with a hidden input named <tt>"<em>method"</tt> that is set to reflect the _real</em> method:</p></div>
+<div class="listingblock">
+<div class="content">
+<pre><tt>form_tag(search_path, :method =&gt; "put")
+
+output:
+
+&lt;form action="/search" method="post"&gt;
+  &lt;div style="margin:0;padding:0"&gt;
+    &lt;input name="_method" type="hidden" value="put" /&gt;
+    &lt;input name="authenticity_token" type="hidden" value="f755bb0ed134b76c432144748a6d4b7a7ddf2b71" /&gt;
+  &lt;/div&gt;
+  ...</tt></pre>
+</div></div>
+<div class="para"><p>When parsing POSTed data, Rails will take into account the special <tt>"_method"</tt> parameter and act as if the HTTP method was the one specified inside it ("PUT" in this example).</p></div>
+</div>
+<h2 id="_forms_that_deal_with_model_attributes">2. Forms that deal with model attributes</h2>
+<div class="sectionbody">
+<div class="para"><p>When we're dealing with an actual model, we will use a different set of form helpers and have Rails take care of some details in the background. In the following examples we will handle an Article model. First, let us have the controller create one:</p></div>
+<div class="listingblock">
+<div class="title">Example: articles_controller.rb</div>
+<div class="content">
+<pre><tt>def new
+  @article = Article.new
+end</tt></pre>
+</div></div>
+<div class="para"><p>Now we switch to the view. The first thing to remember is that we should use <tt>form_for</tt> helper instead of <tt>form_tag</tt>, and that we should pass the model name and object as arguments:</p></div>
+<div class="listingblock">
+<div class="title">Example: articles/new.html.erb</div>
+<div class="content">
+<pre><tt>&lt;% form_for :article, @article, :url =&gt; { :action =&gt; "create" } do |f| %&gt;
+  &lt;%= f.text_field :title %&gt;
+  &lt;%= f.text_area :body, :size =&gt; "60x12" %&gt;
+  &lt;%= submit_tag "Create" %&gt;
+&lt;% end %&gt;</tt></pre>
+</div></div>
+<div class="para"><p>There are a few things to note here:</p></div>
+<div class="olist"><ol>
+<li>
+<p>
+<tt>:article</tt> is the name of the model and <tt>@article</tt> is our record.
+</p>
+</li>
+<li>
+<p>
+The URL for the action attribute is passed as a parameter named <tt>:url</tt>.
+</p>
+</li>
+<li>
+<p>
+The <tt>form_for</tt> method yields <strong>a form builder</strong> object (the <tt>f</tt> variable).
+</p>
+</li>
+<li>
+<p>
+Methods to create form controls are called <strong>on</strong> the form builder object <tt>f</tt> and <strong>without</strong> the <tt>"_tag"</tt> suffix (so <tt>text_field_tag</tt> becomes <tt>f.text_field</tt>).
+</p>
+</li>
+</ol></div>
+<div class="para"><p>The resulting HTML is:</p></div>
+<div class="listingblock">
+<div class="content">
+<pre><tt>&lt;form action="/articles/create" method="post"&gt;
+  &lt;input id="article_title" name="article[title]" size="30" type="text" /&gt;
+  &lt;textarea id="article_body" name="article[body]" cols="60" rows="12"&gt;&lt;/textarea&gt;
+  &lt;input name="commit" type="submit" value="Create" /&gt;
+&lt;/form&gt;</tt></pre>
+</div></div>
+<div class="para"><p>A nice thing about <tt>f.text_field</tt> and other helper methods is that they will pre-fill the form control with the value read from the corresponding attribute in the model. For example, if we created the article instance by supplying an initial value for the title in the controller:</p></div>
+<div class="listingblock">
+<div class="content">
+<pre><tt>@article = Article.new(:title =&gt; "Rails makes forms easy")</tt></pre>
+</div></div>
+<div class="para"><p>&#8230; the corresponding input will be rendered with a value:</p></div>
+<div class="listingblock">
+<div class="content">
+<pre><tt>&lt;input id="post_title" name="post[title]" size="30" type="text" value="Rails makes forms easy" /&gt;</tt></pre>
+</div></div>
+<h3 id="_relying_on_record_identification">2.1. Relying on record identification</h3>
+<div class="para"><p>In the previous chapter we handled the Article model. This model is directly available to users of our application and, following the best practices for developing with Rails, we should declare it <strong>a resource</strong>.</p></div>
+<div class="para"><p>When dealing with RESTful resources, our calls to <tt>form_for</tt> can get significantly easier if we rely on <strong>record identification</strong>. In short, we can just pass the model instance and have Rails figure out model name and the rest:</p></div>
+<div class="listingblock">
+<div class="content">
+<pre><tt>## Creating a new article
+# long-style:
+form_for(:article, @article, :url =&gt; articles_path)
+# same thing, short-style (record identification gets used):
+form_for(@article)
+
+## Editing an existing article
+# long-style:
+form_for(:article, @article, :url =&gt; article_path(@article), :method =&gt; "put")
+# short-style:
+form_for(@article)</tt></pre>
+</div></div>
+<div class="para"><p>Notice how the short-style <tt>form_for</tt> invocation is conveniently the same, regardless of the record being new or existing. Record identification is smart enough to figure out if the record is new by asking <tt>record.new_record?</tt>.</p></div>
+<div class="admonitionblock">
+<table><tr>
+<td class="icon">
+<img src="/Users/lifo/Docs/docrails/railties/doc/guides/source/icons/warning.png" alt="Warning" />
+</td>
+<td class="content">When you're using STI (single-table inheritance) with your models, you can't rely on record identification on a subclass if only their parent class is declared a resource. You will have to specify the model name, <tt>:url</tt> and <tt>:method</tt> explicitly.</td>
+</tr></table>
+</div>
+</div>
+
+		</div>
+	</div>
+</body>
+</html>

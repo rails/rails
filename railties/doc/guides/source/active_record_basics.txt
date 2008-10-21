@@ -1,0 +1,120 @@
+ActiveRecord Basics
+=================================
+This guide will explain in detail how the ActiveRecord design pattern is used inside Ruby on Rails to make communication with the database clear and easy to understand. 
+The intent of this guide is to explain the ActiveRecord implementation used by Rails though easy to understand examples, metaphors and detailed explanations of the actual Rails source code.
+After reading this guide readers should have a strong grasp of the ActiveRecord concept and how it can be used with or without Rails. Hopefully, some of the philosophical and theoretical intentions discussed here will also make them a stronger and better developer.
+== ORM The Blueprint of ActiveRecord
+If ActiveRecord is the engine of Rails then ORM is the blueprint of that engine. ORM is short for “Object Relational Mapping” and is a programming concept used to make structures within a system relational. ORM seeks to give semantic meaning to the associations between elements of the system for example tables within a database. 
+As a thought experiment imagine the components that make up a typical car. There are doors, seats, windows, engines etc. Viewed independently they are simple parts, yet when bolted together through the aid of a blueprint, the parts become a more complex device. ORM is the blueprint that describes how the individual parts relate to one another and in some cases infers the part’s purpose through the way the associations are described.
+== ActiveRecord The Engine of Rails
+ActiveRecord is a metaphor used to access data within a database. The name “Active Record” was coined by Martin Fowler in his book “Patterns of Enterprise Application Architecture”. ActiveRecord is a conceptual model of the database record and the relationships to other records. 
+As a side note, from now when I refer to ActiveRecord I’ll be referring to the specific Rails implementation and not the design pattern in general. I make this distinction because, as Rails has evolved so too has the Rails specific implementation of their version of ActiveRecord. 
+Specifically, the Rails ActiveRecord pattern adds inheritance and associations. The associations are created by using a DSL (domain specific language) of macros, and a STI (Single Table Inheritance) to facilitate the inheritance.
+Rails uses ActiveRecord to abstract much of the drudgery or C.R.U.D (explained later) of working with data in databases. Using ActiveRecord Rails automates the mapping between:
+* Classes & Database Tables
+* Class attributes & Database Table Columns
+For example suppose you created a database table called cars:
+[source, sql]
+-------------------------------------------------------
+mysql> CREATE TABLE cars (
+         id INT,
+         color VARCHAR(100),
+         doors INT,
+         horses INT,
+         model VARCHAR(100)
+       );
+-------------------------------------------------------
+Now you created a class named Car, which is to represent an instance of a record from your table. 
+[source, ruby]
+------------------------------------------------------- 
+class Car
+end
+-------------------------------------------------------
+As you might expect without defining the explicit mappings between your class and the table it is impossible for Rails or any other program to correctly map those relationships.
+[source, ruby]
+-------------------------------------------------------
+>> c = Car.new
+=> #<Class:0x11e1e90>
+>> c.doors
+NoMethodError: undefined method `doors' for #<Class:0x11e1e90>
+        from (irb):2
+-------------------------------------------------------
+Now you could define a door methods to write and read data to and from the database. In a nutshell this is what ActiveRecord does. According to the Rails API: 
+“Active Record objects don‘t specify their attributes directly, but rather infer them from the table definition with which they‘re linked. Adding, removing, and changing attributes and their type is done directly in the database. Any change is instantly reflected in the Active Record objects. The mapping that binds a given Active Record class to a certain database table will happen automatically in most common cases, but can be overwritten for the uncommon ones.”
+Lets try our Car class again, this time inheriting from ActiveRecord.
+[source, ruby]
+-------------------------------------------------------
+class Car < ActiveRecord::Base
+end
+-------------------------------------------------------
+Now if we try to access an attribute of the table ActiveRecord automatically handles the mappings for us, as you can see in the following example.
+[source, ruby]
+-------------------------------------------------------
+>> c = Car.new
+=> #<Car id: nil, doors: nil, color: nil, horses: nil, model: nil>
+>> c.doors
+=> nil
+-------------------------------------------------------
+
+This wrapper implements attribute accessors, callbacks and validations, which can make the data more powerful.
+- Validations
+    *  create!
+    * validates_acceptance_of
+    * validates_associated
+    * validates_confirmation_of
+    * validates_each
+    * validates_exclusion_of
+    * validates_format_of
+    * validates_inclusion_of
+    * validates_length_of
+    * validates_numericality_of
+    * validates_presence_of
+    * validates_size_of
+    * validates_uniqueness_of
+ - Callback
+    * (-) save
+    * (-) valid
+    * (1) before_validation
+    * (2) before_validation_on_create
+    * (-) validate
+    * (-) validate_on_create
+    * (3) after_validation
+    * (4) after_validation_on_create
+    * (5) before_save
+    * (6) before_create
+    * (-) create
+    * (7) after_create
+    * (8) after_save
+
+Rails further extends this model by giving each ActiveRecord a way of describing the variety of ways records are associated with one another. We will touch on some of these associations later in the guide but I encourage readers who are interested to read the guide to ActiveRecord associations for an in-depth explanation of the variety of ways rails can model associations.
+- Associations between objects controlled by meta-programming macros.
+
+== Philosophical Approaches & Common Conventions
+Rails has a reputation of being a zero-config  framework which means that it aims to get you off the ground with as little pre-flight checking as possible. This speed benefit is achieved by following “Convention over Configuration”, which is to say that if you agree to live with the defaults then you benefit from a the inherent speed-boost. As Courtneay Gasking put it to me once “You don’t want to off-road on Rails”. ActiveRecord is no different, while it’s possible to override or subvert any of the conventions of AR, unless you have a good reason for doing so you will probably be happy with the defaults. The following is a list of the common conventions of ActiveRecord
+
+
+ActiveRecord is the default model component of the Model-view-controller web-application framework Ruby on Rails, and is also a stand-alone ORM package for other Ruby applications. In both forms, it was conceived of by David Heinemeier Hansson, and has been improved upon by a number of contributors. --wikipedia
+
+ - Naming Conventions
+   - Class Names are Singular
+   - Tables names are the plural name of the class name
+   - Tables contain an identity column named id
+ - ids
+== ActiveRecord Magic
+ - timestamps
+ - updates
+
+== How ActiveRecord Maps your Database.
+- sensible defaults
+- overriding conventions
+
+== Growing Your Database Relationships Naturally
+
+== Attributes
+ - attribute accessor method. How to override them?
+ - attribute?
+ - dirty records
+ - 
+== ActiveRecord handling the CRUD of your Rails application - Understanding the life-cycle of an ActiveRecord
+
+== Validations & Callbacks

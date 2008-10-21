@@ -1,0 +1,1751 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" lang="en" xml:lang="en">
+<head>
+	<meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
+	<title>A Guide to Testing Rails Applications</title>
+	<!--[if lt IE 8]>
+	<script src="http://ie7-js.googlecode.com/svn/version/2.0(beta3)/IE8.js" type="text/javascript"></script>
+	<![endif]-->
+	<link href="stylesheets/base.css" media="screen" rel="Stylesheet" type="text/css" />
+	<link href="stylesheets/forms.css" media="screen" rel="Stylesheet" type="text/css" />
+	<link href="stylesheets/more.css" media="screen" rel="Stylesheet" type="text/css" />
+	<style type="text/css">
+		div#container {
+	max-width: 900px;
+	padding-bottom: 3em;
+}
+
+div#content {
+	margin-left: 200px;
+}
+
+div#container.notoc {
+	max-width: 600px;
+}
+
+.notoc div#content {
+	margin-left: 0;
+}
+
+pre {
+	line-height: 1.4em;
+}
+
+#content p tt {
+	background: #eeeeee;
+	border: solid 1px #cccccc;
+	padding: 3px;
+}
+
+dt {
+	font-weight: bold;
+}
+
+#content dt tt {
+	font-size: 10pt;
+}
+
+dd {
+	margin-left: 3em;
+}
+
+#content dt tt, #content pre tt {
+	background: none;
+	padding: 0;
+	border: 0;
+}
+
+#content .olist ol {
+	margin-left: 2em;
+}
+
+#header {
+	position: relative;
+	max-width: 840px;
+	margin-left: auto;
+	margin-right: auto;
+}
+
+#header.notoc {
+	max-width: 580px;
+}
+
+#logo {
+	position: absolute;
+	left: 10px;
+	top: 10px;
+	width: 110px;
+	height: 140px;
+}
+
+div#header h1#site_title {
+	background: url('images/ruby_on_rails_by_mike_rundle2.gif') top left no-repeat;
+	position: absolute;
+	width: 392px;
+	height: 55px;
+	left: 145px;
+	top: 20px;
+	margin: 0;
+	padding: 0;
+}
+
+#site_title span {
+	display: none;
+}
+
+#site_title_tagline {
+	display: none;
+}
+
+ul#navMain {
+	position: absolute;
+	margin: 0;
+	padding: 0;
+	top: 97px;
+	left: 145px;
+}
+
+.left-floaty, .right-floaty {
+	padding: 15px;
+}
+
+.admonitionblock,
+.tableblock {
+	margin-left: 1em;
+	margin-right: 1em;
+	margin-top: 0.25em;
+	margin-bottom: 1em;
+}
+
+.admonitionblock .icon {
+	padding-right: 8px;
+}
+
+.admonitionblock .content {
+	border: solid 1px #ffda78;
+	background: #fffebd;
+	padding: 10px;
+	padding-top: 8px;
+	padding-bottom: 8px;
+}
+
+.admonitionblock .title {
+	font-size: 140%;
+	margin-bottom: 0.5em;
+}
+
+.tableblock table {
+	border: solid 1px #aaaaff;
+	background: #f0f0ff;
+}
+
+.tableblock th {
+	background: #e0e0e0;
+}
+
+.tableblock th,
+.tableblock td {
+	padding: 3px;
+	padding-left: 5px;
+	padding-right: 5px;
+}
+
+.sidebarblock {
+	margin-top: 0.25em;
+	margin: 1em;
+	border: solid 1px #ccccbb;
+	padding: 8px;
+	background: #ffffe0;
+}
+
+.sidebarblock .sidebar-title {
+	font-size: 140%;
+	font-weight: 600;
+	margin-bottom: 0.3em;
+}
+
+.sidebarblock .sidebar-content > .para:last-child > p {
+	margin-bottom: 0;
+}
+
+.sidebarblock .sidebar-title a {
+	text-decoration: none;
+}
+
+.sidebarblock .sidebar-title a:hover {
+	text-decoration: underline;
+}
+
+	</style>
+</head>
+<body>
+	<div id="header" >
+		<div id="logo">
+			<a href="index.html" title="Ruby on Rails"><img src="images/rails_logo_remix.gif" alt="Rails" height="140" width="110" /></a>
+		</div>
+		
+		<h1 id="site_title"><span>Ruby on Rails</span></h1>
+		<h2 id="site_title_tagline">Sustainable productivity for web-application development</h2>
+
+		<ul id="navMain">
+			<li class="first-child"><a href="http://www.rubyonrails.org/" title="Ruby on Rails" class="ruby_on_rails">Ruby on Rails</a></li>
+			<li><a class="manuals" href="index.html" title="Manuals Index">Guides Index</a></li>
+		</ul>
+	</div>
+
+	<div id="container">
+		
+		<div id="sidebar">
+			<h2>Chapters</h2>
+			<ol>
+					<li>
+					<a href="#_why_write_tests_for_your_rails_applications">Why Write Tests for your Rails Applications?</a>
+					</li>
+					<li>
+					<a href="#_before_you_start_writing_tests">Before you Start Writing Tests</a>
+						<ul>
+						
+							<li><a href="#_the_3_environments">The 3 Environments</a></li>
+						
+							<li><a href="#_rails_sets_up_for_testing_from_the_word_go">Rails Sets up for Testing from the Word Go</a></li>
+						
+							<li><a href="#_the_low_down_on_fixtures">The Low-Down on Fixtures</a></li>
+						
+						</ul>
+					</li>
+					<li>
+					<a href="#_unit_testing_your_models">Unit Testing Your Models</a>
+						<ul>
+						
+							<li><a href="#_running_tests">Running Tests</a></li>
+						
+							<li><a href="#_what_to_include_in_your_unit_tests">What to Include in Your Unit Tests</a></li>
+						
+							<li><a href="#_assertions_available">Assertions Available</a></li>
+						
+							<li><a href="#_rails_specific_assertions">Rails Specific Assertions</a></li>
+						
+						</ul>
+					</li>
+					<li>
+					<a href="#_functional_tests_for_your_controllers">Functional Tests for Your Controllers</a>
+						<ul>
+						
+							<li><a href="#_what_to_include_in_your_functional_tests">What to include in your Functional Tests</a></li>
+						
+							<li><a href="#_available_request_types_for_functional_tests">Available Request Types for Functional Tests===</a></li>
+						
+							<li><a href="#_the_4_hashes_of_the_apocalypse">The 4 Hashes of the Apocalypse</a></li>
+						
+							<li><a href="#_instance_variables_available">Instance Variables Available</a></li>
+						
+							<li><a href="#_a_fuller_functional_test_example">A Fuller Functional Test Example</a></li>
+						
+							<li><a href="#_testing_views">Testing Views</a></li>
+						
+						</ul>
+					</li>
+					<li>
+					<a href="#_integration_testing">Integration Testing</a>
+						<ul>
+						
+							<li><a href="#_helpers_available_for_integration_tests">Helpers Available for Integration tests</a></li>
+						
+							<li><a href="#_integration_testing_examples">Integration Testing Examples</a></li>
+						
+						</ul>
+					</li>
+					<li>
+					<a href="#_testing_your_mailers">Testing Your Mailers</a>
+						<ul>
+						
+							<li><a href="#_keeping_the_postman_in_check">Keeping the Postman in Check</a></li>
+						
+							<li><a href="#_unit_testing">Unit Testing</a></li>
+						
+							<li><a href="#_functional_testing">Functional Testing</a></li>
+						
+						</ul>
+					</li>
+					<li>
+					<a href="#_rake_tasks_for_testing">Rake Tasks for Testing</a>
+					</li>
+					<li>
+					<a href="#_other_testing_approaches">Other Testing Approaches</a>
+					</li>
+					<li>
+					<a href="#_changelog">Changelog</a>
+					</li>
+			</ol>
+		</div>
+		
+		<div id="content">
+				<h1>A Guide to Testing Rails Applications</h1>
+			<div id="preamble">
+<div class="sectionbody">
+<div class="para"><p>This guide covers built-in mechanisms offered by Rails to test your application. By referring to this guide, you will be able to:</p></div>
+<div class="ilist"><ul>
+<li>
+<p>
+Understand Rails testing terminology
+</p>
+</li>
+<li>
+<p>
+Write unit, functional and integration tests for your application
+</p>
+</li>
+<li>
+<p>
+Identify other popular testing approaches and plugins
+</p>
+</li>
+</ul></div>
+<div class="para"><p>This guide won't teach you to write a Rails application; it assumes basic familiarity with the Rails way of doing things.</p></div>
+</div>
+</div>
+<h2 id="_why_write_tests_for_your_rails_applications">1. Why Write Tests for your Rails Applications?</h2>
+<div class="sectionbody">
+<div class="ilist"><ul>
+<li>
+<p>
+Because Ruby code that you write in your Rails application is interpreted, you may only find that it's broken when you actually run your application server and use it through the browser. Writing tests is a clean way of running through your code in advance and catching syntactical and logic errors.
+</p>
+</li>
+<li>
+<p>
+Rails tests can also simulate browser requests and thus you can test your application's response without having to test it through your browser.
+</p>
+</li>
+<li>
+<p>
+By simply running your Rails tests you can ensure your code adheres to the desired functionality even after some major code refactoring.
+</p>
+</li>
+<li>
+<p>
+Rails makes it super easy to write your tests. It starts by producing skeleton test code in background while you are creating your models and controllers.
+</p>
+</li>
+</ul></div>
+</div>
+<h2 id="_before_you_start_writing_tests">2. Before you Start Writing Tests</h2>
+<div class="sectionbody">
+<div class="para"><p>Just about every Rails application interacts heavily with a database - and, as a result, your tests will need a database to interact with as well. To write efficient tests, you'll need to understand how to set up this database and populate it with sample data.</p></div>
+<h3 id="_the_3_environments">2.1. The 3 Environments</h3>
+<div class="para"><p>Testing support was woven into the Rails fabric from the beginning. It wasn't an "oh! let's bolt on support for running tests because they're new and cool" epiphany. One of the consequences of this design decision is that every Rails application you build has 3 sides: a side for production, a side for development, and a side for testing.</p></div>
+<div class="para"><p>One place you'll find this distinction is in the <tt>config/database.yml</tt> file. This YAML configuration file has 3 different sections defining 3 unique database setups:</p></div>
+<div class="ilist"><ul>
+<li>
+<p>
+production
+</p>
+</li>
+<li>
+<p>
+development
+</p>
+</li>
+<li>
+<p>
+test
+</p>
+</li>
+</ul></div>
+<div class="para"><p>This allows you to set up and interact with test data without any danger of your tests altering data from your production environment.</p></div>
+<div class="para"><p>For example, suppose you need to test your new <tt>delete_this_user_and_every_everything_associated_with_it</tt> function. Wouldn't you want to run this in an environment where it makes no difference if you destroy data or not?</p></div>
+<div class="para"><p>When you do end up destroying your testing database (and it will happen, trust me), you can rebuild it from scratch according to the specs defined in the development database. You can do this by running <tt>rake db:test:prepare</tt>.</p></div>
+<h3 id="_rails_sets_up_for_testing_from_the_word_go">2.2. Rails Sets up for Testing from the Word Go</h3>
+<div class="para"><p>Rails creates a <tt>test</tt> folder for you as soon as you create a Rails project using <tt>rails <em>application_name</em></tt>. If you list the contents of this folder then you shall see:</p></div>
+<div class="listingblock">
+<div class="content"><!-- Generator: GNU source-highlight 2.9
+by Lorenzo Bettini
+http://www.lorenzobettini.it
+http://www.gnu.org/software/src-highlite -->
+<pre><tt>$ ls -F <span style="font-weight: bold"><span style="color: #0000FF">test</span></span><span style="color: #990000">/</span>
+
+fixtures<span style="color: #990000">/</span>       functional<span style="color: #990000">/</span>     integration<span style="color: #990000">/</span>    test_helper<span style="color: #990000">.</span>rb  unit<span style="color: #990000">/</span>
+</tt></pre></div></div>
+<div class="para"><p>The <tt>unit</tt> folder is meant to hold tests for your models, the <tt>functional</tt> folder is meant to hold tests for your controllers, and the <tt>integration</tt> folder is meant to hold tests that involve any number of controllers interacting. Fixtures are a way of organizing test data; they reside in the <tt>fixtures</tt> folder. The <tt>test_helper.rb</tt> file holds the default configuration for your tests.</p></div>
+<h3 id="_the_low_down_on_fixtures">2.3. The Low-Down on Fixtures</h3>
+<div class="para"><p>For good tests, you'll need to give some thought to setting up test data. In Rails, you can handle this by defining and customizing fixtures.</p></div>
+<h4 id="_what_are_fixtures">2.3.1. What Are Fixtures?</h4>
+<div class="para"><p><em>Fixtures</em> is a fancy word for sample data. Fixtures allow you to populate your testing database with predefined data before your tests run. Fixtures are database independent and assume one of two formats: <strong>YAML</strong> or <strong>CSV</strong>.</p></div>
+<div class="para"><p>You'll find fixtures under your <tt>test/fixtures</tt> directory. When you run <tt>script/generate model</tt> to create a new model, fixture stubs will be automatically created and placed in this directory.</p></div>
+<h4 id="_yaml_the_camel_is_a_mammal_with_enamel">2.3.2. YAML the Camel is a Mammal with Enamel</h4>
+<div class="para"><p>YAML-formatted fixtures are a very human-friendly way to describe your sample data. These types of fixtures have the <strong>.yml</strong> file extension (as in <tt>users.yml</tt>).</p></div>
+<div class="para"><p>Here's a sample YAML fixture file:</p></div>
+<div class="listingblock">
+<div class="content"><!-- Generator: GNU source-highlight 2.9
+by Lorenzo Bettini
+http://www.lorenzobettini.it
+http://www.gnu.org/software/src-highlite -->
+<pre><tt><span style="font-style: italic"><span style="color: #9A1900"># low &amp; behold!  I am a YAML comment!</span></span>
+david<span style="color: #990000">:</span>
+ id<span style="color: #990000">:</span> <span style="color: #993399">1</span>
+ name<span style="color: #990000">:</span> David Heinemeier Hansson
+ birthday<span style="color: #990000">:</span> <span style="color: #993399">1979</span><span style="color: #990000">-</span><span style="color: #993399">10</span><span style="color: #990000">-</span><span style="color: #993399">15</span>
+ profession<span style="color: #990000">:</span> Systems development
+
+steve<span style="color: #990000">:</span>
+ id<span style="color: #990000">:</span> <span style="color: #993399">2</span>
+ name<span style="color: #990000">:</span> Steve Ross Kellock
+ birthday<span style="color: #990000">:</span> <span style="color: #993399">1974</span><span style="color: #990000">-</span><span style="color: #993399">09</span><span style="color: #990000">-</span><span style="color: #993399">27</span>
+ profession<span style="color: #990000">:</span> guy with keyboard
+</tt></pre></div></div>
+<div class="para"><p>Each fixture is given a name followed by an indented list of colon-separated key/value pairs. Records are separated by a blank space. You can place comments in a fixture file by using the # character in the first column.</p></div>
+<h4 id="_comma_seperated">2.3.3. Comma Seperated</h4>
+<div class="para"><p>Fixtures can also be described using the all-too-familiar comma-separated value (CSV) file format. These files, just like YAML fixtures, are placed in the <em>test/fixtures</em> directory, but these end with the <tt>.csv</tt> file extension (as in <tt>celebrity_holiday_figures.csv</tt>).</p></div>
+<div class="para"><p>A CSV fixture looks like this:</p></div>
+<div class="listingblock">
+<div class="content"><!-- Generator: GNU source-highlight 2.9
+by Lorenzo Bettini
+http://www.lorenzobettini.it
+http://www.gnu.org/software/src-highlite -->
+<pre><tt>id, username, password, stretchable, comments
+1, sclaus, ihatekids, false, I like to say ""Ho! Ho! Ho!""
+2, ebunny, ihateeggs, true, Hoppity hop y'all
+3, tfairy, ilovecavities, true, "Pull your teeth, I will"
+</tt></pre></div></div>
+<div class="para"><p>The first line is the header. It is a comma-separated list of fields. The rest of the file is the payload: 1 record per line. A few notes about this format:</p></div>
+<div class="ilist"><ul>
+<li>
+<p>
+Leading and trailing spaces are trimmed from each value when it is imported
+</p>
+</li>
+<li>
+<p>
+If you use a comma as data, the cell must be encased in quotes
+</p>
+</li>
+<li>
+<p>
+If you use a quote as data, you must escape it with a 2nd quote
+</p>
+</li>
+<li>
+<p>
+Don't use blank lines
+</p>
+</li>
+<li>
+<p>
+Nulls can be defined by including no data between a pair of commas
+</p>
+</li>
+</ul></div>
+<div class="para"><p>Unlike the YAML format where you give each record in a fixture a name, CSV fixture names are automatically generated. They follow a pattern of "model-name-counter". In the above example, you would have:</p></div>
+<div class="ilist"><ul>
+<li>
+<p>
+<tt>celebrity-holiday-figures-1</tt>
+</p>
+</li>
+<li>
+<p>
+<tt>celebrity-holiday-figures-2</tt>
+</p>
+</li>
+<li>
+<p>
+<tt>celebrity-holiday-figures-3</tt>
+</p>
+</li>
+</ul></div>
+<div class="para"><p>The CSV format is great to use if you have existing data in a spreadsheet or database and you are able to save it (or export it) as a CSV.</p></div>
+<h4 id="_erb_in_it_up">2.3.4. ERb'in It Up</h4>
+<div class="para"><p>ERb allows you embed ruby code within templates. Both the YAML and CSV fixture formats are pre-processed with ERb when you load fixtures. This allows you to use Ruby to help you generate some sample data.</p></div>
+<div class="para"><p>I'll demonstrate with a YAML file:</p></div>
+<div class="listingblock">
+<div class="content"><!-- Generator: GNU source-highlight 2.9
+by Lorenzo Bettini
+http://www.lorenzobettini.it
+http://www.gnu.org/software/src-highlite -->
+<pre><tt><span style="color: #FF0000">&lt;% earth_size = 20 -%&gt;</span>
+mercury<span style="color: #990000">:</span>
+  id<span style="color: #990000">:</span> <span style="color: #993399">1</span>
+  size<span style="color: #990000">:</span> <span style="color: #FF0000">&lt;%= earth_size / 50 %&gt;</span>
+
+venus<span style="color: #990000">:</span>
+  id<span style="color: #990000">:</span> <span style="color: #993399">2</span>
+  size<span style="color: #990000">:</span> <span style="color: #FF0000">&lt;%= earth_size / 2 %&gt;</span>
+
+mars<span style="color: #990000">:</span>
+  id<span style="color: #990000">:</span> <span style="color: #993399">3</span>
+  size<span style="color: #990000">:</span> <span style="color: #FF0000">&lt;%= earth_size - 69 %&gt;</span>
+</tt></pre></div></div>
+<div class="para"><p>Anything encased within the</p></div>
+<div class="listingblock">
+<div class="content"><!-- Generator: GNU source-highlight 2.9
+by Lorenzo Bettini
+http://www.lorenzobettini.it
+http://www.gnu.org/software/src-highlite -->
+<pre><tt><span style="color: #FF0000">&lt;% %&gt;</span>
+</tt></pre></div></div>
+<div class="para"><p>tag is considered Ruby code. When this fixture is loaded, the <tt>size</tt> attribute of the three records will be set to 20/50, 20/2, and 20-69 respectively.</p></div>
+<h4 id="_fixtures_in_action">2.3.5. Fixtures in Action</h4>
+<div class="para"><p>Rails by default automatically loads all fixtures from the <em>test/fixtures</em> folder for your unit and functional test. Loading involves three steps:</p></div>
+<div class="ilist"><ul>
+<li>
+<p>
+Remove any existing data from the table corresponding to the fixture
+</p>
+</li>
+<li>
+<p>
+Load the fixture data into the table
+</p>
+</li>
+<li>
+<p>
+Dump the fixture data into a variable in case you want to access it directly
+</p>
+</li>
+</ul></div>
+<h4 id="_hashes_with_special_powers">2.3.6. Hashes with Special Powers</h4>
+<div class="para"><p>Fixtures are basically Hash objects. As mentioned in point #3 above, you can access the hash object directly because it is automatically setup as a local variable of the test case. For example:</p></div>
+<div class="listingblock">
+<div class="content"><!-- Generator: GNU source-highlight 2.9
+by Lorenzo Bettini
+http://www.lorenzobettini.it
+http://www.gnu.org/software/src-highlite -->
+<pre><tt><span style="font-style: italic"><span style="color: #9A1900"># this will return the Hash for the fixture named david</span></span>
+users<span style="color: #990000">(:</span>david<span style="color: #990000">)</span>
+
+<span style="font-style: italic"><span style="color: #9A1900"># this will return the property for david called id</span></span>
+users<span style="color: #990000">(:</span>david<span style="color: #990000">).</span>id
+</tt></pre></div></div>
+<div class="para"><p>But, by there's another side to fixtures&#8230; at night, if the moon is full and the wind completely still, fixtures can also transform themselves into the form of the original class!</p></div>
+<div class="para"><p>Now you can get at the methods only available to that class.</p></div>
+<div class="listingblock">
+<div class="content"><!-- Generator: GNU source-highlight 2.9
+by Lorenzo Bettini
+http://www.lorenzobettini.it
+http://www.gnu.org/software/src-highlite -->
+<pre><tt><span style="font-style: italic"><span style="color: #9A1900"># using the find method, we grab the "real" david as a User</span></span>
+david <span style="color: #990000">=</span> users<span style="color: #990000">(:</span>david<span style="color: #990000">).</span>find
+
+<span style="font-style: italic"><span style="color: #9A1900"># and now we have access to methods only available to a User class</span></span>
+email<span style="color: #990000">(</span>david<span style="color: #990000">.</span>girlfriend<span style="color: #990000">.</span>email<span style="color: #990000">,</span> david<span style="color: #990000">.</span>location_tonight<span style="color: #990000">)</span>
+</tt></pre></div></div>
+</div>
+<h2 id="_unit_testing_your_models">3. Unit Testing Your Models</h2>
+<div class="sectionbody">
+<div class="para"><p>In Rails, unit tests are what you write to test your models.</p></div>
+<div class="para"><p>When you create a model using <tt>script/generate</tt>, among other things it creates a test stub in the <tt>test/unit</tt> folder, as well as a fixture for the model:</p></div>
+<div class="listingblock">
+<div class="content"><!-- Generator: GNU source-highlight 2.9
+by Lorenzo Bettini
+http://www.lorenzobettini.it
+http://www.gnu.org/software/src-highlite -->
+<pre><tt>$ script/generate model Post
+...
+create  app/models/post.rb
+create  test/unit/post_test.rb
+create  test/fixtures/posts.yml
+...
+</tt></pre></div></div>
+<div class="para"><p>The default test stub in <tt>test/unit/post_test.rb</tt> looks like this:</p></div>
+<div class="listingblock">
+<div class="content"><!-- Generator: GNU source-highlight 2.9
+by Lorenzo Bettini
+http://www.lorenzobettini.it
+http://www.gnu.org/software/src-highlite -->
+<pre><tt><span style="font-weight: bold"><span style="color: #000080">require</span></span> <span style="color: #FF0000">'test_helper'</span>
+
+<span style="font-weight: bold"><span style="color: #0000FF">class</span></span> PostTest <span style="color: #990000">&lt;</span> ActiveSupport<span style="color: #990000">::</span>TestCase
+  <span style="font-style: italic"><span style="color: #9A1900"># Replace this with your real tests.</span></span>
+  <span style="font-weight: bold"><span style="color: #0000FF">def</span></span> test_truth
+    assert <span style="font-weight: bold"><span style="color: #0000FF">true</span></span>
+  <span style="font-weight: bold"><span style="color: #0000FF">end</span></span>
+<span style="font-weight: bold"><span style="color: #0000FF">end</span></span>
+</tt></pre></div></div>
+<div class="para"><p>A line by line examination of this file will help get you oriented to Rails testing code and terminology.</p></div>
+<div class="listingblock">
+<div class="content"><!-- Generator: GNU source-highlight 2.9
+by Lorenzo Bettini
+http://www.lorenzobettini.it
+http://www.gnu.org/software/src-highlite -->
+<pre><tt><span style="font-weight: bold"><span style="color: #000080">require</span></span> <span style="color: #FF0000">'test_helper'</span>
+</tt></pre></div></div>
+<div class="para"><p>As you know by now that <tt>test_helper.rb</tt> specifies the default configuration to run our tests. This is included with all the tests, so any methods added to this file are available to all your tests.</p></div>
+<div class="listingblock">
+<div class="content"><!-- Generator: GNU source-highlight 2.9
+by Lorenzo Bettini
+http://www.lorenzobettini.it
+http://www.gnu.org/software/src-highlite -->
+<pre><tt><span style="font-weight: bold"><span style="color: #0000FF">class</span></span> PostTest <span style="color: #990000">&lt;</span> ActiveSupport<span style="color: #990000">::</span>TestCase
+</tt></pre></div></div>
+<div class="para"><p>The <tt>PostTest</tt> class defines a <em>test case</em> because it inherits from <tt>ActiveSupport::TestCase</tt>. <tt>PostTest</tt> thus has all the methods available from <tt>ActiveSupport::TestCase</tt>. You'll see those methods a little later in this guide.</p></div>
+<div class="listingblock">
+<div class="content"><!-- Generator: GNU source-highlight 2.9
+by Lorenzo Bettini
+http://www.lorenzobettini.it
+http://www.gnu.org/software/src-highlite -->
+<pre><tt><span style="font-weight: bold"><span style="color: #0000FF">def</span></span> test_truth
+</tt></pre></div></div>
+<div class="para"><p>Any method defined within a test case that begins with <tt>test</tt> (case sensitive) is simply called a test. So, <tt>test_password</tt>, <tt>test_valid_password</tt> and <tt>testValidPassword</tt> all are legal test names and are run automatically when the test case is run.</p></div>
+<div class="listingblock">
+<div class="content"><!-- Generator: GNU source-highlight 2.9
+by Lorenzo Bettini
+http://www.lorenzobettini.it
+http://www.gnu.org/software/src-highlite -->
+<pre><tt>assert <span style="font-weight: bold"><span style="color: #0000FF">true</span></span>
+</tt></pre></div></div>
+<div class="para"><p>This line of code is called an <em>assertion</em>. An assertion is a line of code that evaluates an object (or expression) for expected results. For example, an assertion can check:</p></div>
+<div class="ilist"><ul>
+<li>
+<p>
+is this value = that value?
+</p>
+</li>
+<li>
+<p>
+is this object nil?
+</p>
+</li>
+<li>
+<p>
+does this line of code throw an exception?
+</p>
+</li>
+<li>
+<p>
+is the user's password greater than 5 characters?
+</p>
+</li>
+</ul></div>
+<div class="para"><p>Every test contains one or more assertions. Only when all the assertions are successful the test passes.</p></div>
+<h3 id="_running_tests">3.1. Running Tests</h3>
+<div class="para"><p>Running a test is as simple as invoking the file containing the test cases through Ruby:</p></div>
+<div class="listingblock">
+<div class="content"><!-- Generator: GNU source-highlight 2.9
+by Lorenzo Bettini
+http://www.lorenzobettini.it
+http://www.gnu.org/software/src-highlite -->
+<pre><tt>$ cd <span style="font-weight: bold"><span style="color: #0000FF">test</span></span>
+$ ruby unit/post_test<span style="color: #990000">.</span>rb
+
+Loaded suite unit/post_test
+Started
+<span style="color: #990000">.</span>
+Finished <span style="font-weight: bold"><span style="color: #0000FF">in</span></span> <span style="color: #993399">0.023513</span> seconds<span style="color: #990000">.</span>
+
+<span style="color: #993399">1</span> tests<span style="color: #990000">,</span> <span style="color: #993399">1</span> assertions<span style="color: #990000">,</span> <span style="color: #993399">0</span> failures<span style="color: #990000">,</span> <span style="color: #993399">0</span> errors
+</tt></pre></div></div>
+<div class="para"><p>This will run all the test methods from the test case.</p></div>
+<div class="para"><p>You can also run a particular test method from the test case by using the <tt>-n</tt> switch with the <tt>test method name</tt>.</p></div>
+<div class="listingblock">
+<div class="content"><!-- Generator: GNU source-highlight 2.9
+by Lorenzo Bettini
+http://www.lorenzobettini.it
+http://www.gnu.org/software/src-highlite -->
+<pre><tt>$ ruby unit/post_test.rb -n test_truth
+
+Loaded suite unit/post_test
+Started
+.
+Finished in 0.023513 seconds.
+
+1 tests, 1 assertions, 0 failures, 0 errors
+</tt></pre></div></div>
+<div class="para"><p>The <tt>.</tt> (dot) above indicates a passing test. When a test fails you see an <tt>F</tt>; when a test throws an error you see an <tt>E</tt> in its place. The last line of the output is the summary.</p></div>
+<div class="para"><p>To see how a test failure is reported, you can add a failing test to the <tt>post_test.rb</tt> test case:</p></div>
+<div class="listingblock">
+<div class="content"><!-- Generator: GNU source-highlight 2.9
+by Lorenzo Bettini
+http://www.lorenzobettini.it
+http://www.gnu.org/software/src-highlite -->
+<pre><tt><span style="font-weight: bold"><span style="color: #0000FF">def</span></span> test_should_have_atleast_one_post
+  post <span style="color: #990000">=</span> Post<span style="color: #990000">.</span>find<span style="color: #990000">(:</span>first<span style="color: #990000">)</span>
+  assert_not_nil post
+<span style="font-weight: bold"><span style="color: #0000FF">end</span></span>
+</tt></pre></div></div>
+<div class="para"><p>If you haven't added any data to the test fixture for posts, this test will fail. You can see this by running it:</p></div>
+<div class="listingblock">
+<div class="content"><!-- Generator: GNU source-highlight 2.9
+by Lorenzo Bettini
+http://www.lorenzobettini.it
+http://www.gnu.org/software/src-highlite -->
+<pre><tt>$ ruby unit/post_test.rb
+Loaded suite unit/post_test
+Started
+F.
+Finished in 0.027274 seconds.
+
+  1) Failure:
+test_should_have_atleast_one_post(PostTest)
+    [unit/post_test.rb:12:in `test_should_have_atleast_one_post'
+     /opt/local/lib/ruby/gems/1.8/gems/activesupport-2.1.1/lib/active_support/testing/setup_and_teardown.rb:33:in `__send__'
+     /opt/local/lib/ruby/gems/1.8/gems/activesupport-2.1.1/lib/active_support/testing/setup_and_teardown.rb:33:in `run']:
+&lt;nil&gt; expected to not be nil.
+
+2 tests, 2 assertions, 1 failures, 0 errors
+</tt></pre></div></div>
+<div class="para"><p>In the output, <tt>F</tt> denotes a failure. You can see the corresponding trace shown under <tt>1)</tt> along with the name of the failing test. The next few lines contain the stack trace followed by a message which mentions the actual value and the expected value by the assertion. The default assertion messages provide just enough information to help pinpoint the error. To make the assertion failure message more readable every assertion provides an optional message parameter, as shown here:</p></div>
+<div class="listingblock">
+<div class="content"><!-- Generator: GNU source-highlight 2.9
+by Lorenzo Bettini
+http://www.lorenzobettini.it
+http://www.gnu.org/software/src-highlite -->
+<pre><tt><span style="font-weight: bold"><span style="color: #0000FF">def</span></span> test_should_have_atleast_one_post
+  post <span style="color: #990000">=</span> Post<span style="color: #990000">.</span>find<span style="color: #990000">(:</span>first<span style="color: #990000">)</span>
+  assert_not_nil post<span style="color: #990000">,</span> <span style="color: #FF0000">"Should not be nil as Posts table should have atleast one post"</span>
+<span style="font-weight: bold"><span style="color: #0000FF">end</span></span>
+</tt></pre></div></div>
+<div class="para"><p>Running this test shows the friendlier assertion message:</p></div>
+<div class="listingblock">
+<div class="content"><!-- Generator: GNU source-highlight 2.9
+by Lorenzo Bettini
+http://www.lorenzobettini.it
+http://www.gnu.org/software/src-highlite -->
+<pre><tt>$ ruby unit/post_test.rb
+Loaded suite unit/post_test
+Started
+F.
+Finished in 0.024727 seconds.
+
+  1) Failure:
+test_should_have_atleast_one_post(PostTest)
+    [unit/post_test.rb:11:in `test_should_have_atleast_one_post'
+     /opt/local/lib/ruby/gems/1.8/gems/activesupport-2.1.1/lib/active_support/testing/setup_and_teardown.rb:33:in `__send__'
+     /opt/local/lib/ruby/gems/1.8/gems/activesupport-2.1.1/lib/active_support/testing/setup_and_teardown.rb:33:in `run']:
+Should not be nil as Posts table should have atleast one post.
+&lt;nil&gt; expected to not be nil.
+
+2 tests, 2 assertions, 1 failures, 0 errors
+</tt></pre></div></div>
+<div class="para"><p>To see how an error gets reported, here's a test containing an error:</p></div>
+<div class="listingblock">
+<div class="content"><!-- Generator: GNU source-highlight 2.9
+by Lorenzo Bettini
+http://www.lorenzobettini.it
+http://www.gnu.org/software/src-highlite -->
+<pre><tt><span style="font-weight: bold"><span style="color: #0000FF">def</span></span> test_should_report_error
+  <span style="font-style: italic"><span style="color: #9A1900"># some_undefined_variable is not defined elsewhere in the test case</span></span>
+  some_undefined_variable
+  assert <span style="font-weight: bold"><span style="color: #0000FF">true</span></span>
+<span style="font-weight: bold"><span style="color: #0000FF">end</span></span>
+</tt></pre></div></div>
+<div class="para"><p>Now you can see even more output in the console from running the tests:</p></div>
+<div class="listingblock">
+<div class="content"><!-- Generator: GNU source-highlight 2.9
+by Lorenzo Bettini
+http://www.lorenzobettini.it
+http://www.gnu.org/software/src-highlite -->
+<pre><tt>$ ruby unit/post_test.rb
+Loaded suite unit/post_test
+Started
+FE.
+Finished in 0.108389 seconds.
+
+  1) Failure:
+test_should_have_atleast_one_post(PostTest)
+    [unit/post_test.rb:11:in `test_should_have_atleast_one_post'
+     /opt/local/lib/ruby/gems/1.8/gems/activesupport-2.1.1/lib/active_support/testing/setup_and_teardown.rb:33:in `__send__'
+     /opt/local/lib/ruby/gems/1.8/gems/activesupport-2.1.1/lib/active_support/testing/setup_and_teardown.rb:33:in `run']:
+Should not be nil as Posts table should have atleast one post.
+&lt;nil&gt; expected to not be nil.
+
+  2) Error:
+test_should_report_error(PostTest):
+NameError: undefined local variable or method `some_undefined_variable' for #&lt;PostTest:0x304a7b0&gt;
+    /opt/local/lib/ruby/gems/1.8/gems/actionpack-2.1.1/lib/action_controller/test_process.rb:467:in `method_missing'
+    unit/post_test.rb:15:in `test_should_report_error'
+    /opt/local/lib/ruby/gems/1.8/gems/activesupport-2.1.1/lib/active_support/testing/setup_and_teardown.rb:33:in `__send__'
+    /opt/local/lib/ruby/gems/1.8/gems/activesupport-2.1.1/lib/active_support/testing/setup_and_teardown.rb:33:in `run'
+
+3 tests, 2 assertions, 1 failures, 1 errors
+</tt></pre></div></div>
+<div class="para"><p>Notice the <em>E</em> in the output. It denotes a test with error.</p></div>
+<div class="admonitionblock">
+<table><tr>
+<td class="icon">
+<img src="/Users/lifo/Docs/docrails/railties/doc/guides/source/icons/note.png" alt="Note" />
+</td>
+<td class="content">The execution of each test method stops as soon as any error or a assertion failure is encountered, and the test suite continues with the next method. All test methods are executed in alphabetical order.</td>
+</tr></table>
+</div>
+<h3 id="_what_to_include_in_your_unit_tests">3.2. What to Include in Your Unit Tests</h3>
+<div class="para"><p>Ideally you would like to include a test for everything which could possibly break. It's a good practice to have at least one test for each of your validations and at least one test for every method in your model.</p></div>
+<div class="admonitionblock">
+<table><tr>
+<td class="icon">
+<img src="/Users/lifo/Docs/docrails/railties/doc/guides/source/icons/tip.png" alt="Tip" />
+</td>
+<td class="content">Many Rails developers practice <em>test-driven development</em> (TDD), in which the tests are written <em>before</em> the code that they are testing. This is an excellent way to build up a test suite that exercises every part of your application. TDD is beyond the scope of this guide, but one place to start is with <a href="http://andrzejonsoftware.blogspot.com/2007/05/15-tdd-steps-to-create-rails.html">15 TDD steps to create a Rails application</a>.</td>
+</tr></table>
+</div>
+<h3 id="_assertions_available">3.3. Assertions Available</h3>
+<div class="para"><p>By now you've caught a glimpse of some of the assertions that are available. Assertions are the worker bees of testing. They are the ones that actually perform the checks to ensure that things are going as planned.</p></div>
+<div class="para"><p>There are a bunch of different types of assertions you can use. Here's the complete list of assertions that ship with <tt>test/unit</tt>, the testing library used by Rails. The <tt>[msg]</tt> parameter is an optional string message you can specify to make your test failure messages clearer. It's not required.</p></div>
+<div class="tableblock">
+<table rules="all"
+frame="hsides"
+cellspacing="0" cellpadding="4">
+<col width="754" />
+<col width="834" />
+<thead>
+  <tr>
+    <th align="left">
+    Assertion
+    </th>
+    <th align="left">
+    Purpose
+    </th>
+  </tr>
+</thead>
+<tbody valign="top">
+  <tr>
+    <td align="left">
+    <tt>assert( boolean, [msg] )</tt>
+    </td>
+    <td align="left">
+    Ensures that the object/expression is true.
+    </td>
+  </tr>
+  <tr>
+    <td align="left">
+    <tt>assert_equal( obj1, obj2, [msg] )</tt>
+    </td>
+    <td align="left">
+    Ensures that <tt>obj1 == obj2</tt> is true.
+    </td>
+  </tr>
+  <tr>
+    <td align="left">
+    <tt>assert_not_equal( obj1, obj2, [msg] )</tt>
+    </td>
+    <td align="left">
+    Ensures that <tt>obj1 == obj2</tt> is false.
+    </td>
+  </tr>
+  <tr>
+    <td align="left">
+    <tt>assert_same( obj1, obj2, [msg] )</tt>
+    </td>
+    <td align="left">
+    Ensures that <tt>obj1.equal?(obj2)</tt> is true.
+    </td>
+  </tr>
+  <tr>
+    <td align="left">
+    <tt>assert_not_same( obj1, obj2, [msg] )</tt>
+    </td>
+    <td align="left">
+    Ensures that <tt>obj1.equal?(obj2)</tt> is false.
+    </td>
+  </tr>
+  <tr>
+    <td align="left">
+    <tt>assert_nil( obj, [msg] )</tt>
+    </td>
+    <td align="left">
+    Ensures that <tt>obj.nil?</tt> is true.
+    </td>
+  </tr>
+  <tr>
+    <td align="left">
+    <tt>assert_not_nil( obj, [msg] )</tt>
+    </td>
+    <td align="left">
+    Ensures that <tt>obj.nil?</tt> is false.
+    </td>
+  </tr>
+  <tr>
+    <td align="left">
+    <tt>assert_match( regexp, string, [msg] )</tt>
+    </td>
+    <td align="left">
+    Ensures that a string matches the regular expression.
+    </td>
+  </tr>
+  <tr>
+    <td align="left">
+    <tt>assert_no_match( regexp, string, [msg] )</tt>
+    </td>
+    <td align="left">
+    Ensures that a string doesn't matches the regular expression.
+    </td>
+  </tr>
+  <tr>
+    <td align="left">
+    <tt>assert_in_delta( expecting, actual, delta, [msg] )</tt>
+    </td>
+    <td align="left">
+    Ensures that the numbers <tt>expecting</tt> and <tt>actual</tt> are within <tt>delta</tt> of each other.
+    </td>
+  </tr>
+  <tr>
+    <td align="left">
+    <tt>assert_throws( symbol, [msg] ) { block }</tt>
+    </td>
+    <td align="left">
+    Ensures that the given block throws the symbol.
+    </td>
+  </tr>
+  <tr>
+    <td align="left">
+    <tt>assert_raises( exception1, exception2, &#8230; ) { block }</tt>
+    </td>
+    <td align="left">
+    Ensures that the given block raises one of the given exceptions.
+    </td>
+  </tr>
+  <tr>
+    <td align="left">
+    <tt>assert_nothing_raised( exception1, exception2, &#8230; ) { block }</tt>
+    </td>
+    <td align="left">
+    Ensures that the given block doesn't raise one of the given exceptions.
+    </td>
+  </tr>
+  <tr>
+    <td align="left">
+    <tt>assert_instance_of( class, obj, [msg] )</tt>
+    </td>
+    <td align="left">
+    Ensures that <tt>obj</tt> is of the <tt>class</tt> type.
+    </td>
+  </tr>
+  <tr>
+    <td align="left">
+    <tt>assert_kind_of( class, obj, [msg] )</tt>
+    </td>
+    <td align="left">
+    Ensures that <tt>obj</tt> is or descends from <tt>class</tt>.
+    </td>
+  </tr>
+  <tr>
+    <td align="left">
+    <tt>assert_respond_to( obj, symbol, [msg] )</tt>
+    </td>
+    <td align="left">
+    Ensures that <tt>obj</tt> has a method called <tt>symbol</tt>.
+    </td>
+  </tr>
+  <tr>
+    <td align="left">
+    <tt>assert_operator( obj1, operator, obj2, [msg] )</tt>
+    </td>
+    <td align="left">
+    Ensures that <tt>obj1.operator(obj2)</tt> is true.
+    </td>
+  </tr>
+  <tr>
+    <td align="left">
+    <tt>assert_send( array, [msg] )</tt>
+    </td>
+    <td align="left">
+    Ensures that executing the method listed in <tt>array[1]</tt> on the object in <tt>array[0]</tt> with the parameters of <tt>array[2 and up]</tt> is true. This one is weird eh?
+    </td>
+  </tr>
+  <tr>
+    <td align="left">
+    <tt>flunk( [msg] )</tt>
+    </td>
+    <td align="left">
+    Ensures failure. This is useful to explicitly mark a test that isn't finished yet.
+    </td>
+  </tr>
+</tbody>
+</table>
+</div>
+<div class="para"><p>Because of the modular nature of the testing framework, it is possible to create your own assertions. In fact, that's exactly what Rails does. It includes some specialized assertions to make your life easier.</p></div>
+<div class="admonitionblock">
+<table><tr>
+<td class="icon">
+<img src="/Users/lifo/Docs/docrails/railties/doc/guides/source/icons/note.png" alt="Note" />
+</td>
+<td class="content">Creating your own assertions is an advanced topic that we won't cover in this tutorial.</td>
+</tr></table>
+</div>
+<h3 id="_rails_specific_assertions">3.4. Rails Specific Assertions</h3>
+<div class="para"><p>Rails adds some custom assertions of its own to the <tt>test/unit</tt> framework:</p></div>
+<div class="tableblock">
+<table rules="all"
+frame="hsides"
+cellspacing="0" cellpadding="4">
+<col width="948" />
+<col width="640" />
+<thead>
+  <tr>
+    <th align="left">
+    Assertion
+    </th>
+    <th align="left">
+    Purpose
+    </th>
+  </tr>
+</thead>
+<tbody valign="top">
+  <tr>
+    <td align="left">
+    <tt>assert_valid(record)</tt>
+    </td>
+    <td align="left">
+    Ensures that the passed record is valid by Active Record standards and returns any error messages if it is not.
+    </td>
+  </tr>
+  <tr>
+    <td align="left">
+    <tt>assert_difference(expressions, difference = 1, message = nil) {|| &#8230;}</tt>
+    </td>
+    <td align="left">
+    Test numeric difference between the return value of an expression as a result of what is evaluated in the yielded block.
+    </td>
+  </tr>
+  <tr>
+    <td align="left">
+    <tt>assert_no_difference(expressions, message = nil, &amp;block)</tt>
+    </td>
+    <td align="left">
+    Asserts that the numeric result of evaluating an expression is not changed before and after invoking the passed in block.
+    </td>
+  </tr>
+  <tr>
+    <td align="left">
+    <tt>assert_recognizes(expected_options, path, extras={}, message=nil)</tt>
+    </td>
+    <td align="left">
+    Asserts that the routing of the given path was handled correctly and that the parsed options (given in the expected_options hash) match path. Basically, it asserts that Rails recognizes the route given by expected_options.
+    </td>
+  </tr>
+  <tr>
+    <td align="left">
+    <tt>assert_generates(expected_path, options, defaults={}, extras = {}, message=nil)</tt>
+    </td>
+    <td align="left">
+    Asserts that the provided options can be used to generate the provided path. This is the inverse of assert_recognizes. The extras parameter is used to tell the request the names and values of additional request parameters that would be in a query string. The message parameter allows you to specify a custom error message for assertion failures.
+    </td>
+  </tr>
+  <tr>
+    <td align="left">
+    <tt>assert_response(type, message = nil)</tt>
+    </td>
+    <td align="left">
+    Asserts that the response comes with a specific status code. You can specify <tt>:success</tt> to indicate 200,  <tt>:redirect</tt> to indicate 300-399, <tt>:missing</tt> to indicate 404, or <tt>:error</tt> to match the 500-599 range
+    </td>
+  </tr>
+  <tr>
+    <td align="left">
+    <tt>assert_redirected_to(options = {}, message=nil)</tt>
+    </td>
+    <td align="left">
+    Assert that the redirection options passed in match those of the redirect called in the latest action. This match can be partial, such that <tt>assert_redirected_to(:controller &#8658; "weblog")</tt> will also match the redirection of <tt>redirect_to(:controller &#8658; "weblog", :action &#8658; "show")</tt> and so on.
+    </td>
+  </tr>
+  <tr>
+    <td align="left">
+    <tt>assert_template(expected = nil, message=nil)</tt>
+    </td>
+    <td align="left">
+    Asserts that the request was rendered with the appropriate template file.
+    </td>
+  </tr>
+</tbody>
+</table>
+</div>
+<div class="para"><p>You'll see the usage of some of these assertions in the next chapter.</p></div>
+</div>
+<h2 id="_functional_tests_for_your_controllers">4. Functional Tests for Your Controllers</h2>
+<div class="sectionbody">
+<div class="para"><p>In Rails, testing the various actions of a single controller is called writing functional tests for that controller. Controllers handle the incoming web requests to your application and eventually respond with a rendered view.</p></div>
+<h3 id="_what_to_include_in_your_functional_tests">4.1. What to include in your Functional Tests</h3>
+<div class="para"><p>You should test for things such as:</p></div>
+<div class="ilist"><ul>
+<li>
+<p>
+was the web request successful?
+</p>
+</li>
+<li>
+<p>
+was the user redirected to the right page?
+</p>
+</li>
+<li>
+<p>
+was the user successfully authenticated?
+</p>
+</li>
+<li>
+<p>
+was the correct object stored in the response template?
+</p>
+</li>
+<li>
+<p>
+was the appropriate message displayed to the user in the view
+</p>
+</li>
+</ul></div>
+<div class="para"><p>When you use <tt>script/generate</tt> to create a controller, it automatically creates a functional test for that controller in <tt>test/functional</tt>. For example, if you create a post controller:</p></div>
+<div class="listingblock">
+<div class="content"><!-- Generator: GNU source-highlight 2.9
+by Lorenzo Bettini
+http://www.lorenzobettini.it
+http://www.gnu.org/software/src-highlite -->
+<pre><tt>$ script/generate controller post
+<span style="color: #990000">...</span>
+      create  app/controllers/post_controller<span style="color: #990000">.</span>rb
+      create  test/functional/post_controller_test<span style="color: #990000">.</span>rb
+<span style="color: #990000">...</span>
+</tt></pre></div></div>
+<div class="para"><p>Now if you take a look at the file <tt>posts_controller_test.rb</tt> in the <tt>test/functional</tt> directory, you should see:</p></div>
+<div class="listingblock">
+<div class="content"><!-- Generator: GNU source-highlight 2.9
+by Lorenzo Bettini
+http://www.lorenzobettini.it
+http://www.gnu.org/software/src-highlite -->
+<pre><tt><span style="font-weight: bold"><span style="color: #000080">require</span></span> <span style="color: #FF0000">'test_helper'</span>
+
+<span style="font-weight: bold"><span style="color: #0000FF">class</span></span> PostsControllerTest <span style="color: #990000">&lt;</span> ActionController<span style="color: #990000">::</span>TestCase
+  <span style="font-style: italic"><span style="color: #9A1900"># Replace this with your real tests.</span></span>
+  <span style="font-weight: bold"><span style="color: #0000FF">def</span></span> test_truth
+    assert <span style="font-weight: bold"><span style="color: #0000FF">true</span></span>
+  <span style="font-weight: bold"><span style="color: #0000FF">end</span></span>
+<span style="font-weight: bold"><span style="color: #0000FF">end</span></span>
+</tt></pre></div></div>
+<div class="para"><p>Of course, you need to replace the simple assertion with real testing. Here's a starting example of a functional test:</p></div>
+<div class="listingblock">
+<div class="content"><!-- Generator: GNU source-highlight 2.9
+by Lorenzo Bettini
+http://www.lorenzobettini.it
+http://www.gnu.org/software/src-highlite -->
+<pre><tt><span style="font-weight: bold"><span style="color: #0000FF">def</span></span> test_should_get_index
+  get <span style="color: #990000">:</span>index
+  assert_response <span style="color: #990000">:</span>success
+  assert_not_nil assigns<span style="color: #990000">(:</span>posts<span style="color: #990000">)</span>
+<span style="font-weight: bold"><span style="color: #0000FF">end</span></span>
+</tt></pre></div></div>
+<div class="para"><p>In the <tt>test_should_get_index</tt> test, Rails simulates a request on the action called index, making sure the request was successful and also ensuring that it assigns a valid <tt>posts</tt> instance variable.</p></div>
+<div class="para"><p>The <tt>get</tt> method kicks off the web request and populates the results into the response. It accepts 4 arguments:</p></div>
+<div class="ilist"><ul>
+<li>
+<p>
+The action of the controller you are requesting. This can be in the form of a string or a symbol.
+</p>
+</li>
+<li>
+<p>
+An optional hash of request parameters to pass into the action (eg. query string parameters or post variables).
+</p>
+</li>
+<li>
+<p>
+An optional hash of session variables to pass along with the request.
+</p>
+</li>
+<li>
+<p>
+An optional hash of flash values.
+</p>
+</li>
+</ul></div>
+<div class="para"><p>Example: Calling the <tt>:show</tt> action, passing an <tt>id</tt> of 12 as the <tt>params</tt> and setting a <tt>user_id</tt> of 5 in the session:</p></div>
+<div class="listingblock">
+<div class="content"><!-- Generator: GNU source-highlight 2.9
+by Lorenzo Bettini
+http://www.lorenzobettini.it
+http://www.gnu.org/software/src-highlite -->
+<pre><tt>get<span style="color: #990000">(:</span>show<span style="color: #990000">,</span> <span style="color: #FF0000">{</span><span style="color: #FF0000">'id'</span> <span style="color: #990000">=&gt;</span> <span style="color: #FF0000">"12"</span><span style="color: #FF0000">}</span><span style="color: #990000">,</span> <span style="color: #FF0000">{</span><span style="color: #FF0000">'user_id'</span> <span style="color: #990000">=&gt;</span> <span style="color: #993399">5</span><span style="color: #FF0000">}</span><span style="color: #990000">)</span>
+</tt></pre></div></div>
+<div class="para"><p>Another example: Calling the <tt>:view</tt> action, passing an <tt>id</tt> of 12 as the <tt>params</tt>, this time with no session, but with a flash message.</p></div>
+<div class="listingblock">
+<div class="content"><!-- Generator: GNU source-highlight 2.9
+by Lorenzo Bettini
+http://www.lorenzobettini.it
+http://www.gnu.org/software/src-highlite -->
+<pre><tt>get<span style="color: #990000">(:</span>view<span style="color: #990000">,</span> <span style="color: #FF0000">{</span><span style="color: #FF0000">'id'</span> <span style="color: #990000">=&gt;</span> <span style="color: #FF0000">'12'</span><span style="color: #FF0000">}</span><span style="color: #990000">,</span> <span style="font-weight: bold"><span style="color: #0000FF">nil</span></span><span style="color: #990000">,</span> <span style="color: #FF0000">{</span><span style="color: #FF0000">'message'</span> <span style="color: #990000">=&gt;</span> <span style="color: #FF0000">'booya!'</span><span style="color: #FF0000">}</span><span style="color: #990000">)</span>
+</tt></pre></div></div>
+<h3 id="_available_request_types_for_functional_tests">4.2. Available Request Types for Functional Tests===</h3>
+<div class="para"><p>If you're familiar with the HTTP protocol, you'll know that <tt>get</tt> is a type of request. There are 5 request types supported in Rails functional tests:</p></div>
+<div class="ilist"><ul>
+<li>
+<p>
+<tt>get</tt>
+</p>
+</li>
+<li>
+<p>
+<tt>post</tt>
+</p>
+</li>
+<li>
+<p>
+<tt>put</tt>
+</p>
+</li>
+<li>
+<p>
+<tt>head</tt>
+</p>
+</li>
+<li>
+<p>
+<tt>delete</tt>
+</p>
+</li>
+</ul></div>
+<div class="para"><p>All of request types are methods that you can use, however, you'll probably end up using the first two more often than the others.</p></div>
+<h3 id="_the_4_hashes_of_the_apocalypse">4.3. The 4 Hashes of the Apocalypse</h3>
+<div class="para"><p>After a request has been made by using one of the 5 methods (<tt>get</tt>, <tt>post</tt>, etc.) and processed, you will have 4 Hash objects ready for use:</p></div>
+<div class="ilist"><ul>
+<li>
+<p>
+<tt>assigns</tt> - Any objects that are stored as instance variables in actions for use in views.
+</p>
+</li>
+<li>
+<p>
+<tt>cookies</tt> - Any cookies that are set.
+</p>
+</li>
+<li>
+<p>
+<tt>flash</tt> - Any objects living in the flash.
+</p>
+</li>
+<li>
+<p>
+<tt>session</tt> - Any object living in session variables.
+</p>
+</li>
+</ul></div>
+<div class="para"><p>As is the case with normal Hash objects, you can access the values by referencing the keys by string. You can also reference them by symbol name, except for <tt>assigns</tt>. For example:</p></div>
+<div class="listingblock">
+<div class="content"><!-- Generator: GNU source-highlight 2.9
+by Lorenzo Bettini
+http://www.lorenzobettini.it
+http://www.gnu.org/software/src-highlite -->
+<pre><tt>  flash<span style="color: #990000">[</span><span style="color: #FF0000">"gordon"</span><span style="color: #990000">]</span>               flash<span style="color: #990000">[:</span>gordon<span style="color: #990000">]</span>
+  session<span style="color: #990000">[</span><span style="color: #FF0000">"shmession"</span><span style="color: #990000">]</span>          session<span style="color: #990000">[:</span>shmession<span style="color: #990000">]</span>
+  cookies<span style="color: #990000">[</span><span style="color: #FF0000">"are_good_for_u"</span><span style="color: #990000">]</span>     cookies<span style="color: #990000">[:</span>are_good_for_u<span style="color: #990000">]</span>
+
+<span style="font-style: italic"><span style="color: #9A1900"># Because you can't use assigns[:something] for historical reasons:</span></span>
+  assigns<span style="color: #990000">[</span><span style="color: #FF0000">"something"</span><span style="color: #990000">]</span>          assigns<span style="color: #990000">(:</span>something<span style="color: #990000">)</span>
+</tt></pre></div></div>
+<h3 id="_instance_variables_available">4.4. Instance Variables Available</h3>
+<div class="para"><p>You also have access to three instance variables in your functional tests:</p></div>
+<div class="ilist"><ul>
+<li>
+<p>
+<tt>@controller</tt> - The controller processing the request
+</p>
+</li>
+<li>
+<p>
+<tt>@request</tt> - The request
+</p>
+</li>
+<li>
+<p>
+<tt>@response</tt> - The response
+</p>
+</li>
+</ul></div>
+<h3 id="_a_fuller_functional_test_example">4.5. A Fuller Functional Test Example</h3>
+<div class="para"><p>Here's another example that uses <tt>flash</tt>, <tt>assert_redirected_to</tt>, and <tt>assert_difference</tt>:</p></div>
+<div class="listingblock">
+<div class="content"><!-- Generator: GNU source-highlight 2.9
+by Lorenzo Bettini
+http://www.lorenzobettini.it
+http://www.gnu.org/software/src-highlite -->
+<pre><tt><span style="font-weight: bold"><span style="color: #0000FF">def</span></span> test_should_create_post
+  assert_difference<span style="color: #990000">(</span><span style="color: #FF0000">'Post.count'</span><span style="color: #990000">)</span> <span style="font-weight: bold"><span style="color: #0000FF">do</span></span>
+    post <span style="color: #990000">:</span>create<span style="color: #990000">,</span> <span style="color: #990000">:</span>post <span style="color: #990000">=&gt;</span> <span style="color: #FF0000">{</span> <span style="color: #990000">:</span>title <span style="color: #990000">=&gt;</span> <span style="color: #FF0000">'Hi'</span><span style="color: #990000">,</span> <span style="color: #990000">:</span>body <span style="color: #990000">=&gt;</span> <span style="color: #FF0000">'This is my first post.'</span><span style="color: #FF0000">}</span>
+  <span style="font-weight: bold"><span style="color: #0000FF">end</span></span>
+  assert_redirected_to post_path<span style="color: #990000">(</span>assigns<span style="color: #990000">(:</span>post<span style="color: #990000">))</span>
+  assert_equal <span style="color: #FF0000">'Post was successfully created.'</span><span style="color: #990000">,</span> flash<span style="color: #990000">[:</span>notice<span style="color: #990000">]</span>
+<span style="font-weight: bold"><span style="color: #0000FF">end</span></span>
+</tt></pre></div></div>
+<h3 id="_testing_views">4.6. Testing Views</h3>
+<div class="para"><p>Testing the response to your request by asserting the presence of key HTML elements and their content is a useful way to test the views of your application. The <tt>assert_select</tt> assertion allows you to do this by using a simple yet powerful syntax.</p></div>
+<div class="admonitionblock">
+<table><tr>
+<td class="icon">
+<img src="/Users/lifo/Docs/docrails/railties/doc/guides/source/icons/note.png" alt="Note" />
+</td>
+<td class="content">You may find references to <tt>assert_tag</tt> in other documentation, but this is now deprecated in favor of <tt>assert_select</tt>.</td>
+</tr></table>
+</div>
+<div class="para"><p>There are two forms of <tt>assert_select</tt>:</p></div>
+<div class="para"><p><tt>assert_select(selector, [equality], [message])`</tt> ensures that the equality condition is met on the selected elements through the selector. The selector may be a CSS selector expression (String), an expression with substitution values, or an <tt>HTML::Selector</tt> object.</p></div>
+<div class="para"><p><tt>assert_select(element, selector, [equality], [message])</tt> ensures that the equality condition is met on all the selected elements through the selector starting from the <em>element</em> (instance of <tt>HTML::Node</tt>) and its descendants.</p></div>
+<div class="para"><p>For example, you could verify the contents on the title element in your response with:</p></div>
+<div class="listingblock">
+<div class="content"><!-- Generator: GNU source-highlight 2.9
+by Lorenzo Bettini
+http://www.lorenzobettini.it
+http://www.gnu.org/software/src-highlite -->
+<pre><tt>assert_select <span style="color: #FF0000">'title'</span><span style="color: #990000">,</span> <span style="color: #FF0000">"Welcome to Rails Testing Guide"</span>
+</tt></pre></div></div>
+<div class="para"><p>You can also use nested <tt>assert_select</tt> blocks. In this case the inner <tt>assert_select</tt> will run the assertion on each element selected by the outer <tt>assert_select</tt> block:</p></div>
+<div class="listingblock">
+<div class="content"><!-- Generator: GNU source-highlight 2.9
+by Lorenzo Bettini
+http://www.lorenzobettini.it
+http://www.gnu.org/software/src-highlite -->
+<pre><tt>assert_select <span style="color: #FF0000">'ul.navigation'</span> <span style="font-weight: bold"><span style="color: #0000FF">do</span></span>
+  assert_select <span style="color: #FF0000">'li.menu_item'</span>
+<span style="font-weight: bold"><span style="color: #0000FF">end</span></span>
+</tt></pre></div></div>
+<div class="para"><p>The <tt>assert_select</tt> assertion is quite powerful. For more advanced usage, refer to its <a href="http://api.rubyonrails.com/classes/ActionController/Assertions/SelectorAssertions.html#M000749">documentation</a>.</p></div>
+<h4 id="_additional_view_based_assertions">4.6.1. Additional View-based Assertions</h4>
+<div class="para"><p>There are more assertions that are primarily used in testing views:</p></div>
+<div class="tableblock">
+<table rules="all"
+frame="hsides"
+cellspacing="0" cellpadding="4">
+<col width="948" />
+<col width="640" />
+<thead>
+  <tr>
+    <th align="left">
+    Assertion
+    </th>
+    <th align="left">
+    Purpose
+    </th>
+  </tr>
+</thead>
+<tbody valign="top">
+  <tr>
+    <td align="left">
+    <tt>assert_select_email</tt>
+    </td>
+    <td align="left">
+    Allows you to make assertions on the body of an e-mail.
+    </td>
+  </tr>
+  <tr>
+    <td align="left">
+    <tt>assert_select_rjs</tt>
+    </td>
+    <td align="left">
+    Allows you to make assertions on RJS response. <tt>assert_select_rjs</tt> has variants which allow you to narrow down on the updated element or even a particular operation on an element.
+    </td>
+  </tr>
+  <tr>
+    <td align="left">
+    <tt>assert_select_encoded</tt>
+    </td>
+    <td align="left">
+    Allows you to make assertions on encoded HTML. It does this by un-encoding the contents of each element and then calling the block with all the un-encoded elements.
+    </td>
+  </tr>
+  <tr>
+    <td align="left">
+    <tt>css_select(selector)</tt>  or <tt>css_select(element, selector)</tt>
+    </td>
+    <td align="left">
+    Returns an array of all the elements selected by the <em>selector</em>. In the second variant it first matches the base <em>element</em> and tries to match the <em>selector</em> expression on any of its children. If there are no matches both variants return an empty array.
+    </td>
+  </tr>
+</tbody>
+</table>
+</div>
+<div class="para"><p>Here's an example of using <tt>assert_select_email</tt>:</p></div>
+<div class="listingblock">
+<div class="content"><!-- Generator: GNU source-highlight 2.9
+by Lorenzo Bettini
+http://www.lorenzobettini.it
+http://www.gnu.org/software/src-highlite -->
+<pre><tt>assert_select_email <span style="font-weight: bold"><span style="color: #0000FF">do</span></span>
+  assert_select <span style="color: #FF0000">'small'</span><span style="color: #990000">,</span> <span style="color: #FF0000">'Please click the "Unsubscribe" link if you want to opt-out.'</span>
+<span style="font-weight: bold"><span style="color: #0000FF">end</span></span>
+</tt></pre></div></div>
+</div>
+<h2 id="_integration_testing">5. Integration Testing</h2>
+<div class="sectionbody">
+<div class="para"><p>Integration tests are used to test the interaction among any number of controllers. They are generally used to test important work flows within your application.</p></div>
+<div class="para"><p>Unlike Unit and Functional tests, integration tests have to be explicitly created under the <em>test/integration</em> folder within your application. Rails provides a generator to create an integration test skeleton for you.</p></div>
+<div class="listingblock">
+<div class="content"><!-- Generator: GNU source-highlight 2.9
+by Lorenzo Bettini
+http://www.lorenzobettini.it
+http://www.gnu.org/software/src-highlite -->
+<pre><tt>$ script/generate integration_test user_flows
+      exists  test/integration<span style="color: #990000">/</span>
+      create  test/integration/user_flows_test<span style="color: #990000">.</span>rb
+</tt></pre></div></div>
+<div class="para"><p>Here's what a freshly-generated integration test looks like:</p></div>
+<div class="listingblock">
+<div class="content"><!-- Generator: GNU source-highlight 2.9
+by Lorenzo Bettini
+http://www.lorenzobettini.it
+http://www.gnu.org/software/src-highlite -->
+<pre><tt><span style="font-weight: bold"><span style="color: #000080">require</span></span> <span style="color: #FF0000">'test_helper'</span>
+
+<span style="font-weight: bold"><span style="color: #0000FF">class</span></span> UserFlowsTest <span style="color: #990000">&lt;</span> ActionController<span style="color: #990000">::</span>IntegrationTest
+  <span style="font-style: italic"><span style="color: #9A1900"># fixtures :your, :models</span></span>
+
+  <span style="font-style: italic"><span style="color: #9A1900"># Replace this with your real tests.</span></span>
+  <span style="font-weight: bold"><span style="color: #0000FF">def</span></span> test_truth
+    assert <span style="font-weight: bold"><span style="color: #0000FF">true</span></span>
+  <span style="font-weight: bold"><span style="color: #0000FF">end</span></span>
+<span style="font-weight: bold"><span style="color: #0000FF">end</span></span>
+</tt></pre></div></div>
+<div class="para"><p>Integration tests inherit from <tt>ActionController::IntegrationTest</tt>. This makes available some additional helpers to use in your integration tests. Also you need to explicitly include the fixtures to be made available to the test.</p></div>
+<h3 id="_helpers_available_for_integration_tests">5.1. Helpers Available for Integration tests</h3>
+<div class="para"><p>In addition to the standard testing helpers, there are some additional helpers available to integration tests:</p></div>
+<div class="tableblock">
+<table rules="all"
+frame="hsides"
+cellspacing="0" cellpadding="4">
+<col width="948" />
+<col width="640" />
+<thead>
+  <tr>
+    <th align="left">
+    Helper
+    </th>
+    <th align="left">
+    Purpose
+    </th>
+  </tr>
+</thead>
+<tbody valign="top">
+  <tr>
+    <td align="left">
+    <tt>https?</tt>
+    </td>
+    <td align="left">
+    Returns <tt>true</tt> if the session is mimicking a secure HTTPS request.
+    </td>
+  </tr>
+  <tr>
+    <td align="left">
+    <tt>https!</tt>
+    </td>
+    <td align="left">
+    Allows you to mimic a secure HTTPS request.
+    </td>
+  </tr>
+  <tr>
+    <td align="left">
+    <tt>host!</tt>
+    </td>
+    <td align="left">
+    Allows you to set the host name to use in the next request.
+    </td>
+  </tr>
+  <tr>
+    <td align="left">
+    <tt>redirect?</tt>
+    </td>
+    <td align="left">
+    Returns <tt>true</tt> if the last request was a redirect.
+    </td>
+  </tr>
+  <tr>
+    <td align="left">
+    <tt>follow_redirect!</tt>
+    </td>
+    <td align="left">
+    Follows a single redirect response.
+    </td>
+  </tr>
+  <tr>
+    <td align="left">
+    <tt>request_via_redirect(http_method, path, [parameters], [headers])</tt>
+    </td>
+    <td align="left">
+    Allows you to make an HTTP request and follow any subsequent redirects.
+    </td>
+  </tr>
+  <tr>
+    <td align="left">
+    <tt>post_via_redirect(path, [parameters], [headers])</tt>
+    </td>
+    <td align="left">
+    Allows you to make an HTTP POST request and follow any subsequent redirects.
+    </td>
+  </tr>
+  <tr>
+    <td align="left">
+    <tt>get_via_redirect(path, [parameters], [headers])</tt>
+    </td>
+    <td align="left">
+    Allows you to make an HTTP GET request and follow any subsequent redirects.
+    </td>
+  </tr>
+  <tr>
+    <td align="left">
+    <tt>put_via_redirect(path, [parameters], [headers])</tt>
+    </td>
+    <td align="left">
+    Allows you to make an HTTP PUT request and follow any subsequent redirects.
+    </td>
+  </tr>
+  <tr>
+    <td align="left">
+    <tt>delete_via_redirect(path, [parameters], [headers])</tt>
+    </td>
+    <td align="left">
+    Allows you to make an HTTP DELETE request and follow any subsequent redirects.
+    </td>
+  </tr>
+  <tr>
+    <td align="left">
+    <tt>open_session</tt>
+    </td>
+    <td align="left">
+    Opens a new session instance.
+    </td>
+  </tr>
+</tbody>
+</table>
+</div>
+<h3 id="_integration_testing_examples">5.2. Integration Testing Examples</h3>
+<div class="para"><p>A simple integration test that exercises multiple controllers:</p></div>
+<div class="listingblock">
+<div class="content"><!-- Generator: GNU source-highlight 2.9
+by Lorenzo Bettini
+http://www.lorenzobettini.it
+http://www.gnu.org/software/src-highlite -->
+<pre><tt><span style="font-weight: bold"><span style="color: #000080">require</span></span> <span style="color: #FF0000">'test_helper'</span>
+
+<span style="font-weight: bold"><span style="color: #0000FF">class</span></span> UserFlowsTest <span style="color: #990000">&lt;</span> ActionController<span style="color: #990000">::</span>IntegrationTest
+  fixtures <span style="color: #990000">:</span>users
+
+  <span style="font-weight: bold"><span style="color: #0000FF">def</span></span> test_login_and_browse_site
+    <span style="font-style: italic"><span style="color: #9A1900"># login via https</span></span>
+    https!
+    get <span style="color: #FF0000">"/login"</span>
+    assert_response <span style="color: #990000">:</span>success
+
+    post_via_redirect <span style="color: #FF0000">"/login"</span><span style="color: #990000">,</span> <span style="color: #990000">:</span>username <span style="color: #990000">=&gt;</span> users<span style="color: #990000">(:</span>avs<span style="color: #990000">).</span>username<span style="color: #990000">,</span> <span style="color: #990000">:</span>password <span style="color: #990000">=&gt;</span> users<span style="color: #990000">(:</span>avs<span style="color: #990000">).</span>password
+    assert_equal <span style="color: #FF0000">'/welcome'</span><span style="color: #990000">,</span> path
+    assert_equal <span style="color: #FF0000">'Welcome avs!'</span><span style="color: #990000">,</span> flash<span style="color: #990000">[:</span>notice<span style="color: #990000">]</span>
+
+    https!<span style="color: #990000">(</span><span style="font-weight: bold"><span style="color: #0000FF">false</span></span><span style="color: #990000">)</span>
+    get <span style="color: #FF0000">"/posts/all"</span>
+    assert_response <span style="color: #990000">:</span>success
+    assert assigns<span style="color: #990000">(:</span>products<span style="color: #990000">)</span>
+  <span style="font-weight: bold"><span style="color: #0000FF">end</span></span>
+<span style="font-weight: bold"><span style="color: #0000FF">end</span></span>
+</tt></pre></div></div>
+<div class="para"><p>As you can see the integration test involves multiple controllers and exercises the entire stack from database to dispatcher. In addition you can have multiple session instances open simultaneously in a test and extend those instances with assertion methods to create a very powerful testing DSL (domain-specific language) just for your application.</p></div>
+<div class="para"><p>Here's an example of multiple sessions and custom DSL in an integration test</p></div>
+<div class="listingblock">
+<div class="content"><!-- Generator: GNU source-highlight 2.9
+by Lorenzo Bettini
+http://www.lorenzobettini.it
+http://www.gnu.org/software/src-highlite -->
+<pre><tt><span style="font-weight: bold"><span style="color: #000080">require</span></span> <span style="color: #FF0000">'test_helper'</span>
+
+<span style="font-weight: bold"><span style="color: #0000FF">class</span></span> UserFlowsTest <span style="color: #990000">&lt;</span> ActionController<span style="color: #990000">::</span>IntegrationTest
+  fixtures <span style="color: #990000">:</span>users
+
+  <span style="font-weight: bold"><span style="color: #0000FF">def</span></span> test_login_and_browse_site
+
+    <span style="font-style: italic"><span style="color: #9A1900"># User avs logs in</span></span>
+    avs <span style="color: #990000">=</span> login<span style="color: #990000">(:</span>avs<span style="color: #990000">)</span>
+    <span style="font-style: italic"><span style="color: #9A1900"># User guest logs in</span></span>
+    guest <span style="color: #990000">=</span> login<span style="color: #990000">(:</span>guest<span style="color: #990000">)</span>
+
+    <span style="font-style: italic"><span style="color: #9A1900"># Both are now available in different sessions</span></span>
+    assert_equal <span style="color: #FF0000">'Welcome avs!'</span><span style="color: #990000">,</span> avs<span style="color: #990000">.</span>flash<span style="color: #990000">[:</span>notice<span style="color: #990000">]</span>
+    assert_equal <span style="color: #FF0000">'Welcome guest!'</span><span style="color: #990000">,</span> guest<span style="color: #990000">.</span>flash<span style="color: #990000">[:</span>notice<span style="color: #990000">]</span>
+
+    <span style="font-style: italic"><span style="color: #9A1900"># User avs can browse site</span></span>
+    avs<span style="color: #990000">.</span>browses_site
+    <span style="font-style: italic"><span style="color: #9A1900"># User guest can browse site aswell</span></span>
+    guest<span style="color: #990000">.</span>browses_site
+
+    <span style="font-style: italic"><span style="color: #9A1900"># Continue with other assertions</span></span>
+  <span style="font-weight: bold"><span style="color: #0000FF">end</span></span>
+
+  private
+
+    <span style="font-weight: bold"><span style="color: #0000FF">module</span></span> CustomDsl
+      <span style="font-weight: bold"><span style="color: #0000FF">def</span></span> browses_site
+        get <span style="color: #FF0000">"/products/all"</span>
+        assert_response <span style="color: #990000">:</span>success
+        assert assigns<span style="color: #990000">(:</span>products<span style="color: #990000">)</span>
+      <span style="font-weight: bold"><span style="color: #0000FF">end</span></span>
+    <span style="font-weight: bold"><span style="color: #0000FF">end</span></span>
+
+    <span style="font-weight: bold"><span style="color: #0000FF">def</span></span> login<span style="color: #990000">(</span>user<span style="color: #990000">)</span>
+      open_session <span style="font-weight: bold"><span style="color: #0000FF">do</span></span> <span style="color: #990000">|</span>sess<span style="color: #990000">|</span>
+        sess<span style="color: #990000">.</span>extend<span style="color: #990000">(</span>CustomDsl<span style="color: #990000">)</span>
+        u <span style="color: #990000">=</span> users<span style="color: #990000">(</span>user<span style="color: #990000">)</span>
+        sess<span style="color: #990000">.</span>https!
+        sess<span style="color: #990000">.</span>post <span style="color: #FF0000">"/login"</span><span style="color: #990000">,</span> <span style="color: #990000">:</span>username <span style="color: #990000">=&gt;</span> u<span style="color: #990000">.</span>username<span style="color: #990000">,</span> <span style="color: #990000">:</span>password <span style="color: #990000">=&gt;</span> u<span style="color: #990000">.</span>password
+        assert_equal <span style="color: #FF0000">'/welcome'</span><span style="color: #990000">,</span> path
+        sess<span style="color: #990000">.</span>https!<span style="color: #990000">(</span><span style="font-weight: bold"><span style="color: #0000FF">false</span></span><span style="color: #990000">)</span>
+      <span style="font-weight: bold"><span style="color: #0000FF">end</span></span>
+    <span style="font-weight: bold"><span style="color: #0000FF">end</span></span>
+<span style="font-weight: bold"><span style="color: #0000FF">end</span></span>
+</tt></pre></div></div>
+</div>
+<h2 id="_testing_your_mailers">6. Testing Your Mailers</h2>
+<div class="sectionbody">
+<div class="para"><p>Testing mailer classes requires some specific tools to do a thorough job.</p></div>
+<h3 id="_keeping_the_postman_in_check">6.1. Keeping the Postman in Check</h3>
+<div class="para"><p>Your <tt>ActionMailer</tt> classes &#8212; like every other part of your Rails application &#8212; should be tested to ensure that it is working as expected.</p></div>
+<div class="para"><p>The goals of testing your <tt>ActionMailer</tt> classes are to ensure that:</p></div>
+<div class="ilist"><ul>
+<li>
+<p>
+emails are being processed (created and sent)
+</p>
+</li>
+<li>
+<p>
+the email content is correct (subject, sender, body, etc)
+</p>
+</li>
+<li>
+<p>
+the right emails are being sent at the right times
+</p>
+</li>
+</ul></div>
+<h4 id="_from_all_sides">6.1.1. From All Sides</h4>
+<div class="para"><p>There are two aspects of testing your mailer, the unit tests and the functional tests. In the unit tests, you run the mailer in isolation with tightly controlled inputs and compare the output to a knownvalue (a fixture &#8212; yay! more fixtures!). In the functional tests you don't so much test the minute details produced by the mailer Instead we test that our controllers and models are using the mailer in the right way. You test to prove that the right email was sent at the right time.</p></div>
+<h3 id="_unit_testing">6.2. Unit Testing</h3>
+<div class="para"><p>In order to test that your mailer is working as expected, you can use unit tests to compare the actual results of the mailer with pre-written examples of what should be produced.</p></div>
+<h4 id="_revenge_of_the_fixtures">6.2.1. Revenge of the Fixtures</h4>
+<div class="para"><p>For the purposes of unit testing a mailer, fixtures are used to provide an example of how the output <em>should</em> look. Because these are example emails, and not Active Record data like the other fixtures, they are kept in their own subdirectory apart from the other fixtures. The name of the directory within <tt>test/fixtures</tt> directly corresponds to the name of the mailer. So, for a mailer named <tt>UserMailer</tt>, the fixtures should reside in <tt>test/fixtures/user_mailer</tt> directory.</p></div>
+<div class="para"><p>When you generated your mailer, the generator creates stub fixtures for each of the mailers actions. If you didn't use the generator you'll have to make those files yourself.</p></div>
+<h4 id="_the_basic_test_case">6.2.2. The Basic Test case</h4>
+<div class="para"><p>Here's a unit test to test a mailer named <tt>UserMailer</tt> whose action <tt>invite</tt> is used to send an invitation to a friend. It is an adapted version of the base test created by the generator for an <tt>invite</tt> action.</p></div>
+<div class="listingblock">
+<div class="content"><!-- Generator: GNU source-highlight 2.9
+by Lorenzo Bettini
+http://www.lorenzobettini.it
+http://www.gnu.org/software/src-highlite -->
+<pre><tt><span style="font-weight: bold"><span style="color: #000080">require</span></span> <span style="color: #FF0000">'test_helper'</span>
+
+<span style="font-weight: bold"><span style="color: #0000FF">class</span></span> UserMailerTest <span style="color: #990000">&lt;</span> ActionMailer<span style="color: #990000">::</span>TestCase
+  tests UserMailer
+  <span style="font-weight: bold"><span style="color: #0000FF">def</span></span> test_invite
+    <span style="color: #009900">@expected</span><span style="color: #990000">.</span>from    <span style="color: #990000">=</span> <span style="color: #FF0000">'me@example.com'</span>
+    <span style="color: #009900">@expected</span><span style="color: #990000">.</span>to      <span style="color: #990000">=</span> <span style="color: #FF0000">'friend@example.com'</span>
+    <span style="color: #009900">@expected</span><span style="color: #990000">.</span>subject <span style="color: #990000">=</span> <span style="color: #FF0000">"You have been invited by #{@expected.from}"</span>
+    <span style="color: #009900">@expected</span><span style="color: #990000">.</span>body    <span style="color: #990000">=</span> read_fixture<span style="color: #990000">(</span><span style="color: #FF0000">'invite'</span><span style="color: #990000">)</span>
+    <span style="color: #009900">@expected</span><span style="color: #990000">.</span>date    <span style="color: #990000">=</span> Time<span style="color: #990000">.</span>now
+
+    assert_equal <span style="color: #009900">@expected</span><span style="color: #990000">.</span>encoded<span style="color: #990000">,</span> UserMailer<span style="color: #990000">.</span>create_invite<span style="color: #990000">(</span><span style="color: #FF0000">'me@example.com'</span><span style="color: #990000">,</span> <span style="color: #FF0000">'friend@example.com'</span><span style="color: #990000">,</span> <span style="color: #009900">@expected</span><span style="color: #990000">.</span>date<span style="color: #990000">).</span>encoded
+  <span style="font-weight: bold"><span style="color: #0000FF">end</span></span>
+
+<span style="font-weight: bold"><span style="color: #0000FF">end</span></span>
+</tt></pre></div></div>
+<div class="para"><p>In this test, <tt>@expected</tt> is an instance of <tt>TMail::Mail</tt> that you can use in your tests. It is defined in <tt>ActionMailer::TestCase</tt>. The test above uses <tt>@expected</tt> to construct an email, which it then asserts with email created by the custom mailer. The <tt>invite</tt> fixture is the body of the email and is used as the sample content to assert against. The helper <tt>read_fixture</tt> is used to read in the content from this file.</p></div>
+<div class="para"><p>Here's the content of the <tt>invite</tt> fixture:</p></div>
+<div class="listingblock">
+<div class="content"><!-- Generator: GNU source-highlight 2.9
+by Lorenzo Bettini
+http://www.lorenzobettini.it
+http://www.gnu.org/software/src-highlite -->
+<pre><tt>Hi friend@example.com,
+
+You have been invited.
+
+Cheers!
+</tt></pre></div></div>
+<div class="para"><p>This is the right time to understand a little more about writing tests for your mailers. The line <tt>ActionMailer::Base.delivery_method = :test</tt> in <tt>config/environments/test.rb</tt> sets the delivery method to test mode so that email will not actually be delivered (useful to avoid spamming your users while testing) but instead it will be appended to an array (<tt>ActionMailer::Base.deliveries</tt>).</p></div>
+<div class="para"><p>However often in unit tests, mails will not actually be sent, simply constructed, as in the example above, where the precise content of the email is checked against what it should be.</p></div>
+<h3 id="_functional_testing">6.3. Functional Testing</h3>
+<div class="para"><p>Functional testing for mailers involves more than just checking that the email body, recipients and so forth are correct. In functional mail tests you call the mail deliver methods and check that the appropriate emails have been appended to the delivery list. It is fairly safe to assume that the deliver methods themselves do their job You are probably more interested in is whether your own business logic is sending emails when you expect them to got out. For example, you can check that the invite friend operation is sending an email appropriately:</p></div>
+<div class="listingblock">
+<div class="content"><!-- Generator: GNU source-highlight 2.9
+by Lorenzo Bettini
+http://www.lorenzobettini.it
+http://www.gnu.org/software/src-highlite -->
+<pre><tt><span style="font-weight: bold"><span style="color: #000080">require</span></span> <span style="color: #FF0000">'test_helper'</span>
+
+<span style="font-weight: bold"><span style="color: #0000FF">class</span></span> UserControllerTest <span style="color: #990000">&lt;</span> ActionController<span style="color: #990000">::</span>TestCase
+  <span style="font-weight: bold"><span style="color: #0000FF">def</span></span> test_invite_friend
+    assert_difference <span style="color: #FF0000">'ActionMailer::Base.deliveries.size'</span><span style="color: #990000">,</span> <span style="color: #990000">+</span><span style="color: #993399">1</span> <span style="font-weight: bold"><span style="color: #0000FF">do</span></span>
+      post <span style="color: #990000">:</span>invite_friend<span style="color: #990000">,</span> <span style="color: #990000">:</span>email <span style="color: #990000">=&gt;</span> <span style="color: #FF0000">'friend@example.com'</span>
+    <span style="font-weight: bold"><span style="color: #0000FF">end</span></span>
+    invite_email <span style="color: #990000">=</span> ActionMailer<span style="color: #990000">::</span>Base<span style="color: #990000">.</span>deliveries<span style="color: #990000">.</span>first
+
+    assert_equal invite_email<span style="color: #990000">.</span>subject<span style="color: #990000">,</span> <span style="color: #FF0000">"You have been invited by me@example.com"</span>
+    assert_equal invite_email<span style="color: #990000">.</span>to<span style="color: #990000">[</span><span style="color: #993399">0</span><span style="color: #990000">],</span> <span style="color: #FF0000">'friend@example.com'</span>
+    assert_match <span style="color: #FF6600">/Hi friend@example.com/</span><span style="color: #990000">,</span> invite_email<span style="color: #990000">.</span>body
+  <span style="font-weight: bold"><span style="color: #0000FF">end</span></span>
+<span style="font-weight: bold"><span style="color: #0000FF">end</span></span>
+</tt></pre></div></div>
+</div>
+<h2 id="_rake_tasks_for_testing">7. Rake Tasks for Testing</h2>
+<div class="sectionbody">
+<div class="para"><p>You don't need to set up and run your tests by hand on a test-by-test basis. Rails comes with a number of rake tasks to help in testing. The table below lists all rake tasks that come along in the default Rakefile when you initiate a Rail project.</p></div>
+<div class="para"><p>--------------------------------`----------------------------------------------------
+Tasks                           Description</p></div>
+<div class="listingblock">
+<div class="content">
+<pre><tt>+rake test+                     Runs all unit, functional and integration tests. You can also simply run +rake+ as the _test_ target is the default.
++rake test:units+               Runs all the unit tests from +test/unit+
++rake test:functionals+         Runs all the functional tests from +test/functional+
++rake test:integration+         Runs all the integration tests from +test/integration+
++rake test:recent+              Tests recent changes
++rake test:uncommitted+         Runs all the tests which are uncommitted. Only supports Subversion
++rake test:plugins+             Run all the plugin tests from +vendor/plugins/*/**/test+ (or specify with +PLUGIN=_name_+)
++rake db:test:clone+            Recreate the test database from the current environment's database schema
++rake db:test:clone_structure+  Recreate the test databases from the development structure
++rake db:test:load+             Recreate the test database from the current +schema.rb+
++rake db:test:prepare+          Check for pending migrations and load the test schema
++rake db:test:purge+            Empty the test database.</tt></pre>
+</div></div>
+<div class="admonitionblock">
+<table><tr>
+<td class="icon">
+<img src="/Users/lifo/Docs/docrails/railties/doc/guides/source/icons/tip.png" alt="Tip" />
+</td>
+<td class="content">You can see all these rake task and their descriptions by running <tt>rake &#8212;tasks &#8212;describe</tt></td>
+</tr></table>
+</div>
+</div>
+<h2 id="_other_testing_approaches">8. Other Testing Approaches</h2>
+<div class="sectionbody">
+<div class="para"><p>The built-in <tt>test/unit</tt> based testing is not the only way to test Rails applications. Rails developers have come up with a wide variety of other approaches and aids for testing, including:</p></div>
+<div class="ilist"><ul>
+<li>
+<p>
+<a href="http://avdi.org/projects/nulldb/">NullDB</a>, a way to speed up testing by avoiding database use.
+</p>
+</li>
+<li>
+<p>
+<a href="http://github.com/thoughtbot/factory_girl/tree/master">Factory Girl</a>, as replacement for fixtures.
+</p>
+</li>
+<li>
+<p>
+<a href="http://www.thoughtbot.com/projects/shoulda">Shoulda</a>, an extension to <tt>test/unit</tt> with additional helpers, macros, and assertions.
+</p>
+</li>
+<li>
+<p>
+link: <a href="http://rspec.info/">RSpec</a>, a behavior-driven development framework
+</p>
+</li>
+</ul></div>
+</div>
+<h2 id="_changelog">9. Changelog</h2>
+<div class="sectionbody">
+<div class="para"><p><a href="http://rails.lighthouseapp.com/projects/16213-rails-guides/tickets/8">Lighthouse ticket</a></p></div>
+<div class="ilist"><ul>
+<li>
+<p>
+October 14, 2008: Edit and formatting pass by <a href="../authors.html#mgunderloy">Mike Gunderloy</a> (not yet approved for publication)
+</p>
+</li>
+<li>
+<p>
+October 12, 2008: First draft by <a href="../authors.html#asurve">Akashay Surve</a> (not yet approved for publication)
+</p>
+</li>
+</ul></div>
+</div>
+
+		</div>
+	</div>
+</body>
+</html>

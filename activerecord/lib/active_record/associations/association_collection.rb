@@ -183,7 +183,13 @@ module ActiveRecord
       end
 
 
-      # Remove +records+ from this association.  Does not destroy +records+.
+      # Removes +records+ from this association calling +before_remove+ and
+      # +after_remove+ callbacks.
+      #
+      # This method is abstract in the sense that +delete_records+ has to be
+      # provided by descendants. Note this method does not imply the records
+      # are actually removed from the database, that depends precisely on
+      # +delete_records+. They are in any case removed from the collection.
       def delete(*records)
         records = flatten_deeper(records)
         records.each { |record| raise_on_type_mismatch(record) }
