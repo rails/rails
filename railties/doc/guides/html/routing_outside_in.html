@@ -1,0 +1,2183 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" lang="en" xml:lang="en">
+<head>
+	<meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
+	<title>Rails Routing from the Outside In</title>
+	<!--[if lt IE 8]>
+	<script src="http://ie7-js.googlecode.com/svn/version/2.0(beta3)/IE8.js" type="text/javascript"></script>
+	<![endif]-->
+	<link href="stylesheets/base.css" media="screen" rel="Stylesheet" type="text/css" />
+	<link href="stylesheets/forms.css" media="screen" rel="Stylesheet" type="text/css" />
+	<link href="stylesheets/more.css" media="screen" rel="Stylesheet" type="text/css" />
+	<style type="text/css">
+		div#container {
+	max-width: 900px;
+	padding-bottom: 3em;
+}
+
+div#content {
+	margin-left: 200px;
+}
+
+div#container.notoc {
+	max-width: 600px;
+}
+
+.notoc div#content {
+	margin-left: 0;
+}
+
+pre {
+	line-height: 1.4em;
+}
+
+#content p tt {
+	background: #eeeeee;
+	border: solid 1px #cccccc;
+	padding: 3px;
+}
+
+dt {
+	font-weight: bold;
+}
+
+#content dt tt {
+	font-size: 10pt;
+}
+
+dd {
+	margin-left: 3em;
+}
+
+#content dt tt, #content pre tt {
+	background: none;
+	padding: 0;
+	border: 0;
+}
+
+#content .olist ol {
+	margin-left: 2em;
+}
+
+#header {
+	position: relative;
+	max-width: 840px;
+	margin-left: auto;
+	margin-right: auto;
+}
+
+#header.notoc {
+	max-width: 580px;
+}
+
+#logo {
+	position: absolute;
+	left: 10px;
+	top: 10px;
+	width: 110px;
+	height: 140px;
+}
+
+div#header h1#site_title {
+	background: url('images/ruby_on_rails_by_mike_rundle2.gif') top left no-repeat;
+	position: absolute;
+	width: 392px;
+	height: 55px;
+	left: 145px;
+	top: 20px;
+	margin: 0;
+	padding: 0;
+}
+
+#site_title span {
+	display: none;
+}
+
+#site_title_tagline {
+	display: none;
+}
+
+ul#navMain {
+	position: absolute;
+	margin: 0;
+	padding: 0;
+	top: 97px;
+	left: 145px;
+}
+
+.left-floaty, .right-floaty {
+	padding: 15px;
+}
+
+.admonitionblock,
+.tableblock {
+	margin-left: 1em;
+	margin-right: 1em;
+	margin-top: 0.25em;
+	margin-bottom: 1em;
+}
+
+.admonitionblock .icon {
+	padding-right: 8px;
+}
+
+.admonitionblock .content {
+	border: solid 1px #ffda78;
+	background: #fffebd;
+	padding: 10px;
+	padding-top: 8px;
+	padding-bottom: 8px;
+}
+
+.admonitionblock .title {
+	font-size: 140%;
+	margin-bottom: 0.5em;
+}
+
+.tableblock table {
+	border: solid 1px #aaaaff;
+	background: #f0f0ff;
+}
+
+.tableblock th {
+	background: #e0e0e0;
+}
+
+.tableblock th,
+.tableblock td {
+	padding: 3px;
+	padding-left: 5px;
+	padding-right: 5px;
+}
+
+.sidebarblock {
+	margin-top: 0.25em;
+	margin: 1em;
+	border: solid 1px #ccccbb;
+	padding: 8px;
+	background: #ffffe0;
+}
+
+.sidebarblock .sidebar-title {
+	font-size: 140%;
+	font-weight: 600;
+	margin-bottom: 0.3em;
+}
+
+.sidebarblock .sidebar-content > .para:last-child > p {
+	margin-bottom: 0;
+}
+
+.sidebarblock .sidebar-title a {
+	text-decoration: none;
+}
+
+.sidebarblock .sidebar-title a:hover {
+	text-decoration: underline;
+}
+
+	</style>
+</head>
+<body>
+	<div id="header" >
+		<div id="logo">
+			<a href="index.html" title="Ruby on Rails"><img src="images/rails_logo_remix.gif" alt="Rails" height="140" width="110" /></a>
+		</div>
+		
+		<h1 id="site_title"><span>Ruby on Rails</span></h1>
+		<h2 id="site_title_tagline">Sustainable productivity for web-application development</h2>
+
+		<ul id="navMain">
+			<li class="first-child"><a href="http://www.rubyonrails.org/" title="Ruby on Rails" class="ruby_on_rails">Ruby on Rails</a></li>
+			<li><a class="manuals" href="index.html" title="Manuals Index">Guides Index</a></li>
+		</ul>
+	</div>
+
+	<div id="container">
+		
+		<div id="sidebar">
+			<h2>Chapters</h2>
+			<ol>
+					<li>
+					<a href="#_the_dual_purpose_of_routing">The Dual Purpose of Routing</a>
+						<ul>
+						
+							<li><a href="#_connecting_urls_to_code">Connecting URLs to Code</a></li>
+						
+							<li><a href="#_generating_urls_from_code">Generating URLs from Code</a></li>
+						
+						</ul>
+					</li>
+					<li>
+					<a href="#_quick_tour_of_routes_rb">Quick Tour of Routes.rb</a>
+						<ul>
+						
+							<li><a href="#_processing_the_file">Processing the File</a></li>
+						
+							<li><a href="#_restful_routes">RESTful Routes</a></li>
+						
+							<li><a href="#_named_routes">Named Routes</a></li>
+						
+							<li><a href="#_nested_routes">Nested Routes</a></li>
+						
+							<li><a href="#_regular_routes">Regular Routes</a></li>
+						
+							<li><a href="#_default_routes">Default Routes</a></li>
+						
+						</ul>
+					</li>
+					<li>
+					<a href="#_restful_routing_the_rails_default">RESTful Routing: the Rails Default</a>
+						<ul>
+						
+							<li><a href="#_what_is_rest">What is REST?</a></li>
+						
+							<li><a href="#_crud_verbs_and_actions">CRUD, Verbs, and Actions</a></li>
+						
+							<li><a href="#_urls_and_paths">URLs and Paths</a></li>
+						
+							<li><a href="#_defining_multiple_resources_at_the_same_time">Defining Multiple Resources at the Same Time</a></li>
+						
+							<li><a href="#_singular_resources">Singular Resources</a></li>
+						
+							<li><a href="#_customizing_resources">Customizing Resources</a></li>
+						
+							<li><a href="#_controller_namespaces_and_routing">Controller Namespaces and Routing</a></li>
+						
+							<li><a href="#_nested_resources">Nested Resources</a></li>
+						
+							<li><a href="#_route_generation_from_arrays">Route Generation from Arrays</a></li>
+						
+							<li><a href="#_namespaced_resources">Namespaced Resources</a></li>
+						
+							<li><a href="#_adding_more_restful_actions">Adding More RESTful Actions</a></li>
+						
+						</ul>
+					</li>
+					<li>
+					<a href="#_regular_routes_2">Regular Routes</a>
+						<ul>
+						
+							<li><a href="#_bound_parameters">Bound Parameters</a></li>
+						
+							<li><a href="#_wildcard_components">Wildcard Components</a></li>
+						
+							<li><a href="#_static_text">Static Text</a></li>
+						
+							<li><a href="#_querystring_parameters">Querystring Parameters</a></li>
+						
+							<li><a href="#_defining_defaults">Defining Defaults</a></li>
+						
+							<li><a href="#_named_routes_2">Named Routes</a></li>
+						
+							<li><a href="#_route_requirements">Route Requirements</a></li>
+						
+							<li><a href="#_route_conditions">Route Conditions</a></li>
+						
+							<li><a href="#_route_globbing">Route Globbing</a></li>
+						
+							<li><a href="#_route_options">Route Options</a></li>
+						
+						</ul>
+					</li>
+					<li>
+					<a href="#_formats_and_respond_to">Formats and respond_to</a>
+						<ul>
+						
+							<li><a href="#_specifying_the_format_with_an_http_header">Specifying the Format with an HTTP Header</a></li>
+						
+							<li><a href="#_recognized_mime_types">Recognized MIME types</a></li>
+						
+						</ul>
+					</li>
+					<li>
+					<a href="#_the_default_routes">The Default Routes</a>
+					</li>
+					<li>
+					<a href="#_the_empty_route">The Empty Route</a>
+						<ul>
+						
+							<li><a href="#_using_map_root">Using map.root</a></li>
+						
+							<li><a href="#_connecting_the_empty_string">Connecting the Empty String</a></li>
+						
+						</ul>
+					</li>
+					<li>
+					<a href="#_inspecting_and_testing_routes">Inspecting and Testing Routes</a>
+						<ul>
+						
+							<li><a href="#_seeing_existing_routes_with_rake">Seeing Existing Routes with rake</a></li>
+						
+							<li><a href="#_testing_routes">Testing Routes</a></li>
+						
+						</ul>
+					</li>
+					<li>
+					<a href="#_changelog">Changelog</a>
+					</li>
+			</ol>
+		</div>
+		
+		<div id="content">
+				<h1>Rails Routing from the Outside In</h1>
+			<div id="preamble">
+<div class="sectionbody">
+<div class="para"><p>This guide covers the user-facing features of Rails routing. By referring to this guide, you will be able to:</p></div>
+<div class="ilist"><ul>
+<li>
+<p>
+Understand the purpose of routing
+</p>
+</li>
+<li>
+<p>
+Decipher the code in <tt>routes.rb</tt>
+</p>
+</li>
+<li>
+<p>
+Construct your own routes, using either the classic hash style or the now-preferred RESTful style
+</p>
+</li>
+<li>
+<p>
+Identify how a route will map to a controller and action
+</p>
+</li>
+</ul></div>
+</div>
+</div>
+<h2 id="_the_dual_purpose_of_routing">1. The Dual Purpose of Routing</h2>
+<div class="sectionbody">
+<div class="para"><p>Rails routing is a two-way piece of machinery - rather as if you could turn trees into paper, and then turn paper back into trees. Specifically, it both connects incoming HTTP requests to the code in your application's controllers, and helps you generate URLs without having to hard-code them as strings.</p></div>
+<h3 id="_connecting_urls_to_code">1.1. Connecting URLs to Code</h3>
+<div class="para"><p>When your Rails application receives an incoming HTTP request, say</p></div>
+<div class="listingblock">
+<div class="content">
+<pre><tt>GET /patients/17</tt></pre>
+</div></div>
+<div class="para"><p>the routing engine within Rails is the piece of code that dispatches the request to the appropriate spot in your application. In this case, the application would most likely end up running the <tt>show</tt> action within the <tt>patients</tt> controller, displaying the details of the patient whose ID is 17.</p></div>
+<h3 id="_generating_urls_from_code">1.2. Generating URLs from Code</h3>
+<div class="para"><p>Routing also works in reverse. If your application contains this code:</p></div>
+<div class="listingblock">
+<div class="content"><!-- Generator: GNU source-highlight 2.9
+by Lorenzo Bettini
+http://www.lorenzobettini.it
+http://www.gnu.org/software/src-highlite -->
+<pre><tt><span style="color: #009900">@patient</span> <span style="color: #990000">=</span> Patient<span style="color: #990000">.</span>find<span style="color: #990000">(</span><span style="color: #993399">17</span><span style="color: #990000">)</span>
+<span style="color: #FF0000">&lt;%= link_to "Patient Record", patient_path(@patient) %&gt;</span>
+</tt></pre></div></div>
+<div class="para"><p>Then the routing engine is the piece that translates that to a link to a URL such as <tt>http://example.com/patients/17</tt>. By using routing in this way, you can reduce the brittleness of your application as compared to one with hard-coded URLs, and make your code easier to read and understand.</p></div>
+<div class="admonitionblock">
+<table><tr>
+<td class="icon">
+<img src="/Users/lifo/Docs/docrails/railties/doc/guides/source/icons/note.png" alt="Note" />
+</td>
+<td class="content">Patient needs to be declared as a resource for this style of translation via a named route to be available.</td>
+</tr></table>
+</div>
+</div>
+<h2 id="_quick_tour_of_routes_rb">2. Quick Tour of Routes.rb</h2>
+<div class="sectionbody">
+<div class="para"><p>There are two components to routing in Rails: the routing engine itself, which is supplied as part of Rails, and the file <tt>config/routes.rb</tt>, which contains the actual routes that will be used by your application. Learning exactly what you can put in <tt>routes.rb</tt> is the main topic of this guide, but before we dig in let's get a quick overview.</p></div>
+<h3 id="_processing_the_file">2.1. Processing the File</h3>
+<div class="para"><p>In format, <tt>routes.rb</tt> is nothing more than one big block sent to <tt>ActionController::Routing::Routes.draw</tt>. Within this block, you can have comments, but it's likely that most of your content will be individual lines of code - each line being a route in your application. You'll find five main types of content in this file:</p></div>
+<div class="ilist"><ul>
+<li>
+<p>
+RESTful Routes
+</p>
+</li>
+<li>
+<p>
+Named Routes
+</p>
+</li>
+<li>
+<p>
+Nested Routes
+</p>
+</li>
+<li>
+<p>
+Regular Routes
+</p>
+</li>
+<li>
+<p>
+Default Routes
+</p>
+</li>
+</ul></div>
+<div class="para"><p>Each of these types of route is covered in more detail later in this guide.</p></div>
+<div class="para"><p>The <tt>routes.rb</tt> file is processed from top to bottom when a request comes in. The request will be dispatched to the first matching route. If there is no matching route, then Rails returns HTTP status 404 to the caller.</p></div>
+<h3 id="_restful_routes">2.2. RESTful Routes</h3>
+<div class="para"><p>RESTful routes take advantage of the built-in REST orientation of Rails to wrap up a lot of routing information in a single declaration. A RESTful route looks like this:</p></div>
+<div class="listingblock">
+<div class="content"><!-- Generator: GNU source-highlight 2.9
+by Lorenzo Bettini
+http://www.lorenzobettini.it
+http://www.gnu.org/software/src-highlite -->
+<pre><tt>map<span style="color: #990000">.</span>resources <span style="color: #990000">:</span>books
+</tt></pre></div></div>
+<h3 id="_named_routes">2.3. Named Routes</h3>
+<div class="para"><p>Named routes give you very readable links in your code, as well as handling incoming requests. Here's a typical named route:</p></div>
+<div class="listingblock">
+<div class="content"><!-- Generator: GNU source-highlight 2.9
+by Lorenzo Bettini
+http://www.lorenzobettini.it
+http://www.gnu.org/software/src-highlite -->
+<pre><tt>map<span style="color: #990000">.</span>login <span style="color: #FF0000">'/login'</span><span style="color: #990000">,</span> <span style="color: #990000">:</span>controller <span style="color: #990000">=&gt;</span> <span style="color: #FF0000">'sessions'</span><span style="color: #990000">,</span> <span style="color: #990000">:</span>action <span style="color: #990000">=&gt;</span> <span style="color: #FF0000">'new'</span>
+</tt></pre></div></div>
+<h3 id="_nested_routes">2.4. Nested Routes</h3>
+<div class="para"><p>Nested routes let you declare that one resource is contained within another resource. You'll see later on how this translates to URLs and paths in your code. For example, if your application includes parts, each of which belongs to an assembly, you might have this nested route declaration:</p></div>
+<div class="listingblock">
+<div class="content"><!-- Generator: GNU source-highlight 2.9
+by Lorenzo Bettini
+http://www.lorenzobettini.it
+http://www.gnu.org/software/src-highlite -->
+<pre><tt>map<span style="color: #990000">.</span>resources <span style="color: #990000">:</span>assemblies <span style="font-weight: bold"><span style="color: #0000FF">do</span></span> <span style="color: #990000">|</span>assemblies<span style="color: #990000">|</span>
+  assemblies<span style="color: #990000">.</span>resources <span style="color: #990000">:</span>parts
+<span style="font-weight: bold"><span style="color: #0000FF">end</span></span>
+</tt></pre></div></div>
+<h3 id="_regular_routes">2.5. Regular Routes</h3>
+<div class="para"><p>In many applications, you'll also see non-RESTful routing, which explicitly connects the parts of a URL to a particular action. For example,</p></div>
+<div class="listingblock">
+<div class="content"><!-- Generator: GNU source-highlight 2.9
+by Lorenzo Bettini
+http://www.lorenzobettini.it
+http://www.gnu.org/software/src-highlite -->
+<pre><tt>map<span style="color: #990000">.</span>connect <span style="color: #FF0000">'parts/:number'</span><span style="color: #990000">,</span> <span style="color: #990000">:</span>controller <span style="color: #990000">=&gt;</span> <span style="color: #FF0000">'inventory'</span><span style="color: #990000">,</span> <span style="color: #990000">:</span>action <span style="color: #990000">=&gt;</span> <span style="color: #FF0000">'show'</span>
+</tt></pre></div></div>
+<h3 id="_default_routes">2.6. Default Routes</h3>
+<div class="para"><p>The default routes are a safety net that catch otherwise-unrouted requests. Many Rails applications will contain this pair of default routes:</p></div>
+<div class="listingblock">
+<div class="content"><!-- Generator: GNU source-highlight 2.9
+by Lorenzo Bettini
+http://www.lorenzobettini.it
+http://www.gnu.org/software/src-highlite -->
+<pre><tt>map<span style="color: #990000">.</span>connect <span style="color: #FF0000">':controller/:action/:id'</span>
+map<span style="color: #990000">.</span>connect <span style="color: #FF0000">':controller/:action/:id.:format'</span>
+</tt></pre></div></div>
+<div class="para"><p>These default routes are automatically generated when you create a new Rails application. If you're using RESTful routing for everything in your application, you will probably want to remove them. But be sure you're not using the default routes before you remove them!</p></div>
+</div>
+<h2 id="_restful_routing_the_rails_default">3. RESTful Routing: the Rails Default</h2>
+<div class="sectionbody">
+<div class="para"><p>RESTful routing is the current standard for routing in Rails, and it's the one that you should prefer for new applications. It can take a little while to understand how RESTful routing works, but it's worth the effort; your code will be easier to read and you'll be working with Rails, rather than fighting against it, when you use this style of routing.</p></div>
+<h3 id="_what_is_rest">3.1. What is REST?</h3>
+<div class="para"><p>The foundation of RESTful routing is generally considered to be Roy Fielding's doctoral thesis, <a href="http://www.ics.uci.edu/~fielding/pubs/dissertation/top.htm">Architectural Styles and the Design of Network-based Software Architectures</a>. Fortunately, you need not read this entire document to understand how REST works in Rails. REST, an acronym for Representational State Transfer, boils down to two main principles for our purposes:</p></div>
+<div class="ilist"><ul>
+<li>
+<p>
+Using resource identifiers (which, for the purposes of discussion, you can think of as URLs) to represent resources
+</p>
+</li>
+<li>
+<p>
+Transferring representations of the state of that resource between system components.
+</p>
+</li>
+</ul></div>
+<div class="para"><p>For example, to a Rails application a request such as this:</p></div>
+<div class="para"><p><tt>DELETE /photos/17</tt></p></div>
+<div class="para"><p>would be understood to refer to a photo resource with the ID of 17, and to indicate a desired action - deleting that resource. REST is a natural style for the architecture of web applications, and Rails makes it even more natural by using conventions to shield you from some of the RESTful complexities.</p></div>
+<h3 id="_crud_verbs_and_actions">3.2. CRUD, Verbs, and Actions</h3>
+<div class="para"><p>In Rails, a RESTful route provides a mapping between HTTP verbs, controller actions, and (implicitly) CRUD operations in a database. A single entry in the routing file, such as</p></div>
+<div class="listingblock">
+<div class="content"><!-- Generator: GNU source-highlight 2.9
+by Lorenzo Bettini
+http://www.lorenzobettini.it
+http://www.gnu.org/software/src-highlite -->
+<pre><tt>map<span style="color: #990000">.</span>resources <span style="color: #990000">:</span>photos
+</tt></pre></div></div>
+<div class="para"><p>creates seven different routes in your application:</p></div>
+<div class="tableblock">
+<table rules="all"
+frame="hsides"
+cellspacing="0" cellpadding="4">
+<col width="125" />
+<col width="182" />
+<col width="137" />
+<col width="102" />
+<col width="502" />
+<thead>
+  <tr>
+    <th align="left">
+    HTTP verb
+    </th>
+    <th align="left">
+    URL
+    </th>
+    <th align="left">
+    controller
+    </th>
+    <th align="left">
+    action
+    </th>
+    <th align="left">
+    used for
+    </th>
+  </tr>
+</thead>
+<tbody valign="top">
+  <tr>
+    <td align="left">
+    GET
+    </td>
+    <td align="left">
+    /photos
+    </td>
+    <td align="left">
+    Photos
+    </td>
+    <td align="left">
+    index
+    </td>
+    <td align="left">
+    display a list of all photos
+    </td>
+  </tr>
+  <tr>
+    <td align="left">
+    GET
+    </td>
+    <td align="left">
+    /photos/new
+    </td>
+    <td align="left">
+    Photos
+    </td>
+    <td align="left">
+    new
+    </td>
+    <td align="left">
+    return an HTML form for creating a new photo
+    </td>
+  </tr>
+  <tr>
+    <td align="left">
+    POST
+    </td>
+    <td align="left">
+    /photos
+    </td>
+    <td align="left">
+    Photos
+    </td>
+    <td align="left">
+    create
+    </td>
+    <td align="left">
+    create a new photo
+    </td>
+  </tr>
+  <tr>
+    <td align="left">
+    GET
+    </td>
+    <td align="left">
+    /photos/1
+    </td>
+    <td align="left">
+    Photos
+    </td>
+    <td align="left">
+    show
+    </td>
+    <td align="left">
+    display a specific photo
+    </td>
+  </tr>
+  <tr>
+    <td align="left">
+    GET
+    </td>
+    <td align="left">
+    /photos/1/edit
+    </td>
+    <td align="left">
+    Photos
+    </td>
+    <td align="left">
+    edit
+    </td>
+    <td align="left">
+    return an HTML form for editing a photo
+    </td>
+  </tr>
+  <tr>
+    <td align="left">
+    PUT
+    </td>
+    <td align="left">
+    /photos/1
+    </td>
+    <td align="left">
+    Photos
+    </td>
+    <td align="left">
+    update
+    </td>
+    <td align="left">
+    update a specific photo
+    </td>
+  </tr>
+  <tr>
+    <td align="left">
+    DELETE
+    </td>
+    <td align="left">
+    /photos/1
+    </td>
+    <td align="left">
+    Photos
+    </td>
+    <td align="left">
+    destroy
+    </td>
+    <td align="left">
+    delete a specific photo
+    </td>
+  </tr>
+</tbody>
+</table>
+</div>
+<div class="para"><p>For the specific routes (those that reference just a single resource), the identifier for the resource will be available within the corresponding controller action as <tt>params[:id]</tt>.</p></div>
+<div class="admonitionblock">
+<table><tr>
+<td class="icon">
+<img src="/Users/lifo/Docs/docrails/railties/doc/guides/source/icons/tip.png" alt="Tip" />
+</td>
+<td class="content">If you consistently use RESTful routes in your application, you should disable the default routes in <tt>routes.rb</tt> so that Rails will enforce the mapping between HTTP verbs and routes.</td>
+</tr></table>
+</div>
+<h3 id="_urls_and_paths">3.3. URLs and Paths</h3>
+<div class="para"><p>Creating a RESTful route will also make available a pile of helpers within your application:</p></div>
+<div class="ilist"><ul>
+<li>
+<p>
+<tt>photos_url</tt> and <tt>photos_path</tt> map to the path for the index and create actions
+</p>
+</li>
+<li>
+<p>
+<tt>new_photo_url</tt> and <tt>new_photo_path</tt> map to the path for the new action
+</p>
+</li>
+<li>
+<p>
+<tt>edit_photo_url</tt> and <tt>edit_photo_path</tt> map to the path for the edit action
+</p>
+</li>
+<li>
+<p>
+<tt>photo_url</tt> and <tt>photo_path</tt> map to the path for the show, update, and destroy actions
+</p>
+</li>
+</ul></div>
+<div class="admonitionblock">
+<table><tr>
+<td class="icon">
+<img src="/Users/lifo/Docs/docrails/railties/doc/guides/source/icons/note.png" alt="Note" />
+</td>
+<td class="content">Because routing makes use of the HTTP verb as well as the path in the request to dispatch requests, the seven routes generated by a RESTful routing entry only give rise to four pairs of helpers.</td>
+</tr></table>
+</div>
+<div class="para"><p>In each case, the <tt>_url</tt> helper generates a string containing the entire URL that the application will understand, while the <tt>_path</tt> helper generates a string containing the relative path from the root of the application. For example:</p></div>
+<div class="listingblock">
+<div class="content"><!-- Generator: GNU source-highlight 2.9
+by Lorenzo Bettini
+http://www.lorenzobettini.it
+http://www.gnu.org/software/src-highlite -->
+<pre><tt>photos_url  <span style="font-style: italic"><span style="color: #9A1900"># =&gt; "http://www.example.com/photos"</span></span>
+photos_path <span style="font-style: italic"><span style="color: #9A1900"># =&gt; "/photos"</span></span>
+</tt></pre></div></div>
+<h3 id="_defining_multiple_resources_at_the_same_time">3.4. Defining Multiple Resources at the Same Time</h3>
+<div class="para"><p>If you need to create routes for more than one RESTful resource, you can save a bit of typing by defining them all with a single call to <tt>map.resources</tt>:</p></div>
+<div class="listingblock">
+<div class="content"><!-- Generator: GNU source-highlight 2.9
+by Lorenzo Bettini
+http://www.lorenzobettini.it
+http://www.gnu.org/software/src-highlite -->
+<pre><tt>map<span style="color: #990000">.</span>resources <span style="color: #990000">:</span>photos<span style="color: #990000">,</span> <span style="color: #990000">:</span>books<span style="color: #990000">,</span> <span style="color: #990000">:</span>videos
+</tt></pre></div></div>
+<div class="para"><p>This has exactly the same effect as</p></div>
+<div class="listingblock">
+<div class="content"><!-- Generator: GNU source-highlight 2.9
+by Lorenzo Bettini
+http://www.lorenzobettini.it
+http://www.gnu.org/software/src-highlite -->
+<pre><tt>map<span style="color: #990000">.</span>resources <span style="color: #990000">:</span>photos
+map<span style="color: #990000">.</span>resources <span style="color: #990000">:</span>books
+map<span style="color: #990000">.</span>resources <span style="color: #990000">:</span>videos
+</tt></pre></div></div>
+<h3 id="_singular_resources">3.5. Singular Resources</h3>
+<div class="para"><p>You can also apply RESTful routing to singleton resources within your application. In this case, you use <tt>map.resource</tt> instead of <tt>map.resources</tt> and the route generation is slightly different. For example, a routing entry of</p></div>
+<div class="listingblock">
+<div class="content"><!-- Generator: GNU source-highlight 2.9
+by Lorenzo Bettini
+http://www.lorenzobettini.it
+http://www.gnu.org/software/src-highlite -->
+<pre><tt>map<span style="color: #990000">.</span>resource <span style="color: #990000">:</span>geocoder
+</tt></pre></div></div>
+<div class="para"><p>creates six different routes in your application:</p></div>
+<div class="tableblock">
+<table rules="all"
+frame="hsides"
+cellspacing="0" cellpadding="4">
+<col width="125" />
+<col width="182" />
+<col width="137" />
+<col width="102" />
+<col width="502" />
+<thead>
+  <tr>
+    <th align="left">
+    HTTP verb
+    </th>
+    <th align="left">
+    URL
+    </th>
+    <th align="left">
+    controller
+    </th>
+    <th align="left">
+    action
+    </th>
+    <th align="left">
+    used for
+    </th>
+  </tr>
+</thead>
+<tbody valign="top">
+  <tr>
+    <td align="left">
+    GET
+    </td>
+    <td align="left">
+    /geocoder/new
+    </td>
+    <td align="left">
+    Geocoders
+    </td>
+    <td align="left">
+    new
+    </td>
+    <td align="left">
+    return an HTML form for creating the new geocoder
+    </td>
+  </tr>
+  <tr>
+    <td align="left">
+    POST
+    </td>
+    <td align="left">
+    /geocoder
+    </td>
+    <td align="left">
+    Geocoders
+    </td>
+    <td align="left">
+    create
+    </td>
+    <td align="left">
+    create the new geocoder
+    </td>
+  </tr>
+  <tr>
+    <td align="left">
+    GET
+    </td>
+    <td align="left">
+    /geocoder
+    </td>
+    <td align="left">
+    Geocoders
+    </td>
+    <td align="left">
+    show
+    </td>
+    <td align="left">
+    display the one and only geocoder resource
+    </td>
+  </tr>
+  <tr>
+    <td align="left">
+    GET
+    </td>
+    <td align="left">
+    /geocoder/edit
+    </td>
+    <td align="left">
+    Geocoders
+    </td>
+    <td align="left">
+    edit
+    </td>
+    <td align="left">
+    return an HTML form for editing the geocoder
+    </td>
+  </tr>
+  <tr>
+    <td align="left">
+    PUT
+    </td>
+    <td align="left">
+    /geocoder
+    </td>
+    <td align="left">
+    Geocoders
+    </td>
+    <td align="left">
+    update
+    </td>
+    <td align="left">
+    update the one and only geocoder resource
+    </td>
+  </tr>
+  <tr>
+    <td align="left">
+    DELETE
+    </td>
+    <td align="left">
+    /geocoder
+    </td>
+    <td align="left">
+    Geocoders
+    </td>
+    <td align="left">
+    destroy
+    </td>
+    <td align="left">
+    delete the geocoder resource
+    </td>
+  </tr>
+</tbody>
+</table>
+</div>
+<div class="admonitionblock">
+<table><tr>
+<td class="icon">
+<img src="/Users/lifo/Docs/docrails/railties/doc/guides/source/icons/note.png" alt="Note" />
+</td>
+<td class="content">Even though the name of the resource is singular in <tt>routes.rb</tt>, the matching controller is still plural.</td>
+</tr></table>
+</div>
+<div class="para"><p>A singular RESTful route generates an abbreviated set of helpers:</p></div>
+<div class="ilist"><ul>
+<li>
+<p>
+<tt>new_geocoder_url</tt> and <tt>new_geocoder_path</tt> map to the path for the new action
+</p>
+</li>
+<li>
+<p>
+<tt>edit_geocoder_url</tt> and <tt>edit_geocoder_path</tt> map to the path for the edit action
+</p>
+</li>
+<li>
+<p>
+<tt>geocoder_url</tt> and <tt>geocoder_path</tt> map to the path for the create, show, update, and destroy actions
+</p>
+</li>
+</ul></div>
+<h3 id="_customizing_resources">3.6. Customizing Resources</h3>
+<div class="para"><p>Although the conventions of RESTful routing are likely to be sufficient for many applications, there are a number of ways to customize the way that RESTful routes work. These options include:</p></div>
+<div class="ilist"><ul>
+<li>
+<p>
+<tt>:controller</tt>
+</p>
+</li>
+<li>
+<p>
+<tt>:singular</tt>
+</p>
+</li>
+<li>
+<p>
+<tt>:requirements</tt>
+</p>
+</li>
+<li>
+<p>
+<tt>:conditions</tt>
+</p>
+</li>
+<li>
+<p>
+<tt>:as</tt>
+</p>
+</li>
+<li>
+<p>
+<tt>:path_names</tt>
+</p>
+</li>
+<li>
+<p>
+<tt>:path_prefix</tt>
+</p>
+</li>
+<li>
+<p>
+<tt>:name_prefix</tt>
+</p>
+</li>
+</ul></div>
+<div class="para"><p>You can also add additional routes via the <tt>:member</tt> and <tt>:collection</tt> options, which are discussed later in this guide.</p></div>
+<h4 id="_using_controller">3.6.1. Using :controller</h4>
+<div class="para"><p>The <tt>:controller</tt> option lets you use a controller name that is different from the public-facing resource name. For example, this routing entry:</p></div>
+<div class="listingblock">
+<div class="content"><!-- Generator: GNU source-highlight 2.9
+by Lorenzo Bettini
+http://www.lorenzobettini.it
+http://www.gnu.org/software/src-highlite -->
+<pre><tt>map<span style="color: #990000">.</span>resources <span style="color: #990000">:</span>photos<span style="color: #990000">,</span> <span style="color: #990000">:</span>controller <span style="color: #990000">=&gt;</span> <span style="color: #FF0000">"images"</span>
+</tt></pre></div></div>
+<div class="para"><p>will recognize incoming URLs containing <tt>photo</tt> but route the requests to the Images controller:</p></div>
+<div class="tableblock">
+<table rules="all"
+frame="hsides"
+cellspacing="0" cellpadding="4">
+<col width="125" />
+<col width="182" />
+<col width="137" />
+<col width="102" />
+<col width="502" />
+<thead>
+  <tr>
+    <th align="left">
+    HTTP verb
+    </th>
+    <th align="left">
+    URL
+    </th>
+    <th align="left">
+    controller
+    </th>
+    <th align="left">
+    action
+    </th>
+    <th align="left">
+    used for
+    </th>
+  </tr>
+</thead>
+<tbody valign="top">
+  <tr>
+    <td align="left">
+    GET
+    </td>
+    <td align="left">
+    /photos
+    </td>
+    <td align="left">
+    Images
+    </td>
+    <td align="left">
+    index
+    </td>
+    <td align="left">
+    display a list of all images
+    </td>
+  </tr>
+  <tr>
+    <td align="left">
+    GET
+    </td>
+    <td align="left">
+    /photos/new
+    </td>
+    <td align="left">
+    Images
+    </td>
+    <td align="left">
+    new
+    </td>
+    <td align="left">
+    return an HTML form for creating a new image
+    </td>
+  </tr>
+  <tr>
+    <td align="left">
+    POST
+    </td>
+    <td align="left">
+    /photos
+    </td>
+    <td align="left">
+    Images
+    </td>
+    <td align="left">
+    create
+    </td>
+    <td align="left">
+    create a new image
+    </td>
+  </tr>
+  <tr>
+    <td align="left">
+    GET
+    </td>
+    <td align="left">
+    /photos/1
+    </td>
+    <td align="left">
+    Images
+    </td>
+    <td align="left">
+    show
+    </td>
+    <td align="left">
+    display a specific image
+    </td>
+  </tr>
+  <tr>
+    <td align="left">
+    GET
+    </td>
+    <td align="left">
+    /photos/1/edit
+    </td>
+    <td align="left">
+    Images
+    </td>
+    <td align="left">
+    edit
+    </td>
+    <td align="left">
+    return an HTML form for editing a image
+    </td>
+  </tr>
+  <tr>
+    <td align="left">
+    PUT
+    </td>
+    <td align="left">
+    /photos/1
+    </td>
+    <td align="left">
+    Images
+    </td>
+    <td align="left">
+    update
+    </td>
+    <td align="left">
+    update a specific image
+    </td>
+  </tr>
+  <tr>
+    <td align="left">
+    DELETE
+    </td>
+    <td align="left">
+    /photos/1
+    </td>
+    <td align="left">
+    Images
+    </td>
+    <td align="left">
+    destroy
+    </td>
+    <td align="left">
+    delete a specific image
+    </td>
+  </tr>
+</tbody>
+</table>
+</div>
+<div class="admonitionblock">
+<table><tr>
+<td class="icon">
+<img src="/Users/lifo/Docs/docrails/railties/doc/guides/source/icons/note.png" alt="Note" />
+</td>
+<td class="content">The helpers will be generated with the name of the resource, not the name of the controller. So in this case, you'd still get <tt>photos_path</tt>, <tt>new_photo_path</tt>, and so on.</td>
+</tr></table>
+</div>
+<h3 id="_controller_namespaces_and_routing">3.7. Controller Namespaces and Routing</h3>
+<div class="para"><p>Rails allows you to group your controllers into namespaces by saving them in folders underneath <tt>app/controllers</tt>. The <tt>:controller</tt> option provides a convenient way to use these routes. For example, you might have a resource whose controller is purely for admin users in the <tt>admin</tt> folder:</p></div>
+<div class="listingblock">
+<div class="content"><!-- Generator: GNU source-highlight 2.9
+by Lorenzo Bettini
+http://www.lorenzobettini.it
+http://www.gnu.org/software/src-highlite -->
+<pre><tt>map<span style="color: #990000">.</span>resources <span style="color: #990000">:</span>adminphotos<span style="color: #990000">,</span> <span style="color: #990000">:</span>controller <span style="color: #990000">=&gt;</span> <span style="color: #FF0000">"admin/photos"</span>
+</tt></pre></div></div>
+<div class="para"><p>If you use controller namespaces, you need to be aware of a subtlety in the Rails routing code: it always tries to preserve as much of the namespace from the previous request as possible. For example, if you are on a view generated from the <tt>adminphoto_path</tt> helper, and you follow a link generated with <tt>&lt;%= link_to "show", adminphoto(1) %&gt;</tt> you will end up on the view generated by <tt>admin/photos/show</tt> but you will also end up in the same place if you have <tt>&lt;%= link_to "show", {:controller &#8658; "photos", :action &#8658; "show"} %&gt;</tt> because Rails will generate the show URL relative to the current URL.</p></div>
+<div class="admonitionblock">
+<table><tr>
+<td class="icon">
+<img src="/Users/lifo/Docs/docrails/railties/doc/guides/source/icons/tip.png" alt="Tip" />
+</td>
+<td class="content">If you want to guarantee that a link goes to a top-level controller, use a preceding slash to anchor the controller name: <tt>&lt;%= link_to "show", {:controller &#8658; "/photos", :action &#8658; "show"} %&gt;</tt></td>
+</tr></table>
+</div>
+<div class="para"><p>You can also specify a controller namespace with the <tt>:namespace</tt> option instead of a path:</p></div>
+<div class="listingblock">
+<div class="content"><!-- Generator: GNU source-highlight 2.9
+by Lorenzo Bettini
+http://www.lorenzobettini.it
+http://www.gnu.org/software/src-highlite -->
+<pre><tt>map<span style="color: #990000">.</span>resources <span style="color: #990000">:</span>adminphotos<span style="color: #990000">,</span> <span style="color: #990000">:</span>namespace <span style="color: #990000">=&gt;</span> <span style="color: #FF0000">"admin"</span><span style="color: #990000">,</span> <span style="color: #990000">:</span>controller <span style="color: #990000">=&gt;</span> <span style="color: #FF0000">"photos"</span>
+</tt></pre></div></div>
+<div class="para"><p>This can be especially useful when combined with <tt>with_options</tt> to map multiple namespaced routes together:</p></div>
+<div class="listingblock">
+<div class="content"><!-- Generator: GNU source-highlight 2.9
+by Lorenzo Bettini
+http://www.lorenzobettini.it
+http://www.gnu.org/software/src-highlite -->
+<pre><tt>map<span style="color: #990000">.</span>with_options<span style="color: #990000">(:</span>namespace <span style="color: #990000">=&gt;</span> <span style="color: #FF0000">"admin"</span><span style="color: #990000">)</span> <span style="font-weight: bold"><span style="color: #0000FF">do</span></span> <span style="color: #990000">|</span>admin<span style="color: #990000">|</span>
+  admin<span style="color: #990000">.</span>resources <span style="color: #990000">:</span>photos<span style="color: #990000">,</span> <span style="color: #990000">:</span>videos
+<span style="font-weight: bold"><span style="color: #0000FF">end</span></span>
+</tt></pre></div></div>
+<div class="para"><p>That would give you routing for <tt>admin/photos</tt> and <tt>admin/videos</tt> controllers.</p></div>
+<h4 id="_using_singular">3.7.1. Using :singular</h4>
+<div class="para"><p>If for some reason Rails isn't doing what you want in converting the plural resource name to a singular name in member routes, you can override its judgment with the <tt>:singular</tt> option:</p></div>
+<div class="listingblock">
+<div class="content"><!-- Generator: GNU source-highlight 2.9
+by Lorenzo Bettini
+http://www.lorenzobettini.it
+http://www.gnu.org/software/src-highlite -->
+<pre><tt>map<span style="color: #990000">.</span>resources <span style="color: #990000">:</span>teeth<span style="color: #990000">,</span> <span style="color: #990000">:</span>singular <span style="color: #990000">=&gt;</span> <span style="color: #FF0000">"tooth"</span>
+</tt></pre></div></div>
+<div class="admonitionblock">
+<table><tr>
+<td class="icon">
+<img src="/Users/lifo/Docs/docrails/railties/doc/guides/source/icons/tip.png" alt="Tip" />
+</td>
+<td class="content">Depending on the other code in your application, you may prefer to add additional rules to the <tt>Inflector</tt> class instead.</td>
+</tr></table>
+</div>
+<h4 id="_using_requirements">3.7.2. Using :requirements</h4>
+<div class="para"><p>You an use the <tt>:requirements</tt> option in a RESTful route to impose a format on the implied <tt>:id</tt> parameter in the singular routes. For example:</p></div>
+<div class="listingblock">
+<div class="content"><!-- Generator: GNU source-highlight 2.9
+by Lorenzo Bettini
+http://www.lorenzobettini.it
+http://www.gnu.org/software/src-highlite -->
+<pre><tt>map<span style="color: #990000">.</span>resources <span style="color: #990000">:</span>photos<span style="color: #990000">,</span> <span style="color: #990000">:</span>requirements <span style="color: #990000">=&gt;</span> <span style="color: #FF0000">{</span><span style="color: #990000">:</span>id <span style="color: #990000">=&gt;</span> <span style="color: #FF6600">/[A-Z][A-Z][0-9]+/</span><span style="color: #FF0000">}</span>
+</tt></pre></div></div>
+<div class="para"><p>This declaration constrains the <tt>:id</tt> parameter to match the supplied regular expression. So, in this case, <tt>/photos/1</tt> would no longer be recognized by this route, but <tt>/photos/RR27</tt> would.</p></div>
+<h4 id="_using_conditions">3.7.3. Using :conditions</h4>
+<div class="para"><p>Conditions in Rails routing are currently used only to set the HTTP verb for individual routes. Although in theory you can set this for RESTful routes, in practice there is no good reason to do so. (You'll learn more about conditions in the discussion of classic routing later in this guide.)</p></div>
+<h4 id="_using_as">3.7.4. Using :as</h4>
+<div class="para"><p>The <tt>:as</tt> option lets you override the normal naming for the actual generated paths. For example:</p></div>
+<div class="listingblock">
+<div class="content"><!-- Generator: GNU source-highlight 2.9
+by Lorenzo Bettini
+http://www.lorenzobettini.it
+http://www.gnu.org/software/src-highlite -->
+<pre><tt>map<span style="color: #990000">.</span>resources <span style="color: #990000">:</span>photos<span style="color: #990000">,</span> <span style="color: #990000">:</span>as <span style="color: #990000">=&gt;</span> <span style="color: #FF0000">"images"</span>
+</tt></pre></div></div>
+<div class="para"><p>will recognize incoming URLs containing <tt>image</tt> but route the requests to the Photos controller:</p></div>
+<div class="tableblock">
+<table rules="all"
+frame="hsides"
+cellspacing="0" cellpadding="4">
+<col width="125" />
+<col width="182" />
+<col width="137" />
+<col width="102" />
+<col width="502" />
+<thead>
+  <tr>
+    <th align="left">
+    HTTP verb
+    </th>
+    <th align="left">
+    URL
+    </th>
+    <th align="left">
+    controller
+    </th>
+    <th align="left">
+    action
+    </th>
+    <th align="left">
+    used for
+    </th>
+  </tr>
+</thead>
+<tbody valign="top">
+  <tr>
+    <td align="left">
+    GET
+    </td>
+    <td align="left">
+    /images
+    </td>
+    <td align="left">
+    Photos
+    </td>
+    <td align="left">
+    index
+    </td>
+    <td align="left">
+    display a list of all photos
+    </td>
+  </tr>
+  <tr>
+    <td align="left">
+    GET
+    </td>
+    <td align="left">
+    /images/new
+    </td>
+    <td align="left">
+    Photos
+    </td>
+    <td align="left">
+    new
+    </td>
+    <td align="left">
+    return an HTML form for creating a new photo
+    </td>
+  </tr>
+  <tr>
+    <td align="left">
+    POST
+    </td>
+    <td align="left">
+    /images
+    </td>
+    <td align="left">
+    Photos
+    </td>
+    <td align="left">
+    create
+    </td>
+    <td align="left">
+    create a new photo
+    </td>
+  </tr>
+  <tr>
+    <td align="left">
+    GET
+    </td>
+    <td align="left">
+    /images/1
+    </td>
+    <td align="left">
+    Photos
+    </td>
+    <td align="left">
+    show
+    </td>
+    <td align="left">
+    display a specific photo
+    </td>
+  </tr>
+  <tr>
+    <td align="left">
+    GET
+    </td>
+    <td align="left">
+    /images/1/edit
+    </td>
+    <td align="left">
+    Photos
+    </td>
+    <td align="left">
+    edit
+    </td>
+    <td align="left">
+    return an HTML form for editing a photo
+    </td>
+  </tr>
+  <tr>
+    <td align="left">
+    PUT
+    </td>
+    <td align="left">
+    /images/1
+    </td>
+    <td align="left">
+    Photos
+    </td>
+    <td align="left">
+    update
+    </td>
+    <td align="left">
+    update a specific photo
+    </td>
+  </tr>
+  <tr>
+    <td align="left">
+    DELETE
+    </td>
+    <td align="left">
+    /images/1
+    </td>
+    <td align="left">
+    Photos
+    </td>
+    <td align="left">
+    destroy
+    </td>
+    <td align="left">
+    delete a specific photo
+    </td>
+  </tr>
+</tbody>
+</table>
+</div>
+<div class="admonitionblock">
+<table><tr>
+<td class="icon">
+<img src="/Users/lifo/Docs/docrails/railties/doc/guides/source/icons/note.png" alt="Note" />
+</td>
+<td class="content">The helpers will be generated with the name of the resource, not the path name. So in this case, you'd still get <tt>photos_path</tt>, <tt>new_photo_path</tt>, and so on.</td>
+</tr></table>
+</div>
+<h4 id="_using_path_names">3.7.5. Using :path_names</h4>
+<div class="para"><p>The <tt>:path_names</tt> option lets you override the automatically-generated "new" and "edit" segments in URLs:</p></div>
+<div class="listingblock">
+<div class="content"><!-- Generator: GNU source-highlight 2.9
+by Lorenzo Bettini
+http://www.lorenzobettini.it
+http://www.gnu.org/software/src-highlite -->
+<pre><tt>map<span style="color: #990000">.</span>resources <span style="color: #990000">:</span>photos<span style="color: #990000">,</span> <span style="color: #990000">:</span>path_names <span style="color: #990000">=&gt;</span> <span style="color: #FF0000">{</span> <span style="color: #990000">:</span>new <span style="color: #990000">=&gt;</span> <span style="color: #FF0000">'make'</span><span style="color: #990000">,</span> <span style="color: #990000">:</span>edit <span style="color: #990000">=&gt;</span> <span style="color: #FF0000">'change'</span> <span style="color: #FF0000">}</span>
+</tt></pre></div></div>
+<div class="para"><p>This would cause the routing to recognize URLs such as</p></div>
+<div class="listingblock">
+<div class="content">
+<pre><tt>/photos/make
+/photos/1/change</tt></pre>
+</div></div>
+<div class="admonitionblock">
+<table><tr>
+<td class="icon">
+<img src="/Users/lifo/Docs/docrails/railties/doc/guides/source/icons/note.png" alt="Note" />
+</td>
+<td class="content">The actual action names aren't changed by this option; the two URLs show would still route to the new and edit actions.</td>
+</tr></table>
+</div>
+<div class="admonitionblock">
+<table><tr>
+<td class="icon">
+<img src="/Users/lifo/Docs/docrails/railties/doc/guides/source/icons/tip.png" alt="Tip" />
+</td>
+<td class="content">If you find yourself wanting to change this option uniformly for all of your routes, you can set a default in your environment:</td>
+</tr></table>
+</div>
+<div class="listingblock">
+<div class="content"><!-- Generator: GNU source-highlight 2.9
+by Lorenzo Bettini
+http://www.lorenzobettini.it
+http://www.gnu.org/software/src-highlite -->
+<pre><tt>config<span style="color: #990000">.</span>action_controller<span style="color: #990000">.</span>resources_path_names <span style="color: #990000">=</span> <span style="color: #FF0000">{</span> <span style="color: #990000">:</span>new <span style="color: #990000">=&gt;</span> <span style="color: #FF0000">'make'</span><span style="color: #990000">,</span> <span style="color: #990000">:</span>edit <span style="color: #990000">=&gt;</span> <span style="color: #FF0000">'change'</span> <span style="color: #FF0000">}</span>
+</tt></pre></div></div>
+<h4 id="_using_path_prefix">3.7.6. Using :path_prefix</h4>
+<div class="para"><p>The <tt>:path_prefix</tt> option lets you add additional parameters that will be prefixed to the recognized paths. For example, suppose each photo in your application belongs to a particular photographer. In that case, you might declare this route:</p></div>
+<div class="listingblock">
+<div class="content"><!-- Generator: GNU source-highlight 2.9
+by Lorenzo Bettini
+http://www.lorenzobettini.it
+http://www.gnu.org/software/src-highlite -->
+<pre><tt>map<span style="color: #990000">.</span>resources <span style="color: #990000">:</span>photos<span style="color: #990000">,</span> <span style="color: #990000">:</span>path_prefix <span style="color: #990000">=&gt;</span> <span style="color: #FF0000">'/photographers/:photographer_id'</span>
+</tt></pre></div></div>
+<div class="para"><p>Routes recognized by this entry would include:</p></div>
+<div class="listingblock">
+<div class="content">
+<pre><tt>/photographers/1/photos/2
+/photographers/1/photos</tt></pre>
+</div></div>
+<div class="admonitionblock">
+<table><tr>
+<td class="icon">
+<img src="/Users/lifo/Docs/docrails/railties/doc/guides/source/icons/note.png" alt="Note" />
+</td>
+<td class="content">In most cases, it's simpler to recognize URLs of this sort by creating nested resources, as discussed in the next section.</td>
+</tr></table>
+</div>
+<div class="admonitionblock">
+<table><tr>
+<td class="icon">
+<img src="/Users/lifo/Docs/docrails/railties/doc/guides/source/icons/note.png" alt="Note" />
+</td>
+<td class="content">You can also use <tt>:path_prefix</tt> with non-RESTful routes.</td>
+</tr></table>
+</div>
+<h4 id="_using_name_prefix">3.7.7. Using :name_prefix</h4>
+<div class="para"><p>You can use the :name_prefix option to avoid collisions between routes. This is most useful when you have two resources with the same name that use <tt>:path_prefix</tt> to map differently. For example:</p></div>
+<div class="listingblock">
+<div class="content"><!-- Generator: GNU source-highlight 2.9
+by Lorenzo Bettini
+http://www.lorenzobettini.it
+http://www.gnu.org/software/src-highlite -->
+<pre><tt>map<span style="color: #990000">.</span>resources <span style="color: #990000">:</span>photos<span style="color: #990000">,</span> <span style="color: #990000">:</span>path_prefix <span style="color: #990000">=&gt;</span> <span style="color: #FF0000">'/photographers/:photographer_id'</span><span style="color: #990000">,</span> <span style="color: #990000">:</span>name_prefix <span style="color: #990000">=&gt;</span> <span style="color: #FF0000">'photographer_'</span>
+map<span style="color: #990000">.</span>resources <span style="color: #990000">:</span>photos<span style="color: #990000">,</span> <span style="color: #990000">:</span>path_prefix <span style="color: #990000">=&gt;</span> <span style="color: #FF0000">'/agencies/:agency_id'</span><span style="color: #990000">,</span> <span style="color: #990000">:</span>name_prefix <span style="color: #990000">=&gt;</span> <span style="color: #FF0000">'agency_'</span>
+</tt></pre></div></div>
+<div class="para"><p>This combination will give you route helpers such as <tt>photographer_photos_path</tt> and <tt>agency_edit_photo_path</tt> to use in your code.</p></div>
+<div class="admonitionblock">
+<table><tr>
+<td class="icon">
+<img src="/Users/lifo/Docs/docrails/railties/doc/guides/source/icons/note.png" alt="Note" />
+</td>
+<td class="content">You can also use <tt>:name_prefix</tt> with non-RESTful routes.</td>
+</tr></table>
+</div>
+<h3 id="_nested_resources">3.8. Nested Resources</h3>
+<div class="para"><p>It's common to have resources that are logically children of other resources. For example, suppose your application includes these models:</p></div>
+<div class="listingblock">
+<div class="content"><!-- Generator: GNU source-highlight 2.9
+by Lorenzo Bettini
+http://www.lorenzobettini.it
+http://www.gnu.org/software/src-highlite -->
+<pre><tt><span style="font-weight: bold"><span style="color: #0000FF">class</span></span> Magazine <span style="color: #990000">&lt;</span> ActiveRecord<span style="color: #990000">::</span>Base
+  has_many <span style="color: #990000">:</span>ads
+<span style="font-weight: bold"><span style="color: #0000FF">end</span></span>
+
+<span style="font-weight: bold"><span style="color: #0000FF">class</span></span> Ad <span style="color: #990000">&lt;</span> ActiveRecord<span style="color: #990000">::</span>Base
+  belongs_to <span style="color: #990000">:</span>magazine
+<span style="font-weight: bold"><span style="color: #0000FF">end</span></span>
+</tt></pre></div></div>
+<div class="para"><p>Each ad is logically subservient to one magazine. Nested routes allow you to capture this relationship in your routing. In this case, you might include this route declaration:</p></div>
+<div class="listingblock">
+<div class="content"><!-- Generator: GNU source-highlight 2.9
+by Lorenzo Bettini
+http://www.lorenzobettini.it
+http://www.gnu.org/software/src-highlite -->
+<pre><tt>map<span style="color: #990000">.</span>resources <span style="color: #990000">:</span>magazines <span style="font-weight: bold"><span style="color: #0000FF">do</span></span> <span style="color: #990000">|</span>magazine<span style="color: #990000">|</span>
+  magazine<span style="color: #990000">.</span>resources <span style="color: #990000">:</span>ads
+<span style="font-weight: bold"><span style="color: #0000FF">end</span></span>
+</tt></pre></div></div>
+<div class="para"><p>In addition to the routes for magazines, this declaration will also create routes for ads, each of which requires the specification of a magazine in the URL:</p></div>
+<div class="tableblock">
+<table rules="all"
+frame="hsides"
+cellspacing="0" cellpadding="4">
+<col width="125" />
+<col width="274" />
+<col width="137" />
+<col width="102" />
+<col width="502" />
+<thead>
+  <tr>
+    <th align="left">
+    HTTP verb
+    </th>
+    <th align="left">
+    URL
+    </th>
+    <th align="left">
+    controller
+    </th>
+    <th align="left">
+    action
+    </th>
+    <th align="left">
+    used for
+    </th>
+  </tr>
+</thead>
+<tbody valign="top">
+  <tr>
+    <td align="left">
+    GET
+    </td>
+    <td align="left">
+    /magazines/1/ads
+    </td>
+    <td align="left">
+    Ads
+    </td>
+    <td align="left">
+    index
+    </td>
+    <td align="left">
+    display a list of all ads for a specific magazine
+    </td>
+  </tr>
+  <tr>
+    <td align="left">
+    GET
+    </td>
+    <td align="left">
+    /magazines/1/ads/new
+    </td>
+    <td align="left">
+    Ads
+    </td>
+    <td align="left">
+    new
+    </td>
+    <td align="left">
+    return an HTML form for creating a new ad belonging to a specific magazine
+    </td>
+  </tr>
+  <tr>
+    <td align="left">
+    POST
+    </td>
+    <td align="left">
+    /magazines/1/ads
+    </td>
+    <td align="left">
+    Ads
+    </td>
+    <td align="left">
+    create
+    </td>
+    <td align="left">
+    create a new ad belonging to a specific magazine
+    </td>
+  </tr>
+  <tr>
+    <td align="left">
+    GET
+    </td>
+    <td align="left">
+    /magazines/1/ads/1
+    </td>
+    <td align="left">
+    Ads
+    </td>
+    <td align="left">
+    show
+    </td>
+    <td align="left">
+    display a specific ad belonging to a specific magazine
+    </td>
+  </tr>
+  <tr>
+    <td align="left">
+    GET
+    </td>
+    <td align="left">
+    /magazines/1/ads/1/edit
+    </td>
+    <td align="left">
+    Ads
+    </td>
+    <td align="left">
+    edit
+    </td>
+    <td align="left">
+    return an HTML form for editing an ad belonging to a specific magazine
+    </td>
+  </tr>
+  <tr>
+    <td align="left">
+    PUT
+    </td>
+    <td align="left">
+    /magazines/1/ads/1
+    </td>
+    <td align="left">
+    Ads
+    </td>
+    <td align="left">
+    update
+    </td>
+    <td align="left">
+    update a specific ad belonging to a specific magazine
+    </td>
+  </tr>
+  <tr>
+    <td align="left">
+    DELETE
+    </td>
+    <td align="left">
+    /magazines/1/ads/1
+    </td>
+    <td align="left">
+    Ads
+    </td>
+    <td align="left">
+    destroy
+    </td>
+    <td align="left">
+    delete a specific ad belonging to a specific magazine
+    </td>
+  </tr>
+</tbody>
+</table>
+</div>
+<div class="para"><p>This will also create routing helpers such as <tt>magazine_ads_url</tt> and <tt>edit_magazine_ad_path</tt>.</p></div>
+<h4 id="_using_name_prefix_2">3.8.1. Using :name_prefix</h4>
+<div class="para"><p>The <tt>:name_prefix</tt> option overrides the automatically-generated prefix in nested route helpers. For example,</p></div>
+<div class="listingblock">
+<div class="content"><!-- Generator: GNU source-highlight 2.9
+by Lorenzo Bettini
+http://www.lorenzobettini.it
+http://www.gnu.org/software/src-highlite -->
+<pre><tt>map<span style="color: #990000">.</span>resources <span style="color: #990000">:</span>magazines <span style="font-weight: bold"><span style="color: #0000FF">do</span></span> <span style="color: #990000">|</span>magazine<span style="color: #990000">|</span>
+  magazine<span style="color: #990000">.</span>resources <span style="color: #990000">:</span>ads<span style="color: #990000">,</span> <span style="color: #990000">:</span>name_prefix <span style="color: #990000">=&gt;</span> <span style="color: #FF0000">'periodical'</span>
+<span style="font-weight: bold"><span style="color: #0000FF">end</span></span>
+</tt></pre></div></div>
+<div class="para"><p>This will create routing helpers such as <tt>periodical_ads_url</tt> and <tt>periodical_edit_ad_path</tt>. You can even use <tt>:name_prefix</tt> to suppress the prefix entirely:</p></div>
+<div class="listingblock">
+<div class="content"><!-- Generator: GNU source-highlight 2.9
+by Lorenzo Bettini
+http://www.lorenzobettini.it
+http://www.gnu.org/software/src-highlite -->
+<pre><tt>map<span style="color: #990000">.</span>resources <span style="color: #990000">:</span>magazines <span style="font-weight: bold"><span style="color: #0000FF">do</span></span> <span style="color: #990000">|</span>magazine<span style="color: #990000">|</span>
+  magazine<span style="color: #990000">.</span>resources <span style="color: #990000">:</span>ads<span style="color: #990000">,</span> <span style="color: #990000">:</span>name_prefix <span style="color: #990000">=&gt;</span> <span style="font-weight: bold"><span style="color: #0000FF">nil</span></span>
+<span style="font-weight: bold"><span style="color: #0000FF">end</span></span>
+</tt></pre></div></div>
+<div class="para"><p>This will create routing helpers such as <tt>ads_url</tt> and <tt>edit_ad_path</tt>. Note that calling these will still require supplying an article id:</p></div>
+<div class="listingblock">
+<div class="content"><!-- Generator: GNU source-highlight 2.9
+by Lorenzo Bettini
+http://www.lorenzobettini.it
+http://www.gnu.org/software/src-highlite -->
+<pre><tt>ads_url<span style="color: #990000">(</span><span style="color: #009900">@magazine</span><span style="color: #990000">)</span>
+edit_ad_path<span style="color: #990000">(</span><span style="color: #009900">@magazine</span><span style="color: #990000">,</span> <span style="color: #009900">@ad</span><span style="color: #990000">)</span>
+</tt></pre></div></div>
+<h4 id="_using_has_one_and_has_many">3.8.2. Using :has_one and :has_many</h4>
+<div class="para"><p>The <tt>:has_one</tt> and <tt>:has_many</tt> options provide a succinct notation for simple nested routes. Use <tt>:has_one</tt> to nest a singleton resource, or <tt>:has_many</tt> to nest a plural resource:</p></div>
+<div class="listingblock">
+<div class="content"><!-- Generator: GNU source-highlight 2.9
+by Lorenzo Bettini
+http://www.lorenzobettini.it
+http://www.gnu.org/software/src-highlite -->
+<pre><tt>map<span style="color: #990000">.</span>resources <span style="color: #990000">:</span>photos<span style="color: #990000">,</span> <span style="color: #990000">:</span>has_one <span style="color: #990000">=&gt;</span> <span style="color: #990000">:</span>photographer<span style="color: #990000">,</span> <span style="color: #990000">:</span>has_many <span style="color: #990000">=&gt;</span> <span style="color: #990000">[:</span>publications<span style="color: #990000">,</span> <span style="color: #990000">:</span>versions<span style="color: #990000">]</span>
+</tt></pre></div></div>
+<div class="para"><p>This has the same effect as this set of declarations:</p></div>
+<div class="listingblock">
+<div class="content"><!-- Generator: GNU source-highlight 2.9
+by Lorenzo Bettini
+http://www.lorenzobettini.it
+http://www.gnu.org/software/src-highlite -->
+<pre><tt>map<span style="color: #990000">.</span>resources <span style="color: #990000">:</span>photos <span style="font-weight: bold"><span style="color: #0000FF">do</span></span> <span style="color: #990000">|</span>photo<span style="color: #990000">|</span>
+  photo<span style="color: #990000">.</span>resource <span style="color: #990000">:</span>photographer
+  photo<span style="color: #990000">.</span>resources <span style="color: #990000">:</span>publications
+  photo<span style="color: #990000">.</span>resources <span style="color: #990000">:</span>versions
+<span style="font-weight: bold"><span style="color: #0000FF">end</span></span>
+</tt></pre></div></div>
+<h4 id="_limits_to_nesting">3.8.3. Limits to Nesting</h4>
+<div class="para"><p>You can nest resources within other nested resources if you like. For example:</p></div>
+<div class="listingblock">
+<div class="content"><!-- Generator: GNU source-highlight 2.9
+by Lorenzo Bettini
+http://www.lorenzobettini.it
+http://www.gnu.org/software/src-highlite -->
+<pre><tt>map<span style="color: #990000">.</span>resources <span style="color: #990000">:</span>publishers <span style="font-weight: bold"><span style="color: #0000FF">do</span></span> <span style="color: #990000">|</span>publisher<span style="color: #990000">|</span>
+  publisher<span style="color: #990000">.</span>resources <span style="color: #990000">:</span>magazines <span style="font-weight: bold"><span style="color: #0000FF">do</span></span> <span style="color: #990000">|</span>magazine<span style="color: #990000">|</span>
+    magazine<span style="color: #990000">.</span>resources <span style="color: #990000">:</span>photos
+  <span style="font-weight: bold"><span style="color: #0000FF">end</span></span>
+<span style="font-weight: bold"><span style="color: #0000FF">end</span></span>
+</tt></pre></div></div>
+<div class="para"><p>However, without the use of <tt>name_prefix &#8658; nil</tt>, deeply-nested resources quickly become cumbersome. In this case, for example, the application would recognize URLs such as</p></div>
+<div class="listingblock">
+<div class="content">
+<pre><tt>/publishers/1/magazines/2/photos/3</tt></pre>
+</div></div>
+<div class="para"><p>The corresponding route helper would be <tt>publisher_magazine_photo_url</tt>, requiring you to specify objects at all three levels. Indeed, this situation is confusing enough that a popular <a href="http://weblog.jamisbuck.org/2007/2/5/nesting-resources">article</a> by Jamis Buck proposes a rule of thumb for good Rails design:</p></div>
+<div class="para"><p><em>Resources should never be nested more than 1 level deep.</em></p></div>
+<h4 id="_shallow_nesting">3.8.4. Shallow Nesting</h4>
+<div class="para"><p>The <tt>:shallow</tt> option provides an elegant solution to the difficulties of deeply-nested routes. If you specify this option at any level of routing, then paths for nested resources which reference a specific member (that is, those with an <tt>:id</tt> parameter) will not use the parent path prefix or name prefix. To see what this means, consider this set of routes:</p></div>
+<div class="listingblock">
+<div class="content"><!-- Generator: GNU source-highlight 2.9
+by Lorenzo Bettini
+http://www.lorenzobettini.it
+http://www.gnu.org/software/src-highlite -->
+<pre><tt>map<span style="color: #990000">.</span>resources <span style="color: #990000">:</span>publishers<span style="color: #990000">,</span> <span style="color: #990000">:</span>shallow <span style="color: #990000">=&gt;</span> <span style="font-weight: bold"><span style="color: #0000FF">true</span></span> <span style="font-weight: bold"><span style="color: #0000FF">do</span></span> <span style="color: #990000">|</span>publisher<span style="color: #990000">|</span>
+  publisher<span style="color: #990000">.</span>resources <span style="color: #990000">:</span>magazines <span style="font-weight: bold"><span style="color: #0000FF">do</span></span> <span style="color: #990000">|</span>magazine<span style="color: #990000">|</span>
+    magazine<span style="color: #990000">.</span>resources <span style="color: #990000">:</span>photos
+  <span style="font-weight: bold"><span style="color: #0000FF">end</span></span>
+<span style="font-weight: bold"><span style="color: #0000FF">end</span></span>
+</tt></pre></div></div>
+<div class="para"><p>This will enable recognition of (among others) these routes:</p></div>
+<div class="listingblock">
+<div class="content">
+<pre><tt>/publishers/1           ==&gt; publisher_path(1)
+/publishers/1/magazines ==&gt; publisher_magazines_path(1)
+/magazines/2            ==&gt; magazine_path(2)
+/magazines/2/photos     ==&gt; magazines_photos_path(2)
+/photos/3               ==&gt; photo_path(3)</tt></pre>
+</div></div>
+<div class="para"><p>With shallow nesting, you need only supply enough information to uniquely identify the resource that you want to work with - but you <em>can</em> supply more information. All of the nested routes continue to work, just as they would without shallow nesting, but less-deeply nested routes (even direct routes) work as well. So, with the declaration above, all of these routes refer to the same resource:</p></div>
+<div class="listingblock">
+<div class="content">
+<pre><tt>/publishers/1/magazines/2/photos/3   ==&gt; publisher_magazine_photo_path(1,2,3)
+/magazines/2/photos/3                ==&gt; magazine_photo_path(2,3)
+/photos/3                            ==&gt; photo_path(3)</tt></pre>
+</div></div>
+<div class="para"><p>Shallow nesting gives you the flexibility to use the shorter direct routes when you like, while still preserving the longer nested routes for times when they add code clarity.</p></div>
+<div class="para"><p>If you like, you can combine shallow nesting with the <tt>:has_one</tt> and <tt>:has_many</tt> options:</p></div>
+<div class="listingblock">
+<div class="content"><!-- Generator: GNU source-highlight 2.9
+by Lorenzo Bettini
+http://www.lorenzobettini.it
+http://www.gnu.org/software/src-highlite -->
+<pre><tt>map<span style="color: #990000">.</span>resources <span style="color: #990000">:</span>publishers<span style="color: #990000">,</span> <span style="color: #990000">:</span>has_many <span style="color: #990000">=&gt;</span> <span style="color: #FF0000">{</span> <span style="color: #990000">:</span>magazines <span style="color: #990000">=&gt;</span> <span style="color: #990000">:</span>photos <span style="color: #FF0000">}</span><span style="color: #990000">,</span> <span style="color: #990000">:</span>shallow <span style="color: #990000">=&gt;</span> <span style="font-weight: bold"><span style="color: #0000FF">true</span></span>
+</tt></pre></div></div>
+<h3 id="_route_generation_from_arrays">3.9. Route Generation from Arrays</h3>
+<div class="para"><p>In addition to using the generated routing helpers, Rails can also generate RESTful routes from an array of parameters. For example, suppose you have a set of routes generated with these entries in routes.rb:</p></div>
+<div class="listingblock">
+<div class="content"><!-- Generator: GNU source-highlight 2.9
+by Lorenzo Bettini
+http://www.lorenzobettini.it
+http://www.gnu.org/software/src-highlite -->
+<pre><tt>map<span style="color: #990000">.</span>resources <span style="color: #990000">:</span>magazines <span style="font-weight: bold"><span style="color: #0000FF">do</span></span> <span style="color: #990000">|</span>magazine<span style="color: #990000">|</span>
+  magazine<span style="color: #990000">.</span>resources <span style="color: #990000">:</span>ads
+<span style="font-weight: bold"><span style="color: #0000FF">end</span></span>
+</tt></pre></div></div>
+<div class="para"><p>Rails will generate helpers such as magazine_ad_path that you can use in building links:</p></div>
+<div class="listingblock">
+<div class="content"><!-- Generator: GNU source-highlight 2.9
+by Lorenzo Bettini
+http://www.lorenzobettini.it
+http://www.gnu.org/software/src-highlite -->
+<pre><tt><span style="color: #FF0000">&lt;%= link_to "Ad details", magazine_ad_path(@magazine, @ad) %&gt;</span>
+</tt></pre></div></div>
+<div class="para"><p>Another way to refer to the same route is with an array of objects:</p></div>
+<div class="listingblock">
+<div class="content"><!-- Generator: GNU source-highlight 2.9
+by Lorenzo Bettini
+http://www.lorenzobettini.it
+http://www.gnu.org/software/src-highlite -->
+<pre><tt><span style="color: #FF0000">&lt;%= link_to "Ad details", [@magazine, @ad] %&gt;</span>
+</tt></pre></div></div>
+<div class="para"><p>This format is especially useful when you might not know until runtime which of several types of object will be used in a particular link.</p></div>
+<h3 id="_namespaced_resources">3.10. Namespaced Resources</h3>
+<div class="para"><p>It's possible to do some quite complex things by combining <tt>:path_prefix</tt> and <tt>:name_prefix</tt>. For example, you can use the combination of these two options to move administrative resources to their own folder in your application:</p></div>
+<div class="listingblock">
+<div class="content"><!-- Generator: GNU source-highlight 2.9
+by Lorenzo Bettini
+http://www.lorenzobettini.it
+http://www.gnu.org/software/src-highlite -->
+<pre><tt>map<span style="color: #990000">.</span>resources <span style="color: #990000">:</span>photos<span style="color: #990000">,</span> <span style="color: #990000">:</span>path_prefix <span style="color: #990000">=&gt;</span> <span style="color: #FF0000">'admin'</span><span style="color: #990000">,</span> <span style="color: #990000">:</span>controller <span style="color: #990000">=&gt;</span> <span style="color: #FF0000">'admin/photos'</span>
+map<span style="color: #990000">.</span>resources <span style="color: #990000">:</span>tags<span style="color: #990000">,</span> <span style="color: #990000">:</span>name_prefix <span style="color: #990000">=&gt;</span> <span style="color: #FF0000">'admin_photo_'</span><span style="color: #990000">,</span> <span style="color: #990000">:</span>path_prefix <span style="color: #990000">=&gt;</span> <span style="color: #FF0000">'admin/photos/:photo_id'</span><span style="color: #990000">,</span> <span style="color: #990000">:</span>controller <span style="color: #990000">=&gt;</span> <span style="color: #FF0000">'admin/photo_tags'</span>
+map<span style="color: #990000">.</span>resources <span style="color: #990000">:</span>ratings<span style="color: #990000">,</span> <span style="color: #990000">:</span>name_prefix <span style="color: #990000">=&gt;</span> <span style="color: #FF0000">'admin_photo_'</span><span style="color: #990000">,</span> <span style="color: #990000">:</span>path_prefix <span style="color: #990000">=&gt;</span> <span style="color: #FF0000">'admin/photos/:photo_id'</span><span style="color: #990000">,</span> <span style="color: #990000">:</span>controller <span style="color: #990000">=&gt;</span> <span style="color: #FF0000">'admin/photo_ratings'</span>
+</tt></pre></div></div>
+<div class="para"><p>The good news is that if you find yourself using this level of complexity, you can stop. Rails supports <em>namespaced resources</em> to make placing resources in their own folder a snap. Here's the namespaced version of those same three routes:</p></div>
+<div class="listingblock">
+<div class="content"><!-- Generator: GNU source-highlight 2.9
+by Lorenzo Bettini
+http://www.lorenzobettini.it
+http://www.gnu.org/software/src-highlite -->
+<pre><tt>map<span style="color: #990000">.</span>namespace<span style="color: #990000">(:</span>admin<span style="color: #990000">)</span> <span style="font-weight: bold"><span style="color: #0000FF">do</span></span> <span style="color: #990000">|</span>admin<span style="color: #990000">|</span>
+        admin<span style="color: #990000">.</span>resources <span style="color: #990000">:</span>photos<span style="color: #990000">,</span>
+          <span style="color: #990000">:</span>has_many <span style="color: #990000">=&gt;</span> <span style="color: #FF0000">{</span> <span style="color: #990000">:</span>tags<span style="color: #990000">,</span> <span style="color: #990000">:</span>ratings<span style="color: #FF0000">}</span>
+<span style="font-weight: bold"><span style="color: #0000FF">end</span></span>
+</tt></pre></div></div>
+<div class="para"><p>As you can see, the namespaced version is much more succinct than the one that spells everything out - but it still creates the same routes. For example, you'll get <tt>admin_photos_url</tt> that expects to find an <tt>Admin::PhotosController</tt> and that matches <tt>admin/photos</tt>, and <tt>admin_photos_ratings+path</tt> that matches <tt>/admin/photos/<em>photo_id</em>/ratings</tt>, expecting to use <tt>Admin::RatingsController</tt>. Even though you're not specifying <tt>path_prefix</tt> explicitly, the routing code will calculate the appropriate <tt>path_prefix</tt> from the route nesting.</p></div>
+<h3 id="_adding_more_restful_actions">3.11. Adding More RESTful Actions</h3>
+<div class="para"><p>You are not limited to the seven routes that RESTful routing creates by default. If you like, you may add additional member routes (those which apply to a single instance of the resource), additional new routes (those that apply to creating a new resource), or additional collection routes (those which apply to the collection of resources as a whole).</p></div>
+<h4 id="_adding_member_routes">3.11.1. Adding Member Routes</h4>
+<div class="para"><p>To add a member route, use the <tt>:member</tt> option:</p></div>
+<div class="listingblock">
+<div class="content"><!-- Generator: GNU source-highlight 2.9
+by Lorenzo Bettini
+http://www.lorenzobettini.it
+http://www.gnu.org/software/src-highlite -->
+<pre><tt>map<span style="color: #990000">.</span>resources <span style="color: #990000">:</span>photos<span style="color: #990000">,</span> <span style="color: #990000">:</span>member <span style="color: #990000">=&gt;</span> <span style="color: #FF0000">{</span> <span style="color: #990000">:</span>preview <span style="color: #990000">=&gt;</span> <span style="color: #990000">:</span>get <span style="color: #FF0000">}</span>
+</tt></pre></div></div>
+<div class="para"><p>This will enable Rails to recognize URLs such as <tt>/photos/1/preview</tt> using the GET HTTP verb, and route them to the preview action of the Photos controller. It will also create a <tt>preview_photo</tt> route helper.</p></div>
+<div class="para"><p>Within the hash of member routes, each route name specifies the HTTP verb that it will recognize. You can use <tt>:get</tt>, <tt>:put</tt>, <tt>:post</tt>, <tt>:delete</tt>, or <tt>:any</tt> here. You can also specify an array of methods, if you need more than one but you don't want to allow just anything:</p></div>
+<div class="listingblock">
+<div class="content"><!-- Generator: GNU source-highlight 2.9
+by Lorenzo Bettini
+http://www.lorenzobettini.it
+http://www.gnu.org/software/src-highlite -->
+<pre><tt>map<span style="color: #990000">.</span>resources <span style="color: #990000">:</span>photos<span style="color: #990000">,</span> <span style="color: #990000">:</span>member <span style="color: #990000">=&gt;</span> <span style="color: #FF0000">{</span> <span style="color: #990000">:</span>prepare <span style="color: #990000">=&gt;</span> <span style="color: #990000">[:</span>get<span style="color: #990000">,</span> <span style="color: #990000">:</span>post<span style="color: #990000">]</span> <span style="color: #FF0000">}</span>
+</tt></pre></div></div>
+<h4 id="_adding_collection_routes">3.11.2. Adding Collection Routes</h4>
+<div class="para"><p>To add a collection route, use the <tt>:collection</tt> option:</p></div>
+<div class="listingblock">
+<div class="content"><!-- Generator: GNU source-highlight 2.9
+by Lorenzo Bettini
+http://www.lorenzobettini.it
+http://www.gnu.org/software/src-highlite -->
+<pre><tt>map<span style="color: #990000">.</span>resources <span style="color: #990000">:</span>photos<span style="color: #990000">,</span> <span style="color: #990000">:</span>collection <span style="color: #990000">=&gt;</span> <span style="color: #FF0000">{</span> <span style="color: #990000">:</span>search <span style="color: #990000">=&gt;</span> <span style="color: #990000">:</span>get <span style="color: #FF0000">}</span>
+</tt></pre></div></div>
+<div class="para"><p>This will enable Rails to recognize URLs such as <tt>/photos/search</tt> using the GET HTTP verb, and route them to the search action of the Photos controller. It will also create a <tt>search_photos</tt> route helper.</p></div>
+<div class="para"><p>Just as with member routes, you can specify an array of methods for a collection route:</p></div>
+<div class="listingblock">
+<div class="content"><!-- Generator: GNU source-highlight 2.9
+by Lorenzo Bettini
+http://www.lorenzobettini.it
+http://www.gnu.org/software/src-highlite -->
+<pre><tt>map<span style="color: #990000">.</span>resources <span style="color: #990000">:</span>photos<span style="color: #990000">,</span> <span style="color: #990000">:</span>collection <span style="color: #990000">=&gt;</span> <span style="color: #FF0000">{</span> <span style="color: #990000">:</span>search <span style="color: #990000">=&gt;</span> <span style="color: #990000">[:</span>get<span style="color: #990000">,</span> <span style="color: #990000">:</span>post<span style="color: #990000">]</span> <span style="color: #FF0000">}</span>
+</tt></pre></div></div>
+<h4 id="_adding_new_routes">3.11.3. Adding New Routes</h4>
+<div class="para"><p>To add a new route (one that creates a new resource), use the <tt>:new</tt> option:</p></div>
+<div class="listingblock">
+<div class="content"><!-- Generator: GNU source-highlight 2.9
+by Lorenzo Bettini
+http://www.lorenzobettini.it
+http://www.gnu.org/software/src-highlite -->
+<pre><tt>map<span style="color: #990000">.</span>resources <span style="color: #990000">:</span>photos<span style="color: #990000">,</span> <span style="color: #990000">:</span>new <span style="color: #990000">=&gt;</span> <span style="color: #FF0000">{</span> <span style="color: #990000">:</span>upload <span style="color: #990000">=&gt;</span> <span style="color: #990000">:</span>post <span style="color: #FF0000">}</span>
+</tt></pre></div></div>
+<div class="para"><p>This will enable Rails to recognize URLs such as <tt>/photos/upload</tt> using the POST HTTP verb, and route them to the upload action of the Photos controller. It will also create a <tt>upload_photos</tt> route helper.</p></div>
+<div class="admonitionblock">
+<table><tr>
+<td class="icon">
+<img src="/Users/lifo/Docs/docrails/railties/doc/guides/source/icons/tip.png" alt="Tip" />
+</td>
+<td class="content">If you want to redefine the verbs accepted by one of the standard actions, you can do so by explicitly mapping that action. For example:</td>
+</tr></table>
+</div>
+<div class="listingblock">
+<div class="content"><!-- Generator: GNU source-highlight 2.9
+by Lorenzo Bettini
+http://www.lorenzobettini.it
+http://www.gnu.org/software/src-highlite -->
+<pre><tt>map<span style="color: #990000">.</span>resources <span style="color: #990000">:</span>photos<span style="color: #990000">,</span> <span style="color: #990000">:</span>new <span style="color: #990000">=&gt;</span> <span style="color: #FF0000">{</span> <span style="color: #990000">:</span>new <span style="color: #990000">=&gt;</span> <span style="color: #990000">:</span>any <span style="color: #FF0000">}</span>
+</tt></pre></div></div>
+<div class="para"><p>This will allow the new action to be invoked by any request to <tt>photos/new</tt>, no matter what HTTP verb you use.</p></div>
+<h4 id="_a_note_of_caution">3.11.4. A Note of Caution</h4>
+<div class="para"><p>If you find yourself adding many extra actions to a RESTful route, it's time to stop and ask yourself whether you're disguising the presence of another resource that would be better split off on its own. When the <tt>:member</tt> and <tt>:collection</tt> hashes become a dumping-ground, RESTful routes lose the advantage of easy readability that is one of their strongest points.</p></div>
+</div>
+<h2 id="_regular_routes_2">4. Regular Routes</h2>
+<div class="sectionbody">
+<div class="para"><p>In addition to RESTful routing, Rails supports regular routing - a way to map URLs to controllers and actions. With regular routing, you don't get the masses of routes automatically generated by RESTful routing. Instead, you must set up each route within your application separately.</p></div>
+<div class="para"><p>While RESTful routing has become the Rails standard, there are still plenty of places where the simpler regular routing works fine. You can even mix the two styles within a single application. In general, you should prefer RESTful routing <em>when possible</em>, because it will make parts of your application easier to write. But there's no need to try to shoehorn every last piece of your application into a RESTful framework if that's not a good fit.</p></div>
+<h3 id="_bound_parameters">4.1. Bound Parameters</h3>
+<div class="para"><p>When you set up a regular route, you supply a series of symbols that Rails maps to parts of an incoming HTTP request. Two of these symbols are special: <tt>:controller</tt> maps to the name of a controller in your application, and <tt>:action</tt> maps to the name of an action within that controller. For example, consider one of the default Rails routes:</p></div>
+<div class="listingblock">
+<div class="content"><!-- Generator: GNU source-highlight 2.9
+by Lorenzo Bettini
+http://www.lorenzobettini.it
+http://www.gnu.org/software/src-highlite -->
+<pre><tt>map<span style="color: #990000">.</span>connect <span style="color: #FF0000">':controller/:action/:id'</span>
+</tt></pre></div></div>
+<div class="para"><p>If an incoming request of <tt>/photos/show/1</tt> is processed by this route (because it hasn't matched any previous route in the file), then the result will be to invoke the <tt>show</tt> action of the <tt>Photos</tt> controller, and to make the final parameter (1) available as <tt>params[:id]</tt>.</p></div>
+<h3 id="_wildcard_components">4.2. Wildcard Components</h3>
+<div class="para"><p>You can set up as many wildcard symbols within a regular route as you like. Anything other than <tt>:controller</tt> or <tt>:action</tt> will be available to the matching action as part of the params hash. So, if you set up this route:</p></div>
+<div class="listingblock">
+<div class="content"><!-- Generator: GNU source-highlight 2.9
+by Lorenzo Bettini
+http://www.lorenzobettini.it
+http://www.gnu.org/software/src-highlite -->
+<pre><tt>map<span style="color: #990000">.</span>connect <span style="color: #FF0000">':controller/:action/:id/:user_id'</span>
+</tt></pre></div></div>
+<div class="para"><p>An incoming URL of <tt>/photos/show/1/2</tt> will be dispatched to the <tt>show</tt> action of the <tt>Photos</tt> controller. <tt>params[:id]</tt> will be set to 1, and <tt>params[:user_id]</tt> will be set to 2.</p></div>
+<h3 id="_static_text">4.3. Static Text</h3>
+<div class="para"><p>You can specify static text when creating a route. In this case, the static text is used only for matching the incoming requests:</p></div>
+<div class="listingblock">
+<div class="content"><!-- Generator: GNU source-highlight 2.9
+by Lorenzo Bettini
+http://www.lorenzobettini.it
+http://www.gnu.org/software/src-highlite -->
+<pre><tt>map<span style="color: #990000">.</span>connect <span style="color: #FF0000">':controller/:action/:id/with_user/:user_id'</span>
+</tt></pre></div></div>
+<div class="para"><p>This route would respond to URLs such as <tt>/photos/show/1/with_user/2</tt>.</p></div>
+<h3 id="_querystring_parameters">4.4. Querystring Parameters</h3>
+<div class="para"><p>Rails routing automatically picks up querystring parameters and makes them available in the <tt>params</tt> hash. For example, with this route:</p></div>
+<div class="listingblock">
+<div class="content"><!-- Generator: GNU source-highlight 2.9
+by Lorenzo Bettini
+http://www.lorenzobettini.it
+http://www.gnu.org/software/src-highlite -->
+<pre><tt>map<span style="color: #990000">.</span>connect <span style="color: #FF0000">':controller/:action/:id'</span>
+</tt></pre></div></div>
+<div class="para"><p>An incoming URL of <tt>/photos/show/1?user_id=2</tt> will be dispatched to the <tt>show</tt> action of the <tt>Photos</tt> controller. <tt>params[:id]</tt> will be set to 1, and <tt>params[:user_id]</tt> will be equal to 2.</p></div>
+<h3 id="_defining_defaults">4.5. Defining Defaults</h3>
+<div class="para"><p>You do not need to explicitly use the <tt>:controller</tt> and <tt>:action</tt> symbols within a route. You can supply defaults for these two parameters in a hash:</p></div>
+<div class="listingblock">
+<div class="content"><!-- Generator: GNU source-highlight 2.9
+by Lorenzo Bettini
+http://www.lorenzobettini.it
+http://www.gnu.org/software/src-highlite -->
+<pre><tt>map<span style="color: #990000">.</span>connect <span style="color: #FF0000">'photo/:id'</span><span style="color: #990000">,</span> <span style="color: #990000">:</span>controller <span style="color: #990000">=&gt;</span> <span style="color: #FF0000">'photos'</span><span style="color: #990000">,</span> <span style="color: #990000">:</span>action <span style="color: #990000">=&gt;</span> <span style="color: #FF0000">'show'</span>
+</tt></pre></div></div>
+<div class="para"><p>With this route, an incoming URL of <tt>/photos/12</tt> would be dispatched to the <tt>show</tt> action within the <tt>Photos</tt> controller.</p></div>
+<div class="para"><p>You an also define other defaults in a route by supplying a hash for the <tt>:defaults</tt> option. This even applies to parameters that are not explicitly defined elsewhere in the route. For example:</p></div>
+<div class="listingblock">
+<div class="content"><!-- Generator: GNU source-highlight 2.9
+by Lorenzo Bettini
+http://www.lorenzobettini.it
+http://www.gnu.org/software/src-highlite -->
+<pre><tt>map<span style="color: #990000">.</span>connect <span style="color: #FF0000">'photo/:id'</span><span style="color: #990000">,</span> <span style="color: #990000">:</span>controller <span style="color: #990000">=&gt;</span> <span style="color: #FF0000">'photos'</span><span style="color: #990000">,</span> <span style="color: #990000">:</span>action <span style="color: #990000">=&gt;</span> <span style="color: #FF0000">'show'</span><span style="color: #990000">,</span> <span style="color: #990000">:</span>defaults <span style="color: #990000">=&gt;</span> <span style="color: #FF0000">{</span> <span style="color: #990000">:</span>format <span style="color: #990000">=&gt;</span> <span style="color: #FF0000">'jpg'</span> <span style="color: #FF0000">}</span>
+</tt></pre></div></div>
+<div class="para"><p>With this route, an incoming URL of <tt>photos/12</tt> would be dispatched to the <tt>show</tt> action within the <tt>Photos</tt> controller, and <tt>params[:format]</tt> will be set to <tt>jpg</tt>.</p></div>
+<h3 id="_named_routes_2">4.6. Named Routes</h3>
+<div class="para"><p>Regular routes need not use the <tt>connect</tt> method. You can use any other name here to create a <em>named route</em>. For example,</p></div>
+<div class="listingblock">
+<div class="content"><!-- Generator: GNU source-highlight 2.9
+by Lorenzo Bettini
+http://www.lorenzobettini.it
+http://www.gnu.org/software/src-highlite -->
+<pre><tt>map<span style="color: #990000">.</span>logout <span style="color: #FF0000">'/logout'</span><span style="color: #990000">,</span> <span style="color: #990000">:</span>controller <span style="color: #990000">=&gt;</span> <span style="color: #FF0000">'sessions'</span><span style="color: #990000">,</span> <span style="color: #990000">:</span>action <span style="color: #990000">=&gt;</span> <span style="color: #FF0000">'destroy'</span>
+</tt></pre></div></div>
+<div class="para"><p>This will do two things. First, requests to <tt>/logout</tt> will be sent to the <tt>destroy</tt> method of the <tt>Sessions</tt> controller. Second, Rails will maintain the <tt>logout_path</tt> and <tt>logout_url</tt> helpers for use within your code.</p></div>
+<h3 id="_route_requirements">4.7. Route Requirements</h3>
+<div class="para"><p>You can use the <tt>:requirements</tt> option to enforce a format for any parameter in a route:</p></div>
+<div class="listingblock">
+<div class="content"><!-- Generator: GNU source-highlight 2.9
+by Lorenzo Bettini
+http://www.lorenzobettini.it
+http://www.gnu.org/software/src-highlite -->
+<pre><tt>map<span style="color: #990000">.</span>connect <span style="color: #FF0000">'photo/:id'</span><span style="color: #990000">,</span> <span style="color: #990000">:</span>controller <span style="color: #990000">=&gt;</span> <span style="color: #FF0000">'photos'</span><span style="color: #990000">,</span> <span style="color: #990000">:</span>action <span style="color: #990000">=&gt;</span> <span style="color: #FF0000">'show'</span><span style="color: #990000">,</span>
+ <span style="color: #990000">:</span>requirements <span style="color: #990000">=&gt;</span> <span style="color: #FF0000">{</span> <span style="color: #990000">:</span>id <span style="color: #990000">=&gt;</span> <span style="color: #FF6600">/[A-Z]\d{5}/</span> <span style="color: #FF0000">}</span>
+</tt></pre></div></div>
+<div class="para"><p>This route would respond to URLs such as <tt>/photo/A12345</tt>. You can more succinctly express the same route this way:</p></div>
+<div class="listingblock">
+<div class="content"><!-- Generator: GNU source-highlight 2.9
+by Lorenzo Bettini
+http://www.lorenzobettini.it
+http://www.gnu.org/software/src-highlite -->
+<pre><tt>map<span style="color: #990000">.</span>connect <span style="color: #FF0000">'photo/:id'</span><span style="color: #990000">,</span> <span style="color: #990000">:</span>controller <span style="color: #990000">=&gt;</span> <span style="color: #FF0000">'photos'</span><span style="color: #990000">,</span> <span style="color: #990000">:</span>action <span style="color: #990000">=&gt;</span> <span style="color: #FF0000">'show'</span><span style="color: #990000">,</span>
+  <span style="color: #990000">:</span>id <span style="color: #990000">=&gt;</span> <span style="color: #FF6600">/[A-Z]\d{5}/</span>
+</tt></pre></div></div>
+<h3 id="_route_conditions">4.8. Route Conditions</h3>
+<div class="para"><p>Route conditions (introduced with the <tt>:conditions</tt> option) are designed to implement restrictions on routes. Currently, the only supported restriction is <tt>:method</tt>:</p></div>
+<div class="listingblock">
+<div class="content"><!-- Generator: GNU source-highlight 2.9
+by Lorenzo Bettini
+http://www.lorenzobettini.it
+http://www.gnu.org/software/src-highlite -->
+<pre><tt>map<span style="color: #990000">.</span>connect <span style="color: #FF0000">'photo/:id'</span><span style="color: #990000">,</span> <span style="color: #990000">:</span>controller <span style="color: #990000">=&gt;</span> <span style="color: #FF0000">'photos'</span><span style="color: #990000">,</span> <span style="color: #990000">:</span>action <span style="color: #990000">=&gt;</span> <span style="color: #FF0000">'show'</span><span style="color: #990000">,</span>
+ <span style="color: #990000">:</span>conditions <span style="color: #990000">=&gt;</span> <span style="color: #FF0000">{</span> <span style="color: #990000">:</span>method <span style="color: #990000">=&gt;</span> <span style="color: #990000">:</span>get <span style="color: #FF0000">}</span>
+</tt></pre></div></div>
+<div class="para"><p>As with conditions in RESTful routes, you can specify <tt>:get</tt>, <tt>:post</tt>, <tt>:put</tt>, <tt>:delete</tt>, or <tt>:any</tt> for the acceptable method.</p></div>
+<h3 id="_route_globbing">4.9. Route Globbing</h3>
+<div class="para"><p>Route globbing is a way to specify that a particular parameter (which must be the last parameter in the route) should be matched to all the remaining parts of a route. For example</p></div>
+<div class="listingblock">
+<div class="content"><!-- Generator: GNU source-highlight 2.9
+by Lorenzo Bettini
+http://www.lorenzobettini.it
+http://www.gnu.org/software/src-highlite -->
+<pre><tt>map<span style="color: #990000">.</span>connect <span style="color: #FF0000">'photo/*other'</span><span style="color: #990000">,</span> <span style="color: #990000">:</span>controller <span style="color: #990000">=&gt;</span> <span style="color: #FF0000">'photos'</span><span style="color: #990000">,</span> <span style="color: #990000">:</span>action <span style="color: #990000">=&gt;</span> <span style="color: #FF0000">'unknown'</span><span style="color: #990000">,</span>
+</tt></pre></div></div>
+<div class="para"><p>This route would match <tt>photo/12</tt> or <tt>/photo/long/path/to/12</tt> equally well, creating an array of path segments as the value of <tt>params[:other]</tt>.</p></div>
+<h3 id="_route_options">4.10. Route Options</h3>
+<div class="para"><p>You can use <tt>:with_options</tt> to simplify defining groups of similar routes:</p></div>
+<div class="listingblock">
+<div class="content"><!-- Generator: GNU source-highlight 2.9
+by Lorenzo Bettini
+http://www.lorenzobettini.it
+http://www.gnu.org/software/src-highlite -->
+<pre><tt>map<span style="color: #990000">.</span>with_options <span style="color: #990000">:</span>controller <span style="color: #990000">=&gt;</span> <span style="color: #FF0000">'photo'</span> <span style="font-weight: bold"><span style="color: #0000FF">do</span></span> <span style="color: #990000">|</span>photo<span style="color: #990000">|</span>
+  photo<span style="color: #990000">.</span>list <span style="color: #FF0000">''</span><span style="color: #990000">,</span> <span style="color: #990000">:</span>action <span style="color: #990000">=&gt;</span> <span style="color: #FF0000">'index'</span>
+  photo<span style="color: #990000">.</span>delete <span style="color: #FF0000">':id/delete'</span><span style="color: #990000">,</span> <span style="color: #990000">:</span>action <span style="color: #990000">=&gt;</span> <span style="color: #FF0000">'delete'</span>
+  photo<span style="color: #990000">.</span>edit <span style="color: #FF0000">':id/edit'</span><span style="color: #990000">,</span> <span style="color: #990000">:</span>action <span style="color: #990000">=&gt;</span> <span style="color: #FF0000">'edit'</span>
+<span style="font-weight: bold"><span style="color: #0000FF">end</span></span>
+</tt></pre></div></div>
+<div class="para"><p>The importance of <tt>map.with_options</tt> has declined with the introduction of RESTful routes.</p></div>
+</div>
+<h2 id="_formats_and_respond_to">5. Formats and respond_to</h2>
+<div class="sectionbody">
+<div class="para"><p>There's one more way in which routing can do different things depending on differences in the incoming HTTP request: by issuing a response that corresponds to what the request specifies that it will accept. In Rails routing, you can control this with the special <tt>:format</tt> parameter in the route.</p></div>
+<div class="para"><p>For instance, consider the second of the default routes in the boilerplate <tt>routes.rb</tt> file:</p></div>
+<div class="listingblock">
+<div class="content"><!-- Generator: GNU source-highlight 2.9
+by Lorenzo Bettini
+http://www.lorenzobettini.it
+http://www.gnu.org/software/src-highlite -->
+<pre><tt>map<span style="color: #990000">.</span>connect <span style="color: #FF0000">':controller/:action/:id.:format'</span>
+</tt></pre></div></div>
+<div class="para"><p>This route matches requests such as <tt>/photo/edit/1.xml</tt> or <tt>/photo/show/2.rss</tt>. Within the appropriate action code, you can issue different responses depending on the requested format:</p></div>
+<div class="listingblock">
+<div class="content"><!-- Generator: GNU source-highlight 2.9
+by Lorenzo Bettini
+http://www.lorenzobettini.it
+http://www.gnu.org/software/src-highlite -->
+<pre><tt>respond_to <span style="font-weight: bold"><span style="color: #0000FF">do</span></span> <span style="color: #990000">|</span>format<span style="color: #990000">|</span>
+  format<span style="color: #990000">.</span>html <span style="font-style: italic"><span style="color: #9A1900"># return the default template for HTML</span></span>
+  format<span style="color: #990000">.</span>xml <span style="color: #FF0000">{</span> render <span style="color: #990000">:</span>xml <span style="color: #990000">=&gt;</span> <span style="color: #009900">@photo</span><span style="color: #990000">.</span>to_xml <span style="color: #FF0000">}</span>
+<span style="font-weight: bold"><span style="color: #0000FF">end</span></span>
+</tt></pre></div></div>
+<h3 id="_specifying_the_format_with_an_http_header">5.1. Specifying the Format with an HTTP Header</h3>
+<div class="para"><p>If there is no <tt>:format</tt> parameter in the route, Rails will automatically look at the HTTP Accept header to determine the desired format.</p></div>
+<h3 id="_recognized_mime_types">5.2. Recognized MIME types</h3>
+<div class="para"><p>By default, Rails recognizes <tt>html</tt>, <tt>text</tt>, <tt>json</tt>, <tt>csv</tt>, <tt>xml</tt>, <tt>rss</tt>, <tt>atom</tt>, and <tt>yaml</tt> as acceptable response types. If you need types beyond this, you can register them in your environment:</p></div>
+<div class="listingblock">
+<div class="content"><!-- Generator: GNU source-highlight 2.9
+by Lorenzo Bettini
+http://www.lorenzobettini.it
+http://www.gnu.org/software/src-highlite -->
+<pre><tt>Mime<span style="color: #990000">::</span>Type<span style="color: #990000">.</span>register <span style="color: #FF0000">"image/jpg"</span><span style="color: #990000">,</span> <span style="color: #990000">:</span>jpg
+</tt></pre></div></div>
+</div>
+<h2 id="_the_default_routes">6. The Default Routes</h2>
+<div class="sectionbody">
+<div class="para"><p>When you create a new Rails application, <tt>routes.rb</tt> is initialized with two default routes:</p></div>
+<div class="listingblock">
+<div class="content"><!-- Generator: GNU source-highlight 2.9
+by Lorenzo Bettini
+http://www.lorenzobettini.it
+http://www.gnu.org/software/src-highlite -->
+<pre><tt>map<span style="color: #990000">.</span>connect <span style="color: #FF0000">':controller/:action/:id'</span>
+map<span style="color: #990000">.</span>connect <span style="color: #FF0000">':controller/:action/:id.:format'</span>
+</tt></pre></div></div>
+<div class="para"><p>These routes provide reasonable defaults for many URLs, if you're not using RESTful routing.</p></div>
+<div class="admonitionblock">
+<table><tr>
+<td class="icon">
+<img src="/Users/lifo/Docs/docrails/railties/doc/guides/source/icons/note.png" alt="Note" />
+</td>
+<td class="content">The default routes will make every action of every controller in your application accessible to GET requests. If you've designed your application to make consistent use of RESTful and named routes, you should comment out the default routes to prevent access to your controllers through the wrong verbs. If you've had the default routes enabled during development, though, you need to be sure that you haven't unwittingly depended on them somewhere in your application - otherwise you may find mysterious failures when you disable them.</td>
+</tr></table>
+</div>
+</div>
+<h2 id="_the_empty_route">7. The Empty Route</h2>
+<div class="sectionbody">
+<div class="para"><p>Don't confuse the default routes with the empty route. The empty route has one specific purpose: to route requests that come in to the root of the web site. For example, if your site is example.com, then requests to <tt>http://example.com</tt> or <tt>http://example.com/</tt> will be handled by the empty route.</p></div>
+<h3 id="_using_map_root">7.1. Using map.root</h3>
+<div class="para"><p>The preferred way to set up the empty route is with the <tt>map.root</tt> command:</p></div>
+<div class="listingblock">
+<div class="content"><!-- Generator: GNU source-highlight 2.9
+by Lorenzo Bettini
+http://www.lorenzobettini.it
+http://www.gnu.org/software/src-highlite -->
+<pre><tt>map<span style="color: #990000">.</span>root <span style="color: #990000">:</span>controller <span style="color: #990000">=&gt;</span> <span style="color: #FF0000">"pages"</span><span style="color: #990000">,</span> <span style="color: #990000">:</span>action <span style="color: #990000">=&gt;</span> <span style="color: #FF0000">"main"</span>
+</tt></pre></div></div>
+<div class="para"><p>The use of the <tt>root</tt> method tells Rails that this route applies to requests for the root of the site.</p></div>
+<div class="para"><p>For better readability, you can specify an already-created route in your call to <tt>map.root</tt>:</p></div>
+<div class="listingblock">
+<div class="content"><!-- Generator: GNU source-highlight 2.9
+by Lorenzo Bettini
+http://www.lorenzobettini.it
+http://www.gnu.org/software/src-highlite -->
+<pre><tt>map<span style="color: #990000">.</span>index <span style="color: #990000">:</span>controller <span style="color: #990000">=&gt;</span> <span style="color: #FF0000">"pages"</span><span style="color: #990000">,</span> <span style="color: #990000">:</span>action <span style="color: #990000">=&gt;</span> <span style="color: #FF0000">"main"</span>
+map<span style="color: #990000">.</span>root <span style="color: #990000">:</span>index
+</tt></pre></div></div>
+<div class="para"><p>Because of the top-down processing of the file, the named route must be specified <em>before</em> the call to <tt>map.root</tt>.</p></div>
+<h3 id="_connecting_the_empty_string">7.2. Connecting the Empty String</h3>
+<div class="para"><p>You can also specify an empty route by explicitly connecting the empty string:</p></div>
+<div class="listingblock">
+<div class="content"><!-- Generator: GNU source-highlight 2.9
+by Lorenzo Bettini
+http://www.lorenzobettini.it
+http://www.gnu.org/software/src-highlite -->
+<pre><tt>map<span style="color: #990000">.</span>connect <span style="color: #FF0000">''</span><span style="color: #990000">,</span> <span style="color: #990000">:</span>controller <span style="color: #990000">=&gt;</span> <span style="color: #FF0000">"pages"</span><span style="color: #990000">,</span> <span style="color: #990000">:</span>action <span style="color: #990000">=&gt;</span> <span style="color: #FF0000">"main"</span>
+</tt></pre></div></div>
+<div class="admonitionblock">
+<table><tr>
+<td class="icon">
+<img src="/Users/lifo/Docs/docrails/railties/doc/guides/source/icons/tip.png" alt="Tip" />
+</td>
+<td class="content">If the empty route does not seem to be working in your application, make sure that you have deleted the file <tt>public/index.html</tt> from your Rails tree.</td>
+</tr></table>
+</div>
+</div>
+<h2 id="_inspecting_and_testing_routes">8. Inspecting and Testing Routes</h2>
+<div class="sectionbody">
+<div class="para"><p>Routing in your application should not be a "black box" that you never open. Rails offers built-in tools for both inspecting and testing routes.</p></div>
+<h3 id="_seeing_existing_routes_with_rake">8.1. Seeing Existing Routes with rake</h3>
+<div class="para"><p>If you want a complete list of all of the available routes in your application, run the <tt>rake routes</tt> command. This will dump all of your routes to the console, in the same order that they appear in <tt>routes.rb</tt>. For each route, you'll see:</p></div>
+<div class="ilist"><ul>
+<li>
+<p>
+The route name (if any)
+</p>
+</li>
+<li>
+<p>
+The HTTP verb used (if the route doesn't respond to all verbs)
+</p>
+</li>
+<li>
+<p>
+The URL pattern
+</p>
+</li>
+<li>
+<p>
+The routing parameters that will be generated by this URL
+</p>
+</li>
+</ul></div>
+<div class="para"><p>For example, here's a small section of the <tt>rake routes</tt> output for a RESTful route:</p></div>
+<div class="listingblock">
+<div class="content">
+<pre><tt>          users GET  /users          {:controller=&gt;"users", :action=&gt;"index"}
+formatted_users GET  /users.:format  {:controller=&gt;"users", :action=&gt;"index"}
+                POST /users          {:controller=&gt;"users", :action=&gt;"create"}
+                POST /users.:format  {:controller=&gt;"users", :action=&gt;"create"}</tt></pre>
+</div></div>
+<div class="admonitionblock">
+<table><tr>
+<td class="icon">
+<img src="/Users/lifo/Docs/docrails/railties/doc/guides/source/icons/tip.png" alt="Tip" />
+</td>
+<td class="content">You'll find that the output from <tt>rake routes</tt> is much more readable if you widen your terminal window until the output lines don't wrap.</td>
+</tr></table>
+</div>
+<h3 id="_testing_routes">8.2. Testing Routes</h3>
+<div class="para"><p>Routes should be included in your testing strategy (just like the rest of your application). Rails offers three <a href="http://api.rubyonrails.com/classes/ActionController/Assertions/RoutingAssertions.html">built-in assertions</a> designed to make testing routes simpler:</p></div>
+<div class="ilist"><ul>
+<li>
+<p>
+<tt>assert_generates</tt>
+</p>
+</li>
+<li>
+<p>
+<tt>assert_recognizes</tt>
+</p>
+</li>
+<li>
+<p>
+<tt>assert_routing</tt>
+</p>
+</li>
+</ul></div>
+<h4 id="_the_tt_assert_generates_tt_assertion">8.2.1. The <tt>assert_generates</tt> Assertion</h4>
+<div class="para"><p>Use <tt>assert_generates</tt> to assert that a particular set of options generate a particular path. You can use this with default routes or custom routes</p></div>
+<div class="listingblock">
+<div class="content"><!-- Generator: GNU source-highlight 2.9
+by Lorenzo Bettini
+http://www.lorenzobettini.it
+http://www.gnu.org/software/src-highlite -->
+<pre><tt>assert_generates <span style="color: #FF0000">"/photos/1"</span><span style="color: #990000">,</span> <span style="color: #FF0000">{</span> <span style="color: #990000">:</span>controller <span style="color: #990000">=&gt;</span> <span style="color: #FF0000">"photos"</span><span style="color: #990000">,</span> <span style="color: #990000">:</span>action <span style="color: #990000">=&gt;</span> <span style="color: #FF0000">"show"</span><span style="color: #990000">,</span> <span style="color: #990000">:</span>id <span style="color: #990000">=&gt;</span> <span style="color: #FF0000">"1"</span> <span style="color: #FF0000">}</span>
+assert_generates <span style="color: #FF0000">"/about"</span><span style="color: #990000">,</span> <span style="color: #990000">:</span>controller <span style="color: #990000">=&gt;</span> <span style="color: #FF0000">"pages"</span><span style="color: #990000">,</span> <span style="color: #990000">:</span>action <span style="color: #990000">=&gt;</span> <span style="color: #FF0000">"about"</span>
+</tt></pre></div></div>
+<h4 id="_the_tt_assert_recognizes_tt_assertion">8.2.2. The <tt>assert_recognizes</tt> Assertion</h4>
+<div class="para"><p>The <tt>assert_recognizes</tt> assertion is the inverse of <tt>assert_generates</tt>. It asserts that Rails recognizes the given path and routes it to a particular spot in your application.</p></div>
+<div class="listingblock">
+<div class="content"><!-- Generator: GNU source-highlight 2.9
+by Lorenzo Bettini
+http://www.lorenzobettini.it
+http://www.gnu.org/software/src-highlite -->
+<pre><tt>assert_recognizes <span style="color: #FF0000">{</span> <span style="color: #990000">:</span>controller <span style="color: #990000">=&gt;</span> <span style="color: #FF0000">"photos"</span><span style="color: #990000">,</span> <span style="color: #990000">:</span>action <span style="color: #990000">=&gt;</span> <span style="color: #FF0000">"show"</span><span style="color: #990000">,</span> <span style="color: #990000">:</span>id <span style="color: #990000">=&gt;</span> <span style="color: #FF0000">"1"</span> <span style="color: #FF0000">}</span><span style="color: #990000">,</span> <span style="color: #FF0000">"/photos/1"</span>
+</tt></pre></div></div>
+<div class="para"><p>You can supply a <tt>:method</tt> argument to specify the HTTP verb:</p></div>
+<div class="listingblock">
+<div class="content"><!-- Generator: GNU source-highlight 2.9
+by Lorenzo Bettini
+http://www.lorenzobettini.it
+http://www.gnu.org/software/src-highlite -->
+<pre><tt>assert_recognizes <span style="color: #FF0000">{</span> <span style="color: #990000">:</span>controller <span style="color: #990000">=&gt;</span> <span style="color: #FF0000">"photos"</span><span style="color: #990000">,</span> <span style="color: #990000">:</span>action <span style="color: #990000">=&gt;</span> <span style="color: #FF0000">"create"</span> <span style="color: #FF0000">}</span><span style="color: #990000">,</span> <span style="color: #FF0000">{</span> <span style="color: #990000">:</span>path <span style="color: #990000">=&gt;</span> <span style="color: #FF0000">"photos"</span><span style="color: #990000">,</span> <span style="color: #990000">:</span>method <span style="color: #990000">=&gt;</span> <span style="color: #990000">:</span>post <span style="color: #FF0000">}</span>
+</tt></pre></div></div>
+<div class="para"><p>You can also use the RESTful helpers to test recognition of a RESTful route:</p></div>
+<div class="listingblock">
+<div class="content"><!-- Generator: GNU source-highlight 2.9
+by Lorenzo Bettini
+http://www.lorenzobettini.it
+http://www.gnu.org/software/src-highlite -->
+<pre><tt>assert_recognizes new_photo_url<span style="color: #990000">,</span> <span style="color: #FF0000">{</span> <span style="color: #990000">:</span>path <span style="color: #990000">=&gt;</span> <span style="color: #FF0000">"photos"</span><span style="color: #990000">,</span> <span style="color: #990000">:</span>method <span style="color: #990000">=&gt;</span> <span style="color: #990000">:</span>post <span style="color: #FF0000">}</span>
+</tt></pre></div></div>
+<h4 id="_the_tt_assert_routing_tt_assertion">8.2.3. The <tt>assert_routing</tt> Assertion</h4>
+<div class="para"><p>The <tt>assert_routing</tt> assertion checks the route both ways: it tests that the path generates the options, and that the options generate the path. Thus, it combines the functions of <tt>assert_generates</tt> and <tt>assert_recognizes</tt>.</p></div>
+<div class="listingblock">
+<div class="content"><!-- Generator: GNU source-highlight 2.9
+by Lorenzo Bettini
+http://www.lorenzobettini.it
+http://www.gnu.org/software/src-highlite -->
+<pre><tt>assert_routing <span style="color: #FF0000">{</span> <span style="color: #990000">:</span>path <span style="color: #990000">=&gt;</span> <span style="color: #FF0000">"photos"</span><span style="color: #990000">,</span> <span style="color: #990000">:</span>method <span style="color: #990000">=&gt;</span> <span style="color: #990000">:</span>post <span style="color: #FF0000">}</span><span style="color: #990000">,</span> <span style="color: #FF0000">{</span> <span style="color: #990000">:</span>controller <span style="color: #990000">=&gt;</span> <span style="color: #FF0000">"photos"</span><span style="color: #990000">,</span> <span style="color: #990000">:</span>action <span style="color: #990000">=&gt;</span> <span style="color: #FF0000">"create"</span> <span style="color: #FF0000">}</span>
+</tt></pre></div></div>
+</div>
+<h2 id="_changelog">9. Changelog</h2>
+<div class="sectionbody">
+<div class="para"><p><a href="http://rails.lighthouseapp.com/projects/16213-rails-guides/tickets/3">Lighthouse ticket</a></p></div>
+<div class="ilist"><ul>
+<li>
+<p>
+October 4, 2008: Added additional detail on specifying verbs for resource member/collection routes , by <a href="../authors.html#mgunderloy">Mike Gunderloy</a>
+</p>
+</li>
+<li>
+<p>
+September 23, 2008: Added section on namespaced controllers and routing, by <a href="../authors.html#mgunderloy">Mike Gunderloy</a>
+</p>
+</li>
+<li>
+<p>
+September 10, 2008: initial version by <a href="../authors.html#mgunderloy">Mike Gunderloy</a>
+</p>
+</li>
+</ul></div>
+</div>
+
+		</div>
+	</div>
+</body>
+</html>

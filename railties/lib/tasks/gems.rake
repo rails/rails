@@ -11,7 +11,7 @@ end
 def print_gem_status(gem, indent=1)
   code = gem.loaded? ? (gem.frozen? ? "F" : "I") : " "
   puts "   "*(indent-1)+" - [#{code}] #{gem.name} #{gem.requirement.to_s}"
-  gem.dependencies.each { |g| print_gem_status(g, indent+1)}
+  gem.dependencies.each { |g| print_gem_status(g, indent+1)} if gem.loaded?
 end
 
 namespace :gems do
@@ -70,6 +70,7 @@ namespace :gems do
   task :refresh_specs => :base do
     require 'rubygems'
     require 'rubygems/gem_runner'
+    Rails::VendorGemSourceIndex.silence_spec_warnings = true
     Rails.configuration.gems.each do |gem|
       next unless gem.frozen? && (ENV['GEM'].blank? || ENV['GEM'] == gem.name)
       gem.refresh_spec(Rails::GemDependency.unpacked_path) if gem.loaded?

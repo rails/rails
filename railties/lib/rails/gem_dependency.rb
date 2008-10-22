@@ -151,7 +151,7 @@ module Rails
       end
 
       # Gem.activate changes the spec - get the original
-      real_spec = Gem::Specification.load(spec.loaded_from)
+      real_spec = Gem::Specification.load(specification.loaded_from)
       write_spec(directory, real_spec)
 
     end

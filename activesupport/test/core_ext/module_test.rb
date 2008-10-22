@@ -36,6 +36,11 @@ Someone   = Struct.new(:name, :place) do
   delegate :upcase, :to => "place.city"
 end
 
+Invoice   = Struct.new(:client) do
+  delegate :street, :city, :name, :to => :client, :prefix => true
+  delegate :street, :city, :name, :to => :client, :prefix => :customer
+end
+
 class Name
   delegate :upcase, :to => :@full_name
 
@@ -57,6 +62,10 @@ end
 EOF
 
 class ModuleTest < Test::Unit::TestCase
+  def setup
+    @david = Someone.new("David", Somewhere.new("Paulina", "Chicago"))
+  end
+
   def test_included_in_classes
     assert One.included_in_classes.include?(Ab)
     assert One.included_in_classes.include?(Xy::Bc)
@@ -65,14 +74,12 @@ class ModuleTest < Test::Unit::TestCase
   end
 
   def test_delegation_to_methods
-    david = Someone.new("David", Somewhere.new("Paulina", "Chicago"))
-    assert_equal "Paulina", david.street
-    assert_equal "Chicago", david.city
+    assert_equal "Paulina", @david.street
+    assert_equal "Chicago", @david.city
   end
 
   def test_delegation_down_hierarchy
-    david = Someone.new("David", Somewhere.new("Paulina", "Chicago"))
-    assert_equal "CHICAGO", david.upcase
+    assert_equal "CHICAGO", @david.upcase
   end
 
   def test_delegation_to_instance_variable
@@ -83,6 +90,20 @@ class ModuleTest < Test::Unit::TestCase
   def test_missing_delegation_target
     assert_raises(ArgumentError) { eval($nowhere) }
     assert_raises(ArgumentError) { eval($noplace) }
+  end
+
+  def test_delegation_prefix
+    invoice = Invoice.new(@david)
+    assert_equal invoice.client_name, "David"
+    assert_equal invoice.client_street, "Paulina"
+    assert_equal invoice.client_city, "Chicago"
+  end
+
+  def test_delegation_custom_prefix
+    invoice = Invoice.new(@david)
+    assert_equal invoice.customer_name, "David"
+    assert_equal invoice.customer_street, "Paulina"
+    assert_equal invoice.customer_city, "Chicago"
   end
 
   def test_parent

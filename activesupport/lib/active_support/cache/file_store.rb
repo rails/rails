@@ -16,6 +16,7 @@ module ActiveSupport
         super
         ensure_cache_path(File.dirname(real_file_path(name)))
         File.atomic_write(real_file_path(name), cache_path) { |f| Marshal.dump(value, f) }
+        value
       rescue => e
         logger.error "Couldn't create cache directory: #{name} (#{e.message})" if logger
       end

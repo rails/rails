@@ -31,8 +31,8 @@ class DurationTest < Test::Unit::TestCase
   end
 
   def test_fractional_weeks
-    assert_equal (86400 * 7) * 1.5, 1.5.weeks
-    assert_equal (86400 * 7) * 1.7, 1.7.weeks
+    assert_equal((86400 * 7) * 1.5, 1.5.weeks)
+    assert_equal((86400 * 7) * 1.7, 1.7.weeks)
   end
 
   def test_fractional_days

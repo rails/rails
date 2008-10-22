@@ -965,22 +965,6 @@ module ActionController #:nodoc:
         render :nothing => true, :status => status
       end
 
-      # Sets the Last-Modified response header. Returns 304 Not Modified if the
-      # If-Modified-Since request header is <= last modified.
-      def last_modified!(utc_time)
-        response.last_modified= utc_time
-        if request.if_modified_since && request.if_modified_since <= utc_time
-          head(:not_modified)
-        end
-      end
-
-      # Sets the ETag response header. Returns 304 Not Modified if the
-      # If-None-Match request header matches.
-      def etag!(etag)
-        response.etag = etag
-        head(:not_modified) if response.etag == request.if_none_match
-      end
-
       # Clears the rendered results, allowing for another render to be performed.
       def erase_render_results #:nodoc:
         response.body = nil
@@ -1088,6 +1072,51 @@ module ActionController #:nodoc:
         raise DoubleRenderError if performed?
         response.redirect(url, interpret_status(status))
         @performed_redirect = true
+      end
+
+      # Sets the etag and/or last_modified on the response and checks it against
+      # the client request. If the request doesn't match the options provided, the
+      # request is considered stale and should be generated from scratch. Otherwise,
+      # it's fresh and we don't need to generate anything and a reply of "304 Not Modified" is sent.
+      #
+      # Example:
+      #
+      #   def show
+      #     @article = Article.find(params[:id])
+      #
+      #     if stale?(:etag => @article, :last_modified => @article.created_at.utc)
+      #       @statistics = @article.really_expensive_call
+      #       respond_to do |format|
+      #         # all the supported formats
+      #       end
+      #     end
+      #   end
+      def stale?(options)
+        fresh_when(options)
+        !request.fresh?(response)
+      end
+
+      # Sets the etag, last_modified, or both on the response and renders a
+      # "304 Not Modified" response if the request is already fresh. 
+      #
+      # Example:
+      #
+      #   def show
+      #     @article = Article.find(params[:id])
+      #     fresh_when(:etag => @article, :last_modified => @article.created_at.utc)
+      #   end
+      # 
+      # This will render the show template if the request isn't sending a matching etag or 
+      # If-Modified-Since header and just a "304 Not Modified" response if there's a match.
+      def fresh_when(options)
+        options.assert_valid_keys(:etag, :last_modified)
+
+        response.etag          = options[:etag]          if options[:etag]
+        response.last_modified = options[:last_modified] if options[:last_modified]
+
+        if request.fresh?(response)
+          head :not_modified
+        end
       end
 
       # Sets a HTTP 1.1 Cache-Control header. Defaults to issuing a "private" instruction, so that

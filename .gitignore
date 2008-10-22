@@ -5,7 +5,6 @@ activerecord/doc
 actionpack/doc
 actionmailer/doc
 activesupport/doc
-railties/doc
 activeresource/pkg
 activerecord/pkg
 actionpack/pkg
@@ -13,4 +12,6 @@ actionmailer/pkg
 activesupport/pkg
 railties/pkg
 railties/test/500.html
+railties/doc/guides/html/images
+railties/doc/guides/html/stylesheets
 *.rbc
