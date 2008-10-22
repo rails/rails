@@ -300,7 +300,7 @@ http://www.gnu.org/software/src-highlite -->
 <div class="admonitionblock">
 <table><tr>
 <td class="icon">
-<img src="/Users/lifo/Docs/docrails/railties/doc/guides/source/icons/note.png" alt="Note" />
+<img src="./images/icons/note.png" alt="Note" />
 </td>
 <td class="content">The actual rendering is done by subclasses of <tt>ActionView::TemplateHandlers</tt>. This guide does not dig into that process, but it's important to know that the file extension on your view controls the choice of template handler. In Rails 2, the standard extensions are <tt>.erb</tt> for ERB (HTML with embedded Ruby), <tt>.rjs</tt> for RJS (javascript with embedded ruby) and <tt>.builder</tt> for Builder (XML generator). You'll also find <tt>.rhtml</tt> used for ERB templates and .rxml for Builder templates, but those extensions are now formally deprecated and will be removed from a future version of Rails.</td>
 </tr></table>
@@ -310,7 +310,7 @@ http://www.gnu.org/software/src-highlite -->
 <div class="admonitionblock">
 <table><tr>
 <td class="icon">
-<img src="/Users/lifo/Docs/docrails/railties/doc/guides/source/icons/tip.png" alt="Tip" />
+<img src="./images/icons/tip.png" alt="Tip" />
 </td>
 <td class="content">If you want to see the exact results of a call to <tt>render</tt> without needing to inspect it in a browser, you can call <tt>render_to_string</tt>. This method takes exactly the same options as <tt>render</tt>, but it returns a string instead of sending a response back to the browser.</td>
 </tr></table>
@@ -328,7 +328,7 @@ http://www.gnu.org/software/src-highlite -->
 <div class="admonitionblock">
 <table><tr>
 <td class="icon">
-<img src="/Users/lifo/Docs/docrails/railties/doc/guides/source/icons/tip.png" alt="Tip" />
+<img src="./images/icons/tip.png" alt="Tip" />
 </td>
 <td class="content">You should probably be using the <tt>head</tt> method, discussed later in this guide, instead of <tt>render :nothing</tt>. This provides additional flexibility and makes it explicit that you're only generating HTTP headers.</td>
 </tr></table>
@@ -354,7 +354,7 @@ http://www.gnu.org/software/src-highlite -->
 <div class="admonitionblock">
 <table><tr>
 <td class="icon">
-<img src="/Users/lifo/Docs/docrails/railties/doc/guides/source/icons/warning.png" alt="Warning" />
+<img src="./images/icons/warning.png" alt="Warning" />
 </td>
 <td class="content">Using <tt>render</tt> with <tt>:action</tt> is a frequent source of confusion for Rails newcomers. The specified action is used to determine which view to render, but Rails does <em>not</em> run any of the code for that action in the controller. Any instance variables that you require in the view must be set up in the current action before calling <tt>render</tt>.</td>
 </tr></table>
@@ -381,7 +381,7 @@ http://www.gnu.org/software/src-highlite -->
 <div class="admonitionblock">
 <table><tr>
 <td class="icon">
-<img src="/Users/lifo/Docs/docrails/railties/doc/guides/source/icons/note.png" alt="Note" />
+<img src="./images/icons/note.png" alt="Note" />
 </td>
 <td class="content">By default, if you use the <tt>:file</tt> option, the file is rendered without using the current layout. If you want Rails to put the file into the current layout, you need to add the <tt>:layout &#8658; true</tt> option</td>
 </tr></table>
@@ -398,7 +398,7 @@ http://www.gnu.org/software/src-highlite -->
 <div class="admonitionblock">
 <table><tr>
 <td class="icon">
-<img src="/Users/lifo/Docs/docrails/railties/doc/guides/source/icons/warning.png" alt="Warning" />
+<img src="./images/icons/warning.png" alt="Warning" />
 </td>
 <td class="content">There is seldom any good reason to use this option. Mixing ERB into your controllers defeats the MVC orientation of Rails and will make it harder for other developers to follow the logic of your project. Use a separate erb view instead.</td>
 </tr></table>
@@ -425,7 +425,7 @@ http://www.gnu.org/software/src-highlite -->
 <div class="admonitionblock">
 <table><tr>
 <td class="icon">
-<img src="/Users/lifo/Docs/docrails/railties/doc/guides/source/icons/warning.png" alt="Warning" />
+<img src="./images/icons/warning.png" alt="Warning" />
 </td>
 <td class="content">Placing javascript updates in your controller may seem to streamline small updates, but it defeats the MVC orientation of Rails and will make it harder for other developers to follow the logic of your project. I recommend using a separate rjs template instead, no matter how small the update.</td>
 </tr></table>
@@ -442,7 +442,7 @@ http://www.gnu.org/software/src-highlite -->
 <div class="admonitionblock">
 <table><tr>
 <td class="icon">
-<img src="/Users/lifo/Docs/docrails/railties/doc/guides/source/icons/tip.png" alt="Tip" />
+<img src="./images/icons/tip.png" alt="Tip" />
 </td>
 <td class="content">Rendering pure text is most useful when you're responding to AJAX or web service requests that are expecting something other than proper HTML.</td>
 </tr></table>
@@ -450,7 +450,7 @@ http://www.gnu.org/software/src-highlite -->
 <div class="admonitionblock">
 <table><tr>
 <td class="icon">
-<img src="/Users/lifo/Docs/docrails/railties/doc/guides/source/icons/note.png" alt="Note" />
+<img src="./images/icons/note.png" alt="Note" />
 </td>
 <td class="content">By default, if you use the <tt>:text</tt> option, the file is rendered without using the current layout. If you want Rails to put the text into the current layout, you need to add the <tt>:layout &#8658; true</tt> option</td>
 </tr></table>
@@ -467,7 +467,7 @@ http://www.gnu.org/software/src-highlite -->
 <div class="admonitionblock">
 <table><tr>
 <td class="icon">
-<img src="/Users/lifo/Docs/docrails/railties/doc/guides/source/icons/tip.png" alt="Tip" />
+<img src="./images/icons/tip.png" alt="Tip" />
 </td>
 <td class="content">You don't need to call <tt>to_json</tt> on the object that you want to render. If you use the <tt>:json</tt> option, <tt>render</tt> will automatically call <tt>to_json</tt> for you.</td>
 </tr></table>
@@ -484,7 +484,7 @@ http://www.gnu.org/software/src-highlite -->
 <div class="admonitionblock">
 <table><tr>
 <td class="icon">
-<img src="/Users/lifo/Docs/docrails/railties/doc/guides/source/icons/tip.png" alt="Tip" />
+<img src="./images/icons/tip.png" alt="Tip" />
 </td>
 <td class="content">You don't need to call <tt>to_xml</tt> on the object that you want to render. If you use the <tt>:xml</tt> option, <tt>render</tt> will automatically call <tt>to_xml</tt> for you.</td>
 </tr></table>
@@ -714,7 +714,7 @@ image_tag
 <div class="admonitionblock">
 <table><tr>
 <td class="icon">
-<img src="/Users/lifo/Docs/docrails/railties/doc/guides/source/icons/warning.png" alt="Warning" />
+<img src="./images/icons/warning.png" alt="Warning" />
 </td>
 <td class="content">The asset tags do <em>not</em> verify the existence of the assets at the specified locations; they simply assume that you know what you're doing and generate the link.</td>
 </tr></table>
@@ -1036,7 +1036,7 @@ http://www.gnu.org/software/src-highlite -->
 <div class="admonitionblock">
 <table><tr>
 <td class="icon">
-<img src="/Users/lifo/Docs/docrails/railties/doc/guides/source/icons/tip.png" alt="Tip" />
+<img src="./images/icons/tip.png" alt="Tip" />
 </td>
 <td class="content">For content that is shared among all pages in your application, you can use partials directly from layouts.</td>
 </tr></table>
