@@ -258,10 +258,15 @@ ul#navMain {
 						
 							<li><a href="#_count">Count</a></li>
 						
+							<li><a href="#_average">Average</a></li>
+						
+							<li><a href="#_minimum">Minimum</a></li>
+						
+							<li><a href="#_maximum">Maximum</a></li>
+						
+							<li><a href="#_sum">Sum</a></li>
+						
 						</ul>
-					</li>
-					<li>
-					<a href="#_with_scope">With Scope</a>
 					</li>
 					<li>
 					<a href="#_credits">Credits</a>
@@ -281,6 +286,8 @@ ul#navMain {
 							<li><a href="#_thursday_09_october_2008">Thursday, 09 October 2008</a></li>
 						
 							<li><a href="#_tuesday_21_october_2008">Tuesday, 21 October 2008</a></li>
+						
+							<li><a href="#_wednesday_22_october_2008">Wednesday, 22 October 2008</a></li>
 						
 						</ul>
 					</li>
@@ -550,7 +557,23 @@ http://www.gnu.org/software/src-highlite -->
 </div>
 <h2 id="_group">9. Group</h2>
 <div class="sectionbody">
-<div class="para"><p>TODO</p></div>
+<div class="para"><p>The group option for find is useful, for example, if you want to find a collection of the dates orders were created on. We could use the option in this context:</p></div>
+<div class="exampleblock">
+<div class="exampleblock-content"><!-- Generator: GNU source-highlight 2.9
+by Lorenzo Bettini
+http://www.lorenzobettini.it
+http://www.gnu.org/software/src-highlite -->
+<pre><tt>Order<span style="color: #990000">.</span>find<span style="color: #990000">(:</span>all<span style="color: #990000">,</span> <span style="color: #990000">:</span>group <span style="color: #990000">=&gt;</span> <span style="color: #FF0000">"date(created_at)"</span><span style="color: #990000">,</span> <span style="color: #990000">:</span>order <span style="color: #990000">=&gt;</span> <span style="color: #FF0000">"created_at"</span><span style="color: #990000">)</span>
+</tt></pre></div></div>
+<div class="para"><p>And this will give us a single Order object for each date that we have orders in our database.</p></div>
+<div class="para"><p>The SQL that would be executed would be something like this:</p></div>
+<div class="exampleblock">
+<div class="exampleblock-content"><!-- Generator: GNU source-highlight 2.9
+by Lorenzo Bettini
+http://www.lorenzobettini.it
+http://www.gnu.org/software/src-highlite -->
+<pre><tt><span style="font-weight: bold"><span style="color: #0000FF">SELECT</span></span> <span style="color: #990000">*</span> <span style="font-weight: bold"><span style="color: #0000FF">FROM</span></span> <span style="color: #FF0000">`orders`</span> <span style="font-weight: bold"><span style="color: #0000FF">GROUP</span></span> <span style="font-weight: bold"><span style="color: #0000FF">BY</span></span> <span style="color: #009900">date</span><span style="color: #990000">(</span>created_at<span style="color: #990000">)</span>
+</tt></pre></div></div>
 </div>
 <h2 id="_read_only">10. Read Only</h2>
 <div class="sectionbody">
@@ -577,7 +600,15 @@ client<span style="color: #990000">.</span>save
 <div class="sectionbody">
 <div class="para"><p>If you're wanting to stop race conditions for a specific record, say for example you're incrementing a single field for a record you can use the lock option to ensure that the record is updated correctly. It's recommended this be used inside a transaction.</p></div>
 <div class="exampleblock">
-<div class="exampleblock-content"></div></div>
+<div class="exampleblock-content"><!-- Generator: GNU source-highlight 2.9
+by Lorenzo Bettini
+http://www.lorenzobettini.it
+http://www.gnu.org/software/src-highlite -->
+<pre><tt>Topic<span style="color: #990000">.</span>transaction <span style="font-weight: bold"><span style="color: #0000FF">do</span></span>
+  t <span style="color: #990000">=</span> Topic<span style="color: #990000">.</span>find<span style="color: #990000">(</span>params<span style="color: #990000">[:</span>id<span style="color: #990000">],</span> <span style="color: #990000">:</span>lock <span style="color: #990000">=&gt;</span> <span style="font-weight: bold"><span style="color: #0000FF">true</span></span><span style="color: #990000">)</span>
+  t<span style="color: #990000">.</span>increment!<span style="color: #990000">(:</span>views<span style="color: #990000">)</span>
+<span style="font-weight: bold"><span style="color: #0000FF">end</span></span>
+</tt></pre></div></div>
 </div>
 <h2 id="_making_it_all_work_together">12. Making It All Work Together</h2>
 <div class="sectionbody">
@@ -607,7 +638,12 @@ http://www.gnu.org/software/src-highlite -->
 <div class="para"><p>This query is more efficent, but there's a gotcha. If you have a client who does not have an address or a mailing address they will not be returned in this query at all. If you have any association as an optional association, you may want to use include rather than joins.</p></div>
 <div class="para"><p>When using eager loading you can specify conditions for the columns of the tables inside the eager loading to get back a smaller subset. If, for example, you want to find a client and all their orders within the last two weeks you could use eager loading with conditions for this:</p></div>
 <div class="exampleblock">
-<div class="exampleblock-content"></div></div>
+<div class="exampleblock-content"><!-- Generator: GNU source-highlight 2.9
+by Lorenzo Bettini
+http://www.lorenzobettini.it
+http://www.gnu.org/software/src-highlite -->
+<pre><tt>Client<span style="color: #990000">.</span>find<span style="color: #990000">(:</span>first<span style="color: #990000">,</span> <span style="color: #990000">:</span><span style="font-weight: bold"><span style="color: #0000FF">include</span></span> <span style="color: #990000">=&gt;</span> <span style="color: #FF0000">"orders"</span><span style="color: #990000">,</span> <span style="color: #990000">:</span>conditions <span style="color: #990000">=&gt;</span> <span style="color: #990000">[</span><span style="color: #FF0000">"orders.created_at &gt;= ? AND orders.created_at &lt;= ?"</span><span style="color: #990000">,</span> Time<span style="color: #990000">.</span>now <span style="color: #990000">-</span> <span style="color: #993399">2</span><span style="color: #990000">.</span>weeks<span style="color: #990000">,</span> Time<span style="color: #990000">.</span>now<span style="color: #990000">])</span>
+</tt></pre></div></div>
 </div>
 <h2 id="_dynamic_finders">14. Dynamic finders</h2>
 <div class="sectionbody">
@@ -776,8 +812,7 @@ http://www.gnu.org/software/src-highlite -->
 </div>
 <h2 id="_calculations">19. Calculations</h2>
 <div class="sectionbody">
-<h3 id="_count">19.1. Count</h3>
-<div class="para"><p>If you want to see how many records are in your models table you could call <tt>Client.count</tt> and that will return the number. If you want to be more specific and find all the clients with their age present in the database you can use <tt>Client.count(:age)</tt>.</p></div>
+<div class="para"><p>This section uses count as an example method in this preamble, but the options described apply to all sub-sections.</p></div>
 <div class="para"><p><tt>count</tt> takes conditions much in the same way <tt>exists?</tt> does:</p></div>
 <div class="exampleblock">
 <div class="exampleblock-content"><!-- Generator: GNU source-highlight 2.9
@@ -786,6 +821,7 @@ http://www.lorenzobettini.it
 http://www.gnu.org/software/src-highlite -->
 <pre><tt>Client<span style="color: #990000">.</span>count<span style="color: #990000">(:</span>conditions <span style="color: #990000">=&gt;</span> <span style="color: #FF0000">"first_name = 'Ryan'"</span><span style="color: #990000">)</span>
 </tt></pre></div></div>
+<div class="para"><p>Which will execute:</p></div>
 <div class="exampleblock">
 <div class="exampleblock-content"><!-- Generator: GNU source-highlight 2.9
 by Lorenzo Bettini
@@ -793,19 +829,76 @@ http://www.lorenzobettini.it
 http://www.gnu.org/software/src-highlite -->
 <pre><tt><span style="font-weight: bold"><span style="color: #0000FF">SELECT</span></span> count<span style="color: #990000">(*)</span> <span style="font-weight: bold"><span style="color: #0000FF">AS</span></span> count_all <span style="font-weight: bold"><span style="color: #0000FF">FROM</span></span> <span style="color: #FF0000">`clients`</span> <span style="font-weight: bold"><span style="color: #0000FF">WHERE</span></span> <span style="color: #990000">(</span>first_name <span style="color: #990000">=</span> <span style="color: #993399">1</span><span style="color: #990000">)</span>
 </tt></pre></div></div>
+<div class="para"><p>You can also use <tt>include</tt> or <tt>joins</tt> for this to do something a little more complex:</p></div>
+<div class="exampleblock">
+<div class="exampleblock-content"><!-- Generator: GNU source-highlight 2.9
+by Lorenzo Bettini
+http://www.lorenzobettini.it
+http://www.gnu.org/software/src-highlite -->
+<pre><tt>Client<span style="color: #990000">.</span>count<span style="color: #990000">(:</span>conditions <span style="color: #990000">=&gt;</span> <span style="color: #FF0000">"clients.first_name = 'Ryan' AND orders.status = 'received'"</span><span style="color: #990000">,</span> <span style="color: #990000">:</span><span style="font-weight: bold"><span style="color: #0000FF">include</span></span> <span style="color: #990000">=&gt;</span> <span style="color: #FF0000">"orders"</span><span style="color: #990000">)</span>
+</tt></pre></div></div>
+<div class="para"><p>Which will execute:</p></div>
+<div class="exampleblock">
+<div class="exampleblock-content"><!-- Generator: GNU source-highlight 2.9
+by Lorenzo Bettini
+http://www.lorenzobettini.it
+http://www.gnu.org/software/src-highlite -->
+<pre><tt><span style="font-weight: bold"><span style="color: #0000FF">SELECT</span></span> count<span style="color: #990000">(</span><span style="font-weight: bold"><span style="color: #0000FF">DISTINCT</span></span> <span style="color: #FF0000">`clients`</span><span style="color: #990000">.</span>id<span style="color: #990000">)</span> <span style="font-weight: bold"><span style="color: #0000FF">AS</span></span> count_all <span style="font-weight: bold"><span style="color: #0000FF">FROM</span></span> <span style="color: #FF0000">`clients`</span> <span style="font-weight: bold"><span style="color: #0000FF">LEFT</span></span> <span style="font-weight: bold"><span style="color: #0000FF">OUTER</span></span> <span style="font-weight: bold"><span style="color: #0000FF">JOIN</span></span> <span style="color: #FF0000">`orders`</span> <span style="font-weight: bold"><span style="color: #0000FF">ON</span></span> orders<span style="color: #990000">.</span>client_id <span style="color: #990000">=</span> client<span style="color: #990000">.</span>id <span style="font-weight: bold"><span style="color: #0000FF">WHERE</span></span> <span style="color: #990000">(</span>clients<span style="color: #990000">.</span>first_name <span style="color: #990000">=</span> <span style="color: #FF0000">'name'</span> <span style="font-weight: bold"><span style="color: #0000FF">AND</span></span> orders<span style="color: #990000">.</span><span style="font-weight: bold"><span style="color: #0000FF">status</span></span> <span style="color: #990000">=</span> <span style="color: #FF0000">'received'</span><span style="color: #990000">)</span>
+</tt></pre></div></div>
+<div class="para"><p>We specify <tt>clients.first_name</tt> just in case one of our join tables has a field also called <tt>first_name</tt> and we do <tt>orders.status</tt> because that's the name of our join table.</p></div>
+<h3 id="_count">19.1. Count</h3>
+<div class="para"><p>If you want to see how many records are in your model's table you could call <tt>Client.count</tt> and that will return the number. If you want to be more specific and find all the clients with their age present in the database you can use <tt>Client.count(:age)</tt>.</p></div>
+<div class="para"><p>For options, please see the parent section, Calculations.</p></div>
+<h3 id="_average">19.2. Average</h3>
+<div class="para"><p>If you want to see the average of a certain number in one of your tables you can call the <tt>average</tt> method on the class that relates to the table. This method call will look something like this:</p></div>
+<div class="exampleblock">
+<div class="exampleblock-content"><!-- Generator: GNU source-highlight 2.9
+by Lorenzo Bettini
+http://www.lorenzobettini.it
+http://www.gnu.org/software/src-highlite -->
+<pre><tt>Client<span style="color: #990000">.</span>average<span style="color: #990000">(</span><span style="color: #FF0000">"orders_count"</span><span style="color: #990000">)</span>
+</tt></pre></div></div>
+<div class="para"><p>This will return a number (possibly a floating point number such as 3.14159265) representing the average of the fields.</p></div>
+<div class="para"><p>For options, please see the parent section, <a href="#_calculations">Calculations</a></p></div>
+<h3 id="_minimum">19.3. Minimum</h3>
+<div class="para"><p>If you want to find the minimum value of a field in your table you can call the <tt>minimum</tt> method on the class that relates to the table. This method call will look something like this:</p></div>
+<div class="exampleblock">
+<div class="exampleblock-content"><!-- Generator: GNU source-highlight 2.9
+by Lorenzo Bettini
+http://www.lorenzobettini.it
+http://www.gnu.org/software/src-highlite -->
+<pre><tt>Client<span style="color: #990000">.</span>minimum<span style="color: #990000">(</span><span style="color: #FF0000">"age"</span><span style="color: #990000">)</span>
+</tt></pre></div></div>
+<div class="para"><p>For options, please see the parent section, <a href="#_calculations">Calculations</a></p></div>
+<h3 id="_maximum">19.4. Maximum</h3>
+<div class="para"><p>If you want to find the maximum value of a field in your table you can call the <tt>maximum</tt> method on the class that relates to the table. This method call will look something like this:</p></div>
+<div class="exampleblock">
+<div class="exampleblock-content"><!-- Generator: GNU source-highlight 2.9
+by Lorenzo Bettini
+http://www.lorenzobettini.it
+http://www.gnu.org/software/src-highlite -->
+<pre><tt>Client<span style="color: #990000">.</span>maximum<span style="color: #990000">(</span><span style="color: #FF0000">"age"</span><span style="color: #990000">)</span>
+</tt></pre></div></div>
+<div class="para"><p>For options, please see the parent section, <a href="#_calculations">Calculations</a></p></div>
+<h3 id="_sum">19.5. Sum</h3>
+<div class="para"><p>If you want to find the sum of a field for all records in your table you can call the <tt>sum</tt> method on the class that relates to the table. This method call will look something like this:</p></div>
+<div class="exampleblock">
+<div class="exampleblock-content"><!-- Generator: GNU source-highlight 2.9
+by Lorenzo Bettini
+http://www.lorenzobettini.it
+http://www.gnu.org/software/src-highlite -->
+<pre><tt>Client<span style="color: #990000">.</span>sum<span style="color: #990000">(</span><span style="color: #FF0000">"orders_count"</span><span style="color: #990000">)</span>
+</tt></pre></div></div>
+<div class="para"><p>For options, please see the parent section,  <a href="#_calculations">Calculations</a></p></div>
 </div>
-<h2 id="_with_scope">20. With Scope</h2>
-<div class="sectionbody">
-<div class="para"><p>TODO</p></div>
-</div>
-<h2 id="_credits">21. Credits</h2>
+<h2 id="_credits">20. Credits</h2>
 <div class="sectionbody">
 <div class="para"><p>Thanks to Ryan Bates for his awesome screencast on named scope #108. The information within the named scope section is intentionally similar to it, and without the cast may have not been possible.</p></div>
 <div class="para"><p>Thanks to Mike Gunderloy for his tips on creating this guide.</p></div>
 </div>
-<h2 id="_change_log">22. Change Log</h2>
+<h2 id="_change_log">21. Change Log</h2>
 <div class="sectionbody">
-<h3 id="_sunday_28_september_2008">22.1. Sunday, 28 September 2008</h3>
+<h3 id="_sunday_28_september_2008">21.1. Sunday, 28 September 2008</h3>
 <div class="olist"><ol>
 <li>
 <p>
@@ -833,7 +926,7 @@ Added finding by id and passing in ids to "IDs, First, Last and All"
 </p>
 </li>
 </ol></div>
-<h3 id="_wednesday_01_october_2008">22.2. Wednesday, 01 October 2008</h3>
+<h3 id="_wednesday_01_october_2008">21.2. Wednesday, 01 October 2008</h3>
 <div class="olist"><ol>
 <li>
 <p>
@@ -846,7 +939,7 @@ Altered formatting so it doesn't look bad.
 </p>
 </li>
 </ol></div>
-<h3 id="_sunday_05_october_2008">22.3. Sunday, 05 October 2008</h3>
+<h3 id="_sunday_05_october_2008">21.3. Sunday, 05 October 2008</h3>
 <div class="olist"><ol>
 <li>
 <p>
@@ -864,7 +957,7 @@ Added TODO sections.
 </p>
 </li>
 </ol></div>
-<h3 id="_monday_06_october_2008">22.4. Monday, 06 October 2008</h3>
+<h3 id="_monday_06_october_2008">21.4. Monday, 06 October 2008</h3>
 <div class="olist"><ol>
 <li>
 <p>
@@ -872,7 +965,7 @@ Added section in Eager Loading about using conditions on tables that are not the
 </p>
 </li>
 </ol></div>
-<h3 id="_thursday_09_october_2008">22.5. Thursday, 09 October 2008</h3>
+<h3 id="_thursday_09_october_2008">21.5. Thursday, 09 October 2008</h3>
 <div class="olist"><ol>
 <li>
 <p>
@@ -885,11 +978,19 @@ Added section on using count.
 </p>
 </li>
 </ol></div>
-<h3 id="_tuesday_21_october_2008">22.6. Tuesday, 21 October 2008</h3>
+<h3 id="_tuesday_21_october_2008">21.6. Tuesday, 21 October 2008</h3>
 <div class="olist"><ol>
 <li>
 <p>
 Extended named scope guide by adding :include and :joins and find sub-sections.
+</p>
+</li>
+</ol></div>
+<h3 id="_wednesday_22_october_2008">21.7. Wednesday, 22 October 2008</h3>
+<div class="olist"><ol>
+<li>
+<p>
+Completed calculations section.
 </p>
 </li>
 </ol></div>
