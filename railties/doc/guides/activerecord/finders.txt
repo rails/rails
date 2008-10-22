@@ -183,7 +183,17 @@ SELECT * FROM clients LIMIT 5, 5
 
 == Group
 
-TODO
+The group option for find is useful, for example, if you want to find a collection of the dates orders were created on. We could use the option in this context:
+
+[source, ruby]
+Order.find(:all, :group => "date(created_at)", :order => "created_at")
+
+And this will give us a single Order object for each date that we have orders in our database. 
+
+The SQL that would be executed would be something like this:
+
+[source, sql]
+SELECT * FROM `orders` GROUP BY date(created_at)
 
 == Read Only
 
@@ -203,7 +213,7 @@ client.save
 
 If you're wanting to stop race conditions for a specific record, say for example you're incrementing a single field for a record you can use the lock option to ensure that the record is updated correctly. It's recommended this be used inside a transaction.
 
-[source, Ruby]
+[source, ruby]
 Topic.transaction do
   t = Topic.find(params[:id], :lock => true)
   t.increment!(:views)
@@ -233,7 +243,7 @@ This query is more efficent, but there's a gotcha. If you have a client who does
 
 When using eager loading you can specify conditions for the columns of the tables inside the eager loading to get back a smaller subset. If, for example, you want to find a client and all their orders within the last two weeks you could use eager loading with conditions for this:
 
-[source, Ruby]
+[source, ruby]
 
 Client.find(:first, :include => "orders", :conditions => ["orders.created_at >= ? AND orders.created_at <= ?", Time.now - 2.weeks, Time.now])
 
@@ -368,22 +378,76 @@ Client.exists?(:conditions => "first_name = 'Ryan'")
 
 == Calculations
 
-=== Count
-
-If you want to see how many records are in your models table you could call `Client.count` and that will return the number. If you want to be more specific and find all the clients with their age present in the database you can use `Client.count(:age)`.
+This section uses count as an example method in this preamble, but the options described apply to all sub-sections.
 
 `count` takes conditions much in the same way `exists?` does:
 
 [source, ruby]
 Client.count(:conditions => "first_name = 'Ryan'")
 
+Which will execute:
+
 [source, sql]
 SELECT count(*) AS count_all FROM `clients` WHERE (first_name = 1) 
 
-== With Scope
+You can also use `include` or `joins` for this to do something a little more complex:
 
-TODO 
-  
+[source, ruby]
+Client.count(:conditions => "clients.first_name = 'Ryan' AND orders.status = 'received'", :include => "orders")
+
+Which will execute:
+
+[source, sql]
+SELECT count(DISTINCT `clients`.id) AS count_all FROM `clients` LEFT OUTER JOIN `orders` ON orders.client_id = client.id WHERE (clients.first_name = 'name' AND orders.status = 'received') 
+
+We specify `clients.first_name` just in case one of our join tables has a field also called `first_name` and we do `orders.status` because that's the name of our join table.
+
+
+=== Count
+
+If you want to see how many records are in your model's table you could call `Client.count` and that will return the number. If you want to be more specific and find all the clients with their age present in the database you can use `Client.count(:age)`.
+
+For options, please see the parent section, Calculations.
+
+=== Average
+
+If you want to see the average of a certain number in one of your tables you can call the `average` method on the class that relates to the table. This method call will look something like this:
+
+[source, ruby]
+Client.average("orders_count")
+
+This will return a number (possibly a floating point number such as 3.14159265) representing the average of the fields.
+
+For options, please see the parent section, <<_calculations, Calculations>>
+
+=== Minimum
+
+If you want to find the minimum value of a field in your table you can call the `minimum` method on the class that relates to the table. This method call will look something like this:
+
+[source, ruby]
+Client.minimum("age")
+
+For options, please see the parent section, <<_calculations, Calculations>>
+
+=== Maximum
+
+If you want to find the maximum value of a field in your table you can call the `maximum` method on the class that relates to the table. This method call will look something like this:
+
+[source, ruby]
+Client.maximum("age")
+
+For options, please see the parent section, <<_calculations, Calculations>>
+
+
+=== Sum
+
+If you want to find the sum of a field for all records in your table you can call the `sum` method on the class that relates to the table. This method call will look something like this:
+
+[source, ruby]
+Client.sum("orders_count")
+
+For options, please see the parent section,  <<_calculations, Calculations>>
+
 == Credits
 
 Thanks to Ryan Bates for his awesome screencast on named scope #108. The information within the named scope section is intentionally similar to it, and without the cast may have not been possible.
@@ -419,3 +483,6 @@ Thanks to Mike Gunderloy for his tips on creating this guide.
 
 === Tuesday, 21 October 2008
 1. Extended named scope guide by adding :include and :joins and find sub-sections.
+
+=== Wednesday, 22 October 2008
+1. Completed calculations section.
