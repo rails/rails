@@ -272,7 +272,7 @@ module HTML #:nodoc:
   # itself.
   class CDATA < Text #:nodoc:
     def to_s
-      "<![CDATA[#{super}]>"
+      "<![CDATA[#{super}]]>"
     end
   end
 
