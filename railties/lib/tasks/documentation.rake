@@ -61,7 +61,7 @@ namespace :doc do
 
     FileUtils.cp_r File.join(source, 'html/.'), File.join(destination)
     # Copy images and css files to html directory. These dirs are in .gitigore and shouldn't be source controlled.
-    FileUtils.cp_r File.join(source, 'source/images'), File.join(destination, 'images')
+    FileUtils.cp_r File.join(source, 'source/images'), File.join(destination)
     FileUtils.cp_r File.join(source, 'source/stylesheets'), File.join(destination, 'stylesheets')
   end
 
