@@ -58,15 +58,13 @@ used to designate a table using Single Table Inheritance. If you are not using S
 keyword like "context", that may still accurately describe the data you are modeling.
 
 [grid=all]
-`-------------------`---------------------------------------------------------------------------------
-created_at           Rails stores the current date to this field when creating the record.
-created_on           Rails stores the current date & time to this field when creating the record.
-updated_at           Rails stores the current date to this field when updating the record.
-updated_on           Rails stores the current date & time to this field when updating the record.
-lock_version         Adds optimistic locking to a model link:http://api.rubyonrails.com/classes/ActiveRecord/Locking.html[more about optimistic locking].
-type                 Specifies that the model uses Single Table Inheritance link:http://api.rubyonrails.com/classes/ActiveRecord/Base.html[more about STI].
-id                   All models require an id. the default is name is "id" but can be changed using the "set_primary_key" or "primary_key" methods.
-#{table_name}_count  Can be used to caches the number of belonging objects on the associated class.
+`------------------------`---------------------------------------------------------------------------------
+created_at / created_on  Rails stores the current date & time to this field when creating the record.
+updated_at / updated_on  Rails stores the current date & time to this field when updating the record.
+lock_version             Adds optimistic locking to a model link:http://api.rubyonrails.com/classes/ActiveRecord/Locking.html[more about optimistic locking].
+type                     Specifies that the model uses Single Table Inheritance link:http://api.rubyonrails.com/classes/ActiveRecord/Base.html[more about STI].
+id                       All models require an id. the default is name is "id" but can be changed using the "set_primary_key" or "primary_key" methods.
+#{table_name}_count      Can be used to caches the number of belonging objects on the associated class.
 ------------------------------------------------------------------------------------------------------
 
 By default rails assumes all tables will use “id” as their primary key to identify each record. Though fortunately you won’t have explicitly declare this, Rails will automatically create that field unless you tell it not to.
