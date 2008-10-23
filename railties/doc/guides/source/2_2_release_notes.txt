@@ -54,7 +54,7 @@ rake doc:guides
 This will put the guides inside +RAILS_ROOT/doc/guides+ and you may start surfing straight away by opening +RAILS_ROOT/doc/guides/index.html+ in your favourite browser.
 
 * Lead Contributors: link:http://guides.rails.info/authors.html[Rails Documentation Team]
-* Major contributions from link:http://advogato.org/person/fxn/diary.html[Xavier Nora] and link:http://izumi.plan99.net/blog/[Hongli Lai].
+* Major contributions from link:http://advogato.org/person/fxn/diary.html[Xavier Noria] and link:http://izumi.plan99.net/blog/[Hongli Lai].
 * More information:
  - link:http://hackfest.rubyonrails.org/guide[Rails Guides hackfest]
  - link:http://weblog.rubyonrails.org/2008/5/2/help-improve-rails-documentation-on-git-branch[Help improve Rails documentation on Git branch]
