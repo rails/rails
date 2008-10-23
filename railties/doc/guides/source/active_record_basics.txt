@@ -1,5 +1,6 @@
 Active Record Basics
-=================================
+====================
+
 Active Record is a design pattern that mitigates the mind-numbing mental gymnastics often needed to get your application to communicate with a database. This guide explains in detail how This guide uses a mix of real-world examples, metaphors and detailed explanations of the actual Rails source code to help you make the most of AcitveRecord.
 
 After reading this guide readers should have a strong grasp of the Active Record pattern and how it can be used with or without Rails. Hopefully, some of the philosophical and theoretical intentions discussed here will also make them a stronger and better developer.
