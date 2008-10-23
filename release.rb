@@ -3,8 +3,11 @@
 VERSION  = ARGV.first
 PACKAGES = %w(activesupport activerecord actionpack actionmailer activeresource)
 
-# Checkout source
-# `rm -rf release && svn export http://dev.rubyonrails.org/svn/rails/trunk release`
+# Copy source
+`mkdir release`
+(PACKAGES + %w(railties)).each do |p| 
+  `cp -R #{p} release/#{p}`
+end
 
 # Create Rails packages
 `cd release/railties && rake template=jamis package`
