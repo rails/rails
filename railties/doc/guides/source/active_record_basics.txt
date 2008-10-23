@@ -27,14 +27,17 @@ Here are the key conventions to consider when using Active Record.
 Database Table - Plural with underscores separating words i.e. (book_clubs)
 Model Class - Singular with the first letter of each word capitalized i.e. (BookClub) 
 Here are some additional Examples:
+
 [grid="all"]
 `-------------`---------------
 Model / Class Table / Schema
+----------------------------
 Post          posts
 LineItem      line_items
 Deer          deer
 Mouse         mice
 Person        people
+----------------------------
 
 ==== Schema Conventions
 
@@ -58,14 +61,16 @@ NOTE: While these column names are optional they are in fact reserved by ActiveR
 used to designate a table using Single Table Inheritance. If you are not using STI, try an analogous 
 keyword like "context", that may still accurately describe the data you are modeling.
 
-[grid=all]
-`------------------------`---------------------------------------------------------------------------------
+[grid="all"]
+`------------------------`------------------------------------------------------------------------------
+Attribute                 Purpose
+------------------------------------------------------------------------------------------------------
 created_at / created_on  Rails stores the current date & time to this field when creating the record.
 updated_at / updated_on  Rails stores the current date & time to this field when updating the record.
 lock_version             Adds optimistic locking to a model link:http://api.rubyonrails.com/classes/ActiveRecord/Locking.html[more about optimistic locking].
 type                     Specifies that the model uses Single Table Inheritance link:http://api.rubyonrails.com/classes/ActiveRecord/Base.html[more about STI].
 id                       All models require an id. the default is name is "id" but can be changed using the "set_primary_key" or "primary_key" methods.
-#{table_name}_count      Can be used to caches the number of belonging objects on the associated class.
+_table_name_\_count       Can be used to caches the number of belonging objects on the associated class.
 ------------------------------------------------------------------------------------------------------
 
 By default rails assumes all tables will use “id” as their primary key to identify each record. Though fortunately you won’t have explicitly declare this, Rails will automatically create that field unless you tell it not to.
