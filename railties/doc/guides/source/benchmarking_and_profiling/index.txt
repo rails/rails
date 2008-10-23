@@ -204,11 +204,12 @@ Rails provides a simple generator for creating new performance tests:
 
 [source, shell]
 ----------------------------------------------------------------------------
-[User profiling_tester (master)]$ script/generate performance_test homepage
+[lifo@null application (master)]$ script/generate performance_test homepage
 ----------------------------------------------------------------------------
 
 This will generate +test/performance/homepage_test.rb+:
 
+[source, ruby]
 ----------------------------------------------------------------------------
 require 'test_helper'
 require 'performance_test_help'
