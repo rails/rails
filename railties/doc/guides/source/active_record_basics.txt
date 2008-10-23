@@ -19,10 +19,56 @@ By following a few simple conventions the Rails Active Record will automatically
 * Classes & Database Tables
 * Class attributes & Database Table Columns
 
-Here are the key conventions to consider when using Active Record:
-Class Names are Singular: e.g. “Post, Item, BookClub, Subscriber”.
-Tables names are the lowercase plural name of the class name e.g. “posts, items, book_clubs, subscribers”
-Notice in the case of the BookClub class that the individual words in database table name is separated using an underscore “book_clubs”.
+=== Rails Active Record Conventions
+Here are the key conventions to consider when using Active Record.
+
+==== Naming Conventions
+Database Table - Plural with underscores separating words i.e. (book_clubs)
+Model Class - Singular with the first letter of each word capitalized i.e. (BookClub) 
+Here are some additional Examples:
+[grid="all"]
+`-------------`---------------
+Model / Class Table / Schema
+Post          posts
+LineItem      line_items
+Deer          deer
+Mouse         mice
+Person        people
+
+==== Schema Conventions
+
+To take advantage of some of the magic of Rails database tables must be modeled 
+to reflect the ORM decisions that Rails makes.
+
+[grid="all"]
+`-------------`---------------------------------------------------------------------------------
+Convention
+-------------------------------------------------------------------------------------------------
+Foreign keys  These fields are named table_id i.e. (item_id, order_id)
+Primary Key   Rails automatically creates a primary key column named "id" unless told otherwise.
+-------------------------------------------------------------------------------------------------
+
+==== Magic Field Names
+
+When these optional fields are used in your database table definition they give the Active Record
+instance additional features. 
+
+NOTE: While these column names are optional they are in fact reserved by ActiveRecord. Steer clear of reserved keywords unless you want the extra functionality. For example, "type" is a reserved keyword
+used to designate a table using Single Table Inheritance. If you are not using STI, try an analogous 
+keyword like "context", that may still accurately describe the data you are modeling.
+
+[grid=all]
+`-------------------`---------------------------------------------------------------------------------
+created_at           Rails stores the current date to this field when creating the record.
+created_on           Rails stores the current date & time to this field when creating the record.
+updated_at           Rails stores the current date to this field when updating the record.
+updated_on           Rails stores the current date & time to this field when updating the record.
+lock_version         Adds optimistic locking to a model link:http://api.rubyonrails.com/classes/ActiveRecord/Locking.html[more about optimistic locking].
+type                 Specifies that the model uses Single Table Inheritance link:http://api.rubyonrails.com/classes/ActiveRecord/Base.html[more about STI].
+id                   All models require an id. the default is name is "id" but can be changed using the "set_primary_key" or "primary_key" methods.
+#{table_name}_count  Can be used to caches the number of belonging objects on the associated class.
+------------------------------------------------------------------------------------------------------
+
 By default rails assumes all tables will use “id” as their primary key to identify each record. Though fortunately you won’t have explicitly declare this, Rails will automatically create that field unless you tell it not to.
 
 For example suppose you created a database table called cars:
