@@ -1,0 +1,1086 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" lang="en" xml:lang="en">
+<head>
+	<meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
+	<title>Ruby on Rails 2.2 Release Notes</title>
+	<!--[if lt IE 8]>
+	<script src="http://ie7-js.googlecode.com/svn/version/2.0(beta3)/IE8.js" type="text/javascript"></script>
+	<![endif]-->
+	<link href="stylesheets/base.css" media="screen" rel="Stylesheet" type="text/css" />
+	<link href="stylesheets/forms.css" media="screen" rel="Stylesheet" type="text/css" />
+	<link href="stylesheets/more.css" media="screen" rel="Stylesheet" type="text/css" />
+	<style type="text/css">
+		div#container {
+	max-width: 900px;
+	padding-bottom: 3em;
+}
+
+div#content {
+	margin-left: 200px;
+}
+
+div#container.notoc {
+	max-width: 600px;
+}
+
+.notoc div#content {
+	margin-left: 0;
+}
+
+pre {
+	line-height: 1.4em;
+}
+
+#content p tt {
+	background: #eeeeee;
+	border: solid 1px #cccccc;
+	padding: 3px;
+}
+
+dt {
+	font-weight: bold;
+}
+
+#content dt tt {
+	font-size: 10pt;
+}
+
+dd {
+	margin-left: 3em;
+}
+
+#content dt tt, #content pre tt {
+	background: none;
+	padding: 0;
+	border: 0;
+}
+
+#content .olist ol {
+	margin-left: 2em;
+}
+
+#header {
+	position: relative;
+	max-width: 840px;
+	margin-left: auto;
+	margin-right: auto;
+}
+
+#header.notoc {
+	max-width: 580px;
+}
+
+#logo {
+	position: absolute;
+	left: 10px;
+	top: 10px;
+	width: 110px;
+	height: 140px;
+}
+
+div#header h1#site_title {
+	background: url('images/ruby_on_rails_by_mike_rundle2.gif') top left no-repeat;
+	position: absolute;
+	width: 392px;
+	height: 55px;
+	left: 145px;
+	top: 20px;
+	margin: 0;
+	padding: 0;
+}
+
+#site_title span {
+	display: none;
+}
+
+#site_title_tagline {
+	display: none;
+}
+
+ul#navMain {
+	position: absolute;
+	margin: 0;
+	padding: 0;
+	top: 97px;
+	left: 145px;
+}
+
+.left-floaty, .right-floaty {
+	padding: 15px;
+}
+
+.admonitionblock,
+.tableblock {
+	margin-left: 1em;
+	margin-right: 1em;
+	margin-top: 0.25em;
+	margin-bottom: 1em;
+}
+
+.admonitionblock .icon {
+	padding-right: 8px;
+}
+
+.admonitionblock .content {
+	border: solid 1px #ffda78;
+	background: #fffebd;
+	padding: 10px;
+	padding-top: 8px;
+	padding-bottom: 8px;
+}
+
+.admonitionblock .title {
+	font-size: 140%;
+	margin-bottom: 0.5em;
+}
+
+.tableblock table {
+	border: solid 1px #aaaaff;
+	background: #f0f0ff;
+}
+
+.tableblock th {
+	background: #e0e0e0;
+}
+
+.tableblock th,
+.tableblock td {
+	padding: 3px;
+	padding-left: 5px;
+	padding-right: 5px;
+}
+
+.sidebarblock {
+	margin-top: 0.25em;
+	margin: 1em;
+	border: solid 1px #ccccbb;
+	padding: 8px;
+	background: #ffffe0;
+}
+
+.sidebarblock .sidebar-title {
+	font-size: 140%;
+	font-weight: 600;
+	margin-bottom: 0.3em;
+}
+
+.sidebarblock .sidebar-content > .para:last-child > p {
+	margin-bottom: 0;
+}
+
+.sidebarblock .sidebar-title a {
+	text-decoration: none;
+}
+
+.sidebarblock .sidebar-title a:hover {
+	text-decoration: underline;
+}
+
+	</style>
+</head>
+<body>
+	<div id="header" >
+		<div id="logo">
+			<a href="index.html" title="Ruby on Rails"><img src="images/rails_logo_remix.gif" alt="Rails" height="140" width="110" /></a>
+		</div>
+		
+		<h1 id="site_title"><span>Ruby on Rails</span></h1>
+		<h2 id="site_title_tagline">Sustainable productivity for web-application development</h2>
+
+		<ul id="navMain">
+			<li class="first-child"><a href="http://www.rubyonrails.org/" title="Ruby on Rails" class="ruby_on_rails">Ruby on Rails</a></li>
+			<li><a class="manuals" href="index.html" title="Manuals Index">Guides Index</a></li>
+		</ul>
+	</div>
+
+	<div id="container">
+		
+		<div id="sidebar">
+			<h2>Chapters</h2>
+			<ol>
+					<li>
+					<a href="#_infrastructure">Infrastructure</a>
+						<ul>
+						
+							<li><a href="#_internationalization">Internationalization</a></li>
+						
+							<li><a href="#_compatibility_with_ruby_1_9_and_jruby">Compatibility with Ruby 1.9 and JRuby</a></li>
+						
+						</ul>
+					</li>
+					<li>
+					<a href="#_documentation">Documentation</a>
+					</li>
+					<li>
+					<a href="#_better_integration_with_http_out_of_the_box_etag_support">Better integration with HTTP : Out of the box ETag support</a>
+					</li>
+					<li>
+					<a href="#_thread_safety">Thread Safety</a>
+					</li>
+					<li>
+					<a href="#_active_record">Active Record</a>
+						<ul>
+						
+							<li><a href="#_transactional_migrations">Transactional Migrations</a></li>
+						
+							<li><a href="#_connection_pooling">Connection Pooling</a></li>
+						
+							<li><a href="#_hashes_for_join_table_conditions">Hashes for Join Table Conditions</a></li>
+						
+							<li><a href="#_new_dynamic_finders">New Dynamic Finders</a></li>
+						
+							<li><a href="#_other_activerecord_changes">Other ActiveRecord Changes</a></li>
+						
+						</ul>
+					</li>
+					<li>
+					<a href="#_action_controller">Action Controller</a>
+						<ul>
+						
+							<li><a href="#_shallow_route_nesting">Shallow Route Nesting</a></li>
+						
+							<li><a href="#_method_arrays_for_member_or_collection_routes">Method Arrays for Member or Collection Routes</a></li>
+						
+							<li><a href="#_other_action_controller_changes">Other Action Controller Changes</a></li>
+						
+						</ul>
+					</li>
+					<li>
+					<a href="#_action_view">Action View</a>
+					</li>
+					<li>
+					<a href="#_action_mailer">Action Mailer</a>
+					</li>
+					<li>
+					<a href="#_active_support">Active Support</a>
+						<ul>
+						
+							<li><a href="#_memoization">Memoization</a></li>
+						
+							<li><a href="#_tt_each_with_object_tt"><tt>each_with_object</tt></a></li>
+						
+							<li><a href="#_delegates_with_prefixes">Delegates With Prefixes</a></li>
+						
+							<li><a href="#_other_active_support_changes">Other Active Support Changes</a></li>
+						
+						</ul>
+					</li>
+					<li>
+					<a href="#_railties">Railties</a>
+						<ul>
+						
+							<li><a href="#_tt_config_gems_tt"><tt>config.gems</tt></a></li>
+						
+							<li><a href="#_other_railties_changes">Other Railties Changes</a></li>
+						
+						</ul>
+					</li>
+					<li>
+					<a href="#_deprecated">Deprecated</a>
+					</li>
+					<li>
+					<a href="#_credits">Credits</a>
+					</li>
+			</ol>
+		</div>
+		
+		<div id="content">
+				<h1>Ruby on Rails 2.2 Release Notes</h1>
+			<div id="preamble">
+<div class="sectionbody">
+<div class="para"><p>Rails 2.2 delivers a number of new and improved features. This list covers the major upgrades, but doesn't include every little bug fix and change. If you want to see everything, check out the <a href="http://github.com/rails/rails/commits/master">list of commits</a> in the main Rails repository on GitHub.</p></div>
+<div class="para"><p>Along with Rails, 2.2 marks the launch of the <a href="http://guides.rubyonrails.org/">Ruby on Rails Guides</a>, the first results of the ongoing <a href="http://hackfest.rubyonrails.org/guide">Rails Guides hackfest</a>. This site will deliver high-quality documentation of the major features of Rails.</p></div>
+</div>
+</div>
+<h2 id="_infrastructure">1. Infrastructure</h2>
+<div class="sectionbody">
+<div class="para"><p>Rails 2.2 is a significant release for the infrastructure that keeps Rails humming along and connected to the rest of the world.</p></div>
+<h3 id="_internationalization">1.1. Internationalization</h3>
+<div class="para"><p>Rails 2.2 supplies an easy system for internationalization (or i18n, for those of you tired of typing).</p></div>
+<div class="ilist"><ul>
+<li>
+<p>
+Lead Contributors: Rails i18 Team
+</p>
+</li>
+<li>
+<p>
+More information :
+</p>
+<div class="ilist"><ul>
+<li>
+<p>
+<a href="http://rails-i18n.org">Official Rails i18 website</a>
+</p>
+</li>
+<li>
+<p>
+<a href="http://www.artweb-design.de/2008/7/18/finally-ruby-on-rails-gets-internationalized">Finally. Ruby on Rails gets internationalized</a>
+</p>
+</li>
+<li>
+<p>
+<a href="http://i18n-demo.phusion.nl">Localizing Rails : Demo application</a>
+</p>
+</li>
+</ul></div>
+</li>
+</ul></div>
+<h3 id="_compatibility_with_ruby_1_9_and_jruby">1.2. Compatibility with Ruby 1.9 and JRuby</h3>
+<div class="para"><p>Along with thread safety, a lot of work has been done to make Rails work well with JRuby and the upcoming Ruby 1.9. With Ruby 1.9 being a moving target, running edge Rails on edge Ruby is still a hit-or-miss proposition, but Rails is ready to make the transition to Ruby 1.9 when the latter is released.</p></div>
+</div>
+<h2 id="_documentation">2. Documentation</h2>
+<div class="sectionbody">
+<div class="para"><p>The internal documentation of Rails, in the form of code comments, has been improved in numerous places. In addition, the <a href="http://guides.rubyonrails.org/">Ruby on Rails Guides</a> project is the definitive source for information on major Rails components. In its first official release, the Guides page includes:</p></div>
+<div class="ilist"><ul>
+<li>
+<p>
+Getting Started with Rails
+</p>
+</li>
+<li>
+<p>
+Rails Database Migrations
+</p>
+</li>
+<li>
+<p>
+Active Record Associations
+</p>
+</li>
+<li>
+<p>
+Active Record Finders
+</p>
+</li>
+<li>
+<p>
+Layouts and Rendering in Rails
+</p>
+</li>
+<li>
+<p>
+Action View Form Helpers
+</p>
+</li>
+<li>
+<p>
+Rails Routing from the Outside In
+</p>
+</li>
+<li>
+<p>
+Basics of Action Controller
+</p>
+</li>
+<li>
+<p>
+Rails Caching
+</p>
+</li>
+<li>
+<p>
+Testing Rails Applications
+</p>
+</li>
+<li>
+<p>
+Securing Rails Applications
+</p>
+</li>
+<li>
+<p>
+Debugging Rails Applications
+</p>
+</li>
+<li>
+<p>
+Benchmarking and Profiling Rails Applications
+</p>
+</li>
+<li>
+<p>
+The Basics of Creating Rails Plugins
+</p>
+</li>
+</ul></div>
+<div class="para"><p>All told, the Guides provide tens of thousands of words of guidance for beginning and intermediate Rails developers.</p></div>
+<div class="para"><p>If you want to these generate guides locally, inside your application:</p></div>
+<div class="listingblock">
+<div class="content"><!-- Generator: GNU source-highlight 2.9
+by Lorenzo Bettini
+http://www.lorenzobettini.it
+http://www.gnu.org/software/src-highlite -->
+<pre><tt>rake doc<span style="color: #990000">:</span>guides
+</tt></pre></div></div>
+<div class="para"><p>This will put the guides inside <tt>RAILS_ROOT/doc/guides</tt> and you may start surfing straight away by opening <tt>RAILS_ROOT/doc/guides/index.html</tt> in your favourite browser.</p></div>
+<div class="ilist"><ul>
+<li>
+<p>
+Lead Contributors: <a href="http://guides.rails.info/authors.html">Rails Documentation Team</a>
+</p>
+</li>
+<li>
+<p>
+Major contributions from <a href="http://advogato.org/person/fxn/diary.html">Xavier Nora</a> and <a href="http://izumi.plan99.net/blog/">Hongli Lai</a>.
+</p>
+</li>
+<li>
+<p>
+More information:
+</p>
+<div class="ilist"><ul>
+<li>
+<p>
+<a href="http://hackfest.rubyonrails.org/guide">Rails Guides hackfest</a>
+</p>
+</li>
+<li>
+<p>
+<a href="http://weblog.rubyonrails.org/2008/5/2/help-improve-rails-documentation-on-git-branch">Help improve Rails documentation on Git branch</a>
+</p>
+</li>
+</ul></div>
+</li>
+</ul></div>
+</div>
+<h2 id="_better_integration_with_http_out_of_the_box_etag_support">3. Better integration with HTTP : Out of the box ETag support</h2>
+<div class="sectionbody">
+<div class="para"><p>Supporting the etag and last modified timestamp in HTTP headers means that Rails can now send back an empty response if it gets a request for a resource that hasn't been modified lately. This allows you to check whether a response needs to be sent at all.</p></div>
+<div class="listingblock">
+<div class="content"><!-- Generator: GNU source-highlight 2.9
+by Lorenzo Bettini
+http://www.lorenzobettini.it
+http://www.gnu.org/software/src-highlite -->
+<pre><tt><span style="font-weight: bold"><span style="color: #0000FF">class</span></span> ArticlesController <span style="color: #990000">&lt;</span> ApplicationController
+  <span style="font-weight: bold"><span style="color: #0000FF">def</span></span> show_with_respond_to_block
+    <span style="color: #009900">@article</span> <span style="color: #990000">=</span> Article<span style="color: #990000">.</span>find<span style="color: #990000">(</span>params<span style="color: #990000">[:</span>id<span style="color: #990000">])</span>
+
+    <span style="font-style: italic"><span style="color: #9A1900"># If the request sends headers that differs from the options provided to stale?, then</span></span>
+    <span style="font-style: italic"><span style="color: #9A1900"># the request is indeed stale and the respond_to block is triggered (and the options</span></span>
+    <span style="font-style: italic"><span style="color: #9A1900"># to the stale? call is set on the response).</span></span>
+    <span style="font-style: italic"><span style="color: #9A1900">#</span></span>
+    <span style="font-style: italic"><span style="color: #9A1900"># If the request headers match, then the request is fresh and the respond_to block is</span></span>
+    <span style="font-style: italic"><span style="color: #9A1900"># not triggered. Instead the default render will occur, which will check the last-modified</span></span>
+    <span style="font-style: italic"><span style="color: #9A1900"># and etag headers and conclude that it only needs to send a "304 Not Modified" instead</span></span>
+    <span style="font-style: italic"><span style="color: #9A1900"># of rendering the template.</span></span>
+    <span style="font-weight: bold"><span style="color: #0000FF">if</span></span> stale?<span style="color: #990000">(:</span>last_modified <span style="color: #990000">=&gt;</span> <span style="color: #009900">@article</span><span style="color: #990000">.</span>published_at<span style="color: #990000">.</span>utc<span style="color: #990000">,</span> <span style="color: #990000">:</span>etag <span style="color: #990000">=&gt;</span> <span style="color: #009900">@article</span><span style="color: #990000">)</span>
+      respond_to <span style="font-weight: bold"><span style="color: #0000FF">do</span></span> <span style="color: #990000">|</span>wants<span style="color: #990000">|</span>
+        <span style="font-style: italic"><span style="color: #9A1900"># normal response processing</span></span>
+      <span style="font-weight: bold"><span style="color: #0000FF">end</span></span>
+    <span style="font-weight: bold"><span style="color: #0000FF">end</span></span>
+  <span style="font-weight: bold"><span style="color: #0000FF">end</span></span>
+
+  <span style="font-weight: bold"><span style="color: #0000FF">def</span></span> show_with_implied_render
+    <span style="color: #009900">@article</span> <span style="color: #990000">=</span> Article<span style="color: #990000">.</span>find<span style="color: #990000">(</span>params<span style="color: #990000">[:</span>id<span style="color: #990000">])</span>
+
+    <span style="font-style: italic"><span style="color: #9A1900"># Sets the response headers and checks them against the request, if the request is stale</span></span>
+    <span style="font-style: italic"><span style="color: #9A1900"># (i.e. no match of either etag or last-modified), then the default render of the template happens.</span></span>
+    <span style="font-style: italic"><span style="color: #9A1900"># If the request is fresh, then the default render will return a "304 Not Modified"</span></span>
+    <span style="font-style: italic"><span style="color: #9A1900"># instead of rendering the template.</span></span>
+    fresh_when<span style="color: #990000">(:</span>last_modified <span style="color: #990000">=&gt;</span> <span style="color: #009900">@article</span><span style="color: #990000">.</span>published_at<span style="color: #990000">.</span>utc<span style="color: #990000">,</span> <span style="color: #990000">:</span>etag <span style="color: #990000">=&gt;</span> <span style="color: #009900">@article</span><span style="color: #990000">)</span>
+  <span style="font-weight: bold"><span style="color: #0000FF">end</span></span>
+<span style="font-weight: bold"><span style="color: #0000FF">end</span></span>
+</tt></pre></div></div>
+</div>
+<h2 id="_thread_safety">4. Thread Safety</h2>
+<div class="sectionbody">
+<div class="para"><p>The work done to make Rails thread-safe is rolling out in Rails 2.2. Depending on your web server infrastructure, this means you can handle more requests with fewer copies of Rails in memory, leading to better server performance and higher utilization of multiple cores.</p></div>
+<div class="para"><p>To enable multithreaded dispatching in production mode of your application, add the following line in your <tt>config/environments/production.rb</tt>:</p></div>
+<div class="listingblock">
+<div class="content"><!-- Generator: GNU source-highlight 2.9
+by Lorenzo Bettini
+http://www.lorenzobettini.it
+http://www.gnu.org/software/src-highlite -->
+<pre><tt>config<span style="color: #990000">.</span>threadsafe!
+</tt></pre></div></div>
+<div class="ilist"><ul>
+<li>
+<p>
+More information :
+</p>
+<div class="ilist"><ul>
+<li>
+<p>
+<a href="http://weblog.rubyonrails.org/2008/8/16/josh-peek-officially-joins-the-rails-core">Thread safety project announcement</a>
+</p>
+</li>
+<li>
+<p>
+<a href="http://blog.headius.com/2008/08/qa-what-thread-safe-rails-means.html">Q/A: What Thread-safe Rails Means</a>
+</p>
+</li>
+</ul></div>
+</li>
+</ul></div>
+</div>
+<h2 id="_active_record">5. Active Record</h2>
+<div class="sectionbody">
+<div class="para"><p>There are two big additions to talk about here: transactional migrations and pooled database transactions. There's also a new (and cleaner) syntax for join table conditions, as well as a number of smaller improvements.</p></div>
+<h3 id="_transactional_migrations">5.1. Transactional Migrations</h3>
+<div class="para"><p>Historically, multiple-step Rails migrations have been a source of trouble. If something went wrong during a migration, everything before the error changed the database and everything after the error wasn't applied. Also, the migration version was stored as having been executed, which means that it couldn't be simply rerun by <tt>rake db:migrate:redo</tt> after you fix the problem. Transactional migrations change this by wrapping migration steps in a DDL transaction, so that if any of them fail, the entire migration is undone. In Rails 2.2, transactional migrations are supported <strong>on PostgreSQL only</strong>. The code is extensible to other database types in the future.</p></div>
+<div class="ilist"><ul>
+<li>
+<p>
+Lead Contributor: <a href="http://adam.blog.heroku.com/">Adam Wiggins</a>
+</p>
+</li>
+<li>
+<p>
+More information:
+</p>
+<div class="ilist"><ul>
+<li>
+<p>
+<a href="http://adam.blog.heroku.com/past/2008/9/3/ddl_transactions/">DDL Transactions</a>
+</p>
+</li>
+</ul></div>
+</li>
+</ul></div>
+<h3 id="_connection_pooling">5.2. Connection Pooling</h3>
+<div class="para"><p>Connection pooling lets Rails distribute database requests across a pool of database connections that will grow to a maximum size (by default 5, but you can add a <tt>pool</tt> key to your <tt>database.yml</tt> to adjust this). This helps remove bottlenecks in applications that support many concurrent users. There's also a <tt>wait_timeout</tt> that defaults to 5 seconds before giving up. <tt>ActiveRecord::Base.connection_pool</tt> gives you direct access to the pool if you need it.</p></div>
+<div class="listingblock">
+<div class="content"><!-- Generator: GNU source-highlight 2.9
+by Lorenzo Bettini
+http://www.lorenzobettini.it
+http://www.gnu.org/software/src-highlite -->
+<pre><tt>development<span style="color: #990000">:</span>
+  adapter<span style="color: #990000">:</span> mysql
+  username<span style="color: #990000">:</span> root
+  database<span style="color: #990000">:</span> sample_development
+  pool<span style="color: #990000">:</span> <span style="color: #993399">10</span>
+  wait_timeout<span style="color: #990000">:</span> <span style="color: #993399">10</span>
+</tt></pre></div></div>
+<div class="ilist"><ul>
+<li>
+<p>
+Lead Contributor: <a href="http://blog.nicksieger.com/">Nick Sieger</a>
+</p>
+</li>
+<li>
+<p>
+More information:
+</p>
+<div class="ilist"><ul>
+<li>
+<p>
+<a href="http://ryandaigle.com/articles/2008/9/7/what-s-new-in-edge-rails-connection-pools">What's New in Edge Rails: Connection Pools</a>
+</p>
+</li>
+</ul></div>
+</li>
+</ul></div>
+<h3 id="_hashes_for_join_table_conditions">5.3. Hashes for Join Table Conditions</h3>
+<div class="para"><p>You can now specify conditions on join tables using a hash. This is a big help if you need to query across complex joins.</p></div>
+<div class="listingblock">
+<div class="content"><!-- Generator: GNU source-highlight 2.9
+by Lorenzo Bettini
+http://www.lorenzobettini.it
+http://www.gnu.org/software/src-highlite -->
+<pre><tt><span style="font-weight: bold"><span style="color: #0000FF">class</span></span> Photo <span style="color: #990000">&lt;</span> ActiveRecord<span style="color: #990000">::</span>Base
+  belongs_to <span style="color: #990000">:</span>Product
+<span style="font-weight: bold"><span style="color: #0000FF">end</span></span>
+
+<span style="font-weight: bold"><span style="color: #0000FF">class</span></span> Product <span style="color: #990000">&lt;</span> ActiveRecord<span style="color: #990000">::</span>Base
+  has_many <span style="color: #990000">:</span>products
+<span style="font-weight: bold"><span style="color: #0000FF">end</span></span>
+
+<span style="font-style: italic"><span style="color: #9A1900"># Get all products with copyright-free photos:</span></span>
+Product<span style="color: #990000">.</span>find<span style="color: #990000">(:</span>all<span style="color: #990000">,</span> <span style="color: #990000">:</span>joins <span style="color: #990000">=&gt;</span> <span style="color: #990000">:</span>photo<span style="color: #990000">,</span>
+  <span style="color: #990000">:</span>conditions <span style="color: #990000">=&gt;</span> <span style="color: #FF0000">{</span> <span style="color: #990000">:</span>photos <span style="color: #990000">=&gt;</span> <span style="color: #FF0000">{</span> <span style="color: #990000">:</span>copyright <span style="color: #990000">=&gt;</span> <span style="font-weight: bold"><span style="color: #0000FF">false</span></span> <span style="color: #FF0000">}}</span><span style="color: #990000">)</span>
+</tt></pre></div></div>
+<div class="ilist"><ul>
+<li>
+<p>
+More information:
+</p>
+<div class="ilist"><ul>
+<li>
+<p>
+<a href="http://ryandaigle.com/articles/2008/7/7/what-s-new-in-edge-rails-easy-join-table-conditions">What's New in Edge Rails: Easy Join Table Conditions</a>
+</p>
+</li>
+</ul></div>
+</li>
+</ul></div>
+<h3 id="_new_dynamic_finders">5.4. New Dynamic Finders</h3>
+<div class="para"><p>Two new sets of methods have been added to Active Record's dynamic finders family.</p></div>
+<h4 id="_find_last_by_lt_attributes_gt">5.4.1. find_last_by_&lt;attributes&gt;</h4>
+<div class="para"><p>The <tt>find_last_by_&lt;attribute&gt;</tt> method is equivalent to <tt>Model.last(:conditions &#8658; {:attribute &#8658; value})</tt></p></div>
+<div class="listingblock">
+<div class="content"><!-- Generator: GNU source-highlight 2.9
+by Lorenzo Bettini
+http://www.lorenzobettini.it
+http://www.gnu.org/software/src-highlite -->
+<pre><tt><span style="font-style: italic"><span style="color: #9A1900"># Get the last user who signed up from London</span></span>
+User<span style="color: #990000">.</span>find_last_by_city<span style="color: #990000">(</span><span style="color: #FF0000">'London'</span><span style="color: #990000">)</span>
+</tt></pre></div></div>
+<div class="ilist"><ul>
+<li>
+<p>
+Lead Contributor: <a href="http://www.workingwithrails.com/person/9147-emilio-tagua">Emilio Tagua</a>
+</p>
+</li>
+</ul></div>
+<h4 id="_find_by_lt_attributes_gt">5.4.2. find_by_&lt;attributes&gt;!</h4>
+<div class="para"><p>The new bang! version of <tt>find_by_&lt;attribute&gt;! is equivalent to  +Model.first(:conditions &#8658; {:attribute &#8658; value}) || raise ActiveRecord::RecordNotFound</tt> Instead of returning <tt>nil</tt> if it can't find a matching record, this method will raise an exception if it cannot find a match.</p></div>
+<div class="listingblock">
+<div class="content"><!-- Generator: GNU source-highlight 2.9
+by Lorenzo Bettini
+http://www.lorenzobettini.it
+http://www.gnu.org/software/src-highlite -->
+<pre><tt><span style="font-style: italic"><span style="color: #9A1900"># Raise ActiveRecord::RecordNotFound exception if 'Moby' hasn't signed up yet!</span></span>
+User<span style="color: #990000">.</span>find_by_name!<span style="color: #990000">(</span><span style="color: #FF0000">'Moby'</span><span style="color: #990000">)</span>
+</tt></pre></div></div>
+<div class="ilist"><ul>
+<li>
+<p>
+Lead Contributor: <a href="http://blog.hasmanythrough.com">Josh Susser</a>
+</p>
+</li>
+</ul></div>
+<h3 id="_other_activerecord_changes">5.5. Other ActiveRecord Changes</h3>
+<div class="ilist"><ul>
+<li>
+<p>
+<tt>rake db:migrate:redo</tt> now accepts an optional VERSION to target that specific migration to redo
+</p>
+</li>
+<li>
+<p>
+Set <tt>config.active_record.timestamped_migrations = false</tt> to have migrations with numeric prefix instead of UTC timestamp.
+</p>
+</li>
+<li>
+<p>
+Counter cache columns (for associations declared with <tt>:counter_cache &#8658; true</tt>) do not need to be initialized to zero any longer.
+</p>
+</li>
+<li>
+<p>
+<tt>ActiveRecord::Base.human_name</tt> for an internationalization-aware humane translation of model names
+</p>
+</li>
+</ul></div>
+</div>
+<h2 id="_action_controller">6. Action Controller</h2>
+<div class="sectionbody">
+<div class="para"><p>On the controller side, there are a couple of changes that will help tidy up your routes.</p></div>
+<h3 id="_shallow_route_nesting">6.1. Shallow Route Nesting</h3>
+<div class="para"><p>Shallow route nesting provides a solution to the well-known difficulty of using deeply-nested resources. With shallow nesting, you need only supply enough information to uniquely identify the resource that you want to work with - but you <em>can</em> supply more information.</p></div>
+<div class="listingblock">
+<div class="content"><!-- Generator: GNU source-highlight 2.9
+by Lorenzo Bettini
+http://www.lorenzobettini.it
+http://www.gnu.org/software/src-highlite -->
+<pre><tt>map<span style="color: #990000">.</span>resources <span style="color: #990000">:</span>publishers<span style="color: #990000">,</span> <span style="color: #990000">:</span>shallow <span style="color: #990000">=&gt;</span> <span style="font-weight: bold"><span style="color: #0000FF">true</span></span> <span style="font-weight: bold"><span style="color: #0000FF">do</span></span> <span style="color: #990000">|</span>publisher<span style="color: #990000">|</span>
+  publisher<span style="color: #990000">.</span>resources <span style="color: #990000">:</span>magazines <span style="font-weight: bold"><span style="color: #0000FF">do</span></span> <span style="color: #990000">|</span>magazine<span style="color: #990000">|</span>
+    magazine<span style="color: #990000">.</span>resources <span style="color: #990000">:</span>photos
+  <span style="font-weight: bold"><span style="color: #0000FF">end</span></span>
+<span style="font-weight: bold"><span style="color: #0000FF">end</span></span>
+</tt></pre></div></div>
+<div class="para"><p>This will enable recognition of (among others) these routes:</p></div>
+<div class="listingblock">
+<div class="content">
+<pre><tt>/publishers/1           ==&gt; publisher_path(1)
+/publishers/1/magazines ==&gt; publisher_magazines_path(1)
+/magazines/2            ==&gt; magazine_path(2)
+/magazines/2/photos     ==&gt; magazines_photos_path(2)
+/photos/3               ==&gt; photo_path(3)</tt></pre>
+</div></div>
+<div class="ilist"><ul>
+<li>
+<p>
+Lead Contributor: <a href="http://www.unwwwired.net/">S. Brent Faulkner</a>
+</p>
+</li>
+<li>
+<p>
+More information:
+</p>
+<div class="ilist"><ul>
+<li>
+<p>
+<a href="http://guides.rails.info/routing/routing_outside_in.html#_nested_resources">Rails Routing from the Outside In</a>
+</p>
+</li>
+<li>
+<p>
+<a href="http://ryandaigle.com/articles/2008/9/7/what-s-new-in-edge-rails-shallow-routes">What's New in Edge Rails: Shallow Routes</a>
+</p>
+</li>
+</ul></div>
+</li>
+</ul></div>
+<h3 id="_method_arrays_for_member_or_collection_routes">6.2. Method Arrays for Member or Collection Routes</h3>
+<div class="para"><p>You can now supply an array of methods for new member or collection routes. This removes the annoyance of having to define a route as accepting any verb as soon as you need it to handle more than one. With Rails 2.2, this is a legitimate route declaration:</p></div>
+<div class="listingblock">
+<div class="content"><!-- Generator: GNU source-highlight 2.9
+by Lorenzo Bettini
+http://www.lorenzobettini.it
+http://www.gnu.org/software/src-highlite -->
+<pre><tt>map<span style="color: #990000">.</span>resources <span style="color: #990000">:</span>photos<span style="color: #990000">,</span> <span style="color: #990000">:</span>collection <span style="color: #990000">=&gt;</span> <span style="color: #FF0000">{</span> <span style="color: #990000">:</span>search <span style="color: #990000">=&gt;</span> <span style="color: #990000">[:</span>get<span style="color: #990000">,</span> <span style="color: #990000">:</span>post<span style="color: #990000">]</span> <span style="color: #FF0000">}</span>
+</tt></pre></div></div>
+<div class="ilist"><ul>
+<li>
+<p>
+Lead Contributor: <a href="http://brennandunn.com/">Brennan Dunn</a>
+</p>
+</li>
+</ul></div>
+<div class="para"><p>Action Controller now offers good support for HTTP conditional GET requests, as well as some other additions.</p></div>
+<h3 id="_other_action_controller_changes">6.3. Other Action Controller Changes</h3>
+<div class="ilist"><ul>
+<li>
+<p>
+You can now easily <a href="http://m.onkey.org/2008/7/20/rescue-from-dispatching">show a custom error page</a> for exceptions raised while routing a request.
+</p>
+</li>
+<li>
+<p>
+The HTTP Accept header is disabled by default now. You should prefer the use of formatted URLs (such as <tt>/customers/1.xml</tt>) to indicate the format that you want. If you need the Accept headers, you can turn them back on with <tt>config.action_controller.user_accept_header = true</tt>.
+</p>
+</li>
+<li>
+<p>
+Benchmarking numbers are now reported in milliseconds rather than tiny fractions of seconds
+</p>
+</li>
+<li>
+<p>
+Rails now supports HTTP-only cookies (and uses them for sessions), which help mitigate some cross-site scripting risks in newer browsers.
+</p>
+</li>
+</ul></div>
+</div>
+<h2 id="_action_view">7. Action View</h2>
+<div class="sectionbody">
+<div class="ilist"><ul>
+<li>
+<p>
+<tt>javascript_include_tag</tt> and <tt>stylesheet_link_tag</tt> support a new <tt>:recursive</tt> option to be used along with <tt>:all</tt>, so that you can load an entire tree of files with a single line of code.
+</p>
+</li>
+<li>
+<p>
+The included Prototype javascript library has been upgraded to version 1.6.0.2.
+</p>
+</li>
+<li>
+<p>
+<tt>RJS#page.reload</tt> to reload the browser's current location via javascript
+</p>
+</li>
+<li>
+<p>
+The <tt>atom_feed</tt> helper now takes an <tt>:instruct</tt> option to let you insert XML processing instructions.
+</p>
+</li>
+</ul></div>
+</div>
+<h2 id="_action_mailer">8. Action Mailer</h2>
+<div class="sectionbody">
+<div class="para"><p>Action Mailer now supports mailer layouts. You can make your HTML emails as pretty as your in-browser views by supplying an appropriately-named layout - for example, the <tt>CustomerMailer</tt> class expects to use <tt>layouts/customer_mailer.html.erb</tt>.</p></div>
+<div class="ilist"><ul>
+<li>
+<p>
+More information:
+</p>
+<div class="ilist"><ul>
+<li>
+<p>
+<a href="http://ryandaigle.com/articles/2008/9/7/what-s-new-in-edge-rails-mailer-layouts">What's New in Edge Rails: Mailer Layouts</a>
+</p>
+</li>
+</ul></div>
+</li>
+</ul></div>
+</div>
+<h2 id="_active_support">9. Active Support</h2>
+<div class="sectionbody">
+<div class="para"><p>Active Support now offers built-in memoization for Rails applications, the <tt>each_with_object</tt> method, prefix support on delegates, and various other new utility methods.</p></div>
+<h3 id="_memoization">9.1. Memoization</h3>
+<div class="para"><p>Memoization is a pattern of initializing a method once and then stashing its value away for repeat use. You've probably used this pattern in your own applications:</p></div>
+<div class="listingblock">
+<div class="content"><!-- Generator: GNU source-highlight 2.9
+by Lorenzo Bettini
+http://www.lorenzobettini.it
+http://www.gnu.org/software/src-highlite -->
+<pre><tt><span style="font-weight: bold"><span style="color: #0000FF">def</span></span> full_name
+  <span style="color: #009900">@full_name</span> <span style="color: #990000">||=</span> <span style="color: #FF0000">"#{first_name} #{last_name}"</span>
+<span style="font-weight: bold"><span style="color: #0000FF">end</span></span>
+</tt></pre></div></div>
+<div class="para"><p>Memoization lets you handle this task in a declarative fashion:</p></div>
+<div class="listingblock">
+<div class="content"><!-- Generator: GNU source-highlight 2.9
+by Lorenzo Bettini
+http://www.lorenzobettini.it
+http://www.gnu.org/software/src-highlite -->
+<pre><tt>extend ActiveSupport<span style="color: #990000">::</span>Memoizable
+
+<span style="font-weight: bold"><span style="color: #0000FF">def</span></span> full_name
+  <span style="color: #FF0000">"#{first_name} #{last_name}"</span>
+<span style="font-weight: bold"><span style="color: #0000FF">end</span></span>
+memoize <span style="color: #990000">:</span>full_name
+</tt></pre></div></div>
+<div class="para"><p>Other features of memoization include <tt>unmemoize</tt>, <tt>unmemoize_all</tt>, and <tt>memoize_all</tt> to turn memoization on or off.</p></div>
+<div class="ilist"><ul>
+<li>
+<p>
+Lead Contributor: <a href="http://joshpeek.com/">Josh Peek</a>
+</p>
+</li>
+<li>
+<p>
+More information:
+</p>
+<div class="ilist"><ul>
+<li>
+<p>
+<a href="http://ryandaigle.com/articles/2008/7/16/what-s-new-in-edge-rails-memoization">What's New in Edge Rails: Easy Memoization</a>
+</p>
+</li>
+<li>
+<p>
+<a href="http://www.railway.at/articles/2008/09/20/a-guide-to-memoization">Memo-what? A Guide to Memoization</a>
+</p>
+</li>
+</ul></div>
+</li>
+</ul></div>
+<h3 id="_tt_each_with_object_tt">9.2. <tt>each_with_object</tt></h3>
+<div class="para"><p>The <tt>each_with_object</tt> method provides an alternative to <tt>inject</tt>, using a method backported from Ruby 1.9. It iterates over a collection, passing the current element and the memo into the block.</p></div>
+<div class="listingblock">
+<div class="content"><!-- Generator: GNU source-highlight 2.9
+by Lorenzo Bettini
+http://www.lorenzobettini.it
+http://www.gnu.org/software/src-highlite -->
+<pre><tt><span style="color: #990000">%</span>w<span style="color: #990000">(</span>foo bar<span style="color: #990000">).</span>each_with_object<span style="color: #990000">(</span><span style="color: #FF0000">{}</span><span style="color: #990000">)</span> <span style="color: #FF0000">{</span> <span style="color: #990000">|</span>str<span style="color: #990000">,</span> hsh<span style="color: #990000">|</span> hsh<span style="color: #990000">[</span>str<span style="color: #990000">]</span> <span style="color: #990000">=</span> str<span style="color: #990000">.</span>upcase <span style="color: #FF0000">}</span> <span style="font-style: italic"><span style="color: #9A1900">#=&gt; {'foo' =&gt; 'FOO', 'bar' =&gt; 'BAR'}</span></span>
+</tt></pre></div></div>
+<div class="para"><p>Lead Contributor: <a href="http://therealadam.com/">Adam Keys</a></p></div>
+<h3 id="_delegates_with_prefixes">9.3. Delegates With Prefixes</h3>
+<div class="para"><p>If you delegate behavior from one class to another, you can now specify a prefix that will be used to identify the delegated methods. For example:</p></div>
+<div class="listingblock">
+<div class="content"><!-- Generator: GNU source-highlight 2.9
+by Lorenzo Bettini
+http://www.lorenzobettini.it
+http://www.gnu.org/software/src-highlite -->
+<pre><tt><span style="font-weight: bold"><span style="color: #0000FF">class</span></span> Vendor <span style="color: #990000">&lt;&lt;</span> ActiveRecord<span style="color: #990000">::</span>Base
+  has_one <span style="color: #990000">:</span>account
+  delegate <span style="color: #990000">:</span>email<span style="color: #990000">,</span> <span style="color: #990000">:</span>password<span style="color: #990000">,</span> <span style="color: #990000">:</span>to <span style="color: #990000">=&gt;</span> <span style="color: #990000">:</span>account<span style="color: #990000">,</span> <span style="color: #990000">:</span>prefix <span style="color: #990000">=&gt;</span> <span style="font-weight: bold"><span style="color: #0000FF">true</span></span>
+<span style="font-weight: bold"><span style="color: #0000FF">end</span></span>
+</tt></pre></div></div>
+<div class="para"><p>This will produce delegated methods <tt>vendor.account_email</tt> and <tt>vendor.account_password</tt>. You can also specify a custom prefix:</p></div>
+<div class="listingblock">
+<div class="content"><!-- Generator: GNU source-highlight 2.9
+by Lorenzo Bettini
+http://www.lorenzobettini.it
+http://www.gnu.org/software/src-highlite -->
+<pre><tt><span style="font-weight: bold"><span style="color: #0000FF">class</span></span> Vendor <span style="color: #990000">&lt;&lt;</span> ActiveRecord<span style="color: #990000">::</span>Base
+  has_one <span style="color: #990000">:</span>account
+  delegate <span style="color: #990000">:</span>email<span style="color: #990000">,</span> <span style="color: #990000">:</span>password<span style="color: #990000">,</span> <span style="color: #990000">:</span>to <span style="color: #990000">=&gt;</span> <span style="color: #990000">:</span>account<span style="color: #990000">,</span> <span style="color: #990000">:</span>prefix <span style="color: #990000">=&gt;</span> <span style="color: #990000">:</span>owner
+<span style="font-weight: bold"><span style="color: #0000FF">end</span></span>
+</tt></pre></div></div>
+<div class="para"><p>This will produce delegated methods <tt>vendor.owner_email</tt> and <tt>vendor.owner_password</tt>.</p></div>
+<div class="para"><p>Lead Contributor: <a href="http://workingwithrails.com/person/5830-daniel-schierbeck">Daniel Schierbeck</a></p></div>
+<h3 id="_other_active_support_changes">9.4. Other Active Support Changes</h3>
+<div class="ilist"><ul>
+<li>
+<p>
+Extensive updates to <tt>ActiveSupport::Multibyte</tt>, including Ruby 1.9 compatibility fixes.
+</p>
+</li>
+<li>
+<p>
+The addition of <tt>ActiveSupport::Rescuable</tt> allows any class to mix in the <tt>rescue_from</tt> syntax.
+</p>
+</li>
+<li>
+<p>
+<tt>past?</tt>, <tt>today?</tt> and <tt>future?</tt> for <tt>Date</tt> and <tt>Time</tt> classes to facilitate date/time comparisons.
+</p>
+</li>
+<li>
+<p>
+<tt>Array#second</tt> through <tt>Array#tenth</tt> as aliases for <tt>Array#[1]</tt> through <tt>Array#[9]</tt>
+</p>
+</li>
+<li>
+<p>
+<tt>Enumerable#several?</tt> to encapsulate <tt>collection.size &gt; 1</tt>
+</p>
+</li>
+<li>
+<p>
+<tt>Inflector#parameterize</tt> produces a URL-ready version of its input, for use in <tt>to_param</tt>.
+</p>
+</li>
+<li>
+<p>
+<tt>Time#advance</tt> recognizes fractional days and weeks, so you can do <tt>1.7.weeks.ago</tt>, <tt>1.5.hours.since</tt>, and so on.
+</p>
+</li>
+<li>
+<p>
+The included TzInfo library has been upgraded to version 0.3.11.
+</p>
+</li>
+</ul></div>
+</div>
+<h2 id="_railties">10. Railties</h2>
+<div class="sectionbody">
+<div class="para"><p>In Railties (the core code of Rails itself) the biggest changes are in the <tt>config.gems</tt> mechanism.</p></div>
+<h3 id="_tt_config_gems_tt">10.1. <tt>config.gems</tt></h3>
+<div class="para"><p>To avoid deployment issues and make Rails applications more self-contained, it's possible to place copies of all of the gems that your Rails application requires in <tt>/vendor/gems</tt>. This capability first appeared in Rails 2.1, but it's much more flexible and robust in Rails 2.2, handling complicated dependencies between gems. Gem management in Rails includes these commands:</p></div>
+<div class="ilist"><ul>
+<li>
+<p>
+<tt>config.gem <em>gem_name</em></tt> in your <tt>config/environment.rb</tt> file
+</p>
+</li>
+<li>
+<p>
+<tt>rake gems</tt> to list all configured gems, as well as whether they (and their dependencies) are installed or frozen
+</p>
+</li>
+<li>
+<p>
+<tt>rake gems:install</tt> to install missing gems to the computer
+</p>
+</li>
+<li>
+<p>
+<tt>rake gems:unpack</tt> to place a copy of the required gems into <tt>/vendor/gems</tt>
+</p>
+</li>
+<li>
+<p>
+<tt>rake gems:unpack:dependencies</tt> to get copies of the required gems and their dependencies into <tt>/vendor/gems</tt>
+</p>
+</li>
+<li>
+<p>
+<tt>rake gems:build</tt> to build any missing native extensions
+</p>
+</li>
+<li>
+<p>
+<tt>rake gems:refresh_specs</tt> to bring vendored gems created with Rails 2.1 into alignment with the Rails 2.2 way of storing them
+</p>
+</li>
+</ul></div>
+<div class="para"><p>You can unpack or install a single gem by specifying <tt>GEM=_gem_name</tt> on the command line.</p></div>
+<div class="ilist"><ul>
+<li>
+<p>
+Lead Contributor: <a href="http://github.com/al2o3cr">Matt Jones</a>
+</p>
+</li>
+<li>
+<p>
+More information:
+</p>
+<div class="ilist"><ul>
+<li>
+<p>
+<a href="http://ryandaigle.com/articles/2008/4/1/what-s-new-in-edge-rails-gem-dependencies">What's New in Edge Rails: Gem Dependencies</a>
+</p>
+</li>
+</ul></div>
+</li>
+</ul></div>
+<h3 id="_other_railties_changes">10.2. Other Railties Changes</h3>
+<div class="ilist"><ul>
+<li>
+<p>
+If you're a fan of the <a href="http://code.macournoyer.com/thin/">Thin</a> web server, you'll be happy to know that <tt>script/server</tt> now supports Thin directly.
+</p>
+</li>
+<li>
+<p>
+<tt>script/plugin install &lt;plugin&gt; -r &lt;revision&gt;</tt> now works with git-based as well as svn-based plugins.
+</p>
+</li>
+<li>
+<p>
+<tt>script/console</tt> now supports a <tt>&#8212;debugger</tt> option
+</p>
+</li>
+<li>
+<p>
+Instructions for setting up a continuous integration server to build Rails itself are included in the Rails source
+</p>
+</li>
+<li>
+<p>
+<tt>rake notes:custom ANNOTATION=MYFLAG</tt> lets you list out custom annotations.
+</p>
+</li>
+<li>
+<p>
+Wrapped <tt>Rails.env</tt> in <tt>StringQuestioneer</tt> so you can do <tt>Rails.env.development?</tt>
+</p>
+</li>
+<li>
+<p>
+<tt>script/generate</tt> works without deprecation warnings when RubyGems 1.3.0 is present
+</p>
+</li>
+</ul></div>
+</div>
+<h2 id="_deprecated">11. Deprecated</h2>
+<div class="sectionbody">
+<div class="para"><p>A few pieces of older code are deprecated in this release:</p></div>
+<div class="ilist"><ul>
+<li>
+<p>
+<tt>Rails::SecretKeyGenerator</tt> has been replaced by <tt>ActiveSupport::SecureRandom</tt>
+</p>
+</li>
+<li>
+<p>
+<tt>render_component</tt> is deprecated. There's a <a href="http://github.com/rails/render_component/tree/master">render_components plugin</a> available if you need this functionality.
+</p>
+</li>
+<li>
+<p>
+<tt>country_select</tt> has been removed. See the <a href="http://www.rubyonrails.org/deprecation/list-of-countries">deprecation page</a> for more information and a plugin replacement.
+</p>
+</li>
+<li>
+<p>
+<tt>ActiveRecord::Base.allow_concurrency</tt> no longer has any effect.
+</p>
+</li>
+<li>
+<p>
+<tt>ActiveRecord::Errors.default_error_messages</tt> has been deprecated in favor of <tt>I18n.translate(<em>activerecord.errors.messages</em>)</tt>
+</p>
+</li>
+<li>
+<p>
+The <tt>%s</tt> and <tt>%d</tt> interpolation syntax for internationalization is deprecated.
+</p>
+</li>
+<li>
+<p>
+<tt>String#chars</tt> has been deprecated in favor of <tt>String#mb_chars</tt>.
+</p>
+</li>
+<li>
+<p>
+Durations of fractional months or fractional years are deprecated. Use Ruby's core <tt>Date</tt> and <tt>Time</tt> class arithmetic instead.
+</p>
+</li>
+</ul></div>
+</div>
+<h2 id="_credits">12. Credits</h2>
+<div class="sectionbody">
+<div class="para"><p>Release notes compiled by <a href="http://afreshcup.com">Mike Gunderloy</a></p></div>
+</div>
+
+		</div>
+	</div>
+</body>
+</html>

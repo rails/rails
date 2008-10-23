@@ -497,21 +497,24 @@ http://www.gnu.org/software/src-highlite -->
 by Lorenzo Bettini
 http://www.lorenzobettini.it
 http://www.gnu.org/software/src-highlite -->
-<pre><tt><span style="color: #990000">[</span>User profiling_tester <span style="color: #990000">(</span>master<span style="color: #990000">)]</span>$ script/generate performance_test homepage
+<pre><tt><span style="color: #990000">[</span>lifo@null application <span style="color: #990000">(</span>master<span style="color: #990000">)]</span>$ script/generate performance_test homepage
 </tt></pre></div></div>
 <div class="para"><p>This will generate <tt>test/performance/homepage_test.rb</tt>:</p></div>
 <div class="listingblock">
-<div class="content">
-<pre><tt>require 'test_helper'
-require 'performance_test_help'
+<div class="content"><!-- Generator: GNU source-highlight 2.9
+by Lorenzo Bettini
+http://www.lorenzobettini.it
+http://www.gnu.org/software/src-highlite -->
+<pre><tt><span style="font-weight: bold"><span style="color: #000080">require</span></span> <span style="color: #FF0000">'test_helper'</span>
+<span style="font-weight: bold"><span style="color: #000080">require</span></span> <span style="color: #FF0000">'performance_test_help'</span>
 
-class HomepageTest &lt; ActionController::PerformanceTest
-  # Replace this with your real tests.
-  def test_homepage
-    get '/'
-  end
-end</tt></pre>
-</div></div>
+<span style="font-weight: bold"><span style="color: #0000FF">class</span></span> HomepageTest <span style="color: #990000">&lt;</span> ActionController<span style="color: #990000">::</span>PerformanceTest
+  <span style="font-style: italic"><span style="color: #9A1900"># Replace this with your real tests.</span></span>
+  <span style="font-weight: bold"><span style="color: #0000FF">def</span></span> test_homepage
+    get <span style="color: #FF0000">'/'</span>
+  <span style="font-weight: bold"><span style="color: #0000FF">end</span></span>
+<span style="font-weight: bold"><span style="color: #0000FF">end</span></span>
+</tt></pre></div></div>
 <div class="para"><p>Which you can modify to suit your needs.</p></div>
 <h3 id="_running_tests">4.6. Running tests</h3>
 </div>
