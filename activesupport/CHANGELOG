@@ -1,4 +1,4 @@
-*Edge*
+*2.2.0 [RC1] (October 23rd, 2008)*
 
 * TimeWithZone#freeze: preload instance variables so that we can actually freeze [Geoff Buesing]
 

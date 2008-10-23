@@ -1,4 +1,4 @@
-*Edge*
+*2.2.0 [RC1] (October 23rd, 2008)*
 
 * Added stale? and fresh_when methods to provide a layer of abstraction above request.fresh? and friends [DHH]. Example:
 

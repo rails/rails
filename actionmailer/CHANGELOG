@@ -1,7 +1,10 @@
+*2.2.0 [RC1] (October 23rd, 2008)*
+
 * Add layout functionality to mailers [Pratik]
 
   Mailer layouts behaves just like controller layouts, except layout names need to
   have '_mailer' postfix for them to be automatically picked up.
+
 
 *2.1.0 (May 31st, 2008)*
 

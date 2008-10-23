@@ -1,4 +1,4 @@
-*Edge*
+*2.2.0 [RC1] (October 23rd, 2008)*
 
 * Add ActiveResource::Base#to_xml and ActiveResource::Base#to_json. #1011 [Rasik Pandey, Cody Fauser]
 

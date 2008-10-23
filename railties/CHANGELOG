@@ -1,4 +1,4 @@
-*Edge*
+*2.2.0 [RC1] (October 23rd, 2008)*
 
 * Fixed that sqlite would report "db/development.sqlite3 already exists" whether true or not on db:create #614 [Antonio Cangiano]
 
