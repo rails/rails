@@ -77,7 +77,7 @@ end
 desc "Publish the API documentation"
 task :pgem => [:package] do 
   Rake::SshFilePublisher.new("gems.rubyonrails.org", "/u/sites/gems/gems", "pkg", "#{PKG_FILE_NAME}.gem").upload
-  `ssh gems.rubyonrails.org './gemupdate.sh'`
+  `ssh gems.rubyonrails.org '/u/sites/gems/gemupdate.sh'`
 end
 
 desc "Publish the API documentation"
