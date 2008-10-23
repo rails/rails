@@ -284,6 +284,11 @@ module ActionController #:nodoc:
   # See AbstractResponse for more information on controller response objects.
   class TestResponse < AbstractResponse
     include TestResponseBehavior
+    
+    def recycle!
+      headers.delete('ETag')
+      headers.delete('Last-Modified')
+    end
   end
 
   class TestSession #:nodoc:
@@ -386,6 +391,7 @@ module ActionController #:nodoc:
       end
 
       @request.recycle!
+      @response.recycle!
 
       @html_document = nil
       @request.env['REQUEST_METHOD'] ||= "GET"

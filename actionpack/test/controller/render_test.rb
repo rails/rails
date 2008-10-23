@@ -48,6 +48,16 @@ class TestController < ActionController::Base
     render :template => "test/hello_world"
   end
 
+  def render_hello_world_with_last_modified_set
+    response.last_modified = Date.new(2008, 10, 10).to_time
+    render :template => "test/hello_world"
+  end
+
+  def render_hello_world_with_etag_set
+    response.etag = "hello_world"
+    render :template => "test/hello_world"
+  end
+
   def render_hello_world_with_forward_slash
     render :template => "/test/hello_world"
   end
@@ -1338,12 +1348,21 @@ class EtagRenderTest < Test::Unit::TestCase
     assert_equal "200 OK", @response.status
     assert !@response.body.empty?
   end
+  
+  def test_render_should_not_set_etag_when_last_modified_has_been_specified
+    get :render_hello_world_with_last_modified_set
+    assert_equal "200 OK", @response.status
+    assert_not_nil @response.last_modified
+    assert_nil @response.etag
+    assert @response.body.present?
+  end
 
   def test_render_with_etag
     get :render_hello_world_from_variable
     expected_etag = etag_for('hello david')
     assert_equal expected_etag, @response.headers['ETag']
-
+    @response = ActionController::TestResponse.new
+    
     @request.if_none_match = expected_etag
     get :render_hello_world_from_variable
     assert_equal "304 Not Modified", @response.status
@@ -1359,10 +1378,8 @@ class EtagRenderTest < Test::Unit::TestCase
   end
 
   def test_etag_should_not_be_changed_when_already_set
-    expected_etag = etag_for("hello somewhere else")
-    @response.headers["ETag"] = expected_etag
-    get :render_hello_world_from_variable
-    assert_equal expected_etag, @response.headers['ETag']
+    get :render_hello_world_with_etag_set
+    assert_equal etag_for("hello_world"), @response.headers['ETag']
   end
 
   def test_etag_should_govern_renders_with_layouts_too
