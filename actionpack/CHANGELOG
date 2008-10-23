@@ -1,4 +1,6 @@
-*Edge*
+*2.1.2 (October 23rd, 2008)*
+
+* Sanitize the URLs passed to redirect_to to prevent a potential response splitting attack [koz]
 
 * Fixed FormTagHelper#submit_tag with :disable_with option wouldn't submit the button's value when was clicked #633 [Jose Fernandez]
 
