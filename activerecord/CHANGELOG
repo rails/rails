@@ -1,5 +1,7 @@
 *2.2.1 [RC2 or 2.2 final]*
 
+* Ensure indices don't flip order in schema.rb #1266 [Jordi Bunster]
+
 * Fixed that serialized strings should never be type-casted (i.e. turning "Yes" to a boolean) #857 [Andreas Korth]
 
 
