@@ -107,6 +107,12 @@ For example, to a Rails application a request such as this:
 
 would be understood to refer to a photo resource with the ID of 17, and to indicate a desired action - deleting that resource. REST is a natural style for the architecture of web applications, and Rails makes it even more natural by using conventions to shield you from some of the RESTful complexities.
 
+If you’d like more details on REST as an architectural style, these resources are more approachable than Fielding’s thesis:
+
+* link:http://www.infoq.com/articles/rest-introduction[A Brief Introduction to REST] by Stefan Tilkov
+* link:http://bitworking.org/news/373/An-Introduction-to-REST[An Introduction to REST] (video tutorial) by Joe Gregorio
+* link:http://en.wikipedia.org/wiki/Representational_State_Transfer[Representational State Transfer] article in Wikipedia
+
 == Creating a New Rails Project
 
 If you follow this guide, you'll create a Rails project called +blog+, a (very) simple weblog. Before you can start building the application, you need to make sure that you have Rails itself installed.
@@ -715,7 +721,7 @@ end
 
 In the +update+ action, Rails first uses the +:id+ parameter passed back from the edit view to locate the database record that's being edited. The +update_attributes+ call then takes the rest of the parameters from the request and applies them to this record. If all goes well, the user is redirected to the post's +show+ view. If there are any problems, it's back to +edit+ to correct them.
 
-NOTE: Sharp-eyed readers will have noticed that the +form_for+ declaration is identical for the +create+ and +edit+ views. Rails generates different code for the two forms because it's smart enough to notice that in the one case it's being passed a new record that has never been saved, and in the other case an existing record that has already been saved to the database. In a production Rails application, you would ordinarily eliminate this duplication by moving identical code to a _partial template_, which you could then include in both parent templates. But the scaffold generator tries not to make too many assumptions, and generates code that’s easy to modify if you want different forms for +create+ and +edit+.
+NOTE: Sharp-eyed readers will have noticed that the +form_for+ declaration is identical for the +new+ and +edit+ views. Rails generates different code for the two forms because it's smart enough to notice that in the one case it's being passed a new record that has never been saved, and in the other case an existing record that has already been saved to the database. In a production Rails application, you would ordinarily eliminate this duplication by moving identical code to a _partial template_, which you could then include in both parent templates. But the scaffold generator tries not to make too many assumptions, and generates code that’s easy to modify if you want different forms for +create+ and +edit+.
 
 === Destroying a Post
 
@@ -735,6 +741,125 @@ end
 -------------------------------------------------------
 
 The +destroy+ method of an Active Record model instance removes the corresponding record from the database. After that's done, there isn't any record to display, so Rails redirects the user's browser to the index view for the model.
+
+== DRYing up the Code
+
+At this point, it’s worth looking at some of the tools that Rails provides to eliminate duplication in your code. In particular, you can use _partials_ to clean up duplication in views and _filters_ to help with duplication in controllers.
+
+=== Using Partials to Eliminate View Duplication
+
+As you saw earlier, the scaffold-generated views for the +new+ and +edit+ actions are largely identical. You can pull the shared code out into a +partial+ template. This requires editing the new and edit views, and adding a new template:
+
++new.html.erb+:
+[source, ruby]
+-------------------------------------------------------
+<h1>New post</h1>
+
+<%= render :partial => "form" %>
+
+<%= link_to 'Back', posts_path %>
+-------------------------------------------------------
+
++edit.html.erb+:
+[source, ruby]
+-------------------------------------------------------
+<h1>Editing post</h1>
+
+<%= render :partial => "form" %>
+
+<%= link_to 'Show', @post %> |
+<%= link_to 'Back', posts_path %>
+-------------------------------------------------------
+
++_form.html.erb+:
+[source, ruby]
+-------------------------------------------------------
+<% form_for(@post) do |f| %>
+  <%= f.error_messages %>
+
+  <p>
+    <%= f.label :name %><br />
+    <%= f.text_field :name %>
+  </p>
+  <p>
+    <%= f.label :title, "title" %><br />
+    <%= f.text_field :title %>
+  </p>
+  <p>
+    <%= f.label :content %><br />
+    <%= f.text_area :content %>
+  </p>
+  <p>
+    <%= f.submit "Save" %>
+  </p>
+<% end %>
+-------------------------------------------------------
+
+Now, when Rails renders the +new+ or +edit+ view, it will insert the +_form+ partial at the indicated point. Note the naming convention for partials: if you refer to a partial named +form+ inside of a view, the corresponding file is +_form.html.erb+, with a leading underscore.
+
+For more information on partials, refer to the link:../layouts_and_rendering.html[Layouts and Rending in Rails] guide.
+
+=== Using Filters to Eliminate Controller Duplication
+
+At this point, if you look at the controller for posts, you’ll see some duplication:
+
+[source, ruby]
+-------------------------------------------------------
+class PostsController < ApplicationController
+  # ...
+  def show
+    @post = Post.find(params[:id])
+	# ... 
+  end
+
+  def edit
+    @post = Post.find(params[:id])
+  end
+
+  def update
+    @post = Post.find(params[:id])
+    # ...
+  end
+
+  def destroy
+    @post = Post.find(params[:id])
+    # ...
+  end
+end
+-------------------------------------------------------
+
+Four instances of the exact same line of code doesn’t seem very DRY. Rails provides _filters_ as a way to address this sort of repeated code. In this case, you can DRY things up by using a +before_filter+:
+
+[source, ruby]
+-------------------------------------------------------
+class PostsController < ApplicationController
+  before_filter :find_post, :only => [:show, :edit, :update, :destroy]
+  # ...
+  def show
+	# ... 
+  end
+
+  def edit
+  end
+
+  def update
+    # ...
+  end
+
+  def destroy
+    # ...
+  end
+
+  private
+    def find_post
+      @post = Post.find(params[:id])
+    end
+end
+-------------------------------------------------------
+
+Rails runs _before filters_ before any action in the controller. You can use the +:only+ clause to limit a before filter to only certain actions, or an +:except+ clause to specifically skip a before filter for certain actions. Rails also allows you to define _after filters_ that run after processing an action, as well as _around filters_ that surround the processing of actions. Filters can also be defined in external classes to make it easy to share them between controllers.
+
+For more information on filters, see the link:actioncontroller_basics.html[Action Controller Basics] guide.
 
 == Adding a Second Model
 
@@ -798,7 +923,7 @@ Rails is smart enough to only execute the migrations that have not already been 
 
 === Associating Models
 
-Active Record associations let you declaratively quantify the relationship between two models. In the case of comments and posts, you could write out the relationships this way:
+Active Record associations let you easily declare the relationship between two models. In the case of comments and posts, you could write out the relationships this way:
 
 * Each comment belongs to one post
 * One post can have many comments
@@ -825,7 +950,7 @@ end
 
 These two declarations enable a good bit of automatic behavior. For example, if you have an instance variable +@post+ containing a post, you can retrieve all the comments belonging to that post as the array +@post.comments+.
 
-TIP: For more information on Active Record associations, see the link:../association_basics.html+[Active Record Associations] guide.
+TIP: For more information on Active Record associations, see the link:../association_basics.html[Active Record Associations] guide.
 
 === Adding a Route
 
