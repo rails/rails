@@ -2,7 +2,7 @@ Ruby On Rails Security Guide
 ============================
  
 This manual describes common security problems in web applications and how to avoid them with Rails. If you have any questions or suggestions, please
-mail me at 42 {_et_} rorsecurity.info. After reading it, you should be familiar with:
+mail me, Heiko Webers, at 42 {_et_} rorsecurity.info. After reading it, you should be familiar with:
 
 - All countermeasures [,#fffcdb]#that are highlighted#
 - The concept of sessions in Rails, what to put in there and popular attack methods
@@ -858,7 +858,8 @@ This example, again, showed that a blacklist filter is never complete. However, 
 
 -- _If you want to provide text formatting other than HTML (due to security), use a mark-up language which is converted to HTML on the server-side. http://whytheluckystiff.net/ruby/redcloth/[RedCloth] is such a language for Ruby, but without precautions, it is also vulnerable to XSS._
 
-For example, RedCloth translates _test_ to <em>test<em>, which makes the text italic. However, up to the current version 3.0.4, it is still vulnerable to XSS:
+	For example, RedCloth translates _test_ to <em>test<em>, which makes the text italic. However, up to the current version 3.0.4, it is still vulnerable to XSS. Get the http://www.redcloth.org[all-new version 4] that removed serious bugs. However, even that version has http://www.rorsecurity.info/journal/2008/10/13/new-redcloth-security.html[some security bugs], so the countermeasures still apply. Here is an example for version 3.0.4:
+
 
 ...........
 >> RedCloth.new('<script>alert(1)</script>').to_html
@@ -907,6 +908,64 @@ A countermeasure is to [,#fffcdb]#use the +system(command, parameters)+ method w
 system("/bin/echo","hello; rm *")
 # prints "hello; rm *" and does not delete files
 ..........
+
+
+=== Header Injection
+-- _HTTP headers are dynamically generated and under certain circumstances user input may be injected. This can lead to false redirection, XSS or HTTP response splitting._
+
+HTTP request headers have a Referer, User-Agent (client software) and Cookie field, among others. Response headers for example have a status code, Cookie and Location (redirection target URL) field. All of them are user-supplied and may be manipulated with more or less effort. [,#fffcdb]#Remember to escape these header fields, too.# For example when you display the user agent in an administration area.
+
+Besides that, it is [,#fffcdb]#important to know what you are doing when building response headers partly based on user input.# For example you want to redirect the user back to a specific page. To do that you introduced a “referer“ field in a form to redirect to the given address:
+
+..........
+redirect_to params[:referer]
+..........
+
+What happens is that Rails puts the string into the Location header field and sends a 302 (redirect) status to the browser. The first thing a malicious user would do, is this:
+
+..........
+http://www.yourapplication.com/controller/action?referer=http://www.malicious.tld
+..........
+
+And due to a bug in (Ruby and) Rails up to version 2.1.2 (excluding it), a hacker may inject arbitrary header fields; for example like this:
+
+..........
+http://www.yourapplication.com/controller/action?referer=http://www.malicious.tld%0d%0aX-Header:+Hi!
+http://www.yourapplication.com/controller/action?referer=path/at/your/app%0d%0aLocation:+http://www.malicious.tld
+..........
+
+Note that "%0d%0a" is URL-encoded for "\r\n" which is a carriage-return and line-feed (CRLF) in Ruby. So the resulting HTTP header for the second example will be the following because the second Location header field overwrites the first.
+
+..........
+HTTP/1.1 302 Moved Temporarily
+(...)
+Location: http://www.malicious.tld
+..........
+
+So [,#fffcdb]#attack vectors for Header Injection are based on the injection of CRLF characters in a header field.# And what could an attacker do with a false redirection? He could redirect to a phishing site that looks the same as yours, but asks to login again (and sends the login credentials to the attacker). Or he could install malicious software through browser security holes on that site. [,#fffcdb]#Rails 2.1.2 escapes these characters for the Location field in the redirect_to method. Make sure you do it yourself when you build other header fields with user input.#
+
+==== Response Splitting
+If Header Injection was possible, Response Splitting might be, too. In HTTP, the header block is followed by two CRLFs and the actual data (usually HTML). The idea of Response Splitting is to inject two CRLFs into a header field, followed by another response with malicious HTML. The response will be:
+
+..........
+HTTP/1.1 302 Found [First standard 302 response]
+Date: Tue, 12 Apr 2005 22:09:07 GMT
+Location: Content-Type: text/html
+
+
+HTTP/1.1 200 OK [Second New response created by attacker begins]
+Content-Type: text/html
+
+
+<html><font color=red>hey</font></html> [Arbitary malicious input is
+Keep-Alive: timeout=15, max=100         shown as the redirected page]
+Connection: Keep-Alive
+Transfer-Encoding: chunked
+Content-Type: text/html
+..........
+
+Under certain circumstances this would present the malicious HTML to the victim. However, this seems to work with Keep-Alive connections, only (and many browsers are using one-time connections). But you can't rely on this. [,#fffcdb]#In any case this is a serious bug, and you should update your Rails to version 2.0.5 or 2.1.2 to eliminate Header Injection (and thus response splitting) risks.#
+
 
 == Additional resources
 
