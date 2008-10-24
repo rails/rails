@@ -54,7 +54,7 @@ rake doc:guides
 This will put the guides inside +RAILS_ROOT/doc/guides+ and you may start surfing straight away by opening +RAILS_ROOT/doc/guides/index.html+ in your favourite browser.
 
 * Lead Contributors: link:http://guides.rails.info/authors.html[Rails Documentation Team]
-* Major contributions from link:http://advogato.org/person/fxn/diary.html[Xavier Nora] and link:http://izumi.plan99.net/blog/[Hongli Lai].
+* Major contributions from link:http://advogato.org/person/fxn/diary.html[Xavier Noria] and link:http://izumi.plan99.net/blog/[Hongli Lai].
 * More information:
  - link:http://hackfest.rubyonrails.org/guide[Rails Guides hackfest]
  - link:http://weblog.rubyonrails.org/2008/5/2/help-improve-rails-documentation-on-git-branch[Help improve Rails documentation on Git branch]
@@ -108,6 +108,7 @@ config.threadsafe!
 -------------------------------------------------------
 
 * More information :
+ - link:http://m.onkey.org/2008/10/23/thread-safety-for-your-rails[Thread safety for your Rails]
  - link:http://weblog.rubyonrails.org/2008/8/16/josh-peek-officially-joins-the-rails-core[Thread safety project announcement]
  - link:http://blog.headius.com/2008/08/qa-what-thread-safe-rails-means.html[Q/A: What Thread-safe Rails Means]
 
@@ -190,6 +191,12 @@ User.find_by_name!('Moby')
 -------------------------------------------------------
 
 * Lead Contributor: link:http://blog.hasmanythrough.com[Josh Susser]
+
+=== Associations Respect Private/Protected Scope
+
+Active Record association proxies now respect the scope of methods on the proxied object. Previously (given User has_one :account) +@user.account.private_method+ would call the private method on the associated Account object. That fails in Rails 2.2; if you need this functionality, you should use +@user.account.send(:private_method)+ (or make the method public instead of private or protected). Please note that if you're overriding +method_missing+, you should also override +respond_to+ to match the behavior in order for associations to function normally.
+
+* Lead Contributor: Adam Milligan
 
 === Other ActiveRecord Changes
 
@@ -384,6 +391,18 @@ A few pieces of older code are deprecated in this release:
 
 * +Rails::SecretKeyGenerator+ has been replaced by +ActiveSupport::SecureRandom+
 * +render_component+ is deprecated. There's a link:http://github.com/rails/render_component/tree/master[render_components plugin] available if you need this functionality.
+* Implicit local assignments when rendering partials has been deprecated.
+
+[source, ruby]
+-------------------------------------------------------
+def partial_with_implicit_local_assignment
+  @customer = Customer.new("Marcel")
+  render :partial => "customer"
+end
+-------------------------------------------------------
+
+Previously the above code made available a local variable called +customer+ inside the partial 'customer'. You should explicitly pass all the variables via :locals hash now.
+
 * +country_select+ has been removed. See the link:http://www.rubyonrails.org/deprecation/list-of-countries[deprecation page] for more information and a plugin replacement.
 * +ActiveRecord::Base.allow_concurrency+ no longer has any effect.
 * +ActiveRecord::Errors.default_error_messages+ has been deprecated in favor of +I18n.translate('activerecord.errors.messages')+

@@ -348,12 +348,12 @@ spec = Gem::Specification.new do |s|
     on top of either MySQL, PostgreSQL, SQLite, DB2, SQL Server, or Oracle with eRuby- or Builder-based templates.
   EOF
 
-  s.add_dependency('rake', '>= 0.8.1')
-  s.add_dependency('activesupport',    '= 2.1.0' + PKG_BUILD)
-  s.add_dependency('activerecord',     '= 2.1.0' + PKG_BUILD)
-  s.add_dependency('actionpack',       '= 2.1.0' + PKG_BUILD)
-  s.add_dependency('actionmailer',     '= 2.1.0' + PKG_BUILD)
-  s.add_dependency('activeresource',   '= 2.1.0' + PKG_BUILD)
+  s.add_dependency('rake', '>= 0.8.3')
+  s.add_dependency('activesupport',    '= 2.2.0' + PKG_BUILD)
+  s.add_dependency('activerecord',     '= 2.2.0' + PKG_BUILD)
+  s.add_dependency('actionpack',       '= 2.2.0' + PKG_BUILD)
+  s.add_dependency('actionmailer',     '= 2.2.0' + PKG_BUILD)
+  s.add_dependency('activeresource',   '= 2.2.0' + PKG_BUILD)
 
   s.rdoc_options << '--exclude' << '.'
   s.has_rdoc = false
@@ -378,8 +378,8 @@ end
 # Publishing -------------------------------------------------------
 desc "Publish the rails gem"
 task :pgem => [:gem] do 
-  Rake::SshFilePublisher.new("wrath.rubyonrails.org", "public_html/gems/gems", "pkg", "#{PKG_FILE_NAME}.gem").upload
-  `ssh wrath.rubyonrails.org './gemupdate.sh'`
+  Rake::SshFilePublisher.new("gems.rubyonrails.org", "/u/sites/gems/gems", "pkg", "#{PKG_FILE_NAME}.gem").upload
+  `ssh gems.rubyonrails.org '/u/sites/gems/gemupdate.sh'`
 end
 
 desc "Publish the API documentation"

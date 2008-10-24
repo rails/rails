@@ -229,6 +229,8 @@ ul#navMain {
 						
 							<li><a href="#_new_dynamic_finders">New Dynamic Finders</a></li>
 						
+							<li><a href="#_associations_respect_private_protected_scope">Associations Respect Private/Protected Scope</a></li>
+						
 							<li><a href="#_other_activerecord_changes">Other ActiveRecord Changes</a></li>
 						
 						</ul>
@@ -422,7 +424,7 @@ Lead Contributors: <a href="http://guides.rails.info/authors.html">Rails Documen
 </li>
 <li>
 <p>
-Major contributions from <a href="http://advogato.org/person/fxn/diary.html">Xavier Nora</a> and <a href="http://izumi.plan99.net/blog/">Hongli Lai</a>.
+Major contributions from <a href="http://advogato.org/person/fxn/diary.html">Xavier Noria</a> and <a href="http://izumi.plan99.net/blog/">Hongli Lai</a>.
 </p>
 </li>
 <li>
@@ -500,6 +502,11 @@ http://www.gnu.org/software/src-highlite -->
 More information :
 </p>
 <div class="ilist"><ul>
+<li>
+<p>
+<a href="http://m.onkey.org/2008/10/23/thread-safety-for-your-rails">Thread safety for your Rails</a>
+</p>
+</li>
 <li>
 <p>
 <a href="http://weblog.rubyonrails.org/2008/8/16/josh-peek-officially-joins-the-rails-core">Thread safety project announcement</a>
@@ -640,7 +647,16 @@ Lead Contributor: <a href="http://blog.hasmanythrough.com">Josh Susser</a>
 </p>
 </li>
 </ul></div>
-<h3 id="_other_activerecord_changes">5.5. Other ActiveRecord Changes</h3>
+<h3 id="_associations_respect_private_protected_scope">5.5. Associations Respect Private/Protected Scope</h3>
+<div class="para"><p>Active Record association proxies now respect the scope of methods on the proxied object. Previously (given User has_one :account) <tt>@user.account.private_method</tt> would call the private method on the associated Account object. That fails in Rails 2.2; if you need this functionality, you should use <tt>@user.account.send(:private_method)</tt> (or make the method public instead of private or protected). Please note that if you're overriding <tt>method_missing</tt>, you should also override <tt>respond_to</tt> to match the behavior in order for associations to function normally.</p></div>
+<div class="ilist"><ul>
+<li>
+<p>
+Lead Contributor: Adam Milligan
+</p>
+</li>
+</ul></div>
+<h3 id="_other_activerecord_changes">5.6. Other ActiveRecord Changes</h3>
 <div class="ilist"><ul>
 <li>
 <p>
@@ -1043,6 +1059,24 @@ Wrapped <tt>Rails.env</tt> in <tt>StringQuestioneer</tt> so you can do <tt>Rails
 <tt>render_component</tt> is deprecated. There's a <a href="http://github.com/rails/render_component/tree/master">render_components plugin</a> available if you need this functionality.
 </p>
 </li>
+<li>
+<p>
+Implicit local assignments when rendering partials has been deprecated.
+</p>
+</li>
+</ul></div>
+<div class="listingblock">
+<div class="content"><!-- Generator: GNU source-highlight 2.9
+by Lorenzo Bettini
+http://www.lorenzobettini.it
+http://www.gnu.org/software/src-highlite -->
+<pre><tt><span style="font-weight: bold"><span style="color: #0000FF">def</span></span> partial_with_implicit_local_assignment
+  <span style="color: #009900">@customer</span> <span style="color: #990000">=</span> Customer<span style="color: #990000">.</span>new<span style="color: #990000">(</span><span style="color: #FF0000">"Marcel"</span><span style="color: #990000">)</span>
+  render <span style="color: #990000">:</span>partial <span style="color: #990000">=&gt;</span> <span style="color: #FF0000">"customer"</span>
+<span style="font-weight: bold"><span style="color: #0000FF">end</span></span>
+</tt></pre></div></div>
+<div class="para"><p>Previously the above code made available a local variable called <tt>customer</tt> inside the partial <em>customer</em>. You should explicitly pass all the variables via :locals hash now.</p></div>
+<div class="ilist"><ul>
 <li>
 <p>
 <tt>country_select</tt> has been removed. See the <a href="http://www.rubyonrails.org/deprecation/list-of-countries">deprecation page</a> for more information and a plugin replacement.

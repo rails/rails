@@ -853,6 +853,13 @@ class HasManyAssociationsTest < ActiveRecord::TestCase
     assert !company.clients.loaded?
   end
 
+  def test_get_ids_for_unloaded_finder_sql_associations_loads_them
+    company = companies(:first_firm)
+    assert !company.clients_using_sql.loaded?
+    assert_equal [companies(:second_client).id], company.clients_using_sql_ids
+    assert company.clients_using_sql.loaded?
+  end
+
   def test_assign_ids
     firm = Firm.new("name" => "Apple")
     firm.client_ids = [companies(:first_client).id, companies(:second_client).id]
