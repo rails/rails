@@ -586,16 +586,15 @@ by Lorenzo Bettini
 http://www.lorenzobettini.it
 http://www.gnu.org/software/src-highlite -->
 <pre><tt><span style="font-weight: bold"><span style="color: #0000FF">class</span></span> Photo <span style="color: #990000">&lt;</span> ActiveRecord<span style="color: #990000">::</span>Base
-  belongs_to <span style="color: #990000">:</span>Product
+  belongs_to <span style="color: #990000">:</span>product
 <span style="font-weight: bold"><span style="color: #0000FF">end</span></span>
 
 <span style="font-weight: bold"><span style="color: #0000FF">class</span></span> Product <span style="color: #990000">&lt;</span> ActiveRecord<span style="color: #990000">::</span>Base
-  has_many <span style="color: #990000">:</span>products
+  has_many <span style="color: #990000">:</span>photos
 <span style="font-weight: bold"><span style="color: #0000FF">end</span></span>
 
 <span style="font-style: italic"><span style="color: #9A1900"># Get all products with copyright-free photos:</span></span>
-Product<span style="color: #990000">.</span>find<span style="color: #990000">(:</span>all<span style="color: #990000">,</span> <span style="color: #990000">:</span>joins <span style="color: #990000">=&gt;</span> <span style="color: #990000">:</span>photo<span style="color: #990000">,</span>
-  <span style="color: #990000">:</span>conditions <span style="color: #990000">=&gt;</span> <span style="color: #FF0000">{</span> <span style="color: #990000">:</span>photos <span style="color: #990000">=&gt;</span> <span style="color: #FF0000">{</span> <span style="color: #990000">:</span>copyright <span style="color: #990000">=&gt;</span> <span style="font-weight: bold"><span style="color: #0000FF">false</span></span> <span style="color: #FF0000">}}</span><span style="color: #990000">)</span>
+Product<span style="color: #990000">.</span>all<span style="color: #990000">(:</span>joins <span style="color: #990000">=&gt;</span> <span style="color: #990000">:</span>photos<span style="color: #990000">,</span> <span style="color: #990000">:</span>conditions <span style="color: #990000">=&gt;</span> <span style="color: #FF0000">{</span> <span style="color: #990000">:</span>photos <span style="color: #990000">=&gt;</span> <span style="color: #FF0000">{</span> <span style="color: #990000">:</span>copyright <span style="color: #990000">=&gt;</span> <span style="font-weight: bold"><span style="color: #0000FF">false</span></span> <span style="color: #FF0000">}}</span><span style="color: #990000">)</span>
 </tt></pre></div></div>
 <div class="ilist"><ul>
 <li>

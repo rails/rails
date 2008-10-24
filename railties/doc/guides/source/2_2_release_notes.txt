@@ -149,16 +149,15 @@ You can now specify conditions on join tables using a hash. This is a big help i
 [source, ruby]
 -------------------------------------------------------
 class Photo < ActiveRecord::Base
-  belongs_to :Product
+  belongs_to :product
 end
 
 class Product < ActiveRecord::Base
-  has_many :products
+  has_many :photos
 end
 
 # Get all products with copyright-free photos:
-Product.find(:all, :joins => :photo,
-  :conditions => { :photos => { :copyright => false }})
+Product.all(:joins => :photos, :conditions => { :photos => { :copyright => false }})
 -------------------------------------------------------
 
 * More information:
