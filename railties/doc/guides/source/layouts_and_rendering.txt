@@ -768,7 +768,7 @@ You can also pass local variables into partials, making them even more powerful 
 
 [source, html]
 -------------------------------------------------------
-new.rhtml.erb:
+new.html.erb:
 
 <h1>New zone</h1>
 <%= error_messages_for :zone %>
@@ -819,7 +819,7 @@ Partials are very useful in rendering collections. When you pass a collection to
 
 [source, html]
 -------------------------------------------------------
-index.rhtml.erb:
+index.html.erb:
 
 <h1>Products</h1>
 <%= render :partial => "product", :collection => @products %>
@@ -851,7 +851,7 @@ There's also a shorthand syntax available for rendering collections. For example
 
 [source, html]
 -------------------------------------------------------
-index.rhtml.erb:
+index.html.erb:
 
 <h1>Products</h1>
 <%= render :partial => @products %>
@@ -865,7 +865,7 @@ Rails determines the name of the partial to use by looking at the model name in 
 
 [source, html]
 -------------------------------------------------------
-index.rhtml.erb:
+index.html.erb:
 
 <h1>Contacts</h1>
 <%= render :partial => [customer1, employee1, customer2, employee2] %>
