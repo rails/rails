@@ -269,6 +269,16 @@ ul#navMain {
 						</ul>
 					</li>
 					<li>
+					<a href="#_drying_up_the_code">DRYing up the Code</a>
+						<ul>
+
+							<li><a href="#_using_partials_to_eliminate_view_duplication">Using Partials to Eliminate View Duplication</a></li>
+
+							<li><a href="#_using_filters_to_eliminate_controller_duplication">Using Filters to Eliminate Controller Duplication</a></li>
+
+						</ul>
+					</li>
+					<li>
 					<a href="#_adding_a_second_model">Adding a Second Model</a>
 						<ul>
 						
@@ -480,6 +490,24 @@ Transferring representations of the state of that resource between system compon
 <div class="para"><p>For example, to a Rails application a request such as this:</p></div>
 <div class="para"><p><tt>DELETE /photos/17</tt></p></div>
 <div class="para"><p>would be understood to refer to a photo resource with the ID of 17, and to indicate a desired action - deleting that resource. REST is a natural style for the architecture of web applications, and Rails makes it even more natural by using conventions to shield you from some of the RESTful complexities.</p></div>
+<div class="para"><p>If you’d like more details on REST as an architectural style, these resources are more approachable than Fielding’s thesis:</p></div>
+<div class="ilist"><ul>
+<li>
+<p>
+<a href="http://www.infoq.com/articles/rest-introduction">A Brief Introduction to REST</a> by Stefan Tilkov
+</p>
+</li>
+<li>
+<p>
+<a href="http://bitworking.org/news/373/An-Introduction-to-REST">An Introduction to REST</a> (video tutorial) by Joe Gregorio
+</p>
+</li>
+<li>
+<p>
+<a href="http://en.wikipedia.org/wiki/Representational_State_Transfer">Representational State Transfer</a> article in Wikipedia
+</p>
+</li>
+</ul></div>
 </div>
 <h2 id="_creating_a_new_rails_project">3. Creating a New Rails Project</h2>
 <div class="sectionbody">
@@ -1402,7 +1430,7 @@ http://www.gnu.org/software/src-highlite -->
 <td class="icon">
 <img src="./images/icons/note.png" alt="Note" />
 </td>
-<td class="content">Sharp-eyed readers will have noticed that the <tt>form_for</tt> declaration is identical for the <tt>create</tt> and <tt>edit</tt> views. Rails generates different code for the two forms because it's smart enough to notice that in the one case it's being passed a new record that has never been saved, and in the other case an existing record that has already been saved to the database. In a production Rails application, you would ordinarily eliminate this duplication by moving identical code to a <em>partial template</em>, which you could then include in both parent templates. But the scaffold generator tries not to make too many assumptions, and generates code that’s easy to modify if you want different forms for <tt>create</tt> and <tt>edit</tt>.</td>
+<td class="content">Sharp-eyed readers will have noticed that the <tt>form_for</tt> declaration is identical for the <tt>new</tt> and <tt>edit</tt> views. Rails generates different code for the two forms because it's smart enough to notice that in the one case it's being passed a new record that has never been saved, and in the other case an existing record that has already been saved to the database. In a production Rails application, you would ordinarily eliminate this duplication by moving identical code to a <em>partial template</em>, which you could then include in both parent templates. But the scaffold generator tries not to make too many assumptions, and generates code that’s easy to modify if you want different forms for <tt>create</tt> and <tt>edit</tt>.</td>
 </tr></table>
 </div>
 <h3 id="_destroying_a_post">6.12. Destroying a Post</h3>
@@ -1424,10 +1452,124 @@ http://www.gnu.org/software/src-highlite -->
 </tt></pre></div></div>
 <div class="para"><p>The <tt>destroy</tt> method of an Active Record model instance removes the corresponding record from the database. After that's done, there isn't any record to display, so Rails redirects the user's browser to the index view for the model.</p></div>
 </div>
-<h2 id="_adding_a_second_model">7. Adding a Second Model</h2>
+<h2 id="_drying_up_the_code">7. DRYing up the Code</h2>
+<div class="sectionbody">
+<div class="para"><p>At this point, it’s worth looking at some of the tools that Rails provides to eliminate duplication in your code. In particular, you can use <em>partials</em> to clean up duplication in views and <em>filters</em> to help with duplication in controllers.</p></div>
+<h3 id="_using_partials_to_eliminate_view_duplication">7.1. Using Partials to Eliminate View Duplication</h3>
+<div class="para"><p>As you saw earlier, the scaffold-generated views for the <tt>new</tt> and <tt>edit</tt> actions are largely identical. You can pull the shared code out into a <tt>partial</tt> template. This requires editing the new and edit views, and adding a new template:</p></div>
+<div class="para"><p><tt>new.html.erb</tt>:
+[source, ruby]</p></div>
+<div class="listingblock">
+<div class="content">
+<pre><tt>&lt;h1&gt;New post&lt;/h1&gt;
+
+&lt;%= render :partial =&gt; "form" %&gt;
+
+&lt;%= link_to 'Back', posts_path %&gt;</tt></pre>
+</div></div>
+<div class="para"><p><tt>edit.html.erb</tt>:
+[source, ruby]</p></div>
+<div class="listingblock">
+<div class="content">
+<pre><tt>&lt;h1&gt;Editing post&lt;/h1&gt;
+
+&lt;%= render :partial =&gt; "form" %&gt;
+
+&lt;%= link_to 'Show', @post %&gt; |
+&lt;%= link_to 'Back', posts_path %&gt;</tt></pre>
+</div></div>
+<div class="para"><p><tt>_form.html.erb</tt>:
+[source, ruby]</p></div>
+<div class="listingblock">
+<div class="content">
+<pre><tt>&lt;% form_for(@post) do |f| %&gt;
+  &lt;%= f.error_messages %&gt;
+
+  &lt;p&gt;
+    &lt;%= f.label :name %&gt;&lt;br /&gt;
+    &lt;%= f.text_field :name %&gt;
+  &lt;/p&gt;
+  &lt;p&gt;
+    &lt;%= f.label :title, "title" %&gt;&lt;br /&gt;
+    &lt;%= f.text_field :title %&gt;
+  &lt;/p&gt;
+  &lt;p&gt;
+    &lt;%= f.label :content %&gt;&lt;br /&gt;
+    &lt;%= f.text_area :content %&gt;
+  &lt;/p&gt;
+  &lt;p&gt;
+    &lt;%= f.submit "Save" %&gt;
+  &lt;/p&gt;
+&lt;% end %&gt;</tt></pre>
+</div></div>
+<div class="para"><p>Now, when Rails renders the <tt>new</tt> or <tt>edit</tt> view, it will insert the <tt>_form</tt> partial at the indicated point. Note the naming convention for partials: if you refer to a partial named <tt>form</tt> inside of a view, the corresponding file is <tt>_form.html.erb</tt>, with a leading underscore.</p></div>
+<div class="para"><p>For more information on partials, refer to the <a href="../layouts_and_rendering.html">Layouts and Rending in Rails</a> guide.</p></div>
+<h3 id="_using_filters_to_eliminate_controller_duplication">7.2. Using Filters to Eliminate Controller Duplication</h3>
+<div class="para"><p>At this point, if you look at the controller for posts, you’ll see some duplication:</p></div>
+<div class="listingblock">
+<div class="content"><!-- Generator: GNU source-highlight 2.9
+by Lorenzo Bettini
+http://www.lorenzobettini.it
+http://www.gnu.org/software/src-highlite -->
+<pre><tt><span style="font-weight: bold"><span style="color: #0000FF">class</span></span> PostsController <span style="color: #990000">&lt;</span> ApplicationController
+  <span style="font-style: italic"><span style="color: #9A1900"># ...</span></span>
+  <span style="font-weight: bold"><span style="color: #0000FF">def</span></span> show
+    <span style="color: #009900">@post</span> <span style="color: #990000">=</span> Post<span style="color: #990000">.</span>find<span style="color: #990000">(</span>params<span style="color: #990000">[:</span>id<span style="color: #990000">])</span>
+        <span style="font-style: italic"><span style="color: #9A1900"># ...</span></span>
+  <span style="font-weight: bold"><span style="color: #0000FF">end</span></span>
+
+  <span style="font-weight: bold"><span style="color: #0000FF">def</span></span> edit
+    <span style="color: #009900">@post</span> <span style="color: #990000">=</span> Post<span style="color: #990000">.</span>find<span style="color: #990000">(</span>params<span style="color: #990000">[:</span>id<span style="color: #990000">])</span>
+  <span style="font-weight: bold"><span style="color: #0000FF">end</span></span>
+
+  <span style="font-weight: bold"><span style="color: #0000FF">def</span></span> update
+    <span style="color: #009900">@post</span> <span style="color: #990000">=</span> Post<span style="color: #990000">.</span>find<span style="color: #990000">(</span>params<span style="color: #990000">[:</span>id<span style="color: #990000">])</span>
+    <span style="font-style: italic"><span style="color: #9A1900"># ...</span></span>
+  <span style="font-weight: bold"><span style="color: #0000FF">end</span></span>
+
+  <span style="font-weight: bold"><span style="color: #0000FF">def</span></span> destroy
+    <span style="color: #009900">@post</span> <span style="color: #990000">=</span> Post<span style="color: #990000">.</span>find<span style="color: #990000">(</span>params<span style="color: #990000">[:</span>id<span style="color: #990000">])</span>
+    <span style="font-style: italic"><span style="color: #9A1900"># ...</span></span>
+  <span style="font-weight: bold"><span style="color: #0000FF">end</span></span>
+<span style="font-weight: bold"><span style="color: #0000FF">end</span></span>
+</tt></pre></div></div>
+<div class="para"><p>Four instances of the exact same line of code doesn’t seem very DRY. Rails provides <em>filters</em> as a way to address this sort of repeated code. In this case, you can DRY things up by using a <tt>before_filter</tt>:</p></div>
+<div class="listingblock">
+<div class="content"><!-- Generator: GNU source-highlight 2.9
+by Lorenzo Bettini
+http://www.lorenzobettini.it
+http://www.gnu.org/software/src-highlite -->
+<pre><tt><span style="font-weight: bold"><span style="color: #0000FF">class</span></span> PostsController <span style="color: #990000">&lt;</span> ApplicationController
+  before_filter <span style="color: #990000">:</span>find_post<span style="color: #990000">,</span> <span style="color: #990000">:</span>only <span style="color: #990000">=&gt;</span> <span style="color: #990000">[:</span>show<span style="color: #990000">,</span> <span style="color: #990000">:</span>edit<span style="color: #990000">,</span> <span style="color: #990000">:</span>update<span style="color: #990000">,</span> <span style="color: #990000">:</span>destroy<span style="color: #990000">]</span>
+  <span style="font-style: italic"><span style="color: #9A1900"># ...</span></span>
+  <span style="font-weight: bold"><span style="color: #0000FF">def</span></span> show
+        <span style="font-style: italic"><span style="color: #9A1900"># ...</span></span>
+  <span style="font-weight: bold"><span style="color: #0000FF">end</span></span>
+
+  <span style="font-weight: bold"><span style="color: #0000FF">def</span></span> edit
+  <span style="font-weight: bold"><span style="color: #0000FF">end</span></span>
+
+  <span style="font-weight: bold"><span style="color: #0000FF">def</span></span> update
+    <span style="font-style: italic"><span style="color: #9A1900"># ...</span></span>
+  <span style="font-weight: bold"><span style="color: #0000FF">end</span></span>
+
+  <span style="font-weight: bold"><span style="color: #0000FF">def</span></span> destroy
+    <span style="font-style: italic"><span style="color: #9A1900"># ...</span></span>
+  <span style="font-weight: bold"><span style="color: #0000FF">end</span></span>
+
+  private
+    <span style="font-weight: bold"><span style="color: #0000FF">def</span></span> find_post
+      <span style="color: #009900">@post</span> <span style="color: #990000">=</span> Post<span style="color: #990000">.</span>find<span style="color: #990000">(</span>params<span style="color: #990000">[:</span>id<span style="color: #990000">])</span>
+    <span style="font-weight: bold"><span style="color: #0000FF">end</span></span>
+<span style="font-weight: bold"><span style="color: #0000FF">end</span></span>
+</tt></pre></div></div>
+<div class="para"><p>Rails runs <em>before filters</em> before any action in the controller. You can use the <tt>:only</tt> clause to limit a before filter to only certain actions, or an <tt>:except</tt> clause to specifically skip a before filter for certain actions. Rails also allows you to define <em>after filters</em> that run after processing an action, as well as <em>around filters</em> that surround the processing of actions. Filters can also be defined in external classes to make it easy to share them between controllers.</p></div>
+<div class="para"><p>For more information on filters, see the <a href="actioncontroller_basics.html">Action Controller Basics</a> guide.</p></div>
+</div>
+<h2 id="_adding_a_second_model">8. Adding a Second Model</h2>
 <div class="sectionbody">
 <div class="para"><p>Now that you've seen what's in a model built with scaffolding, it's time to add a second model to the application. The second model will handle comments on blog posts.</p></div>
-<h3 id="_generating_a_model">7.1. Generating a Model</h3>
+<h3 id="_generating_a_model">8.1. Generating a Model</h3>
 <div class="para"><p>Models in Rails use a singular name, and their corresponding database tables use a plural name. For the model to hold comments, the convention is to use the name Comment. Even if you don't want to use the entire apparatus set up by scaffolding, most Rails developers still use generators to make things like models and controllers. To create the new model, run this command in your terminal:</p></div>
 <div class="listingblock">
 <div class="content"><!-- Generator: GNU source-highlight 2.9
@@ -1496,8 +1638,8 @@ http://www.gnu.org/software/src-highlite -->
 <pre><tt>$ rake db<span style="color: #990000">:</span>migrate
 </tt></pre></div></div>
 <div class="para"><p>Rails is smart enough to only execute the migrations that have not already been run against this particular database.</p></div>
-<h3 id="_associating_models">7.2. Associating Models</h3>
-<div class="para"><p>Active Record associations let you declaratively quantify the relationship between two models. In the case of comments and posts, you could write out the relationships this way:</p></div>
+<h3 id="_associating_models">8.2. Associating Models</h3>
+<div class="para"><p>Active Record associations let you easily declare the relationship between two models. In the case of comments and posts, you could write out the relationships this way:</p></div>
 <div class="ilist"><ul>
 <li>
 <p>
@@ -1538,10 +1680,10 @@ http://www.gnu.org/software/src-highlite -->
 <td class="icon">
 <img src="./images/icons/tip.png" alt="Tip" />
 </td>
-<td class="content">For more information on Active Record associations, see the <a href="../association_basics.html+">Active Record Associations</a> guide.</td>
+<td class="content">For more information on Active Record associations, see the <a href="../association_basics.html">Active Record Associations</a> guide.</td>
 </tr></table>
 </div>
-<h3 id="_adding_a_route">7.3. Adding a Route</h3>
+<h3 id="_adding_a_route">8.3. Adding a Route</h3>
 <div class="para"><p><em>Routes</em> are entries in the <tt>config/routes.rb</tt> file that tell Rails how to match incoming HTTP requests to controller actions. Open up that file and find the existing line referring to <tt>posts</tt>. Then edit it as follows:</p></div>
 <div class="listingblock">
 <div class="content"><!-- Generator: GNU source-highlight 2.9
@@ -1561,7 +1703,7 @@ http://www.gnu.org/software/src-highlite -->
 <td class="content">For more information on routing, see the <a href="../routing_outside_in">Rails Routing from the Outside In</a> guide.</td>
 </tr></table>
 </div>
-<h3 id="_generating_a_controller">7.4. Generating a Controller</h3>
+<h3 id="_generating_a_controller">8.4. Generating a Controller</h3>
 <div class="para"><p>With the model in hand, you can turn your attention to creating a matching controller. Again, there's a generator for this:</p></div>
 <div class="listingblock">
 <div class="content"><!-- Generator: GNU source-highlight 2.9
@@ -1688,7 +1830,7 @@ http://www.gnu.org/software/src-highlite -->
 <pre><tt><span style="color: #009900">@comment</span> <span style="color: #990000">=</span> <span style="color: #009900">@post</span><span style="color: #990000">.</span>comments<span style="color: #990000">.</span>build
 </tt></pre></div></div>
 <div class="para"><p>This creates a new <tt>Comment</tt> object <em>and</em> sets up the <tt>post_id</tt> field to have the <tt>id</tt> from the specified <tt>Post</tt> object in a single operation.</p></div>
-<h3 id="_building_views">7.5. Building Views</h3>
+<h3 id="_building_views">8.5. Building Views</h3>
 <div class="para"><p>Because you skipped scaffolding, you'll need to build views for comments "by hand." Invoking <tt>script/generate controller</tt> will give you skeleton views, but they'll be devoid of actual content. Here's a first pass at fleshing out the comment views.</p></div>
 <div class="para"><p>The <tt>index.html.erb</tt> view:</p></div>
 <div class="listingblock">
@@ -1795,7 +1937,7 @@ http://www.gnu.org/software/src-highlite -->
 <span style="color: #FF0000">&lt;%= link_to 'Back', post_comments_path(@post) %&gt;</span>
 </tt></pre></div></div>
 <div class="para"><p>Again, the added complexity here (compared to the views you saw for managing comments) comes from the necessity of juggling a post and its comments at the same time.</p></div>
-<h3 id="_hooking_comments_to_posts">7.6. Hooking Comments to Posts</h3>
+<h3 id="_hooking_comments_to_posts">8.6. Hooking Comments to Posts</h3>
 <div class="para"><p>As a final step, I'll modify the <tt>show.html.erb</tt> view for a post to show the comments on that post, and to allow managing those comments:</p></div>
 <div class="listingblock">
 <div class="content"><!-- Generator: GNU source-highlight 2.9
@@ -1836,7 +1978,7 @@ http://www.gnu.org/software/src-highlite -->
 </tt></pre></div></div>
 <div class="para"><p>Note that each post has its own individual comments collection, accessible as <tt>@post.comments</tt>. That's a consequence of the declarative associations in the models. Path helpers such as <tt>post_comments_path</tt> come from the nested route declaration in <tt>config/routes.rb</tt>.</p></div>
 </div>
-<h2 id="_what_s_next">8. What's Next?</h2>
+<h2 id="_what_s_next">9. What's Next?</h2>
 <div class="sectionbody">
 <div class="para"><p>Now that you've seen your first Rails application, you should feel free to update it and experiment on your own. But you don't have to do everything without help. As you need assistance getting up and running with Rails, feel free to consult these support resources:</p></div>
 <div class="ilist"><ul>
@@ -1862,7 +2004,7 @@ The <a href="http://wiki.rubyonrails.org/rails">Rails wiki</a>
 </li>
 </ul></div>
 </div>
-<h2 id="_changelog">9. Changelog</h2>
+<h2 id="_changelog">10. Changelog</h2>
 <div class="sectionbody">
 <div class="para"><p><a href="http://rails.lighthouseapp.com/projects/16213-rails-guides/tickets/2">Lighthouse ticket</a></p></div>
 <div class="ilist"><ul>
