@@ -401,7 +401,7 @@ def partial_with_implicit_local_assignment
 end
 -------------------------------------------------------
 
-Previously the above code made available a local variable called +customer+ available inside the partial 'customer'. You should explicitly pass all the variables via :locals hash now.
+Previously the above code made available a local variable called +customer+ inside the partial 'customer'. You should explicitly pass all the variables via :locals hash now.
 
 * +country_select+ has been removed. See the link:http://www.rubyonrails.org/deprecation/list-of-countries[deprecation page] for more information and a plugin replacement.
 * +ActiveRecord::Base.allow_concurrency+ no longer has any effect.
