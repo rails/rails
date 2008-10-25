@@ -55,7 +55,7 @@ spec = Gem::Specification.new do |s|
   s.rubyforge_project = "actionmailer"
   s.homepage = "http://www.rubyonrails.org"
 
-  s.add_dependency('actionpack', '= 2.1.0' + PKG_BUILD)
+  s.add_dependency('actionpack', '= 2.2.0' + PKG_BUILD)
 
   s.has_rdoc = true
   s.requirements << 'none'
@@ -76,8 +76,8 @@ end
 
 desc "Publish the API documentation"
 task :pgem => [:package] do 
-  Rake::SshFilePublisher.new("wrath.rubyonrails.org", "public_html/gems/gems", "pkg", "#{PKG_FILE_NAME}.gem").upload
-  `ssh wrath.rubyonrails.org './gemupdate.sh'`
+  Rake::SshFilePublisher.new("gems.rubyonrails.org", "/u/sites/gems/gems", "pkg", "#{PKG_FILE_NAME}.gem").upload
+  `ssh gems.rubyonrails.org '/u/sites/gems/gemupdate.sh'`
 end
 
 desc "Publish the API documentation"

@@ -27,20 +27,20 @@ Along with thread safety, a lot of work has been done to make Rails work well wi
 
 The internal documentation of Rails, in the form of code comments, has been improved in numerous places. In addition, the link:http://guides.rubyonrails.org/[Ruby on Rails Guides] project is the definitive source for information on major Rails components. In its first official release, the Guides page includes:
 
-* Getting Started with Rails
-* Rails Database Migrations
-* Active Record Associations
-* Active Record Finders
-* Layouts and Rendering in Rails
-* Action View Form Helpers
-* Rails Routing from the Outside In
-* Basics of Action Controller
-* Rails Caching
-* Testing Rails Applications
-* Securing Rails Applications
-* Debugging Rails Applications
-* Benchmarking and Profiling Rails Applications
-* The Basics of Creating Rails Plugins
+* link:http://guides.rubyonrails.org/getting_started_with_rails.html[Getting Started with Rails]
+* link:http://guides.rubyonrails.org/migrations.html[Rails Database Migrations]
+* link:http://guides.rubyonrails.org/association_basics.html[Active Record Associations]
+* link:http://guides.rubyonrails.org/finders.html[Active Record Finders]
+* link:http://guides.rubyonrails.org/layouts_and_rendering.html[Layouts and Rendering in Rails]
+* link:http://guides.rubyonrails.org/form_helpers.html[Action View Form Helpers]
+* link:http://guides.rubyonrails.org/routing_outside_in.html[Rails Routing from the Outside In]
+* link:http://guides.rubyonrails.org/actioncontroller_basics.html[Basics of Action Controller]
+* link:http://guides.rubyonrails.org/caching_with_rails.html[Rails Caching]
+* link:http://guides.rubyonrails.org/testing_rails_applications.html[Testing Rails Applications]
+* link:http://guides.rubyonrails.org/security.html[Securing Rails Applications]
+* link:http://guides.rubyonrails.org/debugging_rails_applications.html[Debugging Rails Applications]
+* link:http://guides.rubyonrails.org/benchmarking_and_profiling.html[Benchmarking and Profiling Rails Applications]
+* link:http://guides.rubyonrails.org/creating_plugins.html[The Basics of Creating Rails Plugins]
 
 All told, the Guides provide tens of thousands of words of guidance for beginning and intermediate Rails developers.
 
@@ -54,7 +54,7 @@ rake doc:guides
 This will put the guides inside +RAILS_ROOT/doc/guides+ and you may start surfing straight away by opening +RAILS_ROOT/doc/guides/index.html+ in your favourite browser.
 
 * Lead Contributors: link:http://guides.rails.info/authors.html[Rails Documentation Team]
-* Major contributions from link:http://advogato.org/person/fxn/diary.html[Xavier Nora] and link:http://izumi.plan99.net/blog/[Hongli Lai].
+* Major contributions from link:http://advogato.org/person/fxn/diary.html[Xavier Noria] and link:http://izumi.plan99.net/blog/[Hongli Lai].
 * More information:
  - link:http://hackfest.rubyonrails.org/guide[Rails Guides hackfest]
  - link:http://weblog.rubyonrails.org/2008/5/2/help-improve-rails-documentation-on-git-branch[Help improve Rails documentation on Git branch]
@@ -108,6 +108,7 @@ config.threadsafe!
 -------------------------------------------------------
 
 * More information :
+ - link:http://m.onkey.org/2008/10/23/thread-safety-for-your-rails[Thread safety for your Rails]
  - link:http://weblog.rubyonrails.org/2008/8/16/josh-peek-officially-joins-the-rails-core[Thread safety project announcement]
  - link:http://blog.headius.com/2008/08/qa-what-thread-safe-rails-means.html[Q/A: What Thread-safe Rails Means]
 
@@ -148,16 +149,15 @@ You can now specify conditions on join tables using a hash. This is a big help i
 [source, ruby]
 -------------------------------------------------------
 class Photo < ActiveRecord::Base
-  belongs_to :Product
+  belongs_to :product
 end
 
 class Product < ActiveRecord::Base
-  has_many :products
+  has_many :photos
 end
 
 # Get all products with copyright-free photos:
-Product.find(:all, :joins => :photo,
-  :conditions => { :photos => { :copyright => false }})
+Product.all(:joins => :photos, :conditions => { :photos => { :copyright => false }})
 -------------------------------------------------------
 
 * More information:
@@ -167,7 +167,7 @@ Product.find(:all, :joins => :photo,
 
 Two new sets of methods have been added to Active Record's dynamic finders family.
 
-==== find_last_by_<attributes>
+==== +find_last_by_<attribute>+
 
 The +find_last_by_<attribute>+ method is equivalent to +Model.last(:conditions => {:attribute => value})+
 	
@@ -179,9 +179,9 @@ User.find_last_by_city('London')
 
 * Lead Contributor: link:http://www.workingwithrails.com/person/9147-emilio-tagua[Emilio Tagua]
 
-==== find_by_<attributes>! 
+==== +find_by_<attribute>!+ 
 	
-The new bang! version of +find_by_<attribute>! is equivalent to  +Model.first(:conditions => {:attribute => value}) || raise ActiveRecord::RecordNotFound+ Instead of returning +nil+ if it can't find a matching record, this method will raise an exception if it cannot find a match.
+The new bang! version of +find_by_<attribute>!+ is equivalent to +Model.first(:conditions => {:attribute => value}) || raise ActiveRecord::RecordNotFound+ Instead of returning +nil+ if it can't find a matching record, this method will raise an exception if it cannot find a match.
 	
 [source, ruby]
 -------------------------------------------------------
@@ -190,6 +190,14 @@ User.find_by_name!('Moby')
 -------------------------------------------------------
 
 * Lead Contributor: link:http://blog.hasmanythrough.com[Josh Susser]
+
+=== Associations Respect Private/Protected Scope
+
+Active Record association proxies now respect the scope of methods on the proxied object. Previously (given User has_one :account) +@user.account.private_method+ would call the private method on the associated Account object. That fails in Rails 2.2; if you need this functionality, you should use +@user.account.send(:private_method)+ (or make the method public instead of private or protected). Please note that if you're overriding +method_missing+, you should also override +respond_to+ to match the behavior in order for associations to function normally.
+
+* Lead Contributor: Adam Milligan
+* More information:
+ - link:http://afreshcup.com/2008/10/24/rails-22-change-private-methods-on-association-proxies-are-private/[Rails 2.2 Change: Private Methods on Association Proxies are Private]
 
 === Other ActiveRecord Changes
 
@@ -315,23 +323,23 @@ If you delegate behavior from one class to another, you can now specify a prefix
 
 [source, ruby]
 -------------------------------------------------------
-class Vendor << ActiveRecord::Base
+class Vendor < ActiveRecord::Base
   has_one :account
   delegate :email, :password, :to => :account, :prefix => true
 end
 -------------------------------------------------------
 
-This will produce delegated methods +vendor.account_email+ and +vendor.account_password+. You can also specify a custom prefix:
+This will produce delegated methods +vendor#account_email+ and +vendor#account_password+. You can also specify a custom prefix:
 
 [source, ruby]
 -------------------------------------------------------
-class Vendor << ActiveRecord::Base
+class Vendor < ActiveRecord::Base
   has_one :account
   delegate :email, :password, :to => :account, :prefix => :owner
 end
 -------------------------------------------------------
 
-This will produce delegated methods +vendor.owner_email+ and +vendor.owner_password+.
+This will produce delegated methods +vendor#owner_email+ and +vendor#owner_password+.
 
 Lead Contributor: link:http://workingwithrails.com/person/5830-daniel-schierbeck[Daniel Schierbeck]
 
@@ -341,7 +349,7 @@ Lead Contributor: link:http://workingwithrails.com/person/5830-daniel-schierbeck
 * The addition of +ActiveSupport::Rescuable+ allows any class to mix in the +rescue_from+ syntax.
 * +past?+, +today?+ and +future?+ for +Date+ and +Time+ classes to facilitate date/time comparisons.
 * +Array#second+ through +Array#tenth+ as aliases for +Array#[1]+ through +Array#[9]+
-* +Enumerable#several?+ to encapsulate +collection.size > 1+
+* +Enumerable#many?+ to encapsulate +collection.size > 1+
 * +Inflector#parameterize+ produces a URL-ready version of its input, for use in +to_param+.
 * +Time#advance+ recognizes fractional days and weeks, so you can do +1.7.weeks.ago+, +1.5.hours.since+, and so on.
 * The included TzInfo library has been upgraded to version 0.3.11.
@@ -362,11 +370,12 @@ To avoid deployment issues and make Rails applications more self-contained, it's
 * +rake gems:build+ to build any missing native extensions
 * +rake gems:refresh_specs+ to bring vendored gems created with Rails 2.1 into alignment with the Rails 2.2 way of storing them
 
-You can unpack or install a single gem by specifying +GEM=_gem_name+ on the command line.
+You can unpack or install a single gem by specifying +GEM=_gem_name_+ on the command line.
 
 * Lead Contributor: link:http://github.com/al2o3cr[Matt Jones]
 * More information:
  - link:http://ryandaigle.com/articles/2008/4/1/what-s-new-in-edge-rails-gem-dependencies[What's New in Edge Rails: Gem Dependencies]
+ - link:http://afreshcup.com/2008/10/25/rails-212-and-22rc1-update-your-rubygems/[Rails 2.1.2 and 2.2RC1: Update Your RubyGems]
 
 === Other Railties Changes
 
@@ -384,6 +393,18 @@ A few pieces of older code are deprecated in this release:
 
 * +Rails::SecretKeyGenerator+ has been replaced by +ActiveSupport::SecureRandom+
 * +render_component+ is deprecated. There's a link:http://github.com/rails/render_component/tree/master[render_components plugin] available if you need this functionality.
+* Implicit local assignments when rendering partials has been deprecated.
+
+[source, ruby]
+-------------------------------------------------------
+def partial_with_implicit_local_assignment
+  @customer = Customer.new("Marcel")
+  render :partial => "customer"
+end
+-------------------------------------------------------
+
+Previously the above code made available a local variable called +customer+ inside the partial 'customer'. You should explicitly pass all the variables via :locals hash now.
+
 * +country_select+ has been removed. See the link:http://www.rubyonrails.org/deprecation/list-of-countries[deprecation page] for more information and a plugin replacement.
 * +ActiveRecord::Base.allow_concurrency+ no longer has any effect.
 * +ActiveRecord::Errors.default_error_messages+ has been deprecated in favor of +I18n.translate('activerecord.errors.messages')+

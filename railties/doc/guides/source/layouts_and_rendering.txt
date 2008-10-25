@@ -186,7 +186,7 @@ render :file => filename, :content_type => 'application/rss'
 
 ===== The +:layout+ Option
 
-With most of the options to +render+, the rendered content is displayed as part of the current layout. You'll learn more about layouts and how to use them later in this guide. To find the current layout, Rails first looks for a file in +app/views/layouts+ with the same base name as the controller. For example, rendering actions from the +PhotosController+ class will use +/app/views/layouts/photos.html.erb+. If there is no such controller-specific layout, Rails will use +/app/views/layouts/application.html.erb+.
+With most of the options to +render+, the rendered content is displayed as part of the current layout. You'll learn more about layouts and how to use them later in this guide. 
 
 You can use the +:layout+ option to tell Rails to use a specific file as the layout for the current action:
 
@@ -222,6 +222,124 @@ You can use the +:location+ option to set the HTTP +Location+ header:
 -------------------------------------------------------
 render :xml => photo, :location => photo_url(photo)
 -------------------------------------------------------
+
+==== Finding Layouts
+
+To find the current layout, Rails first looks for a file in +app/views/layouts+ with the same base name as the controller. For example, rendering actions from the +PhotosController+ class will use +/app/views/layouts/photos.html.erb+. If there is no such controller-specific layout, Rails will use +/app/views/layouts/application.html.erb+. If there is no +.erb+ layout, Rails will use a +.builder+ layout if one exists. Rails also provides several ways to more precisely assign specific layouts to individual controllers and actions.
+
+===== Specifying Layouts on a per-Controller Basis
+
+You can override the automatic layout conventions in your controllers by using the +layout+ declaration in the controller. For example:
+
+[source, ruby]
+-------------------------------------------------------
+class ProductsController < ApplicationController
+  layout "inventory"
+  #...
+end
+-------------------------------------------------------
+
+With this declaration, all methods within +ProductsController+ will use +app/views/layouts/inventory.html.erb+ for their layout.
+
+To assign a specific layout for the entire application, use a declaration in your +ApplicationController+ class:
+
+[source, ruby]
+-------------------------------------------------------
+class ApplicationController < ActionController::Base
+  layout "main"
+  #...
+end
+-------------------------------------------------------
+
+With this declaration, all views in the entire application will use +app/views/layouts/main.html.erb+ for their layout.
+
+===== Choosing Layouts at Runtime
+
+You can use a symbol to defer the choice of layout until a request is processed:
+
+[source, ruby]
+-------------------------------------------------------
+class ProductsController < ApplicationController
+  layout :products_layout
+  
+  def show
+    @product = Product.find(params[:id])
+  end
+
+  private
+    def products_layout
+      @current_user.special? ? "special" : "products"
+    end
+
+end
+-------------------------------------------------------
+
+Now, if the current user is a special user, they'll get a special layout when viewing a product. You can even use an inline method to determine the layout:
+
+[source, ruby]
+-------------------------------------------------------
+class ProductsController < ApplicationController
+  layout proc{ |controller| controller.
+  # ...	
+end
+-------------------------------------------------------
+
+===== Conditional Layouts
+
+Layouts specified at the controller level support +:only+ and +:except+ options that take either a method name or an array of method names:
+
+-------------------------------------------------------
+class ProductsController < ApplicationController
+  layout "inventory", :only => :index
+  layout "product", :except => [:index, :rss]
+  #...
+end
+-------------------------------------------------------
+
+With those declarations, the +inventory+ layout would be used only for the +index+ method, the +product+ layout would be used for everything else except the +rss+ method, and the +rss+ method will have its layout determined by the automatic layout rules.
+
+===== Layout Inheritance
+
+Layouts are shared downwards in the hierarchy, and more specific layouts always override more general ones. For example:
+
+[source, ruby]
+-------------------------------------------------------
+class ApplicationController < ActionController::Base
+  layout "main"
+  #...
+end
+
+class PostsController < ApplicationController
+  # ...
+end
+
+class SpecialPostsController < PostsController
+  layout "special"
+  # ...
+end
+
+class OldPostsController < SpecialPostsController
+  layout nil
+
+  def show
+    @post = Post.find(params[:id])
+  end
+
+  def index
+    @old_posts = Post.older
+    render :layout => "old"
+  end
+  # ...
+end
+-------------------------------------------------------
+
+In this application:
+
+* In general, views will be rendered in the +main+ layout
+* +PostsController#index+ will use the +main+ layout
+* +SpecialPostsController#index+ will use the +special+ layout
+* +OldPostsController#show+ will use no layout at all
+* +OldPostsController#index+ will use the +old+ layout
 
 ==== Avoiding Double Render Errors
 
@@ -332,9 +450,7 @@ head :created, :location => photo_path(@photo)
 
 == Structuring Layouts
 
-When Rails renders a view as a response, it does so by combining the view with the current layout. To find the current layout, Rails first looks for a file in +app/views/layouts+ with the same base name as the controller. For example, rendering actions from the +PhotosController+ class will use +/app/views/layouts/photos.html.erb+. If there is no such controller-specific layout, Rails will use +/app/views/layouts/application.html.erb+. You can also specify a particular layout by using the +:layout+ option to +render+.
-
-Within a layout, you have access to three tools for combining different bits of output to form the overall response:
+When Rails renders a view as a response, it does so by combining the view with the current layout (using the rules for finding the current layout that were covered earlier in this guide). Within a layout, you have access to three tools for combining different bits of output to form the overall response:
 
 * Asset tags
 * +yield+ and +content_for+
@@ -652,7 +768,7 @@ You can also pass local variables into partials, making them even more powerful 
 
 [source, html]
 -------------------------------------------------------
-new.rhtml.erb:
+new.html.erb:
 
 <h1>New zone</h1>
 <%= error_messages_for :zone %>
@@ -703,7 +819,7 @@ Partials are very useful in rendering collections. When you pass a collection to
 
 [source, html]
 -------------------------------------------------------
-index.rhtml.erb:
+index.html.erb:
 
 <h1>Products</h1>
 <%= render :partial => "product", :collection => @products %>
@@ -735,7 +851,7 @@ There's also a shorthand syntax available for rendering collections. For example
 
 [source, html]
 -------------------------------------------------------
-index.rhtml.erb:
+index.html.erb:
 
 <h1>Products</h1>
 <%= render :partial => @products %>
@@ -749,7 +865,7 @@ Rails determines the name of the partial to use by looking at the model name in 
 
 [source, html]
 -------------------------------------------------------
-index.rhtml.erb:
+index.html.erb:
 
 <h1>Contacts</h1>
 <%= render :partial => [customer1, employee1, customer2, employee2] %>

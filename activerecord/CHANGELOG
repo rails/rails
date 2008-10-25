@@ -1,4 +1,6 @@
-*Edge*
+*2.2.0 [RC1] (October 24th, 2008)*
+
+* Skip collection ids reader optimization if using :finder_sql [Jeremy Kemper]
 
 * Add Model#delete instance method, similar to Model.delete class method. #1086 [Hongli Lai]
 

@@ -523,7 +523,7 @@ http://www.gnu.org/software/src-highlite -->
 <pre><tt>render <span style="color: #990000">:</span>file <span style="color: #990000">=&gt;</span> filename<span style="color: #990000">,</span> <span style="color: #990000">:</span>content_type <span style="color: #990000">=&gt;</span> <span style="color: #FF0000">'application/rss'</span>
 </tt></pre></div></div>
 <h5 id="_the_tt_layout_tt_option">The <tt>:layout</tt> Option</h5>
-<div class="para"><p>With most of the options to <tt>render</tt>, the rendered content is displayed as part of the current layout. You'll learn more about layouts and how to use them later in this guide. To find the current layout, Rails first looks for a file in <tt>app/views/layouts</tt> with the same base name as the controller. For example, rendering actions from the <tt>PhotosController</tt> class will use <tt>/app/views/layouts/photos.html.erb</tt>. If there is no such controller-specific layout, Rails will use <tt>/app/views/layouts/application.html.erb</tt>.</p></div>
+<div class="para"><p>With most of the options to <tt>render</tt>, the rendered content is displayed as part of the current layout. You'll learn more about layouts and how to use them later in this guide.</p></div>
 <div class="para"><p>You can use the <tt>:layout</tt> option to tell Rails to use a specific file as the layout for the current action:</p></div>
 <div class="listingblock">
 <div class="content"><!-- Generator: GNU source-highlight 2.9
@@ -560,7 +560,140 @@ http://www.lorenzobettini.it
 http://www.gnu.org/software/src-highlite -->
 <pre><tt>render <span style="color: #990000">:</span>xml <span style="color: #990000">=&gt;</span> photo<span style="color: #990000">,</span> <span style="color: #990000">:</span>location <span style="color: #990000">=&gt;</span> photo_url<span style="color: #990000">(</span>photo<span style="color: #990000">)</span>
 </tt></pre></div></div>
-<h4 id="_avoiding_double_render_errors">2.2.11. Avoiding Double Render Errors</h4>
+<h4 id="_finding_layouts">2.2.11. Finding Layouts</h4>
+<div class="para"><p>To find the current layout, Rails first looks for a file in <tt>app/views/layouts</tt> with the same base name as the controller. For example, rendering actions from the <tt>PhotosController</tt> class will use <tt>/app/views/layouts/photos.html.erb</tt>. If there is no such controller-specific layout, Rails will use <tt>/app/views/layouts/application.html.erb</tt>. If there is no <tt>.erb</tt> layout, Rails will use a <tt>.builder</tt> layout if one exists. Rails also provides several ways to more precisely assign specific layouts to individual controllers and actions.</p></div>
+<h5 id="_specifying_layouts_on_a_per_controller_basis">Specifying Layouts on a per-Controller Basis</h5>
+<div class="para"><p>You can override the automatic layout conventions in your controllers by using the <tt>layout</tt> declaration in the controller. For example:</p></div>
+<div class="listingblock">
+<div class="content"><!-- Generator: GNU source-highlight 2.9
+by Lorenzo Bettini
+http://www.lorenzobettini.it
+http://www.gnu.org/software/src-highlite -->
+<pre><tt><span style="font-weight: bold"><span style="color: #0000FF">class</span></span> ProductsController <span style="color: #990000">&lt;</span> ApplicationController
+  layout <span style="color: #FF0000">"inventory"</span>
+  <span style="font-style: italic"><span style="color: #9A1900">#...</span></span>
+<span style="font-weight: bold"><span style="color: #0000FF">end</span></span>
+</tt></pre></div></div>
+<div class="para"><p>With this declaration, all methods within <tt>ProductsController</tt> will use <tt>app/views/layouts/inventory.html.erb</tt> for their layout.</p></div>
+<div class="para"><p>To assign a specific layout for the entire application, use a declaration in your <tt>ApplicationController</tt> class:</p></div>
+<div class="listingblock">
+<div class="content"><!-- Generator: GNU source-highlight 2.9
+by Lorenzo Bettini
+http://www.lorenzobettini.it
+http://www.gnu.org/software/src-highlite -->
+<pre><tt><span style="font-weight: bold"><span style="color: #0000FF">class</span></span> ApplicationController <span style="color: #990000">&lt;</span> ActionController<span style="color: #990000">::</span>Base
+  layout <span style="color: #FF0000">"main"</span>
+  <span style="font-style: italic"><span style="color: #9A1900">#...</span></span>
+<span style="font-weight: bold"><span style="color: #0000FF">end</span></span>
+</tt></pre></div></div>
+<div class="para"><p>With this declaration, all views in the entire application will use <tt>app/views/layouts/main.html.erb</tt> for their layout.</p></div>
+<h5 id="_choosing_layouts_at_runtime">Choosing Layouts at Runtime</h5>
+<div class="para"><p>You can use a symbol to defer the choice of layout until a request is processed:</p></div>
+<div class="listingblock">
+<div class="content"><!-- Generator: GNU source-highlight 2.9
+by Lorenzo Bettini
+http://www.lorenzobettini.it
+http://www.gnu.org/software/src-highlite -->
+<pre><tt><span style="font-weight: bold"><span style="color: #0000FF">class</span></span> ProductsController <span style="color: #990000">&lt;</span> ApplicationController
+  layout <span style="color: #990000">:</span>products_layout
+
+  <span style="font-weight: bold"><span style="color: #0000FF">def</span></span> show
+    <span style="color: #009900">@product</span> <span style="color: #990000">=</span> Product<span style="color: #990000">.</span>find<span style="color: #990000">(</span>params<span style="color: #990000">[:</span>id<span style="color: #990000">])</span>
+  <span style="font-weight: bold"><span style="color: #0000FF">end</span></span>
+
+  private
+    <span style="font-weight: bold"><span style="color: #0000FF">def</span></span> products_layout
+      <span style="color: #009900">@current_user</span><span style="color: #990000">.</span>special? <span style="color: #990000">?</span> <span style="color: #FF0000">"special"</span> <span style="color: #990000">:</span> <span style="color: #FF0000">"products"</span>
+    <span style="font-weight: bold"><span style="color: #0000FF">end</span></span>
+
+<span style="font-weight: bold"><span style="color: #0000FF">end</span></span>
+</tt></pre></div></div>
+<div class="para"><p>Now, if the current user is a special user, they'll get a special layout when viewing a product. You can even use an inline method to determine the layout:</p></div>
+<div class="listingblock">
+<div class="content"><!-- Generator: GNU source-highlight 2.9
+by Lorenzo Bettini
+http://www.lorenzobettini.it
+http://www.gnu.org/software/src-highlite -->
+<pre><tt><span style="font-weight: bold"><span style="color: #0000FF">class</span></span> ProductsController <span style="color: #990000">&lt;</span> ApplicationController
+  layout proc<span style="color: #FF0000">{</span> <span style="color: #990000">|</span>controller<span style="color: #990000">|</span> controller<span style="color: #990000">.</span>
+  <span style="font-style: italic"><span style="color: #9A1900"># ...</span></span>
+<span style="font-weight: bold"><span style="color: #0000FF">end</span></span>
+</tt></pre></div></div>
+<h5 id="_conditional_layouts">Conditional Layouts</h5>
+<div class="para"><p>Layouts specified at the controller level support <tt>:only</tt> and <tt>:except</tt> options that take either a method name or an array of method names:</p></div>
+<div class="listingblock">
+<div class="content">
+<pre><tt>class ProductsController &lt; ApplicationController
+  layout "inventory", :only =&gt; :index
+  layout "product", :except =&gt; [:index, :rss]
+  #...
+end</tt></pre>
+</div></div>
+<div class="para"><p>With those declarations, the <tt>inventory</tt> layout would be used only for the <tt>index</tt> method, the <tt>product</tt> layout would be used for everything else except the <tt>rss</tt> method, and the <tt>rss</tt> method will have its layout determined by the automatic layout rules.</p></div>
+<h5 id="_layout_inheritance">Layout Inheritance</h5>
+<div class="para"><p>Layouts are shared downwards in the hierarchy, and more specific layouts always override more general ones. For example:</p></div>
+<div class="listingblock">
+<div class="content"><!-- Generator: GNU source-highlight 2.9
+by Lorenzo Bettini
+http://www.lorenzobettini.it
+http://www.gnu.org/software/src-highlite -->
+<pre><tt><span style="font-weight: bold"><span style="color: #0000FF">class</span></span> ApplicationController <span style="color: #990000">&lt;</span> ActionController<span style="color: #990000">::</span>Base
+  layout <span style="color: #FF0000">"main"</span>
+  <span style="font-style: italic"><span style="color: #9A1900">#...</span></span>
+<span style="font-weight: bold"><span style="color: #0000FF">end</span></span>
+
+<span style="font-weight: bold"><span style="color: #0000FF">class</span></span> PostsController <span style="color: #990000">&lt;</span> ApplicationController
+  <span style="font-style: italic"><span style="color: #9A1900"># ...</span></span>
+<span style="font-weight: bold"><span style="color: #0000FF">end</span></span>
+
+<span style="font-weight: bold"><span style="color: #0000FF">class</span></span> SpecialPostsController <span style="color: #990000">&lt;</span> PostsController
+  layout <span style="color: #FF0000">"special"</span>
+  <span style="font-style: italic"><span style="color: #9A1900"># ...</span></span>
+<span style="font-weight: bold"><span style="color: #0000FF">end</span></span>
+
+<span style="font-weight: bold"><span style="color: #0000FF">class</span></span> OldPostsController <span style="color: #990000">&lt;</span> SpecialPostsController
+  layout <span style="font-weight: bold"><span style="color: #0000FF">nil</span></span>
+
+  <span style="font-weight: bold"><span style="color: #0000FF">def</span></span> show
+    <span style="color: #009900">@post</span> <span style="color: #990000">=</span> Post<span style="color: #990000">.</span>find<span style="color: #990000">(</span>params<span style="color: #990000">[:</span>id<span style="color: #990000">])</span>
+  <span style="font-weight: bold"><span style="color: #0000FF">end</span></span>
+
+  <span style="font-weight: bold"><span style="color: #0000FF">def</span></span> index
+    <span style="color: #009900">@old_posts</span> <span style="color: #990000">=</span> Post<span style="color: #990000">.</span>older
+    render <span style="color: #990000">:</span>layout <span style="color: #990000">=&gt;</span> <span style="color: #FF0000">"old"</span>
+  <span style="font-weight: bold"><span style="color: #0000FF">end</span></span>
+  <span style="font-style: italic"><span style="color: #9A1900"># ...</span></span>
+<span style="font-weight: bold"><span style="color: #0000FF">end</span></span>
+</tt></pre></div></div>
+<div class="para"><p>In this application:</p></div>
+<div class="ilist"><ul>
+<li>
+<p>
+In general, views will be rendered in the <tt>main</tt> layout
+</p>
+</li>
+<li>
+<p>
+<tt>PostsController#index</tt> will use the <tt>main</tt> layout
+</p>
+</li>
+<li>
+<p>
+<tt>SpecialPostsController#index</tt> will use the <tt>special</tt> layout
+</p>
+</li>
+<li>
+<p>
+<tt>OldPostsController#show</tt> will use no layout at all
+</p>
+</li>
+<li>
+<p>
+<tt>OldPostsController#index</tt> will use the <tt>old</tt> layout
+</p>
+</li>
+</ul></div>
+<h4 id="_avoiding_double_render_errors">2.2.12. Avoiding Double Render Errors</h4>
 <div class="para"><p>Sooner or later, most Rails developers will see the error message "Can only render or redirect once per action". While this is annoying, it's relatively easy to fix. Usually it happens because of a fundamental misunderstanding of the way that <tt>render</tt> works.</p></div>
 <div class="para"><p>For example, here's some code that will trigger this error:</p></div>
 <div class="listingblock">
@@ -666,8 +799,7 @@ http://www.gnu.org/software/src-highlite -->
 </div>
 <h2 id="_structuring_layouts">3. Structuring Layouts</h2>
 <div class="sectionbody">
-<div class="para"><p>When Rails renders a view as a response, it does so by combining the view with the current layout. To find the current layout, Rails first looks for a file in <tt>app/views/layouts</tt> with the same base name as the controller. For example, rendering actions from the <tt>PhotosController</tt> class will use <tt>/app/views/layouts/photos.html.erb</tt>. If there is no such controller-specific layout, Rails will use <tt>/app/views/layouts/application.html.erb</tt>. You can also specify a particular layout by using the <tt>:layout</tt> option to <tt>render</tt>.</p></div>
-<div class="para"><p>Within a layout, you have access to three tools for combining different bits of output to form the overall response:</p></div>
+<div class="para"><p>When Rails renders a view as a response, it does so by combining the view with the current layout (using the rules for finding the current layout that were covered earlier in this guide). Within a layout, you have access to three tools for combining different bits of output to form the overall response:</p></div>
 <div class="ilist"><ul>
 <li>
 <p>
@@ -1058,7 +1190,7 @@ http://www.gnu.org/software/src-highlite -->
 by Lorenzo Bettini
 http://www.lorenzobettini.it
 http://www.gnu.org/software/src-highlite -->
-<pre><tt>new.rhtml.erb:
+<pre><tt>new.html.erb:
 
 <span style="font-weight: bold"><span style="color: #0000FF">&lt;h1&gt;</span></span>New zone<span style="font-weight: bold"><span style="color: #0000FF">&lt;/h1&gt;</span></span>
 &lt;%= error_messages_for :zone %&gt;
@@ -1108,7 +1240,7 @@ http://www.gnu.org/software/src-highlite -->
 by Lorenzo Bettini
 http://www.lorenzobettini.it
 http://www.gnu.org/software/src-highlite -->
-<pre><tt>index.rhtml.erb:
+<pre><tt>index.html.erb:
 
 <span style="font-weight: bold"><span style="color: #0000FF">&lt;h1&gt;</span></span>Products<span style="font-weight: bold"><span style="color: #0000FF">&lt;/h1&gt;</span></span>
 &lt;%= render :partial =&gt; "product", :collection =&gt; @products %&gt;
@@ -1141,7 +1273,7 @@ http://www.gnu.org/software/src-highlite -->
 by Lorenzo Bettini
 http://www.lorenzobettini.it
 http://www.gnu.org/software/src-highlite -->
-<pre><tt>index.rhtml.erb:
+<pre><tt>index.html.erb:
 
 <span style="font-weight: bold"><span style="color: #0000FF">&lt;h1&gt;</span></span>Products<span style="font-weight: bold"><span style="color: #0000FF">&lt;/h1&gt;</span></span>
 &lt;%= render :partial =&gt; @products %&gt;
@@ -1156,7 +1288,7 @@ _product.html.erb:
 by Lorenzo Bettini
 http://www.lorenzobettini.it
 http://www.gnu.org/software/src-highlite -->
-<pre><tt>index.rhtml.erb:
+<pre><tt>index.html.erb:
 
 <span style="font-weight: bold"><span style="color: #0000FF">&lt;h1&gt;</span></span>Contacts<span style="font-weight: bold"><span style="color: #0000FF">&lt;/h1&gt;</span></span>
 &lt;%= render :partial =&gt; [customer1, employee1, customer2, employee2] %&gt;

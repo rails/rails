@@ -1,4 +1,6 @@
-*Edge*
+*2.2.0 [RC1] (October 24th, 2008)*
+
+* Fix incorrect closing CDATA delimiter and that HTML::Node.parse would blow up on unclosed CDATA sections [packagethief]
 
 * Added stale? and fresh_when methods to provide a layer of abstraction above request.fresh? and friends [DHH]. Example:
 

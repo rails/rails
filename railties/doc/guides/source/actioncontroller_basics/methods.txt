@@ -34,4 +34,4 @@ def new
 end
 ----------------------------------------------
 
-The Layouts & rendering guide explains this in more detail.
+The link:../layouts_and_rendering.html[Layouts & rendering guide] explains this in more detail.

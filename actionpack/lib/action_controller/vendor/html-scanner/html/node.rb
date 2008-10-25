@@ -150,7 +150,14 @@ module HTML #:nodoc:
           end
 
           if scanner.skip(/!\[CDATA\[/)
-            scanner.scan_until(/\]\]>/)
+            unless scanner.skip_until(/\]\]>/)
+              if strict
+                raise "expected ]]> (got #{scanner.rest.inspect} for #{content})"
+              else
+                scanner.skip_until(/\Z/)
+              end
+            end
+
             return CDATA.new(parent, line, pos, scanner.pre_match.gsub(/<!\[CDATA\[/, ''))
           end
           
@@ -265,7 +272,7 @@ module HTML #:nodoc:
   # itself.
   class CDATA < Text #:nodoc:
     def to_s
-      "<![CDATA[#{super}]>"
+      "<![CDATA[#{super}]]>"
     end
   end
 
