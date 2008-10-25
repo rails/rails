@@ -27,20 +27,20 @@ Along with thread safety, a lot of work has been done to make Rails work well wi
 
 The internal documentation of Rails, in the form of code comments, has been improved in numerous places. In addition, the link:http://guides.rubyonrails.org/[Ruby on Rails Guides] project is the definitive source for information on major Rails components. In its first official release, the Guides page includes:
 
-* Getting Started with Rails
-* Rails Database Migrations
-* Active Record Associations
-* Active Record Finders
-* Layouts and Rendering in Rails
-* Action View Form Helpers
-* Rails Routing from the Outside In
-* Basics of Action Controller
-* Rails Caching
-* Testing Rails Applications
-* Securing Rails Applications
-* Debugging Rails Applications
-* Benchmarking and Profiling Rails Applications
-* The Basics of Creating Rails Plugins
+* link:http://guides.rubyonrails.org/getting_started_with_rails.html[Getting Started with Rails]
+* link:http://guides.rubyonrails.org/migrations.html[Rails Database Migrations]
+* link:http://guides.rubyonrails.org/association_basics.html[Active Record Associations]
+* link:http://guides.rubyonrails.org/finders.html[Active Record Finders]
+* link:http://guides.rubyonrails.org/layouts_and_rendering.html[Layouts and Rendering in Rails]
+* link:http://guides.rubyonrails.org/form_helpers.html[Action View Form Helpers]
+* link:http://guides.rubyonrails.org/routing_outside_in.html[Rails Routing from the Outside In]
+* link:http://guides.rubyonrails.org/actioncontroller_basics.html[Basics of Action Controller]
+* link:http://guides.rubyonrails.org/caching_with_rails.html[Rails Caching]
+* link:http://guides.rubyonrails.org/testing_rails_applications.html[Testing Rails Applications]
+* link:http://guides.rubyonrails.org/security.html[Securing Rails Applications]
+* link:http://guides.rubyonrails.org/debugging_rails_applications.html[Debugging Rails Applications]
+* link:http://guides.rubyonrails.org/benchmarking_and_profiling.html[Benchmarking and Profiling Rails Applications]
+* link:http://guides.rubyonrails.org/creating_plugins.html[The Basics of Creating Rails Plugins]
 
 All told, the Guides provide tens of thousands of words of guidance for beginning and intermediate Rails developers.
 
@@ -167,7 +167,7 @@ Product.all(:joins => :photos, :conditions => { :photos => { :copyright => false
 
 Two new sets of methods have been added to Active Record's dynamic finders family.
 
-==== find_last_by_<attributes>
+==== +find_last_by_<attribute>+
 
 The +find_last_by_<attribute>+ method is equivalent to +Model.last(:conditions => {:attribute => value})+
 	
@@ -179,9 +179,9 @@ User.find_last_by_city('London')
 
 * Lead Contributor: link:http://www.workingwithrails.com/person/9147-emilio-tagua[Emilio Tagua]
 
-==== find_by_<attributes>! 
+==== +find_by_<attribute>!+ 
 	
-The new bang! version of +find_by_<attribute>! is equivalent to  +Model.first(:conditions => {:attribute => value}) || raise ActiveRecord::RecordNotFound+ Instead of returning +nil+ if it can't find a matching record, this method will raise an exception if it cannot find a match.
+The new bang! version of +find_by_<attribute>!+ is equivalent to +Model.first(:conditions => {:attribute => value}) || raise ActiveRecord::RecordNotFound+ Instead of returning +nil+ if it can't find a matching record, this method will raise an exception if it cannot find a match.
 	
 [source, ruby]
 -------------------------------------------------------
@@ -370,7 +370,7 @@ To avoid deployment issues and make Rails applications more self-contained, it's
 * +rake gems:build+ to build any missing native extensions
 * +rake gems:refresh_specs+ to bring vendored gems created with Rails 2.1 into alignment with the Rails 2.2 way of storing them
 
-You can unpack or install a single gem by specifying +GEM=_gem_name+ on the command line.
+You can unpack or install a single gem by specifying +GEM=_gem_name_+ on the command line.
 
 * Lead Contributor: link:http://github.com/al2o3cr[Matt Jones]
 * More information:
