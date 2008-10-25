@@ -612,7 +612,7 @@ More information:
 </ul></div>
 <h3 id="_new_dynamic_finders">5.4. New Dynamic Finders</h3>
 <div class="para"><p>Two new sets of methods have been added to Active Record's dynamic finders family.</p></div>
-<h4 id="_tt_find_last_by_lt_attributes_gt_tt">5.4.1. <tt>find_last_by_&lt;attribute&gt;</tt></h4>
+<h4 id="_tt_find_last_by_lt_attribute_gt_tt">5.4.1. <tt>find_last_by_&lt;attribute&gt;</tt></h4>
 <div class="para"><p>The <tt>find_last_by_&lt;attribute&gt;</tt> method is equivalent to <tt>Model.last(:conditions &#8658; {:attribute &#8658; value})</tt></p></div>
 <div class="listingblock">
 <div class="content"><!-- Generator: GNU source-highlight 2.9
@@ -629,7 +629,7 @@ Lead Contributor: <a href="http://www.workingwithrails.com/person/9147-emilio-ta
 </p>
 </li>
 </ul></div>
-<h4 id="_tt_find_by_lt_attributes_gt_tt">5.4.2. <tt>find_by_&lt;attribute&gt;!</tt></h4>
+<h4 id="_tt_find_by_lt_attribute_gt_tt">5.4.2. <tt>find_by_&lt;attribute&gt;!</tt></h4>
 <div class="para"><p>The new bang! version of <tt>find_by_&lt;attribute&gt;!</tt> is equivalent to <tt>Model.first(:conditions &#8658; {:attribute &#8658; value}) || raise ActiveRecord::RecordNotFound</tt> Instead of returning <tt>nil</tt> if it can't find a matching record, this method will raise an exception if it cannot find a match.</p></div>
 <div class="listingblock">
 <div class="content"><!-- Generator: GNU source-highlight 2.9
