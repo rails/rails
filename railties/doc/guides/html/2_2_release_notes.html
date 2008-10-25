@@ -893,23 +893,23 @@ http://www.gnu.org/software/src-highlite -->
 by Lorenzo Bettini
 http://www.lorenzobettini.it
 http://www.gnu.org/software/src-highlite -->
-<pre><tt><span style="font-weight: bold"><span style="color: #0000FF">class</span></span> Vendor <span style="color: #990000">&lt;&lt;</span> ActiveRecord<span style="color: #990000">::</span>Base
+<pre><tt><span style="font-weight: bold"><span style="color: #0000FF">class</span></span> Vendor <span style="color: #990000">&lt;</span> ActiveRecord<span style="color: #990000">::</span>Base
   has_one <span style="color: #990000">:</span>account
   delegate <span style="color: #990000">:</span>email<span style="color: #990000">,</span> <span style="color: #990000">:</span>password<span style="color: #990000">,</span> <span style="color: #990000">:</span>to <span style="color: #990000">=&gt;</span> <span style="color: #990000">:</span>account<span style="color: #990000">,</span> <span style="color: #990000">:</span>prefix <span style="color: #990000">=&gt;</span> <span style="font-weight: bold"><span style="color: #0000FF">true</span></span>
 <span style="font-weight: bold"><span style="color: #0000FF">end</span></span>
 </tt></pre></div></div>
-<div class="para"><p>This will produce delegated methods <tt>vendor.account_email</tt> and <tt>vendor.account_password</tt>. You can also specify a custom prefix:</p></div>
+<div class="para"><p>This will produce delegated methods <tt>vendor#account_email</tt> and <tt>vendor#account_password</tt>. You can also specify a custom prefix:</p></div>
 <div class="listingblock">
 <div class="content"><!-- Generator: GNU source-highlight 2.9
 by Lorenzo Bettini
 http://www.lorenzobettini.it
 http://www.gnu.org/software/src-highlite -->
-<pre><tt><span style="font-weight: bold"><span style="color: #0000FF">class</span></span> Vendor <span style="color: #990000">&lt;&lt;</span> ActiveRecord<span style="color: #990000">::</span>Base
+<pre><tt><span style="font-weight: bold"><span style="color: #0000FF">class</span></span> Vendor <span style="color: #990000">&lt;</span> ActiveRecord<span style="color: #990000">::</span>Base
   has_one <span style="color: #990000">:</span>account
   delegate <span style="color: #990000">:</span>email<span style="color: #990000">,</span> <span style="color: #990000">:</span>password<span style="color: #990000">,</span> <span style="color: #990000">:</span>to <span style="color: #990000">=&gt;</span> <span style="color: #990000">:</span>account<span style="color: #990000">,</span> <span style="color: #990000">:</span>prefix <span style="color: #990000">=&gt;</span> <span style="color: #990000">:</span>owner
 <span style="font-weight: bold"><span style="color: #0000FF">end</span></span>
 </tt></pre></div></div>
-<div class="para"><p>This will produce delegated methods <tt>vendor.owner_email</tt> and <tt>vendor.owner_password</tt>.</p></div>
+<div class="para"><p>This will produce delegated methods <tt>vendor#owner_email</tt> and <tt>vendor#owner_password</tt>.</p></div>
 <div class="para"><p>Lead Contributor: <a href="http://workingwithrails.com/person/5830-daniel-schierbeck">Daniel Schierbeck</a></p></div>
 <h3 id="_other_active_support_changes">9.4. Other Active Support Changes</h3>
 <div class="ilist"><ul>

@@ -323,23 +323,23 @@ If you delegate behavior from one class to another, you can now specify a prefix
 
 [source, ruby]
 -------------------------------------------------------
-class Vendor << ActiveRecord::Base
+class Vendor < ActiveRecord::Base
   has_one :account
   delegate :email, :password, :to => :account, :prefix => true
 end
 -------------------------------------------------------
 
-This will produce delegated methods +vendor.account_email+ and +vendor.account_password+. You can also specify a custom prefix:
+This will produce delegated methods +vendor#account_email+ and +vendor#account_password+. You can also specify a custom prefix:
 
 [source, ruby]
 -------------------------------------------------------
-class Vendor << ActiveRecord::Base
+class Vendor < ActiveRecord::Base
   has_one :account
   delegate :email, :password, :to => :account, :prefix => :owner
 end
 -------------------------------------------------------
 
-This will produce delegated methods +vendor.owner_email+ and +vendor.owner_password+.
+This will produce delegated methods +vendor#owner_email+ and +vendor#owner_password+.
 
 Lead Contributor: link:http://workingwithrails.com/person/5830-daniel-schierbeck[Daniel Schierbeck]
 
