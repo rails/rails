@@ -469,7 +469,7 @@ module ActiveRecord
         unescape_col = []
         for j in 0...res.nfields do
           # unescape string passed BYTEA field (OID == 17)
-          unescape_col << ( res.fformat(j)==0 and res.ftype(j)==17 )
+          unescape_col << ( res.ftype(j)==17 )
         end
 
         ary = []
