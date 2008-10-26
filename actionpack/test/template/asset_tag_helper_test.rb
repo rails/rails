@@ -248,6 +248,14 @@ class AssetTagHelperTest < ActionView::TestCase
     assert_equal %(<img alt="Rails" src="/images/rails.png?#{expected_time}" />), image_tag("rails.png")
   end
 
+  def test_timebased_asset_id_with_relative_url_root
+      ActionController::Base.relative_url_root = "/collaboration/hieraki"
+      expected_time = File.stat(File.expand_path(File.dirname(__FILE__) + "/../fixtures/public/images/rails.png")).mtime.to_i.to_s
+      assert_equal %(<img alt="Rails" src="#{ActionController::Base.relative_url_root}/images/rails.png?#{expected_time}" />), image_tag("rails.png")
+    ensure
+      ActionController::Base.relative_url_root = ""
+  end
+    
   def test_should_skip_asset_id_on_complete_url
     assert_equal %(<img alt="Rails" src="http://www.example.com/rails.png" />), image_tag("http://www.example.com/rails.png")
   end

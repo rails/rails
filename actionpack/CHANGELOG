@@ -1,3 +1,8 @@
+*2.2.1 [RC2 or 2.2 final]*
+
+* Fixed bug with asset timestamping when using relative_url_root #1265 [Joe Goldwasser]
+
+
 *2.2.0 [RC1] (October 24th, 2008)*
 
 * Fix incorrect closing CDATA delimiter and that HTML::Node.parse would blow up on unclosed CDATA sections [packagethief]
