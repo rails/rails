@@ -43,10 +43,6 @@ module ActionController #:nodoc:
 
       base.extend(ClassMethods)
       base.send :include, ActiveSupport::Rescuable
-
-      base.class_eval do
-        alias_method_chain :perform_action, :rescue
-      end
     end
 
     module ClassMethods
@@ -132,12 +128,6 @@ module ActionController #:nodoc:
       end
 
     private
-      def perform_action_with_rescue #:nodoc:
-        perform_action_without_rescue
-      rescue Exception => exception
-        rescue_action(exception)
-      end
-
       def rescues_path(template_name)
         "#{File.dirname(__FILE__)}/templates/rescues/#{template_name}.erb"
       end

@@ -264,7 +264,7 @@ module ActionController #:nodoc:
     # Controller specific instance variables which will not be accessible inside views.
     @@protected_instance_variables = %w(@assigns @performed_redirect @performed_render @variables_added @request_origin @url @parent_controller
                                         @action_name @before_filter_chain_aborted @action_cache_path @_session @_cookies @_headers @_params
-                                        @_flash @_response)
+                                        @_flash @_response @_runtime)
 
     # Prepends all the URL-generating helpers from AssetHelper. This makes it possible to easily move javascripts, stylesheets,
     # and images to a dedicated asset server away from the main web server. Example:
@@ -862,6 +862,9 @@ module ActionController #:nodoc:
       #
       #   render :xml => post.to_xml, :status => :created, :location => post_url(post)
       def render(options = nil, extra_options = {}, &block) #:doc:
+        start = Time.now
+        reset_db_runtime
+
         raise DoubleRenderError, "Can only render or redirect once per action" if performed?
 
         if options.nil?
@@ -940,6 +943,9 @@ module ActionController #:nodoc:
             render_for_file(default_template_name, options[:status], layout)
           end
         end
+      ensure
+        @_runtime[:render] = Time.now - start
+        log_render_benchmark
       end
 
       # Renders according to the same rules as <tt>render</tt>, but returns the result in a string instead
@@ -1208,6 +1214,7 @@ module ActionController #:nodoc:
         @template = @_response.template
 
         @_headers = @_response.headers
+        @_runtime = {}
       end
 
       def initialize_current_url
@@ -1249,6 +1256,8 @@ module ActionController #:nodoc:
       end
 
       def perform_action
+        start = Time.now
+
         if action_methods.include?(action_name)
           send(action_name)
           default_render unless performed?
@@ -1260,6 +1269,11 @@ module ActionController #:nodoc:
         else
           raise UnknownAction, "No action responded to #{action_name}. Actions: #{action_methods.sort.to_sentence}", caller
         end
+      rescue Exception => exception
+        rescue_action(exception)
+      ensure
+        @_runtime[:perform_action] = Time.now - start
+        log_benchmarks
       end
 
       def performed?
