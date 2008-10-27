@@ -933,7 +933,7 @@ http://www.gnu.org/software/src-highlite -->
 by Lorenzo Bettini
 http://www.lorenzobettini.it
 http://www.gnu.org/software/src-highlite -->
-<pre><tt><span style="color: #FF0000">&lt;%= javascript_include_tag :all, :recursive %&gt;</span>
+<pre><tt><span style="color: #FF0000">&lt;%= javascript_include_tag :all, :recursive =&gt;</span> <span style="font-weight: bold"><span style="color: #0000FF">true</span></span> <span style="color: #990000">%&gt;</span>
 </tt></pre></div></div>
 <div class="para"><p>If you're loading multiple javascript files, you can create a better user experience by combining multiple files into a single download. To make this happen in production, specify <tt>:cache &#8658; true</tt> in your <tt>javascript_include_tag</tt>:</p></div>
 <div class="listingblock">
@@ -1007,7 +1007,7 @@ http://www.gnu.org/software/src-highlite -->
 by Lorenzo Bettini
 http://www.lorenzobettini.it
 http://www.gnu.org/software/src-highlite -->
-<pre><tt><span style="color: #FF0000">&lt;%= stylesheet_link_tag :all, :recursive %&gt;</span>
+<pre><tt><span style="color: #FF0000">&lt;%= stylesheet_link_tag :all, :recursive =&gt;</span> <span style="font-weight: bold"><span style="color: #0000FF">true</span></span> <span style="color: #990000">%&gt;</span>
 </tt></pre></div></div>
 <div class="para"><p>If you're loading multiple CSS files, you can create a better user experience by combining multiple files into a single download. To make this happen in production, specify <tt>:cache &#8658; true</tt> in your <tt>stylesheet_link_tag</tt>:</p></div>
 <div class="listingblock">

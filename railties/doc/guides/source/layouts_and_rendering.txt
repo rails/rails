@@ -534,7 +534,7 @@ You can supply the +:recursive+ option to load files in subfolders of +public/ja
 
 [source, ruby]
 -------------------------------------------------------
-<%= javascript_include_tag :all, :recursive %>
+<%= javascript_include_tag :all, :recursive => true %>
 -------------------------------------------------------
 
 If you're loading multiple javascript files, you can create a better user experience by combining multiple files into a single download. To make this happen in production, specify +:cache => true+ in your +javascript_include_tag+:
@@ -601,7 +601,7 @@ You can supply the +:recursive+ option to link files in subfolders of +public/st
 
 [source, ruby]
 -------------------------------------------------------
-<%= stylesheet_link_tag :all, :recursive %>
+<%= stylesheet_link_tag :all, :recursive => true %>
 -------------------------------------------------------
 
 If you're loading multiple CSS files, you can create a better user experience by combining multiple files into a single download. To make this happen in production, specify +:cache => true+ in your +stylesheet_link_tag+:
