@@ -1,7 +1,7 @@
 Rails Finders
 =============
 
-This guide is all about the `find` method defined in +ActiveRecord::Base+, finding on associations, and associated goodness such as named scopes. You will learn how to be a find master.
+This guide is all about the +find+ method defined in +ActiveRecord::Base+, finding on associations, and associated goodness such as named scopes. You will learn how to be a find master.
 
 == In the beginning...
 
@@ -15,7 +15,7 @@ SELECT * FROM clients LIMIT 0,1
 SELECT * FROM clients ORDER BY id DESC LIMIT 0,1
 -------------------------------------------------------
 
-In Rails (unlike some other frameworks) you don't usually have to type SQL because ActiveRecord is there to help you find your records.
+In Rails (unlike some other frameworks) you don't usually have to type SQL because Active Record is there to help you find your records.
 
 == The Sample Models
 
@@ -48,7 +48,7 @@ end
 
 == Database Agnostic
 
-ActiveRecord will perform queries on the database for you and is compatible with most database systems (MySQL, PostgreSQL and SQLite to name a few). Regardless of which database system you're using, the ActiveRecord method format will always be the same. 
+Active Record will perform queries on the database for you and is compatible with most database systems (MySQL, PostgreSQL and SQLite to name a few). Regardless of which database system you're using, the Active Record method format will always be the same. 
 
 == IDs, First, Last and All
 
@@ -56,16 +56,16 @@ ActiveRecord will perform queries on the database for you and is compatible with
 
 [source, sql]
 -------------------------------------------------------
-SELECT * FROM `clients` WHERE (`clients`.`id` = 1) 
+SELECT * FROM +clients+ WHERE (+clients+.+id+ = 1) 
 -------------------------------------------------------
 
 NOTE: Because this is a standard table created from a migration in Rail, the primary key is defaulted to 'id'. If you have specified a different primary key in your migrations, this is what Rails will find on when you call the find method, not the id column.
 
-If you wanted to find clients with id 1 or 2, you call `Client.find([1,2])` or `Client.find(1,2)` and then this will be executed as:
+If you wanted to find clients with id 1 or 2, you call +Client.find([1,2])+ or +Client.find(1,2)+ and then this will be executed as:
 
 [source, sql]
 -------------------------------------------------------
-SELECT * FROM `clients` WHERE (`clients`.`id` IN (1,2)) 
+SELECT * FROM +clients+ WHERE (+clients+.+id+ IN (1,2)) 
 -------------------------------------------------------
 
 [source,txt]
@@ -79,11 +79,11 @@ SELECT * FROM `clients` WHERE (`clients`.`id` IN (1,2))
 
 Note that if you pass in a list of numbers that the result will be returned as an array, not as a single +Client+ object.
 
-If you wanted to find the first client you would simply type `Client.find(:first)` and that would find the first client created in your clients table:
+If you wanted to find the first client you would simply type +Client.first+ and that would find the first client created in your clients table:
 
 [source,txt]
 -------------------------------------------------------
->> Client.find(:first)
+>> Client.first
 => #<Client id: 1, name: => "Ryan", locked: false, orders_count: 2, 
   created_at: "2008-09-28 15:38:50", updated_at: "2008-09-28 15:38:50">
 -------------------------------------------------------
@@ -97,7 +97,7 @@ SELECT * FROM clients LIMIT 1
 
 Indicating the query that Rails has performed on your database. 
 
-To find the last client you would simply type `Client.find(:last)` and that would find the last client created in your clients table:
+To find the last client you would simply type +Client.find(:last)+ and that would find the last client created in your clients table:
 
 [source,txt]
 -------------------------------------------------------
@@ -111,36 +111,40 @@ To find the last client you would simply type `Client.find(:last)` and that woul
 SELECT * FROM clients ORDER BY clients.id DESC LIMIT 1
 -------------------------------------------------------
 
-To find all the clients you would simply type `Client.find(:all)` and that would find all the clients in your clients table:
+To find all the clients you would simply type +Client.all+ and that would find all the clients in your clients table:
 
 [source,txt]
 -------------------------------------------------------
->> Client.find(:all)
+>> Client.all
 => [#<Client id: 1, name: => "Ryan", locked: false, orders_count: 2, 
   created_at: "2008-09-28 15:38:50", updated_at: "2008-09-28 15:38:50">, 
   #<Client id: 2, name: => "Michael", locked: false, orders_count: 3, 
   created_at: "2008-09-28 13:12:40", updated_at: "2008-09-28 13:12:40">]
 -------------------------------------------------------
 
-As alternatives to calling +Client.find(:first)+, `Client.find(:last)`, and `Client.find(:all)`, you can use the class methods `Client.first`, `Client.last`, and `Client.all` instead. `Client.first`, `Client.last` and `Client.all` just call their longer counterparts.
+As alternatives to calling +Client.first+, +Client.last+, and +Client.all+, you can use the class methods +Client.first+, +Client.last+, and +Client.all+ instead. +Client.first+, +Client.last+ and +Client.all+ just call their longer counterparts: +Client.find(:first)+, +Client.find(:last)+ and +Client.find(:all)+ respectively.
 
-Be aware that `Client.first`/`Client.find(:first)` and `Client.last`/`Client.find(:last)` will both return a single object, where as `Client.all`/`Client.find(:all)` will return an array of Client objects, just as passing in an array of ids to find will do also.
+Be aware that +Client.first+/+Client.find(:first)+ and +Client.last+/+Client.find(:last)+ will both return a single object, where as +Client.all+/+Client.find(:all)+ will return an array of Client objects, just as passing in an array of ids to find will do also.
 
 == Conditions
 
-If you'd like to add conditions to your find, you could just specify them in there, just like `Client.find(:first, :conditions => "orders_count = '2'")`. Now what if that number could vary, say as a parameter from somewhere, or perhaps from the user's level status somewhere? The find then becomes something like `Client.find(:first, :conditions => ["orders_count = ?", params[:orders]])`. ActiveRecord will go through the first element in the conditions value and any additional elements will replace the question marks (?) in the first element. If you want to specify two conditions, you can do it like `Client.find(:first, :conditions => ["orders_count = ? AND locked = ?", params[:orders], false])`. In this example, the first question mark will be replaced with the value in params orders and the second will be replaced with true and this will find the first record in the table that has '2' as its value for the orders_count field and 'false' for its locked field.
+=== String Conditions ===
+
+If you'd like to add conditions to your find, you could just specify them in there, just like +Client.first(:conditions => "orders_count = '2'")+. This will find all clients where the +orders_count+ field's value is 2.
+
+ Now what if that number could vary, say as a parameter from somewhere, or perhaps from the user's level status somewhere? The find then becomes something like +Client.first(:conditions => ["orders_count = ?", params[:orders]])+. Active Record will go through the first element in the conditions value and any additional elements will replace the question marks (?) in the first element. If you want to specify two conditions, you can do it like +Client.first(:conditions => ["orders_count = ? AND locked = ?", params[:orders], false])+. In this example, the first question mark will be replaced with the value in params orders and the second will be replaced with true and this will find the first record in the table that has '2' as its value for the orders_count field and 'false' for its locked field.
 
 The reason for doing code like:
 
 [source, ruby]
 -------------------------------------------------------
-`Client.find(:first, :conditions => ["orders_count = ?", params[:orders]])`
++Client.first(:conditions => ["orders_count = ?", params[:orders]])+
 -------------------------------------------------------
 
 instead of:
 
 -------------------------------------------------------
-`Client.find(:first, :conditions => "orders_count = #{params[:orders]}")`
++Client.first(:conditions => "orders_count = #{params[:orders]}")+
 -------------------------------------------------------
 
 is because of parameter safety. Putting the variable directly into the conditions string will pass the variable to the database *as-is*. This means that it will be an unescaped variable directly from a user who may have malicious intent. If you do this, you put your entire database at risk because once a user finds out he or she can exploit your database they can do just about anything to it. Never ever put your parameters directly inside the conditions string.
@@ -151,7 +155,7 @@ If you're looking for a range inside of a table (for example, users created in a
 
 [source, ruby]
 -------------------------------------------------------
-Client.find(:all, :conditions => ["created_at IN (?)",
+Client.all(:conditions => ["created_at IN (?)",
   (params[:start_date].to_date)..(params[:end_date].to_date)])
 -------------------------------------------------------
 
@@ -159,7 +163,7 @@ This would generate the proper query which is great for small ranges but not so 
 
 [source, sql]
 -------------------------------------------------------
-SELECT * FROM `users` WHERE (created_at IN 
+SELECT * FROM +users+ WHERE (created_at IN 
   ('2007-12-31','2008-01-01','2008-01-02','2008-01-03','2008-01-04','2008-01-05',
   '2008-01-06','2008-01-07','2008-01-08','2008-01-09','2008-01-10','2008-01-11',
   '2008-01-12','2008-01-13','2008-01-14','2008-01-15','2008-01-16','2008-01-17',
@@ -173,13 +177,13 @@ Things can get *really* messy if you pass in time objects as it will attempt to 
 
 [source, ruby]
 -------------------------------------------------------
-Client.find(:all, :conditions => ["created_at IN (?)", 
+Client.all(:conditions => ["created_at IN (?)", 
   (params[:start_date].to_date.to_time)..(params[:end_date].to_date.to_time)])
 -------------------------------------------------------
 
 [source, sql]
 -------------------------------------------------------
-SELECT * FROM `users` WHERE (created_at IN 
+SELECT * FROM +users+ WHERE (created_at IN 
   ('2007-12-01 00:00:00', '2007-12-01 00:00:01' ... 
   '2007-12-01 23:59:59', '2007-12-02 00:00:00'))
 -------------------------------------------------------
@@ -197,7 +201,7 @@ In this example it would be better to use greater-than and less-than operators i
 
 [source, ruby]
 -------------------------------------------------------
-Client.find(:all, :conditions => 
+Client.all(:conditions => 
   ["created_at > ? AND created_at < ?", params[:start_date], params[:end_date]])
 -------------------------------------------------------
 
@@ -205,7 +209,7 @@ You can also use the greater-than-or-equal-to and less-than-or-equal-to like thi
 
 [source, ruby]
 -------------------------------------------------------
-Client.find(:all, :conditions => 
+Client.all(:conditions => 
   ["created_at >= ? AND created_at <= ?", params[:start_date], params[:end_date]])
 -------------------------------------------------------
 
@@ -213,11 +217,11 @@ Just like in Ruby.
 
 == Ordering
 
-If you're getting a set of records and want to force an order, you can use `Client.find(:all, :order => "created_at")` which by default will sort the records by ascending order. If you'd like to order it in descending order, just tell it to do that using `Client.find(:all, :order => "created_at desc")`
+If you're getting a set of records and want to force an order, you can use +Client.all(:order => "created_at")+ which by default will sort the records by ascending order. If you'd like to order it in descending order, just tell it to do that using +Client.all(:order => "created_at desc")+
 
 == Selecting Certain Fields
 
-To select certain fields, you can use the select option like this: `Client.find(:first, :select => "viewable_by, locked")`. This select option does not use an array of fields, but rather requires you to type SQL-like code. The above code will execute `SELECT viewable_by, locked FROM clients LIMIT 0,1` on your database. 
+To select certain fields, you can use the select option like this: +Client.first(:select => "viewable_by, locked")+. This select option does not use an array of fields, but rather requires you to type SQL-like code. The above code will execute +SELECT viewable_by, locked FROM clients LIMIT 0,1+ on your database. 
 
 == Limit & Offset
 
@@ -225,7 +229,7 @@ If you want to limit the amount of records to a certain subset of all the record
 
 [source, ruby]
 -------------------------------------------------------
-Client.find(:all, :limit => 5)
+Client.all(:limit => 5)
 -------------------------------------------------------
 
 This code will return a maximum of 5 clients and because it specifies no offset it will return the first 5 clients in the table. The SQL it executes will look like this:
@@ -237,7 +241,7 @@ SELECT * FROM clients LIMIT 5
 
 [source, ruby]
 -------------------------------------------------------
-Client.find(:all, :limit => 5, :offset => 5)
+Client.all(:limit => 5, :offset => 5)
 -------------------------------------------------------
 
 This code will return a maximum of 5 clients and because it specifies an offset this time, it will return these records starting from the 5th client in the clients table. The SQL looks like:
@@ -253,7 +257,7 @@ The group option for find is useful, for example, if you want to find a collecti
 
 [source, ruby]
 -------------------------------------------------------
-Order.find(:all, :group => "date(created_at)", :order => "created_at")
+Order.all(:group => "date(created_at)", :order => "created_at")
 -------------------------------------------------------
 
 And this will give you a single +Order+ object for each date where there are orders in the database. 
@@ -262,23 +266,23 @@ The SQL that would be executed would be something like this:
 
 [source, sql]
 -------------------------------------------------------
-SELECT * FROM `orders` GROUP BY date(created_at)
+SELECT * FROM +orders+ GROUP BY date(created_at)
 -------------------------------------------------------
 
 == Read Only
 
-Readonly is a find option that you can set in order to make that instance of the record read-only. Any attempt to alter or destroy the record will not succeed, raising an `ActiveRecord::ReadOnlyRecord` error. To set this option, specify it like this:
+Readonly is a find option that you can set in order to make that instance of the record read-only. Any attempt to alter or destroy the record will not succeed, raising an +Active Record::ReadOnlyRecord+ error. To set this option, specify it like this:
 
 [source, ruby]
 -------------------------------------------------------
-Client.find(:first, :readonly => true)
+Client.first(:readonly => true)
 -------------------------------------------------------
 
-If you assign this record to a variable `client`, calling the following code will raise an ActiveRecord::ReadOnlyRecord:
+If you assign this record to a variable +client+, calling the following code will raise an ActiveRecord::ReadOnlyRecord:
 
 [source, ruby]
 -------------------------------------------------------
-client = Client.find(:first, :readonly => true)
+client = Client.first(:readonly => true)
 client.locked = false
 client.save
 -------------------------------------------------------
@@ -297,11 +301,11 @@ end
 
 == Making It All Work Together
 
-You can chain these options together in no particular order as ActiveRecord will write the correct SQL for you. If you specify two instances of the same options inside the find statement ActiveRecord will use the latter.
+You can chain these options together in no particular order as Active Record will write the correct SQL for you. If you specify two instances of the same options inside the find statement ActiveRecord will use the latter.
 
 == Eager Loading
 
-Eager loading is loading associated records along with any number of records in as few queries as possible. For example, if you wanted to load all the addresses associated with all the clients in a single query you could use `Client.find(:all, :include => :address)`. If you wanted to include both the address and mailing address for the client you would use `Client.find(:all), :include => [:address, :mailing_address]). Include will first find the client records and then load the associated address records. Running script/server in one window, and executing the code through script/console in another window, the output should look similar to this:
+Eager loading is loading associated records along with any number of records in as few queries as possible. For example, if you wanted to load all the addresses associated with all the clients in a single query you could use +Client.all(:include => :address)+. If you wanted to include both the address and mailing address for the client you would use +Client.find(:all), :include => [:address, :mailing_address]). Include will first find the client records and then load the associated address records. Running script/server in one window, and executing the code through script/console in another window, the output should look similar to this:
 
 [source, sql]
 -------------------------------------------------------
@@ -312,13 +316,13 @@ MailingAddress Load (0.001985) SELECT mailing_addresses.* FROM
   mailing_addresses WHERE (mailing_addresses.client_id IN (13,14))
 -------------------------------------------------------
 
-The numbers `13` and `14` in the above SQL are the ids of the clients gathered from the `Client.find(:all)` query. Rails will then run a query to gather all the addresses and mailing addresses that have a client_id of 13 or 14. Although this is done in 3 queries, this is more efficient than not eager loading because without eager loading it would run a query for every time you called `address` or `mailing_address` on one of the objects in the clients array, which may lead to performance issues if you're loading a large number of records at once.
+The numbers +13+ and +14+ in the above SQL are the ids of the clients gathered from the +Client.all+ query. Rails will then run a query to gather all the addresses and mailing addresses that have a client_id of 13 or 14. Although this is done in 3 queries, this is more efficient than not eager loading because without eager loading it would run a query for every time you called +address+ or +mailing_address+ on one of the objects in the clients array, which may lead to performance issues if you're loading a large number of records at once.
 
-An alternative (and more efficient) way to do eager loading is to use the joins option. For example if you wanted to get all the addresses for a client you would do `Client.find(:all, :joins => :address)` and you wanted to find the address and mailing address for that client you would do `Client.find(:all, :joins => [:address, :mailing_address])`. This is more efficient because it does all the SQL in one query, as shown by this example:
+If you wanted to get all the addresses for a client in the same query you would do +Client.all(:joins => :address)+ and you wanted to find the address and mailing address for that client you would do +Client.all(:joins => [:address, :mailing_address])+. This is more efficient because it does all the SQL in one query, as shown by this example:
 
 [source, sql]
 -------------------------------------------------------
-`Client Load (0.000455)   SELECT clients.* FROM clients INNER JOIN addresses 
++Client Load (0.000455)   SELECT clients.* FROM clients INNER JOIN addresses 
   ON addresses.client_id = client.id INNER JOIN mailing_addresses ON 
   mailing_addresses.client_id = client.id
 -------------------------------------------------------
@@ -327,7 +331,7 @@ This query is more efficent, but there's a gotcha: if you have a client who does
 
 [source, ruby]
 -------------------------------------------------------
-Client.find(:all, :joins => “LEFT OUTER JOIN addresses ON
+Client.all(:joins => “LEFT OUTER JOIN addresses ON
   client.id = addresses.client_id LEFT OUTER JOIN mailing_addresses ON
   client.id = mailing_addresses.client_id”)
 -------------------------------------------------------
@@ -336,48 +340,57 @@ When using eager loading you can specify conditions for the columns of the table
 
 [source, ruby]
 -------------------------------------------------------
-Client.find(:first, :include => "orders", :conditions => 
+Client.first(:include => "orders", :conditions => 
   ["orders.created_at >= ? AND orders.created_at <= ?", Time.now - 2.weeks, Time.now])
 -------------------------------------------------------
 
 == Dynamic finders
 
-For every field (also known as an attribute) you define in your table, ActiveRecord provides a finder method. If you have a field called `name` on your Client model for example, you get `find_by_name` and `find_all_by_name` for free from ActiveRecord. If you have also have a `locked` field on the client model, you also get `find_by_locked` and `find_all_by_locked`. If you want to find both by name and locked, you can chain these finders together by simply typing +and+ between the fields for example `Client.find_by_name_and_locked('Ryan', true)`. These finders are an excellent alternative to using the conditions option, mainly because it's shorter to type `find_by_name(params[:name])` than it is to type `find(:first, :conditions => ["name = ?", params[:name]])`. 
+For every field (also known as an attribute) you define in your table, Active Record provides a finder method. If you have a field called +name+ on your Client model for example, you get +find_by_name+ and +find_all_by_name+ for free from Active Record. If you have also have a +locked+ field on the client model, you also get +find_by_locked+ and +find_all_by_locked+. If you want to find both by name and locked, you can chain these finders together by simply typing +and+ between the fields for example +Client.find_by_name_and_locked('Ryan', true)+. These finders are an excellent alternative to using the conditions option, mainly because it's shorter to type +find_by_name(params[:name])+ than it is to type +first(:conditions => ["name = ?", params[:name]])+. 
 
-There's another set of dynamic finders that let you find or create/initialize objects if they aren't find. These work in a similar fashion to the other finders and can be used like `find_or_create_by_name(params[:name])`. Using this will firstly perform a find and then create if the find returns nil. The SQL looks like this for `Client.find_or_create_by_name('Ryan')`:
+There's another set of dynamic finders that let you find or create/initialize objects if they aren't find. These work in a similar fashion to the other finders and can be used like +find_or_create_by_name(params[:name])+. Using this will firstly perform a find and then create if the find returns nil. The SQL looks like this for +Client.find_or_create_by_name('Ryan')+:
 
 [source,sql]
 -------------------------------------------------------
-SELECT * FROM `clients` WHERE (`clients`.`name` = 'Ryan') LIMIT 1
+SELECT * FROM +clients+ WHERE (+clients+.+name+ = 'Ryan') LIMIT 1
 BEGIN
-INSERT INTO `clients` (`name`, `updated_at`, `created_at`, `orders_count`, `locked`) 
+INSERT INTO +clients+ (+name+, +updated_at+, +created_at+, +orders_count+, +locked+) 
   VALUES('Ryan', '2008-09-28 15:39:12', '2008-09-28 15:39:12', '0', '0')
 COMMIT
 -------------------------------------------------------
 
-`find_or_create`'s sibling, +find_or_initialize+, will find an object and if it does not exist will call `new` with the parameters you passed in. For example:
++find_or_create+'s sibling, +find_or_initialize+, will find an object and if it does not exist will call +new+ with the parameters you passed in. For example:
 
 [source, ruby]
 -------------------------------------------------------
 client = Client.find_or_initialize_by_name('Ryan')
 -------------------------------------------------------
 
-will either assign an existing client object with the name 'Ryan' to the client local variable, or initialize new object similar to calling `Client.new(:name => 'Ryan')`. From here, you can modify other fields in client by calling the attribute setters on it: `client.locked = true` and when you want to write it to the database just call `save` on it.
+will either assign an existing client object with the name 'Ryan' to the client local variable, or initialize new object similar to calling +Client.new(:name => 'Ryan')+. From here, you can modify other fields in client by calling the attribute setters on it: +client.locked = true+ and when you want to write it to the database just call +save+ on it.
 
 == Finding By SQL
 
-If you'd like to use your own SQL to find records a table you can use `find_by_sql`. The `find_by_sql` method will return an array of objects even if it only returns a single record in it's call to the database. For example you could run this query:
+If you'd like to use your own SQL to find records a table you can use +find_by_sql+. The +find_by_sql+ method will return an array of objects even if it only returns a single record in it's call to the database. For example you could run this query:
 
 [source, ruby]
 -------------------------------------------------------
 Client.find_by_sql("SELECT * FROM clients INNER JOIN orders ON clients.id = orders.client_id ORDER clients.created_at desc")
 -------------------------------------------------------
 
-`find_by_sql` provides you with a simple way of making custom calls to the database and converting those to objects.
++find_by_sql+ provides you with a simple way of making custom calls to the database and retreiving instantiated objects.
+
+== +select_all+ ==
+
++find_by_sql+ has a close relative called +select_all+. +select_all+ will retreive objects from the database using custom SQL just like +find_by_sql+ but will not instantiate them. Instead, you will get an array of hashes where each hash indicates a record.
+
+[source, ruby]
+-------------------------------------------------------
+Client.connection.select_all("SELECT * FROM `clients` WHERE `id` = '1'")
+-------------------------------------------------------
 
 == Working with Associations
 
-When you define a has_many association on a model you get the find method and dynamic finders also on that association. This is helpful for finding associated records within the scope of an exisiting record, for example finding all the orders for a client that have been sent and not received by doing something like `Client.find(params[:id]).orders.find_by_sent_and_received(true, false)`. Having this find method available on associations is extremely helpful when using nested controllers. 
+When you define a has_many association on a model you get the find method and dynamic finders also on that association. This is helpful for finding associated records within the scope of an exisiting record, for example finding all the orders for a client that have been sent and not received by doing something like +Client.find(params[:id]).orders.find_by_sent_and_received(true, false)+. Having this find method available on associations is extremely helpful when using nested controllers. 
 
 == Named Scopes
 
@@ -390,7 +403,7 @@ class Client < ActiveRecord::Base
 end
 -------------------------------------------------------
 
-And you could call it like `Client.males` to get all the clients who are male.
+And you could call it like +Client.males.all+ to get all the clients who are male. Please note that if you do not specify the +all+ on the end you will get a +Scope+ object back, not a set of records which you do get back if you put the +all+ on the end.
 
 If you wanted to find all the clients who are active, you could use this:
 
@@ -401,20 +414,20 @@ class Client < ActiveRecord::Base
 end
 -------------------------------------------------------
 
-You can call this new named_scope by doing `Client.active` and this will do the same query as if we just used `Client.find(:all, :conditions => ["active = ?", true])`. Please be aware that the conditions syntax in named_scope and find is different and the two are not interchangeable. If you want to find the first client within this named scope you could do `Client.active.first`.
+You can call this new named_scope by doing +Client.active.all+ and this will do the same query as if we just used +Client.all(:conditions => ["active = ?", true])+. Please be aware that the conditions syntax in named_scope and find is different and the two are not interchangeable. If you want to find the first client within this named scope you could do +Client.active.first+.
 
 If you wanted to find all the clients who are active and male you can stack the named scopes like this:
 
 [source, ruby]
 -------------------------------------------------------
-Client.males.active
+Client.males.active.all
 -------------------------------------------------------
 
-If you would then like to do a `find` on that subset of clients, you can. Just like an association, named scopes allow you to call `find` on a set of records:
+If you would then like to do a +all+ on that scope, you can. Just like an association, named scopes allow you to call +all+ on them:
 
 [source, ruby]
 -------------------------------------------------------
-Client.males.active.find(:all, :conditions => ["age > ?", params[:age]])
+Client.males.active.all(:conditions => ["age > ?", params[:age]])
 -------------------------------------------------------
 
 Consider the following code:
@@ -426,7 +439,7 @@ class Client < ActiveRecord::Base
 end
 -------------------------------------------------------
 
-This looks like a standard named scope that defines a method called recent which gathers all records created any time between now and 2 weeks ago. That's correct for the first time the model is loaded but for any time after that, `2.weeks.ago` is set to that same value, so you will consistently get records from a certain date until your model is reloaded by something like your application restarting. The way to fix this is to put the code in a lambda block:
+This looks like a standard named scope that defines a method called recent which gathers all records created any time between now and 2 weeks ago. That's correct for the first time the model is loaded but for any time after that, +2.weeks.ago+ is set to that same value, so you will consistently get records from a certain date until your model is reloaded by something like your application restarting. The way to fix this is to put the code in a lambda block:
 
 [source, ruby]
 -------------------------------------------------------
@@ -437,7 +450,7 @@ end
 
 And now every time the recent named scope is called, the code in the lambda block will be parsed, so you'll get actually 2 weeks ago from the code execution, not 2 weeks ago from the time the model was loaded.
 
-In a named scope you can use `:include` and `:joins` options just like in find.
+In a named scope you can use +:include+ and +:joins+ options just like in find.
 
 [source, ruby]
 -------------------------------------------------------
@@ -447,33 +460,33 @@ class Client < ActiveRecord::Base
 end
 -------------------------------------------------------
 
-This method, called as `Client.active_within_2_weeks`, will return all clients who have placed orders in the past 2 weeks.
+This method, called as +Client.active_within_2_weeks.all+, will return all clients who have placed orders in the past 2 weeks.
 
 If you want to pass a named scope a compulsory argument, just specify it as a block parameter like this:
 
 [source, ruby]
 -------------------------------------------------------
 class Client < ActiveRecord::Base
-  named_scope :recent, lambda { |time| { :conditions => ["created_at > ?", time] } } }
+  named_scope :recent, lambda { |time| { :conditions => ["created_at > ?", time] } } 
 end
 -------------------------------------------------------
 
-This will work if you call `Client.recent(2.weeks.ago)` but not if you call `Client.recent`. If you want to add an optional argument for this, you have to use the splat operator as the block's parameter.
+This will work if you call +Client.recent(2.weeks.ago).all+ but not if you call +Client.recent+. If you want to add an optional argument for this, you have to use the splat operator as the block's parameter.
 
 [source, ruby]
 -------------------------------------------------------
 class Client < ActiveRecord::Base
-  named_scope :recent, lambda { |*args| { :conditions => ["created_at > ?", args.first || 2.weeks.ago] } } }
+  named_scope :recent, lambda { |*args| { :conditions => ["created_at > ?", args.first || 2.weeks.ago] } }
 end
 -------------------------------------------------------
 
-This will work with `Client.recent(2.weeks.ago)` and `Client.recent`, with the latter always returning records with a created_at date between right now and 2 weeks ago.
+This will work with +Client.recent(2.weeks.ago).all+ and +Client.recent.all+, with the latter always returning records with a created_at date between right now and 2 weeks ago.
 
-Remember that named scopes are stackable, so you will be able to do `Client.recent(2.weeks.ago).unlocked` to find all clients created between right now and 2 weeks ago and have their locked field set to false.
+Remember that named scopes are stackable, so you will be able to do +Client.recent(2.weeks.ago).unlocked.all+ to find all clients created between right now and 2 weeks ago and have their locked field set to false.
 
 == Existence of Objects
 
-If you simply want to check for the existence of the object there's a method called `exists?`. This method will query the database using the same query as find, but instead of returning an object or collection of objects it will return either true or false.
+If you simply want to check for the existence of the object there's a method called +exists?+. This method will query the database using the same query as find, but instead of returning an object or collection of objects it will return either true or false.
 
 [source, ruby]
 -------------------------------------------------------
@@ -489,9 +502,9 @@ Client.exists?(1,2,3)
 Client.exists?([1,2,3])
 -------------------------------------------------------
 
-The `exists?` method also takes multiple ids, as shown by the above code, but the catch is that it will return true if any one of those records exists.
+The +exists?+ method also takes multiple ids, as shown by the above code, but the catch is that it will return true if any one of those records exists.
 
-Further more, `exists` takes a `conditions` option much like find:
+Further more, +exists+ takes a +conditions+ option much like find:
 
 [source, ruby]
 -------------------------------------------------------
@@ -502,7 +515,7 @@ Client.exists?(:conditions => "first_name = 'Ryan'")
 
 This section uses count as an example method in this preamble, but the options described apply to all sub-sections.
 
-`count` takes conditions much in the same way `exists?` does:
++count+ takes conditions much in the same way +exists?+ does:
 
 [source, ruby]
 -------------------------------------------------------
@@ -513,10 +526,10 @@ Which will execute:
 
 [source, sql]
 -------------------------------------------------------
-SELECT count(*) AS count_all FROM `clients` WHERE (first_name = 1) 
+SELECT count(*) AS count_all FROM +clients+ WHERE (first_name = 1) 
 -------------------------------------------------------
 
-You can also use `include` or `joins` for this to do something a little more complex:
+You can also use +include+ or +joins+ for this to do something a little more complex:
 
 [source, ruby]
 -------------------------------------------------------
@@ -527,22 +540,22 @@ Which will execute:
 
 [source, sql]
 -------------------------------------------------------
-SELECT count(DISTINCT `clients`.id) AS count_all FROM `clients` 
-  LEFT OUTER JOIN `orders` ON orders.client_id = client.id WHERE 
+SELECT count(DISTINCT +clients+.id) AS count_all FROM +clients+ 
+  LEFT OUTER JOIN +orders+ ON orders.client_id = client.id WHERE 
   (clients.first_name = 'name' AND orders.status = 'received') 
 -------------------------------------------------------
 
-This code specifies `clients.first_name` just in case one of the join tables has a field also called `first_name` and it uses `orders.status` because that's the name of our join table.
+This code specifies +clients.first_name+ just in case one of the join tables has a field also called +first_name+ and it uses +orders.status+ because that's the name of our join table.
 
 === Count
 
-If you want to see how many records are in your model's table you could call `Client.count` and that will return the number. If you want to be more specific and find all the clients with their age present in the database you can use `Client.count(:age)`.
+If you want to see how many records are in your model's table you could call +Client.count+ and that will return the number. If you want to be more specific and find all the clients with their age present in the database you can use +Client.count(:age)+.
 
 For options, please see the parent section, Calculations.
 
 === Average
 
-If you want to see the average of a certain number in one of your tables you can call the `average` method on the class that relates to the table. This method call will look something like this:
+If you want to see the average of a certain number in one of your tables you can call the +average+ method on the class that relates to the table. This method call will look something like this:
 
 [source, ruby]
 -------------------------------------------------------
@@ -555,7 +568,7 @@ For options, please see the parent section, <<_calculations, Calculations>>
 
 === Minimum
 
-If you want to find the minimum value of a field in your table you can call the `minimum` method on the class that relates to the table. This method call will look something like this:
+If you want to find the minimum value of a field in your table you can call the +minimum+ method on the class that relates to the table. This method call will look something like this:
 
 [source, ruby]
 -------------------------------------------------------
@@ -566,7 +579,7 @@ For options, please see the parent section, <<_calculations, Calculations>>
 
 === Maximum
 
-If you want to find the maximum value of a field in your table you can call the `maximum` method on the class that relates to the table. This method call will look something like this:
+If you want to find the maximum value of a field in your table you can call the +maximum+ method on the class that relates to the table. This method call will look something like this:
 
 [source, ruby]
 -------------------------------------------------------
@@ -577,7 +590,7 @@ For options, please see the parent section, <<_calculations, Calculations>>
 
 === Sum
 
-If you want to find the sum of a field for all records in your table you can call the `sum` method on the class that relates to the table. This method call will look something like this:
+If you want to find the sum of a field for all records in your table you can call the +sum+ method on the class that relates to the table. This method call will look something like this:
 
 [source, ruby]
 -------------------------------------------------------
@@ -596,6 +609,7 @@ Thanks to Mike Gunderloy for his tips on creating this guide.
 
 http://rails.lighthouseapp.com/projects/16213-rails-guides/tickets/16[Lighthouse ticket]
 
+* October 27, 2008: Fixed up all points specified in http://rails.lighthouseapp.com/projects/16213-rails-guides/tickets/16-activerecord-finders#ticket-16-6[this comment] with an exception of the final point.
 * October 26, 2008: Editing pass by link:../authors.html#mgunderloy[Mike Gunderloy] . First release version.
 * October 22, 2008: Calculations complete, first complete draft by Ryan Bigg
 * October 21, 2008: Extended named scope section by Ryan Bigg
