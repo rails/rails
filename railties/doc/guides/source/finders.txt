@@ -128,9 +128,11 @@ Be aware that +Client.first+/+Client.find(:first)+ and +Client.last+/+Client.fin
 
 == Conditions
 
-=== String Conditions ===
+=== Pure String Conditions ===
 
 If you'd like to add conditions to your find, you could just specify them in there, just like +Client.first(:conditions => "orders_count = '2'")+. This will find all clients where the +orders_count+ field's value is 2.
+
+=== Array Conditions ===
 
  Now what if that number could vary, say as a parameter from somewhere, or perhaps from the user's level status somewhere? The find then becomes something like +Client.first(:conditions => ["orders_count = ?", params[:orders]])+. Active Record will go through the first element in the conditions value and any additional elements will replace the question marks (?) in the first element. If you want to specify two conditions, you can do it like +Client.first(:conditions => ["orders_count = ? AND locked = ?", params[:orders], false])+. In this example, the first question mark will be replaced with the value in params orders and the second will be replaced with true and this will find the first record in the table that has '2' as its value for the orders_count field and 'false' for its locked field.
 
@@ -214,6 +216,18 @@ Client.all(:conditions =>
 -------------------------------------------------------
 
 Just like in Ruby.
+
+=== Hash Conditions ===
+
+Similar to the array style of params you can also specify keys in your conditions:
+
+[source, ruby]
+-------------------------------------------------------
+Client.all(:conditions => 
+  ["created_at >= :start_date AND created_at <= :end_date", { :start_date => params[:start_date], :end_date => params[:end_date] }])
+-------------------------------------------------------
+
+This makes for clearer readability if you have a large number of variable conditions.
 
 == Ordering
 
@@ -414,7 +428,7 @@ class Client < ActiveRecord::Base
 end
 -------------------------------------------------------
 
-You can call this new named_scope by doing +Client.active.all+ and this will do the same query as if we just used +Client.all(:conditions => ["active = ?", true])+. Please be aware that the conditions syntax in named_scope and find is different and the two are not interchangeable. If you want to find the first client within this named scope you could do +Client.active.first+.
+You can call this new named_scope by doing +Client.active.all+ and this will do the same query as if we just used +Client.all(:conditions => ["active = ?", true])+. Please be aware that the conditions syntax in named_scope and find is different and the two are not interchangeable. If you want to find the first client within this named scope you could do +Client.active.first+. 
 
 If you wanted to find all the clients who are active and male you can stack the named scopes like this:
 
@@ -484,6 +498,17 @@ This will work with +Client.recent(2.weeks.ago).all+ and +Client.recent.all+, wi
 
 Remember that named scopes are stackable, so you will be able to do +Client.recent(2.weeks.ago).unlocked.all+ to find all clients created between right now and 2 weeks ago and have their locked field set to false.
 
+Finally, if you wish to define named scopes on the fly you can use the scoped method:
+
+[source, ruby]
+-------------------------------------------------------
+class Client < ActiveRecord::Base
+  def self.recent
+    scoped :conditions => ["created_at > ?", 2.weeks.ago]
+  end
+end
+-------------------------------------------------------
+
 == Existence of Objects
 
 If you simply want to check for the existence of the object there's a method called +exists?+. This method will query the database using the same query as find, but instead of returning an object or collection of objects it will return either true or false.
@@ -547,6 +572,7 @@ SELECT count(DISTINCT +clients+.id) AS count_all FROM +clients+
 
 This code specifies +clients.first_name+ just in case one of the join tables has a field also called +first_name+ and it uses +orders.status+ because that's the name of our join table.
 
+
 === Count
 
 If you want to see how many records are in your model's table you could call +Client.count+ and that will return the number. If you want to be more specific and find all the clients with their age present in the database you can use +Client.count(:age)+.
@@ -609,6 +635,7 @@ Thanks to Mike Gunderloy for his tips on creating this guide.
 
 http://rails.lighthouseapp.com/projects/16213-rails-guides/tickets/16[Lighthouse ticket]
 
+* October 27, 2008: Added scoped section, added named params for conditions and added sub-section headers for conditions section.
 * October 27, 2008: Fixed up all points specified in http://rails.lighthouseapp.com/projects/16213-rails-guides/tickets/16-activerecord-finders#ticket-16-6[this comment] with an exception of the final point.
 * October 26, 2008: Editing pass by link:../authors.html#mgunderloy[Mike Gunderloy] . First release version.
 * October 22, 2008: Calculations complete, first complete draft by Ryan Bigg
