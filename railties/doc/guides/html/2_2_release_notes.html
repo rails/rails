@@ -953,6 +953,11 @@ The addition of <tt>ActiveSupport::Rescuable</tt> allows any class to mix in the
 The included TzInfo library has been upgraded to version 0.3.11.
 </p>
 </li>
+<li>
+<p>
+<tt>ActiveSuport::StringInquirer</tt> gives you a pretty way to test for equality in strings: <tt>ActiveSupport::StringInquirer.new("abc").abc? &#8658; true</tt>
+</p>
+</li>
 </ul></div>
 </div>
 <h2 id="_railties">10. Railties</h2>
@@ -1051,7 +1056,7 @@ Instructions for setting up a continuous integration server to build Rails itsel
 </li>
 <li>
 <p>
-Wrapped <tt>Rails.env</tt> in <tt>StringQuestioneer</tt> so you can do <tt>Rails.env.development?</tt>
+Wrapped <tt>Rails.env</tt> in <tt>StringInquirer</tt> so you can do <tt>Rails.env.development?</tt>
 </p>
 </li>
 <li>

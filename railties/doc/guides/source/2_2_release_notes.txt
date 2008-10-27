@@ -353,6 +353,7 @@ Lead Contributor: link:http://workingwithrails.com/person/5830-daniel-schierbeck
 * +Inflector#parameterize+ produces a URL-ready version of its input, for use in +to_param+.
 * +Time#advance+ recognizes fractional days and weeks, so you can do +1.7.weeks.ago+, +1.5.hours.since+, and so on.
 * The included TzInfo library has been upgraded to version 0.3.11.
+* +ActiveSuport::StringInquirer+ gives you a pretty way to test for equality in strings: +ActiveSupport::StringInquirer.new("abc").abc? => true+
 
 == Railties
 
@@ -384,7 +385,7 @@ You can unpack or install a single gem by specifying +GEM=_gem_name_+ on the com
 * +script/console+ now supports a +--debugger+ option
 * Instructions for setting up a continuous integration server to build Rails itself are included in the Rails source
 * +rake notes:custom ANNOTATION=MYFLAG+ lets you list out custom annotations.
-* Wrapped +Rails.env+ in +StringQuestioneer+ so you can do +Rails.env.development?+
+* Wrapped +Rails.env+ in +StringInquirer+ so you can do +Rails.env.development?+
 * +script/generate+ works without deprecation warnings when RubyGems 1.3.0 is present
 
 == Deprecated
