@@ -2938,7 +2938,7 @@ module ActiveRecord #:nodoc:
       end
 
       def object_from_yaml(string)
-        return string unless string.is_a?(String)
+        return string unless string.is_a?(String) && string =~ /^---/
         YAML::load(string) rescue string
       end
 

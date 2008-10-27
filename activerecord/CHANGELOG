@@ -1,3 +1,8 @@
+*2.2.1 [RC2 or 2.2 final]*
+
+* Fixed that serialized strings should never be type-casted (i.e. turning "Yes" to a boolean) #857 [Andreas Korth]
+
+
 *2.2.0 [RC1] (October 24th, 2008)*
 
 * Skip collection ids reader optimization if using :finder_sql [Jeremy Kemper]
