@@ -41,6 +41,10 @@ class ViewRenderTest < Test::Unit::TestCase
     assert_equal "The secret is in the sauce\n", @view.render("test/dot.directory/render_file_with_ivar")
   end
 
+  def test_render_has_access_current_template
+    assert_equal "test/template.erb", @view.render("test/template.erb")
+  end
+
   def test_render_update
     # TODO: You should not have to stub out template because template is self!
     @view.instance_variable_set(:@template, @view)
