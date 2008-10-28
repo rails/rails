@@ -150,10 +150,10 @@ module I18n
     #   I18n.t [:foo, :bar], :scope => :baz
     def translate(key, options = {})
       locale = options.delete(:locale) || I18n.locale
-      backend.translate locale, key, options
+      backend.translate(locale, key, options)
     rescue I18n::ArgumentError => e
       raise e if options[:raise]
-      send @@exception_handler, e, locale, key, options
+      send(@@exception_handler, e, locale, key, options)
     end        
     alias :t :translate
     
@@ -180,8 +180,8 @@ module I18n
     # keys are Symbols.
     def normalize_translation_keys(locale, key, scope)
       keys = [locale] + Array(scope) + [key]
-      keys = keys.map{|k| k.to_s.split(/\./) }
-      keys.flatten.map{|k| k.to_sym}
+      keys = keys.map { |k| k.to_s.split(/\./) }
+      keys.flatten.map { |k| k.to_sym }
     end
   end
 end
