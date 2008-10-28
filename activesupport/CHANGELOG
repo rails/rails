@@ -1,3 +1,8 @@
+*2.2.1 [RC2 or 2.2 final]*
+
+* Make I18n::Backend::Simple reload its translations in development mode [DHH]
+
+
 *2.2.0 [RC1] (October 24th, 2008)*
 
 * TimeWithZone#freeze: preload instance variables so that we can actually freeze [Geoff Buesing]

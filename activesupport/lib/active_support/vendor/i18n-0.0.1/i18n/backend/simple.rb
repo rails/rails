@@ -6,6 +6,10 @@ module I18n
       INTERPOLATION_RESERVED_KEYS = %w(scope default)
       MATCH = /(\\\\)?\{\{([^\}]+)\}\}/
 
+      def initialize
+        Dispatcher.to_prepare { reload }
+      end
+
       # Accepts a list of paths to translation files. Loads translations from 
       # plain Ruby (*.rb) or YAML files (*.yml). See #load_rb and #load_yml
       # for details.
@@ -69,8 +73,11 @@ module I18n
         @initialized ||= false
       end
 
-      protected
+      def reload
+        @initialized = false
+      end
 
+      protected
         def init_translations
           load_translations(*I18n.load_path)
           @initialized = true
@@ -88,7 +95,7 @@ module I18n
         def lookup(locale, key, scope = [])
           return unless key
           init_translations unless initialized?
-          keys = I18n.send :normalize_translation_keys, locale, key, scope
+          keys = I18n.send(:normalize_translation_keys, locale, key, scope)
           keys.inject(translations) do |result, k|
             if (x = result[k.to_sym]).nil?
               return nil
