@@ -6,10 +6,6 @@ module I18n
       INTERPOLATION_RESERVED_KEYS = %w(scope default)
       MATCH = /(\\\\)?\{\{([^\}]+)\}\}/
 
-      def initialize
-        Dispatcher.to_prepare { reload }
-      end
-
       # Accepts a list of paths to translation files. Loads translations from 
       # plain Ruby (*.rb) or YAML files (*.yml). See #load_rb and #load_yml
       # for details.
