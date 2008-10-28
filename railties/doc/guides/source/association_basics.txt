@@ -359,7 +359,7 @@ class Employee < ActiveRecord::Base
 end
 -------------------------------------------------------
 
-With this setup, you can retrieve +@employee.subordinates+ and +@employee.managers+.
+With this setup, you can retrieve +@employee.subordinates+ and +@employee.manager+.
 
 == Tips, Tricks, and Warnings
 
