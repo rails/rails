@@ -36,7 +36,7 @@ module ActionView
 
       result = view.send(method_name(local_assigns), local_assigns) do |*names|
         ivar = :@_proc_for_layout
-        if view.instance_variable_defined?(ivar) and proc = view.instance_variable_get(ivar)
+        if !view.instance_variable_defined?(:"@content_for_#{names.first}") && view.instance_variable_defined?(ivar) && (proc = view.instance_variable_get(ivar))
           view.capture(*names, &proc)
         elsif view.instance_variable_defined?(ivar = :"@content_for_#{names.first || :layout}")
           view.instance_variable_get(ivar)

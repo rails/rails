@@ -162,4 +162,14 @@ class ViewRenderTest < Test::Unit::TestCase
     ActionView::Template.register_template_handler :foo, CustomHandler
     assert_equal 'source: "Hello, <%= name %>!"', @view.render(:inline => "Hello, <%= name %>!", :locals => { :name => "Josh" }, :type => :foo)
   end
+
+  def test_render_with_layout
+    assert_equal %(<title></title>\nHello world!\n),
+      @view.render(:file => "test/hello_world.erb", :layout => "layouts/yield")
+  end
+
+  def test_render_with_nested_layout
+    assert_equal %(<title>title</title>\n<div id="column">column</div>\n<div id="content">content</div>\n),
+      @view.render(:file => "test/nested_layout.erb", :layout => "layouts/yield")
+  end
 end
