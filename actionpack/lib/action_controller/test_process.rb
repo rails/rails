@@ -218,7 +218,7 @@ module ActionController #:nodoc:
     # Returns the template of the file which was used to
     # render this response (or nil)
     def rendered_template
-      template.send(:_first_render)
+      template.instance_variable_get(:@_first_render)
     end
 
     # A shortcut to the flash. Returns an empty hash if no session flash exists.
