@@ -600,7 +600,7 @@ map.namespace(:admin) do |admin|
 end
 -------------------------------------------------------
 
-As you can see, the namespaced version is much more succinct than the one that spells everything out - but it still creates the same routes. For example, you'll get +admin_photos_url+ that expects to find an +Admin::PhotosController+ and that matches +admin/photos+, and +admin_photos_ratings+path+ that matches +/admin/photos/_photo_id_/ratings+, expecting to use +Admin::RatingsController+. Even though you're not specifying +path_prefix+ explicitly, the routing code will calculate the appropriate +path_prefix+ from the route nesting.
+As you can see, the namespaced version is much more succinct than the one that spells everything out - but it still creates the same routes. For example, you'll get +admin_photos_url+ that expects to find an +Admin::PhotosController+ and that matches +admin/photos+, and +admin_photos_ratings_path+ that matches +/admin/photos/_photo_id_/ratings+, expecting to use +Admin::RatingsController+. Even though you're not specifying +path_prefix+ explicitly, the routing code will calculate the appropriate +path_prefix+ from the route nesting.
 
 === Adding More RESTful Actions
 
