@@ -69,8 +69,9 @@ module I18n
         @initialized ||= false
       end
 
-      def reload
+      def reload!
         @initialized = false
+        @translations = nil
       end
 
       protected

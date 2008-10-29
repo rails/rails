@@ -67,6 +67,13 @@ module I18n
     def load_path=(load_path)
       @@load_path = load_path
     end
+
+    # Tells the backend to reload translations. Used in situations like the
+    # Rails development environment. Backends can implement whatever strategy
+    # is useful.
+    def reload!
+      backend.reload!
+    end
     
     # Translates, pluralizes and interpolates a given key using a given locale, 
     # scope, and default, as well as interpolation values.
