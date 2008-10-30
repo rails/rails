@@ -933,6 +933,7 @@ module ActionController #:nodoc:
       def render_to_string(options = nil, &block) #:doc:
         render(options, &block)
       ensure
+        response.content_type = nil
         erase_render_results
         reset_variables_added_to_assigns
       end
