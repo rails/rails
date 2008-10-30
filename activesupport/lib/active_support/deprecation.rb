@@ -51,8 +51,8 @@ module ActiveSupport
 
       private
         def deprecation_message(callstack, message = nil)
-          message ||= "You are using deprecated behavior which will be removed from Rails 2.0."
-          "DEPRECATION WARNING: #{message}  See http://www.rubyonrails.org/deprecation for details. #{deprecation_caller_message(callstack)}"
+          message ||= "You are using deprecated behavior which will be removed from the next major or minor release."
+          "DEPRECATION WARNING: #{message}. #{deprecation_caller_message(callstack)}"
         end
 
         def deprecation_caller_message(callstack)
