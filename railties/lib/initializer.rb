@@ -243,6 +243,7 @@ module Rails
       end
 
       # Freeze the arrays so future modifications will fail rather than do nothing mysteriously
+      configuration.load_paths.freeze
       configuration.load_once_paths.freeze
     end
 
