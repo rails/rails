@@ -115,6 +115,10 @@ class ViewRenderTest < Test::Unit::TestCase
     assert_nil @view.render(:partial => "test/customer", :collection => nil)
   end
 
+  def test_render_partial_with_nil_values_in_collection
+    assert_equal "Hello: davidHello: Anonymous", @view.render(:partial => "test/customer", :collection => [ Customer.new("david"), nil ])
+  end
+
   def test_render_partial_with_empty_array_should_return_nil
     assert_nil @view.render(:partial => [])
   end
