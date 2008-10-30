@@ -34,17 +34,16 @@ module ActiveRecord
       end
 
       def query_cache
-        Thread.current['query_cache']
+        Thread.current["query_cache_for_#{@config[:database]}"] ||= {}
       end
 
       def query_cache=(cache)
-        Thread.current['query_cache'] = cache
+        Thread.current["query_cache_for_#{@config[:database]}"] = cache
       end
 
       # Enable the query cache within the block.
       def cache
         old, self.query_cache_enabled = query_cache_enabled, true
-        self.query_cache ||= {}
         yield
       ensure
         clear_query_cache
