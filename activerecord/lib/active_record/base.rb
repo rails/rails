@@ -1715,7 +1715,7 @@ module ActiveRecord #:nodoc:
               end
               join
             end
-            joins.flatten.uniq
+            joins.flatten.map{|j| j.strip}.uniq
           else
             joins.collect{|j| safe_to_array(j)}.flatten.uniq
           end
