@@ -205,7 +205,7 @@ module ActiveRecord
           else
             #key = :"activerecord.att.#{@base.class.name.underscore.to_sym}.#{attr}" 
             attr_name = @base.class.human_attribute_name(attr)
-            full_messages << attr_name + ' ' + message
+            full_messages << attr_name + I18n.t('activerecord.errors.format.separator', :default => ' ') + message
           end
         end
       end
