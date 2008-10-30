@@ -1,5 +1,7 @@
 *2.2.1 [RC2 or 2.2 final]*
 
+* Fixed regex in redirect_to to fully support URI schemes #1247 [Seth Fitzsimmons]
+
 * Fixed bug with asset timestamping when using relative_url_root #1265 [Joe Goldwasser]
 
 

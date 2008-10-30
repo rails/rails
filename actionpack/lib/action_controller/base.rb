@@ -1053,7 +1053,10 @@ module ActionController #:nodoc:
         logger.info("Redirected to #{options}") if logger && logger.info?
 
         case options
-          when %r{^\w+://.*}
+          # The scheme name consist of a letter followed by any combination of
+          # letters, digits, and the plus ("+"), period ("."), or hyphen ("-")
+          # characters; and is terminated by a colon (":").
+          when %r{^\w[\w\d+.-]*:.*}
             redirect_to_full_url(options, status)
           when String
             redirect_to_full_url(request.protocol + request.host_with_port + options, status)
