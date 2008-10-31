@@ -154,6 +154,10 @@ class TestController < ActionController::Base
     render :json => {:hello => 'world'}.to_json
   end
 
+  def render_json_with_render_to_string
+    render :json => {:hello => render_to_string(:partial => 'partial')}
+  end
+
   def render_custom_code
     render :text => "hello world", :status => 404
   end
@@ -769,6 +773,12 @@ class RenderTest < Test::Unit::TestCase
   def test_render_symbol_json
     get :render_symbol_json
     assert_equal '{"hello": "world"}', @response.body
+    assert_equal 'application/json', @response.content_type
+  end
+
+  def test_render_json_with_render_to_string
+    get :render_json_with_render_to_string
+    assert_equal '{"hello": "partial html"}', @response.body
     assert_equal 'application/json', @response.content_type
   end
 
