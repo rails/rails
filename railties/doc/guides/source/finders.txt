@@ -134,7 +134,7 @@ If you'd like to add conditions to your find, you could just specify them in the
 
 === Array Conditions ===
 
- Now what if that number could vary, say as a parameter from somewhere, or perhaps from the user's level status somewhere? The find then becomes something like +Client.first(:conditions => ["orders_count = ?", params[:orders]])+. Active Record will go through the first element in the conditions value and any additional elements will replace the question marks (?) in the first element. If you want to specify two conditions, you can do it like +Client.first(:conditions => ["orders_count = ? AND locked = ?", params[:orders], false])+. In this example, the first question mark will be replaced with the value in params orders and the second will be replaced with true and this will find the first record in the table that has '2' as its value for the orders_count field and 'false' for its locked field.
+Now what if that number could vary, say as a parameter from somewhere, or perhaps from the user's level status somewhere? The find then becomes something like +Client.first(:conditions => ["orders_count = ?", params[:orders]])+. Active Record will go through the first element in the conditions value and any additional elements will replace the question marks (?) in the first element. If you want to specify two conditions, you can do it like +Client.first(:conditions => ["orders_count = ? AND locked = ?", params[:orders], false])+. In this example, the first question mark will be replaced with the value in params orders and the second will be replaced with true and this will find the first record in the table that has '2' as its value for the orders_count field and 'false' for its locked field.
 
 The reason for doing code like:
 
