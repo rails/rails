@@ -257,11 +257,12 @@ Action Controller now offers good support for HTTP conditional GET requests, as 
 * The HTTP Accept header is disabled by default now. You should prefer the use of formatted URLs (such as +/customers/1.xml+) to indicate the format that you want. If you need the Accept headers, you can turn them back on with +config.action_controller.user_accept_header = true+.
 * Benchmarking numbers are now reported in milliseconds rather than tiny fractions of seconds
 * Rails now supports HTTP-only cookies (and uses them for sessions), which help mitigate some cross-site scripting risks in newer browsers.
+* +redirect_to+ now fully supports URI schemes (so, for example, you can redirect to a svn+ssh: URI)
 
 == Action View
 
 * +javascript_include_tag+ and +stylesheet_link_tag+ support a new +:recursive+ option to be used along with +:all+, so that you can load an entire tree of files with a single line of code.
-* The included Prototype javascript library has been upgraded to version 1.6.0.2.
+* The included Prototype javascript library has been upgraded to version 1.6.0.3.
 * +RJS#page.reload+ to reload the browser's current location via javascript
 * The +atom_feed+ helper now takes an +:instruct+ option to let you insert XML processing instructions.
 
