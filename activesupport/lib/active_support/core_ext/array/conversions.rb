@@ -172,7 +172,7 @@ module ActiveSupport #:nodoc:
           else
             xml.tag!(root, options[:skip_types] ? {} : {:type => "array"}) {
               yield xml if block_given?
-              each { |e| e.to_xml(opts.merge!({ :skip_instruct => true })) }
+              each { |e| e.to_xml(opts.merge({ :skip_instruct => true })) }
             }
           end
         end

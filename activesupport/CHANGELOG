@@ -1,5 +1,7 @@
 *2.2.1 [RC2 or 2.2 final]*
 
+* Fixed the option merging in Array#to_xml #1126 [Rudolf Gavlas]
+
 * Make I18n::Backend::Simple reload its translations in development mode [DHH/Sven Fuchs]
 
 
