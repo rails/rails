@@ -1227,7 +1227,8 @@ module ActionController #:nodoc:
         if logger && logger.info?
           logger.info "\n\nProcessing #{self.class.name}\##{action_name} (for #{request_origin}) [#{request.method.to_s.upcase}]"
 
-          if @_session && @_session.respond_to?(:session_id) && !@_session.dbman.is_a?(CGI::Session::CookieStore)
+          if @_session && @_session.respond_to?(:session_id) &&
+              !(@_session.respond_to?(:dbman) && @_session.is_a?(CGI::Session::CookieStore))
             logger.info "  Session ID: #{@_session.session_id}"
           end
 
