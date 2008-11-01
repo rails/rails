@@ -1225,15 +1225,32 @@ module ActionController #:nodoc:
 
       def log_processing
         if logger && logger.info?
-          logger.info "\n\nProcessing #{self.class.name}\##{action_name} (for #{request_origin}) [#{request.method.to_s.upcase}]"
-
-          if @_session && @_session.respond_to?(:session_id) &&
-              !(@_session.respond_to?(:dbman) && @_session.is_a?(CGI::Session::CookieStore))
-            logger.info "  Session ID: #{@_session.session_id}"
-          end
-
-          logger.info "  Parameters: #{respond_to?(:filter_parameters) ? filter_parameters(params).inspect : params.inspect}"
+          log_processing_for_request_id
+          log_processing_for_session_id
+          log_processing_for_parameters
         end
+      end
+      
+      def log_processing_for_request_id
+        request_id = "\n\nProcessing #{self.class.name}\##{action_name} "
+        request_id << "to #{params[:format]} " if params[:format]
+        request_id << "(for #{request_origin}) [#{request.method.to_s.upcase}]"
+
+        logger.info(request_id)
+      end
+
+      def log_processing_for_session_id
+        if @_session && @_session.respond_to?(:session_id) && @_session.respond_to?(:dbman) &&
+            !@_session.dbman.is_a?(CGI::Session::CookieStore)
+          logger.info "  Session ID: #{@_session.session_id}"
+        end
+      end
+
+      def log_processing_for_parameters
+        parameters = respond_to?(:filter_parameters) ? filter_parameters(params) : params
+        parameters = parameters.except(:controller, :action, :format)
+        
+        logger.info "  Parameters: #{parameters.inspect}"
       end
 
       def default_render #:nodoc:
