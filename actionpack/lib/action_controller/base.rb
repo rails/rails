@@ -801,6 +801,19 @@ module ActionController #:nodoc:
       #   # Renders "Hello from code!"
       #   render :text => proc { |response, output| output.write("Hello from code!") }
       #
+      # === Rendering XML
+      #
+      # Rendering XML sets the content type to application/xml.
+      #
+      #   # Renders '<name>David</name>'
+      #   render :xml => {:name => "David"}.to_xml
+      #
+      # It's not necessary to call <tt>to_xml</tt> on the object you want to render, since <tt>render</tt> will
+      # automatically do that for you:
+      #
+      #   # Also renders '<name>David</name>'
+      #   render :xml => {:name => "David"}
+      #
       # === Rendering JSON
       #
       # Rendering JSON sets the content type to application/json and optionally wraps the JSON in a callback. It is expected
@@ -846,7 +859,12 @@ module ActionController #:nodoc:
       #     page.visual_effect :highlight, 'user_list'
       #   end
       #
-      # === Rendering with status and location headers
+      # === Rendering vanilla JavaScript
+      #
+      # In addition to using RJS with render :update, you can also just render vanilla JavaScript with :js.
+      #
+      #   # Renders "alert('hello')" and sets the mime type to text/javascript
+      #   render :js => "alert('hello')"
       #
       # All renders take the <tt>:status</tt> and <tt>:location</tt> options and turn them into headers. They can even be used together:
       #
@@ -897,6 +915,10 @@ module ActionController #:nodoc:
           elsif xml = options[:xml]
             response.content_type ||= Mime::XML
             render_for_text(xml.respond_to?(:to_xml) ? xml.to_xml : xml, options[:status])
+
+          elsif js = options[:js]
+            response.content_type ||= Mime::JS
+            render_for_text(js, options[:status])
 
           elsif json = options[:json]
             json = json.to_json unless json.is_a?(String)

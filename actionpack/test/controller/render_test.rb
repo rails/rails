@@ -184,6 +184,10 @@ class TestController < ActionController::Base
     render("test/hello")
   end
 
+  def render_vanilla_js_hello
+    render :js => "alert('hello')"
+  end
+
   def render_xml_hello
     @name = "David"
     render :template => "test/hello"
@@ -842,6 +846,12 @@ class RenderTest < Test::Unit::TestCase
   def test_access_to_controller_name_in_view
     get :accessing_controller_name_in_template
     assert_equal "test", @response.body # name is explicitly set to 'test' inside the controller.
+  end
+
+  def test_render_vanilla_js
+    get :render_vanilla_js_hello
+    assert_equal "alert('hello')", @response.body
+    assert_equal "text/javascript", @response.content_type
   end
 
   def test_render_xml
