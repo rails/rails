@@ -1226,7 +1226,11 @@ module ActionController #:nodoc:
       def log_processing
         if logger && logger.info?
           logger.info "\n\nProcessing #{self.class.name}\##{action_name} (for #{request_origin}) [#{request.method.to_s.upcase}]"
-          logger.info "  Session ID: #{@_session.session_id}" if @_session and @_session.respond_to?(:session_id)
+
+          if @_session && @_session.respond_to?(:session_id) && !@_session.dbman.is_a?(CGI::Session::CookieStore)
+            logger.info "  Session ID: #{@_session.session_id}"
+          end
+
           logger.info "  Parameters: #{respond_to?(:filter_parameters) ? filter_parameters(params).inspect : params.inspect}"
         end
       end
