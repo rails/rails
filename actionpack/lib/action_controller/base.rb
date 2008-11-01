@@ -866,6 +866,7 @@ module ActionController #:nodoc:
       #   # Renders "alert('hello')" and sets the mime type to text/javascript
       #   render :js => "alert('hello')"
       #
+      # === Rendering with status and location headers
       # All renders take the <tt>:status</tt> and <tt>:location</tt> options and turn them into headers. They can even be used together:
       #
       #   render :xml => post.to_xml, :status => :created, :location => post_url(post)
