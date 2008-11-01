@@ -11,8 +11,6 @@ CAUTION: Guides marked with this icon are currently being worked on. While they 
 
 .link:getting_started_with_rails.html[Getting Started with Rails]
 ***********************************************************
-CAUTION: link:http://rails.lighthouseapp.com/projects/16213/tickets/2[Lighthouse Ticket]
-
 Everything you need to know to install Rails and create your first application.
 ***********************************************************
 
@@ -94,8 +92,6 @@ Enjoy.
 
 .link:security.html[Securing Rails Applications]
 ***********************************************************
-CAUTION: link:http://rails.lighthouseapp.com/projects/16213/tickets/7[Lighthouse Ticket]
-
 This manual describes common security problems in web applications and how to
 avoid them with Rails.
 ***********************************************************

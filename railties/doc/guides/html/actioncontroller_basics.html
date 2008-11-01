@@ -693,7 +693,6 @@ http://www.gnu.org/software/src-highlite -->
 <div class="para"><p>Now, the LoginsController's "new" and "create" actions will work as before without requiring the user to be logged in. The <tt>:only</tt> option is used to only skip this filter for these actions, and there is also an <tt>:except</tt> option which works the other way. These options can be used when adding filters too, so you can add a filter which only runs for selected actions in the first place.</p></div>
 <h3 id="_after_filters_and_around_filters">6.1. After filters and around filters</h3>
 <div class="para"><p>In addition to the before filters, you can run filters after an action has run or both before and after. The after filter is similar to the before filter, but because the action has already been run it has access to the response data that's about to be sent to the client. Obviously, after filters can not stop the action from running. Around filters are responsible for running the action, but they can choose not to, which is the around filter's way of stopping it.</p></div>
-<div class="para"><p>TODO: Find a real example for an around filter</p></div>
 <div class="listingblock">
 <div class="content"><!-- Generator: GNU source-highlight 2.9
 by Lorenzo Bettini

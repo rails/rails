@@ -1,5 +1,6 @@
 module ActiveSupport
   module Cache
+    # A cache store implementation which stores everything on the filesystem.
     class FileStore < Store
       attr_reader :cache_path
 

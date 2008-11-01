@@ -344,9 +344,9 @@ module ActionView
         text << "</p>"
       end
 
-      # Turns all URLs and e-mail addresses into clickable links. The +link+ parameter
+      # Turns all URLs and e-mail addresses into clickable links. The <tt>:link</tt> option
       # will limit what should be linked. You can add HTML attributes to the links using
-      # +href_options+. Options for +link+ are <tt>:all</tt> (default),
+      # <tt>:href_options</tt>. Possible values for <tt>:link</tt> are <tt>:all</tt> (default),
       # <tt>:email_addresses</tt>, and <tt>:urls</tt>. If a block is given, each URL and
       # e-mail address is yielded and the result is used as the link text.
       #
@@ -355,15 +355,15 @@ module ActionView
       #   # => "Go to <a href=\"http://www.rubyonrails.org\">http://www.rubyonrails.org</a> and
       #   #     say hello to <a href=\"mailto:david@loudthinking.com\">david@loudthinking.com</a>"
       #
-      #   auto_link("Visit http://www.loudthinking.com/ or e-mail david@loudthinking.com", :urls)
+      #   auto_link("Visit http://www.loudthinking.com/ or e-mail david@loudthinking.com", :link => :urls)
       #   # => "Visit <a href=\"http://www.loudthinking.com/\">http://www.loudthinking.com/</a>
       #   #     or e-mail david@loudthinking.com"
       #
-      #   auto_link("Visit http://www.loudthinking.com/ or e-mail david@loudthinking.com", :email_addresses)
+      #   auto_link("Visit http://www.loudthinking.com/ or e-mail david@loudthinking.com", :link => :email_addresses)
       #   # => "Visit http://www.loudthinking.com/ or e-mail <a href=\"mailto:david@loudthinking.com\">david@loudthinking.com</a>"
       #
       #   post_body = "Welcome to my new blog at http://www.myblog.com/.  Please e-mail me at me@email.com."
-      #   auto_link(post_body, :all, :target => '_blank') do |text|
+      #   auto_link(post_body, :href_options => { :target => '_blank' }) do |text|
       #     truncate(text, 15)
       #   end
       #   # => "Welcome to my new blog at <a href=\"http://www.myblog.com/\" target=\"_blank\">http://www.m...</a>.
