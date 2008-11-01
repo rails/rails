@@ -68,72 +68,6 @@ module ActiveRecord
           super
         end
   
-        # Escapes binary strings for bytea input to the database.
-        def self.string_to_binary(value)
-          if PGconn.respond_to?(:escape_bytea)
-            self.class.module_eval do
-              define_method(:string_to_binary) do |value|
-                PGconn.escape_bytea(value) if value
-              end
-            end
-          else
-            self.class.module_eval do
-              define_method(:string_to_binary) do |value|
-                if value
-                  result = ''
-                  value.each_byte { |c| result << sprintf('\\\\%03o', c) }
-                  result
-                end
-              end
-            end
-          end
-          self.class.string_to_binary(value)
-        end
-  
-        # Unescapes bytea output from a database to the binary string it represents.
-        def self.binary_to_string(value)
-          # In each case, check if the value actually is escaped PostgreSQL bytea output
-          # or an unescaped Active Record attribute that was just written.
-          if PGconn.respond_to?(:unescape_bytea)
-            self.class.module_eval do
-              define_method(:binary_to_string) do |value|
-                if value =~ /\\\d{3}/
-                  PGconn.unescape_bytea(value)
-                else
-                  value
-                end
-              end
-            end
-          else
-            self.class.module_eval do
-              define_method(:binary_to_string) do |value|
-                if value =~ /\\\d{3}/
-                  result = ''
-                  i, max = 0, value.size
-                  while i < max
-                    char = value[i]
-                    if char == ?\\
-                      if value[i+1] == ?\\
-                        char = ?\\
-                        i += 1
-                      else
-                        char = value[i+1..i+3].oct
-                        i += 3
-                      end
-                    end
-                    result << char
-                    i += 1
-                  end
-                  result
-                else
-                  value
-                end
-              end
-            end
-          end
-          self.class.binary_to_string(value)
-        end  
-  
         # Maps PostgreSQL-specific data types to logical Rails types.
         def simplified_type(field_type)
           case field_type
@@ -347,10 +281,78 @@ module ActiveRecord
 
       # QUOTING ==================================================
 
+      # Escapes binary strings for bytea input to the database.
+      def escape_bytea(value)
+        if PGconn.respond_to?(:escape_bytea)
+          self.class.instance_eval do
+            define_method(:escape_bytea) do |value|
+              PGconn.escape_bytea(value) if value
+            end
+          end
+        else
+          self.class.instance_eval do
+            define_method(:escape_bytea) do |value|
+              if value
+                result = ''
+                value.each_byte { |c| result << sprintf('\\\\%03o', c) }
+                result
+              end
+            end
+          end
+        end
+        escape_bytea(value)
+      end
+
+      # Unescapes bytea output from a database to the binary string it represents.
+      # NOTE: This is NOT an inverse of escape_bytea! This is only to be used
+      #       on escaped binary output from database drive.
+      def unescape_bytea(value)
+        # In each case, check if the value actually is escaped PostgreSQL bytea output
+        # or an unescaped Active Record attribute that was just written.
+        if PGconn.respond_to?(:unescape_bytea)
+          self.class.instance_eval do
+            define_method(:unescape_bytea) do |value|
+              if value =~ /\\\d{3}/
+                PGconn.unescape_bytea(value)
+              else
+                value
+              end
+            end
+          end
+        else
+          self.class.instance_eval do
+            define_method(:unescape_bytea) do |value|
+              if value =~ /\\\d{3}/
+                result = ''
+                i, max = 0, value.size
+                while i < max
+                  char = value[i]
+                  if char == ?\\
+                    if value[i+1] == ?\\
+                      char = ?\\
+                      i += 1
+                    else
+                      char = value[i+1..i+3].oct
+                      i += 3
+                    end
+                  end
+                  result << char
+                  i += 1
+                end
+                result
+              else
+                value
+              end
+            end
+          end
+        end
+        unescape_bytea(value)
+      end
+
       # Quotes PostgreSQL-specific data types for SQL input.
       def quote(value, column = nil) #:nodoc:
         if value.kind_of?(String) && column && column.type == :binary
-          "#{quoted_string_prefix}'#{column.class.string_to_binary(value)}'"
+          "#{quoted_string_prefix}'#{escape_bytea(value)}'"
         elsif value.kind_of?(String) && column && column.sql_type =~ /^xml$/
           "xml '#{quote_string(value)}'"
         elsif value.kind_of?(Numeric) && column && column.sql_type =~ /^money$/
@@ -463,11 +465,20 @@ module ActiveRecord
 
       # create a 2D array representing the result set
       def result_as_array(res) #:nodoc:
+        # check if we have any binary column and if they need escaping
+        unescape_col = []
+        for j in 0...res.nfields do
+          # unescape string passed BYTEA field (OID == 17)
+          unescape_col << ( res.ftype(j)==17 )
+        end
+
         ary = []
         for i in 0...res.ntuples do
           ary << []
           for j in 0...res.nfields do
-            ary[i] << res.getvalue(i,j)
+            data = res.getvalue(i,j)
+            data = unescape_bytea(data) if unescape_col[j] and data.is_a?(String)
+            ary[i] << data
           end
         end
         return ary

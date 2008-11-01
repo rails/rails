@@ -1,3 +1,10 @@
+*2.2.1 [RC2 or 2.2 final]*
+
+* Fixed plugin generator so that generated unit tests would subclass ActiveSupport::TestCase, also introduced a helper script to reduce the needed require statements #1137 [Mathias Meyer]
+
+* Update Prototype to 1.6.0.3 [sam]
+
+
 *2.2.0 [RC1] (October 24th, 2008)*
 
 * Fixed that sqlite would report "db/development.sqlite3 already exists" whether true or not on db:create #614 [Antonio Cangiano]

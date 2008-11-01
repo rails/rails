@@ -18,11 +18,14 @@ module Rails
 
     def self.add_frozen_gem_path
       @@paths_loaded ||= begin
-        Gem.source_index = Rails::VendorGemSourceIndex.new(Gem.source_index)
+        source_index = Rails::VendorGemSourceIndex.new(Gem.source_index)
+        Gem.clear_paths
+        Gem.source_index = source_index
         # loaded before us - we can't change them, so mark them
         Gem.loaded_specs.each do |name, spec|
           @@framework_gems[name] = spec
         end
+        true
       end
     end
 
@@ -170,19 +173,27 @@ module Rails
       exact_dep = Gem::Dependency.new(name, "= #{specification.version}")
       matches = real_gems.search(exact_dep)
       installed_spec = matches.first
-      if installed_spec
-        # we have a real copy
-        # get a fresh spec - matches should only have one element
-        # note that there is no reliable method to check that the loaded
-        # spec is the same as the copy from real_gems - Gem.activate changes
-        # some of the fields
-        real_spec = Gem::Specification.load(matches.first.loaded_from)
-        write_spec(directory, real_spec)
-        puts "Reloaded specification for #{name} from installed gems."
+      if File.exist?(File.dirname(spec_filename(directory)))
+        if installed_spec
+          # we have a real copy
+          # get a fresh spec - matches should only have one element
+          # note that there is no reliable method to check that the loaded
+          # spec is the same as the copy from real_gems - Gem.activate changes
+          # some of the fields
+          real_spec = Gem::Specification.load(matches.first.loaded_from)
+          write_spec(directory, real_spec)
+          puts "Reloaded specification for #{name} from installed gems."
+        else
+          # the gem isn't installed locally - write out our current specs
+          write_spec(directory, specification)
+          puts "Gem #{name} not loaded locally - writing out current spec."
+        end
       else
-        # the gem isn't installed locally - write out our current specs
-        write_spec(directory, specification)
-        puts "Gem #{name} not loaded locally - writing out current spec."
+        if framework_gem?
+          puts "Gem directory for #{name} not found - check if it's loading before rails."
+        else
+          puts "Something bad is going on - gem directory not found for #{name}."
+        end
       end
     end
 

@@ -1,11 +1,10 @@
-require 'lib/rails/vendor_gem_source_index'
-Rails::VendorGemSourceIndex.silence_spec_warnings = true
-
 require 'plugin_test_helper'
 
 class Rails::GemDependency
   public :install_command, :unpack_command
 end
+
+Rails::VendorGemSourceIndex.silence_spec_warnings = true
 
 uses_mocha "Plugin Tests" do
   class GemDependencyTest < Test::Unit::TestCase

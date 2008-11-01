@@ -1596,16 +1596,19 @@ module ActiveRecord
           reflection
         end
 
+        mattr_accessor :valid_keys_for_has_and_belongs_to_many_association
+        @@valid_keys_for_has_and_belongs_to_many_association = [
+          :class_name, :table_name, :join_table, :foreign_key, :association_foreign_key,
+          :select, :conditions, :include, :order, :group, :limit, :offset,
+          :uniq,
+          :finder_sql, :delete_sql, :insert_sql,
+          :before_add, :after_add, :before_remove, :after_remove,
+          :extend, :readonly,
+          :validate
+        ]
+
         def create_has_and_belongs_to_many_reflection(association_id, options, &extension)
-          options.assert_valid_keys(
-            :class_name, :table_name, :join_table, :foreign_key, :association_foreign_key,
-            :select, :conditions, :include, :order, :group, :limit, :offset,
-            :uniq,
-            :finder_sql, :delete_sql, :insert_sql,
-            :before_add, :after_add, :before_remove, :after_remove,
-            :extend, :readonly,
-            :validate
-          )
+          options.assert_valid_keys(valid_keys_for_has_and_belongs_to_many_association)
 
           options[:extend] = create_extension_modules(association_id, extension, options[:extend])
 

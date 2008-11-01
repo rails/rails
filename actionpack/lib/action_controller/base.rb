@@ -801,6 +801,19 @@ module ActionController #:nodoc:
       #   # Renders "Hello from code!"
       #   render :text => proc { |response, output| output.write("Hello from code!") }
       #
+      # === Rendering XML
+      #
+      # Rendering XML sets the content type to application/xml.
+      #
+      #   # Renders '<name>David</name>'
+      #   render :xml => {:name => "David"}.to_xml
+      #
+      # It's not necessary to call <tt>to_xml</tt> on the object you want to render, since <tt>render</tt> will
+      # automatically do that for you:
+      #
+      #   # Also renders '<name>David</name>'
+      #   render :xml => {:name => "David"}
+      #
       # === Rendering JSON
       #
       # Rendering JSON sets the content type to application/json and optionally wraps the JSON in a callback. It is expected
@@ -846,8 +859,14 @@ module ActionController #:nodoc:
       #     page.visual_effect :highlight, 'user_list'
       #   end
       #
-      # === Rendering with status and location headers
+      # === Rendering vanilla JavaScript
       #
+      # In addition to using RJS with render :update, you can also just render vanilla JavaScript with :js.
+      #
+      #   # Renders "alert('hello')" and sets the mime type to text/javascript
+      #   render :js => "alert('hello')"
+      #
+      # === Rendering with status and location headers
       # All renders take the <tt>:status</tt> and <tt>:location</tt> options and turn them into headers. They can even be used together:
       #
       #   render :xml => post.to_xml, :status => :created, :location => post_url(post)
@@ -898,6 +917,10 @@ module ActionController #:nodoc:
             response.content_type ||= Mime::XML
             render_for_text(xml.respond_to?(:to_xml) ? xml.to_xml : xml, options[:status])
 
+          elsif js = options[:js]
+            response.content_type ||= Mime::JS
+            render_for_text(js, options[:status])
+
           elsif json = options[:json]
             json = json.to_json unless json.is_a?(String)
             json = "#{options[:callback]}(#{json})" unless options[:callback].blank?
@@ -933,6 +956,7 @@ module ActionController #:nodoc:
       def render_to_string(options = nil, &block) #:doc:
         render(options, &block)
       ensure
+        response.content_type = nil
         erase_render_results
         reset_variables_added_to_assigns
       end
@@ -1056,7 +1080,10 @@ module ActionController #:nodoc:
         logger.info("Redirected to #{options}") if logger && logger.info?
 
         case options
-          when %r{^\w+://.*}
+          # The scheme name consist of a letter followed by any combination of
+          # letters, digits, and the plus ("+"), period ("."), or hyphen ("-")
+          # characters; and is terminated by a colon (":").
+          when %r{^\w[\w\d+.-]*:.*}
             redirect_to_full_url(options, status)
           when String
             redirect_to_full_url(request.protocol + request.host_with_port + options, status)
@@ -1201,10 +1228,32 @@ module ActionController #:nodoc:
 
       def log_processing
         if logger && logger.info?
-          logger.info "\n\nProcessing #{self.class.name}\##{action_name} (for #{request_origin}) [#{request.method.to_s.upcase}]"
-          logger.info "  Session ID: #{@_session.session_id}" if @_session and @_session.respond_to?(:session_id)
-          logger.info "  Parameters: #{respond_to?(:filter_parameters) ? filter_parameters(params).inspect : params.inspect}"
+          log_processing_for_request_id
+          log_processing_for_session_id
+          log_processing_for_parameters
         end
+      end
+      
+      def log_processing_for_request_id
+        request_id = "\n\nProcessing #{self.class.name}\##{action_name} "
+        request_id << "to #{params[:format]} " if params[:format]
+        request_id << "(for #{request_origin}) [#{request.method.to_s.upcase}]"
+
+        logger.info(request_id)
+      end
+
+      def log_processing_for_session_id
+        if @_session && @_session.respond_to?(:session_id) && @_session.respond_to?(:dbman) &&
+            !@_session.dbman.is_a?(CGI::Session::CookieStore)
+          logger.info "  Session ID: #{@_session.session_id}"
+        end
+      end
+
+      def log_processing_for_parameters
+        parameters = respond_to?(:filter_parameters) ? filter_parameters(params) : params
+        parameters = parameters.except(:controller, :action, :format)
+        
+        logger.info "  Parameters: #{parameters.inspect}"
       end
 
       def default_render #:nodoc:

@@ -1429,6 +1429,12 @@ class BasicsTest < ActiveRecord::TestCase
     topic = Topic.create("content" => myobj).reload
     assert_equal(myobj, topic.content)
   end
+  
+  def test_serialized_string_attribute
+    myobj = "Yes"
+    topic = Topic.create("content" => myobj).reload
+    assert_equal(myobj, topic.content)
+  end
 
   def test_nil_serialized_attribute_with_class_constraint
     myobj = MyObject.new('value1', 'value2')

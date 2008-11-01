@@ -1,3 +1,14 @@
+*2.2.1 [RC2 or 2.2 final]*
+
+* Simplified the logging format for parameters (don't include controller, action, and format as duplicates) [DHH]
+
+* Remove the logging of the Session ID when the session store is CookieStore [DHH]
+
+* Fixed regex in redirect_to to fully support URI schemes #1247 [Seth Fitzsimmons]
+
+* Fixed bug with asset timestamping when using relative_url_root #1265 [Joe Goldwasser]
+
+
 *2.2.0 [RC1] (October 24th, 2008)*
 
 * Fix incorrect closing CDATA delimiter and that HTML::Node.parse would blow up on unclosed CDATA sections [packagethief]
