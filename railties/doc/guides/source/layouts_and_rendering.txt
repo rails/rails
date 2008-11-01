@@ -166,6 +166,17 @@ render :xml => @product
 
 TIP: You don't need to call +to_xml+ on the object that you want to render. If you use the +:xml+ option, +render+ will automatically call +to_xml+ for you.
 
+==== Rendering Vanilla JavaScript
+
+Rails can render vanilla JavaScript (as an alternative to using +update+ with n +.rjs+ file):
+
+[source, ruby]
+-------------------------------------------------------
+render :js => "alert('Hello Rails');"
+-------------------------------------------------------
+
+This will send the supplied string to the browser with a MIME type of +text/javascript+.
+
 ==== Options for +render+
 
 Calls to the +render+ method generally accept four options:
@@ -885,6 +896,7 @@ In this case, Rails will use the customer or employee partials as appropriate fo
 
 http://rails.lighthouseapp.com/projects/16213-rails-guides/tickets/15[Lighthouse ticket]
 
+* November 1, 2008: Added +:js+ option for +render+ by link:../authors.html#mgunderloy[Mike Gunderloy] 
 * October 16, 2008: Ready for publication by link:../authors.html#mgunderloy[Mike Gunderloy] 
 * October 4, 2008: Additional info on partials (+:object+, +:as+, and +:spacer_template+) by link:../authors.html#mgunderloy[Mike Gunderloy] (not yet approved for publication)
 * September 28, 2008: First draft by link:../authors.html#mgunderloy[Mike Gunderloy] (not yet approved for publication)

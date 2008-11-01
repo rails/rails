@@ -489,7 +489,17 @@ http://www.gnu.org/software/src-highlite -->
 <td class="content">You don't need to call <tt>to_xml</tt> on the object that you want to render. If you use the <tt>:xml</tt> option, <tt>render</tt> will automatically call <tt>to_xml</tt> for you.</td>
 </tr></table>
 </div>
-<h4 id="_options_for_tt_render_tt">2.2.10. Options for <tt>render</tt></h4>
+<h4 id="_rendering_vanilla_javascript">2.2.10. Rendering Vanilla JavaScript</h4>
+<div class="para"><p>Rails can render vanilla JavaScript (as an alternative to using <tt>update</tt> with n <tt>.rjs</tt> file):</p></div>
+<div class="listingblock">
+<div class="content"><!-- Generator: GNU source-highlight 2.9
+by Lorenzo Bettini
+http://www.lorenzobettini.it
+http://www.gnu.org/software/src-highlite -->
+<pre><tt>render <span style="color: #990000">:</span>js <span style="color: #990000">=&gt;</span> <span style="color: #FF0000">"alert('Hello Rails');"</span>
+</tt></pre></div></div>
+<div class="para"><p>This will send the supplied string to the browser with a MIME type of <tt>text/javascript</tt>.</p></div>
+<h4 id="_options_for_tt_render_tt">2.2.11. Options for <tt>render</tt></h4>
 <div class="para"><p>Calls to the <tt>render</tt> method generally accept four options:</p></div>
 <div class="ilist"><ul>
 <li>
@@ -560,7 +570,7 @@ http://www.lorenzobettini.it
 http://www.gnu.org/software/src-highlite -->
 <pre><tt>render <span style="color: #990000">:</span>xml <span style="color: #990000">=&gt;</span> photo<span style="color: #990000">,</span> <span style="color: #990000">:</span>location <span style="color: #990000">=&gt;</span> photo_url<span style="color: #990000">(</span>photo<span style="color: #990000">)</span>
 </tt></pre></div></div>
-<h4 id="_finding_layouts">2.2.11. Finding Layouts</h4>
+<h4 id="_finding_layouts">2.2.12. Finding Layouts</h4>
 <div class="para"><p>To find the current layout, Rails first looks for a file in <tt>app/views/layouts</tt> with the same base name as the controller. For example, rendering actions from the <tt>PhotosController</tt> class will use <tt>/app/views/layouts/photos.html.erb</tt>. If there is no such controller-specific layout, Rails will use <tt>/app/views/layouts/application.html.erb</tt>. If there is no <tt>.erb</tt> layout, Rails will use a <tt>.builder</tt> layout if one exists. Rails also provides several ways to more precisely assign specific layouts to individual controllers and actions.</p></div>
 <h5 id="_specifying_layouts_on_a_per_controller_basis">Specifying Layouts on a per-Controller Basis</h5>
 <div class="para"><p>You can override the automatic layout conventions in your controllers by using the <tt>layout</tt> declaration in the controller. For example:</p></div>
@@ -693,7 +703,7 @@ In general, views will be rendered in the <tt>main</tt> layout
 </p>
 </li>
 </ul></div>
-<h4 id="_avoiding_double_render_errors">2.2.12. Avoiding Double Render Errors</h4>
+<h4 id="_avoiding_double_render_errors">2.2.13. Avoiding Double Render Errors</h4>
 <div class="para"><p>Sooner or later, most Rails developers will see the error message "Can only render or redirect once per action". While this is annoying, it's relatively easy to fix. Usually it happens because of a fundamental misunderstanding of the way that <tt>render</tt> works.</p></div>
 <div class="para"><p>For example, here's some code that will trigger this error:</p></div>
 <div class="listingblock">
@@ -1307,6 +1317,11 @@ _employee.html.erb:
 <div class="sectionbody">
 <div class="para"><p><a href="http://rails.lighthouseapp.com/projects/16213-rails-guides/tickets/15">Lighthouse ticket</a></p></div>
 <div class="ilist"><ul>
+<li>
+<p>
+November 1, 2008: Added <tt>:js</tt> option for <tt>render</tt> by <a href="../authors.html#mgunderloy">Mike Gunderloy</a>
+</p>
+</li>
 <li>
 <p>
 October 16, 2008: Ready for publication by <a href="../authors.html#mgunderloy">Mike Gunderloy</a>
