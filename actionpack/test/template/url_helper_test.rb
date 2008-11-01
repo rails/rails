@@ -376,6 +376,19 @@ class UrlHelperWithControllerTest < ActionView::TestCase
     assert_equal '/url_helper_with_controller/nil_url_for', @response.body
   end
 
+  def test_named_route_should_show_host_and_path_using_controller_default_url_options
+    class << @controller
+      def default_url_options(options = nil)
+        {:host => 'testtwo.host'}
+      end
+    end
+
+    with_url_helper_routing do
+      get :show_named_route, :kind => 'url'
+      assert_equal 'http://testtwo.host/url_helper_with_controller/show_named_route', @response.body
+    end
+  end
+
   protected
     def with_url_helper_routing
       with_routing do |set|
