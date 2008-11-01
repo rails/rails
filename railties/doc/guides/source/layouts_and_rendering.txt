@@ -313,22 +313,39 @@ With those declarations, the +inventory+ layout would be used only for the +inde
 
 Layouts are shared downwards in the hierarchy, and more specific layouts always override more general ones. For example:
 
++application.rb+:
+
 [source, ruby]
 -------------------------------------------------------
 class ApplicationController < ActionController::Base
   layout "main"
   #...
 end
+-------------------------------------------------------
 
++posts_controller.rb+:
+
+[source, ruby]
+-------------------------------------------------------
 class PostsController < ApplicationController
   # ...
 end
+-------------------------------------------------------
 
++special_posts_controller.rb+:
+
+[source, ruby]
+-------------------------------------------------------
 class SpecialPostsController < PostsController
   layout "special"
   # ...
 end
+-------------------------------------------------------
 
++old_posts_controller.rb+:
+
+[source, ruby]
+-------------------------------------------------------
 class OldPostsController < SpecialPostsController
   layout nil
 
@@ -777,23 +794,29 @@ This would look for a partial named +_link_area.html.erb+ and render it using th
 
 You can also pass local variables into partials, making them even more powerful and flexible. For example, you can use this technique to reduce duplication between new and edit pages, while still keeping a bit of distinct content:
 
++new.html.erb+:
+
 [source, html]
 -------------------------------------------------------
-new.html.erb:
-
 <h1>New zone</h1>
 <%= error_messages_for :zone %>
 <%= render :partial => "form", :locals => { :button_label => "Create zone", :zone => @zone } %>
+-------------------------------------------------------
 
-edit.html.erb:
++edit.html.erb+:
 
+[source, html]
+-------------------------------------------------------
 <h1>Editing zone</h1>
 <%= error_messages_for :zone %>
 <%= render :partial => "form", :locals => { :button_label => "Update zone", :zone => @zone } %>
+-------------------------------------------------------
 
-_form.html.erb:
++_form.html.erb:+
 
-<% form_for(@zone) do |f| %>
+[source, html]
+-------------------------------------------------------
+<% form_for(zone) do |f| %>
 	<p>
 	  <b>Zone name</b><br />
 	  <%= f.text_field :name %>
@@ -830,15 +853,18 @@ Assuming that the +@customer+ instance variable contains an instance of the +Cus
 
 Partials are very useful in rendering collections. When you pass a collection to a partial via the +:collection+ option, the partial will be inserted once for each member in the collection:
 
++index.html.erb+:
+
 [source, html]
 -------------------------------------------------------
-index.html.erb:
-
 <h1>Products</h1>
 <%= render :partial => "product", :collection => @products %>
+-------------------------------------------------------
 
-_product.html.erb:
++_product.html.erb+:
 
+[source, html]
+-------------------------------------------------------
 <p>Product Name: <%= product.name %></p>
 -------------------------------------------------------
 
@@ -862,33 +888,42 @@ Rails will render the +_product_ruler+ partial (with no data passed in to it) be
 
 There's also a shorthand syntax available for rendering collections. For example, if +@products+ is a collection of products, you can render the collection this way:
 
++index.html.erb+:
+
 [source, html]
 -------------------------------------------------------
-index.html.erb:
-
 <h1>Products</h1>
 <%= render :partial => @products %>
+-------------------------------------------------------
 
-_product.html.erb:
++_product.html.erb+:
 
+[source, html]
+-------------------------------------------------------
 <p>Product Name: <%= product.name %></p>
 -------------------------------------------------------
 
 Rails determines the name of the partial to use by looking at the model name in the collection. In fact, you can even create a heterogeneous collection and render it this way, and Rails will choose the proper partial for each member of the collection:
 
++index.html.erb+:
+
 [source, html]
 -------------------------------------------------------
-index.html.erb:
-
 <h1>Contacts</h1>
 <%= render :partial => [customer1, employee1, customer2, employee2] %>
+-------------------------------------------------------
 
-_customer.html.erb:
++_customer.html.erb+:
 
+[source, html]
+-------------------------------------------------------
 <p>Name: <%= customer.name %></p>
+-------------------------------------------------------
 
-_employee.html.erb:
++_employee.html.erb+:
 
+[source, html]
+-------------------------------------------------------
 <p>Name: <%= employee.name %></p>
 -------------------------------------------------------
 
