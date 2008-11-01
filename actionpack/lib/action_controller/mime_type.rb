@@ -19,7 +19,7 @@ module Mime
   #     end
   #   end
   class Type
-    @@html_types = Set.new [:html, :all]
+    @@html_types = Set.new [:html, :url_encoded_form, :multipart_form, :all]
     @@unverifiable_types = Set.new [:text, :json, :csv, :xml, :rss, :atom, :yaml]
     cattr_reader :html_types, :unverifiable_types
 
@@ -167,7 +167,7 @@ module Mime
     # Returns true if Action Pack should check requests using this Mime Type for possible request forgery.  See
     # ActionController::RequestForgerProtection.
     def verify_request?
-      !@@unverifiable_types.include?(to_sym)
+      html?
     end
 
     def html?
