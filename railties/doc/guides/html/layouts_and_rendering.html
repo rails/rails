@@ -1225,7 +1225,7 @@ _form.html.erb:
 &lt;% end %&gt;
 </tt></pre></div></div>
 <div class="para"><p>Although the same partial will be rendered into both views, the label on the submit button is controlled by a local variable passed into the partial.</p></div>
-<div class="para"><p>Every partial also has a local variable with the same name as the partial (minus the underscore). By default, it will look for an instance variable with the same name as the partial in the parent. You can pass an object in to this local variable via the <tt>:object</tt> option:</p></div>
+<div class="para"><p>Every partial also has a local variable with the same name as the partial (minus the underscore). You can pass an object in to this local variable via the <tt>:object</tt> option:</p></div>
 <div class="listingblock">
 <div class="content"><!-- Generator: GNU source-highlight 2.9
 by Lorenzo Bettini
@@ -1234,6 +1234,14 @@ http://www.gnu.org/software/src-highlite -->
 <pre><tt>&lt;%= render :partial =&gt; "customer", :object =&gt; @new_customer %&gt;
 </tt></pre></div></div>
 <div class="para"><p>Within the <tt>customer</tt> partial, the <tt>@customer</tt> variable will refer to <tt>@new_customer</tt> from the parent view.</p></div>
+<div class="admonitionblock">
+<table><tr>
+<td class="icon">
+<img src="./images/icons/warning.png" alt="Warning" />
+</td>
+<td class="content">In previous versions of Rails, the default local variable would look for an instance variable with the same name as the partial in the parent. This behavior is deprecated in Rails 2.2 and will be removed in a future version.</td>
+</tr></table>
+</div>
 <div class="para"><p>If you have an instance of a model to render into a partial, you can use a shorthand syntax:</p></div>
 <div class="listingblock">
 <div class="content"><!-- Generator: GNU source-highlight 2.9

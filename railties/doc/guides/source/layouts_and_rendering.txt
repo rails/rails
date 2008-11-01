@@ -806,7 +806,7 @@ _form.html.erb:
 
 Although the same partial will be rendered into both views, the label on the submit button is controlled by a local variable passed into the partial.
 
-Every partial also has a local variable with the same name as the partial (minus the underscore). By default, it will look for an instance variable with the same name as the partial in the parent. You can pass an object in to this local variable via the +:object+ option:
+Every partial also has a local variable with the same name as the partial (minus the underscore). You can pass an object in to this local variable via the +:object+ option:
 
 [source, html]
 -------------------------------------------------------
@@ -814,6 +814,8 @@ Every partial also has a local variable with the same name as the partial (minus
 -------------------------------------------------------
 
 Within the +customer+ partial, the +@customer+ variable will refer to +@new_customer+ from the parent view.
+
+WARNING: In previous versions of Rails, the default local variable would look for an instance variable with the same name as the partial in the parent. This behavior is deprecated in Rails 2.2 and will be removed in a future version.
 
 If you have an instance of a model to render into a partial, you can use a shorthand syntax:
 
