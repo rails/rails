@@ -1244,8 +1244,8 @@ module ActionController #:nodoc:
       end
 
       def log_processing_for_parameters
-        parameters = respond_to?(:filter_parameters) ? filter_parameters(params) : params
-        parameters = parameters.except(:controller, :action, :format)
+        parameters = respond_to?(:filter_parameters) ? filter_parameters(params) : params.dup
+        parameters = parameters.except!(:controller, :action, :format)
         
         logger.info "  Parameters: #{parameters.inspect}"
       end
