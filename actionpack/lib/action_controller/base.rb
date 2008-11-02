@@ -1062,9 +1062,6 @@ module ActionController #:nodoc:
       # When using <tt>redirect_to :back</tt>, if there is no referrer,
       # RedirectBackError will be raised. You may specify some fallback
       # behavior for this case by rescuing RedirectBackError.
-      #
-      # When using <tt>redirect_to</tt> an instance variable called
-      # @performed_redirect will be set to true.
       def redirect_to(options = {}, response_status = {}) #:doc:
         raise ActionControllerError.new("Cannot redirect to nil!") if options.nil?
 
