@@ -507,6 +507,14 @@ module ActiveRecord
     #
     # will load posts and eager load the +approved_comments+ association, which contains only those comments that have been approved.
     #
+    # If you eager load an association with a specified <tt>:limit</tt> option, it will be ignored, returning all the associated objects:
+    #
+    #   class Picture < ActiveRecord::Base
+    #     has_many :most_recent_comments, :class_name => 'Comment', :order => 'id DESC', :limit => 10
+    #   end
+    #
+    #   Picture.find(:first, :include => :most_recent_comments).most_recent_comments # => returns all associated comments.
+    #
     # When eager loaded, conditions are interpolated in the context of the model class, not the model instance.  Conditions are lazily interpolated
     # before the actual model exists.
     #
