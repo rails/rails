@@ -1457,51 +1457,57 @@ http://www.gnu.org/software/src-highlite -->
 <div class="para"><p>At this point, it’s worth looking at some of the tools that Rails provides to eliminate duplication in your code. In particular, you can use <em>partials</em> to clean up duplication in views and <em>filters</em> to help with duplication in controllers.</p></div>
 <h3 id="_using_partials_to_eliminate_view_duplication">7.1. Using Partials to Eliminate View Duplication</h3>
 <div class="para"><p>As you saw earlier, the scaffold-generated views for the <tt>new</tt> and <tt>edit</tt> actions are largely identical. You can pull the shared code out into a <tt>partial</tt> template. This requires editing the new and edit views, and adding a new template:</p></div>
-<div class="para"><p><tt>new.html.erb</tt>:
-[source, ruby]</p></div>
+<div class="para"><p><tt>new.html.erb</tt>:</p></div>
 <div class="listingblock">
-<div class="content">
-<pre><tt>&lt;h1&gt;New post&lt;/h1&gt;
+<div class="content"><!-- Generator: GNU source-highlight 2.9
+by Lorenzo Bettini
+http://www.lorenzobettini.it
+http://www.gnu.org/software/src-highlite -->
+<pre><tt><span style="color: #FF0000">&lt;h1&gt;</span>New post<span style="color: #FF0000">&lt;/h1&gt;</span>
 
-&lt;%= render :partial =&gt; "form" %&gt;
+<span style="color: #FF0000">&lt;%= render :partial =&gt;</span> <span style="color: #FF0000">"form"</span> <span style="color: #990000">%&gt;</span>
 
-&lt;%= link_to 'Back', posts_path %&gt;</tt></pre>
-</div></div>
-<div class="para"><p><tt>edit.html.erb</tt>:
-[source, ruby]</p></div>
+<span style="color: #FF0000">&lt;%= link_to 'Back', posts_path %&gt;</span>
+</tt></pre></div></div>
+<div class="para"><p><tt>edit.html.erb</tt>:</p></div>
 <div class="listingblock">
-<div class="content">
-<pre><tt>&lt;h1&gt;Editing post&lt;/h1&gt;
+<div class="content"><!-- Generator: GNU source-highlight 2.9
+by Lorenzo Bettini
+http://www.lorenzobettini.it
+http://www.gnu.org/software/src-highlite -->
+<pre><tt><span style="color: #FF0000">&lt;h1&gt;</span>Editing post<span style="color: #FF0000">&lt;/h1&gt;</span>
 
-&lt;%= render :partial =&gt; "form" %&gt;
+<span style="color: #FF0000">&lt;%= render :partial =&gt;</span> <span style="color: #FF0000">"form"</span> <span style="color: #990000">%&gt;</span>
 
-&lt;%= link_to 'Show', @post %&gt; |
-&lt;%= link_to 'Back', posts_path %&gt;</tt></pre>
-</div></div>
-<div class="para"><p><tt>_form.html.erb</tt>:
-[source, ruby]</p></div>
+<span style="color: #FF0000">&lt;%= link_to 'Show', @post %&gt;</span> <span style="color: #990000">|</span>
+<span style="color: #FF0000">&lt;%= link_to 'Back', posts_path %&gt;</span>
+</tt></pre></div></div>
+<div class="para"><p><tt>_form.html.erb</tt>:</p></div>
 <div class="listingblock">
-<div class="content">
-<pre><tt>&lt;% form_for(@post) do |f| %&gt;
-  &lt;%= f.error_messages %&gt;
+<div class="content"><!-- Generator: GNU source-highlight 2.9
+by Lorenzo Bettini
+http://www.lorenzobettini.it
+http://www.gnu.org/software/src-highlite -->
+<pre><tt><span style="color: #FF0000">&lt;% form_for(@post) do |f| %&gt;</span>
+  <span style="color: #FF0000">&lt;%= f.error_messages %&gt;</span>
 
-  &lt;p&gt;
-    &lt;%= f.label :name %&gt;&lt;br /&gt;
-    &lt;%= f.text_field :name %&gt;
-  &lt;/p&gt;
-  &lt;p&gt;
-    &lt;%= f.label :title, "title" %&gt;&lt;br /&gt;
-    &lt;%= f.text_field :title %&gt;
-  &lt;/p&gt;
-  &lt;p&gt;
-    &lt;%= f.label :content %&gt;&lt;br /&gt;
-    &lt;%= f.text_area :content %&gt;
-  &lt;/p&gt;
-  &lt;p&gt;
-    &lt;%= f.submit "Save" %&gt;
-  &lt;/p&gt;
-&lt;% end %&gt;</tt></pre>
-</div></div>
+  <span style="color: #FF0000">&lt;p&gt;</span>
+    <span style="color: #FF0000">&lt;%= f.label :name %&gt;&lt;br /&gt;</span>
+    <span style="color: #FF0000">&lt;%= f.text_field :name %&gt;</span>
+  <span style="color: #FF0000">&lt;/p&gt;</span>
+  <span style="color: #FF0000">&lt;p&gt;</span>
+    <span style="color: #FF0000">&lt;%= f.label :title, "title" %&gt;&lt;br /&gt;</span>
+    <span style="color: #FF0000">&lt;%= f.text_field :title %&gt;</span>
+  <span style="color: #FF0000">&lt;/p&gt;</span>
+  <span style="color: #FF0000">&lt;p&gt;</span>
+    <span style="color: #FF0000">&lt;%= f.label :content %&gt;&lt;br /&gt;</span>
+    <span style="color: #FF0000">&lt;%= f.text_area :content %&gt;</span>
+  <span style="color: #FF0000">&lt;/p&gt;</span>
+  <span style="color: #FF0000">&lt;p&gt;</span>
+    <span style="color: #FF0000">&lt;%= f.submit "Save" %&gt;</span>
+  <span style="color: #FF0000">&lt;/p&gt;</span>
+<span style="color: #FF0000">&lt;% end %&gt;</span>
+</tt></pre></div></div>
 <div class="para"><p>Now, when Rails renders the <tt>new</tt> or <tt>edit</tt> view, it will insert the <tt>_form</tt> partial at the indicated point. Note the naming convention for partials: if you refer to a partial named <tt>form</tt> inside of a view, the corresponding file is <tt>_form.html.erb</tt>, with a leading underscore.</p></div>
 <div class="para"><p>For more information on partials, refer to the <a href="../layouts_and_rendering.html">Layouts and Rending in Rails</a> guide.</p></div>
 <h3 id="_using_filters_to_eliminate_controller_duplication">7.2. Using Filters to Eliminate Controller Duplication</h3>
@@ -1721,32 +1727,32 @@ http://www.gnu.org/software/src-highlite -->
 </li>
 <li>
 <p>
-+app/helpers/comments_helper.rb - A view helper file
+<tt>app/helpers/comments_helper.rb</tt> - A view helper file
 </p>
 </li>
 <li>
 <p>
-+app/views/comments/index.html.erb - The view for the index action
+<tt>app/views/comments/index.html.erb</tt> - The view for the index action
 </p>
 </li>
 <li>
 <p>
-+app/views/comments/show.html.erb - The view for the show action
+<tt>app/views/comments/show.html.erb</tt> - The view for the show action
 </p>
 </li>
 <li>
 <p>
-+app/views/comments/new.html.erb - The view for the new action
+<tt>app/views/comments/new.html.erb</tt> - The view for the new action
 </p>
 </li>
 <li>
 <p>
-+app/views/comments/edit.html.erb - The view for the edit action
+<tt>app/views/comments/edit.html.erb</tt> - The view for the edit action
 </p>
 </li>
 <li>
 <p>
-+test/functional/comments_controller_test.rb - The functional tests for the controller
+<tt>test/functional/comments_controller_test.rb</tt> - The functional tests for the controller
 </p>
 </li>
 </ul></div>
@@ -1984,7 +1990,7 @@ http://www.gnu.org/software/src-highlite -->
 <div class="ilist"><ul>
 <li>
 <p>
-The [http://manuals.rubyonrails.org/]Ruby On Rails guides
+The <a href="http://manuals.rubyonrails.org/">Ruby On Rails guides</a>
 </p>
 </li>
 <li>
@@ -2008,6 +2014,11 @@ The <a href="http://wiki.rubyonrails.org/rails">Rails wiki</a>
 <div class="sectionbody">
 <div class="para"><p><a href="http://rails.lighthouseapp.com/projects/16213-rails-guides/tickets/2">Lighthouse ticket</a></p></div>
 <div class="ilist"><ul>
+<li>
+<p>
+November 3, 2008: Formatting patch from Dave Rothlisberger
+</p>
+</li>
 <li>
 <p>
 November 1, 2008: First approved version by <a href="../authors.html#mgunderloy">Mike Gunderloy</a>

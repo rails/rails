@@ -220,6 +220,16 @@ ul#navMain {
 						
 						</ul>
 					</li>
+					<li>
+					<a href="#_making_select_boxes_with_ease">Making select boxes with ease</a>
+						<ul>
+						
+							<li><a href="#_the_select_tag_and_options">The select tag and options</a></li>
+						
+							<li><a href="#_select_boxes_for_dealing_with_models">Select boxes for dealing with models</a></li>
+						
+						</ul>
+					</li>
 			</ol>
 		</div>
 		
@@ -227,7 +237,7 @@ ul#navMain {
 				<h1>Rails form helpers</h1>
 			<div id="preamble">
 <div class="sectionbody">
-<div class="para"><p>Forms in web applications are an essential interface for user input. They are also often considered the most complex elements of HTML. Rails deals away with these complexities by providing numerous view helpers for generating form markup. However, since they have different use-cases, developers are required to know all the differences between similar helper methods before putting them to use.</p></div>
+<div class="para"><p>Forms in web applications are an essential interface for user input. However, form markup can quickly become tedious to write and maintain because of form control naming and their numerous attributes. Rails deals away with these complexities by providing view helpers for generating form markup. However, since they have different use-cases, developers are required to know all the differences between similar helper methods before putting them to use.</p></div>
 <div class="para"><p>In this guide we will:</p></div>
 <div class="ilist"><ul>
 <li>
@@ -392,7 +402,7 @@ a submit element.
 <td class="icon">
 <img src="./images/icons/warning.png" alt="Warning" />
 </td>
-<td class="content">Do not delimit the second hash without doing so with the first hash, otherwise your method invocation will result in an ugly <tt>expecting tASSOC</tt> syntax error.</td>
+<td class="content">Do not delimit the second hash without doing so with the first hash, otherwise your method invocation will result in an <tt>expecting tASSOC</tt> syntax error.</td>
 </tr></table>
 </div>
 <h3 id="_checkboxes_radio_buttons_and_other_controls">1.3. Checkboxes, radio buttons and other controls</h3>
@@ -431,7 +441,7 @@ output:
 <td class="icon">
 <img src="./images/icons/important.png" alt="Important" />
 </td>
-<td class="content">Always use labels for each checkbox and radio button. They associate text with a specific option, while also providing a larger clickable region.</td>
+<td class="content">Always use labels for each checkbox and radio button. They associate text with a specific option and provide a larger clickable region.</td>
 </tr></table>
 </div>
 <div class="para"><p>Other form controls we might mention are the text area, password input and hidden input:</p></div>
@@ -458,7 +468,7 @@ output:
 </div>
 <h3 id="_how_do_forms_with_put_or_delete_methods_work">1.4. How do forms with PUT or DELETE methods work?</h3>
 <div class="para"><p>Rails framework encourages RESTful design of your applications, which means you'll be making a lot of "PUT" and "DELETE" requests (besides "GET" and "POST"). Still, most browsers <em>don't support</em> methods other than "GET" and "POST" when it comes to submitting forms. How does this work, then?</p></div>
-<div class="para"><p>Rails works around this issue by emulating other methods over POST with a hidden input named <tt>"<em>method"</tt> that is set to reflect the _real</em> method:</p></div>
+<div class="para"><p>Rails works around this issue by emulating other methods over POST with a hidden input named <tt>"_method"</tt> that is set to reflect the wanted method:</p></div>
 <div class="listingblock">
 <div class="content">
 <pre><tt>form_tag(search_path, :method =&gt; "put")
@@ -562,6 +572,64 @@ form_for(@article)</tt></pre>
 <td class="content">When you're using STI (single-table inheritance) with your models, you can't rely on record identification on a subclass if only their parent class is declared a resource. You will have to specify the model name, <tt>:url</tt> and <tt>:method</tt> explicitly.</td>
 </tr></table>
 </div>
+</div>
+<h2 id="_making_select_boxes_with_ease">3. Making select boxes with ease</h2>
+<div class="sectionbody">
+<div class="para"><p>Select boxes in HTML require a significant amount of markup (one <tt>OPTION</tt> element for each option to choose from), therefore it makes the most sense for them to be dynamically generated from data stored in arrays or hashes.</p></div>
+<div class="para"><p>Here is what our wanted markup might look like:</p></div>
+<div class="listingblock">
+<div class="content">
+<pre><tt>&lt;select name="city_id" id="city_id"&gt;
+  &lt;option value="1"&gt;Lisabon&lt;/option&gt;
+  &lt;option value="2"&gt;Madrid&lt;/option&gt;
+  ...
+  &lt;option value="12"&gt;Berlin&lt;/option&gt;
+&lt;/select&gt;</tt></pre>
+</div></div>
+<div class="para"><p>Here we have a list of cities where their names are presented to the user, but internally we want to handle just their IDs so we keep them in value attributes. Let's see how Rails can help out here.</p></div>
+<h3 id="_the_select_tag_and_options">3.1. The select tag and options</h3>
+<div class="para"><p>The most generic helper is <tt>select_tag</tt>, which &#8212; as the name implies &#8212; simply generates the <tt>SELECT</tt> tag that encapsulates the options:</p></div>
+<div class="listingblock">
+<div class="content">
+<pre><tt>&lt;%= select_tag(:city_id, '&lt;option value="1"&gt;Lisabon&lt;/option&gt;...') %&gt;</tt></pre>
+</div></div>
+<div class="para"><p>This is a start, but it doesn't dynamically create our option tags. We had to pass them in as a string.</p></div>
+<div class="para"><p>We can generate option tags with the <tt>options_for_select</tt> helper:</p></div>
+<div class="listingblock">
+<div class="content">
+<pre><tt>&lt;%= options_for_select([['Lisabon', 1], ['Madrid', 2], ...]) %&gt;
+
+output:
+
+&lt;option value="1"&gt;Lisabon&lt;/option&gt;
+&lt;option value="2"&gt;Madrid&lt;/option&gt;
+...</tt></pre>
+</div></div>
+<div class="para"><p>For input data we used a nested array where each element has two elements: visible value (name) and internal value (ID).</p></div>
+<div class="para"><p>Now you can combine <tt>select_tag</tt> and <tt>options_for_select</tt> to achieve the desired, complete markup:</p></div>
+<div class="listingblock">
+<div class="content">
+<pre><tt>&lt;%= select_tag(:city_id, options_for_select(...)) %&gt;</tt></pre>
+</div></div>
+<div class="para"><p>Sometimes, depending on our application's needs, we also wish a specific option to be pre-selected. The <tt>options_for_select</tt> helper supports this with an optional second argument:</p></div>
+<div class="listingblock">
+<div class="content">
+<pre><tt>&lt;%= options_for_select(cities_array, 2) %&gt;
+
+output:
+
+&lt;option value="1"&gt;Lisabon&lt;/option&gt;
+&lt;option value="2" selected="selected"&gt;Madrid&lt;/option&gt;
+...</tt></pre>
+</div></div>
+<div class="para"><p>So whenever Rails sees that the internal value of an option being generated matches this value, it will add the <tt>selected</tt> attribute to that option.</p></div>
+<h3 id="_select_boxes_for_dealing_with_models">3.2. Select boxes for dealing with models</h3>
+<div class="para"><p>Until now we've covered how to make generic select boxes, but in most cases our form controls will be tied to a specific database model. So, to continue from our previous examples, let's assume that we have a "Person" model with a <tt>city_id</tt> attribute.</p></div>
+<div class="listingblock">
+<div class="content">
+<pre><tt>...</tt></pre>
+</div></div>
+<div class="para"><p>&#8230;</p></div>
 </div>
 
 		</div>

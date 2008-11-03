@@ -862,10 +862,9 @@ url - The entire URL used for the request.
 </li>
 </ul></div>
 <h4 id="_path_parameters_query_parameters_and_request_parameters">8.1.1. path_parameters, query_parameters and request_parameters</h4>
-<div class="para"><p>TODO: Does this belong here?</p></div>
 <div class="para"><p>Rails collects all of the parameters sent along with the request in the <tt>params</tt> hash, whether they are sent as part of the query string or the post body. The request object has three accessors that give you access to these parameters depending on where they came from. The <tt>query_parameters</tt> hash contains parameters that were sent as part of the query string while the <tt>request_parameters</tt> hash contains parameters sent as part of the post body. The <tt>path_parameters</tt> hash contains parameters that were recognised by the routing as being part of the path leading to this particular controller and action.</p></div>
 <h3 id="_the_response">8.2. The response</h3>
-<div class="para"><p>The response objects is not usually used directly, but is built up during the execution of the action and rendering of the data that is being sent back to the user, but sometimes - like in an after filter - it can be useful to access the response directly. Some of these accessor methods also have setters, allowing you to change their values.</p></div>
+<div class="para"><p>The response object is not usually used directly, but is built up during the execution of the action and rendering of the data that is being sent back to the user, but sometimes - like in an after filter - it can be useful to access the response directly. Some of these accessor methods also have setters, allowing you to change their values.</p></div>
 <div class="ilist"><ul>
 <li>
 <p>
@@ -896,7 +895,7 @@ charset - The character set being used for the response. Default is "utf8".
 </div>
 <h2 id="_http_basic_authentication">9. HTTP Basic Authentication</h2>
 <div class="sectionbody">
-<div class="para"><p>Rails comes with built-in HTTP Basic authentication. This is an authentication scheme that is supported by the majority of browsers and other HTTP clients. As an example, we will create an administration section which will only be available by entering a username and a password into the browser's HTTP Basic dialog window. Using the built-in authentication is quite easy and only requires you to use one method, <a href="http://api.rubyonrails.org/classes/ActionController/HttpAuthentication/Basic/ControllerMethods.html#M000610">authenticate_or_request_with_http_basic</a>.</p></div>
+<div class="para"><p>Rails comes with built-in <a href="http://en.wikipedia.org/wiki/Basic_access_authentication">HTTP Basic authentication</a>. This is an authentication scheme that is supported by the majority of browsers and other HTTP clients. As an example, we will create an administration section which will only be available by entering a username and a password into the browser's HTTP Basic dialog window. Using the built-in authentication is quite easy and only requires you to use one method, <a href="http://api.rubyonrails.org/classes/ActionController/HttpAuthentication/Basic/ControllerMethods.html#M000610">authenticate_or_request_with_http_basic</a>.</p></div>
 <div class="listingblock">
 <div class="content"><!-- Generator: GNU source-highlight 2.9
 by Lorenzo Bettini
@@ -1031,7 +1030,7 @@ http://www.gnu.org/software/src-highlite -->
 </div>
 <h2 id="_parameter_filtering">11. Parameter filtering</h2>
 <div class="sectionbody">
-<div class="para"><p>Rails keeps a log file for each environment (development, test and production) in the "log" folder. These are extremely useful when debugging what's actually going on in your application, but in a live application you may not want every bit of information to be stored in the log file. The <a href="http://api.rubyonrails.org/classes/ActionController/Base.html#M000837">filter_parameter_logging</a> method can be used to filter out sensitive information from the log. It works by replacing certain keys in the <tt>params</tt> hash with "[FILTERED]" as they are written to the log. As an example, let's see how to filter all parameters with keys that include "password":</p></div>
+<div class="para"><p>Rails keeps a log file for each environment (development, test and production) in the "log" folder. These are extremely useful when debugging what's actually going on in your application, but in a live application you may not want every bit of information to be stored in the log file. The <a href="http://api.rubyonrails.org/classes/ActionController/Base.html#M000837">filter_parameter_logging</a> method can be used to filter out sensitive information from the log. It works by replacing certain values in the <tt>params</tt> hash with "[FILTERED]" as they are written to the log. As an example, let's see how to filter all parameters with keys that include "password":</p></div>
 <div class="listingblock">
 <div class="content"><!-- Generator: GNU source-highlight 2.9
 by Lorenzo Bettini

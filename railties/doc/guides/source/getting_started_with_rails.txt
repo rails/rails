@@ -751,6 +751,7 @@ At this point, it’s worth looking at some of the tools that Rails provides to 
 As you saw earlier, the scaffold-generated views for the +new+ and +edit+ actions are largely identical. You can pull the shared code out into a +partial+ template. This requires editing the new and edit views, and adding a new template:
 
 +new.html.erb+:
+
 [source, ruby]
 -------------------------------------------------------
 <h1>New post</h1>
@@ -761,6 +762,7 @@ As you saw earlier, the scaffold-generated views for the +new+ and +edit+ action
 -------------------------------------------------------
 
 +edit.html.erb+:
+
 [source, ruby]
 -------------------------------------------------------
 <h1>Editing post</h1>
@@ -772,6 +774,7 @@ As you saw earlier, the scaffold-generated views for the +new+ and +edit+ action
 -------------------------------------------------------
 
 +_form.html.erb+:
+
 [source, ruby]
 -------------------------------------------------------
 <% form_for(@post) do |f| %>
@@ -979,12 +982,12 @@ $ script/generate controller Comments index show new edit
 This creates seven files:
 
 * +app/controllers/comments_controller.rb+ - The controller
-* +app/helpers/comments_helper.rb - A view helper file
-* +app/views/comments/index.html.erb - The view for the index action
-* +app/views/comments/show.html.erb - The view for the show action
-* +app/views/comments/new.html.erb - The view for the new action
-* +app/views/comments/edit.html.erb - The view for the edit action
-* +test/functional/comments_controller_test.rb - The functional tests for the controller
+* +app/helpers/comments_helper.rb+ - A view helper file
+* +app/views/comments/index.html.erb+ - The view for the index action
+* +app/views/comments/show.html.erb+ - The view for the show action
+* +app/views/comments/new.html.erb+ - The view for the new action
+* +app/views/comments/edit.html.erb+ - The view for the edit action
+* +test/functional/comments_controller_test.rb+ - The functional tests for the controller
 
 The controller will be generated with empty methods for each action that you specified in the call to +script/generate controller+:
 
@@ -1216,7 +1219,7 @@ Note that each post has its own individual comments collection, accessible as +@
 
 Now that you've seen your first Rails application, you should feel free to update it and experiment on your own. But you don't have to do everything without help. As you need assistance getting up and running with Rails, feel free to consult these support resources:
 
-* The [http://manuals.rubyonrails.org/]Ruby On Rails guides
+* The link:http://manuals.rubyonrails.org/[Ruby On Rails guides]
 * The link:http://groups.google.com/group/rubyonrails-talk[Ruby on Rails mailing list]
 * The #rubyonrails channel on irc.freenode.net
 * The link:http://wiki.rubyonrails.org/rails[Rails wiki]
@@ -1225,6 +1228,7 @@ Now that you've seen your first Rails application, you should feel free to updat
 
 http://rails.lighthouseapp.com/projects/16213-rails-guides/tickets/2[Lighthouse ticket]
 
+* November 3, 2008: Formatting patch from Dave Rothlisberger
 * November 1, 2008: First approved version by link:../authors.html#mgunderloy[Mike Gunderloy]
 * October 16, 2008: Revised based on feedback from Pratik Naik by link:../authors.html#mgunderloy[Mike Gunderloy] (not yet approved for publication)
 * October 13, 2008: First complete draft by link:../authors.html#mgunderloy[Mike Gunderloy] (not yet approved for publication)
