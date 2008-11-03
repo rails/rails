@@ -292,7 +292,7 @@ For example:
 (rdb:7)
 ----------------------------------------------------------------------------
 
-Now it's time to play and dig into your application. A good place to start is by asking the debugger for help... so type: `help` (You didn't see that coming, right?)
+Now it's time to explore and dig into your application. A good place to start is by asking the debugger for help... so type: `help` (You didn't see that coming, right?)
 
 ----------------------------------------------------------------------------
 (rdb:7) help
@@ -640,15 +640,15 @@ set listsize 25
 
 == Debugging Memory Leaks
 
-A Ruby application (on Rails or not), can leak memory whether in the Ruby code but also in the C code.
+A Ruby application (on Rails or not), can leak memory - either in the Ruby code or at the C code level.
 
-In this section, you will learn how to find and fix this leaks by using Bleak House and Valgrind debugging tools.
+In this section, you will learn how to find and fix such leaks by using Bleak House and Valgrind debugging tools.
 
-=== Bleak House
+=== BleakHouse
 
-link:http://github.com/fauna/bleak_house/tree/master[Bleak House] is a library for finding memory leaks.
+link:http://github.com/fauna/bleak_house/tree/master[BleakHouse] is a library for finding memory leaks.
 
-If a Ruby object does not go out of scope, the Ruby Garbage Collector won't sweep it since it is referenced somewhere, this leaks can grow slowly and your application will consume more and more memory gradually affecting the overall system performance. This tool will help you find leaks on the Ruby heap.
+If a Ruby object does not go out of scope, the Ruby Garbage Collector won't sweep it since it is referenced somewhere. Leaks like this can grow slowly and your application will consume more and more memory, gradually affecting the overall system performance. This tool will help you find leaks on the Ruby heap.
 
 To install it run:
 
@@ -656,20 +656,20 @@ To install it run:
 sudo gem install bleak_house
 ----------------------------------------------------------------------------
 
-Then setup you application for profiling, add the following at the bottom of config/environment.rb:
+Then setup you application for profiling. Then add the following at the bottom of config/environment.rb:
 
 [source, ruby]
 ----------------------------------------------------------------------------
 require 'bleak_house' if ENV['BLEAK_HOUSE']
 ----------------------------------------------------------------------------
 
-Start a server instance with Bleak House integration:
+Start a server instance with BleakHouse integration:
 
 ----------------------------------------------------------------------------
 RAILS_ENV=production BLEAK_HOUSE=1 ruby-bleak-house ./script/server
 ----------------------------------------------------------------------------
 
-Make sure to run a couple hundred requests to get better data samples, hit `CTRL-C`. The server will stop and Bleak House will produce a dumpfile in `/tmp`:
+Make sure to run a couple hundred requests to get better data samples, then press `CTRL-C`. The server will stop and Bleak House will produce a dumpfile in `/tmp`:
 
 [source, log]
 ----------------------------------------------------------------------------
@@ -696,26 +696,26 @@ To analyze it, just run the listed command. The top 20 leakiest lines will be li
   ...
 ----------------------------------------------------------------------------
 
-This way you can find where you application is leaking memory and fix it.
+This way you can find where your application is leaking memory and fix it.
 
-If link:http://github.com/fauna/bleak_house/tree/master[BleakHouse] doesn't report any heap growth but you still have memory growth, you might have a broken C extension, or real leak in the interpreter, try using Valgrind.
+If link:http://github.com/fauna/bleak_house/tree/master[BleakHouse] doesn't report any heap growth but you still have memory growth, you might have a broken C extension, or real leak in the interpreter. In that case, try using Valgrind to investigate further.
 
 === Valgrind
 
-link:http://valgrind.org/[Valgrind] is a Linux (only works on Linux) application for detecting C-based memory leaks and race conditions.
+link:http://valgrind.org/[Valgrind] is a Linux-only application for detecting C-based memory leaks and race conditions.
 
 There are Valgrind tools that can automatically detect many memory management and threading bugs, and profile your programs in detail. For example, a C extension in the interpreter calls `malloc()` but is doesn't properly call `free()`, this memory won't be available until the app terminates.
 
-For further information on how to install and using with Ruby, refer to the link:http://blog.evanweaver.com/articles/2008/02/05/valgrind-and-ruby/[Valgrind and Ruby Evan Weaver's article].
+For further information on how to install Valgrind and use with Ruby, refer to link:http://blog.evanweaver.com/articles/2008/02/05/valgrind-and-ruby/[Valgrind and Ruby] by Evan Weaver.
 
 == Plugins for Debugging
 
-To make life easier Rails offer plugins, some of them will help you to find errors and debug your application. Here is a list of useful plugins for debugging:
+There are some Rails plugins to help you to find errors and debug your application. Here is a list of useful plugins for debugging:
 
 * link:http://github.com/drnic/rails-footnotes/tree/master[Footnotes]: Every Rails page has footnotes that link give request information and link back to your source via TextMate.
 * link:http://github.com/ntalbott/query_trace/tree/master[Query Trace]: Adds query origin tracing to your logs.
 * link:http://github.com/dan-manges/query_stats/tree/master[Query Stats]: A Rails plugin to track database queries. 
-* link:http://code.google.com/p/query-reviewer/[Query Reviewer]: This rails plugin not only runs "EXPLAIN" before each of your select queries in development, but provides a small DIV in the rendered output of each page with the summary of query warnings that it analyzed.
+* link:http://code.google.com/p/query-reviewer/[Query Reviewer]: This rails plugin not only runs "EXPLAIN" before each of your select queries in development, but provides a small DIV in the rendered output of each page with the summary of warnings for each query that it analyzed.
 * link:http://github.com/rails/exception_notification/tree/master[Exception Notifier]: Provides a mailer object and a default set of templates for sending email notifications when errors occur in a Rails application.
 * link:http://github.com/defunkt/exception_logger/tree/master[Exception Logger]: Logs your Rails exceptions in the database and provides a funky web interface to manage them.
 
@@ -736,6 +736,6 @@ To make life easier Rails offer plugins, some of them will help you to find erro
 
 http://rails.lighthouseapp.com/projects/16213-rails-guides/tickets/5[Lighthouse ticket]
 
-* November 3, 2008: Added RJS, memory leaks and plugins chapters by link:../authors.html#miloops[Emilio Tagua]
+* November 3, 2008: Accepted for publication. Added RJS, memory leaks and plugins chapters by link:../authors.html#miloops[Emilio Tagua]
 * October 19, 2008: Copy editing pass by link:../authors.html#mgunderloy[Mike Gunderloy]
 * September 16, 2008: initial version by link:../authors.html#miloops[Emilio Tagua]

@@ -258,7 +258,7 @@ ul#navMain {
 					<a href="#_debugging_memory_leaks">Debugging Memory Leaks</a>
 						<ul>
 						
-							<li><a href="#_bleak_house">Bleak House</a></li>
+							<li><a href="#_bleakhouse">BleakHouse</a></li>
 						
 							<li><a href="#_valgrind">Valgrind</a></li>
 						
@@ -617,7 +617,7 @@ http://www.gnu.org/software/src-highlite -->
 <pre><tt>@posts = Post.find(:all)
 (rdb:7)</tt></pre>
 </div></div>
-<div class="para"><p>Now it's time to play and dig into your application. A good place to start is by asking the debugger for help&#8230; so type: <tt>help</tt> (You didn't see that coming, right?)</p></div>
+<div class="para"><p>Now it's time to explore and dig into your application. A good place to start is by asking the debugger for help&#8230; so type: <tt>help</tt> (You didn't see that coming, right?)</p></div>
 <div class="listingblock">
 <div class="content">
 <pre><tt>(rdb:7) help
@@ -1021,17 +1021,17 @@ set listsize 25
 </div>
 <h2 id="_debugging_memory_leaks">4. Debugging Memory Leaks</h2>
 <div class="sectionbody">
-<div class="para"><p>A Ruby application (on Rails or not), can leak memory whether in the Ruby code but also in the C code.</p></div>
-<div class="para"><p>In this section, you will learn how to find and fix this leaks by using Bleak House and Valgrind debugging tools.</p></div>
-<h3 id="_bleak_house">4.1. Bleak House</h3>
-<div class="para"><p><a href="http://github.com/fauna/bleak_house/tree/master">Bleak House</a> is a library for finding memory leaks.</p></div>
-<div class="para"><p>If a Ruby object does not go out of scope, the Ruby Garbage Collector won't sweep it since it is referenced somewhere, this leaks can grow slowly and your application will consume more and more memory gradually affecting the overall system performance. This tool will help you find leaks on the Ruby heap.</p></div>
+<div class="para"><p>A Ruby application (on Rails or not), can leak memory - either in the Ruby code or at the C code level.</p></div>
+<div class="para"><p>In this section, you will learn how to find and fix such leaks by using Bleak House and Valgrind debugging tools.</p></div>
+<h3 id="_bleakhouse">4.1. BleakHouse</h3>
+<div class="para"><p><a href="http://github.com/fauna/bleak_house/tree/master">BleakHouse</a> is a library for finding memory leaks.</p></div>
+<div class="para"><p>If a Ruby object does not go out of scope, the Ruby Garbage Collector won't sweep it since it is referenced somewhere. Leaks like this can grow slowly and your application will consume more and more memory, gradually affecting the overall system performance. This tool will help you find leaks on the Ruby heap.</p></div>
 <div class="para"><p>To install it run:</p></div>
 <div class="listingblock">
 <div class="content">
 <pre><tt>sudo gem install bleak_house</tt></pre>
 </div></div>
-<div class="para"><p>Then setup you application for profiling, add the following at the bottom of config/environment.rb:</p></div>
+<div class="para"><p>Then setup you application for profiling. Then add the following at the bottom of config/environment.rb:</p></div>
 <div class="listingblock">
 <div class="content"><!-- Generator: GNU source-highlight 2.9
 by Lorenzo Bettini
@@ -1039,12 +1039,12 @@ http://www.lorenzobettini.it
 http://www.gnu.org/software/src-highlite -->
 <pre><tt><span style="font-weight: bold"><span style="color: #000080">require</span></span> <span style="color: #FF0000">'bleak_house'</span> <span style="font-weight: bold"><span style="color: #0000FF">if</span></span> ENV<span style="color: #990000">[</span><span style="color: #FF0000">'BLEAK_HOUSE'</span><span style="color: #990000">]</span>
 </tt></pre></div></div>
-<div class="para"><p>Start a server instance with Bleak House integration:</p></div>
+<div class="para"><p>Start a server instance with BleakHouse integration:</p></div>
 <div class="listingblock">
 <div class="content">
 <pre><tt>RAILS_ENV=production BLEAK_HOUSE=1 ruby-bleak-house ./script/server</tt></pre>
 </div></div>
-<div class="para"><p>Make sure to run a couple hundred requests to get better data samples, hit <tt>CTRL-C</tt>. The server will stop and Bleak House will produce a dumpfile in <tt>/tmp</tt>:</p></div>
+<div class="para"><p>Make sure to run a couple hundred requests to get better data samples, then press <tt>CTRL-C</tt>. The server will stop and Bleak House will produce a dumpfile in <tt>/tmp</tt>:</p></div>
 <div class="listingblock">
 <div class="content"><!-- Generator: GNU source-highlight 2.9
 by Lorenzo Bettini
@@ -1073,16 +1073,16 @@ http://www.gnu.org/software/src-highlite -->
    834 /opt/local//lib/ruby/site_ruby/1.8/rubygems/version.rb:146:Array
   ...
 </tt></pre></div></div>
-<div class="para"><p>This way you can find where you application is leaking memory and fix it.</p></div>
-<div class="para"><p>If <a href="http://github.com/fauna/bleak_house/tree/master">BleakHouse</a> doesn't report any heap growth but you still have memory growth, you might have a broken C extension, or real leak in the interpreter, try using Valgrind.</p></div>
+<div class="para"><p>This way you can find where your application is leaking memory and fix it.</p></div>
+<div class="para"><p>If <a href="http://github.com/fauna/bleak_house/tree/master">BleakHouse</a> doesn't report any heap growth but you still have memory growth, you might have a broken C extension, or real leak in the interpreter. In that case, try using Valgrind to investigate further.</p></div>
 <h3 id="_valgrind">4.2. Valgrind</h3>
-<div class="para"><p><a href="http://valgrind.org/">Valgrind</a> is a Linux (only works on Linux) application for detecting C-based memory leaks and race conditions.</p></div>
+<div class="para"><p><a href="http://valgrind.org/">Valgrind</a> is a Linux-only application for detecting C-based memory leaks and race conditions.</p></div>
 <div class="para"><p>There are Valgrind tools that can automatically detect many memory management and threading bugs, and profile your programs in detail. For example, a C extension in the interpreter calls <tt>malloc()</tt> but is doesn't properly call <tt>free()</tt>, this memory won't be available until the app terminates.</p></div>
-<div class="para"><p>For further information on how to install and using with Ruby, refer to the <a href="http://blog.evanweaver.com/articles/2008/02/05/valgrind-and-ruby/">Valgrind and Ruby Evan Weaver's article</a>.</p></div>
+<div class="para"><p>For further information on how to install Valgrind and use with Ruby, refer to <a href="http://blog.evanweaver.com/articles/2008/02/05/valgrind-and-ruby/">Valgrind and Ruby</a> by Evan Weaver.</p></div>
 </div>
 <h2 id="_plugins_for_debugging">5. Plugins for Debugging</h2>
 <div class="sectionbody">
-<div class="para"><p>To make life easier Rails offer plugins, some of them will help you to find errors and debug your application. Here is a list of useful plugins for debugging:</p></div>
+<div class="para"><p>There are some Rails plugins to help you to find errors and debug your application. Here is a list of useful plugins for debugging:</p></div>
 <div class="ilist"><ul>
 <li>
 <p>
@@ -1101,7 +1101,7 @@ http://www.gnu.org/software/src-highlite -->
 </li>
 <li>
 <p>
-<a href="http://code.google.com/p/query-reviewer/">Query Reviewer</a>: This rails plugin not only runs "EXPLAIN" before each of your select queries in development, but provides a small DIV in the rendered output of each page with the summary of query warnings that it analyzed.
+<a href="http://code.google.com/p/query-reviewer/">Query Reviewer</a>: This rails plugin not only runs "EXPLAIN" before each of your select queries in development, but provides a small DIV in the rendered output of each page with the summary of warnings for each query that it analyzed.
 </p>
 </li>
 <li>
@@ -1177,7 +1177,7 @@ http://www.gnu.org/software/src-highlite -->
 <div class="ilist"><ul>
 <li>
 <p>
-November 3, 2008: Added RJS, memory leaks and plugins chapters by <a href="../authors.html#miloops">Emilio Tagua</a>
+November 3, 2008: Accepted for publication. Added RJS, memory leaks and plugins chapters by <a href="../authors.html#miloops">Emilio Tagua</a>
 </p>
 </li>
 <li>
