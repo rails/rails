@@ -513,7 +513,7 @@ Another example: Calling the +:view+ action, passing an +id+ of 12 as the +param
 get(:view, {'id' => '12'}, nil, {'message' => 'booya!'})
 --------------------------------------------------
 
-=== Available Request Types for Functional Tests===
+=== Available Request Types for Functional Tests ===
 
 If you're familiar with the HTTP protocol, you'll know that +get+ is a type of request. There are 5 request types supported in Rails functional tests:
 
