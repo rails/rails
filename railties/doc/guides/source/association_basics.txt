@@ -359,7 +359,7 @@ class Employee < ActiveRecord::Base
 end
 -------------------------------------------------------
 
-With this setup, you can retrieve +@employee.subordinates+ and +@employee.managers+.
+With this setup, you can retrieve +@employee.subordinates+ and +@employee.manager+.
 
 == Tips, Tricks, and Warnings
 
@@ -764,6 +764,8 @@ If you set the +:readonly+ option to +true+, then the associated object will be 
 ===== +:select+
 
 The +:select+ option lets you override the SQL +SELECT+ clause that is used to retrieve data about the associated object. By default, Rails retrieves all columns.
+
+TIP: If you set the +:select+ option on a +belongs_to+ association, you should also set the +foreign_key+ option to guarantee the correct results.
 
 ===== +:validate+
 

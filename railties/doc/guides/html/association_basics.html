@@ -691,7 +691,7 @@ http://www.gnu.org/software/src-highlite -->
   belongs_to <span style="color: #990000">:</span>manager<span style="color: #990000">,</span> <span style="color: #990000">:</span>class_name <span style="color: #990000">=&gt;</span> <span style="color: #FF0000">"User"</span>
 <span style="font-weight: bold"><span style="color: #0000FF">end</span></span>
 </tt></pre></div></div>
-<div class="para"><p>With this setup, you can retrieve <tt>@employee.subordinates</tt> and <tt>@employee.managers</tt>.</p></div>
+<div class="para"><p>With this setup, you can retrieve <tt>@employee.subordinates</tt> and <tt>@employee.manager</tt>.</p></div>
 </div>
 <h2 id="_tips_tricks_and_warnings">3. Tips, Tricks, and Warnings</h2>
 <div class="sectionbody">
@@ -1185,6 +1185,14 @@ http://www.gnu.org/software/src-highlite -->
 <div class="para"><p>If you set the <tt>:readonly</tt> option to <tt>true</tt>, then the associated object will be read-only when retrieved via the association.</p></div>
 <h5 id="_tt_select_tt"><tt>:select</tt></h5>
 <div class="para"><p>The <tt>:select</tt> option lets you override the SQL <tt>SELECT</tt> clause that is used to retrieve data about the associated object. By default, Rails retrieves all columns.</p></div>
+<div class="admonitionblock">
+<table><tr>
+<td class="icon">
+<img src="./images/icons/tip.png" alt="Tip" />
+</td>
+<td class="content">If you set the <tt>:select</tt> option on a <tt>belongs_to</tt> association, you should also set the <tt>foreign_key</tt> option to guarantee the correct results.</td>
+</tr></table>
+</div>
 <h5 id="_tt_validate_tt"><tt>:validate</tt></h5>
 <div class="para"><p>If you set the <tt>:validate</tt> option to <tt>true</tt>, then associated objects will be validated whenever you save this object. By default, this is <tt>false</tt>: associated objects will not be validated when this object is saved.</p></div>
 <h4 id="_when_are_objects_saved">4.1.3. When are Objects Saved?</h4>

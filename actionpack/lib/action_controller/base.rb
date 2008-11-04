@@ -278,12 +278,6 @@ module ActionController #:nodoc:
     @@consider_all_requests_local = true
     cattr_accessor :consider_all_requests_local
 
-    # Enable or disable the collection of failure information for RoutingErrors.
-    # This information can be extremely useful when tweaking custom routes, but is
-    # pointless once routes have been tested and verified.
-    @@debug_routes = true
-    cattr_accessor :debug_routes
-
     # Indicates whether to allow concurrent action processing. Your
     # controller actions and any other code they call must also behave well
     # when called from concurrent threads. Turned off by default.
@@ -364,11 +358,8 @@ module ActionController #:nodoc:
     # If you are deploying to a subdirectory, you will need to set
     # <tt>config.action_controller.relative_url_root</tt>
     # This defaults to ENV['RAILS_RELATIVE_URL_ROOT']
-    cattr_writer :relative_url_root
-
-    def self.relative_url_root
-      @@relative_url_root || ENV['RAILS_RELATIVE_URL_ROOT']
-    end
+    cattr_accessor :relative_url_root
+    self.relative_url_root = ENV['RAILS_RELATIVE_URL_ROOT']
 
     # Holds the request object that's primarily used to get environment variables through access like
     # <tt>request.env["REQUEST_URI"]</tt>.
@@ -1247,8 +1238,8 @@ module ActionController #:nodoc:
       end
 
       def log_processing_for_parameters
-        parameters = respond_to?(:filter_parameters) ? filter_parameters(params) : params
-        parameters = parameters.except(:controller, :action, :format, :_method)
+        parameters = respond_to?(:filter_parameters) ? filter_parameters(params) : params.dup
+        parameters = parameters.except!(:controller, :action, :format, :_method)
         
         logger.info "  Parameters: #{parameters.inspect}"
       end

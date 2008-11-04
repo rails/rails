@@ -489,7 +489,17 @@ http://www.gnu.org/software/src-highlite -->
 <td class="content">You don't need to call <tt>to_xml</tt> on the object that you want to render. If you use the <tt>:xml</tt> option, <tt>render</tt> will automatically call <tt>to_xml</tt> for you.</td>
 </tr></table>
 </div>
-<h4 id="_options_for_tt_render_tt">2.2.10. Options for <tt>render</tt></h4>
+<h4 id="_rendering_vanilla_javascript">2.2.10. Rendering Vanilla JavaScript</h4>
+<div class="para"><p>Rails can render vanilla JavaScript (as an alternative to using <tt>update</tt> with n <tt>.rjs</tt> file):</p></div>
+<div class="listingblock">
+<div class="content"><!-- Generator: GNU source-highlight 2.9
+by Lorenzo Bettini
+http://www.lorenzobettini.it
+http://www.gnu.org/software/src-highlite -->
+<pre><tt>render <span style="color: #990000">:</span>js <span style="color: #990000">=&gt;</span> <span style="color: #FF0000">"alert('Hello Rails');"</span>
+</tt></pre></div></div>
+<div class="para"><p>This will send the supplied string to the browser with a MIME type of <tt>text/javascript</tt>.</p></div>
+<h4 id="_options_for_tt_render_tt">2.2.11. Options for <tt>render</tt></h4>
 <div class="para"><p>Calls to the <tt>render</tt> method generally accept four options:</p></div>
 <div class="ilist"><ul>
 <li>
@@ -560,7 +570,7 @@ http://www.lorenzobettini.it
 http://www.gnu.org/software/src-highlite -->
 <pre><tt>render <span style="color: #990000">:</span>xml <span style="color: #990000">=&gt;</span> photo<span style="color: #990000">,</span> <span style="color: #990000">:</span>location <span style="color: #990000">=&gt;</span> photo_url<span style="color: #990000">(</span>photo<span style="color: #990000">)</span>
 </tt></pre></div></div>
-<h4 id="_finding_layouts">2.2.11. Finding Layouts</h4>
+<h4 id="_finding_layouts">2.2.12. Finding Layouts</h4>
 <div class="para"><p>To find the current layout, Rails first looks for a file in <tt>app/views/layouts</tt> with the same base name as the controller. For example, rendering actions from the <tt>PhotosController</tt> class will use <tt>/app/views/layouts/photos.html.erb</tt>. If there is no such controller-specific layout, Rails will use <tt>/app/views/layouts/application.html.erb</tt>. If there is no <tt>.erb</tt> layout, Rails will use a <tt>.builder</tt> layout if one exists. Rails also provides several ways to more precisely assign specific layouts to individual controllers and actions.</p></div>
 <h5 id="_specifying_layouts_on_a_per_controller_basis">Specifying Layouts on a per-Controller Basis</h5>
 <div class="para"><p>You can override the automatic layout conventions in your controllers by using the <tt>layout</tt> declaration in the controller. For example:</p></div>
@@ -632,6 +642,7 @@ end</tt></pre>
 <div class="para"><p>With those declarations, the <tt>inventory</tt> layout would be used only for the <tt>index</tt> method, the <tt>product</tt> layout would be used for everything else except the <tt>rss</tt> method, and the <tt>rss</tt> method will have its layout determined by the automatic layout rules.</p></div>
 <h5 id="_layout_inheritance">Layout Inheritance</h5>
 <div class="para"><p>Layouts are shared downwards in the hierarchy, and more specific layouts always override more general ones. For example:</p></div>
+<div class="para"><p><tt>application.rb</tt>:</p></div>
 <div class="listingblock">
 <div class="content"><!-- Generator: GNU source-highlight 2.9
 by Lorenzo Bettini
@@ -641,17 +652,35 @@ http://www.gnu.org/software/src-highlite -->
   layout <span style="color: #FF0000">"main"</span>
   <span style="font-style: italic"><span style="color: #9A1900">#...</span></span>
 <span style="font-weight: bold"><span style="color: #0000FF">end</span></span>
-
-<span style="font-weight: bold"><span style="color: #0000FF">class</span></span> PostsController <span style="color: #990000">&lt;</span> ApplicationController
+</tt></pre></div></div>
+<div class="para"><p><tt>posts_controller.rb</tt>:</p></div>
+<div class="listingblock">
+<div class="content"><!-- Generator: GNU source-highlight 2.9
+by Lorenzo Bettini
+http://www.lorenzobettini.it
+http://www.gnu.org/software/src-highlite -->
+<pre><tt><span style="font-weight: bold"><span style="color: #0000FF">class</span></span> PostsController <span style="color: #990000">&lt;</span> ApplicationController
   <span style="font-style: italic"><span style="color: #9A1900"># ...</span></span>
 <span style="font-weight: bold"><span style="color: #0000FF">end</span></span>
-
-<span style="font-weight: bold"><span style="color: #0000FF">class</span></span> SpecialPostsController <span style="color: #990000">&lt;</span> PostsController
+</tt></pre></div></div>
+<div class="para"><p><tt>special_posts_controller.rb</tt>:</p></div>
+<div class="listingblock">
+<div class="content"><!-- Generator: GNU source-highlight 2.9
+by Lorenzo Bettini
+http://www.lorenzobettini.it
+http://www.gnu.org/software/src-highlite -->
+<pre><tt><span style="font-weight: bold"><span style="color: #0000FF">class</span></span> SpecialPostsController <span style="color: #990000">&lt;</span> PostsController
   layout <span style="color: #FF0000">"special"</span>
   <span style="font-style: italic"><span style="color: #9A1900"># ...</span></span>
 <span style="font-weight: bold"><span style="color: #0000FF">end</span></span>
-
-<span style="font-weight: bold"><span style="color: #0000FF">class</span></span> OldPostsController <span style="color: #990000">&lt;</span> SpecialPostsController
+</tt></pre></div></div>
+<div class="para"><p><tt>old_posts_controller.rb</tt>:</p></div>
+<div class="listingblock">
+<div class="content"><!-- Generator: GNU source-highlight 2.9
+by Lorenzo Bettini
+http://www.lorenzobettini.it
+http://www.gnu.org/software/src-highlite -->
+<pre><tt><span style="font-weight: bold"><span style="color: #0000FF">class</span></span> OldPostsController <span style="color: #990000">&lt;</span> SpecialPostsController
   layout <span style="font-weight: bold"><span style="color: #0000FF">nil</span></span>
 
   <span style="font-weight: bold"><span style="color: #0000FF">def</span></span> show
@@ -693,7 +722,7 @@ In general, views will be rendered in the <tt>main</tt> layout
 </p>
 </li>
 </ul></div>
-<h4 id="_avoiding_double_render_errors">2.2.12. Avoiding Double Render Errors</h4>
+<h4 id="_avoiding_double_render_errors">2.2.13. Avoiding Double Render Errors</h4>
 <div class="para"><p>Sooner or later, most Rails developers will see the error message "Can only render or redirect once per action". While this is annoying, it's relatively easy to fix. Usually it happens because of a fundamental misunderstanding of the way that <tt>render</tt> works.</p></div>
 <div class="para"><p>For example, here's some code that will trigger this error:</p></div>
 <div class="listingblock">
@@ -933,7 +962,7 @@ http://www.gnu.org/software/src-highlite -->
 by Lorenzo Bettini
 http://www.lorenzobettini.it
 http://www.gnu.org/software/src-highlite -->
-<pre><tt><span style="color: #FF0000">&lt;%= javascript_include_tag :all, :recursive %&gt;</span>
+<pre><tt><span style="color: #FF0000">&lt;%= javascript_include_tag :all, :recursive =&gt;</span> <span style="font-weight: bold"><span style="color: #0000FF">true</span></span> <span style="color: #990000">%&gt;</span>
 </tt></pre></div></div>
 <div class="para"><p>If you're loading multiple javascript files, you can create a better user experience by combining multiple files into a single download. To make this happen in production, specify <tt>:cache &#8658; true</tt> in your <tt>javascript_include_tag</tt>:</p></div>
 <div class="listingblock">
@@ -1007,7 +1036,7 @@ http://www.gnu.org/software/src-highlite -->
 by Lorenzo Bettini
 http://www.lorenzobettini.it
 http://www.gnu.org/software/src-highlite -->
-<pre><tt><span style="color: #FF0000">&lt;%= stylesheet_link_tag :all, :recursive %&gt;</span>
+<pre><tt><span style="color: #FF0000">&lt;%= stylesheet_link_tag :all, :recursive =&gt;</span> <span style="font-weight: bold"><span style="color: #0000FF">true</span></span> <span style="color: #990000">%&gt;</span>
 </tt></pre></div></div>
 <div class="para"><p>If you're loading multiple CSS files, you can create a better user experience by combining multiple files into a single download. To make this happen in production, specify <tt>:cache &#8658; true</tt> in your <tt>stylesheet_link_tag</tt>:</p></div>
 <div class="listingblock">
@@ -1185,26 +1214,33 @@ http://www.gnu.org/software/src-highlite -->
 <div class="para"><p>This would look for a partial named <tt>_link_area.html.erb</tt> and render it using the layout <tt>_graybar.html.erb</tt>. Note that layouts for partials follow the same leading-underscore naming as regular partials, and are placed in the same folder with the partial that they belong to (not in the master <tt>layouts</tt> folder).</p></div>
 <h4 id="_passing_local_variables">3.4.4. Passing Local Variables</h4>
 <div class="para"><p>You can also pass local variables into partials, making them even more powerful and flexible. For example, you can use this technique to reduce duplication between new and edit pages, while still keeping a bit of distinct content:</p></div>
+<div class="para"><p><tt>new.html.erb</tt>:</p></div>
 <div class="listingblock">
 <div class="content"><!-- Generator: GNU source-highlight 2.9
 by Lorenzo Bettini
 http://www.lorenzobettini.it
 http://www.gnu.org/software/src-highlite -->
-<pre><tt>new.html.erb:
-
-<span style="font-weight: bold"><span style="color: #0000FF">&lt;h1&gt;</span></span>New zone<span style="font-weight: bold"><span style="color: #0000FF">&lt;/h1&gt;</span></span>
+<pre><tt><span style="font-weight: bold"><span style="color: #0000FF">&lt;h1&gt;</span></span>New zone<span style="font-weight: bold"><span style="color: #0000FF">&lt;/h1&gt;</span></span>
 &lt;%= error_messages_for :zone %&gt;
 &lt;%= render :partial =&gt; "form", :locals =&gt; { :button_label =&gt; "Create zone", :zone =&gt; @zone } %&gt;
-
-edit.html.erb:
-
-<span style="font-weight: bold"><span style="color: #0000FF">&lt;h1&gt;</span></span>Editing zone<span style="font-weight: bold"><span style="color: #0000FF">&lt;/h1&gt;</span></span>
+</tt></pre></div></div>
+<div class="para"><p><tt>edit.html.erb</tt>:</p></div>
+<div class="listingblock">
+<div class="content"><!-- Generator: GNU source-highlight 2.9
+by Lorenzo Bettini
+http://www.lorenzobettini.it
+http://www.gnu.org/software/src-highlite -->
+<pre><tt><span style="font-weight: bold"><span style="color: #0000FF">&lt;h1&gt;</span></span>Editing zone<span style="font-weight: bold"><span style="color: #0000FF">&lt;/h1&gt;</span></span>
 &lt;%= error_messages_for :zone %&gt;
 &lt;%= render :partial =&gt; "form", :locals =&gt; { :button_label =&gt; "Update zone", :zone =&gt; @zone } %&gt;
-
-_form.html.erb:
-
-&lt;% form_for(@zone) do |f| %&gt;
+</tt></pre></div></div>
+<div class="para"><p><tt>_form.html.erb:</tt></p></div>
+<div class="listingblock">
+<div class="content"><!-- Generator: GNU source-highlight 2.9
+by Lorenzo Bettini
+http://www.lorenzobettini.it
+http://www.gnu.org/software/src-highlite -->
+<pre><tt>&lt;% form_for(zone) do |f| %&gt;
         <span style="font-weight: bold"><span style="color: #0000FF">&lt;p&gt;</span></span>
           <span style="font-weight: bold"><span style="color: #0000FF">&lt;b&gt;</span></span>Zone name<span style="font-weight: bold"><span style="color: #0000FF">&lt;/b&gt;&lt;br</span></span> <span style="font-weight: bold"><span style="color: #0000FF">/&gt;</span></span>
           &lt;%= f.text_field :name %&gt;
@@ -1215,7 +1251,7 @@ _form.html.erb:
 &lt;% end %&gt;
 </tt></pre></div></div>
 <div class="para"><p>Although the same partial will be rendered into both views, the label on the submit button is controlled by a local variable passed into the partial.</p></div>
-<div class="para"><p>Every partial also has a local variable with the same name as the partial (minus the underscore). By default, it will look for an instance variable with the same name as the partial in the parent. You can pass an object in to this local variable via the <tt>:object</tt> option:</p></div>
+<div class="para"><p>Every partial also has a local variable with the same name as the partial (minus the underscore). You can pass an object in to this local variable via the <tt>:object</tt> option:</p></div>
 <div class="listingblock">
 <div class="content"><!-- Generator: GNU source-highlight 2.9
 by Lorenzo Bettini
@@ -1224,6 +1260,14 @@ http://www.gnu.org/software/src-highlite -->
 <pre><tt>&lt;%= render :partial =&gt; "customer", :object =&gt; @new_customer %&gt;
 </tt></pre></div></div>
 <div class="para"><p>Within the <tt>customer</tt> partial, the <tt>@customer</tt> variable will refer to <tt>@new_customer</tt> from the parent view.</p></div>
+<div class="admonitionblock">
+<table><tr>
+<td class="icon">
+<img src="./images/icons/warning.png" alt="Warning" />
+</td>
+<td class="content">In previous versions of Rails, the default local variable would look for an instance variable with the same name as the partial in the parent. This behavior is deprecated in Rails 2.2 and will be removed in a future version.</td>
+</tr></table>
+</div>
 <div class="para"><p>If you have an instance of a model to render into a partial, you can use a shorthand syntax:</p></div>
 <div class="listingblock">
 <div class="content"><!-- Generator: GNU source-highlight 2.9
@@ -1235,19 +1279,22 @@ http://www.gnu.org/software/src-highlite -->
 <div class="para"><p>Assuming that the <tt>@customer</tt> instance variable contains an instance of the <tt>Customer</tt> model, this will use <tt>_customer.html.erb</tt> to render it.</p></div>
 <h4 id="_rendering_collections">3.4.5. Rendering Collections</h4>
 <div class="para"><p>Partials are very useful in rendering collections. When you pass a collection to a partial via the <tt>:collection</tt> option, the partial will be inserted once for each member in the collection:</p></div>
+<div class="para"><p><tt>index.html.erb</tt>:</p></div>
 <div class="listingblock">
 <div class="content"><!-- Generator: GNU source-highlight 2.9
 by Lorenzo Bettini
 http://www.lorenzobettini.it
 http://www.gnu.org/software/src-highlite -->
-<pre><tt>index.html.erb:
-
-<span style="font-weight: bold"><span style="color: #0000FF">&lt;h1&gt;</span></span>Products<span style="font-weight: bold"><span style="color: #0000FF">&lt;/h1&gt;</span></span>
+<pre><tt><span style="font-weight: bold"><span style="color: #0000FF">&lt;h1&gt;</span></span>Products<span style="font-weight: bold"><span style="color: #0000FF">&lt;/h1&gt;</span></span>
 &lt;%= render :partial =&gt; "product", :collection =&gt; @products %&gt;
-
-_product.html.erb:
-
-<span style="font-weight: bold"><span style="color: #0000FF">&lt;p&gt;</span></span>Product Name: &lt;%= product.name %&gt;<span style="font-weight: bold"><span style="color: #0000FF">&lt;/p&gt;</span></span>
+</tt></pre></div></div>
+<div class="para"><p><tt>_product.html.erb</tt>:</p></div>
+<div class="listingblock">
+<div class="content"><!-- Generator: GNU source-highlight 2.9
+by Lorenzo Bettini
+http://www.lorenzobettini.it
+http://www.gnu.org/software/src-highlite -->
+<pre><tt><span style="font-weight: bold"><span style="color: #0000FF">&lt;p&gt;</span></span>Product Name: &lt;%= product.name %&gt;<span style="font-weight: bold"><span style="color: #0000FF">&lt;/p&gt;</span></span>
 </tt></pre></div></div>
 <div class="para"><p>When a partial is called with a pluralized collection, then the individual instances of the partial have access to the member of the collection being rendered via a variable named after the partial. In this case, the partial is <tt>_product, and within the +_product</tt> partial, you can refer to <tt>product</tt> to get the instance that is being rendered. To use a custom local variable name within the partial, specify the <tt>:as</tt> option in the call to the partial:</p></div>
 <div class="listingblock">
@@ -1268,38 +1315,48 @@ http://www.gnu.org/software/src-highlite -->
 </tt></pre></div></div>
 <div class="para"><p>Rails will render the <tt>_product_ruler</tt> partial (with no data passed in to it) between each pair of <tt>_product</tt> partials.</p></div>
 <div class="para"><p>There's also a shorthand syntax available for rendering collections. For example, if <tt>@products</tt> is a collection of products, you can render the collection this way:</p></div>
+<div class="para"><p><tt>index.html.erb</tt>:</p></div>
 <div class="listingblock">
 <div class="content"><!-- Generator: GNU source-highlight 2.9
 by Lorenzo Bettini
 http://www.lorenzobettini.it
 http://www.gnu.org/software/src-highlite -->
-<pre><tt>index.html.erb:
-
-<span style="font-weight: bold"><span style="color: #0000FF">&lt;h1&gt;</span></span>Products<span style="font-weight: bold"><span style="color: #0000FF">&lt;/h1&gt;</span></span>
+<pre><tt><span style="font-weight: bold"><span style="color: #0000FF">&lt;h1&gt;</span></span>Products<span style="font-weight: bold"><span style="color: #0000FF">&lt;/h1&gt;</span></span>
 &lt;%= render :partial =&gt; @products %&gt;
-
-_product.html.erb:
-
-<span style="font-weight: bold"><span style="color: #0000FF">&lt;p&gt;</span></span>Product Name: &lt;%= product.name %&gt;<span style="font-weight: bold"><span style="color: #0000FF">&lt;/p&gt;</span></span>
+</tt></pre></div></div>
+<div class="para"><p><tt>_product.html.erb</tt>:</p></div>
+<div class="listingblock">
+<div class="content"><!-- Generator: GNU source-highlight 2.9
+by Lorenzo Bettini
+http://www.lorenzobettini.it
+http://www.gnu.org/software/src-highlite -->
+<pre><tt><span style="font-weight: bold"><span style="color: #0000FF">&lt;p&gt;</span></span>Product Name: &lt;%= product.name %&gt;<span style="font-weight: bold"><span style="color: #0000FF">&lt;/p&gt;</span></span>
 </tt></pre></div></div>
 <div class="para"><p>Rails determines the name of the partial to use by looking at the model name in the collection. In fact, you can even create a heterogeneous collection and render it this way, and Rails will choose the proper partial for each member of the collection:</p></div>
+<div class="para"><p><tt>index.html.erb</tt>:</p></div>
 <div class="listingblock">
 <div class="content"><!-- Generator: GNU source-highlight 2.9
 by Lorenzo Bettini
 http://www.lorenzobettini.it
 http://www.gnu.org/software/src-highlite -->
-<pre><tt>index.html.erb:
-
-<span style="font-weight: bold"><span style="color: #0000FF">&lt;h1&gt;</span></span>Contacts<span style="font-weight: bold"><span style="color: #0000FF">&lt;/h1&gt;</span></span>
+<pre><tt><span style="font-weight: bold"><span style="color: #0000FF">&lt;h1&gt;</span></span>Contacts<span style="font-weight: bold"><span style="color: #0000FF">&lt;/h1&gt;</span></span>
 &lt;%= render :partial =&gt; [customer1, employee1, customer2, employee2] %&gt;
-
-_customer.html.erb:
-
-<span style="font-weight: bold"><span style="color: #0000FF">&lt;p&gt;</span></span>Name: &lt;%= customer.name %&gt;<span style="font-weight: bold"><span style="color: #0000FF">&lt;/p&gt;</span></span>
-
-_employee.html.erb:
-
-<span style="font-weight: bold"><span style="color: #0000FF">&lt;p&gt;</span></span>Name: &lt;%= employee.name %&gt;<span style="font-weight: bold"><span style="color: #0000FF">&lt;/p&gt;</span></span>
+</tt></pre></div></div>
+<div class="para"><p><tt>_customer.html.erb</tt>:</p></div>
+<div class="listingblock">
+<div class="content"><!-- Generator: GNU source-highlight 2.9
+by Lorenzo Bettini
+http://www.lorenzobettini.it
+http://www.gnu.org/software/src-highlite -->
+<pre><tt><span style="font-weight: bold"><span style="color: #0000FF">&lt;p&gt;</span></span>Name: &lt;%= customer.name %&gt;<span style="font-weight: bold"><span style="color: #0000FF">&lt;/p&gt;</span></span>
+</tt></pre></div></div>
+<div class="para"><p><tt>_employee.html.erb</tt>:</p></div>
+<div class="listingblock">
+<div class="content"><!-- Generator: GNU source-highlight 2.9
+by Lorenzo Bettini
+http://www.lorenzobettini.it
+http://www.gnu.org/software/src-highlite -->
+<pre><tt><span style="font-weight: bold"><span style="color: #0000FF">&lt;p&gt;</span></span>Name: &lt;%= employee.name %&gt;<span style="font-weight: bold"><span style="color: #0000FF">&lt;/p&gt;</span></span>
 </tt></pre></div></div>
 <div class="para"><p>In this case, Rails will use the customer or employee partials as appropriate for each member of the collection.</p></div>
 </div>
@@ -1307,6 +1364,11 @@ _employee.html.erb:
 <div class="sectionbody">
 <div class="para"><p><a href="http://rails.lighthouseapp.com/projects/16213-rails-guides/tickets/15">Lighthouse ticket</a></p></div>
 <div class="ilist"><ul>
+<li>
+<p>
+November 1, 2008: Added <tt>:js</tt> option for <tt>render</tt> by <a href="../authors.html#mgunderloy">Mike Gunderloy</a>
+</p>
+</li>
 <li>
 <p>
 October 16, 2008: Ready for publication by <a href="../authors.html#mgunderloy">Mike Gunderloy</a>

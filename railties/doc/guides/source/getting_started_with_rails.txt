@@ -1225,6 +1225,7 @@ Now that you've seen your first Rails application, you should feel free to updat
 
 http://rails.lighthouseapp.com/projects/16213-rails-guides/tickets/2[Lighthouse ticket]
 
+* November 1, 2008: First approved version by link:../authors.html#mgunderloy[Mike Gunderloy]
 * October 16, 2008: Revised based on feedback from Pratik Naik by link:../authors.html#mgunderloy[Mike Gunderloy] (not yet approved for publication)
 * October 13, 2008: First complete draft by link:../authors.html#mgunderloy[Mike Gunderloy] (not yet approved for publication)
 * October 12, 2008: More detail, rearrangement, editing by link:../authors.html#mgunderloy[Mike Gunderloy] (not yet approved for publication)

@@ -55,8 +55,6 @@ Now, the LoginsController's "new" and "create" actions will work as before witho
 
 In addition to the before filters, you can run filters after an action has run or both before and after. The after filter is similar to the before filter, but because the action has already been run it has access to the response data that's about to be sent to the client. Obviously, after filters can not stop the action from running. Around filters are responsible for running the action, but they can choose not to, which is the around filter's way of stopping it.
 
-TODO: Find a real example for an around filter
-
 [source, ruby]
 ---------------------------------
 # Example taken from the Rails API filter documentation:

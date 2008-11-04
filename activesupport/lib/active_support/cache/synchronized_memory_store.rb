@@ -1,5 +1,6 @@
 module ActiveSupport
   module Cache
+    # Like MemoryStore, but thread-safe.
     class SynchronizedMemoryStore < MemoryStore
       def initialize
         super

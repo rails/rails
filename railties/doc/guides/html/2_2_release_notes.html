@@ -337,72 +337,72 @@ More information :
 <div class="ilist"><ul>
 <li>
 <p>
-Getting Started with Rails
+<a href="http://guides.rubyonrails.org/getting_started_with_rails.html">Getting Started with Rails</a>
 </p>
 </li>
 <li>
 <p>
-Rails Database Migrations
+<a href="http://guides.rubyonrails.org/migrations.html">Rails Database Migrations</a>
 </p>
 </li>
 <li>
 <p>
-Active Record Associations
+<a href="http://guides.rubyonrails.org/association_basics.html">Active Record Associations</a>
 </p>
 </li>
 <li>
 <p>
-Active Record Finders
+<a href="http://guides.rubyonrails.org/finders.html">Active Record Finders</a>
 </p>
 </li>
 <li>
 <p>
-Layouts and Rendering in Rails
+<a href="http://guides.rubyonrails.org/layouts_and_rendering.html">Layouts and Rendering in Rails</a>
 </p>
 </li>
 <li>
 <p>
-Action View Form Helpers
+<a href="http://guides.rubyonrails.org/form_helpers.html">Action View Form Helpers</a>
 </p>
 </li>
 <li>
 <p>
-Rails Routing from the Outside In
+<a href="http://guides.rubyonrails.org/routing_outside_in.html">Rails Routing from the Outside In</a>
 </p>
 </li>
 <li>
 <p>
-Basics of Action Controller
+<a href="http://guides.rubyonrails.org/actioncontroller_basics.html">Basics of Action Controller</a>
 </p>
 </li>
 <li>
 <p>
-Rails Caching
+<a href="http://guides.rubyonrails.org/caching_with_rails.html">Rails Caching</a>
 </p>
 </li>
 <li>
 <p>
-Testing Rails Applications
+<a href="http://guides.rubyonrails.org/testing_rails_applications.html">Testing Rails Applications</a>
 </p>
 </li>
 <li>
 <p>
-Securing Rails Applications
+<a href="http://guides.rubyonrails.org/security.html">Securing Rails Applications</a>
 </p>
 </li>
 <li>
 <p>
-Debugging Rails Applications
+<a href="http://guides.rubyonrails.org/debugging_rails_applications.html">Debugging Rails Applications</a>
 </p>
 </li>
 <li>
 <p>
-Benchmarking and Profiling Rails Applications
+<a href="http://guides.rubyonrails.org/benchmarking_and_profiling.html">Benchmarking and Profiling Rails Applications</a>
 </p>
 </li>
 <li>
 <p>
-The Basics of Creating Rails Plugins
+<a href="http://guides.rubyonrails.org/creating_plugins.html">The Basics of Creating Rails Plugins</a>
 </p>
 </li>
 </ul></div>
@@ -612,7 +612,7 @@ More information:
 </ul></div>
 <h3 id="_new_dynamic_finders">5.4. New Dynamic Finders</h3>
 <div class="para"><p>Two new sets of methods have been added to Active Record's dynamic finders family.</p></div>
-<h4 id="_find_last_by_lt_attributes_gt">5.4.1. find_last_by_&lt;attributes&gt;</h4>
+<h4 id="_tt_find_last_by_lt_attribute_gt_tt">5.4.1. <tt>find_last_by_&lt;attribute&gt;</tt></h4>
 <div class="para"><p>The <tt>find_last_by_&lt;attribute&gt;</tt> method is equivalent to <tt>Model.last(:conditions &#8658; {:attribute &#8658; value})</tt></p></div>
 <div class="listingblock">
 <div class="content"><!-- Generator: GNU source-highlight 2.9
@@ -629,8 +629,8 @@ Lead Contributor: <a href="http://www.workingwithrails.com/person/9147-emilio-ta
 </p>
 </li>
 </ul></div>
-<h4 id="_find_by_lt_attributes_gt">5.4.2. find_by_&lt;attributes&gt;!</h4>
-<div class="para"><p>The new bang! version of <tt>find_by_&lt;attribute&gt;! is equivalent to  +Model.first(:conditions &#8658; {:attribute &#8658; value}) || raise ActiveRecord::RecordNotFound</tt> Instead of returning <tt>nil</tt> if it can't find a matching record, this method will raise an exception if it cannot find a match.</p></div>
+<h4 id="_tt_find_by_lt_attribute_gt_tt">5.4.2. <tt>find_by_&lt;attribute&gt;!</tt></h4>
+<div class="para"><p>The new bang! version of <tt>find_by_&lt;attribute&gt;!</tt> is equivalent to <tt>Model.first(:conditions &#8658; {:attribute &#8658; value}) || raise ActiveRecord::RecordNotFound</tt> Instead of returning <tt>nil</tt> if it can't find a matching record, this method will raise an exception if it cannot find a match.</p></div>
 <div class="listingblock">
 <div class="content"><!-- Generator: GNU source-highlight 2.9
 by Lorenzo Bettini
@@ -779,6 +779,16 @@ Benchmarking numbers are now reported in milliseconds rather than tiny fractions
 Rails now supports HTTP-only cookies (and uses them for sessions), which help mitigate some cross-site scripting risks in newer browsers.
 </p>
 </li>
+<li>
+<p>
+<tt>redirect_to</tt> now fully supports URI schemes (so, for example, you can redirect to a svn+ssh: URI).
+</p>
+</li>
+<li>
+<p>
+<tt>render</tt> now supports a <tt>:js</tt> option to render plain vanilla javascript with the right mime type.
+</p>
+</li>
 </ul></div>
 </div>
 <h2 id="_action_view">7. Action View</h2>
@@ -791,7 +801,7 @@ Rails now supports HTTP-only cookies (and uses them for sessions), which help mi
 </li>
 <li>
 <p>
-The included Prototype javascript library has been upgraded to version 1.6.0.2.
+The included Prototype javascript library has been upgraded to version 1.6.0.3.
 </p>
 </li>
 <li>
@@ -893,23 +903,23 @@ http://www.gnu.org/software/src-highlite -->
 by Lorenzo Bettini
 http://www.lorenzobettini.it
 http://www.gnu.org/software/src-highlite -->
-<pre><tt><span style="font-weight: bold"><span style="color: #0000FF">class</span></span> Vendor <span style="color: #990000">&lt;&lt;</span> ActiveRecord<span style="color: #990000">::</span>Base
+<pre><tt><span style="font-weight: bold"><span style="color: #0000FF">class</span></span> Vendor <span style="color: #990000">&lt;</span> ActiveRecord<span style="color: #990000">::</span>Base
   has_one <span style="color: #990000">:</span>account
   delegate <span style="color: #990000">:</span>email<span style="color: #990000">,</span> <span style="color: #990000">:</span>password<span style="color: #990000">,</span> <span style="color: #990000">:</span>to <span style="color: #990000">=&gt;</span> <span style="color: #990000">:</span>account<span style="color: #990000">,</span> <span style="color: #990000">:</span>prefix <span style="color: #990000">=&gt;</span> <span style="font-weight: bold"><span style="color: #0000FF">true</span></span>
 <span style="font-weight: bold"><span style="color: #0000FF">end</span></span>
 </tt></pre></div></div>
-<div class="para"><p>This will produce delegated methods <tt>vendor.account_email</tt> and <tt>vendor.account_password</tt>. You can also specify a custom prefix:</p></div>
+<div class="para"><p>This will produce delegated methods <tt>vendor#account_email</tt> and <tt>vendor#account_password</tt>. You can also specify a custom prefix:</p></div>
 <div class="listingblock">
 <div class="content"><!-- Generator: GNU source-highlight 2.9
 by Lorenzo Bettini
 http://www.lorenzobettini.it
 http://www.gnu.org/software/src-highlite -->
-<pre><tt><span style="font-weight: bold"><span style="color: #0000FF">class</span></span> Vendor <span style="color: #990000">&lt;&lt;</span> ActiveRecord<span style="color: #990000">::</span>Base
+<pre><tt><span style="font-weight: bold"><span style="color: #0000FF">class</span></span> Vendor <span style="color: #990000">&lt;</span> ActiveRecord<span style="color: #990000">::</span>Base
   has_one <span style="color: #990000">:</span>account
   delegate <span style="color: #990000">:</span>email<span style="color: #990000">,</span> <span style="color: #990000">:</span>password<span style="color: #990000">,</span> <span style="color: #990000">:</span>to <span style="color: #990000">=&gt;</span> <span style="color: #990000">:</span>account<span style="color: #990000">,</span> <span style="color: #990000">:</span>prefix <span style="color: #990000">=&gt;</span> <span style="color: #990000">:</span>owner
 <span style="font-weight: bold"><span style="color: #0000FF">end</span></span>
 </tt></pre></div></div>
-<div class="para"><p>This will produce delegated methods <tt>vendor.owner_email</tt> and <tt>vendor.owner_password</tt>.</p></div>
+<div class="para"><p>This will produce delegated methods <tt>vendor#owner_email</tt> and <tt>vendor#owner_password</tt>.</p></div>
 <div class="para"><p>Lead Contributor: <a href="http://workingwithrails.com/person/5830-daniel-schierbeck">Daniel Schierbeck</a></p></div>
 <h3 id="_other_active_support_changes">9.4. Other Active Support Changes</h3>
 <div class="ilist"><ul>
@@ -951,6 +961,11 @@ The addition of <tt>ActiveSupport::Rescuable</tt> allows any class to mix in the
 <li>
 <p>
 The included TzInfo library has been upgraded to version 0.3.11.
+</p>
+</li>
+<li>
+<p>
+<tt>ActiveSuport::StringInquirer</tt> gives you a pretty way to test for equality in strings: <tt>ActiveSupport::StringInquirer.new("abc").abc? &#8658; true</tt>
 </p>
 </li>
 </ul></div>
@@ -997,7 +1012,7 @@ The included TzInfo library has been upgraded to version 0.3.11.
 </p>
 </li>
 </ul></div>
-<div class="para"><p>You can unpack or install a single gem by specifying <tt>GEM=_gem_name</tt> on the command line.</p></div>
+<div class="para"><p>You can unpack or install a single gem by specifying <tt>GEM=<em>gem_name</em></tt> on the command line.</p></div>
 <div class="ilist"><ul>
 <li>
 <p>
@@ -1012,6 +1027,11 @@ More information:
 <li>
 <p>
 <a href="http://ryandaigle.com/articles/2008/4/1/what-s-new-in-edge-rails-gem-dependencies">What's New in Edge Rails: Gem Dependencies</a>
+</p>
+</li>
+<li>
+<p>
+<a href="http://afreshcup.com/2008/10/25/rails-212-and-22rc1-update-your-rubygems/">Rails 2.1.2 and 2.2RC1: Update Your RubyGems</a>
 </p>
 </li>
 </ul></div>
@@ -1046,7 +1066,7 @@ Instructions for setting up a continuous integration server to build Rails itsel
 </li>
 <li>
 <p>
-Wrapped <tt>Rails.env</tt> in <tt>StringQuestioneer</tt> so you can do <tt>Rails.env.development?</tt>
+Wrapped <tt>Rails.env</tt> in <tt>StringInquirer</tt> so you can do <tt>Rails.env.development?</tt>
 </p>
 </li>
 <li>

@@ -166,6 +166,17 @@ render :xml => @product
 
 TIP: You don't need to call +to_xml+ on the object that you want to render. If you use the +:xml+ option, +render+ will automatically call +to_xml+ for you.
 
+==== Rendering Vanilla JavaScript
+
+Rails can render vanilla JavaScript (as an alternative to using +update+ with n +.rjs+ file):
+
+[source, ruby]
+-------------------------------------------------------
+render :js => "alert('Hello Rails');"
+-------------------------------------------------------
+
+This will send the supplied string to the browser with a MIME type of +text/javascript+.
+
 ==== Options for +render+
 
 Calls to the +render+ method generally accept four options:
@@ -302,22 +313,39 @@ With those declarations, the +inventory+ layout would be used only for the +inde
 
 Layouts are shared downwards in the hierarchy, and more specific layouts always override more general ones. For example:
 
++application.rb+:
+
 [source, ruby]
 -------------------------------------------------------
 class ApplicationController < ActionController::Base
   layout "main"
   #...
 end
+-------------------------------------------------------
 
++posts_controller.rb+:
+
+[source, ruby]
+-------------------------------------------------------
 class PostsController < ApplicationController
   # ...
 end
+-------------------------------------------------------
 
++special_posts_controller.rb+:
+
+[source, ruby]
+-------------------------------------------------------
 class SpecialPostsController < PostsController
   layout "special"
   # ...
 end
+-------------------------------------------------------
 
++old_posts_controller.rb+:
+
+[source, ruby]
+-------------------------------------------------------
 class OldPostsController < SpecialPostsController
   layout nil
 
@@ -534,7 +562,7 @@ You can supply the +:recursive+ option to load files in subfolders of +public/ja
 
 [source, ruby]
 -------------------------------------------------------
-<%= javascript_include_tag :all, :recursive %>
+<%= javascript_include_tag :all, :recursive => true %>
 -------------------------------------------------------
 
 If you're loading multiple javascript files, you can create a better user experience by combining multiple files into a single download. To make this happen in production, specify +:cache => true+ in your +javascript_include_tag+:
@@ -601,7 +629,7 @@ You can supply the +:recursive+ option to link files in subfolders of +public/st
 
 [source, ruby]
 -------------------------------------------------------
-<%= stylesheet_link_tag :all, :recursive %>
+<%= stylesheet_link_tag :all, :recursive => true %>
 -------------------------------------------------------
 
 If you're loading multiple CSS files, you can create a better user experience by combining multiple files into a single download. To make this happen in production, specify +:cache => true+ in your +stylesheet_link_tag+:
@@ -766,23 +794,29 @@ This would look for a partial named +_link_area.html.erb+ and render it using th
 
 You can also pass local variables into partials, making them even more powerful and flexible. For example, you can use this technique to reduce duplication between new and edit pages, while still keeping a bit of distinct content:
 
++new.html.erb+:
+
 [source, html]
 -------------------------------------------------------
-new.html.erb:
-
 <h1>New zone</h1>
 <%= error_messages_for :zone %>
 <%= render :partial => "form", :locals => { :button_label => "Create zone", :zone => @zone } %>
+-------------------------------------------------------
 
-edit.html.erb:
++edit.html.erb+:
 
+[source, html]
+-------------------------------------------------------
 <h1>Editing zone</h1>
 <%= error_messages_for :zone %>
 <%= render :partial => "form", :locals => { :button_label => "Update zone", :zone => @zone } %>
+-------------------------------------------------------
 
-_form.html.erb:
++_form.html.erb:+
 
-<% form_for(@zone) do |f| %>
+[source, html]
+-------------------------------------------------------
+<% form_for(zone) do |f| %>
 	<p>
 	  <b>Zone name</b><br />
 	  <%= f.text_field :name %>
@@ -795,7 +829,7 @@ _form.html.erb:
 
 Although the same partial will be rendered into both views, the label on the submit button is controlled by a local variable passed into the partial.
 
-Every partial also has a local variable with the same name as the partial (minus the underscore). By default, it will look for an instance variable with the same name as the partial in the parent. You can pass an object in to this local variable via the +:object+ option:
+Every partial also has a local variable with the same name as the partial (minus the underscore). You can pass an object in to this local variable via the +:object+ option:
 
 [source, html]
 -------------------------------------------------------
@@ -803,6 +837,8 @@ Every partial also has a local variable with the same name as the partial (minus
 -------------------------------------------------------
 
 Within the +customer+ partial, the +@customer+ variable will refer to +@new_customer+ from the parent view.
+
+WARNING: In previous versions of Rails, the default local variable would look for an instance variable with the same name as the partial in the parent. This behavior is deprecated in Rails 2.2 and will be removed in a future version.
 
 If you have an instance of a model to render into a partial, you can use a shorthand syntax:
 
@@ -817,15 +853,18 @@ Assuming that the +@customer+ instance variable contains an instance of the +Cus
 
 Partials are very useful in rendering collections. When you pass a collection to a partial via the +:collection+ option, the partial will be inserted once for each member in the collection:
 
++index.html.erb+:
+
 [source, html]
 -------------------------------------------------------
-index.html.erb:
-
 <h1>Products</h1>
 <%= render :partial => "product", :collection => @products %>
+-------------------------------------------------------
 
-_product.html.erb:
++_product.html.erb+:
 
+[source, html]
+-------------------------------------------------------
 <p>Product Name: <%= product.name %></p>
 -------------------------------------------------------
 
@@ -849,33 +888,42 @@ Rails will render the +_product_ruler+ partial (with no data passed in to it) be
 
 There's also a shorthand syntax available for rendering collections. For example, if +@products+ is a collection of products, you can render the collection this way:
 
++index.html.erb+:
+
 [source, html]
 -------------------------------------------------------
-index.html.erb:
-
 <h1>Products</h1>
 <%= render :partial => @products %>
+-------------------------------------------------------
 
-_product.html.erb:
++_product.html.erb+:
 
+[source, html]
+-------------------------------------------------------
 <p>Product Name: <%= product.name %></p>
 -------------------------------------------------------
 
 Rails determines the name of the partial to use by looking at the model name in the collection. In fact, you can even create a heterogeneous collection and render it this way, and Rails will choose the proper partial for each member of the collection:
 
++index.html.erb+:
+
 [source, html]
 -------------------------------------------------------
-index.html.erb:
-
 <h1>Contacts</h1>
 <%= render :partial => [customer1, employee1, customer2, employee2] %>
+-------------------------------------------------------
 
-_customer.html.erb:
++_customer.html.erb+:
 
+[source, html]
+-------------------------------------------------------
 <p>Name: <%= customer.name %></p>
+-------------------------------------------------------
 
-_employee.html.erb:
++_employee.html.erb+:
 
+[source, html]
+-------------------------------------------------------
 <p>Name: <%= employee.name %></p>
 -------------------------------------------------------
 
@@ -885,6 +933,7 @@ In this case, Rails will use the customer or employee partials as appropriate fo
 
 http://rails.lighthouseapp.com/projects/16213-rails-guides/tickets/15[Lighthouse ticket]
 
+* November 1, 2008: Added +:js+ option for +render+ by link:../authors.html#mgunderloy[Mike Gunderloy] 
 * October 16, 2008: Ready for publication by link:../authors.html#mgunderloy[Mike Gunderloy] 
 * October 4, 2008: Additional info on partials (+:object+, +:as+, and +:spacer_template+) by link:../authors.html#mgunderloy[Mike Gunderloy] (not yet approved for publication)
 * September 28, 2008: First draft by link:../authors.html#mgunderloy[Mike Gunderloy] (not yet approved for publication)

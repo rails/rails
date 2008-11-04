@@ -27,20 +27,20 @@ Along with thread safety, a lot of work has been done to make Rails work well wi
 
 The internal documentation of Rails, in the form of code comments, has been improved in numerous places. In addition, the link:http://guides.rubyonrails.org/[Ruby on Rails Guides] project is the definitive source for information on major Rails components. In its first official release, the Guides page includes:
 
-* Getting Started with Rails
-* Rails Database Migrations
-* Active Record Associations
-* Active Record Finders
-* Layouts and Rendering in Rails
-* Action View Form Helpers
-* Rails Routing from the Outside In
-* Basics of Action Controller
-* Rails Caching
-* Testing Rails Applications
-* Securing Rails Applications
-* Debugging Rails Applications
-* Benchmarking and Profiling Rails Applications
-* The Basics of Creating Rails Plugins
+* link:http://guides.rubyonrails.org/getting_started_with_rails.html[Getting Started with Rails]
+* link:http://guides.rubyonrails.org/migrations.html[Rails Database Migrations]
+* link:http://guides.rubyonrails.org/association_basics.html[Active Record Associations]
+* link:http://guides.rubyonrails.org/finders.html[Active Record Finders]
+* link:http://guides.rubyonrails.org/layouts_and_rendering.html[Layouts and Rendering in Rails]
+* link:http://guides.rubyonrails.org/form_helpers.html[Action View Form Helpers]
+* link:http://guides.rubyonrails.org/routing_outside_in.html[Rails Routing from the Outside In]
+* link:http://guides.rubyonrails.org/actioncontroller_basics.html[Basics of Action Controller]
+* link:http://guides.rubyonrails.org/caching_with_rails.html[Rails Caching]
+* link:http://guides.rubyonrails.org/testing_rails_applications.html[Testing Rails Applications]
+* link:http://guides.rubyonrails.org/security.html[Securing Rails Applications]
+* link:http://guides.rubyonrails.org/debugging_rails_applications.html[Debugging Rails Applications]
+* link:http://guides.rubyonrails.org/benchmarking_and_profiling.html[Benchmarking and Profiling Rails Applications]
+* link:http://guides.rubyonrails.org/creating_plugins.html[The Basics of Creating Rails Plugins]
 
 All told, the Guides provide tens of thousands of words of guidance for beginning and intermediate Rails developers.
 
@@ -167,7 +167,7 @@ Product.all(:joins => :photos, :conditions => { :photos => { :copyright => false
 
 Two new sets of methods have been added to Active Record's dynamic finders family.
 
-==== find_last_by_<attributes>
+==== +find_last_by_<attribute>+
 
 The +find_last_by_<attribute>+ method is equivalent to +Model.last(:conditions => {:attribute => value})+
 	
@@ -179,9 +179,9 @@ User.find_last_by_city('London')
 
 * Lead Contributor: link:http://www.workingwithrails.com/person/9147-emilio-tagua[Emilio Tagua]
 
-==== find_by_<attributes>! 
+==== +find_by_<attribute>!+ 
 	
-The new bang! version of +find_by_<attribute>! is equivalent to  +Model.first(:conditions => {:attribute => value}) || raise ActiveRecord::RecordNotFound+ Instead of returning +nil+ if it can't find a matching record, this method will raise an exception if it cannot find a match.
+The new bang! version of +find_by_<attribute>!+ is equivalent to +Model.first(:conditions => {:attribute => value}) || raise ActiveRecord::RecordNotFound+ Instead of returning +nil+ if it can't find a matching record, this method will raise an exception if it cannot find a match.
 	
 [source, ruby]
 -------------------------------------------------------
@@ -257,11 +257,13 @@ Action Controller now offers good support for HTTP conditional GET requests, as 
 * The HTTP Accept header is disabled by default now. You should prefer the use of formatted URLs (such as +/customers/1.xml+) to indicate the format that you want. If you need the Accept headers, you can turn them back on with +config.action_controller.user_accept_header = true+.
 * Benchmarking numbers are now reported in milliseconds rather than tiny fractions of seconds
 * Rails now supports HTTP-only cookies (and uses them for sessions), which help mitigate some cross-site scripting risks in newer browsers.
+* +redirect_to+ now fully supports URI schemes (so, for example, you can redirect to a svn+ssh: URI).
+* +render+ now supports a +:js+ option to render plain vanilla javascript with the right mime type.
 
 == Action View
 
 * +javascript_include_tag+ and +stylesheet_link_tag+ support a new +:recursive+ option to be used along with +:all+, so that you can load an entire tree of files with a single line of code.
-* The included Prototype javascript library has been upgraded to version 1.6.0.2.
+* The included Prototype javascript library has been upgraded to version 1.6.0.3.
 * +RJS#page.reload+ to reload the browser's current location via javascript
 * The +atom_feed+ helper now takes an +:instruct+ option to let you insert XML processing instructions.
 
@@ -323,23 +325,23 @@ If you delegate behavior from one class to another, you can now specify a prefix
 
 [source, ruby]
 -------------------------------------------------------
-class Vendor << ActiveRecord::Base
+class Vendor < ActiveRecord::Base
   has_one :account
   delegate :email, :password, :to => :account, :prefix => true
 end
 -------------------------------------------------------
 
-This will produce delegated methods +vendor.account_email+ and +vendor.account_password+. You can also specify a custom prefix:
+This will produce delegated methods +vendor#account_email+ and +vendor#account_password+. You can also specify a custom prefix:
 
 [source, ruby]
 -------------------------------------------------------
-class Vendor << ActiveRecord::Base
+class Vendor < ActiveRecord::Base
   has_one :account
   delegate :email, :password, :to => :account, :prefix => :owner
 end
 -------------------------------------------------------
 
-This will produce delegated methods +vendor.owner_email+ and +vendor.owner_password+.
+This will produce delegated methods +vendor#owner_email+ and +vendor#owner_password+.
 
 Lead Contributor: link:http://workingwithrails.com/person/5830-daniel-schierbeck[Daniel Schierbeck]
 
@@ -353,6 +355,7 @@ Lead Contributor: link:http://workingwithrails.com/person/5830-daniel-schierbeck
 * +Inflector#parameterize+ produces a URL-ready version of its input, for use in +to_param+.
 * +Time#advance+ recognizes fractional days and weeks, so you can do +1.7.weeks.ago+, +1.5.hours.since+, and so on.
 * The included TzInfo library has been upgraded to version 0.3.11.
+* +ActiveSuport::StringInquirer+ gives you a pretty way to test for equality in strings: +ActiveSupport::StringInquirer.new("abc").abc? => true+
 
 == Railties
 
@@ -370,11 +373,12 @@ To avoid deployment issues and make Rails applications more self-contained, it's
 * +rake gems:build+ to build any missing native extensions
 * +rake gems:refresh_specs+ to bring vendored gems created with Rails 2.1 into alignment with the Rails 2.2 way of storing them
 
-You can unpack or install a single gem by specifying +GEM=_gem_name+ on the command line.
+You can unpack or install a single gem by specifying +GEM=_gem_name_+ on the command line.
 
 * Lead Contributor: link:http://github.com/al2o3cr[Matt Jones]
 * More information:
  - link:http://ryandaigle.com/articles/2008/4/1/what-s-new-in-edge-rails-gem-dependencies[What's New in Edge Rails: Gem Dependencies]
+ - link:http://afreshcup.com/2008/10/25/rails-212-and-22rc1-update-your-rubygems/[Rails 2.1.2 and 2.2RC1: Update Your RubyGems]
 
 === Other Railties Changes
 
@@ -383,7 +387,7 @@ You can unpack or install a single gem by specifying +GEM=_gem_name+ on the comm
 * +script/console+ now supports a +--debugger+ option
 * Instructions for setting up a continuous integration server to build Rails itself are included in the Rails source
 * +rake notes:custom ANNOTATION=MYFLAG+ lets you list out custom annotations.
-* Wrapped +Rails.env+ in +StringQuestioneer+ so you can do +Rails.env.development?+
+* Wrapped +Rails.env+ in +StringInquirer+ so you can do +Rails.env.development?+
 * +script/generate+ works without deprecation warnings when RubyGems 1.3.0 is present
 
 == Deprecated
