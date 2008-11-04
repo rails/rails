@@ -31,3 +31,13 @@ The response object is not usually used directly, but is built up during the exe
  * location - The URL the client is being redirected to, if any.
  * content_type - The content type of the response.
  * charset - The character set being used for the response. Default is "utf8".
+ * headers - Headers used for the response.
+
+==== Setting custom headers ====
+
+If you want to set custom headers for a response then `response.headers` is the place to do it. The headers attribute is a hash which maps header names to their values, and Rails will set some of them - like "Content-Type" - automatically. If you want to add or change a header, just assign it to `headers` with the name and value:
+
+[source, ruby]
+-------------------------------------
+response.headers["Content-Type"] = "application/pdf"
+-------------------------------------
