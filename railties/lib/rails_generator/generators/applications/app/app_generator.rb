@@ -1,5 +1,6 @@
 require 'rbconfig'
 require 'digest/md5' 
+require 'active_support/secure_random'
 
 class AppGenerator < Rails::Generator::Base
   DEFAULT_SHEBANG = File.join(Config::CONFIG['bindir'],
