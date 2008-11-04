@@ -1,10 +1,10 @@
 == Methods and actions ==
 
-A controller is a Ruby class which inherits from ActionController::Base and has methods just like any other class. Usually these methods correspond to actions in MVC, but they can just as well be helpful methods which can be called by actions. When your application receives a request, the routing will determine which controller and action to run. Then an instance of that controller will be created and the method corresponding to the action (the method with the same name as the action) gets run.
+A controller is a Ruby class which inherits from ApplicationController and has methods just like any other class. Usually these methods correspond to actions in MVC, but they can just as well be helpful methods which can be called by actions. When your application receives a request, the routing will determine which controller and action to run. Then an instance of that controller will be created and the method corresponding to the action (the method with the same name as the action) gets run.
 
 [source, ruby]
 ----------------------------------------------
-class ClientsController < ActionController::Base
+class ClientsController < ApplicationController
 
   # Actions are public methods
   def new
@@ -35,3 +35,5 @@ end
 ----------------------------------------------
 
 The link:../layouts_and_rendering.html[Layouts & rendering guide] explains this in more detail.
+
+ApplicationController inherits from ActionController::Base, which defines anumber of helpful methods. This guide will cover some of these, but if you're curious to see what's in there, you can see all of them in the API documentation or in the source itself.
