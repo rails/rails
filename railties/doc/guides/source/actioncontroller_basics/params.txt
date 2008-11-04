@@ -60,3 +60,20 @@ The value of `params[:client]` when this form is submitted  will be `{:name => "
 === Routing parameters ===
 
 The `params` hash will always contain the `:controller` and `:action` keys, but you should use the methods `controller_name` and `action_name` instead to access these values. Any other parameters defined by the routing, such as `:id` will also be available.
+
+=== `default_url_options` ===
+
+You can set global default parameters that will be used when generating URLs with `default_url_options`. To do this, define the method in your controller:
+
+------------------------------------
+class ApplicationController < ActionController::Base
+
+  #The options parameter is the hash passed in to url_for
+  def default_url_options(options)
+    {:locale => I18n.locale}
+  end
+
+end
+------------------------------------
+
+These options will be used as a starting-point when generating, so it's possible they'll be overridden by url_for. As this method is defined in the controller, you can define it on ApplicationController so it would be used for all URL generation, or you could define it on only one controller for all URLs generated there.
