@@ -1073,7 +1073,7 @@ module ActionController #:nodoc:
           status = 302
         end
 
-        response.redirected_to= options
+        response.redirected_to = options
         logger.info("Redirected to #{options}") if logger && logger.info?
 
         case options
@@ -1248,7 +1248,7 @@ module ActionController #:nodoc:
 
       def log_processing_for_parameters
         parameters = respond_to?(:filter_parameters) ? filter_parameters(params) : params
-        parameters = parameters.except(:controller, :action, :format)
+        parameters = parameters.except(:controller, :action, :format, :_method)
         
         logger.info "  Parameters: #{parameters.inspect}"
       end
