@@ -31,7 +31,6 @@ The `debug` helper will return a <pre>-tag that renders the object using the YAM
 
 You'll see something like this:
 
-[source, yaml]
 ----------------------------------------------------------------------------
 --- !ruby/object:Post
 attributes:
@@ -64,7 +63,6 @@ The `to_yaml` method converts the method to YAML format leaving it more readable
 
 As a result of this, you will have something like this in your view:
 
-[source, yaml]
 ----------------------------------------------------------------------------
 --- !ruby/object:Post
 attributes:

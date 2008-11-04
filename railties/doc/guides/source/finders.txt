@@ -68,7 +68,6 @@ If you wanted to find clients with id 1 or 2, you call +Client.find([1,2])+ or +
 SELECT * FROM +clients+ WHERE (+clients+.+id+ IN (1,2)) 
 -------------------------------------------------------
 
-[source,txt]
 -------------------------------------------------------
 >> Client.find(1,2)
 => [#<Client id: 1, name: => "Ryan", locked: false, orders_count: 2, 
@@ -81,7 +80,6 @@ Note that if you pass in a list of numbers that the result will be returned as a
 
 If you wanted to find the first client you would simply type +Client.first+ and that would find the first client created in your clients table:
 
-[source,txt]
 -------------------------------------------------------
 >> Client.first
 => #<Client id: 1, name: => "Ryan", locked: false, orders_count: 2, 
@@ -99,7 +97,6 @@ Indicating the query that Rails has performed on your database.
 
 To find the last client you would simply type +Client.find(:last)+ and that would find the last client created in your clients table:
 
-[source,txt]
 -------------------------------------------------------
 >> Client.find(:last)
 => #<Client id: 2, name: => "Michael", locked: false, orders_count: 3, 
@@ -113,7 +110,6 @@ SELECT * FROM clients ORDER BY clients.id DESC LIMIT 1
 
 To find all the clients you would simply type +Client.all+ and that would find all the clients in your clients table:
 
-[source,txt]
 -------------------------------------------------------
 >> Client.all
 => [#<Client id: 1, name: => "Ryan", locked: false, orders_count: 2, 
@@ -192,7 +188,6 @@ SELECT * FROM +users+ WHERE (created_at IN
 
 This could possibly cause your database server to raise an unexpected error, for example MySQL will throw back this error:
 
-[source, txt]
 -------------------------------------------------------
 Got a packet bigger than 'max_allowed_packet' bytes: _query_
 -------------------------------------------------------
