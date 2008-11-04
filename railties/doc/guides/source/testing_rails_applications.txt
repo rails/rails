@@ -89,7 +89,6 @@ Fixtures can also be described using the all-too-familiar comma-separated value 
 
 A CSV fixture looks like this:
 
-[source, log]
 --------------------------------------------------------------
 id, username, password, stretchable, comments
 1, sclaus, ihatekids, false, I like to say ""Ho! Ho! Ho!""
@@ -184,7 +183,6 @@ In Rails, unit tests are what you write to test your models.
 
 When you create a model using +script/generate+, among other things it creates a test stub in the +test/unit+ folder, as well as a fixture for the model:
 
-[source, log]
 -------------------------------------------------------
 $ script/generate model Post
 ...
@@ -266,7 +264,6 @@ This will run all the test methods from the test case.
 
 You can also run a particular test method from the test case by using the +-n+ switch with the +test method name+.
 
-[source, log]
 -------------------------------------------------------
 $ ruby unit/post_test.rb -n test_truth
 
@@ -292,7 +289,6 @@ end
 
 If you haven't added any data to the test fixture for posts, this test will fail. You can see this by running it:
 
-[source, log]
 -------------------------------------------------------
 $ ruby unit/post_test.rb              
 Loaded suite unit/post_test
@@ -322,7 +318,6 @@ end
 
 Running this test shows the friendlier assertion message:
 
-[source, log]
 -------------------------------------------------------
 $ ruby unit/post_test.rb
 Loaded suite unit/post_test
@@ -354,7 +349,6 @@ end
 
 Now you can see even more output in the console from running the tests:
 
-[source, log]
 -------------------------------------------------------
 $ ruby unit/post_test.rb
 Loaded suite unit/post_test
@@ -519,7 +513,7 @@ Another example: Calling the +:view+ action, passing an +id+ of 12 as the +param
 get(:view, {'id' => '12'}, nil, {'message' => 'booya!'})
 --------------------------------------------------
 
-=== Available Request Types for Functional Tests===
+=== Available Request Types for Functional Tests ===
 
 If you're familiar with the HTTP protocol, you'll know that +get+ is a type of request. There are 5 request types supported in Rails functional tests:
 
@@ -817,7 +811,6 @@ In this test, +@expected+ is an instance of +TMail::Mail+ that you can use in yo
 
 Here's the content of the +invite+ fixture:
 
-[source, log]
 -------------------------------------------------
 Hi friend@example.com,
 

@@ -373,27 +373,21 @@ http://www.gnu.org/software/src-highlite -->
 <pre><tt><span style="font-weight: bold"><span style="color: #0000FF">SELECT</span></span> <span style="color: #990000">*</span> <span style="font-weight: bold"><span style="color: #0000FF">FROM</span></span> <span style="color: #990000">+</span>clients<span style="color: #990000">+</span> <span style="font-weight: bold"><span style="color: #0000FF">WHERE</span></span> <span style="color: #990000">(+</span>clients<span style="color: #990000">+.+</span>id<span style="color: #990000">+</span> <span style="font-weight: bold"><span style="color: #0000FF">IN</span></span> <span style="color: #990000">(</span><span style="color: #993399">1</span><span style="color: #990000">,</span><span style="color: #993399">2</span><span style="color: #990000">))</span>
 </tt></pre></div></div>
 <div class="listingblock">
-<div class="content"><!-- Generator: GNU source-highlight 2.9
-by Lorenzo Bettini
-http://www.lorenzobettini.it
-http://www.gnu.org/software/src-highlite -->
+<div class="content">
 <pre><tt>&gt;&gt; Client.find(1,2)
 =&gt; [#&lt;Client id: 1, name: =&gt; "Ryan", locked: false, orders_count: 2,
   created_at: "2008-09-28 15:38:50", updated_at: "2008-09-28 15:38:50"&gt;,
   #&lt;Client id: 2, name: =&gt; "Michael", locked: false, orders_count: 3,
-  created_at: "2008-09-28 13:12:40", updated_at: "2008-09-28 13:12:40"&gt;]
-</tt></pre></div></div>
+  created_at: "2008-09-28 13:12:40", updated_at: "2008-09-28 13:12:40"&gt;]</tt></pre>
+</div></div>
 <div class="para"><p>Note that if you pass in a list of numbers that the result will be returned as an array, not as a single <tt>Client</tt> object.</p></div>
 <div class="para"><p>If you wanted to find the first client you would simply type <tt>Client.first</tt> and that would find the first client created in your clients table:</p></div>
 <div class="listingblock">
-<div class="content"><!-- Generator: GNU source-highlight 2.9
-by Lorenzo Bettini
-http://www.lorenzobettini.it
-http://www.gnu.org/software/src-highlite -->
+<div class="content">
 <pre><tt>&gt;&gt; Client.first
 =&gt; #&lt;Client id: 1, name: =&gt; "Ryan", locked: false, orders_count: 2,
-  created_at: "2008-09-28 15:38:50", updated_at: "2008-09-28 15:38:50"&gt;
-</tt></pre></div></div>
+  created_at: "2008-09-28 15:38:50", updated_at: "2008-09-28 15:38:50"&gt;</tt></pre>
+</div></div>
 <div class="para"><p>If you were running script/server you might see the following output:</p></div>
 <div class="listingblock">
 <div class="content"><!-- Generator: GNU source-highlight 2.9
@@ -405,14 +399,11 @@ http://www.gnu.org/software/src-highlite -->
 <div class="para"><p>Indicating the query that Rails has performed on your database.</p></div>
 <div class="para"><p>To find the last client you would simply type <tt>Client.find(:last)</tt> and that would find the last client created in your clients table:</p></div>
 <div class="listingblock">
-<div class="content"><!-- Generator: GNU source-highlight 2.9
-by Lorenzo Bettini
-http://www.lorenzobettini.it
-http://www.gnu.org/software/src-highlite -->
+<div class="content">
 <pre><tt>&gt;&gt; Client.find(:last)
 =&gt; #&lt;Client id: 2, name: =&gt; "Michael", locked: false, orders_count: 3,
-  created_at: "2008-09-28 13:12:40", updated_at: "2008-09-28 13:12:40"&gt;
-</tt></pre></div></div>
+  created_at: "2008-09-28 13:12:40", updated_at: "2008-09-28 13:12:40"&gt;</tt></pre>
+</div></div>
 <div class="listingblock">
 <div class="content"><!-- Generator: GNU source-highlight 2.9
 by Lorenzo Bettini
@@ -422,16 +413,13 @@ http://www.gnu.org/software/src-highlite -->
 </tt></pre></div></div>
 <div class="para"><p>To find all the clients you would simply type <tt>Client.all</tt> and that would find all the clients in your clients table:</p></div>
 <div class="listingblock">
-<div class="content"><!-- Generator: GNU source-highlight 2.9
-by Lorenzo Bettini
-http://www.lorenzobettini.it
-http://www.gnu.org/software/src-highlite -->
+<div class="content">
 <pre><tt>&gt;&gt; Client.all
 =&gt; [#&lt;Client id: 1, name: =&gt; "Ryan", locked: false, orders_count: 2,
   created_at: "2008-09-28 15:38:50", updated_at: "2008-09-28 15:38:50"&gt;,
   #&lt;Client id: 2, name: =&gt; "Michael", locked: false, orders_count: 3,
-  created_at: "2008-09-28 13:12:40", updated_at: "2008-09-28 13:12:40"&gt;]
-</tt></pre></div></div>
+  created_at: "2008-09-28 13:12:40", updated_at: "2008-09-28 13:12:40"&gt;]</tt></pre>
+</div></div>
 <div class="para"><p>As alternatives to calling <tt>Client.first</tt>, <tt>Client.last</tt>, and <tt>Client.all</tt>, you can use the class methods <tt>Client.first</tt>, <tt>Client.last</tt>, and <tt>Client.all</tt> instead. <tt>Client.first</tt>, <tt>Client.last</tt> and <tt>Client.all</tt> just call their longer counterparts: <tt>Client.find(:first)</tt>, <tt>Client.find(:last)</tt> and <tt>Client.find(:all)</tt> respectively.</p></div>
 <div class="para"><p>Be aware that <tt>Client.first</tt>/<tt>Client.find(:first)</tt> and <tt>Client.last</tt>/<tt>Client.find(:last)</tt> will both return a single object, where as <tt>Client.all</tt>/<tt>Client.find(:all)</tt> will return an array of Client objects, just as passing in an array of ids to find will do also.</p></div>
 </div>
@@ -510,12 +498,9 @@ http://www.gnu.org/software/src-highlite -->
 </tt></pre></div></div>
 <div class="para"><p>This could possibly cause your database server to raise an unexpected error, for example MySQL will throw back this error:</p></div>
 <div class="listingblock">
-<div class="content"><!-- Generator: GNU source-highlight 2.9
-by Lorenzo Bettini
-http://www.lorenzobettini.it
-http://www.gnu.org/software/src-highlite -->
-<pre><tt>Got a packet bigger than 'max_allowed_packet' bytes: _query_
-</tt></pre></div></div>
+<div class="content">
+<pre><tt>Got a packet bigger than 'max_allowed_packet' bytes: _query_</tt></pre>
+</div></div>
 <div class="para"><p>Where <em>query</em> is the actual query used to get that error.</p></div>
 <div class="para"><p>In this example it would be better to use greater-than and less-than operators in SQL, like so:</p></div>
 <div class="listingblock">
