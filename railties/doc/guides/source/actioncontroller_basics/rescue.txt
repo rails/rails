@@ -8,7 +8,7 @@ By default a production application will render either a 404 or a 500 error mess
 
 === `rescue_from` ===
 
-If you want to do something a bit more elaborate when catching errors, you can use link::http://api.rubyonrails.org/classes/ActionController/Rescue/ClassMethods.html#M000620[rescue_from], which handles exceptions of a certain type (or multiple types) in an entire controller and its subclasses. When an exception occurs which is caught by a rescue_from directive, the exception object is passed to the handler. The handler can be a method or a Proc object passed to the `:with` option. You can also use a block directly instead of an explicit Proc object.
+If you want to do something a bit more elaborate when catching errors, you can use `rescue_from`, which handles exceptions of a certain type (or multiple types) in an entire controller and its subclasses. When an exception occurs which is caught by a rescue_from directive, the exception object is passed to the handler. The handler can be a method or a Proc object passed to the `:with` option. You can also use a block directly instead of an explicit Proc object.
 
 Let's see how we can use rescue_from to intercept all ActiveRecord::RecordNotFound errors and do something with them.
 

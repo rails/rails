@@ -1,6 +1,6 @@
 == The request and response objects ==
 
-In every controller there are two accessor methods pointing to the request and the response objects associated with the request cycle that is currently in execution. The `request` method contains an instance of link:http://api.rubyonrails.org/classes/ActionController/AbstractRequest.html[AbstractRequest] and the `response` method contains the link:http://github.com/rails/rails/tree/master/actionpack/lib/action_controller/response.rb[response object] representing what is going to be sent back to the client.
+In every controller there are two accessor methods pointing to the request and the response objects associated with the request cycle that is currently in execution. The `request` method contains an instance of AbstractRequest and the `response` method returns the response object representing what is going to be sent back to the client.
 
 === The request ===
 
