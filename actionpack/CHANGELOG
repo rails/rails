@@ -1,5 +1,7 @@
 *2.2.1 [RC2 or 2.2 final]*
 
+* Fix regression bug that made date_select and datetime_select raise a Null Pointer Exception when a nil date/datetime was passed and only month and year were displayed #1289 [Bernardo Padua/Tor Erik]
+
 * Simplified the logging format for parameters (don't include controller, action, and format as duplicates) [DHH]
 
 * Remove the logging of the Session ID when the session store is CookieStore [DHH]
