@@ -59,7 +59,16 @@ The value of `params[:client]` when this form is submitted  will be `{:name => "
 
 === Routing parameters ===
 
-The `params` hash will always contain the `:controller` and `:action` keys, but you should use the methods `controller_name` and `action_name` instead to access these values. Any other parameters defined by the routing, such as `:id` will also be available.
+The `params` hash will always contain the `:controller` and `:action` keys, but you should use the methods `controller_name` and `action_name` instead to access these values. Any other parameters defined by the routing, such as `:id` will also be available. As an example, consider a listing of clients where the list can show either active or inactive clients. We can add a route which captures the `:status` parameter in a "pretty" URL:
+
+[source, ruby]
+------------------------------------
+# ...
+map.connect "/clients/:status", :controller => "clients", :action => "index", :foo => "bar"
+# ...
+------------------------------------
+
+In this case, when a user opens the URL `/clients/active`, `params[:status]` will be set to "active". When this route is used, `params[:foo]` will also be set to "bar" just like it was passed in the query string in the same way `params[:action]` will contain "index".
 
 === `default_url_options` ===
 
