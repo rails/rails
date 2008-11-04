@@ -17,6 +17,8 @@ include::filters.txt[]
 
 include::verification.txt[]
 
+include::csrf.txt[]
+
 include::request_response_objects.txt[]
 
 include::http_auth.txt[]
