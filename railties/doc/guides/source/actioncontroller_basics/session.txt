@@ -9,7 +9,9 @@ Your application has a session for each user in which you can store small amount
 
 All session stores store either the session ID or the entire session in a cookie - Rails does not allow the session ID to be passed in any other way. Most stores also use this key to locate the session data on the server.
 
-The default and recommended store, the Cookie Store, does not store session data on the server, but in the cookie itself. The data is cryptographically signed to make it tamper-proof, but it is not encrypted, so anyone with access to it can read its contents. It can only store about 4kB of data - much less than the others - but this is usually enough. Storing large amounts of data is discouraged no matter which session store your application uses. Expecially discouraged is storing complex objects (anything other than basic Ruby objects, the primary example being model instances) in the session, as the server might not be able to reassemble them between requests, which will result in an error. The Cookie Store has the added advantage that it does not require any setting up beforehand - Rails will generate a "secret key" which will be used to sign the cookie when you create the application.
+The default and recommended store, the Cookie Store, does not store session data on the server, but in the cookie itself. The data is cryptographically signed to make it tamper-proof, but it is not encrypted, so anyone with access to it can read its contents but not edit it. It can only store about 4kB of data - much less than the others - but this is usually enough. Storing large amounts of data is discouraged no matter which session store your application uses. Expecially discouraged is storing complex objects (anything other than basic Ruby objects, the primary example being model instances) in the session, as the server might not be able to reassemble them between requests, which will result in an error. The Cookie Store has the added advantage that it does not require any setting up beforehand - Rails will generate a "secret key" which will be used to sign the cookie when you create the application.
+
+Read more about session storage in the link:../security.html[Security Guide].
 
 If you need a different session storage mechanism, you can change it in the `config/environment.rb` file:
 
@@ -41,7 +43,7 @@ class LoginsController < ActionController::Base
 end
 ------------------------------------------
 
-Or even a single action:
+Or even for each action:
 
 [source, ruby]
 ------------------------------------------
