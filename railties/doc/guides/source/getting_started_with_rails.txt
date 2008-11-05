@@ -1224,6 +1224,11 @@ Now that you've seen your first Rails application, you should feel free to updat
 * The #rubyonrails channel on irc.freenode.net
 * The link:http://wiki.rubyonrails.org/rails[Rails wiki]
 
+Rails also comes with built-in help that you can generate using the rake command-line utility:
+
+* Running +rake doc:guides+ will put a full copy of the Rails Guides in the +/doc/guides+ folder of your application. Open +/doc/guides/index.html+ in your web browser to explore the Guides.
+* Running +rake doc:rails+ will put a full copy of the API documentation for Rails in the +/doc/api+ folder of your application. Open +/doc/api/index.html+ in your web browser to explore the API documentation.
+
 == Changelog ==
 
 http://rails.lighthouseapp.com/projects/16213-rails-guides/tickets/2[Lighthouse ticket]
