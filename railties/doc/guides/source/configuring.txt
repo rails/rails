@@ -1,0 +1,225 @@
+Configuring Rails Applications
+==============================
+
+This guide covers the configuration and initialization features available to Rails applications. By referring to this guide, you will be able to:
+
+* Adjust the behavior of your Rails applications
+* Add additional code to be run at application start time
+
+== Locations for Initialization Code
+
+preinitializers
+environment.rb first
+env-specific files
+initializers (load_application_initializers)
+after-initializer
+
+== Using a Preinitializer
+
+== Configuring Rails Components
+
+=== Configuring Active Record
+
+=== Configuring Action Controller
+
+=== Configuring Action View
+
+=== Configuring Action Mailer
+
+=== Configuring Active Resource
+
+=== Configuring Active Support
+
+== Using Initializers
+ organization, controlling load order
+
+== Using an After-Initializer
+
+== Changelog ==
+
+http://rails.lighthouseapp.com/projects/16213-rails-guides/tickets/28[Lighthouse ticket]
+
+* November 5, 2008: Rough outline by link:../authors.html#mgunderloy[Mike Gunderloy]
+
+
+actionmailer/lib/action_mailer/base.rb
+257:    cattr_accessor :logger
+267:    cattr_accessor :smtp_settings
+273:    cattr_accessor :sendmail_settings
+276:    cattr_accessor :raise_delivery_errors
+282:    cattr_accessor :perform_deliveries
+285:    cattr_accessor :deliveries
+288:    cattr_accessor :default_charset
+291:    cattr_accessor :default_content_type
+294:    cattr_accessor :default_mime_version
+297:    cattr_accessor :default_implicit_parts_order
+299:    cattr_reader :protected_instance_variables
+
+actionmailer/Rakefile
+36:  rdoc.options << '--line-numbers' << '--inline-source' << '-A cattr_accessor=object'
+
+actionpack/lib/action_controller/base.rb
+263:    cattr_reader :protected_instance_variables
+273:    cattr_accessor :asset_host
+279:    cattr_accessor :consider_all_requests_local
+285:    cattr_accessor :allow_concurrency
+317:    cattr_accessor :param_parsers
+321:    cattr_accessor :default_charset
+325:    cattr_accessor :logger
+329:    cattr_accessor :resource_action_separator
+333:    cattr_accessor :resources_path_names
+337:    cattr_accessor :request_forgery_protection_token
+341:    cattr_accessor :optimise_named_routes
+351:    cattr_accessor :use_accept_header
+361:    cattr_accessor :relative_url_root
+
+actionpack/lib/action_controller/caching/pages.rb
+55:          cattr_accessor :page_cache_directory
+58:          cattr_accessor :page_cache_extension
+
+actionpack/lib/action_controller/caching.rb
+37:        cattr_reader :cache_store
+48:        cattr_accessor :perform_caching
+
+actionpack/lib/action_controller/dispatcher.rb
+98:    cattr_accessor :error_file_path
+
+actionpack/lib/action_controller/mime_type.rb
+24:    cattr_reader :html_types, :unverifiable_types
+
+actionpack/lib/action_controller/rescue.rb
+36:      base.cattr_accessor :rescue_responses
+40:      base.cattr_accessor :rescue_templates
+
+actionpack/lib/action_controller/session/active_record_store.rb
+60:        cattr_accessor :data_column_name
+170:        cattr_accessor :connection
+173:        cattr_accessor :table_name
+177:        cattr_accessor :session_id_column
+181:        cattr_accessor :data_column
+282:      cattr_accessor :session_class
+
+actionpack/lib/action_controller/vendor/html-scanner/html/sanitizer.rb
+44:    cattr_accessor :included_tags, :instance_writer => false
+
+actionpack/lib/action_view/base.rb
+189:    cattr_accessor :debug_rjs
+193:    cattr_accessor :warn_cache_misses
+
+actionpack/lib/action_view/helpers/active_record_helper.rb
+7:    cattr_accessor :field_error_proc
+
+actionpack/lib/action_view/helpers/form_helper.rb
+805:    cattr_accessor :default_form_builder
+
+actionpack/lib/action_view/template_handlers/erb.rb
+47:      cattr_accessor :erb_trim_mode
+
+actionpack/test/active_record_unit.rb
+5:  cattr_accessor :able_to_connect
+6:  cattr_accessor :connected
+
+actionpack/test/controller/filters_test.rb
+286:    cattr_accessor :execution_log
+
+actionpack/test/template/form_options_helper_test.rb
+3:TZInfo::Timezone.cattr_reader :loaded_zones
+
+activemodel/lib/active_model/errors.rb
+28:    cattr_accessor :default_error_messages
+
+activemodel/Rakefile
+19:  rdoc.options << '--line-numbers' << '--inline-source' << '-A cattr_accessor=object'
+
+activerecord/lib/active_record/attribute_methods.rb
+9:      base.cattr_accessor :attribute_types_cached_by_default, :instance_writer => false
+11:      base.cattr_accessor :time_zone_aware_attributes, :instance_writer => false
+
+activerecord/lib/active_record/base.rb
+394:    cattr_accessor :logger, :instance_writer => false
+443:    cattr_accessor :configurations, :instance_writer => false
+450:    cattr_accessor :primary_key_prefix_type, :instance_writer => false
+456:    cattr_accessor :table_name_prefix, :instance_writer => false
+461:    cattr_accessor :table_name_suffix, :instance_writer => false
+467:    cattr_accessor :pluralize_table_names, :instance_writer => false
+473:    cattr_accessor :colorize_logging, :instance_writer => false
+478:    cattr_accessor :default_timezone, :instance_writer => false
+487:    cattr_accessor :schema_format , :instance_writer => false
+491:    cattr_accessor :timestamped_migrations , :instance_writer => false
+
+activerecord/lib/active_record/connection_adapters/abstract/connection_specification.rb
+11:    cattr_accessor :connection_handler, :instance_writer => false
+
+activerecord/lib/active_record/connection_adapters/mysql_adapter.rb
+166:      cattr_accessor :emulate_booleans
+
+activerecord/lib/active_record/fixtures.rb
+498:  cattr_accessor :all_loaded_fixtures
+
+activerecord/lib/active_record/locking/optimistic.rb
+38:        base.cattr_accessor :lock_optimistically, :instance_writer => false
+
+activerecord/lib/active_record/migration.rb
+259:    cattr_accessor :verbose
+
+activerecord/lib/active_record/schema_dumper.rb
+13:    cattr_accessor :ignore_tables 
+
+activerecord/lib/active_record/serializers/json_serializer.rb
+4:      base.cattr_accessor :include_root_in_json, :instance_writer => false
+
+activerecord/Rakefile
+142:  rdoc.options << '--line-numbers' << '--inline-source' << '-A cattr_accessor=object'
+
+activerecord/test/cases/lifecycle_test.rb
+61:  cattr_reader :last_inherited
+
+activerecord/test/cases/mixin_test.rb
+9:  cattr_accessor :forced_now_time
+
+activeresource/lib/active_resource/base.rb
+206:    cattr_accessor :logger
+
+activeresource/Rakefile
+43:  rdoc.options << '--line-numbers' << '--inline-source' << '-A cattr_accessor=object'
+
+activesupport/lib/active_support/buffered_logger.rb
+17:    cattr_accessor :silencer
+
+activesupport/lib/active_support/cache.rb
+81:      cattr_accessor :logger
+
+activesupport/lib/active_support/core_ext/class/attribute_accessors.rb
+5:#    cattr_accessor :hair_colors
+10:  def cattr_reader(*syms)
+29:  def cattr_writer(*syms)
+50:  def cattr_accessor(*syms)
+51:    cattr_reader(*syms)
+52:    cattr_writer(*syms)
+
+activesupport/lib/active_support/core_ext/logger.rb
+34:  cattr_accessor :silencer
+
+activesupport/test/core_ext/class/attribute_accessor_test.rb
+6:      cattr_accessor :foo
+7:      cattr_accessor :bar, :instance_writer => false
+
+activesupport/test/core_ext/module/synchronization_test.rb
+6:    @target.cattr_accessor :mutex, :instance_writer => false
+
+railties/doc/guides/html/creating_plugins.html
+786:      cattr_accessor <span style="color: #990000">:</span>yaffle_text_field<span style="color: #990000">,</span> <span style="color: #990000">:</span>yaffle_date_field
+860:      cattr_accessor <span style="color: #990000">:</span>yaffle_text_field<span style="color: #990000">,</span> <span style="color: #990000">:</span>yaffle_date_field
+
+railties/lib/rails_generator/base.rb
+93:      cattr_accessor :logger
+
+railties/Rakefile
+265:  rdoc.options << '--line-numbers' << '--inline-source' << '--accessor' << 'cattr_accessor=object'
+
+railties/test/rails_info_controller_test.rb
+12:    cattr_accessor :local_request
+
+Rakefile
+32:  rdoc.options << '-A cattr_accessor=object'
+
