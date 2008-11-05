@@ -12,8 +12,15 @@ After reading this guide and trying out the presented concepts, we hope that you
 * Create special classes that encapsulate common behaviour for your callbacks
 * Create Observers - classes with callback methods specific for each of your models, keeping the callback code outside your models' declarations.
 
-== Active Record Validations
+== Motivations to validate your Active Record objects
 
+The main reason for validating your objects before they get into the database is to ensure that only valid data is recorded. It's important to be sure that an email address column only contains valid email addresses, or that the customer's name column will never be empty. Constraints like that keep your database organized and helps your application to work properly. 
+
+There are several ways to validate the data that goes to the database, like using database native constraints, implementing validations only at the client side or implementing them directly into your models. Each one has pros and cons:
+
+* Using database constraints and/or stored procedures makes the validation mechanisms database-dependent and may turn your application into a hard to test and mantain beast. However, if your database is used by other applications, it may be a good idea to use some constraints also at the database level.
+* Implementing validations only at the client side can be problematic, specially with web-based applications. Usually this kind of validation is done using javascript, which may be turned off in the user's browser, leading to invalid data getting inside your database. However, if combined with server side validation, client side validation may be useful, since the user can have a faster feedback from the application when trying to save invalid data.
+* Using validation directly into your Active Record classes ensures that only valid data gets recorded, while still keeping the validation code in the right place, avoiding breaking the MVC pattern. Since the validation happens on the server side, the user cannot disable it, so it's also safer. It may be a hard and tedious work to implement some of the logic involved in your models' validations, but fear not: Active Record gives you the hability to easily create validations, using several built-in helpers while still allowing you to create your own validation methods.
 
 
 == Credits

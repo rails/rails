@@ -199,7 +199,7 @@ ul#navMain {
 			<h2>Chapters</h2>
 			<ol>
 					<li>
-					<a href="#_active_record_validations">Active Record Validations</a>
+					<a href="#_motivations_to_validate_your_active_record_objects">Motivations to validate your Active Record objects</a>
 					</li>
 					<li>
 					<a href="#_credits">Credits</a>
@@ -250,8 +250,27 @@ Create Observers - classes with callback methods specific for each of your model
 </ul></div>
 </div>
 </div>
-<h2 id="_active_record_validations">1. Active Record Validations</h2>
+<h2 id="_motivations_to_validate_your_active_record_objects">1. Motivations to validate your Active Record objects</h2>
 <div class="sectionbody">
+<div class="para"><p>The main reason for validating your objects before they get into the database is to ensure that only valid data is recorded. It's important to be sure that an email address column only contains valid email addresses, or that the customer's name column will never be empty. Constraints like that keep your database organized and helps your application to work properly.</p></div>
+<div class="para"><p>There are several ways to validate the data that goes to the database, like using database native constraints, implementing validations only at the client side or implementing them directly into your models. Each one has pros and cons:</p></div>
+<div class="ilist"><ul>
+<li>
+<p>
+Using database constraints and/or stored procedures makes the validation mechanisms database-dependent and may turn your application into a hard to test and mantain beast. However, if your database is used by other applications, it may be a good idea to use some constraints also at the database level.
+</p>
+</li>
+<li>
+<p>
+Implementing validations only at the client side can be problematic, specially with web-based applications. Usually this kind of validation is done using javascript, which may be turned off in the user's browser, leading to invalid data getting inside your database. However, if combined with server side validation, client side validation may be useful, since the user can have a faster feedback from the application when trying to save invalid data.
+</p>
+</li>
+<li>
+<p>
+Using validation directly into your Active Record classes ensures that only valid data gets recorded, while still keeping the validation code in the right place, avoiding breaking the MVC pattern. Since the validation happens on the server side, the user cannot disable it, so it's also safer. It may be a hard and tedious work to implement some of the logic involved in your models' validations, but fear not: Active Record gives you the hability to easily create validations, using several built-in helpers while still allowing you to create your own validation methods.
+</p>
+</li>
+</ul></div>
 </div>
 <h2 id="_credits">2. Credits</h2>
 <div class="sectionbody">
