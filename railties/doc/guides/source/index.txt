@@ -65,8 +65,6 @@ understand how to use routing in your own Rails applications, start here.
 
 .link:actioncontroller_basics.html[Basics of Action Controller]
 ***********************************************************
-CAUTION: link:http://rails.lighthouseapp.com/projects/16213/tickets/17[Lighthouse Ticket]
-
 This guide covers how controllers work and how they fit into the request cycle in your application. It includes sessions, filters, and cookies, data streaming, and dealing with exceptions raised by a request, among other topics.
 ***********************************************************
 
