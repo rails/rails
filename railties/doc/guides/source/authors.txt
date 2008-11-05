@@ -30,3 +30,10 @@ Heiko Webers is the founder of http://www.bauland42.de[bauland42], a German web 
 company focused on Ruby on Rails. He blogs at http://www.rorsecurity.info. After 10 years of desktop application development,
 Heiko has rarely looked back.
 ***********************************************************
+
+.Tore Darell
+[[toretore]]
+***********************************************************
+Tore Darell is an independent developer based in Menton, France who specialises in cruft-free web applications using Ruby, Rails
+and unobtrusive JavaScript. His home on the internet is his blog http://tore.darell.no/[Sneaky Abstractions].
+***********************************************************
