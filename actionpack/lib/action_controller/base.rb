@@ -278,12 +278,6 @@ module ActionController #:nodoc:
     @@consider_all_requests_local = true
     cattr_accessor :consider_all_requests_local
 
-    # Enable or disable the collection of failure information for RoutingErrors.
-    # This information can be extremely useful when tweaking custom routes, but is
-    # pointless once routes have been tested and verified.
-    @@debug_routes = true
-    cattr_accessor :debug_routes
-
     # Indicates whether to allow concurrent action processing. Your
     # controller actions and any other code they call must also behave well
     # when called from concurrent threads. Turned off by default.
@@ -1070,7 +1064,7 @@ module ActionController #:nodoc:
           status = 302
         end
 
-        response.redirected_to= options
+        response.redirected_to = options
         logger.info("Redirected to #{options}") if logger && logger.info?
 
         case options
@@ -1244,8 +1238,8 @@ module ActionController #:nodoc:
       end
 
       def log_processing_for_parameters
-        parameters = respond_to?(:filter_parameters) ? filter_parameters(params) : params
-        parameters = parameters.except(:controller, :action, :format)
+        parameters = respond_to?(:filter_parameters) ? filter_parameters(params) : params.dup
+        parameters = parameters.except!(:controller, :action, :format, :_method)
         
         logger.info "  Parameters: #{parameters.inspect}"
       end
