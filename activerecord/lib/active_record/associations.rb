@@ -1609,7 +1609,7 @@ module ActiveRecord
           :class_name, :table_name, :join_table, :foreign_key, :association_foreign_key,
           :select, :conditions, :include, :order, :group, :limit, :offset,
           :uniq,
-          :finder_sql, :delete_sql, :insert_sql,
+          :finder_sql, :counter_sql, :delete_sql, :insert_sql,
           :before_add, :after_add, :before_remove, :after_remove,
           :extend, :readonly,
           :validate
