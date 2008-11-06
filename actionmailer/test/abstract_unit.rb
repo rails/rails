@@ -24,11 +24,15 @@ class MockSMTP
   def sendmail(mail, from, to)
     @@deliveries << [mail, from, to]
   end
+
+  def start(*args)
+    yield self
+  end
 end
 
 class Net::SMTP
-  def self.start(*args)
-    yield MockSMTP.new
+  def self.new(*args)
+    MockSMTP.new
   end
 end
 

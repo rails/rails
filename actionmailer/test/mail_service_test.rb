@@ -938,6 +938,20 @@ EOF
     mail = TestMailer.create_body_ivar(@recipient)
     assert_equal "body: foo\nbar: baz", mail.body
   end
+
+  def test_starttls_is_enabled_if_supported
+    MockSMTP.any_instance.expects(:respond_to?).with(:enable_starttls_auto).returns(true)
+    MockSMTP.any_instance.expects(:enable_starttls_auto)
+    ActionMailer::Base.delivery_method = :smtp
+    TestMailer.deliver_signed_up(@recipient)
+  end
+
+  def test_starttls_is_disabled_if_not_supported
+    MockSMTP.any_instance.expects(:respond_to?).with(:enable_starttls_auto).returns(false)
+    MockSMTP.any_instance.expects(:enable_starttls_auto).never
+    ActionMailer::Base.delivery_method = :smtp
+    TestMailer.deliver_signed_up(@recipient)
+  end
 end
 
 end # uses_mocha
