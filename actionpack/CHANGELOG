@@ -1,5 +1,7 @@
 *2.2.1 [RC2 or 2.2 final]*
 
+* Fixed the sanitize helper to avoid double escaping already properly escaped entities #683 [antonmos/Ryan McGeary]
+
 * Fixed that FormTagHelper generated illegal html if name contained square brackets #1238 [Vladimir Dobriakov]
 
 * Fix regression bug that made date_select and datetime_select raise a Null Pointer Exception when a nil date/datetime was passed and only month and year were displayed #1289 [Bernardo Padua/Tor Erik]
