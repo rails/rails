@@ -2023,8 +2023,7 @@ module ActiveRecord #:nodoc:
         end
 
         def scoped_methods #:nodoc:
-          scoped_methods = (Thread.current[:scoped_methods] ||= {})
-          scoped_methods[self] ||= []
+          Thread.current[:"#{self}_scoped_methods"] ||= []
         end
 
         def current_scoped_methods #:nodoc:
