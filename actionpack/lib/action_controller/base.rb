@@ -1241,7 +1241,7 @@ module ActionController #:nodoc:
         parameters = respond_to?(:filter_parameters) ? filter_parameters(params) : params.dup
         parameters = parameters.except!(:controller, :action, :format, :_method)
         
-        logger.info "  Parameters: #{parameters.inspect}"
+        logger.info "  Parameters: #{parameters.inspect}" unless parameters.empty?
       end
 
       def default_render #:nodoc:
