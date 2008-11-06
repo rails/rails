@@ -13,7 +13,7 @@ module ActionController
       ActiveSupport::Deprecation.warn(
         "ActionController::AbstractRequest.relative_url_root= has been renamed." +
         "You can now set it with config.action_controller.relative_url_root=", caller)
-      ActionController::base.relative_url_root=relative_url_root
+      ActionController::Base.relative_url_root=relative_url_root
     end
 
     HTTP_METHODS = %w(get head put post delete options)
