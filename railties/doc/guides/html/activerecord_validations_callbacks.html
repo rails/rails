@@ -202,6 +202,9 @@ ul#navMain {
 					<a href="#_motivations_to_validate_your_active_record_objects">Motivations to validate your Active Record objects</a>
 					</li>
 					<li>
+					<a href="#_when_does_validation_happens">When does validation happens?</a>
+					</li>
+					<li>
 					<a href="#_credits">Credits</a>
 					</li>
 					<li>
@@ -272,10 +275,14 @@ Using validation directly into your Active Record classes ensures that only vali
 </li>
 </ul></div>
 </div>
-<h2 id="_credits">2. Credits</h2>
+<h2 id="_when_does_validation_happens">2. When does validation happens?</h2>
+<div class="sectionbody">
+<div class="para"><p>There are two kinds of Active Record objects: those that correspond to a row inside your database and those who do not. When you create a fresh object, using the <tt>new</tt> method, that object does not belong to the database yet. Once you call <tt>save</tt> upon that object it'll be recorded to it's table. Active Record uses the <tt>new_record?</tt> instance method to discover if an object is already in the database or not. Saving new records means sending an SQL insert operation to the database, while saving existing records (by calling either <tt>save</tt>, <tt>update_attribute</tt> or <tt>update_attributes</tt>) will result in a SQL update operation. Active Record will use this facts to perform validations upon your objects, avoiding then to be recorded to the database if their inner state is invalid in some way. You can specify validations that will be beformed every time a object is saved, just when you're creating a new record or when you're updating an existing one.</p></div>
+</div>
+<h2 id="_credits">3. Credits</h2>
 <div class="sectionbody">
 </div>
-<h2 id="_changelog">3. Changelog</h2>
+<h2 id="_changelog">4. Changelog</h2>
 <div class="sectionbody">
 <div class="para"><p><a href="http://rails.lighthouseapp.com/projects/16213/tickets/26-active-record-validations-and-callbacks">http://rails.lighthouseapp.com/projects/16213/tickets/26-active-record-validations-and-callbacks</a></p></div>
 </div>

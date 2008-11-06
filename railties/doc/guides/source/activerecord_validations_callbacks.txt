@@ -22,6 +22,11 @@ There are several ways to validate the data that goes to the database, like usin
 * Implementing validations only at the client side can be problematic, specially with web-based applications. Usually this kind of validation is done using javascript, which may be turned off in the user's browser, leading to invalid data getting inside your database. However, if combined with server side validation, client side validation may be useful, since the user can have a faster feedback from the application when trying to save invalid data.
 * Using validation directly into your Active Record classes ensures that only valid data gets recorded, while still keeping the validation code in the right place, avoiding breaking the MVC pattern. Since the validation happens on the server side, the user cannot disable it, so it's also safer. It may be a hard and tedious work to implement some of the logic involved in your models' validations, but fear not: Active Record gives you the hability to easily create validations, using several built-in helpers while still allowing you to create your own validation methods.
 
+== When does validation happens?
+
+There are two kinds of Active Record objects: those that correspond to a row inside your database and those who do not. When you create a fresh object, using the +new+ method, that object does not belong to the database yet. Once you call +save+ upon that object it'll be recorded to it's table. Active Record uses the +new_record?+ instance method to discover if an object is already in the database or not. Saving new records means sending an SQL insert operation to the database, while saving existing records (by calling either +save+, +update_attribute+ or +update_attributes+) will result in a SQL update operation. Active Record will use this facts to perform validations upon your objects, avoiding then to be recorded to the database if their inner state is invalid in some way. You can specify validations that will be beformed every time a object is saved, just when you're creating a new record or when you're updating an existing one.
+
+
 
 == Credits
 
