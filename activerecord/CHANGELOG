@@ -1,7 +1,5 @@
 *2.2.1 [RC2 or 2.2 final]*
 
-* Stop logging SHOW FIELDS and SET SQL_AUTO_IS_NULL=0 for the MysqlAdapter as they only clutter up the log and offer no value [DHH]
-
 * Ensure indices don't flip order in schema.rb #1266 [Jordi Bunster]
 
 * Fixed that serialized strings should never be type-casted (i.e. turning "Yes" to a boolean) #857 [Andreas Korth]
