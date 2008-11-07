@@ -2,7 +2,7 @@ require "cases/helper"
 require 'models/topic'
 require 'models/reply'
 
-class ActiveRecordValidationsI18nTests < Test::Unit::TestCase
+class ActiveRecordValidationsI18nTests < ActiveSupport::TestCase
   def setup
     reset_callbacks Topic
     @topic = Topic.new
