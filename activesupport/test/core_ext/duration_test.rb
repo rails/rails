@@ -1,6 +1,6 @@
 require 'abstract_unit'
 
-class DurationTest < Test::Unit::TestCase
+class DurationTest < ActiveSupport::TestCase
   def test_inspect
     assert_equal '1 month',                         1.month.inspect
     assert_equal '1 month and 1 day',               (1.month + 1.day).inspect
