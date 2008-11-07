@@ -13,7 +13,9 @@ module ActiveSupport
     require 'test/unit'
     MiniTest::Unit.class_variable_set('@@installed_at_exit', autorun_enabled)
 
-    class TestCase < ::Test::Unit::TestCase; end
+    class TestCase < ::Test::Unit::TestCase
+      Assertion = MiniTest::Assertion
+    end
 
   # Test::Unit compatibility.
   rescue LoadError
@@ -21,6 +23,7 @@ module ActiveSupport
     require 'active_support/testing/default'
 
     class TestCase < ::Test::Unit::TestCase
+      Assertion = Test::Unit::AssertionFailedError
       include ActiveSupport::Testing::Default
     end
   end
