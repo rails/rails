@@ -4,15 +4,16 @@ require 'active_support/testing/declarative'
 
 module ActiveSupport
   # Prefer MiniTest with Test::Unit compatibility.
-  # Hacks around the test/unit autorun.
   begin
     require 'minitest/unit'
+
+    # Hack around the test/unit autorun.
+    autorun_enabled = MiniTest::Unit.class_variable_get('@@installed_at_exit')
     MiniTest::Unit.disable_autorun
     require 'test/unit'
+    MiniTest::Unit.class_variable_set('@@installed_at_exit', autorun_enabled)
 
-    class TestCase < ::Test::Unit::TestCase
-      @@installed_at_exit = false
-    end
+    class TestCase < ::Test::Unit::TestCase; end
 
   # Test::Unit compatibility.
   rescue LoadError
