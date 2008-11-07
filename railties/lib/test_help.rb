@@ -4,18 +4,19 @@ require_dependency 'application'
 # so fixtures are loaded to the right database
 silence_warnings { RAILS_ENV = "test" }
 
-require 'test/unit'
-require 'active_support/test_case'
-require 'active_record/fixtures'
-require 'action_controller/test_case'
 require 'action_controller/integration'
 require 'action_mailer/test_case' if defined?(ActionMailer)
 
-Test::Unit::TestCase.fixture_path = RAILS_ROOT + "/test/fixtures/"
-ActionController::IntegrationTest.fixture_path = Test::Unit::TestCase.fixture_path
+require 'active_record/fixtures'
+class ActiveSupport::TestCase
+  include ActiveRecord::TestFixtures
+end
+
+ActiveSupport::TestCase.fixture_path = "#{RAILS_ROOT}/test/fixtures/"
+ActionController::IntegrationTest.fixture_path = ActiveSupport::TestCase.fixture_path
 
 def create_fixtures(*table_names)
-  Fixtures.create_fixtures(Test::Unit::TestCase.fixture_path, table_names)
+  Fixtures.create_fixtures(ActiveSupport::TestCase.fixture_path, table_names)
 end
 
 begin
