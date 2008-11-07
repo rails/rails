@@ -239,7 +239,11 @@ class AssetTagHelperTest < ActionView::TestCase
       File.stubs(:exist?).with('template/../fixtures/public/images/rails.png.').returns(true)
       assert_equal '<img alt="Rails" src="/images/rails.png?1" />', image_tag('rails.png')
     ensure
-      ENV["RAILS_ASSET_ID"] = old_asset_id
+      if old_asset_id
+        ENV["RAILS_ASSET_ID"] = old_asset_id
+      else
+        ENV.delete("RAILS_ASSET_ID")
+      end
     end
   end
 
