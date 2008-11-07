@@ -1,5 +1,4 @@
 require 'abstract_unit'
-require 'active_support/test_case'
 
 class AssertDifferenceTest < ActiveSupport::TestCase
   def setup
@@ -66,10 +65,8 @@ class AssertDifferenceTest < ActiveSupport::TestCase
         @object.increment
       end
       fail 'should not get to here'
-    rescue MiniTest::Assertion => e
+    rescue Exception => e
       assert_equal "<3> expected but was\n<2>.", e.message
-    rescue Test::Unit::AssertionFailedError => e
-      assert_equal "<1 + 1> was the expression that failed.\n<3> expected but was\n<2>.", e.message
     end
 
     def test_array_of_expressions_identify_failure_when_message_provided
@@ -77,10 +74,8 @@ class AssertDifferenceTest < ActiveSupport::TestCase
         @object.increment
       end
       fail 'should not get to here'
-    rescue MiniTest::Assertion => e
+    rescue Exception => e
       assert_equal "something went wrong.\n<3> expected but was\n<2>.", e.message
-    rescue Test::Unit::AssertionFailedError => e
-      assert_equal "something went wrong.\n<1 + 1> was the expression that failed.\n<3> expected but was\n<2>.", e.message
     end
   else
     def default_test; end
