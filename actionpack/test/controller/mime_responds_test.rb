@@ -162,13 +162,11 @@ class RespondToController < ActionController::Base
     end
 end
 
-class MimeControllerTest < Test::Unit::TestCase
+class MimeControllerTest < ActionController::TestCase
+  tests RespondToController
+
   def setup
     ActionController::Base.use_accept_header = true
-    @request    = ActionController::TestRequest.new
-    @response   = ActionController::TestResponse.new
-
-    @controller = RespondToController.new
     @request.host = "www.example.com"
   end
 
@@ -509,12 +507,10 @@ class SuperPostController < PostController
   end
 end
 
-class MimeControllerLayoutsTest < Test::Unit::TestCase
-  def setup
-    @request    = ActionController::TestRequest.new
-    @response   = ActionController::TestResponse.new
+class MimeControllerLayoutsTest < ActionController::TestCase
+  tests PostController
 
-    @controller   = PostController.new
+  def setup
     @request.host = "www.example.com"
   end
 

@@ -1,7 +1,7 @@
 require 'abstract_unit'
 require 'controller/fake_controllers'
 
-class TestTest < Test::Unit::TestCase
+class TestTest < ActionController::TestCase
   class TestController < ActionController::Base
     def no_op
       render :text => 'dummy'
@@ -24,7 +24,7 @@ class TestTest < Test::Unit::TestCase
     end
 
     def render_raw_post
-      raise Test::Unit::AssertionFailedError, "#raw_post is blank" if request.raw_post.blank?
+      raise ActiveSupport::TestCase::Assertion, "#raw_post is blank" if request.raw_post.blank?
       render :text => request.raw_post
     end
 
@@ -580,7 +580,7 @@ XML
     assert_equal @response.redirect_url, redirect_to_url
 
     # Must be a :redirect response.
-    assert_raise(Test::Unit::AssertionFailedError) do
+    assert_raise(ActiveSupport::TestCase::Assertion) do
       assert_redirected_to 'created resource'
     end
   end
@@ -602,9 +602,9 @@ XML
     end
 end
 
-class CleanBacktraceTest < Test::Unit::TestCase
+class CleanBacktraceTest < ActionController::TestCase
   def test_should_reraise_the_same_object
-    exception = Test::Unit::AssertionFailedError.new('message')
+    exception = ActiveSupport::TestCase::Assertion.new('message')
     clean_backtrace { raise exception }
   rescue => caught
     assert_equal exception.object_id, caught.object_id
@@ -613,7 +613,7 @@ class CleanBacktraceTest < Test::Unit::TestCase
 
   def test_should_clean_assertion_lines_from_backtrace
     path = File.expand_path("#{File.dirname(__FILE__)}/../../lib/action_controller")
-    exception = Test::Unit::AssertionFailedError.new('message')
+    exception = ActiveSupport::TestCase::Assertion.new('message')
     exception.set_backtrace ["#{path}/abc", "#{path}/assertions/def"]
     clean_backtrace { raise exception }
   rescue => caught
@@ -629,21 +629,17 @@ class CleanBacktraceTest < Test::Unit::TestCase
   end
 end
 
-class InferringClassNameTest < Test::Unit::TestCase
+class InferringClassNameTest < ActionController::TestCase
   def test_determine_controller_class
     assert_equal ContentController, determine_class("ContentControllerTest")
   end
 
   def test_determine_controller_class_with_nonsense_name
-    assert_raises ActionController::NonInferrableControllerError do
-      determine_class("HelloGoodBye")
-    end
+    assert_nil determine_class("HelloGoodBye")
   end
 
   def test_determine_controller_class_with_sensible_name_where_no_controller_exists
-    assert_raises ActionController::NonInferrableControllerError do
-      determine_class("NoControllerWithThisNameTest")
-    end
+    assert_nil determine_class("NoControllerWithThisNameTest")
   end
 
   private

@@ -1,4 +1,4 @@
-require 'active_support/test_case'
+require 'action_controller/test_case'
 require 'action_controller/dispatcher'
 require 'action_controller/test_process'
 
@@ -16,7 +16,7 @@ module ActionController
     # rather than instantiating Integration::Session directly.
     class Session
       include Test::Unit::Assertions
-      include ActionController::Assertions
+      include ActionController::TestCase::Assertions
       include ActionController::TestProcess
 
       # The integer HTTP status code of the last request.

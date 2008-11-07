@@ -27,7 +27,7 @@ module Backoffice
   end
 end
 
-class ResourcesTest < Test::Unit::TestCase
+class ResourcesTest < ActionController::TestCase
   # The assertions in these tests are incompatible with the hash method
   # optimisation.  This could indicate user level problems
   def setup

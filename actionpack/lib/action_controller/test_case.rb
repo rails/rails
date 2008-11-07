@@ -1,20 +1,6 @@
 require 'active_support/test_case'
 
 module ActionController
-  class NonInferrableControllerError < ActionControllerError
-    def initialize(name)
-      @name = name
-      super "Unable to determine the controller to test from #{name}. " +
-        "You'll need to specify it using 'tests YourController' in your " +
-        "test case definition. This could mean that #{inferred_controller_name} does not exist " +
-        "or it contains syntax errors"
-    end
-
-    def inferred_controller_name
-      @name.sub(/Test$/, '')
-    end
-  end
-
   # Superclass for ActionController functional tests. Functional tests allow you to
   # test a single controller action per test method. This should not be confused with
   # integration tests (see ActionController::IntegrationTest), which are more like
@@ -119,10 +105,21 @@ module ActionController
   #
   #  assert_redirected_to page_url(:title => 'foo')
   class TestCase < ActiveSupport::TestCase
-    %w(response selector tag dom routing model).each do |kind|
-      require "action_controller/assertions/#{kind}_assertions"
-      include const_get("#{kind.camelize}Assertions")
+    module Assertions
+      %w(response selector tag dom routing model).each do |kind|
+        require "action_controller/assertions/#{kind}_assertions"
+        include ActionController::Assertions.const_get("#{kind.camelize}Assertions")
+      end
+
+      def clean_backtrace(&block)
+        yield
+      rescue ActiveSupport::TestCase::Assertion => error
+        framework_path = Regexp.new(File.expand_path("#{File.dirname(__FILE__)}/assertions"))
+        error.backtrace.reject! { |line| File.expand_path(line) =~ framework_path }
+        raise
+      end
     end
+    include Assertions
 
     # When the request.remote_addr remains the default for testing, which is 0.0.0.0, the exception is simply raised inline
     # (bystepping the regular exception handling from rescue_action). If the request.remote_addr is anything else, the regular
@@ -156,7 +153,7 @@ module ActionController
       end
 
       def controller_class=(new_class)
-        prepare_controller_class(new_class)
+        prepare_controller_class(new_class) if new_class
         write_inheritable_attribute(:controller_class, new_class)
       end
 
@@ -171,7 +168,7 @@ module ActionController
       def determine_default_controller_class(name)
         name.sub(/Test$/, '').constantize
       rescue NameError
-        raise NonInferrableControllerError.new(name)
+        nil
       end
 
       def prepare_controller_class(new_class)
@@ -180,25 +177,23 @@ module ActionController
     end
 
     def setup_controller_request_and_response
-      @controller = self.class.controller_class.new
-      @controller.request = @request = TestRequest.new
+      @request = TestRequest.new
       @response = TestResponse.new
 
-      @controller.params = {}
-      @controller.send(:initialize_current_url)
+      if klass = self.class.controller_class
+        @controller ||= klass.new rescue nil
+      end
+
+      if @controller
+        @controller.request = @request
+        @controller.params = {}
+        @controller.send(:initialize_current_url)
+      end
     end
     
     # Cause the action to be rescued according to the regular rules for rescue_action when the visitor is not local
     def rescue_action_in_public!
       @request.remote_addr = '208.77.188.166' # example.com
-    end
-
-    def clean_backtrace(&block)
-      yield
-    rescue Assertion => error
-      framework_path = Regexp.new(File.expand_path("#{File.dirname(__FILE__)}/assertions"))
-      error.backtrace.reject! { |line| File.expand_path(line) =~ framework_path }
-      raise
     end
   end
 end

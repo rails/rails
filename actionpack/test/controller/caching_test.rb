@@ -42,7 +42,7 @@ class PageCachingTestController < ActionController::Base
   end
 end
 
-class PageCachingTest < Test::Unit::TestCase
+class PageCachingTest < ActionController::TestCase
   def setup
     ActionController::Base.perform_caching = true
 
@@ -222,7 +222,7 @@ class ActionCachingMockController
   end
 end
 
-class ActionCacheTest < Test::Unit::TestCase
+class ActionCacheTest < ActionController::TestCase
   def setup
     reset!
     FileUtils.mkdir_p(FILE_STORE_PATH)
@@ -469,7 +469,7 @@ class FragmentCachingTestController < ActionController::Base
   def some_action; end;
 end
 
-class FragmentCachingTest < Test::Unit::TestCase
+class FragmentCachingTest < ActionController::TestCase
   def setup
     ActionController::Base.perform_caching = true
     @store = ActiveSupport::Cache::MemoryStore.new
@@ -601,7 +601,7 @@ class FunctionalCachingController < ActionController::Base
   end
 end
 
-class FunctionalFragmentCachingTest < Test::Unit::TestCase
+class FunctionalFragmentCachingTest < ActionController::TestCase
   def setup
     ActionController::Base.perform_caching = true
     @store = ActiveSupport::Cache::MemoryStore.new

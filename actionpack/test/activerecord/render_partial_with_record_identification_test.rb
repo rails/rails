@@ -49,13 +49,6 @@ end
 class RenderPartialWithRecordIdentificationTest < ActiveRecordTestCase
   fixtures :developers, :projects, :developers_projects, :topics, :replies, :companies, :mascots
 
-  def setup
-    @controller = RenderPartialWithRecordIdentificationController.new
-    @request    = ActionController::TestRequest.new
-    @response   = ActionController::TestResponse.new
-    super
-  end
-
   def test_rendering_partial_with_has_many_and_belongs_to_association
     get :render_with_has_many_and_belongs_to_association
     assert_template 'projects/_project'

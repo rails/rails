@@ -1,7 +1,9 @@
-require 'active_support/test_case'
+require 'action_controller/test_case'
 
 module ActionView
   class TestCase < ActiveSupport::TestCase
+    include ActionController::TestCase::Assertions
+
     class_inheritable_accessor :helper_class
     @@helper_class = nil
 

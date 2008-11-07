@@ -222,7 +222,7 @@ end
 
 # OK let's get our test on
 
-class RequestForgeryProtectionControllerTest < Test::Unit::TestCase
+class RequestForgeryProtectionControllerTest < ActionController::TestCase
   include RequestForgeryProtectionTests
   def setup
     @controller = RequestForgeryProtectionController.new
@@ -236,7 +236,7 @@ class RequestForgeryProtectionControllerTest < Test::Unit::TestCase
   end
 end
 
-class RequestForgeryProtectionWithoutSecretControllerTest < Test::Unit::TestCase
+class RequestForgeryProtectionWithoutSecretControllerTest < ActionController::TestCase
   def setup
     @controller = RequestForgeryProtectionWithoutSecretController.new
     @request    = ActionController::TestRequest.new
@@ -255,7 +255,7 @@ class RequestForgeryProtectionWithoutSecretControllerTest < Test::Unit::TestCase
   end
 end
 
-class CsrfCookieMonsterControllerTest < Test::Unit::TestCase
+class CsrfCookieMonsterControllerTest < ActionController::TestCase
   include RequestForgeryProtectionTests
   def setup
     @controller = CsrfCookieMonsterController.new
@@ -271,7 +271,7 @@ class CsrfCookieMonsterControllerTest < Test::Unit::TestCase
   end
 end
 
-class FreeCookieControllerTest < Test::Unit::TestCase
+class FreeCookieControllerTest < ActionController::TestCase
   def setup
     @controller = FreeCookieController.new
     @request    = ActionController::TestRequest.new
@@ -296,7 +296,7 @@ class FreeCookieControllerTest < Test::Unit::TestCase
   end
 end
 
-class SessionOffControllerTest < Test::Unit::TestCase
+class SessionOffControllerTest < ActionController::TestCase
   def setup
     @controller = SessionOffController.new
     @request    = ActionController::TestRequest.new

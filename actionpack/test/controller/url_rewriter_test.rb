@@ -2,7 +2,7 @@ require 'abstract_unit'
 
 ActionController::UrlRewriter
 
-class UrlRewriterTests < Test::Unit::TestCase
+class UrlRewriterTests < ActionController::TestCase
   def setup
     @request = ActionController::TestRequest.new
     @params = {}
@@ -85,8 +85,7 @@ class UrlRewriterTests < Test::Unit::TestCase
   end
 end
 
-class UrlWriterTests < Test::Unit::TestCase
-
+class UrlWriterTests < ActionController::TestCase
   class W
     include ActionController::UrlWriter
   end

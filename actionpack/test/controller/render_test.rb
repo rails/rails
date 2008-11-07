@@ -641,12 +641,10 @@ class TestController < ActionController::Base
     end
 end
 
-class RenderTest < Test::Unit::TestCase
-  def setup
-    @request    = ActionController::TestRequest.new
-    @response   = ActionController::TestResponse.new
-    @controller = TestController.new
+class RenderTest < ActionController::TestCase
+  tests TestController
 
+  def setup
     # enable a logger so that (e.g.) the benchmarking stuff runs, so we can get
     # a more accurate simulation of what happens in "real life".
     @controller.logger = Logger.new(nil)
@@ -1333,12 +1331,10 @@ class RenderTest < Test::Unit::TestCase
   end
 end
 
-class EtagRenderTest < Test::Unit::TestCase
-  def setup
-    @request    = ActionController::TestRequest.new
-    @response   = ActionController::TestResponse.new
-    @controller = TestController.new
+class EtagRenderTest < ActionController::TestCase
+  tests TestController
 
+  def setup
     @request.host = "www.nextangle.com"
     @expected_bang_etag = etag_for(expand_key([:foo, 123]))
   end
@@ -1430,12 +1426,10 @@ class EtagRenderTest < Test::Unit::TestCase
     end
 end
 
-class LastModifiedRenderTest < Test::Unit::TestCase
-  def setup
-    @request    = ActionController::TestRequest.new
-    @response   = ActionController::TestResponse.new
-    @controller = TestController.new
+class LastModifiedRenderTest < ActionController::TestCase
+  tests TestController
 
+  def setup
     @request.host = "www.nextangle.com"
     @last_modified = Time.now.utc.beginning_of_day.httpdate
   end
@@ -1487,12 +1481,10 @@ class LastModifiedRenderTest < Test::Unit::TestCase
   end
 end
 
-class RenderingLoggingTest < Test::Unit::TestCase
-  def setup
-    @request    = ActionController::TestRequest.new
-    @response   = ActionController::TestResponse.new
-    @controller = TestController.new
+class RenderingLoggingTest < ActionController::TestCase
+  tests TestController
 
+  def setup
     @request.host = "www.nextangle.com"
   end
 

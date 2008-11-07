@@ -69,12 +69,8 @@ class CalleeController < ActionController::Base
   def rescue_action(e) raise end
 end
 
-class ComponentsTest < Test::Unit::TestCase
-  def setup
-    @controller = CallerController.new
-    @request    = ActionController::TestRequest.new
-    @response   = ActionController::TestResponse.new
-  end
+class ComponentsTest < ActionController::TestCase
+  tests CallerController
 
   def test_calling_from_controller
     assert_deprecated do

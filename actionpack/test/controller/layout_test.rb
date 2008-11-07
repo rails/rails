@@ -34,11 +34,8 @@ end
 ActionView::Template::register_template_handler :mab,
   lambda { |template| template.source.inspect }
 
-class LayoutAutoDiscoveryTest < Test::Unit::TestCase
+class LayoutAutoDiscoveryTest < ActionController::TestCase
   def setup
-    @request    = ActionController::TestRequest.new
-    @response   = ActionController::TestResponse.new
-
     @request.host = "www.nextangle.com"
   end
 
@@ -98,12 +95,7 @@ class RendersNoLayoutController < LayoutTest
   end
 end
 
-class LayoutSetInResponseTest < Test::Unit::TestCase
-  def setup
-    @request    = ActionController::TestRequest.new
-    @response   = ActionController::TestResponse.new
-  end
-
+class LayoutSetInResponseTest < ActionController::TestCase
   def test_layout_set_when_using_default_layout
     @controller = DefaultLayoutController.new
     get :hello
@@ -150,12 +142,7 @@ class SetsNonExistentLayoutFile < LayoutTest
   layout "nofile.rhtml"
 end
 
-class LayoutExceptionRaised < Test::Unit::TestCase
-  def setup
-    @request    = ActionController::TestRequest.new
-    @response   = ActionController::TestResponse.new
-  end
-
+class LayoutExceptionRaised < ActionController::TestCase
   def test_exception_raised_when_layout_file_not_found
     @controller = SetsNonExistentLayoutFile.new
     get :hello
@@ -170,12 +157,7 @@ class LayoutStatusIsRendered < LayoutTest
   end
 end
 
-class LayoutStatusIsRenderedTest < Test::Unit::TestCase
-  def setup
-    @request    = ActionController::TestRequest.new
-    @response   = ActionController::TestResponse.new
-  end
-
+class LayoutStatusIsRenderedTest < ActionController::TestCase
   def test_layout_status_is_rendered
     @controller = LayoutStatusIsRendered.new
     get :hello
@@ -187,12 +169,7 @@ class LayoutSymlinkedTest < LayoutTest
   layout "symlinked/symlinked_layout"
 end
 
-class LayoutSymlinkedIsRenderedTest < Test::Unit::TestCase
-  def setup
-    @request    = ActionController::TestRequest.new
-    @response   = ActionController::TestResponse.new
-  end
-
+class LayoutSymlinkedIsRenderedTest < ActionController::TestCase
   def test_symlinked_layout_is_rendered
     @controller = LayoutSymlinkedTest.new
     get :hello

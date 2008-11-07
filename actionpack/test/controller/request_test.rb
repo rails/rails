@@ -1,7 +1,7 @@
 require 'abstract_unit'
 require 'action_controller/integration'
 
-class RequestTest < Test::Unit::TestCase
+class RequestTest < ActiveSupport::TestCase
   def setup
     ActionController::Base.relative_url_root = nil
     @request = ActionController::TestRequest.new
@@ -400,7 +400,7 @@ class RequestTest < Test::Unit::TestCase
     end
 end
 
-class UrlEncodedRequestParameterParsingTest < Test::Unit::TestCase
+class UrlEncodedRequestParameterParsingTest < ActiveSupport::TestCase
   def setup
     @query_string = "action=create_customer&full_name=David%20Heinemeier%20Hansson&customerId=1"
     @query_string_with_empty = "action=create_customer&full_name="
@@ -704,20 +704,20 @@ class UrlEncodedRequestParameterParsingTest < Test::Unit::TestCase
   end
 end
 
-class MultipartRequestParameterParsingTest < Test::Unit::TestCase
+class MultipartRequestParameterParsingTest < ActiveSupport::TestCase
   FIXTURE_PATH = File.dirname(__FILE__) + '/../fixtures/multipart'
 
   def test_single_parameter
-    params = process('single_parameter')
+    params = parse_multipart('single_parameter')
     assert_equal({ 'foo' => 'bar' }, params)
   end
 
   def test_bracketed_param
-    assert_equal({ 'foo' => { 'baz' => 'bar'}}, process('bracketed_param'))
+    assert_equal({ 'foo' => { 'baz' => 'bar'}}, parse_multipart('bracketed_param'))
   end
 
   def test_text_file
-    params = process('text_file')
+    params = parse_multipart('text_file')
     assert_equal %w(file foo), params.keys.sort
     assert_equal 'bar', params['foo']
 
@@ -729,7 +729,7 @@ class MultipartRequestParameterParsingTest < Test::Unit::TestCase
   end
 
   def test_boundary_problem_file
-    params = process('boundary_problem_file')
+    params = parse_multipart('boundary_problem_file')
     assert_equal %w(file foo), params.keys.sort
 
     file = params['file']
@@ -748,7 +748,7 @@ class MultipartRequestParameterParsingTest < Test::Unit::TestCase
   end
 
   def test_large_text_file
-    params = process('large_text_file')
+    params = parse_multipart('large_text_file')
     assert_equal %w(file foo), params.keys.sort
     assert_equal 'bar', params['foo']
 
@@ -774,7 +774,7 @@ class MultipartRequestParameterParsingTest < Test::Unit::TestCase
   end
 
   def test_binary_file
-    params = process('binary_file')
+    params = parse_multipart('binary_file')
     assert_equal %w(file flowers foo), params.keys.sort
     assert_equal 'bar', params['foo']
 
@@ -793,7 +793,7 @@ class MultipartRequestParameterParsingTest < Test::Unit::TestCase
   end
 
   def test_mixed_files
-    params = process('mixed_files')
+    params = parse_multipart('mixed_files')
     assert_equal %w(files foo), params.keys.sort
     assert_equal 'bar', params['foo']
 
@@ -805,7 +805,7 @@ class MultipartRequestParameterParsingTest < Test::Unit::TestCase
   end
 
   private
-    def process(name)
+    def parse_multipart(name)
       File.open(File.join(FIXTURE_PATH, name), 'rb') do |file|
         params = ActionController::AbstractRequest.parse_multipart_form_parameters(file, 'AaB03x', file.stat.size, {})
         assert_equal 0, file.pos  # file was rewound after reading
@@ -814,7 +814,7 @@ class MultipartRequestParameterParsingTest < Test::Unit::TestCase
     end
 end
 
-class XmlParamsParsingTest < Test::Unit::TestCase
+class XmlParamsParsingTest < ActiveSupport::TestCase
   def test_hash_params
     person = parse_body("<person><name>David</name></person>")[:person]
     assert_kind_of Hash, person
@@ -868,7 +868,7 @@ class LegacyXmlParamsParsingTest < XmlParamsParsingTest
     end
 end
 
-class JsonParamsParsingTest < Test::Unit::TestCase
+class JsonParamsParsingTest < ActiveSupport::TestCase
   def test_hash_params_for_application_json
     person = parse_body({:person => {:name => "David"}}.to_json,'application/json')[:person]
     assert_kind_of Hash, person

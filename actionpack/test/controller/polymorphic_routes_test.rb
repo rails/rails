@@ -22,8 +22,7 @@ end
 class Response::Nested < Response; end
 
 uses_mocha 'polymorphic URL helpers' do
-  class PolymorphicRoutesTest < Test::Unit::TestCase
-
+  class PolymorphicRoutesTest < ActiveSupport::TestCase
     include ActionController::PolymorphicRoutes
 
     def setup
