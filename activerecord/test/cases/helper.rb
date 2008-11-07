@@ -5,7 +5,6 @@ require 'config'
 require 'test/unit'
 
 require 'active_record'
-require 'active_record/fixtures'
 require 'active_record/test_case'
 require 'connection'
 
@@ -48,15 +47,11 @@ class << ActiveRecord::Base
 end
 
 unless ENV['FIXTURE_DEBUG']
-  module Test #:nodoc:
-    module Unit #:nodoc:
-      class << TestCase #:nodoc:
-        def try_to_load_dependency_with_silence(*args)
-          ActiveRecord::Base.logger.silence { try_to_load_dependency_without_silence(*args)}
-        end
-
-        alias_method_chain :try_to_load_dependency, :silence
-      end
+  module ActiveRecord::TestFixtures::ClassMethods
+    def try_to_load_dependency_with_silence(*args)
+      ActiveRecord::Base.logger.silence { try_to_load_dependency_without_silence(*args)}
     end
+
+    alias_method_chain :try_to_load_dependency, :silence
   end
 end

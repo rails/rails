@@ -1,7 +1,10 @@
 require "active_support/test_case"
+require "active_record/fixtures"
 
 module ActiveRecord 
   class TestCase < ActiveSupport::TestCase #:nodoc:
+    include TestFixtures
+
     self.fixture_path               = FIXTURES_ROOT
     self.use_instantiated_fixtures  = false
     self.use_transactional_fixtures = true
