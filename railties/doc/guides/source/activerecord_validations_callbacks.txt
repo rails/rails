@@ -22,9 +22,89 @@ There are several ways to validate the data that goes to the database, like usin
 * Implementing validations only at the client side can be problematic, specially with web-based applications. Usually this kind of validation is done using javascript, which may be turned off in the user's browser, leading to invalid data getting inside your database. However, if combined with server side validation, client side validation may be useful, since the user can have a faster feedback from the application when trying to save invalid data.
 * Using validation directly into your Active Record classes ensures that only valid data gets recorded, while still keeping the validation code in the right place, avoiding breaking the MVC pattern. Since the validation happens on the server side, the user cannot disable it, so it's also safer. It may be a hard and tedious work to implement some of the logic involved in your models' validations, but fear not: Active Record gives you the hability to easily create validations, using several built-in helpers while still allowing you to create your own validation methods.
 
-== When does validation happens?
+== How it works
 
-There are two kinds of Active Record objects: those that correspond to a row inside your database and those who do not. When you create a fresh object, using the +new+ method, that object does not belong to the database yet. Once you call +save+ upon that object it'll be recorded to it's table. Active Record uses the +new_record?+ instance method to discover if an object is already in the database or not. Saving new records means sending an SQL insert operation to the database, while saving existing records (by calling either +save+, +update_attribute+ or +update_attributes+) will result in a SQL update operation. Active Record will use this facts to perform validations upon your objects, avoiding then to be recorded to the database if their inner state is invalid in some way. You can specify validations that will be beformed every time a object is saved, just when you're creating a new record or when you're updating an existing one.
+=== When does validation happens?
+
+There are two kinds of Active Record objects: those that correspond to a row inside your database and those who do not. When you create a fresh object, using the +new+ method, that object does not belong to the database yet. Once you call +save+ upon that object it'll be recorded to it's table. Active Record uses the +new_record?+ instance method to discover if an object is already in the database or not. Consider the following simple and very creative Active Record class:
+
+[source, ruby]
+------------------------------------------------------------------
+class Person < ActiveRecord::Base
+end
+------------------------------------------------------------------
+
+We can see how it works by looking at the following script/console output:
+
+------------------------------------------------------------------
+>> p = Person.new(:name => "John Doe", :birthdate => Date.parse("09/03/1979"))
+=> #<Person id: nil, name: "John Doe", birthdate: "1979-09-03", created_at: nil, updated_at: nil>
+>> p.new_record?
+=> true
+>> p.save
+=> true
+>> p.new_record?
+=> false
+------------------------------------------------------------------
+
+Saving new records means sending an SQL insert operation to the database, while saving existing records (by calling either +save+, +update_attribute+ or +update_attributes+) will result in a SQL update operation. Active Record will use this facts to perform validations upon your objects, avoiding then to be recorded to the database if their inner state is invalid in some way. You can specify validations that will be beformed every time a object is saved, just when you're creating a new record or when you're updating an existing one.
+
+=== The meaning of 'valid'
+
+For verifying if an object is valid, Active Record uses the +valid?+ method, which basically looks inside the object to see if it has any validation errors. These errors live in a collection that can be accessed through the +errors+ instance method. The proccess is really simple: If the +errors+ method returns an empty collection, the object is valid and can be saved. Each time a validation fails, an error message is added to the +errors+ collection.
+
+== The declarative validation helpers
+
+Active Record offers many pre-defined validation helpers that you can use directly inside your class definitions. These helpers create validations rules that are commonly used in most of the applications that you'll write, so you don't need to recreate it everytime, avoiding code duplication, keeping everything organized and boosting your productivity. Everytime a validation fails, an error message is added to the object's +errors+ collection, this message being associated with the field being validated. 
+
+All these helpers accept the +:on+ and +:message+ options, which define when the validation should be applied and what message should be added to the +errors+ collection when it fails, respectively. The +:on+ option takes one the values +:save+ (it's the default), +:create+  or +:update+. There is a default error message for each one of the validation helpers. These messages are used when the +:message+ option isn't used. Let's take a look at each one of the available helpers, listed in alphabetic order.
+
+=== The +validates_acceptance_of+ helper
+
+Validates that a checkbox has been checked for agreement purposes. It's normally used when the user needs to agree with your application's terms of service, confirm reading some clauses or any similar concept. This validation is very specific to web applications and actually this 'acceptance' does not need to be recorded anywhere in your database (if you don't have a field for it, the helper will just create a virtual attribute).
+
+[source, ruby]
+------------------------------------------------------------------
+class Person < ActiveRecord::Base
+  validates_acceptance_of :terms_of_service
+end
+------------------------------------------------------------------
+
+The default error message for +validates_acceptance_of+ is "_must be accepted_"
+
++validates_acceptance_of+ can receive an +:accept+ option, which determines the value that will be considered acceptance. It defaults to "1", but you can change it.
+
+[source, ruby]
+------------------------------------------------------------------
+class Person < ActiveRecord::Base
+  validates_acceptance_of :terms_of_service, :accept => 'yes'
+end
+------------------------------------------------------------------
+
+
+=== The +validates_associated+ helper
+
+=== The +validates_confirmation_of+ helper
+
+=== The +validates_each+ helper
+
+=== The +validates_exclusion_of+ helper
+
+=== The +validates_format_of+ helper
+
+=== The +validates_inclusion_of+ helper
+
+=== The +validates_length_of+ helper
+
+=== The +validates_numericallity_of+ helper
+
+=== The +validates_presence_of+ helper
+
+=== The +validates_size_of+ helper
+
+=== The validates_uniqueness_of+ helper
+
+== Common validation options
 
 
 

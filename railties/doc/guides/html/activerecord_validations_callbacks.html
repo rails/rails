@@ -202,7 +202,47 @@ ul#navMain {
 					<a href="#_motivations_to_validate_your_active_record_objects">Motivations to validate your Active Record objects</a>
 					</li>
 					<li>
-					<a href="#_when_does_validation_happens">When does validation happens?</a>
+					<a href="#_how_it_works">How it works</a>
+						<ul>
+						
+							<li><a href="#_when_does_validation_happens">When does validation happens?</a></li>
+						
+							<li><a href="#_the_meaning_of_em_valid_em">The meaning of <em>valid</em></a></li>
+						
+						</ul>
+					</li>
+					<li>
+					<a href="#_the_declarative_validation_helpers">The declarative validation helpers</a>
+						<ul>
+						
+							<li><a href="#_the_tt_validates_acceptance_of_tt_helper">The <tt>validates_acceptance_of</tt> helper</a></li>
+						
+							<li><a href="#_the_tt_validates_associated_tt_helper">The <tt>validates_associated</tt> helper</a></li>
+						
+							<li><a href="#_the_tt_validates_confirmation_of_tt_helper">The <tt>validates_confirmation_of</tt> helper</a></li>
+						
+							<li><a href="#_the_tt_validates_each_tt_helper">The <tt>validates_each</tt> helper</a></li>
+						
+							<li><a href="#_the_tt_validates_exclusion_of_tt_helper">The <tt>validates_exclusion_of</tt> helper</a></li>
+						
+							<li><a href="#_the_tt_validates_format_of_tt_helper">The <tt>validates_format_of</tt> helper</a></li>
+						
+							<li><a href="#_the_tt_validates_inclusion_of_tt_helper">The <tt>validates_inclusion_of</tt> helper</a></li>
+						
+							<li><a href="#_the_tt_validates_length_of_tt_helper">The <tt>validates_length_of</tt> helper</a></li>
+						
+							<li><a href="#_the_tt_validates_numericallity_of_tt_helper">The <tt>validates_numericallity_of</tt> helper</a></li>
+						
+							<li><a href="#_the_tt_validates_presence_of_tt_helper">The <tt>validates_presence_of</tt> helper</a></li>
+						
+							<li><a href="#_the_tt_validates_size_of_tt_helper">The <tt>validates_size_of</tt> helper</a></li>
+						
+							<li><a href="#_the_validates_uniqueness_of_helper">The validates_uniqueness_of+ helper</a></li>
+						
+						</ul>
+					</li>
+					<li>
+					<a href="#_common_validation_options">Common validation options</a>
 					</li>
 					<li>
 					<a href="#_credits">Credits</a>
@@ -275,14 +315,79 @@ Using validation directly into your Active Record classes ensures that only vali
 </li>
 </ul></div>
 </div>
-<h2 id="_when_does_validation_happens">2. When does validation happens?</h2>
+<h2 id="_how_it_works">2. How it works</h2>
 <div class="sectionbody">
-<div class="para"><p>There are two kinds of Active Record objects: those that correspond to a row inside your database and those who do not. When you create a fresh object, using the <tt>new</tt> method, that object does not belong to the database yet. Once you call <tt>save</tt> upon that object it'll be recorded to it's table. Active Record uses the <tt>new_record?</tt> instance method to discover if an object is already in the database or not. Saving new records means sending an SQL insert operation to the database, while saving existing records (by calling either <tt>save</tt>, <tt>update_attribute</tt> or <tt>update_attributes</tt>) will result in a SQL update operation. Active Record will use this facts to perform validations upon your objects, avoiding then to be recorded to the database if their inner state is invalid in some way. You can specify validations that will be beformed every time a object is saved, just when you're creating a new record or when you're updating an existing one.</p></div>
+<h3 id="_when_does_validation_happens">2.1. When does validation happens?</h3>
+<div class="para"><p>There are two kinds of Active Record objects: those that correspond to a row inside your database and those who do not. When you create a fresh object, using the <tt>new</tt> method, that object does not belong to the database yet. Once you call <tt>save</tt> upon that object it'll be recorded to it's table. Active Record uses the <tt>new_record?</tt> instance method to discover if an object is already in the database or not. Consider the following simple and very creative Active Record class:</p></div>
+<div class="listingblock">
+<div class="content"><!-- Generator: GNU source-highlight 2.9
+by Lorenzo Bettini
+http://www.lorenzobettini.it
+http://www.gnu.org/software/src-highlite -->
+<pre><tt><span style="font-weight: bold"><span style="color: #0000FF">class</span></span> Person <span style="color: #990000">&lt;</span> ActiveRecord<span style="color: #990000">::</span>Base
+<span style="font-weight: bold"><span style="color: #0000FF">end</span></span>
+</tt></pre></div></div>
+<div class="para"><p>We can see how it works by looking at the following script/console output:</p></div>
+<div class="listingblock">
+<div class="content">
+<pre><tt>&gt;&gt; p = Person.new(:name =&gt; "John Doe", :birthdate =&gt; Date.parse("09/03/1979"))
+=&gt; #&lt;Person id: nil, name: "John Doe", birthdate: "1979-09-03", created_at: nil, updated_at: nil&gt;
+&gt;&gt; p.new_record?
+=&gt; true
+&gt;&gt; p.save
+=&gt; true
+&gt;&gt; p.new_record?
+=&gt; false</tt></pre>
+</div></div>
+<div class="para"><p>Saving new records means sending an SQL insert operation to the database, while saving existing records (by calling either <tt>save</tt>, <tt>update_attribute</tt> or <tt>update_attributes</tt>) will result in a SQL update operation. Active Record will use this facts to perform validations upon your objects, avoiding then to be recorded to the database if their inner state is invalid in some way. You can specify validations that will be beformed every time a object is saved, just when you're creating a new record or when you're updating an existing one.</p></div>
+<h3 id="_the_meaning_of_em_valid_em">2.2. The meaning of <em>valid</em></h3>
+<div class="para"><p>For verifying if an object is valid, Active Record uses the <tt>valid?</tt> method, which basically looks inside the object to see if it has any validation errors. These errors live in a collection that can be accessed through the <tt>errors</tt> instance method. The proccess is really simple: If the <tt>errors</tt> method returns an empty collection, the object is valid and can be saved. Each time a validation fails, an error message is added to the <tt>errors</tt> collection.</p></div>
 </div>
-<h2 id="_credits">3. Credits</h2>
+<h2 id="_the_declarative_validation_helpers">3. The declarative validation helpers</h2>
+<div class="sectionbody">
+<div class="para"><p>Active Record offers many pre-defined validation helpers that you can use directly inside your class definitions. These helpers create validations rules that are commonly used in most of the applications that you'll write, so you don't need to recreate it everytime, avoiding code duplication, keeping everything organized and boosting your productivity. Everytime a validation fails, an error message is added to the object's <tt>errors</tt> collection, this message being associated with the field being validated.</p></div>
+<div class="para"><p>All these helpers accept the <tt>:on</tt> and <tt>:message</tt> options, which define when the validation should be applied and what message should be added to the <tt>errors</tt> collection when it fails, respectively. The <tt>:on</tt> option takes one the values <tt>:save</tt> (it's the default), <tt>:create</tt>  or <tt>:update</tt>. There is a default error message for each one of the validation helpers. These messages are used when the <tt>:message</tt> option isn't used. Let's take a look at each one of the available helpers, listed in alphabetic order.</p></div>
+<h3 id="_the_tt_validates_acceptance_of_tt_helper">3.1. The <tt>validates_acceptance_of</tt> helper</h3>
+<div class="para"><p>Validates that a checkbox has been checked for agreement purposes. It's normally used when the user needs to agree with your application's terms of service, confirm reading some clauses or any similar concept. This validation is very specific to web applications and actually this <em>acceptance</em> does not need to be recorded anywhere in your database (if you don't have a field for it, the helper will just create a virtual attribute).</p></div>
+<div class="listingblock">
+<div class="content"><!-- Generator: GNU source-highlight 2.9
+by Lorenzo Bettini
+http://www.lorenzobettini.it
+http://www.gnu.org/software/src-highlite -->
+<pre><tt><span style="font-weight: bold"><span style="color: #0000FF">class</span></span> Person <span style="color: #990000">&lt;</span> ActiveRecord<span style="color: #990000">::</span>Base
+  validates_acceptance_of <span style="color: #990000">:</span>terms_of_service
+<span style="font-weight: bold"><span style="color: #0000FF">end</span></span>
+</tt></pre></div></div>
+<div class="para"><p>The default error message for <tt>validates_acceptance_of</tt> is "<em>must be accepted</em>"</p></div>
+<div class="para"><p><tt>validates_acceptance_of</tt> can receive an <tt>:accept</tt> option, which determines the value that will be considered acceptance. It defaults to "1", but you can change it.</p></div>
+<div class="listingblock">
+<div class="content"><!-- Generator: GNU source-highlight 2.9
+by Lorenzo Bettini
+http://www.lorenzobettini.it
+http://www.gnu.org/software/src-highlite -->
+<pre><tt><span style="font-weight: bold"><span style="color: #0000FF">class</span></span> Person <span style="color: #990000">&lt;</span> ActiveRecord<span style="color: #990000">::</span>Base
+  validates_acceptance_of <span style="color: #990000">:</span>terms_of_service<span style="color: #990000">,</span> <span style="color: #990000">:</span>accept <span style="color: #990000">=&gt;</span> <span style="color: #FF0000">'yes'</span>
+<span style="font-weight: bold"><span style="color: #0000FF">end</span></span>
+</tt></pre></div></div>
+<h3 id="_the_tt_validates_associated_tt_helper">3.2. The <tt>validates_associated</tt> helper</h3>
+<h3 id="_the_tt_validates_confirmation_of_tt_helper">3.3. The <tt>validates_confirmation_of</tt> helper</h3>
+<h3 id="_the_tt_validates_each_tt_helper">3.4. The <tt>validates_each</tt> helper</h3>
+<h3 id="_the_tt_validates_exclusion_of_tt_helper">3.5. The <tt>validates_exclusion_of</tt> helper</h3>
+<h3 id="_the_tt_validates_format_of_tt_helper">3.6. The <tt>validates_format_of</tt> helper</h3>
+<h3 id="_the_tt_validates_inclusion_of_tt_helper">3.7. The <tt>validates_inclusion_of</tt> helper</h3>
+<h3 id="_the_tt_validates_length_of_tt_helper">3.8. The <tt>validates_length_of</tt> helper</h3>
+<h3 id="_the_tt_validates_numericallity_of_tt_helper">3.9. The <tt>validates_numericallity_of</tt> helper</h3>
+<h3 id="_the_tt_validates_presence_of_tt_helper">3.10. The <tt>validates_presence_of</tt> helper</h3>
+<h3 id="_the_tt_validates_size_of_tt_helper">3.11. The <tt>validates_size_of</tt> helper</h3>
+<h3 id="_the_validates_uniqueness_of_helper">3.12. The validates_uniqueness_of+ helper</h3>
+</div>
+<h2 id="_common_validation_options">4. Common validation options</h2>
 <div class="sectionbody">
 </div>
-<h2 id="_changelog">4. Changelog</h2>
+<h2 id="_credits">5. Credits</h2>
+<div class="sectionbody">
+</div>
+<h2 id="_changelog">6. Changelog</h2>
 <div class="sectionbody">
 <div class="para"><p><a href="http://rails.lighthouseapp.com/projects/16213/tickets/26-active-record-validations-and-callbacks">http://rails.lighthouseapp.com/projects/16213/tickets/26-active-record-validations-and-callbacks</a></p></div>
 </div>
