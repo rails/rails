@@ -90,7 +90,7 @@ class FormatTest < Test::Unit::TestCase
 
    [:json, :xml].each do |format|
      encoded_person = ActiveResource::Formats[format].encode(person)
-     assert_match /12345 Street/, encoded_person
+     assert_match(/12345 Street/, encoded_person)
      remote_person = Person.new(person.update({:address => StreetAddress.new(address)}))
      assert_kind_of StreetAddress, remote_person.address
      using_format(Person, format) do
