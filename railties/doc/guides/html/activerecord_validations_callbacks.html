@@ -370,6 +370,27 @@ http://www.gnu.org/software/src-highlite -->
 <span style="font-weight: bold"><span style="color: #0000FF">end</span></span>
 </tt></pre></div></div>
 <h3 id="_the_tt_validates_associated_tt_helper">3.2. The <tt>validates_associated</tt> helper</h3>
+<div class="para"><p>You should use this helper when your model has associations with other models and they also need to be validated. When you try to save your object, <tt>valid?</tt> will be called upon each one of the associated objects.</p></div>
+<div class="listingblock">
+<div class="content"><!-- Generator: GNU source-highlight 2.9
+by Lorenzo Bettini
+http://www.lorenzobettini.it
+http://www.gnu.org/software/src-highlite -->
+<pre><tt><span style="font-weight: bold"><span style="color: #0000FF">class</span></span> Library <span style="color: #990000">&lt;</span> ActiveRecord<span style="color: #990000">::</span>Base
+  has_many <span style="color: #990000">:</span>books
+  validates_associated <span style="color: #990000">:</span>books
+<span style="font-weight: bold"><span style="color: #0000FF">end</span></span>
+</tt></pre></div></div>
+<div class="para"><p>This validation will work with all the association types.</p></div>
+<div class="admonitionblock">
+<table><tr>
+<td class="icon">
+<img src="./images/icons/caution.png" alt="Caution" />
+</td>
+<td class="content">Pay attention not to use <tt>validates_associated</tt> on both ends of your associations, because this will lead to several recursive calls and blow up the method calls' stack.</td>
+</tr></table>
+</div>
+<div class="para"><p>The default error message for <tt>validates_associated</tt> is "<em>is invalid</em>". Note that the errors for each failed validation in the associated objects will be set there and not in this model.</p></div>
 <h3 id="_the_tt_validates_confirmation_of_tt_helper">3.3. The <tt>validates_confirmation_of</tt> helper</h3>
 <h3 id="_the_tt_validates_each_tt_helper">3.4. The <tt>validates_each</tt> helper</h3>
 <h3 id="_the_tt_validates_exclusion_of_tt_helper">3.5. The <tt>validates_exclusion_of</tt> helper</h3>

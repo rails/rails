@@ -84,6 +84,22 @@ end
 
 === The +validates_associated+ helper
 
+You should use this helper when your model has associations with other models and they also need to be validated. When you try to save your object, +valid?+ will be called upon each one of the associated objects.
+
+[source, ruby]     
+------------------------------------------------------------------
+class Library < ActiveRecord::Base
+  has_many :books
+  validates_associated :books
+end
+------------------------------------------------------------------
+
+This validation will work with all the association types.
+
+CAUTION: Pay attention not to use +validates_associated+ on both ends of your associations, because this will lead to several recursive calls and blow up the method calls' stack.
+
+The default error message for +validates_associated+ is "_is invalid_". Note that the errors for each failed validation in the associated objects will be set there and not in this model.
+
 === The +validates_confirmation_of+ helper
 
 === The +validates_each+ helper
