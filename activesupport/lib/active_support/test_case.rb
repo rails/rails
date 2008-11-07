@@ -1,28 +1,32 @@
-require 'test/unit/testcase'
 require 'active_support/testing/setup_and_teardown'
 require 'active_support/testing/assertions'
-require 'active_support/testing/default'
+require 'active_support/testing/declarative'
 
 module ActiveSupport
-  class TestCase < ::Test::Unit::TestCase
+  # Prefer MiniTest with Test::Unit compatibility.
+  # Hacks around the test/unit autorun.
+  begin
+    require 'minitest/unit'
+    MiniTest::Unit.disable_autorun
+    require 'test/unit'
+
+    class TestCase < ::Test::Unit::TestCase
+      @@installed_at_exit = false
+    end
+
+  # Test::Unit compatibility.
+  rescue LoadError
+    require 'test/unit/testcase'
+    require 'active_support/testing/default'
+
+    class TestCase < ::Test::Unit::TestCase
+      include ActiveSupport::Testing::Default
+    end
+  end
+
+  class TestCase
     include ActiveSupport::Testing::SetupAndTeardown
     include ActiveSupport::Testing::Assertions
-    include ActiveSupport::Testing::Default
-
-    # test "verify something" do
-    #   ...
-    # end
-    def self.test(name, &block)
-      test_name = "test_#{name.gsub(/\s+/,'_')}".to_sym
-      defined = instance_method(test_name) rescue false
-      raise "#{test_name} is already defined in #{self}" if defined
-      if block_given?
-        define_method(test_name, &block)
-      else
-        define_method(test_name) do
-          flunk "No implementation provided for #{name}"
-        end
-      end
-    end
+    extend ActiveSupport::Testing::Declarative
   end
 end

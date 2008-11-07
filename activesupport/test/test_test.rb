@@ -66,6 +66,8 @@ class AssertDifferenceTest < ActiveSupport::TestCase
         @object.increment
       end
       fail 'should not get to here'
+    rescue MiniTest::Assertion => e
+      assert_equal "<3> expected but was\n<2>.", e.message
     rescue Test::Unit::AssertionFailedError => e
       assert_equal "<1 + 1> was the expression that failed.\n<3> expected but was\n<2>.", e.message
     end
@@ -75,6 +77,8 @@ class AssertDifferenceTest < ActiveSupport::TestCase
         @object.increment
       end
       fail 'should not get to here'
+    rescue MiniTest::Assertion => e
+      assert_equal "something went wrong.\n<3> expected but was\n<2>.", e.message
     rescue Test::Unit::AssertionFailedError => e
       assert_equal "something went wrong.\n<1 + 1> was the expression that failed.\n<3> expected but was\n<2>.", e.message
     end
@@ -84,8 +88,10 @@ class AssertDifferenceTest < ActiveSupport::TestCase
 end
 
 # These should always pass
-class NotTestingThingsTest < Test::Unit::TestCase
-  include ActiveSupport::Testing::Default
+if defined? ActiveSupport::Testing::Default
+  class NotTestingThingsTest < Test::Unit::TestCase
+    include ActiveSupport::Testing::Default
+  end
 end
 
 class AlsoDoingNothingTest < ActiveSupport::TestCase

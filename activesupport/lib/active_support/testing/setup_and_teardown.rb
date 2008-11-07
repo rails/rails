@@ -14,9 +14,8 @@ module ActiveSupport
           include ActiveSupport::Callbacks
           define_callbacks :setup, :teardown
 
-          if defined?(::Mini)
-            undef_method :run
-            alias_method :run, :run_with_callbacks_and_miniunit
+          if defined?(::MiniTest)
+            include ForMiniTest
           else
             begin
               require 'mocha'
@@ -30,22 +29,23 @@ module ActiveSupport
         end
       end
 
-      def run_with_callbacks_and_miniunit(runner)
-        result = '.'
-        begin
-          run_callbacks :setup
-          result = super
-        rescue Exception => e
-          result = runner.puke(self.class, self.name, e)
-        ensure
+      module ForMiniTest
+        def run(runner)
+          result = '.'
           begin
-            teardown
-            run_callbacks :teardown, :enumerator => :reverse_each
+            run_callbacks :setup
+            result = super
           rescue Exception => e
             result = runner.puke(self.class, self.name, e)
+          ensure
+            begin
+              run_callbacks :teardown, :enumerator => :reverse_each
+            rescue Exception => e
+              result = runner.puke(self.class, self.name, e)
+            end
           end
+          result
         end
-        result
       end
 
       # This redefinition is unfortunate but test/unit shows us no alternative.
