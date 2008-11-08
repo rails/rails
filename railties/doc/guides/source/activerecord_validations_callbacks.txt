@@ -102,6 +102,23 @@ The default error message for +validates_associated+ is "_is invalid_". Note tha
 
 === The +validates_confirmation_of+ helper
 
+You should use this helper when you have two text fields that should receive exactly the same content, like when you want to confirm an email address or password. This validation creates a virtual attribute, using the name of the field that has to be confirmed with '_confirmation' appended.
+
+[source, ruby]
+------------------------------------------------------------------
+class Person < ActiveRecord::Base
+  validates_confirmation_of :email
+end
+------------------------------------------------------------------
+
+In your view template you could use something like
+------------------------------------------------------------------
+<%= text_field :person, :email %>
+<%= text_field :person, :email_confirmation %>
+------------------------------------------------------------------
+
+The default error message for +validates_confirmation_of+ is "_doesn't match confirmation_"
+
 === The +validates_each+ helper
 
 === The +validates_exclusion_of+ helper
