@@ -346,6 +346,7 @@ http://www.gnu.org/software/src-highlite -->
 <h2 id="_the_declarative_validation_helpers">3. The declarative validation helpers</h2>
 <div class="sectionbody">
 <div class="para"><p>Active Record offers many pre-defined validation helpers that you can use directly inside your class definitions. These helpers create validations rules that are commonly used in most of the applications that you'll write, so you don't need to recreate it everytime, avoiding code duplication, keeping everything organized and boosting your productivity. Everytime a validation fails, an error message is added to the object's <tt>errors</tt> collection, this message being associated with the field being validated.</p></div>
+<div class="para"><p>Each helper accepts an arbitrary number of attributes, received as symbols, so with a single line of code you can add the same kind of validation to several attributes.</p></div>
 <div class="para"><p>All these helpers accept the <tt>:on</tt> and <tt>:message</tt> options, which define when the validation should be applied and what message should be added to the <tt>errors</tt> collection when it fails, respectively. The <tt>:on</tt> option takes one the values <tt>:save</tt> (it's the default), <tt>:create</tt>  or <tt>:update</tt>. There is a default error message for each one of the validation helpers. These messages are used when the <tt>:message</tt> option isn't used. Let's take a look at each one of the available helpers, listed in alphabetic order.</p></div>
 <h3 id="_the_tt_validates_acceptance_of_tt_helper">3.1. The <tt>validates_acceptance_of</tt> helper</h3>
 <div class="para"><p>Validates that a checkbox has been checked for agreement purposes. It's normally used when the user needs to agree with your application's terms of service, confirm reading some clauses or any similar concept. This validation is very specific to web applications and actually this <em>acceptance</em> does not need to be recorded anywhere in your database (if you don't have a field for it, the helper will just create a virtual attribute).</p></div>
@@ -413,7 +414,7 @@ http://www.gnu.org/software/src-highlite -->
 <td class="icon">
 <img src="./images/icons/note.png" alt="Note" />
 </td>
-<td class="content">This check is performed only if <tt>email_confirmation</tt> is not nil, and by default only on save. To require confirmation, make sure to add a presence check for the confirmation attribute:</td>
+<td class="content">This check is performed only if <tt>email_confirmation</tt> is not nil, and by default only on save. To require confirmation, make sure to add a presence check for the confirmation attribute (we'll take a look at <tt>validates_presence_of</tt> later on this guide):</td>
 </tr></table>
 </div>
 <div class="listingblock">

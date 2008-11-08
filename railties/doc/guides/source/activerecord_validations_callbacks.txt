@@ -57,6 +57,8 @@ For verifying if an object is valid, Active Record uses the +valid?+ method, whi
 
 Active Record offers many pre-defined validation helpers that you can use directly inside your class definitions. These helpers create validations rules that are commonly used in most of the applications that you'll write, so you don't need to recreate it everytime, avoiding code duplication, keeping everything organized and boosting your productivity. Everytime a validation fails, an error message is added to the object's +errors+ collection, this message being associated with the field being validated. 
 
+Each helper accepts an arbitrary number of attributes, received as symbols, so with a single line of code you can add the same kind of validation to several attributes.
+
 All these helpers accept the +:on+ and +:message+ options, which define when the validation should be applied and what message should be added to the +errors+ collection when it fails, respectively. The +:on+ option takes one the values +:save+ (it's the default), +:create+  or +:update+. There is a default error message for each one of the validation helpers. These messages are used when the +:message+ option isn't used. Let's take a look at each one of the available helpers, listed in alphabetic order.
 
 === The +validates_acceptance_of+ helper
@@ -117,7 +119,7 @@ In your view template you could use something like
 <%= text_field :person, :email_confirmation %>
 ------------------------------------------------------------------
 
-NOTE: This check is performed only if +email_confirmation+ is not nil, and by default only on save. To require confirmation, make sure to add a presence check for the confirmation attribute:
+NOTE: This check is performed only if +email_confirmation+ is not nil, and by default only on save. To require confirmation, make sure to add a presence check for the confirmation attribute (we'll take a look at +validates_presence_of+ later on this guide):
 
 [source, ruby]
 ------------------------------------------------------------------
