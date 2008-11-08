@@ -1,21 +1,17 @@
 Rails Finders
 =============
 
-This guide is all about the +find+ method defined in +ActiveRecord::Base+, finding on associations, and associated goodness such as named scopes. You will learn how to be a find master.
+This guide covers the +find+ method defined in +ActiveRecord::Base+, as well as other ways of finding particular instances of your models. By using this guide, you will be able to:
 
-== In the beginning...
+* Find records using a variety of methods and conditions
+* Specify the order, retrieved attributes, grouping, and other properties of the found records
+* Use eager loading to cut down on the number of database queries in your application
+* Use dynamic finders
+* Create named scopes to add custom finding behavior to your models
+* Check for the existence of particular records
+* Perform aggregate calculations on Active Record models
 
-In the beginning there was SQL. SQL looked like this:
-
-[source,sql]
--------------------------------------------------------
-SELECT * FROM clients
-SELECT * FROM clients WHERE id = '1'
-SELECT * FROM clients LIMIT 0,1
-SELECT * FROM clients ORDER BY id DESC LIMIT 0,1
--------------------------------------------------------
-
-In Rails (unlike some other frameworks) you don't usually have to type SQL because Active Record is there to help you find your records.
+If you're used to using raw SQL to find database records, you'll find that there are generally better ways to carry out the same operations in Rails. Active Record insulates you from the need to use SQL in most cases.
 
 == The Sample Models
 
