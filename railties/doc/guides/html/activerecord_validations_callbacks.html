@@ -429,6 +429,19 @@ http://www.gnu.org/software/src-highlite -->
 </tt></pre></div></div>
 <div class="para"><p>The default error message for <tt>validates_confirmation_of</tt> is "<em>doesn't match confirmation</em>"</p></div>
 <h3 id="_the_tt_validates_each_tt_helper">3.4. The <tt>validates_each</tt> helper</h3>
+<div class="para"><p>This helper validates attributes against a block. It doesn't have a predefined validation function. You should create one using a block, and every attribute passed to <tt>validates_each</tt> will be tested against it. In the following example, we don't want names and surnames to begin with lower case.</p></div>
+<div class="listingblock">
+<div class="content"><!-- Generator: GNU source-highlight 2.9
+by Lorenzo Bettini
+http://www.lorenzobettini.it
+http://www.gnu.org/software/src-highlite -->
+<pre><tt><span style="font-weight: bold"><span style="color: #0000FF">class</span></span> Person <span style="color: #990000">&lt;</span> ActiveRecord<span style="color: #990000">::</span>Base
+  validates_each <span style="color: #990000">:</span>name<span style="color: #990000">,</span> <span style="color: #990000">:</span>surname <span style="font-weight: bold"><span style="color: #0000FF">do</span></span> <span style="color: #990000">|</span>model<span style="color: #990000">,</span> attr<span style="color: #990000">,</span> value<span style="color: #990000">|</span>
+    model<span style="color: #990000">.</span>errors<span style="color: #990000">.</span>add<span style="color: #990000">(</span>attr<span style="color: #990000">,</span> <span style="color: #FF0000">'Must start with upper case'</span><span style="color: #990000">)</span> <span style="font-weight: bold"><span style="color: #0000FF">if</span></span> value <span style="color: #990000">=~</span> <span style="color: #FF6600">/^[a-z]/</span>
+  <span style="font-weight: bold"><span style="color: #0000FF">end</span></span>
+<span style="font-weight: bold"><span style="color: #0000FF">end</span></span>
+</tt></pre></div></div>
+<div class="para"><p>The block receives the model, the attribute's name and the attribute's value. If your validation fails, you can add an error message to the model, therefore making it invalid.</p></div>
 <h3 id="_the_tt_validates_exclusion_of_tt_helper">3.5. The <tt>validates_exclusion_of</tt> helper</h3>
 <h3 id="_the_tt_validates_format_of_tt_helper">3.6. The <tt>validates_format_of</tt> helper</h3>
 <h3 id="_the_tt_validates_inclusion_of_tt_helper">3.7. The <tt>validates_inclusion_of</tt> helper</h3>
