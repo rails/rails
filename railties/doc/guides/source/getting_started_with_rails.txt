@@ -186,7 +186,7 @@ If you open this file in a new Rails application, you'll see a default database 
 
 ==== Configuring a SQLite Database
 
-Rails comes with built-in support for SQLite, which is a lightweight flat-file based database application. While a busy production environment may overload SQLite, it works well for development and testing. Rails defaults to using a SQLite database when creating a new project, but you can always change it later.
+Rails comes with built-in support for link:http://www.sqlite.org/[SQLite], which is a lightweight serverless database application. While a busy production environment may overload SQLite, it works well for development and testing. Rails defaults to using a SQLite database when creating a new project, but you can always change it later.
 
 Here's the section of the default configuration file with connection information for the development environment:
 
