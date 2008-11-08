@@ -292,10 +292,7 @@ module ActiveRecord
       # and also returns connections to the pool cached by threads that are no
       # longer alive.
       def clear_active_connections!
-        @connection_pools.each_value do |pool|
-          pool.release_connection
-          pool.clear_stale_cached_connections!
-        end
+        @connection_pools.each_value {|pool| pool.release_connection }
       end
 
       # Clears the cache which maps classes
