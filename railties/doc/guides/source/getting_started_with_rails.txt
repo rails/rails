@@ -480,7 +480,7 @@ This code sets the +@posts+ instance variable to an array of all posts in the da
 
 TIP: For more information on finding records with Active Record, see link:../finders.html[Active Record Finders].
 
-The +respond_to+ block handles both HTML and XML calls to this action. If you borwse to +http://localhost:3000/posts.xml+, you'll see all of the posts in XML format. The HTML format looks for a view in +app/views/posts/+ with a name that corresponds to the action name. Rails makes all of the instance variables from the action available to the view. Here's +app/view/posts/index.html.erb+:
+The +respond_to+ block handles both HTML and XML calls to this action. If you browse to +http://localhost:3000/posts.xml+, you'll see all of the posts in XML format. The HTML format looks for a view in +app/views/posts/+ with a name that corresponds to the action name. Rails makes all of the instance variables from the action available to the view. Here's +app/view/posts/index.html.erb+:
 
 [source, ruby]
 -------------------------------------------------------
