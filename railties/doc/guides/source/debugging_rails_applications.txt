@@ -595,7 +595,7 @@ To list all active catchpoints use `catch`.
 There are two ways to resume execution of an application that is stopped in the debugger:
 
 * `continue` [line-specification] (or `c`): resume program execution, at the address where your script last stopped; any breakpoints set at that address are bypassed. The optional argument line-specification allows you to specify a line number to set a one-time breakpoint which is deleted when that breakpoint is reached.
-* `finish` [frame-number] (or `fin`): execute until the selected stack frame returns. If no frame number is given, the application run until the currently selected frame returns. The currently selected frame starts out the most-recent frame or 0 if no frame positioning (e.g up, down or frame) has been performed. If a frame number is given it will run until the specified frame returns.
+* `finish` [frame-number] (or `fin`): execute until the selected stack frame returns. If no frame number is given, the application will run until the currently selected frame returns. The currently selected frame starts out the most-recent frame or 0 if no frame positioning (e.g up, down or frame) has been performed. If a frame number is given it will run until the specified frame returns.
 
 === Editing
 
@@ -704,7 +704,7 @@ For further information on how to install Valgrind and use with Ruby, refer to l
 
 There are some Rails plugins to help you to find errors and debug your application. Here is a list of useful plugins for debugging:
 
-* link:http://github.com/drnic/rails-footnotes/tree/master[Footnotes]: Every Rails page has footnotes that link give request information and link back to your source via TextMate.
+* link:http://github.com/drnic/rails-footnotes/tree/master[Footnotes]: Every Rails page has footnotes that give request information and link back to your source via TextMate.
 * link:http://github.com/ntalbott/query_trace/tree/master[Query Trace]: Adds query origin tracing to your logs.
 * link:http://github.com/dan-manges/query_stats/tree/master[Query Stats]: A Rails plugin to track database queries. 
 * link:http://code.google.com/p/query-reviewer/[Query Reviewer]: This rails plugin not only runs "EXPLAIN" before each of your select queries in development, but provides a small DIV in the rendered output of each page with the summary of warnings for each query that it analyzed.
