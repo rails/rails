@@ -408,6 +408,24 @@ http://www.gnu.org/software/src-highlite -->
 <pre><tt>&lt;%= text_field :person, :email %&gt;
 &lt;%= text_field :person, :email_confirmation %&gt;</tt></pre>
 </div></div>
+<div class="admonitionblock">
+<table><tr>
+<td class="icon">
+<img src="./images/icons/note.png" alt="Note" />
+</td>
+<td class="content">This check is performed only if <tt>email_confirmation</tt> is not nil, and by default only on save. To require confirmation, make sure to add a presence check for the confirmation attribute:</td>
+</tr></table>
+</div>
+<div class="listingblock">
+<div class="content"><!-- Generator: GNU source-highlight 2.9
+by Lorenzo Bettini
+http://www.lorenzobettini.it
+http://www.gnu.org/software/src-highlite -->
+<pre><tt><span style="font-weight: bold"><span style="color: #0000FF">class</span></span> Person <span style="color: #990000">&lt;</span> ActiveRecord<span style="color: #990000">::</span>Base
+  validates_confirmation_of <span style="color: #990000">:</span>email
+  validates_presence_of <span style="color: #990000">:</span>email_confirmation
+<span style="font-weight: bold"><span style="color: #0000FF">end</span></span>
+</tt></pre></div></div>
 <div class="para"><p>The default error message for <tt>validates_confirmation_of</tt> is "<em>doesn't match confirmation</em>"</p></div>
 <h3 id="_the_tt_validates_each_tt_helper">3.4. The <tt>validates_each</tt> helper</h3>
 <h3 id="_the_tt_validates_exclusion_of_tt_helper">3.5. The <tt>validates_exclusion_of</tt> helper</h3>

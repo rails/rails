@@ -117,6 +117,16 @@ In your view template you could use something like
 <%= text_field :person, :email_confirmation %>
 ------------------------------------------------------------------
 
+NOTE: This check is performed only if +email_confirmation+ is not nil, and by default only on save. To require confirmation, make sure to add a presence check for the confirmation attribute:
+
+[source, ruby]
+------------------------------------------------------------------
+class Person < ActiveRecord::Base
+  validates_confirmation_of :email
+  validates_presence_of :email_confirmation
+end
+------------------------------------------------------------------
+
 The default error message for +validates_confirmation_of+ is "_doesn't match confirmation_"
 
 === The +validates_each+ helper
