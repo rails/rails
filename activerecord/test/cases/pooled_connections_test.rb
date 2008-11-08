@@ -28,10 +28,13 @@ class PooledConnectionsTest < ActiveRecord::TestCase
     end
   end
 
-  def test_pooled_connection_checkout
-    checkout_connections
-    assert_equal @connections.length, 2
-    assert_equal @timed_out, 2
+  # Will deadlock due to lack of Monitor timeouts in 1.9
+  if RUBY_VERSION < '1.9'
+    def test_pooled_connection_checkout
+      checkout_connections
+      assert_equal @connections.length, 2
+      assert_equal @timed_out, 2
+    end
   end
 
   def checkout_checkin_connections(pool_size, threads)
