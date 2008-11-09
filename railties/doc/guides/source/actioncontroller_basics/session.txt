@@ -1,15 +1,15 @@
 == Session ==
 
-Your application has a session for each user in which you can store small amounts of data that will be persisted between requests. The session is only available in the controller and can use one of a number of different storage mechanisms:
+Your application has a session for each user in which you can store small amounts of data that will be persisted between requests. The session is only available in the controller and the view and can use one of a number of different storage mechanisms:
 
  * CookieStore - Stores everything on the client.
- * DRBStore - Stores the data on a DRb client.
- * MemCacheStore - Stores the data in MemCache.
+ * DRbStore - Stores the data on a DRb server.
+ * MemCacheStore - Stores the data in a memcache.
  * ActiveRecordStore - Stores the data in a database using Active Record.
 
-All session stores store either the session ID or the entire session in a cookie - Rails does not allow the session ID to be passed in any other way. Most stores also use this key to locate the session data on the server.
+All session stores use a cookie - this is required and Rails does not allow any part of the session to be passed in any other way (e.g. you can't use the query string to pass a session ID) because of security concerns (it's easier to hijack a session when the ID is part of the URL).
 
-The default and recommended store, the Cookie Store, does not store session data on the server, but in the cookie itself. The data is cryptographically signed to make it tamper-proof, but it is not encrypted, so anyone with access to it can read its contents but not edit it. It can only store about 4kB of data - much less than the others - but this is usually enough. Storing large amounts of data is discouraged no matter which session store your application uses. You should especially avoid storing complex objects (anything other than basic Ruby objects, the primary example being model instances) in the session, as the server might not be able to reassemble them between requests, which will result in an error. The Cookie Store has the added advantage that it does not require any setting up beforehand - Rails will generate a "secret key" which will be used to sign the cookie when you create the application.
+Most stores use a cookie to store the session ID which is then used to look up the session data on the server. The default and recommended store, the CookieStore, does not store session data on the server, but in the cookie itself. The data is cryptographically signed to make it tamper-proof, but it is not encrypted, so anyone with access to it can read its contents but not edit it (Rails will not accept it if it has been edited). It can only store about 4kB of data - much less than the others - but this is usually enough. Storing large amounts of data is discouraged no matter which session store your application uses. You should especially avoid storing complex objects (anything other than basic Ruby objects, the most common example being model instances) in the session, as the server might not be able to reassemble them between requests, which will result in an error. The CookieStore has the added advantage that it does not require any setting up beforehand - Rails will generate a "secret key" which will be used to sign the cookie when you create the application.
 
 Read more about session storage in the link:../security.html[Security Guide].
 
@@ -56,7 +56,7 @@ end
 
 In your controller you can access the session through the `session` instance method.
 
-NOTE: There are two `session` methods, the class and the instance method. The class method which is described above is used to turn the session on and off while the instance method described below is used to access session values. The class method is used outside of method definitions while the instance methods is used inside methods, in actions or filters.
+NOTE: There are two `session` methods, the class and the instance method. The class method which is described above is used to turn the session on and off while the instance method described below is used to access session values.
 
 Session values are stored using key/value pairs like a hash:
 
@@ -129,7 +129,7 @@ class LoginsController < ApplicationController
 end
 ------------------------------------------
 
-The `destroy` action redirects to the application's `root_url`, where the message will be displayed. Note that it's entirely up to the next action to decide what, if anything, it will do with what the previous action put in the flash. It's conventional to a display eventual errors or notices from the flash in the application's layout:
+The `destroy` action redirects to the application's `root_url`, where the message will be displayed. Note that it's entirely up to the next action to decide what, if anything, it will do with what the previous action put in the flash. It's conventional to display eventual errors or notices from the flash in the application's layout:
 
 ------------------------------------------
 <html>

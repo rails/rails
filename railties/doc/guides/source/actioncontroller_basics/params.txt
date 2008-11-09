@@ -43,6 +43,8 @@ The params hash is not limited to one-dimensional keys and values. It can contai
 GET /clients?ids[]=1&ids[]=2&ids[]=3
 -------------------------------------
 
+NOTE: The actual URL in this example will be encoded as "/clients?ids%5b%5d=1&ids%5b%5d=2&ids%5b%5b=3" as [ and ] are not allowed in URLs. Most of the time you don't have to worry about this because the browser will take care of it for you, and Rails will decode it back when it receives it, but if you ever find yourself having to send those requests to the server manually you have to keep this in mind.
+
 The value of `params[:ids]` will now be `["1", "2", "3"]`. Note that parameter values are always strings; Rails makes no attempt to guess or cast the type.
 
 To send a hash you include the key name inside the brackets:
@@ -56,7 +58,9 @@ To send a hash you include the key name inside the brackets:
 </form>
 -------------------------------------
 
-The value of `params[:client]` when this form is submitted  will be `{:name => "Acme", :phone => "12345", :address => {:postcode => "12345", :city => "Carrot City"}}`. Note the nested hash in `params[:client][:address]`.
+The value of `params[:client]` when this form is submitted  will be `{"name" => "Acme", "phone" => "12345", "address" => {"postcode" => "12345", "city" => "Carrot City"}}`. Note the nested hash in `params[:client][:address]`.
+
+Note that the params hash is actually an instance of HashWithIndifferentAccess from Active Support which is a subclass of Hash which lets you use symbols and strings interchangeably as keys.
 
 === Routing Parameters ===
 
@@ -78,7 +82,7 @@ You can set global default parameters that will be used when generating URLs wit
 ------------------------------------
 class ApplicationController < ActionController::Base
 
-  #The options parameter is the hash passed in to url_for
+  #The options parameter is the hash passed in to +url_for+
   def default_url_options(options)
     {:locale => I18n.locale}
   end
@@ -86,4 +90,4 @@ class ApplicationController < ActionController::Base
 end
 ------------------------------------
 
-These options will be used as a starting-point when generating, so it's possible they'll be overridden by url_for. Because this method is defined in the controller, you can define it on ApplicationController so it would be used for all URL generation, or you could define it on only one controller for all URLs generated there.
+These options will be used as a starting-point when generating, so it's possible they'll be overridden by +url_for+. Because this method is defined in the controller, you can define it on ApplicationController so it would be used for all URL generation, or you could define it on only one controller for all URLs generated there.
