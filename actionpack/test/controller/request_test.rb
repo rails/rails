@@ -735,11 +735,7 @@ class MultipartRequestParameterParsingTest < Test::Unit::TestCase
     file = params['file']
     foo  = params['foo']
 
-    if RUBY_VERSION > '1.9'
-      assert_kind_of File, file
-    else
-      assert_kind_of Tempfile, file
-    end
+    assert_kind_of Tempfile, file
 
     assert_equal 'file.txt', file.original_filename
     assert_equal "text/plain", file.content_type
@@ -753,11 +749,9 @@ class MultipartRequestParameterParsingTest < Test::Unit::TestCase
     assert_equal 'bar', params['foo']
 
     file = params['file']
-    if RUBY_VERSION > '1.9'
-      assert_kind_of File, file
-    else
-      assert_kind_of Tempfile, file
-    end
+
+    assert_kind_of Tempfile, file
+
     assert_equal 'file.txt', file.original_filename
     assert_equal "text/plain", file.content_type
     assert ('a' * 20480) == file.read
