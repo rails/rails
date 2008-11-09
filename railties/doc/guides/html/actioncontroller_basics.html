@@ -349,7 +349,7 @@ Deal with exceptions that may be raised during request processing
 </div>
 <h2 id="_methods_and_actions">2. Methods and Actions</h2>
 <div class="sectionbody">
-<div class="para"><p>A controller is a Ruby class which inherits from ApplicationController and has methods just like any other class. Usually these methods correspond to actions in MVC, but they can just as well be helpful methods which can be called by actions. When your application receives a request, the routing will determine which controller and action to run. Then Rails creates an instance of that controller and runs the method corresponding to the action (the method with the same name as the action).</p></div>
+<div class="para"><p>A controller is a Ruby class which inherits from ApplicationController and has methods just like any other class. When your application receives a request, the routing will determine which controller and action to run, then Rails creates an instance of that controller and runs the public method with the same name as the action.</p></div>
 <div class="listingblock">
 <div class="content"><!-- Generator: GNU source-highlight 2.9
 by Lorenzo Bettini
@@ -361,7 +361,7 @@ http://www.gnu.org/software/src-highlite -->
   <span style="font-weight: bold"><span style="color: #0000FF">def</span></span> new
   <span style="font-weight: bold"><span style="color: #0000FF">end</span></span>
 
-  <span style="font-style: italic"><span style="color: #9A1900"># These methods are responsible for producing output</span></span>
+  <span style="font-style: italic"><span style="color: #9A1900"># Action methods are responsible for producing output</span></span>
   <span style="font-weight: bold"><span style="color: #0000FF">def</span></span> edit
   <span style="font-weight: bold"><span style="color: #0000FF">end</span></span>
 
@@ -373,8 +373,8 @@ private
 
 <span style="font-weight: bold"><span style="color: #0000FF">end</span></span>
 </tt></pre></div></div>
-<div class="para"><p>Private methods in a controller are also used as filters, which will be covered later in this guide.</p></div>
-<div class="para"><p>As an example, if the user goes to <tt>/clients/new</tt> in your application to add a new client, Rails will create a ClientsController instance will be created and run the <tt>new</tt> method. Note that the empty method from the example above could work just fine because Rails will by default render the <tt>new.html.erb</tt> view unless the action says otherwise. The <tt>new</tt> method could make available to the view a <tt>@client</tt> instance variable by creating a new Client:</p></div>
+<div class="para"><p>There's no rule saying a method on a controller has to be an action; they may well be used for other purposes such as filters, which will be covered later in this guide.</p></div>
+<div class="para"><p>As an example, if a user goes to <tt>/clients/new</tt> in your application to add a new client, Rails will create an instance of ClientsController and run the <tt>new</tt> method. Note that the empty method from the example above could work just fine because Rails will by default render the <tt>new.html.erb</tt> view unless the action says otherwise. The <tt>new</tt> method could make available to the view a <tt>@client</tt> instance variable by creating a new Client:</p></div>
 <div class="listingblock">
 <div class="content"><!-- Generator: GNU source-highlight 2.9
 by Lorenzo Bettini
@@ -431,6 +431,14 @@ http://www.gnu.org/software/src-highlite -->
 <div class="content">
 <pre><tt>GET /clients?ids[]=1&amp;ids[]=2&amp;ids[]=3</tt></pre>
 </div></div>
+<div class="admonitionblock">
+<table><tr>
+<td class="icon">
+<img src="./images/icons/note.png" alt="Note" />
+</td>
+<td class="content">The actual URL in this example will be encoded as "/clients?ids%5b%5d=1&amp;ids%5b%5d=2&amp;ids%5b%5b=3" as [ and ] are not allowed in URLs. Most of the time you don't have to worry about this because the browser will take care of it for you, and Rails will decode it back when it receives it, but if you ever find yourself having to send those requests to the server manually you have to keep this in mind.</td>
+</tr></table>
+</div>
 <div class="para"><p>The value of <tt>params[:ids]</tt> will now be <tt>["1", "2", "3"]</tt>. Note that parameter values are always strings; Rails makes no attempt to guess or cast the type.</p></div>
 <div class="para"><p>To send a hash you include the key name inside the brackets:</p></div>
 <div class="listingblock">
@@ -442,7 +450,8 @@ http://www.gnu.org/software/src-highlite -->
   &lt;input type="text" name="client[address][city]" value="Carrot City" /&gt;
 &lt;/form&gt;</tt></pre>
 </div></div>
-<div class="para"><p>The value of <tt>params[:client]</tt> when this form is submitted  will be <tt>{:name &#8658; "Acme", :phone &#8658; "12345", :address &#8658; {:postcode &#8658; "12345", :city &#8658; "Carrot City"}}</tt>. Note the nested hash in <tt>params[:client][:address]</tt>.</p></div>
+<div class="para"><p>The value of <tt>params[:client]</tt> when this form is submitted  will be <tt>{"name" &#8658; "Acme", "phone" &#8658; "12345", "address" &#8658; {"postcode" &#8658; "12345", "city" &#8658; "Carrot City"}}</tt>. Note the nested hash in <tt>params[:client][:address]</tt>.</p></div>
+<div class="para"><p>Note that the params hash is actually an instance of HashWithIndifferentAccess from Active Support which is a subclass of Hash which lets you use symbols and strings interchangeably as keys.</p></div>
 <h3 id="_routing_parameters">3.2. Routing Parameters</h3>
 <div class="para"><p>The <tt>params</tt> hash will always contain the <tt>:controller</tt> and <tt>:action</tt> keys, but you should use the methods <tt>controller_name</tt> and <tt>action_name</tt> instead to access these values. Any other parameters defined by the routing, such as <tt>:id</tt> will also be available. As an example, consider a listing of clients where the list can show either active or inactive clients. We can add a route which captures the <tt>:status</tt> parameter in a "pretty" URL:</p></div>
 <div class="listingblock">
@@ -461,18 +470,18 @@ map<span style="color: #990000">.</span>connect <span style="color: #FF0000">"/c
 <div class="content">
 <pre><tt>class ApplicationController &lt; ActionController::Base
 
-  #The options parameter is the hash passed in to url_for
+  #The options parameter is the hash passed in to +url_for+
   def default_url_options(options)
     {:locale =&gt; I18n.locale}
   end
 
 end</tt></pre>
 </div></div>
-<div class="para"><p>These options will be used as a starting-point when generating, so it's possible they'll be overridden by url_for. Because this method is defined in the controller, you can define it on ApplicationController so it would be used for all URL generation, or you could define it on only one controller for all URLs generated there.</p></div>
+<div class="para"><p>These options will be used as a starting-point when generating, so it's possible they'll be overridden by <tt>url_for</tt>. Because this method is defined in the controller, you can define it on ApplicationController so it would be used for all URL generation, or you could define it on only one controller for all URLs generated there.</p></div>
 </div>
 <h2 id="_session">4. Session</h2>
 <div class="sectionbody">
-<div class="para"><p>Your application has a session for each user in which you can store small amounts of data that will be persisted between requests. The session is only available in the controller and can use one of a number of different storage mechanisms:</p></div>
+<div class="para"><p>Your application has a session for each user in which you can store small amounts of data that will be persisted between requests. The session is only available in the controller and the view and can use one of a number of different storage mechanisms:</p></div>
 <div class="ilist"><ul>
 <li>
 <p>
@@ -481,12 +490,12 @@ CookieStore - Stores everything on the client.
 </li>
 <li>
 <p>
-DRBStore - Stores the data on a DRb client.
+DRbStore - Stores the data on a DRb server.
 </p>
 </li>
 <li>
 <p>
-MemCacheStore - Stores the data in MemCache.
+MemCacheStore - Stores the data in a memcache.
 </p>
 </li>
 <li>
@@ -495,8 +504,8 @@ ActiveRecordStore - Stores the data in a database using Active Record.
 </p>
 </li>
 </ul></div>
-<div class="para"><p>All session stores store either the session ID or the entire session in a cookie - Rails does not allow the session ID to be passed in any other way. Most stores also use this key to locate the session data on the server.</p></div>
-<div class="para"><p>The default and recommended store, the Cookie Store, does not store session data on the server, but in the cookie itself. The data is cryptographically signed to make it tamper-proof, but it is not encrypted, so anyone with access to it can read its contents but not edit it. It can only store about 4kB of data - much less than the others - but this is usually enough. Storing large amounts of data is discouraged no matter which session store your application uses. You should especially avoid storing complex objects (anything other than basic Ruby objects, the primary example being model instances) in the session, as the server might not be able to reassemble them between requests, which will result in an error. The Cookie Store has the added advantage that it does not require any setting up beforehand - Rails will generate a "secret key" which will be used to sign the cookie when you create the application.</p></div>
+<div class="para"><p>All session stores use a cookie - this is required and Rails does not allow any part of the session to be passed in any other way (e.g. you can't use the query string to pass a session ID) because of security concerns (it's easier to hijack a session when the ID is part of the URL).</p></div>
+<div class="para"><p>Most stores use a cookie to store the session ID which is then used to look up the session data on the server. The default and recommended store, the CookieStore, does not store session data on the server, but in the cookie itself. The data is cryptographically signed to make it tamper-proof, but it is not encrypted, so anyone with access to it can read its contents but not edit it (Rails will not accept it if it has been edited). It can only store about 4kB of data - much less than the others - but this is usually enough. Storing large amounts of data is discouraged no matter which session store your application uses. You should especially avoid storing complex objects (anything other than basic Ruby objects, the most common example being model instances) in the session, as the server might not be able to reassemble them between requests, which will result in an error. The CookieStore has the added advantage that it does not require any setting up beforehand - Rails will generate a "secret key" which will be used to sign the cookie when you create the application.</p></div>
 <div class="para"><p>Read more about session storage in the <a href="../security.html">Security Guide</a>.</p></div>
 <div class="para"><p>If you need a different session storage mechanism, you can change it in the <tt>config/environment.rb</tt> file:</p></div>
 <div class="listingblock">
@@ -547,7 +556,7 @@ http://www.gnu.org/software/src-highlite -->
 <td class="icon">
 <img src="./images/icons/note.png" alt="Note" />
 </td>
-<td class="content">There are two <tt>session</tt> methods, the class and the instance method. The class method which is described above is used to turn the session on and off while the instance method described below is used to access session values. The class method is used outside of method definitions while the instance methods is used inside methods, in actions or filters.</td>
+<td class="content">There are two <tt>session</tt> methods, the class and the instance method. The class method which is described above is used to turn the session on and off while the instance method described below is used to access session values.</td>
 </tr></table>
 </div>
 <div class="para"><p>Session values are stored using key/value pairs like a hash:</p></div>
@@ -623,7 +632,7 @@ http://www.gnu.org/software/src-highlite -->
 
 <span style="font-weight: bold"><span style="color: #0000FF">end</span></span>
 </tt></pre></div></div>
-<div class="para"><p>The <tt>destroy</tt> action redirects to the application's <tt>root_url</tt>, where the message will be displayed. Note that it's entirely up to the next action to decide what, if anything, it will do with what the previous action put in the flash. It's conventional to a display eventual errors or notices from the flash in the application's layout:</p></div>
+<div class="para"><p>The <tt>destroy</tt> action redirects to the application's <tt>root_url</tt>, where the message will be displayed. Note that it's entirely up to the next action to decide what, if anything, it will do with what the previous action put in the flash. It's conventional to display eventual errors or notices from the flash in the application's layout:</p></div>
 <div class="listingblock">
 <div class="content">
 <pre><tt>&lt;html&gt;

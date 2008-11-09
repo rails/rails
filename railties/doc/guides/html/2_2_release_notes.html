@@ -525,7 +525,7 @@ More information :
 <div class="sectionbody">
 <div class="para"><p>There are two big additions to talk about here: transactional migrations and pooled database transactions. There's also a new (and cleaner) syntax for join table conditions, as well as a number of smaller improvements.</p></div>
 <h3 id="_transactional_migrations">5.1. Transactional Migrations</h3>
-<div class="para"><p>Historically, multiple-step Rails migrations have been a source of trouble. If something went wrong during a migration, everything before the error changed the database and everything after the error wasn't applied. Also, the migration version was stored as having been executed, which means that it couldn't be simply rerun by <tt>rake db:migrate:redo</tt> after you fix the problem. Transactional migrations change this by wrapping migration steps in a DDL transaction, so that if any of them fail, the entire migration is undone. In Rails 2.2, transactional migrations are supported <strong>on PostgreSQL only</strong>. The code is extensible to other database types in the future.</p></div>
+<div class="para"><p>Historically, multiple-step Rails migrations have been a source of trouble. If something went wrong during a migration, everything before the error changed the database and everything after the error wasn't applied. Also, the migration version was stored as having been executed, which means that it couldn't be simply rerun by <tt>rake db:migrate:redo</tt> after you fix the problem. Transactional migrations change this by wrapping migration steps in a DDL transaction, so that if any of them fail, the entire migration is undone. In Rails 2.2, transactional migrations are supported on PostgreSQL out of the box. The code is extensible to other database types in the future - and IBM has already extended it to support the DB2 adapter.</p></div>
 <div class="ilist"><ul>
 <li>
 <p>
@@ -540,6 +540,11 @@ More information:
 <li>
 <p>
 <a href="http://adam.blog.heroku.com/past/2008/9/3/ddl_transactions/">DDL Transactions</a>
+</p>
+</li>
+<li>
+<p>
+<a href="http://db2onrails.com/2008/11/08/a-major-milestone-for-db2-on-rails/">A major milestone for DB2 on Rails</a>
 </p>
 </li>
 </ul></div>
