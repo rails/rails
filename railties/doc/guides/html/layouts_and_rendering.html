@@ -1305,6 +1305,14 @@ http://www.gnu.org/software/src-highlite -->
 <pre><tt>&lt;%= render :partial =&gt; "product", :collection =&gt; @products, :as =&gt; :item %&gt;
 </tt></pre></div></div>
 <div class="para"><p>With this change, you can access an instance of the <tt>@products</tt> collection as the <tt>item</tt> local variable within the partial.</p></div>
+<div class="admonitionblock">
+<table><tr>
+<td class="icon">
+<img src="./images/icons/tip.png" alt="Tip" />
+</td>
+<td class="content">Rails also makes a counter variable available within a partial called by the collection, named after the member of the collection followed by <tt>_counter</tt>. For example, if you're rendering <tt>@products</tt>, within the partial you can refer to <tt>product_counter</tt> to tell you how many times the partial has been rendered.</td>
+</tr></table>
+</div>
 <div class="para"><p>You can also specify a second partial to be rendered between instances of the main partial by using the <tt>:spacer_template</tt> option:</p></div>
 <div class="listingblock">
 <div class="content"><!-- Generator: GNU source-highlight 2.9
@@ -1364,6 +1372,11 @@ http://www.gnu.org/software/src-highlite -->
 <div class="sectionbody">
 <div class="para"><p><a href="http://rails.lighthouseapp.com/projects/16213-rails-guides/tickets/15">Lighthouse ticket</a></p></div>
 <div class="ilist"><ul>
+<li>
+<p>
+November 9, 2008: Added partial collection counter by <a href="../authors.html#mgunderloy">Mike Gunderloy</a>
+</p>
+</li>
 <li>
 <p>
 November 1, 2008: Added <tt>:js</tt> option for <tt>render</tt> by <a href="../authors.html#mgunderloy">Mike Gunderloy</a>
