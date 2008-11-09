@@ -832,7 +832,6 @@ module ActiveRecord
         self.use_instantiated_fixtures = true
         self.pre_loaded_fixtures = false
 
-        @@already_loaded_fixtures = {}
         self.fixture_class_names = {}
       end
 
@@ -940,6 +939,7 @@ module ActiveRecord
       # Load fixtures for every test.
       else
         Fixtures.reset_cache
+        @@already_loaded_fixtures ||= {}
         @@already_loaded_fixtures[self.class] = nil
         load_fixtures
       end
