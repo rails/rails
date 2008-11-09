@@ -48,7 +48,8 @@ class BaseCgiTest < Test::Unit::TestCase
     # some developers have grown accustomed to using comma in cookie values.
     @alt_cookie_fmt_request_hash = {"HTTP_COOKIE"=>"_session_id=c84ace847,96670c052c6ceb2451fb0f2;is_admin=yes"}
     @cgi = CGI.new
-    @cgi.stubs(:env_table).returns(@request_hash)
+    class << @cgi; attr_accessor :env_table end
+    @cgi.env_table = @request_hash
     @request = ActionController::CgiRequest.new(@cgi)
   end
 
