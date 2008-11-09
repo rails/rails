@@ -606,7 +606,7 @@ class CleanBacktraceTest < Test::Unit::TestCase
   def test_should_reraise_the_same_object
     exception = Test::Unit::AssertionFailedError.new('message')
     clean_backtrace { raise exception }
-  rescue => caught
+  rescue Exception => caught
     assert_equal exception.object_id, caught.object_id
     assert_equal exception.message, caught.message
   end
@@ -616,7 +616,7 @@ class CleanBacktraceTest < Test::Unit::TestCase
     exception = Test::Unit::AssertionFailedError.new('message')
     exception.set_backtrace ["#{path}/abc", "#{path}/assertions/def"]
     clean_backtrace { raise exception }
-  rescue => caught
+  rescue Exception => caught
     assert_equal ["#{path}/abc"], caught.backtrace
   end
 
