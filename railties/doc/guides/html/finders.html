@@ -199,9 +199,6 @@ ul#navMain {
 			<h2>Chapters</h2>
 			<ol>
 					<li>
-					<a href="#_in_the_beginning_8230">In the beginning&#8230;</a>
-					</li>
-					<li>
 					<a href="#_the_sample_models">The Sample Models</a>
 					</li>
 					<li>
@@ -260,6 +257,21 @@ ul#navMain {
 					</li>
 					<li>
 					<a href="#_named_scopes">Named Scopes</a>
+						<ul>
+						
+							<li><a href="#_simple_named_scopes">Simple Named Scopes</a></li>
+						
+							<li><a href="#_combining_named_scopes">Combining Named Scopes</a></li>
+						
+							<li><a href="#_runtime_evaluation_of_named_scope_conditions">Runtime Evaluation of Named Scope Conditions</a></li>
+						
+							<li><a href="#_named_scopes_with_multiple_models">Named Scopes with Multiple Models</a></li>
+						
+							<li><a href="#_arguments_to_named_scopes">Arguments to Named Scopes</a></li>
+						
+							<li><a href="#_anonymous_scopes">Anonymous Scopes</a></li>
+						
+						</ul>
 					</li>
 					<li>
 					<a href="#_existence_of_objects">Existence of Objects</a>
@@ -293,25 +305,48 @@ ul#navMain {
 				<h1>Rails Finders</h1>
 			<div id="preamble">
 <div class="sectionbody">
-<div class="para"><p>This guide is all about the <tt>find</tt> method defined in <tt>ActiveRecord::Base</tt>, finding on associations, and associated goodness such as named scopes. You will learn how to be a find master.</p></div>
+<div class="para"><p>This guide covers the <tt>find</tt> method defined in <tt>ActiveRecord::Base</tt>, as well as other ways of finding particular instances of your models. By using this guide, you will be able to:</p></div>
+<div class="ilist"><ul>
+<li>
+<p>
+Find records using a variety of methods and conditions
+</p>
+</li>
+<li>
+<p>
+Specify the order, retrieved attributes, grouping, and other properties of the found records
+</p>
+</li>
+<li>
+<p>
+Use eager loading to cut down on the number of database queries in your application
+</p>
+</li>
+<li>
+<p>
+Use dynamic finders
+</p>
+</li>
+<li>
+<p>
+Create named scopes to add custom finding behavior to your models
+</p>
+</li>
+<li>
+<p>
+Check for the existence of particular records
+</p>
+</li>
+<li>
+<p>
+Perform aggregate calculations on Active Record models
+</p>
+</li>
+</ul></div>
+<div class="para"><p>If you're used to using raw SQL to find database records, you'll find that there are generally better ways to carry out the same operations in Rails. Active Record insulates you from the need to use SQL in most cases.</p></div>
 </div>
 </div>
-<h2 id="_in_the_beginning_8230">1. In the beginning&#8230;</h2>
-<div class="sectionbody">
-<div class="para"><p>In the beginning there was SQL. SQL looked like this:</p></div>
-<div class="listingblock">
-<div class="content"><!-- Generator: GNU source-highlight 2.9
-by Lorenzo Bettini
-http://www.lorenzobettini.it
-http://www.gnu.org/software/src-highlite -->
-<pre><tt><span style="font-weight: bold"><span style="color: #0000FF">SELECT</span></span> <span style="color: #990000">*</span> <span style="font-weight: bold"><span style="color: #0000FF">FROM</span></span> clients
-<span style="font-weight: bold"><span style="color: #0000FF">SELECT</span></span> <span style="color: #990000">*</span> <span style="font-weight: bold"><span style="color: #0000FF">FROM</span></span> clients <span style="font-weight: bold"><span style="color: #0000FF">WHERE</span></span> id <span style="color: #990000">=</span> <span style="color: #FF0000">'1'</span>
-<span style="font-weight: bold"><span style="color: #0000FF">SELECT</span></span> <span style="color: #990000">*</span> <span style="font-weight: bold"><span style="color: #0000FF">FROM</span></span> clients <span style="font-weight: bold"><span style="color: #0000FF">LIMIT</span></span> <span style="color: #993399">0</span><span style="color: #990000">,</span><span style="color: #993399">1</span>
-<span style="font-weight: bold"><span style="color: #0000FF">SELECT</span></span> <span style="color: #990000">*</span> <span style="font-weight: bold"><span style="color: #0000FF">FROM</span></span> clients <span style="font-weight: bold"><span style="color: #0000FF">ORDER</span></span> <span style="font-weight: bold"><span style="color: #0000FF">BY</span></span> id <span style="font-weight: bold"><span style="color: #0000FF">DESC</span></span> <span style="font-weight: bold"><span style="color: #0000FF">LIMIT</span></span> <span style="color: #993399">0</span><span style="color: #990000">,</span><span style="color: #993399">1</span>
-</tt></pre></div></div>
-<div class="para"><p>In Rails (unlike some other frameworks) you don't usually have to type SQL because Active Record is there to help you find your records.</p></div>
-</div>
-<h2 id="_the_sample_models">2. The Sample Models</h2>
+<h2 id="_the_sample_models">1. The Sample Models</h2>
 <div class="sectionbody">
 <div class="para"><p>This guide demonstrates finding using the following models:</p></div>
 <div class="listingblock">
@@ -342,11 +377,11 @@ http://www.gnu.org/software/src-highlite -->
 <span style="font-weight: bold"><span style="color: #0000FF">end</span></span>
 </tt></pre></div></div>
 </div>
-<h2 id="_database_agnostic">3. Database Agnostic</h2>
+<h2 id="_database_agnostic">2. Database Agnostic</h2>
 <div class="sectionbody">
 <div class="para"><p>Active Record will perform queries on the database for you and is compatible with most database systems (MySQL, PostgreSQL and SQLite to name a few). Regardless of which database system you're using, the Active Record method format will always be the same.</p></div>
 </div>
-<h2 id="_ids_first_last_and_all">4. IDs, First, Last and All</h2>
+<h2 id="_ids_first_last_and_all">3. IDs, First, Last and All</h2>
 <div class="sectionbody">
 <div class="para"><p><tt>ActiveRecord::Base</tt> has methods defined on it to make interacting with your database and the tables within it much, much easier. For finding records, the key method is <tt>find</tt>. This method allows you to pass arguments into it to perform certain queries on your database without the need of SQL. If you wanted to find the record with the id of 1, you could type <tt>Client.find(1)</tt> which would execute this query on your database:</p></div>
 <div class="listingblock">
@@ -381,6 +416,14 @@ http://www.gnu.org/software/src-highlite -->
   created_at: "2008-09-28 13:12:40", updated_at: "2008-09-28 13:12:40"&gt;]</tt></pre>
 </div></div>
 <div class="para"><p>Note that if you pass in a list of numbers that the result will be returned as an array, not as a single <tt>Client</tt> object.</p></div>
+<div class="admonitionblock">
+<table><tr>
+<td class="icon">
+<img src="./images/icons/note.png" alt="Note" />
+</td>
+<td class="content">If <tt>find(id)</tt> or <tt>find([id1, id2])</tt> fails to find any records, it will raise a <tt>RecordNotFound</tt> exception.</td>
+</tr></table>
+</div>
 <div class="para"><p>If you wanted to find the first client you would simply type <tt>Client.first</tt> and that would find the first client created in your clients table:</p></div>
 <div class="listingblock">
 <div class="content">
@@ -423,15 +466,21 @@ http://www.gnu.org/software/src-highlite -->
 <div class="para"><p>As alternatives to calling <tt>Client.first</tt>, <tt>Client.last</tt>, and <tt>Client.all</tt>, you can use the class methods <tt>Client.first</tt>, <tt>Client.last</tt>, and <tt>Client.all</tt> instead. <tt>Client.first</tt>, <tt>Client.last</tt> and <tt>Client.all</tt> just call their longer counterparts: <tt>Client.find(:first)</tt>, <tt>Client.find(:last)</tt> and <tt>Client.find(:all)</tt> respectively.</p></div>
 <div class="para"><p>Be aware that <tt>Client.first</tt>/<tt>Client.find(:first)</tt> and <tt>Client.last</tt>/<tt>Client.find(:last)</tt> will both return a single object, where as <tt>Client.all</tt>/<tt>Client.find(:all)</tt> will return an array of Client objects, just as passing in an array of ids to find will do also.</p></div>
 </div>
-<h2 id="_conditions">5. Conditions</h2>
+<h2 id="_conditions">4. Conditions</h2>
 <div class="sectionbody">
-<h3 id="_pure_string_conditions">5.1. Pure String Conditions</h3>
+<div class="para"><p>The <tt>find</tt> method allows you to specify conditions to limit the records returned. You can specify conditions as a string, array, or hash.</p></div>
+<h3 id="_pure_string_conditions">4.1. Pure String Conditions</h3>
 <div class="para"><p>If you'd like to add conditions to your find, you could just specify them in there, just like <tt>Client.first(:conditions &#8658; "orders_count = <em>2</em>")</tt>. This will find all clients where the <tt>orders_count</tt> field's value is 2.</p></div>
-<h3 id="_array_conditions">5.2. Array Conditions</h3>
-<div class="literalblock">
-<div class="content">
-<pre><tt>Now what if that number could vary, say as a parameter from somewhere, or perhaps from the user's level status somewhere? The find then becomes something like +Client.first(:conditions =&gt; ["orders_count = ?", params[:orders]])+. Active Record will go through the first element in the conditions value and any additional elements will replace the question marks (?) in the first element. If you want to specify two conditions, you can do it like +Client.first(:conditions =&gt; ["orders_count = ? AND locked = ?", params[:orders], false])+. In this example, the first question mark will be replaced with the value in params orders and the second will be replaced with true and this will find the first record in the table that has '2' as its value for the orders_count field and 'false' for its locked field.</tt></pre>
-</div></div>
+<div class="admonitionblock">
+<table><tr>
+<td class="icon">
+<img src="./images/icons/warning.png" alt="Warning" />
+</td>
+<td class="content">Building your own conditions as pure strings can leave you vulnerable to SQL injection exploits. For example, <tt>Client.first(:conditions &#8658; "name LIKE <em>%#{params[:name]}%</em>")</tt> is not safe. See the next section for the preferred way to handle conditions using an array.</td>
+</tr></table>
+</div>
+<h3 id="_array_conditions">4.2. Array Conditions</h3>
+<div class="para"><p>Now what if that number could vary, say as a parameter from somewhere, or perhaps from the user's level status somewhere? The find then becomes something like <tt>Client.first(:conditions &#8658; ["orders_count = ?", params[:orders]])</tt>. Active Record will go through the first element in the conditions value and any additional elements will replace the question marks (?) in the first element. If you want to specify two conditions, you can do it like <tt>Client.first(:conditions &#8658; ["orders_count = ? AND locked = ?", params[:orders], false])</tt>. In this example, the first question mark will be replaced with the value in params orders and the second will be replaced with true and this will find the first record in the table that has <em>2</em> as its value for the orders_count field and <em>false</em> for its locked field.</p></div>
 <div class="para"><p>The reason for doing code like:</p></div>
 <div class="listingblock">
 <div class="content"><!-- Generator: GNU source-highlight 2.9
@@ -521,7 +570,7 @@ http://www.gnu.org/software/src-highlite -->
   <span style="color: #990000">[</span><span style="color: #FF0000">"created_at &gt;= ? AND created_at &lt;= ?"</span><span style="color: #990000">,</span> params<span style="color: #990000">[:</span>start_date<span style="color: #990000">],</span> params<span style="color: #990000">[:</span>end_date<span style="color: #990000">]])</span>
 </tt></pre></div></div>
 <div class="para"><p>Just like in Ruby.</p></div>
-<h3 id="_hash_conditions">5.3. Hash Conditions</h3>
+<h3 id="_hash_conditions">4.3. Hash Conditions</h3>
 <div class="para"><p>Similar to the array style of params you can also specify keys in your conditions:</p></div>
 <div class="listingblock">
 <div class="content"><!-- Generator: GNU source-highlight 2.9
@@ -533,17 +582,17 @@ http://www.gnu.org/software/src-highlite -->
 </tt></pre></div></div>
 <div class="para"><p>This makes for clearer readability if you have a large number of variable conditions.</p></div>
 </div>
-<h2 id="_ordering">6. Ordering</h2>
+<h2 id="_ordering">5. Ordering</h2>
 <div class="sectionbody">
 <div class="para"><p>If you're getting a set of records and want to force an order, you can use <tt>Client.all(:order &#8658; "created_at")</tt> which by default will sort the records by ascending order. If you'd like to order it in descending order, just tell it to do that using <tt>Client.all(:order &#8658; "created_at desc")</tt></p></div>
 </div>
-<h2 id="_selecting_certain_fields">7. Selecting Certain Fields</h2>
+<h2 id="_selecting_certain_fields">6. Selecting Certain Fields</h2>
 <div class="sectionbody">
 <div class="para"><p>To select certain fields, you can use the select option like this: <tt>Client.first(:select &#8658; "viewable_by, locked")</tt>. This select option does not use an array of fields, but rather requires you to type SQL-like code. The above code will execute <tt>SELECT viewable_by, locked FROM clients LIMIT 0,1</tt> on your database.</p></div>
 </div>
-<h2 id="_limit_amp_offset">8. Limit &amp; Offset</h2>
+<h2 id="_limit_amp_offset">7. Limit &amp; Offset</h2>
 <div class="sectionbody">
-<div class="para"><p>If you want to limit the amount of records to a certain subset of all the records retreived you usually use limit for this, sometimes coupled with offset. Limit is the maximum number of records that will be retreived from a query, and offset is the number of records it will start reading from from the first record of the set. Take this code for example:</p></div>
+<div class="para"><p>If you want to limit the amount of records to a certain subset of all the records retrieved you usually use limit for this, sometimes coupled with offset. Limit is the maximum number of records that will be retrieved from a query, and offset is the number of records it will start reading from from the first record of the set. Take this code for example:</p></div>
 <div class="listingblock">
 <div class="content"><!-- Generator: GNU source-highlight 2.9
 by Lorenzo Bettini
@@ -575,7 +624,7 @@ http://www.gnu.org/software/src-highlite -->
 <pre><tt><span style="font-weight: bold"><span style="color: #0000FF">SELECT</span></span> <span style="color: #990000">*</span> <span style="font-weight: bold"><span style="color: #0000FF">FROM</span></span> clients <span style="font-weight: bold"><span style="color: #0000FF">LIMIT</span></span> <span style="color: #993399">5</span><span style="color: #990000">,</span> <span style="color: #993399">5</span>
 </tt></pre></div></div>
 </div>
-<h2 id="_group">9. Group</h2>
+<h2 id="_group">8. Group</h2>
 <div class="sectionbody">
 <div class="para"><p>The group option for find is useful, for example, if you want to find a collection of the dates orders were created on. You could use the option in this context:</p></div>
 <div class="listingblock">
@@ -595,9 +644,9 @@ http://www.gnu.org/software/src-highlite -->
 <pre><tt><span style="font-weight: bold"><span style="color: #0000FF">SELECT</span></span> <span style="color: #990000">*</span> <span style="font-weight: bold"><span style="color: #0000FF">FROM</span></span> <span style="color: #990000">+</span>orders<span style="color: #990000">+</span> <span style="font-weight: bold"><span style="color: #0000FF">GROUP</span></span> <span style="font-weight: bold"><span style="color: #0000FF">BY</span></span> <span style="color: #009900">date</span><span style="color: #990000">(</span>created_at<span style="color: #990000">)</span>
 </tt></pre></div></div>
 </div>
-<h2 id="_read_only">10. Read Only</h2>
+<h2 id="_read_only">9. Read Only</h2>
 <div class="sectionbody">
-<div class="para"><p>Readonly is a find option that you can set in order to make that instance of the record read-only. Any attempt to alter or destroy the record will not succeed, raising an <tt>Active Record::ReadOnlyRecord</tt> error. To set this option, specify it like this:</p></div>
+<div class="para"><p>Readonly is a find option that you can set in order to make that instance of the record read-only. Any attempt to alter or destroy the record will not succeed, raising an <tt>Active Record::ReadOnlyRecord</tt> exception. To set this option, specify it like this:</p></div>
 <div class="listingblock">
 <div class="content"><!-- Generator: GNU source-highlight 2.9
 by Lorenzo Bettini
@@ -605,7 +654,7 @@ http://www.lorenzobettini.it
 http://www.gnu.org/software/src-highlite -->
 <pre><tt>Client<span style="color: #990000">.</span>first<span style="color: #990000">(:</span>readonly <span style="color: #990000">=&gt;</span> <span style="font-weight: bold"><span style="color: #0000FF">true</span></span><span style="color: #990000">)</span>
 </tt></pre></div></div>
-<div class="para"><p>If you assign this record to a variable <tt>client</tt>, calling the following code will raise an ActiveRecord::ReadOnlyRecord:</p></div>
+<div class="para"><p>If you assign this record to a variable <tt>client</tt>, calling the following code will raise an <tt>ActiveRecord::ReadOnlyRecord</tt> exception:</p></div>
 <div class="listingblock">
 <div class="content"><!-- Generator: GNU source-highlight 2.9
 by Lorenzo Bettini
@@ -616,7 +665,7 @@ client<span style="color: #990000">.</span>locked <span style="color: #990000">=
 client<span style="color: #990000">.</span>save
 </tt></pre></div></div>
 </div>
-<h2 id="_lock">11. Lock</h2>
+<h2 id="_lock">10. Lock</h2>
 <div class="sectionbody">
 <div class="para"><p>If you're wanting to stop race conditions for a specific record (for example, you're incrementing a single field for a record, potentially from multiple simultaneous connections) you can use the lock option to ensure that the record is updated correctly. For safety, you should use this inside a transaction.</p></div>
 <div class="listingblock">
@@ -630,13 +679,13 @@ http://www.gnu.org/software/src-highlite -->
 <span style="font-weight: bold"><span style="color: #0000FF">end</span></span>
 </tt></pre></div></div>
 </div>
-<h2 id="_making_it_all_work_together">12. Making It All Work Together</h2>
+<h2 id="_making_it_all_work_together">11. Making It All Work Together</h2>
 <div class="sectionbody">
-<div class="para"><p>You can chain these options together in no particular order as Active Record will write the correct SQL for you. If you specify two instances of the same options inside the find statement ActiveRecord will use the latter.</p></div>
+<div class="para"><p>You can chain these options together in no particular order as Active Record will write the correct SQL for you. If you specify two instances of the same options inside the find statement Active Record will use the latter.</p></div>
 </div>
-<h2 id="_eager_loading">13. Eager Loading</h2>
+<h2 id="_eager_loading">12. Eager Loading</h2>
 <div class="sectionbody">
-<div class="para"><p>Eager loading is loading associated records along with any number of records in as few queries as possible. For example, if you wanted to load all the addresses associated with all the clients in a single query you could use <tt>Client.all(:include &#8658; :address)</tt>. If you wanted to include both the address and mailing address for the client you would use +Client.find(:all), :include &#8658; [:address, :mailing_address]). Include will first find the client records and then load the associated address records. Running script/server in one window, and executing the code through script/console in another window, the output should look similar to this:</p></div>
+<div class="para"><p>Eager loading is loading associated records along with any number of records in as few queries as possible. For example, if you wanted to load all the addresses associated with all the clients in a single query you could use <tt>Client.all(:include &#8658; :address)</tt>. If you wanted to include both the address and mailing address for the client you would use +Client.find(:all, :include &#8658; [:address, :mailing_address]). Include will first find the client records and then load the associated address records. Running script/server in one window, and executing the code through script/console in another window, the output should look similar to this:</p></div>
 <div class="listingblock">
 <div class="content"><!-- Generator: GNU source-highlight 2.9
 by Lorenzo Bettini
@@ -679,7 +728,7 @@ http://www.gnu.org/software/src-highlite -->
   <span style="color: #990000">[</span><span style="color: #FF0000">"orders.created_at &gt;= ? AND orders.created_at &lt;= ?"</span><span style="color: #990000">,</span> Time<span style="color: #990000">.</span>now <span style="color: #990000">-</span> <span style="color: #993399">2</span><span style="color: #990000">.</span>weeks<span style="color: #990000">,</span> Time<span style="color: #990000">.</span>now<span style="color: #990000">])</span>
 </tt></pre></div></div>
 </div>
-<h2 id="_dynamic_finders">14. Dynamic finders</h2>
+<h2 id="_dynamic_finders">13. Dynamic finders</h2>
 <div class="sectionbody">
 <div class="para"><p>For every field (also known as an attribute) you define in your table, Active Record provides a finder method. If you have a field called <tt>name</tt> on your Client model for example, you get <tt>find_by_name</tt> and <tt>find_all_by_name</tt> for free from Active Record. If you have also have a <tt>locked</tt> field on the client model, you also get <tt>find_by_locked</tt> and <tt>find_all_by_locked</tt>. If you want to find both by name and locked, you can chain these finders together by simply typing <tt>and</tt> between the fields for example <tt>Client.find_by_name_and_locked(<em>Ryan</em>, true)</tt>. These finders are an excellent alternative to using the conditions option, mainly because it's shorter to type <tt>find_by_name(params[:name])</tt> than it is to type <tt>first(:conditions &#8658; ["name = ?", params[:name]])</tt>.</p></div>
 <div class="para"><p>There's another set of dynamic finders that let you find or create/initialize objects if they aren't find. These work in a similar fashion to the other finders and can be used like <tt>find_or_create_by_name(params[:name])</tt>. Using this will firstly perform a find and then create if the find returns nil. The SQL looks like this for <tt>Client.find_or_create_by_name(<em>Ryan</em>)</tt>:</p></div>
@@ -704,7 +753,7 @@ http://www.gnu.org/software/src-highlite -->
 </tt></pre></div></div>
 <div class="para"><p>will either assign an existing client object with the name <em>Ryan</em> to the client local variable, or initialize new object similar to calling <tt>Client.new(:name &#8658; <em>Ryan</em>)</tt>. From here, you can modify other fields in client by calling the attribute setters on it: <tt>client.locked = true</tt> and when you want to write it to the database just call <tt>save</tt> on it.</p></div>
 </div>
-<h2 id="_finding_by_sql">15. Finding By SQL</h2>
+<h2 id="_finding_by_sql">14. Finding By SQL</h2>
 <div class="sectionbody">
 <div class="para"><p>If you'd like to use your own SQL to find records a table you can use <tt>find_by_sql</tt>. The <tt>find_by_sql</tt> method will return an array of objects even if it only returns a single record in it's call to the database. For example you could run this query:</p></div>
 <div class="listingblock">
@@ -714,11 +763,11 @@ http://www.lorenzobettini.it
 http://www.gnu.org/software/src-highlite -->
 <pre><tt>Client<span style="color: #990000">.</span>find_by_sql<span style="color: #990000">(</span><span style="color: #FF0000">"SELECT * FROM clients INNER JOIN orders ON clients.id = orders.client_id ORDER clients.created_at desc"</span><span style="color: #990000">)</span>
 </tt></pre></div></div>
-<div class="para"><p><tt>find_by_sql</tt> provides you with a simple way of making custom calls to the database and retreiving instantiated objects.</p></div>
+<div class="para"><p><tt>find_by_sql</tt> provides you with a simple way of making custom calls to the database and retrieving instantiated objects.</p></div>
 </div>
-<h2 id="_tt_select_all_tt">16. <tt>select_all</tt></h2>
+<h2 id="_tt_select_all_tt">15. <tt>select_all</tt></h2>
 <div class="sectionbody">
-<div class="para"><p><tt>find_by_sql</tt> has a close relative called <tt>select_all</tt>. <tt>select_all</tt> will retreive objects from the database using custom SQL just like <tt>find_by_sql</tt> but will not instantiate them. Instead, you will get an array of hashes where each hash indicates a record.</p></div>
+<div class="para"><p><tt>find_by_sql</tt> has a close relative called <tt>connection#select_all</tt>. <tt>select_all</tt> will retrieve objects from the database using custom SQL just like <tt>find_by_sql</tt> but will not instantiate them. Instead, you will get an array of hashes where each hash indicates a record.</p></div>
 <div class="listingblock">
 <div class="content"><!-- Generator: GNU source-highlight 2.9
 by Lorenzo Bettini
@@ -727,13 +776,15 @@ http://www.gnu.org/software/src-highlite -->
 <pre><tt>Client<span style="color: #990000">.</span>connection<span style="color: #990000">.</span>select_all<span style="color: #990000">(</span><span style="color: #FF0000">"SELECT * FROM `clients` WHERE `id` = '1'"</span><span style="color: #990000">)</span>
 </tt></pre></div></div>
 </div>
-<h2 id="_working_with_associations">17. Working with Associations</h2>
+<h2 id="_working_with_associations">16. Working with Associations</h2>
 <div class="sectionbody">
-<div class="para"><p>When you define a has_many association on a model you get the find method and dynamic finders also on that association. This is helpful for finding associated records within the scope of an exisiting record, for example finding all the orders for a client that have been sent and not received by doing something like <tt>Client.find(params[:id]).orders.find_by_sent_and_received(true, false)</tt>. Having this find method available on associations is extremely helpful when using nested controllers.</p></div>
+<div class="para"><p>When you define a has_many association on a model you get the find method and dynamic finders also on that association. This is helpful for finding associated records within the scope of an existing record, for example finding all the orders for a client that have been sent and not received by doing something like <tt>Client.find(params[:id]).orders.find_by_sent_and_received(true, false)</tt>. Having this find method available on associations is extremely helpful when using nested controllers.</p></div>
 </div>
-<h2 id="_named_scopes">18. Named Scopes</h2>
+<h2 id="_named_scopes">17. Named Scopes</h2>
 <div class="sectionbody">
-<div class="para"><p>Named scopes are another way to add custom finding behavior to the models in the application. Suppose want to find all clients who are male. Yould use this code:</p></div>
+<div class="para"><p>Named scopes are another way to add custom finding behavior to the models in the application. Named scopes provide an object-oriented way to narrow the results of a query.</p></div>
+<h3 id="_simple_named_scopes">17.1. Simple Named Scopes</h3>
+<div class="para"><p>Suppose want to find all clients who are male. You could use this code:</p></div>
 <div class="listingblock">
 <div class="content"><!-- Generator: GNU source-highlight 2.9
 by Lorenzo Bettini
@@ -743,7 +794,7 @@ http://www.gnu.org/software/src-highlite -->
   named_scope <span style="color: #990000">:</span>males<span style="color: #990000">,</span> <span style="color: #990000">:</span>conditions <span style="color: #990000">=&gt;</span> <span style="color: #FF0000">{</span> <span style="color: #990000">:</span>gender <span style="color: #990000">=&gt;</span> <span style="color: #FF0000">"male"</span> <span style="color: #FF0000">}</span>
 <span style="font-weight: bold"><span style="color: #0000FF">end</span></span>
 </tt></pre></div></div>
-<div class="para"><p>And you could call it like <tt>Client.males.all</tt> to get all the clients who are male. Please note that if you do not specify the <tt>all</tt> on the end you will get a <tt>Scope</tt> object back, not a set of records which you do get back if you put the <tt>all</tt> on the end.</p></div>
+<div class="para"><p>Then you could call <tt>Client.males.all</tt> to get all the clients who are male. Please note that if you do not specify the <tt>all</tt> on the end you will get a <tt>Scope</tt> object back, not a set of records which you do get back if you put the <tt>all</tt> on the end.</p></div>
 <div class="para"><p>If you wanted to find all the clients who are active, you could use this:</p></div>
 <div class="listingblock">
 <div class="content"><!-- Generator: GNU source-highlight 2.9
@@ -754,7 +805,8 @@ http://www.gnu.org/software/src-highlite -->
   named_scope <span style="color: #990000">:</span>active<span style="color: #990000">,</span> <span style="color: #990000">:</span>conditions <span style="color: #990000">=&gt;</span> <span style="color: #FF0000">{</span> <span style="color: #990000">:</span>active <span style="color: #990000">=&gt;</span> <span style="font-weight: bold"><span style="color: #0000FF">true</span></span> <span style="color: #FF0000">}</span>
 <span style="font-weight: bold"><span style="color: #0000FF">end</span></span>
 </tt></pre></div></div>
-<div class="para"><p>You can call this new named_scope by doing <tt>Client.active.all</tt> and this will do the same query as if we just used <tt>Client.all(:conditions &#8658; ["active = ?", true])</tt>. Please be aware that the conditions syntax in named_scope and find is different and the two are not interchangeable. If you want to find the first client within this named scope you could do <tt>Client.active.first</tt>.</p></div>
+<div class="para"><p>You can call this new named_scope with <tt>Client.active.all</tt> and this will do the same query as if we just used <tt>Client.all(:conditions &#8658; ["active = ?", true])</tt>. Please be aware that the conditions syntax in named_scope and find is different and the two are not interchangeable. If you want to find the first client within this named scope you could do <tt>Client.active.first</tt>.</p></div>
+<h3 id="_combining_named_scopes">17.2. Combining Named Scopes</h3>
 <div class="para"><p>If you wanted to find all the clients who are active and male you can stack the named scopes like this:</p></div>
 <div class="listingblock">
 <div class="content"><!-- Generator: GNU source-highlight 2.9
@@ -771,6 +823,7 @@ http://www.lorenzobettini.it
 http://www.gnu.org/software/src-highlite -->
 <pre><tt>Client<span style="color: #990000">.</span>males<span style="color: #990000">.</span>active<span style="color: #990000">.</span>all<span style="color: #990000">(:</span>conditions <span style="color: #990000">=&gt;</span> <span style="color: #990000">[</span><span style="color: #FF0000">"age &gt; ?"</span><span style="color: #990000">,</span> params<span style="color: #990000">[:</span>age<span style="color: #990000">]])</span>
 </tt></pre></div></div>
+<h3 id="_runtime_evaluation_of_named_scope_conditions">17.3. Runtime Evaluation of Named Scope Conditions</h3>
 <div class="para"><p>Consider the following code:</p></div>
 <div class="listingblock">
 <div class="content"><!-- Generator: GNU source-highlight 2.9
@@ -792,6 +845,7 @@ http://www.gnu.org/software/src-highlite -->
 <span style="font-weight: bold"><span style="color: #0000FF">end</span></span>
 </tt></pre></div></div>
 <div class="para"><p>And now every time the recent named scope is called, the code in the lambda block will be parsed, so you'll get actually 2 weeks ago from the code execution, not 2 weeks ago from the time the model was loaded.</p></div>
+<h3 id="_named_scopes_with_multiple_models">17.4. Named Scopes with Multiple Models</h3>
 <div class="para"><p>In a named scope you can use <tt>:include</tt> and <tt>:joins</tt> options just like in find.</p></div>
 <div class="listingblock">
 <div class="content"><!-- Generator: GNU source-highlight 2.9
@@ -804,6 +858,7 @@ http://www.gnu.org/software/src-highlite -->
 <span style="font-weight: bold"><span style="color: #0000FF">end</span></span>
 </tt></pre></div></div>
 <div class="para"><p>This method, called as <tt>Client.active_within_2_weeks.all</tt>, will return all clients who have placed orders in the past 2 weeks.</p></div>
+<h3 id="_arguments_to_named_scopes">17.5. Arguments to Named Scopes</h3>
 <div class="para"><p>If you want to pass a named scope a compulsory argument, just specify it as a block parameter like this:</p></div>
 <div class="listingblock">
 <div class="content"><!-- Generator: GNU source-highlight 2.9
@@ -826,7 +881,8 @@ http://www.gnu.org/software/src-highlite -->
 </tt></pre></div></div>
 <div class="para"><p>This will work with <tt>Client.recent(2.weeks.ago).all</tt> and <tt>Client.recent.all</tt>, with the latter always returning records with a created_at date between right now and 2 weeks ago.</p></div>
 <div class="para"><p>Remember that named scopes are stackable, so you will be able to do <tt>Client.recent(2.weeks.ago).unlocked.all</tt> to find all clients created between right now and 2 weeks ago and have their locked field set to false.</p></div>
-<div class="para"><p>Finally, if you wish to define named scopes on the fly you can use the scoped method:</p></div>
+<h3 id="_anonymous_scopes">17.6. Anonymous Scopes</h3>
+<div class="para"><p>All Active Record models come with a named scope named <tt>scoped</tt>, which allows you to create anonymous scopes. For example:</p></div>
 <div class="listingblock">
 <div class="content"><!-- Generator: GNU source-highlight 2.9
 by Lorenzo Bettini
@@ -838,8 +894,17 @@ http://www.gnu.org/software/src-highlite -->
   <span style="font-weight: bold"><span style="color: #0000FF">end</span></span>
 <span style="font-weight: bold"><span style="color: #0000FF">end</span></span>
 </tt></pre></div></div>
+<div class="para"><p>Anonymous scopes are most useful to create scopes "on the fly":</p></div>
+<div class="listingblock">
+<div class="content"><!-- Generator: GNU source-highlight 2.9
+by Lorenzo Bettini
+http://www.lorenzobettini.it
+http://www.gnu.org/software/src-highlite -->
+<pre><tt>Client<span style="color: #990000">.</span>scoped<span style="color: #990000">(:</span>conditions <span style="color: #990000">=&gt;</span> <span style="color: #FF0000">{</span> <span style="color: #990000">:</span>gender <span style="color: #990000">=&gt;</span> <span style="color: #FF0000">"male"</span> <span style="color: #FF0000">}</span><span style="color: #990000">)</span>
+</tt></pre></div></div>
+<div class="para"><p>Just like named scopes, anonymous scopes can be stacked, either with other anonymous scopes or with regular named scopes.</p></div>
 </div>
-<h2 id="_existence_of_objects">19. Existence of Objects</h2>
+<h2 id="_existence_of_objects">18. Existence of Objects</h2>
 <div class="sectionbody">
 <div class="para"><p>If you simply want to check for the existence of the object there's a method called <tt>exists?</tt>. This method will query the database using the same query as find, but instead of returning an object or collection of objects it will return either true or false.</p></div>
 <div class="listingblock">
@@ -849,7 +914,7 @@ http://www.lorenzobettini.it
 http://www.gnu.org/software/src-highlite -->
 <pre><tt>Client<span style="color: #990000">.</span>exists?<span style="color: #990000">(</span><span style="color: #993399">1</span><span style="color: #990000">)</span>
 </tt></pre></div></div>
-<div class="para"><p>The above code will check for the existance of a clients table record with the id of 1 and return true if it exists.</p></div>
+<div class="para"><p>The above code will check for the existence of a clients table record with the id of 1 and return true if it exists.</p></div>
 <div class="listingblock">
 <div class="content"><!-- Generator: GNU source-highlight 2.9
 by Lorenzo Bettini
@@ -869,7 +934,7 @@ http://www.gnu.org/software/src-highlite -->
 <pre><tt>Client<span style="color: #990000">.</span>exists?<span style="color: #990000">(:</span>conditions <span style="color: #990000">=&gt;</span> <span style="color: #FF0000">"first_name = 'Ryan'"</span><span style="color: #990000">)</span>
 </tt></pre></div></div>
 </div>
-<h2 id="_calculations">20. Calculations</h2>
+<h2 id="_calculations">19. Calculations</h2>
 <div class="sectionbody">
 <div class="para"><p>This section uses count as an example method in this preamble, but the options described apply to all sub-sections.</p></div>
 <div class="para"><p><tt>count</tt> takes conditions much in the same way <tt>exists?</tt> does:</p></div>
@@ -907,10 +972,10 @@ http://www.gnu.org/software/src-highlite -->
   <span style="color: #990000">(</span>clients<span style="color: #990000">.</span>first_name <span style="color: #990000">=</span> <span style="color: #FF0000">'name'</span> <span style="font-weight: bold"><span style="color: #0000FF">AND</span></span> orders<span style="color: #990000">.</span><span style="font-weight: bold"><span style="color: #0000FF">status</span></span> <span style="color: #990000">=</span> <span style="color: #FF0000">'received'</span><span style="color: #990000">)</span>
 </tt></pre></div></div>
 <div class="para"><p>This code specifies <tt>clients.first_name</tt> just in case one of the join tables has a field also called <tt>first_name</tt> and it uses <tt>orders.status</tt> because that's the name of our join table.</p></div>
-<h3 id="_count">20.1. Count</h3>
+<h3 id="_count">19.1. Count</h3>
 <div class="para"><p>If you want to see how many records are in your model's table you could call <tt>Client.count</tt> and that will return the number. If you want to be more specific and find all the clients with their age present in the database you can use <tt>Client.count(:age)</tt>.</p></div>
 <div class="para"><p>For options, please see the parent section, Calculations.</p></div>
-<h3 id="_average">20.2. Average</h3>
+<h3 id="_average">19.2. Average</h3>
 <div class="para"><p>If you want to see the average of a certain number in one of your tables you can call the <tt>average</tt> method on the class that relates to the table. This method call will look something like this:</p></div>
 <div class="listingblock">
 <div class="content"><!-- Generator: GNU source-highlight 2.9
@@ -921,7 +986,7 @@ http://www.gnu.org/software/src-highlite -->
 </tt></pre></div></div>
 <div class="para"><p>This will return a number (possibly a floating point number such as 3.14159265) representing the average value in the field.</p></div>
 <div class="para"><p>For options, please see the parent section, <a href="#_calculations">Calculations</a></p></div>
-<h3 id="_minimum">20.3. Minimum</h3>
+<h3 id="_minimum">19.3. Minimum</h3>
 <div class="para"><p>If you want to find the minimum value of a field in your table you can call the <tt>minimum</tt> method on the class that relates to the table. This method call will look something like this:</p></div>
 <div class="listingblock">
 <div class="content"><!-- Generator: GNU source-highlight 2.9
@@ -931,7 +996,7 @@ http://www.gnu.org/software/src-highlite -->
 <pre><tt>Client<span style="color: #990000">.</span>minimum<span style="color: #990000">(</span><span style="color: #FF0000">"age"</span><span style="color: #990000">)</span>
 </tt></pre></div></div>
 <div class="para"><p>For options, please see the parent section, <a href="#_calculations">Calculations</a></p></div>
-<h3 id="_maximum">20.4. Maximum</h3>
+<h3 id="_maximum">19.4. Maximum</h3>
 <div class="para"><p>If you want to find the maximum value of a field in your table you can call the <tt>maximum</tt> method on the class that relates to the table. This method call will look something like this:</p></div>
 <div class="listingblock">
 <div class="content"><!-- Generator: GNU source-highlight 2.9
@@ -941,7 +1006,7 @@ http://www.gnu.org/software/src-highlite -->
 <pre><tt>Client<span style="color: #990000">.</span>maximum<span style="color: #990000">(</span><span style="color: #FF0000">"age"</span><span style="color: #990000">)</span>
 </tt></pre></div></div>
 <div class="para"><p>For options, please see the parent section, <a href="#_calculations">Calculations</a></p></div>
-<h3 id="_sum">20.5. Sum</h3>
+<h3 id="_sum">19.5. Sum</h3>
 <div class="para"><p>If you want to find the sum of a field for all records in your table you can call the <tt>sum</tt> method on the class that relates to the table. This method call will look something like this:</p></div>
 <div class="listingblock">
 <div class="content"><!-- Generator: GNU source-highlight 2.9
@@ -952,23 +1017,28 @@ http://www.gnu.org/software/src-highlite -->
 </tt></pre></div></div>
 <div class="para"><p>For options, please see the parent section,  <a href="#_calculations">Calculations</a></p></div>
 </div>
-<h2 id="_credits">21. Credits</h2>
+<h2 id="_credits">20. Credits</h2>
 <div class="sectionbody">
 <div class="para"><p>Thanks to Ryan Bates for his awesome screencast on named scope #108. The information within the named scope section is intentionally similar to it, and without the cast may have not been possible.</p></div>
 <div class="para"><p>Thanks to Mike Gunderloy for his tips on creating this guide.</p></div>
 </div>
-<h2 id="_changelog">22. Changelog</h2>
+<h2 id="_changelog">21. Changelog</h2>
 <div class="sectionbody">
 <div class="para"><p><a href="http://rails.lighthouseapp.com/projects/16213-rails-guides/tickets/16">Lighthouse ticket</a></p></div>
 <div class="ilist"><ul>
 <li>
 <p>
-October 27, 2008: Added scoped section, added named params for conditions and added sub-section headers for conditions section.
+November 8, 2008: Editing pass by <a href="../authors.html#mgunderloy">Mike Gunderloy</a> . First release version.
 </p>
 </li>
 <li>
 <p>
-October 27, 2008: Fixed up all points specified in <a href="http://rails.lighthouseapp.com/projects/16213-rails-guides/tickets/16-activerecord-finders#ticket-16-6">this comment</a> with an exception of the final point.
+October 27, 2008: Added scoped section, added named params for conditions and added sub-section headers for conditions section by Ryan Bigg
+</p>
+</li>
+<li>
+<p>
+October 27, 2008: Fixed up all points specified in <a href="http://rails.lighthouseapp.com/projects/16213-rails-guides/tickets/16-activerecord-finders#ticket-16-6">this comment</a> with an exception of the final point by Ryan Bigg
 </p>
 </li>
 <li>

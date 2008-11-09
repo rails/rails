@@ -712,7 +712,7 @@ The <tt>production</tt> environment is used when you deploy your application for
 </li>
 </ul></div>
 <h4 id="_configuring_a_sqlite_database">3.3.1. Configuring a SQLite Database</h4>
-<div class="para"><p>Rails comes with built-in support for SQLite, which is a lightweight flat-file based database application. While a busy production environment may overload SQLite, it works well for development and testing. Rails defaults to using a SQLite database when creating a new project, but you can always change it later.</p></div>
+<div class="para"><p>Rails comes with built-in support for <a href="http://www.sqlite.org/">SQLite</a>, which is a lightweight serverless database application. While a busy production environment may overload SQLite, it works well for development and testing. Rails defaults to using a SQLite database when creating a new project, but you can always change it later.</p></div>
 <div class="para"><p>Here's the section of the default configuration file with connection information for the development environment:</p></div>
 <div class="listingblock">
 <div class="content"><!-- Generator: GNU source-highlight 2.9
@@ -1159,7 +1159,7 @@ http://www.gnu.org/software/src-highlite -->
 <td class="content">For more information on finding records with Active Record, see <a href="../finders.html">Active Record Finders</a>.</td>
 </tr></table>
 </div>
-<div class="para"><p>The <tt>respond_to</tt> block handles both HTML and XML calls to this action. If you borwse to <tt>http://localhost:3000/posts.xml</tt>, you'll see all of the posts in XML format. The HTML format looks for a view in <tt>app/views/posts/</tt> with a name that corresponds to the action name. Rails makes all of the instance variables from the action available to the view. Here's <tt>app/view/posts/index.html.erb</tt>:</p></div>
+<div class="para"><p>The <tt>respond_to</tt> block handles both HTML and XML calls to this action. If you browse to <tt>http://localhost:3000/posts.xml</tt>, you'll see all of the posts in XML format. The HTML format looks for a view in <tt>app/views/posts/</tt> with a name that corresponds to the action name. Rails makes all of the instance variables from the action available to the view. Here's <tt>app/view/posts/index.html.erb</tt>:</p></div>
 <div class="listingblock">
 <div class="content"><!-- Generator: GNU source-highlight 2.9
 by Lorenzo Bettini

@@ -212,7 +212,7 @@ On the controller side, there are a couple of changes that will help tidy up you
 
 === Shallow Route Nesting
 
-Shallow route nesting provides a solution to the well-known difficulty of using deeply-nested resources. With shallow nesting, you need only supply enough information to uniquely identify the resource that you want to work with - but you _can_ supply more information. 
+Shallow route nesting provides a solution to the well-known difficulty of using deeply-nested resources. With shallow nesting, you need only supply enough information to uniquely identify the resource that you want to work with. 
 
 [source, ruby]
 -------------------------------------------------------

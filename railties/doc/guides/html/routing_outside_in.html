@@ -1690,15 +1690,7 @@ http://www.gnu.org/software/src-highlite -->
 /magazines/2/photos     ==&gt; magazines_photos_path(2)
 /photos/3               ==&gt; photo_path(3)</tt></pre>
 </div></div>
-<div class="para"><p>With shallow nesting, you need only supply enough information to uniquely identify the resource that you want to work with - but you <em>can</em> supply more information. All of the nested routes continue to work, just as they would without shallow nesting, but less-deeply nested routes (even direct routes) work as well. So, with the declaration above, all of these routes refer to the same resource:</p></div>
-<div class="listingblock">
-<div class="content">
-<pre><tt>/publishers/1/magazines/2/photos/3   ==&gt; publisher_magazine_photo_path(1,2,3)
-/magazines/2/photos/3                ==&gt; magazine_photo_path(2,3)
-/photos/3                            ==&gt; photo_path(3)</tt></pre>
-</div></div>
-<div class="para"><p>Shallow nesting gives you the flexibility to use the shorter direct routes when you like, while still preserving the longer nested routes for times when they add code clarity.</p></div>
-<div class="para"><p>If you like, you can combine shallow nesting with the <tt>:has_one</tt> and <tt>:has_many</tt> options:</p></div>
+<div class="para"><p>With shallow nesting, you need only supply enough information to uniquely identify the resource that you want to work with. If you like, you can combine shallow nesting with the <tt>:has_one</tt> and <tt>:has_many</tt> options:</p></div>
 <div class="listingblock">
 <div class="content"><!-- Generator: GNU source-highlight 2.9
 by Lorenzo Bettini
