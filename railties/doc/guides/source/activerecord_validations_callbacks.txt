@@ -219,6 +219,8 @@ class Person < ActiveRecord::Base
 end
 ------------------------------------------------------------------
 
+This helper has an alias called +validates_size_of+, it's the same helper with a different name. You can use it if you'd like to.
+
 === The +validates_numericallity_of+ helper
 
 This helper validates that your attributes have only numeric values. By default, it will match an optional sign followed by a integral or floating point number. Using the +:integer_only+ option set to true, you can specify that only integral numbers are allowed.
@@ -259,8 +261,6 @@ end
 NOTE: If you want to validate the presence of a boolean field (where the real values are true and false), you will want to use validates_inclusion_of :field_name, :in => [true, false] This is due to the way Object#blank? handles boolean values. false.blank? # => true 
 
 The default error message for +validates_presence_of+ is "_can't be empty_".
-
-=== The +validates_size_of+ helper
 
 === The validates_uniqueness_of+ helper
 

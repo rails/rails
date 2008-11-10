@@ -235,8 +235,6 @@ ul#navMain {
 						
 							<li><a href="#_the_tt_validates_presence_of_tt_helper">The <tt>validates_presence_of</tt> helper</a></li>
 						
-							<li><a href="#_the_tt_validates_size_of_tt_helper">The <tt>validates_size_of</tt> helper</a></li>
-						
 							<li><a href="#_the_validates_uniqueness_of_helper">The validates_uniqueness_of+ helper</a></li>
 						
 						</ul>
@@ -524,6 +522,7 @@ http://www.gnu.org/software/src-highlite -->
   validates_length_of <span style="color: #990000">:</span>bio<span style="color: #990000">,</span> <span style="color: #990000">:</span>too_long <span style="color: #990000">=&gt;</span> <span style="color: #FF0000">"you're writing too much. %d characters is the maximum allowed."</span>
 <span style="font-weight: bold"><span style="color: #0000FF">end</span></span>
 </tt></pre></div></div>
+<div class="para"><p>This helper has an alias called <tt>validates_size_of</tt>, it's the same helper with a different name. You can use it if you'd like to.</p></div>
 <h3 id="_the_tt_validates_numericallity_of_tt_helper">3.9. The <tt>validates_numericallity_of</tt> helper</h3>
 <div class="para"><p>This helper validates that your attributes have only numeric values. By default, it will match an optional sign followed by a integral or floating point number. Using the <tt>:integer_only</tt> option set to true, you can specify that only integral numbers are allowed.</p></div>
 <div class="para"><p>If you use <tt>:integer_only</tt> set to <tt>true</tt>, then it will use the <tt><span>/\A[+\-]?\d+\Z/</span></tt> regular expression to validate the attribute's value. Otherwise, it will try to convert the value using <tt>Kernel.Float</tt>.</p></div>
@@ -576,8 +575,7 @@ http://www.gnu.org/software/src-highlite -->
 </tr></table>
 </div>
 <div class="para"><p>The default error message for <tt>validates_presence_of</tt> is "<em>can't be empty</em>".</p></div>
-<h3 id="_the_tt_validates_size_of_tt_helper">3.11. The <tt>validates_size_of</tt> helper</h3>
-<h3 id="_the_validates_uniqueness_of_helper">3.12. The validates_uniqueness_of+ helper</h3>
+<h3 id="_the_validates_uniqueness_of_helper">3.11. The validates_uniqueness_of+ helper</h3>
 </div>
 <h2 id="_common_validation_options">4. Common validation options</h2>
 <div class="sectionbody">
