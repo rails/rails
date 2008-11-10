@@ -77,7 +77,7 @@ class PooledConnectionsTest < ActiveRecord::TestCase
     conn_pool.checkin(conn)
   end
 
-  def test_not_connected_defined_connection_reutnrs_false
+  def test_not_connected_defined_connection_returns_false
     ActiveRecord::Base.establish_connection(@connection)
     assert ! ActiveRecord::Base.connected?
   end
