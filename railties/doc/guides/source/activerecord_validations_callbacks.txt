@@ -221,6 +221,20 @@ end
 
 === The +validates_numericallity_of+ helper
 
+This helper validates that your attributes have only numeric values. By default, it will match an optional sign followed by a integral or floating point number. Using the +:integer_only+ option set to true, you can specify that only integral numbers are allowed.
+
+If you use +:integer_only+ set to +true+, then it will use the +$$/\A[+\-]?\d+\Z/$$+ regular expression to validate the attribute's value. Otherwise, it will try to convert the value using +Kernel.Float+.
+
+[source, ruby]
+------------------------------------------------------------------
+class Player < ActiveRecord::Base
+  validates_numericallity_of :points
+  validates_numericallity_of :games_played, :integer_only => true
+end
+------------------------------------------------------------------
+
+The default error message for +validates_numericallity_of+ is "_is not a number_".
+
 === The +validates_presence_of+ helper
 
 === The +validates_size_of+ helper
@@ -228,11 +242,6 @@ end
 === The validates_uniqueness_of+ helper
 
 == Common validation options
-
-
-
-== Credits
-
 
 
 == Changelog
