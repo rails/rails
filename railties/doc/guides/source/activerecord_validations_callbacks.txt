@@ -148,6 +148,19 @@ The block receives the model, the attribute's name and the attribute's value. If
 
 === The +validates_exclusion_of+ helper
 
+This helper validates that the attributes' values are not included in a given set. In fact, this set can be any enumerable object.
+
+[source, ruby]
+------------------------------------------------------------------
+class MovieFile < ActiveRecord::Base
+  validates_exclusion_of :format, :in => %w(mov avi), :message => "Extension %s is not allowed"
+end
+------------------------------------------------------------------
+
+The +validates_exclusion_of+ helper has an option +:in+ that receives the set of values that will not be accepted for the validated attributes. The +:in+ option has an alias called +:within+  that you can use for the same purpose, if you'd like to. In the previous example we used the +:message+ option to show how we can personalize it with the current attribute's value, through the +%s+ format mask.
+
+The default error message for +validates_exclusion_of+  is "_is not included in the list_"
+
 === The +validates_format_of+ helper
 
 === The +validates_inclusion_of+ helper
