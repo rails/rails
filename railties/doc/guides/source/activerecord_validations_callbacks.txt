@@ -237,6 +237,27 @@ The default error message for +validates_numericallity_of+ is "_is not a number_
 
 === The +validates_presence_of+ helper
 
+This helper validates that the attributes are not empty. It uses the +blank?+ method to check if the value is either +nil+ or an empty string (if the string has only spaces, it will still be considered empty). 
+
+[source, ruby]
+------------------------------------------------------------------
+class Person < ActiveRecord::Base
+  validates_presence_of :name, :login, :email
+end
+------------------------------------------------------------------
+
+NOTE: If you want to be sure that an association is present, you'll need to test if the foreign key used to map the association is present, and not the associated object itself.
+
+[source, ruby]
+------------------------------------------------------------------
+class LineItem < ActiveRecord::Base
+  belongs_to :order
+  validates_presence_of :order_id
+end
+------------------------------------------------------------------
+
+The default error message for +validates_presence_of+ is "_can't be empty_".
+
 === The +validates_size_of+ helper
 
 === The validates_uniqueness_of+ helper
