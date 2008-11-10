@@ -567,6 +567,14 @@ http://www.gnu.org/software/src-highlite -->
   validates_presence_of <span style="color: #990000">:</span>order_id
 <span style="font-weight: bold"><span style="color: #0000FF">end</span></span>
 </tt></pre></div></div>
+<div class="admonitionblock">
+<table><tr>
+<td class="icon">
+<img src="./images/icons/note.png" alt="Note" />
+</td>
+<td class="content">If you want to validate the presence of a boolean field (where the real values are true and false), you will want to use validates_inclusion_of :field_name, :in &#8658; [true, false] This is due to the way Object#blank? handles boolean values. false.blank? # &#8658; true</td>
+</tr></table>
+</div>
 <div class="para"><p>The default error message for <tt>validates_presence_of</tt> is "<em>can't be empty</em>".</p></div>
 <h3 id="_the_tt_validates_size_of_tt_helper">3.11. The <tt>validates_size_of</tt> helper</h3>
 <h3 id="_the_validates_uniqueness_of_helper">3.12. The validates_uniqueness_of+ helper</h3>
