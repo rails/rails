@@ -454,9 +454,32 @@ http://www.gnu.org/software/src-highlite -->
 <span style="font-weight: bold"><span style="color: #0000FF">end</span></span>
 </tt></pre></div></div>
 <div class="para"><p>The <tt>validates_exclusion_of</tt> helper has an option <tt>:in</tt> that receives the set of values that will not be accepted for the validated attributes. The <tt>:in</tt> option has an alias called <tt>:within</tt>  that you can use for the same purpose, if you'd like to. In the previous example we used the <tt>:message</tt> option to show how we can personalize it with the current attribute's value, through the <tt>%s</tt> format mask.</p></div>
-<div class="para"><p>The default error message for <tt>validates_exclusion_of</tt>  is "<em>is not included in the list</em>"</p></div>
+<div class="para"><p>The default error message for <tt>validates_exclusion_of</tt>  is "<em>is not included in the list</em>".</p></div>
 <h3 id="_the_tt_validates_format_of_tt_helper">3.6. The <tt>validates_format_of</tt> helper</h3>
+<div class="para"><p>This helper validates the attributes's values by testing if they match a given pattern. This pattern must be specified using a Ruby regular expression, which must be passed through the <tt>:with</tt> option.</p></div>
+<div class="listingblock">
+<div class="content"><!-- Generator: GNU source-highlight 2.9
+by Lorenzo Bettini
+http://www.lorenzobettini.it
+http://www.gnu.org/software/src-highlite -->
+<pre><tt><span style="font-weight: bold"><span style="color: #0000FF">class</span></span> Product <span style="color: #990000">&lt;</span> ActiveRecord<span style="color: #990000">::</span>Base
+  validates_format_of <span style="color: #990000">:</span>description<span style="color: #990000">,</span> <span style="color: #990000">:</span>with <span style="color: #990000">=&gt;</span> <span style="color: #FF6600">/^[a-zA-Z]+$/</span><span style="color: #990000">,</span> <span style="color: #990000">:</span>message <span style="color: #990000">=&gt;</span> <span style="color: #FF0000">"Only letters allowed"</span>
+<span style="font-weight: bold"><span style="color: #0000FF">end</span></span>
+</tt></pre></div></div>
+<div class="para"><p>The default error message for <tt>validates_format_of</tt> is "<em>is invalid</em>".</p></div>
 <h3 id="_the_tt_validates_inclusion_of_tt_helper">3.7. The <tt>validates_inclusion_of</tt> helper</h3>
+<div class="para"><p>This helper validates that the attributes' values are included in a given set. In fact, this set can be any enumerable object.</p></div>
+<div class="listingblock">
+<div class="content"><!-- Generator: GNU source-highlight 2.9
+by Lorenzo Bettini
+http://www.lorenzobettini.it
+http://www.gnu.org/software/src-highlite -->
+<pre><tt><span style="font-weight: bold"><span style="color: #0000FF">class</span></span> Coffee <span style="color: #990000">&lt;</span> ActiveRecord<span style="color: #990000">::</span>Base
+  validates_inclusion_of <span style="color: #990000">:</span>size<span style="color: #990000">,</span> <span style="color: #990000">:</span><span style="font-weight: bold"><span style="color: #0000FF">in</span></span> <span style="color: #990000">=&gt;</span> <span style="color: #990000">%</span>w<span style="color: #990000">(</span>small medium large<span style="color: #990000">),</span> <span style="color: #990000">:</span>message <span style="color: #990000">=&gt;</span> <span style="color: #FF0000">"%s is not a valid size"</span>
+<span style="font-weight: bold"><span style="color: #0000FF">end</span></span>
+</tt></pre></div></div>
+<div class="para"><p>The <tt>validates_inclusion_of</tt> helper has an option <tt>:in</tt> that receives the set of values that will be accepted. The <tt>:in</tt> option has an alias called <tt>:within</tt>  that you can use for the same purpose, if you'd like to. In the previous example we used the <tt>:message</tt> option to show how we can personalize it with the current attribute's value, through the <tt>%s</tt> format mask.</p></div>
+<div class="para"><p>The default error message for <tt>validates_inclusion_of</tt>  is "<em>is not included in the list</em>".</p></div>
 <h3 id="_the_tt_validates_length_of_tt_helper">3.8. The <tt>validates_length_of</tt> helper</h3>
 <h3 id="_the_tt_validates_numericallity_of_tt_helper">3.9. The <tt>validates_numericallity_of</tt> helper</h3>
 <h3 id="_the_tt_validates_presence_of_tt_helper">3.10. The <tt>validates_presence_of</tt> helper</h3>
