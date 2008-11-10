@@ -262,7 +262,38 @@ NOTE: If you want to validate the presence of a boolean field (where the real va
 
 The default error message for +validates_presence_of+ is "_can't be empty_".
 
-=== The validates_uniqueness_of+ helper
+=== The +validates_uniqueness_of+ helper
+
+This helper validates that the attribute's value is unique right before the object gets saved. It does not create a uniqueness constraint directly into your database, so it may happen that two different database connections create two records with the same value for a column that you wish were unique. To avoid that, you must create an unique index in your database.
+
+[source, ruby]
+------------------------------------------------------------------
+class Account < ActiveRecord::Base
+  validates_uniqueness_of :email
+end
+------------------------------------------------------------------
+
+The validation happens by performing a SQL query into the model's table, searching for a record where the attribute that must be validated is equal to the value in the object being validated.
+
+There is a +:scope+ option that you can use to specify other attributes that must be used to define uniqueness:
+
+[source, ruby]
+------------------------------------------------------------------
+class Holiday < ActiveRecord::Base
+  validates_uniqueness_of :name, :scope => :year, :message => "Should happen once per year"
+end
+------------------------------------------------------------------
+
+There is also a +:case_sensitive+ option that you can use to define if the uniqueness contraint will be case sensitive or not. This option defaults to true.
+
+[source, ruby]
+------------------------------------------------------------------
+class Person < ActiveRecord::Base
+  validates_uniqueness_of :name, :case_sensitive => false
+end
+------------------------------------------------------------------
+
+The default error message for +validates_uniqueness_of+ is "_has already been taken_".
 
 == Common validation options
 
