@@ -191,6 +191,34 @@ The default error message for +validates_inclusion_of+  is "_is not included in 
 
 === The +validates_length_of+ helper
 
+This helper validates the length of your attribute's value. It can receive a variety of different options, so you can specify length contraints in different ways.
+
+[source, ruby]
+------------------------------------------------------------------
+class Person < ActiveRecord::Base
+  validates_length_of :name, :minimum => 2
+  validates_length_of :bio, :maximum => 500
+  validates_length_of :password, :in => 6..20
+  validates_length_of :registration_number, :is => 6
+end
+------------------------------------------------------------------
+
+The possible length constraint options are:
+
+* +:minimum+ - The attribute cannot have less than the specified length.
+* +:maximum+ - The attribute cannot have more than the specified length.
+* +:in+ (or +:within+) - The attribute length must be included in a given interval. The value for this option must be a Ruby range. 
+* +:is+ - The attribute length must be equal to a given value.
+
+The default error messages depend on the type of length validation being performed. You can personalize these messages, using the +:wrong_length+, +:too_long+ and +:too_short+ options and the +%d+ format mask as a placeholder for the number corresponding to the length contraint being used. You can still use the +:message+ option to specify an error message.
+
+[source, ruby]
+------------------------------------------------------------------
+class Person < ActiveRecord::Base
+  validates_length_of :bio, :too_long => "you're writing too much. %d characters is the maximum allowed."
+end
+------------------------------------------------------------------
+
 === The +validates_numericallity_of+ helper
 
 === The +validates_presence_of+ helper
