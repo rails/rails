@@ -219,7 +219,7 @@ module ActionController
           next_capture = 1
           extraction = segments.collect do |segment|
             x = segment.match_extraction(next_capture)
-            next_capture += Regexp.new(segment.regexp_chunk).number_of_captures
+            next_capture += segment.number_of_captures
             x
           end
           extraction.compact
