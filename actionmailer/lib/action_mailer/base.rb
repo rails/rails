@@ -391,6 +391,7 @@ module ActionMailer #:nodoc:
             when 'create'  then new(match[2], *parameters).mail
             when 'deliver' then new(match[2], *parameters).deliver!
             when 'new'     then nil
+            else super
           end
         else
           super
@@ -442,7 +443,7 @@ module ActionMailer #:nodoc:
       private
         def matches_dynamic_method?(method_name) #:nodoc:
           method_name = method_name.to_s
-          /(create|deliver)_([_a-z]\w*)/.match(method_name) || /^(new)$/.match(method_name)
+          /^(create|deliver)_([_a-z]\w*)/.match(method_name) || /^(new)$/.match(method_name)
         end
     end
 

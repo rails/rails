@@ -1046,6 +1046,10 @@ class RespondToTest < Test::Unit::TestCase
     assert !RespondToMailer.respond_to?(:deliver_1_template)
   end
 
+  def test_should_not_respond_to_method_where_deliver_is_not_a_suffix
+    assert !RespondToMailer.respond_to?(:foo_deliver_template)
+  end
+
   def test_should_still_raise_exception_with_expected_message_when_calling_an_undefined_method
     error = assert_raises NoMethodError do
       RespondToMailer.not_a_method
