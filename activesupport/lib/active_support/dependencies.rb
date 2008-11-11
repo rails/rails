@@ -138,14 +138,22 @@ module ActiveSupport #:nodoc:
       end
 
       def load_with_new_constant_marking(file, *extras) #:nodoc:
-        Dependencies.new_constants_in(Object) { load_without_new_constant_marking(file, *extras) }
+        if Dependencies.load?
+          Dependencies.new_constants_in(Object) { load_without_new_constant_marking(file, *extras) }
+        else
+          load_without_new_constant_marking(file, *extras)
+        end
       rescue Exception => exception  # errors from loading file
         exception.blame_file! file
         raise
       end
 
       def require(file, *extras) #:nodoc:
-        Dependencies.new_constants_in(Object) { super }
+        if Dependencies.load?
+          Dependencies.new_constants_in(Object) { super }
+        else
+          super
+        end
       rescue Exception => exception  # errors from required file
         exception.blame_file! file
         raise
