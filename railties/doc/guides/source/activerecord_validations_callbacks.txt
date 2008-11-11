@@ -297,6 +297,41 @@ The default error message for +validates_uniqueness_of+ is "_has already been ta
 
 == Common validation options
 
+There are some common options that all the validation helpers can use. Here they are, except for the +:if+ option, which we'll cover right at the next topic.
+
+=== The +:allow_nil+ option
+
+You may use the +:allow_nil+ option everytime you just want to trigger a validation if the value being validated is not +nil+. You may be asking yourself if it makes any sense to use +:allow_nil+ and +validates_presence_of+ together. Well, it does. Remember, validation will be skipped only for +nil+ attributes, but empty strings are not considered +nil+.
+
+[source, ruby]
+------------------------------------------------------------------
+class Coffee < ActiveRecord::Base
+  validates_inclusion_of :size, :in => %w(small medium large), 
+    :message => "%s is not a valid size", :allow_nil => true
+end
+------------------------------------------------------------------
+
+=== The +:message+ option
+
+As stated before, the +:message+ option lets you specify the message that will be added to the +errors+ collection when validation fails. When this option is not used, Active Record will use the respective default error message for each validation helper.
+
+=== The +:on+ option
+
+As stated before, the +:on+ option lets you specify when the validation should happen. The default behaviour for all the built-in validation helpers is to be ran on save (both when you're creating a new record and when you're updating it). If you want to change it, you can use +:on =$$>$$ :create+ to run the validation only when a new record is created or +:on =$$>$$ :update+ to run the validation only when a record is updated.
+
+[source, ruby]
+------------------------------------------------------------------
+class Person < ActiveRecord::Base
+  validates_uniqueness_of :email, :on => :create # => it will be possible to update email with a duplicated value
+  validates_numericallity_of :age, :on => :update # => it will be possible to create the record with a 'non-numerical age'
+  validates_presence_of :name, :on => :save # => that's the default
+end
+------------------------------------------------------------------
+
+== Conditional validation
+
+
+
 
 == Changelog
 

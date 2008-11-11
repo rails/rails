@@ -241,6 +241,18 @@ ul#navMain {
 					</li>
 					<li>
 					<a href="#_common_validation_options">Common validation options</a>
+						<ul>
+						
+							<li><a href="#_the_tt_allow_nil_tt_option">The <tt>:allow_nil</tt> option</a></li>
+						
+							<li><a href="#_the_tt_message_tt_option">The <tt>:message</tt> option</a></li>
+						
+							<li><a href="#_the_tt_on_tt_option">The <tt>:on</tt> option</a></li>
+						
+						</ul>
+					</li>
+					<li>
+					<a href="#_conditional_validation">Conditional validation</a>
 					</li>
 					<li>
 					<a href="#_changelog">Changelog</a>
@@ -611,8 +623,39 @@ http://www.gnu.org/software/src-highlite -->
 </div>
 <h2 id="_common_validation_options">4. Common validation options</h2>
 <div class="sectionbody">
+<div class="para"><p>There are some common options that all the validation helpers can use. Here they are, except for the <tt>:if</tt> option, which we'll cover right at the next topic.</p></div>
+<h3 id="_the_tt_allow_nil_tt_option">4.1. The <tt>:allow_nil</tt> option</h3>
+<div class="para"><p>You may use the <tt>:allow_nil</tt> option everytime you just want to trigger a validation if the value being validated is not <tt>nil</tt>. You may be asking yourself if it makes any sense to use <tt>:allow_nil</tt> and <tt>validates_presence_of</tt> together. Well, it does. Remember, validation will be skipped only for <tt>nil</tt> attributes, but empty strings are not considered <tt>nil</tt>.</p></div>
+<div class="listingblock">
+<div class="content"><!-- Generator: GNU source-highlight 2.9
+by Lorenzo Bettini
+http://www.lorenzobettini.it
+http://www.gnu.org/software/src-highlite -->
+<pre><tt><span style="font-weight: bold"><span style="color: #0000FF">class</span></span> Coffee <span style="color: #990000">&lt;</span> ActiveRecord<span style="color: #990000">::</span>Base
+  validates_inclusion_of <span style="color: #990000">:</span>size<span style="color: #990000">,</span> <span style="color: #990000">:</span><span style="font-weight: bold"><span style="color: #0000FF">in</span></span> <span style="color: #990000">=&gt;</span> <span style="color: #990000">%</span>w<span style="color: #990000">(</span>small medium large<span style="color: #990000">),</span>
+    <span style="color: #990000">:</span>message <span style="color: #990000">=&gt;</span> <span style="color: #FF0000">"%s is not a valid size"</span><span style="color: #990000">,</span> <span style="color: #990000">:</span>allow_nil <span style="color: #990000">=&gt;</span> <span style="font-weight: bold"><span style="color: #0000FF">true</span></span>
+<span style="font-weight: bold"><span style="color: #0000FF">end</span></span>
+</tt></pre></div></div>
+<h3 id="_the_tt_message_tt_option">4.2. The <tt>:message</tt> option</h3>
+<div class="para"><p>As stated before, the <tt>:message</tt> option lets you specify the message that will be added to the <tt>errors</tt> collection when validation fails. When this option is not used, Active Record will use the respective default error message for each validation helper.</p></div>
+<h3 id="_the_tt_on_tt_option">4.3. The <tt>:on</tt> option</h3>
+<div class="para"><p>As stated before, the <tt>:on</tt> option lets you specify when the validation should happen. The default behaviour for all the built-in validation helpers is to be ran on save (both when you're creating a new record and when you're updating it). If you want to change it, you can use <tt>:on =<span>&gt;</span> :create</tt> to run the validation only when a new record is created or <tt>:on =<span>&gt;</span> :update</tt> to run the validation only when a record is updated.</p></div>
+<div class="listingblock">
+<div class="content"><!-- Generator: GNU source-highlight 2.9
+by Lorenzo Bettini
+http://www.lorenzobettini.it
+http://www.gnu.org/software/src-highlite -->
+<pre><tt><span style="font-weight: bold"><span style="color: #0000FF">class</span></span> Person <span style="color: #990000">&lt;</span> ActiveRecord<span style="color: #990000">::</span>Base
+  validates_uniqueness_of <span style="color: #990000">:</span>email<span style="color: #990000">,</span> <span style="color: #990000">:</span>on <span style="color: #990000">=&gt;</span> <span style="color: #990000">:</span>create <span style="font-style: italic"><span style="color: #9A1900"># =&gt; it will be possible to update email with a duplicated value</span></span>
+  validates_numericallity_of <span style="color: #990000">:</span>age<span style="color: #990000">,</span> <span style="color: #990000">:</span>on <span style="color: #990000">=&gt;</span> <span style="color: #990000">:</span>update <span style="font-style: italic"><span style="color: #9A1900"># =&gt; it will be possible to create the record with a 'non-numerical age'</span></span>
+  validates_presence_of <span style="color: #990000">:</span>name<span style="color: #990000">,</span> <span style="color: #990000">:</span>on <span style="color: #990000">=&gt;</span> <span style="color: #990000">:</span>save <span style="font-style: italic"><span style="color: #9A1900"># =&gt; that's the default</span></span>
+<span style="font-weight: bold"><span style="color: #0000FF">end</span></span>
+</tt></pre></div></div>
 </div>
-<h2 id="_changelog">5. Changelog</h2>
+<h2 id="_conditional_validation">5. Conditional validation</h2>
+<div class="sectionbody">
+</div>
+<h2 id="_changelog">6. Changelog</h2>
 <div class="sectionbody">
 <div class="para"><p><a href="http://rails.lighthouseapp.com/projects/16213/tickets/26-active-record-validations-and-callbacks">http://rails.lighthouseapp.com/projects/16213/tickets/26-active-record-validations-and-callbacks</a></p></div>
 </div>
