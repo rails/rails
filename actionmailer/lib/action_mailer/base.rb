@@ -386,12 +386,14 @@ module ActionMailer #:nodoc:
       end
 
       def method_missing(method_symbol, *parameters) #:nodoc:
-        match = matches_dynamic_method?(method_symbol)
-        case match[1]
-          when 'create'  then new(match[2], *parameters).mail
-          when 'deliver' then new(match[2], *parameters).deliver!
-          when 'new'     then nil
-          else super
+        if match = matches_dynamic_method?(method_symbol)
+          case match[1]
+            when 'create'  then new(match[2], *parameters).mail
+            when 'deliver' then new(match[2], *parameters).deliver!
+            when 'new'     then nil
+          end
+        else
+          super
         end
       end
 

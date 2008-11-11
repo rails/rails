@@ -1045,4 +1045,12 @@ class RespondToTest < Test::Unit::TestCase
   def test_should_not_respond_to_deliver_with_template_suffix_if_it_begins_with_a_digit
     assert !RespondToMailer.respond_to?(:deliver_1_template)
   end
+
+  def test_should_still_raise_exception_with_expected_message_when_calling_an_undefined_method
+    error = assert_raises NoMethodError do
+      RespondToMailer.not_a_method
+    end
+
+    assert_match /undefined method.*not_a_method/, error.message
+  end
 end
