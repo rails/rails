@@ -1,15 +1,7 @@
 require "active_support/test_case"
 
-module ActiveRecord 
+module ActiveRecord
   class TestCase < ActiveSupport::TestCase #:nodoc:
-    self.fixture_path               = FIXTURES_ROOT
-    self.use_instantiated_fixtures  = false
-    self.use_transactional_fixtures = true
-
-    def create_fixtures(*table_names, &block)
-      Fixtures.create_fixtures(FIXTURES_ROOT, table_names, {}, &block)
-    end
-
     def assert_date_from_db(expected, actual, message = nil)
       # SQL Server doesn't have a separate column type just for dates,
       # so the time is in the string and incorrectly formatted
