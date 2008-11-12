@@ -7,16 +7,22 @@ silence_warnings { RAILS_ENV = "test" }
 require 'action_controller/integration'
 require 'action_mailer/test_case' if defined?(ActionMailer)
 
-require 'active_record/fixtures'
-class ActiveSupport::TestCase
-  include ActiveRecord::TestFixtures
-end
+if defined?(ActiveRecord)
+  require 'active_record/test_case'
+  require 'active_record/fixtures'
 
-ActiveSupport::TestCase.fixture_path = "#{RAILS_ROOT}/test/fixtures/"
-ActionController::IntegrationTest.fixture_path = ActiveSupport::TestCase.fixture_path
+  class ActiveSupport::TestCase
+    include ActiveRecord::TestFixtures
+    self.fixture_path = "#{RAILS_ROOT}/test/fixtures/"
+    self.use_instantiated_fixtures  = false
+    self.use_transactional_fixtures = true
+  end
 
-def create_fixtures(*table_names)
-  Fixtures.create_fixtures(ActiveSupport::TestCase.fixture_path, table_names)
+  ActionController::IntegrationTest.fixture_path = ActiveSupport::TestCase.fixture_path
+
+  def create_fixtures(*table_names, &block)
+    Fixtures.create_fixtures(ActiveSupport::TestCase.fixture_path, table_names, {}, &block)
+  end
 end
 
 begin
