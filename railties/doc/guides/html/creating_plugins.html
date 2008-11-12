@@ -204,7 +204,7 @@ ul#navMain {
 						
 							<li><a href="#_create_the_basic_app">Create the basic app</a></li>
 						
-							<li><a href="#_create_the_plugin">Create the plugin</a></li>
+							<li><a href="#_generate_the_plugin_skeleton">Generate the plugin skeleton</a></li>
 						
 							<li><a href="#_setup_the_plugin_for_testing">Setup the plugin for testing</a></li>
 						
@@ -377,11 +377,12 @@ write custom Rake tasks in your plugin.
 <h2 id="_preparation">1. Preparation</h2>
 <div class="sectionbody">
 <h3 id="_create_the_basic_app">1.1. Create the basic app</h3>
-<div class="para"><p>In this tutorial we will create a basic rails application with 1 resource: bird.  Start out by building the basic rails app:</p></div>
+<div class="para"><p>The examples in this guide require that you have a working rails application.  To create a simple rails app execute:</p></div>
 <div class="listingblock">
 <div class="content">
-<pre><tt>rails plugin_demo
-cd plugin_demo
+<pre><tt>gem install rails
+rails yaffle_guide
+cd yaffle_guide
 script/generate scaffold bird name:string
 rake db:migrate
 script/server</tt></pre>
@@ -392,22 +393,24 @@ script/server</tt></pre>
 <td class="icon">
 <img src="./images/icons/note.png" alt="Note" />
 </td>
-<td class="content">The aforementioned instructions will work for sqlite3.  For more detailed instructions on how to create a rails app for other databases see the API docs.</td>
+<td class="content">
+<div class="title">Editor's note:</div>The aforementioned instructions will work for sqlite3.  For more detailed instructions on how to create a rails app for other databases see the API docs.</td>
 </tr></table>
 </div>
-<h3 id="_create_the_plugin">1.2. Create the plugin</h3>
-<div class="para"><p>The built-in Rails plugin generator stubs out a new plugin. Pass the plugin name, either <em>CamelCased</em> or <em>under_scored</em>, as an argument. Pass <tt>--with-generator</tt> to add an example generator also.</p></div>
+<h3 id="_generate_the_plugin_skeleton">1.2. Generate the plugin skeleton</h3>
+<div class="para"><p>Rails ships with a plugin generator which creates a basic plugin skeleton. Pass the plugin name, either <em>CamelCased</em> or <em>under_scored</em>, as an argument. Pass <tt>--with-generator</tt> to add an example generator also.</p></div>
 <div class="para"><p>This creates a plugin in <em>vendor/plugins</em> including an <em>init.rb</em> and <em>README</em> as well as standard <em>lib</em>, <em>task</em>, and <em>test</em> directories.</p></div>
 <div class="para"><p>Examples:</p></div>
 <div class="listingblock">
 <div class="content">
-<pre><tt>./script/generate plugin BrowserFilters
-./script/generate plugin BrowserFilters --with-generator</tt></pre>
+<pre><tt>./script/generate plugin yaffle
+./script/generate plugin yaffle --with-generator</tt></pre>
 </div></div>
-<div class="para"><p>Later in the plugin we will create a generator, so go ahead and add the <tt>--with-generator</tt> option now:</p></div>
+<div class="para"><p>To get more detailed help on the plugin generator, type <tt>./script/generate plugin</tt>.</p></div>
+<div class="para"><p>Later on this guide will describe how to work with generators, so go ahead and generate your plugin with the <tt>--with-generator</tt> option now:</p></div>
 <div class="listingblock">
 <div class="content">
-<pre><tt>script/generate plugin yaffle --with-generator</tt></pre>
+<pre><tt>./script/generate plugin yaffle --with-generator</tt></pre>
 </div></div>
 <div class="para"><p>You should see the following output:</p></div>
 <div class="listingblock">
@@ -430,22 +433,8 @@ create  vendor/plugins/yaffle/generators/yaffle/templates
 create  vendor/plugins/yaffle/generators/yaffle/yaffle_generator.rb
 create  vendor/plugins/yaffle/generators/yaffle/USAGE</tt></pre>
 </div></div>
-<div class="para"><p>For this plugin you won't need the file <em>vendor/plugins/yaffle/lib/yaffle.rb</em> so you can delete that.</p></div>
-<div class="listingblock">
-<div class="content">
-<pre><tt>rm vendor/plugins/yaffle/lib/yaffle.rb</tt></pre>
-</div></div>
-<div class="admonitionblock">
-<table><tr>
-<td class="icon">
-<img src="./images/icons/note.png" alt="Note" />
-</td>
-<td class="content">
-<div class="title">Editor's note:</div>Many plugin authors prefer to keep this file, and add all of the require statements in it.  That way, they only line in init.rb would be <tt>require "yaffle"</tt>. If you are developing a plugin that has a lot of files in the lib directory, you may want to create a subdirectory like lib/yaffle and store your files in there.  That way your init.rb file stays clean</td>
-</tr></table>
-</div>
 <h3 id="_setup_the_plugin_for_testing">1.3. Setup the plugin for testing</h3>
-<div class="para"><p>Testing plugins that use the entire Rails stack can be complex, and the generator doesn't offer any help.  In this tutorial you will learn how to test your plugin against multiple different adapters using ActiveRecord.  This tutorial will not cover how to use fixtures in plugin tests.</p></div>
+<div class="para"><p>In this guide you will learn how to test your plugin against multiple different adapters using Active Record.  This guide will not cover how to use fixtures in plugin tests.</p></div>
 <div class="para"><p>To setup your plugin to allow for easy testing you'll need to add 3 files:</p></div>
 <div class="ilist"><ul>
 <li>
@@ -464,7 +453,6 @@ A test helper that sets up the database before your tests.
 </p>
 </li>
 </ul></div>
-<div class="para"><p>For this plugin you'll need 2 tables/models, Hickwalls and Wickwalls, so add the following files:</p></div>
 <div class="para"><p><strong>vendor/plugins/yaffle/test/database.yml:</strong></p></div>
 <div class="listingblock">
 <div class="content">
@@ -490,7 +478,8 @@ mysql:
   :password:
   :database: yaffle_plugin_test</tt></pre>
 </div></div>
-<div class="para"><p><strong>vendor/plugins/yaffle/test/test_helper.rb:</strong></p></div>
+<div class="para"><p>For this guide you'll need 2 tables/models, Hickwalls and Wickwalls, so add the following:</p></div>
+<div class="para"><p><strong>vendor/plugins/yaffle/test/schema.rb:</strong></p></div>
 <div class="listingblock">
 <div class="content"><!-- Generator: GNU source-highlight 2.9
 by Lorenzo Bettini
@@ -508,10 +497,14 @@ http://www.gnu.org/software/src-highlite -->
     t<span style="color: #990000">.</span>datetime <span style="color: #990000">:</span>last_tweeted_at
   <span style="font-weight: bold"><span style="color: #0000FF">end</span></span>
 <span style="font-weight: bold"><span style="color: #0000FF">end</span></span>
-
-<span style="font-style: italic"><span style="color: #9A1900"># File: vendor/plugins/yaffle/test/test_helper.rb</span></span>
-
-ENV<span style="color: #990000">[</span><span style="color: #FF0000">'RAILS_ENV'</span><span style="color: #990000">]</span> <span style="color: #990000">=</span> <span style="color: #FF0000">'test'</span>
+</tt></pre></div></div>
+<div class="para"><p><strong>vendor/plugins/yaffle/test/test_helper.rb:</strong></p></div>
+<div class="listingblock">
+<div class="content"><!-- Generator: GNU source-highlight 2.9
+by Lorenzo Bettini
+http://www.lorenzobettini.it
+http://www.gnu.org/software/src-highlite -->
+<pre><tt>ENV<span style="color: #990000">[</span><span style="color: #FF0000">'RAILS_ENV'</span><span style="color: #990000">]</span> <span style="color: #990000">=</span> <span style="color: #FF0000">'test'</span>
 ENV<span style="color: #990000">[</span><span style="color: #FF0000">'RAILS_ROOT'</span><span style="color: #990000">]</span> <span style="color: #990000">||=</span> File<span style="color: #990000">.</span>dirname<span style="color: #990000">(</span><span style="font-weight: bold"><span style="color: #0000FF">__FILE__</span></span><span style="color: #990000">)</span> <span style="color: #990000">+</span> <span style="color: #FF0000">'/../../../..'</span>
 
 <span style="font-weight: bold"><span style="color: #000080">require</span></span> <span style="color: #FF0000">'test/unit'</span>
@@ -522,7 +515,6 @@ ActiveRecord<span style="color: #990000">::</span>Base<span style="color: #99000
 
 db_adapter <span style="color: #990000">=</span> ENV<span style="color: #990000">[</span><span style="color: #FF0000">'DB'</span><span style="color: #990000">]</span>
 
-<span style="font-style: italic"><span style="color: #9A1900"># no db passed, try one of these fine config-free DBs before bombing.</span></span>
 db_adapter <span style="color: #990000">||=</span>
   <span style="font-weight: bold"><span style="color: #0000FF">begin</span></span>
     <span style="font-weight: bold"><span style="color: #000080">require</span></span> <span style="color: #FF0000">'rubygems'</span>
@@ -547,11 +539,9 @@ ActiveRecord<span style="color: #990000">::</span>Base<span style="color: #99000
 <span style="font-weight: bold"><span style="color: #000080">require</span></span> File<span style="color: #990000">.</span>dirname<span style="color: #990000">(</span><span style="font-weight: bold"><span style="color: #0000FF">__FILE__</span></span><span style="color: #990000">)</span> <span style="color: #990000">+</span> <span style="color: #FF0000">'/../init.rb'</span>
 
 <span style="font-weight: bold"><span style="color: #0000FF">class</span></span> Hickwall <span style="color: #990000">&lt;</span> ActiveRecord<span style="color: #990000">::</span>Base
-  acts_as_yaffle
 <span style="font-weight: bold"><span style="color: #0000FF">end</span></span>
 
 <span style="font-weight: bold"><span style="color: #0000FF">class</span></span> Wickwall <span style="color: #990000">&lt;</span> ActiveRecord<span style="color: #990000">::</span>Base
-  acts_as_yaffle <span style="color: #990000">:</span>yaffle_text_field <span style="color: #990000">=&gt;</span> <span style="color: #990000">:</span>last_tweet<span style="color: #990000">,</span> <span style="color: #990000">:</span>yaffle_date_field <span style="color: #990000">=&gt;</span> <span style="color: #990000">:</span>last_tweeted_at
 <span style="font-weight: bold"><span style="color: #0000FF">end</span></span>
 </tt></pre></div></div>
 </div>
@@ -1219,32 +1209,34 @@ ActionController<span style="color: #990000">::</span>Routing<span style="color:
 <div class="sectionbody">
 <h3 id="_work_with_init_rb">8.1. Work with init.rb</h3>
 <div class="para"><p>The plugin initializer script <em>init.rb</em> is invoked via <tt>eval</tt> (not <tt>require</tt>) so it has slightly different behavior.</p></div>
-<div class="para"><p>If you reopen any classes in init.rb itself your changes will potentially be made to the wrong module.  There are 2 ways around this:</p></div>
-<div class="para"><p>The first way is to explicitly define the top-level module space for all modules and classes, like <tt>::Hash</tt>:</p></div>
+<div class="para"><p>If you reopen any classes in init.rb itself your changes will potentially be made to the wrong module.  As a rule, it's better not to open any classes in <tt>init.rb</tt>, and it makes the plugin more difficult to turn into a gem.</p></div>
+<div class="para"><p>A better alternative is to reopen the class in a different file, and require that file from <tt>init.rb</tt>.</p></div>
+<div class="para"><p>If you must reopen a class in <tt>init.rb</tt>, there are various techniques.  One way is to use <tt>module_eval</tt> or <tt>class_eval</tt>:</p></div>
+<div class="para"><p><strong>vendor/plugins/yaffle/init.rb</strong></p></div>
 <div class="listingblock">
 <div class="content"><!-- Generator: GNU source-highlight 2.9
 by Lorenzo Bettini
 http://www.lorenzobettini.it
 http://www.gnu.org/software/src-highlite -->
-<pre><tt><span style="font-style: italic"><span style="color: #9A1900"># File: vendor/plugins/yaffle/init.rb</span></span>
-
-<span style="font-weight: bold"><span style="color: #0000FF">class</span></span> <span style="color: #990000">::</span>Hash
+<pre><tt>Hash<span style="color: #990000">.</span>class_eval <span style="font-weight: bold"><span style="color: #0000FF">do</span></span>
   <span style="font-weight: bold"><span style="color: #0000FF">def</span></span> is_a_special_hash?
     <span style="font-weight: bold"><span style="color: #0000FF">true</span></span>
   <span style="font-weight: bold"><span style="color: #0000FF">end</span></span>
 <span style="font-weight: bold"><span style="color: #0000FF">end</span></span>
 </tt></pre></div></div>
-<div class="para"><p>OR you can use <tt>module_eval</tt> or <tt>class_eval</tt>:</p></div>
+<div class="para"><p>Another way is to explicitly define the top-level module space for all modules and classes, like <tt>::Hash</tt>:</p></div>
+<div class="para"><p><strong>vendor/plugins/yaffle/init.rb</strong></p></div>
 <div class="listingblock">
-<div class="content">
-<pre><tt># File: vendor/plugins/yaffle/init.rb
-
-Hash.class_eval do
-  def is_a_special_hash?
-    true
-  end
-end</tt></pre>
-</div></div>
+<div class="content"><!-- Generator: GNU source-highlight 2.9
+by Lorenzo Bettini
+http://www.lorenzobettini.it
+http://www.gnu.org/software/src-highlite -->
+<pre><tt><span style="font-weight: bold"><span style="color: #0000FF">class</span></span> <span style="color: #990000">::</span>Hash
+  <span style="font-weight: bold"><span style="color: #0000FF">def</span></span> is_a_special_hash?
+    <span style="font-weight: bold"><span style="color: #0000FF">true</span></span>
+  <span style="font-weight: bold"><span style="color: #0000FF">end</span></span>
+<span style="font-weight: bold"><span style="color: #0000FF">end</span></span>
+</tt></pre></div></div>
 <h3 id="_generate_rdoc_documentation">8.2. Generate RDoc Documentation</h3>
 <div class="para"><p>Once your plugin is stable, the tests pass on all database and you are ready to deploy do everyone else a favor and document it!  Luckily, writing documentation for your plugin is easy.</p></div>
 <div class="para"><p>The first step is to update the README file with detailed information about how to use your plugin.  A few key things to include are:</p></div>
