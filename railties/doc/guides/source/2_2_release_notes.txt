@@ -209,7 +209,7 @@ Active Record association proxies now respect the scope of methods on the proxie
 
 == Action Controller
 
-On the controller side, there are a couple of changes that will help tidy up your routes. 
+On the controller side, there are several changes that will help tidy up your routes. There are also some internal changes in the routing engine to lower memory usage on complex applications.
 
 === Shallow Route Nesting
 
@@ -250,7 +250,17 @@ map.resources :photos, :collection => { :search => [:get, :post] }
 
 * Lead Contributor: link:http://brennandunn.com/[Brennan Dunn]
 
-Action Controller now offers good support for HTTP conditional GET requests, as well as some other additions.
+=== Resources With Specific Actions
+
+By default, when you use +map.resources+ to create a route, Rails generates routes for seven default actions (index, show, create, new, edit, update, and destroy). But each of these routes takes up memory in your application, and causes Rails to generate additional routing logic. Now you can use the +:only+ and +:except+ options to fine-tune the routes that Rails will generate for resources. You can supply a single action, an array of actions, or the special +:all+ or +:none+ options. These options are inherited by nested resources.
+
+[source, ruby]
+-------------------------------------------------------
+map.resources :photos, :only => [:index, :show]
+map.resources :products, :except => :destroy
+-------------------------------------------------------
+
+* Lead Contributor: link:http://experthuman.com/[Tom Stuart]
 
 === Other Action Controller Changes
 
