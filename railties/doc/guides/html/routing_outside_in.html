@@ -925,6 +925,16 @@ cellspacing="0" cellpadding="4">
 <tt>:name_prefix</tt>
 </p>
 </li>
+<li>
+<p>
+<tt>:only</tt>
+</p>
+</li>
+<li>
+<p>
+<tt>:except</tt>
+</p>
+</li>
 </ul></div>
 <div class="para"><p>You can also add additional routes via the <tt>:member</tt> and <tt>:collection</tt> options, which are discussed later in this guide.</p></div>
 <h4 id="_using_controller">3.6.1. Using :controller</h4>
@@ -1417,6 +1427,34 @@ map<span style="color: #990000">.</span>resources <span style="color: #990000">:
 <img src="./images/icons/note.png" alt="Note" />
 </td>
 <td class="content">You can also use <tt>:name_prefix</tt> with non-RESTful routes.</td>
+</tr></table>
+</div>
+<h4 id="_using_only_and_except">3.7.8. Using :only and :except</h4>
+<div class="para"><p>By default, Rails creates routes for all seven of the default actions (index, show, new, create, edit, update, and destroy) for every RESTful route in your application. You can use the <tt>:only</tt> and <tt>:except</tt> options to fine-tune this behavior. The <tt>:only</tt> option specifies that only certain routes should be generated:</p></div>
+<div class="listingblock">
+<div class="content"><!-- Generator: GNU source-highlight 2.9
+by Lorenzo Bettini
+http://www.lorenzobettini.it
+http://www.gnu.org/software/src-highlite -->
+<pre><tt>map<span style="color: #990000">.</span>resources <span style="color: #990000">:</span>photos<span style="color: #990000">,</span> <span style="color: #990000">:</span>only <span style="color: #990000">=&gt;</span> <span style="color: #990000">[:</span>index<span style="color: #990000">,</span> <span style="color: #990000">:</span>show<span style="color: #990000">]</span>
+</tt></pre></div></div>
+<div class="para"><p>With this declaration, a <tt>GET</tt> request to <tt>/photos</tt> would succeed, but a <tt>POST</tt> request to <tt>/photos</tt> (which would ordinarily be routed to the create action) will fail.</p></div>
+<div class="para"><p>The <tt>:except</tt> option specifies a route or list of routes that should <em>not</em> be generated:</p></div>
+<div class="listingblock">
+<div class="content"><!-- Generator: GNU source-highlight 2.9
+by Lorenzo Bettini
+http://www.lorenzobettini.it
+http://www.gnu.org/software/src-highlite -->
+<pre><tt>map<span style="color: #990000">.</span>resources <span style="color: #990000">:</span>photos<span style="color: #990000">,</span> <span style="color: #990000">:</span>except <span style="color: #990000">=&gt;</span> <span style="color: #990000">:</span>destroy
+</tt></pre></div></div>
+<div class="para"><p>In this case, all of the normal routes except the route for <tt>destroy</tt> (a <tt>DELETE</tt> request to <tt>/photos/<em>id</em></tt>) will be generated.</p></div>
+<div class="para"><p>In addition to an action or a list of actions, you can also supply the special symbols <tt>:all</tt> or <tt>:none</tt> to the <tt>:only</tt> and <tt>:accept</tt> options.</p></div>
+<div class="admonitionblock">
+<table><tr>
+<td class="icon">
+<img src="./images/icons/tip.png" alt="Tip" />
+</td>
+<td class="content">If your application has many RESTful routes, using <tt>:only</tt> and <tt>:accept</tt> to generate only the routes that you actually need can cut down on memory use and speed up the routing process.</td>
 </tr></table>
 </div>
 <h3 id="_nested_resources">3.8. Nested Resources</h3>
