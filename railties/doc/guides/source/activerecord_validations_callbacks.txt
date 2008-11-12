@@ -387,7 +387,7 @@ If your validation rules are too complicated and you want to break it in small m
 [source, ruby]
 ------------------------------------------------------------------
 class Invoice < ActiveRecord::Base
-  validate :expiration_date_cannot_be_in_the_past, :discount_cannot_be_be_more_than_total_value
+  validate :expiration_date_cannot_be_in_the_past, :discount_cannot_be_more_than_total_value
 
   def expiration_date_cannot_be_in_the_past
     errors.add(:expiration_date, "can't be in the past") if !expiration_date.blank? and expiration_date < Date.today
