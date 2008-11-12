@@ -253,6 +253,15 @@ ul#navMain {
 					</li>
 					<li>
 					<a href="#_conditional_validation">Conditional validation</a>
+						<ul>
+						
+							<li><a href="#_using_a_symbol_with_the_tt_if_tt_and_tt_unless_tt_options">Using a symbol with the <tt>:if</tt> and <tt>:unless</tt> options</a></li>
+						
+							<li><a href="#_using_a_string_with_the_tt_if_tt_and_tt_unless_tt_options">Using a string with the <tt>:if</tt> and <tt>:unless</tt> options</a></li>
+						
+							<li><a href="#_using_a_proc_object_with_the_tt_if_tt_option">Using a Proc object with the <tt>:if</tt> option</a></li>
+						
+						</ul>
 					</li>
 					<li>
 					<a href="#_changelog">Changelog</a>
@@ -623,7 +632,7 @@ http://www.gnu.org/software/src-highlite -->
 </div>
 <h2 id="_common_validation_options">4. Common validation options</h2>
 <div class="sectionbody">
-<div class="para"><p>There are some common options that all the validation helpers can use. Here they are, except for the <tt>:if</tt> option, which we'll cover right at the next topic.</p></div>
+<div class="para"><p>There are some common options that all the validation helpers can use. Here they are, except for the <tt>:if</tt> and <tt>:unless</tt> options, which we'll cover right at the next topic.</p></div>
 <h3 id="_the_tt_allow_nil_tt_option">4.1. The <tt>:allow_nil</tt> option</h3>
 <div class="para"><p>You may use the <tt>:allow_nil</tt> option everytime you just want to trigger a validation if the value being validated is not <tt>nil</tt>. You may be asking yourself if it makes any sense to use <tt>:allow_nil</tt> and <tt>validates_presence_of</tt> together. Well, it does. Remember, validation will be skipped only for <tt>nil</tt> attributes, but empty strings are not considered <tt>nil</tt>.</p></div>
 <div class="listingblock">
@@ -654,6 +663,44 @@ http://www.gnu.org/software/src-highlite -->
 </div>
 <h2 id="_conditional_validation">5. Conditional validation</h2>
 <div class="sectionbody">
+<div class="para"><p>Sometimes it will make sense to validate an object just when a given predicate is satisfied. You can do that by using the <tt>:if</tt> and <tt>:unless</tt> options, which can take a symbol, a string or a Ruby Proc. You may use the <tt>:if</tt> option when you want to specify when the validation <strong>should</strong> happen. If you want to specify when the validation <strong>should not</strong> happen, then you may use the <tt>:unless</tt> option.</p></div>
+<h3 id="_using_a_symbol_with_the_tt_if_tt_and_tt_unless_tt_options">5.1. Using a symbol with the <tt>:if</tt> and <tt>:unless</tt> options</h3>
+<div class="para"><p>You can associated the <tt>:if</tt> and <tt>:unless</tt> options with a symbol corresponding to the name of a method that will get called right before validation happens. This is the most commonly used option.</p></div>
+<div class="listingblock">
+<div class="content"><!-- Generator: GNU source-highlight 2.9
+by Lorenzo Bettini
+http://www.lorenzobettini.it
+http://www.gnu.org/software/src-highlite -->
+<pre><tt><span style="font-weight: bold"><span style="color: #0000FF">class</span></span> Order <span style="color: #990000">&lt;</span> ActiveRecord<span style="color: #990000">::</span>Base
+  validates_presence_of <span style="color: #990000">:</span>card_number<span style="color: #990000">,</span> <span style="color: #990000">:</span><span style="font-weight: bold"><span style="color: #0000FF">if</span></span> <span style="color: #990000">=&gt;</span> <span style="color: #990000">:</span>paid_with_card?
+
+  <span style="font-weight: bold"><span style="color: #0000FF">def</span></span> paid_with_card?
+    payment_type <span style="color: #990000">==</span> <span style="color: #FF0000">"card"</span>
+  <span style="font-weight: bold"><span style="color: #0000FF">end</span></span>
+<span style="font-weight: bold"><span style="color: #0000FF">end</span></span>
+</tt></pre></div></div>
+<h3 id="_using_a_string_with_the_tt_if_tt_and_tt_unless_tt_options">5.2. Using a string with the <tt>:if</tt> and <tt>:unless</tt> options</h3>
+<div class="para"><p>You can also use a string that will be evaluated using <tt>:eval</tt> and needs to contain valid Ruby code. You should use this option only when the string represents a really short condition.</p></div>
+<div class="listingblock">
+<div class="content"><!-- Generator: GNU source-highlight 2.9
+by Lorenzo Bettini
+http://www.lorenzobettini.it
+http://www.gnu.org/software/src-highlite -->
+<pre><tt><span style="font-weight: bold"><span style="color: #0000FF">class</span></span> Person <span style="color: #990000">&lt;</span> ActiveRecord<span style="color: #990000">::</span>Base
+  validates_presence_of <span style="color: #990000">:</span>surname<span style="color: #990000">,</span> <span style="color: #990000">:</span><span style="font-weight: bold"><span style="color: #0000FF">if</span></span> <span style="color: #990000">=&gt;</span> <span style="color: #FF0000">"name.nil?"</span>
+<span style="font-weight: bold"><span style="color: #0000FF">end</span></span>
+</tt></pre></div></div>
+<h3 id="_using_a_proc_object_with_the_tt_if_tt_option">5.3. Using a Proc object with the <tt>:if</tt> option</h3>
+<div class="para"><p>Finally, it's possible to associate <tt>:if</tt> and <tt>:unless</tt> with a Ruby Proc object which will be called. Using a Proc object can give you the hability to write a condition that will be executed only when the validation happens and not when your code is loaded by the Ruby interpreter. This option is best suited when writing short validation methods, usually one-liners.</p></div>
+<div class="listingblock">
+<div class="content"><!-- Generator: GNU source-highlight 2.9
+by Lorenzo Bettini
+http://www.lorenzobettini.it
+http://www.gnu.org/software/src-highlite -->
+<pre><tt><span style="font-weight: bold"><span style="color: #0000FF">class</span></span> Account <span style="color: #990000">&lt;</span> ActiveRecord<span style="color: #990000">::</span>Base
+  validates_confirmation_of <span style="color: #990000">:</span>password<span style="color: #990000">,</span> <span style="color: #990000">:</span><span style="font-weight: bold"><span style="color: #0000FF">if</span></span> <span style="color: #990000">=&gt;</span> Proc<span style="color: #990000">.</span>new <span style="color: #FF0000">{</span> <span style="color: #990000">|</span>a<span style="color: #990000">|</span> <span style="color: #990000">!</span>a<span style="color: #990000">.</span>password<span style="color: #990000">.</span>blank? <span style="color: #FF0000">}</span>
+<span style="font-weight: bold"><span style="color: #0000FF">end</span></span>
+</tt></pre></div></div>
 </div>
 <h2 id="_changelog">6. Changelog</h2>
 <div class="sectionbody">

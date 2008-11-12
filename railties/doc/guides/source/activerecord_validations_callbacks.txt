@@ -297,7 +297,7 @@ The default error message for +validates_uniqueness_of+ is "_has already been ta
 
 == Common validation options
 
-There are some common options that all the validation helpers can use. Here they are, except for the +:if+ option, which we'll cover right at the next topic.
+There are some common options that all the validation helpers can use. Here they are, except for the +:if+ and +:unless+ options, which we'll cover right at the next topic.
 
 === The +:allow_nil+ option
 
@@ -330,8 +330,44 @@ end
 
 == Conditional validation
 
+Sometimes it will make sense to validate an object just when a given predicate is satisfied. You can do that by using the +:if+ and +:unless+ options, which can take a symbol, a string or a Ruby Proc. You may use the +:if+ option when you want to specify when the validation *should* happen. If you want to specify when the validation *should not* happen, then you may use the +:unless+ option.
 
+=== Using a symbol with the +:if+ and +:unless+ options
 
+You can associated the +:if+ and +:unless+ options with a symbol corresponding to the name of a method that will get called right before validation happens. This is the most commonly used option.
+
+[source, ruby]
+------------------------------------------------------------------
+class Order < ActiveRecord::Base
+  validates_presence_of :card_number, :if => :paid_with_card?
+  
+  def paid_with_card?
+    payment_type == "card"
+  end
+end
+------------------------------------------------------------------
+
+=== Using a string with the +:if+ and +:unless+ options
+
+You can also use a string that will be evaluated using +:eval+ and needs to contain valid Ruby code. You should use this option only when the string represents a really short condition.
+
+[source, ruby]
+------------------------------------------------------------------
+class Person < ActiveRecord::Base
+  validates_presence_of :surname, :if => "name.nil?"
+end
+------------------------------------------------------------------
+
+=== Using a Proc object with the +:if+ option
+
+Finally, it's possible to associate +:if+ and +:unless+ with a Ruby Proc object which will be called. Using a Proc object can give you the hability to write a condition that will be executed only when the validation happens and not when your code is loaded by the Ruby interpreter. This option is best suited when writing short validation methods, usually one-liners.
+
+[source, ruby]
+------------------------------------------------------------------
+class Account < ActiveRecord::Base
+  validates_confirmation_of :password, :if => Proc.new { |a| !a.password.blank? }
+end
+------------------------------------------------------------------
 
 == Changelog
 
