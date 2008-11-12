@@ -6,7 +6,7 @@ require 'rexml/entity'
 # This fix is identical to rexml-expansion-fix version 1.0.1
 
 # Earlier versions of rexml defined REXML::Version, newer ones REXML::VERSION
-unless (defined?(REXML::VERSION) ? REXML::VERSION : REXML::Version) > "3.1.7.2"
+unless REXML::Document.respond_to?(:entity_expansion_limit=)
   module REXML
     class Entity < Child
       undef_method :unnormalized
