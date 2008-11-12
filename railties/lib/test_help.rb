@@ -11,11 +11,22 @@ require 'action_controller/test_case'
 require 'action_controller/integration'
 require 'action_mailer/test_case' if defined?(ActionMailer)
 
-Test::Unit::TestCase.fixture_path = RAILS_ROOT + "/test/fixtures/"
-ActionController::IntegrationTest.fixture_path = Test::Unit::TestCase.fixture_path
+if defined?(ActiveRecord)
+  require 'active_record/test_case'
+  require 'active_record/fixtures'
 
-def create_fixtures(*table_names)
-  Fixtures.create_fixtures(Test::Unit::TestCase.fixture_path, table_names)
+  class ActiveSupport::TestCase
+    include ActiveRecord::TestFixtures
+    self.fixture_path = "#{RAILS_ROOT}/test/fixtures/"
+    self.use_instantiated_fixtures  = false
+    self.use_transactional_fixtures = true
+  end
+
+  ActionController::IntegrationTest.fixture_path = ActiveSupport::TestCase.fixture_path
+
+  def create_fixtures(*table_names, &block)
+    Fixtures.create_fixtures(ActiveSupport::TestCase.fixture_path, table_names, {}, &block)
+  end
 end
 
 begin
