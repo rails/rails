@@ -5,7 +5,6 @@ namespace :rails do
       deps = %w(actionpack activerecord actionmailer activesupport activeresource)
       require 'rubygems'
       require 'rubygems/gem_runner'
-      Gem.manage_gems
 
       rails = (version = ENV['VERSION']) ?
         Gem.cache.find_name('rails', "= #{version}").first :
