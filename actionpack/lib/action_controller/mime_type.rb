@@ -20,8 +20,11 @@ module Mime
   #   end
   class Type
     @@html_types = Set.new [:html, :url_encoded_form, :multipart_form, :all]
+    cattr_reader :html_types
+
+    # UNUSED, deprecate?
     @@unverifiable_types = Set.new [:text, :json, :csv, :xml, :rss, :atom, :yaml]
-    cattr_reader :html_types, :unverifiable_types
+    cattr_reader :unverifiable_types
 
     # A simple helper class used in parsing the accept header
     class AcceptItem #:nodoc:
