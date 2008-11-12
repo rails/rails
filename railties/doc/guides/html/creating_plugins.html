@@ -267,113 +267,96 @@ ul#navMain {
 				<h1>The Basics of Creating Rails Plugins</h1>
 			<div id="preamble">
 <div class="sectionbody">
-<div class="para"><p>Pretend for a moment that you are an avid bird watcher.  Your favorite bird is the Yaffle, and you want to create a plugin that allows other developers to share in the Yaffle goodness.</p></div>
-<div class="para"><p>In this tutorial you will learn how to create a plugin that includes:</p></div>
+<div class="para"><p>A Rails plugin is either an extension or a modification of the core framework. Plugins provide:</p></div>
 <div class="ilist"><ul>
 <li>
 <p>
-Core Extensions - extending String with a <tt>to_squawk</tt> method:
+a way for developers to share bleeding-edge ideas without hurting the stable code base
 </p>
-<div class="listingblock">
-<div class="content"><!-- Generator: GNU source-highlight 2.9
-by Lorenzo Bettini
-http://www.lorenzobettini.it
-http://www.gnu.org/software/src-highlite -->
-<pre><tt><span style="font-style: italic"><span style="color: #9A1900"># Anywhere</span></span>
-<span style="color: #FF0000">"hello!"</span><span style="color: #990000">.</span>to_squawk <span style="font-style: italic"><span style="color: #9A1900"># =&gt; "squawk! hello!"</span></span>
-</tt></pre></div></div>
 </li>
 <li>
 <p>
-An <tt>acts_as_yaffle</tt> method for ActiveRecord models that adds a <tt>squawk</tt> method:
+a segmented architecture so that units of code can be fixed or updated on their own release schedule
 </p>
-<div class="listingblock">
-<div class="content"><!-- Generator: GNU source-highlight 2.9
-by Lorenzo Bettini
-http://www.lorenzobettini.it
-http://www.gnu.org/software/src-highlite -->
-<pre><tt><span style="font-weight: bold"><span style="color: #0000FF">class</span></span> Hickwall <span style="color: #990000">&lt;</span> ActiveRecord<span style="color: #990000">::</span>Base
-  acts_as_yaffle <span style="color: #990000">:</span>yaffle_text_field <span style="color: #990000">=&gt;</span> <span style="color: #990000">:</span>last_sang_at
-<span style="font-weight: bold"><span style="color: #0000FF">end</span></span>
-
-Hickwall<span style="color: #990000">.</span>new<span style="color: #990000">.</span>squawk<span style="color: #990000">(</span><span style="color: #FF0000">"Hello World"</span><span style="color: #990000">)</span>
-</tt></pre></div></div>
 </li>
 <li>
 <p>
-A view helper that will print out squawking info:
+an outlet for the core developers so that they don’t have to include every cool new feature under the sun
 </p>
-<div class="listingblock">
-<div class="content"><!-- Generator: GNU source-highlight 2.9
-by Lorenzo Bettini
-http://www.lorenzobettini.it
-http://www.gnu.org/software/src-highlite -->
-<pre><tt>squawk_info_for<span style="color: #990000">(</span><span style="color: #009900">@hickwall</span><span style="color: #990000">)</span>
-</tt></pre></div></div>
-</li>
-<li>
-<p>
-A generator that creates a migration to add squawk columns to a model:
-</p>
-<div class="listingblock">
-<div class="content">
-<pre><tt>script/generate yaffle hickwall</tt></pre>
-</div></div>
-</li>
-<li>
-<p>
-A custom generator command:
-</p>
-<div class="listingblock">
-<div class="content"><!-- Generator: GNU source-highlight 2.9
-by Lorenzo Bettini
-http://www.lorenzobettini.it
-http://www.gnu.org/software/src-highlite -->
-<pre><tt><span style="font-weight: bold"><span style="color: #0000FF">class</span></span> YaffleGenerator <span style="color: #990000">&lt;</span> Rails<span style="color: #990000">::</span>Generator<span style="color: #990000">::</span>NamedBase
-  <span style="font-weight: bold"><span style="color: #0000FF">def</span></span> manifest
-    m<span style="color: #990000">.</span>yaffle_definition
-  <span style="font-weight: bold"><span style="color: #0000FF">end</span></span>
-<span style="font-weight: bold"><span style="color: #0000FF">end</span></span>
-</tt></pre></div></div>
-</li>
-<li>
-<p>
-A custom route method:
-</p>
-<div class="listingblock">
-<div class="content"><!-- Generator: GNU source-highlight 2.9
-by Lorenzo Bettini
-http://www.lorenzobettini.it
-http://www.gnu.org/software/src-highlite -->
-<pre><tt>ActionController<span style="color: #990000">::</span>Routing<span style="color: #990000">::</span>Routes<span style="color: #990000">.</span>draw <span style="font-weight: bold"><span style="color: #0000FF">do</span></span> <span style="color: #990000">|</span>map<span style="color: #990000">|</span>
-  map<span style="color: #990000">.</span>yaffles
-<span style="font-weight: bold"><span style="color: #0000FF">end</span></span>
-</tt></pre></div></div>
 </li>
 </ul></div>
-<div class="para"><p>In addition you'll learn how to:</p></div>
+<div class="para"><p>After reading this guide you should be familiar with:</p></div>
 <div class="ilist"><ul>
 <li>
 <p>
-test your plugins.
+Creating a plugin from scratch
 </p>
 </li>
 <li>
 <p>
-work with <em>init.rb</em>, how to store model, views, controllers, helpers and even other plugins in your plugins.
+Writing and running tests for the plugin
 </p>
 </li>
 <li>
 <p>
-create documentation for your plugin.
+Storing models, views, controllers, helpers and even other plugins in your plugins
 </p>
 </li>
 <li>
 <p>
-write custom Rake tasks in your plugin.
+Writing generators
+</p>
+</li>
+<li>
+<p>
+Writing custom Rake tasks in your plugin
+</p>
+</li>
+<li>
+<p>
+Generating RDoc documentation for your plugin
+</p>
+</li>
+<li>
+<p>
+Avoiding common pitfalls with <em>init.rb</em>
 </p>
 </li>
 </ul></div>
+<div class="para"><p>This guide describes how to build a test-driven plugin that will:</p></div>
+<div class="ilist"><ul>
+<li>
+<p>
+Extend core ruby classes like Hash and String
+</p>
+</li>
+<li>
+<p>
+Add methods to ActiveRecord::Base in the tradition of the <em>acts_as</em> plugins
+</p>
+</li>
+<li>
+<p>
+Add a view helper that can be used in erb templates
+</p>
+</li>
+<li>
+<p>
+Add a new generator that will generate a migration
+</p>
+</li>
+<li>
+<p>
+Add a custom generator command
+</p>
+</li>
+<li>
+<p>
+A custom route method that can be used in routes.rb
+</p>
+</li>
+</ul></div>
+<div class="para"><p>For the purpose of this guide pretend for a moment that you are an avid bird watcher.  Your favorite bird is the Yaffle, and you want to create a plugin that allows other developers to share in the Yaffle goodness.  First, you need to get setup for development.</p></div>
 </div>
 </div>
 <h2 id="_preparation">1. Preparation</h2>
@@ -590,7 +573,7 @@ Finished in 0.002236 seconds.
 
 1 test, 1 assertion, 0 failures, 0 errors</tt></pre>
 </div></div>
-<div class="para"><p>By default the setup above runs your tests with sqlite or sqlite3.  To run tests with one of the other connection strings specified in <tt>database.yml</tt>, pass the <tt>DB</tt> environment variable to rake:</p></div>
+<div class="para"><p>By default the setup above runs your tests with sqlite or sqlite3.  To run tests with one of the other connection strings specified in database.yml, pass the DB environment variable to rake:</p></div>
 <div class="listingblock">
 <div class="content">
 <pre><tt>rake DB=sqlite
@@ -598,6 +581,7 @@ rake DB=sqlite3
 rake DB=mysql
 rake DB=postgresql</tt></pre>
 </div></div>
+<div class="para"><p>Now you are ready to test-drive your plugin!</p></div>
 </div>
 <h2 id="_add_a_tt_to_squawk_tt_method_to_string">2. Add a <tt>to_squawk</tt> method to String</h2>
 <div class="sectionbody">
