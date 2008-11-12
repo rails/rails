@@ -358,14 +358,14 @@ class Person < ActiveRecord::Base
 end
 ------------------------------------------------------------------
 
-=== Using a Proc object with the +:if+ option
+=== Using a Proc object with the +:if+ and :+unless+ options
 
 Finally, it's possible to associate +:if+ and +:unless+ with a Ruby Proc object which will be called. Using a Proc object can give you the hability to write a condition that will be executed only when the validation happens and not when your code is loaded by the Ruby interpreter. This option is best suited when writing short validation methods, usually one-liners.
 
 [source, ruby]
 ------------------------------------------------------------------
 class Account < ActiveRecord::Base
-  validates_confirmation_of :password, :if => Proc.new { |a| !a.password.blank? }
+  validates_confirmation_of :password, :unless => Proc.new { |a| a.password.blank? }
 end
 ------------------------------------------------------------------
 

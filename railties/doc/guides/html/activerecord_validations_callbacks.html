@@ -259,7 +259,7 @@ ul#navMain {
 						
 							<li><a href="#_using_a_string_with_the_tt_if_tt_and_tt_unless_tt_options">Using a string with the <tt>:if</tt> and <tt>:unless</tt> options</a></li>
 						
-							<li><a href="#_using_a_proc_object_with_the_tt_if_tt_option">Using a Proc object with the <tt>:if</tt> option</a></li>
+							<li><a href="#_using_a_proc_object_with_the_tt_if_tt_and_tt_unless_tt_options">Using a Proc object with the <tt>:if</tt> and :<tt>unless</tt> options</a></li>
 						
 						</ul>
 					</li>
@@ -690,7 +690,7 @@ http://www.gnu.org/software/src-highlite -->
   validates_presence_of <span style="color: #990000">:</span>surname<span style="color: #990000">,</span> <span style="color: #990000">:</span><span style="font-weight: bold"><span style="color: #0000FF">if</span></span> <span style="color: #990000">=&gt;</span> <span style="color: #FF0000">"name.nil?"</span>
 <span style="font-weight: bold"><span style="color: #0000FF">end</span></span>
 </tt></pre></div></div>
-<h3 id="_using_a_proc_object_with_the_tt_if_tt_option">5.3. Using a Proc object with the <tt>:if</tt> option</h3>
+<h3 id="_using_a_proc_object_with_the_tt_if_tt_and_tt_unless_tt_options">5.3. Using a Proc object with the <tt>:if</tt> and :<tt>unless</tt> options</h3>
 <div class="para"><p>Finally, it's possible to associate <tt>:if</tt> and <tt>:unless</tt> with a Ruby Proc object which will be called. Using a Proc object can give you the hability to write a condition that will be executed only when the validation happens and not when your code is loaded by the Ruby interpreter. This option is best suited when writing short validation methods, usually one-liners.</p></div>
 <div class="listingblock">
 <div class="content"><!-- Generator: GNU source-highlight 2.9
@@ -698,7 +698,7 @@ by Lorenzo Bettini
 http://www.lorenzobettini.it
 http://www.gnu.org/software/src-highlite -->
 <pre><tt><span style="font-weight: bold"><span style="color: #0000FF">class</span></span> Account <span style="color: #990000">&lt;</span> ActiveRecord<span style="color: #990000">::</span>Base
-  validates_confirmation_of <span style="color: #990000">:</span>password<span style="color: #990000">,</span> <span style="color: #990000">:</span><span style="font-weight: bold"><span style="color: #0000FF">if</span></span> <span style="color: #990000">=&gt;</span> Proc<span style="color: #990000">.</span>new <span style="color: #FF0000">{</span> <span style="color: #990000">|</span>a<span style="color: #990000">|</span> <span style="color: #990000">!</span>a<span style="color: #990000">.</span>password<span style="color: #990000">.</span>blank? <span style="color: #FF0000">}</span>
+  validates_confirmation_of <span style="color: #990000">:</span>password<span style="color: #990000">,</span> <span style="color: #990000">:</span><span style="font-weight: bold"><span style="color: #0000FF">unless</span></span> <span style="color: #990000">=&gt;</span> Proc<span style="color: #990000">.</span>new <span style="color: #FF0000">{</span> <span style="color: #990000">|</span>a<span style="color: #990000">|</span> a<span style="color: #990000">.</span>password<span style="color: #990000">.</span>blank? <span style="color: #FF0000">}</span>
 <span style="font-weight: bold"><span style="color: #0000FF">end</span></span>
 </tt></pre></div></div>
 </div>
