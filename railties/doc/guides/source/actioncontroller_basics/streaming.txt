@@ -1,6 +1,6 @@
-== Streaming and file downloads ==
+== Streaming and File Downloads ==
 
-Sometimes you may want to send a file to the user instead of rendering an HTML page. All controllers in Rails have the link:http://api.rubyonrails.org/classes/ActionController/Streaming.html#M000624[send_data] and the link:http://api.rubyonrails.org/classes/ActionController/Streaming.html#M000623[send_file] methods, that will both stream data to the client. `send_file` is a convenience method which lets you provide the name of a file on the disk and it will stream the contents of that file for you.
+Sometimes you may want to send a file to the user instead of rendering an HTML page. All controllers in Rails have the `send_data` and the `send_file` methods, that will both stream data to the client. `send_file` is a convenience method which lets you provide the name of a file on the disk and it will stream the contents of that file for you.
 
 To stream data to the client, use `send_data`:
 
@@ -31,7 +31,7 @@ end
 
 The `download_pdf` action in the example above will call a private method which actually generates the file (a PDF document) and returns it as a string. This string will then be streamed to the client as a file download and a filename will be suggested to the user. Sometimes when streaming files to the user, you may not want them to download the file. Take images, for example, which can be embedded into HTML pages. To tell the browser a file is not meant to be downloaded, you can set the `:disposition` option to "inline". The opposite and default value for this option is "attachment".
 
-=== Sending files ===
+=== Sending Files ===
 
 If you want to send a file that already exists on disk, use the `send_file` method. This is usually not recommended, but can be useful if you want to perform some authentication before letting the user download the file.
 
@@ -48,15 +48,15 @@ class ClientsController < ApplicationController
 end
 ----------------------------
 
-This will read and stream the file 4Kb at the time, avoiding loading the entire file into memory at once. You can turn off streaming with the `stream` option or adjust the block size with the `buffer_size` option.
+This will read and stream the file 4Kb at the time, avoiding loading the entire file into memory at once. You can turn off streaming with the `:stream` option or adjust the block size with the `:buffer_size` option.
 
-WARNING: Be careful when using (or just don't use) "outside" data (params, cookies, etc) to locate the file on disk, as this is a security risk as someone could gain access to files they are not meant to have access to.
+WARNING: Be careful when using (or just don't use) "outside" data (params, cookies, etc) to locate the file on disk, as this is a security risk that might allow someone to gain access to files they are not meant to see.
 
 TIP: It is not recommended that you stream static files through Rails if you can instead keep them in a public folder on your web server. It is much more efficient to let the user download the file directly using Apache or another web server, keeping the request from unnecessarily going through the whole Rails stack.
 
-=== RESTful downloads ===
+=== RESTful Downloads ===
 
-While `send_data` works just fine, if you are creating a RESTful application having separate actions for file downloads is usually not necessary. In REST terminology, the PDF file from the example above can be considered just another representation of the client resource. Rails provides an easy and quite sleek way of doing "RESTful downloads". Let's try to rewrite the example so that the PDF download is a part of the `show` action:
+While `send_data` works just fine, if you are creating a RESTful application having separate actions for file downloads is usually not necessary. In REST terminology, the PDF file from the example above can be considered just another representation of the client resource. Rails provides an easy and quite sleek way of doing "RESTful downloads". Here's how you can rewrite the example so that the PDF download is a part of the `show` action, without any streaming:
 
 [source, ruby]
 ----------------------------
@@ -75,7 +75,7 @@ class ClientsController < ApplicationController
 end
 ----------------------------
 
-In order for this example to work, we have to add the PDF MIME type to Rails. This can be done by adding the following line to the file `config/initializers/mime_types.rb`:
+In order for this example to work, you have to add the PDF MIME type to Rails. This can be done by adding the following line to the file `config/initializers/mime_types.rb`:
 
 [source, ruby]
 ----------------------------

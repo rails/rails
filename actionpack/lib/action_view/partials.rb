@@ -181,7 +181,7 @@ module ActionView
             ActionController::RecordIdentifier.partial_path(object, controller.class.controller_path)
           template = _pick_partial_template(_partial_path)
           local_assigns[template.counter_name] = index
-          result = template.render_partial(self, object, local_assigns, as)
+          result = template.render_partial(self, object, local_assigns.dup, as)
           index += 1
           result
         end.join(spacer)

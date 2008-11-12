@@ -976,3 +976,9 @@ The security landscape shifts and it is important to keep up to date, because mi
 - http://secunia.com/[Keep up to date on the other application layers] (they have a weekly newsletter, too)
 - A http://ha.ckers.org/blog/[good security blog] including the http://ha.ckers.org/xss.html[Cross-Site scripting Cheat Sheet]
 - Another http://www.0x000000.com/[good security blog] with some Cheat Sheets, too
+
+== Changelog ==
+
+http://rails.lighthouseapp.com/projects/16213-rails-guides/tickets/7[Lighthouse ticket]
+
+* November 1, 2008: First approved version by Heiko Webers

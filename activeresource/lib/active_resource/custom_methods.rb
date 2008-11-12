@@ -90,7 +90,7 @@ module ActiveResource
       end
 
       def post(method_name, options = {}, body = nil)
-        request_body = body.nil? ? encode : body
+        request_body = body.blank? ? encode : body
         if new?
           connection.post(custom_method_new_element_url(method_name, options), request_body, self.class.headers)
         else

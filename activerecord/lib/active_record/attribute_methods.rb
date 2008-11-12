@@ -233,7 +233,7 @@ module ActiveRecord
       method_name = method_id.to_s
 
       if self.class.private_method_defined?(method_name)
-        raise NoMethodError("Attempt to call private method", method_name, args)
+        raise NoMethodError.new("Attempt to call private method", method_name, args)
       end
 
       # If we haven't generated any methods yet, generate them, then

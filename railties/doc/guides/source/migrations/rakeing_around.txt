@@ -25,7 +25,7 @@ This will run the `down` method from the latest migration. If you need to undo s
 rake db:rollback STEP=3
 ------------------
 
-will run the `down` method fron the last 3 migrations.
+will run the `down` method from the last 3 migrations.
 
 The `db:migrate:redo` task is a shortcut for doing a rollback and then migrating back up again. As with the `db:rollback` task you can use the `STEP` parameter if you need to go more than one version back, for example
 

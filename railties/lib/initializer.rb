@@ -267,6 +267,7 @@ module Rails
     end
 
     def add_gem_load_paths
+      Rails::GemDependency.add_frozen_gem_path
       unless @configuration.gems.empty?
         require "rubygems"
         @configuration.gems.each { |gem| gem.add_load_paths }

@@ -222,6 +222,7 @@ module ActionView #:nodoc:
     def initialize(view_paths = [], assigns_for_first_render = {}, controller = nil)#:nodoc:
       @assigns = assigns_for_first_render
       @assigns_added = nil
+      @_render_stack = []
       @controller = controller
       @helpers = ProxyModule.new(self)
       self.view_paths = view_paths
@@ -271,9 +272,13 @@ module ActionView #:nodoc:
       end
     end
 
-    private
-      attr_accessor :_first_render, :_last_render
+    # Access the current template being rendered.
+    # Returns a ActionView::Template object.
+    def template
+      @_render_stack.last
+    end
 
+    private
       # Evaluates the local assigns and controller ivars, pushes them to the view.
       def _evaluate_assigns_and_ivars #:nodoc:
         unless @assigns_added
@@ -312,7 +317,7 @@ module ActionView #:nodoc:
           template
         elsif template = self.view_paths[template_file_name]
           template
-        elsif _first_render && template = self.view_paths["#{template_file_name}.#{_first_render.format_and_extension}"]
+        elsif @_render_stack.first && template = self.view_paths["#{template_file_name}.#{@_render_stack.first.format_and_extension}"]
           template
         elsif template_format == :js && template = self.view_paths["#{template_file_name}.html"]
           @template_format = :html

@@ -208,6 +208,8 @@ ul#navMain {
 						
 							<li><a href="#_inspect">inspect</a></li>
 						
+							<li><a href="#_debugging_javascript">Debugging Javascript</a></li>
+						
 						</ul>
 					</li>
 					<li>
@@ -251,6 +253,19 @@ ul#navMain {
 							<li><a href="#_settings">Settings</a></li>
 						
 						</ul>
+					</li>
+					<li>
+					<a href="#_debugging_memory_leaks">Debugging Memory Leaks</a>
+						<ul>
+						
+							<li><a href="#_bleakhouse">BleakHouse</a></li>
+						
+							<li><a href="#_valgrind">Valgrind</a></li>
+						
+						</ul>
+					</li>
+					<li>
+					<a href="#_plugins_for_debugging">Plugins for Debugging</a>
 					</li>
 					<li>
 					<a href="#_references">References</a>
@@ -325,10 +340,7 @@ http://www.gnu.org/software/src-highlite -->
 </tt></pre></div></div>
 <div class="para"><p>You'll see something like this:</p></div>
 <div class="listingblock">
-<div class="content"><!-- Generator: GNU source-highlight 2.9
-by Lorenzo Bettini
-http://www.lorenzobettini.it
-http://www.gnu.org/software/src-highlite -->
+<div class="content">
 <pre><tt>--- !ruby/object:Post
 attributes:
   updated_at: 2008-09-05 22:55:47
@@ -340,8 +352,8 @@ attributes:
 attributes_cache: {}
 
 
-Title: Rails debugging guide
-</tt></pre></div></div>
+Title: Rails debugging guide</tt></pre>
+</div></div>
 <h3 id="_to_yaml">1.2. to_yaml</h3>
 <div class="para"><p>Displaying an instance variable, or any other object or method, in yaml format can be achieved this way:</p></div>
 <div class="listingblock">
@@ -358,10 +370,7 @@ http://www.gnu.org/software/src-highlite -->
 <div class="para"><p>The <tt>to_yaml</tt> method converts the method to YAML format leaving it more readable, and then the <tt>simple_format</tt> helper is used to render each line as in the console. This is how <tt>debug</tt> method does its magic.</p></div>
 <div class="para"><p>As a result of this, you will have something like this in your view:</p></div>
 <div class="listingblock">
-<div class="content"><!-- Generator: GNU source-highlight 2.9
-by Lorenzo Bettini
-http://www.lorenzobettini.it
-http://www.gnu.org/software/src-highlite -->
+<div class="content">
 <pre><tt>--- !ruby/object:Post
 attributes:
 updated_at: 2008-09-05 22:55:47
@@ -372,8 +381,8 @@ id: "1"
 created_at: 2008-09-05 22:55:47
 attributes_cache: {}
 
-Title: Rails debugging guide
-</tt></pre></div></div>
+Title: Rails debugging guide</tt></pre>
+</div></div>
 <h3 id="_inspect">1.3. inspect</h3>
 <div class="para"><p>Another useful method for displaying object values is <tt>inspect</tt>, especially when working with arrays or hashes. This will print the object value as a string. For example:</p></div>
 <div class="listingblock">
@@ -389,14 +398,37 @@ http://www.gnu.org/software/src-highlite -->
 </tt></pre></div></div>
 <div class="para"><p>Will be rendered as follows:</p></div>
 <div class="listingblock">
+<div class="content">
+<pre><tt>[1, 2, 3, 4, 5]
+
+Title: Rails debugging guide</tt></pre>
+</div></div>
+<h3 id="_debugging_javascript">1.4. Debugging Javascript</h3>
+<div class="para"><p>Rails has built-in support to debug RJS, to active it, set <tt>ActionView::Base.debug_rjs</tt> to <em>true</em>, this will specify whether RJS responses should be wrapped in a try/catch block that alert()s the caught exception (and then re-raises it).</p></div>
+<div class="para"><p>To enable it, add the following in the <tt>Rails::Initializer do |config|</tt> block inside <tt>environment.rb</tt>:</p></div>
+<div class="listingblock">
 <div class="content"><!-- Generator: GNU source-highlight 2.9
 by Lorenzo Bettini
 http://www.lorenzobettini.it
 http://www.gnu.org/software/src-highlite -->
-<pre><tt>[1, 2, 3, 4, 5]
-
-Title: Rails debugging guide
+<pre><tt>config<span style="color: #990000">.</span>action_view<span style="color: #990000">[:</span>debug_rjs<span style="color: #990000">]</span> <span style="color: #990000">=</span> <span style="font-weight: bold"><span style="color: #0000FF">true</span></span>
 </tt></pre></div></div>
+<div class="para"><p>Or, at any time, setting <tt>ActionView::Base.debug_rjs</tt> to <em>true</em>:</p></div>
+<div class="listingblock">
+<div class="content"><!-- Generator: GNU source-highlight 2.9
+by Lorenzo Bettini
+http://www.lorenzobettini.it
+http://www.gnu.org/software/src-highlite -->
+<pre><tt>ActionView<span style="color: #990000">::</span>Base<span style="color: #990000">.</span>debug_rjs <span style="color: #990000">=</span> <span style="font-weight: bold"><span style="color: #0000FF">true</span></span>
+</tt></pre></div></div>
+<div class="admonitionblock">
+<table><tr>
+<td class="icon">
+<img src="./images/icons/tip.png" alt="Tip" />
+</td>
+<td class="content">For more information on debugging javascript refer to <a href="http://getfirebug.com/">Firebug</a>, the popular debugger for Firefox.</td>
+</tr></table>
+</div>
 </div>
 <h2 id="_the_logger">2. The Logger</h2>
 <div class="sectionbody">
@@ -488,11 +520,8 @@ http://www.gnu.org/software/src-highlite -->
 </tt></pre></div></div>
 <div class="para"><p>Here's an example of the log generated by this method:</p></div>
 <div class="listingblock">
-<div class="content"><!-- Generator: GNU source-highlight 2.9
-by Lorenzo Bettini
-http://www.lorenzobettini.it
-http://www.gnu.org/software/src-highlite -->
-<pre><tt>Processing PostsController#create (for <span style="color: #009900">127.0.0.1</span> at 2008-09-08 11:52:54) [POST]
+<div class="content">
+<pre><tt>Processing PostsController#create (for 127.0.0.1 at 2008-09-08 11:52:54) [POST]
   Session ID: BAh7BzoMY3NyZl9pZCIlMDY5MWU1M2I1ZDRjODBlMzkyMWI1OTg2NWQyNzViZjYiCmZsYXNoSUM6J0FjdGl
 vbkNvbnRyb2xsZXI6OkZsYXNoOjpGbGFzaEhhc2h7AAY6CkB1c2VkewA=--b18cd92fba90eacf8137e5f6b3b06c4d724596a4
   Parameters: {"commit"=&gt;"Create", "post"=&gt;{"title"=&gt;"Debugging Rails",
@@ -506,8 +535,8 @@ Post should be valid: true
  'I''m learning how to print in logs!!!', 'f', '2008-09-08 14:52:54')
 The post was saved and now is the user is going to be redirected...
 Redirected to #&lt;Post:0x20af760&gt;
-Completed in 0.01224 (81 reqs/sec) | DB: 0.00044 (3%) | 302 Found [http://localhost/posts]
-</tt></pre></div></div>
+Completed in 0.01224 (81 reqs/sec) | DB: 0.00044 (3%) | 302 Found [http://localhost/posts]</tt></pre>
+</div></div>
 <div class="para"><p>Adding extra logging like this makes it easy to search for unexpected or unusual behavior in your logs. If you add extra logging, be sure to make sensible use of log levels, to avoid filling your production logs with useless trivia.</p></div>
 </div>
 <h2 id="_debugging_with_ruby_debug">3. Debugging with ruby-debug</h2>
@@ -540,12 +569,9 @@ http://www.gnu.org/software/src-highlite -->
 </tt></pre></div></div>
 <div class="para"><p>If you see the message in the console or logs:</p></div>
 <div class="listingblock">
-<div class="content"><!-- Generator: GNU source-highlight 2.9
-by Lorenzo Bettini
-http://www.lorenzobettini.it
-http://www.gnu.org/software/src-highlite -->
-<pre><tt>***** Debugger requested, but was not available: Start server with --debugger to enable *****
-</tt></pre></div></div>
+<div class="content">
+<pre><tt>***** Debugger requested, but was not available: Start server with --debugger to enable *****</tt></pre>
+</div></div>
 <div class="para"><p>Make sure you have started your web server with the option <tt>&#8212;debugger</tt>:</p></div>
 <div class="listingblock">
 <div class="content"><!-- Generator: GNU source-highlight 2.9
@@ -576,7 +602,7 @@ http://www.gnu.org/software/src-highlite -->
 <pre><tt>@posts = Post.find(:all)
 (rdb:7)</tt></pre>
 </div></div>
-<div class="para"><p>Now it's time to play and dig into your application. A good place to start is by asking the debugger for help&#8230; so type: <tt>help</tt> (You didn't see that coming, right?)</p></div>
+<div class="para"><p>Now it's time to explore and dig into your application. A good place to start is by asking the debugger for help&#8230; so type: <tt>help</tt> (You didn't see that coming, right?)</p></div>
 <div class="listingblock">
 <div class="content">
 <pre><tt>(rdb:7) help
@@ -913,7 +939,7 @@ No breakpoints.</tt></pre>
 </li>
 <li>
 <p>
-<tt>finish</tt> [frame-number] (or <tt>fin</tt>): execute until the selected stack frame returns. If no frame number is given, the application run until the currently selected frame returns. The currently selected frame starts out the most-recent frame or 0 if no frame positioning (e.g up, down or frame) has been performed. If a frame number is given it will run until the specified frame returns.
+<tt>finish</tt> [frame-number] (or <tt>fin</tt>): execute until the selected stack frame returns. If no frame number is given, the application will run until the currently selected frame returns. The currently selected frame starts out the most-recent frame or 0 if no frame positioning (e.g up, down or frame) has been performed. If a frame number is given it will run until the specified frame returns.
 </p>
 </li>
 </ul></div>
@@ -969,16 +995,104 @@ No breakpoints.</tt></pre>
 </div>
 <div class="para"><p>Here's a good start for an <tt>.rdebugrc</tt>:</p></div>
 <div class="listingblock">
+<div class="content">
+<pre><tt>set autolist
+set forcestep
+set listsize 25</tt></pre>
+</div></div>
+</div>
+<h2 id="_debugging_memory_leaks">4. Debugging Memory Leaks</h2>
+<div class="sectionbody">
+<div class="para"><p>A Ruby application (on Rails or not), can leak memory - either in the Ruby code or at the C code level.</p></div>
+<div class="para"><p>In this section, you will learn how to find and fix such leaks by using Bleak House and Valgrind debugging tools.</p></div>
+<h3 id="_bleakhouse">4.1. BleakHouse</h3>
+<div class="para"><p><a href="http://github.com/fauna/bleak_house/tree/master">BleakHouse</a> is a library for finding memory leaks.</p></div>
+<div class="para"><p>If a Ruby object does not go out of scope, the Ruby Garbage Collector won't sweep it since it is referenced somewhere. Leaks like this can grow slowly and your application will consume more and more memory, gradually affecting the overall system performance. This tool will help you find leaks on the Ruby heap.</p></div>
+<div class="para"><p>To install it run:</p></div>
+<div class="listingblock">
+<div class="content">
+<pre><tt>sudo gem install bleak_house</tt></pre>
+</div></div>
+<div class="para"><p>Then setup you application for profiling. Then add the following at the bottom of config/environment.rb:</p></div>
+<div class="listingblock">
 <div class="content"><!-- Generator: GNU source-highlight 2.9
 by Lorenzo Bettini
 http://www.lorenzobettini.it
 http://www.gnu.org/software/src-highlite -->
-<pre><tt>set autolist
-set forcestep
-set listsize 25
+<pre><tt><span style="font-weight: bold"><span style="color: #000080">require</span></span> <span style="color: #FF0000">'bleak_house'</span> <span style="font-weight: bold"><span style="color: #0000FF">if</span></span> ENV<span style="color: #990000">[</span><span style="color: #FF0000">'BLEAK_HOUSE'</span><span style="color: #990000">]</span>
 </tt></pre></div></div>
+<div class="para"><p>Start a server instance with BleakHouse integration:</p></div>
+<div class="listingblock">
+<div class="content">
+<pre><tt>RAILS_ENV=production BLEAK_HOUSE=1 ruby-bleak-house ./script/server</tt></pre>
+</div></div>
+<div class="para"><p>Make sure to run a couple hundred requests to get better data samples, then press <tt>CTRL-C</tt>. The server will stop and Bleak House will produce a dumpfile in <tt>/tmp</tt>:</p></div>
+<div class="listingblock">
+<div class="content">
+<pre><tt>** BleakHouse: working...
+** BleakHouse: complete
+** Bleakhouse: run 'bleak /tmp/bleak.5979.0.dump' to analyze.</tt></pre>
+</div></div>
+<div class="para"><p>To analyze it, just run the listed command. The top 20 leakiest lines will be listed:</p></div>
+<div class="listingblock">
+<div class="content">
+<pre><tt>  191691 total objects
+  Final heap size 191691 filled, 220961 free
+  Displaying top 20 most common line/class pairs
+  89513 __null__:__null__:__node__
+  41438 __null__:__null__:String
+  2348 /opt/local//lib/ruby/site_ruby/1.8/rubygems/specification.rb:557:Array
+  1508 /opt/local//lib/ruby/gems/1.8/specifications/gettext-1.90.0.gemspec:14:String
+  1021 /opt/local//lib/ruby/gems/1.8/specifications/heel-0.2.0.gemspec:14:String
+   951 /opt/local//lib/ruby/site_ruby/1.8/rubygems/version.rb:111:String
+   935 /opt/local//lib/ruby/site_ruby/1.8/rubygems/specification.rb:557:String
+   834 /opt/local//lib/ruby/site_ruby/1.8/rubygems/version.rb:146:Array
+  ...</tt></pre>
+</div></div>
+<div class="para"><p>This way you can find where your application is leaking memory and fix it.</p></div>
+<div class="para"><p>If <a href="http://github.com/fauna/bleak_house/tree/master">BleakHouse</a> doesn't report any heap growth but you still have memory growth, you might have a broken C extension, or real leak in the interpreter. In that case, try using Valgrind to investigate further.</p></div>
+<h3 id="_valgrind">4.2. Valgrind</h3>
+<div class="para"><p><a href="http://valgrind.org/">Valgrind</a> is a Linux-only application for detecting C-based memory leaks and race conditions.</p></div>
+<div class="para"><p>There are Valgrind tools that can automatically detect many memory management and threading bugs, and profile your programs in detail. For example, a C extension in the interpreter calls <tt>malloc()</tt> but is doesn't properly call <tt>free()</tt>, this memory won't be available until the app terminates.</p></div>
+<div class="para"><p>For further information on how to install Valgrind and use with Ruby, refer to <a href="http://blog.evanweaver.com/articles/2008/02/05/valgrind-and-ruby/">Valgrind and Ruby</a> by Evan Weaver.</p></div>
 </div>
-<h2 id="_references">4. References</h2>
+<h2 id="_plugins_for_debugging">5. Plugins for Debugging</h2>
+<div class="sectionbody">
+<div class="para"><p>There are some Rails plugins to help you to find errors and debug your application. Here is a list of useful plugins for debugging:</p></div>
+<div class="ilist"><ul>
+<li>
+<p>
+<a href="http://github.com/drnic/rails-footnotes/tree/master">Footnotes</a>: Every Rails page has footnotes that give request information and link back to your source via TextMate.
+</p>
+</li>
+<li>
+<p>
+<a href="http://github.com/ntalbott/query_trace/tree/master">Query Trace</a>: Adds query origin tracing to your logs.
+</p>
+</li>
+<li>
+<p>
+<a href="http://github.com/dan-manges/query_stats/tree/master">Query Stats</a>: A Rails plugin to track database queries.
+</p>
+</li>
+<li>
+<p>
+<a href="http://code.google.com/p/query-reviewer/">Query Reviewer</a>: This rails plugin not only runs "EXPLAIN" before each of your select queries in development, but provides a small DIV in the rendered output of each page with the summary of warnings for each query that it analyzed.
+</p>
+</li>
+<li>
+<p>
+<a href="http://github.com/rails/exception_notification/tree/master">Exception Notifier</a>: Provides a mailer object and a default set of templates for sending email notifications when errors occur in a Rails application.
+</p>
+</li>
+<li>
+<p>
+<a href="http://github.com/defunkt/exception_logger/tree/master">Exception Logger</a>: Logs your Rails exceptions in the database and provides a funky web interface to manage them.
+</p>
+</li>
+</ul></div>
+</div>
+<h2 id="_references">6. References</h2>
 <div class="sectionbody">
 <div class="ilist"><ul>
 <li>
@@ -1026,12 +1140,22 @@ set listsize 25
 <a href="http://wiki.rubyonrails.org/rails/pages/HowtoConfigureLogging">Ruby on Rails Wiki: How to Configure Logging</a>
 </p>
 </li>
+<li>
+<p>
+<a href="http://blog.evanweaver.com/files/doc/fauna/bleak_house/files/README.html">Bleak House Documentation</a>
+</p>
+</li>
 </ul></div>
 </div>
-<h2 id="_changelog">5. Changelog</h2>
+<h2 id="_changelog">7. Changelog</h2>
 <div class="sectionbody">
 <div class="para"><p><a href="http://rails.lighthouseapp.com/projects/16213-rails-guides/tickets/5">Lighthouse ticket</a></p></div>
 <div class="ilist"><ul>
+<li>
+<p>
+November 3, 2008: Accepted for publication. Added RJS, memory leaks and plugins chapters by <a href="../authors.html#miloops">Emilio Tagua</a>
+</p>
+</li>
 <li>
 <p>
 October 19, 2008: Copy editing pass by <a href="../authors.html#mgunderloy">Mike Gunderloy</a>

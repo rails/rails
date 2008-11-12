@@ -124,7 +124,7 @@ module ActiveSupport
 
         def environment
           unless defined? @env
-            app = "#{$1}.#{$2}" if `git branch -v` =~ /^\* (\S+)\s+(\S+)/
+            app = "#{$1}.#{$2}" if File.directory?('.git') && `git branch -v` =~ /^\* (\S+)\s+(\S+)/
 
             rails = Rails::VERSION::STRING
             if File.directory?('vendor/rails/.git')

@@ -2,7 +2,7 @@ Rails form helpers
 ==================
 Mislav Marohnić <mislav.marohnic@gmail.com>
 
-Forms in web applications are an essential interface for user input. They are also often considered the most complex elements of HTML. Rails deals away with these complexities by providing numerous view helpers for generating form markup. However, since they have different use-cases, developers are required to know all the differences between similar helper methods before putting them to use.
+Forms in web applications are an essential interface for user input. However, form markup can quickly become tedious to write and maintain because of form control naming and their numerous attributes. Rails deals away with these complexities by providing view helpers for generating form markup. However, since they have different use-cases, developers are required to know all the differences between similar helper methods before putting them to use.
 
 In this guide we will:
 
@@ -112,7 +112,7 @@ form_tag({:controller => "people", :action => "search"}, :method => "get")
 
 This is a common pitfall when using form helpers, since many of them accept multiple hashes. So in future, if a helper produces unexpected output, make sure that you have delimited the hash parameters properly.
 
-WARNING: Do not delimit the second hash without doing so with the first hash, otherwise your method invocation will result in an ugly `expecting tASSOC` syntax error.
+WARNING: Do not delimit the second hash without doing so with the first hash, otherwise your method invocation will result in an `expecting tASSOC` syntax error.
 
 Checkboxes, radio buttons and other controls
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -149,7 +149,7 @@ output:
   <label for="age_adult">I'm over 21</label>
 ----------------------------------------------------------------------------
 
-IMPORTANT: Always use labels for each checkbox and radio button. They associate text with a specific option, while also providing a larger clickable region.
+IMPORTANT: Always use labels for each checkbox and radio button. They associate text with a specific option and provide a larger clickable region.
 
 Other form controls we might mention are the text area, password input and hidden input:
 
@@ -174,7 +174,7 @@ How do forms with PUT or DELETE methods work?
 
 Rails framework encourages RESTful design of your applications, which means you'll be making a lot of "PUT" and "DELETE" requests (besides "GET" and "POST"). Still, most browsers _don't support_ methods other than "GET" and "POST" when it comes to submitting forms. How does this work, then?
 
-Rails works around this issue by emulating other methods over POST with a hidden input named `"_method"` that is set to reflect the _real_ method:
+Rails works around this issue by emulating other methods over POST with a hidden input named `"_method"` that is set to reflect the wanted method:
 
 ----------------------------------------------------------------------------
 form_tag(search_path, :method => "put")
@@ -268,3 +268,78 @@ form_for(@article)
 Notice how the short-style `form_for` invocation is conveniently the same, regardless of the record being new or existing. Record identification is smart enough to figure out if the record is new by asking `record.new_record?`.
 
 WARNING: When you're using STI (single-table inheritance) with your models, you can't rely on record identification on a subclass if only their parent class is declared a resource. You will have to specify the model name, `:url` and `:method` explicitly.
+
+
+Making select boxes with ease
+-----------------------------
+
+Select boxes in HTML require a significant amount of markup (one `OPTION` element for each option to choose from), therefore it makes the most sense for them to be dynamically generated from data stored in arrays or hashes.
+
+Here is what our wanted markup might look like:
+
+----------------------------------------------------------------------------
+<select name="city_id" id="city_id">
+  <option value="1">Lisabon</option>
+  <option value="2">Madrid</option>
+  ...
+  <option value="12">Berlin</option>
+</select>
+----------------------------------------------------------------------------
+
+Here we have a list of cities where their names are presented to the user, but internally we want to handle just their IDs so we keep them in value attributes. Let's see how Rails can help out here.
+
+The select tag and options
+~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+The most generic helper is `select_tag`, which -- as the name implies -- simply generates the `SELECT` tag that encapsulates the options:
+
+----------------------------------------------------------------------------
+<%= select_tag(:city_id, '<option value="1">Lisabon</option>...') %>
+----------------------------------------------------------------------------
+
+This is a start, but it doesn't dynamically create our option tags. We had to pass them in as a string.
+
+We can generate option tags with the `options_for_select` helper:
+
+----------------------------------------------------------------------------
+<%= options_for_select([['Lisabon', 1], ['Madrid', 2], ...]) %>
+
+output:
+
+<option value="1">Lisabon</option>
+<option value="2">Madrid</option>
+...
+----------------------------------------------------------------------------
+
+For input data we used a nested array where each element has two elements: visible value (name) and internal value (ID).
+
+Now you can combine `select_tag` and `options_for_select` to achieve the desired, complete markup:
+
+----------------------------------------------------------------------------
+<%= select_tag(:city_id, options_for_select(...)) %>
+----------------------------------------------------------------------------
+
+Sometimes, depending on our application's needs, we also wish a specific option to be pre-selected. The `options_for_select` helper supports this with an optional second argument:
+
+----------------------------------------------------------------------------
+<%= options_for_select(cities_array, 2) %>
+
+output:
+
+<option value="1">Lisabon</option>
+<option value="2" selected="selected">Madrid</option>
+...
+----------------------------------------------------------------------------
+
+So whenever Rails sees that the internal value of an option being generated matches this value, it will add the `selected` attribute to that option.
+
+Select boxes for dealing with models
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Until now we've covered how to make generic select boxes, but in most cases our form controls will be tied to a specific database model. So, to continue from our previous examples, let's assume that we have a "Person" model with a `city_id` attribute.
+
+----------------------------------------------------------------------------
+...
+----------------------------------------------------------------------------
+
+...

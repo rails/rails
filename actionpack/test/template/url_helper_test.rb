@@ -258,6 +258,16 @@ class UrlHelperTest < ActionView::TestCase
     assert_equal "Showing", link_to_unless_current("Showing", { :action => "show", :controller => "weblog" })
     assert_equal "Showing", link_to_unless_current("Showing", "http://www.example.com/weblog/show")
 
+    @controller.request = RequestMock.new("http://www.example.com/weblog/show?order=desc")
+    @controller.url = "http://www.example.com/weblog/show"
+    assert_equal "Showing", link_to_unless_current("Showing", { :action => "show", :controller => "weblog" })
+    assert_equal "Showing", link_to_unless_current("Showing", "http://www.example.com/weblog/show")
+
+    @controller.request = RequestMock.new("http://www.example.com/weblog/show?order=desc")
+    @controller.url = "http://www.example.com/weblog/show?order=asc"
+    assert_equal "<a href=\"http://www.example.com/weblog/show?order=asc\">Showing</a>", link_to_unless_current("Showing", { :action => "show", :controller => "weblog" })
+    assert_equal "<a href=\"http://www.example.com/weblog/show?order=asc\">Showing</a>", link_to_unless_current("Showing", "http://www.example.com/weblog/show?order=asc")
+
     @controller.request = RequestMock.new("http://www.example.com/weblog/show")
     @controller.url = "http://www.example.com/weblog/list"
     assert_equal "<a href=\"http://www.example.com/weblog/list\">Listing</a>",
@@ -364,6 +374,19 @@ class UrlHelperWithControllerTest < ActionView::TestCase
   def test_url_for_nil_returns_current_path
     get :nil_url_for
     assert_equal '/url_helper_with_controller/nil_url_for', @response.body
+  end
+
+  def test_named_route_should_show_host_and_path_using_controller_default_url_options
+    class << @controller
+      def default_url_options(options = nil)
+        {:host => 'testtwo.host'}
+      end
+    end
+
+    with_url_helper_routing do
+      get :show_named_route, :kind => 'url'
+      assert_equal 'http://testtwo.host/url_helper_with_controller/show_named_route', @response.body
+    end
   end
 
   protected

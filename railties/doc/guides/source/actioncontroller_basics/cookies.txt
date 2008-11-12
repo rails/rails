@@ -31,4 +31,4 @@ class CommentsController < ApplicationController
 end
 -----------------------------------------
 
-Note that while for session values, you set the key to `nil`, to delete a cookie value, you use `cookies.delete(:key)`.
+Note that while for session values, you set the key to `nil`, to delete a cookie value, you should use `cookies.delete(:key)`.

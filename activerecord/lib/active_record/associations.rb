@@ -507,6 +507,14 @@ module ActiveRecord
     #
     # will load posts and eager load the +approved_comments+ association, which contains only those comments that have been approved.
     #
+    # If you eager load an association with a specified <tt>:limit</tt> option, it will be ignored, returning all the associated objects:
+    #
+    #   class Picture < ActiveRecord::Base
+    #     has_many :most_recent_comments, :class_name => 'Comment', :order => 'id DESC', :limit => 10
+    #   end
+    #
+    #   Picture.find(:first, :include => :most_recent_comments).most_recent_comments # => returns all associated comments.
+    #
     # When eager loaded, conditions are interpolated in the context of the model class, not the model instance.  Conditions are lazily interpolated
     # before the actual model exists.
     #
@@ -1596,16 +1604,19 @@ module ActiveRecord
           reflection
         end
 
+        mattr_accessor :valid_keys_for_has_and_belongs_to_many_association
+        @@valid_keys_for_has_and_belongs_to_many_association = [
+          :class_name, :table_name, :join_table, :foreign_key, :association_foreign_key,
+          :select, :conditions, :include, :order, :group, :limit, :offset,
+          :uniq,
+          :finder_sql, :delete_sql, :insert_sql,
+          :before_add, :after_add, :before_remove, :after_remove,
+          :extend, :readonly,
+          :validate
+        ]
+
         def create_has_and_belongs_to_many_reflection(association_id, options, &extension)
-          options.assert_valid_keys(
-            :class_name, :table_name, :join_table, :foreign_key, :association_foreign_key,
-            :select, :conditions, :include, :order, :group, :limit, :offset,
-            :uniq,
-            :finder_sql, :delete_sql, :insert_sql,
-            :before_add, :after_add, :before_remove, :after_remove,
-            :extend, :readonly,
-            :validate
-          )
+          options.assert_valid_keys(valid_keys_for_has_and_belongs_to_many_association)
 
           options[:extend] = create_extension_modules(association_id, extension, options[:extend])
 

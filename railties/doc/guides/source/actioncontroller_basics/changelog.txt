@@ -1,0 +1,5 @@
+== Changelog ==
+
+http://rails.lighthouseapp.com/projects/16213-rails-guides/tickets/17[Lighthouse ticket]
+
+* November 4, 2008: First release version by Tore Darrell

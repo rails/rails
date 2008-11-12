@@ -846,6 +846,17 @@ class FinderTest < ActiveRecord::TestCase
     assert !c.new_record?
   end
 
+  def test_find_or_create_should_work_with_block_on_first_call
+	  class << Company
+		undef_method(:find_or_create_by_name) if method_defined?(:find_or_create_by_name)
+	  end
+    c = Company.find_or_create_by_name(:name => "Fortune 1000") { |f| f.rating = 1000 }
+    assert_equal "Fortune 1000", c.name
+    assert_equal 1000.to_f, c.rating.to_f
+    assert c.valid?
+    assert !c.new_record?
+  end
+
   def test_dynamic_find_or_initialize_from_one_attribute_caches_method
     class << Company; self; end.send(:remove_method, :find_or_initialize_by_name) if Company.public_methods.any? { |m| m.to_s == 'find_or_initialize_by_name' }
     assert !Company.public_methods.any? { |m| m.to_s == 'find_or_initialize_by_name' }

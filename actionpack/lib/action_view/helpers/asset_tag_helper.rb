@@ -588,8 +588,8 @@ module ActionView
               source += ".#{extension}" if missing_extension?(source)
               unless source =~ ProtocolRegexp
                 source = "/#{directory}/#{source}" unless source[0] == ?/
-                source = prepend_relative_url_root(source)
                 source = rewrite_asset_path(source)
+                source = prepend_relative_url_root(source)                
               end
               source = prepend_asset_host(source)
               source

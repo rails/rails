@@ -233,7 +233,7 @@ ul#navMain {
 						
 							<li><a href="#_what_to_include_in_your_functional_tests">What to include in your Functional Tests</a></li>
 						
-							<li><a href="#_available_request_types_for_functional_tests">Available Request Types for Functional Tests===</a></li>
+							<li><a href="#_available_request_types_for_functional_tests">Available Request Types for Functional Tests</a></li>
 						
 							<li><a href="#_the_4_hashes_of_the_apocalypse">The 4 Hashes of the Apocalypse</a></li>
 						
@@ -398,15 +398,12 @@ steve<span style="color: #990000">:</span>
 <div class="para"><p>Fixtures can also be described using the all-too-familiar comma-separated value (CSV) file format. These files, just like YAML fixtures, are placed in the <em>test/fixtures</em> directory, but these end with the <tt>.csv</tt> file extension (as in <tt>celebrity_holiday_figures.csv</tt>).</p></div>
 <div class="para"><p>A CSV fixture looks like this:</p></div>
 <div class="listingblock">
-<div class="content"><!-- Generator: GNU source-highlight 2.9
-by Lorenzo Bettini
-http://www.lorenzobettini.it
-http://www.gnu.org/software/src-highlite -->
+<div class="content">
 <pre><tt>id, username, password, stretchable, comments
 1, sclaus, ihatekids, false, I like to say ""Ho! Ho! Ho!""
 2, ebunny, ihateeggs, true, Hoppity hop y'all
-3, tfairy, ilovecavities, true, "Pull your teeth, I will"
-</tt></pre></div></div>
+3, tfairy, ilovecavities, true, "Pull your teeth, I will"</tt></pre>
+</div></div>
 <div class="para"><p>The first line is the header. It is a comma-separated list of fields. The rest of the file is the payload: 1 record per line. A few notes about this format:</p></div>
 <div class="ilist"><ul>
 <li>
@@ -535,17 +532,14 @@ email<span style="color: #990000">(</span>david<span style="color: #990000">.</s
 <div class="para"><p>In Rails, unit tests are what you write to test your models.</p></div>
 <div class="para"><p>When you create a model using <tt>script/generate</tt>, among other things it creates a test stub in the <tt>test/unit</tt> folder, as well as a fixture for the model:</p></div>
 <div class="listingblock">
-<div class="content"><!-- Generator: GNU source-highlight 2.9
-by Lorenzo Bettini
-http://www.lorenzobettini.it
-http://www.gnu.org/software/src-highlite -->
+<div class="content">
 <pre><tt>$ script/generate model Post
 ...
 create  app/models/post.rb
 create  test/unit/post_test.rb
 create  test/fixtures/posts.yml
-...
-</tt></pre></div></div>
+...</tt></pre>
+</div></div>
 <div class="para"><p>The default test stub in <tt>test/unit/post_test.rb</tt> looks like this:</p></div>
 <div class="listingblock">
 <div class="content"><!-- Generator: GNU source-highlight 2.9
@@ -637,10 +631,7 @@ Finished <span style="font-weight: bold"><span style="color: #0000FF">in</span><
 <div class="para"><p>This will run all the test methods from the test case.</p></div>
 <div class="para"><p>You can also run a particular test method from the test case by using the <tt>-n</tt> switch with the <tt>test method name</tt>.</p></div>
 <div class="listingblock">
-<div class="content"><!-- Generator: GNU source-highlight 2.9
-by Lorenzo Bettini
-http://www.lorenzobettini.it
-http://www.gnu.org/software/src-highlite -->
+<div class="content">
 <pre><tt>$ ruby unit/post_test.rb -n test_truth
 
 Loaded suite unit/post_test
@@ -648,8 +639,8 @@ Started
 .
 Finished in 0.023513 seconds.
 
-1 tests, 1 assertions, 0 failures, 0 errors
-</tt></pre></div></div>
+1 tests, 1 assertions, 0 failures, 0 errors</tt></pre>
+</div></div>
 <div class="para"><p>The <tt>.</tt> (dot) above indicates a passing test. When a test fails you see an <tt>F</tt>; when a test throws an error you see an <tt>E</tt> in its place. The last line of the output is the summary.</p></div>
 <div class="para"><p>To see how a test failure is reported, you can add a failing test to the <tt>post_test.rb</tt> test case:</p></div>
 <div class="listingblock">
@@ -664,10 +655,7 @@ http://www.gnu.org/software/src-highlite -->
 </tt></pre></div></div>
 <div class="para"><p>If you haven't added any data to the test fixture for posts, this test will fail. You can see this by running it:</p></div>
 <div class="listingblock">
-<div class="content"><!-- Generator: GNU source-highlight 2.9
-by Lorenzo Bettini
-http://www.lorenzobettini.it
-http://www.gnu.org/software/src-highlite -->
+<div class="content">
 <pre><tt>$ ruby unit/post_test.rb
 Loaded suite unit/post_test
 Started
@@ -681,8 +669,8 @@ test_should_have_atleast_one_post(PostTest)
      /opt/local/lib/ruby/gems/1.8/gems/activesupport-2.1.1/lib/active_support/testing/setup_and_teardown.rb:33:in `run']:
 &lt;nil&gt; expected to not be nil.
 
-2 tests, 2 assertions, 1 failures, 0 errors
-</tt></pre></div></div>
+2 tests, 2 assertions, 1 failures, 0 errors</tt></pre>
+</div></div>
 <div class="para"><p>In the output, <tt>F</tt> denotes a failure. You can see the corresponding trace shown under <tt>1)</tt> along with the name of the failing test. The next few lines contain the stack trace followed by a message which mentions the actual value and the expected value by the assertion. The default assertion messages provide just enough information to help pinpoint the error. To make the assertion failure message more readable every assertion provides an optional message parameter, as shown here:</p></div>
 <div class="listingblock">
 <div class="content"><!-- Generator: GNU source-highlight 2.9
@@ -696,10 +684,7 @@ http://www.gnu.org/software/src-highlite -->
 </tt></pre></div></div>
 <div class="para"><p>Running this test shows the friendlier assertion message:</p></div>
 <div class="listingblock">
-<div class="content"><!-- Generator: GNU source-highlight 2.9
-by Lorenzo Bettini
-http://www.lorenzobettini.it
-http://www.gnu.org/software/src-highlite -->
+<div class="content">
 <pre><tt>$ ruby unit/post_test.rb
 Loaded suite unit/post_test
 Started
@@ -714,8 +699,8 @@ test_should_have_atleast_one_post(PostTest)
 Should not be nil as Posts table should have atleast one post.
 &lt;nil&gt; expected to not be nil.
 
-2 tests, 2 assertions, 1 failures, 0 errors
-</tt></pre></div></div>
+2 tests, 2 assertions, 1 failures, 0 errors</tt></pre>
+</div></div>
 <div class="para"><p>To see how an error gets reported, here's a test containing an error:</p></div>
 <div class="listingblock">
 <div class="content"><!-- Generator: GNU source-highlight 2.9
@@ -730,10 +715,7 @@ http://www.gnu.org/software/src-highlite -->
 </tt></pre></div></div>
 <div class="para"><p>Now you can see even more output in the console from running the tests:</p></div>
 <div class="listingblock">
-<div class="content"><!-- Generator: GNU source-highlight 2.9
-by Lorenzo Bettini
-http://www.lorenzobettini.it
-http://www.gnu.org/software/src-highlite -->
+<div class="content">
 <pre><tt>$ ruby unit/post_test.rb
 Loaded suite unit/post_test
 Started
@@ -756,8 +738,8 @@ NameError: undefined local variable or method `some_undefined_variable' for #&lt
     /opt/local/lib/ruby/gems/1.8/gems/activesupport-2.1.1/lib/active_support/testing/setup_and_teardown.rb:33:in `__send__'
     /opt/local/lib/ruby/gems/1.8/gems/activesupport-2.1.1/lib/active_support/testing/setup_and_teardown.rb:33:in `run'
 
-3 tests, 2 assertions, 1 failures, 1 errors
-</tt></pre></div></div>
+3 tests, 2 assertions, 1 failures, 1 errors</tt></pre>
+</div></div>
 <div class="para"><p>Notice the <em>E</em> in the output. It denotes a test with error.</p></div>
 <div class="admonitionblock">
 <table><tr>
@@ -1160,7 +1142,7 @@ http://www.lorenzobettini.it
 http://www.gnu.org/software/src-highlite -->
 <pre><tt>get<span style="color: #990000">(:</span>view<span style="color: #990000">,</span> <span style="color: #FF0000">{</span><span style="color: #FF0000">'id'</span> <span style="color: #990000">=&gt;</span> <span style="color: #FF0000">'12'</span><span style="color: #FF0000">}</span><span style="color: #990000">,</span> <span style="font-weight: bold"><span style="color: #0000FF">nil</span></span><span style="color: #990000">,</span> <span style="color: #FF0000">{</span><span style="color: #FF0000">'message'</span> <span style="color: #990000">=&gt;</span> <span style="color: #FF0000">'booya!'</span><span style="color: #FF0000">}</span><span style="color: #990000">)</span>
 </tt></pre></div></div>
-<h3 id="_available_request_types_for_functional_tests">4.2. Available Request Types for Functional Tests===</h3>
+<h3 id="_available_request_types_for_functional_tests">4.2. Available Request Types for Functional Tests</h3>
 <div class="para"><p>If you're familiar with the HTTP protocol, you'll know that <tt>get</tt> is a type of request. There are 5 request types supported in Rails functional tests:</p></div>
 <div class="ilist"><ul>
 <li>
@@ -1638,16 +1620,13 @@ http://www.gnu.org/software/src-highlite -->
 <div class="para"><p>In this test, <tt>@expected</tt> is an instance of <tt>TMail::Mail</tt> that you can use in your tests. It is defined in <tt>ActionMailer::TestCase</tt>. The test above uses <tt>@expected</tt> to construct an email, which it then asserts with email created by the custom mailer. The <tt>invite</tt> fixture is the body of the email and is used as the sample content to assert against. The helper <tt>read_fixture</tt> is used to read in the content from this file.</p></div>
 <div class="para"><p>Here's the content of the <tt>invite</tt> fixture:</p></div>
 <div class="listingblock">
-<div class="content"><!-- Generator: GNU source-highlight 2.9
-by Lorenzo Bettini
-http://www.lorenzobettini.it
-http://www.gnu.org/software/src-highlite -->
+<div class="content">
 <pre><tt>Hi friend@example.com,
 
 You have been invited.
 
-Cheers!
-</tt></pre></div></div>
+Cheers!</tt></pre>
+</div></div>
 <div class="para"><p>This is the right time to understand a little more about writing tests for your mailers. The line <tt>ActionMailer::Base.delivery_method = :test</tt> in <tt>config/environments/test.rb</tt> sets the delivery method to test mode so that email will not actually be delivered (useful to avoid spamming your users while testing) but instead it will be appended to an array (<tt>ActionMailer::Base.deliveries</tt>).</p></div>
 <div class="para"><p>However often in unit tests, mails will not actually be sent, simply constructed, as in the example above, where the precise content of the email is checked against what it should be.</p></div>
 <h3 id="_functional_testing">6.3. Functional Testing</h3>

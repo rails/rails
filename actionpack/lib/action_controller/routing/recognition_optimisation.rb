@@ -153,13 +153,7 @@ module ActionController
 
         def clear_recognize_optimized!
           remove_recognize_optimized!
-
-          class << self
-            def recognize_optimized(path, environment)
-              write_recognize_optimized!
-              recognize_optimized(path, environment)
-            end
-          end
+          write_recognize_optimized!
         end
 
         def remove_recognize_optimized!

@@ -6,10 +6,11 @@ task :gems => 'gems:base' do
   puts
   puts "I = Installed"
   puts "F = Frozen"
+  puts "R = Framework (loaded before rails starts)"
 end
 
 def print_gem_status(gem, indent=1)
-  code = gem.loaded? ? (gem.frozen? ? "F" : "I") : " "
+  code = gem.loaded? ? (gem.frozen? ? (gem.framework_gem? ? "R" : "F") : "I") : " "
   puts "   "*(indent-1)+" - [#{code}] #{gem.name} #{gem.requirement.to_s}"
   gem.dependencies.each { |g| print_gem_status(g, indent+1)} if gem.loaded?
 end

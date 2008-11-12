@@ -154,6 +154,10 @@ class TestController < ActionController::Base
     render :json => {:hello => 'world'}.to_json
   end
 
+  def render_json_with_render_to_string
+    render :json => {:hello => render_to_string(:partial => 'partial')}
+  end
+
   def render_custom_code
     render :text => "hello world", :status => 404
   end
@@ -178,6 +182,10 @@ class TestController < ActionController::Base
 
   def render_invalid_args
     render("test/hello")
+  end
+
+  def render_vanilla_js_hello
+    render :js => "alert('hello')"
   end
 
   def render_xml_hello
@@ -772,6 +780,12 @@ class RenderTest < Test::Unit::TestCase
     assert_equal 'application/json', @response.content_type
   end
 
+  def test_render_json_with_render_to_string
+    get :render_json_with_render_to_string
+    assert_equal '{"hello": "partial html"}', @response.body
+    assert_equal 'application/json', @response.content_type
+  end
+
   def test_render_custom_code
     get :render_custom_code
     assert_response 404
@@ -832,6 +846,12 @@ class RenderTest < Test::Unit::TestCase
   def test_access_to_controller_name_in_view
     get :accessing_controller_name_in_template
     assert_equal "test", @response.body # name is explicitly set to 'test' inside the controller.
+  end
+
+  def test_render_vanilla_js
+    get :render_vanilla_js_hello
+    assert_equal "alert('hello')", @response.body
+    assert_equal "text/javascript", @response.content_type
   end
 
   def test_render_xml

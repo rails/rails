@@ -192,7 +192,7 @@ task :copy_configs do
   app_name = "rails"
   socket = nil
   require 'erb'
-  File.open("#{PKG_DESTINATION}/config/database.yml", 'w') {|f| f.write ERB.new(IO.read("configs/databases/mysql.yml"), nil, '-').result(binding)}
+  File.open("#{PKG_DESTINATION}/config/database.yml", 'w') {|f| f.write ERB.new(IO.read("configs/databases/sqlite3.yml"), nil, '-').result(binding)}
   
   cp "configs/routes.rb", "#{PKG_DESTINATION}/config/routes.rb"
 
@@ -283,26 +283,35 @@ task :guides do
 
   template = File.expand_path("doc/guides/source/templates/guides.html.erb")
 
-  ignore = ['icons', 'images', 'templates', 'stylesheets']
+  ignore = ['..', 'icons', 'images', 'templates', 'stylesheets']
   ignore << 'active_record_basics.txt'
 
   indexless = ['index.txt', 'authors.txt']
 
-  Dir.entries(source)[2..-1].each do |entry|
+  # Traverse all entries in doc/guides/source/
+  Dir.entries(source).each do |entry|
     next if ignore.include?(entry)
 
     if File.directory?(File.join(source, entry))
-      input  = File.join(source, entry, 'index.txt')
-      output = File.join(html, entry)
+      # If the current entry is a directory, then we will want to compile
+      # the 'index.txt' file inside this directory.
+      if entry == '.'
+        input  = File.join(source, 'index.txt')
+        output = File.join(html, "index.html")
+      else
+        input  = File.join(source, entry, 'index.txt')
+        output = File.join(html, "#{entry}.html")
+      end
     else
+      # If the current entry is a file, then we will want to compile this file.
       input  = File.join(source, entry)
-      output = File.join(html, entry).sub(/\.txt$/, '')
+      output = File.join(html, entry).sub(/\.txt$/, '.html')
     end
 
     begin
       puts "GENERATING => #{output}"
       ENV['MANUALSONRAILS_TOC'] = 'no' if indexless.include?(entry)
-      Mizuho::Generator.new(input, output, template).start
+      Mizuho::Generator.new(input, :output => output, :template => template).start
     rescue Mizuho::GenerationError
       STDERR.puts "*** ERROR"
       exit 2

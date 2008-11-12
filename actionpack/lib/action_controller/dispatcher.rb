@@ -28,6 +28,10 @@ module ActionController
         end
 
         after_dispatch :flush_logger if Base.logger && Base.logger.respond_to?(:flush)
+
+        to_prepare do
+          I18n.reload!
+        end
       end
 
       # Backward-compatible class method takes CGI-specific args. Deprecated

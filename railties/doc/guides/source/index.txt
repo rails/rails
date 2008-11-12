@@ -11,8 +11,6 @@ CAUTION: Guides marked with this icon are currently being worked on. While they 
 
 .link:getting_started_with_rails.html[Getting Started with Rails]
 ***********************************************************
-CAUTION: link:http://rails.lighthouseapp.com/projects/16213/tickets/2[Lighthouse Ticket]
-
 Everything you need to know to install Rails and create your first application.
 ***********************************************************
 
@@ -44,7 +42,7 @@ This guide covers the find method defined in ActiveRecord::Base, as well as name
 .link:layouts_and_rendering.html[Layouts and Rendering in Rails]
 ***********************************************************
 This guide covers the basic layout features of Action Controller and Action View,
-including rendering and redirecting, using +content_for_ blocks, and working
+including rendering and redirecting, using +content_for+ blocks, and working
 with partials.
 ***********************************************************
 
@@ -67,8 +65,6 @@ understand how to use routing in your own Rails applications, start here.
 
 .link:actioncontroller_basics.html[Basics of Action Controller]
 ***********************************************************
-CAUTION: link:http://rails.lighthouseapp.com/projects/16213/tickets/17[Lighthouse Ticket]
-
 This guide covers how controllers work and how they fit into the request cycle in your application. It includes sessions, filters, and cookies, data streaming, and dealing with exceptions raised by a request, among other topics.
 ***********************************************************
 
@@ -94,16 +90,12 @@ Enjoy.
 
 .link:security.html[Securing Rails Applications]
 ***********************************************************
-CAUTION: link:http://rails.lighthouseapp.com/projects/16213/tickets/7[Lighthouse Ticket]
-
-This manual describes common security problems in web applications and how to
+This guide describes common security problems in web applications and how to
 avoid them with Rails.
 ***********************************************************
 
 .link:debugging_rails_applications.html[Debugging Rails Applications]
 ***********************************************************
-CAUTION: link:http://rails.lighthouseapp.com/projects/16213/tickets/5[Lighthouse Ticket]
-
 This guide describes how to debug Rails applications. It covers the different
 ways of achieving this and how to understand what is happening "behind the scenes"
 of your code.

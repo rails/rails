@@ -7,7 +7,7 @@ There is no need (and it is error prone) to deploy a new instance of an app by r
 
 For example, this is how the test database is created: the current development database is dumped (either to `schema.rb` or `development.sql`) and then loaded into the test database.
 
-Schema files are also useful if want a quick look at what attributes an Active Record object has. This information is not in the model's code and is frequently spread across several migrations but is all summed up in the schema file. The http://agilewebdevelopment.com/plugins/annotate_models[annotate_models] plugin, which automatically adds (and updates) comments at the top of each model summarising the schema, may also be of interest.
+Schema files are also useful if you want a quick look at what attributes an Active Record object has. This information is not in the model's code and is frequently spread across several migrations but is all summed up in the schema file. The http://agilewebdevelopment.com/plugins/annotate_models[annotate_models] plugin, which automatically adds (and updates) comments at the top of each model summarising the schema, may also be of interest.
 
 === Types of schema dumps === 
 There are two ways to dump the schema. This is set in `config/environment.rb` by the `config.active_record.schema_format` setting, which may be either `:sql` or `:ruby`.

@@ -44,7 +44,7 @@ The internal documentation of Rails, in the form of code comments, has been impr
 
 All told, the Guides provide tens of thousands of words of guidance for beginning and intermediate Rails developers.
 
-If you want to these generate guides locally, inside your application:
+If you want to generate these guides locally, inside your application:
 
 [source, ruby]
 -------------------------------------------------------
@@ -118,11 +118,12 @@ There are two big additions to talk about here: transactional migrations and poo
 
 === Transactional Migrations
 
-Historically, multiple-step Rails migrations have been a source of trouble. If something went wrong during a migration, everything before the error changed the database and everything after the error wasn't applied. Also, the migration version was stored as having been executed, which means that it couldn't be simply rerun by +rake db:migrate:redo+ after you fix the problem. Transactional migrations change this by wrapping migration steps in a DDL transaction, so that if any of them fail, the entire migration is undone. In Rails 2.2, transactional migrations are supported *on PostgreSQL only*. The code is extensible to other database types in the future.
+Historically, multiple-step Rails migrations have been a source of trouble. If something went wrong during a migration, everything before the error changed the database and everything after the error wasn't applied. Also, the migration version was stored as having been executed, which means that it couldn't be simply rerun by +rake db:migrate:redo+ after you fix the problem. Transactional migrations change this by wrapping migration steps in a DDL transaction, so that if any of them fail, the entire migration is undone. In Rails 2.2, transactional migrations are supported on PostgreSQL out of the box. The code is extensible to other database types in the future - and IBM has already extended it to support the DB2 adapter.
 
 * Lead Contributor: link:http://adam.blog.heroku.com/[Adam Wiggins]
 * More information:
  - link:http://adam.blog.heroku.com/past/2008/9/3/ddl_transactions/[DDL Transactions]
+ - link:http://db2onrails.com/2008/11/08/a-major-milestone-for-db2-on-rails/[A major milestone for DB2 on Rails]
 
 === Connection Pooling
 
@@ -212,7 +213,7 @@ On the controller side, there are a couple of changes that will help tidy up you
 
 === Shallow Route Nesting
 
-Shallow route nesting provides a solution to the well-known difficulty of using deeply-nested resources. With shallow nesting, you need only supply enough information to uniquely identify the resource that you want to work with - but you _can_ supply more information. 
+Shallow route nesting provides a solution to the well-known difficulty of using deeply-nested resources. With shallow nesting, you need only supply enough information to uniquely identify the resource that you want to work with. 
 
 [source, ruby]
 -------------------------------------------------------
@@ -257,11 +258,13 @@ Action Controller now offers good support for HTTP conditional GET requests, as 
 * The HTTP Accept header is disabled by default now. You should prefer the use of formatted URLs (such as +/customers/1.xml+) to indicate the format that you want. If you need the Accept headers, you can turn them back on with +config.action_controller.user_accept_header = true+.
 * Benchmarking numbers are now reported in milliseconds rather than tiny fractions of seconds
 * Rails now supports HTTP-only cookies (and uses them for sessions), which help mitigate some cross-site scripting risks in newer browsers.
+* +redirect_to+ now fully supports URI schemes (so, for example, you can redirect to a svn+ssh: URI).
+* +render+ now supports a +:js+ option to render plain vanilla javascript with the right mime type.
 
 == Action View
 
 * +javascript_include_tag+ and +stylesheet_link_tag+ support a new +:recursive+ option to be used along with +:all+, so that you can load an entire tree of files with a single line of code.
-* The included Prototype javascript library has been upgraded to version 1.6.0.2.
+* The included Prototype javascript library has been upgraded to version 1.6.0.3.
 * +RJS#page.reload+ to reload the browser's current location via javascript
 * The +atom_feed+ helper now takes an +:instruct+ option to let you insert XML processing instructions.
 

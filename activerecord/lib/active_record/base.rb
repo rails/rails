@@ -1764,7 +1764,7 @@ module ActiveRecord #:nodoc:
         #
         # Each dynamic finder or initializer/creator is also defined in the class after it is first invoked, so that future
         # attempts to use it do not run through method_missing.
-        def method_missing(method_id, *arguments)
+        def method_missing(method_id, *arguments, &block)
           if match = DynamicFinderMatch.match(method_id)
             attribute_names = match.attribute_names
             super unless all_attributes_exists?(attribute_names)
@@ -1819,7 +1819,7 @@ module ActiveRecord #:nodoc:
                   end
                 end
               }, __FILE__, __LINE__
-              send(method_id, *arguments)
+              send(method_id, *arguments, &block)
             end
           else
             super
@@ -2410,10 +2410,11 @@ module ActiveRecord #:nodoc:
       # be made (since they can't be persisted).
       def destroy
         unless new_record?
-          connection.delete <<-end_sql, "#{self.class.name} Destroy"
-            DELETE FROM #{self.class.quoted_table_name}
-            WHERE #{connection.quote_column_name(self.class.primary_key)} = #{quoted_id}
-          end_sql
+          connection.delete(
+            "DELETE FROM #{self.class.quoted_table_name} " +
+            "WHERE #{connection.quote_column_name(self.class.primary_key)} = #{quoted_id}",
+            "#{self.class.name} Destroy"
+          )
         end
 
         freeze
@@ -2938,7 +2939,7 @@ module ActiveRecord #:nodoc:
       end
 
       def object_from_yaml(string)
-        return string unless string.is_a?(String)
+        return string unless string.is_a?(String) && string =~ /^---/
         YAML::load(string) rescue string
       end
 

@@ -81,6 +81,8 @@ class CustomMethodsTest < Test::Unit::TestCase
     # Test POST against a new element URL
     ryan = Person.new(:name => 'Ryan')
     assert_equal ActiveResource::Response.new(@ryan, 201, {'Location' => '/people/5.xml'}), ryan.post(:register)
+    expected_request = ActiveResource::Request.new(:post, '/people/new/register.xml', @ryan)
+    assert_equal expected_request.body, ActiveResource::HttpMock.requests.first.body
 
     # Test POST against a nested collection URL
     addy = StreetAddress.new(:street => '123 Test Dr.', :person_id => 1)
