@@ -162,3 +162,61 @@ end
 class Wickwall < ActiveRecord::Base
 end
 ----------------------------------------------
+
+=== Run the plugin tests ===
+
+Once you have these files in place, you can write your first test to ensure that your plugin-testing setup is correct.  By default rails generates a file in 'vendor/plugins/yaffle/test/yaffle_test.rb' with a sample test.  Replace the contents of that file with:
+
+*vendor/plugins/yaffle/test/yaffle_test.rb:*
+
+[source, ruby]
+----------------------------------------------
+require File.dirname(__FILE__) + '/test_helper.rb'
+
+class YaffleTest < Test::Unit::TestCase
+  
+  def test_active_record_classes_from_test_helper
+    assert_kind_of Hickwall, Hickwall.new
+    assert_kind_of Wickwall, Wickwall.new
+  end
+  
+end
+----------------------------------------------
+
+To run this, go to the plugin directory and run `rake`:
+
+----------------------------------------------
+cd vendor/plugins/yaffle
+rake
+----------------------------------------------
+
+You should see output like:
+
+----------------------------------------------
+/opt/local/bin/ruby -Ilib:lib "/opt/local/lib/ruby/gems/1.8/gems/rake-0.8.3/lib/rake/rake_test_loader.rb" "test/yaffle_test.rb" 
+-- create_table(:hickwalls, {:force=>true})
+   -> 0.0220s
+-- create_table(:wickwalls, {:force=>true})
+   -> 0.0077s
+-- initialize_schema_migrations_table()
+   -> 0.0007s
+-- assume_migrated_upto_version(0)
+   -> 0.0007s
+Loaded suite /opt/local/lib/ruby/gems/1.8/gems/rake-0.8.3/lib/rake/rake_test_loader
+Started
+.
+Finished in 0.002236 seconds.
+
+1 test, 1 assertion, 0 failures, 0 errors
+----------------------------------------------
+
+By default the setup above runs your tests with sqlite or sqlite3.  To run tests with one of the other connection strings specified in database.yml, pass the DB environment variable to rake:
+
+----------------------------------------------
+rake DB=sqlite
+rake DB=sqlite3
+rake DB=mysql
+rake DB=postgresql
+----------------------------------------------
+
+Now you are ready to test-drive your plugin!

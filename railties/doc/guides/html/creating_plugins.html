@@ -208,6 +208,8 @@ ul#navMain {
 						
 							<li><a href="#_setup_the_plugin_for_testing">Setup the plugin for testing</a></li>
 						
+							<li><a href="#_run_the_plugin_tests">Run the plugin tests</a></li>
+						
 						</ul>
 					</li>
 					<li>
@@ -544,6 +546,58 @@ ActiveRecord<span style="color: #990000">::</span>Base<span style="color: #99000
 <span style="font-weight: bold"><span style="color: #0000FF">class</span></span> Wickwall <span style="color: #990000">&lt;</span> ActiveRecord<span style="color: #990000">::</span>Base
 <span style="font-weight: bold"><span style="color: #0000FF">end</span></span>
 </tt></pre></div></div>
+<h3 id="_run_the_plugin_tests">1.4. Run the plugin tests</h3>
+<div class="para"><p>Once you have these files in place, you can write your first test to ensure that your plugin-testing setup is correct.  By default rails generates a file in <em>vendor/plugins/yaffle/test/yaffle_test.rb</em> with a sample test.  Replace the contents of that file with:</p></div>
+<div class="para"><p><strong>vendor/plugins/yaffle/test/yaffle_test.rb:</strong></p></div>
+<div class="listingblock">
+<div class="content"><!-- Generator: GNU source-highlight 2.9
+by Lorenzo Bettini
+http://www.lorenzobettini.it
+http://www.gnu.org/software/src-highlite -->
+<pre><tt><span style="font-weight: bold"><span style="color: #000080">require</span></span> File<span style="color: #990000">.</span>dirname<span style="color: #990000">(</span><span style="font-weight: bold"><span style="color: #0000FF">__FILE__</span></span><span style="color: #990000">)</span> <span style="color: #990000">+</span> <span style="color: #FF0000">'/test_helper.rb'</span>
+
+<span style="font-weight: bold"><span style="color: #0000FF">class</span></span> YaffleTest <span style="color: #990000">&lt;</span> Test<span style="color: #990000">::</span>Unit<span style="color: #990000">::</span>TestCase
+
+  <span style="font-weight: bold"><span style="color: #0000FF">def</span></span> test_active_record_classes_from_test_helper
+    assert_kind_of Hickwall<span style="color: #990000">,</span> Hickwall<span style="color: #990000">.</span>new
+    assert_kind_of Wickwall<span style="color: #990000">,</span> Wickwall<span style="color: #990000">.</span>new
+  <span style="font-weight: bold"><span style="color: #0000FF">end</span></span>
+
+<span style="font-weight: bold"><span style="color: #0000FF">end</span></span>
+</tt></pre></div></div>
+<div class="para"><p>To run this, go to the plugin directory and run <tt>rake</tt>:</p></div>
+<div class="listingblock">
+<div class="content">
+<pre><tt>cd vendor/plugins/yaffle
+rake</tt></pre>
+</div></div>
+<div class="para"><p>You should see output like:</p></div>
+<div class="listingblock">
+<div class="content">
+<pre><tt>/opt/local/bin/ruby -Ilib:lib "/opt/local/lib/ruby/gems/1.8/gems/rake-0.8.3/lib/rake/rake_test_loader.rb" "test/yaffle_test.rb"
+-- create_table(:hickwalls, {:force=&gt;true})
+   -&gt; 0.0220s
+-- create_table(:wickwalls, {:force=&gt;true})
+   -&gt; 0.0077s
+-- initialize_schema_migrations_table()
+   -&gt; 0.0007s
+-- assume_migrated_upto_version(0)
+   -&gt; 0.0007s
+Loaded suite /opt/local/lib/ruby/gems/1.8/gems/rake-0.8.3/lib/rake/rake_test_loader
+Started
+.
+Finished in 0.002236 seconds.
+
+1 test, 1 assertion, 0 failures, 0 errors</tt></pre>
+</div></div>
+<div class="para"><p>By default the setup above runs your tests with sqlite or sqlite3.  To run tests with one of the other connection strings specified in <tt>database.yml</tt>, pass the <tt>DB</tt> environment variable to rake:</p></div>
+<div class="listingblock">
+<div class="content">
+<pre><tt>rake DB=sqlite
+rake DB=sqlite3
+rake DB=mysql
+rake DB=postgresql</tt></pre>
+</div></div>
 </div>
 <h2 id="_add_a_tt_to_squawk_tt_method_to_string">2. Add a <tt>to_squawk</tt> method to String</h2>
 <div class="sectionbody">
