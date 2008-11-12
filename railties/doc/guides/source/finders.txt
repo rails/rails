@@ -120,7 +120,7 @@ To find all the clients you would simply type +Client.all+ and that would find a
   created_at: "2008-09-28 15:38:50", updated_at: "2008-09-28 15:38:50">, 
   #<Client id: 2, name: => "Michael", locked: false, orders_count: 3, 
   created_at: "2008-09-28 13:12:40", updated_at: "2008-09-28 13:12:40">]
--------------------------------------------------------
+------------------------------------------------------- 
 
 As alternatives to calling +Client.first+, +Client.last+, and +Client.all+, you can use the class methods +Client.first+, +Client.last+, and +Client.all+ instead. +Client.first+, +Client.last+ and +Client.all+ just call their longer counterparts: +Client.find(:first)+, +Client.find(:last)+ and +Client.find(:all)+ respectively.
 
