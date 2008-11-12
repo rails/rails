@@ -2,10 +2,10 @@
 
 Testing routes in plugins can be complex, especially if the controllers are also in the plugin itself.  Jamis Buck showed a great example of this in http://weblog.jamisbuck.org/2006/10/26/monkey-patching-rails-extending-routes-2.
 
+*vendor/plugins/yaffle/test/routing_test.rb*
+
 [source, ruby]
 --------------------------------------------------------
-# File: vendor/plugins/yaffle/test/routing_test.rb
-
 require "#{File.dirname(__FILE__)}/test_helper"
 
 class RoutingTest < Test::Unit::TestCase
@@ -33,18 +33,18 @@ class RoutingTest < Test::Unit::TestCase
 end
 --------------------------------------------------------
 
+*vendor/plugins/yaffle/init.rb*
+
 [source, ruby]
 --------------------------------------------------------
-# File: vendor/plugins/yaffle/init.rb
-
 require "routing"
 ActionController::Routing::RouteSet::Mapper.send :include, Yaffle::Routing::MapperExtensions
 --------------------------------------------------------
 
+*vendor/plugins/yaffle/lib/routing.rb*
+
 [source, ruby]
 --------------------------------------------------------
-# File: vendor/plugins/yaffle/lib/routing.rb
-
 module Yaffle #:nodoc:
   module Routing #:nodoc:
     module MapperExtensions
@@ -56,10 +56,10 @@ module Yaffle #:nodoc:
 end
 --------------------------------------------------------
 
+*config/routes.rb*
+
 [source, ruby]
 --------------------------------------------------------
-# File: config/routes.rb
-
 ActionController::Routing::Routes.draw do |map|
   ...
   map.yaffles

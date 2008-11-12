@@ -8,19 +8,20 @@ You may have noticed above that you can used one of the built-in rails migration
 
 Working with the internals of generators is beyond the scope of this tutorial, but here is a basic example:
 
+*vendor/plugins/yaffle/init.rb*
+
 [source, ruby]
 -----------------------------------------------------------
-# File: vendor/plugins/yaffle/init.rb
 require "commands"
 Rails::Generator::Commands::Create.send   :include,  Yaffle::Generator::Commands::Create
 Rails::Generator::Commands::Destroy.send  :include,  Yaffle::Generator::Commands::Destroy
 Rails::Generator::Commands::List.send     :include,  Yaffle::Generator::Commands::List
 -----------------------------------------------------------
 
+*vendor/plugins/yaffle/lib/commands.rb*
+
 [source, ruby]
 -----------------------------------------------------------
-# File: vendor/plugins/yaffle/lib/commands.rb
-
 require 'rails_generator'
 require 'rails_generator/commands'
 
@@ -49,16 +50,15 @@ module Yaffle #:nodoc:
 end
 -----------------------------------------------------------
 
+*vendor/plugins/yaffle/generators/yaffle/templates/definition.txt*
 -----------------------------------------------------------
-# File: vendor/plugins/yaffle/generators/yaffle/templates/definition.txt
-
 Yaffle is a bird
 -----------------------------------------------------------
 
+*vendor/plugins/yaffle/generators/yaffle/yaffle_generator.rb*
+
 [source, ruby]
 -----------------------------------------------------------
-# File: vendor/plugins/yaffle/generators/yaffle/yaffle_generator.rb
-
 class YaffleGenerator < Rails::Generator::NamedBase
   def manifest
     m.yaffle_definition

@@ -6,11 +6,15 @@ We'll be relying on the built-in rails generate template for this tutorial.  Goi
 
 Type:
 
-    script/generate
+------------------------------------------------------------------
+script/generate
+------------------------------------------------------------------
 
 You should see the line:
 
-    Plugins (vendor/plugins): yaffle
+------------------------------------------------------------------
+Plugins (vendor/plugins): yaffle
+------------------------------------------------------------------
 
 When you run `script/generate yaffle` you should see the contents of your USAGE file.  For this plugin, the USAGE file looks like this:
 
@@ -27,10 +31,10 @@ Example:
 
 Now you can add code to your generator:
 
+*vendor/plugins/yaffle/generators/yaffle/yaffle_generator.rb*
+
 [source, ruby]
 ------------------------------------------------------------------
-# File: vendor/plugins/yaffle/generators/yaffle/yaffle_generator.rb
-
 class YaffleGenerator < Rails::Generator::NamedBase
   def manifest
     record do |m|
@@ -67,14 +71,16 @@ This does a few things:
 
 When you run the generator like
 
-    script/generate yaffle bird
+------------------------------------------------------------------
+script/generate yaffle bird
+------------------------------------------------------------------
 
 You will see a new file:
 
+*db/migrate/20080529225649_add_yaffle_fields_to_birds.rb*
+
 [source, ruby]
 ------------------------------------------------------------------
-# File: db/migrate/20080529225649_add_yaffle_fields_to_birds.rb
-
 class AddYaffleFieldsToBirds < ActiveRecord::Migration
   def self.up
     add_column :birds, :last_squawk, :string

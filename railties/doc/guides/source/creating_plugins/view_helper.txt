@@ -8,10 +8,10 @@ Creating a view helper is a 3-step process:
 
 First, create the test to define the functionality you want:
 
+*vendor/plugins/yaffle/test/view_helpers_test.rb*
+
 [source, ruby]
 ---------------------------------------------------------------
-# File: vendor/plugins/yaffle/test/view_helpers_test.rb
-
 require File.dirname(__FILE__) + '/test_helper.rb'
 include YaffleViewHelper
 
@@ -28,20 +28,20 @@ end
 
 Then add the following statements to init.rb:
 
+*vendor/plugins/yaffle/init.rb*
+
 [source, ruby]
 ---------------------------------------------------------------
-# File: vendor/plugins/yaffle/init.rb
-
 require "view_helpers"
 ActionView::Base.send :include, YaffleViewHelper
 ---------------------------------------------------------------
 
 Then add the view helpers file and
 
+*vendor/plugins/yaffle/lib/view_helpers.rb*
+
 [source, ruby]
 ---------------------------------------------------------------
-# File: vendor/plugins/yaffle/lib/view_helpers.rb
-
 module YaffleViewHelper
   def squawk_info_for(yaffle)
     returning "" do |result|

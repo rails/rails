@@ -81,10 +81,10 @@ When you created the plugin with the built-in rails generator, it generated a ra
 
 Many plugin authors put all of their rake tasks into a common namespace that is the same as the plugin, like so:
 
+*vendor/plugins/yaffle/tasks/yaffle.rake*
+
 [source, ruby]
 ---------------------------------------------------------
-# File: vendor/plugins/yaffle/tasks/yaffle.rake
-
 namespace :yaffle do
   desc "Prints out the word 'Yaffle'"
   task :squawk => :environment do
