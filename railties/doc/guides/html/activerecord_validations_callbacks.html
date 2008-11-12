@@ -264,6 +264,9 @@ ul#navMain {
 						</ul>
 					</li>
 					<li>
+					<a href="#_writing_your_own_validation_methods">Writing your own validation methods</a>
+					</li>
+					<li>
 					<a href="#_changelog">Changelog</a>
 					</li>
 			</ol>
@@ -702,7 +705,40 @@ http://www.gnu.org/software/src-highlite -->
 <span style="font-weight: bold"><span style="color: #0000FF">end</span></span>
 </tt></pre></div></div>
 </div>
-<h2 id="_changelog">6. Changelog</h2>
+<h2 id="_writing_your_own_validation_methods">6. Writing your own validation methods</h2>
+<div class="sectionbody">
+<div class="para"><p>When the built-in validation helpers are not enough for your needs, you can write your own validation methods, by implementing one or more of the <tt>validate</tt>, <tt>validate_on_create</tt> or <tt>validate_on_update</tt> methods. As the names of the methods states, the right method to implement depends on when you want the validations to be ran. The meaning of valid is still the same: to make an object invalid you just need to add a message to it's <tt>errors</tt> collection.</p></div>
+<div class="listingblock">
+<div class="content"><!-- Generator: GNU source-highlight 2.9
+by Lorenzo Bettini
+http://www.lorenzobettini.it
+http://www.gnu.org/software/src-highlite -->
+<pre><tt><span style="font-weight: bold"><span style="color: #0000FF">class</span></span> Invoice <span style="color: #990000">&lt;</span> ActiveRecord<span style="color: #990000">::</span>Base
+  <span style="font-weight: bold"><span style="color: #0000FF">def</span></span> validate_on_create
+    errors<span style="color: #990000">.</span>add<span style="color: #990000">(:</span>expiration_date<span style="color: #990000">,</span> <span style="color: #FF0000">"can't be in the past"</span><span style="color: #990000">)</span> <span style="font-weight: bold"><span style="color: #0000FF">if</span></span> <span style="color: #990000">!</span>expiration_date<span style="color: #990000">.</span>blank? <span style="font-weight: bold"><span style="color: #0000FF">and</span></span> expiration_date <span style="color: #990000">&lt;</span> Date<span style="color: #990000">.</span>today
+  <span style="font-weight: bold"><span style="color: #0000FF">end</span></span>
+<span style="font-weight: bold"><span style="color: #0000FF">end</span></span>
+</tt></pre></div></div>
+<div class="para"><p>If your validation rules are too complicated and you want to break it in small methods, you can implement all of them and call one of <tt>validate</tt>, <tt>validate_on_create</tt> or <tt>validate_on_update</tt> methods, passing it the symbols for the methods' names.</p></div>
+<div class="listingblock">
+<div class="content"><!-- Generator: GNU source-highlight 2.9
+by Lorenzo Bettini
+http://www.lorenzobettini.it
+http://www.gnu.org/software/src-highlite -->
+<pre><tt><span style="font-weight: bold"><span style="color: #0000FF">class</span></span> Invoice <span style="color: #990000">&lt;</span> ActiveRecord<span style="color: #990000">::</span>Base
+  validate <span style="color: #990000">:</span>expiration_date_cannot_be_in_the_past<span style="color: #990000">,</span> <span style="color: #990000">:</span>discount_cannot_be_be_more_than_total_value
+
+  <span style="font-weight: bold"><span style="color: #0000FF">def</span></span> expiration_date_cannot_be_in_the_past
+    errors<span style="color: #990000">.</span>add<span style="color: #990000">(:</span>expiration_date<span style="color: #990000">,</span> <span style="color: #FF0000">"can't be in the past"</span><span style="color: #990000">)</span> <span style="font-weight: bold"><span style="color: #0000FF">if</span></span> <span style="color: #990000">!</span>expiration_date<span style="color: #990000">.</span>blank? <span style="font-weight: bold"><span style="color: #0000FF">and</span></span> expiration_date <span style="color: #990000">&lt;</span> Date<span style="color: #990000">.</span>today
+  <span style="font-weight: bold"><span style="color: #0000FF">end</span></span>
+
+  <span style="font-weight: bold"><span style="color: #0000FF">def</span></span> discount_cannot_be_greater_than_total_value
+    errors<span style="color: #990000">.</span>add<span style="color: #990000">(:</span>discount<span style="color: #990000">,</span> <span style="color: #FF0000">"can't be greater than total value"</span><span style="color: #990000">)</span> <span style="font-weight: bold"><span style="color: #0000FF">unless</span></span> discount <span style="color: #990000">&lt;=</span> total_value
+  <span style="font-weight: bold"><span style="color: #0000FF">end</span></span>
+<span style="font-weight: bold"><span style="color: #0000FF">end</span></span>
+</tt></pre></div></div>
+</div>
+<h2 id="_changelog">7. Changelog</h2>
 <div class="sectionbody">
 <div class="para"><p><a href="http://rails.lighthouseapp.com/projects/16213/tickets/26-active-record-validations-and-callbacks">http://rails.lighthouseapp.com/projects/16213/tickets/26-active-record-validations-and-callbacks</a></p></div>
 </div>
