@@ -229,6 +229,8 @@ Although the conventions of RESTful routing are likely to be sufficient for many
 * +:path_names+
 * +:path_prefix+
 * +:name_prefix+
+* +:only+
+* +:except+
 
 You can also add additional routes via the +:member+ and +:collection+ options, which are discussed later in this guide.
 
@@ -399,6 +401,30 @@ map.resources :photos, :path_prefix => '/agencies/:agency_id', :name_prefix => '
 This combination will give you route helpers such as +photographer_photos_path+ and +agency_edit_photo_path+ to use in your code.
 
 NOTE: You can also use +:name_prefix+ with non-RESTful routes.
+
+==== Using :only and :except
+
+By default, Rails creates routes for all seven of the default actions (index, show, new, create, edit, update, and destroy) for every RESTful route in your application. You can use the +:only+ and +:except+ options to fine-tune this behavior. The +:only+ option specifies that only certain routes should be generated:
+
+[source, ruby]
+-------------------------------------------------------
+map.resources :photos, :only => [:index, :show]
+-------------------------------------------------------
+
+With this declaration, a +GET+ request to +/photos+ would succeed, but a +POST+ request to +/photos+ (which would ordinarily be routed to the create action) will fail.
+
+The +:except+ option specifies a route or list of routes that should _not_ be generated:
+
+[source, ruby]
+-------------------------------------------------------
+map.resources :photos, :except => :destroy
+-------------------------------------------------------
+
+In this case, all of the normal routes except the route for +destroy+ (a +DELETE+ request to +/photos/_id_+) will be generated.
+
+In addition to an action or a list of actions, you can also supply the special symbols +:all+ or +:none+ to the +:only+ and +:accept+ options.
+
+TIP: If your application has many RESTful routes, using +:only+ and +:accept+ to generate only the routes that you actually need can cut down on memory use and speed up the routing process.
 
 === Nested Resources
 
