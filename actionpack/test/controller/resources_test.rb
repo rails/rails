@@ -822,6 +822,84 @@ class ResourcesTest < Test::Unit::TestCase
     end
   end
 
+  def test_resource_has_only_create_action_and_named_route
+    with_routing do |set|
+      set.draw do |map|
+        map.resources :products, :only => :create
+      end
+
+      assert_resource_allowed_routes('products', {},                    { :id => '1' }, :create, [:index, :new, :show, :edit, :update, :destroy])
+      assert_resource_allowed_routes('products', { :format => 'xml' },  { :id => '1' }, :create, [:index, :new, :show, :edit, :update, :destroy])
+
+      assert_not_nil set.named_routes[:products]
+    end
+  end
+
+  def test_resource_has_only_update_action_and_named_route
+    with_routing do |set|
+      set.draw do |map|
+        map.resources :products, :only => :update
+      end
+
+      assert_resource_allowed_routes('products', {},                    { :id => '1' }, :update, [:index, :new, :create, :show, :edit, :destroy])
+      assert_resource_allowed_routes('products', { :format => 'xml' },  { :id => '1' }, :update, [:index, :new, :create, :show, :edit, :destroy])
+
+      assert_not_nil set.named_routes[:product]
+    end
+  end
+
+  def test_resource_has_only_destroy_action_and_named_route
+    with_routing do |set|
+      set.draw do |map|
+        map.resources :products, :only => :destroy
+      end
+
+      assert_resource_allowed_routes('products', {},                    { :id => '1' }, :destroy, [:index, :new, :create, :show, :edit, :update])
+      assert_resource_allowed_routes('products', { :format => 'xml' },  { :id => '1' }, :destroy, [:index, :new, :create, :show, :edit, :update])
+
+      assert_not_nil set.named_routes[:product]
+    end
+  end
+
+  def test_singleton_resource_has_only_create_action_and_named_route
+    with_routing do |set|
+      set.draw do |map|
+        map.resource :account, :only => :create
+      end
+
+      assert_singleton_resource_allowed_routes('accounts', {},                    :create, [:new, :show, :edit, :update, :destroy])
+      assert_singleton_resource_allowed_routes('accounts', { :format => 'xml' },  :create, [:new, :show, :edit, :update, :destroy])
+
+      assert_not_nil set.named_routes[:account]
+    end
+  end
+
+  def test_singleton_resource_has_only_update_action_and_named_route
+    with_routing do |set|
+      set.draw do |map|
+        map.resource :account, :only => :update
+      end
+
+      assert_singleton_resource_allowed_routes('accounts', {},                    :update, [:new, :create, :show, :edit, :destroy])
+      assert_singleton_resource_allowed_routes('accounts', { :format => 'xml' },  :update, [:new, :create, :show, :edit, :destroy])
+
+      assert_not_nil set.named_routes[:account]
+    end
+  end
+
+  def test_singleton_resource_has_only_destroy_action_and_named_route
+    with_routing do |set|
+      set.draw do |map|
+        map.resource :account, :only => :destroy
+      end
+
+      assert_singleton_resource_allowed_routes('accounts', {},                    :destroy, [:new, :create, :show, :edit, :update])
+      assert_singleton_resource_allowed_routes('accounts', { :format => 'xml' },  :destroy, [:new, :create, :show, :edit, :update])
+
+      assert_not_nil set.named_routes[:account]
+    end
+  end
+
   def test_resource_has_only_collection_action
     with_routing do |set|
       set.draw do |map|

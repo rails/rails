@@ -597,11 +597,11 @@ module ActionController
         end
 
         map_resource_routes(map, resource, :index, resource.path, index_route_name)
-        map_resource_routes(map, resource, :create, resource.path)
+        map_resource_routes(map, resource, :create, resource.path, index_route_name)
       end
 
       def map_default_singleton_actions(map, resource)
-        map_resource_routes(map, resource, :create, resource.path)
+        map_resource_routes(map, resource, :create, resource.path, "#{resource.shallow_name_prefix}#{resource.singular}")
       end
 
       def map_new_actions(map, resource)
@@ -632,9 +632,10 @@ module ActionController
           end
         end
 
-        map_resource_routes(map, resource, :show, resource.member_path, "#{resource.shallow_name_prefix}#{resource.singular}")
-        map_resource_routes(map, resource, :update, resource.member_path)
-        map_resource_routes(map, resource, :destroy, resource.member_path)
+        route_path = "#{resource.shallow_name_prefix}#{resource.singular}"
+        map_resource_routes(map, resource, :show, resource.member_path, route_path)
+        map_resource_routes(map, resource, :update, resource.member_path, route_path)
+        map_resource_routes(map, resource, :destroy, resource.member_path, route_path)
       end
 
       def map_resource_routes(map, resource, action, route_path, route_name = nil, method = nil)
@@ -642,7 +643,7 @@ module ActionController
           action_options = action_options_for(action, resource, method)
           formatted_route_path = "#{route_path}.:format"
 
-          if route_name
+          if route_name && @set.named_routes[route_name.to_sym].nil?
             map.named_route(route_name, route_path, action_options)
             map.named_route("formatted_#{route_name}", formatted_route_path, action_options)
           else
