@@ -369,6 +369,36 @@ class Account < ActiveRecord::Base
 end
 ------------------------------------------------------------------
 
+== Writing your own validation methods
+
+When the built-in validation helpers are not enough for your needs, you can write your own validation methods, by implementing one or more of the +validate+, +validate_on_create+ or +validate_on_update+ methods. As the names of the methods states, the right method to implement depends on when you want the validations to be ran. The meaning of valid is still the same: to make an object invalid you just need to add a message to it's +errors+ collection.
+
+[source, ruby]
+------------------------------------------------------------------
+class Invoice < ActiveRecord::Base
+  def validate_on_create    
+    errors.add(:expiration_date, "can't be in the past") if !expiration_date.blank? and expiration_date < Date.today
+  end
+end
+------------------------------------------------------------------
+
+If your validation rules are too complicated and you want to break it in small methods, you can implement all of them and call one of +validate+, +validate_on_create+ or +validate_on_update+ methods, passing it the symbols for the methods' names.
+
+[source, ruby]
+------------------------------------------------------------------
+class Invoice < ActiveRecord::Base
+  validate :expiration_date_cannot_be_in_the_past, :discount_cannot_be_more_than_total_value
+
+  def expiration_date_cannot_be_in_the_past
+    errors.add(:expiration_date, "can't be in the past") if !expiration_date.blank? and expiration_date < Date.today
+  end  
+  
+  def discount_cannot_be_greater_than_total_value
+    errors.add(:discount, "can't be greater than total value") unless discount <= total_value
+  end
+end
+------------------------------------------------------------------
+
 == Changelog
 
 http://rails.lighthouseapp.com/projects/16213/tickets/26-active-record-validations-and-callbacks
