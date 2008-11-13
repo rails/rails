@@ -155,12 +155,6 @@ ActiveRecord::Base.establish_connection(config[db_adapter])
 load(File.dirname(__FILE__) + "/schema.rb")
 
 require File.dirname(__FILE__) + '/../init.rb'
-
-class Hickwall < ActiveRecord::Base
-end
-
-class Wickwall < ActiveRecord::Base
-end
 ----------------------------------------------
 
 === Run the plugin tests ===
@@ -175,9 +169,15 @@ require File.dirname(__FILE__) + '/test_helper.rb'
 
 class YaffleTest < Test::Unit::TestCase
   
-  def test_active_record_classes_from_test_helper
-    assert_kind_of Hickwall, Hickwall.new
-    assert_kind_of Wickwall, Wickwall.new
+  class Hickwall < ActiveRecord::Base
+  end
+
+  class Wickwall < ActiveRecord::Base
+  end
+  
+  def test_schema_has_loaded_correctly
+    assert_equal [], Hickwall.all
+    assert_equal [], Wickwall.all
   end
   
 end

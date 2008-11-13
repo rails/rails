@@ -216,16 +216,23 @@ ul#navMain {
 					<a href="#_extending_core_classes">Extending core classes</a>
 						<ul>
 						
-							<li><a href="#_working_with_init_rb">Working with init.rb</a></li>
-						
 							<li><a href="#_creating_the_test">Creating the test</a></li>
 						
 							<li><a href="#_organize_your_files">Organize your files</a></li>
 						
+							<li><a href="#_working_with_init_rb">Working with init.rb</a></li>
+						
 						</ul>
 					</li>
 					<li>
-					<a href="#_add_an_tt_acts_as_yaffle_tt_method_to_activerecord">Add an <tt>acts_as_yaffle</tt> method to ActiveRecord</a>
+					<a href="#_add_an_tt_acts_as_yaffle_tt_method_to_active_record">Add an <tt>acts_as_yaffle</tt> method to Active Record</a>
+						<ul>
+						
+							<li><a href="#_add_a_class_method">Add a class method</a></li>
+						
+							<li><a href="#_add_an_instance_method">Add an instance method</a></li>
+						
+						</ul>
 					</li>
 					<li>
 					<a href="#_create_a_tt_squawk_info_for_tt_view_helper">Create a <tt>squawk_info_for</tt> view helper</a>
@@ -529,12 +536,6 @@ ActiveRecord<span style="color: #990000">::</span>Base<span style="color: #99000
 <span style="font-weight: bold"><span style="color: #0000FF">load</span></span><span style="color: #990000">(</span>File<span style="color: #990000">.</span>dirname<span style="color: #990000">(</span><span style="font-weight: bold"><span style="color: #0000FF">__FILE__</span></span><span style="color: #990000">)</span> <span style="color: #990000">+</span> <span style="color: #FF0000">"/schema.rb"</span><span style="color: #990000">)</span>
 
 <span style="font-weight: bold"><span style="color: #000080">require</span></span> File<span style="color: #990000">.</span>dirname<span style="color: #990000">(</span><span style="font-weight: bold"><span style="color: #0000FF">__FILE__</span></span><span style="color: #990000">)</span> <span style="color: #990000">+</span> <span style="color: #FF0000">'/../init.rb'</span>
-
-<span style="font-weight: bold"><span style="color: #0000FF">class</span></span> Hickwall <span style="color: #990000">&lt;</span> ActiveRecord<span style="color: #990000">::</span>Base
-<span style="font-weight: bold"><span style="color: #0000FF">end</span></span>
-
-<span style="font-weight: bold"><span style="color: #0000FF">class</span></span> Wickwall <span style="color: #990000">&lt;</span> ActiveRecord<span style="color: #990000">::</span>Base
-<span style="font-weight: bold"><span style="color: #0000FF">end</span></span>
 </tt></pre></div></div>
 <h3 id="_run_the_plugin_tests">1.4. Run the plugin tests</h3>
 <div class="para"><p>Once you have these files in place, you can write your first test to ensure that your plugin-testing setup is correct.  By default rails generates a file in <em>vendor/plugins/yaffle/test/yaffle_test.rb</em> with a sample test.  Replace the contents of that file with:</p></div>
@@ -548,9 +549,15 @@ http://www.gnu.org/software/src-highlite -->
 
 <span style="font-weight: bold"><span style="color: #0000FF">class</span></span> YaffleTest <span style="color: #990000">&lt;</span> Test<span style="color: #990000">::</span>Unit<span style="color: #990000">::</span>TestCase
 
-  <span style="font-weight: bold"><span style="color: #0000FF">def</span></span> test_active_record_classes_from_test_helper
-    assert_kind_of Hickwall<span style="color: #990000">,</span> Hickwall<span style="color: #990000">.</span>new
-    assert_kind_of Wickwall<span style="color: #990000">,</span> Wickwall<span style="color: #990000">.</span>new
+  <span style="font-weight: bold"><span style="color: #0000FF">class</span></span> Hickwall <span style="color: #990000">&lt;</span> ActiveRecord<span style="color: #990000">::</span>Base
+  <span style="font-weight: bold"><span style="color: #0000FF">end</span></span>
+
+  <span style="font-weight: bold"><span style="color: #0000FF">class</span></span> Wickwall <span style="color: #990000">&lt;</span> ActiveRecord<span style="color: #990000">::</span>Base
+  <span style="font-weight: bold"><span style="color: #0000FF">end</span></span>
+
+  <span style="font-weight: bold"><span style="color: #0000FF">def</span></span> test_schema_has_loaded_correctly
+    assert_equal <span style="color: #990000">[],</span> Hickwall<span style="color: #990000">.</span>all
+    assert_equal <span style="color: #990000">[],</span> Wickwall<span style="color: #990000">.</span>all
   <span style="font-weight: bold"><span style="color: #0000FF">end</span></span>
 
 <span style="font-weight: bold"><span style="color: #0000FF">end</span></span>
@@ -605,36 +612,7 @@ Creating and requiring the correct files
 </p>
 </li>
 </ul></div>
-<h3 id="_working_with_init_rb">2.1. Working with init.rb</h3>
-<div class="para"><p>When rails loads plugins it looks for the file named init.rb.  However, the plugin initializer script <em>init.rb</em> is invoked via <tt>eval</tt> (not <tt>require</tt>) so it has slightly different behavior.</p></div>
-<div class="para"><p>Under certain circumstances if you reopen classes or modules in <em>init.rb</em> itself, you may inadvertently create a new class, rather than reopening an existing class.  A better alternative is to reopen the class in a different file, and require that file from <tt>init.rb</tt>.</p></div>
-<div class="para"><p>If you must reopen a class in <tt>init.rb</tt> you can use <tt>module_eval</tt> or <tt>class_eval</tt>:</p></div>
-<div class="para"><p><strong>vendor/plugins/yaffle/init.rb</strong></p></div>
-<div class="listingblock">
-<div class="content"><!-- Generator: GNU source-highlight 2.9
-by Lorenzo Bettini
-http://www.lorenzobettini.it
-http://www.gnu.org/software/src-highlite -->
-<pre><tt>Hash<span style="color: #990000">.</span>class_eval <span style="font-weight: bold"><span style="color: #0000FF">do</span></span>
-  <span style="font-weight: bold"><span style="color: #0000FF">def</span></span> is_a_special_hash?
-    <span style="font-weight: bold"><span style="color: #0000FF">true</span></span>
-  <span style="font-weight: bold"><span style="color: #0000FF">end</span></span>
-<span style="font-weight: bold"><span style="color: #0000FF">end</span></span>
-</tt></pre></div></div>
-<div class="para"><p>Another way is to explicitly define the top-level module space for all modules and classes, like <tt>::Hash</tt>:</p></div>
-<div class="para"><p><strong>vendor/plugins/yaffle/init.rb</strong></p></div>
-<div class="listingblock">
-<div class="content"><!-- Generator: GNU source-highlight 2.9
-by Lorenzo Bettini
-http://www.lorenzobettini.it
-http://www.gnu.org/software/src-highlite -->
-<pre><tt><span style="font-weight: bold"><span style="color: #0000FF">class</span></span> <span style="color: #990000">::</span>Hash
-  <span style="font-weight: bold"><span style="color: #0000FF">def</span></span> is_a_special_hash?
-    <span style="font-weight: bold"><span style="color: #0000FF">true</span></span>
-  <span style="font-weight: bold"><span style="color: #0000FF">end</span></span>
-<span style="font-weight: bold"><span style="color: #0000FF">end</span></span>
-</tt></pre></div></div>
-<h3 id="_creating_the_test">2.2. Creating the test</h3>
+<h3 id="_creating_the_test">2.1. Creating the test</h3>
 <div class="para"><p>In this example you will add a method to String named <tt>to_squawk</tt>.  To begin, create a new test file with a few assertions:</p></div>
 <div class="para"><p><strong>vendor/plugins/yaffle/test/core_ext_test.rb</strong></p></div>
 <div class="listingblock">
@@ -665,8 +643,8 @@ NoMethodError: undefined method `to_squawk' for "Hello World":String
     ./test/core_ext_test.rb:5:in `test_to_squawk_prepends_the_word_squawk'</tt></pre>
 </div></div>
 <div class="para"><p>Great - now you are ready to start development.</p></div>
-<h3 id="_organize_your_files">2.3. Organize your files</h3>
-<div class="para"><p>A common pattern in rails plugins is to set up the file structure something like this:</p></div>
+<h3 id="_organize_your_files">2.2. Organize your files</h3>
+<div class="para"><p>A common pattern in rails plugins is to set up the file structure like this:</p></div>
 <div class="listingblock">
 <div class="content">
 <pre><tt>|-- init.rb
@@ -713,11 +691,40 @@ http://www.gnu.org/software/src-highlite -->
 &gt;&gt; "Hello World".to_squawk
 =&gt; "squawk! Hello World"</tt></pre>
 </div></div>
+<h3 id="_working_with_init_rb">2.3. Working with init.rb</h3>
+<div class="para"><p>When rails loads plugins it looks for the file named init.rb.  However, when the plugin is initialized, <em>init.rb</em> is invoked via <tt>eval</tt> (not <tt>require</tt>) so it has slightly different behavior.</p></div>
+<div class="para"><p>Under certain circumstances if you reopen classes or modules in <em>init.rb</em> you may inadvertently create a new class, rather than reopening an existing class.  A better alternative is to reopen the class in a different file, and require that file from <tt>init.rb</tt>, as shown above.</p></div>
+<div class="para"><p>If you must reopen a class in <tt>init.rb</tt> you can use <tt>module_eval</tt> or <tt>class_eval</tt> to avoid any issues:</p></div>
+<div class="para"><p><strong>vendor/plugins/yaffle/init.rb</strong></p></div>
+<div class="listingblock">
+<div class="content"><!-- Generator: GNU source-highlight 2.9
+by Lorenzo Bettini
+http://www.lorenzobettini.it
+http://www.gnu.org/software/src-highlite -->
+<pre><tt>Hash<span style="color: #990000">.</span>class_eval <span style="font-weight: bold"><span style="color: #0000FF">do</span></span>
+  <span style="font-weight: bold"><span style="color: #0000FF">def</span></span> is_a_special_hash?
+    <span style="font-weight: bold"><span style="color: #0000FF">true</span></span>
+  <span style="font-weight: bold"><span style="color: #0000FF">end</span></span>
+<span style="font-weight: bold"><span style="color: #0000FF">end</span></span>
+</tt></pre></div></div>
+<div class="para"><p>Another way is to explicitly define the top-level module space for all modules and classes, like <tt>::Hash</tt>:</p></div>
+<div class="para"><p><strong>vendor/plugins/yaffle/init.rb</strong></p></div>
+<div class="listingblock">
+<div class="content"><!-- Generator: GNU source-highlight 2.9
+by Lorenzo Bettini
+http://www.lorenzobettini.it
+http://www.gnu.org/software/src-highlite -->
+<pre><tt><span style="font-weight: bold"><span style="color: #0000FF">class</span></span> <span style="color: #990000">::</span>Hash
+  <span style="font-weight: bold"><span style="color: #0000FF">def</span></span> is_a_special_hash?
+    <span style="font-weight: bold"><span style="color: #0000FF">true</span></span>
+  <span style="font-weight: bold"><span style="color: #0000FF">end</span></span>
+<span style="font-weight: bold"><span style="color: #0000FF">end</span></span>
+</tt></pre></div></div>
 </div>
-<h2 id="_add_an_tt_acts_as_yaffle_tt_method_to_activerecord">3. Add an <tt>acts_as_yaffle</tt> method to ActiveRecord</h2>
+<h2 id="_add_an_tt_acts_as_yaffle_tt_method_to_active_record">3. Add an <tt>acts_as_yaffle</tt> method to Active Record</h2>
 <div class="sectionbody">
-<div class="para"><p>A common pattern in plugins is to add a method called <tt>acts_as_something</tt> to models.  In this case, you want to write a method called <tt>acts_as_yaffle</tt> that adds a <tt>squawk</tt> method to your models.</p></div>
-<div class="para"><p>To keep things clean, create a new test file called <em>acts_as_yaffle_test.rb</em> in your plugin's test directory and require your test helper.</p></div>
+<div class="para"><p>A common pattern in plugins is to add a method called <em>acts_as_something</em> to models.  In this case, you want to write a method called <em>acts_as_yaffle</em> that adds a <em>squawk</em> method to your models.</p></div>
+<div class="para"><p>To begin, set up your files so that you have:</p></div>
 <div class="para"><p><strong>vendor/plugins/yaffle/test/acts_as_yaffle_test.rb</strong></p></div>
 <div class="listingblock">
 <div class="content"><!-- Generator: GNU source-highlight 2.9
@@ -726,24 +733,30 @@ http://www.lorenzobettini.it
 http://www.gnu.org/software/src-highlite -->
 <pre><tt><span style="font-weight: bold"><span style="color: #000080">require</span></span> File<span style="color: #990000">.</span>dirname<span style="color: #990000">(</span><span style="font-weight: bold"><span style="color: #0000FF">__FILE__</span></span><span style="color: #990000">)</span> <span style="color: #990000">+</span> <span style="color: #FF0000">'/test_helper.rb'</span>
 
-<span style="font-weight: bold"><span style="color: #0000FF">class</span></span> Hickwall <span style="color: #990000">&lt;</span> ActiveRecord<span style="color: #990000">::</span>Base
-  acts_as_yaffle
-<span style="font-weight: bold"><span style="color: #0000FF">end</span></span>
-
 <span style="font-weight: bold"><span style="color: #0000FF">class</span></span> ActsAsYaffleTest <span style="color: #990000">&lt;</span> Test<span style="color: #990000">::</span>Unit<span style="color: #990000">::</span>TestCase
 <span style="font-weight: bold"><span style="color: #0000FF">end</span></span>
 </tt></pre></div></div>
-<div class="para"><p><strong>vendor/plugins/lib/acts_as_yaffle.rb</strong></p></div>
+<div class="para"><p><strong>vendor/plugins/yaffle/lib/yaffle.rb</strong></p></div>
+<div class="listingblock">
+<div class="content"><!-- Generator: GNU source-highlight 2.9
+by Lorenzo Bettini
+http://www.lorenzobettini.it
+http://www.gnu.org/software/src-highlite -->
+<pre><tt><span style="font-weight: bold"><span style="color: #000080">require</span></span> <span style="color: #FF0000">'yaffle/acts_as_yaffle'</span>
+</tt></pre></div></div>
+<div class="para"><p><strong>vendor/plugins/yaffle/lib/yaffle/acts_as_yaffle.rb</strong></p></div>
 <div class="listingblock">
 <div class="content"><!-- Generator: GNU source-highlight 2.9
 by Lorenzo Bettini
 http://www.lorenzobettini.it
 http://www.gnu.org/software/src-highlite -->
 <pre><tt><span style="font-weight: bold"><span style="color: #0000FF">module</span></span> Yaffle
+  <span style="font-style: italic"><span style="color: #9A1900"># your code will go here</span></span>
 <span style="font-weight: bold"><span style="color: #0000FF">end</span></span>
 </tt></pre></div></div>
-<div class="para"><p>One of the most common plugin patterns for <tt>acts_as_yaffle</tt> plugins is to structure your file like so:</p></div>
-<div class="para"><p><strong>vendor/plugins/lib/acts_as_yaffle.rb</strong></p></div>
+<div class="para"><p>Note that after requiring <em>acts_as_yaffle</em> you also have to include it into ActiveRecord::Base so that your plugin methods will be available to the rails models.</p></div>
+<div class="para"><p>One of the most common plugin patterns for <em>acts_as_yaffle</em> plugins is to structure your file like so:</p></div>
+<div class="para"><p><strong>vendor/plugins/yaffle/lib/yaffle/acts_as_yaffle.rb</strong></p></div>
 <div class="listingblock">
 <div class="content"><!-- Generator: GNU source-highlight 2.9
 by Lorenzo Bettini
@@ -767,20 +780,9 @@ http://www.gnu.org/software/src-highlite -->
 <span style="font-weight: bold"><span style="color: #0000FF">end</span></span>
 </tt></pre></div></div>
 <div class="para"><p>With structure you can easily separate the methods that will be used for the class (like <tt>Hickwall.some_method</tt>) and the instance (like <tt>@hickwell.some_method</tt>).</p></div>
-<div class="para"><p>Let's add class method named <tt>acts_as_yaffle</tt> - testing it out first.  You already defined the ActiveRecord models in your test helper, so if you run tests now they will fail.</p></div>
-<div class="para"><p>Back in your <tt>acts_as_yaffle</tt> file, update ClassMethods like so:</p></div>
-<div class="listingblock">
-<div class="content"><!-- Generator: GNU source-highlight 2.9
-by Lorenzo Bettini
-http://www.lorenzobettini.it
-http://www.gnu.org/software/src-highlite -->
-<pre><tt><span style="font-weight: bold"><span style="color: #0000FF">module</span></span> ClassMethods
-  <span style="font-weight: bold"><span style="color: #0000FF">def</span></span> acts_as_yaffle<span style="color: #990000">(</span>options <span style="color: #990000">=</span> <span style="color: #FF0000">{}</span><span style="color: #990000">)</span>
-    send <span style="color: #990000">:</span><span style="font-weight: bold"><span style="color: #0000FF">include</span></span><span style="color: #990000">,</span> InstanceMethods
-  <span style="font-weight: bold"><span style="color: #0000FF">end</span></span>
-<span style="font-weight: bold"><span style="color: #0000FF">end</span></span>
-</tt></pre></div></div>
-<div class="para"><p>Now that test should pass.  Since your plugin is going to work with field names, you need to allow people to define the field names, in case there is a naming conflict.  You can write a few simple tests for this:</p></div>
+<h3 id="_add_a_class_method">3.1. Add a class method</h3>
+<div class="para"><p>This plugin will expect that you've added a method to your model named <em>last_squawk</em>.  However, the plugin users might have already defined a method on their model named <em>last_squawk</em> that they use for something else.  This plugin will allow the name to be changed by adding a class method called <em>yaffle_text_field</em>.</p></div>
+<div class="para"><p>To start out, write a failing test that shows the behavior you'd like:</p></div>
 <div class="para"><p><strong>vendor/plugins/yaffle/test/acts_as_yaffle_test.rb</strong></p></div>
 <div class="listingblock">
 <div class="content"><!-- Generator: GNU source-highlight 2.9
@@ -789,26 +791,26 @@ http://www.lorenzobettini.it
 http://www.gnu.org/software/src-highlite -->
 <pre><tt><span style="font-weight: bold"><span style="color: #000080">require</span></span> File<span style="color: #990000">.</span>dirname<span style="color: #990000">(</span><span style="font-weight: bold"><span style="color: #0000FF">__FILE__</span></span><span style="color: #990000">)</span> <span style="color: #990000">+</span> <span style="color: #FF0000">'/test_helper.rb'</span>
 
+<span style="font-weight: bold"><span style="color: #0000FF">class</span></span> Hickwall <span style="color: #990000">&lt;</span> ActiveRecord<span style="color: #990000">::</span>Base
+  acts_as_yaffle
+<span style="font-weight: bold"><span style="color: #0000FF">end</span></span>
+
+<span style="font-weight: bold"><span style="color: #0000FF">class</span></span> Wickwall <span style="color: #990000">&lt;</span> ActiveRecord<span style="color: #990000">::</span>Base
+  acts_as_yaffle <span style="color: #990000">:</span>yaffle_text_field <span style="color: #990000">=&gt;</span> <span style="color: #990000">:</span>last_tweet
+<span style="font-weight: bold"><span style="color: #0000FF">end</span></span>
+
 <span style="font-weight: bold"><span style="color: #0000FF">class</span></span> ActsAsYaffleTest <span style="color: #990000">&lt;</span> Test<span style="color: #990000">::</span>Unit<span style="color: #990000">::</span>TestCase
   <span style="font-weight: bold"><span style="color: #0000FF">def</span></span> test_a_hickwalls_yaffle_text_field_should_be_last_squawk
     assert_equal <span style="color: #FF0000">"last_squawk"</span><span style="color: #990000">,</span> Hickwall<span style="color: #990000">.</span>yaffle_text_field
   <span style="font-weight: bold"><span style="color: #0000FF">end</span></span>
 
-  <span style="font-weight: bold"><span style="color: #0000FF">def</span></span> test_a_hickwalls_yaffle_date_field_should_be_last_squawked_at
-    assert_equal <span style="color: #FF0000">"last_squawked_at"</span><span style="color: #990000">,</span> Hickwall<span style="color: #990000">.</span>yaffle_date_field
-  <span style="font-weight: bold"><span style="color: #0000FF">end</span></span>
-
   <span style="font-weight: bold"><span style="color: #0000FF">def</span></span> test_a_wickwalls_yaffle_text_field_should_be_last_tweet
     assert_equal <span style="color: #FF0000">"last_tweet"</span><span style="color: #990000">,</span> Wickwall<span style="color: #990000">.</span>yaffle_text_field
-  <span style="font-weight: bold"><span style="color: #0000FF">end</span></span>
-
-  <span style="font-weight: bold"><span style="color: #0000FF">def</span></span> test_a_wickwalls_yaffle_date_field_should_be_last_tweeted_at
-    assert_equal <span style="color: #FF0000">"last_tweeted_at"</span><span style="color: #990000">,</span> Wickwall<span style="color: #990000">.</span>yaffle_date_field
   <span style="font-weight: bold"><span style="color: #0000FF">end</span></span>
 <span style="font-weight: bold"><span style="color: #0000FF">end</span></span>
 </tt></pre></div></div>
 <div class="para"><p>To make these tests pass, you could modify your <tt>acts_as_yaffle</tt> file like so:</p></div>
-<div class="para"><p><strong>vendor/plugins/yaffle/lib/acts_as_yaffle.rb</strong></p></div>
+<div class="para"><p><strong>vendor/plugins/yaffle/lib/yaffle/acts_as_yaffle.rb</strong></p></div>
 <div class="listingblock">
 <div class="content"><!-- Generator: GNU source-highlight 2.9
 by Lorenzo Bettini
@@ -821,18 +823,17 @@ http://www.gnu.org/software/src-highlite -->
 
   <span style="font-weight: bold"><span style="color: #0000FF">module</span></span> ClassMethods
     <span style="font-weight: bold"><span style="color: #0000FF">def</span></span> acts_as_yaffle<span style="color: #990000">(</span>options <span style="color: #990000">=</span> <span style="color: #FF0000">{}</span><span style="color: #990000">)</span>
-      cattr_accessor <span style="color: #990000">:</span>yaffle_text_field<span style="color: #990000">,</span> <span style="color: #990000">:</span>yaffle_date_field
+      cattr_accessor <span style="color: #990000">:</span>yaffle_text_field
       <span style="font-weight: bold"><span style="color: #0000FF">self</span></span><span style="color: #990000">.</span>yaffle_text_field <span style="color: #990000">=</span> <span style="color: #990000">(</span>options<span style="color: #990000">[:</span>yaffle_text_field<span style="color: #990000">]</span> <span style="color: #990000">||</span> <span style="color: #990000">:</span>last_squawk<span style="color: #990000">).</span>to_s
-      <span style="font-weight: bold"><span style="color: #0000FF">self</span></span><span style="color: #990000">.</span>yaffle_date_field <span style="color: #990000">=</span> <span style="color: #990000">(</span>options<span style="color: #990000">[:</span>yaffle_date_field<span style="color: #990000">]</span> <span style="color: #990000">||</span> <span style="color: #990000">:</span>last_squawked_at<span style="color: #990000">).</span>to_s
-      send <span style="color: #990000">:</span><span style="font-weight: bold"><span style="color: #0000FF">include</span></span><span style="color: #990000">,</span> InstanceMethods
     <span style="font-weight: bold"><span style="color: #0000FF">end</span></span>
   <span style="font-weight: bold"><span style="color: #0000FF">end</span></span>
-
-  <span style="font-weight: bold"><span style="color: #0000FF">module</span></span> InstanceMethods
-  <span style="font-weight: bold"><span style="color: #0000FF">end</span></span>
 <span style="font-weight: bold"><span style="color: #0000FF">end</span></span>
+
+ActiveRecord<span style="color: #990000">::</span>Base<span style="color: #990000">.</span>send <span style="color: #990000">:</span><span style="font-weight: bold"><span style="color: #0000FF">include</span></span><span style="color: #990000">,</span> Yaffle
 </tt></pre></div></div>
-<div class="para"><p>Now you can add tests for the instance methods, and the instance method itself:</p></div>
+<h3 id="_add_an_instance_method">3.2. Add an instance method</h3>
+<div class="para"><p>This plugin will add a method named <em>squawk</em> to any Active Record objects that call <em>acts_as_yaffle</em>.  The <em>squawk</em> method will simply set the value of one of the fields in the database.</p></div>
+<div class="para"><p>To start out, write a failing test that shows the behavior you'd like:</p></div>
 <div class="para"><p><strong>vendor/plugins/yaffle/test/acts_as_yaffle_test.rb</strong></p></div>
 <div class="listingblock">
 <div class="content"><!-- Generator: GNU source-highlight 2.9
@@ -841,20 +842,21 @@ http://www.lorenzobettini.it
 http://www.gnu.org/software/src-highlite -->
 <pre><tt><span style="font-weight: bold"><span style="color: #000080">require</span></span> File<span style="color: #990000">.</span>dirname<span style="color: #990000">(</span><span style="font-weight: bold"><span style="color: #0000FF">__FILE__</span></span><span style="color: #990000">)</span> <span style="color: #990000">+</span> <span style="color: #FF0000">'/test_helper.rb'</span>
 
-<span style="font-weight: bold"><span style="color: #0000FF">class</span></span> ActsAsYaffleTest <span style="color: #990000">&lt;</span> Test<span style="color: #990000">::</span>Unit<span style="color: #990000">::</span>TestCase
+<span style="font-weight: bold"><span style="color: #0000FF">class</span></span> Hickwall <span style="color: #990000">&lt;</span> ActiveRecord<span style="color: #990000">::</span>Base
+  acts_as_yaffle
+<span style="font-weight: bold"><span style="color: #0000FF">end</span></span>
 
+<span style="font-weight: bold"><span style="color: #0000FF">class</span></span> Wickwall <span style="color: #990000">&lt;</span> ActiveRecord<span style="color: #990000">::</span>Base
+  acts_as_yaffle <span style="color: #990000">:</span>yaffle_text_field <span style="color: #990000">=&gt;</span> <span style="color: #990000">:</span>last_tweet
+<span style="font-weight: bold"><span style="color: #0000FF">end</span></span>
+
+<span style="font-weight: bold"><span style="color: #0000FF">class</span></span> ActsAsYaffleTest <span style="color: #990000">&lt;</span> Test<span style="color: #990000">::</span>Unit<span style="color: #990000">::</span>TestCase
   <span style="font-weight: bold"><span style="color: #0000FF">def</span></span> test_a_hickwalls_yaffle_text_field_should_be_last_squawk
     assert_equal <span style="color: #FF0000">"last_squawk"</span><span style="color: #990000">,</span> Hickwall<span style="color: #990000">.</span>yaffle_text_field
   <span style="font-weight: bold"><span style="color: #0000FF">end</span></span>
-  <span style="font-weight: bold"><span style="color: #0000FF">def</span></span> test_a_hickwalls_yaffle_date_field_should_be_last_squawked_at
-    assert_equal <span style="color: #FF0000">"last_squawked_at"</span><span style="color: #990000">,</span> Hickwall<span style="color: #990000">.</span>yaffle_date_field
-  <span style="font-weight: bold"><span style="color: #0000FF">end</span></span>
 
-  <span style="font-weight: bold"><span style="color: #0000FF">def</span></span> test_a_wickwalls_yaffle_text_field_should_be_last_squawk
+  <span style="font-weight: bold"><span style="color: #0000FF">def</span></span> test_a_wickwalls_yaffle_text_field_should_be_last_tweet
     assert_equal <span style="color: #FF0000">"last_tweet"</span><span style="color: #990000">,</span> Wickwall<span style="color: #990000">.</span>yaffle_text_field
-  <span style="font-weight: bold"><span style="color: #0000FF">end</span></span>
-  <span style="font-weight: bold"><span style="color: #0000FF">def</span></span> test_a_wickwalls_yaffle_date_field_should_be_last_squawked_at
-    assert_equal <span style="color: #FF0000">"last_tweeted_at"</span><span style="color: #990000">,</span> Wickwall<span style="color: #990000">.</span>yaffle_date_field
   <span style="font-weight: bold"><span style="color: #0000FF">end</span></span>
 
   <span style="font-weight: bold"><span style="color: #0000FF">def</span></span> test_hickwalls_squawk_should_populate_last_squawk
@@ -862,25 +864,16 @@ http://www.gnu.org/software/src-highlite -->
     hickwall<span style="color: #990000">.</span>squawk<span style="color: #990000">(</span><span style="color: #FF0000">"Hello World"</span><span style="color: #990000">)</span>
     assert_equal <span style="color: #FF0000">"squawk! Hello World"</span><span style="color: #990000">,</span> hickwall<span style="color: #990000">.</span>last_squawk
   <span style="font-weight: bold"><span style="color: #0000FF">end</span></span>
-  <span style="font-weight: bold"><span style="color: #0000FF">def</span></span> test_hickwalls_squawk_should_populate_last_squawked_at
-    hickwall <span style="color: #990000">=</span> Hickwall<span style="color: #990000">.</span>new
-    hickwall<span style="color: #990000">.</span>squawk<span style="color: #990000">(</span><span style="color: #FF0000">"Hello World"</span><span style="color: #990000">)</span>
-    assert_equal Date<span style="color: #990000">.</span>today<span style="color: #990000">,</span> hickwall<span style="color: #990000">.</span>last_squawked_at
-  <span style="font-weight: bold"><span style="color: #0000FF">end</span></span>
 
-  <span style="font-weight: bold"><span style="color: #0000FF">def</span></span> test_wickwalls_squawk_should_populate_last_tweet
+  <span style="font-weight: bold"><span style="color: #0000FF">def</span></span> test_wickwalls_squawk_should_populate_last_tweeted_at
     wickwall <span style="color: #990000">=</span> Wickwall<span style="color: #990000">.</span>new
     wickwall<span style="color: #990000">.</span>squawk<span style="color: #990000">(</span><span style="color: #FF0000">"Hello World"</span><span style="color: #990000">)</span>
     assert_equal <span style="color: #FF0000">"squawk! Hello World"</span><span style="color: #990000">,</span> wickwall<span style="color: #990000">.</span>last_tweet
   <span style="font-weight: bold"><span style="color: #0000FF">end</span></span>
-  <span style="font-weight: bold"><span style="color: #0000FF">def</span></span> test_wickwalls_squawk_should_populate_last_tweeted_at
-    wickwall <span style="color: #990000">=</span> Wickwall<span style="color: #990000">.</span>new
-    wickwall<span style="color: #990000">.</span>squawk<span style="color: #990000">(</span><span style="color: #FF0000">"Hello World"</span><span style="color: #990000">)</span>
-    assert_equal Date<span style="color: #990000">.</span>today<span style="color: #990000">,</span> wickwall<span style="color: #990000">.</span>last_tweeted_at
-  <span style="font-weight: bold"><span style="color: #0000FF">end</span></span>
 <span style="font-weight: bold"><span style="color: #0000FF">end</span></span>
 </tt></pre></div></div>
-<div class="para"><p><strong>vendor/plugins/yaffle/lib/acts_as_yaffle.rb</strong></p></div>
+<div class="para"><p>Run this test to make sure the last two tests fail, then update <em>acts_as_yaffle.rb</em> to look like this:</p></div>
+<div class="para"><p><strong>vendor/plugins/yaffle/lib/yaffle/acts_as_yaffle.rb</strong></p></div>
 <div class="listingblock">
 <div class="content"><!-- Generator: GNU source-highlight 2.9
 by Lorenzo Bettini
@@ -893,9 +886,8 @@ http://www.gnu.org/software/src-highlite -->
 
   <span style="font-weight: bold"><span style="color: #0000FF">module</span></span> ClassMethods
     <span style="font-weight: bold"><span style="color: #0000FF">def</span></span> acts_as_yaffle<span style="color: #990000">(</span>options <span style="color: #990000">=</span> <span style="color: #FF0000">{}</span><span style="color: #990000">)</span>
-      cattr_accessor <span style="color: #990000">:</span>yaffle_text_field<span style="color: #990000">,</span> <span style="color: #990000">:</span>yaffle_date_field
+      cattr_accessor <span style="color: #990000">:</span>yaffle_text_field
       <span style="font-weight: bold"><span style="color: #0000FF">self</span></span><span style="color: #990000">.</span>yaffle_text_field <span style="color: #990000">=</span> <span style="color: #990000">(</span>options<span style="color: #990000">[:</span>yaffle_text_field<span style="color: #990000">]</span> <span style="color: #990000">||</span> <span style="color: #990000">:</span>last_squawk<span style="color: #990000">).</span>to_s
-      <span style="font-weight: bold"><span style="color: #0000FF">self</span></span><span style="color: #990000">.</span>yaffle_date_field <span style="color: #990000">=</span> <span style="color: #990000">(</span>options<span style="color: #990000">[:</span>yaffle_date_field<span style="color: #990000">]</span> <span style="color: #990000">||</span> <span style="color: #990000">:</span>last_squawked_at<span style="color: #990000">).</span>to_s
       send <span style="color: #990000">:</span><span style="font-weight: bold"><span style="color: #0000FF">include</span></span><span style="color: #990000">,</span> InstanceMethods
     <span style="font-weight: bold"><span style="color: #0000FF">end</span></span>
   <span style="font-weight: bold"><span style="color: #0000FF">end</span></span>
@@ -903,10 +895,11 @@ http://www.gnu.org/software/src-highlite -->
   <span style="font-weight: bold"><span style="color: #0000FF">module</span></span> InstanceMethods
     <span style="font-weight: bold"><span style="color: #0000FF">def</span></span> squawk<span style="color: #990000">(</span>string<span style="color: #990000">)</span>
       write_attribute<span style="color: #990000">(</span><span style="font-weight: bold"><span style="color: #0000FF">self</span></span><span style="color: #990000">.</span><span style="font-weight: bold"><span style="color: #0000FF">class</span></span><span style="color: #990000">.</span>yaffle_text_field<span style="color: #990000">,</span> string<span style="color: #990000">.</span>to_squawk<span style="color: #990000">)</span>
-      write_attribute<span style="color: #990000">(</span><span style="font-weight: bold"><span style="color: #0000FF">self</span></span><span style="color: #990000">.</span><span style="font-weight: bold"><span style="color: #0000FF">class</span></span><span style="color: #990000">.</span>yaffle_date_field<span style="color: #990000">,</span> Date<span style="color: #990000">.</span>today<span style="color: #990000">)</span>
     <span style="font-weight: bold"><span style="color: #0000FF">end</span></span>
   <span style="font-weight: bold"><span style="color: #0000FF">end</span></span>
 <span style="font-weight: bold"><span style="color: #0000FF">end</span></span>
+
+ActiveRecord<span style="color: #990000">::</span>Base<span style="color: #990000">.</span>send <span style="color: #990000">:</span><span style="font-weight: bold"><span style="color: #0000FF">include</span></span><span style="color: #990000">,</span> Yaffle
 </tt></pre></div></div>
 <div class="admonitionblock">
 <table><tr>
