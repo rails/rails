@@ -77,8 +77,8 @@ class MimeTypeTest < Test::Unit::TestCase
     all_types.uniq!
     # Remove custom Mime::Type instances set in other tests, like Mime::GIF and Mime::IPHONE
     all_types.delete_if { |type| !Mime.const_defined?(type.to_s.upcase) }
-    verified, unverified = all_types.partition { |type| Mime::Type.html_types.include? type }
-    assert verified.each   { |type| assert  Mime.const_get(type.to_s.upcase).verify_request?, "Mime Type is not verified: #{type.inspect}" }
-    assert unverified.each { |type| assert !Mime.const_get(type.to_s.upcase).verify_request?, "Mime Type is verified: #{type.inspect}" }
+    verified, unverified = all_types.partition { |type| Mime::Type.browser_generated_types.include? type }
+    assert verified.each   { |type| assert  Mime.const_get(type.to_s.upcase).verify_request?, "Verifiable Mime Type is not verified: #{type.inspect}" }
+    assert unverified.each { |type| assert !Mime.const_get(type.to_s.upcase).verify_request?, "Nonverifiable Mime Type is verified: #{type.inspect}" }
   end
 end
