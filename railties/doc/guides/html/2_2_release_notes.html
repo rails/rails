@@ -243,6 +243,8 @@ ul#navMain {
 						
 							<li><a href="#_method_arrays_for_member_or_collection_routes">Method Arrays for Member or Collection Routes</a></li>
 						
+							<li><a href="#_resources_with_specific_actions">Resources With Specific Actions</a></li>
+						
 							<li><a href="#_other_action_controller_changes">Other Action Controller Changes</a></li>
 						
 						</ul>
@@ -698,7 +700,7 @@ Counter cache columns (for associations declared with <tt>:counter_cache &#8658;
 </div>
 <h2 id="_action_controller">6. Action Controller</h2>
 <div class="sectionbody">
-<div class="para"><p>On the controller side, there are a couple of changes that will help tidy up your routes.</p></div>
+<div class="para"><p>On the controller side, there are several changes that will help tidy up your routes. There are also some internal changes in the routing engine to lower memory usage on complex applications.</p></div>
 <h3 id="_shallow_route_nesting">6.1. Shallow Route Nesting</h3>
 <div class="para"><p>Shallow route nesting provides a solution to the well-known difficulty of using deeply-nested resources. With shallow nesting, you need only supply enough information to uniquely identify the resource that you want to work with.</p></div>
 <div class="listingblock">
@@ -761,8 +763,24 @@ Lead Contributor: <a href="http://brennandunn.com/">Brennan Dunn</a>
 </p>
 </li>
 </ul></div>
-<div class="para"><p>Action Controller now offers good support for HTTP conditional GET requests, as well as some other additions.</p></div>
-<h3 id="_other_action_controller_changes">6.3. Other Action Controller Changes</h3>
+<h3 id="_resources_with_specific_actions">6.3. Resources With Specific Actions</h3>
+<div class="para"><p>By default, when you use <tt>map.resources</tt> to create a route, Rails generates routes for seven default actions (index, show, create, new, edit, update, and destroy). But each of these routes takes up memory in your application, and causes Rails to generate additional routing logic. Now you can use the <tt>:only</tt> and <tt>:except</tt> options to fine-tune the routes that Rails will generate for resources. You can supply a single action, an array of actions, or the special <tt>:all</tt> or <tt>:none</tt> options. These options are inherited by nested resources.</p></div>
+<div class="listingblock">
+<div class="content"><!-- Generator: GNU source-highlight 2.9
+by Lorenzo Bettini
+http://www.lorenzobettini.it
+http://www.gnu.org/software/src-highlite -->
+<pre><tt>map<span style="color: #990000">.</span>resources <span style="color: #990000">:</span>photos<span style="color: #990000">,</span> <span style="color: #990000">:</span>only <span style="color: #990000">=&gt;</span> <span style="color: #990000">[:</span>index<span style="color: #990000">,</span> <span style="color: #990000">:</span>show<span style="color: #990000">]</span>
+map<span style="color: #990000">.</span>resources <span style="color: #990000">:</span>products<span style="color: #990000">,</span> <span style="color: #990000">:</span>except <span style="color: #990000">=&gt;</span> <span style="color: #990000">:</span>destroy
+</tt></pre></div></div>
+<div class="ilist"><ul>
+<li>
+<p>
+Lead Contributor: <a href="http://experthuman.com/">Tom Stuart</a>
+</p>
+</li>
+</ul></div>
+<h3 id="_other_action_controller_changes">6.4. Other Action Controller Changes</h3>
 <div class="ilist"><ul>
 <li>
 <p>
