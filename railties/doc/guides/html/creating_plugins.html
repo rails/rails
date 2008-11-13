@@ -213,7 +213,16 @@ ul#navMain {
 						</ul>
 					</li>
 					<li>
-					<a href="#_add_a_tt_to_squawk_tt_method_to_string">Add a <tt>to_squawk</tt> method to String</a>
+					<a href="#_extending_core_classes">Extending core classes</a>
+						<ul>
+						
+							<li><a href="#_working_with_init_rb">Working with init.rb</a></li>
+						
+							<li><a href="#_creating_the_test">Creating the test</a></li>
+						
+							<li><a href="#_organize_your_files">Organize your files</a></li>
+						
+						</ul>
 					</li>
 					<li>
 					<a href="#_add_an_tt_acts_as_yaffle_tt_method_to_activerecord">Add an <tt>acts_as_yaffle</tt> method to ActiveRecord</a>
@@ -233,8 +242,6 @@ ul#navMain {
 					<li>
 					<a href="#_odds_and_ends">Odds and ends</a>
 						<ul>
-						
-							<li><a href="#_work_with_init_rb">Work with init.rb</a></li>
 						
 							<li><a href="#_generate_rdoc_documentation">Generate RDoc Documentation</a></li>
 						
@@ -583,44 +590,52 @@ rake DB=postgresql</tt></pre>
 </div></div>
 <div class="para"><p>Now you are ready to test-drive your plugin!</p></div>
 </div>
-<h2 id="_add_a_tt_to_squawk_tt_method_to_string">2. Add a <tt>to_squawk</tt> method to String</h2>
+<h2 id="_extending_core_classes">2. Extending core classes</h2>
 <div class="sectionbody">
-<div class="para"><p>To update a core class you will have to:</p></div>
+<div class="para"><p>This section will explain how to add a method to String that will be available anywhere in your rails app by:</p></div>
 <div class="ilist"><ul>
 <li>
 <p>
-Write tests for the desired functionality.
+Writing tests for the desired behavior
 </p>
 </li>
 <li>
 <p>
-Create a file for the code you wish to use.
-</p>
-</li>
-<li>
-<p>
-Require that file from your <em>init.rb</em>.
+Creating and requiring the correct files
 </p>
 </li>
 </ul></div>
-<div class="para"><p>Most plugins store their code classes in the plugin's lib directory.  When you add a file to the lib directory, you must also require that file from <em>init.rb</em>.  The file you are going to add for this tutorial is <em>lib/core_ext.rb</em>.</p></div>
-<div class="para"><p>First, you need to write the tests.  Testing plugins is very similar to testing rails apps.  The generated test file should look something like this:</p></div>
-<div class="para"><p><strong>vendor/plugins/yaffle/test/core_ext_test.rb</strong></p></div>
+<h3 id="_working_with_init_rb">2.1. Working with init.rb</h3>
+<div class="para"><p>When rails loads plugins it looks for the file named init.rb.  However, the plugin initializer script <em>init.rb</em> is invoked via <tt>eval</tt> (not <tt>require</tt>) so it has slightly different behavior.</p></div>
+<div class="para"><p>Under certain circumstances if you reopen classes or modules in <em>init.rb</em> itself, you may inadvertently create a new class, rather than reopening an existing class.  A better alternative is to reopen the class in a different file, and require that file from <tt>init.rb</tt>.</p></div>
+<div class="para"><p>If you must reopen a class in <tt>init.rb</tt> you can use <tt>module_eval</tt> or <tt>class_eval</tt>:</p></div>
+<div class="para"><p><strong>vendor/plugins/yaffle/init.rb</strong></p></div>
 <div class="listingblock">
 <div class="content"><!-- Generator: GNU source-highlight 2.9
 by Lorenzo Bettini
 http://www.lorenzobettini.it
 http://www.gnu.org/software/src-highlite -->
-<pre><tt><span style="font-weight: bold"><span style="color: #000080">require</span></span> <span style="color: #FF0000">'test/unit'</span>
-
-<span style="font-weight: bold"><span style="color: #0000FF">class</span></span> CoreExtTest <span style="color: #990000">&lt;</span> Test<span style="color: #990000">::</span>Unit<span style="color: #990000">::</span>TestCase
-  <span style="font-style: italic"><span style="color: #9A1900"># Replace this with your real tests.</span></span>
-  <span style="font-weight: bold"><span style="color: #0000FF">def</span></span> test_this_plugin
-    flunk
+<pre><tt>Hash<span style="color: #990000">.</span>class_eval <span style="font-weight: bold"><span style="color: #0000FF">do</span></span>
+  <span style="font-weight: bold"><span style="color: #0000FF">def</span></span> is_a_special_hash?
+    <span style="font-weight: bold"><span style="color: #0000FF">true</span></span>
   <span style="font-weight: bold"><span style="color: #0000FF">end</span></span>
 <span style="font-weight: bold"><span style="color: #0000FF">end</span></span>
 </tt></pre></div></div>
-<div class="para"><p>Start off by removing the default test, and adding a require statement for your test helper.</p></div>
+<div class="para"><p>Another way is to explicitly define the top-level module space for all modules and classes, like <tt>::Hash</tt>:</p></div>
+<div class="para"><p><strong>vendor/plugins/yaffle/init.rb</strong></p></div>
+<div class="listingblock">
+<div class="content"><!-- Generator: GNU source-highlight 2.9
+by Lorenzo Bettini
+http://www.lorenzobettini.it
+http://www.gnu.org/software/src-highlite -->
+<pre><tt><span style="font-weight: bold"><span style="color: #0000FF">class</span></span> <span style="color: #990000">::</span>Hash
+  <span style="font-weight: bold"><span style="color: #0000FF">def</span></span> is_a_special_hash?
+    <span style="font-weight: bold"><span style="color: #0000FF">true</span></span>
+  <span style="font-weight: bold"><span style="color: #0000FF">end</span></span>
+<span style="font-weight: bold"><span style="color: #0000FF">end</span></span>
+</tt></pre></div></div>
+<h3 id="_creating_the_test">2.2. Creating the test</h3>
+<div class="para"><p>In this example you will add a method to String named <tt>to_squawk</tt>.  To begin, create a new test file with a few assertions:</p></div>
 <div class="para"><p><strong>vendor/plugins/yaffle/test/core_ext_test.rb</strong></p></div>
 <div class="listingblock">
 <div class="content"><!-- Generator: GNU source-highlight 2.9
@@ -630,6 +645,9 @@ http://www.gnu.org/software/src-highlite -->
 <pre><tt><span style="font-weight: bold"><span style="color: #000080">require</span></span> File<span style="color: #990000">.</span>dirname<span style="color: #990000">(</span><span style="font-weight: bold"><span style="color: #0000FF">__FILE__</span></span><span style="color: #990000">)</span> <span style="color: #990000">+</span> <span style="color: #FF0000">'/test_helper.rb'</span>
 
 <span style="font-weight: bold"><span style="color: #0000FF">class</span></span> CoreExtTest <span style="color: #990000">&lt;</span> Test<span style="color: #990000">::</span>Unit<span style="color: #990000">::</span>TestCase
+  <span style="font-weight: bold"><span style="color: #0000FF">def</span></span> test_to_squawk_prepends_the_word_squawk
+    assert_equal <span style="color: #FF0000">"squawk! Hello World"</span><span style="color: #990000">,</span> <span style="color: #FF0000">"Hello World"</span><span style="color: #990000">.</span>to_squawk
+  <span style="font-weight: bold"><span style="color: #0000FF">end</span></span>
 <span style="font-weight: bold"><span style="color: #0000FF">end</span></span>
 </tt></pre></div></div>
 <div class="para"><p>Navigate to your plugin directory and run <tt>rake test</tt>:</p></div>
@@ -638,42 +656,45 @@ http://www.gnu.org/software/src-highlite -->
 <pre><tt>cd vendor/plugins/yaffle
 rake test</tt></pre>
 </div></div>
-<div class="para"><p>Your test should fail with <tt>no such file to load &#8212; ./test/../lib/core_ext.rb (LoadError)</tt> because we haven't created any file yet.  Create the file <em>lib/core_ext.rb</em> and re-run the tests.  You should see a different error message:</p></div>
+<div class="para"><p>The test above should fail with the message:</p></div>
 <div class="listingblock">
 <div class="content">
-<pre><tt>1.) Failure ...
-No tests were specified</tt></pre>
+<pre><tt> 1) Error:
+test_to_squawk_prepends_the_word_squawk(CoreExtTest):
+NoMethodError: undefined method `to_squawk' for "Hello World":String
+    ./test/core_ext_test.rb:5:in `test_to_squawk_prepends_the_word_squawk'</tt></pre>
 </div></div>
-<div class="para"><p>Great - now you are ready to start development.  The first thing we'll do is to add a method to String called <tt>to_squawk</tt> which will prefix the string with the word &#8220;squawk!&#8221;.  The test will look something like this:</p></div>
+<div class="para"><p>Great - now you are ready to start development.</p></div>
+<h3 id="_organize_your_files">2.3. Organize your files</h3>
+<div class="para"><p>A common pattern in rails plugins is to set up the file structure something like this:</p></div>
+<div class="listingblock">
+<div class="content">
+<pre><tt>|-- init.rb
+|-- lib
+|   |-- yaffle
+|   |   `-- core_ext.rb
+|   `-- yaffle.rb</tt></pre>
+</div></div>
+<div class="para"><p>The first thing we need to to is to require our <em>lib/yaffle.rb</em> file from <em>init.rb</em>:</p></div>
 <div class="para"><p><strong>vendor/plugins/yaffle/init.rb</strong></p></div>
 <div class="listingblock">
 <div class="content"><!-- Generator: GNU source-highlight 2.9
 by Lorenzo Bettini
 http://www.lorenzobettini.it
 http://www.gnu.org/software/src-highlite -->
-<pre><tt><span style="font-weight: bold"><span style="color: #0000FF">class</span></span> CoreExtTest <span style="color: #990000">&lt;</span> Test<span style="color: #990000">::</span>Unit<span style="color: #990000">::</span>TestCase
-  <span style="font-weight: bold"><span style="color: #0000FF">def</span></span> test_string_should_respond_to_squawk
-    assert_equal <span style="font-weight: bold"><span style="color: #0000FF">true</span></span><span style="color: #990000">,</span> <span style="color: #FF0000">""</span><span style="color: #990000">.</span>respond_to?<span style="color: #990000">(:</span>to_squawk<span style="color: #990000">)</span>
-  <span style="font-weight: bold"><span style="color: #0000FF">end</span></span>
-
-  <span style="font-weight: bold"><span style="color: #0000FF">def</span></span> test_string_prepend_empty_strings_with_the_word_squawk
-    assert_equal <span style="color: #FF0000">"squawk!"</span><span style="color: #990000">,</span> <span style="color: #FF0000">""</span><span style="color: #990000">.</span>to_squawk
-  <span style="font-weight: bold"><span style="color: #0000FF">end</span></span>
-
-  <span style="font-weight: bold"><span style="color: #0000FF">def</span></span> test_string_prepend_non_empty_strings_with_the_word_squawk
-    assert_equal <span style="color: #FF0000">"squawk! Hello World"</span><span style="color: #990000">,</span> <span style="color: #FF0000">"Hello World"</span><span style="color: #990000">.</span>to_squawk
-  <span style="font-weight: bold"><span style="color: #0000FF">end</span></span>
-<span style="font-weight: bold"><span style="color: #0000FF">end</span></span>
+<pre><tt><span style="font-weight: bold"><span style="color: #000080">require</span></span> <span style="color: #FF0000">'yaffle'</span>
 </tt></pre></div></div>
-<div class="para"><p><strong>vendor/plugins/yaffle/init.rb</strong></p></div>
+<div class="para"><p>Then in <em>lib/yaffle.rb</em> require <em>lib/core_ext.rb</em>:</p></div>
+<div class="para"><p><strong>vendor/plugins/yaffle/lib/yaffle.rb</strong></p></div>
 <div class="listingblock">
 <div class="content"><!-- Generator: GNU source-highlight 2.9
 by Lorenzo Bettini
 http://www.lorenzobettini.it
 http://www.gnu.org/software/src-highlite -->
-<pre><tt><span style="font-weight: bold"><span style="color: #000080">require</span></span> <span style="color: #FF0000">"core_ext"</span>
+<pre><tt><span style="font-weight: bold"><span style="color: #000080">require</span></span> <span style="color: #FF0000">"yaffle/core_ext"</span>
 </tt></pre></div></div>
-<div class="para"><p><strong>vendor/plugins/yaffle/lib/core_ext.rb</strong></p></div>
+<div class="para"><p>Finally, create the <em>core_ext.rb</em> file and add the <em>to_squawk</em> method:</p></div>
+<div class="para"><p><strong>vendor/plugins/yaffle/lib/yaffle/core_ext.rb</strong></p></div>
 <div class="listingblock">
 <div class="content"><!-- Generator: GNU source-highlight 2.9
 by Lorenzo Bettini
@@ -685,15 +706,13 @@ http://www.gnu.org/software/src-highlite -->
   <span style="font-weight: bold"><span style="color: #0000FF">end</span></span>
 <span style="font-weight: bold"><span style="color: #0000FF">end</span></span>
 </tt></pre></div></div>
-<div class="para"><p>When monkey-patching existing classes it's often better to use <tt>class_eval</tt> instead of opening the class directly.</p></div>
-<div class="para"><p>To test that your method does what it says it does, run the unit tests.  To test this manually, fire up a console and start squawking:</p></div>
+<div class="para"><p>To test that your method does what it says it does, run the unit tests with <tt>rake</tt> from your plugin directory.  To see this in action, fire up a console and start squawking:</p></div>
 <div class="listingblock">
 <div class="content">
 <pre><tt>$ ./script/console
 &gt;&gt; "Hello World".to_squawk
 =&gt; "squawk! Hello World"</tt></pre>
 </div></div>
-<div class="para"><p>If that worked, congratulations!  You just created your first test-driven plugin that extends a core ruby class.</p></div>
 </div>
 <h2 id="_add_an_tt_acts_as_yaffle_tt_method_to_activerecord">3. Add an <tt>acts_as_yaffle</tt> method to ActiveRecord</h2>
 <div class="sectionbody">
@@ -1230,37 +1249,7 @@ http://www.gnu.org/software/src-highlite -->
 </div>
 <h2 id="_odds_and_ends">8. Odds and ends</h2>
 <div class="sectionbody">
-<h3 id="_work_with_init_rb">8.1. Work with init.rb</h3>
-<div class="para"><p>The plugin initializer script <em>init.rb</em> is invoked via <tt>eval</tt> (not <tt>require</tt>) so it has slightly different behavior.</p></div>
-<div class="para"><p>If you reopen any classes in init.rb itself your changes will potentially be made to the wrong module.  As a rule, it's better not to open any classes in <tt>init.rb</tt>, and it makes the plugin more difficult to turn into a gem.</p></div>
-<div class="para"><p>A better alternative is to reopen the class in a different file, and require that file from <tt>init.rb</tt>.</p></div>
-<div class="para"><p>If you must reopen a class in <tt>init.rb</tt>, there are various techniques.  One way is to use <tt>module_eval</tt> or <tt>class_eval</tt>:</p></div>
-<div class="para"><p><strong>vendor/plugins/yaffle/init.rb</strong></p></div>
-<div class="listingblock">
-<div class="content"><!-- Generator: GNU source-highlight 2.9
-by Lorenzo Bettini
-http://www.lorenzobettini.it
-http://www.gnu.org/software/src-highlite -->
-<pre><tt>Hash<span style="color: #990000">.</span>class_eval <span style="font-weight: bold"><span style="color: #0000FF">do</span></span>
-  <span style="font-weight: bold"><span style="color: #0000FF">def</span></span> is_a_special_hash?
-    <span style="font-weight: bold"><span style="color: #0000FF">true</span></span>
-  <span style="font-weight: bold"><span style="color: #0000FF">end</span></span>
-<span style="font-weight: bold"><span style="color: #0000FF">end</span></span>
-</tt></pre></div></div>
-<div class="para"><p>Another way is to explicitly define the top-level module space for all modules and classes, like <tt>::Hash</tt>:</p></div>
-<div class="para"><p><strong>vendor/plugins/yaffle/init.rb</strong></p></div>
-<div class="listingblock">
-<div class="content"><!-- Generator: GNU source-highlight 2.9
-by Lorenzo Bettini
-http://www.lorenzobettini.it
-http://www.gnu.org/software/src-highlite -->
-<pre><tt><span style="font-weight: bold"><span style="color: #0000FF">class</span></span> <span style="color: #990000">::</span>Hash
-  <span style="font-weight: bold"><span style="color: #0000FF">def</span></span> is_a_special_hash?
-    <span style="font-weight: bold"><span style="color: #0000FF">true</span></span>
-  <span style="font-weight: bold"><span style="color: #0000FF">end</span></span>
-<span style="font-weight: bold"><span style="color: #0000FF">end</span></span>
-</tt></pre></div></div>
-<h3 id="_generate_rdoc_documentation">8.2. Generate RDoc Documentation</h3>
+<h3 id="_generate_rdoc_documentation">8.1. Generate RDoc Documentation</h3>
 <div class="para"><p>Once your plugin is stable, the tests pass on all database and you are ready to deploy do everyone else a favor and document it!  Luckily, writing documentation for your plugin is easy.</p></div>
 <div class="para"><p>The first step is to update the README file with detailed information about how to use your plugin.  A few key things to include are:</p></div>
 <div class="ilist"><ul>
@@ -1292,7 +1281,7 @@ Warning, gotchas or tips that might help save users time.
 <div class="content">
 <pre><tt>rake rdoc</tt></pre>
 </div></div>
-<h3 id="_store_models_views_helpers_and_controllers_in_your_plugins">8.3. Store models, views, helpers, and controllers in your plugins</h3>
+<h3 id="_store_models_views_helpers_and_controllers_in_your_plugins">8.2. Store models, views, helpers, and controllers in your plugins</h3>
 <div class="para"><p>You can easily store models, views, helpers and controllers in plugins.  Just create a folder for each in the lib folder, add them to the load path and remove them from the load once path:</p></div>
 <div class="listingblock">
 <div class="content"><!-- Generator: GNU source-highlight 2.9
@@ -1310,7 +1299,7 @@ http://www.gnu.org/software/src-highlite -->
 </tt></pre></div></div>
 <div class="para"><p>Adding directories to the load path makes them appear just like files in the the main app directory - except that they are only loaded once, so you have to restart the web server to see the changes in the browser.</p></div>
 <div class="para"><p>Adding directories to the load once paths allow those changes to picked up as soon as you save the file - without having to restart the web server.</p></div>
-<h3 id="_write_custom_rake_tasks_in_your_plugin">8.4. Write custom Rake tasks in your plugin</h3>
+<h3 id="_write_custom_rake_tasks_in_your_plugin">8.3. Write custom Rake tasks in your plugin</h3>
 <div class="para"><p>When you created the plugin with the built-in rails generator, it generated a rake file for you in <em>vendor/plugins/yaffle/tasks/yaffle.rake</em>.  Any rake task you add here will be available to the app.</p></div>
 <div class="para"><p>Many plugin authors put all of their rake tasks into a common namespace that is the same as the plugin, like so:</p></div>
 <div class="para"><p><strong>vendor/plugins/yaffle/tasks/yaffle.rake</strong></p></div>
@@ -1332,7 +1321,7 @@ http://www.gnu.org/software/src-highlite -->
 <pre><tt>yaffle:squawk             # Prints out the word 'Yaffle'</tt></pre>
 </div></div>
 <div class="para"><p>You can add as many files as you want in the tasks directory, and if they end in .rake Rails will pick them up.</p></div>
-<h3 id="_store_plugins_in_alternate_locations">8.5. Store plugins in alternate locations</h3>
+<h3 id="_store_plugins_in_alternate_locations">8.4. Store plugins in alternate locations</h3>
 <div class="para"><p>You can store plugins wherever you want - you just have to add those plugins to the plugins path in <em>environment.rb</em>.</p></div>
 <div class="para"><p>Since the plugin is only loaded after the plugin paths are defined, you can't redefine this in your plugins - but it may be good to now.</p></div>
 <div class="para"><p>You can even store plugins inside of other plugins for complete plugin madness!</p></div>
@@ -1343,9 +1332,9 @@ http://www.lorenzobettini.it
 http://www.gnu.org/software/src-highlite -->
 <pre><tt>config<span style="color: #990000">.</span>plugin_paths <span style="color: #990000">&lt;&lt;</span> File<span style="color: #990000">.</span>join<span style="color: #990000">(</span>RAILS_ROOT<span style="color: #990000">,</span><span style="color: #FF0000">"vendor"</span><span style="color: #990000">,</span><span style="color: #FF0000">"plugins"</span><span style="color: #990000">,</span><span style="color: #FF0000">"yaffle"</span><span style="color: #990000">,</span><span style="color: #FF0000">"lib"</span><span style="color: #990000">,</span><span style="color: #FF0000">"plugins"</span><span style="color: #990000">)</span>
 </tt></pre></div></div>
-<h3 id="_create_your_own_plugin_loaders_and_plugin_locators">8.6. Create your own Plugin Loaders and Plugin Locators</h3>
+<h3 id="_create_your_own_plugin_loaders_and_plugin_locators">8.5. Create your own Plugin Loaders and Plugin Locators</h3>
 <div class="para"><p>If the built-in plugin behavior is inadequate, you can change almost every aspect of the location and loading process.  You can write your own plugin locators and plugin loaders, but that's beyond the scope of this tutorial.</p></div>
-<h3 id="_use_custom_plugin_generators">8.7. Use Custom Plugin Generators</h3>
+<h3 id="_use_custom_plugin_generators">8.6. Use Custom Plugin Generators</h3>
 <div class="para"><p>If you are an RSpec fan, you can install the <tt>rspec_plugin_generator</tt> gem, which will generate the spec folder and database for you. See <a href="http://github.com/pat-maddox/rspec-plugin-generator/tree/master">http://github.com/pat-maddox/rspec-plugin-generator/tree/master</a>.</p></div>
 </div>
 <h2 id="_appendix">9. Appendix</h2>

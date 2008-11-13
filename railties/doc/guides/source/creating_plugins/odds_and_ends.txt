@@ -1,39 +1,5 @@
 == Odds and ends ==
 
-=== Work with init.rb ===
-
-The plugin initializer script 'init.rb' is invoked via `eval` (not `require`) so it has slightly different behavior.
-
-If you reopen any classes in init.rb itself your changes will potentially be made to the wrong module.  As a rule, it's better not to open any classes in `init.rb`, and it makes the plugin more difficult to turn into a gem.
-
-A better alternative is to reopen the class in a different file, and require that file from `init.rb`.
-
-If you must reopen a class in `init.rb`, there are various techniques.  One way is to use `module_eval` or `class_eval`:
-
-*vendor/plugins/yaffle/init.rb*
-
-[source, ruby]
----------------------------------------------------
-Hash.class_eval do
-  def is_a_special_hash?
-    true
-  end
-end
----------------------------------------------------
-
-Another way is to explicitly define the top-level module space for all modules and classes, like `::Hash`:
-
-*vendor/plugins/yaffle/init.rb*
-
-[source, ruby]
----------------------------------------------------
-class ::Hash
-  def is_a_special_hash?
-    true
-  end
-end
----------------------------------------------------
-
 === Generate RDoc Documentation ===
 
 Once your plugin is stable, the tests pass on all database and you are ready to deploy do everyone else a favor and document it!  Luckily, writing documentation for your plugin is easy.

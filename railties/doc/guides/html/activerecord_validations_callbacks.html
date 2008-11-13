@@ -726,7 +726,7 @@ by Lorenzo Bettini
 http://www.lorenzobettini.it
 http://www.gnu.org/software/src-highlite -->
 <pre><tt><span style="font-weight: bold"><span style="color: #0000FF">class</span></span> Invoice <span style="color: #990000">&lt;</span> ActiveRecord<span style="color: #990000">::</span>Base
-  validate <span style="color: #990000">:</span>expiration_date_cannot_be_in_the_past<span style="color: #990000">,</span> <span style="color: #990000">:</span>discount_cannot_be_be_more_than_total_value
+  validate <span style="color: #990000">:</span>expiration_date_cannot_be_in_the_past<span style="color: #990000">,</span> <span style="color: #990000">:</span>discount_cannot_be_more_than_total_value
 
   <span style="font-weight: bold"><span style="color: #0000FF">def</span></span> expiration_date_cannot_be_in_the_past
     errors<span style="color: #990000">.</span>add<span style="color: #990000">(:</span>expiration_date<span style="color: #990000">,</span> <span style="color: #FF0000">"can't be in the past"</span><span style="color: #990000">)</span> <span style="font-weight: bold"><span style="color: #0000FF">if</span></span> <span style="color: #990000">!</span>expiration_date<span style="color: #990000">.</span>blank? <span style="font-weight: bold"><span style="color: #0000FF">and</span></span> expiration_date <span style="color: #990000">&lt;</span> Date<span style="color: #990000">.</span>today

@@ -29,9 +29,9 @@ This guide describes how to build a test-driven plugin that will:
 For the purpose of this guide pretend for a moment that you are an avid bird watcher.  Your favorite bird is the Yaffle, and you want to create a plugin that allows other developers to share in the Yaffle goodness.  First, you need to get setup for development.
 
 
-include::preparation.txt[]
+include::test_setup.txt[]
 
-include::string_to_squawk.txt[]
+include::core_ext.txt[]
 
 include::acts_as_yaffle.txt[]
 
