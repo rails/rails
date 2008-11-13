@@ -1,5 +1,7 @@
 *2.2.1 [RC2 or 2.2 final]*
 
+* TimeZone: fix offset for Sri Jayawardenepura. Anchor tests for zone offsets to more current date [Geoff Buesing]
+
 * TimeZone: Caracas GMT offset changed to -4:30 [#1361 state:resolved] [Phil Ross]
 
 * Added render :js for people who want to render inline JavaScript replies without using RJS [DHH]
