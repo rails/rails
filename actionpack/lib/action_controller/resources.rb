@@ -42,7 +42,7 @@ module ActionController
   #
   # Read more about REST at http://en.wikipedia.org/wiki/Representational_State_Transfer
   module Resources
-    INHERITABLE_OPTIONS = :namespace, :shallow, :only, :except
+    INHERITABLE_OPTIONS = :namespace, :shallow, :actions
 
     class Resource #:nodoc:
       DEFAULT_ACTIONS = :index, :create, :new, :edit, :show, :update, :destroy
@@ -119,7 +119,7 @@ module ActionController
       end
 
       def has_action?(action)
-        !DEFAULT_ACTIONS.include?(action) || action_allowed?(action)
+        !DEFAULT_ACTIONS.include?(action) || @options[:actions].nil? || @options[:actions].include?(action)
       end
 
       protected
@@ -135,27 +135,22 @@ module ActionController
         end
 
         def set_allowed_actions
-          only, except = @options.values_at(:only, :except)
-          @allowed_actions ||= {}
+          only    = @options.delete(:only)
+          except  = @options.delete(:except)
 
-          if only == :all || except == :none
-            only = nil
-            except = []
+          if only && except
+            raise ArgumentError, 'Please supply either :only or :except, not both.'
+          elsif only == :all || except == :none
+            options[:actions] = DEFAULT_ACTIONS
           elsif only == :none || except == :all
-            only = []
-            except = nil
-          end
-
-          if only
-            @allowed_actions[:only] = Array(only).map(&:to_sym)
+            options[:actions] = []
+          elsif only
+            options[:actions] = DEFAULT_ACTIONS & Array(only).map(&:to_sym)
           elsif except
-            @allowed_actions[:except] = Array(except).map(&:to_sym)
+            options[:actions] = DEFAULT_ACTIONS - Array(except).map(&:to_sym)
+          else
+            # leave options[:actions] alone
           end
-        end
-
-        def action_allowed?(action)
-          only, except = @allowed_actions.values_at(:only, :except)
-          (!only || only.include?(action)) && (!except || !except.include?(action))
         end
 
         def set_prefixes
