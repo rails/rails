@@ -549,28 +549,32 @@ module ActionView
             [^\s<]+
           }x unless const_defined?(:AUTO_LINK_RE)
 
+        BRACKETS = { ']' => '[', ')' => '(', '}' => '{' }
+
         # Turns all urls into clickable links.  If a block is given, each url
         # is yielded and the result is used as the link text.
         def auto_link_urls(text, html_options = {})
           link_attributes = html_options.stringify_keys
           text.gsub(AUTO_LINK_RE) do
             href = $&
+            punctuation = ''
             # detect already linked URLs
-            unless $` =~ /<a\s[^>]*href="$/
-              if href =~ /[^\w\/-]$/
-                punctuation = href[-1, 1]
-                href = href[0, href.length - 1]
-              else
-                punctuation = ''
+            if $` =~ /<a\s[^>]*href="$/
+              # do not change string; URL is alreay linked
+              href
+            else
+              # don't include trailing punctuation character as part of the URL
+              if href.sub!(/[^\w\/-]$/, '') and punctuation = $& and opening = BRACKETS[punctuation]
+                if href.scan(opening).size > href.scan(punctuation).size
+                  href << punctuation
+                  punctuation = ''
+                end
               end
 
               link_text = block_given?? yield(href) : href
               href = 'http://' + href unless href.index('http') == 0
 
               content_tag(:a, h(link_text), link_attributes.merge('href' => href)) + punctuation
-            else
-              # do not change string; URL is alreay linked
-              href
             end
           end
         end

@@ -205,27 +205,30 @@ class TextHelperTest < ActionView::TestCase
   end
 
   def test_auto_link_parsing
-    urls = %w(http://www.rubyonrails.com
-              http://www.rubyonrails.com:80
-              http://www.rubyonrails.com/~minam
-              https://www.rubyonrails.com/~minam
-              http://www.rubyonrails.com/~minam/url%20with%20spaces
-              http://www.rubyonrails.com/foo.cgi?something=here
-              http://www.rubyonrails.com/foo.cgi?something=here&and=here
-              http://www.rubyonrails.com/contact;new
-              http://www.rubyonrails.com/contact;new%20with%20spaces
-              http://www.rubyonrails.com/contact;new?with=query&string=params
-              http://www.rubyonrails.com/~minam/contact;new?with=query&string=params
-              http://en.wikipedia.org/wiki/Wikipedia:Today%27s_featured_picture_%28animation%29/January_20%2C_2007
-              http://www.mail-archive.com/rails@lists.rubyonrails.org/
-              http://www.amazon.com/Testing-Equal-Sign-In-Path/ref=pd_bbs_sr_1?ie=UTF8&s=books&qid=1198861734&sr=8-1
-              http://en.wikipedia.org/wiki/Sprite_(computer_graphics)
-              http://en.wikipedia.org/wiki/Texas_hold'em
-              https://www.google.com/doku.php?id=gps:resource:scs:start
-            )
+    urls = %w(
+      http://www.rubyonrails.com
+      http://www.rubyonrails.com:80
+      http://www.rubyonrails.com/~minam
+      https://www.rubyonrails.com/~minam
+      http://www.rubyonrails.com/~minam/url%20with%20spaces
+      http://www.rubyonrails.com/foo.cgi?something=here
+      http://www.rubyonrails.com/foo.cgi?something=here&and=here
+      http://www.rubyonrails.com/contact;new
+      http://www.rubyonrails.com/contact;new%20with%20spaces
+      http://www.rubyonrails.com/contact;new?with=query&string=params
+      http://www.rubyonrails.com/~minam/contact;new?with=query&string=params
+      http://en.wikipedia.org/wiki/Wikipedia:Today%27s_featured_picture_%28animation%29/January_20%2C_2007
+      http://www.mail-archive.com/rails@lists.rubyonrails.org/
+      http://www.amazon.com/Testing-Equal-Sign-In-Path/ref=pd_bbs_sr_1?ie=UTF8&s=books&qid=1198861734&sr=8-1
+      http://en.wikipedia.org/wiki/Texas_hold'em
+      https://www.google.com/doku.php?id=gps:resource:scs:start
+      http://connect.oraclecorp.com/search?search[q]=green+france&search[type]=Group
+      http://of.openfoundry.org/projects/492/download#4th.Release.3
+      http://maps.google.co.uk/maps?f=q&q=the+london+eye&ie=UTF8&ll=51.503373,-0.11939&spn=0.007052,0.012767&z=16&iwloc=A
+    )
 
     urls.each do |url|
-      assert_equal %(<a href="#{CGI::escapeHTML url}">#{CGI::escapeHTML url}</a>), auto_link(url)
+      assert_equal generate_result(url), auto_link(url)
     end
   end
 
@@ -237,29 +240,13 @@ class TextHelperTest < ActionView::TestCase
   def test_auto_linking
     email_raw    = 'david@loudthinking.com'
     email_result = %{<a href="mailto:#{email_raw}">#{email_raw}</a>}
-    email2_raw    = '+david@loudthinking.com'
-    email2_result = %{<a href="mailto:#{email2_raw}">#{email2_raw}</a>}
     link_raw     = 'http://www.rubyonrails.com'
     link_result  = generate_result(link_raw)
-    link_result_with_options  = %{<a href="#{link_raw}" target="_blank">#{link_raw}</a>}
-    link2_raw    = 'www.rubyonrails.com'
-    link2_result = generate_result(link2_raw, "http://#{link2_raw}")
-    link3_raw    = 'http://manuals.ruby-on-rails.com/read/chapter.need_a-period/103#page281'
-    link3_result = generate_result(link3_raw)
-    link4_raw    = 'http://foo.example.com/controller/action?parm=value&p2=v2#anchor123'
-    link4_result = generate_result(link4_raw)
-    link5_raw    = 'http://foo.example.com:3000/controller/action'
-    link5_result = generate_result(link5_raw)
-    link6_raw    = 'http://foo.example.com:3000/controller/action+pack'
-    link6_result = generate_result(link6_raw)
-    link7_raw    = 'http://foo.example.com/controller/action?parm=value&p2=v2#anchor-123'
-    link7_result = generate_result(link7_raw)
-    link8_raw    = 'http://foo.example.com:3000/controller/action.html'
-    link8_result = generate_result(link8_raw)
-    link9_raw    = 'http://business.timesonline.co.uk/article/0,,9065-2473189,00.html'
-    link9_result = generate_result(link9_raw)
-    link10_raw    = 'http://www.mail-archive.com/ruby-talk@ruby-lang.org/'
-    link10_result = generate_result(link10_raw)
+    link_result_with_options = %{<a href="#{link_raw}" target="_blank">#{link_raw}</a>}
+
+    assert_equal '', auto_link(nil)
+    assert_equal '', auto_link('')
+    assert_equal "#{link_result} #{link_result} #{link_result}", auto_link("#{link_raw} #{link_raw} #{link_raw}")
 
     assert_equal %(hello #{email_result}), auto_link("hello #{email_raw}", :email_addresses)
     assert_equal %(Go to #{link_result}), auto_link("Go to #{link_raw}", :urls)
@@ -270,40 +257,70 @@ class TextHelperTest < ActionView::TestCase
     assert_equal %(<p>Link #{link_result_with_options}</p>), auto_link("<p>Link #{link_raw}</p>", :all, {:target => "_blank"})
     assert_equal %(Go to #{link_result}.), auto_link(%(Go to #{link_raw}.))
     assert_equal %(<p>Go to #{link_result}, then say hello to #{email_result}.</p>), auto_link(%(<p>Go to #{link_raw}, then say hello to #{email_raw}.</p>))
+
+    email2_raw    = '+david@loudthinking.com'
+    email2_result = %{<a href="mailto:#{email2_raw}">#{email2_raw}</a>}
+    assert_equal email2_result, auto_link(email2_raw)
+
+    link2_raw    = 'www.rubyonrails.com'
+    link2_result = generate_result(link2_raw, "http://#{link2_raw}")
     assert_equal %(Go to #{link2_result}), auto_link("Go to #{link2_raw}", :urls)
     assert_equal %(Go to #{link2_raw}), auto_link("Go to #{link2_raw}", :email_addresses)
     assert_equal %(<p>Link #{link2_result}</p>), auto_link("<p>Link #{link2_raw}</p>")
     assert_equal %(<p>#{link2_result} Link</p>), auto_link("<p>#{link2_raw} Link</p>")
     assert_equal %(Go to #{link2_result}.), auto_link(%(Go to #{link2_raw}.))
     assert_equal %(<p>Say hello to #{email_result}, then go to #{link2_result}.</p>), auto_link(%(<p>Say hello to #{email_raw}, then go to #{link2_raw}.</p>))
+
+    link3_raw    = 'http://manuals.ruby-on-rails.com/read/chapter.need_a-period/103#page281'
+    link3_result = generate_result(link3_raw)
     assert_equal %(Go to #{link3_result}), auto_link("Go to #{link3_raw}", :urls)
     assert_equal %(Go to #{link3_raw}), auto_link("Go to #{link3_raw}", :email_addresses)
     assert_equal %(<p>Link #{link3_result}</p>), auto_link("<p>Link #{link3_raw}</p>")
     assert_equal %(<p>#{link3_result} Link</p>), auto_link("<p>#{link3_raw} Link</p>")
     assert_equal %(Go to #{link3_result}.), auto_link(%(Go to #{link3_raw}.))
-    assert_equal %(<p>Go to #{link3_result}. seriously, #{link3_result}? i think I'll say hello to #{email_result}. instead.</p>), auto_link(%(<p>Go to #{link3_raw}. seriously, #{link3_raw}? i think I'll say hello to #{email_raw}. instead.</p>))
+    assert_equal %(<p>Go to #{link3_result}. Seriously, #{link3_result}? I think I'll say hello to #{email_result}. Instead.</p>),
+       auto_link(%(<p>Go to #{link3_raw}. Seriously, #{link3_raw}? I think I'll say hello to #{email_raw}. Instead.</p>))
+
+    link4_raw    = 'http://foo.example.com/controller/action?parm=value&p2=v2#anchor123'
+    link4_result = generate_result(link4_raw)
     assert_equal %(<p>Link #{link4_result}</p>), auto_link("<p>Link #{link4_raw}</p>")
     assert_equal %(<p>#{link4_result} Link</p>), auto_link("<p>#{link4_raw} Link</p>")
+
+    link5_raw    = 'http://foo.example.com:3000/controller/action'
+    link5_result = generate_result(link5_raw)
     assert_equal %(<p>#{link5_result} Link</p>), auto_link("<p>#{link5_raw} Link</p>")
+
+    link6_raw    = 'http://foo.example.com:3000/controller/action+pack'
+    link6_result = generate_result(link6_raw)
     assert_equal %(<p>#{link6_result} Link</p>), auto_link("<p>#{link6_raw} Link</p>")
+
+    link7_raw    = 'http://foo.example.com/controller/action?parm=value&p2=v2#anchor-123'
+    link7_result = generate_result(link7_raw)
     assert_equal %(<p>#{link7_result} Link</p>), auto_link("<p>#{link7_raw} Link</p>")
+
+    link8_raw    = 'http://foo.example.com:3000/controller/action.html'
+    link8_result = generate_result(link8_raw)
     assert_equal %(Go to #{link8_result}), auto_link("Go to #{link8_raw}", :urls)
     assert_equal %(Go to #{link8_raw}), auto_link("Go to #{link8_raw}", :email_addresses)
     assert_equal %(<p>Link #{link8_result}</p>), auto_link("<p>Link #{link8_raw}</p>")
     assert_equal %(<p>#{link8_result} Link</p>), auto_link("<p>#{link8_raw} Link</p>")
     assert_equal %(Go to #{link8_result}.), auto_link(%(Go to #{link8_raw}.))
-    assert_equal %(<p>Go to #{link8_result}. seriously, #{link8_result}? i think I'll say hello to #{email_result}. instead.</p>), auto_link(%(<p>Go to #{link8_raw}. seriously, #{link8_raw}? i think I'll say hello to #{email_raw}. instead.</p>))
+    assert_equal %(<p>Go to #{link8_result}. Seriously, #{link8_result}? I think I'll say hello to #{email_result}. Instead.</p>),
+       auto_link(%(<p>Go to #{link8_raw}. Seriously, #{link8_raw}? I think I'll say hello to #{email_raw}. Instead.</p>))
+
+    link9_raw    = 'http://business.timesonline.co.uk/article/0,,9065-2473189,00.html'
+    link9_result = generate_result(link9_raw)
     assert_equal %(Go to #{link9_result}), auto_link("Go to #{link9_raw}", :urls)
     assert_equal %(Go to #{link9_raw}), auto_link("Go to #{link9_raw}", :email_addresses)
     assert_equal %(<p>Link #{link9_result}</p>), auto_link("<p>Link #{link9_raw}</p>")
     assert_equal %(<p>#{link9_result} Link</p>), auto_link("<p>#{link9_raw} Link</p>")
     assert_equal %(Go to #{link9_result}.), auto_link(%(Go to #{link9_raw}.))
-    assert_equal %(<p>Go to #{link9_result}. seriously, #{link9_result}? i think I'll say hello to #{email_result}. instead.</p>), auto_link(%(<p>Go to #{link9_raw}. seriously, #{link9_raw}? i think I'll say hello to #{email_raw}. instead.</p>))
+    assert_equal %(<p>Go to #{link9_result}. Seriously, #{link9_result}? I think I'll say hello to #{email_result}. Instead.</p>),
+       auto_link(%(<p>Go to #{link9_raw}. Seriously, #{link9_raw}? I think I'll say hello to #{email_raw}. Instead.</p>))
+
+    link10_raw    = 'http://www.mail-archive.com/ruby-talk@ruby-lang.org/'
+    link10_result = generate_result(link10_raw)
     assert_equal %(<p>#{link10_result} Link</p>), auto_link("<p>#{link10_raw} Link</p>")
-    assert_equal email2_result, auto_link(email2_raw)
-    assert_equal '', auto_link(nil)
-    assert_equal '', auto_link('')
-    assert_equal "#{link_result} #{link_result} #{link_result}", auto_link("#{link_raw} #{link_raw} #{link_raw}")
   end
 
   def test_auto_link_already_linked
@@ -311,6 +328,23 @@ class TextHelperTest < ActionView::TestCase
     linked2 = generate_result('www.rubyonrails.com', 'http://www.rubyonrails.com')
     assert_equal linked1, auto_link(linked1)
     assert_equal linked2, auto_link(linked2)
+  end
+
+  def test_auto_link_with_brackets
+    link1_raw = 'http://en.wikipedia.org/wiki/Sprite_(computer_graphics)'
+    link1_result = generate_result(link1_raw)
+    assert_equal link1_result, auto_link(link1_raw)
+    assert_equal "(link: #{link1_result})", auto_link("(link: #{link1_raw})")
+
+    link2_raw = 'http://en.wikipedia.org/wiki/Sprite_[computer_graphics]'
+    link2_result = generate_result(link2_raw)
+    assert_equal link2_result, auto_link(link2_raw)
+    assert_equal "[link: #{link2_result}]", auto_link("[link: #{link2_raw}]")
+
+    link3_raw = 'http://en.wikipedia.org/wiki/Sprite_{computer_graphics}'
+    link3_result = generate_result(link3_raw)
+    assert_equal link3_result, auto_link(link3_raw)
+    assert_equal "{link: #{link3_result}}", auto_link("{link: #{link3_raw}}")
   end
 
   def test_auto_link_at_eol
