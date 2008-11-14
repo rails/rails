@@ -39,7 +39,7 @@ include::view_helper.txt[]
 
 include::migration_generator.txt[]
 
-include::custom_generator.txt[]
+include::generator_method.txt[]
 
 include::custom_route.txt[]
 

@@ -1178,35 +1178,34 @@ Example:
 </div>
 <h2 id="_add_a_custom_generator_command">6. Add a custom generator command</h2>
 <div class="sectionbody">
-<div class="para"><p>You may have noticed above that you can used one of the built-in rails migration commands <tt>m.migration_template</tt>.  You can create your own commands for these, using the following steps:</p></div>
-<div class="olist"><ol>
-<li>
-<p>
-Add the require and hook statements to init.rb.
-</p>
-</li>
-<li>
-<p>
-Create the commands - creating 3 sets, Create, Destroy, List.
-</p>
-</li>
-<li>
-<p>
-Add the method to your generator.
-</p>
-</li>
-</ol></div>
-<div class="para"><p>Working with the internals of generators is beyond the scope of this tutorial, but here is a basic example:</p></div>
-<div class="para"><p><strong>vendor/plugins/yaffle/init.rb</strong></p></div>
+<div class="para"><p>You may have noticed above that you can used one of the built-in rails migration commands <tt>migration_template</tt>.  If your plugin needs to add and remove lines of text from existing files you will need to write your own generator methods.</p></div>
+<div class="para"><p>This section describes how you you can create your own commands to add and remove a line of text from <em>routes.rb</em>.  This example creates a very simple method that adds or removes a text file.</p></div>
+<div class="para"><p>To start, add the following test method:</p></div>
+<div class="para"><p><strong>vendor/plugins/yaffle/test/generator_test.rb</strong></p></div>
 <div class="listingblock">
 <div class="content"><!-- Generator: GNU source-highlight 2.9
 by Lorenzo Bettini
 http://www.lorenzobettini.it
 http://www.gnu.org/software/src-highlite -->
-<pre><tt><span style="font-weight: bold"><span style="color: #000080">require</span></span> <span style="color: #FF0000">"commands"</span>
-Rails<span style="color: #990000">::</span>Generator<span style="color: #990000">::</span>Commands<span style="color: #990000">::</span>Create<span style="color: #990000">.</span>send   <span style="color: #990000">:</span><span style="font-weight: bold"><span style="color: #0000FF">include</span></span><span style="color: #990000">,</span>  Yaffle<span style="color: #990000">::</span>Generator<span style="color: #990000">::</span>Commands<span style="color: #990000">::</span>Create
-Rails<span style="color: #990000">::</span>Generator<span style="color: #990000">::</span>Commands<span style="color: #990000">::</span>Destroy<span style="color: #990000">.</span>send  <span style="color: #990000">:</span><span style="font-weight: bold"><span style="color: #0000FF">include</span></span><span style="color: #990000">,</span>  Yaffle<span style="color: #990000">::</span>Generator<span style="color: #990000">::</span>Commands<span style="color: #990000">::</span>Destroy
-Rails<span style="color: #990000">::</span>Generator<span style="color: #990000">::</span>Commands<span style="color: #990000">::</span>List<span style="color: #990000">.</span>send     <span style="color: #990000">:</span><span style="font-weight: bold"><span style="color: #0000FF">include</span></span><span style="color: #990000">,</span>  Yaffle<span style="color: #990000">::</span>Generator<span style="color: #990000">::</span>Commands<span style="color: #990000">::</span>List
+<pre><tt><span style="font-weight: bold"><span style="color: #0000FF">def</span></span> test_generates_definition
+  Rails<span style="color: #990000">::</span>Generator<span style="color: #990000">::</span>Scripts<span style="color: #990000">::</span>Generate<span style="color: #990000">.</span>new<span style="color: #990000">.</span>run<span style="color: #990000">([</span><span style="color: #FF0000">"yaffle"</span><span style="color: #990000">,</span> <span style="color: #FF0000">"bird"</span><span style="color: #990000">],</span> <span style="color: #990000">:</span>destination <span style="color: #990000">=&gt;</span> fake_rails_root<span style="color: #990000">)</span>
+  definition <span style="color: #990000">=</span> File<span style="color: #990000">.</span>read<span style="color: #990000">(</span>File<span style="color: #990000">.</span>join<span style="color: #990000">(</span>fake_rails_root<span style="color: #990000">,</span> <span style="color: #FF0000">"definition.txt"</span><span style="color: #990000">))</span>
+  assert_match <span style="color: #FF6600">/Yaffle\:/</span><span style="color: #990000">,</span> definition
+<span style="font-weight: bold"><span style="color: #0000FF">end</span></span>
+</tt></pre></div></div>
+<div class="para"><p>Run <tt>rake</tt> to watch the test fail, then make the test pass add the following:</p></div>
+<div class="para"><p><strong>vendor/plugins/yaffle/generators/yaffle/templates/definition.txt</strong></p></div>
+<div class="listingblock">
+<div class="content">
+<pre><tt>Yaffle: A bird</tt></pre>
+</div></div>
+<div class="para"><p><strong>vendor/plugins/yaffle/lib/yaffle.rb</strong></p></div>
+<div class="listingblock">
+<div class="content"><!-- Generator: GNU source-highlight 2.9
+by Lorenzo Bettini
+http://www.lorenzobettini.it
+http://www.gnu.org/software/src-highlite -->
+<pre><tt><span style="font-weight: bold"><span style="color: #000080">require</span></span> <span style="color: #FF0000">"yaffle/commands"</span>
 </tt></pre></div></div>
 <div class="para"><p><strong>vendor/plugins/yaffle/lib/commands.rb</strong></p></div>
 <div class="listingblock">
@@ -1237,15 +1236,22 @@ http://www.gnu.org/software/src-highlite -->
           file<span style="color: #990000">(</span><span style="color: #FF0000">"definition.txt"</span><span style="color: #990000">,</span> <span style="color: #FF0000">"definition.txt"</span><span style="color: #990000">)</span>
         <span style="font-weight: bold"><span style="color: #0000FF">end</span></span>
       <span style="font-weight: bold"><span style="color: #0000FF">end</span></span>
+
+      <span style="font-weight: bold"><span style="color: #0000FF">module</span></span> Update
+        <span style="font-weight: bold"><span style="color: #0000FF">def</span></span> yaffle_definition
+          file<span style="color: #990000">(</span><span style="color: #FF0000">"definition.txt"</span><span style="color: #990000">,</span> <span style="color: #FF0000">"definition.txt"</span><span style="color: #990000">)</span>
+        <span style="font-weight: bold"><span style="color: #0000FF">end</span></span>
+      <span style="font-weight: bold"><span style="color: #0000FF">end</span></span>
     <span style="font-weight: bold"><span style="color: #0000FF">end</span></span>
   <span style="font-weight: bold"><span style="color: #0000FF">end</span></span>
 <span style="font-weight: bold"><span style="color: #0000FF">end</span></span>
+
+Rails<span style="color: #990000">::</span>Generator<span style="color: #990000">::</span>Commands<span style="color: #990000">::</span>Create<span style="color: #990000">.</span>send   <span style="color: #990000">:</span><span style="font-weight: bold"><span style="color: #0000FF">include</span></span><span style="color: #990000">,</span>  Yaffle<span style="color: #990000">::</span>Generator<span style="color: #990000">::</span>Commands<span style="color: #990000">::</span>Create
+Rails<span style="color: #990000">::</span>Generator<span style="color: #990000">::</span>Commands<span style="color: #990000">::</span>Destroy<span style="color: #990000">.</span>send  <span style="color: #990000">:</span><span style="font-weight: bold"><span style="color: #0000FF">include</span></span><span style="color: #990000">,</span>  Yaffle<span style="color: #990000">::</span>Generator<span style="color: #990000">::</span>Commands<span style="color: #990000">::</span>Destroy
+Rails<span style="color: #990000">::</span>Generator<span style="color: #990000">::</span>Commands<span style="color: #990000">::</span>List<span style="color: #990000">.</span>send     <span style="color: #990000">:</span><span style="font-weight: bold"><span style="color: #0000FF">include</span></span><span style="color: #990000">,</span>  Yaffle<span style="color: #990000">::</span>Generator<span style="color: #990000">::</span>Commands<span style="color: #990000">::</span>List
+Rails<span style="color: #990000">::</span>Generator<span style="color: #990000">::</span>Commands<span style="color: #990000">::</span>Update<span style="color: #990000">.</span>send   <span style="color: #990000">:</span><span style="font-weight: bold"><span style="color: #0000FF">include</span></span><span style="color: #990000">,</span>  Yaffle<span style="color: #990000">::</span>Generator<span style="color: #990000">::</span>Commands<span style="color: #990000">::</span>Update
 </tt></pre></div></div>
-<div class="para"><p><strong>vendor/plugins/yaffle/generators/yaffle/templates/definition.txt</strong></p></div>
-<div class="listingblock">
-<div class="content">
-<pre><tt>Yaffle is a bird</tt></pre>
-</div></div>
+<div class="para"><p>Finally, call your new method in the manifest:</p></div>
 <div class="para"><p><strong>vendor/plugins/yaffle/generators/yaffle/yaffle_generator.rb</strong></p></div>
 <div class="listingblock">
 <div class="content"><!-- Generator: GNU source-highlight 2.9
@@ -1258,7 +1264,6 @@ http://www.gnu.org/software/src-highlite -->
   <span style="font-weight: bold"><span style="color: #0000FF">end</span></span>
 <span style="font-weight: bold"><span style="color: #0000FF">end</span></span>
 </tt></pre></div></div>
-<div class="para"><p>This example just uses the built-in "file" method, but you could do anything that Ruby allows.</p></div>
 </div>
 <h2 id="_add_a_custom_route">7. Add a Custom Route</h2>
 <div class="sectionbody">
