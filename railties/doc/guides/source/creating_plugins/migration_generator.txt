@@ -1,4 +1,4 @@
-== Create a migration generator ==
+== Create a generator ==
 
 Many plugins ship with generators.  When you created the plugin above, you specified the --with-generator option, so you already have the generator stubs in 'vendor/plugins/yaffle/generators/yaffle'.
 
@@ -30,7 +30,7 @@ require 'rails_generator'
 require 'rails_generator/scripts/generate'
 require 'rails_generator/scripts/destroy'
 
-class YaffleTest < Test::Unit::TestCase
+class GeneratorTest < Test::Unit::TestCase
 
   def fake_rails_root
     File.join(File.dirname(__FILE__), 'rails_root')
@@ -122,7 +122,6 @@ class AddYaffleFieldsToBirds < ActiveRecord::Migration
   end
 end
 ------------------------------------------------------------------
-
 
 
 === The USAGE file ===

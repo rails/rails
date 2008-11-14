@@ -35,11 +35,15 @@ include::core_ext.txt[]
 
 include::acts_as_yaffle.txt[]
 
-include::view_helper.txt[]
-
 include::migration_generator.txt[]
 
 include::generator_method.txt[]
+
+include::models.txt[]
+
+include::controllers.txt[]
+
+include::view_helper.txt[]
 
 include::custom_route.txt[]
 

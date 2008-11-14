@@ -19,28 +19,6 @@ Once your comments are good to go, navigate to your plugin directory and run:
 
     rake rdoc
 
-
-=== Store models, views, helpers, and controllers in your plugins ===
-
-You can easily store models, views, helpers and controllers in plugins.  Just create a folder for each in the lib folder, add them to the load path and remove them from the load once path:
-
-[source, ruby]
----------------------------------------------------------
-# File: vendor/plugins/yaffle/init.rb
-
-%w{ models controllers helpers }.each do |dir|
-  path = File.join(directory, 'lib', dir)
-  $LOAD_PATH << path
-  Dependencies.load_paths << path
-  Dependencies.load_once_paths.delete(path)
-end
----------------------------------------------------------
-
-Adding directories to the load path makes them appear just like files in the the main app directory - except that they are only loaded once, so you have to restart the web server to see the changes in the browser.
-
-Adding directories to the load once paths allow those changes to picked up as soon as you save the file - without having to restart the web server.
-
-
 === Write custom Rake tasks in your plugin ===
 
 When you created the plugin with the built-in rails generator, it generated a rake file for you in 'vendor/plugins/yaffle/tasks/yaffle.rake'.  Any rake task you add here will be available to the app.
