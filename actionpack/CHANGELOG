@@ -1,5 +1,7 @@
 *2.2.1 [RC2] (November 14th, 2008)*
 
+* Added :only and :except to map.resources to let people cut down on the number of redundant routes in an application. Typically only useful for huge routesets.  #1215 [Tom Stuart]
+
 * Added render :js for people who want to render inline JavaScript replies without using RJS [DHH]
 
 * Fixed that polymorphic_url should compact given array #1317 [hiroshi]
