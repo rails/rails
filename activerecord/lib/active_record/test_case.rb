@@ -1,5 +1,4 @@
 require "active_support/test_case"
-require "active_record/fixtures"
 
 module ActiveRecord
   class TestCase < ActiveSupport::TestCase #:nodoc:
