@@ -4,7 +4,7 @@ In every controller there are two accessor methods pointing to the request and t
 
 === The +request+ Object ===
 
-The request object contains a lot of useful information about the request coming in from the client. To get a full list of the available methods, refer to the link:http://api.rubyonrails.org/classes/ActionController/AbstractRequest.html[API documentation]. Among the properties that you can access on this object:
+The request object contains a lot of useful information about the request coming in from the client. To get a full list of the available methods, refer to the link:http://api.rubyonrails.org/classes/ActionController/AbstractRequest.html[API documentation]. Among the properties that you can access on this object are:
 
  * host - The hostname used for this request.
  * domain - The hostname without the first segment (usually "www").

@@ -186,7 +186,7 @@ If you open this file in a new Rails application, you'll see a default database 
 
 ==== Configuring a SQLite Database
 
-Rails comes with built-in support for SQLite, which is a lightweight flat-file based database application. While a busy production environment may overload SQLite, it works well for development and testing. Rails defaults to using a SQLite database when creating a new project, but you can always change it later.
+Rails comes with built-in support for link:http://www.sqlite.org/[SQLite], which is a lightweight serverless database application. While a busy production environment may overload SQLite, it works well for development and testing. Rails defaults to using a SQLite database when creating a new project, but you can always change it later.
 
 Here's the section of the default configuration file with connection information for the development environment:
 
@@ -480,7 +480,7 @@ This code sets the +@posts+ instance variable to an array of all posts in the da
 
 TIP: For more information on finding records with Active Record, see link:../finders.html[Active Record Finders].
 
-The +respond_to+ block handles both HTML and XML calls to this action. If you borwse to +http://localhost:3000/posts.xml+, you'll see all of the posts in XML format. The HTML format looks for a view in +app/views/posts/+ with a name that corresponds to the action name. Rails makes all of the instance variables from the action available to the view. Here's +app/view/posts/index.html.erb+:
+The +respond_to+ block handles both HTML and XML calls to this action. If you browse to +http://localhost:3000/posts.xml+, you'll see all of the posts in XML format. The HTML format looks for a view in +app/views/posts/+ with a name that corresponds to the action name. Rails makes all of the instance variables from the action available to the view. Here's +app/view/posts/index.html.erb+:
 
 [source, ruby]
 -------------------------------------------------------

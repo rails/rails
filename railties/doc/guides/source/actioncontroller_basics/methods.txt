@@ -1,6 +1,6 @@
 == Methods and Actions ==
 
-A controller is a Ruby class which inherits from ApplicationController and has methods just like any other class. Usually these methods correspond to actions in MVC, but they can just as well be helpful methods which can be called by actions. When your application receives a request, the routing will determine which controller and action to run. Then Rails creates an instance of that controller and runs the method corresponding to the action (the method with the same name as the action).
+A controller is a Ruby class which inherits from ApplicationController and has methods just like any other class. When your application receives a request, the routing will determine which controller and action to run, then Rails creates an instance of that controller and runs the public method with the same name as the action.
 
 [source, ruby]
 ----------------------------------------------
@@ -10,7 +10,7 @@ class ClientsController < ApplicationController
   def new
   end
 
-  # These methods are responsible for producing output
+  # Action methods are responsible for producing output
   def edit
   end
 
@@ -23,9 +23,9 @@ private
 end
 ----------------------------------------------
 
-Private methods in a controller are also used as filters, which will be covered later in this guide.
+There's no rule saying a method on a controller has to be an action; they may well be used for other purposes such as filters, which will be covered later in this guide.
 
-As an example, if the user goes to `/clients/new` in your application to add a new client, Rails will create a ClientsController instance will be created and run the `new` method. Note that the empty method from the example above could work just fine because Rails will by default render the `new.html.erb` view unless the action says otherwise. The `new` method could make available to the view a `@client` instance variable by creating a new Client:
+As an example, if a user goes to `/clients/new` in your application to add a new client, Rails will create an instance of ClientsController and run the `new` method. Note that the empty method from the example above could work just fine because Rails will by default render the `new.html.erb` view unless the action says otherwise. The `new` method could make available to the view a `@client` instance variable by creating a new Client:
 
 [source, ruby]
 ----------------------------------------------

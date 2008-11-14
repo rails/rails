@@ -229,6 +229,8 @@ Although the conventions of RESTful routing are likely to be sufficient for many
 * +:path_names+
 * +:path_prefix+
 * +:name_prefix+
+* +:only+
+* +:except+
 
 You can also add additional routes via the +:member+ and +:collection+ options, which are discussed later in this guide.
 
@@ -400,6 +402,30 @@ This combination will give you route helpers such as +photographer_photos_path+ 
 
 NOTE: You can also use +:name_prefix+ with non-RESTful routes.
 
+==== Using :only and :except
+
+By default, Rails creates routes for all seven of the default actions (index, show, new, create, edit, update, and destroy) for every RESTful route in your application. You can use the +:only+ and +:except+ options to fine-tune this behavior. The +:only+ option specifies that only certain routes should be generated:
+
+[source, ruby]
+-------------------------------------------------------
+map.resources :photos, :only => [:index, :show]
+-------------------------------------------------------
+
+With this declaration, a +GET+ request to +/photos+ would succeed, but a +POST+ request to +/photos+ (which would ordinarily be routed to the create action) will fail.
+
+The +:except+ option specifies a route or list of routes that should _not_ be generated:
+
+[source, ruby]
+-------------------------------------------------------
+map.resources :photos, :except => :destroy
+-------------------------------------------------------
+
+In this case, all of the normal routes except the route for +destroy+ (a +DELETE+ request to +/photos/_id_+) will be generated.
+
+In addition to an action or a list of actions, you can also supply the special symbols +:all+ or +:none+ to the +:only+ and +:except+ options.
+
+TIP: If your application has many RESTful routes, using +:only+ and +:accept+ to generate only the routes that you actually need can cut down on memory use and speed up the routing process.
+
 === Nested Resources
 
 It's common to have resources that are logically children of other resources. For example, suppose your application includes these models:
@@ -535,17 +561,7 @@ This will enable recognition of (among others) these routes:
 /photos/3               ==> photo_path(3)
 -------------------------------------------------------
 
-With shallow nesting, you need only supply enough information to uniquely identify the resource that you want to work with - but you _can_ supply more information. All of the nested routes continue to work, just as they would without shallow nesting, but less-deeply nested routes (even direct routes) work as well. So, with the declaration above, all of these routes refer to the same resource:
-
--------------------------------------------------------
-/publishers/1/magazines/2/photos/3   ==> publisher_magazine_photo_path(1,2,3)
-/magazines/2/photos/3                ==> magazine_photo_path(2,3)
-/photos/3                            ==> photo_path(3)
--------------------------------------------------------
-
-Shallow nesting gives you the flexibility to use the shorter direct routes when you like, while still preserving the longer nested routes for times when they add code clarity.
-
-If you like, you can combine shallow nesting with the +:has_one+ and +:has_many+ options:
+With shallow nesting, you need only supply enough information to uniquely identify the resource that you want to work with. If you like, you can combine shallow nesting with the +:has_one+ and +:has_many+ options:
 
 [source, ruby]
 -------------------------------------------------------
