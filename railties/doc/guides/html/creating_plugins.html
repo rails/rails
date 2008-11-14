@@ -258,7 +258,7 @@ ul#navMain {
 					<a href="#_add_a_controller">Add a controller</a>
 					</li>
 					<li>
-					<a href="#_create_a_tt_squawk_info_for_tt_view_helper">Create a <tt>squawk_info_for</tt> view helper</a>
+					<a href="#_add_a_helper">Add a helper</a>
 					</li>
 					<li>
 					<a href="#_add_a_custom_route">Add a Custom Route</a>
@@ -1330,79 +1330,56 @@ http://www.gnu.org/software/src-highlite -->
 </tt></pre></div></div>
 <div class="para"><p>Now your test should be passing, and you should be able to use the Woodpeckers controller in your app.  If you add a route for the woodpeckers controller you can start up your server and go to <a href="http://localhost:3000/woodpeckers">http://localhost:3000/woodpeckers</a> to see your controller in action.</p></div>
 </div>
-<h2 id="_create_a_tt_squawk_info_for_tt_view_helper">8. Create a <tt>squawk_info_for</tt> view helper</h2>
+<h2 id="_add_a_helper">8. Add a helper</h2>
 <div class="sectionbody">
-<div class="para"><p>Creating a view helper is a 3-step process:</p></div>
-<div class="ilist"><ul>
-<li>
-<p>
-Add an appropriately named file to the <em>lib</em> directory.
-</p>
-</li>
-<li>
-<p>
-Require the file and hooks in <em>init.rb</em>.
-</p>
-</li>
-<li>
-<p>
-Write the tests.
-</p>
-</li>
-</ul></div>
-<div class="para"><p>First, create the test to define the functionality you want:</p></div>
-<div class="para"><p><strong>vendor/plugins/yaffle/test/view_helpers_test.rb</strong></p></div>
+<div class="para"><p>This section describes how to add a helper named <em>WoodpeckersHelper</em> to your plugin that will behave the same as a helper in your main app.  This is very similar to adding a model and a controller.</p></div>
+<div class="para"><p>You can test your plugin's helper as you would test any other helper:</p></div>
+<div class="para"><p><strong>vendor/plugins/yaffle/test/woodpeckers_helper_test.rb</strong></p></div>
 <div class="listingblock">
 <div class="content"><!-- Generator: GNU source-highlight 2.9
 by Lorenzo Bettini
 http://www.lorenzobettini.it
 http://www.gnu.org/software/src-highlite -->
 <pre><tt><span style="font-weight: bold"><span style="color: #000080">require</span></span> File<span style="color: #990000">.</span>dirname<span style="color: #990000">(</span><span style="font-weight: bold"><span style="color: #0000FF">__FILE__</span></span><span style="color: #990000">)</span> <span style="color: #990000">+</span> <span style="color: #FF0000">'/test_helper.rb'</span>
-<span style="font-weight: bold"><span style="color: #0000FF">include</span></span> YaffleViewHelper
+<span style="font-weight: bold"><span style="color: #0000FF">include</span></span> WoodpeckersHelper
 
-<span style="font-weight: bold"><span style="color: #0000FF">class</span></span> ViewHelpersTest <span style="color: #990000">&lt;</span> Test<span style="color: #990000">::</span>Unit<span style="color: #990000">::</span>TestCase
-  <span style="font-weight: bold"><span style="color: #0000FF">def</span></span> test_squawk_info_for_should_return_the_text_and_date
-    time <span style="color: #990000">=</span> Time<span style="color: #990000">.</span>now
-    hickwall <span style="color: #990000">=</span> Hickwall<span style="color: #990000">.</span>new
-    hickwall<span style="color: #990000">.</span>last_squawk <span style="color: #990000">=</span> <span style="color: #FF0000">"Hello World"</span>
-    hickwall<span style="color: #990000">.</span>last_squawked_at <span style="color: #990000">=</span> time
-    assert_equal <span style="color: #FF0000">"Hello World, #{time.to_s}"</span><span style="color: #990000">,</span> squawk_info_for<span style="color: #990000">(</span>hickwall<span style="color: #990000">)</span>
+<span style="font-weight: bold"><span style="color: #0000FF">class</span></span> WoodpeckersHelperTest <span style="color: #990000">&lt;</span> Test<span style="color: #990000">::</span>Unit<span style="color: #990000">::</span>TestCase
+  <span style="font-weight: bold"><span style="color: #0000FF">def</span></span> test_tweet
+    assert_equal <span style="color: #FF0000">"Tweet! Hello"</span><span style="color: #990000">,</span> tweet<span style="color: #990000">(</span><span style="color: #FF0000">"Hello"</span><span style="color: #990000">)</span>
   <span style="font-weight: bold"><span style="color: #0000FF">end</span></span>
 <span style="font-weight: bold"><span style="color: #0000FF">end</span></span>
 </tt></pre></div></div>
-<div class="para"><p>Then add the following statements to init.rb:</p></div>
-<div class="para"><p><strong>vendor/plugins/yaffle/init.rb</strong></p></div>
+<div class="para"><p>This is just a simple test to make sure the helper is being loaded correctly.  After watching it fail with <tt>rake</tt>, you can make it pass like so:</p></div>
+<div class="para"><p><strong>vendor/plugins/yaffle/lib/yaffle.rb:</strong></p></div>
 <div class="listingblock">
 <div class="content"><!-- Generator: GNU source-highlight 2.9
 by Lorenzo Bettini
 http://www.lorenzobettini.it
 http://www.gnu.org/software/src-highlite -->
-<pre><tt><span style="font-weight: bold"><span style="color: #000080">require</span></span> <span style="color: #FF0000">"view_helpers"</span>
-ActionView<span style="color: #990000">::</span>Base<span style="color: #990000">.</span>send <span style="color: #990000">:</span><span style="font-weight: bold"><span style="color: #0000FF">include</span></span><span style="color: #990000">,</span> YaffleViewHelper
+<pre><tt><span style="color: #990000">%</span>w<span style="color: #FF0000">{</span> models controllers helpers <span style="color: #FF0000">}</span><span style="color: #990000">.</span>each <span style="font-weight: bold"><span style="color: #0000FF">do</span></span> <span style="color: #990000">|</span>dir<span style="color: #990000">|</span>
+  path <span style="color: #990000">=</span> File<span style="color: #990000">.</span>join<span style="color: #990000">(</span>File<span style="color: #990000">.</span>dirname<span style="color: #990000">(</span><span style="font-weight: bold"><span style="color: #0000FF">__FILE__</span></span><span style="color: #990000">),</span> <span style="color: #FF0000">'app'</span><span style="color: #990000">,</span> dir<span style="color: #990000">)</span>
+  <span style="color: #009900">$LOAD_PATH</span> <span style="color: #990000">&lt;&lt;</span> path
+  ActiveSupport<span style="color: #990000">::</span>Dependencies<span style="color: #990000">.</span>load_paths <span style="color: #990000">&lt;&lt;</span> path
+  ActiveSupport<span style="color: #990000">::</span>Dependencies<span style="color: #990000">.</span>load_once_paths<span style="color: #990000">.</span>delete<span style="color: #990000">(</span>path<span style="color: #990000">)</span>
+<span style="font-weight: bold"><span style="color: #0000FF">end</span></span>
+
+ActionView<span style="color: #990000">::</span>Base<span style="color: #990000">.</span>send <span style="color: #990000">:</span><span style="font-weight: bold"><span style="color: #0000FF">include</span></span><span style="color: #990000">,</span> WoodpeckersHelper
 </tt></pre></div></div>
-<div class="para"><p>Then add the view helpers file and</p></div>
-<div class="para"><p><strong>vendor/plugins/yaffle/lib/view_helpers.rb</strong></p></div>
+<div class="para"><p><strong>vendor/plugins/yaffle/lib/app/helpers/woodpeckers_helper.rb:</strong></p></div>
 <div class="listingblock">
 <div class="content"><!-- Generator: GNU source-highlight 2.9
 by Lorenzo Bettini
 http://www.lorenzobettini.it
 http://www.gnu.org/software/src-highlite -->
-<pre><tt><span style="font-weight: bold"><span style="color: #0000FF">module</span></span> YaffleViewHelper
-  <span style="font-weight: bold"><span style="color: #0000FF">def</span></span> squawk_info_for<span style="color: #990000">(</span>yaffle<span style="color: #990000">)</span>
-    returning <span style="color: #FF0000">""</span> <span style="font-weight: bold"><span style="color: #0000FF">do</span></span> <span style="color: #990000">|</span>result<span style="color: #990000">|</span>
-      result <span style="color: #990000">&lt;&lt;</span> yaffle<span style="color: #990000">.</span>read_attribute<span style="color: #990000">(</span>yaffle<span style="color: #990000">.</span><span style="font-weight: bold"><span style="color: #0000FF">class</span></span><span style="color: #990000">.</span>yaffle_text_field<span style="color: #990000">)</span>
-      result <span style="color: #990000">&lt;&lt;</span> <span style="color: #FF0000">", "</span>
-      result <span style="color: #990000">&lt;&lt;</span> yaffle<span style="color: #990000">.</span>read_attribute<span style="color: #990000">(</span>yaffle<span style="color: #990000">.</span><span style="font-weight: bold"><span style="color: #0000FF">class</span></span><span style="color: #990000">.</span>yaffle_date_field<span style="color: #990000">).</span>to_s
-    <span style="font-weight: bold"><span style="color: #0000FF">end</span></span>
+<pre><tt><span style="font-weight: bold"><span style="color: #0000FF">module</span></span> WoodpeckersHelper
+
+  <span style="font-weight: bold"><span style="color: #0000FF">def</span></span> tweet<span style="color: #990000">(</span>text<span style="color: #990000">)</span>
+    <span style="color: #FF0000">"Tweet! #{text}"</span>
   <span style="font-weight: bold"><span style="color: #0000FF">end</span></span>
+
 <span style="font-weight: bold"><span style="color: #0000FF">end</span></span>
 </tt></pre></div></div>
-<div class="para"><p>You can also test this in script/console by using the <tt>helper</tt> method:</p></div>
-<div class="listingblock">
-<div class="content">
-<pre><tt>$ ./script/console
-&gt;&gt; helper.squawk_info_for(@some_yaffle_instance)</tt></pre>
-</div></div>
+<div class="para"><p>Now your test should be passing, and you should be able to use the Woodpeckers helper in your app.</p></div>
 </div>
 <h2 id="_add_a_custom_route">9. Add a Custom Route</h2>
 <div class="sectionbody">

@@ -43,7 +43,7 @@ include::models.txt[]
 
 include::controllers.txt[]
 
-include::view_helper.txt[]
+include::helpers.txt[]
 
 include::custom_route.txt[]
 
