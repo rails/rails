@@ -133,10 +133,12 @@ module ActionView
           unless options.blank?
             attrs = []
             if escape
-              options.each do |key, value|
-                next unless value
-                value = BOOLEAN_ATTRIBUTES.include?(key) ? key : escape_once(value)
-                attrs << %(#{key}="#{value}")
+              options.each_pair do |key, value|
+                if BOOLEAN_ATTRIBUTES.include?(key)
+                  attrs << %(#{key}="#{key}") if value
+                else
+                  attrs << %(#{key}="#{escape_once(value)}") if !value.nil?
+                end
               end
             else
               attrs = options.map { |key, value| %(#{key}="#{value}") }

@@ -125,9 +125,8 @@ module ActiveRecord
       end
 
       # Returns true if its safe to reload the connection between requests for development mode.
-      # This is not the case for Ruby/MySQL and it's not necessary for any adapters except SQLite.
       def requires_reloading?
-        false
+        true
       end
 
       # Checks whether the connection to the database is still active (i.e. not stale).

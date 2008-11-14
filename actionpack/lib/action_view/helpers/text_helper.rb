@@ -559,7 +559,7 @@ module ActionView
                           (?:\.[-\w]+)*            # remaining subdomains or domain
                           (?::\d+)?                # port
                           (?:/(?:[~\w\+@%=\(\)-]|(?:[,.;:'][^\s$]))*)* # path
-                          (?:\?[\w\+@%&=.;-]+)?     # query string
+                          (?:\?[\w\+@%&=.;:-]+)?     # query string
                           (?:\#[\w\-]*)?           # trailing anchor
                         )
                         ([[:punct:]]|<|$|)       # trailing text

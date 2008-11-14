@@ -14,6 +14,8 @@ class LogosController < ResourcesController; end
 
 class AccountsController <  ResourcesController; end
 class AdminController   <  ResourcesController; end
+class ProductsController < ResourcesController; end
+class ImagesController < ResourcesController; end
 
 module Backoffice
   class ProductsController < ResourcesController; end
@@ -776,6 +778,225 @@ class ResourcesTest < Test::Unit::TestCase
     end
   end
 
+  def test_resource_has_only_show_action
+    with_routing do |set|
+      set.draw do |map|
+        map.resources :products, :only => :show
+      end
+
+      assert_resource_allowed_routes('products', {},                    { :id => '1' }, :show, [:index, :new, :create, :edit, :update, :destroy])
+      assert_resource_allowed_routes('products', { :format => 'xml' },  { :id => '1' }, :show, [:index, :new, :create, :edit, :update, :destroy])
+    end
+  end
+
+  def test_singleton_resource_has_only_show_action
+    with_routing do |set|
+      set.draw do |map|
+        map.resource :account, :only => :show
+      end
+
+      assert_singleton_resource_allowed_routes('accounts', {},                    :show, [:index, :new, :create, :edit, :update, :destroy])
+      assert_singleton_resource_allowed_routes('accounts', { :format => 'xml' },  :show, [:index, :new, :create, :edit, :update, :destroy])
+    end
+  end
+
+  def test_resource_does_not_have_destroy_action
+    with_routing do |set|
+      set.draw do |map|
+        map.resources :products, :except => :destroy
+      end
+
+      assert_resource_allowed_routes('products', {},                    { :id => '1' }, [:index, :new, :create, :show, :edit, :update], :destroy)
+      assert_resource_allowed_routes('products', { :format => 'xml' },  { :id => '1' }, [:index, :new, :create, :show, :edit, :update], :destroy)
+    end
+  end
+
+  def test_singleton_resource_does_not_have_destroy_action
+    with_routing do |set|
+      set.draw do |map|
+        map.resource :account, :except => :destroy
+      end
+
+      assert_singleton_resource_allowed_routes('accounts', {},                    [:new, :create, :show, :edit, :update], :destroy)
+      assert_singleton_resource_allowed_routes('accounts', { :format => 'xml' },  [:new, :create, :show, :edit, :update], :destroy)
+    end
+  end
+
+  def test_resource_has_only_create_action_and_named_route
+    with_routing do |set|
+      set.draw do |map|
+        map.resources :products, :only => :create
+      end
+
+      assert_resource_allowed_routes('products', {},                    { :id => '1' }, :create, [:index, :new, :show, :edit, :update, :destroy])
+      assert_resource_allowed_routes('products', { :format => 'xml' },  { :id => '1' }, :create, [:index, :new, :show, :edit, :update, :destroy])
+
+      assert_not_nil set.named_routes[:products]
+    end
+  end
+
+  def test_resource_has_only_update_action_and_named_route
+    with_routing do |set|
+      set.draw do |map|
+        map.resources :products, :only => :update
+      end
+
+      assert_resource_allowed_routes('products', {},                    { :id => '1' }, :update, [:index, :new, :create, :show, :edit, :destroy])
+      assert_resource_allowed_routes('products', { :format => 'xml' },  { :id => '1' }, :update, [:index, :new, :create, :show, :edit, :destroy])
+
+      assert_not_nil set.named_routes[:product]
+    end
+  end
+
+  def test_resource_has_only_destroy_action_and_named_route
+    with_routing do |set|
+      set.draw do |map|
+        map.resources :products, :only => :destroy
+      end
+
+      assert_resource_allowed_routes('products', {},                    { :id => '1' }, :destroy, [:index, :new, :create, :show, :edit, :update])
+      assert_resource_allowed_routes('products', { :format => 'xml' },  { :id => '1' }, :destroy, [:index, :new, :create, :show, :edit, :update])
+
+      assert_not_nil set.named_routes[:product]
+    end
+  end
+
+  def test_singleton_resource_has_only_create_action_and_named_route
+    with_routing do |set|
+      set.draw do |map|
+        map.resource :account, :only => :create
+      end
+
+      assert_singleton_resource_allowed_routes('accounts', {},                    :create, [:new, :show, :edit, :update, :destroy])
+      assert_singleton_resource_allowed_routes('accounts', { :format => 'xml' },  :create, [:new, :show, :edit, :update, :destroy])
+
+      assert_not_nil set.named_routes[:account]
+    end
+  end
+
+  def test_singleton_resource_has_only_update_action_and_named_route
+    with_routing do |set|
+      set.draw do |map|
+        map.resource :account, :only => :update
+      end
+
+      assert_singleton_resource_allowed_routes('accounts', {},                    :update, [:new, :create, :show, :edit, :destroy])
+      assert_singleton_resource_allowed_routes('accounts', { :format => 'xml' },  :update, [:new, :create, :show, :edit, :destroy])
+
+      assert_not_nil set.named_routes[:account]
+    end
+  end
+
+  def test_singleton_resource_has_only_destroy_action_and_named_route
+    with_routing do |set|
+      set.draw do |map|
+        map.resource :account, :only => :destroy
+      end
+
+      assert_singleton_resource_allowed_routes('accounts', {},                    :destroy, [:new, :create, :show, :edit, :update])
+      assert_singleton_resource_allowed_routes('accounts', { :format => 'xml' },  :destroy, [:new, :create, :show, :edit, :update])
+
+      assert_not_nil set.named_routes[:account]
+    end
+  end
+
+  def test_resource_has_only_collection_action
+    with_routing do |set|
+      set.draw do |map|
+        map.resources :products, :except => :all, :collection => { :sale => :get }
+      end
+
+      assert_resource_allowed_routes('products', {},                    { :id => '1' }, [], [:index, :new, :create, :show, :edit, :update, :destroy])
+      assert_resource_allowed_routes('products', { :format => 'xml' },  { :id => '1' }, [], [:index, :new, :create, :show, :edit, :update, :destroy])
+
+      assert_recognizes({ :controller => 'products', :action => 'sale' },                   :path => 'products/sale',     :method => :get)
+      assert_recognizes({ :controller => 'products', :action => 'sale', :format => 'xml' }, :path => 'products/sale.xml', :method => :get)
+    end
+  end
+
+  def test_resource_has_only_member_action
+    with_routing do |set|
+      set.draw do |map|
+        map.resources :products, :except => :all, :member => { :preview => :get }
+      end
+
+      assert_resource_allowed_routes('products', {},                    { :id => '1' }, [], [:index, :new, :create, :show, :edit, :update, :destroy])
+      assert_resource_allowed_routes('products', { :format => 'xml' },  { :id => '1' }, [], [:index, :new, :create, :show, :edit, :update, :destroy])
+
+      assert_recognizes({ :controller => 'products', :action => 'preview', :id => '1' },                    :path => 'products/1/preview',      :method => :get)
+      assert_recognizes({ :controller => 'products', :action => 'preview', :id => '1', :format => 'xml' },  :path => 'products/1/preview.xml',  :method => :get)
+    end
+  end
+
+  def test_singleton_resource_has_only_member_action
+    with_routing do |set|
+      set.draw do |map|
+        map.resource :account, :except => :all, :member => { :signup => :get }
+      end
+
+      assert_singleton_resource_allowed_routes('accounts', {},                    [], [:new, :create, :show, :edit, :update, :destroy])
+      assert_singleton_resource_allowed_routes('accounts', { :format => 'xml' },  [], [:new, :create, :show, :edit, :update, :destroy])
+
+      assert_recognizes({ :controller => 'accounts', :action => 'signup' },                   :path => 'account/signup',      :method => :get)
+      assert_recognizes({ :controller => 'accounts', :action => 'signup', :format => 'xml' }, :path => 'account/signup.xml',  :method => :get)
+    end
+  end
+
+  def test_nested_resource_inherits_only_show_action
+    with_routing do |set|
+      set.draw do |map|
+        map.resources :products, :only => :show do |product|
+          product.resources :images
+        end
+      end
+
+      assert_resource_allowed_routes('images', { :product_id => '1' },                    { :id => '2' }, :show, [:index, :new, :create, :edit, :update, :destroy], 'products/1/images')
+      assert_resource_allowed_routes('images', { :product_id => '1', :format => 'xml' },  { :id => '2' }, :show, [:index, :new, :create, :edit, :update, :destroy], 'products/1/images')
+    end
+  end
+
+  def test_nested_resource_has_only_show_and_member_action
+    with_routing do |set|
+      set.draw do |map|
+        map.resources :products, :only => [:index, :show] do |product|
+          product.resources :images, :member => { :thumbnail => :get }, :only => :show
+        end
+      end
+
+      assert_resource_allowed_routes('images', { :product_id => '1' },                    { :id => '2' }, :show, [:index, :new, :create, :edit, :update, :destroy], 'products/1/images')
+      assert_resource_allowed_routes('images', { :product_id => '1', :format => 'xml' },  { :id => '2' }, :show, [:index, :new, :create, :edit, :update, :destroy], 'products/1/images')
+
+      assert_recognizes({ :controller => 'images', :action => 'thumbnail', :product_id => '1', :id => '2' },                    :path => 'products/1/images/2/thumbnail', :method => :get)
+      assert_recognizes({ :controller => 'images', :action => 'thumbnail', :product_id => '1', :id => '2', :format => 'jpg' },  :path => 'products/1/images/2/thumbnail.jpg', :method => :get)
+    end
+  end
+
+  def test_nested_resource_ignores_only_option
+    with_routing do |set|
+      set.draw do |map|
+        map.resources :products, :only => :show do |product|
+          product.resources :images, :except => :destroy
+        end
+      end
+
+      assert_resource_allowed_routes('images', { :product_id => '1' },                    { :id => '2' }, [:index, :new, :create, :show, :edit, :update], :destroy, 'products/1/images')
+      assert_resource_allowed_routes('images', { :product_id => '1', :format => 'xml' },  { :id => '2' }, [:index, :new, :create, :show, :edit, :update], :destroy, 'products/1/images')
+    end
+  end
+
+  def test_nested_resource_ignores_except_option
+    with_routing do |set|
+      set.draw do |map|
+        map.resources :products, :except => :show do |product|
+          product.resources :images, :only => :destroy
+        end
+      end
+
+      assert_resource_allowed_routes('images', { :product_id => '1' },                    { :id => '2' }, :destroy, [:index, :new, :create, :show, :edit, :update], 'products/1/images')
+      assert_resource_allowed_routes('images', { :product_id => '1', :format => 'xml' },  { :id => '2' }, :destroy, [:index, :new, :create, :show, :edit, :update], 'products/1/images')
+    end
+  end
+
   protected
     def with_restful_routing(*args)
       with_routing do |set|
@@ -976,6 +1197,51 @@ class ResourcesTest < Test::Unit::TestCase
       expected.each do |action|
         assert resource.send("#{action_method}_methods")[method].include?(action),
           "#{method} not in #{action_method} methods: #{resource.send("#{action_method}_methods")[method].inspect}"
+      end
+    end
+
+    def assert_resource_allowed_routes(controller, options, shallow_options, allowed, not_allowed, path = controller)
+      shallow_path = "#{path}/#{shallow_options[:id]}"
+      format = options[:format] && ".#{options[:format]}"
+      options.merge!(:controller => controller)
+      shallow_options.merge!(options)
+
+      assert_whether_allowed(allowed, not_allowed, options,         'index',    "#{path}#{format}",               :get)
+      assert_whether_allowed(allowed, not_allowed, options,         'new',      "#{path}/new#{format}",           :get)
+      assert_whether_allowed(allowed, not_allowed, options,         'create',   "#{path}#{format}",               :post)
+      assert_whether_allowed(allowed, not_allowed, shallow_options, 'show',     "#{shallow_path}#{format}",       :get)
+      assert_whether_allowed(allowed, not_allowed, shallow_options, 'edit',     "#{shallow_path}/edit#{format}",  :get)
+      assert_whether_allowed(allowed, not_allowed, shallow_options, 'update',   "#{shallow_path}#{format}",       :put)
+      assert_whether_allowed(allowed, not_allowed, shallow_options, 'destroy',  "#{shallow_path}#{format}",       :delete)
+    end
+
+    def assert_singleton_resource_allowed_routes(controller, options, allowed, not_allowed, path = controller.singularize)
+      format = options[:format] && ".#{options[:format]}"
+      options.merge!(:controller => controller)
+
+      assert_whether_allowed(allowed, not_allowed, options, 'new',      "#{path}/new#{format}",   :get)
+      assert_whether_allowed(allowed, not_allowed, options, 'create',   "#{path}#{format}",       :post)
+      assert_whether_allowed(allowed, not_allowed, options, 'show',     "#{path}#{format}",       :get)
+      assert_whether_allowed(allowed, not_allowed, options, 'edit',     "#{path}/edit#{format}",  :get)
+      assert_whether_allowed(allowed, not_allowed, options, 'update',   "#{path}#{format}",       :put)
+      assert_whether_allowed(allowed, not_allowed, options, 'destroy',  "#{path}#{format}",       :delete)
+    end
+
+    def assert_whether_allowed(allowed, not_allowed, options, action, path, method)
+      action = action.to_sym
+      options = options.merge(:action => action.to_s)
+      path_options = { :path => path, :method => method }
+
+      if Array(allowed).include?(action)
+        assert_recognizes options, path_options
+      elsif Array(not_allowed).include?(action)
+        assert_not_recognizes options, path_options
+      end
+    end
+
+    def assert_not_recognizes(expected_options, path)
+      assert_raise ActionController::RoutingError, ActionController::MethodNotAllowed, Test::Unit::AssertionFailedError do
+        assert_recognizes(expected_options, path)
       end
     end
 

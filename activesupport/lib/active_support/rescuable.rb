@@ -78,7 +78,7 @@ module ActiveSupport
     def handler_for_rescue(exception)
       # We go from right to left because pairs are pushed onto rescue_handlers
       # as rescue_from declarations are found.
-      _, handler = Array(rescue_handlers).reverse.detect do |klass_name, handler|
+      _, rescuer = Array(rescue_handlers).reverse.detect do |klass_name, handler|
         # The purpose of allowing strings in rescue_from is to support the
         # declaration of handler associations for exception classes whose
         # definition is yet unknown.
@@ -97,11 +97,11 @@ module ActiveSupport
         exception.is_a?(klass) if klass
       end
 
-      case handler
+      case rescuer
       when Symbol
-        method(handler)
+        method(rescuer)
       when Proc
-        handler.bind(self)
+        rescuer.bind(self)
       end
     end
   end

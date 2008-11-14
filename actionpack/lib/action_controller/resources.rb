@@ -42,7 +42,11 @@ module ActionController
   #
   # Read more about REST at http://en.wikipedia.org/wiki/Representational_State_Transfer
   module Resources
+    INHERITABLE_OPTIONS = :namespace, :shallow, :actions
+
     class Resource #:nodoc:
+      DEFAULT_ACTIONS = :index, :create, :new, :edit, :show, :update, :destroy
+
       attr_reader :collection_methods, :member_methods, :new_methods
       attr_reader :path_prefix, :name_prefix, :path_segment
       attr_reader :plural, :singular
@@ -57,6 +61,7 @@ module ActionController
 
         arrange_actions
         add_default_actions
+        set_allowed_actions
         set_prefixes
       end
 
@@ -113,6 +118,10 @@ module ActionController
         @singular.to_s == @plural.to_s
       end
 
+      def has_action?(action)
+        !DEFAULT_ACTIONS.include?(action) || @options[:actions].nil? || @options[:actions].include?(action)
+      end
+
       protected
         def arrange_actions
           @collection_methods = arrange_actions_by_methods(options.delete(:collection))
@@ -123,6 +132,25 @@ module ActionController
         def add_default_actions
           add_default_action(member_methods, :get, :edit)
           add_default_action(new_methods, :get, :new)
+        end
+
+        def set_allowed_actions
+          only    = @options.delete(:only)
+          except  = @options.delete(:except)
+
+          if only && except
+            raise ArgumentError, 'Please supply either :only or :except, not both.'
+          elsif only == :all || except == :none
+            options[:actions] = DEFAULT_ACTIONS
+          elsif only == :none || except == :all
+            options[:actions] = []
+          elsif only
+            options[:actions] = DEFAULT_ACTIONS & Array(only).map(&:to_sym)
+          elsif except
+            options[:actions] = DEFAULT_ACTIONS - Array(except).map(&:to_sym)
+          else
+            # leave options[:actions] alone
+          end
         end
 
         def set_prefixes
@@ -353,6 +381,25 @@ module ActionController
     #
     #   map.resources :users, :has_many => { :posts => :comments }, :shallow => true
     #
+    # * <tt>:only</tt> and <tt>:except</tt> - Specify which of the seven default actions should be routed to.
+    #
+    # <tt>:only</tt> and <tt>:except</tt> may be set to <tt>:all</tt>, <tt>:none</tt>, an action name or a
+    # list of action names. By default, routes are generated for all seven actions.
+    #
+    # For example:
+    #
+    #   map.resources :posts, :only => [:index, :show] do |post|
+    #     post.resources :comments, :except => [:update, :destroy]
+    #   end
+    #   # --> GET /posts (maps to the PostsController#index action)
+    #   # --> POST /posts (fails)
+    #   # --> GET /posts/1 (maps to the PostsController#show action)
+    #   # --> DELETE /posts/1 (fails)
+    #   # --> POST /posts/1/comments (maps to the CommentsController#create action)
+    #   # --> PUT /posts/1/comments/1 (fails)
+    #
+    # The <tt>:only</tt> and <tt>:except</tt> options are inherited by any nested resource(s).
+    #
     # If <tt>map.resources</tt> is called with multiple resources, they all get the same options applied.
     #
     # Examples:
@@ -478,7 +525,7 @@ module ActionController
           map_associations(resource, options)
 
           if block_given?
-            with_options(:path_prefix => resource.nesting_path_prefix, :name_prefix => resource.nesting_name_prefix, :namespace => options[:namespace], :shallow => options[:shallow], &block)
+            with_options(options.slice(*INHERITABLE_OPTIONS).merge(:path_prefix => resource.nesting_path_prefix, :name_prefix => resource.nesting_name_prefix), &block)
           end
         end
       end
@@ -495,7 +542,7 @@ module ActionController
           map_associations(resource, options)
 
           if block_given?
-            with_options(:path_prefix => resource.nesting_path_prefix, :name_prefix => resource.nesting_name_prefix, :namespace => options[:namespace], :shallow => options[:shallow], &block)
+            with_options(options.slice(*INHERITABLE_OPTIONS).merge(:path_prefix => resource.nesting_path_prefix, :name_prefix => resource.nesting_name_prefix), &block)
           end
         end
       end
@@ -507,7 +554,7 @@ module ActionController
         name_prefix = "#{options.delete(:name_prefix)}#{resource.nesting_name_prefix}"
 
         Array(options[:has_one]).each do |association|
-          resource(association, :path_prefix => path_prefix, :name_prefix => name_prefix, :namespace => options[:namespace], :shallow => options[:shallow])
+          resource(association, options.slice(*INHERITABLE_OPTIONS).merge(:path_prefix => path_prefix, :name_prefix => name_prefix))
         end
       end
 
@@ -522,7 +569,7 @@ module ActionController
             map_has_many_associations(resource, association, options)
           end
         when Symbol, String
-          resources(associations, :path_prefix => resource.nesting_path_prefix, :name_prefix => resource.nesting_name_prefix, :namespace => options[:namespace], :shallow => options[:shallow], :has_many => options[:has_many])
+          resources(associations, options.slice(*INHERITABLE_OPTIONS).merge(:path_prefix => resource.nesting_path_prefix, :name_prefix => resource.nesting_name_prefix, :has_many => options[:has_many]))
         else
         end
       end
@@ -531,41 +578,39 @@ module ActionController
         resource.collection_methods.each do |method, actions|
           actions.each do |action|
             [method].flatten.each do |m|
-              action_options = action_options_for(action, resource, m)
-              map_named_routes(map, "#{action}_#{resource.name_prefix}#{resource.plural}", "#{resource.path}#{resource.action_separator}#{action}", action_options)
+              map_resource_routes(map, resource, action, "#{resource.path}#{resource.action_separator}#{action}", "#{action}_#{resource.name_prefix}#{resource.plural}", m)
             end
           end
         end
       end
 
       def map_default_collection_actions(map, resource)
-        index_action_options = action_options_for("index", resource)
         index_route_name = "#{resource.name_prefix}#{resource.plural}"
 
         if resource.uncountable?
           index_route_name << "_index"
         end
 
-        map_named_routes(map, index_route_name, resource.path, index_action_options)
-
-        create_action_options = action_options_for("create", resource)
-        map_unnamed_routes(map, resource.path, create_action_options)
+        map_resource_routes(map, resource, :index, resource.path, index_route_name)
+        map_resource_routes(map, resource, :create, resource.path, index_route_name)
       end
 
       def map_default_singleton_actions(map, resource)
-        create_action_options = action_options_for("create", resource)
-        map_unnamed_routes(map, resource.path, create_action_options)
+        map_resource_routes(map, resource, :create, resource.path, "#{resource.shallow_name_prefix}#{resource.singular}")
       end
 
       def map_new_actions(map, resource)
         resource.new_methods.each do |method, actions|
           actions.each do |action|
-            action_options = action_options_for(action, resource, method)
-            if action == :new
-              map_named_routes(map, "new_#{resource.name_prefix}#{resource.singular}", resource.new_path, action_options)
-            else
-              map_named_routes(map, "#{action}_new_#{resource.name_prefix}#{resource.singular}", "#{resource.new_path}#{resource.action_separator}#{action}", action_options)
+            route_path = resource.new_path
+            route_name = "new_#{resource.name_prefix}#{resource.singular}"
+
+            unless action == :new
+              route_path = "#{route_path}#{resource.action_separator}#{action}"
+              route_name = "#{action}_#{route_name}"
             end
+
+            map_resource_routes(map, resource, action, route_path, route_name, method)
           end
         end
       end
@@ -574,34 +619,33 @@ module ActionController
         resource.member_methods.each do |method, actions|
           actions.each do |action|
             [method].flatten.each do |m|
-              action_options = action_options_for(action, resource, m)
-
               action_path = resource.options[:path_names][action] if resource.options[:path_names].is_a?(Hash)
               action_path ||= Base.resources_path_names[action] || action
 
-              map_named_routes(map, "#{action}_#{resource.shallow_name_prefix}#{resource.singular}", "#{resource.member_path}#{resource.action_separator}#{action_path}", action_options)
+              map_resource_routes(map, resource, action, "#{resource.member_path}#{resource.action_separator}#{action_path}", "#{action}_#{resource.shallow_name_prefix}#{resource.singular}", m)
             end
           end
         end
 
-        show_action_options = action_options_for("show", resource)
-        map_named_routes(map, "#{resource.shallow_name_prefix}#{resource.singular}", resource.member_path, show_action_options)
-
-        update_action_options = action_options_for("update", resource)
-        map_unnamed_routes(map, resource.member_path, update_action_options)
-
-        destroy_action_options = action_options_for("destroy", resource)
-        map_unnamed_routes(map, resource.member_path, destroy_action_options)
+        route_path = "#{resource.shallow_name_prefix}#{resource.singular}"
+        map_resource_routes(map, resource, :show, resource.member_path, route_path)
+        map_resource_routes(map, resource, :update, resource.member_path, route_path)
+        map_resource_routes(map, resource, :destroy, resource.member_path, route_path)
       end
 
-      def map_unnamed_routes(map, path_without_format, options)
-        map.connect(path_without_format, options)
-        map.connect("#{path_without_format}.:format", options)
-      end
+      def map_resource_routes(map, resource, action, route_path, route_name = nil, method = nil)
+        if resource.has_action?(action)
+          action_options = action_options_for(action, resource, method)
+          formatted_route_path = "#{route_path}.:format"
 
-      def map_named_routes(map, name, path_without_format, options)
-        map.named_route(name, path_without_format, options)
-        map.named_route("formatted_#{name}", "#{path_without_format}.:format", options)
+          if route_name && @set.named_routes[route_name.to_sym].nil?
+            map.named_route(route_name, route_path, action_options)
+            map.named_route("formatted_#{route_name}", formatted_route_path, action_options)
+          else
+            map.connect(route_path, action_options)
+            map.connect(formatted_route_path, action_options)
+          end
+        end
       end
 
       def add_conditions_for(conditions, method)
