@@ -1,0 +1,59 @@
+== Add a controller ==
+
+This section describes how to add a controller named 'woodpeckers' to your plugin that will behave the same as a controller in your main app.  This is very similar to adding a model.
+
+You can test your plugin's controller as you would test any other controller:
+
+*vendor/plugins/yaffle/yaffle/woodpeckers_controller_test.rb:*
+
+[source, ruby]
+----------------------------------------------
+require File.dirname(__FILE__) + '/test_helper.rb'
+require 'woodpeckers_controller'
+require 'action_controller/test_process'
+
+class WoodpeckersController; def rescue_action(e) raise e end; end
+
+class WoodpeckersControllerTest < Test::Unit::TestCase
+  def setup
+    @controller = WoodpeckersController.new
+    @request = ActionController::TestRequest.new
+    @response = ActionController::TestResponse.new
+  end
+
+  def test_index
+    get :index
+    assert_response :success
+  end
+end
+----------------------------------------------
+
+This is just a simple test to make sure the controller is being loaded correctly.  After watching it fail with `rake`, you can make it pass like so:
+
+*vendor/plugins/yaffle/lib/yaffle.rb:*
+
+[source, ruby]
+----------------------------------------------
+%w{ models controllers }.each do |dir|
+  path = File.join(File.dirname(__FILE__), 'app', dir)
+  $LOAD_PATH << path
+  ActiveSupport::Dependencies.load_paths << path
+  ActiveSupport::Dependencies.load_once_paths.delete(path)
+end
+----------------------------------------------
+
+
+*vendor/plugins/yaffle/lib/app/controllers/woodpeckers_controller.rb:*
+
+[source, ruby]
+----------------------------------------------
+class WoodpeckersController < ActionController::Base
+  
+  def index
+    render :text => "Squawk!"
+  end
+  
+end
+----------------------------------------------
+
+Now your test should be passing, and you should be able to use the Woodpeckers controller in your app.  If you add a route for the woodpeckers controller you can start up your server and go to http://localhost:3000/woodpeckers to see your controller in action.

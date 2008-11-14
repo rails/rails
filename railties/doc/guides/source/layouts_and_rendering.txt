@@ -877,6 +877,8 @@ When a partial is called with a pluralized collection, then the individual insta
 
 With this change, you can access an instance of the +@products+ collection as the +item+ local variable within the partial.
 
+TIP: Rails also makes a counter variable available within a partial called by the collection, named after the member of the collection followed by +_counter+. For example, if you're rendering +@products+, within the partial you can refer to +product_counter+ to tell you how many times the partial has been rendered.
+
 You can also specify a second partial to be rendered between instances of the main partial by using the +:spacer_template+ option:
 
 [source, html]
@@ -933,6 +935,7 @@ In this case, Rails will use the customer or employee partials as appropriate fo
 
 http://rails.lighthouseapp.com/projects/16213-rails-guides/tickets/15[Lighthouse ticket]
 
+* November 9, 2008: Added partial collection counter by link:../authors.html#mgunderloy[Mike Gunderloy] 
 * November 1, 2008: Added +:js+ option for +render+ by link:../authors.html#mgunderloy[Mike Gunderloy] 
 * October 16, 2008: Ready for publication by link:../authors.html#mgunderloy[Mike Gunderloy] 
 * October 4, 2008: Additional info on partials (+:object+, +:as+, and +:spacer_template+) by link:../authors.html#mgunderloy[Mike Gunderloy] (not yet approved for publication)

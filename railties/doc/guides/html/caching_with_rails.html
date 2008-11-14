@@ -235,48 +235,54 @@ need to return to those hungry web clients in the shortest time possible.</p></d
 <div class="sectionbody">
 <div class="para"><p>This is an introduction to the three types of caching techniques that Rails
 provides by default without the use of any third party plugins.</p></div>
-<div class="para"><p>To get started make sure Base.perform_caching is set to true for your
-environment.</p></div>
+<div class="para"><p>To get started make sure config.action_controller.perform_caching is set
+to true for your environment. This flag is normally set in the
+corresponding config/environments/*.rb and caching is disabled by default
+there for development and test, and enabled for production.</p></div>
 <div class="listingblock">
 <div class="content"><!-- Generator: GNU source-highlight 2.9
 by Lorenzo Bettini
 http://www.lorenzobettini.it
 http://www.gnu.org/software/src-highlite -->
-<pre><tt>Base<span style="color: #990000">.</span>perform_caching <span style="color: #990000">=</span> <span style="font-weight: bold"><span style="color: #0000FF">true</span></span>
+<pre><tt>config<span style="color: #990000">.</span>action_controller<span style="color: #990000">.</span>perform_caching <span style="color: #990000">=</span> <span style="font-weight: bold"><span style="color: #0000FF">true</span></span>
 </tt></pre></div></div>
 <h3 id="_page_caching">1.1. Page Caching</h3>
 <div class="para"><p>Page caching is a Rails mechanism which allows the request for a generated
 page to be fulfilled by the webserver, without ever having to go through the
-Rails stack at all. Obviously, this is super fast. Unfortunately, it can't be
+Rails stack at all. Obviously, this is super-fast. Unfortunately, it can't be
 applied to every situation (such as pages that need authentication) and since
 the webserver is literally just serving a file from the filesystem, cache
 expiration is an issue that needs to be dealt with.</p></div>
 <div class="para"><p>So, how do you enable this super-fast cache behavior?  Simple, let's say you
-have a controller called ProductController and a <em>list</em> action that lists all
+have a controller called ProductsController and a <em>list</em> action that lists all
 the products</p></div>
 <div class="listingblock">
 <div class="content"><!-- Generator: GNU source-highlight 2.9
 by Lorenzo Bettini
 http://www.lorenzobettini.it
 http://www.gnu.org/software/src-highlite -->
-<pre><tt><span style="font-weight: bold"><span style="color: #0000FF">class</span></span> ProductController <span style="color: #990000">&lt;</span> ActionController
+<pre><tt><span style="font-weight: bold"><span style="color: #0000FF">class</span></span> ProductsController <span style="color: #990000">&lt;</span> ActionController
 
-  cache_page <span style="color: #990000">:</span>list
+  caches_page <span style="color: #990000">:</span>index
 
-  <span style="font-weight: bold"><span style="color: #0000FF">def</span></span> list<span style="color: #990000">;</span> <span style="font-weight: bold"><span style="color: #0000FF">end</span></span>
+  <span style="font-weight: bold"><span style="color: #0000FF">def</span></span> index<span style="color: #990000">;</span> <span style="font-weight: bold"><span style="color: #0000FF">end</span></span>
 
 <span style="font-weight: bold"><span style="color: #0000FF">end</span></span>
 </tt></pre></div></div>
-<div class="para"><p>The first time anyone requestsion products/list, Rails will generate a file
-called list.html and the webserver will then look for that file before it
-passes the next request for products/list to your Rails application.</p></div>
+<div class="para"><p>The first time anyone requests products/index, Rails will generate a file
+called index.html and the webserver will then look for that file before it
+passes the next request for products/index to your Rails application.</p></div>
 <div class="para"><p>By default, the page cache directory is set to Rails.public_path (which is
-usually set to RAILS_ROOT + "/public") and this can be configured by changing
-the configuration setting Base.cache_public_directory</p></div>
-<div class="para"><p>The page caching mechanism will automatically add a .html exxtension to
+usually set to RAILS_ROOT + "/public") and this can be configured by
+changing the configuration setting ActionController::Base.page_cache_directory. Changing the
+default from /public helps avoid naming conflicts, since you may want to
+put other static html in /public, but changing this will require web
+server reconfiguration to let the web server know where to serve the
+cached files from.</p></div>
+<div class="para"><p>The Page Caching mechanism will automatically add a .html exxtension to
 requests for pages that do not have an extension to make it easy for the
 webserver to find those pages and this can be configured by changing the
-configuration setting Base.page_cache_extension</p></div>
+configuration setting ActionController::Base.page_cache_extension.</p></div>
 <div class="para"><p>In order to expire this page when a new product is added we could extend our
 example controler like this:</p></div>
 <div class="listingblock">
@@ -284,9 +290,9 @@ example controler like this:</p></div>
 by Lorenzo Bettini
 http://www.lorenzobettini.it
 http://www.gnu.org/software/src-highlite -->
-<pre><tt><span style="font-weight: bold"><span style="color: #0000FF">class</span></span> ProductController <span style="color: #990000">&lt;</span> ActionController
+<pre><tt><span style="font-weight: bold"><span style="color: #0000FF">class</span></span> ProductsController <span style="color: #990000">&lt;</span> ActionController
 
-  cache_page <span style="color: #990000">:</span>list
+  caches_page <span style="color: #990000">:</span>list
 
   <span style="font-weight: bold"><span style="color: #0000FF">def</span></span> list<span style="color: #990000">;</span> <span style="font-weight: bold"><span style="color: #0000FF">end</span></span>
 
@@ -299,11 +305,11 @@ http://www.gnu.org/software/src-highlite -->
 <div class="para"><p>If you want a more complicated expiration scheme, you can use cache sweepers
 to expire cached objects when things change. This is covered in the section on Sweepers.</p></div>
 <h3 id="_action_caching">1.2. Action Caching</h3>
-<div class="para"><p>One of the issues with page caching is that you cannot use it for pages that
+<div class="para"><p>One of the issues with Page Caching is that you cannot use it for pages that
 require to restrict access somehow. This is where Action Caching comes in.
 Action Caching works like Page Caching except for the fact that the incoming
 web request does go from the webserver to the Rails stack and Action Pack so
-that before_filters can be run on it before the cache is served, so that
+that before filters can be run on it before the cache is served, so that
 authentication and other restrictions can be used while still serving the
 result of the output from a cached copy.</p></div>
 <div class="para"><p>Clearing the cache works in the exact same way as with Page Caching.</p></div>
@@ -314,10 +320,10 @@ object, but still cache those pages:</p></div>
 by Lorenzo Bettini
 http://www.lorenzobettini.it
 http://www.gnu.org/software/src-highlite -->
-<pre><tt><span style="font-weight: bold"><span style="color: #0000FF">class</span></span> ProductController <span style="color: #990000">&lt;</span> ActionController
+<pre><tt><span style="font-weight: bold"><span style="color: #0000FF">class</span></span> ProductsController <span style="color: #990000">&lt;</span> ActionController
 
   before_filter <span style="color: #990000">:</span>authenticate<span style="color: #990000">,</span> <span style="color: #990000">:</span>only <span style="color: #990000">=&gt;</span> <span style="color: #990000">[</span> <span style="color: #990000">:</span>edit<span style="color: #990000">,</span> <span style="color: #990000">:</span>create <span style="color: #990000">]</span>
-  cache_page <span style="color: #990000">:</span>list
+  caches_page <span style="color: #990000">:</span>list
   caches_action <span style="color: #990000">:</span>edit
 
   <span style="font-weight: bold"><span style="color: #0000FF">def</span></span> list<span style="color: #990000">;</span> <span style="font-weight: bold"><span style="color: #0000FF">end</span></span>
@@ -336,7 +342,7 @@ action should be cached. Also, you can use :layout &#8658; false to cache withou
 layout so that dynamic information in the layout such as logged in user info
 or the number of items in the cart can be left uncached. This feature is
 available as of Rails 2.2.</p></div>
-<div class="para"><p>[More: more examples? Walk-through of action caching from request to response?
+<div class="para"><p>[More: more examples? Walk-through of Action Caching from request to response?
        Description of Rake tasks to clear cached files? Show example of
        subdomain caching? Talk about :cache_path, :if and assing blocks/Procs
        to expire_action?]</p></div>
@@ -346,13 +352,13 @@ a page or action and serving it out to the world. Unfortunately, dynamic web
 applications usually build pages with a variety of components not all of which
 have the same caching characteristics. In order to address such a dynamically
 created page where different parts of the page need to be cached and expired
-differently Rails provides a mechanism called Fragment caching.</p></div>
-<div class="para"><p>Fragment caching allows a fragment of view logic to be wrapped in a cache
+differently Rails provides a mechanism called Fragment Caching.</p></div>
+<div class="para"><p>Fragment Caching allows a fragment of view logic to be wrapped in a cache
 block and served out of the cache store when the next request comes in.</p></div>
-<div class="para"><p>As an example, if you wanted to show all the orders placed on your website in
-real time and didn't want to cache that part  of the page, but did want to
-cache the part of the page which lists all products available, you could use
-this piece of code:</p></div>
+<div class="para"><p>As an example, if you wanted to show all the orders placed on your website
+in real time and didn't want to cache that part  of the page, but did want
+to cache the part of the page which lists all products available, you
+could use this piece of code:</p></div>
 <div class="listingblock">
 <div class="content"><!-- Generator: GNU source-highlight 2.9
 by Lorenzo Bettini
@@ -371,7 +377,7 @@ http://www.gnu.org/software/src-highlite -->
 </tt></pre></div></div>
 <div class="para"><p>The cache block in our example will bind to the action that called it and is
 written out to the same place as the Action Cache, which means that if you
-want to cache multiple fragments per action, you should provide an action_path to the cache call:</p></div>
+want to cache multiple fragments per action, you should provide an action_suffix to the cache call:</p></div>
 <div class="listingblock">
 <div class="content"><!-- Generator: GNU source-highlight 2.9
 by Lorenzo Bettini
@@ -439,10 +445,10 @@ following:</p></div>
 by Lorenzo Bettini
 http://www.lorenzobettini.it
 http://www.gnu.org/software/src-highlite -->
-<pre><tt><span style="font-weight: bold"><span style="color: #0000FF">class</span></span> ProductController <span style="color: #990000">&lt;</span> ActionController
+<pre><tt><span style="font-weight: bold"><span style="color: #0000FF">class</span></span> ProductsController <span style="color: #990000">&lt;</span> ActionController
 
   before_filter <span style="color: #990000">:</span>authenticate<span style="color: #990000">,</span> <span style="color: #990000">:</span>only <span style="color: #990000">=&gt;</span> <span style="color: #990000">[</span> <span style="color: #990000">:</span>edit<span style="color: #990000">,</span> <span style="color: #990000">:</span>create <span style="color: #990000">]</span>
-  cache_page <span style="color: #990000">:</span>list
+  caches_page <span style="color: #990000">:</span>list
   caches_action <span style="color: #990000">:</span>edit
   cache_sweeper <span style="color: #990000">:</span>store_sweeper<span style="color: #990000">,</span> <span style="color: #990000">:</span>only <span style="color: #990000">=&gt;</span> <span style="color: #990000">[</span> <span style="color: #990000">:</span>create <span style="color: #990000">]</span>
 
@@ -468,10 +474,10 @@ database again.</p></div>
 by Lorenzo Bettini
 http://www.lorenzobettini.it
 http://www.gnu.org/software/src-highlite -->
-<pre><tt><span style="font-weight: bold"><span style="color: #0000FF">class</span></span> ProductController <span style="color: #990000">&lt;</span> ActionController
+<pre><tt><span style="font-weight: bold"><span style="color: #0000FF">class</span></span> ProductsController <span style="color: #990000">&lt;</span> ActionController
 
   before_filter <span style="color: #990000">:</span>authenticate<span style="color: #990000">,</span> <span style="color: #990000">:</span>only <span style="color: #990000">=&gt;</span> <span style="color: #990000">[</span> <span style="color: #990000">:</span>edit<span style="color: #990000">,</span> <span style="color: #990000">:</span>create <span style="color: #990000">]</span>
-  cache_page <span style="color: #990000">:</span>list
+  caches_page <span style="color: #990000">:</span>list
   caches_action <span style="color: #990000">:</span>edit
   cache_sweeper <span style="color: #990000">:</span>store_sweeper<span style="color: #990000">,</span> <span style="color: #990000">:</span>only <span style="color: #990000">=&gt;</span> <span style="color: #990000">[</span> <span style="color: #990000">:</span>create <span style="color: #990000">]</span>
 
