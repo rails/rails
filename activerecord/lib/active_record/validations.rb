@@ -923,6 +923,11 @@ module ActiveRecord
       end
     end
 
+    def update_attribute_with_validation_skipping(name, value)
+      ActiveSupport::Deprecation.warn "Base#update_attribute_with_validation_skipping has been deprecated, use Base#update_attribute instead"
+      update_attribute(name, value)
+    end
+
     # Runs +validate+ and +validate_on_create+ or +validate_on_update+ and returns true if no errors were added otherwise false.
     def valid?
       errors.clear

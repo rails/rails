@@ -832,6 +832,12 @@ class BasicsTest < ActiveRecord::TestCase
     assert !Topic.find(1).approved?
   end
 
+  def test_deprecated_update_attribute
+    assert !Topic.find(1).approved?
+    assert_deprecated { Topic.find(1).update_attribute_with_validation_skipping("approved", true) }
+    assert Topic.find(1).approved?
+  end
+
   def test_update_attributes
     topic = Topic.find(1)
     assert !topic.approved?
