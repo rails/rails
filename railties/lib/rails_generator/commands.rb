@@ -73,6 +73,8 @@ module Rails
           end
 
           def existing_migrations(file_name)
+            puts "#{__FILE__}:#{__LINE__}"
+            puts @migration_directory
             Dir.glob("#{@migration_directory}/[0-9]*_*.rb").grep(/[0-9]+_#{file_name}.rb$/)
           end
 

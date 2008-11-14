@@ -79,6 +79,8 @@ class Wickwall < ActiveRecord::Base
 end
 
 class ActsAsYaffleTest < Test::Unit::TestCase
+  load_schema
+
   def test_a_hickwalls_yaffle_text_field_should_be_last_squawk
     assert_equal "last_squawk", Hickwall.yaffle_text_field
   end
@@ -132,6 +134,8 @@ class Wickwall < ActiveRecord::Base
 end
 
 class ActsAsYaffleTest < Test::Unit::TestCase
+  load_schema
+
   def test_a_hickwalls_yaffle_text_field_should_be_last_squawk
     assert_equal "last_squawk", Hickwall.yaffle_text_field
   end

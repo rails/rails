@@ -64,24 +64,24 @@ create  vendor/plugins/yaffle/generators/yaffle/USAGE
 
 === Setup the plugin for testing ===
 
-In this guide you will learn how to test your plugin against multiple different adapters using Active Record.  This guide will not cover how to use fixtures in plugin tests.
+If your plugin interacts with a database, you'll need to setup a database connection.  In this guide you will learn how to test your plugin against multiple different database adapters using Active Record.  This guide will not cover how to use fixtures in plugin tests.
 
 To setup your plugin to allow for easy testing you'll need to add 3 files:
 
- * A 'database.yml' file with all of your connection strings.
- * A 'schema.rb' file with your table definitions.
- * A test helper that sets up the database before your tests.
+ * A 'database.yml' file with all of your connection strings
+ * A 'schema.rb' file with your table definitions
+ * A test helper method that sets up the database
 
 *vendor/plugins/yaffle/test/database.yml:*
 
 ----------------------------------------------
 sqlite:
   :adapter: sqlite
-  :dbfile: yaffle_plugin.sqlite.db
+  :dbfile: vendor/plugins/yaffle/test/yaffle_plugin.sqlite.db
 
 sqlite3:
   :adapter: sqlite3
-  :dbfile: yaffle_plugin.sqlite3.db
+  :dbfile: vendor/plugins/yaffle/test/yaffle_plugin.sqlite3.db
 
 postgresql:
   :adapter: postgresql
@@ -93,8 +93,8 @@ postgresql:
 mysql:
   :adapter: mysql
   :host: localhost
-  :username: rails
-  :password:
+  :username: root
+  :password: password
   :database: yaffle_plugin_test
 ----------------------------------------------
 
@@ -128,34 +128,39 @@ ENV['RAILS_ROOT'] ||= File.dirname(__FILE__) + '/../../../..'
 require 'test/unit'
 require File.expand_path(File.join(ENV['RAILS_ROOT'], 'config/environment.rb'))
 
-config = YAML::load(IO.read(File.dirname(__FILE__) + '/database.yml'))
-ActiveRecord::Base.logger = Logger.new(File.dirname(__FILE__) + "/debug.log")
+def load_schema
+  config = YAML::load(IO.read(File.dirname(__FILE__) + '/database.yml'))
+  ActiveRecord::Base.logger = Logger.new(File.dirname(__FILE__) + "/debug.log")
 
-db_adapter = ENV['DB']
+  db_adapter = ENV['DB']
 
-db_adapter ||=
-  begin
-    require 'rubygems'
-    require 'sqlite'
-    'sqlite'
-  rescue MissingSourceFile
+  # no db passed, try one of these fine config-free DBs before bombing.
+  db_adapter ||=
     begin
-      require 'sqlite3'
-      'sqlite3'
+      require 'rubygems'
+      require 'sqlite'
+      'sqlite'
     rescue MissingSourceFile
+      begin
+        require 'sqlite3'
+        'sqlite3'
+      rescue MissingSourceFile
+      end
     end
+
+  if db_adapter.nil?
+    raise "No DB Adapter selected. Pass the DB= option to pick one, or install Sqlite or Sqlite3."
   end
 
-if db_adapter.nil?
-  raise "No DB Adapter selected. Pass the DB= option to pick one, or install Sqlite or Sqlite3."
+  ActiveRecord::Base.establish_connection(config[db_adapter])
+
+  load(File.dirname(__FILE__) + "/schema.rb")
+
+  require File.dirname(__FILE__) + '/../init.rb'
 end
-
-ActiveRecord::Base.establish_connection(config[db_adapter])
-
-load(File.dirname(__FILE__) + "/schema.rb")
-
-require File.dirname(__FILE__) + '/../init.rb'
 ----------------------------------------------
+
+Now whenever you write a test that requires the database, you can call 'load_schema'.
 
 === Run the plugin tests ===
 
@@ -168,6 +173,7 @@ Once you have these files in place, you can write your first test to ensure that
 require File.dirname(__FILE__) + '/test_helper.rb'
 
 class YaffleTest < Test::Unit::TestCase
+  load_schema
   
   class Hickwall < ActiveRecord::Base
   end

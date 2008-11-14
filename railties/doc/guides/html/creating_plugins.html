@@ -239,6 +239,17 @@ ul#navMain {
 					</li>
 					<li>
 					<a href="#_create_a_migration_generator">Create a migration generator</a>
+						<ul>
+						
+							<li><a href="#_testing_generators">Testing generators</a></li>
+						
+							<li><a href="#_adding_to_the_manifest">Adding to the manifest</a></li>
+						
+							<li><a href="#_manually_test_the_generator">Manually test the generator</a></li>
+						
+							<li><a href="#_the_usage_file">The USAGE file</a></li>
+						
+						</ul>
 					</li>
 					<li>
 					<a href="#_add_a_custom_generator_command">Add a custom generator command</a>
@@ -433,22 +444,22 @@ create  vendor/plugins/yaffle/generators/yaffle/yaffle_generator.rb
 create  vendor/plugins/yaffle/generators/yaffle/USAGE</tt></pre>
 </div></div>
 <h3 id="_setup_the_plugin_for_testing">1.3. Setup the plugin for testing</h3>
-<div class="para"><p>In this guide you will learn how to test your plugin against multiple different adapters using Active Record.  This guide will not cover how to use fixtures in plugin tests.</p></div>
+<div class="para"><p>If your plugin interacts with a database, you'll need to setup a database connection.  In this guide you will learn how to test your plugin against multiple different database adapters using Active Record.  This guide will not cover how to use fixtures in plugin tests.</p></div>
 <div class="para"><p>To setup your plugin to allow for easy testing you'll need to add 3 files:</p></div>
 <div class="ilist"><ul>
 <li>
 <p>
-A <em>database.yml</em> file with all of your connection strings.
+A <em>database.yml</em> file with all of your connection strings
 </p>
 </li>
 <li>
 <p>
-A <em>schema.rb</em> file with your table definitions.
+A <em>schema.rb</em> file with your table definitions
 </p>
 </li>
 <li>
 <p>
-A test helper that sets up the database before your tests.
+A test helper method that sets up the database
 </p>
 </li>
 </ul></div>
@@ -457,11 +468,11 @@ A test helper that sets up the database before your tests.
 <div class="content">
 <pre><tt>sqlite:
   :adapter: sqlite
-  :dbfile: yaffle_plugin.sqlite.db
+  :dbfile: vendor/plugins/yaffle/test/yaffle_plugin.sqlite.db
 
 sqlite3:
   :adapter: sqlite3
-  :dbfile: yaffle_plugin.sqlite3.db
+  :dbfile: vendor/plugins/yaffle/test/yaffle_plugin.sqlite3.db
 
 postgresql:
   :adapter: postgresql
@@ -473,8 +484,8 @@ postgresql:
 mysql:
   :adapter: mysql
   :host: localhost
-  :username: rails
-  :password:
+  :username: root
+  :password: password
   :database: yaffle_plugin_test</tt></pre>
 </div></div>
 <div class="para"><p>For this guide you'll need 2 tables/models, Hickwalls and Wickwalls, so add the following:</p></div>
@@ -509,34 +520,38 @@ ENV<span style="color: #990000">[</span><span style="color: #FF0000">'RAILS_ROOT
 <span style="font-weight: bold"><span style="color: #000080">require</span></span> <span style="color: #FF0000">'test/unit'</span>
 <span style="font-weight: bold"><span style="color: #000080">require</span></span> File<span style="color: #990000">.</span>expand_path<span style="color: #990000">(</span>File<span style="color: #990000">.</span>join<span style="color: #990000">(</span>ENV<span style="color: #990000">[</span><span style="color: #FF0000">'RAILS_ROOT'</span><span style="color: #990000">],</span> <span style="color: #FF0000">'config/environment.rb'</span><span style="color: #990000">))</span>
 
-config <span style="color: #990000">=</span> YAML<span style="color: #990000">::</span><span style="font-weight: bold"><span style="color: #0000FF">load</span></span><span style="color: #990000">(</span>IO<span style="color: #990000">.</span>read<span style="color: #990000">(</span>File<span style="color: #990000">.</span>dirname<span style="color: #990000">(</span><span style="font-weight: bold"><span style="color: #0000FF">__FILE__</span></span><span style="color: #990000">)</span> <span style="color: #990000">+</span> <span style="color: #FF0000">'/database.yml'</span><span style="color: #990000">))</span>
-ActiveRecord<span style="color: #990000">::</span>Base<span style="color: #990000">.</span>logger <span style="color: #990000">=</span> Logger<span style="color: #990000">.</span>new<span style="color: #990000">(</span>File<span style="color: #990000">.</span>dirname<span style="color: #990000">(</span><span style="font-weight: bold"><span style="color: #0000FF">__FILE__</span></span><span style="color: #990000">)</span> <span style="color: #990000">+</span> <span style="color: #FF0000">"/debug.log"</span><span style="color: #990000">)</span>
+<span style="font-weight: bold"><span style="color: #0000FF">def</span></span> load_schema
+  config <span style="color: #990000">=</span> YAML<span style="color: #990000">::</span><span style="font-weight: bold"><span style="color: #0000FF">load</span></span><span style="color: #990000">(</span>IO<span style="color: #990000">.</span>read<span style="color: #990000">(</span>File<span style="color: #990000">.</span>dirname<span style="color: #990000">(</span><span style="font-weight: bold"><span style="color: #0000FF">__FILE__</span></span><span style="color: #990000">)</span> <span style="color: #990000">+</span> <span style="color: #FF0000">'/database.yml'</span><span style="color: #990000">))</span>
+  ActiveRecord<span style="color: #990000">::</span>Base<span style="color: #990000">.</span>logger <span style="color: #990000">=</span> Logger<span style="color: #990000">.</span>new<span style="color: #990000">(</span>File<span style="color: #990000">.</span>dirname<span style="color: #990000">(</span><span style="font-weight: bold"><span style="color: #0000FF">__FILE__</span></span><span style="color: #990000">)</span> <span style="color: #990000">+</span> <span style="color: #FF0000">"/debug.log"</span><span style="color: #990000">)</span>
 
-db_adapter <span style="color: #990000">=</span> ENV<span style="color: #990000">[</span><span style="color: #FF0000">'DB'</span><span style="color: #990000">]</span>
+  db_adapter <span style="color: #990000">=</span> ENV<span style="color: #990000">[</span><span style="color: #FF0000">'DB'</span><span style="color: #990000">]</span>
 
-db_adapter <span style="color: #990000">||=</span>
-  <span style="font-weight: bold"><span style="color: #0000FF">begin</span></span>
-    <span style="font-weight: bold"><span style="color: #000080">require</span></span> <span style="color: #FF0000">'rubygems'</span>
-    <span style="font-weight: bold"><span style="color: #000080">require</span></span> <span style="color: #FF0000">'sqlite'</span>
-    <span style="color: #FF0000">'sqlite'</span>
-  <span style="font-weight: bold"><span style="color: #0000FF">rescue</span></span> MissingSourceFile
+  <span style="font-style: italic"><span style="color: #9A1900"># no db passed, try one of these fine config-free DBs before bombing.</span></span>
+  db_adapter <span style="color: #990000">||=</span>
     <span style="font-weight: bold"><span style="color: #0000FF">begin</span></span>
-      <span style="font-weight: bold"><span style="color: #000080">require</span></span> <span style="color: #FF0000">'sqlite3'</span>
-      <span style="color: #FF0000">'sqlite3'</span>
+      <span style="font-weight: bold"><span style="color: #000080">require</span></span> <span style="color: #FF0000">'rubygems'</span>
+      <span style="font-weight: bold"><span style="color: #000080">require</span></span> <span style="color: #FF0000">'sqlite'</span>
+      <span style="color: #FF0000">'sqlite'</span>
     <span style="font-weight: bold"><span style="color: #0000FF">rescue</span></span> MissingSourceFile
+      <span style="font-weight: bold"><span style="color: #0000FF">begin</span></span>
+        <span style="font-weight: bold"><span style="color: #000080">require</span></span> <span style="color: #FF0000">'sqlite3'</span>
+        <span style="color: #FF0000">'sqlite3'</span>
+      <span style="font-weight: bold"><span style="color: #0000FF">rescue</span></span> MissingSourceFile
+      <span style="font-weight: bold"><span style="color: #0000FF">end</span></span>
     <span style="font-weight: bold"><span style="color: #0000FF">end</span></span>
+
+  <span style="font-weight: bold"><span style="color: #0000FF">if</span></span> db_adapter<span style="color: #990000">.</span><span style="font-weight: bold"><span style="color: #0000FF">nil</span></span><span style="color: #990000">?</span>
+    <span style="font-weight: bold"><span style="color: #0000FF">raise</span></span> <span style="color: #FF0000">"No DB Adapter selected. Pass the DB= option to pick one, or install Sqlite or Sqlite3."</span>
   <span style="font-weight: bold"><span style="color: #0000FF">end</span></span>
 
-<span style="font-weight: bold"><span style="color: #0000FF">if</span></span> db_adapter<span style="color: #990000">.</span><span style="font-weight: bold"><span style="color: #0000FF">nil</span></span><span style="color: #990000">?</span>
-  <span style="font-weight: bold"><span style="color: #0000FF">raise</span></span> <span style="color: #FF0000">"No DB Adapter selected. Pass the DB= option to pick one, or install Sqlite or Sqlite3."</span>
+  ActiveRecord<span style="color: #990000">::</span>Base<span style="color: #990000">.</span>establish_connection<span style="color: #990000">(</span>config<span style="color: #990000">[</span>db_adapter<span style="color: #990000">])</span>
+
+  <span style="font-weight: bold"><span style="color: #0000FF">load</span></span><span style="color: #990000">(</span>File<span style="color: #990000">.</span>dirname<span style="color: #990000">(</span><span style="font-weight: bold"><span style="color: #0000FF">__FILE__</span></span><span style="color: #990000">)</span> <span style="color: #990000">+</span> <span style="color: #FF0000">"/schema.rb"</span><span style="color: #990000">)</span>
+
+  <span style="font-weight: bold"><span style="color: #000080">require</span></span> File<span style="color: #990000">.</span>dirname<span style="color: #990000">(</span><span style="font-weight: bold"><span style="color: #0000FF">__FILE__</span></span><span style="color: #990000">)</span> <span style="color: #990000">+</span> <span style="color: #FF0000">'/../init.rb'</span>
 <span style="font-weight: bold"><span style="color: #0000FF">end</span></span>
-
-ActiveRecord<span style="color: #990000">::</span>Base<span style="color: #990000">.</span>establish_connection<span style="color: #990000">(</span>config<span style="color: #990000">[</span>db_adapter<span style="color: #990000">])</span>
-
-<span style="font-weight: bold"><span style="color: #0000FF">load</span></span><span style="color: #990000">(</span>File<span style="color: #990000">.</span>dirname<span style="color: #990000">(</span><span style="font-weight: bold"><span style="color: #0000FF">__FILE__</span></span><span style="color: #990000">)</span> <span style="color: #990000">+</span> <span style="color: #FF0000">"/schema.rb"</span><span style="color: #990000">)</span>
-
-<span style="font-weight: bold"><span style="color: #000080">require</span></span> File<span style="color: #990000">.</span>dirname<span style="color: #990000">(</span><span style="font-weight: bold"><span style="color: #0000FF">__FILE__</span></span><span style="color: #990000">)</span> <span style="color: #990000">+</span> <span style="color: #FF0000">'/../init.rb'</span>
 </tt></pre></div></div>
+<div class="para"><p>Now whenever you write a test that requires the database, you can call <em>load_schema</em>.</p></div>
 <h3 id="_run_the_plugin_tests">1.4. Run the plugin tests</h3>
 <div class="para"><p>Once you have these files in place, you can write your first test to ensure that your plugin-testing setup is correct.  By default rails generates a file in <em>vendor/plugins/yaffle/test/yaffle_test.rb</em> with a sample test.  Replace the contents of that file with:</p></div>
 <div class="para"><p><strong>vendor/plugins/yaffle/test/yaffle_test.rb:</strong></p></div>
@@ -548,6 +563,7 @@ http://www.gnu.org/software/src-highlite -->
 <pre><tt><span style="font-weight: bold"><span style="color: #000080">require</span></span> File<span style="color: #990000">.</span>dirname<span style="color: #990000">(</span><span style="font-weight: bold"><span style="color: #0000FF">__FILE__</span></span><span style="color: #990000">)</span> <span style="color: #990000">+</span> <span style="color: #FF0000">'/test_helper.rb'</span>
 
 <span style="font-weight: bold"><span style="color: #0000FF">class</span></span> YaffleTest <span style="color: #990000">&lt;</span> Test<span style="color: #990000">::</span>Unit<span style="color: #990000">::</span>TestCase
+  load_schema
 
   <span style="font-weight: bold"><span style="color: #0000FF">class</span></span> Hickwall <span style="color: #990000">&lt;</span> ActiveRecord<span style="color: #990000">::</span>Base
   <span style="font-weight: bold"><span style="color: #0000FF">end</span></span>
@@ -800,6 +816,8 @@ http://www.gnu.org/software/src-highlite -->
 <span style="font-weight: bold"><span style="color: #0000FF">end</span></span>
 
 <span style="font-weight: bold"><span style="color: #0000FF">class</span></span> ActsAsYaffleTest <span style="color: #990000">&lt;</span> Test<span style="color: #990000">::</span>Unit<span style="color: #990000">::</span>TestCase
+  load_schema
+
   <span style="font-weight: bold"><span style="color: #0000FF">def</span></span> test_a_hickwalls_yaffle_text_field_should_be_last_squawk
     assert_equal <span style="color: #FF0000">"last_squawk"</span><span style="color: #990000">,</span> Hickwall<span style="color: #990000">.</span>yaffle_text_field
   <span style="font-weight: bold"><span style="color: #0000FF">end</span></span>
@@ -851,6 +869,8 @@ http://www.gnu.org/software/src-highlite -->
 <span style="font-weight: bold"><span style="color: #0000FF">end</span></span>
 
 <span style="font-weight: bold"><span style="color: #0000FF">class</span></span> ActsAsYaffleTest <span style="color: #990000">&lt;</span> Test<span style="color: #990000">::</span>Unit<span style="color: #990000">::</span>TestCase
+  load_schema
+
   <span style="font-weight: bold"><span style="color: #0000FF">def</span></span> test_a_hickwalls_yaffle_text_field_should_be_last_squawk
     assert_equal <span style="color: #FF0000">"last_squawk"</span><span style="color: #990000">,</span> Hickwall<span style="color: #990000">.</span>yaffle_text_field
   <span style="font-weight: bold"><span style="color: #0000FF">end</span></span>
@@ -987,31 +1007,92 @@ http://www.gnu.org/software/src-highlite -->
 </div>
 <h2 id="_create_a_migration_generator">5. Create a migration generator</h2>
 <div class="sectionbody">
-<div class="para"><p>When you created the plugin above, you specified the &#8212;with-generator option, so you already have the generator stubs in your plugin.</p></div>
-<div class="para"><p>We'll be relying on the built-in rails generate template for this tutorial.  Going into the details of generators is beyond the scope of this tutorial.</p></div>
-<div class="para"><p>Type:</p></div>
+<div class="para"><p>Many plugins ship with generators.  When you created the plugin above, you specified the &#8212;with-generator option, so you already have the generator stubs in <em>vendor/plugins/yaffle/generators/yaffle</em>.</p></div>
+<div class="para"><p>Building generators is a complex topic unto itself and this section will cover one small aspect of generators:  creating a generator that adds a time-stamped migration.</p></div>
+<div class="para"><p>To create a generator you must:</p></div>
+<div class="ilist"><ul>
+<li>
+<p>
+Add your instructions to the <em>manifest</em> method of the generator
+</p>
+</li>
+<li>
+<p>
+Add any necessary template files to the templates directory
+</p>
+</li>
+<li>
+<p>
+Test the generator manually by running various combinations of <tt>script/generate</tt> and <tt>script/destroy</tt>
+</p>
+</li>
+<li>
+<p>
+Update the USAGE file to add helpful documentation for your generator
+</p>
+</li>
+</ul></div>
+<h3 id="_testing_generators">5.1. Testing generators</h3>
+<div class="para"><p>Many rails plugin authors do not test their generators, however testing generators is quite simple.  A typical generator test does the following:</p></div>
+<div class="ilist"><ul>
+<li>
+<p>
+Creates a new fake rails root directory that will serve as destination
+</p>
+</li>
+<li>
+<p>
+Runs the generator forward and backward, making whatever assertions are necessary
+</p>
+</li>
+<li>
+<p>
+Removes the fake rails root
+</p>
+</li>
+</ul></div>
+<div class="para"><p>For the generator in this section, the test could look something like this:</p></div>
+<div class="para"><p><strong>vendor/plugins/yaffle/test/yaffle_generator_test.rb</strong></p></div>
 <div class="listingblock">
-<div class="content">
-<pre><tt>script/generate</tt></pre>
-</div></div>
-<div class="para"><p>You should see the line:</p></div>
-<div class="listingblock">
-<div class="content">
-<pre><tt>Plugins (vendor/plugins): yaffle</tt></pre>
-</div></div>
-<div class="para"><p>When you run <tt>script/generate yaffle</tt> you should see the contents of your USAGE file.  For this plugin, the USAGE file looks like this:</p></div>
-<div class="listingblock">
-<div class="content">
-<pre><tt>Description:
-    Creates a migration that adds yaffle squawk fields to the given model
+<div class="content"><!-- Generator: GNU source-highlight 2.9
+by Lorenzo Bettini
+http://www.lorenzobettini.it
+http://www.gnu.org/software/src-highlite -->
+<pre><tt><span style="font-weight: bold"><span style="color: #000080">require</span></span> File<span style="color: #990000">.</span>dirname<span style="color: #990000">(</span><span style="font-weight: bold"><span style="color: #0000FF">__FILE__</span></span><span style="color: #990000">)</span> <span style="color: #990000">+</span> <span style="color: #FF0000">'/test_helper.rb'</span>
+<span style="font-weight: bold"><span style="color: #000080">require</span></span> <span style="color: #FF0000">'rails_generator'</span>
+<span style="font-weight: bold"><span style="color: #000080">require</span></span> <span style="color: #FF0000">'rails_generator/scripts/generate'</span>
+<span style="font-weight: bold"><span style="color: #000080">require</span></span> <span style="color: #FF0000">'rails_generator/scripts/destroy'</span>
 
-Example:
-    ./script/generate yaffle hickwall
+<span style="font-weight: bold"><span style="color: #0000FF">class</span></span> YaffleTest <span style="color: #990000">&lt;</span> Test<span style="color: #990000">::</span>Unit<span style="color: #990000">::</span>TestCase
 
-    This will create:
-        db/migrate/TIMESTAMP_add_yaffle_fields_to_hickwall</tt></pre>
-</div></div>
-<div class="para"><p>Now you can add code to your generator:</p></div>
+  <span style="font-weight: bold"><span style="color: #0000FF">def</span></span> fake_rails_root
+    File<span style="color: #990000">.</span>join<span style="color: #990000">(</span>File<span style="color: #990000">.</span>dirname<span style="color: #990000">(</span><span style="font-weight: bold"><span style="color: #0000FF">__FILE__</span></span><span style="color: #990000">),</span> <span style="color: #FF0000">'rails_root'</span><span style="color: #990000">)</span>
+  <span style="font-weight: bold"><span style="color: #0000FF">end</span></span>
+
+  <span style="font-weight: bold"><span style="color: #0000FF">def</span></span> file_list
+    Dir<span style="color: #990000">.</span>glob<span style="color: #990000">(</span>File<span style="color: #990000">.</span>join<span style="color: #990000">(</span>fake_rails_root<span style="color: #990000">,</span> <span style="color: #FF0000">"db"</span><span style="color: #990000">,</span> <span style="color: #FF0000">"migrate"</span><span style="color: #990000">,</span> <span style="color: #FF0000">"*"</span><span style="color: #990000">))</span>
+  <span style="font-weight: bold"><span style="color: #0000FF">end</span></span>
+
+  <span style="font-weight: bold"><span style="color: #0000FF">def</span></span> setup
+    FileUtils<span style="color: #990000">.</span>mkdir_p<span style="color: #990000">(</span>fake_rails_root<span style="color: #990000">)</span>
+    <span style="color: #009900">@original_files</span> <span style="color: #990000">=</span> file_list
+  <span style="font-weight: bold"><span style="color: #0000FF">end</span></span>
+
+  <span style="font-weight: bold"><span style="color: #0000FF">def</span></span> teardown
+    FileUtils<span style="color: #990000">.</span>rm_r<span style="color: #990000">(</span>fake_rails_root<span style="color: #990000">)</span>
+  <span style="font-weight: bold"><span style="color: #0000FF">end</span></span>
+
+  <span style="font-weight: bold"><span style="color: #0000FF">def</span></span> test_generates_correct_file_name
+    Rails<span style="color: #990000">::</span>Generator<span style="color: #990000">::</span>Scripts<span style="color: #990000">::</span>Generate<span style="color: #990000">.</span>new<span style="color: #990000">.</span>run<span style="color: #990000">([</span><span style="color: #FF0000">"yaffle"</span><span style="color: #990000">,</span> <span style="color: #FF0000">"bird"</span><span style="color: #990000">],</span> <span style="color: #990000">:</span>destination <span style="color: #990000">=&gt;</span> fake_rails_root<span style="color: #990000">)</span>
+    new_file <span style="color: #990000">=</span> <span style="color: #990000">(</span>file_list <span style="color: #990000">-</span> <span style="color: #009900">@original_files</span><span style="color: #990000">).</span>first
+    assert_match <span style="color: #FF6600">/add_yaffle_fields_to_bird/</span><span style="color: #990000">,</span> new_file
+  <span style="font-weight: bold"><span style="color: #0000FF">end</span></span>
+
+<span style="font-weight: bold"><span style="color: #0000FF">end</span></span>
+</tt></pre></div></div>
+<div class="para"><p>You can run <em>rake</em> from the plugin directory to see this fail.  Unless you are doing more advanced generator commands it typically suffices to just test the Generate script, and trust that rails will handle the Destroy and Update commands for you.</p></div>
+<h3 id="_adding_to_the_manifest">5.2. Adding to the manifest</h3>
+<div class="para"><p>This example will demonstrate how to use one of the built-in generator methods named <em>migration_template</em> to create a migration file.  To start, update your generator file to look like this:</p></div>
 <div class="para"><p><strong>vendor/plugins/yaffle/generators/yaffle/yaffle_generator.rb</strong></p></div>
 <div class="listingblock">
 <div class="content"><!-- Generator: GNU source-highlight 2.9
@@ -1023,7 +1104,7 @@ http://www.gnu.org/software/src-highlite -->
     record <span style="font-weight: bold"><span style="color: #0000FF">do</span></span> <span style="color: #990000">|</span>m<span style="color: #990000">|</span>
       m<span style="color: #990000">.</span>migration_template <span style="color: #FF0000">'migration:migration.rb'</span><span style="color: #990000">,</span> <span style="color: #FF0000">"db/migrate"</span><span style="color: #990000">,</span> <span style="color: #FF0000">{</span><span style="color: #990000">:</span>assigns <span style="color: #990000">=&gt;</span> yaffle_local_assigns<span style="color: #990000">,</span>
         <span style="color: #990000">:</span>migration_file_name <span style="color: #990000">=&gt;</span> <span style="color: #FF0000">"add_yaffle_fields_to_#{custom_file_name}"</span>
-       <span style="color: #FF0000">}</span>
+      <span style="color: #FF0000">}</span>
     <span style="font-weight: bold"><span style="color: #0000FF">end</span></span>
   <span style="font-weight: bold"><span style="color: #0000FF">end</span></span>
 
@@ -1039,31 +1120,19 @@ http://www.gnu.org/software/src-highlite -->
         assigns<span style="color: #990000">[:</span>class_name<span style="color: #990000">]</span> <span style="color: #990000">=</span> <span style="color: #FF0000">"add_yaffle_fields_to_#{custom_file_name}"</span>
         assigns<span style="color: #990000">[:</span>table_name<span style="color: #990000">]</span> <span style="color: #990000">=</span> custom_file_name
         assigns<span style="color: #990000">[:</span>attributes<span style="color: #990000">]</span> <span style="color: #990000">=</span> <span style="color: #990000">[</span>Rails<span style="color: #990000">::</span>Generator<span style="color: #990000">::</span>GeneratedAttribute<span style="color: #990000">.</span>new<span style="color: #990000">(</span><span style="color: #FF0000">"last_squawk"</span><span style="color: #990000">,</span> <span style="color: #FF0000">"string"</span><span style="color: #990000">)]</span>
-        assigns<span style="color: #990000">[:</span>attributes<span style="color: #990000">]</span> <span style="color: #990000">&lt;&lt;</span> Rails<span style="color: #990000">::</span>Generator<span style="color: #990000">::</span>GeneratedAttribute<span style="color: #990000">.</span>new<span style="color: #990000">(</span><span style="color: #FF0000">"last_squawked_at"</span><span style="color: #990000">,</span> <span style="color: #FF0000">"datetime"</span><span style="color: #990000">)</span>
       <span style="font-weight: bold"><span style="color: #0000FF">end</span></span>
     <span style="font-weight: bold"><span style="color: #0000FF">end</span></span>
 <span style="font-weight: bold"><span style="color: #0000FF">end</span></span>
 </tt></pre></div></div>
-<div class="para"><p>Note that you need to be aware of whether or not table names are pluralized.</p></div>
-<div class="para"><p>This does a few things:</p></div>
-<div class="ilist"><ul>
-<li>
-<p>
-Reuses the built in rails <tt>migration_template</tt> method.
-</p>
-</li>
-<li>
-<p>
-Reuses the built-in rails migration template.
-</p>
-</li>
-</ul></div>
-<div class="para"><p>When you run the generator like</p></div>
+<div class="para"><p>The generator creates a new file in <em>db/migrate</em> with a timestamp and an <em>add_column</em> statement.  It reuses the built in rails <tt>migration_template</tt> method, and reuses the built-in rails migration template.</p></div>
+<div class="para"><p>It's courteous to check to see if table names are being pluralized whenever you create a generator that needs to be aware of table names.  This way people using your generator won't have to manually change the generated files if they've turned pluralization off.</p></div>
+<h3 id="_manually_test_the_generator">5.3. Manually test the generator</h3>
+<div class="para"><p>To run the generator, type the following at the command line:</p></div>
 <div class="listingblock">
 <div class="content">
-<pre><tt>script/generate yaffle bird</tt></pre>
+<pre><tt>./script/generate yaffle bird</tt></pre>
 </div></div>
-<div class="para"><p>You will see a new file:</p></div>
+<div class="para"><p>and you will see a new file:</p></div>
 <div class="para"><p><strong>db/migrate/20080529225649_add_yaffle_fields_to_birds.rb</strong></p></div>
 <div class="listingblock">
 <div class="content"><!-- Generator: GNU source-highlight 2.9
@@ -1073,15 +1142,39 @@ http://www.gnu.org/software/src-highlite -->
 <pre><tt><span style="font-weight: bold"><span style="color: #0000FF">class</span></span> AddYaffleFieldsToBirds <span style="color: #990000">&lt;</span> ActiveRecord<span style="color: #990000">::</span>Migration
   <span style="font-weight: bold"><span style="color: #0000FF">def</span></span> <span style="font-weight: bold"><span style="color: #0000FF">self</span></span><span style="color: #990000">.</span>up
     add_column <span style="color: #990000">:</span>birds<span style="color: #990000">,</span> <span style="color: #990000">:</span>last_squawk<span style="color: #990000">,</span> <span style="color: #990000">:</span>string
-    add_column <span style="color: #990000">:</span>birds<span style="color: #990000">,</span> <span style="color: #990000">:</span>last_squawked_at<span style="color: #990000">,</span> <span style="color: #990000">:</span>datetime
   <span style="font-weight: bold"><span style="color: #0000FF">end</span></span>
 
   <span style="font-weight: bold"><span style="color: #0000FF">def</span></span> <span style="font-weight: bold"><span style="color: #0000FF">self</span></span><span style="color: #990000">.</span>down
-    remove_column <span style="color: #990000">:</span>birds<span style="color: #990000">,</span> <span style="color: #990000">:</span>last_squawked_at
     remove_column <span style="color: #990000">:</span>birds<span style="color: #990000">,</span> <span style="color: #990000">:</span>last_squawk
   <span style="font-weight: bold"><span style="color: #0000FF">end</span></span>
 <span style="font-weight: bold"><span style="color: #0000FF">end</span></span>
 </tt></pre></div></div>
+<h3 id="_the_usage_file">5.4. The USAGE file</h3>
+<div class="para"><p>Rails ships with several built-in generators.  You can see all of the generators available to you by typing the following at the command line:</p></div>
+<div class="listingblock">
+<div class="content">
+<pre><tt>script/generate</tt></pre>
+</div></div>
+<div class="para"><p>You should see something like this:</p></div>
+<div class="listingblock">
+<div class="content">
+<pre><tt>Installed Generators
+  Plugins (vendor/plugins): yaffle
+  Builtin: controller, integration_test, mailer, migration, model, observer, plugin, resource, scaffold, session_migration</tt></pre>
+</div></div>
+<div class="para"><p>When you run <tt>script/generate yaffle</tt> you should see the contents of your <em>vendor/plugins/yaffle/generators/yaffle/USAGE</em> file.</p></div>
+<div class="para"><p>For this plugin, update the USAGE file looks like this:</p></div>
+<div class="listingblock">
+<div class="content">
+<pre><tt>Description:
+    Creates a migration that adds yaffle squawk fields to the given model
+
+Example:
+    ./script/generate yaffle hickwall
+
+    This will create:
+        db/migrate/TIMESTAMP_add_yaffle_fields_to_hickwall</tt></pre>
+</div></div>
 </div>
 <h2 id="_add_a_custom_generator_command">6. Add a custom generator command</h2>
 <div class="sectionbody">
