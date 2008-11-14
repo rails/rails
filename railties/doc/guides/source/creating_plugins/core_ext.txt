@@ -45,16 +45,15 @@ Great - now you are ready to start development.
 A common pattern in rails plugins is to set up the file structure like this:
 
 --------------------------------------------------------
-|-- init.rb
 |-- lib
 |   |-- yaffle
 |   |   `-- core_ext.rb
 |   `-- yaffle.rb
 --------------------------------------------------------
 
-The first thing we need to to is to require our 'lib/yaffle.rb' file from 'init.rb':
+The first thing we need to to is to require our 'lib/yaffle.rb' file from 'rails/init.rb':
 
-*vendor/plugins/yaffle/init.rb*
+*vendor/plugins/yaffle/rails/init.rb*
 
 [source, ruby]
 --------------------------------------------------------

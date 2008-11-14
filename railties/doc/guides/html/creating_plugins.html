@@ -447,6 +447,7 @@ create  vendor/plugins/yaffle/generators/yaffle/templates
 create  vendor/plugins/yaffle/generators/yaffle/yaffle_generator.rb
 create  vendor/plugins/yaffle/generators/yaffle/USAGE</tt></pre>
 </div></div>
+<div class="para"><p>To begin just change one thing - move <em>init.rb</em> to <em>rails/init.rb</em>.</p></div>
 <h3 id="_setup_the_plugin_for_testing">1.3. Setup the plugin for testing</h3>
 <div class="para"><p>If your plugin interacts with a database, you'll need to setup a database connection.  In this guide you will learn how to test your plugin against multiple different database adapters using Active Record.  This guide will not cover how to use fixtures in plugin tests.</p></div>
 <div class="para"><p>To setup your plugin to allow for easy testing you'll need to add 3 files:</p></div>
@@ -553,7 +554,7 @@ ENV<span style="color: #990000">[</span><span style="color: #FF0000">'RAILS_ROOT
 
   ActiveRecord<span style="color: #990000">::</span>Base<span style="color: #990000">.</span>establish_connection<span style="color: #990000">(</span>config<span style="color: #990000">[</span>db_adapter<span style="color: #990000">])</span>
   <span style="font-weight: bold"><span style="color: #0000FF">load</span></span><span style="color: #990000">(</span>File<span style="color: #990000">.</span>dirname<span style="color: #990000">(</span><span style="font-weight: bold"><span style="color: #0000FF">__FILE__</span></span><span style="color: #990000">)</span> <span style="color: #990000">+</span> <span style="color: #FF0000">"/schema.rb"</span><span style="color: #990000">)</span>
-  <span style="font-weight: bold"><span style="color: #000080">require</span></span> File<span style="color: #990000">.</span>dirname<span style="color: #990000">(</span><span style="font-weight: bold"><span style="color: #0000FF">__FILE__</span></span><span style="color: #990000">)</span> <span style="color: #990000">+</span> <span style="color: #FF0000">'/../init.rb'</span>
+  <span style="font-weight: bold"><span style="color: #000080">require</span></span> File<span style="color: #990000">.</span>dirname<span style="color: #990000">(</span><span style="font-weight: bold"><span style="color: #0000FF">__FILE__</span></span><span style="color: #990000">)</span> <span style="color: #990000">+</span> <span style="color: #FF0000">'/../rails/init.rb'</span>
 <span style="font-weight: bold"><span style="color: #0000FF">end</span></span>
 </tt></pre></div></div>
 <div class="para"><p>Now whenever you write a test that requires the database, you can call <em>load_schema</em>.</p></div>
@@ -668,14 +669,13 @@ NoMethodError: undefined method `to_squawk' for "Hello World":String
 <div class="para"><p>A common pattern in rails plugins is to set up the file structure like this:</p></div>
 <div class="listingblock">
 <div class="content">
-<pre><tt>|-- init.rb
-|-- lib
+<pre><tt>|-- lib
 |   |-- yaffle
 |   |   `-- core_ext.rb
 |   `-- yaffle.rb</tt></pre>
 </div></div>
-<div class="para"><p>The first thing we need to to is to require our <em>lib/yaffle.rb</em> file from <em>init.rb</em>:</p></div>
-<div class="para"><p><strong>vendor/plugins/yaffle/init.rb</strong></p></div>
+<div class="para"><p>The first thing we need to to is to require our <em>lib/yaffle.rb</em> file from <em>rails/init.rb</em>:</p></div>
+<div class="para"><p><strong>vendor/plugins/yaffle/rails/init.rb</strong></p></div>
 <div class="listingblock">
 <div class="content"><!-- Generator: GNU source-highlight 2.9
 by Lorenzo Bettini

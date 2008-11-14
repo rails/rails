@@ -61,6 +61,7 @@ create  vendor/plugins/yaffle/generators/yaffle/yaffle_generator.rb
 create  vendor/plugins/yaffle/generators/yaffle/USAGE
 ----------------------------------------------
 
+To begin just change one thing - move 'init.rb' to 'rails/init.rb'.
 
 === Setup the plugin for testing ===
 
@@ -157,7 +158,7 @@ def load_schema
 
   ActiveRecord::Base.establish_connection(config[db_adapter])
   load(File.dirname(__FILE__) + "/schema.rb")
-  require File.dirname(__FILE__) + '/../init.rb'
+  require File.dirname(__FILE__) + '/../rails/init.rb'
 end
 ----------------------------------------------
 
