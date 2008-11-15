@@ -1,6 +1,6 @@
 *2.3.0/3.0*
 
-* Added lambda merging to OptionMerger (especially useful with named_scope and with_options) #740 [Paweł Kondzior]
+* Added lambda merging to OptionMerger (especially useful with named_scope and with_options) #726 [Paweł Kondzior]
 
 
 *2.2.1 [RC2] (November 14th, 2008)*
