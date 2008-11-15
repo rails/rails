@@ -7,6 +7,8 @@ module ActiveRecord
       end
     end
 
+    ##
+    # :singleton-method:
     # The connection handler
     cattr_accessor :connection_handler, :instance_writer => false
     @@connection_handler = ConnectionAdapters::ConnectionHandler.new
