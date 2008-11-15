@@ -22,7 +22,7 @@ require 'rails_generator'
 require 'rails_generator/secret_key_generator'
 require 'rails_generator/generators/applications/app/app_generator'
 
-class SecretKeyGenerationTest < Test::Unit::TestCase
+class SecretKeyGenerationTest < ActiveSupport::TestCase
   SECRET_KEY_MIN_LENGTH = 128
   APP_NAME = "foo"
 

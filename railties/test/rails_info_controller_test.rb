@@ -25,7 +25,7 @@ ActionController::Routing::Routes.draw do |map|
   map.connect ':controller/:action/:id'
 end
 
-class Rails::InfoControllerTest < Test::Unit::TestCase
+class Rails::InfoControllerTest < ActionController::TestCase
   def setup
     @controller = Rails::InfoController.new
     @request    = ActionController::TestRequest.new
