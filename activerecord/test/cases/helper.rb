@@ -62,4 +62,8 @@ class ActiveSupport::TestCase
   self.fixture_path = FIXTURES_ROOT
   self.use_instantiated_fixtures  = false
   self.use_transactional_fixtures = true
+
+  def create_fixtures(*table_names, &block)
+    Fixtures.create_fixtures(ActiveSupport::TestCase.fixture_path, table_names, {}, &block)
+  end
 end
