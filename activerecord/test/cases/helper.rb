@@ -6,6 +6,7 @@ require 'test/unit'
 
 require 'active_record'
 require 'active_record/test_case'
+require 'active_record/fixtures'
 require 'connection'
 
 # Show backtraces for deprecated behavior for quicker cleanup.
@@ -54,4 +55,11 @@ unless ENV['FIXTURE_DEBUG']
 
     alias_method_chain :try_to_load_dependency, :silence
   end
+end
+
+class ActiveSupport::TestCase
+  include ActiveRecord::TestFixtures
+  self.fixture_path = FIXTURES_ROOT
+  self.use_instantiated_fixtures  = false
+  self.use_transactional_fixtures = true
 end
