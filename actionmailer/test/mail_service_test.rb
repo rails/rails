@@ -915,6 +915,8 @@ EOF
   def test_multipart_with_template_path_with_dots
     mail = FunkyPathMailer.create_multipart_with_template_path_with_dots(@recipient)
     assert_equal 2, mail.parts.length
+    assert_equal 'text/plain', mail.parts[0].content_type
+    assert_equal 'utf-8', mail.parts[0].charset
   end
 
   def test_custom_content_type_attributes
