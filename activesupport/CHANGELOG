@@ -1,6 +1,11 @@
-*2.2.1 [RC2 or 2.2 final]*
+*2.3.0/3.0*
 
-* Added render :js for people who want to render inline JavaScript replies without using RJS [DHH]
+* Added lambda merging to OptionMerger (especially useful with named_scope and with_options) #726 [Paweł Kondzior]
+
+
+*2.2.1 [RC2] (November 14th, 2008)*
+
+* Increment the version of our altered memcache-client to prevent confusion caused when the 1.5.0 gem is installed.
 
 * Fixed the option merging in Array#to_xml #1126 [Rudolf Gavlas]
 

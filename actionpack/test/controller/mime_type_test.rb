@@ -61,7 +61,9 @@ class MimeTypeTest < Test::Unit::TestCase
     types.each do |type|
       mime = Mime.const_get(type.to_s.upcase)
       assert mime.send("#{type}?"), "#{mime.inspect} is not #{type}?"
-      (types - [type]).each { |other_type| assert !mime.send("#{other_type}?"), "#{mime.inspect} is #{other_type}?" }
+      invalid_types = types - [type]
+      invalid_types.delete(:html) if Mime::Type.html_types.include?(type)
+      invalid_types.each { |other_type| assert !mime.send("#{other_type}?"), "#{mime.inspect} is #{other_type}?" }
     end
   end
 
@@ -71,14 +73,12 @@ class MimeTypeTest < Test::Unit::TestCase
   end
 
   def test_verifiable_mime_types
-    unverified_types = Mime::Type.unverifiable_types
     all_types = Mime::SET.to_a.map(&:to_sym)
     all_types.uniq!
     # Remove custom Mime::Type instances set in other tests, like Mime::GIF and Mime::IPHONE
     all_types.delete_if { |type| !Mime.const_defined?(type.to_s.upcase) }
-
-    unverified, verified = all_types.partition { |type| Mime::Type.unverifiable_types.include? type }
-    assert verified.all?   { |type|  Mime.const_get(type.to_s.upcase).verify_request? }, "Not all Mime Types are verified: #{verified.inspect}"
-    assert unverified.all? { |type| !Mime.const_get(type.to_s.upcase).verify_request? }, "Some Mime Types are verified: #{unverified.inspect}"
+    verified, unverified = all_types.partition { |type| Mime::Type.browser_generated_types.include? type }
+    assert verified.each   { |type| assert  Mime.const_get(type.to_s.upcase).verify_request?, "Verifiable Mime Type is not verified: #{type.inspect}" }
+    assert unverified.each { |type| assert !Mime.const_get(type.to_s.upcase).verify_request?, "Nonverifiable Mime Type is verified: #{type.inspect}" }
   end
 end

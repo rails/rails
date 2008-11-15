@@ -243,6 +243,8 @@ ul#navMain {
 						
 							<li><a href="#_method_arrays_for_member_or_collection_routes">Method Arrays for Member or Collection Routes</a></li>
 						
+							<li><a href="#_resources_with_specific_actions">Resources With Specific Actions</a></li>
+						
 							<li><a href="#_other_action_controller_changes">Other Action Controller Changes</a></li>
 						
 						</ul>
@@ -525,7 +527,7 @@ More information :
 <div class="sectionbody">
 <div class="para"><p>There are two big additions to talk about here: transactional migrations and pooled database transactions. There's also a new (and cleaner) syntax for join table conditions, as well as a number of smaller improvements.</p></div>
 <h3 id="_transactional_migrations">5.1. Transactional Migrations</h3>
-<div class="para"><p>Historically, multiple-step Rails migrations have been a source of trouble. If something went wrong during a migration, everything before the error changed the database and everything after the error wasn't applied. Also, the migration version was stored as having been executed, which means that it couldn't be simply rerun by <tt>rake db:migrate:redo</tt> after you fix the problem. Transactional migrations change this by wrapping migration steps in a DDL transaction, so that if any of them fail, the entire migration is undone. In Rails 2.2, transactional migrations are supported <strong>on PostgreSQL only</strong>. The code is extensible to other database types in the future.</p></div>
+<div class="para"><p>Historically, multiple-step Rails migrations have been a source of trouble. If something went wrong during a migration, everything before the error changed the database and everything after the error wasn't applied. Also, the migration version was stored as having been executed, which means that it couldn't be simply rerun by <tt>rake db:migrate:redo</tt> after you fix the problem. Transactional migrations change this by wrapping migration steps in a DDL transaction, so that if any of them fail, the entire migration is undone. In Rails 2.2, transactional migrations are supported on PostgreSQL out of the box. The code is extensible to other database types in the future - and IBM has already extended it to support the DB2 adapter.</p></div>
 <div class="ilist"><ul>
 <li>
 <p>
@@ -540,6 +542,11 @@ More information:
 <li>
 <p>
 <a href="http://adam.blog.heroku.com/past/2008/9/3/ddl_transactions/">DDL Transactions</a>
+</p>
+</li>
+<li>
+<p>
+<a href="http://db2onrails.com/2008/11/08/a-major-milestone-for-db2-on-rails/">A major milestone for DB2 on Rails</a>
 </p>
 </li>
 </ul></div>
@@ -693,9 +700,9 @@ Counter cache columns (for associations declared with <tt>:counter_cache &#8658;
 </div>
 <h2 id="_action_controller">6. Action Controller</h2>
 <div class="sectionbody">
-<div class="para"><p>On the controller side, there are a couple of changes that will help tidy up your routes.</p></div>
+<div class="para"><p>On the controller side, there are several changes that will help tidy up your routes. There are also some internal changes in the routing engine to lower memory usage on complex applications.</p></div>
 <h3 id="_shallow_route_nesting">6.1. Shallow Route Nesting</h3>
-<div class="para"><p>Shallow route nesting provides a solution to the well-known difficulty of using deeply-nested resources. With shallow nesting, you need only supply enough information to uniquely identify the resource that you want to work with - but you <em>can</em> supply more information.</p></div>
+<div class="para"><p>Shallow route nesting provides a solution to the well-known difficulty of using deeply-nested resources. With shallow nesting, you need only supply enough information to uniquely identify the resource that you want to work with.</p></div>
 <div class="listingblock">
 <div class="content"><!-- Generator: GNU source-highlight 2.9
 by Lorenzo Bettini
@@ -756,8 +763,24 @@ Lead Contributor: <a href="http://brennandunn.com/">Brennan Dunn</a>
 </p>
 </li>
 </ul></div>
-<div class="para"><p>Action Controller now offers good support for HTTP conditional GET requests, as well as some other additions.</p></div>
-<h3 id="_other_action_controller_changes">6.3. Other Action Controller Changes</h3>
+<h3 id="_resources_with_specific_actions">6.3. Resources With Specific Actions</h3>
+<div class="para"><p>By default, when you use <tt>map.resources</tt> to create a route, Rails generates routes for seven default actions (index, show, create, new, edit, update, and destroy). But each of these routes takes up memory in your application, and causes Rails to generate additional routing logic. Now you can use the <tt>:only</tt> and <tt>:except</tt> options to fine-tune the routes that Rails will generate for resources. You can supply a single action, an array of actions, or the special <tt>:all</tt> or <tt>:none</tt> options. These options are inherited by nested resources.</p></div>
+<div class="listingblock">
+<div class="content"><!-- Generator: GNU source-highlight 2.9
+by Lorenzo Bettini
+http://www.lorenzobettini.it
+http://www.gnu.org/software/src-highlite -->
+<pre><tt>map<span style="color: #990000">.</span>resources <span style="color: #990000">:</span>photos<span style="color: #990000">,</span> <span style="color: #990000">:</span>only <span style="color: #990000">=&gt;</span> <span style="color: #990000">[:</span>index<span style="color: #990000">,</span> <span style="color: #990000">:</span>show<span style="color: #990000">]</span>
+map<span style="color: #990000">.</span>resources <span style="color: #990000">:</span>products<span style="color: #990000">,</span> <span style="color: #990000">:</span>except <span style="color: #990000">=&gt;</span> <span style="color: #990000">:</span>destroy
+</tt></pre></div></div>
+<div class="ilist"><ul>
+<li>
+<p>
+Lead Contributor: <a href="http://experthuman.com/">Tom Stuart</a>
+</p>
+</li>
+</ul></div>
+<h3 id="_other_action_controller_changes">6.4. Other Action Controller Changes</h3>
 <div class="ilist"><ul>
 <li>
 <p>
@@ -787,6 +810,16 @@ Rails now supports HTTP-only cookies (and uses them for sessions), which help mi
 <li>
 <p>
 <tt>render</tt> now supports a <tt>:js</tt> option to render plain vanilla javascript with the right mime type.
+</p>
+</li>
+<li>
+<p>
+Request forgery protection has been tightened up to apply to HTML-formatted content requests only.
+</p>
+</li>
+<li>
+<p>
+Polymorphic URLs behave more sensibly if a passed parameter is nil. For example, calling <tt>polymorphic_path([@project, @date, @area])</tt> with a nil date will give you <tt>project_area_path</tt>.
 </p>
 </li>
 </ul></div>
@@ -833,6 +866,7 @@ More information:
 </ul></div>
 </li>
 </ul></div>
+<div class="para"><p>Action Mailer now offers built-in support for GMail's SMTP servers, by turning on STARTTLS automatically. This requires Ruby 1.8.7 to be installed.</p></div>
 </div>
 <h2 id="_active_support">9. Active Support</h2>
 <div class="sectionbody">
@@ -1071,7 +1105,7 @@ Wrapped <tt>Rails.env</tt> in <tt>StringInquirer</tt> so you can do <tt>Rails.en
 </li>
 <li>
 <p>
-<tt>script/generate</tt> works without deprecation warnings when RubyGems 1.3.0 is present
+To eliminate deprecation warnings and properly handle gem dependencies, Rails now requires rubygems 1.3.1 or higher.
 </p>
 </li>
 </ul></div>

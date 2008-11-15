@@ -1,0 +1,51 @@
+== Add a helper ==
+
+This section describes how to add a helper named 'WoodpeckersHelper' to your plugin that will behave the same as a helper in your main app.  This is very similar to adding a model and a controller.
+
+You can test your plugin's helper as you would test any other helper:
+
+*vendor/plugins/yaffle/test/woodpeckers_helper_test.rb*
+
+[source, ruby]
+---------------------------------------------------------------
+require File.dirname(__FILE__) + '/test_helper.rb'
+include WoodpeckersHelper
+
+class WoodpeckersHelperTest < Test::Unit::TestCase
+  def test_tweet
+    assert_equal "Tweet! Hello", tweet("Hello")
+  end
+end
+---------------------------------------------------------------
+
+This is just a simple test to make sure the helper is being loaded correctly.  After watching it fail with `rake`, you can make it pass like so:
+
+*vendor/plugins/yaffle/lib/yaffle.rb:*
+
+[source, ruby]
+----------------------------------------------
+%w{ models controllers helpers }.each do |dir|
+  path = File.join(File.dirname(__FILE__), 'app', dir)
+  $LOAD_PATH << path
+  ActiveSupport::Dependencies.load_paths << path
+  ActiveSupport::Dependencies.load_once_paths.delete(path)
+end
+
+ActionView::Base.send :include, WoodpeckersHelper
+----------------------------------------------
+
+
+*vendor/plugins/yaffle/lib/app/helpers/woodpeckers_helper.rb:*
+
+[source, ruby]
+----------------------------------------------
+module WoodpeckersHelper
+  
+  def tweet(text)
+    "Tweet! #{text}"
+  end
+  
+end
+----------------------------------------------
+
+Now your test should be passing, and you should be able to use the Woodpeckers helper in your app.

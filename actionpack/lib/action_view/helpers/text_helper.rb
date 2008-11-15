@@ -545,38 +545,36 @@ module ActionView
         end
 
         AUTO_LINK_RE = %r{
-                        (                          # leading text
-                          <\w+.*?>|                # leading HTML tag, or
-                          [^=!:'"/]|               # leading punctuation, or
-                          ^                        # beginning of line
-                        )
-                        (
-                          (?:https?://)|           # protocol spec, or
-                          (?:www\.)                # www.*
-                        )
-                        (
-                          [-\w]+                   # subdomain or domain
-                          (?:\.[-\w]+)*            # remaining subdomains or domain
-                          (?::\d+)?                # port
-                          (?:/(?:[~\w\+@%=\(\)-]|(?:[,.;:'][^\s$]))*)* # path
-                          (?:\?[\w\+@%&=.;:-]+)?     # query string
-                          (?:\#[\w\-]*)?           # trailing anchor
-                        )
-                        ([[:punct:]]|<|$|)       # trailing text
-                       }x unless const_defined?(:AUTO_LINK_RE)
+            ( https?:// | www\. )
+            [^\s<]+
+          }x unless const_defined?(:AUTO_LINK_RE)
+
+        BRACKETS = { ']' => '[', ')' => '(', '}' => '{' }
 
         # Turns all urls into clickable links.  If a block is given, each url
         # is yielded and the result is used as the link text.
         def auto_link_urls(text, html_options = {})
-          extra_options = tag_options(html_options.stringify_keys) || ""
+          link_attributes = html_options.stringify_keys
           text.gsub(AUTO_LINK_RE) do
-            all, a, b, c, d = $&, $1, $2, $3, $4
-            if a =~ /<a\s/i # don't replace URL's that are already linked
-              all
+            href = $&
+            punctuation = ''
+            # detect already linked URLs
+            if $` =~ /<a\s[^>]*href="$/
+              # do not change string; URL is alreay linked
+              href
             else
-              text = b + c
-              text = yield(text) if block_given?
-              %(#{a}<a href="#{b=="www."?"http://www.":b}#{c}"#{extra_options}>#{text}</a>#{d})
+              # don't include trailing punctuation character as part of the URL
+              if href.sub!(/[^\w\/-]$/, '') and punctuation = $& and opening = BRACKETS[punctuation]
+                if href.scan(opening).size > href.scan(punctuation).size
+                  href << punctuation
+                  punctuation = ''
+                end
+              end
+
+              link_text = block_given?? yield(href) : href
+              href = 'http://' + href unless href.index('http') == 0
+
+              content_tag(:a, h(link_text), link_attributes.merge('href' => href)) + punctuation
             end
           end
         end

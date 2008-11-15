@@ -1612,9 +1612,17 @@ module ActiveRecord #:nodoc:
           end
         end
 
+        def default_select(qualified)
+          if qualified
+            quoted_table_name + '.*'
+          else
+            '*'
+          end
+        end
+
         def construct_finder_sql(options)
           scope = scope(:find)
-          sql  = "SELECT #{options[:select] || (scope && scope[:select]) || ((options[:joins] || (scope && scope[:joins])) && quoted_table_name + '.*') || '*'} "
+          sql  = "SELECT #{options[:select] || (scope && scope[:select]) || default_select(options[:joins] || (scope && scope[:joins]))} "
           sql << "FROM #{(scope && scope[:from]) || options[:from] || quoted_table_name} "
 
           add_joins!(sql, options[:joins], scope)

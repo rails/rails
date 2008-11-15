@@ -48,7 +48,7 @@ class ClientsController < ApplicationController
 end
 ----------------------------
 
-This will read and stream the file 4Kb at the time, avoiding loading the entire file into memory at once. You can turn off streaming with the `stream` option or adjust the block size with the `buffer_size` option.
+This will read and stream the file 4Kb at the time, avoiding loading the entire file into memory at once. You can turn off streaming with the `:stream` option or adjust the block size with the `:buffer_size` option.
 
 WARNING: Be careful when using (or just don't use) "outside" data (params, cookies, etc) to locate the file on disk, as this is a security risk that might allow someone to gain access to files they are not meant to see.
 

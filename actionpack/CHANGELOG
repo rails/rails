@@ -1,4 +1,18 @@
-*2.2.1 [RC2 or 2.2 final]*
+*2.2.1 [RC2] (November 14th, 2008)*
+
+* Restore backwards compatible functionality for setting relative_url_root.  Include deprecation
+
+* Switched the CSRF module to use the request content type to decide if the request is forgeable.  #1145 [Jeff Cohen]
+
+* Added :only and :except to map.resources to let people cut down on the number of redundant routes in an application. Typically only useful for huge routesets.  #1215 [Tom Stuart]
+
+   map.resources :products, :only => :show do |product|
+     product.resources :images, :except => :destroy
+   end
+
+* Added render :js for people who want to render inline JavaScript replies without using RJS [DHH]
+
+* Fixed that polymorphic_url should compact given array #1317 [hiroshi]
 
 * Fixed the sanitize helper to avoid double escaping already properly escaped entities #683 [antonmos/Ryan McGeary]
 

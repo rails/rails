@@ -1,0 +1,123 @@
+== Extending core classes ==
+
+This section will explain how to add a method to String that will be available anywhere in your rails app by:
+
+ * Writing tests for the desired behavior
+ * Creating and requiring the correct files
+
+=== Creating the test ===
+
+In this example you will add a method to String named `to_squawk`.  To begin, create a new test file with a few assertions:
+
+*vendor/plugins/yaffle/test/core_ext_test.rb*
+
+[source, ruby]
+--------------------------------------------------------
+require File.dirname(__FILE__) + '/test_helper.rb'
+
+class CoreExtTest < Test::Unit::TestCase
+  def test_to_squawk_prepends_the_word_squawk
+    assert_equal "squawk! Hello World", "Hello World".to_squawk
+  end
+end
+--------------------------------------------------------
+
+Navigate to your plugin directory and run `rake test`:
+
+--------------------------------------------------------
+cd vendor/plugins/yaffle
+rake test
+--------------------------------------------------------
+
+The test above should fail with the message:
+
+--------------------------------------------------------
+ 1) Error:
+test_to_squawk_prepends_the_word_squawk(CoreExtTest):
+NoMethodError: undefined method `to_squawk' for "Hello World":String
+    ./test/core_ext_test.rb:5:in `test_to_squawk_prepends_the_word_squawk'
+--------------------------------------------------------
+
+Great - now you are ready to start development.
+
+=== Organize your files ===
+
+A common pattern in rails plugins is to set up the file structure like this:
+
+--------------------------------------------------------
+|-- lib
+|   |-- yaffle
+|   |   `-- core_ext.rb
+|   `-- yaffle.rb
+--------------------------------------------------------
+
+The first thing we need to to is to require our 'lib/yaffle.rb' file from 'rails/init.rb':
+
+*vendor/plugins/yaffle/rails/init.rb*
+
+[source, ruby]
+--------------------------------------------------------
+require 'yaffle'
+--------------------------------------------------------
+
+Then in 'lib/yaffle.rb' require 'lib/core_ext.rb':
+
+*vendor/plugins/yaffle/lib/yaffle.rb*
+
+[source, ruby]
+--------------------------------------------------------
+require "yaffle/core_ext"
+--------------------------------------------------------
+
+Finally, create the 'core_ext.rb' file and add the 'to_squawk' method:
+
+*vendor/plugins/yaffle/lib/yaffle/core_ext.rb*
+
+[source, ruby]
+--------------------------------------------------------
+String.class_eval do
+  def to_squawk
+    "squawk! #{self}".strip
+  end
+end
+--------------------------------------------------------
+
+To test that your method does what it says it does, run the unit tests with `rake` from your plugin directory.  To see this in action, fire up a console and start squawking:
+
+--------------------------------------------------------
+$ ./script/console
+>> "Hello World".to_squawk
+=> "squawk! Hello World"
+--------------------------------------------------------
+
+=== Working with init.rb ===
+
+When rails loads plugins it looks for the file named init.rb.  However, when the plugin is initialized, 'init.rb' is invoked via `eval` (not `require`) so it has slightly different behavior.
+
+Under certain circumstances if you reopen classes or modules in 'init.rb' you may inadvertently create a new class, rather than reopening an existing class.  A better alternative is to reopen the class in a different file, and require that file from `init.rb`, as shown above.
+
+If you must reopen a class in `init.rb` you can use `module_eval` or `class_eval` to avoid any issues:
+
+*vendor/plugins/yaffle/init.rb*
+
+[source, ruby]
+---------------------------------------------------
+Hash.class_eval do
+  def is_a_special_hash?
+    true
+  end
+end
+---------------------------------------------------
+
+Another way is to explicitly define the top-level module space for all modules and classes, like `::Hash`:
+
+*vendor/plugins/yaffle/init.rb*
+
+[source, ruby]
+---------------------------------------------------
+class ::Hash
+  def is_a_special_hash?
+    true
+  end
+end
+---------------------------------------------------

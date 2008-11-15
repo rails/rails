@@ -394,6 +394,7 @@ module ActionController #:nodoc:
 
       @html_document = nil
       @request.env['REQUEST_METHOD'] ||= "GET"
+
       @request.action = action.to_s
 
       parameters ||= {}

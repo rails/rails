@@ -64,6 +64,14 @@ class OptionMergerTest < Test::Unit::TestCase
       end
     end
   end
+  
+  def test_nested_method_with_options_using_lamdba
+    local_lamdba = lambda { { :lambda => true } }
+    with_options(@options) do |o|
+      assert_equal @options.merge(local_lamdba.call),
+        o.method_with_options(local_lamdba).call
+    end
+  end
 
   # Needed when counting objects with the ObjectSpace
   def test_option_merger_class_method
