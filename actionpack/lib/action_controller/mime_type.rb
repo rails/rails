@@ -18,7 +18,7 @@ module Mime
   #   end
   class Type
     @@html_types = Set.new [:html, :all]
-    @@unverifiable_types = Set.new [:text, :json, :csv, :xml, :rss, :atom, :yaml]
+    @@unverifiable_types = Set.new [:json, :csv, :xml, :rss, :atom, :yaml]
     cattr_reader :html_types, :unverifiable_types
 
     # A simple helper class used in parsing the accept header
