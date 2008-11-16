@@ -56,6 +56,8 @@ class CGI
     class ActiveRecordStore
       # The default Active Record class.
       class Session < ActiveRecord::Base
+        ##
+        # :singleton-method:
         # Customizable data column name.  Defaults to 'data'.
         cattr_accessor :data_column_name
         self.data_column_name = 'data'
@@ -166,17 +168,25 @@ class CGI
       # binary session data in a +text+ column.  For higher performance,
       # store in a +blob+ column instead and forgo the Base64 encoding.
       class SqlBypass
+        ##
+        # :singleton-method:
         # Use the ActiveRecord::Base.connection by default.
         cattr_accessor :connection
 
+        ##
+        # :singleton-method:
         # The table name defaults to 'sessions'.
         cattr_accessor :table_name
         @@table_name = 'sessions'
 
+        ##
+        # :singleton-method:
         # The session id field defaults to 'session_id'.
         cattr_accessor :session_id_column
         @@session_id_column = 'session_id'
 
+        ##
+        # :singleton-method:
         # The data field defaults to 'data'.
         cattr_accessor :data_column
         @@data_column = 'data'

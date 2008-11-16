@@ -22,10 +22,12 @@ module Mime
     @@html_types = Set.new [:html, :all]
     cattr_reader :html_types
 
+    @@browser_generated_types = Set.new [:html, :url_encoded_form, :multipart_form]
+    ##
+    # :singleton-method:
     # These are the content types which browsers can generate without using ajax, flash, etc
     # i.e. following a link, getting an image or posting a form.  CSRF protection
     # only needs to protect against these types.
-    @@browser_generated_types = Set.new [:html, :url_encoded_form, :multipart_form]
     cattr_reader :browser_generated_types
 
 
