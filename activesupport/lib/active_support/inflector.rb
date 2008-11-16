@@ -134,7 +134,6 @@ module ActiveSupport
     #   "octopus".pluralize          # => "octopi"
     #   "sheep".pluralize            # => "sheep"
     #   "words".pluralize            # => "words"
-    #   "the blue mailman".pluralize # => "the blue mailmen"
     #   "CamelOctopus".pluralize     # => "CamelOctopi"
     def pluralize(word)
       result = word.to_s.dup
@@ -154,7 +153,6 @@ module ActiveSupport
     #   "octopi".singularize           # => "octopus"
     #   "sheep".singluarize            # => "sheep"
     #   "word".singularize             # => "word"
-    #   "the blue mailmen".singularize # => "the blue mailman"
     #   "CamelOctopi".singularize      # => "CamelOctopus"
     def singularize(word)
       result = word.to_s.dup
