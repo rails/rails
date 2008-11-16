@@ -522,44 +522,6 @@ class HasAndBelongsToManyScopingTest< ActiveRecord::TestCase
 end
 
 
-class DefaultScopingTest < ActiveRecord::TestCase
-  fixtures :developers
-
-  def test_default_scope
-    expected = Developer.find(:all, :order => 'salary DESC').collect { |dev| dev.salary }
-    received = DeveloperOrderedBySalary.find(:all).collect { |dev| dev.salary }
-    assert_equal expected, received
-  end
-
-  def test_method_scope
-    expected = Developer.find(:all, :order => 'name DESC').collect { |dev| dev.salary }
-    received = DeveloperOrderedBySalary.all_ordered_by_name.collect { |dev| dev.salary }
-    assert_equal expected, received
-  end
-
-  def test_nested_scope
-    expected = Developer.find(:all, :order => 'name DESC').collect { |dev| dev.salary }
-    received = DeveloperOrderedBySalary.with_scope(:find => { :order => 'name DESC'}) do
-      DeveloperOrderedBySalary.find(:all).collect { |dev| dev.salary }
-    end
-    assert_equal expected, received
-  end
-
-  def test_nested_exclusive_scope
-    expected = Developer.find(:all, :limit => 100).collect { |dev| dev.salary }
-    received = DeveloperOrderedBySalary.with_exclusive_scope(:find => { :limit => 100 }) do
-      DeveloperOrderedBySalary.find(:all).collect { |dev| dev.salary }
-    end
-    assert_equal expected, received
-  end
-  
-  def test_overwriting_default_scope
-    expected = Developer.find(:all, :order => 'salary').collect { |dev| dev.salary }
-    received = DeveloperOrderedBySalary.find(:all, :order => 'salary').collect { |dev| dev.salary }
-    assert_equal expected, received
-  end
-end
-
 =begin
 # We disabled the scoping for has_one and belongs_to as we can't think of a proper use case
 

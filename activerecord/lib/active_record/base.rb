@@ -2016,16 +2016,6 @@ module ActiveRecord #:nodoc:
           @@subclasses[self] + extra = @@subclasses[self].inject([]) {|list, subclass| list + subclass.subclasses }
         end
 
-        # Sets the default options for the model. The format of the
-        # <tt>method_scoping</tt> argument is the same as in with_scope.
-        #
-        #   class Person << ActiveRecord::Base
-        #     default_scope :find => { :order => 'last_name, first_name' }
-        #   end
-        def default_scope(options = {})
-          self.scoped_methods << { :find => options, :create => options.is_a?(Hash) ?  options[:conditions] : {} }
-        end
-
         # Test whether the given method and optional key are scoped.
         def scoped?(method, key = nil) #:nodoc:
           if current_scoped_methods && (scope = current_scoped_methods[method])
