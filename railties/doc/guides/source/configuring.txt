@@ -16,13 +16,15 @@ after-initializer
 
 == Using a Preinitializer
 
+== Initialization Process Settings
+
 == Configuring Rails Components
 
 === Configuring Active Record
 
 +ActiveRecord::Base+ includej a variety of configuration options:
 
-+logger+ accepts a logger conforming to the interface of Log4r or the default Ruby 1.8+ Logger class, which is then passed on to any new database connections made. You can retrieve this logger by calling +logger+ on either an ActiveRecord model class or an ActiveRecord model instance.
++logger+ accepts a logger conforming to the interface of Log4r or the default Ruby 1.8+ Logger class, which is then passed on to any new database connections made. You can retrieve this logger by calling +logger+ on either an ActiveRecord model class or an ActiveRecord model instance. Set to nil to disable logging.
 
 +primary_key_prefix_type+ lets you adjust the naming for primary key columns. By default, Rails assumes that primary key columns are named +id+ (and this configuration option doesn't need to be set.) There are two other choices:
 
@@ -55,6 +57,48 @@ The schema dumper adds one additional configuration option:
 
 === Configuring Action Controller
 
+ActionController::Base includes a number of configuration settings:
+
++asset_host+ provides a string that is prepended to all of the URL-generating helpers in +AssetHelper+. This is designed to allow moving all javascript, CSS, and image files to a separate asset host.
+
++consider_all_requests_local+ is generally set to +true+ during development and +false+ during production; if it is set to +true+, then any error will cause detailed debugging information to be dumped in the HTTP response. For finer-grained control, set this to +false+ and implement +local_request?+ to specify which requests should provide debugging information on errors.
+
++allow_concurrency+ should be set to +true+ to allow concurrent (threadsafe) action processing. Set to +false+ by default.
+
++param_parsers+ provides an array of handlers that can extract information from incoming HTTP requests and add it to the +params+ hash. By default, parsers for multipart forms, URL-encoded forms, XML, and JSON are active.
+
++default_charset+ specifies the default character set for all renders. The default is "utf-8".
+
++logger+ accepts a logger conforming to the interface of Log4r or the default Ruby 1.8+ Logger class, which is then used to log information from Action Controller. Set to nil to disable logging.
+
++resource_action_separator+ gives the token to be used between resources and actions when building or interpreting RESTful URLs. By default, this is "/".
+
++resource_path_names+ is a hash of default names for several RESTful actions. By default, the new action is named +new+ and the edit action is named +edit+.
+
++request_forgery_protection_token+ sets the token parameter name for RequestForgery. Calling +protect_from_forgery+ sets it to +:authenticity_token+ by default.
+
++optimise_named_routes+ turns on some optimizations in generating the routing table. It is set to +true+ by default.
+
++use_accept_header+ sets the rules for determining the response format. If this is set to +true+ (the default) then +respond_to+ and +Request#format+ will take the Accept header into account. If it is set to false then the request format will be determined solely by examining +params[:format]+. If there is no +format+ parameter, then the response format will be either HTML or Javascript depending on whether the request is an AJAX request.
+
++allow_forgery_protection+ enables or disables CSRF protection. By default this is +false+ in test mode and +true+ in all other modes.
+
++relative_url_root+ can be used to tell Rails that you are deploying to a subdirectory. The default is +ENV['RAILS_RELATIVE_URL_ROOT']+.
+
+The caching code adds two additional settings:
+
++ActionController::Caching::Pages.page_cache_directory+ sets the directory where Rails will create cached pages for your web server. The default is +Rails.public_path+ (which is usually set to +RAILS_ROOT + "/public"+).
+
++ActionController::Caching::Pages.page_cache_extension+ sets the extension to be used when generating pages for the cache (this is ignored if the incoming request already has an extension). The default is +.html+.
+
+The dispatcher includes one setting:
+
++ActionController::Dispatcher.error_file_path+ gives the path where Rails will look for error files such as +404.html+. The default is +Rails.public_path+.
+
+The Active Record session store can also be configured:
+
++CGI::Session::ActiveRecordStore::Session.data_column_name+ sets the name of the column to use to store session data. By default it is 'data'
+
 === Configuring Action View
 
 === Configuring Action Mailer
@@ -67,6 +111,10 @@ The schema dumper adds one additional configuration option:
  organization, controlling load order
 
 == Using an After-Initializer
+
+== Rails Environment Settings
+
+ENV
 
 == Changelog ==
 
@@ -215,3 +263,4 @@ railties/test/rails_info_controller_test.rb
 Rakefile
 32:  rdoc.options << '-A cattr_accessor=object'
 
+need to look for def self. ???
