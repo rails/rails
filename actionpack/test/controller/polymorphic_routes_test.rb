@@ -180,6 +180,12 @@ uses_mocha 'polymorphic URL helpers' do
       polymorphic_url([nil, @article])
     end
 
+    def test_with_array_containing_single_name
+      @article.save
+      expects(:articles_url)
+      polymorphic_url([:articles])
+    end
+
     # TODO: Needs to be updated to correctly know about whether the object is in a hash or not
     def xtest_with_hash
       expects(:article_url).with(@article)
