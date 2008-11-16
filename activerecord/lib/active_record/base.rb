@@ -495,6 +495,10 @@ module ActiveRecord #:nodoc:
     superclass_delegating_accessor :store_full_sti_class
     self.store_full_sti_class = false
 
+    # Stores the default scope for the class
+    class_inheritable_accessor :default_scoping, :instance_writer => false
+    self.default_scoping = []
+
     class << self # Class methods
       # Find operates with four different retrieval approaches:
       #
@@ -2016,6 +2020,16 @@ module ActiveRecord #:nodoc:
           @@subclasses[self] + extra = @@subclasses[self].inject([]) {|list, subclass| list + subclass.subclasses }
         end
 
+        # Sets the default options for the model. The format of the
+        # <tt>method_scoping</tt> argument is the same as in with_scope.
+        #
+        #   class Person < ActiveRecord::Base
+        #     default_scope :find => { :order => 'last_name, first_name' }
+        #   end
+        def default_scope(options = {})
+          self.default_scoping << { :find => options, :create => options.is_a?(Hash) ?  options[:conditions] : {} }
+        end
+
         # Test whether the given method and optional key are scoped.
         def scoped?(method, key = nil) #:nodoc:
           if current_scoped_methods && (scope = current_scoped_methods[method])
@@ -2031,7 +2045,7 @@ module ActiveRecord #:nodoc:
         end
 
         def scoped_methods #:nodoc:
-          Thread.current[:"#{self}_scoped_methods"] ||= []
+          Thread.current[:"#{self}_scoped_methods"] ||= self.default_scoping
         end
 
         def current_scoped_methods #:nodoc:
