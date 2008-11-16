@@ -1,4 +1,4 @@
-require File.expand_path(File.join(File.dirname(__FILE__), '..', 'test_helper'))
+require 'test_helper'
 
 class StateTransitionTest < ActiveModel::TestCase
   test 'should set from, to, and opts attr readers' do
