@@ -2045,7 +2045,7 @@ module ActiveRecord #:nodoc:
         end
 
         def scoped_methods #:nodoc:
-          Thread.current[:"#{self}_scoped_methods"] ||= self.default_scoping
+          Thread.current[:"#{self}_scoped_methods"] ||= self.default_scoping.dup
         end
 
         def current_scoped_methods #:nodoc:
