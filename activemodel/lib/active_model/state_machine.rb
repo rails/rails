@@ -1,14 +1,10 @@
-Dir[File.dirname(__FILE__) + "/state_machine/*.rb"].sort.each do |path|
-  filename = File.basename(path)
-  require "active_model/state_machine/#{filename}"
-end
-
 module ActiveModel
   module StateMachine
     class InvalidTransition < Exception
     end
 
     def self.included(base)
+      require 'active_model/state_machine/machine'
       base.extend ClassMethods
     end
 

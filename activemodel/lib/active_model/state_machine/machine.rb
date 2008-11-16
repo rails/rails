@@ -1,3 +1,6 @@
+require 'active_model/state_machine/state'
+require 'active_model/state_machine/event'
+
 module ActiveModel
   module StateMachine
     class Machine
