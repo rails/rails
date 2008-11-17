@@ -101,7 +101,25 @@ The Active Record session store can also be configured:
 
 === Configuring Action View
 
+There are only a few configuration options for Action View, starting with four on +ActionView::Base+:
+
++debug_rjs+ specifies whether RJS responses should be wrapped in a try/catch block that alert()s the caught exception (and then re-raises it). The default is +false+.
+
++warn_cache_misses+ tells Rails to display a warning whenever an action results in a cache miss on your view paths. The default is +false+.
+
++field_error_proc+ provides an HTML generator for displaying errors that come from Active Record. The default is +Proc.new{ |html_tag, instance| "<div class=\"fieldWithErrors\">#{html_tag}</div>" }+
+
++default_form_builder+ tells Rails which form builder to use by default. The default is +ActionView::Helpers::FormBuilder+.
+
+The ERB template handler supplies one additional option:
+
++ActionView::TemplateHandlers::ERB.erb_trim_mode+ gives the trim mode to be used by ERB. It defaults to +'-'+.
+
 === Configuring Action Mailer
+
+There are a number of settings available on +ActionMailer::Base+:
+
+
 
 === Configuring Active Resource
 
