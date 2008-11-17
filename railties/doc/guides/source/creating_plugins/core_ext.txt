@@ -67,13 +67,13 @@ $ ./script/console
 
 === Working with init.rb ===
 
-When rails loads plugins it looks for the file named init.rb.  However, when the plugin is initialized, 'init.rb' is invoked via `eval` (not `require`) so it has slightly different behavior.
+When rails loads plugins it looks for the file named 'init.rb' or 'rails/init.rb'.  However, when the plugin is initialized, 'init.rb' is invoked via `eval` (not `require`) so it has slightly different behavior.
 
 Under certain circumstances if you reopen classes or modules in 'init.rb' you may inadvertently create a new class, rather than reopening an existing class.  A better alternative is to reopen the class in a different file, and require that file from `init.rb`, as shown above.
 
 If you must reopen a class in `init.rb` you can use `module_eval` or `class_eval` to avoid any issues:
 
-*vendor/plugins/yaffle/init.rb*
+*vendor/plugins/yaffle/rails/init.rb*
 
 [source, ruby]
 ---------------------------------------------------
@@ -86,7 +86,7 @@ end
 
 Another way is to explicitly define the top-level module space for all modules and classes, like `::Hash`:
 
-*vendor/plugins/yaffle/init.rb*
+*vendor/plugins/yaffle/rails/init.rb*
 
 [source, ruby]
 ---------------------------------------------------

@@ -290,6 +290,8 @@ ul#navMain {
 						
 							<li><a href="#_references">References</a></li>
 						
+							<li><a href="#_contents_of_em_lib_yaffle_rb_em">Contents of <em>lib/yaffle.rb</em></a></li>
+						
 							<li><a href="#_final_plugin_directory_structure">Final plugin directory structure</a></li>
 						
 						</ul>
@@ -708,10 +710,10 @@ http://www.gnu.org/software/src-highlite -->
 =&gt; "squawk! Hello World"</tt></pre>
 </div></div>
 <h3 id="_working_with_init_rb">3.1. Working with init.rb</h3>
-<div class="para"><p>When rails loads plugins it looks for the file named init.rb.  However, when the plugin is initialized, <em>init.rb</em> is invoked via <tt>eval</tt> (not <tt>require</tt>) so it has slightly different behavior.</p></div>
+<div class="para"><p>When rails loads plugins it looks for the file named <em>init.rb</em> or <em>rails/init.rb</em>.  However, when the plugin is initialized, <em>init.rb</em> is invoked via <tt>eval</tt> (not <tt>require</tt>) so it has slightly different behavior.</p></div>
 <div class="para"><p>Under certain circumstances if you reopen classes or modules in <em>init.rb</em> you may inadvertently create a new class, rather than reopening an existing class.  A better alternative is to reopen the class in a different file, and require that file from <tt>init.rb</tt>, as shown above.</p></div>
 <div class="para"><p>If you must reopen a class in <tt>init.rb</tt> you can use <tt>module_eval</tt> or <tt>class_eval</tt> to avoid any issues:</p></div>
-<div class="para"><p><strong>vendor/plugins/yaffle/init.rb</strong></p></div>
+<div class="para"><p><strong>vendor/plugins/yaffle/rails/init.rb</strong></p></div>
 <div class="listingblock">
 <div class="content"><!-- Generator: GNU source-highlight 2.9
 by Lorenzo Bettini
@@ -724,7 +726,7 @@ http://www.gnu.org/software/src-highlite -->
 <span style="font-weight: bold"><span style="color: #0000FF">end</span></span>
 </tt></pre></div></div>
 <div class="para"><p>Another way is to explicitly define the top-level module space for all modules and classes, like <tt>::Hash</tt>:</p></div>
-<div class="para"><p><strong>vendor/plugins/yaffle/init.rb</strong></p></div>
+<div class="para"><p><strong>vendor/plugins/yaffle/rails/init.rb</strong></p></div>
 <div class="listingblock">
 <div class="content"><!-- Generator: GNU source-highlight 2.9
 by Lorenzo Bettini
@@ -998,10 +1000,8 @@ http://www.gnu.org/software/src-highlite -->
 by Lorenzo Bettini
 http://www.lorenzobettini.it
 http://www.gnu.org/software/src-highlite -->
-<pre><tt>ActiveRecord<span style="color: #990000">::</span>Schema<span style="color: #990000">.</span>define<span style="color: #990000">(:</span>version <span style="color: #990000">=&gt;</span> <span style="color: #993399">0</span><span style="color: #990000">)</span> <span style="font-weight: bold"><span style="color: #0000FF">do</span></span>
-  create_table <span style="color: #990000">:</span>woodpeckers<span style="color: #990000">,</span> <span style="color: #990000">:</span>force <span style="color: #990000">=&gt;</span> <span style="font-weight: bold"><span style="color: #0000FF">true</span></span> <span style="font-weight: bold"><span style="color: #0000FF">do</span></span> <span style="color: #990000">|</span>t<span style="color: #990000">|</span>
-    t<span style="color: #990000">.</span>string <span style="color: #990000">:</span>name
-  <span style="font-weight: bold"><span style="color: #0000FF">end</span></span>
+<pre><tt>create_table <span style="color: #990000">:</span>woodpeckers<span style="color: #990000">,</span> <span style="color: #990000">:</span>force <span style="color: #990000">=&gt;</span> <span style="font-weight: bold"><span style="color: #0000FF">true</span></span> <span style="font-weight: bold"><span style="color: #0000FF">do</span></span> <span style="color: #990000">|</span>t<span style="color: #990000">|</span>
+  t<span style="color: #990000">.</span>string <span style="color: #990000">:</span>name
 <span style="font-weight: bold"><span style="color: #0000FF">end</span></span>
 </tt></pre></div></div>
 <div class="para"><p>Now your test should be passing, and you should be able to use the Woodpecker model from within your rails app, and any changes made to it are reflected immediately when running in development mode.</p></div>
@@ -1027,6 +1027,10 @@ http://www.gnu.org/software/src-highlite -->
     <span style="color: #009900">@controller</span> <span style="color: #990000">=</span> WoodpeckersController<span style="color: #990000">.</span>new
     <span style="color: #009900">@request</span> <span style="color: #990000">=</span> ActionController<span style="color: #990000">::</span>TestRequest<span style="color: #990000">.</span>new
     <span style="color: #009900">@response</span> <span style="color: #990000">=</span> ActionController<span style="color: #990000">::</span>TestResponse<span style="color: #990000">.</span>new
+
+    ActionController<span style="color: #990000">::</span>Routing<span style="color: #990000">::</span>Routes<span style="color: #990000">.</span>draw <span style="font-weight: bold"><span style="color: #0000FF">do</span></span> <span style="color: #990000">|</span>map<span style="color: #990000">|</span>
+      map<span style="color: #990000">.</span>resources <span style="color: #990000">:</span>woodpeckers
+    <span style="font-weight: bold"><span style="color: #0000FF">end</span></span>
   <span style="font-weight: bold"><span style="color: #0000FF">end</span></span>
 
   <span style="font-weight: bold"><span style="color: #0000FF">def</span></span> test_index
@@ -1097,8 +1101,6 @@ http://www.gnu.org/software/src-highlite -->
   ActiveSupport<span style="color: #990000">::</span>Dependencies<span style="color: #990000">.</span>load_paths <span style="color: #990000">&lt;&lt;</span> path
   ActiveSupport<span style="color: #990000">::</span>Dependencies<span style="color: #990000">.</span>load_once_paths<span style="color: #990000">.</span>delete<span style="color: #990000">(</span>path<span style="color: #990000">)</span>
 <span style="font-weight: bold"><span style="color: #0000FF">end</span></span>
-
-ActionView<span style="color: #990000">::</span>Base<span style="color: #990000">.</span>send <span style="color: #990000">:</span><span style="font-weight: bold"><span style="color: #0000FF">include</span></span><span style="color: #990000">,</span> WoodpeckersHelper
 </tt></pre></div></div>
 <div class="para"><p><strong>vendor/plugins/yaffle/lib/app/helpers/woodpeckers_helper.rb:</strong></p></div>
 <div class="listingblock">
@@ -1141,26 +1143,21 @@ http://www.gnu.org/software/src-highlite -->
 
   private
 
-    <span style="font-style: italic"><span style="color: #9A1900"># yes, I know about assert_recognizes, but it has proven problematic to</span></span>
-    <span style="font-style: italic"><span style="color: #9A1900"># use in these tests, since it uses RouteSet#recognize (which actually</span></span>
-    <span style="font-style: italic"><span style="color: #9A1900"># tries to instantiate the controller) and because it uses an awkward</span></span>
-    <span style="font-style: italic"><span style="color: #9A1900"># parameter order.</span></span>
     <span style="font-weight: bold"><span style="color: #0000FF">def</span></span> assert_recognition<span style="color: #990000">(</span>method<span style="color: #990000">,</span> path<span style="color: #990000">,</span> options<span style="color: #990000">)</span>
       result <span style="color: #990000">=</span> ActionController<span style="color: #990000">::</span>Routing<span style="color: #990000">::</span>Routes<span style="color: #990000">.</span>recognize_path<span style="color: #990000">(</span>path<span style="color: #990000">,</span> <span style="color: #990000">:</span>method <span style="color: #990000">=&gt;</span> method<span style="color: #990000">)</span>
       assert_equal options<span style="color: #990000">,</span> result
     <span style="font-weight: bold"><span style="color: #0000FF">end</span></span>
 <span style="font-weight: bold"><span style="color: #0000FF">end</span></span>
 </tt></pre></div></div>
-<div class="para"><p><strong>vendor/plugins/yaffle/init.rb</strong></p></div>
+<div class="para"><p><strong>vendor/plugins/yaffle/lib/yaffle.rb</strong></p></div>
 <div class="listingblock">
 <div class="content"><!-- Generator: GNU source-highlight 2.9
 by Lorenzo Bettini
 http://www.lorenzobettini.it
 http://www.gnu.org/software/src-highlite -->
-<pre><tt><span style="font-weight: bold"><span style="color: #000080">require</span></span> <span style="color: #FF0000">"routing"</span>
-ActionController<span style="color: #990000">::</span>Routing<span style="color: #990000">::</span>RouteSet<span style="color: #990000">::</span>Mapper<span style="color: #990000">.</span>send <span style="color: #990000">:</span><span style="font-weight: bold"><span style="color: #0000FF">include</span></span><span style="color: #990000">,</span> Yaffle<span style="color: #990000">::</span>Routing<span style="color: #990000">::</span>MapperExtensions
+<pre><tt><span style="font-weight: bold"><span style="color: #000080">require</span></span> <span style="color: #FF0000">"yaffle/routing"</span>
 </tt></pre></div></div>
-<div class="para"><p><strong>vendor/plugins/yaffle/lib/routing.rb</strong></p></div>
+<div class="para"><p><strong>vendor/plugins/yaffle/lib/yaffle/routing.rb</strong></p></div>
 <div class="listingblock">
 <div class="content"><!-- Generator: GNU source-highlight 2.9
 by Lorenzo Bettini
@@ -1175,6 +1172,7 @@ http://www.gnu.org/software/src-highlite -->
     <span style="font-weight: bold"><span style="color: #0000FF">end</span></span>
   <span style="font-weight: bold"><span style="color: #0000FF">end</span></span>
 <span style="font-weight: bold"><span style="color: #0000FF">end</span></span>
+ActionController<span style="color: #990000">::</span>Routing<span style="color: #990000">::</span>RouteSet<span style="color: #990000">::</span>Mapper<span style="color: #990000">.</span>send <span style="color: #990000">:</span><span style="font-weight: bold"><span style="color: #0000FF">include</span></span><span style="color: #990000">,</span> Yaffle<span style="color: #990000">::</span>Routing<span style="color: #990000">::</span>MapperExtensions
 </tt></pre></div></div>
 <div class="para"><p><strong>config/routes.rb</strong></p></div>
 <div class="listingblock">
@@ -1183,7 +1181,6 @@ by Lorenzo Bettini
 http://www.lorenzobettini.it
 http://www.gnu.org/software/src-highlite -->
 <pre><tt>ActionController<span style="color: #990000">::</span>Routing<span style="color: #990000">::</span>Routes<span style="color: #990000">.</span>draw <span style="font-weight: bold"><span style="color: #0000FF">do</span></span> <span style="color: #990000">|</span>map<span style="color: #990000">|</span>
-  <span style="color: #990000">...</span>
   map<span style="color: #990000">.</span>yaffles
 <span style="font-weight: bold"><span style="color: #0000FF">end</span></span>
 </tt></pre></div></div>
@@ -1253,14 +1250,6 @@ http://www.gnu.org/software/src-highlite -->
 
 <span style="font-weight: bold"><span style="color: #0000FF">class</span></span> DefinitionGeneratorTest <span style="color: #990000">&lt;</span> Test<span style="color: #990000">::</span>Unit<span style="color: #990000">::</span>TestCase
 
-  <span style="font-weight: bold"><span style="color: #0000FF">def</span></span> fake_rails_root
-    File<span style="color: #990000">.</span>join<span style="color: #990000">(</span>File<span style="color: #990000">.</span>dirname<span style="color: #990000">(</span><span style="font-weight: bold"><span style="color: #0000FF">__FILE__</span></span><span style="color: #990000">),</span> <span style="color: #FF0000">'rails_root'</span><span style="color: #990000">)</span>
-  <span style="font-weight: bold"><span style="color: #0000FF">end</span></span>
-
-  <span style="font-weight: bold"><span style="color: #0000FF">def</span></span> file_list
-    Dir<span style="color: #990000">.</span>glob<span style="color: #990000">(</span>File<span style="color: #990000">.</span>join<span style="color: #990000">(</span>fake_rails_root<span style="color: #990000">,</span> <span style="color: #FF0000">"*"</span><span style="color: #990000">))</span>
-  <span style="font-weight: bold"><span style="color: #0000FF">end</span></span>
-
   <span style="font-weight: bold"><span style="color: #0000FF">def</span></span> setup
     FileUtils<span style="color: #990000">.</span>mkdir_p<span style="color: #990000">(</span>fake_rails_root<span style="color: #990000">)</span>
     <span style="color: #009900">@original_files</span> <span style="color: #990000">=</span> file_list
@@ -1275,6 +1264,16 @@ http://www.gnu.org/software/src-highlite -->
     new_file <span style="color: #990000">=</span> <span style="color: #990000">(</span>file_list <span style="color: #990000">-</span> <span style="color: #009900">@original_files</span><span style="color: #990000">).</span>first
     assert_equal <span style="color: #FF0000">"definition.txt"</span><span style="color: #990000">,</span> File<span style="color: #990000">.</span>basename<span style="color: #990000">(</span>new_file<span style="color: #990000">)</span>
   <span style="font-weight: bold"><span style="color: #0000FF">end</span></span>
+
+  private
+
+    <span style="font-weight: bold"><span style="color: #0000FF">def</span></span> fake_rails_root
+      File<span style="color: #990000">.</span>join<span style="color: #990000">(</span>File<span style="color: #990000">.</span>dirname<span style="color: #990000">(</span><span style="font-weight: bold"><span style="color: #0000FF">__FILE__</span></span><span style="color: #990000">),</span> <span style="color: #FF0000">'rails_root'</span><span style="color: #990000">)</span>
+    <span style="font-weight: bold"><span style="color: #0000FF">end</span></span>
+
+    <span style="font-weight: bold"><span style="color: #0000FF">def</span></span> file_list
+      Dir<span style="color: #990000">.</span>glob<span style="color: #990000">(</span>File<span style="color: #990000">.</span>join<span style="color: #990000">(</span>fake_rails_root<span style="color: #990000">,</span> <span style="color: #FF0000">"*"</span><span style="color: #990000">))</span>
+    <span style="font-weight: bold"><span style="color: #0000FF">end</span></span>
 
 <span style="font-weight: bold"><span style="color: #0000FF">end</span></span>
 </tt></pre></div></div>
@@ -1334,14 +1333,6 @@ http://www.gnu.org/software/src-highlite -->
 
 <span style="font-weight: bold"><span style="color: #0000FF">class</span></span> RouteGeneratorTest <span style="color: #990000">&lt;</span> Test<span style="color: #990000">::</span>Unit<span style="color: #990000">::</span>TestCase
 
-  <span style="font-weight: bold"><span style="color: #0000FF">def</span></span> fake_rails_root
-    File<span style="color: #990000">.</span>join<span style="color: #990000">(</span>File<span style="color: #990000">.</span>dirname<span style="color: #990000">(</span><span style="font-weight: bold"><span style="color: #0000FF">__FILE__</span></span><span style="color: #990000">),</span> <span style="color: #FF0000">"rails_root"</span><span style="color: #990000">)</span>
-  <span style="font-weight: bold"><span style="color: #0000FF">end</span></span>
-
-  <span style="font-weight: bold"><span style="color: #0000FF">def</span></span> routes_path
-    File<span style="color: #990000">.</span>join<span style="color: #990000">(</span>fake_rails_root<span style="color: #990000">,</span> <span style="color: #FF0000">"config"</span><span style="color: #990000">,</span> <span style="color: #FF0000">"routes.rb"</span><span style="color: #990000">)</span>
-  <span style="font-weight: bold"><span style="color: #0000FF">end</span></span>
-
   <span style="font-weight: bold"><span style="color: #0000FF">def</span></span> setup
     FileUtils<span style="color: #990000">.</span>mkdir_p<span style="color: #990000">(</span>File<span style="color: #990000">.</span>join<span style="color: #990000">(</span>fake_rails_root<span style="color: #990000">,</span> <span style="color: #FF0000">"config"</span><span style="color: #990000">))</span>
   <span style="font-weight: bold"><span style="color: #0000FF">end</span></span>
@@ -1360,13 +1351,13 @@ http://www.gnu.org/software/src-highlite -->
     File<span style="color: #990000">.</span>open<span style="color: #990000">(</span>routes_path<span style="color: #990000">,</span> <span style="color: #FF0000">'wb'</span><span style="color: #990000">)</span> <span style="color: #FF0000">{</span><span style="color: #990000">|</span>f<span style="color: #990000">|</span> f<span style="color: #990000">.</span>write<span style="color: #990000">(</span>content<span style="color: #990000">)</span> <span style="color: #FF0000">}</span>
 
     Rails<span style="color: #990000">::</span>Generator<span style="color: #990000">::</span>Scripts<span style="color: #990000">::</span>Generate<span style="color: #990000">.</span>new<span style="color: #990000">.</span>run<span style="color: #990000">([</span><span style="color: #FF0000">"yaffle_route"</span><span style="color: #990000">],</span> <span style="color: #990000">:</span>destination <span style="color: #990000">=&gt;</span> fake_rails_root<span style="color: #990000">)</span>
-    assert_match <span style="color: #FF6600">/map\.yaffle/</span><span style="color: #990000">,</span> File<span style="color: #990000">.</span>read<span style="color: #990000">(</span>routes_path<span style="color: #990000">)</span>
+    assert_match <span style="color: #FF6600">/map\.yaffles/</span><span style="color: #990000">,</span> File<span style="color: #990000">.</span>read<span style="color: #990000">(</span>routes_path<span style="color: #990000">)</span>
   <span style="font-weight: bold"><span style="color: #0000FF">end</span></span>
 
   <span style="font-weight: bold"><span style="color: #0000FF">def</span></span> test_destroys_route
     content <span style="color: #990000">=</span> <span style="color: #990000">&lt;&lt;-</span><span style="font-weight: bold"><span style="color: #0000FF">END</span></span>
       ActionController<span style="color: #990000">::</span>Routing<span style="color: #990000">::</span>Routes<span style="color: #990000">.</span>draw <span style="font-weight: bold"><span style="color: #0000FF">do</span></span> <span style="color: #990000">|</span>map<span style="color: #990000">|</span>
-        map<span style="color: #990000">.</span>yaffle
+        map<span style="color: #990000">.</span>yaffles
         map<span style="color: #990000">.</span>connect <span style="color: #FF0000">':controller/:action/:id'</span>
         map<span style="color: #990000">.</span>connect <span style="color: #FF0000">':controller/:action/:id.:format'</span>
       <span style="font-weight: bold"><span style="color: #0000FF">end</span></span>
@@ -1374,8 +1365,19 @@ http://www.gnu.org/software/src-highlite -->
     File<span style="color: #990000">.</span>open<span style="color: #990000">(</span>routes_path<span style="color: #990000">,</span> <span style="color: #FF0000">'wb'</span><span style="color: #990000">)</span> <span style="color: #FF0000">{</span><span style="color: #990000">|</span>f<span style="color: #990000">|</span> f<span style="color: #990000">.</span>write<span style="color: #990000">(</span>content<span style="color: #990000">)</span> <span style="color: #FF0000">}</span>
 
     Rails<span style="color: #990000">::</span>Generator<span style="color: #990000">::</span>Scripts<span style="color: #990000">::</span>Destroy<span style="color: #990000">.</span>new<span style="color: #990000">.</span>run<span style="color: #990000">([</span><span style="color: #FF0000">"yaffle_route"</span><span style="color: #990000">],</span> <span style="color: #990000">:</span>destination <span style="color: #990000">=&gt;</span> fake_rails_root<span style="color: #990000">)</span>
-    assert_no_match <span style="color: #FF6600">/map\.yaffle/</span><span style="color: #990000">,</span> File<span style="color: #990000">.</span>read<span style="color: #990000">(</span>routes_path<span style="color: #990000">)</span>
+    assert_no_match <span style="color: #FF6600">/map\.yaffles/</span><span style="color: #990000">,</span> File<span style="color: #990000">.</span>read<span style="color: #990000">(</span>routes_path<span style="color: #990000">)</span>
   <span style="font-weight: bold"><span style="color: #0000FF">end</span></span>
+
+  private
+
+    <span style="font-weight: bold"><span style="color: #0000FF">def</span></span> fake_rails_root
+      File<span style="color: #990000">.</span>join<span style="color: #990000">(</span>File<span style="color: #990000">.</span>dirname<span style="color: #990000">(</span><span style="font-weight: bold"><span style="color: #0000FF">__FILE__</span></span><span style="color: #990000">),</span> <span style="color: #FF0000">"rails_root"</span><span style="color: #990000">)</span>
+    <span style="font-weight: bold"><span style="color: #0000FF">end</span></span>
+
+    <span style="font-weight: bold"><span style="color: #0000FF">def</span></span> routes_path
+      File<span style="color: #990000">.</span>join<span style="color: #990000">(</span>fake_rails_root<span style="color: #990000">,</span> <span style="color: #FF0000">"config"</span><span style="color: #990000">,</span> <span style="color: #FF0000">"routes.rb"</span><span style="color: #990000">)</span>
+    <span style="font-weight: bold"><span style="color: #0000FF">end</span></span>
+
 <span style="font-weight: bold"><span style="color: #0000FF">end</span></span>
 </tt></pre></div></div>
 <div class="para"><p>Run <tt>rake</tt> to watch the test fail, then make the test pass add the following:</p></div>
@@ -1404,7 +1406,7 @@ http://www.gnu.org/software/src-highlite -->
           logger<span style="color: #990000">.</span>route <span style="color: #FF0000">"map.yaffle"</span>
           look_for <span style="color: #990000">=</span> <span style="color: #FF0000">'ActionController::Routing::Routes.draw do |map|'</span>
           <span style="font-weight: bold"><span style="color: #0000FF">unless</span></span> options<span style="color: #990000">[:</span>pretend<span style="color: #990000">]</span>
-            gsub_file<span style="color: #990000">(</span><span style="color: #FF0000">'config/routes.rb'</span><span style="color: #990000">,</span> <span style="color: #FF6600">/(#{Regexp.escape(look_for)})/</span>mi<span style="color: #990000">)</span><span style="color: #FF0000">{</span><span style="color: #990000">|</span>match<span style="color: #990000">|</span> <span style="color: #FF0000">"#{match}\n  map.yaffle\n"</span><span style="color: #FF0000">}</span>
+            gsub_file<span style="color: #990000">(</span><span style="color: #FF0000">'config/routes.rb'</span><span style="color: #990000">,</span> <span style="color: #FF6600">/(#{Regexp.escape(look_for)})/</span>mi<span style="color: #990000">)</span><span style="color: #FF0000">{</span><span style="color: #990000">|</span>match<span style="color: #990000">|</span> <span style="color: #FF0000">"#{match}\n  map.yaffles\n"</span><span style="color: #FF0000">}</span>
           <span style="font-weight: bold"><span style="color: #0000FF">end</span></span>
         <span style="font-weight: bold"><span style="color: #0000FF">end</span></span>
       <span style="font-weight: bold"><span style="color: #0000FF">end</span></span>
@@ -1412,7 +1414,7 @@ http://www.gnu.org/software/src-highlite -->
       <span style="font-weight: bold"><span style="color: #0000FF">module</span></span> Destroy
         <span style="font-weight: bold"><span style="color: #0000FF">def</span></span> yaffle_route
           logger<span style="color: #990000">.</span>route <span style="color: #FF0000">"map.yaffle"</span>
-          gsub_file <span style="color: #FF0000">'config/routes.rb'</span><span style="color: #990000">,</span> <span style="color: #FF6600">/\n.+?map\.yaffle/</span>mi<span style="color: #990000">,</span> <span style="color: #FF0000">''</span>
+          gsub_file <span style="color: #FF0000">'config/routes.rb'</span><span style="color: #990000">,</span> <span style="color: #FF6600">/\n.+?map\.yaffles/</span>mi<span style="color: #990000">,</span> <span style="color: #FF0000">''</span>
         <span style="font-weight: bold"><span style="color: #0000FF">end</span></span>
       <span style="font-weight: bold"><span style="color: #0000FF">end</span></span>
 
@@ -1586,17 +1588,8 @@ http://www.gnu.org/software/src-highlite -->
 <pre><tt><span style="font-weight: bold"><span style="color: #000080">require</span></span> File<span style="color: #990000">.</span>dirname<span style="color: #990000">(</span><span style="font-weight: bold"><span style="color: #0000FF">__FILE__</span></span><span style="color: #990000">)</span> <span style="color: #990000">+</span> <span style="color: #FF0000">'/test_helper.rb'</span>
 <span style="font-weight: bold"><span style="color: #000080">require</span></span> <span style="color: #FF0000">'rails_generator'</span>
 <span style="font-weight: bold"><span style="color: #000080">require</span></span> <span style="color: #FF0000">'rails_generator/scripts/generate'</span>
-<span style="font-weight: bold"><span style="color: #000080">require</span></span> <span style="color: #FF0000">'rails_generator/scripts/destroy'</span>
 
 <span style="font-weight: bold"><span style="color: #0000FF">class</span></span> MigrationGeneratorTest <span style="color: #990000">&lt;</span> Test<span style="color: #990000">::</span>Unit<span style="color: #990000">::</span>TestCase
-
-  <span style="font-weight: bold"><span style="color: #0000FF">def</span></span> fake_rails_root
-    File<span style="color: #990000">.</span>join<span style="color: #990000">(</span>File<span style="color: #990000">.</span>dirname<span style="color: #990000">(</span><span style="font-weight: bold"><span style="color: #0000FF">__FILE__</span></span><span style="color: #990000">),</span> <span style="color: #FF0000">'rails_root'</span><span style="color: #990000">)</span>
-  <span style="font-weight: bold"><span style="color: #0000FF">end</span></span>
-
-  <span style="font-weight: bold"><span style="color: #0000FF">def</span></span> file_list
-    Dir<span style="color: #990000">.</span>glob<span style="color: #990000">(</span>File<span style="color: #990000">.</span>join<span style="color: #990000">(</span>fake_rails_root<span style="color: #990000">,</span> <span style="color: #FF0000">"db"</span><span style="color: #990000">,</span> <span style="color: #FF0000">"migrate"</span><span style="color: #990000">,</span> <span style="color: #FF0000">"*"</span><span style="color: #990000">))</span>
-  <span style="font-weight: bold"><span style="color: #0000FF">end</span></span>
 
   <span style="font-weight: bold"><span style="color: #0000FF">def</span></span> setup
     FileUtils<span style="color: #990000">.</span>mkdir_p<span style="color: #990000">(</span>fake_rails_root<span style="color: #990000">)</span>
@@ -1604,11 +1597,12 @@ http://www.gnu.org/software/src-highlite -->
   <span style="font-weight: bold"><span style="color: #0000FF">end</span></span>
 
   <span style="font-weight: bold"><span style="color: #0000FF">def</span></span> teardown
+    ActiveRecord<span style="color: #990000">::</span>Base<span style="color: #990000">.</span>pluralize_table_names <span style="color: #990000">=</span> <span style="font-weight: bold"><span style="color: #0000FF">true</span></span>
     FileUtils<span style="color: #990000">.</span>rm_r<span style="color: #990000">(</span>fake_rails_root<span style="color: #990000">)</span>
   <span style="font-weight: bold"><span style="color: #0000FF">end</span></span>
 
   <span style="font-weight: bold"><span style="color: #0000FF">def</span></span> test_generates_correct_file_name
-    Rails<span style="color: #990000">::</span>Generator<span style="color: #990000">::</span>Scripts<span style="color: #990000">::</span>Generate<span style="color: #990000">.</span>new<span style="color: #990000">.</span>run<span style="color: #990000">([</span><span style="color: #FF0000">"yaffle"</span><span style="color: #990000">,</span> <span style="color: #FF0000">"some_name_nobody_is_likely_to_ever_use_in_a_real_migration"</span><span style="color: #990000">],</span> <span style="color: #990000">:</span>destination <span style="color: #990000">=&gt;</span> fake_rails_root<span style="color: #990000">)</span>
+    Rails<span style="color: #990000">::</span>Generator<span style="color: #990000">::</span>Scripts<span style="color: #990000">::</span>Generate<span style="color: #990000">.</span>new<span style="color: #990000">.</span>run<span style="color: #990000">([</span><span style="color: #FF0000">"yaffle_migration"</span><span style="color: #990000">,</span> <span style="color: #FF0000">"some_name_nobody_is_likely_to_ever_use_in_a_real_migration"</span><span style="color: #990000">],</span> <span style="color: #990000">:</span>destination <span style="color: #990000">=&gt;</span> fake_rails_root<span style="color: #990000">)</span>
     new_file <span style="color: #990000">=</span> <span style="color: #990000">(</span>file_list <span style="color: #990000">-</span> <span style="color: #009900">@original_files</span><span style="color: #990000">).</span>first
     assert_match <span style="color: #FF6600">/add_yaffle_fields_to_some_name_nobody_is_likely_to_ever_use_in_a_real_migrations/</span><span style="color: #990000">,</span> new_file
     assert_match <span style="color: #FF6600">/add_column :some_name_nobody_is_likely_to_ever_use_in_a_real_migrations do |t|/</span><span style="color: #990000">,</span> File<span style="color: #990000">.</span>read<span style="color: #990000">(</span>new_file<span style="color: #990000">)</span>
@@ -1616,11 +1610,20 @@ http://www.gnu.org/software/src-highlite -->
 
   <span style="font-weight: bold"><span style="color: #0000FF">def</span></span> test_pluralizes_properly
     ActiveRecord<span style="color: #990000">::</span>Base<span style="color: #990000">.</span>pluralize_table_names <span style="color: #990000">=</span> <span style="font-weight: bold"><span style="color: #0000FF">false</span></span>
-    Rails<span style="color: #990000">::</span>Generator<span style="color: #990000">::</span>Scripts<span style="color: #990000">::</span>Generate<span style="color: #990000">.</span>new<span style="color: #990000">.</span>run<span style="color: #990000">([</span><span style="color: #FF0000">"yaffle"</span><span style="color: #990000">,</span> <span style="color: #FF0000">"some_name_nobody_is_likely_to_ever_use_in_a_real_migration"</span><span style="color: #990000">],</span> <span style="color: #990000">:</span>destination <span style="color: #990000">=&gt;</span> fake_rails_root<span style="color: #990000">)</span>
+    Rails<span style="color: #990000">::</span>Generator<span style="color: #990000">::</span>Scripts<span style="color: #990000">::</span>Generate<span style="color: #990000">.</span>new<span style="color: #990000">.</span>run<span style="color: #990000">([</span><span style="color: #FF0000">"yaffle_migration"</span><span style="color: #990000">,</span> <span style="color: #FF0000">"some_name_nobody_is_likely_to_ever_use_in_a_real_migration"</span><span style="color: #990000">],</span> <span style="color: #990000">:</span>destination <span style="color: #990000">=&gt;</span> fake_rails_root<span style="color: #990000">)</span>
     new_file <span style="color: #990000">=</span> <span style="color: #990000">(</span>file_list <span style="color: #990000">-</span> <span style="color: #009900">@original_files</span><span style="color: #990000">).</span>first
     assert_match <span style="color: #FF6600">/add_yaffle_fields_to_some_name_nobody_is_likely_to_ever_use_in_a_real_migration/</span><span style="color: #990000">,</span> new_file
     assert_match <span style="color: #FF6600">/add_column :some_name_nobody_is_likely_to_ever_use_in_a_real_migration do |t|/</span><span style="color: #990000">,</span> File<span style="color: #990000">.</span>read<span style="color: #990000">(</span>new_file<span style="color: #990000">)</span>
   <span style="font-weight: bold"><span style="color: #0000FF">end</span></span>
+
+  private
+    <span style="font-weight: bold"><span style="color: #0000FF">def</span></span> fake_rails_root
+      File<span style="color: #990000">.</span>join<span style="color: #990000">(</span>File<span style="color: #990000">.</span>dirname<span style="color: #990000">(</span><span style="font-weight: bold"><span style="color: #0000FF">__FILE__</span></span><span style="color: #990000">),</span> <span style="color: #FF0000">'rails_root'</span><span style="color: #990000">)</span>
+    <span style="font-weight: bold"><span style="color: #0000FF">end</span></span>
+
+    <span style="font-weight: bold"><span style="color: #0000FF">def</span></span> file_list
+      Dir<span style="color: #990000">.</span>glob<span style="color: #990000">(</span>File<span style="color: #990000">.</span>join<span style="color: #990000">(</span>fake_rails_root<span style="color: #990000">,</span> <span style="color: #FF0000">"db"</span><span style="color: #990000">,</span> <span style="color: #FF0000">"migrate"</span><span style="color: #990000">,</span> <span style="color: #FF0000">"*"</span><span style="color: #990000">))</span>
+    <span style="font-weight: bold"><span style="color: #0000FF">end</span></span>
 
 <span style="font-weight: bold"><span style="color: #0000FF">end</span></span>
 </tt></pre></div></div>
@@ -1640,7 +1643,7 @@ http://www.gnu.org/software/src-highlite -->
 by Lorenzo Bettini
 http://www.lorenzobettini.it
 http://www.gnu.org/software/src-highlite -->
-<pre><tt><span style="font-weight: bold"><span style="color: #0000FF">class</span></span> YaffleGenerator <span style="color: #990000">&lt;</span> Rails<span style="color: #990000">::</span>Generator<span style="color: #990000">::</span>NamedBase
+<pre><tt><span style="font-weight: bold"><span style="color: #0000FF">class</span></span> YaffleMigrationGenerator <span style="color: #990000">&lt;</span> Rails<span style="color: #990000">::</span>Generator<span style="color: #990000">::</span>NamedBase
   <span style="font-weight: bold"><span style="color: #0000FF">def</span></span> manifest
     record <span style="font-weight: bold"><span style="color: #0000FF">do</span></span> <span style="color: #990000">|</span>m<span style="color: #990000">|</span>
       m<span style="color: #990000">.</span>migration_template <span style="color: #FF0000">'migration:migration.rb'</span><span style="color: #990000">,</span> <span style="color: #FF0000">"db/migrate"</span><span style="color: #990000">,</span> <span style="color: #FF0000">{</span><span style="color: #990000">:</span>assigns <span style="color: #990000">=&gt;</span> yaffle_local_assigns<span style="color: #990000">,</span>
@@ -1653,6 +1656,7 @@ http://www.gnu.org/software/src-highlite -->
     <span style="font-weight: bold"><span style="color: #0000FF">def</span></span> custom_file_name
       custom_name <span style="color: #990000">=</span> class_name<span style="color: #990000">.</span>underscore<span style="color: #990000">.</span>downcase
       custom_name <span style="color: #990000">=</span> custom_name<span style="color: #990000">.</span>pluralize <span style="font-weight: bold"><span style="color: #0000FF">if</span></span> ActiveRecord<span style="color: #990000">::</span>Base<span style="color: #990000">.</span>pluralize_table_names
+      custom_name
     <span style="font-weight: bold"><span style="color: #0000FF">end</span></span>
 
     <span style="font-weight: bold"><span style="color: #0000FF">def</span></span> yaffle_local_assigns
@@ -1710,9 +1714,7 @@ http://www.gnu.org/software/src-highlite -->
 <div class="para"><p>When you run <tt>rake -T</tt> from your plugin you will see:</p></div>
 <div class="listingblock">
 <div class="content">
-<pre><tt>...
-yaffle:squawk             # Prints out the word 'Yaffle'
-...</tt></pre>
+<pre><tt>yaffle:squawk             # Prints out the word 'Yaffle'</tt></pre>
 </div></div>
 <div class="para"><p>You can add as many files as you want in the tasks directory, and if they end in .rake Rails will pick them up.</p></div>
 <div class="para"><p>Note that tasks from <em>vendor/plugins/yaffle/Rakefile</em> are not available to the main app.</p></div>
@@ -1829,7 +1831,32 @@ Warning, gotchas or tips that might help save users time
 </p>
 </li>
 </ul></div>
-<h3 id="_final_plugin_directory_structure">15.2. Final plugin directory structure</h3>
+<h3 id="_contents_of_em_lib_yaffle_rb_em">15.2. Contents of <em>lib/yaffle.rb</em></h3>
+<div class="para"><p><strong>vendor/plugins/yaffle/lib/yaffle.rb:</strong></p></div>
+<div class="listingblock">
+<div class="content"><!-- Generator: GNU source-highlight 2.9
+by Lorenzo Bettini
+http://www.lorenzobettini.it
+http://www.gnu.org/software/src-highlite -->
+<pre><tt><span style="font-weight: bold"><span style="color: #000080">require</span></span> <span style="color: #FF0000">"yaffle/core_ext"</span>
+<span style="font-weight: bold"><span style="color: #000080">require</span></span> <span style="color: #FF0000">"yaffle/acts_as_yaffle"</span>
+<span style="font-weight: bold"><span style="color: #000080">require</span></span> <span style="color: #FF0000">"yaffle/commands"</span>
+<span style="font-weight: bold"><span style="color: #000080">require</span></span> <span style="color: #FF0000">"yaffle/routing"</span>
+
+<span style="color: #990000">%</span>w<span style="color: #FF0000">{</span> models controllers helpers <span style="color: #FF0000">}</span><span style="color: #990000">.</span>each <span style="font-weight: bold"><span style="color: #0000FF">do</span></span> <span style="color: #990000">|</span>dir<span style="color: #990000">|</span>
+  path <span style="color: #990000">=</span> File<span style="color: #990000">.</span>join<span style="color: #990000">(</span>File<span style="color: #990000">.</span>dirname<span style="color: #990000">(</span><span style="font-weight: bold"><span style="color: #0000FF">__FILE__</span></span><span style="color: #990000">),</span> <span style="color: #FF0000">'app'</span><span style="color: #990000">,</span> dir<span style="color: #990000">)</span>
+  <span style="color: #009900">$LOAD_PATH</span> <span style="color: #990000">&lt;&lt;</span> path
+  ActiveSupport<span style="color: #990000">::</span>Dependencies<span style="color: #990000">.</span>load_paths <span style="color: #990000">&lt;&lt;</span> path
+  ActiveSupport<span style="color: #990000">::</span>Dependencies<span style="color: #990000">.</span>load_once_paths<span style="color: #990000">.</span>delete<span style="color: #990000">(</span>path<span style="color: #990000">)</span>
+<span style="font-weight: bold"><span style="color: #0000FF">end</span></span>
+
+<span style="font-style: italic"><span style="color: #9A1900"># optionally:</span></span>
+<span style="font-style: italic"><span style="color: #9A1900"># Dir.glob(File.join(File.dirname(__FILE__), "db", "migrate", "*")).each do |file|</span></span>
+<span style="font-style: italic"><span style="color: #9A1900">#   require file</span></span>
+<span style="font-style: italic"><span style="color: #9A1900"># end</span></span>
+
+</tt></pre></div></div>
+<h3 id="_final_plugin_directory_structure">15.3. Final plugin directory structure</h3>
 <div class="para"><p>The final plugin should have a directory structure that looks something like this:</p></div>
 <div class="listingblock">
 <div class="content">
@@ -1865,7 +1892,8 @@ Warning, gotchas or tips that might help save users time
 |   |-- yaffle
 |   |   |-- acts_as_yaffle.rb
 |   |   |-- commands.rb
-|   |   `-- core_ext.rb
+|   |   |-- core_ext.rb
+|   |   `-- routing.rb
 |   `-- yaffle.rb
 |-- pkg
 |   `-- yaffle-0.0.1.gem
@@ -1881,6 +1909,7 @@ Warning, gotchas or tips that might help save users time
 |   |-- definition_generator_test.rb
 |   |-- migration_generator_test.rb
 |   |-- route_generator_test.rb
+|   |-- routes_test.rb
 |   |-- schema.rb
 |   |-- test_helper.rb
 |   |-- woodpecker_test.rb

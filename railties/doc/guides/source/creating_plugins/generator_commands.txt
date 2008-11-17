@@ -17,14 +17,6 @@ require 'rails_generator/scripts/destroy'
 
 class RouteGeneratorTest < Test::Unit::TestCase
 
-  def fake_rails_root
-    File.join(File.dirname(__FILE__), "rails_root")
-  end
-  
-  def routes_path
-    File.join(fake_rails_root, "config", "routes.rb")
-  end
-
   def setup
     FileUtils.mkdir_p(File.join(fake_rails_root, "config"))
   end
@@ -43,13 +35,13 @@ class RouteGeneratorTest < Test::Unit::TestCase
     File.open(routes_path, 'wb') {|f| f.write(content) }
     
     Rails::Generator::Scripts::Generate.new.run(["yaffle_route"], :destination => fake_rails_root)
-    assert_match /map\.yaffle/, File.read(routes_path)
+    assert_match /map\.yaffles/, File.read(routes_path)
   end
 
   def test_destroys_route
     content = <<-END
       ActionController::Routing::Routes.draw do |map|
-        map.yaffle
+        map.yaffles
         map.connect ':controller/:action/:id'
         map.connect ':controller/:action/:id.:format'
       end
@@ -57,8 +49,19 @@ class RouteGeneratorTest < Test::Unit::TestCase
     File.open(routes_path, 'wb') {|f| f.write(content) }
     
     Rails::Generator::Scripts::Destroy.new.run(["yaffle_route"], :destination => fake_rails_root)
-    assert_no_match /map\.yaffle/, File.read(routes_path)
+    assert_no_match /map\.yaffles/, File.read(routes_path)
   end
+  
+  private
+  
+    def fake_rails_root
+      File.join(File.dirname(__FILE__), "rails_root")
+    end
+  
+    def routes_path
+      File.join(fake_rails_root, "config", "routes.rb")
+    end
+  
 end
 -----------------------------------------------------------
 
@@ -86,7 +89,7 @@ module Yaffle #:nodoc:
           logger.route "map.yaffle"
           look_for = 'ActionController::Routing::Routes.draw do |map|'
           unless options[:pretend]
-            gsub_file('config/routes.rb', /(#{Regexp.escape(look_for)})/mi){|match| "#{match}\n  map.yaffle\n"}
+            gsub_file('config/routes.rb', /(#{Regexp.escape(look_for)})/mi){|match| "#{match}\n  map.yaffles\n"}
           end
         end
       end
@@ -94,7 +97,7 @@ module Yaffle #:nodoc:
       module Destroy
         def yaffle_route
           logger.route "map.yaffle"
-          gsub_file 'config/routes.rb', /\n.+?map\.yaffle/mi, ''
+          gsub_file 'config/routes.rb', /\n.+?map\.yaffles/mi, ''
         end
       end
 

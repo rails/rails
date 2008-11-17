@@ -19,9 +19,7 @@ end
 When you run `rake -T` from your plugin you will see:
 
 ---------------------------------------------------------
-...
 yaffle:squawk             # Prints out the word 'Yaffle'
-...
 ---------------------------------------------------------
 
 You can add as many files as you want in the tasks directory, and if they end in .rake Rails will pick them up.

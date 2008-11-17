@@ -10,6 +10,32 @@ If you prefer to use RSpec instead of tets, you may be interested in the http://
  * http://daddy.platte.name/2007/05/rails-plugins-keep-initrb-thin.html
  * http://www.mbleigh.com/2008/6/11/gemplugins-a-brief-introduction-to-the-future-of-rails-plugins
 
+=== Contents of 'lib/yaffle.rb' ===
+
+*vendor/plugins/yaffle/lib/yaffle.rb:*
+
+[source, ruby]
+----------------------------------------------
+require "yaffle/core_ext"
+require "yaffle/acts_as_yaffle"
+require "yaffle/commands"
+require "yaffle/routing"
+
+%w{ models controllers helpers }.each do |dir|
+  path = File.join(File.dirname(__FILE__), 'app', dir)
+  $LOAD_PATH << path
+  ActiveSupport::Dependencies.load_paths << path
+  ActiveSupport::Dependencies.load_once_paths.delete(path)
+end
+
+# optionally:
+# Dir.glob(File.join(File.dirname(__FILE__), "db", "migrate", "*")).each do |file|
+#   require file
+# end
+
+----------------------------------------------
+
+
 === Final plugin directory structure ===
 
 The final plugin should have a directory structure that looks something like this:
@@ -47,7 +73,8 @@ The final plugin should have a directory structure that looks something like thi
 |   |-- yaffle
 |   |   |-- acts_as_yaffle.rb
 |   |   |-- commands.rb
-|   |   `-- core_ext.rb
+|   |   |-- core_ext.rb
+|   |   `-- routing.rb
 |   `-- yaffle.rb
 |-- pkg
 |   `-- yaffle-0.0.1.gem
@@ -63,6 +90,7 @@ The final plugin should have a directory structure that looks something like thi
 |   |-- definition_generator_test.rb
 |   |-- migration_generator_test.rb
 |   |-- route_generator_test.rb
+|   |-- routes_test.rb
 |   |-- schema.rb
 |   |-- test_helper.rb
 |   |-- woodpecker_test.rb
