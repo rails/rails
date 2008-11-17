@@ -1,3 +1,0 @@
-== Gems ==
-
-http://www.mbleigh.com/2008/6/11/gemplugins-a-brief-introduction-to-the-future-of-rails-plugins

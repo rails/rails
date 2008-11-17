@@ -4,7 +4,7 @@ This section describes how to add a controller named 'woodpeckers' to your plugi
 
 You can test your plugin's controller as you would test any other controller:
 
-*vendor/plugins/yaffle/yaffle/woodpeckers_controller_test.rb:*
+*vendor/plugins/yaffle/test/woodpeckers_controller_test.rb:*
 
 [source, ruby]
 ----------------------------------------------

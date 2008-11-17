@@ -51,6 +51,10 @@ include::generator_commands.txt[]
 
 include::migrations.txt[]
 
-include::odds_and_ends.txt[]
+include::tasks.txt[]
+
+include::gems.txt[]
+
+include::rdoc.txt[]
 
 include::appendix.txt[]

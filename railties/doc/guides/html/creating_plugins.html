@@ -269,28 +269,20 @@ ul#navMain {
 						
 							<li><a href="#_create_a_custom_rake_task">Create a custom rake task</a></li>
 						
-							<li><a href="#_call_plugin_migrations_from_regular_migrations">Call plugin migrations from regular migrations</a></li>
+							<li><a href="#_call_migrations_directly">Call migrations directly</a></li>
+						
+							<li><a href="#_generate_migrations">Generate migrations</a></li>
 						
 						</ul>
 					</li>
 					<li>
-					<a href="#_generating_migrations">Generating migrations</a>
+					<a href="#_rake_tasks">Rake tasks</a>
 					</li>
 					<li>
-					<a href="#_odds_and_ends">Odds and ends</a>
-						<ul>
-						
-							<li><a href="#_generate_rdoc_documentation">Generate RDoc Documentation</a></li>
-						
-							<li><a href="#_write_custom_rake_tasks_in_your_plugin">Write custom Rake tasks in your plugin</a></li>
-						
-							<li><a href="#_store_plugins_in_alternate_locations">Store plugins in alternate locations</a></li>
-						
-							<li><a href="#_create_your_own_plugin_loaders_and_plugin_locators">Create your own Plugin Loaders and Plugin Locators</a></li>
-						
-							<li><a href="#_use_custom_plugin_generators">Use Custom Plugin Generators</a></li>
-						
-						</ul>
+					<a href="#_plugingems">PluginGems</a>
+					</li>
+					<li>
+					<a href="#_rdoc_documentation">RDoc Documentation</a>
 					</li>
 					<li>
 					<a href="#_appendix">Appendix</a>
@@ -1030,7 +1022,7 @@ http://www.gnu.org/software/src-highlite -->
 <div class="sectionbody">
 <div class="para"><p>This section describes how to add a controller named <em>woodpeckers</em> to your plugin that will behave the same as a controller in your main app.  This is very similar to adding a model.</p></div>
 <div class="para"><p>You can test your plugin's controller as you would test any other controller:</p></div>
-<div class="para"><p><strong>vendor/plugins/yaffle/yaffle/woodpeckers_controller_test.rb:</strong></p></div>
+<div class="para"><p><strong>vendor/plugins/yaffle/test/woodpeckers_controller_test.rb:</strong></p></div>
 <div class="listingblock">
 <div class="content"><!-- Generator: GNU source-highlight 2.9
 by Lorenzo Bettini
@@ -1545,7 +1537,7 @@ http://www.gnu.org/software/src-highlite -->
   <span style="font-weight: bold"><span style="color: #0000FF">end</span></span>
 <span style="font-weight: bold"><span style="color: #0000FF">end</span></span>
 </tt></pre></div></div>
-<h3 id="_call_plugin_migrations_from_regular_migrations">11.2. Call plugin migrations from regular migrations</h3>
+<h3 id="_call_migrations_directly">11.2. Call migrations directly</h3>
 <div class="para"><p><strong>vendor/plugins/yaffle/lib/yaffle.rb:</strong></p></div>
 <div class="listingblock">
 <div class="content"><!-- Generator: GNU source-highlight 2.9
@@ -1580,9 +1572,7 @@ http://www.gnu.org/software/src-highlite -->
 <td class="content">several plugin frameworks such as Desert and Engines provide more advanced plugin functionality.</td>
 </tr></table>
 </div>
-</div>
-<h2 id="_generating_migrations">12. Generating migrations</h2>
-<div class="sectionbody">
+<h3 id="_generate_migrations">11.3. Generate migrations</h3>
 <div class="para"><p>Generating migrations has several advantages over other methods.  Namely, you can allow other developers to more easily customize the migration.  The flow looks like this:</p></div>
 <div class="ilist"><ul>
 <li>
@@ -1709,41 +1699,8 @@ http://www.gnu.org/software/src-highlite -->
 <span style="font-weight: bold"><span style="color: #0000FF">end</span></span>
 </tt></pre></div></div>
 </div>
-<h2 id="_odds_and_ends">13. Odds and ends</h2>
+<h2 id="_rake_tasks">12. Rake tasks</h2>
 <div class="sectionbody">
-<h3 id="_generate_rdoc_documentation">13.1. Generate RDoc Documentation</h3>
-<div class="para"><p>Once your plugin is stable, the tests pass on all database and you are ready to deploy do everyone else a favor and document it!  Luckily, writing documentation for your plugin is easy.</p></div>
-<div class="para"><p>The first step is to update the README file with detailed information about how to use your plugin.  A few key things to include are:</p></div>
-<div class="ilist"><ul>
-<li>
-<p>
-Your name.
-</p>
-</li>
-<li>
-<p>
-How to install.
-</p>
-</li>
-<li>
-<p>
-How to add the functionality to the app (several examples of common use cases).
-</p>
-</li>
-<li>
-<p>
-Warning, gotchas or tips that might help save users time.
-</p>
-</li>
-</ul></div>
-<div class="para"><p>Once your README is solid, go through and add rdoc comments to all of the methods that developers will use.</p></div>
-<div class="para"><p>Before you generate your documentation, be sure to go through and add nodoc comments to those modules and methods that are not important to your users.</p></div>
-<div class="para"><p>Once your comments are good to go, navigate to your plugin directory and run:</p></div>
-<div class="literalblock">
-<div class="content">
-<pre><tt>rake rdoc</tt></pre>
-</div></div>
-<h3 id="_write_custom_rake_tasks_in_your_plugin">13.2. Write custom Rake tasks in your plugin</h3>
 <div class="para"><p>When you created the plugin with the built-in rails generator, it generated a rake file for you in <em>vendor/plugins/yaffle/tasks/yaffle.rake</em>.  Any rake task you add here will be available to the app.</p></div>
 <div class="para"><p>Many plugin authors put all of their rake tasks into a common namespace that is the same as the plugin, like so:</p></div>
 <div class="para"><p><strong>vendor/plugins/yaffle/tasks/yaffle.rake</strong></p></div>
@@ -1762,28 +1719,99 @@ http://www.gnu.org/software/src-highlite -->
 <div class="para"><p>When you run <tt>rake -T</tt> from your plugin you will see:</p></div>
 <div class="listingblock">
 <div class="content">
-<pre><tt>yaffle:squawk             # Prints out the word 'Yaffle'</tt></pre>
+<pre><tt>...
+yaffle:squawk             # Prints out the word 'Yaffle'
+...</tt></pre>
 </div></div>
 <div class="para"><p>You can add as many files as you want in the tasks directory, and if they end in .rake Rails will pick them up.</p></div>
-<h3 id="_store_plugins_in_alternate_locations">13.3. Store plugins in alternate locations</h3>
-<div class="para"><p>You can store plugins wherever you want - you just have to add those plugins to the plugins path in <em>environment.rb</em>.</p></div>
-<div class="para"><p>Since the plugin is only loaded after the plugin paths are defined, you can't redefine this in your plugins - but it may be good to now.</p></div>
-<div class="para"><p>You can even store plugins inside of other plugins for complete plugin madness!</p></div>
+<div class="para"><p>Note that tasks from <em>vendor/plugins/yaffle/Rakefile</em> are not available to the main app.</p></div>
+</div>
+<h2 id="_plugingems">13. PluginGems</h2>
+<div class="sectionbody">
+<div class="para"><p>Turning your rails plugin into a gem is a simple and straightforward task.  This section will cover how to turn your plugin into a gem.  It will not cover how to distribute that gem.</p></div>
+<div class="para"><p>Historically rails plugins loaded the plugin's <em>init.rb</em> file.  In fact some plugins contain all of their code in that one file.  To be compatible with plugins, <em>init.rb</em> was moved to <em>rails/init.rb</em>.</p></div>
+<div class="para"><p>It's common practice to put any developer-centric rake tasks (such as tests, rdoc and gem package tasks) in <em>Rakefile</em>.  A rake task that packages the gem might look like this:</p></div>
+<div class="para"><p><strong>vendor/plugins/yaffle/Rakefile:</strong></p></div>
 <div class="listingblock">
 <div class="content"><!-- Generator: GNU source-highlight 2.9
 by Lorenzo Bettini
 http://www.lorenzobettini.it
 http://www.gnu.org/software/src-highlite -->
-<pre><tt>config<span style="color: #990000">.</span>plugin_paths <span style="color: #990000">&lt;&lt;</span> File<span style="color: #990000">.</span>join<span style="color: #990000">(</span>RAILS_ROOT<span style="color: #990000">,</span><span style="color: #FF0000">"vendor"</span><span style="color: #990000">,</span><span style="color: #FF0000">"plugins"</span><span style="color: #990000">,</span><span style="color: #FF0000">"yaffle"</span><span style="color: #990000">,</span><span style="color: #FF0000">"lib"</span><span style="color: #990000">,</span><span style="color: #FF0000">"plugins"</span><span style="color: #990000">)</span>
+<pre><tt>PKG_FILES <span style="color: #990000">=</span> FileList<span style="color: #990000">[</span>
+  <span style="color: #FF0000">'[a-zA-Z]*'</span><span style="color: #990000">,</span>
+  <span style="color: #FF0000">'generators/**/*'</span><span style="color: #990000">,</span>
+  <span style="color: #FF0000">'lib/**/*'</span><span style="color: #990000">,</span>
+  <span style="color: #FF0000">'rails/**/*'</span><span style="color: #990000">,</span>
+  <span style="color: #FF0000">'tasks/**/*'</span><span style="color: #990000">,</span>
+  <span style="color: #FF0000">'test/**/*'</span>
+<span style="color: #990000">]</span>
+
+spec <span style="color: #990000">=</span> Gem<span style="color: #990000">::</span>Specification<span style="color: #990000">.</span>new <span style="font-weight: bold"><span style="color: #0000FF">do</span></span> <span style="color: #990000">|</span>s<span style="color: #990000">|</span>
+  s<span style="color: #990000">.</span>name <span style="color: #990000">=</span> <span style="color: #FF0000">"yaffle"</span>
+  s<span style="color: #990000">.</span>version <span style="color: #990000">=</span> <span style="color: #FF0000">"0.0.1"</span>
+  s<span style="color: #990000">.</span>author <span style="color: #990000">=</span> <span style="color: #FF0000">"Gleeful Yaffler"</span>
+  s<span style="color: #990000">.</span>email <span style="color: #990000">=</span> <span style="color: #FF0000">"yaffle@example.com"</span>
+  s<span style="color: #990000">.</span>homepage <span style="color: #990000">=</span> <span style="color: #FF0000">"http://yafflers.example.com/"</span>
+  s<span style="color: #990000">.</span>platform <span style="color: #990000">=</span> Gem<span style="color: #990000">::</span>Platform<span style="color: #990000">::</span>RUBY
+  s<span style="color: #990000">.</span>summary <span style="color: #990000">=</span> <span style="color: #FF0000">"Sharing Yaffle Goodness"</span>
+  s<span style="color: #990000">.</span>files <span style="color: #990000">=</span> PKG_FILES<span style="color: #990000">.</span>to_a
+  s<span style="color: #990000">.</span>require_path <span style="color: #990000">=</span> <span style="color: #FF0000">"lib"</span>
+  s<span style="color: #990000">.</span>has_rdoc <span style="color: #990000">=</span> <span style="font-weight: bold"><span style="color: #0000FF">false</span></span>
+  s<span style="color: #990000">.</span>extra_rdoc_files <span style="color: #990000">=</span> <span style="color: #990000">[</span><span style="color: #FF0000">"README"</span><span style="color: #990000">]</span>
+<span style="font-weight: bold"><span style="color: #0000FF">end</span></span>
+
+desc <span style="color: #FF0000">'Turn this plugin into a gem.'</span>
+Rake<span style="color: #990000">::</span>GemPackageTask<span style="color: #990000">.</span>new<span style="color: #990000">(</span>spec<span style="color: #990000">)</span> <span style="font-weight: bold"><span style="color: #0000FF">do</span></span> <span style="color: #990000">|</span>pkg<span style="color: #990000">|</span>
+  pkg<span style="color: #990000">.</span>gem_spec <span style="color: #990000">=</span> spec
+<span style="font-weight: bold"><span style="color: #0000FF">end</span></span>
 </tt></pre></div></div>
-<h3 id="_create_your_own_plugin_loaders_and_plugin_locators">13.4. Create your own Plugin Loaders and Plugin Locators</h3>
-<div class="para"><p>If the built-in plugin behavior is inadequate, you can change almost every aspect of the location and loading process.  You can write your own plugin locators and plugin loaders, but that's beyond the scope of this tutorial.</p></div>
-<h3 id="_use_custom_plugin_generators">13.5. Use Custom Plugin Generators</h3>
-<div class="para"><p>If you are an RSpec fan, you can install the <tt>rspec_plugin_generator</tt> gem, which will generate the spec folder and database for you. See <a href="http://github.com/pat-maddox/rspec-plugin-generator/tree/master">http://github.com/pat-maddox/rspec-plugin-generator/tree/master</a>.</p></div>
+<div class="para"><p>To build and install the gem locally, run the following commands:</p></div>
+<div class="listingblock">
+<div class="content">
+<pre><tt>cd vendor/plugins/yaffle
+rake gem
+sudo gem install pkg/yaffle-0.0.1.gem</tt></pre>
+</div></div>
+<div class="para"><p>To test this, create a new rails app, add <em>config.gem "yaffle"</em> to environment.rb and all of your plugin's functionality will be available to you.</p></div>
 </div>
-<h2 id="_appendix">14. Appendix</h2>
+<h2 id="_rdoc_documentation">14. RDoc Documentation</h2>
 <div class="sectionbody">
-<h3 id="_references">14.1. References</h3>
+<div class="para"><p>Once your plugin is stable, the tests pass on all database and you are ready to deploy do everyone else a favor and document it!  Luckily, writing documentation for your plugin is easy.</p></div>
+<div class="para"><p>The first step is to update the README file with detailed information about how to use your plugin.  A few key things to include are:</p></div>
+<div class="ilist"><ul>
+<li>
+<p>
+Your name
+</p>
+</li>
+<li>
+<p>
+How to install
+</p>
+</li>
+<li>
+<p>
+How to add the functionality to the app (several examples of common use cases)
+</p>
+</li>
+<li>
+<p>
+Warning, gotchas or tips that might help save users time
+</p>
+</li>
+</ul></div>
+<div class="para"><p>Once your README is solid, go through and add rdoc comments to all of the methods that developers will use.</p></div>
+<div class="para"><p>Before you generate your documentation, be sure to go through and add nodoc comments to those modules and methods that are not important to your users.</p></div>
+<div class="para"><p>Once your comments are good to go, navigate to your plugin directory and run:</p></div>
+<div class="listingblock">
+<div class="content">
+<pre><tt>rake rdoc</tt></pre>
+</div></div>
+</div>
+<h2 id="_appendix">15. Appendix</h2>
+<div class="sectionbody">
+<div class="para"><p>If you prefer to use RSpec instead of tets, you may be interested in the <a href="http://github.com/pat-maddox/rspec-plugin-generator/tree/master">RSpec Plugin Generator</a>.</p></div>
+<h3 id="_references">15.1. References</h3>
 <div class="ilist"><ul>
 <li>
 <p>
@@ -1811,20 +1839,27 @@ http://www.gnu.org/software/src-highlite -->
 </p>
 </li>
 </ul></div>
-<h3 id="_final_plugin_directory_structure">14.2. Final plugin directory structure</h3>
+<h3 id="_final_plugin_directory_structure">15.2. Final plugin directory structure</h3>
 <div class="para"><p>The final plugin should have a directory structure that looks something like this:</p></div>
 <div class="listingblock">
 <div class="content">
-<pre><tt>vendor/plugins/yaffle/
-|-- MIT-LICENSE
+<pre><tt>|-- MIT-LICENSE
 |-- README
 |-- Rakefile
 |-- generators
-|   `-- yaffle
+|   |-- yaffle_definition
+|   |   |-- USAGE
+|   |   |-- templates
+|   |   |   `-- definition.txt
+|   |   `-- yaffle_definition_generator.rb
+|   |-- yaffle_migration
+|   |   |-- USAGE
+|   |   |-- templates
+|   |   `-- yaffle_migration_generator.rb
+|   `-- yaffle_route
 |       |-- USAGE
 |       |-- templates
-|       |   `-- definition.txt
-|       `-- yaffle_generator.rb
+|       `-- yaffle_route_generator.rb
 |-- install.rb
 |-- lib
 |   |-- app
@@ -1834,11 +1869,16 @@ http://www.gnu.org/software/src-highlite -->
 |   |   |   `-- woodpeckers_helper.rb
 |   |   `-- models
 |   |       `-- woodpecker.rb
+|   |-- db
+|   |   `-- migrate
+|   |       `-- 20081116181115_create_birdhouses.rb
 |   |-- yaffle
 |   |   |-- acts_as_yaffle.rb
 |   |   |-- commands.rb
 |   |   `-- core_ext.rb
 |   `-- yaffle.rb
+|-- pkg
+|   `-- yaffle-0.0.1.gem
 |-- rails
 |   `-- init.rb
 |-- tasks
@@ -1848,7 +1888,9 @@ http://www.gnu.org/software/src-highlite -->
 |   |-- core_ext_test.rb
 |   |-- database.yml
 |   |-- debug.log
-|   |-- generator_test.rb
+|   |-- definition_generator_test.rb
+|   |-- migration_generator_test.rb
+|   |-- route_generator_test.rb
 |   |-- schema.rb
 |   |-- test_helper.rb
 |   |-- woodpecker_test.rb

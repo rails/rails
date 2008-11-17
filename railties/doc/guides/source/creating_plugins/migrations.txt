@@ -63,7 +63,7 @@ namespace :db do
 end
 ----------------------------------------------
 
-=== Call plugin migrations from regular migrations ===
+=== Call migrations directly ===
 
 *vendor/plugins/yaffle/lib/yaffle.rb:*
 
@@ -91,7 +91,7 @@ end
 
 NOTE: several plugin frameworks such as Desert and Engines provide more advanced plugin functionality.
 
-== Generating migrations ==
+=== Generate migrations ===
 
 Generating migrations has several advantages over other methods.  Namely, you can allow other developers to more easily customize the migration.  The flow looks like this:
 
