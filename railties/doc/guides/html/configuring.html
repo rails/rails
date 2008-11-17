@@ -326,7 +326,15 @@ after-initializer</p></div>
 <div class="para"><p>The Active Record session store can also be configured:</p></div>
 <div class="para"><p><tt>CGI::Session::ActiveRecordStore::Session.data_column_name</tt> sets the name of the column to use to store session data. By default it is <em>data</em></p></div>
 <h3 id="_configuring_action_view">4.3. Configuring Action View</h3>
+<div class="para"><p>There are only a few configuration options for Action View, starting with four on <tt>ActionView::Base</tt>:</p></div>
+<div class="para"><p><tt>debug_rjs</tt> specifies whether RJS responses should be wrapped in a try/catch block that alert()s the caught exception (and then re-raises it). The default is <tt>false</tt>.</p></div>
+<div class="para"><p><tt>warn_cache_misses</tt> tells Rails to display a warning whenever an action results in a cache miss on your view paths. The default is <tt>false</tt>.</p></div>
+<div class="para"><p></p></div>
+<div class="para"><p><tt>default_form_builder</tt> tells Rails which form builder to use by default. The default is <tt>ActionView::Helpers::FormBuilder</tt>.</p></div>
+<div class="para"><p>The ERB template handler supplies one additional option:</p></div>
+<div class="para"><p><tt>ActionView::TemplateHandlers::ERB.erb_trim_mode</tt> gives the trim mode to be used by ERB. It defaults to <tt><em>-</em></tt>.</p></div>
 <h3 id="_configuring_action_mailer">4.4. Configuring Action Mailer</h3>
+<div class="para"><p>There are a number of settings available on <tt>ActionMailer::Base</tt>:</p></div>
 <h3 id="_configuring_active_resource">4.5. Configuring Active Resource</h3>
 <h3 id="_configuring_active_support">4.6. Configuring Active Support</h3>
 </div>
