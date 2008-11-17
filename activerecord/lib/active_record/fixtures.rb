@@ -925,6 +925,7 @@ module ActiveRecord
       end
 
       @fixture_cache = {}
+      @@already_loaded_fixtures ||= {}
 
       # Load fixtures once and begin transaction.
       if use_transactional_fixtures?
@@ -939,7 +940,6 @@ module ActiveRecord
       # Load fixtures for every test.
       else
         Fixtures.reset_cache
-        @@already_loaded_fixtures ||= {}
         @@already_loaded_fixtures[self.class] = nil
         load_fixtures
       end
