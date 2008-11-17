@@ -2027,7 +2027,7 @@ module ActiveRecord #:nodoc:
         #     default_scope :find => { :order => 'last_name, first_name' }
         #   end
         def default_scope(options = {})
-          self.default_scoping << { :find => options, :create => options.is_a?(Hash) ?  options[:conditions] : {} }
+          self.default_scoping << { :find => options, :create => (options.is_a?(Hash) && options.has_key?(:conditions)) ? options[:conditions] : {} }
         end
 
         # Test whether the given method and optional key are scoped.
