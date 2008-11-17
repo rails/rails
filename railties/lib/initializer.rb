@@ -901,6 +901,7 @@ Run `rake gems:install` to install the missing gems.
           components
           config
           lib
+          vendor
         ).map { |dir| "#{root_path}/#{dir}" }.select { |dir| File.directory?(dir) }
 
         paths.concat builtin_directories

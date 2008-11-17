@@ -485,24 +485,28 @@ module ActiveSupport #:nodoc:
       # Build the watch frames. Each frame is a tuple of
       #   [module_name_as_string, constants_defined_elsewhere]
       watch_frames = descs.collect do |desc|
-        if desc.is_a? Module
-          mod_name = desc.name
-          initial_constants = desc.local_constant_names
-        elsif desc.is_a?(String) || desc.is_a?(Symbol)
-          mod_name = desc.to_s
+        begin
+          if desc.is_a? Module
+            mod_name = desc.name
+            initial_constants = desc.local_constant_names
+          elsif desc.is_a?(String) || desc.is_a?(Symbol)
+            mod_name = desc.to_s
 
-          # Handle the case where the module has yet to be defined.
-          initial_constants = if qualified_const_defined?(mod_name)
-            mod_name.constantize.local_constant_names
+            # Handle the case where the module has yet to be defined.
+            initial_constants = if qualified_const_defined?(mod_name)
+              mod_name.constantize.local_constant_names
+            else
+              []
+            end
           else
-           []
+            raise Argument, "#{desc.inspect} does not describe a module!"
           end
-        else
-          raise Argument, "#{desc.inspect} does not describe a module!"
+          [mod_name, initial_constants]
+        rescue NameError
+          # mod_name isn't a valid constant name
+          nil
         end
-
-        [mod_name, initial_constants]
-      end
+      end.compact
 
       constant_watch_stack.concat watch_frames
 
