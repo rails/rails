@@ -314,11 +314,7 @@ module ActiveSupport #:nodoc:
         nesting = nesting[1..-1] if nesting && nesting[0] == ?/
         next if nesting.blank?
 
-        [
-          nesting.camelize,
-          # Special case: application.rb might define ApplicationControlller.
-          ('ApplicationController' if nesting == 'application')
-        ]
+        [ nesting.camelize ]
       end.flatten.compact.uniq
     end
 

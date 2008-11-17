@@ -184,7 +184,7 @@ task :copy_html_files do
 end
 
 task :copy_application do
-  cp "helpers/application.rb", "#{PKG_DESTINATION}/app/controllers/application.rb"
+  cp "helpers/application_controller.rb", "#{PKG_DESTINATION}/app/controllers/application_controller.rb"
   cp "helpers/application_helper.rb", "#{PKG_DESTINATION}/app/helpers/application_helper.rb"
 end
 

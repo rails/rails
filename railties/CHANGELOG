@@ -1,3 +1,8 @@
+*2.3.0/3.0*
+
+* BACKWARDS INCOMPATIBLE: Renamed application.rb to application_controller.rb and removed all the special casing that was in place to support the former. You must do this rename in your own application when you upgrade to this version [DHH]
+
+
 *2.2.1 [RC2] (November 14th, 2008)*
 
 * Fixed plugin generator so that generated unit tests would subclass ActiveSupport::TestCase, also introduced a helper script to reduce the needed require statements #1137 [Mathias Meyer]
