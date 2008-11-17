@@ -12,14 +12,7 @@ module ActionController
           after_dispatch :cleanup_application
         end
 
-        # Common callbacks
-        to_prepare :load_application_controller do
-          begin
-            require_dependency 'application' unless defined?(::ApplicationController)
-          rescue LoadError => error
-            raise unless error.message =~ /application\.rb/
-          end
-        end
+        to_prepare(:load_application_controller) { ApplicationController }
 
         if defined?(ActiveRecord)
           after_dispatch :checkin_connections

@@ -313,7 +313,7 @@ With those declarations, the +inventory+ layout would be used only for the +inde
 
 Layouts are shared downwards in the hierarchy, and more specific layouts always override more general ones. For example:
 
-+application.rb+:
++application_controller.rb+:
 
 [source, ruby]
 -------------------------------------------------------
