@@ -1,4 +1,4 @@
-== Add a Custom Route ==
+== Routes ==
 
 Testing routes in plugins can be complex, especially if the controllers are also in the plugin itself.  Jamis Buck showed a great example of this in http://weblog.jamisbuck.org/2006/10/26/monkey-patching-rails-extending-routes-2.
 

@@ -6,41 +6,54 @@
  * http://nubyonrails.com/articles/2006/05/09/the-complete-guide-to-rails-plugins-part-ii
  * http://github.com/technoweenie/attachment_fu/tree/master
  * http://daddy.platte.name/2007/05/rails-plugins-keep-initrb-thin.html
+ * http://www.mbleigh.com/2008/6/11/gemplugins-a-brief-introduction-to-the-future-of-rails-plugins
 
 === Final plugin directory structure ===
 
 The final plugin should have a directory structure that looks something like this:
 
 ------------------------------------------------
-  |-- MIT-LICENSE
-  |-- README
-  |-- Rakefile
-  |-- generators
-  |   `-- yaffle
-  |       |-- USAGE
-  |       |-- templates
-  |       |   `-- definition.txt
-  |       `-- yaffle_generator.rb
-  |-- init.rb
-  |-- install.rb
-  |-- lib
-  |   |-- acts_as_yaffle.rb
-  |   |-- commands.rb
-  |   |-- core_ext.rb
-  |   |-- routing.rb
-  |   `-- view_helpers.rb
-  |-- tasks
-  |   `-- yaffle_tasks.rake
-  |-- test
-  |   |-- acts_as_yaffle_test.rb
-  |   |-- core_ext_test.rb
-  |   |-- database.yml
-  |   |-- debug.log
-  |   |-- routing_test.rb
-  |   |-- schema.rb
-  |   |-- test_helper.rb
-  |   `-- view_helpers_test.rb
-  |-- uninstall.rb
-  `-- yaffle_plugin.sqlite3.db
+vendor/plugins/yaffle/
+|-- MIT-LICENSE
+|-- README
+|-- Rakefile
+|-- generators
+|   `-- yaffle
+|       |-- USAGE
+|       |-- templates
+|       |   `-- definition.txt
+|       `-- yaffle_generator.rb
+|-- install.rb
+|-- lib
+|   |-- app
+|   |   |-- controllers
+|   |   |   `-- woodpeckers_controller.rb
+|   |   |-- helpers
+|   |   |   `-- woodpeckers_helper.rb
+|   |   `-- models
+|   |       `-- woodpecker.rb
+|   |-- yaffle
+|   |   |-- acts_as_yaffle.rb
+|   |   |-- commands.rb
+|   |   `-- core_ext.rb
+|   `-- yaffle.rb
+|-- rails
+|   `-- init.rb
+|-- tasks
+|   `-- yaffle_tasks.rake
+|-- test
+|   |-- acts_as_yaffle_test.rb
+|   |-- core_ext_test.rb
+|   |-- database.yml
+|   |-- debug.log
+|   |-- generator_test.rb
+|   |-- schema.rb
+|   |-- test_helper.rb
+|   |-- woodpecker_test.rb
+|   |-- woodpeckers_controller_test.rb
+|   |-- wookpeckers_helper_test.rb
+|   |-- yaffle_plugin.sqlite3.db
+|   `-- yaffle_test.rb
+`-- uninstall.rb
 ------------------------------------------------
 

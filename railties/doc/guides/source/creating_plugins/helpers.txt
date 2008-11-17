@@ -1,4 +1,4 @@
-== Add a helper ==
+== Helpers ==
 
 This section describes how to add a helper named 'WoodpeckersHelper' to your plugin that will behave the same as a helper in your main app.  This is very similar to adding a model and a controller.
 

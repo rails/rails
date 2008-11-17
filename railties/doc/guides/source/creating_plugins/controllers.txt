@@ -1,4 +1,4 @@
-== Add a controller ==
+== Controllers ==
 
 This section describes how to add a controller named 'woodpeckers' to your plugin that will behave the same as a controller in your main app.  This is very similar to adding a model.
 

@@ -1,4 +1,4 @@
-== Add an `acts_as_yaffle` method to Active Record ==
+== Add an 'acts_as' method to Active Record ==
 
 A common pattern in plugins is to add a method called 'acts_as_something' to models.  In this case, you want to write a method called 'acts_as_yaffle' that adds a 'squawk' method to your models.
 
