@@ -8,10 +8,14 @@ module ActiveSupport
     require 'minitest/unit'
 
     # Hack around the test/unit autorun.
-    autorun_enabled = MiniTest::Unit.class_variable_get('@@installed_at_exit')
-    MiniTest::Unit.disable_autorun
+    autorun_enabled = MiniTest::Unit.send(:class_variable_get, '@@installed_at_exit')
+    if MiniTest::Unit.respond_to?(:disable_autorun)
+      MiniTest::Unit.disable_autorun
+    else
+      MiniTest::Unit.send(:class_variable_set, '@@installed_at_exit', false)
+    end
     require 'test/unit'
-    MiniTest::Unit.class_variable_set('@@installed_at_exit', autorun_enabled)
+    MiniTest::Unit.send(:class_variable_set, '@@installed_at_exit', autorun_enabled)
 
     class TestCase < ::Test::Unit::TestCase
       Assertion = MiniTest::Assertion
