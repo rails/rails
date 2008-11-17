@@ -2,14 +2,7 @@
 
 Many plugins ship with generators.  When you created the plugin above, you specified the --with-generator option, so you already have the generator stubs in 'vendor/plugins/yaffle/generators/yaffle'.
 
-Building generators is a complex topic unto itself and this section will cover one small aspect of generators:  creating a generator that adds a time-stamped migration.
-
-To add a generator to a plugin:
-
- * Write a test
- * Add your instructions to the 'manifest' method of the generator
- * Add any necessary template files to the templates directory
- * Update the USAGE file to add helpful documentation for your generator
+Building generators is a complex topic unto itself and this section will cover one small aspect of generators: generating a simple text file.
 
 === Testing generators ===
 

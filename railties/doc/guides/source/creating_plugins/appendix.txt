@@ -1,6 +1,6 @@
 == Appendix ==
 
-If you prefer to use RSpec instead of tets, you may be interested in the http://github.com/pat-maddox/rspec-plugin-generator/tree/master[RSpec Plugin Generator].
+If you prefer to use RSpec instead of Test::Unit, you may be interested in the http://github.com/pat-maddox/rspec-plugin-generator/tree/master[RSpec Plugin Generator].
 
 === References ===
 
@@ -9,6 +9,7 @@ If you prefer to use RSpec instead of tets, you may be interested in the http://
  * http://github.com/technoweenie/attachment_fu/tree/master
  * http://daddy.platte.name/2007/05/rails-plugins-keep-initrb-thin.html
  * http://www.mbleigh.com/2008/6/11/gemplugins-a-brief-introduction-to-the-future-of-rails-plugins
+ * http://weblog.jamisbuck.org/2006/10/26/monkey-patching-rails-extending-routes-2.
 
 === Contents of 'lib/yaffle.rb' ===
 

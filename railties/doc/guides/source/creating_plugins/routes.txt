@@ -1,6 +1,8 @@
 == Routes ==
 
-Testing routes in plugins can be complex, especially if the controllers are also in the plugin itself.  Jamis Buck showed a great example of this in http://weblog.jamisbuck.org/2006/10/26/monkey-patching-rails-extending-routes-2.
+In a standard 'routes.rb' file you use routes like 'map.connect' or 'map.resources'.  You can add your own custom routes from a plugin.  This section will describe how to add a custom method called that can be called with 'map.yaffles'.
+
+Testing routes from plugins is slightly different from testing routes in a standard rails app.  To begin, add a test like this:
 
 *vendor/plugins/yaffle/test/routing_test.rb*
 

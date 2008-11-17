@@ -1120,7 +1120,8 @@ http://www.gnu.org/software/src-highlite -->
 </div>
 <h2 id="_routes">8. Routes</h2>
 <div class="sectionbody">
-<div class="para"><p>Testing routes in plugins can be complex, especially if the controllers are also in the plugin itself.  Jamis Buck showed a great example of this in <a href="http://weblog.jamisbuck.org/2006/10/26/monkey-patching-rails-extending-routes-2">http://weblog.jamisbuck.org/2006/10/26/monkey-patching-rails-extending-routes-2</a>.</p></div>
+<div class="para"><p>In a standard <em>routes.rb</em> file you use routes like <em>map.connect</em> or <em>map.resources</em>.  You can add your own custom routes from a plugin.  This section will describe how to add a custom method called that can be called with <em>map.yaffles</em>.</p></div>
+<div class="para"><p>Testing routes from plugins is slightly different from testing routes in a standard rails app.  To begin, add a test like this:</p></div>
 <div class="para"><p><strong>vendor/plugins/yaffle/test/routing_test.rb</strong></p></div>
 <div class="listingblock">
 <div class="content"><!-- Generator: GNU source-highlight 2.9
@@ -1191,30 +1192,7 @@ http://www.gnu.org/software/src-highlite -->
 <h2 id="_generators">9. Generators</h2>
 <div class="sectionbody">
 <div class="para"><p>Many plugins ship with generators.  When you created the plugin above, you specified the &#8212;with-generator option, so you already have the generator stubs in <em>vendor/plugins/yaffle/generators/yaffle</em>.</p></div>
-<div class="para"><p>Building generators is a complex topic unto itself and this section will cover one small aspect of generators:  creating a generator that adds a time-stamped migration.</p></div>
-<div class="para"><p>To add a generator to a plugin:</p></div>
-<div class="ilist"><ul>
-<li>
-<p>
-Write a test
-</p>
-</li>
-<li>
-<p>
-Add your instructions to the <em>manifest</em> method of the generator
-</p>
-</li>
-<li>
-<p>
-Add any necessary template files to the templates directory
-</p>
-</li>
-<li>
-<p>
-Update the USAGE file to add helpful documentation for your generator
-</p>
-</li>
-</ul></div>
+<div class="para"><p>Building generators is a complex topic unto itself and this section will cover one small aspect of generators: generating a simple text file.</p></div>
 <h3 id="_testing_generators">9.1. Testing generators</h3>
 <div class="para"><p>Many rails plugin authors do not test their generators, however testing generators is quite simple.  A typical generator test does the following:</p></div>
 <div class="ilist"><ul>
@@ -1804,7 +1782,7 @@ Warning, gotchas or tips that might help save users time
 </div>
 <h2 id="_appendix">15. Appendix</h2>
 <div class="sectionbody">
-<div class="para"><p>If you prefer to use RSpec instead of tets, you may be interested in the <a href="http://github.com/pat-maddox/rspec-plugin-generator/tree/master">RSpec Plugin Generator</a>.</p></div>
+<div class="para"><p>If you prefer to use RSpec instead of Test::Unit, you may be interested in the <a href="http://github.com/pat-maddox/rspec-plugin-generator/tree/master">RSpec Plugin Generator</a>.</p></div>
 <h3 id="_references">15.1. References</h3>
 <div class="ilist"><ul>
 <li>
@@ -1830,6 +1808,11 @@ Warning, gotchas or tips that might help save users time
 <li>
 <p>
 <a href="http://www.mbleigh.com/2008/6/11/gemplugins-a-brief-introduction-to-the-future-of-rails-plugins">http://www.mbleigh.com/2008/6/11/gemplugins-a-brief-introduction-to-the-future-of-rails-plugins</a>
+</p>
+</li>
+<li>
+<p>
+<a href="http://weblog.jamisbuck.org/2006/10/26/monkey-patching-rails-extending-routes-2">http://weblog.jamisbuck.org/2006/10/26/monkey-patching-rails-extending-routes-2</a>.
 </p>
 </li>
 </ul></div>
