@@ -89,6 +89,7 @@ class CreateBirdhouses < ActiveRecord::Migration
 end
 ----------------------------------------------
 
+.Editor's note:
 NOTE: several plugin frameworks such as Desert and Engines provide more advanced plugin functionality.
 
 === Generate migrations ===
@@ -146,6 +147,7 @@ class MigrationGeneratorTest < Test::Unit::TestCase
 end
 ------------------------------------------------------------------
 
+.Editor's note:
 NOTE: the migration generator checks to see if a migation already exists, and it's hard-coded to check the 'db/migrate' directory.  As a result, if your test tries to generate a migration that already exists in the app, it will fail.  The easy workaround is to make sure that the name you generate in your test is very unlikely to actually appear in the app.
 
 After running the test with 'rake' you can make it pass with:

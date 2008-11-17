@@ -137,4 +137,5 @@ To see this work, type:
 ./script/destroy yaffle_route
 -----------------------------------------------------------
 
+.Editor's note:
 NOTE: If you haven't set up the custom route from above, 'script/destroy' will fail and you'll have to remove it manually.

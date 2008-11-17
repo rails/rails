@@ -1,11 +1,6 @@
 == Extending core classes ==
 
-This section will explain how to add a method to String that will be available anywhere in your rails app by:
-
- * Writing tests for the desired behavior
- * Creating and requiring the correct files
-
-=== Creating the test ===
+This section will explain how to add a method to String that will be available anywhere in your rails app.
 
 In this example you will add a method to String named `to_squawk`.  To begin, create a new test file with a few assertions:
 
@@ -39,26 +34,6 @@ NoMethodError: undefined method `to_squawk' for "Hello World":String
 --------------------------------------------------------
 
 Great - now you are ready to start development.
-
-=== Organize your files ===
-
-A common pattern in rails plugins is to set up the file structure like this:
-
---------------------------------------------------------
-|-- lib
-|   |-- yaffle
-|   |   `-- core_ext.rb
-|   `-- yaffle.rb
---------------------------------------------------------
-
-The first thing we need to to is to require our 'lib/yaffle.rb' file from 'rails/init.rb':
-
-*vendor/plugins/yaffle/rails/init.rb*
-
-[source, ruby]
---------------------------------------------------------
-require 'yaffle'
---------------------------------------------------------
 
 Then in 'lib/yaffle.rb' require 'lib/core_ext.rb':
 

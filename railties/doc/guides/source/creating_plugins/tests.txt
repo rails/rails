@@ -1,12 +1,12 @@
 == Tests ==
 
-If your plugin interacts with a database, you'll need to setup a database connection.  In this guide you will learn how to test your plugin against multiple different database adapters using Active Record.  This guide will not cover how to use fixtures in plugin tests.
-
-To setup your plugin to allow for easy testing you'll need to add 3 files:
+In this guide you will learn how to test your plugin against multiple different database adapters using Active Record.  To setup your plugin to allow for easy testing you'll need to add 3 files:
 
  * A 'database.yml' file with all of your connection strings
  * A 'schema.rb' file with your table definitions
  * A test helper method that sets up the database
+
+=== Test Setup ===
 
 *vendor/plugins/yaffle/test/database.yml:*
 

@@ -206,11 +206,15 @@ ul#navMain {
 						
 							<li><a href="#_generate_the_plugin_skeleton">Generate the plugin skeleton</a></li>
 						
+							<li><a href="#_organize_your_files">Organize your files</a></li>
+						
 						</ul>
 					</li>
 					<li>
 					<a href="#_tests">Tests</a>
 						<ul>
+						
+							<li><a href="#_test_setup">Test Setup</a></li>
 						
 							<li><a href="#_run_the_plugin_tests">Run the plugin tests</a></li>
 						
@@ -219,10 +223,6 @@ ul#navMain {
 					<li>
 					<a href="#_extending_core_classes">Extending core classes</a>
 						<ul>
-						
-							<li><a href="#_creating_the_test">Creating the test</a></li>
-						
-							<li><a href="#_organize_your_files">Organize your files</a></li>
 						
 							<li><a href="#_working_with_init_rb">Working with init.rb</a></li>
 						
@@ -452,12 +452,30 @@ create  vendor/plugins/yaffle/generators/yaffle/templates
 create  vendor/plugins/yaffle/generators/yaffle/yaffle_generator.rb
 create  vendor/plugins/yaffle/generators/yaffle/USAGE</tt></pre>
 </div></div>
-<div class="para"><p>To begin just change one thing - move <em>init.rb</em> to <em>rails/init.rb</em>.</p></div>
+<h3 id="_organize_your_files">1.3. Organize your files</h3>
+<div class="para"><p>To make it easy to organize your files and to make the plugin more compatible with GemPlugins, start out by altering your file system to look like this:</p></div>
+<div class="listingblock">
+<div class="content">
+<pre><tt>|-- lib
+|   |-- yaffle
+|   `-- yaffle.rb
+`-- rails
+    |
+    `-- init.rb</tt></pre>
+</div></div>
+<div class="para"><p><strong>vendor/plugins/yaffle/rails/init.rb</strong></p></div>
+<div class="listingblock">
+<div class="content"><!-- Generator: GNU source-highlight 2.9
+by Lorenzo Bettini
+http://www.lorenzobettini.it
+http://www.gnu.org/software/src-highlite -->
+<pre><tt><span style="font-weight: bold"><span style="color: #000080">require</span></span> <span style="color: #FF0000">'yaffle'</span>
+</tt></pre></div></div>
+<div class="para"><p>Now you can add any <em>require</em> statements to <em>lib/yaffle.rb</em> and keep <em>init.rb</em> clean.</p></div>
 </div>
 <h2 id="_tests">2. Tests</h2>
 <div class="sectionbody">
-<div class="para"><p>If your plugin interacts with a database, you'll need to setup a database connection.  In this guide you will learn how to test your plugin against multiple different database adapters using Active Record.  This guide will not cover how to use fixtures in plugin tests.</p></div>
-<div class="para"><p>To setup your plugin to allow for easy testing you'll need to add 3 files:</p></div>
+<div class="para"><p>In this guide you will learn how to test your plugin against multiple different database adapters using Active Record.  To setup your plugin to allow for easy testing you'll need to add 3 files:</p></div>
 <div class="ilist"><ul>
 <li>
 <p>
@@ -475,6 +493,7 @@ A test helper method that sets up the database
 </p>
 </li>
 </ul></div>
+<h3 id="_test_setup">2.1. Test Setup</h3>
 <div class="para"><p><strong>vendor/plugins/yaffle/test/database.yml:</strong></p></div>
 <div class="listingblock">
 <div class="content">
@@ -565,7 +584,7 @@ ENV<span style="color: #990000">[</span><span style="color: #FF0000">'RAILS_ROOT
 <span style="font-weight: bold"><span style="color: #0000FF">end</span></span>
 </tt></pre></div></div>
 <div class="para"><p>Now whenever you write a test that requires the database, you can call <em>load_schema</em>.</p></div>
-<h3 id="_run_the_plugin_tests">2.1. Run the plugin tests</h3>
+<h3 id="_run_the_plugin_tests">2.2. Run the plugin tests</h3>
 <div class="para"><p>Once you have these files in place, you can write your first test to ensure that your plugin-testing setup is correct.  By default rails generates a file in <em>vendor/plugins/yaffle/test/yaffle_test.rb</em> with a sample test.  Replace the contents of that file with:</p></div>
 <div class="para"><p><strong>vendor/plugins/yaffle/test/yaffle_test.rb:</strong></p></div>
 <div class="listingblock">
@@ -628,20 +647,7 @@ rake DB=postgresql</tt></pre>
 </div>
 <h2 id="_extending_core_classes">3. Extending core classes</h2>
 <div class="sectionbody">
-<div class="para"><p>This section will explain how to add a method to String that will be available anywhere in your rails app by:</p></div>
-<div class="ilist"><ul>
-<li>
-<p>
-Writing tests for the desired behavior
-</p>
-</li>
-<li>
-<p>
-Creating and requiring the correct files
-</p>
-</li>
-</ul></div>
-<h3 id="_creating_the_test">3.1. Creating the test</h3>
+<div class="para"><p>This section will explain how to add a method to String that will be available anywhere in your rails app.</p></div>
 <div class="para"><p>In this example you will add a method to String named <tt>to_squawk</tt>.  To begin, create a new test file with a few assertions:</p></div>
 <div class="para"><p><strong>vendor/plugins/yaffle/test/core_ext_test.rb</strong></p></div>
 <div class="listingblock">
@@ -672,24 +678,6 @@ NoMethodError: undefined method `to_squawk' for "Hello World":String
     ./test/core_ext_test.rb:5:in `test_to_squawk_prepends_the_word_squawk'</tt></pre>
 </div></div>
 <div class="para"><p>Great - now you are ready to start development.</p></div>
-<h3 id="_organize_your_files">3.2. Organize your files</h3>
-<div class="para"><p>A common pattern in rails plugins is to set up the file structure like this:</p></div>
-<div class="listingblock">
-<div class="content">
-<pre><tt>|-- lib
-|   |-- yaffle
-|   |   `-- core_ext.rb
-|   `-- yaffle.rb</tt></pre>
-</div></div>
-<div class="para"><p>The first thing we need to to is to require our <em>lib/yaffle.rb</em> file from <em>rails/init.rb</em>:</p></div>
-<div class="para"><p><strong>vendor/plugins/yaffle/rails/init.rb</strong></p></div>
-<div class="listingblock">
-<div class="content"><!-- Generator: GNU source-highlight 2.9
-by Lorenzo Bettini
-http://www.lorenzobettini.it
-http://www.gnu.org/software/src-highlite -->
-<pre><tt><span style="font-weight: bold"><span style="color: #000080">require</span></span> <span style="color: #FF0000">'yaffle'</span>
-</tt></pre></div></div>
 <div class="para"><p>Then in <em>lib/yaffle.rb</em> require <em>lib/core_ext.rb</em>:</p></div>
 <div class="para"><p><strong>vendor/plugins/yaffle/lib/yaffle.rb</strong></p></div>
 <div class="listingblock">
@@ -719,7 +707,7 @@ http://www.gnu.org/software/src-highlite -->
 &gt;&gt; "Hello World".to_squawk
 =&gt; "squawk! Hello World"</tt></pre>
 </div></div>
-<h3 id="_working_with_init_rb">3.3. Working with init.rb</h3>
+<h3 id="_working_with_init_rb">3.1. Working with init.rb</h3>
 <div class="para"><p>When rails loads plugins it looks for the file named init.rb.  However, when the plugin is initialized, <em>init.rb</em> is invoked via <tt>eval</tt> (not <tt>require</tt>) so it has slightly different behavior.</p></div>
 <div class="para"><p>Under certain circumstances if you reopen classes or modules in <em>init.rb</em> you may inadvertently create a new class, rather than reopening an existing class.  A better alternative is to reopen the class in a different file, and require that file from <tt>init.rb</tt>, as shown above.</p></div>
 <div class="para"><p>If you must reopen a class in <tt>init.rb</tt> you can use <tt>module_eval</tt> or <tt>class_eval</tt> to avoid any issues:</p></div>
@@ -1471,7 +1459,8 @@ http://www.gnu.org/software/src-highlite -->
 <td class="icon">
 <img src="./images/icons/note.png" alt="Note" />
 </td>
-<td class="content">If you haven't set up the custom route from above, <em>script/destroy</em> will fail and you'll have to remove it manually.</td>
+<td class="content">
+<div class="title">Editor's note:</div>If you haven't set up the custom route from above, <em>script/destroy</em> will fail and you'll have to remove it manually.</td>
 </tr></table>
 </div>
 </div>
@@ -1569,7 +1558,8 @@ http://www.gnu.org/software/src-highlite -->
 <td class="icon">
 <img src="./images/icons/note.png" alt="Note" />
 </td>
-<td class="content">several plugin frameworks such as Desert and Engines provide more advanced plugin functionality.</td>
+<td class="content">
+<div class="title">Editor's note:</div>several plugin frameworks such as Desert and Engines provide more advanced plugin functionality.</td>
 </tr></table>
 </div>
 <h3 id="_generate_migrations">11.3. Generate migrations</h3>
@@ -1639,7 +1629,8 @@ http://www.gnu.org/software/src-highlite -->
 <td class="icon">
 <img src="./images/icons/note.png" alt="Note" />
 </td>
-<td class="content">the migration generator checks to see if a migation already exists, and it's hard-coded to check the <em>db/migrate</em> directory.  As a result, if your test tries to generate a migration that already exists in the app, it will fail.  The easy workaround is to make sure that the name you generate in your test is very unlikely to actually appear in the app.</td>
+<td class="content">
+<div class="title">Editor's note:</div>the migration generator checks to see if a migation already exists, and it's hard-coded to check the <em>db/migrate</em> directory.  As a result, if your test tries to generate a migration that already exists in the app, it will fail.  The easy workaround is to make sure that the name you generate in your test is very unlikely to actually appear in the app.</td>
 </tr></table>
 </div>
 <div class="para"><p>After running the test with <em>rake</em> you can make it pass with:</p></div>
@@ -1776,7 +1767,7 @@ sudo gem install pkg/yaffle-0.0.1.gem</tt></pre>
 </div>
 <h2 id="_rdoc_documentation">14. RDoc Documentation</h2>
 <div class="sectionbody">
-<div class="para"><p>Once your plugin is stable, the tests pass on all database and you are ready to deploy do everyone else a favor and document it!  Luckily, writing documentation for your plugin is easy.</p></div>
+<div class="para"><p>Once your plugin is stable and you are ready to deploy do everyone else a favor and document it!  Luckily, writing documentation for your plugin is easy.</p></div>
 <div class="para"><p>The first step is to update the README file with detailed information about how to use your plugin.  A few key things to include are:</p></div>
 <div class="ilist"><ul>
 <li>
@@ -1800,8 +1791,7 @@ Warning, gotchas or tips that might help save users time
 </p>
 </li>
 </ul></div>
-<div class="para"><p>Once your README is solid, go through and add rdoc comments to all of the methods that developers will use.</p></div>
-<div class="para"><p>Before you generate your documentation, be sure to go through and add nodoc comments to those modules and methods that are not important to your users.</p></div>
+<div class="para"><p>Once your README is solid, go through and add rdoc comments to all of the methods that developers will use.  It's also customary to add <em>#:nodoc:</em> comments to those parts of the code that are not part of the public api.</p></div>
 <div class="para"><p>Once your comments are good to go, navigate to your plugin directory and run:</p></div>
 <div class="listingblock">
 <div class="content">

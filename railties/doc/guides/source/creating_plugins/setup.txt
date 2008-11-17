@@ -61,4 +61,24 @@ create  vendor/plugins/yaffle/generators/yaffle/yaffle_generator.rb
 create  vendor/plugins/yaffle/generators/yaffle/USAGE
 ----------------------------------------------
 
-To begin just change one thing - move 'init.rb' to 'rails/init.rb'.
+=== Organize your files ===
+
+To make it easy to organize your files and to make the plugin more compatible with GemPlugins, start out by altering your file system to look like this:
+
+--------------------------------------------------------
+|-- lib
+|   |-- yaffle
+|   `-- yaffle.rb
+`-- rails
+    |
+    `-- init.rb
+--------------------------------------------------------
+
+*vendor/plugins/yaffle/rails/init.rb*
+
+[source, ruby]
+--------------------------------------------------------
+require 'yaffle'
+--------------------------------------------------------
+
+Now you can add any 'require' statements to 'lib/yaffle.rb' and keep 'init.rb' clean.  
