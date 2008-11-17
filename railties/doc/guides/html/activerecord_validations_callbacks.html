@@ -267,6 +267,9 @@ ul#navMain {
 					<a href="#_writing_your_own_validation_methods">Writing your own validation methods</a>
 					</li>
 					<li>
+					<a href="#_using_the_tt_errors_tt_collection">Using the <tt>errors</tt> collection</a>
+					</li>
+					<li>
 					<a href="#_changelog">Changelog</a>
 					</li>
 			</ol>
@@ -738,7 +741,118 @@ http://www.gnu.org/software/src-highlite -->
 <span style="font-weight: bold"><span style="color: #0000FF">end</span></span>
 </tt></pre></div></div>
 </div>
-<h2 id="_changelog">7. Changelog</h2>
+<h2 id="_using_the_tt_errors_tt_collection">7. Using the <tt>errors</tt> collection</h2>
+<div class="sectionbody">
+<div class="para"><p>You can do more than just call <tt>valid?</tt> upon your objects based on the existance of the <tt>errors</tt> collection. Here is a list of the other available methods that you can use to manipulate errors or ask for an object's state.</p></div>
+<div class="ilist"><ul>
+<li>
+<p>
+<tt>add_to_base</tt> lets you add errors messages that are related to the object's state as a whole, instead of being related to a specific attribute. You can use this method when you want to say that the object is invalid, no matter the values of it's attributes. <tt>add_to_base</tt> receives a string with the message.
+</p>
+</li>
+</ul></div>
+<div class="listingblock">
+<div class="content"><!-- Generator: GNU source-highlight 2.9
+by Lorenzo Bettini
+http://www.lorenzobettini.it
+http://www.gnu.org/software/src-highlite -->
+<pre><tt><span style="font-weight: bold"><span style="color: #0000FF">class</span></span> Person <span style="color: #990000">&lt;</span> ActiveRecord<span style="color: #990000">::</span>Base
+  <span style="font-weight: bold"><span style="color: #0000FF">def</span></span> a_method_used_for_validation_purposes
+    errors<span style="color: #990000">.</span>add_to_base<span style="color: #990000">(</span><span style="color: #FF0000">"This person is invalid because ..."</span><span style="color: #990000">)</span>
+  <span style="font-weight: bold"><span style="color: #0000FF">end</span></span>
+<span style="font-weight: bold"><span style="color: #0000FF">end</span></span>
+</tt></pre></div></div>
+<div class="ilist"><ul>
+<li>
+<p>
+<tt>add</tt> lets you manually add messages that are related to particular attributes. When writing those messages, keep in mind that Rails will prepend them with the name of the attribute that holds the error, so write it in a way that makes sense. <tt>add</tt> receives a symbol with the name of the attribute that you want to add the message to and the message itself.
+</p>
+</li>
+</ul></div>
+<div class="listingblock">
+<div class="content"><!-- Generator: GNU source-highlight 2.9
+by Lorenzo Bettini
+http://www.lorenzobettini.it
+http://www.gnu.org/software/src-highlite -->
+<pre><tt><span style="font-weight: bold"><span style="color: #0000FF">class</span></span> Person <span style="color: #990000">&lt;</span> ActiveRecord<span style="color: #990000">::</span>Base
+  <span style="font-weight: bold"><span style="color: #0000FF">def</span></span> a_method_used_for_validation_purposes
+    errors<span style="color: #990000">.</span>add<span style="color: #990000">(:</span>name<span style="color: #990000">,</span> <span style="color: #FF0000">"can't have the characters !@#$%*()_-+="</span><span style="color: #990000">)</span>
+  <span style="font-weight: bold"><span style="color: #0000FF">end</span></span>
+<span style="font-weight: bold"><span style="color: #0000FF">end</span></span>
+</tt></pre></div></div>
+<div class="ilist"><ul>
+<li>
+<p>
+<tt>invalid?</tt> is used when you want to check if a particular attribute is invalid. It receives a symbol with the name of the attribute that you want to check.
+</p>
+</li>
+</ul></div>
+<div class="listingblock">
+<div class="content"><!-- Generator: GNU source-highlight 2.9
+by Lorenzo Bettini
+http://www.lorenzobettini.it
+http://www.gnu.org/software/src-highlite -->
+<pre><tt><span style="font-weight: bold"><span style="color: #0000FF">class</span></span> Person <span style="color: #990000">&lt;</span> ActiveRecord<span style="color: #990000">::</span>Base
+  validates_presence_of <span style="color: #990000">:</span>name<span style="color: #990000">,</span> <span style="color: #990000">:</span>email
+<span style="font-weight: bold"><span style="color: #0000FF">end</span></span>
+
+person <span style="color: #990000">=</span> Person<span style="color: #990000">.</span>new<span style="color: #990000">(:</span>name <span style="color: #990000">=&gt;</span> <span style="color: #FF0000">"John Doe"</span><span style="color: #990000">)</span>
+person<span style="color: #990000">.</span>invalid?<span style="color: #990000">(:</span>email<span style="color: #990000">)</span> <span style="font-style: italic"><span style="color: #9A1900"># =&gt; true</span></span>
+</tt></pre></div></div>
+<div class="ilist"><ul>
+<li>
+<p>
+<tt>on</tt> is used when you want to check the error messages for a specific attribute. It will return different kinds of objects depending on the state of the <tt>errors</tt> collection for the given attribute. If there are no errors related to the attribute, <tt>on</tt> will return <tt>nil</tt>. If there is just one errors message for this attribute, <tt>on</tt> will return a string with the message. When <tt>errors</tt> holds two or more error messages for the attribute, <tt>on</tt> will return an array of strings, each one with one error message.
+</p>
+</li>
+</ul></div>
+<div class="listingblock">
+<div class="content"><!-- Generator: GNU source-highlight 2.9
+by Lorenzo Bettini
+http://www.lorenzobettini.it
+http://www.gnu.org/software/src-highlite -->
+<pre><tt><span style="font-weight: bold"><span style="color: #0000FF">class</span></span> Person <span style="color: #990000">&lt;</span> ActiveRecord<span style="color: #990000">::</span>Base
+  validates_presence_of <span style="color: #990000">:</span>name
+  validates_length_of <span style="color: #990000">:</span>name<span style="color: #990000">,</span> <span style="color: #990000">:</span>minimum <span style="color: #990000">=&gt;</span> <span style="color: #993399">3</span>
+<span style="font-weight: bold"><span style="color: #0000FF">end</span></span>
+
+person <span style="color: #990000">=</span> Person<span style="color: #990000">.</span>new<span style="color: #990000">(:</span>name <span style="color: #990000">=&gt;</span> <span style="color: #FF0000">"John Doe"</span><span style="color: #990000">)</span>
+person<span style="color: #990000">.</span>valid? <span style="font-style: italic"><span style="color: #9A1900"># =&gt; true</span></span>
+person<span style="color: #990000">.</span>errors<span style="color: #990000">.</span>on<span style="color: #990000">(:</span>name<span style="color: #990000">)</span> <span style="font-style: italic"><span style="color: #9A1900"># =&gt; nil</span></span>
+
+person <span style="color: #990000">=</span> Person<span style="color: #990000">.</span>new<span style="color: #990000">(:</span>name <span style="color: #990000">=&gt;</span> <span style="color: #FF0000">"JD"</span><span style="color: #990000">)</span>
+person<span style="color: #990000">.</span>valid? <span style="font-style: italic"><span style="color: #9A1900"># =&gt; false</span></span>
+person<span style="color: #990000">.</span>errors<span style="color: #990000">.</span>on<span style="color: #990000">(:</span>name<span style="color: #990000">)</span> <span style="font-style: italic"><span style="color: #9A1900"># =&gt; "is too short (minimum is 3 characters)"</span></span>
+
+person <span style="color: #990000">=</span> Person<span style="color: #990000">.</span>new
+person<span style="color: #990000">.</span>valid? <span style="font-style: italic"><span style="color: #9A1900"># =&gt; false</span></span>
+person<span style="color: #990000">.</span>errors<span style="color: #990000">.</span>on<span style="color: #990000">(:</span>name<span style="color: #990000">)</span> <span style="font-style: italic"><span style="color: #9A1900"># =&gt; ["can't be blank", "is too short (minimum is 3 characters)"]</span></span>
+</tt></pre></div></div>
+<div class="ilist"><ul>
+<li>
+<p>
+<tt>clear</tt> is used when you intentionally wants to clear all the messages in the <tt>errors</tt> collection.
+</p>
+</li>
+</ul></div>
+<div class="listingblock">
+<div class="content"><!-- Generator: GNU source-highlight 2.9
+by Lorenzo Bettini
+http://www.lorenzobettini.it
+http://www.gnu.org/software/src-highlite -->
+<pre><tt><span style="font-weight: bold"><span style="color: #0000FF">class</span></span> Person <span style="color: #990000">&lt;</span> ActiveRecord<span style="color: #990000">::</span>Base
+  validates_presence_of <span style="color: #990000">:</span>name
+  validates_length_of <span style="color: #990000">:</span>name<span style="color: #990000">,</span> <span style="color: #990000">:</span>minimum <span style="color: #990000">=&gt;</span> <span style="color: #993399">3</span>
+<span style="font-weight: bold"><span style="color: #0000FF">end</span></span>
+
+person <span style="color: #990000">=</span> Person<span style="color: #990000">.</span>new
+puts person<span style="color: #990000">.</span>valid? <span style="font-style: italic"><span style="color: #9A1900"># =&gt; false</span></span>
+person<span style="color: #990000">.</span>errors<span style="color: #990000">.</span>on<span style="color: #990000">(:</span>name<span style="color: #990000">)</span> <span style="font-style: italic"><span style="color: #9A1900"># =&gt; ["can't be blank", "is too short (minimum is 3 characters)"]</span></span>
+person<span style="color: #990000">.</span>errors<span style="color: #990000">.</span>clear
+person<span style="color: #990000">.</span>errors <span style="font-style: italic"><span style="color: #9A1900"># =&gt; nil</span></span>
+</tt></pre></div></div>
+</div>
+<h2 id="_changelog">8. Changelog</h2>
 <div class="sectionbody">
 <div class="para"><p><a href="http://rails.lighthouseapp.com/projects/16213/tickets/26-active-record-validations-and-callbacks">http://rails.lighthouseapp.com/projects/16213/tickets/26-active-record-validations-and-callbacks</a></p></div>
 </div>

@@ -399,6 +399,83 @@ class Invoice < ActiveRecord::Base
 end
 ------------------------------------------------------------------
 
+== Using the +errors+ collection
+
+You can do more than just call +valid?+ upon your objects based on the existance of the +errors+ collection. Here is a list of the other available methods that you can use to manipulate errors or ask for an object's state.
+
+* +add_to_base+ lets you add errors messages that are related to the object's state as a whole, instead of being related to a specific attribute. You can use this method when you want to say that the object is invalid, no matter the values of it's attributes. +add_to_base+ receives a string with the message.
+
+[source, ruby]
+------------------------------------------------------------------
+class Person < ActiveRecord::Base
+  def a_method_used_for_validation_purposes
+    errors.add_to_base("This person is invalid because ...")
+  end
+end
+------------------------------------------------------------------
+
+* +add+ lets you manually add messages that are related to particular attributes. When writing those messages, keep in mind that Rails will prepend them with the name of the attribute that holds the error, so write it in a way that makes sense. +add+ receives a symbol with the name of the attribute that you want to add the message to and the message itself.
+
+[source, ruby]
+------------------------------------------------------------------
+class Person < ActiveRecord::Base
+  def a_method_used_for_validation_purposes
+    errors.add(:name, "can't have the characters !@#$%*()_-+=")
+  end
+end
+------------------------------------------------------------------
+
+* +invalid?+ is used when you want to check if a particular attribute is invalid. It receives a symbol with the name of the attribute that you want to check.
+
+[source, ruby]
+------------------------------------------------------------------
+class Person < ActiveRecord::Base
+  validates_presence_of :name, :email
+end
+
+person = Person.new(:name => "John Doe")
+person.invalid?(:email) # => true
+------------------------------------------------------------------
+
+* +on+ is used when you want to check the error messages for a specific attribute. It will return different kinds of objects depending on the state of the +errors+ collection for the given attribute. If there are no errors related to the attribute, +on+ will return +nil+. If there is just one errors message for this attribute, +on+ will return a string with the message. When +errors+ holds two or more error messages for the attribute, +on+ will return an array of strings, each one with one error message.
+
+[source, ruby]
+------------------------------------------------------------------
+class Person < ActiveRecord::Base
+  validates_presence_of :name
+  validates_length_of :name, :minimum => 3
+end
+
+person = Person.new(:name => "John Doe")
+person.valid? # => true
+person.errors.on(:name) # => nil
+
+person = Person.new(:name => "JD")
+person.valid? # => false
+person.errors.on(:name) # => "is too short (minimum is 3 characters)"
+
+person = Person.new
+person.valid? # => false
+person.errors.on(:name) # => ["can't be blank", "is too short (minimum is 3 characters)"]
+------------------------------------------------------------------
+
+* +clear+ is used when you intentionally wants to clear all the messages in the +errors+ collection.
+
+[source, ruby]
+------------------------------------------------------------------
+class Person < ActiveRecord::Base
+  validates_presence_of :name
+  validates_length_of :name, :minimum => 3
+end
+
+person = Person.new
+puts person.valid? # => false
+person.errors.on(:name) # => ["can't be blank", "is too short (minimum is 3 characters)"]
+person.errors.clear
+person.errors # => nil
+------------------------------------------------------------------
+
+
 == Changelog
 
 http://rails.lighthouseapp.com/projects/16213/tickets/26-active-record-validations-and-callbacks
