@@ -223,6 +223,8 @@ ul#navMain {
 						
 							<li><a href="#_configuring_active_support">Configuring Active Support</a></li>
 						
+							<li><a href="#_configuring_active_model">Configuring Active Model</a></li>
+						
 						</ul>
 					</li>
 					<li>
@@ -332,11 +334,78 @@ after-initializer</p></div>
 <div class="para"><p></p></div>
 <div class="para"><p><tt>default_form_builder</tt> tells Rails which form builder to use by default. The default is <tt>ActionView::Helpers::FormBuilder</tt>.</p></div>
 <div class="para"><p>The ERB template handler supplies one additional option:</p></div>
-<div class="para"><p><tt>ActionView::TemplateHandlers::ERB.erb_trim_mode</tt> gives the trim mode to be used by ERB. It defaults to <tt><em>-</em></tt>.</p></div>
+<div class="para"><p><tt>ActionView::TemplateHandlers::ERB.erb_trim_mode</tt> gives the trim mode to be used by ERB. It defaults to <tt><em>-</em></tt>. See the <a href="http://www.ruby-doc.org/stdlib/libdoc/erb/rdoc/">ERB documentation</a> for more information.</p></div>
 <h3 id="_configuring_action_mailer">4.4. Configuring Action Mailer</h3>
 <div class="para"><p>There are a number of settings available on <tt>ActionMailer::Base</tt>:</p></div>
+<div class="para"><p><tt>template_root</tt> gives the root folder for Action Mailer templates.</p></div>
+<div class="para"><p><tt>logger</tt> accepts a logger conforming to the interface of Log4r or the default Ruby 1.8+ Logger class, which is then used to log information from Action Mailer. Set to nil to disable logging.</p></div>
+<div class="para"><p><tt>smtp_settings</tt> allows detailed configuration for the <tt>:smtp</tt> delivery method. It accepts a hash of options, which can include any of these options:</p></div>
+<div class="ilist"><ul>
+<li>
+<p>
+&lt;tt&gt;:address&lt;/tt&gt; - Allows you to use a remote mail server. Just change it from its default "localhost" setting.
+</p>
+</li>
+<li>
+<p>
+&lt;tt&gt;:port&lt;/tt&gt; - On the off chance that your mail server doesn't run on port 25, you can change it.
+</p>
+</li>
+<li>
+<p>
+&lt;tt&gt;:domain&lt;/tt&gt; - If you need to specify a HELO domain, you can do it here.
+</p>
+</li>
+<li>
+<p>
+&lt;tt&gt;:user_name&lt;/tt&gt; - If your mail server requires authentication, set the username in this setting.
+</p>
+</li>
+<li>
+<p>
+&lt;tt&gt;:password&lt;/tt&gt; - If your mail server requires authentication, set the password in this setting.
+</p>
+</li>
+<li>
+<p>
+&lt;tt&gt;:authentication&lt;/tt&gt; - If your mail server requires authentication, you need to specify the authentication type here. This is a symbol and one of &lt;tt&gt;:plain&lt;/tt&gt;, &lt;tt&gt;:login&lt;/tt&gt;, &lt;tt&gt;:cram_md5&lt;/tt&gt;.
+</p>
+</li>
+</ul></div>
+<div class="para"><p><tt>sendmail_settings</tt> allows detailed configuration for the <tt>sendmail</tt> delivery method. It accepts a hash of options, which can include any of these options:</p></div>
+<div class="ilist"><ul>
+<li>
+<p>
+&lt;tt&gt;:location&lt;/tt&gt; - The location of the sendmail executable. Defaults to &lt;tt&gt;/usr/sbin/sendmail&lt;/tt&gt;.
+</p>
+</li>
+<li>
+<p>
+&lt;tt&gt;:arguments&lt;/tt&gt; - The command line arguments. Defaults to &lt;tt&gt;-i -t&lt;/tt&gt;.
+</p>
+</li>
+</ul></div>
+<div class="para"><p><tt>raise_delivery_errors</tt> specifies whether to raise an error if email delivery cannot be completed. It defaults to <tt>true</tt>.</p></div>
+<div class="para"><p><tt>delivery_method</tt> defines the delivery method. The allowed values are &lt;tt&gt;:smtp&lt;/tt&gt; (default), &lt;tt&gt;:sendmail&lt;/tt&gt;, and &lt;tt&gt;:test&lt;/tt&gt;.</p></div>
+<div class="para"><p><tt>perform_deliveries</tt> specifies whether mail will actually be delivered. By default this is <tt>true</tt>; it can be convenient to set it to <tt>false</tt> for testing.</p></div>
+<div class="para"><p><tt>default_charset</tt> tells Action Mailer which character set to use for the body and for encoding the subject. It defaults to <tt>utf-8</tt>.</p></div>
+<div class="para"><p><tt>default_content_type</tt> specifies the default content type used for the main part of the message. It defaults to "text/plain"</p></div>
+<div class="para"><p><tt>default_mime_version</tt> is the default MIME version for the message. It defaults to <tt>1.0</tt>.</p></div>
+<div class="para"><p><tt>default_implicit_parts_order</tt> - When a message is built implicitly (i.e. multiple parts are assembled from templates
+which specify the content type in their filenames) this variable controls how the parts are ordered. Defaults to
+&lt;tt&gt;["text/html", "text/enriched", "text/plain"]&lt;/tt&gt;. Items that appear first in the array have higher priority in the mail client
+and appear last in the mime encoded message.</p></div>
 <h3 id="_configuring_active_resource">4.5. Configuring Active Resource</h3>
+<div class="para"><p>There is a single configuration setting available on <tt>ActiveResource::Base</tt>:</p></div>
+<div class="para"><p><tt>logger</tt> accepts a logger conforming to the interface of Log4r or the default Ruby 1.8+ Logger class, which is then used to log information from Active Resource. Set to nil to disable logging.</p></div>
 <h3 id="_configuring_active_support">4.6. Configuring Active Support</h3>
+<div class="para"><p>There are a few configuration options available in Active Support:</p></div>
+<div class="para"><p><tt>ActiveSupport::BufferedLogger.silencer</tt> is set to <tt>false</tt> to disable the ability to silence logging in a block. The default is <tt>true</tt>.</p></div>
+<div class="para"><p><tt>ActiveSupport::Cache::Store.logger</tt> specifies the logger to use within cache store operations.</p></div>
+<div class="para"><p><tt>ActiveSupport::Logger.silencer</tt> is set to <tt>false</tt> to disable the ability to silence logging in a block. The default is <tt>true</tt>.</p></div>
+<h3 id="_configuring_active_model">4.7. Configuring Active Model</h3>
+<div class="para"><p>Active Model currently has a single configuration setting:</p></div>
+<div class="para"><p>+ActiveModel::Errors.default_error_messages is an array containing all of the validation error messages.</p></div>
 </div>
 <h2 id="_using_initializers">5. Using Initializers</h2>
 <div class="sectionbody">
@@ -360,114 +429,6 @@ after-initializer</p></div>
 <p>
 November 5, 2008: Rough outline by <a href="../authors.html#mgunderloy">Mike Gunderloy</a>
 </p>
-</li>
-</ul></div>
-<div class="para"><p>actionmailer/lib/action_mailer/base.rb
-257:    cattr_accessor :logger
-267:    cattr_accessor :smtp_settings
-273:    cattr_accessor :sendmail_settings
-276:    cattr_accessor :raise_delivery_errors
-282:    cattr_accessor :perform_deliveries
-285:    cattr_accessor :deliveries
-288:    cattr_accessor :default_charset
-291:    cattr_accessor :default_content_type
-294:    cattr_accessor :default_mime_version
-297:    cattr_accessor :default_implicit_parts_order
-299:    cattr_reader :protected_instance_variables</p></div>
-<div class="para"><p>actionmailer/Rakefile
-36:  rdoc.options &lt;&lt; <em>&#8212;line-numbers</em> &lt;&lt; <em>&#8212;inline-source</em> &lt;&lt; <em>-A cattr_accessor=object</em></p></div>
-<div class="para"><p>actionpack/lib/action_controller/base.rb
-263:    cattr_reader :protected_instance_variables
-273:    cattr_accessor :asset_host
-279:    cattr_accessor :consider_all_requests_local
-285:    cattr_accessor :allow_concurrency
-317:    cattr_accessor :param_parsers
-321:    cattr_accessor :default_charset
-325:    cattr_accessor :logger
-329:    cattr_accessor :resource_action_separator
-333:    cattr_accessor :resources_path_names
-337:    cattr_accessor :request_forgery_protection_token
-341:    cattr_accessor :optimise_named_routes
-351:    cattr_accessor :use_accept_header
-361:    cattr_accessor :relative_url_root</p></div>
-<div class="para"><p>actionpack/lib/action_controller/caching/pages.rb
-55:          cattr_accessor :page_cache_directory
-58:          cattr_accessor :page_cache_extension</p></div>
-<div class="para"><p>actionpack/lib/action_controller/caching.rb
-37:        cattr_reader :cache_store
-48:        cattr_accessor :perform_caching</p></div>
-<div class="para"><p>actionpack/lib/action_controller/dispatcher.rb
-98:    cattr_accessor :error_file_path</p></div>
-<div class="para"><p>actionpack/lib/action_controller/mime_type.rb
-24:    cattr_reader :html_types, :unverifiable_types</p></div>
-<div class="para"><p>actionpack/lib/action_controller/rescue.rb
-36:      base.cattr_accessor :rescue_responses
-40:      base.cattr_accessor :rescue_templates</p></div>
-<div class="para"><p>actionpack/lib/action_controller/session/active_record_store.rb
-60:        cattr_accessor :data_column_name
-170:        cattr_accessor :connection
-173:        cattr_accessor :table_name
-177:        cattr_accessor :session_id_column
-181:        cattr_accessor :data_column
-282:      cattr_accessor :session_class</p></div>
-<div class="para"><p>actionpack/lib/action_controller/vendor/html-scanner/html/sanitizer.rb
-44:    cattr_accessor :included_tags, :instance_writer &#8658; false</p></div>
-<div class="para"><p>actionpack/lib/action_view/base.rb
-189:    cattr_accessor :debug_rjs
-193:    cattr_accessor :warn_cache_misses</p></div>
-<div class="para"><p>actionpack/lib/action_view/helpers/active_record_helper.rb
-7:    cattr_accessor :field_error_proc</p></div>
-<div class="para"><p>actionpack/lib/action_view/helpers/form_helper.rb
-805:    cattr_accessor :default_form_builder</p></div>
-<div class="para"><p>actionpack/lib/action_view/template_handlers/erb.rb
-47:      cattr_accessor :erb_trim_mode</p></div>
-<div class="para"><p>actionpack/test/active_record_unit.rb
-5:  cattr_accessor :able_to_connect
-6:  cattr_accessor :connected</p></div>
-<div class="para"><p>actionpack/test/controller/filters_test.rb
-286:    cattr_accessor :execution_log</p></div>
-<div class="para"><p>actionpack/test/template/form_options_helper_test.rb
-3:TZInfo::Timezone.cattr_reader :loaded_zones</p></div>
-<div class="para"><p>activemodel/lib/active_model/errors.rb
-28:    cattr_accessor :default_error_messages</p></div>
-<div class="para"><p>activemodel/Rakefile
-19:  rdoc.options &lt;&lt; <em>&#8212;line-numbers</em> &lt;&lt; <em>&#8212;inline-source</em> &lt;&lt; <em>-A cattr_accessor=object</em></p></div>
-<div class="para"><p>activerecord/lib/active_record/attribute_methods.rb
-9:      base.cattr_accessor :attribute_types_cached_by_default, :instance_writer &#8658; false
-11:      base.cattr_accessor :time_zone_aware_attributes, :instance_writer &#8658; false</p></div>
-<div class="para"><p>activeresource/lib/active_resource/base.rb
-206:    cattr_accessor :logger</p></div>
-<div class="para"><p>activeresource/Rakefile
-43:  rdoc.options &lt;&lt; <em>&#8212;line-numbers</em> &lt;&lt; <em>&#8212;inline-source</em> &lt;&lt; <em>-A cattr_accessor=object</em></p></div>
-<div class="para"><p>activesupport/lib/active_support/buffered_logger.rb
-17:    cattr_accessor :silencer</p></div>
-<div class="para"><p>activesupport/lib/active_support/cache.rb
-81:      cattr_accessor :logger</p></div>
-<div class="para"><p>activesupport/lib/active_support/core_ext/class/attribute_accessors.rb
-5:#    cattr_accessor :hair_colors
-10:  def cattr_reader(*syms)
-29:  def cattr_writer(*syms)
-50:  def cattr_accessor(*syms)
-51:    cattr_reader(*syms)
-52:    cattr_writer(*syms)</p></div>
-<div class="para"><p>activesupport/lib/active_support/core_ext/logger.rb
-34:  cattr_accessor :silencer</p></div>
-<div class="para"><p>activesupport/test/core_ext/class/attribute_accessor_test.rb
-6:      cattr_accessor :foo
-7:      cattr_accessor :bar, :instance_writer &#8658; false</p></div>
-<div class="para"><p>activesupport/test/core_ext/module/synchronization_test.rb
-6:    @target.cattr_accessor :mutex, :instance_writer &#8658; false</p></div>
-<div class="para"><p>railties/doc/guides/html/creating_plugins.html
-786:      cattr_accessor &lt;span style="color: #990000"&gt;:&lt;/span&gt;yaffle_text_field&lt;span style="color: #990000"&gt;,&lt;/span&gt; &lt;span style="color: #990000"&gt;:&lt;/span&gt;yaffle_date_field
-860:      cattr_accessor &lt;span style="color: #990000"&gt;:&lt;/span&gt;yaffle_text_field&lt;span style="color: #990000"&gt;,&lt;/span&gt; &lt;span style="color: #990000"&gt;:&lt;/span&gt;yaffle_date_field</p></div>
-<div class="para"><p>railties/lib/rails_generator/base.rb
-93:      cattr_accessor :logger</p></div>
-<div class="para"><p>railties/Rakefile
-265:  rdoc.options &lt;&lt; <em>&#8212;line-numbers</em> &lt;&lt; <em>&#8212;inline-source</em> &lt;&lt; <em>&#8212;accessor</em> &lt;&lt; <em>cattr_accessor=object</em></p></div>
-<div class="para"><p>railties/test/rails_info_controller_test.rb
-12:    cattr_accessor :local_request</p></div>
-<div class="para"><p>Rakefile
-32:  rdoc.options &lt;&lt; <em>-A cattr_accessor=object</em></p></div>
 <div class="qlist"><ol>
 <li>
 <p><em>
@@ -475,6 +436,8 @@ need to look for def self. ?
 </em></p>
 </li>
 </ol></div>
+</li>
+</ul></div>
 </div>
 
 		</div>
