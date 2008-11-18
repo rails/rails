@@ -17,6 +17,8 @@ class SanitizerTest < Test::Unit::TestCase
     %{This is a test.\n\n\nIt no longer contains any HTML.\n}, sanitizer.sanitize(
     %{<title>This is <b>a <a href="" target="_blank">test</a></b>.</title>\n\n<!-- it has a comment -->\n\n<p>It no <b>longer <strong>contains <em>any <strike>HTML</strike></em>.</strong></b></p>\n}))
     assert_equal "This has a  here.", sanitizer.sanitize("This has a <!-- comment --> here.")
+    assert_equal "This has a  here.", sanitizer.sanitize("This has a <![CDATA[<section>]]> here.")
+    assert_equal "This has an unclosed ", sanitizer.sanitize("This has an unclosed <![CDATA[<section>]] here...")
     [nil, '', '   '].each { |blank| assert_equal blank, sanitizer.sanitize(blank) }
   end
 
@@ -241,6 +243,14 @@ class SanitizerTest < Test::Unit::TestCase
 
   def test_should_sanitize_img_vbscript
     assert_sanitized %(<img src='vbscript:msgbox("XSS")' />), '<img />'
+  end
+
+  def test_should_sanitize_cdata_section
+    assert_sanitized "<![CDATA[<span>section</span>]]>", "&lt;![CDATA[&lt;span>section&lt;/span>]]>"
+  end
+
+  def test_should_sanitize_unterminated_cdata_section
+    assert_sanitized "<![CDATA[<span>neverending...", "&lt;![CDATA[&lt;span>neverending...]]>"
   end
 
 protected

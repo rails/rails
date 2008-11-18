@@ -1,3 +1,8 @@
+*2.1.2 (October 23rd, 2008)*
+
+* Security fixes for Active Record and Action Pack and a few other minor fixes
+
+
 *2.1.1 (September 4th, 2008)*
 
 * Fix script/about in production mode.  #370 [Cheah Chu Yeow, Xavier Noria, David Krmpotic]

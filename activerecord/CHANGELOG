@@ -1,4 +1,6 @@
-*Edge*
+*2.1.2 (October 23rd, 2008)*
+
+* Added SQL escaping for :limit and :offset in MySQL [Jonathan Wiess]
 
 * Multiparameter attributes skip time zone conversion for time-only columns #1030 [Geoff Buesing]
 
