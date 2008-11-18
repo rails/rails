@@ -687,8 +687,8 @@ by Lorenzo Bettini
 http://www.lorenzobettini.it
 http://www.gnu.org/software/src-highlite -->
 <pre><tt><span style="font-weight: bold"><span style="color: #0000FF">class</span></span> Employee <span style="color: #990000">&lt;</span> ActiveRecord<span style="color: #990000">::</span>Base
-  has_many <span style="color: #990000">:</span>subordinates<span style="color: #990000">,</span> <span style="color: #990000">:</span>class_name <span style="color: #990000">=&gt;</span> <span style="color: #FF0000">"User"</span><span style="color: #990000">,</span> <span style="color: #990000">:</span>foreign_key <span style="color: #990000">=&gt;</span> <span style="color: #FF0000">"manager_id"</span>
-  belongs_to <span style="color: #990000">:</span>manager<span style="color: #990000">,</span> <span style="color: #990000">:</span>class_name <span style="color: #990000">=&gt;</span> <span style="color: #FF0000">"User"</span>
+  has_many <span style="color: #990000">:</span>subordinates<span style="color: #990000">,</span> <span style="color: #990000">:</span>class_name <span style="color: #990000">=&gt;</span> <span style="color: #FF0000">"Employee"</span><span style="color: #990000">,</span> <span style="color: #990000">:</span>foreign_key <span style="color: #990000">=&gt;</span> <span style="color: #FF0000">"manager_id"</span>
+  belongs_to <span style="color: #990000">:</span>manager<span style="color: #990000">,</span> <span style="color: #990000">:</span>class_name <span style="color: #990000">=&gt;</span> <span style="color: #FF0000">"Employee"</span>
 <span style="font-weight: bold"><span style="color: #0000FF">end</span></span>
 </tt></pre></div></div>
 <div class="para"><p>With this setup, you can retrieve <tt>@employee.subordinates</tt> and <tt>@employee.manager</tt>.</p></div>
@@ -1941,7 +1941,7 @@ http://www.gnu.org/software/src-highlite -->
 <span style="font-weight: bold"><span style="color: #0000FF">end</span></span>
 </tt></pre></div></div>
 <h5 id="_tt_offset_tt"><tt>:offset</tt></h5>
-<div class="para"><p>The <tt>:offset</tt> option lets you specify the starting offset for fetching objects via an association. For example, if you set <tt>:offset &#8658; 11</tt>, it will skip the first 10 records.</p></div>
+<div class="para"><p>The <tt>:offset</tt> option lets you specify the starting offset for fetching objects via an association. For example, if you set <tt>:offset &#8658; 11</tt>, it will skip the first 11 records.</p></div>
 <h5 id="_tt_order_tt_2"><tt>:order</tt></h5>
 <div class="para"><p>The <tt>:order</tt> option dictates the order in which associated objects will be received (in the syntax used by a SQL <tt>ORDER BY</tt> clause).</p></div>
 <div class="listingblock">
@@ -2412,7 +2412,7 @@ http://www.gnu.org/software/src-highlite -->
 <span style="font-weight: bold"><span style="color: #0000FF">end</span></span>
 </tt></pre></div></div>
 <h5 id="_tt_offset_tt_2"><tt>:offset</tt></h5>
-<div class="para"><p>The <tt>:offset</tt> option lets you specify the starting offset for fetching objects via an association. For example, if you set <tt>:offset &#8658; 11</tt>, it will skip the first 10 records.</p></div>
+<div class="para"><p>The <tt>:offset</tt> option lets you specify the starting offset for fetching objects via an association. For example, if you set <tt>:offset &#8658; 11</tt>, it will skip the first 11 records.</p></div>
 <h5 id="_tt_order_tt_3"><tt>:order</tt></h5>
 <div class="para"><p>The <tt>:order</tt> option dictates the order in which associated objects will be received (in the syntax used by a SQL <tt>ORDER BY</tt> clause).</p></div>
 <div class="listingblock">
