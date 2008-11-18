@@ -51,7 +51,7 @@ class TimeZoneTest < Test::Unit::TestCase
 
     define_method("test_utc_offset_for_#{name}") do
       silence_warnings do # silence warnings raised by tzinfo gem
-        period = zone.tzinfo.period_for_utc(Time.utc(2006,1,1,0,0,0))
+        period = zone.tzinfo.current_period
         assert_equal period.utc_offset, zone.utc_offset
       end
     end

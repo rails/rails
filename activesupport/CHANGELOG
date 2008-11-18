@@ -1,5 +1,9 @@
 *Edge*
 
+* TimeZone offset tests: use current_period, to ensure TimeZone#utc_offset is up-to-date [Geoff Buesing]
+
+* TimeZone: Caracas GMT offset changed to -4:30 #1361 [Phil Ross]
+
 * Update bundled TZInfo to 0.3.12 [Geoff Buesing]
 
 * TimeWithZone#freeze: preload instance variables so that we can actually freeze [Geoff Buesing]
