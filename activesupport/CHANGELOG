@@ -1,5 +1,7 @@
 *Edge*
 
+* Update bundled TZInfo to 0.3.12 [Geoff Buesing]
+
 * TimeWithZone#freeze: preload instance variables so that we can actually freeze [Geoff Buesing]
 
 
