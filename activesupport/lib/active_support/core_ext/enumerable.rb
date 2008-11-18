@@ -104,4 +104,13 @@ module Enumerable
     size = block_given? ? select(&block).size : self.size
     size > 1
   end
+
+  # Returns true if none of the elements match the given block.
+  # 
+  #   success = responses.none? {|r| r.status / 100 == 3 }
+  #
+  def none?(&block)
+    return true if !block_given? || blank?
+    !any?(&block)
+  end
 end

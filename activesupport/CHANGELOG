@@ -1,5 +1,7 @@
 *2.3.0/3.0*
 
+* Added Enumerable#none? to check that none of the elements match the block #1408 [Damian Janowski]
+
 * TimeZone offset tests: use current_period, to ensure TimeZone#utc_offset is up-to-date [Geoff Buesing]
 
 * Update bundled TZInfo to 0.3.12 [Geoff Buesing]

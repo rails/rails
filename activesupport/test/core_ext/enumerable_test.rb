@@ -79,4 +79,14 @@ class EnumerableTests < Test::Unit::TestCase
     assert ![ 1, 2 ].many? {|x| x > 1 }
     assert [ 1, 2, 2 ].many? {|x| x > 1 }
   end
+
+  def test_none
+    assert [].none?
+    assert [ 1 ].none?
+
+    assert [].none? {|x| x > 1 }
+    assert ![ 2 ].none? {|x| x > 1 }
+    assert ![ 1, 2 ].none? {|x| x > 1 }
+    assert [ 1, 1 ].none? {|x| x > 1 }
+  end
 end
