@@ -18,7 +18,6 @@ class ConfigurationMock < Rails::Configuration
 end
 
 class Initializer_load_environment_Test < Test::Unit::TestCase
-
   def test_load_environment_with_constant
     config = ConfigurationMock.new("#{File.dirname(__FILE__)}/fixtures/environment_with_constant.rb")
     assert_nil $initialize_test_set_from_env
@@ -260,5 +259,51 @@ uses_mocha "Initializer plugin loading tests" do
         @initializer.load_plugins
       end
   end
+end
 
+uses_mocha 'i18n settings' do
+  class InitializerSetupI18nTests < Test::Unit::TestCase
+    def test_no_config_locales_dir_present_should_return_empty_load_path
+      File.stubs(:exist?).returns(false)
+      assert_equal [], Rails::Configuration.new.i18n.load_path
+    end
+
+    def test_config_locales_dir_present_should_be_added_to_load_path
+      File.stubs(:exist?).returns(true)
+      Dir.stubs(:[]).returns([ "my/test/locale.yml" ])
+      assert_equal [ "my/test/locale.yml" ], Rails::Configuration.new.i18n.load_path
+    end
+    
+    def test_config_defaults_should_be_added_with_config_settings
+      File.stubs(:exist?).returns(true)
+      Dir.stubs(:[]).returns([ "my/test/locale.yml" ])
+
+      config = Rails::Configuration.new
+      config.i18n.load_path << "my/other/locale.yml"
+
+      assert_equal [ "my/test/locale.yml", "my/other/locale.yml" ], config.i18n.load_path
+    end
+    
+    def test_config_defaults_and_settings_should_be_added_to_i18n_defaults
+      File.stubs(:exist?).returns(true)
+      Dir.stubs(:[]).returns([ "my/test/locale.yml" ])
+
+      config = Rails::Configuration.new
+      config.i18n.load_path << "my/other/locale.yml"
+
+      Rails::Initializer.run(:initialize_i18n, config)
+      assert_equal [ 
+       "./test/../../activesupport/lib/active_support/locale/en-US.yml",
+       "./test/../../actionpack/lib/action_view/locale/en-US.yml",
+       "my/test/locale.yml",
+       "my/other/locale.yml" ], I18n.load_path
+    end
+    
+    def test_setting_another_default_locale
+      config = Rails::Configuration.new
+      config.i18n.default_locale = :de
+      Rails::Initializer.run(:initialize_i18n, config)
+      assert_equal :de, I18n.default_locale
+    end
+  end
 end

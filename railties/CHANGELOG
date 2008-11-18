@@ -1,3 +1,8 @@
+*2.2.2 [Final]*
+
+* Added config.i18n settings gatherer to config/environment, auto-loading of all locales in config/locales/*.rb,yml, and config/locales/en.yml as a sample locale [DHH]
+
+
 *2.2.1 [RC2] (November 14th, 2008)*
 
 * Fixed plugin generator so that generated unit tests would subclass ActiveSupport::TestCase, also introduced a helper script to reduce the needed require statements #1137 [Mathias Meyer]

@@ -44,6 +44,7 @@ BASE_DIRS = %w(
   app
   config/environments
   config/initializers
+  config/locales
   components
   db
   doc
@@ -198,6 +199,8 @@ task :copy_configs do
 
   cp "configs/initializers/inflections.rb", "#{PKG_DESTINATION}/config/initializers/inflections.rb"
   cp "configs/initializers/mime_types.rb",  "#{PKG_DESTINATION}/config/initializers/mime_types.rb"
+
+  cp "configs/locales/en.yml", "#{PKG_DESTINATION}/config/locales/en.yml"
 
   cp "environments/boot.rb",        "#{PKG_DESTINATION}/config/boot.rb"
   cp "environments/environment.rb", "#{PKG_DESTINATION}/config/environment.rb"
