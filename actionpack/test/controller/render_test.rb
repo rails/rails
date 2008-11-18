@@ -246,6 +246,15 @@ class TestController < ActionController::Base
            :locals => { :local_name => name }
   end
 
+  def helper_method_to_render_to_string(*args)
+    render_to_string(*args)
+  end
+  helper_method :helper_method_to_render_to_string
+
+  def render_html_only_partial_within_inline
+    render :inline => "Hello world <%= helper_method_to_render_to_string :partial => 'test/partial_with_only_html_version' %>"
+  end
+
   def formatted_html_erb
   end
 
@@ -930,6 +939,11 @@ class RenderTest < ActionController::TestCase
   def test_accessing_local_assigns_in_inline_template
     get :accessing_local_assigns_in_inline_template, :local_name => "Local David"
     assert_equal "Goodbye, Local David", @response.body
+  end
+
+  def test_rendering_html_only_partial_within_inline_with_js
+    get :render_html_only_partial_within_inline, :format => :js
+    assert_equal "Hello world partial with only html version", @response.body
   end
 
   def test_should_render_formatted_template
