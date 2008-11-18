@@ -535,9 +535,9 @@ module ActionController
 
         with_options :controller => resource.controller do |map|
           map_collection_actions(map, resource)
-          map_default_singleton_actions(map, resource)
           map_new_actions(map, resource)
           map_member_actions(map, resource)
+          map_default_singleton_actions(map, resource)
 
           map_associations(resource, options)
 
