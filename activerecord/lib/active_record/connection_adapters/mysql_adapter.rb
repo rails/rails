@@ -156,13 +156,16 @@ module ActiveRecord
     # * <tt>:sslcapath</tt> - Necessary to use MySQL with an SSL connection.
     # * <tt>:sslcipher</tt> - Necessary to use MySQL with an SSL connection.
     #
-    # By default, the MysqlAdapter will consider all columns of type <tt>tinyint(1)</tt>
-    # as boolean. If you wish to disable this emulation (which was the default
-    # behavior in versions 0.13.1 and earlier) you can add the following line
-    # to your environment.rb file:
-    #
-    #   ActiveRecord::ConnectionAdapters::MysqlAdapter.emulate_booleans = false
     class MysqlAdapter < AbstractAdapter
+
+      ##
+      # :singleton-method:
+      # By default, the MysqlAdapter will consider all columns of type <tt>tinyint(1)</tt>
+      # as boolean. If you wish to disable this emulation (which was the default
+      # behavior in versions 0.13.1 and earlier) you can add the following line
+      # to your environment.rb file:
+      #
+      #   ActiveRecord::ConnectionAdapters::MysqlAdapter.emulate_booleans = false
       cattr_accessor :emulate_booleans
       self.emulate_booleans = true
 

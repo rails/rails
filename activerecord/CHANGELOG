@@ -1,4 +1,4 @@
-*2.2.1 [RC2 or 2.2 final]*
+*2.2.1 [RC2] (November 14th, 2008)*
 
 * Ensure indices don't flip order in schema.rb #1266 [Jordi Bunster]
 

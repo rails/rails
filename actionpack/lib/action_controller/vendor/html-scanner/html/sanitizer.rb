@@ -160,7 +160,7 @@ module HTML
         if !options[:attributes].include?(attr_name) || contains_bad_protocols?(attr_name, value)
           node.attributes.delete(attr_name)
         else
-          node.attributes[attr_name] = attr_name == 'style' ? sanitize_css(value) : CGI::escapeHTML(value)
+          node.attributes[attr_name] = attr_name == 'style' ? sanitize_css(value) : CGI::escapeHTML(CGI::unescapeHTML(value))
         end
       end
     end

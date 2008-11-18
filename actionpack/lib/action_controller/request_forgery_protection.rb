@@ -99,7 +99,7 @@ module ActionController #:nodoc:
       end
     
       def verifiable_request_format?
-        request.content_type.nil? || request.content_type.verify_request?
+        !request.content_type.nil? && request.content_type.verify_request?
       end
     
       # Sets the token value for the current session.  Pass a <tt>:secret</tt> option

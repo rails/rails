@@ -7,13 +7,13 @@ In every controller there are two accessor methods pointing to the request and t
 The request object contains a lot of useful information about the request coming in from the client. To get a full list of the available methods, refer to the link:http://api.rubyonrails.org/classes/ActionController/AbstractRequest.html[API documentation]. Among the properties that you can access on this object are:
 
  * host - The hostname used for this request.
- * domain - The hostname without the first segment (usually "www").
+ * domain(n=2) - The hostname's first `n` segments, starting from the right (the TLD)
  * format - The content type requested by the client.
  * method - The HTTP method used for the request.
- * get?, post?, put?, delete?, head? - Returns true if the HTTP method is get/post/put/delete/head.
+ * get?, post?, put?, delete?, head? - Returns true if the HTTP method is GET/POST/PUT/DELETE/HEAD.
  * headers - Returns a hash containing the headers associated with the request.
  * port - The port number (integer) used for the request.
- * protocol - The protocol used for the request.
+ * protocol - Returns a string containing the prototol used plus "://", for example "http://"
  * query_string - The query string part of the URL - everything after "?".
  * remote_ip - The IP address of the client.
  * url - The entire URL used for the request.

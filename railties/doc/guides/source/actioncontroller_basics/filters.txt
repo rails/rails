@@ -38,7 +38,7 @@ class ApplicationController < ActionController::Base
 end
 ---------------------------------
 
-In this example, the filter is added to ApplicationController and thus all controllers in the application. This will make everything in the application require the user to be logged in in order to use it. For obvious reasons (the user wouldn't be able to log in in the first place!), not all controllers or actions should require this. You can prevent this filter from running before particular actions with `skip_before_filter` :
+In this example, the filter is added to ApplicationController and thus all controllers in the application. This will make everything in the application require the user to be logged in in order to use it. For obvious reasons (the user wouldn't be able to log in in the first place!), not all controllers or actions should require this. You can prevent this filter from running before particular actions with `skip_before_filter`:
 
 [source, ruby]
 ---------------------------------
@@ -49,7 +49,7 @@ class LoginsController < Application
 end
 ---------------------------------
 
-Now, the +LoginsController+'s "new" and "create" actions will work as before without requiring the user to be logged in. The `:only` option is used to only skip this filter for these actions, and there is also an `:except` option which works the other way. These options can be used when adding filters too, so you can add a filter which only runs for selected actions in the first place.
+Now, the LoginsController's `new` and `create` actions will work as before without requiring the user to be logged in. The `:only` option is used to only skip this filter for these actions, and there is also an `:except` option which works the other way. These options can be used when adding filters too, so you can add a filter which only runs for selected actions in the first place.
 
 === After Filters and Around Filters ===
 

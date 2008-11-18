@@ -23,7 +23,6 @@ module ActionController
 
         if defined?(ActiveRecord)
           after_dispatch :checkin_connections
-          before_dispatch { ActiveRecord::Base.verify_active_connections! }
           to_prepare(:activerecord_instantiate_observers) { ActiveRecord::Base.instantiate_observers }
         end
 

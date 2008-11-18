@@ -1,0 +1,165 @@
+== Tests ==
+
+In this guide you will learn how to test your plugin against multiple different database adapters using Active Record.  To setup your plugin to allow for easy testing you'll need to add 3 files:
+
+ * A 'database.yml' file with all of your connection strings
+ * A 'schema.rb' file with your table definitions
+ * A test helper method that sets up the database
+
+=== Test Setup ===
+
+*vendor/plugins/yaffle/test/database.yml:*
+
+----------------------------------------------
+sqlite:
+  :adapter: sqlite
+  :dbfile: vendor/plugins/yaffle/test/yaffle_plugin.sqlite.db
+
+sqlite3:
+  :adapter: sqlite3
+  :dbfile: vendor/plugins/yaffle/test/yaffle_plugin.sqlite3.db
+
+postgresql:
+  :adapter: postgresql
+  :username: postgres
+  :password: postgres
+  :database: yaffle_plugin_test
+  :min_messages: ERROR
+
+mysql:
+  :adapter: mysql
+  :host: localhost
+  :username: root
+  :password: password
+  :database: yaffle_plugin_test
+----------------------------------------------
+
+For this guide you'll need 2 tables/models, Hickwalls and Wickwalls, so add the following:
+
+*vendor/plugins/yaffle/test/schema.rb:*
+
+[source, ruby]
+----------------------------------------------
+ActiveRecord::Schema.define(:version => 0) do
+  create_table :hickwalls, :force => true do |t|
+    t.string :name
+    t.string :last_squawk
+    t.datetime :last_squawked_at
+  end
+  create_table :wickwalls, :force => true do |t|
+    t.string :name
+    t.string :last_tweet
+    t.datetime :last_tweeted_at
+  end
+  create_table :woodpeckers, :force => true do |t|
+    t.string :name
+  end
+end
+----------------------------------------------
+
+*vendor/plugins/yaffle/test/test_helper.rb:*
+
+[source, ruby]
+----------------------------------------------
+ENV['RAILS_ENV'] = 'test'
+ENV['RAILS_ROOT'] ||= File.dirname(__FILE__) + '/../../../..'
+
+require 'test/unit'
+require File.expand_path(File.join(ENV['RAILS_ROOT'], 'config/environment.rb'))
+
+def load_schema
+  config = YAML::load(IO.read(File.dirname(__FILE__) + '/database.yml'))
+  ActiveRecord::Base.logger = Logger.new(File.dirname(__FILE__) + "/debug.log")
+
+  db_adapter = ENV['DB']
+
+  # no db passed, try one of these fine config-free DBs before bombing.
+  db_adapter ||=
+    begin
+      require 'rubygems'
+      require 'sqlite'
+      'sqlite'
+    rescue MissingSourceFile
+      begin
+        require 'sqlite3'
+        'sqlite3'
+      rescue MissingSourceFile
+      end
+    end
+
+  if db_adapter.nil?
+    raise "No DB Adapter selected. Pass the DB= option to pick one, or install Sqlite or Sqlite3."
+  end
+
+  ActiveRecord::Base.establish_connection(config[db_adapter])
+  load(File.dirname(__FILE__) + "/schema.rb")
+  require File.dirname(__FILE__) + '/../rails/init.rb'
+end
+----------------------------------------------
+
+Now whenever you write a test that requires the database, you can call 'load_schema'.
+
+=== Run the plugin tests ===
+
+Once you have these files in place, you can write your first test to ensure that your plugin-testing setup is correct.  By default rails generates a file in 'vendor/plugins/yaffle/test/yaffle_test.rb' with a sample test.  Replace the contents of that file with:
+
+*vendor/plugins/yaffle/test/yaffle_test.rb:*
+
+[source, ruby]
+----------------------------------------------
+require File.dirname(__FILE__) + '/test_helper.rb'
+
+class YaffleTest < Test::Unit::TestCase
+  load_schema
+  
+  class Hickwall < ActiveRecord::Base
+  end
+
+  class Wickwall < ActiveRecord::Base
+  end
+  
+  def test_schema_has_loaded_correctly
+    assert_equal [], Hickwall.all
+    assert_equal [], Wickwall.all
+  end
+  
+end
+----------------------------------------------
+
+To run this, go to the plugin directory and run `rake`:
+
+----------------------------------------------
+cd vendor/plugins/yaffle
+rake
+----------------------------------------------
+
+You should see output like:
+
+----------------------------------------------
+/opt/local/bin/ruby -Ilib:lib "/opt/local/lib/ruby/gems/1.8/gems/rake-0.8.3/lib/rake/rake_test_loader.rb" "test/yaffle_test.rb" 
+-- create_table(:hickwalls, {:force=>true})
+   -> 0.0220s
+-- create_table(:wickwalls, {:force=>true})
+   -> 0.0077s
+-- initialize_schema_migrations_table()
+   -> 0.0007s
+-- assume_migrated_upto_version(0)
+   -> 0.0007s
+Loaded suite /opt/local/lib/ruby/gems/1.8/gems/rake-0.8.3/lib/rake/rake_test_loader
+Started
+.
+Finished in 0.002236 seconds.
+
+1 test, 1 assertion, 0 failures, 0 errors
+----------------------------------------------
+
+By default the setup above runs your tests with sqlite or sqlite3.  To run tests with one of the other connection strings specified in database.yml, pass the DB environment variable to rake:
+
+----------------------------------------------
+rake DB=sqlite
+rake DB=sqlite3
+rake DB=mysql
+rake DB=postgresql
+----------------------------------------------
+
+Now you are ready to test-drive your plugin!

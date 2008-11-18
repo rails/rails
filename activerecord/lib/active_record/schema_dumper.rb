@@ -7,6 +7,8 @@ module ActiveRecord
   class SchemaDumper #:nodoc:
     private_class_method :new
     
+    ##
+    # :singleton-method:
     # A list of tables which should not be dumped to the schema. 
     # Acceptable values are strings as well as regexp.
     # This setting is only used if ActiveRecord::Base.schema_format == :ruby

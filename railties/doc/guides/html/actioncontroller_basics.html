@@ -925,7 +925,7 @@ http://www.gnu.org/software/src-highlite -->
 <div class="sectionbody">
 <div class="para"><p>In every controller there are two accessor methods pointing to the request and the response objects associated with the request cycle that is currently in execution. The <tt>request</tt> method contains an instance of AbstractRequest and the <tt>response</tt> method returns a <tt>response</tt> object representing what is going to be sent back to the client.</p></div>
 <h3 id="_the_tt_request_tt_object">9.1. The <tt>request</tt> Object</h3>
-<div class="para"><p>The request object contains a lot of useful information about the request coming in from the client. To get a full list of the available methods, refer to the <a href="http://api.rubyonrails.org/classes/ActionController/AbstractRequest.html">API documentation</a>. Among the properties that you can access on this object:</p></div>
+<div class="para"><p>The request object contains a lot of useful information about the request coming in from the client. To get a full list of the available methods, refer to the <a href="http://api.rubyonrails.org/classes/ActionController/AbstractRequest.html">API documentation</a>. Among the properties that you can access on this object are:</p></div>
 <div class="ilist"><ul>
 <li>
 <p>
@@ -1039,7 +1039,7 @@ http://www.lorenzobettini.it
 http://www.gnu.org/software/src-highlite -->
 <pre><tt><span style="font-weight: bold"><span style="color: #0000FF">class</span></span> AdminController <span style="color: #990000">&lt;</span> ApplicationController
 
-  USERNAME<span style="color: #990000">,</span> PASSWORD <span style="color: #990000">=</span> <span style="color: #FF0000">"humbaba"</span><span style="color: #990000">,</span> <span style="color: #FF0000">"f59a4805511bf4bb61978445a5380c6c"</span>
+  USERNAME<span style="color: #990000">,</span> PASSWORD <span style="color: #990000">=</span> <span style="color: #FF0000">"humbaba"</span><span style="color: #990000">,</span> <span style="color: #FF0000">"5baa61e4c9b93f3f0682250b6cf8331b7ee68fd8"</span>
 
   before_filter <span style="color: #990000">:</span>authenticate
 
@@ -1047,7 +1047,7 @@ private
 
   <span style="font-weight: bold"><span style="color: #0000FF">def</span></span> authenticate
     authenticate_or_request_with_http_basic <span style="font-weight: bold"><span style="color: #0000FF">do</span></span> <span style="color: #990000">|</span>username<span style="color: #990000">,</span> password<span style="color: #990000">|</span>
-      username <span style="color: #990000">==</span> USERNAME <span style="color: #990000">&amp;&amp;</span> Digest<span style="color: #990000">::</span>MD5<span style="color: #990000">.</span>hexdigest<span style="color: #990000">(</span>password<span style="color: #990000">)</span> <span style="color: #990000">==</span> PASSWORD
+      username <span style="color: #990000">==</span> USERNAME <span style="color: #990000">&amp;&amp;</span> Digest<span style="color: #990000">::</span>SHA1<span style="color: #990000">.</span>hexdigest<span style="color: #990000">(</span>password<span style="color: #990000">)</span> <span style="color: #990000">==</span> PASSWORD
     <span style="font-weight: bold"><span style="color: #0000FF">end</span></span>
   <span style="font-weight: bold"><span style="color: #0000FF">end</span></span>
 
@@ -1104,7 +1104,7 @@ http://www.gnu.org/software/src-highlite -->
 
 <span style="font-weight: bold"><span style="color: #0000FF">end</span></span>
 </tt></pre></div></div>
-<div class="para"><p>This will read and stream the file 4Kb at the time, avoiding loading the entire file into memory at once. You can turn off streaming with the <tt>stream</tt> option or adjust the block size with the <tt>buffer_size</tt> option.</p></div>
+<div class="para"><p>This will read and stream the file 4Kb at the time, avoiding loading the entire file into memory at once. You can turn off streaming with the <tt>:stream</tt> option or adjust the block size with the <tt>:buffer_size</tt> option.</p></div>
 <div class="admonitionblock">
 <table><tr>
 <td class="icon">

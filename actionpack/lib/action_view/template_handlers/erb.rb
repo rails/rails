@@ -42,6 +42,8 @@ module ActionView
     class ERB < TemplateHandler
       include Compilable
 
+      ##
+      # :singleton-method:
       # Specify trim mode for the ERB compiler. Defaults to '-'.
       # See ERb documentation for suitable values.
       cattr_accessor :erb_trim_mode

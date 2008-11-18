@@ -16,15 +16,110 @@ after-initializer
 
 == Using a Preinitializer
 
+== Initialization Process Settings
+
 == Configuring Rails Components
 
 === Configuring Active Record
 
++ActiveRecord::Base+ includej a variety of configuration options:
+
++logger+ accepts a logger conforming to the interface of Log4r or the default Ruby 1.8+ Logger class, which is then passed on to any new database connections made. You can retrieve this logger by calling +logger+ on either an ActiveRecord model class or an ActiveRecord model instance. Set to nil to disable logging.
+
++primary_key_prefix_type+ lets you adjust the naming for primary key columns. By default, Rails assumes that primary key columns are named +id+ (and this configuration option doesn't need to be set.) There are two other choices:
+
+* +:table_name+ would make the primary key for the Customer class +customerid+
+* +:table_name_with_underscore+ would make the primary key for the Customer class +customer_id+
+
++table_name_prefix+ lets you set a global string to be prepended to table names. If you set this to +northwest_+, then the Customer class will look for +northwest_customers+ as its table. The default is an empty string.
+
++table_name_suffix+ lets you set a global string to be appended to table names. If you set this to +_northwest+, then the Customer class will look for +customers_northwest+ as its table. The default is an empty string.
+
++pluralize_table_names+ specifies whether Rails will look for singular or plural table names in the database. If set to +true+ (the default), then the Customer class will use the +customers+ table. If set to +false+, then the Customers class will use the +customer+ table.
+
++colorize_logging+ (true by default) specifies whether or not to use ANSI color codes when logging information from ActiveRecord.
+
++default_timezone+ determines whether to use +Time.local+ (if set to +:local+) or +Time.utc+ (if set to +:utc+) when pulling dates and times from the database. The default is +:local+.
+
++schema_format+ controls the format for dumping the database schema to a file. The options are +:ruby+ (the default) for a database-independent version that depends on migrations, or +:sql+ for a set of (potentially database-dependent) SQL statements.
+
++timestamped_migrations+ controls whether migrations are numbered with serial integers or with timestamps. The default is +true+, to use timestamps, which are preferred if there are multiple developers working on the same application.
+
++lock_optimistically+ controls whether ActiveRecord will use optimistic locking. By default this is +true+.
+
+The MySQL adapter adds one additional configuration option:
+
++ActiveRecord::ConnectionAdapters::MysqlAdapter.emulate_booleans+ controls whether ActiveRecord will consider all +tinyint(1)+ columns in a MySQL database to be booleans. By default this is +true+.
+
+The schema dumper adds one additional configuration option:
+
++ActiveRecord::SchemaDumper.ignore_tables+ accepts an array of tables that should _not_ be included in any generated schema file. This setting is ignored unless +ActiveRecord::Base.schema_format == :ruby+.
+
 === Configuring Action Controller
+
+ActionController::Base includes a number of configuration settings:
+
++asset_host+ provides a string that is prepended to all of the URL-generating helpers in +AssetHelper+. This is designed to allow moving all javascript, CSS, and image files to a separate asset host.
+
++consider_all_requests_local+ is generally set to +true+ during development and +false+ during production; if it is set to +true+, then any error will cause detailed debugging information to be dumped in the HTTP response. For finer-grained control, set this to +false+ and implement +local_request?+ to specify which requests should provide debugging information on errors.
+
++allow_concurrency+ should be set to +true+ to allow concurrent (threadsafe) action processing. Set to +false+ by default.
+
++param_parsers+ provides an array of handlers that can extract information from incoming HTTP requests and add it to the +params+ hash. By default, parsers for multipart forms, URL-encoded forms, XML, and JSON are active.
+
++default_charset+ specifies the default character set for all renders. The default is "utf-8".
+
++logger+ accepts a logger conforming to the interface of Log4r or the default Ruby 1.8+ Logger class, which is then used to log information from Action Controller. Set to nil to disable logging.
+
++resource_action_separator+ gives the token to be used between resources and actions when building or interpreting RESTful URLs. By default, this is "/".
+
++resource_path_names+ is a hash of default names for several RESTful actions. By default, the new action is named +new+ and the edit action is named +edit+.
+
++request_forgery_protection_token+ sets the token parameter name for RequestForgery. Calling +protect_from_forgery+ sets it to +:authenticity_token+ by default.
+
++optimise_named_routes+ turns on some optimizations in generating the routing table. It is set to +true+ by default.
+
++use_accept_header+ sets the rules for determining the response format. If this is set to +true+ (the default) then +respond_to+ and +Request#format+ will take the Accept header into account. If it is set to false then the request format will be determined solely by examining +params[:format]+. If there is no +format+ parameter, then the response format will be either HTML or Javascript depending on whether the request is an AJAX request.
+
++allow_forgery_protection+ enables or disables CSRF protection. By default this is +false+ in test mode and +true+ in all other modes.
+
++relative_url_root+ can be used to tell Rails that you are deploying to a subdirectory. The default is +ENV['RAILS_RELATIVE_URL_ROOT']+.
+
+The caching code adds two additional settings:
+
++ActionController::Caching::Pages.page_cache_directory+ sets the directory where Rails will create cached pages for your web server. The default is +Rails.public_path+ (which is usually set to +RAILS_ROOT + "/public"+).
+
++ActionController::Caching::Pages.page_cache_extension+ sets the extension to be used when generating pages for the cache (this is ignored if the incoming request already has an extension). The default is +.html+.
+
+The dispatcher includes one setting:
+
++ActionController::Dispatcher.error_file_path+ gives the path where Rails will look for error files such as +404.html+. The default is +Rails.public_path+.
+
+The Active Record session store can also be configured:
+
++CGI::Session::ActiveRecordStore::Session.data_column_name+ sets the name of the column to use to store session data. By default it is 'data'
 
 === Configuring Action View
 
+There are only a few configuration options for Action View, starting with four on +ActionView::Base+:
+
++debug_rjs+ specifies whether RJS responses should be wrapped in a try/catch block that alert()s the caught exception (and then re-raises it). The default is +false+.
+
++warn_cache_misses+ tells Rails to display a warning whenever an action results in a cache miss on your view paths. The default is +false+.
+
++field_error_proc+ provides an HTML generator for displaying errors that come from Active Record. The default is +Proc.new{ |html_tag, instance| "<div class=\"fieldWithErrors\">#{html_tag}</div>" }+
+
++default_form_builder+ tells Rails which form builder to use by default. The default is +ActionView::Helpers::FormBuilder+.
+
+The ERB template handler supplies one additional option:
+
++ActionView::TemplateHandlers::ERB.erb_trim_mode+ gives the trim mode to be used by ERB. It defaults to +'-'+.
+
 === Configuring Action Mailer
+
+There are a number of settings available on +ActionMailer::Base+:
+
+
 
 === Configuring Active Resource
 
@@ -34,6 +129,10 @@ after-initializer
  organization, controlling load order
 
 == Using an After-Initializer
+
+== Rails Environment Settings
+
+ENV
 
 == Changelog ==
 
@@ -135,47 +234,6 @@ activerecord/lib/active_record/attribute_methods.rb
 9:      base.cattr_accessor :attribute_types_cached_by_default, :instance_writer => false
 11:      base.cattr_accessor :time_zone_aware_attributes, :instance_writer => false
 
-activerecord/lib/active_record/base.rb
-394:    cattr_accessor :logger, :instance_writer => false
-443:    cattr_accessor :configurations, :instance_writer => false
-450:    cattr_accessor :primary_key_prefix_type, :instance_writer => false
-456:    cattr_accessor :table_name_prefix, :instance_writer => false
-461:    cattr_accessor :table_name_suffix, :instance_writer => false
-467:    cattr_accessor :pluralize_table_names, :instance_writer => false
-473:    cattr_accessor :colorize_logging, :instance_writer => false
-478:    cattr_accessor :default_timezone, :instance_writer => false
-487:    cattr_accessor :schema_format , :instance_writer => false
-491:    cattr_accessor :timestamped_migrations , :instance_writer => false
-
-activerecord/lib/active_record/connection_adapters/abstract/connection_specification.rb
-11:    cattr_accessor :connection_handler, :instance_writer => false
-
-activerecord/lib/active_record/connection_adapters/mysql_adapter.rb
-166:      cattr_accessor :emulate_booleans
-
-activerecord/lib/active_record/fixtures.rb
-498:  cattr_accessor :all_loaded_fixtures
-
-activerecord/lib/active_record/locking/optimistic.rb
-38:        base.cattr_accessor :lock_optimistically, :instance_writer => false
-
-activerecord/lib/active_record/migration.rb
-259:    cattr_accessor :verbose
-
-activerecord/lib/active_record/schema_dumper.rb
-13:    cattr_accessor :ignore_tables 
-
-activerecord/lib/active_record/serializers/json_serializer.rb
-4:      base.cattr_accessor :include_root_in_json, :instance_writer => false
-
-activerecord/Rakefile
-142:  rdoc.options << '--line-numbers' << '--inline-source' << '-A cattr_accessor=object'
-
-activerecord/test/cases/lifecycle_test.rb
-61:  cattr_reader :last_inherited
-
-activerecord/test/cases/mixin_test.rb
-9:  cattr_accessor :forced_now_time
 
 activeresource/lib/active_resource/base.rb
 206:    cattr_accessor :logger
@@ -223,3 +281,4 @@ railties/test/rails_info_controller_test.rb
 Rakefile
 32:  rdoc.options << '-A cattr_accessor=object'
 
+need to look for def self. ???

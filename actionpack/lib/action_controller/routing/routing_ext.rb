@@ -27,6 +27,10 @@ class Regexp #:nodoc:
     Regexp.new("|#{source}").match('').captures.length
   end
 
+  def multiline?
+    options & MULTILINE == MULTILINE
+  end
+
   class << self
     def optionalize(pattern)
       case unoptionalize(pattern)

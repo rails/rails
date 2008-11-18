@@ -1,6 +1,4 @@
-*2.2.1 [RC2 or 2.2 final]*
-
-* Added render :js for people who want to render inline JavaScript replies without using RJS [DHH]
+*2.2.1 [RC2] (November 14th, 2008)*
 
 * Fixed the option merging in Array#to_xml #1126 [Rudolf Gavlas]
 

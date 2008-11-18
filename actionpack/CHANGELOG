@@ -1,4 +1,10 @@
-*2.2.1 [RC2 or 2.2 final]*
+*2.2.1 [RC2] (November 14th, 2008)*
+
+* Added render :js for people who want to render inline JavaScript replies without using RJS [DHH]
+
+* Fixed that polymorphic_url should compact given array #1317 [hiroshi]
+
+* Fixed the sanitize helper to avoid double escaping already properly escaped entities #683 [antonmos/Ryan McGeary]
 
 * Fixed that FormTagHelper generated illegal html if name contained square brackets #1238 [Vladimir Dobriakov]
 
