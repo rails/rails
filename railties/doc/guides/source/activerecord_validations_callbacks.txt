@@ -49,6 +49,8 @@ We can see how it works by looking at the following script/console output:
 
 Saving new records means sending an SQL insert operation to the database, while saving existing records (by calling either +save+, +update_attribute+ or +update_attributes+) will result in a SQL update operation. Active Record will use this facts to perform validations upon your objects, avoiding then to be recorded to the database if their inner state is invalid in some way. You can specify validations that will be beformed every time a object is saved, just when you're creating a new record or when you're updating an existing one.
 
+CAUTION: There are four methods that when called will trigger validation: +save+, +save!+, +update_attributes+ and +update_attributes!+. There is one method left, which is +update_attribute+. This method will update the value of an attribute without triggering any validation, so be careful when using +update_attribute+, since it can let you save your objects in an invalid state.
+
 === The meaning of 'valid'
 
 For verifying if an object is valid, Active Record uses the +valid?+ method, which basically looks inside the object to see if it has any validation errors. These errors live in a collection that can be accessed through the +errors+ instance method. The proccess is really simple: If the +errors+ method returns an empty collection, the object is valid and can be saved. Each time a validation fails, an error message is added to the +errors+ collection.
@@ -382,7 +384,7 @@ class Invoice < ActiveRecord::Base
 end
 ------------------------------------------------------------------
 
-If your validation rules are too complicated and you want to break it in small methods, you can implement all of them and call one of +validate+, +validate_on_create+ or +validate_on_update+ methods, passing it the symbols for the methods' names.
+If your validation rules are too complicated and you want to break them in small methods, you can implement all of them and call one of +validate+, +validate_on_create+ or +validate_on_update+ methods, passing it the symbols for the methods' names.
 
 [source, ruby]
 ------------------------------------------------------------------
@@ -474,6 +476,7 @@ person.errors.on(:name) # => ["can't be blank", "is too short (minimum is 3 char
 person.errors.clear
 person.errors # => nil
 ------------------------------------------------------------------
+
 
 
 == Changelog
