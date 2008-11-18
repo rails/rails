@@ -1,5 +1,7 @@
 *2.3.0/3.0*
 
+* TimeZone offset tests: use current_period, to ensure TimeZone#utc_offset is up-to-date [Geoff Buesing]
+
 * Update bundled TZInfo to 0.3.12 [Geoff Buesing]
 
 * Added lambda merging to OptionMerger (especially useful with named_scope and with_options) #726 [Paweł Kondzior]
