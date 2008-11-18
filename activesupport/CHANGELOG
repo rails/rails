@@ -1,5 +1,7 @@
 *2.3.0 [Edge]*
 
+* Added ActiveSupport::OrderedHash#each_key and ActiveSupport::OrderedHash#each_value #1410 [Christoffer Sawicki]
+
 * Added ActiveSupport::MessageVerifier and MessageEncryptor to aid users who need to store signed and/or encrypted messages. [Koz]
 
 * Added ActiveSupport::BacktraceCleaner to cut down on backtrace noise according to filters and silencers [DHH]
