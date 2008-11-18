@@ -1,5 +1,7 @@
 *2.2.2 [Final]*
 
+* TimeZone offset tests: use current_period, to ensure TimeZone#utc_offset is up-to-date [Geoff Buesing]
+
 * Update bundled TZInfo to 0.3.12 [Geoff Buesing]
 
 
