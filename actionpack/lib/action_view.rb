@@ -43,7 +43,7 @@ require 'action_view/base'
 require 'action_view/partials'
 require 'action_view/template_error'
 
-I18n.load_path << "#{File.dirname(__FILE__)}/action_view/locale/en-US.yml"
+I18n.load_path << "#{File.dirname(__FILE__)}/action_view/locale/en.yml"
 
 require 'action_view/helpers'
 

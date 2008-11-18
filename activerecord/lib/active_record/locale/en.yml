@@ -1,4 +1,4 @@
-en-US:
+en:
   activerecord:
     errors:
       # The values :model, :attribute and :value are always available for interpolation

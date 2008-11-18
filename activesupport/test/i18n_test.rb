@@ -83,9 +83,9 @@ class I18nTest < Test::Unit::TestCase
 
   def test_to_sentence
     assert_equal 'a, b, and c', %w[a b c].to_sentence
-    I18n.backend.store_translations 'en-US', :support => { :array => { :skip_last_comma => true } }
+    I18n.backend.store_translations 'en', :support => { :array => { :skip_last_comma => true } }
     assert_equal 'a, b and c', %w[a b c].to_sentence
   ensure
-    I18n.backend.store_translations 'en-US', :support => { :array => { :skip_last_comma => false } }
+    I18n.backend.store_translations 'en', :support => { :array => { :skip_last_comma => false } }
   end
 end
