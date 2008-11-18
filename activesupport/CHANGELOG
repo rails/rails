@@ -1,3 +1,8 @@
+*2.2.2 [Final]*
+
+* Update bundled TZInfo to 0.3.12 [Geoff Buesing]
+
+
 *2.2.1 [RC2] (November 14th, 2008)*
 
 * Increment the version of our altered memcache-client to prevent confusion caused when the 1.5.0 gem is installed.
