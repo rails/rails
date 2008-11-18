@@ -58,4 +58,4 @@ require 'active_support/secure_random'
 
 require 'active_support/rescuable'
 
-I18n.load_path << File.dirname(__FILE__) + '/active_support/locale/en-US.yml'
+I18n.load_path << File.dirname(__FILE__) + '/active_support/locale/en.yml'
