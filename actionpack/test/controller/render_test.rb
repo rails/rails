@@ -39,7 +39,7 @@ class TestController < ActionController::Base
     render :action => 'hello_world'
   end
   before_filter :handle_last_modified_and_etags, :only=>:conditional_hello_with_bangs
-  
+
   def handle_last_modified_and_etags
     fresh_when(:last_modified => Time.now.utc.beginning_of_day, :etag => [ :foo, 123 ])
   end
@@ -335,6 +335,11 @@ class TestController < ActionController::Base
   def render_to_string_and_render
     @stuff = render_to_string :text => "here is some cached stuff"
     render :text => "Hi web users! #{@stuff}"
+  end
+
+  def render_to_string_with_inline_and_render
+    render_to_string :inline => "<%= 'dlrow olleh'.reverse %>"
+    render :template => "test/hello_world"
   end
 
   def rendering_with_conflicting_local_vars
@@ -908,6 +913,11 @@ class RenderTest < Test::Unit::TestCase
     assert_equal "The value of foo is: ::this is a test::\n", @response.body
   end
 
+  def test_render_to_string_inline
+    get :render_to_string_with_inline_and_render
+    assert_template "test/hello_world"
+  end
+
   def test_nested_rendering
     @controller = Fun::GamesController.new
     get :hello_world
@@ -1368,7 +1378,7 @@ class EtagRenderTest < Test::Unit::TestCase
     assert_equal "200 OK", @response.status
     assert !@response.body.empty?
   end
-  
+
   def test_render_should_not_set_etag_when_last_modified_has_been_specified
     get :render_hello_world_with_last_modified_set
     assert_equal "200 OK", @response.status
@@ -1382,7 +1392,7 @@ class EtagRenderTest < Test::Unit::TestCase
     expected_etag = etag_for('hello david')
     assert_equal expected_etag, @response.headers['ETag']
     @response = ActionController::TestResponse.new
-    
+
     @request.if_none_match = expected_etag
     get :render_hello_world_from_variable
     assert_equal "304 Not Modified", @response.status
@@ -1407,24 +1417,24 @@ class EtagRenderTest < Test::Unit::TestCase
     assert_equal "<wrapper>\n<html>\n  <p>Hello </p>\n<p>This is grand!</p>\n</html>\n</wrapper>\n", @response.body
     assert_equal etag_for("<wrapper>\n<html>\n  <p>Hello </p>\n<p>This is grand!</p>\n</html>\n</wrapper>\n"), @response.headers['ETag']
   end
-  
+
   def test_etag_with_bang_should_set_etag
     get :conditional_hello_with_bangs
     assert_equal @expected_bang_etag, @response.headers["ETag"]
     assert_response :success
   end
-  
+
   def test_etag_with_bang_should_obey_if_none_match
     @request.if_none_match = @expected_bang_etag
     get :conditional_hello_with_bangs
     assert_response :not_modified
   end
-  
+
   protected
     def etag_for(text)
       %("#{Digest::MD5.hexdigest(text)}")
     end
-    
+
     def expand_key(args)
       ActiveSupport::Cache.expand_cache_key(args)
     end
@@ -1467,13 +1477,13 @@ class LastModifiedRenderTest < Test::Unit::TestCase
     assert !@response.body.blank?
     assert_equal @last_modified, @response.headers['Last-Modified']
   end
-  
+
   def test_request_with_bang_gets_last_modified
     get :conditional_hello_with_bangs
     assert_equal @last_modified, @response.headers['Last-Modified']
     assert_response :success
   end
-  
+
   def test_request_with_bang_obeys_last_modified
     @request.if_modified_since = @last_modified
     get :conditional_hello_with_bangs
