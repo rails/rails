@@ -1,4 +1,4 @@
-*2.3.0/3.0*
+*2.3.0 [Edge]*
 
 * Changed the default of ActionView#render to assume partials instead of files when not given an options hash [DHH]. Examples:
 

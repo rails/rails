@@ -1,4 +1,4 @@
-*2.3.0/3.0*
+*2.3.0 [Edge]*
 
 * Added config.i18n settings gatherer to config/environment, auto-loading of all locales in config/locales/*.rb,yml, and config/locales/en.yml as a sample locale [DHH]
 

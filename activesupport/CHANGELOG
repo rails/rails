@@ -1,4 +1,4 @@
-*2.3.0/3.0*
+*2.3.0 [Edge]*
 
 * Added Enumerable#none? to check that none of the elements match the block #1408 [Damian Janowski]
 
