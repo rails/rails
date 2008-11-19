@@ -6,6 +6,11 @@ module ActionController #:nodoc:
   module Benchmarking #:nodoc:
     def self.included(base)
       base.extend(ClassMethods)
+
+      base.class_eval do
+        alias_method_chain :perform_action, :benchmark
+        alias_method_chain :render, :benchmark
+      end
     end
 
     module ClassMethods
@@ -35,64 +40,68 @@ module ActionController #:nodoc:
       end
     end
 
-    private
+    protected
+      def render_with_benchmark(options = nil, extra_options = {}, &block)
+        if logger
+          if Object.const_defined?("ActiveRecord") && ActiveRecord::Base.connected?
+            db_runtime = ActiveRecord::Base.connection.reset_runtime
+          end
 
-    def log_benchmarks
-      return unless logger
+          render_output = nil
+          @view_runtime = Benchmark::realtime { render_output = render_without_benchmark(options, extra_options, &block) }
 
-      seconds = [ @_runtime[:perform_action], 0.0001 ].max
-      logging_view = @_runtime.has_key?(:render)
-      logging_active_record = Object.const_defined?("ActiveRecord") && ActiveRecord::Base.connected?
+          if Object.const_defined?("ActiveRecord") && ActiveRecord::Base.connected?
+            @db_rt_before_render = db_runtime
+            @db_rt_after_render = ActiveRecord::Base.connection.reset_runtime
+            @view_runtime -= @db_rt_after_render
+          end
 
-      log_message  = "Completed in #{sprintf("%.0f", seconds * 1000)}ms"
-
-      if logging_view || logging_active_record
-        log_message << " ("
-        log_message << view_runtime if logging_view
-
-        if logging_active_record
-          log_message << ", " if logging_view
-          log_message << active_record_runtime + ")"
+          render_output
         else
-          ")"
+          render_without_benchmark(options, extra_options, &block)
+        end
+      end    
+
+    private
+      def perform_action_with_benchmark
+        if logger
+          seconds = [ Benchmark::measure{ perform_action_without_benchmark }.real, 0.0001 ].max
+          logging_view          = defined?(@view_runtime)
+          logging_active_record = Object.const_defined?("ActiveRecord") && ActiveRecord::Base.connected?
+
+          log_message  = "Completed in #{sprintf("%.0f", seconds * 1000)}ms"
+
+          if logging_view || logging_active_record
+            log_message << " ("
+            log_message << view_runtime if logging_view
+
+            if logging_active_record
+              log_message << ", " if logging_view
+              log_message << active_record_runtime + ")"
+            else
+              ")"
+            end
+          end
+
+          log_message << " | #{headers["Status"]}"
+          log_message << " [#{complete_request_uri rescue "unknown"}]"
+
+          logger.info(log_message)
+          response.headers["X-Runtime"] = "#{sprintf("%.0f", seconds * 1000)}ms"
+        else
+          perform_action_without_benchmark
         end
       end
 
-      log_message << " | #{headers["Status"]}"
-      log_message << " [#{complete_request_uri rescue "unknown"}]"
-
-      logger.info(log_message)
-      response.headers["X-Runtime"] = "#{sprintf("%.0f", seconds * 1000)}ms"
-    end
-
-    def view_runtime
-      "View: %.0f" % (@_runtime[:render] * 1000)
-    end
-
-    def active_record_runtime
-      db_runtime = ActiveRecord::Base.connection.reset_runtime
-
-      if @_runtime[:db_before_render]
-        db_runtime += @_runtime[:db_before_render]
-        db_runtime += @_runtime[:db_after_render]
+      def view_runtime
+        "View: %.0f" % (@view_runtime * 1000)
       end
 
-      "DB: %.0f" % (db_runtime * 1000)
-    end
-
-    def log_render_benchmark
-      return unless logger
-
-      if @_runtime.has_key?(:db_before_render)
-        @_runtime[:db_after_render] = ActiveRecord::Base.connection.reset_runtime
-        @_runtime[:render] -= @_runtime[:db_after_render]
+      def active_record_runtime
+        db_runtime = ActiveRecord::Base.connection.reset_runtime
+        db_runtime += @db_rt_before_render if @db_rt_before_render
+        db_runtime += @db_rt_after_render if @db_rt_after_render
+        "DB: %.0f" % (db_runtime * 1000)
       end
-    end
-
-    def reset_db_runtime
-      if logger && Object.const_defined?("ActiveRecord") && ActiveRecord::Base.connected?
-        @_runtime[:db_before_render] = ActiveRecord::Base.connection.reset_runtime
-      end
-    end
   end
 end
