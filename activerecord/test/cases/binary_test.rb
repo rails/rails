@@ -1,13 +1,9 @@
 require "cases/helper"
 
 # Without using prepared statements, it makes no sense to test
-# BLOB data with SQL Server, because the length of a statement is
-# limited to 8KB.
-#
-# Without using prepared statements, it makes no sense to test
 # BLOB data with DB2 or Firebird, because the length of a statement
 # is limited to 32KB.
-unless current_adapter?(:SQLServerAdapter, :SybaseAdapter, :DB2Adapter, :FirebirdAdapter)
+unless current_adapter?(:SybaseAdapter, :DB2Adapter, :FirebirdAdapter)
   require 'models/binary'
 
   class BinaryTest < ActiveRecord::TestCase
