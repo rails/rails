@@ -82,7 +82,8 @@ class EnumerableTests < Test::Unit::TestCase
 
   def test_none
     assert [].none?
-    assert [ 1 ].none?
+    assert [nil, false].none?
+    assert ![1].none?
 
     assert [].none? {|x| x > 1 }
     assert ![ 2 ].none? {|x| x > 1 }

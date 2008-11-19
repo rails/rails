@@ -106,11 +106,11 @@ module Enumerable
   end
 
   # Returns true if none of the elements match the given block.
-  # 
+  #
   #   success = responses.none? {|r| r.status / 100 == 5 }
   #
+  # This is a builtin method in Ruby 1.8.7 and later.
   def none?(&block)
-    return true if !block_given? || blank?
     !any?(&block)
-  end
+  end unless [].respond_to?(:none?)
 end
