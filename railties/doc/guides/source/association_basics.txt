@@ -354,8 +354,8 @@ In designing a data model, you will sometimes find a model that should have a re
 [source, ruby]
 -------------------------------------------------------
 class Employee < ActiveRecord::Base
-  has_many :subordinates, :class_name => "User", :foreign_key => "manager_id"
-  belongs_to :manager, :class_name => "User"
+  has_many :subordinates, :class_name => "Employee", :foreign_key => "manager_id"
+  belongs_to :manager, :class_name => "Employee"
 end
 -------------------------------------------------------
 
@@ -1336,7 +1336,7 @@ end
 
 ===== +:offset+
 
-The +:offset+ option lets you specify the starting offset for fetching objects via an association. For example, if you set +:offset => 11+, it will skip the first 10 records.
+The +:offset+ option lets you specify the starting offset for fetching objects via an association. For example, if you set +:offset => 11+, it will skip the first 11 records.
 
 ===== +:order+
 
@@ -1704,7 +1704,7 @@ end
 
 ===== +:offset+
 
-The +:offset+ option lets you specify the starting offset for fetching objects via an association. For example, if you set +:offset => 11+, it will skip the first 10 records.
+The +:offset+ option lets you specify the starting offset for fetching objects via an association. For example, if you set +:offset => 11+, it will skip the first 11 records.
 
 ===== +:order+
 

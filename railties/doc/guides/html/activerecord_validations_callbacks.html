@@ -270,6 +270,21 @@ ul#navMain {
 					<a href="#_using_the_tt_errors_tt_collection">Using the <tt>errors</tt> collection</a>
 					</li>
 					<li>
+					<a href="#_callbacks">Callbacks</a>
+						<ul>
+						
+							<li><a href="#_callbacks_registration">Callbacks registration</a></li>
+						
+							<li><a href="#_registering_callbacks_by_overriding_the_callback_methods">Registering callbacks by overriding the callback methods</a></li>
+						
+							<li><a href="#_registering_callbacks_by_using_macro_style_class_methods">Registering callbacks by using macro-style class methods</a></li>
+						
+						</ul>
+					</li>
+					<li>
+					<a href="#_callbacks_that_get_triggered_when_an_objects_is_saved">Callbacks that get triggered when an objects is saved</a>
+					</li>
+					<li>
 					<a href="#_changelog">Changelog</a>
 					</li>
 			</ol>
@@ -362,6 +377,14 @@ http://www.gnu.org/software/src-highlite -->
 =&gt; false</tt></pre>
 </div></div>
 <div class="para"><p>Saving new records means sending an SQL insert operation to the database, while saving existing records (by calling either <tt>save</tt>, <tt>update_attribute</tt> or <tt>update_attributes</tt>) will result in a SQL update operation. Active Record will use this facts to perform validations upon your objects, avoiding then to be recorded to the database if their inner state is invalid in some way. You can specify validations that will be beformed every time a object is saved, just when you're creating a new record or when you're updating an existing one.</p></div>
+<div class="admonitionblock">
+<table><tr>
+<td class="icon">
+<img src="./images/icons/caution.png" alt="Caution" />
+</td>
+<td class="content">There are four methods that when called will trigger validation: <tt>save</tt>, <tt>save!</tt>, <tt>update_attributes</tt> and <tt>update_attributes!</tt>. There is one method left, which is <tt>update_attribute</tt>. This method will update the value of an attribute without triggering any validation, so be careful when using <tt>update_attribute</tt>, since it can let you save your objects in an invalid state.</td>
+</tr></table>
+</div>
 <h3 id="_the_meaning_of_em_valid_em">2.2. The meaning of <em>valid</em></h3>
 <div class="para"><p>For verifying if an object is valid, Active Record uses the <tt>valid?</tt> method, which basically looks inside the object to see if it has any validation errors. These errors live in a collection that can be accessed through the <tt>errors</tt> instance method. The proccess is really simple: If the <tt>errors</tt> method returns an empty collection, the object is valid and can be saved. Each time a validation fails, an error message is added to the <tt>errors</tt> collection.</p></div>
 </div>
@@ -722,7 +745,7 @@ http://www.gnu.org/software/src-highlite -->
   <span style="font-weight: bold"><span style="color: #0000FF">end</span></span>
 <span style="font-weight: bold"><span style="color: #0000FF">end</span></span>
 </tt></pre></div></div>
-<div class="para"><p>If your validation rules are too complicated and you want to break it in small methods, you can implement all of them and call one of <tt>validate</tt>, <tt>validate_on_create</tt> or <tt>validate_on_update</tt> methods, passing it the symbols for the methods' names.</p></div>
+<div class="para"><p>If your validation rules are too complicated and you want to break them in small methods, you can implement all of them and call one of <tt>validate</tt>, <tt>validate_on_create</tt> or <tt>validate_on_update</tt> methods, passing it the symbols for the methods' names.</p></div>
 <div class="listingblock">
 <div class="content"><!-- Generator: GNU source-highlight 2.9
 by Lorenzo Bettini
@@ -852,7 +875,94 @@ person<span style="color: #990000">.</span>errors<span style="color: #990000">.<
 person<span style="color: #990000">.</span>errors <span style="font-style: italic"><span style="color: #9A1900"># =&gt; nil</span></span>
 </tt></pre></div></div>
 </div>
-<h2 id="_changelog">8. Changelog</h2>
+<h2 id="_callbacks">8. Callbacks</h2>
+<div class="sectionbody">
+<div class="para"><p>Callbacks are methods that get called at certain moments of an object's lifecycle. With callbacks it's possible to write code that will run whenever an Active Record object is created, saved, updated, deleted or loaded from the database.</p></div>
+<h3 id="_callbacks_registration">8.1. Callbacks registration</h3>
+<div class="para"><p>In order to use the available callbacks, you need to registrate them. There are two ways of doing that.</p></div>
+<h3 id="_registering_callbacks_by_overriding_the_callback_methods">8.2. Registering callbacks by overriding the callback methods</h3>
+<div class="para"><p>You can specify the callback method direcly, by overriding it. Let's see how it works using the <tt>before_validation</tt> callback, which will surprisingly run right before any validation is done.</p></div>
+<div class="listingblock">
+<div class="content"><!-- Generator: GNU source-highlight 2.9
+by Lorenzo Bettini
+http://www.lorenzobettini.it
+http://www.gnu.org/software/src-highlite -->
+<pre><tt><span style="font-weight: bold"><span style="color: #0000FF">class</span></span> User <span style="color: #990000">&lt;</span> ActiveRecord<span style="color: #990000">::</span>Base
+  validates_presence_of <span style="color: #990000">:</span>login<span style="color: #990000">,</span> <span style="color: #990000">:</span>email
+
+  protected
+  <span style="font-weight: bold"><span style="color: #0000FF">def</span></span> before_validation
+    <span style="font-weight: bold"><span style="color: #0000FF">if</span></span> <span style="font-weight: bold"><span style="color: #0000FF">self</span></span><span style="color: #990000">.</span>login<span style="color: #990000">.</span><span style="font-weight: bold"><span style="color: #0000FF">nil</span></span><span style="color: #990000">?</span>
+      <span style="font-weight: bold"><span style="color: #0000FF">self</span></span><span style="color: #990000">.</span>login <span style="color: #990000">=</span> email <span style="font-weight: bold"><span style="color: #0000FF">unless</span></span> email<span style="color: #990000">.</span>blank?
+    <span style="font-weight: bold"><span style="color: #0000FF">end</span></span>
+  <span style="font-weight: bold"><span style="color: #0000FF">end</span></span>
+<span style="font-weight: bold"><span style="color: #0000FF">end</span></span>
+</tt></pre></div></div>
+<h3 id="_registering_callbacks_by_using_macro_style_class_methods">8.3. Registering callbacks by using macro-style class methods</h3>
+<div class="para"><p>The other way you can register a callback method is by implementing it as an ordinary method, and then using a macro-style class method to register it as a callback. The last example could be written like that:</p></div>
+<div class="listingblock">
+<div class="content"><!-- Generator: GNU source-highlight 2.9
+by Lorenzo Bettini
+http://www.lorenzobettini.it
+http://www.gnu.org/software/src-highlite -->
+<pre><tt><span style="font-weight: bold"><span style="color: #0000FF">class</span></span> User <span style="color: #990000">&lt;</span> ActiveRecord<span style="color: #990000">::</span>Base
+  validates_presence_of <span style="color: #990000">:</span>login<span style="color: #990000">,</span> <span style="color: #990000">:</span>email
+
+  before_validation <span style="color: #990000">:</span>ensure_login_has_a_value
+
+  protected
+  <span style="font-weight: bold"><span style="color: #0000FF">def</span></span> ensure_login_has_a_value
+    <span style="font-weight: bold"><span style="color: #0000FF">if</span></span> <span style="font-weight: bold"><span style="color: #0000FF">self</span></span><span style="color: #990000">.</span>login<span style="color: #990000">.</span><span style="font-weight: bold"><span style="color: #0000FF">nil</span></span><span style="color: #990000">?</span>
+      <span style="font-weight: bold"><span style="color: #0000FF">self</span></span><span style="color: #990000">.</span>login <span style="color: #990000">=</span> email <span style="font-weight: bold"><span style="color: #0000FF">unless</span></span> email<span style="color: #990000">.</span>blank?
+    <span style="font-weight: bold"><span style="color: #0000FF">end</span></span>
+  <span style="font-weight: bold"><span style="color: #0000FF">end</span></span>
+<span style="font-weight: bold"><span style="color: #0000FF">end</span></span>
+</tt></pre></div></div>
+<div class="para"><p>The macro-style class methods can also receive a block. Rails best practices say that you should only use this style of registration if the code inside your block is so short that it fits in just one line.</p></div>
+<div class="listingblock">
+<div class="content"><!-- Generator: GNU source-highlight 2.9
+by Lorenzo Bettini
+http://www.lorenzobettini.it
+http://www.gnu.org/software/src-highlite -->
+<pre><tt><span style="font-weight: bold"><span style="color: #0000FF">class</span></span> User <span style="color: #990000">&lt;</span> ActiveRecord<span style="color: #990000">::</span>Base
+  validates_presence_of <span style="color: #990000">:</span>login<span style="color: #990000">,</span> <span style="color: #990000">:</span>email
+
+  before_create <span style="color: #FF0000">{</span><span style="color: #990000">|</span>user<span style="color: #990000">|</span> user<span style="color: #990000">.</span>name <span style="color: #990000">=</span> user<span style="color: #990000">.</span>login<span style="color: #990000">.</span>capitalize <span style="font-weight: bold"><span style="color: #0000FF">if</span></span> user<span style="color: #990000">.</span>name<span style="color: #990000">.</span>blank?<span style="color: #FF0000">}</span>
+<span style="font-weight: bold"><span style="color: #0000FF">end</span></span>
+</tt></pre></div></div>
+<div class="para"><p>In Rails, the preferred way of registering callbacks is by using macro-style class methods. The main advantages of using macro-style class methods are:</p></div>
+<div class="ilist"><ul>
+<li>
+<p>
+You can add more than one method for each type of callback. Those methods will be queued for execution at the same order they were registered.
+</p>
+</li>
+<li>
+<p>
+Readability, since your callback declarations will live at the beggining of your models' files.
+</p>
+</li>
+</ul></div>
+<div class="admonitionblock">
+<table><tr>
+<td class="icon">
+<img src="./images/icons/caution.png" alt="Caution" />
+</td>
+<td class="content">Remember to always declare the callback methods as being protected or private. These methods should never be public, otherwise it will be possible to call them from code outside the model, violating object encapsulation and exposing implementation details.</td>
+</tr></table>
+</div>
+</div>
+<h2 id="_callbacks_that_get_triggered_when_an_objects_is_saved">9. Callbacks that get triggered when an objects is saved</h2>
+<div class="sectionbody">
+<div class="ilist"><ul>
+<li>
+<p>
+<tt>before_validation</tt> will be triggered before any validation upon your object is done. You can use this callback to change the object's state so it becames valid.
+</p>
+</li>
+</ul></div>
+</div>
+<h2 id="_changelog">10. Changelog</h2>
 <div class="sectionbody">
 <div class="para"><p><a href="http://rails.lighthouseapp.com/projects/16213/tickets/26-active-record-validations-and-callbacks">http://rails.lighthouseapp.com/projects/16213/tickets/26-active-record-validations-and-callbacks</a></p></div>
 </div>

@@ -723,7 +723,7 @@ http://www.gnu.org/software/src-highlite -->
 
 <span style="font-weight: bold"><span style="color: #0000FF">end</span></span>
 </tt></pre></div></div>
-<div class="para"><p>Note that while for session values, you set the key to <tt>nil</tt>, to delete a cookie value, you should use <tt>cookies.delete(:key)</tt>.</p></div>
+<div class="para"><p>Note that while for session values you set the key to <tt>nil</tt>, to delete a cookie value you should use <tt>cookies.delete(:key)</tt>.</p></div>
 </div>
 <h2 id="_filters">6. Filters</h2>
 <div class="sectionbody">
@@ -767,7 +767,7 @@ http://www.gnu.org/software/src-highlite -->
 
 <span style="font-weight: bold"><span style="color: #0000FF">end</span></span>
 </tt></pre></div></div>
-<div class="para"><p>In this example, the filter is added to ApplicationController and thus all controllers in the application. This will make everything in the application require the user to be logged in in order to use it. For obvious reasons (the user wouldn't be able to log in in the first place!), not all controllers or actions should require this. You can prevent this filter from running before particular actions with <tt>skip_before_filter</tt> :</p></div>
+<div class="para"><p>In this example, the filter is added to ApplicationController and thus all controllers in the application. This will make everything in the application require the user to be logged in in order to use it. For obvious reasons (the user wouldn't be able to log in in the first place!), not all controllers or actions should require this. You can prevent this filter from running before particular actions with <tt>skip_before_filter</tt>:</p></div>
 <div class="listingblock">
 <div class="content"><!-- Generator: GNU source-highlight 2.9
 by Lorenzo Bettini
@@ -779,7 +779,7 @@ http://www.gnu.org/software/src-highlite -->
 
 <span style="font-weight: bold"><span style="color: #0000FF">end</span></span>
 </tt></pre></div></div>
-<div class="para"><p>Now, the <tt>LoginsController</tt>'s "new" and "create" actions will work as before without requiring the user to be logged in. The <tt>:only</tt> option is used to only skip this filter for these actions, and there is also an <tt>:except</tt> option which works the other way. These options can be used when adding filters too, so you can add a filter which only runs for selected actions in the first place.</p></div>
+<div class="para"><p>Now, the LoginsController's <tt>new</tt> and <tt>create</tt> actions will work as before without requiring the user to be logged in. The <tt>:only</tt> option is used to only skip this filter for these actions, and there is also an <tt>:except</tt> option which works the other way. These options can be used when adding filters too, so you can add a filter which only runs for selected actions in the first place.</p></div>
 <h3 id="_after_filters_and_around_filters">6.1. After Filters and Around Filters</h3>
 <div class="para"><p>In addition to the before filters, you can run filters after an action has run or both before and after. The after filter is similar to the before filter, but because the action has already been run it has access to the response data that's about to be sent to the client. Obviously, after filters can not stop the action from running. Around filters are responsible for running the action, but they can choose not to, which is the around filter's way of stopping it.</p></div>
 <div class="listingblock">
@@ -872,7 +872,7 @@ http://www.gnu.org/software/src-highlite -->
 
 <span style="font-weight: bold"><span style="color: #0000FF">end</span></span>
 </tt></pre></div></div>
-<div class="para"><p>Now the <tt>create</tt> action won't run unless the "username" and "password" parameters are present, and if they're not, an error message will be added to the flash and the "new" action will be rendered. But there's something rather important missing from the verification above: It will be used for <strong>every</strong> action in LoginsController, which is not what we want. You can limit which actions it will be used for with the <tt>:only</tt> and <tt>:except</tt> options just like a filter:</p></div>
+<div class="para"><p>Now the <tt>create</tt> action won't run unless the "username" and "password" parameters are present, and if they're not, an error message will be added to the flash and the <tt>new</tt> action will be rendered. But there's something rather important missing from the verification above: It will be used for <strong>every</strong> action in LoginsController, which is not what we want. You can limit which actions it will be used for with the <tt>:only</tt> and <tt>:except</tt> options just like a filter:</p></div>
 <div class="listingblock">
 <div class="content"><!-- Generator: GNU source-highlight 2.9
 by Lorenzo Bettini
@@ -934,7 +934,7 @@ host - The hostname used for this request.
 </li>
 <li>
 <p>
-domain - The hostname without the first segment (usually "www").
+domain(n=2) - The hostname's first <tt>n</tt> segments, starting from the right (the TLD)
 </p>
 </li>
 <li>
@@ -949,7 +949,7 @@ method - The HTTP method used for the request.
 </li>
 <li>
 <p>
-get?, post?, put?, delete?, head? - Returns true if the HTTP method is get/post/put/delete/head.
+get?, post?, put?, delete?, head? - Returns true if the HTTP method is GET/POST/PUT/DELETE/HEAD.
 </p>
 </li>
 <li>
@@ -964,7 +964,7 @@ port - The port number (integer) used for the request.
 </li>
 <li>
 <p>
-protocol - The protocol used for the request.
+protocol - Returns a string containing the prototol used plus "://", for example "http://"
 </p>
 </li>
 <li>
@@ -1118,7 +1118,7 @@ http://www.gnu.org/software/src-highlite -->
 <td class="icon">
 <img src="./images/icons/tip.png" alt="Tip" />
 </td>
-<td class="content">It is not recommended that you stream static files through Rails if you can instead keep them in a public folder on your web server. It is much more efficient to let the user download the file directly using Apache or another web server, keeping the request from unnecessarily going through the whole Rails stack.</td>
+<td class="content">It is not recommended that you stream static files through Rails if you can instead keep them in a public folder on your web server. It is much more efficient to let the user download the file directly using Apache or another web server, keeping the request from unnecessarily going through the whole Rails stack. Although if you do need the request to go through Rails for some reason, you can set the <tt>:x_sendfile</tt> option to true, and Rails will let the web server handle sending the file to the user, freeing up the Rails process to do other things. Note that your web server needs to support the <tt>X-Sendfile</tt> header for this to work, and you still have to be careful not to use user input in a way that lets someone retrieve arbitrary files.</td>
 </tr></table>
 </div>
 <h3 id="_restful_downloads">11.2. RESTful Downloads</h3>
@@ -1166,7 +1166,7 @@ http://www.gnu.org/software/src-highlite -->
 </div>
 <h2 id="_parameter_filtering">12. Parameter Filtering</h2>
 <div class="sectionbody">
-<div class="para"><p>Rails keeps a log file for each environment (development, test and production) in the "log" folder. These are extremely useful when debugging what's actually going on in your application, but in a live application you may not want every bit of information to be stored in the log file. The <tt>filter_parameter_logging</tt> method can be used to filter out sensitive information from the log. It works by replacing certain values in the <tt>params</tt> hash with "[FILTERED]" as they are written to the log. As an example, let's see how to filter all parameters with keys that include "password":</p></div>
+<div class="para"><p>Rails keeps a log file for each environment (development, test and production) in the <tt>log</tt> folder. These are extremely useful when debugging what's actually going on in your application, but in a live application you may not want every bit of information to be stored in the log file. The <tt>filter_parameter_logging</tt> method can be used to filter out sensitive information from the log. It works by replacing certain values in the <tt>params</tt> hash with "[FILTERED]" as they are written to the log. As an example, let's see how to filter all parameters with keys that include "password":</p></div>
 <div class="listingblock">
 <div class="content"><!-- Generator: GNU source-highlight 2.9
 by Lorenzo Bettini
@@ -1178,7 +1178,7 @@ http://www.gnu.org/software/src-highlite -->
 
 <span style="font-weight: bold"><span style="color: #0000FF">end</span></span>
 </tt></pre></div></div>
-<div class="para"><p>The method works recursively through all levels of the params hash and takes an optional second parameter which is used as the replacement string if present. It can also take a block which receives each key in return and replaces those for which the block returns true.</p></div>
+<div class="para"><p>The method works recursively through all levels of the params hash and takes an optional second parameter which is used as the replacement string if present. It can also take a block which receives each key in turn and replaces those for which the block returns true.</p></div>
 </div>
 <h2 id="_rescue">13. Rescue</h2>
 <div class="sectionbody">
