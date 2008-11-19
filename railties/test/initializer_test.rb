@@ -293,8 +293,8 @@ uses_mocha 'i18n settings' do
 
       Rails::Initializer.run(:initialize_i18n, config)
       assert_equal [ 
-       "./test/../../activesupport/lib/active_support/locale/en-US.yml",
-       "./test/../../actionpack/lib/action_view/locale/en-US.yml",
+       File.expand_path("./test/../../activesupport/lib/active_support/locale/en.yml"),
+       File.expand_path("./test/../../actionpack/lib/action_view/locale/en.yml"),
        "my/test/locale.yml",
        "my/other/locale.yml" ], I18n.load_path
     end
