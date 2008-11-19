@@ -1,5 +1,21 @@
 *2.3.0/3.0*
 
+* Changed the default of ActionView#render to assume partials instead of files when not given an options hash [DHH]. Examples:
+
+    # Instead of <%= render :partial => "account" %>
+    <%= render "account" %>
+    
+    # Instead of <%= render :partial => "account", :locals => { :account => @buyer } %>
+    <%= render "account", :account => @buyer %>
+    
+    # @account is an Account instance, so it uses the RecordIdentifier to replace
+    # <%= render :partial => "accounts/account", :locals => { :account => @account } %>
+    <%= render(@account) %>
+    
+    # @posts is an array of Post instances, so it uses the RecordIdentifier to replace
+    # <%= render :partial => "posts/post", :collection => @posts %>
+    <%= render(@posts) %>
+
 * Fixed RedCloth and BlueCloth shouldn't preload. Instead just assume that they're available if you want to use textilize and markdown and let autoload require them [DHH]
 
 

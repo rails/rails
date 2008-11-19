@@ -234,16 +234,21 @@ module ActionView #:nodoc:
       @view_paths = self.class.process_view_paths(paths)
     end
 
-    # Renders the template present at <tt>template_path</tt> (relative to the view_paths array).
-    # The hash in <tt>local_assigns</tt> is made available as local variables.
+    # Returns the result of a render that's dictated by the options hash. The primary options are:
+    # 
+    # * <tt>:partial</tt> - See ActionView::Partials.
+    # * <tt>:update</tt> - Calls update_page with the block given.
+    # * <tt>:file</tt> - Renders an explicit template file (this used to be the old default), add :locals to pass in those.
+    # * <tt>:inline</tt> - Renders an inline template similar to how it's done in the controller.
+    # * <tt>:text</tt> - Renders the text passed in out.
+    #
+    # If no options hash is passed or :update specified, the default is to render a partial and use the second parameter
+    # as the locals hash.
     def render(options = {}, local_assigns = {}, &block) #:nodoc:
       local_assigns ||= {}
 
-      if options.is_a?(String)
-        render(:file => options, :locals => local_assigns)
-      elsif options == :update
-        update_page(&block)
-      elsif options.is_a?(Hash)
+      case options
+      when Hash
         options = options.reverse_merge(:locals => {})
         if options[:layout]
           _render_with_layout(options, local_assigns, &block)
@@ -256,6 +261,10 @@ module ActionView #:nodoc:
         elsif options[:text]
           options[:text]
         end
+      when :update
+        update_page(&block)
+      else
+        render_partial(:partial => options, :locals => local_assigns)
       end
     end
 

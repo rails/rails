@@ -46,6 +46,38 @@ module ActionView
   #
   # This will render the partial "advertisement/_ad.erb" regardless of which controller this is being called from.
   #
+  # == Rendering objects with the RecordIdentifier
+  #
+  # Instead of explicitly naming the location of a partial, you can also let the RecordIdentifier do the work if
+  # you're following its conventions for RecordIdentifier#partial_path. Examples:
+  #
+  #  # @account is an Account instance, so it uses the RecordIdentifier to replace
+  #  # <%= render :partial => "accounts/account", :locals => { :account => @buyer } %>
+  #  <%= render :partial => @account %>
+  #
+  #  # @posts is an array of Post instances, so it uses the RecordIdentifier to replace
+  #  # <%= render :partial => "posts/post", :collection => @posts %>
+  #  <%= render :partial => @posts %>
+  #
+  # == Rendering the default case
+  #
+  # If you're not going to be using any of the options like collections or layouts, you can also use the short-hand
+  # defaults of render to render partials. Examples:
+  #
+  #  # Instead of <%= render :partial => "account" %>
+  #  <%= render "account" %>
+  #
+  #  # Instead of <%= render :partial => "account", :locals => { :account => @buyer } %>
+  #  <%= render "account", :account => @buyer %>
+  #
+  #  # @account is an Account instance, so it uses the RecordIdentifier to replace
+  #  # <%= render :partial => "accounts/account", :locals => { :account => @account } %>
+  #  <%= render(@account) %>
+  #
+  #  # @posts is an array of Post instances, so it uses the RecordIdentifier to replace
+  #  # <%= render :partial => "posts/post", :collection => @posts %>
+  #  <%= render(@posts) %>
+  #
   # == Rendering partials with layouts
   #
   # Partials can have their own layouts applied to them. These layouts are different than the ones that are
