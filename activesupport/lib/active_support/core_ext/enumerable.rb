@@ -107,7 +107,7 @@ module Enumerable
 
   # Returns true if none of the elements match the given block.
   # 
-  #   success = responses.none? {|r| r.status / 100 == 3 }
+  #   success = responses.none? {|r| r.status / 100 == 5 }
   #
   def none?(&block)
     return true if !block_given? || blank?
