@@ -529,7 +529,7 @@ module ActionController #:nodoc:
       end
 
       def send_response
-        response.prepare! unless component_request?
+        response.prepare!
         response
       end
 

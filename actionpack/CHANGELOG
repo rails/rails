@@ -1,5 +1,7 @@
 *2.3.0/3.0*
 
+* Remove deprecated render_component. Please use the plugin from http://github.com/rails/render_component/tree/master [Pratik]
+
 * Fixed RedCloth and BlueCloth shouldn't preload. Instead just assume that they're available if you want to use textilize and markdown and let autoload require them [DHH]
 
 
