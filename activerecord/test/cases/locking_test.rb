@@ -200,9 +200,9 @@ end
 # blocks, so separate script called by Kernel#system is needed.
 # (See exec vs. async_exec in the PostgreSQL adapter.)
 
-# TODO: The SQL Server, Sybase, and OpenBase adapters currently have no support for pessimistic locking
+# TODO: The Sybase, and OpenBase adapters currently have no support for pessimistic locking
 
-unless current_adapter?(:SQLServerAdapter, :SybaseAdapter, :OpenBaseAdapter)
+unless current_adapter?(:SybaseAdapter, :OpenBaseAdapter)
   class PessimisticLockingTest < ActiveRecord::TestCase
     self.use_transactional_fixtures = false
     fixtures :people, :readers
