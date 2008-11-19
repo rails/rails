@@ -1,3 +1,8 @@
+*2.2.2 [2.2 Final]*
+
+* Deprecated the :file default for ActionView#render to prepare for 2.3's new :partial default [DHH]
+
+
 *2.2.1 [RC2] (November 14th, 2008)*
 
 * Restore backwards compatible functionality for setting relative_url_root.  Include deprecation

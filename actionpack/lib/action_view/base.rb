@@ -240,6 +240,11 @@ module ActionView #:nodoc:
       local_assigns ||= {}
 
       if options.is_a?(String)
+        ActiveSupport::Deprecation.warn(
+          "Calling render with a string will render a partial from Rails 2.3. " +
+          "Change this call to render(:file => '#{options}', :locals => locals_hash)."
+        )
+
         render(:file => options, :locals => local_assigns)
       elsif options == :update
         update_page(&block)
