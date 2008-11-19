@@ -71,4 +71,17 @@ class Object
   def acts_like?(duck)
     respond_to? "acts_like_#{duck}?"
   end
+
+  # Tries to send the method only if object responds to it. Return +nil+ otherwise.
+  # 
+  # ==== Example :
+  # 
+  # # Without try
+  # @person ? @person.name : nil
+  # 
+  # With try
+  # @person.try(:name)
+  def try(method)
+    send(method) if respond_to?(method, true)
+  end
 end

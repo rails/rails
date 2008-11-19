@@ -1,5 +1,7 @@
 *2.3.0 [Edge]*
 
+* Added Object#try. ( Taken from http://ozmm.org/posts/try.html ) [Chris Wanstrath]
+
 * Added Enumerable#none? to check that none of the elements match the block #1408 [Damian Janowski]
 
 * TimeZone offset tests: use current_period, to ensure TimeZone#utc_offset is up-to-date [Geoff Buesing]
