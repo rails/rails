@@ -648,4 +648,10 @@ class AssetTagHelperNonVhostTest < ActionView::TestCase
   ensure
     ActionController::Base.asset_host = nil
   end
+
+  def test_assert_css_and_js_of_the_same_name_return_correct_extension
+    assert_dom_equal(%(/collaboration/hieraki/javascripts/foo.js), javascript_path("foo"))
+    assert_dom_equal(%(/collaboration/hieraki/stylesheets/foo.css), stylesheet_path("foo"))
+
+  end
 end
