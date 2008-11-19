@@ -1,5 +1,7 @@
 *2.3.0 [Edge]*
 
+* Remove deprecated ActionController::Base#assign_default_content_type_and_charset
+
 * Changed the default of ActionView#render to assume partials instead of files when not given an options hash [DHH]. Examples:
 
     # Instead of <%= render :partial => "account" %>
