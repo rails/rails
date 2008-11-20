@@ -106,6 +106,17 @@ class ModuleTest < Test::Unit::TestCase
     assert_equal invoice.customer_city, "Chicago"
   end
 
+  def test_delegation_prefix_with_instance_variable
+    assert_raise ArgumentError do
+      Class.new do
+        def initialize(client)
+          @client = client
+        end
+        delegate :name, :address, :to => :@client, :prefix => true
+      end
+    end
+  end
+
   def test_parent
     assert_equal Yz::Zy, Yz::Zy::Cd.parent
     assert_equal Yz, Yz::Zy.parent
