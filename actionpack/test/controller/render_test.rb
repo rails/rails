@@ -883,12 +883,13 @@ class RenderTest < ActionController::TestCase
   end
 
   def test_enum_rjs_test
+    ActiveSupport::SecureRandom.stubs(:base64).returns("asdf")
     get :enum_rjs_test
     body = %{
       $$(".product").each(function(value, index) {
       new Effect.Highlight(element,{});
       new Effect.Highlight(value,{});
-      Sortable.create(value, {onUpdate:function(){new Ajax.Request('/test/order', {asynchronous:true, evalScripts:true, parameters:Sortable.serialize(value)})}});
+      Sortable.create(value, {onUpdate:function(){new Ajax.Request('/test/order', {asynchronous:true, evalScripts:true, parameters:Sortable.serialize(value) + '&authenticity_token=' + encodeURIComponent('asdf')})}});
       new Draggable(value, {});
       });
     }.gsub(/^      /, '').strip
