@@ -8,7 +8,9 @@ class ViewRenderTest < Test::Unit::TestCase
   end
 
   def test_render_file
-    assert_equal "Hello world!", @view.render("test/hello_world.erb")
+    assert_deprecated do
+      assert_equal "Hello world!", @view.render("test/hello_world.erb")
+    end
   end
 
   def test_render_file_not_using_full_path
@@ -16,11 +18,15 @@ class ViewRenderTest < Test::Unit::TestCase
   end
 
   def test_render_file_without_specific_extension
-    assert_equal "Hello world!", @view.render("test/hello_world")
+    assert_deprecated do
+      assert_equal "Hello world!", @view.render("test/hello_world")
+    end
   end
 
   def test_render_file_at_top_level
-    assert_equal 'Elastica', @view.render('/shared')
+    assert_deprecated do
+      assert_equal 'Elastica', @view.render('/shared')
+    end
   end
 
   def test_render_file_with_full_path
@@ -29,20 +35,28 @@ class ViewRenderTest < Test::Unit::TestCase
   end
 
   def test_render_file_with_instance_variables
-    assert_equal "The secret is in the sauce\n", @view.render("test/render_file_with_ivar.erb")
+    assert_deprecated do
+      assert_equal "The secret is in the sauce\n", @view.render("test/render_file_with_ivar.erb")
+    end
   end
 
   def test_render_file_with_locals
     locals = { :secret => 'in the sauce' }
-    assert_equal "The secret is in the sauce\n", @view.render("test/render_file_with_locals.erb", locals)
+    assert_deprecated do
+      assert_equal "The secret is in the sauce\n", @view.render("test/render_file_with_locals.erb", locals)
+    end
   end
 
   def test_render_file_not_using_full_path_with_dot_in_path
-    assert_equal "The secret is in the sauce\n", @view.render("test/dot.directory/render_file_with_ivar")
+    assert_deprecated do
+      assert_equal "The secret is in the sauce\n", @view.render("test/dot.directory/render_file_with_ivar")
+    end
   end
 
   def test_render_has_access_current_template
-    assert_equal "test/template.erb", @view.render("test/template.erb")
+    assert_deprecated do
+      assert_equal "test/template.erb", @view.render("test/template.erb")
+    end
   end
 
   def test_render_update
