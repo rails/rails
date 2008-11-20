@@ -319,7 +319,12 @@ module ActiveSupport #:nodoc:
         rescue NameError
           next
         end
-        [ nesting_camel ]
+
+        [
+          nesting.camelize,
+          # Special case: application.rb might define ApplicationControlller.
+          ('ApplicationController' if nesting == 'application')
+        ]
       end.flatten.compact.uniq
     end
 
