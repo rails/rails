@@ -171,7 +171,7 @@ spec = Gem::Specification.new do |s|
     s.files = s.files + Dir.glob( "#{dir}/**/*" ).delete_if { |item| item.include?( "\.svn" ) }
   end
 
-  s.add_dependency('activesupport', '= 2.2.1' + PKG_BUILD)
+  s.add_dependency('activesupport', '= 2.2.2' + PKG_BUILD)
 
   s.files.delete FIXTURES_ROOT + "/fixture_database.sqlite"
   s.files.delete FIXTURES_ROOT + "/fixture_database_2.sqlite"
