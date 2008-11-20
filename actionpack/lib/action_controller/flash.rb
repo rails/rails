@@ -165,7 +165,7 @@ module ActionController #:nodoc:
         def assign_shortcuts_with_flash(request, response) #:nodoc:
           assign_shortcuts_without_flash(request, response)
           flash(:refresh)
-          flash.sweep if @_session && !component_request?
+          flash.sweep if @_session
         end
     end
   end

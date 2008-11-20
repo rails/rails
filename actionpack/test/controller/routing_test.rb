@@ -706,12 +706,13 @@ uses_mocha 'LegacyRouteSet, Route, RouteSet and RouteLoading' do
       port        = options.delete(:port) || 80
       port_string = port == 80 ? '' : ":#{port}"
 
-      host   = options.delete(:host) || "named.route.test"
-      anchor = "##{options.delete(:anchor)}" if options.key?(:anchor)
+      protocol = options.delete(:protocol) || "http"
+      host     = options.delete(:host) || "named.route.test"
+      anchor   = "##{options.delete(:anchor)}" if options.key?(:anchor)
 
       path = routes.generate(options)
 
-      only_path ? "#{path}#{anchor}" : "http://#{host}#{port_string}#{path}#{anchor}"
+      only_path ? "#{path}#{anchor}" : "#{protocol}://#{host}#{port_string}#{path}#{anchor}"
     end
 
     def request
@@ -1724,6 +1725,11 @@ uses_mocha 'LegacyRouteSet, Route, RouteSet and RouteLoading' do
     def test_named_route_url_method_with_host
       controller = setup_named_route_test
       assert_equal "http://some.example.com/people/5", controller.send(:show_url, 5, :host=>"some.example.com")
+    end
+
+    def test_named_route_url_method_with_protocol
+      controller = setup_named_route_test
+      assert_equal "https://named.route.test/people/5", controller.send(:show_url, 5, :protocol => "https")
     end
 
     def test_named_route_url_method_with_ordered_parameters

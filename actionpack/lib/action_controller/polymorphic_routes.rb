@@ -74,6 +74,7 @@ module ActionController
     def polymorphic_url(record_or_hash_or_array, options = {})
       if record_or_hash_or_array.kind_of?(Array)
         record_or_hash_or_array = record_or_hash_or_array.compact
+        record_or_hash_or_array = record_or_hash_or_array[0] if record_or_hash_or_array.size == 1
       end
 
       record    = extract_record(record_or_hash_or_array)

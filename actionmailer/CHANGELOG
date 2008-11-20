@@ -1,4 +1,4 @@
-*2.3.0/3.0*
+*2.3.0 [Edge]*
 
 * Fixed that no body charset would be set when there are attachments present #740 [Paweł Kondzior]
 

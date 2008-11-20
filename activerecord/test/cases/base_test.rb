@@ -428,9 +428,6 @@ class BasicsTest < ActiveRecord::TestCase
   end
 
   def test_preserving_date_objects
-    # SQL Server doesn't have a separate column type just for dates, so all are returned as time
-    return true if current_adapter?(:SQLServerAdapter)
-
     if current_adapter?(:SybaseAdapter, :OracleAdapter)
       # Sybase ctlib does not (yet?) support the date type; use datetime instead.
       # Oracle treats all dates/times as Time.
@@ -777,8 +774,8 @@ class BasicsTest < ActiveRecord::TestCase
     end
   end
 
-  # Oracle, SQLServer, and Sybase do not have a TIME datatype.
-  unless current_adapter?(:SQLServerAdapter, :OracleAdapter, :SybaseAdapter)
+  # Oracle, and Sybase do not have a TIME datatype.
+  unless current_adapter?(:OracleAdapter, :SybaseAdapter)
     def test_utc_as_time_zone
       Topic.default_timezone = :utc
       attributes = { "bonus_time" => "5:42:00AM" }
@@ -1157,8 +1154,8 @@ class BasicsTest < ActiveRecord::TestCase
   end
 
   def test_attributes_on_dummy_time
-    # Oracle, SQL Server, and Sybase do not have a TIME datatype.
-    return true if current_adapter?(:SQLServerAdapter, :OracleAdapter, :SybaseAdapter)
+    # Oracle, and Sybase do not have a TIME datatype.
+    return true if current_adapter?(:OracleAdapter, :SybaseAdapter)
 
     attributes = {
       "bonus_time" => "5:42:00AM"
@@ -1874,7 +1871,7 @@ class BasicsTest < ActiveRecord::TestCase
     assert_equal "integer", xml.elements["//parent-id"].attributes['type']
     assert_equal "true", xml.elements["//parent-id"].attributes['nil']
 
-    if current_adapter?(:SybaseAdapter, :SQLServerAdapter, :OracleAdapter)
+    if current_adapter?(:SybaseAdapter, :OracleAdapter)
       assert_equal last_read_in_current_timezone, xml.elements["//last-read"].text
       assert_equal "datetime" , xml.elements["//last-read"].attributes['type']
     else

@@ -106,12 +106,8 @@ module ActionController
       # argument
       class PositionalArgumentsWithAdditionalParams < PositionalArguments
         def guard_conditions
-          [
-            "args.size == #{route.segment_keys.size + 1}",
-            "!args.last.has_key?(:anchor)",
-            "!args.last.has_key?(:port)",
-            "!args.last.has_key?(:host)"
-          ]
+          ["args.size == #{route.segment_keys.size + 1}"] +
+          UrlRewriter::RESERVED_OPTIONS.collect{ |key| "!args.last.has_key?(:#{key})" }
         end
 
         # This case uses almost the same code as positional arguments,

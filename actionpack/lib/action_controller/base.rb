@@ -529,7 +529,7 @@ module ActionController #:nodoc:
       end
 
       def send_response
-        response.prepare! unless component_request?
+        response.prepare!
         response
       end
 
@@ -1269,11 +1269,6 @@ module ActionController #:nodoc:
       def assign_names
         @action_name = (params['action'] || 'index')
       end
-
-      def assign_default_content_type_and_charset
-        response.assign_default_content_type_and_charset!
-      end
-      deprecate :assign_default_content_type_and_charset => :'response.assign_default_content_type_and_charset!'
 
       def action_methods
         self.class.action_methods

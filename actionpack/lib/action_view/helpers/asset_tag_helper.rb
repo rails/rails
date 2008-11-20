@@ -151,7 +151,7 @@ module ActionView
       #   javascript_path "http://www.railsapplication.com/js/xmlhr" # => http://www.railsapplication.com/js/xmlhr.js
       #   javascript_path "http://www.railsapplication.com/js/xmlhr.js" # => http://www.railsapplication.com/js/xmlhr.js
       def javascript_path(source)
-        JavaScriptTag.create(self, @controller, source).public_path
+        JavaScriptTag.new(self, @controller, source).public_path
       end
       alias_method :path_to_javascript, :javascript_path # aliased to avoid conflicts with a javascript_path named route
 
@@ -314,7 +314,7 @@ module ActionView
       #   stylesheet_path "http://www.railsapplication.com/css/style" # => http://www.railsapplication.com/css/style.css
       #   stylesheet_path "http://www.railsapplication.com/css/style.js" # => http://www.railsapplication.com/css/style.css
       def stylesheet_path(source)
-        StylesheetTag.create(self, @controller, source).public_path
+        StylesheetTag.new(self, @controller, source).public_path
       end
       alias_method :path_to_stylesheet, :stylesheet_path # aliased to avoid conflicts with a stylesheet_path named route
 
@@ -411,7 +411,7 @@ module ActionView
       #   image_path("/icons/edit.png")                              # => /icons/edit.png
       #   image_path("http://www.railsapplication.com/img/edit.png") # => http://www.railsapplication.com/img/edit.png
       def image_path(source)
-        ImageTag.create(self, @controller, source).public_path
+        ImageTag.new(self, @controller, source).public_path
       end
       alias_method :path_to_image, :image_path # aliased to avoid conflicts with an image_path named route
 
@@ -527,20 +527,6 @@ module ActionView
           Cache = {}
           CacheGuard = Mutex.new
 
-          def self.create(template, controller, source, include_host = true)
-            CacheGuard.synchronize do
-              key = if controller.respond_to?(:request)
-                [self, controller.request.protocol,
-                 ActionController::Base.asset_host,
-                 ActionController::Base.relative_url_root,
-                 source, include_host]
-              else
-                [self, ActionController::Base.asset_host, source, include_host]
-              end
-              Cache[key] ||= new(template, controller, source, include_host).freeze
-            end
-          end
-
           ProtocolRegexp = %r{^[-a-z]+://}.freeze
 
           def initialize(template, controller, source, include_host = true)
@@ -551,8 +537,16 @@ module ActionView
             @controller = controller
             @source = source
             @include_host = include_host
+            @cache_key = if controller.respond_to?(:request)
+              [self.class.name,controller.request.protocol,
+               ActionController::Base.asset_host,
+               ActionController::Base.relative_url_root,
+               source, include_host]
+            else
+              [self.class.name,ActionController::Base.asset_host, source, include_host]
+            end
           end
-
+          
           def public_path
             compute_public_path(@source)
           end
@@ -585,20 +579,32 @@ module ActionView
             # roots. Rewrite the asset path for cache-busting asset ids. Include
             # asset host, if configured, with the correct request protocol.
             def compute_public_path(source)
-              source += ".#{extension}" if missing_extension?(source)
-              unless source =~ ProtocolRegexp
-                source = "/#{directory}/#{source}" unless source[0] == ?/
-                source = rewrite_asset_path(source)
-                source = prepend_relative_url_root(source)                
+              if source =~ ProtocolRegexp
+                source += ".#{extension}" if missing_extension?(source)
+                source = prepend_asset_host(source)
+                source
+              else
+                CacheGuard.synchronize do
+                  Cache[@cache_key] ||= begin
+                    source += ".#{extension}" if missing_extension?(source) || file_exists_with_extension?(source)
+                    source = "/#{directory}/#{source}" unless source[0] == ?/
+                    source = rewrite_asset_path(source)
+                    source = prepend_relative_url_root(source)                
+                    source = prepend_asset_host(source)
+                    source
+                  end
+                end
               end
-              source = prepend_asset_host(source)
-              source
             end
-
+            
             def missing_extension?(source)
-              extension && (File.extname(source).blank? || File.exist?(File.join(ASSETS_DIR, directory, "#{source}.#{extension}")))
+              extension && File.extname(source).blank?
             end
-
+            
+            def file_exists_with_extension?(source)
+              extension && File.exist?(File.join(ASSETS_DIR, directory, "#{source}.#{extension}"))
+            end
+            
             def prepend_relative_url_root(source)
               relative_url_root = ActionController::Base.relative_url_root
               if request? && @include_host && source !~ %r{^#{relative_url_root}/}
@@ -735,7 +741,7 @@ module ActionView
             end
 
             def tag_sources
-              expand_sources.collect { |source| tag_class.create(@template, @controller, source, false) }
+              expand_sources.collect { |source| tag_class.new(@template, @controller, source, false) }
             end
 
             def joined_contents

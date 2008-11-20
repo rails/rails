@@ -20,12 +20,10 @@ class EventTest < ActiveModel::TestCase
     assert_equal @success, new_event.success
   end
 
-  uses_mocha 'StateTransition creation' do
-    test 'should create StateTransitions' do
-      ActiveModel::StateMachine::StateTransition.expects(:new).with(:to => :closed, :from => :open)
-      ActiveModel::StateMachine::StateTransition.expects(:new).with(:to => :closed, :from => :received)
-      new_event
-    end
+  test 'should create StateTransitions' do
+    ActiveModel::StateMachine::StateTransition.expects(:new).with(:to => :closed, :from => :open)
+    ActiveModel::StateMachine::StateTransition.expects(:new).with(:to => :closed, :from => :received)
+    new_event
   end
 end
 
