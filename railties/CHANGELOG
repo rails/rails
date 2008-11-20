@@ -1,5 +1,7 @@
 *2.3.0 [Edge]*
 
+* Switch from Test::Unit::TestCase to ActiveSupport::TestCase.  [Jeremy Kemper]
+
 * Added config.i18n settings gatherer to config/environment, auto-loading of all locales in config/locales/*.rb,yml, and config/locales/en.yml as a sample locale [DHH]
 
 * BACKWARDS INCOMPATIBLE: Renamed application.rb to application_controller.rb and removed all the special casing that was in place to support the former. You must do this rename in your own application when you upgrade to this version [DHH]
