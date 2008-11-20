@@ -1,6 +1,6 @@
 require 'abstract_unit'
 
-ActionController::Helpers::HELPERS_DIR.replace File.dirname(__FILE__) + '/../fixtures/helpers'
+ActionController::Base.helpers_dir = File.dirname(__FILE__) + '/../fixtures/helpers'
 
 class TestController < ActionController::Base
   attr_accessor :delegate_attr
@@ -128,6 +128,20 @@ class HelperTest < Test::Unit::TestCase
 
     # fun/pdf_helper.rb
     assert methods.include?('foobar')
+  end
+
+  def test_all_helpers_with_alternate_helper_dir
+    @controller_class.helpers_dir = File.dirname(__FILE__) + '/../fixtures/alternate_helpers'
+
+    # Reload helpers
+    @controller_class.master_helper_module = Module.new
+    @controller_class.helper :all
+
+    # helpers/abc_helper.rb should not be included
+    assert !master_helper_methods.include?('bare_a')
+
+    # alternate_helpers/foo_helper.rb
+    assert master_helper_methods.include?('baz')
   end
 
   def test_helper_proxy
