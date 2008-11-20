@@ -86,20 +86,21 @@ module ActiveSupport
       def run_with_callbacks_and_mocha(result)
         return if @method_name.to_s == "default_test"
 
+        assertion_counter = Mocha::TestCaseAdapter::AssertionCounter.new(result)
         yield(Test::Unit::TestCase::STARTED, name)
         @_result = result
         begin
-          mocha_setup
           begin
             run_callbacks :setup
             setup
             __send__(@method_name)
-            mocha_verify { add_assertion }
+            mocha_verify(assertion_counter)
           rescue Mocha::ExpectationError => e
             add_failure(e.message, e.backtrace)
           rescue Test::Unit::AssertionFailedError => e
             add_failure(e.message, e.backtrace)
-          rescue StandardError, ScriptError
+          rescue Exception
+            raise if Test::Unit::TestCase::PASSTHROUGH_EXCEPTIONS.include? $!.class
             add_error($!)
           ensure
             begin
@@ -107,7 +108,8 @@ module ActiveSupport
               run_callbacks :teardown, :enumerator => :reverse_each
             rescue Test::Unit::AssertionFailedError => e
               add_failure(e.message, e.backtrace)
-            rescue StandardError, ScriptError
+            rescue Exception
+              raise if Test::Unit::TestCase::PASSTHROUGH_EXCEPTIONS.include? $!.class
               add_error($!)
             end
           end
