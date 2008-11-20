@@ -1,5 +1,7 @@
 *2.3.0 [Edge]*
 
+* Fixed RFC-2045 quoted-printable bug #1421 [squadette]
+
 * Fixed that no body charset would be set when there are attachments present #740 [Paweł Kondzior]
 
 

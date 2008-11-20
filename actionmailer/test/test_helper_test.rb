@@ -36,7 +36,7 @@ class TestHelperMailerTest < ActionMailer::TestCase
   end
 
   def test_encode
-    assert_equal "=?utf-8?Q?=0aasdf=0a?=", encode("\nasdf\n")
+    assert_equal "=?utf-8?Q?=0Aasdf=0A?=", encode("\nasdf\n")
   end
 
   def test_assert_emails
