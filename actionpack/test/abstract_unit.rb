@@ -1,6 +1,7 @@
 $:.unshift(File.dirname(__FILE__) + '/../lib')
 $:.unshift(File.dirname(__FILE__) + '/../../activesupport/lib')
 $:.unshift(File.dirname(__FILE__) + '/fixtures/helpers')
+$:.unshift(File.dirname(__FILE__) + '/fixtures/alternate_helpers')
 
 require 'rubygems'
 require 'yaml'
