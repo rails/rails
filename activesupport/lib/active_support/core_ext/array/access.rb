@@ -44,7 +44,7 @@ module ActiveSupport #:nodoc:
         end
 
         # Equal to <tt>self[41]</tt>. Also known as accessing "the reddit".
-        def fourty_two
+        def forty_two
           self[41]
         end
       end
