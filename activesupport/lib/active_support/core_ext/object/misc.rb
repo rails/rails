@@ -73,6 +73,7 @@ class Object
   end
 
   # Tries to send the method only if object responds to it. Return +nil+ otherwise.
+  # It will also forward any arguments and/or block like Object#send does.
   # 
   # ==== Example :
   # 
@@ -81,7 +82,11 @@ class Object
   # 
   # With try
   # @person.try(:name)
-  def try(method)
-    send(method) if respond_to?(method, true)
+  #
+  # # try also accepts arguments/blocks for the method it is trying
+  # Person.try(:find, 1)
+  # @people.try(:map) {|p| p.name}
+  def try(method, *args, &block)
+    send(method, *args, &block) if respond_to?(method, true)
   end
 end

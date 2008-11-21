@@ -271,4 +271,11 @@ class ObjectTryTest < Test::Unit::TestCase
     assert_equal 5, @string.try(:size)
   end
 
+  def test_argument_forwarding
+    assert_equal 'Hey', @string.try(:sub, 'llo', 'y')
+  end
+
+  def test_block_forwarding
+    assert_equal 'Hey', @string.try(:sub, 'llo') { |match| 'y' }
+  end
 end
