@@ -78,7 +78,7 @@ Note that if you pass in a list of numbers that the result will be returned as a
 
 NOTE: If +find(id)+ or +find([id1, id2])+ fails to find any records, it will raise a +RecordNotFound+ exception.
 
-If you wanted to find the first Client object you would simply type +Client.first+ and that would find the first client created in your clients table:
+If you wanted to find the first Client object you would simply type +Client.first+ and that would find the first client in your clients table:
 
 -------------------------------------------------------
 >> Client.first
@@ -95,13 +95,22 @@ SELECT * FROM clients LIMIT 1
 
 Indicating the query that Rails has performed on your database. 
 
-To find the last Client object you would simply type +Client.find(:last)+ and that would find the last client created in your clients table:
+To find the last Client object you would simply type +Client.last+ and that would find the last client created in your clients table:
 
 -------------------------------------------------------
 >> Client.last
 => #<Client id: 2, name: => "Michael", locked: false, orders_count: 3, 
   created_at: "2008-09-28 13:12:40", updated_at: "2008-09-28 13:12:40">
 -------------------------------------------------------
+
+If you were reading your log file (the default is log/development.log) you may see something like this:
+
+[source,sql]
+-------------------------------------------------------
+SELECT * FROM clients ORDER BY id DESC LIMIT 1
+-------------------------------------------------------
+
+NOTE: Please be aware that the syntax that Rails uses to find the first record in the table means that it may not be the actual first record. If you want the actual first record based on a field in your table (e.g. +created_at+) specify an order option in your find call. The last method call works differently: it finds the last record on your table based on the primary key column.
 
 [source,sql]
 -------------------------------------------------------
@@ -658,7 +667,8 @@ Thanks to Mike Gunderloy for his tips on creating this guide.
 
 http://rails.lighthouseapp.com/projects/16213-rails-guides/tickets/16[Lighthouse ticket]
 
-* Wednesday 16 2008: Fixed all points specified in http://rails.lighthouseapp.com/projects/16213-rails-guides/tickets/16-activerecord-finders#ticket-16-11[this comment]
+* November 21 2008: Fixed all points specified in http://rails.lighthouseapp.com/projects/16213-rails-guides/tickets/16-activerecord-finders#ticket-16-13[this comment] and http://rails.lighthouseapp.com/projects/16213-rails-guides/tickets/16-activerecord-finders#ticket-16-14[this comment]
+* November 18 2008: Fixed all points specified in http://rails.lighthouseapp.com/projects/16213-rails-guides/tickets/16-activerecord-finders#ticket-16-11[this comment]
 * November 8, 2008: Editing pass by link:../authors.html#mgunderloy[Mike Gunderloy] . First release version.
 * October 27, 2008: Added scoped section, added named params for conditions and added sub-section headers for conditions section by Ryan Bigg
 * October 27, 2008: Fixed up all points specified in http://rails.lighthouseapp.com/projects/16213-rails-guides/tickets/16-activerecord-finders#ticket-16-6[this comment] with an exception of the final point by Ryan Bigg
