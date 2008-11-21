@@ -1,20 +1,14 @@
-*2.2.2 [Final]*
+*2.2 (November 21st, 2008)*
 
 * TimeZone offset tests: use current_period, to ensure TimeZone#utc_offset is up-to-date [Geoff Buesing]
 
 * Update bundled TZInfo to 0.3.12 [Geoff Buesing]
-
-
-*2.2.1 [RC2] (November 14th, 2008)*
 
 * Increment the version of our altered memcache-client to prevent confusion caused when the 1.5.0 gem is installed.
 
 * Fixed the option merging in Array#to_xml #1126 [Rudolf Gavlas]
 
 * Make I18n::Backend::Simple reload its translations in development mode [DHH/Sven Fuchs]
-
-
-*2.2.0 [RC1] (October 24th, 2008)*
 
 * TimeWithZone#freeze: preload instance variables so that we can actually freeze [Geoff Buesing]
 

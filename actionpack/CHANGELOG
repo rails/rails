@@ -1,9 +1,6 @@
-*2.2.2 [2.2 Final]*
+*2.2 (November 21st, 2008)*
 
 * Deprecated the :file default for ActionView#render to prepare for 2.3's new :partial default [DHH]
-
-
-*2.2.1 [RC2] (November 14th, 2008)*
 
 * Restore backwards compatible functionality for setting relative_url_root.  Include deprecation
 
@@ -32,9 +29,6 @@
 * Fixed regex in redirect_to to fully support URI schemes #1247 [Seth Fitzsimmons]
 
 * Fixed bug with asset timestamping when using relative_url_root #1265 [Joe Goldwasser]
-
-
-*2.2.0 [RC1] (October 24th, 2008)*
 
 * Fix incorrect closing CDATA delimiter and that HTML::Node.parse would blow up on unclosed CDATA sections [packagethief]
 

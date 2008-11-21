@@ -1,9 +1,6 @@
-*2.2.1 [RC2] (November 14th, 2008)*
+*2.2 (November 21st, 2008)*
 
 * Fixed that ActiveResource#post would post an empty string when it shouldn't be posting anything #525 [Paolo Angelini]
-
-
-*2.2.0 [RC1] (October 24th, 2008)*
 
 * Add ActiveResource::Base#to_xml and ActiveResource::Base#to_json. #1011 [Rasik Pandey, Cody Fauser]
 

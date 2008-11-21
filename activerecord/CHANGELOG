@@ -1,11 +1,8 @@
-*2.2.1 [RC2] (November 14th, 2008)*
+*2.2 (November 21st, 2008)*
 
 * Ensure indices don't flip order in schema.rb #1266 [Jordi Bunster]
 
 * Fixed that serialized strings should never be type-casted (i.e. turning "Yes" to a boolean) #857 [Andreas Korth]
-
-
-*2.2.0 [RC1] (October 24th, 2008)*
 
 * Skip collection ids reader optimization if using :finder_sql [Jeremy Kemper]
 

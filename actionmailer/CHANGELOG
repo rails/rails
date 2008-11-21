@@ -1,9 +1,6 @@
-*2.2.1 [RC2] (November 14th, 2008)*
+*2.2 (November 21st, 2008)*
 
 * Turn on STARTTLS if it is available in Net::SMTP (added in Ruby 1.8.7) and the SMTP server supports it (This is required for Gmail's SMTP server) #1336 [Grant Hollingworth]
-
-
-*2.2.0 [RC1] (October 24th, 2008)*
 
 * Add layout functionality to mailers [Pratik]
 
