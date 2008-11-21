@@ -43,29 +43,9 @@ module ActiveSupport #:nodoc:
           self[4]
         end
 
-        # Equal to <tt>self[5]</tt>.
-        def sixth
-          self[5]
-        end
-
-        # Equal to <tt>self[6]</tt>.
-        def seventh
-          self[6]
-        end
-
-        # Equal to <tt>self[7]</tt>.
-        def eighth
-          self[7]
-        end
-
-        # Equal to <tt>self[8]</tt>.
-        def ninth
-          self[8]
-        end
-
-        # Equal to <tt>self[9]</tt>.
-        def tenth
-          self[9]
+        # Equal to <tt>self[41]</tt>. Also known as accessing "the reddit".
+        def forty_two
+          self[41]
         end
       end
     end
