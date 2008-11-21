@@ -658,6 +658,11 @@ class HasAndBelongsToManyAssociationsTest < ActiveRecord::TestCase
     assert_equal 1, categories(:technology).posts_gruoped_by_title.size
   end
 
+  def test_find_scoped_grouped_having
+    assert_equal 2, projects(:active_record).well_payed_salary_groups.size
+    assert projects(:active_record).well_payed_salary_groups.all? { |g| g.salary > 10000 }
+  end
+
   def test_get_ids
     assert_equal projects(:active_record, :action_controller).map(&:id).sort, developers(:david).project_ids.sort
     assert_equal [projects(:active_record).id], developers(:jamis).project_ids
