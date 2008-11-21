@@ -15,17 +15,13 @@ class ArrayExtAccessTests < Test::Unit::TestCase
   end
   
   def test_second_through_tenth
-    array = (1..10).to_a
+    array = (1..42).to_a
     
     assert_equal array[1], array.second
     assert_equal array[2], array.third
     assert_equal array[3], array.fourth
     assert_equal array[4], array.fifth
-    assert_equal array[5], array.sixth
-    assert_equal array[6], array.seventh
-    assert_equal array[7], array.eighth
-    assert_equal array[8], array.ninth
-    assert_equal array[9], array.tenth
+    assert_equal array[41], array.fourty_two
   end
 end
 
