@@ -366,6 +366,12 @@ class ActionPackAssertionsControllerTest < ActionController::TestCase
     assert @response.missing?
   end
 
+  # check client errors
+  def test_client_error_response_code
+    process :response404
+    assert @response.client_error?
+  end
+
   # check to see if our redirection matches a pattern
   def test_redirect_url_match
     process :redirect_external

@@ -200,6 +200,11 @@ module ActionController #:nodoc:
 
     alias_method :server_error?, :error?
 
+    # Was there a client client?
+    def client_error?
+      (400..499).include?(response_code)
+    end
+
     # Returns the redirection location or nil
     def redirect_url
       headers['Location']
@@ -283,7 +288,7 @@ module ActionController #:nodoc:
   # See AbstractResponse for more information on controller response objects.
   class TestResponse < AbstractResponse
     include TestResponseBehavior
-    
+
     def recycle!
       headers.delete('ETag')
       headers.delete('Last-Modified')
