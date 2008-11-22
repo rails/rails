@@ -6,11 +6,9 @@ class I18nTest < Test::Unit::TestCase
     @time = Time.utc(2008, 7, 2, 16, 47, 1)
   end
   
-  uses_mocha 'I18nTimeZoneTest' do
-    def test_time_zone_localization_with_default_format
-      Time.zone.stubs(:now).returns Time.local(2000)
-      assert_equal Time.zone.now.strftime("%a, %d %b %Y %H:%M:%S %z"), I18n.localize(Time.zone.now)
-    end
+  def test_time_zone_localization_with_default_format
+    Time.zone.stubs(:now).returns Time.local(2000)
+    assert_equal Time.zone.now.strftime("%a, %d %b %Y %H:%M:%S %z"), I18n.localize(Time.zone.now)
   end
   
   def test_date_localization_should_use_default_format

@@ -57,46 +57,44 @@ class TimeZoneTest < Test::Unit::TestCase
     end
   end
 
-  uses_mocha 'TestTimeZoneNowAndToday' do
-    def test_now
-      with_env_tz 'US/Eastern' do
-        Time.stubs(:now).returns(Time.local(2000))
-        zone = ActiveSupport::TimeZone['Eastern Time (US & Canada)']
-        assert_instance_of ActiveSupport::TimeWithZone, zone.now
-        assert_equal Time.utc(2000,1,1,5), zone.now.utc
-        assert_equal Time.utc(2000), zone.now.time
-        assert_equal zone, zone.now.time_zone
-      end
+  def test_now
+    with_env_tz 'US/Eastern' do
+      Time.stubs(:now).returns(Time.local(2000))
+      zone = ActiveSupport::TimeZone['Eastern Time (US & Canada)']
+      assert_instance_of ActiveSupport::TimeWithZone, zone.now
+      assert_equal Time.utc(2000,1,1,5), zone.now.utc
+      assert_equal Time.utc(2000), zone.now.time
+      assert_equal zone, zone.now.time_zone
     end
+  end
 
-    def test_now_enforces_spring_dst_rules
-      with_env_tz 'US/Eastern' do
-        Time.stubs(:now).returns(Time.local(2006,4,2,2)) # 2AM springs forward to 3AM
-        zone = ActiveSupport::TimeZone['Eastern Time (US & Canada)']
-        assert_equal Time.utc(2006,4,2,3), zone.now.time
-        assert_equal true, zone.now.dst?
-      end
+  def test_now_enforces_spring_dst_rules
+    with_env_tz 'US/Eastern' do
+      Time.stubs(:now).returns(Time.local(2006,4,2,2)) # 2AM springs forward to 3AM
+      zone = ActiveSupport::TimeZone['Eastern Time (US & Canada)']
+      assert_equal Time.utc(2006,4,2,3), zone.now.time
+      assert_equal true, zone.now.dst?
     end
+  end
 
-    def test_now_enforces_fall_dst_rules
-      with_env_tz 'US/Eastern' do
-        Time.stubs(:now).returns(Time.at(1162098000)) # equivalent to 1AM DST
-        zone = ActiveSupport::TimeZone['Eastern Time (US & Canada)']
-        assert_equal Time.utc(2006,10,29,1), zone.now.time
-        assert_equal true, zone.now.dst?
-      end
+  def test_now_enforces_fall_dst_rules
+    with_env_tz 'US/Eastern' do
+      Time.stubs(:now).returns(Time.at(1162098000)) # equivalent to 1AM DST
+      zone = ActiveSupport::TimeZone['Eastern Time (US & Canada)']
+      assert_equal Time.utc(2006,10,29,1), zone.now.time
+      assert_equal true, zone.now.dst?
     end
+  end
 
-    def test_today
-      Time.stubs(:now).returns(Time.utc(2000, 1, 1, 4, 59, 59)) # 1 sec before midnight Jan 1 EST
-      assert_equal Date.new(1999, 12, 31), ActiveSupport::TimeZone['Eastern Time (US & Canada)'].today
-      Time.stubs(:now).returns(Time.utc(2000, 1, 1, 5)) # midnight Jan 1 EST
-      assert_equal Date.new(2000, 1, 1), ActiveSupport::TimeZone['Eastern Time (US & Canada)'].today
-      Time.stubs(:now).returns(Time.utc(2000, 1, 2, 4, 59, 59)) # 1 sec before midnight Jan 2 EST
-      assert_equal Date.new(2000, 1, 1), ActiveSupport::TimeZone['Eastern Time (US & Canada)'].today
-      Time.stubs(:now).returns(Time.utc(2000, 1, 2, 5)) # midnight Jan 2 EST
-      assert_equal Date.new(2000, 1, 2), ActiveSupport::TimeZone['Eastern Time (US & Canada)'].today
-    end
+  def test_today
+    Time.stubs(:now).returns(Time.utc(2000, 1, 1, 4, 59, 59)) # 1 sec before midnight Jan 1 EST
+    assert_equal Date.new(1999, 12, 31), ActiveSupport::TimeZone['Eastern Time (US & Canada)'].today
+    Time.stubs(:now).returns(Time.utc(2000, 1, 1, 5)) # midnight Jan 1 EST
+    assert_equal Date.new(2000, 1, 1), ActiveSupport::TimeZone['Eastern Time (US & Canada)'].today
+    Time.stubs(:now).returns(Time.utc(2000, 1, 2, 4, 59, 59)) # 1 sec before midnight Jan 2 EST
+    assert_equal Date.new(2000, 1, 1), ActiveSupport::TimeZone['Eastern Time (US & Canada)'].today
+    Time.stubs(:now).returns(Time.utc(2000, 1, 2, 5)) # midnight Jan 2 EST
+    assert_equal Date.new(2000, 1, 2), ActiveSupport::TimeZone['Eastern Time (US & Canada)'].today
   end
 
   def test_local
@@ -206,13 +204,11 @@ class TimeZoneTest < Test::Unit::TestCase
     end
   end
 
-  uses_mocha 'TestParseWithIncompleteDate' do
-    def test_parse_with_incomplete_date
-      zone = ActiveSupport::TimeZone['Eastern Time (US & Canada)']
-      zone.stubs(:now).returns zone.local(1999,12,31)
-      twz = zone.parse('19:00:00')
-      assert_equal Time.utc(1999,12,31,19), twz.time
-    end
+  def test_parse_with_incomplete_date
+    zone = ActiveSupport::TimeZone['Eastern Time (US & Canada)']
+    zone.stubs(:now).returns zone.local(1999,12,31)
+    twz = zone.parse('19:00:00')
+    assert_equal Time.utc(1999,12,31,19), twz.time
   end
 
   def test_utc_offset_lazy_loaded_from_tzinfo_when_not_passed_in_to_initialize
