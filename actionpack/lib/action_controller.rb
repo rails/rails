@@ -32,6 +32,7 @@ rescue LoadError
 end
 
 $:.unshift "#{File.dirname(__FILE__)}/action_controller/vendor/html-scanner"
+require 'action_controller/vendor/rack'
 
 require 'action_controller/base'
 require 'action_controller/request'
