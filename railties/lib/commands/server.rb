@@ -20,15 +20,13 @@ rescue Exception
 end
 
 server = case ARGV.first
-  when "lighttpd", "mongrel", "webrick", "thin"
+  when "mongrel", "webrick", "thin"
     ARGV.shift
   else
     if defined?(Mongrel)
       "mongrel"
     elsif defined?(Thin)
       "thin"
-    elsif RUBY_PLATFORM !~ /(:?mswin|mingw)/ && !silence_stderr { `lighttpd -version` }.blank? && defined?(FCGI)
-      "lighttpd"
     else
       "webrick"
     end
@@ -37,8 +35,6 @@ end
 case server
   when "webrick"
     puts "=> Booting WEBrick..."
-  when "lighttpd"
-    puts "=> Booting lighttpd (use 'script/server webrick' to force WEBrick)"
   when "mongrel"
     puts "=> Booting Mongrel (use 'script/server webrick' to force WEBrick)"
   when "thin"
