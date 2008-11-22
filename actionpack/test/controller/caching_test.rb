@@ -527,7 +527,7 @@ class FragmentCachingTest < ActionController::TestCase
   def test_write_fragment_with_caching_disabled
     assert_nil @store.read('views/name')
     ActionController::Base.perform_caching = false
-    assert_equal nil, @controller.write_fragment('name', 'value')
+    assert_equal 'value', @controller.write_fragment('name', 'value')
     assert_nil @store.read('views/name')
   end
 
