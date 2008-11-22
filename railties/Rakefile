@@ -197,8 +197,10 @@ task :copy_configs do
   
   cp "configs/routes.rb", "#{PKG_DESTINATION}/config/routes.rb"
 
-  cp "configs/initializers/inflections.rb", "#{PKG_DESTINATION}/config/initializers/inflections.rb"
-  cp "configs/initializers/mime_types.rb",  "#{PKG_DESTINATION}/config/initializers/mime_types.rb"
+  cp "configs/initializers/backtrace_silencers.rb", "#{PKG_DESTINATION}/config/initializers/backtrace_silencers.rb"
+  cp "configs/initializers/inflections.rb",         "#{PKG_DESTINATION}/config/initializers/inflections.rb"
+  cp "configs/initializers/mime_types.rb",          "#{PKG_DESTINATION}/config/initializers/mime_types.rb"
+  cp "configs/initializers/new_rails_defaults.rb",  "#{PKG_DESTINATION}/config/initializers/new_rails_defaults.rb"
 
   cp "configs/locales/en.yml", "#{PKG_DESTINATION}/config/locales/en.yml"
 

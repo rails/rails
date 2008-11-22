@@ -1,5 +1,7 @@
 *2.3.0 [Edge]*
 
+* Added ActiveSupport::BacktraceCleaner to cut down on backtrace noise according to filters and silencers [DHH]
+
 * Added Object#try. ( Taken from http://ozmm.org/posts/try.html ) [Chris Wanstrath]
 
 * Added Enumerable#none? to check that none of the elements match the block #1408 [Damian Janowski]

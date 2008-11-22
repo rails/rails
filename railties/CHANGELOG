@@ -1,5 +1,7 @@
 *2.3.0 [Edge]*
 
+* Added Rails.backtrace_cleaner as an accessor for the Rails::BacktraceCleaner instance used by the framework to cut down on backtrace noise and config/initializers/backtrace_silencers.rb to add your own (or turn them all off) [DHH]
+
 * Switch from Test::Unit::TestCase to ActiveSupport::TestCase.  [Jeremy Kemper]
 
 * Added config.i18n settings gatherer to config/environment, auto-loading of all locales in config/locales/*.rb,yml, and config/locales/en.yml as a sample locale [DHH]

@@ -39,6 +39,14 @@ module Rails
         nil
       end
     end
+    
+    def backtrace_cleaner
+      @@backtrace_cleaner ||= begin
+        # Relies on ActiveSupport, so we have to lazy load to postpone definition until AS has been loaded
+        require 'rails/backtrace_cleaner'
+        Rails::BacktraceCleaner.new
+      end
+    end
 
     def root
       if defined?(RAILS_ROOT)

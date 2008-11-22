@@ -20,7 +20,11 @@ module ActionView
     end
 
     def clean_backtrace
-      original_exception.clean_backtrace
+      if defined?(Rails) && Rails.respond_to?(:backtrace_cleaner)
+        Rails.backtrace_cleaner.clean(original_exception.backtrace)
+      else
+        original_exception.backtrace
+      end
     end
 
     def sub_template_message
@@ -66,8 +70,8 @@ module ActionView
     end
 
     def to_s
-      "\n\n#{self.class} (#{message}) #{source_location}:\n" +
-        "#{source_extract}\n    #{clean_backtrace.join("\n    ")}\n\n"
+      "\n#{self.class} (#{message}) #{source_location}:\n" + 
+      "#{source_extract}\n    #{clean_backtrace.join("\n    ")}\n\n"
     end
 
     # don't do anything nontrivial here. Any raised exception from here becomes fatal 
@@ -92,9 +96,4 @@ module ActionView
         end + file_name
       end
   end
-end
-
-if defined?(Exception::TraceSubstitutions)
-  Exception::TraceSubstitutions << [/:in\s+`_run_.*'\s*$/, '']
-  Exception::TraceSubstitutions << [%r{^\s*#{Regexp.escape RAILS_ROOT}/}, ''] if defined?(RAILS_ROOT)
 end

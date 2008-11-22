@@ -62,9 +62,10 @@ class AppGenerator < Rails::Generator::Base
       m.template "configs/routes.rb", "config/routes.rb"
 
       # Initializers
-      m.template "configs/initializers/inflections.rb", "config/initializers/inflections.rb"
-      m.template "configs/initializers/mime_types.rb", "config/initializers/mime_types.rb"
-      m.template "configs/initializers/new_rails_defaults.rb", "config/initializers/new_rails_defaults.rb"
+      m.template "configs/initializers/backtrace_silencers.rb", "config/initializers/backtrace_silencers.rb"
+      m.template "configs/initializers/inflections.rb",         "config/initializers/inflections.rb"
+      m.template "configs/initializers/mime_types.rb",          "config/initializers/mime_types.rb"
+      m.template "configs/initializers/new_rails_defaults.rb",  "config/initializers/new_rails_defaults.rb"
 
       # Locale
       m.template "configs/locales/en.yml", "config/locales/en.yml"

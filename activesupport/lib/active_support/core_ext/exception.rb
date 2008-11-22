@@ -6,6 +6,7 @@ module ActiveSupport
   end
 end
 
+# TODO: Turn all this into using the BacktraceCleaner.
 class Exception # :nodoc:
   def clean_message
     Pathname.clean_within message

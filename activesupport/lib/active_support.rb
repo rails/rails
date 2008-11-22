@@ -29,6 +29,7 @@ require 'active_support/callbacks'
 require 'active_support/core_ext'
 
 require 'active_support/buffered_logger'
+require 'active_support/backtrace_cleaner'
 
 require 'active_support/gzip'
 require 'active_support/cache'
