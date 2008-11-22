@@ -1,5 +1,7 @@
 *2.3.0 [Edge]*
 
+* Allow users to opt out of the spoofing checks in Request#remote_ip.  Useful for sites whose traffic regularly triggers false positives. [Darren Boyd]
+
 * Deprecated formatted_polymorphic_url.  [Jeremy Kemper]
 
 * Added the option to declare an asset_host as an object that responds to call (see http://github.com/dhh/asset-hosting-with-minimum-ssl for an example) [DHH]
