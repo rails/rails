@@ -83,7 +83,7 @@ class AssertDifferenceTest < ActiveSupport::TestCase
 end
 
 # These should always pass
-if defined? ActiveSupport::Testing::Default
+if ActiveSupport::Testing.const_defined?(:Default)
   class NotTestingThingsTest < Test::Unit::TestCase
     include ActiveSupport::Testing::Default
   end
