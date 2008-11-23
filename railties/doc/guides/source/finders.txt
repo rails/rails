@@ -369,7 +369,14 @@ Client.first(:include => "orders", :conditions =>
 
 == Dynamic finders
 
-For every field (also known as an attribute) you define in your table, Active Record provides a finder method. If you have a field called +name+ on your Client model for example, you get +find_by_name+ and +find_all_by_name+ for free from Active Record. If you have also have a +locked+ field on the client model, you also get +find_by_locked+ and +find_all_by_locked+. If you want to find both by name and locked, you can chain these finders together by simply typing +and+ between the fields for example +Client.find_by_name_and_locked('Ryan', true)+. These finders are an excellent alternative to using the conditions option, mainly because it's shorter to type +find_by_name(params[:name])+ than it is to type +first(:conditions => ["name = ?", params[:name]])+. 
+For every field (also known as an attribute) you define in your table, Active Record provides a finder method. If you have a field called +name+ on your Client model for example, you get +find_by_name+ and +find_all_by_name+ for free from Active Record. If you have also have a +locked+ field on the client model, you also get +find_by_locked+ and +find_all_by_locked+. 
+
+You can do +find_last_by_*+ methods too which will find the last record matching your parameter.
+
+You can specify an exclamation point (!) on the end of the dynamic finders to get them to raise an +ActiveRecord::RecordNotFound+ error if they do not return any records, like +Client.find_by_name!('Ryan')+
+
+If you want to find both by name and locked, you can chain these finders together by simply typing +and+ between the fields for example +Client.find_by_name_and_locked('Ryan', true)+. 
+
 
 There's another set of dynamic finders that let you find or create/initialize objects if they aren't find. These work in a similar fashion to the other finders and can be used like +find_or_create_by_name(params[:name])+. Using this will firstly perform a find and then create if the find returns nil. The SQL looks like this for +Client.find_or_create_by_name('Ryan')+:
 
@@ -382,7 +389,7 @@ INSERT INTO clients (name, updated_at, created_at, orders_count, locked)
 COMMIT
 -------------------------------------------------------
 
-+find_or_create+'s sibling, +find_or_initialize+, will find an object and if it does not exist will call +new+ with the parameters you passed in. For example:
++find_or_create+'s sibling, +find_or_initialize+, will find an object and if it does not exist will act similar to calling +new+ with the parameters you passed in. For example:
 
 [source, ruby]
 -------------------------------------------------------
@@ -390,6 +397,7 @@ client = Client.find_or_initialize_by_name('Ryan')
 -------------------------------------------------------
 
 will either assign an existing client object with the name 'Ryan' to the client local variable, or initialize new object similar to calling +Client.new(:name => 'Ryan')+. From here, you can modify other fields in client by calling the attribute setters on it: +client.locked = true+ and when you want to write it to the database just call +save+ on it.
+
 
 == Finding By SQL
 
