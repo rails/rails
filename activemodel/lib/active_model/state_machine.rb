@@ -31,6 +31,12 @@ module ActiveModel
         state_machines[name] ||= Machine.new(self, name)
         block ? state_machines[name].update(options, &block) : state_machines[name]
       end
+
+      def define_state_query_method(state_name)
+        name = "#{state_name}?"
+        undef_method(name) if method_defined?(name)
+        class_eval "def #{name}; current_state.to_s == %(#{state_name}) end"
+      end
     end
 
     def current_state(name = nil, new_state = nil, persist = false)
