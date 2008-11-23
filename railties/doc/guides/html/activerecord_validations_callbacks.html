@@ -282,7 +282,26 @@ ul#navMain {
 						</ul>
 					</li>
 					<li>
-					<a href="#_callbacks_that_get_triggered_when_an_objects_is_saved">Callbacks that get triggered when an objects is saved</a>
+					<a href="#_available_callbacks">Available callbacks</a>
+						<ul>
+						
+							<li><a href="#_callbacks_called_both_when_creating_or_updating_a_record">Callbacks called both when creating or updating a record.</a></li>
+						
+							<li><a href="#_callbacks_called_only_when_creating_a_new_record">Callbacks called only when creating a new record.</a></li>
+						
+							<li><a href="#_callbacks_called_only_when_updating_an_existing_record">Callbacks called only when updating an existing record.</a></li>
+						
+							<li><a href="#_callbacks_called_when_removing_a_record_from_the_database">Callbacks called when removing a record from the database.</a></li>
+						
+							<li><a href="#_the_tt_after_initialize_tt_and_tt_after_find_tt_callbacks">The <tt>after_initialize</tt> and <tt>after_find</tt> callbacks</a></li>
+						
+						</ul>
+					</li>
+					<li>
+					<a href="#_halting_execution">Halting Execution</a>
+					</li>
+					<li>
+					<a href="#_callback_classes_and_objects">Callback classes and objects</a>
 					</li>
 					<li>
 					<a href="#_changelog">Changelog</a>
@@ -376,7 +395,7 @@ http://www.gnu.org/software/src-highlite -->
 &gt;&gt; p.new_record?
 =&gt; false</tt></pre>
 </div></div>
-<div class="para"><p>Saving new records means sending an SQL insert operation to the database, while saving existing records (by calling either <tt>save</tt>, <tt>update_attribute</tt> or <tt>update_attributes</tt>) will result in a SQL update operation. Active Record will use this facts to perform validations upon your objects, avoiding then to be recorded to the database if their inner state is invalid in some way. You can specify validations that will be beformed every time a object is saved, just when you're creating a new record or when you're updating an existing one.</p></div>
+<div class="para"><p>Saving new records means sending an SQL insert operation to the database, while saving existing records (by calling either <tt>save</tt> or <tt>update_attributes</tt>) will result in a SQL update operation. Active Record will use this facts to perform validations upon your objects, avoiding then to be recorded to the database if their inner state is invalid in some way. You can specify validations that will be beformed every time a object is saved, just when you're creating a new record or when you're updating an existing one.</p></div>
 <div class="admonitionblock">
 <table><tr>
 <td class="icon">
@@ -952,17 +971,125 @@ Readability, since your callback declarations will live at the beggining of your
 </tr></table>
 </div>
 </div>
-<h2 id="_callbacks_that_get_triggered_when_an_objects_is_saved">9. Callbacks that get triggered when an objects is saved</h2>
+<h2 id="_available_callbacks">9. Available callbacks</h2>
 <div class="sectionbody">
+<div class="para"><p>Here is a list with all the available Active Record callbacks, listed in the same order in which they will get called during the respective operations.</p></div>
+<h3 id="_callbacks_called_both_when_creating_or_updating_a_record">9.1. Callbacks called both when creating or updating a record.</h3>
 <div class="ilist"><ul>
 <li>
 <p>
-<tt>before_validation</tt> will be triggered before any validation upon your object is done. You can use this callback to change the object's state so it becames valid.
+<tt>before_validation</tt>
+</p>
+</li>
+<li>
+<p>
+<tt>after_validation</tt>
+</p>
+</li>
+<li>
+<p>
+<tt>before_save</tt>
+</p>
+</li>
+<li>
+<p>
+<strong>INSERT OR UPDATE OPERATION</strong>
+</p>
+</li>
+<li>
+<p>
+<tt>after_save</tt>
 </p>
 </li>
 </ul></div>
+<h3 id="_callbacks_called_only_when_creating_a_new_record">9.2. Callbacks called only when creating a new record.</h3>
+<div class="ilist"><ul>
+<li>
+<p>
+<tt>before_validation_on_create</tt>
+</p>
+</li>
+<li>
+<p>
+<tt>after_validation_on_create</tt>
+</p>
+</li>
+<li>
+<p>
+<tt>before_create</tt>
+</p>
+</li>
+<li>
+<p>
+<strong>INSERT OPERATION</strong>
+</p>
+</li>
+<li>
+<p>
+<tt>after_create</tt>
+</p>
+</li>
+</ul></div>
+<h3 id="_callbacks_called_only_when_updating_an_existing_record">9.3. Callbacks called only when updating an existing record.</h3>
+<div class="ilist"><ul>
+<li>
+<p>
+<tt>before_validation_on_update</tt>
+</p>
+</li>
+<li>
+<p>
+<tt>after_validation_on_update</tt>
+</p>
+</li>
+<li>
+<p>
+<tt>before_update</tt>
+</p>
+</li>
+<li>
+<p>
+<strong>UPDATE OPERATION</strong>
+</p>
+</li>
+<li>
+<p>
+<tt>after_update</tt>
+</p>
+</li>
+</ul></div>
+<h3 id="_callbacks_called_when_removing_a_record_from_the_database">9.4. Callbacks called when removing a record from the database.</h3>
+<div class="ilist"><ul>
+<li>
+<p>
+<tt>before_destroy</tt>
+</p>
+</li>
+<li>
+<p>
+<strong>DELETE OPERATION</strong>
+</p>
+</li>
+<li>
+<p>
+<tt>after_destroy</tt>
+</p>
+</li>
+</ul></div>
+<div class="para"><p>The <tt>before_destroy</tt> and <tt>after_destroy</tt> callbacks will only be called if you delete the model using either the <tt>destroy</tt> instance method or one of the <tt>destroy</tt> or <tt>destroy_all</tt> class methods of your Active Record class. If you use <tt>delete</tt> or <tt>delete_all</tt> no callback operations will run, since Active Record will not instantiate any objects, accessing the records to be deleted directly in the database.</p></div>
+<h3 id="_the_tt_after_initialize_tt_and_tt_after_find_tt_callbacks">9.5. The <tt>after_initialize</tt> and <tt>after_find</tt> callbacks</h3>
+<div class="para"><p>The <tt>after_initialize</tt> callback will be called whenever an Active Record object is instantiated, either by direcly using <tt>new</tt> or when a record is loaded from the database. It can be useful to avoid the need to directly override your Active Record <tt>initialize</tt> method.</p></div>
+<div class="para"><p>The <tt>after_find</tt> callback will be called whenever Active Record loads a record from the database. When used together with <tt>after_initialize</tt> it will run first, since Active Record will first read the record from the database and them create the model object that will hold it.</p></div>
+<div class="para"><p>The <tt>after_initialize</tt> and <tt>after_find</tt> callbacks are a bit different from the others, since the only way to register those callbacks is by defining them as methods. If you try to register <tt>after_initialize</tt> or <tt>after_find</tt> using macro-style class methods, they will just be ignored. This behaviour is due to performance reasons, since <tt>after_initialize</tt> and <tt>after_find</tt> will both be called for each record found in the database, significantly slowing down the queries.</p></div>
 </div>
-<h2 id="_changelog">10. Changelog</h2>
+<h2 id="_halting_execution">10. Halting Execution</h2>
+<div class="sectionbody">
+<div class="para"><p>As you start registering new callbacks for your models, they will be queued for execution. This queue will include all your model's validations, the registered callbacks and the database operation to be executed. However, if at any moment one of the callback methods returns a boolean <tt>false</tt> (not <tt>nil</tt>) value, this execution chain will be halted and the desired operation will not complete: your model will not get persisted in the database, or your records will not get deleted and so on.</p></div>
+</div>
+<h2 id="_callback_classes_and_objects">11. Callback classes and objects</h2>
+<div class="sectionbody">
+</div>
+<h2 id="_changelog">12. Changelog</h2>
 <div class="sectionbody">
 <div class="para"><p><a href="http://rails.lighthouseapp.com/projects/16213/tickets/26-active-record-validations-and-callbacks">http://rails.lighthouseapp.com/projects/16213/tickets/26-active-record-validations-and-callbacks</a></p></div>
 </div>
