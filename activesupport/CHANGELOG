@@ -1,5 +1,7 @@
 *2.3.0 [Edge]*
 
+* Added ActiveSupport::MessageVerifier to aid users who need to store signed messages. [Koz]
+
 * Added ActiveSupport::BacktraceCleaner to cut down on backtrace noise according to filters and silencers [DHH]
 
 * Added Object#try. ( Taken from http://ozmm.org/posts/try.html ) [Chris Wanstrath]

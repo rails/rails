@@ -56,6 +56,7 @@ require 'active_support/base64'
 require 'active_support/time_with_zone'
 
 require 'active_support/secure_random'
+require 'active_support/message_verifier'
 
 require 'active_support/rescuable'
 
