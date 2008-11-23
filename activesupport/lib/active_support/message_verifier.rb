@@ -6,11 +6,11 @@ module ActiveSupport
   # session store isn't suitable or available.
   #
   # Remember Me:
-  #   cookies[:remember_me] = @verifier.generate_message([@user.id, 2.weeks.from_now])
+  #   cookies[:remember_me] = @verifier.generate([@user.id, 2.weeks.from_now])
   # 
   # In the authentication filter:
   #
-  #   id, time = @verifier.verify_message(cookies[:remember_me])
+  #   id, time = @verifier.verify(cookies[:remember_me])
   #   if time < Time.now
   #     self.current_user = User.find(id)
   #   end
@@ -23,7 +23,7 @@ module ActiveSupport
       @digest = digest
     end
     
-    def verify_message(signed_message)
+    def verify(signed_message)
       data, digest = signed_message.split("--")
       if digest != generate_digest(data)
         raise InvalidSignature
@@ -32,7 +32,7 @@ module ActiveSupport
       end
     end
     
-    def generate_message(value)
+    def generate(value)
       data = ActiveSupport::Base64.encode64s(Marshal.dump(value))
       "#{data}--#{generate_digest(data)}"
     end
