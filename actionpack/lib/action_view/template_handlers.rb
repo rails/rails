@@ -4,10 +4,6 @@ module ActionView #:nodoc:
     autoload :RJS, 'action_view/template_handlers/rjs'
     autoload :Builder, 'action_view/template_handlers/builder'
 
-    # Legacy Compilable stub
-    module Compilable
-    end
-
     def self.extended(base)
       base.register_default_template_handler :erb, TemplateHandlers::ERB
       base.register_template_handler :rjs, TemplateHandlers::RJS

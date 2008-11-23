@@ -175,6 +175,17 @@ class ViewRenderTest < Test::Unit::TestCase
     assert_equal 'source: "Hello, <%= name %>!"', @view.render(:inline => "Hello, <%= name %>!", :locals => { :name => "Josh" }, :type => :foo)
   end
 
+  class LegacyHandler < ActionView::TemplateHandler
+    def render(template, local_assigns)
+      "source: #{template.source}; locals: #{local_assigns.inspect}"
+    end
+  end
+
+  def test_render_legacy_handler_with_custom_type
+    ActionView::Template.register_template_handler :foo, LegacyHandler
+    assert_equal 'source: Hello, <%= name %>!; locals: {:name=>"Josh"}', @view.render(:inline => "Hello, <%= name %>!", :locals => { :name => "Josh" }, :type => :foo)
+  end
+
   def test_render_with_layout
     assert_equal %(<title></title>\nHello world!\n),
       @view.render(:file => "test/hello_world.erb", :layout => "layouts/yield")
