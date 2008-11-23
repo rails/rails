@@ -1,15 +1,10 @@
-require 'action_mailer/adv_attr_accessor'
-require 'action_mailer/part_container'
-require 'action_mailer/utils'
-
 module ActionMailer
   # Represents a subpart of an email message. It shares many similar
   # attributes of ActionMailer::Base.  Although you can create parts manually
   # and add them to the +parts+ list of the mailer, it is easier
   # to use the helper methods in ActionMailer::PartContainer.
   class Part
-    include ActionMailer::AdvAttrAccessor
-    include ActionMailer::PartContainer
+    include AdvAttrAccessor, PartContainer, Utils
 
     # Represents the body of the part, as a string. This should not be a
     # Hash (like ActionMailer::Base), but if you want a template to be rendered
@@ -64,7 +59,7 @@ module ActionMailer
           when "base64" then
             part.body = TMail::Base64.folding_encode(body)
           when "quoted-printable"
-            part.body = [Utils.normalize_new_lines(body)].pack("M*")
+            part.body = [normalize_new_lines(body)].pack("M*")
           else
             part.body = body
         end
@@ -102,7 +97,6 @@ module ActionMailer
     end
 
     private
-
       def squish(values={})
         values.delete_if { |k,v| v.nil? }
       end

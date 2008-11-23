@@ -58,6 +58,7 @@ module ActionMailer
   end
 end
 
+# TODO: Deprecate this
 module Test
   module Unit
     class TestCase

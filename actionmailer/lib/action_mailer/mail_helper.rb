@@ -1,5 +1,3 @@
-require 'text/format'
-
 module MailHelper
   # Uses Text::Format to take the text and format it, indented two spaces for
   # each line, and wrapped at 72 columns.
