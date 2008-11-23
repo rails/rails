@@ -3,30 +3,15 @@ require 'active_support/callbacks'
 module ActiveSupport
   module Testing
     module SetupAndTeardown
-      # For compatibility with Ruby < 1.8.6
-      PASSTHROUGH_EXCEPTIONS =
-        if defined?(Test::Unit::TestCase::PASSTHROUGH_EXCEPTIONS)
-          Test::Unit::TestCase::PASSTHROUGH_EXCEPTIONS
-        else
-          [NoMemoryError, SignalException, Interrupt, SystemExit]
-        end
-
       def self.included(base)
         base.class_eval do
           include ActiveSupport::Callbacks
           define_callbacks :setup, :teardown
 
-          if defined?(::MiniTest)
+          if defined? MiniTest
             include ForMiniTest
           else
-            begin
-              require 'mocha'
-              undef_method :run
-              alias_method :run, :run_with_callbacks_and_mocha
-            rescue LoadError
-              undef_method :run
-              alias_method :run, :run_with_callbacks_and_testunit
-            end
+            include ForClassicTestUnit
           end
         end
       end
@@ -50,74 +35,51 @@ module ActiveSupport
         end
       end
 
-      # This redefinition is unfortunate but test/unit shows us no alternative.
-      def run_with_callbacks_and_testunit(result) #:nodoc:
-        return if @method_name.to_s == "default_test"
+      module ForClassicTestUnit
+        # For compatibility with Ruby < 1.8.6
+        PASSTHROUGH_EXCEPTIONS = Test::Unit::TestCase::PASSTHROUGH_EXCEPTIONS rescue [NoMemoryError, SignalException, Interrupt, SystemExit]
 
-        yield(Test::Unit::TestCase::STARTED, name)
-        @_result = result
-        begin
-          run_callbacks :setup
-          setup
-          __send__(@method_name)
-        rescue Test::Unit::AssertionFailedError => e
-          add_failure(e.message, e.backtrace)
-        rescue *PASSTHROUGH_EXCEPTIONS
-          raise
-        rescue Exception
-          add_error($!)
-        ensure
-          begin
-            teardown
-            run_callbacks :teardown, :enumerator => :reverse_each
-          rescue Test::Unit::AssertionFailedError => e
-            add_failure(e.message, e.backtrace)
-          rescue *PASSTHROUGH_EXCEPTIONS
-            raise
-          rescue Exception
-            add_error($!)
+        # This redefinition is unfortunate but test/unit shows us no alternative.
+        # Doubly unfortunate: hax to support Mocha's hax.
+        def run(result)
+          return if @method_name.to_s == "default_test"
+
+          if using_mocha = respond_to?(:mocha_verify)
+            assertion_counter = Mocha::TestCaseAdapter::AssertionCounter.new(result)
           end
-        end
-        result.add_run
-        yield(Test::Unit::TestCase::FINISHED, name)
-      end
 
-      # Doubly unfortunate: mocha does the same so we have to hax their hax.
-      def run_with_callbacks_and_mocha(result)
-        return if @method_name.to_s == "default_test"
-
-        assertion_counter = Mocha::TestCaseAdapter::AssertionCounter.new(result)
-        yield(Test::Unit::TestCase::STARTED, name)
-        @_result = result
-        begin
+          yield(Test::Unit::TestCase::STARTED, name)
+          @_result = result
           begin
-            run_callbacks :setup
-            setup
-            __send__(@method_name)
-            mocha_verify(assertion_counter)
-          rescue Mocha::ExpectationError => e
-            add_failure(e.message, e.backtrace)
-          rescue Test::Unit::AssertionFailedError => e
-            add_failure(e.message, e.backtrace)
-          rescue Exception
-            raise if Test::Unit::TestCase::PASSTHROUGH_EXCEPTIONS.include? $!.class
-            add_error($!)
-          ensure
             begin
-              teardown
-              run_callbacks :teardown, :enumerator => :reverse_each
+              run_callbacks :setup
+              setup
+              __send__(@method_name)
+              mocha_verify(assertion_counter) if using_mocha
+            rescue Mocha::ExpectationError => e
+              add_failure(e.message, e.backtrace)
             rescue Test::Unit::AssertionFailedError => e
               add_failure(e.message, e.backtrace)
-            rescue Exception
-              raise if Test::Unit::TestCase::PASSTHROUGH_EXCEPTIONS.include? $!.class
-              add_error($!)
+            rescue Exception => e
+              raise if PASSTHROUGH_EXCEPTIONS.include?(e.class)
+              add_error(e)
+            ensure
+              begin
+                teardown
+                run_callbacks :teardown, :enumerator => :reverse_each
+              rescue Test::Unit::AssertionFailedError => e
+                add_failure(e.message, e.backtrace)
+              rescue Exception => e
+                raise if PASSTHROUGH_EXCEPTIONS.include?(e.class)
+                add_error(e)
+              end
             end
+          ensure
+            mocha_teardown if using_mocha
           end
-        ensure
-          mocha_teardown
+          result.add_run
+          yield(Test::Unit::TestCase::FINISHED, name)
         end
-        result.add_run
-        yield(Test::Unit::TestCase::FINISHED, name)
       end
     end
   end
