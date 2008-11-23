@@ -15,7 +15,7 @@ class FormatTest < Test::Unit::TestCase
     assert_equal 'Accept', header_name
 
     headers_names = [ActiveResource::Connection::HTTP_FORMAT_HEADER_NAMES[:put], ActiveResource::Connection::HTTP_FORMAT_HEADER_NAMES[:post]]
-    headers_names.each{|header_name| assert_equal 'Content-Type', header_name}
+    headers_names.each{ |name| assert_equal 'Content-Type', name }
   end
 
   def test_formats_on_single_element
