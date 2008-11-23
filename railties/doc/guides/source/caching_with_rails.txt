@@ -340,8 +340,7 @@ ActionController::Base.cache_store = :drb_store, "druby://localhost:9192"
 -----------------------------------------------------
 
 4) MemCached store: Works like DRbStore, but uses Danga's MemCache instead.
-                    Requires the ruby-memcache library:  
-                    gem install ruby-memcache.
+                    Rails uses the bundled memcached-client gem by default.
 
 [source, ruby]
 -----------------------------------------------------
@@ -354,6 +353,10 @@ ActionController::Base.cache_store = :mem_cache_store, "localhost"
 -----------------------------------------------------
 ActionController::Base.cache_store = MyOwnStore.new("parameter")
 -----------------------------------------------------
+
++Note: config.cache_store can be used in place of
+ActionController::Base.cache_store in your Rails::Initializer.run block in
+environment.rb+
 
 == Advanced Caching
 
