@@ -1,5 +1,3 @@
-require 'action_controller/test_case'
-
 module ActionView
   class TestCase < ActiveSupport::TestCase
     include ActionController::TestCase::Assertions

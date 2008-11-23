@@ -2,13 +2,6 @@ require 'fileutils'
 require 'uri'
 require 'set'
 
-require 'action_controller/caching/pages'
-require 'action_controller/caching/actions'
-require 'action_controller/caching/sql_cache'
-require 'action_controller/caching/sweeping'
-require 'action_controller/caching/fragments'
-
-
 module ActionController #:nodoc:
   # Caching is a cheap way of speeding up slow applications by keeping the result of calculations, renderings, and database calls
   # around for subsequent requests. Action Controller affords you three approaches in varying levels of granularity: Page, Action, Fragment.
@@ -31,6 +24,12 @@ module ActionController #:nodoc:
   #   ActionController::Base.cache_store = :mem_cache_store, "localhost"
   #   ActionController::Base.cache_store = MyOwnStore.new("parameter")
   module Caching
+    autoload :Actions, 'action_controller/caching/actions'
+    autoload :Fragments, 'action_controller/caching/fragments'
+    autoload :Pages, 'action_controller/caching/pages'
+    autoload :SqlCache, 'action_controller/caching/sql_cache'
+    autoload :Sweeping, 'action_controller/caching/sweeping'
+
     def self.included(base) #:nodoc:
       base.class_eval do
         @@cache_store = nil
@@ -63,8 +62,7 @@ module ActionController #:nodoc:
         end
       end
 
-
-    private    
+    private
       def cache_configured?
         self.class.cache_configured?
       end

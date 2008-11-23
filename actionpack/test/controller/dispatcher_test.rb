@@ -2,8 +2,6 @@ require 'abstract_unit'
 
 uses_mocha 'dispatcher tests' do
 
-require 'action_controller/dispatcher'
-
 class DispatcherTest < Test::Unit::TestCase
   Dispatcher = ActionController::Dispatcher
 

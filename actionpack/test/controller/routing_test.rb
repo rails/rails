@@ -1,6 +1,5 @@
 require 'abstract_unit'
 require 'controller/fake_controllers'
-require 'action_controller/routing'
 
 class MilestonesController < ActionController::Base
   def index() head :ok end
