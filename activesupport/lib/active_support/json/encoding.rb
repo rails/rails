@@ -12,26 +12,14 @@ module ActiveSupport
     class CircularReferenceError < StandardError
     end
 
-    class << self
-      REFERENCE_STACK_VARIABLE = :json_reference_stack #:nodoc:
-
-      # Converts a Ruby object into a JSON string.
-      def encode(value, options = {})
-        raise_on_circular_reference(value) do
-          value.send(:to_json, options)
-        end
-      end
-
-      protected
-        def raise_on_circular_reference(value) #:nodoc:
-          stack = Thread.current[REFERENCE_STACK_VARIABLE] ||= []
-          raise CircularReferenceError, 'object references itself' if
-            stack.include? value
-          stack << value
-          yield
-        ensure
-          stack.pop
-        end
+    # Converts a Ruby object into a JSON string.
+    def self.encode(value, options = {})
+      seen = (options[:seen] ||= [])
+      raise CircularReferenceError, 'object references itself' if seen.include?(value)
+      seen << value
+      value.send(:to_json, options)
+    ensure
+      seen.pop
     end
   end
 end
