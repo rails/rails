@@ -1,5 +1,3 @@
-require 'builder'
-
 module ActiveSupport #:nodoc:
   module CoreExtensions #:nodoc:
     module Array #:nodoc:
@@ -149,6 +147,7 @@ module ActiveSupport #:nodoc:
         #
         def to_xml(options = {})
           raise "Not all elements respond to to_xml" unless all? { |e| e.respond_to? :to_xml }
+          require 'builder' unless defined?(Builder)
 
           options[:root]     ||= all? { |e| e.is_a?(first.class) && first.class.to_s != "Hash" } ? first.class.to_s.underscore.pluralize : "records"
           options[:children] ||= options[:root].singularize

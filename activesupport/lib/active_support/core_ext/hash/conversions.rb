@@ -1,6 +1,5 @@
 require 'date'
 require 'cgi'
-require 'builder'
 require 'xmlsimple'
 
 # Locked down XmlSimple#xml_in_string
@@ -113,6 +112,8 @@ module ActiveSupport #:nodoc:
         alias_method :to_param, :to_query
 
         def to_xml(options = {})
+          require 'builder' unless defined?(Builder)
+
           options[:indent] ||= 2
           options.reverse_merge!({ :builder => Builder::XmlMarkup.new(:indent => options[:indent]),
                                    :root => "hash" })
