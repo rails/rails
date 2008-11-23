@@ -78,7 +78,7 @@ namespace :rails do
   end
 
   desc "Update both configs, scripts and public/javascripts from Rails"
-  task :update => [ "update:scripts", "update:javascripts", "update:configs" ]
+  task :update => [ "update:scripts", "update:javascripts", "update:configs", "update:application_controller" ]
 
   namespace :update do
     desc "Add new scripts to the application script/ directory"
@@ -113,6 +113,16 @@ namespace :rails do
     task :configs do
       require 'railties_path'  
       FileUtils.cp(RAILTIES_PATH + '/environments/boot.rb', RAILS_ROOT + '/config/boot.rb')
+    end
+    
+    desc "Rename application.rb to application_controller.rb"
+    task :application_controller do
+      old_style = RAILS_ROOT + '/app/controllers/application.rb'
+      new_style = RAILS_ROOT + '/app/controllers/application_controller.rb'
+      if File.exists?(old_style) && !File.exists?(new_style)
+        FileUtils.mv(old_style, new_style)
+        puts "#{old_style} has been renamed to #{new_style}, update your SCM as necessary"
+      end
     end
   end
 end
