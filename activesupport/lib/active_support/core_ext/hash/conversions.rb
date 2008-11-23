@@ -1,6 +1,4 @@
 require 'date'
-require 'cgi'
-require 'xmlsimple'
 
 # Locked down XmlSimple#xml_in_string
 class XmlSimple
@@ -168,6 +166,8 @@ module ActiveSupport #:nodoc:
 
         module ClassMethods
           def from_xml(xml)
+            require 'xmlsimple'
+
             # TODO: Refactor this into something much cleaner that doesn't rely on XmlSimple
             typecast_xml_value(undasherize_keys(XmlSimple.xml_in_string(xml,
               'forcearray'   => false,

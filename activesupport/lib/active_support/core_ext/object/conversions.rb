@@ -1,3 +1,5 @@
+require 'cgi'
+
 class Object
   # Alias of <tt>to_s</tt>.
   def to_param
