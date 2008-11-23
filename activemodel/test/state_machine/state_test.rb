@@ -9,13 +9,13 @@ end
 
 class StateTest < ActiveModel::TestCase
   def setup
-    @name    = :astate
+    @state_name = :astate
     @machine = StateTestSubject.state_machine
     @options = { :crazy_custom_key => 'key', :machine => @machine }
   end
 
   def new_state(options={})
-    ActiveModel::StateMachine::State.new(@name, @options.merge(options))
+    ActiveModel::StateMachine::State.new(@state_name, @options.merge(options))
   end
 
   test 'sets the name' do

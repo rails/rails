@@ -2,18 +2,18 @@ require 'test_helper'
 
 class EventTest < ActiveModel::TestCase
   def setup
-    @name = :close_order
+    @state_name = :close_order
     @success = :success_callback
   end
 
   def new_event
-    @event = ActiveModel::StateMachine::Event.new(nil, @name, {:success => @success}) do
+    @event = ActiveModel::StateMachine::Event.new(nil, @state_name, {:success => @success}) do
       transitions :to => :closed, :from => [:open, :received]
     end
   end
 
   test 'should set the name' do
-    assert_equal @name, new_event.name
+    assert_equal @state_name, new_event.name
   end
 
   test 'should set the success option' do
