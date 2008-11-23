@@ -1240,7 +1240,7 @@ class ResourcesTest < ActionController::TestCase
     end
 
     def assert_not_recognizes(expected_options, path)
-      assert_raise ActionController::RoutingError, ActionController::MethodNotAllowed, Test::Unit::AssertionFailedError do
+      assert_raise ActionController::RoutingError, ActionController::MethodNotAllowed, Assertion do
         assert_recognizes(expected_options, path)
       end
     end
