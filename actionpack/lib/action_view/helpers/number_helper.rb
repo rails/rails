@@ -220,8 +220,6 @@ module ActionView
         end
       end
 
-      STORAGE_UNITS = %w( Bytes KB MB GB TB ).freeze
-
       # Formats the bytes in +size+ into a more understandable representation
       # (e.g., giving it 1500 yields 1.5 KB). This method is useful for
       # reporting file sizes to users. This method returns nil if
@@ -257,6 +255,7 @@ module ActionView
         defaults = I18n.translate(:'number.format', :locale => options[:locale], :raise => true) rescue {}
         human    = I18n.translate(:'number.human.format', :locale => options[:locale], :raise => true) rescue {}
         defaults = defaults.merge(human)
+        storage_units = I18n.translate(:'number.human.storage_units', :locale => options[:locale], :raise => true)
 
         unless args.empty?
           ActiveSupport::Deprecation.warn('number_to_human_size takes an option hash ' +
@@ -268,12 +267,12 @@ module ActionView
         separator ||= (options[:separator] || defaults[:separator])
         delimiter ||= (options[:delimiter] || defaults[:delimiter])
 
-        max_exp  = STORAGE_UNITS.size - 1
+        max_exp  = storage_units.size - 1
         number   = Float(number)
         exponent = (Math.log(number) / Math.log(1024)).to_i # Convert to base 1024
         exponent = max_exp if exponent > max_exp # we need this to avoid overflow for the highest unit
         number  /= 1024 ** exponent
-        unit     = STORAGE_UNITS[exponent]
+        unit     = storage_units[exponent]
 
         begin
           escaped_separator = Regexp.escape(separator)

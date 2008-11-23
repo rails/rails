@@ -10,6 +10,7 @@ class NumberHelperI18nTests < Test::Unit::TestCase
       @number_defaults = { :precision => 3, :delimiter => ',', :separator => '.' }
       @currency_defaults = { :unit => '$', :format => '%u%n', :precision => 2 }
       @human_defaults = { :precision => 1 }
+      @human_storage_units_defaults = %w(Bytes KB MB GB TB)
       @percentage_defaults = { :delimiter => '' }
       @precision_defaults = { :delimiter => '' }
 
@@ -47,6 +48,8 @@ class NumberHelperI18nTests < Test::Unit::TestCase
       I18n.expects(:translate).with(:'number.format', :locale => 'en', :raise => true).returns(@number_defaults)
       I18n.expects(:translate).with(:'number.human.format', :locale => 'en',
                                     :raise => true).returns(@human_defaults)
+      I18n.expects(:translate).with(:'number.human.storage_units', :locale => 'en',
+                                    :raise => true).returns(@human_storage_units_defaults)
       # can't be called with 1 because this directly returns without calling I18n.translate
       number_to_human_size(1025, :locale => 'en')
     end
