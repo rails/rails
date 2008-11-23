@@ -8,7 +8,7 @@ require 'yaml'
 require 'stringio'
 require 'test/unit'
 
-gem 'mocha', '>= 0.9.0'
+gem 'mocha', '>= 0.9.3'
 require 'mocha'
 
 begin

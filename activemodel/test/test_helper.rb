@@ -1,7 +1,7 @@
 require 'rubygems'
 require 'test/unit'
 
-gem 'mocha', '>= 0.5.5'
+gem 'mocha', '>= 0.9.3'
 require 'mocha'
 
 require 'active_model'
