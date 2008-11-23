@@ -688,39 +688,39 @@ class BaseTest < Test::Unit::TestCase
   end
 
   def test_clone
-   matz = Person.find(1)
-   matz_c = matz.clone
-   assert matz_c.new?
-   matz.attributes.each do |k, v|
-     assert_equal v, matz_c.send(k) if k != Person.primary_key
-   end
- end
+    matz = Person.find(1)
+    matz_c = matz.clone
+    assert matz_c.new?
+    matz.attributes.each do |k, v|
+      assert_equal v, matz_c.send(k) if k != Person.primary_key
+    end
+  end
 
- def test_nested_clone
-   addy = StreetAddress.find(1, :params => {:person_id => 1})
-   addy_c = addy.clone
-   assert addy_c.new?
-   addy.attributes.each do |k, v|
-     assert_equal v, addy_c.send(k) if k != StreetAddress.primary_key
-   end
-   assert_equal addy.prefix_options, addy_c.prefix_options
- end
+  def test_nested_clone
+    addy = StreetAddress.find(1, :params => {:person_id => 1})
+    addy_c = addy.clone
+    assert addy_c.new?
+    addy.attributes.each do |k, v|
+      assert_equal v, addy_c.send(k) if k != StreetAddress.primary_key
+    end
+    assert_equal addy.prefix_options, addy_c.prefix_options
+  end
 
- def test_complex_clone
-   matz = Person.find(1)
-   matz.address = StreetAddress.find(1, :params => {:person_id => matz.id})
-   matz.non_ar_hash = {:not => "an ARes instance"}
-   matz.non_ar_arr = ["not", "ARes"]
-   matz_c = matz.clone
-   assert matz_c.new?
-   assert_raises(NoMethodError) {matz_c.address}
-   assert_equal matz.non_ar_hash, matz_c.non_ar_hash
-   assert_equal matz.non_ar_arr, matz_c.non_ar_arr
+  def test_complex_clone
+    matz = Person.find(1)
+    matz.address = StreetAddress.find(1, :params => {:person_id => matz.id})
+    matz.non_ar_hash = {:not => "an ARes instance"}
+    matz.non_ar_arr = ["not", "ARes"]
+    matz_c = matz.clone
+    assert matz_c.new?
+    assert_raises(NoMethodError) {matz_c.address}
+    assert_equal matz.non_ar_hash, matz_c.non_ar_hash
+    assert_equal matz.non_ar_arr, matz_c.non_ar_arr
 
-   # Test that actual copy, not just reference copy
-   matz.non_ar_hash[:not] = "changed"
-   assert_not_equal matz.non_ar_hash, matz_c.non_ar_hash
- end
+    # Test that actual copy, not just reference copy
+    matz.non_ar_hash[:not] = "changed"
+    assert_not_equal matz.non_ar_hash, matz_c.non_ar_hash
+  end
 
   def test_update
     matz = Person.find(:first)
@@ -811,9 +811,9 @@ class BaseTest < Test::Unit::TestCase
   def test_exists_with_redefined_to_param
     Person.module_eval do
       alias_method :original_to_param_exists, :to_param
-       def to_param
-         name
-       end
+      def to_param
+        name
+      end
     end
 
     # Class method.
@@ -828,13 +828,13 @@ class BaseTest < Test::Unit::TestCase
     # Nested instance method.
     assert StreetAddress.find(1, :params => { :person_id => Person.find('Greg').to_param }).exists?
 
-    ensure
-      # revert back to original
-      Person.module_eval do
-        # save the 'new' to_param so we don't get a warning about discarding the method
-        alias_method :exists_to_param, :to_param
-        alias_method :to_param, :original_to_param_exists
-      end
+  ensure
+    # revert back to original
+    Person.module_eval do
+      # save the 'new' to_param so we don't get a warning about discarding the method
+      alias_method :exists_to_param, :to_param
+      alias_method :to_param, :original_to_param_exists
+    end
   end
 
   def test_to_xml
