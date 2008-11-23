@@ -2322,7 +2322,7 @@ module ActiveRecord #:nodoc:
       # construct an URI with the user object's 'id' in it:
       #
       #   user = User.find_by_name('Phusion')
-      #   user_path(path)  # => "/users/1"
+      #   user_path(user)  # => "/users/1"
       #
       # You can override +to_param+ in your model to make +users_path+ construct
       # an URI using the user's name instead of the user's id:
@@ -2334,7 +2334,7 @@ module ActiveRecord #:nodoc:
       #   end
       #   
       #   user = User.find_by_name('Phusion')
-      #   user_path(path)  # => "/users/Phusion"
+      #   user_path(user)  # => "/users/Phusion"
       def to_param
         # We can't use alias_method here, because method 'id' optimizes itself on the fly.
         (id = self.id) ? id.to_s : nil # Be sure to stringify the id for routes
