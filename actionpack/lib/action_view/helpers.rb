@@ -42,6 +42,7 @@ module ActionView #:nodoc:
     include FormHelper
     include FormOptionsHelper
     include FormTagHelper
+    include JavaScriptHelper
     include NumberHelper
     include PrototypeHelper
     include RecordIdentificationHelper
