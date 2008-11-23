@@ -1,6 +1,5 @@
 require 'cgi'
 require 'cgi/session'
-require 'openssl'       # to generate the HMAC message digest
 
 # This cookie-based session store is the Rails default. Sessions typically
 # contain at most a user_id and flash message; both fit within the 4K cookie
@@ -121,32 +120,20 @@ class CGI::Session::CookieStore
     write_cookie('value' => nil, 'expires' => 1.year.ago)
   end
 
-  # Generate the HMAC keyed message digest. Uses SHA1 by default.
-  def generate_digest(data)
-    key = @secret.respond_to?(:call) ? @secret.call(@session) : @secret
-    OpenSSL::HMAC.hexdigest(OpenSSL::Digest::Digest.new(@digest), key, data)
-  end
-
   private
     # Marshal a session hash into safe cookie data. Include an integrity hash.
     def marshal(session)
-      data = ActiveSupport::Base64.encode64s(Marshal.dump(session))
-      "#{data}--#{generate_digest(data)}"
+      verifier.generate(session)
     end
 
     # Unmarshal cookie data to a hash and verify its integrity.
     def unmarshal(cookie)
       if cookie
-        data, digest = cookie.split('--')
-
-        # Do two checks to transparently support old double-escaped data.
-        unless digest == generate_digest(data) || digest == generate_digest(data = CGI.unescape(data))
-          delete
-          raise TamperedWithCookie
-        end
-
-        Marshal.load(ActiveSupport::Base64.decode64(data))
+        verifier.verify(cookie)
       end
+    rescue ActiveSupport::MessageVerifier::InvalidSignature
+      delete
+      raise TamperedWithCookie
     end
 
     # Read the session data cookie.
@@ -163,5 +150,14 @@ class CGI::Session::CookieStore
     # Clear cookie value so subsequent new_session doesn't reload old data.
     def clear_old_cookie_value
       @session.cgi.cookies[@cookie_options['name']].clear
+    end
+    
+    def verifier
+      if @secret.respond_to?(:call)
+        key = @secret.call
+      else
+        key = @secret
+      end
+      ActiveSupport::MessageVerifier.new(key, @digest)
     end
 end

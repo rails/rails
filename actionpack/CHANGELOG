@@ -1,5 +1,7 @@
 *2.3.0 [Edge]*
 
+* Remove support for old double-encoded cookies from the cookie store.  These values haven't been generated since before 2.1.0, and any users who have visited the app in the intervening 6 months will have had their cookie upgraded. [Koz]
+
 * Allow helpers directory to be overridden via ActionController::Base.helpers_dir #1424 [Sam Pohlenz]
 
 * Remove deprecated ActionController::Base#assign_default_content_type_and_charset
