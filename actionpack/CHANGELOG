@@ -1,4 +1,9 @@
-*2.2 (November 21st, 2008)*
+*2.2.3 (pending release)*
+
+* I18n: translate number_to_human_size. Add storage_units: [Bytes, KB, MB, GB, TB] to your translations.  #1448 [Yaroslav Markin]
+
+
+*2.2.2 (November 21st, 2008)*
 
 * Deprecated the :file default for ActionView#render to prepare for 2.3's new :partial default [DHH]
 
