@@ -1,4 +1,5 @@
 require 'abstract_unit'
+require 'builder'
 
 class HashExtTest < Test::Unit::TestCase
   def setup
