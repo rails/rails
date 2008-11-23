@@ -39,6 +39,7 @@ module ActiveSupport
     
     private
       def generate_digest(data)
+        require 'openssl' unless defined?(OpenSSL)
         OpenSSL::HMAC.hexdigest(OpenSSL::Digest::Digest.new(@digest), @secret, data)
       end
   end
