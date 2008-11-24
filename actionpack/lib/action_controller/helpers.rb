@@ -1,3 +1,5 @@
+require 'active_support/dependencies'
+
 # FIXME: helper { ... } is broken on Ruby 1.9
 module ActionController #:nodoc:
   module Helpers #:nodoc:
