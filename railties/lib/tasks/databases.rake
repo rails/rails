@@ -56,12 +56,28 @@ namespace :db do
       when 'mysql'
         @charset   = ENV['CHARSET']   || 'utf8'
         @collation = ENV['COLLATION'] || 'utf8_general_ci'
+        creation_options = {:charset => (config['charset'] || @charset), :collation => (config['collation'] || @collation)}
         begin
           ActiveRecord::Base.establish_connection(config.merge('database' => nil))
-          ActiveRecord::Base.connection.create_database(config['database'], :charset => (config['charset'] || @charset), :collation => (config['collation'] || @collation))
+          ActiveRecord::Base.connection.create_database(config['database'], creation_options)
           ActiveRecord::Base.establish_connection(config)
-        rescue
-          $stderr.puts "Couldn't create database for #{config.inspect}, charset: #{config['charset'] || @charset}, collation: #{config['collation'] || @collation} (if you set the charset manually, make sure you have a matching collation)"
+        rescue Mysql::Error => sqlerr
+          if sqlerr.errno == Mysql::Error::ER_ACCESS_DENIED_ERROR
+            print "#{sqlerr.error}. \nPlease provide the root password for your mysql installation\n>"
+            root_password = $stdin.gets.strip
+            grant_statement = "GRANT ALL PRIVILEGES ON #{config['database']}.* " \
+              "TO '#{config['username']}'@'localhost' " \
+              "IDENTIFIED BY '#{config['password']}' WITH GRANT OPTION;"
+            ActiveRecord::Base.establish_connection(config.merge(
+                'database' => nil, 'username' => 'root', 'password' => root_password))
+            ActiveRecord::Base.connection.create_database(config['database'], creation_options)
+            ActiveRecord::Base.connection.execute grant_statement
+            ActiveRecord::Base.establish_connection(config)
+          else
+            $stderr.puts sqlerr.error
+            $stderr.puts "Couldn't create database for #{config.inspect}, charset: #{config['charset'] || @charset}, collation: #{config['collation'] || @collation}"
+            $stderr.puts "(if you set the charset manually, make sure you have a matching collation)" if config['charset']
+          end
         end
       when 'postgresql'
         @encoding = config[:encoding] || ENV['CHARSET'] || 'utf8'
