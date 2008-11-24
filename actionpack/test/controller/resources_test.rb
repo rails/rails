@@ -997,6 +997,16 @@ class ResourcesTest < Test::Unit::TestCase
     end
   end
 
+  def test_default_singleton_restful_route_uses_get
+    with_routing do |set|
+      set.draw do |map|
+        map.resource :product
+      end
+
+      assert_equal :get, set.named_routes.routes[:product].conditions[:method]
+    end
+  end
+
   protected
     def with_restful_routing(*args)
       with_routing do |set|
