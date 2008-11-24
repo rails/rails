@@ -58,5 +58,4 @@ end
 autoload :MailHelper, 'action_mailer/mail_helper'
 autoload :TMail, 'action_mailer/vendor/tmail'
 
-# TODO: Don't explicitly load entire lib
-ActionMailer.load_all!
+ActionMailer.load_all! unless ENV['LAZY']

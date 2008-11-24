@@ -56,4 +56,4 @@ require 'active_support/core_ext'
 
 I18n.load_path << "#{File.dirname(__FILE__)}/active_support/locale/en.yml"
 
-ActiveSupport.load_all!
+ActiveSupport.load_all! unless ENV['LAZY']
