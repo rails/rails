@@ -2990,3 +2990,6 @@ module ActiveRecord #:nodoc:
     include Aggregations, Transactions, Reflection, Calculations, Serialization
   end
 end
+
+# TODO: Remove this and make it work with LAZY flag
+require 'active_record/connection_adapters/abstract_adapter'
