@@ -13,6 +13,7 @@ module Rails
       super
       add_filter   { |line| line.sub(RAILS_ROOT, '') }
       add_filter   { |line| line.sub(ERB_METHOD_SIG, '') }
+      add_filter   { |line| line.sub('./', '/') } # for tests
       add_silencer { |line| ALL_NOISE.any? { |dir| line.include?(dir) } }
     end
   end
