@@ -21,6 +21,19 @@
 # WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 #++
 
+module ActiveSupport
+  autoload :Duration, 'active_support/duration'
+  autoload :Gzip, 'active_support/gzip'
+  autoload :MessageVerifier, 'active_support/message_verifier'
+  autoload :OptionMerger, 'active_support/option_merger'
+  autoload :OrderedHash, 'active_support/ordered_hash'
+  autoload :OrderedOptions, 'active_support/ordered_options'
+  autoload :SecureRandom, 'active_support/secure_random'
+  autoload :StringInquirer, 'active_support/string_inquirer'
+  autoload :TimeWithZone, 'active_support/time_with_zone'
+  autoload :TimeZone, 'active_support/values/time_zone'
+end
+
 require 'active_support/vendor'
 require 'active_support/basic_object'
 require 'active_support/inflector'
@@ -31,21 +44,12 @@ require 'active_support/core_ext'
 require 'active_support/buffered_logger'
 require 'active_support/backtrace_cleaner'
 
-require 'active_support/gzip'
 require 'active_support/cache'
 
 require 'active_support/dependencies'
 require 'active_support/deprecation'
 
-require 'active_support/ordered_hash'
-require 'active_support/ordered_options'
-require 'active_support/option_merger'
-
 require 'active_support/memoizable'
-require 'active_support/string_inquirer'
-
-require 'active_support/values/time_zone'
-require 'active_support/duration'
 
 require 'active_support/json'
 
@@ -53,13 +57,6 @@ require 'active_support/multibyte'
 
 require 'active_support/base64'
 
-require 'active_support/time_with_zone'
-
 require 'active_support/rescuable'
 
-module ActiveSupport
-  autoload :MessageVerifier, 'active_support/message_verifier'
-  autoload :SecureRandom, 'active_support/secure_random'
-end
-
-I18n.load_path << File.dirname(__FILE__) + '/active_support/locale/en.yml'
+I18n.load_path << "#{File.dirname(__FILE__)}/active_support/locale/en.yml"
