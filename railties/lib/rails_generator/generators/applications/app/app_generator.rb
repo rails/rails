@@ -10,7 +10,7 @@ class AppGenerator < Rails::Generator::Base
   DEFAULT_DATABASE = 'sqlite3'
 
   default_options   :db => (ENV["RAILS_DEFAULT_DATABASE"] || DEFAULT_DATABASE),
-    :shebang => DEFAULT_SHEBANG, :freeze => false
+    :shebang => DEFAULT_SHEBANG, :with_dispatches => false, :freeze => false
   mandatory_options :source => "#{File.dirname(__FILE__)}/../../../../.."
 
   def initialize(runtime_args, runtime_options = {})
@@ -83,9 +83,11 @@ class AppGenerator < Rails::Generator::Base
       end
 
       # Dispatches
-      m.file "dispatches/dispatch.rb",   "public/dispatch.rb", dispatcher_options
-      m.file "dispatches/dispatch.rb",   "public/dispatch.cgi", dispatcher_options
-      m.file "dispatches/dispatch.fcgi", "public/dispatch.fcgi", dispatcher_options
+      if options[:with_dispatches]
+        m.file "dispatches/dispatch.rb",   "public/dispatch.rb", dispatcher_options
+        m.file "dispatches/dispatch.rb",   "public/dispatch.cgi", dispatcher_options
+        m.file "dispatches/dispatch.fcgi", "public/dispatch.fcgi", dispatcher_options
+      end
 
       # HTML files
       %w(404 422 500 index).each do |file|
@@ -128,6 +130,10 @@ class AppGenerator < Rails::Generator::Base
       opt.on("-d", "--database=name", String,
             "Preconfigure for selected database (options: #{DATABASES.join('/')}).",
             "Default: #{DEFAULT_DATABASE}") { |v| options[:db] = v }
+
+      opt.on("-D", "--with-dispatches",
+            "Add CGI/FastCGI/mod_ruby dispatches code to generated application skeleton",
+            "Default: false") { |v| options[:with_dispatches] = v }
 
       opt.on("-f", "--freeze",
             "Freeze Rails in vendor/rails from the gems generating the skeleton",
