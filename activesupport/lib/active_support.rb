@@ -37,7 +37,6 @@ module ActiveSupport
   autoload :Duration, 'active_support/duration'
   autoload :Gzip, 'active_support/gzip'
   autoload :Inflector, 'active_support/inflector'
-  autoload :JSON, 'active_support/json'
   autoload :Memoizable, 'active_support/memoizable'
   autoload :MessageVerifier, 'active_support/message_verifier'
   autoload :Multibyte, 'active_support/multibyte'
@@ -53,6 +52,7 @@ end
 
 require 'active_support/vendor'
 require 'active_support/core_ext'
+require 'active_support/json'
 
 I18n.load_path << "#{File.dirname(__FILE__)}/active_support/locale/en.yml"
 
