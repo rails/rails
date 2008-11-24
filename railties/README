@@ -36,32 +36,19 @@ link:files/vendor/rails/actionpack/README.html.
 
 == Web Servers
 
-By default, Rails will try to use Mongrel and lighttpd if they are installed, otherwise
-Rails will use WEBrick, the webserver that ships with Ruby. When you run script/server,
-Rails will check if Mongrel exists, then lighttpd and finally fall back to WEBrick. This ensures
-that you can always get up and running quickly.
+By default, Rails will try to use Mongrel if it's are installed when started with script/server, otherwise Rails will use WEBrick, the webserver that ships with Ruby. But you can also use Rails
+with a variety of other web servers.
 
 Mongrel is a Ruby-based webserver with a C component (which requires compilation) that is
 suitable for development and deployment of Rails applications. If you have Ruby Gems installed,
 getting up and running with mongrel is as easy as: <tt>gem install mongrel</tt>.
 More info at: http://mongrel.rubyforge.org
 
-If Mongrel is not installed, Rails will look for lighttpd. It's considerably faster than
-Mongrel and WEBrick and also suited for production use, but requires additional
-installation and currently only works well on OS X/Unix (Windows users are encouraged
-to start with Mongrel). We recommend version 1.4.11 and higher. You can download it from
-http://www.lighttpd.net.
+Say other Ruby web servers like Thin and Ebb or regular web servers like Apache or LiteSpeed or
+Lighttpd or IIS. The Ruby web servers are run through Rack and the latter can either be setup to use
+FCGI or proxy to a pack of Mongrels/Thin/Ebb servers.
 
-And finally, if neither Mongrel or lighttpd are installed, Rails will use the built-in Ruby
-web server, WEBrick. WEBrick is a small Ruby web server suitable for development, but not
-for production.
-
-But of course its also possible to run Rails on any platform that supports FCGI.
-Apache, LiteSpeed, IIS are just a few. For more information on FCGI,
-please visit: http://wiki.rubyonrails.com/rails/pages/FastCGI
-
-
-== Apache .htaccess example
+== Apache .htaccess example for FCGI/CGI
 
 # General Apache options
 AddHandler fastcgi-script .fcgi
