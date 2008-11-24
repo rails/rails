@@ -53,6 +53,7 @@ module ActionController
   autoload :Flash, 'action_controller/flash'
   autoload :Helpers, 'action_controller/helpers'
   autoload :HttpAuthentication, 'action_controller/http_authentication'
+  autoload :Integration, 'action_controller/integration'
   autoload :IntegrationTest, 'action_controller/integration'
   autoload :Layout, 'action_controller/layout'
   autoload :MimeResponds, 'action_controller/mime_responds'
@@ -73,6 +74,15 @@ module ActionController
   autoload :UrlRewriter, 'action_controller/url_rewriter'
   autoload :UrlWriter, 'action_controller/url_rewriter'
   autoload :Verification, 'action_controller/verification'
+
+  module Assertions
+    autoload :DomAssertions, 'action_controller/assertions/dom_assertions'
+    autoload :ModelAssertions, 'action_controller/assertions/model_assertions'
+    autoload :ResponseAssertions, 'action_controller/assertions/response_assertions'
+    autoload :RoutingAssertions, 'action_controller/assertions/routing_assertions'
+    autoload :SelectorAssertions, 'action_controller/assertions/selector_assertions'
+    autoload :TagAssertions, 'action_controller/assertions/tag_assertions'
+  end
 
   module Http
     autoload :Headers, 'action_controller/headers'

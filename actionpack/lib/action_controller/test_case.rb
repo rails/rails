@@ -107,7 +107,6 @@ module ActionController
   class TestCase < ActiveSupport::TestCase
     module Assertions
       %w(response selector tag dom routing model).each do |kind|
-        require "action_controller/assertions/#{kind}_assertions"
         include ActionController::Assertions.const_get("#{kind.camelize}Assertions")
       end
 
