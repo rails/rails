@@ -1,5 +1,4 @@
 require 'action_view'
-require 'drb'
 require 'set'
 
 module ActionController #:nodoc:
