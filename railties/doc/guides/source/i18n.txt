@@ -58,14 +58,14 @@ You can pick whatever directory and translation file naming scheme makes sense f
 I18n.load_path += Dir[ File.join(RAILS_ROOT, 'lib', 'locale', '*.{rb,yml}') ]
 
 # you can omit this if you're happy with English as a default locale
-I18n.default_locale = :"pt-BR" 
+I18n.default_locale = :"pt" 
 -------------------------------------------------------
 
 I18n.load_path is just a Ruby Array of paths to your translation files. The backend will lazy-load these translations when a translation is looked up for the first time. This makes it possible to just swap the backend with something else even after translations have already been announced.
 
 === Set the locale in each request
 
-By default the I18n library will use the I18n.default_locale for looking up translations (if you do not specify a locale for a lookup) and this will, by default, en-US (American English).
+By default the I18n library will use the I18n.default_locale for looking up translations (if you do not specify a locale for a lookup) and this will, by default, en (English).
 
 If you want to translate your Rails application to a single language other than English you can set I18n.default_locale to your locale. If you want to change the locale on a per-request basis though you can set it in a before_filter on the ApplicationController like this:
 
@@ -137,7 +137,7 @@ So let's add the missing translations (i.e. do the "localization" part):
 
 [source, ruby]
 -------------------------------------------------------
-# lib/locale/en-US.yml
+# lib/locale/en.yml
 en-US:
   hello_world: Hello World
   hello_flash: Hello Flash
@@ -252,7 +252,7 @@ All options besides :default and :scope that are passed to #translate will be in
 
 [source, ruby]
 -------------------------------------------------------
-I18n.backend.store_translations 'en-US', :thanks => 'Thanks {{name}}!'
+I18n.backend.store_translations 'en', :thanks => 'Thanks {{name}}!'
 I18n.translate :thanks, :name => 'Jeremy'
 # => 'Thanks Jeremy!'
 -------------------------------------------------------
@@ -294,7 +294,7 @@ If no locale is passed I18n.locale is used:
 
 [source, ruby]
 -------------------------------------------------------
-I18n.locale = :'de-DE'
+I18n.locale = :'de'
 I18n.t :foo 
 I18n.l Time.now
 -------------------------------------------------------
@@ -303,15 +303,15 @@ Explicitely passing a locale:
 
 [source, ruby]
 -------------------------------------------------------
-I18n.t :foo, :locale => :'de-DE'
-I18n.l Time.now, :locale => :'de-DE'
+I18n.t :foo, :locale => :'de'
+I18n.l Time.now, :locale => :'de'
 -------------------------------------------------------
 
-I18n.locale defaults to I18n.default_locale which defaults to :'en-US'. The default locale can be set like this:
+I18n.locale defaults to I18n.default_locale which defaults to :'en'. The default locale can be set like this:
 
 [source, ruby]
 -------------------------------------------------------
-I18n.default_locale = :'de-DE'
+I18n.default_locale = :'de'
 -------------------------------------------------------
 
 == How to store your custom translations
@@ -346,7 +346,7 @@ Here is a "real" example from the ActiveSupport en-US translations YAML file:
 
 [source, ruby]
 -------------------------------------------------------
-"en-US":
+"en":
   date:
     formats:
       default: "%Y-%m-%d"
@@ -370,7 +370,7 @@ You can use the methods Model.human_name and Model.human_attribute_name(attribut
 
 For example when you add the following translations:
 
-en-US:
+en:
   activerecord:
     models:
       user: Dude
@@ -479,7 +479,7 @@ Rails ships with the following translations:
 
 [source, ruby]
 -------------------------------------------------------
-"en-US":
+"en":
   activerecord:
     errors:
       template:
@@ -526,6 +526,7 @@ TODO
 
 == Resources
 
+* http://rails-i18n.org
 
 == Footnotes
 
