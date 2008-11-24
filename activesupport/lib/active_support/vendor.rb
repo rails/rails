@@ -6,6 +6,7 @@ begin
 rescue Gem::LoadError
   $:.unshift "#{File.dirname(__FILE__)}/vendor/builder-2.1.2"
 end
+require 'builder'
 
 begin
   gem 'xml-simple', '~> 1.0.11'
