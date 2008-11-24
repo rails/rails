@@ -1,5 +1,7 @@
 *2.3.0 [Edge]*
 
+* Add a rake task to generate dispatchers : rake rails:generate_dispatchers [Pratik]
+
 * "rails <app>" will not generate public/dispatch.cgi/fcgi/rb files by default now. Please use "--with-dispatchers" option if you need them. [Yaroslav Markin, Pratik Naik]
 
 * Added rake rails:update:application_controller to renamed application.rb to application_controller.rb -- included in rake rails:update so upgrading to 2.3 will automatically trigger it #1439 [kastner]

@@ -124,5 +124,13 @@ namespace :rails do
         puts "#{old_style} has been renamed to #{new_style}, update your SCM as necessary"
       end
     end
+    
+    desc "Generate dispatcher files in RAILS_ROOT/public"
+    task :generate_dispatchers do
+      require 'railties_path'
+      FileUtils.cp(RAILTIES_PATH + '/dispatches/dispatch.fcgi', RAILS_ROOT + '/public/dispatch.fcgi')
+      FileUtils.cp(RAILTIES_PATH + '/dispatches/dispatch.rb', RAILS_ROOT + '/public/dispatch.rb')
+      FileUtils.cp(RAILTIES_PATH + '/dispatches/dispatch.rb', RAILS_ROOT + '/public/dispatch.cgi')
+    end
   end
 end
