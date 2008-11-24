@@ -3,6 +3,13 @@ require 'benchmark'
 module ActiveSupport
   # See ActiveSupport::Cache::Store for documentation.
   module Cache
+    autoload :FileStore, 'active_support/cache/file_store'
+    autoload :MemoryStore, 'active_support/cache/memory_store'
+    autoload :SynchronizedMemoryStore, 'active_support/cache/synchronized_memory_store'
+    autoload :DRbStore, 'active_support/cache/drb_store'
+    autoload :MemCacheStore, 'active_support/cache/mem_cache_store'
+    autoload :CompressedMemCacheStore, 'active_support/cache/compressed_mem_cache_store'
+
     # Creates a new CacheStore object according to the given options.
     #
     # If no arguments are passed to this method, then a new
@@ -215,9 +222,3 @@ module ActiveSupport
     end
   end
 end
-
-require 'active_support/cache/file_store'
-require 'active_support/cache/memory_store'
-require 'active_support/cache/drb_store'
-require 'active_support/cache/mem_cache_store'
-require 'active_support/cache/compressed_mem_cache_store'

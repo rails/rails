@@ -7,6 +7,8 @@ module ActionController
       # Mapper instances have relatively few instance methods, in order to avoid
       # clashes with named routes.
       class Mapper #:doc:
+        include ActionController::Resources
+
         def initialize(set) #:nodoc:
           @set = set
         end

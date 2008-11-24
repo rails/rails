@@ -669,7 +669,3 @@ module ActionController
       end
   end
 end
-
-class ActionController::Routing::RouteSet::Mapper
-  include ActionController::Resources
-end

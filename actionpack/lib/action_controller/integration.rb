@@ -1,7 +1,3 @@
-require 'action_controller/test_case'
-require 'action_controller/dispatcher'
-require 'action_controller/test_process'
-
 require 'stringio'
 require 'uri'
 

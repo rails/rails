@@ -1,10 +1,9 @@
-require 'action_view/template_handler'
-require 'action_view/template_handlers/builder'
-require 'action_view/template_handlers/erb'
-require 'action_view/template_handlers/rjs'
-
 module ActionView #:nodoc:
   module TemplateHandlers #:nodoc:
+    autoload :ERB, 'action_view/template_handlers/erb'
+    autoload :RJS, 'action_view/template_handlers/rjs'
+    autoload :Builder, 'action_view/template_handlers/builder'
+
     def self.extended(base)
       base.register_default_template_handler :erb, TemplateHandlers::ERB
       base.register_template_handler :rjs, TemplateHandlers::RJS

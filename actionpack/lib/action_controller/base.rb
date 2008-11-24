@@ -1,12 +1,4 @@
-require 'action_controller/mime_type'
-require 'action_controller/request'
-require 'action_controller/response'
-require 'action_controller/routing'
-require 'action_controller/resources'
-require 'action_controller/url_rewriter'
-require 'action_controller/status_codes'
 require 'action_view'
-require 'drb'
 require 'set'
 
 module ActionController #:nodoc:
@@ -1331,5 +1323,12 @@ module ActionController #:nodoc:
       def process_cleanup
         close_session
       end
+  end
+
+  Base.class_eval do
+    include Flash, Filters, Layout, Benchmarking, Rescue, MimeResponds, Helpers
+    include Cookies, Caching, Verification, Streaming
+    include SessionManagement, HttpAuthentication::Basic::ControllerMethods
+    include RecordIdentifier, RequestForgeryProtection, Translation
   end
 end

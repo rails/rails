@@ -1,5 +1,4 @@
 require 'action_controller/cgi_ext'
-require 'action_controller/session/cookie_store'
 
 module ActionController #:nodoc:
   class RackRequest < AbstractRequest #:nodoc:

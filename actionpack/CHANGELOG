@@ -27,7 +27,9 @@
 * Fixed RedCloth and BlueCloth shouldn't preload. Instead just assume that they're available if you want to use textilize and markdown and let autoload require them [DHH]
 
 
-*2.2.1 [RC2] (November 14th, 2008)*
+*2.2.2 (November 21st, 2008)*
+
+* I18n: translate number_to_human_size. Add storage_units: [Bytes, KB, MB, GB, TB] to your translations.  #1448 [Yaroslav Markin]
 
 * Restore backwards compatible functionality for setting relative_url_root.  Include deprecation
 

@@ -1,5 +1,4 @@
 require 'abstract_unit'
-require 'action_controller/cgi_process'
 
 class BaseCgiTest < Test::Unit::TestCase
   def setup
