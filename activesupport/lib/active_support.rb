@@ -23,7 +23,7 @@
 
 module ActiveSupport
   def self.load_all!
-    [Dependencies, Deprecation, Gzip, JSON, MessageVerifier, Multibyte, SecureRandom, TimeWithZone]
+    [Dependencies, Deprecation, Gzip, MessageVerifier, Multibyte, SecureRandom, TimeWithZone]
   end
 
   autoload :BacktraceCleaner, 'active_support/backtrace_cleaner'
