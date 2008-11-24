@@ -18,6 +18,7 @@ module Builder
 end
 
 if ! defined?(Builder::XChar)
+  Builder.check_for_name_collision(String, "to_xs")
   Builder.check_for_name_collision(Fixnum, "xchr")
 end
 
@@ -104,12 +105,11 @@ end
 # Enhance the String class with a XML escaped character version of
 # to_s.
 #
-require 'active_support/core_ext/string/xchar'
 class String
   # XML escaped version of to_s
   def to_xs
     unpack('U*').map {|n| n.xchr}.join # ASCII, UTF-8
   rescue
     unpack('C*').map {|n| n.xchr}.join # ISO-8859-1, WIN-1252
-  end unless method_defined?(:to_xs)
+  end
 end
