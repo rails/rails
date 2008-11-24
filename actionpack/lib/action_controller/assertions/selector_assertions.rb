@@ -3,8 +3,7 @@
 # Under MIT and/or CC By license.
 #++
 
-require 'rexml/document'
-require 'html/document'
+require 'action_controller/vendor/html-scanner'
 
 module ActionController
   module Assertions
