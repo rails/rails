@@ -1,6 +1,7 @@
 require 'erb'
 require 'yaml'
 require 'csv'
+require 'active_support/dependencies'
 require 'active_support/test_case'
 
 if RUBY_VERSION < '1.9'
