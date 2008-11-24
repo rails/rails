@@ -50,6 +50,7 @@ module ActiveRecord
   autoload :Dirty, 'active_record/dirty'
   autoload :DynamicFinderMatch, 'active_record/dynamic_finder_match'
   autoload :Migration, 'active_record/migration'
+  autoload :Migrator, 'active_record/migration'
   autoload :NamedScope, 'active_record/named_scope'
   autoload :Observing, 'active_record/observer'
   autoload :QueryCache, 'active_record/query_cache'
