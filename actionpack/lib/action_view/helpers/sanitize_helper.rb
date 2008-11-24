@@ -1,5 +1,4 @@
 require 'action_view/helpers/tag_helper'
-require 'action_controller/vendor/html-scanner'
 
 module ActionView
   module Helpers #:nodoc:

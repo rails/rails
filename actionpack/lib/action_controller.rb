@@ -31,8 +31,6 @@ rescue LoadError
   end
 end
 
-$:.unshift "#{File.dirname(__FILE__)}/action_controller/vendor/html-scanner"
-
 module ActionController
   # TODO: Review explicit to see if they will automatically be handled by
   # the initilizer if they are really needed.
@@ -99,6 +97,8 @@ class CGI
 end
 
 autoload :Mime, 'action_controller/mime_type'
+
+autoload :HTML, 'action_controller/vendor/html-scanner'
 autoload :Rack, 'action_controller/vendor/rack'
 
 ActionController.load_all!

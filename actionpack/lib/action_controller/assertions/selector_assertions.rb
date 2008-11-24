@@ -3,8 +3,6 @@
 # Under MIT and/or CC By license.
 #++
 
-require 'action_controller/vendor/html-scanner'
-
 module ActionController
   module Assertions
     unless const_defined?(:NO_STRIP)
