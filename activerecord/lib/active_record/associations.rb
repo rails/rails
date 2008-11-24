@@ -1,13 +1,3 @@
-require 'active_record/associations/association_proxy'
-require 'active_record/associations/association_collection'
-require 'active_record/associations/belongs_to_association'
-require 'active_record/associations/belongs_to_polymorphic_association'
-require 'active_record/associations/has_one_association'
-require 'active_record/associations/has_many_association'
-require 'active_record/associations/has_many_through_association'
-require 'active_record/associations/has_and_belongs_to_many_association'
-require 'active_record/associations/has_one_through_association'
-
 module ActiveRecord
   class HasManyThroughAssociationNotFoundError < ActiveRecordError #:nodoc:
     def initialize(owner_class_name, reflection)
@@ -75,6 +65,18 @@ module ActiveRecord
 
   # See ActiveRecord::Associations::ClassMethods for documentation.
   module Associations # :nodoc:
+    # These classes will be loaded when associatoins are created.
+    # So there is no need to eager load them.
+    autoload :AssociationCollection, 'active_record/associations/association_collection'
+    autoload :AssociationProxy, 'active_record/associations/association_proxy'
+    autoload :BelongsToAssociation, 'active_record/associations/belongs_to_association'
+    autoload :BelongsToPolymorphicAssociation, 'active_record/associations/belongs_to_polymorphic_association'
+    autoload :HasAndBelongsToManyAssociation, 'active_record/associations/has_and_belongs_to_many_association'
+    autoload :HasManyAssociation, 'active_record/associations/has_many_association'
+    autoload :HasManyThroughAssociation, 'active_record/associations/has_many_through_association'
+    autoload :HasOneAssociation, 'active_record/associations/has_one_association'
+    autoload :HasOneThroughAssociation, 'active_record/associations/has_one_through_association'
+
     def self.included(base)
       base.extend(ClassMethods)
     end

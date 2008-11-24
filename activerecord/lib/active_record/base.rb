@@ -2978,4 +2978,15 @@ module ActiveRecord #:nodoc:
         value
       end
   end
+
+  Base.class_eval do
+    extend QueryCache
+    include Validations
+    include Locking::Optimistic, Locking::Pessimistic
+    include AttributeMethods
+    include Dirty
+    include Callbacks, Observing, Timestamp
+    include Associations, AssociationPreload, NamedScope
+    include Aggregations, Transactions, Reflection, Calculations, Serialization
+  end
 end
