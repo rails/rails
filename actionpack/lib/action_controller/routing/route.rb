@@ -35,6 +35,11 @@ module ActionController
           segment.key if segment.respond_to? :key
         end.compact
       end
+      
+      def required_segment_keys
+        required_segments = segments.select {|seg| (!seg.optional? && !seg.is_a?(DividerSegment)) || seg.is_a?(PathSegment) }
+        required_segments.collect { |seg| seg.key if seg.respond_to?(:key)}.compact
+      end
 
       # Build a query string from the keys of the given hash. If +only_keys+
       # is given (as an array), only the keys indicated will be used to build

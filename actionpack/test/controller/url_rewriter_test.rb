@@ -301,6 +301,41 @@ class UrlWriterTests < ActionController::TestCase
     assert_generates("/image", :controller=> :image)
   end
 
+  def test_named_routes_with_nil_keys
+    add_host!
+    ActionController::Routing::Routes.draw do |map|
+      map.main '', :controller => 'posts'
+      map.resources :posts
+      map.connect ':controller/:action/:id'
+    end
+    # We need to create a new class in order to install the new named route.
+    kls = Class.new { include ActionController::UrlWriter }
+    controller = kls.new
+    params = {:action => :index, :controller => :posts, :format => :xml}
+    assert_equal("http://www.basecamphq.com/posts.xml", controller.send(:url_for, params))    
+    params[:format] = nil
+    assert_equal("http://www.basecamphq.com/", controller.send(:url_for, params))    
+  ensure
+    ActionController::Routing::Routes.load!
+  end
+
+  def test_formatted_url_methods_are_deprecated
+    ActionController::Routing::Routes.draw do |map|
+      map.resources :posts
+    end
+    # We need to create a new class in order to install the new named route.
+    kls = Class.new { include ActionController::UrlWriter }
+    controller = kls.new
+    params = {:id => 1, :format => :xml}
+    assert_deprecated do
+      assert_equal("/posts/1.xml", controller.send(:formatted_post_path, params))    
+    end
+    assert_deprecated do
+      assert_equal("/posts/1.xml", controller.send(:formatted_post_path, 1, :xml))    
+    end
+  ensure
+    ActionController::Routing::Routes.load!
+  end
   private
     def extract_params(url)
       url.split('?', 2).last.split('&')
