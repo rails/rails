@@ -57,10 +57,7 @@ module Rails
     end
 
     def env
-      @_env ||= begin
-        require 'active_support/string_inquirer'
-        ActiveSupport::StringInquirer.new(RAILS_ENV)
-      end
+      @_env ||= ActiveSupport::StringInquirer.new(RAILS_ENV)
     end
 
     def cache
@@ -263,7 +260,7 @@ module Rails
     def require_frameworks
       configuration.frameworks.each { |framework| require(framework.to_s) }
     rescue LoadError => e
-      # re-raise because Mongrel would swallow it
+      # Re-raise as RuntimeError because Mongrel would swallow LoadError.
       raise e.to_s
     end
 
@@ -869,10 +866,10 @@ Run `rake gems:install` to install the missing gems.
 
     def framework_paths
       paths = %w(railties railties/lib activesupport/lib)
-      paths << 'actionpack/lib' if frameworks.include? :action_controller or frameworks.include? :action_view
+      paths << 'actionpack/lib' if frameworks.include?(:action_controller) || frameworks.include?(:action_view)
 
       [:active_record, :action_mailer, :active_resource, :action_web_service].each do |framework|
-        paths << "#{framework.to_s.gsub('_', '')}/lib" if frameworks.include? framework
+        paths << "#{framework.to_s.gsub('_', '')}/lib" if frameworks.include?(framework)
       end
 
       paths.map { |dir| "#{framework_root_path}/#{dir}" }.select { |dir| File.directory?(dir) }
