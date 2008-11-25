@@ -6,6 +6,9 @@ require 'mocha'
 
 require 'active_model'
 require 'active_model/state_machine'
+
+$:.unshift File.dirname(__FILE__) + "/../../activesupport/lib"
+require 'active_support'
 require 'active_support/test_case'
 
 class ActiveModel::TestCase < ActiveSupport::TestCase
