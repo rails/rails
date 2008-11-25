@@ -1,4 +1,4 @@
-require 'test/unit'
+require 'abstract_unit'
 
 # Must set before requiring generator libs.
 if defined?(RAILS_ROOT)
