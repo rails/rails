@@ -74,6 +74,7 @@ module Rails
 
     def dependencies
       return [] if framework_gem?
+      return [] if specification.nil?
       all_dependencies = specification.dependencies.map do |dependency|
         GemDependency.new(dependency.name, :requirement => dependency.version_requirements)
       end
