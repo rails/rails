@@ -31,6 +31,8 @@ rescue LoadError
   end
 end
 
+require 'action_view'
+
 module ActionMailer
   def self.load_all!
     [Base, Part, ::Text::Format, ::Net::SMTP]
