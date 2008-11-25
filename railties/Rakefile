@@ -45,7 +45,6 @@ BASE_DIRS = %w(
   config/environments
   config/initializers
   config/locales
-  components
   db
   doc
   log

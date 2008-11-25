@@ -624,7 +624,7 @@ Run `rake gems:install` to install the missing gems.
     attr_accessor :cache_classes
 
     # The list of paths that should be searched for controllers. (Defaults
-    # to <tt>app/controllers</tt> and <tt>components</tt>.)
+    # to <tt>app/controllers</tt>.)
     attr_accessor :controller_paths
 
     # The path to the database configuration file to use. (Defaults to
@@ -912,9 +912,6 @@ Run `rake gems:install` to install the missing gems.
         # Add the app's controller directory
         paths.concat(Dir["#{root_path}/app/controllers/"])
 
-        # Then components subdirectories.
-        paths.concat(Dir["#{root_path}/components/[_a-z]*"])
-
         # Followed by the standard includes.
         paths.concat %w(
           app
@@ -922,7 +919,6 @@ Run `rake gems:install` to install the missing gems.
           app/controllers
           app/helpers
           app/services
-          components
           config
           lib
           vendor
