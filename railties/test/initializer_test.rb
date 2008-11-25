@@ -291,6 +291,9 @@ uses_mocha 'i18n settings' do
       config = Rails::Configuration.new
       config.i18n.load_path << "my/other/locale.yml"
 
+      # To bring in AV's i18n load path.
+      require 'action_view'
+
       Rails::Initializer.run(:initialize_i18n, config)
       assert_equal [ 
        File.expand_path("./test/../../activesupport/lib/active_support/locale/en.yml"),
