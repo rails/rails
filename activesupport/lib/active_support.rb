@@ -32,7 +32,6 @@ module ActiveSupport
   autoload :BufferedLogger, 'active_support/buffered_logger'
   autoload :Cache, 'active_support/cache'
   autoload :Callbacks, 'active_support/callbacks'
-  autoload :Dependencies, 'active_support/dependencies'
   autoload :Deprecation, 'active_support/deprecation'
   autoload :Duration, 'active_support/duration'
   autoload :Gzip, 'active_support/gzip'
@@ -52,6 +51,7 @@ end
 
 require 'active_support/vendor'
 require 'active_support/core_ext'
+require 'active_support/dependencies'
 require 'active_support/json'
 
 I18n.load_path << "#{File.dirname(__FILE__)}/active_support/locale/en.yml"
