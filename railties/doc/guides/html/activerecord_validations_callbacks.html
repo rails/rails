@@ -301,7 +301,7 @@ ul#navMain {
 					<a href="#_halting_execution">Halting Execution</a>
 					</li>
 					<li>
-					<a href="#_callback_classes_and_objects">Callback classes and objects</a>
+					<a href="#_callback_classes">Callback classes</a>
 					</li>
 					<li>
 					<a href="#_changelog">Changelog</a>
@@ -1086,8 +1086,54 @@ Readability, since your callback declarations will live at the beggining of your
 <div class="sectionbody">
 <div class="para"><p>As you start registering new callbacks for your models, they will be queued for execution. This queue will include all your model's validations, the registered callbacks and the database operation to be executed. However, if at any moment one of the callback methods returns a boolean <tt>false</tt> (not <tt>nil</tt>) value, this execution chain will be halted and the desired operation will not complete: your model will not get persisted in the database, or your records will not get deleted and so on.</p></div>
 </div>
-<h2 id="_callback_classes_and_objects">11. Callback classes and objects</h2>
+<h2 id="_callback_classes">11. Callback classes</h2>
 <div class="sectionbody">
+<div class="para"><p>Sometimes the callback methods that you'll write will be useful enough to be reused at other models. Active Record makes it possible to create classes that encapsulate the callback methods, so it becomes very easy to reuse them.</p></div>
+<div class="para"><p>Here's an example where we create a class with a after_destroy callback for a PictureFile model.</p></div>
+<div class="listingblock">
+<div class="content"><!-- Generator: GNU source-highlight 2.9
+by Lorenzo Bettini
+http://www.lorenzobettini.it
+http://www.gnu.org/software/src-highlite -->
+<pre><tt><span style="font-weight: bold"><span style="color: #0000FF">class</span></span> PictureFileCallbacks
+  <span style="font-weight: bold"><span style="color: #0000FF">def</span></span> after_destroy<span style="color: #990000">(</span>picture_file<span style="color: #990000">)</span>
+    File<span style="color: #990000">.</span>delete<span style="color: #990000">(</span>picture_file<span style="color: #990000">.</span>filepath<span style="color: #990000">)</span> <span style="font-weight: bold"><span style="color: #0000FF">if</span></span> File<span style="color: #990000">.</span>exists?<span style="color: #990000">(</span>picture_file<span style="color: #990000">.</span>filepath<span style="color: #990000">)</span>
+  <span style="font-weight: bold"><span style="color: #0000FF">end</span></span>
+<span style="font-weight: bold"><span style="color: #0000FF">end</span></span>
+</tt></pre></div></div>
+<div class="para"><p>When declared inside a class the callback method will receive the model object as a parameter. We can now use it this way:</p></div>
+<div class="listingblock">
+<div class="content"><!-- Generator: GNU source-highlight 2.9
+by Lorenzo Bettini
+http://www.lorenzobettini.it
+http://www.gnu.org/software/src-highlite -->
+<pre><tt><span style="font-weight: bold"><span style="color: #0000FF">class</span></span> PictureFile <span style="color: #990000">&lt;</span> ActiveRecord<span style="color: #990000">::</span>Base
+  after_destroy PictureFileCallbacks<span style="color: #990000">.</span>new
+<span style="font-weight: bold"><span style="color: #0000FF">end</span></span>
+</tt></pre></div></div>
+<div class="para"><p>Note that we needed to instantiate a new PictureFileCallbacks object, since we declared our callback as an instance method. Sometimes it will make more sense to have it as a class method.</p></div>
+<div class="listingblock">
+<div class="content"><!-- Generator: GNU source-highlight 2.9
+by Lorenzo Bettini
+http://www.lorenzobettini.it
+http://www.gnu.org/software/src-highlite -->
+<pre><tt><span style="font-weight: bold"><span style="color: #0000FF">class</span></span> PictureFileCallbacks
+  <span style="font-weight: bold"><span style="color: #0000FF">def</span></span> <span style="font-weight: bold"><span style="color: #0000FF">self</span></span><span style="color: #990000">.</span>after_destroy<span style="color: #990000">(</span>picture_file<span style="color: #990000">)</span>
+    File<span style="color: #990000">.</span>delete<span style="color: #990000">(</span>picture_file<span style="color: #990000">.</span>filepath<span style="color: #990000">)</span> <span style="font-weight: bold"><span style="color: #0000FF">if</span></span> File<span style="color: #990000">.</span>exists?<span style="color: #990000">(</span>picture_file<span style="color: #990000">.</span>filepath<span style="color: #990000">)</span>
+  <span style="font-weight: bold"><span style="color: #0000FF">end</span></span>
+<span style="font-weight: bold"><span style="color: #0000FF">end</span></span>
+</tt></pre></div></div>
+<div class="para"><p>If the callback method is declared this way, it won't be necessary to instantiate a PictureFileCallbacks object.</p></div>
+<div class="listingblock">
+<div class="content"><!-- Generator: GNU source-highlight 2.9
+by Lorenzo Bettini
+http://www.lorenzobettini.it
+http://www.gnu.org/software/src-highlite -->
+<pre><tt><span style="font-weight: bold"><span style="color: #0000FF">class</span></span> PictureFile <span style="color: #990000">&lt;</span> ActiveRecord<span style="color: #990000">::</span>Base
+  after_destroy PictureFileCallbacks
+<span style="font-weight: bold"><span style="color: #0000FF">end</span></span>
+</tt></pre></div></div>
+<div class="para"><p>You can declare as many callbacks as you want inside your callback classes.</p></div>
 </div>
 <h2 id="_changelog">12. Changelog</h2>
 <div class="sectionbody">

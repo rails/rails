@@ -589,10 +589,51 @@ The +after_initialize+ and +after_find+ callbacks are a bit different from the o
 
 As you start registering new callbacks for your models, they will be queued for execution. This queue will include all your model's validations, the registered callbacks and the database operation to be executed. However, if at any moment one of the callback methods returns a boolean +false+ (not +nil+) value, this execution chain will be halted and the desired operation will not complete: your model will not get persisted in the database, or your records will not get deleted and so on.
 
+== Callback classes
 
-== Callback classes and objects
+Sometimes the callback methods that you'll write will be useful enough to be reused at other models. Active Record makes it possible to create classes that encapsulate the callback methods, so it becomes very easy to reuse them.
 
+Here's an example where we create a class with a after_destroy callback for a PictureFile model.
 
+[source, ruby]
+------------------------------------------------------------------
+class PictureFileCallbacks
+  def after_destroy(picture_file)
+    File.delete(picture_file.filepath) if File.exists?(picture_file.filepath)
+  end
+end
+------------------------------------------------------------------
+
+When declared inside a class the callback method will receive the model object as a parameter. We can now use it this way:
+
+[source, ruby]
+------------------------------------------------------------------
+class PictureFile < ActiveRecord::Base
+  after_destroy PictureFileCallbacks.new
+end
+------------------------------------------------------------------
+
+Note that we needed to instantiate a new PictureFileCallbacks object, since we declared our callback as an instance method. Sometimes it will make more sense to have it as a class method.
+
+[source, ruby]
+------------------------------------------------------------------
+class PictureFileCallbacks
+  def self.after_destroy(picture_file)
+    File.delete(picture_file.filepath) if File.exists?(picture_file.filepath)
+  end
+end 
+------------------------------------------------------------------
+
+If the callback method is declared this way, it won't be necessary to instantiate a PictureFileCallbacks object.
+
+[source, ruby]
+------------------------------------------------------------------
+class PictureFile < ActiveRecord::Base
+  after_destroy PictureFileCallbacks
+end
+------------------------------------------------------------------
+
+You can declare as many callbacks as you want inside your callback classes.
 
 == Changelog
 
