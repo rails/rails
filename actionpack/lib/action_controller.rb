@@ -31,6 +31,9 @@ rescue LoadError
   end
 end
 
+gem 'rack', '~> 0.4.0'
+require 'rack'
+
 module ActionController
   # TODO: Review explicit to see if they will automatically be handled by
   # the initilizer if they are really needed.
@@ -99,6 +102,5 @@ end
 autoload :Mime, 'action_controller/mime_type'
 
 autoload :HTML, 'action_controller/vendor/html-scanner'
-autoload :Rack, 'action_controller/vendor/rack'
 
 require 'action_view'
