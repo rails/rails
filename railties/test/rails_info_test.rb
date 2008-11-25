@@ -61,14 +61,14 @@ EOS
     assert_property 'Goodbye', 'World'
   end
 
-  def test_component_version
+  def test_framework_version
     assert_property 'Active Support version', ActiveSupport::VERSION::STRING
   end
 
-  def test_components_exist
-    Rails::Info.components.each do |component|
-      dir = File.dirname(__FILE__) + "/../../" + component.gsub('_', '')
-      assert File.directory?(dir), "#{component.classify} does not exist"
+  def test_frameworks_exist
+    Rails::Info.frameworks.each do |framework|
+      dir = File.dirname(__FILE__) + "/../../" + framework.gsub('_', '')
+      assert File.directory?(dir), "#{framework.classify} does not exist"
     end
   end
 
