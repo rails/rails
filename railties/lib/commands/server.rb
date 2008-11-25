@@ -1,6 +1,7 @@
 require 'active_support'
+require 'action_controller'
+
 require 'fileutils'
-require 'action_controller/vendor/rack'
 require 'optparse'
 
 # TODO: Push Thin adapter upstream so we don't need worry about requiring it
