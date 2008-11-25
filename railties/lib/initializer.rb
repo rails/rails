@@ -136,6 +136,7 @@ module Rails
       add_gem_load_paths
 
       require_frameworks
+      preload_frameworks
       set_autoload_paths
       add_plugin_load_paths
       load_environment
@@ -262,6 +263,19 @@ module Rails
     rescue LoadError => e
       # Re-raise as RuntimeError because Mongrel would swallow LoadError.
       raise e.to_s
+    end
+
+    # Preload all frameworks specified by the Configuration#frameworks.
+    # Used by Passenger to ensure everything's loaded before forking and
+    # to avoid autoload race conditions in JRuby.
+    def preload_frameworks
+      if configuration.preload_frameworks
+        configuration.frameworks.each do |framework|
+          # String#classify and #constantize aren't available yet.
+          toplevel = Object.const_get(framework.to_s.gsub(/(?:^|_)(.)/) { $1.upcase })
+          toplevel.load_all!
+        end
+      end
     end
 
     # Add the load paths used by support functions such as the info controller
@@ -602,6 +616,9 @@ Run `rake gems:install` to install the missing gems.
     # A stub for setting options on ActiveSupport.
     attr_accessor :active_support
 
+    # Whether to preload all frameworks at startup.
+    attr_accessor :preload_frameworks
+
     # Whether or not classes should be cached (set to false if you want
     # application classes to be reloaded on each request)
     attr_accessor :cache_classes
@@ -768,6 +785,7 @@ Run `rake gems:install` to install the missing gems.
       self.log_level                    = default_log_level
       self.view_path                    = default_view_path
       self.controller_paths             = default_controller_paths
+      self.preload_frameworks           = default_preload_frameworks
       self.cache_classes                = default_cache_classes
       self.dependency_loading           = default_dependency_loading
       self.whiny_nils                   = default_whiny_nils
@@ -810,6 +828,7 @@ Run `rake gems:install` to install the missing gems.
     # multiple database connections. Also disables automatic dependency loading
     # after boot
     def threadsafe!
+      self.preload_frameworks = true
       self.cache_classes = true
       self.dependency_loading = false
       self.action_controller.allow_concurrency = true
@@ -953,6 +972,10 @@ Run `rake gems:install` to install the missing gems.
 
       def default_dependency_loading
         true
+      end
+
+      def default_preload_frameworks
+        false
       end
 
       def default_cache_classes

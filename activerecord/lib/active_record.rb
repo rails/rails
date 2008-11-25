@@ -75,5 +75,3 @@ end
 
 require 'active_record/i18n_interpolation_deprecation'
 I18n.load_path << File.dirname(__FILE__) + '/active_record/locale/en.yml'
-
-ActiveRecord.load_all! unless ENV['LAZY']

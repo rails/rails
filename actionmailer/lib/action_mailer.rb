@@ -57,5 +57,3 @@ end
 
 autoload :MailHelper, 'action_mailer/mail_helper'
 autoload :TMail, 'action_mailer/vendor/tmail'
-
-ActionMailer.load_all! unless ENV['LAZY']

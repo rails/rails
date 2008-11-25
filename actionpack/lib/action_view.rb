@@ -55,5 +55,3 @@ class ERB
 end
 
 I18n.load_path << "#{File.dirname(__FILE__)}/action_view/locale/en.yml"
-
-ActionView.load_all! unless ENV['LAZY']

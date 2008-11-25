@@ -100,5 +100,3 @@ autoload :Mime, 'action_controller/mime_type'
 
 autoload :HTML, 'action_controller/vendor/html-scanner'
 autoload :Rack, 'action_controller/vendor/rack'
-
-ActionController.load_all! unless ENV['LAZY']
