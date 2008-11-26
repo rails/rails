@@ -99,7 +99,7 @@ Using generators will save you a large amount of time by writing *boilerplate co
 
 Let's make our own controller with the controller generator. But what command should we use? Let's ask the generator:
 
-NOTE: All Rails console utilities have help text. For commands that require a lot of input to run correctly, you can just try the command without any parameters (like `rails` or `./script/generate`). For others, you can try adding `--help` or `-h` to the end, as in `./script/server --help`.
+NOTE: All Rails console utilities have help text. For commands that require a lot of input to run correctly, you can try the command without any parameters (like `rails` or `./script/generate`). For others, you can try adding `--help` or `-h` to the end, as in `./script/server --help`.
 
 [source,shell]
 ------------------------------------------------------
@@ -143,5 +143,111 @@ $ ./script/generate controller Greeting hello
      create  app/views/greetings/hello.html.erb
 ------------------------------------------------------
 
-Look there! Now what all did this generate? It looks like it made sure a bunch of directories were in our application, and created a controller file, a functional test file, a helper for the view, and a view file. All from one command!
+Look there! Now what all did this generate? It looks like it made sure a bunch of directories were in our application, and created a controller file, a functional test file, a helper for the view, and a view file.
 
+Let's check out the controller and modify it a little (in `app/controllers/greeting_controller.rb`):
+
+[source,ruby]
+------------------------------------------------------
+class GreetingController < ApplicationController
+  def hello
+    @message = "Hello, how are you today? I am exuberant!"
+  end
+
+end
+------------------------------------------------------
+
+Then the view, to display our nice message (in `app/views/greeting/hello.html.erb`):
+
+[source,html]
+------------------------------------------------------
+<h1>A Greeting for You!</h1>
+<p><%= @message %></p>
+------------------------------------------------------
+
+Deal. Go check it out in your browser. Fire up your server. Remember? `./script/server` at the root of your Rails application should do it.
+
+[source,shell]
+------------------------------------------------------
+$ ./script/server
+=> Booting WEBrick...
+------------------------------------------------------
+
+The URL will be `http://localhost:3000/greetings/hello`. I'll wait for you to be suitably impressed.
+
+NOTE: With a normal, plain-old Rails application, your URLs will generally follow the pattern of http://(host)/(controller)/(action), and a URL like http://(host)/(controller) will hit the *index* action of that controller.
+
+"What about data, though?", you ask over a cup of coffee. Rails comes with a generator for data models too. Can you guess its generator name?
+
+[source,shell]
+------------------------------------------------------
+$ ./script/generate model
+Usage: ./script/generate model ModelName [field:type, field:type]
+
+...
+
+Examples:
+    `./script/generate model account`
+
+        creates an Account model, test, fixture, and migration:
+            Model:      app/models/account.rb
+            Test:       test/unit/account_test.rb
+            Fixtures:   test/fixtures/accounts.yml
+            Migration:  db/migrate/XXX_add_accounts.rb
+
+    `./script/generate model post title:string body:text published:boolean`
+
+        creates a Post model with a string title, text body, and published flag.
+------------------------------------------------------
+
+Let's set up a simple model called "HighScore" that will keep track of our highest score on video games we play. Then we'll wire up our controller and view to modify and list our scores.
+
+[source,shell]
+------------------------------------------------------
+$ ./script/generate model HighScore id:integer game:string score:integer
+      exists  app/models/
+      exists  test/unit/
+      exists  test/fixtures/
+      create  app/models/high_score.rb
+      create  test/unit/high_score_test.rb
+      create  test/fixtures/high_scores.yml
+      create  db/migrate
+      create  db/migrate/20081126032945_create_high_scores.rb
+------------------------------------------------------
+
+Taking it from the top, we have the *models* directory, where all of your data models live. *test/unit*, where all the unit tests live (gasp! -- unit tests!), fixtures for those tests, a test, the *migrate* directory, where the database-modifying migrations live, and a migration to create the `high_scores` table with the right fields.
+
+The migration requires that we *migrate*, that is, run some Ruby code (living in that `20081126032945_create_high_scores.rb`) to modify the schema of our database. Which database? The sqlite3 database that Rails will create for you when we run the `rake db:migrate` command. We'll talk more about Rake in-depth in a little while.
+
+[source,shell]
+------------------------------------------------------
+$ rake db:migrate
+(in /home/commandsapp)
+==  CreateHighScores: migrating ===============================================
+-- create_table(:high_scores)
+   -> 0.0070s
+==  CreateHighScores: migrated (0.0077s) ======================================
+------------------------------------------------------
+
+NOTE: Let's talk about unit tests. Unit tests are code that tests and makes assertions about code. In unit testing, we take a little part of code, say a method of a model, and test its inputs and outputs. Unit tests are your friend. The sooner you make peace with the fact that your quality of life will drastically increase when you unit test your code, the better. Seriously. We'll make one in a moment.
+
+Yo! Let's shove a small table into our greeting controller and view, listing our sweet scores.
+
+[source,ruby]
+------------------------------------------------------
+class GreetingController < ApplicationController
+  def hello
+    if request.post?
+      score = HighScore.new(params[:high_score])
+      if score.save
+        flash[:notice] = "New score posted!"
+      end
+    end
+    
+    @scores = HighScore.find(:all)
+  end
+
+end
+------------------------------------------------------
+
+XXX: Go with scaffolding instead, modifying greeting controller for high scores seems dumb.
