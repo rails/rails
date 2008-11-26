@@ -68,8 +68,9 @@ module Rails
         engines.collect(&:controller_path)
       end
       
+      # Returns an array of routing.rb files from all the plugins that include config/routes.rb
       def routing_files
-        engines.select(&:routed?).collect(&:routing_file)
+        plugins.select(&:routed?).collect(&:routing_file)
       end
       
       
