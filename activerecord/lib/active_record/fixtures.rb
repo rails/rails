@@ -913,7 +913,7 @@ module ActiveRecord
       end
     end
 
-    def use_transactional_fixtures?
+    def run_in_transaction?
       use_transactional_fixtures &&
         !self.class.uses_transaction?(method_name)
     end
@@ -929,7 +929,7 @@ module ActiveRecord
       @@already_loaded_fixtures ||= {}
 
       # Load fixtures once and begin transaction.
-      if use_transactional_fixtures?
+      if run_in_transaction?
         if @@already_loaded_fixtures[self.class]
           @loaded_fixtures = @@already_loaded_fixtures[self.class]
         else
@@ -952,12 +952,12 @@ module ActiveRecord
     def teardown_fixtures
       return unless defined?(ActiveRecord) && !ActiveRecord::Base.configurations.blank?
 
-      unless use_transactional_fixtures?
+      unless run_in_transaction?
         Fixtures.reset_cache
       end
 
       # Rollback changes if a transaction is active.
-      if use_transactional_fixtures? && ActiveRecord::Base.connection.open_transactions != 0
+      if run_in_transaction? && ActiveRecord::Base.connection.open_transactions != 0
         ActiveRecord::Base.connection.rollback_db_transaction
         ActiveRecord::Base.connection.decrement_open_transactions
       end
