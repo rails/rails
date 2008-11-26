@@ -200,9 +200,11 @@ module ActionController
           end
       end
 
-      attr_accessor :routes, :named_routes, :configuration_file
+      attr_accessor :routes, :named_routes, :configuration_files
 
       def initialize
+        self.configuration_files = []
+
         self.routes = []
         self.named_routes = NamedRouteCollection.new
 
@@ -216,7 +218,6 @@ module ActionController
       end
 
       def draw
-        clear!
         yield Mapper.new(self)
         install_helpers
       end
@@ -240,8 +241,22 @@ module ActionController
         routes.empty?
       end
 
+      def add_configuration_file(path)
+        self.configuration_files << path
+      end
+
+      # Deprecated accessor
+      def configuration_file=(path)
+        add_configuration_file(path)
+      end
+      
+      # Deprecated accessor
+      def configuration_file
+        configuration_files
+      end
+
       def load!
-        Routing.use_controllers! nil # Clear the controller cache so we may discover new ones
+        Routing.use_controllers!(nil) # Clear the controller cache so we may discover new ones
         clear!
         load_routes!
       end
@@ -250,23 +265,38 @@ module ActionController
       alias reload! load!
 
       def reload
-        if @routes_last_modified && configuration_file
-          mtime = File.stat(configuration_file).mtime
-          # if it hasn't been changed, then just return
-          return if mtime == @routes_last_modified
-          # if it has changed then record the new time and fall to the load! below
-          @routes_last_modified = mtime
+        if configuration_files.any? && @routes_last_modified
+          if routes_changed_at == @routes_last_modified
+            return # routes didn't change, don't reload
+          else
+            @routes_last_modified = routes_changed_at
+          end
         end
+
         load!
       end
 
       def load_routes!
-        if configuration_file
-          load configuration_file
-          @routes_last_modified = File.stat(configuration_file).mtime
+        if configuration_files.any?
+          configuration_files.each { |config| load(config) }
+          @routes_last_modified = routes_changed_at
         else
           add_route ":controller/:action/:id"
         end
+      end
+      
+      def routes_changed_at
+        routes_changed_at = nil
+        
+        configuration_files.each do |config|
+          config_changed_at = File.stat(config).mtime
+
+          if routes_changed_at.nil? || config_changed_at > routes_changed_at
+            routes_changed_at = config_changed_at 
+          end
+        end
+        
+        routes_changed_at
       end
 
       def add_route(path, options = {})
