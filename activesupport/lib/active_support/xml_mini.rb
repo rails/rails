@@ -17,7 +17,7 @@ module XmlMini
   # string::
   #   XML Document string to parse
   def parse(string)
-    require 'rexml/document'
+    require 'rexml/document' unless defined?(REXML::Document)
     doc = REXML::Document.new(string)
     merge_element!({}, doc.root)
   end

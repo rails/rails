@@ -1733,6 +1733,7 @@ module ActiveRecord
             case cond
               when nil   then all
               when Array then all << cond.first
+              when Hash  then all << cond.keys
               else            all << cond
             end
           end
