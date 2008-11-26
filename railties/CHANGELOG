@@ -1,5 +1,7 @@
 *2.3.0 [Edge]*
 
+* Added app/[models|controllers|helpers] to the load path for plugins that has an app directory (go engines ;)) [DHH]
+
 * Add config.preload_frameworks to load all frameworks at startup. Default to false so Rails autoloads itself as it's used. Turn this on for Passenger and JRuby. Also turned on by config.threadsafe!  [Jeremy Kemper]
 
 * Add a rake task to generate dispatchers : rake rails:generate_dispatchers [Pratik]

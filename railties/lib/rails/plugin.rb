@@ -28,13 +28,17 @@ module Rails
     end
     
     def valid?
-      File.directory?(directory) && (has_lib_directory? || has_init_file?)
+      File.directory?(directory) && (has_app_directory? || has_lib_directory? || has_init_file?)
     end
   
     # Returns a list of paths this plugin wishes to make available in <tt>$LOAD_PATH</tt>.
     def load_paths
       report_nonexistant_or_empty_plugin! unless valid?
-      has_lib_directory? ? [lib_path] : []
+      
+      returning [] do |load_paths|
+        load_paths << lib_path  if has_lib_directory?
+        load_paths << app_paths if has_app_directory?
+      end.flatten
     end
 
     # Evaluates a plugin's init.rb file.
@@ -68,7 +72,16 @@ module Rails
 
       def report_nonexistant_or_empty_plugin!
         raise LoadError, "Can not find the plugin named: #{name}"
-      end      
+      end
+
+      
+      def app_paths
+        [ 
+          File.join(directory, 'app', 'models'), 
+          File.join(directory, 'app', 'controllers'),
+          File.join(directory, 'app', 'helpers')
+        ]
+      end
     
       def lib_path
         File.join(directory, 'lib')
@@ -86,6 +99,11 @@ module Rails
         File.file?(gem_init_path) ? gem_init_path : classic_init_path
       end
 
+
+      def has_app_directory?
+        File.directory?(File.join(directory, 'app'))
+      end
+
       def has_lib_directory?
         File.directory?(lib_path)
       end
@@ -93,6 +111,7 @@ module Rails
       def has_init_file?
         File.file?(init_path)
       end
+
 
       def evaluate_init_rb(initializer)
         if has_init_file?

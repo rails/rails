@@ -33,6 +33,7 @@ module Rails
           plugin.load(initializer)
           register_plugin_as_loaded(plugin)
         end
+
         ensure_all_registered_plugins_are_loaded!
       end
       
@@ -45,12 +46,15 @@ module Rails
         plugins.each do |plugin|
           plugin.load_paths.each do |path|
             $LOAD_PATH.insert(application_lib_index + 1, path)
-            ActiveSupport::Dependencies.load_paths      << path
+
+            ActiveSupport::Dependencies.load_paths << path
+
             unless Rails.configuration.reload_plugins?
               ActiveSupport::Dependencies.load_once_paths << path
             end
           end
         end
+
         $LOAD_PATH.uniq!
       end      
       
@@ -59,9 +63,9 @@ module Rails
         # The locate_plugins method uses each class in config.plugin_locators to
         # find the set of all plugins available to this Rails application.
         def locate_plugins
-          configuration.plugin_locators.map { |locator|
+          configuration.plugin_locators.map do |locator|
             locator.new(initializer).plugins
-          }.flatten
+          end.flatten
           # TODO: sorting based on config.plugins
         end
 
