@@ -10,7 +10,8 @@ module ActiveSupport
   # want users to be able to determine the value of the payload.
   class MessageEncryptor
     class InvalidMessage < StandardError; end
-    
+    OpenSSLCipherError = OpenSSL::Cipher.const_defined?(:CipherError) ? OpenSSL::Cipher::CipherError : OpenSSL::CipherError
+
     def initialize(secret, cipher = 'aes-256-cbc')
       @secret = secret
       @cipher = cipher
@@ -43,7 +44,7 @@ module ActiveSupport
       decrypted_data << cipher.final
       
       Marshal.load(decrypted_data)
-    rescue OpenSSL::CipherError, TypeError
+    rescue OpenSSLCipherError, TypeError
       raise InvalidMessage
     end
     
