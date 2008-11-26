@@ -40,7 +40,7 @@ module Rails
         load_paths << app_paths if has_app_directory?
       end.flatten
     end
-
+    
     # Evaluates a plugin's init.rb file.
     def load(initializer)
       return if loaded?
@@ -60,7 +60,26 @@ module Rails
     def about
       @about ||= load_about_information
     end
+
+    # Engines are plugins with an app/ directory.
+    def engine?
+      has_app_directory?
+    end
     
+    # Returns true if the engine ships with a routing file
+    def routed?
+      File.exist?(routing_file)
+    end
+
+    def controller_path
+      File.join(directory, 'app', 'controllers')
+    end
+
+    def routing_file
+      File.join(directory, 'config', 'routes.rb')
+    end
+    
+
     private
       def load_about_information
         about_yml_path = File.join(@directory, "about.yml")
@@ -82,7 +101,7 @@ module Rails
           File.join(directory, 'app', 'helpers')
         ]
       end
-    
+      
       def lib_path
         File.join(directory, 'lib')
       end

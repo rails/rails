@@ -22,6 +22,11 @@ module Rails
         @plugins ||= all_plugins.select { |plugin| should_load?(plugin) }.sort { |p1, p2| order_plugins(p1, p2) }
       end
 
+      # Returns the plugins that are in engine-form (have an app/ directory)
+      def engines
+        @engines ||= plugins.select(&:engine?)
+      end
+
       # Returns all the plugins that could be found by the current locators.
       def all_plugins
         @all_plugins ||= locate_plugins
@@ -56,7 +61,17 @@ module Rails
         end
 
         $LOAD_PATH.uniq!
-      end      
+      end
+      
+      # Returns an array of all the controller paths found inside engine-type plugins.
+      def controller_paths
+        engines.collect(&:controller_path)
+      end
+      
+      def routing_files
+        engines.select(&:routed?).collect(&:routing_file)
+      end
+      
       
       protected
       

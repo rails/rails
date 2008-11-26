@@ -252,6 +252,7 @@ uses_mocha "Initializer plugin loading tests" do
       assert $LOAD_PATH.include?(File.join(plugin_fixture_path('default/acts/acts_as_chunky_bacon'), 'lib'))
     end
 
+
     private
 
       def load_plugins!
