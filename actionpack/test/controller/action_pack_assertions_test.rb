@@ -461,14 +461,14 @@ class ActionPackAssertionsControllerTest < ActionController::TestCase
 
   def test_assert_valid
     get :get_valid_record
-    assert_valid assigns('record')
+    assert_deprecated { assert_valid assigns('record') }
   end
 
   def test_assert_valid_failing
     get :get_invalid_record
 
     begin
-      assert_valid assigns('record')
+      assert_deprecated { assert_valid assigns('record') }
       assert false
     rescue ActiveSupport::TestCase::Assertion => e
     end

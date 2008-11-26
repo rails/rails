@@ -1,4 +1,3 @@
-require 'action_view'
 require 'set'
 
 module ActionController #:nodoc:

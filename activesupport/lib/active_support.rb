@@ -37,6 +37,7 @@ module ActiveSupport
   autoload :Gzip, 'active_support/gzip'
   autoload :Inflector, 'active_support/inflector'
   autoload :Memoizable, 'active_support/memoizable'
+  autoload :MessageEncryptor, 'active_support/message_encryptor'
   autoload :MessageVerifier, 'active_support/message_verifier'
   autoload :Multibyte, 'active_support/multibyte'
   autoload :OptionMerger, 'active_support/option_merger'

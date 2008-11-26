@@ -1,6 +1,7 @@
 require 'active_support'
+require 'action_controller'
+
 require 'fileutils'
-require 'action_controller/vendor/rack'
 require 'optparse'
 
 # TODO: Push Thin adapter upstream so we don't need worry about requiring it
@@ -82,20 +83,9 @@ else
   app = Rack::Builder.new {
     use Rails::Rack::Logger
     use Rails::Rack::Static
+    use Rails::Rack::Debugger if options[:debugger]
     run ActionController::Dispatcher.new
   }.to_app
-end
-
-if options[:debugger]
-  begin
-    require_library_or_gem 'ruby-debug'
-    Debugger.start
-    Debugger.settings[:autoeval] = true if Debugger.respond_to?(:settings)
-    puts "=> Debugger enabled"
-  rescue Exception
-    puts "You need to install ruby-debug to run the server in debugging mode. With gems, use 'gem install ruby-debug'"
-    exit
-  end
 end
 
 puts "=> Call with -d to detach"
