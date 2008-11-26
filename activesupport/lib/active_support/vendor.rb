@@ -9,12 +9,6 @@ end
 require 'builder'
 
 begin
-  gem 'xml-simple', '~> 1.0.11'
-rescue Gem::LoadError
-  $:.unshift "#{File.dirname(__FILE__)}/vendor/xml-simple-1.0.11"
-end
-
-begin
   gem 'memcache-client', '~> 1.5.1'
 rescue Gem::LoadError
   $:.unshift "#{File.dirname(__FILE__)}/vendor/memcache-client-1.5.1"
