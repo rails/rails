@@ -48,6 +48,7 @@ module ActiveSupport
   autoload :StringInquirer, 'active_support/string_inquirer'
   autoload :TimeWithZone, 'active_support/time_with_zone'
   autoload :TimeZone, 'active_support/values/time_zone'
+  autoload :XmlMini, 'active_support/xml_mini'
 end
 
 require 'active_support/vendor'

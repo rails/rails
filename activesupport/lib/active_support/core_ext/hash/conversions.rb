@@ -1,5 +1,4 @@
 require 'date'
-require 'active_support/xml_mini'
 
 module ActiveSupport #:nodoc:
   module CoreExtensions #:nodoc:
