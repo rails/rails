@@ -397,6 +397,10 @@ class MultibyteCharsUTF8BehaviourTest < Test::Unit::TestCase
     assert_raise(ArgumentError) { @chars.slice(1, 1, 1) }
   end
 
+  def test_ord_should_return_unicode_value_for_first_character
+    assert_equal 12371, @chars.ord
+  end
+
   def test_upcase_should_upcase_ascii_characters
     assert_equal '', ''.mb_chars.upcase
     assert_equal 'ABC', 'aBc'.mb_chars.upcase

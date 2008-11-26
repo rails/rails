@@ -1,4 +1,9 @@
-*2.2 (November 21st, 2008)*
+*2.2.3 (next release)*
+
+* Multibyte: add multibyte-safe Chars#ord rather than falling back to String#ord.  #1483 [Jason Cheow]
+
+
+*2.2.2 (November 21st, 2008)*
 
 * TimeZone offset tests: use current_period, to ensure TimeZone#utc_offset is up-to-date [Geoff Buesing]
 

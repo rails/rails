@@ -344,6 +344,14 @@ module ActiveSupport #:nodoc:
       end
       alias_method :[], :slice
 
+      # Converts first character in the string to Unicode value
+      #
+      # Example:
+      #   'こんにちは'.mb_chars.ord #=> 12371
+      def ord
+        self.class.u_unpack(@wrapped_string)[0]
+      end
+
       # Convert characters in the string to uppercase.
       #
       # Example:
