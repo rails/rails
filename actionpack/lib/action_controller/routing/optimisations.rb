@@ -65,7 +65,7 @@ module ActionController
       # rather than triggering the expensive logic in +url_for+.
       class PositionalArguments < Optimiser
         def guard_conditions
-          number_of_arguments = route.segment_keys.size
+          number_of_arguments = route.required_segment_keys.size
           # if they're using foo_url(:id=>2) it's one
           # argument, but we don't want to generate /foos/id2
           if number_of_arguments == 1

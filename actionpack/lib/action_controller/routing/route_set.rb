@@ -185,6 +185,14 @@ module ActionController
                 end
 
                 url_for(#{hash_access_method}(opts))
+                
+              end
+              #Add an alias to support the now deprecated formatted_* URL.
+              def formatted_#{selector}(*args)
+                ActiveSupport::Deprecation.warn(
+                  "formatted_#{selector}() has been deprecated. please pass format to the standard" +
+                  "#{selector}() method instead.", caller)
+                #{selector}(*args)
               end
               protected :#{selector}
             end_eval
@@ -361,7 +369,7 @@ module ActionController
           end
 
           # don't use the recalled keys when determining which routes to check
-          routes = routes_by_controller[controller][action][options.keys.sort_by { |x| x.object_id }]
+          routes = routes_by_controller[controller][action][options.reject {|k,v| !v}.keys.sort_by { |x| x.object_id }]
 
           routes.each do |route|
             results = route.__send__(method, options, merged, expire_on)

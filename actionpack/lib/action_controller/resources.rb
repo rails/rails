@@ -639,10 +639,8 @@ module ActionController
           formatted_route_path = "#{route_path}.:format"
 
           if route_name && @set.named_routes[route_name.to_sym].nil?
-            map.named_route(route_name, route_path, action_options)
-            map.named_route("formatted_#{route_name}", formatted_route_path, action_options)
+            map.named_route(route_name, formatted_route_path, action_options)
           else
-            map.connect(route_path, action_options)
             map.connect(formatted_route_path, action_options)
           end
         end
