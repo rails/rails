@@ -1,12 +1,3 @@
-require 'active_support/json/variable'
-require 'active_support/json/encoders/object' # Require explicitly for rdoc.
-Dir["#{File.dirname(__FILE__)}/encoders/**/*.rb"].each do |file|
-  basename = File.basename(file, '.rb')
-  unless basename == 'object'
-    require "active_support/json/encoders/#{basename}"
-  end
-end
-
 module ActiveSupport
   module JSON
     class CircularReferenceError < StandardError
@@ -23,3 +14,18 @@ module ActiveSupport
     end
   end
 end
+
+require 'active_support/json/variable'
+require 'active_support/json/encoders/date'
+require 'active_support/json/encoders/date_time'
+require 'active_support/json/encoders/enumerable'
+require 'active_support/json/encoders/false_class'
+require 'active_support/json/encoders/hash'
+require 'active_support/json/encoders/nil_class'
+require 'active_support/json/encoders/numeric'
+require 'active_support/json/encoders/object'
+require 'active_support/json/encoders/regexp'
+require 'active_support/json/encoders/string'
+require 'active_support/json/encoders/symbol'
+require 'active_support/json/encoders/time'
+require 'active_support/json/encoders/true_class'
