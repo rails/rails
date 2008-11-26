@@ -47,7 +47,9 @@ We can see how it works by looking at the following script/console output:
 => false
 ------------------------------------------------------------------
 
-Saving new records means sending an SQL insert operation to the database, while saving existing records (by calling either +save+, +update_attribute+ or +update_attributes+) will result in a SQL update operation. Active Record will use this facts to perform validations upon your objects, avoiding then to be recorded to the database if their inner state is invalid in some way. You can specify validations that will be beformed every time a object is saved, just when you're creating a new record or when you're updating an existing one.
+Saving new records means sending an SQL insert operation to the database, while saving existing records (by calling either +save+ or +update_attributes+) will result in a SQL update operation. Active Record will use this facts to perform validations upon your objects, avoiding then to be recorded to the database if their inner state is invalid in some way. You can specify validations that will be beformed every time a object is saved, just when you're creating a new record or when you're updating an existing one.
+
+CAUTION: There are four methods that when called will trigger validation: +save+, +save!+, +update_attributes+ and +update_attributes!+. There is one method left, which is +update_attribute+. This method will update the value of an attribute without triggering any validation, so be careful when using +update_attribute+, since it can let you save your objects in an invalid state.
 
 === The meaning of 'valid'
 
@@ -382,7 +384,7 @@ class Invoice < ActiveRecord::Base
 end
 ------------------------------------------------------------------
 
-If your validation rules are too complicated and you want to break it in small methods, you can implement all of them and call one of +validate+, +validate_on_create+ or +validate_on_update+ methods, passing it the symbols for the methods' names.
+If your validation rules are too complicated and you want to break them in small methods, you can implement all of them and call one of +validate+, +validate_on_create+ or +validate_on_update+ methods, passing it the symbols for the methods' names.
 
 [source, ruby]
 ------------------------------------------------------------------
@@ -398,6 +400,240 @@ class Invoice < ActiveRecord::Base
   end
 end
 ------------------------------------------------------------------
+
+== Using the +errors+ collection
+
+You can do more than just call +valid?+ upon your objects based on the existance of the +errors+ collection. Here is a list of the other available methods that you can use to manipulate errors or ask for an object's state.
+
+* +add_to_base+ lets you add errors messages that are related to the object's state as a whole, instead of being related to a specific attribute. You can use this method when you want to say that the object is invalid, no matter the values of it's attributes. +add_to_base+ receives a string with the message.
+
+[source, ruby]
+------------------------------------------------------------------
+class Person < ActiveRecord::Base
+  def a_method_used_for_validation_purposes
+    errors.add_to_base("This person is invalid because ...")
+  end
+end
+------------------------------------------------------------------
+
+* +add+ lets you manually add messages that are related to particular attributes. When writing those messages, keep in mind that Rails will prepend them with the name of the attribute that holds the error, so write it in a way that makes sense. +add+ receives a symbol with the name of the attribute that you want to add the message to and the message itself.
+
+[source, ruby]
+------------------------------------------------------------------
+class Person < ActiveRecord::Base
+  def a_method_used_for_validation_purposes
+    errors.add(:name, "can't have the characters !@#$%*()_-+=")
+  end
+end
+------------------------------------------------------------------
+
+* +invalid?+ is used when you want to check if a particular attribute is invalid. It receives a symbol with the name of the attribute that you want to check.
+
+[source, ruby]
+------------------------------------------------------------------
+class Person < ActiveRecord::Base
+  validates_presence_of :name, :email
+end
+
+person = Person.new(:name => "John Doe")
+person.invalid?(:email) # => true
+------------------------------------------------------------------
+
+* +on+ is used when you want to check the error messages for a specific attribute. It will return different kinds of objects depending on the state of the +errors+ collection for the given attribute. If there are no errors related to the attribute, +on+ will return +nil+. If there is just one errors message for this attribute, +on+ will return a string with the message. When +errors+ holds two or more error messages for the attribute, +on+ will return an array of strings, each one with one error message.
+
+[source, ruby]
+------------------------------------------------------------------
+class Person < ActiveRecord::Base
+  validates_presence_of :name
+  validates_length_of :name, :minimum => 3
+end
+
+person = Person.new(:name => "John Doe")
+person.valid? # => true
+person.errors.on(:name) # => nil
+
+person = Person.new(:name => "JD")
+person.valid? # => false
+person.errors.on(:name) # => "is too short (minimum is 3 characters)"
+
+person = Person.new
+person.valid? # => false
+person.errors.on(:name) # => ["can't be blank", "is too short (minimum is 3 characters)"]
+------------------------------------------------------------------
+
+* +clear+ is used when you intentionally wants to clear all the messages in the +errors+ collection.
+
+[source, ruby]
+------------------------------------------------------------------
+class Person < ActiveRecord::Base
+  validates_presence_of :name
+  validates_length_of :name, :minimum => 3
+end
+
+person = Person.new
+puts person.valid? # => false
+person.errors.on(:name) # => ["can't be blank", "is too short (minimum is 3 characters)"]
+person.errors.clear
+person.errors # => nil
+------------------------------------------------------------------
+
+== Callbacks
+
+Callbacks are methods that get called at certain moments of an object's lifecycle. With callbacks it's possible to write code that will run whenever an Active Record object is created, saved, updated, deleted or loaded from the database.
+
+=== Callbacks registration
+
+In order to use the available callbacks, you need to registrate them. There are two ways of doing that. 
+
+=== Registering callbacks by overriding the callback methods
+
+You can specify the callback method direcly, by overriding it. Let's see how it works using the +before_validation+ callback, which will surprisingly run right before any validation is done.
+
+[source, ruby]
+------------------------------------------------------------------
+class User < ActiveRecord::Base
+  validates_presence_of :login, :email
+  
+  protected
+  def before_validation
+    if self.login.nil?
+      self.login = email unless email.blank?
+    end
+  end
+end
+------------------------------------------------------------------
+
+=== Registering callbacks by using macro-style class methods
+
+The other way you can register a callback method is by implementing it as an ordinary method, and then using a macro-style class method to register it as a callback. The last example could be written like that:
+
+[source, ruby]
+------------------------------------------------------------------
+class User < ActiveRecord::Base
+  validates_presence_of :login, :email
+  
+  before_validation :ensure_login_has_a_value
+  
+  protected
+  def ensure_login_has_a_value
+    if self.login.nil?
+      self.login = email unless email.blank?
+    end
+  end  
+end
+------------------------------------------------------------------
+
+The macro-style class methods can also receive a block. Rails best practices say that you should only use this style of registration if the code inside your block is so short that it fits in just one line.
+
+[source, ruby]
+------------------------------------------------------------------
+class User < ActiveRecord::Base
+  validates_presence_of :login, :email
+  
+  before_create {|user| user.name = user.login.capitalize if user.name.blank?}
+end
+------------------------------------------------------------------
+
+In Rails, the preferred way of registering callbacks is by using macro-style class methods. The main advantages of using macro-style class methods are:
+
+* You can add more than one method for each type of callback. Those methods will be queued for execution at the same order they were registered.
+* Readability, since your callback declarations will live at the beggining of your models' files.
+
+CAUTION: Remember to always declare the callback methods as being protected or private. These methods should never be public, otherwise it will be possible to call them from code outside the model, violating object encapsulation and exposing implementation details.
+
+== Available callbacks
+ 
+Here is a list with all the available Active Record callbacks, listed in the same order in which they will get called during the respective operations.
+
+=== Callbacks called both when creating or updating a record.
+
+* +before_validation+ 
+* +after_validation+ 
+* +before_save+ 
+* *INSERT OR UPDATE OPERATION*
+* +after_save+ 
+
+=== Callbacks called only when creating a new record.
+
+* +before_validation_on_create+ 
+* +after_validation_on_create+ 
+* +before_create+
+* *INSERT OPERATION*
+* +after_create+
+
+=== Callbacks called only when updating an existing record.
+
+* +before_validation_on_update+
+* +after_validation_on_update+
+* +before_update+
+* *UPDATE OPERATION*
+* +after_update+
+
+=== Callbacks called when removing a record from the database.
+
+* +before_destroy+
+* *DELETE OPERATION*
+* +after_destroy+
+
+The +before_destroy+ and +after_destroy+ callbacks will only be called if you delete the model using either the +destroy+ instance method or one of the +destroy+ or +destroy_all+ class methods of your Active Record class. If you use +delete+ or +delete_all+ no callback operations will run, since Active Record will not instantiate any objects, accessing the records to be deleted directly in the database.
+
+=== The +after_initialize+ and +after_find+ callbacks
+
+The +after_initialize+ callback will be called whenever an Active Record object is instantiated, either by direcly using +new+ or when a record is loaded from the database. It can be useful to avoid the need to directly override your Active Record +initialize+ method.
+
+The +after_find+ callback will be called whenever Active Record loads a record from the database. When used together with +after_initialize+ it will run first, since Active Record will first read the record from the database and them create the model object that will hold it. 
+
+The +after_initialize+ and +after_find+ callbacks are a bit different from the others, since the only way to register those callbacks is by defining them as methods. If you try to register +after_initialize+ or +after_find+ using macro-style class methods, they will just be ignored. This behaviour is due to performance reasons, since +after_initialize+ and +after_find+ will both be called for each record found in the database, significantly slowing down the queries.
+
+== Halting Execution
+
+As you start registering new callbacks for your models, they will be queued for execution. This queue will include all your model's validations, the registered callbacks and the database operation to be executed. However, if at any moment one of the callback methods returns a boolean +false+ (not +nil+) value, this execution chain will be halted and the desired operation will not complete: your model will not get persisted in the database, or your records will not get deleted and so on.
+
+== Callback classes
+
+Sometimes the callback methods that you'll write will be useful enough to be reused at other models. Active Record makes it possible to create classes that encapsulate the callback methods, so it becomes very easy to reuse them.
+
+Here's an example where we create a class with a after_destroy callback for a PictureFile model.
+
+[source, ruby]
+------------------------------------------------------------------
+class PictureFileCallbacks
+  def after_destroy(picture_file)
+    File.delete(picture_file.filepath) if File.exists?(picture_file.filepath)
+  end
+end
+------------------------------------------------------------------
+
+When declared inside a class the callback method will receive the model object as a parameter. We can now use it this way:
+
+[source, ruby]
+------------------------------------------------------------------
+class PictureFile < ActiveRecord::Base
+  after_destroy PictureFileCallbacks.new
+end
+------------------------------------------------------------------
+
+Note that we needed to instantiate a new PictureFileCallbacks object, since we declared our callback as an instance method. Sometimes it will make more sense to have it as a class method.
+
+[source, ruby]
+------------------------------------------------------------------
+class PictureFileCallbacks
+  def self.after_destroy(picture_file)
+    File.delete(picture_file.filepath) if File.exists?(picture_file.filepath)
+  end
+end 
+------------------------------------------------------------------
+
+If the callback method is declared this way, it won't be necessary to instantiate a PictureFileCallbacks object.
+
+[source, ruby]
+------------------------------------------------------------------
+class PictureFile < ActiveRecord::Base
+  after_destroy PictureFileCallbacks
+end
+------------------------------------------------------------------
+
+You can declare as many callbacks as you want inside your callback classes.
 
 == Changelog
 

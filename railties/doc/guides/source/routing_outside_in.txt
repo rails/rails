@@ -424,7 +424,7 @@ In this case, all of the normal routes except the route for +destroy+ (a +DELETE
 
 In addition to an action or a list of actions, you can also supply the special symbols +:all+ or +:none+ to the +:only+ and +:except+ options.
 
-TIP: If your application has many RESTful routes, using +:only+ and +:accept+ to generate only the routes that you actually need can cut down on memory use and speed up the routing process.
+TIP: If your application has many RESTful routes, using +:only+ and +:except+ to generate only the routes that you actually need can cut down on memory use and speed up the routing process.
 
 === Nested Resources
 

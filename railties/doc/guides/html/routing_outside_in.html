@@ -1448,13 +1448,13 @@ http://www.gnu.org/software/src-highlite -->
 <pre><tt>map<span style="color: #990000">.</span>resources <span style="color: #990000">:</span>photos<span style="color: #990000">,</span> <span style="color: #990000">:</span>except <span style="color: #990000">=&gt;</span> <span style="color: #990000">:</span>destroy
 </tt></pre></div></div>
 <div class="para"><p>In this case, all of the normal routes except the route for <tt>destroy</tt> (a <tt>DELETE</tt> request to <tt>/photos/<em>id</em></tt>) will be generated.</p></div>
-<div class="para"><p>In addition to an action or a list of actions, you can also supply the special symbols <tt>:all</tt> or <tt>:none</tt> to the <tt>:only</tt> and <tt>:accept</tt> options.</p></div>
+<div class="para"><p>In addition to an action or a list of actions, you can also supply the special symbols <tt>:all</tt> or <tt>:none</tt> to the <tt>:only</tt> and <tt>:except</tt> options.</p></div>
 <div class="admonitionblock">
 <table><tr>
 <td class="icon">
 <img src="./images/icons/tip.png" alt="Tip" />
 </td>
-<td class="content">If your application has many RESTful routes, using <tt>:only</tt> and <tt>:accept</tt> to generate only the routes that you actually need can cut down on memory use and speed up the routing process.</td>
+<td class="content">If your application has many RESTful routes, using <tt>:only</tt> and <tt>:except</tt> to generate only the routes that you actually need can cut down on memory use and speed up the routing process.</td>
 </tr></table>
 </div>
 <h3 id="_nested_resources">3.8. Nested Resources</h3>

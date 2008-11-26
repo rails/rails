@@ -694,17 +694,17 @@ class DependenciesTest < Test::Unit::TestCase
     with_loading 'autoloading_fixtures' do
       ActiveSupport::Dependencies.mechanism = :require
       2.times do
-        assert_raise(NameError) {"RaisesNameError".constantize}
+        assert_raise(NameError) { assert_equal 123, ::RaisesNameError::FooBarBaz }
       end
     end
   end
 
   def test_autoload_doesnt_shadow_name_error
     with_loading 'autoloading_fixtures' do
-      assert !defined?(::RaisesNameError), "::RaisesNameError is defined but it hasn't been referenced yet!"
+      Object.send(:remove_const, :RaisesNameError) if defined?(::RaisesNameError)
       2.times do
         begin
-          ::RaisesNameError.object_id
+          ::RaisesNameError::FooBarBaz.object_id
           flunk 'should have raised NameError when autoloaded file referenced FooBarBaz'
         rescue NameError => e
           assert_equal 'uninitialized constant RaisesNameError::FooBarBaz', e.message
@@ -712,9 +712,9 @@ class DependenciesTest < Test::Unit::TestCase
         assert !defined?(::RaisesNameError), "::RaisesNameError is defined but it should have failed!"
       end
 
-      assert !defined?(RaisesNameError)
+      assert !defined?(::RaisesNameError)
       2.times do
-        assert_raise(NameError) { RaisesNameError }
+        assert_raise(NameError) { ::RaisesNameError }
         assert !defined?(::RaisesNameError), "::RaisesNameError is defined but it should have failed!"
       end
     end

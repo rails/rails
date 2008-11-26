@@ -1,23 +1,16 @@
 module ActionController
   module Routing
     class RouteBuilder #:nodoc:
-      attr_accessor :separators, :optional_separators
+      attr_reader :separators, :optional_separators
+      attr_reader :separator_regexp, :nonseparator_regexp, :interval_regexp
 
       def initialize
-        self.separators = Routing::SEPARATORS
-        self.optional_separators = %w( / )
-      end
+        @separators = Routing::SEPARATORS
+        @optional_separators = %w( / )
 
-      def separator_pattern(inverted = false)
-        "[#{'^' if inverted}#{Regexp.escape(separators.join)}]"
-      end
-
-      def interval_regexp
-        Regexp.new "(.*?)(#{separators.source}|$)"
-      end
-
-      def multiline_regexp?(expression)
-        expression.options & Regexp::MULTILINE == Regexp::MULTILINE
+        @separator_regexp = /[#{Regexp.escape(separators.join)}]/
+        @nonseparator_regexp = /\A([^#{Regexp.escape(separators.join)}]+)/
+        @interval_regexp = /(.*?)(#{separator_regexp}|$)/
       end
 
       # Accepts a "route path" (a string defining a route), and returns the array
@@ -30,7 +23,7 @@ module ActionController
         rest, segments = path, []
 
         until rest.empty?
-          segment, rest = segment_for rest
+          segment, rest = segment_for(rest)
           segments << segment
         end
         segments
@@ -39,20 +32,20 @@ module ActionController
       # A factory method that returns a new segment instance appropriate for the
       # format of the given string.
       def segment_for(string)
-        segment = case string
-          when /\A:(\w+)/
-            key = $1.to_sym
-            case key
-              when :controller then ControllerSegment.new(key)
-              else DynamicSegment.new key
-            end
-          when /\A\*(\w+)/ then PathSegment.new($1.to_sym, :optional => true)
-          when /\A\?(.*?)\?/
-            StaticSegment.new($1, :optional => true)
-          when /\A(#{separator_pattern(:inverted)}+)/ then StaticSegment.new($1)
-          when Regexp.new(separator_pattern) then
-            DividerSegment.new($&, :optional => (optional_separators.include? $&))
-        end
+        segment =
+          case string
+            when /\A:(\w+)/
+              key = $1.to_sym
+              key == :controller ? ControllerSegment.new(key) : DynamicSegment.new(key)
+            when /\A\*(\w+)/
+              PathSegment.new($1.to_sym, :optional => true)
+            when /\A\?(.*?)\?/
+              StaticSegment.new($1, :optional => true)
+            when nonseparator_regexp
+              StaticSegment.new($1)
+            when separator_regexp
+              DividerSegment.new($&, :optional => optional_separators.include?($&))
+          end
         [segment, $~.post_match]
       end
 
@@ -98,7 +91,7 @@ module ActionController
             if requirement.source =~ %r{\A(\\A|\^)|(\\Z|\\z|\$)\Z}
               raise ArgumentError, "Regexp anchor characters are not allowed in routing requirements: #{requirement.inspect}"
             end
-            if multiline_regexp?(requirement)
+            if requirement.multiline?
               raise ArgumentError, "Regexp multiline option not allowed in routing requirements: #{requirement.inspect}"
             end
             segment.regexp = requirement

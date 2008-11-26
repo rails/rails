@@ -13,6 +13,8 @@ This guide covers the +find+ method defined in +ActiveRecord::Base+, as well as 
 
 If you're used to using raw SQL to find database records, you'll find that there are generally better ways to carry out the same operations in Rails. Active Record insulates you from the need to use SQL in most cases.
 
+The SQL in your log may have some quoting, and that quoting depends on the backend (MySQL, for example, puts backticks around field and table names). Attempting to copy the raw SQL contained within this guide may not work in your database system. Please consult the database systems manual before attempting to execute any SQL.
+
 == The Sample Models
 
 This guide demonstrates finding using the following models:
@@ -52,16 +54,16 @@ Active Record will perform queries on the database for you and is compatible wit
 
 [source, sql]
 -------------------------------------------------------
-SELECT * FROM +clients+ WHERE (+clients+.+id+ = 1) 
+SELECT * FROM clients WHERE (clients.id = 1) 
 -------------------------------------------------------
 
-NOTE: Because this is a standard table created from a migration in Rail, the primary key is defaulted to 'id'. If you have specified a different primary key in your migrations, this is what Rails will find on when you call the find method, not the id column.
+NOTE: Because this is a standard table created from a migration in Rails, the primary key is defaulted to 'id'. If you have specified a different primary key in your migrations, this is what Rails will find on when you call the find method, not the id column.
 
 If you wanted to find clients with id 1 or 2, you call +Client.find([1,2])+ or +Client.find(1,2)+ and then this will be executed as:
 
 [source, sql]
 -------------------------------------------------------
-SELECT * FROM +clients+ WHERE (+clients+.+id+ IN (1,2)) 
+SELECT * FROM clients WHERE (clients.id IN (1,2)) 
 -------------------------------------------------------
 
 -------------------------------------------------------
@@ -76,7 +78,7 @@ Note that if you pass in a list of numbers that the result will be returned as a
 
 NOTE: If +find(id)+ or +find([id1, id2])+ fails to find any records, it will raise a +RecordNotFound+ exception.
 
-If you wanted to find the first client you would simply type +Client.first+ and that would find the first client created in your clients table:
+If you wanted to find the first Client object you would simply type +Client.first+ and that would find the first client in your clients table:
 
 -------------------------------------------------------
 >> Client.first
@@ -84,7 +86,7 @@ If you wanted to find the first client you would simply type +Client.first+ and 
   created_at: "2008-09-28 15:38:50", updated_at: "2008-09-28 15:38:50">
 -------------------------------------------------------
 
-If you were running script/server you might see the following output:
+If you were reading your log file (the default is log/development.log) you may see something like this:
 
 [source,sql]
 -------------------------------------------------------
@@ -93,20 +95,29 @@ SELECT * FROM clients LIMIT 1
 
 Indicating the query that Rails has performed on your database. 
 
-To find the last client you would simply type +Client.find(:last)+ and that would find the last client created in your clients table:
+To find the last Client object you would simply type +Client.last+ and that would find the last client created in your clients table:
 
 -------------------------------------------------------
->> Client.find(:last)
+>> Client.last
 => #<Client id: 2, name: => "Michael", locked: false, orders_count: 3, 
   created_at: "2008-09-28 13:12:40", updated_at: "2008-09-28 13:12:40">
 -------------------------------------------------------
+
+If you were reading your log file (the default is log/development.log) you may see something like this:
+
+[source,sql]
+-------------------------------------------------------
+SELECT * FROM clients ORDER BY id DESC LIMIT 1
+-------------------------------------------------------
+
+NOTE: Please be aware that the syntax that Rails uses to find the first record in the table means that it may not be the actual first record. If you want the actual first record based on a field in your table (e.g. +created_at+) specify an order option in your find call. The last method call works differently: it finds the last record on your table based on the primary key column.
 
 [source,sql]
 -------------------------------------------------------
 SELECT * FROM clients ORDER BY clients.id DESC LIMIT 1
 -------------------------------------------------------
 
-To find all the clients you would simply type +Client.all+ and that would find all the clients in your clients table:
+To find all the Client objects you would simply type +Client.all+ and that would find all the clients in your clients table:
 
 -------------------------------------------------------
 >> Client.all
@@ -114,11 +125,11 @@ To find all the clients you would simply type +Client.all+ and that would find a
   created_at: "2008-09-28 15:38:50", updated_at: "2008-09-28 15:38:50">, 
   #<Client id: 2, name: => "Michael", locked: false, orders_count: 3, 
   created_at: "2008-09-28 13:12:40", updated_at: "2008-09-28 13:12:40">]
--------------------------------------------------------
+------------------------------------------------------- 
 
-As alternatives to calling +Client.first+, +Client.last+, and +Client.all+, you can use the class methods +Client.first+, +Client.last+, and +Client.all+ instead. +Client.first+, +Client.last+ and +Client.all+ just call their longer counterparts: +Client.find(:first)+, +Client.find(:last)+ and +Client.find(:all)+ respectively.
+You may see in Rails code that there are calls to methods such as +Client.find(:all)+, +Client.find(:first)+ and +Client.find(:last)+. These methods are just alternatives to +Client.all+, +Client.first+ and +Client.last+ respectively.
 
-Be aware that +Client.first+/+Client.find(:first)+ and +Client.last+/+Client.find(:last)+ will both return a single object, where as +Client.all+/+Client.find(:all)+ will return an array of Client objects, just as passing in an array of ids to find will do also.
+Be aware that +Client.first+/+Client.find(:first)+ and +Client.last+/+Client.find(:last)+ will both return a single object, where as +Client.all+/+Client.find(:all)+ will return an array of Client objects, just as passing in an array of ids to +find+ will do also.
 
 == Conditions
 
@@ -132,19 +143,20 @@ WARNING: Building your own conditions as pure strings can leave you vulnerable t
 
 === Array Conditions ===
 
-Now what if that number could vary, say as a parameter from somewhere, or perhaps from the user's level status somewhere? The find then becomes something like +Client.first(:conditions => ["orders_count = ?", params[:orders]])+. Active Record will go through the first element in the conditions value and any additional elements will replace the question marks (?) in the first element. If you want to specify two conditions, you can do it like +Client.first(:conditions => ["orders_count = ? AND locked = ?", params[:orders], false])+. In this example, the first question mark will be replaced with the value in params orders and the second will be replaced with true and this will find the first record in the table that has '2' as its value for the orders_count field and 'false' for its locked field.
+Now what if that number could vary, say as a parameter from somewhere, or perhaps from the user's level status somewhere? The find then becomes something like +Client.first(:conditions => ["orders_count = ?", params[:orders]])+. Active Record will go through the first element in the conditions value and any additional elements will replace the question marks (?) in the first element. If you want to specify two conditions, you can do it like +Client.first(:conditions => ["orders_count = ? AND locked = ?", params[:orders], false])+. In this example, the first question mark will be replaced with the value in +params[:orders]+ and the second will be replaced with +false+ and this will find the first record in the table that has '2' as its value for the +orders_count+ field and +false+ for its locked field.
 
 The reason for doing code like:
 
 [source, ruby]
 -------------------------------------------------------
-+Client.first(:conditions => ["orders_count = ?", params[:orders]])+
+Client.first(:conditions => ["orders_count = ?", params[:orders]])
 -------------------------------------------------------
 
 instead of:
 
+[source, ruby]
 -------------------------------------------------------
-+Client.first(:conditions => "orders_count = #{params[:orders]}")+
+Client.first(:conditions => "orders_count = #{params[:orders]}")
 -------------------------------------------------------
 
 is because of parameter safety. Putting the variable directly into the conditions string will pass the variable to the database *as-is*. This means that it will be an unescaped variable directly from a user who may have malicious intent. If you do this, you put your entire database at risk because once a user finds out he or she can exploit your database they can do just about anything to it. Never ever put your parameters directly inside the conditions string.
@@ -163,7 +175,7 @@ This would generate the proper query which is great for small ranges but not so 
 
 [source, sql]
 -------------------------------------------------------
-SELECT * FROM +users+ WHERE (created_at IN 
+SELECT * FROM users WHERE (created_at IN 
   ('2007-12-31','2008-01-01','2008-01-02','2008-01-03','2008-01-04','2008-01-05',
   '2008-01-06','2008-01-07','2008-01-08','2008-01-09','2008-01-10','2008-01-11',
   '2008-01-12','2008-01-13','2008-01-14','2008-01-15','2008-01-16','2008-01-17',
@@ -183,7 +195,7 @@ Client.all(:conditions => ["created_at IN (?)",
 
 [source, sql]
 -------------------------------------------------------
-SELECT * FROM +users+ WHERE (created_at IN 
+SELECT * FROM users WHERE (created_at IN 
   ('2007-12-01 00:00:00', '2007-12-01 00:00:01' ... 
   '2007-12-01 23:59:59', '2007-12-02 00:00:00'))
 -------------------------------------------------------
@@ -214,7 +226,7 @@ Client.all(:conditions =>
 
 Just like in Ruby.
 
-=== Hash Conditions ===
+=== Placeholder Conditions ===
 
 Similar to the array style of params you can also specify keys in your conditions:
 
@@ -277,7 +289,7 @@ The SQL that would be executed would be something like this:
 
 [source, sql]
 -------------------------------------------------------
-SELECT * FROM +orders+ GROUP BY date(created_at)
+SELECT * FROM orders GROUP BY date(created_at)
 -------------------------------------------------------
 
 == Read Only
@@ -357,20 +369,27 @@ Client.first(:include => "orders", :conditions =>
 
 == Dynamic finders
 
-For every field (also known as an attribute) you define in your table, Active Record provides a finder method. If you have a field called +name+ on your Client model for example, you get +find_by_name+ and +find_all_by_name+ for free from Active Record. If you have also have a +locked+ field on the client model, you also get +find_by_locked+ and +find_all_by_locked+. If you want to find both by name and locked, you can chain these finders together by simply typing +and+ between the fields for example +Client.find_by_name_and_locked('Ryan', true)+. These finders are an excellent alternative to using the conditions option, mainly because it's shorter to type +find_by_name(params[:name])+ than it is to type +first(:conditions => ["name = ?", params[:name]])+. 
+For every field (also known as an attribute) you define in your table, Active Record provides a finder method. If you have a field called +name+ on your Client model for example, you get +find_by_name+ and +find_all_by_name+ for free from Active Record. If you have also have a +locked+ field on the client model, you also get +find_by_locked+ and +find_all_by_locked+. 
+
+You can do +find_last_by_*+ methods too which will find the last record matching your parameter.
+
+You can specify an exclamation point (!) on the end of the dynamic finders to get them to raise an +ActiveRecord::RecordNotFound+ error if they do not return any records, like +Client.find_by_name!('Ryan')+
+
+If you want to find both by name and locked, you can chain these finders together by simply typing +and+ between the fields for example +Client.find_by_name_and_locked('Ryan', true)+. 
+
 
 There's another set of dynamic finders that let you find or create/initialize objects if they aren't find. These work in a similar fashion to the other finders and can be used like +find_or_create_by_name(params[:name])+. Using this will firstly perform a find and then create if the find returns nil. The SQL looks like this for +Client.find_or_create_by_name('Ryan')+:
 
 [source,sql]
 -------------------------------------------------------
-SELECT * FROM +clients+ WHERE (+clients+.+name+ = 'Ryan') LIMIT 1
+SELECT * FROM clients WHERE (clients.name = 'Ryan') LIMIT 1
 BEGIN
-INSERT INTO +clients+ (+name+, +updated_at+, +created_at+, +orders_count+, +locked+) 
+INSERT INTO clients (name, updated_at, created_at, orders_count, locked) 
   VALUES('Ryan', '2008-09-28 15:39:12', '2008-09-28 15:39:12', '0', '0')
 COMMIT
 -------------------------------------------------------
 
-+find_or_create+'s sibling, +find_or_initialize+, will find an object and if it does not exist will call +new+ with the parameters you passed in. For example:
++find_or_create+'s sibling, +find_or_initialize+, will find an object and if it does not exist will act similar to calling +new+ with the parameters you passed in. For example:
 
 [source, ruby]
 -------------------------------------------------------
@@ -378,6 +397,7 @@ client = Client.find_or_initialize_by_name('Ryan')
 -------------------------------------------------------
 
 will either assign an existing client object with the name 'Ryan' to the client local variable, or initialize new object similar to calling +Client.new(:name => 'Ryan')+. From here, you can modify other fields in client by calling the attribute setters on it: +client.locked = true+ and when you want to write it to the database just call +save+ on it.
+
 
 == Finding By SQL
 
@@ -571,7 +591,7 @@ Which will execute:
 
 [source, sql]
 -------------------------------------------------------
-SELECT count(*) AS count_all FROM +clients+ WHERE (first_name = 1) 
+SELECT count(*) AS count_all FROM clients WHERE (first_name = 1) 
 -------------------------------------------------------
 
 You can also use +include+ or +joins+ for this to do something a little more complex:
@@ -585,8 +605,8 @@ Which will execute:
 
 [source, sql]
 -------------------------------------------------------
-SELECT count(DISTINCT +clients+.id) AS count_all FROM +clients+ 
-  LEFT OUTER JOIN +orders+ ON orders.client_id = client.id WHERE 
+SELECT count(DISTINCT clients.id) AS count_all FROM clients 
+  LEFT OUTER JOIN orders ON orders.client_id = client.id WHERE 
   (clients.first_name = 'name' AND orders.status = 'received') 
 -------------------------------------------------------
 
@@ -655,6 +675,9 @@ Thanks to Mike Gunderloy for his tips on creating this guide.
 
 http://rails.lighthouseapp.com/projects/16213-rails-guides/tickets/16[Lighthouse ticket]
 
+* November 23 2008: Added documentation for +find_by_last+ and +find_by_bang!+
+* November 21 2008: Fixed all points specified in http://rails.lighthouseapp.com/projects/16213-rails-guides/tickets/16-activerecord-finders#ticket-16-13[this comment] and http://rails.lighthouseapp.com/projects/16213-rails-guides/tickets/16-activerecord-finders#ticket-16-14[this comment]
+* November 18 2008: Fixed all points specified in http://rails.lighthouseapp.com/projects/16213-rails-guides/tickets/16-activerecord-finders#ticket-16-11[this comment]
 * November 8, 2008: Editing pass by link:../authors.html#mgunderloy[Mike Gunderloy] . First release version.
 * October 27, 2008: Added scoped section, added named params for conditions and added sub-section headers for conditions section by Ryan Bigg
 * October 27, 2008: Fixed up all points specified in http://rails.lighthouseapp.com/projects/16213-rails-guides/tickets/16-activerecord-finders#ticket-16-6[this comment] with an exception of the final point by Ryan Bigg

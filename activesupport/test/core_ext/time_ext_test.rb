@@ -123,7 +123,7 @@ class TimeExtCalculationsTest < Test::Unit::TestCase
   def test_end_of_year
     assert_equal Time.local(2007,12,31,23,59,59), Time.local(2007,2,22,10,10,10).end_of_year
     assert_equal Time.local(2007,12,31,23,59,59), Time.local(2007,12,31,10,10,10).end_of_year
-   end
+  end
 
   def test_beginning_of_year
     assert_equal Time.local(2005,1,1,0,0,0), Time.local(2005,2,22,10,10,10).beginning_of_year

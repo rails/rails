@@ -267,6 +267,43 @@ ul#navMain {
 					<a href="#_writing_your_own_validation_methods">Writing your own validation methods</a>
 					</li>
 					<li>
+					<a href="#_using_the_tt_errors_tt_collection">Using the <tt>errors</tt> collection</a>
+					</li>
+					<li>
+					<a href="#_callbacks">Callbacks</a>
+						<ul>
+						
+							<li><a href="#_callbacks_registration">Callbacks registration</a></li>
+						
+							<li><a href="#_registering_callbacks_by_overriding_the_callback_methods">Registering callbacks by overriding the callback methods</a></li>
+						
+							<li><a href="#_registering_callbacks_by_using_macro_style_class_methods">Registering callbacks by using macro-style class methods</a></li>
+						
+						</ul>
+					</li>
+					<li>
+					<a href="#_available_callbacks">Available callbacks</a>
+						<ul>
+						
+							<li><a href="#_callbacks_called_both_when_creating_or_updating_a_record">Callbacks called both when creating or updating a record.</a></li>
+						
+							<li><a href="#_callbacks_called_only_when_creating_a_new_record">Callbacks called only when creating a new record.</a></li>
+						
+							<li><a href="#_callbacks_called_only_when_updating_an_existing_record">Callbacks called only when updating an existing record.</a></li>
+						
+							<li><a href="#_callbacks_called_when_removing_a_record_from_the_database">Callbacks called when removing a record from the database.</a></li>
+						
+							<li><a href="#_the_tt_after_initialize_tt_and_tt_after_find_tt_callbacks">The <tt>after_initialize</tt> and <tt>after_find</tt> callbacks</a></li>
+						
+						</ul>
+					</li>
+					<li>
+					<a href="#_halting_execution">Halting Execution</a>
+					</li>
+					<li>
+					<a href="#_callback_classes">Callback classes</a>
+					</li>
+					<li>
 					<a href="#_changelog">Changelog</a>
 					</li>
 			</ol>
@@ -358,7 +395,15 @@ http://www.gnu.org/software/src-highlite -->
 &gt;&gt; p.new_record?
 =&gt; false</tt></pre>
 </div></div>
-<div class="para"><p>Saving new records means sending an SQL insert operation to the database, while saving existing records (by calling either <tt>save</tt>, <tt>update_attribute</tt> or <tt>update_attributes</tt>) will result in a SQL update operation. Active Record will use this facts to perform validations upon your objects, avoiding then to be recorded to the database if their inner state is invalid in some way. You can specify validations that will be beformed every time a object is saved, just when you're creating a new record or when you're updating an existing one.</p></div>
+<div class="para"><p>Saving new records means sending an SQL insert operation to the database, while saving existing records (by calling either <tt>save</tt> or <tt>update_attributes</tt>) will result in a SQL update operation. Active Record will use this facts to perform validations upon your objects, avoiding then to be recorded to the database if their inner state is invalid in some way. You can specify validations that will be beformed every time a object is saved, just when you're creating a new record or when you're updating an existing one.</p></div>
+<div class="admonitionblock">
+<table><tr>
+<td class="icon">
+<img src="./images/icons/caution.png" alt="Caution" />
+</td>
+<td class="content">There are four methods that when called will trigger validation: <tt>save</tt>, <tt>save!</tt>, <tt>update_attributes</tt> and <tt>update_attributes!</tt>. There is one method left, which is <tt>update_attribute</tt>. This method will update the value of an attribute without triggering any validation, so be careful when using <tt>update_attribute</tt>, since it can let you save your objects in an invalid state.</td>
+</tr></table>
+</div>
 <h3 id="_the_meaning_of_em_valid_em">2.2. The meaning of <em>valid</em></h3>
 <div class="para"><p>For verifying if an object is valid, Active Record uses the <tt>valid?</tt> method, which basically looks inside the object to see if it has any validation errors. These errors live in a collection that can be accessed through the <tt>errors</tt> instance method. The proccess is really simple: If the <tt>errors</tt> method returns an empty collection, the object is valid and can be saved. Each time a validation fails, an error message is added to the <tt>errors</tt> collection.</p></div>
 </div>
@@ -719,14 +764,14 @@ http://www.gnu.org/software/src-highlite -->
   <span style="font-weight: bold"><span style="color: #0000FF">end</span></span>
 <span style="font-weight: bold"><span style="color: #0000FF">end</span></span>
 </tt></pre></div></div>
-<div class="para"><p>If your validation rules are too complicated and you want to break it in small methods, you can implement all of them and call one of <tt>validate</tt>, <tt>validate_on_create</tt> or <tt>validate_on_update</tt> methods, passing it the symbols for the methods' names.</p></div>
+<div class="para"><p>If your validation rules are too complicated and you want to break them in small methods, you can implement all of them and call one of <tt>validate</tt>, <tt>validate_on_create</tt> or <tt>validate_on_update</tt> methods, passing it the symbols for the methods' names.</p></div>
 <div class="listingblock">
 <div class="content"><!-- Generator: GNU source-highlight 2.9
 by Lorenzo Bettini
 http://www.lorenzobettini.it
 http://www.gnu.org/software/src-highlite -->
 <pre><tt><span style="font-weight: bold"><span style="color: #0000FF">class</span></span> Invoice <span style="color: #990000">&lt;</span> ActiveRecord<span style="color: #990000">::</span>Base
-  validate <span style="color: #990000">:</span>expiration_date_cannot_be_in_the_past<span style="color: #990000">,</span> <span style="color: #990000">:</span>discount_cannot_be_be_more_than_total_value
+  validate <span style="color: #990000">:</span>expiration_date_cannot_be_in_the_past<span style="color: #990000">,</span> <span style="color: #990000">:</span>discount_cannot_be_more_than_total_value
 
   <span style="font-weight: bold"><span style="color: #0000FF">def</span></span> expiration_date_cannot_be_in_the_past
     errors<span style="color: #990000">.</span>add<span style="color: #990000">(:</span>expiration_date<span style="color: #990000">,</span> <span style="color: #FF0000">"can't be in the past"</span><span style="color: #990000">)</span> <span style="font-weight: bold"><span style="color: #0000FF">if</span></span> <span style="color: #990000">!</span>expiration_date<span style="color: #990000">.</span>blank? <span style="font-weight: bold"><span style="color: #0000FF">and</span></span> expiration_date <span style="color: #990000">&lt;</span> Date<span style="color: #990000">.</span>today
@@ -738,7 +783,359 @@ http://www.gnu.org/software/src-highlite -->
 <span style="font-weight: bold"><span style="color: #0000FF">end</span></span>
 </tt></pre></div></div>
 </div>
-<h2 id="_changelog">7. Changelog</h2>
+<h2 id="_using_the_tt_errors_tt_collection">7. Using the <tt>errors</tt> collection</h2>
+<div class="sectionbody">
+<div class="para"><p>You can do more than just call <tt>valid?</tt> upon your objects based on the existance of the <tt>errors</tt> collection. Here is a list of the other available methods that you can use to manipulate errors or ask for an object's state.</p></div>
+<div class="ilist"><ul>
+<li>
+<p>
+<tt>add_to_base</tt> lets you add errors messages that are related to the object's state as a whole, instead of being related to a specific attribute. You can use this method when you want to say that the object is invalid, no matter the values of it's attributes. <tt>add_to_base</tt> receives a string with the message.
+</p>
+</li>
+</ul></div>
+<div class="listingblock">
+<div class="content"><!-- Generator: GNU source-highlight 2.9
+by Lorenzo Bettini
+http://www.lorenzobettini.it
+http://www.gnu.org/software/src-highlite -->
+<pre><tt><span style="font-weight: bold"><span style="color: #0000FF">class</span></span> Person <span style="color: #990000">&lt;</span> ActiveRecord<span style="color: #990000">::</span>Base
+  <span style="font-weight: bold"><span style="color: #0000FF">def</span></span> a_method_used_for_validation_purposes
+    errors<span style="color: #990000">.</span>add_to_base<span style="color: #990000">(</span><span style="color: #FF0000">"This person is invalid because ..."</span><span style="color: #990000">)</span>
+  <span style="font-weight: bold"><span style="color: #0000FF">end</span></span>
+<span style="font-weight: bold"><span style="color: #0000FF">end</span></span>
+</tt></pre></div></div>
+<div class="ilist"><ul>
+<li>
+<p>
+<tt>add</tt> lets you manually add messages that are related to particular attributes. When writing those messages, keep in mind that Rails will prepend them with the name of the attribute that holds the error, so write it in a way that makes sense. <tt>add</tt> receives a symbol with the name of the attribute that you want to add the message to and the message itself.
+</p>
+</li>
+</ul></div>
+<div class="listingblock">
+<div class="content"><!-- Generator: GNU source-highlight 2.9
+by Lorenzo Bettini
+http://www.lorenzobettini.it
+http://www.gnu.org/software/src-highlite -->
+<pre><tt><span style="font-weight: bold"><span style="color: #0000FF">class</span></span> Person <span style="color: #990000">&lt;</span> ActiveRecord<span style="color: #990000">::</span>Base
+  <span style="font-weight: bold"><span style="color: #0000FF">def</span></span> a_method_used_for_validation_purposes
+    errors<span style="color: #990000">.</span>add<span style="color: #990000">(:</span>name<span style="color: #990000">,</span> <span style="color: #FF0000">"can't have the characters !@#$%*()_-+="</span><span style="color: #990000">)</span>
+  <span style="font-weight: bold"><span style="color: #0000FF">end</span></span>
+<span style="font-weight: bold"><span style="color: #0000FF">end</span></span>
+</tt></pre></div></div>
+<div class="ilist"><ul>
+<li>
+<p>
+<tt>invalid?</tt> is used when you want to check if a particular attribute is invalid. It receives a symbol with the name of the attribute that you want to check.
+</p>
+</li>
+</ul></div>
+<div class="listingblock">
+<div class="content"><!-- Generator: GNU source-highlight 2.9
+by Lorenzo Bettini
+http://www.lorenzobettini.it
+http://www.gnu.org/software/src-highlite -->
+<pre><tt><span style="font-weight: bold"><span style="color: #0000FF">class</span></span> Person <span style="color: #990000">&lt;</span> ActiveRecord<span style="color: #990000">::</span>Base
+  validates_presence_of <span style="color: #990000">:</span>name<span style="color: #990000">,</span> <span style="color: #990000">:</span>email
+<span style="font-weight: bold"><span style="color: #0000FF">end</span></span>
+
+person <span style="color: #990000">=</span> Person<span style="color: #990000">.</span>new<span style="color: #990000">(:</span>name <span style="color: #990000">=&gt;</span> <span style="color: #FF0000">"John Doe"</span><span style="color: #990000">)</span>
+person<span style="color: #990000">.</span>invalid?<span style="color: #990000">(:</span>email<span style="color: #990000">)</span> <span style="font-style: italic"><span style="color: #9A1900"># =&gt; true</span></span>
+</tt></pre></div></div>
+<div class="ilist"><ul>
+<li>
+<p>
+<tt>on</tt> is used when you want to check the error messages for a specific attribute. It will return different kinds of objects depending on the state of the <tt>errors</tt> collection for the given attribute. If there are no errors related to the attribute, <tt>on</tt> will return <tt>nil</tt>. If there is just one errors message for this attribute, <tt>on</tt> will return a string with the message. When <tt>errors</tt> holds two or more error messages for the attribute, <tt>on</tt> will return an array of strings, each one with one error message.
+</p>
+</li>
+</ul></div>
+<div class="listingblock">
+<div class="content"><!-- Generator: GNU source-highlight 2.9
+by Lorenzo Bettini
+http://www.lorenzobettini.it
+http://www.gnu.org/software/src-highlite -->
+<pre><tt><span style="font-weight: bold"><span style="color: #0000FF">class</span></span> Person <span style="color: #990000">&lt;</span> ActiveRecord<span style="color: #990000">::</span>Base
+  validates_presence_of <span style="color: #990000">:</span>name
+  validates_length_of <span style="color: #990000">:</span>name<span style="color: #990000">,</span> <span style="color: #990000">:</span>minimum <span style="color: #990000">=&gt;</span> <span style="color: #993399">3</span>
+<span style="font-weight: bold"><span style="color: #0000FF">end</span></span>
+
+person <span style="color: #990000">=</span> Person<span style="color: #990000">.</span>new<span style="color: #990000">(:</span>name <span style="color: #990000">=&gt;</span> <span style="color: #FF0000">"John Doe"</span><span style="color: #990000">)</span>
+person<span style="color: #990000">.</span>valid? <span style="font-style: italic"><span style="color: #9A1900"># =&gt; true</span></span>
+person<span style="color: #990000">.</span>errors<span style="color: #990000">.</span>on<span style="color: #990000">(:</span>name<span style="color: #990000">)</span> <span style="font-style: italic"><span style="color: #9A1900"># =&gt; nil</span></span>
+
+person <span style="color: #990000">=</span> Person<span style="color: #990000">.</span>new<span style="color: #990000">(:</span>name <span style="color: #990000">=&gt;</span> <span style="color: #FF0000">"JD"</span><span style="color: #990000">)</span>
+person<span style="color: #990000">.</span>valid? <span style="font-style: italic"><span style="color: #9A1900"># =&gt; false</span></span>
+person<span style="color: #990000">.</span>errors<span style="color: #990000">.</span>on<span style="color: #990000">(:</span>name<span style="color: #990000">)</span> <span style="font-style: italic"><span style="color: #9A1900"># =&gt; "is too short (minimum is 3 characters)"</span></span>
+
+person <span style="color: #990000">=</span> Person<span style="color: #990000">.</span>new
+person<span style="color: #990000">.</span>valid? <span style="font-style: italic"><span style="color: #9A1900"># =&gt; false</span></span>
+person<span style="color: #990000">.</span>errors<span style="color: #990000">.</span>on<span style="color: #990000">(:</span>name<span style="color: #990000">)</span> <span style="font-style: italic"><span style="color: #9A1900"># =&gt; ["can't be blank", "is too short (minimum is 3 characters)"]</span></span>
+</tt></pre></div></div>
+<div class="ilist"><ul>
+<li>
+<p>
+<tt>clear</tt> is used when you intentionally wants to clear all the messages in the <tt>errors</tt> collection.
+</p>
+</li>
+</ul></div>
+<div class="listingblock">
+<div class="content"><!-- Generator: GNU source-highlight 2.9
+by Lorenzo Bettini
+http://www.lorenzobettini.it
+http://www.gnu.org/software/src-highlite -->
+<pre><tt><span style="font-weight: bold"><span style="color: #0000FF">class</span></span> Person <span style="color: #990000">&lt;</span> ActiveRecord<span style="color: #990000">::</span>Base
+  validates_presence_of <span style="color: #990000">:</span>name
+  validates_length_of <span style="color: #990000">:</span>name<span style="color: #990000">,</span> <span style="color: #990000">:</span>minimum <span style="color: #990000">=&gt;</span> <span style="color: #993399">3</span>
+<span style="font-weight: bold"><span style="color: #0000FF">end</span></span>
+
+person <span style="color: #990000">=</span> Person<span style="color: #990000">.</span>new
+puts person<span style="color: #990000">.</span>valid? <span style="font-style: italic"><span style="color: #9A1900"># =&gt; false</span></span>
+person<span style="color: #990000">.</span>errors<span style="color: #990000">.</span>on<span style="color: #990000">(:</span>name<span style="color: #990000">)</span> <span style="font-style: italic"><span style="color: #9A1900"># =&gt; ["can't be blank", "is too short (minimum is 3 characters)"]</span></span>
+person<span style="color: #990000">.</span>errors<span style="color: #990000">.</span>clear
+person<span style="color: #990000">.</span>errors <span style="font-style: italic"><span style="color: #9A1900"># =&gt; nil</span></span>
+</tt></pre></div></div>
+</div>
+<h2 id="_callbacks">8. Callbacks</h2>
+<div class="sectionbody">
+<div class="para"><p>Callbacks are methods that get called at certain moments of an object's lifecycle. With callbacks it's possible to write code that will run whenever an Active Record object is created, saved, updated, deleted or loaded from the database.</p></div>
+<h3 id="_callbacks_registration">8.1. Callbacks registration</h3>
+<div class="para"><p>In order to use the available callbacks, you need to registrate them. There are two ways of doing that.</p></div>
+<h3 id="_registering_callbacks_by_overriding_the_callback_methods">8.2. Registering callbacks by overriding the callback methods</h3>
+<div class="para"><p>You can specify the callback method direcly, by overriding it. Let's see how it works using the <tt>before_validation</tt> callback, which will surprisingly run right before any validation is done.</p></div>
+<div class="listingblock">
+<div class="content"><!-- Generator: GNU source-highlight 2.9
+by Lorenzo Bettini
+http://www.lorenzobettini.it
+http://www.gnu.org/software/src-highlite -->
+<pre><tt><span style="font-weight: bold"><span style="color: #0000FF">class</span></span> User <span style="color: #990000">&lt;</span> ActiveRecord<span style="color: #990000">::</span>Base
+  validates_presence_of <span style="color: #990000">:</span>login<span style="color: #990000">,</span> <span style="color: #990000">:</span>email
+
+  protected
+  <span style="font-weight: bold"><span style="color: #0000FF">def</span></span> before_validation
+    <span style="font-weight: bold"><span style="color: #0000FF">if</span></span> <span style="font-weight: bold"><span style="color: #0000FF">self</span></span><span style="color: #990000">.</span>login<span style="color: #990000">.</span><span style="font-weight: bold"><span style="color: #0000FF">nil</span></span><span style="color: #990000">?</span>
+      <span style="font-weight: bold"><span style="color: #0000FF">self</span></span><span style="color: #990000">.</span>login <span style="color: #990000">=</span> email <span style="font-weight: bold"><span style="color: #0000FF">unless</span></span> email<span style="color: #990000">.</span>blank?
+    <span style="font-weight: bold"><span style="color: #0000FF">end</span></span>
+  <span style="font-weight: bold"><span style="color: #0000FF">end</span></span>
+<span style="font-weight: bold"><span style="color: #0000FF">end</span></span>
+</tt></pre></div></div>
+<h3 id="_registering_callbacks_by_using_macro_style_class_methods">8.3. Registering callbacks by using macro-style class methods</h3>
+<div class="para"><p>The other way you can register a callback method is by implementing it as an ordinary method, and then using a macro-style class method to register it as a callback. The last example could be written like that:</p></div>
+<div class="listingblock">
+<div class="content"><!-- Generator: GNU source-highlight 2.9
+by Lorenzo Bettini
+http://www.lorenzobettini.it
+http://www.gnu.org/software/src-highlite -->
+<pre><tt><span style="font-weight: bold"><span style="color: #0000FF">class</span></span> User <span style="color: #990000">&lt;</span> ActiveRecord<span style="color: #990000">::</span>Base
+  validates_presence_of <span style="color: #990000">:</span>login<span style="color: #990000">,</span> <span style="color: #990000">:</span>email
+
+  before_validation <span style="color: #990000">:</span>ensure_login_has_a_value
+
+  protected
+  <span style="font-weight: bold"><span style="color: #0000FF">def</span></span> ensure_login_has_a_value
+    <span style="font-weight: bold"><span style="color: #0000FF">if</span></span> <span style="font-weight: bold"><span style="color: #0000FF">self</span></span><span style="color: #990000">.</span>login<span style="color: #990000">.</span><span style="font-weight: bold"><span style="color: #0000FF">nil</span></span><span style="color: #990000">?</span>
+      <span style="font-weight: bold"><span style="color: #0000FF">self</span></span><span style="color: #990000">.</span>login <span style="color: #990000">=</span> email <span style="font-weight: bold"><span style="color: #0000FF">unless</span></span> email<span style="color: #990000">.</span>blank?
+    <span style="font-weight: bold"><span style="color: #0000FF">end</span></span>
+  <span style="font-weight: bold"><span style="color: #0000FF">end</span></span>
+<span style="font-weight: bold"><span style="color: #0000FF">end</span></span>
+</tt></pre></div></div>
+<div class="para"><p>The macro-style class methods can also receive a block. Rails best practices say that you should only use this style of registration if the code inside your block is so short that it fits in just one line.</p></div>
+<div class="listingblock">
+<div class="content"><!-- Generator: GNU source-highlight 2.9
+by Lorenzo Bettini
+http://www.lorenzobettini.it
+http://www.gnu.org/software/src-highlite -->
+<pre><tt><span style="font-weight: bold"><span style="color: #0000FF">class</span></span> User <span style="color: #990000">&lt;</span> ActiveRecord<span style="color: #990000">::</span>Base
+  validates_presence_of <span style="color: #990000">:</span>login<span style="color: #990000">,</span> <span style="color: #990000">:</span>email
+
+  before_create <span style="color: #FF0000">{</span><span style="color: #990000">|</span>user<span style="color: #990000">|</span> user<span style="color: #990000">.</span>name <span style="color: #990000">=</span> user<span style="color: #990000">.</span>login<span style="color: #990000">.</span>capitalize <span style="font-weight: bold"><span style="color: #0000FF">if</span></span> user<span style="color: #990000">.</span>name<span style="color: #990000">.</span>blank?<span style="color: #FF0000">}</span>
+<span style="font-weight: bold"><span style="color: #0000FF">end</span></span>
+</tt></pre></div></div>
+<div class="para"><p>In Rails, the preferred way of registering callbacks is by using macro-style class methods. The main advantages of using macro-style class methods are:</p></div>
+<div class="ilist"><ul>
+<li>
+<p>
+You can add more than one method for each type of callback. Those methods will be queued for execution at the same order they were registered.
+</p>
+</li>
+<li>
+<p>
+Readability, since your callback declarations will live at the beggining of your models' files.
+</p>
+</li>
+</ul></div>
+<div class="admonitionblock">
+<table><tr>
+<td class="icon">
+<img src="./images/icons/caution.png" alt="Caution" />
+</td>
+<td class="content">Remember to always declare the callback methods as being protected or private. These methods should never be public, otherwise it will be possible to call them from code outside the model, violating object encapsulation and exposing implementation details.</td>
+</tr></table>
+</div>
+</div>
+<h2 id="_available_callbacks">9. Available callbacks</h2>
+<div class="sectionbody">
+<div class="para"><p>Here is a list with all the available Active Record callbacks, listed in the same order in which they will get called during the respective operations.</p></div>
+<h3 id="_callbacks_called_both_when_creating_or_updating_a_record">9.1. Callbacks called both when creating or updating a record.</h3>
+<div class="ilist"><ul>
+<li>
+<p>
+<tt>before_validation</tt>
+</p>
+</li>
+<li>
+<p>
+<tt>after_validation</tt>
+</p>
+</li>
+<li>
+<p>
+<tt>before_save</tt>
+</p>
+</li>
+<li>
+<p>
+<strong>INSERT OR UPDATE OPERATION</strong>
+</p>
+</li>
+<li>
+<p>
+<tt>after_save</tt>
+</p>
+</li>
+</ul></div>
+<h3 id="_callbacks_called_only_when_creating_a_new_record">9.2. Callbacks called only when creating a new record.</h3>
+<div class="ilist"><ul>
+<li>
+<p>
+<tt>before_validation_on_create</tt>
+</p>
+</li>
+<li>
+<p>
+<tt>after_validation_on_create</tt>
+</p>
+</li>
+<li>
+<p>
+<tt>before_create</tt>
+</p>
+</li>
+<li>
+<p>
+<strong>INSERT OPERATION</strong>
+</p>
+</li>
+<li>
+<p>
+<tt>after_create</tt>
+</p>
+</li>
+</ul></div>
+<h3 id="_callbacks_called_only_when_updating_an_existing_record">9.3. Callbacks called only when updating an existing record.</h3>
+<div class="ilist"><ul>
+<li>
+<p>
+<tt>before_validation_on_update</tt>
+</p>
+</li>
+<li>
+<p>
+<tt>after_validation_on_update</tt>
+</p>
+</li>
+<li>
+<p>
+<tt>before_update</tt>
+</p>
+</li>
+<li>
+<p>
+<strong>UPDATE OPERATION</strong>
+</p>
+</li>
+<li>
+<p>
+<tt>after_update</tt>
+</p>
+</li>
+</ul></div>
+<h3 id="_callbacks_called_when_removing_a_record_from_the_database">9.4. Callbacks called when removing a record from the database.</h3>
+<div class="ilist"><ul>
+<li>
+<p>
+<tt>before_destroy</tt>
+</p>
+</li>
+<li>
+<p>
+<strong>DELETE OPERATION</strong>
+</p>
+</li>
+<li>
+<p>
+<tt>after_destroy</tt>
+</p>
+</li>
+</ul></div>
+<div class="para"><p>The <tt>before_destroy</tt> and <tt>after_destroy</tt> callbacks will only be called if you delete the model using either the <tt>destroy</tt> instance method or one of the <tt>destroy</tt> or <tt>destroy_all</tt> class methods of your Active Record class. If you use <tt>delete</tt> or <tt>delete_all</tt> no callback operations will run, since Active Record will not instantiate any objects, accessing the records to be deleted directly in the database.</p></div>
+<h3 id="_the_tt_after_initialize_tt_and_tt_after_find_tt_callbacks">9.5. The <tt>after_initialize</tt> and <tt>after_find</tt> callbacks</h3>
+<div class="para"><p>The <tt>after_initialize</tt> callback will be called whenever an Active Record object is instantiated, either by direcly using <tt>new</tt> or when a record is loaded from the database. It can be useful to avoid the need to directly override your Active Record <tt>initialize</tt> method.</p></div>
+<div class="para"><p>The <tt>after_find</tt> callback will be called whenever Active Record loads a record from the database. When used together with <tt>after_initialize</tt> it will run first, since Active Record will first read the record from the database and them create the model object that will hold it.</p></div>
+<div class="para"><p>The <tt>after_initialize</tt> and <tt>after_find</tt> callbacks are a bit different from the others, since the only way to register those callbacks is by defining them as methods. If you try to register <tt>after_initialize</tt> or <tt>after_find</tt> using macro-style class methods, they will just be ignored. This behaviour is due to performance reasons, since <tt>after_initialize</tt> and <tt>after_find</tt> will both be called for each record found in the database, significantly slowing down the queries.</p></div>
+</div>
+<h2 id="_halting_execution">10. Halting Execution</h2>
+<div class="sectionbody">
+<div class="para"><p>As you start registering new callbacks for your models, they will be queued for execution. This queue will include all your model's validations, the registered callbacks and the database operation to be executed. However, if at any moment one of the callback methods returns a boolean <tt>false</tt> (not <tt>nil</tt>) value, this execution chain will be halted and the desired operation will not complete: your model will not get persisted in the database, or your records will not get deleted and so on.</p></div>
+</div>
+<h2 id="_callback_classes">11. Callback classes</h2>
+<div class="sectionbody">
+<div class="para"><p>Sometimes the callback methods that you'll write will be useful enough to be reused at other models. Active Record makes it possible to create classes that encapsulate the callback methods, so it becomes very easy to reuse them.</p></div>
+<div class="para"><p>Here's an example where we create a class with a after_destroy callback for a PictureFile model.</p></div>
+<div class="listingblock">
+<div class="content"><!-- Generator: GNU source-highlight 2.9
+by Lorenzo Bettini
+http://www.lorenzobettini.it
+http://www.gnu.org/software/src-highlite -->
+<pre><tt><span style="font-weight: bold"><span style="color: #0000FF">class</span></span> PictureFileCallbacks
+  <span style="font-weight: bold"><span style="color: #0000FF">def</span></span> after_destroy<span style="color: #990000">(</span>picture_file<span style="color: #990000">)</span>
+    File<span style="color: #990000">.</span>delete<span style="color: #990000">(</span>picture_file<span style="color: #990000">.</span>filepath<span style="color: #990000">)</span> <span style="font-weight: bold"><span style="color: #0000FF">if</span></span> File<span style="color: #990000">.</span>exists?<span style="color: #990000">(</span>picture_file<span style="color: #990000">.</span>filepath<span style="color: #990000">)</span>
+  <span style="font-weight: bold"><span style="color: #0000FF">end</span></span>
+<span style="font-weight: bold"><span style="color: #0000FF">end</span></span>
+</tt></pre></div></div>
+<div class="para"><p>When declared inside a class the callback method will receive the model object as a parameter. We can now use it this way:</p></div>
+<div class="listingblock">
+<div class="content"><!-- Generator: GNU source-highlight 2.9
+by Lorenzo Bettini
+http://www.lorenzobettini.it
+http://www.gnu.org/software/src-highlite -->
+<pre><tt><span style="font-weight: bold"><span style="color: #0000FF">class</span></span> PictureFile <span style="color: #990000">&lt;</span> ActiveRecord<span style="color: #990000">::</span>Base
+  after_destroy PictureFileCallbacks<span style="color: #990000">.</span>new
+<span style="font-weight: bold"><span style="color: #0000FF">end</span></span>
+</tt></pre></div></div>
+<div class="para"><p>Note that we needed to instantiate a new PictureFileCallbacks object, since we declared our callback as an instance method. Sometimes it will make more sense to have it as a class method.</p></div>
+<div class="listingblock">
+<div class="content"><!-- Generator: GNU source-highlight 2.9
+by Lorenzo Bettini
+http://www.lorenzobettini.it
+http://www.gnu.org/software/src-highlite -->
+<pre><tt><span style="font-weight: bold"><span style="color: #0000FF">class</span></span> PictureFileCallbacks
+  <span style="font-weight: bold"><span style="color: #0000FF">def</span></span> <span style="font-weight: bold"><span style="color: #0000FF">self</span></span><span style="color: #990000">.</span>after_destroy<span style="color: #990000">(</span>picture_file<span style="color: #990000">)</span>
+    File<span style="color: #990000">.</span>delete<span style="color: #990000">(</span>picture_file<span style="color: #990000">.</span>filepath<span style="color: #990000">)</span> <span style="font-weight: bold"><span style="color: #0000FF">if</span></span> File<span style="color: #990000">.</span>exists?<span style="color: #990000">(</span>picture_file<span style="color: #990000">.</span>filepath<span style="color: #990000">)</span>
+  <span style="font-weight: bold"><span style="color: #0000FF">end</span></span>
+<span style="font-weight: bold"><span style="color: #0000FF">end</span></span>
+</tt></pre></div></div>
+<div class="para"><p>If the callback method is declared this way, it won't be necessary to instantiate a PictureFileCallbacks object.</p></div>
+<div class="listingblock">
+<div class="content"><!-- Generator: GNU source-highlight 2.9
+by Lorenzo Bettini
+http://www.lorenzobettini.it
+http://www.gnu.org/software/src-highlite -->
+<pre><tt><span style="font-weight: bold"><span style="color: #0000FF">class</span></span> PictureFile <span style="color: #990000">&lt;</span> ActiveRecord<span style="color: #990000">::</span>Base
+  after_destroy PictureFileCallbacks
+<span style="font-weight: bold"><span style="color: #0000FF">end</span></span>
+</tt></pre></div></div>
+<div class="para"><p>You can declare as many callbacks as you want inside your callback classes.</p></div>
+</div>
+<h2 id="_changelog">12. Changelog</h2>
 <div class="sectionbody">
 <div class="para"><p><a href="http://rails.lighthouseapp.com/projects/16213/tickets/26-active-record-validations-and-callbacks">http://rails.lighthouseapp.com/projects/16213/tickets/26-active-record-validations-and-callbacks</a></p></div>
 </div>

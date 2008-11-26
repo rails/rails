@@ -266,6 +266,7 @@ class CookieStoreTest < Test::Unit::TestCase
 
         @options = self.class.default_session_options.merge(options)
         session = CGI::Session.new(cgi, @options)
+        ObjectSpace.undefine_finalizer(session)
 
         assert_nil cgi.output_hidden, "Output hidden params should be empty: #{cgi.output_hidden.inspect}"
         assert_nil cgi.output_cookies, "Output cookies should be empty: #{cgi.output_cookies.inspect}"

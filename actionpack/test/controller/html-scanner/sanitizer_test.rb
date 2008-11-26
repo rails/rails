@@ -253,6 +253,10 @@ class SanitizerTest < Test::Unit::TestCase
     assert_sanitized "<![CDATA[<span>neverending...", "&lt;![CDATA[&lt;span>neverending...]]>"
   end
 
+  def test_should_not_mangle_urls_with_ampersand
+     assert_sanitized %{<a href=\"http://www.domain.com?var1=1&amp;var2=2\">my link</a>}
+  end
+
 protected
   def assert_sanitized(input, expected = nil)
     @sanitizer ||= HTML::WhiteListSanitizer.new

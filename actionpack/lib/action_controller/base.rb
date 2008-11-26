@@ -260,30 +260,44 @@ module ActionController #:nodoc:
 
     include StatusCodes
 
-    cattr_reader :protected_instance_variables
+    ##
+    # :singleton-method:
     # Controller specific instance variables which will not be accessible inside views.
+    cattr_reader :protected_instance_variables
     @@protected_instance_variables = %w(@assigns @performed_redirect @performed_render @variables_added @request_origin @url @parent_controller
                                         @action_name @before_filter_chain_aborted @action_cache_path @_session @_cookies @_headers @_params
                                         @_flash @_response)
 
+    @@asset_host = ""
+    ##
+    # :singleton-method:
     # Prepends all the URL-generating helpers from AssetHelper. This makes it possible to easily move javascripts, stylesheets,
     # and images to a dedicated asset server away from the main web server. Example:
     #   ActionController::Base.asset_host = "http://assets.example.com"
-    @@asset_host = ""
     cattr_accessor :asset_host
 
+    @@consider_all_requests_local = true
+    ##
+    # :singleton-method:
     # All requests are considered local by default, so everyone will be exposed to detailed debugging screens on errors.
     # When the application is ready to go public, this should be set to false, and the protected method <tt>local_request?</tt>
     # should instead be implemented in the controller to determine when debugging screens should be shown.
-    @@consider_all_requests_local = true
     cattr_accessor :consider_all_requests_local
 
+    @@allow_concurrency = false
+    ##
+    # :singleton-method:
     # Indicates whether to allow concurrent action processing. Your
     # controller actions and any other code they call must also behave well
     # when called from concurrent threads. Turned off by default.
-    @@allow_concurrency = false
     cattr_accessor :allow_concurrency
 
+    @@param_parsers = { Mime::MULTIPART_FORM   => :multipart_form,
+                        Mime::URL_ENCODED_FORM => :url_encoded_form,
+                        Mime::XML              => :xml_simple,
+                        Mime::JSON             => :json }
+    ##
+    # :singleton-method:
     # Modern REST web services often need to submit complex data to the web application.
     # The <tt>@@param_parsers</tt> hash lets you register handlers which will process the HTTP body and add parameters to the
     # <tt>params</tt> hash. These handlers are invoked for POST and PUT requests.
@@ -310,37 +324,47 @@ module ActionController #:nodoc:
     # A YAML parser is also available and can be turned on with:
     #
     #   ActionController::Base.param_parsers[Mime::YAML] = :yaml
-    @@param_parsers = { Mime::MULTIPART_FORM   => :multipart_form,
-                        Mime::URL_ENCODED_FORM => :url_encoded_form,
-                        Mime::XML              => :xml_simple,
-                        Mime::JSON             => :json }
     cattr_accessor :param_parsers
 
-    # Controls the default charset for all renders.
     @@default_charset = "utf-8"
+    ##
+    # :singleton-method:
+    # Controls the default charset for all renders.
     cattr_accessor :default_charset
 
+    ##
+    # :singleton-method:
     # The logger is used for generating information on the action run-time (including benchmarking) if available.
     # Can be set to nil for no logging. Compatible with both Ruby's own Logger and Log4r loggers.
     cattr_accessor :logger
 
-    # Controls the resource action separator
     @@resource_action_separator = "/"
+    ##
+    # :singleton-method:
+    # Controls the resource action separator
     cattr_accessor :resource_action_separator
 
-    # Allow to override path names for default resources' actions
     @@resources_path_names = { :new => 'new', :edit => 'edit' }
+    ##
+    # :singleton-method:
+    # Allow to override path names for default resources' actions
     cattr_accessor :resources_path_names
 
+    ##
+    # :singleton-method:
     # Sets the token parameter name for RequestForgery. Calling +protect_from_forgery+
     # sets it to <tt>:authenticity_token</tt> by default.
     cattr_accessor :request_forgery_protection_token
 
+    ##
+    # :singleton-method:
     # Indicates whether or not optimise the generated named
     # route helper methods
     cattr_accessor :optimise_named_routes
     self.optimise_named_routes = true
 
+    ##
+    # :singleton-method:
     # Indicates whether the response format should be determined by examining the Accept HTTP header,
     # or by using the simpler params + ajax rules.
     #
@@ -351,38 +375,54 @@ module ActionController #:nodoc:
     cattr_accessor :use_accept_header
     self.use_accept_header = true
 
+    ##
+    # :singleton-method:
     # Controls whether request forgergy protection is turned on or not. Turned off by default only in test mode.
     class_inheritable_accessor :allow_forgery_protection
     self.allow_forgery_protection = true
 
+    ##
+    # :singleton-method:
     # If you are deploying to a subdirectory, you will need to set
     # <tt>config.action_controller.relative_url_root</tt>
     # This defaults to ENV['RAILS_RELATIVE_URL_ROOT']
     cattr_accessor :relative_url_root
     self.relative_url_root = ENV['RAILS_RELATIVE_URL_ROOT']
 
+    ##
+    # :singleton-method:
     # Holds the request object that's primarily used to get environment variables through access like
     # <tt>request.env["REQUEST_URI"]</tt>.
     attr_internal :request
 
+    ##
+    # :singleton-method:
     # Holds a hash of all the GET, POST, and Url parameters passed to the action. Accessed like <tt>params["post_id"]</tt>
     # to get the post_id. No type casts are made, so all values are returned as strings.
     attr_internal :params
 
+    ##
+    # :singleton-method:
     # Holds the response object that's primarily used to set additional HTTP headers through access like
     # <tt>response.headers["Cache-Control"] = "no-cache"</tt>. Can also be used to access the final body HTML after a template
     # has been rendered through response.body -- useful for <tt>after_filter</tt>s that wants to manipulate the output,
     # such as a OutputCompressionFilter.
     attr_internal :response
 
+    ##
+    # :singleton-method:
     # Holds a hash of objects in the session. Accessed like <tt>session[:person]</tt> to get the object tied to the "person"
     # key. The session will hold any type of object as values, but the key should be a string or symbol.
     attr_internal :session
 
+    ##
+    # :singleton-method:
     # Holds a hash of header names and values. Accessed like <tt>headers["Cache-Control"]</tt> to get the value of the Cache-Control
     # directive. Values should always be specified as strings.
     attr_internal :headers
 
+    ##
+    # :singleton-method:
     # Returns the name of the action this controller is processing.
     attr_accessor :action_name
 
@@ -1241,7 +1281,7 @@ module ActionController #:nodoc:
         parameters = respond_to?(:filter_parameters) ? filter_parameters(params) : params.dup
         parameters = parameters.except!(:controller, :action, :format, :_method)
         
-        logger.info "  Parameters: #{parameters.inspect}"
+        logger.info "  Parameters: #{parameters.inspect}" unless parameters.empty?
       end
 
       def default_render #:nodoc:

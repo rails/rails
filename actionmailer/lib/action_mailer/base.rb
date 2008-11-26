@@ -201,49 +201,7 @@ module ActionMailer #:nodoc:
   #   end
   #
   #
-  # = Configuration options
-  #
-  # These options are specified on the class level, like <tt>ActionMailer::Base.template_root = "/my/templates"</tt>
-  #
-  # * <tt>template_root</tt> - Determines the base from which template references will be made.
-  #
-  # * <tt>logger</tt> - the logger is used for generating information on the mailing run if available.
-  #   Can be set to nil for no logging. Compatible with both Ruby's own Logger and Log4r loggers.
-  #
-  # * <tt>smtp_settings</tt> - Allows detailed configuration for <tt>:smtp</tt> delivery method:
-  #   * <tt>:address</tt> - Allows you to use a remote mail server. Just change it from its default "localhost" setting.
-  #   * <tt>:port</tt> - On the off chance that your mail server doesn't run on port 25, you can change it.
-  #   * <tt>:domain</tt> - If you need to specify a HELO domain, you can do it here.
-  #   * <tt>:user_name</tt> - If your mail server requires authentication, set the username in this setting.
-  #   * <tt>:password</tt> - If your mail server requires authentication, set the password in this setting.
-  #   * <tt>:authentication</tt> - If your mail server requires authentication, you need to specify the authentication type here.
-  #     This is a symbol and one of <tt>:plain</tt>, <tt>:login</tt>, <tt>:cram_md5</tt>.
-  #
-  # * <tt>sendmail_settings</tt> - Allows you to override options for the <tt>:sendmail</tt> delivery method.
-  #   * <tt>:location</tt> - The location of the sendmail executable. Defaults to <tt>/usr/sbin/sendmail</tt>.
-  #   * <tt>:arguments</tt> - The command line arguments. Defaults to <tt>-i -t</tt>.
-  #
-  # * <tt>raise_delivery_errors</tt> - Whether or not errors should be raised if the email fails to be delivered.
-  #
-  # * <tt>delivery_method</tt> - Defines a delivery method. Possible values are <tt>:smtp</tt> (default), <tt>:sendmail</tt>, and <tt>:test</tt>.
-  #
-  # * <tt>perform_deliveries</tt> - Determines whether <tt>deliver_*</tt> methods are actually carried out. By default they are,
-  #   but this can be turned off to help functional testing.
-  #
-  # * <tt>deliveries</tt> - Keeps an array of all the emails sent out through the Action Mailer with <tt>delivery_method :test</tt>. Most useful
-  #   for unit and functional testing.
-  #
-  # * <tt>default_charset</tt> - The default charset used for the body and to encode the subject. Defaults to UTF-8. You can also
-  #   pick a different charset from inside a method with +charset+.
-  # * <tt>default_content_type</tt> - The default content type used for the main part of the message. Defaults to "text/plain". You
-  #   can also pick a different content type from inside a method with +content_type+.
-  # * <tt>default_mime_version</tt> - The default mime version used for the message. Defaults to <tt>1.0</tt>. You
-  #   can also pick a different value from inside a method with +mime_version+.
-  # * <tt>default_implicit_parts_order</tt> - When a message is built implicitly (i.e. multiple parts are assembled from templates
-  #   which specify the content type in their filenames) this variable controls how the parts are ordered. Defaults to
-  #   <tt>["text/html", "text/enriched", "text/plain"]</tt>. Items that appear first in the array have higher priority in the mail client
-  #   and appear last in the mime encoded message. You can also pick a different order from inside a method with
-  #   +implicit_parts_order+.
+  # Configuration options are specified on the class level, like <tt>ActionMailer::Base.template_root = "/my/templates"</tt>
   class Base
     include AdvAttrAccessor, PartContainer
     if Object.const_defined?(:ActionController)
@@ -254,6 +212,10 @@ module ActionMailer #:nodoc:
     private_class_method :new #:nodoc:
 
     class_inheritable_accessor :view_paths
+    ##
+    # :singleton-method:
+    # The logger is used for generating information on the mailing run if available.
+    # Can be set to nil for no logging. Compatible with both Ruby's own Logger and Log4r loggers.
     cattr_accessor :logger
 
     @@smtp_settings = {
@@ -264,88 +226,150 @@ module ActionMailer #:nodoc:
       :password       => nil,
       :authentication => nil
     }
+    ##
+    # :singleton-method:
+    # Allows detailed configuration for <tt>:smtp</tt> delivery method:
+    # * <tt>:address</tt> - Allows you to use a remote mail server. Just change it from its default "localhost" setting.
+    # * <tt>:port</tt> - On the off chance that your mail server doesn't run on port 25, you can change it.
+    # * <tt>:domain</tt> - If you need to specify a HELO domain, you can do it here.
+    # * <tt>:user_name</tt> - If your mail server requires authentication, set the username in this setting.
+    # * <tt>:password</tt> - If your mail server requires authentication, set the password in this setting.
+    # * <tt>:authentication</tt> - If your mail server requires authentication, you need to specify the authentication type here.
+    #   This is a symbol and one of <tt>:plain</tt>, <tt>:login</tt>, <tt>:cram_md5</tt>.
     cattr_accessor :smtp_settings
 
     @@sendmail_settings = {
       :location       => '/usr/sbin/sendmail',
       :arguments      => '-i -t'
     }
+    ##
+    # :singleton-method:
+    # Allows you to override options for the <tt>:sendmail</tt> delivery method.
+    #  * <tt>:location</tt> - The location of the sendmail executable. Defaults to <tt>/usr/sbin/sendmail</tt>.
+    #  * <tt>:arguments</tt> - The command line arguments. Defaults to <tt>-i -t</tt>.
     cattr_accessor :sendmail_settings
 
     @@raise_delivery_errors = true
+    ##
+    # :singleton-method:
+    # Whether or not errors should be raised if the email fails to be delivered.
     cattr_accessor :raise_delivery_errors
 
+    ##
+    # :singleton-method:
+    # Defines a delivery method. Possible values are <tt>:smtp</tt> (default), <tt>:sendmail</tt>, and <tt>:test</tt>.
     superclass_delegating_accessor :delivery_method
     self.delivery_method = :smtp
 
     @@perform_deliveries = true
+    ##
+    # :singleton-method:
+    # Determines whether <tt>deliver_*</tt> methods are actually carried out. By default they are,
+    # but this can be turned off to help functional testing.
     cattr_accessor :perform_deliveries
 
     @@deliveries = []
+    ##
+    # :singleton-method:
+    # Keeps an array of all the emails sent out through the Action Mailer with <tt>delivery_method :test</tt>. Most useful
+    # for unit and functional testing.
     cattr_accessor :deliveries
 
     @@default_charset = "utf-8"
+    ##
+    # :singleton-method:
+    # The default charset used for the body and to encode the subject. Defaults to UTF-8. You can also
+    # pick a different charset from inside a method with +charset+.
     cattr_accessor :default_charset
 
     @@default_content_type = "text/plain"
+    ##
+    # :singleton-method:
+    # The default content type used for the main part of the message. Defaults to "text/plain". You
+    # can also pick a different content type from inside a method with +content_type+.
     cattr_accessor :default_content_type
 
     @@default_mime_version = "1.0"
+    ##
+    # :singleton-method:
+    # The default mime version used for the message. Defaults to <tt>1.0</tt>. You
+    # can also pick a different value from inside a method with +mime_version+.
     cattr_accessor :default_mime_version
 
     @@default_implicit_parts_order = [ "text/html", "text/enriched", "text/plain" ]
+    ##
+    # :singleton-method:
+    # When a message is built implicitly (i.e. multiple parts are assembled from templates
+    # which specify the content type in their filenames) this variable controls how the parts are ordered. Defaults to
+    # <tt>["text/html", "text/enriched", "text/plain"]</tt>. Items that appear first in the array have higher priority in the mail client
+    # and appear last in the mime encoded message. You can also pick a different order from inside a method with
+    # +implicit_parts_order+.
     cattr_accessor :default_implicit_parts_order
 
     cattr_reader :protected_instance_variables
     @@protected_instance_variables = %w(@body)
 
+    ##
     # Specify the BCC addresses for the message
     adv_attr_accessor :bcc
 
+    ##
     # Define the body of the message. This is either a Hash (in which case it
     # specifies the variables to pass to the template when it is rendered),
     # or a string, in which case it specifies the actual text of the message.
     adv_attr_accessor :body
 
+    ##
     # Specify the CC addresses for the message.
     adv_attr_accessor :cc
 
+    ##
     # Specify the charset to use for the message. This defaults to the
     # +default_charset+ specified for ActionMailer::Base.
     adv_attr_accessor :charset
 
+    ##
     # Specify the content type for the message. This defaults to <tt>text/plain</tt>
     # in most cases, but can be automatically set in some situations.
     adv_attr_accessor :content_type
 
+    ##
     # Specify the from address for the message.
     adv_attr_accessor :from
 
+    ##
     # Specify the address (if different than the "from" address) to direct
     # replies to this message.
     adv_attr_accessor :reply_to
 
+    ##
     # Specify additional headers to be added to the message.
     adv_attr_accessor :headers
 
+    ##
     # Specify the order in which parts should be sorted, based on content-type.
     # This defaults to the value for the +default_implicit_parts_order+.
     adv_attr_accessor :implicit_parts_order
 
+    ##
     # Defaults to "1.0", but may be explicitly given if needed.
     adv_attr_accessor :mime_version
 
+    ##
     # The recipient addresses for the message, either as a string (for a single
     # address) or an array (for multiple addresses).
     adv_attr_accessor :recipients
 
+    ##
     # The date on which the message was sent. If not set (the default), the
     # header will be set by the delivery agent.
     adv_attr_accessor :sent_on
 
+    ##
     # Specify the subject of the message.
     adv_attr_accessor :subject
 
+    ##
     # Specify the template name to use for current message. This is the "base"
     # template name, without the extension or directory, and may be used to
     # have multiple mailer methods share the same template.
@@ -386,12 +410,15 @@ module ActionMailer #:nodoc:
       end
 
       def method_missing(method_symbol, *parameters) #:nodoc:
-        match = matches_dynamic_method?(method_symbol)
-        case match[1]
-          when 'create'  then new(match[2], *parameters).mail
-          when 'deliver' then new(match[2], *parameters).deliver!
-          when 'new'     then nil
-          else super
+        if match = matches_dynamic_method?(method_symbol)
+          case match[1]
+            when 'create'  then new(match[2], *parameters).mail
+            when 'deliver' then new(match[2], *parameters).deliver!
+            when 'new'     then nil
+            else super
+          end
+        else
+          super
         end
       end
 
@@ -429,6 +456,7 @@ module ActionMailer #:nodoc:
           "Use ActionView::Base.register_template_extension instead", caller)
       end
 
+      # Determines the base from which template references will be made.
       def template_root
         self.view_paths && self.view_paths.first
       end
@@ -440,7 +468,7 @@ module ActionMailer #:nodoc:
       private
         def matches_dynamic_method?(method_name) #:nodoc:
           method_name = method_name.to_s
-          /(create|deliver)_([_a-z]\w*)/.match(method_name) || /^(new)$/.match(method_name)
+          /^(create|deliver)_([_a-z]\w*)/.match(method_name) || /^(new)$/.match(method_name)
         end
     end
 
@@ -663,8 +691,10 @@ module ActionMailer #:nodoc:
         mail.ready_to_send
         sender = mail['return-path'] || mail.from
 
-        Net::SMTP.start(smtp_settings[:address], smtp_settings[:port], smtp_settings[:domain],
-            smtp_settings[:user_name], smtp_settings[:password], smtp_settings[:authentication]) do |smtp|
+        smtp = Net::SMTP.new(smtp_settings[:address], smtp_settings[:port])
+        smtp.enable_starttls_auto if smtp.respond_to?(:enable_starttls_auto)
+        smtp.start(smtp_settings[:domain], smtp_settings[:user_name], smtp_settings[:password],
+                   smtp_settings[:authentication]) do |smtp|
           smtp.sendmail(mail.encoded, sender, destinations)
         end
       end

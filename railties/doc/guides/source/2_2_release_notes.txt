@@ -265,11 +265,13 @@ map.resources :products, :except => :destroy
 === Other Action Controller Changes
 
 * You can now easily link:http://m.onkey.org/2008/7/20/rescue-from-dispatching[show a custom error page] for exceptions raised while routing a request.
-* The HTTP Accept header is disabled by default now. You should prefer the use of formatted URLs (such as +/customers/1.xml+) to indicate the format that you want. If you need the Accept headers, you can turn them back on with +config.action_controller.user_accept_header = true+.
+* The HTTP Accept header is disabled by default now. You should prefer the use of formatted URLs (such as +/customers/1.xml+) to indicate the format that you want. If you need the Accept headers, you can turn them back on with +config.action_controller.use_accept_header = true+.
 * Benchmarking numbers are now reported in milliseconds rather than tiny fractions of seconds
 * Rails now supports HTTP-only cookies (and uses them for sessions), which help mitigate some cross-site scripting risks in newer browsers.
 * +redirect_to+ now fully supports URI schemes (so, for example, you can redirect to a svn+ssh: URI).
 * +render+ now supports a +:js+ option to render plain vanilla javascript with the right mime type.
+* Request forgery protection has been tightened up to apply to HTML-formatted content requests only.
+* Polymorphic URLs behave more sensibly if a passed parameter is nil. For example, calling +polymorphic_path([@project, @date, @area])+ with a nil date will give you +project_area_path+.
 
 == Action View
 
@@ -284,6 +286,8 @@ Action Mailer now supports mailer layouts. You can make your HTML emails as pret
 
 * More information:
  - link:http://ryandaigle.com/articles/2008/9/7/what-s-new-in-edge-rails-mailer-layouts[What's New in Edge Rails: Mailer Layouts]
+
+Action Mailer now offers built-in support for GMail's SMTP servers, by turning on STARTTLS automatically. This requires Ruby 1.8.7 to be installed.
 
 == Active Support
 
@@ -361,11 +365,11 @@ Lead Contributor: link:http://workingwithrails.com/person/5830-daniel-schierbeck
 * Extensive updates to +ActiveSupport::Multibyte+, including Ruby 1.9 compatibility fixes.
 * The addition of +ActiveSupport::Rescuable+ allows any class to mix in the +rescue_from+ syntax.
 * +past?+, +today?+ and +future?+ for +Date+ and +Time+ classes to facilitate date/time comparisons.
-* +Array#second+ through +Array#tenth+ as aliases for +Array#[1]+ through +Array#[9]+
+* +Array#second+ through +Array#fifth+ as aliases for +Array#[1]+ through +Array#[4]+
 * +Enumerable#many?+ to encapsulate +collection.size > 1+
 * +Inflector#parameterize+ produces a URL-ready version of its input, for use in +to_param+.
 * +Time#advance+ recognizes fractional days and weeks, so you can do +1.7.weeks.ago+, +1.5.hours.since+, and so on.
-* The included TzInfo library has been upgraded to version 0.3.11.
+* The included TzInfo library has been upgraded to version 0.3.12.
 * +ActiveSuport::StringInquirer+ gives you a pretty way to test for equality in strings: +ActiveSupport::StringInquirer.new("abc").abc? => true+
 
 == Railties
@@ -377,7 +381,7 @@ In Railties (the core code of Rails itself) the biggest changes are in the +conf
 To avoid deployment issues and make Rails applications more self-contained, it's possible to place copies of all of the gems that your Rails application requires in +/vendor/gems+. This capability first appeared in Rails 2.1, but it's much more flexible and robust in Rails 2.2, handling complicated dependencies between gems. Gem management in Rails includes these commands:
 
 * +config.gem _gem_name_+ in your +config/environment.rb+ file
-* +rake gems+ to list all configured gems, as well as whether they (and their dependencies) are installed or frozen
+* +rake gems+ to list all configured gems, as well as whether they (and their dependencies) are installed, frozen, or framework (framework gems are those loaded by Rails before the gem dependency code is executed; such gems cannot be frozen)
 * +rake gems:install+ to install missing gems to the computer
 * +rake gems:unpack+ to place a copy of the required gems into +/vendor/gems+
 * +rake gems:unpack:dependencies+ to get copies of the required gems and their dependencies into +/vendor/gems+
@@ -390,6 +394,7 @@ You can unpack or install a single gem by specifying +GEM=_gem_name_+ on the com
 * More information:
  - link:http://ryandaigle.com/articles/2008/4/1/what-s-new-in-edge-rails-gem-dependencies[What's New in Edge Rails: Gem Dependencies]
  - link:http://afreshcup.com/2008/10/25/rails-212-and-22rc1-update-your-rubygems/[Rails 2.1.2 and 2.2RC1: Update Your RubyGems]
+ - link:http://rails.lighthouseapp.com/projects/8994-ruby-on-rails/tickets/1128[Detailed discussion on Lighthouse]
 
 === Other Railties Changes
 
@@ -399,7 +404,7 @@ You can unpack or install a single gem by specifying +GEM=_gem_name_+ on the com
 * Instructions for setting up a continuous integration server to build Rails itself are included in the Rails source
 * +rake notes:custom ANNOTATION=MYFLAG+ lets you list out custom annotations.
 * Wrapped +Rails.env+ in +StringInquirer+ so you can do +Rails.env.development?+
-* +script/generate+ works without deprecation warnings when RubyGems 1.3.0 is present
+* To eliminate deprecation warnings and properly handle gem dependencies, Rails now requires rubygems 1.3.1 or higher.
 
 == Deprecated
 

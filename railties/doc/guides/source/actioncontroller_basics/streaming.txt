@@ -52,7 +52,7 @@ This will read and stream the file 4Kb at the time, avoiding loading the entire 
 
 WARNING: Be careful when using (or just don't use) "outside" data (params, cookies, etc) to locate the file on disk, as this is a security risk that might allow someone to gain access to files they are not meant to see.
 
-TIP: It is not recommended that you stream static files through Rails if you can instead keep them in a public folder on your web server. It is much more efficient to let the user download the file directly using Apache or another web server, keeping the request from unnecessarily going through the whole Rails stack.
+TIP: It is not recommended that you stream static files through Rails if you can instead keep them in a public folder on your web server. It is much more efficient to let the user download the file directly using Apache or another web server, keeping the request from unnecessarily going through the whole Rails stack. Although if you do need the request to go through Rails for some reason, you can set the `:x_sendfile` option to true, and Rails will let the web server handle sending the file to the user, freeing up the Rails process to do other things. Note that your web server needs to support the `X-Sendfile` header for this to work, and you still have to be careful not to use user input in a way that lets someone retrieve arbitrary files.
 
 === RESTful Downloads ===
 

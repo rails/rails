@@ -68,6 +68,16 @@ class DeveloperWithSymbolsForKeys < ActiveRecord::Base
     :foreign_key => "developer_id"
 end
 
+class DeveloperWithCounterSQL < ActiveRecord::Base
+  set_table_name 'developers'
+  has_and_belongs_to_many :projects,
+    :class_name => "DeveloperWithCounterSQL",
+    :join_table => "developers_projects",
+    :association_foreign_key => "project_id",
+    :foreign_key => "developer_id",
+    :counter_sql => 'SELECT COUNT(*) AS count_all FROM projects INNER JOIN developers_projects ON projects.id = developers_projects.project_id WHERE developers_projects.developer_id =#{id}'
+end
+
 class HasAndBelongsToManyAssociationsTest < ActiveRecord::TestCase
   fixtures :accounts, :companies, :categories, :posts, :categories_posts, :developers, :projects, :developers_projects,
            :parrots, :pirates, :treasures, :price_estimates, :tags, :taggings
@@ -737,6 +747,19 @@ class HasAndBelongsToManyAssociationsTest < ActiveRecord::TestCase
     # Extra parameter just to make sure we aren't falling back to
     # Array#count in Ruby >=1.8.7, which would raise an ArgumentError
     assert_nothing_raised { david.projects.count(:all, :conditions => '1=1') }
+  end
+
+  def test_count
+    david = Developer.find(1)
+    assert_equal 2, david.projects.count
+  end
+
+  def test_count_with_counter_sql
+    developer  = DeveloperWithCounterSQL.create(:name => 'tekin')
+    developer.project_ids = [projects(:active_record).id]
+    developer.save
+    developer.reload
+    assert_equal 1, developer.projects.count
   end
 
   uses_mocha 'mocking Post.transaction' do

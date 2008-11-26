@@ -160,6 +160,12 @@ uses_memcached 'memcached backed store' do
       @cache.read('foo').gsub!(/.*/, 'baz')
       assert_equal 'bar', @cache.read('foo')
     end
+
+    def test_write_should_return_true_on_success
+      result = @cache.write('foo', 'bar')
+      assert_equal 'bar', @cache.read('foo') # make sure 'foo' was written
+      assert result
+    end
   end
 
   class CompressedMemCacheStore < Test::Unit::TestCase

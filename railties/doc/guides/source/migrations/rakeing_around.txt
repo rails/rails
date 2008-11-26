@@ -2,6 +2,8 @@
 
 Rails provides a set of rake tasks to work with migrations which boils down to running certain sets of migrations. The very first migration related rake task you use will probably be `db:migrate`. In its most basic form it just runs the `up` method for all the migrations that have not yet been run. If there are no such migrations it exits.
 
+Note that running the `db:migrate` also invokes the `db:schema:dump` task, which will update your db/schema.rb file to match the structure of your database.
+
 If you specify a target version, Active Record will run the required migrations (up or down) until it has reached the specified version. The
 version is the numerical prefix on the migration's filename. For example to migrate to version 20080906120000 run
 

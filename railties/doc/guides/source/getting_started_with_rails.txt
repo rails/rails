@@ -1021,7 +1021,7 @@ class CommentsController < ApplicationController
 
   def show
     @post = Post.find(params[:post_id])
-    @comment = Comment.find(params[:id])
+    @comment = @post.comments.find(params[:id])
   end
 
   def new
@@ -1033,7 +1033,7 @@ class CommentsController < ApplicationController
     @post = Post.find(params[:post_id])
     @comment = @post.comments.build(params[:comment])
     if @comment.save
-      redirect_to post_comment_path(@post, @comment)
+      redirect_to post_comment_url(@post, @comment)
     else
       render :action => "new"
     end
@@ -1041,14 +1041,14 @@ class CommentsController < ApplicationController
   
   def edit
     @post = Post.find(params[:post_id])
-    @comment = Comment.find(params[:id])
+    @comment = @post.comments.find(params[:id])
   end
 
   def update
     @post = Post.find(params[:post_id])
     @comment = Comment.find(params[:id])
     if @comment.update_attributes(params[:comment])
-      redirect_to post_comment_path(@post, @comment)
+      redirect_to post_comment_url(@post, @comment)
     else
       render :action => "edit"
     end
@@ -1219,7 +1219,7 @@ Note that each post has its own individual comments collection, accessible as +@
 
 Now that you've seen your first Rails application, you should feel free to update it and experiment on your own. But you don't have to do everything without help. As you need assistance getting up and running with Rails, feel free to consult these support resources:
 
-* The link:http://manuals.rubyonrails.org/[Ruby On Rails guides]
+* The link:http://guides.rubyonrails.org/[Ruby On Rails guides]
 * The link:http://groups.google.com/group/rubyonrails-talk[Ruby on Rails mailing list]
 * The #rubyonrails channel on irc.freenode.net
 * The link:http://wiki.rubyonrails.org/rails[Rails wiki]

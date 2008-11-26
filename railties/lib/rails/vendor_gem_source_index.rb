@@ -81,7 +81,7 @@ module Rails
             spec.files = files
           else
             $stderr.puts("config.gem: Unpacked gem #{dir_name} in vendor/gems not in a versioned directory."+
-                         " Giving up.") unless @silence_spec_warnings
+                         " Giving up.") unless @@silence_spec_warnings
             next
           end
         end

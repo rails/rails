@@ -13,6 +13,8 @@ module ActiveSupport
 
     MAX_BUFFER_SIZE = 1000
 
+    ##
+    # :singleton-method:
     # Set to false to disable the silencer
     cattr_accessor :silencer
     self.silencer = true

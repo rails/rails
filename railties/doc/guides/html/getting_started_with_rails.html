@@ -1791,7 +1791,7 @@ http://www.gnu.org/software/src-highlite -->
 
   <span style="font-weight: bold"><span style="color: #0000FF">def</span></span> show
     <span style="color: #009900">@post</span> <span style="color: #990000">=</span> Post<span style="color: #990000">.</span>find<span style="color: #990000">(</span>params<span style="color: #990000">[:</span>post_id<span style="color: #990000">])</span>
-    <span style="color: #009900">@comment</span> <span style="color: #990000">=</span> Comment<span style="color: #990000">.</span>find<span style="color: #990000">(</span>params<span style="color: #990000">[:</span>id<span style="color: #990000">])</span>
+    <span style="color: #009900">@comment</span> <span style="color: #990000">=</span> <span style="color: #009900">@post</span><span style="color: #990000">.</span>comments<span style="color: #990000">.</span>find<span style="color: #990000">(</span>params<span style="color: #990000">[:</span>id<span style="color: #990000">])</span>
   <span style="font-weight: bold"><span style="color: #0000FF">end</span></span>
 
   <span style="font-weight: bold"><span style="color: #0000FF">def</span></span> new
@@ -1803,7 +1803,7 @@ http://www.gnu.org/software/src-highlite -->
     <span style="color: #009900">@post</span> <span style="color: #990000">=</span> Post<span style="color: #990000">.</span>find<span style="color: #990000">(</span>params<span style="color: #990000">[:</span>post_id<span style="color: #990000">])</span>
     <span style="color: #009900">@comment</span> <span style="color: #990000">=</span> <span style="color: #009900">@post</span><span style="color: #990000">.</span>comments<span style="color: #990000">.</span>build<span style="color: #990000">(</span>params<span style="color: #990000">[:</span>comment<span style="color: #990000">])</span>
     <span style="font-weight: bold"><span style="color: #0000FF">if</span></span> <span style="color: #009900">@comment</span><span style="color: #990000">.</span>save
-      redirect_to post_comment_path<span style="color: #990000">(</span><span style="color: #009900">@post</span><span style="color: #990000">,</span> <span style="color: #009900">@comment</span><span style="color: #990000">)</span>
+      redirect_to post_comment_url<span style="color: #990000">(</span><span style="color: #009900">@post</span><span style="color: #990000">,</span> <span style="color: #009900">@comment</span><span style="color: #990000">)</span>
     <span style="font-weight: bold"><span style="color: #0000FF">else</span></span>
       render <span style="color: #990000">:</span>action <span style="color: #990000">=&gt;</span> <span style="color: #FF0000">"new"</span>
     <span style="font-weight: bold"><span style="color: #0000FF">end</span></span>
@@ -1811,14 +1811,14 @@ http://www.gnu.org/software/src-highlite -->
 
   <span style="font-weight: bold"><span style="color: #0000FF">def</span></span> edit
     <span style="color: #009900">@post</span> <span style="color: #990000">=</span> Post<span style="color: #990000">.</span>find<span style="color: #990000">(</span>params<span style="color: #990000">[:</span>post_id<span style="color: #990000">])</span>
-    <span style="color: #009900">@comment</span> <span style="color: #990000">=</span> Comment<span style="color: #990000">.</span>find<span style="color: #990000">(</span>params<span style="color: #990000">[:</span>id<span style="color: #990000">])</span>
+    <span style="color: #009900">@comment</span> <span style="color: #990000">=</span> <span style="color: #009900">@post</span><span style="color: #990000">.</span>comments<span style="color: #990000">.</span>find<span style="color: #990000">(</span>params<span style="color: #990000">[:</span>id<span style="color: #990000">])</span>
   <span style="font-weight: bold"><span style="color: #0000FF">end</span></span>
 
   <span style="font-weight: bold"><span style="color: #0000FF">def</span></span> update
     <span style="color: #009900">@post</span> <span style="color: #990000">=</span> Post<span style="color: #990000">.</span>find<span style="color: #990000">(</span>params<span style="color: #990000">[:</span>post_id<span style="color: #990000">])</span>
     <span style="color: #009900">@comment</span> <span style="color: #990000">=</span> Comment<span style="color: #990000">.</span>find<span style="color: #990000">(</span>params<span style="color: #990000">[:</span>id<span style="color: #990000">])</span>
     <span style="font-weight: bold"><span style="color: #0000FF">if</span></span> <span style="color: #009900">@comment</span><span style="color: #990000">.</span>update_attributes<span style="color: #990000">(</span>params<span style="color: #990000">[:</span>comment<span style="color: #990000">])</span>
-      redirect_to post_comment_path<span style="color: #990000">(</span><span style="color: #009900">@post</span><span style="color: #990000">,</span> <span style="color: #009900">@comment</span><span style="color: #990000">)</span>
+      redirect_to post_comment_url<span style="color: #990000">(</span><span style="color: #009900">@post</span><span style="color: #990000">,</span> <span style="color: #009900">@comment</span><span style="color: #990000">)</span>
     <span style="font-weight: bold"><span style="color: #0000FF">else</span></span>
       render <span style="color: #990000">:</span>action <span style="color: #990000">=&gt;</span> <span style="color: #FF0000">"edit"</span>
     <span style="font-weight: bold"><span style="color: #0000FF">end</span></span>
@@ -1990,7 +1990,7 @@ http://www.gnu.org/software/src-highlite -->
 <div class="ilist"><ul>
 <li>
 <p>
-The <a href="http://manuals.rubyonrails.org/">Ruby On Rails guides</a>
+The <a href="http://guides.rubyonrails.org/">Ruby On Rails guides</a>
 </p>
 </li>
 <li>

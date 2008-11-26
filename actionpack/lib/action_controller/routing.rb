@@ -84,9 +84,11 @@ module ActionController
   # This sets up +blog+ as the default controller if no other is specified.
   # This means visiting '/' would invoke the blog controller.
   #
-  # More formally, you can define defaults in a route with the <tt>:defaults</tt> key.
+  # More formally, you can include arbitrary parameters in the route, thus:
   #
-  #   map.connect ':controller/:action/:id', :action => 'show', :defaults => { :page => 'Dashboard' }
+  #   map.connect ':controller/:action/:id', :action => 'show', :page => 'Dashboard'
+  #
+  # This will pass the :page parameter to all incoming requests that match this route.
   #
   # Note: The default routes, as provided by the Rails generator, make all actions in every
   # controller accessible via GET requests. You should consider removing them or commenting

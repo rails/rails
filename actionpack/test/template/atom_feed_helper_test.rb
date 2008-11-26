@@ -255,7 +255,8 @@ class AtomFeedTest < Test::Unit::TestCase
   def test_feed_xml_processing_instructions
     with_restful_routing(:scrolls) do
       get :index, :id => 'feed_with_xml_processing_instructions'
-      assert_match %r{<\?xml-stylesheet type="text/css" href="t.css"\?>}, @response.body
+      assert_match %r{<\?xml-stylesheet [^\?]*type="text/css"}, @response.body
+      assert_match %r{<\?xml-stylesheet [^\?]*href="t.css"}, @response.body
     end
   end
 

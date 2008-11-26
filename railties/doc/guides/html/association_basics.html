@@ -687,8 +687,8 @@ by Lorenzo Bettini
 http://www.lorenzobettini.it
 http://www.gnu.org/software/src-highlite -->
 <pre><tt><span style="font-weight: bold"><span style="color: #0000FF">class</span></span> Employee <span style="color: #990000">&lt;</span> ActiveRecord<span style="color: #990000">::</span>Base
-  has_many <span style="color: #990000">:</span>subordinates<span style="color: #990000">,</span> <span style="color: #990000">:</span>class_name <span style="color: #990000">=&gt;</span> <span style="color: #FF0000">"User"</span><span style="color: #990000">,</span> <span style="color: #990000">:</span>foreign_key <span style="color: #990000">=&gt;</span> <span style="color: #FF0000">"manager_id"</span>
-  belongs_to <span style="color: #990000">:</span>manager<span style="color: #990000">,</span> <span style="color: #990000">:</span>class_name <span style="color: #990000">=&gt;</span> <span style="color: #FF0000">"User"</span>
+  has_many <span style="color: #990000">:</span>subordinates<span style="color: #990000">,</span> <span style="color: #990000">:</span>class_name <span style="color: #990000">=&gt;</span> <span style="color: #FF0000">"Employee"</span><span style="color: #990000">,</span> <span style="color: #990000">:</span>foreign_key <span style="color: #990000">=&gt;</span> <span style="color: #FF0000">"manager_id"</span>
+  belongs_to <span style="color: #990000">:</span>manager<span style="color: #990000">,</span> <span style="color: #990000">:</span>class_name <span style="color: #990000">=&gt;</span> <span style="color: #FF0000">"Employee"</span>
 <span style="font-weight: bold"><span style="color: #0000FF">end</span></span>
 </tt></pre></div></div>
 <div class="para"><p>With this setup, you can retrieve <tt>@employee.subordinates</tt> and <tt>@employee.manager</tt>.</p></div>
@@ -742,7 +742,9 @@ customer<span style="color: #990000">.</span>orders<span style="color: #990000">
 <h3 id="_avoiding_name_collisions">3.2. Avoiding Name Collisions</h3>
 <div class="para"><p>You are not free to use just any name for your associations. Because creating an association adds a method with that name to the model, it is a bad idea to give an association a name that is already used for an instance method of <tt>ActiveRecord::Base</tt>. The association method would override the base method and break things. For instance, <tt>attributes</tt> or <tt>connection</tt> are bad names for associations.</p></div>
 <h3 id="_updating_the_schema">3.3. Updating the Schema</h3>
-<div class="para"><p>Associations are extremely useful, but they are not magic. You are responsible for maintaining your database schema to match your associations. In practice, this means two things. First, you need to create foreign keys as appropriate:</p></div>
+<div class="para"><p>Associations are extremely useful, but they are not magic. You are responsible for maintaining your database schema to match your associations. In practice, this means two things, depending on what sort of associations you are creating. For <tt>belongs_to</tt> associations you need to create foreign keys, and for <tt>has_and_belongs_to_many</tt> associations you need to create the appropriate join table.</p></div>
+<h4 id="_creating_foreign_keys_for_tt_belongs_to_tt_associations">3.3.1. Creating Foreign Keys for <tt>belongs_to</tt> Associations</h4>
+<div class="para"><p>When you declare a <tt>belongs_to</tt> association, you need to create foreign keys as appropriate. For example, consider this model:</p></div>
 <div class="listingblock">
 <div class="content"><!-- Generator: GNU source-highlight 2.9
 by Lorenzo Bettini
@@ -773,7 +775,8 @@ http://www.gnu.org/software/src-highlite -->
 <span style="font-weight: bold"><span style="color: #0000FF">end</span></span>
 </tt></pre></div></div>
 <div class="para"><p>If you create an association some time after you build the underlying model, you need to remember to create an <tt>add_column</tt> migration to provide the necessary foreign key.</p></div>
-<div class="para"><p>Second, if you create a <tt>has_and_belongs_to_many</tt> association, you need to explicitly create the joining table. Unless the name of the join table is explicitly specified by using the <tt>:join_table</tt> option, Active Record create the name by using the lexical order of the class names. So a join between customer and order models will give the default join table name of "customers_orders" because "c" outranks "o" in lexical ordering.</p></div>
+<h4 id="_creating_join_tables_for_tt_has_and_belongs_to_many_tt_associations">3.3.2. Creating Join Tables for <tt>has_and_belongs_to_many</tt> Associations</h4>
+<div class="para"><p>If you create a <tt>has_and_belongs_to_many</tt> association, you need to explicitly create the joining table. Unless the name of the join table is explicitly specified by using the <tt>:join_table</tt> option, Active Record create the name by using the lexical order of the class names. So a join between customer and order models will give the default join table name of "customers_orders" because "c" outranks "o" in lexical ordering.</p></div>
 <div class="admonitionblock">
 <table><tr>
 <td class="icon">
@@ -1938,7 +1941,7 @@ http://www.gnu.org/software/src-highlite -->
 <span style="font-weight: bold"><span style="color: #0000FF">end</span></span>
 </tt></pre></div></div>
 <h5 id="_tt_offset_tt"><tt>:offset</tt></h5>
-<div class="para"><p>The <tt>:offset</tt> option lets you specify the starting offset for fetching objects via an association. For example, if you set <tt>:offset &#8658; 11</tt>, it will skip the first 10 records.</p></div>
+<div class="para"><p>The <tt>:offset</tt> option lets you specify the starting offset for fetching objects via an association. For example, if you set <tt>:offset &#8658; 11</tt>, it will skip the first 11 records.</p></div>
 <h5 id="_tt_order_tt_2"><tt>:order</tt></h5>
 <div class="para"><p>The <tt>:order</tt> option dictates the order in which associated objects will be received (in the syntax used by a SQL <tt>ORDER BY</tt> clause).</p></div>
 <div class="listingblock">
@@ -2409,7 +2412,7 @@ http://www.gnu.org/software/src-highlite -->
 <span style="font-weight: bold"><span style="color: #0000FF">end</span></span>
 </tt></pre></div></div>
 <h5 id="_tt_offset_tt_2"><tt>:offset</tt></h5>
-<div class="para"><p>The <tt>:offset</tt> option lets you specify the starting offset for fetching objects via an association. For example, if you set <tt>:offset &#8658; 11</tt>, it will skip the first 10 records.</p></div>
+<div class="para"><p>The <tt>:offset</tt> option lets you specify the starting offset for fetching objects via an association. For example, if you set <tt>:offset &#8658; 11</tt>, it will skip the first 11 records.</p></div>
 <h5 id="_tt_order_tt_3"><tt>:order</tt></h5>
 <div class="para"><p>The <tt>:order</tt> option dictates the order in which associated objects will be received (in the syntax used by a SQL <tt>ORDER BY</tt> clause).</p></div>
 <div class="listingblock">

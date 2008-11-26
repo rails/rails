@@ -389,6 +389,8 @@ module ActiveRecord #:nodoc:
   # So it's possible to assign a logger to the class through <tt>Base.logger=</tt> which will then be used by all
   # instances in the current object space.
   class Base
+    ##  
+    # :singleton-method:
     # Accepts a logger conforming to the interface of Log4r or the default Ruby 1.8+ Logger class, which is then passed
     # on to any new database connections made and which can be retrieved on both a class and instance level by calling +logger+.
     cattr_accessor :logger, :instance_writer => false
@@ -414,7 +416,9 @@ module ActiveRecord #:nodoc:
     end
 
     @@subclasses = {}
-
+    
+    ##
+    # :singleton-method:
     # Contains the database configuration - as is typically stored in config/database.yml -
     # as a Hash.
     #
@@ -443,6 +447,8 @@ module ActiveRecord #:nodoc:
     cattr_accessor :configurations, :instance_writer => false
     @@configurations = {}
 
+    ##
+    # :singleton-method:
     # Accessor for the prefix type that will be prepended to every primary key column name. The options are :table_name and
     # :table_name_with_underscore. If the first is specified, the Product class will look for "productid" instead of "id" as
     # the primary column. If the latter is specified, the Product class will look for "product_id" instead of "id". Remember
@@ -450,34 +456,46 @@ module ActiveRecord #:nodoc:
     cattr_accessor :primary_key_prefix_type, :instance_writer => false
     @@primary_key_prefix_type = nil
 
+    ##
+    # :singleton-method:
     # Accessor for the name of the prefix string to prepend to every table name. So if set to "basecamp_", all
     # table names will be named like "basecamp_projects", "basecamp_people", etc. This is a convenient way of creating a namespace
     # for tables in a shared database. By default, the prefix is the empty string.
     cattr_accessor :table_name_prefix, :instance_writer => false
     @@table_name_prefix = ""
 
+    ##
+    # :singleton-method:
     # Works like +table_name_prefix+, but appends instead of prepends (set to "_basecamp" gives "projects_basecamp",
     # "people_basecamp"). By default, the suffix is the empty string.
     cattr_accessor :table_name_suffix, :instance_writer => false
     @@table_name_suffix = ""
 
+    ##
+    # :singleton-method:
     # Indicates whether table names should be the pluralized versions of the corresponding class names.
     # If true, the default table name for a Product class will be +products+. If false, it would just be +product+.
     # See table_name for the full rules on table/class naming. This is true, by default.
     cattr_accessor :pluralize_table_names, :instance_writer => false
     @@pluralize_table_names = true
 
+    ##
+    # :singleton-method:
     # Determines whether to use ANSI codes to colorize the logging statements committed by the connection adapter. These colors
     # make it much easier to overview things during debugging (when used through a reader like +tail+ and on a black background), but
     # may complicate matters if you use software like syslog. This is true, by default.
     cattr_accessor :colorize_logging, :instance_writer => false
     @@colorize_logging = true
 
+    ##
+    # :singleton-method:
     # Determines whether to use Time.local (using :local) or Time.utc (using :utc) when pulling dates and times from the database.
     # This is set to :local by default.
     cattr_accessor :default_timezone, :instance_writer => false
     @@default_timezone = :local
 
+    ##
+    # :singleton-method:
     # Specifies the format to use when dumping the database schema with Rails'
     # Rakefile.  If :sql, the schema is dumped as (potentially database-
     # specific) SQL statements.  If :ruby, the schema is dumped as an
@@ -487,6 +505,8 @@ module ActiveRecord #:nodoc:
     cattr_accessor :schema_format , :instance_writer => false
     @@schema_format = :ruby
 
+    ##
+    # :singleton-method:
     # Specify whether or not to use timestamps for migration numbers
     cattr_accessor :timestamped_migrations , :instance_writer => false
     @@timestamped_migrations = true
@@ -2023,8 +2043,7 @@ module ActiveRecord #:nodoc:
         end
 
         def scoped_methods #:nodoc:
-          scoped_methods = (Thread.current[:scoped_methods] ||= {})
-          scoped_methods[self] ||= []
+          Thread.current[:"#{self}_scoped_methods"] ||= []
         end
 
         def current_scoped_methods #:nodoc:

@@ -1,3 +1,5 @@
+require 'set'
+
 # Adds easy defaults to writing Atom feeds with the Builder template engine (this does not work on ERb or any other
 # template languages).
 module ActionView
@@ -121,6 +123,8 @@ module ActionView
       end
 
       class AtomBuilder
+        XHTML_TAG_NAMES = %w(content rights title subtitle summary).to_set
+
         def initialize(xml)
           @xml = xml
         end
@@ -140,14 +144,15 @@ module ActionView
               @xml.__send__(method, *arguments, &block)
             end
           end
-          
+
           # True if the method name matches one of the five elements defined
           # in the Atom spec as potentially containing XHTML content and
           # if :type => 'xhtml' is, in fact, specified.
           def xhtml_block?(method, arguments)
-            %w( content rights title subtitle summary ).include?(method.to_s) && 
-                arguments.last.respond_to?(:[]) && 
-                  arguments.last[:type].to_s == 'xhtml'
+            if XHTML_TAG_NAMES.include?(method.to_s)
+              last = arguments.last
+              last.is_a?(Hash) && last[:type].to_s == 'xhtml'
+            end
           end
       end
 

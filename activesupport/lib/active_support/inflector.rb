@@ -1,3 +1,4 @@
+# encoding: utf-8
 require 'singleton'
 require 'iconv'
 
@@ -255,7 +256,7 @@ module ActiveSupport
     #   @person = Person.find(1)
     #   # => #<Person id: 1, name: "Donald E. Knuth">
     #
-    #   <%= link_to(@person.name, person_path %>
+    #   <%= link_to(@person.name, person_path(@person)) %>
     #   # => <a href="/person/1-donald-e-knuth">Donald E. Knuth</a>
     def parameterize(string, sep = '-')
       re_sep = Regexp.escape(sep)
