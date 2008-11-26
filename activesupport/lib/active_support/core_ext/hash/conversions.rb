@@ -1,23 +1,116 @@
 require 'date'
 
-# Locked down XmlSimple#xml_in_string
-class XmlSimple
-  # Same as xml_in but doesn't try to smartly shoot itself in the foot.
-  def xml_in_string(string, options = nil)
-    handle_options('in', options)
+# = XmlMini
+# This is a derivitive work of XmlSimple 1.0.11
+# Author::    Joseph Holsten <joseph@josephholsten.com>
+# Copyright:: Copyright (c) 2008 Joseph Holsten
+# Copyright:: Copyright (c) 2003-2006 Maik Schmidt <contact@maik-schmidt.de>
+# License::   Distributes under the same terms as Ruby.
+class XmlMini
+  require 'rexml/document'
+  include REXML
 
-    @doc = parse(string)
-    result = collapse(@doc.root)
+  CONTENT_KEY = '__content__'
 
-    if @options['keeproot']
-      merge({}, @doc.root.name, result)
+  # Parse an XML Document string into a simple hash
+  #
+  # Same as XmlSimple::xml_in but doesn't shoot itself in the foot,
+  # and uses the defaults from ActiveSupport
+  #
+  # string::
+  #   XML Document string to parse
+  #
+  def self.parse(string)
+    doc = REXML::Document.new(string)
+    merge_element!({}, doc.root)
+  end
+
+  private
+  # Convert an XML element and merge into the hash
+  #
+  # hash::
+  #   Hash to merge the converted element into.
+  # element::
+  #   XML element to merge into hash
+  def self.merge_element!(hash, element)
+    merge!(hash, element.name, collapse(element))
+  end
+
+  # Actually converts an XML document element into a data structure.
+  #
+  # element::
+  #   The document element to be collapsed.
+  def self.collapse(element)
+    hash = get_attributes(element)
+
+    if element.has_elements?
+      element.each_element {|child| merge_element!(hash, child) }
+      merge_texts!(hash, element) unless empty_content?(element)
     else
-      result
+      return merge_texts!(hash, element)
+    end
+    hash
+  end
+
+  # Merge all the texts of an element into the hash
+  #
+  # hash::
+  #   Hash to add the converted emement to.
+  # element::
+  #   XML element whose texts are to me merged into the hash
+  def self.merge_texts!(hash, element)
+    unless element.has_text?
+      hash
+    else
+      # must use value to prevent double-escaping
+      text_values = element.texts.map {|t| t.value }
+      merge!(hash, CONTENT_KEY, text_values.join)
     end
   end
 
-  def self.xml_in_string(string, options = nil)
-    new.xml_in_string(string, options)
+  # Adds a new key/value pair to an existing Hash. If the key to be added
+  # already exists and the existing value associated with key is not
+  # an Array, it will be wrapped in an Array. Then the new value is
+  # appended to that Array.
+  #
+  # hash::
+  #   Hash to add key/value pair to.
+  # key::
+  #   Key to be added.
+  # value::
+  #   Value to be associated with key.
+  def self.merge!(hash, key, value)
+    if hash.has_key?(key)
+      if hash[key].instance_of?(Array)
+        hash[key] << value
+      else
+        hash[key] = [ hash[key], value ]
+      end
+    elsif value.instance_of?(Array)
+      hash[key] = [ value ]
+    else
+      hash[key] = value
+    end
+    hash
+  end
+
+  # Converts the attributes array of an XML element into a hash.
+  # Returns an empty Hash if node has no attributes.
+  #
+  # element::
+  #   XML element to extract attributes from.
+  def self.get_attributes(element)
+    attributes = {}
+    element.attributes.each { |n,v| attributes[n] = v }
+    attributes
+  end
+
+  # Determines if a document element has text content
+  #
+  # element::
+  #   XML element to be checked.
+  def self.empty_content?(element)
+    element.texts.join.strip.empty?
   end
 end
 
@@ -166,15 +259,7 @@ module ActiveSupport #:nodoc:
 
         module ClassMethods
           def from_xml(xml)
-            require 'xmlsimple'
-
-            # TODO: Refactor this into something much cleaner that doesn't rely on XmlSimple
-            typecast_xml_value(undasherize_keys(XmlSimple.xml_in_string(xml,
-              'forcearray'   => false,
-              'forcecontent' => true,
-              'keeproot'     => true,
-              'contentkey'   => '__content__')
-            ))
+            typecast_xml_value(undasherize_keys(XmlMini.parse(xml)))
           end
 
           private
