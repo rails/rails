@@ -137,7 +137,6 @@ module ActionController
       run_callbacks :prepare_dispatch
 
       Routing::Routes.reload
-      ActionController::Base.view_paths.reload!
       ActionView::Helpers::AssetTagHelper::AssetTag::Cache.clear
     end
 

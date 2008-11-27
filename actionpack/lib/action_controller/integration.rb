@@ -1,5 +1,6 @@
 require 'stringio'
 require 'uri'
+require 'active_support/test_case'
 
 module ActionController
   module Integration #:nodoc:
