@@ -302,6 +302,7 @@ class UrlWriterTests < ActionController::TestCase
   end
 
   def test_named_routes_with_nil_keys
+    ActionController::Routing::Routes.clear!
     add_host!
     ActionController::Routing::Routes.draw do |map|
       map.main '', :controller => 'posts'
