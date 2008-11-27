@@ -487,12 +487,8 @@ Run `rake gems:install` to install the missing gems.
     def initialize_routing
       return unless configuration.frameworks.include?(:action_controller)
 
-      ActionController::Routing.controller_paths = configuration.controller_paths + plugin_loader.controller_paths
-
-      ([ configuration.routes_configuration_file ] + plugin_loader.routing_files).each do |routing_file|
-        ActionController::Routing::Routes.add_configuration_file(routing_file)
-      end
-
+      ActionController::Routing.controller_paths += configuration.controller_paths
+      ActionController::Routing::Routes.add_configuration_file(configuration.routes_configuration_file)
       ActionController::Routing::Routes.reload
     end
 
