@@ -4,9 +4,7 @@ require 'controller/fake_models'
 class ViewRenderTest < Test::Unit::TestCase
   def setup
     @assigns = { :secret => 'in the sauce' }
-    view_paths = ActionController::Base.view_paths
-    @view = ActionView::Base.new(view_paths, @assigns)
-    assert view_paths.first.loaded?
+    @view = ActionView::Base.new(ActionController::Base.view_paths, @assigns)
   end
 
   def test_render_file
@@ -159,7 +157,7 @@ class ViewRenderTest < Test::Unit::TestCase
   end
 
   def test_render_fallbacks_to_erb_for_unknown_types
-    assert_equal "Hello, World!", @view.render(:inline => "Hello, World!", :type => :bar)
+    assert_equal "Hello, World!", @view.render(:inline => "Hello, World!", :type => :foo)
   end
 
   CustomHandler = lambda do |template|
@@ -196,16 +194,5 @@ class ViewRenderTest < Test::Unit::TestCase
   def test_render_with_nested_layout
     assert_equal %(<title>title</title>\n<div id="column">column</div>\n<div id="content">content</div>\n),
       @view.render(:file => "test/nested_layout.erb", :layout => "layouts/yield")
-  end
-end
-
-class LazyViewRenderTest < ViewRenderTest
-  # Test the same thing as above, but make sure the view path
-  # is not eager loaded
-  def setup
-    @assigns = { :secret => 'in the sauce' }
-    view_paths = ActionView::Base.process_view_paths(FIXTURE_LOAD_PATH)
-    @view = ActionView::Base.new(view_paths, @assigns)
-    assert !view_paths.first.loaded?
   end
 end
