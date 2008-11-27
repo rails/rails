@@ -275,9 +275,16 @@ module ActiveSupport
       Iconv.iconv('ascii//ignore//translit', 'utf-8', string).to_s
     end
 
+    if RUBY_VERSION >= '1.9'
+      undef_method :transliterate
+      def transliterate(string)
+        warn "Ruby 1.9 doesn't support Unicode normalization yet"
+        string.dup
+      end
+
     # The iconv transliteration code doesn't function correctly
     # on some platforms, but it's very fast where it does function.
-    if "foo" != Inflector.transliterate("föö")
+    elsif "foo" != Inflector.transliterate("föö")
       undef_method :transliterate
       def transliterate(string)
         string.mb_chars.normalize(:kd). # Decompose accented characters
