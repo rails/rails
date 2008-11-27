@@ -3,6 +3,10 @@ require 'abstract_unit'
 # The view_paths array must be set on Base and not LayoutTest so that LayoutTest's inherited
 # method has access to the view_paths array when looking for a layout to automatically assign.
 old_load_paths = ActionController::Base.view_paths
+
+ActionView::Template::register_template_handler :mab,
+  lambda { |template| template.source.inspect }
+
 ActionController::Base.view_paths = [ File.dirname(__FILE__) + '/../fixtures/layout_tests/' ]
 
 class LayoutTest < ActionController::Base
@@ -31,9 +35,6 @@ end
 class MultipleExtensions < LayoutTest
 end
 
-ActionView::Template::register_template_handler :mab,
-  lambda { |template| template.source.inspect }
-
 class LayoutAutoDiscoveryTest < ActionController::TestCase
   def setup
     @request.host = "www.nextangle.com"
@@ -52,10 +53,9 @@ class LayoutAutoDiscoveryTest < ActionController::TestCase
   end
 
   def test_third_party_template_library_auto_discovers_layout
-    ThirdPartyTemplateLibraryController.view_paths.reload!
     @controller = ThirdPartyTemplateLibraryController.new
     get :hello
-    assert_equal 'layouts/third_party_template_library', @controller.active_layout
+    assert_equal 'layouts/third_party_template_library.mab', @controller.active_layout.to_s
     assert_equal 'layouts/third_party_template_library', @response.layout
     assert_response :success
     assert_equal 'Mab', @response.body
@@ -64,14 +64,14 @@ class LayoutAutoDiscoveryTest < ActionController::TestCase
   def test_namespaced_controllers_auto_detect_layouts
     @controller = ControllerNameSpace::NestedController.new
     get :hello
-    assert_equal 'layouts/controller_name_space/nested', @controller.active_layout
+    assert_equal 'layouts/controller_name_space/nested', @controller.active_layout.to_s
     assert_equal 'controller_name_space/nested.rhtml hello.rhtml', @response.body
   end
 
   def test_namespaced_controllers_auto_detect_layouts
     @controller = MultipleExtensions.new
     get :hello
-    assert_equal 'layouts/multiple_extensions', @controller.active_layout
+    assert_equal 'layouts/multiple_extensions.html.erb', @controller.active_layout.to_s
     assert_equal 'multiple_extensions.html.erb hello.rhtml', @response.body.strip
   end
 end
