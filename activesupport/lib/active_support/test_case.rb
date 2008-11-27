@@ -17,6 +17,7 @@ module ActiveSupport
   class TestCase < ::Test::Unit::TestCase
     if defined? MiniTest
       Assertion = MiniTest::Assertion
+      alias_method :method_name, :name
     else
       # TODO: Figure out how to get the Rails::BacktraceFilter into minitest/unit
       if defined?(Rails)
