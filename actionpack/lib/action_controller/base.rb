@@ -867,9 +867,8 @@ module ActionController #:nodoc:
           end
         end
 
-        layout = pick_layout(options)
-        response.layout = layout.path_without_format_and_extension if layout
-        logger.info("Rendering template within #{layout.path_without_format_and_extension}") if logger && layout
+        response.layout = layout = pick_layout(options)
+        logger.info("Rendering template within #{layout}") if logger && layout
 
         if content_type = options[:content_type]
           response.content_type = content_type.to_s
