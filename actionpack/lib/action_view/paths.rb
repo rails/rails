@@ -102,7 +102,7 @@ module ActionView #:nodoc:
         @paths = {}
 
         templates_in_path do |template|
-          template.freeze
+          template.load!
           @paths[template.path] = template
           @paths[template.path_without_extension] ||= template
         end

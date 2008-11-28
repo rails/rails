@@ -1,12 +1,10 @@
 require 'abstract_unit'
 require 'controller/fake_models'
 
-class ViewRenderTest < Test::Unit::TestCase
-  def setup
+module RenderTestCases
+  def setup_view(paths)
     @assigns = { :secret => 'in the sauce' }
-    view_paths = ActionController::Base.view_paths
-    @view = ActionView::Base.new(view_paths, @assigns)
-    assert view_paths.first.loaded?
+    @view = ActionView::Base.new(paths, @assigns)
   end
 
   def test_render_file
@@ -199,13 +197,25 @@ class ViewRenderTest < Test::Unit::TestCase
   end
 end
 
-class LazyViewRenderTest < ViewRenderTest
+class CachedViewRenderTest < Test::Unit::TestCase
+  include RenderTestCases
+
+  # Ensure view path cache is primed
+  def setup
+    view_paths = ActionController::Base.view_paths
+    assert view_paths.first.loaded?
+    setup_view(view_paths)
+  end
+end
+
+class LazyViewRenderTest < Test::Unit::TestCase
+  include RenderTestCases
+
   # Test the same thing as above, but make sure the view path
   # is not eager loaded
   def setup
-    @assigns = { :secret => 'in the sauce' }
     view_paths = ActionView::Base.process_view_paths(FIXTURE_LOAD_PATH)
-    @view = ActionView::Base.new(view_paths, @assigns)
     assert !view_paths.first.loaded?
+    setup_view(view_paths)
   end
 end

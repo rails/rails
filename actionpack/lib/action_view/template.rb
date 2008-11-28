@@ -57,6 +57,11 @@ module ActionView #:nodoc:
     end
     memoize :relative_path
 
+    def mtime
+      File.mtime(filename)
+    end
+    memoize :mtime
+
     def source
       File.read(filename)
     end
@@ -77,6 +82,19 @@ module ActionView #:nodoc:
       else
         raise TemplateError.new(self, view.assigns, e)
       end
+    end
+
+    def stale?
+      File.mtime(filename) > mtime
+    end
+
+    def loaded?
+      @loaded
+    end
+
+    def load!
+      @loaded = true
+      freeze
     end
 
     private
