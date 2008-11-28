@@ -322,9 +322,7 @@ module ActionView #:nodoc:
         end
 
         # OPTIMIZE: Checks to lookup template in view path
-        if template = self.view_paths["#{template_file_name}.#{template_format}"]
-          template
-        elsif template = self.view_paths[template_file_name]
+        if template = self.view_paths.find_template(template_file_name, template_format)
           template
         elsif (first_render = @_render_stack.first) && first_render.respond_to?(:format_and_extension) &&
             (template = self.view_paths["#{template_file_name}.#{first_render.format_and_extension}"])
