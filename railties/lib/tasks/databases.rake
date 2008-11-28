@@ -398,6 +398,7 @@ end
 def drop_database(config)
   case config['adapter']
   when 'mysql'
+    ActiveRecord::Base.establish_connection(config)
     ActiveRecord::Base.connection.drop_database config['database']
   when /^sqlite/
     FileUtils.rm(File.join(RAILS_ROOT, config['database']))
