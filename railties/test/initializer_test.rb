@@ -311,3 +311,13 @@ uses_mocha 'i18n settings' do
     end
   end
 end
+
+class RailsRootTest < Test::Unit::TestCase
+  def test_rails_dot_root_equals_rails_root
+    assert_equal RAILS_ROOT, Rails.root
+  end
+
+  def test_rails_dot_root_accepts_arguments_for_file_dot_join
+    assert_equal File.join(RAILS_ROOT, 'app', 'controllers'), Rails.root('app', 'controllers')
+  end
+end
