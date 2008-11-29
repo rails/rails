@@ -3,11 +3,11 @@ module Rails
     ERB_METHOD_SIG = /:in `_run_erb_.*/
 
     VENDOR_DIRS  = %w( vendor/plugins vendor/gems vendor/rails )
-    MONGREL_DIRS = %w( lib/mongrel bin/mongrel )
+    SERVER_DIRS  = %w( lib/mongrel bin/mongrel lib/rack )
     RAILS_NOISE  = %w( script/server )
     RUBY_NOISE   = %w( rubygems/custom_require benchmark.rb )
 
-    ALL_NOISE    = VENDOR_DIRS + MONGREL_DIRS + RAILS_NOISE + RUBY_NOISE
+    ALL_NOISE    = VENDOR_DIRS + SERVER_DIRS + RAILS_NOISE + RUBY_NOISE
 
     def initialize
       super
