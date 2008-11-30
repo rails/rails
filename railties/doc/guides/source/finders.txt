@@ -246,6 +246,8 @@ If you're getting a set of records and want to force an order, you can use +Clie
 
 To select certain fields, you can use the select option like this: +Client.first(:select => "viewable_by, locked")+. This select option does not use an array of fields, but rather requires you to type SQL-like code. The above code will execute +SELECT viewable_by, locked FROM clients LIMIT 0,1+ on your database. 
 
+You can also call SQL functions within the select option. For example, if you would like to only grab a single record per unique value in a certain field by using the +DISTINCT+ function you can do it like this: +Client.all(:select => "DISTINCT(name)")+.
+
 == Limit & Offset
 
 If you want to limit the amount of records to a certain subset of all the records retrieved you usually use limit for this, sometimes coupled with offset. Limit is the maximum number of records that will be retrieved from a query, and offset is the number of records it will start reading from from the first record of the set. Take this code for example:
@@ -675,6 +677,7 @@ Thanks to Mike Gunderloy for his tips on creating this guide.
 
 http://rails.lighthouseapp.com/projects/16213-rails-guides/tickets/16[Lighthouse ticket]
 
+* December 1 2008: Added using an SQL function example to Selecting Certain Fields section as per http://rails.lighthouseapp.com/projects/16213/tickets/36-adding-an-example-for-using-distinct-to-ar-finders[this ticket]
 * November 23 2008: Added documentation for +find_by_last+ and +find_by_bang!+
 * November 21 2008: Fixed all points specified in http://rails.lighthouseapp.com/projects/16213-rails-guides/tickets/16-activerecord-finders#ticket-16-13[this comment] and http://rails.lighthouseapp.com/projects/16213-rails-guides/tickets/16-activerecord-finders#ticket-16-14[this comment]
 * November 18 2008: Fixed all points specified in http://rails.lighthouseapp.com/projects/16213-rails-guides/tickets/16-activerecord-finders#ticket-16-11[this comment]
