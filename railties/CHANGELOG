@@ -1,6 +1,6 @@
 *2.3.0 [Edge]*
 
-* Enhanced Rails.root to take parameters that'll be join with the root, like Rails.root('app', 'controllers') => File.join(Rails.root, 'app', 'controllers') #1482 [Damian Janowski]
+* Changed Rails.root to return a Pathname object (allows for Rails.root.join('app', 'controllers') => "#{RAILS_ROOT}/app/controllers") #1482 [Damian Janowski/?]
 
 * Added view path support for engines [DHH]
 

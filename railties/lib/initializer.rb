@@ -48,8 +48,8 @@ module Rails
       end
     end
 
-    def root(*args)
-      File.join(RAILS_ROOT, *args.compact) if defined?(RAILS_ROOT)
+    def root
+      Pathname.new(RAILS_ROOT) if defined?(RAILS_ROOT)
     end
 
     def env

@@ -317,7 +317,7 @@ class RailsRootTest < Test::Unit::TestCase
     assert_equal RAILS_ROOT, Rails.root
   end
 
-  def test_rails_dot_root_accepts_arguments_for_file_dot_join
-    assert_equal File.join(RAILS_ROOT, 'app', 'controllers'), Rails.root('app', 'controllers')
+  def test_rails_dot_root_should_be_a_pathname
+    assert_equal File.join(RAILS_ROOT, 'app', 'controllers'), Rails.root.join('app', 'controllers')
   end
 end
