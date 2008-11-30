@@ -136,9 +136,13 @@ module ActionController
             end
           end
 
+          def named_helper_module_eval(code, *args)
+            @module.module_eval(code, *args)
+          end
+
           def define_hash_access(route, name, kind, options)
             selector = hash_access_name(name, kind)
-            @module.module_eval <<-end_eval # We use module_eval to avoid leaks
+            named_helper_module_eval <<-end_eval # We use module_eval to avoid leaks
               def #{selector}(options = nil)
                 options ? #{options.inspect}.merge(options) : #{options.inspect}
               end
@@ -166,7 +170,7 @@ module ActionController
             #
             #   foo_url(bar, baz, bang, :sort_by => 'baz')
             #
-            @module.module_eval <<-end_eval # We use module_eval to avoid leaks
+            named_helper_module_eval <<-end_eval # We use module_eval to avoid leaks
               def #{selector}(*args)
 
                 #{generate_optimisation_block(route, kind)}
