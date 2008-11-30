@@ -71,6 +71,11 @@ module Rails
       File.exist?(routing_file)
     end
 
+
+    def view_path
+      File.join(directory, 'app', 'views')
+    end
+
     def controller_path
       File.join(directory, 'app', 'controllers')
     end
@@ -95,11 +100,7 @@ module Rails
 
       
       def app_paths
-        [ 
-          File.join(directory, 'app', 'models'), 
-          File.join(directory, 'app', 'controllers'),
-          File.join(directory, 'app', 'helpers')
-        ]
+        [ File.join(directory, 'app', 'models'), File.join(directory, 'app', 'helpers'), controller_path ]
       end
       
       def lib_path

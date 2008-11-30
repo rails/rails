@@ -39,6 +39,8 @@ module Rails
           register_plugin_as_loaded(plugin)
         end
 
+        configure_engines
+
         ensure_all_registered_plugins_are_loaded!
       end
       
@@ -63,19 +65,31 @@ module Rails
         $LOAD_PATH.uniq!
       end
       
-      # Returns an array of all the controller paths found inside engine-type plugins.
-      def controller_paths
-        engines.collect(&:controller_path)
-      end
-      
-      # Returns an array of routing.rb files from all the plugins that include config/routes.rb
-      def routing_files
-        plugins.select(&:routed?).collect(&:routing_file)
-      end
-      
       
       protected
+        def configure_engines
+          if engines.any?
+            add_engine_routing_configurations
+            add_engine_controller_paths
+            add_engine_view_paths
+          end
+        end
       
+        def add_engine_routing_configurations
+          engines.select(&:routed?).collect(&:routing_file).each do |routing_file|
+            ActionController::Routing::Routes.add_configuration_file(routing_file)
+          end
+        end
+        
+        def add_engine_controller_paths
+          ActionController::Routing.controller_paths += engines.collect(&:controller_path)
+        end
+        
+        def add_engine_view_paths
+          # reverse it such that the last engine can overwrite view paths from the first, like with routes
+          ActionController::Base.view_paths += ActionView::PathSet.new(engines.collect(&:view_path).reverse)
+        end
+
         # The locate_plugins method uses each class in config.plugin_locators to
         # find the set of all plugins available to this Rails application.
         def locate_plugins

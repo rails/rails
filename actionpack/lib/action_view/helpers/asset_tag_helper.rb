@@ -80,6 +80,12 @@ module ActionView
     #     end
     #   }
     #
+    # You can also implement a custom asset host object that responds to the call method and tasks one or two parameters just like the proc.
+    #
+    #   config.action_controller.asset_host = AssetHostingWithMinimumSsl.new(
+    #     "http://asset%d.example.com", "https://asset1.example.com"
+    #   )
+    #
     # === Using asset timestamps
     #
     # By default, Rails will append all asset paths with that asset's timestamp. This allows you to set a cache-expiration date for the
@@ -359,6 +365,7 @@ module ActionView
       # compressed by gzip (leading to faster transfers). Caching will only happen if ActionController::Base.perform_caching
       # is set to true (which is the case by default for the Rails production environment, but not for the development
       # environment). Examples:
+      
       #
       # ==== Examples
       #   stylesheet_link_tag :all, :cache => true # when ActionController::Base.perform_caching is false =>
@@ -585,7 +592,7 @@ module ActionView
                 source
               else
                 CacheGuard.synchronize do
-                  Cache[@cache_key] ||= begin
+                  Cache[@cache_key + [source]] ||= begin
                     source += ".#{extension}" if missing_extension?(source) || file_exists_with_extension?(source)
                     source = "/#{directory}/#{source}" unless source[0] == ?/
                     source = rewrite_asset_path(source)
@@ -629,11 +636,12 @@ module ActionView
             # Pick an asset host for this source. Returns +nil+ if no host is set,
             # the host if no wildcard is set, the host interpolated with the
             # numbers 0-3 if it contains <tt>%d</tt> (the number is the source hash mod 4),
-            # or the value returned from invoking the proc if it's a proc.
+            # or the value returned from invoking the proc if it's a proc or the value from
+            # invoking call if it's an object responding to call.
             def compute_asset_host(source)
               if host = ActionController::Base.asset_host
-                if host.is_a?(Proc)
-                  case host.arity
+                if host.is_a?(Proc) || host.respond_to?(:call)
+                  case host.is_a?(Proc) ? host.arity : host.method(:call).arity
                   when 2
                     host.call(source, request)
                   else

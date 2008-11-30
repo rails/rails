@@ -48,12 +48,8 @@ module Rails
       end
     end
 
-    def root
-      if defined?(RAILS_ROOT)
-        RAILS_ROOT
-      else
-        nil
-      end
+    def root(*args)
+      File.join(RAILS_ROOT, *args.compact) if defined?(RAILS_ROOT)
     end
 
     def env
@@ -372,9 +368,10 @@ Run `rake gems:install` to install the missing gems.
 
     def load_view_paths
       if configuration.frameworks.include?(:action_view)
-        ActionView::PathSet::Path.eager_load_templates! if configuration.cache_classes
-        ActionController::Base.view_paths.load if configuration.frameworks.include?(:action_controller)
-        ActionMailer::Base.template_root.load if configuration.frameworks.include?(:action_mailer)
+        if configuration.cache_classes
+          ActionController::Base.view_paths.load if configuration.frameworks.include?(:action_controller)
+          ActionMailer::Base.template_root.load if configuration.frameworks.include?(:action_mailer)
+        end
       end
     end
 
@@ -487,12 +484,8 @@ Run `rake gems:install` to install the missing gems.
     def initialize_routing
       return unless configuration.frameworks.include?(:action_controller)
 
-      ActionController::Routing.controller_paths = configuration.controller_paths + plugin_loader.controller_paths
-
-      ([ configuration.routes_configuration_file ] + plugin_loader.routing_files).each do |routing_file|
-        ActionController::Routing::Routes.add_configuration_file(routing_file)
-      end
-
+      ActionController::Routing.controller_paths += configuration.controller_paths
+      ActionController::Routing::Routes.add_configuration_file(configuration.routes_configuration_file)
       ActionController::Routing::Routes.reload
     end
 

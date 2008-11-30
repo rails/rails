@@ -1,2 +1,2 @@
-class EngineController < ActionController::Base
+class EngineController
 end

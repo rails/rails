@@ -1,5 +1,7 @@
 *2.3.0 [Edge]*
 
+* Added the option to declare an asset_host as an object that responds to call (see http://github.com/dhh/asset-hosting-with-minimum-ssl for an example) [DHH]
+
 * Added support for multiple routes.rb files (useful for plugin engines). This also means that draw will no longer clear the route set, you have to do that by hand (shouldn't make a difference to you unless you're doing some funky stuff) [DHH]
 
 * Dropped formatted_* routes in favor of just passing in :format as an option. This cuts resource routes generation in half #1359 [aaronbatalion]

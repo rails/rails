@@ -1,5 +1,9 @@
 *2.3.0 [Edge]*
 
+* Enhanced Rails.root to take parameters that'll be join with the root, like Rails.root('app', 'controllers') => File.join(Rails.root, 'app', 'controllers') #1482 [Damian Janowski]
+
+* Added view path support for engines [DHH]
+
 * Added that config/routes.rb files in engine plugins are automatically loaded (and reloaded when they change in dev mode) [DHH]
 
 * Added app/[models|controllers|helpers] to the load path for plugins that has an app directory (go engines ;)) [DHH]
