@@ -13,6 +13,7 @@ require 'mocha'
 
 begin
   require 'ruby-debug'
+  Debugger.settings[:autoeval] = true
   Debugger.start
 rescue LoadError
   # Debugging disabled. `gem install ruby-debug` to enable.
