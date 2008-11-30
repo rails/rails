@@ -85,7 +85,6 @@ class AppGenerator < Rails::Generator::Base
         public/javascripts
         public/stylesheets
         script/performance
-        script/process
         test/fixtures
         test/functional
         test/integration
@@ -139,8 +138,8 @@ class AppGenerator < Rails::Generator::Base
     
     def create_script_files(m)
       %w( 
-        about console dbconsole destroy generate performance/benchmarker performance/profiler
-        performance/request process/reaper process/spawner process/inspector runner server plugin 
+        about console dbconsole destroy generate runner server plugin
+        performance/benchmarker performance/profiler performance/request
       ).each do |file|
         m.file "bin/#{file}", "script/#{file}", { 
           :chmod => 0755, 
