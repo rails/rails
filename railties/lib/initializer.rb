@@ -564,7 +564,7 @@ Run `rake gems:install` to install the missing gems.
     def load_application_initializers
       if gems_dependencies_loaded
         Dir["#{configuration.root_path}/config/initializers/**/*.rb"].sort.each do |initializer|
-          load(initializer)
+          load initializer.sub(/^#{Regexp.escape(configuration.root_path)}\//, '')
         end
       end
     end
