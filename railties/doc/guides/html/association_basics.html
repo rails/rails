@@ -763,9 +763,9 @@ http://www.gnu.org/software/src-highlite -->
 <pre><tt><span style="font-weight: bold"><span style="color: #0000FF">class</span></span> CreateOrders <span style="color: #990000">&lt;</span> ActiveRecord<span style="color: #990000">::</span>Migration
   <span style="font-weight: bold"><span style="color: #0000FF">def</span></span> <span style="font-weight: bold"><span style="color: #0000FF">self</span></span><span style="color: #990000">.</span>up
     create_table <span style="color: #990000">:</span>orders <span style="font-weight: bold"><span style="color: #0000FF">do</span></span> <span style="color: #990000">|</span>t<span style="color: #990000">|</span>
-      t<span style="color: #990000">.</span>order_date   <span style="color: #990000">:</span>datetime
-      t<span style="color: #990000">.</span>order_number <span style="color: #990000">:</span>string
-      t<span style="color: #990000">.</span>customer_id  <span style="color: #990000">:</span>integer
+      t<span style="color: #990000">.</span>datetime   <span style="color: #990000">:</span>order_date
+      t<span style="color: #990000">.</span>string     <span style="color: #990000">:</span>order_number
+      t<span style="color: #990000">.</span>integer    <span style="color: #990000">:</span>customer_id
     <span style="font-weight: bold"><span style="color: #0000FF">end</span></span>
   <span style="font-weight: bold"><span style="color: #0000FF">end</span></span>
 

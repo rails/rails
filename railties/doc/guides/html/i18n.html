@@ -346,11 +346,11 @@ http://www.gnu.org/software/src-highlite -->
 I18n<span style="color: #990000">.</span>load_path <span style="color: #990000">+=</span> Dir<span style="color: #990000">[</span> File<span style="color: #990000">.</span>join<span style="color: #990000">(</span>RAILS_ROOT<span style="color: #990000">,</span> <span style="color: #FF0000">'lib'</span><span style="color: #990000">,</span> <span style="color: #FF0000">'locale'</span><span style="color: #990000">,</span> <span style="color: #FF0000">'*.{rb,yml}'</span><span style="color: #990000">)</span> <span style="color: #990000">]</span>
 
 <span style="font-style: italic"><span style="color: #9A1900"># you can omit this if you're happy with English as a default locale</span></span>
-I18n<span style="color: #990000">.</span>default_locale <span style="color: #990000">=</span> <span style="color: #990000">:</span><span style="color: #FF0000">"pt-BR"</span>
+I18n<span style="color: #990000">.</span>default_locale <span style="color: #990000">=</span> <span style="color: #990000">:</span><span style="color: #FF0000">"pt"</span>
 </tt></pre></div></div>
 <div class="para"><p>I18n.load_path is just a Ruby Array of paths to your translation files. The backend will lazy-load these translations when a translation is looked up for the first time. This makes it possible to just swap the backend with something else even after translations have already been announced.</p></div>
 <h3 id="_set_the_locale_in_each_request">2.2. Set the locale in each request</h3>
-<div class="para"><p>By default the I18n library will use the I18n.default_locale for looking up translations (if you do not specify a locale for a lookup) and this will, by default, en-US (American English).</p></div>
+<div class="para"><p>By default the I18n library will use the I18n.default_locale for looking up translations (if you do not specify a locale for a lookup) and this will, by default, en (English).</p></div>
 <div class="para"><p>If you want to translate your Rails application to a single language other than English you can set I18n.default_locale to your locale. If you want to change the locale on a per-request basis though you can set it in a before_filter on the ApplicationController like this:</p></div>
 <div class="listingblock">
 <div class="content"><!-- Generator: GNU source-highlight 2.9
@@ -417,7 +417,7 @@ http://www.gnu.org/software/src-highlite -->
 by Lorenzo Bettini
 http://www.lorenzobettini.it
 http://www.gnu.org/software/src-highlite -->
-<pre><tt><span style="font-style: italic"><span style="color: #9A1900"># lib/locale/en-US.yml</span></span>
+<pre><tt><span style="font-style: italic"><span style="color: #9A1900"># lib/locale/en.yml</span></span>
 en<span style="color: #990000">-</span>US<span style="color: #990000">:</span>
   hello_world<span style="color: #990000">:</span> Hello World
   hello_flash<span style="color: #990000">:</span> Hello Flash
@@ -549,7 +549,7 @@ http://www.gnu.org/software/src-highlite -->
 by Lorenzo Bettini
 http://www.lorenzobettini.it
 http://www.gnu.org/software/src-highlite -->
-<pre><tt>I18n<span style="color: #990000">.</span>backend<span style="color: #990000">.</span>store_translations <span style="color: #FF0000">'en-US'</span><span style="color: #990000">,</span> <span style="color: #990000">:</span>thanks <span style="color: #990000">=&gt;</span> <span style="color: #FF0000">'Thanks {{name}}!'</span>
+<pre><tt>I18n<span style="color: #990000">.</span>backend<span style="color: #990000">.</span>store_translations <span style="color: #FF0000">'en'</span><span style="color: #990000">,</span> <span style="color: #990000">:</span>thanks <span style="color: #990000">=&gt;</span> <span style="color: #FF0000">'Thanks {{name}}!'</span>
 I18n<span style="color: #990000">.</span>translate <span style="color: #990000">:</span>thanks<span style="color: #990000">,</span> <span style="color: #990000">:</span>name <span style="color: #990000">=&gt;</span> <span style="color: #FF0000">'Jeremy'</span>
 <span style="font-style: italic"><span style="color: #9A1900"># =&gt; 'Thanks Jeremy!'</span></span>
 </tt></pre></div></div>
@@ -587,7 +587,7 @@ http://www.gnu.org/software/src-highlite -->
 by Lorenzo Bettini
 http://www.lorenzobettini.it
 http://www.gnu.org/software/src-highlite -->
-<pre><tt>I18n<span style="color: #990000">.</span>locale <span style="color: #990000">=</span> <span style="color: #990000">:</span><span style="color: #FF0000">'de-DE'</span>
+<pre><tt>I18n<span style="color: #990000">.</span>locale <span style="color: #990000">=</span> <span style="color: #990000">:</span><span style="color: #FF0000">'de'</span>
 I18n<span style="color: #990000">.</span>t <span style="color: #990000">:</span>foo
 I18n<span style="color: #990000">.</span>l Time<span style="color: #990000">.</span>now
 </tt></pre></div></div>
@@ -597,16 +597,16 @@ I18n<span style="color: #990000">.</span>l Time<span style="color: #990000">.</s
 by Lorenzo Bettini
 http://www.lorenzobettini.it
 http://www.gnu.org/software/src-highlite -->
-<pre><tt>I18n<span style="color: #990000">.</span>t <span style="color: #990000">:</span>foo<span style="color: #990000">,</span> <span style="color: #990000">:</span>locale <span style="color: #990000">=&gt;</span> <span style="color: #990000">:</span><span style="color: #FF0000">'de-DE'</span>
-I18n<span style="color: #990000">.</span>l Time<span style="color: #990000">.</span>now<span style="color: #990000">,</span> <span style="color: #990000">:</span>locale <span style="color: #990000">=&gt;</span> <span style="color: #990000">:</span><span style="color: #FF0000">'de-DE'</span>
+<pre><tt>I18n<span style="color: #990000">.</span>t <span style="color: #990000">:</span>foo<span style="color: #990000">,</span> <span style="color: #990000">:</span>locale <span style="color: #990000">=&gt;</span> <span style="color: #990000">:</span><span style="color: #FF0000">'de'</span>
+I18n<span style="color: #990000">.</span>l Time<span style="color: #990000">.</span>now<span style="color: #990000">,</span> <span style="color: #990000">:</span>locale <span style="color: #990000">=&gt;</span> <span style="color: #990000">:</span><span style="color: #FF0000">'de'</span>
 </tt></pre></div></div>
-<div class="para"><p>I18n.locale defaults to I18n.default_locale which defaults to :<em>en-US</em>. The default locale can be set like this:</p></div>
+<div class="para"><p>I18n.locale defaults to I18n.default_locale which defaults to :<em>en</em>. The default locale can be set like this:</p></div>
 <div class="listingblock">
 <div class="content"><!-- Generator: GNU source-highlight 2.9
 by Lorenzo Bettini
 http://www.lorenzobettini.it
 http://www.gnu.org/software/src-highlite -->
-<pre><tt>I18n<span style="color: #990000">.</span>default_locale <span style="color: #990000">=</span> <span style="color: #990000">:</span><span style="color: #FF0000">'de-DE'</span>
+<pre><tt>I18n<span style="color: #990000">.</span>default_locale <span style="color: #990000">=</span> <span style="color: #990000">:</span><span style="color: #FF0000">'de'</span>
 </tt></pre></div></div>
 </div>
 <h2 id="_how_to_store_your_custom_translations">4. How to store your custom translations</h2>
@@ -643,7 +643,7 @@ http://www.gnu.org/software/src-highlite -->
 by Lorenzo Bettini
 http://www.lorenzobettini.it
 http://www.gnu.org/software/src-highlite -->
-<pre><tt><span style="color: #FF0000">"en-US"</span><span style="color: #990000">:</span>
+<pre><tt><span style="color: #FF0000">"en"</span><span style="color: #990000">:</span>
   date<span style="color: #990000">:</span>
     formats<span style="color: #990000">:</span>
       default<span style="color: #990000">:</span> <span style="color: #FF0000">"%Y-%m-%d"</span>
@@ -664,7 +664,7 @@ I18n<span style="color: #990000">.</span>t <span style="color: #990000">:</span>
 <h3 id="_translations_for_activerecord_models">4.1. Translations for ActiveRecord models</h3>
 <div class="para"><p>You can use the methods Model.human_name and Model.human_attribute_name(attribute) to transparently lookup translations for your model and attribute names.</p></div>
 <div class="para"><p>For example when you add the following translations:</p></div>
-<div class="para"><p>en-US:
+<div class="para"><p>en:
   activerecord:
     models:
       user: Dude
@@ -996,7 +996,7 @@ cellspacing="0" cellpadding="4">
 by Lorenzo Bettini
 http://www.lorenzobettini.it
 http://www.gnu.org/software/src-highlite -->
-<pre><tt><span style="color: #FF0000">"en-US"</span><span style="color: #990000">:</span>
+<pre><tt><span style="color: #FF0000">"en"</span><span style="color: #990000">:</span>
   activerecord<span style="color: #990000">:</span>
     errors<span style="color: #990000">:</span>
       template<span style="color: #990000">:</span>
@@ -1059,6 +1059,13 @@ Example 3: a handler
 </div>
 <h2 id="_resources">6. Resources</h2>
 <div class="sectionbody">
+<div class="ilist"><ul>
+<li>
+<p>
+<a href="http://rails-i18n.org">http://rails-i18n.org</a>
+</p>
+</li>
+</ul></div>
 </div>
 <h2 id="_footnotes">7. Footnotes</h2>
 <div class="sectionbody">

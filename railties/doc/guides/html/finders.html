@@ -215,7 +215,7 @@ ul#navMain {
 						
 							<li><a href="#_array_conditions">Array Conditions</a></li>
 						
-							<li><a href="#_hash_conditions">Hash Conditions</a></li>
+							<li><a href="#_placeholder_conditions">Placeholder Conditions</a></li>
 						
 						</ul>
 					</li>
@@ -344,6 +344,7 @@ Perform aggregate calculations on Active Record models
 </li>
 </ul></div>
 <div class="para"><p>If you're used to using raw SQL to find database records, you'll find that there are generally better ways to carry out the same operations in Rails. Active Record insulates you from the need to use SQL in most cases.</p></div>
+<div class="para"><p>The SQL in your log may have some quoting, and that quoting depends on the backend (MySQL, for example, puts backticks around field and table names). Attempting to copy the raw SQL contained within this guide may not work in your database system. Please consult the database systems manual before attempting to execute any SQL.</p></div>
 </div>
 </div>
 <h2 id="_the_sample_models">1. The Sample Models</h2>
@@ -389,14 +390,14 @@ http://www.gnu.org/software/src-highlite -->
 by Lorenzo Bettini
 http://www.lorenzobettini.it
 http://www.gnu.org/software/src-highlite -->
-<pre><tt><span style="font-weight: bold"><span style="color: #0000FF">SELECT</span></span> <span style="color: #990000">*</span> <span style="font-weight: bold"><span style="color: #0000FF">FROM</span></span> <span style="color: #990000">+</span>clients<span style="color: #990000">+</span> <span style="font-weight: bold"><span style="color: #0000FF">WHERE</span></span> <span style="color: #990000">(+</span>clients<span style="color: #990000">+.+</span>id<span style="color: #990000">+</span> <span style="color: #990000">=</span> <span style="color: #993399">1</span><span style="color: #990000">)</span>
+<pre><tt><span style="font-weight: bold"><span style="color: #0000FF">SELECT</span></span> <span style="color: #990000">*</span> <span style="font-weight: bold"><span style="color: #0000FF">FROM</span></span> clients <span style="font-weight: bold"><span style="color: #0000FF">WHERE</span></span> <span style="color: #990000">(</span>clients<span style="color: #990000">.</span>id <span style="color: #990000">=</span> <span style="color: #993399">1</span><span style="color: #990000">)</span>
 </tt></pre></div></div>
 <div class="admonitionblock">
 <table><tr>
 <td class="icon">
 <img src="./images/icons/note.png" alt="Note" />
 </td>
-<td class="content">Because this is a standard table created from a migration in Rail, the primary key is defaulted to <em>id</em>. If you have specified a different primary key in your migrations, this is what Rails will find on when you call the find method, not the id column.</td>
+<td class="content">Because this is a standard table created from a migration in Rails, the primary key is defaulted to <em>id</em>. If you have specified a different primary key in your migrations, this is what Rails will find on when you call the find method, not the id column.</td>
 </tr></table>
 </div>
 <div class="para"><p>If you wanted to find clients with id 1 or 2, you call <tt>Client.find([1,2])</tt> or <tt>Client.find(1,2)</tt> and then this will be executed as:</p></div>
@@ -405,7 +406,7 @@ http://www.gnu.org/software/src-highlite -->
 by Lorenzo Bettini
 http://www.lorenzobettini.it
 http://www.gnu.org/software/src-highlite -->
-<pre><tt><span style="font-weight: bold"><span style="color: #0000FF">SELECT</span></span> <span style="color: #990000">*</span> <span style="font-weight: bold"><span style="color: #0000FF">FROM</span></span> <span style="color: #990000">+</span>clients<span style="color: #990000">+</span> <span style="font-weight: bold"><span style="color: #0000FF">WHERE</span></span> <span style="color: #990000">(+</span>clients<span style="color: #990000">+.+</span>id<span style="color: #990000">+</span> <span style="font-weight: bold"><span style="color: #0000FF">IN</span></span> <span style="color: #990000">(</span><span style="color: #993399">1</span><span style="color: #990000">,</span><span style="color: #993399">2</span><span style="color: #990000">))</span>
+<pre><tt><span style="font-weight: bold"><span style="color: #0000FF">SELECT</span></span> <span style="color: #990000">*</span> <span style="font-weight: bold"><span style="color: #0000FF">FROM</span></span> clients <span style="font-weight: bold"><span style="color: #0000FF">WHERE</span></span> <span style="color: #990000">(</span>clients<span style="color: #990000">.</span>id <span style="font-weight: bold"><span style="color: #0000FF">IN</span></span> <span style="color: #990000">(</span><span style="color: #993399">1</span><span style="color: #990000">,</span><span style="color: #993399">2</span><span style="color: #990000">))</span>
 </tt></pre></div></div>
 <div class="listingblock">
 <div class="content">
@@ -424,14 +425,14 @@ http://www.gnu.org/software/src-highlite -->
 <td class="content">If <tt>find(id)</tt> or <tt>find([id1, id2])</tt> fails to find any records, it will raise a <tt>RecordNotFound</tt> exception.</td>
 </tr></table>
 </div>
-<div class="para"><p>If you wanted to find the first client you would simply type <tt>Client.first</tt> and that would find the first client created in your clients table:</p></div>
+<div class="para"><p>If you wanted to find the first Client object you would simply type <tt>Client.first</tt> and that would find the first client in your clients table:</p></div>
 <div class="listingblock">
 <div class="content">
 <pre><tt>&gt;&gt; Client.first
 =&gt; #&lt;Client id: 1, name: =&gt; "Ryan", locked: false, orders_count: 2,
   created_at: "2008-09-28 15:38:50", updated_at: "2008-09-28 15:38:50"&gt;</tt></pre>
 </div></div>
-<div class="para"><p>If you were running script/server you might see the following output:</p></div>
+<div class="para"><p>If you were reading your log file (the default is log/development.log) you may see something like this:</p></div>
 <div class="listingblock">
 <div class="content"><!-- Generator: GNU source-highlight 2.9
 by Lorenzo Bettini
@@ -440,13 +441,29 @@ http://www.gnu.org/software/src-highlite -->
 <pre><tt><span style="font-weight: bold"><span style="color: #0000FF">SELECT</span></span> <span style="color: #990000">*</span> <span style="font-weight: bold"><span style="color: #0000FF">FROM</span></span> clients <span style="font-weight: bold"><span style="color: #0000FF">LIMIT</span></span> <span style="color: #993399">1</span>
 </tt></pre></div></div>
 <div class="para"><p>Indicating the query that Rails has performed on your database.</p></div>
-<div class="para"><p>To find the last client you would simply type <tt>Client.find(:last)</tt> and that would find the last client created in your clients table:</p></div>
+<div class="para"><p>To find the last Client object you would simply type <tt>Client.last</tt> and that would find the last client created in your clients table:</p></div>
 <div class="listingblock">
 <div class="content">
-<pre><tt>&gt;&gt; Client.find(:last)
+<pre><tt>&gt;&gt; Client.last
 =&gt; #&lt;Client id: 2, name: =&gt; "Michael", locked: false, orders_count: 3,
   created_at: "2008-09-28 13:12:40", updated_at: "2008-09-28 13:12:40"&gt;</tt></pre>
 </div></div>
+<div class="para"><p>If you were reading your log file (the default is log/development.log) you may see something like this:</p></div>
+<div class="listingblock">
+<div class="content"><!-- Generator: GNU source-highlight 2.9
+by Lorenzo Bettini
+http://www.lorenzobettini.it
+http://www.gnu.org/software/src-highlite -->
+<pre><tt><span style="font-weight: bold"><span style="color: #0000FF">SELECT</span></span> <span style="color: #990000">*</span> <span style="font-weight: bold"><span style="color: #0000FF">FROM</span></span> clients <span style="font-weight: bold"><span style="color: #0000FF">ORDER</span></span> <span style="font-weight: bold"><span style="color: #0000FF">BY</span></span> id <span style="font-weight: bold"><span style="color: #0000FF">DESC</span></span> <span style="font-weight: bold"><span style="color: #0000FF">LIMIT</span></span> <span style="color: #993399">1</span>
+</tt></pre></div></div>
+<div class="admonitionblock">
+<table><tr>
+<td class="icon">
+<img src="./images/icons/note.png" alt="Note" />
+</td>
+<td class="content">Please be aware that the syntax that Rails uses to find the first record in the table means that it may not be the actual first record. If you want the actual first record based on a field in your table (e.g. <tt>created_at</tt>) specify an order option in your find call. The last method call works differently: it finds the last record on your table based on the primary key column.</td>
+</tr></table>
+</div>
 <div class="listingblock">
 <div class="content"><!-- Generator: GNU source-highlight 2.9
 by Lorenzo Bettini
@@ -454,7 +471,7 @@ http://www.lorenzobettini.it
 http://www.gnu.org/software/src-highlite -->
 <pre><tt><span style="font-weight: bold"><span style="color: #0000FF">SELECT</span></span> <span style="color: #990000">*</span> <span style="font-weight: bold"><span style="color: #0000FF">FROM</span></span> clients <span style="font-weight: bold"><span style="color: #0000FF">ORDER</span></span> <span style="font-weight: bold"><span style="color: #0000FF">BY</span></span> clients<span style="color: #990000">.</span>id <span style="font-weight: bold"><span style="color: #0000FF">DESC</span></span> <span style="font-weight: bold"><span style="color: #0000FF">LIMIT</span></span> <span style="color: #993399">1</span>
 </tt></pre></div></div>
-<div class="para"><p>To find all the clients you would simply type <tt>Client.all</tt> and that would find all the clients in your clients table:</p></div>
+<div class="para"><p>To find all the Client objects you would simply type <tt>Client.all</tt> and that would find all the clients in your clients table:</p></div>
 <div class="listingblock">
 <div class="content">
 <pre><tt>&gt;&gt; Client.all
@@ -463,8 +480,8 @@ http://www.gnu.org/software/src-highlite -->
   #&lt;Client id: 2, name: =&gt; "Michael", locked: false, orders_count: 3,
   created_at: "2008-09-28 13:12:40", updated_at: "2008-09-28 13:12:40"&gt;]</tt></pre>
 </div></div>
-<div class="para"><p>As alternatives to calling <tt>Client.first</tt>, <tt>Client.last</tt>, and <tt>Client.all</tt>, you can use the class methods <tt>Client.first</tt>, <tt>Client.last</tt>, and <tt>Client.all</tt> instead. <tt>Client.first</tt>, <tt>Client.last</tt> and <tt>Client.all</tt> just call their longer counterparts: <tt>Client.find(:first)</tt>, <tt>Client.find(:last)</tt> and <tt>Client.find(:all)</tt> respectively.</p></div>
-<div class="para"><p>Be aware that <tt>Client.first</tt>/<tt>Client.find(:first)</tt> and <tt>Client.last</tt>/<tt>Client.find(:last)</tt> will both return a single object, where as <tt>Client.all</tt>/<tt>Client.find(:all)</tt> will return an array of Client objects, just as passing in an array of ids to find will do also.</p></div>
+<div class="para"><p>You may see in Rails code that there are calls to methods such as <tt>Client.find(:all)</tt>, <tt>Client.find(:first)</tt> and <tt>Client.find(:last)</tt>. These methods are just alternatives to <tt>Client.all</tt>, <tt>Client.first</tt> and <tt>Client.last</tt> respectively.</p></div>
+<div class="para"><p>Be aware that <tt>Client.first</tt>/<tt>Client.find(:first)</tt> and <tt>Client.last</tt>/<tt>Client.find(:last)</tt> will both return a single object, where as <tt>Client.all</tt>/<tt>Client.find(:all)</tt> will return an array of Client objects, just as passing in an array of ids to <tt>find</tt> will do also.</p></div>
 </div>
 <h2 id="_conditions">4. Conditions</h2>
 <div class="sectionbody">
@@ -480,20 +497,23 @@ http://www.gnu.org/software/src-highlite -->
 </tr></table>
 </div>
 <h3 id="_array_conditions">4.2. Array Conditions</h3>
-<div class="para"><p>Now what if that number could vary, say as a parameter from somewhere, or perhaps from the user's level status somewhere? The find then becomes something like <tt>Client.first(:conditions &#8658; ["orders_count = ?", params[:orders]])</tt>. Active Record will go through the first element in the conditions value and any additional elements will replace the question marks (?) in the first element. If you want to specify two conditions, you can do it like <tt>Client.first(:conditions &#8658; ["orders_count = ? AND locked = ?", params[:orders], false])</tt>. In this example, the first question mark will be replaced with the value in params orders and the second will be replaced with true and this will find the first record in the table that has <em>2</em> as its value for the orders_count field and <em>false</em> for its locked field.</p></div>
+<div class="para"><p>Now what if that number could vary, say as a parameter from somewhere, or perhaps from the user's level status somewhere? The find then becomes something like <tt>Client.first(:conditions &#8658; ["orders_count = ?", params[:orders]])</tt>. Active Record will go through the first element in the conditions value and any additional elements will replace the question marks (?) in the first element. If you want to specify two conditions, you can do it like <tt>Client.first(:conditions &#8658; ["orders_count = ? AND locked = ?", params[:orders], false])</tt>. In this example, the first question mark will be replaced with the value in <tt>params[:orders]</tt> and the second will be replaced with <tt>false</tt> and this will find the first record in the table that has <em>2</em> as its value for the <tt>orders_count</tt> field and <tt>false</tt> for its locked field.</p></div>
 <div class="para"><p>The reason for doing code like:</p></div>
 <div class="listingblock">
 <div class="content"><!-- Generator: GNU source-highlight 2.9
 by Lorenzo Bettini
 http://www.lorenzobettini.it
 http://www.gnu.org/software/src-highlite -->
-<pre><tt><span style="color: #990000">+</span>Client<span style="color: #990000">.</span>first<span style="color: #990000">(:</span>conditions <span style="color: #990000">=&gt;</span> <span style="color: #990000">[</span><span style="color: #FF0000">"orders_count = ?"</span><span style="color: #990000">,</span> params<span style="color: #990000">[:</span>orders<span style="color: #990000">]])+</span>
+<pre><tt>Client<span style="color: #990000">.</span>first<span style="color: #990000">(:</span>conditions <span style="color: #990000">=&gt;</span> <span style="color: #990000">[</span><span style="color: #FF0000">"orders_count = ?"</span><span style="color: #990000">,</span> params<span style="color: #990000">[:</span>orders<span style="color: #990000">]])</span>
 </tt></pre></div></div>
 <div class="para"><p>instead of:</p></div>
 <div class="listingblock">
-<div class="content">
-<pre><tt>+Client.first(:conditions =&gt; "orders_count = #{params[:orders]}")+</tt></pre>
-</div></div>
+<div class="content"><!-- Generator: GNU source-highlight 2.9
+by Lorenzo Bettini
+http://www.lorenzobettini.it
+http://www.gnu.org/software/src-highlite -->
+<pre><tt>Client<span style="color: #990000">.</span>first<span style="color: #990000">(:</span>conditions <span style="color: #990000">=&gt;</span> <span style="color: #FF0000">"orders_count = #{params[:orders]}"</span><span style="color: #990000">)</span>
+</tt></pre></div></div>
 <div class="para"><p>is because of parameter safety. Putting the variable directly into the conditions string will pass the variable to the database <strong>as-is</strong>. This means that it will be an unescaped variable directly from a user who may have malicious intent. If you do this, you put your entire database at risk because once a user finds out he or she can exploit your database they can do just about anything to it. Never ever put your parameters directly inside the conditions string.</p></div>
 <div class="admonitionblock">
 <table><tr>
@@ -518,7 +538,7 @@ http://www.gnu.org/software/src-highlite -->
 by Lorenzo Bettini
 http://www.lorenzobettini.it
 http://www.gnu.org/software/src-highlite -->
-<pre><tt><span style="font-weight: bold"><span style="color: #0000FF">SELECT</span></span> <span style="color: #990000">*</span> <span style="font-weight: bold"><span style="color: #0000FF">FROM</span></span> <span style="color: #990000">+</span>users<span style="color: #990000">+</span> <span style="font-weight: bold"><span style="color: #0000FF">WHERE</span></span> <span style="color: #990000">(</span>created_at <span style="font-weight: bold"><span style="color: #0000FF">IN</span></span>
+<pre><tt><span style="font-weight: bold"><span style="color: #0000FF">SELECT</span></span> <span style="color: #990000">*</span> <span style="font-weight: bold"><span style="color: #0000FF">FROM</span></span> users <span style="font-weight: bold"><span style="color: #0000FF">WHERE</span></span> <span style="color: #990000">(</span>created_at <span style="font-weight: bold"><span style="color: #0000FF">IN</span></span>
   <span style="color: #990000">(</span><span style="color: #FF0000">'2007-12-31'</span><span style="color: #990000">,</span><span style="color: #FF0000">'2008-01-01'</span><span style="color: #990000">,</span><span style="color: #FF0000">'2008-01-02'</span><span style="color: #990000">,</span><span style="color: #FF0000">'2008-01-03'</span><span style="color: #990000">,</span><span style="color: #FF0000">'2008-01-04'</span><span style="color: #990000">,</span><span style="color: #FF0000">'2008-01-05'</span><span style="color: #990000">,</span>
   <span style="color: #FF0000">'2008-01-06'</span><span style="color: #990000">,</span><span style="color: #FF0000">'2008-01-07'</span><span style="color: #990000">,</span><span style="color: #FF0000">'2008-01-08'</span><span style="color: #990000">,</span><span style="color: #FF0000">'2008-01-09'</span><span style="color: #990000">,</span><span style="color: #FF0000">'2008-01-10'</span><span style="color: #990000">,</span><span style="color: #FF0000">'2008-01-11'</span><span style="color: #990000">,</span>
   <span style="color: #FF0000">'2008-01-12'</span><span style="color: #990000">,</span><span style="color: #FF0000">'2008-01-13'</span><span style="color: #990000">,</span><span style="color: #FF0000">'2008-01-14'</span><span style="color: #990000">,</span><span style="color: #FF0000">'2008-01-15'</span><span style="color: #990000">,</span><span style="color: #FF0000">'2008-01-16'</span><span style="color: #990000">,</span><span style="color: #FF0000">'2008-01-17'</span><span style="color: #990000">,</span>
@@ -541,7 +561,7 @@ http://www.gnu.org/software/src-highlite -->
 by Lorenzo Bettini
 http://www.lorenzobettini.it
 http://www.gnu.org/software/src-highlite -->
-<pre><tt><span style="font-weight: bold"><span style="color: #0000FF">SELECT</span></span> <span style="color: #990000">*</span> <span style="font-weight: bold"><span style="color: #0000FF">FROM</span></span> <span style="color: #990000">+</span>users<span style="color: #990000">+</span> <span style="font-weight: bold"><span style="color: #0000FF">WHERE</span></span> <span style="color: #990000">(</span>created_at <span style="font-weight: bold"><span style="color: #0000FF">IN</span></span>
+<pre><tt><span style="font-weight: bold"><span style="color: #0000FF">SELECT</span></span> <span style="color: #990000">*</span> <span style="font-weight: bold"><span style="color: #0000FF">FROM</span></span> users <span style="font-weight: bold"><span style="color: #0000FF">WHERE</span></span> <span style="color: #990000">(</span>created_at <span style="font-weight: bold"><span style="color: #0000FF">IN</span></span>
   <span style="color: #990000">(</span><span style="color: #FF0000">'2007-12-01 00:00:00'</span><span style="color: #990000">,</span> <span style="color: #FF0000">'2007-12-01 00:00:01'</span> <span style="color: #990000">...</span>
   <span style="color: #FF0000">'2007-12-01 23:59:59'</span><span style="color: #990000">,</span> <span style="color: #FF0000">'2007-12-02 00:00:00'</span><span style="color: #990000">))</span>
 </tt></pre></div></div>
@@ -570,7 +590,7 @@ http://www.gnu.org/software/src-highlite -->
   <span style="color: #990000">[</span><span style="color: #FF0000">"created_at &gt;= ? AND created_at &lt;= ?"</span><span style="color: #990000">,</span> params<span style="color: #990000">[:</span>start_date<span style="color: #990000">],</span> params<span style="color: #990000">[:</span>end_date<span style="color: #990000">]])</span>
 </tt></pre></div></div>
 <div class="para"><p>Just like in Ruby.</p></div>
-<h3 id="_hash_conditions">4.3. Hash Conditions</h3>
+<h3 id="_placeholder_conditions">4.3. Placeholder Conditions</h3>
 <div class="para"><p>Similar to the array style of params you can also specify keys in your conditions:</p></div>
 <div class="listingblock">
 <div class="content"><!-- Generator: GNU source-highlight 2.9
@@ -641,7 +661,7 @@ http://www.gnu.org/software/src-highlite -->
 by Lorenzo Bettini
 http://www.lorenzobettini.it
 http://www.gnu.org/software/src-highlite -->
-<pre><tt><span style="font-weight: bold"><span style="color: #0000FF">SELECT</span></span> <span style="color: #990000">*</span> <span style="font-weight: bold"><span style="color: #0000FF">FROM</span></span> <span style="color: #990000">+</span>orders<span style="color: #990000">+</span> <span style="font-weight: bold"><span style="color: #0000FF">GROUP</span></span> <span style="font-weight: bold"><span style="color: #0000FF">BY</span></span> <span style="color: #009900">date</span><span style="color: #990000">(</span>created_at<span style="color: #990000">)</span>
+<pre><tt><span style="font-weight: bold"><span style="color: #0000FF">SELECT</span></span> <span style="color: #990000">*</span> <span style="font-weight: bold"><span style="color: #0000FF">FROM</span></span> orders <span style="font-weight: bold"><span style="color: #0000FF">GROUP</span></span> <span style="font-weight: bold"><span style="color: #0000FF">BY</span></span> <span style="color: #009900">date</span><span style="color: #990000">(</span>created_at<span style="color: #990000">)</span>
 </tt></pre></div></div>
 </div>
 <h2 id="_read_only">9. Read Only</h2>
@@ -730,20 +750,23 @@ http://www.gnu.org/software/src-highlite -->
 </div>
 <h2 id="_dynamic_finders">13. Dynamic finders</h2>
 <div class="sectionbody">
-<div class="para"><p>For every field (also known as an attribute) you define in your table, Active Record provides a finder method. If you have a field called <tt>name</tt> on your Client model for example, you get <tt>find_by_name</tt> and <tt>find_all_by_name</tt> for free from Active Record. If you have also have a <tt>locked</tt> field on the client model, you also get <tt>find_by_locked</tt> and <tt>find_all_by_locked</tt>. If you want to find both by name and locked, you can chain these finders together by simply typing <tt>and</tt> between the fields for example <tt>Client.find_by_name_and_locked(<em>Ryan</em>, true)</tt>. These finders are an excellent alternative to using the conditions option, mainly because it's shorter to type <tt>find_by_name(params[:name])</tt> than it is to type <tt>first(:conditions &#8658; ["name = ?", params[:name]])</tt>.</p></div>
+<div class="para"><p>For every field (also known as an attribute) you define in your table, Active Record provides a finder method. If you have a field called <tt>name</tt> on your Client model for example, you get <tt>find_by_name</tt> and <tt>find_all_by_name</tt> for free from Active Record. If you have also have a <tt>locked</tt> field on the client model, you also get <tt>find_by_locked</tt> and <tt>find_all_by_locked</tt>.</p></div>
+<div class="para"><p>You can do <tt>find_last_by_*</tt> methods too which will find the last record matching your parameter.</p></div>
+<div class="para"><p>You can specify an exclamation point (!) on the end of the dynamic finders to get them to raise an <tt>ActiveRecord::RecordNotFound</tt> error if they do not return any records, like <tt>Client.find_by_name!(<em>Ryan</em>)</tt></p></div>
+<div class="para"><p>If you want to find both by name and locked, you can chain these finders together by simply typing <tt>and</tt> between the fields for example <tt>Client.find_by_name_and_locked(<em>Ryan</em>, true)</tt>.</p></div>
 <div class="para"><p>There's another set of dynamic finders that let you find or create/initialize objects if they aren't find. These work in a similar fashion to the other finders and can be used like <tt>find_or_create_by_name(params[:name])</tt>. Using this will firstly perform a find and then create if the find returns nil. The SQL looks like this for <tt>Client.find_or_create_by_name(<em>Ryan</em>)</tt>:</p></div>
 <div class="listingblock">
 <div class="content"><!-- Generator: GNU source-highlight 2.9
 by Lorenzo Bettini
 http://www.lorenzobettini.it
 http://www.gnu.org/software/src-highlite -->
-<pre><tt><span style="font-weight: bold"><span style="color: #0000FF">SELECT</span></span> <span style="color: #990000">*</span> <span style="font-weight: bold"><span style="color: #0000FF">FROM</span></span> <span style="color: #990000">+</span>clients<span style="color: #990000">+</span> <span style="font-weight: bold"><span style="color: #0000FF">WHERE</span></span> <span style="color: #990000">(+</span>clients<span style="color: #990000">+.+</span>name<span style="color: #990000">+</span> <span style="color: #990000">=</span> <span style="color: #FF0000">'Ryan'</span><span style="color: #990000">)</span> <span style="font-weight: bold"><span style="color: #0000FF">LIMIT</span></span> <span style="color: #993399">1</span>
+<pre><tt><span style="font-weight: bold"><span style="color: #0000FF">SELECT</span></span> <span style="color: #990000">*</span> <span style="font-weight: bold"><span style="color: #0000FF">FROM</span></span> clients <span style="font-weight: bold"><span style="color: #0000FF">WHERE</span></span> <span style="color: #990000">(</span>clients<span style="color: #990000">.</span>name <span style="color: #990000">=</span> <span style="color: #FF0000">'Ryan'</span><span style="color: #990000">)</span> <span style="font-weight: bold"><span style="color: #0000FF">LIMIT</span></span> <span style="color: #993399">1</span>
 BEGIN
-<span style="font-weight: bold"><span style="color: #0000FF">INSERT</span></span> <span style="font-weight: bold"><span style="color: #0000FF">INTO</span></span> <span style="color: #990000">+</span>clients<span style="color: #990000">+</span> <span style="color: #990000">(+</span>name<span style="color: #990000">+,</span> <span style="color: #990000">+</span>updated_at<span style="color: #990000">+,</span> <span style="color: #990000">+</span>created_at<span style="color: #990000">+,</span> <span style="color: #990000">+</span>orders_count<span style="color: #990000">+,</span> <span style="color: #990000">+</span>locked<span style="color: #990000">+)</span>
+<span style="font-weight: bold"><span style="color: #0000FF">INSERT</span></span> <span style="font-weight: bold"><span style="color: #0000FF">INTO</span></span> clients <span style="color: #990000">(</span>name<span style="color: #990000">,</span> updated_at<span style="color: #990000">,</span> created_at<span style="color: #990000">,</span> orders_count<span style="color: #990000">,</span> locked<span style="color: #990000">)</span>
   <span style="font-weight: bold"><span style="color: #0000FF">VALUES</span></span><span style="color: #990000">(</span><span style="color: #FF0000">'Ryan'</span><span style="color: #990000">,</span> <span style="color: #FF0000">'2008-09-28 15:39:12'</span><span style="color: #990000">,</span> <span style="color: #FF0000">'2008-09-28 15:39:12'</span><span style="color: #990000">,</span> <span style="color: #FF0000">'0'</span><span style="color: #990000">,</span> <span style="color: #FF0000">'0'</span><span style="color: #990000">)</span>
 COMMIT
 </tt></pre></div></div>
-<div class="para"><p><tt>find_or_create</tt>'s sibling, <tt>find_or_initialize</tt>, will find an object and if it does not exist will call <tt>new</tt> with the parameters you passed in. For example:</p></div>
+<div class="para"><p><tt>find_or_create</tt>'s sibling, <tt>find_or_initialize</tt>, will find an object and if it does not exist will act similar to calling <tt>new</tt> with the parameters you passed in. For example:</p></div>
 <div class="listingblock">
 <div class="content"><!-- Generator: GNU source-highlight 2.9
 by Lorenzo Bettini
@@ -951,7 +974,7 @@ http://www.gnu.org/software/src-highlite -->
 by Lorenzo Bettini
 http://www.lorenzobettini.it
 http://www.gnu.org/software/src-highlite -->
-<pre><tt><span style="font-weight: bold"><span style="color: #0000FF">SELECT</span></span> count<span style="color: #990000">(*)</span> <span style="font-weight: bold"><span style="color: #0000FF">AS</span></span> count_all <span style="font-weight: bold"><span style="color: #0000FF">FROM</span></span> <span style="color: #990000">+</span>clients<span style="color: #990000">+</span> <span style="font-weight: bold"><span style="color: #0000FF">WHERE</span></span> <span style="color: #990000">(</span>first_name <span style="color: #990000">=</span> <span style="color: #993399">1</span><span style="color: #990000">)</span>
+<pre><tt><span style="font-weight: bold"><span style="color: #0000FF">SELECT</span></span> count<span style="color: #990000">(*)</span> <span style="font-weight: bold"><span style="color: #0000FF">AS</span></span> count_all <span style="font-weight: bold"><span style="color: #0000FF">FROM</span></span> clients <span style="font-weight: bold"><span style="color: #0000FF">WHERE</span></span> <span style="color: #990000">(</span>first_name <span style="color: #990000">=</span> <span style="color: #993399">1</span><span style="color: #990000">)</span>
 </tt></pre></div></div>
 <div class="para"><p>You can also use <tt>include</tt> or <tt>joins</tt> for this to do something a little more complex:</p></div>
 <div class="listingblock">
@@ -967,8 +990,8 @@ http://www.gnu.org/software/src-highlite -->
 by Lorenzo Bettini
 http://www.lorenzobettini.it
 http://www.gnu.org/software/src-highlite -->
-<pre><tt><span style="font-weight: bold"><span style="color: #0000FF">SELECT</span></span> count<span style="color: #990000">(</span><span style="font-weight: bold"><span style="color: #0000FF">DISTINCT</span></span> <span style="color: #990000">+</span>clients<span style="color: #990000">+.</span>id<span style="color: #990000">)</span> <span style="font-weight: bold"><span style="color: #0000FF">AS</span></span> count_all <span style="font-weight: bold"><span style="color: #0000FF">FROM</span></span> <span style="color: #990000">+</span>clients<span style="color: #990000">+</span>
-  <span style="font-weight: bold"><span style="color: #0000FF">LEFT</span></span> <span style="font-weight: bold"><span style="color: #0000FF">OUTER</span></span> <span style="font-weight: bold"><span style="color: #0000FF">JOIN</span></span> <span style="color: #990000">+</span>orders<span style="color: #990000">+</span> <span style="font-weight: bold"><span style="color: #0000FF">ON</span></span> orders<span style="color: #990000">.</span>client_id <span style="color: #990000">=</span> client<span style="color: #990000">.</span>id <span style="font-weight: bold"><span style="color: #0000FF">WHERE</span></span>
+<pre><tt><span style="font-weight: bold"><span style="color: #0000FF">SELECT</span></span> count<span style="color: #990000">(</span><span style="font-weight: bold"><span style="color: #0000FF">DISTINCT</span></span> clients<span style="color: #990000">.</span>id<span style="color: #990000">)</span> <span style="font-weight: bold"><span style="color: #0000FF">AS</span></span> count_all <span style="font-weight: bold"><span style="color: #0000FF">FROM</span></span> clients
+  <span style="font-weight: bold"><span style="color: #0000FF">LEFT</span></span> <span style="font-weight: bold"><span style="color: #0000FF">OUTER</span></span> <span style="font-weight: bold"><span style="color: #0000FF">JOIN</span></span> orders <span style="font-weight: bold"><span style="color: #0000FF">ON</span></span> orders<span style="color: #990000">.</span>client_id <span style="color: #990000">=</span> client<span style="color: #990000">.</span>id <span style="font-weight: bold"><span style="color: #0000FF">WHERE</span></span>
   <span style="color: #990000">(</span>clients<span style="color: #990000">.</span>first_name <span style="color: #990000">=</span> <span style="color: #FF0000">'name'</span> <span style="font-weight: bold"><span style="color: #0000FF">AND</span></span> orders<span style="color: #990000">.</span><span style="font-weight: bold"><span style="color: #0000FF">status</span></span> <span style="color: #990000">=</span> <span style="color: #FF0000">'received'</span><span style="color: #990000">)</span>
 </tt></pre></div></div>
 <div class="para"><p>This code specifies <tt>clients.first_name</tt> just in case one of the join tables has a field also called <tt>first_name</tt> and it uses <tt>orders.status</tt> because that's the name of our join table.</p></div>
@@ -1026,6 +1049,21 @@ http://www.gnu.org/software/src-highlite -->
 <div class="sectionbody">
 <div class="para"><p><a href="http://rails.lighthouseapp.com/projects/16213-rails-guides/tickets/16">Lighthouse ticket</a></p></div>
 <div class="ilist"><ul>
+<li>
+<p>
+November 23 2008: Added documentation for <tt>find_by_last</tt> and <tt>find_by_bang!</tt>
+</p>
+</li>
+<li>
+<p>
+November 21 2008: Fixed all points specified in <a href="http://rails.lighthouseapp.com/projects/16213-rails-guides/tickets/16-activerecord-finders#ticket-16-13">this comment</a> and <a href="http://rails.lighthouseapp.com/projects/16213-rails-guides/tickets/16-activerecord-finders#ticket-16-14">this comment</a>
+</p>
+</li>
+<li>
+<p>
+November 18 2008: Fixed all points specified in <a href="http://rails.lighthouseapp.com/projects/16213-rails-guides/tickets/16-activerecord-finders#ticket-16-11">this comment</a>
+</p>
+</li>
 <li>
 <p>
 November 8, 2008: Editing pass by <a href="../authors.html#mgunderloy">Mike Gunderloy</a> . First release version.

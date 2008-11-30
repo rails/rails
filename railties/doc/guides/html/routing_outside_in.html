@@ -1905,7 +1905,7 @@ http://www.gnu.org/software/src-highlite -->
 by Lorenzo Bettini
 http://www.lorenzobettini.it
 http://www.gnu.org/software/src-highlite -->
-<pre><tt>map<span style="color: #990000">.</span>connect <span style="color: #FF0000">'photo/:id'</span><span style="color: #990000">,</span> <span style="color: #990000">:</span>controller <span style="color: #990000">=&gt;</span> <span style="color: #FF0000">'photos'</span><span style="color: #990000">,</span> <span style="color: #990000">:</span>action <span style="color: #990000">=&gt;</span> <span style="color: #FF0000">'show'</span>
+<pre><tt>map<span style="color: #990000">.</span>connect <span style="color: #FF0000">'photos/:id'</span><span style="color: #990000">,</span> <span style="color: #990000">:</span>controller <span style="color: #990000">=&gt;</span> <span style="color: #FF0000">'photos'</span><span style="color: #990000">,</span> <span style="color: #990000">:</span>action <span style="color: #990000">=&gt;</span> <span style="color: #FF0000">'show'</span>
 </tt></pre></div></div>
 <div class="para"><p>With this route, an incoming URL of <tt>/photos/12</tt> would be dispatched to the <tt>show</tt> action within the <tt>Photos</tt> controller.</p></div>
 <div class="para"><p>You an also define other defaults in a route by supplying a hash for the <tt>:defaults</tt> option. This even applies to parameters that are not explicitly defined elsewhere in the route. For example:</p></div>
@@ -1914,7 +1914,7 @@ http://www.gnu.org/software/src-highlite -->
 by Lorenzo Bettini
 http://www.lorenzobettini.it
 http://www.gnu.org/software/src-highlite -->
-<pre><tt>map<span style="color: #990000">.</span>connect <span style="color: #FF0000">'photo/:id'</span><span style="color: #990000">,</span> <span style="color: #990000">:</span>controller <span style="color: #990000">=&gt;</span> <span style="color: #FF0000">'photos'</span><span style="color: #990000">,</span> <span style="color: #990000">:</span>action <span style="color: #990000">=&gt;</span> <span style="color: #FF0000">'show'</span><span style="color: #990000">,</span> <span style="color: #990000">:</span>defaults <span style="color: #990000">=&gt;</span> <span style="color: #FF0000">{</span> <span style="color: #990000">:</span>format <span style="color: #990000">=&gt;</span> <span style="color: #FF0000">'jpg'</span> <span style="color: #FF0000">}</span>
+<pre><tt>map<span style="color: #990000">.</span>connect <span style="color: #FF0000">'photos/:id'</span><span style="color: #990000">,</span> <span style="color: #990000">:</span>controller <span style="color: #990000">=&gt;</span> <span style="color: #FF0000">'photos'</span><span style="color: #990000">,</span> <span style="color: #990000">:</span>action <span style="color: #990000">=&gt;</span> <span style="color: #FF0000">'show'</span><span style="color: #990000">,</span> <span style="color: #990000">:</span>defaults <span style="color: #990000">=&gt;</span> <span style="color: #FF0000">{</span> <span style="color: #990000">:</span>format <span style="color: #990000">=&gt;</span> <span style="color: #FF0000">'jpg'</span> <span style="color: #FF0000">}</span>
 </tt></pre></div></div>
 <div class="para"><p>With this route, an incoming URL of <tt>photos/12</tt> would be dispatched to the <tt>show</tt> action within the <tt>Photos</tt> controller, and <tt>params[:format]</tt> will be set to <tt>jpg</tt>.</p></div>
 <h3 id="_named_routes_2">4.6. Named Routes</h3>
@@ -2056,7 +2056,7 @@ http://www.gnu.org/software/src-highlite -->
 by Lorenzo Bettini
 http://www.lorenzobettini.it
 http://www.gnu.org/software/src-highlite -->
-<pre><tt>map<span style="color: #990000">.</span>index <span style="color: #990000">:</span>controller <span style="color: #990000">=&gt;</span> <span style="color: #FF0000">"pages"</span><span style="color: #990000">,</span> <span style="color: #990000">:</span>action <span style="color: #990000">=&gt;</span> <span style="color: #FF0000">"main"</span>
+<pre><tt>map<span style="color: #990000">.</span>index <span style="color: #FF0000">'index'</span><span style="color: #990000">,</span> <span style="color: #990000">:</span>controller <span style="color: #990000">=&gt;</span> <span style="color: #FF0000">"pages"</span><span style="color: #990000">,</span> <span style="color: #990000">:</span>action <span style="color: #990000">=&gt;</span> <span style="color: #FF0000">"main"</span>
 map<span style="color: #990000">.</span>root <span style="color: #990000">:</span>index
 </tt></pre></div></div>
 <div class="para"><p>Because of the top-down processing of the file, the named route must be specified <em>before</em> the call to <tt>map.root</tt>.</p></div>
