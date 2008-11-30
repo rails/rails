@@ -83,15 +83,23 @@ module ActionController #:nodoc:
         end
       end
 
-      # Name can take one of three forms:
-      # * String: This would normally take the form of a path like "pages/45/notes"
-      # * Hash: Is treated as an implicit call to url_for, like { :controller => "pages", :action => "notes", :id => 45 }
-      # * Regexp: Will destroy all the matched fragments, example:
-      #     %r{pages/\d*/notes}
-      #   Ensure you do not specify start and finish in the regex (^$) because
-      #   the actual filename matched looks like ./cache/filename/path.cache
-      #   Regexp expiration is only supported on caches that can iterate over
-      #   all keys (unlike memcached).
+      # Removes fragments from the cache.
+      #
+      # +key+ can take one of three forms:
+      # * String - This would normally take the form of a path, like
+      #   <tt>"pages/45/notes"</tt>.
+      # * Hash - Treated as an implicit call to +url_for+, like
+      #   <tt>{:controller => "pages", :action => "notes", :id => 45}</tt>
+      # * Regexp - Will remove any fragment that matches, so
+      #   <tt>%r{pages/\d*/notes}</tt> might remove all notes. Make sure you
+      #   don't use anchors in the regex (<tt>^</tt> or <tt>$</tt>) because
+      #   the actual filename matched looks like
+      #   <tt>./cache/filename/path.cache</tt>. Note: Regexp expiration is
+      #   only supported on caches that can iterate over all keys (unlike
+      #   memcached).
+      #
+      # +options+ is passed through to the cache store's <tt>delete</tt>
+      # method (or <tt>delete_matched</tt>, for Regexp keys.)
       def expire_fragment(key, options = nil)
         return unless cache_configured?
 
