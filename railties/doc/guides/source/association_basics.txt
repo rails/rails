@@ -416,9 +416,9 @@ This declaration needs to be backed up by the proper foreign key declaration on 
 class CreateOrders < ActiveRecord::Migration
   def self.up
     create_table :orders do |t|
-      t.order_date   :datetime
-      t.order_number :string
-      t.customer_id  :integer
+      t.datetime   :order_date
+      t.string     :order_number 
+      t.integer    :customer_id 
     end
   end
 

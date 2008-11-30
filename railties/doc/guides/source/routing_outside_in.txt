@@ -738,7 +738,7 @@ You do not need to explicitly use the +:controller+ and +:action+ symbols within
 
 [source, ruby]
 -------------------------------------------------------
-map.connect 'photo/:id', :controller => 'photos', :action => 'show'
+map.connect 'photos/:id', :controller => 'photos', :action => 'show'
 -------------------------------------------------------
 
 With this route, an incoming URL of +/photos/12+ would be dispatched to the +show+ action within the +Photos+ controller.
@@ -747,7 +747,7 @@ You an also define other defaults in a route by supplying a hash for the +:defau
 
 [source, ruby]
 -------------------------------------------------------
-map.connect 'photo/:id', :controller => 'photos', :action => 'show', :defaults => { :format => 'jpg' }
+map.connect 'photos/:id', :controller => 'photos', :action => 'show', :defaults => { :format => 'jpg' }
 -------------------------------------------------------
 
 With this route, an incoming URL of +photos/12+ would be dispatched to the +show+ action within the +Photos+ controller, and +params[:format]+ will be set to +jpg+.
@@ -886,7 +886,7 @@ For better readability, you can specify an already-created route in your call to
 
 [source, ruby]
 -------------------------------------------------------
-map.index :controller => "pages", :action => "main"
+map.index 'index', :controller => "pages", :action => "main"
 map.root :index
 -------------------------------------------------------
 

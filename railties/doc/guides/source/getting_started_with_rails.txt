@@ -154,6 +154,13 @@ And if you're using PostgreSQL for data storage, run this command:
 $ rails blog -d postgresql
 -------------------------------------------------------
 
+After you create the blog application, switch to its folder to continue work directly in that application:
+
+[source, shell]
+-------------------------------------------------------
+$ cd blog
+-------------------------------------------------------
+
 In any case, Rails will create a folder in your working directory called +blog+. Open up that folder and explore its contents. Most of the work in this tutorial will happen in the +app/+ folder, but here's a basic rundown on the function of each folder that Rails creates in a new application by default:
 
 [grid="all"]
@@ -238,6 +245,15 @@ development:
 -------------------------------------------------------
 
 Change the username and password in the +development+ section as appropriate.
+
+==== Creating the Database
+
+Now that you have your database configured, it's time to have Rails create an empty database for you. You can do this by running a rake command:
+
+[source, shell]
+-------------------------------------------------------
+$ rake db:create
+-------------------------------------------------------
 
 == Hello, Rails!
 
@@ -370,7 +386,7 @@ end
 
 If you were to translate that into words, it says something like: when this migration is run, create a table named +posts+ with two string columns (+name+ and +title+) and a text column (+content+), and generate timestamp fields to track record creation and updating. You can learn the detailed syntax for migrations in the link:../migrations.html[Rails Database Migrations] guide.
 
-At this point, you need to do two things: create the database and run the migration. You can use rake commands at the terminal for both of those tasks:
+At this point, you can use a rake command to run the migration:
 
 [source, shell]
 -------------------------------------------------------
@@ -378,7 +394,7 @@ $ rake db:create
 $ rake db:migrate
 -------------------------------------------------------
 
-NOTE: Because you're working in the development environment by default, both of these commands will apply to the database defined in the +development+ section of your +config/database.yml+ file.
+NOTE: Because you're working in the development environment by default, this command will apply to the database defined in the +development+ section of your +config/database.yml+ file.
 
 === Adding a Link
 
@@ -748,7 +764,7 @@ At this point, it’s worth looking at some of the tools that Rails provides to 
 
 === Using Partials to Eliminate View Duplication
 
-As you saw earlier, the scaffold-generated views for the +new+ and +edit+ actions are largely identical. You can pull the shared code out into a +partial+ template. This requires editing the new and edit views, and adding a new template:
+As you saw earlier, the scaffold-generated views for the +new+ and +edit+ actions are largely identical. You can pull the shared code out into a +partial+ template. This requires editing the new and edit views, and adding a new template. The new +_form.html.erb+ template should be saved in the same +app/views/posts+ folder as the files from which it is being extracted:
 
 +new.html.erb+:
 
