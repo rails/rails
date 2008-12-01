@@ -2052,10 +2052,10 @@ module ActiveRecord #:nodoc:
         end
 
         # Sets the default options for the model. The format of the
-        # <tt>method_scoping</tt> argument is the same as in with_scope.
+        # <tt>options</tt> argument is the same as in find.
         #
         #   class Person < ActiveRecord::Base
-        #     default_scope :find => { :order => 'last_name, first_name' }
+        #     default_scope :order => 'last_name, first_name'
         #   end
         def default_scope(options = {})
           self.default_scoping << { :find => options, :create => (options.is_a?(Hash) && options.has_key?(:conditions)) ? options[:conditions] : {} }
