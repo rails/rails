@@ -655,16 +655,24 @@ module ActiveRecord #:nodoc:
         connection.select_all(sanitize_sql(sql), "#{name} Load").collect! { |record| instantiate(record) }
       end
 
-      # Checks whether a record exists in the database that matches conditions given.  These conditions
-      # can either be a single integer representing a primary key id to be found, or a condition to be
-      # matched like using ActiveRecord#find.
+
+      # Returns true if a record exists in the table that matches the +id+ or
+      # conditions given, or false otherwise. The argument can take four forms:
       #
-      # The +id_or_conditions+ parameter can be an Integer or a String if you want to search the primary key
-      # column of the table for a matching id, or if you're looking to match against a condition you can use
-      # an Array or a Hash.
+      # * Integer - Finds the record with this primary key.
+      # * String - Finds the record with a primary key corresponding to this
+      #   string (such as <tt>'5'</tt>).
+      # * Array - Finds the record that matches these +find+-style conditions
+      #   (such as <tt>['color = ?', 'red']</tt>).
+      # * Hash - Finds the record that matches these +find+-style conditions
+      #   (such as <tt>{:color => 'red'}</tt>).
       #
-      # Possible gotcha: You can't pass in a condition as a string e.g. "name = 'Jamie'", this would be
-      # sanitized and then queried against the primary key column as "id = 'name = \'Jamie"
+      # For more information about specifying conditions as a Hash or Array,
+      # see the Conditions section in the introduction to ActiveRecord::Base.
+      #
+      # Note: You can't pass in a condition as a string (like <tt>name =
+      # 'Jamie'</tt>), since it would be sanitized and then queried against
+      # the primary key column, like <tt>id = 'name = \'Jamie\''</tt>.
       #
       # ==== Examples
       #   Person.exists?(5)
