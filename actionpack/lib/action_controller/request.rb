@@ -369,11 +369,9 @@ EOM
     # Returns the interpreted \path to requested resource after all the installation
     # directory of this application was taken into account.
     def path
-      path = (uri = request_uri) ? uri.split('?').first.to_s : ''
-
-      # Cut off the path to the installation directory if given
-      path.sub!(%r/^#{ActionController::Base.relative_url_root}/, '')
-      path || ''
+      path = request_uri.to_s[/\A[^\?]*/]
+      path.sub!(/\A#{ActionController::Base.relative_url_root}/, '')
+      path
     end
     memoize :path
 
