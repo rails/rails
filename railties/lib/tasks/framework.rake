@@ -128,6 +128,7 @@ namespace :rails do
     desc "Generate dispatcher files in RAILS_ROOT/public"
     task :generate_dispatchers do
       require 'railties_path'
+      FileUtils.cp(RAILTIES_PATH + '/dispatches/config.ru', RAILS_ROOT + '/config.ru')
       FileUtils.cp(RAILTIES_PATH + '/dispatches/dispatch.fcgi', RAILS_ROOT + '/public/dispatch.fcgi')
       FileUtils.cp(RAILTIES_PATH + '/dispatches/dispatch.rb', RAILS_ROOT + '/public/dispatch.rb')
       FileUtils.cp(RAILTIES_PATH + '/dispatches/dispatch.rb', RAILS_ROOT + '/public/dispatch.cgi')

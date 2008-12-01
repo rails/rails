@@ -197,6 +197,7 @@ class AppGenerator < Rails::Generator::Base
       if options[:with_dispatchers]
         dispatcher_options = { :chmod => 0755, :shebang => options[:shebang] }
 
+        m.file "dispatches/config.ru",     "config.ru"
         m.file "dispatches/dispatch.rb",   "public/dispatch.rb",   dispatcher_options
         m.file "dispatches/dispatch.rb",   "public/dispatch.cgi",  dispatcher_options
         m.file "dispatches/dispatch.fcgi", "public/dispatch.fcgi", dispatcher_options
