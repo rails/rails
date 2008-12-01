@@ -881,6 +881,11 @@ Run `rake gems:install` to install the missing gems.
       end
     end
 
+    def middleware
+      require 'action_controller'
+      ActionController::Dispatcher.middleware
+    end
+
     def builtin_directories
       # Include builtins only in the development environment.
       (environment == 'development') ? Dir["#{RAILTIES_PATH}/builtin/*/"] : []
