@@ -80,9 +80,9 @@ if File.exist?(options[:config])
   end
 else
   require RAILS_ROOT + "/config/environment"
+  inner_app = ActionController::Dispatcher.new
 end
 
-inner_app = ActionController::Dispatcher.new
 app = Rack::Builder.new {
   use Rails::Rack::Logger
   use Rails::Rack::Static
