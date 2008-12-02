@@ -195,6 +195,7 @@ ActiveRecord::Schema.define do
 
   create_table :members, :force => true do |t|
     t.string :name
+    t.integer :member_type_id
   end
 
   create_table :member_details, :force => true do |t|
@@ -208,6 +209,10 @@ ActiveRecord::Schema.define do
     t.integer :club_id, :member_id
     t.boolean :favourite, :default => false
     t.string :type
+  end
+
+  create_table :member_types, :force => true do |t|
+    t.string :name
   end
 
   create_table :references, :force => true do |t|

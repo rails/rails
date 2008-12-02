@@ -83,7 +83,11 @@ module ActiveRecord
 
       def to_ary
         load_target
-        @target.to_ary
+        if @target.is_a?(Array)
+          @target.to_ary
+        else
+          Array(@target)
+        end
       end
 
       def reset
