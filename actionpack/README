@@ -177,21 +177,6 @@ A short rundown of the major features:
   {Learn more}[link:classes/ActionView/Helpers/JavaScriptHelper.html]
 
 
-* Pagination for navigating lists of results
-
-    # controller
-    def list
-      @pages, @people =
-        paginate :people, :order => 'last_name, first_name'
-    end
-
-    # view
-    <%= link_to "Previous page", { :page => @pages.current.previous } if @pages.current.previous %>
-    <%= link_to "Next page", { :page => @pages.current.next } if @pages.current.next %>
-
-  {Learn more}[link:classes/ActionController/Pagination.html]
-
-
 * Easy testing of both controller and rendered template through ActionController::TestCase
 
     class LoginControllerTest < ActionController::TestCase
@@ -255,30 +240,6 @@ A short rundown of the major features:
 
   {Learn more}[link:classes/ActionController/Caching.html]
 
-
-* Component requests from one controller to another
-
-    class WeblogController < ActionController::Base
-      # Performs a method and then lets hello_world output its render
-      def delegate_action
-        do_other_stuff_before_hello_world
-        render_component :controller => "greeter",  :action => "hello_world"
-      end
-    end
-  
-    class GreeterController < ActionController::Base
-      def hello_world
-        render_text "Hello World!"
-      end
-    end
-  
-    The same can be done in a view to do a partial rendering:
-  
-      Let's see a greeting:
-      <%= render_component :controller => "greeter", :action => "hello_world" %>
-
-  {Learn more}[link:classes/ActionController/Components.html]
-  
 
 * Powerful debugging mechanism for local requests
 
