@@ -12,7 +12,7 @@ Rails::Initializer.run do |config|
   # -- all .rb files in that directory are automatically loaded.
 
   # Add additional load paths for your own custom dirs
-  # config.load_paths += %w( #{RAILS_ROOT}/extras )
+  # config.load_paths += %W( #{RAILS_ROOT}/extras )
 
   # Specify gems that this application depends on and have them installed with rake gems:install
   # config.gem "bj"
@@ -36,6 +36,6 @@ Rails::Initializer.run do |config|
   config.time_zone = 'UTC'
 
   # The default locale is :en and all translations from config/locales/*.rb,yml are auto loaded.
-  # config.i18n.load_path << Dir[Rails.root.join('my', 'locales', '*.{rb,yml}')]
+  # config.i18n.load_path += Dir[Rails.root.join('my', 'locales', '*.{rb,yml}')]
   # config.i18n.default_locale = :de
 end
