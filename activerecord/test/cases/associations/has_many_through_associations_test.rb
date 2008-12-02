@@ -2,6 +2,10 @@ require "cases/helper"
 require 'models/post'
 require 'models/person'
 require 'models/reader'
+require 'models/comment'
+require 'models/tag'
+require 'models/tagging'
+require 'models/author'
 
 class HasManyThroughAssociationsTest < ActiveRecord::TestCase
   fixtures :posts, :readers, :people
@@ -79,6 +83,17 @@ class HasManyThroughAssociationsTest < ActiveRecord::TestCase
     end
     
     assert posts(:welcome).reload.people(true).empty?
+  end
+
+  def test_deleting_updates_counter_cache
+    taggable = Tagging.first.taggable
+    taggable.taggings.push(Tagging.new)
+    taggable.reload
+    assert_equal 1, taggable.taggings_count
+
+    taggable.taggings.delete(taggable.taggings.first)
+    taggable.reload
+    assert_equal 0, taggable.taggings_count
   end
 
   def test_replace_association
