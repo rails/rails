@@ -202,6 +202,9 @@ module ActiveRecord
           
           records.each do |record|
             @target.delete(record)
+            if respond_to?(:cached_counter_attribute_name) && @owner[cached_counter_attribute_name]
+              @owner.class.decrement_counter(cached_counter_attribute_name, @owner.send(@owner.class.primary_key))
+            end
             callback(:after_remove, record)
           end
         end
