@@ -304,6 +304,16 @@ ul#navMain {
 					<a href="#_callback_classes">Callback classes</a>
 					</li>
 					<li>
+					<a href="#_observers">Observers</a>
+						<ul>
+						
+							<li><a href="#_registering_observers">Registering observers</a></li>
+						
+							<li><a href="#_where_to_put_the_observers_source_files">Where to put the observers' source files</a></li>
+						
+						</ul>
+					</li>
+					<li>
 					<a href="#_changelog">Changelog</a>
 					</li>
 			</ol>
@@ -1135,7 +1145,48 @@ http://www.gnu.org/software/src-highlite -->
 </tt></pre></div></div>
 <div class="para"><p>You can declare as many callbacks as you want inside your callback classes.</p></div>
 </div>
-<h2 id="_changelog">12. Changelog</h2>
+<h2 id="_observers">12. Observers</h2>
+<div class="sectionbody">
+<div class="para"><p>Active Record callbacks are a powerful feature, but they can pollute your model implementation with code that's not directly related to the model's purpose. In object-oriented software, it's always a good idea to design your classes with a single responsability in the whole system. For example, it wouldn't make much sense to have a <tt>User</tt> model with a method that writes data about a login attempt to a log file. Whenever you're using callbacks to write code that's not directly related to your model class purposes, it may be a good moment to create an Observer.</p></div>
+<div class="para"><p>An Active Record Observer is an object that links itself to a model and register it's methods for callbacks. Your model's implementation remain clean, while you can reuse the code in the Observer to add behaviuor to more than one model class. Ok, you may say that we can also do that using callback classes, but it would still force us to add code to our model's implementation.</p></div>
+<div class="para"><p>Observer classes are subclasses of the <tt>ActiveRecord::Observer</tt> class. When this class is subclassed, Active Record will look at the name of the new class and then strip the <em>Observer</em> part to find the name of the Active Record class to observe.</p></div>
+<div class="para"><p>Consider a <tt>Registration</tt> model, where we want to send an email everytime a new registration is created. Since sending emails is not directly related to our model's purpose, we could create an Observer to do just that:</p></div>
+<div class="listingblock">
+<div class="content"><!-- Generator: GNU source-highlight 2.9
+by Lorenzo Bettini
+http://www.lorenzobettini.it
+http://www.gnu.org/software/src-highlite -->
+<pre><tt><span style="font-weight: bold"><span style="color: #0000FF">class</span></span> RegistrationObserver <span style="color: #990000">&lt;</span> ActiveRecord<span style="color: #990000">::</span>Observer
+  <span style="font-weight: bold"><span style="color: #0000FF">def</span></span> after_create<span style="color: #990000">(</span>model<span style="color: #990000">)</span>
+    <span style="font-style: italic"><span style="color: #9A1900"># code to send registration confirmation emails...</span></span>
+  <span style="font-weight: bold"><span style="color: #0000FF">end</span></span>
+<span style="font-weight: bold"><span style="color: #0000FF">end</span></span>
+</tt></pre></div></div>
+<div class="para"><p>Like in callback classes, the observer's methods receive the observed model as a parameter.</p></div>
+<div class="para"><p>Sometimes using the ModelName + Observer naming convention won't be the best choice, mainly when you want to use the same observer for more than one model class. It's possible to explicity specify the models that our observer should observe.</p></div>
+<div class="listingblock">
+<div class="content"><!-- Generator: GNU source-highlight 2.9
+by Lorenzo Bettini
+http://www.lorenzobettini.it
+http://www.gnu.org/software/src-highlite -->
+<pre><tt><span style="font-weight: bold"><span style="color: #0000FF">class</span></span> Auditor <span style="color: #990000">&lt;</span> ActiveRecord<span style="color: #990000">::</span>Observer
+  observe User<span style="color: #990000">,</span> Registration<span style="color: #990000">,</span> Invoice
+<span style="font-weight: bold"><span style="color: #0000FF">end</span></span>
+</tt></pre></div></div>
+<h3 id="_registering_observers">12.1. Registering observers</h3>
+<div class="para"><p>If you payed attention, you may be wondering where Active Record Observers are referenced in our applications, so they get instantiate and begin to interact with our models. For observers to work we need to register then in our application's <strong>config/environment.rb</strong> file. In this file there is a commented out line where we can define the observers that our application should load at start-up.</p></div>
+<div class="listingblock">
+<div class="content"><!-- Generator: GNU source-highlight 2.9
+by Lorenzo Bettini
+http://www.lorenzobettini.it
+http://www.gnu.org/software/src-highlite -->
+<pre><tt><span style="font-style: italic"><span style="color: #9A1900"># Activate observers that should always be running</span></span>
+config<span style="color: #990000">.</span>active_record<span style="color: #990000">.</span>observers <span style="color: #990000">=</span> <span style="color: #990000">:</span>registration_observer<span style="color: #990000">,</span> <span style="color: #990000">:</span>auditor
+</tt></pre></div></div>
+<h3 id="_where_to_put_the_observers_source_files">12.2. Where to put the observers' source files</h3>
+<div class="para"><p>By convention, you should always save your observers' source files inside <strong>app/models</strong>.</p></div>
+</div>
+<h2 id="_changelog">13. Changelog</h2>
 <div class="sectionbody">
 <div class="para"><p><a href="http://rails.lighthouseapp.com/projects/16213/tickets/26-active-record-validations-and-callbacks">http://rails.lighthouseapp.com/projects/16213/tickets/26-active-record-validations-and-callbacks</a></p></div>
 </div>
