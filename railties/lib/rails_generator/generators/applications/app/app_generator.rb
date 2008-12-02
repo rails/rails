@@ -1,4 +1,5 @@
 require 'rbconfig'
+require File.dirname(__FILE__) + '/template_runner'
 require 'digest/md5' 
 require 'active_support/secure_random'
 
@@ -37,6 +38,12 @@ class AppGenerator < Rails::Generator::Base
     end
   end
 
+  def after_generate
+    if options[:template]
+      Rails::TemplateRunner.new(@destination_root, options[:template])
+    end
+  end
+
   protected
     def banner
       "Usage: #{$0} /path/to/your/app [options]"
@@ -60,6 +67,11 @@ class AppGenerator < Rails::Generator::Base
       opt.on("-f", "--freeze",
             "Freeze Rails in vendor/rails from the gems generating the skeleton",
             "Default: false") { |v| options[:freeze] = v }
+
+      opt.on("-m", "--template=path", String,
+            "Use an application template that lives at path (can be a filesystem path or URL).",
+            "Default: (none)") { |v| options[:template] = v }
+
     end
 
 

@@ -1,5 +1,48 @@
 *2.3.0 [Edge]*
 
+* Add "-m/--template" option to Rails generator to apply a template to the generated application. [Jeremy McAnally]
+
+    This has been extracted from rg - http://github.com/jeremymcanally/rg
+    
+    Example:
+    
+        # template.rb
+        
+        # Install plugins from git or svn
+        plugin "will-paginate", :git => "git://github.com/mislav/will_paginate.git"
+        plugin "old-restful-auth", :svn => "http://svn.techno-weenie.net/projects/plugins/restful_authentication/"
+    
+        # Add gems to environment.rb
+        gem "jeremymcanally-context"
+        gem "bluecloth"
+    
+        # Vendor file. Data in a string or...
+        vendor("borrowed.rb", <<CODE
+          def helpful_method
+            do_something_helpful_here
+          end
+        CODE
+    
+        # ...file data from block return value.
+        # #initializer creates a new initializer file
+        initializer("crypto.rb") do
+          salt = "--#{Time.now}--#{rand}--#{srand(Time.now.to_i)}"
+    
+          "SPECIAL_SALT = '#{salt}'"
+        end
+    
+    Usage:
+    
+      To use a template, provide a file path or URL:
+    
+      1. Using a local file :
+
+        rails <application name> -m /path/to/my/template.rb
+        
+      2. Or directly from a URL :
+
+        rails <application name> --template=http://gist.github.com/31208.txt
+
 * Extracted the process scripts (inspector, reaper, spawner) into the plugin irs_process_scripts [DHH]
 
 * Changed Rails.root to return a Pathname object (allows for Rails.root.join('app', 'controllers') => "#{RAILS_ROOT}/app/controllers") #1482 [Damian Janowski/?]

@@ -8,6 +8,7 @@ if %w(--version -v).include? ARGV.first
 end
 
 freeze   = ARGV.any? { |option| %w(--freeze -f).include?(option) }
+
 app_path = ARGV.first
 
 require File.dirname(__FILE__) + '/../lib/rails_generator'
