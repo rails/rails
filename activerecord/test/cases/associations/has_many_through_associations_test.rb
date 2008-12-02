@@ -3,6 +3,9 @@ require 'models/post'
 require 'models/person'
 require 'models/reader'
 require 'models/comment'
+require 'models/tag'
+require 'models/tagging'
+require 'models/author'
 
 class HasManyThroughAssociationsTest < ActiveRecord::TestCase
   fixtures :posts, :readers, :people, :comments, :authors
