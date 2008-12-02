@@ -76,19 +76,6 @@ module Rails
     end
 
     # Adds an entry into config/environment.rb for the supplied gem :
-    #
-    #   1. Provide a git repository URL...
-    #
-    #     gem 'will-paginate', :git => 'git://github.com/mislav/will_paginate.git'
-    #
-    #   2. Provide a subversion repository URL...
-    #
-    #     gem 'will-paginate', :svn => 'svn://svnhub.com/mislav/will_paginate/trunk'
-    #
-    #   3. Provide a gem name and use your system sources to install and unpack it.
-    #
-    #     gem 'ruby-openid'
-    #
     def gem(name, options = {})
       puts "adding gem #{name}"
 
