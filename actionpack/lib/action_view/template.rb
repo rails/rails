@@ -115,16 +115,14 @@ module ActionView #:nodoc:
       #   [base_path, name, format, extension]
       def split(file)
         if m = file.match(/^(.*\/)?([^\.]+)\.?(\w+)?\.?(\w+)?\.?(\w+)?$/)
-          if m[5] # Multipart formats
+          if valid_extension?(m[5]) # Multipart formats
             [m[1], m[2], "#{m[3]}.#{m[4]}", m[5]]
-          elsif m[4] # Single format
+          elsif valid_extension?(m[4]) # Single format
             [m[1], m[2], m[3], m[4]]
-          else
-            if valid_extension?(m[3]) # No format
-              [m[1], m[2], nil, m[3]]
-            else # No extension
-              [m[1], m[2], m[3], nil]
-            end
+          elsif valid_extension?(m[3]) # No format
+            [m[1], m[2], nil, m[3]]
+          else # No extension
+            [m[1], m[2], m[3], nil]
           end
         end
       end
