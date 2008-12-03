@@ -9,9 +9,9 @@ module ActionView #:nodoc:
 
     def initialize(template_path, load_paths = [])
       template_path = template_path.dup
+      @load_path, @filename = find_full_path(template_path, load_paths)
       @base_path, @name, @format, @extension = split(template_path)
       @base_path.to_s.gsub!(/\/$/, '') # Push to split method
-      @load_path, @filename = find_full_path(template_path, load_paths)
 
       # Extend with partial super powers
       extend RenderablePartial if @name =~ /^_/
