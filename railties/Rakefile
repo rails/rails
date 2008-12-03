@@ -53,7 +53,6 @@ BASE_DIRS = %w(
   public
   script
   script/performance
-  script/process
   test
   vendor
   vendor/plugins
@@ -71,7 +70,7 @@ LOG_FILES    = %w( server.log development.log test.log production.log )
 HTML_FILES   = %w( 422.html 404.html 500.html index.html robots.txt favicon.ico images/rails.png
                    javascripts/prototype.js javascripts/application.js
                    javascripts/effects.js javascripts/dragdrop.js javascripts/controls.js )
-BIN_FILES    = %w( about console destroy generate performance/benchmarker performance/profiler process/reaper process/spawner process/inspector runner server plugin )
+BIN_FILES    = %w( about console destroy generate performance/benchmarker performance/profiler runner server plugin )
 
 VENDOR_LIBS = %w( actionpack activerecord actionmailer activesupport activeresource railties )
 
@@ -174,9 +173,6 @@ task :copy_dispatches do
 
   copy_with_rewritten_ruby_path("dispatches/dispatch.fcgi", "#{PKG_DESTINATION}/public/dispatch.fcgi")
   chmod 0755, "#{PKG_DESTINATION}/public/dispatch.fcgi"
-
-  # copy_with_rewritten_ruby_path("dispatches/gateway.cgi", "#{PKG_DESTINATION}/public/gateway.cgi")
-  # chmod 0755, "#{PKG_DESTINATION}/public/gateway.cgi"
 end
 
 task :copy_html_files do

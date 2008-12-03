@@ -218,7 +218,7 @@ module ActionController
       remote_ips = @env['HTTP_X_FORWARDED_FOR'] && @env['HTTP_X_FORWARDED_FOR'].split(',')
 
       if @env.include? 'HTTP_CLIENT_IP'
-        if remote_ips && !remote_ips.include?(@env['HTTP_CLIENT_IP'])
+        if ActionController::Base.ip_spoofing_check && remote_ips && !remote_ips.include?(@env['HTTP_CLIENT_IP'])
           # We don't know which came from the proxy, and which from the user
           raise ActionControllerError.new(<<EOM)
 IP spoofing attack?!

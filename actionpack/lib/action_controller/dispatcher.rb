@@ -85,6 +85,9 @@ module ActionController
         end
     end
 
+    cattr_accessor :middleware
+    self.middleware = MiddlewareStack.new
+
     cattr_accessor :error_file_path
     self.error_file_path = Rails.public_path if defined?(Rails.public_path)
 
@@ -93,6 +96,7 @@ module ActionController
 
     def initialize(output = $stdout, request = nil, response = nil)
       @output, @request, @response = output, request, response
+      @app = @@middleware.build(lambda { |env| self._call(env) })
     end
 
     def dispatch_unlocked
@@ -127,6 +131,10 @@ module ActionController
     end
 
     def call(env)
+      @app.call(env)
+    end
+
+    def _call(env)
       @request = RackRequest.new(env)
       @response = RackResponse.new(@request)
       dispatch

@@ -327,6 +327,10 @@ module ActionController #:nodoc:
     # sets it to <tt>:authenticity_token</tt> by default.
     cattr_accessor :request_forgery_protection_token
 
+    # Controls the IP Spoofing check when determining the remote IP.
+    @@ip_spoofing_check = true
+    cattr_accessor :ip_spoofing_check
+
     # Indicates whether or not optimise the generated named
     # route helper methods
     cattr_accessor :optimise_named_routes

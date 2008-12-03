@@ -188,6 +188,7 @@ module ActiveRecord
         def merge_options_from_reflection!(options)
           options.reverse_merge!(
             :group   => @reflection.options[:group],
+            :having  => @reflection.options[:having],
             :limit   => @reflection.options[:limit],
             :offset  => @reflection.options[:offset],
             :joins   => @reflection.options[:joins],

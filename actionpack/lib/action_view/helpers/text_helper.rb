@@ -370,8 +370,8 @@ module ActionView
         options.reverse_merge!(:link => :all, :html => {})
 
         case options[:link].to_sym
-          when :all                         then auto_link_email_addresses(auto_link_urls(text, options[:html], &block), &block)
-          when :email_addresses             then auto_link_email_addresses(text, &block)
+          when :all                         then auto_link_email_addresses(auto_link_urls(text, options[:html], &block), options[:html], &block)
+          when :email_addresses             then auto_link_email_addresses(text, options[:html], &block)
           when :urls                        then auto_link_urls(text, options[:html], &block)
         end
       end
@@ -559,7 +559,7 @@ module ActionView
 
         # Turns all email addresses into clickable links.  If a block is given,
         # each email is yielded and the result is used as the link text.
-        def auto_link_email_addresses(text)
+        def auto_link_email_addresses(text, html_options = {})
           body = text.dup
           text.gsub(/([\w\.!#\$%\-+.]+@[A-Za-z0-9\-]+(\.[A-Za-z0-9\-]+)+)/) do
             text = $1
@@ -568,7 +568,7 @@ module ActionView
               text
             else
               display_text = (block_given?) ? yield(text) : text
-              %{<a href="mailto:#{text}">#{display_text}</a>}
+              mail_to text, display_text, html_options
             end
           end
         end

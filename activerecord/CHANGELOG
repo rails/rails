@@ -1,5 +1,7 @@
 *2.3.0/3.0*
 
+* Add :having as a key to find and the relevant associations.  [miloops]
+
 * Added default_scope to Base #1381 [Paweł Kondzior]. Example:
 
     class Person < ActiveRecord::Base

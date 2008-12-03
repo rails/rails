@@ -262,6 +262,11 @@ class TextHelperTest < ActionView::TestCase
     email2_result = %{<a href="mailto:#{email2_raw}">#{email2_raw}</a>}
     assert_equal email2_result, auto_link(email2_raw)
 
+    email3_raw    = '+david@loudthinking.com'
+    email3_result = %{<a href="&#109;&#97;&#105;&#108;&#116;&#111;&#58;+%64%61%76%69%64@%6c%6f%75%64%74%68%69%6e%6b%69%6e%67.%63%6f%6d">#{email3_raw}</a>}
+    assert_equal email3_result, auto_link(email3_raw, :all, :encode => :hex)
+    assert_equal email3_result, auto_link(email3_raw, :email_addresses, :encode => :hex)
+
     link2_raw    = 'www.rubyonrails.com'
     link2_result = generate_result(link2_raw, "http://#{link2_raw}")
     assert_equal %(Go to #{link2_result}), auto_link("Go to #{link2_raw}", :urls)
@@ -362,7 +367,7 @@ class TextHelperTest < ActionView::TestCase
   end
 
   def test_auto_link_with_options_hash
-    assert_dom_equal 'Welcome to my new blog at <a href="http://www.myblog.com/" class="menu" target="_blank">http://www.myblog.com/</a>. Please e-mail me at <a href="mailto:me@email.com">me@email.com</a>.',
+    assert_dom_equal 'Welcome to my new blog at <a href="http://www.myblog.com/" class="menu" target="_blank">http://www.myblog.com/</a>. Please e-mail me at <a href="mailto:me@email.com" class="menu" target="_blank">me@email.com</a>.',
       auto_link("Welcome to my new blog at http://www.myblog.com/. Please e-mail me at me@email.com.",
                 :link => :all, :html => { :class => "menu", :target => "_blank" })
   end

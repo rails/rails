@@ -65,7 +65,6 @@ end
 
 ENV["RAILS_ENV"] = options[:environment]
 RAILS_ENV.replace(options[:environment]) if defined?(RAILS_ENV)
-require RAILS_ROOT + "/config/environment"
 
 if File.exist?(options[:config])
   config = options[:config]
@@ -74,19 +73,22 @@ if File.exist?(options[:config])
     if cfgfile[/^#\\(.*)/]
       opts.parse!($1.split(/\s+/))
     end
-    app = eval("Rack::Builder.new {( " + cfgfile + "\n )}.to_app", nil, config)
+    inner_app = eval("Rack::Builder.new {( " + cfgfile + "\n )}.to_app", nil, config)
   else
     require config
-    app = Object.const_get(File.basename(config, '.rb').capitalize)
+    inner_app = Object.const_get(File.basename(config, '.rb').capitalize)
   end
 else
-  app = Rack::Builder.new {
-    use Rails::Rack::Logger
-    use Rails::Rack::Static
-    use Rails::Rack::Debugger if options[:debugger]
-    run ActionController::Dispatcher.new
-  }.to_app
+  require RAILS_ROOT + "/config/environment"
+  inner_app = ActionController::Dispatcher.new
 end
+
+app = Rack::Builder.new {
+  use Rails::Rack::Logger
+  use Rails::Rack::Static
+  use Rails::Rack::Debugger if options[:debugger]
+  run inner_app
+}.to_app
 
 puts "=> Call with -d to detach"
 
