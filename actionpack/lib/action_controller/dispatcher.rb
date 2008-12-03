@@ -61,7 +61,7 @@ module ActionController
 
       private
         def failsafe_response_body(status)
-          error_path = "#{error_file_path}/#{status.to_s[0..3]}.html"
+          error_path = "#{error_file_path}/#{status.to_s[0..2]}.html"
 
           if File.exist?(error_path)
             File.read(error_path)
