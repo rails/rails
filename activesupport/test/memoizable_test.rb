@@ -128,6 +128,16 @@ class MemoizableTest < Test::Unit::TestCase
     assert_equal 3, @calculator.counter
   end
 
+  def test_flush_cache
+    assert_equal 1, @calculator.counter
+
+    assert @calculator.instance_variable_get(:@_memoized_counter).any?
+    @calculator.flush_cache(:counter)
+    assert @calculator.instance_variable_get(:@_memoized_counter).empty?
+
+    assert_equal 2, @calculator.counter
+  end
+
   def test_unmemoize_all
     assert_equal 1, @calculator.counter
 
