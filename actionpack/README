@@ -373,21 +373,6 @@ new model). After creating the post, it'll redirect to the show page using
 an URL such as /weblog/5 (where 5 is the id of the post).
 
 
-== Examples
-
-Action Pack ships with three examples that all demonstrate an increasingly
-detailed view of the possibilities. First is blog_controller that is just a
-single file for the whole MVC (but still split into separate parts). Second is
-the debate_controller that uses separate template files and multiple screens.
-Third is the address_book_controller that uses the layout feature to separate
-template casing from content.
-
-Please note that you might need to change the "shebang" line to 
-#!/usr/local/env ruby, if your Ruby is not placed in /usr/local/bin/ruby
-
-Also note that these examples are all for demonstrating using Action Pack on
-its own. Not for when it's used inside of Rails.
-
 == Download
 
 The latest version of Action Pack can be found at
