@@ -420,12 +420,6 @@ module ActionMailer #:nodoc:
         new.deliver!(mail)
       end
 
-      def register_template_extension(extension)
-        ActiveSupport::Deprecation.warn(
-          "ActionMailer::Base.register_template_extension has been deprecated." +
-          "Use ActionView::Base.register_template_extension instead", caller)
-      end
-
       def template_root
         self.view_paths && self.view_paths.first
       end
