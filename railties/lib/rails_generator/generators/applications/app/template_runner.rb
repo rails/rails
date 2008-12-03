@@ -233,11 +233,11 @@ module Rails
     #
     #   generate(:authenticated, "user session")
     #
-    def generate(what, args = nil)
+    def generate(what, *args)
       puts "generating #{what}"
-      args = args.join(" ") if args.class == Array
+      argument = args.map(&:to_s).flatten.join(" ")
 
-      in_root { `#{root}/script/generate #{what} #{args}` }
+      in_root { `#{root}/script/generate #{what} #{argument}` }
     end
 
     # Executes a command
