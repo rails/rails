@@ -1,4 +1,3 @@
-require 'cgi'
 require 'erb'
 require 'set'
 
