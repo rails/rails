@@ -1,7 +1,6 @@
 require 'abstract_unit'
-require 'active_support/test_case'
 
-class AssertDifferenceTest < Test::Unit::TestCase
+class AssertDifferenceTest < ActiveSupport::TestCase
   def setup
     @object = Class.new do
       attr_accessor :num 
@@ -66,8 +65,8 @@ class AssertDifferenceTest < Test::Unit::TestCase
         @object.increment
       end
       fail 'should not get to here'
-    rescue Test::Unit::AssertionFailedError => e
-      assert_equal "<1 + 1> was the expression that failed.\n<3> expected but was\n<2>.", e.message
+    rescue Exception => e
+      assert_equal "<3> expected but was\n<2>.", e.message
     end
 
     def test_array_of_expressions_identify_failure_when_message_provided
@@ -75,8 +74,8 @@ class AssertDifferenceTest < Test::Unit::TestCase
         @object.increment
       end
       fail 'should not get to here'
-    rescue Test::Unit::AssertionFailedError => e
-      assert_equal "something went wrong.\n<1 + 1> was the expression that failed.\n<3> expected but was\n<2>.", e.message
+    rescue Exception => e
+      assert_equal "something went wrong.\n<3> expected but was\n<2>.", e.message
     end
   else
     def default_test; end
@@ -84,15 +83,17 @@ class AssertDifferenceTest < Test::Unit::TestCase
 end
 
 # These should always pass
-class NotTestingThingsTest < Test::Unit::TestCase
-  include ActiveSupport::Testing::Default
+if ActiveSupport::Testing.const_defined?(:Default)
+  class NotTestingThingsTest < Test::Unit::TestCase
+    include ActiveSupport::Testing::Default
+  end
 end
 
 class AlsoDoingNothingTest < ActiveSupport::TestCase
 end
 
 # Setup and teardown callbacks.
-class SetupAndTeardownTest < Test::Unit::TestCase
+class SetupAndTeardownTest < ActiveSupport::TestCase
   setup :reset_callback_record, :foo
   teardown :foo, :sentinel, :foo
 

@@ -104,4 +104,13 @@ module Enumerable
     size = block_given? ? select(&block).size : self.size
     size > 1
   end
+
+  # Returns true if none of the elements match the given block.
+  #
+  #   success = responses.none? {|r| r.status / 100 == 5 }
+  #
+  # This is a builtin method in Ruby 1.8.7 and later.
+  def none?(&block)
+    !any?(&block)
+  end unless [].respond_to?(:none?)
 end

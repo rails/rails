@@ -286,7 +286,7 @@ module ActiveRecord
           case operation
             when 'count' then value.to_i
             when 'sum'   then type_cast_using_column(value || '0', column)
-            when 'avg'   then value && value.to_d
+            when 'avg'   then value && (value.is_a?(Fixnum) ? value.to_f : value).to_d
             else type_cast_using_column(value, column)
           end
         end

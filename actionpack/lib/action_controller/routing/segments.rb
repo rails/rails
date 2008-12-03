@@ -13,6 +13,10 @@ module ActionController
         @is_optional = false
       end
 
+      def number_of_captures
+        Regexp.new(regexp_chunk).number_of_captures
+      end
+
       def extraction_code
         nil
       end
@@ -82,6 +86,10 @@ module ActionController
       def regexp_chunk
         chunk = Regexp.escape(value)
         optional? ? Regexp.optionalize(chunk) : chunk
+      end
+
+      def number_of_captures
+        0
       end
 
       def build_pattern(pattern)
@@ -194,10 +202,16 @@ module ActionController
         end
       end
 
+      def number_of_captures
+        if regexp
+          regexp.number_of_captures + 1
+        else
+          1
+        end
+      end
+
       def build_pattern(pattern)
-        chunk = regexp_chunk
-        chunk = "(#{chunk})" if Regexp.new(chunk).number_of_captures == 0
-        pattern = "#{chunk}#{pattern}"
+        pattern = "#{regexp_chunk}#{pattern}"
         optional? ? Regexp.optionalize(pattern) : pattern
       end
 
@@ -228,6 +242,10 @@ module ActionController
       def regexp_chunk
         possible_names = Routing.possible_controllers.collect { |name| Regexp.escape name }
         "(?i-:(#{(regexp || Regexp.union(*possible_names)).source}))"
+      end
+
+      def number_of_captures
+        1
       end
 
       # Don't URI.escape the controller name since it may contain slashes.
@@ -275,6 +293,10 @@ module ActionController
         regexp || "(.*)"
       end
 
+      def number_of_captures
+        regexp ? regexp.number_of_captures : 1
+      end
+
       def optionality_implied?
         true
       end
@@ -286,5 +308,36 @@ module ActionController
         end
       end
     end
+    
+    # The OptionalFormatSegment allows for any resource route to have an optional
+    # :format, which decreases the amount of routes created by 50%.
+    class OptionalFormatSegment < DynamicSegment
+    
+      def initialize(key = nil, options = {})
+        super(:format, {:optional => true}.merge(options))            
+      end
+    
+      def interpolation_chunk
+        "." + super
+      end
+    
+      def regexp_chunk
+        '(\.[^/?\.]+)?'
+      end
+    
+      def to_s
+        '(.:format)?'
+      end
+    
+      #the value should not include the period (.)
+      def match_extraction(next_capture)
+        %[
+          if (m = match[#{next_capture}])
+            params[:#{key}] = URI.unescape(m.from(1))
+          end
+        ]
+      end
+    end
+    
   end
 end

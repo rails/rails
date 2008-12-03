@@ -20,6 +20,12 @@ class AutoLayoutMailer < ActionMailer::Base
     from       "tester@example.com"
     body       render(:inline => "Hello, <%= @world %>", :layout => false, :body => { :world => "Earth" })
   end
+
+  def multipart(recipient)
+    recipients recipient
+    subject    "You have a mail"
+    from       "tester@example.com"
+  end
 end
 
 class ExplicitLayoutMailer < ActionMailer::Base
@@ -54,6 +60,17 @@ class LayoutMailerTest < Test::Unit::TestCase
   def test_should_pickup_default_layout
     mail = AutoLayoutMailer.create_hello(@recipient)
     assert_equal "Hello from layout Inside", mail.body.strip
+  end
+
+  def test_should_pickup_multipart_layout
+    mail = AutoLayoutMailer.create_multipart(@recipient)
+    assert_equal 2, mail.parts.size
+
+    assert_equal 'text/plain', mail.parts.first.content_type
+    assert_equal "text/plain layout - text/plain multipart", mail.parts.first.body
+
+    assert_equal 'text/html', mail.parts.last.content_type
+    assert_equal "Hello from layout text/html multipart", mail.parts.last.body
   end
 
   def test_should_pickup_layout_given_to_render

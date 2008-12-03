@@ -717,7 +717,7 @@ version is the numerical prefix on the migration's filename. For example to migr
 <div class="content">
 <pre><tt>rake db:rollback STEP=3</tt></pre>
 </div></div>
-<div class="para"><p>will run the <tt>down</tt> method fron the last 3 migrations.</p></div>
+<div class="para"><p>will run the <tt>down</tt> method from the last 3 migrations.</p></div>
 <div class="para"><p>The <tt>db:migrate:redo</tt> task is a shortcut for doing a rollback and then migrating back up again. As with the <tt>db:rollback</tt> task you can use the <tt>STEP</tt> parameter if you need to go more than one version back, for example</p></div>
 <div class="listingblock">
 <div class="content">
@@ -865,7 +865,7 @@ http://www.gnu.org/software/src-highlite -->
 <div class="para"><p>Migrations, mighty as they may be, are not the authoritative source for your database schema. That role falls to either <tt>schema.rb</tt> or an SQL file which Active Record generates by examining the database. They are not designed to be edited, they just represent the current state of the database.</p></div>
 <div class="para"><p>There is no need (and it is error prone) to deploy a new instance of an app by replaying the entire migration history. It is much simpler and faster to just load into the database a description of the current schema.</p></div>
 <div class="para"><p>For example, this is how the test database is created: the current development database is dumped (either to <tt>schema.rb</tt> or <tt>development.sql</tt>) and then loaded into the test database.</p></div>
-<div class="para"><p>Schema files are also useful if want a quick look at what attributes an Active Record object has. This information is not in the model's code and is frequently spread across several migrations but is all summed up in the schema file. The <a href="http://agilewebdevelopment.com/plugins/annotate_models">annotate_models</a> plugin, which automatically adds (and updates) comments at the top of each model summarising the schema, may also be of interest.</p></div>
+<div class="para"><p>Schema files are also useful if you want a quick look at what attributes an Active Record object has. This information is not in the model's code and is frequently spread across several migrations but is all summed up in the schema file. The <a href="http://agilewebdevelopment.com/plugins/annotate_models">annotate_models</a> plugin, which automatically adds (and updates) comments at the top of each model summarising the schema, may also be of interest.</p></div>
 <h3 id="_types_of_schema_dumps">6.2. Types of schema dumps</h3>
 <div class="para"><p>There are two ways to dump the schema. This is set in <tt>config/environment.rb</tt> by the <tt>config.active_record.schema_format</tt> setting, which may be either <tt>:sql</tt> or <tt>:ruby</tt>.</p></div>
 <div class="para"><p>If <tt>:ruby</tt> is selected then the schema is stored in <tt>db/schema.rb</tt>. If you look at this file you'll find that it looks an awful lot like one very big migration:</p></div>
@@ -899,7 +899,7 @@ http://www.gnu.org/software/src-highlite -->
 </div>
 <h2 id="foreign_key">7. Active Record and Referential Integrity</h2>
 <div class="sectionbody">
-<div class="para"><p>The Active Record way is that intelligence belongs in your models, not in the database. As such features such as triggers or foreign key constraints, which push some of that intelligence back into the database are not heavily used.</p></div>
+<div class="para"><p>The Active Record way is that intelligence belongs in your models, not in the database. As such, features such as triggers or foreign key constraints, which push some of that intelligence back into the database are not heavily used.</p></div>
 <div class="para"><p>Validations such as <tt>validates_uniqueness_of</tt> are one way in which models can enforce data integrity. The <tt>:dependent</tt> option on associations allows models to automatically destroy child objects when the parent is destroyed. Like anything which operates at the application level these cannot guarantee referential integrity and so some people augment them with foreign key constraints.</p></div>
 <div class="para"><p>Although Active Record does not provide any tools for working directly with such features, the <tt>execute</tt> method can be used to execute arbitrary SQL. There are also a number of plugins such as <a href="http://agilewebdevelopment.com/plugins/search?search=redhillonrails">redhillonrails</a> which add foreign key support to Active Record (including support for dumping foreign keys in <tt>schema.rb</tt>).</p></div>
 </div>

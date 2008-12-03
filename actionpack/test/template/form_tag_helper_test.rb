@@ -12,10 +12,17 @@ class FormTagHelperTest < ActionView::TestCase
     @controller = @controller.new
   end
 
+  VALID_HTML_ID = /^[A-Za-z][-_:.A-Za-z0-9]*$/ # see http://www.w3.org/TR/html4/types.html#type-name
+
   def test_check_box_tag
     actual = check_box_tag "admin"
     expected = %(<input id="admin" name="admin" type="checkbox" value="1" />)
     assert_dom_equal expected, actual
+  end
+
+  def test_check_box_tag_id_sanitized
+    label_elem = root_elem(check_box_tag("project[2][admin]"))
+    assert_match VALID_HTML_ID, label_elem['id']
   end
 
   def test_form_tag
@@ -62,6 +69,11 @@ class FormTagHelperTest < ActionView::TestCase
     actual = hidden_field_tag "id", 3
     expected = %(<input id="id" name="id" type="hidden" value="3" />)
     assert_dom_equal expected, actual
+  end
+
+  def test_hidden_field_tag_id_sanitized
+    input_elem = root_elem(hidden_field_tag("item[][title]"))
+    assert_match VALID_HTML_ID, input_elem['id']
   end
 
   def test_file_field_tag
@@ -116,6 +128,11 @@ class FormTagHelperTest < ActionView::TestCase
     actual = select_tag "places", "<option>Home</option><option>Work</option><option>Pub</option>", :disabled => :true
     expected = %(<select id="places" disabled="disabled" name="places"><option>Home</option><option>Work</option><option>Pub</option></select>)
     assert_dom_equal expected, actual
+  end
+
+  def test_select_tag_id_sanitized
+    input_elem = root_elem(select_tag("project[1]people", "<option>david</option>"))
+    assert_match VALID_HTML_ID, input_elem['id']
   end
 
   def test_text_area_tag_size_string
@@ -184,6 +201,11 @@ class FormTagHelperTest < ActionView::TestCase
     assert_dom_equal expected, actual
   end
 
+  def test_text_field_tag_id_sanitized
+    input_elem = root_elem(text_field_tag("item[][title]"))
+    assert_match VALID_HTML_ID, input_elem['id']
+  end
+
   def test_label_tag_without_text
     actual = label_tag "title"
     expected = %(<label for="title">Title</label>)
@@ -208,11 +230,17 @@ class FormTagHelperTest < ActionView::TestCase
     assert_dom_equal expected, actual
   end
 
-  def test_boolean_optios
+  def test_label_tag_id_sanitized
+    label_elem = root_elem(label_tag("item[title]"))
+    assert_match VALID_HTML_ID, label_elem['for']
+  end
+
+  def test_boolean_options
     assert_dom_equal %(<input checked="checked" disabled="disabled" id="admin" name="admin" readonly="readonly" type="checkbox" value="1" />), check_box_tag("admin", 1, true, 'disabled' => true, :readonly => "yes")
     assert_dom_equal %(<input checked="checked" id="admin" name="admin" type="checkbox" value="1" />), check_box_tag("admin", 1, true, :disabled => false, :readonly => nil)
+    assert_dom_equal %(<input type="checkbox" />), tag(:input, :type => "checkbox", :checked => false)
     assert_dom_equal %(<select id="people" multiple="multiple" name="people[]"><option>david</option></select>), select_tag("people", "<option>david</option>", :multiple => true)
-    assert_dom_equal %(<select id="people[]" multiple="multiple" name="people[]"><option>david</option></select>), select_tag("people[]", "<option>david</option>", :multiple => true)
+    assert_dom_equal %(<select id="people_" multiple="multiple" name="people[]"><option>david</option></select>), select_tag("people[]", "<option>david</option>", :multiple => true)
     assert_dom_equal %(<select id="people" name="people"><option>david</option></select>), select_tag("people", "<option>david</option>", :multiple => nil)
   end
 
@@ -282,5 +310,11 @@ class FormTagHelperTest < ActionView::TestCase
 
   def protect_against_forgery?
     false
+  end
+
+  private
+
+  def root_elem(rendered_content)
+    HTML::Document.new(rendered_content).root.children[0]
   end
 end

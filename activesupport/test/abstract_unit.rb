@@ -1,43 +1,19 @@
-# encoding: utf-8
-
+require 'rubygems'
 require 'test/unit'
+gem 'mocha', '>= 0.9.3'
+require 'mocha'
 
 $:.unshift "#{File.dirname(__FILE__)}/../lib"
-$:.unshift File.dirname(__FILE__)
 require 'active_support'
+require 'active_support/test_case'
 
-if RUBY_VERSION < '1.9'
-  $KCODE = 'UTF8'
-end
-
-def uses_gem(gem_name, test_name, version = '> 0')
-  require 'rubygems'
-  gem gem_name.to_s, version
-  require gem_name.to_s
+def uses_memcached(test_name)
+  require 'memcache'
+  MemCache.new('localhost').stats
   yield
-rescue LoadError
-  $stderr.puts "Skipping #{test_name} tests. `gem install #{gem_name}` and try again."
+rescue MemCache::MemCacheError
+  $stderr.puts "Skipping #{test_name} tests. Start memcached and try again."
 end
-
-# Wrap tests that use Mocha and skip if unavailable.
-unless defined? uses_mocha
-  def uses_mocha(test_name, &block)
-    uses_gem('mocha', test_name, '>= 0.5.5', &block)
-  end
-end
-
-unless defined? uses_memcached
-  def uses_memcached(test_name)
-    require 'memcache'
-    MemCache.new('localhost').stats
-    yield
-  rescue MemCache::MemCacheError
-    $stderr.puts "Skipping #{test_name} tests. Start memcached and try again."
-  end
-end
-
-# Show backtraces for deprecated behavior for quicker cleanup.
-ActiveSupport::Deprecation.debug = true
 
 def with_kcode(code)
   if RUBY_VERSION < '1.9'
@@ -50,4 +26,11 @@ def with_kcode(code)
   else
     yield
   end
+end
+
+# Show backtraces for deprecated behavior for quicker cleanup.
+ActiveSupport::Deprecation.debug = true
+
+if RUBY_VERSION < '1.9'
+  $KCODE = 'UTF8'
 end

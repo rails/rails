@@ -1,6 +1,6 @@
 require 'abstract_unit'
 
-class DurationTest < Test::Unit::TestCase
+class DurationTest < ActiveSupport::TestCase
   def test_inspect
     assert_equal '1 month',                         1.month.inspect
     assert_equal '1 month and 1 day',               (1.month + 1.day).inspect
@@ -40,78 +40,76 @@ class DurationTest < Test::Unit::TestCase
     assert_equal 86400 * 1.7, 1.7.days
   end
 
-  uses_mocha 'TestDurationSinceAndAgoWithCurrentTime' do
-    def test_since_and_ago_with_fractional_days
+  def test_since_and_ago_with_fractional_days
+    Time.stubs(:now).returns Time.local(2000)
+    # since
+    assert_equal 36.hours.since, 1.5.days.since
+    assert_equal((24 * 1.7).hours.since, 1.7.days.since)
+    # ago
+    assert_equal 36.hours.ago, 1.5.days.ago
+    assert_equal((24 * 1.7).hours.ago, 1.7.days.ago)
+  end
+
+  def test_since_and_ago_with_fractional_weeks
+    Time.stubs(:now).returns Time.local(2000)
+    # since
+    assert_equal((7 * 36).hours.since, 1.5.weeks.since)
+    assert_equal((7 * 24 * 1.7).hours.since, 1.7.weeks.since)
+    # ago
+    assert_equal((7 * 36).hours.ago, 1.5.weeks.ago)
+    assert_equal((7 * 24 * 1.7).hours.ago, 1.7.weeks.ago)
+  end
+
+  def test_deprecated_fractional_years
+    years_re = /Fractional years are not respected\. Convert value to integer before calling #years\./
+    assert_deprecated(years_re){1.0.years}
+    assert_deprecated(years_re){1.5.years}
+    assert_not_deprecated{1.years}
+    assert_deprecated(years_re){1.0.year}
+    assert_deprecated(years_re){1.5.year}
+    assert_not_deprecated{1.year}
+  end
+
+  def test_deprecated_fractional_months
+    months_re = /Fractional months are not respected\. Convert value to integer before calling #months\./
+    assert_deprecated(months_re){1.5.months}
+    assert_deprecated(months_re){1.0.months}
+    assert_not_deprecated{1.months}
+    assert_deprecated(months_re){1.5.month}
+    assert_deprecated(months_re){1.0.month}
+    assert_not_deprecated{1.month}
+  end
+
+  def test_since_and_ago_anchored_to_time_now_when_time_zone_default_not_set
+    Time.zone_default = nil
+    with_env_tz 'US/Eastern' do
       Time.stubs(:now).returns Time.local(2000)
       # since
-      assert_equal 36.hours.since, 1.5.days.since
-      assert_equal((24 * 1.7).hours.since, 1.7.days.since)
+      assert_equal false, 5.seconds.since.is_a?(ActiveSupport::TimeWithZone)
+      assert_equal Time.local(2000,1,1,0,0,5), 5.seconds.since
       # ago
-      assert_equal 36.hours.ago, 1.5.days.ago
-      assert_equal((24 * 1.7).hours.ago, 1.7.days.ago)
+      assert_equal false, 5.seconds.ago.is_a?(ActiveSupport::TimeWithZone)
+      assert_equal Time.local(1999,12,31,23,59,55), 5.seconds.ago
     end
+  end
 
-    def test_since_and_ago_with_fractional_weeks
-      Time.stubs(:now).returns Time.local(2000)
-      # since
-      assert_equal((7 * 36).hours.since, 1.5.weeks.since)
-      assert_equal((7 * 24 * 1.7).hours.since, 1.7.weeks.since)
-      # ago
-      assert_equal((7 * 36).hours.ago, 1.5.weeks.ago)
-      assert_equal((7 * 24 * 1.7).hours.ago, 1.7.weeks.ago)
-    end
-    
-    def test_deprecated_fractional_years
-      years_re = /Fractional years are not respected\. Convert value to integer before calling #years\./
-      assert_deprecated(years_re){1.0.years}
-      assert_deprecated(years_re){1.5.years}
-      assert_not_deprecated{1.years}
-      assert_deprecated(years_re){1.0.year}
-      assert_deprecated(years_re){1.5.year}
-      assert_not_deprecated{1.year}
-    end
-    
-    def test_deprecated_fractional_months
-      months_re = /Fractional months are not respected\. Convert value to integer before calling #months\./
-      assert_deprecated(months_re){1.5.months}
-      assert_deprecated(months_re){1.0.months}
-      assert_not_deprecated{1.months}
-      assert_deprecated(months_re){1.5.month}
-      assert_deprecated(months_re){1.0.month}
-      assert_not_deprecated{1.month}
-    end
-
-    def test_since_and_ago_anchored_to_time_now_when_time_zone_default_not_set
-      Time.zone_default = nil
+  def test_since_and_ago_anchored_to_time_zone_now_when_time_zone_default_set
+    silence_warnings do # silence warnings raised by tzinfo gem
+      Time.zone_default = ActiveSupport::TimeZone['Eastern Time (US & Canada)']
       with_env_tz 'US/Eastern' do
         Time.stubs(:now).returns Time.local(2000)
         # since
-        assert_equal false, 5.seconds.since.is_a?(ActiveSupport::TimeWithZone)
-        assert_equal Time.local(2000,1,1,0,0,5), 5.seconds.since
+        assert_equal true, 5.seconds.since.is_a?(ActiveSupport::TimeWithZone)
+        assert_equal Time.utc(2000,1,1,0,0,5), 5.seconds.since.time
+        assert_equal 'Eastern Time (US & Canada)', 5.seconds.since.time_zone.name
         # ago
-        assert_equal false, 5.seconds.ago.is_a?(ActiveSupport::TimeWithZone)
-        assert_equal Time.local(1999,12,31,23,59,55), 5.seconds.ago
+        assert_equal true, 5.seconds.ago.is_a?(ActiveSupport::TimeWithZone)
+        assert_equal Time.utc(1999,12,31,23,59,55), 5.seconds.ago.time
+        assert_equal 'Eastern Time (US & Canada)', 5.seconds.ago.time_zone.name
       end
     end
-
-    def test_since_and_ago_anchored_to_time_zone_now_when_time_zone_default_set
-      silence_warnings do # silence warnings raised by tzinfo gem
-        Time.zone_default = ActiveSupport::TimeZone['Eastern Time (US & Canada)']
-        with_env_tz 'US/Eastern' do
-          Time.stubs(:now).returns Time.local(2000)
-          # since
-          assert_equal true, 5.seconds.since.is_a?(ActiveSupport::TimeWithZone)
-          assert_equal Time.utc(2000,1,1,0,0,5), 5.seconds.since.time
-          assert_equal 'Eastern Time (US & Canada)', 5.seconds.since.time_zone.name
-          # ago
-          assert_equal true, 5.seconds.ago.is_a?(ActiveSupport::TimeWithZone)
-          assert_equal Time.utc(1999,12,31,23,59,55), 5.seconds.ago.time
-          assert_equal 'Eastern Time (US & Canada)', 5.seconds.ago.time_zone.name
-        end
-      end
-    ensure
-      Time.zone_default = nil
-    end
+  ensure
+    Time.zone_default = nil
   end
 
   protected

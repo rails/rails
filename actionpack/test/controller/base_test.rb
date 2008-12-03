@@ -105,7 +105,7 @@ class ControllerInstanceTests < Test::Unit::TestCase
 end
 
 
-class PerformActionTest < Test::Unit::TestCase
+class PerformActionTest < ActionController::TestCase
   class MockLogger
     attr_reader :logged
 

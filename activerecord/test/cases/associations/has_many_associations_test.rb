@@ -255,6 +255,11 @@ class HasManyAssociationsTest < ActiveRecord::TestCase
     assert_equal 2, companies(:first_firm).clients_grouped_by_name.length
   end
 
+  def test_find_scoped_grouped_having
+    assert_equal 1, authors(:david).popular_grouped_posts.length
+    assert_equal 0, authors(:mary).popular_grouped_posts.length
+  end
+
   def test_adding
     force_signal37_to_load_all_clients_of_firm
     natural = Client.new("name" => "Natural Company")

@@ -1,4 +1,4 @@
-require File.expand_path(File.join(File.dirname(__FILE__), '..', 'test_helper'))
+require 'test_helper'
 
 class StateTestSubject
   include ActiveModel::StateMachine
@@ -9,13 +9,13 @@ end
 
 class StateTest < ActiveModel::TestCase
   def setup
-    @name    = :astate
+    @state_name = :astate
     @machine = StateTestSubject.state_machine
     @options = { :crazy_custom_key => 'key', :machine => @machine }
   end
 
   def new_state(options={})
-    ActiveModel::StateMachine::State.new(@name, @options.merge(options))
+    ActiveModel::StateMachine::State.new(@state_name, @options.merge(options))
   end
 
   test 'sets the name' do
@@ -43,32 +43,30 @@ class StateTest < ActiveModel::TestCase
     assert_equal new_state, new_state
   end
 
-  uses_mocha 'state actions' do
-    test 'should send a message to the record for an action if the action is present as a symbol' do
-      state = new_state(:entering => :foo)
+  test 'should send a message to the record for an action if the action is present as a symbol' do
+    state = new_state(:entering => :foo)
 
-      record = stub
-      record.expects(:foo)
+    record = stub
+    record.expects(:foo)
 
-      state.call_action(:entering, record)
-    end
+    state.call_action(:entering, record)
+  end
 
-    test 'should send a message to the record for an action if the action is present as a string' do
-      state = new_state(:entering => 'foo')
+  test 'should send a message to the record for an action if the action is present as a string' do
+    state = new_state(:entering => 'foo')
 
-      record = stub
-      record.expects(:foo)
+    record = stub
+    record.expects(:foo)
 
-      state.call_action(:entering, record)
-    end
+    state.call_action(:entering, record)
+  end
 
-    test 'should call a proc, passing in the record for an action if the action is present' do
-      state = new_state(:entering => Proc.new {|r| r.foobar})
+  test 'should call a proc, passing in the record for an action if the action is present' do
+    state = new_state(:entering => Proc.new {|r| r.foobar})
 
-      record = stub
-      record.expects(:foobar)
-    
-      state.call_action(:entering, record)
-    end
+    record = stub
+    record.expects(:foobar)
+  
+    state.call_action(:entering, record)
   end
 end

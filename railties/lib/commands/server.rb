@@ -1,49 +1,103 @@
 require 'active_support'
+require 'action_controller'
+
 require 'fileutils'
+require 'optparse'
 
-begin
-  require_library_or_gem 'fcgi'
-rescue Exception
-  # FCGI not available
-end
-
-begin
-  require_library_or_gem 'mongrel'
-rescue Exception
-  # Mongrel not available
-end
-
+# TODO: Push Thin adapter upstream so we don't need worry about requiring it
 begin
   require_library_or_gem 'thin'
 rescue Exception
   # Thin not available
 end
 
-server = case ARGV.first
-  when "lighttpd", "mongrel", "new_mongrel", "webrick", "thin"
-    ARGV.shift
-  else
-    if defined?(Mongrel)
-      "mongrel"
-    elsif defined?(Thin)
-      "thin"
-    elsif RUBY_PLATFORM !~ /(:?mswin|mingw)/ && !silence_stderr { `lighttpd -version` }.blank? && defined?(FCGI)
-      "lighttpd"
-    else
-      "webrick"
+options = {
+  :Port        => 3000,
+  :Host        => "0.0.0.0",
+  :environment => (ENV['RAILS_ENV'] || "development").dup,
+  :config      => RAILS_ROOT + "/config.ru",
+  :detach      => false,
+  :debugger    => false
+}
+
+ARGV.clone.options do |opts|
+  opts.on("-p", "--port=port", Integer,
+          "Runs Rails on the specified port.", "Default: 3000") { |v| options[:Port] = v }
+  opts.on("-b", "--binding=ip", String,
+          "Binds Rails to the specified ip.", "Default: 0.0.0.0") { |v| options[:Host] = v }
+  opts.on("-c", "--config=file", String,
+          "Use custom rackup configuration file") { |v| options[:config] = v }
+  opts.on("-d", "--daemon", "Make server run as a Daemon.") { options[:detach] = true }
+  opts.on("-u", "--debugger", "Enable ruby-debugging for the server.") { options[:debugger] = true }
+  opts.on("-e", "--environment=name", String,
+          "Specifies the environment to run this server under (test/development/production).",
+          "Default: development") { |v| options[:environment] = v }
+
+  opts.separator ""
+
+  opts.on("-h", "--help", "Show this help message.") { puts opts; exit }
+
+  opts.parse!
+end
+
+server = Rack::Handler.get(ARGV.first) rescue nil
+unless server
+  begin
+    server = Rack::Handler::Mongrel
+  rescue LoadError => e
+    server = Rack::Handler::WEBrick
+  end
+end
+
+puts "=> Booting #{ActiveSupport::Inflector.demodulize(server)}"
+puts "=> Rails #{Rails.version} application starting on http://#{options[:Host]}:#{options[:Port]}"
+
+%w(cache pids sessions sockets).each do |dir_to_make|
+  FileUtils.mkdir_p(File.join(RAILS_ROOT, 'tmp', dir_to_make))
+end
+
+if options[:detach]
+  Process.daemon
+  pid = "#{RAILS_ROOT}/tmp/pids/server.pid"
+  File.open(pid, 'w'){ |f| f.write(Process.pid) }
+  at_exit { File.delete(pid) if File.exist?(pid) }
+end
+
+ENV["RAILS_ENV"] = options[:environment]
+RAILS_ENV.replace(options[:environment]) if defined?(RAILS_ENV)
+
+if File.exist?(options[:config])
+  config = options[:config]
+  if config =~ /\.ru$/
+    cfgfile = File.read(config)
+    if cfgfile[/^#\\(.*)/]
+      opts.parse!($1.split(/\s+/))
     end
+    inner_app = eval("Rack::Builder.new {( " + cfgfile + "\n )}.to_app", nil, config)
+  else
+    require config
+    inner_app = Object.const_get(File.basename(config, '.rb').capitalize)
+  end
+else
+  require RAILS_ROOT + "/config/environment"
+  inner_app = ActionController::Dispatcher.new
 end
 
-case server
-  when "webrick"
-    puts "=> Booting WEBrick..."
-  when "lighttpd"
-    puts "=> Booting lighttpd (use 'script/server webrick' to force WEBrick)"
-  when "mongrel", "new_mongrel"
-    puts "=> Booting Mongrel (use 'script/server webrick' to force WEBrick)"
-  when "thin"
-    puts "=> Booting Thin (use 'script/server webrick' to force WEBrick)"
-end
+app = Rack::Builder.new {
+  use Rails::Rack::Logger
+  use Rails::Rack::Static
+  use Rails::Rack::Debugger if options[:debugger]
+  run inner_app
+}.to_app
 
-%w(cache pids sessions sockets).each { |dir_to_make| FileUtils.mkdir_p(File.join(RAILS_ROOT, 'tmp', dir_to_make)) }
-require "commands/servers/#{server}"
+puts "=> Call with -d to detach"
+
+trap(:INT) { exit }
+
+puts "=> Ctrl-C to shutdown server"
+
+begin
+  server.run(app, options.merge(:AccessLog => []))
+ensure
+  puts 'Exiting'
+end

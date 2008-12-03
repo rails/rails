@@ -1,6 +1,6 @@
-== Parameter filtering ==
+== Parameter Filtering ==
 
-Rails keeps a log file for each environment (development, test and production) in the "log" folder. These are extremely useful when debugging what's actually going on in your application, but in a live application you may not want every bit of information to be stored in the log file. The link:http://api.rubyonrails.org/classes/ActionController/Base.html#M000837[filter_parameter_logging] method can be used to filter out sensitive information from the log. It works by replacing certain keys in the `params` hash with "[FILTERED]" as they are written to the log. As an example, let's see how to filter all parameters with keys that include "password":
+Rails keeps a log file for each environment (development, test and production) in the "log" folder. These are extremely useful when debugging what's actually going on in your application, but in a live application you may not want every bit of information to be stored in the log file. The `filter_parameter_logging` method can be used to filter out sensitive information from the log. It works by replacing certain values in the `params` hash with "[FILTERED]" as they are written to the log. As an example, let's see how to filter all parameters with keys that include "password":
 
 [source, ruby]
 -------------------------

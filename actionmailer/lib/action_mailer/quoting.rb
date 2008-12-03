@@ -12,7 +12,7 @@ module ActionMailer
     # account multi-byte characters (if executing with $KCODE="u", for instance)
     def quoted_printable_encode(character)
       result = ""
-      character.each_byte { |b| result << "=%02x" % b }
+      character.each_byte { |b| result << "=%02X" % b }
       result
     end
 

@@ -1,6 +1,6 @@
 require 'abstract_unit'
 
-class ViewLoadPathsTest < Test::Unit::TestCase
+class ViewLoadPathsTest < ActionController::TestCase
   class TestController < ActionController::Base
     def self.controller_path() "test" end
     def rescue_action(e) raise end

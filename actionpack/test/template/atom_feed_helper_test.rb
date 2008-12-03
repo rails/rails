@@ -166,12 +166,10 @@ class ScrollsController < ActionController::Base
   end
 end
 
-class AtomFeedTest < Test::Unit::TestCase
-  def setup
-    @request    = ActionController::TestRequest.new
-    @response   = ActionController::TestResponse.new
-    @controller = ScrollsController.new
+class AtomFeedTest < ActionController::TestCase
+  tests ScrollsController
 
+  def setup
     @request.host = "www.nextangle.com"
   end
 
@@ -255,7 +253,8 @@ class AtomFeedTest < Test::Unit::TestCase
   def test_feed_xml_processing_instructions
     with_restful_routing(:scrolls) do
       get :index, :id => 'feed_with_xml_processing_instructions'
-      assert_match %r{<\?xml-stylesheet type="text/css" href="t.css"\?>}, @response.body
+      assert_match %r{<\?xml-stylesheet [^\?]*type="text/css"}, @response.body
+      assert_match %r{<\?xml-stylesheet [^\?]*href="t.css"}, @response.body
     end
   end
 

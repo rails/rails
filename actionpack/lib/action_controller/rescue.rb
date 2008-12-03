@@ -68,9 +68,8 @@ module ActionController #:nodoc:
             logger.fatal(exception.to_s)
           else
             logger.fatal(
-              "\n\n#{exception.class} (#{exception.message}):\n    " +
-              clean_backtrace(exception).join("\n    ") +
-              "\n\n"
+              "\n#{exception.class} (#{exception.message}):\n  " +
+              clean_backtrace(exception).join("\n  ") + "\n\n"
             )
           end
         end
@@ -151,13 +150,8 @@ module ActionController #:nodoc:
       end
 
       def clean_backtrace(exception)
-        if backtrace = exception.backtrace
-          if defined?(RAILS_ROOT)
-            backtrace.map { |line| line.sub RAILS_ROOT, '' }
-          else
-            backtrace
-          end
-        end
+        defined?(Rails) && Rails.respond_to?(:backtrace_cleaner) ? 
+          Rails.backtrace_cleaner.clean(exception.backtrace) : exception.backtrace
       end
   end
 end

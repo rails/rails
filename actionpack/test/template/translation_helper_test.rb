@@ -10,12 +10,12 @@ class TranslationHelperTest < Test::Unit::TestCase
     end
     
     def test_delegates_to_i18n_setting_the_raise_option
-      I18n.expects(:translate).with(:foo, :locale => 'en-US', :raise => true)
-      translate :foo, :locale => 'en-US'
+      I18n.expects(:translate).with(:foo, :locale => 'en', :raise => true)
+      translate :foo, :locale => 'en'
     end
     
     def test_returns_missing_translation_message_wrapped_into_span
-      expected = '<span class="translation_missing">en-US, foo</span>'
+      expected = '<span class="translation_missing">en, foo</span>'
       assert_equal expected, translate(:foo)
     end
   

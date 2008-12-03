@@ -185,7 +185,7 @@ module ActiveRecord
 
         associated_records = reflection.klass.find(:all, :conditions => [conditions, ids],
         :include => options[:include],
-        :joins => "INNER JOIN #{connection.quote_table_name options[:join_table]} as t0 ON #{reflection.klass.quoted_table_name}.#{reflection.klass.primary_key} = t0.#{reflection.association_foreign_key}",
+        :joins => "INNER JOIN #{connection.quote_table_name options[:join_table]} t0 ON #{reflection.klass.quoted_table_name}.#{reflection.klass.primary_key} = t0.#{reflection.association_foreign_key}",
         :select => "#{options[:select] || table_name+'.*'}, t0.#{reflection.primary_key_name} as the_parent_record_id",
         :order => options[:order])
 
@@ -312,7 +312,7 @@ module ActiveRecord
           table_name = klass.quoted_table_name
           primary_key = klass.primary_key
           column_type = klass.columns.detect{|c| c.name == primary_key}.type
-          ids = id_map.keys.uniq.map do |id|
+          ids = id_map.keys.map do |id|
             if column_type == :integer
               id.to_i
             elsif column_type == :float

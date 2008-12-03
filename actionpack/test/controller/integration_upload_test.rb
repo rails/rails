@@ -1,6 +1,4 @@
 require 'abstract_unit'
-require 'action_controller/integration'
-require 'action_controller/routing'
 
 unless defined? ApplicationController
   class ApplicationController < ActionController::Base

@@ -38,11 +38,15 @@ RAILS_ENV.replace(options[:environment]) if defined?(RAILS_ENV)
 
 require RAILS_ROOT + '/config/environment'
 
-if code_or_file.nil?
-  $stderr.puts "Run '#{$0} -h' for help."
-  exit 1
-elsif File.exist?(code_or_file)
-  eval(File.read(code_or_file), nil, code_or_file)
-else
-  eval(code_or_file)
+begin
+  if code_or_file.nil?
+    $stderr.puts "Run '#{$0} -h' for help."
+    exit 1
+  elsif File.exist?(code_or_file)
+    eval(File.read(code_or_file), nil, code_or_file)
+  else
+    eval(code_or_file)
+  end
+ensure
+  RAILS_DEFAULT_LOGGER.flush if RAILS_DEFAULT_LOGGER
 end

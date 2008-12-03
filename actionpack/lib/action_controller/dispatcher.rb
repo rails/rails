@@ -12,18 +12,8 @@ module ActionController
           after_dispatch :cleanup_application
         end
 
-        # Common callbacks
-        to_prepare :load_application_controller do
-          begin
-            require_dependency 'application' unless defined?(::ApplicationController)
-          rescue LoadError => error
-            raise unless error.message =~ /application\.rb/
-          end
-        end
-
         if defined?(ActiveRecord)
           after_dispatch :checkin_connections
-          before_dispatch { ActiveRecord::Base.verify_active_connections! }
           to_prepare(:activerecord_instantiate_observers) { ActiveRecord::Base.instantiate_observers }
         end
 
@@ -71,7 +61,7 @@ module ActionController
 
       private
         def failsafe_response_body(status)
-          error_path = "#{error_file_path}/#{status.to_s[0..3]}.html"
+          error_path = "#{error_file_path}/#{status.to_s[0..2]}.html"
 
           if File.exist?(error_path)
             File.read(error_path)
@@ -95,6 +85,9 @@ module ActionController
         end
     end
 
+    cattr_accessor :middleware
+    self.middleware = MiddlewareStack.new
+
     cattr_accessor :error_file_path
     self.error_file_path = Rails.public_path if defined?(Rails.public_path)
 
@@ -103,6 +96,7 @@ module ActionController
 
     def initialize(output = $stdout, request = nil, response = nil)
       @output, @request, @response = output, request, response
+      @app = @@middleware.build(lambda { |env| self._call(env) })
     end
 
     def dispatch_unlocked
@@ -137,6 +131,10 @@ module ActionController
     end
 
     def call(env)
+      @app.call(env)
+    end
+
+    def _call(env)
       @request = RackRequest.new(env)
       @response = RackResponse.new(@request)
       dispatch
@@ -147,7 +145,6 @@ module ActionController
       run_callbacks :prepare_dispatch
 
       Routing::Routes.reload
-      ActionController::Base.view_paths.reload!
       ActionView::Helpers::AssetTagHelper::AssetTag::Cache.clear
     end
 
@@ -186,7 +183,7 @@ module ActionController
 
       def failsafe_rescue(exception)
         self.class.failsafe_response(@output, '500 Internal Server Error', exception) do
-          if @controller ||= defined?(::ApplicationController) ? ::ApplicationController : Base
+          if @controller ||= (::ApplicationController rescue Base)
             @controller.process_with_exception(@request, @response, exception).out(@output)
           else
             raise exception

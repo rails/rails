@@ -175,6 +175,13 @@ class FinderTest < ActiveRecord::TestCase
     assert_equal 4, developers.map(&:salary).uniq.size
   end
 
+  def test_find_with_group_and_having
+    developers =  Developer.find(:all, :group => "salary", :having => "sum(salary) >  10000", :select => "salary")
+    assert_equal 3, developers.size
+    assert_equal 3, developers.map(&:salary).uniq.size
+    assert developers.all? { |developer|  developer.salary > 10000 }
+  end
+
   def test_find_with_entire_select_statement
     topics = Topic.find_by_sql "SELECT * FROM topics WHERE author_name = 'Mary'"
 

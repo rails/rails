@@ -1,7 +1,6 @@
 require 'generators/generator_test_helper'
 
 class RailsResourceGeneratorTest < GeneratorTestCase
-
   def test_resource_generates_resources
     run_generator('resource', %w(Product name:string))
 
@@ -10,6 +9,7 @@ class RailsResourceGeneratorTest < GeneratorTestCase
     assert_generated_fixtures_for :products
     assert_generated_functional_test_for :products
     assert_generated_helper_for :products
+    assert_generated_helper_test_for :products
     assert_generated_migration :create_products
     assert_added_route_for :products
   end
@@ -22,8 +22,8 @@ class RailsResourceGeneratorTest < GeneratorTestCase
     assert_generated_fixtures_for :products
     assert_generated_functional_test_for :products
     assert_generated_helper_for :products
+    assert_generated_helper_test_for :products
     assert_skipped_migration :create_products
     assert_added_route_for :products
   end
-
 end

@@ -129,5 +129,19 @@ uses_mocha "Plugin Tests" do
       assert_equal '1.0.0', DUMMY_GEM_E_VERSION
     end
 
+    def test_gem_handle_missing_dependencies
+      dummy_gem = Rails::GemDependency.new "dummy-gem-g"
+      dummy_gem.add_load_paths
+      dummy_gem.load
+      assert dummy_gem.loaded?
+      debugger
+      assert_equal 2, dummy_gem.dependencies.size
+      assert_nothing_raised do
+        dummy_gem.dependencies.each do |g|
+          g.dependencies
+        end
+      end
+    end
+
   end
 end

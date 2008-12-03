@@ -1,5 +1,4 @@
 require 'abstract_unit'
-require 'action_controller/rack_process'
 
 class BaseRackTest < Test::Unit::TestCase
   def setup

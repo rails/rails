@@ -101,14 +101,13 @@ class WebServiceTest < Test::Unit::TestCase
   end
 
   def test_post_xml_using_an_attributted_node_named_type
-    ActionController::Base.param_parsers[Mime::XML] = Proc.new { |data| XmlSimple.xml_in(data, 'ForceArray' => false) }
+    ActionController::Base.param_parsers[Mime::XML] = Proc.new { |data| Hash.from_xml(data)['request'].with_indifferent_access }
     process('POST', 'application/xml', '<request><type type="string">Arial,12</type><z>3</z></request>')
 
     assert_equal 'type, z', @controller.response.body
     assert @controller.params.has_key?(:type)
-    assert_equal 'string', @controller.params['type']['type']
-    assert_equal 'Arial,12', @controller.params['type']['content']
-    assert_equal '3', @controller.params['z']
+    assert_equal 'Arial,12', @controller.params['type'], @controller.params.inspect
+    assert_equal '3', @controller.params['z'], @controller.params.inspect
   end
 
   def test_register_and_use_yaml
@@ -128,7 +127,7 @@ class WebServiceTest < Test::Unit::TestCase
   end
 
   def test_register_and_use_xml_simple
-    ActionController::Base.param_parsers[Mime::XML] = Proc.new { |data| XmlSimple.xml_in(data, 'ForceArray' => false) }
+    ActionController::Base.param_parsers[Mime::XML] = Proc.new { |data| Hash.from_xml(data)['request'].with_indifferent_access }
     process('POST', 'application/xml', '<request><summary>content...</summary><title>SimpleXml</title></request>' )
     assert_equal 'summary, title', @controller.response.body
     assert @controller.params.has_key?(:summary)

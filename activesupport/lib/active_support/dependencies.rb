@@ -138,14 +138,22 @@ module ActiveSupport #:nodoc:
       end
 
       def load_with_new_constant_marking(file, *extras) #:nodoc:
-        Dependencies.new_constants_in(Object) { load_without_new_constant_marking(file, *extras) }
+        if Dependencies.load?
+          Dependencies.new_constants_in(Object) { load_without_new_constant_marking(file, *extras) }
+        else
+          load_without_new_constant_marking(file, *extras)
+        end
       rescue Exception => exception  # errors from loading file
         exception.blame_file! file
         raise
       end
 
       def require(file, *extras) #:nodoc:
-        Dependencies.new_constants_in(Object) { super }
+        if Dependencies.load?
+          Dependencies.new_constants_in(Object) { super }
+        else
+          super
+        end
       rescue Exception => exception  # errors from required file
         exception.blame_file! file
         raise
@@ -305,12 +313,13 @@ module ActiveSupport #:nodoc:
         nesting = expanded_path[(expanded_root.size)..-1]
         nesting = nesting[1..-1] if nesting && nesting[0] == ?/
         next if nesting.blank?
-
-        [
-          nesting.camelize,
-          # Special case: application.rb might define ApplicationControlller.
-          ('ApplicationController' if nesting == 'application')
-        ]
+        nesting_camel = nesting.camelize
+        begin
+          qualified_const_defined?(nesting_camel)
+        rescue NameError
+          next
+        end
+        [ nesting_camel ]
       end.flatten.compact.uniq
     end
 
@@ -491,7 +500,7 @@ module ActiveSupport #:nodoc:
           initial_constants = if qualified_const_defined?(mod_name)
             mod_name.constantize.local_constant_names
           else
-           []
+            []
           end
         else
           raise Argument, "#{desc.inspect} does not describe a module!"

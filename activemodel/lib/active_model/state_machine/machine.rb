@@ -1,7 +1,11 @@
+require 'active_model/state_machine/state'
+require 'active_model/state_machine/event'
+
 module ActiveModel
   module StateMachine
     class Machine
-      attr_accessor :initial_state, :states, :events, :state_index
+      attr_writer :initial_state
+      attr_accessor :states, :events, :state_index
       attr_reader :klass, :name
 
       def initialize(klass, name, options = {}, &block)

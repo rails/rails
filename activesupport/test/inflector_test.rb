@@ -104,6 +104,12 @@ class InflectorTest < Test::Unit::TestCase
     end
   end
 
+  def test_parameterize_and_normalize
+    StringToParameterizedAndNormalized.each do |some_string, parameterized_string|
+      assert_equal(parameterized_string, ActiveSupport::Inflector.parameterize(some_string))
+    end
+  end
+
   def test_parameterize_with_custom_separator
     StringToParameterized.each do |some_string, parameterized_string|
       assert_equal(parameterized_string.gsub('-', '_'), ActiveSupport::Inflector.parameterize(some_string, '_'))

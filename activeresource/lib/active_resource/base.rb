@@ -704,6 +704,7 @@ module ActiveResource
     def new?
       id.nil?
     end
+    alias :new_record? :new?
 
     # Gets the <tt>\id</tt> attribute of the resource.
     def id

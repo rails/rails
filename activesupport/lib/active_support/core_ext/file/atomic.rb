@@ -1,5 +1,3 @@
-require 'tempfile'
-
 module ActiveSupport #:nodoc:
   module CoreExtensions #:nodoc:
     module File #:nodoc:
@@ -18,6 +16,8 @@ module ActiveSupport #:nodoc:
         #     file.write("hello")
         #   end
         def atomic_write(file_name, temp_dir = Dir.tmpdir)
+          require 'tempfile' unless defined?(Tempfile)
+
           temp_file = Tempfile.new(basename(file_name), temp_dir)
           yield temp_file
           temp_file.close

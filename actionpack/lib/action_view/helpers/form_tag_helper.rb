@@ -78,7 +78,7 @@ module ActionView
       #   #    <option>Paris</option><option>Rome</option></select>
       def select_tag(name, option_tags = nil, options = {})
         html_name = (options[:multiple] == true && !name.to_s.ends_with?("[]")) ? "#{name}[]" : name
-        content_tag :select, option_tags, { "name" => html_name, "id" => name }.update(options.stringify_keys)
+        content_tag :select, option_tags, { "name" => html_name, "id" => sanitize_to_id(name) }.update(options.stringify_keys)
       end
 
       # Creates a standard text field; use these text fields to input smaller chunks of text like a username
@@ -112,7 +112,7 @@ module ActionView
       #   text_field_tag 'ip', '0.0.0.0', :maxlength => 15, :size => 20, :class => "ip-input"
       #   # => <input class="ip-input" id="ip" maxlength="15" name="ip" size="20" type="text" value="0.0.0.0" />
       def text_field_tag(name, value = nil, options = {})
-        tag :input, { "type" => "text", "name" => name, "id" => name, "value" => value }.update(options.stringify_keys)
+        tag :input, { "type" => "text", "name" => name, "id" => sanitize_to_id(name), "value" => value }.update(options.stringify_keys)
       end
 
       # Creates a label field
@@ -130,7 +130,7 @@ module ActionView
       #   label_tag 'name', nil, :class => 'small_label'
       #   # => <label for="name" class="small_label">Name</label>
       def label_tag(name, text = nil, options = {})
-        content_tag :label, text || name.to_s.humanize, { "for" => name }.update(options.stringify_keys)
+        content_tag :label, text || name.to_s.humanize, { "for" => sanitize_to_id(name) }.update(options.stringify_keys)
       end
 
       # Creates a hidden form input field used to transmit data that would be lost due to HTTP's statelessness or
@@ -282,7 +282,7 @@ module ActionView
       #   check_box_tag 'eula', 'accepted', false, :disabled => true
       #   # => <input disabled="disabled" id="eula" name="eula" type="checkbox" value="accepted" />
       def check_box_tag(name, value = "1", checked = false, options = {})
-        html_options = { "type" => "checkbox", "name" => name, "id" => name, "value" => value }.update(options.stringify_keys)
+        html_options = { "type" => "checkbox", "name" => name, "id" => sanitize_to_id(name), "value" => value }.update(options.stringify_keys)
         html_options["checked"] = "checked" if checked
         tag :input, html_options
       end
@@ -470,6 +470,12 @@ module ActionView
             tag(:input, :type => "hidden", :name => request_forgery_protection_token.to_s, :value => form_authenticity_token)
           end
         end
+
+        # see http://www.w3.org/TR/html4/types.html#type-name
+        def sanitize_to_id(name)
+          name.to_s.gsub(']','').gsub(/[^-a-zA-Z0-9:.]/, "_")
+        end
+
     end
   end
 end

@@ -28,10 +28,13 @@ class PooledConnectionsTest < ActiveRecord::TestCase
     end
   end
 
-  def test_pooled_connection_checkout
-    checkout_connections
-    assert_equal @connections.length, 2
-    assert_equal @timed_out, 2
+  # Will deadlock due to lack of Monitor timeouts in 1.9
+  if RUBY_VERSION < '1.9'
+    def test_pooled_connection_checkout
+      checkout_connections
+      assert_equal @connections.length, 2
+      assert_equal @timed_out, 2
+    end
   end
 
   def checkout_checkin_connections(pool_size, threads)
@@ -72,6 +75,19 @@ class PooledConnectionsTest < ActiveRecord::TestCase
     conn = conn_pool.checkout
     assert ActiveRecord::ConnectionAdapters::AbstractAdapter === conn
     conn_pool.checkin(conn)
+  end
+
+  def test_not_connected_defined_connection_returns_false
+    ActiveRecord::Base.establish_connection(@connection)
+    assert ! ActiveRecord::Base.connected?
+  end
+
+  def test_undefined_connection_returns_false
+    old_handler = ActiveRecord::Base.connection_handler
+    ActiveRecord::Base.connection_handler = ActiveRecord::ConnectionAdapters::ConnectionHandler.new
+    assert_equal false, ActiveRecord::Base.connected?
+  ensure
+    ActiveRecord::Base.connection_handler = old_handler
   end
 end unless %w(FrontBase).include? ActiveRecord::Base.connection.adapter_name
 

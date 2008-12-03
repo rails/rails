@@ -1,4 +1,4 @@
 xml.html do
   xml.p "Hello #{@name}"
-  xml << render("test/greeting")
+  xml << render(:file => "test/greeting")
 end

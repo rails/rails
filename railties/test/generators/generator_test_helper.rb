@@ -145,6 +145,19 @@ class GeneratorTestCase < Test::Unit::TestCase
     end
   end
 
+  # Asserts that the given helper test test was generated.
+  # It takes a name or symbol without the <tt>_helper_test</tt> part and an optional super class.
+  # The contents of the class source file is passed to a block.
+  def assert_generated_helper_test_for(name, parent = "ActionView::TestCase")
+    path = "test/unit/helpers/#{name.to_s.underscore}_helper_test"
+    # Have to pass the path without the "test/" part so that class_name_from_path will return a correct result
+    class_name = class_name_from_path(path.gsub(/^test\//, ''))
+
+    assert_generated_class path,parent,class_name do |body|
+      yield body if block_given?
+    end
+  end
+
   # Asserts that the given unit test was generated.
   # It takes a name or symbol without the <tt>_test</tt> part and an optional super class.
   # The contents of the class source file is passed to a block.
@@ -172,19 +185,21 @@ class GeneratorTestCase < Test::Unit::TestCase
   # Asserts that the given class source file was generated.
   # It takes a path without the <tt>.rb</tt> part and an optional super class.
   # The contents of the class source file is passed to a block.
-  def assert_generated_class(path, parent = nil)
-    # FIXME: Sucky way to detect namespaced classes
-    if path.split('/').size > 3
-      path =~ /\/?(\d+_)?(\w+)\/(\w+)$/
-      class_name = "#{$2.camelize}::#{$3.camelize}"
-    else
-      path =~ /\/?(\d+_)?(\w+)$/
-      class_name = $2.camelize
-    end
-
+  def assert_generated_class(path, parent = nil, class_name = class_name_from_path(path))
     assert_generated_file("#{path}.rb") do |body|
       assert_match /class #{class_name}#{parent.nil? ? '':" < #{parent}"}/, body, "the file '#{path}.rb' should be a class"
       yield body if block_given?
+    end
+  end
+
+  def class_name_from_path(path)
+    # FIXME: Sucky way to detect namespaced classes
+    if path.split('/').size > 3
+      path =~ /\/?(\d+_)?(\w+)\/(\w+)$/
+      "#{$2.camelize}::#{$3.camelize}"
+    else
+      path =~ /\/?(\d+_)?(\w+)$/
+      $2.camelize
     end
   end
 

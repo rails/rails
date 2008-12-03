@@ -1,0 +1,749 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" lang="en" xml:lang="en">
+<head>
+	<meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
+	<title>Active Record Validations and Callbacks</title>
+	<!--[if lt IE 8]>
+	<script src="http://ie7-js.googlecode.com/svn/version/2.0(beta3)/IE8.js" type="text/javascript"></script>
+	<![endif]-->
+	<link href="stylesheets/base.css" media="screen" rel="Stylesheet" type="text/css" />
+	<link href="stylesheets/forms.css" media="screen" rel="Stylesheet" type="text/css" />
+	<link href="stylesheets/more.css" media="screen" rel="Stylesheet" type="text/css" />
+	<style type="text/css">
+		div#container {
+	max-width: 900px;
+	padding-bottom: 3em;
+}
+
+div#content {
+	margin-left: 200px;
+}
+
+div#container.notoc {
+	max-width: 600px;
+}
+
+.notoc div#content {
+	margin-left: 0;
+}
+
+pre {
+	line-height: 1.4em;
+}
+
+#content p tt {
+	background: #eeeeee;
+	border: solid 1px #cccccc;
+	padding: 3px;
+}
+
+dt {
+	font-weight: bold;
+}
+
+#content dt tt {
+	font-size: 10pt;
+}
+
+dd {
+	margin-left: 3em;
+}
+
+#content dt tt, #content pre tt {
+	background: none;
+	padding: 0;
+	border: 0;
+}
+
+#content .olist ol {
+	margin-left: 2em;
+}
+
+#header {
+	position: relative;
+	max-width: 840px;
+	margin-left: auto;
+	margin-right: auto;
+}
+
+#header.notoc {
+	max-width: 580px;
+}
+
+#logo {
+	position: absolute;
+	left: 10px;
+	top: 10px;
+	width: 110px;
+	height: 140px;
+}
+
+div#header h1#site_title {
+	background: url('images/ruby_on_rails_by_mike_rundle2.gif') top left no-repeat;
+	position: absolute;
+	width: 392px;
+	height: 55px;
+	left: 145px;
+	top: 20px;
+	margin: 0;
+	padding: 0;
+}
+
+#site_title span {
+	display: none;
+}
+
+#site_title_tagline {
+	display: none;
+}
+
+ul#navMain {
+	position: absolute;
+	margin: 0;
+	padding: 0;
+	top: 97px;
+	left: 145px;
+}
+
+.left-floaty, .right-floaty {
+	padding: 15px;
+}
+
+.admonitionblock,
+.tableblock {
+	margin-left: 1em;
+	margin-right: 1em;
+	margin-top: 0.25em;
+	margin-bottom: 1em;
+}
+
+.admonitionblock .icon {
+	padding-right: 8px;
+}
+
+.admonitionblock .content {
+	border: solid 1px #ffda78;
+	background: #fffebd;
+	padding: 10px;
+	padding-top: 8px;
+	padding-bottom: 8px;
+}
+
+.admonitionblock .title {
+	font-size: 140%;
+	margin-bottom: 0.5em;
+}
+
+.tableblock table {
+	border: solid 1px #aaaaff;
+	background: #f0f0ff;
+}
+
+.tableblock th {
+	background: #e0e0e0;
+}
+
+.tableblock th,
+.tableblock td {
+	padding: 3px;
+	padding-left: 5px;
+	padding-right: 5px;
+}
+
+.sidebarblock {
+	margin-top: 0.25em;
+	margin: 1em;
+	border: solid 1px #ccccbb;
+	padding: 8px;
+	background: #ffffe0;
+}
+
+.sidebarblock .sidebar-title {
+	font-size: 140%;
+	font-weight: 600;
+	margin-bottom: 0.3em;
+}
+
+.sidebarblock .sidebar-content > .para:last-child > p {
+	margin-bottom: 0;
+}
+
+.sidebarblock .sidebar-title a {
+	text-decoration: none;
+}
+
+.sidebarblock .sidebar-title a:hover {
+	text-decoration: underline;
+}
+
+	</style>
+</head>
+<body>
+	<div id="header" >
+		<div id="logo">
+			<a href="index.html" title="Ruby on Rails"><img src="images/rails_logo_remix.gif" alt="Rails" height="140" width="110" /></a>
+		</div>
+		
+		<h1 id="site_title"><span>Ruby on Rails</span></h1>
+		<h2 id="site_title_tagline">Sustainable productivity for web-application development</h2>
+
+		<ul id="navMain">
+			<li class="first-child"><a href="http://www.rubyonrails.org/" title="Ruby on Rails" class="ruby_on_rails">Ruby on Rails</a></li>
+			<li><a class="manuals" href="index.html" title="Manuals Index">Guides Index</a></li>
+		</ul>
+	</div>
+
+	<div id="container">
+		
+		<div id="sidebar">
+			<h2>Chapters</h2>
+			<ol>
+					<li>
+					<a href="#_motivations_to_validate_your_active_record_objects">Motivations to validate your Active Record objects</a>
+					</li>
+					<li>
+					<a href="#_how_it_works">How it works</a>
+						<ul>
+						
+							<li><a href="#_when_does_validation_happens">When does validation happens?</a></li>
+						
+							<li><a href="#_the_meaning_of_em_valid_em">The meaning of <em>valid</em></a></li>
+						
+						</ul>
+					</li>
+					<li>
+					<a href="#_the_declarative_validation_helpers">The declarative validation helpers</a>
+						<ul>
+						
+							<li><a href="#_the_tt_validates_acceptance_of_tt_helper">The <tt>validates_acceptance_of</tt> helper</a></li>
+						
+							<li><a href="#_the_tt_validates_associated_tt_helper">The <tt>validates_associated</tt> helper</a></li>
+						
+							<li><a href="#_the_tt_validates_confirmation_of_tt_helper">The <tt>validates_confirmation_of</tt> helper</a></li>
+						
+							<li><a href="#_the_tt_validates_each_tt_helper">The <tt>validates_each</tt> helper</a></li>
+						
+							<li><a href="#_the_tt_validates_exclusion_of_tt_helper">The <tt>validates_exclusion_of</tt> helper</a></li>
+						
+							<li><a href="#_the_tt_validates_format_of_tt_helper">The <tt>validates_format_of</tt> helper</a></li>
+						
+							<li><a href="#_the_tt_validates_inclusion_of_tt_helper">The <tt>validates_inclusion_of</tt> helper</a></li>
+						
+							<li><a href="#_the_tt_validates_length_of_tt_helper">The <tt>validates_length_of</tt> helper</a></li>
+						
+							<li><a href="#_the_tt_validates_numericallity_of_tt_helper">The <tt>validates_numericallity_of</tt> helper</a></li>
+						
+							<li><a href="#_the_tt_validates_presence_of_tt_helper">The <tt>validates_presence_of</tt> helper</a></li>
+						
+							<li><a href="#_the_tt_validates_uniqueness_of_tt_helper">The <tt>validates_uniqueness_of</tt> helper</a></li>
+						
+						</ul>
+					</li>
+					<li>
+					<a href="#_common_validation_options">Common validation options</a>
+						<ul>
+						
+							<li><a href="#_the_tt_allow_nil_tt_option">The <tt>:allow_nil</tt> option</a></li>
+						
+							<li><a href="#_the_tt_message_tt_option">The <tt>:message</tt> option</a></li>
+						
+							<li><a href="#_the_tt_on_tt_option">The <tt>:on</tt> option</a></li>
+						
+						</ul>
+					</li>
+					<li>
+					<a href="#_conditional_validation">Conditional validation</a>
+						<ul>
+						
+							<li><a href="#_using_a_symbol_with_the_tt_if_tt_and_tt_unless_tt_options">Using a symbol with the <tt>:if</tt> and <tt>:unless</tt> options</a></li>
+						
+							<li><a href="#_using_a_string_with_the_tt_if_tt_and_tt_unless_tt_options">Using a string with the <tt>:if</tt> and <tt>:unless</tt> options</a></li>
+						
+							<li><a href="#_using_a_proc_object_with_the_tt_if_tt_and_tt_unless_tt_options">Using a Proc object with the <tt>:if</tt> and :<tt>unless</tt> options</a></li>
+						
+						</ul>
+					</li>
+					<li>
+					<a href="#_writing_your_own_validation_methods">Writing your own validation methods</a>
+					</li>
+					<li>
+					<a href="#_changelog">Changelog</a>
+					</li>
+			</ol>
+		</div>
+		
+		<div id="content">
+				<h1>Active Record Validations and Callbacks</h1>
+			<div id="preamble">
+<div class="sectionbody">
+<div class="para"><p>This guide teaches you how to work with the lifecycle of your Active Record objects. More precisely, you will learn how to validate the state of your objects before they go into the database and also how to teach them to perform custom operations at certain points of their lifecycles.</p></div>
+<div class="para"><p>After reading this guide and trying out the presented concepts, we hope that you'll be able to:</p></div>
+<div class="ilist"><ul>
+<li>
+<p>
+Correctly use all the built-in Active Record validation helpers
+</p>
+</li>
+<li>
+<p>
+Create your own custom validation methods
+</p>
+</li>
+<li>
+<p>
+Work with the error messages generated by the validation proccess
+</p>
+</li>
+<li>
+<p>
+Register callback methods that will execute custom operations during your objects lifecycle, for example before/after they are saved.
+</p>
+</li>
+<li>
+<p>
+Create special classes that encapsulate common behaviour for your callbacks
+</p>
+</li>
+<li>
+<p>
+Create Observers - classes with callback methods specific for each of your models, keeping the callback code outside your models' declarations.
+</p>
+</li>
+</ul></div>
+</div>
+</div>
+<h2 id="_motivations_to_validate_your_active_record_objects">1. Motivations to validate your Active Record objects</h2>
+<div class="sectionbody">
+<div class="para"><p>The main reason for validating your objects before they get into the database is to ensure that only valid data is recorded. It's important to be sure that an email address column only contains valid email addresses, or that the customer's name column will never be empty. Constraints like that keep your database organized and helps your application to work properly.</p></div>
+<div class="para"><p>There are several ways to validate the data that goes to the database, like using database native constraints, implementing validations only at the client side or implementing them directly into your models. Each one has pros and cons:</p></div>
+<div class="ilist"><ul>
+<li>
+<p>
+Using database constraints and/or stored procedures makes the validation mechanisms database-dependent and may turn your application into a hard to test and mantain beast. However, if your database is used by other applications, it may be a good idea to use some constraints also at the database level.
+</p>
+</li>
+<li>
+<p>
+Implementing validations only at the client side can be problematic, specially with web-based applications. Usually this kind of validation is done using javascript, which may be turned off in the user's browser, leading to invalid data getting inside your database. However, if combined with server side validation, client side validation may be useful, since the user can have a faster feedback from the application when trying to save invalid data.
+</p>
+</li>
+<li>
+<p>
+Using validation directly into your Active Record classes ensures that only valid data gets recorded, while still keeping the validation code in the right place, avoiding breaking the MVC pattern. Since the validation happens on the server side, the user cannot disable it, so it's also safer. It may be a hard and tedious work to implement some of the logic involved in your models' validations, but fear not: Active Record gives you the hability to easily create validations, using several built-in helpers while still allowing you to create your own validation methods.
+</p>
+</li>
+</ul></div>
+</div>
+<h2 id="_how_it_works">2. How it works</h2>
+<div class="sectionbody">
+<h3 id="_when_does_validation_happens">2.1. When does validation happens?</h3>
+<div class="para"><p>There are two kinds of Active Record objects: those that correspond to a row inside your database and those who do not. When you create a fresh object, using the <tt>new</tt> method, that object does not belong to the database yet. Once you call <tt>save</tt> upon that object it'll be recorded to it's table. Active Record uses the <tt>new_record?</tt> instance method to discover if an object is already in the database or not. Consider the following simple and very creative Active Record class:</p></div>
+<div class="listingblock">
+<div class="content"><!-- Generator: GNU source-highlight 2.9
+by Lorenzo Bettini
+http://www.lorenzobettini.it
+http://www.gnu.org/software/src-highlite -->
+<pre><tt><span style="font-weight: bold"><span style="color: #0000FF">class</span></span> Person <span style="color: #990000">&lt;</span> ActiveRecord<span style="color: #990000">::</span>Base
+<span style="font-weight: bold"><span style="color: #0000FF">end</span></span>
+</tt></pre></div></div>
+<div class="para"><p>We can see how it works by looking at the following script/console output:</p></div>
+<div class="listingblock">
+<div class="content">
+<pre><tt>&gt;&gt; p = Person.new(:name =&gt; "John Doe", :birthdate =&gt; Date.parse("09/03/1979"))
+=&gt; #&lt;Person id: nil, name: "John Doe", birthdate: "1979-09-03", created_at: nil, updated_at: nil&gt;
+&gt;&gt; p.new_record?
+=&gt; true
+&gt;&gt; p.save
+=&gt; true
+&gt;&gt; p.new_record?
+=&gt; false</tt></pre>
+</div></div>
+<div class="para"><p>Saving new records means sending an SQL insert operation to the database, while saving existing records (by calling either <tt>save</tt>, <tt>update_attribute</tt> or <tt>update_attributes</tt>) will result in a SQL update operation. Active Record will use this facts to perform validations upon your objects, avoiding then to be recorded to the database if their inner state is invalid in some way. You can specify validations that will be beformed every time a object is saved, just when you're creating a new record or when you're updating an existing one.</p></div>
+<h3 id="_the_meaning_of_em_valid_em">2.2. The meaning of <em>valid</em></h3>
+<div class="para"><p>For verifying if an object is valid, Active Record uses the <tt>valid?</tt> method, which basically looks inside the object to see if it has any validation errors. These errors live in a collection that can be accessed through the <tt>errors</tt> instance method. The proccess is really simple: If the <tt>errors</tt> method returns an empty collection, the object is valid and can be saved. Each time a validation fails, an error message is added to the <tt>errors</tt> collection.</p></div>
+</div>
+<h2 id="_the_declarative_validation_helpers">3. The declarative validation helpers</h2>
+<div class="sectionbody">
+<div class="para"><p>Active Record offers many pre-defined validation helpers that you can use directly inside your class definitions. These helpers create validations rules that are commonly used in most of the applications that you'll write, so you don't need to recreate it everytime, avoiding code duplication, keeping everything organized and boosting your productivity. Everytime a validation fails, an error message is added to the object's <tt>errors</tt> collection, this message being associated with the field being validated.</p></div>
+<div class="para"><p>Each helper accepts an arbitrary number of attributes, received as symbols, so with a single line of code you can add the same kind of validation to several attributes.</p></div>
+<div class="para"><p>All these helpers accept the <tt>:on</tt> and <tt>:message</tt> options, which define when the validation should be applied and what message should be added to the <tt>errors</tt> collection when it fails, respectively. The <tt>:on</tt> option takes one the values <tt>:save</tt> (it's the default), <tt>:create</tt>  or <tt>:update</tt>. There is a default error message for each one of the validation helpers. These messages are used when the <tt>:message</tt> option isn't used. Let's take a look at each one of the available helpers, listed in alphabetic order.</p></div>
+<h3 id="_the_tt_validates_acceptance_of_tt_helper">3.1. The <tt>validates_acceptance_of</tt> helper</h3>
+<div class="para"><p>Validates that a checkbox has been checked for agreement purposes. It's normally used when the user needs to agree with your application's terms of service, confirm reading some clauses or any similar concept. This validation is very specific to web applications and actually this <em>acceptance</em> does not need to be recorded anywhere in your database (if you don't have a field for it, the helper will just create a virtual attribute).</p></div>
+<div class="listingblock">
+<div class="content"><!-- Generator: GNU source-highlight 2.9
+by Lorenzo Bettini
+http://www.lorenzobettini.it
+http://www.gnu.org/software/src-highlite -->
+<pre><tt><span style="font-weight: bold"><span style="color: #0000FF">class</span></span> Person <span style="color: #990000">&lt;</span> ActiveRecord<span style="color: #990000">::</span>Base
+  validates_acceptance_of <span style="color: #990000">:</span>terms_of_service
+<span style="font-weight: bold"><span style="color: #0000FF">end</span></span>
+</tt></pre></div></div>
+<div class="para"><p>The default error message for <tt>validates_acceptance_of</tt> is "<em>must be accepted</em>"</p></div>
+<div class="para"><p><tt>validates_acceptance_of</tt> can receive an <tt>:accept</tt> option, which determines the value that will be considered acceptance. It defaults to "1", but you can change it.</p></div>
+<div class="listingblock">
+<div class="content"><!-- Generator: GNU source-highlight 2.9
+by Lorenzo Bettini
+http://www.lorenzobettini.it
+http://www.gnu.org/software/src-highlite -->
+<pre><tt><span style="font-weight: bold"><span style="color: #0000FF">class</span></span> Person <span style="color: #990000">&lt;</span> ActiveRecord<span style="color: #990000">::</span>Base
+  validates_acceptance_of <span style="color: #990000">:</span>terms_of_service<span style="color: #990000">,</span> <span style="color: #990000">:</span>accept <span style="color: #990000">=&gt;</span> <span style="color: #FF0000">'yes'</span>
+<span style="font-weight: bold"><span style="color: #0000FF">end</span></span>
+</tt></pre></div></div>
+<h3 id="_the_tt_validates_associated_tt_helper">3.2. The <tt>validates_associated</tt> helper</h3>
+<div class="para"><p>You should use this helper when your model has associations with other models and they also need to be validated. When you try to save your object, <tt>valid?</tt> will be called upon each one of the associated objects.</p></div>
+<div class="listingblock">
+<div class="content"><!-- Generator: GNU source-highlight 2.9
+by Lorenzo Bettini
+http://www.lorenzobettini.it
+http://www.gnu.org/software/src-highlite -->
+<pre><tt><span style="font-weight: bold"><span style="color: #0000FF">class</span></span> Library <span style="color: #990000">&lt;</span> ActiveRecord<span style="color: #990000">::</span>Base
+  has_many <span style="color: #990000">:</span>books
+  validates_associated <span style="color: #990000">:</span>books
+<span style="font-weight: bold"><span style="color: #0000FF">end</span></span>
+</tt></pre></div></div>
+<div class="para"><p>This validation will work with all the association types.</p></div>
+<div class="admonitionblock">
+<table><tr>
+<td class="icon">
+<img src="./images/icons/caution.png" alt="Caution" />
+</td>
+<td class="content">Pay attention not to use <tt>validates_associated</tt> on both ends of your associations, because this will lead to several recursive calls and blow up the method calls' stack.</td>
+</tr></table>
+</div>
+<div class="para"><p>The default error message for <tt>validates_associated</tt> is "<em>is invalid</em>". Note that the errors for each failed validation in the associated objects will be set there and not in this model.</p></div>
+<h3 id="_the_tt_validates_confirmation_of_tt_helper">3.3. The <tt>validates_confirmation_of</tt> helper</h3>
+<div class="para"><p>You should use this helper when you have two text fields that should receive exactly the same content, like when you want to confirm an email address or password. This validation creates a virtual attribute, using the name of the field that has to be confirmed with <em>_confirmation</em> appended.</p></div>
+<div class="listingblock">
+<div class="content"><!-- Generator: GNU source-highlight 2.9
+by Lorenzo Bettini
+http://www.lorenzobettini.it
+http://www.gnu.org/software/src-highlite -->
+<pre><tt><span style="font-weight: bold"><span style="color: #0000FF">class</span></span> Person <span style="color: #990000">&lt;</span> ActiveRecord<span style="color: #990000">::</span>Base
+  validates_confirmation_of <span style="color: #990000">:</span>email
+<span style="font-weight: bold"><span style="color: #0000FF">end</span></span>
+</tt></pre></div></div>
+<div class="para"><p>In your view template you could use something like</p></div>
+<div class="listingblock">
+<div class="content">
+<pre><tt>&lt;%= text_field :person, :email %&gt;
+&lt;%= text_field :person, :email_confirmation %&gt;</tt></pre>
+</div></div>
+<div class="admonitionblock">
+<table><tr>
+<td class="icon">
+<img src="./images/icons/note.png" alt="Note" />
+</td>
+<td class="content">This check is performed only if <tt>email_confirmation</tt> is not nil, and by default only on save. To require confirmation, make sure to add a presence check for the confirmation attribute (we'll take a look at <tt>validates_presence_of</tt> later on this guide):</td>
+</tr></table>
+</div>
+<div class="listingblock">
+<div class="content"><!-- Generator: GNU source-highlight 2.9
+by Lorenzo Bettini
+http://www.lorenzobettini.it
+http://www.gnu.org/software/src-highlite -->
+<pre><tt><span style="font-weight: bold"><span style="color: #0000FF">class</span></span> Person <span style="color: #990000">&lt;</span> ActiveRecord<span style="color: #990000">::</span>Base
+  validates_confirmation_of <span style="color: #990000">:</span>email
+  validates_presence_of <span style="color: #990000">:</span>email_confirmation
+<span style="font-weight: bold"><span style="color: #0000FF">end</span></span>
+</tt></pre></div></div>
+<div class="para"><p>The default error message for <tt>validates_confirmation_of</tt> is "<em>doesn't match confirmation</em>"</p></div>
+<h3 id="_the_tt_validates_each_tt_helper">3.4. The <tt>validates_each</tt> helper</h3>
+<div class="para"><p>This helper validates attributes against a block. It doesn't have a predefined validation function. You should create one using a block, and every attribute passed to <tt>validates_each</tt> will be tested against it. In the following example, we don't want names and surnames to begin with lower case.</p></div>
+<div class="listingblock">
+<div class="content"><!-- Generator: GNU source-highlight 2.9
+by Lorenzo Bettini
+http://www.lorenzobettini.it
+http://www.gnu.org/software/src-highlite -->
+<pre><tt><span style="font-weight: bold"><span style="color: #0000FF">class</span></span> Person <span style="color: #990000">&lt;</span> ActiveRecord<span style="color: #990000">::</span>Base
+  validates_each <span style="color: #990000">:</span>name<span style="color: #990000">,</span> <span style="color: #990000">:</span>surname <span style="font-weight: bold"><span style="color: #0000FF">do</span></span> <span style="color: #990000">|</span>model<span style="color: #990000">,</span> attr<span style="color: #990000">,</span> value<span style="color: #990000">|</span>
+    model<span style="color: #990000">.</span>errors<span style="color: #990000">.</span>add<span style="color: #990000">(</span>attr<span style="color: #990000">,</span> <span style="color: #FF0000">'Must start with upper case'</span><span style="color: #990000">)</span> <span style="font-weight: bold"><span style="color: #0000FF">if</span></span> value <span style="color: #990000">=~</span> <span style="color: #FF6600">/^[a-z]/</span>
+  <span style="font-weight: bold"><span style="color: #0000FF">end</span></span>
+<span style="font-weight: bold"><span style="color: #0000FF">end</span></span>
+</tt></pre></div></div>
+<div class="para"><p>The block receives the model, the attribute's name and the attribute's value. If your validation fails, you can add an error message to the model, therefore making it invalid.</p></div>
+<h3 id="_the_tt_validates_exclusion_of_tt_helper">3.5. The <tt>validates_exclusion_of</tt> helper</h3>
+<div class="para"><p>This helper validates that the attributes' values are not included in a given set. In fact, this set can be any enumerable object.</p></div>
+<div class="listingblock">
+<div class="content"><!-- Generator: GNU source-highlight 2.9
+by Lorenzo Bettini
+http://www.lorenzobettini.it
+http://www.gnu.org/software/src-highlite -->
+<pre><tt><span style="font-weight: bold"><span style="color: #0000FF">class</span></span> MovieFile <span style="color: #990000">&lt;</span> ActiveRecord<span style="color: #990000">::</span>Base
+  validates_exclusion_of <span style="color: #990000">:</span>format<span style="color: #990000">,</span> <span style="color: #990000">:</span><span style="font-weight: bold"><span style="color: #0000FF">in</span></span> <span style="color: #990000">=&gt;</span> <span style="color: #990000">%</span>w<span style="color: #990000">(</span>mov avi<span style="color: #990000">),</span> <span style="color: #990000">:</span>message <span style="color: #990000">=&gt;</span> <span style="color: #FF0000">"Extension %s is not allowed"</span>
+<span style="font-weight: bold"><span style="color: #0000FF">end</span></span>
+</tt></pre></div></div>
+<div class="para"><p>The <tt>validates_exclusion_of</tt> helper has an option <tt>:in</tt> that receives the set of values that will not be accepted for the validated attributes. The <tt>:in</tt> option has an alias called <tt>:within</tt>  that you can use for the same purpose, if you'd like to. In the previous example we used the <tt>:message</tt> option to show how we can personalize it with the current attribute's value, through the <tt>%s</tt> format mask.</p></div>
+<div class="para"><p>The default error message for <tt>validates_exclusion_of</tt>  is "<em>is not included in the list</em>".</p></div>
+<h3 id="_the_tt_validates_format_of_tt_helper">3.6. The <tt>validates_format_of</tt> helper</h3>
+<div class="para"><p>This helper validates the attributes's values by testing if they match a given pattern. This pattern must be specified using a Ruby regular expression, which must be passed through the <tt>:with</tt> option.</p></div>
+<div class="listingblock">
+<div class="content"><!-- Generator: GNU source-highlight 2.9
+by Lorenzo Bettini
+http://www.lorenzobettini.it
+http://www.gnu.org/software/src-highlite -->
+<pre><tt><span style="font-weight: bold"><span style="color: #0000FF">class</span></span> Product <span style="color: #990000">&lt;</span> ActiveRecord<span style="color: #990000">::</span>Base
+  validates_format_of <span style="color: #990000">:</span>description<span style="color: #990000">,</span> <span style="color: #990000">:</span>with <span style="color: #990000">=&gt;</span> <span style="color: #FF6600">/^[a-zA-Z]+$/</span><span style="color: #990000">,</span> <span style="color: #990000">:</span>message <span style="color: #990000">=&gt;</span> <span style="color: #FF0000">"Only letters allowed"</span>
+<span style="font-weight: bold"><span style="color: #0000FF">end</span></span>
+</tt></pre></div></div>
+<div class="para"><p>The default error message for <tt>validates_format_of</tt> is "<em>is invalid</em>".</p></div>
+<h3 id="_the_tt_validates_inclusion_of_tt_helper">3.7. The <tt>validates_inclusion_of</tt> helper</h3>
+<div class="para"><p>This helper validates that the attributes' values are included in a given set. In fact, this set can be any enumerable object.</p></div>
+<div class="listingblock">
+<div class="content"><!-- Generator: GNU source-highlight 2.9
+by Lorenzo Bettini
+http://www.lorenzobettini.it
+http://www.gnu.org/software/src-highlite -->
+<pre><tt><span style="font-weight: bold"><span style="color: #0000FF">class</span></span> Coffee <span style="color: #990000">&lt;</span> ActiveRecord<span style="color: #990000">::</span>Base
+  validates_inclusion_of <span style="color: #990000">:</span>size<span style="color: #990000">,</span> <span style="color: #990000">:</span><span style="font-weight: bold"><span style="color: #0000FF">in</span></span> <span style="color: #990000">=&gt;</span> <span style="color: #990000">%</span>w<span style="color: #990000">(</span>small medium large<span style="color: #990000">),</span> <span style="color: #990000">:</span>message <span style="color: #990000">=&gt;</span> <span style="color: #FF0000">"%s is not a valid size"</span>
+<span style="font-weight: bold"><span style="color: #0000FF">end</span></span>
+</tt></pre></div></div>
+<div class="para"><p>The <tt>validates_inclusion_of</tt> helper has an option <tt>:in</tt> that receives the set of values that will be accepted. The <tt>:in</tt> option has an alias called <tt>:within</tt>  that you can use for the same purpose, if you'd like to. In the previous example we used the <tt>:message</tt> option to show how we can personalize it with the current attribute's value, through the <tt>%s</tt> format mask.</p></div>
+<div class="para"><p>The default error message for <tt>validates_inclusion_of</tt>  is "<em>is not included in the list</em>".</p></div>
+<h3 id="_the_tt_validates_length_of_tt_helper">3.8. The <tt>validates_length_of</tt> helper</h3>
+<div class="para"><p>This helper validates the length of your attribute's value. It can receive a variety of different options, so you can specify length contraints in different ways.</p></div>
+<div class="listingblock">
+<div class="content"><!-- Generator: GNU source-highlight 2.9
+by Lorenzo Bettini
+http://www.lorenzobettini.it
+http://www.gnu.org/software/src-highlite -->
+<pre><tt><span style="font-weight: bold"><span style="color: #0000FF">class</span></span> Person <span style="color: #990000">&lt;</span> ActiveRecord<span style="color: #990000">::</span>Base
+  validates_length_of <span style="color: #990000">:</span>name<span style="color: #990000">,</span> <span style="color: #990000">:</span>minimum <span style="color: #990000">=&gt;</span> <span style="color: #993399">2</span>
+  validates_length_of <span style="color: #990000">:</span>bio<span style="color: #990000">,</span> <span style="color: #990000">:</span>maximum <span style="color: #990000">=&gt;</span> <span style="color: #993399">500</span>
+  validates_length_of <span style="color: #990000">:</span>password<span style="color: #990000">,</span> <span style="color: #990000">:</span><span style="font-weight: bold"><span style="color: #0000FF">in</span></span> <span style="color: #990000">=&gt;</span> <span style="color: #993399">6</span><span style="color: #990000">..</span><span style="color: #993399">20</span>
+  validates_length_of <span style="color: #990000">:</span>registration_number<span style="color: #990000">,</span> <span style="color: #990000">:</span>is <span style="color: #990000">=&gt;</span> <span style="color: #993399">6</span>
+<span style="font-weight: bold"><span style="color: #0000FF">end</span></span>
+</tt></pre></div></div>
+<div class="para"><p>The possible length constraint options are:</p></div>
+<div class="ilist"><ul>
+<li>
+<p>
+<tt>:minimum</tt> - The attribute cannot have less than the specified length.
+</p>
+</li>
+<li>
+<p>
+<tt>:maximum</tt> - The attribute cannot have more than the specified length.
+</p>
+</li>
+<li>
+<p>
+<tt>:in</tt> (or <tt>:within</tt>) - The attribute length must be included in a given interval. The value for this option must be a Ruby range.
+</p>
+</li>
+<li>
+<p>
+<tt>:is</tt> - The attribute length must be equal to a given value.
+</p>
+</li>
+</ul></div>
+<div class="para"><p>The default error messages depend on the type of length validation being performed. You can personalize these messages, using the <tt>:wrong_length</tt>, <tt>:too_long</tt> and <tt>:too_short</tt> options and the <tt>%d</tt> format mask as a placeholder for the number corresponding to the length contraint being used. You can still use the <tt>:message</tt> option to specify an error message.</p></div>
+<div class="listingblock">
+<div class="content"><!-- Generator: GNU source-highlight 2.9
+by Lorenzo Bettini
+http://www.lorenzobettini.it
+http://www.gnu.org/software/src-highlite -->
+<pre><tt><span style="font-weight: bold"><span style="color: #0000FF">class</span></span> Person <span style="color: #990000">&lt;</span> ActiveRecord<span style="color: #990000">::</span>Base
+  validates_length_of <span style="color: #990000">:</span>bio<span style="color: #990000">,</span> <span style="color: #990000">:</span>too_long <span style="color: #990000">=&gt;</span> <span style="color: #FF0000">"you're writing too much. %d characters is the maximum allowed."</span>
+<span style="font-weight: bold"><span style="color: #0000FF">end</span></span>
+</tt></pre></div></div>
+<div class="para"><p>This helper has an alias called <tt>validates_size_of</tt>, it's the same helper with a different name. You can use it if you'd like to.</p></div>
+<h3 id="_the_tt_validates_numericallity_of_tt_helper">3.9. The <tt>validates_numericallity_of</tt> helper</h3>
+<div class="para"><p>This helper validates that your attributes have only numeric values. By default, it will match an optional sign followed by a integral or floating point number. Using the <tt>:integer_only</tt> option set to true, you can specify that only integral numbers are allowed.</p></div>
+<div class="para"><p>If you use <tt>:integer_only</tt> set to <tt>true</tt>, then it will use the <tt><span>/\A[+\-]?\d+\Z/</span></tt> regular expression to validate the attribute's value. Otherwise, it will try to convert the value using <tt>Kernel.Float</tt>.</p></div>
+<div class="listingblock">
+<div class="content"><!-- Generator: GNU source-highlight 2.9
+by Lorenzo Bettini
+http://www.lorenzobettini.it
+http://www.gnu.org/software/src-highlite -->
+<pre><tt><span style="font-weight: bold"><span style="color: #0000FF">class</span></span> Player <span style="color: #990000">&lt;</span> ActiveRecord<span style="color: #990000">::</span>Base
+  validates_numericallity_of <span style="color: #990000">:</span>points
+  validates_numericallity_of <span style="color: #990000">:</span>games_played<span style="color: #990000">,</span> <span style="color: #990000">:</span>integer_only <span style="color: #990000">=&gt;</span> <span style="font-weight: bold"><span style="color: #0000FF">true</span></span>
+<span style="font-weight: bold"><span style="color: #0000FF">end</span></span>
+</tt></pre></div></div>
+<div class="para"><p>The default error message for <tt>validates_numericallity_of</tt> is "<em>is not a number</em>".</p></div>
+<h3 id="_the_tt_validates_presence_of_tt_helper">3.10. The <tt>validates_presence_of</tt> helper</h3>
+<div class="para"><p>This helper validates that the attributes are not empty. It uses the <tt>blank?</tt> method to check if the value is either <tt>nil</tt> or an empty string (if the string has only spaces, it will still be considered empty).</p></div>
+<div class="listingblock">
+<div class="content"><!-- Generator: GNU source-highlight 2.9
+by Lorenzo Bettini
+http://www.lorenzobettini.it
+http://www.gnu.org/software/src-highlite -->
+<pre><tt><span style="font-weight: bold"><span style="color: #0000FF">class</span></span> Person <span style="color: #990000">&lt;</span> ActiveRecord<span style="color: #990000">::</span>Base
+  validates_presence_of <span style="color: #990000">:</span>name<span style="color: #990000">,</span> <span style="color: #990000">:</span>login<span style="color: #990000">,</span> <span style="color: #990000">:</span>email
+<span style="font-weight: bold"><span style="color: #0000FF">end</span></span>
+</tt></pre></div></div>
+<div class="admonitionblock">
+<table><tr>
+<td class="icon">
+<img src="./images/icons/note.png" alt="Note" />
+</td>
+<td class="content">If you want to be sure that an association is present, you'll need to test if the foreign key used to map the association is present, and not the associated object itself.</td>
+</tr></table>
+</div>
+<div class="listingblock">
+<div class="content"><!-- Generator: GNU source-highlight 2.9
+by Lorenzo Bettini
+http://www.lorenzobettini.it
+http://www.gnu.org/software/src-highlite -->
+<pre><tt><span style="font-weight: bold"><span style="color: #0000FF">class</span></span> LineItem <span style="color: #990000">&lt;</span> ActiveRecord<span style="color: #990000">::</span>Base
+  belongs_to <span style="color: #990000">:</span>order
+  validates_presence_of <span style="color: #990000">:</span>order_id
+<span style="font-weight: bold"><span style="color: #0000FF">end</span></span>
+</tt></pre></div></div>
+<div class="admonitionblock">
+<table><tr>
+<td class="icon">
+<img src="./images/icons/note.png" alt="Note" />
+</td>
+<td class="content">If you want to validate the presence of a boolean field (where the real values are true and false), you will want to use validates_inclusion_of :field_name, :in &#8658; [true, false] This is due to the way Object#blank? handles boolean values. false.blank? # &#8658; true</td>
+</tr></table>
+</div>
+<div class="para"><p>The default error message for <tt>validates_presence_of</tt> is "<em>can't be empty</em>".</p></div>
+<h3 id="_the_tt_validates_uniqueness_of_tt_helper">3.11. The <tt>validates_uniqueness_of</tt> helper</h3>
+<div class="para"><p>This helper validates that the attribute's value is unique right before the object gets saved. It does not create a uniqueness constraint directly into your database, so it may happen that two different database connections create two records with the same value for a column that you wish were unique. To avoid that, you must create an unique index in your database.</p></div>
+<div class="listingblock">
+<div class="content"><!-- Generator: GNU source-highlight 2.9
+by Lorenzo Bettini
+http://www.lorenzobettini.it
+http://www.gnu.org/software/src-highlite -->
+<pre><tt><span style="font-weight: bold"><span style="color: #0000FF">class</span></span> Account <span style="color: #990000">&lt;</span> ActiveRecord<span style="color: #990000">::</span>Base
+  validates_uniqueness_of <span style="color: #990000">:</span>email
+<span style="font-weight: bold"><span style="color: #0000FF">end</span></span>
+</tt></pre></div></div>
+<div class="para"><p>The validation happens by performing a SQL query into the model's table, searching for a record where the attribute that must be validated is equal to the value in the object being validated.</p></div>
+<div class="para"><p>There is a <tt>:scope</tt> option that you can use to specify other attributes that must be used to define uniqueness:</p></div>
+<div class="listingblock">
+<div class="content"><!-- Generator: GNU source-highlight 2.9
+by Lorenzo Bettini
+http://www.lorenzobettini.it
+http://www.gnu.org/software/src-highlite -->
+<pre><tt><span style="font-weight: bold"><span style="color: #0000FF">class</span></span> Holiday <span style="color: #990000">&lt;</span> ActiveRecord<span style="color: #990000">::</span>Base
+  validates_uniqueness_of <span style="color: #990000">:</span>name<span style="color: #990000">,</span> <span style="color: #990000">:</span>scope <span style="color: #990000">=&gt;</span> <span style="color: #990000">:</span>year<span style="color: #990000">,</span> <span style="color: #990000">:</span>message <span style="color: #990000">=&gt;</span> <span style="color: #FF0000">"Should happen once per year"</span>
+<span style="font-weight: bold"><span style="color: #0000FF">end</span></span>
+</tt></pre></div></div>
+<div class="para"><p>There is also a <tt>:case_sensitive</tt> option that you can use to define if the uniqueness contraint will be case sensitive or not. This option defaults to true.</p></div>
+<div class="listingblock">
+<div class="content"><!-- Generator: GNU source-highlight 2.9
+by Lorenzo Bettini
+http://www.lorenzobettini.it
+http://www.gnu.org/software/src-highlite -->
+<pre><tt><span style="font-weight: bold"><span style="color: #0000FF">class</span></span> Person <span style="color: #990000">&lt;</span> ActiveRecord<span style="color: #990000">::</span>Base
+  validates_uniqueness_of <span style="color: #990000">:</span>name<span style="color: #990000">,</span> <span style="color: #990000">:</span>case_sensitive <span style="color: #990000">=&gt;</span> <span style="font-weight: bold"><span style="color: #0000FF">false</span></span>
+<span style="font-weight: bold"><span style="color: #0000FF">end</span></span>
+</tt></pre></div></div>
+<div class="para"><p>The default error message for <tt>validates_uniqueness_of</tt> is "<em>has already been taken</em>".</p></div>
+</div>
+<h2 id="_common_validation_options">4. Common validation options</h2>
+<div class="sectionbody">
+<div class="para"><p>There are some common options that all the validation helpers can use. Here they are, except for the <tt>:if</tt> and <tt>:unless</tt> options, which we'll cover right at the next topic.</p></div>
+<h3 id="_the_tt_allow_nil_tt_option">4.1. The <tt>:allow_nil</tt> option</h3>
+<div class="para"><p>You may use the <tt>:allow_nil</tt> option everytime you just want to trigger a validation if the value being validated is not <tt>nil</tt>. You may be asking yourself if it makes any sense to use <tt>:allow_nil</tt> and <tt>validates_presence_of</tt> together. Well, it does. Remember, validation will be skipped only for <tt>nil</tt> attributes, but empty strings are not considered <tt>nil</tt>.</p></div>
+<div class="listingblock">
+<div class="content"><!-- Generator: GNU source-highlight 2.9
+by Lorenzo Bettini
+http://www.lorenzobettini.it
+http://www.gnu.org/software/src-highlite -->
+<pre><tt><span style="font-weight: bold"><span style="color: #0000FF">class</span></span> Coffee <span style="color: #990000">&lt;</span> ActiveRecord<span style="color: #990000">::</span>Base
+  validates_inclusion_of <span style="color: #990000">:</span>size<span style="color: #990000">,</span> <span style="color: #990000">:</span><span style="font-weight: bold"><span style="color: #0000FF">in</span></span> <span style="color: #990000">=&gt;</span> <span style="color: #990000">%</span>w<span style="color: #990000">(</span>small medium large<span style="color: #990000">),</span>
+    <span style="color: #990000">:</span>message <span style="color: #990000">=&gt;</span> <span style="color: #FF0000">"%s is not a valid size"</span><span style="color: #990000">,</span> <span style="color: #990000">:</span>allow_nil <span style="color: #990000">=&gt;</span> <span style="font-weight: bold"><span style="color: #0000FF">true</span></span>
+<span style="font-weight: bold"><span style="color: #0000FF">end</span></span>
+</tt></pre></div></div>
+<h3 id="_the_tt_message_tt_option">4.2. The <tt>:message</tt> option</h3>
+<div class="para"><p>As stated before, the <tt>:message</tt> option lets you specify the message that will be added to the <tt>errors</tt> collection when validation fails. When this option is not used, Active Record will use the respective default error message for each validation helper.</p></div>
+<h3 id="_the_tt_on_tt_option">4.3. The <tt>:on</tt> option</h3>
+<div class="para"><p>As stated before, the <tt>:on</tt> option lets you specify when the validation should happen. The default behaviour for all the built-in validation helpers is to be ran on save (both when you're creating a new record and when you're updating it). If you want to change it, you can use <tt>:on =<span>&gt;</span> :create</tt> to run the validation only when a new record is created or <tt>:on =<span>&gt;</span> :update</tt> to run the validation only when a record is updated.</p></div>
+<div class="listingblock">
+<div class="content"><!-- Generator: GNU source-highlight 2.9
+by Lorenzo Bettini
+http://www.lorenzobettini.it
+http://www.gnu.org/software/src-highlite -->
+<pre><tt><span style="font-weight: bold"><span style="color: #0000FF">class</span></span> Person <span style="color: #990000">&lt;</span> ActiveRecord<span style="color: #990000">::</span>Base
+  validates_uniqueness_of <span style="color: #990000">:</span>email<span style="color: #990000">,</span> <span style="color: #990000">:</span>on <span style="color: #990000">=&gt;</span> <span style="color: #990000">:</span>create <span style="font-style: italic"><span style="color: #9A1900"># =&gt; it will be possible to update email with a duplicated value</span></span>
+  validates_numericallity_of <span style="color: #990000">:</span>age<span style="color: #990000">,</span> <span style="color: #990000">:</span>on <span style="color: #990000">=&gt;</span> <span style="color: #990000">:</span>update <span style="font-style: italic"><span style="color: #9A1900"># =&gt; it will be possible to create the record with a 'non-numerical age'</span></span>
+  validates_presence_of <span style="color: #990000">:</span>name<span style="color: #990000">,</span> <span style="color: #990000">:</span>on <span style="color: #990000">=&gt;</span> <span style="color: #990000">:</span>save <span style="font-style: italic"><span style="color: #9A1900"># =&gt; that's the default</span></span>
+<span style="font-weight: bold"><span style="color: #0000FF">end</span></span>
+</tt></pre></div></div>
+</div>
+<h2 id="_conditional_validation">5. Conditional validation</h2>
+<div class="sectionbody">
+<div class="para"><p>Sometimes it will make sense to validate an object just when a given predicate is satisfied. You can do that by using the <tt>:if</tt> and <tt>:unless</tt> options, which can take a symbol, a string or a Ruby Proc. You may use the <tt>:if</tt> option when you want to specify when the validation <strong>should</strong> happen. If you want to specify when the validation <strong>should not</strong> happen, then you may use the <tt>:unless</tt> option.</p></div>
+<h3 id="_using_a_symbol_with_the_tt_if_tt_and_tt_unless_tt_options">5.1. Using a symbol with the <tt>:if</tt> and <tt>:unless</tt> options</h3>
+<div class="para"><p>You can associated the <tt>:if</tt> and <tt>:unless</tt> options with a symbol corresponding to the name of a method that will get called right before validation happens. This is the most commonly used option.</p></div>
+<div class="listingblock">
+<div class="content"><!-- Generator: GNU source-highlight 2.9
+by Lorenzo Bettini
+http://www.lorenzobettini.it
+http://www.gnu.org/software/src-highlite -->
+<pre><tt><span style="font-weight: bold"><span style="color: #0000FF">class</span></span> Order <span style="color: #990000">&lt;</span> ActiveRecord<span style="color: #990000">::</span>Base
+  validates_presence_of <span style="color: #990000">:</span>card_number<span style="color: #990000">,</span> <span style="color: #990000">:</span><span style="font-weight: bold"><span style="color: #0000FF">if</span></span> <span style="color: #990000">=&gt;</span> <span style="color: #990000">:</span>paid_with_card?
+
+  <span style="font-weight: bold"><span style="color: #0000FF">def</span></span> paid_with_card?
+    payment_type <span style="color: #990000">==</span> <span style="color: #FF0000">"card"</span>
+  <span style="font-weight: bold"><span style="color: #0000FF">end</span></span>
+<span style="font-weight: bold"><span style="color: #0000FF">end</span></span>
+</tt></pre></div></div>
+<h3 id="_using_a_string_with_the_tt_if_tt_and_tt_unless_tt_options">5.2. Using a string with the <tt>:if</tt> and <tt>:unless</tt> options</h3>
+<div class="para"><p>You can also use a string that will be evaluated using <tt>:eval</tt> and needs to contain valid Ruby code. You should use this option only when the string represents a really short condition.</p></div>
+<div class="listingblock">
+<div class="content"><!-- Generator: GNU source-highlight 2.9
+by Lorenzo Bettini
+http://www.lorenzobettini.it
+http://www.gnu.org/software/src-highlite -->
+<pre><tt><span style="font-weight: bold"><span style="color: #0000FF">class</span></span> Person <span style="color: #990000">&lt;</span> ActiveRecord<span style="color: #990000">::</span>Base
+  validates_presence_of <span style="color: #990000">:</span>surname<span style="color: #990000">,</span> <span style="color: #990000">:</span><span style="font-weight: bold"><span style="color: #0000FF">if</span></span> <span style="color: #990000">=&gt;</span> <span style="color: #FF0000">"name.nil?"</span>
+<span style="font-weight: bold"><span style="color: #0000FF">end</span></span>
+</tt></pre></div></div>
+<h3 id="_using_a_proc_object_with_the_tt_if_tt_and_tt_unless_tt_options">5.3. Using a Proc object with the <tt>:if</tt> and :<tt>unless</tt> options</h3>
+<div class="para"><p>Finally, it's possible to associate <tt>:if</tt> and <tt>:unless</tt> with a Ruby Proc object which will be called. Using a Proc object can give you the hability to write a condition that will be executed only when the validation happens and not when your code is loaded by the Ruby interpreter. This option is best suited when writing short validation methods, usually one-liners.</p></div>
+<div class="listingblock">
+<div class="content"><!-- Generator: GNU source-highlight 2.9
+by Lorenzo Bettini
+http://www.lorenzobettini.it
+http://www.gnu.org/software/src-highlite -->
+<pre><tt><span style="font-weight: bold"><span style="color: #0000FF">class</span></span> Account <span style="color: #990000">&lt;</span> ActiveRecord<span style="color: #990000">::</span>Base
+  validates_confirmation_of <span style="color: #990000">:</span>password<span style="color: #990000">,</span> <span style="color: #990000">:</span><span style="font-weight: bold"><span style="color: #0000FF">unless</span></span> <span style="color: #990000">=&gt;</span> Proc<span style="color: #990000">.</span>new <span style="color: #FF0000">{</span> <span style="color: #990000">|</span>a<span style="color: #990000">|</span> a<span style="color: #990000">.</span>password<span style="color: #990000">.</span>blank? <span style="color: #FF0000">}</span>
+<span style="font-weight: bold"><span style="color: #0000FF">end</span></span>
+</tt></pre></div></div>
+</div>
+<h2 id="_writing_your_own_validation_methods">6. Writing your own validation methods</h2>
+<div class="sectionbody">
+<div class="para"><p>When the built-in validation helpers are not enough for your needs, you can write your own validation methods, by implementing one or more of the <tt>validate</tt>, <tt>validate_on_create</tt> or <tt>validate_on_update</tt> methods. As the names of the methods states, the right method to implement depends on when you want the validations to be ran. The meaning of valid is still the same: to make an object invalid you just need to add a message to it's <tt>errors</tt> collection.</p></div>
+<div class="listingblock">
+<div class="content"><!-- Generator: GNU source-highlight 2.9
+by Lorenzo Bettini
+http://www.lorenzobettini.it
+http://www.gnu.org/software/src-highlite -->
+<pre><tt><span style="font-weight: bold"><span style="color: #0000FF">class</span></span> Invoice <span style="color: #990000">&lt;</span> ActiveRecord<span style="color: #990000">::</span>Base
+  <span style="font-weight: bold"><span style="color: #0000FF">def</span></span> validate_on_create
+    errors<span style="color: #990000">.</span>add<span style="color: #990000">(:</span>expiration_date<span style="color: #990000">,</span> <span style="color: #FF0000">"can't be in the past"</span><span style="color: #990000">)</span> <span style="font-weight: bold"><span style="color: #0000FF">if</span></span> <span style="color: #990000">!</span>expiration_date<span style="color: #990000">.</span>blank? <span style="font-weight: bold"><span style="color: #0000FF">and</span></span> expiration_date <span style="color: #990000">&lt;</span> Date<span style="color: #990000">.</span>today
+  <span style="font-weight: bold"><span style="color: #0000FF">end</span></span>
+<span style="font-weight: bold"><span style="color: #0000FF">end</span></span>
+</tt></pre></div></div>
+<div class="para"><p>If your validation rules are too complicated and you want to break it in small methods, you can implement all of them and call one of <tt>validate</tt>, <tt>validate_on_create</tt> or <tt>validate_on_update</tt> methods, passing it the symbols for the methods' names.</p></div>
+<div class="listingblock">
+<div class="content"><!-- Generator: GNU source-highlight 2.9
+by Lorenzo Bettini
+http://www.lorenzobettini.it
+http://www.gnu.org/software/src-highlite -->
+<pre><tt><span style="font-weight: bold"><span style="color: #0000FF">class</span></span> Invoice <span style="color: #990000">&lt;</span> ActiveRecord<span style="color: #990000">::</span>Base
+  validate <span style="color: #990000">:</span>expiration_date_cannot_be_in_the_past<span style="color: #990000">,</span> <span style="color: #990000">:</span>discount_cannot_be_more_than_total_value
+
+  <span style="font-weight: bold"><span style="color: #0000FF">def</span></span> expiration_date_cannot_be_in_the_past
+    errors<span style="color: #990000">.</span>add<span style="color: #990000">(:</span>expiration_date<span style="color: #990000">,</span> <span style="color: #FF0000">"can't be in the past"</span><span style="color: #990000">)</span> <span style="font-weight: bold"><span style="color: #0000FF">if</span></span> <span style="color: #990000">!</span>expiration_date<span style="color: #990000">.</span>blank? <span style="font-weight: bold"><span style="color: #0000FF">and</span></span> expiration_date <span style="color: #990000">&lt;</span> Date<span style="color: #990000">.</span>today
+  <span style="font-weight: bold"><span style="color: #0000FF">end</span></span>
+
+  <span style="font-weight: bold"><span style="color: #0000FF">def</span></span> discount_cannot_be_greater_than_total_value
+    errors<span style="color: #990000">.</span>add<span style="color: #990000">(:</span>discount<span style="color: #990000">,</span> <span style="color: #FF0000">"can't be greater than total value"</span><span style="color: #990000">)</span> <span style="font-weight: bold"><span style="color: #0000FF">unless</span></span> discount <span style="color: #990000">&lt;=</span> total_value
+  <span style="font-weight: bold"><span style="color: #0000FF">end</span></span>
+<span style="font-weight: bold"><span style="color: #0000FF">end</span></span>
+</tt></pre></div></div>
+</div>
+<h2 id="_changelog">7. Changelog</h2>
+<div class="sectionbody">
+<div class="para"><p><a href="http://rails.lighthouseapp.com/projects/16213/tickets/26-active-record-validations-and-callbacks">http://rails.lighthouseapp.com/projects/16213/tickets/26-active-record-validations-and-callbacks</a></p></div>
+</div>
+
+		</div>
+	</div>
+</body>
+</html>

@@ -42,7 +42,7 @@ class PageCachingTestController < ActionController::Base
   end
 end
 
-class PageCachingTest < Test::Unit::TestCase
+class PageCachingTest < ActionController::TestCase
   def setup
     ActionController::Base.perform_caching = true
 
@@ -222,7 +222,7 @@ class ActionCachingMockController
   end
 end
 
-class ActionCacheTest < Test::Unit::TestCase
+class ActionCacheTest < ActionController::TestCase
   def setup
     reset!
     FileUtils.mkdir_p(FILE_STORE_PATH)
@@ -291,11 +291,13 @@ class ActionCacheTest < Test::Unit::TestCase
     ActionController::Base.use_accept_header = old_use_accept_header
   end
 
-  def test_action_cache_with_store_options
-    MockTime.expects(:now).returns(12345).once
-    @controller.expects(:read_fragment).with('hostname.com/action_caching_test', :expires_in => 1.hour).once
-    @controller.expects(:write_fragment).with('hostname.com/action_caching_test', '12345.0', :expires_in => 1.hour).once
-    get :index
+  uses_mocha 'test action cache' do
+    def test_action_cache_with_store_options
+      MockTime.expects(:now).returns(12345).once
+      @controller.expects(:read_fragment).with('hostname.com/action_caching_test', :expires_in => 1.hour).once
+      @controller.expects(:write_fragment).with('hostname.com/action_caching_test', '12345.0', :expires_in => 1.hour).once
+      get :index
+    end
   end
 
   def test_action_cache_with_custom_cache_path
@@ -469,7 +471,7 @@ class FragmentCachingTestController < ActionController::Base
   def some_action; end;
 end
 
-class FragmentCachingTest < Test::Unit::TestCase
+class FragmentCachingTest < ActionController::TestCase
   def setup
     ActionController::Base.perform_caching = true
     @store = ActiveSupport::Cache::MemoryStore.new
@@ -525,7 +527,7 @@ class FragmentCachingTest < Test::Unit::TestCase
   def test_write_fragment_with_caching_disabled
     assert_nil @store.read('views/name')
     ActionController::Base.perform_caching = false
-    assert_equal nil, @controller.write_fragment('name', 'value')
+    assert_equal 'value', @controller.write_fragment('name', 'value')
     assert_nil @store.read('views/name')
   end
 
@@ -601,7 +603,7 @@ class FunctionalCachingController < ActionController::Base
   end
 end
 
-class FunctionalFragmentCachingTest < Test::Unit::TestCase
+class FunctionalFragmentCachingTest < ActionController::TestCase
   def setup
     ActionController::Base.perform_caching = true
     @store = ActiveSupport::Cache::MemoryStore.new

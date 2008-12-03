@@ -271,9 +271,9 @@ if ActiveRecord::Base.connection.supports_migrations?
       Person.connection.drop_table table_name rescue nil
     end
 
-    # SQL Server, Sybase, and SQLite3 will not allow you to add a NOT NULL
+    # Sybase, and SQLite3 will not allow you to add a NOT NULL
     # column to a table without a default value.
-    unless current_adapter?(:SQLServerAdapter, :SybaseAdapter, :SQLiteAdapter)
+    unless current_adapter?(:SybaseAdapter, :SQLiteAdapter)
       def test_add_column_not_null_without_default
         Person.connection.create_table :testings do |t|
           t.column :foo, :string
@@ -410,7 +410,7 @@ if ActiveRecord::Base.connection.supports_migrations?
       assert_equal Fixnum, bob.age.class
       assert_equal Time, bob.birthday.class
 
-      if current_adapter?(:SQLServerAdapter, :OracleAdapter, :SybaseAdapter)
+      if current_adapter?(:OracleAdapter, :SybaseAdapter)
         # Sybase, and Oracle don't differentiate between date/time
         assert_equal Time, bob.favorite_day.class
       else
@@ -851,10 +851,6 @@ if ActiveRecord::Base.connection.supports_migrations?
         # - SQLite3 stores a float, in violation of SQL
         assert_kind_of BigDecimal, b.value_of_e
         assert_equal BigDecimal("2.71828182845905"), b.value_of_e
-      elsif current_adapter?(:SQLServer)
-        # - SQL Server rounds instead of truncating
-        assert_kind_of Fixnum, b.value_of_e
-        assert_equal 3, b.value_of_e
       else
         # - SQL standard is an integer
         assert_kind_of Fixnum, b.value_of_e

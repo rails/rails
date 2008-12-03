@@ -1,37 +1,31 @@
-require 'active_support/json/variable'
-require 'active_support/json/encoders/object' # Require explicitly for rdoc.
-Dir["#{File.dirname(__FILE__)}/encoders/**/*.rb"].each do |file|
-  basename = File.basename(file, '.rb')
-  unless basename == 'object'
-    require "active_support/json/encoders/#{basename}"
-  end
-end
-
 module ActiveSupport
   module JSON
     class CircularReferenceError < StandardError
     end
 
-    class << self
-      REFERENCE_STACK_VARIABLE = :json_reference_stack #:nodoc:
-
-      # Converts a Ruby object into a JSON string.
-      def encode(value, options = {})
-        raise_on_circular_reference(value) do
-          value.send(:to_json, options)
-        end
-      end
-
-      protected
-        def raise_on_circular_reference(value) #:nodoc:
-          stack = Thread.current[REFERENCE_STACK_VARIABLE] ||= []
-          raise CircularReferenceError, 'object references itself' if
-            stack.include? value
-          stack << value
-          yield
-        ensure
-          stack.pop
-        end
+    # Converts a Ruby object into a JSON string.
+    def self.encode(value, options = {})
+      seen = (options[:seen] ||= [])
+      raise CircularReferenceError, 'object references itself' if seen.include?(value)
+      seen << value
+      value.send(:to_json, options)
+    ensure
+      seen.pop
     end
   end
 end
+
+require 'active_support/json/variable'
+require 'active_support/json/encoders/date'
+require 'active_support/json/encoders/date_time'
+require 'active_support/json/encoders/enumerable'
+require 'active_support/json/encoders/false_class'
+require 'active_support/json/encoders/hash'
+require 'active_support/json/encoders/nil_class'
+require 'active_support/json/encoders/numeric'
+require 'active_support/json/encoders/object'
+require 'active_support/json/encoders/regexp'
+require 'active_support/json/encoders/string'
+require 'active_support/json/encoders/symbol'
+require 'active_support/json/encoders/time'
+require 'active_support/json/encoders/true_class'

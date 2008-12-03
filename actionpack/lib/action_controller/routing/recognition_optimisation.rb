@@ -148,7 +148,7 @@ module ActionController
               end
               nil
             end
-          }, __FILE__, __LINE__
+          }, '(recognize_optimized)', 1
         end
 
         def clear_recognize_optimized!

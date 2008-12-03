@@ -5,11 +5,8 @@ module ActiveModel
 
       def initialize(name, options = {})
         @name = name
-        machine = options.delete(:machine)
-        if machine
-          machine.klass.send(:define_method, "#{name}?") do
-            current_state.to_s == name.to_s
-          end
+        if machine = options.delete(:machine)
+          machine.klass.define_state_query_method(name)
         end
         update(options)
       end

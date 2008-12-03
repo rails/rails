@@ -915,6 +915,8 @@ EOF
   def test_multipart_with_template_path_with_dots
     mail = FunkyPathMailer.create_multipart_with_template_path_with_dots(@recipient)
     assert_equal 2, mail.parts.length
+    assert_equal 'text/plain', mail.parts[0].content_type
+    assert_equal 'utf-8', mail.parts[0].charset
   end
 
   def test_custom_content_type_attributes
@@ -937,6 +939,20 @@ EOF
   def test_body_is_stored_as_an_ivar
     mail = TestMailer.create_body_ivar(@recipient)
     assert_equal "body: foo\nbar: baz", mail.body
+  end
+
+  def test_starttls_is_enabled_if_supported
+    MockSMTP.any_instance.expects(:respond_to?).with(:enable_starttls_auto).returns(true)
+    MockSMTP.any_instance.expects(:enable_starttls_auto)
+    ActionMailer::Base.delivery_method = :smtp
+    TestMailer.deliver_signed_up(@recipient)
+  end
+
+  def test_starttls_is_disabled_if_not_supported
+    MockSMTP.any_instance.expects(:respond_to?).with(:enable_starttls_auto).returns(false)
+    MockSMTP.any_instance.expects(:enable_starttls_auto).never
+    ActionMailer::Base.delivery_method = :smtp
+    TestMailer.deliver_signed_up(@recipient)
   end
 end
 
@@ -1030,5 +1046,17 @@ class RespondToTest < Test::Unit::TestCase
 
   def test_should_not_respond_to_deliver_with_template_suffix_if_it_begins_with_a_digit
     assert !RespondToMailer.respond_to?(:deliver_1_template)
+  end
+
+  def test_should_not_respond_to_method_where_deliver_is_not_a_suffix
+    assert !RespondToMailer.respond_to?(:foo_deliver_template)
+  end
+
+  def test_should_still_raise_exception_with_expected_message_when_calling_an_undefined_method
+    error = assert_raises NoMethodError do
+      RespondToMailer.not_a_method
+    end
+
+    assert_match /undefined method.*not_a_method/, error.message
   end
 end

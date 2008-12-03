@@ -5,8 +5,8 @@ require 'config'
 require 'test/unit'
 
 require 'active_record'
-require 'active_record/fixtures'
 require 'active_record/test_case'
+require 'active_record/fixtures'
 require 'connection'
 
 # Show backtraces for deprecated behavior for quicker cleanup.
@@ -48,15 +48,22 @@ class << ActiveRecord::Base
 end
 
 unless ENV['FIXTURE_DEBUG']
-  module Test #:nodoc:
-    module Unit #:nodoc:
-      class << TestCase #:nodoc:
-        def try_to_load_dependency_with_silence(*args)
-          ActiveRecord::Base.logger.silence { try_to_load_dependency_without_silence(*args)}
-        end
-
-        alias_method_chain :try_to_load_dependency, :silence
-      end
+  module ActiveRecord::TestFixtures::ClassMethods
+    def try_to_load_dependency_with_silence(*args)
+      ActiveRecord::Base.logger.silence { try_to_load_dependency_without_silence(*args)}
     end
+
+    alias_method_chain :try_to_load_dependency, :silence
+  end
+end
+
+class ActiveSupport::TestCase
+  include ActiveRecord::TestFixtures
+  self.fixture_path = FIXTURES_ROOT
+  self.use_instantiated_fixtures  = false
+  self.use_transactional_fixtures = true
+
+  def create_fixtures(*table_names, &block)
+    Fixtures.create_fixtures(ActiveSupport::TestCase.fixture_path, table_names, {}, &block)
   end
 end

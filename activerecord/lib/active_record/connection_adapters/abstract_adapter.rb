@@ -3,6 +3,7 @@ require 'date'
 require 'bigdecimal'
 require 'bigdecimal/util'
 
+# TODO: Autoload these files
 require 'active_record/connection_adapters/abstract/schema_definitions'
 require 'active_record/connection_adapters/abstract/schema_statements'
 require 'active_record/connection_adapters/abstract/database_statements'
@@ -31,7 +32,7 @@ module ActiveRecord
       include QueryCache
       include ActiveSupport::Callbacks
       define_callbacks :checkout, :checkin
-      checkout :reset!
+
       @@row_even = true
 
       def initialize(connection, logger = nil) #:nodoc:
@@ -131,9 +132,8 @@ module ActiveRecord
       end
 
       # Returns true if its safe to reload the connection between requests for development mode.
-      # This is not the case for Ruby/MySQL and it's not necessary for any adapters except SQLite.
       def requires_reloading?
-        false
+        true
       end
 
       # Checks whether the connection to the database is still active (i.e. not stale).

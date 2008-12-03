@@ -1,15 +1,17 @@
 == Session ==
 
-Your application has a session for each user in which you can store small amounts of data that will be persisted between requests. The session is only available in the controller and can use one of a number of different storage mechanisms:
+Your application has a session for each user in which you can store small amounts of data that will be persisted between requests. The session is only available in the controller and the view and can use one of a number of different storage mechanisms:
 
  * CookieStore - Stores everything on the client.
- * DRBStore - Stores the data on a DRb client.
- * MemCacheStore - Stores the data in MemCache.
+ * DRbStore - Stores the data on a DRb server.
+ * MemCacheStore - Stores the data in a memcache.
  * ActiveRecordStore - Stores the data in a database using Active Record.
 
-All session stores store the session id in a cookie - there is no other way of passing it to the server. Most stores also use this key to locate the session data on the server.
+All session stores use a cookie - this is required and Rails does not allow any part of the session to be passed in any other way (e.g. you can't use the query string to pass a session ID) because of security concerns (it's easier to hijack a session when the ID is part of the URL).
 
-The default and recommended store, the Cookie Store, does not store session data on the server, but in the cookie itself. The data is cryptographically signed to make it tamper-proof, but it is not encrypted, so anyone with access to it can read its contents. It can only store about 4kB of data - much less than the others - but this is usually enough. Storing large amounts of data is discouraged no matter which session store your application uses. Expecially discouraged is storing complex objects (anything other than basic Ruby objects, the primary example being model instances) in the session, as the server might not be able to reassemble them between requests, which will result in an error. The Cookie Store has the added advantage that it does not require any setting up beforehand - Rails will generate a "secret key" which will be used to sign the cookie when you create the application.
+Most stores use a cookie to store the session ID which is then used to look up the session data on the server. The default and recommended store, the CookieStore, does not store session data on the server, but in the cookie itself. The data is cryptographically signed to make it tamper-proof, but it is not encrypted, so anyone with access to it can read its contents but not edit it (Rails will not accept it if it has been edited). It can only store about 4kB of data - much less than the others - but this is usually enough. Storing large amounts of data is discouraged no matter which session store your application uses. You should especially avoid storing complex objects (anything other than basic Ruby objects, the most common example being model instances) in the session, as the server might not be able to reassemble them between requests, which will result in an error. The CookieStore has the added advantage that it does not require any setting up beforehand - Rails will generate a "secret key" which will be used to sign the cookie when you create the application.
+
+Read more about session storage in the link:../security.html[Security Guide].
 
 If you need a different session storage mechanism, you can change it in the `config/environment.rb` file:
 
@@ -19,9 +21,9 @@ If you need a different session storage mechanism, you can change it in the `con
 config.action_controller.session_store = :active_record_store
 ------------------------------------------
 
-=== Disabling the session ===
+=== Disabling the Session ===
 
-Sometimes you don't need a session, and you can turn it off to avoid the unnecessary overhead. To do this, use the link:http://api.rubyonrails.org/classes/ActionController/SessionManagement/ClassMethods.html#M000649[session] class method in your controller:
+Sometimes you don't need a session. In this case, you can turn it off to avoid the unnecessary overhead. To do this, use the `session` class method in your controller:
 
 [source, ruby]
 ------------------------------------------
@@ -41,7 +43,7 @@ class LoginsController < ActionController::Base
 end
 ------------------------------------------
 
-Or even a single action:
+Or even for specified actions:
 
 [source, ruby]
 ------------------------------------------
@@ -50,11 +52,11 @@ class ProductsController < ActionController::Base
 end
 ------------------------------------------
 
-=== Accessing the session ===
+=== Accessing the Session ===
 
 In your controller you can access the session through the `session` instance method.
 
-NOTE: There are two `session` methods, the class and the instance method. The class method which is described above is used to turn the session on and off while the instance method described below is used to access session values. The class method is used outside of method definitions while the instance methods is used inside methods, in actions or filters.
+NOTE: There are two `session` methods, the class and the instance method. The class method which is described above is used to turn the session on and off while the instance method described below is used to access session values.
 
 Session values are stored using key/value pairs like a hash:
 
@@ -65,7 +67,7 @@ class ApplicationController < ActionController::Base
 private
 
   # Finds the User with the ID stored in the session with the key :current_user_id
-  # This is a common way to do user login in a Rails application; logging in sets the
+  # This is a common way to handle user login in a Rails application; logging in sets the
   # session value and logging out removes it.
   def current_user
     @_current_user ||= session[:current_user_id] && User.find(session[:current_user_id])
@@ -108,11 +110,11 @@ class LoginsController < ApplicationController
 end
 ------------------------------------------
 
-To reset the entire session, use link:http://api.rubyonrails.org/classes/ActionController/Base.html#M000855[reset_session].
+To reset the entire session, use `reset_session`.
 
 === The flash ===
 
-The flash is a special part of the session which is cleared with each request. This means that values stored there will only be available in the next request, which is useful for storing error messages etc. It is accessed in much the same way as the session, like a hash. Let's use the act of logging out as an example. The controller can set a message which will be displayed to the user on the next request:
+The flash is a special part of the session which is cleared with each request. This means that values stored there will only be available in the next request, which is useful for storing error messages etc. It is accessed in much the same way as the session, like a hash. Let's use the act of logging out as an example. The controller can send a message which will be displayed to the user on the next request:
 
 [source, ruby]
 ------------------------------------------
@@ -127,7 +129,7 @@ class LoginsController < ApplicationController
 end
 ------------------------------------------
 
-The `destroy` action redirects to the application's `root_url`, where the message will be displayed. Note that it's entirely up to the next action to decide what, if anything, it will do with what the previous action put in the flash. It's conventional to a display eventual errors or notices from the flash in the application's layout:
+The `destroy` action redirects to the application's `root_url`, where the message will be displayed. Note that it's entirely up to the next action to decide what, if anything, it will do with what the previous action put in the flash. It's conventional to display eventual errors or notices from the flash in the application's layout:
 
 ------------------------------------------
 <html>
@@ -163,7 +165,7 @@ class MainController < ApplicationController
 end
 ------------------------------------------
 
-==== flash.now ====
+==== +flash.now+ ====
 
 By default, adding values to the flash will make them available to the next request, but sometimes you may want to access those values in the same request. For example, if the `create` action fails to save a resource and you render the `new` template directly, that's not going to result in a new request, but you may still want to display a message using the flash. To do this, you can use `flash.now` in the same way you use the normal `flash`:
 

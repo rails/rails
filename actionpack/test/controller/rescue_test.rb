@@ -291,24 +291,6 @@ class RescueControllerTest < ActionController::TestCase
     assert_equal 'template_error',    templates[ActionView::TemplateError.name]
   end
 
-  def test_clean_backtrace
-    with_rails_root nil do
-      # No action if RAILS_ROOT isn't set.
-      cleaned = @controller.send(:clean_backtrace, @exception)
-      assert_equal @exception.backtrace, cleaned
-    end
-
-    with_rails_root Dir.pwd do
-      # RAILS_ROOT is removed from backtrace.
-      cleaned = @controller.send(:clean_backtrace, @exception)
-      expected = @exception.backtrace.map { |line| line.sub(RAILS_ROOT, '') }
-      assert_equal expected, cleaned
-
-      # No action if backtrace is nil.
-      assert_nil @controller.send(:clean_backtrace, Exception.new)
-    end
-  end
-
   def test_not_implemented
     with_all_requests_local false do
       with_rails_public_path(".") do

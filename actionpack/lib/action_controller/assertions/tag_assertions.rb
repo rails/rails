@@ -1,6 +1,3 @@
-require 'rexml/document'
-require 'html/document'
-
 module ActionController
   module Assertions
     # Pair of assertions to testing elements in the HTML output of the response.

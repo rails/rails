@@ -40,6 +40,7 @@ class ResourceGenerator < Rails::Generator::NamedBase
       m.directory(File.join('app/views', controller_class_path, controller_file_name))
       m.directory(File.join('test/functional', controller_class_path))
       m.directory(File.join('test/unit', class_path))
+      m.directory(File.join('test/unit/helpers', class_path))
 
       m.dependency 'model', [name] + @args, :collision => :skip
 
@@ -49,6 +50,7 @@ class ResourceGenerator < Rails::Generator::NamedBase
 
       m.template('functional_test.rb', File.join('test/functional', controller_class_path, "#{controller_file_name}_controller_test.rb"))
       m.template('helper.rb',          File.join('app/helpers',     controller_class_path, "#{controller_file_name}_helper.rb"))
+      m.template('helper_test.rb',     File.join('test/unit/helpers',    controller_class_path, "#{controller_file_name}_helper_test.rb"))
 
       m.route_resources controller_file_name
     end

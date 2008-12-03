@@ -1,6 +1,6 @@
 require 'abstract_unit'
 
-class SanitizerTest < Test::Unit::TestCase
+class SanitizerTest < ActionController::TestCase
   def setup
     @sanitizer = nil # used by assert_sanitizer
   end
@@ -251,6 +251,10 @@ class SanitizerTest < Test::Unit::TestCase
 
   def test_should_sanitize_unterminated_cdata_section
     assert_sanitized "<![CDATA[<span>neverending...", "&lt;![CDATA[&lt;span>neverending...]]>"
+  end
+
+  def test_should_not_mangle_urls_with_ampersand
+     assert_sanitized %{<a href=\"http://www.domain.com?var1=1&amp;var2=2\">my link</a>}
   end
 
 protected
