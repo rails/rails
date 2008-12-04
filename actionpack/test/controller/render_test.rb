@@ -255,6 +255,12 @@ class TestController < ActionController::Base
     render :inline => "Hello world <%= helper_method_to_render_to_string :partial => 'test/partial_with_only_html_version' %>"
   end
 
+  def render_implicit_html_template
+  end
+
+  def render_explicit_html_template
+  end
+
   def formatted_html_erb
   end
 
@@ -945,6 +951,24 @@ class RenderTest < ActionController::TestCase
   def test_rendering_html_only_partial_within_inline_with_js
     get :render_html_only_partial_within_inline, :format => :js
     assert_equal "Hello world partial with only html version", @response.body
+  end
+
+  def test_render_in_an_rjs_template_should_pick_html_templates_when_available
+    [:js, "js"].each do |format|
+      assert_nothing_raised do
+        get :render_implicit_html_template, :format => format
+        assert_equal %(document.write("Hello world\\n");), @response.body
+      end
+    end
+  end
+
+  def test_explicitly_rendering_an_html_template_with_implicit_html_template_renders_should_be_possible_from_an_rjs_template
+    [:js, "js"].each do |format|
+      assert_nothing_raised do
+        get :render_explicit_html_template, :format => format
+        assert_equal %(document.write("Hello world\\n");), @response.body
+      end
+    end
   end
 
   def test_should_render_formatted_template
