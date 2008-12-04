@@ -182,12 +182,20 @@ module ActionController
       end
 
       def failsafe_rescue(exception)
-        self.class.failsafe_response(@output, '500 Internal Server Error', exception) do
-          if @controller ||= (::ApplicationController rescue Base)
-            @controller.process_with_exception(@request, @response, exception).out(@output)
-          else
-            raise exception
+        if @test_request
+          process_with_exception(exception)
+        else
+          self.class.failsafe_response(@output, '500 Internal Server Error', exception) do
+            process_with_exception(exception)
           end
+        end
+      end
+
+      def process_with_exception(exception)
+        if @controller ||= (::ApplicationController rescue Base)
+          @controller.process_with_exception(@request, @response, exception).out(@output)
+        else
+          raise exception
         end
       end
   end
