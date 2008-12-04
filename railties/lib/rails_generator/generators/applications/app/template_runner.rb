@@ -258,11 +258,14 @@ module Rails
     # ==== Example
     #
     #   rake("db:migrate")
-    #   rake("db:migrate", "production")
+    #   rake("db:migrate", :env => "production")
+    #   rake("gems:install", :sudo => true)
     #
-    def rake(command, env = 'development')
+    def rake(command, options = {})
       puts "running rake task #{command}"
-      in_root { `rake #{command} RAILS_ENV=#{env}` }
+      env = options[:env] || 'development'
+      sudo = options[:sudo] ? 'sudo ' : ''
+      in_root { `#{sudo}rake #{command} RAILS_ENV=#{env}` }
     end
 
     # Just run the capify command in root
