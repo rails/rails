@@ -96,7 +96,7 @@ module ActionController
 
     def initialize(output = $stdout, request = nil, response = nil)
       @output, @request, @response = output, request, response
-      @app = @@middleware.build(lambda { |env| self._call(env) })
+      @app = @@middleware.build(lambda { |env| self.dup._call(env) })
     end
 
     def dispatch_unlocked
