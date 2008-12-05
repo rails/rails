@@ -41,12 +41,20 @@ module ActionView #:nodoc:
 
     class Path #:nodoc:
       attr_reader :path, :paths
-      delegate :to_s, :to_str, :hash, :inspect, :to => :path
+      delegate :hash, :inspect, :to => :path
 
       def initialize(path, load = false)
         raise ArgumentError, "path already is a Path class" if path.is_a?(Path)
         @path = path.freeze
         reload! if load
+      end
+
+      def to_s
+        if defined?(RAILS_ROOT)
+          path.to_s.sub(/^#{Regexp.escape(File.expand_path(RAILS_ROOT))}\//, '')
+        else
+          path.to_s
+        end
       end
 
       def ==(path)
