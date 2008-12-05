@@ -257,7 +257,8 @@ module ActionController
             "CONTENT_LENGTH" => data ? data.length.to_s : nil,
             "HTTP_COOKIE"    => encode_cookies,
             "HTTPS"          => https? ? "on" : "off",
-            "HTTP_ACCEPT"    => accept
+            "HTTP_ACCEPT"    => accept,
+            "action_controller.test" => true
           )
 
           (headers || {}).each do |key, value|
@@ -273,7 +274,7 @@ module ActionController
           ActionController::Base.clear_last_instantiation!
 
           env['rack.input'] = data.is_a?(IO) ? data : StringIO.new(data || '')
-          @status, @headers, result_body = ActionController::Dispatcher.new.mark_as_test_request!.call(env)
+          @status, @headers, result_body = ActionController::Dispatcher.new.call(env)
           @request_count += 1
 
           @controller = ActionController::Base.last_instantiation

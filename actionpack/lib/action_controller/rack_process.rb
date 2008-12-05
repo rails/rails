@@ -164,7 +164,7 @@ end_msg
       @status || super
     end
 
-    def out(output = $stdout, &block)
+    def out(&block)
       # Nasty hack because CGI sessions are closed after the normal
       # prepare! statement
       set_cookies!
