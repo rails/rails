@@ -57,16 +57,22 @@ module Rails
     end
 
     # Install a plugin.  You must provide either a Subversion url or Git url.
+    # For a Git-hosted plugin, you can specify if it should be added as a submodule instead of cloned.
     #
     # ==== Examples
     #
     #   plugin 'restful-authentication', :git => 'git://github.com/technoweenie/restful-authentication.git'
+    #   plugin 'restful-authentication', :git => 'git://github.com/technoweenie/restful-authentication.git', :submodule => true
     #   plugin 'restful-authentication', :svn => 'svn://svnhub.com/technoweenie/restful-authentication/trunk'
     #
     def plugin(name, options)
       puts "installing plugin #{name}"
 
-      if options[:git] || options[:svn]
+      if options[:git] && options[:submodule]
+        in_root do
+          Git.run("submodule add #{options[:git]} vendor/plugins/#{name}")
+        end
+      elsif options[:git] || options[:svn]
         in_root do
           `script/plugin install #{options[:svn] || options[:git]}`
         end
