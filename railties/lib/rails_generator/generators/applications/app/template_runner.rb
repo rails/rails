@@ -109,13 +109,13 @@ module Rails
     #   git :add => "onefile.rb", :rm => "badfile.cxx"
     #
     def git(command = {})
-      puts "running git #{command}"
-
       in_root do
         if command.is_a?(Symbol)
+          puts "running git #{command}"
           Git.run(command.to_s)
         else
           command.each do |command, options|
+            puts "running git #{command} #{options}"
             Git.run("#{command} #{options}")
           end
         end
