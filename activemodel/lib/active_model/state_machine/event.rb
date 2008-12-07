@@ -1,3 +1,5 @@
+require 'active_model/state_machine/state_transition'
+
 module ActiveModel
   module StateMachine
     class Event

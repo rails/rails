@@ -1,3 +1,10 @@
+*2.3.0 [Edge]*
+
+* Fixed RFC-2045 quoted-printable bug #1421 [squadette]
+
+* Fixed that no body charset would be set when there are attachments present #740 [Paweł Kondzior]
+
+
 *2.2.1 [RC2] (November 14th, 2008)*
 
 * Turn on STARTTLS if it is available in Net::SMTP (added in Ruby 1.8.7) and the SMTP server supports it (This is required for Gmail's SMTP server) #1336 [Grant Hollingworth]

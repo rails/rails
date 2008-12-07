@@ -1,3 +1,5 @@
+require 'active_support/dependencies'
+
 module ActionMailer
   module Helpers #:nodoc:
     def self.included(base) #:nodoc:

@@ -34,6 +34,8 @@ module ActionController
       def segment_for(string)
         segment =
           case string
+            when  /\A\.(:format)?\// 
+              OptionalFormatSegment.new
             when /\A:(\w+)/
               key = $1.to_sym
               key == :controller ? ControllerSegment.new(key) : DynamicSegment.new(key)

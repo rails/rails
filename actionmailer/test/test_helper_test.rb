@@ -36,7 +36,7 @@ class TestHelperMailerTest < ActionMailer::TestCase
   end
 
   def test_encode
-    assert_equal "=?utf-8?Q?=0aasdf=0a?=", encode("\nasdf\n")
+    assert_equal "=?utf-8?Q?=0Aasdf=0A?=", encode("\nasdf\n")
   end
 
   def test_assert_emails
@@ -84,7 +84,7 @@ class TestHelperMailerTest < ActionMailer::TestCase
   end
   
   def test_assert_emails_too_few_sent
-    error = assert_raises Test::Unit::AssertionFailedError do
+    error = assert_raises ActiveSupport::TestCase::Assertion do
       assert_emails 2 do
         TestHelperMailer.deliver_test
       end
@@ -94,7 +94,7 @@ class TestHelperMailerTest < ActionMailer::TestCase
   end
   
   def test_assert_emails_too_many_sent
-    error = assert_raises Test::Unit::AssertionFailedError do
+    error = assert_raises ActiveSupport::TestCase::Assertion do
       assert_emails 1 do
         TestHelperMailer.deliver_test
         TestHelperMailer.deliver_test
@@ -105,7 +105,7 @@ class TestHelperMailerTest < ActionMailer::TestCase
   end
   
   def test_assert_no_emails_failure
-    error = assert_raises Test::Unit::AssertionFailedError do
+    error = assert_raises ActiveSupport::TestCase::Assertion do
       assert_no_emails do
         TestHelperMailer.deliver_test
       end

@@ -166,12 +166,10 @@ class ScrollsController < ActionController::Base
   end
 end
 
-class AtomFeedTest < Test::Unit::TestCase
-  def setup
-    @request    = ActionController::TestRequest.new
-    @response   = ActionController::TestResponse.new
-    @controller = ScrollsController.new
+class AtomFeedTest < ActionController::TestCase
+  tests ScrollsController
 
+  def setup
     @request.host = "www.nextangle.com"
   end
 

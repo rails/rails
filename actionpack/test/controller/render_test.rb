@@ -39,7 +39,7 @@ class TestController < ActionController::Base
     render :action => 'hello_world'
   end
   before_filter :handle_last_modified_and_etags, :only=>:conditional_hello_with_bangs
-  
+
   def handle_last_modified_and_etags
     fresh_when(:last_modified => Time.now.utc.beginning_of_day, :etag => [ :foo, 123 ])
   end
@@ -246,6 +246,12 @@ class TestController < ActionController::Base
            :locals => { :local_name => name }
   end
 
+  def render_implicit_html_template
+  end
+
+  def render_explicit_html_template
+  end
+
   def formatted_html_erb
   end
 
@@ -335,6 +341,11 @@ class TestController < ActionController::Base
   def render_to_string_and_render
     @stuff = render_to_string :text => "here is some cached stuff"
     render :text => "Hi web users! #{@stuff}"
+  end
+
+  def render_to_string_with_inline_and_render
+    render_to_string :inline => "<%= 'dlrow olleh'.reverse %>"
+    render :template => "test/hello_world"
   end
 
   def rendering_with_conflicting_local_vars
@@ -641,12 +652,10 @@ class TestController < ActionController::Base
     end
 end
 
-class RenderTest < Test::Unit::TestCase
-  def setup
-    @request    = ActionController::TestRequest.new
-    @response   = ActionController::TestResponse.new
-    @controller = TestController.new
+class RenderTest < ActionController::TestCase
+  tests TestController
 
+  def setup
     # enable a logger so that (e.g.) the benchmarking stuff runs, so we can get
     # a more accurate simulation of what happens in "real life".
     @controller.logger = Logger.new(nil)
@@ -871,12 +880,13 @@ class RenderTest < Test::Unit::TestCase
   end
 
   def test_enum_rjs_test
+    ActiveSupport::SecureRandom.stubs(:base64).returns("asdf")
     get :enum_rjs_test
     body = %{
       $$(".product").each(function(value, index) {
       new Effect.Highlight(element,{});
       new Effect.Highlight(value,{});
-      Sortable.create(value, {onUpdate:function(){new Ajax.Request('/test/order', {asynchronous:true, evalScripts:true, parameters:Sortable.serialize(value)})}});
+      Sortable.create(value, {onUpdate:function(){new Ajax.Request('/test/order', {asynchronous:true, evalScripts:true, parameters:Sortable.serialize(value) + '&authenticity_token=' + encodeURIComponent('asdf')})}});
       new Draggable(value, {});
       });
     }.gsub(/^      /, '').strip
@@ -908,6 +918,11 @@ class RenderTest < Test::Unit::TestCase
     assert_equal "The value of foo is: ::this is a test::\n", @response.body
   end
 
+  def test_render_to_string_inline
+    get :render_to_string_with_inline_and_render
+    assert_template "test/hello_world"
+  end
+
   def test_nested_rendering
     @controller = Fun::GamesController.new
     get :hello_world
@@ -922,6 +937,24 @@ class RenderTest < Test::Unit::TestCase
   def test_accessing_local_assigns_in_inline_template
     get :accessing_local_assigns_in_inline_template, :local_name => "Local David"
     assert_equal "Goodbye, Local David", @response.body
+  end
+
+  def test_render_in_an_rjs_template_should_pick_html_templates_when_available
+    [:js, "js"].each do |format|
+      assert_nothing_raised do
+        get :render_implicit_html_template, :format => format
+        assert_equal %(document.write("Hello world\\n");), @response.body
+      end
+    end
+  end
+
+  def test_explicitly_rendering_an_html_template_with_implicit_html_template_renders_should_be_possible_from_an_rjs_template
+    [:js, "js"].each do |format|
+      assert_nothing_raised do
+        get :render_explicit_html_template, :format => format
+        assert_equal %(document.write("Hello world\\n");), @response.body
+      end
+    end
   end
 
   def test_should_render_formatted_template
@@ -1333,12 +1366,10 @@ class RenderTest < Test::Unit::TestCase
   end
 end
 
-class EtagRenderTest < Test::Unit::TestCase
-  def setup
-    @request    = ActionController::TestRequest.new
-    @response   = ActionController::TestResponse.new
-    @controller = TestController.new
+class EtagRenderTest < ActionController::TestCase
+  tests TestController
 
+  def setup
     @request.host = "www.nextangle.com"
     @expected_bang_etag = etag_for(expand_key([:foo, 123]))
   end
@@ -1368,7 +1399,7 @@ class EtagRenderTest < Test::Unit::TestCase
     assert_equal "200 OK", @response.status
     assert !@response.body.empty?
   end
-  
+
   def test_render_should_not_set_etag_when_last_modified_has_been_specified
     get :render_hello_world_with_last_modified_set
     assert_equal "200 OK", @response.status
@@ -1382,7 +1413,7 @@ class EtagRenderTest < Test::Unit::TestCase
     expected_etag = etag_for('hello david')
     assert_equal expected_etag, @response.headers['ETag']
     @response = ActionController::TestResponse.new
-    
+
     @request.if_none_match = expected_etag
     get :render_hello_world_from_variable
     assert_equal "304 Not Modified", @response.status
@@ -1407,35 +1438,33 @@ class EtagRenderTest < Test::Unit::TestCase
     assert_equal "<wrapper>\n<html>\n  <p>Hello </p>\n<p>This is grand!</p>\n</html>\n</wrapper>\n", @response.body
     assert_equal etag_for("<wrapper>\n<html>\n  <p>Hello </p>\n<p>This is grand!</p>\n</html>\n</wrapper>\n"), @response.headers['ETag']
   end
-  
+
   def test_etag_with_bang_should_set_etag
     get :conditional_hello_with_bangs
     assert_equal @expected_bang_etag, @response.headers["ETag"]
     assert_response :success
   end
-  
+
   def test_etag_with_bang_should_obey_if_none_match
     @request.if_none_match = @expected_bang_etag
     get :conditional_hello_with_bangs
     assert_response :not_modified
   end
-  
+
   protected
     def etag_for(text)
       %("#{Digest::MD5.hexdigest(text)}")
     end
-    
+
     def expand_key(args)
       ActiveSupport::Cache.expand_cache_key(args)
     end
 end
 
-class LastModifiedRenderTest < Test::Unit::TestCase
-  def setup
-    @request    = ActionController::TestRequest.new
-    @response   = ActionController::TestResponse.new
-    @controller = TestController.new
+class LastModifiedRenderTest < ActionController::TestCase
+  tests TestController
 
+  def setup
     @request.host = "www.nextangle.com"
     @last_modified = Time.now.utc.beginning_of_day.httpdate
   end
@@ -1467,13 +1496,13 @@ class LastModifiedRenderTest < Test::Unit::TestCase
     assert !@response.body.blank?
     assert_equal @last_modified, @response.headers['Last-Modified']
   end
-  
+
   def test_request_with_bang_gets_last_modified
     get :conditional_hello_with_bangs
     assert_equal @last_modified, @response.headers['Last-Modified']
     assert_response :success
   end
-  
+
   def test_request_with_bang_obeys_last_modified
     @request.if_modified_since = @last_modified
     get :conditional_hello_with_bangs
@@ -1487,12 +1516,10 @@ class LastModifiedRenderTest < Test::Unit::TestCase
   end
 end
 
-class RenderingLoggingTest < Test::Unit::TestCase
-  def setup
-    @request    = ActionController::TestRequest.new
-    @response   = ActionController::TestResponse.new
-    @controller = TestController.new
+class RenderingLoggingTest < ActionController::TestCase
+  tests TestController
 
+  def setup
     @request.host = "www.nextangle.com"
   end
 

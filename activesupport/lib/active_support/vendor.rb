@@ -6,12 +6,7 @@ begin
 rescue Gem::LoadError
   $:.unshift "#{File.dirname(__FILE__)}/vendor/builder-2.1.2"
 end
-
-begin
-  gem 'xml-simple', '~> 1.0.11'
-rescue Gem::LoadError
-  $:.unshift "#{File.dirname(__FILE__)}/vendor/xml-simple-1.0.11"
-end
+require 'builder'
 
 begin
   gem 'memcache-client', '~> 1.5.1'
@@ -20,9 +15,9 @@ rescue Gem::LoadError
 end
 
 begin
-  gem 'tzinfo', '~> 0.3.11'
+  gem 'tzinfo', '~> 0.3.12'
 rescue Gem::LoadError
-  $:.unshift "#{File.dirname(__FILE__)}/vendor/tzinfo-0.3.11"
+  $:.unshift "#{File.dirname(__FILE__)}/vendor/tzinfo-0.3.12"
 end
 
 # TODO I18n gem has not been released yet

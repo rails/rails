@@ -1,3 +1,5 @@
+require 'active_support/deprecation'
+
 module Rails
   # A class for creating random secret keys. This class will do its best to create a
   # random secret key that's as secure as possible, using whatever methods are

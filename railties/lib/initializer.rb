@@ -39,20 +39,21 @@ module Rails
         nil
       end
     end
-
-    def root
-      if defined?(RAILS_ROOT)
-        RAILS_ROOT
-      else
-        nil
+    
+    def backtrace_cleaner
+      @@backtrace_cleaner ||= begin
+        # Relies on ActiveSupport, so we have to lazy load to postpone definition until AS has been loaded
+        require 'rails/backtrace_cleaner'
+        Rails::BacktraceCleaner.new
       end
     end
 
+    def root
+      Pathname.new(RAILS_ROOT) if defined?(RAILS_ROOT)
+    end
+
     def env
-      @_env ||= begin
-        require 'active_support/string_inquirer'
-        ActiveSupport::StringInquirer.new(RAILS_ENV)
-      end
+      @_env ||= ActiveSupport::StringInquirer.new(RAILS_ENV)
     end
 
     def cache
@@ -131,6 +132,7 @@ module Rails
       add_gem_load_paths
 
       require_frameworks
+      preload_frameworks
       set_autoload_paths
       add_plugin_load_paths
       load_environment
@@ -147,7 +149,10 @@ module Rails
       initialize_dependency_mechanism
       initialize_whiny_nils
       initialize_temporary_session_directory
+
       initialize_time_zone
+      initialize_i18n
+
       initialize_framework_settings
       initialize_framework_views
 
@@ -252,8 +257,21 @@ module Rails
     def require_frameworks
       configuration.frameworks.each { |framework| require(framework.to_s) }
     rescue LoadError => e
-      # re-raise because Mongrel would swallow it
+      # Re-raise as RuntimeError because Mongrel would swallow LoadError.
       raise e.to_s
+    end
+
+    # Preload all frameworks specified by the Configuration#frameworks.
+    # Used by Passenger to ensure everything's loaded before forking and
+    # to avoid autoload race conditions in JRuby.
+    def preload_frameworks
+      if configuration.preload_frameworks
+        configuration.frameworks.each do |framework|
+          # String#classify and #constantize aren't available yet.
+          toplevel = Object.const_get(framework.to_s.gsub(/(?:^|_)(.)/) { $1.upcase })
+          toplevel.load_all!
+        end
+      end
     end
 
     # Add the load paths used by support functions such as the info controller
@@ -350,9 +368,10 @@ Run `rake gems:install` to install the missing gems.
 
     def load_view_paths
       if configuration.frameworks.include?(:action_view)
-        ActionView::PathSet::Path.eager_load_templates! if configuration.cache_classes
-        ActionController::Base.view_paths.load if configuration.frameworks.include?(:action_controller)
-        ActionMailer::Base.template_root.load if configuration.frameworks.include?(:action_mailer)
+        if configuration.cache_classes
+          ActionController::Base.view_paths.load if configuration.frameworks.include?(:action_controller)
+          ActionMailer::Base.template_root.load if configuration.frameworks.include?(:action_mailer)
+        end
       end
     end
 
@@ -464,8 +483,9 @@ Run `rake gems:install` to install the missing gems.
     # loading module used to lazily load controllers (Configuration#controller_paths).
     def initialize_routing
       return unless configuration.frameworks.include?(:action_controller)
-      ActionController::Routing.controller_paths = configuration.controller_paths
-      ActionController::Routing::Routes.configuration_file = configuration.routes_configuration_file
+
+      ActionController::Routing.controller_paths += configuration.controller_paths
+      ActionController::Routing::Routes.add_configuration_file(configuration.routes_configuration_file)
       ActionController::Routing::Routes.reload
     end
 
@@ -493,13 +513,30 @@ Run `rake gems:install` to install the missing gems.
     def initialize_time_zone
       if configuration.time_zone
         zone_default = Time.__send__(:get_zone, configuration.time_zone)
+
         unless zone_default
-          raise %{Value assigned to config.time_zone not recognized. Run "rake -D time" for a list of tasks for finding appropriate time zone names.}
+          raise \
+            'Value assigned to config.time_zone not recognized.' +
+            'Run "rake -D time" for a list of tasks for finding appropriate time zone names.'
         end
+
         Time.zone_default = zone_default
+
         if configuration.frameworks.include?(:active_record)
           ActiveRecord::Base.time_zone_aware_attributes = true
           ActiveRecord::Base.default_timezone = :utc
+        end
+      end
+    end
+
+    # Set the i18n configuration from config.i18n but special-case for the load_path which should be 
+    # appended to what's already set instead of overwritten.
+    def initialize_i18n
+      configuration.i18n.each do |setting, value|
+        if setting == :load_path
+          I18n.load_path += value
+        else
+          I18n.send("#{setting}=", value)
         end
       end
     end
@@ -582,12 +619,15 @@ Run `rake gems:install` to install the missing gems.
     # A stub for setting options on ActiveSupport.
     attr_accessor :active_support
 
+    # Whether to preload all frameworks at startup.
+    attr_accessor :preload_frameworks
+
     # Whether or not classes should be cached (set to false if you want
     # application classes to be reloaded on each request)
     attr_accessor :cache_classes
 
     # The list of paths that should be searched for controllers. (Defaults
-    # to <tt>app/controllers</tt> and <tt>components</tt>.)
+    # to <tt>app/controllers</tt>.)
     attr_accessor :controller_paths
 
     # The path to the database configuration file to use. (Defaults to
@@ -732,6 +772,9 @@ Run `rake gems:install` to install the missing gems.
     # timezone to <tt>:utc</tt>.
     attr_accessor :time_zone
 
+    # Accessor for i18n settings.
+    attr_accessor :i18n
+
     # Create a new Configuration instance, initialized with the default
     # values.
     def initialize
@@ -745,6 +788,7 @@ Run `rake gems:install` to install the missing gems.
       self.log_level                    = default_log_level
       self.view_path                    = default_view_path
       self.controller_paths             = default_controller_paths
+      self.preload_frameworks           = default_preload_frameworks
       self.cache_classes                = default_cache_classes
       self.dependency_loading           = default_dependency_loading
       self.whiny_nils                   = default_whiny_nils
@@ -755,6 +799,7 @@ Run `rake gems:install` to install the missing gems.
       self.database_configuration_file  = default_database_configuration_file
       self.routes_configuration_file    = default_routes_configuration_file
       self.gems                         = default_gems
+      self.i18n                         = default_i18n
 
       for framework in default_frameworks
         self.send("#{framework}=", Rails::OrderedOptions.new)
@@ -786,6 +831,7 @@ Run `rake gems:install` to install the missing gems.
     # multiple database connections. Also disables automatic dependency loading
     # after boot
     def threadsafe!
+      self.preload_frameworks = true
       self.cache_classes = true
       self.dependency_loading = false
       self.action_controller.allow_concurrency = true
@@ -835,6 +881,11 @@ Run `rake gems:install` to install the missing gems.
       end
     end
 
+    def middleware
+      require 'action_controller'
+      ActionController::Dispatcher.middleware
+    end
+
     def builtin_directories
       # Include builtins only in the development environment.
       (environment == 'development') ? Dir["#{RAILTIES_PATH}/builtin/*/"] : []
@@ -842,10 +893,10 @@ Run `rake gems:install` to install the missing gems.
 
     def framework_paths
       paths = %w(railties railties/lib activesupport/lib)
-      paths << 'actionpack/lib' if frameworks.include? :action_controller or frameworks.include? :action_view
+      paths << 'actionpack/lib' if frameworks.include?(:action_controller) || frameworks.include?(:action_view)
 
       [:active_record, :action_mailer, :active_resource, :action_web_service].each do |framework|
-        paths << "#{framework.to_s.gsub('_', '')}/lib" if frameworks.include? framework
+        paths << "#{framework.to_s.gsub('_', '')}/lib" if frameworks.include?(framework)
       end
 
       paths.map { |dir| "#{framework_root_path}/#{dir}" }.select { |dir| File.directory?(dir) }
@@ -869,9 +920,6 @@ Run `rake gems:install` to install the missing gems.
         # Add the app's controller directory
         paths.concat(Dir["#{root_path}/app/controllers/"])
 
-        # Then components subdirectories.
-        paths.concat(Dir["#{root_path}/components/[_a-z]*"])
-
         # Followed by the standard includes.
         paths.concat %w(
           app
@@ -879,9 +927,8 @@ Run `rake gems:install` to install the missing gems.
           app/controllers
           app/helpers
           app/services
-          components
-          config
           lib
+          vendor
         ).map { |dir| "#{root_path}/#{dir}" }.select { |dir| File.directory?(dir) }
 
         paths.concat builtin_directories
@@ -930,6 +977,10 @@ Run `rake gems:install` to install the missing gems.
         true
       end
 
+      def default_preload_frameworks
+        false
+      end
+
       def default_cache_classes
         true
       end
@@ -966,6 +1017,18 @@ Run `rake gems:install` to install the missing gems.
 
       def default_gems
         []
+      end
+
+      def default_i18n
+        i18n = Rails::OrderedOptions.new
+        i18n.load_path = []
+
+        if File.exist?(File.join(RAILS_ROOT, 'config', 'locales'))
+          i18n.load_path << Dir[File.join(RAILS_ROOT, 'config', 'locales', '*.{rb,yml}')]
+          i18n.load_path.flatten!
+        end
+
+        i18n
       end
   end
 end

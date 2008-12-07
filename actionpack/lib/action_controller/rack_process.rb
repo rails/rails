@@ -1,5 +1,4 @@
 require 'action_controller/cgi_ext'
-require 'action_controller/session/cookie_store'
 
 module ActionController #:nodoc:
   class RackRequest < AbstractRequest #:nodoc:
@@ -165,7 +164,7 @@ end_msg
       @status || super
     end
 
-    def out(output = $stdout, &block)
+    def out(&block)
       # Nasty hack because CGI sessions are closed after the normal
       # prepare! statement
       set_cookies!

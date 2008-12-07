@@ -1,12 +1,16 @@
+require 'active_support/dependencies'
+
 # FIXME: helper { ... } is broken on Ruby 1.9
 module ActionController #:nodoc:
   module Helpers #:nodoc:
-    HELPERS_DIR = (defined?(RAILS_ROOT) ? "#{RAILS_ROOT}/app/helpers" : "app/helpers")
-
     def self.included(base)
       # Initialize the base module to aggregate its helpers.
       base.class_inheritable_accessor :master_helper_module
       base.master_helper_module = Module.new
+
+      # Set the default directory for helpers
+      base.class_inheritable_accessor :helpers_dir
+      base.helpers_dir = (defined?(RAILS_ROOT) ? "#{RAILS_ROOT}/app/helpers" : "app/helpers")
 
       # Extend base with class methods to declare helpers.
       base.extend(ClassMethods)
@@ -88,8 +92,8 @@ module ActionController #:nodoc:
       # When the argument is a module it will be included directly in the template class.
       #   helper FooHelper # => includes FooHelper
       #
-      # When the argument is the symbol <tt>:all</tt>, the controller will include all helpers from 
-      # <tt>app/helpers/**/*.rb</tt> under RAILS_ROOT.
+      # When the argument is the symbol <tt>:all</tt>, the controller will include all helpers beneath
+      # <tt>ActionController::Base.helpers_dir</tt> (defaults to <tt>app/helpers/**/*.rb</tt> under RAILS_ROOT).
       #   helper :all
       #
       # Additionally, the +helper+ class method can receive and evaluate a block, making the methods defined available 
@@ -213,8 +217,8 @@ module ActionController #:nodoc:
 
         # Extract helper names from files in app/helpers/**/*.rb
         def all_application_helpers
-          extract = /^#{Regexp.quote(HELPERS_DIR)}\/?(.*)_helper.rb$/
-          Dir["#{HELPERS_DIR}/**/*_helper.rb"].map { |file| file.sub extract, '\1' }
+          extract = /^#{Regexp.quote(helpers_dir)}\/?(.*)_helper.rb$/
+          Dir["#{helpers_dir}/**/*_helper.rb"].map { |file| file.sub extract, '\1' }
         end
     end
   end

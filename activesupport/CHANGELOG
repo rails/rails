@@ -1,4 +1,25 @@
+*2.3.0 [Edge]*
+
+* Added ActiveSupport::OrderedHash#each_key and ActiveSupport::OrderedHash#each_value #1410 [Christoffer Sawicki]
+
+* Added ActiveSupport::MessageVerifier and MessageEncryptor to aid users who need to store signed and/or encrypted messages. [Koz]
+
+* Added ActiveSupport::BacktraceCleaner to cut down on backtrace noise according to filters and silencers [DHH]
+
+* Added Object#try. ( Taken from http://ozmm.org/posts/try.html ) [Chris Wanstrath]
+
+* Added Enumerable#none? to check that none of the elements match the block #1408 [Damian Janowski]
+
+* TimeZone offset tests: use current_period, to ensure TimeZone#utc_offset is up-to-date [Geoff Buesing]
+
+* Update bundled TZInfo to 0.3.12 [Geoff Buesing]
+
+* Added lambda merging to OptionMerger (especially useful with named_scope and with_options) #726 [Paweł Kondzior]
+
+
 *2.2.1 [RC2] (November 14th, 2008)*
+
+* Increment the version of our altered memcache-client to prevent confusion caused when the 1.5.0 gem is installed.
 
 * Fixed the option merging in Array#to_xml #1126 [Rudolf Gavlas]
 
@@ -55,7 +76,7 @@
 
 * Added TimeZone #=~, to support matching zones by regex in time_zone_select. #195 [Ernie Miller]
 
-* Added Array#second through Array#tenth as aliases for Array#[1] through Array#[9] [DHH]
+* Added Array#second through Array#fifth as aliases for Array#[1] through Array#[4] + Array#forty_two as alias for Array[41] [DHH]
 
 * Added test/do declaration style testing to ActiveSupport::TestCase [DHH via Jay Fields]
 

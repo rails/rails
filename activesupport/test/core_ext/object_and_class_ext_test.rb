@@ -247,3 +247,35 @@ class ObjectInstanceVariableTest < Test::Unit::TestCase
       [arg] + instance_exec('bar') { |v| [reverse, v] } }
   end
 end
+
+class ObjectTryTest < Test::Unit::TestCase
+  def setup
+    @string = "Hello"
+  end
+
+  def test_nonexisting_method
+    method = :undefined_method
+    assert !@string.respond_to?(method)
+    assert_nil @string.try(method)
+  end
+  
+  def test_valid_method
+    assert_equal 5, @string.try(:size)
+  end
+
+  def test_valid_private_method
+    class << @string
+      private :size
+    end
+
+    assert_equal 5, @string.try(:size)
+  end
+
+  def test_argument_forwarding
+    assert_equal 'Hey', @string.try(:sub, 'llo', 'y')
+  end
+
+  def test_block_forwarding
+    assert_equal 'Hey', @string.try(:sub, 'llo') { |match| 'y' }
+  end
+end

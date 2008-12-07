@@ -1,4 +1,55 @@
-*2.2.1 [RC2] (November 14th, 2008)*
+*2.3.0 [Edge]*
+
+* Allow users to opt out of the spoofing checks in Request#remote_ip.  Useful for sites whose traffic regularly triggers false positives. [Darren Boyd]
+
+* Deprecated formatted_polymorphic_url.  [Jeremy Kemper]
+
+* Added the option to declare an asset_host as an object that responds to call (see http://github.com/dhh/asset-hosting-with-minimum-ssl for an example) [DHH]
+
+* Added support for multiple routes.rb files (useful for plugin engines). This also means that draw will no longer clear the route set, you have to do that by hand (shouldn't make a difference to you unless you're doing some funky stuff) [DHH]
+
+* Dropped formatted_* routes in favor of just passing in :format as an option. This cuts resource routes generation in half #1359 [aaronbatalion]
+
+* Remove support for old double-encoded cookies from the cookie store.  These values haven't been generated since before 2.1.0, and any users who have visited the app in the intervening 6 months will have had their cookie upgraded. [Koz]
+
+* Allow helpers directory to be overridden via ActionController::Base.helpers_dir #1424 [Sam Pohlenz]
+
+* Remove deprecated ActionController::Base#assign_default_content_type_and_charset
+
+* Changed the default of ActionView#render to assume partials instead of files when not given an options hash [DHH]. Examples:
+
+    # Instead of <%= render :partial => "account" %>
+    <%= render "account" %>
+    
+    # Instead of <%= render :partial => "account", :locals => { :account => @buyer } %>
+    <%= render "account", :account => @buyer %>
+    
+    # @account is an Account instance, so it uses the RecordIdentifier to replace
+    # <%= render :partial => "accounts/account", :locals => { :account => @account } %>
+    <%= render(@account) %>
+    
+    # @posts is an array of Post instances, so it uses the RecordIdentifier to replace
+    # <%= render :partial => "posts/post", :collection => @posts %>
+    <%= render(@posts) %>
+
+* Remove deprecated render_component. Please use the plugin from http://github.com/rails/render_component/tree/master [Pratik]
+
+* Fixed RedCloth and BlueCloth shouldn't preload. Instead just assume that they're available if you want to use textilize and markdown and let autoload require them [DHH]
+
+
+*2.2.2 (November 21st, 2008)*
+
+* I18n: translate number_to_human_size. Add storage_units: [Bytes, KB, MB, GB, TB] to your translations.  #1448 [Yaroslav Markin]
+
+* Restore backwards compatible functionality for setting relative_url_root.  Include deprecation
+
+* Switched the CSRF module to use the request content type to decide if the request is forgeable.  #1145 [Jeff Cohen]
+
+* Added :only and :except to map.resources to let people cut down on the number of redundant routes in an application. Typically only useful for huge routesets.  #1215 [Tom Stuart]
+
+   map.resources :products, :only => :show do |product|
+     product.resources :images, :except => :destroy
+   end
 
 * Added render :js for people who want to render inline JavaScript replies without using RJS [DHH]
 

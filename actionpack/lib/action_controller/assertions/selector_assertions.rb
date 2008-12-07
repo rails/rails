@@ -3,9 +3,6 @@
 # Under MIT and/or CC By license.
 #++
 
-require 'rexml/document'
-require 'html/document'
-
 module ActionController
   module Assertions
     unless const_defined?(:NO_STRIP)

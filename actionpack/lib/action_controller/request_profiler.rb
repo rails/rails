@@ -1,5 +1,4 @@
 require 'optparse'
-require 'action_controller/integration'
 
 module ActionController
   class RequestProfiler

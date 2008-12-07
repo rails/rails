@@ -11,8 +11,8 @@ Description:
     You don't have to think up every attribute up front, but it helps to
     sketch out a few so you can start working with the resource immediately.
 
-    This creates a model, controller, tests and fixtures for both, and the
-    corresponding map.resources declaration in config/routes.rb
+    This creates a model, controller, helper, tests and fixtures for all of them,
+    and the corresponding map.resources declaration in config/routes.rb
 
     Unlike the scaffold generator, the resource generator does not create
     views or add any methods to the generated controller.

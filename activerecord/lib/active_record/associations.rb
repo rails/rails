@@ -1,13 +1,3 @@
-require 'active_record/associations/association_proxy'
-require 'active_record/associations/association_collection'
-require 'active_record/associations/belongs_to_association'
-require 'active_record/associations/belongs_to_polymorphic_association'
-require 'active_record/associations/has_one_association'
-require 'active_record/associations/has_many_association'
-require 'active_record/associations/has_many_through_association'
-require 'active_record/associations/has_and_belongs_to_many_association'
-require 'active_record/associations/has_one_through_association'
-
 module ActiveRecord
   class HasManyThroughAssociationNotFoundError < ActiveRecordError #:nodoc:
     def initialize(owner_class_name, reflection)
@@ -75,6 +65,18 @@ module ActiveRecord
 
   # See ActiveRecord::Associations::ClassMethods for documentation.
   module Associations # :nodoc:
+    # These classes will be loaded when associatoins are created.
+    # So there is no need to eager load them.
+    autoload :AssociationCollection, 'active_record/associations/association_collection'
+    autoload :AssociationProxy, 'active_record/associations/association_proxy'
+    autoload :BelongsToAssociation, 'active_record/associations/belongs_to_association'
+    autoload :BelongsToPolymorphicAssociation, 'active_record/associations/belongs_to_polymorphic_association'
+    autoload :HasAndBelongsToManyAssociation, 'active_record/associations/has_and_belongs_to_many_association'
+    autoload :HasManyAssociation, 'active_record/associations/has_many_association'
+    autoload :HasManyThroughAssociation, 'active_record/associations/has_many_through_association'
+    autoload :HasOneAssociation, 'active_record/associations/has_one_association'
+    autoload :HasOneThroughAssociation, 'active_record/associations/has_one_through_association'
+
     def self.included(base)
       base.extend(ClassMethods)
     end
@@ -722,6 +724,8 @@ module ActiveRecord
       #   Specify second-order associations that should be eager loaded when the collection is loaded.
       # [:group]
       #   An attribute name by which the result should be grouped. Uses the <tt>GROUP BY</tt> SQL-clause.
+      # [:having]
+      #   Combined with +:group+ this can be used to filter the records that a <tt>GROUP BY</tt> returns. Uses the <tt>HAVING</tt> SQL-clause.
       # [:limit]
       #   An integer determining the limit on the number of rows that should be returned.
       # [:offset]
@@ -1179,6 +1183,8 @@ module ActiveRecord
       #   Specify second-order associations that should be eager loaded when the collection is loaded.
       # [:group]
       #   An attribute name by which the result should be grouped. Uses the <tt>GROUP BY</tt> SQL-clause.
+      # [:having]
+      #   Combined with +:group+ this can be used to filter the records that a <tt>GROUP BY</tt> returns. Uses the <tt>HAVING</tt> SQL-clause.
       # [:limit]
       #   An integer determining the limit on the number of rows that should be returned.
       # [:offset]
@@ -1551,7 +1557,7 @@ module ActiveRecord
         @@valid_keys_for_has_many_association = [
           :class_name, :table_name, :foreign_key, :primary_key,
           :dependent,
-          :select, :conditions, :include, :order, :group, :limit, :offset,
+          :select, :conditions, :include, :order, :group, :having, :limit, :offset,
           :as, :through, :source, :source_type,
           :uniq,
           :finder_sql, :counter_sql,
@@ -1607,7 +1613,7 @@ module ActiveRecord
         mattr_accessor :valid_keys_for_has_and_belongs_to_many_association
         @@valid_keys_for_has_and_belongs_to_many_association = [
           :class_name, :table_name, :join_table, :foreign_key, :association_foreign_key,
-          :select, :conditions, :include, :order, :group, :limit, :offset,
+          :select, :conditions, :include, :order, :group, :having, :limit, :offset,
           :uniq,
           :finder_sql, :counter_sql, :delete_sql, :insert_sql,
           :before_add, :after_add, :before_remove, :after_remove,
@@ -1656,7 +1662,7 @@ module ActiveRecord
           add_conditions!(sql, options[:conditions], scope)
           add_limited_ids_condition!(sql, options, join_dependency) if !using_limitable_reflections?(join_dependency.reflections) && ((scope && scope[:limit]) || options[:limit])
 
-          add_group!(sql, options[:group], scope)
+          add_group!(sql, options[:group], options[:having], scope)
           add_order!(sql, options[:order], scope)
           add_limit!(sql, options, scope) if using_limitable_reflections?(join_dependency.reflections)
           add_lock!(sql, options, scope)
@@ -1712,7 +1718,7 @@ module ActiveRecord
           end
 
           add_conditions!(sql, options[:conditions], scope)
-          add_group!(sql, options[:group], scope)
+          add_group!(sql, options[:group], options[:having], scope)
 
           if order && is_distinct
             connection.add_order_by_for_association_limiting!(sql, :order => order)
@@ -1731,6 +1737,7 @@ module ActiveRecord
             case cond
               when nil   then all
               when Array then all << cond.first
+              when Hash  then all << cond.keys
               else            all << cond
             end
           end

@@ -65,7 +65,7 @@ module ActionController
       # rather than triggering the expensive logic in +url_for+.
       class PositionalArguments < Optimiser
         def guard_conditions
-          number_of_arguments = route.segment_keys.size
+          number_of_arguments = route.required_segment_keys.size
           # if they're using foo_url(:id=>2) it's one
           # argument, but we don't want to generate /foos/id2
           if number_of_arguments == 1
@@ -106,12 +106,8 @@ module ActionController
       # argument
       class PositionalArgumentsWithAdditionalParams < PositionalArguments
         def guard_conditions
-          [
-            "args.size == #{route.segment_keys.size + 1}",
-            "!args.last.has_key?(:anchor)",
-            "!args.last.has_key?(:port)",
-            "!args.last.has_key?(:host)"
-          ]
+          ["args.size == #{route.segment_keys.size + 1}"] +
+          UrlRewriter::RESERVED_OPTIONS.collect{ |key| "!args.last.has_key?(:#{key})" }
         end
 
         # This case uses almost the same code as positional arguments,

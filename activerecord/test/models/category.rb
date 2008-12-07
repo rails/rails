@@ -14,6 +14,7 @@ class Category < ActiveRecord::Base
                           :class_name => 'Post',
                           :conditions => { :title => 'Yet Another Testing Title' }
 
+  has_and_belongs_to_many :popular_grouped_posts, :class_name => "Post", :group => "posts.type", :having => "sum(comments.post_id) > 2", :include => :comments
   has_and_belongs_to_many :posts_gruoped_by_title, :class_name => "Post", :group => "title", :select => "title"
 
   def self.what_are_you

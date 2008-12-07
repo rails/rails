@@ -1,4 +1,4 @@
-require File.expand_path(File.join(File.dirname(__FILE__), 'test_helper'))
+require 'test_helper'
 
 class StateMachineSubject
   include ActiveModel::StateMachine
@@ -122,24 +122,22 @@ class StateMachineEventFiringWithPersistenceTest < ActiveModel::TestCase
     assert_equal :closed, @subj.current_state
   end
 
-  uses_mocha "StateMachineEventFiringWithPersistenceTest with callbacks" do
-    test 'fires the Event' do
-      @subj.class.state_machine.events[:close].expects(:fire).with(@subj)
-      @subj.close!
+  test 'fires the Event' do
+    @subj.class.state_machine.events[:close].expects(:fire).with(@subj)
+    @subj.close!
+  end
+
+  test 'calls the success callback if one was provided' do
+    @subj.expects(:success_callback)
+    @subj.close!
+  end
+
+  test 'attempts to persist if write_state is defined' do
+    def @subj.write_state
     end
 
-    test 'calls the success callback if one was provided' do
-      @subj.expects(:success_callback)
-      @subj.close!
-    end
-
-    test 'attempts to persist if write_state is defined' do
-      def @subj.write_state
-      end
-
-      @subj.expects(:write_state)
-      @subj.close!
-    end
+    @subj.expects(:write_state)
+    @subj.close!
   end
 end
 
@@ -151,98 +149,90 @@ class StateMachineEventFiringWithoutPersistence < ActiveModel::TestCase
     assert_equal :closed, subj.current_state
   end
 
-  uses_mocha 'StateMachineEventFiringWithoutPersistence' do
-    test 'fires the Event' do
-      subj = StateMachineSubject.new
+  test 'fires the Event' do
+    subj = StateMachineSubject.new
 
-      StateMachineSubject.state_machine.events[:close].expects(:fire).with(subj)
-      subj.close
+    StateMachineSubject.state_machine.events[:close].expects(:fire).with(subj)
+    subj.close
+  end
+
+  test 'attempts to persist if write_state is defined' do
+    subj = StateMachineSubject.new
+
+    def subj.write_state
     end
 
-    test 'attempts to persist if write_state is defined' do
-      subj = StateMachineSubject.new
+    subj.expects(:write_state_without_persistence)
 
-      def subj.write_state
-      end
-
-      subj.expects(:write_state_without_persistence)
-
-      subj.close
-    end
+    subj.close
   end
 end
 
-uses_mocha 'StateMachinePersistenceTest' do
-  class StateMachinePersistenceTest < ActiveModel::TestCase
-    test 'reads the state if it has not been set and read_state is defined' do
-      subj = StateMachineSubject.new
-      def subj.read_state
-      end
-
-      subj.expects(:read_state).with(StateMachineSubject.state_machine)
-
-      subj.current_state
+class StateMachinePersistenceTest < ActiveModel::TestCase
+  test 'reads the state if it has not been set and read_state is defined' do
+    subj = StateMachineSubject.new
+    def subj.read_state
     end
+
+    subj.expects(:read_state).with(StateMachineSubject.state_machine)
+
+    subj.current_state
   end
 end
 
-uses_mocha 'StateMachineEventCallbacksTest' do
-  class StateMachineEventCallbacksTest < ActiveModel::TestCase
-    test 'should call aasm_event_fired if defined and successful for bang fire' do
-      subj = StateMachineSubject.new
-      def subj.aasm_event_fired(from, to)
-      end
-
-      subj.expects(:event_fired)
-
-      subj.close!
+class StateMachineEventCallbacksTest < ActiveModel::TestCase
+  test 'should call aasm_event_fired if defined and successful for bang fire' do
+    subj = StateMachineSubject.new
+    def subj.aasm_event_fired(from, to)
     end
 
-    test 'should call aasm_event_fired if defined and successful for non-bang fire' do
-      subj = StateMachineSubject.new
-      def subj.aasm_event_fired(from, to)
-      end
+    subj.expects(:event_fired)
 
-      subj.expects(:event_fired)
+    subj.close!
+  end
 
-      subj.close
+  test 'should call aasm_event_fired if defined and successful for non-bang fire' do
+    subj = StateMachineSubject.new
+    def subj.aasm_event_fired(from, to)
     end
 
-    test 'should call aasm_event_failed if defined and transition failed for bang fire' do
-      subj = StateMachineSubject.new
-      def subj.event_failed(event)
-      end
+    subj.expects(:event_fired)
 
-      subj.expects(:event_failed)
+    subj.close
+  end
 
-      subj.null!
+  test 'should call aasm_event_failed if defined and transition failed for bang fire' do
+    subj = StateMachineSubject.new
+    def subj.event_failed(event)
     end
 
-    test 'should call aasm_event_failed if defined and transition failed for non-bang fire' do
-      subj = StateMachineSubject.new
-      def subj.aasm_event_failed(event)
-      end
+    subj.expects(:event_failed)
 
-      subj.expects(:event_failed)
+    subj.null!
+  end
 
-      subj.null
+  test 'should call aasm_event_failed if defined and transition failed for non-bang fire' do
+    subj = StateMachineSubject.new
+    def subj.aasm_event_failed(event)
     end
+
+    subj.expects(:event_failed)
+
+    subj.null
   end
 end
 
-uses_mocha 'StateMachineStateActionsTest' do
-  class StateMachineStateActionsTest < ActiveModel::TestCase
-    test "calls enter when entering state" do
-      subj = StateMachineSubject.new
-      subj.expects(:enter)
-      subj.close
-    end
+class StateMachineStateActionsTest < ActiveModel::TestCase
+  test "calls enter when entering state" do
+    subj = StateMachineSubject.new
+    subj.expects(:enter)
+    subj.close
+  end
 
-    test "calls exit when exiting state" do
-      subj = StateMachineSubject.new
-      subj.expects(:exit)
-      subj.close
-    end
+  test "calls exit when exiting state" do
+    subj = StateMachineSubject.new
+    subj.expects(:exit)
+    subj.close
   end
 end
 
@@ -306,19 +296,17 @@ class StateMachineWithComplexTransitionsTest < ActiveModel::TestCase
     assert_equal :working, @subj.current_state(:chetan_patil)
   end
 
-  uses_mocha "StateMachineWithComplexTransitionsTest on_transition tests" do
-    test 'calls on_transition method with args' do
-      @subj.wakeup! :showering
- 
-      @subj.expects(:wear_clothes).with('blue', 'jeans')
-      @subj.dress! :working, 'blue', 'jeans'
-    end
- 
-    test 'calls on_transition proc' do
-      @subj.wakeup! :showering
- 
-      @subj.expects(:wear_clothes).with('purple', 'slacks')
-      @subj.dress!(:dating, 'purple', 'slacks')
-    end
+  test 'calls on_transition method with args' do
+    @subj.wakeup! :showering
+
+    @subj.expects(:wear_clothes).with('blue', 'jeans')
+    @subj.dress! :working, 'blue', 'jeans'
+  end
+
+  test 'calls on_transition proc' do
+    @subj.wakeup! :showering
+
+    @subj.expects(:wear_clothes).with('purple', 'slacks')
+    @subj.dress!(:dating, 'purple', 'slacks')
   end
 end

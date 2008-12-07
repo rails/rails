@@ -1,47 +1,22 @@
 require 'date'
-require 'cgi'
-require 'builder'
-require 'xmlsimple'
-
-# Locked down XmlSimple#xml_in_string
-class XmlSimple
-  # Same as xml_in but doesn't try to smartly shoot itself in the foot.
-  def xml_in_string(string, options = nil)
-    handle_options('in', options)
-
-    @doc = parse(string)
-    result = collapse(@doc.root)
-
-    if @options['keeproot']
-      merge({}, @doc.root.name, result)
-    else
-      result
-    end
-  end
-
-  def self.xml_in_string(string, options = nil)
-    new.xml_in_string(string, options)
-  end
-end
-
-# This module exists to decorate files deserialized using Hash.from_xml with
-# the <tt>original_filename</tt> and <tt>content_type</tt> methods.
-module FileLike #:nodoc:
-  attr_writer :original_filename, :content_type
-
-  def original_filename
-    @original_filename || 'untitled'
-  end
-
-  def content_type
-    @content_type || 'application/octet-stream'
-  end
-end
 
 module ActiveSupport #:nodoc:
   module CoreExtensions #:nodoc:
     module Hash #:nodoc:
       module Conversions
+        # This module exists to decorate files deserialized using Hash.from_xml with
+        # the <tt>original_filename</tt> and <tt>content_type</tt> methods.
+        module FileLike #:nodoc:
+          attr_writer :original_filename, :content_type
+
+          def original_filename
+            @original_filename || 'untitled'
+          end
+
+          def content_type
+            @content_type || 'application/octet-stream'
+          end
+        end
 
         XML_TYPE_NAMES = {
           "Symbol"     => "symbol",
@@ -113,6 +88,8 @@ module ActiveSupport #:nodoc:
         alias_method :to_param, :to_query
 
         def to_xml(options = {})
+          require 'builder' unless defined?(Builder)
+
           options[:indent] ||= 2
           options.reverse_merge!({ :builder => Builder::XmlMarkup.new(:indent => options[:indent]),
                                    :root => "hash" })
@@ -167,13 +144,7 @@ module ActiveSupport #:nodoc:
 
         module ClassMethods
           def from_xml(xml)
-            # TODO: Refactor this into something much cleaner that doesn't rely on XmlSimple
-            typecast_xml_value(undasherize_keys(XmlSimple.xml_in_string(xml,
-              'forcearray'   => false,
-              'forcecontent' => true,
-              'keeproot'     => true,
-              'contentkey'   => '__content__')
-            ))
+            typecast_xml_value(undasherize_keys(XmlMini.parse(xml)))
           end
 
           private

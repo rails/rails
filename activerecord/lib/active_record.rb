@@ -31,51 +31,47 @@ rescue LoadError
   end
 end
 
-require 'active_record/base'
-require 'active_record/named_scope'
-require 'active_record/observer'
-require 'active_record/query_cache'
-require 'active_record/validations'
-require 'active_record/callbacks'
-require 'active_record/reflection'
-require 'active_record/associations'
-require 'active_record/association_preload'
-require 'active_record/aggregations'
-require 'active_record/transactions'
-require 'active_record/timestamp'
-require 'active_record/locking/optimistic'
-require 'active_record/locking/pessimistic'
-require 'active_record/migration'
-require 'active_record/schema'
-require 'active_record/calculations'
-require 'active_record/serialization'
-require 'active_record/attribute_methods'
-require 'active_record/dirty'
-require 'active_record/dynamic_finder_match'
+module ActiveRecord
+  # TODO: Review explicit loads to see if they will automatically be handled by the initilizer.
+  def self.load_all!
+    [Base, DynamicFinderMatch, ConnectionAdapters::AbstractAdapter]
+  end
 
-ActiveRecord::Base.class_eval do
-  extend ActiveRecord::QueryCache
-  include ActiveRecord::Validations
-  include ActiveRecord::Locking::Optimistic
-  include ActiveRecord::Locking::Pessimistic
-  include ActiveRecord::AttributeMethods
-  include ActiveRecord::Dirty
-  include ActiveRecord::Callbacks
-  include ActiveRecord::Observing
-  include ActiveRecord::Timestamp
-  include ActiveRecord::Associations
-  include ActiveRecord::NamedScope
-  include ActiveRecord::AssociationPreload
-  include ActiveRecord::Aggregations
-  include ActiveRecord::Transactions
-  include ActiveRecord::Reflection
-  include ActiveRecord::Calculations
-  include ActiveRecord::Serialization
+  autoload :ActiveRecordError, 'active_record/base'
+  autoload :ConnectionNotEstablished, 'active_record/base'
+
+  autoload :Aggregations, 'active_record/aggregations'
+  autoload :AssociationPreload, 'active_record/association_preload'
+  autoload :Associations, 'active_record/associations'
+  autoload :AttributeMethods, 'active_record/attribute_methods'
+  autoload :Base, 'active_record/base'
+  autoload :Calculations, 'active_record/calculations'
+  autoload :Callbacks, 'active_record/callbacks'
+  autoload :Dirty, 'active_record/dirty'
+  autoload :DynamicFinderMatch, 'active_record/dynamic_finder_match'
+  autoload :Migration, 'active_record/migration'
+  autoload :Migrator, 'active_record/migration'
+  autoload :NamedScope, 'active_record/named_scope'
+  autoload :Observing, 'active_record/observer'
+  autoload :QueryCache, 'active_record/query_cache'
+  autoload :Reflection, 'active_record/reflection'
+  autoload :Schema, 'active_record/schema'
+  autoload :SchemaDumper, 'active_record/schema_dumper'
+  autoload :Serialization, 'active_record/serialization'
+  autoload :TestCase, 'active_record/test_case'
+  autoload :Timestamp, 'active_record/timestamp'
+  autoload :Transactions, 'active_record/transactions'
+  autoload :Validations, 'active_record/validations'
+
+  module Locking
+    autoload :Optimistic, 'active_record/locking/optimistic'
+    autoload :Pessimistic, 'active_record/locking/pessimistic'
+  end
+
+  module ConnectionAdapters
+    autoload :AbstractAdapter, 'active_record/connection_adapters/abstract_adapter'
+  end
 end
 
-require 'active_record/connection_adapters/abstract_adapter'
-
-require 'active_record/schema_dumper'
-
 require 'active_record/i18n_interpolation_deprecation'
-I18n.load_path << File.dirname(__FILE__) + '/active_record/locale/en-US.yml'
+I18n.load_path << File.dirname(__FILE__) + '/active_record/locale/en.yml'

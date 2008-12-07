@@ -18,7 +18,6 @@ class ConfigurationMock < Rails::Configuration
 end
 
 class Initializer_load_environment_Test < Test::Unit::TestCase
-
   def test_load_environment_with_constant
     config = ConfigurationMock.new("#{File.dirname(__FILE__)}/fixtures/environment_with_constant.rb")
     assert_nil $initialize_test_set_from_env
@@ -210,7 +209,7 @@ uses_mocha "Initializer plugin loading tests" do
     def test_all_plugins_are_loaded_when_registered_plugin_list_is_untouched
       failure_tip = "It's likely someone has added a new plugin fixture without updating this list"
       load_plugins!
-      assert_plugins [:a, :acts_as_chunky_bacon, :gemlike, :plugin_with_no_lib_dir, :stubby], @initializer.loaded_plugins, failure_tip
+      assert_plugins [:a, :acts_as_chunky_bacon, :engine, :gemlike, :plugin_with_no_lib_dir, :stubby], @initializer.loaded_plugins, failure_tip
     end
 
     def test_all_plugins_loaded_when_all_is_used
@@ -218,7 +217,7 @@ uses_mocha "Initializer plugin loading tests" do
       only_load_the_following_plugins! plugin_names
       load_plugins!
       failure_tip = "It's likely someone has added a new plugin fixture without updating this list"
-      assert_plugins [:stubby, :acts_as_chunky_bacon, :a, :gemlike, :plugin_with_no_lib_dir], @initializer.loaded_plugins, failure_tip
+      assert_plugins [:stubby, :acts_as_chunky_bacon, :a, :engine, :gemlike, :plugin_with_no_lib_dir], @initializer.loaded_plugins, failure_tip
     end
 
     def test_all_plugins_loaded_after_all
@@ -226,7 +225,7 @@ uses_mocha "Initializer plugin loading tests" do
       only_load_the_following_plugins! plugin_names
       load_plugins!
       failure_tip = "It's likely someone has added a new plugin fixture without updating this list"
-      assert_plugins [:stubby, :a, :gemlike, :plugin_with_no_lib_dir, :acts_as_chunky_bacon], @initializer.loaded_plugins, failure_tip
+      assert_plugins [:stubby, :a, :engine, :gemlike, :plugin_with_no_lib_dir, :acts_as_chunky_bacon], @initializer.loaded_plugins, failure_tip
     end
 
     def test_plugin_names_may_be_strings
@@ -253,6 +252,7 @@ uses_mocha "Initializer plugin loading tests" do
       assert $LOAD_PATH.include?(File.join(plugin_fixture_path('default/acts/acts_as_chunky_bacon'), 'lib'))
     end
 
+
     private
 
       def load_plugins!
@@ -260,5 +260,64 @@ uses_mocha "Initializer plugin loading tests" do
         @initializer.load_plugins
       end
   end
+end
 
+uses_mocha 'i18n settings' do
+  class InitializerSetupI18nTests < Test::Unit::TestCase
+    def test_no_config_locales_dir_present_should_return_empty_load_path
+      File.stubs(:exist?).returns(false)
+      assert_equal [], Rails::Configuration.new.i18n.load_path
+    end
+
+    def test_config_locales_dir_present_should_be_added_to_load_path
+      File.stubs(:exist?).returns(true)
+      Dir.stubs(:[]).returns([ "my/test/locale.yml" ])
+      assert_equal [ "my/test/locale.yml" ], Rails::Configuration.new.i18n.load_path
+    end
+    
+    def test_config_defaults_should_be_added_with_config_settings
+      File.stubs(:exist?).returns(true)
+      Dir.stubs(:[]).returns([ "my/test/locale.yml" ])
+
+      config = Rails::Configuration.new
+      config.i18n.load_path << "my/other/locale.yml"
+
+      assert_equal [ "my/test/locale.yml", "my/other/locale.yml" ], config.i18n.load_path
+    end
+    
+    def test_config_defaults_and_settings_should_be_added_to_i18n_defaults
+      File.stubs(:exist?).returns(true)
+      Dir.stubs(:[]).returns([ "my/test/locale.yml" ])
+
+      config = Rails::Configuration.new
+      config.i18n.load_path << "my/other/locale.yml"
+
+      # To bring in AV's i18n load path.
+      require 'action_view'
+
+      Rails::Initializer.run(:initialize_i18n, config)
+      assert_equal [ 
+       File.expand_path("./test/../../activesupport/lib/active_support/locale/en.yml"),
+       File.expand_path("./test/../../actionpack/lib/action_view/locale/en.yml"),
+       "my/test/locale.yml",
+       "my/other/locale.yml" ], I18n.load_path.collect { |path| path =~ /^\./ ? File.expand_path(path) : path }
+    end
+    
+    def test_setting_another_default_locale
+      config = Rails::Configuration.new
+      config.i18n.default_locale = :de
+      Rails::Initializer.run(:initialize_i18n, config)
+      assert_equal :de, I18n.default_locale
+    end
+  end
+end
+
+class RailsRootTest < Test::Unit::TestCase
+  def test_rails_dot_root_equals_rails_root
+    assert_equal RAILS_ROOT, Rails.root.to_s
+  end
+
+  def test_rails_dot_root_should_be_a_pathname
+    assert_equal File.join(RAILS_ROOT, 'app', 'controllers'), Rails.root.join('app', 'controllers').to_s
+  end
 end

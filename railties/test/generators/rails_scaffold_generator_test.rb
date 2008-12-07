@@ -2,7 +2,6 @@ require 'generators/generator_test_helper'
 require 'abstract_unit'
 
 class RailsScaffoldGeneratorTest < GeneratorTestCase
-  
   def test_scaffolded_names
     g = Rails::Generator::Base.instance('scaffold', %w(ProductLine))
     assert_equal "ProductLines", g.controller_name
@@ -43,6 +42,7 @@ class RailsScaffoldGeneratorTest < GeneratorTestCase
     assert_generated_unit_test_for :product
     assert_generated_fixtures_for :products
     assert_generated_helper_for :products
+    assert_generated_helper_test_for :products
     assert_generated_stylesheet :scaffold
     assert_generated_views_for :products, "index.html.erb", "new.html.erb", "edit.html.erb", "show.html.erb"
 
@@ -58,6 +58,7 @@ class RailsScaffoldGeneratorTest < GeneratorTestCase
     assert_generated_unit_test_for :product
     assert_generated_fixtures_for :products
     assert_generated_helper_for :products
+    assert_generated_helper_test_for :products
     assert_generated_stylesheet :scaffold
     assert_generated_views_for :products, "index.html.erb","new.html.erb","edit.html.erb","show.html.erb"
     assert_skipped_migration :create_products
@@ -93,6 +94,7 @@ class RailsScaffoldGeneratorTest < GeneratorTestCase
     assert_generated_unit_test_for :product
     assert_generated_fixtures_for :products
     assert_generated_helper_for :products
+    assert_generated_helper_test_for :products
     assert_generated_stylesheet :scaffold
     assert_generated_views_for :products, "index.html.erb", "new.html.erb", "edit.html.erb", "show.html.erb"
 
@@ -126,6 +128,7 @@ class RailsScaffoldGeneratorTest < GeneratorTestCase
     assert_generated_unit_test_for :product
     assert_generated_fixtures_for :products
     assert_generated_helper_for :products
+    assert_generated_helper_test_for :products
     assert_generated_stylesheet :scaffold
     assert_generated_views_for :products, "index.html.erb","new.html.erb","edit.html.erb","show.html.erb"
     assert_skipped_migration :create_products
@@ -140,10 +143,10 @@ class RailsScaffoldGeneratorTest < GeneratorTestCase
     assert_generated_unit_test_for :products
     assert_generated_fixtures_for :products
     assert_generated_helper_for :products
+    assert_generated_helper_test_for :products
     assert_generated_stylesheet :scaffold
     assert_generated_views_for :products, "index.html.erb","new.html.erb","edit.html.erb","show.html.erb"
     assert_skipped_migration :create_products
     assert_added_route_for :products
   end
-
 end

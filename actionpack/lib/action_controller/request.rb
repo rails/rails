@@ -209,7 +209,7 @@ module ActionController
     # delimited list in the case of multiple chained proxies; the last
     # address which is not trusted is the originating IP.
     def remote_ip
-      remote_addr_list = @env['REMOTE_ADDR'] && @env['REMOTE_ADDR'].split(',').collect(&:strip)
+      remote_addr_list = @env['REMOTE_ADDR'] && @env['REMOTE_ADDR'].scan(/[^,\s]+/)
 
       unless remote_addr_list.blank?
         not_trusted_addrs = remote_addr_list.reject {|addr| addr =~ TRUSTED_PROXIES}
@@ -218,7 +218,7 @@ module ActionController
       remote_ips = @env['HTTP_X_FORWARDED_FOR'] && @env['HTTP_X_FORWARDED_FOR'].split(',')
 
       if @env.include? 'HTTP_CLIENT_IP'
-        if remote_ips && !remote_ips.include?(@env['HTTP_CLIENT_IP'])
+        if ActionController::Base.ip_spoofing_check && remote_ips && !remote_ips.include?(@env['HTTP_CLIENT_IP'])
           # We don't know which came from the proxy, and which from the user
           raise ActionControllerError.new(<<EOM)
 IP spoofing attack?!
@@ -369,11 +369,9 @@ EOM
     # Returns the interpreted \path to requested resource after all the installation
     # directory of this application was taken into account.
     def path
-      path = (uri = request_uri) ? uri.split('?').first.to_s : ''
-
-      # Cut off the path to the installation directory if given
-      path.sub!(%r/^#{ActionController::Base.relative_url_root}/, '')
-      path || ''
+      path = request_uri.to_s[/\A[^\?]*/]
+      path.sub!(/\A#{ActionController::Base.relative_url_root}/, '')
+      path
     end
     memoize :path
 

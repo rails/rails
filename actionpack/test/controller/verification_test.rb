@@ -1,6 +1,6 @@
 require 'abstract_unit'
 
-class VerificationTest < Test::Unit::TestCase
+class VerificationTest < ActionController::TestCase
   class TestController < ActionController::Base
     verify :only => :guarded_one, :params => "one",
            :add_flash => { :error => 'unguarded' },

@@ -1,4 +1,4 @@
-require File.expand_path(File.join(File.dirname(__FILE__), '..', 'test_helper'))
+require 'test_helper'
 
 class StateTransitionTest < ActiveModel::TestCase
   test 'should set from, to, and opts attr readers' do
@@ -10,39 +10,37 @@ class StateTransitionTest < ActiveModel::TestCase
     assert_equal opts,        st.options
   end
 
-  uses_mocha 'checking ActiveModel StateMachine transitions' do
-    test 'should pass equality check if from and to are the same' do
-      opts = {:from => 'foo', :to => 'bar', :guard => 'g'}
-      st = ActiveModel::StateMachine::StateTransition.new(opts)
+  test 'should pass equality check if from and to are the same' do
+    opts = {:from => 'foo', :to => 'bar', :guard => 'g'}
+    st = ActiveModel::StateMachine::StateTransition.new(opts)
 
-      obj = stub
-      obj.stubs(:from).returns(opts[:from])
-      obj.stubs(:to).returns(opts[:to])
+    obj = stub
+    obj.stubs(:from).returns(opts[:from])
+    obj.stubs(:to).returns(opts[:to])
 
-      assert_equal st, obj
-    end
+    assert_equal st, obj
+  end
 
-    test 'should fail equality check if from are not the same' do
-      opts = {:from => 'foo', :to => 'bar', :guard => 'g'}
-      st = ActiveModel::StateMachine::StateTransition.new(opts)
+  test 'should fail equality check if from are not the same' do
+    opts = {:from => 'foo', :to => 'bar', :guard => 'g'}
+    st = ActiveModel::StateMachine::StateTransition.new(opts)
 
-      obj = stub
-      obj.stubs(:from).returns('blah')
-      obj.stubs(:to).returns(opts[:to])
+    obj = stub
+    obj.stubs(:from).returns('blah')
+    obj.stubs(:to).returns(opts[:to])
 
-      assert_not_equal st, obj
-    end
-  
-    test 'should fail equality check if to are not the same' do
-      opts = {:from => 'foo', :to => 'bar', :guard => 'g'}
-      st = ActiveModel::StateMachine::StateTransition.new(opts)
+    assert_not_equal st, obj
+  end
 
-      obj = stub
-      obj.stubs(:from).returns(opts[:from])
-      obj.stubs(:to).returns('blah')
+  test 'should fail equality check if to are not the same' do
+    opts = {:from => 'foo', :to => 'bar', :guard => 'g'}
+    st = ActiveModel::StateMachine::StateTransition.new(opts)
 
-      assert_not_equal st, obj
-    end
+    obj = stub
+    obj.stubs(:from).returns(opts[:from])
+    obj.stubs(:to).returns('blah')
+
+    assert_not_equal st, obj
   end
 end
 
@@ -54,35 +52,33 @@ class StateTransitionGuardCheckTest < ActiveModel::TestCase
     assert st.perform(nil)
   end
 
-  uses_mocha 'checking ActiveModel StateMachine transition guard checks' do
-    test 'should call the method on the object if guard is a symbol' do
-      opts = {:from => 'foo', :to => 'bar', :guard => :test_guard}
-      st = ActiveModel::StateMachine::StateTransition.new(opts)
+  test 'should call the method on the object if guard is a symbol' do
+    opts = {:from => 'foo', :to => 'bar', :guard => :test_guard}
+    st = ActiveModel::StateMachine::StateTransition.new(opts)
+  
+    obj = stub
+    obj.expects(:test_guard)
     
-      obj = stub
-      obj.expects(:test_guard)
-      
-      st.perform(obj)
-    end
+    st.perform(obj)
+  end
+  
+  test 'should call the method on the object if guard is a string' do
+    opts = {:from => 'foo', :to => 'bar', :guard => 'test_guard'}
+    st = ActiveModel::StateMachine::StateTransition.new(opts)
+  
+    obj = stub
+    obj.expects(:test_guard)
     
-    test 'should call the method on the object if guard is a string' do
-      opts = {:from => 'foo', :to => 'bar', :guard => 'test_guard'}
-      st = ActiveModel::StateMachine::StateTransition.new(opts)
-    
-      obj = stub
-      obj.expects(:test_guard)
-      
-      st.perform(obj)
-    end
-    
-    test 'should call the proc passing the object if the guard is a proc' do
-      opts = {:from => 'foo', :to => 'bar', :guard => Proc.new {|o| o.test_guard}}
-      st = ActiveModel::StateMachine::StateTransition.new(opts)
-    
-      obj = stub
-      obj.expects(:test_guard)
-    
-      st.perform(obj)
-    end
+    st.perform(obj)
+  end
+  
+  test 'should call the proc passing the object if the guard is a proc' do
+    opts = {:from => 'foo', :to => 'bar', :guard => Proc.new {|o| o.test_guard}}
+    st = ActiveModel::StateMachine::StateTransition.new(opts)
+  
+    obj = stub
+    obj.expects(:test_guard)
+  
+    st.perform(obj)
   end
 end

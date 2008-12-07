@@ -1,10 +1,10 @@
 module ActiveSupport
   module Memoizable
-    MEMOIZED_IVAR = Proc.new do |symbol|
+    def self.memoized_ivar_for(symbol)
       "@_memoized_#{symbol.to_s.sub(/\?\Z/, '_query').sub(/!\Z/, '_bang')}".to_sym
     end
 
-    module Freezable
+    module InstanceMethods
       def self.included(base)
         base.class_eval do
           unless base.method_defined?(:freeze_without_memoizable)
@@ -19,23 +19,35 @@ module ActiveSupport
       end
 
       def memoize_all
-        methods.each do |m|
-          if m.to_s =~ /^_unmemoized_(.*)/
-            if method(m).arity == 0
-              __send__($1)
-            else
-              ivar = MEMOIZED_IVAR.call($1)
-              instance_variable_set(ivar, {})
+        prime_cache ".*"
+      end
+
+      def unmemoize_all
+        flush_cache ".*"
+      end
+
+      def prime_cache(*syms)
+        syms.each do |sym|
+          methods.each do |m|
+            if m.to_s =~ /^_unmemoized_(#{sym})/
+              if method(m).arity == 0
+                __send__($1)
+              else
+                ivar = ActiveSupport::Memoizable.memoized_ivar_for($1)
+                instance_variable_set(ivar, {})
+              end
             end
           end
         end
       end
 
-      def unmemoize_all
-        methods.each do |m|
-          if m.to_s =~ /^_unmemoized_(.*)/
-            ivar = MEMOIZED_IVAR.call($1)
-            instance_variable_get(ivar).clear if instance_variable_defined?(ivar)
+      def flush_cache(*syms, &block)
+        syms.each do |sym|
+          methods.each do |m|
+            if m.to_s =~ /^_unmemoized_(#{sym})/
+              ivar = ActiveSupport::Memoizable.memoized_ivar_for($1)
+              instance_variable_get(ivar).clear if instance_variable_defined?(ivar)
+            end
           end
         end
       end
@@ -44,10 +56,10 @@ module ActiveSupport
     def memoize(*symbols)
       symbols.each do |symbol|
         original_method = :"_unmemoized_#{symbol}"
-        memoized_ivar = MEMOIZED_IVAR.call(symbol)
+        memoized_ivar = ActiveSupport::Memoizable.memoized_ivar_for(symbol)
 
         class_eval <<-EOS, __FILE__, __LINE__
-          include Freezable
+          include InstanceMethods
 
           raise "Already memoized #{symbol}" if method_defined?(:#{original_method})
           alias #{original_method} #{symbol}

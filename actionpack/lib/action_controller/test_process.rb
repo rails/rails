@@ -1,4 +1,3 @@
-require 'action_controller/assertions'
 require 'action_controller/test_case'
 
 module ActionController #:nodoc:
@@ -201,6 +200,11 @@ module ActionController #:nodoc:
 
     alias_method :server_error?, :error?
 
+    # Was there a client client?
+    def client_error?
+      (400..499).include?(response_code)
+    end
+
     # Returns the redirection location or nil
     def redirect_url
       headers['Location']
@@ -284,7 +288,7 @@ module ActionController #:nodoc:
   # See AbstractResponse for more information on controller response objects.
   class TestResponse < AbstractResponse
     include TestResponseBehavior
-    
+
     def recycle!
       headers.delete('ETag')
       headers.delete('Last-Modified')
@@ -333,10 +337,10 @@ module ActionController #:nodoc:
   # a file upload.
   #
   # Usage example, within a functional test:
-  #   post :change_avatar, :avatar => ActionController::TestUploadedFile.new(Test::Unit::TestCase.fixture_path + '/files/spongebob.png', 'image/png')
+  #   post :change_avatar, :avatar => ActionController::TestUploadedFile.new(ActionController::TestCase.fixture_path + '/files/spongebob.png', 'image/png')
   #
   # Pass a true third parameter to ensure the uploaded file is opened in binary mode (only required for Windows):
-  #   post :change_avatar, :avatar => ActionController::TestUploadedFile.new(Test::Unit::TestCase.fixture_path + '/files/spongebob.png', 'image/png', :binary)
+  #   post :change_avatar, :avatar => ActionController::TestUploadedFile.new(ActionController::TestCase.fixture_path + '/files/spongebob.png', 'image/png', :binary)
   require 'tempfile'
   class TestUploadedFile
     # The filename, *not* including the path, of the "uploaded" file
@@ -464,15 +468,15 @@ module ActionController #:nodoc:
       html_document.find_all(conditions)
     end
 
-    def method_missing(selector, *args)
-      if ActionController::Routing::Routes.named_routes.helpers.include?(selector)
-        @controller.send(selector, *args)
+    def method_missing(selector, *args, &block)
+      if @controller && ActionController::Routing::Routes.named_routes.helpers.include?(selector)
+        @controller.send(selector, *args, &block)
       else
         super
       end
     end
 
-    # Shortcut for <tt>ActionController::TestUploadedFile.new(Test::Unit::TestCase.fixture_path + path, type)</tt>:
+    # Shortcut for <tt>ActionController::TestUploadedFile.new(ActionController::TestCase.fixture_path + path, type)</tt>:
     #
     #   post :change_avatar, :avatar => fixture_file_upload('/files/spongebob.png', 'image/png')
     #
@@ -481,11 +485,7 @@ module ActionController #:nodoc:
     #
     #   post :change_avatar, :avatar => fixture_file_upload('/files/spongebob.png', 'image/png', :binary)
     def fixture_file_upload(path, mime_type = nil, binary = false)
-      ActionController::TestUploadedFile.new(
-        Test::Unit::TestCase.respond_to?(:fixture_path) ? Test::Unit::TestCase.fixture_path + path : path,
-        mime_type,
-        binary
-      )
+      ActionController::TestUploadedFile.new("#{ActionController::TestCase.try(:fixture_path)}#{path}", mime_type, binary)
     end
 
     # A helper to make it easier to test different route configurations.

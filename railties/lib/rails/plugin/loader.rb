@@ -22,6 +22,11 @@ module Rails
         @plugins ||= all_plugins.select { |plugin| should_load?(plugin) }.sort { |p1, p2| order_plugins(p1, p2) }
       end
 
+      # Returns the plugins that are in engine-form (have an app/ directory)
+      def engines
+        @engines ||= plugins.select(&:engine?)
+      end
+
       # Returns all the plugins that could be found by the current locators.
       def all_plugins
         @all_plugins ||= locate_plugins
@@ -33,6 +38,9 @@ module Rails
           plugin.load(initializer)
           register_plugin_as_loaded(plugin)
         end
+
+        configure_engines
+
         ensure_all_registered_plugins_are_loaded!
       end
       
@@ -45,23 +53,49 @@ module Rails
         plugins.each do |plugin|
           plugin.load_paths.each do |path|
             $LOAD_PATH.insert(application_lib_index + 1, path)
-            ActiveSupport::Dependencies.load_paths      << path
+
+            ActiveSupport::Dependencies.load_paths << path
+
             unless Rails.configuration.reload_plugins?
               ActiveSupport::Dependencies.load_once_paths << path
             end
           end
         end
+
         $LOAD_PATH.uniq!
-      end      
+      end
+      
       
       protected
+        def configure_engines
+          if engines.any?
+            add_engine_routing_configurations
+            add_engine_controller_paths
+            add_engine_view_paths
+          end
+        end
       
+        def add_engine_routing_configurations
+          engines.select(&:routed?).collect(&:routing_file).each do |routing_file|
+            ActionController::Routing::Routes.add_configuration_file(routing_file)
+          end
+        end
+        
+        def add_engine_controller_paths
+          ActionController::Routing.controller_paths += engines.collect(&:controller_path)
+        end
+        
+        def add_engine_view_paths
+          # reverse it such that the last engine can overwrite view paths from the first, like with routes
+          ActionController::Base.view_paths += ActionView::PathSet.new(engines.collect(&:view_path).reverse)
+        end
+
         # The locate_plugins method uses each class in config.plugin_locators to
         # find the set of all plugins available to this Rails application.
         def locate_plugins
-          configuration.plugin_locators.map { |locator|
+          configuration.plugin_locators.map do |locator|
             locator.new(initializer).plugins
-          }.flatten
+          end.flatten
           # TODO: sorting based on config.plugins
         end
 

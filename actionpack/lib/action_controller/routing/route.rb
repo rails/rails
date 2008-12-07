@@ -35,6 +35,11 @@ module ActionController
           segment.key if segment.respond_to? :key
         end.compact
       end
+      
+      def required_segment_keys
+        required_segments = segments.select {|seg| (!seg.optional? && !seg.is_a?(DividerSegment)) || seg.is_a?(PathSegment) }
+        required_segments.collect { |seg| seg.key if seg.respond_to?(:key)}.compact
+      end
 
       # Build a query string from the keys of the given hash. If +only_keys+
       # is given (as an array), only the keys indicated will be used to build
@@ -122,6 +127,16 @@ module ActionController
         super
       end
 
+      def generate(options, hash, expire_on = {})
+        path, hash = generate_raw(options, hash, expire_on)
+        append_query_string(path, hash, extra_keys(options))
+      end
+
+      def generate_extras(options, hash, expire_on = {})
+        path, hash = generate_raw(options, hash, expire_on)
+        [path, extra_keys(options)]
+      end
+
       private
         def requirement_for(key)
           return requirements[key] if requirements.key? key
@@ -150,11 +165,6 @@ module ActionController
           # the query string. (Never use keys from the recalled request when building the
           # query string.)
 
-          method_decl = "def generate(#{args})\npath, hash = generate_raw(options, hash, expire_on)\nappend_query_string(path, hash, extra_keys(options))\nend"
-          instance_eval method_decl, "generated code (#{__FILE__}:#{__LINE__})"
-
-          method_decl = "def generate_extras(#{args})\npath, hash = generate_raw(options, hash, expire_on)\n[path, extra_keys(options)]\nend"
-          instance_eval method_decl, "generated code (#{__FILE__}:#{__LINE__})"
           raw_method
         end
 

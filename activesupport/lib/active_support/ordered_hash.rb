@@ -53,6 +53,14 @@ module ActiveSupport
       end
 
       alias_method :value?, :has_value?
+
+      def each_key
+        each { |key, value| yield key }
+      end
+
+      def each_value
+        each { |key, value| yield value }
+      end
     end
   end
 end

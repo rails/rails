@@ -1,3 +1,21 @@
+*2.3.0/3.0*
+
+* Add :having as a key to find and the relevant associations.  [miloops]
+
+* Added default_scope to Base #1381 [Paweł Kondzior]. Example:
+
+    class Person < ActiveRecord::Base
+      default_scope :order => 'last_name, first_name'
+    end
+
+    class Company < ActiveRecord::Base
+      has_many :people
+    end
+
+    Person.all             # => Person.find(:all, :order => 'last_name, first_name')
+    Company.find(1).people # => Person.find(:all, :order => 'last_name, first_name', :conditions => { :company_id => 1 })
+
+
 *2.2.1 [RC2] (November 14th, 2008)*
 
 * Ensure indices don't flip order in schema.rb #1266 [Jordi Bunster]

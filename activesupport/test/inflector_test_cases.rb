@@ -147,13 +147,24 @@ module InflectorTestCases
   StringToParameterized = {
     "Donald E. Knuth"                     => "donald-e-knuth",
     "Random text with *(bad)* characters" => "random-text-with-bad-characters",
-    "Malmö"                               => "malmo",
-    "Garçons"                             => "garcons",
     "Allow_Under_Scores"                  => "allow_under_scores",
     "Trailing bad characters!@#"          => "trailing-bad-characters",
     "!@#Leading bad characters"           => "leading-bad-characters",
     "Squeeze   separators"                => "squeeze-separators"
   }
+
+  # Ruby 1.9 doesn't do Unicode normalization yet.
+  if RUBY_VERSION >= '1.9'
+    StringToParameterizedAndNormalized = {
+      "Malmö"                               => "malm",
+      "Garçons"                             => "gar-ons"
+    }
+  else
+    StringToParameterizedAndNormalized = {
+      "Malmö"                               => "malmo",
+      "Garçons"                             => "garcons"
+    }
+  end
 
   UnderscoreToHuman = {
     "employee_salary" => "Employee salary",

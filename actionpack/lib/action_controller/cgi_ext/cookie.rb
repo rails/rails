@@ -1,3 +1,5 @@
+require 'delegate'
+
 CGI.module_eval { remove_const "Cookie" }
 
 # TODO: document how this differs from stdlib CGI::Cookie

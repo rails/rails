@@ -515,6 +515,10 @@ module ActiveRecord #:nodoc:
     superclass_delegating_accessor :store_full_sti_class
     self.store_full_sti_class = false
 
+    # Stores the default scope for the class
+    class_inheritable_accessor :default_scoping, :instance_writer => false
+    self.default_scoping = []
+
     class << self # Class methods
       # Find operates with four different retrieval approaches:
       #
@@ -537,6 +541,7 @@ module ActiveRecord #:nodoc:
       # * <tt>:conditions</tt> - An SQL fragment like "administrator = 1", <tt>[ "user_name = ?", username ]</tt>, or <tt>["user_name = :user_name", { :user_name => user_name }]</tt>. See conditions in the intro.
       # * <tt>:order</tt> - An SQL fragment like "created_at DESC, name".
       # * <tt>:group</tt> - An attribute name by which the result should be grouped. Uses the <tt>GROUP BY</tt> SQL-clause.
+      # * <tt>:having</tt> - Combined with +:group+ this can be used to filter the records that a <tt>GROUP BY</tt> returns. Uses the <tt>HAVING</tt> SQL-clause.
       # * <tt>:limit</tt> - An integer determining the limit on the number of rows that should be returned.
       # * <tt>:offset</tt> - An integer determining the offset from where the rows should be fetched. So at 5, it would skip rows 0 through 4.
       # * <tt>:joins</tt> - Either an SQL fragment for additional joins like "LEFT JOIN comments ON comments.post_id = id" (rarely needed)
@@ -1640,15 +1645,23 @@ module ActiveRecord #:nodoc:
           end
         end
 
+        def default_select(qualified)
+          if qualified
+            quoted_table_name + '.*'
+          else
+            '*'
+          end
+        end
+
         def construct_finder_sql(options)
           scope = scope(:find)
-          sql  = "SELECT #{options[:select] || (scope && scope[:select]) || ((options[:joins] || (scope && scope[:joins])) && quoted_table_name + '.*') || '*'} "
+          sql  = "SELECT #{options[:select] || (scope && scope[:select]) || default_select(options[:joins] || (scope && scope[:joins]))} "
           sql << "FROM #{(scope && scope[:from]) || options[:from] || quoted_table_name} "
 
           add_joins!(sql, options[:joins], scope)
           add_conditions!(sql, options[:conditions], scope)
 
-          add_group!(sql, options[:group], scope)
+          add_group!(sql, options[:group], options[:having], scope)
           add_order!(sql, options[:order], scope)
           add_limit!(sql, options, scope)
           add_lock!(sql, options, scope)
@@ -1704,13 +1717,15 @@ module ActiveRecord #:nodoc:
           end
         end
 
-        def add_group!(sql, group, scope = :auto)
+        def add_group!(sql, group, having, scope = :auto)
           if group
             sql << " GROUP BY #{group}"
+            sql << " HAVING #{having}" if having
           else
             scope = scope(:find) if :auto == scope
             if scope && (scoped_group = scope[:group])
               sql << " GROUP BY #{scoped_group}"
+              sql << " HAVING #{scoped_having}" if (scoped_having = scope[:having])
             end
           end
         end
@@ -2036,6 +2051,16 @@ module ActiveRecord #:nodoc:
           @@subclasses[self] + extra = @@subclasses[self].inject([]) {|list, subclass| list + subclass.subclasses }
         end
 
+        # Sets the default options for the model. The format of the
+        # <tt>method_scoping</tt> argument is the same as in with_scope.
+        #
+        #   class Person < ActiveRecord::Base
+        #     default_scope :find => { :order => 'last_name, first_name' }
+        #   end
+        def default_scope(options = {})
+          self.default_scoping << { :find => options, :create => (options.is_a?(Hash) && options.has_key?(:conditions)) ? options[:conditions] : {} }
+        end
+
         # Test whether the given method and optional key are scoped.
         def scoped?(method, key = nil) #:nodoc:
           if current_scoped_methods && (scope = current_scoped_methods[method])
@@ -2051,7 +2076,7 @@ module ActiveRecord #:nodoc:
         end
 
         def scoped_methods #:nodoc:
-          Thread.current[:"#{self}_scoped_methods"] ||= []
+          Thread.current[:"#{self}_scoped_methods"] ||= self.default_scoping.dup
         end
 
         def current_scoped_methods #:nodoc:
@@ -2265,7 +2290,7 @@ module ActiveRecord #:nodoc:
         end
 
         VALID_FIND_OPTIONS = [ :conditions, :include, :joins, :limit, :offset,
-                               :order, :select, :readonly, :group, :from, :lock ]
+                               :order, :select, :readonly, :group, :having, :from, :lock ]
 
         def validate_find_options(options) #:nodoc:
           options.assert_valid_keys(VALID_FIND_OPTIONS)
@@ -2328,7 +2353,7 @@ module ActiveRecord #:nodoc:
       # construct a path with the user object's 'id' in it:
       #
       #   user = User.find_by_name('Phusion')
-      #   user_path(path)  # => "/users/1"
+      #   user_path(user)  # => "/users/1"
       #
       # You can override +to_param+ in your model to make +user_path+ construct
       # a path using the user's name instead of the user's id:
@@ -2340,7 +2365,7 @@ module ActiveRecord #:nodoc:
       #   end
       #   
       #   user = User.find_by_name('Phusion')
-      #   user_path(path)  # => "/users/Phusion"
+      #   user_path(user)  # => "/users/Phusion"
       def to_param
         # We can't use alias_method here, because method 'id' optimizes itself on the fly.
         (id = self.id) ? id.to_s : nil # Be sure to stringify the id for routes
@@ -2984,4 +3009,18 @@ module ActiveRecord #:nodoc:
         value
       end
   end
+
+  Base.class_eval do
+    extend QueryCache
+    include Validations
+    include Locking::Optimistic, Locking::Pessimistic
+    include AttributeMethods
+    include Dirty
+    include Callbacks, Observing, Timestamp
+    include Associations, AssociationPreload, NamedScope
+    include Aggregations, Transactions, Reflection, Calculations, Serialization
+  end
 end
+
+# TODO: Remove this and make it work with LAZY flag
+require 'active_record/connection_adapters/abstract_adapter'

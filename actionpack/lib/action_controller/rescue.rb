@@ -1,13 +1,19 @@
 module ActionController #:nodoc:
-  # Actions that fail to perform as expected throw exceptions. These exceptions can either be rescued for the public view
-  # (with a nice user-friendly explanation) or for the developers view (with tons of debugging information). The developers view
-  # is already implemented by the Action Controller, but the public view should be tailored to your specific application. 
-  # 
-  # The default behavior for public exceptions is to render a static html file with the name of the error code thrown.  If no such 
-  # file exists, an empty response is sent with the correct status code.
+  # Actions that fail to perform as expected throw exceptions. These
+  # exceptions can either be rescued for the public view (with a nice
+  # user-friendly explanation) or for the developers view (with tons of
+  # debugging information). The developers view is already implemented by
+  # the Action Controller, but the public view should be tailored to your
+  # specific application.
   #
-  # You can override what constitutes a local request by overriding the <tt>local_request?</tt> method in your own controller.
-  # Custom rescue behavior is achieved by overriding the <tt>rescue_action_in_public</tt> and <tt>rescue_action_locally</tt> methods.
+  # The default behavior for public exceptions is to render a static html
+  # file with the name of the error code thrown.  If no such file exists, an
+  # empty response is sent with the correct status code.
+  #
+  # You can override what constitutes a local request by overriding the
+  # <tt>local_request?</tt> method in your own controller. Custom rescue
+  # behavior is achieved by overriding the <tt>rescue_action_in_public</tt>
+  # and <tt>rescue_action_locally</tt> methods.
   module Rescue
     LOCALHOST = '127.0.0.1'.freeze
 
@@ -31,6 +37,9 @@ module ActionController #:nodoc:
       'ActionController::UnknownAction'   => 'unknown_action',
       'ActionView::TemplateError'         => 'template_error'
     }
+
+    RESCUES_TEMPLATE_PATH = ActionView::PathSet::Path.new(
+      "#{File.dirname(__FILE__)}/templates", true)
 
     def self.included(base) #:nodoc:
       base.cattr_accessor :rescue_responses
@@ -56,36 +65,41 @@ module ActionController #:nodoc:
     end
 
     protected
-      # Exception handler called when the performance of an action raises an exception.
+      # Exception handler called when the performance of an action raises
+      # an exception.
       def rescue_action(exception)
-        rescue_with_handler(exception) || rescue_action_without_handler(exception)
+        rescue_with_handler(exception) ||
+          rescue_action_without_handler(exception)
       end
 
-      # Overwrite to implement custom logging of errors. By default logs as fatal.
+      # Overwrite to implement custom logging of errors. By default
+      # logs as fatal.
       def log_error(exception) #:doc:
         ActiveSupport::Deprecation.silence do
           if ActionView::TemplateError === exception
             logger.fatal(exception.to_s)
           else
             logger.fatal(
-              "\n\n#{exception.class} (#{exception.message}):\n    " +
-              clean_backtrace(exception).join("\n    ") +
-              "\n\n"
+              "\n#{exception.class} (#{exception.message}):\n  " +
+              clean_backtrace(exception).join("\n  ") + "\n\n"
             )
           end
         end
       end
 
-      # Overwrite to implement public exception handling (for requests answering false to <tt>local_request?</tt>).  By
-      # default will call render_optional_error_file.  Override this method to provide more user friendly error messages.
+      # Overwrite to implement public exception handling (for requests
+      # answering false to <tt>local_request?</tt>).  By default will call
+      # render_optional_error_file.  Override this method to provide more
+      # user friendly error messages.
       def rescue_action_in_public(exception) #:doc:
         render_optional_error_file response_code_for_rescue(exception)
       end
-      
-      # Attempts to render a static error page based on the <tt>status_code</tt> thrown,
-      # or just return headers if no such file exists. For example, if a 500 error is 
-      # being handled Rails will first attempt to render the file at <tt>public/500.html</tt>. 
-      # If the file doesn't exist, the body of the response will be left empty.
+
+      # Attempts to render a static error page based on the
+      # <tt>status_code</tt> thrown, or just return headers if no such file
+      # exists. For example, if a 500 error is being handled Rails will first
+      # attempt to render the file at <tt>public/500.html</tt>. If the file
+      # doesn't exist, the body of the response will be left empty.
       def render_optional_error_file(status_code)
         status = interpret_status(status_code)
         path = "#{Rails.public_path}/#{status[0,3]}.html"
@@ -107,11 +121,13 @@ module ActionController #:nodoc:
       # a controller action.
       def rescue_action_locally(exception)
         @template.instance_variable_set("@exception", exception)
-        @template.instance_variable_set("@rescues_path", File.dirname(rescues_path("stub")))
-        @template.instance_variable_set("@contents", @template.render(:file => template_path_for_local_rescue(exception)))
+        @template.instance_variable_set("@rescues_path", RESCUES_TEMPLATE_PATH)
+        @template.instance_variable_set("@contents",
+          @template.render(:file => template_path_for_local_rescue(exception)))
 
         response.content_type = Mime::HTML
-        render_for_file(rescues_path("layout"), response_code_for_rescue(exception))
+        render_for_file(rescues_path("layout"),
+          response_code_for_rescue(exception))
       end
 
       def rescue_action_without_handler(exception)
@@ -139,7 +155,7 @@ module ActionController #:nodoc:
       end
 
       def rescues_path(template_name)
-        "#{File.dirname(__FILE__)}/templates/rescues/#{template_name}.erb"
+        RESCUES_TEMPLATE_PATH["rescues/#{template_name}.erb"]
       end
 
       def template_path_for_local_rescue(exception)
@@ -151,13 +167,9 @@ module ActionController #:nodoc:
       end
 
       def clean_backtrace(exception)
-        if backtrace = exception.backtrace
-          if defined?(RAILS_ROOT)
-            backtrace.map { |line| line.sub RAILS_ROOT, '' }
-          else
-            backtrace
-          end
-        end
+        defined?(Rails) && Rails.respond_to?(:backtrace_cleaner) ?
+          Rails.backtrace_cleaner.clean(exception.backtrace) :
+          exception.backtrace
       end
   end
 end

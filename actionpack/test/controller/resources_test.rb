@@ -29,7 +29,7 @@ module Backoffice
   end
 end
 
-class ResourcesTest < Test::Unit::TestCase
+class ResourcesTest < ActionController::TestCase
   # The assertions in these tests are incompatible with the hash method
   # optimisation.  This could indicate user level problems
   def setup
@@ -187,7 +187,7 @@ class ResourcesTest < Test::Unit::TestCase
 
       assert_restful_named_routes_for :messages, :path_prefix => 'threads/1/', :name_prefix => 'thread_', :options => { :thread_id => '1' } do |options|
         actions.keys.each do |action|
-          assert_named_route "/threads/1/messages/#{action}.xml", "formatted_#{action}_thread_messages_path", :action => action, :format => 'xml'
+          assert_named_route "/threads/1/messages/#{action}.xml", "#{action}_thread_messages_path", :action => action, :format => 'xml'
         end
       end
     end
@@ -316,7 +316,7 @@ class ResourcesTest < Test::Unit::TestCase
       end
 
       assert_restful_named_routes_for :messages, :path_prefix => 'threads/1/', :name_prefix => 'thread_', :options => { :thread_id => '1' } do |options|
-        assert_named_route preview_path, :formatted_preview_new_thread_message_path, preview_options
+        assert_named_route preview_path, :preview_new_thread_message_path, preview_options
       end
     end
   end
@@ -997,6 +997,16 @@ class ResourcesTest < Test::Unit::TestCase
     end
   end
 
+  def test_default_singleton_restful_route_uses_get
+    with_routing do |set|
+      set.draw do |map|
+        map.resource :product
+      end
+
+      assert_equal :get, set.named_routes.routes[:product].conditions[:method]
+    end
+  end
+
   protected
     def with_restful_routing(*args)
       with_routing do |set|
@@ -1120,14 +1130,14 @@ class ResourcesTest < Test::Unit::TestCase
       end
 
       assert_named_route "#{full_path}", "#{name_prefix}#{controller_name}_path", options[:options]
-      assert_named_route "#{full_path}.xml", "formatted_#{name_prefix}#{controller_name}_path", options[:options].merge(:format => 'xml')
+      assert_named_route "#{full_path}.xml", "#{name_prefix}#{controller_name}_path", options[:options].merge(:format => 'xml')
       assert_named_route "#{shallow_path}/1", "#{shallow_prefix}#{singular_name}_path", options[:shallow_options].merge(:id => '1')
-      assert_named_route "#{shallow_path}/1.xml", "formatted_#{shallow_prefix}#{singular_name}_path", options[:shallow_options].merge(:id => '1', :format => 'xml')
+      assert_named_route "#{shallow_path}/1.xml", "#{shallow_prefix}#{singular_name}_path", options[:shallow_options].merge(:id => '1', :format => 'xml')
 
       assert_named_route "#{full_path}/#{new_action}", "new_#{name_prefix}#{singular_name}_path", options[:options]
-      assert_named_route "#{full_path}/#{new_action}.xml", "formatted_new_#{name_prefix}#{singular_name}_path", options[:options].merge(:format => 'xml')
+      assert_named_route "#{full_path}/#{new_action}.xml", "new_#{name_prefix}#{singular_name}_path", options[:options].merge(:format => 'xml')
       assert_named_route "#{shallow_path}/1/#{edit_action}", "edit_#{shallow_prefix}#{singular_name}_path", options[:shallow_options].merge(:id => '1')
-      assert_named_route "#{shallow_path}/1/#{edit_action}.xml", "formatted_edit_#{shallow_prefix}#{singular_name}_path", options[:shallow_options].merge(:id => '1', :format => 'xml')
+      assert_named_route "#{shallow_path}/1/#{edit_action}.xml", "edit_#{shallow_prefix}#{singular_name}_path", options[:shallow_options].merge(:id => '1', :format => 'xml')
 
       yield options[:options] if block_given?
     end
@@ -1179,12 +1189,12 @@ class ResourcesTest < Test::Unit::TestCase
       name_prefix = options[:name_prefix]
 
       assert_named_route "#{full_path}",          "#{name_prefix}#{singleton_name}_path",                options[:options]
-      assert_named_route "#{full_path}.xml",      "formatted_#{name_prefix}#{singleton_name}_path",      options[:options].merge(:format => 'xml')
+      assert_named_route "#{full_path}.xml",      "#{name_prefix}#{singleton_name}_path",      options[:options].merge(:format => 'xml')
 
       assert_named_route "#{full_path}/new",      "new_#{name_prefix}#{singleton_name}_path",            options[:options]
-      assert_named_route "#{full_path}/new.xml",  "formatted_new_#{name_prefix}#{singleton_name}_path",  options[:options].merge(:format => 'xml')
+      assert_named_route "#{full_path}/new.xml",  "new_#{name_prefix}#{singleton_name}_path",  options[:options].merge(:format => 'xml')
       assert_named_route "#{full_path}/edit",     "edit_#{name_prefix}#{singleton_name}_path",           options[:options]
-      assert_named_route "#{full_path}/edit.xml", "formatted_edit_#{name_prefix}#{singleton_name}_path", options[:options].merge(:format => 'xml')
+      assert_named_route "#{full_path}/edit.xml", "edit_#{name_prefix}#{singleton_name}_path", options[:options].merge(:format => 'xml')
     end
 
     def assert_named_route(expected, route, options)
@@ -1240,7 +1250,7 @@ class ResourcesTest < Test::Unit::TestCase
     end
 
     def assert_not_recognizes(expected_options, path)
-      assert_raise ActionController::RoutingError, ActionController::MethodNotAllowed, Test::Unit::AssertionFailedError do
+      assert_raise ActionController::RoutingError, ActionController::MethodNotAllowed, Assertion do
         assert_recognizes(expected_options, path)
       end
     end

@@ -1,7 +1,12 @@
 namespace :db do
+  task :load_config => :rails_env do
+    require 'active_record'
+    ActiveRecord::Base.configurations = Rails::Configuration.new.database_configuration
+  end
+
   namespace :create do
     desc 'Create all the local databases defined in config/database.yml'
-    task :all => :environment do
+    task :all => :load_config do
       ActiveRecord::Base.configurations.each_value do |config|
         # Skip entries that don't have a database key, such as the first entry here:
         #
@@ -22,7 +27,7 @@ namespace :db do
   end
 
   desc 'Create the database defined in config/database.yml for the current RAILS_ENV'
-  task :create => :environment do
+  task :create => :load_config do
     create_database(ActiveRecord::Base.configurations[RAILS_ENV])
   end
 
@@ -76,7 +81,7 @@ namespace :db do
 
   namespace :drop do
     desc 'Drops all the local databases defined in config/database.yml'
-    task :all => :environment do
+    task :all => :load_config do
       ActiveRecord::Base.configurations.each_value do |config|
         # Skip entries that don't have a database key
         next unless config['database']
@@ -87,7 +92,7 @@ namespace :db do
   end
 
   desc 'Drops the database for the current RAILS_ENV'
-  task :drop => :environment do
+  task :drop => :load_config do
     config = ActiveRecord::Base.configurations[RAILS_ENV || 'development']
     begin
       drop_database(config)
@@ -393,6 +398,7 @@ end
 def drop_database(config)
   case config['adapter']
   when 'mysql'
+    ActiveRecord::Base.establish_connection(config)
     ActiveRecord::Base.connection.drop_database config['database']
   when /^sqlite/
     FileUtils.rm(File.join(RAILS_ROOT, config['database']))

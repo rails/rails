@@ -1,20 +1,6 @@
 require 'active_support/test_case'
 
 module ActionController
-  class NonInferrableControllerError < ActionControllerError
-    def initialize(name)
-      @name = name
-      super "Unable to determine the controller to test from #{name}. " +
-        "You'll need to specify it using 'tests YourController' in your " +
-        "test case definition. This could mean that #{inferred_controller_name} does not exist " +
-        "or it contains syntax errors"
-    end
-
-    def inferred_controller_name
-      @name.sub(/Test$/, '')
-    end
-  end
-
   # Superclass for ActionController functional tests. Functional tests allow you to
   # test a single controller action per test method. This should not be confused with
   # integration tests (see ActionController::IntegrationTest), which are more like
@@ -74,7 +60,66 @@ module ActionController
   #   class SpecialEdgeCaseWidgetsControllerTest < ActionController::TestCase
   #     tests WidgetController
   #   end
+  #
+  # == Testing controller internals
+  #
+  # In addition to these specific assertions, you also have easy access to various collections that the regular test/unit assertions
+  # can be used against. These collections are:
+  #
+  # * assigns: Instance variables assigned in the action that are available for the view.
+  # * session: Objects being saved in the session.
+  # * flash: The flash objects currently in the session.
+  # * cookies: Cookies being sent to the user on this request.
+  #
+  # These collections can be used just like any other hash:
+  #
+  #   assert_not_nil assigns(:person) # makes sure that a @person instance variable was set
+  #   assert_equal "Dave", cookies[:name] # makes sure that a cookie called :name was set as "Dave"
+  #   assert flash.empty? # makes sure that there's nothing in the flash
+  #
+  # For historic reasons, the assigns hash uses string-based keys. So assigns[:person] won't work, but assigns["person"] will. To
+  # appease our yearning for symbols, though, an alternative accessor has been devised using a method call instead of index referencing.
+  # So assigns(:person) will work just like assigns["person"], but again, assigns[:person] will not work.
+  #
+  # On top of the collections, you have the complete url that a given action redirected to available in redirect_to_url.
+  #
+  # For redirects within the same controller, you can even call follow_redirect and the redirect will be followed, triggering another
+  # action call which can then be asserted against.
+  #
+  # == Manipulating the request collections
+  #
+  # The collections described above link to the response, so you can test if what the actions were expected to do happened. But
+  # sometimes you also want to manipulate these collections in the incoming request. This is really only relevant for sessions
+  # and cookies, though. For sessions, you just do:
+  #
+  #   @request.session[:key] = "value"
+  #
+  # For cookies, you need to manually create the cookie, like this:
+  #
+  #   @request.cookies["key"] = CGI::Cookie.new("key", "value")
+  #
+  # == Testing named routes
+  #
+  # If you're using named routes, they can be easily tested using the original named routes' methods straight in the test case.
+  # Example:
+  #
+  #  assert_redirected_to page_url(:title => 'foo')
   class TestCase < ActiveSupport::TestCase
+    module Assertions
+      %w(response selector tag dom routing model).each do |kind|
+        include ActionController::Assertions.const_get("#{kind.camelize}Assertions")
+      end
+
+      def clean_backtrace(&block)
+        yield
+      rescue ActiveSupport::TestCase::Assertion => error
+        framework_path = Regexp.new(File.expand_path("#{File.dirname(__FILE__)}/assertions"))
+        error.backtrace.reject! { |line| File.expand_path(line) =~ framework_path }
+        raise
+      end
+    end
+    include Assertions
+
     # When the request.remote_addr remains the default for testing, which is 0.0.0.0, the exception is simply raised inline
     # (bystepping the regular exception handling from rescue_action). If the request.remote_addr is anything else, the regular
     # rescue_action process takes place. This means you can test your rescue_action code by setting remote_addr to something else
@@ -107,7 +152,7 @@ module ActionController
       end
 
       def controller_class=(new_class)
-        prepare_controller_class(new_class)
+        prepare_controller_class(new_class) if new_class
         write_inheritable_attribute(:controller_class, new_class)
       end
 
@@ -122,7 +167,7 @@ module ActionController
       def determine_default_controller_class(name)
         name.sub(/Test$/, '').constantize
       rescue NameError
-        raise NonInferrableControllerError.new(name)
+        nil
       end
 
       def prepare_controller_class(new_class)
@@ -131,17 +176,23 @@ module ActionController
     end
 
     def setup_controller_request_and_response
-      @controller = self.class.controller_class.new
-      @controller.request = @request = TestRequest.new
+      @request = TestRequest.new
       @response = TestResponse.new
 
-      @controller.params = {}
-      @controller.send(:initialize_current_url)
+      if klass = self.class.controller_class
+        @controller ||= klass.new rescue nil
+      end
+
+      if @controller
+        @controller.request = @request
+        @controller.params = {}
+        @controller.send(:initialize_current_url)
+      end
     end
     
     # Cause the action to be rescued according to the regular rules for rescue_action when the visitor is not local
     def rescue_action_in_public!
       @request.remote_addr = '208.77.188.166' # example.com
     end
- end
+  end
 end

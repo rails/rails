@@ -3,18 +3,16 @@ $:.unshift File.dirname(__FILE__) + "/../../actionpack/lib"
 $:.unshift File.dirname(__FILE__) + "/../lib"
 $:.unshift File.dirname(__FILE__) + "/../builtin/rails_info"
 
+require 'rubygems'
 require 'test/unit'
+gem 'mocha', '>= 0.9.3'
+require 'mocha'
 require 'stringio'
 require 'active_support'
+require 'active_support/test_case'
 
-# Wrap tests that use Mocha and skip if unavailable.
 def uses_mocha(test_name)
-  require 'rubygems'
-  gem 'mocha', '>= 0.5.5'
-  require 'mocha'
   yield
-rescue LoadError
-  $stderr.puts "Skipping #{test_name} tests. `gem install mocha` and try again."
 end
 
 if defined?(RAILS_ROOT)

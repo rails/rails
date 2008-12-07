@@ -10,7 +10,7 @@ module ActionMailer
   end
 
   class TestCase < ActiveSupport::TestCase
-    include ActionMailer::Quoting
+    include Quoting, TestHelper
 
     setup :initialize_test_deliveries
     setup :set_expected_mail

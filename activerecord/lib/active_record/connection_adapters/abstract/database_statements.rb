@@ -31,13 +31,13 @@ module ActiveRecord
       # Returns an array of arrays containing the field values.
       # Order is the same as that returned by +columns+.
       def select_rows(sql, name = nil)
-        raise NotImplementedError, "select_rows is an abstract method"
       end
+      undef_method :select_rows
 
       # Executes the SQL statement in the context of this connection.
-      def execute(sql, name = nil)
-        raise NotImplementedError, "execute is an abstract method"
+      def execute(sql, name = nil, skip_logging = false)
       end
+      undef_method :execute
 
       # Returns the last auto-generated ID from the affected table.
       def insert(sql, name = nil, pk = nil, id_value = nil, sequence_name = nil)
@@ -163,8 +163,8 @@ module ActiveRecord
         # Returns an array of record hashes with the column names as keys and
         # column values as values.
         def select(sql, name = nil)
-          raise NotImplementedError, "select is an abstract method"
         end
+        undef_method :select
 
         # Returns the last auto-generated ID from the affected table.
         def insert_sql(sql, name = nil, pk = nil, id_value = nil, sequence_name = nil)

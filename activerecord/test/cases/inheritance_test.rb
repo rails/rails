@@ -59,13 +59,13 @@ class InheritanceTest < ActiveRecord::TestCase
 
   def test_a_bad_type_column
     #SQLServer need to turn Identity Insert On before manually inserting into the Identity column
-    if current_adapter?(:SQLServerAdapter, :SybaseAdapter)
+    if current_adapter?(:SybaseAdapter)
       Company.connection.execute "SET IDENTITY_INSERT companies ON"
     end
     Company.connection.insert "INSERT INTO companies (id, #{QUOTED_TYPE}, name) VALUES(100, 'bad_class!', 'Not happening')"
 
     #We then need to turn it back Off before continuing.
-    if current_adapter?(:SQLServerAdapter, :SybaseAdapter)
+    if current_adapter?(:SybaseAdapter)
       Company.connection.execute "SET IDENTITY_INSERT companies OFF"
     end
     assert_raises(ActiveRecord::SubclassNotFound) { Company.find(100) }

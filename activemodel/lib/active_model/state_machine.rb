@@ -1,14 +1,10 @@
-Dir[File.dirname(__FILE__) + "/state_machine/*.rb"].sort.each do |path|
-  filename = File.basename(path)
-  require "active_model/state_machine/#{filename}"
-end
-
 module ActiveModel
   module StateMachine
     class InvalidTransition < Exception
     end
 
     def self.included(base)
+      require 'active_model/state_machine/machine'
       base.extend ClassMethods
     end
 
@@ -34,6 +30,12 @@ module ActiveModel
         name ||= :default
         state_machines[name] ||= Machine.new(self, name)
         block ? state_machines[name].update(options, &block) : state_machines[name]
+      end
+
+      def define_state_query_method(state_name)
+        name = "#{state_name}?"
+        undef_method(name) if method_defined?(name)
+        class_eval "def #{name}; current_state.to_s == %(#{state_name}) end"
       end
     end
 

@@ -165,13 +165,11 @@ module Admin
 end
 
 # a test case to exercise the new capabilities TestRequest & TestResponse
-class ActionPackAssertionsControllerTest < Test::Unit::TestCase
+class ActionPackAssertionsControllerTest < ActionController::TestCase
   # let's get this party started
   def setup
     ActionController::Routing::Routes.reload
     ActionController::Routing.use_controllers!(%w(action_pack_assertions admin/inner_module user content admin/user))
-    @controller = ActionPackAssertionsController.new
-    @request, @response = ActionController::TestRequest.new, ActionController::TestResponse.new
   end
 
   def teardown
@@ -235,13 +233,13 @@ class ActionPackAssertionsControllerTest < Test::Unit::TestCase
         map.connect   ':controller/:action/:id'
       end
       process :redirect_to_named_route
-      assert_raise(Test::Unit::AssertionFailedError) do
+      assert_raise(ActiveSupport::TestCase::Assertion) do
         assert_redirected_to 'http://test.host/route_two'
       end
-      assert_raise(Test::Unit::AssertionFailedError) do
+      assert_raise(ActiveSupport::TestCase::Assertion) do
         assert_redirected_to :controller => 'action_pack_assertions', :action => 'nothing', :id => 'two'
       end
-      assert_raise(Test::Unit::AssertionFailedError) do
+      assert_raise(ActiveSupport::TestCase::Assertion) do
         assert_redirected_to route_two_url
       end
     end
@@ -368,6 +366,12 @@ class ActionPackAssertionsControllerTest < Test::Unit::TestCase
     assert @response.missing?
   end
 
+  # check client errors
+  def test_client_error_response_code
+    process :response404
+    assert @response.client_error?
+  end
+
   # check to see if our redirection matches a pattern
   def test_redirect_url_match
     process :redirect_external
@@ -410,7 +414,7 @@ class ActionPackAssertionsControllerTest < Test::Unit::TestCase
 
   def test_assert_redirection_fails_with_incorrect_controller
     process :redirect_to_controller
-    assert_raise(Test::Unit::AssertionFailedError) do
+    assert_raise(ActiveSupport::TestCase::Assertion) do
       assert_redirected_to :controller => "action_pack_assertions", :action => "flash_me"
     end
   end
@@ -457,16 +461,16 @@ class ActionPackAssertionsControllerTest < Test::Unit::TestCase
 
   def test_assert_valid
     get :get_valid_record
-    assert_valid assigns('record')
+    assert_deprecated { assert_valid assigns('record') }
   end
 
   def test_assert_valid_failing
     get :get_invalid_record
 
     begin
-      assert_valid assigns('record')
+      assert_deprecated { assert_valid assigns('record') }
       assert false
-    rescue Test::Unit::AssertionFailedError => e
+    rescue ActiveSupport::TestCase::Assertion => e
     end
   end
 
@@ -475,7 +479,7 @@ class ActionPackAssertionsControllerTest < Test::Unit::TestCase
     get :index
     assert_response :success
     flunk 'Expected non-success response'
-  rescue Test::Unit::AssertionFailedError => e
+  rescue ActiveSupport::TestCase::Assertion => e
     assert e.message.include?('FAIL')
   end
 
@@ -484,17 +488,15 @@ class ActionPackAssertionsControllerTest < Test::Unit::TestCase
     get :show
     assert_response :success
     flunk 'Expected non-success response'
-  rescue Test::Unit::AssertionFailedError
+  rescue ActiveSupport::TestCase::Assertion
+    # success
   rescue
     flunk "assert_response failed to handle failure response with missing, but optional, exception."
   end
 end
 
-class ActionPackHeaderTest < Test::Unit::TestCase
-  def setup
-    @controller = ActionPackAssertionsController.new
-    @request, @response = ActionController::TestRequest.new, ActionController::TestResponse.new
-  end
+class ActionPackHeaderTest < ActionController::TestCase
+  tests ActionPackAssertionsController
 
   def test_rendering_xml_sets_content_type
     process :hello_xml_world

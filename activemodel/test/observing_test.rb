@@ -1,4 +1,4 @@
-require File.expand_path(File.join(File.dirname(__FILE__), 'test_helper'))
+require 'test_helper'
 
 class ObservedModel < ActiveModel::Base
   class Observer
@@ -40,24 +40,22 @@ class ObservingTest < ActiveModel::TestCase
     assert ObservedModel.observers.include?(:bar), ":bar not in #{ObservedModel.observers.inspect}"
   end
 
-  uses_mocha "observer instantiation" do
-    test "instantiates observer names passed as strings" do
-      ObservedModel.observers << 'foo_observer'
-      FooObserver.expects(:instance)
-      ObservedModel.instantiate_observers
-    end
-  
-    test "instantiates observer names passed as symbols" do
-      ObservedModel.observers << :foo_observer
-      FooObserver.expects(:instance)
-      ObservedModel.instantiate_observers
-    end
-  
-    test "instantiates observer classes" do
-      ObservedModel.observers << ObservedModel::Observer
-      ObservedModel::Observer.expects(:instance)
-      ObservedModel.instantiate_observers
-    end
+  test "instantiates observer names passed as strings" do
+    ObservedModel.observers << 'foo_observer'
+    FooObserver.expects(:instance)
+    ObservedModel.instantiate_observers
+  end
+
+  test "instantiates observer names passed as symbols" do
+    ObservedModel.observers << :foo_observer
+    FooObserver.expects(:instance)
+    ObservedModel.instantiate_observers
+  end
+
+  test "instantiates observer classes" do
+    ObservedModel.observers << ObservedModel::Observer
+    ObservedModel::Observer.expects(:instance)
+    ObservedModel.instantiate_observers
   end
   
   test "passes observers to subclasses" do

@@ -540,9 +540,9 @@ module ActionController
 
         with_options :controller => resource.controller do |map|
           map_collection_actions(map, resource)
-          map_default_singleton_actions(map, resource)
           map_new_actions(map, resource)
           map_member_actions(map, resource)
+          map_default_singleton_actions(map, resource)
 
           map_associations(resource, options)
 
@@ -644,10 +644,8 @@ module ActionController
           formatted_route_path = "#{route_path}.:format"
 
           if route_name && @set.named_routes[route_name.to_sym].nil?
-            map.named_route(route_name, route_path, action_options)
-            map.named_route("formatted_#{route_name}", formatted_route_path, action_options)
+            map.named_route(route_name, formatted_route_path, action_options)
           else
-            map.connect(route_path, action_options)
             map.connect(formatted_route_path, action_options)
           end
         end
@@ -673,8 +671,4 @@ module ActionController
         end
       end
   end
-end
-
-class ActionController::Routing::RouteSet::Mapper
-  include ActionController::Resources
 end

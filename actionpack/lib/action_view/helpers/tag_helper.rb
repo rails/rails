@@ -1,4 +1,3 @@
-require 'cgi'
 require 'erb'
 require 'set'
 
@@ -9,7 +8,7 @@ module ActionView
     module TagHelper
       include ERB::Util
 
-      BOOLEAN_ATTRIBUTES = %w(disabled readonly multiple).to_set
+      BOOLEAN_ATTRIBUTES = %w(disabled readonly multiple checked).to_set
       BOOLEAN_ATTRIBUTES.merge(BOOLEAN_ATTRIBUTES.map(&:to_sym))
 
       # Returns an empty HTML tag of type +name+ which by default is XHTML

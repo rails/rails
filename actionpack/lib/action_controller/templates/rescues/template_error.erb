@@ -15,7 +15,7 @@
 
 <% @real_exception = @exception
    @exception = @exception.original_exception || @exception %>
-<%= render(:file => @rescues_path + "/_trace.erb") %>
+<%= render :file => @rescues_path["rescues/_trace.erb"] %>
 <% @exception = @real_exception %>
 
-<%= render(:file => @rescues_path + "/_request_and_response.erb") %>
+<%= render :file => @rescues_path["rescues/_request_and_response.erb"] %>

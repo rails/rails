@@ -1,9 +1,6 @@
-require 'active_support/test_case'
-require 'action_controller/dispatcher'
-require 'action_controller/test_process'
-
 require 'stringio'
 require 'uri'
+require 'active_support/test_case'
 
 module ActionController
   module Integration #:nodoc:
@@ -16,7 +13,7 @@ module ActionController
     # rather than instantiating Integration::Session directly.
     class Session
       include Test::Unit::Assertions
-      include ActionController::Assertions
+      include ActionController::TestCase::Assertions
       include ActionController::TestProcess
 
       # The integer HTTP status code of the last request.
@@ -260,7 +257,8 @@ module ActionController
             "CONTENT_LENGTH" => data ? data.length.to_s : nil,
             "HTTP_COOKIE"    => encode_cookies,
             "HTTPS"          => https? ? "on" : "off",
-            "HTTP_ACCEPT"    => accept
+            "HTTP_ACCEPT"    => accept,
+            "action_controller.test" => true
           )
 
           (headers || {}).each do |key, value|
@@ -276,7 +274,7 @@ module ActionController
           ActionController::Base.clear_last_instantiation!
 
           env['rack.input'] = data.is_a?(IO) ? data : StringIO.new(data || '')
-          @status, @headers, result_body = ActionController::Dispatcher.new.mark_as_test_request!.call(env)
+          @status, @headers, result_body = ActionController::Dispatcher.new.call(env)
           @request_count += 1
 
           @controller = ActionController::Base.last_instantiation

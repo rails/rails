@@ -359,6 +359,46 @@ class AssetTagHelperTest < ActionView::TestCase
     FileUtils.rm_f(File.join(ActionView::Helpers::AssetTagHelper::JAVASCRIPTS_DIR, 'secure.js'))
   end
 
+  def test_caching_javascript_include_tag_when_caching_on_with_2_argument_object_asset_host
+    ENV['RAILS_ASSET_ID'] = ''
+    ActionController::Base.asset_host = Class.new do
+      def call(source, request)
+        if request.ssl?
+          "#{request.protocol}#{request.host_with_port}"
+        else
+          "#{request.protocol}assets#{source.length}.example.com"
+        end
+      end
+    end.new
+
+    ActionController::Base.perform_caching = true
+
+    assert_equal '/javascripts/vanilla.js'.length, 23
+    assert_dom_equal(
+      %(<script src="http://assets23.example.com/javascripts/vanilla.js" type="text/javascript"></script>),
+      javascript_include_tag(:all, :cache => 'vanilla')
+    )
+
+    assert File.exist?(File.join(ActionView::Helpers::AssetTagHelper::JAVASCRIPTS_DIR, 'vanilla.js'))
+
+    class << @controller.request
+      def protocol() 'https://' end
+      def ssl?() true end
+    end
+
+    assert_equal '/javascripts/secure.js'.length, 22
+    assert_dom_equal(
+      %(<script src="https://localhost/javascripts/secure.js" type="text/javascript"></script>),
+      javascript_include_tag(:all, :cache => 'secure')
+    )
+
+    assert File.exist?(File.join(ActionView::Helpers::AssetTagHelper::JAVASCRIPTS_DIR, 'secure.js'))
+
+  ensure
+    FileUtils.rm_f(File.join(ActionView::Helpers::AssetTagHelper::JAVASCRIPTS_DIR, 'vanilla.js'))
+    FileUtils.rm_f(File.join(ActionView::Helpers::AssetTagHelper::JAVASCRIPTS_DIR, 'secure.js'))
+  end
+
   def test_caching_javascript_include_tag_when_caching_on_and_using_subdirectory
     ENV["RAILS_ASSET_ID"] = ""
     ActionController::Base.asset_host = 'http://a%d.example.com'
@@ -647,5 +687,11 @@ class AssetTagHelperNonVhostTest < ActionView::TestCase
     assert_equal 'gopher://a.example.com/files/go/here/collaboration/hieraki/images/xml.png', image_path('xml.png')
   ensure
     ActionController::Base.asset_host = nil
+  end
+
+  def test_assert_css_and_js_of_the_same_name_return_correct_extension
+    assert_dom_equal(%(/collaboration/hieraki/javascripts/foo.js), javascript_path("foo"))
+    assert_dom_equal(%(/collaboration/hieraki/stylesheets/foo.css), stylesheet_path("foo"))
+
   end
 end

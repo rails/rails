@@ -1,10 +1,3 @@
-require 'action_controller/session/cookie_store'
-require 'action_controller/session/drb_store'
-require 'action_controller/session/mem_cache_store'
-if Object.const_defined?(:ActiveRecord)
-  require 'action_controller/session/active_record_store'
-end
-
 module ActionController #:nodoc:
   module SessionManagement #:nodoc:
     def self.included(base)

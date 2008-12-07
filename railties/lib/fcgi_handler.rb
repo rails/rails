@@ -98,7 +98,7 @@ class RailsFCGIHandler
 
       with_signal_handler 'USR1' do
         begin
-          Dispatcher.dispatch(cgi)
+          ::Rack::Handler::FastCGI.serve(cgi, Dispatcher.new)
         rescue SignalException, SystemExit
           raise
         rescue Exception => error

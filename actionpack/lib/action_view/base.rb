@@ -5,7 +5,7 @@ module ActionView #:nodoc:
   class MissingTemplate < ActionViewError #:nodoc:
     def initialize(paths, path, template_format = nil)
       full_template_path = path.include?('.') ? path : "#{path}.erb"
-      display_paths = paths.join(':')
+      display_paths = paths.compact.join(":")
       template_type = (path =~ /layouts/i) ? 'layout' : 'template'
       super("Missing #{template_type} #{full_template_path} in view path #{display_paths}")
     end
@@ -157,7 +157,7 @@ module ActionView #:nodoc:
   #
   # See the ActionView::Helpers::PrototypeHelper::GeneratorMethods documentation for more details.
   class Base
-    include ERB::Util
+    include Helpers, Partials, ::ERB::Util
     extend ActiveSupport::Memoizable
 
     attr_accessor :base_path, :assigns, :template_extension
@@ -238,16 +238,21 @@ module ActionView #:nodoc:
       @view_paths = self.class.process_view_paths(paths)
     end
 
-    # Renders the template present at <tt>template_path</tt> (relative to the view_paths array).
-    # The hash in <tt>local_assigns</tt> is made available as local variables.
+    # Returns the result of a render that's dictated by the options hash. The primary options are:
+    # 
+    # * <tt>:partial</tt> - See ActionView::Partials.
+    # * <tt>:update</tt> - Calls update_page with the block given.
+    # * <tt>:file</tt> - Renders an explicit template file (this used to be the old default), add :locals to pass in those.
+    # * <tt>:inline</tt> - Renders an inline template similar to how it's done in the controller.
+    # * <tt>:text</tt> - Renders the text passed in out.
+    #
+    # If no options hash is passed or :update specified, the default is to render a partial and use the second parameter
+    # as the locals hash.
     def render(options = {}, local_assigns = {}, &block) #:nodoc:
       local_assigns ||= {}
 
-      if options.is_a?(String)
-        render(:file => options, :locals => local_assigns)
-      elsif options == :update
-        update_page(&block)
-      elsif options.is_a?(Hash)
+      case options
+      when Hash
         options = options.reverse_merge(:locals => {})
         if options[:layout]
           _render_with_layout(options, local_assigns, &block)
@@ -260,6 +265,10 @@ module ActionView #:nodoc:
         elsif options[:text]
           options[:text]
         end
+      when :update
+        update_page(&block)
+      else
+        render_partial(:partial => options, :locals => local_assigns)
       end
     end
 
@@ -270,7 +279,7 @@ module ActionView #:nodoc:
       if defined? @template_format
         @template_format
       elsif controller && controller.respond_to?(:request)
-        @template_format = controller.request.template_format
+        @template_format = controller.request.template_format.to_sym
       else
         @template_format = :html
       end
@@ -317,14 +326,10 @@ module ActionView #:nodoc:
         end
 
         # OPTIMIZE: Checks to lookup template in view path
-        if template = self.view_paths["#{template_file_name}.#{template_format}"]
+        if template = self.view_paths.find_template(template_file_name, template_format)
           template
-        elsif template = self.view_paths[template_file_name]
-          template
-        elsif @_render_stack.first && template = self.view_paths["#{template_file_name}.#{@_render_stack.first.format_and_extension}"]
-          template
-        elsif template_format == :js && template = self.view_paths["#{template_file_name}.html"]
-          @template_format = :html
+        elsif (first_render = @_render_stack.first) && first_render.respond_to?(:format_and_extension) &&
+            (template = self.view_paths["#{template_file_name}.#{first_render.format_and_extension}"])
           template
         else
           template = Template.new(template_path, view_paths)

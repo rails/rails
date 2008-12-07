@@ -1,5 +1,3 @@
-require 'action_controller/mime_type'
-
 module ActionView #:nodoc:
   class Template
     extend TemplateHandlers
@@ -11,9 +9,9 @@ module ActionView #:nodoc:
 
     def initialize(template_path, load_paths = [])
       template_path = template_path.dup
+      @load_path, @filename = find_full_path(template_path, load_paths)
       @base_path, @name, @format, @extension = split(template_path)
       @base_path.to_s.gsub!(/\/$/, '') # Push to split method
-      @load_path, @filename = find_full_path(template_path, load_paths)
 
       # Extend with partial super powers
       extend RenderablePartial if @name =~ /^_/
@@ -59,6 +57,11 @@ module ActionView #:nodoc:
     end
     memoize :relative_path
 
+    def mtime
+      File.mtime(filename)
+    end
+    memoize :mtime
+
     def source
       File.read(filename)
     end
@@ -81,6 +84,19 @@ module ActionView #:nodoc:
       end
     end
 
+    def stale?
+      File.mtime(filename) > mtime
+    end
+
+    def loaded?
+      @loaded
+    end
+
+    def load!
+      @loaded = true
+      freeze
+    end
+
     private
       def valid_extension?(extension)
         Template.template_handler_extensions.include?(extension)
@@ -99,16 +115,14 @@ module ActionView #:nodoc:
       #   [base_path, name, format, extension]
       def split(file)
         if m = file.match(/^(.*\/)?([^\.]+)\.?(\w+)?\.?(\w+)?\.?(\w+)?$/)
-          if m[5] # Multipart formats
+          if valid_extension?(m[5]) # Multipart formats
             [m[1], m[2], "#{m[3]}.#{m[4]}", m[5]]
-          elsif m[4] # Single format
+          elsif valid_extension?(m[4]) # Single format
             [m[1], m[2], m[3], m[4]]
-          else
-            if valid_extension?(m[3]) # No format
-              [m[1], m[2], nil, m[3]]
-            else # No extension
-              [m[1], m[2], m[3], nil]
-            end
+          elsif valid_extension?(m[3]) # No format
+            [m[1], m[2], nil, m[3]]
+          else # No extension
+            [m[1], m[2], m[3], nil]
           end
         end
       end

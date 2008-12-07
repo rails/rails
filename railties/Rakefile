@@ -44,7 +44,7 @@ BASE_DIRS = %w(
   app
   config/environments
   config/initializers
-  components
+  config/locales
   db
   doc
   log
@@ -53,7 +53,6 @@ BASE_DIRS = %w(
   public
   script
   script/performance
-  script/process
   test
   vendor
   vendor/plugins
@@ -71,7 +70,7 @@ LOG_FILES    = %w( server.log development.log test.log production.log )
 HTML_FILES   = %w( 422.html 404.html 500.html index.html robots.txt favicon.ico images/rails.png
                    javascripts/prototype.js javascripts/application.js
                    javascripts/effects.js javascripts/dragdrop.js javascripts/controls.js )
-BIN_FILES    = %w( about console destroy generate performance/benchmarker performance/profiler process/reaper process/spawner process/inspector runner server plugin )
+BIN_FILES    = %w( about console destroy generate performance/benchmarker performance/profiler runner server plugin )
 
 VENDOR_LIBS = %w( actionpack activerecord actionmailer activesupport activeresource railties )
 
@@ -174,9 +173,6 @@ task :copy_dispatches do
 
   copy_with_rewritten_ruby_path("dispatches/dispatch.fcgi", "#{PKG_DESTINATION}/public/dispatch.fcgi")
   chmod 0755, "#{PKG_DESTINATION}/public/dispatch.fcgi"
-
-  # copy_with_rewritten_ruby_path("dispatches/gateway.cgi", "#{PKG_DESTINATION}/public/gateway.cgi")
-  # chmod 0755, "#{PKG_DESTINATION}/public/gateway.cgi"
 end
 
 task :copy_html_files do
@@ -184,7 +180,7 @@ task :copy_html_files do
 end
 
 task :copy_application do
-  cp "helpers/application.rb", "#{PKG_DESTINATION}/app/controllers/application.rb"
+  cp "helpers/application_controller.rb", "#{PKG_DESTINATION}/app/controllers/application_controller.rb"
   cp "helpers/application_helper.rb", "#{PKG_DESTINATION}/app/helpers/application_helper.rb"
 end
 
@@ -196,8 +192,12 @@ task :copy_configs do
   
   cp "configs/routes.rb", "#{PKG_DESTINATION}/config/routes.rb"
 
-  cp "configs/initializers/inflections.rb", "#{PKG_DESTINATION}/config/initializers/inflections.rb"
-  cp "configs/initializers/mime_types.rb",  "#{PKG_DESTINATION}/config/initializers/mime_types.rb"
+  cp "configs/initializers/backtrace_silencers.rb", "#{PKG_DESTINATION}/config/initializers/backtrace_silencers.rb"
+  cp "configs/initializers/inflections.rb",         "#{PKG_DESTINATION}/config/initializers/inflections.rb"
+  cp "configs/initializers/mime_types.rb",          "#{PKG_DESTINATION}/config/initializers/mime_types.rb"
+  cp "configs/initializers/new_rails_defaults.rb",  "#{PKG_DESTINATION}/config/initializers/new_rails_defaults.rb"
+
+  cp "configs/locales/en.yml", "#{PKG_DESTINATION}/config/locales/en.yml"
 
   cp "environments/boot.rb",        "#{PKG_DESTINATION}/config/boot.rb"
   cp "environments/environment.rb", "#{PKG_DESTINATION}/config/environment.rb"
@@ -359,11 +359,11 @@ spec = Gem::Specification.new do |s|
   EOF
 
   s.add_dependency('rake', '>= 0.8.3')
-  s.add_dependency('activesupport',    '= 2.2.0' + PKG_BUILD)
-  s.add_dependency('activerecord',     '= 2.2.0' + PKG_BUILD)
-  s.add_dependency('actionpack',       '= 2.2.0' + PKG_BUILD)
-  s.add_dependency('actionmailer',     '= 2.2.0' + PKG_BUILD)
-  s.add_dependency('activeresource',   '= 2.2.0' + PKG_BUILD)
+  s.add_dependency('activesupport',    '= 2.3.0' + PKG_BUILD)
+  s.add_dependency('activerecord',     '= 2.3.0' + PKG_BUILD)
+  s.add_dependency('actionpack',       '= 2.3.0' + PKG_BUILD)
+  s.add_dependency('actionmailer',     '= 2.3.0' + PKG_BUILD)
+  s.add_dependency('activeresource',   '= 2.3.0' + PKG_BUILD)
 
   s.rdoc_options << '--exclude' << '.'
   s.has_rdoc = false

@@ -31,9 +31,6 @@ module ActionView
     #   to use all basic AJAX functionality. For the Scriptaculous-based
     #   JavaScript helpers, like visual effects, autocompletion, drag and drop
     #   and so on, you should use the method described above.
-    # * Use <tt><%= define_javascript_functions %></tt>: this will copy all the
-    #   JavaScript support functions within a single script block. Not
-    #   recommended.
     #
     # For documentation on +javascript_include_tag+ see
     # ActionView::Helpers::AssetTagHelper.
