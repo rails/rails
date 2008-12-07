@@ -7,7 +7,7 @@ require 'fileutils'
 
 module Rails
   class TemplateRunner
-    attr_reader :behavior, :description, :root
+    attr_reader :root
 
     def initialize(root, template) # :nodoc:
       @root = Dir.pwd + "/" + root
