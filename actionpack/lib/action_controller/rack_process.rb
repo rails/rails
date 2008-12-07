@@ -55,14 +55,7 @@ module ActionController #:nodoc:
     end
 
     def cookies
-      return {} unless @env["HTTP_COOKIE"]
-
-      unless @env["rack.request.cookie_string"] == @env["HTTP_COOKIE"]
-        @env["rack.request.cookie_string"] = @env["HTTP_COOKIE"]
-        @env["rack.request.cookie_hash"] = CGI::Cookie::parse(@env["rack.request.cookie_string"])
-      end
-
-      @env["rack.request.cookie_hash"]
+      Rack::Request.new(@env).cookies
     end
 
     def server_port

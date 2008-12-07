@@ -2,19 +2,13 @@ require 'abstract_unit'
 
 uses_mocha 'integration' do
 
-module IntegrationSessionStubbing
-  def stub_integration_session(session)
-    session.stubs(:process)
-    session.stubs(:generic_url_rewriter)
-  end
-end
-
 class SessionTest < Test::Unit::TestCase
-  include IntegrationSessionStubbing
+  StubApp = lambda { |env|
+    [200, {"Content-Type" => "text/html"}, "Hello, World!"]
+  }
 
   def setup
-    @session = ActionController::Integration::Session.new
-    stub_integration_session(@session)
+    @session = ActionController::Integration::Session.new(StubApp)
   end
 
   def test_https_bang_works_and_sets_truth_by_default
@@ -207,13 +201,10 @@ class SessionTest < Test::Unit::TestCase
 end
 
 class IntegrationTestTest < Test::Unit::TestCase
-  include IntegrationSessionStubbing
-
   def setup
     @test = ::ActionController::IntegrationTest.new(:default_test)
     @test.class.stubs(:fixture_table_names).returns([])
     @session = @test.open_session
-    stub_integration_session(@session)
   end
 
   def test_opens_new_session
@@ -231,15 +222,15 @@ end
 # Tests that integration tests don't call Controller test methods for processing.
 # Integration tests have their own setup and teardown.
 class IntegrationTestUsesCorrectClass < ActionController::IntegrationTest
-  include IntegrationSessionStubbing
-
   def self.fixture_table_names
     []
   end
 
   def test_integration_methods_called
     reset!
-    stub_integration_session(@integration_session)
+    @integration_session.stubs(:generic_url_rewriter)
+    @integration_session.stubs(:process)
+
     %w( get post head put delete ).each do |verb|
       assert_nothing_raised("'#{verb}' should use integration test methods") { __send__(verb, '/') }
     end
@@ -281,13 +272,9 @@ class IntegrationProcessTest < ActionController::IntegrationTest
       get '/get'
       assert_equal 200, status
       assert_equal "OK", status_message
-      assert_equal "200 OK", response.headers["Status"]
-      assert_equal ["200 OK"], headers["status"]
       assert_response 200
       assert_response :success
       assert_response :ok
-      assert_equal [], response.headers["cookie"]
-      assert_equal [], headers["cookie"]
       assert_equal({}, cookies)
       assert_equal "OK", response.body
       assert_kind_of HTML::Document, html_document
@@ -300,13 +287,9 @@ class IntegrationProcessTest < ActionController::IntegrationTest
       post '/post'
       assert_equal 201, status
       assert_equal "Created", status_message
-      assert_equal "201 Created", response.headers["Status"]
-      assert_equal ["201 Created"], headers["status"]
       assert_response 201
       assert_response :success
       assert_response :created
-      assert_equal [], response.headers["cookie"]
-      assert_equal [], headers["cookie"]
       assert_equal({}, cookies)
       assert_equal "Created", response.body
       assert_kind_of HTML::Document, html_document
@@ -321,17 +304,9 @@ class IntegrationProcessTest < ActionController::IntegrationTest
       get '/cookie_monster'
       assert_equal 410, status
       assert_equal "Gone", status_message
-      assert_equal "410 Gone", response.headers["Status"]
-      assert_equal ["410 Gone"], headers["status"]
       assert_response 410
       assert_response :gone
-      assert_equal ["cookie_1=; path=/", "cookie_3=chocolate; path=/"], response.headers["Set-Cookie"]
-      assert_equal ["cookie_1=; path=/", "cookie_3=chocolate; path=/"], headers['set-cookie']
-      assert_equal [
-        CGI::Cookie::new("name" => "cookie_1", "value" => ""),
-        CGI::Cookie::new("name" => "cookie_3", "value" => "chocolate")
-      ], response.headers["cookie"]
-      assert_equal [], headers["cookie"]
+      assert_equal ["cookie_1=; path=/", "cookie_3=chocolate; path=/"], headers["Set-Cookie"]
       assert_equal({"cookie_1"=>"", "cookie_2"=>"oatmeal", "cookie_3"=>"chocolate"}, cookies)
       assert_equal "Gone", response.body
     end
@@ -342,8 +317,6 @@ class IntegrationProcessTest < ActionController::IntegrationTest
       get '/redirect'
       assert_equal 302, status
       assert_equal "Found", status_message
-      assert_equal "302 Found", response.headers["Status"]
-      assert_equal ["302 Found"], headers["status"]
       assert_response 302
       assert_response :redirect
       assert_response :found
@@ -358,8 +331,6 @@ class IntegrationProcessTest < ActionController::IntegrationTest
       xhr :get, '/get'
       assert_equal 200, status
       assert_equal "OK", status_message
-      assert_equal "200 OK", response.headers["Status"]
-      assert_equal ["200 OK"], headers["status"]
       assert_response 200
       assert_response :success
       assert_response :ok
@@ -372,7 +343,7 @@ class IntegrationProcessTest < ActionController::IntegrationTest
       get '/get_with_params?foo=bar'
       assert_equal '/get_with_params?foo=bar', request.env["REQUEST_URI"]
       assert_equal '/get_with_params?foo=bar', request.request_uri
-      assert_equal nil, request.env["QUERY_STRING"]
+      assert_equal "", request.env["QUERY_STRING"]
       assert_equal 'foo=bar', request.query_string
       assert_equal 'bar', request.parameters['foo']
 
