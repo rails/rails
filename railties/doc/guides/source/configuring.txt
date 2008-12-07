@@ -16,24 +16,174 @@ after-initializer
 
 == Using a Preinitializer
 
+== Initialization Process Settings
+
 == Configuring Rails Components
 
 === Configuring Active Record
 
++ActiveRecord::Base+ includej a variety of configuration options:
+
++logger+ accepts a logger conforming to the interface of Log4r or the default Ruby 1.8+ Logger class, which is then passed on to any new database connections made. You can retrieve this logger by calling +logger+ on either an ActiveRecord model class or an ActiveRecord model instance. Set to nil to disable logging.
+
++primary_key_prefix_type+ lets you adjust the naming for primary key columns. By default, Rails assumes that primary key columns are named +id+ (and this configuration option doesn't need to be set.) There are two other choices:
+
+* +:table_name+ would make the primary key for the Customer class +customerid+
+* +:table_name_with_underscore+ would make the primary key for the Customer class +customer_id+
+
++table_name_prefix+ lets you set a global string to be prepended to table names. If you set this to +northwest_+, then the Customer class will look for +northwest_customers+ as its table. The default is an empty string.
+
++table_name_suffix+ lets you set a global string to be appended to table names. If you set this to +_northwest+, then the Customer class will look for +customers_northwest+ as its table. The default is an empty string.
+
++pluralize_table_names+ specifies whether Rails will look for singular or plural table names in the database. If set to +true+ (the default), then the Customer class will use the +customers+ table. If set to +false+, then the Customers class will use the +customer+ table.
+
++colorize_logging+ (true by default) specifies whether or not to use ANSI color codes when logging information from ActiveRecord.
+
++default_timezone+ determines whether to use +Time.local+ (if set to +:local+) or +Time.utc+ (if set to +:utc+) when pulling dates and times from the database. The default is +:local+.
+
++schema_format+ controls the format for dumping the database schema to a file. The options are +:ruby+ (the default) for a database-independent version that depends on migrations, or +:sql+ for a set of (potentially database-dependent) SQL statements.
+
++timestamped_migrations+ controls whether migrations are numbered with serial integers or with timestamps. The default is +true+, to use timestamps, which are preferred if there are multiple developers working on the same application.
+
++lock_optimistically+ controls whether ActiveRecord will use optimistic locking. By default this is +true+.
+
+The MySQL adapter adds one additional configuration option:
+
++ActiveRecord::ConnectionAdapters::MysqlAdapter.emulate_booleans+ controls whether ActiveRecord will consider all +tinyint(1)+ columns in a MySQL database to be booleans. By default this is +true+.
+
+The schema dumper adds one additional configuration option:
+
++ActiveRecord::SchemaDumper.ignore_tables+ accepts an array of tables that should _not_ be included in any generated schema file. This setting is ignored unless +ActiveRecord::Base.schema_format == :ruby+.
+
 === Configuring Action Controller
+
+ActionController::Base includes a number of configuration settings:
+
++asset_host+ provides a string that is prepended to all of the URL-generating helpers in +AssetHelper+. This is designed to allow moving all javascript, CSS, and image files to a separate asset host.
+
++consider_all_requests_local+ is generally set to +true+ during development and +false+ during production; if it is set to +true+, then any error will cause detailed debugging information to be dumped in the HTTP response. For finer-grained control, set this to +false+ and implement +local_request?+ to specify which requests should provide debugging information on errors.
+
++allow_concurrency+ should be set to +true+ to allow concurrent (threadsafe) action processing. Set to +false+ by default.
+
++param_parsers+ provides an array of handlers that can extract information from incoming HTTP requests and add it to the +params+ hash. By default, parsers for multipart forms, URL-encoded forms, XML, and JSON are active.
+
++default_charset+ specifies the default character set for all renders. The default is "utf-8".
+
++logger+ accepts a logger conforming to the interface of Log4r or the default Ruby 1.8+ Logger class, which is then used to log information from Action Controller. Set to nil to disable logging.
+
++resource_action_separator+ gives the token to be used between resources and actions when building or interpreting RESTful URLs. By default, this is "/".
+
++resource_path_names+ is a hash of default names for several RESTful actions. By default, the new action is named +new+ and the edit action is named +edit+.
+
++request_forgery_protection_token+ sets the token parameter name for RequestForgery. Calling +protect_from_forgery+ sets it to +:authenticity_token+ by default.
+
++optimise_named_routes+ turns on some optimizations in generating the routing table. It is set to +true+ by default.
+
++use_accept_header+ sets the rules for determining the response format. If this is set to +true+ (the default) then +respond_to+ and +Request#format+ will take the Accept header into account. If it is set to false then the request format will be determined solely by examining +params[:format]+. If there is no +format+ parameter, then the response format will be either HTML or Javascript depending on whether the request is an AJAX request.
+
++allow_forgery_protection+ enables or disables CSRF protection. By default this is +false+ in test mode and +true+ in all other modes.
+
++relative_url_root+ can be used to tell Rails that you are deploying to a subdirectory. The default is +ENV['RAILS_RELATIVE_URL_ROOT']+.
+
+The caching code adds two additional settings:
+
++ActionController::Caching::Pages.page_cache_directory+ sets the directory where Rails will create cached pages for your web server. The default is +Rails.public_path+ (which is usually set to +RAILS_ROOT + "/public"+).
+
++ActionController::Caching::Pages.page_cache_extension+ sets the extension to be used when generating pages for the cache (this is ignored if the incoming request already has an extension). The default is +.html+.
+
+The dispatcher includes one setting:
+
++ActionController::Dispatcher.error_file_path+ gives the path where Rails will look for error files such as +404.html+. The default is +Rails.public_path+.
+
+The Active Record session store can also be configured:
+
++CGI::Session::ActiveRecordStore::Session.data_column_name+ sets the name of the column to use to store session data. By default it is 'data'
 
 === Configuring Action View
 
+There are only a few configuration options for Action View, starting with four on +ActionView::Base+:
+
++debug_rjs+ specifies whether RJS responses should be wrapped in a try/catch block that alert()s the caught exception (and then re-raises it). The default is +false+.
+
++warn_cache_misses+ tells Rails to display a warning whenever an action results in a cache miss on your view paths. The default is +false+.
+
++field_error_proc+ provides an HTML generator for displaying errors that come from Active Record. The default is +Proc.new{ |html_tag, instance| "<div class=\"fieldWithErrors\">#{html_tag}</div>" }+
+
++default_form_builder+ tells Rails which form builder to use by default. The default is +ActionView::Helpers::FormBuilder+.
+
+The ERB template handler supplies one additional option:
+
++ActionView::TemplateHandlers::ERB.erb_trim_mode+ gives the trim mode to be used by ERB. It defaults to +'-'+. See the link:http://www.ruby-doc.org/stdlib/libdoc/erb/rdoc/[ERB documentation] for more information.
+
 === Configuring Action Mailer
+
+There are a number of settings available on +ActionMailer::Base+:
+
++template_root+ gives the root folder for Action Mailer templates.
+
++logger+ accepts a logger conforming to the interface of Log4r or the default Ruby 1.8+ Logger class, which is then used to log information from Action Mailer. Set to nil to disable logging.
+
++smtp_settings+ allows detailed configuration for the +:smtp+ delivery method. It accepts a hash of options, which can include any of these options:
+
+* <tt>:address</tt> - Allows you to use a remote mail server. Just change it from its default "localhost" setting.
+* <tt>:port</tt> - On the off chance that your mail server doesn't run on port 25, you can change it.
+* <tt>:domain</tt> - If you need to specify a HELO domain, you can do it here.
+* <tt>:user_name</tt> - If your mail server requires authentication, set the username in this setting.
+* <tt>:password</tt> - If your mail server requires authentication, set the password in this setting.
+* <tt>:authentication</tt> - If your mail server requires authentication, you need to specify the authentication type here. This is a symbol and one of <tt>:plain</tt>, <tt>:login</tt>, <tt>:cram_md5</tt>.
+
++sendmail_settings+ allows detailed configuration for the +sendmail+ delivery method. It accepts a hash of options, which can include any of these options:
+
+* <tt>:location</tt> - The location of the sendmail executable. Defaults to <tt>/usr/sbin/sendmail</tt>.
+* <tt>:arguments</tt> - The command line arguments. Defaults to <tt>-i -t</tt>.
+
++raise_delivery_errors+ specifies whether to raise an error if email delivery cannot be completed. It defaults to +true+.
+
++delivery_method+ defines the delivery method. The allowed values are <tt>:smtp</tt> (default), <tt>:sendmail</tt>, and <tt>:test</tt>.
+
++perform_deliveries+ specifies whether mail will actually be delivered. By default this is +true+; it can be convenient to set it to +false+ for testing.
+
++default_charset+ tells Action Mailer which character set to use for the body and for encoding the subject. It defaults to +utf-8+.
+
++default_content_type+ specifies the default content type used for the main part of the message. It defaults to "text/plain"
+
++default_mime_version+ is the default MIME version for the message. It defaults to +1.0+.
+
++default_implicit_parts_order+ - When a message is built implicitly (i.e. multiple parts are assembled from templates
+which specify the content type in their filenames) this variable controls how the parts are ordered. Defaults to
+<tt>["text/html", "text/enriched", "text/plain"]</tt>. Items that appear first in the array have higher priority in the mail client
+and appear last in the mime encoded message.
 
 === Configuring Active Resource
 
+There is a single configuration setting available on +ActiveResource::Base+:
+
++logger+ accepts a logger conforming to the interface of Log4r or the default Ruby 1.8+ Logger class, which is then used to log information from Active Resource. Set to nil to disable logging.
+
 === Configuring Active Support
+
+There are a few configuration options available in Active Support:
+
++ActiveSupport::BufferedLogger.silencer+ is set to +false+ to disable the ability to silence logging in a block. The default is +true+.
+
++ActiveSupport::Cache::Store.logger+ specifies the logger to use within cache store operations.
+
++ActiveSupport::Logger.silencer+ is set to +false+ to disable the ability to silence logging in a block. The default is +true+.
+
+=== Configuring Active Model
+
+Active Model currently has a single configuration setting:
+
++ActiveModel::Errors.default_error_messages is an array containing all of the validation error messages.
 
 == Using Initializers
  organization, controlling load order
 
 == Using an After-Initializer
+
+== Rails Environment Settings
+
+ENV
 
 == Changelog ==
 
@@ -41,185 +191,4 @@ http://rails.lighthouseapp.com/projects/16213-rails-guides/tickets/28[Lighthouse
 
 * November 5, 2008: Rough outline by link:../authors.html#mgunderloy[Mike Gunderloy]
 
-
-actionmailer/lib/action_mailer/base.rb
-257:    cattr_accessor :logger
-267:    cattr_accessor :smtp_settings
-273:    cattr_accessor :sendmail_settings
-276:    cattr_accessor :raise_delivery_errors
-282:    cattr_accessor :perform_deliveries
-285:    cattr_accessor :deliveries
-288:    cattr_accessor :default_charset
-291:    cattr_accessor :default_content_type
-294:    cattr_accessor :default_mime_version
-297:    cattr_accessor :default_implicit_parts_order
-299:    cattr_reader :protected_instance_variables
-
-actionmailer/Rakefile
-36:  rdoc.options << '--line-numbers' << '--inline-source' << '-A cattr_accessor=object'
-
-actionpack/lib/action_controller/base.rb
-263:    cattr_reader :protected_instance_variables
-273:    cattr_accessor :asset_host
-279:    cattr_accessor :consider_all_requests_local
-285:    cattr_accessor :allow_concurrency
-317:    cattr_accessor :param_parsers
-321:    cattr_accessor :default_charset
-325:    cattr_accessor :logger
-329:    cattr_accessor :resource_action_separator
-333:    cattr_accessor :resources_path_names
-337:    cattr_accessor :request_forgery_protection_token
-341:    cattr_accessor :optimise_named_routes
-351:    cattr_accessor :use_accept_header
-361:    cattr_accessor :relative_url_root
-
-actionpack/lib/action_controller/caching/pages.rb
-55:          cattr_accessor :page_cache_directory
-58:          cattr_accessor :page_cache_extension
-
-actionpack/lib/action_controller/caching.rb
-37:        cattr_reader :cache_store
-48:        cattr_accessor :perform_caching
-
-actionpack/lib/action_controller/dispatcher.rb
-98:    cattr_accessor :error_file_path
-
-actionpack/lib/action_controller/mime_type.rb
-24:    cattr_reader :html_types, :unverifiable_types
-
-actionpack/lib/action_controller/rescue.rb
-36:      base.cattr_accessor :rescue_responses
-40:      base.cattr_accessor :rescue_templates
-
-actionpack/lib/action_controller/session/active_record_store.rb
-60:        cattr_accessor :data_column_name
-170:        cattr_accessor :connection
-173:        cattr_accessor :table_name
-177:        cattr_accessor :session_id_column
-181:        cattr_accessor :data_column
-282:      cattr_accessor :session_class
-
-actionpack/lib/action_controller/vendor/html-scanner/html/sanitizer.rb
-44:    cattr_accessor :included_tags, :instance_writer => false
-
-actionpack/lib/action_view/base.rb
-189:    cattr_accessor :debug_rjs
-193:    cattr_accessor :warn_cache_misses
-
-actionpack/lib/action_view/helpers/active_record_helper.rb
-7:    cattr_accessor :field_error_proc
-
-actionpack/lib/action_view/helpers/form_helper.rb
-805:    cattr_accessor :default_form_builder
-
-actionpack/lib/action_view/template_handlers/erb.rb
-47:      cattr_accessor :erb_trim_mode
-
-actionpack/test/active_record_unit.rb
-5:  cattr_accessor :able_to_connect
-6:  cattr_accessor :connected
-
-actionpack/test/controller/filters_test.rb
-286:    cattr_accessor :execution_log
-
-actionpack/test/template/form_options_helper_test.rb
-3:TZInfo::Timezone.cattr_reader :loaded_zones
-
-activemodel/lib/active_model/errors.rb
-28:    cattr_accessor :default_error_messages
-
-activemodel/Rakefile
-19:  rdoc.options << '--line-numbers' << '--inline-source' << '-A cattr_accessor=object'
-
-activerecord/lib/active_record/attribute_methods.rb
-9:      base.cattr_accessor :attribute_types_cached_by_default, :instance_writer => false
-11:      base.cattr_accessor :time_zone_aware_attributes, :instance_writer => false
-
-activerecord/lib/active_record/base.rb
-394:    cattr_accessor :logger, :instance_writer => false
-443:    cattr_accessor :configurations, :instance_writer => false
-450:    cattr_accessor :primary_key_prefix_type, :instance_writer => false
-456:    cattr_accessor :table_name_prefix, :instance_writer => false
-461:    cattr_accessor :table_name_suffix, :instance_writer => false
-467:    cattr_accessor :pluralize_table_names, :instance_writer => false
-473:    cattr_accessor :colorize_logging, :instance_writer => false
-478:    cattr_accessor :default_timezone, :instance_writer => false
-487:    cattr_accessor :schema_format , :instance_writer => false
-491:    cattr_accessor :timestamped_migrations , :instance_writer => false
-
-activerecord/lib/active_record/connection_adapters/abstract/connection_specification.rb
-11:    cattr_accessor :connection_handler, :instance_writer => false
-
-activerecord/lib/active_record/connection_adapters/mysql_adapter.rb
-166:      cattr_accessor :emulate_booleans
-
-activerecord/lib/active_record/fixtures.rb
-498:  cattr_accessor :all_loaded_fixtures
-
-activerecord/lib/active_record/locking/optimistic.rb
-38:        base.cattr_accessor :lock_optimistically, :instance_writer => false
-
-activerecord/lib/active_record/migration.rb
-259:    cattr_accessor :verbose
-
-activerecord/lib/active_record/schema_dumper.rb
-13:    cattr_accessor :ignore_tables 
-
-activerecord/lib/active_record/serializers/json_serializer.rb
-4:      base.cattr_accessor :include_root_in_json, :instance_writer => false
-
-activerecord/Rakefile
-142:  rdoc.options << '--line-numbers' << '--inline-source' << '-A cattr_accessor=object'
-
-activerecord/test/cases/lifecycle_test.rb
-61:  cattr_reader :last_inherited
-
-activerecord/test/cases/mixin_test.rb
-9:  cattr_accessor :forced_now_time
-
-activeresource/lib/active_resource/base.rb
-206:    cattr_accessor :logger
-
-activeresource/Rakefile
-43:  rdoc.options << '--line-numbers' << '--inline-source' << '-A cattr_accessor=object'
-
-activesupport/lib/active_support/buffered_logger.rb
-17:    cattr_accessor :silencer
-
-activesupport/lib/active_support/cache.rb
-81:      cattr_accessor :logger
-
-activesupport/lib/active_support/core_ext/class/attribute_accessors.rb
-5:#    cattr_accessor :hair_colors
-10:  def cattr_reader(*syms)
-29:  def cattr_writer(*syms)
-50:  def cattr_accessor(*syms)
-51:    cattr_reader(*syms)
-52:    cattr_writer(*syms)
-
-activesupport/lib/active_support/core_ext/logger.rb
-34:  cattr_accessor :silencer
-
-activesupport/test/core_ext/class/attribute_accessor_test.rb
-6:      cattr_accessor :foo
-7:      cattr_accessor :bar, :instance_writer => false
-
-activesupport/test/core_ext/module/synchronization_test.rb
-6:    @target.cattr_accessor :mutex, :instance_writer => false
-
-railties/doc/guides/html/creating_plugins.html
-786:      cattr_accessor <span style="color: #990000">:</span>yaffle_text_field<span style="color: #990000">,</span> <span style="color: #990000">:</span>yaffle_date_field
-860:      cattr_accessor <span style="color: #990000">:</span>yaffle_text_field<span style="color: #990000">,</span> <span style="color: #990000">:</span>yaffle_date_field
-
-railties/lib/rails_generator/base.rb
-93:      cattr_accessor :logger
-
-railties/Rakefile
-265:  rdoc.options << '--line-numbers' << '--inline-source' << '--accessor' << 'cattr_accessor=object'
-
-railties/test/rails_info_controller_test.rb
-12:    cattr_accessor :local_request
-
-Rakefile
-32:  rdoc.options << '-A cattr_accessor=object'
-
+need to look for def self. ???

@@ -566,6 +566,14 @@ http://www.lorenzobettini.it
 http://www.gnu.org/software/src-highlite -->
 <pre><tt>$ rails blog -d postgresql
 </tt></pre></div></div>
+<div class="para"><p>After you create the blog application, switch to its folder to continue work directly in that application:</p></div>
+<div class="listingblock">
+<div class="content"><!-- Generator: GNU source-highlight 2.9
+by Lorenzo Bettini
+http://www.lorenzobettini.it
+http://www.gnu.org/software/src-highlite -->
+<pre><tt>$ cd blog
+</tt></pre></div></div>
 <div class="para"><p>In any case, Rails will create a folder in your working directory called <tt>blog</tt>. Open up that folder and explore its contents. Most of the work in this tutorial will happen in the <tt>app/</tt> folder, but here's a basic rundown on the function of each folder that Rails creates in a new application by default:</p></div>
 <div class="tableblock">
 <table rules="all"
@@ -764,6 +772,15 @@ http://www.gnu.org/software/src-highlite -->
   password<span style="color: #990000">:</span>
 </tt></pre></div></div>
 <div class="para"><p>Change the username and password in the <tt>development</tt> section as appropriate.</p></div>
+<h4 id="_creating_the_database">3.3.4. Creating the Database</h4>
+<div class="para"><p>Now that you have your database configured, it's time to have Rails create an empty database for you. You can do this by running a rake command:</p></div>
+<div class="listingblock">
+<div class="content"><!-- Generator: GNU source-highlight 2.9
+by Lorenzo Bettini
+http://www.lorenzobettini.it
+http://www.gnu.org/software/src-highlite -->
+<pre><tt>$ rake db<span style="color: #990000">:</span>create
+</tt></pre></div></div>
 </div>
 <h2 id="_hello_rails">4. Hello, Rails!</h2>
 <div class="sectionbody">
@@ -1031,7 +1048,7 @@ http://www.gnu.org/software/src-highlite -->
 <span style="font-weight: bold"><span style="color: #0000FF">end</span></span>
 </tt></pre></div></div>
 <div class="para"><p>If you were to translate that into words, it says something like: when this migration is run, create a table named <tt>posts</tt> with two string columns (<tt>name</tt> and <tt>title</tt>) and a text column (<tt>content</tt>), and generate timestamp fields to track record creation and updating. You can learn the detailed syntax for migrations in the <a href="../migrations.html">Rails Database Migrations</a> guide.</p></div>
-<div class="para"><p>At this point, you need to do two things: create the database and run the migration. You can use rake commands at the terminal for both of those tasks:</p></div>
+<div class="para"><p>At this point, you can use a rake command to run the migration:</p></div>
 <div class="listingblock">
 <div class="content"><!-- Generator: GNU source-highlight 2.9
 by Lorenzo Bettini
@@ -1045,7 +1062,7 @@ $ rake db<span style="color: #990000">:</span>migrate
 <td class="icon">
 <img src="./images/icons/note.png" alt="Note" />
 </td>
-<td class="content">Because you're working in the development environment by default, both of these commands will apply to the database defined in the <tt>development</tt> section of your <tt>config/database.yml</tt> file.</td>
+<td class="content">Because you're working in the development environment by default, this command will apply to the database defined in the <tt>development</tt> section of your <tt>config/database.yml</tt> file.</td>
 </tr></table>
 </div>
 <h3 id="_adding_a_link">6.2. Adding a Link</h3>
@@ -1456,7 +1473,7 @@ http://www.gnu.org/software/src-highlite -->
 <div class="sectionbody">
 <div class="para"><p>At this point, it’s worth looking at some of the tools that Rails provides to eliminate duplication in your code. In particular, you can use <em>partials</em> to clean up duplication in views and <em>filters</em> to help with duplication in controllers.</p></div>
 <h3 id="_using_partials_to_eliminate_view_duplication">7.1. Using Partials to Eliminate View Duplication</h3>
-<div class="para"><p>As you saw earlier, the scaffold-generated views for the <tt>new</tt> and <tt>edit</tt> actions are largely identical. You can pull the shared code out into a <tt>partial</tt> template. This requires editing the new and edit views, and adding a new template:</p></div>
+<div class="para"><p>As you saw earlier, the scaffold-generated views for the <tt>new</tt> and <tt>edit</tt> actions are largely identical. You can pull the shared code out into a <tt>partial</tt> template. This requires editing the new and edit views, and adding a new template. The new <tt>_form.html.erb</tt> template should be saved in the same <tt>app/views/posts</tt> folder as the files from which it is being extracted:</p></div>
 <div class="para"><p><tt>new.html.erb</tt>:</p></div>
 <div class="listingblock">
 <div class="content"><!-- Generator: GNU source-highlight 2.9
@@ -1791,7 +1808,7 @@ http://www.gnu.org/software/src-highlite -->
 
   <span style="font-weight: bold"><span style="color: #0000FF">def</span></span> show
     <span style="color: #009900">@post</span> <span style="color: #990000">=</span> Post<span style="color: #990000">.</span>find<span style="color: #990000">(</span>params<span style="color: #990000">[:</span>post_id<span style="color: #990000">])</span>
-    <span style="color: #009900">@comment</span> <span style="color: #990000">=</span> Comment<span style="color: #990000">.</span>find<span style="color: #990000">(</span>params<span style="color: #990000">[:</span>id<span style="color: #990000">])</span>
+    <span style="color: #009900">@comment</span> <span style="color: #990000">=</span> <span style="color: #009900">@post</span><span style="color: #990000">.</span>comments<span style="color: #990000">.</span>find<span style="color: #990000">(</span>params<span style="color: #990000">[:</span>id<span style="color: #990000">])</span>
   <span style="font-weight: bold"><span style="color: #0000FF">end</span></span>
 
   <span style="font-weight: bold"><span style="color: #0000FF">def</span></span> new
@@ -1803,7 +1820,7 @@ http://www.gnu.org/software/src-highlite -->
     <span style="color: #009900">@post</span> <span style="color: #990000">=</span> Post<span style="color: #990000">.</span>find<span style="color: #990000">(</span>params<span style="color: #990000">[:</span>post_id<span style="color: #990000">])</span>
     <span style="color: #009900">@comment</span> <span style="color: #990000">=</span> <span style="color: #009900">@post</span><span style="color: #990000">.</span>comments<span style="color: #990000">.</span>build<span style="color: #990000">(</span>params<span style="color: #990000">[:</span>comment<span style="color: #990000">])</span>
     <span style="font-weight: bold"><span style="color: #0000FF">if</span></span> <span style="color: #009900">@comment</span><span style="color: #990000">.</span>save
-      redirect_to post_comment_path<span style="color: #990000">(</span><span style="color: #009900">@post</span><span style="color: #990000">,</span> <span style="color: #009900">@comment</span><span style="color: #990000">)</span>
+      redirect_to post_comment_url<span style="color: #990000">(</span><span style="color: #009900">@post</span><span style="color: #990000">,</span> <span style="color: #009900">@comment</span><span style="color: #990000">)</span>
     <span style="font-weight: bold"><span style="color: #0000FF">else</span></span>
       render <span style="color: #990000">:</span>action <span style="color: #990000">=&gt;</span> <span style="color: #FF0000">"new"</span>
     <span style="font-weight: bold"><span style="color: #0000FF">end</span></span>
@@ -1811,14 +1828,14 @@ http://www.gnu.org/software/src-highlite -->
 
   <span style="font-weight: bold"><span style="color: #0000FF">def</span></span> edit
     <span style="color: #009900">@post</span> <span style="color: #990000">=</span> Post<span style="color: #990000">.</span>find<span style="color: #990000">(</span>params<span style="color: #990000">[:</span>post_id<span style="color: #990000">])</span>
-    <span style="color: #009900">@comment</span> <span style="color: #990000">=</span> Comment<span style="color: #990000">.</span>find<span style="color: #990000">(</span>params<span style="color: #990000">[:</span>id<span style="color: #990000">])</span>
+    <span style="color: #009900">@comment</span> <span style="color: #990000">=</span> <span style="color: #009900">@post</span><span style="color: #990000">.</span>comments<span style="color: #990000">.</span>find<span style="color: #990000">(</span>params<span style="color: #990000">[:</span>id<span style="color: #990000">])</span>
   <span style="font-weight: bold"><span style="color: #0000FF">end</span></span>
 
   <span style="font-weight: bold"><span style="color: #0000FF">def</span></span> update
     <span style="color: #009900">@post</span> <span style="color: #990000">=</span> Post<span style="color: #990000">.</span>find<span style="color: #990000">(</span>params<span style="color: #990000">[:</span>post_id<span style="color: #990000">])</span>
     <span style="color: #009900">@comment</span> <span style="color: #990000">=</span> Comment<span style="color: #990000">.</span>find<span style="color: #990000">(</span>params<span style="color: #990000">[:</span>id<span style="color: #990000">])</span>
     <span style="font-weight: bold"><span style="color: #0000FF">if</span></span> <span style="color: #009900">@comment</span><span style="color: #990000">.</span>update_attributes<span style="color: #990000">(</span>params<span style="color: #990000">[:</span>comment<span style="color: #990000">])</span>
-      redirect_to post_comment_path<span style="color: #990000">(</span><span style="color: #009900">@post</span><span style="color: #990000">,</span> <span style="color: #009900">@comment</span><span style="color: #990000">)</span>
+      redirect_to post_comment_url<span style="color: #990000">(</span><span style="color: #009900">@post</span><span style="color: #990000">,</span> <span style="color: #009900">@comment</span><span style="color: #990000">)</span>
     <span style="font-weight: bold"><span style="color: #0000FF">else</span></span>
       render <span style="color: #990000">:</span>action <span style="color: #990000">=&gt;</span> <span style="color: #FF0000">"edit"</span>
     <span style="font-weight: bold"><span style="color: #0000FF">end</span></span>
@@ -1990,7 +2007,7 @@ http://www.gnu.org/software/src-highlite -->
 <div class="ilist"><ul>
 <li>
 <p>
-The <a href="http://manuals.rubyonrails.org/">Ruby On Rails guides</a>
+The <a href="http://guides.rubyonrails.org/">Ruby On Rails guides</a>
 </p>
 </li>
 <li>

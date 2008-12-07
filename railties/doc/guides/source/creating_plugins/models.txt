@@ -1,4 +1,4 @@
-== Add a model ==
+== Models ==
 
 This section describes how to add a model named 'Woodpecker' to your plugin that will behave the same as a model in your main app.  When storing models, controllers, views and helpers in your plugin, it's customary to keep them in directories that match the rails directories.  For this example, create a file structure like this:
 
@@ -66,10 +66,8 @@ Finally, add the following to your plugin's 'schema.rb':
 
 [source, ruby]
 ----------------------------------------------
-ActiveRecord::Schema.define(:version => 0) do
-  create_table :woodpeckers, :force => true do |t|
-    t.string :name
-  end
+create_table :woodpeckers, :force => true do |t|
+  t.string :name
 end
 ----------------------------------------------
 

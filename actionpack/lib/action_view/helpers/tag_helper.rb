@@ -97,7 +97,7 @@ module ActionView
       # Returns an escaped version of +html+ without affecting existing escaped entities.
       #
       # ==== Examples
-      #   escape_once("1 > 2 &amp; 3")
+      #   escape_once("1 < 2 &amp; 3")
       #   # => "1 &lt; 2 &amp; 3"
       #
       #   escape_once("&lt;&lt; Accept & Checkout")

@@ -229,7 +229,7 @@ NOTE: +db:test:prepare+ will fail with an error if db/schema.rb doesn't exists.
 ==== Rake Tasks for Preparing you Application for Testing ==
 
 [grid="all"]
---------------------------------`----------------------------------------------------
+------------------------------------------------------------------------------------
 Tasks                           Description
 ------------------------------------------------------------------------------------
 +rake db:test:clone+            Recreate the test database from the current environment's database schema
@@ -239,7 +239,7 @@ Tasks                           Description
 +rake db:test:purge+            Empty the test database.
 ------------------------------------------------------------------------------------
 
-TIP: You can see all these rake tasks and their descriptions by running +rake --tasks --describe+
+TIP: You can see all these rake tasks and their descriptions by running +rake \-\-tasks \-\-describe+
 
 === Running Tests ===
 
@@ -768,7 +768,7 @@ end
 You don't need to set up and run your tests by hand on a test-by-test basis. Rails comes with a number of rake tasks to help in testing. The table below lists all rake tasks that come along in the default Rakefile when you initiate a Rail project.
 
 [grid="all"]
---------------------------------`----------------------------------------------------
+------------------------------------------------------------------------------------
 Tasks                           Description
 ------------------------------------------------------------------------------------
 +rake test+                     Runs all unit, functional and integration tests. You can also simply run +rake+ as the _test_ target is the default.

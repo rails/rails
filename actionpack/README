@@ -10,7 +10,7 @@ Action Pack implements these actions as public methods on Action Controllers
 and uses Action Views to implement the template rendering. Action Controllers
 are then responsible for handling all the actions relating to a certain part
 of an application. This grouping usually consists of actions for lists and for
-CRUDs revolving around a single (or a few) model objects. So ContactController
+CRUDs revolving around a single (or a few) model objects. So ContactsController
 would be responsible for listing contacts, creating, deleting, and updating
 contacts. A WeblogController could be responsible for both posts and comments.
 
@@ -33,7 +33,7 @@ A short rundown of the major features:
 * Actions grouped in controller as methods instead of separate command objects
   and can therefore share helper methods
 
-    BlogController < ActionController::Base
+    CustomersController < ActionController::Base
       def show
         @customer = find_customer
       end
@@ -42,7 +42,7 @@ A short rundown of the major features:
         @customer = find_customer
         @customer.attributes = params[:customer]
         @customer.save ? 
-          redirect_to(:action => "display") : 
+          redirect_to(:action => "show") :
           render(:action => "edit")
       end
       
@@ -59,7 +59,7 @@ A short rundown of the major features:
       Title: <%= post.title %>
     <% end %>
 
-    All post titles: <%= @post.collect{ |p| p.title }.join ", " %>
+    All post titles: <%= @posts.collect{ |p| p.title }.join ", " %>
 
     <% unless @person.is_client? %>
       Not for clients to see...
@@ -123,7 +123,7 @@ A short rundown of the major features:
     <%= text_field "post", "title", "size" => 30 %>
     <%= html_date_select(Date.today) %>
     <%= link_to "New post", :controller => "post", :action => "new" %>
-    <%= truncate(post.title, 25) %>
+    <%= truncate(post.title, :length => 25) %>
  
   {Learn more}[link:classes/ActionView/Helpers.html]
 
@@ -177,21 +177,6 @@ A short rundown of the major features:
   {Learn more}[link:classes/ActionView/Helpers/JavaScriptHelper.html]
 
 
-* Pagination for navigating lists of results
-
-    # controller
-    def list
-      @pages, @people =
-        paginate :people, :order => 'last_name, first_name'
-    end
-
-    # view
-    <%= link_to "Previous page", { :page => @pages.current.previous } if @pages.current.previous %>
-    <%= link_to "Next page", { :page => @pages.current.next } if @pages.current.next %>
-
-  {Learn more}[link:classes/ActionController/Pagination.html]
-
-
 * Easy testing of both controller and rendered template through ActionController::TestCase
 
     class LoginControllerTest < ActionController::TestCase
@@ -215,11 +200,11 @@ A short rundown of the major features:
     If Active Record is used as the model, you'll have the database debugging
     as well:
 
-    Processing WeblogController#create (for 127.0.0.1 at Sat Jun 19 14:04:23)
-    Params: {"controller"=>"weblog", "action"=>"create",  
+    Processing PostsController#create (for 127.0.0.1 at Sat Jun 19 14:04:23)
+    Params: {"controller"=>"posts", "action"=>"create",
              "post"=>{"title"=>"this is good"} }
     SQL (0.000627) INSERT INTO posts (title) VALUES('this is good')
-    Redirected to http://test/weblog/display/5
+    Redirected to http://example.com/posts/5
     Completed in 0.221764 (4 reqs/sec) | DB: 0.059920 (27%)
 
     You specify a logger through a class method, such as:
@@ -255,30 +240,6 @@ A short rundown of the major features:
 
   {Learn more}[link:classes/ActionController/Caching.html]
 
-
-* Component requests from one controller to another
-
-    class WeblogController < ActionController::Base
-      # Performs a method and then lets hello_world output its render
-      def delegate_action
-        do_other_stuff_before_hello_world
-        render_component :controller => "greeter",  :action => "hello_world"
-      end
-    end
-  
-    class GreeterController < ActionController::Base
-      def hello_world
-        render_text "Hello World!"
-      end
-    end
-  
-    The same can be done in a view to do a partial rendering:
-  
-      Let's see a greeting:
-      <%= render_component :controller => "greeter", :action => "hello_world" %>
-
-  {Learn more}[link:classes/ActionController/Components.html]
-  
 
 * Powerful debugging mechanism for local requests
 
@@ -336,7 +297,7 @@ A short rundown of the major features:
     class WeblogController < ActionController::Base
       def create
         post = Post.create(params[:post])
-        redirect_to :action => "display", :id => post.id
+        redirect_to :action => "show", :id => post.id
       end
     end
 
@@ -362,7 +323,7 @@ methods:
       @posts = Post.find(:all)
     end
     
-    def display
+    def show
       @post = Post.find(params[:id])
     end
     
@@ -372,7 +333,7 @@ methods:
     
     def create
       @post = Post.create(params[:post])
-      redirect_to :action => "display", :id => @post.id
+      redirect_to :action => "show", :id => @post.id
     end
   end
 
@@ -385,47 +346,32 @@ request from the web-server (like to be Apache).
 
 And the templates look like this:
 
-  weblog/layout.erb:
+  weblog/layout.html.erb:
     <html><body>
     <%= yield %>
     </body></html>
 
-  weblog/index.erb:
+  weblog/index.html.erb:
     <% for post in @posts %>
-      <p><%= link_to(post.title, :action => "display", :id => post.id %></p>
+      <p><%= link_to(post.title, :action => "show", :id => post.id) %></p>
     <% end %>
 
-  weblog/display.erb:
+  weblog/show.html.erb:
     <p>
-      <b><%= post.title %></b><br/>
-      <b><%= post.content %></b>
+      <b><%= @post.title %></b><br/>
+      <b><%= @post.content %></b>
     </p>
 
-  weblog/new.erb:
+  weblog/new.html.erb:
     <%= form "post" %>
   
 This simple setup will list all the posts in the system on the index page,
 which is called by accessing /weblog/. It uses the form builder for the Active
 Record model to make the new screen, which in turn hands everything over to
 the create action (that's the default target for the form builder when given a
-new model). After creating the post, it'll redirect to the display page using
-an URL such as /weblog/display/5 (where 5 is the id of the post).
+new model). After creating the post, it'll redirect to the show page using
+an URL such as /weblog/5 (where 5 is the id of the post).
 
-
-== Examples
-
-Action Pack ships with three examples that all demonstrate an increasingly
-detailed view of the possibilities. First is blog_controller that is just a
-single file for the whole MVC (but still split into separate parts). Second is
-the debate_controller that uses separate template files and multiple screens.
-Third is the address_book_controller that uses the layout feature to separate
-template casing from content.
-
-Please note that you might need to change the "shebang" line to 
-#!/usr/local/env ruby, if your Ruby is not placed in /usr/local/bin/ruby
-
-Also note that these examples are all for demonstrating using Action Pack on
-its own. Not for when it's used inside of Rails.
 
 == Download
 

@@ -217,6 +217,9 @@ ul#navMain {
 						</ul>
 					</li>
 					<li>
+					<a href="#_conditional_get_support">Conditional GET support</a>
+					</li>
+					<li>
 					<a href="#_advanced_caching">Advanced Caching</a>
 					</li>
 			</ol>
@@ -235,8 +238,8 @@ need to return to those hungry web clients in the shortest time possible.</p></d
 <div class="sectionbody">
 <div class="para"><p>This is an introduction to the three types of caching techniques that Rails
 provides by default without the use of any third party plugins.</p></div>
-<div class="para"><p>To get started make sure config.action_controller.perform_caching is set
-to true for your environment. This flag is normally set in the
+<div class="para"><p>To get started make sure <tt>config.action_controller.perform_caching</tt> is set
+to <tt>true</tt> for your environment. This flag is normally set in the
 corresponding config/environments/*.rb and caching is disabled by default
 there for development and test, and enabled for production.</p></div>
 <div class="listingblock">
@@ -270,19 +273,19 @@ http://www.gnu.org/software/src-highlite -->
 <span style="font-weight: bold"><span style="color: #0000FF">end</span></span>
 </tt></pre></div></div>
 <div class="para"><p>The first time anyone requests products/index, Rails will generate a file
-called index.html and the webserver will then look for that file before it
+called <tt>index.html</tt> and the webserver will then look for that file before it
 passes the next request for products/index to your Rails application.</p></div>
 <div class="para"><p>By default, the page cache directory is set to Rails.public_path (which is
-usually set to RAILS_ROOT + "/public") and this can be configured by
-changing the configuration setting ActionController::Base.page_cache_directory. Changing the
-default from /public helps avoid naming conflicts, since you may want to
-put other static html in /public, but changing this will require web
-server reconfiguration to let the web server know where to serve the
-cached files from.</p></div>
-<div class="para"><p>The Page Caching mechanism will automatically add a .html exxtension to
+usually set to <tt>RAILS_ROOT + "/public"</tt>) and this can be configured by
+changing the configuration setting <tt>config.action_controller.page_cache_directory</tt>.
+Changing the default from /public helps avoid naming conflicts, since you may
+want to put other static html in /public, but changing this will require web
+server reconfiguration to let the web server know where to serve the cached
+files from.</p></div>
+<div class="para"><p>The Page Caching mechanism will automatically add a <tt>.html</tt> exxtension to
 requests for pages that do not have an extension to make it easy for the
 webserver to find those pages and this can be configured by changing the
-configuration setting ActionController::Base.page_cache_extension.</p></div>
+configuration setting <tt>config.action_controller.page_cache_extension</tt>.</p></div>
 <div class="para"><p>In order to expire this page when a new product is added we could extend our
 example controler like this:</p></div>
 <div class="listingblock">
@@ -337,8 +340,8 @@ http://www.gnu.org/software/src-highlite -->
 
 <span style="font-weight: bold"><span style="color: #0000FF">end</span></span>
 </tt></pre></div></div>
-<div class="para"><p>And you can also use :if (or :unless) to pass a Proc that specifies when the
-action should be cached. Also, you can use :layout &#8658; false to cache without
+<div class="para"><p>And you can also use <tt>:if</tt> (or <tt>:unless</tt>) to pass a Proc that specifies when the
+action should be cached. Also, you can use <tt>:layout &#8658; false</tt> to cache without
 layout so that dynamic information in the layout such as logged in user info
 or the number of items in the cart can be left uncached. This feature is
 available as of Rails 2.2.</p></div>
@@ -377,7 +380,7 @@ http://www.gnu.org/software/src-highlite -->
 </tt></pre></div></div>
 <div class="para"><p>The cache block in our example will bind to the action that called it and is
 written out to the same place as the Action Cache, which means that if you
-want to cache multiple fragments per action, you should provide an action_suffix to the cache call:</p></div>
+want to cache multiple fragments per action, you should provide an <tt>action_suffix</tt> to the cache call:</p></div>
 <div class="listingblock">
 <div class="content"><!-- Generator: GNU source-highlight 2.9
 by Lorenzo Bettini
@@ -386,18 +389,38 @@ http://www.gnu.org/software/src-highlite -->
 <pre><tt><span style="color: #FF0000">&lt;% cache(:action =&gt;</span> <span style="color: #FF0000">'recent'</span><span style="color: #990000">,</span> <span style="color: #990000">:</span>action_suffix <span style="color: #990000">=&gt;</span> <span style="color: #FF0000">'all_products'</span><span style="color: #990000">)</span> <span style="font-weight: bold"><span style="color: #0000FF">do</span></span> <span style="color: #990000">%&gt;</span>
   All available products<span style="color: #990000">:</span>
 </tt></pre></div></div>
-<div class="para"><p>and you can expire it using the expire_fragment method, like so:</p></div>
+<div class="para"><p>and you can expire it using the <tt>expire_fragment</tt> method, like so:</p></div>
 <div class="listingblock">
 <div class="content"><!-- Generator: GNU source-highlight 2.9
 by Lorenzo Bettini
 http://www.lorenzobettini.it
 http://www.gnu.org/software/src-highlite -->
-<pre><tt>expire_fragment<span style="color: #990000">(:</span>controller <span style="color: #990000">=&gt;</span> <span style="color: #FF0000">'producst'</span><span style="color: #990000">,</span> <span style="color: #990000">:</span>action <span style="color: #990000">=&gt;</span> <span style="color: #FF0000">'recent'</span><span style="color: #990000">,</span> <span style="color: #990000">:</span>action_suffix <span style="color: #990000">=&gt;</span> 'all_products<span style="color: #990000">)</span>
+<pre><tt>expire_fragment<span style="color: #990000">(:</span>controller <span style="color: #990000">=&gt;</span> <span style="color: #FF0000">'products'</span><span style="color: #990000">,</span> <span style="color: #990000">:</span>action <span style="color: #990000">=&gt;</span> <span style="color: #FF0000">'recent'</span><span style="color: #990000">,</span> <span style="color: #990000">:</span>action_suffix <span style="color: #990000">=&gt;</span> 'all_products<span style="color: #990000">)</span>
+</tt></pre></div></div>
+<div class="para"><p>If you don't want the cache block to bind to the action that called it, You can
+also use globally keyed fragments by calling the cache method with a key, like
+so:</p></div>
+<div class="listingblock">
+<div class="content"><!-- Generator: GNU source-highlight 2.9
+by Lorenzo Bettini
+http://www.lorenzobettini.it
+http://www.gnu.org/software/src-highlite -->
+<pre><tt><span style="color: #FF0000">&lt;% cache(:key =&gt;</span> <span style="color: #990000">[</span><span style="color: #FF0000">'all_available_products'</span><span style="color: #990000">,</span> <span style="color: #009900">@latest_product</span><span style="color: #990000">.</span>created_at<span style="color: #990000">].</span>join<span style="color: #990000">(</span><span style="color: #FF0000">':'</span><span style="color: #990000">))</span> <span style="font-weight: bold"><span style="color: #0000FF">do</span></span> <span style="color: #990000">%&gt;</span>
+  All available products<span style="color: #990000">:</span>
+</tt></pre></div></div>
+<div class="para"><p>This fragment is then available to all actions in the ProductsController using
+the key and can be expired the same way:</p></div>
+<div class="listingblock">
+<div class="content"><!-- Generator: GNU source-highlight 2.9
+by Lorenzo Bettini
+http://www.lorenzobettini.it
+http://www.gnu.org/software/src-highlite -->
+<pre><tt>expire_fragment<span style="color: #990000">(:</span>key <span style="color: #990000">=&gt;</span> <span style="color: #990000">[</span><span style="color: #FF0000">'all_available_products'</span><span style="color: #990000">,</span> <span style="color: #009900">@latest_product</span><span style="color: #990000">.</span>created_at<span style="color: #990000">].</span>join<span style="color: #990000">(</span><span style="color: #FF0000">':'</span><span style="color: #990000">))</span>
 </tt></pre></div></div>
 <h3 id="_sweepers">1.4. Sweepers</h3>
 <div class="para"><p>Cache sweeping is a mechanism which allows you to get around having a ton of
 expire_{page,action,fragment} calls in your code by moving all the work
-required to expire cached content into a ActionController::Caching::Sweeper
+required to expire cached content into a <tt>ActionController::Caching::Sweeper</tt>
 class that is an Observer and looks for changes to an object via callbacks,
 and when a change occurs it expires the caches associated with that object n
 an around or after filter.</p></div>
@@ -547,8 +570,7 @@ http://www.gnu.org/software/src-highlite -->
 <pre><tt>ActionController<span style="color: #990000">::</span>Base<span style="color: #990000">.</span>cache_store <span style="color: #990000">=</span> <span style="color: #990000">:</span>drb_store<span style="color: #990000">,</span> <span style="color: #FF0000">"druby://localhost:9192"</span>
 </tt></pre></div></div>
 <div class="para"><p>4) MemCached store: Works like DRbStore, but uses Danga's MemCache instead.
-                    Requires the ruby-memcache library:
-                    gem install ruby-memcache.</p></div>
+                    Rails uses the bundled memcached-client gem by default.</p></div>
 <div class="listingblock">
 <div class="content"><!-- Generator: GNU source-highlight 2.9
 by Lorenzo Bettini
@@ -564,8 +586,70 @@ http://www.lorenzobettini.it
 http://www.gnu.org/software/src-highlite -->
 <pre><tt>ActionController<span style="color: #990000">::</span>Base<span style="color: #990000">.</span>cache_store <span style="color: #990000">=</span> MyOwnStore<span style="color: #990000">.</span>new<span style="color: #990000">(</span><span style="color: #FF0000">"parameter"</span><span style="color: #990000">)</span>
 </tt></pre></div></div>
+<div class="para"><p><tt>Note: config.cache_store can be used in place of
+ActionController::Base.cache_store in your Rails::Initializer.run block in
+environment.rb</tt></p></div>
 </div>
-<h2 id="_advanced_caching">2. Advanced Caching</h2>
+<h2 id="_conditional_get_support">2. Conditional GET support</h2>
+<div class="sectionbody">
+<div class="para"><p>Conditional GETs are a facility of the HTTP spec that provide a way for web
+servers to tell browsers that the response to a GET request hasn’t changed
+since the last request and can be safely pulled from the browser cache.</p></div>
+<div class="para"><p>They work by using the HTTP_IF_NONE_MATCH and HTTP_IF_MODIFIED_SINCE headers to
+pass back and forth both a unique content identifier and the timestamp of when
+the content was last changed. If the browser makes a request where the content
+identifier (etag) or last modified since timestamp matches the server’s version
+then the server only needs to send back an empty response with a not modified
+status.</p></div>
+<div class="para"><p>It is the server’s (i.e. our) responsibility to look for a last modified
+timestamp and the if-none-match header and determine whether or not to send
+back the full response. With conditional-get support in rails this is a pretty
+easy task:</p></div>
+<div class="listingblock">
+<div class="content"><!-- Generator: GNU source-highlight 2.9
+by Lorenzo Bettini
+http://www.lorenzobettini.it
+http://www.gnu.org/software/src-highlite -->
+<pre><tt><span style="font-weight: bold"><span style="color: #0000FF">class</span></span> ProductsController <span style="color: #990000">&lt;</span> ApplicationController
+
+  <span style="font-weight: bold"><span style="color: #0000FF">def</span></span> show
+    <span style="color: #009900">@product</span> <span style="color: #990000">=</span> Product<span style="color: #990000">.</span>find<span style="color: #990000">(</span>params<span style="color: #990000">[:</span>id<span style="color: #990000">])</span>
+
+    <span style="font-style: italic"><span style="color: #9A1900"># If the request is stale according to the given timestamp and etag value</span></span>
+    <span style="font-style: italic"><span style="color: #9A1900"># (i.e. it needs to be processed again) then execute this block</span></span>
+    <span style="font-weight: bold"><span style="color: #0000FF">if</span></span> stale?<span style="color: #990000">(:</span>last_modified <span style="color: #990000">=&gt;</span> <span style="color: #009900">@product</span><span style="color: #990000">.</span>updated_at<span style="color: #990000">.</span>utc<span style="color: #990000">,</span> <span style="color: #990000">:</span>etag <span style="color: #990000">=&gt;</span> <span style="color: #009900">@product</span><span style="color: #990000">)</span>
+      respond_to <span style="font-weight: bold"><span style="color: #0000FF">do</span></span> <span style="color: #990000">|</span>wants<span style="color: #990000">|</span>
+        <span style="font-style: italic"><span style="color: #9A1900"># ... normal response processing</span></span>
+      <span style="font-weight: bold"><span style="color: #0000FF">end</span></span>
+    <span style="font-weight: bold"><span style="color: #0000FF">end</span></span>
+
+    <span style="font-style: italic"><span style="color: #9A1900"># If the request is fresh (i.e. it's not modified) then you don't need to do</span></span>
+    <span style="font-style: italic"><span style="color: #9A1900"># anything. The default render checks for this using the parameters</span></span>
+    <span style="font-style: italic"><span style="color: #9A1900"># used in the previous call to stale? and will automatically send a</span></span>
+    <span style="font-style: italic"><span style="color: #9A1900"># :not_modified.  So that's it, you're done.</span></span>
+<span style="font-weight: bold"><span style="color: #0000FF">end</span></span>
+</tt></pre></div></div>
+<div class="para"><p>If you don’t have any special response processing and are using the default
+rendering mechanism (i.e. you’re not using respond_to or calling render
+yourself) then you’ve got an easy helper in fresh_when:</p></div>
+<div class="listingblock">
+<div class="content"><!-- Generator: GNU source-highlight 2.9
+by Lorenzo Bettini
+http://www.lorenzobettini.it
+http://www.gnu.org/software/src-highlite -->
+<pre><tt><span style="font-weight: bold"><span style="color: #0000FF">class</span></span> ProductsController <span style="color: #990000">&lt;</span> ApplicationController
+
+  <span style="font-style: italic"><span style="color: #9A1900"># This will automatically send back a :not_modified if the request is fresh,</span></span>
+  <span style="font-style: italic"><span style="color: #9A1900"># and will render the default template (product.*) if it's stale.</span></span>
+
+  <span style="font-weight: bold"><span style="color: #0000FF">def</span></span> show
+    <span style="color: #009900">@product</span> <span style="color: #990000">=</span> Product<span style="color: #990000">.</span>find<span style="color: #990000">(</span>params<span style="color: #990000">[:</span>id<span style="color: #990000">])</span>
+    fresh_when <span style="color: #990000">:</span>last_modified <span style="color: #990000">=&gt;</span> <span style="color: #009900">@product</span><span style="color: #990000">.</span>published_at<span style="color: #990000">.</span>utc<span style="color: #990000">,</span> <span style="color: #990000">:</span>etag <span style="color: #990000">=&gt;</span> <span style="color: #009900">@article</span>
+  <span style="font-weight: bold"><span style="color: #0000FF">end</span></span>
+<span style="font-weight: bold"><span style="color: #0000FF">end</span></span>
+</tt></pre></div></div>
+</div>
+<h2 id="_advanced_caching">3. Advanced Caching</h2>
 <div class="sectionbody">
 <div class="para"><p>Along with the built-in mechanisms outlined above, a number of excellent
 plugins exist to help with finer grained control over caching. These include

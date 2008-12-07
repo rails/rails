@@ -1,0 +1,84 @@
+== Setup ==
+
+=== Create the basic app ===
+
+The examples in this guide require that you have a working rails application.  To create a simple rails app execute:
+
+------------------------------------------------
+gem install rails
+rails yaffle_guide
+cd yaffle_guide
+script/generate scaffold bird name:string
+rake db:migrate
+script/server
+------------------------------------------------
+
+Then navigate to http://localhost:3000/birds.  Make sure you have a functioning rails app before continuing.
+
+.Editor's note:
+NOTE: The aforementioned instructions will work for sqlite3.  For more detailed instructions on how to create a rails app for other databases see the API docs.
+
+
+=== Generate the plugin skeleton ===
+
+Rails ships with a plugin generator which creates a basic plugin skeleton. Pass the plugin name, either 'CamelCased' or 'under_scored', as an argument. Pass `\--with-generator` to add an example generator also.
+
+This creates a plugin in 'vendor/plugins' including an 'init.rb' and 'README' as well as standard 'lib', 'task', and 'test' directories.
+
+Examples:
+----------------------------------------------
+./script/generate plugin yaffle
+./script/generate plugin yaffle --with-generator
+----------------------------------------------
+
+To get more detailed help on the plugin generator, type `./script/generate plugin`.
+
+Later on this guide will describe how to work with generators, so go ahead and generate your plugin with the `\--with-generator` option now:
+
+----------------------------------------------
+./script/generate plugin yaffle --with-generator
+----------------------------------------------
+
+You should see the following output:
+
+----------------------------------------------
+create  vendor/plugins/yaffle/lib
+create  vendor/plugins/yaffle/tasks
+create  vendor/plugins/yaffle/test
+create  vendor/plugins/yaffle/README
+create  vendor/plugins/yaffle/MIT-LICENSE
+create  vendor/plugins/yaffle/Rakefile
+create  vendor/plugins/yaffle/init.rb
+create  vendor/plugins/yaffle/install.rb
+create  vendor/plugins/yaffle/uninstall.rb
+create  vendor/plugins/yaffle/lib/yaffle.rb
+create  vendor/plugins/yaffle/tasks/yaffle_tasks.rake
+create  vendor/plugins/yaffle/test/core_ext_test.rb
+create  vendor/plugins/yaffle/generators
+create  vendor/plugins/yaffle/generators/yaffle
+create  vendor/plugins/yaffle/generators/yaffle/templates
+create  vendor/plugins/yaffle/generators/yaffle/yaffle_generator.rb
+create  vendor/plugins/yaffle/generators/yaffle/USAGE
+----------------------------------------------
+
+=== Organize your files ===
+
+To make it easy to organize your files and to make the plugin more compatible with GemPlugins, start out by altering your file system to look like this:
+
+--------------------------------------------------------
+|-- lib
+|   |-- yaffle
+|   `-- yaffle.rb
+`-- rails
+    |
+    `-- init.rb
+--------------------------------------------------------
+
+*vendor/plugins/yaffle/rails/init.rb*
+
+[source, ruby]
+--------------------------------------------------------
+require 'yaffle'
+--------------------------------------------------------
+
+Now you can add any 'require' statements to 'lib/yaffle.rb' and keep 'init.rb' clean.  

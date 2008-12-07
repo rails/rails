@@ -377,7 +377,7 @@ Installed Generators
 <td class="icon">
 <img src="./images/icons/note.png" alt="Note" />
 </td>
-<td class="content">All Rails console utilities have help text. For commands that require a lot of input to run correctly, you can just try the command without any parameters (like <tt>rails</tt> or <tt>./script/generate</tt>). For others, you can try adding <tt>&#8212;help</tt> or <tt>-h</tt> to the end, as in <tt>./script/server &#8212;help</tt>.</td>
+<td class="content">All Rails console utilities have help text. For commands that require a lot of input to run correctly, you can try the command without any parameters (like <tt>rails</tt> or <tt>./script/generate</tt>). For others, you can try adding <tt>&#8212;help</tt> or <tt>-h</tt> to the end, as in <tt>./script/server &#8212;help</tt>.</td>
 </tr></table>
 </div>
 <div class="listingblock">
@@ -425,7 +425,130 @@ http://www.gnu.org/software/src-highlite -->
      create  app/helpers/greetings_helper<span style="color: #990000">.</span>rb
      create  app/views/greetings/hello<span style="color: #990000">.</span>html<span style="color: #990000">.</span>erb
 </tt></pre></div></div>
-<div class="para"><p>Look there! Now what all did this generate? It looks like it made sure a bunch of directories were in our application, and created a controller file, a functional test file, a helper for the view, and a view file. All from one command!</p></div>
+<div class="para"><p>Look there! Now what all did this generate? It looks like it made sure a bunch of directories were in our application, and created a controller file, a functional test file, a helper for the view, and a view file.</p></div>
+<div class="para"><p>Let's check out the controller and modify it a little (in <tt>app/controllers/greeting_controller.rb</tt>):</p></div>
+<div class="listingblock">
+<div class="content"><!-- Generator: GNU source-highlight 2.9
+by Lorenzo Bettini
+http://www.lorenzobettini.it
+http://www.gnu.org/software/src-highlite -->
+<pre><tt><span style="font-weight: bold"><span style="color: #0000FF">class</span></span> GreetingController <span style="color: #990000">&lt;</span> ApplicationController
+  <span style="font-weight: bold"><span style="color: #0000FF">def</span></span> hello
+    <span style="color: #009900">@message</span> <span style="color: #990000">=</span> <span style="color: #FF0000">"Hello, how are you today? I am exuberant!"</span>
+  <span style="font-weight: bold"><span style="color: #0000FF">end</span></span>
+
+<span style="font-weight: bold"><span style="color: #0000FF">end</span></span>
+</tt></pre></div></div>
+<div class="para"><p>Then the view, to display our nice message (in <tt>app/views/greeting/hello.html.erb</tt>):</p></div>
+<div class="listingblock">
+<div class="content"><!-- Generator: GNU source-highlight 2.9
+by Lorenzo Bettini
+http://www.lorenzobettini.it
+http://www.gnu.org/software/src-highlite -->
+<pre><tt><span style="font-weight: bold"><span style="color: #0000FF">&lt;h1&gt;</span></span>A Greeting for You!<span style="font-weight: bold"><span style="color: #0000FF">&lt;/h1&gt;</span></span>
+<span style="font-weight: bold"><span style="color: #0000FF">&lt;p&gt;</span></span>&lt;%= @message %&gt;<span style="font-weight: bold"><span style="color: #0000FF">&lt;/p&gt;</span></span>
+</tt></pre></div></div>
+<div class="para"><p>Deal. Go check it out in your browser. Fire up your server. Remember? <tt>./script/server</tt> at the root of your Rails application should do it.</p></div>
+<div class="listingblock">
+<div class="content"><!-- Generator: GNU source-highlight 2.9
+by Lorenzo Bettini
+http://www.lorenzobettini.it
+http://www.gnu.org/software/src-highlite -->
+<pre><tt>$ <span style="color: #990000">.</span>/script/server
+<span style="color: #990000">=&gt;</span> Booting WEBrick<span style="color: #990000">...</span>
+</tt></pre></div></div>
+<div class="para"><p>The URL will be <tt>http://localhost:3000/greetings/hello</tt>. I'll wait for you to be suitably impressed.</p></div>
+<div class="admonitionblock">
+<table><tr>
+<td class="icon">
+<img src="./images/icons/note.png" alt="Note" />
+</td>
+<td class="content">With a normal, plain-old Rails application, your URLs will generally follow the pattern of <a href="http://(host)/(controller)/(action">http://(host)/(controller)/(action</a>), and a URL like <a href="http://(host)/(controller">http://(host)/(controller</a>) will hit the <strong>index</strong> action of that controller.</td>
+</tr></table>
+</div>
+<div class="para"><p>"What about data, though?", you ask over a cup of coffee. Rails comes with a generator for data models too. Can you guess its generator name?</p></div>
+<div class="listingblock">
+<div class="content"><!-- Generator: GNU source-highlight 2.9
+by Lorenzo Bettini
+http://www.lorenzobettini.it
+http://www.gnu.org/software/src-highlite -->
+<pre><tt>$ <span style="color: #990000">.</span>/script/generate model
+Usage<span style="color: #990000">:</span> <span style="color: #990000">.</span>/script/generate model ModelName <span style="color: #990000">[</span>field<span style="color: #990000">:</span><span style="font-weight: bold"><span style="color: #0000FF">type</span></span><span style="color: #990000">,</span> field<span style="color: #990000">:</span><span style="font-weight: bold"><span style="color: #0000FF">type</span></span><span style="color: #990000">]</span>
+
+<span style="color: #990000">...</span>
+
+Examples<span style="color: #990000">:</span>
+    `<span style="color: #990000">.</span>/script/generate model account`
+
+        creates an Account model<span style="color: #990000">,</span> <span style="font-weight: bold"><span style="color: #0000FF">test</span></span><span style="color: #990000">,</span> fixture<span style="color: #990000">,</span> and migration<span style="color: #990000">:</span>
+            Model<span style="color: #990000">:</span>      app/models/account<span style="color: #990000">.</span>rb
+            Test<span style="color: #990000">:</span>       test/unit/account_test<span style="color: #990000">.</span>rb
+            Fixtures<span style="color: #990000">:</span>   test/fixtures/accounts<span style="color: #990000">.</span>yml
+            Migration<span style="color: #990000">:</span>  db/migrate/XXX_add_accounts<span style="color: #990000">.</span>rb
+
+    `<span style="color: #990000">.</span>/script/generate model post title<span style="color: #990000">:</span>string body<span style="color: #990000">:</span>text published<span style="color: #990000">:</span>boolean`
+
+        creates a Post model with a string title<span style="color: #990000">,</span> text body<span style="color: #990000">,</span> and published flag<span style="color: #990000">.</span>
+</tt></pre></div></div>
+<div class="para"><p>Let's set up a simple model called "HighScore" that will keep track of our highest score on video games we play. Then we'll wire up our controller and view to modify and list our scores.</p></div>
+<div class="listingblock">
+<div class="content"><!-- Generator: GNU source-highlight 2.9
+by Lorenzo Bettini
+http://www.lorenzobettini.it
+http://www.gnu.org/software/src-highlite -->
+<pre><tt>$ <span style="color: #990000">.</span>/script/generate model HighScore id<span style="color: #990000">:</span>integer game<span style="color: #990000">:</span>string score<span style="color: #990000">:</span>integer
+      exists  app/models<span style="color: #990000">/</span>
+      exists  test/unit<span style="color: #990000">/</span>
+      exists  test/fixtures<span style="color: #990000">/</span>
+      create  app/models/high_score<span style="color: #990000">.</span>rb
+      create  test/unit/high_score_test<span style="color: #990000">.</span>rb
+      create  test/fixtures/high_scores<span style="color: #990000">.</span>yml
+      create  db/migrate
+      create  db/migrate<span style="color: #990000">/</span>20081126032945_create_high_scores<span style="color: #990000">.</span>rb
+</tt></pre></div></div>
+<div class="para"><p>Taking it from the top, we have the <strong>models</strong> directory, where all of your data models live. <strong>test/unit</strong>, where all the unit tests live (gasp! &#8212; unit tests!), fixtures for those tests, a test, the <strong>migrate</strong> directory, where the database-modifying migrations live, and a migration to create the <tt>high_scores</tt> table with the right fields.</p></div>
+<div class="para"><p>The migration requires that we <strong>migrate</strong>, that is, run some Ruby code (living in that <tt>20081126032945_create_high_scores.rb</tt>) to modify the schema of our database. Which database? The sqlite3 database that Rails will create for you when we run the <tt>rake db:migrate</tt> command. We'll talk more about Rake in-depth in a little while.</p></div>
+<div class="listingblock">
+<div class="content"><!-- Generator: GNU source-highlight 2.9
+by Lorenzo Bettini
+http://www.lorenzobettini.it
+http://www.gnu.org/software/src-highlite -->
+<pre><tt>$ rake db<span style="color: #990000">:</span>migrate
+<span style="color: #990000">(</span><span style="font-weight: bold"><span style="color: #0000FF">in</span></span> /home/commandsapp<span style="color: #990000">)</span>
+<span style="color: #990000">==</span>  CreateHighScores<span style="color: #990000">:</span> migrating <span style="color: #990000">===============================================</span>
+-- create_table<span style="color: #990000">(:</span>high_scores<span style="color: #990000">)</span>
+   -<span style="color: #990000">&gt;</span> <span style="color: #993399">0</span><span style="color: #990000">.</span>0070s
+<span style="color: #990000">==</span>  CreateHighScores<span style="color: #990000">:</span> migrated <span style="color: #990000">(</span><span style="color: #993399">0</span><span style="color: #990000">.</span>0077s<span style="color: #990000">)</span> <span style="color: #990000">======================================</span>
+</tt></pre></div></div>
+<div class="admonitionblock">
+<table><tr>
+<td class="icon">
+<img src="./images/icons/note.png" alt="Note" />
+</td>
+<td class="content">Let's talk about unit tests. Unit tests are code that tests and makes assertions about code. In unit testing, we take a little part of code, say a method of a model, and test its inputs and outputs. Unit tests are your friend. The sooner you make peace with the fact that your quality of life will drastically increase when you unit test your code, the better. Seriously. We'll make one in a moment.</td>
+</tr></table>
+</div>
+<div class="para"><p>Yo! Let's shove a small table into our greeting controller and view, listing our sweet scores.</p></div>
+<div class="listingblock">
+<div class="content"><!-- Generator: GNU source-highlight 2.9
+by Lorenzo Bettini
+http://www.lorenzobettini.it
+http://www.gnu.org/software/src-highlite -->
+<pre><tt><span style="font-weight: bold"><span style="color: #0000FF">class</span></span> GreetingController <span style="color: #990000">&lt;</span> ApplicationController
+  <span style="font-weight: bold"><span style="color: #0000FF">def</span></span> hello
+    <span style="font-weight: bold"><span style="color: #0000FF">if</span></span> request<span style="color: #990000">.</span>post?
+      score <span style="color: #990000">=</span> HighScore<span style="color: #990000">.</span>new<span style="color: #990000">(</span>params<span style="color: #990000">[:</span>high_score<span style="color: #990000">])</span>
+      <span style="font-weight: bold"><span style="color: #0000FF">if</span></span> score<span style="color: #990000">.</span>save
+        flash<span style="color: #990000">[:</span>notice<span style="color: #990000">]</span> <span style="color: #990000">=</span> <span style="color: #FF0000">"New score posted!"</span>
+      <span style="font-weight: bold"><span style="color: #0000FF">end</span></span>
+    <span style="font-weight: bold"><span style="color: #0000FF">end</span></span>
+
+    <span style="color: #009900">@scores</span> <span style="color: #990000">=</span> HighScore<span style="color: #990000">.</span>find<span style="color: #990000">(:</span>all<span style="color: #990000">)</span>
+  <span style="font-weight: bold"><span style="color: #0000FF">end</span></span>
+
+<span style="font-weight: bold"><span style="color: #0000FF">end</span></span>
+</tt></pre></div></div>
+<div class="para"><p>XXX: Go with scaffolding instead, modifying greeting controller for high scores seems dumb.</p></div>
 </div>
 
 		</div>

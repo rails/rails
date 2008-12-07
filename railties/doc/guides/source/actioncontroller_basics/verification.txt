@@ -25,7 +25,7 @@ class LoginsController < ApplicationController
 end
 ---------------------------------------
 
-Now the `create` action won't run unless the "username" and "password" parameters are present, and if they're not, an error message will be added to the flash and the "new" action will be rendered. But there's something rather important missing from the verification above: It will be used for *every* action in LoginsController, which is not what we want. You can limit which actions it will be used for with the `:only` and `:except` options just like a filter:
+Now the `create` action won't run unless the "username" and "password" parameters are present, and if they're not, an error message will be added to the flash and the `new` action will be rendered. But there's something rather important missing from the verification above: It will be used for *every* action in LoginsController, which is not what we want. You can limit which actions it will be used for with the `:only` and `:except` options just like a filter:
 
 [source, ruby]
 ---------------------------------------

@@ -37,3 +37,9 @@ Heiko has rarely looked back.
 Tore Darell is an independent developer based in Menton, France who specialises in cruft-free web applications using Ruby, Rails
 and unobtrusive JavaScript. His home on the internet is his blog http://tore.darell.no/[Sneaky Abstractions].
 ***********************************************************
+
+.Jeff Dean
+[[zilkey]]
+***********************************************************
+Jeff Dean is a software engineer with http://pivotallabs.com/[Pivotal Labs].
+***********************************************************

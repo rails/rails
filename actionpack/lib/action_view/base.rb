@@ -183,13 +183,17 @@ module ActionView #:nodoc:
       @@exempt_from_layout.merge(regexps)
     end
 
+    @@debug_rjs = false
+    ##
+    # :singleton-method:
     # Specify whether RJS responses should be wrapped in a try/catch block
     # that alert()s the caught exception (and then re-raises it).
-    @@debug_rjs = false
     cattr_accessor :debug_rjs
 
-    # A warning will be displayed whenever an action results in a cache miss on your view paths.
     @@warn_cache_misses = false
+    ##
+    # :singleton-method:
+    # A warning will be displayed whenever an action results in a cache miss on your view paths.
     cattr_accessor :warn_cache_misses
 
     attr_internal :request
