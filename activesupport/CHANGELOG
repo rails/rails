@@ -1,5 +1,7 @@
 *2.3.0 [Edge]*
 
+* Add :allow_nil option to delegate. #1127 [Sergio Gil]
+
 * Add Benchmark.ms convenience method to benchmark realtime in milliseconds.  [Jeremy Kemper]
 
 * Updated included memcache-client to the 1.5.0.5 version which includes fixes from fiveruns and 37signals to deal with failover and timeouts #1535 [Joshua Sierles]
