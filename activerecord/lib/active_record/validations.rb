@@ -1049,15 +1049,15 @@ module ActiveRecord
 
     protected
       # Overwrite this method for validation checks on all saves and use <tt>Errors.add(field, msg)</tt> for invalid attributes.
-      def validate #:doc:
+      def validate
       end
 
       # Overwrite this method for validation checks used only on creation.
-      def validate_on_create #:doc:
+      def validate_on_create
       end
 
       # Overwrite this method for validation checks used only on updates.
-      def validate_on_update # :doc:
+      def validate_on_update
       end
   end
 end
