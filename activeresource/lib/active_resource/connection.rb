@@ -146,8 +146,8 @@ module ActiveResource
       def request(method, path, *arguments)
         logger.info "#{method.to_s.upcase} #{site.scheme}://#{site.host}:#{site.port}#{path}" if logger
         result = nil
-        time = Benchmark.realtime { result = http.send(method, path, *arguments) }
-        logger.info "--> %d %s (%d %.2fs)" % [result.code, result.message, result.body ? result.body.length : 0, time] if logger
+        ms = Benchmark.ms { result = http.send(method, path, *arguments) }
+        logger.info "--> %d %s (%d %.0fms)" % [result.code, result.message, result.body ? result.body.length : 0, ms] if logger
         handle_response(result)
       rescue Timeout::Error => e
         raise TimeoutError.new(e.message)

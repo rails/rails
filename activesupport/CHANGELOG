@@ -1,5 +1,7 @@
 *2.3.0 [Edge]*
 
+* Add Benchmark.ms convenience method to benchmark realtime in milliseconds.  [Jeremy Kemper]
+
 * Multibyte: add multibyte-safe Chars#ord rather than falling back to String#ord.  #1483 [Jason Cheow]
 
 * I18n support for Array#to_sentence. Introduces support.array.words_connector, .two_words_connector, and .last_word_connector translation keys.  #1397 [Akira Matsuda]
