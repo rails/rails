@@ -171,8 +171,9 @@ class CalculationsTest < ActiveRecord::TestCase
       Account.expects(:columns).at_least_once.returns([column])
 
       c = Account.count(:all, :group => :firm)
-      assert_equal Firm, c.first.first.class
-      assert_equal 1, c.first.last
+      first_key = c.keys.first
+      assert_equal Firm, first_key.class
+      assert_equal 1, c[first_key]
     end
   end
 
