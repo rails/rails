@@ -1,5 +1,7 @@
 *2.3.0 [Edge]*
 
+* Add a rake task to apply a template to an existing application : rake rails:template LOCATION=~/template.rb [Pratik]
+
 * Add "-m/--template" option to Rails generator to apply a template to the generated application. [Jeremy McAnally]
 
     This has been extracted from rg - http://github.com/jeremymcanally/rg

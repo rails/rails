@@ -24,6 +24,8 @@ module ActiveModel
       :even                     => "must be even"
     }
   
+    ##
+    # :singleton-method:
     # Holds a hash with all the default error messages that can be replaced by your own copy or localizations.
     cattr_accessor :default_error_messages
 

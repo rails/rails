@@ -3,15 +3,16 @@ module ActiveSupport #:nodoc:
     module Array #:nodoc:
       module Conversions
         # Converts the array to a comma-separated sentence where the last element is joined by the connector word. Options:
-        # * <tt>:connector</tt> - The word used to join the last element in arrays with two or more elements (default: "and")
-        # * <tt>:skip_last_comma</tt> - Set to true to return "a, b and c" instead of "a, b, and c".        
+        # * <tt>:words_connector</tt> - The sign or word used to join the elements in arrays with two or more elements (default: ", ")
+        # * <tt>:two_words_connector</tt> - The sign or word used to join the elements in arrays with two elements (default: " and ")
+        # * <tt>:last_word_connector</tt> - The sign or word used to join the last element in arrays with three or more elements (default: ", and ")
         def to_sentence(options = {})          
-          options.assert_valid_keys(:connector, :skip_last_comma, :locale)
+          options.assert_valid_keys(:words_connector, :two_words_connector, :last_word_connector, :locale)
           
-          default = I18n.translate(:'support.array.sentence_connector', :locale => options[:locale])
-          default_skip_last_comma = I18n.translate(:'support.array.skip_last_comma', :locale => options[:locale])
-          options.reverse_merge! :connector => default, :skip_last_comma => default_skip_last_comma
-          options[:connector] = "#{options[:connector]} " unless options[:connector].nil? || options[:connector].strip == ''
+          default_words_connector = I18n.translate(:'support.array.words_connector', :locale => options[:locale])
+          default_two_words_connector = I18n.translate(:'support.array.two_words_connector', :locale => options[:locale])
+          default_last_word_connector = I18n.translate(:'support.array.last_word_connector', :locale => options[:locale])
+          options.reverse_merge! :words_connector => default_words_connector, :two_words_connector => default_two_words_connector, :last_word_connector => default_last_word_connector
 
           case length
             when 0
@@ -19,9 +20,9 @@ module ActiveSupport #:nodoc:
             when 1
               self[0].to_s
             when 2
-              "#{self[0]} #{options[:connector]}#{self[1]}"
+              "#{self[0]}#{options[:two_words_connector]}#{self[1]}"
             else
-              "#{self[0...-1].join(', ')}#{options[:skip_last_comma] ? '' : ','} #{options[:connector]}#{self[-1]}"
+              "#{self[0...-1].join(options[:words_connector])}#{options[:last_word_connector]}#{self[-1]}"
           end
         end
         

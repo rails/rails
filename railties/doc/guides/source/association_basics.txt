@@ -354,8 +354,8 @@ In designing a data model, you will sometimes find a model that should have a re
 [source, ruby]
 -------------------------------------------------------
 class Employee < ActiveRecord::Base
-  has_many :subordinates, :class_name => "User", :foreign_key => "manager_id"
-  belongs_to :manager, :class_name => "User"
+  has_many :subordinates, :class_name => "Employee", :foreign_key => "manager_id"
+  belongs_to :manager, :class_name => "Employee"
 end
 -------------------------------------------------------
 
@@ -396,7 +396,11 @@ You are not free to use just any name for your associations. Because creating an
 
 === Updating the Schema
 
-Associations are extremely useful, but they are not magic. You are responsible for maintaining your database schema to match your associations. In practice, this means two things. First, you need to create foreign keys as appropriate:
+Associations are extremely useful, but they are not magic. You are responsible for maintaining your database schema to match your associations. In practice, this means two things, depending on what sort of associations you are creating. For +belongs_to+ associations you need to create foreign keys, and for +has_and_belongs_to_many+ associations you need to create the appropriate join table.
+
+==== Creating Foreign Keys for +belongs_to+ Associations
+
+When you declare a +belongs_to+ association, you need to create foreign keys as appropriate. For example, consider this model:
 
 [source, ruby]
 -------------------------------------------------------
@@ -412,9 +416,9 @@ This declaration needs to be backed up by the proper foreign key declaration on 
 class CreateOrders < ActiveRecord::Migration
   def self.up
     create_table :orders do |t|
-      t.order_date   :datetime
-      t.order_number :string
-      t.customer_id  :integer
+      t.datetime   :order_date
+      t.string     :order_number 
+      t.integer    :customer_id 
     end
   end
 
@@ -426,7 +430,9 @@ end
 
 If you create an association some time after you build the underlying model, you need to remember to create an +add_column+ migration to provide the necessary foreign key.
 
-Second, if you create a +has_and_belongs_to_many+ association, you need to explicitly create the joining table. Unless the name of the join table is explicitly specified by using the +:join_table+ option, Active Record create the name by using the lexical order of the class names. So a join between customer and order models will give the default join table name of "customers_orders" because "c" outranks "o" in lexical ordering. 
+==== Creating Join Tables for +has_and_belongs_to_many+ Associations
+
+If you create a +has_and_belongs_to_many+ association, you need to explicitly create the joining table. Unless the name of the join table is explicitly specified by using the +:join_table+ option, Active Record create the name by using the lexical order of the class names. So a join between customer and order models will give the default join table name of "customers_orders" because "c" outranks "o" in lexical ordering. 
 
 WARNING: The precedence between model names is calculated using the +<+ operator for +String+. This means that if the strings are of different lengths, and the strings are equal when compared up to the shortest length, then the longer string is considered of higher lexical precedence than the shorter one. For example, one would expect the tables "paper_boxes" and "papers" to generate a join table name of "papers_paper_boxes" because of the length of the name "paper_boxes", but it in fact generates a join table name of "paper_boxes_papers".
 
@@ -1330,7 +1336,7 @@ end
 
 ===== +:offset+
 
-The +:offset+ option lets you specify the starting offset for fetching objects via an association. For example, if you set +:offset => 11+, it will skip the first 10 records.
+The +:offset+ option lets you specify the starting offset for fetching objects via an association. For example, if you set +:offset => 11+, it will skip the first 11 records.
 
 ===== +:order+
 
@@ -1698,7 +1704,7 @@ end
 
 ===== +:offset+
 
-The +:offset+ option lets you specify the starting offset for fetching objects via an association. For example, if you set +:offset => 11+, it will skip the first 10 records.
+The +:offset+ option lets you specify the starting offset for fetching objects via an association. For example, if you set +:offset => 11+, it will skip the first 11 records.
 
 ===== +:order+
 

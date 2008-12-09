@@ -40,7 +40,7 @@ class AppGenerator < Rails::Generator::Base
 
   def after_generate
     if options[:template]
-      Rails::TemplateRunner.new(@destination_root, options[:template])
+      Rails::TemplateRunner.new(options[:template], @destination_root)
     end
   end
 

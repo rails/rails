@@ -29,15 +29,13 @@ This guide describes how to build a test-driven plugin that will:
 For the purpose of this guide pretend for a moment that you are an avid bird watcher.  Your favorite bird is the Yaffle, and you want to create a plugin that allows other developers to share in the Yaffle goodness.  First, you need to get setup for development.
 
 
-include::test_setup.txt[]
+include::setup.txt[]
+
+include::tests.txt[]
 
 include::core_ext.txt[]
 
 include::acts_as_yaffle.txt[]
-
-include::migration_generator.txt[]
-
-include::generator_method.txt[]
 
 include::models.txt[]
 
@@ -45,8 +43,18 @@ include::controllers.txt[]
 
 include::helpers.txt[]
 
-include::custom_route.txt[]
+include::routes.txt[]
 
-include::odds_and_ends.txt[]
+include::generators.txt[]
+
+include::generator_commands.txt[]
+
+include::migrations.txt[]
+
+include::tasks.txt[]
+
+include::gems.txt[]
+
+include::rdoc.txt[]
 
 include::appendix.txt[]

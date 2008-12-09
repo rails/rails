@@ -637,7 +637,7 @@ class UrlEncodedRequestParameterParsingTest < ActiveSupport::TestCase
     input = {
       "customers[boston][first][name]" => [ "David" ],
       "something_else" => [ "blah" ],
-      "logo" => [ File.new(File.dirname(__FILE__) + "/cgi_test.rb").path ]
+      "logo" => [ File.new(File.dirname(__FILE__) + "/rack_test.rb").path ]
     }
 
     expected_output = {
@@ -649,7 +649,7 @@ class UrlEncodedRequestParameterParsingTest < ActiveSupport::TestCase
         }
       },
       "something_else" => "blah",
-      "logo" => File.new(File.dirname(__FILE__) + "/cgi_test.rb").path,
+      "logo" => File.new(File.dirname(__FILE__) + "/rack_test.rb").path,
     }
 
     assert_equal expected_output, ActionController::AbstractRequest.parse_request_parameters(input)

@@ -10,8 +10,8 @@ need to return to those hungry web clients in the shortest time possible.
 This is an introduction to the three types of caching techniques that Rails
 provides by default without the use of any third party plugins.
 
-To get started make sure config.action_controller.perform_caching is set
-to true for your environment. This flag is normally set in the
+To get started make sure `config.action_controller.perform_caching` is set
+to `true` for your environment. This flag is normally set in the
 corresponding config/environments/*.rb and caching is disabled by default
 there for development and test, and enabled for production.
 
@@ -45,21 +45,21 @@ end
 -----------------------------------------------------
 
 The first time anyone requests products/index, Rails will generate a file
-called index.html and the webserver will then look for that file before it
+called `index.html` and the webserver will then look for that file before it
 passes the next request for products/index to your Rails application.
 
 By default, the page cache directory is set to Rails.public_path (which is
-usually set to RAILS_ROOT + "/public") and this can be configured by
-changing the configuration setting ActionController::Base.page_cache_directory. Changing the
-default from /public helps avoid naming conflicts, since you may want to
-put other static html in /public, but changing this will require web
-server reconfiguration to let the web server know where to serve the
-cached files from.
+usually set to `RAILS_ROOT + "/public"`) and this can be configured by
+changing the configuration setting `config.action_controller.page_cache_directory`.
+Changing the default from /public helps avoid naming conflicts, since you may
+want to put other static html in /public, but changing this will require web
+server reconfiguration to let the web server know where to serve the cached
+files from.
 
-The Page Caching mechanism will automatically add a .html exxtension to
+The Page Caching mechanism will automatically add a `.html` exxtension to
 requests for pages that do not have an extension to make it easy for the
 webserver to find those pages and this can be configured by changing the
-configuration setting ActionController::Base.page_cache_extension.
+configuration setting `config.action_controller.page_cache_extension`.
 
 In order to expire this page when a new product is added we could extend our
 example controler like this:
@@ -119,8 +119,8 @@ class ProductsController < ActionController
 end
 -----------------------------------------------------
 
-And you can also use :if (or :unless) to pass a Proc that specifies when the
-action should be cached. Also, you can use :layout => false to cache without
+And you can also use `:if` (or `:unless`) to pass a Proc that specifies when the
+action should be cached. Also, you can use `:layout => false` to cache without
 layout so that dynamic information in the layout such as logged in user info
 or the number of items in the cart can be left uncached. This feature is
 available as of Rails 2.2.
@@ -164,7 +164,7 @@ could use this piece of code:
 
 The cache block in our example will bind to the action that called it and is
 written out to the same place as the Action Cache, which means that if you
-want to cache multiple fragments per action, you should provide an action_suffix to the cache call:
+want to cache multiple fragments per action, you should provide an `action_suffix` to the cache call:
 
 [source, ruby]
 -----------------------------------------------------
@@ -172,11 +172,29 @@ want to cache multiple fragments per action, you should provide an action_suffix
   All available products: 
 -----------------------------------------------------
 
-and you can expire it using the expire_fragment method, like so:
+and you can expire it using the `expire_fragment` method, like so:
 
 [source, ruby]
 -----------------------------------------------------
-expire_fragment(:controller => 'producst', :action => 'recent', :action_suffix => 'all_products)
+expire_fragment(:controller => 'products', :action => 'recent', :action_suffix => 'all_products)
+-----------------------------------------------------
+
+If you don't want the cache block to bind to the action that called it, You can
+also use globally keyed fragments by calling the cache method with a key, like
+so:
+
+[source, ruby]
+-----------------------------------------------------
+<% cache(:key => ['all_available_products', @latest_product.created_at].join(':')) do %>
+  All available products: 
+-----------------------------------------------------
+
+This fragment is then available to all actions in the ProductsController using
+the key and can be expired the same way:
+
+[source, ruby]
+-----------------------------------------------------
+expire_fragment(:key => ['all_available_products', @latest_product.created_at].join(':'))
 -----------------------------------------------------
 
 [More: more examples? description of fragment keys and expiration, etc? pagination?]
@@ -185,7 +203,7 @@ expire_fragment(:controller => 'producst', :action => 'recent', :action_suffix =
 
 Cache sweeping is a mechanism which allows you to get around having a ton of
 expire_{page,action,fragment} calls in your code by moving all the work
-required to expire cached content into a ActionController::Caching::Sweeper
+required to expire cached content into a `ActionController::Caching::Sweeper`
 class that is an Observer and looks for changes to an object via callbacks,
 and when a change occurs it expires the caches associated with that object n
 an around or after filter.
@@ -340,8 +358,7 @@ ActionController::Base.cache_store = :drb_store, "druby://localhost:9192"
 -----------------------------------------------------
 
 4) MemCached store: Works like DRbStore, but uses Danga's MemCache instead.
-                    Requires the ruby-memcache library:  
-                    gem install ruby-memcache.
+                    Rails uses the bundled memcached-client gem by default.
 
 [source, ruby]
 -----------------------------------------------------
@@ -353,6 +370,68 @@ ActionController::Base.cache_store = :mem_cache_store, "localhost"
 [source, ruby]
 -----------------------------------------------------
 ActionController::Base.cache_store = MyOwnStore.new("parameter")
+-----------------------------------------------------
+
++Note: config.cache_store can be used in place of
+ActionController::Base.cache_store in your Rails::Initializer.run block in
+environment.rb+
+
+== Conditional GET support
+
+Conditional GETs are a facility of the HTTP spec that provide a way for web
+servers to tell browsers that the response to a GET request hasn’t changed
+since the last request and can be safely pulled from the browser cache.
+
+They work by using the HTTP_IF_NONE_MATCH and HTTP_IF_MODIFIED_SINCE headers to
+pass back and forth both a unique content identifier and the timestamp of when
+the content was last changed. If the browser makes a request where the content
+identifier (etag) or last modified since timestamp matches the server’s version
+then the server only needs to send back an empty response with a not modified
+status.
+
+It is the server’s (i.e. our) responsibility to look for a last modified
+timestamp and the if-none-match header and determine whether or not to send
+back the full response. With conditional-get support in rails this is a pretty
+easy task:
+
+[source, ruby]
+-----------------------------------------------------
+class ProductsController < ApplicationController
+
+  def show
+    @product = Product.find(params[:id])
+
+    # If the request is stale according to the given timestamp and etag value
+    # (i.e. it needs to be processed again) then execute this block
+    if stale?(:last_modified => @product.updated_at.utc, :etag => @product)
+      respond_to do |wants|
+        # ... normal response processing
+      end
+    end
+
+    # If the request is fresh (i.e. it's not modified) then you don't need to do
+    # anything. The default render checks for this using the parameters
+    # used in the previous call to stale? and will automatically send a
+    # :not_modified.  So that's it, you're done.
+end
+-----------------------------------------------------
+
+If you don’t have any special response processing and are using the default
+rendering mechanism (i.e. you’re not using respond_to or calling render
+yourself) then you’ve got an easy helper in fresh_when:
+
+[source, ruby]
+-----------------------------------------------------
+class ProductsController < ApplicationController
+
+  # This will automatically send back a :not_modified if the request is fresh,
+  # and will render the default template (product.*) if it's stale.
+
+  def show
+    @product = Product.find(params[:id])
+    fresh_when :last_modified => @product.published_at.utc, :etag => @article
+  end
+end
 -----------------------------------------------------
 
 == Advanced Caching

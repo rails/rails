@@ -789,7 +789,7 @@ You can now easily <a href="http://m.onkey.org/2008/7/20/rescue-from-dispatching
 </li>
 <li>
 <p>
-The HTTP Accept header is disabled by default now. You should prefer the use of formatted URLs (such as <tt>/customers/1.xml</tt>) to indicate the format that you want. If you need the Accept headers, you can turn them back on with <tt>config.action_controller.user_accept_header = true</tt>.
+The HTTP Accept header is disabled by default now. You should prefer the use of formatted URLs (such as <tt>/customers/1.xml</tt>) to indicate the format that you want. If you need the Accept headers, you can turn them back on with <tt>config.action_controller.use_accept_header = true</tt>.
 </p>
 </li>
 <li>
@@ -974,7 +974,7 @@ The addition of <tt>ActiveSupport::Rescuable</tt> allows any class to mix in the
 </li>
 <li>
 <p>
-<tt>Array#second</tt> through <tt>Array#tenth</tt> as aliases for <tt>Array#[1]</tt> through <tt>Array#[9]</tt>
+<tt>Array#second</tt> through <tt>Array#fifth</tt> as aliases for <tt>Array#[1]</tt> through <tt>Array#[4]</tt>
 </p>
 </li>
 <li>
@@ -994,7 +994,7 @@ The addition of <tt>ActiveSupport::Rescuable</tt> allows any class to mix in the
 </li>
 <li>
 <p>
-The included TzInfo library has been upgraded to version 0.3.11.
+The included TzInfo library has been upgraded to version 0.3.12.
 </p>
 </li>
 <li>
@@ -1017,7 +1017,7 @@ The included TzInfo library has been upgraded to version 0.3.11.
 </li>
 <li>
 <p>
-<tt>rake gems</tt> to list all configured gems, as well as whether they (and their dependencies) are installed or frozen
+<tt>rake gems</tt> to list all configured gems, as well as whether they (and their dependencies) are installed, frozen, or framework (framework gems are those loaded by Rails before the gem dependency code is executed; such gems cannot be frozen)
 </p>
 </li>
 <li>
@@ -1066,6 +1066,11 @@ More information:
 <li>
 <p>
 <a href="http://afreshcup.com/2008/10/25/rails-212-and-22rc1-update-your-rubygems/">Rails 2.1.2 and 2.2RC1: Update Your RubyGems</a>
+</p>
+</li>
+<li>
+<p>
+<a href="http://rails.lighthouseapp.com/projects/8994-ruby-on-rails/tickets/1128">Detailed discussion on Lighthouse</a>
 </p>
 </li>
 </ul></div>

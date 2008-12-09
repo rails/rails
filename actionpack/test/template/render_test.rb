@@ -137,12 +137,6 @@ module RenderTestCases
   end
 
   # TODO: The reason for this test is unclear, improve documentation
-  def test_render_js_partial_and_fallback_to_erb_layout
-    @view.template_format = :js
-    assert_equal "Before (Josh)\n\nAfter", @view.render(:partial => "test/layout_for_partial", :locals => { :name => "Josh" })
-  end
-
-  # TODO: The reason for this test is unclear, improve documentation
   def test_render_missing_xml_partial_and_raise_missing_template
     @view.template_format = :xml
     assert_raise(ActionView::MissingTemplate) { @view.render(:partial => "test/layout_for_partial") }

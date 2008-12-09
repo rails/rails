@@ -389,6 +389,8 @@ class ActionMailerTest < Test::Unit::TestCase
   end
 
   def test_custom_templating_extension
+    assert ActionView::Template.template_handler_extensions.include?("haml"), "haml extension was not registered"
+
     # N.b., custom_templating_extension.text.plain.haml is expected to be in fixtures/test_mailer directory
     expected = new_mail
     expected.to      = @recipient
@@ -799,6 +801,8 @@ EOF
   end
 
   def test_implicitly_multipart_messages
+    assert ActionView::Template.template_handler_extensions.include?("bak"), "bak extension was not registered"
+
     mail = TestMailer.create_implicitly_multipart_example(@recipient)
     assert_equal 3, mail.parts.length
     assert_equal "1.0", mail.mime_version
@@ -812,6 +816,8 @@ EOF
   end
 
   def test_implicitly_multipart_messages_with_custom_order
+    assert ActionView::Template.template_handler_extensions.include?("bak"), "bak extension was not registered"
+
     mail = TestMailer.create_implicitly_multipart_example(@recipient, nil, ["text/yaml", "text/plain"])
     assert_equal 3, mail.parts.length
     assert_equal "text/html", mail.parts[0].content_type

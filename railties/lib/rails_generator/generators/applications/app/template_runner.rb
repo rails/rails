@@ -7,10 +7,10 @@ require 'fileutils'
 
 module Rails
   class TemplateRunner
-    attr_reader :behavior, :description, :root
+    attr_reader :root
 
-    def initialize(root, template) # :nodoc:
-      @root = Dir.pwd + "/" + root
+    def initialize(template, root = '') # :nodoc:
+      @root = File.join(Dir.pwd, root)
 
       puts "applying template: #{template}"
 
@@ -57,16 +57,22 @@ module Rails
     end
 
     # Install a plugin.  You must provide either a Subversion url or Git url.
+    # For a Git-hosted plugin, you can specify if it should be added as a submodule instead of cloned.
     #
     # ==== Examples
     #
     #   plugin 'restful-authentication', :git => 'git://github.com/technoweenie/restful-authentication.git'
+    #   plugin 'restful-authentication', :git => 'git://github.com/technoweenie/restful-authentication.git', :submodule => true
     #   plugin 'restful-authentication', :svn => 'svn://svnhub.com/technoweenie/restful-authentication/trunk'
     #
     def plugin(name, options)
       puts "installing plugin #{name}"
 
-      if options[:git] || options[:svn]
+      if options[:git] && options[:submodule]
+        in_root do
+          Git.run("submodule add #{options[:git]} vendor/plugins/#{name}")
+        end
+      elsif options[:git] || options[:svn]
         in_root do
           `script/plugin install #{options[:svn] || options[:git]}`
         end
@@ -103,13 +109,13 @@ module Rails
     #   git :add => "onefile.rb", :rm => "badfile.cxx"
     #
     def git(command = {})
-      puts "running git #{command}"
-
       in_root do
         if command.is_a?(Symbol)
+          puts "running git #{command}"
           Git.run(command.to_s)
         else
           command.each do |command, options|
+            puts "running git #{command} #{options}"
             Git.run("#{command} #{options}")
           end
         end
@@ -233,11 +239,11 @@ module Rails
     #
     #   generate(:authenticated, "user session")
     #
-    def generate(what, args = nil)
+    def generate(what, *args)
       puts "generating #{what}"
-      args = args.join(" ") if args.class == Array
+      argument = args.map(&:to_s).flatten.join(" ")
 
-      in_root { `#{root}/script/generate #{what} #{args}` }
+      in_root { `#{root}/script/generate #{what} #{argument}` }
     end
 
     # Executes a command
@@ -258,11 +264,14 @@ module Rails
     # ==== Example
     #
     #   rake("db:migrate")
-    #   rake("db:migrate", "production")
+    #   rake("db:migrate", :env => "production")
+    #   rake("gems:install", :sudo => true)
     #
-    def rake(command, env = 'development')
+    def rake(command, options = {})
       puts "running rake task #{command}"
-      in_root { `rake #{command} RAILS_ENV=#{env}` }
+      env = options[:env] || 'development'
+      sudo = options[:sudo] ? 'sudo ' : ''
+      in_root { `#{sudo}rake #{command} RAILS_ENV=#{env}` }
     end
 
     # Just run the capify command in root

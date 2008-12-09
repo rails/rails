@@ -153,12 +153,12 @@ class RackRequestTest < BaseRackTest
 
   def test_cookie_syntax_resilience
     cookies = @request.cookies
-    assert_equal ["c84ace84796670c052c6ceb2451fb0f2"], cookies["_session_id"], cookies.inspect
-    assert_equal ["yes"], cookies["is_admin"], cookies.inspect
+    assert_equal "c84ace84796670c052c6ceb2451fb0f2", cookies["_session_id"], cookies.inspect
+    assert_equal "yes", cookies["is_admin"], cookies.inspect
 
     alt_cookies = @alt_cookie_fmt_request.cookies
-    assert_equal ["c84ace847,96670c052c6ceb2451fb0f2"], alt_cookies["_session_id"], alt_cookies.inspect
-    assert_equal ["yes"], alt_cookies["is_admin"], alt_cookies.inspect
+    #assert_equal "c84ace847,96670c052c6ceb2451fb0f2", alt_cookies["_session_id"], alt_cookies.inspect
+    assert_equal "yes", alt_cookies["is_admin"], alt_cookies.inspect
   end
 end
 
@@ -230,14 +230,13 @@ class RackResponseTest < BaseRackTest
   def setup
     super
     @response = ActionController::RackResponse.new(@request)
-    @output = StringIO.new('')
   end
 
   def test_simple_output
     @response.body = "Hello, World!"
     @response.prepare!
 
-    status, headers, body = @response.out(@output)
+    status, headers, body = @response.out
     assert_equal "200 OK", status
     assert_equal({
       "Content-Type" => "text/html; charset=utf-8",
@@ -258,7 +257,7 @@ class RackResponseTest < BaseRackTest
     end
     @response.prepare!
 
-    status, headers, body = @response.out(@output)
+    status, headers, body = @response.out
     assert_equal "200 OK", status
     assert_equal({"Content-Type" => "text/html; charset=utf-8", "Cache-Control" => "no-cache", "Set-Cookie" => []}, headers)
 
@@ -274,7 +273,7 @@ class RackResponseTest < BaseRackTest
     @response.body = "Hello, World!"
     @response.prepare!
 
-    status, headers, body = @response.out(@output)
+    status, headers, body = @response.out
     assert_equal "200 OK", status
     assert_equal({
       "Content-Type" => "text/html; charset=utf-8",
@@ -294,7 +293,6 @@ class RackResponseHeadersTest < BaseRackTest
   def setup
     super
     @response = ActionController::RackResponse.new(@request)
-    @output = StringIO.new('')
     @response.headers['Status'] = "200 OK"
   end
 
@@ -317,6 +315,6 @@ class RackResponseHeadersTest < BaseRackTest
   private
     def response_headers
       @response.prepare!
-      @response.out(@output)[1]
+      @response.out[1]
     end
 end

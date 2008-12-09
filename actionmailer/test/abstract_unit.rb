@@ -9,6 +9,10 @@ require 'action_mailer/test_case'
 # Show backtraces for deprecated behavior for quicker cleanup.
 ActiveSupport::Deprecation.debug = true
 
+# Bogus template processors
+ActionView::Template.register_template_handler :haml, lambda { |template| "Look its HAML!" }
+ActionView::Template.register_template_handler :bak, lambda { |template| "Lame backup" }
+
 $:.unshift "#{File.dirname(__FILE__)}/fixtures/helpers"
 ActionMailer::Base.template_root = "#{File.dirname(__FILE__)}/fixtures"
 

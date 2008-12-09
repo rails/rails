@@ -282,6 +282,7 @@ task :guides do
   FileUtils.mkdir(html)
 
   template = File.expand_path("doc/guides/source/templates/guides.html.erb")
+  asciidoc_conf = 'doc/guides/asciidoc.conf'
 
   ignore = ['..', 'icons', 'images', 'templates', 'stylesheets']
   ignore << 'active_record_basics.txt'
@@ -311,7 +312,7 @@ task :guides do
     begin
       puts "GENERATING => #{output}"
       ENV['MANUALSONRAILS_TOC'] = 'no' if indexless.include?(entry)
-      Mizuho::Generator.new(input, :output => output, :template => template).start
+      Mizuho::Generator.new(input, :output => output, :template => template, :conf_file => asciidoc_conf).start
     rescue Mizuho::GenerationError
       STDERR.puts "*** ERROR"
       exit 2

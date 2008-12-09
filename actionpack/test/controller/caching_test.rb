@@ -67,7 +67,7 @@ class PageCachingTest < ActionController::TestCase
 
   def teardown
     FileUtils.rm_rf(File.dirname(FILE_STORE_PATH))
-
+    ActionController::Routing::Routes.clear!
     ActionController::Base.perform_caching = false
   end
 
@@ -401,7 +401,7 @@ class ActionCacheTest < ActionController::TestCase
 
   def test_xml_version_of_resource_is_treated_as_different_cache
     with_routing do |set|
-      ActionController::Routing::Routes.draw do |map|
+      set.draw do |map|
         map.connect ':controller/:action.:format'
         map.connect ':controller/:action'
       end

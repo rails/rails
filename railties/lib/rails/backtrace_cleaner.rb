@@ -3,7 +3,9 @@ module Rails
     ERB_METHOD_SIG = /:in `_run_erb_.*/
 
     VENDOR_DIRS  = %w( vendor/plugins vendor/gems vendor/rails )
-    SERVER_DIRS  = %w( lib/mongrel bin/mongrel lib/rack )
+    SERVER_DIRS  = %w( lib/mongrel bin/mongrel
+                       lib/passenger bin/passenger-spawn-server
+                       lib/rack )
     RAILS_NOISE  = %w( script/server )
     RUBY_NOISE   = %w( rubygems/custom_require benchmark.rb )
 

@@ -5,7 +5,7 @@ module ActionView #:nodoc:
   class MissingTemplate < ActionViewError #:nodoc:
     def initialize(paths, path, template_format = nil)
       full_template_path = path.include?('.') ? path : "#{path}.erb"
-      display_paths = paths.join(':')
+      display_paths = paths.compact.join(":")
       template_type = (path =~ /layouts/i) ? 'layout' : 'template'
       super("Missing #{template_type} #{full_template_path} in view path #{display_paths}")
     end
@@ -183,13 +183,17 @@ module ActionView #:nodoc:
       @@exempt_from_layout.merge(regexps)
     end
 
+    @@debug_rjs = false
+    ##
+    # :singleton-method:
     # Specify whether RJS responses should be wrapped in a try/catch block
     # that alert()s the caught exception (and then re-raises it).
-    @@debug_rjs = false
     cattr_accessor :debug_rjs
 
-    # A warning will be displayed whenever an action results in a cache miss on your view paths.
     @@warn_cache_misses = false
+    ##
+    # :singleton-method:
+    # A warning will be displayed whenever an action results in a cache miss on your view paths.
     cattr_accessor :warn_cache_misses
 
     attr_internal :request
@@ -275,7 +279,7 @@ module ActionView #:nodoc:
       if defined? @template_format
         @template_format
       elsif controller && controller.respond_to?(:request)
-        @template_format = controller.request.template_format
+        @template_format = controller.request.template_format.to_sym
       else
         @template_format = :html
       end
@@ -326,9 +330,6 @@ module ActionView #:nodoc:
           template
         elsif (first_render = @_render_stack.first) && first_render.respond_to?(:format_and_extension) &&
             (template = self.view_paths["#{template_file_name}.#{first_render.format_and_extension}"])
-          template
-        elsif template_format == :js && template = self.view_paths["#{template_file_name}.html"]
-          @template_format = :html
           template
         else
           template = Template.new(template_path, view_paths)
