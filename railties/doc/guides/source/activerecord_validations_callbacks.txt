@@ -155,7 +155,8 @@ This helper validates that the attributes' values are not included in a given se
 [source, ruby]
 ------------------------------------------------------------------
 class MovieFile < ActiveRecord::Base
-  validates_exclusion_of :format, :in => %w(mov avi), :message => "Extension %s is not allowed"
+  validates_exclusion_of :format, :in => %w(mov avi), 
+    :message => "Extension %s is not allowed"
 end
 ------------------------------------------------------------------
 
@@ -170,7 +171,8 @@ This helper validates the attributes's values by testing if they match a given p
 [source, ruby]
 ------------------------------------------------------------------
 class Product < ActiveRecord::Base
-  validates_format_of :description, :with => /^[a-zA-Z]+$/, :message => "Only letters allowed"
+  validates_format_of :description, :with => /^[a-zA-Z]+$/, 
+    :message => "Only letters allowed"
 end
 ------------------------------------------------------------------
 
@@ -183,7 +185,8 @@ This helper validates that the attributes' values are included in a given set. I
 [source, ruby]
 ------------------------------------------------------------------
 class Coffee < ActiveRecord::Base
-  validates_inclusion_of :size, :in => %w(small medium large), :message => "%s is not a valid size"
+  validates_inclusion_of :size, :in => %w(small medium large), 
+    :message => "%s is not a valid size"
 end
 ------------------------------------------------------------------
 
@@ -282,7 +285,8 @@ There is a +:scope+ option that you can use to specify other attributes that mus
 [source, ruby]
 ------------------------------------------------------------------
 class Holiday < ActiveRecord::Base
-  validates_uniqueness_of :name, :scope => :year, :message => "Should happen once per year"
+  validates_uniqueness_of :name, :scope => :year, 
+    :message => "Should happen once per year"
 end
 ------------------------------------------------------------------
 
@@ -324,9 +328,14 @@ As stated before, the +:on+ option lets you specify when the validation should h
 [source, ruby]
 ------------------------------------------------------------------
 class Person < ActiveRecord::Base
-  validates_uniqueness_of :email, :on => :create # => it will be possible to update email with a duplicated value
-  validates_numericality_of :age, :on => :update # => it will be possible to create the record with a 'non-numerical age'
-  validates_presence_of :name, :on => :save # => that's the default
+  # => it will be possible to update email with a duplicated value
+  validates_uniqueness_of :email, :on => :create 
+  
+  # => it will be possible to create the record with a 'non-numerical age'
+  validates_numericality_of :age, :on => :update 
+  
+  # => the default
+  validates_presence_of :name, :on => :save 
 end
 ------------------------------------------------------------------
 
@@ -367,7 +376,8 @@ Finally, it's possible to associate +:if+ and +:unless+ with a Ruby Proc object 
 [source, ruby]
 ------------------------------------------------------------------
 class Account < ActiveRecord::Base
-  validates_confirmation_of :password, :unless => Proc.new { |a| a.password.blank? }
+  validates_confirmation_of :password, 
+    :unless => Proc.new { |a| a.password.blank? }
 end
 ------------------------------------------------------------------
 
@@ -379,7 +389,8 @@ When the built-in validation helpers are not enough for your needs, you can writ
 ------------------------------------------------------------------
 class Invoice < ActiveRecord::Base
   def validate_on_create    
-    errors.add(:expiration_date, "can't be in the past") if !expiration_date.blank? and expiration_date < Date.today
+    errors.add(:expiration_date, "can't be in the past") if 
+      !expiration_date.blank? and expiration_date < Date.today
   end
 end
 ------------------------------------------------------------------
@@ -389,14 +400,17 @@ If your validation rules are too complicated and you want to break them in small
 [source, ruby]
 ------------------------------------------------------------------
 class Invoice < ActiveRecord::Base
-  validate :expiration_date_cannot_be_in_the_past, :discount_cannot_be_more_than_total_value
+  validate :expiration_date_cannot_be_in_the_past, 
+    :discount_cannot_be_more_than_total_value
 
   def expiration_date_cannot_be_in_the_past
-    errors.add(:expiration_date, "can't be in the past") if !expiration_date.blank? and expiration_date < Date.today
+    errors.add(:expiration_date, "can't be in the past") if 
+      !expiration_date.blank? and expiration_date < Date.today
   end  
   
   def discount_cannot_be_greater_than_total_value
-    errors.add(:discount, "can't be greater than total value") unless discount <= total_value
+    errors.add(:discount, "can't be greater than total value") unless 
+      discount <= total_value
   end
 end
 ------------------------------------------------------------------
@@ -454,11 +468,13 @@ person.errors.on(:name) # => nil
 
 person = Person.new(:name => "JD")
 person.valid? # => false
-person.errors.on(:name) # => "is too short (minimum is 3 characters)"
+person.errors.on(:name) 
+# => "is too short (minimum is 3 characters)"
 
 person = Person.new
 person.valid? # => false
-person.errors.on(:name) # => ["can't be blank", "is too short (minimum is 3 characters)"]
+person.errors.on(:name)
+# => ["can't be blank", "is too short (minimum is 3 characters)"]
 ------------------------------------------------------------------
 
 * +clear+ is used when you intentionally wants to clear all the messages in the +errors+ collection.
@@ -472,7 +488,9 @@ end
 
 person = Person.new
 puts person.valid? # => false
-person.errors.on(:name) # => ["can't be blank", "is too short (minimum is 3 characters)"]
+person.errors.on(:name) 
+# => ["can't be blank", "is too short (minimum is 3 characters)"]
+
 person.errors.clear
 person.errors # => nil
 ------------------------------------------------------------------
