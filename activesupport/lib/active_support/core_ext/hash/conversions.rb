@@ -94,8 +94,7 @@ module ActiveSupport #:nodoc:
           options.reverse_merge!({ :builder => Builder::XmlMarkup.new(:indent => options[:indent]),
                                    :root => "hash" })
           options[:builder].instruct! unless options.delete(:skip_instruct)
-          dasherize = !options.has_key?(:dasherize) || options[:dasherize]
-          root = dasherize ? options[:root].to_s.dasherize : options[:root].to_s
+          root = rename_key(options[:root].to_s, options)
 
           options[:builder].__send__(:method_missing, root) do
             each do |key, value|
@@ -122,7 +121,7 @@ module ActiveSupport #:nodoc:
                   else
                     type_name = XML_TYPE_NAMES[value.class.name]
 
-                    key = dasherize ? key.to_s.dasherize : key.to_s
+                    key = rename_key(key.to_s, options)
 
                     attributes = options[:skip_types] || value.nil? || type_name.nil? ? { } : { :type => type_name }
                     if value.nil?
@@ -142,9 +141,16 @@ module ActiveSupport #:nodoc:
 
         end
 
+        def rename_key(key, options = {})
+          camelize = options.has_key?(:camelize) && options[:camelize]
+          dasherize = !options.has_key?(:dasherize) || options[:dasherize]
+          key = key.camelize if camelize
+          dasherize ? key.dasherize : key
+        end
+
         module ClassMethods
           def from_xml(xml)
-            typecast_xml_value(undasherize_keys(XmlMini.parse(xml)))
+            typecast_xml_value(unrename_keys(XmlMini.parse(xml)))
           end
 
           private
@@ -210,15 +216,15 @@ module ActiveSupport #:nodoc:
               end
             end
 
-            def undasherize_keys(params)
+            def unrename_keys(params)
               case params.class.to_s
                 when "Hash"
                   params.inject({}) do |h,(k,v)|
-                    h[k.to_s.tr("-", "_")] = undasherize_keys(v)
+                    h[k.to_s.underscore.tr("-", "_")] = unrename_keys(v)
                     h
                   end
                 when "Array"
-                  params.map { |v| undasherize_keys(v) }
+                  params.map { |v| unrename_keys(v) }
                 else
                   params
               end
