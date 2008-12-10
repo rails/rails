@@ -96,9 +96,12 @@ module ActiveSupport
       @guard.synchronize do
         unless buffer.empty?
           old_buffer = buffer
-          clear_buffer
           @log.write(old_buffer.join)
         end
+
+        # Important to do this even if buffer was empty or else @buffer will
+        # accumulate empty arrays for each request where nothing was logged.
+        clear_buffer
       end
     end
 
