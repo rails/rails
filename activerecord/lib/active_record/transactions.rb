@@ -147,7 +147,7 @@ module ActiveRecord
     end
 
     def save_with_transactions! #:nodoc:
-      rollback_active_record_state! { transaction { save_without_transactions! } }
+      rollback_active_record_state! { self.class.transaction { save_without_transactions! } }
     end
 
     # Reset id and @new_record if the transaction rolls back.
@@ -175,7 +175,7 @@ module ActiveRecord
     # instance.
     def with_transaction_returning_status(method, *args)
       status = nil
-      transaction do
+      self.class.transaction do
         status = send(method, *args)
         raise ActiveRecord::Rollback unless status
       end
