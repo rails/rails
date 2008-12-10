@@ -552,18 +552,6 @@ class HasManyAssociationsTest < ActiveRecord::TestCase
     assert_equal 0, companies(:first_firm).clients_of_firm(true).size
   end
 
-  def test_deleting_updates_counter_cache
-    post = Post.first
-
-    post.comments.delete(post.comments.first)
-    post.reload
-    assert_equal post.comments(true).size, post.comments_count
-
-    post.comments.delete(post.comments.first)
-    post.reload
-    assert_equal 0, post.comments_count
-  end
-
   def test_deleting_before_save
     new_firm = Firm.new("name" => "A New Firm, Inc.")
     new_client = new_firm.clients_of_firm.build("name" => "Another Client")
@@ -615,14 +603,6 @@ class HasManyAssociationsTest < ActiveRecord::TestCase
     assert_nothing_raised do
       assert Client.find(client_id).firm.nil?
     end
-  end
-
-  def test_clearing_updates_counter_cache
-    post = Post.first
-
-    post.comments.clear
-    post.reload
-    assert_equal 0, post.comments_count
   end
 
   def test_clearing_a_dependent_association_collection
