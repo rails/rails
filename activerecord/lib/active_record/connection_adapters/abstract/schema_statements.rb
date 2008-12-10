@@ -321,7 +321,7 @@ module ActiveRecord
             schema_migrations_table.column :version, :string, :null => false
           end
           add_index sm_table, :version, :unique => true,
-            :name => 'unique_schema_migrations'
+            :name => "#{Base.table_name_prefix}unique_schema_migrations#{Base.table_name_suffix}"
 
           # Backwards-compatibility: if we find schema_info, assume we've
           # migrated up to that point:
