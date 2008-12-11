@@ -83,4 +83,24 @@ class OrderedHashTest < Test::Unit::TestCase
   def test_each_with_index
     @ordered_hash.each_with_index { |pair, index| assert_equal [@keys[index], @values[index]], pair}
   end
+
+  def test_delete_if
+    (copy = @ordered_hash.dup).delete('pink')
+    assert_equal copy, @ordered_hash.delete_if { |k, _| k == 'pink' }
+    assert !@ordered_hash.keys.include?('pink')
+  end
+
+  def test_reject!
+    (copy = @ordered_hash.dup).delete('pink')
+    @ordered_hash.reject! { |k, _| k == 'pink' }
+    assert_equal copy, @ordered_hash
+    assert !@ordered_hash.keys.include?('pink')
+  end
+
+  def test_reject
+    copy = @ordered_hash.dup
+    new_ordered_hash = @ordered_hash.reject { |k, _| k == 'pink' }
+    assert_equal copy, @ordered_hash
+    assert !new_ordered_hash.keys.include?('pink')
+  end
 end

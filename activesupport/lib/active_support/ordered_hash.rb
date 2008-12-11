@@ -25,6 +25,25 @@ module ActiveSupport
         super
       end
 
+      def delete_if
+        super
+        sync_keys!
+        self
+      end
+
+      def reject!
+        super
+        sync_keys!
+        self
+      end
+
+      def reject(&block)
+        dup.reject!(&block)
+      end
+
+      alias_method :super_keys, :keys
+      private :super_keys
+
       def keys
         @keys
       end
@@ -47,6 +66,12 @@ module ActiveSupport
 
       def each
         keys.each {|key| yield [key, self[key]]}
+      end
+
+      private
+
+      def sync_keys!
+        (@keys - super_keys).each { |k| @keys.delete(k) }
       end
     end
   end
