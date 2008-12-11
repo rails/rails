@@ -42,8 +42,8 @@ module ActionController
       end
 
       def failsafe_logger
-        if defined?(::RAILS_DEFAULT_LOGGER) && !::RAILS_DEFAULT_LOGGER.nil?
-          ::RAILS_DEFAULT_LOGGER
+        if defined? Rails && Rails.logger
+          Rails.logger
         else
           Logger.new($stderr)
         end
