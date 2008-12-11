@@ -1164,6 +1164,9 @@ module ActionController #:nodoc:
       def reset_session #:doc:
         request.reset_session
         @_session = request.session
+        #http://rails.lighthouseapp.com/projects/8994/tickets/1558-memory-problem-on-reset_session-in-around_filter#ticket-1558-1
+        #MRI appears to have a GC related memory leak to do with the finalizer that is defined on CGI::Session 
+        ObjectSpace.undefine_finalizer(@_session)
         response.session = @_session
       end
 
