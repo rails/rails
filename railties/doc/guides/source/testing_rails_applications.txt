@@ -226,7 +226,7 @@ Above +rake db:migrate+ runs any pending migrations on the _developemnt_ environ
 
 NOTE: +db:test:prepare+ will fail with an error if db/schema.rb doesn't exists.
 
-==== Rake Tasks for Preparing you Application for Testing ==
+==== Rake Tasks for Preparing your Application for Testing ====
 
 [grid="all"]
 ------------------------------------------------------------------------------------
