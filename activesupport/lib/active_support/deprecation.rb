@@ -13,7 +13,7 @@ module ActiveSupport
                          $stderr.puts callstack.join("\n  ") if debug
                        },
       'development' => Proc.new { |message, callstack|
-                         logger = defined?(::RAILS_DEFAULT_LOGGER) ? ::RAILS_DEFAULT_LOGGER : Logger.new($stderr)
+                         logger = defined? Rails ? Rails.logger : Logger.new($stderr)
                          logger.warn message
                          logger.debug callstack.join("\n  ") if debug
                        }

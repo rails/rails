@@ -1416,8 +1416,8 @@ module ActiveRecord #:nodoc:
       def benchmark(title, log_level = Logger::DEBUG, use_silence = true)
         if logger && logger.level <= log_level
           result = nil
-          seconds = Benchmark.realtime { result = use_silence ? silence { yield } : yield }
-          logger.add(log_level, "#{title} (#{'%.1f' % (seconds * 1000)}ms)")
+          ms = Benchmark.ms { result = use_silence ? silence { yield } : yield }
+          logger.add(log_level, '%s (%.1fms)' % [title, ms])
           result
         else
           yield

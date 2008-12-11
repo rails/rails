@@ -160,9 +160,9 @@ module ActiveRecord
         @open_transactions -= 1
       end
 
-      def log_info(sql, name, seconds)
+      def log_info(sql, name, ms)
         if @logger && @logger.debug?
-          name = "#{name.nil? ? "SQL" : name} (#{sprintf("%.1f", seconds * 1000)}ms)"
+          name = '%s (%.1fms)' % [name || 'SQL', ms]
           @logger.debug(format_log_entry(name, sql.squeeze(' ')))
         end
       end
@@ -171,9 +171,9 @@ module ActiveRecord
         def log(sql, name)
           if block_given?
             result = nil
-            seconds = Benchmark.realtime { result = yield }
-            @runtime += seconds
-            log_info(sql, name, seconds)
+            ms = Benchmark.ms { result = yield }
+            @runtime += ms
+            log_info(sql, name, ms)
             result
           else
             log_info(sql, name, 0)

@@ -80,6 +80,12 @@ namespace :rails do
   desc "Update both configs, scripts and public/javascripts from Rails"
   task :update => [ "update:scripts", "update:javascripts", "update:configs", "update:application_controller" ]
 
+  desc "Applies the template supplied by LOCATION=/path/to/template"
+  task :template do
+    require 'rails_generator/generators/applications/app/template_runner'
+    Rails::TemplateRunner.new(ENV["LOCATION"])
+  end
+
   namespace :update do
     desc "Add new scripts to the application script/ directory"
     task :scripts do

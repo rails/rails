@@ -1,5 +1,13 @@
 *2.3.0 [Edge]*
 
+* Add Benchmark.ms convenience method to benchmark realtime in milliseconds.  [Jeremy Kemper]
+
+* Updated included memcache-client to the 1.5.0.5 version which includes fixes from fiveruns and 37signals to deal with failover and timeouts #1535 [Joshua Sierles]
+
+* Multibyte: add multibyte-safe Chars#ord rather than falling back to String#ord.  #1483 [Jason Cheow]
+
+* I18n support for Array#to_sentence. Introduces support.array.words_connector, .two_words_connector, and .last_word_connector translation keys.  #1397 [Akira Matsuda]
+
 * Added ActiveSupport::OrderedHash#each_key and ActiveSupport::OrderedHash#each_value #1410 [Christoffer Sawicki]
 
 * Added ActiveSupport::MessageVerifier and MessageEncryptor to aid users who need to store signed and/or encrypted messages. [Koz]

@@ -73,4 +73,14 @@ class OrderedHashTest < Test::Unit::TestCase
     @ordered_hash.each_value { |v| values << v }
     assert_equal @values, values
   end
+
+  def test_each
+    values = []
+    @ordered_hash.each {|key, value| values << value}
+    assert_equal @values, values
+  end
+
+  def test_each_with_index
+    @ordered_hash.each_with_index { |pair, index| assert_equal [@keys[index], @values[index]], pair}
+  end
 end

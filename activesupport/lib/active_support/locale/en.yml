@@ -28,5 +28,6 @@ en:
 # Used in array.to_sentence.
   support:
     array:
-      sentence_connector: "and"
-      skip_last_comma: false
+      words_connector: ", "
+      two_words_connector: " and "
+      last_word_connector: ", and "

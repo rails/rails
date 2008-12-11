@@ -38,7 +38,7 @@ module ActionController
   # TODO: Review explicit to see if they will automatically be handled by
   # the initilizer if they are really needed.
   def self.load_all!
-    [Base, CgiRequest, CgiResponse, RackRequest, RackRequest, Http::Headers, UrlRewriter, UrlWriter]
+    [Base, CGIHandler, CgiRequest, RackRequest, RackRequest, Http::Headers, UrlRewriter, UrlWriter]
   end
 
   autoload :AbstractRequest, 'action_controller/request'
@@ -91,7 +91,6 @@ module ActionController
 
   # DEPRECATE: Remove CGI support
   autoload :CgiRequest, 'action_controller/cgi_process'
-  autoload :CgiResponse, 'action_controller/cgi_process'
   autoload :CGIHandler, 'action_controller/cgi_process'
 end
 

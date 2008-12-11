@@ -7,10 +7,10 @@ require 'fileutils'
 
 module Rails
   class TemplateRunner
-    attr_reader :behavior, :description, :root
+    attr_reader :root
 
-    def initialize(root, template) # :nodoc:
-      @root = Dir.pwd + "/" + root
+    def initialize(template, root = '') # :nodoc:
+      @root = File.join(Dir.pwd, root)
 
       puts "applying template: #{template}"
 
@@ -109,13 +109,13 @@ module Rails
     #   git :add => "onefile.rb", :rm => "badfile.cxx"
     #
     def git(command = {})
-      puts "running git #{command}"
-
       in_root do
         if command.is_a?(Symbol)
+          puts "running git #{command}"
           Git.run(command.to_s)
         else
           command.each do |command, options|
+            puts "running git #{command} #{options}"
             Git.run("#{command} #{options}")
           end
         end

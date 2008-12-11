@@ -37,6 +37,8 @@ module ActiveRecord
     [Base, DynamicFinderMatch, ConnectionAdapters::AbstractAdapter]
   end
 
+  autoload :VERSION, 'active_record/version'
+
   autoload :ActiveRecordError, 'active_record/base'
   autoload :ConnectionNotEstablished, 'active_record/base'
 

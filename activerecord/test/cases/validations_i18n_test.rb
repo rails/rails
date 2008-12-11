@@ -506,7 +506,7 @@ class ActiveRecordValidationsI18nTests < ActiveSupport::TestCase
 
   # validates_length_of :is w/o mocha
 
-  def test_validates_length_of_within_finds_custom_model_key_translation
+  def test_validates_length_of_is_finds_custom_model_key_translation
     I18n.backend.store_translations 'en', :activerecord => {:errors => {:models => {:topic => {:attributes => {:title => {:wrong_length => 'custom message'}}}}}}
     I18n.backend.store_translations 'en', :activerecord => {:errors => {:messages => {:wrong_length => 'global message'}}}
 
@@ -515,7 +515,7 @@ class ActiveRecordValidationsI18nTests < ActiveSupport::TestCase
     assert_equal 'custom message', @topic.errors.on(:title)
   end
 
-  def test_validates_length_of_within_finds_global_default_translation
+  def test_validates_length_of_is_finds_global_default_translation
     I18n.backend.store_translations 'en', :activerecord => {:errors => {:messages => {:wrong_length => 'global message'}}}
 
     Topic.validates_length_of :title, :is => 5
@@ -525,7 +525,7 @@ class ActiveRecordValidationsI18nTests < ActiveSupport::TestCase
 
   # validates_uniqueness_of w/o mocha
 
-  def test_validates_length_of_within_finds_custom_model_key_translation
+  def test_validates_length_of_is_finds_custom_model_key_translation
     I18n.backend.store_translations 'en', :activerecord => {:errors => {:models => {:topic => {:attributes => {:title => {:wrong_length => 'custom message'}}}}}}
     I18n.backend.store_translations 'en', :activerecord => {:errors => {:messages => {:wrong_length => 'global message'}}}
 
@@ -534,7 +534,7 @@ class ActiveRecordValidationsI18nTests < ActiveSupport::TestCase
     assert_equal 'custom message', @topic.errors.on(:title)
   end
 
-  def test_validates_length_of_within_finds_global_default_translation
+  def test_validates_length_of_is_finds_global_default_translation
     I18n.backend.store_translations 'en', :activerecord => {:errors => {:messages => {:wrong_length => 'global message'}}}
 
     Topic.validates_length_of :title, :is => 5

@@ -48,6 +48,7 @@ class PageCachingTest < ActionController::TestCase
 
     ActionController::Routing::Routes.draw do |map|
       map.main '', :controller => 'posts'
+      map.formatted_posts 'posts.:format', :controller => 'posts'
       map.resources :posts
       map.connect ':controller/:action/:id'
     end

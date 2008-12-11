@@ -1,5 +1,7 @@
 *2.3.0/3.0*
 
+* I18n the word separator for error messages. Introduces the activerecord.errors.format.separator translation key.  #1294 [Akira Matsuda]
+
 * Add :having as a key to find and the relevant associations.  [miloops]
 
 * Added default_scope to Base #1381 [Paweł Kondzior]. Example:

@@ -71,19 +71,28 @@ class I18nTest < Test::Unit::TestCase
     assert_equal 'pm', I18n.translate(:'time.pm')
   end
 
-  def test_sentence_connector
-    assert_equal 'and', I18n.translate(:'support.array.sentence_connector')
+  def test_words_connector
+    assert_equal ', ', I18n.translate(:'support.array.words_connector')
   end
 
-  def test_skip_last_comma
-    assert_equal false, I18n.translate(:'support.array.skip_last_comma')
+  def test_two_words_connector
+    assert_equal ' and ', I18n.translate(:'support.array.two_words_connector')
+  end
+
+  def test_last_word_connector
+    assert_equal ', and ', I18n.translate(:'support.array.last_word_connector')
   end
 
   def test_to_sentence
+    default_two_words_connector = I18n.translate(:'support.array.two_words_connector')
+    default_last_word_connector = I18n.translate(:'support.array.last_word_connector')
     assert_equal 'a, b, and c', %w[a b c].to_sentence
-    I18n.backend.store_translations 'en', :support => { :array => { :skip_last_comma => true } }
+    I18n.backend.store_translations 'en', :support => { :array => { :two_words_connector => ' & ' } }
+    assert_equal 'a & b', %w[a b].to_sentence
+    I18n.backend.store_translations 'en', :support => { :array => { :last_word_connector => ' and ' } }
     assert_equal 'a, b and c', %w[a b c].to_sentence
   ensure
-    I18n.backend.store_translations 'en', :support => { :array => { :skip_last_comma => false } }
+    I18n.backend.store_translations 'en', :support => { :array => { :two_words_connector => default_two_words_connector } }
+    I18n.backend.store_translations 'en', :support => { :array => { :last_word_connector => default_last_word_connector } }
   end
 end

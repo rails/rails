@@ -559,9 +559,9 @@ module ActiveSupport #:nodoc:
       # Old style environment.rb referenced this method directly.  Please note, it doesn't
       # actually *do* anything any more.
       def self.root(*args)
-        if defined?(RAILS_DEFAULT_LOGGER)
-          RAILS_DEFAULT_LOGGER.warn "Your environment.rb uses the old syntax, it may not continue to work in future releases."
-          RAILS_DEFAULT_LOGGER.warn "For upgrade instructions please see: http://manuals.rubyonrails.com/read/book/19"
+        if defined? Rails && Rails.logger
+          Rails.logger.warn "Your environment.rb uses the old syntax, it may not continue to work in future releases."
+          Rails.logger.warn "For upgrade instructions please see: http://manuals.rubyonrails.com/read/book/19"
         end
       end
     end

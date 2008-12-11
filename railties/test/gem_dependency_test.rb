@@ -134,7 +134,6 @@ uses_mocha "Plugin Tests" do
       dummy_gem.add_load_paths
       dummy_gem.load
       assert dummy_gem.loaded?
-      debugger
       assert_equal 2, dummy_gem.dependencies.size
       assert_nothing_raised do
         dummy_gem.dependencies.each do |g|

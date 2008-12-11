@@ -403,6 +403,13 @@ class HashToXmlTest < Test::Unit::TestCase
     assert xml.include?(%(<name>David</name>))
   end
 
+  def test_one_level_camelize_true
+    xml = { :name => "David", :street_name => "Paulina" }.to_xml(@xml_options.merge(:camelize => true))
+    assert_equal "<Person>", xml.first(8)
+    assert xml.include?(%(<StreetName>Paulina</StreetName>))
+    assert xml.include?(%(<Name>David</Name>))
+  end
+
   def test_one_level_with_types
     xml = { :name => "David", :street => "Paulina", :age => 26, :age_in_millis => 820497600000, :moved_on => Date.new(2005, 11, 15), :resident => :yes }.to_xml(@xml_options)
     assert_equal "<person>", xml.first(8)
