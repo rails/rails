@@ -57,6 +57,10 @@ module ActionView #:nodoc:
         end
       end
 
+      def to_str
+        path.to_str
+      end
+
       def ==(path)
         to_str == path.to_str
       end

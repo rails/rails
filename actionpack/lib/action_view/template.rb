@@ -105,7 +105,7 @@ module ActionView #:nodoc:
       def find_full_path(path, load_paths)
         load_paths = Array(load_paths) + [nil]
         load_paths.each do |load_path|
-          file = [load_path, path].compact.join('/')
+          file = load_path ? "#{load_path.to_str}/#{path}" : path
           return load_path, file if File.file?(file)
         end
         raise MissingTemplate.new(load_paths, path)
