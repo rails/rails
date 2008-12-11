@@ -30,14 +30,6 @@ class SessionTest < Test::Unit::TestCase
     assert_raise(RuntimeError) { @session.follow_redirect! }
   end
 
-  def test_follow_redirect_calls_get_and_returns_status
-    @session.stubs(:redirect?).returns(true)
-    @session.stubs(:headers).returns({"location" => ["www.google.com"]})
-    @session.stubs(:status).returns(200)
-    @session.expects(:get)
-    assert_equal 200, @session.follow_redirect!
-  end
-
   def test_request_via_redirect_uses_given_method
     path = "/somepath"; args = {:id => '1'}; headers = {"X-Test-Header" => "testvalue"}
     @session.expects(:put).with(path, args, headers)
@@ -323,6 +315,10 @@ class IntegrationProcessTest < ActionController::IntegrationTest
       assert_equal "<html><body>You are being <a href=\"http://www.example.com/get\">redirected</a>.</body></html>", response.body
       assert_kind_of HTML::Document, html_document
       assert_equal 1, request_count
+
+      follow_redirect!
+      assert_response :success
+      assert_equal "/get", path
     end
   end
 
