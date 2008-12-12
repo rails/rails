@@ -17,6 +17,7 @@ module ActionMailer #:nodoc:
   #  class Notifier < ActionMailer::Base
   #    def signup_notification(recipient)
   #      recipients recipient.email_address_with_name
+  #      bcc        ["bcc@example.com", "Order Watcher <watcher@example.com>"]
   #      from       "system@example.com"
   #      subject    "New account information"
   #      body       :account => recipient
