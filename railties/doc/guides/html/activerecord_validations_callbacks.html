@@ -405,7 +405,7 @@ http://www.gnu.org/software/src-highlite -->
 &gt;&gt; p.new_record?
 =&gt; false</tt></pre>
 </div></div>
-<div class="para"><p>Saving new records means sending an SQL insert operation to the database, while saving existing records (by calling either <tt>save</tt> or <tt>update_attributes</tt>) will result in a SQL update operation. Active Record will use this facts to perform validations upon your objects, avoiding then to be recorded to the database if their inner state is invalid in some way. You can specify validations that will be beformed every time a object is saved, just when you're creating a new record or when you're updating an existing one.</p></div>
+<div class="para"><p>Saving new records means sending an SQL insert operation to the database, while saving existing records (by calling either <tt>save</tt> or <tt>update_attributes</tt>) will result in a SQL update operation. Active Record will use these facts to perform validations upon your objects, avoiding then to be recorded to the database if their inner state is invalid in some way. You can specify validations that will be beformed every time a object is saved, just when you're creating a new record or when you're updating an existing one.</p></div>
 <div class="admonitionblock">
 <table><tr>
 <td class="icon">
@@ -899,7 +899,7 @@ person<span style="color: #990000">.</span>errors<span style="color: #990000">.<
 <div class="ilist"><ul>
 <li>
 <p>
-<tt>clear</tt> is used when you intentionally wants to clear all the messages in the <tt>errors</tt> collection.
+<tt>clear</tt> is used when you intentionally want to clear all the messages in the <tt>errors</tt> collection. However, calling <tt>errors.clear</tt> upon an invalid object won't make it valid: the <tt>errors</tt> collection will now be empty, but the next time you call <tt>valid?</tt> or any method that tries to save this object to the database, the validations will run. If any of them fails, the <tt>errors</tt> collection will get filled again.
 </p>
 </li>
 </ul></div>
@@ -914,12 +914,15 @@ http://www.gnu.org/software/src-highlite -->
 <span style="font-weight: bold"><span style="color: #0000FF">end</span></span>
 
 person <span style="color: #990000">=</span> Person<span style="color: #990000">.</span>new
-puts person<span style="color: #990000">.</span>valid? <span style="font-style: italic"><span style="color: #9A1900"># =&gt; false</span></span>
+person<span style="color: #990000">.</span>valid? <span style="font-style: italic"><span style="color: #9A1900"># =&gt; false</span></span>
 person<span style="color: #990000">.</span>errors<span style="color: #990000">.</span>on<span style="color: #990000">(:</span>name<span style="color: #990000">)</span>
 <span style="font-style: italic"><span style="color: #9A1900"># =&gt; ["can't be blank", "is too short (minimum is 3 characters)"]</span></span>
 
 person<span style="color: #990000">.</span>errors<span style="color: #990000">.</span>clear
-person<span style="color: #990000">.</span>errors <span style="font-style: italic"><span style="color: #9A1900"># =&gt; nil</span></span>
+person<span style="color: #990000">.</span>errors<span style="color: #990000">.</span>empty? <span style="font-style: italic"><span style="color: #9A1900"># =&gt; true</span></span>
+p<span style="color: #990000">.</span>save <span style="font-style: italic"><span style="color: #9A1900"># =&gt; false</span></span>
+p<span style="color: #990000">.</span>errors<span style="color: #990000">.</span>on<span style="color: #990000">(:</span>name<span style="color: #990000">)</span>
+<span style="font-style: italic"><span style="color: #9A1900"># =&gt; ["can't be blank", "is too short (minimum is 3 characters)"]</span></span>
 </tt></pre></div></div>
 </div>
 <h2 id="_callbacks">8. Callbacks</h2>

@@ -47,7 +47,7 @@ We can see how it works by looking at the following script/console output:
 => false
 ------------------------------------------------------------------
 
-Saving new records means sending an SQL insert operation to the database, while saving existing records (by calling either +save+ or +update_attributes+) will result in a SQL update operation. Active Record will use this facts to perform validations upon your objects, avoiding then to be recorded to the database if their inner state is invalid in some way. You can specify validations that will be beformed every time a object is saved, just when you're creating a new record or when you're updating an existing one.
+Saving new records means sending an SQL insert operation to the database, while saving existing records (by calling either +save+ or +update_attributes+) will result in a SQL update operation. Active Record will use these facts to perform validations upon your objects, avoiding then to be recorded to the database if their inner state is invalid in some way. You can specify validations that will be beformed every time a object is saved, just when you're creating a new record or when you're updating an existing one.
 
 CAUTION: There are four methods that when called will trigger validation: +save+, +save!+, +update_attributes+ and +update_attributes!+. There is one method left, which is +update_attribute+. This method will update the value of an attribute without triggering any validation, so be careful when using +update_attribute+, since it can let you save your objects in an invalid state.
 
@@ -477,7 +477,7 @@ person.errors.on(:name)
 # => ["can't be blank", "is too short (minimum is 3 characters)"]
 ------------------------------------------------------------------
 
-* +clear+ is used when you intentionally wants to clear all the messages in the +errors+ collection.
+* +clear+ is used when you intentionally want to clear all the messages in the +errors+ collection. However, calling +errors.clear+ upon an invalid object won't make it valid: the +errors+ collection will now be empty, but the next time you call +valid?+ or any method that tries to save this object to the database, the validations will run. If any of them fails, the +errors+ collection will get filled again.
 
 [source, ruby]
 ------------------------------------------------------------------
@@ -487,12 +487,15 @@ class Person < ActiveRecord::Base
 end
 
 person = Person.new
-puts person.valid? # => false
+person.valid? # => false
 person.errors.on(:name) 
 # => ["can't be blank", "is too short (minimum is 3 characters)"]
 
 person.errors.clear
-person.errors # => nil
+person.errors.empty? # => true  
+p.save # => false
+p.errors.on(:name)
+# => ["can't be blank", "is too short (minimum is 3 characters)"]
 ------------------------------------------------------------------
 
 == Callbacks
