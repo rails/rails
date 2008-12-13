@@ -608,7 +608,7 @@ The +after_initialize+ and +after_find+ callbacks are a bit different from the o
 
 == Halting Execution
 
-As you start registering new callbacks for your models, they will be queued for execution. This queue will include all your model's validations, the registered callbacks and the database operation to be executed. However, if at any moment one of the callback methods returns a boolean +false+ (not +nil+) value, this execution chain will be halted and the desired operation will not complete: your model will not get persisted in the database, or your records will not get deleted and so on.
+As you start registering new callbacks for your models, they will be queued for execution. This queue will include all your model's validations, the registered callbacks and the database operation to be executed. However, if at any moment one of the +before_create+, +before_save+, +before_update+ or +before_destroy+ callback methods returns a boolean +false+ (not +nil+) value, this execution chain will be halted and the desired operation will not complete: your model will not get persisted in the database, or your records will not get deleted and so on.
 
 == Callback classes
 
