@@ -2,8 +2,21 @@ require 'abstract_unit'
 require 'inflector_test_cases'
 
 module Ace
+  module Extension
+    def self.included(base)
+      base.extend(ClassMethods)
+    end
+
+    module ClassMethods
+      def mission_accomplished?
+        false
+      end
+    end
+  end
+
   module Base
     class Case
+      include Extension
     end
   end
 end
@@ -167,7 +180,9 @@ class InflectorTest < Test::Unit::TestCase
   end
 
   def test_constantize_does_lexical_lookup
-    assert_raises(NameError) { ActiveSupport::Inflector.constantize("Ace::Base::InflectorTest") }
+    assert_equal InflectorTest, ActiveSupport::Inflector.constantize("Ace::Base::InflectorTest")
+    assert_nothing_raised { Ace::Base::Case::ClassMethods }
+    assert_nothing_raised { assert_equal Ace::Base::Case::ClassMethods, ActiveSupport::Inflector.constantize("Ace::Base::Case::ClassMethods") }
   end
 
   def test_ordinal
