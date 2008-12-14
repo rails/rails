@@ -1195,7 +1195,7 @@ http://www.gnu.org/software/src-highlite -->
 <span style="font-weight: bold"><span style="color: #0000FF">end</span></span>
 </tt></pre></div></div>
 <h3 id="_registering_observers">12.1. Registering observers</h3>
-<div class="para"><p>If you payed attention, you may be wondering where Active Record Observers are referenced in our applications, so they get instantiate and begin to interact with our models. For observers to work we need to register then in our application's <strong>config/environment.rb</strong> file. In this file there is a commented out line where we can define the observers that our application should load at start-up.</p></div>
+<div class="para"><p>If you payed attention, you may be wondering where Active Record Observers are referenced in our applications, so they get instantiate and begin to interact with our models. For observers to work we need to register them somewhere. The usual place to do that is in our application's <strong>config/environment.rb</strong> file. In this file there is a commented out line where we can define the observers that our application should load at start-up.</p></div>
 <div class="listingblock">
 <div class="content"><!-- Generator: GNU source-highlight 2.9
 by Lorenzo Bettini
@@ -1204,6 +1204,8 @@ http://www.gnu.org/software/src-highlite -->
 <pre><tt><span style="font-style: italic"><span style="color: #9A1900"># Activate observers that should always be running</span></span>
 config<span style="color: #990000">.</span>active_record<span style="color: #990000">.</span>observers <span style="color: #990000">=</span> <span style="color: #990000">:</span>registration_observer<span style="color: #990000">,</span> <span style="color: #990000">:</span>auditor
 </tt></pre></div></div>
+<div class="para"><p>You can uncomment the line with <tt>config.active_record.observers</tt> and change the symbols for the name of the observers that should be registered.</p></div>
+<div class="para"><p>It's also possible to register callbacks in any of the files living at <strong>config/environments/</strong>, if you want an observer to work only in a specific environment. There is not a <tt>config.active_record.observers</tt> line at any of those files, but you can simply add it.</p></div>
 <h3 id="_where_to_put_the_observers_source_files">12.2. Where to put the observers' source files</h3>
 <div class="para"><p>By convention, you should always save your observers' source files inside <strong>app/models</strong>.</p></div>
 </div>

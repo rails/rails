@@ -688,13 +688,17 @@ end
 
 === Registering observers
 
-If you payed attention, you may be wondering where Active Record Observers are referenced in our applications, so they get instantiate and begin to interact with our models. For observers to work we need to register then in our application's *config/environment.rb* file. In this file there is a commented out line where we can define the observers that our application should load at start-up.
+If you payed attention, you may be wondering where Active Record Observers are referenced in our applications, so they get instantiate and begin to interact with our models. For observers to work we need to register them somewhere. The usual place to do that is in our application's *config/environment.rb* file. In this file there is a commented out line where we can define the observers that our application should load at start-up. 
 
 [source, ruby]
 ------------------------------------------------------------------
 # Activate observers that should always be running
 config.active_record.observers = :registration_observer, :auditor
 ------------------------------------------------------------------
+
+You can uncomment the line with +config.active_record.observers+ and change the symbols for the name of the observers that should be registered.
+
+It's also possible to register callbacks in any of the files living at *config/environments/*, if you want an observer to work only in a specific environment. There is not a +config.active_record.observers+ line at any of those files, but you can simply add it.
 
 === Where to put the observers' source files
 
