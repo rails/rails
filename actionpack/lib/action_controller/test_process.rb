@@ -413,7 +413,7 @@ module ActionController #:nodoc:
 
     def xml_http_request(request_method, action, parameters = nil, session = nil, flash = nil)
       @request.env['HTTP_X_REQUESTED_WITH'] = 'XMLHttpRequest'
-      @request.env['HTTP_ACCEPT'] = 'text/javascript, text/html, application/xml, text/xml, */*'
+      @request.env['HTTP_ACCEPT'] =  [Mime::JS, Mime::HTML, Mime::XML, 'text/xml', Mime::ALL].join(', ')
       returning __send__(request_method, action, parameters, session, flash) do
         @request.env.delete 'HTTP_X_REQUESTED_WITH'
         @request.env.delete 'HTTP_ACCEPT'
