@@ -21,7 +21,7 @@ class ArrayExtAccessTests < Test::Unit::TestCase
     assert_equal array[2], array.third
     assert_equal array[3], array.fourth
     assert_equal array[4], array.fifth
-    assert_equal array[41], array.fourty_two
+    assert_equal array[41], array.forty_two
   end
 end
 
