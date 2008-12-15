@@ -281,9 +281,7 @@ module ActiveSupport
       names.shift if names.empty? || names.first.empty?
 
       constant = Object
-      names.each do |name|
-        constant = constant.const_defined?(name) ? constant.const_get(name) : constant.const_missing(name)
-      end
+      names.each { |name| constant = constant.const_get(name) }
       constant
     end
 
