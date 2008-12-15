@@ -39,7 +39,7 @@ module Rails
         nil
       end
     end
-    
+
     def backtrace_cleaner
       @@backtrace_cleaner ||= begin
         # Relies on ActiveSupport, so we have to lazy load to postpone definition until AS has been loaded
@@ -148,7 +148,6 @@ module Rails
 
       initialize_dependency_mechanism
       initialize_whiny_nils
-      initialize_temporary_session_directory
 
       initialize_time_zone
       initialize_i18n
@@ -501,13 +500,6 @@ Run `rake gems:install` to install the missing gems.
       require('active_support/whiny_nil') if configuration.whiny_nils
     end
 
-    def initialize_temporary_session_directory
-      if configuration.frameworks.include?(:action_controller)
-        session_path = "#{configuration.root_path}/tmp/sessions/"
-        ActionController::Base.session_options[:tmpdir] = File.exist?(session_path) ? session_path : Dir::tmpdir
-      end
-    end
-
     # Sets the default value for Time.zone, and turns on ActiveRecord::Base#time_zone_aware_attributes.
     # If assigned value cannot be matched to a TimeZone, an exception will be raised.
     def initialize_time_zone
@@ -529,7 +521,7 @@ Run `rake gems:install` to install the missing gems.
       end
     end
 
-    # Set the i18n configuration from config.i18n but special-case for the load_path which should be 
+    # Set the i18n configuration from config.i18n but special-case for the load_path which should be
     # appended to what's already set instead of overwritten.
     def initialize_i18n
       configuration.i18n.each do |setting, value|

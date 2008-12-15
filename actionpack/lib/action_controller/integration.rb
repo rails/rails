@@ -489,8 +489,8 @@ EOF
       # By default, a single session is automatically created for you, but you
       # can use this method to open multiple sessions that ought to be tested
       # simultaneously.
-      def open_session
-        application = ActionController::Dispatcher.new
+      def open_session(application = nil)
+        application ||= ActionController::Dispatcher.new
         session = Integration::Session.new(application)
 
         # delegate the fixture accessors back to the test instance

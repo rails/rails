@@ -89,18 +89,15 @@ module ActionController
     autoload :Headers, 'action_controller/headers'
   end
 
+  module Session
+    autoload :AbstractStore, 'action_controller/session/abstract_store'
+    autoload :CookieStore, 'action_controller/session/cookie_store'
+    autoload :MemCacheStore, 'action_controller/session/mem_cache_store'
+  end
+
   # DEPRECATE: Remove CGI support
   autoload :CgiRequest, 'action_controller/cgi_process'
   autoload :CGIHandler, 'action_controller/cgi_process'
-end
-
-class CGI
-  class Session
-    autoload :ActiveRecordStore, 'action_controller/session/active_record_store'
-    autoload :CookieStore, 'action_controller/session/cookie_store'
-    autoload :DRbStore, 'action_controller/session/drb_store'
-    autoload :MemCacheStore, 'action_controller/session/mem_cache_store'
-  end
 end
 
 autoload :Mime, 'action_controller/mime_type'

@@ -231,8 +231,6 @@ end
 
 class IntegrationProcessTest < ActionController::IntegrationTest
   class IntegrationController < ActionController::Base
-    session :off
-
     def get
       respond_to do |format|
         format.html { render :text => "OK", :status => 200 }

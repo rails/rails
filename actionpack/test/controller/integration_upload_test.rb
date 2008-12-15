@@ -6,8 +6,6 @@ unless defined? ApplicationController
 end
 
 class UploadTestController < ActionController::Base
-  session :off
-
   def update
     SessionUploadTest.last_request_type = ActionController::Base.param_parsers[request.content_type]
     render :text => "got here"

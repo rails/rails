@@ -2,8 +2,6 @@ require 'abstract_unit'
 
 class WebServiceTest < ActionController::IntegrationTest
   class TestController < ActionController::Base
-    session :off
-
     def assign_parameters
       if params[:full]
         render :text => dump_params_keys
