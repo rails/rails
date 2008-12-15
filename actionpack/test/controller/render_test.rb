@@ -208,6 +208,10 @@ class TestController < ActionController::Base
   def greeting
     # let's just rely on the template
   end
+  
+  def blank_response
+    render :text => ' '
+  end
 
   def layout_test
     render :action => "hello_world"
@@ -1379,6 +1383,11 @@ class EtagRenderTest < ActionController::TestCase
   def setup
     @request.host = "www.nextangle.com"
     @expected_bang_etag = etag_for(expand_key([:foo, 123]))
+  end
+  
+  def test_render_blank_body_shouldnt_set_etag
+    get :blank_response
+    assert !@response.etag?
   end
 
   def test_render_200_should_set_etag
