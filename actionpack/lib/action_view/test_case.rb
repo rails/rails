@@ -60,11 +60,14 @@ module ActionView
     end
 
     class TestController < ActionController::Base
-      attr_accessor :request, :response
+      attr_accessor :request, :response, :params
 
       def initialize
         @request = ActionController::TestRequest.new
         @response = ActionController::TestResponse.new
+        
+        @params = {}
+        send(:initialize_current_url)
       end
     end
 
