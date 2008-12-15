@@ -9,6 +9,8 @@ module Rails
     RAILS_NOISE  = %w( script/server )
     RUBY_NOISE   = %w( rubygems/custom_require benchmark.rb )
 
+    GEMS_DIR     = Gem.default_dir
+
     ALL_NOISE    = VENDOR_DIRS + SERVER_DIRS + RAILS_NOISE + RUBY_NOISE
 
     def initialize
@@ -16,6 +18,7 @@ module Rails
       add_filter   { |line| line.sub(RAILS_ROOT, '') }
       add_filter   { |line| line.sub(ERB_METHOD_SIG, '') }
       add_filter   { |line| line.sub('./', '/') } # for tests
+      add_filter   { |line| line.sub(/(#{GEMS_DIR})\/gems\/([a-z]+)-([0-9.]+)\/(.*)/, '\2 (\3) \4')} # http://gist.github.com/30430
       add_silencer { |line| ALL_NOISE.any? { |dir| line.include?(dir) } }
     end
   end
