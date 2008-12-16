@@ -164,8 +164,8 @@ module ActionController #:nodoc:
   #
   # Other options for session storage are:
   #
-  # * ActiveRecordStore - Sessions are stored in your database, which works better than PStore with multiple app servers and,
-  #   unlike CookieStore, hides your session contents from the user. To use ActiveRecordStore, set
+  # * ActiveRecord::SessionStore - Sessions are stored in your database, which works better than PStore with multiple app servers and,
+  #   unlike CookieStore, hides your session contents from the user. To use ActiveRecord::SessionStore, set
   #
   #     config.action_controller.session_store = :active_record_store
   #
@@ -1216,7 +1216,6 @@ module ActionController #:nodoc:
       def log_processing
         if logger && logger.info?
           log_processing_for_request_id
-          log_processing_for_session_id
           log_processing_for_parameters
         end
       end
@@ -1227,13 +1226,6 @@ module ActionController #:nodoc:
         request_id << "(for #{request_origin}) [#{request.method.to_s.upcase}]"
 
         logger.info(request_id)
-      end
-
-      def log_processing_for_session_id
-        if @_session && @_session.respond_to?(:session_id) && @_session.respond_to?(:dbman) &&
-            !@_session.dbman.is_a?(CGI::Session::CookieStore)
-          logger.info "  Session ID: #{@_session.session_id}"
-        end
       end
 
       def log_processing_for_parameters

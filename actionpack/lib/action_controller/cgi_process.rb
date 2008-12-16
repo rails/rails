@@ -61,7 +61,7 @@ module ActionController #:nodoc:
 
   class CgiRequest #:nodoc:
     DEFAULT_SESSION_OPTIONS = {
-      :database_manager  => CGI::Session::CookieStore,
+      :database_manager  => nil,
       :prefix            => "ruby_sess.",
       :session_path      => "/",
       :session_key       => "_session_id",

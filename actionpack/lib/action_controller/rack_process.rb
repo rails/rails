@@ -3,24 +3,12 @@ require 'action_controller/cgi_ext'
 module ActionController #:nodoc:
   class RackRequest < AbstractRequest #:nodoc:
     attr_accessor :session_options
-    attr_reader :cgi
 
     class SessionFixationAttempt < StandardError #:nodoc:
     end
 
-    DEFAULT_SESSION_OPTIONS = {
-      :database_manager => CGI::Session::CookieStore, # store data in cookie
-      :prefix           => "ruby_sess.",    # prefix session file names
-      :session_path     => "/",             # available to all paths in app
-      :session_key      => "_session_id",
-      :cookie_only      => true,
-      :session_http_only=> true
-    }
-
-    def initialize(env, session_options = DEFAULT_SESSION_OPTIONS)
-      @session_options = session_options
+    def initialize(env)
       @env = env
-      @cgi = CGIWrapper.new(self)
       super()
     end
 
@@ -66,87 +54,25 @@ module ActionController #:nodoc:
       @env['SERVER_SOFTWARE'].split("/").first
     end
 
+    def session_options
+      @env['rack.session.options'] ||= {}
+    end
+
+    def session_options=(options)
+      @env['rack.session.options'] = options
+    end
+
     def session
-      unless defined?(@session)
-        if @session_options == false
-          @session = Hash.new
-        else
-          stale_session_check! do
-            if cookie_only? && query_parameters[session_options_with_string_keys['session_key']]
-              raise SessionFixationAttempt
-            end
-            case value = session_options_with_string_keys['new_session']
-              when true
-                @session = new_session
-              when false
-                begin
-                  @session = CGI::Session.new(@cgi, session_options_with_string_keys)
-                # CGI::Session raises ArgumentError if 'new_session' == false
-                # and no session cookie or query param is present.
-                rescue ArgumentError
-                  @session = Hash.new
-                end
-              when nil
-                @session = CGI::Session.new(@cgi, session_options_with_string_keys)
-              else
-                raise ArgumentError, "Invalid new_session option: #{value}"
-            end
-            @session['__valid_session']
-          end
-        end
-      end
-      @session
+      @env['rack.session'] ||= {}
     end
 
     def reset_session
-      @session.delete if defined?(@session) && @session.is_a?(CGI::Session)
-      @session = new_session
+      @env['rack.session'] = {}
     end
-
-    private
-      # Delete an old session if it exists then create a new one.
-      def new_session
-        if @session_options == false
-          Hash.new
-        else
-          CGI::Session.new(@cgi, session_options_with_string_keys.merge("new_session" => false)).delete rescue nil
-          CGI::Session.new(@cgi, session_options_with_string_keys.merge("new_session" => true))
-        end
-      end
-
-      def cookie_only?
-        session_options_with_string_keys['cookie_only']
-      end
-
-      def stale_session_check!
-        yield
-      rescue ArgumentError => argument_error
-        if argument_error.message =~ %r{undefined class/module ([\w:]*\w)}
-          begin
-            # Note that the regexp does not allow $1 to end with a ':'
-            $1.constantize
-          rescue LoadError, NameError => const_error
-            raise ActionController::SessionRestoreError, <<-end_msg
-Session contains objects whose class definition isn\'t available.
-Remember to require the classes for all objects kept in the session.
-(Original exception: #{const_error.message} [#{const_error.class}])
-end_msg
-          end
-
-          retry
-        else
-          raise
-        end
-      end
-
-      def session_options_with_string_keys
-        @session_options_with_string_keys ||= DEFAULT_SESSION_OPTIONS.merge(@session_options).stringify_keys
-      end
   end
 
   class RackResponse < AbstractResponse #:nodoc:
-    def initialize(request)
-      @cgi = request.cgi
+    def initialize
       @writer = lambda { |x| @body << x }
       @block = nil
       super()
@@ -247,49 +173,8 @@ end_msg
             else            cookies << cookie.to_s
           end
 
-          @cgi.output_cookies.each { |c| cookies << c.to_s } if @cgi.output_cookies
-
           headers['Set-Cookie'] = [headers['Set-Cookie'], cookies].flatten.compact
         end
       end
-  end
-
-  class CGIWrapper < ::CGI
-    attr_reader :output_cookies
-
-    def initialize(request, *args)
-      @request  = request
-      @args     = *args
-      @input    = request.body
-
-      super *args
-    end
-
-    def params
-      @params ||= @request.params
-    end
-
-    def cookies
-      @request.cookies
-    end
-
-    def query_string
-      @request.query_string
-    end
-
-    # Used to wrap the normal args variable used inside CGI.
-    def args
-      @args
-    end
-
-    # Used to wrap the normal env_table variable used inside CGI.
-    def env_table
-      @request.env
-    end
-
-    # Used to wrap the normal stdinput variable used inside CGI.
-    def stdinput
-      @input
-    end
   end
 end

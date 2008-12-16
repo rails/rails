@@ -1,140 +1,128 @@
-# These tests exercise CGI::Session::ActiveRecordStore, so you're going to
-# need AR in a sibling directory to AP and have SQLite installed.
 require 'active_record_unit'
 
-module CommonActiveRecordStoreTests
-  def test_basics
-    s = session_class.new(:session_id => '1234', :data => { 'foo' => 'bar' })
-    assert_equal 'bar', s.data['foo']
-    assert s.save
-    assert_equal 'bar', s.data['foo']
+class ActiveRecordStoreTest < ActionController::IntegrationTest
+  DispatcherApp = ActionController::Dispatcher.new
+  SessionApp = ActiveRecord::SessionStore.new(DispatcherApp,
+                :key => '_session_id')
+  SessionAppWithFixation = ActiveRecord::SessionStore.new(DispatcherApp,
+                            :key => '_session_id', :cookie_only => false)
 
-    assert_not_nil t = session_class.find_by_session_id('1234')
-    assert_not_nil t.data
-    assert_equal 'bar', t.data['foo']
+  class TestController < ActionController::Base
+    def no_session_access
+      head :ok
+    end
+
+    def set_session_value
+      session[:foo] = params[:foo] || "bar"
+      head :ok
+    end
+
+    def get_session_value
+      render :text => "foo: #{session[:foo].inspect}"
+    end
+
+    def rescue_action(e) raise end
   end
 
-  def test_reload_same_session
-    @new_session.update
-    reloaded = CGI::Session.new(CGI.new, 'session_id' => @new_session.session_id, 'database_manager' => CGI::Session::ActiveRecordStore)
-    assert_equal 'bar', reloaded['foo']
+  def setup
+    ActiveRecord::SessionStore.session_class.create_table!
+    @integration_session = open_session(SessionApp)
   end
 
-  def test_tolerates_close_close
-    assert_nothing_raised do
-      @new_session.close
-      @new_session.close
+  def teardown
+    ActiveRecord::SessionStore.session_class.drop_table!
+  end
+
+  def test_setting_and_getting_session_value
+    with_test_route_set do
+      get '/set_session_value'
+      assert_response :success
+      assert cookies['_session_id']
+
+      get '/get_session_value'
+      assert_response :success
+      assert_equal 'foo: "bar"', response.body
+
+      get '/set_session_value', :foo => "baz"
+      assert_response :success
+      assert cookies['_session_id']
+
+      get '/get_session_value'
+      assert_response :success
+      assert_equal 'foo: "baz"', response.body
     end
   end
-end
 
-class ActiveRecordStoreTest < ActiveRecordTestCase
-  include CommonActiveRecordStoreTests
-
-  def session_class
-    CGI::Session::ActiveRecordStore::Session
-  end
-
-  def session_id_column
-    "session_id"
-  end
-
-  def setup
-    session_class.create_table!
-
-    ENV['REQUEST_METHOD'] = 'GET'
-    ENV['REQUEST_URI'] = '/'
-    CGI::Session::ActiveRecordStore.session_class = session_class
-
-    @cgi = CGI.new
-    @new_session = CGI::Session.new(@cgi, 'database_manager' => CGI::Session::ActiveRecordStore, 'new_session' => true)
-    @new_session['foo'] = 'bar'
-  end
-
-# this test only applies for eager session saving
-#  def test_another_instance
-#    @another = CGI::Session.new(@cgi, 'session_id' => @new_session.session_id, 'database_manager' => CGI::Session::ActiveRecordStore)
-#    assert_equal @new_session.session_id, @another.session_id
-#  end
-
-  def test_model_attribute
-    assert_kind_of CGI::Session::ActiveRecordStore::Session, @new_session.model
-    assert_equal({ 'foo' => 'bar' }, @new_session.model.data)
-  end
-
-  def test_save_unloaded_session
-    c = session_class.connection
-    bogus_class = c.quote(ActiveSupport::Base64.encode64("\004\010o:\vBlammo\000"))
-    c.insert("INSERT INTO #{session_class.table_name} ('#{session_id_column}', 'data') VALUES ('abcdefghijklmnop', #{bogus_class})")
-
-    sess = session_class.find_by_session_id('abcdefghijklmnop')
-    assert_not_nil sess
-    assert !sess.loaded?
-
-    # because the session is not loaded, the save should be a no-op. If it
-    # isn't, this'll try and unmarshall the bogus class, and should get an error.
-    assert_nothing_raised { sess.save }
-  end
-
-  def teardown
-    session_class.drop_table!
-  end
-end
-
-class ColumnLimitTest < ActiveRecordTestCase
-  def setup
-    @session_class = CGI::Session::ActiveRecordStore::Session
-    @session_class.create_table!
-  end
-
-  def teardown
-    @session_class.drop_table!
-  end
-
-  def test_protection_from_data_larger_than_column
-    # Can't test this unless there is a limit
-    return unless limit = @session_class.data_column_size_limit
-    too_big = ':(' * limit
-    s = @session_class.new(:session_id => '666', :data => {'foo' => too_big})
-    s.data
-    assert_raise(ActionController::SessionOverflowError) { s.save }
-  end
-end
-
-class DeprecatedActiveRecordStoreTest < ActiveRecordStoreTest
-  def session_id_column
-    "sessid"
-  end
-
-  def setup
-    session_class.connection.execute 'create table old_sessions (id integer primary key, sessid text unique, data text)'
-    session_class.table_name = 'old_sessions'
-    session_class.send :setup_sessid_compatibility!
-
-    ENV['REQUEST_METHOD'] = 'GET'
-    CGI::Session::ActiveRecordStore.session_class = session_class
-
-    @new_session = CGI::Session.new(CGI.new, 'database_manager' => CGI::Session::ActiveRecordStore, 'new_session' => true)
-    @new_session['foo'] = 'bar'
-  end
-
-  def teardown
-    session_class.connection.execute 'drop table old_sessions'
-    session_class.table_name = 'sessions'
-  end
-end
-
-class SqlBypassActiveRecordStoreTest < ActiveRecordStoreTest
-  def session_class
-    unless defined? @session_class
-      @session_class = CGI::Session::ActiveRecordStore::SqlBypass
-      @session_class.connection = CGI::Session::ActiveRecordStore::Session.connection
+  def test_getting_nil_session_value
+    with_test_route_set do
+      get '/get_session_value'
+      assert_response :success
+      assert_equal 'foo: nil', response.body
     end
-    @session_class
   end
 
-  def test_model_attribute
-    assert_kind_of CGI::Session::ActiveRecordStore::SqlBypass, @new_session.model
-    assert_equal({ 'foo' => 'bar' }, @new_session.model.data)
+  def test_prevents_session_fixation
+    with_test_route_set do
+      get '/set_session_value'
+      assert_response :success
+      assert cookies['_session_id']
+
+      get '/get_session_value'
+      assert_response :success
+      assert_equal 'foo: "bar"', response.body
+      session_id = cookies['_session_id']
+      assert session_id
+
+      reset!
+
+      get '/set_session_value', :_session_id => session_id, :foo => "baz"
+      assert_response :success
+      assert_equal nil, cookies['_session_id']
+
+      get '/get_session_value', :_session_id => session_id
+      assert_response :success
+      assert_equal 'foo: nil', response.body
+      assert_equal nil, cookies['_session_id']
+    end
   end
+
+  def test_allows_session_fixation
+    @integration_session = open_session(SessionAppWithFixation)
+
+    with_test_route_set do
+      get '/set_session_value'
+      assert_response :success
+      assert cookies['_session_id']
+
+      get '/get_session_value'
+      assert_response :success
+      assert_equal 'foo: "bar"', response.body
+      session_id = cookies['_session_id']
+      assert session_id
+
+      reset!
+      @integration_session = open_session(SessionAppWithFixation)
+
+      get '/set_session_value', :_session_id => session_id, :foo => "baz"
+      assert_response :success
+      assert_equal session_id, cookies['_session_id']
+
+      get '/get_session_value', :_session_id => session_id
+      assert_response :success
+      assert_equal 'foo: "baz"', response.body
+      assert_equal session_id, cookies['_session_id']
+    end
+  end
+
+  private
+    def with_test_route_set
+      with_routing do |set|
+        set.draw do |map|
+          map.with_options :controller => "active_record_store_test/test" do |c|
+            c.connect "/:action"
+          end
+        end
+        yield
+      end
+    end
 end
