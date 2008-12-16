@@ -144,13 +144,11 @@ end
 <p><%= flash[:notice] %></p>
 -------------------------------------------------------
 
-TODO insert note about #t helper compared to I18n.t
-
-TODO insert note/reference about structuring translation keys
-
 When you now render this view it will show an error message that tells you that the translations for the keys :hello_world and :hello_flash are missing.
 
 TODO screenshot
+
+NOTE: Rails adds a +t+ (+translate+) helper method to your views so that you do not need to spell out +I18n.t+ all the time. Additionally this helper will catch missing translations and wrap the resulting error message into a &lt;span class="translation_missing"&gt;.
 
 So let's add the missing translations (i.e. do the "localization" part):
 
@@ -237,7 +235,7 @@ I18n.t :missing, :default => 'Not here'
 
 If the default value is a Symbol it will be used as a key and translated. One can provide multiple values as default. The first one that results in a value will be returned.
 
-E.g. the following first tries to translate the key :missing and then the key :also_missing. As both do not yield a result the string ‘Not here’ will be returned:
+E.g. the following first tries to translate the key :missing and then the key :also_missing. As both do not yield a result the string "Not here" will be returned:
 
 [source, ruby]
 -------------------------------------------------------
