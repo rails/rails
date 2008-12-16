@@ -29,6 +29,14 @@ translate         # lookup translations
 localize          # localize Date and Time objects to local formats
 -------------------------------------------------------
 
+These have the aliases #t and #l so you can use them like this:
+
+[source, ruby]
+-------------------------------------------------------
+I18n.t 'store.title'
+I18n.l Time.now
+-------------------------------------------------------
+
 There are also attribute readers and writers for the following attributes:
 
 [source, ruby]
