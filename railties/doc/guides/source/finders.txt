@@ -238,6 +238,40 @@ Client.all(:conditions =>
 
 This makes for clearer readability if you have a large number of variable conditions.
 
+=== Hash Conditions == 
+
+Rails also allows you to pass in a hash conditions too which can increase the readability of your conditions syntax. With hash conditions, you pass in a hash with keys of the fields you want conditionalised and the values of how you want to conditionalise them:
+
+[source, ruby]
+-------------------------------------------------------
+Client.all(:conditions => { :locked => true })
+-------------------------------------------------------
+
+The field name does not have to be a symbol it can also be a string:
+
+[source, ruby]
+-------------------------------------------------------
+Client.all(:conditions => { 'locked' => true })
+-------------------------------------------------------
+
+The good thing about this is that we can pass in a range for our fields without it generating a large query as shown in the preamble of this section.
+
+[source, ruby]
+-------------------------------------------------------
+Client.all(:conditions => { :created_at => ((Time.now.midnight - 1.day)..Time.now.midnight})
+-------------------------------------------------------
+
+This will find all clients created yesterday.
+
+You can also join in tables and specify their columns in the hash:
+
+[source, ruby]
+-------------------------------------------------------
+Client.all(:include => "orders", :conditions => { 'orders.created_at; => ((Time.now.midnight - 1.day)..Time.now.midnight})
+-------------------------------------------------------
+
+This will find all clients who have orders that were created yesterday.
+
 == Ordering
 
 If you're getting a set of records and want to force an order, you can use +Client.all(:order => "created_at")+ which by default will sort the records by ascending order. If you'd like to order it in descending order, just tell it to do that using +Client.all(:order => "created_at desc")+
@@ -677,6 +711,7 @@ Thanks to Mike Gunderloy for his tips on creating this guide.
 
 http://rails.lighthouseapp.com/projects/16213-rails-guides/tickets/16[Lighthouse ticket]
 
+* December 16 2008: Covered hash conditions that were introduced in Rails 2.2.2.
 * December 1 2008: Added using an SQL function example to Selecting Certain Fields section as per http://rails.lighthouseapp.com/projects/16213/tickets/36-adding-an-example-for-using-distinct-to-ar-finders[this ticket]
 * November 23 2008: Added documentation for +find_by_last+ and +find_by_bang!+
 * November 21 2008: Fixed all points specified in http://rails.lighthouseapp.com/projects/16213-rails-guides/tickets/16-activerecord-finders#ticket-16-13[this comment] and http://rails.lighthouseapp.com/projects/16213-rails-guides/tickets/16-activerecord-finders#ticket-16-14[this comment]
