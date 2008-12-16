@@ -17,9 +17,15 @@ module ActionController #:nodoc:
         cgi_options = ActionController::Base.session_options
         options = cgi_options.symbolize_keys
         options = DEFAULT_OPTIONS.merge(options)
-        options[:path] = options.delete(:session_path)
-        options[:key] = options.delete(:session_key)
-        options[:httponly] = options.delete(:session_http_only)
+        if options.has_key?(:session_path)
+          options[:path] = options.delete(:session_path)
+        end
+        if options.has_key?(:session_key)
+          options[:key] = options.delete(:session_key)
+        end
+        if options.has_key?(:session_http_only)
+          options[:httponly] = options.delete(:session_http_only)
+        end
 
         if store = ActionController::Base.session_store
           store.new(app, options)
