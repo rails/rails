@@ -28,6 +28,10 @@ module ActionView #:nodoc:
       @@template_handlers[extension.to_sym] = klass
     end
 
+    def valid_extension?(extension)
+      template_handler_extensions.include?(extension) || init_path_for_extension(extension)
+    end
+
     def template_handler_extensions
       @@template_handlers.keys.map(&:to_s).sort
     end
@@ -38,7 +42,26 @@ module ActionView #:nodoc:
     end
 
     def handler_class_for_extension(extension)
-      (extension && @@template_handlers[extension.to_sym]) || @@default_template_handlers
+      (extension && @@template_handlers[extension.to_sym] || autoload_handler_class(extension)) ||
+        @@default_template_handlers
     end
+
+    private
+      def autoload_handler_class(extension)
+        return if Gem.loaded_specs[extension]
+        return unless init_path = init_path_for_extension(extension)
+        Gem.activate(extension)
+        load(init_path)
+        handler_class_for_extension(extension)
+      end
+
+      # Returns the path to the rails/init.rb file for the given extension,
+      # or nil if no gem provides it.
+      def init_path_for_extension(extension)
+        return unless spec = Gem.searcher.find(extension.to_s)
+        returning File.join(spec.full_gem_path, 'rails', 'init.rb') do |path|
+          return unless File.file?(path)
+        end
+      end
   end
 end

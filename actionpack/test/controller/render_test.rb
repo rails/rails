@@ -208,6 +208,10 @@ class TestController < ActionController::Base
   def greeting
     # let's just rely on the template
   end
+  
+  def blank_response
+    render :text => ' '
+  end
 
   def layout_test
     render :action => "hello_world"
@@ -1310,21 +1314,28 @@ class RenderTest < ActionController::TestCase
   def test_partial_collection_with_spacer
     get :partial_collection_with_spacer
     assert_equal "Hello: davidonly partialHello: mary", @response.body
+    assert_template :partial => 'test/_partial_only'
+    assert_template :partial => '_customer'
   end
 
   def test_partial_collection_shorthand_with_locals
     get :partial_collection_shorthand_with_locals
     assert_equal "Bonjour: davidBonjour: mary", @response.body
+    assert_template :partial => 'customers/_customer', :count => 2
+    assert_template :partial => '_completely_fake_and_made_up_template_that_cannot_possibly_be_rendered', :count => 0
   end
 
   def test_partial_collection_shorthand_with_different_types_of_records
     get :partial_collection_shorthand_with_different_types_of_records
     assert_equal "Bonjour bad customer: mark0Bonjour good customer: craig1Bonjour bad customer: john2Bonjour good customer: zach3Bonjour good customer: brandon4Bonjour bad customer: dan5", @response.body
+    assert_template :partial => 'good_customers/_good_customer', :count => 3
+    assert_template :partial => 'bad_customers/_bad_customer', :count => 3
   end
 
   def test_empty_partial_collection
     get :empty_partial_collection
     assert_equal " ", @response.body
+    assert_template :partial => false
   end
 
   def test_partial_with_hash_object
@@ -1372,6 +1383,11 @@ class EtagRenderTest < ActionController::TestCase
   def setup
     @request.host = "www.nextangle.com"
     @expected_bang_etag = etag_for(expand_key([:foo, 123]))
+  end
+  
+  def test_render_blank_body_shouldnt_set_etag
+    get :blank_response
+    assert !@response.etag?
   end
 
   def test_render_200_should_set_etag

@@ -45,8 +45,10 @@ module ActionController
     end
 
     cattr_accessor :middleware
-    self.middleware = MiddlewareStack.new
-    self.middleware.use "ActionController::Failsafe"
+    self.middleware = MiddlewareStack.new do |middleware|
+      middleware.use "ActionController::Failsafe"
+      middleware.use "ActionController::SessionManagement::Middleware"
+    end
 
     include ActiveSupport::Callbacks
     define_callbacks :prepare_dispatch, :before_dispatch, :after_dispatch
@@ -89,7 +91,7 @@ module ActionController
 
     def _call(env)
       @request = RackRequest.new(env)
-      @response = RackResponse.new(@request)
+      @response = RackResponse.new
       dispatch
     end
 

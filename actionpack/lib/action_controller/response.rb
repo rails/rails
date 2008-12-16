@@ -115,7 +115,11 @@ module ActionController # :nodoc:
     end
     
     def etag=(etag)
-      headers['ETag'] = %("#{Digest::MD5.hexdigest(ActiveSupport::Cache.expand_cache_key(etag))}")
+      if etag.blank?
+        headers.delete('ETag')
+      else
+        headers['ETag'] = %("#{Digest::MD5.hexdigest(ActiveSupport::Cache.expand_cache_key(etag))}")
+      end
     end
 
     def redirect(url, status)

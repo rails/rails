@@ -39,7 +39,7 @@ module ActionController #:nodoc:
     }
 
     RESCUES_TEMPLATE_PATH = ActionView::PathSet::Path.new(
-      "#{File.dirname(__FILE__)}/templates", true)
+      File.join(File.dirname(__FILE__), "templates"), true)
 
     def self.included(base) #:nodoc:
       base.cattr_accessor :rescue_responses

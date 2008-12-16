@@ -587,7 +587,7 @@ module ActionController
         def response_from_page_or_rjs()
           content_type = @response.content_type
 
-          if content_type && content_type =~ /text\/javascript/
+          if content_type && Mime::JS =~ content_type
             body = @response.body.dup
             root = HTML::Node.new(nil)
 

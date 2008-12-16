@@ -227,9 +227,7 @@ module ActionController
       def xml_http_request(request_method, path, parameters = nil, headers = nil)
         headers ||= {}
         headers['X-Requested-With'] = 'XMLHttpRequest'
-        headers['Accept'] ||= 'text/javascript, text/html, application/xml, ' +
-                              'text/xml, */*'
-
+        headers['Accept'] ||= [Mime::JS, Mime::HTML, Mime::XML, 'text/xml', Mime::ALL].join(', ')
         process(request_method, path, parameters, headers)
       end
       alias xhr :xml_http_request
@@ -491,8 +489,8 @@ EOF
       # By default, a single session is automatically created for you, but you
       # can use this method to open multiple sessions that ought to be tested
       # simultaneously.
-      def open_session
-        application = ActionController::Dispatcher.new
+      def open_session(application = nil)
+        application ||= ActionController::Dispatcher.new
         session = Integration::Session.new(application)
 
         # delegate the fixture accessors back to the test instance

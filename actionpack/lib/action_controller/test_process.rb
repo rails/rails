@@ -221,8 +221,8 @@ module ActionController #:nodoc:
 
     # Returns the template of the file which was used to
     # render this response (or nil)
-    def rendered_template
-      template.instance_variable_get(:@_first_render)
+    def rendered
+      template.instance_variable_get(:@_rendered)
     end
 
     # A shortcut to the flash. Returns an empty hash if no session flash exists.
@@ -232,7 +232,7 @@ module ActionController #:nodoc:
 
     # Do we have a flash?
     def has_flash?
-      !session['flash'].empty?
+      !flash.empty?
     end
 
     # Do we have a flash that has contents?
@@ -413,7 +413,7 @@ module ActionController #:nodoc:
 
     def xml_http_request(request_method, action, parameters = nil, session = nil, flash = nil)
       @request.env['HTTP_X_REQUESTED_WITH'] = 'XMLHttpRequest'
-      @request.env['HTTP_ACCEPT'] = 'text/javascript, text/html, application/xml, text/xml, */*'
+      @request.env['HTTP_ACCEPT'] =  [Mime::JS, Mime::HTML, Mime::XML, 'text/xml', Mime::ALL].join(', ')
       returning __send__(request_method, action, parameters, session, flash) do
         @request.env.delete 'HTTP_X_REQUESTED_WITH'
         @request.env.delete 'HTTP_ACCEPT'

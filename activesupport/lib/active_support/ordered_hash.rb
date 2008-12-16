@@ -18,11 +18,21 @@ module ActiveSupport
       end
 
       def delete(key)
-        array_index = has_key?(key) && index(key)
-        if array_index
-          @keys.delete_at(array_index)
+        if has_key? key
+          index = @keys.index(key)
+          @keys.delete_at index
         end
         super
+      end
+
+      def reject!
+        super
+        sync_keys!
+        self
+      end
+
+      def reject(&block)
+        dup.reject!(&block)
       end
 
       def keys
@@ -47,6 +57,32 @@ module ActiveSupport
 
       def each
         keys.each {|key| yield [key, self[key]]}
+      end
+
+      alias_method :each_pair, :each
+
+      def clear
+        super
+        @keys.clear
+        self
+      end
+
+      def shift
+        k = @keys.first
+        v = delete(k)
+        [k, v]
+      end
+
+      def merge(other_hash)
+        result = dup
+        other_hash.each {|k,v| result[k]=v}
+        result
+      end
+
+      private
+
+      def sync_keys!
+        @keys.delete_if {|k| !has_key?(k)}
       end
     end
   end

@@ -1,5 +1,7 @@
 *2.3.0 [Edge]*
 
+* Fixed that send_file shouldn't set an etag #1578 [Hongli Lai]
+
 * Allow users to opt out of the spoofing checks in Request#remote_ip.  Useful for sites whose traffic regularly triggers false positives. [Darren Boyd]
 
 * Deprecated formatted_polymorphic_url.  [Jeremy Kemper]
