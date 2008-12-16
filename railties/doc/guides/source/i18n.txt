@@ -468,26 +468,25 @@ So, for example, instead of the default error message "can not be blank" you cou
 
 count and/or value are available where applicable. Count can be used for pluralization if present:
 
-[grid="all"]
-`---------------------------`----------------`---------------`----------------
-validation                   with option      message         interpolation
-validates_confirmation_of    -                :confirmation   -                 
-validates_acceptance_of      -                :accepted       -                 
-validates_presence_of        -                :blank          -                 
-validates_length_of          :within, :in     :too_short      count             
-validates_length_of          :within, :in     :too_long       count             
-validates_length_of          :is              :wrong_length   count             
-validates_length_of          :minimum         :too_short      count             
-validates_length_of          :maximum         :too_long       count             
-validates_uniqueness_of      -                :taken          value             
-validates_format_of          -                :invalid        value             
-validates_inclusion_of       -                :inclusion      value             
-validates_exclusion_of       -                :exclusion      value             
-validates_associated         -                :invalid        value             
-validates_numericality_of    -                :not_a_number   value             
-validates_numericality_of    :odd             :odd            value             
-validates_numericality_of    :even            :even           value             
-------------------------------------------------------------------------------
+|==================================================================================
+| validation                   | with option      | message         | interpolation
+| validates_confirmation_of    | -                | :confirmation   | -
+| validates_acceptance_of      | -                | :accepted       | -
+| validates_presence_of        | -                | :blank          | -
+| validates_length_of          | :within, :in     | :too_short      | count
+| validates_length_of          | :within, :in     | :too_long       | count
+| validates_length_of          | :is              | :wrong_length   | count
+| validates_length_of          | :minimum         | :too_short      | count
+| validates_length_of          | :maximum         | :too_long       | count
+| validates_uniqueness_of      | -                | :taken          | value
+| validates_format_of          | -                | :invalid        | value
+| validates_inclusion_of       | -                | :inclusion      | value
+| validates_exclusion_of       | -                | :exclusion      | value
+| validates_associated         | -                | :invalid        | value
+| validates_numericality_of    | -                | :not_a_number   | value
+| validates_numericality_of    | :odd             | :odd            | value
+| validates_numericality_of    | :even            | :even           | value
+|==================================================================================
 
 
 ==== Translations for the ActiveRecord error_messages_for helper
