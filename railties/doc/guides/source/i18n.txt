@@ -97,13 +97,15 @@ def set_locale
 end
 -------------------------------------------------------
 
-This will already work for URLs where you pass the locale as a query parameter as in example.com?locale=pt (which is what Google also does). (TODO hints about other approaches in the resources section).
+This will already work for URLs where you pass the locale as a query parameter as in example.com?locale=pt (which is what Google also does). 
+
+TIP: For other URL designs, see <<1>>.
 
 Now you've initialized I18n support for your application and told it which locale should be used. With that in place you're now ready for the really interesting stuff.
 
 === Internationalize your application
 
-The process of "internationalization" usually means to abstract all strings and other locale specific bits out of your application. The process of "localization" means to then provide translations and localized formats for these bits. (0)
+The process of "internationalization" usually means to abstract all strings and other locale specific bits out of your application. The process of "localization" means to then provide translations and localized formats for these bits. <<2>>
 
 So, let's internationalize something. You most probably have something like this in one of your applications:
 
@@ -334,7 +336,7 @@ I18n.default_locale = :de
 
 == How to store your custom translations
 
-The shipped Simple backend allows you to store translations in both plain Ruby and YAML format. (2)
+The shipped Simple backend allows you to store translations in both plain Ruby and YAML format. <<3>>
 
 For example a Ruby Hash providing translations can look like this:
 
@@ -520,7 +522,7 @@ TODO list helpers and available keys
 
 === Using different backends
 
-For several reasons the shipped Simple backend only does the "simplest thing that ever could work" _for Ruby on Rails_ (1) ... which means that it is only guaranteed to work for English and, as a side effect, languages that are very similar to English. Also, the simple backend is only capable of reading translations but can not dynamically store them to any format.
+For several reasons the shipped Simple backend only does the "simplest thing that ever could work" _for Ruby on Rails_ <<4>> ... which means that it is only guaranteed to work for English and, as a side effect, languages that are very similar to English. Also, the simple backend is only capable of reading translations but can not dynamically store them to any format.
 
 That does not mean you're stuck with these limitations though. The Ruby I18n gem makes it very easy to exchange the Simple backend implementation with something else that fits better for your needs. E.g. you could exchange it with Globalize's Static backend:
 
@@ -577,13 +579,13 @@ I18n.t :foo, :raise => true # always re-raises exceptions from the backend
 
 == Footnotes
 
-TODO make these anchors
+[[[1]]] TODO add resources about locale URL design 
 
-(0) Or, to quote http://en.wikipedia.org/wiki/Internationalization_and_localization[Wikipedia]: _"Internationalization is the process of designing a software application so that it can be adapted to various languages and regions without engineering changes. Localization is the process of adapting software for a specific region or language by adding locale-specific components and translating text."_
+[[[2]]] Or, to quote http://en.wikipedia.org/wiki/Internationalization_and_localization[Wikipedia]: _"Internationalization is the process of designing a software application so that it can be adapted to various languages and regions without engineering changes. Localization is the process of adapting software for a specific region or language by adding locale-specific components and translating text."_
 
-(1) One of these reasons is that we don't want to any unnecessary load for applications that do not need any I18n capabilities, so we need to keep the I18n library as simple as possible for English. Another reason is that it is virtually impossible to implement a one-fits-all solution for all problems related to I18n for all existing languages. So a solution that allows us to exchange the entire implementation easily is appropriate anyway. This also makes it much easier to experiment with custom features and extensions.
+[[[3]]] Other backends might allow or require to use other formats, e.g. a GetText backend might allow to read GetText files.
 
-(2) Other backends might allow or require to use other formats, e.g. a GetText backend might allow to read GetText files.
+[[[4]]] One of these reasons is that we don't want to any unnecessary load for applications that do not need any I18n capabilities, so we need to keep the I18n library as simple as possible for English. Another reason is that it is virtually impossible to implement a one-fits-all solution for all problems related to I18n for all existing languages. So a solution that allows us to exchange the entire implementation easily is appropriate anyway. This also makes it much easier to experiment with custom features and extensions.
 
 == Credits
 
