@@ -27,8 +27,8 @@ module ActionController #:nodoc:
     def self.included(base)
       base.class_eval do
         include InstanceMethods
-        alias_method_chain :assign_shortcuts, :flash
-        alias_method_chain :reset_session,    :flash
+        alias_method_chain :perform_action, :flash
+        alias_method_chain :reset_session,  :flash
       end
     end
 
@@ -135,22 +135,26 @@ module ActionController #:nodoc:
 
     module InstanceMethods #:nodoc:
       protected
+        def perform_action_with_flash
+          perform_action_without_flash
+          remove_instance_variable(:@_flash) if defined? @_flash
+        end
+
         def reset_session_with_flash
           reset_session_without_flash
-          remove_instance_variable(:@_flash)
+          remove_instance_variable(:@_flash) if defined? @_flash
         end
 
         # Access the contents of the flash. Use <tt>flash["notice"]</tt> to
         # read a notice you put there or <tt>flash["notice"] = "hello"</tt>
         # to put a new one.
         def flash #:doc:
-          @_flash ||= session["flash"] ||= FlashHash.new
-        end
+          unless defined? @_flash
+            @_flash = session["flash"] ||= FlashHash.new
+            @_flash.sweep
+          end
 
-      private
-        def assign_shortcuts_with_flash(request, response) #:nodoc:
-          assign_shortcuts_without_flash(request, response)
-          flash.sweep if @_session
+          @_flash
         end
     end
   end

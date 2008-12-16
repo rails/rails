@@ -232,7 +232,7 @@ module ActionController #:nodoc:
 
     # Do we have a flash?
     def has_flash?
-      !session['flash'].empty?
+      !flash.empty?
     end
 
     # Do we have a flash that has contents?
