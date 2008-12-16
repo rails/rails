@@ -31,11 +31,13 @@ module ActiveRecord
 
         @primary = nil
       end
-
+      
+      # Returns +true+ if the column is either of type string or text.
       def text?
         type == :string || type == :text
       end
-
+      
+      # Returns +true+ if the column is either of type integer, float or decimal.
       def number?
         type == :integer || type == :float || type == :decimal
       end
