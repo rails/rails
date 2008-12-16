@@ -74,30 +74,11 @@ module ActionController
         freeze
       end
 
-      class SessionHash < Hash
-        def initialize(middleware, env)
-          @middleware = middleware
-          @env = env
-          @loaded = false
-        end
-
-        def [](key)
-          load! unless @loaded
-          super
-        end
-
-        def []=(key, value)
-          load! unless @loaded
-          super
-        end
-
-        def to_hash
-          {}.replace(self)
-        end
-
+      class SessionHash < AbstractStore::SessionHash
         private
           def load!
-            replace(@middleware.send(:load_session, @env))
+            session = @by.send(:load_session, @env)
+            replace(session)
             @loaded = true
           end
       end

@@ -32,7 +32,9 @@ module ActionController
         end
 
         def to_hash
-          {}.replace(self)
+          h = {}.replace(self)
+          h.delete_if { |k,v| v.nil? }
+          h
         end
 
         private
