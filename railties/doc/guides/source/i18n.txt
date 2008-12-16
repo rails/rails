@@ -278,13 +278,13 @@ If a translation uses :default or :scope as a interpolation variable an I18n::Re
 
 === Pluralization
 
-TODO explain what this is good for
+In English there's only a singular and a plural form for a given string, e.g. "1 message" and "2 messages". Other languages (http://www.unicode.org/cldr/data/charts/supplemental/language_plural_rules.html#ar[Arabic], http://www.unicode.org/cldr/data/charts/supplemental/language_plural_rules.html#ja[Japanese], http://www.unicode.org/cldr/data/charts/supplemental/language_plural_rules.html#ru[Russian] and many more) have different grammars that have additional or less http://www.unicode.org/cldr/data/charts/supplemental/language_plural_rules.html[plural forms]. Thus, the I18n API provides a flexible pluralization feature.
 
 The :count interpolation variable has a special role in that it both is interpolated to the translation and used to pick a pluralization from the translations according to the pluralization rules defined by CLDR:
 
 [source, ruby]
 -------------------------------------------------------
-I18n.backend.store_translations :en, :inbox => { # TODO change this
+I18n.backend.store_translations :en, :inbox => {
   :one => '1 message', 
   :other => '{{count}} messages'
 }
