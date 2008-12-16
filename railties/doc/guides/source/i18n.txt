@@ -579,7 +579,7 @@ I18n.t :foo, :raise => true # always re-raises exceptions from the backend
 
 == Footnotes
 
-[[[1]]] TODO add resources about locale URL design 
+[[[1]]] see http://rails-i18n.org/wiki/pages/how-to-encode-the-current-locale-in-the-url
 
 [[[2]]] Or, to quote http://en.wikipedia.org/wiki/Internationalization_and_localization[Wikipedia]: _"Internationalization is the process of designing a software application so that it can be adapted to various languages and regions without engineering changes. Localization is the process of adapting software for a specific region or language by adding locale-specific components and translating text."_
 
