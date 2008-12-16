@@ -12,7 +12,7 @@ Internationalization is a complex problem. Natural languages differ in so many w
 
 === The overall architecture of the library
 
-To solve this the Ruby I18n gem is split into two parts:
+Thus, the Ruby I18n gem is split into two parts:
 
 * The public API which is just a Ruby module with a bunch of public methods and definitions how the library works.
 * A shipped backend (which is intentionally named the Simple backend) that implements these methods.
@@ -46,9 +46,30 @@ There are just a few, simple steps to get up and running with a I18n support for
 
 === Configure the I18n module
 
-First of all you want to tell the I18n library where it can find your custom translation files. You might also want to set your default locale to something else than English.
+Rails will wire up all required settings for you with sane defaults. If you need different settings you can overwrite them easily.
 
-You can pick whatever directory and translation file naming scheme makes sense for you. The simplest thing possible is probably to put the following into an initializer:
+The I18n library will use English (:en) as a *default locale* by default. I.e if you don't set a different locale, :en will be used for looking up translations. Also, Rails adds all files from config/locales/*.rb,yml to your translations load path. 
+
+The *translations load path* (I18n.load_path) is just a Ruby Array of paths to your translation files that will be loaded automatically and available in your application. You can pick whatever directory and translation file naming scheme makes sense for you. 
+
+(Hint: The backend will lazy-load these translations when a translation is looked up for the first time. This makes it possible to just swap the backend with something else even after translations have already been announced.)
+
+The default environment.rb says:
+
+[source, ruby]
+-------------------------------------------------------
+# The internationalization framework can be changed
+# to have another default locale (standard is :en) or more load paths.
+# All files from config/locales/*.rb,yml are added automatically.
+# config.i18n.load_path << Dir[File.join(RAILS_ROOT, 'my', 'locales', '*.{rb,yml}')]
+# config.i18n.default_locale = :de
+-------------------------------------------------------
+
+=== Optional: custom I18n configuration setup
+
+For the sake of completeness let's mention that if you do not want to use the environment for some reason you can always wire up things manually, too.
+
+To tell the I18n library where it can find your custom translation files you can specify the load path anywhere in your application - just make sure it gets run before any translations are actually looked up. You might also want to change the default locale. The simplest thing possible is to put the following into an initializer:
 
 [source, ruby]
 -------------------------------------------------------
@@ -58,14 +79,12 @@ You can pick whatever directory and translation file naming scheme makes sense f
 I18n.load_path += Dir[ File.join(RAILS_ROOT, 'lib', 'locale', '*.{rb,yml}') ]
 
 # you can omit this if you're happy with English as a default locale
-I18n.default_locale = :"pt" 
+I18n.default_locale = :pt
 -------------------------------------------------------
-
-I18n.load_path is just a Ruby Array of paths to your translation files. The backend will lazy-load these translations when a translation is looked up for the first time. This makes it possible to just swap the backend with something else even after translations have already been announced.
 
 === Set the locale in each request
 
-By default the I18n library will use the I18n.default_locale for looking up translations (if you do not specify a locale for a lookup) and this will, by default, en (English).
+By default the I18n library will use :en (English) as a I18n.default_locale for looking up translations (if you do not specify a locale for a lookup).
 
 If you want to translate your Rails application to a single language other than English you can set I18n.default_locale to your locale. If you want to change the locale on a per-request basis though you can set it in a before_filter on the ApplicationController like this:
 
@@ -78,7 +97,7 @@ def set_locale
 end
 -------------------------------------------------------
 
-This will already work for URLs where you pass the locale as a query parameter as in example.com?locale=pt-BR (which is what Google also does). (TODO hints about other approaches in the resources section).
+This will already work for URLs where you pass the locale as a query parameter as in example.com?locale=pt (which is what Google also does). (TODO hints about other approaches in the resources section).
 
 Now you've initialized I18n support for your application and told it which locale should be used. With that in place you're now ready for the really interesting stuff.
 
@@ -138,7 +157,7 @@ So let's add the missing translations (i.e. do the "localization" part):
 [source, ruby]
 -------------------------------------------------------
 # lib/locale/en.yml
-en-US:
+en:
   hello_world: Hello World
   hello_flash: Hello Flash
   
@@ -252,7 +271,7 @@ All options besides :default and :scope that are passed to #translate will be in
 
 [source, ruby]
 -------------------------------------------------------
-I18n.backend.store_translations 'en', :thanks => 'Thanks {{name}}!'
+I18n.backend.store_translations :en, :thanks => 'Thanks {{name}}!'
 I18n.translate :thanks, :name => 'Jeremy'
 # => 'Thanks Jeremy!'
 -------------------------------------------------------
@@ -267,7 +286,7 @@ The :count interpolation variable has a special role in that it both is interpol
 
 [source, ruby]
 -------------------------------------------------------
-I18n.backend.store_translations 'en-US', :inbox => { # TODO change this
+I18n.backend.store_translations :en, :inbox => { # TODO change this
   :one => '1 message', 
   :other => '{{count}} messages'
 }
@@ -275,7 +294,7 @@ I18n.translate :inbox, :count => 2
 # => '2 messages'
 -------------------------------------------------------
 
-The algorithm for pluralizations in en-US is as simple as:
+The algorithm for pluralizations in :en is as simple as:
 
 [source, ruby]
 -------------------------------------------------------
@@ -294,7 +313,7 @@ If no locale is passed I18n.locale is used:
 
 [source, ruby]
 -------------------------------------------------------
-I18n.locale = :'de'
+I18n.locale = :de
 I18n.t :foo 
 I18n.l Time.now
 -------------------------------------------------------
@@ -303,15 +322,15 @@ Explicitely passing a locale:
 
 [source, ruby]
 -------------------------------------------------------
-I18n.t :foo, :locale => :'de'
-I18n.l Time.now, :locale => :'de'
+I18n.t :foo, :locale => :de
+I18n.l Time.now, :locale => :de
 -------------------------------------------------------
 
-I18n.locale defaults to I18n.default_locale which defaults to :'en'. The default locale can be set like this:
+I18n.locale defaults to I18n.default_locale which defaults to :en. The default locale can be set like this:
 
 [source, ruby]
 -------------------------------------------------------
-I18n.default_locale = :'de'
+I18n.default_locale = :de
 -------------------------------------------------------
 
 == How to store your custom translations
@@ -323,7 +342,7 @@ For example a Ruby Hash providing translations can look like this:
 [source, ruby]
 -------------------------------------------------------
 {
-  :'pt-BR' => {
+  :pt => {
     :foo => {
       :bar => "baz"
     }
@@ -335,18 +354,18 @@ The equivalent YAML file would look like this:
 
 [source, ruby]
 -------------------------------------------------------
-"pt-BR":
+pt:
   foo:
     bar: baz
 -------------------------------------------------------    
 
 As you see in both cases the toplevel key is the locale. :foo is a namespace key and :bar is the key for the translation "baz".
 
-Here is a "real" example from the ActiveSupport en-US translations YAML file:
+Here is a "real" example from the ActiveSupport en.yml translations YAML file:
 
 [source, ruby]
 -------------------------------------------------------
-"en":
+en:
   date:
     formats:
       default: "%Y-%m-%d"
@@ -364,12 +383,16 @@ I18n.t :short, :scope => 'date.formats'
 I18n.t :short, :scope => [:date, :formats]
 -------------------------------------------------------
 
+Generally we recommend using YAML as a format for storing translations. There are cases though where you want to store Ruby lambdas as part of your locale data, e.g. for special date 
+
 === Translations for ActiveRecord models
 
 You can use the methods Model.human_name and Model.human_attribute_name(attribute) to transparently lookup translations for your model and attribute names.
 
 For example when you add the following translations:
 
+[source, ruby]
+-------------------------------------------------------
 en:
   activerecord:
     models:
@@ -378,6 +401,7 @@ en:
       user:
         login: "Handle"
       # will translate User attribute "login" as "Handle"
+-------------------------------------------------------
       
 Then User.human_name will return "Dude" and User.human_attribute_name(:login) will return "Handle".
       
@@ -396,24 +420,21 @@ class User < ActiveRecord::Base
 end
 -------------------------------------------------------
 
-The key for the error message in this case is :blank. So ActiveRecord will first try to look up an error message with: 
+The key for the error message in this case is :blank. ActiveRecord will lookup this key in the namespaces:
+
+[source, ruby]
+-------------------------------------------------------
+activerecord.errors.messages.models.[model_name].attributes.[attribute_name]
+activerecord.errors.messages.models.[model_name]
+activerecord.errors.messages
+-------------------------------------------------------
+
+Thus, in our example it will try the following keys in this order and return the first result:
 
 [source, ruby]
 -------------------------------------------------------
 activerecord.errors.messages.models.user.attributes.name.blank
--------------------------------------------------------
-
-If it's not there it will try:
-
-[source, ruby]
--------------------------------------------------------
 activerecord.errors.messages.models.user.blank
--------------------------------------------------------
-
-If this is also not there it will use the default message from:
-
-[source, ruby]
--------------------------------------------------------
 activerecord.errors.messages.blank
 -------------------------------------------------------
 
@@ -447,7 +468,7 @@ The translated model name and translated attribute name are always available for
 
 So, for example, instead of the default error message "can not be blank" you could use the attribute name like this: "Please fill in your {{attribute}}".
 
-Count and/or value are available where applicable. Count can be used for pluralization if present:
+count and/or value are available where applicable. Count can be used for pluralization if present:
 
 [grid="all"]
 `---------------------------`----------------`---------------`----------------
@@ -479,14 +500,14 @@ Rails ships with the following translations:
 
 [source, ruby]
 -------------------------------------------------------
-"en":
+en:
   activerecord:
     errors:
       template:
         header:
           one:   "1 error prohibited this {{model}} from being saved"
           other: "{{count}} errors prohibited this {{model}} from being saved"
-        body: "There were problems with the following fields:"
+        body:    "There were problems with the following fields:"
 -------------------------------------------------------
 
 
@@ -526,7 +547,6 @@ TODO
 
 == Resources
 
-* http://rails-i18n.org
 
 == Footnotes
 
