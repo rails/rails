@@ -263,7 +263,7 @@ I18n.t 'active_record.error_messages'
 
 === Interpolation
 
-TODO explain what this is good for
+In many cases you want to abstract your translations so that variables can be interpolated into the translation. For this reason the I18n API provides an interpolation feature.
 
 All options besides :default and :scope that are passed to #translate will be interpolated to the translation:
 
