@@ -536,9 +536,7 @@ Run `rake gems:install` to install the missing gems.
     end
 
     def initialize_metal
-      Dir["#{configuration.root_path}/app/metal/*.rb"].each do |file|
-        configuration.middleware.use(File.basename(file, '.rb').camelize)
-      end
+      configuration.middleware.use Rails::Rack::Metal
     end
 
     # Initializes framework-specific settings for each of the loaded frameworks
