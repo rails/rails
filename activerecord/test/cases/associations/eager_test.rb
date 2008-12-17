@@ -145,7 +145,7 @@ class EagerAssociationTest < ActiveRecord::TestCase
   def test_finding_with_includes_on_null_belongs_to_association_with_same_include_includes_only_once
     post = posts(:welcome)
     post.update_attributes!(:author => nil)
-    post = assert_queries(2) { Post.find(post.id, :include => {:author_with_address => :author_address}) } # find the post, then find the author which is null so no query for the address
+    post = assert_queries(1) { Post.find(post.id, :include => {:author_with_address => :author_address}) } # find the post, then find the author which is null so no query for the author or address
     assert_no_queries do
       assert_equal nil, post.author_with_address
     end
@@ -705,4 +705,5 @@ class EagerAssociationTest < ActiveRecord::TestCase
   def test_order_on_join_table_with_include_and_limit
     assert_equal 5, Developer.find(:all, :include => 'projects', :order => 'developers_projects.joined_on DESC', :limit => 5).size
   end
+
 end

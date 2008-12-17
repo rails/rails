@@ -307,6 +307,7 @@ module ActiveRecord
 
         klasses_and_ids.each do |klass_and_id|
           klass_name, id_map = *klass_and_id
+          next if id_map.empty?
           klass = klass_name.constantize
 
           table_name = klass.quoted_table_name
