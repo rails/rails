@@ -200,11 +200,13 @@ Examples:
         creates a Post model with a string title, text body, and published flag.
 ------------------------------------------------------
 
-Let's set up a simple model called "HighScore" that will keep track of our highest score on video games we play. Then we'll wire up our controller and view to modify and list our scores.
+But instead of generating a model directly (which we'll be doing later), let's set up a scaffold. A *scaffold* in Rails is a full set of model, database migration for that model, controller to manipulate it, views to view and manipulate the data, and a test suite for each of the above.  
+
+Let's set up a simple resource called "HighScore" that will keep track of our highest score on video games we play.
 
 [source,shell]
 ------------------------------------------------------
-$ ./script/generate model HighScore id:integer game:string score:integer
+$ ./script/generate scaffold HighScore id:integer game:string score:integer
       exists  app/models/
       exists  test/unit/
       exists  test/fixtures/
