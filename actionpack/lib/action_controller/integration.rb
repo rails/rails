@@ -276,6 +276,7 @@ module ActionController
             "SCRIPT_NAME"     => "",
 
             "REQUEST_URI"    => path,
+            "PATH_INFO"      => path,
             "HTTP_HOST"      => host,
             "REMOTE_ADDR"    => remote_addr,
             "CONTENT_TYPE"   => "application/x-www-form-urlencoded",
@@ -310,16 +311,6 @@ module ActionController
           status, headers, body = app.call(env)
           @request_count += 1
 
-          if @controller = ActionController::Base.last_instantiation
-            @request = @controller.request
-            @response = @controller.response
-
-            # Decorate the response with the standard behavior of the
-            # TestResponse so that things like assert_response can be
-            # used in integration tests.
-            @response.extend(TestResponseBehavior)
-          end
-
           @html_document = nil
 
           @status = status.to_i
@@ -334,6 +325,22 @@ module ActionController
 
           @body = ""
           body.each { |part| @body << part }
+
+          if @controller = ActionController::Base.last_instantiation
+            @request = @controller.request
+            @response = @controller.response
+          else
+            # Decorate responses from Rack Middleware and Rails Metal
+            # as an AbstractResponse for the purposes of integration testing
+            @response = AbstractResponse.new
+            @response.headers = @headers.merge('Status' => status.to_s)
+            @response.body = @body
+          end
+
+          # Decorate the response with the standard behavior of the
+          # TestResponse so that things like assert_response can be
+          # used in integration tests.
+          @response.extend(TestResponseBehavior)
 
           return @status
         rescue MultiPartNeededException
