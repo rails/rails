@@ -84,10 +84,6 @@ module ActionController #:nodoc:
     end
 
     def out(&block)
-      # Nasty hack because CGI sessions are closed after the normal
-      # prepare! statement
-      set_cookies!
-
       @block = block
       @status = headers.delete("Status")
       if [204, 304].include?(status.to_i)
@@ -132,7 +128,7 @@ module ActionController #:nodoc:
       convert_language!
       convert_expires!
       set_status!
-      # set_cookies!
+      set_cookies!
     end
 
     private
