@@ -374,16 +374,12 @@ class IntegrationProcessTest < ActionController::IntegrationTest
 end
 
 class MetalTest < ActionController::IntegrationTest
-  require(File.dirname(__FILE__) + "/../../../railties/lib/rails/rack/metal.rb")
-
-  class Poller < ::Rails::Rack::Metal
-    def call(env)
+  class Poller
+    def self.call(env)
       if env["PATH_INFO"] =~ /^\/success/
         [200, {"Content-Type" => "text/plain"}, "Hello World!"]
-      elsif env["PATH_INFO"] =~ /^\/failure/
-        [404, {"Content-Type" => "text/plain"}, '']
       else
-        super
+        [404, {"Content-Type" => "text/plain"}, '']
       end
     end
   end
