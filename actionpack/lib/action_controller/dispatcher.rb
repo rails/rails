@@ -120,7 +120,7 @@ module ActionController
     def checkin_connections
       # Don't return connection (and peform implicit rollback) if this request is a part of integration test
       # TODO: This callback should have direct access to env
-      return if @request.key?("action_controller.test")
+      return if @request.key?("rack.test")
       ActiveRecord::Base.clear_active_connections!
     end
 

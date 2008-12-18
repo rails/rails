@@ -291,7 +291,7 @@ module ActionController
             "rack.multiprocess" => true,
             "rack.run_once"     => false,
 
-            "action_controller.test" => true
+            "rack.test" => true
           )
 
           (headers || {}).each do |key, value|
