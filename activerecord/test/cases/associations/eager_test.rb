@@ -1,6 +1,7 @@
 require "cases/helper"
 require 'models/post'
 require 'models/tagging'
+require 'models/tag'
 require 'models/comment'
 require 'models/author'
 require 'models/category'
@@ -704,6 +705,70 @@ class EagerAssociationTest < ActiveRecord::TestCase
 
   def test_order_on_join_table_with_include_and_limit
     assert_equal 5, Developer.find(:all, :include => 'projects', :order => 'developers_projects.joined_on DESC', :limit => 5).size
+  end
+
+  def test_eager_loading_with_order_on_joined_table_preloads
+    posts = assert_queries(2) do
+      Post.find(:all, :joins => :comments, :include => :author, :order => 'comments.id DESC')
+    end
+    assert_equal posts(:eager_other), posts[0]
+    assert_equal authors(:mary), assert_no_queries { posts[0].author}
+  end
+
+  def test_eager_loading_with_conditions_on_joined_table_preloads
+    posts = assert_queries(2) do
+      Post.find(:all, :select => 'distinct posts.*', :include => :author, :joins => [:comments], :conditions => "comments.body like 'Thank you%'", :order => 'posts.id')
+    end
+    assert_equal [posts(:welcome)], posts
+    assert_equal authors(:david), assert_no_queries { posts[0].author}
+
+    posts = assert_queries(2) do
+      Post.find(:all, :select => 'distinct posts.*', :include => :author, :joins => [:comments], :conditions => "comments.body like 'Thank you%'", :order => 'posts.id')
+    end
+    assert_equal [posts(:welcome)], posts
+    assert_equal authors(:david), assert_no_queries { posts[0].author}
+
+    posts = assert_queries(2) do
+      Post.find(:all, :include => :author, :joins => {:taggings => :tag}, :conditions => "tags.name = 'General'")
+    end
+    assert_equal posts(:welcome, :thinking), posts
+
+    posts = assert_queries(2) do
+      Post.find(:all, :include => :author, :joins => {:taggings => {:tag => :taggings}}, :conditions => "taggings_tags.super_tag_id=2")
+    end
+    assert_equal posts(:welcome, :thinking), posts
+
+  end
+
+  def test_eager_loading_with_conditions_on_string_joined_table_preloads
+    posts = assert_queries(2) do
+      Post.find(:all, :select => 'distinct posts.*', :include => :author, :joins => "INNER JOIN comments on comments.post_id = posts.id", :conditions => "comments.body like 'Thank you%'", :order => 'posts.id')
+    end
+    assert_equal [posts(:welcome)], posts
+    assert_equal authors(:david), assert_no_queries { posts[0].author}
+
+    posts = assert_queries(2) do
+      Post.find(:all, :select => 'distinct posts.*', :include => :author, :joins => ["INNER JOIN comments on comments.post_id = posts.id"], :conditions => "comments.body like 'Thank you%'", :order => 'posts.id')
+    end
+    assert_equal [posts(:welcome)], posts
+    assert_equal authors(:david), assert_no_queries { posts[0].author}
+
+  end
+
+  def test_eager_loading_with_select_on_joined_table_preloads
+    posts = assert_queries(2) do
+      Post.find(:all, :select => 'posts.*, authors.name as author_name', :include => :comments, :joins => :author, :order => 'posts.id')
+    end
+    assert_equal 'David', posts[0].author_name
+    assert_equal posts(:welcome).comments, assert_no_queries { posts[0].comments}
+  end
+
+  def test_eager_loading_with_conditions_on_join_model_preloads
+    authors = assert_queries(2) do
+      Author.find(:all, :include => :author_address, :joins => :comments, :conditions => "posts.title like 'Welcome%'")
+    end
+    assert_equal authors(:david), authors[0]
+    assert_equal author_addresses(:david_address), authors[0].author_address
   end
 
 end
