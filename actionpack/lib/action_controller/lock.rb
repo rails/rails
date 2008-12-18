@@ -1,18 +1,16 @@
 module ActionController
   class Lock
-    def initialize(app)
-      @app = app
-      @lock = Mutex.new
+    FLAG = 'rack.multithread'.freeze
+
+    def initialize(app, lock = Mutex.new)
+      @app, @lock = app, lock
     end
 
     def call(env)
-      old_multithread = env["rack.multithread"]
-      env["rack.multithread"] = false
-      response = @lock.synchronize do
-        @app.call(env)
-      end
-      env["rack.multithread"] = old_multithread
-      response
+      old, env[FLAG] = env[FLAG], false
+      @lock.synchronize { @app.call(env) }
+    ensure
+      env[FLAG] = old
     end
   end
 end
