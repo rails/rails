@@ -1771,7 +1771,7 @@ module ActiveRecord
               tables_in_string(merged_joins.join(' '))
             else
               join_dependency = ActiveRecord::Associations::ClassMethods::InnerJoinDependency.new(self, merged_joins, nil)
-              [table_name] + join_dependency.join_associations.collect {|join_association| [join_association.aliased_join_table_name, join_association.aliased_table_name]}.flatten.compact
+              join_dependency.join_associations.collect {|join_association| [join_association.aliased_join_table_name, join_association.aliased_table_name]}.flatten.compact
             end
           else
             tables_in_string(merged_joins)
