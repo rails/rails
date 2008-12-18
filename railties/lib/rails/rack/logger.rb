@@ -7,16 +7,16 @@ module Rails
         @app = app
         @path = Pathname.new(log || EnvironmentLog).cleanpath
         @cursor = ::File.size(@path)
-        @last_checked = Time.now
+        @last_checked = Time.now.to_f
       end
 
       def call(env)
         response = @app.call(env)
         ::File.open(@path, 'r') do |f|
           f.seek @cursor
-          if f.mtime > @last_checked
+          if f.mtime.to_f > @last_checked
             contents = f.read
-            @last_checked = f.mtime
+            @last_checked = f.mtime.to_f
             @cursor += contents.length
             print contents
           end
