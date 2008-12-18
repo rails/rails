@@ -21,6 +21,13 @@ module ActionController
           @id
         end
 
+        def session_id
+          ActiveSupport::Deprecation.warn(
+            "ActionController::Session::AbstractStore::SessionHash#session_id" +
+            "has been deprecated.Please use #id instead.", caller)
+          id
+        end
+
         def [](key)
           load! unless @loaded
           super
@@ -35,6 +42,13 @@ module ActionController
           h = {}.replace(self)
           h.delete_if { |k,v| v.nil? }
           h
+        end
+
+        def data
+         ActiveSupport::Deprecation.warn(
+           "ActionController::Session::AbstractStore::SessionHash#data" +
+           "has been deprecated.Please use #to_hash instead.", caller)
+          to_hash
         end
 
         private

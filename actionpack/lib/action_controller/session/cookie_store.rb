@@ -74,17 +74,8 @@ module ActionController
         freeze
       end
 
-      class SessionHash < AbstractStore::SessionHash
-        private
-          def load!
-            session = @by.send(:load_session, @env)
-            replace(session)
-            @loaded = true
-          end
-      end
-
       def call(env)
-        session_data = SessionHash.new(self, env)
+        session_data = AbstractStore::SessionHash.new(self, env)
         original_value = session_data.dup
 
         env[ENV_SESSION_KEY] = session_data
@@ -142,17 +133,18 @@ module ActionController
         def load_session(env)
           request = Rack::Request.new(env)
           session_data = request.cookies[@key]
-          unmarshal(session_data) || {}
+          data = unmarshal(session_data) || persistent_session_id!({})
+          [data[:session_id], data]
         end
 
         # Marshal a session hash into safe cookie data. Include an integrity hash.
         def marshal(session)
-          @verifier.generate(session)
+          @verifier.generate( persistent_session_id!(session))
         end
 
         # Unmarshal cookie data to a hash and verify its integrity.
         def unmarshal(cookie)
-          @verifier.verify(cookie) if cookie
+          persistent_session_id!(@verifier.verify(cookie)) if cookie
         rescue ActiveSupport::MessageVerifier::InvalidSignature
           nil
         end
@@ -194,6 +186,26 @@ module ActionController
         def verifier_for(secret, digest)
           key = secret.respond_to?(:call) ? secret.call : secret
           ActiveSupport::MessageVerifier.new(key, digest)
+        end
+
+        def generate_sid
+          ActiveSupport::SecureRandom.hex(16)
+        end
+
+        def persistent_session_id!(data)
+          (data ||= {}).merge!(inject_persistent_session_id(data))
+        end
+
+        def inject_persistent_session_id(data)
+          requires_session_id?(data) ? { :session_id => generate_sid } : {}
+        end
+
+        def requires_session_id?(data)
+          if data
+            data.respond_to?(:key?) && !data.key?(:session_id)
+          else
+            true
+          end
         end
     end
   end
