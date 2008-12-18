@@ -93,7 +93,7 @@ module ActionController
         original_value = session_data.dup
 
         env[ENV_SESSION_KEY] = session_data
-        env[ENV_SESSION_OPTIONS_KEY] = @default_options.dup
+        env[ENV_SESSION_OPTIONS_KEY] = @default_options
 
         status, headers, body = @app.call(env)
 
