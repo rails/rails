@@ -1829,7 +1829,7 @@ module ActiveRecord #:nodoc:
                   else
                     find(:#{finder}, options.merge(finder_options))
                   end
-                  #{'result || raise(RecordNotFound)' if bang}
+                  #{'result || raise(RecordNotFound, "Couldn\'t find #{name} with #{attributes.to_a.collect {|pair| "#{pair.first} = #{pair.second}"}.join(\', \')}")' if bang}
                 end
               }, __FILE__, __LINE__
               send(method_id, *arguments)

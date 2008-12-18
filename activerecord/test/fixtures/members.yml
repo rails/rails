@@ -1,4 +1,6 @@
 groucho:
   name: Groucho Marx
+  member_type_id: 1
 some_other_guy:
   name: Englebert Humperdink
+  member_type_id: 2
