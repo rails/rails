@@ -65,18 +65,23 @@ module ActionController
     include ActiveSupport::Callbacks
     define_callbacks :prepare_dispatch, :before_dispatch, :after_dispatch
 
-    # DEPRECATE: Remove arguments
+    # DEPRECATE: Remove arguments, since they are only used by CGI
     def initialize(output = $stdout, request = nil, response = nil)
-      @output, @request, @response = output, request, response
+      @output = output
       @app = @@middleware.build(lambda { |env| self.dup._call(env) })
     end
 
     def dispatch
       begin
         run_callbacks :before_dispatch
-        handle_request
+        controller = Routing::Routes.recognize(@request)
+        controller.process(@request, @response).to_a
       rescue Exception => exception
-        failsafe_rescue exception
+        if controller ||= (::ApplicationController rescue Base)
+          controller.process_with_exception(@request, @response, exception).to_a
+        else
+          raise exception
+        end
       ensure
         run_callbacks :after_dispatch, :enumerator => :reverse_each
       end
@@ -123,19 +128,5 @@ module ActionController
       return if @request.key?("rack.test")
       ActiveRecord::Base.clear_active_connections!
     end
-
-    protected
-      def handle_request
-        @controller = Routing::Routes.recognize(@request)
-        @controller.process(@request, @response).out
-      end
-
-      def failsafe_rescue(exception)
-        if @controller ||= (::ApplicationController rescue Base)
-          @controller.process_with_exception(@request, @response, exception).out
-        else
-          raise exception
-        end
-      end
   end
 end

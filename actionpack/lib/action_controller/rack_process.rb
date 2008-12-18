@@ -83,7 +83,7 @@ module ActionController #:nodoc:
       @status || super
     end
 
-    def out(&block)
+    def to_a(&block)
       @block = block
       @status = headers.delete("Status")
       if [204, 304].include?(status.to_i)
@@ -93,7 +93,6 @@ module ActionController #:nodoc:
         [status, headers.to_hash, self]
       end
     end
-    alias to_a out
 
     def each(&callback)
       if @body.respond_to?(:call)
