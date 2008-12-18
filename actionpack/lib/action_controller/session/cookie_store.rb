@@ -41,9 +41,11 @@ module ActionController
       SECRET_MIN_LENGTH = 30 # characters
 
       DEFAULT_OPTIONS = {
-        :domain => nil,
-        :path => "/",
-        :expire_after => nil
+        :key          => '_session_id',
+        :domain       => nil,
+        :path         => "/",
+        :expire_after => nil,
+        :httponly     => false
       }.freeze
 
       ENV_SESSION_KEY = "rack.session".freeze
@@ -55,6 +57,18 @@ module ActionController
 
       def initialize(app, options = {})
         options = options.dup
+
+        # Process legacy CGI options
+        options = options.symbolize_keys
+        if options.has_key?(:session_path)
+          options[:path] = options.delete(:session_path)
+        end
+        if options.has_key?(:session_key)
+          options[:key] = options.delete(:session_key)
+        end
+        if options.has_key?(:session_http_only)
+          options[:httponly] = options.delete(:session_http_only)
+        end
 
         @app = app
 

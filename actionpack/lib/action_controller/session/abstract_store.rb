@@ -60,7 +60,7 @@ module ActionController
       end
 
       DEFAULT_OPTIONS = {
-        :key =>           'rack.session',
+        :key =>           '_session_id',
         :path =>          '/',
         :domain =>        nil,
         :expire_after =>  nil,
@@ -70,6 +70,18 @@ module ActionController
       }
 
       def initialize(app, options = {})
+        # Process legacy CGI options
+        options = options.symbolize_keys
+        if options.has_key?(:session_path)
+          options[:path] = options.delete(:session_path)
+        end
+        if options.has_key?(:session_key)
+          options[:key] = options.delete(:session_key)
+        end
+        if options.has_key?(:session_http_only)
+          options[:httponly] = options.delete(:session_http_only)
+        end
+
         @app = app
         @default_options = DEFAULT_OPTIONS.merge(options)
         @key = @default_options[:key]

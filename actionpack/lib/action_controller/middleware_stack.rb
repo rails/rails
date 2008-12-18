@@ -1,14 +1,10 @@
 module ActionController
   class MiddlewareStack < Array
     class Middleware
-      attr_reader :klass, :args, :block
+      attr_reader :args, :block
 
       def initialize(klass, *args, &block)
-        if klass.is_a?(Class)
-          @klass = klass
-        else
-          @klass = klass.to_s.constantize
-        end
+        @klass = klass
 
         options = args.extract_options!
         if options.has_key?(:if)
@@ -20,6 +16,14 @@ module ActionController
 
         @args = args
         @block = block
+      end
+
+      def klass
+        if @klass.is_a?(Class)
+          @klass
+        else
+          @klass.to_s.constantize
+        end
       end
 
       def active?
