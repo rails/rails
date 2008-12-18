@@ -11,6 +11,7 @@ module ActionController
 
       class SessionHash < Hash
         def initialize(by, env)
+          super()
           @by = by
           @env = env
           @loaded = false
