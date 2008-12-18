@@ -1,6 +1,6 @@
 desc 'Prints out your Rack middleware stack'
 task :middleware => :environment do
-  ActionController::Dispatcher.middleware.each do |middleware|
+  ActionController::Dispatcher.middleware.active.each do |middleware|
     puts "use #{middleware.inspect}"
   end
   puts "run ActionController::Dispatcher.new"

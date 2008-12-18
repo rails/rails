@@ -50,7 +50,7 @@ class DispatcherTest < Test::Unit::TestCase
   end
 
   def test_failsafe_response
-    Dispatcher.any_instance.expects(:dispatch_unlocked).raises('b00m')
+    Dispatcher.any_instance.expects(:dispatch).raises('b00m')
     ActionController::Failsafe.any_instance.expects(:log_failsafe_exception)
 
     assert_nothing_raised do

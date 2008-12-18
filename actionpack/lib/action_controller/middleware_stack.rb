@@ -10,8 +10,24 @@ module ActionController
           @klass = klass.to_s.constantize
         end
 
+        options = args.extract_options!
+        if options.has_key?(:if)
+          @conditional = options.delete(:if)
+        else
+          @conditional = true
+        end
+        args << options unless options.empty?
+
         @args = args
         @block = block
+      end
+
+      def active?
+        if @conditional.respond_to?(:call)
+          @conditional.call
+        else
+          @conditional
+        end
       end
 
       def ==(middleware)
@@ -50,8 +66,12 @@ module ActionController
       push(middleware)
     end
 
+    def active
+      find_all { |middleware| middleware.active? }
+    end
+
     def build(app)
-      reverse.inject(app) { |a, e| e.build(a) }
+      active.reverse.inject(app) { |a, e| e.build(a) }
     end
   end
 end
