@@ -42,7 +42,6 @@ module ActionController
   end
 
   autoload :AbstractRequest, 'action_controller/request'
-  autoload :AbstractResponse, 'action_controller/response'
   autoload :Base, 'action_controller/base'
   autoload :Benchmarking, 'action_controller/benchmarking'
   autoload :Caching, 'action_controller/caching'
@@ -61,8 +60,8 @@ module ActionController
   autoload :MimeResponds, 'action_controller/mime_responds'
   autoload :PolymorphicRoutes, 'action_controller/polymorphic_routes'
   autoload :RackRequest, 'action_controller/rack_process'
-  autoload :RackResponse, 'action_controller/rack_process'
   autoload :RecordIdentifier, 'action_controller/record_identifier'
+  autoload :Response, 'action_controller/response'
   autoload :RequestForgeryProtection, 'action_controller/request_forgery_protection'
   autoload :Rescue, 'action_controller/rescue'
   autoload :Resources, 'action_controller/resources'

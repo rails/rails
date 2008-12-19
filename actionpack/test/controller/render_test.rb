@@ -208,7 +208,7 @@ class TestController < ActionController::Base
   def greeting
     # let's just rely on the template
   end
-  
+
   def blank_response
     render :text => ' '
   end
@@ -1099,14 +1099,14 @@ class RenderTest < ActionController::TestCase
   def test_update_page
     get :update_page
     assert_template nil
-    assert_equal 'text/javascript; charset=utf-8', @response.headers['type']
+    assert_equal 'text/javascript; charset=utf-8', @response.headers['Content-Type']
     assert_equal 2, @response.body.split($/).length
   end
 
   def test_update_page_with_instance_variables
     get :update_page_with_instance_variables
     assert_template nil
-    assert_equal 'text/javascript; charset=utf-8', @response.headers['type']
+    assert_equal 'text/javascript; charset=utf-8', @response.headers["Content-Type"]
     assert_match /balance/, @response.body
     assert_match /\$37/, @response.body
   end
@@ -1114,7 +1114,7 @@ class RenderTest < ActionController::TestCase
   def test_update_page_with_view_method
     get :update_page_with_view_method
     assert_template nil
-    assert_equal 'text/javascript; charset=utf-8', @response.headers['type']
+    assert_equal 'text/javascript; charset=utf-8', @response.headers["Content-Type"]
     assert_match /2 people/, @response.body
   end
 
@@ -1384,7 +1384,7 @@ class EtagRenderTest < ActionController::TestCase
     @request.host = "www.nextangle.com"
     @expected_bang_etag = etag_for(expand_key([:foo, 123]))
   end
-  
+
   def test_render_blank_body_shouldnt_set_etag
     get :blank_response
     assert !@response.etag?

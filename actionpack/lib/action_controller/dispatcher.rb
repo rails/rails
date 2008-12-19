@@ -98,7 +98,7 @@ module ActionController
 
     def _call(env)
       @request = RackRequest.new(env)
-      @response = RackResponse.new
+      @response = Response.new
       dispatch
     end
 

@@ -59,7 +59,7 @@ class CookieTest < Test::Unit::TestCase
     get :authenticate_for_fourteen_days
     assert_equal ["user_name=david; path=/; expires=Mon, 10 Oct 2005 05:00:00 GMT"], @response.headers["Set-Cookie"]
     assert_equal({"user_name" => ["david"]}, @response.cookies)
- end
+  end
 
   def test_setting_cookie_for_fourteen_days_with_symbols
     get :authenticate_for_fourteen_days_with_symbols
@@ -71,7 +71,7 @@ class CookieTest < Test::Unit::TestCase
     get :authenticate_with_http_only
     assert_equal ["user_name=david; path=/; HttpOnly"], @response.headers["Set-Cookie"]
     assert_equal({"user_name" => ["david"]}, @response.cookies)
- end
+  end
 
   def test_multiple_cookies
     get :set_multiple_cookies
@@ -79,7 +79,7 @@ class CookieTest < Test::Unit::TestCase
     assert_equal "user_name=david; path=/; expires=Mon, 10 Oct 2005 05:00:00 GMT", @response.headers["Set-Cookie"][0]
     assert_equal "login=XJ-122; path=/", @response.headers["Set-Cookie"][1]
     assert_equal({"login" => ["XJ-122"], "user_name" => ["david"]}, @response.cookies)
- end
+  end
 
   def test_setting_test_cookie
     assert_nothing_raised { get :access_frozen_cookies }
@@ -89,7 +89,7 @@ class CookieTest < Test::Unit::TestCase
     get :logout
     assert_equal ["user_name=; path=/; expires=Thu, 01 Jan 1970 00:00:00 GMT"], @response.headers["Set-Cookie"]
     assert_equal({"user_name" => []}, @response.cookies)
- end
+  end
 
   def test_cookiejar_accessor
     @request.cookies["user_name"] = CGI::Cookie.new("name" => "user_name", "value" => "david", "expires" => Time.local(2025, 10, 10))

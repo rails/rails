@@ -229,7 +229,7 @@ end
 class RackResponseTest < BaseRackTest
   def setup
     super
-    @response = ActionController::RackResponse.new
+    @response = ActionController::Response.new
   end
 
   def test_simple_output
@@ -237,7 +237,7 @@ class RackResponseTest < BaseRackTest
     @response.prepare!
 
     status, headers, body = @response.to_a
-    assert_equal "200 OK", status
+    assert_equal 200, status
     assert_equal({
       "Content-Type" => "text/html; charset=utf-8",
       "Cache-Control" => "private, max-age=0, must-revalidate",
@@ -258,7 +258,7 @@ class RackResponseTest < BaseRackTest
     @response.prepare!
 
     status, headers, body = @response.to_a
-    assert_equal "200 OK", status
+    assert_equal 200, status
     assert_equal({"Content-Type" => "text/html; charset=utf-8", "Cache-Control" => "no-cache", "Set-Cookie" => []}, headers)
 
     parts = []
@@ -270,7 +270,7 @@ end
 class RackResponseHeadersTest < BaseRackTest
   def setup
     super
-    @response = ActionController::RackResponse.new
+    @response = ActionController::Response.new
     @response.status = "200 OK"
   end
 

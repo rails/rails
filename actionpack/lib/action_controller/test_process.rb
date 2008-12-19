@@ -290,8 +290,8 @@ module ActionController #:nodoc:
   # TestResponse, which represent the HTTP response results of the requested
   # controller actions.
   #
-  # See AbstractResponse for more information on controller response objects.
-  class TestResponse < AbstractResponse
+  # See Response for more information on controller response objects.
+  class TestResponse < Response
     include TestResponseBehavior
 
     def recycle!
@@ -435,7 +435,7 @@ module ActionController #:nodoc:
     end
 
     def session
-      @response.session
+      @request.session
     end
 
     def flash

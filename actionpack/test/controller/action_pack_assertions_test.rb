@@ -500,17 +500,17 @@ class ActionPackHeaderTest < ActionController::TestCase
 
   def test_rendering_xml_sets_content_type
     process :hello_xml_world
-    assert_equal('application/xml; charset=utf-8', @response.headers['type'])
+    assert_equal('application/xml; charset=utf-8', @response.headers['Content-Type'])
   end
 
   def test_rendering_xml_respects_content_type
     @response.headers['type'] = 'application/pdf'
     process :hello_xml_world
-    assert_equal('application/pdf; charset=utf-8', @response.headers['type'])
+    assert_equal('application/pdf; charset=utf-8', @response.headers['Content-Type'])
   end
 
   def test_render_text_with_custom_content_type
     get :render_text_with_custom_content_type
-    assert_equal 'application/rss+xml; charset=utf-8', @response.headers['type']
+    assert_equal 'application/rss+xml; charset=utf-8', @response.headers['Content-Type']
   end
 end

@@ -181,7 +181,7 @@ module ActionController
       # - +headers+: Additional HTTP headers to pass, as a Hash. The keys will
       #   automatically be upcased, with the prefix 'HTTP_' added if needed.
       #
-      # This method returns an AbstractResponse object, which one can use to
+      # This method returns an Response object, which one can use to
       # inspect the details of the response. Furthermore, if this method was
       # called from an ActionController::IntegrationTest object, then that
       # object's <tt>@response</tt> instance variable will point to the same
@@ -331,10 +331,10 @@ module ActionController
             @response = @controller.response
           else
             # Decorate responses from Rack Middleware and Rails Metal
-            # as an AbstractResponse for the purposes of integration testing
-            @response = AbstractResponse.new
+            # as an Response for the purposes of integration testing
+            @response = Response.new
             @response.status = status.to_s
-            @response.headers = @headers
+            @response.headers.replace(@headers)
             @response.body = @body
           end
 
