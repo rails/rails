@@ -84,7 +84,7 @@ else
 end
 
 app = Rack::Builder.new {
-  use Rails::Rack::Logger
+  use Rails::Rack::LogTailer unless options[:detach]
   use Rails::Rack::Static
   use Rails::Rack::Debugger if options[:debugger]
   run inner_app
