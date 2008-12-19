@@ -18,7 +18,7 @@ class CookieTest < Test::Unit::TestCase
       cookies["user_name"] = { "value" => "david", "expires" => Time.local(2005, 10, 10) }
       cookies["login"]     = "XJ-122"
     end
-    
+
     def access_frozen_cookies
       cookies["will"] = "work"
     end
@@ -36,8 +36,8 @@ class CookieTest < Test::Unit::TestCase
       cookies["user_name"] = { :value => "david", :http_only => true }
     end
 
-    def rescue_action(e) 
-      raise unless ActionView::MissingTemplate # No templates here, and we don't care about the output 
+    def rescue_action(e)
+      raise unless ActionView::MissingTemplate # No templates here, and we don't care about the output
     end
   end
 
@@ -51,40 +51,46 @@ class CookieTest < Test::Unit::TestCase
 
   def test_setting_cookie
     get :authenticate
-    assert_equal [ CGI::Cookie::new("name" => "user_name", "value" => "david") ], @response.headers["cookie"]
+    assert_equal "user_name=david; path=/", @response.headers["cookie"].to_s
+    assert_equal({"user_name" => ["david"]}, @response.cookies)
   end
 
   def test_setting_cookie_for_fourteen_days
     get :authenticate_for_fourteen_days
-    assert_equal [ CGI::Cookie::new("name" => "user_name", "value" => "david", "expires" => Time.local(2005, 10, 10)) ], @response.headers["cookie"]
-  end
+    assert_equal "user_name=david; path=/; expires=Mon, 10 Oct 2005 05:00:00 GMT", @response.headers["cookie"].to_s
+    assert_equal({"user_name" => ["david"]}, @response.cookies)
+ end
 
   def test_setting_cookie_for_fourteen_days_with_symbols
     get :authenticate_for_fourteen_days_with_symbols
-    assert_equal [ CGI::Cookie::new("name" => "user_name", "value" => "david", "expires" => Time.local(2005, 10, 10)) ], @response.headers["cookie"]
+    assert_equal "user_name=david; path=/; expires=Mon, 10 Oct 2005 05:00:00 GMT", @response.headers["cookie"].to_s
+    assert_equal({"user_name" => ["david"]}, @response.cookies)
   end
 
   def test_setting_cookie_with_http_only
     get :authenticate_with_http_only
-    assert_equal [ CGI::Cookie::new("name" => "user_name", "value" => "david", "http_only" => true) ], @response.headers["cookie"]
-    assert_equal CGI::Cookie::new("name" => "user_name", "value" => "david", "path" => "/", "http_only" => true).to_s, @response.headers["cookie"][0].to_s
-  end
+    assert_equal "user_name=david; path=/; HttpOnly", @response.headers["cookie"].to_s
+    assert_equal({"user_name" => ["david"]}, @response.cookies)
+ end
 
   def test_multiple_cookies
     get :set_multiple_cookies
     assert_equal 2, @response.cookies.size
-  end
+    assert_equal "user_name=david; path=/; expires=Mon, 10 Oct 2005 05:00:00 GMT", @response.headers["cookie"][0].to_s
+    assert_equal "login=XJ-122; path=/", @response.headers["cookie"][1].to_s
+    assert_equal({"login" => ["XJ-122"], "user_name" => ["david"]}, @response.cookies)
+ end
 
   def test_setting_test_cookie
     assert_nothing_raised { get :access_frozen_cookies }
   end
-  
+
   def test_expiring_cookie
     get :logout
-    assert_equal [ CGI::Cookie::new("name" => "user_name", "value" => "", "expires" => Time.at(0)) ], @response.headers["cookie"]
-    assert_equal CGI::Cookie::new("name" => "user_name", "value" => "", "expires" => Time.at(0)).value, []
-  end  
-  
+    assert_equal "user_name=; path=/; expires=Thu, 01 Jan 1970 00:00:00 GMT", @response.headers["cookie"].to_s
+    assert_equal({"user_name" => []}, @response.cookies)
+ end
+
   def test_cookiejar_accessor
     @request.cookies["user_name"] = CGI::Cookie.new("name" => "user_name", "value" => "david", "expires" => Time.local(2025, 10, 10))
     @controller.request = @request
@@ -100,11 +106,10 @@ class CookieTest < Test::Unit::TestCase
     jar = ActionController::CookieJar.new(@controller)
     assert_equal a, jar["pages"]
   end
-  
+
   def test_delete_cookie_with_path
     get :delete_cookie_with_path
-    assert_equal "/beaten", @response.headers["cookie"].first.path
-    assert_not_equal "/", @response.headers["cookie"].first.path
+    assert_equal "user_name=; path=/beaten; expires=Thu, 01 Jan 1970 00:00:00 GMT", @response.headers["cookie"].to_s
   end
 
   def test_cookie_to_s_simple_values
