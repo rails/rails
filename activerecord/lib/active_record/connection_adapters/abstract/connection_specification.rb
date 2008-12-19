@@ -122,7 +122,7 @@ module ActiveRecord
       def retrieve_connection
         connection_handler.retrieve_connection(self)
       end
-      
+
       # Returns true if +ActiveRecord+ is connected.
       def connected?
         connection_handler.connected?(self)
