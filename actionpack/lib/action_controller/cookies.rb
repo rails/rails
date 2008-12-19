@@ -67,6 +67,8 @@ module ActionController #:nodoc:
       cookie = @cookies[name.to_s]
       if cookie && cookie.respond_to?(:value)
         cookie.size > 1 ? cookie.value : cookie.value[0]
+      else
+        cookie
       end
     end
 

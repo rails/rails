@@ -41,9 +41,11 @@ module ActionController
       SECRET_MIN_LENGTH = 30 # characters
 
       DEFAULT_OPTIONS = {
-        :domain => nil,
-        :path => "/",
-        :expire_after => nil
+        :key          => '_session_id',
+        :domain       => nil,
+        :path         => "/",
+        :expire_after => nil,
+        :httponly     => false
       }.freeze
 
       ENV_SESSION_KEY = "rack.session".freeze
@@ -55,6 +57,18 @@ module ActionController
 
       def initialize(app, options = {})
         options = options.dup
+
+        # Process legacy CGI options
+        options = options.symbolize_keys
+        if options.has_key?(:session_path)
+          options[:path] = options.delete(:session_path)
+        end
+        if options.has_key?(:session_key)
+          options[:key] = options.delete(:session_key)
+        end
+        if options.has_key?(:session_http_only)
+          options[:httponly] = options.delete(:session_http_only)
+        end
 
         @app = app
 
@@ -74,21 +88,12 @@ module ActionController
         freeze
       end
 
-      class SessionHash < AbstractStore::SessionHash
-        private
-          def load!
-            session = @by.send(:load_session, @env)
-            replace(session)
-            @loaded = true
-          end
-      end
-
       def call(env)
-        session_data = SessionHash.new(self, env)
+        session_data = AbstractStore::SessionHash.new(self, env)
         original_value = session_data.dup
 
         env[ENV_SESSION_KEY] = session_data
-        env[ENV_SESSION_OPTIONS_KEY] = @default_options.dup
+        env[ENV_SESSION_OPTIONS_KEY] = @default_options
 
         status, headers, body = @app.call(env)
 
@@ -142,17 +147,18 @@ module ActionController
         def load_session(env)
           request = Rack::Request.new(env)
           session_data = request.cookies[@key]
-          unmarshal(session_data) || {}
+          data = unmarshal(session_data) || persistent_session_id!({})
+          [data[:session_id], data]
         end
 
         # Marshal a session hash into safe cookie data. Include an integrity hash.
         def marshal(session)
-          @verifier.generate(session)
+          @verifier.generate( persistent_session_id!(session))
         end
 
         # Unmarshal cookie data to a hash and verify its integrity.
         def unmarshal(cookie)
-          @verifier.verify(cookie) if cookie
+          persistent_session_id!(@verifier.verify(cookie)) if cookie
         rescue ActiveSupport::MessageVerifier::InvalidSignature
           nil
         end
@@ -194,6 +200,26 @@ module ActionController
         def verifier_for(secret, digest)
           key = secret.respond_to?(:call) ? secret.call : secret
           ActiveSupport::MessageVerifier.new(key, digest)
+        end
+
+        def generate_sid
+          ActiveSupport::SecureRandom.hex(16)
+        end
+
+        def persistent_session_id!(data)
+          (data ||= {}).merge!(inject_persistent_session_id(data))
+        end
+
+        def inject_persistent_session_id(data)
+          requires_session_id?(data) ? { :session_id => generate_sid } : {}
+        end
+
+        def requires_session_id?(data)
+          if data
+            data.respond_to?(:key?) && !data.key?(:session_id)
+          else
+            true
+          end
         end
     end
   end

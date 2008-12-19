@@ -56,6 +56,7 @@ module ActionController
   autoload :Integration, 'action_controller/integration'
   autoload :IntegrationTest, 'action_controller/integration'
   autoload :Layout, 'action_controller/layout'
+  autoload :Lock, 'action_controller/lock'
   autoload :MiddlewareStack, 'action_controller/middleware_stack'
   autoload :MimeResponds, 'action_controller/mime_responds'
   autoload :PolymorphicRoutes, 'action_controller/polymorphic_routes'

@@ -50,7 +50,7 @@ class DispatcherTest < Test::Unit::TestCase
   end
 
   def test_failsafe_response
-    Dispatcher.any_instance.expects(:dispatch_unlocked).raises('b00m')
+    Dispatcher.any_instance.expects(:dispatch).raises('b00m')
     ActionController::Failsafe.any_instance.expects(:log_failsafe_exception)
 
     assert_nothing_raised do
@@ -96,7 +96,9 @@ class DispatcherTest < Test::Unit::TestCase
 
   private
     def dispatch(cache_classes = true)
-      Dispatcher.any_instance.stubs(:handle_request).returns([200, {}, 'response'])
+      controller = mock()
+      controller.stubs(:process).returns([200, {}, 'response'])
+      ActionController::Routing::Routes.stubs(:recognize).returns(controller)
       Dispatcher.define_dispatcher_callbacks(cache_classes)
       @dispatcher.call({})
     end
