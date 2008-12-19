@@ -121,7 +121,6 @@ module ActionController #:nodoc:
       convert_language!
       convert_expires!
       set_status!
-      set_cookies!
     end
 
     private
@@ -146,24 +145,6 @@ module ActionController #:nodoc:
 
       def set_status!
         self.status ||= "200 OK"
-      end
-
-      def set_cookies!
-        # Convert 'cookie' header to 'Set-Cookie' headers.
-        # Because Set-Cookie header can appear more the once in the response body,
-        # we store it in a line break separated string that will be translated to
-        # multiple Set-Cookie header by the handler.
-        if cookie = headers.delete('cookie')
-          cookies = []
-
-          case cookie
-            when Array then cookie.each { |c| cookies << c.to_s }
-            when Hash  then cookie.each { |_, c| cookies << c.to_s }
-            else            cookies << cookie.to_s
-          end
-
-          headers['Set-Cookie'] = [headers['Set-Cookie'], cookies].flatten.compact
-        end
       end
   end
 end

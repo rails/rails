@@ -107,11 +107,11 @@ module ActionController # :nodoc:
     def etag
       headers['ETag']
     end
-    
+
     def etag?
       headers.include?('ETag')
     end
-    
+
     def etag=(etag)
       if etag.blank?
         headers.delete('ETag')
@@ -140,22 +140,23 @@ module ActionController # :nodoc:
       handle_conditional_get!
       set_content_length!
       convert_content_type!
+      set_cookies!
     end
 
     private
-      def handle_conditional_get! 
-        if etag? || last_modified? 
-          set_conditional_cache_control! 
-        elsif nonempty_ok_response? 
-          self.etag = body 
+      def handle_conditional_get!
+        if etag? || last_modified?
+          set_conditional_cache_control!
+        elsif nonempty_ok_response?
+          self.etag = body
 
-          if request && request.etag_matches?(etag) 
-            self.status = '304 Not Modified' 
-            self.body = '' 
-          end 
+          if request && request.etag_matches?(etag)
+            self.status = '304 Not Modified'
+            self.body = ''
+          end
 
-          set_conditional_cache_control! 
-        end 
+          set_conditional_cache_control!
+        end
       end
 
       def nonempty_ok_response?
@@ -180,12 +181,30 @@ module ActionController # :nodoc:
           self.headers["type"] = content_type
         end
       end
-    
+
       # Don't set the Content-Length for block-based bodies as that would mean reading it all into memory. Not nice
       # for, say, a 2GB streaming file.
       def set_content_length!
         unless body.respond_to?(:call) || (status && status.to_s[0..2] == '304')
           self.headers["Content-Length"] ||= body.size
+        end
+      end
+
+      def set_cookies!
+        # Convert 'cookie' header to 'Set-Cookie' headers.
+        # Because Set-Cookie header can appear more the once in the response body,
+        # we store it in a line break separated string that will be translated to
+        # multiple Set-Cookie header by the handler.
+        if cookie = headers.delete('cookie')
+          cookies = []
+
+          case cookie
+            when Array then cookie.each { |c| cookies << c.to_s }
+            when Hash  then cookie.each { |_, c| cookies << c.to_s }
+            else            cookies << cookie.to_s
+          end
+
+          headers['Set-Cookie'] = [headers['Set-Cookie'], cookies].flatten.compact
         end
       end
   end

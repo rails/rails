@@ -264,7 +264,12 @@ module ActionController #:nodoc:
     #
     #   assert_equal ['AuthorOfNewPage'], r.cookies['author'].value
     def cookies
-      headers['cookie'].inject({}) { |hash, cookie| hash[cookie.name] = cookie; hash }
+      cookies = {}
+      Array(headers['Set-Cookie']).each do |cookie|
+        key, value = cookie.split(";").first.split("=")
+        cookies[key] = [value].compact
+      end
+      cookies
     end
 
     # Returns binary content (downloadable file), converted to a String
