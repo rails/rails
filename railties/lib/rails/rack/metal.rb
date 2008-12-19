@@ -1,17 +1,27 @@
+require 'rails/rack/cascade'
+
 module Rails
   module Rack
-    class Metal
-      def self.new(app)
-        apps = Dir["#{Rails.root}/app/metal/*.rb"].map do |file|
-          File.basename(file, '.rb').camelize.constantize
-        end
-        apps << app
-        ::Rack::Cascade.new(apps)
-      end
+    module Metal
+      NotFoundResponse = [404, {}, []].freeze
+      NotFound = lambda { NotFoundResponse }
 
-      NotFound = lambda { |env|
-        [404, {"Content-Type" => "text/html"}, "Not Found"]
-      }
+      class << self
+        def new(app)
+          Cascade.new(builtins + [app])
+        end
+
+        def builtins
+          base = "#{Rails.root}/app/metal"
+          matcher = /\A#{Regexp.escape(base)}\/(.*)\.rb\Z/
+
+          Dir["#{base}/**/*.rb"].sort.map do |file|
+            file.sub!(matcher, '\1')
+            require file
+            file.classify.constantize
+          end
+        end
+      end
     end
   end
 end
