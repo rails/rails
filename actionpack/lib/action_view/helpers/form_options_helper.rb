@@ -201,13 +201,21 @@ module ActionView
 
       # Returns a string of option tags that have been compiled by iterating over the +collection+ and assigning the
       # the result of a call to the +value_method+ as the option value and the +text_method+ as the option text.
+      # Example:
+      #   options_from_collection_for_select(@people, 'id', 'name')
+      # This will output the same HTML as if you did this:
+      #   <option value="#{person.id}">#{person.name}</option>
+      #
+      # This is more often than not used inside a #select_tag like this example:
+      #   select_tag 'person', options_from_collection_for_select(@people, 'id', 'name')
+      #
       # If +selected+ is specified, the element returning a match on +value_method+ will get the selected option tag.
-      #
-      # Example (call, result). Imagine a loop iterating over each +person+ in <tt>@project.people</tt> to generate an input tag:
-      #   options_from_collection_for_select(@project.people, "id", "name")
-      #     <option value="#{person.id}">#{person.name}</option>
-      #
-      # NOTE: Only the option tags are returned, you have to wrap this call in a regular HTML select tag.
+      # Be sure to specify the same class as the +value_method+ when specifying a selected option.
+      # Failure to do this will produce undesired results. Example:
+      #   options_from_collection_for_select(@people, 'id', 'name', '1')
+      # Will not select a person with the id of 1 because 1 (an Integer) is not the same as '1' (a string)
+      #   options_from_collection_for_select(@people, 'id', 'name', 1)
+      # should produce the desired results.
       def options_from_collection_for_select(collection, value_method, text_method, selected = nil)
         options = collection.map do |element|
           [element.send(text_method), element.send(value_method)]

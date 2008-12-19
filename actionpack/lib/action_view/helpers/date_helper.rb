@@ -111,7 +111,7 @@ module ActionView
       #
       # ==== Options
       # * <tt>:use_month_numbers</tt> - Set to true if you want to use month numbers rather than month names (e.g.
-      #    "2" instead of "February").
+      #   "2" instead of "February").
       # * <tt>:use_short_month</tt>   - Set to true if you want to use the abbreviated month name instead of the full
       #   name (e.g. "Feb" instead of "February").
       # * <tt>:add_month_number</tt>  - Set to true if you want to show both, the month's number and name (e.g.

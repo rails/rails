@@ -609,6 +609,7 @@ http://www.gnu.org/software/src-highlite -->
 <h2 id="_selecting_certain_fields">6. Selecting Certain Fields</h2>
 <div class="sectionbody">
 <div class="para"><p>To select certain fields, you can use the select option like this: <tt>Client.first(:select &#8658; "viewable_by, locked")</tt>. This select option does not use an array of fields, but rather requires you to type SQL-like code. The above code will execute <tt>SELECT viewable_by, locked FROM clients LIMIT 0,1</tt> on your database.</p></div>
+<div class="para"><p>You can also call SQL functions within the select option. For example, if you would like to only grab a single record per unique value in a certain field by using the <tt>DISTINCT</tt> function you can do it like this: <tt>Client.all(:select &#8658; "DISTINCT(name)")</tt>.</p></div>
 </div>
 <h2 id="_limit_amp_offset">7. Limit &amp; Offset</h2>
 <div class="sectionbody">
@@ -1049,6 +1050,11 @@ http://www.gnu.org/software/src-highlite -->
 <div class="sectionbody">
 <div class="para"><p><a href="http://rails.lighthouseapp.com/projects/16213-rails-guides/tickets/16">Lighthouse ticket</a></p></div>
 <div class="ilist"><ul>
+<li>
+<p>
+December 1 2008: Added using an SQL function example to Selecting Certain Fields section as per <a href="http://rails.lighthouseapp.com/projects/16213/tickets/36-adding-an-example-for-using-distinct-to-ar-finders">this ticket</a>
+</p>
+</li>
 <li>
 <p>
 November 23 2008: Added documentation for <tt>find_by_last</tt> and <tt>find_by_bang!</tt>
