@@ -271,17 +271,17 @@ class RackResponseHeadersTest < BaseRackTest
   def setup
     super
     @response = ActionController::RackResponse.new
-    @response.headers['Status'] = "200 OK"
+    @response.status = "200 OK"
   end
 
   def test_content_type
     [204, 304].each do |c|
-      @response.headers['Status'] = c.to_s
+      @response.status = c.to_s
       assert !response_headers.has_key?("Content-Type"), "#{c} should not have Content-Type header"
     end
 
     [200, 302, 404, 500].each do |c|
-      @response.headers['Status'] = c.to_s
+      @response.status = c.to_s
       assert response_headers.has_key?("Content-Type"), "#{c} did not have Content-Type header"
     end
   end

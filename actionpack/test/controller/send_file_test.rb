@@ -123,13 +123,13 @@ class SendFileTest < Test::Unit::TestCase
     define_method "test_send_#{method}_status" do
       @controller.options = { :stream => false, :status => 500 }
       assert_nothing_raised { assert_not_nil process(method) }
-      assert_equal '500 Internal Server Error', @response.headers['Status']
+      assert_equal '500 Internal Server Error', @response.status
     end
 
     define_method "test_default_send_#{method}_status" do
       @controller.options = { :stream => false }
       assert_nothing_raised { assert_not_nil process(method) }
-      assert_equal ActionController::Base::DEFAULT_RENDER_STATUS_CODE, @response.headers['Status']
+      assert_equal ActionController::Base::DEFAULT_RENDER_STATUS_CODE, @response.status
     end
   end
 end

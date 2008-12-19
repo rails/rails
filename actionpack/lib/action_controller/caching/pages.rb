@@ -145,7 +145,7 @@ module ActionController #:nodoc:
 
       private
         def caching_allowed
-          request.get? && response.headers['Status'].to_i == 200
+          request.get? && response.status.to_i == 200
         end
     end
   end

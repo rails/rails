@@ -166,7 +166,7 @@ module ActionController #:nodoc:
   module TestResponseBehavior #:nodoc:
     # The response code of the request
     def response_code
-      status[0,3].to_i rescue 0
+      status.to_s[0,3].to_i rescue 0
     end
 
     # Returns a String to ensure compatibility with Net::HTTPResponse

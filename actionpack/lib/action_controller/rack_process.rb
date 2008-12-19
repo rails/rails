@@ -78,14 +78,8 @@ module ActionController #:nodoc:
       super()
     end
 
-    # Retrieve status from instance variable if has already been delete
-    def status
-      @status || super
-    end
-
     def to_a(&block)
       @block = block
-      @status = headers.delete("Status")
       if [204, 304].include?(status.to_i)
         headers.delete("Content-Type")
         [status, headers.to_hash, []]

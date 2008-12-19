@@ -333,7 +333,8 @@ module ActionController
             # Decorate responses from Rack Middleware and Rails Metal
             # as an AbstractResponse for the purposes of integration testing
             @response = AbstractResponse.new
-            @response.headers = @headers.merge('Status' => status.to_s)
+            @response.status = status.to_s
+            @response.headers = @headers
             @response.body = @body
           end
 

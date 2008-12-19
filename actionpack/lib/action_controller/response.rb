@@ -33,6 +33,7 @@ module ActionController # :nodoc:
     DEFAULT_HEADERS = { "Cache-Control" => "no-cache" }
     attr_accessor :request
 
+    attr_accessor :status
     # The body content (e.g. HTML) of the response, as a String.
     attr_accessor :body
     # The headers of the response, as a Hash. It maps header names to header values.
@@ -45,9 +46,6 @@ module ActionController # :nodoc:
     def initialize
       @body, @headers, @session, @assigns = "", DEFAULT_HEADERS.merge("cookie" => []), [], []
     end
-
-    def status; headers['Status'] end
-    def status=(status) headers['Status'] = status end
 
     def location; headers['Location'] end
     def location=(url) headers['Location'] = url end
@@ -161,7 +159,7 @@ module ActionController # :nodoc:
       end
 
       def nonempty_ok_response?
-        ok = !status || status[0..2] == '200'
+        ok = !status || status.to_s[0..2] == '200'
         ok && body.is_a?(String) && !body.empty?
       end
 
@@ -186,7 +184,7 @@ module ActionController # :nodoc:
       # Don't set the Content-Length for block-based bodies as that would mean reading it all into memory. Not nice
       # for, say, a 2GB streaming file.
       def set_content_length!
-        unless body.respond_to?(:call) || (status && status[0..2] == '304')
+        unless body.respond_to?(:call) || (status && status.to_s[0..2] == '304')
           self.headers["Content-Length"] ||= body.size
         end
       end

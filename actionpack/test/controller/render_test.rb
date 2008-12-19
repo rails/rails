@@ -1147,11 +1147,11 @@ class RenderTest < ActionController::TestCase
 
   def test_head_with_symbolic_status
     get :head_with_symbolic_status, :status => "ok"
-    assert_equal "200 OK", @response.headers["Status"]
+    assert_equal "200 OK", @response.status
     assert_response :ok
 
     get :head_with_symbolic_status, :status => "not_found"
-    assert_equal "404 Not Found", @response.headers["Status"]
+    assert_equal "404 Not Found", @response.status
     assert_response :not_found
 
     ActionController::StatusCodes::SYMBOL_TO_STATUS_CODE.each do |status, code|

@@ -169,7 +169,7 @@ class ActionCachingTestController < ActionController::Base
 
   def forbidden
     render :text => "Forbidden"
-    headers["Status"] = "403 Forbidden"
+    response.status = "403 Forbidden"
   end
 
   def with_layout
