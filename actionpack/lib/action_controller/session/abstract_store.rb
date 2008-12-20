@@ -53,6 +53,10 @@ module ActionController
         end
 
         private
+          def loaded?
+            @loaded
+          end
+
           def load!
             @id, session = @by.send(:load_session, @env)
             replace(session)
@@ -91,19 +95,23 @@ module ActionController
 
       def call(env)
         session = SessionHash.new(self, env)
-        original_session = session.dup
 
         env[ENV_SESSION_KEY] = session
         env[ENV_SESSION_OPTIONS_KEY] = @default_options.dup
 
         response = @app.call(env)
 
-        session = env[ENV_SESSION_KEY]
-        unless session == original_session
+        session_data = env[ENV_SESSION_KEY]
+        if !session_data.is_a?(AbstractStore::SessionHash) || session_data.send(:loaded?)
           options = env[ENV_SESSION_OPTIONS_KEY]
-          sid = session.id
 
-          unless set_session(env, sid, session.to_hash)
+          if session_data.is_a?(AbstractStore::SessionHash)
+            sid = session_data.id
+          else
+            sid = generate_sid
+          end
+
+          unless set_session(env, sid, session_data.to_hash)
             return response
           end
 

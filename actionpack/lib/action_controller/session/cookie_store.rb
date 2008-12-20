@@ -89,16 +89,14 @@ module ActionController
       end
 
       def call(env)
-        session_data = AbstractStore::SessionHash.new(self, env)
-        original_value = session_data.dup
-
-        env[ENV_SESSION_KEY] = session_data
+        env[ENV_SESSION_KEY] = AbstractStore::SessionHash.new(self, env)
         env[ENV_SESSION_OPTIONS_KEY] = @default_options
 
         status, headers, body = @app.call(env)
 
-        unless env[ENV_SESSION_KEY] == original_value
-          session_data = marshal(env[ENV_SESSION_KEY].to_hash)
+        session_data = env[ENV_SESSION_KEY]
+        if !session_data.is_a?(AbstractStore::SessionHash) || session_data.send(:loaded?)
+          session_data = marshal(session_data.to_hash)
 
           raise CookieOverflow if session_data.size > MAX
 
@@ -153,7 +151,7 @@ module ActionController
 
         # Marshal a session hash into safe cookie data. Include an integrity hash.
         def marshal(session)
-          @verifier.generate( persistent_session_id!(session))
+          @verifier.generate(persistent_session_id!(session))
         end
 
         # Unmarshal cookie data to a hash and verify its integrity.
