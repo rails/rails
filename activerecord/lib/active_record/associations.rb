@@ -2198,7 +2198,7 @@ module ActiveRecord
             protected
 
               def aliased_table_name_for(name, suffix = nil)
-                if !parent.table_joins.blank? && parent.table_joins.to_s.downcase =~ %r{join(\s+\w+)?\s+#{name.downcase}\son}
+                if !parent.table_joins.blank? && parent.table_joins.to_s.downcase =~ %r{join(\s+\w+)?\s+#{active_record.connection.quote_table_name name.downcase}\son}
                   @join_dependency.table_aliases[name] += 1
                 end
 
