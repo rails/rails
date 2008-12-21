@@ -1453,7 +1453,7 @@ module ActiveRecord
             dependent_conditions << sanitize_sql(reflection.options[:conditions]) if reflection.options[:conditions]
             dependent_conditions << extra_conditions if extra_conditions
             dependent_conditions = dependent_conditions.collect {|where| "(#{where})" }.join(" AND ")
-
+            dependent_conditions = dependent_conditions.gsub('@', '\@')
             case reflection.options[:dependent]
               when :destroy
                 method_name = "has_many_dependent_destroy_for_#{reflection.name}".to_sym
@@ -1467,7 +1467,7 @@ module ActiveRecord
                     delete_all_has_many_dependencies(record,
                       "#{reflection.name}",
                       #{reflection.class_name},
-                      "#{dependent_conditions}")
+                      %@#{dependent_conditions}@)
                   end
                 }
               when :nullify
@@ -1477,7 +1477,7 @@ module ActiveRecord
                       "#{reflection.name}",
                       #{reflection.class_name},
                       "#{reflection.primary_key_name}",
-                      "#{dependent_conditions}")
+                      %@#{dependent_conditions}@)
                   end
                 }
               else
