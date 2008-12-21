@@ -260,14 +260,14 @@ module ActionController #:nodoc:
       !template_objects[name].nil?
     end
 
-    # Returns the response cookies, converted to a Hash of (name => CGI::Cookie) pairs
+    # Returns the response cookies, converted to a Hash of (name => value) pairs
     #
-    #   assert_equal ['AuthorOfNewPage'], r.cookies['author'].value
+    #   assert_equal 'AuthorOfNewPage', r.cookies['author']
     def cookies
       cookies = {}
       Array(headers['Set-Cookie']).each do |cookie|
         key, value = cookie.split(";").first.split("=")
-        cookies[key] = [value].compact
+        cookies[key] = value
       end
       cookies
     end

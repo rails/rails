@@ -52,33 +52,33 @@ class CookieTest < Test::Unit::TestCase
   def test_setting_cookie
     get :authenticate
     assert_equal ["user_name=david; path=/"], @response.headers["Set-Cookie"]
-    assert_equal({"user_name" => ["david"]}, @response.cookies)
+    assert_equal({"user_name" => "david"}, @response.cookies)
   end
 
   def test_setting_cookie_for_fourteen_days
     get :authenticate_for_fourteen_days
-    assert_equal ["user_name=david; path=/; expires=Mon, 10 Oct 2005 05:00:00 GMT"], @response.headers["Set-Cookie"]
-    assert_equal({"user_name" => ["david"]}, @response.cookies)
+    assert_equal ["user_name=david; path=/; expires=Mon, 10-Oct-2005 05:00:00 GMT"], @response.headers["Set-Cookie"]
+    assert_equal({"user_name" => "david"}, @response.cookies)
   end
 
   def test_setting_cookie_for_fourteen_days_with_symbols
     get :authenticate_for_fourteen_days_with_symbols
-    assert_equal ["user_name=david; path=/; expires=Mon, 10 Oct 2005 05:00:00 GMT"], @response.headers["Set-Cookie"]
-    assert_equal({"user_name" => ["david"]}, @response.cookies)
+    assert_equal ["user_name=david; path=/; expires=Mon, 10-Oct-2005 05:00:00 GMT"], @response.headers["Set-Cookie"]
+    assert_equal({"user_name" => "david"}, @response.cookies)
   end
 
   def test_setting_cookie_with_http_only
     get :authenticate_with_http_only
     assert_equal ["user_name=david; path=/; HttpOnly"], @response.headers["Set-Cookie"]
-    assert_equal({"user_name" => ["david"]}, @response.cookies)
+    assert_equal({"user_name" => "david"}, @response.cookies)
   end
 
   def test_multiple_cookies
     get :set_multiple_cookies
     assert_equal 2, @response.cookies.size
-    assert_equal "user_name=david; path=/; expires=Mon, 10 Oct 2005 05:00:00 GMT", @response.headers["Set-Cookie"][0]
+    assert_equal "user_name=david; path=/; expires=Mon, 10-Oct-2005 05:00:00 GMT", @response.headers["Set-Cookie"][0]
     assert_equal "login=XJ-122; path=/", @response.headers["Set-Cookie"][1]
-    assert_equal({"login" => ["XJ-122"], "user_name" => ["david"]}, @response.cookies)
+    assert_equal({"login" => "XJ-122", "user_name" => "david"}, @response.cookies)
   end
 
   def test_setting_test_cookie
@@ -87,12 +87,12 @@ class CookieTest < Test::Unit::TestCase
 
   def test_expiring_cookie
     get :logout
-    assert_equal ["user_name=; path=/; expires=Thu, 01 Jan 1970 00:00:00 GMT"], @response.headers["Set-Cookie"]
-    assert_equal({"user_name" => []}, @response.cookies)
+    assert_equal ["user_name=; path=/; expires=Thu, 01-Jan-1970 00:00:00 GMT"], @response.headers["Set-Cookie"]
+    assert_equal({"user_name" => nil}, @response.cookies)
   end
 
   def test_cookiejar_accessor
-    @request.cookies["user_name"] = CGI::Cookie.new("name" => "user_name", "value" => "david", "expires" => Time.local(2025, 10, 10))
+    @request.cookies["user_name"] = "david"
     @controller.request = @request
     jar = ActionController::CookieJar.new(@controller)
     assert_equal "david", jar["user_name"]
@@ -100,52 +100,14 @@ class CookieTest < Test::Unit::TestCase
   end
 
   def test_cookiejar_accessor_with_array_value
-    a = %w{1 2 3}
-    @request.cookies["pages"] = CGI::Cookie.new("name" => "pages", "value" => a, "expires" => Time.local(2025, 10, 10))
+    @request.cookies["pages"] = %w{1 2 3}
     @controller.request = @request
     jar = ActionController::CookieJar.new(@controller)
-    assert_equal a, jar["pages"]
+    assert_equal %w{1 2 3}, jar["pages"]
   end
 
   def test_delete_cookie_with_path
     get :delete_cookie_with_path
-    assert_equal ["user_name=; path=/beaten; expires=Thu, 01 Jan 1970 00:00:00 GMT"], @response.headers["Set-Cookie"]
-  end
-
-  def test_cookie_to_s_simple_values
-    assert_equal 'myname=myvalue; path=', CGI::Cookie.new('myname', 'myvalue').to_s
-  end
-
-  def test_cookie_to_s_hash
-    cookie_str = CGI::Cookie.new(
-      'name' => 'myname',
-      'value' => 'myvalue',
-      'domain' => 'mydomain',
-      'path' => 'mypath',
-      'expires' => Time.utc(2007, 10, 20),
-      'secure' => true,
-      'http_only' => true).to_s
-    assert_equal 'myname=myvalue; domain=mydomain; path=mypath; expires=Sat, 20 Oct 2007 00:00:00 GMT; secure; HttpOnly', cookie_str
-  end
-
-  def test_cookie_to_s_hash_default_not_secure_not_http_only
-    cookie_str = CGI::Cookie.new(
-      'name' => 'myname',
-      'value' => 'myvalue',
-      'domain' => 'mydomain',
-      'path' => 'mypath',
-      'expires' => Time.utc(2007, 10, 20))
-    assert cookie_str !~ /secure/
-    assert cookie_str !~ /HttpOnly/
-  end
-
-  def test_cookies_should_not_be_split_on_ampersand_values
-    cookies = CGI::Cookie.parse('return_to=http://rubyonrails.org/search?term=api&scope=all&global=true')
-    assert_equal({"return_to" => ["http://rubyonrails.org/search?term=api&scope=all&global=true"]}, cookies)
-  end
-
-  def test_cookies_should_not_be_split_on_values_with_newlines
-    cookies = CGI::Cookie.new("name" => "val", "value" => "this\nis\na\ntest")
-    assert cookies.size == 1
+    assert_equal ["user_name=; path=/beaten; expires=Thu, 01-Jan-1970 00:00:00 GMT"], @response.headers["Set-Cookie"]
   end
 end

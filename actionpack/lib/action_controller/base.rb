@@ -254,7 +254,7 @@ module ActionController #:nodoc:
     cattr_reader :protected_instance_variables
     # Controller specific instance variables which will not be accessible inside views.
     @@protected_instance_variables = %w(@assigns @performed_redirect @performed_render @variables_added @request_origin @url @parent_controller
-                                        @action_name @before_filter_chain_aborted @action_cache_path @_session @_cookies @_headers @_params
+                                        @action_name @before_filter_chain_aborted @action_cache_path @_session @_headers @_params
                                         @_flash @_response)
 
     # Prepends all the URL-generating helpers from AssetHelper. This makes it possible to easily move javascripts, stylesheets,
@@ -1193,7 +1193,7 @@ module ActionController #:nodoc:
       end
 
       def assign_shortcuts(request, response)
-        @_request, @_params, @_cookies = request, request.parameters, request.cookies
+        @_request, @_params = request, request.parameters
 
         @_response         = response
         @_response.session = request.session

@@ -34,14 +34,14 @@ module ActionController # :nodoc:
     DEFAULT_HEADERS = { "Cache-Control" => "no-cache" }
     attr_accessor :request
 
-    attr_accessor :session, :cookies, :assigns, :template, :layout
+    attr_accessor :session, :assigns, :template, :layout
     attr_accessor :redirected_to, :redirected_to_method_params
 
     delegate :default_charset, :to => 'ActionController::Base'
 
     def initialize
       @status = 200
-      @header = DEFAULT_HEADERS.merge("cookie" => [])
+      @header = DEFAULT_HEADERS.dup
 
       @writer = lambda { |x| @body << x }
       @block = nil
@@ -143,10 +143,9 @@ module ActionController # :nodoc:
       handle_conditional_get!
       set_content_length!
       convert_content_type!
-
       convert_language!
       convert_expires!
-      set_cookies!
+      convert_cookies!
     end
 
     def each(&callback)
@@ -166,6 +165,35 @@ module ActionController # :nodoc:
     def write(str)
       @writer.call str.to_s
       str
+    end
+
+    # Over Rack::Response#set_cookie to add HttpOnly option
+    def set_cookie(key, value)
+      case value
+      when Hash
+        domain  = "; domain="  + value[:domain]    if value[:domain]
+        path    = "; path="    + value[:path]      if value[:path]
+        # According to RFC 2109, we need dashes here.
+        # N.B.: cgi.rb uses spaces...
+        expires = "; expires=" + value[:expires].clone.gmtime.
+          strftime("%a, %d-%b-%Y %H:%M:%S GMT")    if value[:expires]
+        secure = "; secure"  if value[:secure]
+        httponly = "; HttpOnly" if value[:http_only]
+        value = value[:value]
+      end
+      value = [value]  unless Array === value
+      cookie = ::Rack::Utils.escape(key) + "=" +
+        value.map { |v| ::Rack::Utils.escape v }.join("&") +
+        "#{domain}#{path}#{expires}#{secure}#{httponly}"
+
+      case self["Set-Cookie"]
+      when Array
+        self["Set-Cookie"] << cookie
+      when String
+        self["Set-Cookie"] = [self["Set-Cookie"], cookie]
+      when nil
+        self["Set-Cookie"] = cookie
+      end
     end
 
     private
@@ -217,22 +245,8 @@ module ActionController # :nodoc:
         headers["Expires"] = headers.delete("") if headers["expires"]
       end
 
-      def set_cookies!
-        # Convert 'cookie' header to 'Set-Cookie' headers.
-        # Because Set-Cookie header can appear more the once in the response body,
-        # we store it in a line break separated string that will be translated to
-        # multiple Set-Cookie header by the handler.
-        if cookie = headers.delete('cookie')
-          cookies = []
-
-          case cookie
-            when Array then cookie.each { |c| cookies << c.to_s }
-            when Hash  then cookie.each { |_, c| cookies << c.to_s }
-            else            cookies << cookie.to_s
-          end
-
-          headers['Set-Cookie'] = [headers['Set-Cookie'], cookies].flatten.compact
-        end
+      def convert_cookies!
+        headers['Set-Cookie'] = Array(headers['Set-Cookie']).compact
       end
   end
 end
