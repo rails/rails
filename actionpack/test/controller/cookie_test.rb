@@ -7,15 +7,15 @@ class CookieTest < Test::Unit::TestCase
     end
 
     def authenticate_for_fourteen_days
-      cookies["user_name"] = { "value" => "david", "expires" => Time.local(2005, 10, 10) }
+      cookies["user_name"] = { "value" => "david", "expires" => Time.utc(2005, 10, 10,5) }
     end
 
     def authenticate_for_fourteen_days_with_symbols
-      cookies[:user_name] = { :value => "david", :expires => Time.local(2005, 10, 10) }
+      cookies[:user_name] = { :value => "david", :expires => Time.utc(2005, 10, 10,5) }
     end
 
     def set_multiple_cookies
-      cookies["user_name"] = { "value" => "david", "expires" => Time.local(2005, 10, 10) }
+      cookies["user_name"] = { "value" => "david", "expires" => Time.utc(2005, 10, 10,5) }
       cookies["login"]     = "XJ-122"
     end
 
