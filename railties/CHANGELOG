@@ -1,6 +1,6 @@
 *2.3.0 [Edge]*
 
-* Add a rake task to apply a template to an existing application : rake rails:template LOCATION=~/template.rb [Pratik]
+* Add a rake task to apply a template to an existing application : rake rails:template LOCATION=~/template.rb [Pratik Naik]
 
 * Add "-m/--template" option to Rails generator to apply a template to the generated application. [Jeremy McAnally]
 
@@ -45,31 +45,31 @@
 
         rails <application name> --template=http://gist.github.com/31208.txt
 
-* Extracted the process scripts (inspector, reaper, spawner) into the plugin irs_process_scripts [DHH]
+* Extracted the process scripts (inspector, reaper, spawner) into the plugin irs_process_scripts [David Heinemeier Hansson]
 
 * Changed Rails.root to return a Pathname object (allows for Rails.root.join('app', 'controllers') => "#{RAILS_ROOT}/app/controllers") #1482 [Damian Janowski/?]
 
-* Added view path support for engines [DHH]
+* Added view path support for engines [David Heinemeier Hansson]
 
-* Added that config/routes.rb files in engine plugins are automatically loaded (and reloaded when they change in dev mode) [DHH]
+* Added that config/routes.rb files in engine plugins are automatically loaded (and reloaded when they change in dev mode) [David Heinemeier Hansson]
 
-* Added app/[models|controllers|helpers] to the load path for plugins that has an app directory (go engines ;)) [DHH]
+* Added app/[models|controllers|helpers] to the load path for plugins that has an app directory (go engines ;)) [David Heinemeier Hansson]
 
 * Add config.preload_frameworks to load all frameworks at startup. Default to false so Rails autoloads itself as it's used. Turn this on for Passenger and JRuby. Also turned on by config.threadsafe!  [Jeremy Kemper]
 
-* Add a rake task to generate dispatchers : rake rails:generate_dispatchers [Pratik]
+* Add a rake task to generate dispatchers : rake rails:generate_dispatchers [Pratik Naik]
 
 * "rails <app>" will not generate public/dispatch.cgi/fcgi/rb files by default now. Please use "--with-dispatchers" option if you need them. [Yaroslav Markin, Pratik Naik]
 
 * Added rake rails:update:application_controller to renamed application.rb to application_controller.rb -- included in rake rails:update so upgrading to 2.3 will automatically trigger it #1439 [kastner]
 
-* Added Rails.backtrace_cleaner as an accessor for the Rails::BacktraceCleaner instance used by the framework to cut down on backtrace noise and config/initializers/backtrace_silencers.rb to add your own (or turn them all off) [DHH]
+* Added Rails.backtrace_cleaner as an accessor for the Rails::BacktraceCleaner instance used by the framework to cut down on backtrace noise and config/initializers/backtrace_silencers.rb to add your own (or turn them all off) [David Heinemeier Hansson]
 
 * Switch from Test::Unit::TestCase to ActiveSupport::TestCase.  [Jeremy Kemper]
 
-* Added config.i18n settings gatherer to config/environment, auto-loading of all locales in config/locales/*.rb,yml, and config/locales/en.yml as a sample locale [DHH]
+* Added config.i18n settings gatherer to config/environment, auto-loading of all locales in config/locales/*.rb,yml, and config/locales/en.yml as a sample locale [David Heinemeier Hansson]
 
-* BACKWARDS INCOMPATIBLE: Renamed application.rb to application_controller.rb and removed all the special casing that was in place to support the former. You must do this rename in your own application when you upgrade to this version [DHH]
+* BACKWARDS INCOMPATIBLE: Renamed application.rb to application_controller.rb and removed all the special casing that was in place to support the former. You must do this rename in your own application when you upgrade to this version [David Heinemeier Hansson]
 
 
 *2.2.1 [RC2] (November 14th, 2008)*
@@ -110,9 +110,9 @@
 
 * Plugins check for the gem init path (rails/init.rb) before the standard plugin init path (init.rb)  [Jacek Becela]
 
-* Changed all generated tests to use the test/do declaration style [DHH]
+* Changed all generated tests to use the test/do declaration style [David Heinemeier Hansson]
 
-* Wrapped Rails.env in StringInquirer so you can do Rails.env.development? [DHH]
+* Wrapped Rails.env in StringInquirer so you can do Rails.env.development? [David Heinemeier Hansson]
 
 * Fixed that RailsInfoController wasn't considering all requests local in development mode (Edgard Castro) [#310 state:resolved]
 
@@ -127,13 +127,13 @@
 
 * Rails Edge info returns the latest git commit hash [Francesc Esplugas]
 
-* Added Rails.public_path to control where HTML and assets are expected to be loaded from (defaults to Rails.root + "/public") #11581 [nicksieger]
+* Added Rails.public_path to control where HTML and assets are expected to be loaded from (defaults to Rails.root + "/public") #11581 [Nick Sieger]
 
 * rake time:zones:local finds correct base utc offset for zones in the Southern Hemisphere [Geoff Buesing]
 
-* Don't require rails/gem_builder during rails initialization, it's only needed for the gems:build task. [rick]
+* Don't require rails/gem_builder during rails initialization, it's only needed for the gems:build task. [Rick Olson]
 
-* script/performance/profiler compatibility with the ruby-prof >= 0.5.0. Closes #9176. [Catfish]
+* script/performance/profiler compatibility with the ruby-prof >= 0.5.0. Closes #9176. [Jonathan del Strother]
 
 * Flesh out rake gems:unpack to unpack all gems, and add rake gems:build for native extensions. #11513 [ddollar]
 
@@ -143,11 +143,11 @@
   rake gems:build              # builds all unpacked gems
   rake gems:build GEM=mygem    # builds only the gem 'mygem'
 
-* Add config.active_support for future configuration options.  Also, add more new Rails 3 config settings to new_rails_defaults.rb [rick]
+* Add config.active_support for future configuration options.  Also, add more new Rails 3 config settings to new_rails_defaults.rb [Rick Olson]
 
-* Add Rails.logger, Rails.root, Rails.env and Rails.cache shortcuts for RAILS_* constants [pratik]
+* Add Rails.logger, Rails.root, Rails.env and Rails.cache shortcuts for RAILS_* constants [Pratik Naik]
 
-* Allow files in plugins to be reloaded like the rest of the application.  [rick]
+* Allow files in plugins to be reloaded like the rest of the application.  [Rick Olson]
 
   Enables or disables plugin reloading.
   
@@ -162,7 +162,7 @@
   
     Dependencies.load_once_paths << lib_path
 
-* Small tweak to allow plugins to specify gem dependencies.  [rick]
+* Small tweak to allow plugins to specify gem dependencies.  [Rick Olson]
 
   # OLD open_id_authentication plugin init.rb
   require 'yadis'
@@ -177,7 +177,7 @@
     ActionController::Base.send :include, OpenIdAuthentication
   end
 
-* Added config.gem for specifying which gems are required by the application, as well as rake tasks for installing and freezing gems. [rick]
+* Added config.gem for specifying which gems are required by the application, as well as rake tasks for installing and freezing gems. [Rick Olson]
 
   Rails::Initializer.run do |config|
     config.gem "bj"
@@ -194,23 +194,23 @@
   # Unpack specified gem to vendor/gems/gem_name-x.x.x
   rake gems:unpack GEM=bj
 
-* Removed the default .htaccess configuration as there are so many good deployment options now (kept it as an example in README) [DHH]
+* Removed the default .htaccess configuration as there are so many good deployment options now (kept it as an example in README) [David Heinemeier Hansson]
 
 * config.time_zone accepts TZInfo::Timezone identifiers as well as Rails TimeZone identifiers [Geoff Buesing]
 
 * Rails::Initializer#initialize_time_zone raises an error if value assigned to config.time_zone is not recognized. Rake time zone tasks only require ActiveSupport instead of entire environment [Geoff Buesing]
 
-* Stop adding the antiquated test/mocks/* directories and only add them to the path if they're still there for legacy reasons [DHH]
+* Stop adding the antiquated test/mocks/* directories and only add them to the path if they're still there for legacy reasons [David Heinemeier Hansson]
 
-* Added that gems can now be plugins if they include rails/init.rb #11444 [jbarnette]
+* Added that gems can now be plugins if they include rails/init.rb #11444 [John Barnette]
 
-* Added Plugin#about method to programmatically access the about.yml in a plugin #10979 [lazyatom]
+* Added Plugin#about method to programmatically access the about.yml in a plugin #10979 [James Adam]
 
     plugin = Rails::Plugin.new(path_to_my_plugin)
     plugin.about["author"] # => "James Adam"
     plugin.about["url"] # => "http://interblah.net"
 
-* Improve documentation. [Radar, Jan De Poorter, chuyeow, xaviershay, danger, miloops, Xavier Noria,  Sunny Ripert]
+* Improve documentation. [Ryan Bigg, Jan De Poorter, Cheah Chu Yeow, Xavier Shay, Jack Danger Canty, Emilio Tagua, Xavier Noria,  Sunny Ripert]
 
 * Added config.time_zone = 'UTC' in the default environment.rb [Geoff Buesing]
 
@@ -218,7 +218,7 @@
 
 * Add config.time_zone for configuring the default Time.zone value.  #10982 [Geoff Buesing]
 
-* Added support for installing plugins hosted at git repositories #11294 [danger]
+* Added support for installing plugins hosted at git repositories #11294 [Jack Danger Canty]
 
 * Fixed that script/generate would not look for plugin generators in plugin_paths #11000 [glv]
 
@@ -226,7 +226,7 @@
 
 * Added a -e/--export to script/plugin install, uses svn export. #10847 [jon@blankpad.net)]
 
-* Reshuffle load order so that routes and observers are initialized after plugins and app initializers.  Closes #10980 [rick]
+* Reshuffle load order so that routes and observers are initialized after plugins and app initializers.  Closes #10980 [Rick Olson]
 
 * Git support for script/generate.  #10690 [ssoroka]
 
@@ -234,7 +234,7 @@
 
 * Resurrect WordNet synonym lookups.  #10710 [tom./, matt]
 
-* Added config.cache_store to environment options to control the default cache store (default is FileStore if tmp/cache is present, otherwise MemoryStore is used) [DHH]
+* Added config.cache_store to environment options to control the default cache store (default is FileStore if tmp/cache is present, otherwise MemoryStore is used) [David Heinemeier Hansson]
 
 * Added that rails:update is run when you do rails:freeze:edge to ensure you also get the latest JS and config files #10565 [jeff]
 
@@ -247,9 +247,9 @@
 
 *2.0.2* (December 16th, 2007)
 
-* Changed the default database from mysql to sqlite3, so now running "rails myapp" will have a config/database.yml that's setup for SQLite3 (which in OS X Leopard is installed by default, so is the gem, so everything Just Works with no database configuration at all). To get a Rails application preconfigured for MySQL, just run "rails -d mysql myapp" [DHH]
+* Changed the default database from mysql to sqlite3, so now running "rails myapp" will have a config/database.yml that's setup for SQLite3 (which in OS X Leopard is installed by default, so is the gem, so everything Just Works with no database configuration at all). To get a Rails application preconfigured for MySQL, just run "rails -d mysql myapp" [David Heinemeier Hansson]
 
-* Turned on ActionView::Base.cache_template_loading by default in config/environments/production.rb to prevent file system stat calls for every template loading to see if it changed (this means that you have to restart the application to see template changes in production mode) [DHH]
+* Turned on ActionView::Base.cache_template_loading by default in config/environments/production.rb to prevent file system stat calls for every template loading to see if it changed (this means that you have to restart the application to see template changes in production mode) [David Heinemeier Hansson]
 
 * Introduce `rake secret` to output a crytographically secure secret key for use with cookie sessions #10363 [revans]
 
@@ -273,19 +273,19 @@
 
 * The test task stops with a warning if you have pending migrations.  #10377 [Josh Knowles]
 
-* Add warning to documentation about using transactional fixtures when the code under test uses transactions itself. Closes #7548 [thijsv]
+* Add warning to documentation about using transactional fixtures when the code under test uses transactions itself. Closes #7548 [Thijs van der Vossen]
 
 * Update Prototype to 1.6.0.1.  [sam]
 
 * Update script.aculo.us to 1.8.0.1.  [madrobby]
 
-* Added db:fixtures:identity as a way of locating what ID a foxy fixture was assigned #10332 [jbarnette]
+* Added db:fixtures:identity as a way of locating what ID a foxy fixture was assigned #10332 [John Barnette]
 
-* Generated fixtures should not specify ids since theyre expected to be foxy fixtures #10330 [jbarnette]
+* Generated fixtures should not specify ids since theyre expected to be foxy fixtures #10330 [John Barnette]
 
 * Update to Prototype -r8232.  [sam]
 
-* Introduce SecretKeyGenerator for more secure session secrets than CGI::Session's pseudo-random id generator. Consider extracting to Active Support later.  #10286 [Hongli Lai]
+* Introduce SecretKeyGenerator for more secure session secrets than CGI::Session's pseudo-random id generator. Consider extracting to Active Support later.  #10286 [Hongli Lai (Phusion)]
 
 * RAILS_GEM_VERSION may be set to any valid gem version specifier.  #10057 [Chad Woolley, Cheah Chu Yeow]
 
@@ -295,11 +295,11 @@
 
 * Only load ActionMailer::TestCase if ActionMailer is loaded.  Closes #10137 [defunkt]
 
-* Fixed that db:reset would use migrations instead of loading db/schema.rb [DHH]
+* Fixed that db:reset would use migrations instead of loading db/schema.rb [David Heinemeier Hansson]
 
 * Ensure the plugin loader only loads plugins once.  Closes #10102 [haruki_zaemon]
 
-* Refactor Plugin Loader.  Add plugin lib paths early, and add lots of tests.  Closes #9795 [lazyatom]
+* Refactor Plugin Loader.  Add plugin lib paths early, and add lots of tests.  Closes #9795 [James Adam]
 
 * Added --skip-timestamps to generators that produce models #10036 [Tim Pope]
 
@@ -313,7 +313,7 @@
 
 * config/boot.rb correctly detects RAILS_GEM_VERSION.  #9834 [alexch, thewoolleyman]
 
-* Fixed incorrect migration number if script/generate executed outside of Rails root #7080 [jeremymcanally]
+* Fixed incorrect migration number if script/generate executed outside of Rails root #7080 [Jeremy McAnally]
 
 * Update Prototype to 1.6.0_rc1 and script.aculo.us to 1.8.0 preview 0.  [sam, madrobby]
 
@@ -326,7 +326,7 @@
 * db:create works with remote databases whereas db:create:all only creates
 databases on localhost.  #9753 [Trevor Wennblom]
 
-* Removed calls to fixtures in generated tests as fixtures :all is now present by default in test_helper.rb [DHH]
+* Removed calls to fixtures in generated tests as fixtures :all is now present by default in test_helper.rb [David Heinemeier Hansson]
 
 * Add --prefix option to script/server when using mongrel. [dacat]
 
@@ -335,13 +335,13 @@ databases on localhost.  #9753 [Trevor Wennblom]
 
 * Fixed that installing plugins from SVN repositories that use trunk/ will work #8188 [evan]
 
-* Moved the SourceAnnotationExtractor to a separate file in case libraries try to load the rails rake tasks twice. [Rick]
+* Moved the SourceAnnotationExtractor to a separate file in case libraries try to load the rails rake tasks twice. [Rick Olson]
 
 * Moved Dispatcher to ActionController::Dispatcher.  [Jeremy Kemper]
 
-* Changed the default logger from Ruby's own Logger with the clean_logger extensions to ActiveSupport::BufferedLogger for performance reasons [DHH]. (You can change it back with config.logger = Logger.new("/path/to/log", level).)
+* Changed the default logger from Ruby's own Logger with the clean_logger extensions to ActiveSupport::BufferedLogger for performance reasons [David Heinemeier Hansson]. (You can change it back with config.logger = Logger.new("/path/to/log", level).)
 
-* Added a default 422.html page to be rendered when ActiveRecord::RecordInvalid, ActiveRecord::RecordNotSaved, or ActionController::InvalidAuthenticityToken is raised [DHH]
+* Added a default 422.html page to be rendered when ActiveRecord::RecordInvalid, ActiveRecord::RecordNotSaved, or ActionController::InvalidAuthenticityToken is raised [David Heinemeier Hansson]
 
 * Added --skip-fixture option to script/generate model #6862 [sandofsky]
 
@@ -349,15 +349,15 @@ databases on localhost.  #9753 [Trevor Wennblom]
 
 * Fixed the placement of fixture files for nested models when generating through script/generate model #7547 [jkit]
 
-* Added TEMPLATE option to rake doc:app to set a custom output template #7737 [Jakob S]
+* Added TEMPLATE option to rake doc:app to set a custom output template #7737 [Jakob Skjerning]
 
-* Added VERBOSE option to rake db:migrate to turn off output #8204 [jbarnette]
+* Added VERBOSE option to rake db:migrate to turn off output #8204 [John Barnette]
 
 * Fixed that rake doc:app should use UTF-8 #8906 [farzy]
 
 * Fixes rake annotations to search erb and builder files as well #9150 [m.langenberg]
 
-* Removed web_service generator [Koz]
+* Removed web_service generator [Michael Koziarski]
 
 * Added the :all option to config.plugins that'll include the rest of the plugins not already explicitly named #9613 [Frederick Cheung]. Example:
 
@@ -366,11 +366,11 @@ databases on localhost.  #9753 [Trevor Wennblom]
 
 * Added symbols as a legal way of specifying plugins in config.plugins #9629 [tom]
 
-* Removed deprecated task names, like clear_logs, in favor of the new namespaced style [DHH]
+* Removed deprecated task names, like clear_logs, in favor of the new namespaced style [David Heinemeier Hansson]
 
-* Support multiple config.after_initialize blocks so plugins and apps can more easily cooperate.  #9582 [zdennis]
+* Support multiple config.after_initialize blocks so plugins and apps can more easily cooperate.  #9582 [Zach Dennis]
 
-* Added db:drop:all to drop all databases declared in config/database.yml [DHH]
+* Added db:drop:all to drop all databases declared in config/database.yml [David Heinemeier Hansson]
 
 * Use attribute pairs instead of the migration name to create add and remove column migrations.  Closes #9166 [Pratik Naik]
 
@@ -382,11 +382,11 @@ databases on localhost.  #9753 [Trevor Wennblom]
 	
 	ruby script/generation migration RemoveSomeStuffFromCustomers first_name:string last_name:string
 
-* Add ActiveResource to Rails::Info.  Closes #8741 [kampers]
+* Add ActiveResource to Rails::Info.  Closes #8741 [Chris Kampmeier]
 
 * use Gem.find_name instead of search when freezing gems.  Prevent false positives for other gems with rails in the name. Closes #8729 [wselman]
 
-* Automatically generate add/remove column commands in specially named migrations like AddLocationToEvent.  Closes #9006 [zenspider]
+* Automatically generate add/remove column commands in specially named migrations like AddLocationToEvent.  Closes #9006 [Ryan Davis]
 
 * Default to plural table name in Rails Generator if ActiveRecord is not present.  Closes #8963 [evan]
 
@@ -404,7 +404,7 @@ databases on localhost.  #9753 [Trevor Wennblom]
 
 * Fix that FCGIs would leave log files open when asked to shut down by USR2.  #3028 [Sebastian Kanthak, Josh Peek]
 
-* Fixed that dispatcher preparation callbacks only run once in production mode.  Mock Routes.reload so that dispatcher preparation callback tests run. [Rick]
+* Fixed that dispatcher preparation callbacks only run once in production mode.  Mock Routes.reload so that dispatcher preparation callback tests run. [Rick Olson]
 
 * Fix syntax error in dispatcher than wrecked failsafe responses.  #8625 [mtitorenko]
 
@@ -432,11 +432,11 @@ databases on localhost.  #9753 [Trevor Wennblom]
 
 * Generators use *.html.erb view template naming.  #8278 [Tim Pope]
 
-* Updated resource_scaffold and model generators to use short-hand style migrations [DHH]
+* Updated resource_scaffold and model generators to use short-hand style migrations [David Heinemeier Hansson]
 
 * Updated initializer to only load #{RAILS_ENV}.rb once. Added deprecation warning for config.breakpoint_server. [Nicholas Seckar]
 
-* Removed breakpointer and Binding.of_caller in favor of relying on ruby-debug by Kent Sibilev since the breakpointer has been broken since Ruby 1.8.4 and will not be coming back [DHH]
+* Removed breakpointer and Binding.of_caller in favor of relying on ruby-debug by Kent Sibilev since the breakpointer has been broken since Ruby 1.8.4 and will not be coming back [David Heinemeier Hansson]
 
   To use the new debugger, start your server with script/server --debugger and insert a call to  'debugger'
   (instead of 'breakpoint') where you want to jump into the debugger. 
@@ -454,13 +454,13 @@ databases on localhost.  #9753 [Trevor Wennblom]
 
 * Include Active Resource in rails:freeze:edge rake task.  [Thomas Fuchs]
 
-* Include Active Resource instead of Action Web Service [DHH] You can add AWS back with this in config/environment.rb:
+* Include Active Resource instead of Action Web Service [David Heinemeier Hansson] You can add AWS back with this in config/environment.rb:
 
     config.load_paths += %W( #{RAILS_ROOT}/vendor/rails/actionwebservice/lib )
   
   ...or just gem 'actionwebservice'
 
-* Give generate scaffold a more descriptive database message.  Closes #7316 [jeremymcanally]
+* Give generate scaffold a more descriptive database message.  Closes #7316 [Jeremy McAnally]
 
 * Canonicalize RAILS_ROOT by using File.expand_path on Windows, which doesn't have to worry about symlinks, and Pathname#realpath elsewhere, which respects symlinks in relative paths but is incompatible with Windows.  #6755 [Jeremy Kemper, trevor]
 
@@ -474,19 +474,19 @@ databases on localhost.  #9753 [Trevor Wennblom]
 
 * Split plugin location and loading out of the initializer and into a new Plugin namespace, which includes Plugin::Locater and Plugin::Loader. The loader class that is used can be customized using the config.plugin_loader option.  Those monkey patching the plugin loading subsystem take note, the internals changing here will likely break your modifications. The good news is that it should be substantially easier to hook into the plugin locating and loading process now.  [Marcel Molina Jr.]
 
-* Added assumption that all plugin creators desire to be sharing individuals and release their work under the MIT license [DHH]
+* Added assumption that all plugin creators desire to be sharing individuals and release their work under the MIT license [David Heinemeier Hansson]
 
 * Added source-annotations extractor tasks to rake [Jamis Buck]. This allows you to add FIXME, OPTIMIZE, and TODO comments to your source code that can then be extracted in concert with rake notes (shows all), rake notes:fixme, rake notes:optimize and rake notes:todo.
 
-* Added fixtures :all to test_helper.rb to assume that most people just want all their fixtures loaded all the time [DHH]
+* Added fixtures :all to test_helper.rb to assume that most people just want all their fixtures loaded all the time [David Heinemeier Hansson]
 
-* Added config/initializers where all ruby files within it are automatically loaded after the Rails configuration is done, so you don't have to litter the environment.rb file with a ton of mixed stuff [DHH]
+* Added config/initializers where all ruby files within it are automatically loaded after the Rails configuration is done, so you don't have to litter the environment.rb file with a ton of mixed stuff [David Heinemeier Hansson]
 
 * For new apps, generate a random secret for the cookie-based session store.  [Jeremy Kemper]
 
-* Stop swallowing errors during rake test [Koz]
+* Stop swallowing errors during rake test [Michael Koziarski]
 
-* Update Rails Initializer to use ActionController::Base#view_paths [Rick]
+* Update Rails Initializer to use ActionController::Base#view_paths [Rick Olson]
 
 * Fix gem deprecation warnings, which also means depending on RubyGems 0.9.0+ [Chad Fowler]
 
@@ -504,12 +504,12 @@ databases on localhost.  #9753 [Trevor Wennblom]
 
 * Fixed that webrick would strip leading newlines and hang connection #4156 [psross]
 
-* Ensure plugins are in the Dependencies.load_once_paths collection by default.  [Rick]
+* Ensure plugins are in the Dependencies.load_once_paths collection by default.  [Rick Olson]
   If you really want your plugins to reload, add this to the very top of init.rb:
   
     Dependencies.load_once_paths.delete(lib_path)
 
-* Allow config.to_prepare to work, make the dispatcher safe to 're require'. [Koz, Nicholas Seckar]
+* Allow config.to_prepare to work, make the dispatcher safe to 're require'. [Michael Koziarski, Nicholas Seckar]
 
 * Fix scaffold_resource generator so it respects the --pretend argument when creating the routes file.  Closes #6852 [fearoffish]
 
@@ -519,25 +519,25 @@ databases on localhost.  #9753 [Trevor Wennblom]
 
 * Don't generate a components directory in new Rails apps.  [Jeremy Kemper]
 
-* Fixed script/process/spawner to work properly with Mongrel including in -r (daemonize mode) [DHH]
+* Fixed script/process/spawner to work properly with Mongrel including in -r (daemonize mode) [David Heinemeier Hansson]
 
-* Added one-letter aliases for the three default environments to script/console, so script/console p will load the production environment (t for test, d for development) [DHH]
+* Added one-letter aliases for the three default environments to script/console, so script/console p will load the production environment (t for test, d for development) [David Heinemeier Hansson]
 
-* Fixed that script/server running against Mongrel should tail the proper log regardless of the environment [DHH]
+* Fixed that script/server running against Mongrel should tail the proper log regardless of the environment [David Heinemeier Hansson]
 
 * Update initializer to load Rails::VERSION as soon as possible. Closes #6698. [Nicholas Seckar]
 
-* Added ActiveRecord::Base.clear_active_connections! in development mode so the database connection is not carried over from request to request. Some databases won't reread the schema if that doesn't happen (I'm looking at you SQLite), so you have to restart the server after each migration (= no fun) [DHH]
+* Added ActiveRecord::Base.clear_active_connections! in development mode so the database connection is not carried over from request to request. Some databases won't reread the schema if that doesn't happen (I'm looking at you SQLite), so you have to restart the server after each migration (= no fun) [David Heinemeier Hansson]
 
-* Made RAILS_GEM_VERSION work for beta gems too, so specifying 1.1.6 will give you 1.1.6.4520 if available [DHH]
+* Made RAILS_GEM_VERSION work for beta gems too, so specifying 1.1.6 will give you 1.1.6.4520 if available [David Heinemeier Hansson]
 
 * Update to Prototype and script.aculo.us [5579]. [Thomas Fuchs]
 
-* Made script/server work with -e and -d when using Mongrel [DHH]
+* Made script/server work with -e and -d when using Mongrel [David Heinemeier Hansson]
 
 * Update to Prototype 1.5.0_rc2 [5550] which makes it work in Opera again [Thomas Fuchs]
 
-* Make sure that exceptions which are thrown outside of the user code try their best to be handeled in ApplicationController#rescue_action [Tobias Luetke]
+* Make sure that exceptions which are thrown outside of the user code try their best to be handeled in ApplicationController#rescue_action [Tobias Lütke]
 
 * Rails::VERSION::STRING should always be available without having to require 'rails/version'.  #6244 [fearoffish]
 
@@ -561,31 +561,31 @@ databases on localhost.  #9753 [Trevor Wennblom]
 
 * resource and scaffold_resource generators add a restful route to config/routes.rb  [Jeremy Kemper]
 
-* Revert environment changes for autoload_paths. [Koz]
+* Revert environment changes for autoload_paths. [Michael Koziarski]
 
 * Update to latest Prototype, which doesn't serialize disabled form elements, adds clone() to arrays, empty/non-string Element.update() and adds a fixes excessive error reporting in WebKit beta versions [Thomas Fuchs]
 
-* Clean up the output of rake stats,  de-emphasise components and apis, and remove the indents for tests [Koz]
+* Clean up the output of rake stats,  de-emphasise components and apis, and remove the indents for tests [Michael Koziarski]
 
-* Added option to script/process/spawner of specifying the binding address #5133 [zsombor]
+* Added option to script/process/spawner of specifying the binding address #5133 [Dee Zsombor]
 
 * Update environment.rb comments to include config.autoload_paths. Closes #6478 [caio]
 
-* Update scaffold to use new form_tag block functionality.  Closes #6480. [BobSilva]
+* Update scaffold to use new form_tag block functionality.  Closes #6480. [Bob Silva]
 
 * Plugin generator: check for class collisions.  #4833 [vinbarnes@gmail.com]
 
 * Mailer generator: handle mailers in modules, set mime_version in unit test.  [Jeremy Kemper]
 
-* Set $KCODE to 'u' by default to enable the multibyte safe String#chars proxy. [Koz]
+* Set $KCODE to 'u' by default to enable the multibyte safe String#chars proxy. [Michael Koziarski]
 
-* Added config.plugins to control which plugins are loaded #6269 [skaes]. By default, everything in vendor/plugins will be loaded, but if you specify config.plugins, only those will be loaded. Example:
+* Added config.plugins to control which plugins are loaded #6269 [Stefan Kaes]. By default, everything in vendor/plugins will be loaded, but if you specify config.plugins, only those will be loaded. Example:
 
     config.plugins = %w[ routing_navigator simply_helpful ]
 
 * Clean up html on included error pages. [Tim Lucas]
 
-* Fixed default 404.html and 500.htmls to remove extreme ugliness and include human language [DHH]
+* Fixed default 404.html and 500.htmls to remove extreme ugliness and include human language [David Heinemeier Hansson]
 
 * Update to latest Prototype and script.aculo.us trunk versions [Thomas Fuchs]
 
@@ -593,17 +593,17 @@ databases on localhost.  #9753 [Trevor Wennblom]
 
 * Fixed test:uncommitted on Windows (backslash issue) #4999 [paul@paulbutcher.com]
 
-* Fixed migration creation to work with namespaced models, so script/generate model Gallery::Image will use create_table :gallery_images #6327 [BobSilva]
+* Fixed migration creation to work with namespaced models, so script/generate model Gallery::Image will use create_table :gallery_images #6327 [Bob Silva]
 
 * Fixed rename_table on SQLite tables with indexes defined #5942 [brandon@opensoul.org]
 
-* Added default timeout setting of 5 seconds to SQLite3 database.yml configurations [DHH]
+* Added default timeout setting of 5 seconds to SQLite3 database.yml configurations [David Heinemeier Hansson]
 
-* Added generated attribute options to script/generate model, like the one found in scaffold_resource and resource [DHH]. Examples:
+* Added generated attribute options to script/generate model, like the one found in scaffold_resource and resource [David Heinemeier Hansson]. Examples:
 
     ./script/generate model post title:string created_on:date body:text published:boolean
 
-* Added script/generate resource which works just like scaffold_resource, but creates empty placeholders instead of predefined [DHH]
+* Added script/generate resource which works just like scaffold_resource, but creates empty placeholders instead of predefined [David Heinemeier Hansson]
 
 * script/runner can run files, pass on arguments, and be used as a shebang.  #6286 [Tuxie, dlpond]
     #!/usr/bin/env /path/to/my/app/script/runner
@@ -612,7 +612,7 @@ databases on localhost.  #9753 [Trevor Wennblom]
 
 * Look for rake tasks in plugin subdirs.  #6259 [obrie]
 
-* Added map.connect ':controller/:action/:id.:format' as a default route to config/routes.rb [DHH]
+* Added map.connect ':controller/:action/:id.:format' as a default route to config/routes.rb [David Heinemeier Hansson]
 
 * Updated prototype.js to 1.5.0_rc1 with latest fixes. [Rick Olson]
 
@@ -624,7 +624,7 @@ databases on localhost.  #9753 [Trevor Wennblom]
 
 * script/server creates the tmp/pids directory.  #6204 [jonathan]
 
-* Fix script/console --sandbox for internal transactions changes.  #5738 [chris@octopod.info, charles.gerungan@gmail.com]
+* Fix script/console --sandbox for internal transactions changes.  #5738 [Chris McGrath, charles.gerungan@gmail.com]
 
 * Remove the uncanny default of adding all app/models/*/ directories to the load path. This change will break application which expect the current behavior. As
 documented in initializer.rb, the workaround is:
@@ -637,7 +637,7 @@ References #6031. [Nicholas Seckar]
 
 * Update to Prototype 1.5.0_rc1 [sam]
 
-* Formally Deprecate the old rake tasks. [Koz]
+* Formally Deprecate the old rake tasks. [Michael Koziarski]
 
 * Thoroughly test the FCGI dispatcher.  #5970 [Kevin Clark]
 
@@ -670,7 +670,7 @@ References #6031. [Nicholas Seckar]
 
 * Fix Dispatcher.reset_application! so that AR subclasses are removed and Observers re-initialized *after* Reloadable classes are removed. Closes #5743.  [Rick Olson]
 
-* Clarify usage of script/plugin source. Closes #5344. [james.adam@gmail.com]
+* Clarify usage of script/plugin source. Closes #5344. [James Adam]
 
 * Add Dispatcher.to_prepare and config.to_prepare to provide a pre-request hook. [Nicholas Seckar]
 
@@ -678,7 +678,7 @@ References #6031. [Nicholas Seckar]
 
 * Added that you can change the web server port in config/lighttpd.conf from script/server --port/-p #5465 [mats@imediatec.co.uk]
 
-* script/performance/profiler compatibility with the new ruby-prof, including an option to choose the results printer.  #5679 [shugo@ruby-lang.org]
+* script/performance/profiler compatibility with the new ruby-prof, including an option to choose the results printer.  #5679 [Shugo Maeda]
 
 * Fixed the failsafe response so it uses either the current recognized controller or ApplicationController.  [Rick Olson]
 
@@ -692,7 +692,7 @@ References #6031. [Nicholas Seckar]
 
 * Ensure the logger is initialized. #5629 [mike@clarkware.com]
 
-* Added Mongrel-spawning capabilities to script/process/spawner. Mongrel will be the default choice if installed, otherwise FCGI is tried [DHH]. Examples:
+* Added Mongrel-spawning capabilities to script/process/spawner. Mongrel will be the default choice if installed, otherwise FCGI is tried [David Heinemeier Hansson]. Examples:
 
     spawner               # starts instances on 8000, 8001, and 8002 using Mongrel if available
     spawner fcgi          # starts instances on 8000, 8001, and 8002 using FCGI
@@ -735,15 +735,15 @@ References #6031. [Nicholas Seckar]
 
 * Mongrel: script/server works on Win32. #5499 [jeremydurham@gmail.com]
 
-* Remove opts.on { |options[:option_name] } style hash assignment. Closes #4440. [nicksieger@gmail.com]
+* Remove opts.on { |options[:option_name] } style hash assignment. Closes #4440. [Nick Sieger]
 
 * Mongrel support for script/server.  #5475 [jeremydurham@gmail.com]
 
-* Fix script/plugin so it doesn't barf on invalid URLs [Rick]
+* Fix script/plugin so it doesn't barf on invalid URLs [Rick Olson]
 
 * Fix plugin install bug at dir with space. (closes #5359) [Yoshimasa NIWA]
 
-* Fix bug with 'script/plugin install' so it reports unknown plugin names correctly.  [Rick]
+* Fix bug with 'script/plugin install' so it reports unknown plugin names correctly.  [Rick Olson]
 
 * Added uninstall.rb hook to plugin handling, such that plugins have a way of removing assets and other artifacts on removal #5003 [takiuchi@drecom.co.jp]
 
@@ -753,11 +753,11 @@ References #6031. [Nicholas Seckar]
 
 * Make "script/plugin install" work with svn+ssh URLs. [Sam Stephenson]
 
-* Added lib/ to the directories that will get application docs generated [DHH]
+* Added lib/ to the directories that will get application docs generated [David Heinemeier Hansson]
 
-* Add observer generator. Closes #5167. [francois.beausoleil@gmail.com]
+* Add observer generator. Closes #5167. [François Beausoleil]
 
-* Session migration generator obeys pluralize_table_names. #5145 [james.adam@gmail.com]
+* Session migration generator obeys pluralize_table_names. #5145 [James Adam]
 
 * rake test:recent understands subdirectories. #2925 [jerrett@bravenet.com]
 
@@ -765,17 +765,17 @@ References #6031. [Nicholas Seckar]
 
 * The app generator sets a session key in application.rb so apps running on the same host may distinguish their cookies. #2967 [rcoder, rails-bug@owl.me.uk]
 
-* Distinguish the spawners for different processes [DHH]
+* Distinguish the spawners for different processes [David Heinemeier Hansson]
 
-* Added -n/--process to script/process/spawner name the process pid (default is dispatch) [DHH]
+* Added -n/--process to script/process/spawner name the process pid (default is dispatch) [David Heinemeier Hansson]
 
 * Namespaced OrderedHash so the Rails implementation does not clash with any others. (fixes #4911) [Julian Tarkhanov]
 
 * Replace Ruby's deprecated append_features in favor of included. [Marcel Molina Jr.]
 
-* Added script/process/inspector to do simple process status information on Rails dispatchers keeping pid files in tmp/pids [DHH]
+* Added script/process/inspector to do simple process status information on Rails dispatchers keeping pid files in tmp/pids [David Heinemeier Hansson]
 
-* Added pid file usage to script/process/spawner and script/process/reaper along with a directive in default config/lighttpd.conf file to record the pid. They will all save their pid file in tmp/pids [DHH]
+* Added pid file usage to script/process/spawner and script/process/reaper along with a directive in default config/lighttpd.conf file to record the pid. They will all save their pid file in tmp/pids [David Heinemeier Hansson]
 
 
 *1.2.3* (March 12th, 2007)
@@ -784,14 +784,14 @@ References #6031. [Nicholas Seckar]
 
 * Windows: include MinGW in RUBY_PLATFORM check.  #2982 [okkez000@gmail.com, Kaspar Schiess]
 
-* Stop swallowing errors during rake test [Koz]
+* Stop swallowing errors during rake test [Michael Koziarski]
 
 
 *1.2.2* (February 5th, 2007)
 
 * Fix gem deprecation warnings, which also means depending on RubyGems 0.9.0+ [Chad Fowler]
 
-* Require the dispatcher for Rails::Configuration#to_prepare.  [Rick]
+* Require the dispatcher for Rails::Configuration#to_prepare.  [Rick Olson]
 
 
 *1.2.1* (January 16th, 2007)
@@ -807,7 +807,7 @@ References #6031. [Nicholas Seckar]
 
 * Fixed that webrick would strip leading newlines and hang connection #4156 [psross]
 
-* Ensure plugins are in the Dependencies.load_once_paths collection by default.  [Rick]
+* Ensure plugins are in the Dependencies.load_once_paths collection by default.  [Rick Olson]
   If you really want your plugins to reload, add this to the very top of init.rb:
   
     Dependencies.load_once_paths.delete(lib_path)
@@ -820,23 +820,23 @@ References #6031. [Nicholas Seckar]
 
 * Don't generate a components directory in new Rails apps.  [Jeremy Kemper]
 
-* Fixed script/process/spawner to work properly with Mongrel including in -r (daemonize mode) [DHH]
+* Fixed script/process/spawner to work properly with Mongrel including in -r (daemonize mode) [David Heinemeier Hansson]
 
-* Deprecated the name route "root" as it'll be used as a shortcut for map.connect '' in Rails 2.0 [DHH]
+* Deprecated the name route "root" as it'll be used as a shortcut for map.connect '' in Rails 2.0 [David Heinemeier Hansson]
 
-* Fixed that script/server running against Mongrel should tail the proper log regardless of the environment [DHH]
+* Fixed that script/server running against Mongrel should tail the proper log regardless of the environment [David Heinemeier Hansson]
 
 * Update initializer to load Rails::VERSION as soon as possible. Closes #6698. [Nicholas Seckar]
 
-* Added ActiveRecord::Base.clear_active_connections! in development mode so the database connection is not carried over from request to request. Some databases won't reread the schema if that doesn't happen (I'm looking at you SQLite), so you have to restart the server after each migration (= no fun) [DHH]
+* Added ActiveRecord::Base.clear_active_connections! in development mode so the database connection is not carried over from request to request. Some databases won't reread the schema if that doesn't happen (I'm looking at you SQLite), so you have to restart the server after each migration (= no fun) [David Heinemeier Hansson]
 
-* Made RAILS_GEM_VERSION work for beta gems too, so specifying 1.1.6 will give you 1.1.6.4520 if available [DHH]
+* Made RAILS_GEM_VERSION work for beta gems too, so specifying 1.1.6 will give you 1.1.6.4520 if available [David Heinemeier Hansson]
 
 * Update to Prototype and script.aculo.us [5579]. [Sam Stephenson, Thomas Fuchs]
 
-* Made script/server work with -e and -d when using Mongrel [DHH]
+* Made script/server work with -e and -d when using Mongrel [David Heinemeier Hansson]
 
-* Make sure that exceptions which are thrown outside of the user code try their best to be handeled in ApplicationController#rescue_action [Tobias Luetke]
+* Make sure that exceptions which are thrown outside of the user code try their best to be handeled in ApplicationController#rescue_action [Tobias Lütke]
 
 * Rails::VERSION::STRING should always be available without having to require 'rails/version'.  #6244 [fearoffish]
 
@@ -856,29 +856,29 @@ References #6031. [Nicholas Seckar]
 
 * resource and scaffold_resource generators add a restful route to config/routes.rb  [Jeremy Kemper]
 
-* Revert environment changes for autoload_paths. [Koz]
+* Revert environment changes for autoload_paths. [Michael Koziarski]
 
-* Clean up the output of rake stats,  de-emphasise components and apis, and remove the indents for tests [Koz]
+* Clean up the output of rake stats,  de-emphasise components and apis, and remove the indents for tests [Michael Koziarski]
 
-* Added option to script/process/spawner of specifying the binding address #5133 [zsombor]
+* Added option to script/process/spawner of specifying the binding address #5133 [Dee Zsombor]
 
 * Update environment.rb comments to include config.autoload_paths. Closes #6478 [caio]
 
-* Update scaffold to use new form_tag block functionality.  Closes #6480. [BobSilva]
+* Update scaffold to use new form_tag block functionality.  Closes #6480. [Bob Silva]
 
 * Plugin generator: check for class collisions.  #4833 [vinbarnes@gmail.com]
 
 * Mailer generator: handle mailers in modules, set mime_version in unit test.  [Jeremy Kemper]
 
-* Set $KCODE to 'u' by default to enable the multibyte safe String#chars proxy. [Koz]
+* Set $KCODE to 'u' by default to enable the multibyte safe String#chars proxy. [Michael Koziarski]
 
-* Added config.plugins to control which plugins are loaded #6269 [skaes]. By default, everything in vendor/plugins will be loaded, but if you specify config.plugins, only those will be loaded. Example:
+* Added config.plugins to control which plugins are loaded #6269 [Stefan Kaes]. By default, everything in vendor/plugins will be loaded, but if you specify config.plugins, only those will be loaded. Example:
 
     config.plugins = %w[ routing_navigator simply_helpful ]
 
 * Clean up html on included error pages. [Tim Lucas]
 
-* Fixed default 404.html and 500.htmls to remove extreme ugliness and include human language [DHH]
+* Fixed default 404.html and 500.htmls to remove extreme ugliness and include human language [David Heinemeier Hansson]
 
 * Update to latest Prototype and script.aculo.us trunk versions [Thomas Fuchs]
 
@@ -886,17 +886,17 @@ References #6031. [Nicholas Seckar]
 
 * Fixed test:uncommitted on Windows (backslash issue) #4999 [paul@paulbutcher.com]
 
-* Fixed migration creation to work with namespaced models, so script/generate model Gallery::Image will use create_table :gallery_images #6327 [BobSilva]
+* Fixed migration creation to work with namespaced models, so script/generate model Gallery::Image will use create_table :gallery_images #6327 [Bob Silva]
 
 * Fixed rename_table on SQLite tables with indexes defined #5942 [brandon@opensoul.org]
 
-* Added default timeout setting of 5 seconds to SQLite3 database.yml configurations [DHH]
+* Added default timeout setting of 5 seconds to SQLite3 database.yml configurations [David Heinemeier Hansson]
 
-* Added generated attribute options to script/generate model, like the one found in scaffold_resource and resource [DHH]. Examples:
+* Added generated attribute options to script/generate model, like the one found in scaffold_resource and resource [David Heinemeier Hansson]. Examples:
 
     ./script/generate model post title:string created_on:date body:text published:boolean
 
-* Added script/generate resource which works just like scaffold_resource, but creates empty placeholders instead of predefined [DHH]
+* Added script/generate resource which works just like scaffold_resource, but creates empty placeholders instead of predefined [David Heinemeier Hansson]
 
 * script/runner can run files, pass on arguments, and be used as a shebang.  #6286 [Tuxie, dlpond]
     #!/usr/bin/env /path/to/my/app/script/runner
@@ -905,13 +905,13 @@ References #6031. [Nicholas Seckar]
 
 * Look for rake tasks in plugin subdirs.  #6259 [obrie]
 
-* Added map.connect ':controller/:action/:id.:format' as a default route to config/routes.rb [DHH]
+* Added map.connect ':controller/:action/:id.:format' as a default route to config/routes.rb [David Heinemeier Hansson]
 
 * session_migration generator adds an index on updated_at.  #6207 [grg]
 
 * script/server creates the tmp/pids directory.  #6204 [jonathan]
 
-* Fix script/console --sandbox for internal transactions changes.  #5738 [chris@octopod.info, charles.gerungan@gmail.com]
+* Fix script/console --sandbox for internal transactions changes.  #5738 [Chris McGrath, charles.gerungan@gmail.com]
 
 * Remove the uncanny default of adding all app/models/*/ directories to the load path. This change will break application which expect the current behavior. As
 documented in initializer.rb, the workaround is:
@@ -922,7 +922,7 @@ References #6031. [Nicholas Seckar]
 
 * Update to script.aculo.us 1.6.3 [Thomas Fuchs]
 
-* Formally Deprecate the old rake tasks. [Koz]
+* Formally Deprecate the old rake tasks. [Michael Koziarski]
 
 * Thoroughly test the FCGI dispatcher.  #5970 [Kevin Clark]
 
@@ -953,7 +953,7 @@ References #6031. [Nicholas Seckar]
 
 * Fix Dispatcher.reset_application! so that AR subclasses are removed and Observers re-initialized *after* Reloadable classes are removed. Closes #5743.  [Rick Olson]
 
-* Clarify usage of script/plugin source. Closes #5344. [james.adam@gmail.com]
+* Clarify usage of script/plugin source. Closes #5344. [James Adam]
 
 * Add Dispatcher.to_prepare and config.to_prepare to provide a pre-request hook. [Nicholas Seckar]
 
@@ -961,7 +961,7 @@ References #6031. [Nicholas Seckar]
 
 * Added that you can change the web server port in config/lighttpd.conf from script/server --port/-p #5465 [mats@imediatec.co.uk]
 
-* script/performance/profiler compatibility with the new ruby-prof, including an option to choose the results printer.  #5679 [shugo@ruby-lang.org]
+* script/performance/profiler compatibility with the new ruby-prof, including an option to choose the results printer.  #5679 [Shugo Maeda]
 
 * Fixed the failsafe response so it uses either the current recognized controller or ApplicationController.  [Rick Olson]
 
@@ -975,7 +975,7 @@ References #6031. [Nicholas Seckar]
 
 * Ensure the logger is initialized. #5629 [mike@clarkware.com]
 
-* Added Mongrel-spawning capabilities to script/process/spawner. Mongrel will be the default choice if installed, otherwise FCGI is tried [DHH]. Examples:
+* Added Mongrel-spawning capabilities to script/process/spawner. Mongrel will be the default choice if installed, otherwise FCGI is tried [David Heinemeier Hansson]. Examples:
 
     spawner               # starts instances on 8000, 8001, and 8002 using Mongrel if available
     spawner fcgi          # starts instances on 8000, 8001, and 8002 using FCGI
@@ -1018,15 +1018,15 @@ References #6031. [Nicholas Seckar]
 
 * Mongrel: script/server works on Win32. #5499 [jeremydurham@gmail.com]
 
-* Remove opts.on { |options[:option_name] } style hash assignment. Closes #4440. [nicksieger@gmail.com]
+* Remove opts.on { |options[:option_name] } style hash assignment. Closes #4440. [Nick Sieger]
 
 * Mongrel support for script/server.  #5475 [jeremydurham@gmail.com]
 
-* Fix script/plugin so it doesn't barf on invalid URLs [Rick]
+* Fix script/plugin so it doesn't barf on invalid URLs [Rick Olson]
 
 * Fix plugin install bug at dir with space. (closes #5359) [Yoshimasa NIWA]
 
-* Fix bug with 'script/plugin install' so it reports unknown plugin names correctly.  [Rick]
+* Fix bug with 'script/plugin install' so it reports unknown plugin names correctly.  [Rick Olson]
 
 * Added uninstall.rb hook to plugin handling, such that plugins have a way of removing assets and other artifacts on removal #5003 [takiuchi@drecom.co.jp]
 
@@ -1036,11 +1036,11 @@ References #6031. [Nicholas Seckar]
 
 * Make "script/plugin install" work with svn+ssh URLs. [Sam Stephenson]
 
-* Added lib/ to the directories that will get application docs generated [DHH]
+* Added lib/ to the directories that will get application docs generated [David Heinemeier Hansson]
 
-* Add observer generator. Closes #5167. [francois.beausoleil@gmail.com]
+* Add observer generator. Closes #5167. [François Beausoleil]
 
-* Session migration generator obeys pluralize_table_names. #5145 [james.adam@gmail.com]
+* Session migration generator obeys pluralize_table_names. #5145 [James Adam]
 
 * rake test:recent understands subdirectories. #2925 [jerrett@bravenet.com]
 
@@ -1048,17 +1048,17 @@ References #6031. [Nicholas Seckar]
 
 * The app generator sets a session key in application.rb so apps running on the same host may distinguish their cookies. #2967 [rcoder, rails-bug@owl.me.uk]
 
-* Distinguish the spawners for different processes [DHH]
+* Distinguish the spawners for different processes [David Heinemeier Hansson]
 
-* Added -n/--process to script/process/spawner name the process pid (default is dispatch) [DHH]
+* Added -n/--process to script/process/spawner name the process pid (default is dispatch) [David Heinemeier Hansson]
 
 * Namespaced OrderedHash so the Rails implementation does not clash with any others. (fixes #4911) [Julian Tarkhanov]
 
 * Replace Ruby's deprecated append_features in favor of included. [Marcel Molina Jr.]
 
-* Added script/process/inspector to do simple process status information on Rails dispatchers keeping pid files in tmp/pids [DHH]
+* Added script/process/inspector to do simple process status information on Rails dispatchers keeping pid files in tmp/pids [David Heinemeier Hansson]
 
-* Added pid file usage to script/process/spawner and script/process/reaper along with a directive in default config/lighttpd.conf file to record the pid. They will all save their pid file in tmp/pids [DHH]
+* Added pid file usage to script/process/spawner and script/process/reaper along with a directive in default config/lighttpd.conf file to record the pid. They will all save their pid file in tmp/pids [David Heinemeier Hansson]
 
 
 *1.1.6* (August 10th, 2006)
@@ -1093,9 +1093,9 @@ References #6031. [Nicholas Seckar]
 
 * Change the scaffolding layout to use yield rather than @content_for_layout. [Marcel Molina Jr.]
 
-* Added rake rails:update:configs to update config/boot.rb from the latest (also included in rake rails:update) [DHH]
+* Added rake rails:update:configs to update config/boot.rb from the latest (also included in rake rails:update) [David Heinemeier Hansson]
 
-* Fixed that boot.rb would set RAILS_GEM_VERSION twice, not respect an uncommented RAILS_GEM_VERSION line, and not use require_gem [DHH]
+* Fixed that boot.rb would set RAILS_GEM_VERSION twice, not respect an uncommented RAILS_GEM_VERSION line, and not use require_gem [David Heinemeier Hansson]
 
 
 *1.1.1* (April 6th, 2006)
@@ -1106,7 +1106,7 @@ References #6031. [Nicholas Seckar]
 
 * Fixed that the -r/--ruby path option of the rails command was not being respected #4549 [ryan.raaum@gmail.com]
 
-* Added that Dispatcher exceptions should not be shown to the user unless a default log has not been configured. Instead show public/500.html [DHH]
+* Added that Dispatcher exceptions should not be shown to the user unless a default log has not been configured. Instead show public/500.html [David Heinemeier Hansson]
 
 * Fixed that rake clone_structure_to_test should quit on pgsql if the dump is unsuccesful #4585 [augustz@augustz.com]
 
@@ -1114,9 +1114,9 @@ References #6031. [Nicholas Seckar]
 
 * Install alias so Rails::InfoController is accessible at /rails_info. Closes #4546. [Nicholas Seckar]
 
-* Fixed that spawner should daemonize if running in repeat mode [DHH]
+* Fixed that spawner should daemonize if running in repeat mode [David Heinemeier Hansson]
 
-* Added TAG option for rake rails:freeze:edge, so you can say rake rails:freeze:edge TAG=rel_1-1-0 to lock to the 1.1.0 release [DHH]
+* Added TAG option for rake rails:freeze:edge, so you can say rake rails:freeze:edge TAG=rel_1-1-0 to lock to the 1.1.0 release [David Heinemeier Hansson]
 
 * Applied Prototype $() performance patches (#4465, #4477) and updated script.aculo.us [Sam Stephenson, Thomas Fuchs]
 
@@ -1126,13 +1126,13 @@ References #6031. [Nicholas Seckar]
 
 * Fixed rake rails:freeze:gems #4518 [benji@silverinsanity.com]
 
-* Added -f/--freeze option to rails command for freezing the application to the Rails version it was generated with [DHH]
+* Added -f/--freeze option to rails command for freezing the application to the Rails version it was generated with [David Heinemeier Hansson]
 
 * Added gem binding of apps generated through the rails command to the gems of they were generated with [Nicholas Seckar]
 
-* Added expiration settings for JavaScript, CSS, HTML, and images to default lighttpd.conf [DHH]
+* Added expiration settings for JavaScript, CSS, HTML, and images to default lighttpd.conf [David Heinemeier Hansson]
 
-* Added gzip compression for JavaScript, CSS, and HTML to default lighttpd.conf [DHH]
+* Added gzip compression for JavaScript, CSS, and HTML to default lighttpd.conf [David Heinemeier Hansson]
 
 * Avoid passing escapeHTML non-string in Rails' info controller [Nicholas Seckar]
 
@@ -1191,19 +1191,19 @@ References #6031. [Nicholas Seckar]
 
 * Added tracking of database and framework versions in script/about #4088 [charles.gerungan@gmail.com/Rick Olson]
 
-* Added public/javascripts/application.js as a sample since it'll automatically be included in javascript_include_tag :defaults [DHH]
+* Added public/javascripts/application.js as a sample since it'll automatically be included in javascript_include_tag :defaults [David Heinemeier Hansson]
 
-* Added socket cleanup for lighttpd, both before and after [DHH]
+* Added socket cleanup for lighttpd, both before and after [David Heinemeier Hansson]
 
-* Added automatic creation of tmp/ when running script/server [DHH]
+* Added automatic creation of tmp/ when running script/server [David Heinemeier Hansson]
 
-* Added silence_stream that'll work on both STDERR or STDOUT or any other stream and deprecated silence_stderr in the process [DHH]
+* Added silence_stream that'll work on both STDERR or STDOUT or any other stream and deprecated silence_stderr in the process [David Heinemeier Hansson]
 
 * Added reload! method to script/console to reload all models and others that include Reloadable without quitting the console #4056 [esad@esse.at]
 
-* Added that rake rails:freeze:edge will now just export all the contents of the frameworks instead of just lib, so stuff like rails:update:scripts, rails:update:javascripts, and script/server on lighttpd still just works #4047 [DHH]
+* Added that rake rails:freeze:edge will now just export all the contents of the frameworks instead of just lib, so stuff like rails:update:scripts, rails:update:javascripts, and script/server on lighttpd still just works #4047 [David Heinemeier Hansson]
 
-* Added fix for upload problems with lighttpd from Safari/IE to config/lighttpd.conf #3999 [thijs@fngtps.com]
+* Added fix for upload problems with lighttpd from Safari/IE to config/lighttpd.conf #3999 [Thijs van der Vossen]
 
 * Added test:uncommitted to test changes since last checkin to Subversion #4035 [technomancy@gmail.com]
 
@@ -1217,9 +1217,9 @@ References #6031. [Nicholas Seckar]
 
 * Add integration test support to app generation and testing [Jamis Buck]
 
-* Added namespaces to all tasks, so for example load_fixtures is now db:fixtures:load. All the old task names are still valid, they just point to the new namespaced names. "rake -T" will only show the namespaced ones, though [DHH]
+* Added namespaces to all tasks, so for example load_fixtures is now db:fixtures:load. All the old task names are still valid, they just point to the new namespaced names. "rake -T" will only show the namespaced ones, though [David Heinemeier Hansson]
 
-* CHANGED DEFAULT: ActiveRecord::Base.schema_format is now :ruby by default instead of :sql. This means that we'll assume you want to live in the world of db/schema.rb where the grass is green and the girls are pretty. If your schema contains un-dumpable elements, such as constraints or database-specific column types, you just got an invitation to either 1) patch the dumper to include foreign key support, 2) stop being db specific, or 3) just change the default in config/environment.rb to config.active_record.schema_format = :sql -- we even include an example for that on new Rails skeletons now. Brought to you by the federation of opinionated framework builders! [DHH]
+* CHANGED DEFAULT: ActiveRecord::Base.schema_format is now :ruby by default instead of :sql. This means that we'll assume you want to live in the world of db/schema.rb where the grass is green and the girls are pretty. If your schema contains un-dumpable elements, such as constraints or database-specific column types, you just got an invitation to either 1) patch the dumper to include foreign key support, 2) stop being db specific, or 3) just change the default in config/environment.rb to config.active_record.schema_format = :sql -- we even include an example for that on new Rails skeletons now. Brought to you by the federation of opinionated framework builders! [David Heinemeier Hansson]
 
 * Added -r/--repeat option to script/process/spawner that offers the same loop protection as the spinner did. This deprecates the script/process/spinner, so it's no longer included in the default Rails skeleton, but still available for backwards compatibility #3461 [ror@andreas-s.net]
 
@@ -1230,17 +1230,17 @@ References #6031. [Nicholas Seckar]
 
 * Added more information to script/plugin's doings to ease debugging #3755 [Rick Olson]
 
-* Changed the default configuration for lighttpd to use tmp/sockets instead of log/ for the FastCGI sockets [DHH]
+* Changed the default configuration for lighttpd to use tmp/sockets instead of log/ for the FastCGI sockets [David Heinemeier Hansson]
 
-* Added a default configuration of the FileStore for fragment caching if tmp/cache is available, which makes action/fragment caching ready to use out of the box with no additional configuration [DHH]
+* Added a default configuration of the FileStore for fragment caching if tmp/cache is available, which makes action/fragment caching ready to use out of the box with no additional configuration [David Heinemeier Hansson]
 
-* Changed the default session configuration to place sessions in tmp/sessions, if that directory is available, instead of /tmp (this essentially means a goodbye to 9/10 White Screen of Death errors and should have web hosting firms around the world cheering) [DHH]
+* Changed the default session configuration to place sessions in tmp/sessions, if that directory is available, instead of /tmp (this essentially means a goodbye to 9/10 White Screen of Death errors and should have web hosting firms around the world cheering) [David Heinemeier Hansson]
 
-* Added tmp/sessions, tmp/cache, and tmp/sockets as default directories in the Rails skeleton [DHH] 
+* Added tmp/sessions, tmp/cache, and tmp/sockets as default directories in the Rails skeleton [David Heinemeier Hansson] 
 
-* Added that script/generate model will now automatically create a migration file for the model created. This can be turned off by calling the generator with --skip-migration [DHH]
+* Added that script/generate model will now automatically create a migration file for the model created. This can be turned off by calling the generator with --skip-migration [David Heinemeier Hansson]
 
-* Added -d/--database option to the rails command, so you can do "rails --database=sqlite2 myapp" to start a new application preconfigured to use SQLite2 as the database. Removed the configuration examples from SQLite and PostgreSQL from the default MySQL configuration [DHH]
+* Added -d/--database option to the rails command, so you can do "rails --database=sqlite2 myapp" to start a new application preconfigured to use SQLite2 as the database. Removed the configuration examples from SQLite and PostgreSQL from the default MySQL configuration [David Heinemeier Hansson]
 
 * Allow script/server -c /path/to/lighttpd.conf [Jeremy Kemper]
 
@@ -1248,13 +1248,13 @@ References #6031. [Nicholas Seckar]
 
 * Update script.aculo.us to V1.5.3 [Thomas Fuchs]
 
-* Added SIGTRAP signal handler to RailsFCGIHandler that'll force the process into a breakpoint after the next request. This breakpoint can then be caught with script/breakpointer and give you access to the Ruby image inside that process. Useful for debugging memory leaks among other things [DHH]
+* Added SIGTRAP signal handler to RailsFCGIHandler that'll force the process into a breakpoint after the next request. This breakpoint can then be caught with script/breakpointer and give you access to the Ruby image inside that process. Useful for debugging memory leaks among other things [David Heinemeier Hansson]
 
-* Changed default lighttpd.conf to use CWD from lighttpd 1.4.10 that allows the same configuration to be used for both detach and not. Also ensured that auto-repeaping of FCGIs only happens when lighttpd is not detached. [DHH]
+* Changed default lighttpd.conf to use CWD from lighttpd 1.4.10 that allows the same configuration to be used for both detach and not. Also ensured that auto-repeaping of FCGIs only happens when lighttpd is not detached. [David Heinemeier Hansson]
 
 * Added Configuration#after_initialize for registering a block which gets called after the framework is fully initialized.  Useful for things like per-environment configuration of plugins. [Michael Koziarski]
 
-* Added check for RAILS_FRAMEWORK_ROOT constant that allows the Rails framework to be found in a different place than vendor/rails. Should be set in boot.rb. [DHH]
+* Added check for RAILS_FRAMEWORK_ROOT constant that allows the Rails framework to be found in a different place than vendor/rails. Should be set in boot.rb. [David Heinemeier Hansson]
 
 * Fixed that static requests could unlock the mutex guarding dynamic requests in the WEBrick servlet #3433 [tom@craz8.com]
 
@@ -1272,7 +1272,7 @@ References #6031. [Nicholas Seckar]
 
 * Fix typo in mailer generator USAGE. #3458 [chriztian.steinmeier@gmail.com]
 
-* Ignore version mismatch between pg_dump and the database server. #3457 [simon.stapleton@gmail.com]
+* Ignore version mismatch between pg_dump and the database server. #3457 [Simon Stapleton]
 
 * Reap FCGI processes after lighttpd exits. [Sam Stephenson]
 
@@ -1304,11 +1304,11 @@ References #6031. [Nicholas Seckar]
 
 * Have the lighttpd server script report the actual ip to which the server is bound. #2903. [Adam]
 
-* Add plugin library directories to the load path after the lib directory so that libraries in the lib directory get precedence. #2910. [james.adam@gmail.com]
+* Add plugin library directories to the load path after the lib directory so that libraries in the lib directory get precedence. #2910. [James Adam]
 
 * Make help for the console command more explicit about how to specify the desired environment in which to run the console. #2911. [anonymous]
 
-* PostgreSQL: the purge_test_database Rake task shouldn't explicitly specify the template0 template when creating a fresh test database.  #2964 [dreamer3@gmail.com]
+* PostgreSQL: the purge_test_database Rake task shouldn't explicitly specify the template0 template when creating a fresh test database.  #2964 [Dreamer3]
 
 * Introducing the session_migration generator.  Creates an add_session_table migration.  Allows generator to specify migrations directory.  #2958, #2960 [Rick Olson]
 
@@ -1326,19 +1326,19 @@ References #6031. [Nicholas Seckar]
 
 * Make sure that legacy db tasks also reference :database for SQLite #2830 [kazuhiko@fdiary.net]
 
-* Pass __FILE__ when evaluating plugins' init.rb.  #2817 [james.adam@gmail.com]
+* Pass __FILE__ when evaluating plugins' init.rb.  #2817 [James Adam]
 
 * Better svn status matching for generators.  #2814 [François Beausoleil <francois.beausoleil@gmail.com>, Blair Zajac <blair@orcaware.com>]
 
-* Don't reload routes until plugins have been loaded so they have a chance to extend the routing capabilities [DHH]
+* Don't reload routes until plugins have been loaded so they have a chance to extend the routing capabilities [David Heinemeier Hansson]
 
 * Don't detach or fork for script/server tailing [Nicholas Seckar]
 
-* Changed all script/* to use #!/usr/bin/env ruby instead of hard-coded Ruby path. public/dispatcher.* still uses the hard-coded path  for compatibility with web servers that don't have Ruby in path [DHH]
+* Changed all script/* to use #!/usr/bin/env ruby instead of hard-coded Ruby path. public/dispatcher.* still uses the hard-coded path  for compatibility with web servers that don't have Ruby in path [David Heinemeier Hansson]
 
-* Force RAILS_ENV to be "test" when running tests, so that ENV["RAILS_ENV"] = "production" in config/environment.rb doesn't wreck havok [DHH] #2660
+* Force RAILS_ENV to be "test" when running tests, so that ENV["RAILS_ENV"] = "production" in config/environment.rb doesn't wreck havok [David Heinemeier Hansson] #2660
 
-* Correct versioning in :freeze_gems Rake task.  #2778 [jakob@mentalized.net, Jeremy Kemper]
+* Correct versioning in :freeze_gems Rake task.  #2778 [Jakob Skjerning, Jeremy Kemper]
 
 * Added an omnipresent RailsInfoController with a properties action that delivers an HTML rendering of Rails::Info (but only when local_request? is true). Added a new default index.html which fetches this with Ajax. [Sam Stephenson]
 
@@ -1353,7 +1353,7 @@ References #6031. [Nicholas Seckar]
 
 * Use require_library_or_gem 'fcgi' in script/server [Sam Stephenson]
 
-* Added default lighttpd config in config/lighttpd.conf and added a default runner for lighttpd in script/server (works like script/server, but using lighttpd and FastCGI). It will use lighttpd if available, otherwise WEBrick. You can force either or using 'script/server lighttpd' or 'script/server webrick' [DHH]
+* Added default lighttpd config in config/lighttpd.conf and added a default runner for lighttpd in script/server (works like script/server, but using lighttpd and FastCGI). It will use lighttpd if available, otherwise WEBrick. You can force either or using 'script/server lighttpd' or 'script/server webrick' [David Heinemeier Hansson]
 
 * New configuration option config.plugin_paths which may be a single path like the default 'vendor/plugins' or an array of paths: ['vendor/plugins', 'lib/plugins'].  [Jeremy Kemper]
 
@@ -1379,7 +1379,7 @@ References #6031. [Nicholas Seckar]
 
 * Make fcgi handler respond to TERM signals with an explicit exit [Jamis Buck]
 
-* Added demonstration of fixture use to the test case generated by the model generator [DHH]
+* Added demonstration of fixture use to the test case generated by the model generator [David Heinemeier Hansson]
 
 * If specified, pass PostgreSQL client character encoding to createdb.  #2703 [Kazuhiko <kazuhiko@fdiary.net>]
 
@@ -1399,7 +1399,7 @@ References #6031. [Nicholas Seckar]
 
 * The PostgreSQL :db_structure_dump Rake task limits its dump to the schema search path in database.yml.  [Anatol Pomozov <anatol.pomozov@gmail.com>]
 
-* Add task to generate rdoc for all installed plugins. [Marcel Molina]
+* Add task to generate rdoc for all installed plugins. [Marcel Molina Jr.]
 
 * Update script.aculo.us to V1.5_rc4 [Thomas Fuchs]
 
@@ -1407,15 +1407,15 @@ References #6031. [Nicholas Seckar]
 
 * Migrations may be destroyed: script/destroy migration foo.  #2635 [Charles M. Gerungan <charles.gerungan@gmail.com>, Jamis Buck, Jeremy Kemper]
 
-* Added that plugins can carry generators and that generator stub files can be created along with new plugins using script/generate plugin <name> --with-generator [DHH]
+* Added that plugins can carry generators and that generator stub files can be created along with new plugins using script/generate plugin <name> --with-generator [David Heinemeier Hansson]
 
-* Removed app/apis as a default empty dir since its automatically created when using script/generate web_service [DHH]
+* Removed app/apis as a default empty dir since its automatically created when using script/generate web_service [David Heinemeier Hansson]
 
 * Added script/plugin to manage plugins (install, remove, list, etc) [Ryan Tomayko]
 
-* Added test_plugins task: Run the plugin tests in vendor/plugins/**/test (or specify with PLUGIN=name) [DHH]
+* Added test_plugins task: Run the plugin tests in vendor/plugins/**/test (or specify with PLUGIN=name) [David Heinemeier Hansson]
 
-* Added plugin generator to create a stub structure for a new plugin in vendor/plugins (see "script/generate plugin" for help) [DHH]
+* Added plugin generator to create a stub structure for a new plugin in vendor/plugins (see "script/generate plugin" for help) [David Heinemeier Hansson]
 
 * Fixed scaffold generator when started with only 1 parameter #2609 [self@mattmower.com]
 
@@ -1446,7 +1446,7 @@ References #6031. [Nicholas Seckar]
 
 *0.14.0 (RC1)* (October 16th, 2005)
 
-* Moved generator folder from RAILS_ROOT/generators to RAILS_ROOT/lib/generators [Tobias Luetke]
+* Moved generator folder from RAILS_ROOT/generators to RAILS_ROOT/lib/generators [Tobias Lütke]
 
 * Fix rake dev and related commands [Nicholas Seckar]
 
@@ -1457,7 +1457,7 @@ References #6031. [Nicholas Seckar]
 
 * Added Rails framework freezing tasks: freeze_gems (freeze to current gems), freeze_edge (freeze to Rails SVN trunk), unfreeze_rails (float with newest gems on system)
 
-* Added update_javascripts task which will fetch all the latest js files from your current rails install. Use after updating rails. [Tobias Luetke]
+* Added update_javascripts task which will fetch all the latest js files from your current rails install. Use after updating rails. [Tobias Lütke]
 
 * Added cleaning of RAILS_ROOT to useless elements such as '../non-dot-dot/'. Provides cleaner backtraces and error messages. [Nicholas Seckar]
 
@@ -1483,7 +1483,7 @@ References #6031. [Nicholas Seckar]
 
 * Make the migration generator only check files ending in *.rb when calculating the next file name #2317 [Chad Fowler]
 
-* Added prevention of duplicate migrations from the generator #2240 [fbeausoleil@ftml.net]
+* Added prevention of duplicate migrations from the generator #2240 [François Beausoleil]
 
 * Add db_schema_dump and db_schema_import rake tasks to work with the new ActiveRecord::SchemaDumper (for dumping a schema to and reading a schema from a ruby file).
 
@@ -1499,7 +1499,7 @@ References #6031. [Nicholas Seckar]
 
 * Added -m/--mime-types option to the WEBrick server, so you can specify a Apache-style mime.types file to load #2059 [ask@develooper.com]
 
-* Added -c/--svn option to the generator that'll add new files and remove destroyed files using svn add/revert/remove as appropriate #2064 [kevin.clark@gmail.com]
+* Added -c/--svn option to the generator that'll add new files and remove destroyed files using svn add/revert/remove as appropriate #2064 [Kevin Clark]
 
 * Added -c/--charset option to WEBrick server, so you can specify a default charset (which without changes is UTF-8) #2084 [wejn@box.cz]
 
@@ -1531,9 +1531,9 @@ References #6031. [Nicholas Seckar]
 
 * Added convenience controls for FCGI processes (especially when managed remotely): spinner, spawner, and reaper. They reside in script/process. More details can be had by calling them with -h/--help.
 
-* Added load_fixtures task to the Rakefile, which will load all the fixtures into the database for the current environment #1791 [Marcel Molina]
+* Added load_fixtures task to the Rakefile, which will load all the fixtures into the database for the current environment #1791 [Marcel Molina Jr.]
 
-* Added an empty robots.txt to public/, so that web servers asking for it won't trigger a dynamic call, like favicon.ico #1738 [michael@schubert]
+* Added an empty robots.txt to public/, so that web servers asking for it won't trigger a dynamic call, like favicon.ico #1738 [Michael Schubert]
 
 * Dropped the 'immediate close-down' of FCGI processes since it didn't work consistently and produced bad responses when it didn't. So now a TERM ensures exit after the next request (just as if the process is handling a request when it receives the signal). This means that you'll have to 'nudge' all FCGI processes with a request in order to ensure that they have all reloaded. This can be done by something like ./script/process/repear --nudge 'http://www.myapp.com' --instances 10, which will load the myapp site 10 times (and thus hit all of the 10 FCGI processes once, enough to shut down).
 
@@ -1544,13 +1544,13 @@ References #6031. [Nicholas Seckar]
 
 * Fixed that each request with the WEBrick adapter would open a new database connection #1685 [Sam Stephenson]
 
-* Added support for SQL Server in the database rake tasks #1652 [ken.barker@gmail.com] Note: osql and scptxfr may need to be installed on your development environment. This involves getting the .exes and a .rll (scptxfr) from a production SQL Server (not developer level SQL Server). Add their location to your Environment PATH and you are all set.
+* Added support for SQL Server in the database rake tasks #1652 [Ken Barker] Note: osql and scptxfr may need to be installed on your development environment. This involves getting the .exes and a .rll (scptxfr) from a production SQL Server (not developer level SQL Server). Add their location to your Environment PATH and you are all set.
 
 * Added a VERSION parameter to the migrate task that allows you to do "rake migrate VERSION=34" to migrate to the 34th version traveling up or down depending on the current version
 
-* Extend Ruby version check to include RUBY_RELEASE_DATE >= '2005-12-25', the final Ruby 1.8.2 release #1674 [court3nay@gmail.com]
+* Extend Ruby version check to include RUBY_RELEASE_DATE >= '2005-12-25', the final Ruby 1.8.2 release #1674 [court3nay]
 
-* Improved documentation for environment config files #1625 [court3nay@gmail.com]
+* Improved documentation for environment config files #1625 [court3nay]
 
 
 *0.13.0* (6 July, 2005)
@@ -1561,19 +1561,19 @@ References #6031. [Nicholas Seckar]
 
 * Added "migrate" as rake task to execute all the pending migrations from db/migrate
 
-* Fixed that model generator would make fixtures plural, even if ActiveRecord::Base.pluralize_table_names was false #1185 [Marcel Molina]
+* Fixed that model generator would make fixtures plural, even if ActiveRecord::Base.pluralize_table_names was false #1185 [Marcel Molina Jr.]
 
 * Added a DOCTYPE of HTML transitional to the HTML files generated by Rails #1124 [Michael Koziarski]
 
 * SIGTERM also gracefully exits dispatch.fcgi.  Ignore SIGUSR1 on Windows.
 
-* Add the option to manually manage garbage collection in the FastCGI dispatcher.  Set the number of requests between GC runs in your public/dispatch.fcgi [skaes@web.de]
+* Add the option to manually manage garbage collection in the FastCGI dispatcher.  Set the number of requests between GC runs in your public/dispatch.fcgi [Stefan Kaes]
 
 * Allow dynamic application reloading for dispatch.fcgi processes by sending a SIGHUP. If the process is currently handling a request, the request will be allowed to complete first. This allows production fcgi's to be reloaded without having to restart them.
 
 * RailsFCGIHandler (dispatch.fcgi) no longer tries to explicitly flush $stdout (CgiProcess#out always calls flush)
 
-* Fixed rakefile actions against PostgreSQL when the password is all numeric #1462 [michael@schubert.cx]
+* Fixed rakefile actions against PostgreSQL when the password is all numeric #1462 [Michael Schubert]
 
 * ActionMailer::Base subclasses are reloaded with the other rails components #1262
 
@@ -1587,7 +1587,7 @@ References #6031. [Nicholas Seckar]
 
 * Fixed Webrick to escape + characters in URL's the same way that lighttpd and apache do #1397 [Nicholas Seckar]
 
-* Added -e/--environment option to script/runner #1408 [fbeausoleil@ftml.net]
+* Added -e/--environment option to script/runner #1408 [François Beausoleil]
 
 * Modernize the scaffold generator to use the simplified render and test methods and to change style from @params["id"] to params[:id].  #1367
 
@@ -1628,7 +1628,7 @@ References #6031. [Nicholas Seckar]
 
 * Added lazy typing for generate, such that ./script/generate cn == ./script/generate controller and the likes #1051 [k@v2studio.com]
 
-* Fixed that ownership is brought over in pg_dump during tests for PostgreSQL #1060 [pburleson@gmail.com]
+* Fixed that ownership is brought over in pg_dump during tests for PostgreSQL #1060 [pburleson]
 
 * Upgraded to Active Record 1.10.0, Action Pack 1.8.0, Action Mailer 0.9.0, Action Web Service 0.7.0, Active Support 1.0.4
 
@@ -1648,11 +1648,11 @@ References #6031. [Nicholas Seckar]
 
 * Added additional error handling to the FastCGI dispatcher to catch even errors taking down the entire process
 
-* Improved the generated scaffold code a lot to take advantage of recent Rails developments #882 [Tobias Luetke]
+* Improved the generated scaffold code a lot to take advantage of recent Rails developments #882 [Tobias Lütke]
 
 * Combined the script/environment.rb used for gems and regular files version. If vendor/rails/* has all the frameworks, then files version is used, otherwise gems #878 [Nicholas Seckar]
 
-* Changed .htaccess to allow dispatch.* to be called from a sub-directory as part of the push with Action Pack to make Rails work on non-vhost setups #826 [Nicholas Seckar/Tobias Luetke]
+* Changed .htaccess to allow dispatch.* to be called from a sub-directory as part of the push with Action Pack to make Rails work on non-vhost setups #826 [Nicholas Seckar/Tobias Lütke]
 
 * Added script/runner which can be used to run code inside the environment by eval'ing the first parameter. Examples:
     
@@ -1676,9 +1676,9 @@ References #6031. [Nicholas Seckar]
 
 *0.10.1* (7th March, 2005)
 
-* Fixed rake stats to ignore editor backup files like model.rb~ #791 [skanthak]
+* Fixed rake stats to ignore editor backup files like model.rb~ #791 [Sebastian Kanthak]
 
-* Added exception shallowing if the DRb server can't be started (not worth making a fuss about to distract new users) #779 [Tobias Luetke]
+* Added exception shallowing if the DRb server can't be started (not worth making a fuss about to distract new users) #779 [Tobias Lütke]
 
 * Added an empty favicon.ico file to the public directory of new applications (so the logs are not spammed by its absence)
 
@@ -1711,7 +1711,7 @@ References #6031. [Nicholas Seckar]
 
 *0.10.0* (24th February, 2005)
 
-* Changed default IP binding for WEBrick from 127.0.0.1 to 0.0.0.0 so that the server is accessible both locally and remotely #696 [Marcel]
+* Changed default IP binding for WEBrick from 127.0.0.1 to 0.0.0.0 so that the server is accessible both locally and remotely #696 [Marcel Molina Jr.]
 
 * Fixed that script/server -d was broken so daemon mode couldn't be used #687 [Nicholas Seckar]
 
@@ -1778,7 +1778,7 @@ References #6031. [Nicholas Seckar]
 
 *0.9.4.1* (January 18th, 2005)
 
-* Added 5-second timeout to WordNet alternatives on creating reserved-word models #501 [Marcel Molina]
+* Added 5-second timeout to WordNet alternatives on creating reserved-word models #501 [Marcel Molina Jr.]
 
 * Fixed binding of caller #496 [Alexey]
 
@@ -1787,22 +1787,22 @@ References #6031. [Nicholas Seckar]
 
 *0.9.4* (January 17th, 2005)
 
-* Added that ApplicationController will catch a ControllerNotFound exception if someone attempts to access a url pointing to an unexisting controller [Tobias Luetke]
+* Added that ApplicationController will catch a ControllerNotFound exception if someone attempts to access a url pointing to an unexisting controller [Tobias Lütke]
 
 * Flipped code-to-test ratio around to be more readable #468 [Scott Baron]
 
 * Fixed log file permissions to be 666 instead of 777 (so they're not executable) #471 [Lucas Carlson]
 
-* Fixed that auto reloading would some times not work or would reload the models twice #475 [Tobias Luetke]
+* Fixed that auto reloading would some times not work or would reload the models twice #475 [Tobias Lütke]
 
 * Added rewrite rules to deal with caching to public/.htaccess
 
 * Added the option to specify a controller name to "generate scaffold" and made the default controller name the plural form of the model.
 
 * Added that rake clone_structure_to_test, db_structure_dump, and purge_test_database tasks now pick up the source database to use from
-  RAILS_ENV instead of just forcing development #424 [Tobias Luetke]
+  RAILS_ENV instead of just forcing development #424 [Tobias Lütke]
 
-* Fixed script/console to work with Windows (that requires the use of irb.bat) #418 [octopod]
+* Fixed script/console to work with Windows (that requires the use of irb.bat) #418 [Chris McGrath]
 
 * Fixed WEBrick servlet slowdown over time by restricting the load path reloading to mod_ruby
 

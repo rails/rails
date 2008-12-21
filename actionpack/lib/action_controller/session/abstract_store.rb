@@ -11,6 +11,7 @@ module ActionController
 
       class SessionHash < Hash
         def initialize(by, env)
+          super()
           @by = by
           @env = env
           @loaded = false
@@ -19,6 +20,13 @@ module ActionController
         def id
           load! unless @loaded
           @id
+        end
+
+        def session_id
+          ActiveSupport::Deprecation.warn(
+            "ActionController::Session::AbstractStore::SessionHash#session_id" +
+            "has been deprecated.Please use #id instead.", caller)
+          id
         end
 
         def [](key)
@@ -37,6 +45,13 @@ module ActionController
           h
         end
 
+        def data
+         ActiveSupport::Deprecation.warn(
+           "ActionController::Session::AbstractStore::SessionHash#data" +
+           "has been deprecated.Please use #to_hash instead.", caller)
+          to_hash
+        end
+
         private
           def load!
             @id, session = @by.send(:load_session, @env)
@@ -46,7 +61,7 @@ module ActionController
       end
 
       DEFAULT_OPTIONS = {
-        :key =>           'rack.session',
+        :key =>           '_session_id',
         :path =>          '/',
         :domain =>        nil,
         :expire_after =>  nil,
@@ -56,6 +71,18 @@ module ActionController
       }
 
       def initialize(app, options = {})
+        # Process legacy CGI options
+        options = options.symbolize_keys
+        if options.has_key?(:session_path)
+          options[:path] = options.delete(:session_path)
+        end
+        if options.has_key?(:session_key)
+          options[:key] = options.delete(:session_key)
+        end
+        if options.has_key?(:session_http_only)
+          options[:httponly] = options.delete(:session_http_only)
+        end
+
         @app = app
         @default_options = DEFAULT_OPTIONS.merge(options)
         @key = @default_options[:key]

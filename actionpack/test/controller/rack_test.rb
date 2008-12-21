@@ -236,7 +236,7 @@ class RackResponseTest < BaseRackTest
     @response.body = "Hello, World!"
     @response.prepare!
 
-    status, headers, body = @response.out
+    status, headers, body = @response.to_a
     assert_equal "200 OK", status
     assert_equal({
       "Content-Type" => "text/html; charset=utf-8",
@@ -257,7 +257,7 @@ class RackResponseTest < BaseRackTest
     end
     @response.prepare!
 
-    status, headers, body = @response.out
+    status, headers, body = @response.to_a
     assert_equal "200 OK", status
     assert_equal({"Content-Type" => "text/html; charset=utf-8", "Cache-Control" => "no-cache", "Set-Cookie" => []}, headers)
 
@@ -293,6 +293,6 @@ class RackResponseHeadersTest < BaseRackTest
   private
     def response_headers
       @response.prepare!
-      @response.out[1]
+      @response.to_a[1]
     end
 end

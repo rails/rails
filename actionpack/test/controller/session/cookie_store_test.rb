@@ -9,6 +9,8 @@ class CookieStoreTest < ActionController::IntegrationTest
   CookieStoreApp = ActionController::Session::CookieStore.new(DispatcherApp,
                      :key => SessionKey, :secret => SessionSecret)
 
+  Verifier = ActiveSupport::MessageVerifier.new(SessionSecret, 'SHA1')
+
   SignedBar = "BAh7BjoIZm9vIghiYXI%3D--" +
     "fef868465920f415f2c0652d6910d3af288a0367"
 
@@ -17,9 +19,13 @@ class CookieStoreTest < ActionController::IntegrationTest
       head :ok
     end
 
+    def persistent_session_id
+      render :text => session[:session_id]
+    end
+
     def set_session_value
       session[:foo] = "bar"
-      head :ok
+      render :text => Marshal.dump(session.to_hash)
     end
 
     def get_session_value
@@ -83,7 +89,8 @@ class CookieStoreTest < ActionController::IntegrationTest
     with_test_route_set do
       get '/set_session_value'
       assert_response :success
-      assert_equal ["_myapp_session=#{SignedBar}; path=/"],
+      session_payload = Verifier.generate( Marshal.load(response.body) )
+      assert_equal ["_myapp_session=#{session_payload}; path=/"],
         headers['Set-Cookie']
    end
   end
@@ -129,6 +136,21 @@ class CookieStoreTest < ActionController::IntegrationTest
       get '/no_session_access'
       assert_response :success
       assert_equal [], headers['Set-Cookie']
+    end
+  end
+
+  def test_persistent_session_id
+    with_test_route_set do
+      cookies[SessionKey] = SignedBar
+      get '/persistent_session_id'
+      assert_response :success
+      assert_equal response.body.size, 32
+      session_id = response.body
+      get '/persistent_session_id'
+      assert_equal session_id, response.body
+      reset!
+      get '/persistent_session_id'
+      assert_not_equal session_id, response.body
     end
   end
 

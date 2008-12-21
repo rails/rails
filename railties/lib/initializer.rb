@@ -155,6 +155,8 @@ module Rails
       initialize_framework_settings
       initialize_framework_views
 
+      initialize_metal
+
       add_support_load_paths
 
       load_gems
@@ -531,6 +533,10 @@ Run `rake gems:install` to install the missing gems.
           I18n.send("#{setting}=", value)
         end
       end
+    end
+
+    def initialize_metal
+      configuration.middleware.use Rails::Rack::Metal
     end
 
     # Initializes framework-specific settings for each of the loaded frameworks
@@ -915,6 +921,7 @@ Run `rake gems:install` to install the missing gems.
         # Followed by the standard includes.
         paths.concat %w(
           app
+          app/metal
           app/models
           app/controllers
           app/helpers
@@ -933,6 +940,7 @@ Run `rake gems:install` to install the missing gems.
 
       def default_eager_load_paths
         %w(
+          app/metal
           app/models
           app/controllers
           app/helpers
