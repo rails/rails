@@ -364,6 +364,19 @@ The SQL that would be executed would be something like this:
 SELECT * FROM orders GROUP BY date(created_at)
 -------------------------------------------------------
 
+== Having
+
+The having option allows you to specify SQL and acts as a kind of a filter on the group option. +:having+ can only be specified when +:group+ is specified.
+
+An example of using it would be:
+
+[source, ruby]
+-------------------------------------------------------
+Order.all(:group => "date(created_at)", :having => ["created_at > ?", Time.now - 1.month])
+-------------------------------------------------------
+
+This will return single order objects for each day, but only for the last month.
+
 == Read Only
 
 Readonly is a +find+ option that you can set in order to make that instance of the record read-only. Any attempt to alter or destroy the record will not succeed, raising an ActiveRecord::ReadOnlyRecord exception. To set this option, specify it like this:
@@ -759,6 +772,7 @@ Thanks to Mike Gunderloy for his tips on creating this guide.
 
 http://rails.lighthouseapp.com/projects/16213-rails-guides/tickets/16[Lighthouse ticket]
 
+* December 22 2008: Added section on having.
 * December 22 2008: Added description of how to make hash conditions use an IN expression http://rails.loglibrary.com/chats/15279234[mentioned here]
 * December 22 2008: Mentioned using SQL as values for the lock option as mentioned in http://rails.lighthouseapp.com/projects/16213-rails-guides/tickets/16-activerecord-finders#ticket-16-24[this ticket]
 * December 21 2008: Fixed http://rails.lighthouseapp.com/projects/16213/tickets/16-activerecord-finders#ticket-16-22[this ticket] minus two points; the lock SQL syntax and the having option.
