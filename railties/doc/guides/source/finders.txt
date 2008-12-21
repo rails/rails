@@ -258,10 +258,17 @@ The good thing about this is that we can pass in a range for our fields without 
 
 [source, ruby]
 -------------------------------------------------------
-Client.all(:conditions => { :created_at => ((Time.now.midnight - 1.day)..Time.now.midnight})
+Client.all(:conditions => { :created_at => (Time.now.midnight - 1.day)..Time.now.midnight})
 -------------------------------------------------------
 
-This will find all clients created yesterday. This shows the shorter syntax for the examples in <<_array_conditions, Array Conditions>> 
+This will find all clients created yesterday by using a BETWEEN sql statement:
+
+[source, sql]
+-------------------------------------------------------
+SELECT * FROM `clients` WHERE (`clients`.`created_at` BETWEEN '2008-12-21 00:00:00' AND '2008-12-22 00:00:00') 
+-------------------------------------------------------
+
+This demonstrates a shorter syntax for the examples in <<_array_conditions, Array Conditions>> 
 
 You can also join in tables and specify their columns in the hash:
 
@@ -277,7 +284,21 @@ An alternative and cleaner syntax to this is:
 Client.all(:include => "orders", :conditions => { :orders => { :created_at => (Time.now.midnight - 1.day)..Time.now.midnight } })
 -------------------------------------------------------
 
-This will find all clients who have orders that were created yesterday.
+This will find all clients who have orders that were created yesterday, again using a BETWEEN expression.
+
+If you want to find records using the IN expression you can pass an array to the conditions hash:
+
+[source, ruby]
+-------------------------------------------------------
+Client.all(:include => "orders", :conditions => { :orders_count => [1,3,5] }
+-------------------------------------------------------
+
+This code will generate SQL like this:
+
+[source, sql]
+-------------------------------------------------------
+SELECT * FROM `clients` WHERE (`clients`.`orders_count` IN (1,2,3)) 
+-------------------------------------------------------
 
 == Ordering
 
@@ -372,6 +393,18 @@ Topic.transaction do
   t.increment!(:views)
 end
 -------------------------------------------------------
+
+You can also pass SQL to this option to allow different types of locks. For example, MySQL has an expression called LOCK IN SHARE MODE where you can lock a record but still allow other queries to read it. To specify this expression just pass it in as the lock option:
+
+[source, ruby]
+-------------------------------------------------------
+Topic.transaction do
+  t = Topic.find(params[:id], :lock => "LOCK IN SHARE MODE")
+  t.increment!(:views)
+end
+-------------------------------------------------------
+
+
 
 == Making It All Work Together
 
@@ -726,7 +759,8 @@ Thanks to Mike Gunderloy for his tips on creating this guide.
 
 http://rails.lighthouseapp.com/projects/16213-rails-guides/tickets/16[Lighthouse ticket]
 
-
+* December 22 2008: Added description of how to make hash conditions use an IN expression http://rails.loglibrary.com/chats/15279234[mentioned here]
+* December 22 2008: Mentioned using SQL as values for the lock option as mentioned in http://rails.lighthouseapp.com/projects/16213-rails-guides/tickets/16-activerecord-finders#ticket-16-24[this ticket]
 * December 21 2008: Fixed http://rails.lighthouseapp.com/projects/16213/tickets/16-activerecord-finders#ticket-16-22[this ticket] minus two points; the lock SQL syntax and the having option.
 * December 21 2008: Added more to the has conditions section.
 * December 17 2008: Fixed up syntax errors.
