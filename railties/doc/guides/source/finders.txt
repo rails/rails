@@ -267,7 +267,14 @@ You can also join in tables and specify their columns in the hash:
 
 [source, ruby]
 -------------------------------------------------------
-Client.all(:include => "orders", :conditions => { 'orders.created_at; => ((Time.now.midnight - 1.day)..Time.now.midnight})
+Client.all(:include => "orders", :conditions => { 'orders.created_at' => (Time.now.midnight - 1.day)..Time.now.midnight })
+-------------------------------------------------------
+
+An alternative and cleaner syntax to this is:
+
+[source, ruby]
+-------------------------------------------------------
+Client.all(:include => "orders", :conditions => { :orders => { :created_at => (Time.now.midnight - 1.day)..Time.now.midnight } })
 -------------------------------------------------------
 
 This will find all clients who have orders that were created yesterday.
@@ -711,6 +718,7 @@ Thanks to Mike Gunderloy for his tips on creating this guide.
 
 http://rails.lighthouseapp.com/projects/16213-rails-guides/tickets/16[Lighthouse ticket]
 
+* December 21 2008: Added more to the has conditions section.
 * December 17 2008: Fixed up syntax errors.
 * December 16 2008: Covered hash conditions that were introduced in Rails 2.2.2.
 * December 1 2008: Added using an SQL function example to Selecting Certain Fields section as per http://rails.lighthouseapp.com/projects/16213/tickets/36-adding-an-example-for-using-distinct-to-ar-finders[this ticket]
