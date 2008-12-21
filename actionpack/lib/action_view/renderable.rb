@@ -22,6 +22,11 @@ module ActionView
     end
     memoize :compiled_source
 
+    def method_name_without_locals
+      ['_run', extension, method_segment].compact.join('_')
+    end
+    memoize :method_name_without_locals
+
     def render(view, local_assigns = {})
       compile(local_assigns)
 
@@ -46,9 +51,12 @@ module ActionView
 
     def method_name(local_assigns)
       if local_assigns && local_assigns.any?
-        local_assigns_keys = "locals_#{local_assigns.keys.map { |k| k.to_s }.sort.join('_')}"
+        method_name = method_name_without_locals.dup
+        method_name << "_locals_#{local_assigns.keys.map { |k| k.to_s }.sort.join('_')}"
+      else
+        method_name = method_name_without_locals
       end
-      ['_run', extension, method_segment, local_assigns_keys].compact.join('_').to_sym
+      method_name.to_sym
     end
 
     private

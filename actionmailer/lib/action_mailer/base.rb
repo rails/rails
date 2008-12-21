@@ -570,7 +570,9 @@ module ActionMailer #:nodoc:
       end
 
       def candidate_for_layout?(options)
-        !@template.send(:_exempt_from_layout?, default_template_name)
+        !self.view_paths.find_template(default_template_name, default_template_format).exempt_from_layout?
+      rescue ActionView::MissingTemplate
+        return true
       end
 
       def template_root

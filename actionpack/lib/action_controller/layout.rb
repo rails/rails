@@ -178,9 +178,15 @@ module ActionController #:nodoc:
         find_layout(layout, format)
       end
 
+      def layout_list #:nodoc:
+        Array(view_paths).sum([]) { |path| Dir["#{path}/layouts/**/*"] }
+      end
+
       def find_layout(layout, *formats) #:nodoc:
         return layout if layout.respond_to?(:render)
         view_paths.find_template(layout.to_s =~ /layouts\// ? layout : "layouts/#{layout}", *formats)
+      rescue ActionView::MissingTemplate
+        nil
       end
 
       private
@@ -188,7 +194,7 @@ module ActionController #:nodoc:
           inherited_without_layout(child)
           unless child.name.blank?
             layout_match = child.name.underscore.sub(/_controller$/, '').sub(/^controllers\//, '')
-            child.layout(layout_match, {}, true) if child.find_layout(layout_match, :all)
+            child.layout(layout_match, {}, true) unless child.layout_list.grep(%r{layouts/#{layout_match}(\.[a-z][0-9a-z]*)+$}).empty?
           end
         end
 
@@ -225,8 +231,16 @@ module ActionController #:nodoc:
 
     private
       def candidate_for_layout?(options)
-        options.values_at(:text, :xml, :json, :file, :inline, :partial, :nothing, :update).compact.empty? &&
-          !@template.__send__(:_exempt_from_layout?, options[:template] || default_template_name(options[:action]))
+        template = options[:template] || default_template(options[:action])
+        if options.values_at(:text, :xml, :json, :file, :inline, :partial, :nothing, :update).compact.empty?
+          begin
+            !self.view_paths.find_template(template, default_template_format).exempt_from_layout?
+          rescue ActionView::MissingTemplate
+            true
+          end
+        end
+      rescue ActionView::MissingTemplate
+        false
       end
 
       def pick_layout(options)
@@ -235,7 +249,7 @@ module ActionController #:nodoc:
           when FalseClass
             nil
           when NilClass, TrueClass
-            active_layout if action_has_layout? && !@template.__send__(:_exempt_from_layout?, default_template_name)
+            active_layout if action_has_layout? && candidate_for_layout?(:template => default_template_name)
           else
             active_layout(layout)
           end

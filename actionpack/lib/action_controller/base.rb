@@ -502,7 +502,7 @@ module ActionController #:nodoc:
         protected :filter_parameters
       end
 
-      delegate :exempt_from_layout, :to => 'ActionView::Base'
+      delegate :exempt_from_layout, :to => 'ActionView::Template'
     end
 
     public
@@ -860,7 +860,7 @@ module ActionController #:nodoc:
         raise DoubleRenderError, "Can only render or redirect once per action" if performed?
 
         if options.nil?
-          return render(:file => default_template_name, :layout => true)
+          return render(:file => default_template, :layout => true)
         elsif !extra_options.is_a?(Hash)
           raise RenderError, "You called render with invalid options : #{options.inspect}, #{extra_options.inspect}"
         else
@@ -898,7 +898,7 @@ module ActionController #:nodoc:
             render_for_text(@template.render(options.merge(:layout => layout)), options[:status])
 
           elsif action_name = options[:action]
-            render_for_file(default_template_name(action_name.to_s), options[:status], layout)
+            render_for_file(default_template(action_name.to_s), options[:status], layout)
 
           elsif xml = options[:xml]
             response.content_type ||= Mime::XML
@@ -933,7 +933,7 @@ module ActionController #:nodoc:
             render_for_text(nil, options[:status])
 
           else
-            render_for_file(default_template_name, options[:status], layout)
+            render_for_file(default_template, options[:status], layout)
           end
         end
       end
@@ -1164,7 +1164,8 @@ module ActionController #:nodoc:
 
     private
       def render_for_file(template_path, status = nil, layout = nil, locals = {}) #:nodoc:
-        logger.info("Rendering #{template_path}" + (status ? " (#{status})" : '')) if logger
+        path = template_path.respond_to?(:path_without_format_and_extension) ? template_path.path_without_format_and_extension : template_path
+        logger.info("Rendering #{path}" + (status ? " (#{status})" : '')) if logger
         render_for_text @template.render(:file => template_path, :locals => locals, :layout => layout), status
       end
 
@@ -1241,10 +1242,17 @@ module ActionController #:nodoc:
         elsif respond_to? :method_missing
           method_missing action_name
           default_render unless performed?
-        elsif template_exists?
-          default_render
         else
-          raise UnknownAction, "No action responded to #{action_name}. Actions: #{action_methods.sort.to_sentence}", caller
+          begin
+            default_render
+          rescue ActionView::MissingTemplate => e
+            # Was the implicit template missing, or was it another template?
+            if e.path == default_template_name
+              raise UnknownAction, "No action responded to #{action_name}. Actions: #{action_methods.sort.to_sentence}", caller
+            else
+              raise e
+            end
+          end
         end
       end
 
@@ -1290,10 +1298,8 @@ module ActionController #:nodoc:
         @_session.close if @_session && @_session.respond_to?(:close)
       end
 
-      def template_exists?(template_name = default_template_name)
-        @template.send(:_pick_template, template_name) ? true : false
-      rescue ActionView::MissingTemplate
-        false
+      def default_template(action_name = self.action_name)
+        self.view_paths.find_template(default_template_name(action_name), default_template_format)
       end
 
       def default_template_name(action_name = self.action_name)
