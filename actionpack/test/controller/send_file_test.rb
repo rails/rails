@@ -119,6 +119,31 @@ class SendFileTest < Test::Unit::TestCase
     assert_equal 'private', h['Cache-Control']
   end
 
+  def test_send_file_headers_with_mime_lookup_with_symbol
+    options = {
+      :length => 1,
+      :type => :png
+    }
+
+    @controller.headers = {}
+    @controller.send(:send_file_headers!, options)
+
+    headers = @controller.headers
+
+    assert_equal 'image/png', headers['Content-Type']
+  end
+  
+
+  def test_send_file_headers_with_bad_symbol
+    options = {
+      :length => 1,
+      :type => :this_type_is_not_registered
+    }
+
+    @controller.headers = {}
+    assert_raises(ArgumentError){ @controller.send(:send_file_headers!, options) }
+  end
+
   %w(file data).each do |method|
     define_method "test_send_#{method}_status" do
       @controller.options = { :stream => false, :status => 500 }
