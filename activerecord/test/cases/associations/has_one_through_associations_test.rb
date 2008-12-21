@@ -1,5 +1,6 @@
 require "cases/helper"
 require 'models/club'
+require 'models/member_type'
 require 'models/member'
 require 'models/membership'
 require 'models/sponsor'
@@ -7,7 +8,7 @@ require 'models/organization'
 require 'models/member_detail'
 
 class HasOneThroughAssociationsTest < ActiveRecord::TestCase
-  fixtures :members, :clubs, :memberships, :sponsors, :organizations
+  fixtures :member_types, :members, :clubs, :memberships, :sponsors, :organizations
   
   def setup
     @member = members(:groucho)
@@ -156,6 +157,20 @@ class HasOneThroughAssociationsTest < ActiveRecord::TestCase
     assert_equal 'Extra', @member.member_detail.extra_data
     assert !@organization.members.include?(@member)
     assert @new_organization.members.include?(@member)
+  end
+
+  def test_preloading_has_one_through_on_belongs_to
+    assert_not_nil @member.member_type
+    @organization = organizations(:nsa)
+    @member_detail = MemberDetail.new
+    @member.member_detail = @member_detail
+    @member.organization = @organization
+    @member_details = assert_queries(3) do
+      MemberDetail.find(:all, :include => :member_type)
+    end
+    @new_detail = @member_details[0]
+    assert @new_detail.loaded_member_type?
+    assert_not_nil assert_no_queries { @new_detail.member_type }
   end
 
 end

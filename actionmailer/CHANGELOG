@@ -12,7 +12,7 @@
 
 *2.2.0 [RC1] (October 24th, 2008)*
 
-* Add layout functionality to mailers [Pratik]
+* Add layout functionality to mailers [Pratik Naik]
 
   Mailer layouts behaves just like controller layouts, except layout names need to
   have '_mailer' postfix for them to be automatically picked up.
@@ -24,7 +24,7 @@
 
 * Less verbose mail logging: just recipients for :info log level; the whole email for :debug only.  #8000 [iaddict, Tarmo Tänav]
 
-* Updated TMail to version 1.2.1 [raasdnil]
+* Updated TMail to version 1.2.1 [Mikel Lindsaar]
 
 * Fixed that you don't have to call super in ActionMailer::TestCase#setup #10406 [jamesgolick]
 
@@ -36,7 +36,7 @@
 
 *2.0.1* (December 7th, 2007)
 
-* Update ActionMailer so it treats ActionView the same way that ActionController does.  Closes #10244 [rick]
+* Update ActionMailer so it treats ActionView the same way that ActionController does.  Closes #10244 [Rick Olson]
 
   * Pass the template_root as an array as ActionView's view_path
   * Request templates with the "#{mailer_name}/#{action}" as opposed to just "#{action}"
@@ -45,11 +45,11 @@
 
 * Update README to use new smtp settings configuration API. Closes #10060 [psq]
 
-* Allow ActionMailer subclasses to individually set their delivery method (so two subclasses can have different delivery methods) #10033 [zdennis]
+* Allow ActionMailer subclasses to individually set their delivery method (so two subclasses can have different delivery methods) #10033 [Zach Dennis]
 
-* Update TMail to v1.1.0.  Use an updated version of TMail if available.  [mikel]
+* Update TMail to v1.1.0.  Use an updated version of TMail if available.  [Mikel Lindsaar]
 
-* Introduce a new base test class for testing Mailers.  ActionMailer::TestCase [Koz]
+* Introduce a new base test class for testing Mailers.  ActionMailer::TestCase [Michael Koziarski]
 
 * Fix silent failure of rxml templates.  #9879 [jstewart]
 
@@ -84,7 +84,7 @@
 
 *1.3.2* (February 5th, 2007)
 
-* Deprecate server_settings renaming it to smtp_settings,  add sendmail_settings to allow you to override the arguments to and location of the sendmail executable. [Koz]
+* Deprecate server_settings renaming it to smtp_settings,  add sendmail_settings to allow you to override the arguments to and location of the sendmail executable. [Michael Koziarski]
 
 
 *1.3.1* (January 16th, 2007)
@@ -104,7 +104,7 @@
 
 * Tighten rescue clauses.  #5985 [james@grayproductions.net]
 
-* Automatically included ActionController::UrlWriter, such that URL generation can happen within ActionMailer controllers. [DHH]
+* Automatically included ActionController::UrlWriter, such that URL generation can happen within ActionMailer controllers. [David Heinemeier Hansson]
 
 * Replace Reloadable with Reloadable::Deprecated. [Nicholas Seckar]
 

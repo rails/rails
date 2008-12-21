@@ -8,4 +8,5 @@ class Member < ActiveRecord::Base
   has_one :sponsor_club, :through => :sponsor
   has_one :member_detail
   has_one :organization, :through => :member_detail
+  belongs_to :member_type
 end

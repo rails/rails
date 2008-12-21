@@ -1,7 +1,7 @@
 Rails Finders
 =============
 
-This guide covers the +find+ method defined in +ActiveRecord::Base+, as well as other ways of finding particular instances of your models. By using this guide, you will be able to:
+This guide covers the +find+ method defined in ActiveRecord::Base, as well as other ways of finding particular instances of your models. By using this guide, you will be able to:
 
 * Find records using a variety of methods and conditions
 * Specify the order, retrieved attributes, grouping, and other properties of the found records
@@ -50,7 +50,7 @@ Active Record will perform queries on the database for you and is compatible wit
 
 == IDs, First, Last and All
 
-+ActiveRecord::Base+ has methods defined on it to make interacting with your database and the tables within it much, much easier. For finding records, the key method is +find+. This method allows you to pass arguments into it to perform certain queries on your database without the need of SQL. If you wanted to find the record with the id of 1, you could type +Client.find(1)+ which would execute this query on your database:
+ActiveRecord::Base has methods defined on it to make interacting with your database and the tables within it much, much easier. For finding records, the key method is +find+. This method allows you to pass arguments into it to perform certain queries on your database without the need of SQL. If you wanted to find the record with the id of 1, you could type +Client.find(1)+ which would execute this query on your database:
 
 [source, sql]
 -------------------------------------------------------
@@ -74,9 +74,9 @@ SELECT * FROM clients WHERE (clients.id IN (1,2))
   created_at: "2008-09-28 13:12:40", updated_at: "2008-09-28 13:12:40">]
 -------------------------------------------------------
 
-Note that if you pass in a list of numbers that the result will be returned as an array, not as a single +Client+ object.
+Note that if you pass in a list of numbers that the result will be returned as an array, not as a single Client object.
 
-NOTE: If +find(id)+ or +find([id1, id2])+ fails to find any records, it will raise a +RecordNotFound+ exception.
+NOTE: If +find(id)+ or +find([id1, id2])+ fails to find any records, it will raise a RecordNotFound exception.
 
 If you wanted to find the first Client object you would simply type +Client.first+ and that would find the first client in your clients table:
 
@@ -143,7 +143,7 @@ WARNING: Building your own conditions as pure strings can leave you vulnerable t
 
 === Array Conditions ===
 
-Now what if that number could vary, say as a parameter from somewhere, or perhaps from the user's level status somewhere? The find then becomes something like +Client.first(:conditions => ["orders_count = ?", params[:orders]])+. Active Record will go through the first element in the conditions value and any additional elements will replace the question marks (?) in the first element. If you want to specify two conditions, you can do it like +Client.first(:conditions => ["orders_count = ? AND locked = ?", params[:orders], false])+. In this example, the first question mark will be replaced with the value in +params[:orders]+ and the second will be replaced with +false+ and this will find the first record in the table that has '2' as its value for the +orders_count+ field and +false+ for its locked field.
+Now what if that number could vary, say as a parameter from somewhere, or perhaps from the user's level status somewhere? The find then becomes something like +Client.first(:conditions => ["orders_count = ?", params[:orders]])+. Active Record will go through the first element in the conditions value and any additional elements will replace the question marks (?) in the first element. If you want to specify two conditions, you can do it like +Client.first(:conditions => ["orders_count = ? AND locked = ?", params[:orders], false])+. In this example, the first question mark will be replaced with the value in +params[:orders]+ and the second will be replaced with the SQL representation of +false+, which depends on the adapter and this will find the first record in the table that has '2' as its value for the +orders_count+ field and +false+ for its locked field.
 
 The reason for doing code like:
 
@@ -240,7 +240,7 @@ This makes for clearer readability if you have a large number of variable condit
 
 === Hash Conditions
 
-Rails also allows you to pass in a hash conditions too which can increase the readability of your conditions syntax. With hash conditions, you pass in a hash with keys of the fields you want conditionalised and the values of how you want to conditionalise them:
+Rails also allows you to pass in a hash conditions which can increase the readability of your conditions syntax. With hash conditions, you pass in a hash with keys of the fields you want conditionalised and the values of how you want to conditionalise them:
 
 [source, ruby]
 -------------------------------------------------------
@@ -267,18 +267,33 @@ You can also join in tables and specify their columns in the hash:
 
 [source, ruby]
 -------------------------------------------------------
-Client.all(:include => "orders", :conditions => { 'orders.created_at; => ((Time.now.midnight - 1.day)..Time.now.midnight})
+Client.all(:include => "orders", :conditions => { 'orders.created_at' => (Time.now.midnight - 1.day)..Time.now.midnight })
+-------------------------------------------------------
+
+An alternative and cleaner syntax to this is:
+
+[source, ruby]
+-------------------------------------------------------
+Client.all(:include => "orders", :conditions => { :orders => { :created_at => (Time.now.midnight - 1.day)..Time.now.midnight } })
 -------------------------------------------------------
 
 This will find all clients who have orders that were created yesterday.
 
 == Ordering
 
-If you're getting a set of records and want to force an order, you can use +Client.all(:order => "created_at")+ which by default will sort the records by ascending order. If you'd like to order it in descending order, just tell it to do that using +Client.all(:order => "created_at desc")+
+If you're getting a set of records and want to order them in ascending order by the +created_at+ field in your table, you can use +Client.all(:order => "created_at")+. If you'd like to order it in descending order, just tell it to do that using +Client.all(:order => "created_at desc")+
 
 == Selecting Certain Fields
 
-To select certain fields, you can use the select option like this: +Client.first(:select => "viewable_by, locked")+. This select option does not use an array of fields, but rather requires you to type SQL-like code. The above code will execute +SELECT viewable_by, locked FROM clients LIMIT 0,1+ on your database. 
+To select certain fields, you can use the select option like this: +Client.first(:select => "viewable_by, locked")+. This select option does not use an array of fields, but rather requires you to type SQL-like code. The above code will execute +SELECT viewable_by, locked FROM clients LIMIT 1+ on your database.
+
+Be careful because this also means you're initializing a model object with only the fields that you've selected. If you attempt to access a field that is not in the initialized record you'll receive:
+
+-------------------------------------------------------
+ActiveRecord::MissingAttributeError: missing attribute: <attribute>
+-------------------------------------------------------
+
+Where <attribute> is the atrribute you asked for.
 
 You can also call SQL functions within the select option. For example, if you would like to only grab a single record per unique value in a certain field by using the +DISTINCT+ function you can do it like this: +Client.all(:select => "DISTINCT(name)")+.
 
@@ -330,14 +345,14 @@ SELECT * FROM orders GROUP BY date(created_at)
 
 == Read Only
 
-Readonly is a find option that you can set in order to make that instance of the record read-only. Any attempt to alter or destroy the record will not succeed, raising an +Active Record::ReadOnlyRecord+ exception. To set this option, specify it like this:
+Readonly is a +find+ option that you can set in order to make that instance of the record read-only. Any attempt to alter or destroy the record will not succeed, raising an ActiveRecord::ReadOnlyRecord exception. To set this option, specify it like this:
 
 [source, ruby]
 -------------------------------------------------------
 Client.first(:readonly => true)
 -------------------------------------------------------
 
-If you assign this record to a variable +client+, calling the following code will raise an +ActiveRecord::ReadOnlyRecord+ exception:
+If you assign this record to a variable client, calling the following code will raise an ActiveRecord::ReadOnlyRecord exception:
 
 [source, ruby]
 -------------------------------------------------------
@@ -360,7 +375,7 @@ end
 
 == Making It All Work Together
 
-You can chain these options together in no particular order as Active Record will write the correct SQL for you. If you specify two instances of the same options inside the find statement Active Record will use the latter.
+You can chain these options together in no particular order as Active Record will write the correct SQL for you. If you specify two instances of the same options inside the +find+ method Active Record will use the last one you specified. This is because the options passed to find are a hash and defining the same key twice in a hash will result in the last definition being used.
 
 == Eager Loading
 
@@ -409,7 +424,7 @@ For every field (also known as an attribute) you define in your table, Active Re
 
 You can do +find_last_by_*+ methods too which will find the last record matching your parameter.
 
-You can specify an exclamation point (!) on the end of the dynamic finders to get them to raise an +ActiveRecord::RecordNotFound+ error if they do not return any records, like +Client.find_by_name!('Ryan')+
+You can specify an exclamation point (!) on the end of the dynamic finders to get them to raise an ActiveRecord::RecordNotFound error if they do not return any records, like +Client.find_by_name!('Ryan')+
 
 If you want to find both by name and locked, you can chain these finders together by simply typing +and+ between the fields for example +Client.find_by_name_and_locked('Ryan', true)+. 
 
@@ -711,6 +726,9 @@ Thanks to Mike Gunderloy for his tips on creating this guide.
 
 http://rails.lighthouseapp.com/projects/16213-rails-guides/tickets/16[Lighthouse ticket]
 
+
+* December 21 2008: Fixed http://rails.lighthouseapp.com/projects/16213/tickets/16-activerecord-finders#ticket-16-22[this ticket] minus two points; the lock SQL syntax and the having option.
+* December 21 2008: Added more to the has conditions section.
 * December 17 2008: Fixed up syntax errors.
 * December 16 2008: Covered hash conditions that were introduced in Rails 2.2.2.
 * December 1 2008: Added using an SQL function example to Selecting Certain Fields section as per http://rails.lighthouseapp.com/projects/16213/tickets/36-adding-an-example-for-using-distinct-to-ar-finders[this ticket]

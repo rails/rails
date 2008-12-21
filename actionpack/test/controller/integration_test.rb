@@ -373,4 +373,35 @@ class IntegrationProcessTest < ActionController::IntegrationTest
     end
 end
 
+class MetalTest < ActionController::IntegrationTest
+  class Poller
+    def self.call(env)
+      if env["PATH_INFO"] =~ /^\/success/
+        [200, {"Content-Type" => "text/plain"}, "Hello World!"]
+      else
+        [404, {"Content-Type" => "text/plain"}, '']
+      end
+    end
+  end
+
+  def setup
+    @integration_session = ActionController::Integration::Session.new(Poller)
+  end
+
+  def test_successful_get
+    get "/success"
+    assert_response 200
+    assert_response :success
+    assert_response :ok
+    assert_equal "Hello World!", response.body
+  end
+
+  def test_failed_get
+    get "/failure"
+    assert_response 404
+    assert_response :not_found
+    assert_equal '', response.body
+  end
+end
+
 end

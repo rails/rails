@@ -6,35 +6,6 @@ module ActionController #:nodoc:
       end
     end
 
-    class Middleware
-      DEFAULT_OPTIONS = {
-        :path     => "/",
-        :key      => "_session_id",
-        :httponly => true,
-      }.freeze
-
-      def self.new(app)
-        cgi_options = ActionController::Base.session_options
-        options = cgi_options.symbolize_keys
-        options = DEFAULT_OPTIONS.merge(options)
-        if options.has_key?(:session_path)
-          options[:path] = options.delete(:session_path)
-        end
-        if options.has_key?(:session_key)
-          options[:key] = options.delete(:session_key)
-        end
-        if options.has_key?(:session_http_only)
-          options[:httponly] = options.delete(:session_http_only)
-        end
-
-        if store = ActionController::Base.session_store
-          store.new(app, options)
-        else # Sessions disabled
-          lambda { |env| app.call(env) }
-        end
-      end
-    end
-
     module ClassMethods
       # Set the session store to be used for keeping the session data between requests.
       # By default, sessions are stored in browser cookies (<tt>:cookie_store</tt>),

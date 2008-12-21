@@ -11,7 +11,7 @@ module ActionController
       @app.call(env)
     rescue Exception => exception
       # Reraise exception in test environment
-      if env["action_controller.test"]
+      if env["rack.test"]
         raise exception
       else
         failsafe_response(exception)
