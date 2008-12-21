@@ -136,6 +136,10 @@ module ActionView
       #   dates.
       # * <tt>:default</tt>           - Set a default date if the affected date isn't set or is nil.
       # * <tt>:disabled</tt>          - Set to true if you want show the select fields as disabled.
+      # * <tt>:prompt</tt>            - Set to true (for a generic prompt), a prompt string or a hash of prompt strings
+      #   for <tt>:year</tt>, <tt>:month</tt>, <tt>:day</tt>, <tt>:hour</tt>, <tt>:minute</tt> and <tt>:second</tt>.
+      #   Setting this option prepends a select option with a generic prompt  (Day, Month, Year, Hour, Minute, Seconds)
+      #   or the given prompt string.
       #
       # If anything is passed in the +html_options+ hash it will be applied to every select tag in the set.
       #
@@ -170,6 +174,9 @@ module ActionView
       #   # Generates a date select that when POSTed is stored in the credit_card variable, in the bill_due attribute
       #   # that will have a default day of 20.
       #   date_select("credit_card", "bill_due", :default => { :day => 20 })
+      #
+      #   # Generates a date select with custom prompts
+      #   date_select("post", "written_on", :prompt => { :day => 'Select day', :month => 'Select month', :year => 'Select year' })
       #
       # The selects are prepared for multi-parameter assignment to an Active Record object.
       #
@@ -210,6 +217,11 @@ module ActionView
       #   # You can set the :minute_step to 15 which will give you: 00, 15, 30 and 45.
       #   time_select 'game', 'game_time', {:minute_step => 15}
       #
+      #   # Creates a time select tag with a custom prompt. Use :prompt => true for generic prompts.
+      #   time_select("post", "written_on", :prompt => {:hour => 'Choose hour', :minute => 'Choose minute', :second => 'Choose seconds'})
+      #   time_select("post", "written_on", :prompt => {:hour => true}) # generic prompt for hours
+      #   time_select("post", "written_on", :prompt => true) # generic prompts for all
+      #
       # The selects are prepared for multi-parameter assignment to an Active Record object.
       #
       # Note: If the day is not included as an option but the month is, the day will be set to the 1st to ensure that
@@ -240,6 +252,11 @@ module ActionView
       #   # Generates a datetime select that discards the type that, when POSTed, will be stored in the post variable
       #   # as the written_on attribute.
       #   datetime_select("post", "written_on", :discard_type => true)
+      #
+      #   # Generates a datetime select with a custom prompt. Use :prompt=>true for generic prompts.
+      #   datetime_select("post", "written_on", :prompt => {:day => 'Choose day', :month => 'Choose month', :year => 'Choose year'})
+      #   datetime_select("post", "written_on", :prompt => {:hour => true}) # generic prompt for hours
+      #   datetime_select("post", "written_on", :prompt => true) # generic prompts for all
       #
       # The selects are prepared for multi-parameter assignment to an Active Record object.
       def datetime_select(object_name, method, options = {}, html_options = {})
@@ -285,6 +302,11 @@ module ActionView
       #   # prefixed with 'payday' rather than 'date'
       #   select_datetime(my_date_time, :prefix => 'payday')
       #
+      #   # Generates a datetime select with a custom prompt. Use :prompt=>true for generic prompts.
+      #   select_datetime(my_date_time, :prompt => {:day => 'Choose day', :month => 'Choose month', :year => 'Choose year'})
+      #   select_datetime(my_date_time, :prompt => {:hour => true}) # generic prompt for hours
+      #   select_datetime(my_date_time, :prompt => true) # generic prompts for all
+      #
       def select_datetime(datetime = Time.current, options = {}, html_options = {})
         DateTimeSelector.new(datetime, options, html_options).select_datetime
       end
@@ -321,6 +343,11 @@ module ActionView
       #   # prefixed with 'payday' rather than 'date'
       #   select_date(my_date, :prefix => 'payday')
       #
+      #   # Generates a date select with a custom prompt. Use :prompt=>true for generic prompts.
+      #   select_date(my_date, :prompt => {:day => 'Choose day', :month => 'Choose month', :year => 'Choose year'})
+      #   select_date(my_date, :prompt => {:hour => true}) # generic prompt for hours
+      #   select_date(my_date, :prompt => true) # generic prompts for all
+      #
       def select_date(date = Date.current, options = {}, html_options = {})
         DateTimeSelector.new(date, options, html_options).select_date
       end
@@ -352,6 +379,11 @@ module ActionView
       #   # separated by ':' and includes an input for seconds
       #   select_time(my_time, :time_separator => ':', :include_seconds => true)
       #
+      #   # Generates a time select with a custom prompt. Use :prompt=>true for generic prompts.
+      #   select_time(my_time, :prompt => {:day => 'Choose day', :month => 'Choose month', :year => 'Choose year'})
+      #   select_time(my_time, :prompt => {:hour => true}) # generic prompt for hours
+      #   select_time(my_time, :prompt => true) # generic prompts for all
+      #
       def select_time(datetime = Time.current, options = {}, html_options = {})
         DateTimeSelector.new(datetime, options, html_options).select_time
       end
@@ -372,6 +404,10 @@ module ActionView
       #   # Generates a select field for seconds that defaults to the seconds for the time in my_time
       #   # that is named 'interval' rather than 'second'
       #   select_second(my_time, :field_name => 'interval')
+      #
+      #   # Generates a select field for seconds with a custom prompt.  Use :prompt=>true for a
+      #   # generic prompt.
+      #   select_minute(14, :prompt => 'Choose seconds')
       #
       def select_second(datetime, options = {}, html_options = {})
         DateTimeSelector.new(datetime, options, html_options).select_second
@@ -395,6 +431,10 @@ module ActionView
       #   # that is named 'stride' rather than 'second'
       #   select_minute(my_time, :field_name => 'stride')
       #
+      #   # Generates a select field for minutes with a custom prompt.  Use :prompt=>true for a
+      #   # generic prompt.
+      #   select_minute(14, :prompt => 'Choose minutes')
+      #
       def select_minute(datetime, options = {}, html_options = {})
         DateTimeSelector.new(datetime, options, html_options).select_minute
       end
@@ -416,6 +456,10 @@ module ActionView
       #   # that is named 'stride' rather than 'second'
       #   select_hour(my_time, :field_name => 'stride')
       #
+      #   # Generates a select field for hours with a custom prompt.  Use :prompt => true for a
+      #   # generic prompt.
+      #   select_hour(13, :prompt =>'Choose hour')
+      #
       def select_hour(datetime, options = {}, html_options = {})
         DateTimeSelector.new(datetime, options, html_options).select_hour
       end
@@ -436,6 +480,10 @@ module ActionView
       #   # Generates a select field for days that defaults to the day for the date in my_date
       #   # that is named 'due' rather than 'day'
       #   select_day(my_time, :field_name => 'due')
+      #
+      #   # Generates a select field for days with a custom prompt.  Use :prompt => true for a
+      #   # generic prompt.
+      #   select_day(5, :prompt => 'Choose day')
       #
       def select_day(date, options = {}, html_options = {})
         DateTimeSelector.new(date, options, html_options).select_day
@@ -475,6 +523,10 @@ module ActionView
       #   # will use keys like "Januar", "Marts."
       #   select_month(Date.today, :use_month_names => %w(Januar Februar Marts ...))
       #
+      #   # Generates a select field for months with a custom prompt.  Use :prompt => true for a
+      #   # generic prompt.
+      #   select_month(14, :prompt => 'Choose month')
+      #
       def select_month(date, options = {}, html_options = {})
         DateTimeSelector.new(date, options, html_options).select_month
       end
@@ -502,6 +554,10 @@ module ActionView
       #   # has ascending year values
       #   select_year(2006, :start_year => 2000, :end_year => 2010)
       #
+      #   # Generates a select field for years with a custom prompt.  Use :prompt => true for a
+      #   # generic prompt.
+      #   select_year(14, :prompt => 'Choose year')
+      #
       def select_year(date, options = {}, html_options = {})
         DateTimeSelector.new(date, options, html_options).select_year
       end
@@ -515,6 +571,10 @@ module ActionView
       POSITION = {
         :year => 1, :month => 2, :day => 3, :hour => 4, :minute => 5, :second => 6
       }.freeze unless const_defined?('POSITION')
+
+      DEFAULT_PROMPTS = {
+        :year => 'Year', :month => 'Month', :day => 'Day', :hour => 'Hour', :minute => 'Minute', :second => 'Seconds'
+      }.freeze unless const_defined?('DEFAULT_PROMPTS')
 
       def initialize(datetime, options = {}, html_options = {})
         @options      = options.dup
@@ -764,9 +824,28 @@ module ActionView
 
           select_html = "\n"
           select_html << content_tag(:option, '', :value => '') + "\n" if @options[:include_blank]
+          select_html << prompt_option_tag(type, @options[:prompt]) + "\n" if @options[:prompt]
           select_html << select_options_as_html.to_s
 
           content_tag(:select, select_html, select_options) + "\n"
+        end
+
+        # Builds a prompt option tag with supplied options or from default options
+        #  prompt_option_tag(:month, :prompt => 'Select month')
+        #  => "<option value="">Select month</option>"
+        def prompt_option_tag(type, options)
+          default_options = {:year => false, :month => false, :day => false, :hour => false, :minute => false, :second => false}
+
+          case options
+          when Hash
+            prompt = default_options.merge(options)[type.to_sym]
+          when String
+            prompt = options
+          else
+            prompt = ActionView::Helpers::DateTimeSelector::DEFAULT_PROMPTS[type.to_sym]
+          end
+
+          prompt ? content_tag(:option, prompt, :value => '')  : ''
         end
 
         # Builds hidden input tag for date part and value
