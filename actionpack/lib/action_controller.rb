@@ -59,7 +59,7 @@ module ActionController
   autoload :MiddlewareStack, 'action_controller/middleware_stack'
   autoload :MimeResponds, 'action_controller/mime_responds'
   autoload :PolymorphicRoutes, 'action_controller/polymorphic_routes'
-  autoload :RackRequest, 'action_controller/rack_process'
+  autoload :RackRequest, 'action_controller/request'
   autoload :RecordIdentifier, 'action_controller/record_identifier'
   autoload :Response, 'action_controller/response'
   autoload :RequestForgeryProtection, 'action_controller/request_forgery_protection'
