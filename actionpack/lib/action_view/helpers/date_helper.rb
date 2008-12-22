@@ -572,10 +572,6 @@ module ActionView
         :year => 1, :month => 2, :day => 3, :hour => 4, :minute => 5, :second => 6
       }.freeze unless const_defined?('POSITION')
 
-      DEFAULT_PROMPTS = {
-        :year => 'Year', :month => 'Month', :day => 'Day', :hour => 'Hour', :minute => 'Minute', :second => 'Seconds'
-      }.freeze unless const_defined?('DEFAULT_PROMPTS')
-
       def initialize(datetime, options = {}, html_options = {})
         @options      = options.dup
         @html_options = html_options.dup
@@ -842,10 +838,10 @@ module ActionView
           when String
             prompt = options
           else
-            prompt = ActionView::Helpers::DateTimeSelector::DEFAULT_PROMPTS[type.to_sym]
+            prompt = I18n.translate(('datetime.prompts.' + type.to_s).to_sym, :locale => @options[:locale])
           end
 
-          prompt ? content_tag(:option, prompt, :value => '')  : ''
+          prompt ? content_tag(:option, prompt, :value => '') : ''
         end
 
         # Builds hidden input tag for date part and value
