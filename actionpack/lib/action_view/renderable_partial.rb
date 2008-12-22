@@ -25,12 +25,11 @@ module ActionView
     end
 
     def render_partial(view, object = nil, local_assigns = {}, as = nil)
-      object ||= local_assigns[:object] ||
-        local_assigns[variable_name]
+      object ||= local_assigns[:object] || local_assigns[variable_name]
 
-      if view.respond_to?(:controller)
+      if object.nil? && view.respond_to?(:controller)
         ivar = :"@#{variable_name}"
-        object ||=
+        object =
           if view.controller.instance_variable_defined?(ivar)
             ActiveSupport::Deprecation::DeprecatedObjectProxy.new(
               view.controller.instance_variable_get(ivar),
