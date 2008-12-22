@@ -856,7 +856,7 @@ class XmlParamsParsingTest < ActiveSupport::TestCase
       env = { 'rack.input'     => StringIO.new(body),
               'CONTENT_TYPE'   => 'application/xml',
               'CONTENT_LENGTH' => body.size.to_s }
-      ActionController::RackRequest.new(env).request_parameters
+      ActionController::Request.new(env).request_parameters
     end
 end
 
@@ -866,7 +866,7 @@ class LegacyXmlParamsParsingTest < XmlParamsParsingTest
       env = { 'rack.input'              => StringIO.new(body),
               'HTTP_X_POST_DATA_FORMAT' => 'xml',
               'CONTENT_LENGTH'          => body.size.to_s }
-      ActionController::RackRequest.new(env).request_parameters
+      ActionController::Request.new(env).request_parameters
     end
 end
 
@@ -888,6 +888,6 @@ class JsonParamsParsingTest < ActiveSupport::TestCase
       env = { 'rack.input'     => StringIO.new(body),
               'CONTENT_TYPE'   => content_type,
               'CONTENT_LENGTH' => body.size.to_s }
-      ActionController::RackRequest.new(env).request_parameters
+      ActionController::Request.new(env).request_parameters
     end
 end

@@ -38,7 +38,7 @@ module ActionController
   # TODO: Review explicit to see if they will automatically be handled by
   # the initilizer if they are really needed.
   def self.load_all!
-    [Base, CGIHandler, CgiRequest, RackRequest, RackRequest, Http::Headers, UrlRewriter, UrlWriter]
+    [Base, CGIHandler, CgiRequest, Request, Response, Http::Headers, UrlRewriter, UrlWriter]
   end
 
   autoload :AbstractRequest, 'action_controller/request'
@@ -59,7 +59,7 @@ module ActionController
   autoload :MiddlewareStack, 'action_controller/middleware_stack'
   autoload :MimeResponds, 'action_controller/mime_responds'
   autoload :PolymorphicRoutes, 'action_controller/polymorphic_routes'
-  autoload :RackRequest, 'action_controller/request'
+  autoload :Request, 'action_controller/request'
   autoload :RecordIdentifier, 'action_controller/record_identifier'
   autoload :Response, 'action_controller/response'
   autoload :RequestForgeryProtection, 'action_controller/request_forgery_protection'

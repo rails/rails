@@ -371,7 +371,7 @@ module ActionController
             "SERVER_PORT"    => https? ? "443" : "80",
             "HTTPS"          => https? ? "on" : "off"
           }
-          UrlRewriter.new(RackRequest.new(env), {})
+          UrlRewriter.new(Request.new(env), {})
         end
 
         def name_with_prefix(prefix, name)

@@ -862,7 +862,7 @@ EOM
     include UploadedFile
   end
 
-  class RackRequest < AbstractRequest #:nodoc:
+  class Request < AbstractRequest #:nodoc:
     attr_accessor :session_options
 
     class SessionFixationAttempt < StandardError #:nodoc:
