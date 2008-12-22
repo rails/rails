@@ -4,10 +4,6 @@ module ActionView
   module Renderable #:nodoc:
     extend ActiveSupport::Memoizable
 
-    def self.included(base)
-      @@mutex = Mutex.new
-    end
-
     def filename
       'compiled-template'
     end
@@ -64,10 +60,8 @@ module ActionView
       def compile(local_assigns)
         render_symbol = method_name(local_assigns)
 
-        @@mutex.synchronize do
-          if recompile?(render_symbol)
-            compile!(render_symbol, local_assigns)
-          end
+        if recompile?(render_symbol)
+          compile!(render_symbol, local_assigns)
         end
       end
 
