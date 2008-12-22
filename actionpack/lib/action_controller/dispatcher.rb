@@ -48,6 +48,7 @@ module ActionController
         !ActionController::Base.allow_concurrency
       }
       middleware.use "ActionController::Failsafe"
+      middleware.use "ActiveRecord::QueryCache" if defined?(ActiveRecord)
 
       ["ActionController::Session::CookieStore",
        "ActionController::Session::MemCacheStore",
