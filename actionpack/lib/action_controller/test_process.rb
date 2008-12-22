@@ -27,20 +27,20 @@ module ActionController #:nodoc:
     alias_method_chain :process, :test
   end
 
-  class TestRequest < AbstractRequest #:nodoc:
+  class TestRequest < Request #:nodoc:
     attr_accessor :cookies, :session_options
     attr_accessor :query_parameters, :request_parameters, :path, :session
     attr_accessor :host, :user_agent
 
-    def initialize(query_parameters = nil, request_parameters = nil, session = nil)
-      @query_parameters   = query_parameters || {}
-      @request_parameters = request_parameters || {}
-      @session            = session || TestSession.new
+    def initialize
+      super(Rack::MockRequest.env_for('/'))
+
+      @query_parameters   = {}
+      @request_parameters = {}
+      @session            = TestSession.new
 
       initialize_containers
       initialize_default_values
-
-      super()
     end
 
     def reset_session

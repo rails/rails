@@ -7,7 +7,7 @@ require 'action_controller/cgi_ext'
 
 module ActionController
   # CgiRequest and TestRequest provide concrete implementations.
-  class AbstractRequest
+  class AbstractRequest < Rack::Request
     extend ActiveSupport::Memoizable
 
     HTTP_METHODS = %w(get head put post delete options)
@@ -424,7 +424,6 @@ EOM
     end
     alias referer referrer
 
-
     def query_parameters
       @query_parameters ||= self.class.parse_query_parameters(query_string)
     end
@@ -432,7 +431,6 @@ EOM
     def request_parameters
       @request_parameters ||= parse_formatted_request_parameters
     end
-
 
     #--
     # Must be implemented in the concrete request
@@ -868,11 +866,6 @@ EOM
     class SessionFixationAttempt < StandardError #:nodoc:
     end
 
-    def initialize(env)
-      @env = env
-      super()
-    end
-
     %w[ AUTH_TYPE GATEWAY_INTERFACE PATH_INFO
         PATH_TRANSLATED REMOTE_HOST
         REMOTE_IDENT REMOTE_USER SCRIPT_NAME
@@ -909,10 +902,6 @@ EOM
 
     def server_port
       @env['SERVER_PORT'].to_i
-    end
-
-    def server_software
-      @env['SERVER_SOFTWARE'].split("/").first
     end
 
     def session_options
