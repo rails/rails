@@ -13,6 +13,8 @@ module ActionController
     class SessionFixationAttempt < StandardError #:nodoc:
     end
 
+    # The hash of environment variables for this request,
+    # such as { 'RAILS_ENV' => 'production' }.
     attr_reader :env
 
     def initialize(env)
@@ -38,10 +40,6 @@ module ActionController
 
     HTTP_METHODS = %w(get head put post delete options)
     HTTP_METHOD_LOOKUP = HTTP_METHODS.inject({}) { |h, m| h[m] = h[m.upcase] = m.to_sym; h }
-
-    # The hash of environment variables for this request,
-    # such as { 'RAILS_ENV' => 'production' }.
-    attr_reader :env
 
     # The true HTTP request \method as a lowercase symbol, such as <tt>:get</tt>.
     # UnknownHttpMethod is raised for invalid methods not listed in ACCEPTED_HTTP_METHODS.
