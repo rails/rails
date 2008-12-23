@@ -74,6 +74,7 @@ module ActionController
   autoload :Translation, 'action_controller/translation'
   autoload :UrlRewriter, 'action_controller/url_rewriter'
   autoload :UrlWriter, 'action_controller/url_rewriter'
+  autoload :VerbPiggybacking, 'action_controller/verb_piggybacking'
   autoload :Verification, 'action_controller/verification'
 
   module Assertions

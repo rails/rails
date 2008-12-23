@@ -45,8 +45,6 @@ module ActionController
     # UnknownHttpMethod is raised for invalid methods not listed in ACCEPTED_HTTP_METHODS.
     def request_method
       method = @env['REQUEST_METHOD']
-      method = parameters[:_method] if method == 'POST' && !parameters[:_method].blank?
-
       HTTP_METHOD_LOOKUP[method] || raise(UnknownHttpMethod, "#{method}, accepted HTTP methods are #{HTTP_METHODS.to_sentence}")
     end
     memoize :request_method
@@ -143,15 +141,15 @@ module ActionController
     # supplied, both must match, or the request is not considered fresh.
     def fresh?(response)
       case
-      when if_modified_since && if_none_match 
-        not_modified?(response.last_modified) && etag_matches?(response.etag) 
-      when if_modified_since 
-        not_modified?(response.last_modified) 
-      when if_none_match 
-        etag_matches?(response.etag) 
-      else 
-        false 
-      end 
+      when if_modified_since && if_none_match
+        not_modified?(response.last_modified) && etag_matches?(response.etag)
+      when if_modified_since
+        not_modified?(response.last_modified)
+      when if_none_match
+        etag_matches?(response.etag)
+      else
+        false
+      end
     end
 
     # Returns the Mime type for the \format used in the request.

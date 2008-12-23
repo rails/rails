@@ -2,6 +2,17 @@ require 'stringio'
 require 'uri'
 require 'active_support/test_case'
 
+# Monkey patch Rack::Lint to support rewind
+module Rack
+  class Lint
+    class InputWrapper
+      def rewind
+        @input.rewind
+      end
+    end
+  end
+end
+
 module ActionController
   module Integration #:nodoc:
     # An integration Session instance represents a set of requests and responses

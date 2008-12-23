@@ -187,29 +187,6 @@ class RackRequestContentTypeTest < BaseRackTest
   end
 end
 
-class RackRequestMethodTest < BaseRackTest
-  def test_get
-    assert_equal :get, @request.request_method
-  end
-
-  def test_post
-    @request.env['REQUEST_METHOD'] = 'POST'
-    assert_equal :post, @request.request_method
-  end
-
-  def test_put
-    set_content_data '_method=put'
-
-    assert_equal :put, @request.request_method
-  end
-
-  def test_delete
-    set_content_data '_method=delete'
-
-    assert_equal :delete, @request.request_method
-  end
-end
-
 class RackRequestNeedsRewoundTest < BaseRackTest
   def test_body_should_be_rewound
     data = 'foo'

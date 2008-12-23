@@ -17,3 +17,5 @@ use "ActiveRecord::QueryCache", :if => lambda { defined?(ActiveRecord) }
       }
     )
 end
+
+use ActionController::VerbPiggybacking

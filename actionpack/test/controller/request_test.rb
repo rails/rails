@@ -303,18 +303,16 @@ class RequestTest < ActiveSupport::TestCase
   end
 
   def test_allow_method_hacking_on_post
-    self.request_method = :post
     [:get, :head, :options, :put, :post, :delete].each do |method|
-      @request.instance_eval { @parameters = { :_method => method.to_s } ; @request_method = nil }
+      self.request_method = method
       @request.request_method(true)
       assert_equal(method == :head ? :get : method, @request.method)
     end
   end
 
   def test_invalid_method_hacking_on_post_raises_exception
-    self.request_method = :post
-    @request.instance_eval { @parameters = { :_method => :random_method } ; @request_method = nil }
     assert_raises(ActionController::UnknownHttpMethod) do
+      self.request_method = :_random_method
       @request.request_method(true)
     end
   end
