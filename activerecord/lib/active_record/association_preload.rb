@@ -94,8 +94,8 @@ module ActiveRecord
             raise "parent must be an association name" unless parent.is_a?(String) || parent.is_a?(Symbol)
             preload_associations(records, parent, preload_options)
             reflection = reflections[parent]
-            parents = records.map {|record| record.send(reflection.name)}.flatten
-            unless parents.empty? || parents.first.nil?
+            parents = records.map {|record| record.send(reflection.name)}.flatten.compact
+            unless parents.empty?
               parents.first.class.preload_associations(parents, child)
             end
           end
