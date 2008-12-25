@@ -202,6 +202,11 @@ class TestController < ActionController::Base
     render :template => "test/hello"
   end
 
+  def render_xml_hello_as_string_template
+    @name = "David"
+    render "test/hello"
+  end
+
   def render_xml_with_custom_content_type
     render :xml => "<blah/>", :content_type => "application/atomsvc+xml"
   end
@@ -330,6 +335,10 @@ class TestController < ActionController::Base
 
   def render_with_explicit_template
     render :template => "test/hello_world"
+  end
+
+  def render_with_explicit_string_template
+    render "test/hello_world"
   end
 
   def render_with_explicit_template_with_locals
@@ -654,6 +663,7 @@ class TestController < ActionController::Base
              "accessing_params_in_template",
              "accessing_params_in_template_with_layout",
              "render_with_explicit_template",
+             "render_with_explicit_string_template",
              "render_js_with_explicit_template",
              "render_js_with_explicit_action_template",
              "delete_with_js", "update_page", "update_page_with_instance_variables"
@@ -888,6 +898,12 @@ class RenderTest < ActionController::TestCase
     assert_equal "application/xml", @response.content_type
   end
 
+  def test_render_xml_as_string_template
+    get :render_xml_hello_as_string_template
+    assert_equal "<html>\n  <p>Hello David</p>\n<p>This is grand!</p>\n</html>\n", @response.body
+    assert_equal "application/xml", @response.content_type
+  end
+
   def test_render_xml_with_default
     get :greeting
     assert_equal "<p>This is grand!</p>\n", @response.body
@@ -1071,6 +1087,11 @@ class RenderTest < ActionController::TestCase
   def test_render_with_explicit_template
     get :render_with_explicit_template
     assert_response :success
+  end
+
+  def test_render_with_explicit_string_template
+    get :render_with_explicit_string_template
+    assert_equal "<html>Hello world!</html>", @response.body
   end
 
   def test_double_render

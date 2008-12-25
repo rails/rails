@@ -866,9 +866,11 @@ module ActionController #:nodoc:
         elsif options == :update
           options = extra_options.merge({ :update => true })
         elsif options.is_a?(String)
-          case options.index('/')
+          case position = options.index('/')
           when 0
             extra_options[:file] = options
+          else
+            extra_options[:template] = options
           end
 
           options = extra_options
