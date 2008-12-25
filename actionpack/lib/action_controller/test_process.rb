@@ -388,20 +388,33 @@ module ActionController #:nodoc:
 
   module TestProcess
     def self.included(base)
-      # execute the request simulating a specific HTTP method and set/volley the response
-      # TODO: this should be un-DRY'ed for the sake of API documentation.
-      %w( get post put delete head ).each do |method|
-        base.class_eval <<-EOV, __FILE__, __LINE__
-          def #{method}(action, parameters = nil, session = nil, flash = nil)
-            @request.env['REQUEST_METHOD'] = "#{method.upcase}" if defined?(@request)
-            process(action, parameters, session, flash)
-          end
-        EOV
+      # Executes a request simulating GET HTTP method and set/volley the response
+      def get(action, parameters = nil, session = nil, flash = nil)
+        process(action, parameters, session, flash, "GET")
+      end
+
+      # Executes a request simulating POST HTTP method and set/volley the response
+      def post(action, parameters = nil, session = nil, flash = nil)
+        process(action, parameters, session, flash, "POST")
+      end
+
+      # Executes a request simulating PUT HTTP method and set/volley the response
+      def put(action, parameters = nil, session = nil, flash = nil)
+        process(action, parameters, session, flash, "PUT")
+      end
+
+      # Executes a request simulating DELETE HTTP method and set/volley the response
+      def delete(action, parameters = nil, session = nil, flash = nil)
+        process(action, parameters, session, flash, "DELETE")
+      end
+
+      # Executes a request simulating HEAD HTTP method and set/volley the response
+      def head(action, parameters = nil, session = nil, flash = nil)
+        process(action, parameters, session, flash, "HEAD")
       end
     end
 
-    # execute the request and set/volley the response
-    def process(action, parameters = nil, session = nil, flash = nil)
+    def process(action, parameters = nil, session = nil, flash = nil, http_method = 'GET')
       # Sanity check for required instance variables so we can give an
       # understandable error message.
       %w(@controller @request @response).each do |iv_name|
@@ -414,7 +427,7 @@ module ActionController #:nodoc:
       @response.recycle!
 
       @html_document = nil
-      @request.env['REQUEST_METHOD'] ||= "GET"
+      @request.env['REQUEST_METHOD'] = http_method
 
       @request.action = action.to_s
 
