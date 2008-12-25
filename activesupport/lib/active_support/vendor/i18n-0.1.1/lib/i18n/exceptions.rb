@@ -1,6 +1,6 @@
 module I18n
   class ArgumentError < ::ArgumentError; end
-  
+
   class InvalidLocale < ArgumentError
     attr_reader :locale
     def initialize(locale)
@@ -42,7 +42,7 @@ module I18n
       super "reserved key #{key.inspect} used in #{string.inspect}"
     end
   end
-  
+
   class UnknownFileType < ArgumentError
     attr_reader :type, :filename
     def initialize(type, filename)
@@ -50,4 +50,4 @@ module I18n
       super "can not load translations from #{filename}, the file type #{type} is not known"
     end
   end
-end  
+end
