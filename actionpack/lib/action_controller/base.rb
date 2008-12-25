@@ -865,6 +865,13 @@ module ActionController #:nodoc:
           return render(:file => default_template, :layout => true)
         elsif options == :update
           options = extra_options.merge({ :update => true })
+        elsif options.is_a?(String)
+          case options.index('/')
+          when 0
+            extra_options[:file] = options
+          end
+
+          options = extra_options
         end
 
         layout = pick_layout(options)
@@ -1183,7 +1190,7 @@ module ActionController #:nodoc:
       end
 
       def validate_render_arguments(options, extra_options)
-        if options && options != :update && !options.is_a?(Hash)
+        if options && options != :update && !options.is_a?(String) && !options.is_a?(Hash)
           raise RenderError, "You called render with invalid options : #{options.inspect}"
         end
 

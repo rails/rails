@@ -104,6 +104,12 @@ class TestController < ActionController::Base
     render :file => path
   end
 
+  def render_file_as_string_with_instance_variables
+    @secret = 'in the sauce'
+    path = File.expand_path(File.join(File.dirname(__FILE__), '../fixtures/test/render_file_with_ivar.erb'))
+    render path
+  end
+
   def render_file_not_using_full_path
     @secret = 'in the sauce'
     render :file => 'test/render_file_with_ivar'
@@ -122,6 +128,11 @@ class TestController < ActionController::Base
   def render_file_with_locals
     path = File.join(File.dirname(__FILE__), '../fixtures/test/render_file_with_locals.erb')
     render :file => path, :locals => {:secret => 'in the sauce'}
+  end
+
+  def render_file_as_string_with_locals
+    path = File.expand_path(File.join(File.dirname(__FILE__), '../fixtures/test/render_file_with_locals.erb'))
+    render path, :locals => {:secret => 'in the sauce'}
   end
 
   def accessing_request_in_template
@@ -180,10 +191,6 @@ class TestController < ActionController::Base
 
   def render_nothing_with_appendix
     render :text => "appended"
-  end
-
-  def render_invalid_args
-    render("test/hello")
   end
 
   def render_vanilla_js_hello
@@ -751,6 +758,11 @@ class RenderTest < ActionController::TestCase
     assert_equal "The secret is in the sauce\n", @response.body
   end
 
+  def test_render_file_as_string_with_instance_variables
+    get :render_file_as_string_with_instance_variables
+    assert_equal "The secret is in the sauce\n", @response.body
+  end
+
   def test_render_file_not_using_full_path
     get :render_file_not_using_full_path
     assert_equal "The secret is in the sauce\n", @response.body
@@ -763,6 +775,11 @@ class RenderTest < ActionController::TestCase
 
   def test_render_file_with_locals
     get :render_file_with_locals
+    assert_equal "The secret is in the sauce\n", @response.body
+  end
+
+  def test_render_file_as_string_with_locals
+    get :render_file_as_string_with_locals
     assert_equal "The secret is in the sauce\n", @response.body
   end
 
@@ -829,10 +846,6 @@ class RenderTest < ActionController::TestCase
     get :render_nothing_with_appendix
     assert_response 200
     assert_equal 'appended', @response.body
-  end
-
-  def test_attempt_to_render_with_invalid_arguments
-    assert_raises(ActionController::RenderError) { get :render_invalid_args }
   end
 
   def test_attempt_to_access_object_method
