@@ -81,6 +81,10 @@ class TestController < ActionController::Base
     render :action => "hello_world"
   end
 
+  def render_action_hello_world_as_string
+    render "hello_world"
+  end
+
   def render_action_hello_world_with_symbol
     render :action => :hello_world
   end
@@ -294,6 +298,10 @@ class TestController < ActionController::Base
 
   def layout_test_with_different_layout
     render :action => "hello_world", :layout => "standard"
+  end
+
+  def layout_test_with_different_layout_and_string_action
+    render "hello_world", :layout => "standard"
   end
 
   def rendering_without_layout
@@ -743,6 +751,12 @@ class RenderTest < ActionController::TestCase
     assert_template "test/hello_world"
   end
 
+  def test_render_action_hello_world_as_string
+    get :render_action_hello_world_as_string
+    assert_equal "Hello world!", @response.body
+    assert_template "test/hello_world"
+  end
+
   def test_render_action_with_symbol
     get :render_action_hello_world_with_symbol
     assert_template "test/hello_world"
@@ -1040,6 +1054,11 @@ class RenderTest < ActionController::TestCase
 
   def test_layout_test_with_different_layout
     get :layout_test_with_different_layout
+    assert_equal "<html>Hello world!</html>", @response.body
+  end
+
+  def test_layout_test_with_different_layout
+    get :layout_test_with_different_layout_and_string_action
     assert_equal "<html>Hello world!</html>", @response.body
   end
 
