@@ -859,16 +859,12 @@ module ActionController #:nodoc:
       def render(options = nil, extra_options = {}, &block) #:doc:
         raise DoubleRenderError, "Can only render or redirect once per action" if performed?
 
+        validate_render_arguments(options, extra_options)
+
         if options.nil?
           return render(:file => default_template, :layout => true)
-        elsif !extra_options.is_a?(Hash)
-          raise RenderError, "You called render with invalid options : #{options.inspect}, #{extra_options.inspect}"
-        else
-          if options == :update
-            options = extra_options.merge({ :update => true })
-          elsif !options.is_a?(Hash)
-            raise RenderError, "You called render with invalid options : #{options.inspect}"
-          end
+        elsif options == :update
+          options = extra_options.merge({ :update => true })
         end
 
         layout = pick_layout(options)
@@ -1183,6 +1179,16 @@ module ActionController #:nodoc:
             when nil  then " " # Safari doesn't pass the headers of the return if the response is zero length
             else           text.to_s
           end
+        end
+      end
+
+      def validate_render_arguments(options, extra_options)
+        if options && options != :update && !options.is_a?(Hash)
+          raise RenderError, "You called render with invalid options : #{options.inspect}"
+        end
+
+        if !extra_options.is_a?(Hash)
+          raise RenderError, "You called render with invalid options : #{options.inspect}, #{extra_options.inspect}"
         end
       end
 
