@@ -29,18 +29,21 @@ module ActionController #:nodoc:
 
   class TestRequest < Request #:nodoc:
     attr_accessor :cookies, :session_options
-    attr_accessor :query_parameters, :request_parameters, :path, :session
-    attr_accessor :host, :user_agent
+    attr_accessor :query_parameters, :path, :session
+    attr_accessor :host
 
     def initialize
-      super(Rack::MockRequest.env_for('/'))
+      env = Rack::MockRequest.env_for("/")
+
+      # TODO: Fix Request to assume env['SERVER_ADDR'] doesn't contain port number
+      env['SERVER_ADDR'] = env.delete("SERVER_NAME")
+      super(env)
 
       @query_parameters   = {}
-      @request_parameters = {}
       @session            = TestSession.new
 
-      initialize_containers
       initialize_default_values
+      initialize_containers
     end
 
     def reset_session
@@ -55,7 +58,11 @@ module ActionController #:nodoc:
     # Either the RAW_POST_DATA environment variable or the URL-encoded request
     # parameters.
     def raw_post
-      env['RAW_POST_DATA'] ||= returning(url_encoded_request_parameters) { |b| b.force_encoding(Encoding::BINARY) if b.respond_to?(:force_encoding) }
+      @env['RAW_POST_DATA'] ||= begin
+        data = url_encoded_request_parameters
+        data.force_encoding(Encoding::BINARY) if data.respond_to?(:force_encoding)
+        data
+      end
     end
 
     def port=(number)
@@ -125,26 +132,30 @@ module ActionController #:nodoc:
           path_parameters[key.to_s] = value
         end
       end
+      raw_post # populate env['RAW_POST_DATA']
       @parameters = nil # reset TestRequest#parameters to use the new path_parameters
     end
 
     def recycle!
-      self.request_parameters = {}
       self.query_parameters   = {}
       self.path_parameters    = {}
       unmemoize_all
     end
 
+    def user_agent=(user_agent)
+      @env['HTTP_USER_AGENT'] = user_agent
+    end
+
     private
       def initialize_containers
-        @env, @cookies = {}, {}
+        @cookies = {}
       end
 
       def initialize_default_values
         @host                    = "test.host"
         @request_uri             = "/"
-        @user_agent              = "Rails Testing"
-        self.remote_addr         = "0.0.0.0"
+        @env['HTTP_USER_AGENT']  = "Rails Testing"
+        @env['REMOTE_ADDR']      = "0.0.0.0"
         @env["SERVER_PORT"]      = 80
         @env['REQUEST_METHOD']   = "GET"
       end
