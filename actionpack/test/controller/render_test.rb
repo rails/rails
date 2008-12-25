@@ -21,6 +21,8 @@ class MockLogger
 end
 
 class TestController < ActionController::Base
+  protect_from_forgery
+
   class LabellingFormBuilder < ActionView::Helpers::FormBuilder
   end
 
