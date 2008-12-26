@@ -803,4 +803,20 @@ class EagerAssociationTest < ActiveRecord::TestCase
     end
   end
   
+  def test_preload_has_one_using_primary_key
+    expected = Firm.find(:first).account_using_primary_key
+    firm = Firm.find :first, :include => :account_using_primary_key
+    assert_no_queries do
+      assert_equal expected, firm.account_using_primary_key
+    end
+  end
+
+  def test_include_has_one_using_primary_key
+    expected = Firm.find(1).account_using_primary_key
+    firm = Firm.find(:all, :include => :account_using_primary_key, :order => 'accounts.id').detect {|f| f.id == 1}
+    assert_no_queries do
+      assert_equal expected, firm.account_using_primary_key
+    end
+  end
+  
 end
