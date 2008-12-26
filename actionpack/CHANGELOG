@@ -4,6 +4,7 @@
 
   # Instead of render(:action => 'other_action')
   render('other_action') # argument has no '/'
+  render(:other_action)
 
   # Instead of render(:template => 'controller/action')
   render('controller/action') # argument must not begin with a '/', but contain a '/'
