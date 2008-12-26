@@ -41,17 +41,19 @@ module ActionController
     HTTP_METHODS = %w(get head put post delete options)
     HTTP_METHOD_LOOKUP = HTTP_METHODS.inject({}) { |h, m| h[m] = h[m.upcase] = m.to_sym; h }
 
-    # The true HTTP request \method as a lowercase symbol, such as <tt>:get</tt>.
-    # UnknownHttpMethod is raised for invalid methods not listed in ACCEPTED_HTTP_METHODS.
+    # Returns the true HTTP request \method as a lowercase symbol, such as
+    # <tt>:get</tt>. If the request \method is not listed in the HTTP_METHODS
+    # constant above, an UnknownHttpMethod exception is raised.
     def request_method
       method = @env['REQUEST_METHOD']
       HTTP_METHOD_LOOKUP[method] || raise(UnknownHttpMethod, "#{method}, accepted HTTP methods are #{HTTP_METHODS.to_sentence}")
     end
     memoize :request_method
 
-    # The HTTP request \method as a lowercase symbol, such as <tt>:get</tt>.
-    # Note, HEAD is returned as <tt>:get</tt> since the two are functionally
-    # equivalent from the application's perspective.
+    # Returns the HTTP request \method used for action processing as a
+    # lowercase symbol, such as <tt>:post</tt>. (Unlike #request_method, this
+    # method returns <tt>:get</tt> for a HEAD request because the two are
+    # functionally equivalent from the application's perspective.)
     def method
       request_method == :head ? :get : request_method
     end
