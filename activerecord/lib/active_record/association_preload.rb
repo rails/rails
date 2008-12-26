@@ -195,7 +195,7 @@ module ActiveRecord
 
       def preload_has_one_association(records, reflection, preload_options={})
         return if records.first.send("loaded_#{reflection.name}?")
-        id_to_record_map, ids = construct_id_map(records)
+        id_to_record_map, ids = construct_id_map(records, reflection.options[:primary_key])
         options = reflection.options
         records.each {|record| record.send("set_#{reflection.name}_target", nil)}
         if options[:through]
