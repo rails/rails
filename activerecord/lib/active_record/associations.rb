@@ -2171,7 +2171,7 @@ module ActiveRecord
                         aliased_table_name,
                         foreign_key,
                         parent.aliased_table_name,
-                        parent.primary_key
+                        reflection.options[:primary_key] || parent.primary_key
                       ]
                   end
                 when :belongs_to
