@@ -5,6 +5,10 @@ module Mime
   EXTENSION_LOOKUP = Hash.new { |h, k| h[k] = Type.new(k) unless k.blank? }
   LOOKUP           = Hash.new { |h, k| h[k] = Type.new(k) unless k.blank? }
 
+  def self.[](type)
+    Type.lookup_by_extension(type)
+  end
+
   # Encapsulates the notion of a mime type. Can be used at render time, for example, with:
   #
   #   class PostsController < ActionController::Base

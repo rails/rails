@@ -266,7 +266,7 @@ module ActionView #:nodoc:
       if defined? @template_format
         @template_format
       elsif controller && controller.respond_to?(:request)
-        @template_format = controller.request.template_format.to_sym
+        @template_format = controller.request.format.to_sym
       else
         @template_format = :html
       end
