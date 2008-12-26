@@ -248,6 +248,14 @@ class AssertSelectTest < ActionController::TestCase
     end
   end
 
+  def test_assert_select_rjs_for_positioned_insert_should_fail_when_mixing_arguments
+    render_rjs do |page|
+      page.insert_html :top, "test1", "<div id=\"1\">foo</div>"
+      page.insert_html :bottom, "test2", "<div id=\"2\">foo</div>"
+    end
+    assert_raises(Assertion) {assert_select_rjs :insert, :top, "test2"}
+  end
+
   #
   # Test css_select.
   #
