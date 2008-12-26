@@ -862,7 +862,7 @@ module ActionController #:nodoc:
         validate_render_arguments(options, extra_options, block_given?)
 
         if options.nil?
-          return render(:file => default_template, :layout => true)
+          options = { :template => default_template.filename, :layout => true }
         elsif options == :update
           options = extra_options.merge({ :update => true })
         elsif options.is_a?(String) || options.is_a?(Symbol)
