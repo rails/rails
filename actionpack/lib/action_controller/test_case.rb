@@ -93,10 +93,7 @@ module ActionController
   # and cookies, though. For sessions, you just do:
   #
   #   @request.session[:key] = "value"
-  #
-  # For cookies, you need to manually create the cookie, like this:
-  #
-  #   @request.cookies["key"] = CGI::Cookie.new("key", "value")
+  #   @request.cookies["key"] = "value"
   #
   # == Testing named routes
   #

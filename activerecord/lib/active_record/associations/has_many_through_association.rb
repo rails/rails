@@ -160,9 +160,9 @@ module ActiveRecord
           end
 
           "INNER JOIN %s ON %s.%s = %s.%s %s #{@reflection.options[:joins]} #{custom_joins}" % [
-            @reflection.through_reflection.table_name,
-            @reflection.table_name, reflection_primary_key,
-            @reflection.through_reflection.table_name, source_primary_key,
+            @reflection.through_reflection.quoted_table_name,
+            @reflection.quoted_table_name, reflection_primary_key,
+            @reflection.through_reflection.quoted_table_name, source_primary_key,
             polymorphic_join
           ]
         end

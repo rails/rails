@@ -83,7 +83,7 @@ module ActionController #:nodoc:
             end
           end
 
-          log_message << " | #{headers["Status"]}"
+          log_message << " | #{response.status}"
           log_message << " [#{complete_request_uri rescue "unknown"}]"
 
           logger.info(log_message)

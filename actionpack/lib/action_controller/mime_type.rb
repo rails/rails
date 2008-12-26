@@ -178,7 +178,7 @@ module Mime
 
     def =~(mime_type)
       return false if mime_type.blank?
-      regexp = Regexp.new(mime_type.to_s)
+      regexp = Regexp.new(Regexp.quote(mime_type.to_s))
       (@synonyms + [ self ]).any? do |synonym|
         synonym.to_s =~ regexp
       end

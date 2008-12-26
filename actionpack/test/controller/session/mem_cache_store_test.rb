@@ -16,6 +16,11 @@ class MemCacheStoreTest < ActionController::IntegrationTest
       render :text => "foo: #{session[:foo].inspect}"
     end
 
+    def call_reset_session
+      reset_session
+      head :ok
+    end
+
     def rescue_action(e) raise end
   end
 
@@ -61,6 +66,22 @@ class MemCacheStoreTest < ActionController::IntegrationTest
         get '/set_session_value', :_session_id => session_id
         assert_response :success
         assert_equal nil, cookies['_session_id']
+      end
+    end
+
+    def test_setting_session_value_after_session_reset
+      with_test_route_set do
+        get '/set_session_value'
+        assert_response :success
+        assert cookies['_session_id']
+
+        get '/call_reset_session'
+        assert_response :success
+        assert_not_equal [], headers['Set-Cookie']
+
+        get '/get_session_value'
+        assert_response :success
+        assert_equal 'foo: nil', response.body
       end
     end
   rescue LoadError, RuntimeError

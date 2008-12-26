@@ -80,6 +80,13 @@
       over_x_years:
         one:   "over 1 year"
         other: "over {{count}} years"
+    prompts:
+      year:   "Year"
+      month:  "Month"
+      day:    "Day"
+      hour:   "Hour"
+      minute: "Minute"
+      second: "Seconds"
 
   activerecord:
     errors:

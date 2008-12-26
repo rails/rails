@@ -102,7 +102,7 @@ module ActionController #:nodoc:
       # doesn't exist, the body of the response will be left empty.
       def render_optional_error_file(status_code)
         status = interpret_status(status_code)
-        path = "#{Rails.public_path}/#{status[0,3]}.html"
+        path = "#{Rails.public_path}/#{status.to_s[0,3]}.html"
         if File.exist?(path)
           render :file => path, :status => status, :content_type => Mime::HTML
         else

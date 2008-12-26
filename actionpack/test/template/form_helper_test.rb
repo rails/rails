@@ -463,7 +463,7 @@ class FormHelperTest < ActionView::TestCase
     assert_dom_equal expected, output_buffer
   end
 
-  def test_nested_fields_for_with_index
+  def test_nested_fields_for_with_index_and_parent_fields
     form_for('post', @post, :index => 1) do |c|
       concat c.text_field(:title)
       c.fields_for('comment', @comment, :index => 1) do |r|

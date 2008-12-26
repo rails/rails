@@ -1,5 +1,19 @@
 *2.3.0 [Edge]*
 
+* Make ActionController#render(string) work as a shortcut for render :file/:template/:action => string. [#1435] [Pratik Naik] Examples:
+
+  # Instead of render(:action => 'other_action')
+  render('other_action') # argument has no '/'
+  render(:other_action)
+
+  # Instead of render(:template => 'controller/action')
+  render('controller/action') # argument must not begin with a '/', but contain a '/'
+
+  # Instead of render(:file => '/Users/lifo/home.html.erb')
+  render('/Users/lifo/home.html.erb') # argument must begin with a '/'
+
+* Add :prompt option to date/time select helpers. #561 [Sam Oliver]
+
 * Fixed that send_file shouldn't set an etag #1578 [Hongli Lai]
 
 * Allow users to opt out of the spoofing checks in Request#remote_ip.  Useful for sites whose traffic regularly triggers false positives. [Darren Boyd]

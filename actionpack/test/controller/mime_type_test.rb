@@ -88,5 +88,6 @@ class MimeTypeTest < Test::Unit::TestCase
     assert Mime::JS !~ "text/html"
     assert !(Mime::JS !~ "text/javascript")
     assert !(Mime::JS !~ "application/javascript")
+    assert Mime::HTML =~ 'application/xhtml+xml'
   end
 end

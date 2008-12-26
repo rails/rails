@@ -113,7 +113,7 @@ module ActionController #:nodoc:
           end
 
           def caching_allowed(controller)
-            controller.request.get? && controller.response.headers['Status'].to_i == 200
+            controller.request.get? && controller.response.status.to_i == 200
           end
 
           def cache_layout?

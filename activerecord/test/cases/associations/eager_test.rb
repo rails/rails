@@ -729,12 +729,12 @@ class EagerAssociationTest < ActiveRecord::TestCase
     assert_equal authors(:david), assert_no_queries { posts[0].author}
 
     posts = assert_queries(2) do
-      Post.find(:all, :include => :author, :joins => {:taggings => :tag}, :conditions => "tags.name = 'General'")
+      Post.find(:all, :include => :author, :joins => {:taggings => :tag}, :conditions => "tags.name = 'General'", :order => 'posts.id')
     end
     assert_equal posts(:welcome, :thinking), posts
 
     posts = assert_queries(2) do
-      Post.find(:all, :include => :author, :joins => {:taggings => {:tag => :taggings}}, :conditions => "taggings_tags.super_tag_id=2")
+      Post.find(:all, :include => :author, :joins => {:taggings => {:tag => :taggings}}, :conditions => "taggings_tags.super_tag_id=2", :order => 'posts.id')
     end
     assert_equal posts(:welcome, :thinking), posts
 

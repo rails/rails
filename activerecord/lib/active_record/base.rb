@@ -1494,11 +1494,16 @@ module ActiveRecord #:nodoc:
           end
 
           if scoped?(:find, :order)
-            scoped_order = reverse_sql_order(scope(:find, :order))
-            scoped_methods.select { |s| s[:find].update(:order => scoped_order) }
+            scope = scope(:find)
+            original_scoped_order = scope[:order]
+            scope[:order] = reverse_sql_order(original_scoped_order)
           end
 
-          find_initial(options.merge({ :order => order }))
+          begin
+            find_initial(options.merge({ :order => order }))
+          ensure
+            scope[:order] = original_scoped_order if original_scoped_order
+          end
         end
 
         def reverse_sql_order(order_query)
@@ -3010,7 +3015,7 @@ module ActiveRecord #:nodoc:
   end
 
   Base.class_eval do
-    extend QueryCache
+    extend QueryCache::ClassMethods
     include Validations
     include Locking::Optimistic, Locking::Pessimistic
     include AttributeMethods

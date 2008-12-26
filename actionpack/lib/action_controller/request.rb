@@ -3,32 +3,48 @@ require 'stringio'
 require 'strscan'
 
 require 'active_support/memoizable'
+require 'action_controller/cgi_ext'
 
 module ActionController
   # CgiRequest and TestRequest provide concrete implementations.
-  class AbstractRequest
+  class Request
     extend ActiveSupport::Memoizable
 
-    def self.relative_url_root=(relative_url_root)
-      ActiveSupport::Deprecation.warn(
-        "ActionController::AbstractRequest.relative_url_root= has been renamed." +
-        "You can now set it with config.action_controller.relative_url_root=", caller)
-      ActionController::Base.relative_url_root=relative_url_root
+    class SessionFixationAttempt < StandardError #:nodoc:
     end
-
-    HTTP_METHODS = %w(get head put post delete options)
-    HTTP_METHOD_LOOKUP = HTTP_METHODS.inject({}) { |h, m| h[m] = h[m.upcase] = m.to_sym; h }
 
     # The hash of environment variables for this request,
     # such as { 'RAILS_ENV' => 'production' }.
     attr_reader :env
 
+    def initialize(env)
+      @env = env
+    end
+
+    %w[ AUTH_TYPE GATEWAY_INTERFACE PATH_INFO
+        PATH_TRANSLATED REMOTE_HOST
+        REMOTE_IDENT REMOTE_USER SCRIPT_NAME
+        SERVER_NAME SERVER_PROTOCOL
+
+        HTTP_ACCEPT HTTP_ACCEPT_CHARSET HTTP_ACCEPT_ENCODING
+        HTTP_ACCEPT_LANGUAGE HTTP_CACHE_CONTROL HTTP_FROM
+        HTTP_NEGOTIATE HTTP_PRAGMA HTTP_REFERER HTTP_USER_AGENT ].each do |env|
+      define_method(env.sub(/^HTTP_/n, '').downcase) do
+        @env[env]
+      end
+    end
+
+    def key?(key)
+      @env.key?(key)
+    end
+
+    HTTP_METHODS = %w(get head put post delete options)
+    HTTP_METHOD_LOOKUP = HTTP_METHODS.inject({}) { |h, m| h[m] = h[m.upcase] = m.to_sym; h }
+
     # The true HTTP request \method as a lowercase symbol, such as <tt>:get</tt>.
     # UnknownHttpMethod is raised for invalid methods not listed in ACCEPTED_HTTP_METHODS.
     def request_method
       method = @env['REQUEST_METHOD']
-      method = parameters[:_method] if method == 'POST' && !parameters[:_method].blank?
-
       HTTP_METHOD_LOOKUP[method] || raise(UnknownHttpMethod, "#{method}, accepted HTTP methods are #{HTTP_METHODS.to_sentence}")
     end
     memoize :request_method
@@ -85,7 +101,7 @@ module ActionController
     # For backward compatibility, the post \format is extracted from the
     # X-Post-Data-Format HTTP header if present.
     def content_type
-      Mime::Type.lookup(content_type_without_parameters)
+      Mime::Type.lookup(parser.content_type_without_parameters)
     end
     memoize :content_type
 
@@ -125,15 +141,15 @@ module ActionController
     # supplied, both must match, or the request is not considered fresh.
     def fresh?(response)
       case
-      when if_modified_since && if_none_match 
-        not_modified?(response.last_modified) && etag_matches?(response.etag) 
-      when if_modified_since 
-        not_modified?(response.last_modified) 
-      when if_none_match 
-        etag_matches?(response.etag) 
-      else 
-        false 
-      end 
+      when if_modified_since && if_none_match
+        not_modified?(response.last_modified) && etag_matches?(response.etag)
+      when if_modified_since
+        not_modified?(response.last_modified)
+      when if_none_match
+        etag_matches?(response.etag)
+      else
+        false
+      end
     end
 
     # Returns the Mime type for the \format used in the request.
@@ -248,7 +264,6 @@ EOM
     end
     memoize :server_software
 
-
     # Returns the complete URL used for this request.
     def url
       protocol + host_with_port + request_uri
@@ -332,11 +347,7 @@ EOM
 
     # Returns the query string, accounting for server idiosyncrasies.
     def query_string
-      if uri = @env['REQUEST_URI']
-        uri.split('?', 2)[1] || ''
-      else
-        @env['QUERY_STRING'] || ''
-      end
+      @env['QUERY_STRING'].present? ? @env['QUERY_STRING'] : (@env['REQUEST_URI'].split('?', 2)[1] || '')
     end
     memoize :query_string
 
@@ -378,11 +389,7 @@ EOM
     # Read the request \body. This is useful for web services that need to
     # work with raw requests directly.
     def raw_post
-      unless env.include? 'RAW_POST_DATA'
-        env['RAW_POST_DATA'] = body.read(content_length)
-        body.rewind if body.respond_to?(:rewind)
-      end
-      env['RAW_POST_DATA']
+      parser.raw_post
     end
 
     # Returns both GET and POST \parameters in a single hash.
@@ -410,15 +417,8 @@ EOM
       @path_parameters ||= {}
     end
 
-    # The request body is an IO input stream. If the RAW_POST_DATA environment
-    # variable is already set, wrap it in a StringIO.
     def body
-      if raw_post = env['RAW_POST_DATA']
-        raw_post.force_encoding(Encoding::BINARY) if raw_post.respond_to?(:force_encoding)
-        StringIO.new(raw_post)
-      else
-        body_stream
-      end
+      parser.body
     end
 
     def remote_addr
@@ -430,441 +430,53 @@ EOM
     end
     alias referer referrer
 
-
     def query_parameters
-      @query_parameters ||= self.class.parse_query_parameters(query_string)
+      @query_parameters ||= parser.query_parameters
     end
 
     def request_parameters
-      @request_parameters ||= parse_formatted_request_parameters
+      @request_parameters ||= parser.request_parameters
     end
-
-
-    #--
-    # Must be implemented in the concrete request
-    #++
 
     def body_stream #:nodoc:
+      @env['rack.input']
     end
 
-    def cookies #:nodoc:
+    def cookies
+      Rack::Request.new(@env).cookies
     end
 
-    def session #:nodoc:
+    def session
+      @env['rack.session'] ||= {}
     end
 
     def session=(session) #:nodoc:
       @session = session
     end
 
-    def reset_session #:nodoc:
+    def reset_session
+      @env['rack.session'] = {}
     end
 
-    protected
-      # The raw content type string. Use when you need parameters such as
-      # charset or boundary which aren't included in the content_type MIME type.
-      # Overridden by the X-POST_DATA_FORMAT header for backward compatibility.
-      def content_type_with_parameters
-        content_type_from_legacy_post_data_format_header ||
-          env['CONTENT_TYPE'].to_s
-      end
+    def session_options
+      @env['rack.session.options'] ||= {}
+    end
 
-      # The raw content type string with its parameters stripped off.
-      def content_type_without_parameters
-        self.class.extract_content_type_without_parameters(content_type_with_parameters)
-      end
-      memoize :content_type_without_parameters
+    def session_options=(options)
+      @env['rack.session.options'] = options
+    end
+
+    def server_port
+      @env['SERVER_PORT'].to_i
+    end
 
     private
-      def content_type_from_legacy_post_data_format_header
-        if x_post_format = @env['HTTP_X_POST_DATA_FORMAT']
-          case x_post_format.to_s.downcase
-            when 'yaml';  'application/x-yaml'
-            when 'xml';   'application/xml'
-          end
-        end
-      end
-
-      def parse_formatted_request_parameters
-        return {} if content_length.zero?
-
-        content_type, boundary = self.class.extract_multipart_boundary(content_type_with_parameters)
-
-        # Don't parse params for unknown requests.
-        return {} if content_type.blank?
-
-        mime_type = Mime::Type.lookup(content_type)
-        strategy = ActionController::Base.param_parsers[mime_type]
-
-        # Only multipart form parsing expects a stream.
-        body = (strategy && strategy != :multipart_form) ? raw_post : self.body
-
-        case strategy
-          when Proc
-            strategy.call(body)
-          when :url_encoded_form
-            self.class.clean_up_ajax_request_body! body
-            self.class.parse_query_parameters(body)
-          when :multipart_form
-            self.class.parse_multipart_form_parameters(body, boundary, content_length, env)
-          when :xml_simple, :xml_node
-            body.blank? ? {} : Hash.from_xml(body).with_indifferent_access
-          when :yaml
-            YAML.load(body)
-          when :json
-            if body.blank?
-              {}
-            else
-              data = ActiveSupport::JSON.decode(body)
-              data = {:_json => data} unless data.is_a?(Hash)
-              data.with_indifferent_access
-            end
-          else
-            {}
-        end
-      rescue Exception => e # YAML, XML or Ruby code block errors
-        raise
-        { "body" => body,
-          "content_type" => content_type_with_parameters,
-          "content_length" => content_length,
-          "exception" => "#{e.message} (#{e.class})",
-          "backtrace" => e.backtrace }
-      end
-
       def named_host?(host)
         !(host.nil? || /\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3}$/.match(host))
       end
 
-    class << self
-      def parse_query_parameters(query_string)
-        return {} if query_string.blank?
-
-        pairs = query_string.split('&').collect do |chunk|
-          next if chunk.empty?
-          key, value = chunk.split('=', 2)
-          next if key.empty?
-          value = value.nil? ? nil : CGI.unescape(value)
-          [ CGI.unescape(key), value ]
-        end.compact
-
-        UrlEncodedPairParser.new(pairs).result
+      def parser
+        @parser ||= ActionController::RequestParser.new(@env)
       end
-
-      def parse_request_parameters(params)
-        parser = UrlEncodedPairParser.new
-
-        params = params.dup
-        until params.empty?
-          for key, value in params
-            if key.blank?
-              params.delete key
-            elsif !key.include?('[')
-              # much faster to test for the most common case first (GET)
-              # and avoid the call to build_deep_hash
-              parser.result[key] = get_typed_value(value[0])
-              params.delete key
-            elsif value.is_a?(Array)
-              parser.parse(key, get_typed_value(value.shift))
-              params.delete key if value.empty?
-            else
-              raise TypeError, "Expected array, found #{value.inspect}"
-            end
-          end
-        end
-
-        parser.result
-      end
-
-      def parse_multipart_form_parameters(body, boundary, body_size, env)
-        parse_request_parameters(read_multipart(body, boundary, body_size, env))
-      end
-
-      def extract_multipart_boundary(content_type_with_parameters)
-        if content_type_with_parameters =~ MULTIPART_BOUNDARY
-          ['multipart/form-data', $1.dup]
-        else
-          extract_content_type_without_parameters(content_type_with_parameters)
-        end
-      end
-
-      def extract_content_type_without_parameters(content_type_with_parameters)
-        $1.strip.downcase if content_type_with_parameters =~ /^([^,\;]*)/
-      end
-
-      def clean_up_ajax_request_body!(body)
-        body.chop! if body[-1] == 0
-        body.gsub!(/&_=$/, '')
-      end
-
-
-      private
-        def get_typed_value(value)
-          case value
-            when String
-              value
-            when NilClass
-              ''
-            when Array
-              value.map { |v| get_typed_value(v) }
-            else
-              if value.respond_to? :original_filename
-                # Uploaded file
-                if value.original_filename
-                  value
-                # Multipart param
-                else
-                  result = value.read
-                  value.rewind
-                  result
-                end
-              # Unknown value, neither string nor multipart.
-              else
-                raise "Unknown form value: #{value.inspect}"
-              end
-          end
-        end
-
-        MULTIPART_BOUNDARY = %r|\Amultipart/form-data.*boundary=\"?([^\";,]+)\"?|n
-
-        EOL = "\015\012"
-
-        def read_multipart(body, boundary, body_size, env)
-          params = Hash.new([])
-          boundary = "--" + boundary
-          quoted_boundary = Regexp.quote(boundary)
-          buf = ""
-          bufsize = 10 * 1024
-          boundary_end=""
-
-          # start multipart/form-data
-          body.binmode if defined? body.binmode
-          case body
-          when File
-            body.set_encoding(Encoding::BINARY) if body.respond_to?(:set_encoding)
-          when StringIO
-            body.string.force_encoding(Encoding::BINARY) if body.string.respond_to?(:force_encoding)
-          end
-          boundary_size = boundary.size + EOL.size
-          body_size -= boundary_size
-          status = body.read(boundary_size)
-          if nil == status
-            raise EOFError, "no content body"
-          elsif boundary + EOL != status
-            raise EOFError, "bad content body"
-          end
-
-          loop do
-            head = nil
-            content =
-              if 10240 < body_size
-                UploadedTempfile.new("CGI")
-              else
-                UploadedStringIO.new
-              end
-            content.binmode if defined? content.binmode
-
-            until head and /#{quoted_boundary}(?:#{EOL}|--)/n.match(buf)
-
-              if (not head) and /#{EOL}#{EOL}/n.match(buf)
-                buf = buf.sub(/\A((?:.|\n)*?#{EOL})#{EOL}/n) do
-                  head = $1.dup
-                  ""
-                end
-                next
-              end
-
-              if head and ( (EOL + boundary + EOL).size < buf.size )
-                content.print buf[0 ... (buf.size - (EOL + boundary + EOL).size)]
-                buf[0 ... (buf.size - (EOL + boundary + EOL).size)] = ""
-              end
-
-              c = if bufsize < body_size
-                    body.read(bufsize)
-                  else
-                    body.read(body_size)
-                  end
-              if c.nil? || c.empty?
-                raise EOFError, "bad content body"
-              end
-              buf.concat(c)
-              body_size -= c.size
-            end
-
-            buf = buf.sub(/\A((?:.|\n)*?)(?:[\r\n]{1,2})?#{quoted_boundary}([\r\n]{1,2}|--)/n) do
-              content.print $1
-              if "--" == $2
-                body_size = -1
-              end
-              boundary_end = $2.dup
-              ""
-            end
-
-            content.rewind
-
-            head =~ /Content-Disposition:.* filename=(?:"((?:\\.|[^\"])*)"|([^;]*))/ni
-            if filename = $1 || $2
-              if /Mac/ni.match(env['HTTP_USER_AGENT']) and
-                  /Mozilla/ni.match(env['HTTP_USER_AGENT']) and
-                  (not /MSIE/ni.match(env['HTTP_USER_AGENT']))
-                filename = CGI.unescape(filename)
-              end
-              content.original_path = filename.dup
-            end
-
-            head =~ /Content-Type: ([^\r]*)/ni
-            content.content_type = $1.dup if $1
-
-            head =~ /Content-Disposition:.* name="?([^\";]*)"?/ni
-            name = $1.dup if $1
-
-            if params.has_key?(name)
-              params[name].push(content)
-            else
-              params[name] = [content]
-            end
-            break if body_size == -1
-          end
-          raise EOFError, "bad boundary end of body part" unless boundary_end=~/--/
-
-          begin
-            body.rewind if body.respond_to?(:rewind)
-          rescue Errno::ESPIPE
-            # Handles exceptions raised by input streams that cannot be rewound
-            # such as when using plain CGI under Apache
-          end
-
-          params
-        end
-    end
-  end
-
-  class UrlEncodedPairParser < StringScanner #:nodoc:
-    attr_reader :top, :parent, :result
-
-    def initialize(pairs = [])
-      super('')
-      @result = {}
-      pairs.each { |key, value| parse(key, value) }
-    end
-
-    KEY_REGEXP = %r{([^\[\]=&]+)}
-    BRACKETED_KEY_REGEXP = %r{\[([^\[\]=&]+)\]}
-
-    # Parse the query string
-    def parse(key, value)
-      self.string = key
-      @top, @parent = result, nil
-
-      # First scan the bare key
-      key = scan(KEY_REGEXP) or return
-      key = post_key_check(key)
-
-      # Then scan as many nestings as present
-      until eos?
-        r = scan(BRACKETED_KEY_REGEXP) or return
-        key = self[1]
-        key = post_key_check(key)
-      end
-
-      bind(key, value)
-    end
-
-    private
-      # After we see a key, we must look ahead to determine our next action. Cases:
-      #
-      #   [] follows the key. Then the value must be an array.
-      #   = follows the key. (A value comes next)
-      #   & or the end of string follows the key. Then the key is a flag.
-      #   otherwise, a hash follows the key.
-      def post_key_check(key)
-        if scan(/\[\]/) # a[b][] indicates that b is an array
-          container(key, Array)
-          nil
-        elsif check(/\[[^\]]/) # a[b] indicates that a is a hash
-          container(key, Hash)
-          nil
-        else # End of key? We do nothing.
-          key
-        end
-      end
-
-      # Add a container to the stack.
-      def container(key, klass)
-        type_conflict! klass, top[key] if top.is_a?(Hash) && top.key?(key) && ! top[key].is_a?(klass)
-        value = bind(key, klass.new)
-        type_conflict! klass, value unless value.is_a?(klass)
-        push(value)
-      end
-
-      # Push a value onto the 'stack', which is actually only the top 2 items.
-      def push(value)
-        @parent, @top = @top, value
-      end
-
-      # Bind a key (which may be nil for items in an array) to the provided value.
-      def bind(key, value)
-        if top.is_a? Array
-          if key
-            if top[-1].is_a?(Hash) && ! top[-1].key?(key)
-              top[-1][key] = value
-            else
-              top << {key => value}.with_indifferent_access
-              push top.last
-              value = top[key]
-            end
-          else
-            top << value
-          end
-        elsif top.is_a? Hash
-          key = CGI.unescape(key)
-          parent << (@top = {}) if top.key?(key) && parent.is_a?(Array)
-          top[key] ||= value
-          return top[key]
-        else
-          raise ArgumentError, "Don't know what to do: top is #{top.inspect}"
-        end
-
-        return value
-      end
-
-      def type_conflict!(klass, value)
-        raise TypeError, "Conflicting types for parameter containers. Expected an instance of #{klass} but found an instance of #{value.class}. This can be caused by colliding Array and Hash parameters like qs[]=value&qs[key]=value. (The parameters received were #{value.inspect}.)"
-      end
-  end
-
-  module UploadedFile
-    def self.included(base)
-      base.class_eval do
-        attr_accessor :original_path, :content_type
-        alias_method :local_path, :path
-      end
-    end
-
-    # Take the basename of the upload's original filename.
-    # This handles the full Windows paths given by Internet Explorer
-    # (and perhaps other broken user agents) without affecting
-    # those which give the lone filename.
-    # The Windows regexp is adapted from Perl's File::Basename.
-    def original_filename
-      unless defined? @original_filename
-        @original_filename =
-          unless original_path.blank?
-            if original_path =~ /^(?:.*[:\\\/])?(.*)/m
-              $1
-            else
-              File.basename original_path
-            end
-          end
-      end
-      @original_filename
-    end
-  end
-
-  class UploadedStringIO < StringIO
-    include UploadedFile
-  end
-
-  class UploadedTempfile < Tempfile
-    include UploadedFile
   end
 end

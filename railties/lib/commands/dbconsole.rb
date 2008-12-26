@@ -41,7 +41,7 @@ when "mysql"
 
   if config['password'] && include_password
     args << "--password=#{config['password']}"
-  elsif config['password'] && !config['password'].empty?
+  elsif config['password'] && !config['password'].to_s.empty?
     args << "-p"
   end
 

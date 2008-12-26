@@ -4,6 +4,17 @@ module ActionView #:nodoc:
     extend ActiveSupport::Memoizable
     include Renderable
 
+    # Templates that are exempt from layouts
+    @@exempt_from_layout = Set.new([/\.rjs$/])
+
+    # Don't render layouts for templates with the given extensions.
+    def self.exempt_from_layout(*extensions)
+      regexps = extensions.collect do |extension|
+        extension.is_a?(Regexp) ? extension : /\.#{Regexp.escape(extension.to_s)}$/
+      end
+      @@exempt_from_layout.merge(regexps)
+    end
+
     attr_accessor :filename, :load_path, :base_path, :name, :format, :extension
     delegate :to_s, :to => :path
 
@@ -15,6 +26,18 @@ module ActionView #:nodoc:
 
       # Extend with partial super powers
       extend RenderablePartial if @name =~ /^_/
+    end
+
+    def accessible_paths
+      paths = []
+      paths << path
+      paths << path_without_extension
+      if multipart?
+        formats = format.split(".")
+        paths << "#{path_without_format_and_extension}.#{formats.first}"
+        paths << "#{path_without_format_and_extension}.#{formats.second}"
+      end
+      paths
     end
 
     def format_and_extension
@@ -57,6 +80,10 @@ module ActionView #:nodoc:
     end
     memoize :relative_path
 
+    def exempt_from_layout?
+      @@exempt_from_layout.any? { |exempted| path =~ exempted }
+    end
+
     def mtime
       File.mtime(filename)
     end
@@ -94,6 +121,7 @@ module ActionView #:nodoc:
 
     def load!
       @loaded = true
+      compile({})
       freeze
     end
 

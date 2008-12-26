@@ -121,8 +121,7 @@ class PageCachingTest < ActionController::TestCase
     [:get, :post, :put, :delete].each do |method|
       unless method == :get and status == :ok
         define_method "test_shouldnt_cache_#{method}_with_#{status}_status" do
-          @request.env['REQUEST_METHOD'] = method.to_s.upcase
-          process status
+          send(method, status)
           assert_response status
           assert_page_not_cached status, "#{method} with #{status} status shouldn't have been cached"
         end
@@ -169,7 +168,7 @@ class ActionCachingTestController < ActionController::Base
 
   def forbidden
     render :text => "Forbidden"
-    headers["Status"] = "403 Forbidden"
+    response.status = "403 Forbidden"
   end
 
   def with_layout

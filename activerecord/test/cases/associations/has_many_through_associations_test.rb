@@ -204,6 +204,10 @@ class HasManyThroughAssociationsTest < ActiveRecord::TestCase
     assert_equal 2, people(:michael).posts.count(:include => :readers)
   end
 
+  def test_inner_join_with_quoted_table_name
+    assert_equal 2, people(:michael).jobs.size
+  end
+
   def test_get_ids
     assert_equal [posts(:welcome).id, posts(:authorless).id].sort, people(:michael).post_ids.sort
   end

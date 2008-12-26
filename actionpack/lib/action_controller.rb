@@ -38,11 +38,10 @@ module ActionController
   # TODO: Review explicit to see if they will automatically be handled by
   # the initilizer if they are really needed.
   def self.load_all!
-    [Base, CGIHandler, CgiRequest, RackRequest, RackRequest, Http::Headers, UrlRewriter, UrlWriter]
+    [Base, CGIHandler, CgiRequest, Request, Response, Http::Headers, UrlRewriter, UrlWriter]
   end
 
   autoload :AbstractRequest, 'action_controller/request'
-  autoload :AbstractResponse, 'action_controller/response'
   autoload :Base, 'action_controller/base'
   autoload :Benchmarking, 'action_controller/benchmarking'
   autoload :Caching, 'action_controller/caching'
@@ -60,9 +59,13 @@ module ActionController
   autoload :MiddlewareStack, 'action_controller/middleware_stack'
   autoload :MimeResponds, 'action_controller/mime_responds'
   autoload :PolymorphicRoutes, 'action_controller/polymorphic_routes'
-  autoload :RackRequest, 'action_controller/rack_process'
-  autoload :RackResponse, 'action_controller/rack_process'
+  autoload :Request, 'action_controller/request'
+  autoload :RequestParser, 'action_controller/request_parser'
+  autoload :UrlEncodedPairParser, 'action_controller/url_encoded_pair_parser'
+  autoload :UploadedStringIO, 'action_controller/uploaded_file'
+  autoload :UploadedTempfile, 'action_controller/uploaded_file'
   autoload :RecordIdentifier, 'action_controller/record_identifier'
+  autoload :Response, 'action_controller/response'
   autoload :RequestForgeryProtection, 'action_controller/request_forgery_protection'
   autoload :Rescue, 'action_controller/rescue'
   autoload :Resources, 'action_controller/resources'
@@ -75,6 +78,7 @@ module ActionController
   autoload :Translation, 'action_controller/translation'
   autoload :UrlRewriter, 'action_controller/url_rewriter'
   autoload :UrlWriter, 'action_controller/url_rewriter'
+  autoload :VerbPiggybacking, 'action_controller/verb_piggybacking'
   autoload :Verification, 'action_controller/verification'
 
   module Assertions

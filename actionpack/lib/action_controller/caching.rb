@@ -27,7 +27,6 @@ module ActionController #:nodoc:
     autoload :Actions, 'action_controller/caching/actions'
     autoload :Fragments, 'action_controller/caching/fragments'
     autoload :Pages, 'action_controller/caching/pages'
-    autoload :SqlCache, 'action_controller/caching/sql_cache'
     autoload :Sweeping, 'action_controller/caching/sweeping'
 
     def self.included(base) #:nodoc:
@@ -41,7 +40,7 @@ module ActionController #:nodoc:
         end
 
         include Pages, Actions, Fragments
-        include Sweeping, SqlCache if defined?(ActiveRecord)
+        include Sweeping if defined?(ActiveRecord)
 
         @@perform_caching = true
         cattr_accessor :perform_caching

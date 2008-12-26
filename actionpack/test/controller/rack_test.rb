@@ -43,10 +43,10 @@ class BaseRackTest < Test::Unit::TestCase
       "REDIRECT_STATUS" => "200",
       "REQUEST_METHOD" => "GET"
     }
-    @request = ActionController::RackRequest.new(@env)
+    @request = ActionController::Request.new(@env)
     # some Nokia phone browsers omit the space after the semicolon separator.
     # some developers have grown accustomed to using comma in cookie values.
-    @alt_cookie_fmt_request = ActionController::RackRequest.new(@env.merge({"HTTP_COOKIE"=>"_session_id=c84ace847,96670c052c6ceb2451fb0f2;is_admin=yes"}))
+    @alt_cookie_fmt_request = ActionController::Request.new(@env.merge({"HTTP_COOKIE"=>"_session_id=c84ace847,96670c052c6ceb2451fb0f2;is_admin=yes"}))
   end
 
   def default_test; end
@@ -187,29 +187,6 @@ class RackRequestContentTypeTest < BaseRackTest
   end
 end
 
-class RackRequestMethodTest < BaseRackTest
-  def test_get
-    assert_equal :get, @request.request_method
-  end
-
-  def test_post
-    @request.env['REQUEST_METHOD'] = 'POST'
-    assert_equal :post, @request.request_method
-  end
-
-  def test_put
-    set_content_data '_method=put'
-
-    assert_equal :put, @request.request_method
-  end
-
-  def test_delete
-    set_content_data '_method=delete'
-
-    assert_equal :delete, @request.request_method
-  end
-end
-
 class RackRequestNeedsRewoundTest < BaseRackTest
   def test_body_should_be_rewound
     data = 'foo'
@@ -218,7 +195,7 @@ class RackRequestNeedsRewoundTest < BaseRackTest
     @env['CONTENT_TYPE'] = 'application/x-www-form-urlencoded; charset=utf-8'
 
     # Read the request body by parsing params.
-    request = ActionController::RackRequest.new(@env)
+    request = ActionController::Request.new(@env)
     request.request_parameters
 
     # Should have rewound the body.
@@ -229,7 +206,7 @@ end
 class RackResponseTest < BaseRackTest
   def setup
     super
-    @response = ActionController::RackResponse.new
+    @response = ActionController::Response.new
   end
 
   def test_simple_output
@@ -237,7 +214,7 @@ class RackResponseTest < BaseRackTest
     @response.prepare!
 
     status, headers, body = @response.to_a
-    assert_equal "200 OK", status
+    assert_equal 200, status
     assert_equal({
       "Content-Type" => "text/html; charset=utf-8",
       "Cache-Control" => "private, max-age=0, must-revalidate",
@@ -258,7 +235,7 @@ class RackResponseTest < BaseRackTest
     @response.prepare!
 
     status, headers, body = @response.to_a
-    assert_equal "200 OK", status
+    assert_equal 200, status
     assert_equal({"Content-Type" => "text/html; charset=utf-8", "Cache-Control" => "no-cache", "Set-Cookie" => []}, headers)
 
     parts = []
@@ -270,18 +247,18 @@ end
 class RackResponseHeadersTest < BaseRackTest
   def setup
     super
-    @response = ActionController::RackResponse.new
-    @response.headers['Status'] = "200 OK"
+    @response = ActionController::Response.new
+    @response.status = "200 OK"
   end
 
   def test_content_type
     [204, 304].each do |c|
-      @response.headers['Status'] = c.to_s
+      @response.status = c.to_s
       assert !response_headers.has_key?("Content-Type"), "#{c} should not have Content-Type header"
     end
 
     [200, 302, 404, 500].each do |c|
-      @response.headers['Status'] = c.to_s
+      @response.status = c.to_s
       assert response_headers.has_key?("Content-Type"), "#{c} did not have Content-Type header"
     end
   end
