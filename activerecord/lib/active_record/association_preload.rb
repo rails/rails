@@ -229,7 +229,7 @@ module ActiveRecord
         options = reflection.options
 
         primary_key_name = reflection.through_reflection_primary_key_name
-        id_to_record_map, ids = construct_id_map(records, primary_key_name)
+        id_to_record_map, ids = construct_id_map(records, primary_key_name || reflection.options[:primary_key])
         records.each {|record| record.send(reflection.name).loaded}
 
         if options[:through]
