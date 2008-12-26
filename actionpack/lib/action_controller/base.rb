@@ -859,16 +859,20 @@ module ActionController #:nodoc:
       def render(options = nil, extra_options = {}, &block) #:doc:
         raise DoubleRenderError, "Can only render or redirect once per action" if performed?
 
-        validate_render_arguments(options, extra_options)
+        validate_render_arguments(options, extra_options, block_given?)
 
         if options.nil?
-          return render(:file => default_template, :layout => true)
+          options = { :template => default_template.filename, :layout => true }
         elsif options == :update
           options = extra_options.merge({ :update => true })
-        elsif options.is_a?(String)
-          case options.index('/')
+        elsif options.is_a?(String) || options.is_a?(Symbol)
+          case options.to_s.index('/')
           when 0
             extra_options[:file] = options
+          when nil
+            extra_options[:action] = options
+          else
+            extra_options[:template] = options
           end
 
           options = extra_options
@@ -1189,8 +1193,8 @@ module ActionController #:nodoc:
         end
       end
 
-      def validate_render_arguments(options, extra_options)
-        if options && options != :update && !options.is_a?(String) && !options.is_a?(Hash)
+      def validate_render_arguments(options, extra_options, has_block)
+        if options && (has_block && options != :update) && !options.is_a?(String) && !options.is_a?(Hash) && !options.is_a?(Symbol)
           raise RenderError, "You called render with invalid options : #{options.inspect}"
         end
 
