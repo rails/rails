@@ -191,15 +191,11 @@ module Mime
     # Returns true if Action Pack should check requests using this Mime Type for possible request forgery.  See
     # ActionController::RequestForgeryProtection.
     def verify_request?
-      browser_generated?
+      @@browser_generated_types.include?(to_sym)
     end
 
     def html?
       @@html_types.include?(to_sym) || @string =~ /html/
-    end
-
-    def browser_generated?
-      @@browser_generated_types.include?(to_sym)
     end
 
     private
