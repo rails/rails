@@ -756,25 +756,26 @@ module ActiveRecord #:nodoc:
         end
       end
 
-      # Delete an object (or multiple objects) where the +id+ given matches the primary_key.  A SQL +DELETE+ command
-      # is executed on the database which means that no callbacks are fired off running this.  This is an efficient method
-      # of deleting records that don't need cleaning up after or other actions to be taken.
+      # Deletes the row with a primary key matching the +id+ argument, using a
+      # SQL +DELETE+ statement, and returns the number of rows deleted. Active
+      # Record objects are not instantiated, so the object's callbacks are not
+      # executed, including any <tt>:dependent</tt> association options or
+      # Observer methods.
       #
-      # Objects are _not_ instantiated with this method, and so +:dependent+ rules
-      # defined on associations are not honered.
+      # You can delete multiple rows at once by passing an Array of <tt>id</tt>s.
       #
-      # ==== Parameters
-      #
-      # * +id+ - Can be either an Integer or an Array of Integers.
+      # Careful: although it is often much faster than the alternative,
+      # <tt>#destroy</tt>, skipping callbacks might bypass business logic in
+      # your application that ensures referential integrity or performs other
+      # essential jobs.
       #
       # ==== Examples
       #
-      #   # Delete a single object
+      #   # Delete a single row
       #   Todo.delete(1)
       #
-      #   # Delete multiple objects
-      #   todos = [1,2,3]
-      #   Todo.delete(todos)
+      #   # Delete multiple rows
+      #   Todo.delete([2,3,4])
       def delete(id)
         delete_all([ "#{connection.quote_column_name(primary_key)} IN (?)", id ])
       end
