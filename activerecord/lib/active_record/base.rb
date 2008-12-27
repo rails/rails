@@ -2408,7 +2408,7 @@ module ActiveRecord #:nodoc:
 
       # Returns true if this object hasn't been saved yet -- that is, a record for the object doesn't exist yet; otherwise, returns false.
       def new_record?
-        (defined?(@new_record) && @new_record) || false
+        @new_record || false
       end
 
       # :call-seq:
