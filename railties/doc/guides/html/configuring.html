@@ -246,8 +246,8 @@ ul#navMain {
 				<h1>Configuring Rails Applications</h1>
 			<div id="preamble">
 <div class="sectionbody">
-<div class="para"><p>This guide covers the configuration and initialization features available to Rails applications. By referring to this guide, you will be able to:</p></div>
-<div class="ilist"><ul>
+<div class="paragraph"><p>This guide covers the configuration and initialization features available to Rails applications. By referring to this guide, you will be able to:</p></div>
+<div class="ulist"><ul>
 <li>
 <p>
 Adjust the behavior of your Rails applications
@@ -263,7 +263,7 @@ Add additional code to be run at application start time
 </div>
 <h2 id="_locations_for_initialization_code">1. Locations for Initialization Code</h2>
 <div class="sectionbody">
-<div class="para"><p>preinitializers
+<div class="paragraph"><p>preinitializers
 environment.rb first
 env-specific files
 initializers (load_application_initializers)
@@ -278,10 +278,10 @@ after-initializer</p></div>
 <h2 id="_configuring_rails_components">4. Configuring Rails Components</h2>
 <div class="sectionbody">
 <h3 id="_configuring_active_record">4.1. Configuring Active Record</h3>
-<div class="para"><p><tt>ActiveRecord::Base</tt> includej a variety of configuration options:</p></div>
-<div class="para"><p><tt>logger</tt> accepts a logger conforming to the interface of Log4r or the default Ruby 1.8+ Logger class, which is then passed on to any new database connections made. You can retrieve this logger by calling <tt>logger</tt> on either an ActiveRecord model class or an ActiveRecord model instance. Set to nil to disable logging.</p></div>
-<div class="para"><p><tt>primary_key_prefix_type</tt> lets you adjust the naming for primary key columns. By default, Rails assumes that primary key columns are named <tt>id</tt> (and this configuration option doesn't need to be set.) There are two other choices:</p></div>
-<div class="ilist"><ul>
+<div class="paragraph"><p><tt>ActiveRecord::Base</tt> includej a variety of configuration options:</p></div>
+<div class="paragraph"><p><tt>logger</tt> accepts a logger conforming to the interface of Log4r or the default Ruby 1.8+ Logger class, which is then passed on to any new database connections made. You can retrieve this logger by calling <tt>logger</tt> on either an ActiveRecord model class or an ActiveRecord model instance. Set to nil to disable logging.</p></div>
+<div class="paragraph"><p><tt>primary_key_prefix_type</tt> lets you adjust the naming for primary key columns. By default, Rails assumes that primary key columns are named <tt>id</tt> (and this configuration option doesn&#8217;t need to be set.) There are two other choices:</p></div>
+<div class="ulist"><ul>
 <li>
 <p>
 <tt>:table_name</tt> would make the primary key for the Customer class <tt>customerid</tt>
@@ -293,54 +293,54 @@ after-initializer</p></div>
 </p>
 </li>
 </ul></div>
-<div class="para"><p><tt>table_name_prefix</tt> lets you set a global string to be prepended to table names. If you set this to <tt>northwest_</tt>, then the Customer class will look for <tt>northwest_customers</tt> as its table. The default is an empty string.</p></div>
-<div class="para"><p><tt>table_name_suffix</tt> lets you set a global string to be appended to table names. If you set this to <tt>_northwest</tt>, then the Customer class will look for <tt>customers_northwest</tt> as its table. The default is an empty string.</p></div>
-<div class="para"><p><tt>pluralize_table_names</tt> specifies whether Rails will look for singular or plural table names in the database. If set to <tt>true</tt> (the default), then the Customer class will use the <tt>customers</tt> table. If set to <tt>false</tt>, then the Customers class will use the <tt>customer</tt> table.</p></div>
-<div class="para"><p><tt>colorize_logging</tt> (true by default) specifies whether or not to use ANSI color codes when logging information from ActiveRecord.</p></div>
-<div class="para"><p><tt>default_timezone</tt> determines whether to use <tt>Time.local</tt> (if set to <tt>:local</tt>) or <tt>Time.utc</tt> (if set to <tt>:utc</tt>) when pulling dates and times from the database. The default is <tt>:local</tt>.</p></div>
-<div class="para"><p><tt>schema_format</tt> controls the format for dumping the database schema to a file. The options are <tt>:ruby</tt> (the default) for a database-independent version that depends on migrations, or <tt>:sql</tt> for a set of (potentially database-dependent) SQL statements.</p></div>
-<div class="para"><p><tt>timestamped_migrations</tt> controls whether migrations are numbered with serial integers or with timestamps. The default is <tt>true</tt>, to use timestamps, which are preferred if there are multiple developers working on the same application.</p></div>
-<div class="para"><p><tt>lock_optimistically</tt> controls whether ActiveRecord will use optimistic locking. By default this is <tt>true</tt>.</p></div>
-<div class="para"><p>The MySQL adapter adds one additional configuration option:</p></div>
-<div class="para"><p><tt>ActiveRecord::ConnectionAdapters::MysqlAdapter.emulate_booleans</tt> controls whether ActiveRecord will consider all <tt>tinyint(1)</tt> columns in a MySQL database to be booleans. By default this is <tt>true</tt>.</p></div>
-<div class="para"><p>The schema dumper adds one additional configuration option:</p></div>
-<div class="para"><p><tt>ActiveRecord::SchemaDumper.ignore_tables</tt> accepts an array of tables that should <em>not</em> be included in any generated schema file. This setting is ignored unless <tt>ActiveRecord::Base.schema_format == :ruby</tt>.</p></div>
+<div class="paragraph"><p><tt>table_name_prefix</tt> lets you set a global string to be prepended to table names. If you set this to <tt>northwest_</tt>, then the Customer class will look for <tt>northwest_customers</tt> as its table. The default is an empty string.</p></div>
+<div class="paragraph"><p><tt>table_name_suffix</tt> lets you set a global string to be appended to table names. If you set this to <tt>_northwest</tt>, then the Customer class will look for <tt>customers_northwest</tt> as its table. The default is an empty string.</p></div>
+<div class="paragraph"><p><tt>pluralize_table_names</tt> specifies whether Rails will look for singular or plural table names in the database. If set to <tt>true</tt> (the default), then the Customer class will use the <tt>customers</tt> table. If set to <tt>false</tt>, then the Customers class will use the <tt>customer</tt> table.</p></div>
+<div class="paragraph"><p><tt>colorize_logging</tt> (true by default) specifies whether or not to use ANSI color codes when logging information from ActiveRecord.</p></div>
+<div class="paragraph"><p><tt>default_timezone</tt> determines whether to use <tt>Time.local</tt> (if set to <tt>:local</tt>) or <tt>Time.utc</tt> (if set to <tt>:utc</tt>) when pulling dates and times from the database. The default is <tt>:local</tt>.</p></div>
+<div class="paragraph"><p><tt>schema_format</tt> controls the format for dumping the database schema to a file. The options are <tt>:ruby</tt> (the default) for a database-independent version that depends on migrations, or <tt>:sql</tt> for a set of (potentially database-dependent) SQL statements.</p></div>
+<div class="paragraph"><p><tt>timestamped_migrations</tt> controls whether migrations are numbered with serial integers or with timestamps. The default is <tt>true</tt>, to use timestamps, which are preferred if there are multiple developers working on the same application.</p></div>
+<div class="paragraph"><p><tt>lock_optimistically</tt> controls whether ActiveRecord will use optimistic locking. By default this is <tt>true</tt>.</p></div>
+<div class="paragraph"><p>The MySQL adapter adds one additional configuration option:</p></div>
+<div class="paragraph"><p><tt>ActiveRecord::ConnectionAdapters::MysqlAdapter.emulate_booleans</tt> controls whether ActiveRecord will consider all <tt>tinyint(1)</tt> columns in a MySQL database to be booleans. By default this is <tt>true</tt>.</p></div>
+<div class="paragraph"><p>The schema dumper adds one additional configuration option:</p></div>
+<div class="paragraph"><p><tt>ActiveRecord::SchemaDumper.ignore_tables</tt> accepts an array of tables that should <em>not</em> be included in any generated schema file. This setting is ignored unless <tt>ActiveRecord::Base.schema_format == :ruby</tt>.</p></div>
 <h3 id="_configuring_action_controller">4.2. Configuring Action Controller</h3>
-<div class="para"><p>ActionController::Base includes a number of configuration settings:</p></div>
-<div class="para"><p><tt>asset_host</tt> provides a string that is prepended to all of the URL-generating helpers in <tt>AssetHelper</tt>. This is designed to allow moving all javascript, CSS, and image files to a separate asset host.</p></div>
-<div class="para"><p><tt>consider_all_requests_local</tt> is generally set to <tt>true</tt> during development and <tt>false</tt> during production; if it is set to <tt>true</tt>, then any error will cause detailed debugging information to be dumped in the HTTP response. For finer-grained control, set this to <tt>false</tt> and implement <tt>local_request?</tt> to specify which requests should provide debugging information on errors.</p></div>
-<div class="para"><p><tt>allow_concurrency</tt> should be set to <tt>true</tt> to allow concurrent (threadsafe) action processing. Set to <tt>false</tt> by default.</p></div>
-<div class="para"><p><tt>param_parsers</tt> provides an array of handlers that can extract information from incoming HTTP requests and add it to the <tt>params</tt> hash. By default, parsers for multipart forms, URL-encoded forms, XML, and JSON are active.</p></div>
-<div class="para"><p><tt>default_charset</tt> specifies the default character set for all renders. The default is "utf-8".</p></div>
-<div class="para"><p><tt>logger</tt> accepts a logger conforming to the interface of Log4r or the default Ruby 1.8+ Logger class, which is then used to log information from Action Controller. Set to nil to disable logging.</p></div>
-<div class="para"><p><tt>resource_action_separator</tt> gives the token to be used between resources and actions when building or interpreting RESTful URLs. By default, this is "/".</p></div>
-<div class="para"><p><tt>resource_path_names</tt> is a hash of default names for several RESTful actions. By default, the new action is named <tt>new</tt> and the edit action is named <tt>edit</tt>.</p></div>
-<div class="para"><p><tt>request_forgery_protection_token</tt> sets the token parameter name for RequestForgery. Calling <tt>protect_from_forgery</tt> sets it to <tt>:authenticity_token</tt> by default.</p></div>
-<div class="para"><p><tt>optimise_named_routes</tt> turns on some optimizations in generating the routing table. It is set to <tt>true</tt> by default.</p></div>
-<div class="para"><p><tt>use_accept_header</tt> sets the rules for determining the response format. If this is set to <tt>true</tt> (the default) then <tt>respond_to</tt> and <tt>Request#format</tt> will take the Accept header into account. If it is set to false then the request format will be determined solely by examining <tt>params[:format]</tt>. If there is no <tt>format</tt> parameter, then the response format will be either HTML or Javascript depending on whether the request is an AJAX request.</p></div>
-<div class="para"><p><tt>allow_forgery_protection</tt> enables or disables CSRF protection. By default this is <tt>false</tt> in test mode and <tt>true</tt> in all other modes.</p></div>
-<div class="para"><p><tt>relative_url_root</tt> can be used to tell Rails that you are deploying to a subdirectory. The default is <tt>ENV[<em>RAILS_RELATIVE_URL_ROOT</em>]</tt>.</p></div>
-<div class="para"><p>The caching code adds two additional settings:</p></div>
-<div class="para"><p><tt>ActionController::Caching::Pages.page_cache_directory</tt> sets the directory where Rails will create cached pages for your web server. The default is <tt>Rails.public_path</tt> (which is usually set to <tt>RAILS_ROOT </tt> "/public"+).</p></div>
-<div class="para"><p><tt>ActionController::Caching::Pages.page_cache_extension</tt> sets the extension to be used when generating pages for the cache (this is ignored if the incoming request already has an extension). The default is <tt>.html</tt>.</p></div>
-<div class="para"><p>The dispatcher includes one setting:</p></div>
-<div class="para"><p><tt>ActionController::Dispatcher.error_file_path</tt> gives the path where Rails will look for error files such as <tt>404.html</tt>. The default is <tt>Rails.public_path</tt>.</p></div>
-<div class="para"><p>The Active Record session store can also be configured:</p></div>
-<div class="para"><p><tt>CGI::Session::ActiveRecordStore::Session.data_column_name</tt> sets the name of the column to use to store session data. By default it is <em>data</em></p></div>
+<div class="paragraph"><p>ActionController::Base includes a number of configuration settings:</p></div>
+<div class="paragraph"><p><tt>asset_host</tt> provides a string that is prepended to all of the URL-generating helpers in <tt>AssetHelper</tt>. This is designed to allow moving all javascript, CSS, and image files to a separate asset host.</p></div>
+<div class="paragraph"><p><tt>consider_all_requests_local</tt> is generally set to <tt>true</tt> during development and <tt>false</tt> during production; if it is set to <tt>true</tt>, then any error will cause detailed debugging information to be dumped in the HTTP response. For finer-grained control, set this to <tt>false</tt> and implement <tt>local_request?</tt> to specify which requests should provide debugging information on errors.</p></div>
+<div class="paragraph"><p><tt>allow_concurrency</tt> should be set to <tt>true</tt> to allow concurrent (threadsafe) action processing. Set to <tt>false</tt> by default.</p></div>
+<div class="paragraph"><p><tt>param_parsers</tt> provides an array of handlers that can extract information from incoming HTTP requests and add it to the <tt>params</tt> hash. By default, parsers for multipart forms, URL-encoded forms, XML, and JSON are active.</p></div>
+<div class="paragraph"><p><tt>default_charset</tt> specifies the default character set for all renders. The default is "utf-8".</p></div>
+<div class="paragraph"><p><tt>logger</tt> accepts a logger conforming to the interface of Log4r or the default Ruby 1.8+ Logger class, which is then used to log information from Action Controller. Set to nil to disable logging.</p></div>
+<div class="paragraph"><p><tt>resource_action_separator</tt> gives the token to be used between resources and actions when building or interpreting RESTful URLs. By default, this is "/".</p></div>
+<div class="paragraph"><p><tt>resource_path_names</tt> is a hash of default names for several RESTful actions. By default, the new action is named <tt>new</tt> and the edit action is named <tt>edit</tt>.</p></div>
+<div class="paragraph"><p><tt>request_forgery_protection_token</tt> sets the token parameter name for RequestForgery. Calling <tt>protect_from_forgery</tt> sets it to <tt>:authenticity_token</tt> by default.</p></div>
+<div class="paragraph"><p><tt>optimise_named_routes</tt> turns on some optimizations in generating the routing table. It is set to <tt>true</tt> by default.</p></div>
+<div class="paragraph"><p><tt>use_accept_header</tt> sets the rules for determining the response format. If this is set to <tt>true</tt> (the default) then <tt>respond_to</tt> and <tt>Request#format</tt> will take the Accept header into account. If it is set to false then the request format will be determined solely by examining <tt>params[:format]</tt>. If there is no <tt>format</tt> parameter, then the response format will be either HTML or Javascript depending on whether the request is an AJAX request.</p></div>
+<div class="paragraph"><p><tt>allow_forgery_protection</tt> enables or disables CSRF protection. By default this is <tt>false</tt> in test mode and <tt>true</tt> in all other modes.</p></div>
+<div class="paragraph"><p><tt>relative_url_root</tt> can be used to tell Rails that you are deploying to a subdirectory. The default is <tt>ENV[<em>RAILS_RELATIVE_URL_ROOT</em>]</tt>.</p></div>
+<div class="paragraph"><p>The caching code adds two additional settings:</p></div>
+<div class="paragraph"><p><tt>ActionController::Caching::Pages.page_cache_directory</tt> sets the directory where Rails will create cached pages for your web server. The default is <tt>Rails.public_path</tt> (which is usually set to <tt>RAILS_ROOT + "/public"</tt>).</p></div>
+<div class="paragraph"><p><tt>ActionController::Caching::Pages.page_cache_extension</tt> sets the extension to be used when generating pages for the cache (this is ignored if the incoming request already has an extension). The default is <tt>.html</tt>.</p></div>
+<div class="paragraph"><p>The dispatcher includes one setting:</p></div>
+<div class="paragraph"><p><tt>ActionController::Dispatcher.error_file_path</tt> gives the path where Rails will look for error files such as <tt>404.html</tt>. The default is <tt>Rails.public_path</tt>.</p></div>
+<div class="paragraph"><p>The Active Record session store can also be configured:</p></div>
+<div class="paragraph"><p><tt>CGI::Session::ActiveRecordStore::Session.data_column_name</tt> sets the name of the column to use to store session data. By default it is <em>data</em></p></div>
 <h3 id="_configuring_action_view">4.3. Configuring Action View</h3>
-<div class="para"><p>There are only a few configuration options for Action View, starting with four on <tt>ActionView::Base</tt>:</p></div>
-<div class="para"><p><tt>debug_rjs</tt> specifies whether RJS responses should be wrapped in a try/catch block that alert()s the caught exception (and then re-raises it). The default is <tt>false</tt>.</p></div>
-<div class="para"><p><tt>warn_cache_misses</tt> tells Rails to display a warning whenever an action results in a cache miss on your view paths. The default is <tt>false</tt>.</p></div>
-<div class="para"><p></p></div>
-<div class="para"><p><tt>default_form_builder</tt> tells Rails which form builder to use by default. The default is <tt>ActionView::Helpers::FormBuilder</tt>.</p></div>
-<div class="para"><p>The ERB template handler supplies one additional option:</p></div>
-<div class="para"><p><tt>ActionView::TemplateHandlers::ERB.erb_trim_mode</tt> gives the trim mode to be used by ERB. It defaults to <tt><em>-</em></tt>. See the <a href="http://www.ruby-doc.org/stdlib/libdoc/erb/rdoc/">ERB documentation</a> for more information.</p></div>
+<div class="paragraph"><p>There are only a few configuration options for Action View, starting with four on <tt>ActionView::Base</tt>:</p></div>
+<div class="paragraph"><p><tt>debug_rjs</tt> specifies whether RJS responses should be wrapped in a try/catch block that alert()s the caught exception (and then re-raises it). The default is <tt>false</tt>.</p></div>
+<div class="paragraph"><p><tt>warn_cache_misses</tt> tells Rails to display a warning whenever an action results in a cache miss on your view paths. The default is <tt>false</tt>.</p></div>
+<div class="paragraph"><p></p></div>
+<div class="paragraph"><p><tt>default_form_builder</tt> tells Rails which form builder to use by default. The default is <tt>ActionView::Helpers::FormBuilder</tt>.</p></div>
+<div class="paragraph"><p>The ERB template handler supplies one additional option:</p></div>
+<div class="paragraph"><p><tt>ActionView::TemplateHandlers::ERB.erb_trim_mode</tt> gives the trim mode to be used by ERB. It defaults to <tt><em>-</em></tt>. See the <a href="http://www.ruby-doc.org/stdlib/libdoc/erb/rdoc/">ERB documentation</a> for more information.</p></div>
 <h3 id="_configuring_action_mailer">4.4. Configuring Action Mailer</h3>
-<div class="para"><p>There are a number of settings available on <tt>ActionMailer::Base</tt>:</p></div>
-<div class="para"><p><tt>template_root</tt> gives the root folder for Action Mailer templates.</p></div>
-<div class="para"><p><tt>logger</tt> accepts a logger conforming to the interface of Log4r or the default Ruby 1.8+ Logger class, which is then used to log information from Action Mailer. Set to nil to disable logging.</p></div>
-<div class="para"><p><tt>smtp_settings</tt> allows detailed configuration for the <tt>:smtp</tt> delivery method. It accepts a hash of options, which can include any of these options:</p></div>
-<div class="ilist"><ul>
+<div class="paragraph"><p>There are a number of settings available on <tt>ActionMailer::Base</tt>:</p></div>
+<div class="paragraph"><p><tt>template_root</tt> gives the root folder for Action Mailer templates.</p></div>
+<div class="paragraph"><p><tt>logger</tt> accepts a logger conforming to the interface of Log4r or the default Ruby 1.8+ Logger class, which is then used to log information from Action Mailer. Set to nil to disable logging.</p></div>
+<div class="paragraph"><p><tt>smtp_settings</tt> allows detailed configuration for the <tt>:smtp</tt> delivery method. It accepts a hash of options, which can include any of these options:</p></div>
+<div class="ulist"><ul>
 <li>
 <p>
 &lt;tt&gt;:address&lt;/tt&gt; - Allows you to use a remote mail server. Just change it from its default "localhost" setting.
@@ -348,7 +348,7 @@ after-initializer</p></div>
 </li>
 <li>
 <p>
-&lt;tt&gt;:port&lt;/tt&gt; - On the off chance that your mail server doesn't run on port 25, you can change it.
+&lt;tt&gt;:port&lt;/tt&gt; - On the off chance that your mail server doesn&#8217;t run on port 25, you can change it.
 </p>
 </li>
 <li>
@@ -372,8 +372,8 @@ after-initializer</p></div>
 </p>
 </li>
 </ul></div>
-<div class="para"><p><tt>sendmail_settings</tt> allows detailed configuration for the <tt>sendmail</tt> delivery method. It accepts a hash of options, which can include any of these options:</p></div>
-<div class="ilist"><ul>
+<div class="paragraph"><p><tt>sendmail_settings</tt> allows detailed configuration for the <tt>sendmail</tt> delivery method. It accepts a hash of options, which can include any of these options:</p></div>
+<div class="ulist"><ul>
 <li>
 <p>
 &lt;tt&gt;:location&lt;/tt&gt; - The location of the sendmail executable. Defaults to &lt;tt&gt;/usr/sbin/sendmail&lt;/tt&gt;.
@@ -385,27 +385,27 @@ after-initializer</p></div>
 </p>
 </li>
 </ul></div>
-<div class="para"><p><tt>raise_delivery_errors</tt> specifies whether to raise an error if email delivery cannot be completed. It defaults to <tt>true</tt>.</p></div>
-<div class="para"><p><tt>delivery_method</tt> defines the delivery method. The allowed values are &lt;tt&gt;:smtp&lt;/tt&gt; (default), &lt;tt&gt;:sendmail&lt;/tt&gt;, and &lt;tt&gt;:test&lt;/tt&gt;.</p></div>
-<div class="para"><p><tt>perform_deliveries</tt> specifies whether mail will actually be delivered. By default this is <tt>true</tt>; it can be convenient to set it to <tt>false</tt> for testing.</p></div>
-<div class="para"><p><tt>default_charset</tt> tells Action Mailer which character set to use for the body and for encoding the subject. It defaults to <tt>utf-8</tt>.</p></div>
-<div class="para"><p><tt>default_content_type</tt> specifies the default content type used for the main part of the message. It defaults to "text/plain"</p></div>
-<div class="para"><p><tt>default_mime_version</tt> is the default MIME version for the message. It defaults to <tt>1.0</tt>.</p></div>
-<div class="para"><p><tt>default_implicit_parts_order</tt> - When a message is built implicitly (i.e. multiple parts are assembled from templates
+<div class="paragraph"><p><tt>raise_delivery_errors</tt> specifies whether to raise an error if email delivery cannot be completed. It defaults to <tt>true</tt>.</p></div>
+<div class="paragraph"><p><tt>delivery_method</tt> defines the delivery method. The allowed values are &lt;tt&gt;:smtp&lt;/tt&gt; (default), &lt;tt&gt;:sendmail&lt;/tt&gt;, and &lt;tt&gt;:test&lt;/tt&gt;.</p></div>
+<div class="paragraph"><p><tt>perform_deliveries</tt> specifies whether mail will actually be delivered. By default this is <tt>true</tt>; it can be convenient to set it to <tt>false</tt> for testing.</p></div>
+<div class="paragraph"><p><tt>default_charset</tt> tells Action Mailer which character set to use for the body and for encoding the subject. It defaults to <tt>utf-8</tt>.</p></div>
+<div class="paragraph"><p><tt>default_content_type</tt> specifies the default content type used for the main part of the message. It defaults to "text/plain"</p></div>
+<div class="paragraph"><p><tt>default_mime_version</tt> is the default MIME version for the message. It defaults to <tt>1.0</tt>.</p></div>
+<div class="paragraph"><p><tt>default_implicit_parts_order</tt> - When a message is built implicitly (i.e. multiple parts are assembled from templates
 which specify the content type in their filenames) this variable controls how the parts are ordered. Defaults to
 &lt;tt&gt;["text/html", "text/enriched", "text/plain"]&lt;/tt&gt;. Items that appear first in the array have higher priority in the mail client
 and appear last in the mime encoded message.</p></div>
 <h3 id="_configuring_active_resource">4.5. Configuring Active Resource</h3>
-<div class="para"><p>There is a single configuration setting available on <tt>ActiveResource::Base</tt>:</p></div>
-<div class="para"><p><tt>logger</tt> accepts a logger conforming to the interface of Log4r or the default Ruby 1.8+ Logger class, which is then used to log information from Active Resource. Set to nil to disable logging.</p></div>
+<div class="paragraph"><p>There is a single configuration setting available on <tt>ActiveResource::Base</tt>:</p></div>
+<div class="paragraph"><p><tt>logger</tt> accepts a logger conforming to the interface of Log4r or the default Ruby 1.8+ Logger class, which is then used to log information from Active Resource. Set to nil to disable logging.</p></div>
 <h3 id="_configuring_active_support">4.6. Configuring Active Support</h3>
-<div class="para"><p>There are a few configuration options available in Active Support:</p></div>
-<div class="para"><p><tt>ActiveSupport::BufferedLogger.silencer</tt> is set to <tt>false</tt> to disable the ability to silence logging in a block. The default is <tt>true</tt>.</p></div>
-<div class="para"><p><tt>ActiveSupport::Cache::Store.logger</tt> specifies the logger to use within cache store operations.</p></div>
-<div class="para"><p><tt>ActiveSupport::Logger.silencer</tt> is set to <tt>false</tt> to disable the ability to silence logging in a block. The default is <tt>true</tt>.</p></div>
+<div class="paragraph"><p>There are a few configuration options available in Active Support:</p></div>
+<div class="paragraph"><p><tt>ActiveSupport::BufferedLogger.silencer</tt> is set to <tt>false</tt> to disable the ability to silence logging in a block. The default is <tt>true</tt>.</p></div>
+<div class="paragraph"><p><tt>ActiveSupport::Cache::Store.logger</tt> specifies the logger to use within cache store operations.</p></div>
+<div class="paragraph"><p><tt>ActiveSupport::Logger.silencer</tt> is set to <tt>false</tt> to disable the ability to silence logging in a block. The default is <tt>true</tt>.</p></div>
 <h3 id="_configuring_active_model">4.7. Configuring Active Model</h3>
-<div class="para"><p>Active Model currently has a single configuration setting:</p></div>
-<div class="para"><p>+ActiveModel::Errors.default_error_messages is an array containing all of the validation error messages.</p></div>
+<div class="paragraph"><p>Active Model currently has a single configuration setting:</p></div>
+<div class="paragraph"><p>+ActiveModel::Errors.default_error_messages is an array containing all of the validation error messages.</p></div>
 </div>
 <h2 id="_using_initializers">5. Using Initializers</h2>
 <div class="sectionbody">
@@ -419,12 +419,12 @@ and appear last in the mime encoded message.</p></div>
 </div>
 <h2 id="_rails_environment_settings">7. Rails Environment Settings</h2>
 <div class="sectionbody">
-<div class="para"><p>ENV</p></div>
+<div class="paragraph"><p>ENV</p></div>
 </div>
 <h2 id="_changelog">8. Changelog</h2>
 <div class="sectionbody">
-<div class="para"><p><a href="http://rails.lighthouseapp.com/projects/16213-rails-guides/tickets/28">Lighthouse ticket</a></p></div>
-<div class="ilist"><ul>
+<div class="paragraph"><p><a href="http://rails.lighthouseapp.com/projects/16213-rails-guides/tickets/28">Lighthouse ticket</a></p></div>
+<div class="ulist"><ul>
 <li>
 <p>
 November 5, 2008: Rough outline by <a href="../authors.html#mgunderloy">Mike Gunderloy</a>

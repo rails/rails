@@ -222,7 +222,7 @@ ul#navMain {
 						
 							<li><a href="#_preparing_ruby_and_ruby_prof">Preparing Ruby and Ruby-prof</a></li>
 						
-							<li><a href="#_installing_jeremy_kemper_s_ruby_prof">Installing Jeremy Kemper's ruby-prof</a></li>
+							<li><a href="#_installing_jeremy_kemper_8217_s_ruby_prof">Installing Jeremy Kemper&#8217;s ruby-prof</a></li>
 						
 							<li><a href="#_generating_performance_test">Generating performance test</a></li>
 						
@@ -287,8 +287,8 @@ ul#navMain {
 				<h1>Benchmarking and Profiling Rails</h1>
 			<div id="preamble">
 <div class="sectionbody">
-<div class="para"><p>This guide covers the benchmarking and profiling tactics/tools of Rails and Ruby in general. By referring to this guide, you will be able to:</p></div>
-<div class="ilist"><ul>
+<div class="paragraph"><p>This guide covers the benchmarking and profiling tactics/tools of Rails and Ruby in general. By referring to this guide, you will be able to:</p></div>
+<div class="ulist"><ul>
 <li>
 <p>
 Understand the various types of benchmarking and profiling metrics
@@ -319,13 +319,13 @@ Learn about various tools facilitating benchmarking and profiling
 </div>
 <h2 id="_why_benchmark_and_profile">1. Why Benchmark and Profile ?</h2>
 <div class="sectionbody">
-<div class="para"><p>Benchmarking and Profiling is an integral part of the development cycle. It is very important that you don't make your end users wait for too long before the page is completely loaded. Ensuring a plesant browsing experience to the end users and cutting cost of unnecessary hardwares is important for any web application.</p></div>
+<div class="paragraph"><p>Benchmarking and Profiling is an integral part of the development cycle. It is very important that you don&#8217;t make your end users wait for too long before the page is completely loaded. Ensuring a plesant browsing experience to the end users and cutting cost of unnecessary hardwares is important for any web application.</p></div>
 <h3 id="_what_is_the_difference_between_benchmarking_and_profiling">1.1. What is the difference between benchmarking and profiling ?</h3>
-<div class="para"><p>Benchmarking is the process of finding out if a piece of code is slow or not. Whereas profiling is the process of finding out what exactly is slowing down that piece of code.</p></div>
+<div class="paragraph"><p>Benchmarking is the process of finding out if a piece of code is slow or not. Whereas profiling is the process of finding out what exactly is slowing down that piece of code.</p></div>
 </div>
 <h2 id="_using_and_understanding_the_log_files">2. Using and understanding the log files</h2>
 <div class="sectionbody">
-<div class="para"><p>Rails logs files containt basic but very useful information about the time taken to serve every request. A typical log entry looks something like :</p></div>
+<div class="paragraph"><p>Rails logs files containt basic but very useful information about the time taken to serve every request. A typical log entry looks something like :</p></div>
 <div class="listingblock">
 <div class="content"><!-- Generator: GNU source-highlight 2.9
 by Lorenzo Bettini
@@ -336,21 +336,19 @@ http://www.gnu.org/software/src-highlite -->
   Parameters<span style="color: #990000">:</span> <span style="color: #FF0000">{</span><span style="color: #FF0000">"action"</span><span style="color: #990000">=&gt;</span><span style="color: #FF0000">"index"</span><span style="color: #990000">,</span> <span style="color: #FF0000">"controller"</span><span style="color: #990000">=&gt;</span><span style="color: #FF0000">"items"</span><span style="color: #FF0000">}</span>
 Rendering template within layouts<span style="color: #990000">/</span>items
 Rendering items<span style="color: #990000">/</span>index
-Completed <span style="font-weight: bold"><span style="color: #0000FF">in</span></span> 5ms <span style="color: #990000">(</span>View<span style="color: #990000">:</span> <span style="color: #993399">2</span><span style="color: #990000">,</span> DB<span style="color: #990000">:</span> <span style="color: #993399">0</span><span style="color: #990000">)</span> <span style="color: #990000">|</span> <span style="color: #993399">200</span> OK <span style="color: #990000">[</span>http<span style="color: #990000">:</span><span style="color: #FF6600">//localhost/</span>items<span style="color: #990000">]</span>
-</tt></pre></div></div>
-<div class="para"><p>For this section, we're only interested in the last line from that log entry:</p></div>
+Completed <span style="font-weight: bold"><span style="color: #0000FF">in</span></span> 5ms <span style="color: #990000">(</span>View<span style="color: #990000">:</span> <span style="color: #993399">2</span><span style="color: #990000">,</span> DB<span style="color: #990000">:</span> <span style="color: #993399">0</span><span style="color: #990000">)</span> <span style="color: #990000">|</span> <span style="color: #993399">200</span> OK <span style="color: #990000">[</span>http<span style="color: #990000">:</span><span style="color: #FF6600">//localhost/</span>items<span style="color: #990000">]</span></tt></pre></div></div>
+<div class="paragraph"><p>For this section, we&#8217;re only interested in the last line from that log entry:</p></div>
 <div class="listingblock">
 <div class="content"><!-- Generator: GNU source-highlight 2.9
 by Lorenzo Bettini
 http://www.lorenzobettini.it
 http://www.gnu.org/software/src-highlite -->
-<pre><tt>Completed <span style="font-weight: bold"><span style="color: #0000FF">in</span></span> 5ms <span style="color: #990000">(</span>View<span style="color: #990000">:</span> <span style="color: #993399">2</span><span style="color: #990000">,</span> DB<span style="color: #990000">:</span> <span style="color: #993399">0</span><span style="color: #990000">)</span> <span style="color: #990000">|</span> <span style="color: #993399">200</span> OK <span style="color: #990000">[</span>http<span style="color: #990000">:</span><span style="color: #FF6600">//localhost/</span>items<span style="color: #990000">]</span>
-</tt></pre></div></div>
-<div class="para"><p>This data is fairly straight forward to understand. Rails uses millisecond(ms) as the metric to measures the time taken. The complete request spent 5 ms inside Rails, out of which 2 ms were spent rendering views and none was spent communication with the database. It's safe to assume that the remaining 3 ms were spent inside the controller.</p></div>
+<pre><tt>Completed <span style="font-weight: bold"><span style="color: #0000FF">in</span></span> 5ms <span style="color: #990000">(</span>View<span style="color: #990000">:</span> <span style="color: #993399">2</span><span style="color: #990000">,</span> DB<span style="color: #990000">:</span> <span style="color: #993399">0</span><span style="color: #990000">)</span> <span style="color: #990000">|</span> <span style="color: #993399">200</span> OK <span style="color: #990000">[</span>http<span style="color: #990000">:</span><span style="color: #FF6600">//localhost/</span>items<span style="color: #990000">]</span></tt></pre></div></div>
+<div class="paragraph"><p>This data is fairly straight forward to understand. Rails uses millisecond(ms) as the metric to measures the time taken. The complete request spent 5 ms inside Rails, out of which 2 ms were spent rendering views and none was spent communication with the database. It&#8217;s safe to assume that the remaining 3 ms were spent inside the controller.</p></div>
 </div>
 <h2 id="_helper_methods">3. Helper methods</h2>
 <div class="sectionbody">
-<div class="para"><p>Rails provides various helper methods inside Active Record, Action Controller and Action View to measure the time taken by a specific code. The method is called <tt>benchmark()</tt> in all three components.</p></div>
+<div class="paragraph"><p>Rails provides various helper methods inside Active Record, Action Controller and Action View to measure the time taken by a specific code. The method is called <tt>benchmark()</tt> in all three components.</p></div>
 <div class="listingblock">
 <div class="content"><!-- Generator: GNU source-highlight 2.9
 by Lorenzo Bettini
@@ -360,18 +358,16 @@ http://www.gnu.org/software/src-highlite -->
   project <span style="color: #990000">=</span> Project<span style="color: #990000">.</span>create<span style="color: #990000">(</span><span style="color: #FF0000">"name"</span> <span style="color: #990000">=&gt;</span> <span style="color: #FF0000">"stuff"</span><span style="color: #990000">)</span>
   project<span style="color: #990000">.</span>create_manager<span style="color: #990000">(</span><span style="color: #FF0000">"name"</span> <span style="color: #990000">=&gt;</span> <span style="color: #FF0000">"David"</span><span style="color: #990000">)</span>
   project<span style="color: #990000">.</span>milestones <span style="color: #990000">&lt;&lt;</span> Milestone<span style="color: #990000">.</span>find<span style="color: #990000">(:</span>all<span style="color: #990000">)</span>
-<span style="font-weight: bold"><span style="color: #0000FF">end</span></span>
-</tt></pre></div></div>
-<div class="para"><p>The above code benchmarks the multiple statments enclosed inside <tt>Project.benchmark("Creating project") do..end</tt> block and prints the results inside log files. The statement inside log files will look like:</p></div>
+<span style="font-weight: bold"><span style="color: #0000FF">end</span></span></tt></pre></div></div>
+<div class="paragraph"><p>The above code benchmarks the multiple statments enclosed inside <tt>Project.benchmark("Creating project") do..end</tt> block and prints the results inside log files. The statement inside log files will look like:</p></div>
 <div class="listingblock">
 <div class="content"><!-- Generator: GNU source-highlight 2.9
 by Lorenzo Bettini
 http://www.lorenzobettini.it
 http://www.gnu.org/software/src-highlite -->
-<pre><tt>Creating projectem <span style="color: #990000">(</span><span style="color: #993399">185</span><span style="color: #990000">.</span>3ms<span style="color: #990000">)</span>
-</tt></pre></div></div>
-<div class="para"><p>Please refer to <a href="http://api.rubyonrails.com/classes/ActiveRecord/Base.html#M001336">API docs</a> for optional options to <tt>benchmark()</tt></p></div>
-<div class="para"><p>Similarly, you could use this helper method inside <a href="http://api.rubyonrails.com/classes/ActionController/Benchmarking/ClassMethods.html#M000715">controllers</a> ( Note that it's a class method here ):</p></div>
+<pre><tt>Creating projectem <span style="color: #990000">(</span><span style="color: #993399">185</span><span style="color: #990000">.</span>3ms<span style="color: #990000">)</span></tt></pre></div></div>
+<div class="paragraph"><p>Please refer to <a href="http://api.rubyonrails.com/classes/ActiveRecord/Base.html#M001336">API docs</a> for optional options to <tt>benchmark()</tt></p></div>
+<div class="paragraph"><p>Similarly, you could use this helper method inside <a href="http://api.rubyonrails.com/classes/ActionController/Benchmarking/ClassMethods.html#M000715">controllers</a> ( Note that it&#8217;s a class method here ):</p></div>
 <div class="listingblock">
 <div class="content"><!-- Generator: GNU source-highlight 2.9
 by Lorenzo Bettini
@@ -382,9 +378,8 @@ http://www.gnu.org/software/src-highlite -->
     Project<span style="color: #990000">.</span>process<span style="color: #990000">(</span>params<span style="color: #990000">[:</span>project_ids<span style="color: #990000">])</span>
     Project<span style="color: #990000">.</span>update_cached_projects
   <span style="font-weight: bold"><span style="color: #0000FF">end</span></span>
-<span style="font-weight: bold"><span style="color: #0000FF">end</span></span>
-</tt></pre></div></div>
-<div class="para"><p>and <a href="http://api.rubyonrails.com/classes/ActionController/Benchmarking/ClassMethods.html#M000715">views</a>:</p></div>
+<span style="font-weight: bold"><span style="color: #0000FF">end</span></span></tt></pre></div></div>
+<div class="paragraph"><p>and <a href="http://api.rubyonrails.com/classes/ActionController/Benchmarking/ClassMethods.html#M000715">views</a>:</p></div>
 <div class="listingblock">
 <div class="content"><!-- Generator: GNU source-highlight 2.9
 by Lorenzo Bettini
@@ -392,13 +387,12 @@ http://www.lorenzobettini.it
 http://www.gnu.org/software/src-highlite -->
 <pre><tt><span style="color: #FF0000">&lt;% benchmark("Showing projects partial") do %&gt;</span>
   <span style="color: #FF0000">&lt;%= render :partial =&gt;</span> <span style="color: #009900">@projects</span> <span style="color: #990000">%&gt;</span>
-<span style="color: #FF0000">&lt;% end %&gt;</span>
-</tt></pre></div></div>
+<span style="color: #FF0000">&lt;% end %&gt;</span></tt></pre></div></div>
 </div>
 <h2 id="_performance_test_cases">4. Performance Test Cases</h2>
 <div class="sectionbody">
-<div class="para"><p>Rails provides a very easy to write performance test cases, which look just like the regular integration tests.</p></div>
-<div class="para"><p>If you have a look at <tt>test/performance/browsing_test.rb</tt> in a newly created Rails application:</p></div>
+<div class="paragraph"><p>Rails provides a very easy to write performance test cases, which look just like the regular integration tests.</p></div>
+<div class="paragraph"><p>If you have a look at <tt>test/performance/browsing_test.rb</tt> in a newly created Rails application:</p></div>
 <div class="listingblock">
 <div class="content"><!-- Generator: GNU source-highlight 2.9
 by Lorenzo Bettini
@@ -412,25 +406,24 @@ http://www.gnu.org/software/src-highlite -->
   <span style="font-weight: bold"><span style="color: #0000FF">def</span></span> test_homepage
     get <span style="color: #FF0000">'/'</span>
   <span style="font-weight: bold"><span style="color: #0000FF">end</span></span>
-<span style="font-weight: bold"><span style="color: #0000FF">end</span></span>
-</tt></pre></div></div>
-<div class="para"><p>This is an automatically generated example performance test file, for testing performance of homepage(<em>/</em>) of the application.</p></div>
+<span style="font-weight: bold"><span style="color: #0000FF">end</span></span></tt></pre></div></div>
+<div class="paragraph"><p>This is an automatically generated example performance test file, for testing performance of homepage(<em>/</em>) of the application.</p></div>
 <h3 id="_modes">4.1. Modes</h3>
 <h4 id="_benchmarking">4.1.1. Benchmarking</h4>
 <h4 id="_profiling">4.1.2. Profiling</h4>
 <h3 id="_metrics">4.2. Metrics</h3>
 <h4 id="_process_time">4.2.1. Process Time</h4>
-<div class="para"><p>CPU Cycles.</p></div>
+<div class="paragraph"><p>CPU Cycles.</p></div>
 <h4 id="_memory">4.2.2. Memory</h4>
-<div class="para"><p>Memory taken.</p></div>
+<div class="paragraph"><p>Memory taken.</p></div>
 <h4 id="_objects">4.2.3. Objects</h4>
-<div class="para"><p>Objects allocated.</p></div>
+<div class="paragraph"><p>Objects allocated.</p></div>
 <h4 id="_gc_runs">4.2.4. GC Runs</h4>
-<div class="para"><p>Number of times the Ruby GC was run.</p></div>
+<div class="paragraph"><p>Number of times the Ruby GC was run.</p></div>
 <h4 id="_gc_time">4.2.5. GC Time</h4>
-<div class="para"><p>Time spent running the Ruby GC.</p></div>
+<div class="paragraph"><p>Time spent running the Ruby GC.</p></div>
 <h3 id="_preparing_ruby_and_ruby_prof">4.3. Preparing Ruby and Ruby-prof</h3>
-<div class="para"><p>Before we go ahead, Rails performance testing requires you to build a special Ruby binary with some super powers - GC patch for measuring GC Runs/Time. This process is very straight forward. If you've never compiled a Ruby binary before, you can follow the following steps to build a ruby binary inside your home directory:</p></div>
+<div class="paragraph"><p>Before we go ahead, Rails performance testing requires you to build a special Ruby binary with some super powers - GC patch for measuring GC Runs/Time. This process is very straight forward. If you&#8217;ve never compiled a Ruby binary before, you can follow the following steps to build a ruby binary inside your home directory:</p></div>
 <h4 id="_compile">4.3.1. Compile</h4>
 <div class="listingblock">
 <div class="content"><!-- Generator: GNU source-highlight 2.9
@@ -443,10 +436,9 @@ http://www.gnu.org/software/src-highlite -->
 <span style="color: #990000">[</span>lifo@null <span style="color: #990000">~]</span>$ cd ruby-<span style="color: #993399">1.8</span><span style="color: #990000">.</span><span style="color: #993399">6</span>-p<span style="color: #993399">111</span>
 <span style="color: #990000">[</span>lifo@null ruby-<span style="color: #993399">1.8</span><span style="color: #990000">.</span><span style="color: #993399">6</span>-p<span style="color: #993399">111</span><span style="color: #990000">]</span>$ curl http<span style="color: #990000">:</span>//rubyforge<span style="color: #990000">.</span>org/tracker/download<span style="color: #990000">.</span>php<span style="color: #990000">/</span><span style="color: #993399">1814</span><span style="color: #990000">/</span><span style="color: #993399">7062</span><span style="color: #990000">/</span><span style="color: #993399">17676</span><span style="color: #990000">/</span><span style="color: #993399">3291</span>/ruby186gc<span style="color: #990000">.</span>patch <span style="color: #990000">|</span> patch -p<span style="color: #993399">0</span>
 <span style="color: #990000">[</span>lifo@null ruby-<span style="color: #993399">1.8</span><span style="color: #990000">.</span><span style="color: #993399">6</span>-p<span style="color: #993399">111</span><span style="color: #990000">]</span>$ <span style="color: #990000">.</span>/configure --prefix<span style="color: #990000">=</span>/Users/lifo/rubygc
-<span style="color: #990000">[</span>lifo@null ruby-<span style="color: #993399">1.8</span><span style="color: #990000">.</span><span style="color: #993399">6</span>-p<span style="color: #993399">111</span><span style="color: #990000">]</span>$ make <span style="color: #990000">&amp;&amp;</span> make install
-</tt></pre></div></div>
+<span style="color: #990000">[</span>lifo@null ruby-<span style="color: #993399">1.8</span><span style="color: #990000">.</span><span style="color: #993399">6</span>-p<span style="color: #993399">111</span><span style="color: #990000">]</span>$ make <span style="color: #990000">&amp;&amp;</span> make install</tt></pre></div></div>
 <h4 id="_prepare_aliases">4.3.2. Prepare aliases</h4>
-<div class="para"><p>Add the following lines in your ~/.profile for convenience:</p></div>
+<div class="paragraph"><p>Add the following lines in your ~/.profile for convenience:</p></div>
 <div class="listingblock">
 <div class="content">
 <pre><tt>alias gcruby='/Users/lifo/rubygc/bin/ruby'
@@ -471,15 +463,15 @@ alias gcrails='/Users/lifo/rubygc/bin/rails'</tt></pre>
 <div class="content">
 <pre><tt>[lifo@null ~]$ gcgem install mysql</tt></pre>
 </div></div>
-<div class="para"><p>If this fails, you can try to install it manually:</p></div>
+<div class="paragraph"><p>If this fails, you can try to install it manually:</p></div>
 <div class="listingblock">
 <div class="content">
 <pre><tt>[lifo@null ~]$ cd /Users/lifo/rubygc/lib/ruby/gems/1.8/gems/mysql-2.7/
 [lifo@null mysql-2.7]$ gcruby extconf.rb --with-mysql-config
 [lifo@null mysql-2.7]$ make &amp;&amp; make install</tt></pre>
 </div></div>
-<h3 id="_installing_jeremy_kemper_s_ruby_prof">4.4. Installing Jeremy Kemper's ruby-prof</h3>
-<div class="para"><p>We also need to install Jeremy's ruby-prof gem using our newly built ruby:</p></div>
+<h3 id="_installing_jeremy_kemper_8217_s_ruby_prof">4.4. Installing Jeremy Kemper&#8217;s ruby-prof</h3>
+<div class="paragraph"><p>We also need to install Jeremy&#8217;s ruby-prof gem using our newly built ruby:</p></div>
 <div class="listingblock">
 <div class="content"><!-- Generator: GNU source-highlight 2.9
 by Lorenzo Bettini
@@ -488,18 +480,16 @@ http://www.gnu.org/software/src-highlite -->
 <pre><tt><span style="color: #990000">[</span>lifo@null <span style="color: #990000">~]</span>$ git clone git<span style="color: #990000">:</span>//github<span style="color: #990000">.</span>com/jeremy/ruby-prof<span style="color: #990000">.</span>git
 <span style="color: #990000">[</span>lifo@null <span style="color: #990000">~]</span>$ cd ruby-prof<span style="color: #990000">/</span>
 <span style="color: #990000">[</span>lifo@null ruby-prof <span style="color: #990000">(</span>master<span style="color: #990000">)]</span>$ gcrake gem
-<span style="color: #990000">[</span>lifo@null ruby-prof <span style="color: #990000">(</span>master<span style="color: #990000">)]</span>$ gcgem install pkg/ruby-prof-<span style="color: #993399">0.6</span><span style="color: #990000">.</span><span style="color: #993399">1</span><span style="color: #990000">.</span>gem
-</tt></pre></div></div>
+<span style="color: #990000">[</span>lifo@null ruby-prof <span style="color: #990000">(</span>master<span style="color: #990000">)]</span>$ gcgem install pkg/ruby-prof-<span style="color: #993399">0.6</span><span style="color: #990000">.</span><span style="color: #993399">1</span><span style="color: #990000">.</span>gem</tt></pre></div></div>
 <h3 id="_generating_performance_test">4.5. Generating performance test</h3>
-<div class="para"><p>Rails provides a simple generator for creating new performance tests:</p></div>
+<div class="paragraph"><p>Rails provides a simple generator for creating new performance tests:</p></div>
 <div class="listingblock">
 <div class="content"><!-- Generator: GNU source-highlight 2.9
 by Lorenzo Bettini
 http://www.lorenzobettini.it
 http://www.gnu.org/software/src-highlite -->
-<pre><tt><span style="color: #990000">[</span>lifo@null application <span style="color: #990000">(</span>master<span style="color: #990000">)]</span>$ script/generate performance_test homepage
-</tt></pre></div></div>
-<div class="para"><p>This will generate <tt>test/performance/homepage_test.rb</tt>:</p></div>
+<pre><tt><span style="color: #990000">[</span>lifo@null application <span style="color: #990000">(</span>master<span style="color: #990000">)]</span>$ script/generate performance_test homepage</tt></pre></div></div>
+<div class="paragraph"><p>This will generate <tt>test/performance/homepage_test.rb</tt>:</p></div>
 <div class="listingblock">
 <div class="content"><!-- Generator: GNU source-highlight 2.9
 by Lorenzo Bettini
@@ -513,25 +503,23 @@ http://www.gnu.org/software/src-highlite -->
   <span style="font-weight: bold"><span style="color: #0000FF">def</span></span> test_homepage
     get <span style="color: #FF0000">'/'</span>
   <span style="font-weight: bold"><span style="color: #0000FF">end</span></span>
-<span style="font-weight: bold"><span style="color: #0000FF">end</span></span>
-</tt></pre></div></div>
-<div class="para"><p>Which you can modify to suit your needs.</p></div>
+<span style="font-weight: bold"><span style="color: #0000FF">end</span></span></tt></pre></div></div>
+<div class="paragraph"><p>Which you can modify to suit your needs.</p></div>
 <h3 id="_running_tests">4.6. Running tests</h3>
 </div>
 <h2 id="_understanding_performance_tests_outputs">5. Understanding Performance Tests Outputs</h2>
 <div class="sectionbody">
 <h3 id="_our_first_performance_test">5.1. Our First Performance Test</h3>
-<div class="para"><p>So how do we profile a request.</p></div>
-<div class="para"><p>One of the things that is important to us is how long it takes to render the home page - so let's make a request to the home page. Once the request is complete, the results will be outputted in the terminal.</p></div>
-<div class="para"><p>In the terminal run</p></div>
+<div class="paragraph"><p>So how do we profile a request.</p></div>
+<div class="paragraph"><p>One of the things that is important to us is how long it takes to render the home page - so let&#8217;s make a request to the home page. Once the request is complete, the results will be outputted in the terminal.</p></div>
+<div class="paragraph"><p>In the terminal run</p></div>
 <div class="listingblock">
 <div class="content"><!-- Generator: GNU source-highlight 2.9
 by Lorenzo Bettini
 http://www.lorenzobettini.it
 http://www.gnu.org/software/src-highlite -->
-<pre><tt><span style="color: #990000">[</span>User profiling_tester<span style="color: #990000">]</span>$ gcruby tests<span style="color: #FF6600">/performance/</span>homepage<span style="color: #990000">.</span>rb
-</tt></pre></div></div>
-<div class="para"><p>After the tests runs for a few seconds you should see something like this.</p></div>
+<pre><tt><span style="color: #990000">[</span>User profiling_tester<span style="color: #990000">]</span>$ gcruby tests<span style="color: #FF6600">/performance/</span>homepage<span style="color: #990000">.</span>rb</tt></pre></div></div>
+<div class="paragraph"><p>After the tests runs for a few seconds you should see something like this.</p></div>
 <div class="listingblock">
 <div class="content">
 <pre><tt>HomepageTest#test_homepage (19 ms warmup)
@@ -541,8 +529,8 @@ http://www.gnu.org/software/src-highlite -->
 
 Finished in 2.207428 seconds.</tt></pre>
 </div></div>
-<div class="para"><p>Simple but efficient.</p></div>
-<div class="ilist"><ul>
+<div class="paragraph"><p>Simple but efficient.</p></div>
+<div class="ulist"><ul>
 <li>
 <p>
 Process Time refers to amount of time necessary to complete the action.
@@ -559,9 +547,9 @@ object ??? #TODO find a good definition. Is it the amount of objects put into a 
 </p>
 </li>
 </ul></div>
-<div class="para"><p>In addition we also gain three types of itemized log files for each of these outputs. They can be found in your tmp directory of your application.</p></div>
-<div class="para"><p><strong>The Three types are</strong></p></div>
-<div class="ilist"><ul>
+<div class="paragraph"><p>In addition we also gain three types of itemized log files for each of these outputs. They can be found in your tmp directory of your application.</p></div>
+<div class="paragraph"><p><strong>The Three types are</strong></p></div>
+<div class="ulist"><ul>
 <li>
 <p>
 Flat File - A simple text file with the data laid out in a grid
@@ -586,12 +574,12 @@ Tree File - A file output that can be use in conjunction with KCachegrind to vis
 <td class="content">KCachegrind is Linux only. For Mac this means you have to do a full KDE install to have it working in your OS. Which is over 3 gigs in size. For windows there is clone called wincachegrind but it is no longer actively being developed.</td>
 </tr></table>
 </div>
-<div class="para"><p>Below are examples for Flat Files and Graphical Files</p></div>
+<div class="paragraph"><p>Below are examples for Flat Files and Graphical Files</p></div>
 <h3 id="_flat_files">5.2. Flat Files</h3>
 <div class="exampleblock">
-<div class="title">Example: Flat File Output Processing Time</div>
+<div class="title">Flat File Output Processing Time</div>
 <div class="exampleblock-content">
-<div class="para"><p>Thread ID: 2279160
+<div class="paragraph"><p>Thread ID: 2279160
 Total: 0.026097</p></div>
 <div class="literalblock">
 <div class="content">
@@ -615,8 +603,8 @@ Total: 0.026097</p></div>
  0.18      0.00     0.00     0.00     0.00       17  &lt;Class::Object&gt;#allocate</tt></pre>
 </div></div>
 </div></div>
-<div class="para"><p>So what do these columns tell us:</p></div>
-<div class="ilist"><ul>
+<div class="paragraph"><p>So what do these columns tell us:</p></div>
+<div class="ulist"><ul>
 <li>
 <p>
 %self - The percentage of time spent processing the method. This is derived from self_time/total_time
@@ -639,7 +627,7 @@ wait - Time processed was queued
 </li>
 <li>
 <p>
-child - The time spent in this method's children.
+child - The time spent in this method&#8217;s children.
 </p>
 </li>
 <li>
@@ -653,16 +641,16 @@ name - The name of the method.
 </p>
 </li>
 </ul></div>
-<div class="para"><p>Name can be displayed three seperate ways:
-        <strong> #toplevel - The root method that calls all other methods
-        </strong> MyObject#method - Example Hash#each, The class Hash is calling the method each
+<div class="paragraph"><p>Name can be displayed three seperate ways:
+        * #toplevel - The root method that calls all other methods
+        * MyObject#method - Example Hash#each, The class Hash is calling the method each
         * &lt;Object:MyObject&gt;#test - The &lt;&gt; characters indicate a singleton method on a singleton class. Example &lt;Class::Object&gt;#allocate</p></div>
-<div class="para"><p>Methods are sorted based on %self. Hence the ones taking the most time and resources will be at the top.</p></div>
-<div class="para"><p>So for Array#each which is calling each on the class array. We find that it processing time is 2% of the total and was called 15 times. The rest of the information is 0.00 because the process is so fast it isn't recording times less then 100 ms.</p></div>
+<div class="paragraph"><p>Methods are sorted based on %self. Hence the ones taking the most time and resources will be at the top.</p></div>
+<div class="paragraph"><p>So for Array#each which is calling each on the class array. We find that it processing time is 2% of the total and was called 15 times. The rest of the information is 0.00 because the process is so fast it isn&#8217;t recording times less then 100 ms.</p></div>
 <div class="exampleblock">
-<div class="title">Example: Flat File Memory Output</div>
+<div class="title">Flat File Memory Output</div>
 <div class="exampleblock-content">
-<div class="para"><p>Thread ID: 2279160
+<div class="paragraph"><p>Thread ID: 2279160
 Total: 509.724609</p></div>
 <div class="literalblock">
 <div class="content">
@@ -676,12 +664,12 @@ Total: 509.724609</p></div>
  1.01      5.13     5.13     0.00     0.00       27  Array#-</tt></pre>
 </div></div>
 </div></div>
-<div class="para"><p>Very similar to the processing time format. The main difference here is that instead of calculating time we are now concerned with the amount of KB put into memory <strong>(or is it strictly into the heap) can I get clarification on this minor point?</strong></p></div>
-<div class="para"><p>So for &lt;Module::YAML&gt;#quick_emit which is  singleton method on the class YAML it uses 57.66 KB in total, 23.57 through its own actions, 6.69 from actions it calls itself and that it was called twice.</p></div>
+<div class="paragraph"><p>Very similar to the processing time format. The main difference here is that instead of calculating time we are now concerned with the amount of KB put into memory <strong>(or is it strictly into the heap) can I get clarification on this minor point?</strong></p></div>
+<div class="paragraph"><p>So for &lt;Module::YAML&gt;#quick_emit which is  singleton method on the class YAML it uses 57.66 KB in total, 23.57 through its own actions, 6.69 from actions it calls itself and that it was called twice.</p></div>
 <div class="exampleblock">
-<div class="title">Example: Flat File Objects</div>
+<div class="title">Flat File Objects</div>
 <div class="exampleblock-content">
-<div class="para"><p>Thread ID: 2279160
+<div class="paragraph"><p>Thread ID: 2279160
 Total: 6537.000000</p></div>
 <div class="literalblock">
 <div class="content">
@@ -700,13 +688,13 @@ Total: 6537.000000</p></div>
 <pre><tt>#TODO Find correct terminology for how to describe what this is exactly profiling as in are there really 2203 array objects or 2203 pointers to array objects?.</tt></pre>
 </div></div>
 <h3 id="_graph_files">5.3. Graph Files</h3>
-<div class="para"><p>While the information gleamed from flat files is very useful we still don't know which processes each method is calling. We only know how many. This is not true for a graph file. Below is a text representation of a graph file. The actual graph file is an html entity and an example of which can be found <a href="examples/graph.html">Here</a></p></div>
-<div class="para"><p>#TODO (Handily the graph file has links both between it many processes and to the files that actually contain them for debugging.
+<div class="paragraph"><p>While the information gleamed from flat files is very useful we still don&#8217;t know which processes each method is calling. We only know how many. This is not true for a graph file. Below is a text representation of a graph file. The actual graph file is an html entity and an example of which can be found <a href="examples/graph.html">Here</a></p></div>
+<div class="paragraph"><p>#TODO (Handily the graph file has links both between it many processes and to the files that actually contain them for debugging.
  )</p></div>
 <div class="exampleblock">
-<div class="title">Example: Graph File</div>
+<div class="title">Graph File</div>
 <div class="exampleblock-content">
-<div class="para"><p>Thread ID: 21277412</p></div>
+<div class="paragraph"><p>Thread ID: 21277412</p></div>
 <div class="literalblock">
 <div class="content">
 <pre><tt>  %total   %self     total      self    children               calls   Name
@@ -727,26 +715,26 @@ Total: 6537.000000</p></div>
 /____________________________________________________________________________/</tt></pre>
 </div></div>
 </div></div>
-<div class="para"><p>As you can see the calls have been separated into slices, no longer is the order determined by process time but instead from hierarchy. Each slice profiles a primary entry, with the primary entry's parents being shown above itself and it's children found below. A primary entry can be ascertained by it having values in the %total and %self columns. Here the main entry here have been bolded for connivence.</p></div>
-<div class="para"><p>So if we look at the last slice. The primary entry would be Array#each_index. It takes 0.18% of the total process time and it is only called once. It is called from Object#make_random_array which is only called once. It's children are Kernal.rand which is called by it all 500 its times that it was call in this action and Arry#[]= which was called 500 times by Array#each_index and once by some other entry.</p></div>
+<div class="paragraph"><p>As you can see the calls have been separated into slices, no longer is the order determined by process time but instead from hierarchy. Each slice profiles a primary entry, with the primary entry&#8217;s parents being shown above itself and it&#8217;s children found below. A primary entry can be ascertained by it having values in the %total and %self columns. Here the main entry here have been bolded for connivence.</p></div>
+<div class="paragraph"><p>So if we look at the last slice. The primary entry would be Array#each_index. It takes 0.18% of the total process time and it is only called once. It is called from Object#make_random_array which is only called once. It&#8217;s children are Kernal.rand which is called by it all 500 its times that it was call in this action and Arry#[]= which was called 500 times by Array#each_index and once by some other entry.</p></div>
 <h3 id="_tree_files">5.4. Tree Files</h3>
-<div class="para"><p>It's pointless trying to represent a tree file textually so here's a few pretty pictures of it's usefulness</p></div>
-<div class="para"><div class="title">KCachegrind Graph</div><p><span class="image">
+<div class="paragraph"><p>It&#8217;s pointless trying to represent a tree file textually so here&#8217;s a few pretty pictures of it&#8217;s usefulness</p></div>
+<div class="paragraph"><div class="title">KCachegrind Graph</div><p><span class="image">
 <img src="images/kgraph.png" alt="Graph created by KCachegrind" title="Graph created by KCachegrind" />
 </span></p></div>
-<div class="para"><div class="title">KCachegrind List</div><p><span class="image">
+<div class="paragraph"><div class="title">KCachegrind List</div><p><span class="image">
 <img src="images/klist.png" alt="List created by KCachegrind" title="List created by KCachegrind" />
 </span></p></div>
-<div class="para"><p>#TODO Add a bit more information to this.</p></div>
+<div class="paragraph"><p>#TODO Add a bit more information to this.</p></div>
 </div>
 <h2 id="_getting_to_the_point_of_all_of_this">6. Getting to the Point of all of this</h2>
 <div class="sectionbody">
-<div class="para"><p>Now I know all of this is a bit dry and academic. But it's a very powerful tool when you know how to leverage it properly. Which we are going to take a look at in our next section</p></div>
+<div class="paragraph"><p>Now I know all of this is a bit dry and academic. But it&#8217;s a very powerful tool when you know how to leverage it properly. Which we are going to take a look at in our next section</p></div>
 </div>
 <h2 id="_real_life_example">7. Real Life Example</h2>
 <div class="sectionbody">
 <h3 id="_the_setup">7.1. The setup</h3>
-<div class="para"><p>So I have been building this application for the last month and feel pretty good about the ruby code. I'm readying it for beta testers when I discover to my shock that with less then twenty people it starts to crash. It's a pretty simple Ecommerce site so I'm very confused by what I'm seeing. On running looking through my log files I find to my shock that the lowest time for a page run is running around 240 ms. My database finds aren't the problems so I'm lost as to what is happening to cause all this. Lets run a benchmark.</p></div>
+<div class="paragraph"><p>So I have been building this application for the last month and feel pretty good about the ruby code. I&#8217;m readying it for beta testers when I discover to my shock that with less then twenty people it starts to crash. It&#8217;s a pretty simple Ecommerce site so I&#8217;m very confused by what I&#8217;m seeing. On running looking through my log files I find to my shock that the lowest time for a page run is running around 240 ms. My database finds aren&#8217;t the problems so I&#8217;m lost as to what is happening to cause all this. Lets run a benchmark.</p></div>
 <div class="listingblock">
 <div class="content"><!-- Generator: GNU source-highlight 2.9
 by Lorenzo Bettini
@@ -757,28 +745,27 @@ http://www.gnu.org/software/src-highlite -->
   <span style="font-weight: bold"><span style="color: #0000FF">def</span></span> test_homepage
     get <span style="color: #FF0000">'/'</span>
   <span style="font-weight: bold"><span style="color: #0000FF">end</span></span>
-<span style="font-weight: bold"><span style="color: #0000FF">end</span></span>
-</tt></pre></div></div>
+<span style="font-weight: bold"><span style="color: #0000FF">end</span></span></tt></pre></div></div>
 <div class="listingblock">
-<div class="title">Example: Output</div>
+<div class="title">Output</div>
 <div class="content">
 <pre><tt>HomepageTest#test_homepage (115 ms warmup)
         process_time: 591 ms
         memory: 3052.90 KB
         objects: 59471</tt></pre>
 </div></div>
-<div class="para"><p>Obviously something is very very wrong here. 3052.90 Kb to load my minimal homepage. For Comparison for another site running well I get this for my homepage test.</p></div>
+<div class="paragraph"><p>Obviously something is very very wrong here. 3052.90 Kb to load my minimal homepage. For Comparison for another site running well I get this for my homepage test.</p></div>
 <div class="listingblock">
-<div class="title">Example: Default</div>
+<div class="title">Default</div>
 <div class="content">
 <pre><tt>HomepageTest#test_homepage (19 ms warmup)
         process_time: 26 ms
               memory: 298.79 KB
              objects: 1917</tt></pre>
 </div></div>
-<div class="para"><p>that over a factor of ten difference. Lets look at our flat process time file to see if anything pops out at us.</p></div>
+<div class="paragraph"><p>that over a factor of ten difference. Lets look at our flat process time file to see if anything pops out at us.</p></div>
 <div class="listingblock">
-<div class="title">Example: Process time</div>
+<div class="title">Process time</div>
 <div class="content">
 <pre><tt>20.73      0.39     0.12     0.00     0.27      420  Pathname#cleanpath_aggressive
 17.07      0.14     0.10     0.00     0.04     3186  Pathname#chop_basename
@@ -790,10 +777,10 @@ http://www.gnu.org/software/src-highlite -->
  2.66      0.09     0.02     0.00     0.07      480  Array#each
  2.46      0.01     0.01     0.00     0.00     3606  Regexp#to_s</tt></pre>
 </div></div>
-<div class="para"><p>Yes indeed we seem to have found the problem. Pathname#cleanpath_aggressive is taking nearly a quarter our process time and  Pathname#chop_basename another 17%. From here I do a few more benchmarks to make sure that these processes are slowing down the other pages. They are so now I know what I must do. <strong>If we can get rid of or shorten these processes we can make our pages run much quicker</strong>.</p></div>
-<div class="para"><p>Now both of these are main ruby processes so are goal right now is to find out what other process is calling them. Glancing at our Graph file I see that #cleanpath is calling #cleanpath_aggressive. #cleanpath is being called by String#gsub and from there some html template errors. But my page seems to be rendering fine. why would it be calling template errors. I'm decide to check my object flat file to see if I can find any more information.</p></div>
+<div class="paragraph"><p>Yes indeed we seem to have found the problem. Pathname#cleanpath_aggressive is taking nearly a quarter our process time and  Pathname#chop_basename another 17%. From here I do a few more benchmarks to make sure that these processes are slowing down the other pages. They are so now I know what I must do. <strong>If we can get rid of or shorten these processes we can make our pages run much quicker</strong>.</p></div>
+<div class="paragraph"><p>Now both of these are main ruby processes so are goal right now is to find out what other process is calling them. Glancing at our Graph file I see that #cleanpath is calling #cleanpath_aggressive. #cleanpath is being called by String#gsub and from there some html template errors. But my page seems to be rendering fine. why would it be calling template errors. I&#8217;m decide to check my object flat file to see if I can find any more information.</p></div>
 <div class="listingblock">
-<div class="title">Example: Objects Created</div>
+<div class="title">Objects Created</div>
 <div class="content">
 <pre><tt>20.74  34800.00 12324.00     0.00 22476.00      420  Pathname#cleanpath_aggressive
 16.79  18696.00  9978.00     0.00  8718.00     3186  Pathname#chop_basename
@@ -801,9 +788,9 @@ http://www.gnu.org/software/src-highlite -->
  8.51  41964.00  5059.00     0.00 36905.00     1386  String#gsub
  6.07   3606.00  3606.00     0.00     0.00     3606  Regexp#to_s</tt></pre>
 </div></div>
-<div class="para"><p>nope nothing new here. Lets look at memory usage</p></div>
+<div class="paragraph"><p>nope nothing new here. Lets look at memory usage</p></div>
 <div class="listingblock">
-<div class="title">Example: Memory Consuption</div>
+<div class="title">Memory Consuption</div>
 <div class="content">
 <pre><tt> 40.17   1706.80  1223.70     0.00   483.10     3186  Pathname#chop_basename
  14.92    454.47   454.47     0.00     0.00     3606  Regexp#to_s
@@ -811,7 +798,7 @@ http://www.gnu.org/software/src-highlite -->
   5.08    231.19   154.73     0.00    76.46      420  Pathname#prepend_prefix
   2.34     71.35    71.35     0.00     0.00     1265  String#initialize_copy</tt></pre>
 </div></div>
-<div class="para"><p>Ok so it seems Regexp#to_s is the second costliest process. At this point I try to figure out what could be calling a regular expression cause I very rarely use them. Going over my standard layout I discover at the top.</p></div>
+<div class="paragraph"><p>Ok so it seems Regexp#to_s is the second costliest process. At this point I try to figure out what could be calling a regular expression cause I very rarely use them. Going over my standard layout I discover at the top.</p></div>
 <div class="listingblock">
 <div class="content"><!-- Generator: GNU source-highlight 2.9
 by Lorenzo Bettini
@@ -819,9 +806,8 @@ http://www.lorenzobettini.it
 http://www.gnu.org/software/src-highlite -->
 <pre><tt>&lt;%if request.env["HTTP_USER_AGENT"].match(/Opera/)%&gt;
 &lt;%= stylesheet_link_tag "opera" %&gt;
-&lt;% end %&gt;
-</tt></pre></div></div>
-<div class="para"><p>That's wrong. I mistakenly am using a search function for a simple compare function. Lets fix that.</p></div>
+&lt;% end %&gt;</tt></pre></div></div>
+<div class="paragraph"><p>That&#8217;s wrong. I mistakenly am using a search function for a simple compare function. Lets fix that.</p></div>
 <div class="listingblock">
 <div class="content"><!-- Generator: GNU source-highlight 2.9
 by Lorenzo Bettini
@@ -829,25 +815,24 @@ http://www.lorenzobettini.it
 http://www.gnu.org/software/src-highlite -->
 <pre><tt>&lt;%if request.env["HTTP_USER_AGENT"] =~ /Opera/%&gt;
 &lt;%= stylesheet_link_tag "opera" %&gt;
-&lt;% end %&gt;
-</tt></pre></div></div>
-<div class="para"><p>I'll now try my test again.</p></div>
+&lt;% end %&gt;</tt></pre></div></div>
+<div class="paragraph"><p>I&#8217;ll now try my test again.</p></div>
 <div class="listingblock">
 <div class="content">
 <pre><tt>process_time: 75 ms
               memory: 519.95 KB
              objects: 6537</tt></pre>
 </div></div>
-<div class="para"><p>Much better. The problem has been solved. Now I should have realized earlier due to the String#gsub that my problem had to be with reqexp serch function but such knowledge comes with time. Looking through the mass output data is a skill.</p></div>
+<div class="paragraph"><p>Much better. The problem has been solved. Now I should have realized earlier due to the String#gsub that my problem had to be with reqexp serch function but such knowledge comes with time. Looking through the mass output data is a skill.</p></div>
 </div>
 <h2 id="_get_yourself_a_game_plan">8. Get Yourself a Game Plan</h2>
 <div class="sectionbody">
-<div class="para"><p>You end up dealing with a large amount of data whenever you profile an application. It's crucial to use a rigorous approach to analyzing your application's performance else fail miserably in a vortex of numbers. This leads us to -</p></div>
+<div class="paragraph"><p>You end up dealing with a large amount of data whenever you profile an application. It&#8217;s crucial to use a rigorous approach to analyzing your application&#8217;s performance else fail miserably in a vortex of numbers. This leads us to -</p></div>
 <h3 id="_the_analysis_process">8.1. The Analysis Process</h3>
-<div class="para"><p>I’m going to give an example methodology for conducting your benchmarking and profiling on an application. It is based on your typical scientific method.</p></div>
-<div class="para"><p>For something as complex as Benchmarking you need to take any methodology with a grain of salt but there are some basic strictures that you can depend on.</p></div>
-<div class="para"><p>Formulate a question you need to answer which is simple, tests the smallest measurable thing possible, and is exact. This is typically the hardest part of the experiment. From there some steps that you should follow are.</p></div>
-<div class="ilist"><ul>
+<div class="paragraph"><p>I’m going to give an example methodology for conducting your benchmarking and profiling on an application. It is based on your typical scientific method.</p></div>
+<div class="paragraph"><p>For something as complex as Benchmarking you need to take any methodology with a grain of salt but there are some basic strictures that you can depend on.</p></div>
+<div class="paragraph"><p>Formulate a question you need to answer which is simple, tests the smallest measurable thing possible, and is exact. This is typically the hardest part of the experiment. From there some steps that you should follow are.</p></div>
+<div class="ulist"><ul>
 <li>
 <p>
 Develop a set of variables and processes to measure in order to answer this question!
@@ -857,10 +842,10 @@ Develop a set of variables and processes to measure in order to answer this ques
 <p>
 Profile based on the question and variables. Key problems to avoid when designing this experiment are:
 </p>
-<div class="ilist"><ul>
+<div class="ulist"><ul>
 <li>
 <p>
-Confounding: Test one thing at a time, keep everything the same so you don't poison the data with uncontrolled processes.
+Confounding: Test one thing at a time, keep everything the same so you don&#8217;t poison the data with uncontrolled processes.
 </p>
 </li>
 <li>
@@ -906,18 +891,18 @@ Perform the analysis on the results and determine where to go from there.
 </p>
 </li>
 </ul></div>
-<div class="para"><p>Note: Even though we are using the typical scientific method; developing a hypothesis is not always useful in terms of profiling.</p></div>
+<div class="paragraph"><p>Note: Even though we are using the typical scientific method; developing a hypothesis is not always useful in terms of profiling.</p></div>
 </div>
 <h2 id="_other_profiling_tools">9. Other Profiling Tools</h2>
 <div class="sectionbody">
-<div class="para"><p>There are a lot of great profiling tools out there. Some free, some not so free. This is a sort list detailing some of them.</p></div>
+<div class="paragraph"><p>There are a lot of great profiling tools out there. Some free, some not so free. This is a sort list detailing some of them.</p></div>
 <h3 id="_httperf">9.1. httperf</h3>
-<div class="para"><p><a href="http://www.hpl.hp.com/research/linux/httperf/">http://www.hpl.hp.com/research/linux/httperf/</a></p></div>
-<div class="para"><p>A necessary tool in your arsenal. Very useful for load testing your website.</p></div>
-<div class="para"><p>#TODO write and link to a short article on how to use httperf. Anybody have a good tutorial availble.</p></div>
+<div class="paragraph"><p><a href="http://www.hpl.hp.com/research/linux/httperf/">http://www.hpl.hp.com/research/linux/httperf/</a></p></div>
+<div class="paragraph"><p>A necessary tool in your arsenal. Very useful for load testing your website.</p></div>
+<div class="paragraph"><p>#TODO write and link to a short article on how to use httperf. Anybody have a good tutorial availble.</p></div>
 <h3 id="_rails_analyzer">9.2. Rails Analyzer</h3>
-<div class="para"><p>The Rails Analyzer project contains a collection of tools for Rails. It's open source and pretty speedy. It's not being actively worked on but is still contains some very useful tools.</p></div>
-<div class="ilist"><ul>
+<div class="paragraph"><p>The Rails Analyzer project contains a collection of tools for Rails. It&#8217;s open source and pretty speedy. It&#8217;s not being actively worked on but is still contains some very useful tools.</p></div>
+<div class="ulist"><ul>
 <li>
 <p>
 The Production Log Analyzer examines Rails log files and gives back a report. It also includes action_grep which will give you all log results for a particular action.
@@ -939,24 +924,24 @@ The SQL Dependency Grapher allows you to visualize the frequency of table depend
 </p>
 </li>
 </ul></div>
-<div class="para"><p>Their project homepage can be found at <a href="http://rails-analyzer.rubyforge.org/">http://rails-analyzer.rubyforge.org/</a></p></div>
-<div class="para"><p>The one major caveat is that it needs your log to be in a different format from how rails sets it up specifically SyslogLogger.</p></div>
+<div class="paragraph"><p>Their project homepage can be found at <a href="http://rails-analyzer.rubyforge.org/">http://rails-analyzer.rubyforge.org/</a></p></div>
+<div class="paragraph"><p>The one major caveat is that it needs your log to be in a different format from how rails sets it up specifically SyslogLogger.</p></div>
 <h4 id="_sysloglogger">9.2.1. SyslogLogger</h4>
-<div class="para"><p>SyslogLogger is a Logger work-alike that logs via syslog instead of to a file. You can add SyslogLogger to your Rails production environment to aggregate logs between multiple machines.</p></div>
-<div class="para"><p>More information can be found out at <a href="http://rails-analyzer.rubyforge.org/hacks/classes/SyslogLogger.html">http://rails-analyzer.rubyforge.org/hacks/classes/SyslogLogger.html</a></p></div>
-<div class="para"><p>If you don't have access to your machines root system or just want something a bit easier to implement there is also a module developed by Geoffrey Grosenbach</p></div>
+<div class="paragraph"><p>SyslogLogger is a Logger work-alike that logs via syslog instead of to a file. You can add SyslogLogger to your Rails production environment to aggregate logs between multiple machines.</p></div>
+<div class="paragraph"><p>More information can be found out at <a href="http://rails-analyzer.rubyforge.org/hacks/classes/SyslogLogger.html">http://rails-analyzer.rubyforge.org/hacks/classes/SyslogLogger.html</a></p></div>
+<div class="paragraph"><p>If you don&#8217;t have access to your machines root system or just want something a bit easier to implement there is also a module developed by Geoffrey Grosenbach</p></div>
 <h4 id="_a_hodel_3000_compliant_logger_for_the_rest_of_us">9.2.2. A Hodel 3000 Compliant Logger for the Rest of Us</h4>
-<div class="para"><p>Directions taken from
+<div class="paragraph"><p>Directions taken from
 <a href="http://topfunky.net/svn/plugins/hodel_3000_compliant_logger/lib/hodel_3000_compliant_logger.rb">link to module file</a></p></div>
-<div class="para"><p>Just put the module in your lib directory and  add this to your environment.rb in it's config portion.</p></div>
+<div class="paragraph"><p>Just put the module in your lib directory and  add this to your environment.rb in it&#8217;s config portion.</p></div>
 <div class="listingblock">
 <div class="content">
 <pre><tt>require 'hodel_3000_compliant_logger'
 config.logger = Hodel3000CompliantLogger.new(config.log_path)</tt></pre>
 </div></div>
-<div class="para"><p>It's that simple. Your log output on restart should look like this.</p></div>
+<div class="paragraph"><p>It&#8217;s that simple. Your log output on restart should look like this.</p></div>
 <div class="listingblock">
-<div class="title">Example: Hodel 3000 Example</div>
+<div class="title">Hodel 3000 Example</div>
 <div class="content">
 <pre><tt>Jul 15 11:45:43 matthew-bergmans-macbook-pro-15 rails[16207]:
 Parameters: {"action"=&gt;"shipping", "controller"=&gt;"checkout"}
@@ -985,20 +970,20 @@ Jul 15 11:45:43 matthew-bergmans-macbook-pro-15 rails[16207]:
 Completed in 0.37297 (2 reqs/sec) | Rendering: 0.02971 (7%) | DB: 0.01697 (4%) | 200 OK [https://secure.jeffbooks/checkout/shipping]</tt></pre>
 </div></div>
 <h3 id="_palmist">9.3. Palmist</h3>
-<div class="para"><p>An open source mysql query analyzer. Full featured and easy to work with. Also requires Hodel 3000
+<div class="paragraph"><p>An open source mysql query analyzer. Full featured and easy to work with. Also requires Hodel 3000
 <a href="http://www.flyingmachinestudios.com/projects/">http://www.flyingmachinestudios.com/projects/</a></p></div>
 <h3 id="_new_relic">9.4. New Relic</h3>
-<div class="para"><p><a href="http://www.newrelic.com/">http://www.newrelic.com/</a></p></div>
-<div class="para"><p>Pretty nifty performance tools, pricey though. They do have a basic free
+<div class="paragraph"><p><a href="http://www.newrelic.com/">http://www.newrelic.com/</a></p></div>
+<div class="paragraph"><p>Pretty nifty performance tools, pricey though. They do have a basic free
 service both for when in development and when you put your application into production. Very simple installation and signup.</p></div>
-<div class="para"><p>#TODO more in-depth without being like an advertisement.</p></div>
+<div class="paragraph"><p>#TODO more in-depth without being like an advertisement.</p></div>
 <h4 id="_manage">9.4.1. Manage</h4>
-<div class="para"><p>Like new relic a production monitoring tool.</p></div>
+<div class="paragraph"><p>Like new relic a production monitoring tool.</p></div>
 </div>
 <h2 id="_changelog">10. Changelog</h2>
 <div class="sectionbody">
-<div class="para"><p><a href="http://rails.lighthouseapp.com/projects/16213-rails-guides/tickets/4">Lighthouse ticket</a></p></div>
-<div class="ilist"><ul>
+<div class="paragraph"><p><a href="http://rails.lighthouseapp.com/projects/16213-rails-guides/tickets/4">Lighthouse ticket</a></p></div>
+<div class="ulist"><ul>
 <li>
 <p>
 October 17, 2008: First revision by Pratik
