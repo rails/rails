@@ -586,7 +586,10 @@ module ActionController
         resource.collection_methods.each do |method, actions|
           actions.each do |action|
             [method].flatten.each do |m|
-              map_resource_routes(map, resource, action, "#{resource.path}#{resource.action_separator}#{action}", "#{action}_#{resource.name_prefix}#{resource.plural}", m)
+              action_path = resource.options[:path_names][action] if resource.options[:path_names].is_a?(Hash)
+              action_path ||= action
+
+              map_resource_routes(map, resource, action, "#{resource.path}#{resource.action_separator}#{action_path}", "#{action}_#{resource.name_prefix}#{resource.plural}", m)
             end
           end
         end
