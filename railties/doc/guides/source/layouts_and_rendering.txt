@@ -1022,7 +1022,7 @@ NOTE: In versions of Rails before Rails 2.3, you should use +render \'layouts/ap
 
 That's it. The News views will use the new layout, hiding the top menu and adding a new right menu inside the "content" div.
 
-There are several ways of getting similar results with differents sub-templating schemes using this technique. Note that there is no limit in nesting levels. One can use the +ActionView::render+ method via "+render \'layouts/news\'+" to base a new layout on the News layout.
+There are several ways of getting similar results with differents sub-templating schemes using this technique. Note that there is no limit in nesting levels. One can use the +ActionView::render+ method via +render \'layouts/news\'+ to base a new layout on the News layout.
 
 == Changelog ==
 
