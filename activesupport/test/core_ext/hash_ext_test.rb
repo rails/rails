@@ -287,10 +287,14 @@ class HashExtTest < Test::Unit::TestCase
     # Should return a new hash with only the given keys.
     assert_equal expected, original.slice(:a, :b)
     assert_not_equal expected, original
+  end
+
+  def test_slice_inplace
+    original = { :a => 'x', :b => 'y', :c => 10 }
+    expected = { :c => 10 }
 
     # Should replace the hash with only the given keys.
     assert_equal expected, original.slice!(:a, :b)
-    assert_equal expected, original
   end
 
   def test_slice_with_an_array_key
@@ -300,10 +304,14 @@ class HashExtTest < Test::Unit::TestCase
     # Should return a new hash with only the given keys when given an array key.
     assert_equal expected, original.slice([:a, :b], :c)
     assert_not_equal expected, original
+  end
+
+  def test_slice_inplace_with_an_array_key
+    original = { :a => 'x', :b => 'y', :c => 10, [:a, :b] => "an array key" }
+    expected = { :a => 'x', :b => 'y' }
 
     # Should replace the hash with only the given keys when given an array key.
     assert_equal expected, original.slice!([:a, :b], :c)
-    assert_equal expected, original
   end
 
   def test_slice_with_splatted_keys
@@ -322,11 +330,17 @@ class HashExtTest < Test::Unit::TestCase
       # Should return a new hash with only the given keys.
       assert_equal expected, original.slice(*keys), keys.inspect
       assert_not_equal expected, original
+    end
+  end
 
+  def test_indifferent_slice_inplace
+    original = { :a => 'x', :b => 'y', :c => 10 }.with_indifferent_access
+    expected = { :c => 10 }.with_indifferent_access
+
+    [['a', 'b'], [:a, :b]].each do |keys|
       # Should replace the hash with only the given keys.
       copy = original.dup
       assert_equal expected, copy.slice!(*keys)
-      assert_equal expected, copy
     end
   end
 
