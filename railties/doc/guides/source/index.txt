@@ -3,8 +3,8 @@ Ruby on Rails Guides
 
 These guides are designed to make you immediately productive with Rails, and to help you understand how all of the pieces fit together. There are two different versions of the Guides site, and you should be sure to use the one that applies to your situation:
 
-* .link:http://guides.rubyonrails.org/[Current Release version] - based on Rails 2.2
-* .link :http://guides.rails.info/[Edge Rails version] - based on the Rails 2.3 branch
+* http://guides.rubyonrails.org/[Current Release version] - based on Rails 2.2
+* http://guides.rails.info/[Edge Rails version] - based on the Rails 2.3 branch
 
 WARNING: This page is the result of ongoing http://hackfest.rubyonrails.org/guide[Rails Guides hackfest] and a work in progress.
 
