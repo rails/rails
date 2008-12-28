@@ -267,7 +267,15 @@ ul#navMain {
 					<a href="#_writing_your_own_validation_methods">Writing your own validation methods</a>
 					</li>
 					<li>
-					<a href="#_using_the_tt_errors_tt_collection">Using the <tt>errors</tt> collection</a>
+					<a href="#_manipulating_the_tt_errors_tt_collection">Manipulating the <tt>errors</tt> collection</a>
+					</li>
+					<li>
+					<a href="#_using_the_tt_errors_tt_collection_in_your_view_templates">Using the <tt>errors</tt> collection in your view templates</a>
+						<ul>
+						
+							<li><a href="#_changing_the_way_form_fields_with_errors_are_displayed">Changing the way form fields with errors are displayed</a></li>
+						
+						</ul>
 					</li>
 					<li>
 					<a href="#_callbacks">Callbacks</a>
@@ -781,8 +789,35 @@ http://www.gnu.org/software/src-highlite -->
       discount <span style="color: #990000">&lt;=</span> total_value
   <span style="font-weight: bold"><span style="color: #0000FF">end</span></span>
 <span style="font-weight: bold"><span style="color: #0000FF">end</span></span></tt></pre></div></div>
+<div class="paragraph"><p>You can even create your own validation helpers and reuse them in several different models. Here is an example where we create a custom validation helper to validate the format of fields that represent email addresses:</p></div>
+<div class="listingblock">
+<div class="content"><!-- Generator: GNU source-highlight 2.9
+by Lorenzo Bettini
+http://www.lorenzobettini.it
+http://www.gnu.org/software/src-highlite -->
+<pre><tt><span style="font-weight: bold"><span style="color: #0000FF">module</span></span> ActiveRecord
+  <span style="font-weight: bold"><span style="color: #0000FF">module</span></span> Validations
+    <span style="font-weight: bold"><span style="color: #0000FF">module</span></span> ClassMethods
+      <span style="font-weight: bold"><span style="color: #0000FF">def</span></span> validates_email_format_of<span style="color: #990000">(</span>value<span style="color: #990000">)</span>
+        validates_format_of value<span style="color: #990000">,</span>
+          <span style="color: #990000">:</span>with <span style="color: #990000">=&gt;</span> <span style="color: #FF6600">/\A[\w\._%-]+@[\w\.-]+\.[a-zA-Z]{2,4}\z/</span><span style="color: #990000">,</span>
+          <span style="color: #990000">:</span><span style="font-weight: bold"><span style="color: #0000FF">if</span></span> <span style="color: #990000">=&gt;</span> Proc<span style="color: #990000">.</span>new <span style="color: #FF0000">{</span> <span style="color: #990000">|</span>u<span style="color: #990000">|</span> <span style="color: #990000">!</span>u<span style="color: #990000">.</span>email<span style="color: #990000">.</span>blank? <span style="color: #FF0000">}</span><span style="color: #990000">,</span>
+          <span style="color: #990000">:</span>message <span style="color: #990000">=&gt;</span> <span style="color: #FF0000">"Invalid format for email address"</span>
+      <span style="font-weight: bold"><span style="color: #0000FF">end</span></span>
+    <span style="font-weight: bold"><span style="color: #0000FF">end</span></span>
+  <span style="font-weight: bold"><span style="color: #0000FF">end</span></span>
+<span style="font-weight: bold"><span style="color: #0000FF">end</span></span></tt></pre></div></div>
+<div class="paragraph"><p>The recipe is simple: just create a new validation method inside the <tt>ActiveRecord::Validations::ClassMethods</tt> module. You can put this code in a file inside your application&#8217;s <strong>lib</strong> folder, and then requiring it from your <strong>environment.rb</strong> or any other file inside <strong>config/initializers</strong>. You can use this helper like this:</p></div>
+<div class="listingblock">
+<div class="content"><!-- Generator: GNU source-highlight 2.9
+by Lorenzo Bettini
+http://www.lorenzobettini.it
+http://www.gnu.org/software/src-highlite -->
+<pre><tt><span style="font-weight: bold"><span style="color: #0000FF">class</span></span> Person <span style="color: #990000">&lt;</span> ActiveRecord<span style="color: #990000">::</span>Base
+  validates_email_format_of <span style="color: #990000">:</span>email_address
+<span style="font-weight: bold"><span style="color: #0000FF">end</span></span></tt></pre></div></div>
 </div>
-<h2 id="_using_the_tt_errors_tt_collection">7. Using the <tt>errors</tt> collection</h2>
+<h2 id="_manipulating_the_tt_errors_tt_collection">7. Manipulating the <tt>errors</tt> collection</h2>
 <div class="sectionbody">
 <div class="paragraph"><p>You can do more than just call <tt>valid?</tt> upon your objects based on the existance of the <tt>errors</tt> collection. Here is a list of the other available methods that you can use to manipulate errors or ask for an object&#8217;s state.</p></div>
 <div class="ulist"><ul>
@@ -895,12 +930,130 @@ p<span style="color: #990000">.</span>save <span style="font-style: italic"><spa
 p<span style="color: #990000">.</span>errors<span style="color: #990000">.</span>on<span style="color: #990000">(:</span>name<span style="color: #990000">)</span>
 <span style="font-style: italic"><span style="color: #9A1900"># =&gt; ["can't be blank", "is too short (minimum is 3 characters)"]</span></span></tt></pre></div></div>
 </div>
-<h2 id="_callbacks">8. Callbacks</h2>
+<h2 id="_using_the_tt_errors_tt_collection_in_your_view_templates">8. Using the <tt>errors</tt> collection in your view templates</h2>
+<div class="sectionbody">
+<div class="paragraph"><p>Rails provides built-in helpers to display the error messages of your models in your view templates. It may be useful to display those messages when you&#8217;re trying to create or edit a record and validation fails. If you&#8217;re using the <tt>form_for</tt> helper to create a form, you can use it to call the <tt>error_messages</tt> method, which creates a <tt>div</tt> element containing all the error messages for the model associated with the form. Here is a simple example, using a <tt>Product</tt> model and the view template generated with the scaffold script.</p></div>
+<div class="listingblock">
+<div class="content"><!-- Generator: GNU source-highlight 2.9
+by Lorenzo Bettini
+http://www.lorenzobettini.it
+http://www.gnu.org/software/src-highlite -->
+<pre><tt><span style="font-weight: bold"><span style="color: #0000FF">class</span></span> Product <span style="color: #990000">&lt;</span> ActiveRecord<span style="color: #990000">::</span>Base
+  validates_presence_of <span style="color: #990000">:</span>description<span style="color: #990000">,</span> <span style="color: #990000">:</span>value
+  validates_numericality_of <span style="color: #990000">:</span>value<span style="color: #990000">,</span> <span style="color: #990000">:</span>allow_nil <span style="color: #990000">=&gt;</span> <span style="font-weight: bold"><span style="color: #0000FF">true</span></span>
+<span style="font-weight: bold"><span style="color: #0000FF">end</span></span></tt></pre></div></div>
+<div class="listingblock">
+<div class="content">
+<pre><tt>&lt;% form_for(@product) do |f| %&gt;
+  &lt;%= f.error_messages %&gt;
+  &lt;p&gt;
+    &lt;%= f.label :description %&gt;&lt;br /&gt;
+    &lt;%= f.text_field :description %&gt;
+  &lt;/p&gt;
+  &lt;p&gt;
+    &lt;%= f.label :value %&gt;&lt;br /&gt;
+    &lt;%= f.text_field :value %&gt;
+  &lt;/p&gt;
+  &lt;p&gt;
+    &lt;%= f.submit "Create" %&gt;
+  &lt;/p&gt;
+&lt;% end %&gt;</tt></pre>
+</div></div>
+<div class="imageblock">
+<div class="content">
+<img src="images/error_messages.png" alt="Error messages" title="Error messages"/>
+</div>
+</div>
+<div class="paragraph"><p>You can also use the <tt>error_messages_for</tt> helper to display the error messages of a model assigned to a view template. It&#8217;s very similar to the previous example and will achieve exactly the same result.</p></div>
+<div class="listingblock">
+<div class="content">
+<pre><tt>&lt;%= error_messages_for :product %&gt;</tt></pre>
+</div></div>
+<div class="paragraph"><p>The displayed text for each error message will always be formed by the capitalized name of the attribute that holds the error, followed by the error message itself.</p></div>
+<div class="paragraph"><p>Both the <tt>form.error_messages</tt> and the <tt>error_messages_for</tt> helpers accept options that let you customize the <tt>div</tt> element that holds the messages, changing the header text, the message below the header text and the tag used for the element that defines the header.</p></div>
+<div class="listingblock">
+<div class="content">
+<pre><tt>&lt;%= f.error_messages :header_message =&gt; "Invalid product!",
+  :message =&gt; "You'll need to fix the following fields:",
+  :header_tag =&gt; :h3 %&gt;</tt></pre>
+</div></div>
+<div class="paragraph"><p>Which results in the following content</p></div>
+<div class="imageblock">
+<div class="content">
+<img src="images/customized_error_messages.png" alt="Customized error messages" title="Customized error messages"/>
+</div>
+</div>
+<div class="paragraph"><p>If you pass <tt>nil</tt> to any of these options, it will get rid of the respective section of the <tt>div</tt>.</p></div>
+<div class="paragraph"><p>It&#8217;s also possible to change the CSS classes used by the <tt>error_messages</tt> helper. These classes are automatically defined at the <strong>scaffold.css</strong> file, generated by the scaffold script. If you&#8217;re not using scaffolding, you can still define those CSS classes at your CSS files. Here is a list of the default CSS classes.</p></div>
+<div class="ulist"><ul>
+<li>
+<p>
+<tt>.fieldWithErrors</tt> - Style for the form fields with errors.
+</p>
+</li>
+<li>
+<p>
+<tt>#errorExplanation</tt> - Style for the <tt>div</tt> element with the error messages.
+</p>
+</li>
+<li>
+<p>
+<tt>#errorExplanation h2</tt> - Style for the header of the <tt>div</tt> element.
+</p>
+</li>
+<li>
+<p>
+<tt>#errorExplanation p</tt> - Style for the paragraph that holds the message that appears right below the header of the <tt>div</tt> element.
+</p>
+</li>
+<li>
+<p>
+<tt>#errorExplanation ul li</tt> - Style for the list of error messages.
+</p>
+</li>
+</ul></div>
+<h3 id="_changing_the_way_form_fields_with_errors_are_displayed">8.1. Changing the way form fields with errors are displayed</h3>
+<div class="paragraph"><p>By default, form fields with errors are displayed enclosed by a <tt>div</tt> element with the <tt>fieldWithErrors</tt> CSS class. However, we can write some Ruby code to override the way Rails treats those fields by default. Here is a simple example where we change the Rails behaviour to always display the error messages in front of each of the form fields with errors. The error messages will be enclosed by a <tt>span</tt> element with a <tt>validation-error</tt> CSS class.</p></div>
+<div class="listingblock">
+<div class="content"><!-- Generator: GNU source-highlight 2.9
+by Lorenzo Bettini
+http://www.lorenzobettini.it
+http://www.gnu.org/software/src-highlite -->
+<pre><tt>ActionView<span style="color: #990000">::</span>Base<span style="color: #990000">.</span>field_error_proc <span style="color: #990000">=</span> Proc<span style="color: #990000">.</span>new <span style="font-weight: bold"><span style="color: #0000FF">do</span></span> <span style="color: #990000">|</span>html_tag<span style="color: #990000">,</span> instance<span style="color: #990000">|</span>
+  <span style="font-weight: bold"><span style="color: #0000FF">if</span></span> instance<span style="color: #990000">.</span>error_message<span style="color: #990000">.</span>kind_of?<span style="color: #990000">(</span>Array<span style="color: #990000">)</span>
+    <span style="color: #990000">%(#</span><span style="color: #FF0000">{</span>html_tag<span style="color: #FF0000">}</span><span style="color: #FF0000">&lt;span class='validation-error'&gt;</span><span style="color: #990000">&amp;</span>nbsp<span style="color: #990000">;</span>
+      <span style="color: #990000">#</span><span style="color: #FF0000">{</span>instance<span style="color: #990000">.</span>error_message<span style="color: #990000">.</span>join<span style="color: #990000">(</span><span style="color: #FF0000">','</span><span style="color: #990000">)</span><span style="color: #FF0000">}</span><span style="color: #FF0000">&lt;/span&gt;</span><span style="color: #990000">)</span>
+  <span style="font-weight: bold"><span style="color: #0000FF">else</span></span>
+    <span style="color: #990000">%(#</span><span style="color: #FF0000">{</span>html_tag<span style="color: #FF0000">}</span><span style="color: #FF0000">&lt;span class='validation-error'&gt;</span><span style="color: #990000">&amp;</span>nbsp<span style="color: #990000">;</span>
+      <span style="color: #990000">#</span><span style="color: #FF0000">{</span>instance<span style="color: #990000">.</span>error_message<span style="color: #FF0000">}</span><span style="color: #FF0000">&lt;/span&gt;</span><span style="color: #990000">)</span>
+  <span style="font-weight: bold"><span style="color: #0000FF">end</span></span>
+<span style="font-weight: bold"><span style="color: #0000FF">end</span></span></tt></pre></div></div>
+<div class="paragraph"><p>This will result in something like the following content:</p></div>
+<div class="imageblock">
+<div class="content">
+<img src="images/validation_error_messages.png" alt="Validation error messages" title="Validation error messages"/>
+</div>
+</div>
+<div class="paragraph"><p>The way form fields with errors are treated is defined by the <tt>ActionView::Base.field_error_proc</tt> Ruby Proc. This Proc receives two parameters:</p></div>
+<div class="ulist"><ul>
+<li>
+<p>
+A string with the HTML tag
+</p>
+</li>
+<li>
+<p>
+An object of the <tt>ActionView::Helpers::InstanceTag</tt> class.
+</p>
+</li>
+</ul></div>
+</div>
+<h2 id="_callbacks">9. Callbacks</h2>
 <div class="sectionbody">
 <div class="paragraph"><p>Callbacks are methods that get called at certain moments of an object&#8217;s lifecycle. With callbacks it&#8217;s possible to write code that will run whenever an Active Record object is created, saved, updated, deleted or loaded from the database.</p></div>
-<h3 id="_callbacks_registration">8.1. Callbacks registration</h3>
+<h3 id="_callbacks_registration">9.1. Callbacks registration</h3>
 <div class="paragraph"><p>In order to use the available callbacks, you need to registrate them. There are two ways of doing that.</p></div>
-<h3 id="_registering_callbacks_by_overriding_the_callback_methods">8.2. Registering callbacks by overriding the callback methods</h3>
+<h3 id="_registering_callbacks_by_overriding_the_callback_methods">9.2. Registering callbacks by overriding the callback methods</h3>
 <div class="paragraph"><p>You can specify the callback method directly, by overriding it. Let&#8217;s see how it works using the <tt>before_validation</tt> callback, which will surprisingly run right before any validation is done.</p></div>
 <div class="listingblock">
 <div class="content"><!-- Generator: GNU source-highlight 2.9
@@ -917,7 +1070,7 @@ http://www.gnu.org/software/src-highlite -->
     <span style="font-weight: bold"><span style="color: #0000FF">end</span></span>
   <span style="font-weight: bold"><span style="color: #0000FF">end</span></span>
 <span style="font-weight: bold"><span style="color: #0000FF">end</span></span></tt></pre></div></div>
-<h3 id="_registering_callbacks_by_using_macro_style_class_methods">8.3. Registering callbacks by using macro-style class methods</h3>
+<h3 id="_registering_callbacks_by_using_macro_style_class_methods">9.3. Registering callbacks by using macro-style class methods</h3>
 <div class="paragraph"><p>The other way you can register a callback method is by implementing it as an ordinary method, and then using a macro-style class method to register it as a callback. The last example could be written like that:</p></div>
 <div class="listingblock">
 <div class="content"><!-- Generator: GNU source-highlight 2.9
@@ -969,10 +1122,10 @@ Readability, since your callback declarations will live at the beggining of your
 </tr></table>
 </div>
 </div>
-<h2 id="_available_callbacks">9. Available callbacks</h2>
+<h2 id="_available_callbacks">10. Available callbacks</h2>
 <div class="sectionbody">
 <div class="paragraph"><p>Here is a list with all the available Active Record callbacks, listed in the same order in which they will get called during the respective operations.</p></div>
-<h3 id="_callbacks_called_both_when_creating_or_updating_a_record">9.1. Callbacks called both when creating or updating a record.</h3>
+<h3 id="_callbacks_called_both_when_creating_or_updating_a_record">10.1. Callbacks called both when creating or updating a record.</h3>
 <div class="ulist"><ul>
 <li>
 <p>
@@ -1000,7 +1153,7 @@ Readability, since your callback declarations will live at the beggining of your
 </p>
 </li>
 </ul></div>
-<h3 id="_callbacks_called_only_when_creating_a_new_record">9.2. Callbacks called only when creating a new record.</h3>
+<h3 id="_callbacks_called_only_when_creating_a_new_record">10.2. Callbacks called only when creating a new record.</h3>
 <div class="ulist"><ul>
 <li>
 <p>
@@ -1028,7 +1181,7 @@ Readability, since your callback declarations will live at the beggining of your
 </p>
 </li>
 </ul></div>
-<h3 id="_callbacks_called_only_when_updating_an_existing_record">9.3. Callbacks called only when updating an existing record.</h3>
+<h3 id="_callbacks_called_only_when_updating_an_existing_record">10.3. Callbacks called only when updating an existing record.</h3>
 <div class="ulist"><ul>
 <li>
 <p>
@@ -1056,7 +1209,7 @@ Readability, since your callback declarations will live at the beggining of your
 </p>
 </li>
 </ul></div>
-<h3 id="_callbacks_called_when_removing_a_record_from_the_database">9.4. Callbacks called when removing a record from the database.</h3>
+<h3 id="_callbacks_called_when_removing_a_record_from_the_database">10.4. Callbacks called when removing a record from the database.</h3>
 <div class="ulist"><ul>
 <li>
 <p>
@@ -1075,16 +1228,16 @@ Readability, since your callback declarations will live at the beggining of your
 </li>
 </ul></div>
 <div class="paragraph"><p>The <tt>before_destroy</tt> and <tt>after_destroy</tt> callbacks will only be called if you delete the model using either the <tt>destroy</tt> instance method or one of the <tt>destroy</tt> or <tt>destroy_all</tt> class methods of your Active Record class. If you use <tt>delete</tt> or <tt>delete_all</tt> no callback operations will run, since Active Record will not instantiate any objects, accessing the records to be deleted directly in the database.</p></div>
-<h3 id="_the_tt_after_initialize_tt_and_tt_after_find_tt_callbacks">9.5. The <tt>after_initialize</tt> and <tt>after_find</tt> callbacks</h3>
+<h3 id="_the_tt_after_initialize_tt_and_tt_after_find_tt_callbacks">10.5. The <tt>after_initialize</tt> and <tt>after_find</tt> callbacks</h3>
 <div class="paragraph"><p>The <tt>after_initialize</tt> callback will be called whenever an Active Record object is instantiated, either by direcly using <tt>new</tt> or when a record is loaded from the database. It can be useful to avoid the need to directly override your Active Record <tt>initialize</tt> method.</p></div>
 <div class="paragraph"><p>The <tt>after_find</tt> callback will be called whenever Active Record loads a record from the database. When used together with <tt>after_initialize</tt> it will run first, since Active Record will first read the record from the database and them create the model object that will hold it.</p></div>
 <div class="paragraph"><p>The <tt>after_initialize</tt> and <tt>after_find</tt> callbacks are a bit different from the others, since the only way to register those callbacks is by defining them as methods. If you try to register <tt>after_initialize</tt> or <tt>after_find</tt> using macro-style class methods, they will just be ignored. This behaviour is due to performance reasons, since <tt>after_initialize</tt> and <tt>after_find</tt> will both be called for each record found in the database, significantly slowing down the queries.</p></div>
 </div>
-<h2 id="_halting_execution">10. Halting Execution</h2>
+<h2 id="_halting_execution">11. Halting Execution</h2>
 <div class="sectionbody">
 <div class="paragraph"><p>As you start registering new callbacks for your models, they will be queued for execution. This queue will include all your model&#8217;s validations, the registered callbacks and the database operation to be executed. However, if at any moment one of the <tt>before_create</tt>, <tt>before_save</tt>, <tt>before_update</tt> or <tt>before_destroy</tt> callback methods returns a boolean <tt>false</tt> (not <tt>nil</tt>) value, this execution chain will be halted and the desired operation will not complete: your model will not get persisted in the database, or your records will not get deleted and so on.</p></div>
 </div>
-<h2 id="_callback_classes">11. Callback classes</h2>
+<h2 id="_callback_classes">12. Callback classes</h2>
 <div class="sectionbody">
 <div class="paragraph"><p>Sometimes the callback methods that you&#8217;ll write will be useful enough to be reused at other models. Active Record makes it possible to create classes that encapsulate the callback methods, so it becomes very easy to reuse them.</p></div>
 <div class="paragraph"><p>Here&#8217;s an example where we create a class with a after_destroy callback for a PictureFile model.</p></div>
@@ -1129,7 +1282,7 @@ http://www.gnu.org/software/src-highlite -->
 <span style="font-weight: bold"><span style="color: #0000FF">end</span></span></tt></pre></div></div>
 <div class="paragraph"><p>You can declare as many callbacks as you want inside your callback classes.</p></div>
 </div>
-<h2 id="_observers">12. Observers</h2>
+<h2 id="_observers">13. Observers</h2>
 <div class="sectionbody">
 <div class="paragraph"><p>Active Record callbacks are a powerful feature, but they can pollute your model implementation with code that&#8217;s not directly related to the model&#8217;s purpose. In object-oriented software, it&#8217;s always a good idea to design your classes with a single responsability in the whole system. For example, it wouldn&#8217;t make much sense to have a <tt>User</tt> model with a method that writes data about a login attempt to a log file. Whenever you&#8217;re using callbacks to write code that&#8217;s not directly related to your model class purposes, it may be a good moment to create an Observer.</p></div>
 <div class="paragraph"><p>An Active Record Observer is an object that links itself to a model and register it&#8217;s methods for callbacks. Your model&#8217;s implementation remain clean, while you can reuse the code in the Observer to add behaviuor to more than one model class. Ok, you may say that we can also do that using callback classes, but it would still force us to add code to our model&#8217;s implementation.</p></div>
@@ -1155,7 +1308,7 @@ http://www.gnu.org/software/src-highlite -->
 <pre><tt><span style="font-weight: bold"><span style="color: #0000FF">class</span></span> Auditor <span style="color: #990000">&lt;</span> ActiveRecord<span style="color: #990000">::</span>Observer
   observe User<span style="color: #990000">,</span> Registration<span style="color: #990000">,</span> Invoice
 <span style="font-weight: bold"><span style="color: #0000FF">end</span></span></tt></pre></div></div>
-<h3 id="_registering_observers">12.1. Registering observers</h3>
+<h3 id="_registering_observers">13.1. Registering observers</h3>
 <div class="paragraph"><p>If you payed attention, you may be wondering where Active Record Observers are referenced in our applications, so they get instantiate and begin to interact with our models. For observers to work we need to register them somewhere. The usual place to do that is in our application&#8217;s <strong>config/environment.rb</strong> file. In this file there is a commented out line where we can define the observers that our application should load at start-up.</p></div>
 <div class="listingblock">
 <div class="content"><!-- Generator: GNU source-highlight 2.9
@@ -1166,10 +1319,10 @@ http://www.gnu.org/software/src-highlite -->
 config<span style="color: #990000">.</span>active_record<span style="color: #990000">.</span>observers <span style="color: #990000">=</span> <span style="color: #990000">:</span>registration_observer<span style="color: #990000">,</span> <span style="color: #990000">:</span>auditor</tt></pre></div></div>
 <div class="paragraph"><p>You can uncomment the line with <tt>config.active_record.observers</tt> and change the symbols for the name of the observers that should be registered.</p></div>
 <div class="paragraph"><p>It&#8217;s also possible to register callbacks in any of the files living at <strong>config/environments/</strong>, if you want an observer to work only in a specific environment. There is not a <tt>config.active_record.observers</tt> line at any of those files, but you can simply add it.</p></div>
-<h3 id="_where_to_put_the_observers_source_files">12.2. Where to put the observers' source files</h3>
+<h3 id="_where_to_put_the_observers_source_files">13.2. Where to put the observers' source files</h3>
 <div class="paragraph"><p>By convention, you should always save your observers' source files inside <strong>app/models</strong>.</p></div>
 </div>
-<h2 id="_changelog">13. Changelog</h2>
+<h2 id="_changelog">14. Changelog</h2>
 <div class="sectionbody">
 <div class="paragraph"><p><a href="http://rails.lighthouseapp.com/projects/16213/tickets/26-active-record-validations-and-callbacks">http://rails.lighthouseapp.com/projects/16213/tickets/26-active-record-validations-and-callbacks</a></p></div>
 </div>

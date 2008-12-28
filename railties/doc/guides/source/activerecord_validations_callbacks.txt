@@ -426,7 +426,7 @@ module ActiveRecord
         validates_format_of value,
           :with => /\A[\w\._%-]+@[\w\.-]+\.[a-zA-Z]{2,4}\z/,
           :if => Proc.new { |u| !u.email.blank? },
-          :message => "Formato de email incorreto"
+          :message => "Invalid format for email address"
       end
     end
   end
