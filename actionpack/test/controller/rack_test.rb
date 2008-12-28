@@ -4,7 +4,7 @@ class BaseRackTest < Test::Unit::TestCase
   def setup
     @env = {
       "HTTP_MAX_FORWARDS" => "10",
-      "SERVER_NAME" => "glu.ttono.us:8007",
+      "SERVER_NAME" => "glu.ttono.us",
       "FCGI_ROLE" => "RESPONDER",
       "AUTH_TYPE" => "Basic",
       "HTTP_X_FORWARDED_HOST" => "glu.ttono.us",
@@ -145,7 +145,7 @@ class RackRequestTest < BaseRackTest
     assert_equal "kevin", @request.remote_user
     assert_equal :get, @request.request_method
     assert_equal "/dispatch.fcgi", @request.script_name
-    assert_equal "glu.ttono.us:8007", @request.server_name
+    assert_equal "glu.ttono.us", @request.server_name
     assert_equal 8007, @request.server_port
     assert_equal "HTTP/1.1", @request.server_protocol
     assert_equal "lighttpd", @request.server_software
