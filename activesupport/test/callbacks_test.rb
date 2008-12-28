@@ -53,10 +53,41 @@ class Person < Record
 end
 
 class ConditionalPerson < Record
+  # proc
   before_save Proc.new { |r| r.history << [:before_save, :proc] }, :if => Proc.new { |r| true }
   before_save Proc.new { |r| r.history << "b00m" }, :if => Proc.new { |r| false }
   before_save Proc.new { |r| r.history << [:before_save, :proc] }, :unless => Proc.new { |r| false }
   before_save Proc.new { |r| r.history << "b00m" }, :unless => Proc.new { |r| true }
+  # symbol
+  before_save Proc.new { |r| r.history << [:before_save, :symbol] }, :if => :yes
+  before_save Proc.new { |r| r.history << "b00m" }, :if => :no
+  before_save Proc.new { |r| r.history << [:before_save, :symbol] }, :unless => :no
+  before_save Proc.new { |r| r.history << "b00m" }, :unless => :yes
+  # string
+  before_save Proc.new { |r| r.history << [:before_save, :string] }, :if => 'yes'
+  before_save Proc.new { |r| r.history << "b00m" }, :if => 'no'
+  before_save Proc.new { |r| r.history << [:before_save, :string] }, :unless => 'no'
+  before_save Proc.new { |r| r.history << "b00m" }, :unless => 'yes'
+  # Array with conditions
+  before_save Proc.new { |r| r.history << [:before_save, :symbol_array] }, :if => [:yes, :other_yes]
+  before_save Proc.new { |r| r.history << "b00m" }, :if => [:yes, :no]
+  before_save Proc.new { |r| r.history << [:before_save, :symbol_array] }, :unless => [:no, :other_no]
+  before_save Proc.new { |r| r.history << "b00m" }, :unless => [:yes, :no]
+  # Combined if and unless
+  before_save Proc.new { |r| r.history << [:before_save, :combined_symbol] }, :if => :yes, :unless => :no
+  before_save Proc.new { |r| r.history << "b00m" }, :if => :yes, :unless => :yes
+  # Array with different types of conditions
+  before_save Proc.new { |r| r.history << [:before_save, :symbol_proc_string_array] }, :if => [:yes, Proc.new { |r| true }, 'yes']
+  before_save Proc.new { |r| r.history << "b00m" }, :if => [:yes, Proc.new { |r| true }, 'no']
+  # Array with different types of conditions comibned if and unless
+  before_save Proc.new { |r| r.history << [:before_save, :combined_symbol_proc_string_array] },
+              :if => [:yes, Proc.new { |r| true }, 'yes'], :unless => [:no, 'no']
+  before_save Proc.new { |r| r.history << "b00m" }, :if => [:yes, Proc.new { |r| true }, 'no'], :unless => [:no, 'no']
+
+  def yes; true; end
+  def other_yes; true; end
+  def no; false; end
+  def other_no; false; end
 
   def save
     run_callbacks(:before_save)
@@ -90,7 +121,16 @@ class ConditionalCallbackTest < Test::Unit::TestCase
     person.save
     assert_equal [
       [:before_save, :proc],
-      [:before_save, :proc]
+      [:before_save, :proc],
+      [:before_save, :symbol],
+      [:before_save, :symbol],
+      [:before_save, :string],
+      [:before_save, :string],
+      [:before_save, :symbol_array],
+      [:before_save, :symbol_array],
+      [:before_save, :combined_symbol],
+      [:before_save, :symbol_proc_string_array],
+      [:before_save, :combined_symbol_proc_string_array]
     ], person.history
   end
 end
