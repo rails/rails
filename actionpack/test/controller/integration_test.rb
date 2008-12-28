@@ -8,7 +8,25 @@ class SessionTest < Test::Unit::TestCase
   }
 
   def setup
+    @credentials = {
+      :username => "username",
+      :realm    => "MyApp",
+      :nonce    => ActionController::HttpAuthentication::Digest.nonce("session_id"),
+      :qop      => "auth",
+      :nc       => "00000001",
+      :cnonce   => "0a4f113b",
+      :opaque   => ActionController::HttpAuthentication::Digest.opaque("session_id"),
+      :uri      => "/index"
+    }
+
     @session = ActionController::Integration::Session.new(StubApp)
+    @session.nonce = @credentials[:nonce]
+    @session.opaque = @credentials[:opaque]
+    @session.realm = @credentials[:realm]
+  end
+
+  def encoded_credentials(method)
+    ActionController::HttpAuthentication::Digest.encode_credentials(method, @credentials, "password")
   end
 
   def test_https_bang_works_and_sets_truth_by_default
@@ -131,6 +149,76 @@ class SessionTest < Test::Unit::TestCase
     @session.expects(:process).with(:head,path,params,headers)
     @session.head(path,params,headers)
   end
+
+  def test_get_with_basic 
+    path = "/index"; params = "blah"; headers = {:location => 'blah'} 
+    expected_headers = headers.merge(:authorization => "Basic dXNlcm5hbWU6cGFzc3dvcmQ=\n")  
+    @session.expects(:process).with(:get,path,params,expected_headers) 
+    @session.get_with_basic(path,params,headers,'username','password') 
+  end 
+ 
+  def test_post_with_basic 
+    path = "/index"; params = "blah"; headers = {:location => 'blah'} 
+    expected_headers = headers.merge(:authorization => "Basic dXNlcm5hbWU6cGFzc3dvcmQ=\n")  
+    @session.expects(:process).with(:post,path,params,expected_headers) 
+    @session.post_with_basic(path,params,headers,'username','password') 
+  end 
+ 
+  def test_put_with_basic 
+    path = "/index"; params = "blah"; headers = {:location => 'blah'} 
+    expected_headers = headers.merge(:authorization => "Basic dXNlcm5hbWU6cGFzc3dvcmQ=\n")  
+    @session.expects(:process).with(:put,path,params,expected_headers) 
+    @session.put_with_basic(path,params,headers,'username','password') 
+  end 
+ 
+  def test_delete_with_basic 
+    path = "/index"; params = "blah"; headers = {:location => 'blah'} 
+    expected_headers = headers.merge(:authorization => "Basic dXNlcm5hbWU6cGFzc3dvcmQ=\n")  
+    @session.expects(:process).with(:delete,path,params,expected_headers) 
+    @session.delete_with_basic(path,params,headers,'username','password') 
+  end 
+ 
+  def test_head_with_basic 
+    path = "/index"; params = "blah"; headers = {:location => 'blah'} 
+    expected_headers = headers.merge(:authorization => "Basic dXNlcm5hbWU6cGFzc3dvcmQ=\n")  
+    @session.expects(:process).with(:head,path,params,expected_headers) 
+    @session.head_with_basic(path,params,headers,'username','password') 
+  end 
+ 
+  def test_get_with_digest 
+    path = "/index"; params = "blah"; headers = {:location => 'blah'} 
+    expected_headers = headers.merge(:authorization => encoded_credentials(:get))
+    @session.expects(:process).with(:get,path,params,expected_headers) 
+    @session.get_with_digest(path,params,headers,'username','password') 
+  end 
+ 
+  def test_post_with_digest 
+    path = "/index"; params = "blah"; headers = {:location => 'blah'} 
+    expected_headers = headers.merge(:authorization => encoded_credentials(:post))
+    @session.expects(:process).with(:post,path,params,expected_headers) 
+    @session.post_with_digest(path,params,headers,'username','password') 
+  end 
+ 
+  def test_put_with_digest 
+    path = "/index"; params = "blah"; headers = {:location => 'blah'} 
+    expected_headers = headers.merge(:authorization => encoded_credentials(:put)) 
+    @session.expects(:process).with(:put,path,params,expected_headers) 
+    @session.put_with_digest(path,params,headers,'username','password') 
+  end 
+ 
+  def test_delete_with_digest 
+    path = "/index"; params = "blah"; headers = {:location => 'blah'} 
+    expected_headers = headers.merge(:authorization => encoded_credentials(:delete))
+    @session.expects(:process).with(:delete,path,params,expected_headers) 
+    @session.delete_with_digest(path,params,headers,'username','password') 
+  end 
+ 
+  def test_head_with_digest 
+    path = "/index"; params = "blah"; headers = {:location => 'blah'} 
+    expected_headers = headers.merge(:authorization => encoded_credentials(:head)) 
+    @session.expects(:process).with(:head,path,params,expected_headers) 
+    @session.head_with_digest(path,params,headers,'username','password') 
+  end 
 
   def test_xml_http_request_get
     path = "/index"; params = "blah"; headers = {:location => 'blah'}
