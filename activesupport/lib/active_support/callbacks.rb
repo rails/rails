@@ -209,21 +209,21 @@ module ActiveSupport
     module ClassMethods
       def define_callbacks(*callbacks)
         callbacks.each do |callback|
-          class_eval <<-"end_eval"
-            def self.#{callback}(*methods, &block)
-              callbacks = CallbackChain.build(:#{callback}, *methods, &block)
-              (@#{callback}_callbacks ||= CallbackChain.new).concat callbacks
-            end
+          class_eval <<-"end_eval", __FILE__, __LINE__ + 1
+            def self.#{callback}(*methods, &block)                                                 # def self.validate_on_create(*methods, &block)
+              callbacks = CallbackChain.build(:#{callback}, *methods, &block)                      #   callbacks = CallbackChain.build(:validate_on_create, *methods, &block)
+              (@#{callback}_callbacks ||= CallbackChain.new).concat callbacks                      #   (@validate_on_create_callbacks ||= CallbackChain.new).concat callbacks
+            end                                                                                    # end
 
-            def self.#{callback}_callback_chain
-              @#{callback}_callbacks ||= CallbackChain.new
-
-              if superclass.respond_to?(:#{callback}_callback_chain)
-                CallbackChain.new(superclass.#{callback}_callback_chain + @#{callback}_callbacks)
-              else
-                @#{callback}_callbacks
-              end
-            end
+            def self.#{callback}_callback_chain                                                    # def self.validate_on_create_callback_chain
+              @#{callback}_callbacks ||= CallbackChain.new                                         #   @validate_on_create_callbacks ||= CallbackChain.new
+                                                                                                   #
+              if superclass.respond_to?(:#{callback}_callback_chain)                               #   if superclass.respond_to?(:validate_on_create_callback_chain)  
+                CallbackChain.new(superclass.#{callback}_callback_chain + @#{callback}_callbacks)  #     CallbackChain.new(superclass.validate_on_create_callback_chain + @validate_on_create_callbacks)
+              else                                                                                 #   else
+                @#{callback}_callbacks                                                             #     @validate_on_create_callbacks
+              end                                                                                  #   end
+            end                                                                                    # end
           end_eval
         end
       end

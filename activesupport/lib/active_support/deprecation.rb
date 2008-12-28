@@ -89,11 +89,13 @@ module ActiveSupport
         method_names = method_names + options.keys
         method_names.each do |method_name|
           alias_method_chain(method_name, :deprecation) do |target, punctuation|
-            class_eval(<<-EOS, __FILE__, __LINE__)
-              def #{target}_with_deprecation#{punctuation}(*args, &block)
-                ::ActiveSupport::Deprecation.warn(self.class.deprecated_method_warning(:#{method_name}, #{options[method_name].inspect}), caller)
-                #{target}_without_deprecation#{punctuation}(*args, &block)
-              end
+            class_eval(<<-EOS, __FILE__, __LINE__ + 1)
+              def #{target}_with_deprecation#{punctuation}(*args, &block)                                 # def multi_with_reprecation(*args, &block)
+                ::ActiveSupport::Deprecation.warn(                                                        #   ::ActiveSupport::Deprecation.warn(
+                  self.class.deprecated_method_warning(:#{method_name}, #{options[method_name].inspect}), #     self.class.deprecated_method_warning(:multi, "this method is deprecated, blah, blah, blah")
+                caller)                                                                                   #   caller)
+                #{target}_without_deprecation#{punctuation}(*args, &block)                                #   multi_without_deprecation(*args, &block)
+              end                                                                                         # end
             EOS
           end
         end

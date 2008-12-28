@@ -14,18 +14,18 @@ class Module
   def mattr_reader(*syms)
     syms.each do |sym|
       next if sym.is_a?(Hash)
-      class_eval(<<-EOS, __FILE__, __LINE__)
-        unless defined? @@#{sym}
-          @@#{sym} = nil
-        end
+      class_eval(<<-EOS, __FILE__, __LINE__ + 1)
+        unless defined? @@#{sym} # unless defined? @@property
+          @@#{sym} = nil         #   @@ property = nil
+        end                      # end
         
-        def self.#{sym}
-          @@#{sym}
-        end
+        def self.#{sym}          # def self.property
+          @@#{sym}               #   @@property
+        end                      # end
 
-        def #{sym}
-          @@#{sym}
-        end
+        def #{sym}               # def property
+          @@#{sym}               #   @@property
+        end                      # end
       EOS
     end
   end
@@ -33,19 +33,19 @@ class Module
   def mattr_writer(*syms)
     options = syms.extract_options!
     syms.each do |sym|
-      class_eval(<<-EOS, __FILE__, __LINE__)
-        unless defined? @@#{sym}
-          @@#{sym} = nil
-        end
-        
-        def self.#{sym}=(obj)
-          @@#{sym} = obj
-        end
-        
-        #{"
-        def #{sym}=(obj)
-          @@#{sym} = obj
-        end
+      class_eval(<<-EOS, __FILE__, __LINE__ + 1)
+        unless defined? @@#{sym} # unless defined? @@property
+          @@#{sym} = nil         #   @@ property = nil
+        end                      # end
+                                 
+        def self.#{sym}=(obj)    # def self.property=(obj)
+          @@#{sym} = obj         #   @@property = obj
+        end                      # end
+                                 
+        #{"                      
+        def #{sym}=(obj)         # def property=(obj)
+          @@#{sym} = obj         #   @@property = obj
+        end                      # end
         " unless options[:instance_writer] == false }
       EOS
     end

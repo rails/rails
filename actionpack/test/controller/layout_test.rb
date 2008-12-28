@@ -165,15 +165,17 @@ class LayoutStatusIsRenderedTest < ActionController::TestCase
   end
 end
 
-class LayoutSymlinkedTest < LayoutTest
-  layout "symlinked/symlinked_layout"
-end
+unless RUBY_PLATFORM =~ /(:?mswin|mingw|bccwin)/
+  class LayoutSymlinkedTest < LayoutTest
+    layout "symlinked/symlinked_layout"
+  end
 
-class LayoutSymlinkedIsRenderedTest < ActionController::TestCase
-  def test_symlinked_layout_is_rendered
-    @controller = LayoutSymlinkedTest.new
-    get :hello
-    assert_response 200
-    assert_equal "layouts/symlinked/symlinked_layout", @response.layout
+  class LayoutSymlinkedIsRenderedTest < ActionController::TestCase
+    def test_symlinked_layout_is_rendered
+      @controller = LayoutSymlinkedTest.new
+      get :hello
+      assert_response 200
+      assert_equal "layouts/symlinked/symlinked_layout", @response.layout
+    end
   end
 end
