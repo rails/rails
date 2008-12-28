@@ -355,5 +355,15 @@ module Rails
     def logger
       @logger ||= Rails::Generator::Base.logger
     end
+
+    def logger
+      @logger ||= if defined?(Rails::Generator::Base)
+        Rails::Generator::Base.logger
+      else
+        require 'rails_generator/simple_logger'
+        Rails::Generator::SimpleLogger.new(STDOUT)
+      end
+    end
+
   end
 end
