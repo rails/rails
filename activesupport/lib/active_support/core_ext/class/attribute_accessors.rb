@@ -11,17 +11,17 @@ class Class
     syms.flatten.each do |sym|
       next if sym.is_a?(Hash)
       class_eval(<<-EOS, __FILE__, __LINE__)
-        unless defined? @@#{sym}
-          @@#{sym} = nil
-        end
-
-        def self.#{sym}
-          @@#{sym}
-        end
-
-        def #{sym}
-          @@#{sym}
-        end
+        unless defined? @@#{sym}  # unless defined? @@hair_colors
+          @@#{sym} = nil          #   @@hair_colors = nil
+        end                       # end
+                                  #
+        def self.#{sym}           # def self.hair_colors
+          @@#{sym}                #   @@hair_colors
+        end                       # end
+                                  #
+        def #{sym}                # def hair_colors
+          @@#{sym}                #   @@hair_colors
+        end                       # end
       EOS
     end
   end
@@ -30,19 +30,19 @@ class Class
     options = syms.extract_options!
     syms.flatten.each do |sym|
       class_eval(<<-EOS, __FILE__, __LINE__)
-        unless defined? @@#{sym}
-          @@#{sym} = nil
-        end
-
-        def self.#{sym}=(obj)
-          @@#{sym} = obj
-        end
-
-        #{"
-        def #{sym}=(obj)
-          @@#{sym} = obj
-        end
-        " unless options[:instance_writer] == false }
+        unless defined? @@#{sym}                       # unless defined? @@hair_colors
+          @@#{sym} = nil                               #   @@hair_colors = nil
+        end                                            # end
+                                                       #
+        def self.#{sym}=(obj)                          # def self.hair_colors=(obj)
+          @@#{sym} = obj                               #   @@hair_colors = obj
+        end                                            # end
+                                                       #
+        #{"                                            #
+        def #{sym}=(obj)                               # def hair_colors=(obj)
+          @@#{sym} = obj                               #   @@hair_colors = obj
+        end                                            # end
+        " unless options[:instance_writer] == false }  # # instance writer above is generated unless options[:instance_writer] == false
       EOS
     end
   end
