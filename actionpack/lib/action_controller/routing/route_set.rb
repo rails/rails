@@ -427,6 +427,12 @@ module ActionController
         end
       end
 
+      def call(env)
+        request = Request.new(env)
+        app = Routing::Routes.recognize(request)
+        app.call(env).to_a
+      end
+
       def recognize(request)
         params = recognize_path(request.path, extract_request_environment(request))
         request.path_parameters = params.with_indifferent_access

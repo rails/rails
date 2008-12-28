@@ -407,7 +407,7 @@ EOM
     end
 
     def path_parameters=(parameters) #:nodoc:
-      @path_parameters = parameters
+      @env["rack.routing_args"] = parameters
       @symbolized_path_parameters = @parameters = nil
     end
 
@@ -423,7 +423,7 @@ EOM
     #
     # See <tt>symbolized_path_parameters</tt> for symbolized keys.
     def path_parameters
-      @path_parameters ||= {}
+      @env["rack.routing_args"] ||= {}
     end
 
     def body
