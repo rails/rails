@@ -152,24 +152,33 @@ module ActionController
       end
     end
 
+    ONLY_ALL = [Mime::ALL].freeze
+
     # Returns the Mime type for the \format used in the request.
     #
     #   GET /posts/5.xml   | request.format => Mime::XML
     #   GET /posts/5.xhtml | request.format => Mime::HTML
     #   GET /posts/5       | request.format => Mime::HTML or MIME::JS, or request.accepts.first depending on the value of <tt>ActionController::Base.use_accept_header</tt>
+
     def format
       @format ||=
         if parameters[:format]
-          Mime::Type.lookup_by_extension(parameters[:format])
-        elsif ActionController::Base.use_accept_header
-          accepts.first
-        elsif xhr?
-          Mime::Type.lookup_by_extension("js")
-        else
-          Mime::Type.lookup_by_extension("html")
+                        Mime[parameters[:format]]
+        elsif Base.use_accept_header && !(accepts == ONLY_ALL)
+                        accepts.first
+        elsif xhr? then Mime::JS
+        else            Mime::HTML
         end
     end
 
+    def formats
+      @formats = 
+        if Base.use_accept_header
+          Array(Mime[parameters[:format]] || accepts)
+        else
+          [format]
+        end
+    end
 
     # Sets the \format by string extension, which can be used to force custom formats
     # that are not controlled by the extension.

@@ -233,10 +233,10 @@ module ActiveSupport
     end
 
     %w(year mon month day mday wday yday hour min sec to_date).each do |method_name|
-      class_eval <<-EOV
-        def #{method_name}
-          time.#{method_name}
-        end
+      class_eval <<-EOV, __FILE__, __LINE__ + 1
+        def #{method_name}    # def month
+          time.#{method_name} #   time.month
+        end                   # end
       EOV
     end
 

@@ -5,6 +5,10 @@ module Mime
   EXTENSION_LOOKUP = Hash.new { |h, k| h[k] = Type.new(k) unless k.blank? }
   LOOKUP           = Hash.new { |h, k| h[k] = Type.new(k) unless k.blank? }
 
+  def self.[](type)
+    Type.lookup_by_extension(type)
+  end
+
   # Encapsulates the notion of a mime type. Can be used at render time, for example, with:
   #
   #   class PostsController < ActionController::Base
@@ -187,15 +191,11 @@ module Mime
     # Returns true if Action Pack should check requests using this Mime Type for possible request forgery.  See
     # ActionController::RequestForgeryProtection.
     def verify_request?
-      browser_generated?
+      @@browser_generated_types.include?(to_sym)
     end
 
     def html?
       @@html_types.include?(to_sym) || @string =~ /html/
-    end
-
-    def browser_generated?
-      @@browser_generated_types.include?(to_sym)
     end
 
     private

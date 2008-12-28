@@ -58,35 +58,35 @@ module ActiveSupport
         original_method = :"_unmemoized_#{symbol}"
         memoized_ivar = ActiveSupport::Memoizable.memoized_ivar_for(symbol)
 
-        class_eval <<-EOS, __FILE__, __LINE__
+        class_eval <<-EOS, __FILE__, __LINE__ + 1
           include InstanceMethods
 
-          raise "Already memoized #{symbol}" if method_defined?(:#{original_method})
-          alias #{original_method} #{symbol}
+          raise "Already memoized #{symbol}" if method_defined?(:#{original_method}) # raise "Already memoized if_modified_since" if method_defined?(:__unmemoized_if_modified_since)
+          alias #{original_method} #{symbol}                                         # alias __unmemoized_if_modified_since if_modified_since
 
-          if instance_method(:#{symbol}).arity == 0
-            def #{symbol}(reload = false)
-              if reload || !defined?(#{memoized_ivar}) || #{memoized_ivar}.empty?
-                #{memoized_ivar} = [#{original_method}.freeze]
-              end
-              #{memoized_ivar}[0]
-            end
-          else
-            def #{symbol}(*args)
-              #{memoized_ivar} ||= {} unless frozen?
-              reload = args.pop if args.last == true || args.last == :reload
-
-              if defined?(#{memoized_ivar}) && #{memoized_ivar}
-                if !reload && #{memoized_ivar}.has_key?(args)
-                  #{memoized_ivar}[args]
-                elsif #{memoized_ivar}
-                  #{memoized_ivar}[args] = #{original_method}(*args).freeze
-                end
-              else
-                #{original_method}(*args)
-              end
-            end
-          end
+          if instance_method(:#{symbol}).arity == 0                                  # if instance_method(:if_modified_since).arity == 0
+            def #{symbol}(reload = false)                                            #   def if_modified_since(reload = false)
+              if reload || !defined?(#{memoized_ivar}) || #{memoized_ivar}.empty?    #     if reload || !defined?(@_memoized_if_modified_since) || @_memoized_if_modified_since.empty?
+                #{memoized_ivar} = [#{original_method}.freeze]                       #       @_memoized_if_modified_since = [__unmemoized_if_modified_since.freeze]
+              end                                                                    #     end
+              #{memoized_ivar}[0]                                                    #     @_memoized_if_modified_since[0]
+            end                                                                      #   end
+          else                                                                       # else
+            def #{symbol}(*args)                                                     #   def if_modified_since(*args)
+              #{memoized_ivar} ||= {} unless frozen?                                 #     @_memoized_if_modified_since ||= {} unless frozen?
+              reload = args.pop if args.last == true || args.last == :reload         #     reload = args.pop if args.last == true || args.last == :reload
+                                                                                     #
+              if defined?(#{memoized_ivar}) && #{memoized_ivar}                      #     if defined?(@_memoized_if_modified_since) && @_memoized_if_modified_since
+                if !reload && #{memoized_ivar}.has_key?(args)                        #       if !reload && @_memoized_if_modified_since.has_key?(args)
+                  #{memoized_ivar}[args]                                             #         @_memoized_if_modified_since[args]
+                elsif #{memoized_ivar}                                               #       elsif @_memoized_if_modified_since
+                  #{memoized_ivar}[args] = #{original_method}(*args).freeze          #         @_memoized_if_modified_since[args] = __unmemoized_if_modified_since(*args).freeze
+                end                                                                  #       end
+              else                                                                   #     else
+                #{original_method}(*args)                                            #       __unmemoized_if_modified_since(*args)
+              end                                                                    #     end
+            end                                                                      #   end
+          end                                                                        # end
         EOS
       end
     end
