@@ -60,11 +60,10 @@ module ActionController
     def dispatch
       begin
         run_callbacks :before_dispatch
-        controller = Routing::Routes.recognize(@request)
-        controller.process(@request, @response).to_a
+        Routing::Routes.call(@env)
       rescue Exception => exception
         if controller ||= (::ApplicationController rescue Base)
-          controller.process_with_exception(@request, @response, exception).to_a
+          controller.call_with_exception(@env, exception).to_a
         else
           raise exception
         end
@@ -83,8 +82,7 @@ module ActionController
     end
 
     def _call(env)
-      @request = Request.new(env)
-      @response = Response.new
+      @env = env
       dispatch
     end
 
@@ -110,8 +108,7 @@ module ActionController
 
     def checkin_connections
       # Don't return connection (and peform implicit rollback) if this request is a part of integration test
-      # TODO: This callback should have direct access to env
-      return if @request.key?("rack.test")
+      return if @env.key?("rack.test")
       ActiveRecord::Base.clear_active_connections!
     end
   end

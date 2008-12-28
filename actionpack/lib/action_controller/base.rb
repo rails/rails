@@ -382,6 +382,13 @@ module ActionController #:nodoc:
     attr_accessor :action_name
 
     class << self
+      def call(env)
+        # HACK: For global rescue to have access to the original request and response
+        request = env["actioncontroller.rescue.request"] ||= Request.new(env)
+        response = env["actioncontroller.rescue.response"] ||= Response.new
+        process(request, response)
+      end
+
       # Factory for the standard create, process loop where the controller is discarded after processing.
       def process(request, response) #:nodoc:
         new.process(request, response)

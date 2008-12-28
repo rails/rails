@@ -96,9 +96,7 @@ class DispatcherTest < Test::Unit::TestCase
 
   private
     def dispatch(cache_classes = true)
-      controller = mock()
-      controller.stubs(:process).returns([200, {}, 'response'])
-      ActionController::Routing::Routes.stubs(:recognize).returns(controller)
+      ActionController::Routing::RouteSet.any_instance.stubs(:call).returns([200, {}, 'response'])
       Dispatcher.define_dispatcher_callbacks(cache_classes)
       @dispatcher.call({})
     end
