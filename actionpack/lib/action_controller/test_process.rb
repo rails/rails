@@ -33,11 +33,7 @@ module ActionController #:nodoc:
     attr_accessor :host
 
     def initialize
-      env = Rack::MockRequest.env_for("/")
-
-      # TODO: Fix Request to assume env['SERVER_ADDR'] doesn't contain port number
-      env['SERVER_ADDR'] = env.delete("SERVER_NAME")
-      super(env)
+      super(Rack::MockRequest.env_for("/"))
 
       @query_parameters   = {}
       @session            = TestSession.new

@@ -1,6 +1,15 @@
 michael:
   id: 1
   first_name: Michael
+  primary_contact_id: 2
+  gender: M
 david:
   id: 2
   first_name: David
+  primary_contact_id: 3
+  gender: M
+susan:
+  id: 3
+  first_name: Susan
+  primary_contact_id: 2
+  gender: F

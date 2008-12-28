@@ -1820,10 +1820,31 @@ module ActiveRecord #:nodoc:
             if match.finder?
               finder = match.finder
               bang = match.bang?
+              # def self.find_by_login_and_activated(*args)
+              #   options = args.extract_options!
+              #   attributes = construct_attributes_from_arguments(
+              #     [:login,:activated],
+              #     args
+              #   )
+              #   finder_options = { :conditions => attributes }
+              #   validate_find_options(options)
+              #   set_readonly_option!(options)
+              #
+              #   if options[:conditions]
+              #     with_scope(:find => finder_options) do
+              #       find(:first, options)
+              #     end
+              #   else
+              #     find(:first, options.merge(finder_options))
+              #   end
+              # end
               self.class_eval %{
                 def self.#{method_id}(*args)
                   options = args.extract_options!
-                  attributes = construct_attributes_from_arguments([:#{attribute_names.join(',:')}], args)
+                  attributes = construct_attributes_from_arguments(
+                    [:#{attribute_names.join(',:')}],
+                    args
+                  )
                   finder_options = { :conditions => attributes }
                   validate_find_options(options)
                   set_readonly_option!(options)
@@ -1841,6 +1862,31 @@ module ActiveRecord #:nodoc:
               send(method_id, *arguments)
             elsif match.instantiator?
               instantiator = match.instantiator
+              # def self.find_or_create_by_user_id(*args)
+              #   guard_protected_attributes = false
+              #
+              #   if args[0].is_a?(Hash)
+              #     guard_protected_attributes = true
+              #     attributes = args[0].with_indifferent_access
+              #     find_attributes = attributes.slice(*[:user_id])
+              #   else
+              #     find_attributes = attributes = construct_attributes_from_arguments([:user_id], args)
+              #   end
+              #
+              #   options = { :conditions => find_attributes }
+              #   set_readonly_option!(options)
+              #
+              #   record = find(:first, options)
+              #
+              #   if record.nil?
+              #     record = self.new { |r| r.send(:attributes=, attributes, guard_protected_attributes) }
+              #     yield(record) if block_given?
+              #     record.save
+              #     record
+              #   else
+              #     record
+              #   end
+              # end
               self.class_eval %{
                 def self.#{method_id}(*args)
                   guard_protected_attributes = false
@@ -2412,9 +2458,9 @@ module ActiveRecord #:nodoc:
         write_attribute(self.class.primary_key, value)
       end
 
-      # Returns true if this object hasn't been saved yet -- that is, a record for the object doesn't exist yet.
+      # Returns true if this object hasn't been saved yet -- that is, a record for the object doesn't exist yet; otherwise, returns false.
       def new_record?
-        defined?(@new_record) && @new_record
+        @new_record || false
       end
 
       # :call-seq:

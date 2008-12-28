@@ -288,7 +288,7 @@ EOM
       if forwarded = env["HTTP_X_FORWARDED_HOST"]
         forwarded.split(/,\s?/).last
       else
-        env['HTTP_HOST'] || env['SERVER_NAME'] || "#{env['SERVER_ADDR']}:#{env['SERVER_PORT']}"
+        env['HTTP_HOST'] || "#{env['SERVER_NAME'] || env['SERVER_ADDR']}:#{env['SERVER_PORT']}"
       end
     end
 

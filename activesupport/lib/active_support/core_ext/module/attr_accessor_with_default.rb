@@ -22,10 +22,10 @@ class Module
     raise 'Default value or block required' unless !default.nil? || block
     define_method(sym, block_given? ? block : Proc.new { default })
     module_eval(<<-EVAL, __FILE__, __LINE__)
-      def #{sym}=(value)
-        class << self; attr_reader :#{sym} end
-        @#{sym} = value
-      end
+      def #{sym}=(value)                        # def age=(value)
+        class << self; attr_reader :#{sym} end  #   class << self; attr_reader :age end
+        @#{sym} = value                         #   @age = value
+      end                                       # end
     EVAL
   end
 end

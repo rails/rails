@@ -1198,6 +1198,11 @@ class BasicsTest < ActiveRecord::TestCase
     assert b_true.value?
   end
 
+  def test_new_record_returns_boolean
+    assert_equal Topic.new.new_record?, true
+    assert_equal Topic.find(1).new_record?, false
+  end
+
   def test_clone
     topic = Topic.find(1)
     cloned_topic = nil

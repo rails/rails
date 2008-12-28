@@ -402,6 +402,7 @@ module ActionController
         if rjs_type
           if rjs_type == :insert
             position  = args.shift
+            id = args.shift
             insertion = "insert_#{position}".to_sym
             raise ArgumentError, "Unknown RJS insertion type #{position}" unless RJS_STATEMENTS[insertion]
             statement = "(#{RJS_STATEMENTS[insertion]})"

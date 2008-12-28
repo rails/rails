@@ -1216,11 +1216,11 @@ module ActiveRecord
         # callbacks will be executed after the association is wiped out.
         old_method = "destroy_without_habtm_shim_for_#{reflection.name}"
         class_eval <<-end_eval unless method_defined?(old_method)
-          alias_method :#{old_method}, :destroy_without_callbacks
-          def destroy_without_callbacks
-            #{reflection.name}.clear
-            #{old_method}
-          end
+          alias_method :#{old_method}, :destroy_without_callbacks  # alias_method :destroy_without_habtm_shim_for_posts, :destroy_without_callbacks
+          def destroy_without_callbacks                            # def destroy_without_callbacks
+            #{reflection.name}.clear                               #   posts.clear
+            #{old_method}                                          #   destroy_without_habtm_shim_for_posts
+          end                                                      # end
         end_eval
 
         add_association_callbacks(reflection.name, options)
@@ -1463,22 +1463,22 @@ module ActiveRecord
                 before_destroy method_name
               when :delete_all
                 module_eval %Q{
-                  before_destroy do |record|
-                    delete_all_has_many_dependencies(record,
-                      "#{reflection.name}",
-                      #{reflection.class_name},
-                      %@#{dependent_conditions}@)
-                  end
+                  before_destroy do |record|                  # before_destroy do |record|
+                    delete_all_has_many_dependencies(record,  #   delete_all_has_many_dependencies(record,
+                      "#{reflection.name}",                   #     "posts",
+                      #{reflection.class_name},               #     Post,
+                      %@#{dependent_conditions}@)             #     %@...@) # this is a string literal like %(...)
+                  end                                         # end
                 }
               when :nullify
                 module_eval %Q{
-                  before_destroy do |record|
-                    nullify_has_many_dependencies(record,
-                      "#{reflection.name}",
-                      #{reflection.class_name},
-                      "#{reflection.primary_key_name}",
-                      %@#{dependent_conditions}@)
-                  end
+                  before_destroy do |record|                  # before_destroy do |record|
+                    nullify_has_many_dependencies(record,     #   nullify_has_many_dependencies(record,
+                      "#{reflection.name}",                   #     "posts",
+                      #{reflection.class_name},               #     Post,
+                      "#{reflection.primary_key_name}",       #     "user_id",
+                      %@#{dependent_conditions}@)             #     %@...@) # this is a string literal like %(...)
+                  end                                         # end
                 }
               else
                 raise ArgumentError, "The :dependent option expects either :destroy, :delete_all, or :nullify (#{reflection.options[:dependent].inspect})"
