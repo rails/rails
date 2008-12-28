@@ -89,7 +89,7 @@ module Rails
       gems_code = "config.gem '#{name}'"
 
       if options.any?
-        opts = options.inject([]) {|result, h| result << [":#{h[0]} => '#{h[1]}'"] }.join(", ")
+        opts = options.inject([]) {|result, h| result << [":#{h[0]} => '#{h[1]}'"] }.sort.join(", ")
         gems_code << ", #{opts}"
       end
 
@@ -355,5 +355,15 @@ module Rails
     def logger
       @logger ||= Rails::Generator::Base.logger
     end
+
+    def logger
+      @logger ||= if defined?(Rails::Generator::Base)
+        Rails::Generator::Base.logger
+      else
+        require 'rails_generator/simple_logger'
+        Rails::Generator::SimpleLogger.new(STDOUT)
+      end
+    end
+
   end
 end

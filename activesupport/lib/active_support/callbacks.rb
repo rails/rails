@@ -210,20 +210,24 @@ module ActiveSupport
       def define_callbacks(*callbacks)
         callbacks.each do |callback|
           class_eval <<-"end_eval", __FILE__, __LINE__ + 1
-            def self.#{callback}(*methods, &block)                                                 # def self.validate_on_create(*methods, &block)
-              callbacks = CallbackChain.build(:#{callback}, *methods, &block)                      #   callbacks = CallbackChain.build(:validate_on_create, *methods, &block)
-              (@#{callback}_callbacks ||= CallbackChain.new).concat callbacks                      #   (@validate_on_create_callbacks ||= CallbackChain.new).concat callbacks
-            end                                                                                    # end
-
-            def self.#{callback}_callback_chain                                                    # def self.validate_on_create_callback_chain
-              @#{callback}_callbacks ||= CallbackChain.new                                         #   @validate_on_create_callbacks ||= CallbackChain.new
-                                                                                                   #
-              if superclass.respond_to?(:#{callback}_callback_chain)                               #   if superclass.respond_to?(:validate_on_create_callback_chain)  
-                CallbackChain.new(superclass.#{callback}_callback_chain + @#{callback}_callbacks)  #     CallbackChain.new(superclass.validate_on_create_callback_chain + @validate_on_create_callbacks)
-              else                                                                                 #   else
-                @#{callback}_callbacks                                                             #     @validate_on_create_callbacks
-              end                                                                                  #   end
-            end                                                                                    # end
+            def self.#{callback}(*methods, &block)                             # def self.before_save(*methods, &block)
+              callbacks = CallbackChain.build(:#{callback}, *methods, &block)  #   callbacks = CallbackChain.build(:before_save, *methods, &block)
+              @#{callback}_callbacks ||= CallbackChain.new                     #   @before_save_callbacks ||= CallbackChain.new
+              @#{callback}_callbacks.concat callbacks                          #   @before_save_callbacks.concat callbacks
+            end                                                                # end
+                                                                               #
+            def self.#{callback}_callback_chain                                # def self.before_save_callback_chain
+              @#{callback}_callbacks ||= CallbackChain.new                     #   @before_save_callbacks ||= CallbackChain.new
+                                                                               #
+              if superclass.respond_to?(:#{callback}_callback_chain)           #   if superclass.respond_to?(:before_save_callback_chain)
+                CallbackChain.new(                                             #     CallbackChain.new(
+                  superclass.#{callback}_callback_chain +                      #       superclass.before_save_callback_chain +
+                  @#{callback}_callbacks                                       #       @before_save_callbacks
+                )                                                              #     )
+              else                                                             #   else
+                @#{callback}_callbacks                                         #     @before_save_callbacks
+              end                                                              #   end
+            end                                                                # end
           end_eval
         end
       end

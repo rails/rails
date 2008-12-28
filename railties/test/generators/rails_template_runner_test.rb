@@ -79,7 +79,7 @@ class RailsTemplateRunnerTest < GeneratorTestCase
 
   def test_gem_with_options_should_include_options_in_gem_dependency_in_environment
     run_template_method(:gem, 'mislav-will-paginate', :lib => 'will-paginate', :source => 'http://gems.github.com')
-    assert_rails_initializer_includes("config.gem 'mislav-will-paginate', :source => 'http://gems.github.com', :lib => 'will-paginate'")
+    assert_rails_initializer_includes("config.gem 'mislav-will-paginate', :lib => 'will-paginate', :source => 'http://gems.github.com'")
   end
 
   def test_environment_should_include_data_in_environment_initializer_block

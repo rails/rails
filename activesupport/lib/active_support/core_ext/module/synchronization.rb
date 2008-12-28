@@ -26,11 +26,11 @@ class Module
       end
 
       module_eval(<<-EOS, __FILE__, __LINE__)
-        def #{aliased_method}_with_synchronization#{punctuation}(*args, &block)
-          #{with}.synchronize do
-            #{aliased_method}_without_synchronization#{punctuation}(*args, &block)
-          end
-        end
+        def #{aliased_method}_with_synchronization#{punctuation}(*args, &block)     # def expire_with_synchronization(*args, &block)
+          #{with}.synchronize do                                                    #   @@lock.synchronize do
+            #{aliased_method}_without_synchronization#{punctuation}(*args, &block)  #     expire_without_synchronization(*args, &block)
+          end                                                                       #   end
+        end                                                                         # end
       EOS
 
       alias_method_chain method, :synchronization

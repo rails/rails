@@ -1456,7 +1456,10 @@ module ActiveRecord #:nodoc:
       def respond_to?(method_id, include_private = false)
         if match = DynamicFinderMatch.match(method_id)
           return true if all_attributes_exists?(match.attribute_names)
+        elsif match = DynamicScopeMatch.match(method_id)
+          return true if all_attributes_exists?(match.attribute_names)
         end
+        
         super
       end
 
@@ -1809,7 +1812,11 @@ module ActiveRecord #:nodoc:
         # This also enables you to initialize a record if it is not found, such as find_or_initialize_by_amount(amount)
         # or find_or_create_by_user_and_password(user, password).
         #
-        # Each dynamic finder or initializer/creator is also defined in the class after it is first invoked, so that future
+        # Also enables dynamic scopes like scoped_by_user_name(user_name) and scoped_by_user_name_and_password(user_name, password) that
+        # are turned into scoped(:conditions => ["user_name = ?", user_name]) and scoped(:conditions => ["user_name = ? AND password = ?", user_name, password])
+        # respectively.
+        #
+        # Each dynamic finder, scope or initializer/creator is also defined in the class after it is first invoked, so that future
         # attempts to use it do not run through method_missing.
         def method_missing(method_id, *arguments, &block)
           if match = DynamicFinderMatch.match(method_id)
@@ -1818,10 +1825,31 @@ module ActiveRecord #:nodoc:
             if match.finder?
               finder = match.finder
               bang = match.bang?
+              # def self.find_by_login_and_activated(*args)
+              #   options = args.extract_options!
+              #   attributes = construct_attributes_from_arguments(
+              #     [:login,:activated],
+              #     args
+              #   )
+              #   finder_options = { :conditions => attributes }
+              #   validate_find_options(options)
+              #   set_readonly_option!(options)
+              #
+              #   if options[:conditions]
+              #     with_scope(:find => finder_options) do
+              #       find(:first, options)
+              #     end
+              #   else
+              #     find(:first, options.merge(finder_options))
+              #   end
+              # end
               self.class_eval %{
                 def self.#{method_id}(*args)
                   options = args.extract_options!
-                  attributes = construct_attributes_from_arguments([:#{attribute_names.join(',:')}], args)
+                  attributes = construct_attributes_from_arguments(
+                    [:#{attribute_names.join(',:')}],
+                    args
+                  )
                   finder_options = { :conditions => attributes }
                   validate_find_options(options)
                   set_readonly_option!(options)
@@ -1839,6 +1867,31 @@ module ActiveRecord #:nodoc:
               send(method_id, *arguments)
             elsif match.instantiator?
               instantiator = match.instantiator
+              # def self.find_or_create_by_user_id(*args)
+              #   guard_protected_attributes = false
+              #
+              #   if args[0].is_a?(Hash)
+              #     guard_protected_attributes = true
+              #     attributes = args[0].with_indifferent_access
+              #     find_attributes = attributes.slice(*[:user_id])
+              #   else
+              #     find_attributes = attributes = construct_attributes_from_arguments([:user_id], args)
+              #   end
+              #
+              #   options = { :conditions => find_attributes }
+              #   set_readonly_option!(options)
+              #
+              #   record = find(:first, options)
+              #
+              #   if record.nil?
+              #     record = self.new { |r| r.send(:attributes=, attributes, guard_protected_attributes) }
+              #     yield(record) if block_given?
+              #     record.save
+              #     record
+              #   else
+              #     record
+              #   end
+              # end
               self.class_eval %{
                 def self.#{method_id}(*args)
                   guard_protected_attributes = false
@@ -1867,6 +1920,22 @@ module ActiveRecord #:nodoc:
                 end
               }, __FILE__, __LINE__
               send(method_id, *arguments, &block)
+            end
+          elsif match = DynamicScopeMatch.match(method_id)
+            attribute_names = match.attribute_names
+            super unless all_attributes_exists?(attribute_names)
+            if match.scope?
+              self.class_eval %{
+                def self.#{method_id}(*args)                        # def self.scoped_by_user_name_and_password(*args)
+                  options = args.extract_options!                   #   options = args.extract_options!
+                  attributes = construct_attributes_from_arguments( #   attributes = construct_attributes_from_arguments(
+                    [:#{attribute_names.join(',:')}], args          #     [:user_name, :password], args
+                  )                                                 #   )
+                                                                    # 
+                  scoped(:conditions => attributes)                 #   scoped(:conditions => attributes)
+                end                                                 # end
+              }, __FILE__, __LINE__
+              send(method_id, *arguments)
             end
           else
             super

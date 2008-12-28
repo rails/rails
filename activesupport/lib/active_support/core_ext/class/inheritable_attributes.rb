@@ -26,15 +26,15 @@ class Class # :nodoc:
     options = syms.extract_options!
     syms.each do |sym|
       class_eval(<<-EOS, __FILE__, __LINE__ + 1)
-        def self.#{sym}=(obj)                         # def self.property=(obj)
-          write_inheritable_attribute(:#{sym}, obj)   #   write_inheritable_attribute(:property, obj)
-        end                                           # end
-
-        #{"
-        def #{sym}=(obj)                              # def property=(obj)
-          self.class.#{sym} = obj                     #   self.class.property = obj
-        end                                           # end
-        " unless options[:instance_writer] == false }
+        def self.#{sym}=(obj)                          # def self.color=(obj)
+          write_inheritable_attribute(:#{sym}, obj)    #   write_inheritable_attribute(:color, obj)
+        end                                            # end
+                                                       #
+        #{"                                            #
+        def #{sym}=(obj)                               # def color=(obj)
+          self.class.#{sym} = obj                      #   self.class.color = obj
+        end                                            # end
+        " unless options[:instance_writer] == false }  # # the writer above is generated unless options[:instance_writer] == false
       EOS
     end
   end
@@ -43,15 +43,15 @@ class Class # :nodoc:
     options = syms.extract_options!
     syms.each do |sym|
       class_eval(<<-EOS, __FILE__, __LINE__ + 1)
-        def self.#{sym}=(obj)                         # def self.property=(obj)
-          write_inheritable_array(:#{sym}, obj)       #   write_inheritable_array(:property, obj)
-        end                                           # end
-
-        #{"
-        def #{sym}=(obj)                              # def property=(obj)
-          self.class.#{sym} = obj                     #   self.class.property = obj
-        end                                           # end
-        " unless options[:instance_writer] == false }
+        def self.#{sym}=(obj)                          # def self.levels=(obj)
+          write_inheritable_array(:#{sym}, obj)        #   write_inheritable_array(:levels, obj)
+        end                                            # end
+                                                       #
+        #{"                                            #
+        def #{sym}=(obj)                               # def levels=(obj)
+          self.class.#{sym} = obj                      #   self.class.levels = obj
+        end                                            # end
+        " unless options[:instance_writer] == false }  # # the writer above is generated unless options[:instance_writer] == false
       EOS
     end
   end
@@ -60,15 +60,15 @@ class Class # :nodoc:
     options = syms.extract_options!
     syms.each do |sym|
       class_eval(<<-EOS, __FILE__, __LINE__ + 1)
-        def self.#{sym}=(obj)                         # def self.property=(obj)
-          write_inheritable_hash(:#{sym}, obj)        #   write_inheritable_hash(:property, obj)
-        end                                           # end
-
-        #{"
-        def #{sym}=(obj)                              # def property=(obj)
-          self.class.#{sym} = obj                     #   self.class.property = obj
-        end                                           # end
-        " unless options[:instance_writer] == false }
+        def self.#{sym}=(obj)                          # def self.nicknames=(obj)
+          write_inheritable_hash(:#{sym}, obj)         #   write_inheritable_hash(:nicknames, obj)
+        end                                            # end
+                                                       #
+        #{"                                            #
+        def #{sym}=(obj)                               # def nicknames=(obj)
+          self.class.#{sym} = obj                      #   self.class.nicknames = obj
+        end                                            # end
+        " unless options[:instance_writer] == false }  # # the writer above is generated unless options[:instance_writer] == false
       EOS
     end
   end

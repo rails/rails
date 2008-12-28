@@ -9,22 +9,23 @@ class Class
     class_name_to_stop_searching_on = self.superclass.name.blank? ? "Object" : self.superclass.name
     names.each do |name|
       class_eval(<<-EOS, __FILE__, __LINE__ + 1)
-      def self.#{name}                                                                            # def self.property
-        if defined?(@#{name})                                                                     #   if defined?(@property)
-          @#{name}                                                                                #     @property
-        elsif superclass < #{class_name_to_stop_searching_on} && superclass.respond_to?(:#{name}) #   elseif superclass < Object && superclass.respond_to?(:property)
-          superclass.#{name}                                                                      #     superclass.property
-        end                                                                                       #   end
-      end                                                                                         # end
-      def #{name}                                                                                 # def property
-        self.class.#{name}                                                                        #   self.class.property
-      end                                                                                         # end
-      def self.#{name}?                                                                           # def self.property?
-        !!#{name}                                                                                 #   !!property
-      end                                                                                         # end
-      def #{name}?                                                                                # def property?
-        !!#{name}                                                                                 #   !!property
-      end                                                                                         # end
+      def self.#{name}                                            # def self.only_reader
+        if defined?(@#{name})                                     #   if defined?(@only_reader)
+          @#{name}                                                #     @only_reader
+        elsif superclass < #{class_name_to_stop_searching_on} &&  #   elsif superclass < Object &&
+              superclass.respond_to?(:#{name})                    #         superclass.respond_to?(:only_reader)
+          superclass.#{name}                                      #     superclass.only_reader
+        end                                                       #   end
+      end                                                         # end
+      def #{name}                                                 # def only_reader
+        self.class.#{name}                                        #   self.class.only_reader
+      end                                                         # end
+      def self.#{name}?                                           # def self.only_reader?
+        !!#{name}                                                 #   !!only_reader
+      end                                                         # end
+      def #{name}?                                                # def only_reader?
+        !!#{name}                                                 #   !!only_reader
+      end                                                         # end
       EOS
     end
   end
