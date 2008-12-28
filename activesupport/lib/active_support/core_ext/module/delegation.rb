@@ -112,9 +112,9 @@ class Module
 
     methods.each do |method|
       module_eval(<<-EOS, "(__DELEGATION__)", 1)
-        def #{prefix}#{method}(*args, &block)
-          #{allow_nil}#{to}.__send__(#{method.inspect}, *args, &block)
-        end
+        def #{prefix}#{method}(*args, &block)                           # def customer_name(*args, &block)
+          #{allow_nil}#{to}.__send__(#{method.inspect}, *args, &block)  #   client && client.__send__(:name, *args, &block)
+        end                                                             # end
       EOS
     end
   end

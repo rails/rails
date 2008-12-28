@@ -148,9 +148,9 @@ module ActionController #:nodoc:
         sym = mime.is_a?(Symbol) ? mime : mime.to_sym
         const = sym.to_s.upcase
         class_eval <<-RUBY, __FILE__, __LINE__ + 1
-          def #{sym}(&block)                          # def html(&block)
-            custom(Mime::#{const}, &block)            #   custom(Mime::HTML, &block)
-          end                                         # end
+          def #{sym}(&block)                # def html(&block)
+            custom(Mime::#{const}, &block)  #   custom(Mime::HTML, &block)
+          end                               # end
         RUBY
       end
 

@@ -54,6 +54,9 @@ module ActiveResource
       end
 
       for method in [ :post, :put, :get, :delete, :head ]
+        # def post(path, request_headers = {}, body = nil, status = 200, response_headers = {})
+        #   @responses[Request.new(:post, path, nil, request_headers)] = Response.new(body || "", status, response_headers)
+        # end
         module_eval <<-EOE, __FILE__, __LINE__
           def #{method}(path, request_headers = {}, body = nil, status = 200, response_headers = {})
             @responses[Request.new(:#{method}, path, nil, request_headers)] = Response.new(body || "", status, response_headers)
@@ -118,6 +121,11 @@ module ActiveResource
     end
 
     for method in [ :post, :put ]
+      # def post(path, body, headers)
+      #   request = ActiveResource::Request.new(:post, path, body, headers)
+      #   self.class.requests << request
+      #   self.class.responses[request] || raise(InvalidRequestError.new("No response recorded for #{request}"))
+      # end
       module_eval <<-EOE, __FILE__, __LINE__
         def #{method}(path, body, headers)
           request = ActiveResource::Request.new(:#{method}, path, body, headers)

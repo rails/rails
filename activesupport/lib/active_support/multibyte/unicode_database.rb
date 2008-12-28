@@ -24,10 +24,10 @@ module ActiveSupport #:nodoc:
       # Lazy load the Unicode database so it's only loaded when it's actually used
       ATTRIBUTES.each do |attr_name|
         class_eval(<<-EOS, __FILE__, __LINE__)
-          def #{attr_name}
-            load
-            @#{attr_name}
-          end
+          def #{attr_name}  # def codepoints
+            load            #   load
+            @#{attr_name}   #   @codepoints
+          end               # end
         EOS
       end
 

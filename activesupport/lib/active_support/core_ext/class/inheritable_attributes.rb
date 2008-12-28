@@ -11,13 +11,13 @@ class Class # :nodoc:
     syms.each do |sym|
       next if sym.is_a?(Hash)
       class_eval <<-EOS
-        def self.#{sym}
-          read_inheritable_attribute(:#{sym})
-        end
-
-        def #{sym}
-          self.class.#{sym}
-        end
+        def self.#{sym}                        # def self.before_add_for_comments
+          read_inheritable_attribute(:#{sym})  #   read_inheritable_attribute(:before_add_for_comments)
+        end                                    # end
+                                               #
+        def #{sym}                             # def before_add_for_comments
+          self.class.#{sym}                    #   self.class.before_add_for_comments
+        end                                    # end
       EOS
     end
   end
@@ -26,15 +26,15 @@ class Class # :nodoc:
     options = syms.extract_options!
     syms.each do |sym|
       class_eval <<-EOS
-        def self.#{sym}=(obj)
-          write_inheritable_attribute(:#{sym}, obj)
-        end
-
-        #{"
-        def #{sym}=(obj)
-          self.class.#{sym} = obj
-        end
-        " unless options[:instance_writer] == false }
+        def self.#{sym}=(obj)                          # def self.color=(obj)
+          write_inheritable_attribute(:#{sym}, obj)    #   write_inheritable_attribute(:color, obj)
+        end                                            # end
+                                                       #
+        #{"                                            #
+        def #{sym}=(obj)                               # def color=(obj)
+          self.class.#{sym} = obj                      #   self.class.color = obj
+        end                                            # end
+        " unless options[:instance_writer] == false }  # # the writer above is generated unless options[:instance_writer] == false
       EOS
     end
   end
@@ -43,15 +43,15 @@ class Class # :nodoc:
     options = syms.extract_options!
     syms.each do |sym|
       class_eval <<-EOS
-        def self.#{sym}=(obj)
-          write_inheritable_array(:#{sym}, obj)
-        end
-
-        #{"
-        def #{sym}=(obj)
-          self.class.#{sym} = obj
-        end
-        " unless options[:instance_writer] == false }
+        def self.#{sym}=(obj)                          # def self.levels=(obj)
+          write_inheritable_array(:#{sym}, obj)        #   write_inheritable_array(:levels, obj)
+        end                                            # end
+                                                       #
+        #{"                                            #
+        def #{sym}=(obj)                               # def levels=(obj)
+          self.class.#{sym} = obj                      #   self.class.levels = obj
+        end                                            # end
+        " unless options[:instance_writer] == false }  # # the writer above is generated unless options[:instance_writer] == false
       EOS
     end
   end
@@ -60,15 +60,15 @@ class Class # :nodoc:
     options = syms.extract_options!
     syms.each do |sym|
       class_eval <<-EOS
-        def self.#{sym}=(obj)
-          write_inheritable_hash(:#{sym}, obj)
-        end
-
-        #{"
-        def #{sym}=(obj)
-          self.class.#{sym} = obj
-        end
-        " unless options[:instance_writer] == false }
+        def self.#{sym}=(obj)                          # def self.nicknames=(obj)
+          write_inheritable_hash(:#{sym}, obj)         #   write_inheritable_hash(:nicknames, obj)
+        end                                            # end
+                                                       #
+        #{"                                            #
+        def #{sym}=(obj)                               # def nicknames=(obj)
+          self.class.#{sym} = obj                      #   self.class.nicknames = obj
+        end                                            # end
+        " unless options[:instance_writer] == false }  # # the writer above is generated unless options[:instance_writer] == false
       EOS
     end
   end
