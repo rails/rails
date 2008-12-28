@@ -145,10 +145,10 @@ module ActionController
           def define_hash_access(route, name, kind, options)
             selector = hash_access_name(name, kind)
             named_helper_module_eval <<-end_eval # We use module_eval to avoid leaks
-              def #{selector}(options = nil)                                            # def hash_for_users_url(options = nil)
-                options ? #{options.inspect}.merge(options) : #{options.inspect}        #   options ? {:only_path=>false}.merge(options) : {:only_path=>false}
-              end                                                                       # end
-              protected :#{selector}                                                    # protected :hash_for_users_url
+              def #{selector}(options = nil)
+                options ? #{options.inspect}.merge(options) : #{options.inspect}
+              end
+              protected :#{selector}
             end_eval
             helpers << selector
           end
