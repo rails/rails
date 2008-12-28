@@ -70,11 +70,12 @@ module ActionController
               top[-1][key] = value
             else
               top << {key => value}.with_indifferent_access
-              push top.last
-              value = top[key]
             end
+            push top.last
+            return top[key]
           else
             top << value
+            return value
           end
         elsif top.is_a? Hash
           key = CGI.unescape(key)
@@ -84,8 +85,6 @@ module ActionController
         else
           raise ArgumentError, "Don't know what to do: top is #{top.inspect}"
         end
-
-        return value
       end
 
       def type_conflict!(klass, value)
