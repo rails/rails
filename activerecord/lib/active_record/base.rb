@@ -2502,14 +2502,16 @@ module ActiveRecord #:nodoc:
         create_or_update || raise(RecordNotSaved)
       end
 
-      # Deletes the record in the database and freezes this instance to reflect that no changes should
-      # be made (since they can't be persisted).
+      # Deletes the record in the database and freezes this instance to
+      # reflect that no changes should be made (since they can't be
+      # persisted). Returns the frozen instance.
       #
-      # Unlike #destroy, this method doesn't run any +before_delete+ and +after_delete+
-      # callbacks, nor will it enforce any association +:dependent+ rules.
-      # 
-      # In addition to deleting this record, any defined +before_delete+ and +after_delete+
-      # callbacks are run, and +:dependent+ rules defined on associations are run.
+      # The row is simply removed with a SQL +DELETE+ statement on the
+      # record's primary key, and no callbacks are executed.
+      #
+      # To enforce the object's +before_destroy+ and +after_destroy+
+      # callbacks, Observer methods, or any <tt>:dependent</tt> association
+      # options, use <tt>#destroy</tt>.
       def delete
         self.class.delete(id) unless new_record?
         freeze
