@@ -11,9 +11,9 @@ This guide covers the +find+ method defined in ActiveRecord::Base, as well as ot
 * Check for the existence of particular records
 * Perform aggregate calculations on Active Record models
 
-If you're used to using raw SQL to find database records, you'll find that there are generally better ways to carry out the same operations in Rails. Active Record insulates you from the need to use SQL in most cases.
+If you're used to using raw SQL to find database records then, generally, you will find that there are better ways to carry out the same operations in Rails. Active Record insulates you from the need to use SQL in most cases.
 
-The SQL in your log may have some quoting, and that quoting depends on the backend (MySQL, for example, puts backticks around field and table names). Attempting to copy the raw SQL contained within this guide may not work in your database system. Please consult the database systems manual before attempting to execute any SQL.
+Generated SQL statements that appear in the log files may have their arguments quoted. Further, the form of quoting will be DBMS specific; SQLite3 will use "\ for example while MySQL will use `\ instead. Because of this, simply copying SQL from the examples contained within this guide may not work in your database system. Please consult the database systems manual before attempting to execute any SQL.
 
 == The Sample Models
 
@@ -769,6 +769,7 @@ Thanks to Mike Gunderloy for his tips on creating this guide.
 
 http://rails.lighthouseapp.com/projects/16213-rails-guides/tickets/16[Lighthouse ticket]
 
+* December 29 2008: Added http://rails.lighthouseapp.com/projects/16213/tickets/16-activerecord-finders#ticket-16-32[James B. Byrne's suggestions from this ticket]
 * December 23 2008: Xavier Noria suggestions added! From http://rails.lighthouseapp.com/projects/16213/tickets/16-activerecord-finders#ticket-16-27[this ticket] and http://rails.lighthouseapp.com/projects/16213/tickets/16-activerecord-finders#ticket-16-28[this ticket] and http://rails.lighthouseapp.com/projects/16213/tickets/16-activerecord-finders#ticket-16-29[this ticket]
 * December 22 2008: Added section on having.
 * December 22 2008: Added description of how to make hash conditions use an IN expression http://rails.loglibrary.com/chats/15279234[mentioned here]
