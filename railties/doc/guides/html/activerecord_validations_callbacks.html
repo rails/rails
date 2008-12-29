@@ -1013,7 +1013,7 @@ http://www.gnu.org/software/src-highlite -->
 </li>
 </ul></div>
 <h3 id="_changing_the_way_form_fields_with_errors_are_displayed">8.1. Changing the way form fields with errors are displayed</h3>
-<div class="paragraph"><p>By default, form fields with errors are displayed enclosed by a <tt>div</tt> element with the <tt>fieldWithErrors</tt> CSS class. However, we can write some Ruby code to override the way Rails treats those fields by default. Here is a simple example where we change the Rails behaviour to always display the error messages in front of each of the form fields with errors. The error messages will be enclosed by a <tt>span</tt> element with a <tt>validation-error</tt> CSS class.</p></div>
+<div class="paragraph"><p>By default, form fields with errors are displayed enclosed by a <tt>div</tt> element with the <tt>fieldWithErrors</tt> CSS class. However, we can write some Ruby code to override the way Rails treats those fields by default. Here is a simple example where we change the Rails behaviour to always display the error messages in front of each of the form fields with errors. The error messages will be enclosed by a <tt>span</tt> element with a <tt>validation-error</tt> CSS class. There will be no <tt>div</tt> element enclosing the <tt>input</tt> element, so we get rid of that red border around the text field. You can use the <tt>validation-error</tt> CSS class to style it anyway you want.</p></div>
 <div class="listingblock">
 <div class="content"><!-- Generator: GNU source-highlight 2.9
 by Lorenzo Bettini
