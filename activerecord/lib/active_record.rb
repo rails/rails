@@ -51,6 +51,7 @@ module ActiveRecord
   autoload :Callbacks, 'active_record/callbacks'
   autoload :Dirty, 'active_record/dirty'
   autoload :DynamicFinderMatch, 'active_record/dynamic_finder_match'
+  autoload :DynamicScopeMatch, 'active_record/dynamic_scope_match'
   autoload :Migration, 'active_record/migration'
   autoload :Migrator, 'active_record/migration'
   autoload :NamedScope, 'active_record/named_scope'

@@ -3,7 +3,10 @@ module ActionView #:nodoc:
   end
 
   class MissingTemplate < ActionViewError #:nodoc:
+    attr_reader :path
+
     def initialize(paths, path, template_format = nil)
+      @path = path
       full_template_path = path.include?('.') ? path : "#{path}.erb"
       display_paths = paths.compact.join(":")
       template_type = (path =~ /layouts/i) ? 'layout' : 'template'
@@ -172,29 +175,12 @@ module ActionView #:nodoc:
       delegate :logger, :to => 'ActionController::Base'
     end
 
-    # Templates that are exempt from layouts
-    @@exempt_from_layout = Set.new([/\.rjs$/])
-
-    # Don't render layouts for templates with the given extensions.
-    def self.exempt_from_layout(*extensions)
-      regexps = extensions.collect do |extension|
-        extension.is_a?(Regexp) ? extension : /\.#{Regexp.escape(extension.to_s)}$/
-      end
-      @@exempt_from_layout.merge(regexps)
-    end
-
     @@debug_rjs = false
     ##
     # :singleton-method:
     # Specify whether RJS responses should be wrapped in a try/catch block
     # that alert()s the caught exception (and then re-raises it).
     cattr_accessor :debug_rjs
-
-    @@warn_cache_misses = false
-    ##
-    # :singleton-method:
-    # A warning will be displayed whenever an action results in a cache miss on your view paths.
-    cattr_accessor :warn_cache_misses
 
     attr_internal :request
 
@@ -257,7 +243,8 @@ module ActionView #:nodoc:
         if options[:layout]
           _render_with_layout(options, local_assigns, &block)
         elsif options[:file]
-          _pick_template(options[:file]).render_template(self, options[:locals])
+          tempalte = self.view_paths.find_template(options[:file], template_format)
+          tempalte.render_template(self, options[:locals])
         elsif options[:partial]
           render_partial(options)
         elsif options[:inline]
@@ -313,45 +300,6 @@ module ActionView #:nodoc:
         if controller.respond_to?(:response)
           controller.response.content_type ||= content_type
         end
-      end
-
-      def _pick_template(template_path)
-        return template_path if template_path.respond_to?(:render)
-
-        path = template_path.sub(/^\//, '')
-        if m = path.match(/(.*)\.(\w+)$/)
-          template_file_name, template_file_extension = m[1], m[2]
-        else
-          template_file_name = path
-        end
-
-        # OPTIMIZE: Checks to lookup template in view path
-        if template = self.view_paths.find_template(template_file_name, template_format)
-          template
-        elsif (first_render = @_render_stack.first) && first_render.respond_to?(:format_and_extension) &&
-            (template = self.view_paths["#{template_file_name}.#{first_render.format_and_extension}"])
-          template
-        else
-          template = Template.new(template_path, view_paths)
-
-          if self.class.warn_cache_misses && logger
-            logger.debug "[PERFORMANCE] Rendering a template that was " +
-              "not found in view path. Templates outside the view path are " +
-              "not cached and result in expensive disk operations. Move this " +
-              "file into #{view_paths.join(':')} or add the folder to your " +
-              "view path list"
-          end
-
-          template
-        end
-      end
-      memoize :_pick_template
-
-      def _exempt_from_layout?(template_path) #:nodoc:
-        template = _pick_template(template_path).to_s
-        @@exempt_from_layout.any? { |ext| template =~ ext }
-      rescue ActionView::MissingTemplate
-        return false
       end
 
       def _render_with_layout(options, local_assigns, &block) #:nodoc:

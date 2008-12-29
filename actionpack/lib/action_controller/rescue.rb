@@ -59,7 +59,9 @@ module ActionController #:nodoc:
     end
 
     module ClassMethods
-      def process_with_exception(request, response, exception) #:nodoc:
+      def call_with_exception(env, exception) #:nodoc:
+        request = env["actioncontroller.rescue.request"]
+        response = env["actioncontroller.rescue.response"]
         new.process(request, response, :rescue_action, exception)
       end
     end

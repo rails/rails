@@ -303,18 +303,16 @@ class RequestTest < ActiveSupport::TestCase
   end
 
   def test_allow_method_hacking_on_post
-    self.request_method = :post
     [:get, :head, :options, :put, :post, :delete].each do |method|
-      @request.instance_eval { @parameters = { :_method => method.to_s } ; @request_method = nil }
+      self.request_method = method
       @request.request_method(true)
       assert_equal(method == :head ? :get : method, @request.method)
     end
   end
 
   def test_invalid_method_hacking_on_post_raises_exception
-    self.request_method = :post
-    @request.instance_eval { @parameters = { :_method => :random_method } ; @request_method = nil }
     assert_raises(ActionController::UnknownHttpMethod) do
+      self.request_method = :_random_method
       @request.request_method(true)
     end
   end
@@ -426,95 +424,95 @@ class UrlEncodedRequestParameterParsingTest < ActiveSupport::TestCase
   def test_query_string
     assert_equal(
       { "action" => "create_customer", "full_name" => "David Heinemeier Hansson", "customerId" => "1"},
-      ActionController::AbstractRequest.parse_query_parameters(@query_string)
+      ActionController::RequestParser.parse_query_parameters(@query_string)
     )
   end
 
   def test_deep_query_string
     expected = {'x' => {'y' => {'z' => '10'}}}
-    assert_equal(expected, ActionController::AbstractRequest.parse_query_parameters('x[y][z]=10'))
+    assert_equal(expected, ActionController::RequestParser.parse_query_parameters('x[y][z]=10'))
   end
 
   def test_deep_query_string_with_array
-    assert_equal({'x' => {'y' => {'z' => ['10']}}}, ActionController::AbstractRequest.parse_query_parameters('x[y][z][]=10'))
-    assert_equal({'x' => {'y' => {'z' => ['10', '5']}}}, ActionController::AbstractRequest.parse_query_parameters('x[y][z][]=10&x[y][z][]=5'))
+    assert_equal({'x' => {'y' => {'z' => ['10']}}}, ActionController::RequestParser.parse_query_parameters('x[y][z][]=10'))
+    assert_equal({'x' => {'y' => {'z' => ['10', '5']}}}, ActionController::RequestParser.parse_query_parameters('x[y][z][]=10&x[y][z][]=5'))
   end
 
   def test_deep_query_string_with_array_of_hash
-    assert_equal({'x' => {'y' => [{'z' => '10'}]}}, ActionController::AbstractRequest.parse_query_parameters('x[y][][z]=10'))
-    assert_equal({'x' => {'y' => [{'z' => '10', 'w' => '10'}]}}, ActionController::AbstractRequest.parse_query_parameters('x[y][][z]=10&x[y][][w]=10'))
+    assert_equal({'x' => {'y' => [{'z' => '10'}]}}, ActionController::RequestParser.parse_query_parameters('x[y][][z]=10'))
+    assert_equal({'x' => {'y' => [{'z' => '10', 'w' => '10'}]}}, ActionController::RequestParser.parse_query_parameters('x[y][][z]=10&x[y][][w]=10'))
   end
 
   def test_deep_query_string_with_array_of_hashes_with_one_pair
-    assert_equal({'x' => {'y' => [{'z' => '10'}, {'z' => '20'}]}}, ActionController::AbstractRequest.parse_query_parameters('x[y][][z]=10&x[y][][z]=20'))
-    assert_equal("10", ActionController::AbstractRequest.parse_query_parameters('x[y][][z]=10&x[y][][z]=20')["x"]["y"].first["z"])
-    assert_equal("10", ActionController::AbstractRequest.parse_query_parameters('x[y][][z]=10&x[y][][z]=20').with_indifferent_access[:x][:y].first[:z])
+    assert_equal({'x' => {'y' => [{'z' => '10'}, {'z' => '20'}]}}, ActionController::RequestParser.parse_query_parameters('x[y][][z]=10&x[y][][z]=20'))
+    assert_equal("10", ActionController::RequestParser.parse_query_parameters('x[y][][z]=10&x[y][][z]=20')["x"]["y"].first["z"])
+    assert_equal("10", ActionController::RequestParser.parse_query_parameters('x[y][][z]=10&x[y][][z]=20').with_indifferent_access[:x][:y].first[:z])
   end
 
   def test_deep_query_string_with_array_of_hashes_with_multiple_pairs
     assert_equal(
       {'x' => {'y' => [{'z' => '10', 'w' => 'a'}, {'z' => '20', 'w' => 'b'}]}},
-      ActionController::AbstractRequest.parse_query_parameters('x[y][][z]=10&x[y][][w]=a&x[y][][z]=20&x[y][][w]=b')
+      ActionController::RequestParser.parse_query_parameters('x[y][][z]=10&x[y][][w]=a&x[y][][z]=20&x[y][][w]=b')
     )
   end
 
   def test_query_string_with_nil
     assert_equal(
       { "action" => "create_customer", "full_name" => ''},
-      ActionController::AbstractRequest.parse_query_parameters(@query_string_with_empty)
+      ActionController::RequestParser.parse_query_parameters(@query_string_with_empty)
     )
   end
 
   def test_query_string_with_array
     assert_equal(
       { "action" => "create_customer", "selected" => ["1", "2", "3"]},
-      ActionController::AbstractRequest.parse_query_parameters(@query_string_with_array)
+      ActionController::RequestParser.parse_query_parameters(@query_string_with_array)
     )
   end
 
   def test_query_string_with_amps
     assert_equal(
       { "action" => "create_customer", "name" => "Don't & Does"},
-      ActionController::AbstractRequest.parse_query_parameters(@query_string_with_amps)
+      ActionController::RequestParser.parse_query_parameters(@query_string_with_amps)
     )
   end
 
   def test_query_string_with_many_equal
     assert_equal(
       { "action" => "create_customer", "full_name" => "abc=def=ghi"},
-      ActionController::AbstractRequest.parse_query_parameters(@query_string_with_many_equal)
+      ActionController::RequestParser.parse_query_parameters(@query_string_with_many_equal)
     )
   end
 
   def test_query_string_without_equal
     assert_equal(
       { "action" => nil },
-      ActionController::AbstractRequest.parse_query_parameters(@query_string_without_equal)
+      ActionController::RequestParser.parse_query_parameters(@query_string_without_equal)
     )
   end
 
   def test_query_string_with_empty_key
     assert_equal(
       { "action" => "create_customer", "full_name" => "David Heinemeier Hansson" },
-      ActionController::AbstractRequest.parse_query_parameters(@query_string_with_empty_key)
+      ActionController::RequestParser.parse_query_parameters(@query_string_with_empty_key)
     )
   end
 
   def test_query_string_with_many_ampersands
     assert_equal(
       { "action" => "create_customer", "full_name" => "David Heinemeier Hansson"},
-      ActionController::AbstractRequest.parse_query_parameters(@query_string_with_many_ampersands)
+      ActionController::RequestParser.parse_query_parameters(@query_string_with_many_ampersands)
     )
   end
 
   def test_unbalanced_query_string_with_array
    assert_equal(
      {'location' => ["1", "2"], 'age_group' => ["2"]},
-  ActionController::AbstractRequest.parse_query_parameters("location[]=1&location[]=2&age_group[]=2")
+  ActionController::RequestParser.parse_query_parameters("location[]=1&location[]=2&age_group[]=2")
    )
    assert_equal(
      {'location' => ["1", "2"], 'age_group' => ["2"]},
-     ActionController::AbstractRequest.parse_request_parameters({'location[]' => ["1", "2"],
+     ActionController::RequestParser.parse_request_parameters({'location[]' => ["1", "2"],
   'age_group[]' => ["2"]})
    )
   end
@@ -527,7 +525,7 @@ class UrlEncodedRequestParameterParsingTest < ActiveSupport::TestCase
 
     expected = { "note" => { "viewers"=>{"viewer"=>[{ "id"=>"1", "type"=>"User"}, {"type"=>"Group", "id"=>"2"} ]} } }
 
-    assert_equal(expected, ActionController::AbstractRequest.parse_request_parameters(query))
+    assert_equal(expected, ActionController::RequestParser.parse_request_parameters(query))
   end
 
   def test_parse_params
@@ -566,7 +564,7 @@ class UrlEncodedRequestParameterParsingTest < ActiveSupport::TestCase
       }
     }
 
-    assert_equal expected_output, ActionController::AbstractRequest.parse_request_parameters(input)
+    assert_equal expected_output, ActionController::RequestParser.parse_request_parameters(input)
   end
 
   UploadedStringIO = ActionController::UploadedStringIO
@@ -621,7 +619,7 @@ class UrlEncodedRequestParameterParsingTest < ActiveSupport::TestCase
       "text_part" => "abc"
     }
 
-    params = ActionController::AbstractRequest.parse_request_parameters(input)
+    params = ActionController::RequestParser.parse_request_parameters(input)
     assert_equal expected_output, params
 
     # Lone filenames are preserved.
@@ -652,7 +650,7 @@ class UrlEncodedRequestParameterParsingTest < ActiveSupport::TestCase
       "logo" => File.new(File.dirname(__FILE__) + "/rack_test.rb").path,
     }
 
-    assert_equal expected_output, ActionController::AbstractRequest.parse_request_parameters(input)
+    assert_equal expected_output, ActionController::RequestParser.parse_request_parameters(input)
   end
 
   def test_parse_params_with_array
@@ -660,55 +658,55 @@ class UrlEncodedRequestParameterParsingTest < ActiveSupport::TestCase
 
     expected_output = { "selected" => [ "1", "2", "3" ] }
 
-    assert_equal expected_output, ActionController::AbstractRequest.parse_request_parameters(input)
+    assert_equal expected_output, ActionController::RequestParser.parse_request_parameters(input)
   end
 
   def test_parse_params_with_non_alphanumeric_name
     input     = { "a/b[c]" =>  %w(d) }
     expected  = { "a/b" => { "c" => "d" }}
-    assert_equal expected, ActionController::AbstractRequest.parse_request_parameters(input)
+    assert_equal expected, ActionController::RequestParser.parse_request_parameters(input)
   end
 
   def test_parse_params_with_single_brackets_in_middle
     input     = { "a/b[c]d" =>  %w(e) }
     expected  = { "a/b" => {} }
-    assert_equal expected, ActionController::AbstractRequest.parse_request_parameters(input)
+    assert_equal expected, ActionController::RequestParser.parse_request_parameters(input)
   end
 
   def test_parse_params_with_separated_brackets
     input     = { "a/b@[c]d[e]" =>  %w(f) }
     expected  = { "a/b@" => { }}
-    assert_equal expected, ActionController::AbstractRequest.parse_request_parameters(input)
+    assert_equal expected, ActionController::RequestParser.parse_request_parameters(input)
   end
 
   def test_parse_params_with_separated_brackets_and_array
     input     = { "a/b@[c]d[e][]" =>  %w(f) }
     expected  = { "a/b@" => { }}
-    assert_equal expected , ActionController::AbstractRequest.parse_request_parameters(input)
+    assert_equal expected , ActionController::RequestParser.parse_request_parameters(input)
   end
 
   def test_parse_params_with_unmatched_brackets_and_array
     input     = { "a/b@[c][d[e][]" =>  %w(f) }
     expected  = { "a/b@" => { "c" => { }}}
-    assert_equal expected, ActionController::AbstractRequest.parse_request_parameters(input)
+    assert_equal expected, ActionController::RequestParser.parse_request_parameters(input)
   end
 
   def test_parse_params_with_nil_key
     input = { nil => nil, "test2" => %w(value1) }
     expected = { "test2" => "value1" }
-    assert_equal expected, ActionController::AbstractRequest.parse_request_parameters(input)
+    assert_equal expected, ActionController::RequestParser.parse_request_parameters(input)
   end
 
   def test_parse_params_with_array_prefix_and_hashes
     input = { "a[][b][c]" => %w(d) }
     expected = {"a" => [{"b" => {"c" => "d"}}]}
-    assert_equal expected, ActionController::AbstractRequest.parse_request_parameters(input)
+    assert_equal expected, ActionController::RequestParser.parse_request_parameters(input)
   end
 
   def test_parse_params_with_complex_nesting
     input = { "a[][b][c][][d][]" => %w(e) }
     expected = {"a" => [{"b" => {"c" => [{"d" => ["e"]}]}}]}
-    assert_equal expected, ActionController::AbstractRequest.parse_request_parameters(input)
+    assert_equal expected, ActionController::RequestParser.parse_request_parameters(input)
   end
 end
 
@@ -770,7 +768,7 @@ class MultipartRequestParameterParsingTest < ActiveSupport::TestCase
       # Ensures that parse_multipart_form_parameters works with streams that cannot be rewound
       file = File.open(File.join(FIXTURE_PATH, 'large_text_file'), 'rb')
       file.expects(:rewind).raises(Errno::ESPIPE)
-      params = ActionController::AbstractRequest.parse_multipart_form_parameters(file, 'AaB03x', file.stat.size, {})
+      params = ActionController::RequestParser.parse_multipart_form_parameters(file, 'AaB03x', file.stat.size, {})
       assert_not_equal 0, file.pos  # file was not rewound after reading
     end
   end
@@ -809,7 +807,7 @@ class MultipartRequestParameterParsingTest < ActiveSupport::TestCase
   private
     def parse_multipart(name)
       File.open(File.join(FIXTURE_PATH, name), 'rb') do |file|
-        params = ActionController::AbstractRequest.parse_multipart_form_parameters(file, 'AaB03x', file.stat.size, {})
+        params = ActionController::RequestParser.parse_multipart_form_parameters(file, 'AaB03x', file.stat.size, {})
         assert_equal 0, file.pos  # file was rewound after reading
         params
       end
@@ -856,7 +854,7 @@ class XmlParamsParsingTest < ActiveSupport::TestCase
       env = { 'rack.input'     => StringIO.new(body),
               'CONTENT_TYPE'   => 'application/xml',
               'CONTENT_LENGTH' => body.size.to_s }
-      ActionController::RackRequest.new(env).request_parameters
+      ActionController::Request.new(env).request_parameters
     end
 end
 
@@ -866,7 +864,7 @@ class LegacyXmlParamsParsingTest < XmlParamsParsingTest
       env = { 'rack.input'              => StringIO.new(body),
               'HTTP_X_POST_DATA_FORMAT' => 'xml',
               'CONTENT_LENGTH'          => body.size.to_s }
-      ActionController::RackRequest.new(env).request_parameters
+      ActionController::Request.new(env).request_parameters
     end
 end
 
@@ -888,6 +886,6 @@ class JsonParamsParsingTest < ActiveSupport::TestCase
       env = { 'rack.input'     => StringIO.new(body),
               'CONTENT_TYPE'   => content_type,
               'CONTENT_LENGTH' => body.size.to_s }
-      ActionController::RackRequest.new(env).request_parameters
+      ActionController::Request.new(env).request_parameters
     end
 end

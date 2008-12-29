@@ -950,13 +950,13 @@ module ActiveRecord
           # should know about this but can't detect it there, so deal with it here.
           money_precision = (postgresql_version >= 80300) ? 19 : 10
           PostgreSQLColumn.module_eval(<<-end_eval)
-            def extract_precision(sql_type)
-              if sql_type =~ /^money$/
-                #{money_precision}
-              else
-                super
-              end
-            end
+            def extract_precision(sql_type)  # def extract_precision(sql_type)
+              if sql_type =~ /^money$/       #   if sql_type =~ /^money$/
+                #{money_precision}           #     19
+              else                           #   else
+                super                        #     super
+              end                            #   end
+            end                              # end
           end_eval
 
           configure_connection

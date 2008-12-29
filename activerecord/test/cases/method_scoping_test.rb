@@ -27,6 +27,24 @@ class MethodScopingTest < ActiveRecord::TestCase
     end
   end
 
+  def test_scoped_find_last
+    highest_salary = Developer.find(:first, :order => "salary DESC")
+
+    Developer.with_scope(:find => { :order => "salary" }) do
+      assert_equal highest_salary, Developer.last
+    end
+  end
+
+  def test_scoped_find_last_preserves_scope
+    lowest_salary = Developer.find(:first, :order => "salary ASC")
+    highest_salary = Developer.find(:first, :order => "salary DESC")
+
+    Developer.with_scope(:find => { :order => "salary" }) do
+      assert_equal highest_salary, Developer.last
+      assert_equal lowest_salary, Developer.first
+    end
+  end
+
   def test_scoped_find_combines_conditions
     Developer.with_scope(:find => { :conditions => "salary = 9000" }) do
       assert_equal developers(:poor_jamis), Developer.find(:first, :conditions => "name = 'Jamis'")

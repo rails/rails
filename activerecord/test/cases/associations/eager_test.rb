@@ -729,12 +729,12 @@ class EagerAssociationTest < ActiveRecord::TestCase
     assert_equal authors(:david), assert_no_queries { posts[0].author}
 
     posts = assert_queries(2) do
-      Post.find(:all, :include => :author, :joins => {:taggings => :tag}, :conditions => "tags.name = 'General'")
+      Post.find(:all, :include => :author, :joins => {:taggings => :tag}, :conditions => "tags.name = 'General'", :order => 'posts.id')
     end
     assert_equal posts(:welcome, :thinking), posts
 
     posts = assert_queries(2) do
-      Post.find(:all, :include => :author, :joins => {:taggings => {:tag => :taggings}}, :conditions => "taggings_tags.super_tag_id=2")
+      Post.find(:all, :include => :author, :joins => {:taggings => {:tag => :taggings}}, :conditions => "taggings_tags.super_tag_id=2", :order => 'posts.id')
     end
     assert_equal posts(:welcome, :thinking), posts
 
@@ -771,4 +771,19 @@ class EagerAssociationTest < ActiveRecord::TestCase
     assert_equal author_addresses(:david_address), authors[0].author_address
   end
 
+  def test_preload_belongs_to_uses_exclusive_scope
+    people = Person.males.find(:all, :include => :primary_contact)
+    assert_not_equal people.length, 0
+    people.each do |person|
+      assert_no_queries {assert_not_nil person.primary_contact}
+      assert_equal Person.find(person.id).primary_contact, person.primary_contact
+    end
+  end
+
+  def test_preload_has_many_uses_exclusive_scope
+    people = Person.males.find :all, :include => :agents
+    people.each do |person|
+      assert_equal Person.find(person.id).agents, person.agents
+    end
+  end
 end

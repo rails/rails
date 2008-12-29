@@ -21,6 +21,8 @@ class MockLogger
 end
 
 class TestController < ActionController::Base
+  protect_from_forgery
+
   class LabellingFormBuilder < ActionView::Helpers::FormBuilder
   end
 
@@ -79,6 +81,10 @@ class TestController < ActionController::Base
     render :action => "hello_world"
   end
 
+  def render_action_hello_world_as_string
+    render "hello_world"
+  end
+
   def render_action_hello_world_with_symbol
     render :action => :hello_world
   end
@@ -102,6 +108,12 @@ class TestController < ActionController::Base
     render :file => path
   end
 
+  def render_file_as_string_with_instance_variables
+    @secret = 'in the sauce'
+    path = File.expand_path(File.join(File.dirname(__FILE__), '../fixtures/test/render_file_with_ivar.erb'))
+    render path
+  end
+
   def render_file_not_using_full_path
     @secret = 'in the sauce'
     render :file => 'test/render_file_with_ivar'
@@ -120,6 +132,11 @@ class TestController < ActionController::Base
   def render_file_with_locals
     path = File.join(File.dirname(__FILE__), '../fixtures/test/render_file_with_locals.erb')
     render :file => path, :locals => {:secret => 'in the sauce'}
+  end
+
+  def render_file_as_string_with_locals
+    path = File.expand_path(File.join(File.dirname(__FILE__), '../fixtures/test/render_file_with_locals.erb'))
+    render path, :locals => {:secret => 'in the sauce'}
   end
 
   def accessing_request_in_template
@@ -180,10 +197,6 @@ class TestController < ActionController::Base
     render :text => "appended"
   end
 
-  def render_invalid_args
-    render("test/hello")
-  end
-
   def render_vanilla_js_hello
     render :js => "alert('hello')"
   end
@@ -191,6 +204,11 @@ class TestController < ActionController::Base
   def render_xml_hello
     @name = "David"
     render :template => "test/hello"
+  end
+
+  def render_xml_hello_as_string_template
+    @name = "David"
+    render "test/hello"
   end
 
   def render_xml_with_custom_content_type
@@ -282,6 +300,14 @@ class TestController < ActionController::Base
     render :action => "hello_world", :layout => "standard"
   end
 
+  def layout_test_with_different_layout_and_string_action
+    render "hello_world", :layout => "standard"
+  end
+
+  def layout_test_with_different_layout_and_symbol_action
+    render :hello_world, :layout => "standard"
+  end
+
   def rendering_without_layout
     render :action => "hello_world", :layout => false
   end
@@ -321,6 +347,10 @@ class TestController < ActionController::Base
 
   def render_with_explicit_template
     render :template => "test/hello_world"
+  end
+
+  def render_with_explicit_string_template
+    render "test/hello_world"
   end
 
   def render_with_explicit_template_with_locals
@@ -645,6 +675,7 @@ class TestController < ActionController::Base
              "accessing_params_in_template",
              "accessing_params_in_template_with_layout",
              "render_with_explicit_template",
+             "render_with_explicit_string_template",
              "render_js_with_explicit_template",
              "render_js_with_explicit_action_template",
              "delete_with_js", "update_page", "update_page_with_instance_variables"
@@ -724,6 +755,12 @@ class RenderTest < ActionController::TestCase
     assert_template "test/hello_world"
   end
 
+  def test_render_action_hello_world_as_string
+    get :render_action_hello_world_as_string
+    assert_equal "Hello world!", @response.body
+    assert_template "test/hello_world"
+  end
+
   def test_render_action_with_symbol
     get :render_action_hello_world_with_symbol
     assert_template "test/hello_world"
@@ -749,6 +786,11 @@ class RenderTest < ActionController::TestCase
     assert_equal "The secret is in the sauce\n", @response.body
   end
 
+  def test_render_file_as_string_with_instance_variables
+    get :render_file_as_string_with_instance_variables
+    assert_equal "The secret is in the sauce\n", @response.body
+  end
+
   def test_render_file_not_using_full_path
     get :render_file_not_using_full_path
     assert_equal "The secret is in the sauce\n", @response.body
@@ -761,6 +803,11 @@ class RenderTest < ActionController::TestCase
 
   def test_render_file_with_locals
     get :render_file_with_locals
+    assert_equal "The secret is in the sauce\n", @response.body
+  end
+
+  def test_render_file_as_string_with_locals
+    get :render_file_as_string_with_locals
     assert_equal "The secret is in the sauce\n", @response.body
   end
 
@@ -829,10 +876,6 @@ class RenderTest < ActionController::TestCase
     assert_equal 'appended', @response.body
   end
 
-  def test_attempt_to_render_with_invalid_arguments
-    assert_raises(ActionController::RenderError) { get :render_invalid_args }
-  end
-
   def test_attempt_to_access_object_method
     assert_raises(ActionController::UnknownAction, "No action responded to [clone]") { get :clone }
   end
@@ -869,6 +912,12 @@ class RenderTest < ActionController::TestCase
 
   def test_render_xml
     get :render_xml_hello
+    assert_equal "<html>\n  <p>Hello David</p>\n<p>This is grand!</p>\n</html>\n", @response.body
+    assert_equal "application/xml", @response.content_type
+  end
+
+  def test_render_xml_as_string_template
+    get :render_xml_hello_as_string_template
     assert_equal "<html>\n  <p>Hello David</p>\n<p>This is grand!</p>\n</html>\n", @response.body
     assert_equal "application/xml", @response.content_type
   end
@@ -1012,6 +1061,16 @@ class RenderTest < ActionController::TestCase
     assert_equal "<html>Hello world!</html>", @response.body
   end
 
+  def test_layout_test_with_different_layout_and_string_action
+    get :layout_test_with_different_layout_and_string_action
+    assert_equal "<html>Hello world!</html>", @response.body
+  end
+
+  def test_layout_test_with_different_layout_and_symbol_action
+    get :layout_test_with_different_layout_and_symbol_action
+    assert_equal "<html>Hello world!</html>", @response.body
+  end
+
   def test_rendering_without_layout
     get :rendering_without_layout
     assert_equal "Hello world!", @response.body
@@ -1056,6 +1115,11 @@ class RenderTest < ActionController::TestCase
   def test_render_with_explicit_template
     get :render_with_explicit_template
     assert_response :success
+  end
+
+  def test_render_with_explicit_string_template
+    get :render_with_explicit_string_template
+    assert_equal "<html>Hello world!</html>", @response.body
   end
 
   def test_double_render

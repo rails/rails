@@ -163,9 +163,9 @@ module ActionController #:nodoc:
       def helper_method(*methods)
         methods.flatten.each do |method|
           master_helper_module.module_eval <<-end_eval
-            def #{method}(*args, &block)
-              controller.send(%(#{method}), *args, &block)
-            end
+            def #{method}(*args, &block)                    # def current_user(*args, &block)
+              controller.send(%(#{method}), *args, &block)  #   controller.send(%(current_user), *args, &block)
+            end                                             # end
           end_eval
         end
       end

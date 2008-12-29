@@ -278,3 +278,23 @@ class NamedScopeTest < ActiveRecord::TestCase
     assert_equal post.comments.size, Post.scoped(:joins => join).scoped(:joins => join, :conditions => "posts.id = #{post.id}").size
   end
 end
+
+class DynamicScopeMatchTest < ActiveRecord::TestCase  
+  def test_scoped_by_no_match
+    assert_nil ActiveRecord::DynamicScopeMatch.match("not_scoped_at_all")
+  end
+
+  def test_scoped_by
+    match = ActiveRecord::DynamicScopeMatch.match("scoped_by_age_and_sex_and_location")
+    assert_not_nil match
+    assert match.scope?
+    assert_equal %w(age sex location), match.attribute_names
+  end
+end
+
+class DynamicScopeTest < ActiveRecord::TestCase
+  def test_dynamic_scope
+    assert_equal Post.scoped_by_author_id(1).find(1), Post.find(1)
+    assert_equal Post.scoped_by_author_id_and_title(1, "Welcome to the weblog").first, Post.find(:first, :conditions => { :author_id => 1, :title => "Welcome to the weblog"})
+  end
+end

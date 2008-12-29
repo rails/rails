@@ -737,9 +737,13 @@ module ActionView
 
       (field_helpers - %w(label check_box radio_button fields_for)).each do |selector|
         src = <<-end_src
-          def #{selector}(method, options = {})
-            @template.send(#{selector.inspect}, @object_name, method, objectify_options(options))
-          end
+          def #{selector}(method, options = {})  # def text_field(method, options = {})
+            @template.send(                      #   @template.send(
+              #{selector.inspect},               #     "text_field",
+              @object_name,                      #     @object_name,
+              method,                            #     method,
+              objectify_options(options))        #     objectify_options(options))
+          end                                    # end
         end_src
         class_eval src, __FILE__, __LINE__
       end

@@ -10,11 +10,14 @@ require 'action_mailer/test_case'
 ActiveSupport::Deprecation.debug = true
 
 # Bogus template processors
-ActionView::Template.register_template_handler :haml, lambda { |template| "Look its HAML!" }
-ActionView::Template.register_template_handler :bak, lambda { |template| "Lame backup" }
+ActionView::Template.register_template_handler :haml, lambda { |template| "Look its HAML!".inspect }
+ActionView::Template.register_template_handler :bak, lambda { |template| "Lame backup".inspect }
 
 $:.unshift "#{File.dirname(__FILE__)}/fixtures/helpers"
-ActionMailer::Base.template_root = "#{File.dirname(__FILE__)}/fixtures"
+
+FIXTURE_LOAD_PATH = File.join(File.dirname(__FILE__), 'fixtures')
+ActionMailer::Base.template_root = FIXTURE_LOAD_PATH
+ActionMailer::Base.template_root.load
 
 class MockSMTP
   def self.deliveries

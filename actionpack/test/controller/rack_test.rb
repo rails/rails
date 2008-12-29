@@ -4,7 +4,7 @@ class BaseRackTest < Test::Unit::TestCase
   def setup
     @env = {
       "HTTP_MAX_FORWARDS" => "10",
-      "SERVER_NAME" => "glu.ttono.us:8007",
+      "SERVER_NAME" => "glu.ttono.us",
       "FCGI_ROLE" => "RESPONDER",
       "AUTH_TYPE" => "Basic",
       "HTTP_X_FORWARDED_HOST" => "glu.ttono.us",
@@ -43,10 +43,10 @@ class BaseRackTest < Test::Unit::TestCase
       "REDIRECT_STATUS" => "200",
       "REQUEST_METHOD" => "GET"
     }
-    @request = ActionController::RackRequest.new(@env)
+    @request = ActionController::Request.new(@env)
     # some Nokia phone browsers omit the space after the semicolon separator.
     # some developers have grown accustomed to using comma in cookie values.
-    @alt_cookie_fmt_request = ActionController::RackRequest.new(@env.merge({"HTTP_COOKIE"=>"_session_id=c84ace847,96670c052c6ceb2451fb0f2;is_admin=yes"}))
+    @alt_cookie_fmt_request = ActionController::Request.new(@env.merge({"HTTP_COOKIE"=>"_session_id=c84ace847,96670c052c6ceb2451fb0f2;is_admin=yes"}))
   end
 
   def default_test; end
@@ -145,7 +145,7 @@ class RackRequestTest < BaseRackTest
     assert_equal "kevin", @request.remote_user
     assert_equal :get, @request.request_method
     assert_equal "/dispatch.fcgi", @request.script_name
-    assert_equal "glu.ttono.us:8007", @request.server_name
+    assert_equal "glu.ttono.us", @request.server_name
     assert_equal 8007, @request.server_port
     assert_equal "HTTP/1.1", @request.server_protocol
     assert_equal "lighttpd", @request.server_software
@@ -187,29 +187,6 @@ class RackRequestContentTypeTest < BaseRackTest
   end
 end
 
-class RackRequestMethodTest < BaseRackTest
-  def test_get
-    assert_equal :get, @request.request_method
-  end
-
-  def test_post
-    @request.env['REQUEST_METHOD'] = 'POST'
-    assert_equal :post, @request.request_method
-  end
-
-  def test_put
-    set_content_data '_method=put'
-
-    assert_equal :put, @request.request_method
-  end
-
-  def test_delete
-    set_content_data '_method=delete'
-
-    assert_equal :delete, @request.request_method
-  end
-end
-
 class RackRequestNeedsRewoundTest < BaseRackTest
   def test_body_should_be_rewound
     data = 'foo'
@@ -218,7 +195,7 @@ class RackRequestNeedsRewoundTest < BaseRackTest
     @env['CONTENT_TYPE'] = 'application/x-www-form-urlencoded; charset=utf-8'
 
     # Read the request body by parsing params.
-    request = ActionController::RackRequest.new(@env)
+    request = ActionController::Request.new(@env)
     request.request_parameters
 
     # Should have rewound the body.

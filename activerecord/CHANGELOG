@@ -1,5 +1,9 @@
 *2.3.0/3.0*
 
+* Added dynamic scopes ala dynamic finders #1648 [Yaroslav Markin]
+
+* Fixed that ActiveRecord::Base#new_record? should return false (not nil) for existing records #1219 [Yaroslav Markin]
+
 * I18n the word separator for error messages. Introduces the activerecord.errors.format.separator translation key.  #1294 [Akira Matsuda]
 
 * Add :having as a key to find and the relevant associations.  [Emilio Tagua]

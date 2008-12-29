@@ -665,6 +665,19 @@ class HasManyAssociationsTest < ActiveRecord::TestCase
     assert_equal 1, Client.find_all_by_client_of(firm.id).size
   end
 
+  def test_dependent_association_respects_optional_hash_conditions_on_delete
+    firm = companies(:odegy)
+    Client.create(:client_of => firm.id, :name => "BigShot Inc.")
+    Client.create(:client_of => firm.id, :name => "SmallTime Inc.")
+    # only one of two clients is included in the association due to the :conditions key
+    assert_equal 2, Client.find_all_by_client_of(firm.id).size
+    assert_equal 1, firm.dependent_sanitized_conditional_clients_of_firm.size
+    firm.destroy
+    # only the correctly associated client should have been deleted
+    assert_equal 1, Client.find_all_by_client_of(firm.id).size
+  end
+
+
   def test_creation_respects_hash_condition
     ms_client = companies(:first_firm).clients_like_ms_with_hash_conditions.build
 

@@ -25,7 +25,7 @@ class CookieStoreTest < ActionController::IntegrationTest
 
     def set_session_value
       session[:foo] = "bar"
-      render :text => Marshal.dump(session.to_hash)
+      render :text => Verifier.generate(session.to_hash)
     end
 
     def get_session_value
@@ -94,8 +94,7 @@ class CookieStoreTest < ActionController::IntegrationTest
     with_test_route_set do
       get '/set_session_value'
       assert_response :success
-      session_payload = Verifier.generate(Marshal.load(response.body))
-      assert_equal ["_myapp_session=#{session_payload}; path=/"],
+      assert_equal ["_myapp_session=#{response.body}; path=/"],
         headers['Set-Cookie']
    end
   end
@@ -148,8 +147,8 @@ class CookieStoreTest < ActionController::IntegrationTest
     with_test_route_set do
       get '/set_session_value'
       assert_response :success
-      session_payload = Verifier.generate(Marshal.load(response.body))
-      assert_equal ["_myapp_session=#{session_payload}; path=/"],
+      session_payload = response.body
+      assert_equal ["_myapp_session=#{response.body}; path=/"],
         headers['Set-Cookie']
 
       get '/call_reset_session'

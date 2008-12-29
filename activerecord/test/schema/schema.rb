@@ -298,8 +298,10 @@ ActiveRecord::Schema.define do
   end
 
   create_table :people, :force => true do |t|
-    t.string  :first_name, :null => false
-    t.integer :lock_version, :null => false, :default => 0
+    t.string     :first_name, :null => false
+    t.references :primary_contact
+    t.string     :gender, :limit => 1
+    t.integer    :lock_version, :null => false, :default => 0
   end
 
   create_table :pets, :primary_key => :pet_id ,:force => true do |t|

@@ -2,13 +2,6 @@ module ActionView #:nodoc:
   class PathSet < Array #:nodoc:
     def self.type_cast(obj)
       if obj.is_a?(String)
-        if Base.warn_cache_misses && defined?(Rails) && Rails.initialized?
-          Base.logger.debug "[PERFORMANCE] Processing view path during a " +
-            "request. This an expense disk operation that should be done at " +
-            "boot. You can manually process this view path with " +
-            "ActionView::Base.process_view_paths(#{obj.inspect}) and set it " +
-            "as your view path"
-        end
         Path.new(obj)
       else
         obj
@@ -92,7 +85,7 @@ module ActionView #:nodoc:
         else
           Dir.glob("#{@path}/#{path}*").each do |file|
             template = create_template(file)
-            if path == template.path_without_extension || path == template.path
+            if template.accessible_paths.include?(path)
               return template
             end
           end
@@ -115,8 +108,9 @@ module ActionView #:nodoc:
 
         templates_in_path do |template|
           template.load!
-          @paths[template.path] = template
-          @paths[template.path_without_extension] ||= template
+          template.accessible_paths.each do |path|
+            @paths[path] = template
+          end
         end
 
         @paths.freeze
@@ -143,28 +137,19 @@ module ActionView #:nodoc:
       each { |path| path.reload! }
     end
 
-    def [](template_path)
-      each do |path|
-        if template = path[template_path]
-          return template
-        end
-      end
-      nil
-    end
+    def find_template(original_template_path, format = nil)
+      return original_template_path if original_template_path.respond_to?(:render)
+      template_path = original_template_path.sub(/^\//, '')
 
-    def find_template(path, *formats)
-      if formats && formats.first == :all
-        formats = Mime::EXTENSION_LOOKUP.values.map(&:to_sym)
-      end
-      formats.each do |format|
-        if template = self["#{path}.#{format}"]
+      each do |load_path|
+        if format && (template = load_path["#{template_path}.#{format}"])
+          return template
+        elsif template = load_path[template_path]
           return template
         end
       end
-      if template = self[path]
-        return template
-      end
-      nil
+
+      Template.new(original_template_path, self)
     end
   end
 end

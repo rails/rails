@@ -247,7 +247,7 @@ A nice thing about `f.text_field` and other helper methods is that they will pre
 Relying on record identification
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-In the previous chapter we handled the Article model. This model is directly available to users of our application and, following the best practices for developing with Rails, we should declare it *a resource*.
+In the previous chapter we handled the Article model. This model is directly available to users of our application, so -- following the best practices for developing with Rails -- we should declare it *a resource*.
 
 When dealing with RESTful resources, our calls to `form_for` can get significantly easier if we rely on *record identification*. In short, we can just pass the model instance and have Rails figure out model name and the rest:
 
@@ -291,15 +291,13 @@ Here we have a list of cities where their names are presented to the user, but i
 The select tag and options
 ~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-The most generic helper is `select_tag`, which -- as the name implies -- simply generates the `SELECT` tag that encapsulates the options:
+The most generic helper is `select_tag`, which -- as the name implies -- simply generates the `SELECT` tag that encapsulates an options string:
 
 ----------------------------------------------------------------------------
 <%= select_tag(:city_id, '<option value="1">Lisabon</option>...') %>
 ----------------------------------------------------------------------------
 
-This is a start, but it doesn't dynamically create our option tags. We had to pass them in as a string.
-
-We can generate option tags with the `options_for_select` helper:
+This is a start, but it doesn't dynamically create our option tags. We can generate option tags with the `options_for_select` helper:
 
 ----------------------------------------------------------------------------
 <%= options_for_select([['Lisabon', 1], ['Madrid', 2], ...]) %>
@@ -311,9 +309,9 @@ output:
 ...
 ----------------------------------------------------------------------------
 
-For input data we used a nested array where each element has two elements: visible value (name) and internal value (ID).
+For input data we used a nested array where each item has two elements: option text (city name) and option value (city id).
 
-Now you can combine `select_tag` and `options_for_select` to achieve the desired, complete markup:
+Knowing this, you can combine `select_tag` and `options_for_select` to achieve the desired, complete markup:
 
 ----------------------------------------------------------------------------
 <%= select_tag(:city_id, options_for_select(...)) %>
@@ -333,13 +331,114 @@ output:
 
 So whenever Rails sees that the internal value of an option being generated matches this value, it will add the `selected` attribute to that option.
 
-Select boxes for dealing with models
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+Select helpers for dealing with models
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 Until now we've covered how to make generic select boxes, but in most cases our form controls will be tied to a specific database model. So, to continue from our previous examples, let's assume that we have a "Person" model with a `city_id` attribute.
 
+Consistent with other form helpers, when dealing with models we drop the `"_tag"` suffix from `select_tag` that we used in previous examples:
+
 ----------------------------------------------------------------------------
-...
+# controller:
+@person = Person.new(:city_id => 2)
+
+# view:
+<%= select(:person, :city_id, [['Lisabon', 1], ['Madrid', 2], ...]) %>
 ----------------------------------------------------------------------------
 
-...
+Notice that the third parameter, the options array, is the same kind of argument we pass to `options_for_select`. One thing that we have as an advantage here is that we don't have to worry about pre-selecting the correct city if the user already has one -- Rails will do this for us by reading from `@person.city_id` attribute.
+
+As before, if we were to use `select` helper on a form builder scoped to `@person` object, the syntax would be:
+
+----------------------------------------------------------------------------
+# select on a form builder
+<%= f.select(:city_id, ...) %>
+----------------------------------------------------------------------------
+
+Option tags from a collection of arbitrary objects
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Until now we were generating option tags from nested arrays with the help of `options_for_select` method. Data in our array were raw values:
+
+----------------------------------------------------------------------------
+<%= options_for_select([['Lisabon', 1], ['Madrid', 2], ...]) %>
+----------------------------------------------------------------------------
+
+But what if we had a *City* model (perhaps an ActiveRecord one) and we wanted to generate option tags from a collection of those objects? One solution would be to make a nested array by iterating over them:
+
+----------------------------------------------------------------------------
+<% cities_array = City.find(:all).map { |city| [city.name, city.id] } %>
+<%= options_for_select(cities_array) %>
+----------------------------------------------------------------------------
+
+This is a perfectly valid solution, but Rails provides us with a less verbose alternative: `options_from_collection_for_select`. This helper expects a collection of arbitrary objects and two additional arguments: the names of the methods to read the option *value* and *text* from, respectively:
+
+----------------------------------------------------------------------------
+<%= options_from_collection_for_select(City.all, :id, :name) %>
+----------------------------------------------------------------------------
+
+As the name implies, this only generates option tags. A method to go along with it is `collection_select`:
+
+----------------------------------------------------------------------------
+<%= collection_select(:person, :city_id, City.all, :id, :name) %>
+----------------------------------------------------------------------------
+
+To recap, `options_from_collection_for_select` are to `collection_select` what `options_for_select` are to `select`.
+
+Time zone and country select
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+To leverage time zone support in Rails, we have to ask our users what time zone they are in. Doing so would require generating select options from a list of pre-defined TimeZone objects using `collection_select`, but we can simply use the `time_zone_select` helper that already wraps this:
+
+----------------------------------------------------------------------------
+<%= time_zone_select(:person, :city_id) %>
+----------------------------------------------------------------------------
+
+There is also `time_zone_options_for_select` helper for a more manual (therefore more customizable) way of doing this. Read the API documentation to learn about the possible arguments for these two methods.
+
+When it comes to country select, Rails _used_ to have the built-in helper `country_select` but was extracted to a plugin.
+TODO: plugin URL
+
+
+Miscellaneous
+-------------
+
+File upload form
+~~~~~~~~~~~~~~~~
+
+:multipart - If set to true, the enctype is set to "multipart/form-data".
+
+Scoping out form controls with `fields_for`
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Creates a scope around a specific model object like `form_for`, but doesn’t create the form tags themselves. This makes `fields_for` suitable for specifying additional model objects in the same form: 
+
+Making custom form builders
+~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+You can also build forms using a customized FormBuilder class. Subclass FormBuilder and override or define some more helpers, then use your custom builder. For example, let’s say you made a helper to automatically add labels to form inputs.
+
+----------------------------------------------------------------------------
+<% form_for :person, @person, :url => { :action => "update" }, :builder => LabellingFormBuilder do |f| %>
+  <%= f.text_field :first_name %>
+  <%= f.text_field :last_name %>
+  <%= text_area :person, :biography %>
+  <%= check_box_tag "person[admin]", @person.company.admin? %>
+<% end %>
+----------------------------------------------------------------------------
+
+
+* `form_for` within a namespace
+
+----------------------------------------------------------------------------
+select_tag(name, option_tags = nil, html_options = { :multiple, :disabled })
+
+select(object, method, choices, options = {}, html_options = {})
+options_for_select(container, selected = nil)
+
+collection_select(object, method, collection, value_method, text_method, options = {}, html_options = {})
+options_from_collection_for_select(collection, value_method, text_method, selected = nil)
+
+time_zone_options_for_select(selected = nil, priority_zones = nil, model = ::ActiveSupport::TimeZone)
+time_zone_select(object, method, priority_zones = nil, options = {}, html_options = {})
+----------------------------------------------------------------------------
