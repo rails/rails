@@ -1801,18 +1801,19 @@ module ActiveRecord #:nodoc:
           table_name
         end
 
-        # Enables dynamic finders like find_by_user_name(user_name) and find_by_user_name_and_password(user_name, password) that are turned into
-        # find(:first, :conditions => ["user_name = ?", user_name]) and  find(:first, :conditions => ["user_name = ? AND password = ?", user_name, password])
-        # respectively. Also works for find(:all) by using find_all_by_amount(50) that is turned into find(:all, :conditions => ["amount = ?", 50]).
+        # Enables dynamic finders like <tt>find_by_user_name(user_name)</tt> and <tt>find_by_user_name_and_password(user_name, password)</tt>
+        # that are turned into <tt>find(:first, :conditions => ["user_name = ?", user_name])</tt> and
+        # <tt>find(:first, :conditions => ["user_name = ? AND password = ?", user_name, password])</tt> respectively. Also works for
+        # <tt>find(:all)</tt> by using <tt>find_all_by_amount(50)</tt> that is turned into <tt>find(:all, :conditions => ["amount = ?", 50])</tt>.
         #
-        # It's even possible to use all the additional parameters to find. For example, the full interface for find_all_by_amount
-        # is actually find_all_by_amount(amount, options).
+        # It's even possible to use all the additional parameters to +find+. For example, the full interface for +find_all_by_amount+
+        # is actually <tt>find_all_by_amount(amount, options)</tt>.
         #
-        # This also enables you to initialize a record if it is not found, such as find_or_initialize_by_amount(amount)
-        # or find_or_create_by_user_and_password(user, password).
+        # This also enables you to initialize a record if it is not found, such as <tt>find_or_initialize_by_amount(amount)</tt>
+        # or <tt>find_or_create_by_user_and_password(user, password)</tt>.
         #
         # Each dynamic finder or initializer/creator is also defined in the class after it is first invoked, so that future
-        # attempts to use it do not run through method_missing.
+        # attempts to use it do not run through <tt>method_missing</tt>.
         def method_missing(method_id, *arguments, &block)
           if match = DynamicFinderMatch.match(method_id)
             attribute_names = match.attribute_names
