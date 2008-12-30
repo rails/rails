@@ -123,7 +123,6 @@ class MultibyteCharsUTF8BehaviourTest < Test::Unit::TestCase
       [:rstrip!, :lstrip!, :strip!, :reverse!, :upcase!, :downcase!, :capitalize!].each do |method|
         assert_equal @chars.object_id, @chars.send(method).object_id
       end
-      assert_equal @chars.object_id, @chars.slice!(1).object_id
     end
 
     def test_overridden_bang_methods_change_wrapped_string
@@ -133,10 +132,6 @@ class MultibyteCharsUTF8BehaviourTest < Test::Unit::TestCase
         proxy.send(method)
         assert_not_equal original, proxy.to_s
       end
-      proxy = chars('Café')
-      proxy.slice!(3)
-      assert_equal 'é', proxy.to_s
-
       proxy = chars('òu')
       proxy.capitalize!
       assert_equal 'Òu', proxy.to_s
@@ -389,6 +384,15 @@ class MultibyteCharsUTF8BehaviourTest < Test::Unit::TestCase
     assert_equal 'にち', @chars.slice(/(にち)/u, 1)
     assert_equal nil, @chars.slice(/(にち)/u, 2)
     assert_equal nil, @chars.slice(7..6)
+  end
+
+  def test_slice_bang_returns_sliced_out_substring
+    assert_equal 'にち', @chars.slice!(1..2)
+  end
+
+  def test_slice_bang_removes_the_slice_from_the_receiver
+    @chars.slice!(1..2)
+    assert_equal 'こわ', @chars
   end
 
   def test_slice_should_throw_exceptions_on_invalid_arguments
