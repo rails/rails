@@ -60,7 +60,7 @@ module ActionView
       def compile(local_assigns)
         render_symbol = method_name(local_assigns)
 
-        if recompile?(render_symbol)
+        if !Base::CompiledTemplates.method_defined?(render_symbol) || recompile?
           compile!(render_symbol, local_assigns)
         end
       end
@@ -89,11 +89,8 @@ module ActionView
         end
       end
 
-      # Method to check whether template compilation is necessary.
-      # The template will be compiled if the file has not been compiled yet, or
-      # if local_assigns has a new key, which isn't supported by the compiled code yet.
-      def recompile?(symbol)
-        !Base::CompiledTemplates.method_defined?(symbol) || !loaded?
+      def recompile?
+        false
       end
   end
 end
