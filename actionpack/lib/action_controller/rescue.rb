@@ -38,8 +38,8 @@ module ActionController #:nodoc:
       'ActionView::TemplateError'         => 'template_error'
     }
 
-    RESCUES_TEMPLATE_PATH = ActionView::PathSet::Path.new(
-      File.join(File.dirname(__FILE__), "templates"), true)
+    RESCUES_TEMPLATE_PATH = ActionView::Template::EagerPath.new(
+      File.join(File.dirname(__FILE__), "templates"))
 
     def self.included(base) #:nodoc:
       base.cattr_accessor :rescue_responses

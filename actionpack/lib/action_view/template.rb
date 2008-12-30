@@ -1,5 +1,83 @@
 module ActionView #:nodoc:
   class Template
+    class Path
+      attr_reader :path, :paths
+      delegate :hash, :inspect, :to => :path
+
+      def initialize(path)
+        raise ArgumentError, "path already is a Path class" if path.is_a?(Path)
+        @path = path.freeze
+      end
+
+      def to_s
+        if defined?(RAILS_ROOT)
+          path.to_s.sub(/^#{Regexp.escape(File.expand_path(RAILS_ROOT))}\//, '')
+        else
+          path.to_s
+        end
+      end
+
+      def to_str
+        path.to_str
+      end
+
+      def ==(path)
+        to_str == path.to_str
+      end
+
+      def eql?(path)
+        to_str == path.to_str
+      end
+
+      # Returns a ActionView::Template object for the given path string. The
+      # input path should be relative to the view path directory,
+      # +hello/index.html.erb+. This method also has a special exception to
+      # match partial file names without a handler extension. So
+      # +hello/index.html+ will match the first template it finds with a
+      # known template extension, +hello/index.html.erb+. Template extensions
+      # should not be confused with format extensions +html+, +js+, +xml+,
+      # etc. A format must be supplied to match a formated file. +hello/index+
+      # will never match +hello/index.html.erb+.
+      def [](path)
+        templates_in_path do |template|
+          if template.accessible_paths.include?(path)
+            return template
+          end
+        end
+        nil
+      end
+
+      private
+        def templates_in_path
+          (Dir.glob("#{@path}/**/*/**") | Dir.glob("#{@path}/**")).each do |file|
+            yield create_template(file) unless File.directory?(file)
+          end
+        end
+
+        def create_template(file)
+          Template.new(file.split("#{self}/").last, self)
+        end
+    end
+
+    class EagerPath < Path
+      def initialize(path)
+        super
+
+        @paths = {}
+        templates_in_path do |template|
+          template.load!
+          template.accessible_paths.each do |path|
+            @paths[path] = template
+          end
+        end
+        @paths.freeze
+      end
+
+      def [](path)
+        @paths[path]
+      end
+    end
+
     extend TemplateHandlers
     extend ActiveSupport::Memoizable
     include Renderable
@@ -115,13 +193,12 @@ module ActionView #:nodoc:
       File.mtime(filename) > mtime
     end
 
-    def loaded?
-      @loaded
+    def recompile?
+      !@cached
     end
 
     def load!
-      @loaded = true
-      compile({})
+      @cached = true
       freeze
     end
 
