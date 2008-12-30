@@ -390,6 +390,14 @@ module ActionView
       #
       #   hidden_field(:user, :token)
       #   # => <input type="hidden" id="user_token" name="user[token]" value="#{@user.token}" />
+      #
+      #  If you have a form object f that is using an object @client:
+      #   <%= f.hidden_field :user_id, :value => current_user.id %>
+      #   # => <input id="client_user_id" name="client[user_id]" type="hidden" value="12345" />
+      #
+      #   This passes a hidden variable user_id with the value of current_user.id, it can be accessed in the controller as:
+      #   params[:client][:user_id]
+      
       def hidden_field(object_name, method, options = {})
         InstanceTag.new(object_name, method, self, options.delete(:object)).to_input_field_tag("hidden", options)
       end
