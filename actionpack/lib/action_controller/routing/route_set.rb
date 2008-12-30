@@ -195,8 +195,8 @@ module ActionController
               def formatted_#{selector}(*args)                                              # def formatted_users_url(*args)
                 ActiveSupport::Deprecation.warn(                                            #   ActiveSupport::Deprecation.warn(
                   "formatted_#{selector}() has been deprecated. " +                         #     "formatted_users_url() has been deprecated. " +
-                  "please pass format to the standard" +                                    #     "please pass format to the standard" +
-                  "#{selector}() method instead.", caller)                                  #     "users_url() method instead.", caller)
+                  "Please pass format to the standard " +                                   #     "Please pass format to the standard " +
+                  "#{selector} method instead.", caller)                                    #     "users_url method instead.", caller)
                 #{selector}(*args)                                                          #   users_url(*args)
               end                                                                           # end
               protected :#{selector}                                                        # protected :users_url
