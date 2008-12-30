@@ -15,7 +15,7 @@ module Rails
 
     def initialize
       super
-      add_filter   { |line| line.sub(RAILS_ROOT, '') }
+      add_filter   { |line| line.sub("#{RAILS_ROOT}/", '') }
       add_filter   { |line| line.sub(ERB_METHOD_SIG, '') }
       add_filter   { |line| line.sub('./', '/') } # for tests
       add_filter   { |line| line.sub(/(#{GEMS_DIR})\/gems\/([a-z]+)-([0-9.]+)\/(.*)/, '\2 (\3) \4')} # http://gist.github.com/30430
