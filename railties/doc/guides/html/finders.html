@@ -348,8 +348,8 @@ Perform aggregate calculations on Active Record models
 </p>
 </li>
 </ul></div>
-<div class="paragraph"><p>If you&#8217;re used to using raw SQL to find database records, you&#8217;ll find that there are generally better ways to carry out the same operations in Rails. Active Record insulates you from the need to use SQL in most cases.</p></div>
-<div class="paragraph"><p>The SQL in your log may have some quoting, and that quoting depends on the backend (MySQL, for example, puts backticks around field and table names). Attempting to copy the raw SQL contained within this guide may not work in your database system. Please consult the database systems manual before attempting to execute any SQL.</p></div>
+<div class="paragraph"><p>If you&#8217;re used to using raw SQL to find database records then, generally, you will find that there are better ways to carry out the same operations in Rails. Active Record insulates you from the need to use SQL in most cases.</p></div>
+<div class="paragraph"><p>Generated SQL statements that appear in the log files may have their arguments quoted. Further, the form of quoting will be DBMS specific; SQLite3 will use "\ for example while MySQL will use `\ instead. Because of this, simply copying SQL from the examples contained within this guide may not work in your database system. Please consult the database systems manual before attempting to execute any SQL.</p></div>
 </div>
 </div>
 <h2 id="_the_sample_models">1. The Sample Models</h2>
@@ -1088,6 +1088,11 @@ http://www.gnu.org/software/src-highlite -->
 <div class="sectionbody">
 <div class="paragraph"><p><a href="http://rails.lighthouseapp.com/projects/16213-rails-guides/tickets/16">Lighthouse ticket</a></p></div>
 <div class="ulist"><ul>
+<li>
+<p>
+December 29 2008: Added <a href="http://rails.lighthouseapp.com/projects/16213/tickets/16-activerecord-finders#ticket-16-32">James B. Byrne&#8217;s suggestions from this ticket</a>
+</p>
+</li>
 <li>
 <p>
 December 23 2008: Xavier Noria suggestions added! From <a href="http://rails.lighthouseapp.com/projects/16213/tickets/16-activerecord-finders#ticket-16-27">this ticket</a> and <a href="http://rails.lighthouseapp.com/projects/16213/tickets/16-activerecord-finders#ticket-16-28">this ticket</a> and <a href="http://rails.lighthouseapp.com/projects/16213/tickets/16-activerecord-finders#ticket-16-29">this ticket</a>

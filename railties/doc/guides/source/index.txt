@@ -28,6 +28,13 @@ Everything you need to know to install Rails and create your first application.
 This guide covers how you can use Active Record migrations to alter your database in a structured and organized manner.
 ***********************************************************
 
+.link:activerecord_validations_callbacks.html[Active Record Validations and Callbacks]
+***********************************************************
+CAUTION: link:http://rails.lighthouseapp.com/projects/16213/tickets/26[Lighthouse Ticket]
+
+This guide covers how you can use Active Record validations and callbacks.
+***********************************************************
+
 .link:association_basics.html[Active Record Associations]
 ***********************************************************
 This guide covers all the associations provided by Active Record.
