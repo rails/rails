@@ -257,8 +257,8 @@ Now switch to the view. The first thing to remember is to use the `form_for` hel
 
 There are a few things to note here:
 
-1. `:article` is the name of the model and `@article` is our record.
-2. There is a single hash of options. Routing options are passed inside `:url` hash, html options are passed in the `:html` hash.
+1. `:article` is the name of the model and `@article` is the record.
+2. There is a single hash of options. Routing options are passed inside `:url` hash, HTML options are passed in the `:html` hash.
 3. The `form_for` method yields *a form builder* object (the `f` variable).
 4. Methods to create form controls are called *on* the form builder object `f`
 
