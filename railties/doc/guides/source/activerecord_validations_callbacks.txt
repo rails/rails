@@ -24,7 +24,7 @@ There are several ways to validate the data that goes to the database, like usin
 
 == How it works
 
-=== When does validation happens?
+=== When does validation happen?
 
 There are two kinds of Active Record objects: those that correspond to a row inside your database and those who do not. When you create a fresh object, using the +new+ method, that object does not belong to the database yet. Once you call +save+ upon that object it'll be recorded to it's table. Active Record uses the +new_record?+ instance method to discover if an object is already in the database or not. Consider the following simple and very creative Active Record class:
 
@@ -772,13 +772,13 @@ You can declare as many callbacks as you want inside your callback classes.
 
 == Observers
 
-Active Record callbacks are a powerful feature, but they can pollute your model implementation with code that's not directly related to the model's purpose. In object-oriented software, it's always a good idea to design your classes with a single responsability in the whole system. For example, it wouldn't make much sense to have a +User+ model with a method that writes data about a login attempt to a log file. Whenever you're using callbacks to write code that's not directly related to your model class purposes, it may be a good moment to create an Observer.
+Active Record callbacks are a powerful feature, but they can pollute your model implementation with code that's not directly related to the model's purpose. In object-oriented software, it's always a good idea to design your classes with a single responsibility in the whole system. For example, it wouldn't make much sense to have a +User+ model with a method that writes data about a login attempt to a log file. Whenever you're using callbacks to write code that's not directly related to your model class purposes, it may be a good moment to create an Observer.
 
-An Active Record Observer is an object that links itself to a model and register it's methods for callbacks. Your model's implementation remain clean, while you can reuse the code in the Observer to add behaviuor to more than one model class. Ok, you may say that we can also do that using callback classes, but it would still force us to add code to our model's implementation.
+An Active Record Observer is an object that links itself to a model and registers its methods for callbacks. Your model's implementation remains clean, while you can reuse the code in the Observer to add behaviour to more than one model class. OK, you may say that we can also do that using callback classes, but it would still force us to add code to our model's implementation.
 
-Observer classes are subclasses of the +ActiveRecord::Observer+ class. When this class is subclassed, Active Record will look at the name of the new class and then strip the 'Observer' part to find the name of the Active Record class to observe.
+Observer classes are subclasses of the ActiveRecord::Observer class. When this class is subclassed, Active Record will look at the name of the new class and then strip the 'Observer' part to find the name of the Active Record class to observe.
 
-Consider a +Registration+ model, where we want to send an email everytime a new registration is created. Since sending emails is not directly related to our model's purpose, we could create an Observer to do just that:
+Consider a Registration model, where we want to send an email every time a new registration is created. Since sending emails is not directly related to our model's purpose, we could create an Observer to do just that:
 
 [source, ruby]
 ------------------------------------------------------------------
@@ -802,7 +802,7 @@ end
 
 === Registering observers
 
-If you payed attention, you may be wondering where Active Record Observers are referenced in our applications, so they get instantiate and begin to interact with our models. For observers to work we need to register them somewhere. The usual place to do that is in our application's *config/environment.rb* file. In this file there is a commented out line where we can define the observers that our application should load at start-up. 
+If you paid attention, you may be wondering where Active Record Observers are referenced in our applications, so they get instantiated and begin to interact with our models. For observers to work we need to register them somewhere. The usual place to do that is in our application's *config/environment.rb* file. In this file there is a commented-out line where we can define the observers that our application should load at start-up.
 
 [source, ruby]
 ------------------------------------------------------------------
