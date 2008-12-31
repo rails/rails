@@ -92,7 +92,7 @@ TIP: For every form input, an ID attribute is generated from its name ("q" in ou
 Multiple hashes in form helper attributes
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-By now we've seen that the `form_tag` helper accepts 2 arguments: the path for the action attribute and an options hash. This hash specifies the method of form submission and html level options such as the form element's class.
+By now we've seen that the `form_tag` helper accepts 2 arguments: the path for the action attribute and an options hash. This hash specifies the method of form submission and HTML  options such as the form element's class.
 
 Identical to the `link_to` helper, the path argument doesn't have to be given as string or a named route. It can be a hash of URL parameters that Rails' routing mechanism will turn into a valid URL. Still, we cannot simply write this:
 
@@ -373,7 +373,6 @@ output:
 
 So whenever Rails sees that the internal value of an option being generated matches this value, it will add the `selected` attribute to that option.
 
-=======
 [TIP]
 ============================================================================
 The second argument to `options_for_select` must be exactly equal to the desired internal value. In particular if the internal value is the integer 2 you cannot pass "2" to `options_for_select` -- you must pass 2. Be aware of values extracted from the params hash as they are all strings.
@@ -491,8 +490,6 @@ options_from_collection_for_select(collection, value_method, text_method, select
 time_zone_options_for_select(selected = nil, priority_zones = nil, model = ::ActiveSupport::TimeZone)
 time_zone_select(object, method, priority_zones = nil, options = {}, html_options = {})
 ----------------------------------------------------------------------------
-=======
-...
 
 Form builders
 -------------
