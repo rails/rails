@@ -351,7 +351,7 @@ output:
 ...
 ----------------------------------------------------------------------------
 
-For input data we used a nested array where each element has two elements: option text (city name) and option value (city id). It is often the case the the internal value (the one that the form actually submits) is the id of a corresponding database object but this does not have to be the case.
+For input data we used a nested array where each element has two elements: option text (city name) and option value (city id). The option value is what will get submitted to your controller. It is often the case that the option value is the id of a corresponding database object but this does not have to be the case.
 
 Knowing this, you can combine `select_tag` and `options_for_select` to achieve the desired, complete markup:
 
