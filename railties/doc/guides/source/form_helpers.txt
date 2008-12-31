@@ -412,7 +412,7 @@ Until now you were generating option tags from nested arrays with the help of `o
 <%= options_for_select([['Lisabon', 1], ['Madrid', 2], ...]) %>
 ----------------------------------------------------------------------------
 
-But what if you had a *City* model (perhaps an ActiveRecord one) and you wanted to generate option tags from a collection of those objects? One solution would be to make a nested array by iterating over them:
+But what if you had a *City* model (perhaps an Active Record one) and you wanted to generate option tags from a collection of those objects? One solution would be to make a nested array by iterating over them:
 
 ----------------------------------------------------------------------------
 <% cities_array = City.find(:all).map { |city| [city.name, city.id] } %>
