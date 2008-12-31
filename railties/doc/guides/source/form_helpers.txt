@@ -228,6 +228,10 @@ params[:person][:name]
 ---------------------------
 The params[:person] hash is suitable for passing to `Person.new` or, if `@person` is an instance of Person, `@person.update_attributes`.
 
+[NOTE]
+============================================================================
+You must pass the name of an instance variable, i.e. `:person` or `"person"` and not an actual instance of person.
+============================================================================
 
 Forms that deal with model attributes
 -------------------------------------
