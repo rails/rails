@@ -207,7 +207,7 @@ then the controller code should use
 ---------------------------
 params[:query]
 ---------------------------
-to retrieve the value entered by the user.
+to retrieve the value entered by the user. When naming inputs be aware that Rails uses certain conventions that control whether values appear at the top level of the params hash, inside an array or a nested hash and so on. You can read more about them in the <<parameter_names,parameter_names section>>.
 
 Model object helpers
 ~~~~~~~~~~~~~~~~~~~~~
@@ -230,9 +230,8 @@ The params[:person] hash is suitable for passing to `Person.new` or, if `@person
 
 [NOTE]
 ============================================================================
-You must pass the name of an instance variable, i.e. `:person` or `"person"` and not an actual instance of person.
+You must pass the name of an instance variable, i.e. `:person` or `"person"`, not an actual instance of person.
 ============================================================================
-
 Forms that deal with model attributes
 -------------------------------------
 
@@ -272,7 +271,7 @@ The resulting HTML is:
   <input name="commit" type="submit" value="Create" />
 </form>
 ----------------------------------------------------------------------------
-In the `create` action params[:article] would be a hash with keys :title and :body.
+The name passed to `form_for` used controls where in the params hash the form values will appear. Here the name is `article` and so all the inputs have names of the form `article[attribute_name]`. Accordingly, in the `create` action `params[:article]` will be a hash with keys :title and :body. You can read more about the significance of input names in the <<parameter_names,parameter_names section>>.
 
 The helper methods called on the form builder are identical to the model object helpers except that it is not necessary to specify which object is being edited since this is already managed by the form builder. They will pre-fill the form control with the value read from the corresponding attribute in the model. For example, if you created the article instance by supplying an initial value for the title in the controller:
 
@@ -307,7 +306,7 @@ form_for(:article, @article, :url => article_path(@article), :method => "put")
 form_for(@article)
 ----------------------------------------------------------------------------
 
-Notice how the short-style `form_for` invocation is conveniently the same, regardless of the record being new or existing. Record identification is smart enough to figure out if the record is new by asking `record.new_record?`.
+Notice how the short-style `form_for` invocation is conveniently the same, regardless of the record being new or existing. Record identification is smart enough to figure out if the record is new by asking `record.new_record?`. It also selects the correct path to submit to and the name based on the class of the object.
 
 WARNING: When you're using STI (single-table inheritance) with your models, you can't rely on record identification on a subclass if only their parent class is declared a resource. You will have to specify the model name, `:url` and `:method` explicitly.
 
@@ -405,7 +404,7 @@ As before, if you were to use `select` helper on a form builder scoped to `@pers
 
 [WARNING] 
 =============================
-If you are using `select` (or similar helpers such as `collection_select`, `select_tag`) to set a `belongs_to` association you must pass the name of the foreign key (in the example above `city_id`) and not the name of association itself. Active Record will raise an error along the lines of
+If you are using `select` (or similar helpers such as `collection_select`, `select_tag`) to set a `belongs_to` association you must pass the name of the foreign key (in the example above `city_id`), not the name of association itself. Active Record will raise an error along the lines of
 --------
 ActiveRecord::AssociationTypeMismatch: City(#17815740) expected, got Fixnum(#1138750)
 --------
