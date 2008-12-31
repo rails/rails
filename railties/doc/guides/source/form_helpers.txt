@@ -207,7 +207,7 @@ then the controller code should use
 ---------------------------
 params[:query]
 ---------------------------
-to retrieve the value entered by the user. When naming inputs be aware that Rails uses certain conventions that control whether values appear at the top level of the params hash, inside an array or a nested hash and so on. You can read more about them in the <<parameter_names,parameter_names section>>.
+to retrieve the value entered by the user. When naming inputs be aware that Rails uses certain conventions that control whether values appear at the top level of the params hash, inside an array or a nested hash and so on. You can read more about them in the <<parameter_names,parameter names>> section.
 
 Model object helpers
 ~~~~~~~~~~~~~~~~~~~~~
@@ -271,7 +271,7 @@ The resulting HTML is:
   <input name="commit" type="submit" value="Create" />
 </form>
 ----------------------------------------------------------------------------
-The name passed to `form_for` used controls where in the params hash the form values will appear. Here the name is `article` and so all the inputs have names of the form `article[attribute_name]`. Accordingly, in the `create` action `params[:article]` will be a hash with keys :title and :body. You can read more about the significance of input names in the <<parameter_names,parameter_names section>>.
+The name passed to `form_for` used controls where in the params hash the form values will appear. Here the name is `article` and so all the inputs have names of the form `article[attribute_name]`. Accordingly, in the `create` action `params[:article]` will be a hash with keys :title and :body. You can read more about the significance of input names in the <<parameter_names,parameter names>> section.
 
 The helper methods called on the form builder are identical to the model object helpers except that it is not necessary to specify which object is being edited since this is already managed by the form builder. They will pre-fill the form control with the value read from the corresponding attribute in the model. For example, if you created the article instance by supplying an initial value for the title in the controller:
 
@@ -508,10 +508,68 @@ Both families of helpers use the same core set of functions to generate the indi
 
 As a rule of thumb you should be using `date_select` when working with model objects and `select_date` in others cases, such as a search for which filters results by date.
 
-[NOTE]
-======================
-In many cases the built in date pickers are clumsy as they do not aid the user in working out the relationship between the date and the day of the week
-======================
+NOTE:In many cases the built in date pickers are clumsy as they do not aid the user in working out the relationship between the date and the day of the week
+
+Parameter Names
+---------------
+[[parameter_names]]
+As you've seen in the previous sections values from forms can appear either at the top level of the params hash or may appear nested in another hash. For example in a standard create
+action for a Person model, `params[:model]` would usually be a hash of all the attributes for the person to create. The params hash can also contain arrays, arrays of hashes and so on.
+
+Fundamentally HTML forms don't know about any sort of structured data. All they know about is name-value pairs. Rails tacks some conventions onto parameter names which it uses to express some structure.
+
+[TIP]
+==============
+You may find you can try out examples in this section faster by using the console to directly invoke Rails' parameter parser. For example
+-------------
+ActionController::RequestParser.parse_query_parameters "name=fred&phone=0123456789" #=> {"name"=>"fred", "phone"=>"0123456789"}
+-------------
+==============
+Basic structures
+~~~~~~~~~~~~~~~
+The two basic structures are arrays and hashes. Hashes mirror the syntax used for accessing the value in the params. For example if a form contains
+-----------------
+<input id="person_name" name="person[name]" type="text" value="Henry"/>
+-----------------
+the params hash will contain
+-----------------
+{'person' => {'name' => 'Henry'}}
+-----------------
+Hashes can be nested as many levels as required, for example
+------------------
+<input id="person_address_city" name="person[address][city]" type="text" value="New York"/>
+------------------
+will result in the params hash being
+-----------------
+{'person' => {'address' => {'city' => 'New York'}}}
+-----------------
+
+Normally Rails ignores duplicate parameter names. If the parameter name contains [] then they will be accumulated in an array. If we wanted people to be able to input multiple phone numbers, we could place this in our form:
+-----------------
+<input name="person[phone_number][]" type="text"/>
+<input name="person[phone_number][]" type="text"/>
+<input name="person[phone_number][]" type="text"/>
+-----------------
+This would result in `params[:person][:phone_number]` being an array.
+
+Combining them
+~~~~~~~~~~~~~~
+We can mix and match these two concepts. For example, one element of a hash might be an array as in previous example, or you can have an array of hashes. For example a form might let you create any number of addresses by repeating the following form fragment
+-----------------
+<input name="addresses[][line1]" type="text"/>
+<input name="addresses[][line2]" type="text"/>
+<input name="addresses[][city]" type="text"/>
+-----------------
+This would result in `params[:addresses]` being an array of hashes with keys `line1, `line2` and `city`. Rails decides to start accumulating values in a new hash whenever it encounters a input name that already exists in the current hash.
+
+The one restriction is that although hashes can be nested arbitrarily deep then can be only one level of "arrayness". Frequently arrays can be usually replaced by hashes, for example instead of having an array of model objects one can have a hash of model objects keyed by their id.
+
+[WARNING]
+Array parameters do not play well with the `check_box` helper. According to the HTML specification unchecked checkboxes submit no value. However it is often convenient for a checkbox to always submit a value. The `check_box` helper fakes this by creating a second hidden input with the same name. If the checkbox is unchecked only the hidden input is submitted. If the checkbox is checked then both are submitted but the value submitted by the checkbox takes precedence. When working with array parameters this duplicate submission will confuse Rails since duplicate input names are how it decides when to start a new hash. It is preferable to either use `check_box_tag` or to use hashes instead of arrays.
+
+Using form helpers
+~~~~~~~~~~~~~~~~~
+The previous sections did not use the Rails form helpers at all. While you can craft the input names yourself and pass them directly to helpers such as `text_field_tag` Rails also provides higher level support
 
 Miscellaneous
 -------------
