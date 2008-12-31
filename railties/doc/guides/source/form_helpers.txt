@@ -493,3 +493,11 @@ time_zone_select(object, method, priority_zones = nil, options = {}, html_option
 
 Form builders
 -------------
+
+== Changelog ==
+
+http://rails.lighthouseapp.com/projects/16213-rails-guides/tickets/1[Lighthouse ticket]
+
+Mislav Marohnić <mislav.marohnic@gmail.com>
+
+link:../authors.html#fcheung[Frederick Cheung]
