@@ -309,7 +309,7 @@ output:
 ...
 ----------------------------------------------------------------------------
 
-For input data we used a nested array where each item has two elements: option text (city name) and option value (city id).
+For input data we used a nested array where each element has two elements: option text (city name) and option value (city id). It is often the case the the internal value (the one that the form actually submits) is the id of a corresponding database object but this does not have to be the case.
 
 Knowing this, you can combine `select_tag` and `options_for_select` to achieve the desired, complete markup:
 
@@ -320,7 +320,7 @@ Knowing this, you can combine `select_tag` and `options_for_select` to achieve t
 Sometimes, depending on our application's needs, we also wish a specific option to be pre-selected. The `options_for_select` helper supports this with an optional second argument:
 
 ----------------------------------------------------------------------------
-<%= options_for_select(cities_array, 2) %>
+<%= options_for_select([['Lisabon', 1], ['Madrid', 2], ...], 2) %>
 
 output:
 
@@ -331,8 +331,15 @@ output:
 
 So whenever Rails sees that the internal value of an option being generated matches this value, it will add the `selected` attribute to that option.
 
-Select helpers for dealing with models
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+=======
+[TIP]
+============================================================================
+The second argument to `options_for_select` must be exactly equal to the desired internal value. In particular if the internal value is the integer 2 you cannot pass "2" to `options_for_select` -- you must pass 2. Be aware of values extracted from the params hash as they are all strings.
+
+============================================================================
+
+Select boxes for dealing with models
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 Until now we've covered how to make generic select boxes, but in most cases our form controls will be tied to a specific database model. So, to continue from our previous examples, let's assume that we have a "Person" model with a `city_id` attribute.
 
@@ -442,3 +449,8 @@ options_from_collection_for_select(collection, value_method, text_method, select
 time_zone_options_for_select(selected = nil, priority_zones = nil, model = ::ActiveSupport::TimeZone)
 time_zone_select(object, method, priority_zones = nil, options = {}, html_options = {})
 ----------------------------------------------------------------------------
+=======
+...
+
+Form builders
+-------------
