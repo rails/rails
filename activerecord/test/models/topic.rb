@@ -71,3 +71,9 @@ class Topic < ActiveRecord::Base
       end
     end
 end
+
+module Web
+  class Topic < ActiveRecord::Base
+    has_many :replies, :dependent => :destroy, :foreign_key => "parent_id", :class_name => 'Web::Reply'
+  end
+end

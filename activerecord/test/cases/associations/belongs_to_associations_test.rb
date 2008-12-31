@@ -154,6 +154,23 @@ class BelongsToAssociationsTest < ActiveRecord::TestCase
     assert_equal 0, Topic.find(t2.id).replies.size
   end
 
+  def test_belongs_to_reassign_with_namespaced_models_and_counters
+    t1 = Web::Topic.create("title" => "t1")
+    t2 = Web::Topic.create("title" => "t2")
+    r1 = Web::Reply.new("title" => "r1", "content" => "r1")
+    r1.topic = t1
+
+    assert r1.save
+    assert_equal 1, Web::Topic.find(t1.id).replies.size
+    assert_equal 0, Web::Topic.find(t2.id).replies.size
+
+    r1.topic = Web::Topic.find(t2.id)
+
+    assert r1.save
+    assert_equal 0, Web::Topic.find(t1.id).replies.size
+    assert_equal 1, Web::Topic.find(t2.id).replies.size
+  end
+
   def test_belongs_to_counter_after_save
     topic = Topic.create!(:title => "monday night")
     topic.replies.create!(:title => "re: monday night", :content => "football")
