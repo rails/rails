@@ -453,6 +453,65 @@ There is also `time_zone_options_for_select` helper for a more manual (therefore
 
 Rails _used_ to have a `country_select` helper for choosing countries but this has been extracted to the http://github.com/rails/country_select/tree/master[country_select plugin]. When using this do be aware that the exclusion or inclusion of certain names from the list can be somewhat controversial (and was the reason this functionality was extracted from rails)
 
+Date and time select boxes
+~~~~~~~~~~~~~~~~~~~~~~~~~~
+The date and time helpers differ from all the other form helpers in two important respects:
+
+1. Unlike other attributes you might typically have, dates and times are not representable by a single input element. Instead you have several, one for each component (year, month, day etc...). So in particular, there is no single value in your params hash with your date or time.
+2. Other helpers use the _tag suffix to indicate whether a helper is a barebones helper or one that operates on model objects. With dates and times, `select\_date`, `select\_time` and `select_datetime` are the barebones helpers, `date_select`, `time_select` and `datetime_select` are the equivalent model object helpers
+
+Both of these families of helpers will create a series of select boxes for the different components (year, month, day etc...).
+
+Barebones helpers
+^^^^^^^^^^^^^^^^^
+The `select_*` family of helpers take as their first argument an instance of Date, Time or DateTime that is used as the currently selected value. You may omit this parameter, in which case the current date is used. for example
+
+-----------
+<%= select_date Date::today, :prefix => :start_date %>
+-----------
+outputs (with the actual option values omitted for brevity)
+-----------
+<select id="start_date_year" name="start_date[year]"> ... </select>
+<select id="start_date_month" name="start_date[month]"> ... </select>
+<select id="start_date_day" name="start_date[day]"> ... </select>
+-----------
+The above inputs would result in `params[:start_date]` being a hash with keys :year, :month, :day. To get an actual Time or Date object you would have to extract these values and pass them to the appropriate constructor, for example
+-----------
+Date::civil(params[:start_date][:year].to_i, params[:start_date][:month].to_i, params[:start_date][:day].to_i)
+-----------
+The :prefix option controls where in the params hash the date components will be placed. Here it was set to `start_date`, if omitted it will default to `date`
+
+Model object helpers
+^^^^^^^^^^^^^^^^^^^^
+`select_date` does not work well with forms that update or create Active Record objects as Active Record expects each element of the params hash to correspond to one attribute.
+The model object helpers for dates and times submit parameters with special names. When Active Record sees parameters with such names it knows they must be combined with the other parameters and given to a constructor appropriate to the column type. For example
+---------------
+<%= date_select :person, :birth_date %>
+---------------
+outputs (with the actual option values omitted for brevity)
+--------------
+<select id="person_birth_date_1i" name="person[birth_date(1i)]"> ... </select>
+<select id="person_birth_date_2i" name="person[birth_date(2i)]"> ... </select>
+<select id="person_birth_date_3i" name="person[birth_date(3i)]"> ... </select>
+--------------
+which results in a params hash like
+[source, ruby]
+-------------
+{:person => {'birth_date(1i)' => '2008', 'birth_date(2i)' => '11', 'birth_date(3i)' => '22'}}
+-------------
+
+When this is passed to `Person.new`, Active Record spots that these parameters should all be used to construct the `birth_date` attribute and uses the suffixed information to determine in which order it should pass these parameters to functions such as `Date::civil`.
+
+Common options
+^^^^^^^^^^^^^^
+Both families of helpers use the same core set of functions to generate the individual select tags and so both accept largely the same options. In particular, by default Rails will generate year options 5 years either side of the current year. If this is not an appropriate range, the `:start_year` and `:end_year` options override this. For an exhaustive list of the available options, refer to the http://api.rubyonrails.org/classes/ActionView/Helpers/DateHelper.html[API documentation].
+
+As a rule of thumb you should be using `date_select` when working with model objects and `select_date` in others cases, such as a search for which filters results by date.
+
+[NOTE]
+======================
+In many cases the built in date pickers are clumsy as they do not aid the user in working out the relationship between the date and the day of the week
+======================
 
 Miscellaneous
 -------------
