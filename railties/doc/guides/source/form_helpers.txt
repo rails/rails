@@ -52,7 +52,7 @@ Probably the most minimal form often seen on the web is a search form with a sin
 3. a text input element, and
 4. a submit element.
 
-IMPORTANT: Always use "GET" as the method for search forms. Benefits are many: users are able to bookmark a specific search and get back to it; browsers cache results of "GET" requests, but not "POST"; and other.
+IMPORTANT: Always use "GET" as the method for search forms. Benefits are many: users are able to bookmark a specific search and get back to it; browsers cache results of "GET" requests, but not "POST"; and others.
 
 To create that, we will use `form_tag`, `label_tag`, `text_field_tag` and `submit_tag`, respectively.
 
