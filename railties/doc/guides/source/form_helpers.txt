@@ -451,8 +451,7 @@ To leverage time zone support in Rails, you have to ask our users what time zone
 
 There is also `time_zone_options_for_select` helper for a more manual (therefore more customizable) way of doing this. Read the API documentation to learn about the possible arguments for these two methods.
 
-When it comes to country select, Rails _used_ to have the built-in helper `country_select` but was extracted to a plugin.
-TODO: plugin URL
+Rails _used_ to have a `country_select` helper for choosing countries but this has been extracted to the http://github.com/rails/country_select/tree/master[country_select plugin]. When using this do be aware that the exclusion or inclusion of certain names from the list can be somewhat controversial (and was the reason this functionality was extracted from rails)
 
 
 Miscellaneous
