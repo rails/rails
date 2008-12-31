@@ -38,7 +38,7 @@ When called without arguments like this, it creates a form element that has the 
 </form>
 ----------------------------------------------------------------------------
 
-If you carefully observe this output, you can see that the helper generated something we didn't specify: a `div` element with a hidden input inside. This is a security feature of Rails called *cross-site request forgery protection* and form helpers generate it for every form which action isn't "GET" (provided that this security feature is enabled).
+If you carefully observe this output, you can see that the helper generated something you didn't specify: a `div` element with a hidden input inside. This is a security feature of Rails called *cross-site request forgery protection* and form helpers generate it for every form which action isn't "GET" (provided that this security feature is enabled).
 
 NOTE: Throughout this guide, this `div` with the hidden input will be stripped away to have clearer code samples.
 
@@ -54,7 +54,7 @@ Probably the most minimal form often seen on the web is a search form with a sin
 
 IMPORTANT: Always use "GET" as the method for search forms. Benefits are many: users are able to bookmark a specific search and get back to it; browsers cache results of "GET" requests, but not "POST"; and others.
 
-To create that, we will use `form_tag`, `label_tag`, `text_field_tag` and `submit_tag`, respectively.
+To create that, you will use `form_tag`, `label_tag`, `text_field_tag` and `submit_tag`, respectively.
 
 .A basic search form
 ----------------------------------------------------------------------------
@@ -87,14 +87,14 @@ The above view code will result in the following markup:
 
 Besides `text_field_tag` and `submit_tag`, there is a similar helper for _every_ form control in HTML.
 
-TIP: For every form input, an ID attribute is generated from its name ("q" in our example). These IDs can be very useful for CSS styling or manipulation of form controls with JavaScript.
+TIP: For every form input, an ID attribute is generated from its name ("q" in the example). These IDs can be very useful for CSS styling or manipulation of form controls with JavaScript.
 
 Multiple hashes in form helper attributes
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-By now we've seen that the `form_tag` helper accepts 2 arguments: the path for the action attribute and an options hash. This hash specifies the method of form submission and HTML  options such as the form element's class.
+By now you've seen that the `form_tag` helper accepts 2 arguments: the path for the action attribute and an options hash. This hash specifies the method of form submission and HTML  options such as the form element's class.
 
-Identical to the `link_to` helper, the path argument doesn't have to be given as string or a named route. It can be a hash of URL parameters that Rails' routing mechanism will turn into a valid URL. Still, we cannot simply write this:
+Identical to the `link_to` helper, the path argument doesn't have to be given as string or a named route. It can be a hash of URL parameters that Rails' routing mechanism will turn into a valid URL. Still, you cannot simply write this:
 
 .A bad way to pass multiple hashes as method arguments
 ----------------------------------------------------------------------------
@@ -102,7 +102,7 @@ form_tag(:controller => "people", :action => "search", :method => "get", :class 
 # => <form action="/people/search?method=get&class=nifty_form" method="post">
 ----------------------------------------------------------------------------
 
-Here we wanted to pass two hashes, but the Ruby interpreter sees only one hash, so Rails will construct a URL that we didn't want. The solution is to delimit the first hash (or both hashes) with curly brackets:
+Here you wanted to pass two hashes, but the Ruby interpreter sees only one hash, so Rails will construct a URL with extraneous parameters. The solution is to delimit the first hash (or both hashes) with curly brackets:
 
 .The correct way of passing multiple hashes as arguments
 ----------------------------------------------------------------------------
@@ -151,7 +151,7 @@ output:
 
 IMPORTANT: Always use labels for each checkbox and radio button. They associate text with a specific option and provide a larger clickable region.
 
-Other form controls we might mention are the text area, password input and hidden input:
+Other form controls worth mentioning  are the text area, password input and hidden input:
 
 ----------------------------------------------------------------------------
 <%= text_area_tag(:message, "Hi, nice site", :size => "24x6") %>
@@ -213,7 +213,7 @@ Model object helpers
 ~~~~~~~~~~~~~~~~~~~~~
 These are designed to work with a model object (commonly an Active Record object but this need not be the case). These lack the _tag suffix, from example `text_field`, `text_area`
 
-For the latter the first parameter is the name of an instance variable and the second is the name of attribute to be edited. Rails will set the value of the input control to the current value of that attribute for the object and set an appropriate input name. If our controller has defined `@person` and that person's name is Henry then a form containing:
+For the latter the first parameter is the name of an instance variable and the second is the name of attribute to be edited. Rails will set the value of the input control to the current value of that attribute for the object and set an appropriate input name. If your controller has defined `@person` and that person's name is Henry then a form containing:
 
 ---------------------------
 <%= text_field(:person, :name) %>
@@ -236,7 +236,7 @@ You must pass the name of an instance variable, i.e. `:person` or `"person"` and
 Forms that deal with model attributes
 -------------------------------------
 
-While the helpers seen so far are handy Rails can save us some work. For example typically a form is used to edit multiple attributes of a single object, so having to repeat the name of the object being edited is clumsy. In the following examples we will handle an Article model. First, let us have the controller create one:
+While the helpers seen so far are handy Rails can save you some work. For example typically a form is used to edit multiple attributes of a single object, so having to repeat the name of the object being edited is clumsy. The following examples will handle an Article model. First, have the controller create one:
 
 .articles_controller.rb
 ----------------------------------------------------------------------------
@@ -245,7 +245,7 @@ def new
 end
 ----------------------------------------------------------------------------
 
-Now we switch to the view. The first thing to remember is to use the `form_for` helper instead of `form_tag`, and that we should pass the model name and object as arguments:
+Now switch to the view. The first thing to remember is to use the `form_for` helper instead of `form_tag`, and that you should pass the model name and object as arguments:
 
 .articles/new.html.erb
 ----------------------------------------------------------------------------
@@ -274,7 +274,7 @@ The resulting HTML is:
 ----------------------------------------------------------------------------
 In the `create` action params[:article] would be a hash with keys :title and :body.
 
-The helper methods called on the form builder are identical to the model object helpers except that it is not necessary to specify which object is being edited since this is already managed by the form builder. They will pre-fill the form control with the value read from the corresponding attribute in the model. For example, if we created the article instance by supplying an initial value for the title in the controller:
+The helper methods called on the form builder are identical to the model object helpers except that it is not necessary to specify which object is being edited since this is already managed by the form builder. They will pre-fill the form control with the value read from the corresponding attribute in the model. For example, if you created the article instance by supplying an initial value for the title in the controller:
 
 ----------------------------------------------------------------------------
 @article = Article.new(:title => "Rails makes forms easy")
@@ -289,9 +289,9 @@ The helper methods called on the form builder are identical to the model object 
 Relying on record identification
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-In the previous chapter we handled the Article model. This model is directly available to users of our application, so -- following the best practices for developing with Rails -- we should declare it *a resource*.
+In the previous chapter you handled the Article model. This model is directly available to users of our application, so -- following the best practices for developing with Rails -- you should declare it *a resource*.
 
-When dealing with RESTful resources, our calls to `form_for` can get significantly easier if we rely on *record identification*. In short, we can just pass the model instance and have Rails figure out model name and the rest:
+When dealing with RESTful resources, calls to `form_for` can get significantly easier if you rely on *record identification*. In short, you can just pass the model instance and have Rails figure out model name and the rest:
 
 ----------------------------------------------------------------------------
 ## Creating a new article
@@ -328,7 +328,7 @@ Here is what our wanted markup might look like:
 </select>
 ----------------------------------------------------------------------------
 
-Here we have a list of cities where their names are presented to the user, but internally we want to handle just their IDs so we keep them in value attributes. Let's see how Rails can help out here.
+Here you have a list of cities where their names are presented to the user, but internally you want to handle just their IDs so you keep them in value attributes. Let's see how Rails can help out here.
 
 The select tag and options
 ~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -339,7 +339,7 @@ The most generic helper is `select_tag`, which -- as the name implies -- simply 
 <%= select_tag(:city_id, '<option value="1">Lisabon</option>...') %>
 ----------------------------------------------------------------------------
 
-This is a start, but it doesn't dynamically create our option tags. We can generate option tags with the `options_for_select` helper:
+This is a start, but it doesn't dynamically create our option tags. You can generate option tags with the `options_for_select` helper:
 
 ----------------------------------------------------------------------------
 <%= options_for_select([['Lisabon', 1], ['Madrid', 2], ...]) %>
@@ -351,7 +351,7 @@ output:
 ...
 ----------------------------------------------------------------------------
 
-For input data we used a nested array where each element has two elements: option text (city name) and option value (city id). The option value is what will get submitted to your controller. It is often the case that the option value is the id of a corresponding database object but this does not have to be the case.
+For input data you use a nested array where each element has two elements: option text (city name) and option value (city id). The option value is what will get submitted to your controller. It is often true that the option value is the id of a corresponding database object but this does not have to be the case.
 
 Knowing this, you can combine `select_tag` and `options_for_select` to achieve the desired, complete markup:
 
@@ -359,7 +359,7 @@ Knowing this, you can combine `select_tag` and `options_for_select` to achieve t
 <%= select_tag(:city_id, options_for_select(...)) %>
 ----------------------------------------------------------------------------
 
-Sometimes, depending on our application's needs, we also wish a specific option to be pre-selected. The `options_for_select` helper supports this with an optional second argument:
+Sometimes, depending on an application's needs, you also wish a specific option to be pre-selected. The `options_for_select` helper supports this with an optional second argument:
 
 ----------------------------------------------------------------------------
 <%= options_for_select([['Lisabon', 1], ['Madrid', 2], ...], 2) %>
@@ -382,9 +382,9 @@ The second argument to `options_for_select` must be exactly equal to the desired
 Select boxes for dealing with models
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-Until now we've covered how to make generic select boxes, but in most cases our form controls will be tied to a specific database model. So, to continue from our previous examples, let's assume that we have a "Person" model with a `city_id` attribute.
+Until now you've seen how to make generic select boxes, but in most cases our form controls will be tied to a specific database model. So, to continue from our previous examples, let's assume that you have a "Person" model with a `city_id` attribute.
 
-Consistent with other form helpers, when dealing with models we drop the `"_tag"` suffix from `select_tag` that we used in previous examples:
+Consistent with other form helpers, when dealing with models you drop the `"_tag"` suffix from `select_tag` that you used in previous examples:
 
 ----------------------------------------------------------------------------
 # controller:
@@ -394,9 +394,9 @@ Consistent with other form helpers, when dealing with models we drop the `"_tag"
 <%= select(:person, :city_id, [['Lisabon', 1], ['Madrid', 2], ...]) %>
 ----------------------------------------------------------------------------
 
-Notice that the third parameter, the options array, is the same kind of argument we pass to `options_for_select`. One thing that we have as an advantage here is that we don't have to worry about pre-selecting the correct city if the user already has one -- Rails will do this for us by reading from `@person.city_id` attribute.
+Notice that the third parameter, the options array, is the same kind of argument you pass to `options_for_select`. One advantage here is that you don't have to worry about pre-selecting the correct city if the user already has one -- Rails will do this for you by reading from the `@person.city_id` attribute.
 
-As before, if we were to use `select` helper on a form builder scoped to `@person` object, the syntax would be:
+As before, if you were to use `select` helper on a form builder scoped to `@person` object, the syntax would be:
 
 ----------------------------------------------------------------------------
 # select on a form builder
@@ -406,37 +406,37 @@ As before, if we were to use `select` helper on a form builder scoped to `@perso
 Option tags from a collection of arbitrary objects
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-Until now we were generating option tags from nested arrays with the help of `options_for_select` method. Data in our array were raw values:
+Until now you were generating option tags from nested arrays with the help of `options_for_select` method. Data in our array were raw values:
 
 ----------------------------------------------------------------------------
 <%= options_for_select([['Lisabon', 1], ['Madrid', 2], ...]) %>
 ----------------------------------------------------------------------------
 
-But what if we had a *City* model (perhaps an ActiveRecord one) and we wanted to generate option tags from a collection of those objects? One solution would be to make a nested array by iterating over them:
+But what if you had a *City* model (perhaps an ActiveRecord one) and you wanted to generate option tags from a collection of those objects? One solution would be to make a nested array by iterating over them:
 
 ----------------------------------------------------------------------------
 <% cities_array = City.find(:all).map { |city| [city.name, city.id] } %>
 <%= options_for_select(cities_array) %>
 ----------------------------------------------------------------------------
 
-This is a perfectly valid solution, but Rails provides us with a less verbose alternative: `options_from_collection_for_select`. This helper expects a collection of arbitrary objects and two additional arguments: the names of the methods to read the option *value* and *text* from, respectively:
+This is a perfectly valid solution, but Rails provides a less verbose alternative: `options_from_collection_for_select`. This helper expects a collection of arbitrary objects and two additional arguments: the names of the methods to read the option *value* and *text* from, respectively:
 
 ----------------------------------------------------------------------------
 <%= options_from_collection_for_select(City.all, :id, :name) %>
 ----------------------------------------------------------------------------
 
-As the name implies, this only generates option tags. A method to go along with it is `collection_select`:
+As the name implies, this only generates option tags. To generate a working select box you would need to use it in conjunction with `select_tag`, just as you would with `options_for_select`. A method to go along with it is `collection_select`:
 
 ----------------------------------------------------------------------------
 <%= collection_select(:person, :city_id, City.all, :id, :name) %>
 ----------------------------------------------------------------------------
 
-To recap, `options_from_collection_for_select` are to `collection_select` what `options_for_select` are to `select`.
+To recap, `options_from_collection_for_select` is to `collection_select` what `options_for_select` is to `select`.
 
 Time zone and country select
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-To leverage time zone support in Rails, we have to ask our users what time zone they are in. Doing so would require generating select options from a list of pre-defined TimeZone objects using `collection_select`, but we can simply use the `time_zone_select` helper that already wraps this:
+To leverage time zone support in Rails, you have to ask our users what time zone they are in. Doing so would require generating select options from a list of pre-defined TimeZone objects using `collection_select`, but you can simply use the `time_zone_select` helper that already wraps this:
 
 ----------------------------------------------------------------------------
 <%= time_zone_select(:person, :city_id) %>
