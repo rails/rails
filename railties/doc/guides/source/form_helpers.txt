@@ -191,6 +191,43 @@ output:
 
 When parsing POSTed data, Rails will take into account the special `"_method"` parameter and act as if the HTTP method was the one specified inside it ("PUT" in this example).
 
+Different Families of helpers
+------------------------------
+
+Most of Rails' form helpers are available in two forms.
+
+Barebones helpers
+~~~~~~~~~~~~~~~~~~
+These just generate the appropriate markup. These have names ending in _tag such as `text_field_tag`, check_box_tag`. The first parameter to these is always the name of the input. This is the name under which value will appear in the `params` hash in the controller. For example if the form contains
+---------------------------
+<%= text_field_tag(:query) %>
+---------------------------
+
+then the controller code should use
+---------------------------
+params[:query]
+---------------------------
+to retrieve the value entered by the user.
+
+Model object helpers
+~~~~~~~~~~~~~~~~~~~~~
+These are designed to work with a model object (commonly an Active Record object but this need not be the case). These lack the _tag suffix, from example `text_field`, `text_area`
+
+For the latter the first parameter is the name of an instance variable and the second is the name of attribute to be edited. Rails will set the value of the input control to the current value of that attribute for the object and set an appropriate input name. If our controller has defined `@person` and that person's name is Henry then a form containing:
+
+---------------------------
+<%= text_field(:person, :name) %>
+---------------------------
+will produce output similar to
+---------------------------
+<input id="person_name" name="person[name]" type="text" value="Henry"/>
+---------------------------
+The value entered by the user will be stored in
+---------------------------
+params[:person][:name]
+---------------------------
+The params[:person] hash is suitable for passing to `Person.new` or, if `@person` is an instance of Person, `@person.update_attributes`.
+
 
 Forms that deal with model attributes
 -------------------------------------
