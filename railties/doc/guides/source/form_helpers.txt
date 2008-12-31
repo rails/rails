@@ -198,7 +198,7 @@ Most of Rails' form helpers are available in two forms.
 
 Barebones helpers
 ~~~~~~~~~~~~~~~~~~
-These just generate the appropriate markup. These have names ending in _tag such as `text_field_tag`, check_box_tag`. The first parameter to these is always the name of the input. This is the name under which value will appear in the `params` hash in the controller. For example if the form contains
+These just generate the appropriate markup. These have names ending in _tag such as `text_field_tag`, `check_box_tag`. The first parameter to these is always the name of the input. This is the name under which value will appear in the `params` hash in the controller. For example if the form contains
 ---------------------------
 <%= text_field_tag(:query) %>
 ---------------------------
@@ -236,7 +236,7 @@ You must pass the name of an instance variable, i.e. `:person` or `"person"` and
 Forms that deal with model attributes
 -------------------------------------
 
-When we're dealing with an actual model, we will use a different set of form helpers and have Rails take care of some details in the background. In the following examples we will handle an Article model. First, let us have the controller create one:
+While the helpers seen so far are handy Rails can save us some work. For example typically a form is used to edit multiple attributes of a single object, so having to repeat the name of the object being edited is clumsy. In the following examples we will handle an Article model. First, let us have the controller create one:
 
 .articles_controller.rb
 ----------------------------------------------------------------------------
@@ -245,7 +245,7 @@ def new
 end
 ----------------------------------------------------------------------------
 
-Now we switch to the view. The first thing to remember is that we should use `form_for` helper instead of `form_tag`, and that we should pass the model name and object as arguments:
+Now we switch to the view. The first thing to remember is to use the `form_for` helper instead of `form_tag`, and that we should pass the model name and object as arguments:
 
 .articles/new.html.erb
 ----------------------------------------------------------------------------
@@ -261,7 +261,7 @@ There are a few things to note here:
 1. `:article` is the name of the model and `@article` is our record.
 2. The URL for the action attribute is passed as a parameter named `:url`.
 3. The `form_for` method yields *a form builder* object (the `f` variable).
-4. Methods to create form controls are called *on* the form builder object `f` and *without* the `"_tag"` suffix (so `text_field_tag` becomes `f.text_field`).
+4. Methods to create form controls are called *on* the form builder object `f`
 
 The resulting HTML is:
 
@@ -272,8 +272,9 @@ The resulting HTML is:
   <input name="commit" type="submit" value="Create" />
 </form>
 ----------------------------------------------------------------------------
+In the `create` action params[:article] would be a hash with keys :title and :body.
 
-A nice thing about `f.text_field` and other helper methods is that they will pre-fill the form control with the value read from the corresponding attribute in the model. For example, if we created the article instance by supplying an initial value for the title in the controller:
+The helper methods called on the form builder are identical to the model object helpers except that it is not necessary to specify which object is being edited since this is already managed by the form builder. They will pre-fill the form control with the value read from the corresponding attribute in the model. For example, if we created the article instance by supplying an initial value for the title in the controller:
 
 ----------------------------------------------------------------------------
 @article = Article.new(:title => "Rails makes forms easy")
