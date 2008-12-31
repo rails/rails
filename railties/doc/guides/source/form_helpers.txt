@@ -174,7 +174,7 @@ How do forms with PUT or DELETE methods work?
 
 Rails framework encourages RESTful design of your applications, which means you'll be making a lot of "PUT" and "DELETE" requests (besides "GET" and "POST"). Still, most browsers _don't support_ methods other than "GET" and "POST" when it comes to submitting forms. How does this work, then?
 
-Rails works around this issue by emulating other methods over POST with a hidden input named `"_method"` that is set to reflect the wanted method:
+Rails works around this issue by emulating other methods over POST with a hidden input named `"_method"` that is set to reflect the desired method:
 
 ----------------------------------------------------------------------------
 form_tag(search_path, :method => "put")
