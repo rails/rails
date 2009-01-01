@@ -571,7 +571,7 @@ Array parameters do not play well with the `check_box` helper. According to the 
 
 Using form helpers
 ~~~~~~~~~~~~~~~~~
-The previous sections did not use the Rails form helpers at all. While you can craft the input names yourself and pass them directly to helpers such as `text_field_tag` Rails also provides higher level support
+The previous sections did not use the Rails form helpers at all. While you can craft the input names yourself and pass them directly to helpers such as `text_field_tag` Rails also provides higher level support. The two tools at your disposal here are the name parameter to `form_for`/`fields_for` and the `:index` option to the form helpers.
 
 Miscellaneous
 -------------
