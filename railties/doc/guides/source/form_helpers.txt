@@ -308,6 +308,8 @@ form_for(@article)
 
 Notice how the short-style `form_for` invocation is conveniently the same, regardless of the record being new or existing. Record identification is smart enough to figure out if the record is new by asking `record.new_record?`. It also selects the correct path to submit to and the name based on the class of the object.
 
+Rails will also automatically set the class and id of the form appropriately: a form creating an article would have id and class `new_article`. If you were editing the article with id 23 the class would be set to `edit_article` and the id to `edit_article_23`. The attributes will be omitted or brevity in the rest of this guide.
+
 WARNING: When you're using STI (single-table inheritance) with your models, you can't rely on record identification on a subclass if only their parent class is declared a resource. You will have to specify the model name, `:url` and `:method` explicitly.
 
 
@@ -582,8 +584,22 @@ File upload form
 Scoping out form controls with `fields_for`
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-Creates a scope around a specific model object like `form_for`, but doesn’t create the form tags themselves. This makes `fields_for` suitable for specifying additional model objects in the same form: 
-
+`fields_for` creates a form builder in exactly the same way as `form_for` but doesn't create the actual `<form>` tags. In that sense it creates a scope around a specific model object like `form_for`, which is useful for specifying additional model objects in the same form. For example we might a Person model with an associated ContactDetail model. We could create a form for editing both like so:
+-------------
+<% form_for @person do |person_form| %>
+  <%= person_form.text_field :name %>
+  <% fields_for @person.contact_detail do |contact_details_form| %>
+    <%= contact_details_form.text_field :phone_number %>
+  <% end %>
+<% end %>
+-------------
+which produces the following output:
+-------------
+<form action="/people/1" class="edit_person" id="edit_person_1" method="post">
+  <input id="person_name" name="person[name]" size="30" type="text" />  
+  <input id="contact_detail_phone_number" name="contact_detail[phone_number]" size="30" type="text" />
+</form>
+-------------
 Making custom form builders
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
