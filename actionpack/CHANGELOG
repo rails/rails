@@ -1,5 +1,18 @@
 *2.3.0 [Edge]*
 
+* Improved i18n support for the number_to_human_size helper. Changes the storage_units translation data; update your translations accordingly.  #1634 [Yaroslav Markin]
+    storage_units:
+      # %u is the storage unit, %n is the number (default: 2 MB)
+      format: "%n %u"
+      units:
+        byte:
+          one: "Byte"
+          other: "Bytes"
+        kb: "KB"
+        mb: "MB"
+        gb: "GB"
+        tb: "TB"
+
 * Added :silence option to BenchmarkHelper#benchmark and turned log_level into a hash parameter and deprecated the old use [DHH]
 
 * Fixed the AssetTagHelper cache to use the computed asset host as part of the cache key instead of just assuming the its a string #1299 [DHH]
