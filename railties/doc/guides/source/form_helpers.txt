@@ -626,7 +626,55 @@ Array parameters do not play well with the `check_box` helper. According to the 
 
 Using form helpers
 ~~~~~~~~~~~~~~~~~
-The previous sections did not use the Rails form helpers at all. While you can craft the input names yourself and pass them directly to helpers such as `text_field_tag` Rails also provides higher level support. The two tools at your disposal here are the name parameter to `form_for`/`fields_for` and the `:index` option to the form helpers.
+The previous sections did not use the Rails form helpers at all. While you can craft the input names yourself and pass them directly to helpers such as `text_field_tag` Rails also provides higher level support. The two tools at your disposal here are the name parameter to `form_for`/`fields_for` and the `:index` option.
+
+You might want to render a form with a set of edit fields for each of a person's addresses. Something a little like this will do the trick
+
+--------
+<% form_for @person do |person_form| %>
+  <%= person_form.text_field :name%>
+  <% for address in @person.addresses %> 
+    <% person_form.fields_for address, :index => address do |address_form|%>
+      <%= address_form.text_field :city %> 
+    <% end %>
+  <% end %>
+<% end %>
+--------
+Assuming our person had two addresses, with ids 23 and 45 this would create output similar to this:
+--------
+<form action="/people/1" class="edit_person" id="edit_person_1" method="post">
+  <input id="person_name" name="person[name]" size="30" type="text" />
+  <input id="person_address_23_city" name="person[address][23][city]" size="30" type="text" /> 
+  <input id="person_address_45_city" name="person[address][45][city]" size="30" type="text" /> 
+</form>
+--------
+This will result in a params hash that looks like
+--------
+{'person' => {'name' => 'Bob', 'address' => { '23' => {'city' => 'Paris'}, '45' => {'city' => 'London'} }}}
+--------
+
+Rails knows that all these inputs should be part of the person hash because you called `fields_for` on the first form builder. By specifying an `:index` option you're telling rails that instead of naming the inputs `person[address][city]` it should insert a [] between the address and the city, with the appropriate index value. If you pass an Active Record object as we did then Rails will call `to_param` on it, which by default returns the database id. This is often useful it is then easy to locate which Address record should be modified but you could pass numbers with some other significance, strings or even nil (which will result in an array parameter being created).
+
+To create more intricate nestings, you can specify the first part of the input name (`person[address]` in the previous example) explicitly, for example
+--------
+<% fields_for 'person[address][primary]', address, :index => address do |address_form| %>
+  <%= address_form.text_field :city %>
+<% end %>
+--------
+will create inputs like
+--------
+<input id="person_address_primary_1_city" name="person[address][primary][1][city]" size="30" type="text" value="bologna" />
+--------
+As a general rule the final input name is the concatenation of the name given to `fields_for`/`form_for`, the index value and the name of the attribute. You can also pass an `:index` option directly to helpers such as `text_field`, but usually it is less repetitive to specify this at the form builder level rather than on individual input controls.
+
+As a shortcut you can append [] to the name and omit the `:index` option. This is the same as specifing `:index => address` so
+--------
+<% fields_for 'person[address][primary][]', address do |address_form| %>
+  <%= address_form.text_field :city %>
+<% end %>
+--------
+produces exactly the same output as the previous example.
+
 
 Miscellaneous
 -------------
