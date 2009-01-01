@@ -10,7 +10,6 @@ In this guide you will:
 * Make model-centric forms for creation and editing of specific database records;
 * Generate select boxes from multiple types of data;
 * Learn what makes a file upload form different;
-* Build complex, multi-model forms.
 
 NOTE: This guide is not intended to be a complete documentation of available form helpers and their arguments. Please visit http://api.rubyonrails.org/[the Rails API documentation] for a complete reference.
 
@@ -725,11 +724,20 @@ As a shortcut you can append [] to the name and omit the `:index` option. This i
 --------
 produces exactly the same output as the previous example.
 
+Complex forms
+-------------
+
+Many apps grow beyond simple forms editing a single object. For example when creating a Person instance you might want to allow the user to (on the same form) create multiple address records (home, work etc...). When later editing that person the user should be able to add, remove or amend addresses as necessary. While this guide has shown you all the pieces necessary to handle this, Rails does not yet have a standard end-to-end way of accomplishing this, but many have come up with viable approaches. These include:
+
+* Ryan Bates' series of railscasts on http://railscasts.com/episodes/75[complex forms]
+* Handle Multiple Models in One Form from http://media.pragprog.com/titles/fr_arr/multiple_models_one_form.pdf[Advanced Rails Recipes].
+* Eloy Duran's http://github.com/alloy/complex-form-examples/tree/alloy-nested_params[nested_params] plugin
+* Lance Ivy's http://github.com/cainlevy/nested_assignment/tree/master[nested_assignment] plugin and http://github.com/cainlevy/complex-form-examples/tree/cainlevy[sample application].
 
 == Changelog ==
 
 http://rails.lighthouseapp.com/projects/16213-rails-guides/tickets/1[Lighthouse ticket]
 
-Mislav Marohnić <mislav.marohnic@gmail.com>
-
-link:../authors.html#fcheung[Frederick Cheung]
+.Authors
+* Mislav Marohnić <mislav.marohnic@gmail.com>
+* link:../authors.html#fcheung[Frederick Cheung]
