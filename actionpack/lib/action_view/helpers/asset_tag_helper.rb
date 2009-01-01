@@ -545,12 +545,12 @@ module ActionView
             @source = source
             @include_host = include_host
             @cache_key = if controller.respond_to?(:request)
-              [self.class.name,controller.request.protocol,
-               ActionController::Base.asset_host,
-               ActionController::Base.relative_url_root,
-               source, include_host]
+              [ self.class.name,controller.request.protocol,
+                compute_asset_host(source),
+                ActionController::Base.relative_url_root,
+                source, include_host ]
             else
-              [self.class.name,ActionController::Base.asset_host, source, include_host]
+              [ self.class.name, compute_asset_host(source), source, include_host ]
             end
           end
           
