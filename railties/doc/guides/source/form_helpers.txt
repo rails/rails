@@ -312,6 +312,20 @@ Rails will also automatically set the class and id of the form appropriately: a 
 
 WARNING: When you're using STI (single-table inheritance) with your models, you can't rely on record identification on a subclass if only their parent class is declared a resource. You will have to specify the model name, `:url` and `:method` explicitly.
 
+Dealing with namespaces
+^^^^^^^^^^^^^^^^^^^^^^^
+
+If you have created namespaced routes `form_for` has a nifty shorthand for that too. If your application has an admin namespace then
+-------
+form_for [:admin, @article]
+------- 
+will create a form that submits to the articles controller inside the admin namespace (submitting to `admin_article_path(@article)` in the case of an update). If you have several levels of namespacing then the syntax is similar:
+
+-------
+form_for [:admin, :management, @article]
+------- 
+For more information on Rails' routing system and the associated conventions, please see the link:../routing_outside_in.html[routing guide].
+
 
 Making select boxes with ease
 -----------------------------
