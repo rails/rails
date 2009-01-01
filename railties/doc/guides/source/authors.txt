@@ -43,3 +43,9 @@ and unobtrusive JavaScript. His home on the internet is his blog http://tore.dar
 ***********************************************************
 Jeff Dean is a software engineer with http://pivotallabs.com/[Pivotal Labs].
 ***********************************************************
+
+.Cássio Marques
+[[cmarques]]
+***********************************************************
+Cássio Marques is a Brazilian software developer working with different programming languages such as Ruby, JavaScript, C++ and Java, as an independent consultant. He blogs at http://cassiomarques.wordpress.com, which is mainly written in portuguese, but will soon get a new section for posts with english translation.
+***********************************************************
