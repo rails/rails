@@ -456,7 +456,8 @@ There is also `time_zone_options_for_select` helper for a more manual (therefore
 Rails _used_ to have a `country_select` helper for choosing countries but this has been extracted to the http://github.com/rails/country_select/tree/master[country_select plugin]. When using this do be aware that the exclusion or inclusion of certain names from the list can be somewhat controversial (and was the reason this functionality was extracted from rails)
 
 Date and time select boxes
-~~~~~~~~~~~~~~~~~~~~~~~~~~
+--------------------------
+
 The date and time helpers differ from all the other form helpers in two important respects:
 
 1. Unlike other attributes you might typically have, dates and times are not representable by a single input element. Instead you have several, one for each component (year, month, day etc...). So in particular, there is no single value in your params hash with your date or time.
@@ -465,7 +466,7 @@ The date and time helpers differ from all the other form helpers in two importan
 Both of these families of helpers will create a series of select boxes for the different components (year, month, day etc...).
 
 Barebones helpers
-^^^^^^^^^^^^^^^^^
+~~~~~~~~~~~~~~~~~
 The `select_*` family of helpers take as their first argument an instance of Date, Time or DateTime that is used as the currently selected value. You may omit this parameter, in which case the current date is used. for example
 
 -----------
@@ -484,7 +485,7 @@ Date::civil(params[:start_date][:year].to_i, params[:start_date][:month].to_i, p
 The :prefix option controls where in the params hash the date components will be placed. Here it was set to `start_date`, if omitted it will default to `date`
 
 Model object helpers
-^^^^^^^^^^^^^^^^^^^^
+~~~~~~~~~~~~~~~~~~~~
 `select_date` does not work well with forms that update or create Active Record objects as Active Record expects each element of the params hash to correspond to one attribute.
 The model object helpers for dates and times submit parameters with special names. When Active Record sees parameters with such names it knows they must be combined with the other parameters and given to a constructor appropriate to the column type. For example
 ---------------
@@ -505,34 +506,12 @@ which results in a params hash like
 When this is passed to `Person.new`, Active Record spots that these parameters should all be used to construct the `birth_date` attribute and uses the suffixed information to determine in which order it should pass these parameters to functions such as `Date::civil`.
 
 Common options
-^^^^^^^^^^^^^^
+~~~~~~~~~~~~~~
 Both families of helpers use the same core set of functions to generate the individual select tags and so both accept largely the same options. In particular, by default Rails will generate year options 5 years either side of the current year. If this is not an appropriate range, the `:start_year` and `:end_year` options override this. For an exhaustive list of the available options, refer to the http://api.rubyonrails.org/classes/ActionView/Helpers/DateHelper.html[API documentation].
 
 As a rule of thumb you should be using `date_select` when working with model objects and `select_date` in others cases, such as a search for which filters results by date.
 
 NOTE:In many cases the built in date pickers are clumsy as they do not aid the user in working out the relationship between the date and the day of the week
-
-Scoping out form controls with `fields_for`
--------------------------------------------
-
-`fields_for` creates a form builder in exactly the same way as `form_for` but doesn't create the actual `<form>` tags. It creates a scope around a specific model object like `form_for`, which is useful for specifying additional model objects in the same form. For example if you had a Person model with an associated ContactDetail model you could create a form for editing both like so:
--------------
-<% form_for @person do |person_form| %>
-  <%= person_form.text_field :name %>
-  <% fields_for @person.contact_detail do |contact_details_form| %>
-    <%= contact_details_form.text_field :phone_number %>
-  <% end %>
-<% end %>
--------------
-
-which produces the following output:
-
--------------
-<form action="/people/1" class="edit_person" id="edit_person_1" method="post">
-  <input id="person_name" name="person[name]" size="30" type="text" />  
-  <input id="contact_detail_phone_number" name="contact_detail[phone_number]" size="30" type="text" />
-</form>
--------------
 
 Form builders
 -------------
@@ -565,6 +544,28 @@ The form builder used also determines what happens when you do
 <%= render :partial => f %>
 ------
 If `f` is an instance of FormBuilder then this will render the 'form' partial, setting the partial's object to the form builder. If the form builder is of class LabellingFormBuilder then the 'labelling_form' partial would be rendered instead.
+
+Scoping out form controls with `fields_for`
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+`fields_for` creates a form builder in exactly the same way as `form_for` but doesn't create the actual `<form>` tags. It creates a scope around a specific model object like `form_for`, which is useful for specifying additional model objects in the same form. For example if you had a Person model with an associated ContactDetail model you could create a form for editing both like so:
+-------------
+<% form_for @person do |person_form| %>
+  <%= person_form.text_field :name %>
+  <% fields_for @person.contact_detail do |contact_details_form| %>
+    <%= contact_details_form.text_field :phone_number %>
+  <% end %>
+<% end %>
+-------------
+
+which produces the following output:
+
+-------------
+<form action="/people/1" class="edit_person" id="edit_person_1" method="post">
+  <input id="person_name" name="person[name]" size="30" type="text" />  
+  <input id="contact_detail_phone_number" name="contact_detail[phone_number]" size="30" type="text" />
+</form>
+-------------
 
 
 Parameter Names
