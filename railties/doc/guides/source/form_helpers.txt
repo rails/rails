@@ -691,32 +691,6 @@ As a shortcut you can append [] to the name and omit the `:index` option. This i
 produces exactly the same output as the previous example.
 
 
-Miscellaneous
--------------
-
-File upload form
-~~~~~~~~~~~~~~~~
-
-:multipart - If set to true, the enctype is set to "multipart/form-data".
-
-
-
-* `form_for` within a namespace
-
-----------------------------------------------------------------------------
-select_tag(name, option_tags = nil, html_options = { :multiple, :disabled })
-
-select(object, method, choices, options = {}, html_options = {})
-options_for_select(container, selected = nil)
-
-collection_select(object, method, collection, value_method, text_method, options = {}, html_options = {})
-options_from_collection_for_select(collection, value_method, text_method, selected = nil)
-
-time_zone_options_for_select(selected = nil, priority_zones = nil, model = ::ActiveSupport::TimeZone)
-time_zone_select(object, method, priority_zones = nil, options = {}, html_options = {})
-----------------------------------------------------------------------------
-
-
 == Changelog ==
 
 http://rails.lighthouseapp.com/projects/16213-rails-guides/tickets/1[Lighthouse ticket]
