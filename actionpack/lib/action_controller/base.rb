@@ -382,6 +382,13 @@ module ActionController #:nodoc:
     attr_accessor :action_name
 
     class << self
+      def call(env)
+        # HACK: For global rescue to have access to the original request and response
+        request = env["actioncontroller.rescue.request"] ||= Request.new(env)
+        response = env["actioncontroller.rescue.response"] ||= Response.new
+        process(request, response)
+      end
+
       # Factory for the standard create, process loop where the controller is discarded after processing.
       def process(request, response) #:nodoc:
         new.process(request, response)
@@ -862,7 +869,7 @@ module ActionController #:nodoc:
         validate_render_arguments(options, extra_options, block_given?)
 
         if options.nil?
-          options = { :template => default_template.filename, :layout => true }
+          options = { :template => default_template, :layout => true }
         elsif options == :update
           options = extra_options.merge({ :update => true })
         elsif options.is_a?(String) || options.is_a?(Symbol)
@@ -1118,7 +1125,7 @@ module ActionController #:nodoc:
       end
 
       # Sets the etag, last_modified, or both on the response and renders a
-      # "304 Not Modified" response if the request is already fresh. 
+      # "304 Not Modified" response if the request is already fresh.
       #
       # Example:
       #
@@ -1126,8 +1133,8 @@ module ActionController #:nodoc:
       #     @article = Article.find(params[:id])
       #     fresh_when(:etag => @article, :last_modified => @article.created_at.utc)
       #   end
-      # 
-      # This will render the show template if the request isn't sending a matching etag or 
+      #
+      # This will render the show template if the request isn't sending a matching etag or
       # If-Modified-Since header and just a "304 Not Modified" response if there's a match.
       def fresh_when(options)
         options.assert_valid_keys(:etag, :last_modified)
@@ -1232,7 +1239,7 @@ module ActionController #:nodoc:
           log_processing_for_parameters
         end
       end
-      
+
       def log_processing_for_request_id
         request_id = "\n\nProcessing #{self.class.name}\##{action_name} "
         request_id << "to #{params[:format]} " if params[:format]
@@ -1244,7 +1251,7 @@ module ActionController #:nodoc:
       def log_processing_for_parameters
         parameters = respond_to?(:filter_parameters) ? filter_parameters(params) : params.dup
         parameters = parameters.except!(:controller, :action, :format, :_method)
-        
+
         logger.info "  Parameters: #{parameters.inspect}" unless parameters.empty?
       end
 
@@ -1343,9 +1350,12 @@ module ActionController #:nodoc:
   end
 
   Base.class_eval do
-    include Flash, Filters, Layout, Benchmarking, Rescue, MimeResponds, Helpers
-    include Cookies, Caching, Verification, Streaming
-    include SessionManagement, HttpAuthentication::Basic::ControllerMethods
-    include RecordIdentifier, RequestForgeryProtection, Translation
+    [ Flash, Filters, Layout, Benchmarking, Rescue, MimeResponds, Helpers,
+      Cookies, Caching, Verification, Streaming, SessionManagement,
+      HttpAuthentication::Basic::ControllerMethods, RecordIdentifier,
+      RequestForgeryProtection, Translation
+    ].each do |mod|
+      include mod
+    end
   end
 end

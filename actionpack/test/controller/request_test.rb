@@ -441,6 +441,7 @@ class UrlEncodedRequestParameterParsingTest < ActiveSupport::TestCase
   def test_deep_query_string_with_array_of_hash
     assert_equal({'x' => {'y' => [{'z' => '10'}]}}, ActionController::RequestParser.parse_query_parameters('x[y][][z]=10'))
     assert_equal({'x' => {'y' => [{'z' => '10', 'w' => '10'}]}}, ActionController::RequestParser.parse_query_parameters('x[y][][z]=10&x[y][][w]=10'))
+    assert_equal({'x' => {'y' => [{'z' => '10', 'v' => {'w' => '10'}}]}}, ActionController::RequestParser.parse_query_parameters('x[y][][z]=10&x[y][][v][w]=10'))
   end
 
   def test_deep_query_string_with_array_of_hashes_with_one_pair
