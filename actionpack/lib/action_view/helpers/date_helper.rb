@@ -931,7 +931,7 @@ module ActionView
         end
 
         def default_datetime(options)
-          return if options[:include_blank]
+          return if options[:include_blank] || options[:prompt]
 
           case options[:default]
             when nil
