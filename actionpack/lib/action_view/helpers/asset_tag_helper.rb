@@ -585,7 +585,7 @@ module ActionView
                 source
               else
                 CacheGuard.synchronize do
-                  Cache[@cache_key] ||= begin
+                  Cache[@cache_key + [source]] ||= begin
                     source += ".#{extension}" if missing_extension?(source) || file_exists_with_extension?(source)
                     source = "/#{directory}/#{source}" unless source[0] == ?/
                     source = rewrite_asset_path(source)
