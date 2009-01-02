@@ -60,8 +60,8 @@ module ActionController #:nodoc:
 
     module ClassMethods
       def call_with_exception(env, exception) #:nodoc:
-        request = env["actioncontroller.rescue.request"]
-        response = env["actioncontroller.rescue.response"]
+        request = env["actioncontroller.rescue.request"] ||= Request.new(env)
+        response = env["actioncontroller.rescue.response"] ||= Response.new
         new.process(request, response, :rescue_action, exception)
       end
     end
