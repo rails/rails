@@ -14,6 +14,15 @@ require 'console_app'
 Test::Unit.run = false
 
 class ConsoleAppTest < Test::Unit::TestCase
+  def test_app_method_should_return_integration_session
+    assert_nothing_thrown do
+      console_session = app
+      assert_not_nil console_session
+      assert_instance_of ActionController::Integration::Session,
+        console_session
+    end
+  end
+
   uses_mocha 'console reload test' do
     def test_reload_should_fire_preparation_callbacks
       a = b = c = nil

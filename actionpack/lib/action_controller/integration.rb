@@ -81,8 +81,8 @@ module ActionController
       end
 
       # Create and initialize a new Session instance.
-      def initialize(app)
-        @application = app
+      def initialize(app = nil)
+        @application = app || ActionController::Dispatcher.new
         reset!
       end
 
@@ -591,7 +591,6 @@ EOF
       # can use this method to open multiple sessions that ought to be tested
       # simultaneously.
       def open_session(application = nil)
-        application ||= ActionController::Dispatcher.new
         session = Integration::Session.new(application)
 
         # delegate the fixture accessors back to the test instance
