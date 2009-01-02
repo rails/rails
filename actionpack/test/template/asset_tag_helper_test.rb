@@ -38,8 +38,6 @@ class AssetTagHelperTest < ActionView::TestCase
     @controller.request = @request
 
     ActionView::Helpers::AssetTagHelper::reset_javascript_include_default
-    AssetTag::Cache.clear
-    AssetCollection::Cache.clear
   end
 
   def teardown

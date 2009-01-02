@@ -147,7 +147,6 @@ module ActionController
 
       Routing::Routes.reload
       ActionController::Base.view_paths.reload!
-      ActionView::Helpers::AssetTagHelper::AssetTag::Cache.clear
     end
 
     # Cleanup the application by clearing out loaded classes so they can
