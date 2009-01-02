@@ -91,7 +91,6 @@ module ActionController
       run_callbacks :prepare_dispatch
 
       Routing::Routes.reload
-      ActionView::Helpers::AssetTagHelper::AssetTag::Cache.clear
     end
 
     # Cleanup the application by clearing out loaded classes so they can
