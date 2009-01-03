@@ -32,11 +32,6 @@ class DispatcherTest < Test::Unit::TestCase
     dispatch(false)
   end
 
-  def test_clears_asset_tag_cache_before_dispatch_if_in_loading_mode
-    ActionView::Helpers::AssetTagHelper::AssetTag::Cache.expects(:clear).once
-    dispatch(false)
-  end
-
   def test_leaves_dependencies_after_dispatch_if_not_in_loading_mode
     ActionController::Routing::Routes.expects(:reload).never
     ActiveSupport::Dependencies.expects(:clear).never

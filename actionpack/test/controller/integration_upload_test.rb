@@ -10,6 +10,10 @@ class UploadTestController < ActionController::Base
     SessionUploadTest.last_request_type = ActionController::Base.param_parsers[request.content_type]
     render :text => "got here"
   end
+
+  def read
+    render :text => "File: #{params[:uploaded_data].read}"
+  end
 end
 
 class SessionUploadTest < ActionController::IntegrationTest
@@ -19,21 +23,43 @@ class SessionUploadTest < ActionController::IntegrationTest
     attr_accessor :last_request_type
   end
 
-  # def setup
-  #   @session = ActionController::Integration::Session.new
-  # end
-  def test_post_with_upload
-    uses_mocha "test_post_with_upload" do
-      ActiveSupport::Dependencies.stubs(:load?).returns(false)
+  def test_upload_and_read_file
+    with_test_routing do
+      post '/read', :uploaded_data => fixture_file_upload(FILES_DIR + "/hello.txt", "text/plain")
+      assert_equal "File: Hello", response.body
+    end
+  end
+
+  # The lint wrapper is used in integration tests
+  # instead of a normal StringIO class
+  InputWrapper = Rack::Lint::InputWrapper
+
+  def test_post_with_upload_with_unrewindable_input
+    InputWrapper.any_instance.expects(:rewind).raises(Errno::ESPIPE)
+
+    with_test_routing do
+      post '/read', :uploaded_data => fixture_file_upload(FILES_DIR + "/hello.txt", "text/plain")
+      assert_equal "File: Hello", response.body
+    end
+  end
+
+  def test_post_with_upload_with_params_parsing
+    with_test_routing do
+      params = { :uploaded_data => fixture_file_upload(FILES_DIR + "/mona_lisa.jpg", "image/jpg") }
+      post '/update', params, :location => 'blah'
+      assert_equal(:multipart_form, SessionUploadTest.last_request_type)
+    end
+  end
+
+  private
+    def with_test_routing
       with_routing do |set|
         set.draw do |map|
           map.update 'update', :controller => "upload_test", :action => "update", :method => :post
+          map.read 'read', :controller => "upload_test", :action => "read", :method => :post
         end
 
-        params = { :uploaded_data => fixture_file_upload(FILES_DIR + "/mona_lisa.jpg", "image/jpg") }
-        post '/update', params, :location => 'blah'
-        assert_equal(:multipart_form, SessionUploadTest.last_request_type)
+        yield
       end
     end
-   end
 end
