@@ -1028,7 +1028,7 @@ There are several ways of getting similar results with differents sub-templating
 
 http://rails.lighthouseapp.com/projects/16213-rails-guides/tickets/15[Lighthouse ticket]
 
-* December 27, 2007: Merge patch from Rodrigo Rosenfeld Rosas covering subtemplates
+* December 27, 2008: Merge patch from Rodrigo Rosenfeld Rosas covering subtemplates
 * December 27, 2008: Information on new rendering defaults by link:../authors.html#mgunderloy[Mike Gunderloy] 
 * November 9, 2008: Added partial collection counter by link:../authors.html#mgunderloy[Mike Gunderloy] 
 * November 1, 2008: Added +:js+ option for +render+ by link:../authors.html#mgunderloy[Mike Gunderloy] 
