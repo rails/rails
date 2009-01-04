@@ -1,5 +1,7 @@
 *2.2.3 (next release)*
 
+* TimeWithZone#- gives correct result with wrapped DateTime, and with DateTime argument [Geoff Buesing]
+
 * Multibyte: add multibyte-safe Chars#ord rather than falling back to String#ord.  #1483 [Jason Cheow]
 
 
