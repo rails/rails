@@ -1,3 +1,8 @@
+*Edge
+
+* TimeWithZone#- gives correct result with wrapped DateTime, and with DateTime argument [Geoff Buesing]
+
+
 *2.1.2 (October 23rd, 2008)*
 
 * TimeZone offset tests: use current_period, to ensure TimeZone#utc_offset is up-to-date [Geoff Buesing]
