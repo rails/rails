@@ -2,14 +2,15 @@ module ActionController
   class RequestParser
     def initialize(env)
       @env = env
+      freeze
     end
 
     def request_parameters
-      @request_parameters ||= parse_formatted_request_parameters
+      @env["action_controller.request_parser.request_parameters"] ||= parse_formatted_request_parameters
     end
 
     def query_parameters
-      @query_parameters ||= self.class.parse_query_parameters(query_string)
+      @env["action_controller.request_parser.query_parameters"] ||= self.class.parse_query_parameters(query_string)
     end
 
     # Returns the query string, accounting for server idiosyncrasies.
@@ -90,7 +91,7 @@ module ActionController
     end
 
     def content_length
-      @content_length ||= @env['CONTENT_LENGTH'].to_i
+      @env["action_controller.request.content_length"] ||= @env['CONTENT_LENGTH'].to_i
     end
 
     # The raw content type string. Use when you need parameters such as

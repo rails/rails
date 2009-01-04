@@ -19,6 +19,7 @@ module ActionController
 
     def initialize(env)
       @env = env
+      @parser = ActionController::RequestParser.new(env)
     end
 
     %w[ AUTH_TYPE GATEWAY_INTERFACE PATH_INFO
@@ -92,16 +93,15 @@ module ActionController
 
     # Returns the content length of the request as an integer.
     def content_length
-      @env['CONTENT_LENGTH'].to_i
+      @env["action_controller.request.content_length"] ||= @env['CONTENT_LENGTH'].to_i
     end
-    memoize :content_length
 
     # The MIME type of the HTTP request, such as Mime::XML.
     #
     # For backward compatibility, the post \format is extracted from the
     # X-Post-Data-Format HTTP header if present.
     def content_type
-      Mime::Type.lookup(parser.content_type_without_parameters)
+      Mime::Type.lookup(@parser.content_type_without_parameters)
     end
     memoize :content_type
 
@@ -389,7 +389,7 @@ EOM
     # Read the request \body. This is useful for web services that need to
     # work with raw requests directly.
     def raw_post
-      parser.raw_post
+      @parser.raw_post
     end
 
     # Returns both GET and POST \parameters in a single hash.
@@ -418,7 +418,7 @@ EOM
     end
 
     def body
-      parser.body
+      @parser.body
     end
 
     def remote_addr
@@ -431,11 +431,11 @@ EOM
     alias referer referrer
 
     def query_parameters
-      @query_parameters ||= parser.query_parameters
+      @parser.query_parameters
     end
 
     def request_parameters
-      @request_parameters ||= parser.request_parameters
+      @parser.request_parameters
     end
 
     def body_stream #:nodoc:
@@ -451,7 +451,7 @@ EOM
     end
 
     def session=(session) #:nodoc:
-      @session = session
+      @env['rack.session'] = session
     end
 
     def reset_session
@@ -473,10 +473,6 @@ EOM
     private
       def named_host?(host)
         !(host.nil? || /\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3}$/.match(host))
-      end
-
-      def parser
-        @parser ||= ActionController::RequestParser.new(@env)
       end
   end
 end

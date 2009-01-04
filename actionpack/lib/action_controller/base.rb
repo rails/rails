@@ -384,8 +384,8 @@ module ActionController #:nodoc:
     class << self
       def call(env)
         # HACK: For global rescue to have access to the original request and response
-        request = env["actioncontroller.rescue.request"] ||= Request.new(env)
-        response = env["actioncontroller.rescue.response"] ||= Response.new
+        request = env["action_controller.rescue.request"] ||= Request.new(env)
+        response = env["action_controller.rescue.response"] ||= Response.new
         process(request, response)
       end
 

@@ -391,8 +391,8 @@ class RequestTest < ActiveSupport::TestCase
   end
 
   def test_parameters
-    @request.instance_eval { @request_parameters = { "foo" => 1 } }
-    @request.instance_eval { @query_parameters = { "bar" => 2 } }
+    @request.stubs(:request_parameters).returns({ "foo" => 1 })
+    @request.stubs(:query_parameters).returns({ "bar" => 2 })
 
     assert_equal({"foo" => 1, "bar" => 2}, @request.parameters)
     assert_equal({"foo" => 1}, @request.request_parameters)
