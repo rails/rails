@@ -8,6 +8,8 @@ module ActionController
           # Development mode callbacks
           before_dispatch :reload_application
           after_dispatch :cleanup_application
+
+          ActionView::Helpers::AssetTagHelper.cache_asset_timestamps = false
         end
 
         if defined?(ActiveRecord)
