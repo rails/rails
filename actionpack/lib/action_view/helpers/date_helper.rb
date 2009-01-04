@@ -860,7 +860,7 @@ module ActionView
         #  => post[written_on(1i)]
         def input_name_from_type(type)
           prefix = @options[:prefix] || ActionView::Helpers::DateTimeSelector::DEFAULT_PREFIX
-          prefix += "[#{@options[:index]}]" if @options[:index]
+          prefix += "[#{@options[:index]}]" if @options.has_key?(:index)
 
           field_name = @options[:field_name] || type
           if @options[:include_position]
@@ -923,7 +923,7 @@ module ActionView
           options[:field_name]           = @method_name
           options[:include_position]     = true
           options[:prefix]             ||= @object_name
-          options[:index]              ||= @auto_index
+          options[:index]                = @auto_index if @auto_index && !options.has_key?(:index)
           options[:datetime_separator] ||= ' &mdash; '
           options[:time_separator]     ||= ' : '
 
@@ -961,15 +961,15 @@ module ActionView
 
     class FormBuilder
       def date_select(method, options = {}, html_options = {})
-        @template.date_select(@object_name, method, options.merge(:object => @object), html_options)
+        @template.date_select(@object_name, method, objectify_options(options), html_options)
       end
 
       def time_select(method, options = {}, html_options = {})
-        @template.time_select(@object_name, method, options.merge(:object => @object), html_options)
+        @template.time_select(@object_name, method, objectify_options(options), html_options)
       end
 
       def datetime_select(method, options = {}, html_options = {})
-        @template.datetime_select(@object_name, method, options.merge(:object => @object), html_options)
+        @template.datetime_select(@object_name, method, objectify_options(options), html_options)
       end
     end
   end
