@@ -572,125 +572,70 @@ http://www.gnu.org/software/src-highlite -->
 <div class="paragraph"><p>In any case, Rails will create a folder in your working directory called <tt>blog</tt>. Open up that folder and explore its contents. Most of the work in this tutorial will happen in the <tt>app/</tt> folder, but here&#8217;s a basic rundown on the function of each folder that Rails creates in a new application by default:</p></div>
 <div class="tableblock">
 <table rules="all"
-frame="hsides"
+width="100%"
+frame="border"
 cellspacing="0" cellpadding="4">
-<col width="137" />
-<col width="1440" />
-<thead>
-  <tr>
-    <th align="left">
-    File/Folder
-    </th>
-    <th align="left">
-    Purpose
-    </th>
-  </tr>
+<col width="50%" />
+<col width="50%" />
+<thead valign="top">
+<tr>
+<th align="left">File/Folder </th>
+<th align="left">Purpose</th>
+</tr>
 </thead>
 <tbody valign="top">
-  <tr>
-    <td align="left">
-    <tt>README</tt>
-    </td>
-    <td align="left">
-    This is a brief instruction manual for your application. Use it to tell others what your application does, how to set it up, and so on.
-    </td>
-  </tr>
-  <tr>
-    <td align="left">
-    <tt>Rakefile</tt>
-    </td>
-    <td align="left">
-    This file contains batch jobs that can be run from the terminal.
-    </td>
-  </tr>
-  <tr>
-    <td align="left">
-    <tt>app/</tt>
-    </td>
-    <td align="left">
-    Contains the controllers, models, and views for your application. You&#8217;ll focus on this folder for the remainder of this guide.
-    </td>
-  </tr>
-  <tr>
-    <td align="left">
-    <tt>config/</tt>
-    </td>
-    <td align="left">
-    Configure your application&#8217;s runtime rules, routes, database, and more.
-    </td>
-  </tr>
-  <tr>
-    <td align="left">
-    <tt>db/</tt>
-    </td>
-    <td align="left">
-    Shows your current database schema, as well as the database migrations. You&#8217;ll learn about migrations shortly.
-    </td>
-  </tr>
-  <tr>
-    <td align="left">
-    <tt>doc/</tt>
-    </td>
-    <td align="left">
-    In-depth documentation for your application.
-    </td>
-  </tr>
-  <tr>
-    <td align="left">
-    <tt>lib/</tt>
-    </td>
-    <td align="left">
-    Extended modules for your application (not covered in this guide).
-    </td>
-  </tr>
-  <tr>
-    <td align="left">
-    <tt>log/</tt>
-    </td>
-    <td align="left">
-    Application log files.
-    </td>
-  </tr>
-  <tr>
-    <td align="left">
-    <tt>public/</tt>
-    </td>
-    <td align="left">
-    The only folder seen to the world as-is.  This is where your images, javascript, stylesheets (CSS), and other static files go.
-    </td>
-  </tr>
-  <tr>
-    <td align="left">
-    <tt>script/</tt>
-    </td>
-    <td align="left">
-    Scripts provided by Rails to do recurring tasks, such as benchmarking, plugin installation, and starting the console or the web server.
-    </td>
-  </tr>
-  <tr>
-    <td align="left">
-    <tt>test/</tt>
-    </td>
-    <td align="left">
-    Unit tests, fixtures, and other test apparatus. These are covered in <a href="../testing_rails_applications.html">Testing Rails Applications</a>
-    </td>
-  </tr>
-  <tr>
-    <td align="left">
-    <tt>tmp/</tt>
-    </td>
-    <td align="left">
-    Temporary files
-    </td>
-  </tr>
-  <tr>
-    <td align="left">
-    <tt>vendor/</tt>
-    </td>
-    <td align="left">
-    A place for third-party code. In a typical Rails application, this includes Ruby Gems, the Rails source code (if you install it into your project) and plugins containing additional prepackaged functionality.
-    </td>
-  </tr>
+<tr>
+<td align="left"><p class="table"><tt>README</tt></p></td>
+<td align="left"><p class="table">This is a brief instruction manual for your application. Use it to tell others what your application does, how to set it up, and so on.</p></td>
+</tr>
+<tr>
+<td align="left"><p class="table"><tt>Rakefile</tt></p></td>
+<td align="left"><p class="table">This file contains batch jobs that can be run from the terminal.</p></td>
+</tr>
+<tr>
+<td align="left"><p class="table"><tt>app/</tt></p></td>
+<td align="left"><p class="table">Contains the controllers, models, and views for your application. You&#8217;ll focus on this folder for the remainder of this guide.</p></td>
+</tr>
+<tr>
+<td align="left"><p class="table"><tt>config/</tt></p></td>
+<td align="left"><p class="table">Configure your application&#8217;s runtime rules, routes, database, and more.</p></td>
+</tr>
+<tr>
+<td align="left"><p class="table"><tt>db/</tt></p></td>
+<td align="left"><p class="table">Shows your current database schema, as well as the database migrations. You&#8217;ll learn about migrations shortly.</p></td>
+</tr>
+<tr>
+<td align="left"><p class="table"><tt>doc/</tt></p></td>
+<td align="left"><p class="table">In-depth documentation for your application.</p></td>
+</tr>
+<tr>
+<td align="left"><p class="table"><tt>lib/</tt></p></td>
+<td align="left"><p class="table">Extended modules for your application (not covered in this guide).</p></td>
+</tr>
+<tr>
+<td align="left"><p class="table"><tt>log/</tt></p></td>
+<td align="left"><p class="table">Application log files.</p></td>
+</tr>
+<tr>
+<td align="left"><p class="table"><tt>public/</tt></p></td>
+<td align="left"><p class="table">The only folder seen to the world as-is.  This is where your images, javascript, stylesheets (CSS), and other static files go.</p></td>
+</tr>
+<tr>
+<td align="left"><p class="table"><tt>script/</tt></p></td>
+<td align="left"><p class="table">Scripts provided by Rails to do recurring tasks, such as benchmarking, plugin installation, and starting the console or the web server.</p></td>
+</tr>
+<tr>
+<td align="left"><p class="table"><tt>test/</tt></p></td>
+<td align="left"><p class="table">Unit tests, fixtures, and other test apparatus. These are covered in <a href="../testing_rails_applications.html">Testing Rails Applications</a></p></td>
+</tr>
+<tr>
+<td align="left"><p class="table"><tt>tmp/</tt></p></td>
+<td align="left"><p class="table">Temporary files</p></td>
+</tr>
+<tr>
+<td align="left"><p class="table"><tt>vendor/</tt></p></td>
+<td align="left"><p class="table">A place for third-party code. In a typical Rails application, this includes Ruby Gems, the Rails source code (if you install it into your project) and plugins containing additional prepackaged functionality.</p></td>
+</tr>
 </tbody>
 </table>
 </div>
@@ -876,133 +821,74 @@ http://www.gnu.org/software/src-highlite -->
 <div class="paragraph"><p>The scaffold generator will build 13 files in your application, along with some folders, and edit one more. Here&#8217;s a quick overview of what it creates:</p></div>
 <div class="tableblock">
 <table rules="all"
-frame="hsides"
+width="100%"
+frame="border"
 cellspacing="0" cellpadding="4">
-<col width="525" />
-<col width="1062" />
-<thead>
-  <tr>
-    <th align="left">
-    File
-    </th>
-    <th align="left">
-    Purpose
-    </th>
-  </tr>
+<col width="50%" />
+<col width="50%" />
+<thead valign="top">
+<tr>
+<th align="left">File                                          </th>
+<th align="left">Purpose</th>
+</tr>
 </thead>
 <tbody valign="top">
-  <tr>
-    <td align="left">
-    app/models/post.rb
-    </td>
-    <td align="left">
-    The Post model
-    </td>
-  </tr>
-  <tr>
-    <td align="left">
-    db/migrate/20081013124235_create_posts.rb
-    </td>
-    <td align="left">
-    Migration to create the posts table in your database (your name will include a different timestamp)
-    </td>
-  </tr>
-  <tr>
-    <td align="left">
-    app/views/posts/index.html.erb
-    </td>
-    <td align="left">
-    A view to display an index of all posts
-    </td>
-  </tr>
-  <tr>
-    <td align="left">
-    app/views/posts/show.html.erb
-    </td>
-    <td align="left">
-    A view to display a single post
-    </td>
-  </tr>
-  <tr>
-    <td align="left">
-    app/views/posts/new.html.erb
-    </td>
-    <td align="left">
-    A view to create a new post
-    </td>
-  </tr>
-  <tr>
-    <td align="left">
-    app/views/posts/edit.html.erb
-    </td>
-    <td align="left">
-    A view to edit an existing post
-    </td>
-  </tr>
-  <tr>
-    <td align="left">
-    app/views/layouts/posts.html.erb
-    </td>
-    <td align="left">
-    A view to control the overall look and feel of the other posts views
-    </td>
-  </tr>
-  <tr>
-    <td align="left">
-    public/stylesheets/scaffold.css
-    </td>
-    <td align="left">
-    Cascading style sheet to make the scaffolded views look better
-    </td>
-  </tr>
-  <tr>
-    <td align="left">
-    app/controllers/posts_controller.rb
-    </td>
-    <td align="left">
-    The Posts controller
-    </td>
-  </tr>
-  <tr>
-    <td align="left">
-    test/functional/posts_controller_test.rb
-    </td>
-    <td align="left">
-    Functional testing harness for the posts controller
-    </td>
-  </tr>
-  <tr>
-    <td align="left">
-    app/helpers/posts_helper.rb
-    </td>
-    <td align="left">
-    Helper functions to be used from the posts views
-    </td>
-  </tr>
-  <tr>
-    <td align="left">
-    config/routes.rb
-    </td>
-    <td align="left">
-    Edited to include routing information for posts
-    </td>
-  </tr>
-  <tr>
-    <td align="left">
-    test/fixtures/posts.yml
-    </td>
-    <td align="left">
-    Dummy posts for use in testing
-    </td>
-  </tr>
-  <tr>
-    <td align="left">
-    test/unit/post_test.rb
-    </td>
-    <td align="left">
-    Unit testing harness for the posts model
-    </td>
-  </tr>
+<tr>
+<td align="left"><p class="table">app/models/post.rb</p></td>
+<td align="left"><p class="table">The Post model</p></td>
+</tr>
+<tr>
+<td align="left"><p class="table">db/migrate/20081013124235_create_posts.rb</p></td>
+<td align="left"><p class="table">Migration to create the posts table in your database (your name will include a different timestamp)</p></td>
+</tr>
+<tr>
+<td align="left"><p class="table">app/views/posts/index.html.erb</p></td>
+<td align="left"><p class="table">A view to display an index of all posts</p></td>
+</tr>
+<tr>
+<td align="left"><p class="table">app/views/posts/show.html.erb</p></td>
+<td align="left"><p class="table">A view to display a single post</p></td>
+</tr>
+<tr>
+<td align="left"><p class="table">app/views/posts/new.html.erb</p></td>
+<td align="left"><p class="table">A view to create a new post</p></td>
+</tr>
+<tr>
+<td align="left"><p class="table">app/views/posts/edit.html.erb</p></td>
+<td align="left"><p class="table">A view to edit an existing post</p></td>
+</tr>
+<tr>
+<td align="left"><p class="table">app/views/layouts/posts.html.erb</p></td>
+<td align="left"><p class="table">A view to control the overall look and feel of the other posts views</p></td>
+</tr>
+<tr>
+<td align="left"><p class="table">public/stylesheets/scaffold.css</p></td>
+<td align="left"><p class="table">Cascading style sheet to make the scaffolded views look better</p></td>
+</tr>
+<tr>
+<td align="left"><p class="table">app/controllers/posts_controller.rb</p></td>
+<td align="left"><p class="table">The Posts controller</p></td>
+</tr>
+<tr>
+<td align="left"><p class="table">test/functional/posts_controller_test.rb</p></td>
+<td align="left"><p class="table">Functional testing harness for the posts controller</p></td>
+</tr>
+<tr>
+<td align="left"><p class="table">app/helpers/posts_helper.rb</p></td>
+<td align="left"><p class="table">Helper functions to be used from the posts views</p></td>
+</tr>
+<tr>
+<td align="left"><p class="table">config/routes.rb</p></td>
+<td align="left"><p class="table">Edited to include routing information for posts</p></td>
+</tr>
+<tr>
+<td align="left"><p class="table">test/fixtures/posts.yml</p></td>
+<td align="left"><p class="table">Dummy posts for use in testing</p></td>
+</tr>
+<tr>
+<td align="left"><p class="table">test/unit/post_test.rb</p></td>
+<td align="left"><p class="table">Unit testing harness for the posts model</p></td>
+</tr>
 </tbody>
 </table>
 </div>
