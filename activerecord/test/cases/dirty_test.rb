@@ -21,6 +21,10 @@ private
   end
 end
 
+class NumericData < ActiveRecord::Base
+  self.table_name = 'numeric_data'
+end
+
 class DirtyTest < ActiveRecord::TestCase
   def test_attribute_changes
     # New record - no changes.
@@ -65,6 +69,26 @@ class DirtyTest < ActiveRecord::TestCase
       pirate.parrot_id = value
       assert !pirate.parrot_id_changed?
       assert_nil pirate.parrot_id_change
+    end
+  end
+
+  def test_nullable_decimal_not_marked_as_changed_if_new_value_is_blank
+    numeric_data = NumericData.new
+
+    ["", nil].each do |value|
+      numeric_data.bank_balance = value
+      assert !numeric_data.bank_balance_changed?
+      assert_nil numeric_data.bank_balance_change
+    end
+  end
+
+  def test_nullable_float_not_marked_as_changed_if_new_value_is_blank
+    numeric_data = NumericData.new
+
+    ["", nil].each do |value|
+      numeric_data.temperature = value
+      assert !numeric_data.temperature_changed?
+      assert_nil numeric_data.temperature_change
     end
   end
 
