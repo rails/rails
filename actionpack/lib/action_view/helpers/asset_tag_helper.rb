@@ -95,11 +95,11 @@ module ActionView
     # It's the responsibility of the web server you use to set the far-future expiration date on cache assets that you need to take
     # advantage of this feature. Here's an example for Apache:
     #
-    # # Asset Expiration
-    # ExpiresActive On
-    # <FilesMatch "\.(ico|gif|jpe?g|png|js|css)$">
-    #   ExpiresDefault "access plus 1 year"
-    # </FilesMatch>
+    #   # Asset Expiration
+    #   ExpiresActive On
+    #   <FilesMatch "\.(ico|gif|jpe?g|png|js|css)$">
+    #     ExpiresDefault "access plus 1 year"
+    #   </FilesMatch>
     #
     # Also note that in order for this to work, all your application servers must return the same timestamps. This means that they must
     # have their clocks synchronized. If one of them drift out of sync, you'll see different timestamps at random and the cache won't
