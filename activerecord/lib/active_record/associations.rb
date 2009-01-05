@@ -1531,14 +1531,14 @@ module ActiveRecord
                   association = send(reflection.name)
                   association.destroy unless association.nil?
                 end
-                before_destroy method_name
+                after_destroy method_name
               when :delete
                 method_name = "belongs_to_dependent_delete_for_#{reflection.name}".to_sym
                 define_method(method_name) do
                   association = send(reflection.name)
                   association.delete unless association.nil?
                 end
-                before_destroy method_name
+                after_destroy method_name
               else
                 raise ArgumentError, "The :dependent option expects either :destroy or :delete (#{reflection.options[:dependent].inspect})"
             end
