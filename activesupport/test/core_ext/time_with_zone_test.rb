@@ -256,6 +256,15 @@ class TimeWithZoneTest < Test::Unit::TestCase
     twz2 = ActiveSupport::TimeWithZone.new( Time.utc(2000, 1, 2), ActiveSupport::TimeZone['UTC'] )
     assert_equal  86_400.0,  twz2 - twz1
   end
+  
+  def test_minus_with_datetime
+    assert_equal  86_400.0,  ActiveSupport::TimeWithZone.new( Time.utc(2000, 1, 2), ActiveSupport::TimeZone['UTC'] ) - DateTime.civil(2000, 1, 1)
+  end
+  
+  def test_minus_with_wrapped_datetime
+    assert_equal  86_400.0,  ActiveSupport::TimeWithZone.new( DateTime.civil(2000, 1, 2), ActiveSupport::TimeZone['UTC'] ) - Time.utc(2000, 1, 1)
+    assert_equal  86_400.0,  ActiveSupport::TimeWithZone.new( DateTime.civil(2000, 1, 2), ActiveSupport::TimeZone['UTC'] ) - DateTime.civil(2000, 1, 1)
+  end
 
   def test_plus_and_minus_enforce_spring_dst_rules
     silence_warnings do # silence warnings raised by tzinfo gem

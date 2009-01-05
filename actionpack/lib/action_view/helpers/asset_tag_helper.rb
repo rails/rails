@@ -468,6 +468,22 @@ module ActionView
         tag("img", options)
       end
 
+      def self.cache_asset_timestamps
+        @@cache_asset_timestamps
+      end
+
+      # You can enable or disable the asset tag timestamps cache.
+      # With the cache enabled, the asset tag helper methods will make fewer
+      # expense file system calls. However this prevents you from modifying
+      # any asset files while the server is running.
+      #
+      #   ActionView::Helpers::AssetTagHelper.cache_asset_timestamps = false
+      def self.cache_asset_timestamps=(value)
+        @@cache_asset_timestamps = value
+      end
+
+      @@cache_asset_timestamps = true
+
       private
         # Add the the extension +ext+ if not present. Return full URLs otherwise untouched.
         # Prefix with <tt>/dir/</tt> if lacking a leading +/+. Account for relative URL
@@ -526,18 +542,28 @@ module ActionView
           end
         end
 
+        @@asset_timestamps_cache = {}
+        @@asset_timestamps_cache_guard = Mutex.new
+
         # Use the RAILS_ASSET_ID environment variable or the source's
         # modification time as its cache-busting asset id.
         def rails_asset_id(source)
           if asset_id = ENV["RAILS_ASSET_ID"]
             asset_id
           else
-            path = File.join(ASSETS_DIR, source)
-
-            if File.exist?(path)
-              File.mtime(path).to_i.to_s
+            if @@cache_asset_timestamps && (asset_id = @@asset_timestamps_cache[source])
+              asset_id
             else
-              ''
+              path = File.join(ASSETS_DIR, source)
+              asset_id = File.exist?(path) ? File.mtime(path).to_i.to_s : ''
+
+              if @@cache_asset_timestamps
+                @@asset_timestamps_cache_guard.synchronize do
+                  @@asset_timestamps_cache[source] = asset_id
+                end
+              end
+
+              asset_id
             end
           end
         end

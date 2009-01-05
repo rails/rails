@@ -1,5 +1,7 @@
 *2.3.0 [Edge]*
 
+* TimeWithZone#- gives correct result with wrapped DateTime, and with DateTime argument [Geoff Buesing]
+
 * Updated i18n gem to version 0.1.1 #1635 [Yaroslav Markin]
 
 * Add :allow_nil option to delegate. #1127 [Sergio Gil]
