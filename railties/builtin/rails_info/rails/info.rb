@@ -38,7 +38,7 @@ module Rails
       def freeze_edge_version
         if File.exist?(rails_vendor_root)
           begin
-            Dir[File.join(rails_vendor_root, 'REVISION_*')].first.scan(/_(\d+)$/).first.first
+            File.readlines(File.join(rails_vendor_root,'REVISION')).first.strip
           rescue
             Dir[File.join(rails_vendor_root, 'TAG_*')].first.scan(/_(.+)$/).first.first rescue 'unknown'
           end

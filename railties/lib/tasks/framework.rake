@@ -64,7 +64,10 @@ namespace :rails do
           rm_f goner
         end
 
-        touch "rails/REVISION_#{latest_revision}"
+        puts "Frozen to git revision #{latest_revision}"
+        File.open('rails/REVISION', 'w') do |revision|
+          revision.puts latest_revision
+        end
       end
 
       puts 'Updating current scripts, javascripts, and configuration settings'
