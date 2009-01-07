@@ -23,6 +23,7 @@ cd "#{root_dir}/activesupport" do
   build_results[:activesupport] = system 'rake'
 end
 
+rm_f "#{root_dir}/activerecord/debug.log"
 cd "#{root_dir}/activerecord" do
   puts
   puts "[CruiseControl] Building ActiveRecord with MySQL"
@@ -59,6 +60,7 @@ cd "#{root_dir}/activemodel" do
   build_results[:activemodel] = system 'rake'
 end
 
+rm_f "#{root_dir}/activeresource/debug.log"
 cd "#{root_dir}/activeresource" do
   puts
   puts "[CruiseControl] Building ActiveResource"
