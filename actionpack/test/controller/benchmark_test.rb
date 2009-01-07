@@ -11,17 +11,17 @@ class BenchmarkedController < ActionController::Base
   end
 end
 
-class BenchmarkTest < Test::Unit::TestCase
+class BenchmarkTest < ActionController::TestCase
+  tests BenchmarkedController
+
   class MockLogger
     def method_missing(*args)
     end
   end
 
   def setup
-    @controller = BenchmarkedController.new
     # benchmark doesn't do anything unless a logger is set
     @controller.logger = MockLogger.new
-    @request, @response = ActionController::TestRequest.new, ActionController::TestResponse.new
     @request.host = "test.actioncontroller.i"
   end
 

@@ -3,7 +3,7 @@
 silence_warnings { RAILS_ENV = "test" }
 
 require 'test/unit'
-require 'action_controller/test_process'
+require 'action_controller/test_case'
 require 'action_view/test_case'
 require 'action_controller/integration'
 require 'action_mailer/test_case' if defined?(ActionMailer)

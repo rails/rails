@@ -19,7 +19,8 @@ class SendFileController < ActionController::Base
   def rescue_action(e) raise end
 end
 
-class SendFileTest < Test::Unit::TestCase
+class SendFileTest < ActionController::TestCase
+  tests SendFileController
   include TestFileUtils
 
   Mime::Type.register "image/png", :png unless defined? Mime::PNG

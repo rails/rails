@@ -1,6 +1,6 @@
 require 'abstract_unit'
 
-class FlashTest < Test::Unit::TestCase
+class FlashTest < ActionController::TestCase
   class TestController < ActionController::Base
     def set_flash
       flash["that"] = "hello"
@@ -73,11 +73,7 @@ class FlashTest < Test::Unit::TestCase
     end
   end
 
-  def setup
-    @request    = ActionController::TestRequest.new
-    @response   = ActionController::TestResponse.new
-    @controller = TestController.new
-  end
+  tests TestController
 
   def test_flash
     get :set_flash
