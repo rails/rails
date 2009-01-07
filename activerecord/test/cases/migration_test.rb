@@ -945,20 +945,20 @@ if ActiveRecord::Base.connection.supports_migrations?
 
     def test_finds_migrations
       migrations = ActiveRecord::Migrator.new(:up, MIGRATIONS_ROOT + "/valid").migrations
-      [['1', 'people_have_last_names'],
-       ['2', 'we_need_reminders'],
-       ['3', 'innocent_jointable']].each_with_index do |pair, i|
-        migrations[i].version == pair.first
-        migrations[1].name    == pair.last
+
+      [[1, 'PeopleHaveLastNames'], [2, 'WeNeedReminders'], [3, 'InnocentJointable']].each_with_index do |pair, i|
+        assert_equal migrations[i].version, pair.first
+        assert_equal migrations[i].name, pair.last
       end
     end
 
     def test_finds_pending_migrations
       ActiveRecord::Migrator.up(MIGRATIONS_ROOT + "/interleaved/pass_2", 1)
       migrations = ActiveRecord::Migrator.new(:up, MIGRATIONS_ROOT + "/interleaved/pass_2").pending_migrations
+
       assert_equal 1, migrations.size
-      migrations[0].version == '3'
-      migrations[0].name    == 'innocent_jointable'
+      assert_equal migrations[0].version, 3
+      assert_equal migrations[0].name, 'InnocentJointable'
     end
 
     def test_only_loads_pending_migrations
