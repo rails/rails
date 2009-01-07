@@ -1350,7 +1350,7 @@ module ActionController #:nodoc:
   end
 
   Base.class_eval do
-    [ Flash, Filters, Layout, Benchmarking, Rescue, MimeResponds, Helpers,
+    [ Filters, Layout, Benchmarking, Rescue, Flash, MimeResponds, Helpers,
       Cookies, Caching, Verification, Streaming, SessionManagement,
       HttpAuthentication::Basic::ControllerMethods, RecordIdentifier,
       RequestForgeryProtection, Translation
