@@ -1,5 +1,8 @@
 *2.3.0 [Edge]*
 
+* Object#tap shim for Ruby < 1.8.7. Similar to Object#returning, tap yields self then returns self.  [Jeremy Kemper]
+    array.select { ... }.tap(&:inspect).map { ... }
+
 * TimeWithZone#- gives correct result with wrapped DateTime, and with DateTime argument [Geoff Buesing]
 
 * Updated i18n gem to version 0.1.1 #1635 [Yaroslav Markin]
