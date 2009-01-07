@@ -367,8 +367,10 @@ module ActionController
             env[key] = value
           end
 
-          unless ActionController::Base.respond_to?(:clear_last_instantiation!)
-            ActionController::Base.module_eval { include ControllerCapture }
+          [ControllerCapture, ActionController::ProcessWithTest].each do |mod|
+            unless ActionController::Base < mod
+              ActionController::Base.class_eval { include mod }
+            end
           end
 
           ActionController::Base.clear_last_instantiation!
@@ -396,6 +398,7 @@ module ActionController
           if @controller = ActionController::Base.last_instantiation
             @request = @controller.request
             @response = @controller.response
+            @controller.send(:set_test_assigns)
           else
             # Decorate responses from Rack Middleware and Rails Metal
             # as an Response for the purposes of integration testing
