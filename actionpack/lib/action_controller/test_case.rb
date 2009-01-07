@@ -127,17 +127,18 @@ module ActionController
     #
     # The exception is stored in the exception accessor for further inspection.
     module RaiseActionExceptions
-      attr_accessor :exception
+      protected
+        attr_accessor :exception
 
-      def rescue_action_without_handler(e)
-        self.exception = e
-        
-        if request.remote_addr == "0.0.0.0"
-          raise(e)
-        else
-          super(e)
+        def rescue_action_without_handler(e)
+          self.exception = e
+
+          if request.remote_addr == "0.0.0.0"
+            raise(e)
+          else
+            super(e)
+          end
         end
-      end
     end
 
     setup :setup_controller_request_and_response
