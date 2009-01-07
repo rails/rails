@@ -40,6 +40,21 @@ class Object
     value
   end
 
+  # Yields <code>x</code> to the block, and then returns <code>x</code>.
+  # The primary purpose of this method is to "tap into" a method chain,
+  # in order to perform operations on intermediate results within the chain.
+  #
+  #   (1..10).tap { |x| puts "original: #{x.inspect}" }.to_a.
+  #     tap    { |x| puts "array: #{x.inspect}" }.
+  #     select { |x| x%2 == 0 }.
+  #     tap    { |x| puts "evens: #{x.inspect}" }.
+  #     map    { |x| x*x }.
+  #     tap    { |x| puts "squares: #{x.inspect}" }
+  def tap
+    yield self
+    self
+  end unless Object.respond_to?(:tap)
+
   # An elegant way to factor duplication out of options passed to a series of
   # method calls. Each method called in the block, with the block variable as
   # the receiver, will have its options merged with the default +options+ hash
