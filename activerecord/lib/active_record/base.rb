@@ -851,25 +851,32 @@ module ActiveRecord #:nodoc:
         connection.update(sql, "#{name} Update")
       end
 
-      # Destroys the records matching +conditions+ by instantiating each record and calling their +destroy+ method.
-      # This means at least 2*N database queries to destroy N records, so avoid +destroy_all+ if you are deleting
-      # many records. If you want to simply delete records without worrying about dependent associations or
-      # callbacks, use the much faster +delete_all+ method instead.
+      # Destroys the records matching +conditions+ by instantiating each
+      # record and calling its +destroy+ method. Each object's callbacks are
+      # executed (including <tt>:dependent</tt> association options and
+      # +before_destroy+/+after_destroy+ Observer methods). Returns the
+      # collection of objects that were destroyed; each will be frozen, to
+      # reflect that no changes should be made (since they can't be
+      # persisted).
+      #
+      # Note: the instantiation, callback execution, and deletion of each
+      # record can be time consuming when you're removing many records at
+      # once. It generates at least one SQL +DELETE+ query per record (or
+      # possibly more, to enforce your callbacks). If you want to delete many
+      # rows quickly, without concern for their associations or callbacks, use
+      # +delete_all+ instead.
       #
       # ==== Parameters
       #
-      # * +conditions+ - Conditions are specified the same way as with +find+ method.
+      # * +conditions+ - A string, array, or hash that specifies which records
+      #   to destroy. If omitted, all records are destroyed. See the
+      #   Conditions section in the introduction to ActiveRecord::Base for
+      #   more information.
       #
-      # ==== Example
+      # ==== Examples
       #
       #   Person.destroy_all("last_login < '2004-04-04'")
-      #
-      # This loads and destroys each person one by one, including its dependent associations and before_ and
-      # after_destroy callbacks.
-      #
-      # +conditions+ can be anything that +find+ also accepts:
-      #
-      #   Person.destroy_all(:last_login => 6.hours.ago)
+      #   Person.destroy_all(:status => "inactive")
       def destroy_all(conditions = nil)
         find(:all, :conditions => conditions).each { |object| object.destroy }
       end
