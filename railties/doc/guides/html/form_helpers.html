@@ -539,7 +539,7 @@ output:
   &lt;/div&gt;
   ...</tt></pre>
 </div></div>
-<div class="paragraph"><p>When parsing POSTed data, Rails will take into account the special <tt>"_method"</tt> parameter and act as if the HTTP method was the one specified inside it ("PUT" in this example).</p></div>
+<div class="paragraph"><p>When parsing POSTed data, Rails will take into account the special <tt>_method</tt> parameter and act as if the HTTP method was the one specified inside it ("PUT" in this example).</p></div>
 </div>
 <h2 id="_different_families_of_helpers">2. Different Families of helpers</h2>
 <div class="sectionbody">
@@ -568,7 +568,7 @@ output:
 <div class="content">
 <pre><tt>&lt;input id="person_name" name="person[name]" type="text" value="Henry"/&gt;</tt></pre>
 </div></div>
-<div class="paragraph"><p>Upon form submission the value entered by the user will be stored in <tt>params[:person][:name]</tt>. The params[:person] hash is suitable for passing to <tt>Person.new</tt> or, if <tt>@person</tt> is an instance of Person, <tt>@person.update_attributes</tt>.</p></div>
+<div class="paragraph"><p>Upon form submission the value entered by the user will be stored in <tt>params[:person][:name]</tt>. The <tt>params[:person]</tt> hash is suitable for passing to <tt>Person.new</tt> or, if <tt>@person</tt> is an instance of Person, <tt>@person.update_attributes</tt>.</p></div>
 <div class="admonitionblock">
 <table><tr>
 <td class="icon">
@@ -992,7 +992,7 @@ by Lorenzo Bettini
 http://www.lorenzobettini.it
 http://www.gnu.org/software/src-highlite -->
 <pre><tt><span style="color: #FF0000">{</span><span style="color: #FF0000">'person'</span> <span style="color: #990000">=&gt;</span> <span style="color: #FF0000">{</span><span style="color: #FF0000">'name'</span> <span style="color: #990000">=&gt;</span> <span style="color: #FF0000">'Henry'</span><span style="color: #FF0000">}}</span></tt></pre></div></div>
-<div class="paragraph"><p>and &#8216;params['name\&#8217;]` will retrieve the submitted value in the controller.</p></div>
+<div class="paragraph"><p>and <tt>params["name"]</tt> will retrieve the submitted value in the controller.</p></div>
 <div class="paragraph"><p>Hashes can be nested as many levels as required, for example</p></div>
 <div class="listingblock">
 <div class="content">
@@ -1086,7 +1086,7 @@ http://www.gnu.org/software/src-highlite -->
 </div>
 <h2 id="_complex_forms">9. Complex forms</h2>
 <div class="sectionbody">
-<div class="paragraph"><p>Many apps grow beyond simple forms editing a single object. For example when creating a Person instance you might want to allow the user to (on the same form) create multiple address records (home, work etc...). When later editing that person the user should be able to add, remove or amend addresses as necessary. While this guide has shown you all the pieces necessary to handle this, Rails does not yet have a standard end-to-end way of accomplishing this, but many have come up with viable approaches. These include:</p></div>
+<div class="paragraph"><p>Many apps grow beyond simple forms editing a single object. For example when creating a Person instance you might want to allow the user to (on the same form) create multiple address records (home, work etc.). When later editing that person the user should be able to add, remove or amend addresses as necessary. While this guide has shown you all the pieces necessary to handle this, Rails does not yet have a standard end-to-end way of accomplishing this, but many have come up with viable approaches. These include:</p></div>
 <div class="ulist"><ul>
 <li>
 <p>
