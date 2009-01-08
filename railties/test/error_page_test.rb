@@ -1,6 +1,6 @@
 require 'abstract_unit'
 require 'action_controller'
-require 'action_controller/test_process'
+require 'action_controller/test_case'
 
 RAILS_ENV = "test"
 CURRENT_DIR = File.expand_path(File.dirname(__FILE__))
@@ -22,13 +22,10 @@ ActionController::Routing::Routes.draw do |map|
   map.connect ':controller/:action/:id'
 end
 
-class ErrorPageControllerTest < Test::Unit::TestCase
+class ErrorPageControllerTest < ActionController::TestCase
   def setup
-    @controller = ErrorPageController.new
-    @request    = ActionController::TestRequest.new
-    @response   = ActionController::TestResponse.new
-
     ActionController::Base.consider_all_requests_local = false
+    rescue_action_in_public!
   end
 
   def test_500_error_page_instructs_system_administrator_to_check_log_file
@@ -38,6 +35,6 @@ class ErrorPageControllerTest < Test::Unit::TestCase
     end
     get :crash
     expected_log_file = "#{RAILS_ENV}.log"
-    assert_not_nil @response.body.index(expected_log_file)
+    assert_not_nil @response.body.index(expected_log_file), @response.body
   end
 end
