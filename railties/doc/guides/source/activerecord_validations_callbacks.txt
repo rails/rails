@@ -317,6 +317,20 @@ class Coffee < ActiveRecord::Base
 end
 ------------------------------------------------------------------
 
+=== The +:allow_blank+ option
+
+In compliment to +:allow_nil+ we have +:allow_blank+. This option will let validation pass if the attribute's value is +nil+ or an empty string, i.e., any value that returns +true+ for +blank?+.
+
+[source, ruby]
+------------------------------------------------------------------
+class Topic < ActiveRecord::Base
+  validates_length_of :title, :is => 5, :allow_blank => true
+end
+
+Topic.create("title" => "").valid? # => true
+Topic.create("title" => nil).valid? # => true
+------------------------------------------------------------------
+
 === The +:message+ option
 
 As stated before, the +:message+ option lets you specify the message that will be added to the +errors+ collection when validation fails. When this option is not used, Active Record will use the respective default error message for each validation helper.
