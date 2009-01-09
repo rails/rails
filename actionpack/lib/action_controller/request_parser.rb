@@ -91,7 +91,7 @@ module ActionController
     end
 
     def content_length
-      @env["action_controller.request.content_length"] ||= @env['CONTENT_LENGTH'].to_i
+      @env['CONTENT_LENGTH'].to_i
     end
 
     # The raw content type string. Use when you need parameters such as
