@@ -764,25 +764,3 @@ class LegacyXmlParamsParsingTest < XmlParamsParsingTest
       ActionController::Request.new(env).request_parameters
     end
 end
-
-class JsonParamsParsingTest < ActiveSupport::TestCase
-  def test_hash_params_for_application_json
-    person = parse_body({:person => {:name => "David"}}.to_json,'application/json')[:person]
-    assert_kind_of Hash, person
-    assert_equal 'David', person['name']
-  end
-
-  def test_hash_params_for_application_jsonrequest
-    person = parse_body({:person => {:name => "David"}}.to_json,'application/jsonrequest')[:person]
-    assert_kind_of Hash, person
-    assert_equal 'David', person['name']
-  end
-
-  private
-    def parse_body(body,content_type)
-      env = { 'rack.input'     => StringIO.new(body),
-              'CONTENT_TYPE'   => content_type,
-              'CONTENT_LENGTH' => body.size.to_s }
-      ActionController::Request.new(env).request_parameters
-    end
-end
