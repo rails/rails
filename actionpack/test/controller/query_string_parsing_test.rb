@@ -1,4 +1,6 @@
-class QueryStringParsingTest <ActionController::IntegrationTest
+require 'abstract_unit'
+
+class QueryStringParsingTest < ActionController::IntegrationTest
   class TestController < ActionController::Base
     class << self
       attr_accessor :last_query_parameters
