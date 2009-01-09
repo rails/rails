@@ -412,9 +412,11 @@ EOM
       @parser.body
     end
 
-    def query_parameters
+    # Override Rack's GET method to support nested query strings
+    def GET
       @parser.query_parameters
     end
+    alias_method :query_parameters, :GET
 
     def request_parameters
       @parser.request_parameters
