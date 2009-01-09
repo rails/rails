@@ -222,17 +222,9 @@ ul#navMain {
 					</li>
 					<li>
 					<a href="#_other_profiling_tools">Other Profiling Tools</a>
-						<ul>
-						
-							<li><a href="#_httperf">httperf</a></li>
-						
-							<li><a href="#_rails_analyzer">Rails Analyzer</a></li>
-						
-							<li><a href="#_palmist">Palmist</a></li>
-						
-							<li><a href="#_new_relic">New Relic</a></li>
-						
-						</ul>
+					</li>
+					<li>
+					<a href="#_commercial_products_dedicated_to_rails_perfomance">Commercial products dedicated to Rails Perfomance</a>
 					</li>
 					<li>
 					<a href="#_changelog">Changelog</a>
@@ -361,41 +353,123 @@ http://www.gnu.org/software/src-highlite -->
 <h3 id="_modes">3.1. Modes</h3>
 <div class="paragraph"><p>Performance test cases can be run in two modes : Benchmarking and Profling.</p></div>
 <h4 id="_benchmarking">3.1.1. Benchmarking</h4>
-<div class="paragraph"><p>Benchmarking helps you find out how fast are your test cases. To run performance tests in benchmarking mode:</p></div>
+<div class="paragraph"><p>Benchmarking helps you find out how fast are your test cases. Each Test case is run <tt>4 times</tt> in this mode. To run performance tests in benchmarking mode:</p></div>
 <div class="listingblock">
 <div class="content"><!-- Generator: GNU source-highlight 2.9
 by Lorenzo Bettini
 http://www.lorenzobettini.it
 http://www.gnu.org/software/src-highlite -->
-<pre><tt><span style="color: #990000">[</span>lifo@null application <span style="color: #990000">(</span>master<span style="color: #990000">)]</span>$ rake <span style="font-weight: bold"><span style="color: #0000FF">test</span></span><span style="color: #990000">:</span>benchmark</tt></pre></div></div>
+<pre><tt>$ rake <span style="font-weight: bold"><span style="color: #0000FF">test</span></span><span style="color: #990000">:</span>benchmark</tt></pre></div></div>
 <h4 id="_profiling">3.1.2. Profiling</h4>
-<div class="paragraph"><p>Profiling helps introspect into your test cases and figure out which are the slow parts. To run performance tests in profiling mode:</p></div>
+<div class="paragraph"><p>Profiling helps introspect into your test cases and figure out which are the slow parts. Each Test case is run <tt>1 time</tt> in this mode. To run performance tests in profiling mode:</p></div>
 <div class="listingblock">
 <div class="content"><!-- Generator: GNU source-highlight 2.9
 by Lorenzo Bettini
 http://www.lorenzobettini.it
 http://www.gnu.org/software/src-highlite -->
-<pre><tt><span style="color: #990000">[</span>lifo@null application <span style="color: #990000">(</span>master<span style="color: #990000">)]</span>$ rake <span style="font-weight: bold"><span style="color: #0000FF">test</span></span><span style="color: #990000">:</span>profile</tt></pre></div></div>
+<pre><tt>$ rake <span style="font-weight: bold"><span style="color: #0000FF">test</span></span><span style="color: #990000">:</span>profile</tt></pre></div></div>
 <h3 id="_metrics">3.2. Metrics</h3>
 <div class="paragraph"><p>Benchmarking and profiling run performance test cases in various modes to help precisely figure out the where the problem lies.</p></div>
-<h4 id="_process_time">3.2.1. Process Time</h4>
+<h4 id="_wall_time">3.2.1. Wall Time</h4>
+<div class="paragraph"><p>Measures the real world time elapsed during the test run. It is affected by any other processes concurrently running on the system.</p></div>
+<div class="paragraph"><p>Mode : Benchmarking</p></div>
+<h4 id="_process_time">3.2.2. Process Time</h4>
 <div class="paragraph"><p>Measures the time taken by the process. It is unaffected by any other processes running concurrently on the same system. Hence, process time is likely to be constant for any given performance test, irrespective of the machine load.</p></div>
-<div class="paragraph"><p>Mode : Benchmarking, Profiling</p></div>
-<h4 id="_memory">3.2.2. Memory</h4>
+<div class="paragraph"><p>Mode : Profiling</p></div>
+<h4 id="_memory">3.2.3. Memory</h4>
 <div class="paragraph"><p>Measures the amount of memory used for the performance test case.</p></div>
-<div class="paragraph"><p>Mode : Benchmarking, Profiling</p></div>
-<h4 id="_objects">3.2.3. Objects</h4>
+<div class="paragraph"><p>Mode : Benchmarking, Profiling [Requires specially compiled Ruby]</p></div>
+<h4 id="_objects">3.2.4. Objects</h4>
 <div class="paragraph"><p>Measures the number of objects allocated for the performance test case.</p></div>
-<div class="paragraph"><p>Mode : Benchmarking, Profiling</p></div>
-<h4 id="_gc_runs">3.2.4. GC Runs</h4>
+<div class="paragraph"><p>Mode : Benchmarking, Profiling [Requires specially compiled Ruby]</p></div>
+<h4 id="_gc_runs">3.2.5. GC Runs</h4>
 <div class="paragraph"><p>Measures the number of times GC was invoked for the performance test case.</p></div>
-<div class="paragraph"><p>Mode : Benchmarking</p></div>
-<h4 id="_gc_time">3.2.5. GC Time</h4>
+<div class="paragraph"><p>Mode : Benchmarking [Requires specially compiled Ruby]</p></div>
+<h4 id="_gc_time">3.2.6. GC Time</h4>
 <div class="paragraph"><p>Measures the amount of time spent in GC for the performance test case.</p></div>
-<div class="paragraph"><p>Mode : Benchmarking</p></div>
+<div class="paragraph"><p>Mode : Benchmarking [Requires specially compiled Ruby]</p></div>
 <h3 id="_understanding_the_output">3.3. Understanding the output</h3>
+<div class="paragraph"><p>Performance tests generate different outputs inside <tt>tmp/performance</tt> directory based on the mode it is run in and the metric.</p></div>
 <h4 id="_benchmarking_2">3.3.1. Benchmarking</h4>
+<div class="paragraph"><p>In benchmarking mode, performance tests generate two types of outputs :</p></div>
+<h5 id="_command_line">Command line</h5>
+<div class="paragraph"><p>This is the primary form of output in benchmarking mode. Example :</p></div>
+<div class="listingblock">
+<div class="content"><!-- Generator: GNU source-highlight 2.9
+by Lorenzo Bettini
+http://www.lorenzobettini.it
+http://www.gnu.org/software/src-highlite -->
+<pre><tt>BrowsingTest<span style="font-style: italic"><span style="color: #9A1900">#test_homepage (31 ms warmup)</span></span>
+           wall_time<span style="color: #990000">:</span> <span style="color: #993399">6</span> ms
+              memory<span style="color: #990000">:</span> <span style="color: #993399">437.27</span> KB
+             objects<span style="color: #990000">:</span> <span style="color: #993399">5514</span>
+             gc_runs<span style="color: #990000">:</span> <span style="color: #993399">0</span>
+             gc_time<span style="color: #990000">:</span> <span style="color: #993399">19</span> ms</tt></pre></div></div>
+<h5 id="_csv_files">CSV files</h5>
+<div class="paragraph"><p>Performance tests results are also appended to <tt>.csv</tt> files inside <tt>tmp/performance/&lt;Class&gt;#&lt;test&gt;_&lt;metric&gt;.csv</tt> file. For example, running the default <tt>BrowsingTest#test_homepage</tt> will generate following five files :</p></div>
+<div class="ulist"><ul>
+<li>
+<p>
+BrowsingTest#test_homepage_gc_runs.csv
+</p>
+</li>
+<li>
+<p>
+BrowsingTest#test_homepage_gc_time.csv
+</p>
+</li>
+<li>
+<p>
+BrowsingTest#test_homepage_memory.csv
+</p>
+</li>
+<li>
+<p>
+BrowsingTest#test_homepage_objects.csv
+</p>
+</li>
+<li>
+<p>
+BrowsingTest#test_homepage_wall_time.csv
+</p>
+</li>
+</ul></div>
+<div class="paragraph"><p>As the results are appended to these files each time the performance tests are run in benchmarking mode, it enables you gather data over a sustainable period of time which can be very helpful with various performance analysis.</p></div>
+<div class="paragraph"><p>Sample output of +BrowsingTest#test_homepage_wall_time.csv + :</p></div>
+<div class="listingblock">
+<div class="content"><!-- Generator: GNU source-highlight 2.9
+by Lorenzo Bettini
+http://www.lorenzobettini.it
+http://www.gnu.org/software/src-highlite -->
+<pre><tt>measurement<span style="color: #990000">,</span>created_at<span style="color: #990000">,</span>app<span style="color: #990000">,</span>rails<span style="color: #990000">,</span>ruby<span style="color: #990000">,</span>platform
+<span style="color: #993399">0.00738224999999992</span><span style="color: #990000">,</span><span style="color: #993399">2009</span>-<span style="color: #993399">01</span>-08T03<span style="color: #990000">:</span><span style="color: #993399">40</span><span style="color: #990000">:</span>29Z<span style="color: #990000">,,</span><span style="color: #993399">2.3</span><span style="color: #990000">.</span><span style="color: #993399">0</span><span style="color: #990000">.</span>master<span style="color: #990000">.</span><span style="color: #993399">0744148</span><span style="color: #990000">,</span>ruby-<span style="color: #993399">1.8</span><span style="color: #990000">.</span><span style="color: #993399">6.110</span><span style="color: #990000">,</span>i686-darwin<span style="color: #993399">9.0</span><span style="color: #990000">.</span><span style="color: #993399">0</span>
+<span style="color: #993399">0.00755874999999984</span><span style="color: #990000">,</span><span style="color: #993399">2009</span>-<span style="color: #993399">01</span>-08T03<span style="color: #990000">:</span><span style="color: #993399">46</span><span style="color: #990000">:</span>18Z<span style="color: #990000">,,</span><span style="color: #993399">2.3</span><span style="color: #990000">.</span><span style="color: #993399">0</span><span style="color: #990000">.</span>master<span style="color: #990000">.</span><span style="color: #993399">0744148</span><span style="color: #990000">,</span>ruby-<span style="color: #993399">1.8</span><span style="color: #990000">.</span><span style="color: #993399">6.110</span><span style="color: #990000">,</span>i686-darwin<span style="color: #993399">9.0</span><span style="color: #990000">.</span><span style="color: #993399">0</span>
+<span style="color: #993399">0.00762099999999993</span><span style="color: #990000">,</span><span style="color: #993399">2009</span>-<span style="color: #993399">01</span>-08T03<span style="color: #990000">:</span><span style="color: #993399">49</span><span style="color: #990000">:</span>25Z<span style="color: #990000">,,</span><span style="color: #993399">2.3</span><span style="color: #990000">.</span><span style="color: #993399">0</span><span style="color: #990000">.</span>master<span style="color: #990000">.</span><span style="color: #993399">0744148</span><span style="color: #990000">,</span>ruby-<span style="color: #993399">1.8</span><span style="color: #990000">.</span><span style="color: #993399">6.110</span><span style="color: #990000">,</span>i686-darwin<span style="color: #993399">9.0</span><span style="color: #990000">.</span><span style="color: #993399">0</span>
+<span style="color: #993399">0.00603075000000008</span><span style="color: #990000">,</span><span style="color: #993399">2009</span>-<span style="color: #993399">01</span>-08T04<span style="color: #990000">:</span><span style="color: #993399">03</span><span style="color: #990000">:</span>29Z<span style="color: #990000">,,</span><span style="color: #993399">2.3</span><span style="color: #990000">.</span><span style="color: #993399">0</span><span style="color: #990000">.</span>master<span style="color: #990000">.</span><span style="color: #993399">0744148</span><span style="color: #990000">,</span>ruby-<span style="color: #993399">1.8</span><span style="color: #990000">.</span><span style="color: #993399">6.111</span><span style="color: #990000">,</span>i686-darwin<span style="color: #993399">9.1</span><span style="color: #990000">.</span><span style="color: #993399">0</span>
+<span style="color: #993399">0.00619899999999995</span><span style="color: #990000">,</span><span style="color: #993399">2009</span>-<span style="color: #993399">01</span>-08T04<span style="color: #990000">:</span><span style="color: #993399">03</span><span style="color: #990000">:</span>53Z<span style="color: #990000">,,</span><span style="color: #993399">2.3</span><span style="color: #990000">.</span><span style="color: #993399">0</span><span style="color: #990000">.</span>master<span style="color: #990000">.</span><span style="color: #993399">0744148</span><span style="color: #990000">,</span>ruby-<span style="color: #993399">1.8</span><span style="color: #990000">.</span><span style="color: #993399">6.111</span><span style="color: #990000">,</span>i686-darwin<span style="color: #993399">9.1</span><span style="color: #990000">.</span><span style="color: #993399">0</span>
+<span style="color: #993399">0.00755449999999991</span><span style="color: #990000">,</span><span style="color: #993399">2009</span>-<span style="color: #993399">01</span>-08T04<span style="color: #990000">:</span><span style="color: #993399">04</span><span style="color: #990000">:</span>55Z<span style="color: #990000">,,</span><span style="color: #993399">2.3</span><span style="color: #990000">.</span><span style="color: #993399">0</span><span style="color: #990000">.</span>master<span style="color: #990000">.</span><span style="color: #993399">0744148</span><span style="color: #990000">,</span>ruby-<span style="color: #993399">1.8</span><span style="color: #990000">.</span><span style="color: #993399">6.110</span><span style="color: #990000">,</span>i686-darwin<span style="color: #993399">9.0</span><span style="color: #990000">.</span><span style="color: #993399">0</span>
+<span style="color: #993399">0.00595999999999997</span><span style="color: #990000">,</span><span style="color: #993399">2009</span>-<span style="color: #993399">01</span>-08T04<span style="color: #990000">:</span><span style="color: #993399">05</span><span style="color: #990000">:</span>06Z<span style="color: #990000">,,</span><span style="color: #993399">2.3</span><span style="color: #990000">.</span><span style="color: #993399">0</span><span style="color: #990000">.</span>master<span style="color: #990000">.</span><span style="color: #993399">0744148</span><span style="color: #990000">,</span>ruby-<span style="color: #993399">1.8</span><span style="color: #990000">.</span><span style="color: #993399">6.111</span><span style="color: #990000">,</span>i686-darwin<span style="color: #993399">9.1</span><span style="color: #990000">.</span><span style="color: #993399">0</span>
+<span style="color: #993399">0.00740450000000004</span><span style="color: #990000">,</span><span style="color: #993399">2009</span>-<span style="color: #993399">01</span>-09T03<span style="color: #990000">:</span><span style="color: #993399">54</span><span style="color: #990000">:</span>47Z<span style="color: #990000">,,</span><span style="color: #993399">2.3</span><span style="color: #990000">.</span><span style="color: #993399">0</span><span style="color: #990000">.</span>master<span style="color: #990000">.</span><span style="color: #993399">859e150</span><span style="color: #990000">,</span>ruby-<span style="color: #993399">1.8</span><span style="color: #990000">.</span><span style="color: #993399">6.110</span><span style="color: #990000">,</span>i686-darwin<span style="color: #993399">9.0</span><span style="color: #990000">.</span><span style="color: #993399">0</span>
+<span style="color: #993399">0.00603150000000008</span><span style="color: #990000">,</span><span style="color: #993399">2009</span>-<span style="color: #993399">01</span>-09T03<span style="color: #990000">:</span><span style="color: #993399">54</span><span style="color: #990000">:</span>57Z<span style="color: #990000">,,</span><span style="color: #993399">2.3</span><span style="color: #990000">.</span><span style="color: #993399">0</span><span style="color: #990000">.</span>master<span style="color: #990000">.</span><span style="color: #993399">859e150</span><span style="color: #990000">,</span>ruby-<span style="color: #993399">1.8</span><span style="color: #990000">.</span><span style="color: #993399">6.111</span><span style="color: #990000">,</span>i686-darwin<span style="color: #993399">9.1</span><span style="color: #990000">.</span><span style="color: #993399">0</span>
+<span style="color: #993399">0.00771250000000012</span><span style="color: #990000">,</span><span style="color: #993399">2009</span>-<span style="color: #993399">01</span>-09T15<span style="color: #990000">:</span><span style="color: #993399">46</span><span style="color: #990000">:</span>03Z<span style="color: #990000">,,</span><span style="color: #993399">2.3</span><span style="color: #990000">.</span><span style="color: #993399">0</span><span style="color: #990000">.</span>master<span style="color: #990000">.</span><span style="color: #993399">859e150</span><span style="color: #990000">,</span>ruby-<span style="color: #993399">1.8</span><span style="color: #990000">.</span><span style="color: #993399">6.110</span><span style="color: #990000">,</span>i686-darwin<span style="color: #993399">9.0</span><span style="color: #990000">.</span><span style="color: #993399">0</span></tt></pre></div></div>
 <h4 id="_profiling_2">3.3.2. Profiling</h4>
+<h5 id="_command_line_2">Command line</h5>
+<div class="paragraph"><p>This is the very basic form of output in profiling mode. Example :</p></div>
+<div class="listingblock">
+<div class="content"><!-- Generator: GNU source-highlight 2.9
+by Lorenzo Bettini
+http://www.lorenzobettini.it
+http://www.gnu.org/software/src-highlite -->
+<pre><tt>BrowsingTest<span style="font-style: italic"><span style="color: #9A1900">#test_homepage (58 ms warmup)</span></span>
+        process_time<span style="color: #990000">:</span> <span style="color: #993399">63</span> ms
+              memory<span style="color: #990000">:</span> <span style="color: #993399">832.13</span> KB
+             objects<span style="color: #990000">:</span> <span style="color: #993399">7882</span></tt></pre></div></div>
+<h5 id="_flat">Flat</h5>
+<div class="paragraph"><p>Flat output shows the total amount of time spent in each method. <a href="http://ruby-prof.rubyforge.org/files/examples/flat_txt.html">Check ruby prof documentation for a better explaination</a>.</p></div>
+<h5 id="_graph">Graph</h5>
+<div class="paragraph"><p>Graph output shows how long each method takes to run, which methods call it and which methods it calls. <a href="http://ruby-prof.rubyforge.org/files/examples/graph_txt.html">Check ruby prof documentation for a better explaination</a>.</p></div>
+<h5 id="_tree">Tree</h5>
+<div class="paragraph"><p>Tree output is profiling information in calltree format for use by kcachegrind and similar tools.</p></div>
 <h3 id="_preparing_ruby_and_ruby_prof">3.4. Preparing Ruby and Ruby-prof</h3>
 <div class="paragraph"><p>Before we go ahead, Rails performance testing requires you to build a special Ruby binary with some super powers - GC patch for measuring GC Runs/Time. This process is very straight forward. If you&#8217;ve never compiled a Ruby binary before, you can follow the following steps to build a ruby binary inside your home directory:</p></div>
 <h4 id="_compile">3.4.1. Compile</h4>
@@ -469,95 +543,53 @@ http://www.gnu.org/software/src-highlite -->
 </div>
 <h2 id="_other_profiling_tools">4. Other Profiling Tools</h2>
 <div class="sectionbody">
-<div class="paragraph"><p>There are a lot of great profiling tools out there. Some free, some not so free. This is a sort list detailing some of them.</p></div>
-<h3 id="_httperf">4.1. httperf</h3>
-<div class="paragraph"><p><a href="http://www.hpl.hp.com/research/linux/httperf/">http://www.hpl.hp.com/research/linux/httperf/</a></p></div>
-<div class="paragraph"><p>A necessary tool in your arsenal. Very useful for load testing your website.</p></div>
-<div class="paragraph"><p>#TODO write and link to a short article on how to use httperf. Anybody have a good tutorial availble.</p></div>
-<h3 id="_rails_analyzer">4.2. Rails Analyzer</h3>
-<div class="paragraph"><p>The Rails Analyzer project contains a collection of tools for Rails. It&#8217;s open source and pretty speedy. It&#8217;s not being actively worked on but is still contains some very useful tools.</p></div>
 <div class="ulist"><ul>
 <li>
 <p>
-The Production Log Analyzer examines Rails log files and gives back a report. It also includes action_grep which will give you all log results for a particular action.
+<a href="http://www.hpl.hp.com/research/linux/httperf/">httperf</a>
 </p>
 </li>
 <li>
 <p>
-The Action Profiler similar to Ruby-Prof profiler.
+<a href="http://rails-analyzer.rubyforge.org/">Rails Analyzer</a>
 </p>
 </li>
 <li>
 <p>
-rails_stat which gives a live counter of requests per second of a running Rails app.
-</p>
-</li>
-<li>
-<p>
-The SQL Dependency Grapher allows you to visualize the frequency of table dependencies in a Rails application.
+<a href="http://www.flyingmachinestudios.com/projects/">Palmist</a>
 </p>
 </li>
 </ul></div>
-<div class="paragraph"><p>Their project homepage can be found at <a href="http://rails-analyzer.rubyforge.org/">http://rails-analyzer.rubyforge.org/</a></p></div>
-<div class="paragraph"><p>The one major caveat is that it needs your log to be in a different format from how rails sets it up specifically SyslogLogger.</p></div>
-<h4 id="_sysloglogger">4.2.1. SyslogLogger</h4>
-<div class="paragraph"><p>SyslogLogger is a Logger work-alike that logs via syslog instead of to a file. You can add SyslogLogger to your Rails production environment to aggregate logs between multiple machines.</p></div>
-<div class="paragraph"><p>More information can be found out at <a href="http://rails-analyzer.rubyforge.org/hacks/classes/SyslogLogger.html">http://rails-analyzer.rubyforge.org/hacks/classes/SyslogLogger.html</a></p></div>
-<div class="paragraph"><p>If you don&#8217;t have access to your machines root system or just want something a bit easier to implement there is also a module developed by Geoffrey Grosenbach</p></div>
-<h4 id="_a_hodel_3000_compliant_logger_for_the_rest_of_us">4.2.2. A Hodel 3000 Compliant Logger for the Rest of Us</h4>
-<div class="paragraph"><p>Directions taken from
-<a href="http://topfunky.net/svn/plugins/hodel_3000_compliant_logger/lib/hodel_3000_compliant_logger.rb">link to module file</a></p></div>
-<div class="paragraph"><p>Just put the module in your lib directory and  add this to your environment.rb in it&#8217;s config portion.</p></div>
-<div class="listingblock">
-<div class="content">
-<pre><tt>require 'hodel_3000_compliant_logger'
-config.logger = Hodel3000CompliantLogger.new(config.log_path)</tt></pre>
-</div></div>
-<div class="paragraph"><p>It&#8217;s that simple. Your log output on restart should look like this.</p></div>
-<div class="listingblock">
-<div class="title">Hodel 3000 Example</div>
-<div class="content">
-<pre><tt>Jul 15 11:45:43 matthew-bergmans-macbook-pro-15 rails[16207]:
-Parameters: {"action"=&gt;"shipping", "controller"=&gt;"checkout"}
-Jul 15 11:45:43 matthew-bergmans-macbook-pro-15 rails[16207]: 
-[4;36;1mBook Columns (0.003155)[0m   [0;1mSHOW FIELDS FROM `books`[0m
-Jul 15 11:45:43 matthew-bergmans-macbook-pro-15 rails[16207]: 
-[4;35;1mBook Load (0.000881)[0m   [0mSELECT * FROM `books` WHERE (`books`.`id` = 1 AND (`books`.`sold` = 1)) [0m
-Jul 15 11:45:43 matthew-bergmans-macbook-pro-15 rails[16207]: 
-[4;36;1mShippingAddress Columns (0.002683)[0m   [0;1mSHOW FIELDS FROM `shipping_addresses`[0m
-Jul 15 11:45:43 matthew-bergmans-macbook-pro-15 rails[16207]: 
-[4;35;1mBook Load (0.000362)[0m   [0mSELECT ounces FROM `books` WHERE (`books`.`id` = 1) [0m
-Jul 15 11:45:43 matthew-bergmans-macbook-pro-15 rails[16207]:
-Rendering template within layouts/application
-Jul 15 11:45:43 matthew-bergmans-macbook-pro-15 rails[16207]:
-Rendering checkout/shipping
-Jul 15 11:45:43 matthew-bergmans-macbook-pro-15 rails[16207]: 
-[4;36;1mBook Load (0.000548)[0m   [0;1mSELECT * FROM `books`
-WHERE (sold = 0) LIMIT 3[0m
-Jul 15 11:45:43 matthew-bergmans-macbook-pro-15 rails[16207]: 
-[4;35;1mAuthor Columns (0.002571)[0m   [0mSHOW FIELDS FROM `authors`[0m
-Jul 15 11:45:43 matthew-bergmans-macbook-pro-15 rails[16207]:
-[4;36;1mAuthor Load (0.000811)[0m   [0;1mSELECT * FROM `authors` WHERE (`authors`.`id` = 1) [0m
-Jul 15 11:45:43 matthew-bergmans-macbook-pro-15 rails[16207]:
-Rendered store/_new_books (0.01358)
-Jul 15 11:45:43 matthew-bergmans-macbook-pro-15 rails[16207]:
-Completed in 0.37297 (2 reqs/sec) | Rendering: 0.02971 (7%) | DB: 0.01697 (4%) | 200 OK [https://secure.jeffbooks/checkout/shipping]</tt></pre>
-</div></div>
-<h3 id="_palmist">4.3. Palmist</h3>
-<div class="paragraph"><p>An open source mysql query analyzer. Full featured and easy to work with. Also requires Hodel 3000
-<a href="http://www.flyingmachinestudios.com/projects/">http://www.flyingmachinestudios.com/projects/</a></p></div>
-<h3 id="_new_relic">4.4. New Relic</h3>
-<div class="paragraph"><p><a href="http://www.newrelic.com/">http://www.newrelic.com/</a></p></div>
-<div class="paragraph"><p>Pretty nifty performance tools, pricey though. They do have a basic free
-service both for when in development and when you put your application into production. Very simple installation and signup.</p></div>
-<div class="paragraph"><p>#TODO more in-depth without being like an advertisement.</p></div>
-<h4 id="_manage">4.4.1. Manage</h4>
-<div class="paragraph"><p>Like new relic a production monitoring tool.</p></div>
 </div>
-<h2 id="_changelog">5. Changelog</h2>
+<h2 id="_commercial_products_dedicated_to_rails_perfomance">5. Commercial products dedicated to Rails Perfomance</h2>
+<div class="sectionbody">
+<div class="ulist"><ul>
+<li>
+<p>
+<a href="http://www.newrelic.com">New Relic</a>
+</p>
+</li>
+<li>
+<p>
+<a href="http://www.fiveruns.com">Fiveruns</a>
+</p>
+</li>
+<li>
+<p>
+<a href="http://scoutapp.com">Scout</a>
+</p>
+</li>
+</ul></div>
+</div>
+<h2 id="_changelog">6. Changelog</h2>
 <div class="sectionbody">
 <div class="paragraph"><p><a href="http://rails.lighthouseapp.com/projects/16213-rails-guides/tickets/4">Lighthouse ticket</a></p></div>
 <div class="ulist"><ul>
+<li>
+<p>
+January 9, 2009: Rewrite by Pratik
+</p>
+</li>
 <li>
 <p>
 October 17, 2008: First revision by Pratik
@@ -565,7 +597,7 @@ October 17, 2008: First revision by Pratik
 </li>
 <li>
 <p>
-September 6, 2008: Initial version by Matthew Bergman &lt;<a href="mailto:MzbPhoto@gmail.com">MzbPhoto@gmail.com</a>&gt;
+September 6, 2008: Initial version by Matthew Bergman
 </p>
 </li>
 </ul></div>

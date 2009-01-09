@@ -102,61 +102,138 @@ Performance test cases can be run in two modes : Benchmarking and Profling.
 
 ==== Benchmarking ====
 
-Benchmarking helps you find out how fast are your test cases. To run performance tests in benchmarking mode:
+Benchmarking helps you find out how fast are your test cases. Each Test case is run +4 times+ in this mode. To run performance tests in benchmarking mode:
 
 [source, shell]
 ----------------------------------------------------------------------------
-[lifo@null application (master)]$ rake test:benchmark
+$ rake test:benchmark
 ----------------------------------------------------------------------------
 
 ==== Profiling ====
 
-Profiling helps introspect into your test cases and figure out which are the slow parts. To run performance tests in profiling mode:
+Profiling helps introspect into your test cases and figure out which are the slow parts. Each Test case is run +1 time+ in this mode. To run performance tests in profiling mode:
 
 [source, shell]
 ----------------------------------------------------------------------------
-[lifo@null application (master)]$ rake test:profile
+$ rake test:profile
 ----------------------------------------------------------------------------
 
 === Metrics ===
 
 Benchmarking and profiling run performance test cases in various modes to help precisely figure out the where the problem lies.
 
+==== Wall Time ====
+
+Measures the real world time elapsed during the test run. It is affected by any other processes concurrently running on the system.
+
+Mode : Benchmarking
+
 ==== Process Time ====
 
 Measures the time taken by the process. It is unaffected by any other processes running concurrently on the same system. Hence, process time is likely to be constant for any given performance test, irrespective of the machine load.
 
-Mode : Benchmarking, Profiling
+Mode : Profiling
 
 ==== Memory ====
 
 Measures the amount of memory used for the performance test case.
 
-Mode : Benchmarking, Profiling
+Mode : Benchmarking, Profiling [Requires specially compiled Ruby]
 
 ==== Objects ====
 
 Measures the number of objects allocated for the performance test case.
 
-Mode : Benchmarking, Profiling
+Mode : Benchmarking, Profiling [Requires specially compiled Ruby]
 
 ==== GC Runs ====
 
 Measures the number of times GC was invoked for the performance test case.
 
-Mode : Benchmarking
+Mode : Benchmarking [Requires specially compiled Ruby]
 
 ==== GC Time ====
 
 Measures the amount of time spent in GC for the performance test case.
 
-Mode : Benchmarking
+Mode : Benchmarking [Requires specially compiled Ruby]
 
 === Understanding the output ===
 
+Performance tests generate different outputs inside +tmp/performance+ directory based on the mode it is run in and the metric.
+
 ==== Benchmarking ====
 
+In benchmarking mode, performance tests generate two types of outputs :
+
+===== Command line =====
+
+This is the primary form of output in benchmarking mode. Example :
+
+[source, shell]
+----------------------------------------------------------------------------
+BrowsingTest#test_homepage (31 ms warmup)
+           wall_time: 6 ms
+              memory: 437.27 KB
+             objects: 5514
+             gc_runs: 0
+             gc_time: 19 ms
+----------------------------------------------------------------------------
+
+===== CSV files =====
+
+Performance tests results are also appended to +.csv+ files inside +tmp/performance/<Class>#<test>_<metric>.csv+ file. For example, running the default +BrowsingTest#test_homepage+ will generate following five files :
+
+  - BrowsingTest#test_homepage_gc_runs.csv
+  - BrowsingTest#test_homepage_gc_time.csv
+  - BrowsingTest#test_homepage_memory.csv
+  - BrowsingTest#test_homepage_objects.csv
+  - BrowsingTest#test_homepage_wall_time.csv
+
+As the results are appended to these files each time the performance tests are run in benchmarking mode, it enables you gather data over a sustainable period of time which can be very helpful with various performance analysis.
+
+Sample output of +BrowsingTest#test_homepage_wall_time.csv + :
+
+[source, shell]
+----------------------------------------------------------------------------
+measurement,created_at,app,rails,ruby,platform
+0.00738224999999992,2009-01-08T03:40:29Z,,2.3.0.master.0744148,ruby-1.8.6.110,i686-darwin9.0.0
+0.00755874999999984,2009-01-08T03:46:18Z,,2.3.0.master.0744148,ruby-1.8.6.110,i686-darwin9.0.0
+0.00762099999999993,2009-01-08T03:49:25Z,,2.3.0.master.0744148,ruby-1.8.6.110,i686-darwin9.0.0
+0.00603075000000008,2009-01-08T04:03:29Z,,2.3.0.master.0744148,ruby-1.8.6.111,i686-darwin9.1.0
+0.00619899999999995,2009-01-08T04:03:53Z,,2.3.0.master.0744148,ruby-1.8.6.111,i686-darwin9.1.0
+0.00755449999999991,2009-01-08T04:04:55Z,,2.3.0.master.0744148,ruby-1.8.6.110,i686-darwin9.0.0
+0.00595999999999997,2009-01-08T04:05:06Z,,2.3.0.master.0744148,ruby-1.8.6.111,i686-darwin9.1.0
+0.00740450000000004,2009-01-09T03:54:47Z,,2.3.0.master.859e150,ruby-1.8.6.110,i686-darwin9.0.0
+0.00603150000000008,2009-01-09T03:54:57Z,,2.3.0.master.859e150,ruby-1.8.6.111,i686-darwin9.1.0
+0.00771250000000012,2009-01-09T15:46:03Z,,2.3.0.master.859e150,ruby-1.8.6.110,i686-darwin9.0.0
+----------------------------------------------------------------------------
+
 ==== Profiling ====
+
+===== Command line =====
+
+This is the very basic form of output in profiling mode. Example :
+
+[source, shell]
+----------------------------------------------------------------------------
+BrowsingTest#test_homepage (58 ms warmup)
+        process_time: 63 ms
+              memory: 832.13 KB
+             objects: 7882
+----------------------------------------------------------------------------
+
+===== Flat =====
+
+Flat output shows the total amount of time spent in each method. http://ruby-prof.rubyforge.org/files/examples/flat_txt.html[Check ruby prof documentation for a better explaination].
+
+===== Graph =====
+
+Graph output shows how long each method takes to run, which methods call it and which methods it calls. http://ruby-prof.rubyforge.org/files/examples/graph_txt.html[Check ruby prof documentation for a better explaination].
+
+===== Tree =====
+
+Tree output is profiling information in calltree format for use by kcachegrind and similar tools.
 
 === Preparing Ruby and Ruby-prof ===
 
@@ -240,102 +317,19 @@ Which you can modify to suit your needs.
 
 == Other Profiling Tools ==
 
-There are a lot of great profiling tools out there. Some free, some not so free. This is a sort list detailing some of them. 
+* http://www.hpl.hp.com/research/linux/httperf/[httperf]
+* http://rails-analyzer.rubyforge.org/[Rails Analyzer]
+* http://www.flyingmachinestudios.com/projects/[Palmist]
 
-=== httperf ===
-http://www.hpl.hp.com/research/linux/httperf/[http://www.hpl.hp.com/research/linux/httperf/]
-
-A necessary tool in your arsenal. Very useful for load testing your website.
-
-#TODO write and link to a short article on how to use httperf. Anybody have a good tutorial availble. 
-
-
-=== Rails Analyzer ===
-
-The Rails Analyzer project contains a collection of tools for Rails. It's open source and pretty speedy. It's not being actively worked on but is still contains some very useful tools. 
-
-* The Production Log Analyzer examines Rails log files and gives back a report. It also includes action_grep which will give you all log results for a particular action.
-
-* The Action Profiler similar to Ruby-Prof profiler.
-
-* rails_stat which gives a live counter of requests per second of a running Rails app.
-
-* The SQL Dependency Grapher allows you to visualize the frequency of table dependencies in a Rails application.
-
-Their project homepage can be found at http://rails-analyzer.rubyforge.org/[http://rails-analyzer.rubyforge.org/]
-
-The one major caveat is that it needs your log to be in a different format from how rails sets it up specifically SyslogLogger. 
-
-==== SyslogLogger ====
-
-SyslogLogger is a Logger work-alike that logs via syslog instead of to a file. You can add SyslogLogger to your Rails production environment to aggregate logs between multiple machines.
-
-More information can be found out at http://rails-analyzer.rubyforge.org/hacks/classes/SyslogLogger.html[http://rails-analyzer.rubyforge.org/hacks/classes/SyslogLogger.html]
-
-If you don't have access to your machines root system or just want something a bit easier to implement there is also a module developed by Geoffrey Grosenbach
-
-==== A Hodel 3000 Compliant Logger for the Rest of Us ====
-
-Directions taken from 
-http://topfunky.net/svn/plugins/hodel_3000_compliant_logger/lib/hodel_3000_compliant_logger.rb[link to module file]
-
-Just put the module in your lib directory and  add this to your environment.rb in it's config portion. 
-
-------------------------------------------------------------
-require 'hodel_3000_compliant_logger'
-config.logger = Hodel3000CompliantLogger.new(config.log_path)
--------------------------------------------------------------
-
-It's that simple. Your log output on restart should look like this. 
-
-.Hodel 3000 Example
-----------------------------------------------------------------------------
-Jul 15 11:45:43 matthew-bergmans-macbook-pro-15 rails[16207]: 
-Parameters: {"action"=>"shipping", "controller"=>"checkout"}
-Jul 15 11:45:43 matthew-bergmans-macbook-pro-15 rails[16207]: 
-[4;36;1mBook Columns (0.003155)[0m   [0;1mSHOW FIELDS FROM `books`[0m
-Jul 15 11:45:43 matthew-bergmans-macbook-pro-15 rails[16207]: 
-[4;35;1mBook Load (0.000881)[0m   [0mSELECT * FROM `books` WHERE (`books`.`id` = 1 AND (`books`.`sold` = 1)) [0m
-Jul 15 11:45:43 matthew-bergmans-macbook-pro-15 rails[16207]: 
-[4;36;1mShippingAddress Columns (0.002683)[0m   [0;1mSHOW FIELDS FROM `shipping_addresses`[0m
-Jul 15 11:45:43 matthew-bergmans-macbook-pro-15 rails[16207]: 
-[4;35;1mBook Load (0.000362)[0m   [0mSELECT ounces FROM `books` WHERE (`books`.`id` = 1) [0m
-Jul 15 11:45:43 matthew-bergmans-macbook-pro-15 rails[16207]: 
-Rendering template within layouts/application
-Jul 15 11:45:43 matthew-bergmans-macbook-pro-15 rails[16207]: 
-Rendering checkout/shipping
-Jul 15 11:45:43 matthew-bergmans-macbook-pro-15 rails[16207]: 
-[4;36;1mBook Load (0.000548)[0m   [0;1mSELECT * FROM `books` 
-WHERE (sold = 0) LIMIT 3[0m
-Jul 15 11:45:43 matthew-bergmans-macbook-pro-15 rails[16207]: 
-[4;35;1mAuthor Columns (0.002571)[0m   [0mSHOW FIELDS FROM `authors`[0m
-Jul 15 11:45:43 matthew-bergmans-macbook-pro-15 rails[16207]: 
-[4;36;1mAuthor Load (0.000811)[0m   [0;1mSELECT * FROM `authors` WHERE (`authors`.`id` = 1) [0m
-Jul 15 11:45:43 matthew-bergmans-macbook-pro-15 rails[16207]: 
-Rendered store/_new_books (0.01358)
-Jul 15 11:45:43 matthew-bergmans-macbook-pro-15 rails[16207]: 
-Completed in 0.37297 (2 reqs/sec) | Rendering: 0.02971 (7%) | DB: 0.01697 (4%) | 200 OK [https://secure.jeffbooks/checkout/shipping]
-----------------------------------------------------------------------------
-
-=== Palmist === 
-An open source mysql query analyzer. Full featured and easy to work with. Also requires Hodel 3000 
-http://www.flyingmachinestudios.com/projects/[http://www.flyingmachinestudios.com/projects/]
-
-=== New Relic === 
-http://www.newrelic.com/[http://www.newrelic.com/]
-
-Pretty nifty performance tools, pricey though. They do have a basic free
-service both for when in development and when you put your application into production. Very simple installation and signup.
-
-#TODO more in-depth without being like an advertisement. 
-
-==== Manage ====
-
-Like new relic a production monitoring tool. 
+== Commercial products dedicated to Rails Perfomance ==
+* http://www.newrelic.com[New Relic]
+* http://www.fiveruns.com[Fiveruns]
+* http://scoutapp.com[Scout]
 
 == Changelog ==
 
 http://rails.lighthouseapp.com/projects/16213-rails-guides/tickets/4[Lighthouse ticket]
 
+* January 9, 2009: Rewrite by Pratik
 * October 17, 2008: First revision by Pratik
-* September 6, 2008: Initial version by Matthew Bergman <MzbPhoto@gmail.com>
+* September 6, 2008: Initial version by Matthew Bergman
