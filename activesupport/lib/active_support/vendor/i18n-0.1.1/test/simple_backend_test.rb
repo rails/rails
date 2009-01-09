@@ -124,6 +124,16 @@ class I18nSimpleBackendTranslationsTest < Test::Unit::TestCase
   end
 end
 
+class I18nSimpleBackendAvailableLocalesTest < Test::Unit::TestCase
+  def test_available_locales
+    @backend = I18n::Backend::Simple.new
+    @backend.store_translations 'de', :foo => 'bar'
+    @backend.store_translations 'en', :foo => 'foo'
+
+    assert_equal ['de', 'en'], @backend.available_locales.map{|locale| locale.to_s }.sort
+  end
+end
+
 class I18nSimpleBackendTranslateTest < Test::Unit::TestCase
   include I18nSimpleBackendTestSetup
 
@@ -469,6 +479,18 @@ class I18nSimpleBackendLoadTranslationsTest < Test::Unit::TestCase
       :'en-Yaml' => {:foo => {:bar => "baz"}}
     }
     assert_equal expected, backend_get_translations
+  end
+end
+
+class I18nSimpleBackendLoadPathTest < Test::Unit::TestCase
+  include I18nSimpleBackendTestSetup
+
+  def test_nested_load_paths_do_not_break_locale_loading
+    @backend = I18n::Backend::Simple.new
+    I18n.load_path = [[File.dirname(__FILE__) + '/locale/en.yml']]
+    assert_nil backend_get_translations
+    assert_nothing_raised { @backend.send :init_translations }
+    assert_not_nil backend_get_translations
   end
 end
 
