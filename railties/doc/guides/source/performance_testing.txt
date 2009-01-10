@@ -4,16 +4,16 @@ Performance Testing Rails Applications
 This guide covers the various ways of performance testing a Ruby on Rails application. By referring to this guide, you will be able to:
 
 * Understand the various types of benchmarking and profiling metrics
-* Generate performance/benchmarking tests
-* Use GC patched Ruby binary to measure memory usage and object allocation
-* Understand the information provided by Rails inside the log files
+* Generate performance and benchmarking tests
+* Use a GC-patched Ruby binary to measure memory usage and object allocation
+* Understand the benchmarking information provided by Rails inside the log files
 * Learn about various tools facilitating benchmarking and profiling
 
-Performance testing is an integral part of the development cycle. It is very important that you don't make your end users wait for too long before the page is completely loaded. Ensuring a pleasant browsing experience to the end users and cutting cost of unnecessary hardwares is important for any web application.
+Performance testing is an integral part of the development cycle. It is very important that you don't make your end users wait for too long before the page is completely loaded. Ensuring a pleasant browsing experience for end users and cutting the cost of unnecessary hardware is important for any non-trivial web application.
 
 == Performance Test Cases ==
 
-Rails performance tests are integration tests designed for benchmarking and profiling the test code. With performance tests, you can determine where your application's memory or speed problems are coming from, and get a more in-depth picture of those problems.
+Rails performance tests are a special type of integration tests, designed for benchmarking and profiling the test code. With performance tests, you can determine where your application's memory or speed problems are coming from, and get a more in-depth picture of those problems.
 
 In a freshly generated Rails application, +test/performance/browsing_test.rb+ contains an example of a performance test:
 
@@ -30,7 +30,7 @@ class BrowsingTest < ActionController::PerformanceTest
 end
 ----------------------------------------------------------------------------
 
-The above example is a simple performance test case for profiling a GET request to the application's homepage.
+This example is a simple performance test case for profiling a GET request to the application's homepage.
 
 === Generating performance tests ===
 
@@ -41,7 +41,7 @@ Rails provides a generator called +performance_test+ for creating new performanc
 script/generate performance_test homepage
 ----------------------------------------------------------------------------
 
-This generates +homepage_test.rb+ inside +test/performance+ directory:
+This generates +homepage_test.rb+ in the +test/performance+ directory:
 
 [source, ruby]
 ----------------------------------------------------------------------------
@@ -100,7 +100,7 @@ end
 
 ==== Controller Example ====
 
-Performance tests are a special kind of integration tests. This allows you to use +get+ and +post+ methods inside the performance tests. 
+Because performance tests are a special kind of integration test, you can use the +get+ and +post+ methods in them. 
 
 Here's the performance test for +HomeController#dashboard+ and +PostsController#create+:
 
@@ -111,7 +111,7 @@ require 'performance_test_help'
 
 class PostPerformanceTest < ActionController::PerformanceTest
   def setup
-    # Application requires logged in user
+    # Application requires logged-in user
     login_as(:lifo)
   end
 
@@ -125,11 +125,11 @@ class PostPerformanceTest < ActionController::PerformanceTest
 end
 ----------------------------------------------------------------------------
 
-You can find more details about +get+ and +post+ methods in API documentation of integration testing.
+You can find more details about the +get+ and +post+ methods in the link:../testing_rails_applications.html#mgunderloy[Testing Rails Applications] guide.
 
 ==== Model Example ====
 
-Even though the performance tests are integration tests and hence closer to request/response cycle by nature, it doesn't prevent us from performance testing pure model code.
+Even though the performance tests are integration tests and hence closer to the request/response cycle by nature, you can still performance test pure model code.
 
 Performance test for +Post+ model:
 
@@ -156,7 +156,7 @@ Performance tests can be run in two modes : Benchmarking and Profiling.
 
 ==== Benchmarking ====
 
-Benchmarking helps find out how fast is a performance test. Each test case is run +4 times+ in benchmarking mode. 
+Benchmarking helps find out how fast each performance test runs. Each test case is run +4 times+ in benchmarking mode. 
 
 To run performance tests in benchmarking mode:
 
@@ -167,7 +167,7 @@ $ rake test:benchmark
 
 ==== Profiling ====
 
-Profiling helps you introspect into a performance test and provide an in-depth picture of the slow and memory hungry parts. Each Test case is run +1 time+ in profiling mode. 
+Profiling helps you see the details of a performance test and provide an in-depth picture of the slow and memory hungry parts. Each test case is run +1 time+ in profiling mode. 
 
 To run performance tests in profiling mode:
 
@@ -182,43 +182,43 @@ Benchmarking and profiling run performance tests in various modes described belo
 
 ==== Wall Time ====
 
-Measures the real world time elapsed during the test run. It is affected by any other processes concurrently running on the system.
+Wall time measures the real world time elapsed during the test run. It is affected by any other processes concurrently running on the system.
 
 Mode : Benchmarking
 
 ==== Process Time ====
 
-Measures the time taken by the process. It is unaffected by any other processes running concurrently on the same system. Hence, process time is likely to be constant for any given performance test, irrespective of the machine load.
+Process time measures the time taken by the process. It is unaffected by any other processes running concurrently on the same system. Hence, process time is likely to be constant for any given performance test, irrespective of the machine load.
 
 Mode : Profiling
 
 ==== Memory ====
 
-Measures the amount of memory used for the performance test case.
+Memory measures the amount of memory used for the performance test case.
 
-Mode : Benchmarking, Profiling [xref:gc[Requires GC Patched Ruby]]
+Mode : Benchmarking, Profiling [xref:gc[Requires GC-Patched Ruby]]
 
 ==== Objects ====
 
-Measures the number of objects allocated for the performance test case.
+Objects measures the number of objects allocated for the performance test case.
 
-Mode : Benchmarking, Profiling [xref:gc[Requires GC Patched Ruby]]
+Mode : Benchmarking, Profiling [xref:gc[Requires GC-Patched Ruby]]
 
 ==== GC Runs ====
 
-Measures the number of times GC was invoked for the performance test case.
+GC Runs measures the number of times GC was invoked for the performance test case.
 
-Mode : Benchmarking [xref:gc[Requires GC Patched Ruby]]
+Mode : Benchmarking [xref:gc[Requires GC-Patched Ruby]]
 
 ==== GC Time ====
 
-Measures the amount of time spent in GC for the performance test case.
+GC Time measures the amount of time spent in GC for the performance test case.
 
-Mode : Benchmarking [xref:gc[Requires GC Patched Ruby]]
+Mode : Benchmarking [xref:gc[Requires GC-Patched Ruby]]
 
 === Understanding the output ===
 
-Performance tests generate different outputs inside +tmp/performance+ directory based on the mode it is run in and the metric.
+Performance tests generate different outputs inside +tmp/performance+ directory depending on their mode and metric.
 
 ==== Benchmarking ====
 
@@ -248,7 +248,7 @@ Performance test results are also appended to +.csv+ files inside +tmp/performan
   - BrowsingTest#test_homepage_objects.csv
   - BrowsingTest#test_homepage_wall_time.csv
 
-As the results are appended to these files each time the performance tests are run in benchmarking mode, it enables you to collect data over a period of time which can be very helpful with various performance analysis.
+As the results are appended to these files each time the performance tests are run in benchmarking mode, you can collect data over a period of time. This can be very helpful in analyzing the effects of code changes.
 
 Sample output of +BrowsingTest#test_homepage_wall_time.csv+:
 
@@ -268,6 +268,8 @@ measurement,created_at,app,rails,ruby,platform
 ----------------------------------------------------------------------------
 
 ==== Profiling ====
+
+In profiling mode, you can choose from four types of output.
 
 ===== Command line =====
 
@@ -297,14 +299,14 @@ Tree output is profiling information in calltree format for use by http://kcache
 
 By default, each performance test is run +4 times+ in benchmarking mode and +1 time+ in profiling. However, test runs can easily be configured.
 
-CAUTION: That's a lie. But not for long.
+CAUTION: Performance test configurability is not yet enabled in Rails. But it will be soon.
 
 [[gc]]
-=== Installing GC Patched Ruby ===
+=== Installing GC-Patched Ruby ===
 
 To get the best from Rails performance tests, you need to build a special Ruby binary with some super powers - http://rubyforge.org/tracker/download.php/1814/7062/17676/3291/ruby186gc.patch[GC patch] for measuring GC Runs/Time and memory/object allocation. 
 
-The process is fairly straight forward. If you've never compiled a Ruby binary before, follow the following steps to build a ruby binary inside your home directory:
+The process is fairly straight forward. If you've never compiled a Ruby binary before, follow these steps to build a ruby binary inside your home directory:
 
 ==== Installation ====
 
@@ -373,7 +375,7 @@ And you're ready to go. Don't forget to use +gcruby+ and +gcrake+ aliases when r
 
 == Command Line Tools ==
 
-Writing performance test cases could be an overkill when you are looking for one time tests. Rails ships with two command line tools for allowing such quick and dirty performance testing:
+Writing performance test cases could be an overkill when you are looking for one time tests. Rails ships with two command line tools that enable quick and dirty performance testing:
 
 === benchmarker ===
 
@@ -393,7 +395,7 @@ Examples:
 $ script/performance/benchmarker 10 'Item.all' 'CouchItem.all'
 ----------------------------------------------------------------------------
 
-If +[times]+ argument is skipped, supplied methods are run just once:
+If the +[times]+ argument is omitted, supplied methods are run just once:
 
 [source, shell]
 ----------------------------------------------------------------------------
@@ -418,7 +420,7 @@ Examples:
 $ script/performance/profiler 'Item.all'
 ----------------------------------------------------------------------------
 
-This will profile +Item.all+ with +RubyProf::WALL_TIME+ measure mode. By default, flat output is printed to the shell.
+This will profile +Item.all+ in +RubyProf::WALL_TIME+ measure mode. By default, it prints flat output to the shell.
 
 [source, shell]
 ----------------------------------------------------------------------------
@@ -449,14 +451,14 @@ Project.benchmark("Creating project") do
 end
 ----------------------------------------------------------------------------
 
-This benchmarks the code enclosed in +Project.benchmark("Creating project") do..end+ block and prints the result to the log file:
+This benchmarks the code enclosed in the +Project.benchmark("Creating project") do..end+ block and prints the result to the log file:
 
 [source, ruby]
 ----------------------------------------------------------------------------
 Creating project (185.3ms)
 ----------------------------------------------------------------------------
 
-Please refer to http://api.rubyonrails.com/classes/ActiveRecord/Base.html#M001336[API docs] for optional options to +benchmark()+
+Please refer to the http://api.rubyonrails.com/classes/ActiveRecord/Base.html#M001336[API docs] for additional options to +benchmark()+
 
 === Controller ===
 
@@ -504,7 +506,7 @@ For this section, we're only interested in the last line:
 Completed in 5ms (View: 2, DB: 0) | 200 OK [http://0.0.0.0/items]
 ----------------------------------------------------------------------------
 
-This data is fairly straight forward to understand. Rails uses millisecond(ms) as the metric to measures the time taken. The complete request spent 5 ms inside Rails, out of which 2 ms were spent rendering views and none was spent communication with the database. It's safe to assume that the remaining 3 ms were spent inside the controller. 
+This data is fairly straightforward to understand. Rails uses millisecond(ms) as the metric to measures the time taken. The complete request spent 5 ms inside Rails, out of which 2 ms were spent rendering views and none was spent communication with the database. It's safe to assume that the remaining 3 ms were spent inside the controller. 
 
 Michael Koziarski has an http://www.therailsway.com/2009/1/6/requests-per-second[interesting blog post] explaining the importance of using milliseconds as the metric.
 
