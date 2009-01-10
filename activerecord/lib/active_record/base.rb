@@ -764,7 +764,7 @@ module ActiveRecord #:nodoc:
       #
       # You can delete multiple rows at once by passing an Array of <tt>id</tt>s.
       #
-      # Careful: although it is often much faster than the alternative,
+      # Note: Although it is often much faster than the alternative,
       # <tt>#destroy</tt>, skipping callbacks might bypass business logic in
       # your application that ensures referential integrity or performs other
       # essential jobs.
@@ -859,7 +859,7 @@ module ActiveRecord #:nodoc:
       # reflect that no changes should be made (since they can't be
       # persisted).
       #
-      # Note: the instantiation, callback execution, and deletion of each
+      # Note: Instantiation, callback execution, and deletion of each
       # record can be time consuming when you're removing many records at
       # once. It generates at least one SQL +DELETE+ query per record (or
       # possibly more, to enforce your callbacks). If you want to delete many
