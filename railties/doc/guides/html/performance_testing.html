@@ -215,10 +215,19 @@ ul#navMain {
 						</ul>
 					</li>
 					<li>
-					<a href="#_using_and_understanding_the_log_files">Using and understanding the log files</a>
+					<a href="#_helper_methods">Helper methods</a>
+						<ul>
+						
+							<li><a href="#_model">Model</a></li>
+						
+							<li><a href="#_controller">Controller</a></li>
+						
+							<li><a href="#_view">View</a></li>
+						
+						</ul>
 					</li>
 					<li>
-					<a href="#_helper_methods">Helper methods</a>
+					<a href="#_request_logging">Request Logging</a>
 					</li>
 					<li>
 					<a href="#_other_profiling_tools">Other Profiling Tools</a>
@@ -494,9 +503,55 @@ alias gcrails='/Users/lifo/rubygc/bin/rails'</tt></pre>
 </div></div>
 <div class="paragraph"><p>And you&#8217;re ready to go. Don&#8217;t forget to use <tt>gcruby</tt> and <tt>gcrake</tt> aliases when running performance tests!</p></div>
 </div>
-<h2 id="_using_and_understanding_the_log_files">2. Using and understanding the log files</h2>
+<h2 id="_helper_methods">2. Helper methods</h2>
 <div class="sectionbody">
-<div class="paragraph"><p>Rails logs files containt basic but very useful information about the time taken to serve every request. A typical log entry looks something like :</p></div>
+<div class="paragraph"><p>Rails provides various helper methods inside Active Record, Action Controller and Action View to measure the time taken by a specific code. The method is called <tt>benchmark()</tt> in all three components.</p></div>
+<h3 id="_model">2.1. Model</h3>
+<div class="listingblock">
+<div class="content"><!-- Generator: GNU source-highlight 2.9
+by Lorenzo Bettini
+http://www.lorenzobettini.it
+http://www.gnu.org/software/src-highlite -->
+<pre><tt>Project<span style="color: #990000">.</span>benchmark<span style="color: #990000">(</span><span style="color: #FF0000">"Creating project"</span><span style="color: #990000">)</span> <span style="font-weight: bold"><span style="color: #0000FF">do</span></span>
+  project <span style="color: #990000">=</span> Project<span style="color: #990000">.</span>create<span style="color: #990000">(</span><span style="color: #FF0000">"name"</span> <span style="color: #990000">=&gt;</span> <span style="color: #FF0000">"stuff"</span><span style="color: #990000">)</span>
+  project<span style="color: #990000">.</span>create_manager<span style="color: #990000">(</span><span style="color: #FF0000">"name"</span> <span style="color: #990000">=&gt;</span> <span style="color: #FF0000">"David"</span><span style="color: #990000">)</span>
+  project<span style="color: #990000">.</span>milestones <span style="color: #990000">&lt;&lt;</span> Milestone<span style="color: #990000">.</span>find<span style="color: #990000">(:</span>all<span style="color: #990000">)</span>
+<span style="font-weight: bold"><span style="color: #0000FF">end</span></span></tt></pre></div></div>
+<div class="paragraph"><p>The above code benchmarks the multiple statments enclosed inside <tt>Project.benchmark("Creating project") do..end</tt> block and prints the results to the log file. The statement inside log files will look like:</p></div>
+<div class="listingblock">
+<div class="content"><!-- Generator: GNU source-highlight 2.9
+by Lorenzo Bettini
+http://www.lorenzobettini.it
+http://www.gnu.org/software/src-highlite -->
+<pre><tt>Creating projectem <span style="color: #990000">(</span><span style="color: #993399">185</span><span style="color: #990000">.</span>3ms<span style="color: #990000">)</span></tt></pre></div></div>
+<div class="paragraph"><p>Please refer to <a href="http://api.rubyonrails.com/classes/ActiveRecord/Base.html#M001336">API docs</a> for optional options to <tt>benchmark()</tt></p></div>
+<h3 id="_controller">2.2. Controller</h3>
+<div class="paragraph"><p>Similarly, you could use this helper method inside <a href="http://api.rubyonrails.com/classes/ActionController/Benchmarking/ClassMethods.html#M000715">controllers</a> ( Note that it&#8217;s a class method here ):</p></div>
+<div class="listingblock">
+<div class="content"><!-- Generator: GNU source-highlight 2.9
+by Lorenzo Bettini
+http://www.lorenzobettini.it
+http://www.gnu.org/software/src-highlite -->
+<pre><tt><span style="font-weight: bold"><span style="color: #0000FF">def</span></span> process_projects
+  <span style="font-weight: bold"><span style="color: #0000FF">self</span></span><span style="color: #990000">.</span><span style="font-weight: bold"><span style="color: #0000FF">class</span></span><span style="color: #990000">.</span>benchmark<span style="color: #990000">(</span><span style="color: #FF0000">"Processing projects"</span><span style="color: #990000">)</span> <span style="font-weight: bold"><span style="color: #0000FF">do</span></span>
+    Project<span style="color: #990000">.</span>process<span style="color: #990000">(</span>params<span style="color: #990000">[:</span>project_ids<span style="color: #990000">])</span>
+    Project<span style="color: #990000">.</span>update_cached_projects
+  <span style="font-weight: bold"><span style="color: #0000FF">end</span></span>
+<span style="font-weight: bold"><span style="color: #0000FF">end</span></span></tt></pre></div></div>
+<h3 id="_view">2.3. View</h3>
+<div class="paragraph"><p>And in <a href="http://api.rubyonrails.com/classes/ActionController/Benchmarking/ClassMethods.html#M000715">views</a>:</p></div>
+<div class="listingblock">
+<div class="content"><!-- Generator: GNU source-highlight 2.9
+by Lorenzo Bettini
+http://www.lorenzobettini.it
+http://www.gnu.org/software/src-highlite -->
+<pre><tt><span style="color: #FF0000">&lt;% benchmark("Showing projects partial") do %&gt;</span>
+  <span style="color: #FF0000">&lt;%= render :partial =&gt;</span> <span style="color: #009900">@projects</span> <span style="color: #990000">%&gt;</span>
+<span style="color: #FF0000">&lt;% end %&gt;</span></tt></pre></div></div>
+</div>
+<h2 id="_request_logging">3. Request Logging</h2>
+<div class="sectionbody">
+<div class="paragraph"><p>Rails log files containt basic but very useful information about the time taken to serve each request. A typical log entry looks something like :</p></div>
 <div class="listingblock">
 <div class="content"><!-- Generator: GNU source-highlight 2.9
 by Lorenzo Bettini
@@ -514,49 +569,7 @@ http://www.lorenzobettini.it
 http://www.gnu.org/software/src-highlite -->
 <pre><tt>Completed <span style="font-weight: bold"><span style="color: #0000FF">in</span></span> 5ms <span style="color: #990000">(</span>View<span style="color: #990000">:</span> <span style="color: #993399">2</span><span style="color: #990000">,</span> DB<span style="color: #990000">:</span> <span style="color: #993399">0</span><span style="color: #990000">)</span> <span style="color: #990000">|</span> <span style="color: #993399">200</span> OK <span style="color: #990000">[</span>http<span style="color: #990000">:</span><span style="color: #FF6600">//0.0.0.0/</span>items<span style="color: #990000">]</span></tt></pre></div></div>
 <div class="paragraph"><p>This data is fairly straight forward to understand. Rails uses millisecond(ms) as the metric to measures the time taken. The complete request spent 5 ms inside Rails, out of which 2 ms were spent rendering views and none was spent communication with the database. It&#8217;s safe to assume that the remaining 3 ms were spent inside the controller.</p></div>
-</div>
-<h2 id="_helper_methods">3. Helper methods</h2>
-<div class="sectionbody">
-<div class="paragraph"><p>Rails provides various helper methods inside Active Record, Action Controller and Action View to measure the time taken by a specific code. The method is called <tt>benchmark()</tt> in all three components.</p></div>
-<div class="listingblock">
-<div class="content"><!-- Generator: GNU source-highlight 2.9
-by Lorenzo Bettini
-http://www.lorenzobettini.it
-http://www.gnu.org/software/src-highlite -->
-<pre><tt>Project<span style="color: #990000">.</span>benchmark<span style="color: #990000">(</span><span style="color: #FF0000">"Creating project"</span><span style="color: #990000">)</span> <span style="font-weight: bold"><span style="color: #0000FF">do</span></span>
-  project <span style="color: #990000">=</span> Project<span style="color: #990000">.</span>create<span style="color: #990000">(</span><span style="color: #FF0000">"name"</span> <span style="color: #990000">=&gt;</span> <span style="color: #FF0000">"stuff"</span><span style="color: #990000">)</span>
-  project<span style="color: #990000">.</span>create_manager<span style="color: #990000">(</span><span style="color: #FF0000">"name"</span> <span style="color: #990000">=&gt;</span> <span style="color: #FF0000">"David"</span><span style="color: #990000">)</span>
-  project<span style="color: #990000">.</span>milestones <span style="color: #990000">&lt;&lt;</span> Milestone<span style="color: #990000">.</span>find<span style="color: #990000">(:</span>all<span style="color: #990000">)</span>
-<span style="font-weight: bold"><span style="color: #0000FF">end</span></span></tt></pre></div></div>
-<div class="paragraph"><p>The above code benchmarks the multiple statments enclosed inside <tt>Project.benchmark("Creating project") do..end</tt> block and prints the results inside log files. The statement inside log files will look like:</p></div>
-<div class="listingblock">
-<div class="content"><!-- Generator: GNU source-highlight 2.9
-by Lorenzo Bettini
-http://www.lorenzobettini.it
-http://www.gnu.org/software/src-highlite -->
-<pre><tt>Creating projectem <span style="color: #990000">(</span><span style="color: #993399">185</span><span style="color: #990000">.</span>3ms<span style="color: #990000">)</span></tt></pre></div></div>
-<div class="paragraph"><p>Please refer to <a href="http://api.rubyonrails.com/classes/ActiveRecord/Base.html#M001336">API docs</a> for optional options to <tt>benchmark()</tt></p></div>
-<div class="paragraph"><p>Similarly, you could use this helper method inside <a href="http://api.rubyonrails.com/classes/ActionController/Benchmarking/ClassMethods.html#M000715">controllers</a> ( Note that it&#8217;s a class method here ):</p></div>
-<div class="listingblock">
-<div class="content"><!-- Generator: GNU source-highlight 2.9
-by Lorenzo Bettini
-http://www.lorenzobettini.it
-http://www.gnu.org/software/src-highlite -->
-<pre><tt><span style="font-weight: bold"><span style="color: #0000FF">def</span></span> process_projects
-  <span style="font-weight: bold"><span style="color: #0000FF">self</span></span><span style="color: #990000">.</span><span style="font-weight: bold"><span style="color: #0000FF">class</span></span><span style="color: #990000">.</span>benchmark<span style="color: #990000">(</span><span style="color: #FF0000">"Processing projects"</span><span style="color: #990000">)</span> <span style="font-weight: bold"><span style="color: #0000FF">do</span></span>
-    Project<span style="color: #990000">.</span>process<span style="color: #990000">(</span>params<span style="color: #990000">[:</span>project_ids<span style="color: #990000">])</span>
-    Project<span style="color: #990000">.</span>update_cached_projects
-  <span style="font-weight: bold"><span style="color: #0000FF">end</span></span>
-<span style="font-weight: bold"><span style="color: #0000FF">end</span></span></tt></pre></div></div>
-<div class="paragraph"><p>and <a href="http://api.rubyonrails.com/classes/ActionController/Benchmarking/ClassMethods.html#M000715">views</a>:</p></div>
-<div class="listingblock">
-<div class="content"><!-- Generator: GNU source-highlight 2.9
-by Lorenzo Bettini
-http://www.lorenzobettini.it
-http://www.gnu.org/software/src-highlite -->
-<pre><tt><span style="color: #FF0000">&lt;% benchmark("Showing projects partial") do %&gt;</span>
-  <span style="color: #FF0000">&lt;%= render :partial =&gt;</span> <span style="color: #009900">@projects</span> <span style="color: #990000">%&gt;</span>
-<span style="color: #FF0000">&lt;% end %&gt;</span></tt></pre></div></div>
+<div class="paragraph"><p>Michael Koziarski has an <a href="http://www.therailsway.com/2009/1/6/requests-per-second">interesting blog post</a> explaining the importance of using milliseconds as the metric.</p></div>
 </div>
 <h2 id="_other_profiling_tools">4. Other Profiling Tools</h2>
 <div class="sectionbody">
