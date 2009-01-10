@@ -1,4 +1,4 @@
-Performance testing Rails Applications
+Performance Testing Rails Applications
 ======================================
 
 This guide covers the various ways of performance testing a Ruby on Rails application. By referring to this guide, you will be able to:
@@ -57,6 +57,98 @@ end
 ----------------------------------------------------------------------------
 
 Which you can modify to suit your needs.
+
+=== Examples ===
+
+Let's assume your application have the following controller and model:
+
+[source, ruby]
+----------------------------------------------------------------------------
+# routes.rb
+map.root :controller => 'home'
+map.resources :posts
+
+# home_controller.rb
+class HomeController < ApplicationController
+  def dashboard
+    @users = User.last_ten(:include => :avatars)
+    @posts = Post.all_today
+  end
+end
+
+# posts_controller.rb
+class PostsController < ApplicationController
+  def create
+    @post = Post.create(params[:post])
+    redirect_to(@post)
+  end
+end
+
+# post.rb
+class Post < ActiveRecord::Base
+  before_save :recalculate_costly_stats
+
+  def slow_method
+    # I fire gallzilion queries sleeping all around
+  end
+
+  private
+  
+  def recalculate_costly_stats
+    # CPU heavy calculations
+  end
+end
+----------------------------------------------------------------------------
+
+==== Controller Example ====
+
+Performance tests are special kind of integration tests. This allows you to use +get+ and +post+ methods inside the performance tests. 
+
+Performance tests for the controller code above can be something like:
+
+[source, ruby]
+----------------------------------------------------------------------------
+require 'test_helper'
+require 'performance_test_help'
+
+class PostPerformanceTest < ActionController::PerformanceTest
+  def setup
+    # Application requires logged in user
+    login_as(:lifo)
+  end
+
+  def test_homepage
+    get '/dashboard'
+  end
+
+  def test_creating_new_post
+    post '/posts', :post => { :body => 'lifo is fooling you' }
+  end
+end
+----------------------------------------------------------------------------
+
+You can find more details about +get+ and +post+ methods in API documentation of integration testing.
+
+==== Model Example ====
+
+Even though performance tests are integration tests and hence closer to request/response cycle by nature, it doesn't prevent us from testing pure model code inside. Performance test for +Post+ model above can be somewhat like:
+
+[source, ruby]
+----------------------------------------------------------------------------
+require 'test_helper'
+require 'performance_test_help'
+
+class PostModelTest < ActionController::PerformanceTest
+  def test_creation
+    Post.create :body => 'still fooling you', :cost => '100'
+  end
+
+  def test_slow_method
+    # Using posts(:awesome) fixture
+    posts(:awesome).slow_method
+  end
+end
+----------------------------------------------------------------------------
 
 === Modes ===
 
@@ -344,7 +436,10 @@ Michael Koziarski has an http://www.therailsway.com/2009/1/6/requests-per-second
 * http://rails-analyzer.rubyforge.org/[Rails Analyzer]
 * http://www.flyingmachinestudios.com/projects/[Palmist]
 
-== Commercial products dedicated to Rails Perfomance ==
+== Commercial products ==
+
+Rails has been lucky to have three startups dedicated to Rails specific performance tools:
+
 * http://www.newrelic.com[New Relic]
 * http://www.fiveruns.com[Fiveruns]
 * http://scoutapp.com[Scout]
