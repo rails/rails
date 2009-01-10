@@ -620,29 +620,7 @@ Callbacks are methods that get called at certain moments of an object's lifecycl
 
 === Callbacks registration
 
-In order to use the available callbacks, you need to registrate them. There are two ways of doing that. 
-
-=== Registering callbacks by overriding the callback methods
-
-You can specify the callback method directly, by overriding it. Let's see how it works using the +before_validation+ callback, which will surprisingly run right before any validation is done.
-
-[source, ruby]
-------------------------------------------------------------------
-class User < ActiveRecord::Base
-  validates_presence_of :login, :email
-  
-  protected
-  def before_validation
-    if self.login.nil?
-      self.login = email unless email.blank?
-    end
-  end
-end
-------------------------------------------------------------------
-
-=== Registering callbacks by using macro-style class methods
-
-The other way you can register a callback method is by implementing it as an ordinary method, and then using a macro-style class method to register it as a callback. The last example could be written like that:
+In order to use the available callbacks, you need to registrate them. You can do that by implementing them as an ordinary methods, and then using a macro-style class method to register then as callbacks.
 
 [source, ruby]
 ------------------------------------------------------------------
@@ -670,11 +648,6 @@ class User < ActiveRecord::Base
   before_create {|user| user.name = user.login.capitalize if user.name.blank?}
 end
 ------------------------------------------------------------------
-
-In Rails, the preferred way of registering callbacks is by using macro-style class methods. The main advantages of using macro-style class methods are:
-
-* You can add more than one method for each type of callback. Those methods will be queued for execution at the same order they were registered.
-* Readability, since your callback declarations will live at the beggining of your models' files.
 
 CAUTION: Remember to always declare the callback methods as being protected or private. These methods should never be public, otherwise it will be possible to call them from code outside the model, violating object encapsulation and exposing implementation details.
 

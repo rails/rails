@@ -285,10 +285,6 @@ ul#navMain {
 						
 							<li><a href="#_callbacks_registration">Callbacks registration</a></li>
 						
-							<li><a href="#_registering_callbacks_by_overriding_the_callback_methods">Registering callbacks by overriding the callback methods</a></li>
-						
-							<li><a href="#_registering_callbacks_by_using_macro_style_class_methods">Registering callbacks by using macro-style class methods</a></li>
-						
 						</ul>
 					</li>
 					<li>
@@ -649,7 +645,7 @@ http://www.gnu.org/software/src-highlite -->
 <td class="icon">
 <img src="./images/icons/note.png" alt="Note" />
 </td>
-<td class="content">If you want to validate the presence of a boolean field (where the real values are true and false), you will want to use validates_inclusion_of :field_name, :in =&gt; [true, false] This is due to the way Object#blank? handles boolean values. false.blank? # =&gt; true</td>
+<td class="content">If you want to validate the presence of a boolean field (where the real values are true and false), you will want to use validates_inclusion_of :field_name, :in &#8658; [true, false] This is due to the way Object#blank? handles boolean values. false.blank? # &#8658; true</td>
 </tr></table>
 </div>
 <div class="paragraph"><p>The default error message for <tt>validates_presence_of</tt> is "<em>can&#8217;t be empty</em>".</p></div>
@@ -1069,26 +1065,7 @@ An object of the <tt>ActionView::Helpers::InstanceTag</tt> class.
 <div class="sectionbody">
 <div class="paragraph"><p>Callbacks are methods that get called at certain moments of an object&#8217;s lifecycle. With callbacks it&#8217;s possible to write code that will run whenever an Active Record object is created, saved, updated, deleted or loaded from the database.</p></div>
 <h3 id="_callbacks_registration">9.1. Callbacks registration</h3>
-<div class="paragraph"><p>In order to use the available callbacks, you need to registrate them. There are two ways of doing that.</p></div>
-<h3 id="_registering_callbacks_by_overriding_the_callback_methods">9.2. Registering callbacks by overriding the callback methods</h3>
-<div class="paragraph"><p>You can specify the callback method directly, by overriding it. Let&#8217;s see how it works using the <tt>before_validation</tt> callback, which will surprisingly run right before any validation is done.</p></div>
-<div class="listingblock">
-<div class="content"><!-- Generator: GNU source-highlight 2.9
-by Lorenzo Bettini
-http://www.lorenzobettini.it
-http://www.gnu.org/software/src-highlite -->
-<pre><tt><span style="font-weight: bold"><span style="color: #0000FF">class</span></span> User <span style="color: #990000">&lt;</span> ActiveRecord<span style="color: #990000">::</span>Base
-  validates_presence_of <span style="color: #990000">:</span>login<span style="color: #990000">,</span> <span style="color: #990000">:</span>email
-
-  protected
-  <span style="font-weight: bold"><span style="color: #0000FF">def</span></span> before_validation
-    <span style="font-weight: bold"><span style="color: #0000FF">if</span></span> <span style="font-weight: bold"><span style="color: #0000FF">self</span></span><span style="color: #990000">.</span>login<span style="color: #990000">.</span><span style="font-weight: bold"><span style="color: #0000FF">nil</span></span><span style="color: #990000">?</span>
-      <span style="font-weight: bold"><span style="color: #0000FF">self</span></span><span style="color: #990000">.</span>login <span style="color: #990000">=</span> email <span style="font-weight: bold"><span style="color: #0000FF">unless</span></span> email<span style="color: #990000">.</span>blank?
-    <span style="font-weight: bold"><span style="color: #0000FF">end</span></span>
-  <span style="font-weight: bold"><span style="color: #0000FF">end</span></span>
-<span style="font-weight: bold"><span style="color: #0000FF">end</span></span></tt></pre></div></div>
-<h3 id="_registering_callbacks_by_using_macro_style_class_methods">9.3. Registering callbacks by using macro-style class methods</h3>
-<div class="paragraph"><p>The other way you can register a callback method is by implementing it as an ordinary method, and then using a macro-style class method to register it as a callback. The last example could be written like that:</p></div>
+<div class="paragraph"><p>In order to use the available callbacks, you need to registrate them. You can do that by implementing them as an ordinary methods, and then using a macro-style class method to register then as callbacks.</p></div>
 <div class="listingblock">
 <div class="content"><!-- Generator: GNU source-highlight 2.9
 by Lorenzo Bettini
@@ -1117,19 +1094,6 @@ http://www.gnu.org/software/src-highlite -->
 
   before_create <span style="color: #FF0000">{</span><span style="color: #990000">|</span>user<span style="color: #990000">|</span> user<span style="color: #990000">.</span>name <span style="color: #990000">=</span> user<span style="color: #990000">.</span>login<span style="color: #990000">.</span>capitalize <span style="font-weight: bold"><span style="color: #0000FF">if</span></span> user<span style="color: #990000">.</span>name<span style="color: #990000">.</span>blank?<span style="color: #FF0000">}</span>
 <span style="font-weight: bold"><span style="color: #0000FF">end</span></span></tt></pre></div></div>
-<div class="paragraph"><p>In Rails, the preferred way of registering callbacks is by using macro-style class methods. The main advantages of using macro-style class methods are:</p></div>
-<div class="ulist"><ul>
-<li>
-<p>
-You can add more than one method for each type of callback. Those methods will be queued for execution at the same order they were registered.
-</p>
-</li>
-<li>
-<p>
-Readability, since your callback declarations will live at the beggining of your models' files.
-</p>
-</li>
-</ul></div>
 <div class="admonitionblock">
 <table><tr>
 <td class="icon">
