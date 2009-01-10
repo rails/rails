@@ -105,6 +105,15 @@ class TimeWithZoneTest < Test::Unit::TestCase
     end
   end
 
+  def test_xmlschema_with_fractional_seconds
+    silence_warnings do # silence warnings raised by tzinfo gem
+      @twz += 0.123456 # advance the time by a fraction of a second
+      assert_equal "1999-12-31T19:00:00.123-05:00", @twz.xmlschema(3)
+      assert_equal "1999-12-31T19:00:00.123456-05:00", @twz.xmlschema(6)
+      assert_equal "1999-12-31T19:00:00.123456-05:00", @twz.xmlschema(12)
+    end
+  end
+
   def test_to_yaml
     silence_warnings do # silence warnings raised by tzinfo gem
       assert_equal "--- 1999-12-31 19:00:00 -05:00\n", @twz.to_yaml
