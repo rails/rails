@@ -137,14 +137,14 @@ module ActiveRecord
     #   
     #   User.find(:all)  # => empty
     #
-    # It is also possible to treat a certain #transaction call as its own
-    # sub-transaction, by passing <tt>:nest => true</tt> to #transaction. If
-    # anything goes wrong inside that transaction block, then the parent
-    # transaction will remain unaffected. For example:
+    # It is also possible to requires a sub-transaction by passing
+    # <tt>:requires_new => true</tt>.  If anything goes wrong, the
+    # database rolls back to the beginning of the sub-transaction
+    # without rolling back the parent transaction. For example:
     #
     #   User.transaction do
     #     User.create(:username => 'Kotori')
-    #     User.transaction(:nest => true) do
+    #     User.transaction(:requires_new => true) do
     #       User.create(:username => 'Nemu')
     #       raise ActiveRecord::Rollback
     #     end
@@ -169,20 +169,17 @@ module ActiveRecord
     # database error will occur because the savepoint has already been
     # automatically released. The following example demonstrates the problem:
     # 
-    #   Model.connection.transaction do          # BEGIN
-    #     Model.connection.transaction(true) do  # CREATE SAVEPOINT rails_savepoint_1
-    #       Model.connection.create_table(...)   # rails_savepoint_1 now automatically released
-    #     end                                    # RELEASE savepoint rails_savepoint_1
-    #                                            # ^^^^ BOOM! database error!
+    #   Model.connection.transaction do                           # BEGIN
+    #     Model.connection.transaction(:requires_new => true) do  # CREATE SAVEPOINT active_record_1
+    #       Model.connection.create_table(...)                    # active_record_1 now automatically released
+    #     end                                                     # RELEASE savepoint active_record_1
+    #                                                             # ^^^^ BOOM! database error!
     #   end
     module ClassMethods
       # See ActiveRecord::Transactions::ClassMethods for detailed documentation.
       def transaction(options = {}, &block)
-        options.assert_valid_keys :nest
-        
-        # See the API documentation for ConnectionAdapters::DatabaseStatements#transaction
-        # for useful information.
-        connection.transaction(options[:nest], &block)
+        # See the ConnectionAdapters::DatabaseStatements#transaction API docs.
+        connection.transaction(options, &block)
       end
     end
 

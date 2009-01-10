@@ -89,14 +89,8 @@ module ActiveRecord
       # - The block will be run without doing anything. All database statements
       #   that happen within the block are effectively appended to the already
       #   open database transaction.
-      # - However, if +start_db_transaction+ is set to true, then the block will
-      #   be run inside a new database savepoint, effectively making the block
-      #   a sub-transaction.
-      # - If the #transactional_fixtures attribute is set to true, then the first
-      #   nested call to #transaction will create a new savepoint instead of
-      #   doing nothing. This makes it possible for toplevel transactions in unit
-      #   tests to behave like real transactions, even though a database
-      #   transaction has already been opened.
+      # - However, if +requires_new+ is set, the block will be wrapped in a
+      #   database savepoint acting as a sub-transaction.
       #
       # === Caveats
       #
@@ -111,20 +105,25 @@ module ActiveRecord
       # already-automatically-released savepoints:
       #
       #   Model.connection.transaction do  # BEGIN
-      #     Model.connection.transaction(true) do  # CREATE SAVEPOINT rails_savepoint_1
+      #     Model.connection.transaction(:requires_new => true) do  # CREATE SAVEPOINT active_record_1
       #       Model.connection.create_table(...)
-      #       # rails_savepoint_1 now automatically released
-      #     end  # RELEASE savepoint rails_savepoint_1  <--- BOOM! database error!
+      #       # active_record_1 now automatically released
+      #     end  # RELEASE SAVEPOINT active_record_1  <--- BOOM! database error!
       #   end
-      def transaction(start_db_transaction = false)
-        start_db_transaction ||= open_transactions == 0 || (open_transactions == 1 && transactional_fixtures)
+      def transaction(options = {})
+        options.assert_valid_keys :requires_new, :joinable
+
+        last_transaction_joinable, @transaction_joinable =
+          @transaction_joinable, options[:joinable] || true
+        requires_new = options[:requires_new] || !last_transaction_joinable
+
         transaction_open = false
         begin
           if block_given?
-            if start_db_transaction
+            if requires_new || open_transactions == 0
               if open_transactions == 0
                 begin_db_transaction
-              else
+              elsif requires_new
                 create_savepoint
               end
               increment_open_transactions
@@ -145,6 +144,8 @@ module ActiveRecord
           raise unless database_transaction_rollback.is_a? ActiveRecord::Rollback
         end
       ensure
+        @transaction_joinable = last_transaction_joinable
+
         if outside_transaction?
           @open_transactions = 0
         elsif transaction_open

@@ -165,24 +165,23 @@ module ActiveRecord
       def decrement_open_transactions
         @open_transactions -= 1
       end
-      
+
+      def transaction_joinable=(joinable)
+        @transaction_joinable = joinable
+      end
+
       def create_savepoint
       end
-      
+
       def rollback_to_savepoint
       end
-      
+
       def release_savepoint
       end
-      
+
       def current_savepoint_name
-        "rails_savepoint_#{open_transactions}"
+        "active_record_#{open_transactions}"
       end
-      
-      # Whether this AbstractAdapter is currently being used inside a unit test
-      # with transactional fixtures turned on. See DatabaseStatements#transaction
-      # for more information about the effect of this option.
-      attr_accessor :transactional_fixtures
 
       def log_info(sql, name, ms)
         if @logger && @logger.debug?
