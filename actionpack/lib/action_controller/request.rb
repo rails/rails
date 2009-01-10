@@ -6,25 +6,17 @@ require 'active_support/memoizable'
 require 'action_controller/cgi_ext'
 
 module ActionController
-  # CgiRequest and TestRequest provide concrete implementations.
-  class Request
+  class Request < Rack::Request
     extend ActiveSupport::Memoizable
 
-    class SessionFixationAttempt < StandardError #:nodoc:
-    end
-
-    # The hash of environment variables for this request,
-    # such as { 'RAILS_ENV' => 'production' }.
-    attr_reader :env
-
     def initialize(env)
-      @env = env
+      super
       @parser = ActionController::RequestParser.new(env)
     end
 
-    %w[ AUTH_TYPE GATEWAY_INTERFACE PATH_INFO
+    %w[ AUTH_TYPE GATEWAY_INTERFACE
         PATH_TRANSLATED REMOTE_HOST
-        REMOTE_IDENT REMOTE_USER SCRIPT_NAME
+        REMOTE_IDENT REMOTE_USER REMOTE_ADDR
         SERVER_NAME SERVER_PROTOCOL
 
         HTTP_ACCEPT HTTP_ACCEPT_CHARSET HTTP_ACCEPT_ENCODING
@@ -45,8 +37,7 @@ module ActionController
     # The true HTTP request \method as a lowercase symbol, such as <tt>:get</tt>.
     # UnknownHttpMethod is raised for invalid methods not listed in ACCEPTED_HTTP_METHODS.
     def request_method
-      method = @env['REQUEST_METHOD']
-      HTTP_METHOD_LOOKUP[method] || raise(UnknownHttpMethod, "#{method}, accepted HTTP methods are #{HTTP_METHODS.to_sentence}")
+      HTTP_METHOD_LOOKUP[super] || raise(UnknownHttpMethod, "#{super}, accepted HTTP methods are #{HTTP_METHODS.to_sentence}")
     end
     memoize :request_method
 
@@ -93,7 +84,7 @@ module ActionController
 
     # Returns the content length of the request as an integer.
     def content_length
-      @env["action_controller.request.content_length"] ||= @env['CONTENT_LENGTH'].to_i
+      super.to_i
     end
 
     # The MIME type of the HTTP request, such as Mime::XML.
@@ -405,6 +396,7 @@ EOM
     def parameters
       @parameters ||= request_parameters.merge(query_parameters).update(path_parameters).with_indifferent_access
     end
+    alias_method :params, :parameters
 
     def path_parameters=(parameters) #:nodoc:
       @env["rack.routing_args"] = parameters
@@ -430,29 +422,20 @@ EOM
       @parser.body
     end
 
-    def remote_addr
-      @env['REMOTE_ADDR']
-    end
-
-    def referrer
-      @env['HTTP_REFERER']
-    end
-    alias referer referrer
-
-    def query_parameters
+    # Override Rack's GET method to support nested query strings
+    def GET
       @parser.query_parameters
     end
+    alias_method :query_parameters, :GET
 
-    def request_parameters
+    # Override Rack's POST method to support nested query strings
+    def POST
       @parser.request_parameters
     end
+    alias_method :request_parameters, :POST
 
     def body_stream #:nodoc:
       @env['rack.input']
-    end
-
-    def cookies
-      Rack::Request.new(@env).cookies
     end
 
     def session
