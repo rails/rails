@@ -271,7 +271,7 @@ measurement,created_at,app,rails,ruby,platform
 
 ===== Command line =====
 
-This is a very basic form of output in profiling mode. Example :
+This is a very basic form of output in profiling mode:
 
 [source, shell]
 ----------------------------------------------------------------------------
@@ -291,7 +291,13 @@ Graph output shows how long each method takes to run, which methods call it and 
 
 ===== Tree =====
 
-Tree output is profiling information in calltree format for use by kcachegrind and similar tools.
+Tree output is profiling information in calltree format for use by http://kcachegrind.sourceforge.net/html/Home.html[kcachegrind] and similar tools.
+
+=== Tuning Test Runs ===
+
+By default, each performance test is run +4 times+ in benchmarking model and +1 time+ in profiling. However, test runs can easily be configured.
+
+CAUTION: That's a lie. But not for long.
 
 [[gc]]
 === Installing GC Patched Ruby ===
@@ -392,7 +398,7 @@ Please refer to http://api.rubyonrails.com/classes/ActiveRecord/Base.html#M00133
 
 Similarly, you could use this helper method inside http://api.rubyonrails.com/classes/ActionController/Benchmarking/ClassMethods.html#M000715[controllers]
 
-NOTE: +benchmark+ it's a class method inside controllers.
+NOTE: +benchmark+ is a class method inside controllers
 
 [source, ruby]
 ----------------------------------------------------------------------------
@@ -438,13 +444,21 @@ This data is fairly straight forward to understand. Rails uses millisecond(ms) a
 
 Michael Koziarski has an http://www.therailsway.com/2009/1/6/requests-per-second[interesting blog post] explaining the importance of using milliseconds as the metric.
 
-== Other Profiling Tools ==
+== Useful Profiling Tools ==
 
-* http://www.hpl.hp.com/research/linux/httperf/[httperf]
+=== Rails Plugins and Gems ===
+
 * http://rails-analyzer.rubyforge.org/[Rails Analyzer]
 * http://www.flyingmachinestudios.com/projects/[Palmist]
+* http://github.com/josevalim/rails-footnotes/tree/master[Rails Footnotes]
 
-== Commercial products ==
+=== External ===
+
+* http://www.hpl.hp.com/research/linux/httperf[httperf]
+* http://httpd.apache.org/docs/2.2/programs/ab.html[ab]
+* http://jakarta.apache.org/jmeter[JMeter]
+
+== Commercial Products ==
 
 Rails has been lucky to have three startups dedicated to Rails specific performance tools:
 
