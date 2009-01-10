@@ -38,10 +38,10 @@ Rails provides a generator called +performance_test+ for creating new performanc
 
 [source, shell]
 ----------------------------------------------------------------------------
-[lifo@null application (master)]$ script/generate performance_test homepage
+script/generate performance_test homepage
 ----------------------------------------------------------------------------
 
-This will generate +test/performance/homepage_test.rb+:
+This generates +homepage_test.rb+ inside +test/performance+ directory:
 
 [source, ruby]
 ----------------------------------------------------------------------------
@@ -56,11 +56,9 @@ class HomepageTest < ActionController::PerformanceTest
 end
 ----------------------------------------------------------------------------
 
-Which you can modify to suit your needs.
-
 === Examples ===
 
-Let's assume your application have the following controller and model:
+Let's assume your application has the following controller and model:
 
 [source, ruby]
 ----------------------------------------------------------------------------
@@ -102,9 +100,9 @@ end
 
 ==== Controller Example ====
 
-Performance tests are special kind of integration tests. This allows you to use +get+ and +post+ methods inside the performance tests. 
+Performance tests are a special kind of integration tests. This allows you to use +get+ and +post+ methods inside the performance tests. 
 
-Performance tests for the controller code above can be something like:
+Here's the performance test for +HomeController#dashboard+ and +PostsController#create+:
 
 [source, ruby]
 ----------------------------------------------------------------------------
@@ -131,7 +129,9 @@ You can find more details about +get+ and +post+ methods in API documentation of
 
 ==== Model Example ====
 
-Even though performance tests are integration tests and hence closer to request/response cycle by nature, it doesn't prevent us from testing pure model code inside. Performance test for +Post+ model above can be somewhat like:
+Even though the performance tests are integration tests and hence closer to request/response cycle by nature, it doesn't prevent us from performance testing pure model code.
+
+Performance test for +Post+ model:
 
 [source, ruby]
 ----------------------------------------------------------------------------
@@ -152,11 +152,13 @@ end
 
 === Modes ===
 
-Performance test cases can be run in two modes : Benchmarking and Profling.
+Performance tests can be run in two modes : Benchmarking and Profling.
 
 ==== Benchmarking ====
 
-Benchmarking helps you find out how fast are your test cases. Each Test case is run +4 times+ in this mode. To run performance tests in benchmarking mode:
+Benchmarking helps find out how fast is a performance test. Each test case is run +4 times+ in benchmarking mode. 
+
+To run performance tests in benchmarking mode:
 
 [source, shell]
 ----------------------------------------------------------------------------
@@ -165,7 +167,9 @@ $ rake test:benchmark
 
 ==== Profiling ====
 
-Profiling helps introspect into your test cases and figure out which are the slow parts. Each Test case is run +1 time+ in this mode. To run performance tests in profiling mode:
+Profiling helps you introspect into a performance test and provide an in-depth picture of the slow and memory hungy parts. Each Test case is run +1 time+ in profiling mode. 
+
+To run performance tests in profiling mode:
 
 [source, shell]
 ----------------------------------------------------------------------------
@@ -174,7 +178,7 @@ $ rake test:profile
 
 === Metrics ===
 
-Benchmarking and profiling run performance test cases in various modes to help precisely figure out the where the problem lies.
+Benchmarking and profiling run performance tests in various modes described below.
 
 ==== Wall Time ====
 
@@ -236,7 +240,7 @@ BrowsingTest#test_homepage (31 ms warmup)
 
 ===== CSV files =====
 
-Performance tests results are also appended to +.csv+ files inside +tmp/performance/<Class>#<test>_<metric>.csv+ file. For example, running the default +BrowsingTest#test_homepage+ will generate following five files :
+Performance test results are also appended to +.csv+ files inside +tmp/performance+. For example, running the default +BrowsingTest#test_homepage+ will generate following five files :
 
   - BrowsingTest#test_homepage_gc_runs.csv
   - BrowsingTest#test_homepage_gc_time.csv
@@ -244,9 +248,9 @@ Performance tests results are also appended to +.csv+ files inside +tmp/performa
   - BrowsingTest#test_homepage_objects.csv
   - BrowsingTest#test_homepage_wall_time.csv
 
-As the results are appended to these files each time the performance tests are run in benchmarking mode, it enables you gather data over a sustainable period of time which can be very helpful with various performance analysis.
+As the results are appended to these files each time the performance tests are run in benchmarking mode, it enables you to collect data over a period of time which can be very helpful with various performance analysis.
 
-Sample output of +BrowsingTest#test_homepage_wall_time.csv + :
+Sample output of +BrowsingTest#test_homepage_wall_time.csv+:
 
 [source, shell]
 ----------------------------------------------------------------------------
@@ -267,7 +271,7 @@ measurement,created_at,app,rails,ruby,platform
 
 ===== Command line =====
 
-This is the very basic form of output in profiling mode. Example :
+This is a very basic form of output in profiling mode. Example :
 
 [source, shell]
 ----------------------------------------------------------------------------
@@ -292,7 +296,9 @@ Tree output is profiling information in calltree format for use by kcachegrind a
 [[gc]]
 === Installing GC Patched Ruby ===
 
-To get the best from Rails performance test cases, you need to build a special Ruby binary with some super powers - GC patch for measuring GC Runs/Time and memory/object allocation profiling. This process is very straight forward. If you've never compiled a Ruby binary before, you can follow the following steps to build a ruby binary inside your home directory:
+To get the best from Rails performance tests, you need to build a special Ruby binary with some super powers - http://rubyforge.org/tracker/download.php/1814/7062/17676/3291/ruby186gc.patch[GC patch] for measuring GC Runs/Time and memory/object allocation. 
+
+The process is fairly straight forward. If you've never compiled a Ruby binary before, follow the following steps to build a ruby binary inside your home directory:
 
 ==== Instllation ====
 
@@ -327,7 +333,7 @@ The following will install ruby in your home directory's +/rubygc+ directory. Ma
 
 ==== Prepare aliases ====
 
-For convenience, add the following lines in your ~/.profile after replacing <username> with your :
+For convenience, add the following lines in your +~/.profile+:
 
 ----------------------------------------------------------------------------
 alias gcruby='~/rubygc/bin/ruby'
@@ -337,7 +343,7 @@ alias gcirb='~/rubygc/bin/irb'
 alias gcrails='~/rubygc/bin/rails'
 ----------------------------------------------------------------------------
 
-==== Install rubygems and some basic gems ====
+==== Install rubygems and dependency gems ====
 
 Download http://rubyforge.org/projects/rubygems[Rubygems] and install it from source. Rubygem's README file should have necessary installation instructions.
 
@@ -356,11 +362,11 @@ If installing +mysql+ fails, you can try to install it manually:
 [lifo@null mysql]$ make && make install
 ----------------------------------------------------------------------------
 
-And you're ready to go. Don't forget to use +gcruby+ and +gcrake+ aliases when running performance tests!
+And you're ready to go. Don't forget to use +gcruby+ and +gcrake+ aliases when running the performance tests.
 
 == Helper methods ==
 
-Rails provides various helper methods inside Active Record, Action Controller and Action View to measure the time taken by a specific code. The method is called +benchmark()+ in all three components.
+Rails provides various helper methods inside Active Record, Action Controller and Action View to measure the time taken by a given piece of code. The method is called +benchmark()+ in all the three components.
 
 === Model ===
 
@@ -373,7 +379,7 @@ Project.benchmark("Creating project") do
 end
 ----------------------------------------------------------------------------
 
-The above code benchmarks the multiple statments enclosed inside +Project.benchmark("Creating project") do..end+ block and prints the results to the log file. The statement inside log files will look like:
+This benchmarks the code enclosed in +Project.benchmark("Creating project") do..end+ block and prints the result to the log file:
 
 [source, ruby]
 ----------------------------------------------------------------------------
@@ -384,7 +390,9 @@ Please refer to http://api.rubyonrails.com/classes/ActiveRecord/Base.html#M00133
 
 === Controller ===
 
-Similarly, you could use this helper method inside http://api.rubyonrails.com/classes/ActionController/Benchmarking/ClassMethods.html#M000715[controllers] ( Note that it's a class method here ):
+Similarly, you could use this helper method inside http://api.rubyonrails.com/classes/ActionController/Benchmarking/ClassMethods.html#M000715[controllers]
+
+NOTE: +benchmark+ it's a class method inside controllers.
 
 [source, ruby]
 ----------------------------------------------------------------------------
@@ -409,7 +417,7 @@ And in http://api.rubyonrails.com/classes/ActionController/Benchmarking/ClassMet
 
 == Request Logging ==
 
-Rails log files containt basic but very useful information about the time taken to serve each request. A typical log entry looks something like :
+Rails log files containt very useful information about the time taken to serve each request. Here's a typical log file entry:
 
 [source, ruby]
 ----------------------------------------------------------------------------
@@ -419,7 +427,7 @@ Rendering items/index
 Completed in 5ms (View: 2, DB: 0) | 200 OK [http://0.0.0.0/items]
 ----------------------------------------------------------------------------
 
-For this section, we're only interested in the last line from that log entry:
+For this section, we're only interested in the last line:
 
 [source, ruby]
 ----------------------------------------------------------------------------
@@ -448,6 +456,6 @@ Rails has been lucky to have three startups dedicated to Rails specific performa
 
 http://rails.lighthouseapp.com/projects/16213-rails-guides/tickets/4[Lighthouse ticket]
 
-* January 9, 2009: Rewrite by Pratik
+* January 9, 2009: Complete rewrite by Pratik
 * October 17, 2008: First revision by Pratik
 * September 6, 2008: Initial version by Matthew Bergman
