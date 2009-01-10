@@ -1,5 +1,9 @@
 *2.3.0 [Edge]*
 
+* Added :silence option to BenchmarkHelper#benchmark and turned log_level into a hash parameter and deprecated the old use [DHH]
+
+* Fixed the AssetTagHelper cache to use the computed asset host as part of the cache key instead of just assuming the its a string #1299 [DHH]
+
 * Make ActionController#render(string) work as a shortcut for render :file/:template/:action => string. [#1435] [Pratik Naik] Examples:
 
   # Instead of render(:action => 'other_action')

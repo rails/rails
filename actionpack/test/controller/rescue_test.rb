@@ -67,6 +67,11 @@ class RescueController < ActionController::Base
     render :text => 'no way'
   end
 
+  before_filter(:only => :before_filter_raises) { raise 'umm nice' }
+
+  def before_filter_raises
+  end
+
   def raises
     render :text => 'already rendered'
     raise "don't panic!"
@@ -152,6 +157,16 @@ class RescueControllerTest < ActionController::TestCase
       raise 'foo'
     rescue => @exception
     end
+  end
+
+  def test_rescue_exceptions_raised_by_filters
+    with_rails_root FIXTURE_PUBLIC do
+      with_all_requests_local false do
+        get :before_filter_raises
+      end
+    end
+
+    assert_response :internal_server_error
   end
 
   def test_rescue_action_locally_if_all_requests_local
@@ -367,8 +382,19 @@ class RescueControllerTest < ActionController::TestCase
   end
 
   def test_rescue_dispatcher_exceptions
-    RescueController.process_with_exception(@request, @response, ActionController::RoutingError.new("Route not found"))
+    env = @request.env
+    env["action_controller.rescue.request"] = @request
+    env["action_controller.rescue.response"] = @response
+
+    RescueController.call_with_exception(env, ActionController::RoutingError.new("Route not found"))
     assert_equal "no way", @response.body
+  end
+
+  def test_rescue_dispatcher_exceptions_without_request_set
+    @request.env['REQUEST_URI'] = '/no_way'
+    response = RescueController.call_with_exception(@request.env, ActionController::RoutingError.new("Route not found"))
+    assert_kind_of ActionController::Response, response
+    assert_equal "no way", response.body
   end
 
   protected

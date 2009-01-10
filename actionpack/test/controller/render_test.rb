@@ -1218,6 +1218,11 @@ class RenderTest < ActionController::TestCase
     assert_equal "404 Not Found", @response.status
     assert_response :not_found
 
+    get :head_with_symbolic_status, :status => "no_content"
+    assert_equal "204 No Content", @response.status
+    assert !@response.headers.include?('Content-Length')
+    assert_response :no_content
+
     ActionController::StatusCodes::SYMBOL_TO_STATUS_CODE.each do |status, code|
       get :head_with_symbolic_status, :status => status.to_s
       assert_equal code, @response.response_code
@@ -1470,7 +1475,7 @@ class EtagRenderTest < ActionController::TestCase
   def test_render_against_etag_request_should_have_no_content_length_when_match
     @request.if_none_match = etag_for("hello david")
     get :render_hello_world_from_variable
-    assert !@response.headers.has_key?("Content-Length")
+    assert !@response.headers.has_key?("Content-Length"), @response.headers['Content-Length']
   end
 
   def test_render_against_etag_request_should_200_when_no_match

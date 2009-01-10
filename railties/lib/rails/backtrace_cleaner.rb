@@ -2,7 +2,7 @@ module Rails
   class BacktraceCleaner < ActiveSupport::BacktraceCleaner
     ERB_METHOD_SIG = /:in `_run_erb_.*/
 
-    VENDOR_DIRS  = %w( vendor/plugins vendor/gems vendor/rails )
+    VENDOR_DIRS  = %w( vendor/gems vendor/rails )
     SERVER_DIRS  = %w( lib/mongrel bin/mongrel
                        lib/passenger bin/passenger-spawn-server
                        lib/rack )
@@ -15,11 +15,12 @@ module Rails
 
     def initialize
       super
-      add_filter   { |line| line.sub(RAILS_ROOT, '') }
+      add_filter   { |line| line.sub("#{RAILS_ROOT}/", '') }
       add_filter   { |line| line.sub(ERB_METHOD_SIG, '') }
       add_filter   { |line| line.sub('./', '/') } # for tests
       add_filter   { |line| line.sub(/(#{GEMS_DIR})\/gems\/([a-z]+)-([0-9.]+)\/(.*)/, '\2 (\3) \4')} # http://gist.github.com/30430
       add_silencer { |line| ALL_NOISE.any? { |dir| line.include?(dir) } }
+      add_silencer { |line| line =~ %r(vendor/plugins/[^\/]+/lib) }
     end
   end
 

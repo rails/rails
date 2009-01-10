@@ -9,33 +9,33 @@ Rails::VendorGemSourceIndex.silence_spec_warnings = true
 uses_mocha "Plugin Tests" do
   class GemDependencyTest < Test::Unit::TestCase
     def setup
-      @gem              = Rails::GemDependency.new "hpricot"
-      @gem_with_source  = Rails::GemDependency.new "hpricot", :source => "http://code.whytheluckystiff.net"
-      @gem_with_version = Rails::GemDependency.new "hpricot", :version => "= 0.6"
-      @gem_with_lib     = Rails::GemDependency.new "aws-s3", :lib => "aws/s3"
-      @gem_without_load  = Rails::GemDependency.new "hpricot", :lib => false
+      @gem              = Rails::GemDependency.new "xhpricotx"
+      @gem_with_source  = Rails::GemDependency.new "xhpricotx", :source => "http://code.whytheluckystiff.net"
+      @gem_with_version = Rails::GemDependency.new "xhpricotx", :version => "= 0.6"
+      @gem_with_lib     = Rails::GemDependency.new "xaws-s3x", :lib => "aws/s3"
+      @gem_without_load  = Rails::GemDependency.new "xhpricotx", :lib => false
     end
 
     def test_configuration_adds_gem_dependency
       config = Rails::Configuration.new
-      config.gem "aws-s3", :lib => "aws/s3", :version => "0.4.0"
-      assert_equal [["install", "aws-s3", "--version", '"= 0.4.0"']], config.gems.collect(&:install_command)
+      config.gem "xaws-s3x", :lib => "aws/s3", :version => "0.4.0"
+      assert_equal [["install", "xaws-s3x", "--version", '"= 0.4.0"']], config.gems.collect(&:install_command)
     end
 
     def test_gem_creates_install_command
-      assert_equal %w(install hpricot), @gem.install_command
+      assert_equal %w(install xhpricotx), @gem.install_command
     end
 
     def test_gem_with_source_creates_install_command
-      assert_equal %w(install hpricot --source http://code.whytheluckystiff.net), @gem_with_source.install_command
+      assert_equal %w(install xhpricotx --source http://code.whytheluckystiff.net), @gem_with_source.install_command
     end
 
     def test_gem_with_version_creates_install_command
-      assert_equal ["install", "hpricot", "--version", '"= 0.6"'], @gem_with_version.install_command
+      assert_equal ["install", "xhpricotx", "--version", '"= 0.6"'], @gem_with_version.install_command
     end
 
     def test_gem_creates_unpack_command
-      assert_equal %w(unpack hpricot), @gem.unpack_command
+      assert_equal %w(unpack xhpricotx), @gem.unpack_command
     end
 
     def test_gem_with_version_unpack_install_command
@@ -43,7 +43,7 @@ uses_mocha "Plugin Tests" do
       mock_spec = mock()
       mock_spec.stubs(:version).returns('0.6')
       @gem_with_version.stubs(:specification).returns(mock_spec)
-      assert_equal ["unpack", "hpricot", "--version", '= 0.6'], @gem_with_version.unpack_command
+      assert_equal ["unpack", "xhpricotx", "--version", '= 0.6'], @gem_with_version.unpack_command
     end
 
     def test_gem_adds_load_paths

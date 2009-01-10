@@ -32,11 +32,6 @@ class DispatcherTest < Test::Unit::TestCase
     dispatch(false)
   end
 
-  def test_clears_asset_tag_cache_before_dispatch_if_in_loading_mode
-    ActionView::Helpers::AssetTagHelper::AssetTag::Cache.expects(:clear).once
-    dispatch(false)
-  end
-
   def test_leaves_dependencies_after_dispatch_if_not_in_loading_mode
     ActionController::Routing::Routes.expects(:reload).never
     ActiveSupport::Dependencies.expects(:clear).never
@@ -96,9 +91,7 @@ class DispatcherTest < Test::Unit::TestCase
 
   private
     def dispatch(cache_classes = true)
-      controller = mock()
-      controller.stubs(:process).returns([200, {}, 'response'])
-      ActionController::Routing::Routes.stubs(:recognize).returns(controller)
+      ActionController::Routing::RouteSet.any_instance.stubs(:call).returns([200, {}, 'response'])
       Dispatcher.define_dispatcher_callbacks(cache_classes)
       @dispatcher.call({})
     end
