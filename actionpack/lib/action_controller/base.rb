@@ -164,8 +164,8 @@ module ActionController #:nodoc:
   #
   # Other options for session storage are:
   #
-  # * ActiveRecordStore - Sessions are stored in your database, which works better than PStore with multiple app servers and,
-  #   unlike CookieStore, hides your session contents from the user. To use ActiveRecordStore, set
+  # * ActiveRecord::SessionStore - Sessions are stored in your database, which works better than PStore with multiple app servers and,
+  #   unlike CookieStore, hides your session contents from the user. To use ActiveRecord::SessionStore, set
   #
   #     config.action_controller.session_store = :active_record_store
   #
@@ -254,7 +254,7 @@ module ActionController #:nodoc:
     cattr_reader :protected_instance_variables
     # Controller specific instance variables which will not be accessible inside views.
     @@protected_instance_variables = %w(@assigns @performed_redirect @performed_render @variables_added @request_origin @url @parent_controller
-                                        @action_name @before_filter_chain_aborted @action_cache_path @_session @_cookies @_headers @_params
+                                        @action_name @before_filter_chain_aborted @action_cache_path @_session @_headers @_params
                                         @_flash @_response)
 
     # Prepends all the URL-generating helpers from AssetHelper. This makes it possible to easily move javascripts, stylesheets,
@@ -382,6 +382,13 @@ module ActionController #:nodoc:
     attr_accessor :action_name
 
     class << self
+      def call(env)
+        # HACK: For global rescue to have access to the original request and response
+        request = env["action_controller.rescue.request"] ||= Request.new(env)
+        response = env["action_controller.rescue.response"] ||= Response.new
+        process(request, response)
+      end
+
       # Factory for the standard create, process loop where the controller is discarded after processing.
       def process(request, response) #:nodoc:
         new.process(request, response)
@@ -502,7 +509,7 @@ module ActionController #:nodoc:
         protected :filter_parameters
       end
 
-      delegate :exempt_from_layout, :to => 'ActionView::Base'
+      delegate :exempt_from_layout, :to => 'ActionView::Template'
     end
 
     public
@@ -859,16 +866,23 @@ module ActionController #:nodoc:
       def render(options = nil, extra_options = {}, &block) #:doc:
         raise DoubleRenderError, "Can only render or redirect once per action" if performed?
 
+        validate_render_arguments(options, extra_options, block_given?)
+
         if options.nil?
-          return render(:file => default_template_name, :layout => true)
-        elsif !extra_options.is_a?(Hash)
-          raise RenderError, "You called render with invalid options : #{options.inspect}, #{extra_options.inspect}"
-        else
-          if options == :update
-            options = extra_options.merge({ :update => true })
-          elsif !options.is_a?(Hash)
-            raise RenderError, "You called render with invalid options : #{options.inspect}"
+          options = { :template => default_template, :layout => true }
+        elsif options == :update
+          options = extra_options.merge({ :update => true })
+        elsif options.is_a?(String) || options.is_a?(Symbol)
+          case options.to_s.index('/')
+          when 0
+            extra_options[:file] = options
+          when nil
+            extra_options[:action] = options
+          else
+            extra_options[:template] = options
           end
+
+          options = extra_options
         end
 
         layout = pick_layout(options)
@@ -898,7 +912,7 @@ module ActionController #:nodoc:
             render_for_text(@template.render(options.merge(:layout => layout)), options[:status])
 
           elsif action_name = options[:action]
-            render_for_file(default_template_name(action_name.to_s), options[:status], layout)
+            render_for_file(default_template(action_name.to_s), options[:status], layout)
 
           elsif xml = options[:xml]
             response.content_type ||= Mime::XML
@@ -933,7 +947,7 @@ module ActionController #:nodoc:
             render_for_text(nil, options[:status])
 
           else
-            render_for_file(default_template_name, options[:status], layout)
+            render_for_file(default_template, options[:status], layout)
           end
         end
       end
@@ -990,7 +1004,7 @@ module ActionController #:nodoc:
         @performed_redirect = false
         response.redirected_to = nil
         response.redirected_to_method_params = nil
-        response.headers['Status'] = DEFAULT_RENDER_STATUS_CODE
+        response.status = DEFAULT_RENDER_STATUS_CODE
         response.headers.delete('Location')
       end
 
@@ -1111,7 +1125,7 @@ module ActionController #:nodoc:
       end
 
       # Sets the etag, last_modified, or both on the response and renders a
-      # "304 Not Modified" response if the request is already fresh. 
+      # "304 Not Modified" response if the request is already fresh.
       #
       # Example:
       #
@@ -1119,8 +1133,8 @@ module ActionController #:nodoc:
       #     @article = Article.find(params[:id])
       #     fresh_when(:etag => @article, :last_modified => @article.created_at.utc)
       #   end
-      # 
-      # This will render the show template if the request isn't sending a matching etag or 
+      #
+      # This will render the show template if the request isn't sending a matching etag or
       # If-Modified-Since header and just a "304 Not Modified" response if there's a match.
       def fresh_when(options)
         options.assert_valid_keys(:etag, :last_modified)
@@ -1160,20 +1174,19 @@ module ActionController #:nodoc:
       def reset_session #:doc:
         request.reset_session
         @_session = request.session
-        response.session = @_session
       end
-
 
     private
       def render_for_file(template_path, status = nil, layout = nil, locals = {}) #:nodoc:
-        logger.info("Rendering #{template_path}" + (status ? " (#{status})" : '')) if logger
+        path = template_path.respond_to?(:path_without_format_and_extension) ? template_path.path_without_format_and_extension : template_path
+        logger.info("Rendering #{path}" + (status ? " (#{status})" : '')) if logger
         render_for_text @template.render(:file => template_path, :locals => locals, :layout => layout), status
       end
 
       def render_for_text(text = nil, status = nil, append_response = false) #:nodoc:
         @performed_render = true
 
-        response.headers['Status'] = interpret_status(status || DEFAULT_RENDER_STATUS_CODE)
+        response.status = interpret_status(status || DEFAULT_RENDER_STATUS_CODE)
 
         if append_response
           response.body ||= ''
@@ -1187,6 +1200,16 @@ module ActionController #:nodoc:
         end
       end
 
+      def validate_render_arguments(options, extra_options, has_block)
+        if options && (has_block && options != :update) && !options.is_a?(String) && !options.is_a?(Hash) && !options.is_a?(Symbol)
+          raise RenderError, "You called render with invalid options : #{options.inspect}"
+        end
+
+        if !extra_options.is_a?(Hash)
+          raise RenderError, "You called render with invalid options : #{options.inspect}, #{extra_options.inspect}"
+        end
+      end
+
       def initialize_template_class(response)
         response.template = ActionView::Base.new(self.class.view_paths, {}, self)
         response.template.helpers.send :include, self.class.master_helper_module
@@ -1195,7 +1218,7 @@ module ActionController #:nodoc:
       end
 
       def assign_shortcuts(request, response)
-        @_request, @_params, @_cookies = request, request.parameters, request.cookies
+        @_request, @_params = request, request.parameters
 
         @_response         = response
         @_response.session = request.session
@@ -1213,11 +1236,10 @@ module ActionController #:nodoc:
       def log_processing
         if logger && logger.info?
           log_processing_for_request_id
-          log_processing_for_session_id
           log_processing_for_parameters
         end
       end
-      
+
       def log_processing_for_request_id
         request_id = "\n\nProcessing #{self.class.name}\##{action_name} "
         request_id << "to #{params[:format]} " if params[:format]
@@ -1226,17 +1248,10 @@ module ActionController #:nodoc:
         logger.info(request_id)
       end
 
-      def log_processing_for_session_id
-        if @_session && @_session.respond_to?(:session_id) && @_session.respond_to?(:dbman) &&
-            !@_session.dbman.is_a?(CGI::Session::CookieStore)
-          logger.info "  Session ID: #{@_session.session_id}"
-        end
-      end
-
       def log_processing_for_parameters
         parameters = respond_to?(:filter_parameters) ? filter_parameters(params) : params.dup
         parameters = parameters.except!(:controller, :action, :format, :_method)
-        
+
         logger.info "  Parameters: #{parameters.inspect}" unless parameters.empty?
       end
 
@@ -1251,10 +1266,17 @@ module ActionController #:nodoc:
         elsif respond_to? :method_missing
           method_missing action_name
           default_render unless performed?
-        elsif template_exists?
-          default_render
         else
-          raise UnknownAction, "No action responded to #{action_name}. Actions: #{action_methods.sort.to_sentence}", caller
+          begin
+            default_render
+          rescue ActionView::MissingTemplate => e
+            # Was the implicit template missing, or was it another template?
+            if e.path == default_template_name
+              raise UnknownAction, "No action responded to #{action_name}. Actions: #{action_methods.sort.to_sentence}", caller
+            else
+              raise e
+            end
+          end
         end
       end
 
@@ -1300,10 +1322,8 @@ module ActionController #:nodoc:
         @_session.close if @_session && @_session.respond_to?(:close)
       end
 
-      def template_exists?(template_name = default_template_name)
-        @template.send(:_pick_template, template_name) ? true : false
-      rescue ActionView::MissingTemplate
-        false
+      def default_template(action_name = self.action_name)
+        self.view_paths.find_template(default_template_name(action_name), default_template_format)
       end
 
       def default_template_name(action_name = self.action_name)
@@ -1330,9 +1350,12 @@ module ActionController #:nodoc:
   end
 
   Base.class_eval do
-    include Flash, Filters, Layout, Benchmarking, Rescue, MimeResponds, Helpers
-    include Cookies, Caching, Verification, Streaming
-    include SessionManagement, HttpAuthentication::Basic::ControllerMethods
-    include RecordIdentifier, RequestForgeryProtection, Translation
+    [ Filters, Layout, Benchmarking, Rescue, Flash, MimeResponds, Helpers,
+      Cookies, Caching, Verification, Streaming, SessionManagement,
+      HttpAuthentication::Basic::ControllerMethods, RecordIdentifier,
+      RequestForgeryProtection, Translation
+    ].each do |mod|
+      include mod
+    end
   end
 end

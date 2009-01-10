@@ -30,9 +30,10 @@ ActiveSupport::Deprecation.debug = true
 ActionController::Base.logger = nil
 ActionController::Routing::Routes.reload rescue nil
 
+ActionController::Base.session_store = nil
+
 FIXTURE_LOAD_PATH = File.join(File.dirname(__FILE__), 'fixtures')
 ActionController::Base.view_paths = FIXTURE_LOAD_PATH
-ActionController::Base.view_paths.load
 
 def uses_mocha(test_name)
   yield

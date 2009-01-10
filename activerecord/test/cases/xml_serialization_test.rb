@@ -31,6 +31,13 @@ class XmlSerializationTest < ActiveRecord::TestCase
     assert_match %r{<created_at},     @xml
   end
 
+  def test_should_allow_camelized_tags
+    @xml = Contact.new.to_xml :root => 'xml_contact', :camelize => true
+    assert_match %r{^<XmlContact>},  @xml
+    assert_match %r{</XmlContact>$}, @xml
+    assert_match %r{<CreatedAt},    @xml
+  end
+
   def test_should_include_yielded_additions
     @xml = Contact.new.to_xml do |xml|
       xml.creator "David"

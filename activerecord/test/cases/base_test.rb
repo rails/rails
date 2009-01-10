@@ -16,6 +16,7 @@ require 'models/post'
 require 'models/comment'
 require 'models/minimalistic'
 require 'models/warehouse_thing'
+require 'models/parrot'
 require 'rexml/document'
 
 class Category < ActiveRecord::Base; end
@@ -1197,6 +1198,11 @@ class BasicsTest < ActiveRecord::TestCase
     assert b_true.value?
   end
 
+  def test_new_record_returns_boolean
+    assert_equal Topic.new.new_record?, true
+    assert_equal Topic.find(1).new_record?, false
+  end
+
   def test_clone
     topic = Topic.find(1)
     cloned_topic = nil
@@ -2069,6 +2075,15 @@ class BasicsTest < ActiveRecord::TestCase
     assert_match /Quiet/, log.string
   ensure
     ActiveRecord::Base.logger = original_logger
+  end
+
+  def test_create_with_custom_timestamps
+    custom_datetime = 1.hour.ago.beginning_of_day
+
+    %w(created_at created_on updated_at updated_on).each do |attribute|
+      parrot = LiveParrot.create(:name => "colombian", attribute => custom_datetime)
+      assert_equal custom_datetime, parrot[attribute]
+    end
   end
 
   private

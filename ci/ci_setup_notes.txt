@@ -54,10 +54,14 @@ ci      ALL=NOPASSWD: /usr/local/bin/geminstaller, /usr/local/bin/ruby, /usr/loc
 * Install/setup nginx:
 $ sudo aptitude install nginx
 $ sudo vi /etc/nginx/sites-available/default
+# Change server_name entry to match server name
+
 # comment two lines and add one to proxy to ccrb:
 #               root   /var/www/nginx-default;
 #               index  index.html index.htm;
                 proxy_pass      http://127.0.0.1:3333;
+
+# also comment default locations for /doc and /images
 $ sudo /etc/init.d/nginx start
 
 * Add project to cruise (It will still fail until everything is set up):
@@ -100,6 +104,13 @@ $ sudo aptitude install sqlite sqlite3 libsqlite-dev libsqlite3-dev
 * setup postgres
 $ sudo aptitude install postgresql postgresql-server-dev-8.3
 $ sudo su - postgres -c 'createuser -s ci'
+
+* Install fcgi libraries
+$ sudo apt-get install libfcgi-dev
+
+* Install memcached and start for first time (should start on reboot automatically)
+$ sudo aptitude install memcached
+$ sudo /etc/init.d/memcached start
 
 * Install and run GemInstaller to get all dependency gems
 $ sudo gem install geminstaller

@@ -16,7 +16,7 @@ module ActionController
       # ==== Examples
       #
       #   # assert that the response was a redirection
-      #   assert_response :redirect 
+      #   assert_response :redirect
       #
       #   # assert that the response code was status code 401 (unauthorized)
       #   assert_response 401
@@ -41,7 +41,7 @@ module ActionController
         end
       end
 
-      # Assert that the redirection options passed in match those of the redirect called in the latest action. 
+      # Assert that the redirection options passed in match those of the redirect called in the latest action.
       # This match can be partial, such that assert_redirected_to(:controller => "weblog") will also
       # match the redirection of redirect_to(:controller => "weblog", :action => "show") and so on.
       #
@@ -60,12 +60,12 @@ module ActionController
         clean_backtrace do
           assert_response(:redirect, message)
           return true if options == @response.redirected_to
-          
+
           # Support partial arguments for hash redirections
           if options.is_a?(Hash) && @response.redirected_to.is_a?(Hash)
             return true if options.all? {|(key, value)| @response.redirected_to[key] == value}
           end
-          
+
           redirected_to_after_normalisation = normalize_argument_to_redirection(@response.redirected_to)
           options_after_normalisation       = normalize_argument_to_redirection(options)
 
@@ -75,29 +75,59 @@ module ActionController
         end
       end
 
-      # Asserts that the request was rendered with the appropriate template file.
+      # Asserts that the request was rendered with the appropriate template file or partials
       #
       # ==== Examples
       #
       #   # assert that the "new" view template was rendered
       #   assert_template "new"
       #
-      def assert_template(expected = nil, message=nil)
+      #   # assert that the "_customer" partial was rendered twice
+      #   assert_template :partial => '_customer', :count => 2
+      #
+      #   # assert that no partials were rendered
+      #   assert_template :partial => false
+      #
+      def assert_template(options = {}, message = nil)
         clean_backtrace do
-          rendered = @response.rendered_template.to_s
-          msg = build_message(message, "expecting <?> but rendering with <?>", expected, rendered)
-          assert_block(msg) do
-            if expected.nil?
-              @response.rendered_template.blank?
+          case options
+           when NilClass, String
+            rendered = @response.rendered[:template].to_s
+            msg = build_message(message,
+                    "expecting <?> but rendering with <?>",
+                    options, rendered)
+            assert_block(msg) do
+              if options.nil?
+                @response.rendered[:template].blank?
+              else
+                rendered.to_s.match(options)
+              end
+            end
+          when Hash
+            if expected_partial = options[:partial]
+              partials = @response.rendered[:partials]
+              if expected_count = options[:count]
+                found = partials.detect { |p, _| p.to_s.match(expected_partial) }
+                actual_count = found.nil? ? 0 : found.second
+                msg = build_message(message,
+                        "expecting ? to be rendered ? time(s) but rendered ? time(s)",
+                         expected_partial, expected_count, actual_count)
+                assert(actual_count == expected_count.to_i, msg)
+              else
+                msg = build_message(message,
+                        "expecting partial <?> but action rendered <?>",
+                        options[:partial], partials.keys)
+                assert(partials.keys.any? { |p| p.to_s.match(expected_partial) }, msg)
+              end
             else
-              rendered.to_s.match(expected)
+              assert @response.rendered[:partials].empty?,
+                "Expected no partials to be rendered"
             end
           end
         end
       end
 
       private
-
         # Proxy to to_param if the object will respond to it.
         def parameterize(value)
           value.respond_to?(:to_param) ? value.to_param : value

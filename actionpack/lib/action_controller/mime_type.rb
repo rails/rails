@@ -176,6 +176,14 @@ module Mime
       end
     end
 
+    def =~(mime_type)
+      return false if mime_type.blank?
+      regexp = Regexp.new(Regexp.quote(mime_type.to_s))
+      (@synonyms + [ self ]).any? do |synonym|
+        synonym.to_s =~ regexp
+      end
+    end
+
     # Returns true if Action Pack should check requests using this Mime Type for possible request forgery.  See
     # ActionController::RequestForgeryProtection.
     def verify_request?

@@ -59,34 +59,36 @@ module ActiveSupport
         memoized_ivar = ActiveSupport::Memoizable.memoized_ivar_for(symbol)
 
         class_eval <<-EOS, __FILE__, __LINE__
-          include InstanceMethods
-
-          raise "Already memoized #{symbol}" if method_defined?(:#{original_method})
-          alias #{original_method} #{symbol}
-
-          if instance_method(:#{symbol}).arity == 0
-            def #{symbol}(reload = false)
-              if reload || !defined?(#{memoized_ivar}) || #{memoized_ivar}.empty?
-                #{memoized_ivar} = [#{original_method}.freeze]
-              end
-              #{memoized_ivar}[0]
-            end
-          else
-            def #{symbol}(*args)
-              #{memoized_ivar} ||= {} unless frozen?
-              reload = args.pop if args.last == true || args.last == :reload
-
-              if defined?(#{memoized_ivar}) && #{memoized_ivar}
-                if !reload && #{memoized_ivar}.has_key?(args)
-                  #{memoized_ivar}[args]
-                elsif #{memoized_ivar}
-                  #{memoized_ivar}[args] = #{original_method}(*args).freeze
-                end
-              else
-                #{original_method}(*args)
-              end
-            end
-          end
+          include InstanceMethods                                                  # include InstanceMethods
+                                                                                   #
+          if method_defined?(:#{original_method})                                  # if method_defined?(:_unmemoized_mime_type)
+            raise "Already memoized #{symbol}"                                     #   raise "Already memoized mime_type"
+          end                                                                      # end
+          alias #{original_method} #{symbol}                                       # alias _unmemoized_mime_type mime_type
+                                                                                   #
+          if instance_method(:#{symbol}).arity == 0                                # if instance_method(:mime_type).arity == 0
+            def #{symbol}(reload = false)                                          #   def mime_type(reload = false)
+              if reload || !defined?(#{memoized_ivar}) || #{memoized_ivar}.empty?  #     if reload || !defined?(@_memoized_mime_type) || @_memoized_mime_type.empty?
+                #{memoized_ivar} = [#{original_method}.freeze]                     #       @_memoized_mime_type = [_unmemoized_mime_type.freeze]
+              end                                                                  #     end
+              #{memoized_ivar}[0]                                                  #     @_memoized_mime_type[0]
+            end                                                                    #   end
+          else                                                                     # else
+            def #{symbol}(*args)                                                   #   def mime_type(*args)
+              #{memoized_ivar} ||= {} unless frozen?                               #     @_memoized_mime_type ||= {} unless frozen?
+              reload = args.pop if args.last == true || args.last == :reload       #     reload = args.pop if args.last == true || args.last == :reload
+                                                                                   #
+              if defined?(#{memoized_ivar}) && #{memoized_ivar}                    #     if defined?(@_memoized_mime_type) && @_memoized_mime_type
+                if !reload && #{memoized_ivar}.has_key?(args)                      #       if !reload && @_memoized_mime_type.has_key?(args)
+                  #{memoized_ivar}[args]                                           #         @_memoized_mime_type[args]
+                elsif #{memoized_ivar}                                             #       elsif @_memoized_mime_type
+                  #{memoized_ivar}[args] = #{original_method}(*args).freeze        #         @_memoized_mime_type[args] = _unmemoized_mime_type(*args).freeze
+                end                                                                #       end
+              else                                                                 #     else
+                #{original_method}(*args)                                          #       _unmemoized_mime_type(*args)
+              end                                                                  #     end
+            end                                                                    #   end
+          end                                                                      # end
         EOS
       end
     end

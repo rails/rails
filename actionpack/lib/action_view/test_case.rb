@@ -1,6 +1,29 @@
+require 'active_support/test_case'
+
 module ActionView
+  class Base
+    alias_method :initialize_without_template_tracking, :initialize
+    def initialize(*args)
+      @_rendered = { :template => nil, :partials => Hash.new(0) }
+      initialize_without_template_tracking(*args)
+    end
+  end
+
+  module Renderable
+    alias_method :render_without_template_tracking, :render
+    def render(view, local_assigns = {})
+      if respond_to?(:path) && !is_a?(InlineTemplate)
+        rendered = view.instance_variable_get(:@_rendered)
+        rendered[:partials][self] += 1 if is_a?(RenderablePartial)
+        rendered[:template] ||= self
+      end
+      render_without_template_tracking(view, local_assigns)
+    end
+  end
+
   class TestCase < ActiveSupport::TestCase
     include ActionController::TestCase::Assertions
+    include ActionController::TestProcess
 
     class_inheritable_accessor :helper_class
     @@helper_class = nil
@@ -40,11 +63,14 @@ module ActionView
     end
 
     class TestController < ActionController::Base
-      attr_accessor :request, :response
+      attr_accessor :request, :response, :params
 
       def initialize
         @request = ActionController::TestRequest.new
         @response = ActionController::TestResponse.new
+        
+        @params = {}
+        send(:initialize_current_url)
       end
     end
 

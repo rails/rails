@@ -254,7 +254,7 @@ class NamedScopeTest < ActiveRecord::TestCase
   end
 
   def test_should_use_where_in_query_for_named_scope
-    assert_equal Developer.find_all_by_name('Jamis'), Developer.find_all_by_id(Developer.jamises)
+    assert_equal Developer.find_all_by_name('Jamis').to_set, Developer.find_all_by_id(Developer.jamises).to_set
   end
 
   def test_size_should_use_count_when_results_are_not_loaded
@@ -276,5 +276,25 @@ class NamedScopeTest < ActiveRecord::TestCase
     join = "INNER JOIN comments ON comments.post_id = posts.id"
     post = Post.find(1)
     assert_equal post.comments.size, Post.scoped(:joins => join).scoped(:joins => join, :conditions => "posts.id = #{post.id}").size
+  end
+end
+
+class DynamicScopeMatchTest < ActiveRecord::TestCase  
+  def test_scoped_by_no_match
+    assert_nil ActiveRecord::DynamicScopeMatch.match("not_scoped_at_all")
+  end
+
+  def test_scoped_by
+    match = ActiveRecord::DynamicScopeMatch.match("scoped_by_age_and_sex_and_location")
+    assert_not_nil match
+    assert match.scope?
+    assert_equal %w(age sex location), match.attribute_names
+  end
+end
+
+class DynamicScopeTest < ActiveRecord::TestCase
+  def test_dynamic_scope
+    assert_equal Post.scoped_by_author_id(1).find(1), Post.find(1)
+    assert_equal Post.scoped_by_author_id_and_title(1, "Welcome to the weblog").first, Post.find(:first, :conditions => { :author_id => 1, :title => "Welcome to the weblog"})
   end
 end

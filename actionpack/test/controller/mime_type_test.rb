@@ -81,4 +81,13 @@ class MimeTypeTest < Test::Unit::TestCase
     assert verified.each   { |type| assert  Mime.const_get(type.to_s.upcase).verify_request?, "Verifiable Mime Type is not verified: #{type.inspect}" }
     assert unverified.each { |type| assert !Mime.const_get(type.to_s.upcase).verify_request?, "Nonverifiable Mime Type is verified: #{type.inspect}" }
   end
+
+  def test_regexp_matcher
+    assert Mime::JS =~ "text/javascript"
+    assert Mime::JS =~ "application/javascript"
+    assert Mime::JS !~ "text/html"
+    assert !(Mime::JS !~ "text/javascript")
+    assert !(Mime::JS !~ "application/javascript")
+    assert Mime::HTML =~ 'application/xhtml+xml'
+  end
 end

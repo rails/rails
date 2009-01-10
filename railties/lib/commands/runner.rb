@@ -48,5 +48,7 @@ begin
     eval(code_or_file)
   end
 ensure
-  RAILS_DEFAULT_LOGGER.flush if RAILS_DEFAULT_LOGGER
+  if defined? Rails
+    Rails.logger.flush if Rails.logger.respond_to?(:flush)
+  end
 end

@@ -811,8 +811,7 @@ module ActiveRecord #:nodoc:
       #
       # ==== Parameters
       #
-      # * +updates+ - A string of column and value pairs that will be set on any records that match conditions.
-      #               What goes into the SET clause.
+      # * +updates+ - A string of column and value pairs that will be set on any records that match conditions. This creates the SET clause of the generated SQL.
       # * +conditions+ - An SQL fragment like "administrator = 1" or [ "user_name = ?", username ]. See conditions in the intro for more info.
       # * +options+ - Additional options are <tt>:limit</tt> and <tt>:order</tt>, see the examples for usage.
       #
@@ -1417,8 +1416,8 @@ module ActiveRecord #:nodoc:
       def benchmark(title, log_level = Logger::DEBUG, use_silence = true)
         if logger && logger.level <= log_level
           result = nil
-          seconds = Benchmark.realtime { result = use_silence ? silence { yield } : yield }
-          logger.add(log_level, "#{title} (#{'%.1f' % (seconds * 1000)}ms)")
+          ms = Benchmark.ms { result = use_silence ? silence { yield } : yield }
+          logger.add(log_level, '%s (%.1fms)' % [title, ms])
           result
         else
           yield
@@ -1457,7 +1456,10 @@ module ActiveRecord #:nodoc:
       def respond_to?(method_id, include_private = false)
         if match = DynamicFinderMatch.match(method_id)
           return true if all_attributes_exists?(match.attribute_names)
+        elsif match = DynamicScopeMatch.match(method_id)
+          return true if all_attributes_exists?(match.attribute_names)
         end
+        
         super
       end
 
@@ -1495,11 +1497,16 @@ module ActiveRecord #:nodoc:
           end
 
           if scoped?(:find, :order)
-            scoped_order = reverse_sql_order(scope(:find, :order))
-            scoped_methods.select { |s| s[:find].update(:order => scoped_order) }
+            scope = scope(:find)
+            original_scoped_order = scope[:order]
+            scope[:order] = reverse_sql_order(original_scoped_order)
           end
 
-          find_initial(options.merge({ :order => order }))
+          begin
+            find_initial(options.merge({ :order => order }))
+          ensure
+            scope[:order] = original_scoped_order if original_scoped_order
+          end
         end
 
         def reverse_sql_order(order_query)
@@ -1805,7 +1812,11 @@ module ActiveRecord #:nodoc:
         # This also enables you to initialize a record if it is not found, such as find_or_initialize_by_amount(amount)
         # or find_or_create_by_user_and_password(user, password).
         #
-        # Each dynamic finder or initializer/creator is also defined in the class after it is first invoked, so that future
+        # Also enables dynamic scopes like scoped_by_user_name(user_name) and scoped_by_user_name_and_password(user_name, password) that
+        # are turned into scoped(:conditions => ["user_name = ?", user_name]) and scoped(:conditions => ["user_name = ? AND password = ?", user_name, password])
+        # respectively.
+        #
+        # Each dynamic finder, scope or initializer/creator is also defined in the class after it is first invoked, so that future
         # attempts to use it do not run through method_missing.
         def method_missing(method_id, *arguments, &block)
           if match = DynamicFinderMatch.match(method_id)
@@ -1814,10 +1825,31 @@ module ActiveRecord #:nodoc:
             if match.finder?
               finder = match.finder
               bang = match.bang?
+              # def self.find_by_login_and_activated(*args)
+              #   options = args.extract_options!
+              #   attributes = construct_attributes_from_arguments(
+              #     [:login,:activated],
+              #     args
+              #   )
+              #   finder_options = { :conditions => attributes }
+              #   validate_find_options(options)
+              #   set_readonly_option!(options)
+              #
+              #   if options[:conditions]
+              #     with_scope(:find => finder_options) do
+              #       find(:first, options)
+              #     end
+              #   else
+              #     find(:first, options.merge(finder_options))
+              #   end
+              # end
               self.class_eval %{
                 def self.#{method_id}(*args)
                   options = args.extract_options!
-                  attributes = construct_attributes_from_arguments([:#{attribute_names.join(',:')}], args)
+                  attributes = construct_attributes_from_arguments(
+                    [:#{attribute_names.join(',:')}],
+                    args
+                  )
                   finder_options = { :conditions => attributes }
                   validate_find_options(options)
                   set_readonly_option!(options)
@@ -1829,12 +1861,37 @@ module ActiveRecord #:nodoc:
                   else
                     find(:#{finder}, options.merge(finder_options))
                   end
-                  #{'result || raise(RecordNotFound)' if bang}
+                  #{'result || raise(RecordNotFound, "Couldn\'t find #{name} with #{attributes.to_a.collect {|pair| "#{pair.first} = #{pair.second}"}.join(\', \')}")' if bang}
                 end
               }, __FILE__, __LINE__
               send(method_id, *arguments)
             elsif match.instantiator?
               instantiator = match.instantiator
+              # def self.find_or_create_by_user_id(*args)
+              #   guard_protected_attributes = false
+              #
+              #   if args[0].is_a?(Hash)
+              #     guard_protected_attributes = true
+              #     attributes = args[0].with_indifferent_access
+              #     find_attributes = attributes.slice(*[:user_id])
+              #   else
+              #     find_attributes = attributes = construct_attributes_from_arguments([:user_id], args)
+              #   end
+              #
+              #   options = { :conditions => find_attributes }
+              #   set_readonly_option!(options)
+              #
+              #   record = find(:first, options)
+              #
+              #   if record.nil?
+              #     record = self.new { |r| r.send(:attributes=, attributes, guard_protected_attributes) }
+              #     yield(record) if block_given?
+              #     record.save
+              #     record
+              #   else
+              #     record
+              #   end
+              # end
               self.class_eval %{
                 def self.#{method_id}(*args)
                   guard_protected_attributes = false
@@ -1863,6 +1920,22 @@ module ActiveRecord #:nodoc:
                 end
               }, __FILE__, __LINE__
               send(method_id, *arguments, &block)
+            end
+          elsif match = DynamicScopeMatch.match(method_id)
+            attribute_names = match.attribute_names
+            super unless all_attributes_exists?(attribute_names)
+            if match.scope?
+              self.class_eval %{
+                def self.#{method_id}(*args)                        # def self.scoped_by_user_name_and_password(*args)
+                  options = args.extract_options!                   #   options = args.extract_options!
+                  attributes = construct_attributes_from_arguments( #   attributes = construct_attributes_from_arguments(
+                    [:#{attribute_names.join(',:')}], args          #     [:user_name, :password], args
+                  )                                                 #   )
+                                                                    # 
+                  scoped(:conditions => attributes)                 #   scoped(:conditions => attributes)
+                end                                                 # end
+              }, __FILE__, __LINE__
+              send(method_id, *arguments)
             end
           else
             super
@@ -2052,10 +2125,10 @@ module ActiveRecord #:nodoc:
         end
 
         # Sets the default options for the model. The format of the
-        # <tt>method_scoping</tt> argument is the same as in with_scope.
+        # <tt>options</tt> argument is the same as in find.
         #
         #   class Person < ActiveRecord::Base
-        #     default_scope :find => { :order => 'last_name, first_name' }
+        #     default_scope :order => 'last_name, first_name'
         #   end
         def default_scope(options = {})
           self.default_scoping << { :find => options, :create => (options.is_a?(Hash) && options.has_key?(:conditions)) ? options[:conditions] : {} }
@@ -2402,9 +2475,9 @@ module ActiveRecord #:nodoc:
         write_attribute(self.class.primary_key, value)
       end
 
-      # Returns true if this object hasn't been saved yet -- that is, a record for the object doesn't exist yet.
+      # Returns true if this object hasn't been saved yet -- that is, a record for the object doesn't exist yet; otherwise, returns false.
       def new_record?
-        defined?(@new_record) && @new_record
+        @new_record || false
       end
 
       # :call-seq:
@@ -3011,7 +3084,7 @@ module ActiveRecord #:nodoc:
   end
 
   Base.class_eval do
-    extend QueryCache
+    extend QueryCache::ClassMethods
     include Validations
     include Locking::Optimistic, Locking::Pessimistic
     include AttributeMethods

@@ -1,95 +1,48 @@
-# cgi/session/memcached.rb - persistent storage of marshalled session data
-#
-# == Overview
-#
-# This file provides the CGI::Session::MemCache class, which builds
-# persistence of storage data on top of the MemCache library.  See
-# cgi/session.rb for more details on session storage managers.
-#
-
 begin
-  require 'cgi/session'
   require_library_or_gem 'memcache'
 
-  class CGI
-    class Session
-      # MemCache-based session storage class.
-      #
-      # This builds upon the top-level MemCache class provided by the
-      # library file memcache.rb.  Session data is marshalled and stored
-      # in a memcached cache.
-      class MemCacheStore
-        def check_id(id) #:nodoc:#
-          /[^0-9a-zA-Z]+/ =~ id.to_s ? false : true
-        end
+  module ActionController
+    module Session
+      class MemCacheStore < AbstractStore
+        def initialize(app, options = {})
+          # Support old :expires option
+          options[:expire_after] ||= options[:expires]
 
-        # Create a new CGI::Session::MemCache instance
-        #
-        # This constructor is used internally by CGI::Session. The
-        # user does not generally need to call it directly.
-        #
-        # +session+ is the session for which this instance is being
-        # created. The session id must only contain alphanumeric
-        # characters; automatically generated session ids observe
-        # this requirement.
-        #
-        # +options+ is a hash of options for the initializer. The
-        # following options are recognized:
-        #
-        # cache::  an instance of a MemCache client to use as the
-        #      session cache.
-        #
-        # expires:: an expiry time value to use for session entries in
-        #     the session cache. +expires+ is interpreted in seconds
-        #     relative to the current time if it’s less than 60*60*24*30
-        #     (30 days), or as an absolute Unix time (e.g., Time#to_i) if
-        #     greater. If +expires+ is +0+, or not passed on +options+,
-        #     the entry will never expire.
-        #
-        # This session's memcache entry will be created if it does
-        # not exist, or retrieved if it does.
-        def initialize(session, options = {})
-          id = session.session_id
-          unless check_id(id)
-            raise ArgumentError, "session_id '%s' is invalid" % id
+          super
+
+          @default_options = {
+            :namespace => 'rack:session',
+            :memcache_server => 'localhost:11211'
+          }.merge(@default_options)
+
+          @pool = options[:cache] || MemCache.new(@default_options[:memcache_server], @default_options)
+          unless @pool.servers.any? { |s| s.alive? }
+            raise "#{self} unable to find server during initialization."
           end
-          @cache = options['cache'] || MemCache.new('localhost')
-          @expires = options['expires'] || 0
-          @session_key = "session:#{id}"
-          @session_data = {}
-          # Add this key to the store if haven't done so yet
-          unless @cache.get(@session_key)
-            @cache.add(@session_key, @session_data, @expires)
+          @mutex = Mutex.new
+
+          super
+        end
+
+        private
+          def get_session(env, sid)
+            sid ||= generate_sid
+            begin
+              session = @pool.get(sid) || {}
+            rescue MemCache::MemCacheError, Errno::ECONNREFUSED
+              session = {}
+            end
+            [sid, session]
           end
-        end
 
-        # Restore session state from the session's memcache entry.
-        #
-        # Returns the session state as a hash.
-        def restore
-          @session_data = @cache[@session_key] || {}
-        end
-
-        # Save session state to the session's memcache entry.
-        def update
-          @cache.set(@session_key, @session_data, @expires)
-        end
-      
-        # Update and close the session's memcache entry.
-        def close
-          update
-        end
-
-        # Delete the session's memcache entry.
-        def delete
-          @cache.delete(@session_key)
-          @session_data = {}
-        end
-        
-        def data
-          @session_data
-        end
-
+          def set_session(env, sid, session_data)
+            options = env['rack.session.options']
+            expiry  = options[:expire_after] || 0
+            @pool.set(sid, session_data, expiry)
+            return true
+          rescue MemCache::MemCacheError, Errno::ECONNREFUSED
+            return false
+          end
       end
     end
   end

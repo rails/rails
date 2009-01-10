@@ -143,13 +143,13 @@ module ActiveSupport
           log("miss", key, options)
 
           value = nil
-          seconds = Benchmark.realtime { value = yield }
+          ms = Benchmark.ms { value = yield }
 
           @logger_off = true
           write(key, value, options)
           @logger_off = false
 
-          log("write (will save #{'%.2f' % (seconds * 1000)}ms)", key, nil)
+          log('write (will save %.2fms)' % ms, key, nil)
 
           value
         end

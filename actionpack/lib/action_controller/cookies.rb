@@ -64,43 +64,31 @@ module ActionController #:nodoc:
 
     # Returns the value of the cookie by +name+, or +nil+ if no such cookie exists.
     def [](name)
-      cookie = @cookies[name.to_s]
-      if cookie && cookie.respond_to?(:value)
-        cookie.size > 1 ? cookie.value : cookie.value[0]
-      end
+      super(name.to_s)
     end
 
     # Sets the cookie named +name+. The second argument may be the very cookie
     # value, or a hash of options as documented above.
-    def []=(name, options)
+    def []=(key, options)
       if options.is_a?(Hash)
-        options = options.inject({}) { |options, pair| options[pair.first.to_s] = pair.last; options }
-        options["name"] = name.to_s
+        options.symbolize_keys!
       else
-        options = { "name" => name.to_s, "value" => options }
+        options = { :value => options }
       end
 
-      set_cookie(options)
+      options[:path] = "/" unless options.has_key?(:path)
+      super(key.to_s, options[:value])
+      @controller.response.set_cookie(key, options)
     end
 
     # Removes the cookie on the client machine by setting the value to an empty string
     # and setting its expiration date into the past. Like <tt>[]=</tt>, you can pass in
     # an options hash to delete cookies with extra data such as a <tt>:path</tt>.
-    def delete(name, options = {})
-      options.stringify_keys!
-      set_cookie(options.merge("name" => name.to_s, "value" => "", "expires" => Time.at(0)))
+    def delete(key, options = {})
+      options.symbolize_keys!
+      options[:path] = "/" unless options.has_key?(:path)
+      super(key.to_s)
+      @controller.response.delete_cookie(key, options)
     end
-
-    private
-      # Builds a CGI::Cookie object and adds the cookie to the response headers.
-      #
-      # The path of the cookie defaults to "/" if there's none in +options+, and
-      # everything is passed to the CGI::Cookie constructor.
-      def set_cookie(options) #:doc:
-        options["path"] = "/" unless options["path"]
-        cookie = CGI::Cookie.new(options)
-        @controller.logger.info "Cookie set: #{cookie}" unless @controller.logger.nil?
-        @controller.response.headers["cookie"] << cookie
-      end
   end
 end

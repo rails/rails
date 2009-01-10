@@ -20,15 +20,15 @@
 
 * Fixed that to_param should be used and honored instead of hardcoding the id #11406 [gspiers]
 
-* Improve documentation. [Radar, Jan De Poorter, chuyeow, xaviershay, danger, miloops, Xavier Noria,  Sunny Ripert]
+* Improve documentation. [Ryan Bigg, Jan De Poorter, Cheah Chu Yeow, Xavier Shay, Jack Danger Canty, Emilio Tagua, Xavier Noria,  Sunny Ripert]
 
 * Use HEAD instead of GET in exists? [bscofield]
 
-* Fix small documentation typo.  Closes #10670 [l.guidi]
+* Fix small documentation typo.  Closes #10670 [Luca Guidi]
 
 * find_or_create_resource_for handles module nesting.  #10646 [xavier]
 
-* Allow setting ActiveResource::Base#format before #site.  [rick]
+* Allow setting ActiveResource::Base#format before #site.  [Rick Olson]
 
 * Support agnostic formats when calling custom methods.  Closes #10635 [joerichsen]
 
@@ -48,9 +48,9 @@
 
 * Don't cache net/http object so that ActiveResource is more thread-safe.  Closes #10142 [kou]
 
-* Update XML documentation examples to include explicit type attributes. Closes #9754 [hasmanyjosh]
+* Update XML documentation examples to include explicit type attributes. Closes #9754 [Josh Susser]
 
-* Added one-off declarations of mock behavior [DHH]. Example:
+* Added one-off declarations of mock behavior [David Heinemeier Hansson]. Example:
 
     Before:
       ActiveResource::HttpMock.respond_to do |mock|
@@ -60,7 +60,7 @@
     Now:
       ActiveResource::HttpMock.respond_to.get "/people/1.xml", {}, "<person><name>David</name></person>"
 
-* Added ActiveResource.format= which defaults to :xml but can also be set to :json [DHH]. Example:
+* Added ActiveResource.format= which defaults to :xml but can also be set to :json [David Heinemeier Hansson]. Example:
 
     class Person < ActiveResource::Base
       self.site   = "http://app/"
@@ -81,7 +81,7 @@
 
 * Fix query methods on resources. [Cody Fauser]
 
-* pass the prefix_options to the instantiated record when using find without a specific id. Closes #8544 [alloy]
+* pass the prefix_options to the instantiated record when using find without a specific id. Closes #8544 [Eloy Duran]
 
 * Recognize and raise an exception on 405 Method Not Allowed responses.  #7692 [Josh Peek]
 
@@ -89,15 +89,15 @@
 
     Comment.find(:all, :params => { :article_id => 5, :page => 2 }) or Comment.find(:all, :params => { 'article_id' => 5, :page => 2 })
 
-* Added find-one with symbol [DHH]. Example: Person.find(:one, :from => :leader) # => GET /people/leader.xml
+* Added find-one with symbol [David Heinemeier Hansson]. Example: Person.find(:one, :from => :leader) # => GET /people/leader.xml
 
-* BACKWARDS INCOMPATIBLE: Changed the finder API to be more extensible with :params and more strict usage of scopes [DHH]. Changes:
+* BACKWARDS INCOMPATIBLE: Changed the finder API to be more extensible with :params and more strict usage of scopes [David Heinemeier Hansson]. Changes:
 
     Person.find(:all, :title => "CEO")      ...becomes: Person.find(:all, :params => { :title => "CEO" })
     Person.find(:managers)                  ...becomes: Person.find(:all, :from => :managers)
     Person.find("/companies/1/manager.xml") ...becomes: Person.find(:one, :from => "/companies/1/manager.xml")
 
-* Add support for setting custom headers per Active Resource model [Rick]
+* Add support for setting custom headers per Active Resource model [Rick Olson]
 
   class Project
     headers['X-Token'] = 'foo'
@@ -106,13 +106,13 @@
   # makes the GET request with the custom X-Token header
   Project.find(:all)
 
-* Added find-by-path options to ActiveResource::Base.find [DHH]. Examples:
+* Added find-by-path options to ActiveResource::Base.find [David Heinemeier Hansson]. Examples:
 
     employees = Person.find(:all, :from => "/companies/1/people.xml") # => GET /companies/1/people.xml
     manager   = Person.find("/companies/1/manager.xml")               # => GET /companies/1/manager.xml
 
 
-* Added support for using classes from within a single nested module [DHH]. Example:
+* Added support for using classes from within a single nested module [David Heinemeier Hansson]. Example:
 
     module Highrise
       class Note < ActiveResource::Base
@@ -127,7 +127,7 @@
   assert_kind_of Highrise::Comment, Note.find(1).comments.first
     
 
-* Added load_attributes_from_response as a way of loading attributes from other responses than just create [DHH]
+* Added load_attributes_from_response as a way of loading attributes from other responses than just create [David Heinemeier Hansson]
 
     class Highrise::Task < ActiveResource::Base
       def complete
@@ -143,18 +143,18 @@
     Person.find(:managers)    # => GET /people/managers.xml
     Kase.find(1).post(:close) # => POST /kases/1/close.xml
 
-* Remove explicit prefix_options parameter for ActiveResource::Base#initialize. [Rick]
+* Remove explicit prefix_options parameter for ActiveResource::Base#initialize. [Rick Olson]
   ActiveResource splits the prefix_options from it automatically.
 
-* Allow ActiveResource::Base.delete with custom prefix. [Rick]
+* Allow ActiveResource::Base.delete with custom prefix. [Rick Olson]
 
-* Add ActiveResource::Base#dup [Rick]
+* Add ActiveResource::Base#dup [Rick Olson]
 
-* Fixed constant warning when fetching the same object multiple times [DHH]
+* Fixed constant warning when fetching the same object multiple times [David Heinemeier Hansson]
 
-* Added that saves which get a body response (and not just a 201) will use that response to update themselves [DHH]
+* Added that saves which get a body response (and not just a 201) will use that response to update themselves [David Heinemeier Hansson]
 
-* Disregard namespaces from the default element name, so Highrise::Person will just try to fetch from "/people", not "/highrise/people" [DHH]
+* Disregard namespaces from the default element name, so Highrise::Person will just try to fetch from "/people", not "/highrise/people" [David Heinemeier Hansson]
 
 * Allow array and hash query parameters.  #7756 [Greg Spurrier]
 
@@ -176,7 +176,7 @@
 
 * Base#==, eql?, and hash methods. == returns true if its argument is identical to self or if it's an instance of the same class, is not new?, and has the same id. eql? is an alias for ==. hash delegates to id.  [Jeremy Kemper]
 
-* Allow subclassed resources to share the site info [Rick, Jeremy Kemper]
+* Allow subclassed resources to share the site info [Rick Olson, Jeremy Kemper]
 d
     class BeastResource < ActiveResource::Base
       self.site = 'http://beast.caboo.se'
@@ -259,4 +259,4 @@ d
 
 * Base.site= accepts URIs. 200...400 are valid response codes. PUT and POST request bodies default to ''. [Jeremy Kemper]
 
-* Initial checkin: object-oriented client for restful HTTP resources which follow the Rails convention. [DHH]
+* Initial checkin: object-oriented client for restful HTTP resources which follow the Rails convention. [David Heinemeier Hansson]

@@ -38,8 +38,8 @@ module ActionController #:nodoc:
       'ActionView::TemplateError'         => 'template_error'
     }
 
-    RESCUES_TEMPLATE_PATH = ActionView::PathSet::Path.new(
-      "#{File.dirname(__FILE__)}/templates", true)
+    RESCUES_TEMPLATE_PATH = ActionView::Template::EagerPath.new(
+      File.join(File.dirname(__FILE__), "templates"))
 
     def self.included(base) #:nodoc:
       base.cattr_accessor :rescue_responses
@@ -59,7 +59,9 @@ module ActionController #:nodoc:
     end
 
     module ClassMethods
-      def process_with_exception(request, response, exception) #:nodoc:
+      def call_with_exception(env, exception) #:nodoc:
+        request = env["action_controller.rescue.request"] ||= Request.new(env)
+        response = env["action_controller.rescue.response"] ||= Response.new
         new.process(request, response, :rescue_action, exception)
       end
     end
@@ -102,9 +104,9 @@ module ActionController #:nodoc:
       # doesn't exist, the body of the response will be left empty.
       def render_optional_error_file(status_code)
         status = interpret_status(status_code)
-        path = "#{Rails.public_path}/#{status[0,3]}.html"
+        path = "#{Rails.public_path}/#{status.to_s[0,3]}.html"
         if File.exist?(path)
-          render :file => path, :status => status
+          render :file => path, :status => status, :content_type => Mime::HTML
         else
           head status
         end

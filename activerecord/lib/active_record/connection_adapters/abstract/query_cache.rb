@@ -14,12 +14,12 @@ module ActiveRecord
         def dirties_query_cache(base, *method_names)
           method_names.each do |method_name|
             base.class_eval <<-end_code, __FILE__, __LINE__
-              def #{method_name}_with_query_dirty(*args)
-                clear_query_cache if @query_cache_enabled
-                #{method_name}_without_query_dirty(*args)
-              end
-
-              alias_method_chain :#{method_name}, :query_dirty
+              def #{method_name}_with_query_dirty(*args)        # def update_with_query_dirty(*args)
+                clear_query_cache if @query_cache_enabled       #   clear_query_cache if @query_cache_enabled
+                #{method_name}_without_query_dirty(*args)       #   update_without_query_dirty(*args)
+              end                                               # end
+                                                                #
+              alias_method_chain :#{method_name}, :query_dirty  # alias_method_chain :update, :query_dirty
             end_code
           end
         end

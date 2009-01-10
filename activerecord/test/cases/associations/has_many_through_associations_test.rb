@@ -3,6 +3,9 @@ require 'models/post'
 require 'models/person'
 require 'models/reader'
 require 'models/comment'
+require 'models/tag'
+require 'models/tagging'
+require 'models/author'
 
 class HasManyThroughAssociationsTest < ActiveRecord::TestCase
   fixtures :posts, :readers, :people, :comments, :authors
@@ -199,6 +202,10 @@ class HasManyThroughAssociationsTest < ActiveRecord::TestCase
 
   def test_count_with_include_should_alias_join_table
     assert_equal 2, people(:michael).posts.count(:include => :readers)
+  end
+
+  def test_inner_join_with_quoted_table_name
+    assert_equal 2, people(:michael).jobs.size
   end
 
   def test_get_ids

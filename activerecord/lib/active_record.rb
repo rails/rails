@@ -37,6 +37,8 @@ module ActiveRecord
     [Base, DynamicFinderMatch, ConnectionAdapters::AbstractAdapter]
   end
 
+  autoload :VERSION, 'active_record/version'
+
   autoload :ActiveRecordError, 'active_record/base'
   autoload :ConnectionNotEstablished, 'active_record/base'
 
@@ -49,6 +51,7 @@ module ActiveRecord
   autoload :Callbacks, 'active_record/callbacks'
   autoload :Dirty, 'active_record/dirty'
   autoload :DynamicFinderMatch, 'active_record/dynamic_finder_match'
+  autoload :DynamicScopeMatch, 'active_record/dynamic_scope_match'
   autoload :Migration, 'active_record/migration'
   autoload :Migrator, 'active_record/migration'
   autoload :NamedScope, 'active_record/named_scope'
@@ -58,6 +61,7 @@ module ActiveRecord
   autoload :Schema, 'active_record/schema'
   autoload :SchemaDumper, 'active_record/schema_dumper'
   autoload :Serialization, 'active_record/serialization'
+  autoload :SessionStore, 'active_record/session_store'
   autoload :TestCase, 'active_record/test_case'
   autoload :Timestamp, 'active_record/timestamp'
   autoload :Transactions, 'active_record/transactions'

@@ -226,18 +226,18 @@ Above +rake db:migrate+ runs any pending migrations on the _developemnt_ environ
 
 NOTE: +db:test:prepare+ will fail with an error if db/schema.rb doesn't exists.
 
-==== Rake Tasks for Preparing you Application for Testing ==
+==== Rake Tasks for Preparing your Application for Testing ====
 
 [grid="all"]
-------------------------------------------------------------------------------------
-Tasks                           Description
-------------------------------------------------------------------------------------
-+rake db:test:clone+            Recreate the test database from the current environment's database schema
-+rake db:test:clone_structure+  Recreate the test databases from the development structure
-+rake db:test:load+             Recreate the test database from the current +schema.rb+
-+rake db:test:prepare+          Check for pending migrations and load the test schema
-+rake db:test:purge+            Empty the test database.
-------------------------------------------------------------------------------------
+|------------------------------------------------------------------------------------
+|Tasks                           Description
+|------------------------------------------------------------------------------------
+|+rake db:test:clone+            Recreate the test database from the current environment's database schema
+|+rake db:test:clone_structure+  Recreate the test databases from the development structure
+|+rake db:test:load+             Recreate the test database from the current +schema.rb+
+|+rake db:test:prepare+          Check for pending migrations and load the test schema
+|+rake db:test:purge+            Empty the test database.
+|------------------------------------------------------------------------------------
 
 TIP: You can see all these rake tasks and their descriptions by running +rake \-\-tasks \-\-describe+
 

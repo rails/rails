@@ -1,8 +1,97 @@
 module ActionView #:nodoc:
   class Template
+    class Path
+      attr_reader :path, :paths
+      delegate :hash, :inspect, :to => :path
+
+      def initialize(path)
+        raise ArgumentError, "path already is a Path class" if path.is_a?(Path)
+        @path = path.freeze
+      end
+
+      def to_s
+        if defined?(RAILS_ROOT)
+          path.to_s.sub(/^#{Regexp.escape(File.expand_path(RAILS_ROOT))}\//, '')
+        else
+          path.to_s
+        end
+      end
+
+      def to_str
+        path.to_str
+      end
+
+      def ==(path)
+        to_str == path.to_str
+      end
+
+      def eql?(path)
+        to_str == path.to_str
+      end
+
+      # Returns a ActionView::Template object for the given path string. The
+      # input path should be relative to the view path directory,
+      # +hello/index.html.erb+. This method also has a special exception to
+      # match partial file names without a handler extension. So
+      # +hello/index.html+ will match the first template it finds with a
+      # known template extension, +hello/index.html.erb+. Template extensions
+      # should not be confused with format extensions +html+, +js+, +xml+,
+      # etc. A format must be supplied to match a formated file. +hello/index+
+      # will never match +hello/index.html.erb+.
+      def [](path)
+        templates_in_path do |template|
+          if template.accessible_paths.include?(path)
+            return template
+          end
+        end
+        nil
+      end
+
+      private
+        def templates_in_path
+          (Dir.glob("#{@path}/**/*/**") | Dir.glob("#{@path}/**")).each do |file|
+            yield create_template(file) unless File.directory?(file)
+          end
+        end
+
+        def create_template(file)
+          Template.new(file.split("#{self}/").last, self)
+        end
+    end
+
+    class EagerPath < Path
+      def initialize(path)
+        super
+
+        @paths = {}
+        templates_in_path do |template|
+          template.load!
+          template.accessible_paths.each do |path|
+            @paths[path] = template
+          end
+        end
+        @paths.freeze
+      end
+
+      def [](path)
+        @paths[path]
+      end
+    end
+
     extend TemplateHandlers
     extend ActiveSupport::Memoizable
     include Renderable
+
+    # Templates that are exempt from layouts
+    @@exempt_from_layout = Set.new([/\.rjs$/])
+
+    # Don't render layouts for templates with the given extensions.
+    def self.exempt_from_layout(*extensions)
+      regexps = extensions.collect do |extension|
+        extension.is_a?(Regexp) ? extension : /\.#{Regexp.escape(extension.to_s)}$/
+      end
+      @@exempt_from_layout.merge(regexps)
+    end
 
     attr_accessor :filename, :load_path, :base_path, :name, :format, :extension
     delegate :to_s, :to => :path
@@ -15,6 +104,18 @@ module ActionView #:nodoc:
 
       # Extend with partial super powers
       extend RenderablePartial if @name =~ /^_/
+    end
+
+    def accessible_paths
+      paths = []
+      paths << path
+      paths << path_without_extension
+      if multipart?
+        formats = format.split(".")
+        paths << "#{path_without_format_and_extension}.#{formats.first}"
+        paths << "#{path_without_format_and_extension}.#{formats.second}"
+      end
+      paths
     end
 
     def format_and_extension
@@ -57,6 +158,10 @@ module ActionView #:nodoc:
     end
     memoize :relative_path
 
+    def exempt_from_layout?
+      @@exempt_from_layout.any? { |exempted| path =~ exempted }
+    end
+
     def mtime
       File.mtime(filename)
     end
@@ -88,12 +193,12 @@ module ActionView #:nodoc:
       File.mtime(filename) > mtime
     end
 
-    def loaded?
-      @loaded
+    def recompile?
+      !@cached
     end
 
     def load!
-      @loaded = true
+      @cached = true
       freeze
     end
 
@@ -105,7 +210,7 @@ module ActionView #:nodoc:
       def find_full_path(path, load_paths)
         load_paths = Array(load_paths) + [nil]
         load_paths.each do |load_path|
-          file = [load_path, path].compact.join('/')
+          file = load_path ? "#{load_path.to_str}/#{path}" : path
           return load_path, file if File.file?(file)
         end
         raise MissingTemplate.new(load_paths, path)

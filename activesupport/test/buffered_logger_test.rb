@@ -137,4 +137,10 @@ class BufferedLoggerTest < Test::Unit::TestCase
     assert @output.string.include?("a\nb\nc\n")
     assert @output.string.include?("x\ny\nz\n")
   end
+
+  def test_flush_should_remove_empty_buffers
+    @logger.send :buffer
+    @logger.expects :clear_buffer
+    @logger.flush
+  end
 end

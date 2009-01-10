@@ -30,7 +30,7 @@ module Rails
     end
     
     # The Rails::Plugin::FileSystemLocator will try to locate plugins by examining the directories
-    # the the paths given in configuration.plugin_paths. Any plugins that can be found are returned
+    # in the paths given in configuration.plugin_paths. Any plugins that can be found are returned
     # in a list. 
     #
     # The criteria for a valid plugin in this case is found in Rails::Plugin#valid?, although

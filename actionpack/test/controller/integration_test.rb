@@ -4,11 +4,29 @@ uses_mocha 'integration' do
 
 class SessionTest < Test::Unit::TestCase
   StubApp = lambda { |env|
-    [200, {"Content-Type" => "text/html"}, "Hello, World!"]
+    [200, {"Content-Type" => "text/html", "Content-Length" => "13"}, "Hello, World!"]
   }
 
   def setup
+    @credentials = {
+      :username => "username",
+      :realm    => "MyApp",
+      :nonce    => ActionController::HttpAuthentication::Digest.nonce("session_id"),
+      :qop      => "auth",
+      :nc       => "00000001",
+      :cnonce   => "0a4f113b",
+      :opaque   => ActionController::HttpAuthentication::Digest.opaque("session_id"),
+      :uri      => "/index"
+    }
+
     @session = ActionController::Integration::Session.new(StubApp)
+    @session.nonce = @credentials[:nonce]
+    @session.opaque = @credentials[:opaque]
+    @session.realm = @credentials[:realm]
+  end
+
+  def encoded_credentials(method)
+    ActionController::HttpAuthentication::Digest.encode_credentials(method, @credentials, "password")
   end
 
   def test_https_bang_works_and_sets_truth_by_default
@@ -28,14 +46,6 @@ class SessionTest < Test::Unit::TestCase
   def test_follow_redirect_raises_when_no_redirect
     @session.stubs(:redirect?).returns(false)
     assert_raise(RuntimeError) { @session.follow_redirect! }
-  end
-
-  def test_follow_redirect_calls_get_and_returns_status
-    @session.stubs(:redirect?).returns(true)
-    @session.stubs(:headers).returns({"location" => ["www.google.com"]})
-    @session.stubs(:status).returns(200)
-    @session.expects(:get)
-    assert_equal 200, @session.follow_redirect!
   end
 
   def test_request_via_redirect_uses_given_method
@@ -140,6 +150,76 @@ class SessionTest < Test::Unit::TestCase
     @session.head(path,params,headers)
   end
 
+  def test_get_with_basic 
+    path = "/index"; params = "blah"; headers = {:location => 'blah'} 
+    expected_headers = headers.merge(:authorization => "Basic dXNlcm5hbWU6cGFzc3dvcmQ=\n")  
+    @session.expects(:process).with(:get,path,params,expected_headers) 
+    @session.get_with_basic(path,params,headers,'username','password') 
+  end 
+ 
+  def test_post_with_basic 
+    path = "/index"; params = "blah"; headers = {:location => 'blah'} 
+    expected_headers = headers.merge(:authorization => "Basic dXNlcm5hbWU6cGFzc3dvcmQ=\n")  
+    @session.expects(:process).with(:post,path,params,expected_headers) 
+    @session.post_with_basic(path,params,headers,'username','password') 
+  end 
+ 
+  def test_put_with_basic 
+    path = "/index"; params = "blah"; headers = {:location => 'blah'} 
+    expected_headers = headers.merge(:authorization => "Basic dXNlcm5hbWU6cGFzc3dvcmQ=\n")  
+    @session.expects(:process).with(:put,path,params,expected_headers) 
+    @session.put_with_basic(path,params,headers,'username','password') 
+  end 
+ 
+  def test_delete_with_basic 
+    path = "/index"; params = "blah"; headers = {:location => 'blah'} 
+    expected_headers = headers.merge(:authorization => "Basic dXNlcm5hbWU6cGFzc3dvcmQ=\n")  
+    @session.expects(:process).with(:delete,path,params,expected_headers) 
+    @session.delete_with_basic(path,params,headers,'username','password') 
+  end 
+ 
+  def test_head_with_basic 
+    path = "/index"; params = "blah"; headers = {:location => 'blah'} 
+    expected_headers = headers.merge(:authorization => "Basic dXNlcm5hbWU6cGFzc3dvcmQ=\n")  
+    @session.expects(:process).with(:head,path,params,expected_headers) 
+    @session.head_with_basic(path,params,headers,'username','password') 
+  end 
+ 
+  def test_get_with_digest 
+    path = "/index"; params = "blah"; headers = {:location => 'blah'} 
+    expected_headers = headers.merge(:authorization => encoded_credentials(:get))
+    @session.expects(:process).with(:get,path,params,expected_headers) 
+    @session.get_with_digest(path,params,headers,'username','password') 
+  end 
+ 
+  def test_post_with_digest 
+    path = "/index"; params = "blah"; headers = {:location => 'blah'} 
+    expected_headers = headers.merge(:authorization => encoded_credentials(:post))
+    @session.expects(:process).with(:post,path,params,expected_headers) 
+    @session.post_with_digest(path,params,headers,'username','password') 
+  end 
+ 
+  def test_put_with_digest 
+    path = "/index"; params = "blah"; headers = {:location => 'blah'} 
+    expected_headers = headers.merge(:authorization => encoded_credentials(:put)) 
+    @session.expects(:process).with(:put,path,params,expected_headers) 
+    @session.put_with_digest(path,params,headers,'username','password') 
+  end 
+ 
+  def test_delete_with_digest 
+    path = "/index"; params = "blah"; headers = {:location => 'blah'} 
+    expected_headers = headers.merge(:authorization => encoded_credentials(:delete))
+    @session.expects(:process).with(:delete,path,params,expected_headers) 
+    @session.delete_with_digest(path,params,headers,'username','password') 
+  end 
+ 
+  def test_head_with_digest 
+    path = "/index"; params = "blah"; headers = {:location => 'blah'} 
+    expected_headers = headers.merge(:authorization => encoded_credentials(:head)) 
+    @session.expects(:process).with(:head,path,params,expected_headers) 
+    @session.head_with_digest(path,params,headers,'username','password') 
+  end 
+
   def test_xml_http_request_get
     path = "/index"; params = "blah"; headers = {:location => 'blah'}
     headers_after_xhr = headers.merge(
@@ -239,8 +319,6 @@ end
 
 class IntegrationProcessTest < ActionController::IntegrationTest
   class IntegrationController < ActionController::Base
-    session :off
-
     def get
       respond_to do |format|
         format.html { render :text => "OK", :status => 200 }
@@ -323,6 +401,10 @@ class IntegrationProcessTest < ActionController::IntegrationTest
       assert_equal "<html><body>You are being <a href=\"http://www.example.com/get\">redirected</a>.</body></html>", response.body
       assert_kind_of HTML::Document, html_document
       assert_equal 1, request_count
+
+      follow_redirect!
+      assert_response :success
+      assert_equal "/get", path
     end
   end
 
@@ -377,6 +459,37 @@ class IntegrationProcessTest < ActionController::IntegrationTest
         yield
       end
     end
+end
+
+class MetalTest < ActionController::IntegrationTest
+  class Poller
+    def self.call(env)
+      if env["PATH_INFO"] =~ /^\/success/
+        [200, {"Content-Type" => "text/plain", "Content-Length" => "12"}, "Hello World!"]
+      else
+        [404, {"Content-Type" => "text/plain", "Content-Length" => "0"}, '']
+      end
+    end
+  end
+
+  def setup
+    @integration_session = ActionController::Integration::Session.new(Poller)
+  end
+
+  def test_successful_get
+    get "/success"
+    assert_response 200
+    assert_response :success
+    assert_response :ok
+    assert_equal "Hello World!", response.body
+  end
+
+  def test_failed_get
+    get "/failure"
+    assert_response 404
+    assert_response :not_found
+    assert_equal '', response.body
+  end
 end
 
 end

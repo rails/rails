@@ -36,9 +36,11 @@ class OrderedHashTest < Test::Unit::TestCase
 
     @ordered_hash[key] = value
     assert_equal @keys.length + 1, @ordered_hash.length
+    assert_equal @ordered_hash.keys.length, @ordered_hash.length
 
     assert_equal value, @ordered_hash.delete(key)
     assert_equal @keys.length, @ordered_hash.length
+    assert_equal @ordered_hash.keys.length, @ordered_hash.length
 
     assert_nil @ordered_hash.delete(bad_key)
   end
@@ -72,5 +74,70 @@ class OrderedHashTest < Test::Unit::TestCase
     values = []
     @ordered_hash.each_value { |v| values << v }
     assert_equal @values, values
+  end
+
+  def test_each
+    values = []
+    @ordered_hash.each {|key, value| values << value}
+    assert_equal @values, values
+  end
+
+  def test_each_with_index
+    @ordered_hash.each_with_index { |pair, index| assert_equal [@keys[index], @values[index]], pair}
+  end
+
+  def test_each_pair
+    values = []
+    keys = []
+    @ordered_hash.each_pair do |key, value|
+      keys << key
+      values << value
+    end
+    assert_equal @values, values
+    assert_equal @keys, keys
+  end
+
+  def test_delete_if
+    (copy = @ordered_hash.dup).delete('pink')
+    assert_equal copy, @ordered_hash.delete_if { |k, _| k == 'pink' }
+    assert !@ordered_hash.keys.include?('pink')
+  end
+
+  def test_reject!
+    (copy = @ordered_hash.dup).delete('pink')
+    @ordered_hash.reject! { |k, _| k == 'pink' }
+    assert_equal copy, @ordered_hash
+    assert !@ordered_hash.keys.include?('pink')
+  end
+
+  def test_reject
+    copy = @ordered_hash.dup
+    new_ordered_hash = @ordered_hash.reject { |k, _| k == 'pink' }
+    assert_equal copy, @ordered_hash
+    assert !new_ordered_hash.keys.include?('pink')
+  end
+
+  def test_clear
+    @ordered_hash.clear
+    assert_equal [], @ordered_hash.keys
+  end
+
+  def test_merge
+    other_hash =  ActiveSupport::OrderedHash.new
+    other_hash['purple'] = '800080'
+    other_hash['violet'] = 'ee82ee'
+    merged = @ordered_hash.merge other_hash
+    assert_equal merged.length, @ordered_hash.length + other_hash.length
+    assert_equal @keys + ['purple', 'violet'], merged.keys
+
+    @ordered_hash.merge! other_hash
+    assert_equal @ordered_hash, merged
+    assert_equal @ordered_hash.keys, merged.keys
+  end
+
+  def test_shift
+    pair = @ordered_hash.shift
+    assert_equal [@keys.first, @values.first], pair
+    assert !@ordered_hash.keys.include?(pair.first)
   end
 end

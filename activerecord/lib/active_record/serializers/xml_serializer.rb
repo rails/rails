@@ -23,11 +23,12 @@ module ActiveRecord #:nodoc:
     #   </topic>
     #
     # This behavior can be controlled with <tt>:only</tt>, <tt>:except</tt>,
-    # <tt>:skip_instruct</tt>, <tt>:skip_types</tt> and <tt>:dasherize</tt>.
+    # <tt>:skip_instruct</tt>, <tt>:skip_types</tt>, <tt>:dasherize</tt> and <tt>:camelize</tt> .
     # The <tt>:only</tt> and <tt>:except</tt> options are the same as for the
     # +attributes+ method. The default is to dasherize all column names, but you
-    # can disable this setting <tt>:dasherize</tt> to +false+. To not have the
-    # column type included in the XML output set <tt>:skip_types</tt> to +true+.
+    # can disable this setting <tt>:dasherize</tt> to +false+. Setting <tt>:camelize</tt>
+    # to +true+ will camelize all column names - this also overrides <tt>:dasherize</tt>.
+    # To not have the column type included in the XML output set <tt>:skip_types</tt> to +true+.
     #
     # For instance:
     #
@@ -178,11 +179,20 @@ module ActiveRecord #:nodoc:
 
     def root
       root = (options[:root] || @record.class.to_s.underscore).to_s
-      dasherize? ? root.dasherize : root
+      reformat_name(root)
     end
 
     def dasherize?
       !options.has_key?(:dasherize) || options[:dasherize]
+    end
+
+    def camelize?
+      options.has_key?(:camelize) && options[:camelize]
+    end
+
+    def reformat_name(name)
+      name = name.camelize if camelize?
+      dasherize? ? name.dasherize : name
     end
 
     def serializable_attributes
@@ -212,7 +222,7 @@ module ActiveRecord #:nodoc:
 
     def add_tag(attribute)
       builder.tag!(
-        dasherize? ? attribute.name.dasherize : attribute.name,
+        reformat_name(attribute.name),
         attribute.value.to_s,
         attribute.decorations(!options[:skip_types])
       )
@@ -220,8 +230,7 @@ module ActiveRecord #:nodoc:
 
     def add_associations(association, records, opts)
       if records.is_a?(Enumerable)
-        tag = association.to_s
-        tag = tag.dasherize if dasherize?
+        tag = reformat_name(association.to_s)
         if records.empty?
           builder.tag!(tag, :type => :array)
         else

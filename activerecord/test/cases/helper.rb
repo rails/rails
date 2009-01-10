@@ -9,6 +9,8 @@ require 'active_record/test_case'
 require 'active_record/fixtures'
 require 'connection'
 
+require 'cases/repair_helper'
+
 # Show backtraces for deprecated behavior for quicker cleanup.
 ActiveSupport::Deprecation.debug = true
 
@@ -24,6 +26,7 @@ end
 
 def uses_mocha(description)
   require 'rubygems'
+  gem 'mocha', '>= 0.9.3'
   require 'mocha'
   yield
 rescue LoadError
@@ -59,6 +62,8 @@ end
 
 class ActiveSupport::TestCase
   include ActiveRecord::TestFixtures
+  include ActiveRecord::Testing::RepairHelper
+
   self.fixture_path = FIXTURES_ROOT
   self.use_instantiated_fixtures  = false
   self.use_transactional_fixtures = true

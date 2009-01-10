@@ -20,7 +20,7 @@ module ActionController
         @quiet = true
         print '  '
 
-        result = Benchmark.realtime do
+        ms = Benchmark.ms do
           n.times do |i|
             run(profiling)
             print_progress(i)
@@ -28,7 +28,7 @@ module ActionController
         end
 
         puts
-        result
+        ms
       ensure
         @quiet = false
       end
@@ -88,7 +88,7 @@ module ActionController
       puts 'Warming up once'
 
       elapsed = warmup(sandbox)
-      puts '%.2f sec, %d requests, %d req/sec' % [elapsed, sandbox.request_count, sandbox.request_count / elapsed]
+      puts '%.0f ms, %d requests, %d req/sec' % [elapsed, sandbox.request_count, 1000 * sandbox.request_count / elapsed]
       puts "\n#{options[:benchmark] ? 'Benchmarking' : 'Profiling'} #{options[:n]}x"
 
       options[:benchmark] ? benchmark(sandbox) : profile(sandbox)
@@ -106,13 +106,13 @@ module ActionController
 
     def benchmark(sandbox, profiling = false)
       sandbox.request_count = 0
-      elapsed = sandbox.benchmark(options[:n], profiling).to_f
+      elapsed = sandbox.benchmark(options[:n], profiling)
       count = sandbox.request_count.to_i
-      puts '%.2f sec, %d requests, %d req/sec' % [elapsed, count, count / elapsed]
+      puts '%.0f ms, %d requests, %d req/sec' % [elapsed, count, 1000 * count / elapsed]
     end
 
     def warmup(sandbox)
-      Benchmark.realtime { sandbox.run(false) }
+      Benchmark.ms { sandbox.run(false) }
     end
 
     def default_options

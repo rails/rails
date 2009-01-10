@@ -2,14 +2,14 @@ module ActionController
   # Dispatches requests to the appropriate controller and takes care of
   # reloading the app after each request when Dependencies.load? is true.
   class Dispatcher
-    @@guard = Mutex.new
-
     class << self
       def define_dispatcher_callbacks(cache_classes)
         unless cache_classes
           # Development mode callbacks
           before_dispatch :reload_application
           after_dispatch :cleanup_application
+
+          ActionView::Helpers::AssetTagHelper.cache_asset_timestamps = false
         end
 
         if defined?(ActiveRecord)
@@ -45,36 +45,32 @@ module ActionController
     end
 
     cattr_accessor :middleware
-    self.middleware = MiddlewareStack.new
-    self.middleware.use "ActionController::Failsafe"
+    self.middleware = MiddlewareStack.new do |middleware|
+      middlewares = File.join(File.dirname(__FILE__), "middlewares.rb")
+      middleware.instance_eval(File.read(middlewares))
+    end
 
     include ActiveSupport::Callbacks
     define_callbacks :prepare_dispatch, :before_dispatch, :after_dispatch
 
-    # DEPRECATE: Remove arguments
+    # DEPRECATE: Remove arguments, since they are only used by CGI
     def initialize(output = $stdout, request = nil, response = nil)
-      @output, @request, @response = output, request, response
+      @output = output
       @app = @@middleware.build(lambda { |env| self.dup._call(env) })
     end
 
-    def dispatch_unlocked
+    def dispatch
       begin
         run_callbacks :before_dispatch
-        handle_request
+        Routing::Routes.call(@env)
       rescue Exception => exception
-        failsafe_rescue exception
+        if controller ||= (::ApplicationController rescue Base)
+          controller.call_with_exception(@env, exception).to_a
+        else
+          raise exception
+        end
       ensure
         run_callbacks :after_dispatch, :enumerator => :reverse_each
-      end
-    end
-
-    def dispatch
-      if ActionController::Base.allow_concurrency
-        dispatch_unlocked
-      else
-        @@guard.synchronize do
-          dispatch_unlocked
-        end
       end
     end
 
@@ -88,8 +84,7 @@ module ActionController
     end
 
     def _call(env)
-      @request = RackRequest.new(env)
-      @response = RackResponse.new(@request)
+      @env = env
       dispatch
     end
 
@@ -98,7 +93,6 @@ module ActionController
       run_callbacks :prepare_dispatch
 
       Routing::Routes.reload
-      ActionView::Helpers::AssetTagHelper::AssetTag::Cache.clear
     end
 
     # Cleanup the application by clearing out loaded classes so they can
@@ -115,23 +109,8 @@ module ActionController
 
     def checkin_connections
       # Don't return connection (and peform implicit rollback) if this request is a part of integration test
-      # TODO: This callback should have direct access to env
-      return if @request.key?("action_controller.test")
+      return if @env.key?("rack.test")
       ActiveRecord::Base.clear_active_connections!
     end
-
-    protected
-      def handle_request
-        @controller = Routing::Routes.recognize(@request)
-        @controller.process(@request, @response).out
-      end
-
-      def failsafe_rescue(exception)
-        if @controller ||= (::ApplicationController rescue Base)
-          @controller.process_with_exception(@request, @response, exception).out
-        else
-          raise exception
-        end
-      end
   end
 end

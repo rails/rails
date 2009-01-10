@@ -11,7 +11,7 @@ module ActionController
       @app.call(env)
     rescue Exception => exception
       # Reraise exception in test environment
-      if env["action_controller.test"]
+      if env["rack.test"]
         raise exception
       else
         failsafe_response(exception)
@@ -42,8 +42,8 @@ module ActionController
       end
 
       def failsafe_logger
-        if defined?(::RAILS_DEFAULT_LOGGER) && !::RAILS_DEFAULT_LOGGER.nil?
-          ::RAILS_DEFAULT_LOGGER
+        if defined?(Rails) && Rails.logger
+          Rails.logger
         else
           Logger.new($stderr)
         end

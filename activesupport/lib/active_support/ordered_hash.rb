@@ -4,62 +4,85 @@ module ActiveSupport
   if RUBY_VERSION >= '1.9'
     OrderedHash = ::Hash
   else
-    class OrderedHash < Array #:nodoc:
-      def []=(key, value)
-        if pair = assoc(key)
-          pair.pop
-          pair << value
-        else
-          self << [key, value]
-        end
-        value
+    class OrderedHash < Hash #:nodoc:
+      def initialize(*args, &block)
+        super
+        @keys = []
       end
 
-      def [](key)
-        pair = assoc(key)
-        pair ? pair.last : nil
+      def []=(key, value)
+        if !has_key?(key)
+          @keys << key
+        end
+        super
       end
 
       def delete(key)
-        pair = assoc(key)
-        pair ? array_index = index(pair) : nil
-        array_index ? delete_at(array_index).last : nil
+        if has_key? key
+          index = @keys.index(key)
+          @keys.delete_at index
+        end
+        super
+      end
+
+      def reject!
+        super
+        sync_keys!
+        self
+      end
+
+      def reject(&block)
+        dup.reject!(&block)
       end
 
       def keys
-        collect { |key, value| key }
+        @keys
       end
 
       def values
-        collect { |key, value| value }
+        @keys.collect { |key| self[key] }
       end
 
       def to_hash
-        returning({}) do |hash|
-          each { |array| hash[array[0]] = array[1] }
-        end
+        Hash.new(self)
       end
-
-      def has_key?(k)
-        !assoc(k).nil?
-      end
-
-      alias_method :key?, :has_key?
-      alias_method :include?, :has_key?
-      alias_method :member?, :has_key?
-
-      def has_value?(v)
-        any? { |key, value| value == v }
-      end
-
-      alias_method :value?, :has_value?
 
       def each_key
-        each { |key, value| yield key }
+        @keys.each { |key| yield key }
       end
 
       def each_value
-        each { |key, value| yield value }
+        @keys.each { |key| yield self[key]}
+      end
+
+      def each
+        keys.each {|key| yield [key, self[key]]}
+      end
+
+      alias_method :each_pair, :each
+
+      def clear
+        super
+        @keys.clear
+        self
+      end
+
+      def shift
+        k = @keys.first
+        v = delete(k)
+        [k, v]
+      end
+
+      def merge(other_hash)
+        result = dup
+        other_hash.each {|k,v| result[k]=v}
+        result
+      end
+
+      private
+
+      def sync_keys!
+        @keys.delete_if {|k| !has_key?(k)}
       end
     end
   end

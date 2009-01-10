@@ -72,6 +72,30 @@ class Module
   #   invoice.customer_name    # => "John Doe"
   #   invoice.customer_address # => "Vimmersvej 13"
   #
+  # If the object to which you delegate can be nil, you may want to use the
+  # :allow_nil option. In that case, it returns nil instead of raising a
+  # NoMethodError exception:
+  #
+  #  class Foo
+  #    attr_accessor :bar
+  #    def initialize(bar = nil)
+  #      @bar = bar
+  #    end
+  #    delegate :zoo, :to => :bar
+  #  end
+  #
+  #  Foo.new.zoo   # raises NoMethodError exception (you called nil.zoo)
+  #
+  #  class Foo
+  #    attr_accessor :bar
+  #    def initialize(bar = nil)
+  #      @bar = bar
+  #    end
+  #    delegate :zoo, :to => :bar, :allow_nil => true
+  #  end
+  #
+  #  Foo.new.zoo   # returns nil
+  #
   def delegate(*methods)
     options = methods.pop
     unless options.is_a?(Hash) && to = options[:to]
@@ -84,11 +108,13 @@ class Module
 
     prefix = options[:prefix] && "#{options[:prefix] == true ? to : options[:prefix]}_"
 
+    allow_nil = options[:allow_nil] && "#{to} && "
+
     methods.each do |method|
       module_eval(<<-EOS, "(__DELEGATION__)", 1)
-        def #{prefix}#{method}(*args, &block)
-          #{to}.__send__(#{method.inspect}, *args, &block)
-        end
+        def #{prefix}#{method}(*args, &block)                           # def customer_name(*args, &block)
+          #{allow_nil}#{to}.__send__(#{method.inspect}, *args, &block)  #   client && client.__send__(:name, *args, &block)
+        end                                                             # end
       EOS
     end
   end

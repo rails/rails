@@ -78,6 +78,8 @@ class DateHelperSelectTagsI18nTests < Test::Unit::TestCase
 
   uses_mocha 'date_helper_select_tags_i18n_tests' do
     def setup
+      @prompt_defaults = {:year => 'Year', :month => 'Month', :day => 'Day', :hour => 'Hour', :minute => 'Minute', :second => 'Seconds'}
+
       I18n.stubs(:translate).with(:'date.month_names', :locale => 'en').returns Date::MONTHNAMES
     end
 
@@ -96,6 +98,15 @@ class DateHelperSelectTagsI18nTests < Test::Unit::TestCase
     def test_select_month_given_use_short_month_option_translates_abbr_monthnames
       I18n.expects(:translate).with(:'date.abbr_month_names', :locale => 'en').returns Date::ABBR_MONTHNAMES
       select_month(8, :locale => 'en', :use_short_month => true)
+    end
+
+    def test_date_or_time_select_translates_prompts
+      @prompt_defaults.each do |key, prompt|
+        I18n.expects(:translate).with(('datetime.prompts.' + key.to_s).to_sym, :locale => 'en').returns prompt
+      end
+
+      I18n.expects(:translate).with(:'date.order', :locale => 'en').returns [:year, :month, :day]
+      datetime_select('post', 'updated_at', :locale => 'en', :include_seconds => true, :prompt => true)
     end
 
     # date_or_time_select

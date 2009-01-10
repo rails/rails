@@ -402,6 +402,7 @@ module ActionController
         if rjs_type
           if rjs_type == :insert
             position  = args.shift
+            id = args.shift
             insertion = "insert_#{position}".to_sym
             raise ArgumentError, "Unknown RJS insertion type #{position}" unless RJS_STATEMENTS[insertion]
             statement = "(#{RJS_STATEMENTS[insertion]})"
@@ -587,7 +588,7 @@ module ActionController
         def response_from_page_or_rjs()
           content_type = @response.content_type
 
-          if content_type && content_type =~ /text\/javascript/
+          if content_type && Mime::JS =~ content_type
             body = @response.body.dup
             root = HTML::Node.new(nil)
 

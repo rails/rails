@@ -8,23 +8,24 @@ require 'fileutils'
 module Rails
   class TemplateRunner
     attr_reader :root
+    attr_writer :logger
 
     def initialize(template, root = '') # :nodoc:
-      @root = File.join(Dir.pwd, root)
+      @root = File.expand_path(File.directory?(root) ? root : File.join(Dir.pwd, root))
 
-      puts "applying template: #{template}"
+      log 'applying', "template: #{template}"
 
       load_template(template)
 
-      puts "#{template} applied."
+      log 'applied', "#{template}"
     end
 
     def load_template(template)
       begin
         code = open(template).read
         in_root { self.instance_eval(code) }
-      rescue LoadError
-        raise "The template [#{template}] could not be loaded."
+      rescue LoadError, Errno::ENOENT => e
+        raise "The template [#{template}] could not be loaded. Error: #{e}"
       end
     end
 
@@ -41,8 +42,8 @@ module Rails
     #
     #   file("config/apach.conf", "your apache config")
     #
-    def file(filename, data = nil, &block)
-      puts "creating file #{filename}"
+    def file(filename, data = nil, log_action = true, &block)
+      log 'file', filename if log_action
       dir, file = [File.dirname(filename), File.basename(filename)]
 
       inside(dir) do
@@ -66,7 +67,7 @@ module Rails
     #   plugin 'restful-authentication', :svn => 'svn://svnhub.com/technoweenie/restful-authentication/trunk'
     #
     def plugin(name, options)
-      puts "installing plugin #{name}"
+      log 'plugin', name
 
       if options[:git] && options[:submodule]
         in_root do
@@ -74,28 +75,36 @@ module Rails
         end
       elsif options[:git] || options[:svn]
         in_root do
-          `script/plugin install #{options[:svn] || options[:git]}`
+          run("script/plugin install #{options[:svn] || options[:git]}", false)
         end
       else
-        puts "! no git or svn provided for #{name}.  skipping..."
+        log "! no git or svn provided for #{name}.  skipping..."
       end
     end
 
     # Adds an entry into config/environment.rb for the supplied gem :
     def gem(name, options = {})
-      puts "adding gem #{name}"
+      log 'gem', name
 
-      sentinel = 'Rails::Initializer.run do |config|'
       gems_code = "config.gem '#{name}'"
 
       if options.any?
-        opts = options.inject([]) {|result, h| result << [":#{h[0]} => '#{h[1]}'"] }.join(", ")
+        opts = options.inject([]) {|result, h| result << [":#{h[0]} => '#{h[1]}'"] }.sort.join(", ")
         gems_code << ", #{opts}"
       end
 
+      environment gems_code
+    end
+
+    # Adds a line inside the Initializer block for config/environment.rb. Used by #gem
+    def environment(data = nil, &block)
+      sentinel = 'Rails::Initializer.run do |config|'
+
+      data = block.call if !data && block_given?
+
       in_root do
         gsub_file 'config/environment.rb', /(#{Regexp.escape(sentinel)})/mi do |match|
-          "#{match}\n  #{gems_code}"
+          "#{match}\n " << data
         end
       end
     end
@@ -111,11 +120,11 @@ module Rails
     def git(command = {})
       in_root do
         if command.is_a?(Symbol)
-          puts "running git #{command}"
+          log 'running', "git #{command}"
           Git.run(command.to_s)
         else
           command.each do |command, options|
-            puts "running git #{command} #{options}"
+            log 'running', "git #{command} #{options}"
             Git.run("#{command} #{options}")
           end
         end
@@ -135,16 +144,8 @@ module Rails
     #   vendor("foreign.rb", "# Foreign code is fun")
     #
     def vendor(filename, data = nil, &block)
-      puts "vendoring file #{filename}"
-      inside("vendor") do |folder|
-        File.open("#{folder}/#{filename}", "w") do |f|
-          if block_given?
-            f.write(block.call)
-          else
-            f.write(data)
-          end
-        end
-      end
+      log 'vendoring', filename
+      file("vendor/#{filename}", data, false, &block)
     end
 
     # Create a new file in the lib/ directory. Code can be specified
@@ -158,17 +159,9 @@ module Rails
     #
     #   lib("foreign.rb", "# Foreign code is fun")
     #
-    def lib(filename, data = nil)
-      puts "add lib file #{filename}"
-      inside("lib") do |folder|
-        File.open("#{folder}/#{filename}", "w") do |f|
-          if block_given?
-            f.write(block.call)
-          else
-            f.write(data)
-          end
-        end
-      end
+    def lib(filename, data = nil, &block)
+      log 'lib', filename
+      file("lib/#{filename}", data, false, &block)
     end
 
     # Create a new Rakefile with the provided code (either in a block or a string).
@@ -190,16 +183,8 @@ module Rails
     #   rakefile("seed.rake", "puts 'im plantin ur seedz'")
     #
     def rakefile(filename, data = nil, &block)
-      puts "adding rakefile #{filename}"
-      inside("lib/tasks") do |folder|
-        File.open("#{folder}/#{filename}", "w") do |f|
-          if block_given?
-            f.write(block.call)
-          else
-            f.write(data)
-          end
-        end
-      end
+      log 'rakefile', filename
+      file("lib/tasks/#{filename}", data, false, &block)
     end
 
     # Create a new initializer with the provided code (either in a block or a string).
@@ -219,16 +204,8 @@ module Rails
     #   initializer("api.rb", "API_KEY = '123456'")
     #
     def initializer(filename, data = nil, &block)
-      puts "adding initializer #{filename}"
-      inside("config/initializers") do |folder|
-        File.open("#{folder}/#{filename}", "w") do |f|
-          if block_given?
-            f.write(block.call)
-          else
-            f.write(data)
-          end
-        end
-      end
+      log 'initializer', filename
+      file("config/initializers/#{filename}", data, false, &block)
     end
 
     # Generate something using a generator from Rails or a plugin.
@@ -240,10 +217,10 @@ module Rails
     #   generate(:authenticated, "user session")
     #
     def generate(what, *args)
-      puts "generating #{what}"
+      log 'generating', what
       argument = args.map(&:to_s).flatten.join(" ")
 
-      in_root { `#{root}/script/generate #{what} #{argument}` }
+      in_root { run("script/generate #{what} #{argument}", false) }
     end
 
     # Executes a command
@@ -254,8 +231,8 @@ module Rails
     #     run('ln -s ~/edge rails)
     #   end
     #
-    def run(command)
-      puts "executing #{command} from #{Dir.pwd}"
+    def run(command, log_action = true)
+      log 'executing',  "#{command} from #{Dir.pwd}" if log_action
       `#{command}`
     end
 
@@ -268,10 +245,10 @@ module Rails
     #   rake("gems:install", :sudo => true)
     #
     def rake(command, options = {})
-      puts "running rake task #{command}"
+      log 'rake', command
       env = options[:env] || 'development'
       sudo = options[:sudo] ? 'sudo ' : ''
-      in_root { `#{sudo}rake #{command} RAILS_ENV=#{env}` }
+      in_root { run("#{sudo}rake #{command} RAILS_ENV=#{env}", false) }
     end
 
     # Just run the capify command in root
@@ -281,7 +258,8 @@ module Rails
     #   capify!
     #
     def capify!
-      in_root { `capify .` }
+      log 'capifying'
+      in_root { run('capify .', false) }
     end
 
     # Add Rails to /vendor/rails
@@ -291,8 +269,8 @@ module Rails
     #   freeze!
     #
     def freeze!(args = {})
-      puts "vendoring rails edge"
-      in_root { `rake rails:freeze:edge` }
+      log 'vendor', 'rails edge'
+      in_root { run('rake rails:freeze:edge', false) }
     end
 
     # Make an entry in Rails routing file conifg/routes.rb
@@ -302,6 +280,7 @@ module Rails
     #   route "map.root :controller => :welcome"
     #
     def route(routing_code)
+      log 'route', routing_code
       sentinel = 'ActionController::Routing::Routes.draw do |map|'
 
       in_root do
@@ -321,7 +300,7 @@ module Rails
     #   freeze! if ask("Should I freeze the latest Rails?") == "yes"
     #
     def ask(string)
-      puts string
+      log '', string
       gets.strip
     end
 
@@ -368,5 +347,23 @@ module Rails
     def destination_path(relative_destination)
       File.join(root, relative_destination)
     end
+
+    def log(action, message = '')
+      logger.log(action, message)
+    end
+
+    def logger
+      @logger ||= Rails::Generator::Base.logger
+    end
+
+    def logger
+      @logger ||= if defined?(Rails::Generator::Base)
+        Rails::Generator::Base.logger
+      else
+        require 'rails_generator/simple_logger'
+        Rails::Generator::SimpleLogger.new(STDOUT)
+      end
+    end
+
   end
 end

@@ -203,7 +203,6 @@ module ActiveRecord
           if attr == "base"
             full_messages << message
           else
-            #key = :"activerecord.att.#{@base.class.name.underscore.to_sym}.#{attr}" 
             attr_name = @base.class.human_attribute_name(attr)
             full_messages << attr_name + I18n.t('activerecord.errors.format.separator', :default => ' ') + message
           end
@@ -1049,15 +1048,15 @@ module ActiveRecord
 
     protected
       # Overwrite this method for validation checks on all saves and use <tt>Errors.add(field, msg)</tt> for invalid attributes.
-      def validate #:doc:
+      def validate
       end
 
       # Overwrite this method for validation checks used only on creation.
-      def validate_on_create #:doc:
+      def validate_on_create
       end
 
       # Overwrite this method for validation checks used only on updates.
-      def validate_on_update # :doc:
+      def validate_on_update
       end
   end
 end
