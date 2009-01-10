@@ -284,7 +284,7 @@ Learn about various tools facilitating benchmarking and profiling
 </p>
 </li>
 </ul></div>
-<div class="paragraph"><p>Performance testing is an integral part of the development cycle. It is very important that you don&#8217;t make your end users wait for too long before the page is completely loaded. Ensuring a plesant browsing experience to the end users and cutting cost of unnecessary hardwares is important for any web application.</p></div>
+<div class="paragraph"><p>Performance testing is an integral part of the development cycle. It is very important that you don&#8217;t make your end users wait for too long before the page is completely loaded. Ensuring a pleasant browsing experience to the end users and cutting cost of unnecessary hardwares is important for any web application.</p></div>
 </div>
 </div>
 <h2 id="_performance_test_cases">1. Performance Test Cases</h2>
@@ -418,7 +418,7 @@ http://www.gnu.org/software/src-highlite -->
   <span style="font-weight: bold"><span style="color: #0000FF">end</span></span>
 <span style="font-weight: bold"><span style="color: #0000FF">end</span></span></tt></pre></div></div>
 <h3 id="_modes">1.3. Modes</h3>
-<div class="paragraph"><p>Performance tests can be run in two modes : Benchmarking and Profling.</p></div>
+<div class="paragraph"><p>Performance tests can be run in two modes : Benchmarking and Profiling.</p></div>
 <h4 id="_benchmarking">1.3.1. Benchmarking</h4>
 <div class="paragraph"><p>Benchmarking helps find out how fast is a performance test. Each test case is run <tt>4 times</tt> in benchmarking mode.</p></div>
 <div class="paragraph"><p>To run performance tests in benchmarking mode:</p></div>
@@ -429,7 +429,7 @@ http://www.lorenzobettini.it
 http://www.gnu.org/software/src-highlite -->
 <pre><tt>$ rake <span style="font-weight: bold"><span style="color: #0000FF">test</span></span><span style="color: #990000">:</span>benchmark</tt></pre></div></div>
 <h4 id="_profiling">1.3.2. Profiling</h4>
-<div class="paragraph"><p>Profiling helps you introspect into a performance test and provide an in-depth picture of the slow and memory hungy parts. Each Test case is run <tt>1 time</tt> in profiling mode.</p></div>
+<div class="paragraph"><p>Profiling helps you introspect into a performance test and provide an in-depth picture of the slow and memory hungry parts. Each Test case is run <tt>1 time</tt> in profiling mode.</p></div>
 <div class="paragraph"><p>To run performance tests in profiling mode:</p></div>
 <div class="listingblock">
 <div class="content"><!-- Generator: GNU source-highlight 2.9
@@ -534,13 +534,13 @@ http://www.gnu.org/software/src-highlite -->
               memory<span style="color: #990000">:</span> <span style="color: #993399">832.13</span> KB
              objects<span style="color: #990000">:</span> <span style="color: #993399">7882</span></tt></pre></div></div>
 <h5 id="_flat">Flat</h5>
-<div class="paragraph"><p>Flat output shows the total amount of time spent in each method. <a href="http://ruby-prof.rubyforge.org/files/examples/flat_txt.html">Check ruby prof documentation for a better explaination</a>.</p></div>
+<div class="paragraph"><p>Flat output shows the total amount of time spent in each method. <a href="http://ruby-prof.rubyforge.org/files/examples/flat_txt.html">Check ruby prof documentation for a better explanation</a>.</p></div>
 <h5 id="_graph">Graph</h5>
-<div class="paragraph"><p>Graph output shows how long each method takes to run, which methods call it and which methods it calls. <a href="http://ruby-prof.rubyforge.org/files/examples/graph_txt.html">Check ruby prof documentation for a better explaination</a>.</p></div>
+<div class="paragraph"><p>Graph output shows how long each method takes to run, which methods call it and which methods it calls. <a href="http://ruby-prof.rubyforge.org/files/examples/graph_txt.html">Check ruby prof documentation for a better explanation</a>.</p></div>
 <h5 id="_tree">Tree</h5>
 <div class="paragraph"><p>Tree output is profiling information in calltree format for use by <a href="http://kcachegrind.sourceforge.net/html/Home.html">kcachegrind</a> and similar tools.</p></div>
 <h3 id="_tuning_test_runs">1.6. Tuning Test Runs</h3>
-<div class="paragraph"><p>By default, each performance test is run <tt>4 times</tt> in benchmarking model and <tt>1 time</tt> in profiling. However, test runs can easily be configured.</p></div>
+<div class="paragraph"><p>By default, each performance test is run <tt>4 times</tt> in benchmarking mode and <tt>1 time</tt> in profiling. However, test runs can easily be configured.</p></div>
 <div class="admonitionblock">
 <table><tr>
 <td class="icon">
@@ -552,7 +552,7 @@ http://www.gnu.org/software/src-highlite -->
 <h3 id="gc">1.7. Installing GC Patched Ruby</h3>
 <div class="paragraph"><p>To get the best from Rails performance tests, you need to build a special Ruby binary with some super powers - <a href="http://rubyforge.org/tracker/download.php/1814/7062/17676/3291/ruby186gc.patch">GC patch</a> for measuring GC Runs/Time and memory/object allocation.</p></div>
 <div class="paragraph"><p>The process is fairly straight forward. If you&#8217;ve never compiled a Ruby binary before, follow the following steps to build a ruby binary inside your home directory:</p></div>
-<h4 id="_instllation">1.7.1. Instllation</h4>
+<h4 id="_installation">1.7.1. Installation</h4>
 <div class="paragraph"><p>Compile Ruby and apply this <a href="http://rubyforge.org/tracker/download.php/1814/7062/17676/3291/ruby186gc.patch">GC Patch</a>:</p></div>
 <h4 id="_download_and_extract">1.7.2. Download and Extract</h4>
 <div class="listingblock">
@@ -592,7 +592,7 @@ alias gcrails='~/rubygc/bin/rails'</tt></pre>
 </div></div>
 <h4 id="_install_rubygems_and_dependency_gems">1.7.6. Install rubygems and dependency gems</h4>
 <div class="paragraph"><p>Download <a href="http://rubyforge.org/projects/rubygems">Rubygems</a> and install it from source. Rubygem&#8217;s README file should have necessary installation instructions.</p></div>
-<div class="paragraph"><p>Additionally, installa the following gems :</p></div>
+<div class="paragraph"><p>Additionally, install the following gems :</p></div>
 <div class="ulist"><ul>
 <li>
 <p>
@@ -648,7 +648,7 @@ http://www.gnu.org/software/src-highlite -->
 by Lorenzo Bettini
 http://www.lorenzobettini.it
 http://www.gnu.org/software/src-highlite -->
-<pre><tt>Creating projectem <span style="color: #990000">(</span><span style="color: #993399">185</span><span style="color: #990000">.</span>3ms<span style="color: #990000">)</span></tt></pre></div></div>
+<pre><tt>Creating project <span style="color: #990000">(</span><span style="color: #993399">185</span><span style="color: #990000">.</span>3ms<span style="color: #990000">)</span></tt></pre></div></div>
 <div class="paragraph"><p>Please refer to <a href="http://api.rubyonrails.com/classes/ActiveRecord/Base.html#M001336">API docs</a> for optional options to <tt>benchmark()</tt></p></div>
 <h3 id="_controller">2.2. Controller</h3>
 <div class="paragraph"><p>Similarly, you could use this helper method inside <a href="http://api.rubyonrails.com/classes/ActionController/Benchmarking/ClassMethods.html#M000715">controllers</a></p></div>
@@ -684,7 +684,7 @@ http://www.gnu.org/software/src-highlite -->
 </div>
 <h2 id="_request_logging">3. Request Logging</h2>
 <div class="sectionbody">
-<div class="paragraph"><p>Rails log files containt very useful information about the time taken to serve each request. Here&#8217;s a typical log file entry:</p></div>
+<div class="paragraph"><p>Rails log files contain very useful information about the time taken to serve each request. Here&#8217;s a typical log file entry:</p></div>
 <div class="listingblock">
 <div class="content"><!-- Generator: GNU source-highlight 2.9
 by Lorenzo Bettini

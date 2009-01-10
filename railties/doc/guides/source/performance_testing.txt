@@ -9,7 +9,7 @@ This guide covers the various ways of performance testing a Ruby on Rails applic
 * Understand the information provided by Rails inside the log files
 * Learn about various tools facilitating benchmarking and profiling
 
-Performance testing is an integral part of the development cycle. It is very important that you don't make your end users wait for too long before the page is completely loaded. Ensuring a plesant browsing experience to the end users and cutting cost of unnecessary hardwares is important for any web application.
+Performance testing is an integral part of the development cycle. It is very important that you don't make your end users wait for too long before the page is completely loaded. Ensuring a pleasant browsing experience to the end users and cutting cost of unnecessary hardwares is important for any web application.
 
 == Performance Test Cases ==
 
@@ -152,7 +152,7 @@ end
 
 === Modes ===
 
-Performance tests can be run in two modes : Benchmarking and Profling.
+Performance tests can be run in two modes : Benchmarking and Profiling.
 
 ==== Benchmarking ====
 
@@ -167,7 +167,7 @@ $ rake test:benchmark
 
 ==== Profiling ====
 
-Profiling helps you introspect into a performance test and provide an in-depth picture of the slow and memory hungy parts. Each Test case is run +1 time+ in profiling mode. 
+Profiling helps you introspect into a performance test and provide an in-depth picture of the slow and memory hungry parts. Each Test case is run +1 time+ in profiling mode. 
 
 To run performance tests in profiling mode:
 
@@ -283,11 +283,11 @@ BrowsingTest#test_homepage (58 ms warmup)
 
 ===== Flat =====
 
-Flat output shows the total amount of time spent in each method. http://ruby-prof.rubyforge.org/files/examples/flat_txt.html[Check ruby prof documentation for a better explaination].
+Flat output shows the total amount of time spent in each method. http://ruby-prof.rubyforge.org/files/examples/flat_txt.html[Check ruby prof documentation for a better explanation].
 
 ===== Graph =====
 
-Graph output shows how long each method takes to run, which methods call it and which methods it calls. http://ruby-prof.rubyforge.org/files/examples/graph_txt.html[Check ruby prof documentation for a better explaination].
+Graph output shows how long each method takes to run, which methods call it and which methods it calls. http://ruby-prof.rubyforge.org/files/examples/graph_txt.html[Check ruby prof documentation for a better explanation].
 
 ===== Tree =====
 
@@ -295,7 +295,7 @@ Tree output is profiling information in calltree format for use by http://kcache
 
 === Tuning Test Runs ===
 
-By default, each performance test is run +4 times+ in benchmarking model and +1 time+ in profiling. However, test runs can easily be configured.
+By default, each performance test is run +4 times+ in benchmarking mode and +1 time+ in profiling. However, test runs can easily be configured.
 
 CAUTION: That's a lie. But not for long.
 
@@ -306,7 +306,7 @@ To get the best from Rails performance tests, you need to build a special Ruby b
 
 The process is fairly straight forward. If you've never compiled a Ruby binary before, follow the following steps to build a ruby binary inside your home directory:
 
-==== Instllation ====
+==== Installation ====
 
 Compile Ruby and apply this http://rubyforge.org/tracker/download.php/1814/7062/17676/3291/ruby186gc.patch[GC Patch]:
 
@@ -353,7 +353,7 @@ alias gcrails='~/rubygc/bin/rails'
 
 Download http://rubyforge.org/projects/rubygems[Rubygems] and install it from source. Rubygem's README file should have necessary installation instructions.
 
-Additionally, installa the following gems :
+Additionally, install the following gems :
 
   * +rake+
   * +rails+
@@ -389,7 +389,7 @@ This benchmarks the code enclosed in +Project.benchmark("Creating project") do..
 
 [source, ruby]
 ----------------------------------------------------------------------------
-Creating projectem (185.3ms)
+Creating project (185.3ms)
 ----------------------------------------------------------------------------
 
 Please refer to http://api.rubyonrails.com/classes/ActiveRecord/Base.html#M001336[API docs] for optional options to +benchmark()+
@@ -423,7 +423,7 @@ And in http://api.rubyonrails.com/classes/ActionController/Benchmarking/ClassMet
 
 == Request Logging ==
 
-Rails log files containt very useful information about the time taken to serve each request. Here's a typical log file entry:
+Rails log files contain very useful information about the time taken to serve each request. Here's a typical log file entry:
 
 [source, ruby]
 ----------------------------------------------------------------------------
