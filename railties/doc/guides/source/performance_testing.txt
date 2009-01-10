@@ -363,12 +363,76 @@ Additionally, install the following gems :
 
 If installing +mysql+ fails, you can try to install it manually:
 
+[source, shell]
 ----------------------------------------------------------------------------
 [lifo@null mysql]$ gcruby extconf.rb --with-mysql-config
 [lifo@null mysql]$ make && make install
 ----------------------------------------------------------------------------
 
 And you're ready to go. Don't forget to use +gcruby+ and +gcrake+ aliases when running the performance tests.
+
+== Command Line Tools ==
+
+Writing performance test cases could be an overkill when you are looking for one time tests. Rails ships with two command line tools for allowing such quick and dirty performance testing:
+
+=== benchmarker ===
+
++benchmarker+ is a wrapper around Ruby's http://ruby-doc.org/core/classes/Benchmark.html[Benchmark] module.
+
+Usage:
+
+[source, shell]
+----------------------------------------------------------------------------
+$ script/performance/benchmarker [times] 'Person.expensive_way' 'Person.another_expensive_way' ...
+----------------------------------------------------------------------------
+
+Examples:
+
+[source, shell]
+----------------------------------------------------------------------------
+$ script/performance/benchmarker 10 'Item.all' 'CouchItem.all'
+----------------------------------------------------------------------------
+
+If +[times]+ argument is skipped, supplied methods are run just once:
+
+[source, shell]
+----------------------------------------------------------------------------
+$ script/performance/benchmarker 'Item.first' 'Item.last'
+----------------------------------------------------------------------------
+
+=== profiler ===
+
++profiler+ is a wrapper around http://ruby-prof.rubyforge.org/[ruby-prof] gem.
+
+Usage:
+
+[source, shell]
+----------------------------------------------------------------------------
+$ script/performance/profiler 'Person.expensive_method(10)' [times] [flat|graph|graph_html]
+----------------------------------------------------------------------------
+
+Examples:
+
+[source, shell]
+----------------------------------------------------------------------------
+$ script/performance/profiler 'Item.all'
+----------------------------------------------------------------------------
+
+This will profile +Item.all+ with +RubyProf::WALL_TIME+ measure mode. By default, flat output is printed to the shell.
+
+[source, shell]
+----------------------------------------------------------------------------
+$ script/performance/profiler 'Item.all' 10 graph
+----------------------------------------------------------------------------
+
+This will profile +10.times { Item.all }+ with +RubyProf::WALL_TIME+ measure mode and print graph output to the shell.
+
+If you want to store the output in a file:
+
+[source, shell]
+----------------------------------------------------------------------------
+$ script/performance/profiler 'Item.all' 10 graph 2> graph.txt
+----------------------------------------------------------------------------
 
 == Helper methods ==
 
@@ -451,6 +515,7 @@ Michael Koziarski has an http://www.therailsway.com/2009/1/6/requests-per-second
 * http://rails-analyzer.rubyforge.org/[Rails Analyzer]
 * http://www.flyingmachinestudios.com/projects/[Palmist]
 * http://github.com/josevalim/rails-footnotes/tree/master[Rails Footnotes]
+* http://github.com/dsboulder/query_reviewer/tree/master[Query Reviewer]
 
 === External ===
 

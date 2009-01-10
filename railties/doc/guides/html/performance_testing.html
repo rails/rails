@@ -219,6 +219,16 @@ ul#navMain {
 						</ul>
 					</li>
 					<li>
+					<a href="#_command_line_tools">Command Line Tools</a>
+						<ul>
+						
+							<li><a href="#_benchmarker">benchmarker</a></li>
+						
+							<li><a href="#_profiler">profiler</a></li>
+						
+						</ul>
+					</li>
+					<li>
 					<a href="#_helper_methods">Helper methods</a>
 						<ul>
 						
@@ -622,16 +632,76 @@ alias gcrails='~/rubygc/bin/rails'</tt></pre>
 </ul></div>
 <div class="paragraph"><p>If installing <tt>mysql</tt> fails, you can try to install it manually:</p></div>
 <div class="listingblock">
-<div class="content">
-<pre><tt>[lifo@null mysql]$ gcruby extconf.rb --with-mysql-config
-[lifo@null mysql]$ make &amp;&amp; make install</tt></pre>
-</div></div>
+<div class="content"><!-- Generator: GNU source-highlight 2.9
+by Lorenzo Bettini
+http://www.lorenzobettini.it
+http://www.gnu.org/software/src-highlite -->
+<pre><tt><span style="color: #990000">[</span>lifo@null mysql<span style="color: #990000">]</span>$ gcruby extconf<span style="color: #990000">.</span>rb --with-mysql-config
+<span style="color: #990000">[</span>lifo@null mysql<span style="color: #990000">]</span>$ make <span style="color: #990000">&amp;&amp;</span> make install</tt></pre></div></div>
 <div class="paragraph"><p>And you&#8217;re ready to go. Don&#8217;t forget to use <tt>gcruby</tt> and <tt>gcrake</tt> aliases when running the performance tests.</p></div>
 </div>
-<h2 id="_helper_methods">2. Helper methods</h2>
+<h2 id="_command_line_tools">2. Command Line Tools</h2>
+<div class="sectionbody">
+<div class="paragraph"><p>Writing performance test cases could be an overkill when you are looking for one time tests. Rails ships with two command line tools for allowing such quick and dirty performance testing:</p></div>
+<h3 id="_benchmarker">2.1. benchmarker</h3>
+<div class="paragraph"><p><tt>benchmarker</tt> is a wrapper around Ruby&#8217;s <a href="http://ruby-doc.org/core/classes/Benchmark.html">Benchmark</a> module.</p></div>
+<div class="paragraph"><p>Usage:</p></div>
+<div class="listingblock">
+<div class="content"><!-- Generator: GNU source-highlight 2.9
+by Lorenzo Bettini
+http://www.lorenzobettini.it
+http://www.gnu.org/software/src-highlite -->
+<pre><tt>$ script/performance/benchmarker <span style="color: #990000">[</span><span style="font-weight: bold"><span style="color: #0000FF">times</span></span><span style="color: #990000">]</span> <span style="color: #FF0000">'Person.expensive_way'</span> <span style="color: #FF0000">'Person.another_expensive_way'</span> <span style="color: #990000">...</span></tt></pre></div></div>
+<div class="paragraph"><p>Examples:</p></div>
+<div class="listingblock">
+<div class="content"><!-- Generator: GNU source-highlight 2.9
+by Lorenzo Bettini
+http://www.lorenzobettini.it
+http://www.gnu.org/software/src-highlite -->
+<pre><tt>$ script/performance/benchmarker <span style="color: #993399">10</span> <span style="color: #FF0000">'Item.all'</span> <span style="color: #FF0000">'CouchItem.all'</span></tt></pre></div></div>
+<div class="paragraph"><p>If <tt>[times]</tt> argument is skipped, supplied methods are run just once:</p></div>
+<div class="listingblock">
+<div class="content"><!-- Generator: GNU source-highlight 2.9
+by Lorenzo Bettini
+http://www.lorenzobettini.it
+http://www.gnu.org/software/src-highlite -->
+<pre><tt>$ script/performance/benchmarker <span style="color: #FF0000">'Item.first'</span> <span style="color: #FF0000">'Item.last'</span></tt></pre></div></div>
+<h3 id="_profiler">2.2. profiler</h3>
+<div class="paragraph"><p><tt>profiler</tt> is a wrapper around <a href="http://ruby-prof.rubyforge.org/">ruby-prof</a> gem.</p></div>
+<div class="paragraph"><p>Usage:</p></div>
+<div class="listingblock">
+<div class="content"><!-- Generator: GNU source-highlight 2.9
+by Lorenzo Bettini
+http://www.lorenzobettini.it
+http://www.gnu.org/software/src-highlite -->
+<pre><tt>$ script/performance/profiler <span style="color: #FF0000">'Person.expensive_method(10)'</span> <span style="color: #990000">[</span><span style="font-weight: bold"><span style="color: #0000FF">times</span></span><span style="color: #990000">]</span> <span style="color: #990000">[</span>flat<span style="color: #990000">|</span>graph<span style="color: #990000">|</span>graph_html<span style="color: #990000">]</span></tt></pre></div></div>
+<div class="paragraph"><p>Examples:</p></div>
+<div class="listingblock">
+<div class="content"><!-- Generator: GNU source-highlight 2.9
+by Lorenzo Bettini
+http://www.lorenzobettini.it
+http://www.gnu.org/software/src-highlite -->
+<pre><tt>$ script/performance/profiler <span style="color: #FF0000">'Item.all'</span></tt></pre></div></div>
+<div class="paragraph"><p>This will profile <tt>Item.all</tt> with <tt>RubyProf::WALL_TIME</tt> measure mode. By default, flat output is printed to the shell.</p></div>
+<div class="listingblock">
+<div class="content"><!-- Generator: GNU source-highlight 2.9
+by Lorenzo Bettini
+http://www.lorenzobettini.it
+http://www.gnu.org/software/src-highlite -->
+<pre><tt>$ script/performance/profiler <span style="color: #FF0000">'Item.all'</span> <span style="color: #993399">10</span> graph</tt></pre></div></div>
+<div class="paragraph"><p>This will profile <tt>10.times { Item.all }</tt> with <tt>RubyProf::WALL_TIME</tt> measure mode and print graph output to the shell.</p></div>
+<div class="paragraph"><p>If you want to store the output in a file:</p></div>
+<div class="listingblock">
+<div class="content"><!-- Generator: GNU source-highlight 2.9
+by Lorenzo Bettini
+http://www.lorenzobettini.it
+http://www.gnu.org/software/src-highlite -->
+<pre><tt>$ script/performance/profiler <span style="color: #FF0000">'Item.all'</span> <span style="color: #993399">10</span> graph <span style="color: #993399">2</span><span style="color: #990000">&gt;</span> graph<span style="color: #990000">.</span>txt</tt></pre></div></div>
+</div>
+<h2 id="_helper_methods">3. Helper methods</h2>
 <div class="sectionbody">
 <div class="paragraph"><p>Rails provides various helper methods inside Active Record, Action Controller and Action View to measure the time taken by a given piece of code. The method is called <tt>benchmark()</tt> in all the three components.</p></div>
-<h3 id="_model">2.1. Model</h3>
+<h3 id="_model">3.1. Model</h3>
 <div class="listingblock">
 <div class="content"><!-- Generator: GNU source-highlight 2.9
 by Lorenzo Bettini
@@ -650,7 +720,7 @@ http://www.lorenzobettini.it
 http://www.gnu.org/software/src-highlite -->
 <pre><tt>Creating project <span style="color: #990000">(</span><span style="color: #993399">185</span><span style="color: #990000">.</span>3ms<span style="color: #990000">)</span></tt></pre></div></div>
 <div class="paragraph"><p>Please refer to <a href="http://api.rubyonrails.com/classes/ActiveRecord/Base.html#M001336">API docs</a> for optional options to <tt>benchmark()</tt></p></div>
-<h3 id="_controller">2.2. Controller</h3>
+<h3 id="_controller">3.2. Controller</h3>
 <div class="paragraph"><p>Similarly, you could use this helper method inside <a href="http://api.rubyonrails.com/classes/ActionController/Benchmarking/ClassMethods.html#M000715">controllers</a></p></div>
 <div class="admonitionblock">
 <table><tr>
@@ -671,7 +741,7 @@ http://www.gnu.org/software/src-highlite -->
     Project<span style="color: #990000">.</span>update_cached_projects
   <span style="font-weight: bold"><span style="color: #0000FF">end</span></span>
 <span style="font-weight: bold"><span style="color: #0000FF">end</span></span></tt></pre></div></div>
-<h3 id="_view">2.3. View</h3>
+<h3 id="_view">3.3. View</h3>
 <div class="paragraph"><p>And in <a href="http://api.rubyonrails.com/classes/ActionController/Benchmarking/ClassMethods.html#M000715">views</a>:</p></div>
 <div class="listingblock">
 <div class="content"><!-- Generator: GNU source-highlight 2.9
@@ -682,7 +752,7 @@ http://www.gnu.org/software/src-highlite -->
   <span style="color: #FF0000">&lt;%= render :partial =&gt;</span> <span style="color: #009900">@projects</span> <span style="color: #990000">%&gt;</span>
 <span style="color: #FF0000">&lt;% end %&gt;</span></tt></pre></div></div>
 </div>
-<h2 id="_request_logging">3. Request Logging</h2>
+<h2 id="_request_logging">4. Request Logging</h2>
 <div class="sectionbody">
 <div class="paragraph"><p>Rails log files contain very useful information about the time taken to serve each request. Here&#8217;s a typical log file entry:</p></div>
 <div class="listingblock">
@@ -704,9 +774,9 @@ http://www.gnu.org/software/src-highlite -->
 <div class="paragraph"><p>This data is fairly straight forward to understand. Rails uses millisecond(ms) as the metric to measures the time taken. The complete request spent 5 ms inside Rails, out of which 2 ms were spent rendering views and none was spent communication with the database. It&#8217;s safe to assume that the remaining 3 ms were spent inside the controller.</p></div>
 <div class="paragraph"><p>Michael Koziarski has an <a href="http://www.therailsway.com/2009/1/6/requests-per-second">interesting blog post</a> explaining the importance of using milliseconds as the metric.</p></div>
 </div>
-<h2 id="_useful_profiling_tools">4. Useful Profiling Tools</h2>
+<h2 id="_useful_profiling_tools">5. Useful Profiling Tools</h2>
 <div class="sectionbody">
-<h3 id="_rails_plugins_and_gems">4.1. Rails Plugins and Gems</h3>
+<h3 id="_rails_plugins_and_gems">5.1. Rails Plugins and Gems</h3>
 <div class="ulist"><ul>
 <li>
 <p>
@@ -723,8 +793,13 @@ http://www.gnu.org/software/src-highlite -->
 <a href="http://github.com/josevalim/rails-footnotes/tree/master">Rails Footnotes</a>
 </p>
 </li>
+<li>
+<p>
+<a href="http://github.com/dsboulder/query_reviewer/tree/master">Query Reviewer</a>
+</p>
+</li>
 </ul></div>
-<h3 id="_external">4.2. External</h3>
+<h3 id="_external">5.2. External</h3>
 <div class="ulist"><ul>
 <li>
 <p>
@@ -743,7 +818,7 @@ http://www.gnu.org/software/src-highlite -->
 </li>
 </ul></div>
 </div>
-<h2 id="_commercial_products">5. Commercial Products</h2>
+<h2 id="_commercial_products">6. Commercial Products</h2>
 <div class="sectionbody">
 <div class="paragraph"><p>Rails has been lucky to have three startups dedicated to Rails specific performance tools:</p></div>
 <div class="ulist"><ul>
@@ -764,7 +839,7 @@ http://www.gnu.org/software/src-highlite -->
 </li>
 </ul></div>
 </div>
-<h2 id="_changelog">6. Changelog</h2>
+<h2 id="_changelog">7. Changelog</h2>
 <div class="sectionbody">
 <div class="paragraph"><p><a href="http://rails.lighthouseapp.com/projects/16213-rails-guides/tickets/4">Lighthouse ticket</a></p></div>
 <div class="ulist"><ul>
