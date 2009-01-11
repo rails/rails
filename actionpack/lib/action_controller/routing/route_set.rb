@@ -195,8 +195,8 @@ module ActionController
               def formatted_#{selector}(*args)                                              # def formatted_users_url(*args)
                 ActiveSupport::Deprecation.warn(                                            #   ActiveSupport::Deprecation.warn(
                   "formatted_#{selector}() has been deprecated. " +                         #     "formatted_users_url() has been deprecated. " +
-                  "please pass format to the standard" +                                    #     "please pass format to the standard" +
-                  "#{selector}() method instead.", caller)                                  #     "users_url() method instead.", caller)
+                  "Please pass format to the standard " +                                   #     "Please pass format to the standard " +
+                  "#{selector} method instead.", caller)                                    #     "users_url method instead.", caller)
                 #{selector}(*args)                                                          #   users_url(*args)
               end                                                                           # end
               protected :#{selector}                                                        # protected :users_url
@@ -425,6 +425,12 @@ module ActionController
           required_keys_or_values = required_segments.map { |seg| seg.key rescue seg.value } # we want either the key or the value from the segment
           raise RoutingError, "#{named_route_name}_url failed to generate from #{options.inspect} - you may have ambiguous routes, or you may need to supply additional parameters for this route.  content_url has the following required parameters: #{required_keys_or_values.inspect} - are they all satisfied?"
         end
+      end
+
+      def call(env)
+        request = Request.new(env)
+        app = Routing::Routes.recognize(request)
+        app.call(env).to_a
       end
 
       def recognize(request)

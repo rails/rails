@@ -231,10 +231,13 @@ module ActionController # :nodoc:
       # Don't set the Content-Length for block-based bodies as that would mean
       # reading it all into memory. Not nice for, say, a 2GB streaming file.
       def set_content_length!
-        unless body.respond_to?(:call) || (status && status.to_s[0..2] == '304')
-          self.headers["Content-Length"] ||= body.size
+        if status && status.to_s[0..2] == '204'
+          headers.delete('Content-Length')
+        elsif length = headers['Content-Length']
+          headers['Content-Length'] = length.to_s
+        elsif !body.respond_to?(:call) && (!status || status.to_s[0..2] != '304')
+          headers["Content-Length"] = body.size.to_s
         end
-        headers["Content-Length"] = headers["Content-Length"].to_s if headers["Content-Length"]
       end
 
       def convert_language!

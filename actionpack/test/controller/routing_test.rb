@@ -706,7 +706,7 @@ uses_mocha 'LegacyRouteSet, Route, RouteSet and RouteLoading' do
       port_string = port == 80 ? '' : ":#{port}"
 
       protocol = options.delete(:protocol) || "http"
-      host     = options.delete(:host) || "named.route.test"
+      host     = options.delete(:host) || "test.host"
       anchor   = "##{options.delete(:anchor)}" if options.key?(:anchor)
 
       path = routes.generate(options)
@@ -715,27 +715,7 @@ uses_mocha 'LegacyRouteSet, Route, RouteSet and RouteLoading' do
     end
 
     def request
-      @request ||= MockRequest.new(:host => "named.route.test", :method => :get)
-    end
-  end
-
-  class MockRequest
-    attr_accessor :path, :path_parameters, :host, :subdomains, :domain, :method
-
-    def initialize(values={})
-      values.each { |key, value| send("#{key}=", value) }
-      if values[:host]
-        subdomain, self.domain = values[:host].split(/\./, 2)
-        self.subdomains = [subdomain]
-      end
-    end
-
-    def protocol
-      "http://"
-    end
-
-    def host_with_port
-      (subdomains * '.') + '.' +  domain
+      @request ||= ActionController::TestRequest.new
     end
   end
 
@@ -900,7 +880,7 @@ uses_mocha 'LegacyRouteSet, Route, RouteSet and RouteLoading' do
     def test_basic_named_route
       rs.add_named_route :home, '', :controller => 'content', :action => 'list'
       x = setup_for_named_route
-      assert_equal("http://named.route.test/",
+      assert_equal("http://test.host/",
                    x.send(:home_url))
     end
 
@@ -908,7 +888,7 @@ uses_mocha 'LegacyRouteSet, Route, RouteSet and RouteLoading' do
       rs.add_named_route :home, '', :controller => 'content', :action => 'list'
       x = setup_for_named_route
       ActionController::Base.relative_url_root = "/foo"
-      assert_equal("http://named.route.test/foo/",
+      assert_equal("http://test.host/foo/",
                    x.send(:home_url))
       assert_equal "/foo/", x.send(:home_path)
       ActionController::Base.relative_url_root = nil
@@ -917,14 +897,14 @@ uses_mocha 'LegacyRouteSet, Route, RouteSet and RouteLoading' do
     def test_named_route_with_option
       rs.add_named_route :page, 'page/:title', :controller => 'content', :action => 'show_page'
       x = setup_for_named_route
-      assert_equal("http://named.route.test/page/new%20stuff",
+      assert_equal("http://test.host/page/new%20stuff",
                    x.send(:page_url, :title => 'new stuff'))
     end
 
     def test_named_route_with_default
       rs.add_named_route :page, 'page/:title', :controller => 'content', :action => 'show_page', :title => 'AboutPage'
       x = setup_for_named_route
-      assert_equal("http://named.route.test/page/AboutRails",
+      assert_equal("http://test.host/page/AboutRails",
                    x.send(:page_url, :title => "AboutRails"))
 
     end
@@ -932,21 +912,21 @@ uses_mocha 'LegacyRouteSet, Route, RouteSet and RouteLoading' do
     def test_named_route_with_name_prefix
       rs.add_named_route :page, 'page', :controller => 'content', :action => 'show_page', :name_prefix => 'my_'
       x = setup_for_named_route
-      assert_equal("http://named.route.test/page",
+      assert_equal("http://test.host/page",
                    x.send(:my_page_url))
     end
 
     def test_named_route_with_path_prefix
       rs.add_named_route :page, 'page', :controller => 'content', :action => 'show_page', :path_prefix => 'my'
       x = setup_for_named_route
-      assert_equal("http://named.route.test/my/page",
+      assert_equal("http://test.host/my/page",
                    x.send(:page_url))
     end
 
     def test_named_route_with_nested_controller
       rs.add_named_route :users, 'admin/user', :controller => 'admin/user', :action => 'index'
       x = setup_for_named_route
-      assert_equal("http://named.route.test/admin/user",
+      assert_equal("http://test.host/admin/user",
                    x.send(:users_url))
     end
 
@@ -985,7 +965,7 @@ uses_mocha 'LegacyRouteSet, Route, RouteSet and RouteLoading' do
         map.root :controller => "hello"
       end
       x = setup_for_named_route
-      assert_equal("http://named.route.test/", x.send(:root_url))
+      assert_equal("http://test.host/", x.send(:root_url))
       assert_equal("/", x.send(:root_path))
     end
 
@@ -1001,7 +981,7 @@ uses_mocha 'LegacyRouteSet, Route, RouteSet and RouteLoading' do
       #   x.send(:article_url, :title => 'hi')
       # )
       assert_equal(
-        "http://named.route.test/page/2005/6/10/hi",
+        "http://test.host/page/2005/6/10/hi",
         x.send(:article_url, :title => 'hi', :day => 10, :year => 2005, :month => 6)
       )
     end
@@ -1202,7 +1182,7 @@ uses_mocha 'LegacyRouteSet, Route, RouteSet and RouteLoading' do
       assert_equal '/test', rs.generate(:controller => 'post', :action => 'show', :year => nil)
 
       x = setup_for_named_route
-      assert_equal("http://named.route.test/test",
+      assert_equal("http://test.host/test",
                    x.send(:blog_url))
     end
 
@@ -1249,7 +1229,7 @@ uses_mocha 'LegacyRouteSet, Route, RouteSet and RouteLoading' do
       assert_equal '/', rs.generate(:controller => 'content')
 
       x = setup_for_named_route
-      assert_equal("http://named.route.test/",
+      assert_equal("http://test.host/",
                    x.send(:home_url))
     end
 
@@ -1591,7 +1571,7 @@ uses_mocha 'LegacyRouteSet, Route, RouteSet and RouteLoading' do
     end
 
     def request
-      @request ||= MockRequest.new(:host => "named.routes.test", :method => :get)
+      @request ||= ActionController::TestRequest.new
     end
 
     def test_generate_extras
@@ -1692,13 +1672,13 @@ uses_mocha 'LegacyRouteSet, Route, RouteSet and RouteLoading' do
     def test_named_route_url_method
       controller = setup_named_route_test
 
-      assert_equal "http://named.route.test/people/5", controller.send(:show_url, :id => 5)
+      assert_equal "http://test.host/people/5", controller.send(:show_url, :id => 5)
       assert_equal "/people/5", controller.send(:show_path, :id => 5)
 
-      assert_equal "http://named.route.test/people", controller.send(:index_url)
+      assert_equal "http://test.host/people", controller.send(:index_url)
       assert_equal "/people", controller.send(:index_path)
 
-      assert_equal "http://named.route.test/admin/users", controller.send(:users_url)
+      assert_equal "http://test.host/admin/users", controller.send(:users_url)
       assert_equal '/admin/users', controller.send(:users_path)
       assert_equal '/admin/users', set.generate(controller.send(:hash_for_users_url), {:controller => 'users', :action => 'index'})
     end
@@ -1706,28 +1686,28 @@ uses_mocha 'LegacyRouteSet, Route, RouteSet and RouteLoading' do
     def test_named_route_url_method_with_anchor
       controller = setup_named_route_test
 
-      assert_equal "http://named.route.test/people/5#location", controller.send(:show_url, :id => 5, :anchor => 'location')
+      assert_equal "http://test.host/people/5#location", controller.send(:show_url, :id => 5, :anchor => 'location')
       assert_equal "/people/5#location", controller.send(:show_path, :id => 5, :anchor => 'location')
 
-      assert_equal "http://named.route.test/people#location", controller.send(:index_url, :anchor => 'location')
+      assert_equal "http://test.host/people#location", controller.send(:index_url, :anchor => 'location')
       assert_equal "/people#location", controller.send(:index_path, :anchor => 'location')
 
-      assert_equal "http://named.route.test/admin/users#location", controller.send(:users_url, :anchor => 'location')
+      assert_equal "http://test.host/admin/users#location", controller.send(:users_url, :anchor => 'location')
       assert_equal '/admin/users#location', controller.send(:users_path, :anchor => 'location')
 
-      assert_equal "http://named.route.test/people/go/7/hello/joe/5#location",
+      assert_equal "http://test.host/people/go/7/hello/joe/5#location",
         controller.send(:multi_url, 7, "hello", 5, :anchor => 'location')
 
-      assert_equal "http://named.route.test/people/go/7/hello/joe/5?baz=bar#location",
+      assert_equal "http://test.host/people/go/7/hello/joe/5?baz=bar#location",
         controller.send(:multi_url, 7, "hello", 5, :baz => "bar", :anchor => 'location')
 
-      assert_equal "http://named.route.test/people?baz=bar#location",
+      assert_equal "http://test.host/people?baz=bar#location",
         controller.send(:index_url, :baz => "bar", :anchor => 'location')
     end
 
     def test_named_route_url_method_with_port
       controller = setup_named_route_test
-      assert_equal "http://named.route.test:8080/people/5", controller.send(:show_url, 5, :port=>8080)
+      assert_equal "http://test.host:8080/people/5", controller.send(:show_url, 5, :port=>8080)
     end
 
     def test_named_route_url_method_with_host
@@ -1737,30 +1717,30 @@ uses_mocha 'LegacyRouteSet, Route, RouteSet and RouteLoading' do
 
     def test_named_route_url_method_with_protocol
       controller = setup_named_route_test
-      assert_equal "https://named.route.test/people/5", controller.send(:show_url, 5, :protocol => "https")
+      assert_equal "https://test.host/people/5", controller.send(:show_url, 5, :protocol => "https")
     end
 
     def test_named_route_url_method_with_ordered_parameters
       controller = setup_named_route_test
-      assert_equal "http://named.route.test/people/go/7/hello/joe/5",
+      assert_equal "http://test.host/people/go/7/hello/joe/5",
         controller.send(:multi_url, 7, "hello", 5)
     end
 
     def test_named_route_url_method_with_ordered_parameters_and_hash
       controller = setup_named_route_test
-      assert_equal "http://named.route.test/people/go/7/hello/joe/5?baz=bar",
+      assert_equal "http://test.host/people/go/7/hello/joe/5?baz=bar",
         controller.send(:multi_url, 7, "hello", 5, :baz => "bar")
     end
 
     def test_named_route_url_method_with_ordered_parameters_and_empty_hash
       controller = setup_named_route_test
-      assert_equal "http://named.route.test/people/go/7/hello/joe/5",
+      assert_equal "http://test.host/people/go/7/hello/joe/5",
         controller.send(:multi_url, 7, "hello", 5, {})
     end
 
     def test_named_route_url_method_with_no_positional_arguments
       controller = setup_named_route_test
-      assert_equal "http://named.route.test/people?baz=bar",
+      assert_equal "http://test.host/people?baz=bar",
         controller.send(:index_url, :baz => "bar")
     end
 
@@ -1896,49 +1876,54 @@ uses_mocha 'LegacyRouteSet, Route, RouteSet and RouteLoading' do
       end
 
       request.path = "/people"
-      request.method = :get
+      request.env["REQUEST_METHOD"] = "GET"
       assert_nothing_raised { set.recognize(request) }
       assert_equal("index", request.path_parameters[:action])
+      request.recycle!
 
-      request.method = :post
+      request.env["REQUEST_METHOD"] = "POST"
       assert_nothing_raised { set.recognize(request) }
       assert_equal("create", request.path_parameters[:action])
+      request.recycle!
 
-      request.method = :put
+      request.env["REQUEST_METHOD"] = "PUT"
       assert_nothing_raised { set.recognize(request) }
       assert_equal("update", request.path_parameters[:action])
+      request.recycle!
 
-      begin
-        request.method = :bacon
+      assert_raises(ActionController::UnknownHttpMethod) {
+        request.env["REQUEST_METHOD"] = "BACON"
         set.recognize(request)
-        flunk 'Should have raised NotImplemented'
-      rescue ActionController::NotImplemented => e
-        assert_equal [:get, :post, :put, :delete], e.allowed_methods
-      end
+      }
+      request.recycle!
 
       request.path = "/people/5"
-      request.method = :get
+      request.env["REQUEST_METHOD"] = "GET"
       assert_nothing_raised { set.recognize(request) }
       assert_equal("show", request.path_parameters[:action])
       assert_equal("5", request.path_parameters[:id])
+      request.recycle!
 
-      request.method = :put
+      request.env["REQUEST_METHOD"] = "PUT"
       assert_nothing_raised { set.recognize(request) }
       assert_equal("update", request.path_parameters[:action])
       assert_equal("5", request.path_parameters[:id])
+      request.recycle!
 
-      request.method = :delete
+      request.env["REQUEST_METHOD"] = "DELETE"
       assert_nothing_raised { set.recognize(request) }
       assert_equal("destroy", request.path_parameters[:action])
       assert_equal("5", request.path_parameters[:id])
+      request.recycle!
 
       begin
-        request.method = :post
+        request.env["REQUEST_METHOD"] = "POST"
         set.recognize(request)
         flunk 'Should have raised MethodNotAllowed'
       rescue ActionController::MethodNotAllowed => e
         assert_equal [:get, :put, :delete], e.allowed_methods
       end
+      request.recycle!
 
     ensure
       Object.send(:remove_const, :PeopleController)
@@ -1954,13 +1939,13 @@ uses_mocha 'LegacyRouteSet, Route, RouteSet and RouteLoading' do
       end
 
       request.path = "/people"
-      request.method = :get
+      request.env["REQUEST_METHOD"] = "GET"
       assert_nothing_raised { set.recognize(request) }
       assert_equal("people", request.path_parameters[:controller])
       assert_equal("index", request.path_parameters[:action])
 
       request.path = "/"
-      request.method = :get
+      request.env["REQUEST_METHOD"] = "GET"
       assert_nothing_raised { set.recognize(request) }
       assert_equal("people", request.path_parameters[:controller])
       assert_equal("index", request.path_parameters[:action])
@@ -1978,7 +1963,7 @@ uses_mocha 'LegacyRouteSet, Route, RouteSet and RouteLoading' do
       end
 
       request.path = "/articles/2005/11/05/a-very-interesting-article"
-      request.method = :get
+      request.env["REQUEST_METHOD"] = "GET"
       assert_nothing_raised { set.recognize(request) }
       assert_equal("permalink", request.path_parameters[:action])
       assert_equal("2005", request.path_parameters[:year])
@@ -2015,17 +2000,19 @@ uses_mocha 'LegacyRouteSet, Route, RouteSet and RouteLoading' do
       end
 
       request.path = "/people/5"
-      request.method = :get
+      request.env["REQUEST_METHOD"] = "GET"
       assert_nothing_raised { set.recognize(request) }
       assert_equal("show", request.path_parameters[:action])
       assert_equal("5", request.path_parameters[:id])
+      request.recycle!
 
-      request.method = :put
+      request.env["REQUEST_METHOD"] = "PUT"
       assert_nothing_raised { set.recognize(request) }
       assert_equal("update", request.path_parameters[:action])
+      request.recycle!
 
       request.path = "/people/5.png"
-      request.method = :get
+      request.env["REQUEST_METHOD"] = "GET"
       assert_nothing_raised { set.recognize(request) }
       assert_equal("show", request.path_parameters[:action])
       assert_equal("5", request.path_parameters[:id])
@@ -2050,7 +2037,7 @@ uses_mocha 'LegacyRouteSet, Route, RouteSet and RouteLoading' do
       set.draw { |map| map.root :controller => "people" }
 
       request.path = ""
-      request.method = :get
+      request.env["REQUEST_METHOD"] = "GET"
       assert_nothing_raised { set.recognize(request) }
       assert_equal("people", request.path_parameters[:controller])
       assert_equal("index", request.path_parameters[:action])
@@ -2070,7 +2057,7 @@ uses_mocha 'LegacyRouteSet, Route, RouteSet and RouteLoading' do
       end
 
       request.path = "/api/inventory"
-      request.method = :get
+      request.env["REQUEST_METHOD"] = "GET"
       assert_nothing_raised { set.recognize(request) }
       assert_equal("api/products", request.path_parameters[:controller])
       assert_equal("inventory", request.path_parameters[:action])
@@ -2090,7 +2077,7 @@ uses_mocha 'LegacyRouteSet, Route, RouteSet and RouteLoading' do
       end
 
       request.path = "/api"
-      request.method = :get
+      request.env["REQUEST_METHOD"] = "GET"
       assert_nothing_raised { set.recognize(request) }
       assert_equal("api/products", request.path_parameters[:controller])
       assert_equal("index", request.path_parameters[:action])
@@ -2110,7 +2097,7 @@ uses_mocha 'LegacyRouteSet, Route, RouteSet and RouteLoading' do
       end
 
       request.path = "/prefix/inventory"
-      request.method = :get
+      request.env["REQUEST_METHOD"] = "GET"
       assert_nothing_raised { set.recognize(request) }
       assert_equal("api/products", request.path_parameters[:controller])
       assert_equal("inventory", request.path_parameters[:action])
@@ -2246,7 +2233,7 @@ uses_mocha 'LegacyRouteSet, Route, RouteSet and RouteLoading' do
       end
 
       request.path = "/projects/1/milestones"
-      request.method = :get
+      request.env["REQUEST_METHOD"] = "GET"
       assert_nothing_raised { set.recognize(request) }
       assert_equal("milestones", request.path_parameters[:controller])
       assert_equal("index", request.path_parameters[:action])

@@ -359,7 +359,7 @@ Sometimes it will make sense to validate an object just when a given predicate i
 
 === Using a symbol with the +:if+ and +:unless+ options
 
-You can associated the +:if+ and +:unless+ options with a symbol corresponding to the name of a method that will get called right before validation happens. This is the most commonly used option.
+You can associate the +:if+ and +:unless+ options with a symbol corresponding to the name of a method that will get called right before validation happens. This is the most commonly used option.
 
 [source, ruby]
 ------------------------------------------------------------------
@@ -620,29 +620,7 @@ Callbacks are methods that get called at certain moments of an object's lifecycl
 
 === Callbacks registration
 
-In order to use the available callbacks, you need to registrate them. There are two ways of doing that. 
-
-=== Registering callbacks by overriding the callback methods
-
-You can specify the callback method directly, by overriding it. Let's see how it works using the +before_validation+ callback, which will surprisingly run right before any validation is done.
-
-[source, ruby]
-------------------------------------------------------------------
-class User < ActiveRecord::Base
-  validates_presence_of :login, :email
-  
-  protected
-  def before_validation
-    if self.login.nil?
-      self.login = email unless email.blank?
-    end
-  end
-end
-------------------------------------------------------------------
-
-=== Registering callbacks by using macro-style class methods
-
-The other way you can register a callback method is by implementing it as an ordinary method, and then using a macro-style class method to register it as a callback. The last example could be written like that:
+In order to use the available callbacks, you need to registrate them. You can do that by implementing them as an ordinary methods, and then using a macro-style class method to register then as callbacks.
 
 [source, ruby]
 ------------------------------------------------------------------
@@ -671,12 +649,57 @@ class User < ActiveRecord::Base
 end
 ------------------------------------------------------------------
 
-In Rails, the preferred way of registering callbacks is by using macro-style class methods. The main advantages of using macro-style class methods are:
-
-* You can add more than one method for each type of callback. Those methods will be queued for execution at the same order they were registered.
-* Readability, since your callback declarations will live at the beggining of your models' files.
-
 CAUTION: Remember to always declare the callback methods as being protected or private. These methods should never be public, otherwise it will be possible to call them from code outside the model, violating object encapsulation and exposing implementation details.
+
+== Conditional callbacks
+
+Like in validations, we can also make our callbacks conditional, calling then only when a given predicate is satisfied. You can do that by using the +:if+ and +:unless+ options, which can take a symbol, a string or a Ruby Proc. You may use the +:if+ option when you want to specify when the callback *should* get called. If you want to specify when the callback *should not* be called, then you may use the +:unless+ option.
+
+=== Using a symbol with the +:if+ and +:unless+ options
+
+You can associate the +:if+ and +:unless+ options with a symbol corresponding to the name of a method that will get called right before the callback. If this method returns +false+ the callback won't be executed. This is the most common option. Using this form of registration it's also possible to register several different methods that should be called to check the if the callback should be executed.
+
+[source, ruby]
+------------------------------------------------------------------
+class Order < ActiveRecord::Base
+  before_save :normalize_card_number, :if => :paid_with_card?
+end
+------------------------------------------------------------------
+
+=== Using a string with the +:if+ and +:unless+ options
+
+You can also use a string that will be evaluated using +:eval+ and needs to contain valid Ruby code. You should use this option only when the string represents a really short condition.
+
+[source, ruby]
+------------------------------------------------------------------
+class Order < ActiveRecord::Base
+  before_save :normalize_card_number, :if => "paid_with_card?"
+end
+------------------------------------------------------------------
+
+=== Using a Proc object with the +:if+ and :+unless+ options
+
+Finally, it's possible to associate +:if+ and +:unless+ with a Ruby Proc object. This option is best suited when writing short validation methods, usually one-liners.
+
+[source, ruby]
+------------------------------------------------------------------
+class Order < ActiveRecord::Base
+  before_save :normalize_card_number, 
+    :if => Proc.new { |order| order.paid_with_card? }
+end
+------------------------------------------------------------------
+
+=== Multiple Conditions for Callbacks
+
+When writing conditional callbacks, it's possible to mix both +:if+ and +:unless+ in the same callback declaration.
+
+[source, ruby]
+------------------------------------------------------------------
+class Comment < ActiveRecord::Base
+  after_create :send_email_to_author, :if => :author_wants_emails?, 
+    :unless => Proc.new { |comment| comment.post.ignore_comments? }
+end
+------------------------------------------------------------------
 
 == Available callbacks
  

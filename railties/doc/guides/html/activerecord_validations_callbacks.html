@@ -285,9 +285,19 @@ ul#navMain {
 						
 							<li><a href="#_callbacks_registration">Callbacks registration</a></li>
 						
-							<li><a href="#_registering_callbacks_by_overriding_the_callback_methods">Registering callbacks by overriding the callback methods</a></li>
+						</ul>
+					</li>
+					<li>
+					<a href="#_conditional_callbacks">Conditional callbacks</a>
+						<ul>
 						
-							<li><a href="#_registering_callbacks_by_using_macro_style_class_methods">Registering callbacks by using macro-style class methods</a></li>
+							<li><a href="#_using_a_symbol_with_the_tt_if_tt_and_tt_unless_tt_options_2">Using a symbol with the <tt>:if</tt> and <tt>:unless</tt> options</a></li>
+						
+							<li><a href="#_using_a_string_with_the_tt_if_tt_and_tt_unless_tt_options_2">Using a string with the <tt>:if</tt> and <tt>:unless</tt> options</a></li>
+						
+							<li><a href="#_using_a_proc_object_with_the_tt_if_tt_and_tt_unless_tt_options_2">Using a Proc object with the <tt>:if</tt> and :<tt>unless</tt> options</a></li>
+						
+							<li><a href="#_multiple_conditions_for_callbacks">Multiple Conditions for Callbacks</a></li>
 						
 						</ul>
 					</li>
@@ -635,7 +645,7 @@ http://www.gnu.org/software/src-highlite -->
 <td class="icon">
 <img src="./images/icons/note.png" alt="Note" />
 </td>
-<td class="content">If you want to validate the presence of a boolean field (where the real values are true and false), you will want to use validates_inclusion_of :field_name, :in =&gt; [true, false] This is due to the way Object#blank? handles boolean values. false.blank? # =&gt; true</td>
+<td class="content">If you want to validate the presence of a boolean field (where the real values are true and false), you will want to use validates_inclusion_of :field_name, :in &#8658; [true, false] This is due to the way Object#blank? handles boolean values. false.blank? # &#8658; true</td>
 </tr></table>
 </div>
 <div class="paragraph"><p>The default error message for <tt>validates_presence_of</tt> is "<em>can&#8217;t be empty</em>".</p></div>
@@ -735,7 +745,7 @@ http://www.gnu.org/software/src-highlite -->
 <div class="sectionbody">
 <div class="paragraph"><p>Sometimes it will make sense to validate an object just when a given predicate is satisfied. You can do that by using the <tt>:if</tt> and <tt>:unless</tt> options, which can take a symbol, a string or a Ruby Proc. You may use the <tt>:if</tt> option when you want to specify when the validation <strong>should</strong> happen. If you want to specify when the validation <strong>should not</strong> happen, then you may use the <tt>:unless</tt> option.</p></div>
 <h3 id="_using_a_symbol_with_the_tt_if_tt_and_tt_unless_tt_options">5.1. Using a symbol with the <tt>:if</tt> and <tt>:unless</tt> options</h3>
-<div class="paragraph"><p>You can associated the <tt>:if</tt> and <tt>:unless</tt> options with a symbol corresponding to the name of a method that will get called right before validation happens. This is the most commonly used option.</p></div>
+<div class="paragraph"><p>You can associate the <tt>:if</tt> and <tt>:unless</tt> options with a symbol corresponding to the name of a method that will get called right before validation happens. This is the most commonly used option.</p></div>
 <div class="listingblock">
 <div class="content"><!-- Generator: GNU source-highlight 2.9
 by Lorenzo Bettini
@@ -1055,26 +1065,7 @@ An object of the <tt>ActionView::Helpers::InstanceTag</tt> class.
 <div class="sectionbody">
 <div class="paragraph"><p>Callbacks are methods that get called at certain moments of an object&#8217;s lifecycle. With callbacks it&#8217;s possible to write code that will run whenever an Active Record object is created, saved, updated, deleted or loaded from the database.</p></div>
 <h3 id="_callbacks_registration">9.1. Callbacks registration</h3>
-<div class="paragraph"><p>In order to use the available callbacks, you need to registrate them. There are two ways of doing that.</p></div>
-<h3 id="_registering_callbacks_by_overriding_the_callback_methods">9.2. Registering callbacks by overriding the callback methods</h3>
-<div class="paragraph"><p>You can specify the callback method directly, by overriding it. Let&#8217;s see how it works using the <tt>before_validation</tt> callback, which will surprisingly run right before any validation is done.</p></div>
-<div class="listingblock">
-<div class="content"><!-- Generator: GNU source-highlight 2.9
-by Lorenzo Bettini
-http://www.lorenzobettini.it
-http://www.gnu.org/software/src-highlite -->
-<pre><tt><span style="font-weight: bold"><span style="color: #0000FF">class</span></span> User <span style="color: #990000">&lt;</span> ActiveRecord<span style="color: #990000">::</span>Base
-  validates_presence_of <span style="color: #990000">:</span>login<span style="color: #990000">,</span> <span style="color: #990000">:</span>email
-
-  protected
-  <span style="font-weight: bold"><span style="color: #0000FF">def</span></span> before_validation
-    <span style="font-weight: bold"><span style="color: #0000FF">if</span></span> <span style="font-weight: bold"><span style="color: #0000FF">self</span></span><span style="color: #990000">.</span>login<span style="color: #990000">.</span><span style="font-weight: bold"><span style="color: #0000FF">nil</span></span><span style="color: #990000">?</span>
-      <span style="font-weight: bold"><span style="color: #0000FF">self</span></span><span style="color: #990000">.</span>login <span style="color: #990000">=</span> email <span style="font-weight: bold"><span style="color: #0000FF">unless</span></span> email<span style="color: #990000">.</span>blank?
-    <span style="font-weight: bold"><span style="color: #0000FF">end</span></span>
-  <span style="font-weight: bold"><span style="color: #0000FF">end</span></span>
-<span style="font-weight: bold"><span style="color: #0000FF">end</span></span></tt></pre></div></div>
-<h3 id="_registering_callbacks_by_using_macro_style_class_methods">9.3. Registering callbacks by using macro-style class methods</h3>
-<div class="paragraph"><p>The other way you can register a callback method is by implementing it as an ordinary method, and then using a macro-style class method to register it as a callback. The last example could be written like that:</p></div>
+<div class="paragraph"><p>In order to use the available callbacks, you need to registrate them. You can do that by implementing them as an ordinary methods, and then using a macro-style class method to register then as callbacks.</p></div>
 <div class="listingblock">
 <div class="content"><!-- Generator: GNU source-highlight 2.9
 by Lorenzo Bettini
@@ -1103,19 +1094,6 @@ http://www.gnu.org/software/src-highlite -->
 
   before_create <span style="color: #FF0000">{</span><span style="color: #990000">|</span>user<span style="color: #990000">|</span> user<span style="color: #990000">.</span>name <span style="color: #990000">=</span> user<span style="color: #990000">.</span>login<span style="color: #990000">.</span>capitalize <span style="font-weight: bold"><span style="color: #0000FF">if</span></span> user<span style="color: #990000">.</span>name<span style="color: #990000">.</span>blank?<span style="color: #FF0000">}</span>
 <span style="font-weight: bold"><span style="color: #0000FF">end</span></span></tt></pre></div></div>
-<div class="paragraph"><p>In Rails, the preferred way of registering callbacks is by using macro-style class methods. The main advantages of using macro-style class methods are:</p></div>
-<div class="ulist"><ul>
-<li>
-<p>
-You can add more than one method for each type of callback. Those methods will be queued for execution at the same order they were registered.
-</p>
-</li>
-<li>
-<p>
-Readability, since your callback declarations will live at the beggining of your models' files.
-</p>
-</li>
-</ul></div>
 <div class="admonitionblock">
 <table><tr>
 <td class="icon">
@@ -1125,10 +1103,56 @@ Readability, since your callback declarations will live at the beggining of your
 </tr></table>
 </div>
 </div>
-<h2 id="_available_callbacks">10. Available callbacks</h2>
+<h2 id="_conditional_callbacks">10. Conditional callbacks</h2>
+<div class="sectionbody">
+<div class="paragraph"><p>Like in validations, we can also make our callbacks conditional, calling then only when a given predicate is satisfied. You can do that by using the <tt>:if</tt> and <tt>:unless</tt> options, which can take a symbol, a string or a Ruby Proc. You may use the <tt>:if</tt> option when you want to specify when the callback <strong>should</strong> get called. If you want to specify when the callback <strong>should not</strong> be called, then you may use the <tt>:unless</tt> option.</p></div>
+<h3 id="_using_a_symbol_with_the_tt_if_tt_and_tt_unless_tt_options_2">10.1. Using a symbol with the <tt>:if</tt> and <tt>:unless</tt> options</h3>
+<div class="paragraph"><p>You can associate the <tt>:if</tt> and <tt>:unless</tt> options with a symbol corresponding to the name of a method that will get called right before the callback. If this method returns <tt>false</tt> the callback won&#8217;t be executed. This is the most common option. Using this form of registration it&#8217;s also possible to register several different methods that should be called to check the if the callback should be executed.</p></div>
+<div class="listingblock">
+<div class="content"><!-- Generator: GNU source-highlight 2.9
+by Lorenzo Bettini
+http://www.lorenzobettini.it
+http://www.gnu.org/software/src-highlite -->
+<pre><tt><span style="font-weight: bold"><span style="color: #0000FF">class</span></span> Order <span style="color: #990000">&lt;</span> ActiveRecord<span style="color: #990000">::</span>Base
+  before_save <span style="color: #990000">:</span>normalize_card_number<span style="color: #990000">,</span> <span style="color: #990000">:</span><span style="font-weight: bold"><span style="color: #0000FF">if</span></span> <span style="color: #990000">=&gt;</span> <span style="color: #990000">:</span>paid_with_card?
+<span style="font-weight: bold"><span style="color: #0000FF">end</span></span></tt></pre></div></div>
+<h3 id="_using_a_string_with_the_tt_if_tt_and_tt_unless_tt_options_2">10.2. Using a string with the <tt>:if</tt> and <tt>:unless</tt> options</h3>
+<div class="paragraph"><p>You can also use a string that will be evaluated using <tt>:eval</tt> and needs to contain valid Ruby code. You should use this option only when the string represents a really short condition.</p></div>
+<div class="listingblock">
+<div class="content"><!-- Generator: GNU source-highlight 2.9
+by Lorenzo Bettini
+http://www.lorenzobettini.it
+http://www.gnu.org/software/src-highlite -->
+<pre><tt><span style="font-weight: bold"><span style="color: #0000FF">class</span></span> Order <span style="color: #990000">&lt;</span> ActiveRecord<span style="color: #990000">::</span>Base
+  before_save <span style="color: #990000">:</span>normalize_card_number<span style="color: #990000">,</span> <span style="color: #990000">:</span><span style="font-weight: bold"><span style="color: #0000FF">if</span></span> <span style="color: #990000">=&gt;</span> <span style="color: #FF0000">"paid_with_card?"</span>
+<span style="font-weight: bold"><span style="color: #0000FF">end</span></span></tt></pre></div></div>
+<h3 id="_using_a_proc_object_with_the_tt_if_tt_and_tt_unless_tt_options_2">10.3. Using a Proc object with the <tt>:if</tt> and :<tt>unless</tt> options</h3>
+<div class="paragraph"><p>Finally, it&#8217;s possible to associate <tt>:if</tt> and <tt>:unless</tt> with a Ruby Proc object. This option is best suited when writing short validation methods, usually one-liners.</p></div>
+<div class="listingblock">
+<div class="content"><!-- Generator: GNU source-highlight 2.9
+by Lorenzo Bettini
+http://www.lorenzobettini.it
+http://www.gnu.org/software/src-highlite -->
+<pre><tt><span style="font-weight: bold"><span style="color: #0000FF">class</span></span> Order <span style="color: #990000">&lt;</span> ActiveRecord<span style="color: #990000">::</span>Base
+  before_save <span style="color: #990000">:</span>normalize_card_number<span style="color: #990000">,</span>
+    <span style="color: #990000">:</span><span style="font-weight: bold"><span style="color: #0000FF">if</span></span> <span style="color: #990000">=&gt;</span> Proc<span style="color: #990000">.</span>new <span style="color: #FF0000">{</span> <span style="color: #990000">|</span>order<span style="color: #990000">|</span> order<span style="color: #990000">.</span>paid_with_card? <span style="color: #FF0000">}</span>
+<span style="font-weight: bold"><span style="color: #0000FF">end</span></span></tt></pre></div></div>
+<h3 id="_multiple_conditions_for_callbacks">10.4. Multiple Conditions for Callbacks</h3>
+<div class="paragraph"><p>When writing conditional callbacks, it&#8217;s possible to mix both <tt>:if</tt> and <tt>:unless</tt> in the same callback declaration.</p></div>
+<div class="listingblock">
+<div class="content"><!-- Generator: GNU source-highlight 2.9
+by Lorenzo Bettini
+http://www.lorenzobettini.it
+http://www.gnu.org/software/src-highlite -->
+<pre><tt><span style="font-weight: bold"><span style="color: #0000FF">class</span></span> Comment <span style="color: #990000">&lt;</span> ActiveRecord<span style="color: #990000">::</span>Base
+  after_create <span style="color: #990000">:</span>send_email_to_author<span style="color: #990000">,</span> <span style="color: #990000">:</span><span style="font-weight: bold"><span style="color: #0000FF">if</span></span> <span style="color: #990000">=&gt;</span> <span style="color: #990000">:</span>author_wants_emails?<span style="color: #990000">,</span>
+    <span style="color: #990000">:</span><span style="font-weight: bold"><span style="color: #0000FF">unless</span></span> <span style="color: #990000">=&gt;</span> Proc<span style="color: #990000">.</span>new <span style="color: #FF0000">{</span> <span style="color: #990000">|</span>comment<span style="color: #990000">|</span> comment<span style="color: #990000">.</span>post<span style="color: #990000">.</span>ignore_comments? <span style="color: #FF0000">}</span>
+<span style="font-weight: bold"><span style="color: #0000FF">end</span></span></tt></pre></div></div>
+</div>
+<h2 id="_available_callbacks">11. Available callbacks</h2>
 <div class="sectionbody">
 <div class="paragraph"><p>Here is a list with all the available Active Record callbacks, listed in the same order in which they will get called during the respective operations.</p></div>
-<h3 id="_callbacks_called_both_when_creating_or_updating_a_record">10.1. Callbacks called both when creating or updating a record.</h3>
+<h3 id="_callbacks_called_both_when_creating_or_updating_a_record">11.1. Callbacks called both when creating or updating a record.</h3>
 <div class="ulist"><ul>
 <li>
 <p>
@@ -1156,7 +1180,7 @@ Readability, since your callback declarations will live at the beggining of your
 </p>
 </li>
 </ul></div>
-<h3 id="_callbacks_called_only_when_creating_a_new_record">10.2. Callbacks called only when creating a new record.</h3>
+<h3 id="_callbacks_called_only_when_creating_a_new_record">11.2. Callbacks called only when creating a new record.</h3>
 <div class="ulist"><ul>
 <li>
 <p>
@@ -1184,7 +1208,7 @@ Readability, since your callback declarations will live at the beggining of your
 </p>
 </li>
 </ul></div>
-<h3 id="_callbacks_called_only_when_updating_an_existing_record">10.3. Callbacks called only when updating an existing record.</h3>
+<h3 id="_callbacks_called_only_when_updating_an_existing_record">11.3. Callbacks called only when updating an existing record.</h3>
 <div class="ulist"><ul>
 <li>
 <p>
@@ -1212,7 +1236,7 @@ Readability, since your callback declarations will live at the beggining of your
 </p>
 </li>
 </ul></div>
-<h3 id="_callbacks_called_when_removing_a_record_from_the_database">10.4. Callbacks called when removing a record from the database.</h3>
+<h3 id="_callbacks_called_when_removing_a_record_from_the_database">11.4. Callbacks called when removing a record from the database.</h3>
 <div class="ulist"><ul>
 <li>
 <p>
@@ -1231,16 +1255,16 @@ Readability, since your callback declarations will live at the beggining of your
 </li>
 </ul></div>
 <div class="paragraph"><p>The <tt>before_destroy</tt> and <tt>after_destroy</tt> callbacks will only be called if you delete the model using either the <tt>destroy</tt> instance method or one of the <tt>destroy</tt> or <tt>destroy_all</tt> class methods of your Active Record class. If you use <tt>delete</tt> or <tt>delete_all</tt> no callback operations will run, since Active Record will not instantiate any objects, accessing the records to be deleted directly in the database.</p></div>
-<h3 id="_the_tt_after_initialize_tt_and_tt_after_find_tt_callbacks">10.5. The <tt>after_initialize</tt> and <tt>after_find</tt> callbacks</h3>
+<h3 id="_the_tt_after_initialize_tt_and_tt_after_find_tt_callbacks">11.5. The <tt>after_initialize</tt> and <tt>after_find</tt> callbacks</h3>
 <div class="paragraph"><p>The <tt>after_initialize</tt> callback will be called whenever an Active Record object is instantiated, either by direcly using <tt>new</tt> or when a record is loaded from the database. It can be useful to avoid the need to directly override your Active Record <tt>initialize</tt> method.</p></div>
 <div class="paragraph"><p>The <tt>after_find</tt> callback will be called whenever Active Record loads a record from the database. When used together with <tt>after_initialize</tt> it will run first, since Active Record will first read the record from the database and them create the model object that will hold it.</p></div>
 <div class="paragraph"><p>The <tt>after_initialize</tt> and <tt>after_find</tt> callbacks are a bit different from the others, since the only way to register those callbacks is by defining them as methods. If you try to register <tt>after_initialize</tt> or <tt>after_find</tt> using macro-style class methods, they will just be ignored. This behaviour is due to performance reasons, since <tt>after_initialize</tt> and <tt>after_find</tt> will both be called for each record found in the database, significantly slowing down the queries.</p></div>
 </div>
-<h2 id="_halting_execution">11. Halting Execution</h2>
+<h2 id="_halting_execution">12. Halting Execution</h2>
 <div class="sectionbody">
 <div class="paragraph"><p>As you start registering new callbacks for your models, they will be queued for execution. This queue will include all your model&#8217;s validations, the registered callbacks and the database operation to be executed. However, if at any moment one of the <tt>before_create</tt>, <tt>before_save</tt>, <tt>before_update</tt> or <tt>before_destroy</tt> callback methods returns a boolean <tt>false</tt> (not <tt>nil</tt>) value, this execution chain will be halted and the desired operation will not complete: your model will not get persisted in the database, or your records will not get deleted and so on.</p></div>
 </div>
-<h2 id="_callback_classes">12. Callback classes</h2>
+<h2 id="_callback_classes">13. Callback classes</h2>
 <div class="sectionbody">
 <div class="paragraph"><p>Sometimes the callback methods that you&#8217;ll write will be useful enough to be reused at other models. Active Record makes it possible to create classes that encapsulate the callback methods, so it becomes very easy to reuse them.</p></div>
 <div class="paragraph"><p>Here&#8217;s an example where we create a class with a after_destroy callback for a PictureFile model.</p></div>
@@ -1285,7 +1309,7 @@ http://www.gnu.org/software/src-highlite -->
 <span style="font-weight: bold"><span style="color: #0000FF">end</span></span></tt></pre></div></div>
 <div class="paragraph"><p>You can declare as many callbacks as you want inside your callback classes.</p></div>
 </div>
-<h2 id="_observers">13. Observers</h2>
+<h2 id="_observers">14. Observers</h2>
 <div class="sectionbody">
 <div class="paragraph"><p>Active Record callbacks are a powerful feature, but they can pollute your model implementation with code that&#8217;s not directly related to the model&#8217;s purpose. In object-oriented software, it&#8217;s always a good idea to design your classes with a single responsibility in the whole system. For example, it wouldn&#8217;t make much sense to have a <tt>User</tt> model with a method that writes data about a login attempt to a log file. Whenever you&#8217;re using callbacks to write code that&#8217;s not directly related to your model class purposes, it may be a good moment to create an Observer.</p></div>
 <div class="paragraph"><p>An Active Record Observer is an object that links itself to a model and registers its methods for callbacks. Your model&#8217;s implementation remains clean, while you can reuse the code in the Observer to add behaviour to more than one model class. OK, you may say that we can also do that using callback classes, but it would still force us to add code to our model&#8217;s implementation.</p></div>
@@ -1311,7 +1335,7 @@ http://www.gnu.org/software/src-highlite -->
 <pre><tt><span style="font-weight: bold"><span style="color: #0000FF">class</span></span> Auditor <span style="color: #990000">&lt;</span> ActiveRecord<span style="color: #990000">::</span>Observer
   observe User<span style="color: #990000">,</span> Registration<span style="color: #990000">,</span> Invoice
 <span style="font-weight: bold"><span style="color: #0000FF">end</span></span></tt></pre></div></div>
-<h3 id="_registering_observers">13.1. Registering observers</h3>
+<h3 id="_registering_observers">14.1. Registering observers</h3>
 <div class="paragraph"><p>If you paid attention, you may be wondering where Active Record Observers are referenced in our applications, so they get instantiated and begin to interact with our models. For observers to work we need to register them somewhere. The usual place to do that is in our application&#8217;s <strong>config/environment.rb</strong> file. In this file there is a commented-out line where we can define the observers that our application should load at start-up.</p></div>
 <div class="listingblock">
 <div class="content"><!-- Generator: GNU source-highlight 2.9
@@ -1322,10 +1346,10 @@ http://www.gnu.org/software/src-highlite -->
 config<span style="color: #990000">.</span>active_record<span style="color: #990000">.</span>observers <span style="color: #990000">=</span> <span style="color: #990000">:</span>registration_observer<span style="color: #990000">,</span> <span style="color: #990000">:</span>auditor</tt></pre></div></div>
 <div class="paragraph"><p>You can uncomment the line with <tt>config.active_record.observers</tt> and change the symbols for the name of the observers that should be registered.</p></div>
 <div class="paragraph"><p>It&#8217;s also possible to register callbacks in any of the files living at <strong>config/environments/</strong>, if you want an observer to work only in a specific environment. There is not a <tt>config.active_record.observers</tt> line at any of those files, but you can simply add it.</p></div>
-<h3 id="_where_to_put_the_observers_source_files">13.2. Where to put the observers' source files</h3>
+<h3 id="_where_to_put_the_observers_source_files">14.2. Where to put the observers' source files</h3>
 <div class="paragraph"><p>By convention, you should always save your observers' source files inside <strong>app/models</strong>.</p></div>
 </div>
-<h2 id="_changelog">14. Changelog</h2>
+<h2 id="_changelog">15. Changelog</h2>
 <div class="sectionbody">
 <div class="paragraph"><p><a href="http://rails.lighthouseapp.com/projects/16213/tickets/26-active-record-validations-and-callbacks">http://rails.lighthouseapp.com/projects/16213/tickets/26-active-record-validations-and-callbacks</a></p></div>
 </div>

@@ -786,4 +786,37 @@ class EagerAssociationTest < ActiveRecord::TestCase
       assert_equal Person.find(person.id).agents, person.agents
     end
   end
+
+  def test_preload_has_many_using_primary_key
+    expected = Firm.find(:first).clients_using_primary_key.to_a
+    firm = Firm.find :first, :include => :clients_using_primary_key
+    assert_no_queries do
+      assert_equal expected, firm.clients_using_primary_key
+    end
+  end
+
+  def test_include_has_many_using_primary_key
+    expected = Firm.find(1).clients_using_primary_key.sort_by &:name
+    firm = Firm.find 1, :include => :clients_using_primary_key, :order => 'clients_using_primary_keys_companies.name'
+    assert_no_queries do
+      assert_equal expected, firm.clients_using_primary_key
+    end
+  end
+  
+  def test_preload_has_one_using_primary_key
+    expected = Firm.find(:first).account_using_primary_key
+    firm = Firm.find :first, :include => :account_using_primary_key
+    assert_no_queries do
+      assert_equal expected, firm.account_using_primary_key
+    end
+  end
+
+  def test_include_has_one_using_primary_key
+    expected = Firm.find(1).account_using_primary_key
+    firm = Firm.find(:all, :include => :account_using_primary_key, :order => 'accounts.id').detect {|f| f.id == 1}
+    assert_no_queries do
+      assert_equal expected, firm.account_using_primary_key
+    end
+  end
+  
 end

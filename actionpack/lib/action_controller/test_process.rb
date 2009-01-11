@@ -1,32 +1,4 @@
-require 'action_controller/test_case'
-
 module ActionController #:nodoc:
-  class Base
-    attr_reader :assigns
-
-    # Process a test request called with a TestRequest object.
-    def self.process_test(request)
-      new.process_test(request)
-    end
-
-    def process_test(request) #:nodoc:
-      process(request, TestResponse.new)
-    end
-
-    def process_with_test(*args)
-      returning process_without_test(*args) do
-        @assigns = {}
-        (instance_variable_names - @@protected_instance_variables).each do |var|
-          value = instance_variable_get(var)
-          @assigns[var[1..-1]] = value
-          response.template.assigns[var[1..-1]] = value if response
-        end
-      end
-    end
-
-    alias_method_chain :process, :test
-  end
-
   class TestRequest < Request #:nodoc:
     attr_accessor :cookies, :session_options
     attr_accessor :query_parameters, :path, :session
@@ -433,7 +405,9 @@ module ActionController #:nodoc:
       @request.session = ActionController::TestSession.new(session) unless session.nil?
       @request.session["flash"] = ActionController::Flash::FlashHash.new.update(flash) if flash
       build_request_uri(action, parameters)
-      @controller.process(@request, @response)
+
+      Base.class_eval { include ProcessWithTest } unless Base < ProcessWithTest
+      @controller.process_with_test(@request, @response)
     end
 
     def xml_http_request(request_method, action, parameters = nil, session = nil, flash = nil)
@@ -545,12 +519,24 @@ module ActionController #:nodoc:
       ActionController::Routing.const_set(:Routes, real_routes) if real_routes
     end
   end
-end
 
-module Test
-  module Unit
-    class TestCase #:nodoc:
-      include ActionController::TestProcess
+  module ProcessWithTest #:nodoc:
+    def self.included(base)
+      base.class_eval { attr_reader :assigns }
     end
+
+    def process_with_test(*args)
+      process(*args).tap { set_test_assigns }
+    end
+
+    private
+      def set_test_assigns
+        @assigns = {}
+        (instance_variable_names - self.class.protected_instance_variables).each do |var|
+          name, value = var[1..-1], instance_variable_get(var)
+          @assigns[name] = value
+          response.template.assigns[name] = value if response
+        end
+      end
   end
 end

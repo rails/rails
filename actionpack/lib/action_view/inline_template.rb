@@ -12,7 +12,7 @@ module ActionView #:nodoc:
 
     private
       # Always recompile inline templates
-      def recompile?(local_assigns)
+      def recompile?
         true
       end
   end
