@@ -312,7 +312,7 @@ ActiveSupport::Dependencies.mechanism = :require
 Rails.logger.level = ActiveSupport::BufferedLogger::INFO
 ----------------------------------------------------------------------------
 
-As +ActionController::Base.perform_caching+ is set to +true+, performance tests will behave much as they do in the production environment.
+As +ActionController::Base.perform_caching+ is set to +true+, performance tests will behave much as they do in the +production+ environment.
 
 [[gc]]
 === Installing GC-Patched Ruby ===

@@ -574,7 +574,7 @@ http://www.gnu.org/software/src-highlite -->
 <pre><tt>ActionController<span style="color: #990000">::</span>Base<span style="color: #990000">.</span>perform_caching <span style="color: #990000">=</span> <span style="font-weight: bold"><span style="color: #0000FF">true</span></span>
 ActiveSupport<span style="color: #990000">::</span>Dependencies<span style="color: #990000">.</span>mechanism <span style="color: #990000">=</span> <span style="color: #990000">:</span>require
 Rails<span style="color: #990000">.</span>logger<span style="color: #990000">.</span>level <span style="color: #990000">=</span> ActiveSupport<span style="color: #990000">::</span>BufferedLogger<span style="color: #990000">::</span>INFO</tt></pre></div></div>
-<div class="paragraph"><p>As <tt>ActionController::Base.perform_caching</tt> is set to <tt>true</tt>, performance tests will behave much as they do in the production environment.</p></div>
+<div class="paragraph"><p>As <tt>ActionController::Base.perform_caching</tt> is set to <tt>true</tt>, performance tests will behave much as they do in the <tt>production</tt> environment.</p></div>
 <h3 id="gc">1.8. Installing GC-Patched Ruby</h3>
 <div class="paragraph"><p>To get the best from Rails performance tests, you need to build a special Ruby binary with some super powers - <a href="http://rubyforge.org/tracker/download.php/1814/7062/17676/3291/ruby186gc.patch">GC patch</a> for measuring GC Runs/Time and memory/object allocation.</p></div>
 <div class="paragraph"><p>The process is fairly straight forward. If you&#8217;ve never compiled a Ruby binary before, follow these steps to build a ruby binary inside your home directory:</p></div>
