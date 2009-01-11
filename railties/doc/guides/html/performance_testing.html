@@ -246,12 +246,14 @@ ul#navMain {
 					<a href="#_request_logging">Request Logging</a>
 					</li>
 					<li>
-					<a href="#_useful_profiling_tools">Useful Profiling Tools</a>
+					<a href="#_useful_links">Useful Links</a>
 						<ul>
 						
 							<li><a href="#_rails_plugins_and_gems">Rails Plugins and Gems</a></li>
 						
-							<li><a href="#_external">External</a></li>
+							<li><a href="#_generic_tools">Generic Tools</a></li>
+						
+							<li><a href="#_tutorials_and_documentation">Tutorials and Documentation</a></li>
 						
 						</ul>
 					</li>
@@ -788,7 +790,7 @@ http://www.gnu.org/software/src-highlite -->
 <div class="paragraph"><p>This data is fairly straightforward to understand. Rails uses millisecond(ms) as the metric to measures the time taken. The complete request spent 5 ms inside Rails, out of which 2 ms were spent rendering views and none was spent communication with the database. It&#8217;s safe to assume that the remaining 3 ms were spent inside the controller.</p></div>
 <div class="paragraph"><p>Michael Koziarski has an <a href="http://www.therailsway.com/2009/1/6/requests-per-second">interesting blog post</a> explaining the importance of using milliseconds as the metric.</p></div>
 </div>
-<h2 id="_useful_profiling_tools">5. Useful Profiling Tools</h2>
+<h2 id="_useful_links">5. Useful Links</h2>
 <div class="sectionbody">
 <h3 id="_rails_plugins_and_gems">5.1. Rails Plugins and Gems</h3>
 <div class="ulist"><ul>
@@ -813,7 +815,7 @@ http://www.gnu.org/software/src-highlite -->
 </p>
 </li>
 </ul></div>
-<h3 id="_external">5.2. External</h3>
+<h3 id="_generic_tools">5.2. Generic Tools</h3>
 <div class="ulist"><ul>
 <li>
 <p>
@@ -828,6 +830,24 @@ http://www.gnu.org/software/src-highlite -->
 <li>
 <p>
 <a href="http://jakarta.apache.org/jmeter">JMeter</a>
+</p>
+</li>
+<li>
+<p>
+<a href="http://kcachegrind.sourceforge.net/html/Home.html">kcachegrind</a>
+</p>
+</li>
+</ul></div>
+<h3 id="_tutorials_and_documentation">5.3. Tutorials and Documentation</h3>
+<div class="ulist"><ul>
+<li>
+<p>
+<a href="http://ruby-prof.rubyforge.org">ruby-prof API Documentation</a>
+</p>
+</li>
+<li>
+<p>
+<a href="http://railscasts.com/episodes/98-request-profiling">Request Profiling Railscast</a> - Outdated, but useful for understanding call graphs
 </p>
 </li>
 </ul></div>

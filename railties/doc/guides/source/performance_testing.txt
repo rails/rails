@@ -523,7 +523,7 @@ This data is fairly straightforward to understand. Rails uses millisecond(ms) as
 
 Michael Koziarski has an http://www.therailsway.com/2009/1/6/requests-per-second[interesting blog post] explaining the importance of using milliseconds as the metric.
 
-== Useful Profiling Tools ==
+== Useful Links ==
 
 === Rails Plugins and Gems ===
 
@@ -532,11 +532,17 @@ Michael Koziarski has an http://www.therailsway.com/2009/1/6/requests-per-second
 * http://github.com/josevalim/rails-footnotes/tree/master[Rails Footnotes]
 * http://github.com/dsboulder/query_reviewer/tree/master[Query Reviewer]
 
-=== External ===
+=== Generic Tools ===
 
 * http://www.hpl.hp.com/research/linux/httperf[httperf]
 * http://httpd.apache.org/docs/2.2/programs/ab.html[ab]
 * http://jakarta.apache.org/jmeter[JMeter]
+* http://kcachegrind.sourceforge.net/html/Home.html[kcachegrind]
+
+=== Tutorials and Documentation ===
+
+* http://ruby-prof.rubyforge.org[ruby-prof API Documentation]
+* http://railscasts.com/episodes/98-request-profiling[Request Profiling Railscast] - Outdated, but useful for understanding call graphs
 
 == Commercial Products ==
 
