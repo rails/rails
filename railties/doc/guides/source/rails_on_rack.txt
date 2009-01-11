@@ -236,4 +236,4 @@ Metal applications are an optimization. You should make sure to http://weblog.ru
 
 http://rails.lighthouseapp.com/projects/16213-rails-guides/tickets/4[Lighthouse ticket]
 
-* January 11, 2009: First version by Pratik
+* January 11, 2009: First version by link:../authors.html#lifo[Pratik]
