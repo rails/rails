@@ -1262,7 +1262,7 @@ http://www.gnu.org/software/src-highlite -->
 </div>
 <h2 id="_halting_execution">12. Halting Execution</h2>
 <div class="sectionbody">
-<div class="paragraph"><p>As you start registering new callbacks for your models, they will be queued for execution. This queue will include all your model&#8217;s validations, the registered callbacks and the database operation to be executed. However, if at any moment one of the <tt>before_create</tt>, <tt>before_save</tt>, <tt>before_update</tt> or <tt>before_destroy</tt> callback methods returns a boolean <tt>false</tt> (not <tt>nil</tt>) value, this execution chain will be halted and the desired operation will not complete: your model will not get persisted in the database, or your records will not get deleted and so on.</p></div>
+<div class="paragraph"><p>As you start registering new callbacks for your models, they will be queued for execution. This queue will include all your model&#8217;s validations, the registered callbacks and the database operation to be executed. However, if at any moment one of the <tt>before_create</tt>, <tt>before_save</tt>, <tt>before_update</tt> or <tt>before_destroy</tt> callback methods returns a boolean <tt>false</tt> (not <tt>nil</tt>) value or raise and exception, this execution chain will be halted and the desired operation will not complete: your model will not get persisted in the database, or your records will not get deleted and so on. It&#8217;s because the whole callback chain is wrapped in a transaction, so raising an exception or returning <tt>false</tt> fires a database ROLLBACK.</p></div>
 </div>
 <h2 id="_callback_classes">13. Callback classes</h2>
 <div class="sectionbody">
