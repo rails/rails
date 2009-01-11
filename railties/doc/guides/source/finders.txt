@@ -1,23 +1,19 @@
 Rails Finders
 =============
 
-This guide covers the +find+ method defined in ActiveRecord::Base, as well as other ways of finding particular instances of your models. By using this guide, you will be able to:
+This guide covers different ways to retrieve data from the database using Active Record. By referring to this guide, you will be able to:
 
 * Find records using a variety of methods and conditions
 * Specify the order, retrieved attributes, grouping, and other properties of the found records
-* Use eager loading to cut down on the number of database queries in your application
-* Use dynamic finders
+* Use eager loading to reduce the number of database queries needed for data retrieval
+* Use dynamic finders methods
 * Create named scopes to add custom finding behavior to your models
 * Check for the existence of particular records
-* Perform aggregate calculations on Active Record models
+* Perform various calculations on Active Record models
 
 If you're used to using raw SQL to find database records then, generally, you will find that there are better ways to carry out the same operations in Rails. Active Record insulates you from the need to use SQL in most cases.
 
-Generated SQL statements that appear in the log files may have their arguments quoted. Further, the form of quoting will be DBMS specific; SQLite3 will use "\ for example while MySQL will use `\ instead. Because of this, simply copying SQL from the examples contained within this guide may not work in your database system. Please consult the database systems manual before attempting to execute any SQL.
-
-== The Sample Models
-
-This guide demonstrates finding using the following models:
+Code examples in this guide use one or more of the following models: 
 
 [source,ruby]
 -------------------------------------------------------
@@ -27,26 +23,38 @@ class Client < ActiveRecord::Base
   has_many :orders
   has_and_belongs_to_many :roles
 end  
+-------------------------------------------------------
 
+[source,ruby]
+-------------------------------------------------------
 class Address < ActiveRecord::Base
   belongs_to :client
 end
+-------------------------------------------------------
 
+[source,ruby]
+-------------------------------------------------------
 class MailingAddress < Address
 end
+-------------------------------------------------------
 
+[source,ruby]
+-------------------------------------------------------
 class Order < ActiveRecord::Base
   belongs_to :client, :counter_cache => true
 end
+-------------------------------------------------------
 
+[source,ruby]
+-------------------------------------------------------
 class Role < ActiveRecord::Base
   has_and_belongs_to_many :clients
 end
 -------------------------------------------------------
 
-== Database Agnostic
-
+****
 Active Record will perform queries on the database for you and is compatible with most database systems (MySQL, PostgreSQL and SQLite to name a few). Regardless of which database system you're using, the Active Record method format will always be the same. 
+****
 
 == IDs, First, Last and All
 
@@ -759,37 +767,8 @@ Client.sum("orders_count")
 
 For options, please see the parent section,  <<_calculations, Calculations>>
 
-== Credits
-
-Thanks to Ryan Bates for his awesome screencast on named scope #108. The information within the named scope section is intentionally similar to it, and without the cast may have not been possible.
-
-Thanks to Mike Gunderloy for his tips on creating this guide.
-
 == Changelog
 
 http://rails.lighthouseapp.com/projects/16213-rails-guides/tickets/16[Lighthouse ticket]
 
-* December 29 2008: Added http://rails.lighthouseapp.com/projects/16213/tickets/16-activerecord-finders#ticket-16-32[James B. Byrne's suggestions from this ticket]
-* December 23 2008: Xavier Noria suggestions added! From http://rails.lighthouseapp.com/projects/16213/tickets/16-activerecord-finders#ticket-16-27[this ticket] and http://rails.lighthouseapp.com/projects/16213/tickets/16-activerecord-finders#ticket-16-28[this ticket] and http://rails.lighthouseapp.com/projects/16213/tickets/16-activerecord-finders#ticket-16-29[this ticket]
-* December 22 2008: Added section on having.
-* December 22 2008: Added description of how to make hash conditions use an IN expression http://rails.loglibrary.com/chats/15279234[mentioned here]
-* December 22 2008: Mentioned using SQL as values for the lock option as mentioned in http://rails.lighthouseapp.com/projects/16213-rails-guides/tickets/16-activerecord-finders#ticket-16-24[this ticket]
-* December 21 2008: Fixed http://rails.lighthouseapp.com/projects/16213/tickets/16-activerecord-finders#ticket-16-22[this ticket] minus two points; the lock SQL syntax and the having option.
-* December 21 2008: Added more to the has conditions section.
-* December 17 2008: Fixed up syntax errors.
-* December 16 2008: Covered hash conditions that were introduced in Rails 2.2.2.
-* December 1 2008: Added using an SQL function example to Selecting Certain Fields section as per http://rails.lighthouseapp.com/projects/16213/tickets/36-adding-an-example-for-using-distinct-to-ar-finders[this ticket]
-* November 23 2008: Added documentation for +find_by_last+ and +find_by_bang!+
-* November 21 2008: Fixed all points specified in http://rails.lighthouseapp.com/projects/16213-rails-guides/tickets/16-activerecord-finders#ticket-16-13[this comment] and http://rails.lighthouseapp.com/projects/16213-rails-guides/tickets/16-activerecord-finders#ticket-16-14[this comment]
-* November 18 2008: Fixed all points specified in http://rails.lighthouseapp.com/projects/16213-rails-guides/tickets/16-activerecord-finders#ticket-16-11[this comment]
-* November 8, 2008: Editing pass by link:../authors.html#mgunderloy[Mike Gunderloy] . First release version.
-* October 27, 2008: Added scoped section, added named params for conditions and added sub-section headers for conditions section by Ryan Bigg
-* October 27, 2008: Fixed up all points specified in http://rails.lighthouseapp.com/projects/16213-rails-guides/tickets/16-activerecord-finders#ticket-16-6[this comment] with an exception of the final point by Ryan Bigg
-* October 26, 2008: Editing pass by link:../authors.html#mgunderloy[Mike Gunderloy] . First release version.
-* October 22, 2008: Calculations complete, first complete draft by Ryan Bigg
-* October 21, 2008: Extended named scope section by Ryan Bigg
-* October 9, 2008: Lock, count, cleanup by Ryan Bigg
-* October 6, 2008: Eager loading by Ryan Bigg
-* October 5, 2008: Covered conditions by Ryan Bigg
-* October 1, 2008: Covered limit/offset, formatting changes by Ryan Bigg
-* September 28, 2008: Covered first/last/all by Ryan Bigg
+* December 29 2008: Initial version by Ryan Bigg

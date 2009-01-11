@@ -301,6 +301,19 @@ By default, each performance test is run +4 times+ in benchmarking mode and +1 t
 
 CAUTION: Performance test configurability is not yet enabled in Rails. But it will be soon.
 
+=== Performance Test Environment ===
+
+Performance tests are run in the +development+ environment. But running performance tests will set the following configuration parameters:
+
+[source, shell]
+----------------------------------------------------------------------------
+ActionController::Base.perform_caching = true
+ActiveSupport::Dependencies.mechanism = :require
+Rails.logger.level = ActiveSupport::BufferedLogger::INFO
+----------------------------------------------------------------------------
+
+As +ActionController::Base.perform_caching+ is set to +true+, performance tests will behave much as they do in the production environment.
+
 [[gc]]
 === Installing GC-Patched Ruby ===
 

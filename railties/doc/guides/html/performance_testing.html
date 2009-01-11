@@ -214,6 +214,8 @@ ul#navMain {
 						
 							<li><a href="#_tuning_test_runs">Tuning Test Runs</a></li>
 						
+							<li><a href="#_performance_test_environment">Performance Test Environment</a></li>
+						
 							<li><a href="#gc">Installing GC-Patched Ruby</a></li>
 						
 						</ul>
@@ -560,12 +562,23 @@ http://www.gnu.org/software/src-highlite -->
 <td class="content">Performance test configurability is not yet enabled in Rails. But it will be soon.</td>
 </tr></table>
 </div>
-<h3 id="gc">1.7. Installing GC-Patched Ruby</h3>
+<h3 id="_performance_test_environment">1.7. Performance Test Environment</h3>
+<div class="paragraph"><p>Performance tests are run in the <tt>development</tt> environment. But running performance tests will set the following configuration parameters:</p></div>
+<div class="listingblock">
+<div class="content"><!-- Generator: GNU source-highlight 2.9
+by Lorenzo Bettini
+http://www.lorenzobettini.it
+http://www.gnu.org/software/src-highlite -->
+<pre><tt>ActionController<span style="color: #990000">::</span>Base<span style="color: #990000">.</span>perform_caching <span style="color: #990000">=</span> <span style="font-weight: bold"><span style="color: #0000FF">true</span></span>
+ActiveSupport<span style="color: #990000">::</span>Dependencies<span style="color: #990000">.</span>mechanism <span style="color: #990000">=</span> <span style="color: #990000">:</span>require
+Rails<span style="color: #990000">.</span>logger<span style="color: #990000">.</span>level <span style="color: #990000">=</span> ActiveSupport<span style="color: #990000">::</span>BufferedLogger<span style="color: #990000">::</span>INFO</tt></pre></div></div>
+<div class="paragraph"><p>As <tt>ActionController::Base.perform_caching</tt> is set to <tt>true</tt>, performance tests will behave much as they do in the production environment.</p></div>
+<h3 id="gc">1.8. Installing GC-Patched Ruby</h3>
 <div class="paragraph"><p>To get the best from Rails performance tests, you need to build a special Ruby binary with some super powers - <a href="http://rubyforge.org/tracker/download.php/1814/7062/17676/3291/ruby186gc.patch">GC patch</a> for measuring GC Runs/Time and memory/object allocation.</p></div>
 <div class="paragraph"><p>The process is fairly straight forward. If you&#8217;ve never compiled a Ruby binary before, follow these steps to build a ruby binary inside your home directory:</p></div>
-<h4 id="_installation">1.7.1. Installation</h4>
+<h4 id="_installation">1.8.1. Installation</h4>
 <div class="paragraph"><p>Compile Ruby and apply this <a href="http://rubyforge.org/tracker/download.php/1814/7062/17676/3291/ruby186gc.patch">GC Patch</a>:</p></div>
-<h4 id="_download_and_extract">1.7.2. Download and Extract</h4>
+<h4 id="_download_and_extract">1.8.2. Download and Extract</h4>
 <div class="listingblock">
 <div class="content"><!-- Generator: GNU source-highlight 2.9
 by Lorenzo Bettini
@@ -575,14 +588,14 @@ http://www.gnu.org/software/src-highlite -->
 <span style="color: #990000">[</span>lifo@null <span style="color: #990000">~]</span>$ wget <span style="color: #990000">&lt;</span>download the latest stable ruby from ftp<span style="color: #990000">:</span>//ftp<span style="color: #990000">.</span>ruby-lang<span style="color: #990000">.</span>org/pub/ruby<span style="color: #990000">&gt;</span>
 <span style="color: #990000">[</span>lifo@null <span style="color: #990000">~]</span>$ tar -xzvf <span style="color: #990000">&lt;</span>ruby-version<span style="color: #990000">.</span>tar<span style="color: #990000">.</span>gz<span style="color: #990000">&gt;</span>
 <span style="color: #990000">[</span>lifo@null <span style="color: #990000">~]</span>$ cd <span style="color: #990000">&lt;</span>ruby-version<span style="color: #990000">&gt;</span></tt></pre></div></div>
-<h4 id="_apply_the_patch">1.7.3. Apply the patch</h4>
+<h4 id="_apply_the_patch">1.8.3. Apply the patch</h4>
 <div class="listingblock">
 <div class="content"><!-- Generator: GNU source-highlight 2.9
 by Lorenzo Bettini
 http://www.lorenzobettini.it
 http://www.gnu.org/software/src-highlite -->
 <pre><tt><span style="color: #990000">[</span>lifo@null ruby-version<span style="color: #990000">]</span>$ curl http<span style="color: #990000">:</span>//rubyforge<span style="color: #990000">.</span>org/tracker/download<span style="color: #990000">.</span>php<span style="color: #990000">/</span><span style="color: #993399">1814</span><span style="color: #990000">/</span><span style="color: #993399">7062</span><span style="color: #990000">/</span><span style="color: #993399">17676</span><span style="color: #990000">/</span><span style="color: #993399">3291</span>/ruby186gc<span style="color: #990000">.</span>patch <span style="color: #990000">|</span> patch -p<span style="color: #993399">0</span></tt></pre></div></div>
-<h4 id="_configure_and_install">1.7.4. Configure and Install</h4>
+<h4 id="_configure_and_install">1.8.4. Configure and Install</h4>
 <div class="paragraph"><p>The following will install ruby in your home directory&#8217;s <tt>/rubygc</tt> directory. Make sure to replace <tt>&lt;homedir&gt;</tt> with a full patch to your actual home directory.</p></div>
 <div class="listingblock">
 <div class="content"><!-- Generator: GNU source-highlight 2.9
@@ -591,7 +604,7 @@ http://www.lorenzobettini.it
 http://www.gnu.org/software/src-highlite -->
 <pre><tt><span style="color: #990000">[</span>lifo@null ruby-version<span style="color: #990000">]</span>$ <span style="color: #990000">.</span>/configure --prefix<span style="color: #990000">=/&lt;</span>homedir<span style="color: #990000">&gt;</span>/rubygc
 <span style="color: #990000">[</span>lifo@null ruby-version<span style="color: #990000">]</span>$ make <span style="color: #990000">&amp;&amp;</span> make install</tt></pre></div></div>
-<h4 id="_prepare_aliases">1.7.5. Prepare aliases</h4>
+<h4 id="_prepare_aliases">1.8.5. Prepare aliases</h4>
 <div class="paragraph"><p>For convenience, add the following lines in your <tt>~/.profile</tt>:</p></div>
 <div class="listingblock">
 <div class="content">
@@ -601,7 +614,7 @@ alias gcgem='~/rubygc/bin/gem'
 alias gcirb='~/rubygc/bin/irb'
 alias gcrails='~/rubygc/bin/rails'</tt></pre>
 </div></div>
-<h4 id="_install_rubygems_and_dependency_gems">1.7.6. Install rubygems and dependency gems</h4>
+<h4 id="_install_rubygems_and_dependency_gems">1.8.6. Install rubygems and dependency gems</h4>
 <div class="paragraph"><p>Download <a href="http://rubyforge.org/projects/rubygems">Rubygems</a> and install it from source. Rubygem&#8217;s README file should have necessary installation instructions.</p></div>
 <div class="paragraph"><p>Additionally, install the following gems :</p></div>
 <div class="ulist"><ul>

@@ -183,7 +183,7 @@ ul#navMain {
 		<div id="logo">
 			<a href="index.html" title="Ruby on Rails"><img src="images/rails_logo_remix.gif" alt="Rails" height="140" width="110" /></a>
 		</div>
-
+		
 		<h1 id="site_title"><span>Ruby on Rails</span></h1>
 		<h2 id="site_title_tagline">Sustainable productivity for web-application development</h2>
 
@@ -194,7 +194,7 @@ ul#navMain {
 	</div>
 
 	<div id="container">
-
+		
 		<div id="sidebar">
 			<h2>Chapters</h2>
 			<ol>
@@ -204,41 +204,46 @@ ul#navMain {
 					<li>
 					<a href="#_rails_on_rack">Rails on Rack</a>
 						<ul>
-
+						
 							<li><a href="#_actioncontroller_dispatcher_new">ActionController::Dispatcher.new</a></li>
-
+						
 							<li><a href="#_script_server">script/server</a></li>
-
+						
 							<li><a href="#_rackup">rackup</a></li>
-
+						
 						</ul>
 					</li>
 					<li>
 					<a href="#_action_controller_middleware_stack">Action Controller Middleware Stack</a>
 						<ul>
-
+						
 							<li><a href="#_adding_middlewares">Adding Middlewares</a></li>
-
+						
 							<li><a href="#_internal_middleware_stack">Internal Middleware Stack</a></li>
-
-							<li><a href="#_custom_internal_middleware_stack">Custom Internal Middleware Stack</a></li>
-
+						
+							<li><a href="#_customizing_internal_middleware_stack">Customizing Internal Middleware Stack</a></li>
+						
+							<li><a href="#_inspecting_middleware_stack">Inspecting Middleware Stack</a></li>
+						
 						</ul>
 					</li>
 					<li>
 					<a href="#_rails_metal_applications">Rails Metal Applications</a>
 						<ul>
-
+						
 							<li><a href="#_generating_a_metal_application">Generating a Metal Application</a></li>
-
+						
 						</ul>
+					</li>
+					<li>
+					<a href="#_middlewares_and_rails">Middlewares and Rails</a>
 					</li>
 					<li>
 					<a href="#_changelog">Changelog</a>
 					</li>
 			</ol>
 		</div>
-
+		
 		<div id="content">
 				<h1>Rails on Rack</h1>
 			<div id="preamble">
@@ -276,7 +281,7 @@ Understand the best practices for developing a middleware aimed at Rails applica
 <td class="icon">
 <img src="./images/icons/note.png" alt="Note" />
 </td>
-<td class="content">This guide assumes a working knowledge of Rack protocol and Rack concepts such as middlewares</td>
+<td class="content">This guide assumes a working knowledge of Rack protocol and Rack concepts such as middlewares, url maps and Rack::Builder.</td>
 </tr></table>
 </div>
 </div>
@@ -489,7 +494,7 @@ cellspacing="0" cellpadding="4">
 </tbody>
 </table>
 </div>
-<h3 id="_custom_internal_middleware_stack">3.3. Custom Internal Middleware Stack</h3>
+<h3 id="_customizing_internal_middleware_stack">3.3. Customizing Internal Middleware Stack</h3>
 <div class="paragraph"><p>VERIFY THIS WORKS. Just a code dump at the moment.</p></div>
 <div class="paragraph"><p>Put the following in an initializer.</p></div>
 <div class="listingblock">
@@ -504,10 +509,41 @@ http://www.gnu.org/software/src-highlite -->
   m<span style="color: #990000">.</span>use ActionController<span style="color: #990000">::</span>Session<span style="color: #990000">::</span>CookieStore
   m<span style="color: #990000">.</span>use ActionController<span style="color: #990000">::</span>VerbPiggybacking
 <span style="font-weight: bold"><span style="color: #0000FF">end</span></span></tt></pre></div></div>
+<div class="paragraph"><p>Josh says :</p></div>
+<div class="sidebarblock">
+<div class="sidebar-content">
+<div class="paragraph"><p>3.3: I wouldn&#8217;t recommend this: custom internal stack
+i&#8217;d recommend using config.middleware.use api
+we still need a better api for swapping out existing middleware, etc
+config.middleware.swap AC::Sessions, My::Sessoins
+or something like that</p></div>
+</div></div>
+<h3 id="_inspecting_middleware_stack">3.4. Inspecting Middleware Stack</h3>
+<div class="paragraph"><p>Rails has a handy rake task for inspecting the middleware stack in use:</p></div>
+<div class="listingblock">
+<div class="content"><!-- Generator: GNU source-highlight 2.9
+by Lorenzo Bettini
+http://www.lorenzobettini.it
+http://www.gnu.org/software/src-highlite -->
+<pre><tt>$ rake middleware</tt></pre></div></div>
+<div class="paragraph"><p>For a freshly generated Rails application, this will produce:</p></div>
+<div class="listingblock">
+<div class="content"><!-- Generator: GNU source-highlight 2.9
+by Lorenzo Bettini
+http://www.lorenzobettini.it
+http://www.gnu.org/software/src-highlite -->
+<pre><tt>use ActionController<span style="color: #990000">::</span>Lock
+use ActionController<span style="color: #990000">::</span>Failsafe
+use ActiveRecord<span style="color: #990000">::</span>QueryCache
+use ActionController<span style="color: #990000">::</span>Session<span style="color: #990000">::</span>CookieStore<span style="color: #990000">,</span> <span style="color: #FF0000">{</span><span style="color: #990000">:</span>secret<span style="color: #990000">=&gt;</span><span style="color: #FF0000">"aa5150a22c1a5f24112260c33ae2131a88d7539117bfdcd5696fb2be385b60c6da9f7d4ed0a67e3b8cc85cc4e653ba0111dd1f3f8999520f049e2262068c16a6"</span><span style="color: #990000">,</span> <span style="color: #990000">:</span>session_key<span style="color: #990000">=&gt;</span><span style="color: #FF0000">"_edge_session"</span><span style="color: #FF0000">}</span>
+use Rails<span style="color: #990000">::</span>Rack<span style="color: #990000">::</span>Metal
+use ActionController<span style="color: #990000">::</span>VerbPiggybacking
+run ActionController<span style="color: #990000">::</span>Dispatcher<span style="color: #990000">.</span>new</tt></pre></div></div>
+<div class="paragraph"><p>This rake task is very useful if the application requires highly customized Rack middleware setup.</p></div>
 </div>
 <h2 id="_rails_metal_applications">4. Rails Metal Applications</h2>
 <div class="sectionbody">
-<div class="paragraph"><p>Rails Metal applications are minimal Rack applications specially designed for integrating with a typical Rails applications. As Rails Metal Applications skip all of the Action Controller stack, serving a request has no overhead from the Rails framework itself. This is especially useful for infrequent cases where the performance of the full stack Rails framework is an issue.</p></div>
+<div class="paragraph"><p>Rails Metal applications are minimal Rack applications specially designed for integrating with a typical Rails application. As Rails Metal Applications skip all of the Action Controller stack, serving a request has no overhead from the Rails framework itself. This is especially useful for infrequent cases where the performance of the full stack Rails framework is an issue.</p></div>
 <h3 id="_generating_a_metal_application">4.1. Generating a Metal Application</h3>
 <div class="paragraph"><p>Rails provides a generator called <tt>performance_test</tt> for creating new performance tests:</p></div>
 <div class="listingblock">
@@ -536,7 +572,10 @@ http://www.gnu.org/software/src-highlite -->
 <span style="font-weight: bold"><span style="color: #0000FF">end</span></span></tt></pre></div></div>
 <div class="paragraph"><p>Metal applications are an optimization. You should make sure to <a href="http://weblog.rubyonrails.org/2008/12/20/performance-of-rails-metal">understand the related performance implications</a> before using it.</p></div>
 </div>
-<h2 id="_changelog">5. Changelog</h2>
+<h2 id="_middlewares_and_rails">5. Middlewares and Rails</h2>
+<div class="sectionbody">
+</div>
+<h2 id="_changelog">6. Changelog</h2>
 <div class="sectionbody">
 <div class="paragraph"><p><a href="http://rails.lighthouseapp.com/projects/16213-rails-guides/tickets/4">Lighthouse ticket</a></p></div>
 <div class="ulist"><ul>
