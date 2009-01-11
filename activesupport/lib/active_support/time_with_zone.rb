@@ -99,8 +99,12 @@ module ActiveSupport
       "#{time.strftime('%a, %d %b %Y %H:%M:%S')} #{zone} #{formatted_offset}"
     end
 
-    def xmlschema
-      "#{time.strftime("%Y-%m-%dT%H:%M:%S")}#{formatted_offset(true, 'Z')}"
+    def xmlschema(fraction_digits = 0)
+      fraction = if fraction_digits > 0
+        ".%i" % time.usec.to_s[0, fraction_digits]
+      end
+
+      "#{time.strftime("%Y-%m-%dT%H:%M:%S")}#{fraction}#{formatted_offset(true, 'Z')}"
     end
     alias_method :iso8601, :xmlschema
 
