@@ -109,20 +109,27 @@ module ActionController
       # starting from (and including) that element and all its children in
       # depth-first order.
       #
-      # If no element if specified, calling +assert_select+ will select from the
-      # response HTML. Calling #assert_select inside an +assert_select+ block will
-      # run the assertion for each element selected by the enclosing assertion.
+      # If no element if specified, calling +assert_select+ selects from the
+      # response HTML unless +assert_select+ is called from within an +assert_select+ block.
+      #
+      # When called with a block +assert_select+ passes an array of selected elements
+      # to the block. Calling +assert_select+ from the block, with no element specified,
+      # runs the assertion on the complete set of elements selected by the enclosing assertion.
+      # Alternatively the array may be iterated through so that +assert_select+ can be called
+      # separately for each element.
+      #
       #
       # ==== Example
-      #   assert_select "ol>li" do |elements|
+      # If the response contains two ordered lists, each with four list elements then:
+      #   assert_select "ol" do |elements|
       #     elements.each do |element|
-      #       assert_select element, "li"
+      #       assert_select element, "li", 4
       #     end
       #   end
       #
-      # Or for short:
-      #   assert_select "ol>li" do
-      #     assert_select "li"
+      # will pass, as will:
+      #   assert_select "ol" do
+      #     assert_select "li", 8
       #   end
       #
       # The selector may be a CSS selector expression (String), an expression

@@ -592,7 +592,7 @@ For example, you could verify the contents on the title element in your response
 assert_select 'title', "Welcome to Rails Testing Guide"
 --------------------------------------------------
 
-You can also use nested +assert_select+ blocks. In this case the inner +assert_select+ will run the assertion on each element selected by the outer `assert_select` block:
+You can also use nested +assert_select+ blocks. In this case the inner +assert_select+ runs the assertion on the complete collection of elements selected by the outer `assert_select` block:
 
 [source,ruby]
 --------------------------------------------------
@@ -601,7 +601,22 @@ assert_select 'ul.navigation' do
 end
 --------------------------------------------------
 
-The +assert_select+ assertion is quite powerful. For more advanced usage, refer to its link:http://api.rubyonrails.com/classes/ActionController/Assertions/SelectorAssertions.html#M000749[documentation].
+Alternatively the collection of elements selected by the outer +assert_select+ may be iterated through so that +assert_select+ may be called separately for each element. Suppose for example that the response contains two ordered lists, each with four list elements then the following tests will both pass.
+
+[source,ruby]
+--------------------------------------------------
+assert_select "ol" do |elements|
+  elements.each do |element|
+    assert_select element, "li", 4
+  end
+end
+
+assert_select "ol" do
+  assert_select "li", 8
+end
+--------------------------------------------------
+
+The +assert_select+ assertion is quite powerful. For more advanced usage, refer to its link:http://api.rubyonrails.com/classes/ActionController/Assertions/SelectorAssertions.html[documentation].
 
 ==== Additional View-based Assertions ====
 
