@@ -2739,7 +2739,18 @@ module ActiveRecord #:nodoc:
         end
       end
 
-      # Format attributes nicely for inspect.
+      # Returns an <tt>#inspect</tt>-like value for the value of the attribute
+      # referred to by +attr_name+. Strings are elided after 50 characters,
+      # and Dates and Times are returned in the <tt>:db</tt> format. Other
+      # attributes return the value of <tt>#inspect</tt> normally.
+      #
+      #   person = Person.create!(:name => "David Heinemeier Hansson " * 3)
+      #
+      #   person.attribute_for_inspect(:name)
+      #   # => '"David Heinemeier Hansson David Heinemeier Hansson D..."'
+      #
+      #   person.attribute_for_inspect(:created_at)
+      #   # => '"2009-01-12 04:48:57"'
       def attribute_for_inspect(attr_name)
         value = read_attribute(attr_name)
 
