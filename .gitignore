@@ -16,3 +16,4 @@ railties/doc/guides/html/images
 railties/doc/guides/html/stylesheets
 *.rbc
 *.swp
+*.swo
