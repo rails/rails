@@ -2739,10 +2739,11 @@ module ActiveRecord #:nodoc:
         end
       end
 
-      # Returns an <tt>#inspect</tt>-like value for the value of the attribute
-      # referred to by +attr_name+. Strings are elided after 50 characters,
-      # and Dates and Times are returned in the <tt>:db</tt> format. Other
-      # attributes return the value of <tt>#inspect</tt> normally.
+      # Returns an <tt>#inspect</tt>-like string for the value of the
+      # attribute +attr_name+. String attributes are elided after 50
+      # characters, and Date and Time attributes are returned in the
+      # <tt>:db</tt> format. Other attributes return the value of
+      # <tt>#inspect</tt> without modification.
       #
       #   person = Person.create!(:name => "David Heinemeier Hansson " * 3)
       #
