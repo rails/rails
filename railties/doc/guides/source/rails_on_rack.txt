@@ -93,6 +93,28 @@ Many of Action Controller's internal components are implemented as Rack middlewa
 .What is ActionController::MiddlewareStack ?
 NOTE: +ActionController::MiddlewareStack+ is Rails equivalent of +Rack::Builder+, but built for better flexibility and more features to meet Rails' requirements.
 
+=== Inspecting Middleware Stack  ===
+
+Rails has a handy rake task for inspecting the middleware stack in use:
+
+[source, shell]
+----------------------------------------------------------------------------
+$ rake middleware
+----------------------------------------------------------------------------
+
+For a freshly generated Rails application, this will produce:
+
+[source, ruby]
+----------------------------------------------------------------------------
+use ActionController::Lock
+use ActionController::Failsafe
+use ActiveRecord::QueryCache
+use ActionController::Session::CookieStore, {:secret=>"<secret>", :session_key=>"_<app>_session"}
+use Rails::Rack::Metal
+use ActionController::VerbPiggybacking
+run ActionController::Dispatcher.new
+----------------------------------------------------------------------------
+
 === Adding Middlewares ===
 
 Rails provides a very simple configuration interface for adding generic Rack middlewares to a Rails applications.
@@ -170,30 +192,6 @@ we still need a better api for swapping out existing middleware, etc
 config.middleware.swap AC::Sessions, My::Sessoins
 or something like that
 ****
-
-=== Inspecting Middleware Stack  ===
-
-Rails has a handy rake task for inspecting the middleware stack in use:
-
-[source, shell]
-----------------------------------------------------------------------------
-$ rake middleware
-----------------------------------------------------------------------------
-
-For a freshly generated Rails application, this will produce:
-
-[source, ruby]
-----------------------------------------------------------------------------
-use ActionController::Lock
-use ActionController::Failsafe
-use ActiveRecord::QueryCache
-use ActionController::Session::CookieStore, {:secret=>"aa5150a22c1a5f24112260c33ae2131a88d7539117bfdcd5696fb2be385b60c6da9f7d4ed0a67e3b8cc85cc4e653ba0111dd1f3f8999520f049e2262068c16a6", :session_key=>"_edge_session"}
-use Rails::Rack::Metal
-use ActionController::VerbPiggybacking
-run ActionController::Dispatcher.new
-----------------------------------------------------------------------------
-
-This rake task is very useful if the application requires highly customized Rack middleware setup.
 
 == Rails Metal Applications ==
 

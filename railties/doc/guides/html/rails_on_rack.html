@@ -217,13 +217,13 @@ ul#navMain {
 					<a href="#_action_controller_middleware_stack">Action Controller Middleware Stack</a>
 						<ul>
 						
+							<li><a href="#_inspecting_middleware_stack">Inspecting Middleware Stack</a></li>
+						
 							<li><a href="#_adding_middlewares">Adding Middlewares</a></li>
 						
 							<li><a href="#_internal_middleware_stack">Internal Middleware Stack</a></li>
 						
 							<li><a href="#_customizing_internal_middleware_stack">Customizing Internal Middleware Stack</a></li>
-						
-							<li><a href="#_inspecting_middleware_stack">Inspecting Middleware Stack</a></li>
 						
 						</ul>
 					</li>
@@ -413,7 +413,28 @@ http://www.gnu.org/software/src-highlite -->
 <div class="title">What is ActionController::MiddlewareStack ?</div><tt>ActionController::MiddlewareStack</tt> is Rails equivalent of <tt>Rack::Builder</tt>, but built for better flexibility and more features to meet Rails' requirements.</td>
 </tr></table>
 </div>
-<h3 id="_adding_middlewares">3.1. Adding Middlewares</h3>
+<h3 id="_inspecting_middleware_stack">3.1. Inspecting Middleware Stack</h3>
+<div class="paragraph"><p>Rails has a handy rake task for inspecting the middleware stack in use:</p></div>
+<div class="listingblock">
+<div class="content"><!-- Generator: GNU source-highlight 2.9
+by Lorenzo Bettini
+http://www.lorenzobettini.it
+http://www.gnu.org/software/src-highlite -->
+<pre><tt>$ rake middleware</tt></pre></div></div>
+<div class="paragraph"><p>For a freshly generated Rails application, this will produce:</p></div>
+<div class="listingblock">
+<div class="content"><!-- Generator: GNU source-highlight 2.9
+by Lorenzo Bettini
+http://www.lorenzobettini.it
+http://www.gnu.org/software/src-highlite -->
+<pre><tt>use ActionController<span style="color: #990000">::</span>Lock
+use ActionController<span style="color: #990000">::</span>Failsafe
+use ActiveRecord<span style="color: #990000">::</span>QueryCache
+use ActionController<span style="color: #990000">::</span>Session<span style="color: #990000">::</span>CookieStore<span style="color: #990000">,</span> <span style="color: #FF0000">{</span><span style="color: #990000">:</span>secret<span style="color: #990000">=&gt;</span><span style="color: #FF0000">"&lt;secret&gt;"</span><span style="color: #990000">,</span> <span style="color: #990000">:</span>session_key<span style="color: #990000">=&gt;</span><span style="color: #FF0000">"_&lt;app&gt;_session"</span><span style="color: #FF0000">}</span>
+use Rails<span style="color: #990000">::</span>Rack<span style="color: #990000">::</span>Metal
+use ActionController<span style="color: #990000">::</span>VerbPiggybacking
+run ActionController<span style="color: #990000">::</span>Dispatcher<span style="color: #990000">.</span>new</tt></pre></div></div>
+<h3 id="_adding_middlewares">3.2. Adding Middlewares</h3>
 <div class="paragraph"><p>Rails provides a very simple configuration interface for adding generic Rack middlewares to a Rails applications.</p></div>
 <div class="paragraph"><p>Here&#8217;s how you can add middlewares via <tt>environment.rb</tt></p></div>
 <div class="listingblock">
@@ -424,7 +445,7 @@ http://www.gnu.org/software/src-highlite -->
 <pre><tt><span style="font-style: italic"><span style="color: #9A1900"># environment.rb</span></span>
 
 config<span style="color: #990000">.</span>middleware<span style="color: #990000">.</span>use Rack<span style="color: #990000">::</span>BounceFavicon</tt></pre></div></div>
-<h3 id="_internal_middleware_stack">3.2. Internal Middleware Stack</h3>
+<h3 id="_internal_middleware_stack">3.3. Internal Middleware Stack</h3>
 <div class="listingblock">
 <div class="content"><!-- Generator: GNU source-highlight 2.9
 by Lorenzo Bettini
@@ -496,7 +517,7 @@ cellspacing="0" cellpadding="4">
 </tbody>
 </table>
 </div>
-<h3 id="_customizing_internal_middleware_stack">3.3. Customizing Internal Middleware Stack</h3>
+<h3 id="_customizing_internal_middleware_stack">3.4. Customizing Internal Middleware Stack</h3>
 <div class="paragraph"><p>VERIFY THIS WORKS. Just a code dump at the moment.</p></div>
 <div class="paragraph"><p>Put the following in an initializer.</p></div>
 <div class="listingblock">
@@ -520,28 +541,6 @@ we still need a better api for swapping out existing middleware, etc
 config.middleware.swap AC::Sessions, My::Sessoins
 or something like that</p></div>
 </div></div>
-<h3 id="_inspecting_middleware_stack">3.4. Inspecting Middleware Stack</h3>
-<div class="paragraph"><p>Rails has a handy rake task for inspecting the middleware stack in use:</p></div>
-<div class="listingblock">
-<div class="content"><!-- Generator: GNU source-highlight 2.9
-by Lorenzo Bettini
-http://www.lorenzobettini.it
-http://www.gnu.org/software/src-highlite -->
-<pre><tt>$ rake middleware</tt></pre></div></div>
-<div class="paragraph"><p>For a freshly generated Rails application, this will produce:</p></div>
-<div class="listingblock">
-<div class="content"><!-- Generator: GNU source-highlight 2.9
-by Lorenzo Bettini
-http://www.lorenzobettini.it
-http://www.gnu.org/software/src-highlite -->
-<pre><tt>use ActionController<span style="color: #990000">::</span>Lock
-use ActionController<span style="color: #990000">::</span>Failsafe
-use ActiveRecord<span style="color: #990000">::</span>QueryCache
-use ActionController<span style="color: #990000">::</span>Session<span style="color: #990000">::</span>CookieStore<span style="color: #990000">,</span> <span style="color: #FF0000">{</span><span style="color: #990000">:</span>secret<span style="color: #990000">=&gt;</span><span style="color: #FF0000">"aa5150a22c1a5f24112260c33ae2131a88d7539117bfdcd5696fb2be385b60c6da9f7d4ed0a67e3b8cc85cc4e653ba0111dd1f3f8999520f049e2262068c16a6"</span><span style="color: #990000">,</span> <span style="color: #990000">:</span>session_key<span style="color: #990000">=&gt;</span><span style="color: #FF0000">"_edge_session"</span><span style="color: #FF0000">}</span>
-use Rails<span style="color: #990000">::</span>Rack<span style="color: #990000">::</span>Metal
-use ActionController<span style="color: #990000">::</span>VerbPiggybacking
-run ActionController<span style="color: #990000">::</span>Dispatcher<span style="color: #990000">.</span>new</tt></pre></div></div>
-<div class="paragraph"><p>This rake task is very useful if the application requires highly customized Rack middleware setup.</p></div>
 </div>
 <h2 id="_rails_metal_applications">4. Rails Metal Applications</h2>
 <div class="sectionbody">
