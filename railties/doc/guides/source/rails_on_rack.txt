@@ -136,13 +136,13 @@ use ActionController::VerbPiggybacking
 [options="header"]
 |==========================================================================================================
 |Middleware |Purpose
-|ActionController::Lock | Mutex
-|ActionController::Failsafe | Never fail
-|ActiveRecord::QueryCache | Query caching
-|ActionController::Session::CookieStore | Query caching
-|ActionController::Session::MemCacheStore | Query caching
-|ActiveRecord::SessionStore | Query caching
-|ActionController::VerbPiggybacking | _method hax
+|ActionController::Lock | Sets +env["rack.multithread"]+ flag to +true+ and wraps the application within a Mutex.
+|ActionController::Failsafe | Returns HTTP Status +500+ to the client if an exception gets raised while dispatching.
+|ActiveRecord::QueryCache | Enable the Active Record query cache.
+|ActionController::Session::CookieStore | Uses the cookie based session store.
+|ActionController::Session::MemCacheStore | Uses the memcached based session store.
+|ActiveRecord::SessionStore | Uses the database based session store.
+|ActionController::VerbPiggybacking | Sets HTTP method based on +_method+ parameter or +env["HTTP_X_HTTP_METHOD_OVERRIDE"]+.
 |==========================================================================================================
 
 === Customizing Internal Middleware Stack  ===
@@ -228,9 +228,28 @@ end
 
 Metal applications are an optimization. You should make sure to http://weblog.rubyonrails.org/2008/12/20/performance-of-rails-metal[understand the related performance implications] before using it.
 
+=== Execution Order ===
+
+All Metal Applications are executed by +Rails::Rack::Metal+ middleware, which is a part of the +ActionController::MiddlewareStack+ chain. 
+
+Here's the primary method responsible for running the Metal applications:
+
+[source, ruby]
+----------------------------------------------------------------------------
+def call(env)
+  @metals.keys.each do |app|
+    result = app.call(env)
+    return result unless result[0].to_i == 404
+  end
+  @app.call(env)
+end
+----------------------------------------------------------------------------
+
+In the code above, +@metals+ is an ordered ( alphabetical ) hash of metal applications. Due to the alphabetical ordering, +aaa.rb+ will come before +bbb.rb+ in the metal chain.
+
+IMPORTANT: Metal applications cannot return the HTTP Status +404+ to a client, as it is used for continuing the Metal chain execution. Please use normal Rails controllers or a custom middleware if returning +404+ is a requirement.
+
 == Middlewares and Rails ==
-
-
 
 == Changelog ==
 

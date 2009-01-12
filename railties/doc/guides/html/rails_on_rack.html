@@ -233,6 +233,8 @@ ul#navMain {
 						
 							<li><a href="#_generating_a_metal_application">Generating a Metal Application</a></li>
 						
+							<li><a href="#_execution_order">Execution Order</a></li>
+						
 						</ul>
 					</li>
 					<li>
@@ -465,31 +467,31 @@ cellspacing="0" cellpadding="4">
 <tbody valign="top">
 <tr>
 <td align="left"><p class="table">ActionController::Lock</p></td>
-<td align="left"><p class="table">Mutex</p></td>
+<td align="left"><p class="table">Sets <tt>env["rack.multithread"]</tt> flag to <tt>true</tt> and wraps the application within a Mutex.</p></td>
 </tr>
 <tr>
 <td align="left"><p class="table">ActionController::Failsafe</p></td>
-<td align="left"><p class="table">Never fail</p></td>
+<td align="left"><p class="table">Returns HTTP Status <tt>500</tt> to the client if an exception gets raised while dispatching.</p></td>
 </tr>
 <tr>
 <td align="left"><p class="table">ActiveRecord::QueryCache</p></td>
-<td align="left"><p class="table">Query caching</p></td>
+<td align="left"><p class="table">Enable the Active Record query cache.</p></td>
 </tr>
 <tr>
 <td align="left"><p class="table">ActionController::Session::CookieStore</p></td>
-<td align="left"><p class="table">Query caching</p></td>
+<td align="left"><p class="table">Uses the cookie based session store.</p></td>
 </tr>
 <tr>
 <td align="left"><p class="table">ActionController::Session::MemCacheStore</p></td>
-<td align="left"><p class="table">Query caching</p></td>
+<td align="left"><p class="table">Uses the memcached based session store.</p></td>
 </tr>
 <tr>
 <td align="left"><p class="table">ActiveRecord::SessionStore</p></td>
-<td align="left"><p class="table">Query caching</p></td>
+<td align="left"><p class="table">Uses the database based session store.</p></td>
 </tr>
 <tr>
 <td align="left"><p class="table">ActionController::VerbPiggybacking</p></td>
-<td align="left"><p class="table">_method hax</p></td>
+<td align="left"><p class="table">Sets HTTP method based on <tt>_method</tt> parameter or <tt>env["HTTP_X_HTTP_METHOD_OVERRIDE"]</tt>.</p></td>
 </tr>
 </tbody>
 </table>
@@ -571,6 +573,30 @@ http://www.gnu.org/software/src-highlite -->
   <span style="font-weight: bold"><span style="color: #0000FF">end</span></span>
 <span style="font-weight: bold"><span style="color: #0000FF">end</span></span></tt></pre></div></div>
 <div class="paragraph"><p>Metal applications are an optimization. You should make sure to <a href="http://weblog.rubyonrails.org/2008/12/20/performance-of-rails-metal">understand the related performance implications</a> before using it.</p></div>
+<h3 id="_execution_order">4.2. Execution Order</h3>
+<div class="paragraph"><p>All Metal Applications are executed by <tt>Rails::Rack::Metal</tt> middleware, which is a part of the <tt>ActionController::MiddlewareStack</tt> chain.</p></div>
+<div class="paragraph"><p>Here&#8217;s the primary method responsible for running the Metal applications:</p></div>
+<div class="listingblock">
+<div class="content"><!-- Generator: GNU source-highlight 2.9
+by Lorenzo Bettini
+http://www.lorenzobettini.it
+http://www.gnu.org/software/src-highlite -->
+<pre><tt><span style="font-weight: bold"><span style="color: #0000FF">def</span></span> call<span style="color: #990000">(</span>env<span style="color: #990000">)</span>
+  <span style="color: #009900">@metals</span><span style="color: #990000">.</span>keys<span style="color: #990000">.</span>each <span style="font-weight: bold"><span style="color: #0000FF">do</span></span> <span style="color: #990000">|</span>app<span style="color: #990000">|</span>
+    result <span style="color: #990000">=</span> app<span style="color: #990000">.</span>call<span style="color: #990000">(</span>env<span style="color: #990000">)</span>
+    <span style="font-weight: bold"><span style="color: #0000FF">return</span></span> result <span style="font-weight: bold"><span style="color: #0000FF">unless</span></span> result<span style="color: #990000">[</span><span style="color: #993399">0</span><span style="color: #990000">].</span>to_i <span style="color: #990000">==</span> <span style="color: #993399">404</span>
+  <span style="font-weight: bold"><span style="color: #0000FF">end</span></span>
+  <span style="color: #009900">@app</span><span style="color: #990000">.</span>call<span style="color: #990000">(</span>env<span style="color: #990000">)</span>
+<span style="font-weight: bold"><span style="color: #0000FF">end</span></span></tt></pre></div></div>
+<div class="paragraph"><p>In the code above, <tt>@metals</tt> is an ordered ( alphabetical ) hash of metal applications. Due to the alphabetical ordering, <tt>aaa.rb</tt> will come before <tt>bbb.rb</tt> in the metal chain.</p></div>
+<div class="admonitionblock">
+<table><tr>
+<td class="icon">
+<img src="./images/icons/important.png" alt="Important" />
+</td>
+<td class="content">Metal applications cannot return the HTTP Status <tt>404</tt> to a client, as it is used for continuing the Metal chain execution. Please use normal Rails controllers or a custom middleware if returning <tt>404</tt> is a requirement.</td>
+</tr></table>
+</div>
 </div>
 <h2 id="_middlewares_and_rails">5. Middlewares and Rails</h2>
 <div class="sectionbody">
