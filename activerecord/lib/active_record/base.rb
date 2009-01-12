@@ -327,7 +327,7 @@ module ActiveRecord #:nodoc:
   #   User.find(user.id).preferences # => { "background" => "black", "display" => large }
   #
   # You can also specify a class option as the second parameter that'll raise an exception if a serialized object is retrieved as a
-  # descendent of a class not in the hierarchy. Example:
+  # descendant of a class not in the hierarchy. Example:
   #
   #   class User < ActiveRecord::Base
   #     serialize :preferences, Hash
@@ -2167,7 +2167,7 @@ module ActiveRecord #:nodoc:
           scoped_methods.last
         end
 
-        # Returns the class type of the record using the current module as a prefix. So descendents of
+        # Returns the class type of the record using the current module as a prefix. So descendants of
         # MyApp::Business::Account would appear as MyApp::Business::AccountSubclass.
         def compute_type(type_name)
           modularized_name = type_name_with_module(type_name)
@@ -2880,7 +2880,7 @@ module ActiveRecord #:nodoc:
         id
       end
 
-      # Sets the attribute used for single table inheritance to this class name if this is not the ActiveRecord::Base descendent.
+      # Sets the attribute used for single table inheritance to this class name if this is not the ActiveRecord::Base descendant.
       # Considering the hierarchy Reply < Message < ActiveRecord::Base, this makes it possible to do Reply.new without having to
       # set <tt>Reply[Reply.inheritance_column] = "Reply"</tt> yourself. No such attribute would be set for objects of the
       # Message class in that example.

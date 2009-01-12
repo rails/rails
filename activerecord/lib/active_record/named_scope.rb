@@ -39,7 +39,7 @@ module ActiveRecord
       # Nested finds and calculations also work with these compositions: <tt>Shirt.red.dry_clean_only.count</tt> returns the number of garments
       # for which these criteria obtain. Similarly with <tt>Shirt.red.dry_clean_only.average(:thread_count)</tt>.
       #
-      # All \scopes are available as class methods on the ActiveRecord::Base descendent upon which the \scopes were defined. But they are also available to
+      # All \scopes are available as class methods on the ActiveRecord::Base descendant upon which the \scopes were defined. But they are also available to
       # <tt>has_many</tt> associations. If,
       #
       #   class Person < ActiveRecord::Base
