@@ -200,7 +200,7 @@ class MultipartParamsParsingTest < ActionController::IntegrationTest
     def with_muck_middleware
       original_middleware = ActionController::Dispatcher.middleware
       middleware = original_middleware.dup
-      middleware.use MuckMiddleware
+      middleware.insert_after ActionController::RewindableInput, MuckMiddleware
       ActionController::Dispatcher.middleware = middleware
       yield
       ActionController::Dispatcher.middleware = original_middleware

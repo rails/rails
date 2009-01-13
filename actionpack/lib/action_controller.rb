@@ -33,6 +33,7 @@ end
 
 gem 'rack', '>= 0.9.0'
 require 'rack'
+require 'action_controller/rack_ext'
 
 module ActionController
   # TODO: Review explicit to see if they will automatically be handled by
