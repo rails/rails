@@ -220,8 +220,6 @@ ul#navMain {
 					<a href="#_session">Session</a>
 						<ul>
 						
-							<li><a href="#_disabling_the_session">Disabling the Session</a></li>
-						
 							<li><a href="#_accessing_the_session">Accessing the Session</a></li>
 						
 							<li><a href="#_the_flash">The flash</a></li>
@@ -511,44 +509,14 @@ http://www.lorenzobettini.it
 http://www.gnu.org/software/src-highlite -->
 <pre><tt><span style="font-style: italic"><span style="color: #9A1900"># Set to one of [:active_record_store, :drb_store, :mem_cache_store, :cookie_store]</span></span>
 config<span style="color: #990000">.</span>action_controller<span style="color: #990000">.</span>session_store <span style="color: #990000">=</span> <span style="color: #990000">:</span>active_record_store</tt></pre></div></div>
-<h3 id="_disabling_the_session">4.1. Disabling the Session</h3>
-<div class="paragraph"><p>Sometimes you don&#8217;t need a session. In this case, you can turn it off to avoid the unnecessary overhead. To do this, use the <tt>session</tt> class method in your controller:</p></div>
-<div class="listingblock">
-<div class="content"><!-- Generator: GNU source-highlight 2.9
-by Lorenzo Bettini
-http://www.lorenzobettini.it
-http://www.gnu.org/software/src-highlite -->
-<pre><tt><span style="font-weight: bold"><span style="color: #0000FF">class</span></span> ApplicationController <span style="color: #990000">&lt;</span> ActionController<span style="color: #990000">::</span>Base
-  session <span style="color: #990000">:</span>off
-<span style="font-weight: bold"><span style="color: #0000FF">end</span></span></tt></pre></div></div>
-<div class="paragraph"><p>You can also turn the session on or off for a single controller:</p></div>
-<div class="listingblock">
-<div class="content"><!-- Generator: GNU source-highlight 2.9
-by Lorenzo Bettini
-http://www.lorenzobettini.it
-http://www.gnu.org/software/src-highlite -->
-<pre><tt><span style="font-style: italic"><span style="color: #9A1900"># The session is turned off by default in ApplicationController, but we</span></span>
-<span style="font-style: italic"><span style="color: #9A1900"># want to turn it on for log in/out.</span></span>
-<span style="font-weight: bold"><span style="color: #0000FF">class</span></span> LoginsController <span style="color: #990000">&lt;</span> ActionController<span style="color: #990000">::</span>Base
-  session <span style="color: #990000">:</span>on
-<span style="font-weight: bold"><span style="color: #0000FF">end</span></span></tt></pre></div></div>
-<div class="paragraph"><p>Or even for specified actions:</p></div>
-<div class="listingblock">
-<div class="content"><!-- Generator: GNU source-highlight 2.9
-by Lorenzo Bettini
-http://www.lorenzobettini.it
-http://www.gnu.org/software/src-highlite -->
-<pre><tt><span style="font-weight: bold"><span style="color: #0000FF">class</span></span> ProductsController <span style="color: #990000">&lt;</span> ActionController<span style="color: #990000">::</span>Base
-  session <span style="color: #990000">:</span>on<span style="color: #990000">,</span> <span style="color: #990000">:</span>only <span style="color: #990000">=&gt;</span> <span style="color: #990000">[:</span>create<span style="color: #990000">,</span> <span style="color: #990000">:</span>update<span style="color: #990000">]</span>
-<span style="font-weight: bold"><span style="color: #0000FF">end</span></span></tt></pre></div></div>
-<h3 id="_accessing_the_session">4.2. Accessing the Session</h3>
+<h3 id="_accessing_the_session">4.1. Accessing the Session</h3>
 <div class="paragraph"><p>In your controller you can access the session through the <tt>session</tt> instance method.</p></div>
 <div class="admonitionblock">
 <table><tr>
 <td class="icon">
 <img src="./images/icons/note.png" alt="Note" />
 </td>
-<td class="content">There are two <tt>session</tt> methods, the class and the instance method. The class method which is described above is used to turn the session on and off while the instance method described below is used to access session values.</td>
+<td class="content">Sessions are lazily loaded. If you don&#8217;t access sessions in your action&#8217;s code, they will not be loaded. Hence you will never need to disable sessions, just not accessing them will do the job.</td>
 </tr></table>
 </div>
 <div class="paragraph"><p>Session values are stored using key/value pairs like a hash:</p></div>
@@ -604,7 +572,7 @@ http://www.gnu.org/software/src-highlite -->
 
 <span style="font-weight: bold"><span style="color: #0000FF">end</span></span></tt></pre></div></div>
 <div class="paragraph"><p>To reset the entire session, use <tt>reset_session</tt>.</p></div>
-<h3 id="_the_flash">4.3. The flash</h3>
+<h3 id="_the_flash">4.2. The flash</h3>
 <div class="paragraph"><p>The flash is a special part of the session which is cleared with each request. This means that values stored there will only be available in the next request, which is useful for storing error messages etc. It is accessed in much the same way as the session, like a hash. Let&#8217;s use the act of logging out as an example. The controller can send a message which will be displayed to the user on the next request:</p></div>
 <div class="listingblock">
 <div class="content"><!-- Generator: GNU source-highlight 2.9
@@ -654,7 +622,7 @@ http://www.gnu.org/software/src-highlite -->
   <span style="font-weight: bold"><span style="color: #0000FF">end</span></span>
 
 <span style="font-weight: bold"><span style="color: #0000FF">end</span></span></tt></pre></div></div>
-<h4 id="_tt_flash_now_tt">4.3.1. <tt>flash.now</tt></h4>
+<h4 id="_tt_flash_now_tt">4.2.1. <tt>flash.now</tt></h4>
 <div class="paragraph"><p>By default, adding values to the flash will make them available to the next request, but sometimes you may want to access those values in the same request. For example, if the <tt>create</tt> action fails to save a resource and you render the <tt>new</tt> template directly, that&#8217;s not going to result in a new request, but you may still want to display a message using the flash. To do this, you can use <tt>flash.now</tt> in the same way you use the normal <tt>flash</tt>:</p></div>
 <div class="listingblock">
 <div class="content"><!-- Generator: GNU source-highlight 2.9
