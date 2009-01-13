@@ -5,7 +5,7 @@
 # Make sure the secret is at least 30 characters and all random, 
 # no regular words or you'll be exposed to dictionary attacks.
 ActionController::Base.session = {
-  :session_key => '_<%= app_name %>_session',
+  :key         => '_<%= app_name %>_session',
   :secret      => '<%= app_secret %>'
 }
 

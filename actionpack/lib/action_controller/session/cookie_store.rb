@@ -163,9 +163,9 @@ module ActionController
 
         def ensure_session_key(key)
           if key.blank?
-            raise ArgumentError, 'A session_key is required to write a ' +
+            raise ArgumentError, 'A key is required to write a ' +
               'cookie containing the session data. Use ' +
-              'config.action_controller.session = { :session_key => ' +
+              'config.action_controller.session = { :key => ' +
               '"_myapp_session", :secret => "some secret phrase" } in ' +
               'config/environment.rb'
           end
@@ -181,7 +181,7 @@ module ActionController
           if secret.blank?
             raise ArgumentError, "A secret is required to generate an " +
               "integrity hash for cookie session data. Use " +
-              "config.action_controller.session = { :session_key => " +
+              "config.action_controller.session = { :key => " +
               "\"_myapp_session\", :secret => \"some secret phrase of at " +
               "least #{SECRET_MIN_LENGTH} characters\" } " +
               "in config/environment.rb"
