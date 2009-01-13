@@ -80,7 +80,6 @@ module ActionController
   autoload :UrlEncodedPairParser, 'action_controller/url_encoded_pair_parser'
   autoload :UrlRewriter, 'action_controller/url_rewriter'
   autoload :UrlWriter, 'action_controller/url_rewriter'
-  autoload :VerbPiggybacking, 'action_controller/verb_piggybacking'
   autoload :Verification, 'action_controller/verification'
 
   module Assertions
