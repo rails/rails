@@ -123,18 +123,38 @@ class MultipartParamsParsingTest < ActionController::IntegrationTest
   InputWrapper = Rack::Lint::InputWrapper
 
   test "parses unwindable stream" do
-    InputWrapper.any_instance.expects(:rewind).raises(Errno::ESPIPE)
+    InputWrapper.any_instance.stubs(:rewind).raises(Errno::ESPIPE)
     params = parse_multipart('large_text_file')
     assert_equal %w(file foo), params.keys.sort
     assert_equal 'bar', params['foo']
   end
 
   test "uploads and reads file with unwindable input" do
-    InputWrapper.any_instance.expects(:rewind).raises(Errno::ESPIPE)
+    InputWrapper.any_instance.stubs(:rewind).raises(Errno::ESPIPE)
 
     with_test_routing do
       post '/read', :uploaded_data => fixture_file_upload(FIXTURE_PATH + "/hello.txt", "text/plain")
       assert_equal "File: Hello", response.body
+    end
+  end
+
+  test "passes through rack middleware and uploads file" do
+    with_muck_middleware do
+      with_test_routing do
+        post '/read', :uploaded_data => fixture_file_upload(FIXTURE_PATH + "/hello.txt", "text/plain")
+        assert_equal "File: Hello", response.body
+      end
+    end
+  end
+
+  test "passes through rack middleware and uploads file with unwindable input" do
+    InputWrapper.any_instance.stubs(:rewind).raises(Errno::ESPIPE)
+
+    with_muck_middleware do
+      with_test_routing do
+        post '/read', :uploaded_data => fixture_file_upload(FIXTURE_PATH + "/hello.txt", "text/plain")
+        assert_equal "File: Hello", response.body
+      end
     end
   end
 
@@ -163,5 +183,26 @@ class MultipartParamsParsingTest < ActionController::IntegrationTest
         end
         yield
       end
+    end
+
+    class MuckMiddleware
+      def initialize(app)
+        @app = app
+      end
+
+      def call(env)
+        req = Rack::Request.new(env)
+        req.params # Parse params
+        @app.call(env)
+      end
+    end
+
+    def with_muck_middleware
+      original_middleware = ActionController::Dispatcher.middleware
+      middleware = original_middleware.dup
+      middleware.use MuckMiddleware
+      ActionController::Dispatcher.middleware = middleware
+      yield
+      ActionController::Dispatcher.middleware = original_middleware
     end
 end
