@@ -102,6 +102,6 @@ class Object
   # Person.try(:find, 1)
   # @people.try(:map) {|p| p.name}
   def try(method, *args, &block)
-    send(method, *args, &block) if respond_to?(method, true)
+    send(method, *args, &block) unless self.nil?
   end
 end
