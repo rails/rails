@@ -431,7 +431,7 @@ module ActionController
         def multipart_body(params, boundary)
           multipart_requestify(params).map do |key, value|
             if value.respond_to?(:original_filename)
-              File.open(value.path) do |f|
+              File.open(value.path, "rb") do |f|
                 f.set_encoding(Encoding::BINARY) if f.respond_to?(:set_encoding)
 
                 <<-EOF
