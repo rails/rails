@@ -533,13 +533,11 @@ module ActiveRecord
         execute "ROLLBACK"
       end
       
-      if PGconn.public_method_defined?(:transaction_status)
-        # ruby-pg defines Ruby constants for transaction status,
-        # ruby-postgres does not.
-        PQTRANS_IDLE = defined?(PGconn::PQTRANS_IDLE) ? PGconn::PQTRANS_IDLE : 0
-        
+      if defined?(PGconn::PQTRANS_IDLE)
+        # The ruby-pg driver supports inspecting the transaction status,
+        # while the ruby-postgres driver does not.
         def outside_transaction?
-          @connection.transaction_status == PQTRANS_IDLE
+          @connection.transaction_status == PGconn::PQTRANS_IDLE
         end
       end
 

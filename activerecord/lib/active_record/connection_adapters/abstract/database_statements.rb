@@ -89,7 +89,7 @@ module ActiveRecord
       # - The block will be run without doing anything. All database statements
       #   that happen within the block are effectively appended to the already
       #   open database transaction.
-      # - However, if +requires_new+ is set, the block will be wrapped in a
+      # - However, if +:requires_new+ is set, the block will be wrapped in a
       #   database savepoint acting as a sub-transaction.
       #
       # === Caveats
@@ -113,8 +113,12 @@ module ActiveRecord
       def transaction(options = {})
         options.assert_valid_keys :requires_new, :joinable
 
-        last_transaction_joinable, @transaction_joinable =
-          @transaction_joinable, options[:joinable] || true
+        last_transaction_joinable = @transaction_joinable
+        if options.has_key?(:joinable)
+          @transaction_joinable = options[:joinable]
+        else
+          @transaction_joinable = true
+        end
         requires_new = options[:requires_new] || !last_transaction_joinable
 
         transaction_open = false
@@ -141,7 +145,7 @@ module ActiveRecord
               rollback_to_savepoint
             end
           end
-          raise unless database_transaction_rollback.is_a? ActiveRecord::Rollback
+          raise unless database_transaction_rollback.is_a?(ActiveRecord::Rollback)
         end
       ensure
         @transaction_joinable = last_transaction_joinable
