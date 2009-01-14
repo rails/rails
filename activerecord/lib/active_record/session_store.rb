@@ -53,11 +53,6 @@ module ActiveRecord
       before_save :raise_on_session_data_overflow!
 
       class << self
-        # Don't try to reload ARStore::Session in dev mode.
-        def reloadable? #:nodoc:
-          false
-        end
-
         def data_column_size_limit
           @data_column_size_limit ||= columns_hash[@@data_column_name].limit
         end

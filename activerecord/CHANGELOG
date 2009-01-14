@@ -1,5 +1,7 @@
 *2.3.0/3.0*
 
+* Support nested transactions using database savepoints.  #383 [Jonathan Viney, Hongli Lai]
+
 * Added dynamic scopes ala dynamic finders #1648 [Yaroslav Markin]
 
 * Fixed that ActiveRecord::Base#new_record? should return false (not nil) for existing records #1219 [Yaroslav Markin]

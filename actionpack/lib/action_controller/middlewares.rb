@@ -18,4 +18,5 @@ use "ActiveRecord::QueryCache", :if => lambda { defined?(ActiveRecord) }
     )
 end
 
-use ActionController::VerbPiggybacking
+use ActionController::RewindableInput
+use Rack::MethodOverride

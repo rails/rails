@@ -18,11 +18,43 @@ class DefaultTest < ActiveRecord::TestCase
     end
   end
 
-  if current_adapter?(:MysqlAdapter)
+  if current_adapter?(:PostgreSQLAdapter, :FirebirdAdapter, :OpenBaseAdapter, :OracleAdapter)
+    def test_default_integers
+      default = Default.new
+      assert_instance_of Fixnum, default.positive_integer
+      assert_equal 1, default.positive_integer
+      assert_instance_of Fixnum, default.negative_integer
+      assert_equal -1, default.negative_integer
+      assert_instance_of BigDecimal, default.decimal_number
+      assert_equal BigDecimal.new("2.78"), default.decimal_number
+    end
+  end
+  
+  if current_adapter?(:PostgreSQLAdapter)
+    def test_multiline_default_text
+      # older postgres versions represent the default with escapes ("\\012" for a newline)
+      assert ( "--- []\n\n" == Default.columns_hash['multiline_default'].default ||
+               "--- []\\012\\012" == Default.columns_hash['multiline_default'].default)
+    end
+  end
+end
 
-    #MySQL 5 and higher is quirky with not null text/blob columns.
-    #With MySQL Text/blob columns cannot have defaults. If the column is not null MySQL will report that the column has a null default
-    #but it behaves as though the column had a default of ''
+if current_adapter?(:MysqlAdapter)
+  class DefaultsTestWithoutTransactionalFixtures < ActiveRecord::TestCase
+    # ActiveRecord::Base#create! (and #save and other related methods) will
+    # open a new transaction. When in transactional fixtures mode, this will
+    # cause ActiveRecord to create a new savepoint. However, since MySQL doesn't
+    # support DDL transactions, creating a table will result in any created
+    # savepoints to be automatically released. This in turn causes the savepoint
+    # release code in AbstractAdapter#transaction to fail.
+    #
+    # We don't want that to happen, so we disable transactional fixtures here.
+    self.use_transactional_fixtures = false
+    
+    # MySQL 5 and higher is quirky with not null text/blob columns.
+    # With MySQL Text/blob columns cannot have defaults. If the column is not
+    # null MySQL will report that the column has a null default
+    # but it behaves as though the column had a default of ''
     def test_mysql_text_not_null_defaults
       klass = Class.new(ActiveRecord::Base)
       klass.table_name = 'test_mysql_text_not_null_defaults'
@@ -48,8 +80,7 @@ class DefaultTest < ActiveRecord::TestCase
     ensure
       klass.connection.drop_table(klass.table_name) rescue nil
     end
-
-
+    
     # MySQL uses an implicit default 0 rather than NULL unless in strict mode.
     # We use an implicit NULL so schema.rb is compatible with other databases.
     def test_mysql_integer_not_null_defaults
@@ -75,26 +106,6 @@ class DefaultTest < ActiveRecord::TestCase
       end
     ensure
       klass.connection.drop_table(klass.table_name) rescue nil
-    end
-  end
-
-  if current_adapter?(:PostgreSQLAdapter, :FirebirdAdapter, :OpenBaseAdapter, :OracleAdapter)
-    def test_default_integers
-      default = Default.new
-      assert_instance_of Fixnum, default.positive_integer
-      assert_equal 1, default.positive_integer
-      assert_instance_of Fixnum, default.negative_integer
-      assert_equal -1, default.negative_integer
-      assert_instance_of BigDecimal, default.decimal_number
-      assert_equal BigDecimal.new("2.78"), default.decimal_number
-    end
-  end
-
-  if current_adapter?(:PostgreSQLAdapter)
-    def test_multiline_default_text
-      # older postgres versions represent the default with escapes ("\\012" for a newline)
-      assert ( "--- []\n\n" == Default.columns_hash['multiline_default'].default ||
-               "--- []\\012\\012" == Default.columns_hash['multiline_default'].default)
     end
   end
 end
