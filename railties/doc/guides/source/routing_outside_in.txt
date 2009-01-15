@@ -790,14 +790,14 @@ As with conditions in RESTful routes, you can specify +:get+, +:post+, +:put+, +
 
 === Route Globbing
 
-Route globbing is a way to specify that a particular parameter (which must be the last parameter in the route) should be matched to all the remaining parts of a route. For example
+Route globbing is a way to specify that a particular parameter should be matched to all the remaining parts of a route. For example
 
 [source, ruby]
 -------------------------------------------------------
 map.connect 'photo/*other', :controller => 'photos', :action => 'unknown',
 -------------------------------------------------------
 
-This route would match +photo/12+ or +/photo/long/path/to/12+ equally well, creating an array of path segments as the value of +params[:other]+.
+This route would match +photo/12+ or +/photo/long/path/to/12+ equally well, creating an array of path segments as the value of +params[:other]+. Originally this parameter had to be at the end of the route definition, however as of Rails 2.0 this is no longer the case.
 
 === Route Options
 
