@@ -223,7 +223,7 @@ If you set +:integer_only+ to +true+, then it will use the +$$/\A[+\-]?\d+\Z/$$+
 ------------------------------------------------------------------
 class Player < ActiveRecord::Base
   validates_numericality_of :points
-  validates_numericality_of :games_played, :integer_only => true
+  validates_numericality_of :games_played, :only_integer => true
 end
 ------------------------------------------------------------------
 
