@@ -15,15 +15,19 @@ module ActionController
         @io.rewind
       end
 
+      def string
+        @string
+      end
+
       def method_missing(method, *args, &block)
         @io.send(method, *args, &block)
       end
 
       private
         def read_original_io
-          unless @str
-            @str = @io.read
-            @io = StringIO.new(@str)
+          unless @string
+            @string = @io.read
+            @io = StringIO.new(@string)
           end
         end
     end

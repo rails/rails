@@ -321,9 +321,8 @@ class TransactionTest < ActiveRecord::TestCase
     end
   end
   
-  if current_adapter?(:PostgreSQLAdapter) && PGconn.public_method_defined?(:transaction_status)
+  if current_adapter?(:PostgreSQLAdapter) && defined?(PGconn::PQTRANS_IDLE)
     def test_outside_transaction_works
-      Topic.logger.info("-------------")
       assert Topic.connection.outside_transaction?
       Topic.connection.begin_db_transaction
       assert !Topic.connection.outside_transaction?

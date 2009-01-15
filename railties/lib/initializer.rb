@@ -537,7 +537,7 @@ Run `rake gems:install` to install the missing gems.
     end
 
     def initialize_metal
-      configuration.middleware.insert_before(:"ActionController::VerbPiggybacking", Rails::Rack::Metal)
+      configuration.middleware.insert_before(:"ActionController::RewindableInput", Rails::Rack::Metal)
     end
 
     # Initializes framework-specific settings for each of the loaded frameworks
