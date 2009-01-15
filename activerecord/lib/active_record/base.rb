@@ -2180,7 +2180,8 @@ module ActiveRecord #:nodoc:
           end
         end
 
-        # Returns the class descending directly from Active Record in the inheritance hierarchy.
+        # Returns the class descending directly from ActiveRecord::Base or an
+        # abstract class, if any, in the inheritance hierarchy.
         def class_of_active_record_descendant(klass)
           if klass.superclass == Base || klass.superclass.abstract_class?
             klass
