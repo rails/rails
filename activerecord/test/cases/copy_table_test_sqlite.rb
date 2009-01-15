@@ -46,6 +46,17 @@ class CopyTableTest < ActiveRecord::TestCase
     test_copy_table('developers_projects', 'programmers_projects')
   end
 
+  def test_copy_table_with_id_col_that_is_not_primary_key
+    test_copy_table('goofy_string_id', 'goofy_string_id2') do |from, to, options|
+      original_id = @connection.columns('goofy_string_id').detect{|col| col.name == 'id' }
+      copied_id = @connection.columns('goofy_string_id2').detect{|col| col.name == 'id' }
+      assert_equal original_id.type, copied_id.type
+      assert_equal original_id.sql_type, copied_id.sql_type
+      assert_equal original_id.limit, copied_id.limit
+      assert_equal original_id.primary, copied_id.primary
+    end
+  end
+
 protected
   def copy_table(from, to, options = {})
     @connection.copy_table(from, to, {:temporary => true}.merge(options))
