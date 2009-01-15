@@ -612,6 +612,44 @@ http://www.gnu.org/software/src-highlite -->
   validates_numericality_of <span style="color: #990000">:</span>points
   validates_numericality_of <span style="color: #990000">:</span>games_played<span style="color: #990000">,</span> <span style="color: #990000">:</span>integer_only <span style="color: #990000">=&gt;</span> <span style="font-weight: bold"><span style="color: #0000FF">true</span></span>
 <span style="font-weight: bold"><span style="color: #0000FF">end</span></span></tt></pre></div></div>
+<div class="paragraph"><p>Besides <tt>:only_integer</tt>, the <tt>validates_numericality_of</tt> helper also accepts the following options to add constraints to acceptable values:</p></div>
+<div class="ulist"><ul>
+<li>
+<p>
+<tt>:greater_than</tt> - Specifies the value must be greater than the supplied value. The default error message for this option is "<em>must be greater than (value)</em>"
+</p>
+</li>
+<li>
+<p>
+<tt>:greater_than_or_equal_to</tt> - Specifies the value must be greater than or equal the supplied value. The default error message for this option is "<em>must be greater than or equal to (value)</em>"
+</p>
+</li>
+<li>
+<p>
+<tt>:equal_to</tt> - Specifies the value must be equal to the supplied value. The default error message for this option is "<em>must be equal to (value)</em>"
+</p>
+</li>
+<li>
+<p>
+<tt>:less_than</tt> - Specifies the value must be less than the supplied value. The default error message for this option is "<em>must e less than (value)</em>"
+</p>
+</li>
+<li>
+<p>
+<tt>:less_than_or_equal_to</tt> - Specifies the value must be less than or equal the supplied value. The default error message for this option is "<em>must be less or equal to (value)</em>"
+</p>
+</li>
+<li>
+<p>
+<tt>:odd</tt> - Specifies the value must be an odd number if set to true. The default error message for this option is "<em>must be odd</em>"
+</p>
+</li>
+<li>
+<p>
+<tt>:even</tt> - Specifies the value must be an even number if set to true. The default error message for this option is "<em>must be even</em>"
+</p>
+</li>
+</ul></div>
 <div class="paragraph"><p>The default error message for <tt>validates_numericality_of</tt> is "<em>is not a number</em>".</p></div>
 <h3 id="_the_tt_validates_presence_of_tt_helper">2.9. The <tt>validates_presence_of</tt> helper</h3>
 <div class="paragraph"><p>This helper validates that the specified attributes are not empty. It uses the <tt>blank?</tt> method to check if the value is either <tt>nil</tt> or an empty string (if the string has only spaces, it will still be considered empty).</p></div>
@@ -645,7 +683,7 @@ http://www.gnu.org/software/src-highlite -->
 <td class="icon">
 <img src="./images/icons/note.png" alt="Note" />
 </td>
-<td class="content">If you want to validate the presence of a boolean field (where the real values are true and false), you should use validates_inclusion_of :field_name, :in =&gt; [true, false] This is due to the way Object#blank? handles boolean values. false.blank? # =&gt; true</td>
+<td class="content">If you want to validate the presence of a boolean field (where the real values are true and false), you should use validates_inclusion_of :field_name, :in &#8658; [true, false] This is due to the way Object#blank? handles boolean values. false.blank? # &#8658; true</td>
 </tr></table>
 </div>
 <div class="paragraph"><p>The default error message for <tt>validates_presence_of</tt> is "<em>can&#8217;t be empty</em>".</p></div>
@@ -1351,7 +1389,8 @@ config<span style="color: #990000">.</span>active_record<span style="color: #990
 </div>
 <h2 id="_changelog">14. Changelog</h2>
 <div class="sectionbody">
-<div class="paragraph"><p><a href="http://rails.lighthouseapp.com/projects/16213/tickets/26-active-record-validations-and-callbacks">http://rails.lighthouseapp.com/projects/16213/tickets/26-active-record-validations-and-callbacks</a></p></div>
+<div class="paragraph"><p><a href="http://rails.lighthouseapp.com/projects/16213/tickets/26-active-record-validations-and-callbacks">Lighthouse ticket</a></p></div>
+<div class="paragraph"><p>January 9, 2009: Initial version by <a href="http://guides.rails.info/authors.html#cmarques">Cássio Marques</a></p></div>
 </div>
 
 		</div>

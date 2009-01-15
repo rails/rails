@@ -227,6 +227,17 @@ class Player < ActiveRecord::Base
 end
 ------------------------------------------------------------------
 
+Besides +:only_integer+, the +validates_numericality_of+ helper also accepts the following options to add constraints to acceptable values:
+
+* +:greater_than+ - Specifies the value must be greater than the supplied value. The default error message for this option is "_must be greater than (value)_"
+* +:greater_than_or_equal_to+ - Specifies the value must be greater than or equal the supplied value. The default error message for this option is "_must be greater than or equal to (value)_"
+* +:equal_to+ - Specifies the value must be equal to the supplied value. The default error message for this option is "_must be equal to (value)_"
+* +:less_than+ - Specifies the value must be less than the supplied value. The default error message for this option is "_must e less than (value)_"
+* +:less_than_or_equal_to+ - Specifies the value must be less than or equal the supplied value. The default error message for this option is "_must be less or equal to (value)_"
+* +:odd+ - Specifies the value must be an odd number if set to true. The default error message for this option is "_must be odd_"
+* +:even+ - Specifies the value must be an even number if set to true. The default error message for this option is "_must be even_"
+
+
 The default error message for +validates_numericality_of+ is "_is not a number_".
 
 === The +validates_presence_of+ helper
@@ -847,4 +858,6 @@ By convention, you should always save your observers' source files inside *app/m
 
 == Changelog
 
-http://rails.lighthouseapp.com/projects/16213/tickets/26-active-record-validations-and-callbacks
+http://rails.lighthouseapp.com/projects/16213/tickets/26-active-record-validations-and-callbacks[Lighthouse ticket]
+
+January 9, 2009: Initial version by http://guides.rails.info/authors.html#cmarques[Cássio Marques]
