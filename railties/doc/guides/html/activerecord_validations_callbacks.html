@@ -602,7 +602,7 @@ http://www.gnu.org/software/src-highlite -->
 <div class="paragraph"><p>The <tt>validates_size_of</tt> helper is an alias for <tt>validates_length_of</tt>.</p></div>
 <h3 id="_the_tt_validates_numericality_of_tt_helper">2.8. The <tt>validates_numericality_of</tt> helper</h3>
 <div class="paragraph"><p>This helper validates that your attributes have only numeric values. By default, it will match an optional sign followed by a integral or floating point number. Using the <tt>:integer_only</tt> option set to true, you can specify that only integral numbers are allowed.</p></div>
-<div class="paragraph"><p>If you set <tt>:integer_only</tt> to <tt>true</tt>, then it will use the <tt>/\A[+\-]?\d+\Z/+ regular expression to validate the attribute&#8217;s value. Otherwise, it will try to convert the value to a number using +Kernel.Float</tt>.</p></div>
+<div class="paragraph"><p>If you set <tt>:integer_only</tt> to <tt>true</tt>, then it will use the <tt>$$/\A[</tt>\-]?\d+\Z/<tt> regular expression to validate the attribute&#8217;s value. Otherwise, it will try to convert the value to a number using +Kernel.Float</tt>.</p></div>
 <div class="listingblock">
 <div class="content"><!-- Generator: GNU source-highlight 2.9
 by Lorenzo Bettini
@@ -610,7 +610,7 @@ http://www.lorenzobettini.it
 http://www.gnu.org/software/src-highlite -->
 <pre><tt><span style="font-weight: bold"><span style="color: #0000FF">class</span></span> Player <span style="color: #990000">&lt;</span> ActiveRecord<span style="color: #990000">::</span>Base
   validates_numericality_of <span style="color: #990000">:</span>points
-  validates_numericality_of <span style="color: #990000">:</span>games_played<span style="color: #990000">,</span> <span style="color: #990000">:</span>integer_only <span style="color: #990000">=&gt;</span> <span style="font-weight: bold"><span style="color: #0000FF">true</span></span>
+  validates_numericality_of <span style="color: #990000">:</span>games_played<span style="color: #990000">,</span> <span style="color: #990000">:</span>only_integer <span style="color: #990000">=&gt;</span> <span style="font-weight: bold"><span style="color: #0000FF">true</span></span>
 <span style="font-weight: bold"><span style="color: #0000FF">end</span></span></tt></pre></div></div>
 <div class="paragraph"><p>Besides <tt>:only_integer</tt>, the <tt>validates_numericality_of</tt> helper also accepts the following options to add constraints to acceptable values:</p></div>
 <div class="ulist"><ul>
@@ -983,7 +983,7 @@ p<span style="color: #990000">.</span>errors<span style="color: #990000">.</span
 </div>
 <h2 id="_using_the_tt_errors_tt_collection_in_your_view_templates">7. Using the <tt>errors</tt> collection in your view templates</h2>
 <div class="sectionbody">
-<div class="paragraph"><p>Rails provides built-in helpers to display the error messages of your models in your view templates. It may be useful to display those messages when you&#8217;re trying to create or edit a record and validation fails. If you&#8217;re using the <tt>form_for</tt> helper to create a form, you can use it to call the <tt>error_messages</tt> method, which creates a <tt>div</tt> element containing all the error messages for the model associated with the form. Here is a simple example, using a <tt>Product</tt> model and the view template generated with the scaffold script.</p></div>
+<div class="paragraph"><p>Rails provides built-in helpers to display the error messages of your models in your view templates. When creating a form with the form_for helper, you can use the error_messages method on the form builder to render all failed validation messages for the current model instance.</p></div>
 <div class="listingblock">
 <div class="content"><!-- Generator: GNU source-highlight 2.9
 by Lorenzo Bettini
