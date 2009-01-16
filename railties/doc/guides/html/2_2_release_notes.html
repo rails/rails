@@ -1,296 +1,128 @@
 <!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
 <html xmlns="http://www.w3.org/1999/xhtml" lang="en" xml:lang="en">
 <head>
-	<meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
-	<title>Ruby on Rails 2.2 Release Notes</title>
-	<!--[if lt IE 8]>
-	<script src="http://ie7-js.googlecode.com/svn/version/2.0(beta3)/IE8.js" type="text/javascript"></script>
-	<![endif]-->
-	<link href="stylesheets/base.css" media="screen" rel="Stylesheet" type="text/css" />
-	<link href="stylesheets/forms.css" media="screen" rel="Stylesheet" type="text/css" />
-	<link href="stylesheets/more.css" media="screen" rel="Stylesheet" type="text/css" />
-	<style type="text/css">
-		div#container {
-	max-width: 900px;
-	padding-bottom: 3em;
-}
-
-div#content {
-	margin-left: 200px;
-}
-
-div#container.notoc {
-	max-width: 600px;
-}
-
-.notoc div#content {
-	margin-left: 0;
-}
-
-pre {
-	line-height: 1.4em;
-}
-
-#content p tt {
-	background: #eeeeee;
-	border: solid 1px #cccccc;
-	padding: 3px;
-}
-
-dt {
-	font-weight: bold;
-}
-
-#content dt tt {
-	font-size: 10pt;
-}
-
-dd {
-	margin-left: 3em;
-}
-
-#content dt tt, #content pre tt {
-	background: none;
-	padding: 0;
-	border: 0;
-}
-
-#content .olist ol {
-	margin-left: 2em;
-}
-
-#header {
-	position: relative;
-	max-width: 840px;
-	margin-left: auto;
-	margin-right: auto;
-}
-
-#header.notoc {
-	max-width: 580px;
-}
-
-#logo {
-	position: absolute;
-	left: 10px;
-	top: 10px;
-	width: 110px;
-	height: 140px;
-}
-
-div#header h1#site_title {
-	background: url('images/ruby_on_rails_by_mike_rundle2.gif') top left no-repeat;
-	position: absolute;
-	width: 392px;
-	height: 55px;
-	left: 145px;
-	top: 20px;
-	margin: 0;
-	padding: 0;
-}
-
-#site_title span {
-	display: none;
-}
-
-#site_title_tagline {
-	display: none;
-}
-
-ul#navMain {
-	position: absolute;
-	margin: 0;
-	padding: 0;
-	top: 97px;
-	left: 145px;
-}
-
-.left-floaty, .right-floaty {
-	padding: 15px;
-}
-
-.admonitionblock,
-.tableblock {
-	margin-left: 1em;
-	margin-right: 1em;
-	margin-top: 0.25em;
-	margin-bottom: 1em;
-}
-
-.admonitionblock .icon {
-	padding-right: 8px;
-}
-
-.admonitionblock .content {
-	border: solid 1px #ffda78;
-	background: #fffebd;
-	padding: 10px;
-	padding-top: 8px;
-	padding-bottom: 8px;
-}
-
-.admonitionblock .title {
-	font-size: 140%;
-	margin-bottom: 0.5em;
-}
-
-.tableblock table {
-	border: solid 1px #aaaaff;
-	background: #f0f0ff;
-}
-
-.tableblock th {
-	background: #e0e0e0;
-}
-
-.tableblock th,
-.tableblock td {
-	padding: 3px;
-	padding-left: 5px;
-	padding-right: 5px;
-}
-
-.sidebarblock {
-	margin-top: 0.25em;
-	margin: 1em;
-	border: solid 1px #ccccbb;
-	padding: 8px;
-	background: #ffffe0;
-}
-
-.sidebarblock .sidebar-title {
-	font-size: 140%;
-	font-weight: 600;
-	margin-bottom: 0.3em;
-}
-
-.sidebarblock .sidebar-content > .para:last-child > p {
-	margin-bottom: 0;
-}
-
-.sidebarblock .sidebar-title a {
-	text-decoration: none;
-}
-
-.sidebarblock .sidebar-title a:hover {
-	text-decoration: underline;
-}
-
-	</style>
+  <meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
+  <title>Ruby on Rails 2.2 Release Notes</title>
+  <!--[if lt IE 8]>
+  <script src="http://ie7-js.googlecode.com/svn/version/2.0(beta3)/IE8.js" type="text/javascript"></script>
+  <![endif]-->
+  <link href="stylesheets/base.css" media="screen" rel="Stylesheet" type="text/css" />
+  <link href="stylesheets/forms.css" media="screen" rel="Stylesheet" type="text/css" />
+  <link href="stylesheets/more.css" media="screen" rel="Stylesheet" type="text/css" />
 </head>
 <body>
-	<div id="header" >
-		<div id="logo">
-			<a href="index.html" title="Ruby on Rails"><img src="images/rails_logo_remix.gif" alt="Rails" height="140" width="110" /></a>
-		</div>
-		
-		<h1 id="site_title"><span>Ruby on Rails</span></h1>
-		<h2 id="site_title_tagline">Sustainable productivity for web-application development</h2>
+  <div id="header" >
+    <div id="logo">
+      <a href="index.html" title="Ruby on Rails"><img src="images/rails_logo_remix.gif" alt="Rails" height="140" width="110" /></a>
+    </div>
 
-		<ul id="navMain">
-			<li class="first-child"><a href="http://www.rubyonrails.org/" title="Ruby on Rails" class="ruby_on_rails">Ruby on Rails</a></li>
-			<li><a class="manuals" href="index.html" title="Manuals Index">Guides Index</a></li>
-		</ul>
-	</div>
+    <h1 id="site_title"><span>Ruby on Rails</span></h1>
+    <h2 id="site_title_tagline">Sustainable productivity for web-application development</h2>
 
-	<div id="container">
-		
-		<div id="sidebar">
-			<h2>Chapters</h2>
-			<ol>
-					<li>
-					<a href="#_infrastructure">Infrastructure</a>
-						<ul>
-						
-							<li><a href="#_internationalization">Internationalization</a></li>
-						
-							<li><a href="#_compatibility_with_ruby_1_9_and_jruby">Compatibility with Ruby 1.9 and JRuby</a></li>
-						
-						</ul>
-					</li>
-					<li>
-					<a href="#_documentation">Documentation</a>
-					</li>
-					<li>
-					<a href="#_better_integration_with_http_out_of_the_box_etag_support">Better integration with HTTP : Out of the box ETag support</a>
-					</li>
-					<li>
-					<a href="#_thread_safety">Thread Safety</a>
-					</li>
-					<li>
-					<a href="#_active_record">Active Record</a>
-						<ul>
-						
-							<li><a href="#_transactional_migrations">Transactional Migrations</a></li>
-						
-							<li><a href="#_connection_pooling">Connection Pooling</a></li>
-						
-							<li><a href="#_hashes_for_join_table_conditions">Hashes for Join Table Conditions</a></li>
-						
-							<li><a href="#_new_dynamic_finders">New Dynamic Finders</a></li>
-						
-							<li><a href="#_associations_respect_private_protected_scope">Associations Respect Private/Protected Scope</a></li>
-						
-							<li><a href="#_other_activerecord_changes">Other ActiveRecord Changes</a></li>
-						
-						</ul>
-					</li>
-					<li>
-					<a href="#_action_controller">Action Controller</a>
-						<ul>
-						
-							<li><a href="#_shallow_route_nesting">Shallow Route Nesting</a></li>
-						
-							<li><a href="#_method_arrays_for_member_or_collection_routes">Method Arrays for Member or Collection Routes</a></li>
-						
-							<li><a href="#_resources_with_specific_actions">Resources With Specific Actions</a></li>
-						
-							<li><a href="#_other_action_controller_changes">Other Action Controller Changes</a></li>
-						
-						</ul>
-					</li>
-					<li>
-					<a href="#_action_view">Action View</a>
-					</li>
-					<li>
-					<a href="#_action_mailer">Action Mailer</a>
-					</li>
-					<li>
-					<a href="#_active_support">Active Support</a>
-						<ul>
-						
-							<li><a href="#_memoization">Memoization</a></li>
-						
-							<li><a href="#_tt_each_with_object_tt"><tt>each_with_object</tt></a></li>
-						
-							<li><a href="#_delegates_with_prefixes">Delegates With Prefixes</a></li>
-						
-							<li><a href="#_other_active_support_changes">Other Active Support Changes</a></li>
-						
-						</ul>
-					</li>
-					<li>
-					<a href="#_railties">Railties</a>
-						<ul>
-						
-							<li><a href="#_tt_config_gems_tt"><tt>config.gems</tt></a></li>
-						
-							<li><a href="#_other_railties_changes">Other Railties Changes</a></li>
-						
-						</ul>
-					</li>
-					<li>
-					<a href="#_deprecated">Deprecated</a>
-					</li>
-					<li>
-					<a href="#_credits">Credits</a>
-					</li>
-			</ol>
-		</div>
-		
-		<div id="content">
-				<h1>Ruby on Rails 2.2 Release Notes</h1>
-			<div id="preamble">
+    <ul id="navMain">
+      <li class="first-child"><a href="http://www.rubyonrails.org/" title="Ruby on Rails" class="ruby_on_rails">Ruby on Rails</a></li>
+      <li><a class="manuals" href="index.html" title="Manuals Index">Guides Index</a></li>
+    </ul>
+  </div>
+
+  <div id="container">
+    
+    <div id="sidebar">
+      <h2>Chapters</h2>
+      <ol>
+          <li>
+          <a href="#_infrastructure">Infrastructure</a>
+            <ul>
+            
+              <li><a href="#_internationalization">Internationalization</a></li>
+            
+              <li><a href="#_compatibility_with_ruby_1_9_and_jruby">Compatibility with Ruby 1.9 and JRuby</a></li>
+            
+            </ul>
+          </li>
+          <li>
+          <a href="#_documentation">Documentation</a>
+          </li>
+          <li>
+          <a href="#_better_integration_with_http_out_of_the_box_etag_support">Better integration with HTTP : Out of the box ETag support</a>
+          </li>
+          <li>
+          <a href="#_thread_safety">Thread Safety</a>
+          </li>
+          <li>
+          <a href="#_active_record">Active Record</a>
+            <ul>
+            
+              <li><a href="#_transactional_migrations">Transactional Migrations</a></li>
+            
+              <li><a href="#_connection_pooling">Connection Pooling</a></li>
+            
+              <li><a href="#_hashes_for_join_table_conditions">Hashes for Join Table Conditions</a></li>
+            
+              <li><a href="#_new_dynamic_finders">New Dynamic Finders</a></li>
+            
+              <li><a href="#_associations_respect_private_protected_scope">Associations Respect Private/Protected Scope</a></li>
+            
+              <li><a href="#_other_activerecord_changes">Other ActiveRecord Changes</a></li>
+            
+            </ul>
+          </li>
+          <li>
+          <a href="#_action_controller">Action Controller</a>
+            <ul>
+            
+              <li><a href="#_shallow_route_nesting">Shallow Route Nesting</a></li>
+            
+              <li><a href="#_method_arrays_for_member_or_collection_routes">Method Arrays for Member or Collection Routes</a></li>
+            
+              <li><a href="#_resources_with_specific_actions">Resources With Specific Actions</a></li>
+            
+              <li><a href="#_other_action_controller_changes">Other Action Controller Changes</a></li>
+            
+            </ul>
+          </li>
+          <li>
+          <a href="#_action_view">Action View</a>
+          </li>
+          <li>
+          <a href="#_action_mailer">Action Mailer</a>
+          </li>
+          <li>
+          <a href="#_active_support">Active Support</a>
+            <ul>
+            
+              <li><a href="#_memoization">Memoization</a></li>
+            
+              <li><a href="#_tt_each_with_object_tt"><tt>each_with_object</tt></a></li>
+            
+              <li><a href="#_delegates_with_prefixes">Delegates With Prefixes</a></li>
+            
+              <li><a href="#_other_active_support_changes">Other Active Support Changes</a></li>
+            
+            </ul>
+          </li>
+          <li>
+          <a href="#_railties">Railties</a>
+            <ul>
+            
+              <li><a href="#_tt_config_gems_tt"><tt>config.gems</tt></a></li>
+            
+              <li><a href="#_other_railties_changes">Other Railties Changes</a></li>
+            
+            </ul>
+          </li>
+          <li>
+          <a href="#_deprecated">Deprecated</a>
+          </li>
+          <li>
+          <a href="#_credits">Credits</a>
+          </li>
+      </ol>
+    </div>
+    
+    <div id="content">
+        <h1>Ruby on Rails 2.2 Release Notes</h1>
+      <div id="preamble">
 <div class="sectionbody">
 <div class="paragraph"><p>Rails 2.2 delivers a number of new and improved features. This list covers the major upgrades, but doesn&#8217;t include every little bug fix and change. If you want to see everything, check out the <a href="http://github.com/rails/rails/commits/master">list of commits</a> in the main Rails repository on GitHub.</p></div>
 <div class="paragraph"><p>Along with Rails, 2.2 marks the launch of the <a href="http://guides.rubyonrails.org/">Ruby on Rails Guides</a>, the first results of the ongoing <a href="http://hackfest.rubyonrails.org/guide">Rails Guides hackfest</a>. This site will deliver high-quality documentation of the major features of Rails.</p></div>
@@ -1168,7 +1000,7 @@ Durations of fractional months or fractional years are deprecated. Use Ruby&#821
 <div class="paragraph"><p>Release notes compiled by <a href="http://afreshcup.com">Mike Gunderloy</a></p></div>
 </div>
 
-		</div>
-	</div>
+    </div>
+  </div>
 </body>
 </html>

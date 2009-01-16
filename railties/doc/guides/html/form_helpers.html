@@ -1,303 +1,135 @@
 <!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
 <html xmlns="http://www.w3.org/1999/xhtml" lang="en" xml:lang="en">
 <head>
-	<meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
-	<title>Rails form helpers</title>
-	<!--[if lt IE 8]>
-	<script src="http://ie7-js.googlecode.com/svn/version/2.0(beta3)/IE8.js" type="text/javascript"></script>
-	<![endif]-->
-	<link href="stylesheets/base.css" media="screen" rel="Stylesheet" type="text/css" />
-	<link href="stylesheets/forms.css" media="screen" rel="Stylesheet" type="text/css" />
-	<link href="stylesheets/more.css" media="screen" rel="Stylesheet" type="text/css" />
-	<style type="text/css">
-		div#container {
-	max-width: 900px;
-	padding-bottom: 3em;
-}
-
-div#content {
-	margin-left: 200px;
-}
-
-div#container.notoc {
-	max-width: 600px;
-}
-
-.notoc div#content {
-	margin-left: 0;
-}
-
-pre {
-	line-height: 1.4em;
-}
-
-#content p tt {
-	background: #eeeeee;
-	border: solid 1px #cccccc;
-	padding: 3px;
-}
-
-dt {
-	font-weight: bold;
-}
-
-#content dt tt {
-	font-size: 10pt;
-}
-
-dd {
-	margin-left: 3em;
-}
-
-#content dt tt, #content pre tt {
-	background: none;
-	padding: 0;
-	border: 0;
-}
-
-#content .olist ol {
-	margin-left: 2em;
-}
-
-#header {
-	position: relative;
-	max-width: 840px;
-	margin-left: auto;
-	margin-right: auto;
-}
-
-#header.notoc {
-	max-width: 580px;
-}
-
-#logo {
-	position: absolute;
-	left: 10px;
-	top: 10px;
-	width: 110px;
-	height: 140px;
-}
-
-div#header h1#site_title {
-	background: url('images/ruby_on_rails_by_mike_rundle2.gif') top left no-repeat;
-	position: absolute;
-	width: 392px;
-	height: 55px;
-	left: 145px;
-	top: 20px;
-	margin: 0;
-	padding: 0;
-}
-
-#site_title span {
-	display: none;
-}
-
-#site_title_tagline {
-	display: none;
-}
-
-ul#navMain {
-	position: absolute;
-	margin: 0;
-	padding: 0;
-	top: 97px;
-	left: 145px;
-}
-
-.left-floaty, .right-floaty {
-	padding: 15px;
-}
-
-.admonitionblock,
-.tableblock {
-	margin-left: 1em;
-	margin-right: 1em;
-	margin-top: 0.25em;
-	margin-bottom: 1em;
-}
-
-.admonitionblock .icon {
-	padding-right: 8px;
-}
-
-.admonitionblock .content {
-	border: solid 1px #ffda78;
-	background: #fffebd;
-	padding: 10px;
-	padding-top: 8px;
-	padding-bottom: 8px;
-}
-
-.admonitionblock .title {
-	font-size: 140%;
-	margin-bottom: 0.5em;
-}
-
-.tableblock table {
-	border: solid 1px #aaaaff;
-	background: #f0f0ff;
-}
-
-.tableblock th {
-	background: #e0e0e0;
-}
-
-.tableblock th,
-.tableblock td {
-	padding: 3px;
-	padding-left: 5px;
-	padding-right: 5px;
-}
-
-.sidebarblock {
-	margin-top: 0.25em;
-	margin: 1em;
-	border: solid 1px #ccccbb;
-	padding: 8px;
-	background: #ffffe0;
-}
-
-.sidebarblock .sidebar-title {
-	font-size: 140%;
-	font-weight: 600;
-	margin-bottom: 0.3em;
-}
-
-.sidebarblock .sidebar-content > .para:last-child > p {
-	margin-bottom: 0;
-}
-
-.sidebarblock .sidebar-title a {
-	text-decoration: none;
-}
-
-.sidebarblock .sidebar-title a:hover {
-	text-decoration: underline;
-}
-
-	</style>
+  <meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
+  <title>Rails form helpers</title>
+  <!--[if lt IE 8]>
+  <script src="http://ie7-js.googlecode.com/svn/version/2.0(beta3)/IE8.js" type="text/javascript"></script>
+  <![endif]-->
+  <link href="stylesheets/base.css" media="screen" rel="Stylesheet" type="text/css" />
+  <link href="stylesheets/forms.css" media="screen" rel="Stylesheet" type="text/css" />
+  <link href="stylesheets/more.css" media="screen" rel="Stylesheet" type="text/css" />
 </head>
 <body>
-	<div id="header" >
-		<div id="logo">
-			<a href="index.html" title="Ruby on Rails"><img src="images/rails_logo_remix.gif" alt="Rails" height="140" width="110" /></a>
-		</div>
-		
-		<h1 id="site_title"><span>Ruby on Rails</span></h1>
-		<h2 id="site_title_tagline">Sustainable productivity for web-application development</h2>
+  <div id="header" >
+    <div id="logo">
+      <a href="index.html" title="Ruby on Rails"><img src="images/rails_logo_remix.gif" alt="Rails" height="140" width="110" /></a>
+    </div>
 
-		<ul id="navMain">
-			<li class="first-child"><a href="http://www.rubyonrails.org/" title="Ruby on Rails" class="ruby_on_rails">Ruby on Rails</a></li>
-			<li><a class="manuals" href="index.html" title="Manuals Index">Guides Index</a></li>
-		</ul>
-	</div>
+    <h1 id="site_title"><span>Ruby on Rails</span></h1>
+    <h2 id="site_title_tagline">Sustainable productivity for web-application development</h2>
 
-	<div id="container">
-		
-		<div id="sidebar">
-			<h2>Chapters</h2>
-			<ol>
-					<li>
-					<a href="#_basic_forms">Basic forms</a>
-						<ul>
-						
-							<li><a href="#_generic_search_form">Generic search form</a></li>
-						
-							<li><a href="#_multiple_hashes_in_form_helper_attributes">Multiple hashes in form helper attributes</a></li>
-						
-							<li><a href="#_checkboxes_radio_buttons_and_other_controls">Checkboxes, radio buttons and other controls</a></li>
-						
-							<li><a href="#_how_do_forms_with_put_or_delete_methods_work">How do forms with PUT or DELETE methods work?</a></li>
-						
-						</ul>
-					</li>
-					<li>
-					<a href="#_different_families_of_helpers">Different Families of helpers</a>
-						<ul>
-						
-							<li><a href="#_barebones_helpers">Barebones helpers</a></li>
-						
-							<li><a href="#_model_object_helpers">Model object helpers</a></li>
-						
-						</ul>
-					</li>
-					<li>
-					<a href="#_forms_that_deal_with_model_attributes">Forms that deal with model attributes</a>
-						<ul>
-						
-							<li><a href="#_relying_on_record_identification">Relying on record identification</a></li>
-						
-						</ul>
-					</li>
-					<li>
-					<a href="#_making_select_boxes_with_ease">Making select boxes with ease</a>
-						<ul>
-						
-							<li><a href="#_the_select_tag_and_options">The select tag and options</a></li>
-						
-							<li><a href="#_select_boxes_for_dealing_with_models">Select boxes for dealing with models</a></li>
-						
-							<li><a href="#_option_tags_from_a_collection_of_arbitrary_objects">Option tags from a collection of arbitrary objects</a></li>
-						
-							<li><a href="#_time_zone_and_country_select">Time zone and country select</a></li>
-						
-						</ul>
-					</li>
-					<li>
-					<a href="#_date_and_time_select_boxes">Date and time select boxes</a>
-						<ul>
-						
-							<li><a href="#_barebones_helpers_2">Barebones helpers</a></li>
-						
-							<li><a href="#_model_object_helpers_2">Model object helpers</a></li>
-						
-							<li><a href="#_common_options">Common options</a></li>
-						
-						</ul>
-					</li>
-					<li>
-					<a href="#_form_builders">Form builders</a>
-						<ul>
-						
-							<li><a href="#_scoping_out_form_controls_with_tt_fields_for_tt">Scoping out form controls with <tt>fields_for</tt></a></li>
-						
-						</ul>
-					</li>
-					<li>
-					<a href="#_file_uploads">File Uploads</a>
-						<ul>
-						
-							<li><a href="#_what_gets_uploaded">What gets uploaded</a></li>
-						
-							<li><a href="#_dealing_with_ajax">Dealing with Ajax</a></li>
-						
-						</ul>
-					</li>
-					<li>
-					<a href="#_parameter_names">Parameter Names</a>
-						<ul>
-						
-							<li><a href="#_basic_structures">Basic structures</a></li>
-						
-							<li><a href="#_combining_them">Combining them</a></li>
-						
-							<li><a href="#_using_form_helpers">Using form helpers</a></li>
-						
-						</ul>
-					</li>
-					<li>
-					<a href="#_complex_forms">Complex forms</a>
-					</li>
-					<li>
-					<a href="#_changelog">Changelog</a>
-					</li>
-			</ol>
-		</div>
-		
-		<div id="content">
-				<h1>Rails form helpers</h1>
-			<div id="preamble">
+    <ul id="navMain">
+      <li class="first-child"><a href="http://www.rubyonrails.org/" title="Ruby on Rails" class="ruby_on_rails">Ruby on Rails</a></li>
+      <li><a class="manuals" href="index.html" title="Manuals Index">Guides Index</a></li>
+    </ul>
+  </div>
+
+  <div id="container">
+    
+    <div id="sidebar">
+      <h2>Chapters</h2>
+      <ol>
+          <li>
+          <a href="#_basic_forms">Basic forms</a>
+            <ul>
+            
+              <li><a href="#_generic_search_form">Generic search form</a></li>
+            
+              <li><a href="#_multiple_hashes_in_form_helper_attributes">Multiple hashes in form helper attributes</a></li>
+            
+              <li><a href="#_checkboxes_radio_buttons_and_other_controls">Checkboxes, radio buttons and other controls</a></li>
+            
+              <li><a href="#_how_do_forms_with_put_or_delete_methods_work">How do forms with PUT or DELETE methods work?</a></li>
+            
+            </ul>
+          </li>
+          <li>
+          <a href="#_different_families_of_helpers">Different Families of helpers</a>
+            <ul>
+            
+              <li><a href="#_barebones_helpers">Barebones helpers</a></li>
+            
+              <li><a href="#_model_object_helpers">Model object helpers</a></li>
+            
+            </ul>
+          </li>
+          <li>
+          <a href="#_forms_that_deal_with_model_attributes">Forms that deal with model attributes</a>
+            <ul>
+            
+              <li><a href="#_relying_on_record_identification">Relying on record identification</a></li>
+            
+            </ul>
+          </li>
+          <li>
+          <a href="#_making_select_boxes_with_ease">Making select boxes with ease</a>
+            <ul>
+            
+              <li><a href="#_the_select_tag_and_options">The select tag and options</a></li>
+            
+              <li><a href="#_select_boxes_for_dealing_with_models">Select boxes for dealing with models</a></li>
+            
+              <li><a href="#_option_tags_from_a_collection_of_arbitrary_objects">Option tags from a collection of arbitrary objects</a></li>
+            
+              <li><a href="#_time_zone_and_country_select">Time zone and country select</a></li>
+            
+            </ul>
+          </li>
+          <li>
+          <a href="#_date_and_time_select_boxes">Date and time select boxes</a>
+            <ul>
+            
+              <li><a href="#_barebones_helpers_2">Barebones helpers</a></li>
+            
+              <li><a href="#_model_object_helpers_2">Model object helpers</a></li>
+            
+              <li><a href="#_common_options">Common options</a></li>
+            
+            </ul>
+          </li>
+          <li>
+          <a href="#_form_builders">Form builders</a>
+            <ul>
+            
+              <li><a href="#_scoping_out_form_controls_with_tt_fields_for_tt">Scoping out form controls with <tt>fields_for</tt></a></li>
+            
+            </ul>
+          </li>
+          <li>
+          <a href="#_file_uploads">File Uploads</a>
+            <ul>
+            
+              <li><a href="#_what_gets_uploaded">What gets uploaded</a></li>
+            
+              <li><a href="#_dealing_with_ajax">Dealing with Ajax</a></li>
+            
+            </ul>
+          </li>
+          <li>
+          <a href="#_parameter_names">Parameter Names</a>
+            <ul>
+            
+              <li><a href="#_basic_structures">Basic structures</a></li>
+            
+              <li><a href="#_combining_them">Combining them</a></li>
+            
+              <li><a href="#_using_form_helpers">Using form helpers</a></li>
+            
+            </ul>
+          </li>
+          <li>
+          <a href="#_complex_forms">Complex forms</a>
+          </li>
+          <li>
+          <a href="#_changelog">Changelog</a>
+          </li>
+      </ol>
+    </div>
+    
+    <div id="content">
+        <h1>Rails form helpers</h1>
+      <div id="preamble">
 <div class="sectionbody">
 <div class="paragraph"><p>Forms in web applications are an essential interface for user input. However, form markup can quickly become tedious to write and maintain because of form control naming and their numerous attributes. Rails deals away with these complexities by providing view helpers for generating form markup. However, since they have different use-cases, developers are required to know all the differences between similar helper methods before putting them to use.</p></div>
 <div class="paragraph"><p>In this guide you will:</p></div>
@@ -1132,7 +964,7 @@ Mislav Marohnić &lt;<a href="mailto:mislav.marohnic@gmail.com">mislav.marohnic@
 </ul></div>
 </div>
 
-		</div>
-	</div>
+    </div>
+  </div>
 </body>
 </html>

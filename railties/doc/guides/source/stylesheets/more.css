@@ -12,8 +12,8 @@
   border: 1px solid #ccc;
 }
 
-pre { 
-  overflow: auto; 
+pre {
+  overflow: auto;
 }
 
 #content pre, #content ul {
@@ -25,13 +25,13 @@ pre {
 }
 
 div#header h1 a{
-	color: #333333;
-	text-decoration:  none;		
+  color: #333333;
+  text-decoration:  none;
 }
 
 div#header p a{
   text-decoration:  none;
-	color:            #999;
+  color:            #999;
 }
 
 .left-floaty {
@@ -80,3 +80,174 @@ div#header p a{
   font-size: small;
   padding-right: 1em;
 }
+
+div#container {
+  max-width: 900px;
+  padding-bottom: 3em;
+}
+
+div#content {
+  margin-left: 200px;
+}
+
+div#container.notoc {
+  max-width: 600px;
+}
+
+.notoc div#content {
+  margin-left: 0;
+}
+
+pre {
+  line-height: 1.4em;
+}
+
+#content p tt {
+  background: #eeeeee;
+  border: solid 1px #cccccc;
+  padding: 3px;
+}
+
+dt {
+  font-weight: bold;
+}
+
+#content dt tt {
+  font-size: 10pt;
+}
+
+dd {
+  margin-left: 3em;
+}
+
+#content dt tt, #content pre tt {
+  background: none;
+  padding: 0;
+  border: 0;
+}
+
+#content .olist ol {
+  margin-left: 2em;
+}
+
+#header {
+  position: relative;
+  max-width: 840px;
+  margin-left: auto;
+  margin-right: auto;
+}
+
+#header.notoc {
+  max-width: 580px;
+}
+
+#logo {
+  position: absolute;
+  left: 10px;
+  top: 10px;
+  width: 110px;
+  height: 140px;
+}
+
+div#header h1#site_title {
+  background: url('../images/ruby_on_rails_by_mike_rundle2.gif') top left no-repeat;
+  position: absolute;
+  width: 392px;
+  height: 55px;
+  left: 145px;
+  top: 20px;
+  margin: 0;
+  padding: 0;
+}
+
+#site_title span {
+  display: none;
+}
+
+#site_title_tagline {
+  display: none;
+}
+
+ul#navMain {
+  position: absolute;
+  margin: 0;
+  padding: 0;
+  top: 97px;
+  left: 145px;
+}
+
+.left-floaty, .right-floaty {
+  padding: 15px;
+}
+
+.admonitionblock,
+.tableblock {
+  margin-left: 1em;
+  margin-right: 1em;
+  margin-top: 0.25em;
+  margin-bottom: 1em;
+}
+
+.admonitionblock .icon {
+  padding-right: 8px;
+}
+
+.admonitionblock .content {
+  border: solid 1px #ffda78;
+  background: #fffebd;
+  padding: 10px;
+  padding-top: 8px;
+  padding-bottom: 8px;
+}
+
+.admonitionblock .title {
+  font-size: 140%;
+  margin-bottom: 0.5em;
+}
+
+.tableblock table {
+  border: solid 1px #aaaaff;
+  background: #f0f0ff;
+}
+
+.tableblock th {
+  background: #e0e0e0;
+}
+
+.tableblock th,
+.tableblock td {
+  padding: 3px;
+  padding-left: 5px;
+  padding-right: 5px;
+}
+
+.sidebarblock {
+  margin-top: 0.25em;
+  margin: 1em;
+  border: solid 1px #ccccbb;
+  padding: 8px;
+  background: #ffffe0;
+}
+
+.sidebarblock .sidebar-title {
+  font-size: 140%;
+  font-weight: 600;
+  margin-bottom: 0.3em;
+}
+
+.sidebarblock .sidebar-content > .para:last-child > p {
+  margin-bottom: 0;
+}
+
+.sidebarblock .sidebar-title a {
+  text-decoration: none;
+}
+
+.sidebarblock .sidebar-title a:hover {
+  text-decoration: underline;
+}
+
+
+
+
+

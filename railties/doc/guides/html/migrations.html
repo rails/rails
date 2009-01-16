@@ -1,283 +1,115 @@
 <!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
 <html xmlns="http://www.w3.org/1999/xhtml" lang="en" xml:lang="en">
 <head>
-	<meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
-	<title>Migrations</title>
-	<!--[if lt IE 8]>
-	<script src="http://ie7-js.googlecode.com/svn/version/2.0(beta3)/IE8.js" type="text/javascript"></script>
-	<![endif]-->
-	<link href="stylesheets/base.css" media="screen" rel="Stylesheet" type="text/css" />
-	<link href="stylesheets/forms.css" media="screen" rel="Stylesheet" type="text/css" />
-	<link href="stylesheets/more.css" media="screen" rel="Stylesheet" type="text/css" />
-	<style type="text/css">
-		div#container {
-	max-width: 900px;
-	padding-bottom: 3em;
-}
-
-div#content {
-	margin-left: 200px;
-}
-
-div#container.notoc {
-	max-width: 600px;
-}
-
-.notoc div#content {
-	margin-left: 0;
-}
-
-pre {
-	line-height: 1.4em;
-}
-
-#content p tt {
-	background: #eeeeee;
-	border: solid 1px #cccccc;
-	padding: 3px;
-}
-
-dt {
-	font-weight: bold;
-}
-
-#content dt tt {
-	font-size: 10pt;
-}
-
-dd {
-	margin-left: 3em;
-}
-
-#content dt tt, #content pre tt {
-	background: none;
-	padding: 0;
-	border: 0;
-}
-
-#content .olist ol {
-	margin-left: 2em;
-}
-
-#header {
-	position: relative;
-	max-width: 840px;
-	margin-left: auto;
-	margin-right: auto;
-}
-
-#header.notoc {
-	max-width: 580px;
-}
-
-#logo {
-	position: absolute;
-	left: 10px;
-	top: 10px;
-	width: 110px;
-	height: 140px;
-}
-
-div#header h1#site_title {
-	background: url('images/ruby_on_rails_by_mike_rundle2.gif') top left no-repeat;
-	position: absolute;
-	width: 392px;
-	height: 55px;
-	left: 145px;
-	top: 20px;
-	margin: 0;
-	padding: 0;
-}
-
-#site_title span {
-	display: none;
-}
-
-#site_title_tagline {
-	display: none;
-}
-
-ul#navMain {
-	position: absolute;
-	margin: 0;
-	padding: 0;
-	top: 97px;
-	left: 145px;
-}
-
-.left-floaty, .right-floaty {
-	padding: 15px;
-}
-
-.admonitionblock,
-.tableblock {
-	margin-left: 1em;
-	margin-right: 1em;
-	margin-top: 0.25em;
-	margin-bottom: 1em;
-}
-
-.admonitionblock .icon {
-	padding-right: 8px;
-}
-
-.admonitionblock .content {
-	border: solid 1px #ffda78;
-	background: #fffebd;
-	padding: 10px;
-	padding-top: 8px;
-	padding-bottom: 8px;
-}
-
-.admonitionblock .title {
-	font-size: 140%;
-	margin-bottom: 0.5em;
-}
-
-.tableblock table {
-	border: solid 1px #aaaaff;
-	background: #f0f0ff;
-}
-
-.tableblock th {
-	background: #e0e0e0;
-}
-
-.tableblock th,
-.tableblock td {
-	padding: 3px;
-	padding-left: 5px;
-	padding-right: 5px;
-}
-
-.sidebarblock {
-	margin-top: 0.25em;
-	margin: 1em;
-	border: solid 1px #ccccbb;
-	padding: 8px;
-	background: #ffffe0;
-}
-
-.sidebarblock .sidebar-title {
-	font-size: 140%;
-	font-weight: 600;
-	margin-bottom: 0.3em;
-}
-
-.sidebarblock .sidebar-content > .para:last-child > p {
-	margin-bottom: 0;
-}
-
-.sidebarblock .sidebar-title a {
-	text-decoration: none;
-}
-
-.sidebarblock .sidebar-title a:hover {
-	text-decoration: underline;
-}
-
-	</style>
+  <meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
+  <title>Migrations</title>
+  <!--[if lt IE 8]>
+  <script src="http://ie7-js.googlecode.com/svn/version/2.0(beta3)/IE8.js" type="text/javascript"></script>
+  <![endif]-->
+  <link href="stylesheets/base.css" media="screen" rel="Stylesheet" type="text/css" />
+  <link href="stylesheets/forms.css" media="screen" rel="Stylesheet" type="text/css" />
+  <link href="stylesheets/more.css" media="screen" rel="Stylesheet" type="text/css" />
 </head>
 <body>
-	<div id="header" >
-		<div id="logo">
-			<a href="index.html" title="Ruby on Rails"><img src="images/rails_logo_remix.gif" alt="Rails" height="140" width="110" /></a>
-		</div>
-		
-		<h1 id="site_title"><span>Ruby on Rails</span></h1>
-		<h2 id="site_title_tagline">Sustainable productivity for web-application development</h2>
+  <div id="header" >
+    <div id="logo">
+      <a href="index.html" title="Ruby on Rails"><img src="images/rails_logo_remix.gif" alt="Rails" height="140" width="110" /></a>
+    </div>
 
-		<ul id="navMain">
-			<li class="first-child"><a href="http://www.rubyonrails.org/" title="Ruby on Rails" class="ruby_on_rails">Ruby on Rails</a></li>
-			<li><a class="manuals" href="index.html" title="Manuals Index">Guides Index</a></li>
-		</ul>
-	</div>
+    <h1 id="site_title"><span>Ruby on Rails</span></h1>
+    <h2 id="site_title_tagline">Sustainable productivity for web-application development</h2>
 
-	<div id="container">
-		
-		<div id="sidebar">
-			<h2>Chapters</h2>
-			<ol>
-					<li>
-					<a href="#_anatomy_of_a_migration">Anatomy Of A Migration</a>
-						<ul>
-						
-							<li><a href="#_migrations_are_classes">Migrations are classes</a></li>
-						
-							<li><a href="#_what_8217_s_in_a_name">What&#8217;s in a name</a></li>
-						
-							<li><a href="#_changing_migrations">Changing migrations</a></li>
-						
-						</ul>
-					</li>
-					<li>
-					<a href="#_creating_a_migration">Creating A Migration</a>
-						<ul>
-						
-							<li><a href="#_creating_a_model">Creating a model</a></li>
-						
-							<li><a href="#_creating_a_standalone_migration">Creating a standalone migration</a></li>
-						
-						</ul>
-					</li>
-					<li>
-					<a href="#_writing_a_migration">Writing a Migration</a>
-						<ul>
-						
-							<li><a href="#_creating_a_table">Creating a table</a></li>
-						
-							<li><a href="#_changing_tables">Changing tables</a></li>
-						
-							<li><a href="#_special_helpers">Special helpers</a></li>
-						
-							<li><a href="#_writing_your_down_method">Writing your down method</a></li>
-						
-						</ul>
-					</li>
-					<li>
-					<a href="#_running_migrations">Running Migrations</a>
-						<ul>
-						
-							<li><a href="#_rolling_back">Rolling back</a></li>
-						
-							<li><a href="#_being_specific">Being Specific</a></li>
-						
-							<li><a href="#_being_talkative">Being talkative</a></li>
-						
-						</ul>
-					</li>
-					<li>
-					<a href="#models">Using Models In Your Migrations</a>
-						<ul>
-						
-							<li><a href="#_dealing_with_changing_models">Dealing with changing models</a></li>
-						
-						</ul>
-					</li>
-					<li>
-					<a href="#_schema_dumping_and_you">Schema dumping and you</a>
-						<ul>
-						
-							<li><a href="#schema">What are schema files for?</a></li>
-						
-							<li><a href="#_types_of_schema_dumps">Types of schema dumps</a></li>
-						
-							<li><a href="#_schema_dumps_and_source_control">Schema dumps and source control</a></li>
-						
-						</ul>
-					</li>
-					<li>
-					<a href="#foreign_key">Active Record and Referential Integrity</a>
-					</li>
-					<li>
-					<a href="#_changelog">Changelog</a>
-					</li>
-			</ol>
-		</div>
-		
-		<div id="content">
-				<h1>Migrations</h1>
-			<div id="preamble">
+    <ul id="navMain">
+      <li class="first-child"><a href="http://www.rubyonrails.org/" title="Ruby on Rails" class="ruby_on_rails">Ruby on Rails</a></li>
+      <li><a class="manuals" href="index.html" title="Manuals Index">Guides Index</a></li>
+    </ul>
+  </div>
+
+  <div id="container">
+    
+    <div id="sidebar">
+      <h2>Chapters</h2>
+      <ol>
+          <li>
+          <a href="#_anatomy_of_a_migration">Anatomy Of A Migration</a>
+            <ul>
+            
+              <li><a href="#_migrations_are_classes">Migrations are classes</a></li>
+            
+              <li><a href="#_what_8217_s_in_a_name">What&#8217;s in a name</a></li>
+            
+              <li><a href="#_changing_migrations">Changing migrations</a></li>
+            
+            </ul>
+          </li>
+          <li>
+          <a href="#_creating_a_migration">Creating A Migration</a>
+            <ul>
+            
+              <li><a href="#_creating_a_model">Creating a model</a></li>
+            
+              <li><a href="#_creating_a_standalone_migration">Creating a standalone migration</a></li>
+            
+            </ul>
+          </li>
+          <li>
+          <a href="#_writing_a_migration">Writing a Migration</a>
+            <ul>
+            
+              <li><a href="#_creating_a_table">Creating a table</a></li>
+            
+              <li><a href="#_changing_tables">Changing tables</a></li>
+            
+              <li><a href="#_special_helpers">Special helpers</a></li>
+            
+              <li><a href="#_writing_your_down_method">Writing your down method</a></li>
+            
+            </ul>
+          </li>
+          <li>
+          <a href="#_running_migrations">Running Migrations</a>
+            <ul>
+            
+              <li><a href="#_rolling_back">Rolling back</a></li>
+            
+              <li><a href="#_being_specific">Being Specific</a></li>
+            
+              <li><a href="#_being_talkative">Being talkative</a></li>
+            
+            </ul>
+          </li>
+          <li>
+          <a href="#models">Using Models In Your Migrations</a>
+            <ul>
+            
+              <li><a href="#_dealing_with_changing_models">Dealing with changing models</a></li>
+            
+            </ul>
+          </li>
+          <li>
+          <a href="#_schema_dumping_and_you">Schema dumping and you</a>
+            <ul>
+            
+              <li><a href="#schema">What are schema files for?</a></li>
+            
+              <li><a href="#_types_of_schema_dumps">Types of schema dumps</a></li>
+            
+              <li><a href="#_schema_dumps_and_source_control">Schema dumps and source control</a></li>
+            
+            </ul>
+          </li>
+          <li>
+          <a href="#foreign_key">Active Record and Referential Integrity</a>
+          </li>
+          <li>
+          <a href="#_changelog">Changelog</a>
+          </li>
+      </ol>
+    </div>
+    
+    <div id="content">
+        <h1>Migrations</h1>
+      <div id="preamble">
 <div class="sectionbody">
 <div class="paragraph"><p>Migrations are a convenient way for you to alter your database in a structured and organised manner. You could edit fragments of SQL by hand but you would then be responsible for telling other developers that they need to go and run it. You&#8217;d also have to keep track of which changes need to be run against the production machines next time you deploy. Active Record tracks which migrations have already been run so all you have to do is update your source and run <tt>rake db:migrate</tt>. Active Record will work out which migrations should be run. It will also update your db/schema.rb file to match the structure of your database.</p></div>
 <div class="paragraph"><p>Migrations also allow you to describe these transformations using Ruby. The great thing about this is that (like most of Active Record&#8217;s functionality) it is database independent: you don&#8217;t need to worry about the precise syntax of CREATE TABLE any more that you worry about variations on SELECT * (you can drop down to raw SQL for database specific features). For example you could use SQLite3 in development, but MySQL in production.</p></div>
@@ -893,7 +725,7 @@ September 14, 2008: initial version by <a href="../authors.html#fcheung">Frederi
 </ul></div>
 </div>
 
-		</div>
-	</div>
+    </div>
+  </div>
 </body>
 </html>

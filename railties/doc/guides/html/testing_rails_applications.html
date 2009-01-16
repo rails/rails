@@ -1,298 +1,130 @@
 <!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
 <html xmlns="http://www.w3.org/1999/xhtml" lang="en" xml:lang="en">
 <head>
-	<meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
-	<title>A Guide to Testing Rails Applications</title>
-	<!--[if lt IE 8]>
-	<script src="http://ie7-js.googlecode.com/svn/version/2.0(beta3)/IE8.js" type="text/javascript"></script>
-	<![endif]-->
-	<link href="stylesheets/base.css" media="screen" rel="Stylesheet" type="text/css" />
-	<link href="stylesheets/forms.css" media="screen" rel="Stylesheet" type="text/css" />
-	<link href="stylesheets/more.css" media="screen" rel="Stylesheet" type="text/css" />
-	<style type="text/css">
-		div#container {
-	max-width: 900px;
-	padding-bottom: 3em;
-}
-
-div#content {
-	margin-left: 200px;
-}
-
-div#container.notoc {
-	max-width: 600px;
-}
-
-.notoc div#content {
-	margin-left: 0;
-}
-
-pre {
-	line-height: 1.4em;
-}
-
-#content p tt {
-	background: #eeeeee;
-	border: solid 1px #cccccc;
-	padding: 3px;
-}
-
-dt {
-	font-weight: bold;
-}
-
-#content dt tt {
-	font-size: 10pt;
-}
-
-dd {
-	margin-left: 3em;
-}
-
-#content dt tt, #content pre tt {
-	background: none;
-	padding: 0;
-	border: 0;
-}
-
-#content .olist ol {
-	margin-left: 2em;
-}
-
-#header {
-	position: relative;
-	max-width: 840px;
-	margin-left: auto;
-	margin-right: auto;
-}
-
-#header.notoc {
-	max-width: 580px;
-}
-
-#logo {
-	position: absolute;
-	left: 10px;
-	top: 10px;
-	width: 110px;
-	height: 140px;
-}
-
-div#header h1#site_title {
-	background: url('images/ruby_on_rails_by_mike_rundle2.gif') top left no-repeat;
-	position: absolute;
-	width: 392px;
-	height: 55px;
-	left: 145px;
-	top: 20px;
-	margin: 0;
-	padding: 0;
-}
-
-#site_title span {
-	display: none;
-}
-
-#site_title_tagline {
-	display: none;
-}
-
-ul#navMain {
-	position: absolute;
-	margin: 0;
-	padding: 0;
-	top: 97px;
-	left: 145px;
-}
-
-.left-floaty, .right-floaty {
-	padding: 15px;
-}
-
-.admonitionblock,
-.tableblock {
-	margin-left: 1em;
-	margin-right: 1em;
-	margin-top: 0.25em;
-	margin-bottom: 1em;
-}
-
-.admonitionblock .icon {
-	padding-right: 8px;
-}
-
-.admonitionblock .content {
-	border: solid 1px #ffda78;
-	background: #fffebd;
-	padding: 10px;
-	padding-top: 8px;
-	padding-bottom: 8px;
-}
-
-.admonitionblock .title {
-	font-size: 140%;
-	margin-bottom: 0.5em;
-}
-
-.tableblock table {
-	border: solid 1px #aaaaff;
-	background: #f0f0ff;
-}
-
-.tableblock th {
-	background: #e0e0e0;
-}
-
-.tableblock th,
-.tableblock td {
-	padding: 3px;
-	padding-left: 5px;
-	padding-right: 5px;
-}
-
-.sidebarblock {
-	margin-top: 0.25em;
-	margin: 1em;
-	border: solid 1px #ccccbb;
-	padding: 8px;
-	background: #ffffe0;
-}
-
-.sidebarblock .sidebar-title {
-	font-size: 140%;
-	font-weight: 600;
-	margin-bottom: 0.3em;
-}
-
-.sidebarblock .sidebar-content > .para:last-child > p {
-	margin-bottom: 0;
-}
-
-.sidebarblock .sidebar-title a {
-	text-decoration: none;
-}
-
-.sidebarblock .sidebar-title a:hover {
-	text-decoration: underline;
-}
-
-	</style>
+  <meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
+  <title>A Guide to Testing Rails Applications</title>
+  <!--[if lt IE 8]>
+  <script src="http://ie7-js.googlecode.com/svn/version/2.0(beta3)/IE8.js" type="text/javascript"></script>
+  <![endif]-->
+  <link href="stylesheets/base.css" media="screen" rel="Stylesheet" type="text/css" />
+  <link href="stylesheets/forms.css" media="screen" rel="Stylesheet" type="text/css" />
+  <link href="stylesheets/more.css" media="screen" rel="Stylesheet" type="text/css" />
 </head>
 <body>
-	<div id="header" >
-		<div id="logo">
-			<a href="index.html" title="Ruby on Rails"><img src="images/rails_logo_remix.gif" alt="Rails" height="140" width="110" /></a>
-		</div>
-		
-		<h1 id="site_title"><span>Ruby on Rails</span></h1>
-		<h2 id="site_title_tagline">Sustainable productivity for web-application development</h2>
+  <div id="header" >
+    <div id="logo">
+      <a href="index.html" title="Ruby on Rails"><img src="images/rails_logo_remix.gif" alt="Rails" height="140" width="110" /></a>
+    </div>
 
-		<ul id="navMain">
-			<li class="first-child"><a href="http://www.rubyonrails.org/" title="Ruby on Rails" class="ruby_on_rails">Ruby on Rails</a></li>
-			<li><a class="manuals" href="index.html" title="Manuals Index">Guides Index</a></li>
-		</ul>
-	</div>
+    <h1 id="site_title"><span>Ruby on Rails</span></h1>
+    <h2 id="site_title_tagline">Sustainable productivity for web-application development</h2>
 
-	<div id="container">
-		
-		<div id="sidebar">
-			<h2>Chapters</h2>
-			<ol>
-					<li>
-					<a href="#_why_write_tests_for_your_rails_applications">Why Write Tests for your Rails Applications?</a>
-					</li>
-					<li>
-					<a href="#_introduction_to_testing">Introduction to Testing</a>
-						<ul>
-						
-							<li><a href="#_the_3_environments">The 3 Environments</a></li>
-						
-							<li><a href="#_rails_sets_up_for_testing_from_the_word_go">Rails Sets up for Testing from the Word Go</a></li>
-						
-							<li><a href="#_the_low_down_on_fixtures">The Low-Down on Fixtures</a></li>
-						
-						</ul>
-					</li>
-					<li>
-					<a href="#_unit_testing_your_models">Unit Testing your Models</a>
-						<ul>
-						
-							<li><a href="#_preparing_you_application_for_testing">Preparing you Application for Testing</a></li>
-						
-							<li><a href="#_running_tests">Running Tests</a></li>
-						
-							<li><a href="#_what_to_include_in_your_unit_tests">What to Include in Your Unit Tests</a></li>
-						
-							<li><a href="#_assertions_available">Assertions Available</a></li>
-						
-							<li><a href="#_rails_specific_assertions">Rails Specific Assertions</a></li>
-						
-						</ul>
-					</li>
-					<li>
-					<a href="#_functional_tests_for_your_controllers">Functional Tests for Your Controllers</a>
-						<ul>
-						
-							<li><a href="#_what_to_include_in_your_functional_tests">What to include in your Functional Tests</a></li>
-						
-							<li><a href="#_available_request_types_for_functional_tests">Available Request Types for Functional Tests</a></li>
-						
-							<li><a href="#_the_4_hashes_of_the_apocalypse">The 4 Hashes of the Apocalypse</a></li>
-						
-							<li><a href="#_instance_variables_available">Instance Variables Available</a></li>
-						
-							<li><a href="#_a_fuller_functional_test_example">A Fuller Functional Test Example</a></li>
-						
-							<li><a href="#_testing_views">Testing Views</a></li>
-						
-						</ul>
-					</li>
-					<li>
-					<a href="#_integration_testing">Integration Testing</a>
-						<ul>
-						
-							<li><a href="#_helpers_available_for_integration_tests">Helpers Available for Integration tests</a></li>
-						
-							<li><a href="#_integration_testing_examples">Integration Testing Examples</a></li>
-						
-						</ul>
-					</li>
-					<li>
-					<a href="#_rake_tasks_for_running_your_tests">Rake Tasks for Running your Tests</a>
-					</li>
-					<li>
-					<a href="#_brief_note_about_test_unit">Brief Note About Test::Unit</a>
-					</li>
-					<li>
-					<a href="#_setup_and_teardown">Setup and Teardown</a>
-					</li>
-					<li>
-					<a href="#_testing_routes">Testing Routes</a>
-					</li>
-					<li>
-					<a href="#_testing_your_mailers">Testing Your Mailers</a>
-						<ul>
-						
-							<li><a href="#_keeping_the_postman_in_check">Keeping the Postman in Check</a></li>
-						
-							<li><a href="#_unit_testing">Unit Testing</a></li>
-						
-							<li><a href="#_functional_testing">Functional Testing</a></li>
-						
-						</ul>
-					</li>
-					<li>
-					<a href="#_other_testing_approaches">Other Testing Approaches</a>
-					</li>
-					<li>
-					<a href="#_changelog">Changelog</a>
-					</li>
-			</ol>
-		</div>
-		
-		<div id="content">
-				<h1>A Guide to Testing Rails Applications</h1>
-			<div id="preamble">
+    <ul id="navMain">
+      <li class="first-child"><a href="http://www.rubyonrails.org/" title="Ruby on Rails" class="ruby_on_rails">Ruby on Rails</a></li>
+      <li><a class="manuals" href="index.html" title="Manuals Index">Guides Index</a></li>
+    </ul>
+  </div>
+
+  <div id="container">
+    
+    <div id="sidebar">
+      <h2>Chapters</h2>
+      <ol>
+          <li>
+          <a href="#_why_write_tests_for_your_rails_applications">Why Write Tests for your Rails Applications?</a>
+          </li>
+          <li>
+          <a href="#_introduction_to_testing">Introduction to Testing</a>
+            <ul>
+            
+              <li><a href="#_the_3_environments">The 3 Environments</a></li>
+            
+              <li><a href="#_rails_sets_up_for_testing_from_the_word_go">Rails Sets up for Testing from the Word Go</a></li>
+            
+              <li><a href="#_the_low_down_on_fixtures">The Low-Down on Fixtures</a></li>
+            
+            </ul>
+          </li>
+          <li>
+          <a href="#_unit_testing_your_models">Unit Testing your Models</a>
+            <ul>
+            
+              <li><a href="#_preparing_you_application_for_testing">Preparing you Application for Testing</a></li>
+            
+              <li><a href="#_running_tests">Running Tests</a></li>
+            
+              <li><a href="#_what_to_include_in_your_unit_tests">What to Include in Your Unit Tests</a></li>
+            
+              <li><a href="#_assertions_available">Assertions Available</a></li>
+            
+              <li><a href="#_rails_specific_assertions">Rails Specific Assertions</a></li>
+            
+            </ul>
+          </li>
+          <li>
+          <a href="#_functional_tests_for_your_controllers">Functional Tests for Your Controllers</a>
+            <ul>
+            
+              <li><a href="#_what_to_include_in_your_functional_tests">What to include in your Functional Tests</a></li>
+            
+              <li><a href="#_available_request_types_for_functional_tests">Available Request Types for Functional Tests</a></li>
+            
+              <li><a href="#_the_4_hashes_of_the_apocalypse">The 4 Hashes of the Apocalypse</a></li>
+            
+              <li><a href="#_instance_variables_available">Instance Variables Available</a></li>
+            
+              <li><a href="#_a_fuller_functional_test_example">A Fuller Functional Test Example</a></li>
+            
+              <li><a href="#_testing_views">Testing Views</a></li>
+            
+            </ul>
+          </li>
+          <li>
+          <a href="#_integration_testing">Integration Testing</a>
+            <ul>
+            
+              <li><a href="#_helpers_available_for_integration_tests">Helpers Available for Integration tests</a></li>
+            
+              <li><a href="#_integration_testing_examples">Integration Testing Examples</a></li>
+            
+            </ul>
+          </li>
+          <li>
+          <a href="#_rake_tasks_for_running_your_tests">Rake Tasks for Running your Tests</a>
+          </li>
+          <li>
+          <a href="#_brief_note_about_test_unit">Brief Note About Test::Unit</a>
+          </li>
+          <li>
+          <a href="#_setup_and_teardown">Setup and Teardown</a>
+          </li>
+          <li>
+          <a href="#_testing_routes">Testing Routes</a>
+          </li>
+          <li>
+          <a href="#_testing_your_mailers">Testing Your Mailers</a>
+            <ul>
+            
+              <li><a href="#_keeping_the_postman_in_check">Keeping the Postman in Check</a></li>
+            
+              <li><a href="#_unit_testing">Unit Testing</a></li>
+            
+              <li><a href="#_functional_testing">Functional Testing</a></li>
+            
+            </ul>
+          </li>
+          <li>
+          <a href="#_other_testing_approaches">Other Testing Approaches</a>
+          </li>
+          <li>
+          <a href="#_changelog">Changelog</a>
+          </li>
+      </ol>
+    </div>
+    
+    <div id="content">
+        <h1>A Guide to Testing Rails Applications</h1>
+      <div id="preamble">
 <div class="sectionbody">
 <div class="paragraph"><p>This guide covers built-in mechanisms offered by Rails to test your application. By referring to this guide, you will be able to:</p></div>
 <div class="ulist"><ul>
@@ -1713,7 +1545,7 @@ October 12, 2008: First draft by <a href="../authors.html#asurve">Akshay Surve</
 </ul></div>
 </div>
 
-		</div>
-	</div>
+    </div>
+  </div>
 </body>
 </html>

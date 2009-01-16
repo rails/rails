@@ -1,97 +1,94 @@
 <%-
-	manuals_index_url = ENV['MANUALSONRAILS_INDEX_URL'] || "index.html"
-	show_toc = ENV['MANUALSONRAILS_TOC'] != 'no'
+  manuals_index_url = ENV['MANUALSONRAILS_INDEX_URL'] || "index.html"
+  show_toc = ENV['MANUALSONRAILS_TOC'] != 'no'
 -%>
 <!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
 <html xmlns="http://www.w3.org/1999/xhtml" lang="en" xml:lang="en">
 <head>
-	<meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
-	<title><%- if multi_page? && !is_preamble? -%><%=h current_chapter.plain_title %> :: <% end %><%=h title %></title>
-	<!--[if lt IE 8]>
-	<script src="http://ie7-js.googlecode.com/svn/version/2.0(beta3)/IE8.js" type="text/javascript"></script>
-	<![endif]-->
-	<link href="stylesheets/base.css" media="screen" rel="Stylesheet" type="text/css" />
-	<link href="stylesheets/forms.css" media="screen" rel="Stylesheet" type="text/css" />
-	<link href="stylesheets/more.css" media="screen" rel="Stylesheet" type="text/css" />
-	<style type="text/css">
-		<%= include_file('inline.css') %>
-	</style>
+  <meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
+  <title><%- if multi_page? && !is_preamble? -%><%=h current_chapter.plain_title %> :: <% end %><%=h title %></title>
+  <!--[if lt IE 8]>
+  <script src="http://ie7-js.googlecode.com/svn/version/2.0(beta3)/IE8.js" type="text/javascript"></script>
+  <![endif]-->
+  <link href="stylesheets/base.css" media="screen" rel="Stylesheet" type="text/css" />
+  <link href="stylesheets/forms.css" media="screen" rel="Stylesheet" type="text/css" />
+  <link href="stylesheets/more.css" media="screen" rel="Stylesheet" type="text/css" />
 </head>
 <body>
-	<div id="header" <% if !show_toc %> class="notoc"<% end %>>
-		<div id="logo">
-			<a href="index.html" title="Ruby on Rails"><img src="images/rails_logo_remix.gif" alt="Rails" height="140" width="110" /></a>
-		</div>
-		
-		<h1 id="site_title"><span>Ruby on Rails</span></h1>
-		<h2 id="site_title_tagline">Sustainable productivity for web-application development</h2>
+  <div id="header" <% if !show_toc %> class="notoc"<% end %>>
+    <div id="logo">
+      <a href="index.html" title="Ruby on Rails"><img src="images/rails_logo_remix.gif" alt="Rails" height="140" width="110" /></a>
+    </div>
 
-		<ul id="navMain">
-			<li class="first-child"><a href="http://www.rubyonrails.org/" title="Ruby on Rails" class="ruby_on_rails">Ruby on Rails</a></li>
-			<li><a class="manuals" href="index.html" title="Manuals Index">Guides Index</a></li>
-		</ul>
-	</div>
+    <h1 id="site_title"><span>Ruby on Rails</span></h1>
+    <h2 id="site_title_tagline">Sustainable productivity for web-application development</h2>
 
-	<div id="container"<% if !show_toc %> class="notoc"<% end %>>
-		<% if show_toc %>
-		<div id="sidebar">
-			<h2>Chapters</h2>
-			<%- if multi_page? -%>
-				<a href="<%=h chapters.first.basename %>">Preamble</a>
-			<%- end -%>
-			<ol>
-			<%- if multi_page? -%>
-				<%- for heading in table_of_contents -%>
-					<li>
-					<a href="<%=h heading.basename %>"><%= heading.title_without_numbers %></a>
-					<%- if !heading.children.empty? -%>
-						<ul>
-						<% for h in heading.children %>
-							<li><a href="<%=h h.basename %><%=h h.anchor %>"><%= h.title_without_numbers %></a></li>
-						<% end %>
-						</ul>
-					<%- end -%>
-					</li>
-				<%- end -%>
-			<%- else -%>
-				<%- for heading in table_of_contents -%>
-					<li>
-					<a href="<%=h heading.anchor %>"><%= heading.title_without_numbers %></a>
-					<%- if !heading.children.empty? -%>
-						<ul>
-						<% for h in heading.children %>
-							<li><a href="<%=h h.anchor %>"><%= h.title_without_numbers %></a></li>
-						<% end %>
-						</ul>
-					<%- end -%>
-					</li>
-				<%- end -%>
-			<%- end -%>
-			</ol>
-		</div>
-		<% end %>
-		<div id="content">
-			<%- if multi_page? && !is_preamble? -%>
-				<h2 id="<%=h current_chapter.anchor_id %>"><%= current_chapter.title %></h2>
-			<%- else -%>
-				<h1><%=h title %></h1>
-			<%- end -%>
-			<%= contents %>
-			<%- if multi_page? -%>
-			<div id="chapter_navigation">
-				<%- if prev_chapter -%>
-					<div class="left-floaty">
-					<a href="<%=h prev_chapter.basename %>">&laquo; <%= prev_chapter.title %></a>
-					</div>
-				<%- end -%>
-				<%- if next_chapter -%>
-					<div class="right-floaty">
-					<a href="<%=h next_chapter.basename %>"><%= next_chapter.title %> &raquo;</a>
-					</div>
-				<%- end -%>
-			</div>
-			<%- end -%>
-		</div>
-	</div>
+    <ul id="navMain">
+      <li class="first-child"><a href="http://www.rubyonrails.org/" title="Ruby on Rails" class="ruby_on_rails">Ruby on Rails</a></li>
+      <li><a class="manuals" href="index.html" title="Manuals Index">Guides Index</a></li>
+    </ul>
+  </div>
+
+  <div id="container"<% if !show_toc %> class="notoc"<% end %>>
+    <% if show_toc %>
+    <div id="sidebar">
+      <h2>Chapters</h2>
+      <%- if multi_page? -%>
+        <a href="<%=h chapters.first.basename %>">Preamble</a>
+      <%- end -%>
+      <ol>
+      <%- if multi_page? -%>
+        <%- for heading in table_of_contents -%>
+          <li>
+          <a href="<%=h heading.basename %>"><%= heading.title_without_numbers %></a>
+          <%- if !heading.children.empty? -%>
+            <ul>
+            <% for h in heading.children %>
+              <li><a href="<%=h h.basename %><%=h h.anchor %>"><%= h.title_without_numbers %></a></li>
+            <% end %>
+            </ul>
+          <%- end -%>
+          </li>
+        <%- end -%>
+      <%- else -%>
+        <%- for heading in table_of_contents -%>
+          <li>
+          <a href="<%=h heading.anchor %>"><%= heading.title_without_numbers %></a>
+          <%- if !heading.children.empty? -%>
+            <ul>
+            <% for h in heading.children %>
+              <li><a href="<%=h h.anchor %>"><%= h.title_without_numbers %></a></li>
+            <% end %>
+            </ul>
+          <%- end -%>
+          </li>
+        <%- end -%>
+      <%- end -%>
+      </ol>
+    </div>
+    <% end %>
+    <div id="content">
+      <%- if multi_page? && !is_preamble? -%>
+        <h2 id="<%=h current_chapter.anchor_id %>"><%= current_chapter.title %></h2>
+      <%- else -%>
+        <h1><%=h title %></h1>
+      <%- end -%>
+      <%= contents %>
+      <%- if multi_page? -%>
+      <div id="chapter_navigation">
+        <%- if prev_chapter -%>
+          <div class="left-floaty">
+          <a href="<%=h prev_chapter.basename %>">&laquo; <%= prev_chapter.title %></a>
+          </div>
+        <%- end -%>
+        <%- if next_chapter -%>
+          <div class="right-floaty">
+          <a href="<%=h next_chapter.basename %>"><%= next_chapter.title %> &raquo;</a>
+          </div>
+        <%- end -%>
+      </div>
+      <%- end -%>
+    </div>
+  </div>
 </body>
 </html>

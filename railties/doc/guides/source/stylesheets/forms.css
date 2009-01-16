@@ -1,7 +1,7 @@
 label, input {
-	display:          block;
-	float:            left;
- 	margin-bottom:    10px;
+  display:          block;
+  float:            left;
+  margin-bottom:    10px;
 }
 
 label {
@@ -25,7 +25,7 @@ form>h1{
 }
 
 td {
- vertical-align: top; 
+ vertical-align: top;
 }
 
 #livepreview {
