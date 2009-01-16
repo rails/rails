@@ -5,7 +5,7 @@ class Hash
   # the hash keys. For example:
   #
   #   { :name => "Konata Izumi", 'age' => 16, 1 => 2 }.to_json
-  #   # => {"name": "Konata Izumi", 1: 2, "age": 16}
+  #   # => {"name": "Konata Izumi", "1": 2, "age": 16}
   #
   # The keys in the JSON string are unordered due to the nature of hashes.
   #
@@ -39,7 +39,7 @@ class Hash
 
     returning result = '{' do
       result << hash_keys.map do |key|
-        "#{ActiveSupport::JSON.encode(key)}: #{ActiveSupport::JSON.encode(self[key], options)}"
+        "#{ActiveSupport::JSON.encode(key.to_s)}: #{ActiveSupport::JSON.encode(self[key], options)}"
       end * ', '
       result << '}'
     end
