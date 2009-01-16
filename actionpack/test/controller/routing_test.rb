@@ -340,6 +340,30 @@ class ControllerSegmentTest < Test::Unit::TestCase
   end
 end
 
+class PathSegmentTest < Test::Unit::TestCase
+  def segment(options = {})
+    unless @segment
+      @segment = ROUTING::PathSegment.new(:path, options)
+    end
+    @segment
+  end
+
+  def test_regexp_chunk_should_return_string
+    segment = segment(:regexp => /[a-z]+/)
+    assert_kind_of String, segment.regexp_chunk
+  end
+
+  def test_regexp_chunk_should_be_wrapped_with_parenthesis
+    segment = segment(:regexp => /[a-z]+/)
+    assert_equal "([a-z]+)", segment.regexp_chunk
+  end
+
+  def test_regexp_chunk_should_respect_options
+    segment = segment(:regexp => /[a-z]+/i)
+    assert_equal "((?i-mx:[a-z]+))", segment.regexp_chunk
+  end
+end
+
 class RouteBuilderTest < Test::Unit::TestCase
   def builder
     @builder ||= ROUTING::RouteBuilder.new
