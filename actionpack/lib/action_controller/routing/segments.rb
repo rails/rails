@@ -191,23 +191,19 @@ module ActionController
       end
 
       def regexp_chunk
-        if regexp
-          if regexp_has_modifiers?
-            "(#{regexp.to_s})"
-          else
-            "(#{regexp.source})"
-          end
-        else
-          "([^#{Routing::SEPARATORS.join}]+)"
-        end
+        regexp ? regexp_string : default_regexp_chunk
+      end
+
+      def regexp_string
+        regexp_has_modifiers? ? "(#{regexp.to_s})" : "(#{regexp.source})"
+      end
+
+      def default_regexp_chunk
+        "([^#{Routing::SEPARATORS.join}]+)"
       end
 
       def number_of_captures
-        if regexp
-          regexp.number_of_captures + 1
-        else
-          1
-        end
+        regexp ? regexp.number_of_captures + 1 : 1
       end
 
       def build_pattern(pattern)
@@ -289,8 +285,8 @@ module ActionController
         "params[:#{key}] = PathSegment::Result.new_escaped((match[#{next_capture}]#{" || " + default.inspect if default}).split('/'))#{" if match[" + next_capture + "]" if !default}"
       end
 
-      def regexp_chunk
-        regexp || "(.*)"
+      def default_regexp_chunk
+        "(.*)"
       end
 
       def number_of_captures
