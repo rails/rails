@@ -797,7 +797,7 @@ Route globbing is a way to specify that a particular parameter should be matched
 map.connect 'photo/*other', :controller => 'photos', :action => 'unknown',
 -------------------------------------------------------
 
-This route would match +photo/12+ or +/photo/long/path/to/12+ equally well, creating an array of path segments as the value of +params[:other]+. Originally this parameter had to be at the end of the route definition, however as of Rails 2.0 this is no longer the case.
+This route would match +photo/12+ or +/photo/long/path/to/12+ equally well, creating an array of path segments as the value of +params[:other]+.
 
 === Route Options
 

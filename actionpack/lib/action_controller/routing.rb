@@ -195,8 +195,6 @@ module ActionController
   #
   # will glob all remaining parts of the route that were not recognized earlier. 
   # The globbed values are in <tt>params[:path]</tt> as an array of path segments.
-  # Originally this parameter had to be at the end of the route definition, 
-  # however as of Rails 2.0 this is no longer the case.
   #
   # == Route conditions
   #
