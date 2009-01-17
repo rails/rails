@@ -75,7 +75,7 @@ to <tt>true</tt> for your environment. This flag is normally set in the
 corresponding config/environments/*.rb and caching is disabled by default
 there for development and test, and enabled for production.</p></div>
 <div class="listingblock">
-<div class="content"><!-- Generator: GNU source-highlight 2.9
+<div class="content"><!-- Generator: GNU source-highlight 2.11.1
 by Lorenzo Bettini
 http://www.lorenzobettini.it
 http://www.gnu.org/software/src-highlite -->
@@ -91,7 +91,7 @@ expiration is an issue that needs to be dealt with.</p></div>
 have a controller called ProductsController and a <em>list</em> action that lists all
 the products</p></div>
 <div class="listingblock">
-<div class="content"><!-- Generator: GNU source-highlight 2.9
+<div class="content"><!-- Generator: GNU source-highlight 2.11.1
 by Lorenzo Bettini
 http://www.lorenzobettini.it
 http://www.gnu.org/software/src-highlite -->
@@ -119,7 +119,7 @@ configuration setting <tt>config.action_controller.page_cache_extension</tt>.</p
 <div class="paragraph"><p>In order to expire this page when a new product is added we could extend our
 example controler like this:</p></div>
 <div class="listingblock">
-<div class="content"><!-- Generator: GNU source-highlight 2.9
+<div class="content"><!-- Generator: GNU source-highlight 2.11.1
 by Lorenzo Bettini
 http://www.lorenzobettini.it
 http://www.gnu.org/software/src-highlite -->
@@ -148,7 +148,7 @@ result of the output from a cached copy.</p></div>
 <div class="paragraph"><p>Let&#8217;s say you only wanted authenticated users to edit or create a Product
 object, but still cache those pages:</p></div>
 <div class="listingblock">
-<div class="content"><!-- Generator: GNU source-highlight 2.9
+<div class="content"><!-- Generator: GNU source-highlight 2.11.1
 by Lorenzo Bettini
 http://www.lorenzobettini.it
 http://www.gnu.org/software/src-highlite -->
@@ -191,7 +191,7 @@ in real time and didn&#8217;t want to cache that part  of the page, but did want
 to cache the part of the page which lists all products available, you
 could use this piece of code:</p></div>
 <div class="listingblock">
-<div class="content"><!-- Generator: GNU source-highlight 2.9
+<div class="content"><!-- Generator: GNU source-highlight 2.11.1
 by Lorenzo Bettini
 http://www.lorenzobettini.it
 http://www.gnu.org/software/src-highlite -->
@@ -209,7 +209,7 @@ http://www.gnu.org/software/src-highlite -->
 written out to the same place as the Action Cache, which means that if you
 want to cache multiple fragments per action, you should provide an <tt>action_suffix</tt> to the cache call:</p></div>
 <div class="listingblock">
-<div class="content"><!-- Generator: GNU source-highlight 2.9
+<div class="content"><!-- Generator: GNU source-highlight 2.11.1
 by Lorenzo Bettini
 http://www.lorenzobettini.it
 http://www.gnu.org/software/src-highlite -->
@@ -217,7 +217,7 @@ http://www.gnu.org/software/src-highlite -->
   All available products<span style="color: #990000">:</span></tt></pre></div></div>
 <div class="paragraph"><p>and you can expire it using the <tt>expire_fragment</tt> method, like so:</p></div>
 <div class="listingblock">
-<div class="content"><!-- Generator: GNU source-highlight 2.9
+<div class="content"><!-- Generator: GNU source-highlight 2.11.1
 by Lorenzo Bettini
 http://www.lorenzobettini.it
 http://www.gnu.org/software/src-highlite -->
@@ -226,7 +226,7 @@ http://www.gnu.org/software/src-highlite -->
 also use globally keyed fragments by calling the cache method with a key, like
 so:</p></div>
 <div class="listingblock">
-<div class="content"><!-- Generator: GNU source-highlight 2.9
+<div class="content"><!-- Generator: GNU source-highlight 2.11.1
 by Lorenzo Bettini
 http://www.lorenzobettini.it
 http://www.gnu.org/software/src-highlite -->
@@ -235,7 +235,7 @@ http://www.gnu.org/software/src-highlite -->
 <div class="paragraph"><p>This fragment is then available to all actions in the ProductsController using
 the key and can be expired the same way:</p></div>
 <div class="listingblock">
-<div class="content"><!-- Generator: GNU source-highlight 2.9
+<div class="content"><!-- Generator: GNU source-highlight 2.11.1
 by Lorenzo Bettini
 http://www.lorenzobettini.it
 http://www.gnu.org/software/src-highlite -->
@@ -250,7 +250,7 @@ an around or after filter.</p></div>
 <div class="paragraph"><p>Continuing with our Product controller example, we could rewrite it with a
 sweeper such as the following:</p></div>
 <div class="listingblock">
-<div class="content"><!-- Generator: GNU source-highlight 2.9
+<div class="content"><!-- Generator: GNU source-highlight 2.11.1
 by Lorenzo Bettini
 http://www.lorenzobettini.it
 http://www.gnu.org/software/src-highlite -->
@@ -286,7 +286,7 @@ actions are called. So, if we wanted to expire the cached content for the
 list and edit actions when the create action was called, we could do the
 following:</p></div>
 <div class="listingblock">
-<div class="content"><!-- Generator: GNU source-highlight 2.9
+<div class="content"><!-- Generator: GNU source-highlight 2.11.1
 by Lorenzo Bettini
 http://www.lorenzobettini.it
 http://www.gnu.org/software/src-highlite -->
@@ -314,7 +314,7 @@ will used the cached result set as opposed to running the query against the
 database again.</p></div>
 <div class="paragraph"><p>For example:</p></div>
 <div class="listingblock">
-<div class="content"><!-- Generator: GNU source-highlight 2.9
+<div class="content"><!-- Generator: GNU source-highlight 2.11.1
 by Lorenzo Bettini
 http://www.lorenzobettini.it
 http://www.gnu.org/software/src-highlite -->
@@ -360,7 +360,7 @@ caches. Page caches are always stored on disk.</p></div>
                  take up a lot of memory since each process keeps all the
                  caches in memory.</p></div>
 <div class="listingblock">
-<div class="content"><!-- Generator: GNU source-highlight 2.9
+<div class="content"><!-- Generator: GNU source-highlight 2.11.1
 by Lorenzo Bettini
 http://www.lorenzobettini.it
 http://www.gnu.org/software/src-highlite -->
@@ -371,7 +371,7 @@ http://www.gnu.org/software/src-highlite -->
                running from the same application directory to access the
                cached content.</p></div>
 <div class="listingblock">
-<div class="content"><!-- Generator: GNU source-highlight 2.9
+<div class="content"><!-- Generator: GNU source-highlight 2.11.1
 by Lorenzo Bettini
 http://www.lorenzobettini.it
 http://www.gnu.org/software/src-highlite -->
@@ -381,7 +381,7 @@ http://www.gnu.org/software/src-highlite -->
               only keeps one cache around for all processes, but requires
               that you run and manage a separate DRb process.</p></div>
 <div class="listingblock">
-<div class="content"><!-- Generator: GNU source-highlight 2.9
+<div class="content"><!-- Generator: GNU source-highlight 2.11.1
 by Lorenzo Bettini
 http://www.lorenzobettini.it
 http://www.gnu.org/software/src-highlite -->
@@ -389,14 +389,14 @@ http://www.gnu.org/software/src-highlite -->
 <div class="paragraph"><p>4) MemCached store: Works like DRbStore, but uses Danga&#8217;s MemCache instead.
                     Rails uses the bundled memcached-client gem by default.</p></div>
 <div class="listingblock">
-<div class="content"><!-- Generator: GNU source-highlight 2.9
+<div class="content"><!-- Generator: GNU source-highlight 2.11.1
 by Lorenzo Bettini
 http://www.lorenzobettini.it
 http://www.gnu.org/software/src-highlite -->
 <pre><tt>ActionController<span style="color: #990000">::</span>Base<span style="color: #990000">.</span>cache_store <span style="color: #990000">=</span> <span style="color: #990000">:</span>mem_cache_store<span style="color: #990000">,</span> <span style="color: #FF0000">"localhost"</span></tt></pre></div></div>
 <div class="paragraph"><p>5) Custom store: You can define your own cache store (new in Rails 2.1)</p></div>
 <div class="listingblock">
-<div class="content"><!-- Generator: GNU source-highlight 2.9
+<div class="content"><!-- Generator: GNU source-highlight 2.11.1
 by Lorenzo Bettini
 http://www.lorenzobettini.it
 http://www.gnu.org/software/src-highlite -->
@@ -421,7 +421,7 @@ timestamp and the if-none-match header and determine whether or not to send
 back the full response. With conditional-get support in rails this is a pretty
 easy task:</p></div>
 <div class="listingblock">
-<div class="content"><!-- Generator: GNU source-highlight 2.9
+<div class="content"><!-- Generator: GNU source-highlight 2.11.1
 by Lorenzo Bettini
 http://www.lorenzobettini.it
 http://www.gnu.org/software/src-highlite -->
@@ -447,7 +447,7 @@ http://www.gnu.org/software/src-highlite -->
 rendering mechanism (i.e. you’re not using respond_to or calling render
 yourself) then you’ve got an easy helper in fresh_when:</p></div>
 <div class="listingblock">
-<div class="content"><!-- Generator: GNU source-highlight 2.9
+<div class="content"><!-- Generator: GNU source-highlight 2.11.1
 by Lorenzo Bettini
 http://www.lorenzobettini.it
 http://www.gnu.org/software/src-highlite -->

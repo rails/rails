@@ -196,7 +196,7 @@ test
 <h3 id="_rails_sets_up_for_testing_from_the_word_go">2.2. Rails Sets up for Testing from the Word Go</h3>
 <div class="paragraph"><p>Rails creates a <tt>test</tt> folder for you as soon as you create a Rails project using <tt>rails <em>application_name</em></tt>. If you list the contents of this folder then you shall see:</p></div>
 <div class="listingblock">
-<div class="content"><!-- Generator: GNU source-highlight 2.9
+<div class="content"><!-- Generator: GNU source-highlight 2.11.1
 by Lorenzo Bettini
 http://www.lorenzobettini.it
 http://www.gnu.org/software/src-highlite -->
@@ -213,7 +213,7 @@ fixtures<span style="color: #990000">/</span>       functional<span style="color
 <div class="paragraph"><p>YAML-formatted fixtures are a very human-friendly way to describe your sample data. These types of fixtures have the <strong>.yml</strong> file extension (as in <tt>users.yml</tt>).</p></div>
 <div class="paragraph"><p>Here&#8217;s a sample YAML fixture file:</p></div>
 <div class="listingblock">
-<div class="content"><!-- Generator: GNU source-highlight 2.9
+<div class="content"><!-- Generator: GNU source-highlight 2.11.1
 by Lorenzo Bettini
 http://www.lorenzobettini.it
 http://www.gnu.org/software/src-highlite -->
@@ -231,7 +231,7 @@ steve<span style="color: #990000">:</span>
 <h4 id="_erb_8217_in_it_up">2.3.3. ERb&#8217;in It Up</h4>
 <div class="paragraph"><p>ERb allows you embed ruby code within templates. Both the YAML and CSV fixture formats are pre-processed with ERb when you load fixtures. This allows you to use Ruby to help you generate some sample data.</p></div>
 <div class="listingblock">
-<div class="content"><!-- Generator: GNU source-highlight 2.9
+<div class="content"><!-- Generator: GNU source-highlight 2.11.1
 by Lorenzo Bettini
 http://www.lorenzobettini.it
 http://www.gnu.org/software/src-highlite -->
@@ -249,7 +249,7 @@ mars<span style="color: #990000">:</span>
   brightest_on<span style="color: #990000">:</span> <span style="color: #FF0000">&lt;%= 13.days.from_now.to_s(:db) %&gt;</span></tt></pre></div></div>
 <div class="paragraph"><p>Anything encased within the</p></div>
 <div class="listingblock">
-<div class="content"><!-- Generator: GNU source-highlight 2.9
+<div class="content"><!-- Generator: GNU source-highlight 2.11.1
 by Lorenzo Bettini
 http://www.lorenzobettini.it
 http://www.gnu.org/software/src-highlite -->
@@ -277,7 +277,7 @@ Dump the fixture data into a variable in case you want to access it directly
 <h4 id="_hashes_with_special_powers">2.3.5. Hashes with Special Powers</h4>
 <div class="paragraph"><p>Fixtures are basically Hash objects. As mentioned in point #3 above, you can access the hash object directly because it is automatically setup as a local variable of the test case. For example:</p></div>
 <div class="listingblock">
-<div class="content"><!-- Generator: GNU source-highlight 2.9
+<div class="content"><!-- Generator: GNU source-highlight 2.11.1
 by Lorenzo Bettini
 http://www.lorenzobettini.it
 http://www.gnu.org/software/src-highlite -->
@@ -288,7 +288,7 @@ users<span style="color: #990000">(:</span>david<span style="color: #990000">)</
 users<span style="color: #990000">(:</span>david<span style="color: #990000">).</span>id</tt></pre></div></div>
 <div class="paragraph"><p>Fixtures can also transform themselves into the form of the original class. Thus, you can get at the methods only available to that class.</p></div>
 <div class="listingblock">
-<div class="content"><!-- Generator: GNU source-highlight 2.9
+<div class="content"><!-- Generator: GNU source-highlight 2.11.1
 by Lorenzo Bettini
 http://www.lorenzobettini.it
 http://www.gnu.org/software/src-highlite -->
@@ -322,7 +322,7 @@ create  test/fixtures/posts.yml
 </div></div>
 <div class="paragraph"><p>The default test stub in <tt>test/unit/post_test.rb</tt> looks like this:</p></div>
 <div class="listingblock">
-<div class="content"><!-- Generator: GNU source-highlight 2.9
+<div class="content"><!-- Generator: GNU source-highlight 2.11.1
 by Lorenzo Bettini
 http://www.lorenzobettini.it
 http://www.gnu.org/software/src-highlite -->
@@ -336,28 +336,28 @@ http://www.gnu.org/software/src-highlite -->
 <span style="font-weight: bold"><span style="color: #0000FF">end</span></span></tt></pre></div></div>
 <div class="paragraph"><p>A line by line examination of this file will help get you oriented to Rails testing code and terminology.</p></div>
 <div class="listingblock">
-<div class="content"><!-- Generator: GNU source-highlight 2.9
+<div class="content"><!-- Generator: GNU source-highlight 2.11.1
 by Lorenzo Bettini
 http://www.lorenzobettini.it
 http://www.gnu.org/software/src-highlite -->
 <pre><tt><span style="font-weight: bold"><span style="color: #000080">require</span></span> <span style="color: #FF0000">'test_helper'</span></tt></pre></div></div>
 <div class="paragraph"><p>As you know by now that <tt>test_helper.rb</tt> specifies the default configuration to run our tests. This is included with all the tests, so any methods added to this file are available to all your tests.</p></div>
 <div class="listingblock">
-<div class="content"><!-- Generator: GNU source-highlight 2.9
+<div class="content"><!-- Generator: GNU source-highlight 2.11.1
 by Lorenzo Bettini
 http://www.lorenzobettini.it
 http://www.gnu.org/software/src-highlite -->
 <pre><tt><span style="font-weight: bold"><span style="color: #0000FF">class</span></span> PostTest <span style="color: #990000">&lt;</span> ActiveSupport<span style="color: #990000">::</span>TestCase</tt></pre></div></div>
 <div class="paragraph"><p>The <tt>PostTest</tt> class defines a <em>test case</em> because it inherits from <tt>ActiveSupport::TestCase</tt>. <tt>PostTest</tt> thus has all the methods available from <tt>ActiveSupport::TestCase</tt>. You&#8217;ll see those methods a little later in this guide.</p></div>
 <div class="listingblock">
-<div class="content"><!-- Generator: GNU source-highlight 2.9
+<div class="content"><!-- Generator: GNU source-highlight 2.11.1
 by Lorenzo Bettini
 http://www.lorenzobettini.it
 http://www.gnu.org/software/src-highlite -->
 <pre><tt><span style="font-weight: bold"><span style="color: #0000FF">def</span></span> test_truth</tt></pre></div></div>
 <div class="paragraph"><p>Any method defined within a test case that begins with <tt>test</tt> (case sensitive) is simply called a test. So, <tt>test_password</tt>, <tt>test_valid_password</tt> and <tt>testValidPassword</tt> all are legal test names and are run automatically when the test case is run.</p></div>
 <div class="listingblock">
-<div class="content"><!-- Generator: GNU source-highlight 2.9
+<div class="content"><!-- Generator: GNU source-highlight 2.11.1
 by Lorenzo Bettini
 http://www.lorenzobettini.it
 http://www.gnu.org/software/src-highlite -->
@@ -389,7 +389,7 @@ is the user&#8217;s password greater than 5 characters?
 <h3 id="_preparing_you_application_for_testing">3.1. Preparing you Application for Testing</h3>
 <div class="paragraph"><p>Before you can run your tests you need to ensure that the test database structure is current. For this you can use the following rake commands:</p></div>
 <div class="listingblock">
-<div class="content"><!-- Generator: GNU source-highlight 2.9
+<div class="content"><!-- Generator: GNU source-highlight 2.11.1
 by Lorenzo Bettini
 http://www.lorenzobettini.it
 http://www.gnu.org/software/src-highlite -->
@@ -454,7 +454,7 @@ cellspacing="0" cellpadding="4">
 <h3 id="_running_tests">3.2. Running Tests</h3>
 <div class="paragraph"><p>Running a test is as simple as invoking the file containing the test cases through Ruby:</p></div>
 <div class="listingblock">
-<div class="content"><!-- Generator: GNU source-highlight 2.9
+<div class="content"><!-- Generator: GNU source-highlight 2.11.1
 by Lorenzo Bettini
 http://www.lorenzobettini.it
 http://www.gnu.org/software/src-highlite -->
@@ -483,7 +483,7 @@ Finished in 0.023513 seconds.
 <div class="paragraph"><p>The <tt>.</tt> (dot) above indicates a passing test. When a test fails you see an <tt>F</tt>; when a test throws an error you see an <tt>E</tt> in its place. The last line of the output is the summary.</p></div>
 <div class="paragraph"><p>To see how a test failure is reported, you can add a failing test to the <tt>post_test.rb</tt> test case.</p></div>
 <div class="listingblock">
-<div class="content"><!-- Generator: GNU source-highlight 2.9
+<div class="content"><!-- Generator: GNU source-highlight 2.11.1
 by Lorenzo Bettini
 http://www.lorenzobettini.it
 http://www.gnu.org/software/src-highlite -->
@@ -511,7 +511,7 @@ test_should_not_save_post_without_title(PostTest)
 </div></div>
 <div class="paragraph"><p>In the output, <tt>F</tt> denotes a failure. You can see the corresponding trace shown under <tt>1)</tt> along with the name of the failing test. The next few lines contain the stack trace followed by a message which mentions the actual value and the expected value by the assertion. The default assertion messages provide just enough information to help pinpoint the error. To make the assertion failure message more readable every assertion provides an optional message parameter, as shown here:</p></div>
 <div class="listingblock">
-<div class="content"><!-- Generator: GNU source-highlight 2.9
+<div class="content"><!-- Generator: GNU source-highlight 2.11.1
 by Lorenzo Bettini
 http://www.lorenzobettini.it
 http://www.gnu.org/software/src-highlite -->
@@ -540,7 +540,7 @@ Saved the post without a title.
 </div></div>
 <div class="paragraph"><p>Now to get this test to pass we can add a model level validation for the <em>title</em> field.</p></div>
 <div class="listingblock">
-<div class="content"><!-- Generator: GNU source-highlight 2.9
+<div class="content"><!-- Generator: GNU source-highlight 2.11.1
 by Lorenzo Bettini
 http://www.lorenzobettini.it
 http://www.gnu.org/software/src-highlite -->
@@ -569,7 +569,7 @@ Finished in 0.193608 seconds.
 </div>
 <div class="paragraph"><p>To see how an error gets reported, here&#8217;s a test containing an error:</p></div>
 <div class="listingblock">
-<div class="content"><!-- Generator: GNU source-highlight 2.9
+<div class="content"><!-- Generator: GNU source-highlight 2.11.1
 by Lorenzo Bettini
 http://www.lorenzobettini.it
 http://www.gnu.org/software/src-highlite -->
@@ -801,7 +801,7 @@ was the appropriate message displayed to the user in the view
 <div class="paragraph"><p>Now that we have used Rails scaffold generator for our <tt>Post</tt> resource, it has already created the controller code and functional tests. You can take look at the file <tt>posts_controller_test.rb</tt> in the <tt>test/functional</tt> directory.</p></div>
 <div class="paragraph"><p>Let me take you through one such test, <tt>test_should_get_index</tt> from the file <tt>posts_controller_test.rb</tt>.</p></div>
 <div class="listingblock">
-<div class="content"><!-- Generator: GNU source-highlight 2.9
+<div class="content"><!-- Generator: GNU source-highlight 2.11.1
 by Lorenzo Bettini
 http://www.lorenzobettini.it
 http://www.gnu.org/software/src-highlite -->
@@ -836,14 +836,14 @@ An optional hash of flash values.
 </ul></div>
 <div class="paragraph"><p>Example: Calling the <tt>:show</tt> action, passing an <tt>id</tt> of 12 as the <tt>params</tt> and setting a <tt>user_id</tt> of 5 in the session:</p></div>
 <div class="listingblock">
-<div class="content"><!-- Generator: GNU source-highlight 2.9
+<div class="content"><!-- Generator: GNU source-highlight 2.11.1
 by Lorenzo Bettini
 http://www.lorenzobettini.it
 http://www.gnu.org/software/src-highlite -->
 <pre><tt>get<span style="color: #990000">(:</span>show<span style="color: #990000">,</span> <span style="color: #FF0000">{</span><span style="color: #FF0000">'id'</span> <span style="color: #990000">=&gt;</span> <span style="color: #FF0000">"12"</span><span style="color: #FF0000">}</span><span style="color: #990000">,</span> <span style="color: #FF0000">{</span><span style="color: #FF0000">'user_id'</span> <span style="color: #990000">=&gt;</span> <span style="color: #993399">5</span><span style="color: #FF0000">}</span><span style="color: #990000">)</span></tt></pre></div></div>
 <div class="paragraph"><p>Another example: Calling the <tt>:view</tt> action, passing an <tt>id</tt> of 12 as the <tt>params</tt>, this time with no session, but with a flash message.</p></div>
 <div class="listingblock">
-<div class="content"><!-- Generator: GNU source-highlight 2.9
+<div class="content"><!-- Generator: GNU source-highlight 2.11.1
 by Lorenzo Bettini
 http://www.lorenzobettini.it
 http://www.gnu.org/software/src-highlite -->
@@ -858,7 +858,7 @@ http://www.gnu.org/software/src-highlite -->
 </div>
 <div class="paragraph"><p>Let us modify <tt>test_should_create_post</tt> test in <tt>posts_controller_test.rb</tt> so that all our test pass:</p></div>
 <div class="listingblock">
-<div class="content"><!-- Generator: GNU source-highlight 2.9
+<div class="content"><!-- Generator: GNU source-highlight 2.11.1
 by Lorenzo Bettini
 http://www.lorenzobettini.it
 http://www.gnu.org/software/src-highlite -->
@@ -926,7 +926,7 @@ http://www.gnu.org/software/src-highlite -->
 </ul></div>
 <div class="paragraph"><p>As is the case with normal Hash objects, you can access the values by referencing the keys by string. You can also reference them by symbol name, except for <tt>assigns</tt>. For example:</p></div>
 <div class="listingblock">
-<div class="content"><!-- Generator: GNU source-highlight 2.9
+<div class="content"><!-- Generator: GNU source-highlight 2.11.1
 by Lorenzo Bettini
 http://www.lorenzobettini.it
 http://www.gnu.org/software/src-highlite -->
@@ -958,7 +958,7 @@ http://www.gnu.org/software/src-highlite -->
 <h3 id="_a_fuller_functional_test_example">4.5. A Fuller Functional Test Example</h3>
 <div class="paragraph"><p>Here&#8217;s another example that uses <tt>flash</tt>, <tt>assert_redirected_to</tt>, and <tt>assert_difference</tt>:</p></div>
 <div class="listingblock">
-<div class="content"><!-- Generator: GNU source-highlight 2.9
+<div class="content"><!-- Generator: GNU source-highlight 2.11.1
 by Lorenzo Bettini
 http://www.lorenzobettini.it
 http://www.gnu.org/software/src-highlite -->
@@ -984,14 +984,14 @@ http://www.gnu.org/software/src-highlite -->
 <div class="paragraph"><p><tt>assert_select(element, selector, [equality], [message])</tt> ensures that the equality condition is met on all the selected elements through the selector starting from the <em>element</em> (instance of <tt>HTML::Node</tt>) and its descendants.</p></div>
 <div class="paragraph"><p>For example, you could verify the contents on the title element in your response with:</p></div>
 <div class="listingblock">
-<div class="content"><!-- Generator: GNU source-highlight 2.9
+<div class="content"><!-- Generator: GNU source-highlight 2.11.1
 by Lorenzo Bettini
 http://www.lorenzobettini.it
 http://www.gnu.org/software/src-highlite -->
 <pre><tt>assert_select <span style="color: #FF0000">'title'</span><span style="color: #990000">,</span> <span style="color: #FF0000">"Welcome to Rails Testing Guide"</span></tt></pre></div></div>
 <div class="paragraph"><p>You can also use nested <tt>assert_select</tt> blocks. In this case the inner <tt>assert_select</tt> runs the assertion on the complete collection of elements selected by the outer <tt>assert_select</tt> block:</p></div>
 <div class="listingblock">
-<div class="content"><!-- Generator: GNU source-highlight 2.9
+<div class="content"><!-- Generator: GNU source-highlight 2.11.1
 by Lorenzo Bettini
 http://www.lorenzobettini.it
 http://www.gnu.org/software/src-highlite -->
@@ -1000,7 +1000,7 @@ http://www.gnu.org/software/src-highlite -->
 <span style="font-weight: bold"><span style="color: #0000FF">end</span></span></tt></pre></div></div>
 <div class="paragraph"><p>Alternatively the collection of elements selected by the outer <tt>assert_select</tt> may be iterated through so that <tt>assert_select</tt> may be called separately for each element. Suppose for example that the response contains two ordered lists, each with four list elements then the following tests will both pass.</p></div>
 <div class="listingblock">
-<div class="content"><!-- Generator: GNU source-highlight 2.9
+<div class="content"><!-- Generator: GNU source-highlight 2.11.1
 by Lorenzo Bettini
 http://www.lorenzobettini.it
 http://www.gnu.org/software/src-highlite -->
@@ -1051,7 +1051,7 @@ cellspacing="0" cellpadding="4">
 </div>
 <div class="paragraph"><p>Here&#8217;s an example of using <tt>assert_select_email</tt>:</p></div>
 <div class="listingblock">
-<div class="content"><!-- Generator: GNU source-highlight 2.9
+<div class="content"><!-- Generator: GNU source-highlight 2.11.1
 by Lorenzo Bettini
 http://www.lorenzobettini.it
 http://www.gnu.org/software/src-highlite -->
@@ -1064,7 +1064,7 @@ http://www.gnu.org/software/src-highlite -->
 <div class="paragraph"><p>Integration tests are used to test the interaction among any number of controllers. They are generally used to test important work flows within your application.</p></div>
 <div class="paragraph"><p>Unlike Unit and Functional tests, integration tests have to be explicitly created under the <em>test/integration</em> folder within your application. Rails provides a generator to create an integration test skeleton for you.</p></div>
 <div class="listingblock">
-<div class="content"><!-- Generator: GNU source-highlight 2.9
+<div class="content"><!-- Generator: GNU source-highlight 2.11.1
 by Lorenzo Bettini
 http://www.lorenzobettini.it
 http://www.gnu.org/software/src-highlite -->
@@ -1073,7 +1073,7 @@ http://www.gnu.org/software/src-highlite -->
       create  test/integration/user_flows_test<span style="color: #990000">.</span>rb</tt></pre></div></div>
 <div class="paragraph"><p>Here&#8217;s what a freshly-generated integration test looks like:</p></div>
 <div class="listingblock">
-<div class="content"><!-- Generator: GNU source-highlight 2.9
+<div class="content"><!-- Generator: GNU source-highlight 2.11.1
 by Lorenzo Bettini
 http://www.lorenzobettini.it
 http://www.gnu.org/software/src-highlite -->
@@ -1154,7 +1154,7 @@ cellspacing="0" cellpadding="4">
 <h3 id="_integration_testing_examples">5.2. Integration Testing Examples</h3>
 <div class="paragraph"><p>A simple integration test that exercises multiple controllers:</p></div>
 <div class="listingblock">
-<div class="content"><!-- Generator: GNU source-highlight 2.9
+<div class="content"><!-- Generator: GNU source-highlight 2.11.1
 by Lorenzo Bettini
 http://www.lorenzobettini.it
 http://www.gnu.org/software/src-highlite -->
@@ -1182,7 +1182,7 @@ http://www.gnu.org/software/src-highlite -->
 <div class="paragraph"><p>As you can see the integration test involves multiple controllers and exercises the entire stack from database to dispatcher. In addition you can have multiple session instances open simultaneously in a test and extend those instances with assertion methods to create a very powerful testing DSL (domain-specific language) just for your application.</p></div>
 <div class="paragraph"><p>Here&#8217;s an example of multiple sessions and custom DSL in an integration test</p></div>
 <div class="listingblock">
-<div class="content"><!-- Generator: GNU source-highlight 2.9
+<div class="content"><!-- Generator: GNU source-highlight 2.11.1
 by Lorenzo Bettini
 http://www.lorenzobettini.it
 http://www.gnu.org/software/src-highlite -->
@@ -1297,7 +1297,7 @@ cellspacing="0" cellpadding="4">
 <div class="sectionbody">
 <div class="paragraph"><p>If you would like to run a block of code before the start of each test and another block of code after the end of each test you have two special callbacks for your rescue. Let&#8217;s take note of this by looking at an example for our functional test in <tt>Posts</tt> controller:</p></div>
 <div class="listingblock">
-<div class="content"><!-- Generator: GNU source-highlight 2.9
+<div class="content"><!-- Generator: GNU source-highlight 2.11.1
 by Lorenzo Bettini
 http://www.lorenzobettini.it
 http://www.gnu.org/software/src-highlite -->
@@ -1357,7 +1357,7 @@ a lambda
 </ul></div>
 <div class="paragraph"><p>Let&#8217;s see the earlier example by specifying <tt>setup</tt> callback by specifying a method name as a symbol:</p></div>
 <div class="listingblock">
-<div class="content"><!-- Generator: GNU source-highlight 2.9
+<div class="content"><!-- Generator: GNU source-highlight 2.11.1
 by Lorenzo Bettini
 http://www.lorenzobettini.it
 http://www.gnu.org/software/src-highlite -->
@@ -1403,7 +1403,7 @@ http://www.gnu.org/software/src-highlite -->
 <div class="sectionbody">
 <div class="paragraph"><p>Like everything else in you Rails application, it&#8217;s recommended to test you routes. An example test for a route in the default <tt>show</tt> action of <tt>Posts</tt> controller above should look like:</p></div>
 <div class="listingblock">
-<div class="content"><!-- Generator: GNU source-highlight 2.9
+<div class="content"><!-- Generator: GNU source-highlight 2.11.1
 by Lorenzo Bettini
 http://www.lorenzobettini.it
 http://www.gnu.org/software/src-highlite -->
@@ -1444,7 +1444,7 @@ the right emails are being sent at the right times
 <h4 id="_the_basic_test_case">10.2.2. The Basic Test case</h4>
 <div class="paragraph"><p>Here&#8217;s a unit test to test a mailer named <tt>UserMailer</tt> whose action <tt>invite</tt> is used to send an invitation to a friend. It is an adapted version of the base test created by the generator for an <tt>invite</tt> action.</p></div>
 <div class="listingblock">
-<div class="content"><!-- Generator: GNU source-highlight 2.9
+<div class="content"><!-- Generator: GNU source-highlight 2.11.1
 by Lorenzo Bettini
 http://www.lorenzobettini.it
 http://www.gnu.org/software/src-highlite -->
@@ -1478,7 +1478,7 @@ Cheers!</tt></pre>
 <h3 id="_functional_testing">10.3. Functional Testing</h3>
 <div class="paragraph"><p>Functional testing for mailers involves more than just checking that the email body, recipients and so forth are correct. In functional mail tests you call the mail deliver methods and check that the appropriate emails have been appended to the delivery list. It is fairly safe to assume that the deliver methods themselves do their job You are probably more interested in is whether your own business logic is sending emails when you expect them to got out. For example, you can check that the invite friend operation is sending an email appropriately:</p></div>
 <div class="listingblock">
-<div class="content"><!-- Generator: GNU source-highlight 2.9
+<div class="content"><!-- Generator: GNU source-highlight 2.11.1
 by Lorenzo Bettini
 http://www.lorenzobettini.it
 http://www.gnu.org/software/src-highlite -->

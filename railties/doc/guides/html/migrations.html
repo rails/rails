@@ -142,7 +142,7 @@ How they relate to <tt>schema.rb</tt>
 <div class="sectionbody">
 <div class="paragraph"><p>Before I dive into the details of a migration, here are a few examples of the sorts of things you can do:</p></div>
 <div class="listingblock">
-<div class="content"><!-- Generator: GNU source-highlight 2.9
+<div class="content"><!-- Generator: GNU source-highlight 2.11.1
 by Lorenzo Bettini
 http://www.lorenzobettini.it
 http://www.gnu.org/software/src-highlite -->
@@ -163,7 +163,7 @@ http://www.gnu.org/software/src-highlite -->
 <div class="paragraph"><p>This migration adds a table called <tt>products</tt> with a string column called <tt>name</tt> and a text column called <tt>description</tt>. A primary key column called <tt>id</tt> will also be added, however since this is the default we do not need to ask for this. The timestamp columns <tt>created_at</tt> and <tt>updated_at</tt> which Active Record populates automatically will also be added. Reversing this migration is as simple as dropping the table.</p></div>
 <div class="paragraph"><p>Migrations are not limited to changing the schema. You can also use them to fix bad data in the database or populate new fields:</p></div>
 <div class="listingblock">
-<div class="content"><!-- Generator: GNU source-highlight 2.9
+<div class="content"><!-- Generator: GNU source-highlight 2.11.1
 by Lorenzo Bettini
 http://www.lorenzobettini.it
 http://www.gnu.org/software/src-highlite -->
@@ -258,7 +258,7 @@ write code to set the value of that column for existing records (if necessary us
 <div class="paragraph"><p>The model and scaffold generators will create migrations appropriate for adding a new model. This migration will already contain instructions for creating the relevant table. If you tell Rails what columns you want then statements for adding those will also be created. For example, running</p></div>
 <div class="paragraph"><p><tt>ruby script/generate model Product name:string description:text</tt> will create a migration that looks like this</p></div>
 <div class="listingblock">
-<div class="content"><!-- Generator: GNU source-highlight 2.9
+<div class="content"><!-- Generator: GNU source-highlight 2.11.1
 by Lorenzo Bettini
 http://www.lorenzobettini.it
 http://www.gnu.org/software/src-highlite -->
@@ -283,7 +283,7 @@ are automatically populated by Active Record) will be added for you.</p></div>
 <div class="paragraph"><p><tt>ruby script/generate migration AddPartNumberToProducts</tt></p></div>
 <div class="paragraph"><p>This will create an empty but appropriately named migration:</p></div>
 <div class="listingblock">
-<div class="content"><!-- Generator: GNU source-highlight 2.9
+<div class="content"><!-- Generator: GNU source-highlight 2.11.1
 by Lorenzo Bettini
 http://www.lorenzobettini.it
 http://www.gnu.org/software/src-highlite -->
@@ -299,7 +299,7 @@ the appropriate add and remove column statements will be created.</p></div>
 <div class="paragraph"><p><tt>ruby script/generate migration AddPartNumberToProducts part_number:string</tt></p></div>
 <div class="paragraph"><p>will generate</p></div>
 <div class="listingblock">
-<div class="content"><!-- Generator: GNU source-highlight 2.9
+<div class="content"><!-- Generator: GNU source-highlight 2.11.1
 by Lorenzo Bettini
 http://www.lorenzobettini.it
 http://www.gnu.org/software/src-highlite -->
@@ -316,7 +316,7 @@ http://www.gnu.org/software/src-highlite -->
 <div class="paragraph"><p><tt>ruby script/generate migration RemovePartNumberFromProducts part_number:string</tt></p></div>
 <div class="paragraph"><p>generates</p></div>
 <div class="listingblock">
-<div class="content"><!-- Generator: GNU source-highlight 2.9
+<div class="content"><!-- Generator: GNU source-highlight 2.11.1
 by Lorenzo Bettini
 http://www.lorenzobettini.it
 http://www.gnu.org/software/src-highlite -->
@@ -333,7 +333,7 @@ http://www.gnu.org/software/src-highlite -->
 <div class="paragraph"><p><tt>ruby script/generate migration AddDetailsToProducts part_number:string price:decimal</tt></p></div>
 <div class="paragraph"><p>generates</p></div>
 <div class="listingblock">
-<div class="content"><!-- Generator: GNU source-highlight 2.9
+<div class="content"><!-- Generator: GNU source-highlight 2.11.1
 by Lorenzo Bettini
 http://www.lorenzobettini.it
 http://www.gnu.org/software/src-highlite -->
@@ -356,7 +356,7 @@ http://www.gnu.org/software/src-highlite -->
 <h3 id="_creating_a_table">3.1. Creating a table</h3>
 <div class="paragraph"><p><tt>create_table</tt> will be one of your workhorses. A typical use would be</p></div>
 <div class="listingblock">
-<div class="content"><!-- Generator: GNU source-highlight 2.9
+<div class="content"><!-- Generator: GNU source-highlight 2.11.1
 by Lorenzo Bettini
 http://www.lorenzobettini.it
 http://www.gnu.org/software/src-highlite -->
@@ -366,7 +366,7 @@ http://www.gnu.org/software/src-highlite -->
 <div class="paragraph"><p>which creates a <tt>products</tt> table with a column called <tt>name</tt> (and as discussed below, an implicit <tt>id</tt> column).</p></div>
 <div class="paragraph"><p>The object yielded to the block allows you create columns on the table. There are two ways of doing this. The first looks like</p></div>
 <div class="listingblock">
-<div class="content"><!-- Generator: GNU source-highlight 2.9
+<div class="content"><!-- Generator: GNU source-highlight 2.11.1
 by Lorenzo Bettini
 http://www.lorenzobettini.it
 http://www.gnu.org/software/src-highlite -->
@@ -375,7 +375,7 @@ http://www.gnu.org/software/src-highlite -->
 <span style="font-weight: bold"><span style="color: #0000FF">end</span></span></tt></pre></div></div>
 <div class="paragraph"><p>the second form, the so called "sexy" migrations, drops the somewhat redundant column method. Instead, the <tt>string</tt>, <tt>integer</tt> etc. methods create a column of that type. Subsequent parameters are identical.</p></div>
 <div class="listingblock">
-<div class="content"><!-- Generator: GNU source-highlight 2.9
+<div class="content"><!-- Generator: GNU source-highlight 2.11.1
 by Lorenzo Bettini
 http://www.lorenzobettini.it
 http://www.gnu.org/software/src-highlite -->
@@ -384,7 +384,7 @@ http://www.gnu.org/software/src-highlite -->
 <span style="font-weight: bold"><span style="color: #0000FF">end</span></span></tt></pre></div></div>
 <div class="paragraph"><p>By default <tt>create_table</tt> will create a primary key called <tt>id</tt>. You can change the name of the primary key with the <tt>:primary_key</tt> option (don&#8217;t forget to update the corresponding model) or if you don&#8217;t want a primary key at all (for example for a HABTM join table) you can pass <tt>:id =&gt; false</tt>. If you need to pass database specific options you can place an sql fragment in the <tt>:options</tt> option. For example</p></div>
 <div class="listingblock">
-<div class="content"><!-- Generator: GNU source-highlight 2.9
+<div class="content"><!-- Generator: GNU source-highlight 2.11.1
 by Lorenzo Bettini
 http://www.lorenzobettini.it
 http://www.gnu.org/software/src-highlite -->
@@ -396,7 +396,7 @@ http://www.gnu.org/software/src-highlite -->
 <div class="paragraph"><p>These will be mapped onto an appropriate underlying database type, for example with MySQL <tt>:string</tt> is mapped to <tt>VARCHAR(255)</tt>. You can create columns of
 types not supported by Active Record when using the non sexy syntax, for example</p></div>
 <div class="listingblock">
-<div class="content"><!-- Generator: GNU source-highlight 2.9
+<div class="content"><!-- Generator: GNU source-highlight 2.11.1
 by Lorenzo Bettini
 http://www.lorenzobettini.it
 http://www.gnu.org/software/src-highlite -->
@@ -407,7 +407,7 @@ http://www.gnu.org/software/src-highlite -->
 <h3 id="_changing_tables">3.2. Changing tables</h3>
 <div class="paragraph"><p><tt>create_table</tt>'s close cousin is <tt>change_table</tt>. Used for changing existing tables, it is used in a similar fashion to <tt>create_table</tt> but the object yielded to the block knows more tricks. For example</p></div>
 <div class="listingblock">
-<div class="content"><!-- Generator: GNU source-highlight 2.9
+<div class="content"><!-- Generator: GNU source-highlight 2.11.1
 by Lorenzo Bettini
 http://www.lorenzobettini.it
 http://www.gnu.org/software/src-highlite -->
@@ -419,7 +419,7 @@ http://www.gnu.org/software/src-highlite -->
 <span style="font-weight: bold"><span style="color: #0000FF">end</span></span></tt></pre></div></div>
 <div class="paragraph"><p>removes the <tt>description</tt> column, creates a <tt>part_number</tt> column and adds an index on it. Finally it renames the <tt>upccode</tt> column.   This is the same as doing</p></div>
 <div class="listingblock">
-<div class="content"><!-- Generator: GNU source-highlight 2.9
+<div class="content"><!-- Generator: GNU source-highlight 2.11.1
 by Lorenzo Bettini
 http://www.lorenzobettini.it
 http://www.gnu.org/software/src-highlite -->
@@ -432,7 +432,7 @@ rename_column <span style="color: #990000">:</span>products<span style="color: #
 <h3 id="_special_helpers">3.3. Special helpers</h3>
 <div class="paragraph"><p>Active Record provides some shortcuts for common functionality. It is for example very common to add both the <tt>created_at</tt> and <tt>updated_at</tt> columns and so there is a method that does exactly that:</p></div>
 <div class="listingblock">
-<div class="content"><!-- Generator: GNU source-highlight 2.9
+<div class="content"><!-- Generator: GNU source-highlight 2.11.1
 by Lorenzo Bettini
 http://www.lorenzobettini.it
 http://www.gnu.org/software/src-highlite -->
@@ -441,7 +441,7 @@ http://www.gnu.org/software/src-highlite -->
 <span style="font-weight: bold"><span style="color: #0000FF">end</span></span></tt></pre></div></div>
 <div class="paragraph"><p>will create a new products table with those two columns whereas</p></div>
 <div class="listingblock">
-<div class="content"><!-- Generator: GNU source-highlight 2.9
+<div class="content"><!-- Generator: GNU source-highlight 2.11.1
 by Lorenzo Bettini
 http://www.lorenzobettini.it
 http://www.gnu.org/software/src-highlite -->
@@ -451,7 +451,7 @@ http://www.gnu.org/software/src-highlite -->
 <div class="paragraph"><p>adds those columns to an existing table.</p></div>
 <div class="paragraph"><p>The other helper is called <tt>references</tt> (also available as <tt>belongs_to</tt>). In its simplest form it just adds some readability</p></div>
 <div class="listingblock">
-<div class="content"><!-- Generator: GNU source-highlight 2.9
+<div class="content"><!-- Generator: GNU source-highlight 2.11.1
 by Lorenzo Bettini
 http://www.lorenzobettini.it
 http://www.gnu.org/software/src-highlite -->
@@ -460,7 +460,7 @@ http://www.gnu.org/software/src-highlite -->
 <span style="font-weight: bold"><span style="color: #0000FF">end</span></span></tt></pre></div></div>
 <div class="paragraph"><p>will create a <tt>category_id</tt> column of the appropriate type. Note that you pass the model name, not the column name. Active Record adds the <tt>_id</tt> for you. If you have polymorphic belongs_to associations then <tt>references</tt> will add both of the columns required:</p></div>
 <div class="listingblock">
-<div class="content"><!-- Generator: GNU source-highlight 2.9
+<div class="content"><!-- Generator: GNU source-highlight 2.11.1
 by Lorenzo Bettini
 http://www.lorenzobettini.it
 http://www.gnu.org/software/src-highlite -->
@@ -481,7 +481,7 @@ http://www.gnu.org/software/src-highlite -->
 <h3 id="_writing_your_down_method">3.4. Writing your down method</h3>
 <div class="paragraph"><p>The <tt>down</tt> method of your migration should revert the transformations done by the <tt>up</tt> method. In other words the database should be unchanged if you do an <tt>up</tt> followed by a <tt>down</tt>. For example if you create a table in the up you should drop it in the <tt>down</tt> method. It is wise to do things in precisely the reverse order to in the <tt>up</tt> method. For example</p></div>
 <div class="listingblock">
-<div class="content"><!-- Generator: GNU source-highlight 2.9
+<div class="content"><!-- Generator: GNU source-highlight 2.11.1
 by Lorenzo Bettini
 http://www.lorenzobettini.it
 http://www.gnu.org/software/src-highlite -->
@@ -586,7 +586,7 @@ A migration creating a table and adding an index might produce output like this<
 </ul></div>
 <div class="paragraph"><p>For example, this migration</p></div>
 <div class="listingblock">
-<div class="content"><!-- Generator: GNU source-highlight 2.9
+<div class="content"><!-- Generator: GNU source-highlight 2.11.1
 by Lorenzo Bettini
 http://www.lorenzobettini.it
 http://www.gnu.org/software/src-highlite -->
@@ -631,7 +631,7 @@ http://www.gnu.org/software/src-highlite -->
 <div class="paragraph"><p>Consider for example a migration that uses the Product model to update a row in the corresponding table. Alice later updates the Product model, adding a new column and a validation on it. Bob comes back from holiday, updates the source and runs outstanding migrations with <tt>rake db:migrate</tt>, including the one that used the Product model. When the migration runs the source is up to date and so the Product model has the validation added by Alice. The database however is still old and so does not have that column and an error ensues because that validation is on a column that does not yet exist.</p></div>
 <div class="paragraph"><p>Frequently I just want to update rows in the database without writing out the SQL by hand: I&#8217;m not using anything specific to the model. One pattern for this is to define a copy of the model inside the migration itself, for example:</p></div>
 <div class="listingblock">
-<div class="content"><!-- Generator: GNU source-highlight 2.9
+<div class="content"><!-- Generator: GNU source-highlight 2.11.1
 by Lorenzo Bettini
 http://www.lorenzobettini.it
 http://www.gnu.org/software/src-highlite -->
@@ -651,7 +651,7 @@ http://www.gnu.org/software/src-highlite -->
 <h3 id="_dealing_with_changing_models">5.1. Dealing with changing models</h3>
 <div class="paragraph"><p>For performance reasons information about the columns a model has is cached. For example if you add a column to a table and then try and use the corresponding model to insert a new row it may try and use the old column information. You can force Active Record to re-read the column information with the <tt>reset_column_information</tt> method, for example</p></div>
 <div class="listingblock">
-<div class="content"><!-- Generator: GNU source-highlight 2.9
+<div class="content"><!-- Generator: GNU source-highlight 2.11.1
 by Lorenzo Bettini
 http://www.lorenzobettini.it
 http://www.gnu.org/software/src-highlite -->
@@ -681,7 +681,7 @@ http://www.gnu.org/software/src-highlite -->
 <div class="paragraph"><p>There are two ways to dump the schema. This is set in <tt>config/environment.rb</tt> by the <tt>config.active_record.schema_format</tt> setting, which may be either <tt>:sql</tt> or <tt>:ruby</tt>.</p></div>
 <div class="paragraph"><p>If <tt>:ruby</tt> is selected then the schema is stored in <tt>db/schema.rb</tt>. If you look at this file you&#8217;ll find that it looks an awful lot like one very big migration:</p></div>
 <div class="listingblock">
-<div class="content"><!-- Generator: GNU source-highlight 2.9
+<div class="content"><!-- Generator: GNU source-highlight 2.11.1
 by Lorenzo Bettini
 http://www.lorenzobettini.it
 http://www.gnu.org/software/src-highlite -->

@@ -196,7 +196,7 @@ Learn what makes a file upload form different;
 </div>
 <h3 id="_generic_search_form">1.1. Generic search form</h3>
 <div class="paragraph"><p>Probably the most minimal form often seen on the web is a search form with a single text input for search terms. This form consists of:</p></div>
-<div class="olist"><ol>
+<div class="olist arabic"><ol class="arabic">
 <li>
 <p>
 a form element with "GET" method,
@@ -433,7 +433,7 @@ end</tt></pre>
 &lt;% end %&gt;</tt></pre>
 </div></div>
 <div class="paragraph"><p>There are a few things to note here:</p></div>
-<div class="olist"><ol>
+<div class="olist arabic"><ol class="arabic">
 <li>
 <p>
 <tt>:article</tt> is the name of the model and <tt>@article</tt> is the record.
@@ -633,7 +633,7 @@ output:
 <h2 id="_date_and_time_select_boxes">5. Date and time select boxes</h2>
 <div class="sectionbody">
 <div class="paragraph"><p>The date and time helpers differ from all the other form helpers in two important respects:</p></div>
-<div class="olist"><ol>
+<div class="olist arabic"><ol class="arabic">
 <li>
 <p>
 Unlike other attributes you might typically have, dates and times are not representable by a single input element. Instead you have several, one for each component (year, month, day etc...). So in particular, there is no single value in your params hash with your date or time.
@@ -715,7 +715,7 @@ The model object helpers for dates and times submit parameters with special name
 </div></div>
 <div class="paragraph"><p>by defining a LabellingFormBuilder class similar to the following:</p></div>
 <div class="listingblock">
-<div class="content"><!-- Generator: GNU source-highlight 2.9
+<div class="content"><!-- Generator: GNU source-highlight 2.11.1
 by Lorenzo Bettini
 http://www.lorenzobettini.it
 http://www.gnu.org/software/src-highlite -->
@@ -769,7 +769,7 @@ http://www.gnu.org/software/src-highlite -->
 <h3 id="_what_gets_uploaded">7.1. What gets uploaded</h3>
 <div class="paragraph"><p>The object in the params hash is an instance of a subclass of IO. Depending on the size of the uploaded file it may in fact be a StringIO or an instance of File backed by a temporary file. In both cases the object will have an <tt>original_filename</tt> attribute containing the name the file had on the user&#8217;s computer and a <tt>content_type</tt> attribute containing the MIME type of the uploaded file. The following snippet saves the uploaded content in <tt>#{RAILS_ROOT}/public/uploads</tt> under the same name as the original file (assuming the form was the one in the previous example).</p></div>
 <div class="listingblock">
-<div class="content"><!-- Generator: GNU source-highlight 2.9
+<div class="content"><!-- Generator: GNU source-highlight 2.11.1
 by Lorenzo Bettini
 http://www.lorenzobettini.it
 http://www.gnu.org/software/src-highlite -->
@@ -819,7 +819,7 @@ action for a Person model, <tt>params[:model]</tt> would usually be a hash of al
 </div></div>
 <div class="paragraph"><p>the params hash will contain</p></div>
 <div class="listingblock">
-<div class="content"><!-- Generator: GNU source-highlight 2.9
+<div class="content"><!-- Generator: GNU source-highlight 2.11.1
 by Lorenzo Bettini
 http://www.lorenzobettini.it
 http://www.gnu.org/software/src-highlite -->
@@ -832,7 +832,7 @@ http://www.gnu.org/software/src-highlite -->
 </div></div>
 <div class="paragraph"><p>will result in the params hash being</p></div>
 <div class="listingblock">
-<div class="content"><!-- Generator: GNU source-highlight 2.9
+<div class="content"><!-- Generator: GNU source-highlight 2.11.1
 by Lorenzo Bettini
 http://www.lorenzobettini.it
 http://www.gnu.org/software/src-highlite -->
@@ -888,7 +888,7 @@ http://www.gnu.org/software/src-highlite -->
 </div></div>
 <div class="paragraph"><p>This will result in a params hash that looks like</p></div>
 <div class="listingblock">
-<div class="content"><!-- Generator: GNU source-highlight 2.9
+<div class="content"><!-- Generator: GNU source-highlight 2.11.1
 by Lorenzo Bettini
 http://www.lorenzobettini.it
 http://www.gnu.org/software/src-highlite -->

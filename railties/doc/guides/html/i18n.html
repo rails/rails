@@ -2,7 +2,7 @@
 <html xmlns="http://www.w3.org/1999/xhtml" lang="en" xml:lang="en">
 <head>
   <meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
-  <title>The Rails Internationalization API</title>
+  <title>The Rails Internationalization (I18n) API</title>
   <!--[if lt IE 8]>
   <script src="http://ie7-js.googlecode.com/svn/version/2.0(beta3)/IE8.js" type="text/javascript"></script>
   <![endif]-->
@@ -41,14 +41,14 @@
             </ul>
           </li>
           <li>
-          <a href="#_walkthrough_setup_a_simple_i18n_8217_ed_rails_application">Walkthrough: setup a simple I18n&#8217;ed Rails application</a>
+          <a href="#_setup_the_rails_application_for_internationalization">Setup the Rails application for internationalization</a>
             <ul>
             
               <li><a href="#_configure_the_i18n_module">Configure the I18n module</a></li>
             
               <li><a href="#_optional_custom_i18n_configuration_setup">Optional: custom I18n configuration setup</a></li>
             
-              <li><a href="#_set_the_locale_in_each_request">Set the locale in each request</a></li>
+              <li><a href="#_setting_and_passing_the_locale">Setting and passing the locale</a></li>
             
             </ul>
           </li>
@@ -112,15 +112,23 @@
     </div>
     
     <div id="content">
-        <h1>The Rails Internationalization API</h1>
+        <h1>The Rails Internationalization (I18n) API</h1>
       <div id="preamble">
 <div class="sectionbody">
-<div class="paragraph"><p>The Ruby I18n gem which is shipped with Ruby on Rails (starting from Rails 2.2) provides an easy-to-use and extensible framework for translating your application to a single custom language other than English or providing multi-language support in your application.</p></div>
+<div class="paragraph"><p>The Ruby I18n (shorthand for <em>internationalization</em>) gem which is shipped with Ruby on Rails (starting from Rails 2.2) provides an easy-to-use and extensible framework for translating your application to a single custom language other than English or providing multi-language support in your application.</p></div>
+<div class="admonitionblock">
+<table><tr>
+<td class="icon">
+<img src="./images/icons/note.png" alt="Note" />
+</td>
+<td class="content">The Ruby I18n framework provides you with all neccessary means for internationalization/localization of your Rails application. You may, however, use any of various plugins and extensions available. See Rails <a href="http://rails-i18n.org/wiki">I18n Wiki</a> for more information.</td>
+</tr></table>
+</div>
 </div>
 </div>
 <h2 id="_how_i18n_in_ruby_on_rails_works">1. How I18n in Ruby on Rails works</h2>
 <div class="sectionbody">
-<div class="paragraph"><p>Internationalization is a complex problem. Natural languages differ in so many ways that it is hard to provide tools for solving all problems at once. For that reason the Rails I18n API focusses on:</p></div>
+<div class="paragraph"><p>Internationalization is a complex problem. Natural languages differ in so many ways (eg. in pluralization rules) that it is hard to provide tools for solving all problems at once. For that reason the Rails I18n API focuses on:</p></div>
 <div class="ulist"><ul>
 <li>
 <p>
@@ -133,33 +141,42 @@ making it easy to customize and extend everything for other languages
 </p>
 </li>
 </ul></div>
+<div class="paragraph"><p>As part of this solution, <strong>every static string in the Rails framework</strong>&#8201;&#8212;&#8201;eg. ActiveRecord validation messages, time and date formats&#8201;&#8212;&#8201;<strong>has been internationalized</strong>, so <em>localization</em> of a Rails application means "over-riding" these defaults.</p></div>
 <h3 id="_the_overall_architecture_of_the_library">1.1. The overall architecture of the library</h3>
 <div class="paragraph"><p>Thus, the Ruby I18n gem is split into two parts:</p></div>
 <div class="ulist"><ul>
 <li>
 <p>
-The public API which is just a Ruby module with a bunch of public methods and definitions how the library works.
+The public API of the i18n framework&#8201;&#8212;&#8201;a Ruby module with public methods and definitions how the library works
 </p>
 </li>
 <li>
 <p>
-A shipped backend (which is intentionally named the Simple backend) that implements these methods.
+A default backend (which is intentionally named <em>Simple</em> backend) that implements these methods
 </p>
 </li>
 </ul></div>
-<div class="paragraph"><p>As a user you should always only access the public methods on the I18n module but it is useful to know about the capabilities of the backend you use and maybe exchange the shipped Simple backend with a more powerful one.</p></div>
+<div class="paragraph"><p>As a user you should always only access the public methods on the I18n module, but it is useful to know about the capabilities of the backend.</p></div>
+<div class="admonitionblock">
+<table><tr>
+<td class="icon">
+<img src="./images/icons/note.png" alt="Note" />
+</td>
+<td class="content">It is possible (or even desirable) to swap the shipped Simple backend with a more powerful one, which would store translation data in a relational database, GetText dictionary, or similar. See section <a href="#_using_different_backends">Using different backends</a> below.</td>
+</tr></table>
+</div>
 <h3 id="_the_public_i18n_api">1.2. The public I18n API</h3>
-<div class="paragraph"><p>We will go into more detail about the public methods later but here&#8217;s a quick overview. The most important methods are:</p></div>
+<div class="paragraph"><p>The most important methods of the I18n API are:</p></div>
 <div class="listingblock">
-<div class="content"><!-- Generator: GNU source-highlight 2.9
+<div class="content"><!-- Generator: GNU source-highlight 2.11.1
 by Lorenzo Bettini
 http://www.lorenzobettini.it
 http://www.gnu.org/software/src-highlite -->
-<pre><tt>translate         <span style="font-style: italic"><span style="color: #9A1900"># lookup translations</span></span>
-localize          <span style="font-style: italic"><span style="color: #9A1900"># localize Date and Time objects to local formats</span></span></tt></pre></div></div>
+<pre><tt>translate         <span style="font-style: italic"><span style="color: #9A1900"># Lookup text translations</span></span>
+localize          <span style="font-style: italic"><span style="color: #9A1900"># Localize Date and Time objects to local formats</span></span></tt></pre></div></div>
 <div class="paragraph"><p>These have the aliases #t and #l so you can use them like this:</p></div>
 <div class="listingblock">
-<div class="content"><!-- Generator: GNU source-highlight 2.9
+<div class="content"><!-- Generator: GNU source-highlight 2.11.1
 by Lorenzo Bettini
 http://www.lorenzobettini.it
 http://www.gnu.org/software/src-highlite -->
@@ -167,27 +184,45 @@ http://www.gnu.org/software/src-highlite -->
 I18n<span style="color: #990000">.</span>l Time<span style="color: #990000">.</span>now</tt></pre></div></div>
 <div class="paragraph"><p>There are also attribute readers and writers for the following attributes:</p></div>
 <div class="listingblock">
-<div class="content"><!-- Generator: GNU source-highlight 2.9
+<div class="content"><!-- Generator: GNU source-highlight 2.11.1
 by Lorenzo Bettini
 http://www.lorenzobettini.it
 http://www.gnu.org/software/src-highlite -->
-<pre><tt>load_path         <span style="font-style: italic"><span style="color: #9A1900"># announce your custom translation files</span></span>
-locale            <span style="font-style: italic"><span style="color: #9A1900"># get and set the current locale</span></span>
-default_locale    <span style="font-style: italic"><span style="color: #9A1900"># get and set the default locale</span></span>
-exception_handler <span style="font-style: italic"><span style="color: #9A1900"># use a different exception_handler</span></span>
-backend           <span style="font-style: italic"><span style="color: #9A1900"># use a different backend</span></span></tt></pre></div></div>
+<pre><tt>load_path         <span style="font-style: italic"><span style="color: #9A1900"># Announce your custom translation files</span></span>
+locale            <span style="font-style: italic"><span style="color: #9A1900"># Get and set the current locale</span></span>
+default_locale    <span style="font-style: italic"><span style="color: #9A1900"># Get and set the default locale</span></span>
+exception_handler <span style="font-style: italic"><span style="color: #9A1900"># Use a different exception_handler</span></span>
+backend           <span style="font-style: italic"><span style="color: #9A1900"># Use a different backend</span></span></tt></pre></div></div>
+<div class="paragraph"><p>So, let&#8217;s internationalize a simple Rails application from the ground up in the next chapters!</p></div>
 </div>
-<h2 id="_walkthrough_setup_a_simple_i18n_8217_ed_rails_application">2. Walkthrough: setup a simple I18n&#8217;ed Rails application</h2>
+<h2 id="_setup_the_rails_application_for_internationalization">2. Setup the Rails application for internationalization</h2>
 <div class="sectionbody">
-<div class="paragraph"><p>There are just a few, simple steps to get up and running with a I18n support for your application.</p></div>
+<div class="paragraph"><p>There are just a few, simple steps to get up and running with I18n support for your application.</p></div>
 <h3 id="_configure_the_i18n_module">2.1. Configure the I18n module</h3>
-<div class="paragraph"><p>Rails will wire up all required settings for you with sane defaults. If you need different settings you can overwrite them easily.</p></div>
-<div class="paragraph"><p>The I18n library will use English (:en) as a <strong>default locale</strong> by default. I.e if you don&#8217;t set a different locale, :en will be used for looking up translations. Also, Rails adds all files from config/locales/*.rb,yml to your translations load path.</p></div>
-<div class="paragraph"><p>The <strong>translations load path</strong> (I18n.load_path) is just a Ruby Array of paths to your translation files that will be loaded automatically and available in your application. You can pick whatever directory and translation file naming scheme makes sense for you.</p></div>
-<div class="paragraph"><p>(Hint: The backend will lazy-load these translations when a translation is looked up for the first time. This makes it possible to just swap the backend with something else even after translations have already been announced.)</p></div>
-<div class="paragraph"><p>The default environment.rb says:</p></div>
+<div class="paragraph"><p>Following the <em>convention over configuration</em> philosophy, Rails will set-up your application with reasonable defaults. If you need different settings, you can overwrite them easily.</p></div>
+<div class="paragraph"><p>Rails adds all <tt>.rb</tt> and <tt>.yml</tt> files from <tt>config/locales</tt> directory to your <strong>translations load path</strong>, automatically.</p></div>
+<div class="paragraph"><p>See the default <tt>en.yml</tt> locale in this directory, containing a sample pair of translation strings:</p></div>
 <div class="listingblock">
-<div class="content"><!-- Generator: GNU source-highlight 2.9
+<div class="content"><!-- Generator: GNU source-highlight 2.11.1
+by Lorenzo Bettini
+http://www.lorenzobettini.it
+http://www.gnu.org/software/src-highlite -->
+<pre><tt>en<span style="color: #990000">:</span>
+  hello<span style="color: #990000">:</span> <span style="color: #FF0000">"Hello world"</span></tt></pre></div></div>
+<div class="paragraph"><p>This means, that in the <tt>:en</tt> locale, the key <em>hello</em> will map to <em>Hello world</em> string. Every string inside Rails is internationalized in this way, see for instance ActiveRecord validation messages in the <a href="http://github.com/rails/rails/blob/master/activerecord/lib/active_record/locale/en.yml"><tt>activerecord/lib/active_record/locale/en.yml</tt></a> file or time and date formats in the <a href="http://github.com/rails/rails/blob/master/activesupport/lib/active_support/locale/en.yml"><tt>activesupport/lib/active_support/locale/en.yml</tt></a> file. You can use YAML or standard Ruby Hashes to store translations in the default (Simple) backend.</p></div>
+<div class="paragraph"><p>The I18n library will use <strong>English</strong> as a <strong>default locale</strong>, ie. if you don&#8217;t set a different locale, <tt>:en</tt> will be used for looking up translations.</p></div>
+<div class="paragraph"><p>The <strong>translations load path</strong> (<tt>I18n.load_path</tt>) is just a Ruby Array of paths to your translation files that will be loaded automatically and available in your application. You can pick whatever directory and translation file naming scheme makes sense for you.</p></div>
+<div class="admonitionblock">
+<table><tr>
+<td class="icon">
+<img src="./images/icons/note.png" alt="Note" />
+</td>
+<td class="content">The backend will lazy-load these translations when a translation is looked up for the first time. This makes it possible to just swap the backend with something else even after translations have already been announced.</td>
+</tr></table>
+</div>
+<div class="paragraph"><p>The default <tt>environment.rb</tt> files has instruction how to add locales from another directory and how to set different default locale. Just uncomment and edit the specific lines.</p></div>
+<div class="listingblock">
+<div class="content"><!-- Generator: GNU source-highlight 2.11.1
 by Lorenzo Bettini
 http://www.lorenzobettini.it
 http://www.gnu.org/software/src-highlite -->
@@ -197,25 +232,25 @@ http://www.gnu.org/software/src-highlite -->
 <span style="font-style: italic"><span style="color: #9A1900"># config.i18n.load_path &lt;&lt; Dir[File.join(RAILS_ROOT, 'my', 'locales', '*.{rb,yml}')]</span></span>
 <span style="font-style: italic"><span style="color: #9A1900"># config.i18n.default_locale = :de</span></span></tt></pre></div></div>
 <h3 id="_optional_custom_i18n_configuration_setup">2.2. Optional: custom I18n configuration setup</h3>
-<div class="paragraph"><p>For the sake of completeness let&#8217;s mention that if you do not want to use the environment for some reason you can always wire up things manually, too.</p></div>
-<div class="paragraph"><p>To tell the I18n library where it can find your custom translation files you can specify the load path anywhere in your application - just make sure it gets run before any translations are actually looked up. You might also want to change the default locale. The simplest thing possible is to put the following into an initializer:</p></div>
+<div class="paragraph"><p>For the sake of completeness, let&#8217;s mention that if you do not want to use the <tt>environment.rb</tt> file for some reason, you can always wire up things manually, too.</p></div>
+<div class="paragraph"><p>To tell the I18n library where it can find your custom translation files you can specify the load path anywhere in your application - just make sure it gets run before any translations are actually looked up. You might also want to change the default locale. The simplest thing possible is to put the following into an <strong>initializer</strong>:</p></div>
 <div class="listingblock">
-<div class="content"><!-- Generator: GNU source-highlight 2.9
+<div class="content"><!-- Generator: GNU source-highlight 2.11.1
 by Lorenzo Bettini
 http://www.lorenzobettini.it
 http://www.gnu.org/software/src-highlite -->
 <pre><tt><span style="font-style: italic"><span style="color: #9A1900"># in config/initializer/locale.rb</span></span>
 
 <span style="font-style: italic"><span style="color: #9A1900"># tell the I18n library where to find your translations</span></span>
-I18n<span style="color: #990000">.</span>load_path <span style="color: #990000">+=</span> Dir<span style="color: #990000">[</span> File<span style="color: #990000">.</span>join<span style="color: #990000">(</span>RAILS_ROOT<span style="color: #990000">,</span> <span style="color: #FF0000">'lib'</span><span style="color: #990000">,</span> <span style="color: #FF0000">'locale'</span><span style="color: #990000">,</span> <span style="color: #FF0000">'*.{rb,yml}'</span><span style="color: #990000">)</span> <span style="color: #990000">]</span>
+I18n<span style="color: #990000">.</span>load_path <span style="color: #990000">&lt;&lt;</span> Dir<span style="color: #990000">[</span> File<span style="color: #990000">.</span>join<span style="color: #990000">(</span>RAILS_ROOT<span style="color: #990000">,</span> <span style="color: #FF0000">'lib'</span><span style="color: #990000">,</span> <span style="color: #FF0000">'locale'</span><span style="color: #990000">,</span> <span style="color: #FF0000">'*.{rb,yml}'</span><span style="color: #990000">)</span> <span style="color: #990000">]</span>
 
-<span style="font-style: italic"><span style="color: #9A1900"># you can omit this if you're happy with English as a default locale</span></span>
+<span style="font-style: italic"><span style="color: #9A1900"># set default locale to something else then :en</span></span>
 I18n<span style="color: #990000">.</span>default_locale <span style="color: #990000">=</span> <span style="color: #990000">:</span>pt</tt></pre></div></div>
-<h3 id="_set_the_locale_in_each_request">2.3. Set the locale in each request</h3>
+<h3 id="_setting_and_passing_the_locale">2.3. Setting and passing the locale</h3>
 <div class="paragraph"><p>By default the I18n library will use :en (English) as a I18n.default_locale for looking up translations (if you do not specify a locale for a lookup).</p></div>
 <div class="paragraph"><p>If you want to translate your Rails application to a single language other than English you can set I18n.default_locale to your locale. If you want to change the locale on a per-request basis though you can set it in a before_filter on the ApplicationController like this:</p></div>
 <div class="listingblock">
-<div class="content"><!-- Generator: GNU source-highlight 2.9
+<div class="content"><!-- Generator: GNU source-highlight 2.11.1
 by Lorenzo Bettini
 http://www.lorenzobettini.it
 http://www.gnu.org/software/src-highlite -->
@@ -240,7 +275,7 @@ http://www.gnu.org/software/src-highlite -->
 <div class="paragraph"><p>The process of "internationalization" usually means to abstract all strings and other locale specific bits out of your application. The process of "localization" means to then provide translations and localized formats for these bits. <a href="#1">[1]</a></p></div>
 <div class="paragraph"><p>So, let&#8217;s internationalize something. You most probably have something like this in one of your applications:</p></div>
 <div class="listingblock">
-<div class="content"><!-- Generator: GNU source-highlight 2.9
+<div class="content"><!-- Generator: GNU source-highlight 2.11.1
 by Lorenzo Bettini
 http://www.lorenzobettini.it
 http://www.gnu.org/software/src-highlite -->
@@ -265,7 +300,7 @@ ActionController<span style="color: #990000">::</span>Routing<span style="color:
 <h3 id="_adding_translations">3.1. Adding Translations</h3>
 <div class="paragraph"><p>Obviously there are two strings that are localized to English. In order to internationalize this code replace these strings with calls to Rails' #t helper with a key that makes sense for the translation:</p></div>
 <div class="listingblock">
-<div class="content"><!-- Generator: GNU source-highlight 2.9
+<div class="content"><!-- Generator: GNU source-highlight 2.11.1
 by Lorenzo Bettini
 http://www.lorenzobettini.it
 http://www.gnu.org/software/src-highlite -->
@@ -293,7 +328,7 @@ http://www.gnu.org/software/src-highlite -->
 </div>
 <div class="paragraph"><p>So let&#8217;s add the missing translations (i.e. do the "localization" part):</p></div>
 <div class="listingblock">
-<div class="content"><!-- Generator: GNU source-highlight 2.9
+<div class="content"><!-- Generator: GNU source-highlight 2.11.1
 by Lorenzo Bettini
 http://www.lorenzobettini.it
 http://www.gnu.org/software/src-highlite -->
@@ -318,7 +353,7 @@ pirate<span style="color: #990000">:</span>
 <h3 id="_adding_date_time_formats">3.2. Adding Date/Time formats</h3>
 <div class="paragraph"><p>Ok, let&#8217;s add a timestamp to the view so we can demo the date/time localization feature as well. To localize the time format you pass the Time object to I18n.l or (preferably) use Rails' #l helper. You can pick a format by passing the :format option, by default the :default format is used.</p></div>
 <div class="listingblock">
-<div class="content"><!-- Generator: GNU source-highlight 2.9
+<div class="content"><!-- Generator: GNU source-highlight 2.11.1
 by Lorenzo Bettini
 http://www.lorenzobettini.it
 http://www.gnu.org/software/src-highlite -->
@@ -328,7 +363,7 @@ http://www.gnu.org/software/src-highlite -->
 <span style="color: #FF0000">&lt;p&gt;&lt;%= l Time.now, :format =&gt;</span> <span style="color: #990000">:</span>short <span style="color: #990000">%&gt;</span><span style="color: #FF0000">&lt;/p&gt;</span></tt></pre></div></div>
 <div class="paragraph"><p>And in our pirate translations file let&#8217;s add a time format (it&#8217;s already there in Rails' defaults for English):</p></div>
 <div class="listingblock">
-<div class="content"><!-- Generator: GNU source-highlight 2.9
+<div class="content"><!-- Generator: GNU source-highlight 2.11.1
 by Lorenzo Bettini
 http://www.lorenzobettini.it
 http://www.gnu.org/software/src-highlite -->
@@ -372,7 +407,7 @@ localize dates, numbers, currency etc.
 <h4 id="_basic_lookup_scopes_and_nested_keys">4.1.1. Basic lookup, scopes and nested keys</h4>
 <div class="paragraph"><p>Translations are looked up by keys which can be both Symbols or Strings, so these calls are equivalent:</p></div>
 <div class="listingblock">
-<div class="content"><!-- Generator: GNU source-highlight 2.9
+<div class="content"><!-- Generator: GNU source-highlight 2.11.1
 by Lorenzo Bettini
 http://www.lorenzobettini.it
 http://www.gnu.org/software/src-highlite -->
@@ -380,7 +415,7 @@ http://www.gnu.org/software/src-highlite -->
 I18n<span style="color: #990000">.</span>t <span style="color: #FF0000">'message'</span></tt></pre></div></div>
 <div class="paragraph"><p>translate also takes a :scope option which can contain one or many additional keys that will be used to specify a “namespace” or scope for a translation key:</p></div>
 <div class="listingblock">
-<div class="content"><!-- Generator: GNU source-highlight 2.9
+<div class="content"><!-- Generator: GNU source-highlight 2.11.1
 by Lorenzo Bettini
 http://www.lorenzobettini.it
 http://www.gnu.org/software/src-highlite -->
@@ -388,14 +423,14 @@ http://www.gnu.org/software/src-highlite -->
 <div class="paragraph"><p>This looks up the :invalid message in the ActiveRecord error messages.</p></div>
 <div class="paragraph"><p>Additionally, both the key and scopes can be specified as dot separated keys as in:</p></div>
 <div class="listingblock">
-<div class="content"><!-- Generator: GNU source-highlight 2.9
+<div class="content"><!-- Generator: GNU source-highlight 2.11.1
 by Lorenzo Bettini
 http://www.lorenzobettini.it
 http://www.gnu.org/software/src-highlite -->
 <pre><tt>I18n<span style="color: #990000">.</span>translate <span style="color: #990000">:</span><span style="color: #FF0000">"active_record.error_messages.invalid"</span></tt></pre></div></div>
 <div class="paragraph"><p>Thus the following calls are equivalent:</p></div>
 <div class="listingblock">
-<div class="content"><!-- Generator: GNU source-highlight 2.9
+<div class="content"><!-- Generator: GNU source-highlight 2.11.1
 by Lorenzo Bettini
 http://www.lorenzobettini.it
 http://www.gnu.org/software/src-highlite -->
@@ -406,7 +441,7 @@ I18n<span style="color: #990000">.</span>t <span style="color: #990000">:</span>
 <h4 id="_defaults">4.1.2. Defaults</h4>
 <div class="paragraph"><p>When a default option is given its value will be returned if the translation is missing:</p></div>
 <div class="listingblock">
-<div class="content"><!-- Generator: GNU source-highlight 2.9
+<div class="content"><!-- Generator: GNU source-highlight 2.11.1
 by Lorenzo Bettini
 http://www.lorenzobettini.it
 http://www.gnu.org/software/src-highlite -->
@@ -415,7 +450,7 @@ http://www.gnu.org/software/src-highlite -->
 <div class="paragraph"><p>If the default value is a Symbol it will be used as a key and translated. One can provide multiple values as default. The first one that results in a value will be returned.</p></div>
 <div class="paragraph"><p>E.g. the following first tries to translate the key :missing and then the key :also_missing. As both do not yield a result the string "Not here" will be returned:</p></div>
 <div class="listingblock">
-<div class="content"><!-- Generator: GNU source-highlight 2.9
+<div class="content"><!-- Generator: GNU source-highlight 2.11.1
 by Lorenzo Bettini
 http://www.lorenzobettini.it
 http://www.gnu.org/software/src-highlite -->
@@ -424,7 +459,7 @@ http://www.gnu.org/software/src-highlite -->
 <h4 id="_bulk_and_namespace_lookup">4.1.3. Bulk and namespace lookup</h4>
 <div class="paragraph"><p>To lookup multiple translations at once an array of keys can be passed:</p></div>
 <div class="listingblock">
-<div class="content"><!-- Generator: GNU source-highlight 2.9
+<div class="content"><!-- Generator: GNU source-highlight 2.11.1
 by Lorenzo Bettini
 http://www.lorenzobettini.it
 http://www.gnu.org/software/src-highlite -->
@@ -432,7 +467,7 @@ http://www.gnu.org/software/src-highlite -->
 <span style="font-style: italic"><span style="color: #9A1900"># =&gt; ["must be odd", "must be even"]</span></span></tt></pre></div></div>
 <div class="paragraph"><p>Also, a key can translate to a (potentially nested) hash as grouped translations. E.g. one can receive all ActiveRecord error messages as a Hash with:</p></div>
 <div class="listingblock">
-<div class="content"><!-- Generator: GNU source-highlight 2.9
+<div class="content"><!-- Generator: GNU source-highlight 2.11.1
 by Lorenzo Bettini
 http://www.lorenzobettini.it
 http://www.gnu.org/software/src-highlite -->
@@ -442,7 +477,7 @@ http://www.gnu.org/software/src-highlite -->
 <div class="paragraph"><p>In many cases you want to abstract your translations so that variables can be interpolated into the translation. For this reason the I18n API provides an interpolation feature.</p></div>
 <div class="paragraph"><p>All options besides :default and :scope that are passed to #translate will be interpolated to the translation:</p></div>
 <div class="listingblock">
-<div class="content"><!-- Generator: GNU source-highlight 2.9
+<div class="content"><!-- Generator: GNU source-highlight 2.11.1
 by Lorenzo Bettini
 http://www.lorenzobettini.it
 http://www.gnu.org/software/src-highlite -->
@@ -454,7 +489,7 @@ I18n<span style="color: #990000">.</span>translate <span style="color: #990000">
 <div class="paragraph"><p>In English there&#8217;s only a singular and a plural form for a given string, e.g. "1 message" and "2 messages". Other languages (<a href="http://www.unicode.org/cldr/data/charts/supplemental/language_plural_rules.html#ar">Arabic</a>, <a href="http://www.unicode.org/cldr/data/charts/supplemental/language_plural_rules.html#ja">Japanese</a>, <a href="http://www.unicode.org/cldr/data/charts/supplemental/language_plural_rules.html#ru">Russian</a> and many more) have different grammars that have additional or less <a href="http://www.unicode.org/cldr/data/charts/supplemental/language_plural_rules.html">plural forms</a>. Thus, the I18n API provides a flexible pluralization feature.</p></div>
 <div class="paragraph"><p>The :count interpolation variable has a special role in that it both is interpolated to the translation and used to pick a pluralization from the translations according to the pluralization rules defined by CLDR:</p></div>
 <div class="listingblock">
-<div class="content"><!-- Generator: GNU source-highlight 2.9
+<div class="content"><!-- Generator: GNU source-highlight 2.11.1
 by Lorenzo Bettini
 http://www.lorenzobettini.it
 http://www.gnu.org/software/src-highlite -->
@@ -466,7 +501,7 @@ I18n<span style="color: #990000">.</span>translate <span style="color: #990000">
 <span style="font-style: italic"><span style="color: #9A1900"># =&gt; '2 messages'</span></span></tt></pre></div></div>
 <div class="paragraph"><p>The algorithm for pluralizations in :en is as simple as:</p></div>
 <div class="listingblock">
-<div class="content"><!-- Generator: GNU source-highlight 2.9
+<div class="content"><!-- Generator: GNU source-highlight 2.11.1
 by Lorenzo Bettini
 http://www.lorenzobettini.it
 http://www.gnu.org/software/src-highlite -->
@@ -477,7 +512,7 @@ http://www.gnu.org/software/src-highlite -->
 <div class="paragraph"><p>The locale can be either set pseudo-globally to I18n.locale (which uses Thread.current like, e.g., Time.zone) or can be passed as an option to #translate and #localize.</p></div>
 <div class="paragraph"><p>If no locale is passed I18n.locale is used:</p></div>
 <div class="listingblock">
-<div class="content"><!-- Generator: GNU source-highlight 2.9
+<div class="content"><!-- Generator: GNU source-highlight 2.11.1
 by Lorenzo Bettini
 http://www.lorenzobettini.it
 http://www.gnu.org/software/src-highlite -->
@@ -486,7 +521,7 @@ I18n<span style="color: #990000">.</span>t <span style="color: #990000">:</span>
 I18n<span style="color: #990000">.</span>l Time<span style="color: #990000">.</span>now</tt></pre></div></div>
 <div class="paragraph"><p>Explicitely passing a locale:</p></div>
 <div class="listingblock">
-<div class="content"><!-- Generator: GNU source-highlight 2.9
+<div class="content"><!-- Generator: GNU source-highlight 2.11.1
 by Lorenzo Bettini
 http://www.lorenzobettini.it
 http://www.gnu.org/software/src-highlite -->
@@ -494,7 +529,7 @@ http://www.gnu.org/software/src-highlite -->
 I18n<span style="color: #990000">.</span>l Time<span style="color: #990000">.</span>now<span style="color: #990000">,</span> <span style="color: #990000">:</span>locale <span style="color: #990000">=&gt;</span> <span style="color: #990000">:</span>de</tt></pre></div></div>
 <div class="paragraph"><p>I18n.locale defaults to I18n.default_locale which defaults to :en. The default locale can be set like this:</p></div>
 <div class="listingblock">
-<div class="content"><!-- Generator: GNU source-highlight 2.9
+<div class="content"><!-- Generator: GNU source-highlight 2.11.1
 by Lorenzo Bettini
 http://www.lorenzobettini.it
 http://www.gnu.org/software/src-highlite -->
@@ -505,7 +540,7 @@ http://www.gnu.org/software/src-highlite -->
 <div class="paragraph"><p>The shipped Simple backend allows you to store translations in both plain Ruby and YAML format. <a href="#2">[2]</a></p></div>
 <div class="paragraph"><p>For example a Ruby Hash providing translations can look like this:</p></div>
 <div class="listingblock">
-<div class="content"><!-- Generator: GNU source-highlight 2.9
+<div class="content"><!-- Generator: GNU source-highlight 2.11.1
 by Lorenzo Bettini
 http://www.lorenzobettini.it
 http://www.gnu.org/software/src-highlite -->
@@ -518,7 +553,7 @@ http://www.gnu.org/software/src-highlite -->
 <span style="color: #FF0000">}</span></tt></pre></div></div>
 <div class="paragraph"><p>The equivalent YAML file would look like this:</p></div>
 <div class="listingblock">
-<div class="content"><!-- Generator: GNU source-highlight 2.9
+<div class="content"><!-- Generator: GNU source-highlight 2.11.1
 by Lorenzo Bettini
 http://www.lorenzobettini.it
 http://www.gnu.org/software/src-highlite -->
@@ -528,7 +563,7 @@ http://www.gnu.org/software/src-highlite -->
 <div class="paragraph"><p>As you see in both cases the toplevel key is the locale. :foo is a namespace key and :bar is the key for the translation "baz".</p></div>
 <div class="paragraph"><p>Here is a "real" example from the ActiveSupport en.yml translations YAML file:</p></div>
 <div class="listingblock">
-<div class="content"><!-- Generator: GNU source-highlight 2.9
+<div class="content"><!-- Generator: GNU source-highlight 2.11.1
 by Lorenzo Bettini
 http://www.lorenzobettini.it
 http://www.gnu.org/software/src-highlite -->
@@ -540,7 +575,7 @@ http://www.gnu.org/software/src-highlite -->
       long<span style="color: #990000">:</span> <span style="color: #FF0000">"%B %d, %Y"</span></tt></pre></div></div>
 <div class="paragraph"><p>So, all of the following equivalent lookups will return the :short date format "%B %d":</p></div>
 <div class="listingblock">
-<div class="content"><!-- Generator: GNU source-highlight 2.9
+<div class="content"><!-- Generator: GNU source-highlight 2.11.1
 by Lorenzo Bettini
 http://www.lorenzobettini.it
 http://www.gnu.org/software/src-highlite -->
@@ -553,7 +588,7 @@ I18n<span style="color: #990000">.</span>t <span style="color: #990000">:</span>
 <div class="paragraph"><p>You can use the methods Model.human_name and Model.human_attribute_name(attribute) to transparently lookup translations for your model and attribute names.</p></div>
 <div class="paragraph"><p>For example when you add the following translations:</p></div>
 <div class="listingblock">
-<div class="content"><!-- Generator: GNU source-highlight 2.9
+<div class="content"><!-- Generator: GNU source-highlight 2.11.1
 by Lorenzo Bettini
 http://www.lorenzobettini.it
 http://www.gnu.org/software/src-highlite -->
@@ -571,7 +606,7 @@ http://www.gnu.org/software/src-highlite -->
 <div class="paragraph"><p>This gives you quite powerful means to flexibly adjust your messages to your application&#8217;s needs.</p></div>
 <div class="paragraph"><p>Consider a User model with a validates_presence_of validation for the name attribute like this:</p></div>
 <div class="listingblock">
-<div class="content"><!-- Generator: GNU source-highlight 2.9
+<div class="content"><!-- Generator: GNU source-highlight 2.11.1
 by Lorenzo Bettini
 http://www.lorenzobettini.it
 http://www.gnu.org/software/src-highlite -->
@@ -580,7 +615,7 @@ http://www.gnu.org/software/src-highlite -->
 <span style="font-weight: bold"><span style="color: #0000FF">end</span></span></tt></pre></div></div>
 <div class="paragraph"><p>The key for the error message in this case is :blank. ActiveRecord will lookup this key in the namespaces:</p></div>
 <div class="listingblock">
-<div class="content"><!-- Generator: GNU source-highlight 2.9
+<div class="content"><!-- Generator: GNU source-highlight 2.11.1
 by Lorenzo Bettini
 http://www.lorenzobettini.it
 http://www.gnu.org/software/src-highlite -->
@@ -589,7 +624,7 @@ activerecord<span style="color: #990000">.</span>errors<span style="color: #9900
 activerecord<span style="color: #990000">.</span>errors<span style="color: #990000">.</span>messages</tt></pre></div></div>
 <div class="paragraph"><p>Thus, in our example it will try the following keys in this order and return the first result:</p></div>
 <div class="listingblock">
-<div class="content"><!-- Generator: GNU source-highlight 2.9
+<div class="content"><!-- Generator: GNU source-highlight 2.11.1
 by Lorenzo Bettini
 http://www.lorenzobettini.it
 http://www.gnu.org/software/src-highlite -->
@@ -599,7 +634,7 @@ activerecord<span style="color: #990000">.</span>errors<span style="color: #9900
 <div class="paragraph"><p>When your models are additionally using inheritance then the messages are looked up for the inherited model class names are looked up.</p></div>
 <div class="paragraph"><p>For example, you might have an Admin model inheriting from User:</p></div>
 <div class="listingblock">
-<div class="content"><!-- Generator: GNU source-highlight 2.9
+<div class="content"><!-- Generator: GNU source-highlight 2.11.1
 by Lorenzo Bettini
 http://www.lorenzobettini.it
 http://www.gnu.org/software/src-highlite -->
@@ -608,7 +643,7 @@ http://www.gnu.org/software/src-highlite -->
 <span style="font-weight: bold"><span style="color: #0000FF">end</span></span></tt></pre></div></div>
 <div class="paragraph"><p>Then ActiveRecord will look for messages in this order:</p></div>
 <div class="listingblock">
-<div class="content"><!-- Generator: GNU source-highlight 2.9
+<div class="content"><!-- Generator: GNU source-highlight 2.11.1
 by Lorenzo Bettini
 http://www.lorenzobettini.it
 http://www.gnu.org/software/src-highlite -->
@@ -741,7 +776,7 @@ cellspacing="0" cellpadding="4">
 <div class="paragraph"><p>If you are using the ActiveRecord error_messages_for helper you will want to add translations for it.</p></div>
 <div class="paragraph"><p>Rails ships with the following translations:</p></div>
 <div class="listingblock">
-<div class="content"><!-- Generator: GNU source-highlight 2.9
+<div class="content"><!-- Generator: GNU source-highlight 2.11.1
 by Lorenzo Bettini
 http://www.lorenzobettini.it
 http://www.gnu.org/software/src-highlite -->
@@ -763,7 +798,7 @@ http://www.gnu.org/software/src-highlite -->
 <div class="paragraph"><p>For several reasons the shipped Simple backend only does the "simplest thing that ever could work" <em>for Ruby on Rails</em> <a href="#3">[3]</a> ... which means that it is only guaranteed to work for English and, as a side effect, languages that are very similar to English. Also, the simple backend is only capable of reading translations but can not dynamically store them to any format.</p></div>
 <div class="paragraph"><p>That does not mean you&#8217;re stuck with these limitations though. The Ruby I18n gem makes it very easy to exchange the Simple backend implementation with something else that fits better for your needs. E.g. you could exchange it with Globalize&#8217;s Static backend:</p></div>
 <div class="listingblock">
-<div class="content"><!-- Generator: GNU source-highlight 2.9
+<div class="content"><!-- Generator: GNU source-highlight 2.11.1
 by Lorenzo Bettini
 http://www.lorenzobettini.it
 http://www.gnu.org/software/src-highlite -->
@@ -771,7 +806,7 @@ http://www.gnu.org/software/src-highlite -->
 <h3 id="_using_different_exception_handlers">6.2. Using different exception handlers</h3>
 <div class="paragraph"><p>The I18n API defines the following exceptions that will be raised by backends when the corresponding unexpected conditions occur:</p></div>
 <div class="listingblock">
-<div class="content"><!-- Generator: GNU source-highlight 2.9
+<div class="content"><!-- Generator: GNU source-highlight 2.11.1
 by Lorenzo Bettini
 http://www.lorenzobettini.it
 http://www.gnu.org/software/src-highlite -->
@@ -785,7 +820,7 @@ UnknownFileType              <span style="font-style: italic"><span style="color
 <div class="paragraph"><p>The reason for this is that during development you&#8217;d usually want your views to still render even though a translation is missing.</p></div>
 <div class="paragraph"><p>In other contexts you might want to change this behaviour though. E.g. the default exception handling does not allow to catch missing translations during automated tests easily. For this purpose a different exception handler can be specified. The specified exception handler must be a method on the I18n module:</p></div>
 <div class="listingblock">
-<div class="content"><!-- Generator: GNU source-highlight 2.9
+<div class="content"><!-- Generator: GNU source-highlight 2.11.1
 by Lorenzo Bettini
 http://www.lorenzobettini.it
 http://www.gnu.org/software/src-highlite -->
@@ -800,7 +835,7 @@ I18n<span style="color: #990000">.</span>exception_handler <span style="color: #
 <div class="paragraph"><p>Another example where the default behaviour is less desirable is the Rails TranslationHelper which provides the method #t (as well as #translate). When a MissingTranslationData exception occurs in this context the helper wraps the message into a span with the css class translation_missing.</p></div>
 <div class="paragraph"><p>To do so the helper forces I18n#translate to raise exceptions no matter what exception handler is defined by setting the :raise option:</p></div>
 <div class="listingblock">
-<div class="content"><!-- Generator: GNU source-highlight 2.9
+<div class="content"><!-- Generator: GNU source-highlight 2.11.1
 by Lorenzo Bettini
 http://www.lorenzobettini.it
 http://www.gnu.org/software/src-highlite -->

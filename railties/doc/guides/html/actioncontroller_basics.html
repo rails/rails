@@ -181,7 +181,7 @@ Deal with exceptions that may be raised during request processing
 <div class="sectionbody">
 <div class="paragraph"><p>A controller is a Ruby class which inherits from ApplicationController and has methods just like any other class. When your application receives a request, the routing will determine which controller and action to run, then Rails creates an instance of that controller and runs the public method with the same name as the action.</p></div>
 <div class="listingblock">
-<div class="content"><!-- Generator: GNU source-highlight 2.9
+<div class="content"><!-- Generator: GNU source-highlight 2.11.1
 by Lorenzo Bettini
 http://www.lorenzobettini.it
 http://www.gnu.org/software/src-highlite -->
@@ -205,7 +205,7 @@ private
 <div class="paragraph"><p>There&#8217;s no rule saying a method on a controller has to be an action; they may well be used for other purposes such as filters, which will be covered later in this guide.</p></div>
 <div class="paragraph"><p>As an example, if a user goes to <tt>/clients/new</tt> in your application to add a new client, Rails will create an instance of ClientsController and run the <tt>new</tt> method. Note that the empty method from the example above could work just fine because Rails will by default render the <tt>new.html.erb</tt> view unless the action says otherwise. The <tt>new</tt> method could make available to the view a <tt>@client</tt> instance variable by creating a new Client:</p></div>
 <div class="listingblock">
-<div class="content"><!-- Generator: GNU source-highlight 2.9
+<div class="content"><!-- Generator: GNU source-highlight 2.11.1
 by Lorenzo Bettini
 http://www.lorenzobettini.it
 http://www.gnu.org/software/src-highlite -->
@@ -219,7 +219,7 @@ http://www.gnu.org/software/src-highlite -->
 <div class="sectionbody">
 <div class="paragraph"><p>You will probably want to access data sent in by the user or other parameters in your controller actions. There are two kinds of parameters possible in a web application. The first are parameters that are sent as part of the URL, called query string parameters. The query string is everything after "?" in the URL. The second type of parameter is usually referred to as POST data. This information usually comes from a HTML form which has been filled in by the user. It&#8217;s called POST data because it can only be sent as part of an HTTP POST request. Rails does not make any distinction between query string parameters and POST parameters, and both are available in the <tt>params</tt> hash in your controller:</p></div>
 <div class="listingblock">
-<div class="content"><!-- Generator: GNU source-highlight 2.9
+<div class="content"><!-- Generator: GNU source-highlight 2.11.1
 by Lorenzo Bettini
 http://www.lorenzobettini.it
 http://www.gnu.org/software/src-highlite -->
@@ -282,7 +282,7 @@ http://www.gnu.org/software/src-highlite -->
 <h3 id="_routing_parameters">3.2. Routing Parameters</h3>
 <div class="paragraph"><p>The <tt>params</tt> hash will always contain the <tt>:controller</tt> and <tt>:action</tt> keys, but you should use the methods <tt>controller_name</tt> and <tt>action_name</tt> instead to access these values. Any other parameters defined by the routing, such as <tt>:id</tt> will also be available. As an example, consider a listing of clients where the list can show either active or inactive clients. We can add a route which captures the <tt>:status</tt> parameter in a "pretty" URL:</p></div>
 <div class="listingblock">
-<div class="content"><!-- Generator: GNU source-highlight 2.9
+<div class="content"><!-- Generator: GNU source-highlight 2.11.1
 by Lorenzo Bettini
 http://www.lorenzobettini.it
 http://www.gnu.org/software/src-highlite -->
@@ -335,7 +335,7 @@ ActiveRecordStore - Stores the data in a database using Active Record.
 <div class="paragraph"><p>Read more about session storage in the <a href="../security.html">Security Guide</a>.</p></div>
 <div class="paragraph"><p>If you need a different session storage mechanism, you can change it in the <tt>config/environment.rb</tt> file:</p></div>
 <div class="listingblock">
-<div class="content"><!-- Generator: GNU source-highlight 2.9
+<div class="content"><!-- Generator: GNU source-highlight 2.11.1
 by Lorenzo Bettini
 http://www.lorenzobettini.it
 http://www.gnu.org/software/src-highlite -->
@@ -353,7 +353,7 @@ config<span style="color: #990000">.</span>action_controller<span style="color: 
 </div>
 <div class="paragraph"><p>Session values are stored using key/value pairs like a hash:</p></div>
 <div class="listingblock">
-<div class="content"><!-- Generator: GNU source-highlight 2.9
+<div class="content"><!-- Generator: GNU source-highlight 2.11.1
 by Lorenzo Bettini
 http://www.lorenzobettini.it
 http://www.gnu.org/software/src-highlite -->
@@ -371,7 +371,7 @@ private
 <span style="font-weight: bold"><span style="color: #0000FF">end</span></span></tt></pre></div></div>
 <div class="paragraph"><p>To store something in the session, just assign it to the key like a hash:</p></div>
 <div class="listingblock">
-<div class="content"><!-- Generator: GNU source-highlight 2.9
+<div class="content"><!-- Generator: GNU source-highlight 2.11.1
 by Lorenzo Bettini
 http://www.lorenzobettini.it
 http://www.gnu.org/software/src-highlite -->
@@ -389,7 +389,7 @@ http://www.gnu.org/software/src-highlite -->
 <span style="font-weight: bold"><span style="color: #0000FF">end</span></span></tt></pre></div></div>
 <div class="paragraph"><p>To remove something from the session, assign that key to be <tt>nil</tt>:</p></div>
 <div class="listingblock">
-<div class="content"><!-- Generator: GNU source-highlight 2.9
+<div class="content"><!-- Generator: GNU source-highlight 2.11.1
 by Lorenzo Bettini
 http://www.lorenzobettini.it
 http://www.gnu.org/software/src-highlite -->
@@ -407,7 +407,7 @@ http://www.gnu.org/software/src-highlite -->
 <h3 id="_the_flash">4.2. The flash</h3>
 <div class="paragraph"><p>The flash is a special part of the session which is cleared with each request. This means that values stored there will only be available in the next request, which is useful for storing error messages etc. It is accessed in much the same way as the session, like a hash. Let&#8217;s use the act of logging out as an example. The controller can send a message which will be displayed to the user on the next request:</p></div>
 <div class="listingblock">
-<div class="content"><!-- Generator: GNU source-highlight 2.9
+<div class="content"><!-- Generator: GNU source-highlight 2.11.1
 by Lorenzo Bettini
 http://www.lorenzobettini.it
 http://www.gnu.org/software/src-highlite -->
@@ -439,7 +439,7 @@ http://www.gnu.org/software/src-highlite -->
 <div class="paragraph"><p>This way, if an action sets an error or a notice message, the layout will display it automatically.</p></div>
 <div class="paragraph"><p>If you want a flash value to be carried over to another request, use the <tt>keep</tt> method:</p></div>
 <div class="listingblock">
-<div class="content"><!-- Generator: GNU source-highlight 2.9
+<div class="content"><!-- Generator: GNU source-highlight 2.11.1
 by Lorenzo Bettini
 http://www.lorenzobettini.it
 http://www.gnu.org/software/src-highlite -->
@@ -457,7 +457,7 @@ http://www.gnu.org/software/src-highlite -->
 <h4 id="_tt_flash_now_tt">4.2.1. <tt>flash.now</tt></h4>
 <div class="paragraph"><p>By default, adding values to the flash will make them available to the next request, but sometimes you may want to access those values in the same request. For example, if the <tt>create</tt> action fails to save a resource and you render the <tt>new</tt> template directly, that&#8217;s not going to result in a new request, but you may still want to display a message using the flash. To do this, you can use <tt>flash.now</tt> in the same way you use the normal <tt>flash</tt>:</p></div>
 <div class="listingblock">
-<div class="content"><!-- Generator: GNU source-highlight 2.9
+<div class="content"><!-- Generator: GNU source-highlight 2.11.1
 by Lorenzo Bettini
 http://www.lorenzobettini.it
 http://www.gnu.org/software/src-highlite -->
@@ -479,7 +479,7 @@ http://www.gnu.org/software/src-highlite -->
 <div class="sectionbody">
 <div class="paragraph"><p>Your application can store small amounts of data on the client - called cookies - that will be persisted across requests and even sessions. Rails provides easy access to cookies via the <tt>cookies</tt> method, which - much like the <tt>session</tt> - works like a hash:</p></div>
 <div class="listingblock">
-<div class="content"><!-- Generator: GNU source-highlight 2.9
+<div class="content"><!-- Generator: GNU source-highlight 2.11.1
 by Lorenzo Bettini
 http://www.lorenzobettini.it
 http://www.gnu.org/software/src-highlite -->
@@ -514,7 +514,7 @@ http://www.gnu.org/software/src-highlite -->
 <div class="sectionbody">
 <div class="paragraph"><p>Filters are methods that are run before, after or "around" a controller action. For example, one filter might check to see if the logged in user has the right credentials to access that particular controller or action. Filters are inherited, so if you set a filter on ApplicationController, it will be run on every controller in your application. A common, simple filter is one which requires that a user is logged in for an action to be run. You can define the filter method this way:</p></div>
 <div class="listingblock">
-<div class="content"><!-- Generator: GNU source-highlight 2.9
+<div class="content"><!-- Generator: GNU source-highlight 2.11.1
 by Lorenzo Bettini
 http://www.lorenzobettini.it
 http://www.gnu.org/software/src-highlite -->
@@ -541,7 +541,7 @@ private
 <span style="font-weight: bold"><span style="color: #0000FF">end</span></span></tt></pre></div></div>
 <div class="paragraph"><p>The method simply stores an error message in the flash and redirects to the login form if the user is not logged in. If a before filter (a filter which is run before the action) renders or redirects, the action will not run. If there are additional filters scheduled to run after the rendering or redirecting filter, they are also cancelled. To use this filter in a controller, use the <tt>before_filter</tt> method:</p></div>
 <div class="listingblock">
-<div class="content"><!-- Generator: GNU source-highlight 2.9
+<div class="content"><!-- Generator: GNU source-highlight 2.11.1
 by Lorenzo Bettini
 http://www.lorenzobettini.it
 http://www.gnu.org/software/src-highlite -->
@@ -552,7 +552,7 @@ http://www.gnu.org/software/src-highlite -->
 <span style="font-weight: bold"><span style="color: #0000FF">end</span></span></tt></pre></div></div>
 <div class="paragraph"><p>In this example, the filter is added to ApplicationController and thus all controllers in the application. This will make everything in the application require the user to be logged in in order to use it. For obvious reasons (the user wouldn&#8217;t be able to log in in the first place!), not all controllers or actions should require this. You can prevent this filter from running before particular actions with <tt>skip_before_filter</tt>:</p></div>
 <div class="listingblock">
-<div class="content"><!-- Generator: GNU source-highlight 2.9
+<div class="content"><!-- Generator: GNU source-highlight 2.11.1
 by Lorenzo Bettini
 http://www.lorenzobettini.it
 http://www.gnu.org/software/src-highlite -->
@@ -565,7 +565,7 @@ http://www.gnu.org/software/src-highlite -->
 <h3 id="_after_filters_and_around_filters">6.1. After Filters and Around Filters</h3>
 <div class="paragraph"><p>In addition to the before filters, you can run filters after an action has run or both before and after. The after filter is similar to the before filter, but because the action has already been run it has access to the response data that&#8217;s about to be sent to the client. Obviously, after filters can not stop the action from running. Around filters are responsible for running the action, but they can choose not to, which is the around filter&#8217;s way of stopping it.</p></div>
 <div class="listingblock">
-<div class="content"><!-- Generator: GNU source-highlight 2.9
+<div class="content"><!-- Generator: GNU source-highlight 2.11.1
 by Lorenzo Bettini
 http://www.lorenzobettini.it
 http://www.gnu.org/software/src-highlite -->
@@ -589,7 +589,7 @@ private
 <div class="paragraph"><p>While the most common way to use filters is by creating private methods and using *_filter to add them, there are two other ways to do the same thing.</p></div>
 <div class="paragraph"><p>The first is to use a block directly with the *_filter methods. The block receives the controller as an argument, and the <tt>require_login</tt> filter from above could be rewritten to use a block:</p></div>
 <div class="listingblock">
-<div class="content"><!-- Generator: GNU source-highlight 2.9
+<div class="content"><!-- Generator: GNU source-highlight 2.11.1
 by Lorenzo Bettini
 http://www.lorenzobettini.it
 http://www.gnu.org/software/src-highlite -->
@@ -601,7 +601,7 @@ http://www.gnu.org/software/src-highlite -->
 <div class="paragraph"><p>Note that the filter in this case uses <tt>send</tt> because the <tt>logged_in?</tt> method is private and the filter is not run in the scope of the controller. This is not the recommended way to implement this particular filter, but in more simple cases it might be useful.</p></div>
 <div class="paragraph"><p>The second way is to use a class (actually, any object that responds to the right methods will do) to handle the filtering. This is useful in cases that are more complex than can not be implemented in a readable and reusable way using the two other methods. As an example, you could rewrite the login filter again to use a class:</p></div>
 <div class="listingblock">
-<div class="content"><!-- Generator: GNU source-highlight 2.9
+<div class="content"><!-- Generator: GNU source-highlight 2.11.1
 by Lorenzo Bettini
 http://www.lorenzobettini.it
 http://www.gnu.org/software/src-highlite -->
@@ -629,7 +629,7 @@ http://www.gnu.org/software/src-highlite -->
 <div class="paragraph"><p>Verifications make sure certain criteria are met in order for a controller or action to run. They can specify that a certain key (or several keys in the form of an array) is present in the <tt>params</tt>, <tt>session</tt> or <tt>flash</tt> hashes or that a certain HTTP method was used or that the request was made using XMLHTTPRequest (Ajax). The default action taken when these criteria are not met is to render a 400 Bad Request response, but you can customize this by specifying a redirect URL or rendering something else and you can also add flash messages and HTTP headers to the response. It is described in the <a href="http://api.rubyonrails.org/classes/ActionController/Verification/ClassMethods.html">API documentation</a> as "essentially a special kind of before_filter".</p></div>
 <div class="paragraph"><p>Here&#8217;s an example of using verification to make sure the user supplies a username and a password in order to log in:</p></div>
 <div class="listingblock">
-<div class="content"><!-- Generator: GNU source-highlight 2.9
+<div class="content"><!-- Generator: GNU source-highlight 2.11.1
 by Lorenzo Bettini
 http://www.lorenzobettini.it
 http://www.gnu.org/software/src-highlite -->
@@ -652,7 +652,7 @@ http://www.gnu.org/software/src-highlite -->
 <span style="font-weight: bold"><span style="color: #0000FF">end</span></span></tt></pre></div></div>
 <div class="paragraph"><p>Now the <tt>create</tt> action won&#8217;t run unless the "username" and "password" parameters are present, and if they&#8217;re not, an error message will be added to the flash and the <tt>new</tt> action will be rendered. But there&#8217;s something rather important missing from the verification above: It will be used for <strong>every</strong> action in LoginsController, which is not what we want. You can limit which actions it will be used for with the <tt>:only</tt> and <tt>:except</tt> options just like a filter:</p></div>
 <div class="listingblock">
-<div class="content"><!-- Generator: GNU source-highlight 2.9
+<div class="content"><!-- Generator: GNU source-highlight 2.11.1
 by Lorenzo Bettini
 http://www.lorenzobettini.it
 http://www.gnu.org/software/src-highlite -->
@@ -670,7 +670,7 @@ http://www.gnu.org/software/src-highlite -->
 <div class="paragraph"><p>Cross-site request forgery is a type of attack in which a site tricks a user into making requests on another site, possibly adding, modifying or deleting data on that site without the user&#8217;s knowledge or permission. The first step to avoid this is to make sure all "destructive" actions (create, update and destroy) can only be accessed with non-GET requests. If you&#8217;re following RESTful conventions you&#8217;re already doing this. However, a malicious site can still send a non-GET request to your site quite easily, and that&#8217;s where the request forgery protection comes in. As the name says, it protects from forged requests. The way this is done is to add a non-guessable token which is only known to your server to each request. This way, if a request comes in without the proper token, it will be denied access.</p></div>
 <div class="paragraph"><p>If you generate a form like this:</p></div>
 <div class="listingblock">
-<div class="content"><!-- Generator: GNU source-highlight 2.9
+<div class="content"><!-- Generator: GNU source-highlight 2.11.1
 by Lorenzo Bettini
 http://www.lorenzobettini.it
 http://www.gnu.org/software/src-highlite -->
@@ -680,7 +680,7 @@ http://www.gnu.org/software/src-highlite -->
 <span style="color: #FF0000">&lt;% end -%&gt;</span></tt></pre></div></div>
 <div class="paragraph"><p>You will see how the token gets added as a hidden field:</p></div>
 <div class="listingblock">
-<div class="content"><!-- Generator: GNU source-highlight 2.9
+<div class="content"><!-- Generator: GNU source-highlight 2.11.1
 by Lorenzo Bettini
 http://www.lorenzobettini.it
 http://www.gnu.org/software/src-highlite -->
@@ -797,7 +797,7 @@ headers - Headers used for the response.
 <h4 id="_setting_custom_headers">9.2.1. Setting Custom Headers</h4>
 <div class="paragraph"><p>If you want to set custom headers for a response then <tt>response.headers</tt> is the place to do it. The headers attribute is a hash which maps header names to their values, and Rails will set some of them - like "Content-Type" - automatically. If you want to add or change a header, just assign it to <tt>headers</tt> with the name and value:</p></div>
 <div class="listingblock">
-<div class="content"><!-- Generator: GNU source-highlight 2.9
+<div class="content"><!-- Generator: GNU source-highlight 2.11.1
 by Lorenzo Bettini
 http://www.lorenzobettini.it
 http://www.gnu.org/software/src-highlite -->
@@ -807,7 +807,7 @@ http://www.gnu.org/software/src-highlite -->
 <div class="sectionbody">
 <div class="paragraph"><p>Rails comes with built-in HTTP Basic authentication. This is an authentication scheme that is supported by the majority of browsers and other HTTP clients. As an example, consider an administration section which will only be available by entering a username and a password into the browser&#8217;s HTTP Basic dialog window. Using the built-in authentication is quite easy and only requires you to use one method, <tt>authenticate_or_request_with_http_basic</tt>.</p></div>
 <div class="listingblock">
-<div class="content"><!-- Generator: GNU source-highlight 2.9
+<div class="content"><!-- Generator: GNU source-highlight 2.11.1
 by Lorenzo Bettini
 http://www.lorenzobettini.it
 http://www.gnu.org/software/src-highlite -->
@@ -833,7 +833,7 @@ private
 <div class="paragraph"><p>Sometimes you may want to send a file to the user instead of rendering an HTML page. All controllers in Rails have the <tt>send_data</tt> and the <tt>send_file</tt> methods, that will both stream data to the client. <tt>send_file</tt> is a convenience method which lets you provide the name of a file on the disk and it will stream the contents of that file for you.</p></div>
 <div class="paragraph"><p>To stream data to the client, use <tt>send_data</tt>:</p></div>
 <div class="listingblock">
-<div class="content"><!-- Generator: GNU source-highlight 2.9
+<div class="content"><!-- Generator: GNU source-highlight 2.11.1
 by Lorenzo Bettini
 http://www.lorenzobettini.it
 http://www.gnu.org/software/src-highlite -->
@@ -862,7 +862,7 @@ private
 <h3 id="_sending_files">11.1. Sending Files</h3>
 <div class="paragraph"><p>If you want to send a file that already exists on disk, use the <tt>send_file</tt> method. This is usually not recommended, but can be useful if you want to perform some authentication before letting the user download the file.</p></div>
 <div class="listingblock">
-<div class="content"><!-- Generator: GNU source-highlight 2.9
+<div class="content"><!-- Generator: GNU source-highlight 2.11.1
 by Lorenzo Bettini
 http://www.lorenzobettini.it
 http://www.gnu.org/software/src-highlite -->
@@ -895,7 +895,7 @@ http://www.gnu.org/software/src-highlite -->
 <h3 id="_restful_downloads">11.2. RESTful Downloads</h3>
 <div class="paragraph"><p>While <tt>send_data</tt> works just fine, if you are creating a RESTful application having separate actions for file downloads is usually not necessary. In REST terminology, the PDF file from the example above can be considered just another representation of the client resource. Rails provides an easy and quite sleek way of doing "RESTful downloads". Here&#8217;s how you can rewrite the example so that the PDF download is a part of the <tt>show</tt> action, without any streaming:</p></div>
 <div class="listingblock">
-<div class="content"><!-- Generator: GNU source-highlight 2.9
+<div class="content"><!-- Generator: GNU source-highlight 2.11.1
 by Lorenzo Bettini
 http://www.lorenzobettini.it
 http://www.gnu.org/software/src-highlite -->
@@ -914,7 +914,7 @@ http://www.gnu.org/software/src-highlite -->
 <span style="font-weight: bold"><span style="color: #0000FF">end</span></span></tt></pre></div></div>
 <div class="paragraph"><p>In order for this example to work, you have to add the PDF MIME type to Rails. This can be done by adding the following line to the file <tt>config/initializers/mime_types.rb</tt>:</p></div>
 <div class="listingblock">
-<div class="content"><!-- Generator: GNU source-highlight 2.9
+<div class="content"><!-- Generator: GNU source-highlight 2.11.1
 by Lorenzo Bettini
 http://www.lorenzobettini.it
 http://www.gnu.org/software/src-highlite -->
@@ -937,7 +937,7 @@ http://www.gnu.org/software/src-highlite -->
 <div class="sectionbody">
 <div class="paragraph"><p>Rails keeps a log file for each environment (development, test and production) in the <tt>log</tt> folder. These are extremely useful when debugging what&#8217;s actually going on in your application, but in a live application you may not want every bit of information to be stored in the log file. The <tt>filter_parameter_logging</tt> method can be used to filter out sensitive information from the log. It works by replacing certain values in the <tt>params</tt> hash with "[FILTERED]" as they are written to the log. As an example, let&#8217;s see how to filter all parameters with keys that include "password":</p></div>
 <div class="listingblock">
-<div class="content"><!-- Generator: GNU source-highlight 2.9
+<div class="content"><!-- Generator: GNU source-highlight 2.11.1
 by Lorenzo Bettini
 http://www.lorenzobettini.it
 http://www.gnu.org/software/src-highlite -->
@@ -957,7 +957,7 @@ http://www.gnu.org/software/src-highlite -->
 <div class="paragraph"><p>If you want to do something a bit more elaborate when catching errors, you can use <tt>rescue_from</tt>, which handles exceptions of a certain type (or multiple types) in an entire controller and its subclasses. When an exception occurs which is caught by a <tt>rescue_from</tt> directive, the exception object is passed to the handler. The handler can be a method or a Proc object passed to the <tt>:with</tt> option. You can also use a block directly instead of an explicit Proc object.</p></div>
 <div class="paragraph"><p>Here&#8217;s how you can use <tt>rescue_from</tt> to intercept all ActiveRecord::RecordNotFound errors and do something with them.</p></div>
 <div class="listingblock">
-<div class="content"><!-- Generator: GNU source-highlight 2.9
+<div class="content"><!-- Generator: GNU source-highlight 2.11.1
 by Lorenzo Bettini
 http://www.lorenzobettini.it
 http://www.gnu.org/software/src-highlite -->
@@ -974,7 +974,7 @@ private
 <span style="font-weight: bold"><span style="color: #0000FF">end</span></span></tt></pre></div></div>
 <div class="paragraph"><p>Of course, this example is anything but elaborate and doesn&#8217;t improve on the default exception handling at all, but once you can catch all those exceptions you&#8217;re free to do whatever you want with them. For example, you could create custom exception classes that will be thrown when a user doesn&#8217;t have access to a certain section of your application:</p></div>
 <div class="listingblock">
-<div class="content"><!-- Generator: GNU source-highlight 2.9
+<div class="content"><!-- Generator: GNU source-highlight 2.11.1
 by Lorenzo Bettini
 http://www.lorenzobettini.it
 http://www.gnu.org/software/src-highlite -->

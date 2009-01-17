@@ -193,7 +193,7 @@ Identify how a route will map to a controller and action
 <h3 id="_generating_urls_from_code">1.2. Generating URLs from Code</h3>
 <div class="paragraph"><p>Routing also works in reverse. If your application contains this code:</p></div>
 <div class="listingblock">
-<div class="content"><!-- Generator: GNU source-highlight 2.9
+<div class="content"><!-- Generator: GNU source-highlight 2.11.1
 by Lorenzo Bettini
 http://www.lorenzobettini.it
 http://www.gnu.org/software/src-highlite -->
@@ -246,7 +246,7 @@ Default Routes
 <h3 id="_restful_routes">2.2. RESTful Routes</h3>
 <div class="paragraph"><p>RESTful routes take advantage of the built-in REST orientation of Rails to wrap up a lot of routing information in a single declaration. A RESTful route looks like this:</p></div>
 <div class="listingblock">
-<div class="content"><!-- Generator: GNU source-highlight 2.9
+<div class="content"><!-- Generator: GNU source-highlight 2.11.1
 by Lorenzo Bettini
 http://www.lorenzobettini.it
 http://www.gnu.org/software/src-highlite -->
@@ -254,7 +254,7 @@ http://www.gnu.org/software/src-highlite -->
 <h3 id="_named_routes">2.3. Named Routes</h3>
 <div class="paragraph"><p>Named routes give you very readable links in your code, as well as handling incoming requests. Here&#8217;s a typical named route:</p></div>
 <div class="listingblock">
-<div class="content"><!-- Generator: GNU source-highlight 2.9
+<div class="content"><!-- Generator: GNU source-highlight 2.11.1
 by Lorenzo Bettini
 http://www.lorenzobettini.it
 http://www.gnu.org/software/src-highlite -->
@@ -262,7 +262,7 @@ http://www.gnu.org/software/src-highlite -->
 <h3 id="_nested_routes">2.4. Nested Routes</h3>
 <div class="paragraph"><p>Nested routes let you declare that one resource is contained within another resource. You&#8217;ll see later on how this translates to URLs and paths in your code. For example, if your application includes parts, each of which belongs to an assembly, you might have this nested route declaration:</p></div>
 <div class="listingblock">
-<div class="content"><!-- Generator: GNU source-highlight 2.9
+<div class="content"><!-- Generator: GNU source-highlight 2.11.1
 by Lorenzo Bettini
 http://www.lorenzobettini.it
 http://www.gnu.org/software/src-highlite -->
@@ -272,7 +272,7 @@ http://www.gnu.org/software/src-highlite -->
 <h3 id="_regular_routes">2.5. Regular Routes</h3>
 <div class="paragraph"><p>In many applications, you&#8217;ll also see non-RESTful routing, which explicitly connects the parts of a URL to a particular action. For example,</p></div>
 <div class="listingblock">
-<div class="content"><!-- Generator: GNU source-highlight 2.9
+<div class="content"><!-- Generator: GNU source-highlight 2.11.1
 by Lorenzo Bettini
 http://www.lorenzobettini.it
 http://www.gnu.org/software/src-highlite -->
@@ -280,7 +280,7 @@ http://www.gnu.org/software/src-highlite -->
 <h3 id="_default_routes">2.6. Default Routes</h3>
 <div class="paragraph"><p>The default routes are a safety net that catch otherwise-unrouted requests. Many Rails applications will contain this pair of default routes:</p></div>
 <div class="listingblock">
-<div class="content"><!-- Generator: GNU source-highlight 2.9
+<div class="content"><!-- Generator: GNU source-highlight 2.11.1
 by Lorenzo Bettini
 http://www.lorenzobettini.it
 http://www.gnu.org/software/src-highlite -->
@@ -311,7 +311,7 @@ Transferring representations of the state of that resource between system compon
 <h3 id="_crud_verbs_and_actions">3.2. CRUD, Verbs, and Actions</h3>
 <div class="paragraph"><p>In Rails, a RESTful route provides a mapping between HTTP verbs, controller actions, and (implicitly) CRUD operations in a database. A single entry in the routing file, such as</p></div>
 <div class="listingblock">
-<div class="content"><!-- Generator: GNU source-highlight 2.9
+<div class="content"><!-- Generator: GNU source-highlight 2.11.1
 by Lorenzo Bettini
 http://www.lorenzobettini.it
 http://www.gnu.org/software/src-highlite -->
@@ -432,7 +432,7 @@ cellspacing="0" cellpadding="4">
 </div>
 <div class="paragraph"><p>In each case, the <tt>_url</tt> helper generates a string containing the entire URL that the application will understand, while the <tt>_path</tt> helper generates a string containing the relative path from the root of the application. For example:</p></div>
 <div class="listingblock">
-<div class="content"><!-- Generator: GNU source-highlight 2.9
+<div class="content"><!-- Generator: GNU source-highlight 2.11.1
 by Lorenzo Bettini
 http://www.lorenzobettini.it
 http://www.gnu.org/software/src-highlite -->
@@ -441,14 +441,14 @@ photos_path <span style="font-style: italic"><span style="color: #9A1900"># =&gt
 <h3 id="_defining_multiple_resources_at_the_same_time">3.4. Defining Multiple Resources at the Same Time</h3>
 <div class="paragraph"><p>If you need to create routes for more than one RESTful resource, you can save a bit of typing by defining them all with a single call to <tt>map.resources</tt>:</p></div>
 <div class="listingblock">
-<div class="content"><!-- Generator: GNU source-highlight 2.9
+<div class="content"><!-- Generator: GNU source-highlight 2.11.1
 by Lorenzo Bettini
 http://www.lorenzobettini.it
 http://www.gnu.org/software/src-highlite -->
 <pre><tt>map<span style="color: #990000">.</span>resources <span style="color: #990000">:</span>photos<span style="color: #990000">,</span> <span style="color: #990000">:</span>books<span style="color: #990000">,</span> <span style="color: #990000">:</span>videos</tt></pre></div></div>
 <div class="paragraph"><p>This has exactly the same effect as</p></div>
 <div class="listingblock">
-<div class="content"><!-- Generator: GNU source-highlight 2.9
+<div class="content"><!-- Generator: GNU source-highlight 2.11.1
 by Lorenzo Bettini
 http://www.lorenzobettini.it
 http://www.gnu.org/software/src-highlite -->
@@ -458,7 +458,7 @@ map<span style="color: #990000">.</span>resources <span style="color: #990000">:
 <h3 id="_singular_resources">3.5. Singular Resources</h3>
 <div class="paragraph"><p>You can also apply RESTful routing to singleton resources within your application. In this case, you use <tt>map.resource</tt> instead of <tt>map.resources</tt> and the route generation is slightly different. For example, a routing entry of</p></div>
 <div class="listingblock">
-<div class="content"><!-- Generator: GNU source-highlight 2.9
+<div class="content"><!-- Generator: GNU source-highlight 2.11.1
 by Lorenzo Bettini
 http://www.lorenzobettini.it
 http://www.gnu.org/software/src-highlite -->
@@ -613,7 +613,7 @@ cellspacing="0" cellpadding="4">
 <h4 id="_using_controller">3.6.1. Using :controller</h4>
 <div class="paragraph"><p>The <tt>:controller</tt> option lets you use a controller name that is different from the public-facing resource name. For example, this routing entry:</p></div>
 <div class="listingblock">
-<div class="content"><!-- Generator: GNU source-highlight 2.9
+<div class="content"><!-- Generator: GNU source-highlight 2.11.1
 by Lorenzo Bettini
 http://www.lorenzobettini.it
 http://www.gnu.org/software/src-highlite -->
@@ -702,7 +702,7 @@ cellspacing="0" cellpadding="4">
 <h3 id="_controller_namespaces_and_routing">3.7. Controller Namespaces and Routing</h3>
 <div class="paragraph"><p>Rails allows you to group your controllers into namespaces by saving them in folders underneath <tt>app/controllers</tt>. The <tt>:controller</tt> option provides a convenient way to use these routes. For example, you might have a resource whose controller is purely for admin users in the <tt>admin</tt> folder:</p></div>
 <div class="listingblock">
-<div class="content"><!-- Generator: GNU source-highlight 2.9
+<div class="content"><!-- Generator: GNU source-highlight 2.11.1
 by Lorenzo Bettini
 http://www.lorenzobettini.it
 http://www.gnu.org/software/src-highlite -->
@@ -718,14 +718,14 @@ http://www.gnu.org/software/src-highlite -->
 </div>
 <div class="paragraph"><p>You can also specify a controller namespace with the <tt>:namespace</tt> option instead of a path:</p></div>
 <div class="listingblock">
-<div class="content"><!-- Generator: GNU source-highlight 2.9
+<div class="content"><!-- Generator: GNU source-highlight 2.11.1
 by Lorenzo Bettini
 http://www.lorenzobettini.it
 http://www.gnu.org/software/src-highlite -->
 <pre><tt>map<span style="color: #990000">.</span>resources <span style="color: #990000">:</span>adminphotos<span style="color: #990000">,</span> <span style="color: #990000">:</span>namespace <span style="color: #990000">=&gt;</span> <span style="color: #FF0000">"admin"</span><span style="color: #990000">,</span> <span style="color: #990000">:</span>controller <span style="color: #990000">=&gt;</span> <span style="color: #FF0000">"photos"</span></tt></pre></div></div>
 <div class="paragraph"><p>This can be especially useful when combined with <tt>with_options</tt> to map multiple namespaced routes together:</p></div>
 <div class="listingblock">
-<div class="content"><!-- Generator: GNU source-highlight 2.9
+<div class="content"><!-- Generator: GNU source-highlight 2.11.1
 by Lorenzo Bettini
 http://www.lorenzobettini.it
 http://www.gnu.org/software/src-highlite -->
@@ -736,7 +736,7 @@ http://www.gnu.org/software/src-highlite -->
 <h4 id="_using_singular">3.7.1. Using :singular</h4>
 <div class="paragraph"><p>If for some reason Rails isn&#8217;t doing what you want in converting the plural resource name to a singular name in member routes, you can override its judgment with the <tt>:singular</tt> option:</p></div>
 <div class="listingblock">
-<div class="content"><!-- Generator: GNU source-highlight 2.9
+<div class="content"><!-- Generator: GNU source-highlight 2.11.1
 by Lorenzo Bettini
 http://www.lorenzobettini.it
 http://www.gnu.org/software/src-highlite -->
@@ -752,7 +752,7 @@ http://www.gnu.org/software/src-highlite -->
 <h4 id="_using_requirements">3.7.2. Using :requirements</h4>
 <div class="paragraph"><p>You an use the <tt>:requirements</tt> option in a RESTful route to impose a format on the implied <tt>:id</tt> parameter in the singular routes. For example:</p></div>
 <div class="listingblock">
-<div class="content"><!-- Generator: GNU source-highlight 2.9
+<div class="content"><!-- Generator: GNU source-highlight 2.11.1
 by Lorenzo Bettini
 http://www.lorenzobettini.it
 http://www.gnu.org/software/src-highlite -->
@@ -763,7 +763,7 @@ http://www.gnu.org/software/src-highlite -->
 <h4 id="_using_as">3.7.4. Using :as</h4>
 <div class="paragraph"><p>The <tt>:as</tt> option lets you override the normal naming for the actual generated paths. For example:</p></div>
 <div class="listingblock">
-<div class="content"><!-- Generator: GNU source-highlight 2.9
+<div class="content"><!-- Generator: GNU source-highlight 2.11.1
 by Lorenzo Bettini
 http://www.lorenzobettini.it
 http://www.gnu.org/software/src-highlite -->
@@ -852,7 +852,7 @@ cellspacing="0" cellpadding="4">
 <h4 id="_using_path_names">3.7.5. Using :path_names</h4>
 <div class="paragraph"><p>The <tt>:path_names</tt> option lets you override the automatically-generated "new" and "edit" segments in URLs:</p></div>
 <div class="listingblock">
-<div class="content"><!-- Generator: GNU source-highlight 2.9
+<div class="content"><!-- Generator: GNU source-highlight 2.11.1
 by Lorenzo Bettini
 http://www.lorenzobettini.it
 http://www.gnu.org/software/src-highlite -->
@@ -880,7 +880,7 @@ http://www.gnu.org/software/src-highlite -->
 </tr></table>
 </div>
 <div class="listingblock">
-<div class="content"><!-- Generator: GNU source-highlight 2.9
+<div class="content"><!-- Generator: GNU source-highlight 2.11.1
 by Lorenzo Bettini
 http://www.lorenzobettini.it
 http://www.gnu.org/software/src-highlite -->
@@ -888,7 +888,7 @@ http://www.gnu.org/software/src-highlite -->
 <h4 id="_using_path_prefix">3.7.6. Using :path_prefix</h4>
 <div class="paragraph"><p>The <tt>:path_prefix</tt> option lets you add additional parameters that will be prefixed to the recognized paths. For example, suppose each photo in your application belongs to a particular photographer. In that case, you might declare this route:</p></div>
 <div class="listingblock">
-<div class="content"><!-- Generator: GNU source-highlight 2.9
+<div class="content"><!-- Generator: GNU source-highlight 2.11.1
 by Lorenzo Bettini
 http://www.lorenzobettini.it
 http://www.gnu.org/software/src-highlite -->
@@ -918,7 +918,7 @@ http://www.gnu.org/software/src-highlite -->
 <h4 id="_using_name_prefix">3.7.7. Using :name_prefix</h4>
 <div class="paragraph"><p>You can use the :name_prefix option to avoid collisions between routes. This is most useful when you have two resources with the same name that use <tt>:path_prefix</tt> to map differently. For example:</p></div>
 <div class="listingblock">
-<div class="content"><!-- Generator: GNU source-highlight 2.9
+<div class="content"><!-- Generator: GNU source-highlight 2.11.1
 by Lorenzo Bettini
 http://www.lorenzobettini.it
 http://www.gnu.org/software/src-highlite -->
@@ -936,7 +936,7 @@ map<span style="color: #990000">.</span>resources <span style="color: #990000">:
 <h4 id="_using_only_and_except">3.7.8. Using :only and :except</h4>
 <div class="paragraph"><p>By default, Rails creates routes for all seven of the default actions (index, show, new, create, edit, update, and destroy) for every RESTful route in your application. You can use the <tt>:only</tt> and <tt>:except</tt> options to fine-tune this behavior. The <tt>:only</tt> option specifies that only certain routes should be generated:</p></div>
 <div class="listingblock">
-<div class="content"><!-- Generator: GNU source-highlight 2.9
+<div class="content"><!-- Generator: GNU source-highlight 2.11.1
 by Lorenzo Bettini
 http://www.lorenzobettini.it
 http://www.gnu.org/software/src-highlite -->
@@ -944,7 +944,7 @@ http://www.gnu.org/software/src-highlite -->
 <div class="paragraph"><p>With this declaration, a <tt>GET</tt> request to <tt>/photos</tt> would succeed, but a <tt>POST</tt> request to <tt>/photos</tt> (which would ordinarily be routed to the create action) will fail.</p></div>
 <div class="paragraph"><p>The <tt>:except</tt> option specifies a route or list of routes that should <em>not</em> be generated:</p></div>
 <div class="listingblock">
-<div class="content"><!-- Generator: GNU source-highlight 2.9
+<div class="content"><!-- Generator: GNU source-highlight 2.11.1
 by Lorenzo Bettini
 http://www.lorenzobettini.it
 http://www.gnu.org/software/src-highlite -->
@@ -962,7 +962,7 @@ http://www.gnu.org/software/src-highlite -->
 <h3 id="_nested_resources">3.8. Nested Resources</h3>
 <div class="paragraph"><p>It&#8217;s common to have resources that are logically children of other resources. For example, suppose your application includes these models:</p></div>
 <div class="listingblock">
-<div class="content"><!-- Generator: GNU source-highlight 2.9
+<div class="content"><!-- Generator: GNU source-highlight 2.11.1
 by Lorenzo Bettini
 http://www.lorenzobettini.it
 http://www.gnu.org/software/src-highlite -->
@@ -975,7 +975,7 @@ http://www.gnu.org/software/src-highlite -->
 <span style="font-weight: bold"><span style="color: #0000FF">end</span></span></tt></pre></div></div>
 <div class="paragraph"><p>Each ad is logically subservient to one magazine. Nested routes allow you to capture this relationship in your routing. In this case, you might include this route declaration:</p></div>
 <div class="listingblock">
-<div class="content"><!-- Generator: GNU source-highlight 2.9
+<div class="content"><!-- Generator: GNU source-highlight 2.11.1
 by Lorenzo Bettini
 http://www.lorenzobettini.it
 http://www.gnu.org/software/src-highlite -->
@@ -1059,7 +1059,7 @@ cellspacing="0" cellpadding="4">
 <h4 id="_using_name_prefix_2">3.8.1. Using :name_prefix</h4>
 <div class="paragraph"><p>The <tt>:name_prefix</tt> option overrides the automatically-generated prefix in nested route helpers. For example,</p></div>
 <div class="listingblock">
-<div class="content"><!-- Generator: GNU source-highlight 2.9
+<div class="content"><!-- Generator: GNU source-highlight 2.11.1
 by Lorenzo Bettini
 http://www.lorenzobettini.it
 http://www.gnu.org/software/src-highlite -->
@@ -1068,7 +1068,7 @@ http://www.gnu.org/software/src-highlite -->
 <span style="font-weight: bold"><span style="color: #0000FF">end</span></span></tt></pre></div></div>
 <div class="paragraph"><p>This will create routing helpers such as <tt>periodical_ads_url</tt> and <tt>periodical_edit_ad_path</tt>. You can even use <tt>:name_prefix</tt> to suppress the prefix entirely:</p></div>
 <div class="listingblock">
-<div class="content"><!-- Generator: GNU source-highlight 2.9
+<div class="content"><!-- Generator: GNU source-highlight 2.11.1
 by Lorenzo Bettini
 http://www.lorenzobettini.it
 http://www.gnu.org/software/src-highlite -->
@@ -1077,7 +1077,7 @@ http://www.gnu.org/software/src-highlite -->
 <span style="font-weight: bold"><span style="color: #0000FF">end</span></span></tt></pre></div></div>
 <div class="paragraph"><p>This will create routing helpers such as <tt>ads_url</tt> and <tt>edit_ad_path</tt>. Note that calling these will still require supplying an article id:</p></div>
 <div class="listingblock">
-<div class="content"><!-- Generator: GNU source-highlight 2.9
+<div class="content"><!-- Generator: GNU source-highlight 2.11.1
 by Lorenzo Bettini
 http://www.lorenzobettini.it
 http://www.gnu.org/software/src-highlite -->
@@ -1086,14 +1086,14 @@ edit_ad_path<span style="color: #990000">(</span><span style="color: #009900">@m
 <h4 id="_using_has_one_and_has_many">3.8.2. Using :has_one and :has_many</h4>
 <div class="paragraph"><p>The <tt>:has_one</tt> and <tt>:has_many</tt> options provide a succinct notation for simple nested routes. Use <tt>:has_one</tt> to nest a singleton resource, or <tt>:has_many</tt> to nest a plural resource:</p></div>
 <div class="listingblock">
-<div class="content"><!-- Generator: GNU source-highlight 2.9
+<div class="content"><!-- Generator: GNU source-highlight 2.11.1
 by Lorenzo Bettini
 http://www.lorenzobettini.it
 http://www.gnu.org/software/src-highlite -->
 <pre><tt>map<span style="color: #990000">.</span>resources <span style="color: #990000">:</span>photos<span style="color: #990000">,</span> <span style="color: #990000">:</span>has_one <span style="color: #990000">=&gt;</span> <span style="color: #990000">:</span>photographer<span style="color: #990000">,</span> <span style="color: #990000">:</span>has_many <span style="color: #990000">=&gt;</span> <span style="color: #990000">[:</span>publications<span style="color: #990000">,</span> <span style="color: #990000">:</span>versions<span style="color: #990000">]</span></tt></pre></div></div>
 <div class="paragraph"><p>This has the same effect as this set of declarations:</p></div>
 <div class="listingblock">
-<div class="content"><!-- Generator: GNU source-highlight 2.9
+<div class="content"><!-- Generator: GNU source-highlight 2.11.1
 by Lorenzo Bettini
 http://www.lorenzobettini.it
 http://www.gnu.org/software/src-highlite -->
@@ -1105,7 +1105,7 @@ http://www.gnu.org/software/src-highlite -->
 <h4 id="_limits_to_nesting">3.8.3. Limits to Nesting</h4>
 <div class="paragraph"><p>You can nest resources within other nested resources if you like. For example:</p></div>
 <div class="listingblock">
-<div class="content"><!-- Generator: GNU source-highlight 2.9
+<div class="content"><!-- Generator: GNU source-highlight 2.11.1
 by Lorenzo Bettini
 http://www.lorenzobettini.it
 http://www.gnu.org/software/src-highlite -->
@@ -1124,7 +1124,7 @@ http://www.gnu.org/software/src-highlite -->
 <h4 id="_shallow_nesting">3.8.4. Shallow Nesting</h4>
 <div class="paragraph"><p>The <tt>:shallow</tt> option provides an elegant solution to the difficulties of deeply-nested routes. If you specify this option at any level of routing, then paths for nested resources which reference a specific member (that is, those with an <tt>:id</tt> parameter) will not use the parent path prefix or name prefix. To see what this means, consider this set of routes:</p></div>
 <div class="listingblock">
-<div class="content"><!-- Generator: GNU source-highlight 2.9
+<div class="content"><!-- Generator: GNU source-highlight 2.11.1
 by Lorenzo Bettini
 http://www.lorenzobettini.it
 http://www.gnu.org/software/src-highlite -->
@@ -1144,7 +1144,7 @@ http://www.gnu.org/software/src-highlite -->
 </div></div>
 <div class="paragraph"><p>With shallow nesting, you need only supply enough information to uniquely identify the resource that you want to work with. If you like, you can combine shallow nesting with the <tt>:has_one</tt> and <tt>:has_many</tt> options:</p></div>
 <div class="listingblock">
-<div class="content"><!-- Generator: GNU source-highlight 2.9
+<div class="content"><!-- Generator: GNU source-highlight 2.11.1
 by Lorenzo Bettini
 http://www.lorenzobettini.it
 http://www.gnu.org/software/src-highlite -->
@@ -1152,7 +1152,7 @@ http://www.gnu.org/software/src-highlite -->
 <h3 id="_route_generation_from_arrays">3.9. Route Generation from Arrays</h3>
 <div class="paragraph"><p>In addition to using the generated routing helpers, Rails can also generate RESTful routes from an array of parameters. For example, suppose you have a set of routes generated with these entries in routes.rb:</p></div>
 <div class="listingblock">
-<div class="content"><!-- Generator: GNU source-highlight 2.9
+<div class="content"><!-- Generator: GNU source-highlight 2.11.1
 by Lorenzo Bettini
 http://www.lorenzobettini.it
 http://www.gnu.org/software/src-highlite -->
@@ -1161,14 +1161,14 @@ http://www.gnu.org/software/src-highlite -->
 <span style="font-weight: bold"><span style="color: #0000FF">end</span></span></tt></pre></div></div>
 <div class="paragraph"><p>Rails will generate helpers such as magazine_ad_path that you can use in building links:</p></div>
 <div class="listingblock">
-<div class="content"><!-- Generator: GNU source-highlight 2.9
+<div class="content"><!-- Generator: GNU source-highlight 2.11.1
 by Lorenzo Bettini
 http://www.lorenzobettini.it
 http://www.gnu.org/software/src-highlite -->
 <pre><tt><span style="color: #FF0000">&lt;%= link_to "Ad details", magazine_ad_path(@magazine, @ad) %&gt;</span></tt></pre></div></div>
 <div class="paragraph"><p>Another way to refer to the same route is with an array of objects:</p></div>
 <div class="listingblock">
-<div class="content"><!-- Generator: GNU source-highlight 2.9
+<div class="content"><!-- Generator: GNU source-highlight 2.11.1
 by Lorenzo Bettini
 http://www.lorenzobettini.it
 http://www.gnu.org/software/src-highlite -->
@@ -1177,7 +1177,7 @@ http://www.gnu.org/software/src-highlite -->
 <h3 id="_namespaced_resources">3.10. Namespaced Resources</h3>
 <div class="paragraph"><p>It&#8217;s possible to do some quite complex things by combining <tt>:path_prefix</tt> and <tt>:name_prefix</tt>. For example, you can use the combination of these two options to move administrative resources to their own folder in your application:</p></div>
 <div class="listingblock">
-<div class="content"><!-- Generator: GNU source-highlight 2.9
+<div class="content"><!-- Generator: GNU source-highlight 2.11.1
 by Lorenzo Bettini
 http://www.lorenzobettini.it
 http://www.gnu.org/software/src-highlite -->
@@ -1186,7 +1186,7 @@ map<span style="color: #990000">.</span>resources <span style="color: #990000">:
 map<span style="color: #990000">.</span>resources <span style="color: #990000">:</span>ratings<span style="color: #990000">,</span> <span style="color: #990000">:</span>name_prefix <span style="color: #990000">=&gt;</span> <span style="color: #FF0000">'admin_photo_'</span><span style="color: #990000">,</span> <span style="color: #990000">:</span>path_prefix <span style="color: #990000">=&gt;</span> <span style="color: #FF0000">'admin/photos/:photo_id'</span><span style="color: #990000">,</span> <span style="color: #990000">:</span>controller <span style="color: #990000">=&gt;</span> <span style="color: #FF0000">'admin/photo_ratings'</span></tt></pre></div></div>
 <div class="paragraph"><p>The good news is that if you find yourself using this level of complexity, you can stop. Rails supports <em>namespaced resources</em> to make placing resources in their own folder a snap. Here&#8217;s the namespaced version of those same three routes:</p></div>
 <div class="listingblock">
-<div class="content"><!-- Generator: GNU source-highlight 2.9
+<div class="content"><!-- Generator: GNU source-highlight 2.11.1
 by Lorenzo Bettini
 http://www.lorenzobettini.it
 http://www.gnu.org/software/src-highlite -->
@@ -1200,7 +1200,7 @@ http://www.gnu.org/software/src-highlite -->
 <h4 id="_adding_member_routes">3.11.1. Adding Member Routes</h4>
 <div class="paragraph"><p>To add a member route, use the <tt>:member</tt> option:</p></div>
 <div class="listingblock">
-<div class="content"><!-- Generator: GNU source-highlight 2.9
+<div class="content"><!-- Generator: GNU source-highlight 2.11.1
 by Lorenzo Bettini
 http://www.lorenzobettini.it
 http://www.gnu.org/software/src-highlite -->
@@ -1208,7 +1208,7 @@ http://www.gnu.org/software/src-highlite -->
 <div class="paragraph"><p>This will enable Rails to recognize URLs such as <tt>/photos/1/preview</tt> using the GET HTTP verb, and route them to the preview action of the Photos controller. It will also create a <tt>preview_photo</tt> route helper.</p></div>
 <div class="paragraph"><p>Within the hash of member routes, each route name specifies the HTTP verb that it will recognize. You can use <tt>:get</tt>, <tt>:put</tt>, <tt>:post</tt>, <tt>:delete</tt>, or <tt>:any</tt> here. You can also specify an array of methods, if you need more than one but you don&#8217;t want to allow just anything:</p></div>
 <div class="listingblock">
-<div class="content"><!-- Generator: GNU source-highlight 2.9
+<div class="content"><!-- Generator: GNU source-highlight 2.11.1
 by Lorenzo Bettini
 http://www.lorenzobettini.it
 http://www.gnu.org/software/src-highlite -->
@@ -1216,7 +1216,7 @@ http://www.gnu.org/software/src-highlite -->
 <h4 id="_adding_collection_routes">3.11.2. Adding Collection Routes</h4>
 <div class="paragraph"><p>To add a collection route, use the <tt>:collection</tt> option:</p></div>
 <div class="listingblock">
-<div class="content"><!-- Generator: GNU source-highlight 2.9
+<div class="content"><!-- Generator: GNU source-highlight 2.11.1
 by Lorenzo Bettini
 http://www.lorenzobettini.it
 http://www.gnu.org/software/src-highlite -->
@@ -1224,7 +1224,7 @@ http://www.gnu.org/software/src-highlite -->
 <div class="paragraph"><p>This will enable Rails to recognize URLs such as <tt>/photos/search</tt> using the GET HTTP verb, and route them to the search action of the Photos controller. It will also create a <tt>search_photos</tt> route helper.</p></div>
 <div class="paragraph"><p>Just as with member routes, you can specify an array of methods for a collection route:</p></div>
 <div class="listingblock">
-<div class="content"><!-- Generator: GNU source-highlight 2.9
+<div class="content"><!-- Generator: GNU source-highlight 2.11.1
 by Lorenzo Bettini
 http://www.lorenzobettini.it
 http://www.gnu.org/software/src-highlite -->
@@ -1232,7 +1232,7 @@ http://www.gnu.org/software/src-highlite -->
 <h4 id="_adding_new_routes">3.11.3. Adding New Routes</h4>
 <div class="paragraph"><p>To add a new route (one that creates a new resource), use the <tt>:new</tt> option:</p></div>
 <div class="listingblock">
-<div class="content"><!-- Generator: GNU source-highlight 2.9
+<div class="content"><!-- Generator: GNU source-highlight 2.11.1
 by Lorenzo Bettini
 http://www.lorenzobettini.it
 http://www.gnu.org/software/src-highlite -->
@@ -1247,7 +1247,7 @@ http://www.gnu.org/software/src-highlite -->
 </tr></table>
 </div>
 <div class="listingblock">
-<div class="content"><!-- Generator: GNU source-highlight 2.9
+<div class="content"><!-- Generator: GNU source-highlight 2.11.1
 by Lorenzo Bettini
 http://www.lorenzobettini.it
 http://www.gnu.org/software/src-highlite -->
@@ -1263,7 +1263,7 @@ http://www.gnu.org/software/src-highlite -->
 <h3 id="_bound_parameters">4.1. Bound Parameters</h3>
 <div class="paragraph"><p>When you set up a regular route, you supply a series of symbols that Rails maps to parts of an incoming HTTP request. Two of these symbols are special: <tt>:controller</tt> maps to the name of a controller in your application, and <tt>:action</tt> maps to the name of an action within that controller. For example, consider one of the default Rails routes:</p></div>
 <div class="listingblock">
-<div class="content"><!-- Generator: GNU source-highlight 2.9
+<div class="content"><!-- Generator: GNU source-highlight 2.11.1
 by Lorenzo Bettini
 http://www.lorenzobettini.it
 http://www.gnu.org/software/src-highlite -->
@@ -1272,7 +1272,7 @@ http://www.gnu.org/software/src-highlite -->
 <h3 id="_wildcard_components">4.2. Wildcard Components</h3>
 <div class="paragraph"><p>You can set up as many wildcard symbols within a regular route as you like. Anything other than <tt>:controller</tt> or <tt>:action</tt> will be available to the matching action as part of the params hash. So, if you set up this route:</p></div>
 <div class="listingblock">
-<div class="content"><!-- Generator: GNU source-highlight 2.9
+<div class="content"><!-- Generator: GNU source-highlight 2.11.1
 by Lorenzo Bettini
 http://www.lorenzobettini.it
 http://www.gnu.org/software/src-highlite -->
@@ -1281,7 +1281,7 @@ http://www.gnu.org/software/src-highlite -->
 <h3 id="_static_text">4.3. Static Text</h3>
 <div class="paragraph"><p>You can specify static text when creating a route. In this case, the static text is used only for matching the incoming requests:</p></div>
 <div class="listingblock">
-<div class="content"><!-- Generator: GNU source-highlight 2.9
+<div class="content"><!-- Generator: GNU source-highlight 2.11.1
 by Lorenzo Bettini
 http://www.lorenzobettini.it
 http://www.gnu.org/software/src-highlite -->
@@ -1290,7 +1290,7 @@ http://www.gnu.org/software/src-highlite -->
 <h3 id="_querystring_parameters">4.4. Querystring Parameters</h3>
 <div class="paragraph"><p>Rails routing automatically picks up querystring parameters and makes them available in the <tt>params</tt> hash. For example, with this route:</p></div>
 <div class="listingblock">
-<div class="content"><!-- Generator: GNU source-highlight 2.9
+<div class="content"><!-- Generator: GNU source-highlight 2.11.1
 by Lorenzo Bettini
 http://www.lorenzobettini.it
 http://www.gnu.org/software/src-highlite -->
@@ -1299,7 +1299,7 @@ http://www.gnu.org/software/src-highlite -->
 <h3 id="_defining_defaults">4.5. Defining Defaults</h3>
 <div class="paragraph"><p>You do not need to explicitly use the <tt>:controller</tt> and <tt>:action</tt> symbols within a route. You can supply defaults for these two parameters in a hash:</p></div>
 <div class="listingblock">
-<div class="content"><!-- Generator: GNU source-highlight 2.9
+<div class="content"><!-- Generator: GNU source-highlight 2.11.1
 by Lorenzo Bettini
 http://www.lorenzobettini.it
 http://www.gnu.org/software/src-highlite -->
@@ -1307,7 +1307,7 @@ http://www.gnu.org/software/src-highlite -->
 <div class="paragraph"><p>With this route, an incoming URL of <tt>/photos/12</tt> would be dispatched to the <tt>show</tt> action within the <tt>Photos</tt> controller.</p></div>
 <div class="paragraph"><p>You an also define other defaults in a route by supplying a hash for the <tt>:defaults</tt> option. This even applies to parameters that are not explicitly defined elsewhere in the route. For example:</p></div>
 <div class="listingblock">
-<div class="content"><!-- Generator: GNU source-highlight 2.9
+<div class="content"><!-- Generator: GNU source-highlight 2.11.1
 by Lorenzo Bettini
 http://www.lorenzobettini.it
 http://www.gnu.org/software/src-highlite -->
@@ -1316,7 +1316,7 @@ http://www.gnu.org/software/src-highlite -->
 <h3 id="_named_routes_2">4.6. Named Routes</h3>
 <div class="paragraph"><p>Regular routes need not use the <tt>connect</tt> method. You can use any other name here to create a <em>named route</em>. For example,</p></div>
 <div class="listingblock">
-<div class="content"><!-- Generator: GNU source-highlight 2.9
+<div class="content"><!-- Generator: GNU source-highlight 2.11.1
 by Lorenzo Bettini
 http://www.lorenzobettini.it
 http://www.gnu.org/software/src-highlite -->
@@ -1325,7 +1325,7 @@ http://www.gnu.org/software/src-highlite -->
 <h3 id="_route_requirements">4.7. Route Requirements</h3>
 <div class="paragraph"><p>You can use the <tt>:requirements</tt> option to enforce a format for any parameter in a route:</p></div>
 <div class="listingblock">
-<div class="content"><!-- Generator: GNU source-highlight 2.9
+<div class="content"><!-- Generator: GNU source-highlight 2.11.1
 by Lorenzo Bettini
 http://www.lorenzobettini.it
 http://www.gnu.org/software/src-highlite -->
@@ -1333,7 +1333,7 @@ http://www.gnu.org/software/src-highlite -->
  <span style="color: #990000">:</span>requirements <span style="color: #990000">=&gt;</span> <span style="color: #FF0000">{</span> <span style="color: #990000">:</span>id <span style="color: #990000">=&gt;</span> <span style="color: #FF6600">/[A-Z]\d{5}/</span> <span style="color: #FF0000">}</span></tt></pre></div></div>
 <div class="paragraph"><p>This route would respond to URLs such as <tt>/photo/A12345</tt>. You can more succinctly express the same route this way:</p></div>
 <div class="listingblock">
-<div class="content"><!-- Generator: GNU source-highlight 2.9
+<div class="content"><!-- Generator: GNU source-highlight 2.11.1
 by Lorenzo Bettini
 http://www.lorenzobettini.it
 http://www.gnu.org/software/src-highlite -->
@@ -1342,7 +1342,7 @@ http://www.gnu.org/software/src-highlite -->
 <h3 id="_route_conditions">4.8. Route Conditions</h3>
 <div class="paragraph"><p>Route conditions (introduced with the <tt>:conditions</tt> option) are designed to implement restrictions on routes. Currently, the only supported restriction is <tt>:method</tt>:</p></div>
 <div class="listingblock">
-<div class="content"><!-- Generator: GNU source-highlight 2.9
+<div class="content"><!-- Generator: GNU source-highlight 2.11.1
 by Lorenzo Bettini
 http://www.lorenzobettini.it
 http://www.gnu.org/software/src-highlite -->
@@ -1352,7 +1352,7 @@ http://www.gnu.org/software/src-highlite -->
 <h3 id="_route_globbing">4.9. Route Globbing</h3>
 <div class="paragraph"><p>Route globbing is a way to specify that a particular parameter should be matched to all the remaining parts of a route. For example</p></div>
 <div class="listingblock">
-<div class="content"><!-- Generator: GNU source-highlight 2.9
+<div class="content"><!-- Generator: GNU source-highlight 2.11.1
 by Lorenzo Bettini
 http://www.lorenzobettini.it
 http://www.gnu.org/software/src-highlite -->
@@ -1361,7 +1361,7 @@ http://www.gnu.org/software/src-highlite -->
 <h3 id="_route_options">4.10. Route Options</h3>
 <div class="paragraph"><p>You can use <tt>:with_options</tt> to simplify defining groups of similar routes:</p></div>
 <div class="listingblock">
-<div class="content"><!-- Generator: GNU source-highlight 2.9
+<div class="content"><!-- Generator: GNU source-highlight 2.11.1
 by Lorenzo Bettini
 http://www.lorenzobettini.it
 http://www.gnu.org/software/src-highlite -->
@@ -1377,14 +1377,14 @@ http://www.gnu.org/software/src-highlite -->
 <div class="paragraph"><p>There&#8217;s one more way in which routing can do different things depending on differences in the incoming HTTP request: by issuing a response that corresponds to what the request specifies that it will accept. In Rails routing, you can control this with the special <tt>:format</tt> parameter in the route.</p></div>
 <div class="paragraph"><p>For instance, consider the second of the default routes in the boilerplate <tt>routes.rb</tt> file:</p></div>
 <div class="listingblock">
-<div class="content"><!-- Generator: GNU source-highlight 2.9
+<div class="content"><!-- Generator: GNU source-highlight 2.11.1
 by Lorenzo Bettini
 http://www.lorenzobettini.it
 http://www.gnu.org/software/src-highlite -->
 <pre><tt>map<span style="color: #990000">.</span>connect <span style="color: #FF0000">':controller/:action/:id.:format'</span></tt></pre></div></div>
 <div class="paragraph"><p>This route matches requests such as <tt>/photo/edit/1.xml</tt> or <tt>/photo/show/2.rss</tt>. Within the appropriate action code, you can issue different responses depending on the requested format:</p></div>
 <div class="listingblock">
-<div class="content"><!-- Generator: GNU source-highlight 2.9
+<div class="content"><!-- Generator: GNU source-highlight 2.11.1
 by Lorenzo Bettini
 http://www.lorenzobettini.it
 http://www.gnu.org/software/src-highlite -->
@@ -1397,7 +1397,7 @@ http://www.gnu.org/software/src-highlite -->
 <h3 id="_recognized_mime_types">5.2. Recognized MIME types</h3>
 <div class="paragraph"><p>By default, Rails recognizes <tt>html</tt>, <tt>text</tt>, <tt>json</tt>, <tt>csv</tt>, <tt>xml</tt>, <tt>rss</tt>, <tt>atom</tt>, and <tt>yaml</tt> as acceptable response types. If you need types beyond this, you can register them in your environment:</p></div>
 <div class="listingblock">
-<div class="content"><!-- Generator: GNU source-highlight 2.9
+<div class="content"><!-- Generator: GNU source-highlight 2.11.1
 by Lorenzo Bettini
 http://www.lorenzobettini.it
 http://www.gnu.org/software/src-highlite -->
@@ -1407,7 +1407,7 @@ http://www.gnu.org/software/src-highlite -->
 <div class="sectionbody">
 <div class="paragraph"><p>When you create a new Rails application, <tt>routes.rb</tt> is initialized with two default routes:</p></div>
 <div class="listingblock">
-<div class="content"><!-- Generator: GNU source-highlight 2.9
+<div class="content"><!-- Generator: GNU source-highlight 2.11.1
 by Lorenzo Bettini
 http://www.lorenzobettini.it
 http://www.gnu.org/software/src-highlite -->
@@ -1429,7 +1429,7 @@ map<span style="color: #990000">.</span>connect <span style="color: #FF0000">':c
 <h3 id="_using_map_root">7.1. Using map.root</h3>
 <div class="paragraph"><p>The preferred way to set up the empty route is with the <tt>map.root</tt> command:</p></div>
 <div class="listingblock">
-<div class="content"><!-- Generator: GNU source-highlight 2.9
+<div class="content"><!-- Generator: GNU source-highlight 2.11.1
 by Lorenzo Bettini
 http://www.lorenzobettini.it
 http://www.gnu.org/software/src-highlite -->
@@ -1437,7 +1437,7 @@ http://www.gnu.org/software/src-highlite -->
 <div class="paragraph"><p>The use of the <tt>root</tt> method tells Rails that this route applies to requests for the root of the site.</p></div>
 <div class="paragraph"><p>For better readability, you can specify an already-created route in your call to <tt>map.root</tt>:</p></div>
 <div class="listingblock">
-<div class="content"><!-- Generator: GNU source-highlight 2.9
+<div class="content"><!-- Generator: GNU source-highlight 2.11.1
 by Lorenzo Bettini
 http://www.lorenzobettini.it
 http://www.gnu.org/software/src-highlite -->
@@ -1447,7 +1447,7 @@ map<span style="color: #990000">.</span>root <span style="color: #990000">:</spa
 <h3 id="_connecting_the_empty_string">7.2. Connecting the Empty String</h3>
 <div class="paragraph"><p>You can also specify an empty route by explicitly connecting the empty string:</p></div>
 <div class="listingblock">
-<div class="content"><!-- Generator: GNU source-highlight 2.9
+<div class="content"><!-- Generator: GNU source-highlight 2.11.1
 by Lorenzo Bettini
 http://www.lorenzobettini.it
 http://www.gnu.org/software/src-highlite -->
@@ -1526,7 +1526,7 @@ formatted_users GET  /users.:format  {:controller=&gt;"users", :action=&gt;"inde
 <h4 id="_the_tt_assert_generates_tt_assertion">8.2.1. The <tt>assert_generates</tt> Assertion</h4>
 <div class="paragraph"><p>Use <tt>assert_generates</tt> to assert that a particular set of options generate a particular path. You can use this with default routes or custom routes</p></div>
 <div class="listingblock">
-<div class="content"><!-- Generator: GNU source-highlight 2.9
+<div class="content"><!-- Generator: GNU source-highlight 2.11.1
 by Lorenzo Bettini
 http://www.lorenzobettini.it
 http://www.gnu.org/software/src-highlite -->
@@ -1535,21 +1535,21 @@ assert_generates <span style="color: #FF0000">"/about"</span><span style="color:
 <h4 id="_the_tt_assert_recognizes_tt_assertion">8.2.2. The <tt>assert_recognizes</tt> Assertion</h4>
 <div class="paragraph"><p>The <tt>assert_recognizes</tt> assertion is the inverse of <tt>assert_generates</tt>. It asserts that Rails recognizes the given path and routes it to a particular spot in your application.</p></div>
 <div class="listingblock">
-<div class="content"><!-- Generator: GNU source-highlight 2.9
+<div class="content"><!-- Generator: GNU source-highlight 2.11.1
 by Lorenzo Bettini
 http://www.lorenzobettini.it
 http://www.gnu.org/software/src-highlite -->
 <pre><tt>assert_recognizes <span style="color: #FF0000">{</span> <span style="color: #990000">:</span>controller <span style="color: #990000">=&gt;</span> <span style="color: #FF0000">"photos"</span><span style="color: #990000">,</span> <span style="color: #990000">:</span>action <span style="color: #990000">=&gt;</span> <span style="color: #FF0000">"show"</span><span style="color: #990000">,</span> <span style="color: #990000">:</span>id <span style="color: #990000">=&gt;</span> <span style="color: #FF0000">"1"</span> <span style="color: #FF0000">}</span><span style="color: #990000">,</span> <span style="color: #FF0000">"/photos/1"</span></tt></pre></div></div>
 <div class="paragraph"><p>You can supply a <tt>:method</tt> argument to specify the HTTP verb:</p></div>
 <div class="listingblock">
-<div class="content"><!-- Generator: GNU source-highlight 2.9
+<div class="content"><!-- Generator: GNU source-highlight 2.11.1
 by Lorenzo Bettini
 http://www.lorenzobettini.it
 http://www.gnu.org/software/src-highlite -->
 <pre><tt>assert_recognizes <span style="color: #FF0000">{</span> <span style="color: #990000">:</span>controller <span style="color: #990000">=&gt;</span> <span style="color: #FF0000">"photos"</span><span style="color: #990000">,</span> <span style="color: #990000">:</span>action <span style="color: #990000">=&gt;</span> <span style="color: #FF0000">"create"</span> <span style="color: #FF0000">}</span><span style="color: #990000">,</span> <span style="color: #FF0000">{</span> <span style="color: #990000">:</span>path <span style="color: #990000">=&gt;</span> <span style="color: #FF0000">"photos"</span><span style="color: #990000">,</span> <span style="color: #990000">:</span>method <span style="color: #990000">=&gt;</span> <span style="color: #990000">:</span>post <span style="color: #FF0000">}</span></tt></pre></div></div>
 <div class="paragraph"><p>You can also use the RESTful helpers to test recognition of a RESTful route:</p></div>
 <div class="listingblock">
-<div class="content"><!-- Generator: GNU source-highlight 2.9
+<div class="content"><!-- Generator: GNU source-highlight 2.11.1
 by Lorenzo Bettini
 http://www.lorenzobettini.it
 http://www.gnu.org/software/src-highlite -->
@@ -1557,7 +1557,7 @@ http://www.gnu.org/software/src-highlite -->
 <h4 id="_the_tt_assert_routing_tt_assertion">8.2.3. The <tt>assert_routing</tt> Assertion</h4>
 <div class="paragraph"><p>The <tt>assert_routing</tt> assertion checks the route both ways: it tests that the path generates the options, and that the options generate the path. Thus, it combines the functions of <tt>assert_generates</tt> and <tt>assert_recognizes</tt>.</p></div>
 <div class="listingblock">
-<div class="content"><!-- Generator: GNU source-highlight 2.9
+<div class="content"><!-- Generator: GNU source-highlight 2.11.1
 by Lorenzo Bettini
 http://www.lorenzobettini.it
 http://www.gnu.org/software/src-highlite -->

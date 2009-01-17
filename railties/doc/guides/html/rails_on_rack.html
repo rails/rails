@@ -165,7 +165,7 @@ Understand the best practices for developing a middleware aimed at Rails applica
 <div class="paragraph"><p><tt>script/server</tt> does the basic job of creating a <tt>Rack::Builder</tt> object and starting the webserver. This is Rails equivalent of Rack&#8217;s <tt>rackup</tt> script.</p></div>
 <div class="paragraph"><p>Here&#8217;s how <tt>script/server</tt> creates an instance of <tt>Rack::Builder</tt></p></div>
 <div class="listingblock">
-<div class="content"><!-- Generator: GNU source-highlight 2.9
+<div class="content"><!-- Generator: GNU source-highlight 2.11.1
 by Lorenzo Bettini
 http://www.lorenzobettini.it
 http://www.gnu.org/software/src-highlite -->
@@ -208,7 +208,7 @@ cellspacing="0" cellpadding="4">
 <h3 id="_rackup">2.3. rackup</h3>
 <div class="paragraph"><p>To use <tt>rackup</tt> instead of Rails' <tt>script/server</tt>, you can put the following inside <tt>config.ru</tt> of your Rails application&#8217;s root directory:</p></div>
 <div class="listingblock">
-<div class="content"><!-- Generator: GNU source-highlight 2.9
+<div class="content"><!-- Generator: GNU source-highlight 2.11.1
 by Lorenzo Bettini
 http://www.lorenzobettini.it
 http://www.gnu.org/software/src-highlite -->
@@ -220,14 +220,14 @@ use Rails<span style="color: #990000">::</span>Rack<span style="color: #990000">
 run ActionController<span style="color: #990000">::</span>Dispatcher<span style="color: #990000">.</span>new</tt></pre></div></div>
 <div class="paragraph"><p>And start the server:</p></div>
 <div class="listingblock">
-<div class="content"><!-- Generator: GNU source-highlight 2.9
+<div class="content"><!-- Generator: GNU source-highlight 2.11.1
 by Lorenzo Bettini
 http://www.lorenzobettini.it
 http://www.gnu.org/software/src-highlite -->
 <pre><tt><span style="color: #990000">[</span>lifo@null application<span style="color: #990000">]</span>$ rackup</tt></pre></div></div>
 <div class="paragraph"><p>To find out more about different <tt>rackup</tt> options:</p></div>
 <div class="listingblock">
-<div class="content"><!-- Generator: GNU source-highlight 2.9
+<div class="content"><!-- Generator: GNU source-highlight 2.11.1
 by Lorenzo Bettini
 http://www.lorenzobettini.it
 http://www.gnu.org/software/src-highlite -->
@@ -248,14 +248,14 @@ http://www.gnu.org/software/src-highlite -->
 <h3 id="_inspecting_middleware_stack">3.1. Inspecting Middleware Stack</h3>
 <div class="paragraph"><p>Rails has a handy rake task for inspecting the middleware stack in use:</p></div>
 <div class="listingblock">
-<div class="content"><!-- Generator: GNU source-highlight 2.9
+<div class="content"><!-- Generator: GNU source-highlight 2.11.1
 by Lorenzo Bettini
 http://www.lorenzobettini.it
 http://www.gnu.org/software/src-highlite -->
 <pre><tt>$ rake middleware</tt></pre></div></div>
 <div class="paragraph"><p>For a freshly generated Rails application, this will produce:</p></div>
 <div class="listingblock">
-<div class="content"><!-- Generator: GNU source-highlight 2.9
+<div class="content"><!-- Generator: GNU source-highlight 2.11.1
 by Lorenzo Bettini
 http://www.lorenzobettini.it
 http://www.gnu.org/software/src-highlite -->
@@ -270,7 +270,7 @@ run ActionController<span style="color: #990000">::</span>Dispatcher<span style=
 <div class="paragraph"><p>Rails provides a very simple configuration interface for adding generic Rack middlewares to a Rails applications.</p></div>
 <div class="paragraph"><p>Here&#8217;s how you can add middlewares via <tt>environment.rb</tt></p></div>
 <div class="listingblock">
-<div class="content"><!-- Generator: GNU source-highlight 2.9
+<div class="content"><!-- Generator: GNU source-highlight 2.11.1
 by Lorenzo Bettini
 http://www.lorenzobettini.it
 http://www.gnu.org/software/src-highlite -->
@@ -279,7 +279,7 @@ http://www.gnu.org/software/src-highlite -->
 config<span style="color: #990000">.</span>middleware<span style="color: #990000">.</span>use Rack<span style="color: #990000">::</span>BounceFavicon</tt></pre></div></div>
 <h3 id="_internal_middleware_stack">3.3. Internal Middleware Stack</h3>
 <div class="listingblock">
-<div class="content"><!-- Generator: GNU source-highlight 2.9
+<div class="content"><!-- Generator: GNU source-highlight 2.11.1
 by Lorenzo Bettini
 http://www.lorenzobettini.it
 http://www.gnu.org/software/src-highlite -->
@@ -353,7 +353,7 @@ cellspacing="0" cellpadding="4">
 <div class="paragraph"><p>VERIFY THIS WORKS. Just a code dump at the moment.</p></div>
 <div class="paragraph"><p>Put the following in an initializer.</p></div>
 <div class="listingblock">
-<div class="content"><!-- Generator: GNU source-highlight 2.9
+<div class="content"><!-- Generator: GNU source-highlight 2.11.1
 by Lorenzo Bettini
 http://www.lorenzobettini.it
 http://www.gnu.org/software/src-highlite -->
@@ -380,14 +380,14 @@ or something like that</p></div>
 <h3 id="_generating_a_metal_application">4.1. Generating a Metal Application</h3>
 <div class="paragraph"><p>Rails provides a generator called <tt>performance_test</tt> for creating new performance tests:</p></div>
 <div class="listingblock">
-<div class="content"><!-- Generator: GNU source-highlight 2.9
+<div class="content"><!-- Generator: GNU source-highlight 2.11.1
 by Lorenzo Bettini
 http://www.lorenzobettini.it
 http://www.gnu.org/software/src-highlite -->
 <pre><tt>script/generate metal poller</tt></pre></div></div>
 <div class="paragraph"><p>This generates <tt>poller.rb</tt> in the <tt>app/metal</tt> directory:</p></div>
 <div class="listingblock">
-<div class="content"><!-- Generator: GNU source-highlight 2.9
+<div class="content"><!-- Generator: GNU source-highlight 2.11.1
 by Lorenzo Bettini
 http://www.lorenzobettini.it
 http://www.gnu.org/software/src-highlite -->
@@ -408,7 +408,7 @@ http://www.gnu.org/software/src-highlite -->
 <div class="paragraph"><p>All Metal Applications are executed by <tt>Rails::Rack::Metal</tt> middleware, which is a part of the <tt>ActionController::MiddlewareStack</tt> chain.</p></div>
 <div class="paragraph"><p>Here&#8217;s the primary method responsible for running the Metal applications:</p></div>
 <div class="listingblock">
-<div class="content"><!-- Generator: GNU source-highlight 2.9
+<div class="content"><!-- Generator: GNU source-highlight 2.11.1
 by Lorenzo Bettini
 http://www.lorenzobettini.it
 http://www.gnu.org/software/src-highlite -->

@@ -138,7 +138,7 @@ Learn about various tools facilitating benchmarking and profiling
 <div class="paragraph"><p>Rails performance tests are a special type of integration tests, designed for benchmarking and profiling the test code. With performance tests, you can determine where your application&#8217;s memory or speed problems are coming from, and get a more in-depth picture of those problems.</p></div>
 <div class="paragraph"><p>In a freshly generated Rails application, <tt>test/performance/browsing_test.rb</tt> contains an example of a performance test:</p></div>
 <div class="listingblock">
-<div class="content"><!-- Generator: GNU source-highlight 2.9
+<div class="content"><!-- Generator: GNU source-highlight 2.11.1
 by Lorenzo Bettini
 http://www.lorenzobettini.it
 http://www.gnu.org/software/src-highlite -->
@@ -155,14 +155,14 @@ http://www.gnu.org/software/src-highlite -->
 <h3 id="_generating_performance_tests">1.1. Generating performance tests</h3>
 <div class="paragraph"><p>Rails provides a generator called <tt>performance_test</tt> for creating new performance tests:</p></div>
 <div class="listingblock">
-<div class="content"><!-- Generator: GNU source-highlight 2.9
+<div class="content"><!-- Generator: GNU source-highlight 2.11.1
 by Lorenzo Bettini
 http://www.lorenzobettini.it
 http://www.gnu.org/software/src-highlite -->
 <pre><tt>script/generate performance_test homepage</tt></pre></div></div>
 <div class="paragraph"><p>This generates <tt>homepage_test.rb</tt> in the <tt>test/performance</tt> directory:</p></div>
 <div class="listingblock">
-<div class="content"><!-- Generator: GNU source-highlight 2.9
+<div class="content"><!-- Generator: GNU source-highlight 2.11.1
 by Lorenzo Bettini
 http://www.lorenzobettini.it
 http://www.gnu.org/software/src-highlite -->
@@ -178,7 +178,7 @@ http://www.gnu.org/software/src-highlite -->
 <h3 id="_examples">1.2. Examples</h3>
 <div class="paragraph"><p>Let&#8217;s assume your application has the following controller and model:</p></div>
 <div class="listingblock">
-<div class="content"><!-- Generator: GNU source-highlight 2.9
+<div class="content"><!-- Generator: GNU source-highlight 2.11.1
 by Lorenzo Bettini
 http://www.lorenzobettini.it
 http://www.gnu.org/software/src-highlite -->
@@ -220,7 +220,7 @@ map<span style="color: #990000">.</span>resources <span style="color: #990000">:
 <div class="paragraph"><p>Because performance tests are a special kind of integration test, you can use the <tt>get</tt> and <tt>post</tt> methods in them.</p></div>
 <div class="paragraph"><p>Here&#8217;s the performance test for <tt>HomeController#dashboard</tt> and <tt>PostsController#create</tt>:</p></div>
 <div class="listingblock">
-<div class="content"><!-- Generator: GNU source-highlight 2.9
+<div class="content"><!-- Generator: GNU source-highlight 2.11.1
 by Lorenzo Bettini
 http://www.lorenzobettini.it
 http://www.gnu.org/software/src-highlite -->
@@ -246,7 +246,7 @@ http://www.gnu.org/software/src-highlite -->
 <div class="paragraph"><p>Even though the performance tests are integration tests and hence closer to the request/response cycle by nature, you can still performance test pure model code.</p></div>
 <div class="paragraph"><p>Performance test for <tt>Post</tt> model:</p></div>
 <div class="listingblock">
-<div class="content"><!-- Generator: GNU source-highlight 2.9
+<div class="content"><!-- Generator: GNU source-highlight 2.11.1
 by Lorenzo Bettini
 http://www.lorenzobettini.it
 http://www.gnu.org/software/src-highlite -->
@@ -269,7 +269,7 @@ http://www.gnu.org/software/src-highlite -->
 <div class="paragraph"><p>Benchmarking helps find out how fast each performance test runs. Each test case is run <tt>4 times</tt> in benchmarking mode.</p></div>
 <div class="paragraph"><p>To run performance tests in benchmarking mode:</p></div>
 <div class="listingblock">
-<div class="content"><!-- Generator: GNU source-highlight 2.9
+<div class="content"><!-- Generator: GNU source-highlight 2.11.1
 by Lorenzo Bettini
 http://www.lorenzobettini.it
 http://www.gnu.org/software/src-highlite -->
@@ -278,7 +278,7 @@ http://www.gnu.org/software/src-highlite -->
 <div class="paragraph"><p>Profiling helps you see the details of a performance test and provide an in-depth picture of the slow and memory hungry parts. Each test case is run <tt>1 time</tt> in profiling mode.</p></div>
 <div class="paragraph"><p>To run performance tests in profiling mode:</p></div>
 <div class="listingblock">
-<div class="content"><!-- Generator: GNU source-highlight 2.9
+<div class="content"><!-- Generator: GNU source-highlight 2.11.1
 by Lorenzo Bettini
 http://www.lorenzobettini.it
 http://www.gnu.org/software/src-highlite -->
@@ -310,7 +310,7 @@ http://www.gnu.org/software/src-highlite -->
 <h5 id="_command_line">Command line</h5>
 <div class="paragraph"><p>This is the primary form of output in benchmarking mode. Example :</p></div>
 <div class="listingblock">
-<div class="content"><!-- Generator: GNU source-highlight 2.9
+<div class="content"><!-- Generator: GNU source-highlight 2.11.1
 by Lorenzo Bettini
 http://www.lorenzobettini.it
 http://www.gnu.org/software/src-highlite -->
@@ -352,7 +352,7 @@ BrowsingTest#test_homepage_wall_time.csv
 <div class="paragraph"><p>As the results are appended to these files each time the performance tests are run in benchmarking mode, you can collect data over a period of time. This can be very helpful in analyzing the effects of code changes.</p></div>
 <div class="paragraph"><p>Sample output of <tt>BrowsingTest#test_homepage_wall_time.csv</tt>:</p></div>
 <div class="listingblock">
-<div class="content"><!-- Generator: GNU source-highlight 2.9
+<div class="content"><!-- Generator: GNU source-highlight 2.11.1
 by Lorenzo Bettini
 http://www.lorenzobettini.it
 http://www.gnu.org/software/src-highlite -->
@@ -372,7 +372,7 @@ http://www.gnu.org/software/src-highlite -->
 <h5 id="_command_line_2">Command line</h5>
 <div class="paragraph"><p>This is a very basic form of output in profiling mode:</p></div>
 <div class="listingblock">
-<div class="content"><!-- Generator: GNU source-highlight 2.9
+<div class="content"><!-- Generator: GNU source-highlight 2.11.1
 by Lorenzo Bettini
 http://www.lorenzobettini.it
 http://www.gnu.org/software/src-highlite -->
@@ -399,7 +399,7 @@ http://www.gnu.org/software/src-highlite -->
 <h3 id="_performance_test_environment">1.7. Performance Test Environment</h3>
 <div class="paragraph"><p>Performance tests are run in the <tt>development</tt> environment. But running performance tests will set the following configuration parameters:</p></div>
 <div class="listingblock">
-<div class="content"><!-- Generator: GNU source-highlight 2.9
+<div class="content"><!-- Generator: GNU source-highlight 2.11.1
 by Lorenzo Bettini
 http://www.lorenzobettini.it
 http://www.gnu.org/software/src-highlite -->
@@ -414,7 +414,7 @@ Rails<span style="color: #990000">.</span>logger<span style="color: #990000">.</
 <div class="paragraph"><p>Compile Ruby and apply this <a href="http://rubyforge.org/tracker/download.php/1814/7062/17676/3291/ruby186gc.patch">GC Patch</a>:</p></div>
 <h4 id="_download_and_extract">1.8.2. Download and Extract</h4>
 <div class="listingblock">
-<div class="content"><!-- Generator: GNU source-highlight 2.9
+<div class="content"><!-- Generator: GNU source-highlight 2.11.1
 by Lorenzo Bettini
 http://www.lorenzobettini.it
 http://www.gnu.org/software/src-highlite -->
@@ -424,7 +424,7 @@ http://www.gnu.org/software/src-highlite -->
 <span style="color: #990000">[</span>lifo@null <span style="color: #990000">~]</span>$ cd <span style="color: #990000">&lt;</span>ruby-version<span style="color: #990000">&gt;</span></tt></pre></div></div>
 <h4 id="_apply_the_patch">1.8.3. Apply the patch</h4>
 <div class="listingblock">
-<div class="content"><!-- Generator: GNU source-highlight 2.9
+<div class="content"><!-- Generator: GNU source-highlight 2.11.1
 by Lorenzo Bettini
 http://www.lorenzobettini.it
 http://www.gnu.org/software/src-highlite -->
@@ -432,7 +432,7 @@ http://www.gnu.org/software/src-highlite -->
 <h4 id="_configure_and_install">1.8.4. Configure and Install</h4>
 <div class="paragraph"><p>The following will install ruby in your home directory&#8217;s <tt>/rubygc</tt> directory. Make sure to replace <tt>&lt;homedir&gt;</tt> with a full patch to your actual home directory.</p></div>
 <div class="listingblock">
-<div class="content"><!-- Generator: GNU source-highlight 2.9
+<div class="content"><!-- Generator: GNU source-highlight 2.11.1
 by Lorenzo Bettini
 http://www.lorenzobettini.it
 http://www.gnu.org/software/src-highlite -->
@@ -480,7 +480,7 @@ alias gcrails='~/rubygc/bin/rails'</tt></pre>
 </ul></div>
 <div class="paragraph"><p>If installing <tt>mysql</tt> fails, you can try to install it manually:</p></div>
 <div class="listingblock">
-<div class="content"><!-- Generator: GNU source-highlight 2.9
+<div class="content"><!-- Generator: GNU source-highlight 2.11.1
 by Lorenzo Bettini
 http://www.lorenzobettini.it
 http://www.gnu.org/software/src-highlite -->
@@ -495,21 +495,21 @@ http://www.gnu.org/software/src-highlite -->
 <div class="paragraph"><p><tt>benchmarker</tt> is a wrapper around Ruby&#8217;s <a href="http://ruby-doc.org/core/classes/Benchmark.html">Benchmark</a> module.</p></div>
 <div class="paragraph"><p>Usage:</p></div>
 <div class="listingblock">
-<div class="content"><!-- Generator: GNU source-highlight 2.9
+<div class="content"><!-- Generator: GNU source-highlight 2.11.1
 by Lorenzo Bettini
 http://www.lorenzobettini.it
 http://www.gnu.org/software/src-highlite -->
 <pre><tt>$ script/performance/benchmarker <span style="color: #990000">[</span><span style="font-weight: bold"><span style="color: #0000FF">times</span></span><span style="color: #990000">]</span> <span style="color: #FF0000">'Person.expensive_way'</span> <span style="color: #FF0000">'Person.another_expensive_way'</span> <span style="color: #990000">...</span></tt></pre></div></div>
 <div class="paragraph"><p>Examples:</p></div>
 <div class="listingblock">
-<div class="content"><!-- Generator: GNU source-highlight 2.9
+<div class="content"><!-- Generator: GNU source-highlight 2.11.1
 by Lorenzo Bettini
 http://www.lorenzobettini.it
 http://www.gnu.org/software/src-highlite -->
 <pre><tt>$ script/performance/benchmarker <span style="color: #993399">10</span> <span style="color: #FF0000">'Item.all'</span> <span style="color: #FF0000">'CouchItem.all'</span></tt></pre></div></div>
 <div class="paragraph"><p>If the <tt>[times]</tt> argument is omitted, supplied methods are run just once:</p></div>
 <div class="listingblock">
-<div class="content"><!-- Generator: GNU source-highlight 2.9
+<div class="content"><!-- Generator: GNU source-highlight 2.11.1
 by Lorenzo Bettini
 http://www.lorenzobettini.it
 http://www.gnu.org/software/src-highlite -->
@@ -518,21 +518,21 @@ http://www.gnu.org/software/src-highlite -->
 <div class="paragraph"><p><tt>profiler</tt> is a wrapper around <a href="http://ruby-prof.rubyforge.org/">ruby-prof</a> gem.</p></div>
 <div class="paragraph"><p>Usage:</p></div>
 <div class="listingblock">
-<div class="content"><!-- Generator: GNU source-highlight 2.9
+<div class="content"><!-- Generator: GNU source-highlight 2.11.1
 by Lorenzo Bettini
 http://www.lorenzobettini.it
 http://www.gnu.org/software/src-highlite -->
 <pre><tt>$ script/performance/profiler <span style="color: #FF0000">'Person.expensive_method(10)'</span> <span style="color: #990000">[</span><span style="font-weight: bold"><span style="color: #0000FF">times</span></span><span style="color: #990000">]</span> <span style="color: #990000">[</span>flat<span style="color: #990000">|</span>graph<span style="color: #990000">|</span>graph_html<span style="color: #990000">]</span></tt></pre></div></div>
 <div class="paragraph"><p>Examples:</p></div>
 <div class="listingblock">
-<div class="content"><!-- Generator: GNU source-highlight 2.9
+<div class="content"><!-- Generator: GNU source-highlight 2.11.1
 by Lorenzo Bettini
 http://www.lorenzobettini.it
 http://www.gnu.org/software/src-highlite -->
 <pre><tt>$ script/performance/profiler <span style="color: #FF0000">'Item.all'</span></tt></pre></div></div>
 <div class="paragraph"><p>This will profile <tt>Item.all</tt> in <tt>RubyProf::WALL_TIME</tt> measure mode. By default, it prints flat output to the shell.</p></div>
 <div class="listingblock">
-<div class="content"><!-- Generator: GNU source-highlight 2.9
+<div class="content"><!-- Generator: GNU source-highlight 2.11.1
 by Lorenzo Bettini
 http://www.lorenzobettini.it
 http://www.gnu.org/software/src-highlite -->
@@ -540,7 +540,7 @@ http://www.gnu.org/software/src-highlite -->
 <div class="paragraph"><p>This will profile <tt>10.times { Item.all }</tt> with <tt>RubyProf::WALL_TIME</tt> measure mode and print graph output to the shell.</p></div>
 <div class="paragraph"><p>If you want to store the output in a file:</p></div>
 <div class="listingblock">
-<div class="content"><!-- Generator: GNU source-highlight 2.9
+<div class="content"><!-- Generator: GNU source-highlight 2.11.1
 by Lorenzo Bettini
 http://www.lorenzobettini.it
 http://www.gnu.org/software/src-highlite -->
@@ -551,7 +551,7 @@ http://www.gnu.org/software/src-highlite -->
 <div class="paragraph"><p>Rails provides various helper methods inside Active Record, Action Controller and Action View to measure the time taken by a given piece of code. The method is called <tt>benchmark()</tt> in all the three components.</p></div>
 <h3 id="_model">3.1. Model</h3>
 <div class="listingblock">
-<div class="content"><!-- Generator: GNU source-highlight 2.9
+<div class="content"><!-- Generator: GNU source-highlight 2.11.1
 by Lorenzo Bettini
 http://www.lorenzobettini.it
 http://www.gnu.org/software/src-highlite -->
@@ -562,7 +562,7 @@ http://www.gnu.org/software/src-highlite -->
 <span style="font-weight: bold"><span style="color: #0000FF">end</span></span></tt></pre></div></div>
 <div class="paragraph"><p>This benchmarks the code enclosed in the <tt>Project.benchmark("Creating project") do..end</tt> block and prints the result to the log file:</p></div>
 <div class="listingblock">
-<div class="content"><!-- Generator: GNU source-highlight 2.9
+<div class="content"><!-- Generator: GNU source-highlight 2.11.1
 by Lorenzo Bettini
 http://www.lorenzobettini.it
 http://www.gnu.org/software/src-highlite -->
@@ -579,7 +579,7 @@ http://www.gnu.org/software/src-highlite -->
 </tr></table>
 </div>
 <div class="listingblock">
-<div class="content"><!-- Generator: GNU source-highlight 2.9
+<div class="content"><!-- Generator: GNU source-highlight 2.11.1
 by Lorenzo Bettini
 http://www.lorenzobettini.it
 http://www.gnu.org/software/src-highlite -->
@@ -592,7 +592,7 @@ http://www.gnu.org/software/src-highlite -->
 <h3 id="_view">3.3. View</h3>
 <div class="paragraph"><p>And in <a href="http://api.rubyonrails.com/classes/ActionController/Benchmarking/ClassMethods.html#M000715">views</a>:</p></div>
 <div class="listingblock">
-<div class="content"><!-- Generator: GNU source-highlight 2.9
+<div class="content"><!-- Generator: GNU source-highlight 2.11.1
 by Lorenzo Bettini
 http://www.lorenzobettini.it
 http://www.gnu.org/software/src-highlite -->
@@ -604,7 +604,7 @@ http://www.gnu.org/software/src-highlite -->
 <div class="sectionbody">
 <div class="paragraph"><p>Rails log files contain very useful information about the time taken to serve each request. Here&#8217;s a typical log file entry:</p></div>
 <div class="listingblock">
-<div class="content"><!-- Generator: GNU source-highlight 2.9
+<div class="content"><!-- Generator: GNU source-highlight 2.11.1
 by Lorenzo Bettini
 http://www.lorenzobettini.it
 http://www.gnu.org/software/src-highlite -->
@@ -614,7 +614,7 @@ Rendering items<span style="color: #990000">/</span>index
 Completed <span style="font-weight: bold"><span style="color: #0000FF">in</span></span> 5ms <span style="color: #990000">(</span>View<span style="color: #990000">:</span> <span style="color: #993399">2</span><span style="color: #990000">,</span> DB<span style="color: #990000">:</span> <span style="color: #993399">0</span><span style="color: #990000">)</span> <span style="color: #990000">|</span> <span style="color: #993399">200</span> OK <span style="color: #990000">[</span>http<span style="color: #990000">:</span><span style="color: #FF6600">//0.0.0.0/</span>items<span style="color: #990000">]</span></tt></pre></div></div>
 <div class="paragraph"><p>For this section, we&#8217;re only interested in the last line:</p></div>
 <div class="listingblock">
-<div class="content"><!-- Generator: GNU source-highlight 2.9
+<div class="content"><!-- Generator: GNU source-highlight 2.11.1
 by Lorenzo Bettini
 http://www.lorenzobettini.it
 http://www.gnu.org/software/src-highlite -->

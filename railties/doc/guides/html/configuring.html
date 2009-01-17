@@ -137,14 +137,14 @@ After-Initializers
 <div class="sectionbody">
 <div class="paragraph"><p>In general, the work of configuring Rails means configuring the components of Rails, as well as configuring Rails itself. The <tt>environment.rb</tt> and environment-specific configuration files (such as <tt>config/environments/production.rb</tt>) allow you to specify the various settings that you want to pass down to all of the components. For example, the default Rails 2.3 <tt>environment.rb</tt> file includes one setting:</p></div>
 <div class="listingblock">
-<div class="content"><!-- Generator: GNU source-highlight 2.9
+<div class="content"><!-- Generator: GNU source-highlight 2.11.1
 by Lorenzo Bettini
 http://www.lorenzobettini.it
 http://www.gnu.org/software/src-highlite -->
 <pre><tt>config<span style="color: #990000">.</span>time_zone <span style="color: #990000">=</span> <span style="color: #FF0000">'UTC'</span></tt></pre></div></div>
 <div class="paragraph"><p>This is a setting for Rails itself. If you want to pass settings to individual Rails components, you can do so via the same <tt>config</tt> object:</p></div>
 <div class="listingblock">
-<div class="content"><!-- Generator: GNU source-highlight 2.9
+<div class="content"><!-- Generator: GNU source-highlight 2.11.1
 by Lorenzo Bettini
 http://www.lorenzobettini.it
 http://www.gnu.org/software/src-highlite -->
@@ -304,7 +304,7 @@ and appear last in the mime encoded message.</p></div>
 <div class="sectionbody">
 <div class="paragraph"><p>After-initializers are run (as you might guess) after any initializers are loaded. You can supply an <tt>after_initialize</tt> block (or an array of such blocks) by setting up <tt>config.after_initialize</tt> in any of the Rails configuration files:</p></div>
 <div class="listingblock">
-<div class="content"><!-- Generator: GNU source-highlight 2.9
+<div class="content"><!-- Generator: GNU source-highlight 2.11.1
 by Lorenzo Bettini
 http://www.lorenzobettini.it
 http://www.gnu.org/software/src-highlite -->
