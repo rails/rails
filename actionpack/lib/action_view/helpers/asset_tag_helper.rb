@@ -9,22 +9,28 @@ module ActionView
     # the assets exist before linking to them.
     #
     # === Using asset hosts
+    #
     # By default, Rails links to these assets on the current host in the public
-    # folder, but you can direct Rails to link to assets from a dedicated assets server by
-    # setting ActionController::Base.asset_host in your <tt>config/environment.rb</tt>.  For example,
-    # let's say your asset host is <tt>assets.example.com</tt>.
+    # folder, but you can direct Rails to link to assets from a dedicated asset server by
+    # setting ActionController::Base.asset_host in your <tt>config/environment.rb</tt>.
+    # For example, you'd define <tt>assets.example.com</tt> to be your asset
+    # host this way:
     #
     #   ActionController::Base.asset_host = "assets.example.com"
+    #
+    # Helpers take that into account:
+    #
     #   image_tag("rails.png")
     #     => <img src="http://assets.example.com/images/rails.png" alt="Rails" />
     #   stylesheet_link_tag("application")
     #     => <link href="http://assets.example.com/stylesheets/application.css" media="screen" rel="stylesheet" type="text/css" />
     #
-    # This is useful since browsers typically open at most two connections to a single host,
-    # which means your assets often wait in single file for their turn to load.  You can
-    # alleviate this by using a <tt>%d</tt> wildcard in <tt>asset_host</tt> (for example, "assets%d.example.com")
-    # to automatically distribute asset requests among four hosts (e.g., "assets0.example.com" through "assets3.example.com")
-    # so browsers will open eight connections rather than two.
+    # Browsers typically open at most two simultaneous connections to a single host,
+    # which means your assets often have to wait for other assets to finish downloading.
+    # You can alleviate this by using a <tt>%d</tt> wildcard in <tt>asset_host</tt>
+    # (for example, "assets%d.example.com") to automatically distribute asset requests
+    # among four hosts (e.g., "assets0.example.com" through "assets3.example.com") so
+    # browsers will open eight simultaneous connections rather than two.
     #
     #   image_tag("rails.png")
     #     => <img src="http://assets0.example.com/images/rails.png" alt="Rails" />
