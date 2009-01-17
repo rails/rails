@@ -123,7 +123,7 @@ module ActionView
       # <tt>:atom</tt>. Control the link options in url_for format using the
       # +url_options+. You can modify the LINK tag itself in +tag_options+.
       #
-      # ==== Options:
+      # ==== Options
       # * <tt>:rel</tt>  - Specify the relation of this link, defaults to "alternate"
       # * <tt>:type</tt>  - Override the auto-generated mime type
       # * <tt>:title</tt>  - Specify the title of the link, defaults to the +type+
