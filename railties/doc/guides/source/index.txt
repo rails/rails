@@ -135,6 +135,11 @@ This guide introduces you to the basic concepts and features of the Rails I18n A
 This guide covers the basic configuration settings for a Rails application.
 ***********************************************************
 
+.link:command_line.html[Rails Command Line Tools and Rake tasks]
+***********************************************************
+This guide covers the command line tools and rake tasks provided by Rails.
+***********************************************************
+
 Authors who have contributed to complete guides are listed link:authors.html[here].
 
 This work is licensed under a link:http://creativecommons.org/licenses/by-nc-sa/3.0/[Creative Commons Attribution-Noncommercial-Share Alike 3.0  License]

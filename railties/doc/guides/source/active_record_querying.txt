@@ -13,7 +13,7 @@ This guide covers different ways to retrieve data from the database using Active
 
 If you're used to using raw SQL to find database records then, generally, you will find that there are better ways to carry out the same operations in Rails. Active Record insulates you from the need to use SQL in most cases.
 
-Code examples in this guide use one or more of the following models:
+Code examples throughout this guide will refer to one or more of the following models:
 
 [source,ruby]
 -------------------------------------------------------
@@ -56,9 +56,9 @@ end
 Active Record will perform queries on the database for you and is compatible with most database systems (MySQL, PostgreSQL and SQLite to name a few). Regardless of which database system you're using, the Active Record method format will always be the same.
 ****
 
-== IDs, First, Last and All
+== Retrieving objects
 
-ActiveRecord::Base has methods defined on it to make interacting with your database and the tables within it much, much easier. For finding records, the key method is +find+. This method allows you to pass arguments into it to perform certain queries on your database without the need of SQL. If you wanted to find the record with the id of 1, you could type +Client.find(1)+ which would execute this query on your database:
+To retrieve objects from the database, Active Record provides a primary method called +find+. This method allows you to pass arguments into it to perform certain queries on your database without the need of SQL. If you wanted to find the record with the id of 1, you could type +Client.find(1)+ which would execute this query on your database:
 
 [source, sql]
 -------------------------------------------------------

@@ -31,7 +31,7 @@
       <h2>Chapters</h2>
       <ol>
           <li>
-          <a href="#_ids_first_last_and_all">IDs, First, Last and All</a>
+          <a href="#_retrieving_objects">Retrieving objects</a>
           </li>
           <li>
           <a href="#_conditions">Conditions</a>
@@ -172,7 +172,7 @@ Perform various calculations on Active Record models
 </li>
 </ul></div>
 <div class="paragraph"><p>If you&#8217;re used to using raw SQL to find database records then, generally, you will find that there are better ways to carry out the same operations in Rails. Active Record insulates you from the need to use SQL in most cases.</p></div>
-<div class="paragraph"><p>Code examples in this guide use one or more of the following models:</p></div>
+<div class="paragraph"><p>Code examples throughout this guide will refer to one or more of the following models:</p></div>
 <div class="listingblock">
 <div class="content"><!-- Generator: GNU source-highlight 2.9
 by Lorenzo Bettini
@@ -221,9 +221,9 @@ http://www.gnu.org/software/src-highlite -->
 </div></div>
 </div>
 </div>
-<h2 id="_ids_first_last_and_all">1. IDs, First, Last and All</h2>
+<h2 id="_retrieving_objects">1. Retrieving objects</h2>
 <div class="sectionbody">
-<div class="paragraph"><p>ActiveRecord::Base has methods defined on it to make interacting with your database and the tables within it much, much easier. For finding records, the key method is <tt>find</tt>. This method allows you to pass arguments into it to perform certain queries on your database without the need of SQL. If you wanted to find the record with the id of 1, you could type <tt>Client.find(1)</tt> which would execute this query on your database:</p></div>
+<div class="paragraph"><p>To retrieve objects from the database, Active Record provides a primary method called <tt>find</tt>. This method allows you to pass arguments into it to perform certain queries on your database without the need of SQL. If you wanted to find the record with the id of 1, you could type <tt>Client.find(1)</tt> which would execute this query on your database:</p></div>
 <div class="listingblock">
 <div class="content"><!-- Generator: GNU source-highlight 2.9
 by Lorenzo Bettini
