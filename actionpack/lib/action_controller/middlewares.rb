@@ -1,4 +1,4 @@
-use "ActionController::Lock", :if => lambda {
+use "Rack::Lock", :if => lambda {
   !ActionController::Base.allow_concurrency
 }
 
