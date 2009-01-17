@@ -75,7 +75,7 @@ module ActiveSupport #:nodoc:
         # Converts a hash into a string suitable for use as a URL query string. An optional <tt>namespace</tt> can be
         # passed to enclose the param names (see example below).
         #
-        # ==== Example:
+        # ==== Examples
         #   { :name => 'David', :nationality => 'Danish' }.to_query # => "name=David&nationality=Danish"
         #
         #   { :name => 'David', :nationality => 'Danish' }.to_query('user') # => "user%5Bname%5D=David&user%5Bnationality%5D=Danish"

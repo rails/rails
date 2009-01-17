@@ -2,7 +2,7 @@ class Date
   # Returns a JSON string representing the date. If ActiveSupport.use_standard_json_time_format is set to true, the
   # ISO 8601 format is used.
   #
-  # ==== Examples:
+  # ==== Examples
   #
   #   # With ActiveSupport.use_standard_json_time_format = true
   #   Date.new(2005,2,1).to_json
