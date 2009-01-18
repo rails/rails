@@ -151,31 +151,4 @@ Rails has a reputation of being a zero-config  framework which means that it aim
 == ActiveRecord handling the CRUD of your Rails application - Understanding the life-cycle of an ActiveRecord
 
 == Validations & Callbacks
-- Validations
-    *  create!
-    * validates_acceptance_of
-    * validates_associated
-    * validates_confirmation_of
-    * validates_each
-    * validates_exclusion_of
-    * validates_format_of
-    * validates_inclusion_of
-    * validates_length_of
-    * validates_numericality_of
-    * validates_presence_of
-    * validates_size_of
-    * validates_uniqueness_of
- - Callback
-    * (-) save
-    * (-) valid
-    * (1) before_validation
-    * (2) before_validation_on_create
-    * (-) validate
-    * (-) validate_on_create
-    * (3) after_validation
-    * (4) after_validation_on_create
-    * (5) before_save
-    * (6) before_create
-    * (-) create
-    * (7) after_create
-    * (8) after_save
+see the Validations & Callbacks guide for more info.

@@ -37,7 +37,7 @@ module ActionController #:nodoc:
 
       # Returns the hash used to configure the session. Example use:
       #
-      #   ActionController::Base.session_options[:session_secure] = true # session only available over HTTPS
+      #   ActionController::Base.session_options[:secure] = true # session only available over HTTPS
       def session_options
         @session_options ||= {}
       end

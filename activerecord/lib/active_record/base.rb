@@ -327,7 +327,7 @@ module ActiveRecord #:nodoc:
   #   User.find(user.id).preferences # => { "background" => "black", "display" => large }
   #
   # You can also specify a class option as the second parameter that'll raise an exception if a serialized object is retrieved as a
-  # descendent of a class not in the hierarchy. Example:
+  # descendant of a class not in the hierarchy. Example:
   #
   #   class User < ActiveRecord::Base
   #     serialize :preferences, Hash
@@ -544,8 +544,9 @@ module ActiveRecord #:nodoc:
       # * <tt>:having</tt> - Combined with +:group+ this can be used to filter the records that a <tt>GROUP BY</tt> returns. Uses the <tt>HAVING</tt> SQL-clause.
       # * <tt>:limit</tt> - An integer determining the limit on the number of rows that should be returned.
       # * <tt>:offset</tt> - An integer determining the offset from where the rows should be fetched. So at 5, it would skip rows 0 through 4.
-      # * <tt>:joins</tt> - Either an SQL fragment for additional joins like "LEFT JOIN comments ON comments.post_id = id" (rarely needed)
-      #   or named associations in the same form used for the <tt>:include</tt> option, which will perform an <tt>INNER JOIN</tt> on the associated table(s).
+      # * <tt>:joins</tt> - Either an SQL fragment for additional joins like "LEFT JOIN comments ON comments.post_id = id" (rarely needed),
+      #   named associations in the same form used for the <tt>:include</tt> option, which will perform an <tt>INNER JOIN</tt> on the associated table(s),
+      #   or an array containing a mixture of both strings and named associations.
       #   If the value is a string, then the records will be returned read-only since they will have attributes that do not correspond to the table's columns.
       #   Pass <tt>:readonly => false</tt> to override.
       # * <tt>:include</tt> - Names associations that should be loaded alongside. The symbols named refer
@@ -755,25 +756,26 @@ module ActiveRecord #:nodoc:
         end
       end
 
-      # Delete an object (or multiple objects) where the +id+ given matches the primary_key.  A SQL +DELETE+ command
-      # is executed on the database which means that no callbacks are fired off running this.  This is an efficient method
-      # of deleting records that don't need cleaning up after or other actions to be taken.
+      # Deletes the row with a primary key matching the +id+ argument, using a
+      # SQL +DELETE+ statement, and returns the number of rows deleted. Active
+      # Record objects are not instantiated, so the object's callbacks are not
+      # executed, including any <tt>:dependent</tt> association options or
+      # Observer methods.
       #
-      # Objects are _not_ instantiated with this method, and so +:dependent+ rules
-      # defined on associations are not honered.
+      # You can delete multiple rows at once by passing an Array of <tt>id</tt>s.
       #
-      # ==== Parameters
-      #
-      # * +id+ - Can be either an Integer or an Array of Integers.
+      # Note: Although it is often much faster than the alternative,
+      # <tt>#destroy</tt>, skipping callbacks might bypass business logic in
+      # your application that ensures referential integrity or performs other
+      # essential jobs.
       #
       # ==== Examples
       #
-      #   # Delete a single object
+      #   # Delete a single row
       #   Todo.delete(1)
       #
-      #   # Delete multiple objects
-      #   todos = [1,2,3]
-      #   Todo.delete(todos)
+      #   # Delete multiple rows
+      #   Todo.delete([2,3,4])
       def delete(id)
         delete_all([ "#{connection.quote_column_name(primary_key)} IN (?)", id ])
       end
@@ -849,25 +851,32 @@ module ActiveRecord #:nodoc:
         connection.update(sql, "#{name} Update")
       end
 
-      # Destroys the records matching +conditions+ by instantiating each record and calling their +destroy+ method.
-      # This means at least 2*N database queries to destroy N records, so avoid +destroy_all+ if you are deleting
-      # many records. If you want to simply delete records without worrying about dependent associations or
-      # callbacks, use the much faster +delete_all+ method instead.
+      # Destroys the records matching +conditions+ by instantiating each
+      # record and calling its +destroy+ method. Each object's callbacks are
+      # executed (including <tt>:dependent</tt> association options and
+      # +before_destroy+/+after_destroy+ Observer methods). Returns the
+      # collection of objects that were destroyed; each will be frozen, to
+      # reflect that no changes should be made (since they can't be
+      # persisted).
+      #
+      # Note: Instantiation, callback execution, and deletion of each
+      # record can be time consuming when you're removing many records at
+      # once. It generates at least one SQL +DELETE+ query per record (or
+      # possibly more, to enforce your callbacks). If you want to delete many
+      # rows quickly, without concern for their associations or callbacks, use
+      # +delete_all+ instead.
       #
       # ==== Parameters
       #
-      # * +conditions+ - Conditions are specified the same way as with +find+ method.
+      # * +conditions+ - A string, array, or hash that specifies which records
+      #   to destroy. If omitted, all records are destroyed. See the
+      #   Conditions section in the introduction to ActiveRecord::Base for
+      #   more information.
       #
-      # ==== Example
+      # ==== Examples
       #
       #   Person.destroy_all("last_login < '2004-04-04'")
-      #
-      # This loads and destroys each person one by one, including its dependent associations and before_ and
-      # after_destroy callbacks.
-      #
-      # +conditions+ can be anything that +find+ also accepts:
-      #
-      #   Person.destroy_all(:last_login => 6.hours.ago)
+      #   Person.destroy_all(:status => "inactive")
       def destroy_all(conditions = nil)
         find(:all, :conditions => conditions).each { |object| object.destroy }
       end
@@ -1802,15 +1811,13 @@ module ActiveRecord #:nodoc:
           table_name
         end
 
-        # Enables dynamic finders like find_by_user_name(user_name) and find_by_user_name_and_password(user_name, password) that are turned into
-        # find(:first, :conditions => ["user_name = ?", user_name]) and  find(:first, :conditions => ["user_name = ? AND password = ?", user_name, password])
-        # respectively. Also works for find(:all) by using find_all_by_amount(50) that is turned into find(:all, :conditions => ["amount = ?", 50]).
+        # Enables dynamic finders like <tt>find_by_user_name(user_name)</tt> and <tt>find_by_user_name_and_password(user_name, password)</tt>
+        # that are turned into <tt>find(:first, :conditions => ["user_name = ?", user_name])</tt> and
+        # <tt>find(:first, :conditions => ["user_name = ? AND password = ?", user_name, password])</tt> respectively. Also works for
+        # <tt>find(:all)</tt> by using <tt>find_all_by_amount(50)</tt> that is turned into <tt>find(:all, :conditions => ["amount = ?", 50])</tt>.
         #
-        # It's even possible to use all the additional parameters to find. For example, the full interface for find_all_by_amount
-        # is actually find_all_by_amount(amount, options).
-        #
-        # This also enables you to initialize a record if it is not found, such as find_or_initialize_by_amount(amount)
-        # or find_or_create_by_user_and_password(user, password).
+        # It's even possible to use all the additional parameters to +find+. For example, the full interface for +find_all_by_amount+
+        # is actually <tt>find_all_by_amount(amount, options)</tt>.
         #
         # Also enables dynamic scopes like scoped_by_user_name(user_name) and scoped_by_user_name_and_password(user_name, password) that
         # are turned into scoped(:conditions => ["user_name = ?", user_name]) and scoped(:conditions => ["user_name = ? AND password = ?", user_name, password])
@@ -2032,7 +2039,11 @@ module ActiveRecord #:nodoc:
         #   end
         #
         # In nested scopings, all previous parameters are overwritten by the innermost rule, with the exception of
-        # <tt>:conditions</tt> and <tt>:include</tt> options in <tt>:find</tt>, which are merged.
+        # <tt>:conditions</tt>, <tt>:include</tt>, and <tt>:joins</tt> options in <tt>:find</tt>, which are merged.
+        #
+        # <tt>:joins</tt> options are uniqued so multiple scopes can join in the same table without table aliasing
+        # problems.  If you need to join multiple tables, but still want one of the tables to be uniqued, use the
+        # array of strings format for your joins.
         #
         #   class Article < ActiveRecord::Base
         #     def self.find_with_scope
@@ -2156,7 +2167,7 @@ module ActiveRecord #:nodoc:
           scoped_methods.last
         end
 
-        # Returns the class type of the record using the current module as a prefix. So descendents of
+        # Returns the class type of the record using the current module as a prefix. So descendants of
         # MyApp::Business::Account would appear as MyApp::Business::AccountSubclass.
         def compute_type(type_name)
           modularized_name = type_name_with_module(type_name)
@@ -2169,7 +2180,8 @@ module ActiveRecord #:nodoc:
           end
         end
 
-        # Returns the class descending directly from Active Record in the inheritance hierarchy.
+        # Returns the class descending directly from ActiveRecord::Base or an
+        # abstract class, if any, in the inheritance hierarchy.
         def class_of_active_record_descendant(klass)
           if klass.superclass == Base || klass.superclass.abstract_class?
             klass
@@ -2518,14 +2530,16 @@ module ActiveRecord #:nodoc:
         create_or_update || raise(RecordNotSaved)
       end
 
-      # Deletes the record in the database and freezes this instance to reflect that no changes should
-      # be made (since they can't be persisted).
+      # Deletes the record in the database and freezes this instance to
+      # reflect that no changes should be made (since they can't be
+      # persisted). Returns the frozen instance.
       #
-      # Unlike #destroy, this method doesn't run any +before_delete+ and +after_delete+
-      # callbacks, nor will it enforce any association +:dependent+ rules.
-      # 
-      # In addition to deleting this record, any defined +before_delete+ and +after_delete+
-      # callbacks are run, and +:dependent+ rules defined on associations are run.
+      # The row is simply removed with a SQL +DELETE+ statement on the
+      # record's primary key, and no callbacks are executed.
+      #
+      # To enforce the object's +before_destroy+ and +after_destroy+
+      # callbacks, Observer methods, or any <tt>:dependent</tt> association
+      # options, use <tt>#destroy</tt>.
       def delete
         self.class.delete(id) unless new_record?
         freeze
@@ -2726,7 +2740,19 @@ module ActiveRecord #:nodoc:
         end
       end
 
-      # Format attributes nicely for inspect.
+      # Returns an <tt>#inspect</tt>-like string for the value of the
+      # attribute +attr_name+. String attributes are elided after 50
+      # characters, and Date and Time attributes are returned in the
+      # <tt>:db</tt> format. Other attributes return the value of
+      # <tt>#inspect</tt> without modification.
+      #
+      #   person = Person.create!(:name => "David Heinemeier Hansson " * 3)
+      #
+      #   person.attribute_for_inspect(:name)
+      #   # => '"David Heinemeier Hansson David Heinemeier Hansson D..."'
+      #
+      #   person.attribute_for_inspect(:created_at)
+      #   # => '"2009-01-12 04:48:57"'
       def attribute_for_inspect(attr_name)
         value = read_attribute(attr_name)
 
@@ -2855,7 +2881,7 @@ module ActiveRecord #:nodoc:
         id
       end
 
-      # Sets the attribute used for single table inheritance to this class name if this is not the ActiveRecord::Base descendent.
+      # Sets the attribute used for single table inheritance to this class name if this is not the ActiveRecord::Base descendant.
       # Considering the hierarchy Reply < Message < ActiveRecord::Base, this makes it possible to do Reply.new without having to
       # set <tt>Reply[Reply.inheritance_column] = "Reply"</tt> yourself. No such attribute would be set for objects of the
       # Message class in that example.

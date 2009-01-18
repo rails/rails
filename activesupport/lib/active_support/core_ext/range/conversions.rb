@@ -15,7 +15,7 @@ module ActiveSupport #:nodoc:
         end
         # Gives a human readable format of the range.
         #
-        # ==== Example: 
+        # ==== Example
         # 
         #   [1..100].to_formatted_s # => "1..100"
         def to_formatted_s(format = :default)

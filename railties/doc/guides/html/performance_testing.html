@@ -1,0 +1,728 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" lang="en" xml:lang="en">
+<head>
+  <meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
+  <title>Performance Testing Rails Applications</title>
+  <!--[if lt IE 8]>
+  <script src="http://ie7-js.googlecode.com/svn/version/2.0(beta3)/IE8.js" type="text/javascript"></script>
+  <![endif]-->
+  <link href="stylesheets/base.css" media="screen" rel="Stylesheet" type="text/css" />
+  <link href="stylesheets/forms.css" media="screen" rel="Stylesheet" type="text/css" />
+  <link href="stylesheets/more.css" media="screen" rel="Stylesheet" type="text/css" />
+</head>
+<body>
+  <div id="header" >
+    <div id="logo">
+      <a href="index.html" title="Ruby on Rails"><img src="images/rails_logo_remix.gif" alt="Rails" height="140" width="110" /></a>
+    </div>
+
+    <h1 id="site_title"><span>Ruby on Rails</span></h1>
+    <h2 id="site_title_tagline">Sustainable productivity for web-application development</h2>
+
+    <ul id="navMain">
+      <li class="first-child"><a href="http://www.rubyonrails.org/" title="Ruby on Rails" class="ruby_on_rails">Ruby on Rails</a></li>
+      <li><a class="manuals" href="index.html" title="Manuals Index">Guides Index</a></li>
+    </ul>
+  </div>
+
+  <div id="container">
+    
+    <div id="sidebar">
+      <h2>Chapters</h2>
+      <ol>
+          <li>
+          <a href="#_performance_test_cases">Performance Test Cases</a>
+            <ul>
+            
+              <li><a href="#_generating_performance_tests">Generating performance tests</a></li>
+            
+              <li><a href="#_examples">Examples</a></li>
+            
+              <li><a href="#_modes">Modes</a></li>
+            
+              <li><a href="#_metrics">Metrics</a></li>
+            
+              <li><a href="#_understanding_the_output">Understanding the output</a></li>
+            
+              <li><a href="#_tuning_test_runs">Tuning Test Runs</a></li>
+            
+              <li><a href="#_performance_test_environment">Performance Test Environment</a></li>
+            
+              <li><a href="#gc">Installing GC-Patched Ruby</a></li>
+            
+            </ul>
+          </li>
+          <li>
+          <a href="#_command_line_tools">Command Line Tools</a>
+            <ul>
+            
+              <li><a href="#_benchmarker">benchmarker</a></li>
+            
+              <li><a href="#_profiler">profiler</a></li>
+            
+            </ul>
+          </li>
+          <li>
+          <a href="#_helper_methods">Helper methods</a>
+            <ul>
+            
+              <li><a href="#_model">Model</a></li>
+            
+              <li><a href="#_controller">Controller</a></li>
+            
+              <li><a href="#_view">View</a></li>
+            
+            </ul>
+          </li>
+          <li>
+          <a href="#_request_logging">Request Logging</a>
+          </li>
+          <li>
+          <a href="#_useful_links">Useful Links</a>
+            <ul>
+            
+              <li><a href="#_rails_plugins_and_gems">Rails Plugins and Gems</a></li>
+            
+              <li><a href="#_generic_tools">Generic Tools</a></li>
+            
+              <li><a href="#_tutorials_and_documentation">Tutorials and Documentation</a></li>
+            
+            </ul>
+          </li>
+          <li>
+          <a href="#_commercial_products">Commercial Products</a>
+          </li>
+          <li>
+          <a href="#_changelog">Changelog</a>
+          </li>
+      </ol>
+    </div>
+    
+    <div id="content">
+        <h1>Performance Testing Rails Applications</h1>
+      <div id="preamble">
+<div class="sectionbody">
+<div class="paragraph"><p>This guide covers the various ways of performance testing a Ruby on Rails application. By referring to this guide, you will be able to:</p></div>
+<div class="ulist"><ul>
+<li>
+<p>
+Understand the various types of benchmarking and profiling metrics
+</p>
+</li>
+<li>
+<p>
+Generate performance and benchmarking tests
+</p>
+</li>
+<li>
+<p>
+Use a GC-patched Ruby binary to measure memory usage and object allocation
+</p>
+</li>
+<li>
+<p>
+Understand the benchmarking information provided by Rails inside the log files
+</p>
+</li>
+<li>
+<p>
+Learn about various tools facilitating benchmarking and profiling
+</p>
+</li>
+</ul></div>
+<div class="paragraph"><p>Performance testing is an integral part of the development cycle. It is very important that you don&#8217;t make your end users wait for too long before the page is completely loaded. Ensuring a pleasant browsing experience for end users and cutting the cost of unnecessary hardware is important for any non-trivial web application.</p></div>
+</div>
+</div>
+<h2 id="_performance_test_cases">1. Performance Test Cases</h2>
+<div class="sectionbody">
+<div class="paragraph"><p>Rails performance tests are a special type of integration tests, designed for benchmarking and profiling the test code. With performance tests, you can determine where your application&#8217;s memory or speed problems are coming from, and get a more in-depth picture of those problems.</p></div>
+<div class="paragraph"><p>In a freshly generated Rails application, <tt>test/performance/browsing_test.rb</tt> contains an example of a performance test:</p></div>
+<div class="listingblock">
+<div class="content"><!-- Generator: GNU source-highlight 2.9
+by Lorenzo Bettini
+http://www.lorenzobettini.it
+http://www.gnu.org/software/src-highlite -->
+<pre><tt><span style="font-weight: bold"><span style="color: #000080">require</span></span> <span style="color: #FF0000">'test_helper'</span>
+<span style="font-weight: bold"><span style="color: #000080">require</span></span> <span style="color: #FF0000">'performance_test_help'</span>
+
+<span style="font-style: italic"><span style="color: #9A1900"># Profiling results for each test method are written to tmp/performance.</span></span>
+<span style="font-weight: bold"><span style="color: #0000FF">class</span></span> BrowsingTest <span style="color: #990000">&lt;</span> ActionController<span style="color: #990000">::</span>PerformanceTest
+  <span style="font-weight: bold"><span style="color: #0000FF">def</span></span> test_homepage
+    get <span style="color: #FF0000">'/'</span>
+  <span style="font-weight: bold"><span style="color: #0000FF">end</span></span>
+<span style="font-weight: bold"><span style="color: #0000FF">end</span></span></tt></pre></div></div>
+<div class="paragraph"><p>This example is a simple performance test case for profiling a GET request to the application&#8217;s homepage.</p></div>
+<h3 id="_generating_performance_tests">1.1. Generating performance tests</h3>
+<div class="paragraph"><p>Rails provides a generator called <tt>performance_test</tt> for creating new performance tests:</p></div>
+<div class="listingblock">
+<div class="content"><!-- Generator: GNU source-highlight 2.9
+by Lorenzo Bettini
+http://www.lorenzobettini.it
+http://www.gnu.org/software/src-highlite -->
+<pre><tt>script/generate performance_test homepage</tt></pre></div></div>
+<div class="paragraph"><p>This generates <tt>homepage_test.rb</tt> in the <tt>test/performance</tt> directory:</p></div>
+<div class="listingblock">
+<div class="content"><!-- Generator: GNU source-highlight 2.9
+by Lorenzo Bettini
+http://www.lorenzobettini.it
+http://www.gnu.org/software/src-highlite -->
+<pre><tt><span style="font-weight: bold"><span style="color: #000080">require</span></span> <span style="color: #FF0000">'test_helper'</span>
+<span style="font-weight: bold"><span style="color: #000080">require</span></span> <span style="color: #FF0000">'performance_test_help'</span>
+
+<span style="font-weight: bold"><span style="color: #0000FF">class</span></span> HomepageTest <span style="color: #990000">&lt;</span> ActionController<span style="color: #990000">::</span>PerformanceTest
+  <span style="font-style: italic"><span style="color: #9A1900"># Replace this with your real tests.</span></span>
+  <span style="font-weight: bold"><span style="color: #0000FF">def</span></span> test_homepage
+    get <span style="color: #FF0000">'/'</span>
+  <span style="font-weight: bold"><span style="color: #0000FF">end</span></span>
+<span style="font-weight: bold"><span style="color: #0000FF">end</span></span></tt></pre></div></div>
+<h3 id="_examples">1.2. Examples</h3>
+<div class="paragraph"><p>Let&#8217;s assume your application has the following controller and model:</p></div>
+<div class="listingblock">
+<div class="content"><!-- Generator: GNU source-highlight 2.9
+by Lorenzo Bettini
+http://www.lorenzobettini.it
+http://www.gnu.org/software/src-highlite -->
+<pre><tt><span style="font-style: italic"><span style="color: #9A1900"># routes.rb</span></span>
+map<span style="color: #990000">.</span>root <span style="color: #990000">:</span>controller <span style="color: #990000">=&gt;</span> <span style="color: #FF0000">'home'</span>
+map<span style="color: #990000">.</span>resources <span style="color: #990000">:</span>posts
+
+<span style="font-style: italic"><span style="color: #9A1900"># home_controller.rb</span></span>
+<span style="font-weight: bold"><span style="color: #0000FF">class</span></span> HomeController <span style="color: #990000">&lt;</span> ApplicationController
+  <span style="font-weight: bold"><span style="color: #0000FF">def</span></span> dashboard
+    <span style="color: #009900">@users</span> <span style="color: #990000">=</span> User<span style="color: #990000">.</span>last_ten<span style="color: #990000">(:</span><span style="font-weight: bold"><span style="color: #0000FF">include</span></span> <span style="color: #990000">=&gt;</span> <span style="color: #990000">:</span>avatars<span style="color: #990000">)</span>
+    <span style="color: #009900">@posts</span> <span style="color: #990000">=</span> Post<span style="color: #990000">.</span>all_today
+  <span style="font-weight: bold"><span style="color: #0000FF">end</span></span>
+<span style="font-weight: bold"><span style="color: #0000FF">end</span></span>
+
+<span style="font-style: italic"><span style="color: #9A1900"># posts_controller.rb</span></span>
+<span style="font-weight: bold"><span style="color: #0000FF">class</span></span> PostsController <span style="color: #990000">&lt;</span> ApplicationController
+  <span style="font-weight: bold"><span style="color: #0000FF">def</span></span> create
+    <span style="color: #009900">@post</span> <span style="color: #990000">=</span> Post<span style="color: #990000">.</span>create<span style="color: #990000">(</span>params<span style="color: #990000">[:</span>post<span style="color: #990000">])</span>
+    redirect_to<span style="color: #990000">(</span><span style="color: #009900">@post</span><span style="color: #990000">)</span>
+  <span style="font-weight: bold"><span style="color: #0000FF">end</span></span>
+<span style="font-weight: bold"><span style="color: #0000FF">end</span></span>
+
+<span style="font-style: italic"><span style="color: #9A1900"># post.rb</span></span>
+<span style="font-weight: bold"><span style="color: #0000FF">class</span></span> Post <span style="color: #990000">&lt;</span> ActiveRecord<span style="color: #990000">::</span>Base
+  before_save <span style="color: #990000">:</span>recalculate_costly_stats
+
+  <span style="font-weight: bold"><span style="color: #0000FF">def</span></span> slow_method
+    <span style="font-style: italic"><span style="color: #9A1900"># I fire gallzilion queries sleeping all around</span></span>
+  <span style="font-weight: bold"><span style="color: #0000FF">end</span></span>
+
+  private
+
+  <span style="font-weight: bold"><span style="color: #0000FF">def</span></span> recalculate_costly_stats
+    <span style="font-style: italic"><span style="color: #9A1900"># CPU heavy calculations</span></span>
+  <span style="font-weight: bold"><span style="color: #0000FF">end</span></span>
+<span style="font-weight: bold"><span style="color: #0000FF">end</span></span></tt></pre></div></div>
+<h4 id="_controller_example">1.2.1. Controller Example</h4>
+<div class="paragraph"><p>Because performance tests are a special kind of integration test, you can use the <tt>get</tt> and <tt>post</tt> methods in them.</p></div>
+<div class="paragraph"><p>Here&#8217;s the performance test for <tt>HomeController#dashboard</tt> and <tt>PostsController#create</tt>:</p></div>
+<div class="listingblock">
+<div class="content"><!-- Generator: GNU source-highlight 2.9
+by Lorenzo Bettini
+http://www.lorenzobettini.it
+http://www.gnu.org/software/src-highlite -->
+<pre><tt><span style="font-weight: bold"><span style="color: #000080">require</span></span> <span style="color: #FF0000">'test_helper'</span>
+<span style="font-weight: bold"><span style="color: #000080">require</span></span> <span style="color: #FF0000">'performance_test_help'</span>
+
+<span style="font-weight: bold"><span style="color: #0000FF">class</span></span> PostPerformanceTest <span style="color: #990000">&lt;</span> ActionController<span style="color: #990000">::</span>PerformanceTest
+  <span style="font-weight: bold"><span style="color: #0000FF">def</span></span> setup
+    <span style="font-style: italic"><span style="color: #9A1900"># Application requires logged-in user</span></span>
+    login_as<span style="color: #990000">(:</span>lifo<span style="color: #990000">)</span>
+  <span style="font-weight: bold"><span style="color: #0000FF">end</span></span>
+
+  <span style="font-weight: bold"><span style="color: #0000FF">def</span></span> test_homepage
+    get <span style="color: #FF0000">'/dashboard'</span>
+  <span style="font-weight: bold"><span style="color: #0000FF">end</span></span>
+
+  <span style="font-weight: bold"><span style="color: #0000FF">def</span></span> test_creating_new_post
+    post <span style="color: #FF0000">'/posts'</span><span style="color: #990000">,</span> <span style="color: #990000">:</span>post <span style="color: #990000">=&gt;</span> <span style="color: #FF0000">{</span> <span style="color: #990000">:</span>body <span style="color: #990000">=&gt;</span> <span style="color: #FF0000">'lifo is fooling you'</span> <span style="color: #FF0000">}</span>
+  <span style="font-weight: bold"><span style="color: #0000FF">end</span></span>
+<span style="font-weight: bold"><span style="color: #0000FF">end</span></span></tt></pre></div></div>
+<div class="paragraph"><p>You can find more details about the <tt>get</tt> and <tt>post</tt> methods in the <a href="../testing_rails_applications.html#mgunderloy">Testing Rails Applications</a> guide.</p></div>
+<h4 id="_model_example">1.2.2. Model Example</h4>
+<div class="paragraph"><p>Even though the performance tests are integration tests and hence closer to the request/response cycle by nature, you can still performance test pure model code.</p></div>
+<div class="paragraph"><p>Performance test for <tt>Post</tt> model:</p></div>
+<div class="listingblock">
+<div class="content"><!-- Generator: GNU source-highlight 2.9
+by Lorenzo Bettini
+http://www.lorenzobettini.it
+http://www.gnu.org/software/src-highlite -->
+<pre><tt><span style="font-weight: bold"><span style="color: #000080">require</span></span> <span style="color: #FF0000">'test_helper'</span>
+<span style="font-weight: bold"><span style="color: #000080">require</span></span> <span style="color: #FF0000">'performance_test_help'</span>
+
+<span style="font-weight: bold"><span style="color: #0000FF">class</span></span> PostModelTest <span style="color: #990000">&lt;</span> ActionController<span style="color: #990000">::</span>PerformanceTest
+  <span style="font-weight: bold"><span style="color: #0000FF">def</span></span> test_creation
+    Post<span style="color: #990000">.</span>create <span style="color: #990000">:</span>body <span style="color: #990000">=&gt;</span> <span style="color: #FF0000">'still fooling you'</span><span style="color: #990000">,</span> <span style="color: #990000">:</span>cost <span style="color: #990000">=&gt;</span> <span style="color: #FF0000">'100'</span>
+  <span style="font-weight: bold"><span style="color: #0000FF">end</span></span>
+
+  <span style="font-weight: bold"><span style="color: #0000FF">def</span></span> test_slow_method
+    <span style="font-style: italic"><span style="color: #9A1900"># Using posts(:awesome) fixture</span></span>
+    posts<span style="color: #990000">(:</span>awesome<span style="color: #990000">).</span>slow_method
+  <span style="font-weight: bold"><span style="color: #0000FF">end</span></span>
+<span style="font-weight: bold"><span style="color: #0000FF">end</span></span></tt></pre></div></div>
+<h3 id="_modes">1.3. Modes</h3>
+<div class="paragraph"><p>Performance tests can be run in two modes : Benchmarking and Profiling.</p></div>
+<h4 id="_benchmarking">1.3.1. Benchmarking</h4>
+<div class="paragraph"><p>Benchmarking helps find out how fast each performance test runs. Each test case is run <tt>4 times</tt> in benchmarking mode.</p></div>
+<div class="paragraph"><p>To run performance tests in benchmarking mode:</p></div>
+<div class="listingblock">
+<div class="content"><!-- Generator: GNU source-highlight 2.9
+by Lorenzo Bettini
+http://www.lorenzobettini.it
+http://www.gnu.org/software/src-highlite -->
+<pre><tt>$ rake <span style="font-weight: bold"><span style="color: #0000FF">test</span></span><span style="color: #990000">:</span>benchmark</tt></pre></div></div>
+<h4 id="_profiling">1.3.2. Profiling</h4>
+<div class="paragraph"><p>Profiling helps you see the details of a performance test and provide an in-depth picture of the slow and memory hungry parts. Each test case is run <tt>1 time</tt> in profiling mode.</p></div>
+<div class="paragraph"><p>To run performance tests in profiling mode:</p></div>
+<div class="listingblock">
+<div class="content"><!-- Generator: GNU source-highlight 2.9
+by Lorenzo Bettini
+http://www.lorenzobettini.it
+http://www.gnu.org/software/src-highlite -->
+<pre><tt>$ rake <span style="font-weight: bold"><span style="color: #0000FF">test</span></span><span style="color: #990000">:</span>profile</tt></pre></div></div>
+<h3 id="_metrics">1.4. Metrics</h3>
+<div class="paragraph"><p>Benchmarking and profiling run performance tests in various modes described below.</p></div>
+<h4 id="_wall_time">1.4.1. Wall Time</h4>
+<div class="paragraph"><p>Wall time measures the real world time elapsed during the test run. It is affected by any other processes concurrently running on the system.</p></div>
+<div class="paragraph"><p>Mode : Benchmarking</p></div>
+<h4 id="_process_time">1.4.2. Process Time</h4>
+<div class="paragraph"><p>Process time measures the time taken by the process. It is unaffected by any other processes running concurrently on the same system. Hence, process time is likely to be constant for any given performance test, irrespective of the machine load.</p></div>
+<div class="paragraph"><p>Mode : Profiling</p></div>
+<h4 id="_memory">1.4.3. Memory</h4>
+<div class="paragraph"><p>Memory measures the amount of memory used for the performance test case.</p></div>
+<div class="paragraph"><p>Mode : Benchmarking, Profiling [<a href="#gc">Requires GC-Patched Ruby</a>]</p></div>
+<h4 id="_objects">1.4.4. Objects</h4>
+<div class="paragraph"><p>Objects measures the number of objects allocated for the performance test case.</p></div>
+<div class="paragraph"><p>Mode : Benchmarking, Profiling [<a href="#gc">Requires GC-Patched Ruby</a>]</p></div>
+<h4 id="_gc_runs">1.4.5. GC Runs</h4>
+<div class="paragraph"><p>GC Runs measures the number of times GC was invoked for the performance test case.</p></div>
+<div class="paragraph"><p>Mode : Benchmarking [<a href="#gc">Requires GC-Patched Ruby</a>]</p></div>
+<h4 id="_gc_time">1.4.6. GC Time</h4>
+<div class="paragraph"><p>GC Time measures the amount of time spent in GC for the performance test case.</p></div>
+<div class="paragraph"><p>Mode : Benchmarking [<a href="#gc">Requires GC-Patched Ruby</a>]</p></div>
+<h3 id="_understanding_the_output">1.5. Understanding the output</h3>
+<div class="paragraph"><p>Performance tests generate different outputs inside <tt>tmp/performance</tt> directory depending on their mode and metric.</p></div>
+<h4 id="_benchmarking_2">1.5.1. Benchmarking</h4>
+<div class="paragraph"><p>In benchmarking mode, performance tests generate two types of outputs :</p></div>
+<h5 id="_command_line">Command line</h5>
+<div class="paragraph"><p>This is the primary form of output in benchmarking mode. Example :</p></div>
+<div class="listingblock">
+<div class="content"><!-- Generator: GNU source-highlight 2.9
+by Lorenzo Bettini
+http://www.lorenzobettini.it
+http://www.gnu.org/software/src-highlite -->
+<pre><tt>BrowsingTest<span style="font-style: italic"><span style="color: #9A1900">#test_homepage (31 ms warmup)</span></span>
+           wall_time<span style="color: #990000">:</span> <span style="color: #993399">6</span> ms
+              memory<span style="color: #990000">:</span> <span style="color: #993399">437.27</span> KB
+             objects<span style="color: #990000">:</span> <span style="color: #993399">5514</span>
+             gc_runs<span style="color: #990000">:</span> <span style="color: #993399">0</span>
+             gc_time<span style="color: #990000">:</span> <span style="color: #993399">19</span> ms</tt></pre></div></div>
+<h5 id="_csv_files">CSV files</h5>
+<div class="paragraph"><p>Performance test results are also appended to <tt>.csv</tt> files inside <tt>tmp/performance</tt>. For example, running the default <tt>BrowsingTest#test_homepage</tt> will generate following five files :</p></div>
+<div class="ulist"><ul>
+<li>
+<p>
+BrowsingTest#test_homepage_gc_runs.csv
+</p>
+</li>
+<li>
+<p>
+BrowsingTest#test_homepage_gc_time.csv
+</p>
+</li>
+<li>
+<p>
+BrowsingTest#test_homepage_memory.csv
+</p>
+</li>
+<li>
+<p>
+BrowsingTest#test_homepage_objects.csv
+</p>
+</li>
+<li>
+<p>
+BrowsingTest#test_homepage_wall_time.csv
+</p>
+</li>
+</ul></div>
+<div class="paragraph"><p>As the results are appended to these files each time the performance tests are run in benchmarking mode, you can collect data over a period of time. This can be very helpful in analyzing the effects of code changes.</p></div>
+<div class="paragraph"><p>Sample output of <tt>BrowsingTest#test_homepage_wall_time.csv</tt>:</p></div>
+<div class="listingblock">
+<div class="content"><!-- Generator: GNU source-highlight 2.9
+by Lorenzo Bettini
+http://www.lorenzobettini.it
+http://www.gnu.org/software/src-highlite -->
+<pre><tt>measurement<span style="color: #990000">,</span>created_at<span style="color: #990000">,</span>app<span style="color: #990000">,</span>rails<span style="color: #990000">,</span>ruby<span style="color: #990000">,</span>platform
+<span style="color: #993399">0.00738224999999992</span><span style="color: #990000">,</span><span style="color: #993399">2009</span>-<span style="color: #993399">01</span>-08T03<span style="color: #990000">:</span><span style="color: #993399">40</span><span style="color: #990000">:</span>29Z<span style="color: #990000">,,</span><span style="color: #993399">2.3</span><span style="color: #990000">.</span><span style="color: #993399">0</span><span style="color: #990000">.</span>master<span style="color: #990000">.</span><span style="color: #993399">0744148</span><span style="color: #990000">,</span>ruby-<span style="color: #993399">1.8</span><span style="color: #990000">.</span><span style="color: #993399">6.110</span><span style="color: #990000">,</span>i686-darwin<span style="color: #993399">9.0</span><span style="color: #990000">.</span><span style="color: #993399">0</span>
+<span style="color: #993399">0.00755874999999984</span><span style="color: #990000">,</span><span style="color: #993399">2009</span>-<span style="color: #993399">01</span>-08T03<span style="color: #990000">:</span><span style="color: #993399">46</span><span style="color: #990000">:</span>18Z<span style="color: #990000">,,</span><span style="color: #993399">2.3</span><span style="color: #990000">.</span><span style="color: #993399">0</span><span style="color: #990000">.</span>master<span style="color: #990000">.</span><span style="color: #993399">0744148</span><span style="color: #990000">,</span>ruby-<span style="color: #993399">1.8</span><span style="color: #990000">.</span><span style="color: #993399">6.110</span><span style="color: #990000">,</span>i686-darwin<span style="color: #993399">9.0</span><span style="color: #990000">.</span><span style="color: #993399">0</span>
+<span style="color: #993399">0.00762099999999993</span><span style="color: #990000">,</span><span style="color: #993399">2009</span>-<span style="color: #993399">01</span>-08T03<span style="color: #990000">:</span><span style="color: #993399">49</span><span style="color: #990000">:</span>25Z<span style="color: #990000">,,</span><span style="color: #993399">2.3</span><span style="color: #990000">.</span><span style="color: #993399">0</span><span style="color: #990000">.</span>master<span style="color: #990000">.</span><span style="color: #993399">0744148</span><span style="color: #990000">,</span>ruby-<span style="color: #993399">1.8</span><span style="color: #990000">.</span><span style="color: #993399">6.110</span><span style="color: #990000">,</span>i686-darwin<span style="color: #993399">9.0</span><span style="color: #990000">.</span><span style="color: #993399">0</span>
+<span style="color: #993399">0.00603075000000008</span><span style="color: #990000">,</span><span style="color: #993399">2009</span>-<span style="color: #993399">01</span>-08T04<span style="color: #990000">:</span><span style="color: #993399">03</span><span style="color: #990000">:</span>29Z<span style="color: #990000">,,</span><span style="color: #993399">2.3</span><span style="color: #990000">.</span><span style="color: #993399">0</span><span style="color: #990000">.</span>master<span style="color: #990000">.</span><span style="color: #993399">0744148</span><span style="color: #990000">,</span>ruby-<span style="color: #993399">1.8</span><span style="color: #990000">.</span><span style="color: #993399">6.111</span><span style="color: #990000">,</span>i686-darwin<span style="color: #993399">9.1</span><span style="color: #990000">.</span><span style="color: #993399">0</span>
+<span style="color: #993399">0.00619899999999995</span><span style="color: #990000">,</span><span style="color: #993399">2009</span>-<span style="color: #993399">01</span>-08T04<span style="color: #990000">:</span><span style="color: #993399">03</span><span style="color: #990000">:</span>53Z<span style="color: #990000">,,</span><span style="color: #993399">2.3</span><span style="color: #990000">.</span><span style="color: #993399">0</span><span style="color: #990000">.</span>master<span style="color: #990000">.</span><span style="color: #993399">0744148</span><span style="color: #990000">,</span>ruby-<span style="color: #993399">1.8</span><span style="color: #990000">.</span><span style="color: #993399">6.111</span><span style="color: #990000">,</span>i686-darwin<span style="color: #993399">9.1</span><span style="color: #990000">.</span><span style="color: #993399">0</span>
+<span style="color: #993399">0.00755449999999991</span><span style="color: #990000">,</span><span style="color: #993399">2009</span>-<span style="color: #993399">01</span>-08T04<span style="color: #990000">:</span><span style="color: #993399">04</span><span style="color: #990000">:</span>55Z<span style="color: #990000">,,</span><span style="color: #993399">2.3</span><span style="color: #990000">.</span><span style="color: #993399">0</span><span style="color: #990000">.</span>master<span style="color: #990000">.</span><span style="color: #993399">0744148</span><span style="color: #990000">,</span>ruby-<span style="color: #993399">1.8</span><span style="color: #990000">.</span><span style="color: #993399">6.110</span><span style="color: #990000">,</span>i686-darwin<span style="color: #993399">9.0</span><span style="color: #990000">.</span><span style="color: #993399">0</span>
+<span style="color: #993399">0.00595999999999997</span><span style="color: #990000">,</span><span style="color: #993399">2009</span>-<span style="color: #993399">01</span>-08T04<span style="color: #990000">:</span><span style="color: #993399">05</span><span style="color: #990000">:</span>06Z<span style="color: #990000">,,</span><span style="color: #993399">2.3</span><span style="color: #990000">.</span><span style="color: #993399">0</span><span style="color: #990000">.</span>master<span style="color: #990000">.</span><span style="color: #993399">0744148</span><span style="color: #990000">,</span>ruby-<span style="color: #993399">1.8</span><span style="color: #990000">.</span><span style="color: #993399">6.111</span><span style="color: #990000">,</span>i686-darwin<span style="color: #993399">9.1</span><span style="color: #990000">.</span><span style="color: #993399">0</span>
+<span style="color: #993399">0.00740450000000004</span><span style="color: #990000">,</span><span style="color: #993399">2009</span>-<span style="color: #993399">01</span>-09T03<span style="color: #990000">:</span><span style="color: #993399">54</span><span style="color: #990000">:</span>47Z<span style="color: #990000">,,</span><span style="color: #993399">2.3</span><span style="color: #990000">.</span><span style="color: #993399">0</span><span style="color: #990000">.</span>master<span style="color: #990000">.</span><span style="color: #993399">859e150</span><span style="color: #990000">,</span>ruby-<span style="color: #993399">1.8</span><span style="color: #990000">.</span><span style="color: #993399">6.110</span><span style="color: #990000">,</span>i686-darwin<span style="color: #993399">9.0</span><span style="color: #990000">.</span><span style="color: #993399">0</span>
+<span style="color: #993399">0.00603150000000008</span><span style="color: #990000">,</span><span style="color: #993399">2009</span>-<span style="color: #993399">01</span>-09T03<span style="color: #990000">:</span><span style="color: #993399">54</span><span style="color: #990000">:</span>57Z<span style="color: #990000">,,</span><span style="color: #993399">2.3</span><span style="color: #990000">.</span><span style="color: #993399">0</span><span style="color: #990000">.</span>master<span style="color: #990000">.</span><span style="color: #993399">859e150</span><span style="color: #990000">,</span>ruby-<span style="color: #993399">1.8</span><span style="color: #990000">.</span><span style="color: #993399">6.111</span><span style="color: #990000">,</span>i686-darwin<span style="color: #993399">9.1</span><span style="color: #990000">.</span><span style="color: #993399">0</span>
+<span style="color: #993399">0.00771250000000012</span><span style="color: #990000">,</span><span style="color: #993399">2009</span>-<span style="color: #993399">01</span>-09T15<span style="color: #990000">:</span><span style="color: #993399">46</span><span style="color: #990000">:</span>03Z<span style="color: #990000">,,</span><span style="color: #993399">2.3</span><span style="color: #990000">.</span><span style="color: #993399">0</span><span style="color: #990000">.</span>master<span style="color: #990000">.</span><span style="color: #993399">859e150</span><span style="color: #990000">,</span>ruby-<span style="color: #993399">1.8</span><span style="color: #990000">.</span><span style="color: #993399">6.110</span><span style="color: #990000">,</span>i686-darwin<span style="color: #993399">9.0</span><span style="color: #990000">.</span><span style="color: #993399">0</span></tt></pre></div></div>
+<h4 id="_profiling_2">1.5.2. Profiling</h4>
+<div class="paragraph"><p>In profiling mode, you can choose from four types of output.</p></div>
+<h5 id="_command_line_2">Command line</h5>
+<div class="paragraph"><p>This is a very basic form of output in profiling mode:</p></div>
+<div class="listingblock">
+<div class="content"><!-- Generator: GNU source-highlight 2.9
+by Lorenzo Bettini
+http://www.lorenzobettini.it
+http://www.gnu.org/software/src-highlite -->
+<pre><tt>BrowsingTest<span style="font-style: italic"><span style="color: #9A1900">#test_homepage (58 ms warmup)</span></span>
+        process_time<span style="color: #990000">:</span> <span style="color: #993399">63</span> ms
+              memory<span style="color: #990000">:</span> <span style="color: #993399">832.13</span> KB
+             objects<span style="color: #990000">:</span> <span style="color: #993399">7882</span></tt></pre></div></div>
+<h5 id="_flat">Flat</h5>
+<div class="paragraph"><p>Flat output shows the total amount of time spent in each method. <a href="http://ruby-prof.rubyforge.org/files/examples/flat_txt.html">Check ruby prof documentation for a better explanation</a>.</p></div>
+<h5 id="_graph">Graph</h5>
+<div class="paragraph"><p>Graph output shows how long each method takes to run, which methods call it and which methods it calls. <a href="http://ruby-prof.rubyforge.org/files/examples/graph_txt.html">Check ruby prof documentation for a better explanation</a>.</p></div>
+<h5 id="_tree">Tree</h5>
+<div class="paragraph"><p>Tree output is profiling information in calltree format for use by <a href="http://kcachegrind.sourceforge.net/html/Home.html">kcachegrind</a> and similar tools.</p></div>
+<h3 id="_tuning_test_runs">1.6. Tuning Test Runs</h3>
+<div class="paragraph"><p>By default, each performance test is run <tt>4 times</tt> in benchmarking mode and <tt>1 time</tt> in profiling. However, test runs can easily be configured.</p></div>
+<div class="admonitionblock">
+<table><tr>
+<td class="icon">
+<img src="./images/icons/caution.png" alt="Caution" />
+</td>
+<td class="content">Performance test configurability is not yet enabled in Rails. But it will be soon.</td>
+</tr></table>
+</div>
+<h3 id="_performance_test_environment">1.7. Performance Test Environment</h3>
+<div class="paragraph"><p>Performance tests are run in the <tt>development</tt> environment. But running performance tests will set the following configuration parameters:</p></div>
+<div class="listingblock">
+<div class="content"><!-- Generator: GNU source-highlight 2.9
+by Lorenzo Bettini
+http://www.lorenzobettini.it
+http://www.gnu.org/software/src-highlite -->
+<pre><tt>ActionController<span style="color: #990000">::</span>Base<span style="color: #990000">.</span>perform_caching <span style="color: #990000">=</span> <span style="font-weight: bold"><span style="color: #0000FF">true</span></span>
+ActiveSupport<span style="color: #990000">::</span>Dependencies<span style="color: #990000">.</span>mechanism <span style="color: #990000">=</span> <span style="color: #990000">:</span>require
+Rails<span style="color: #990000">.</span>logger<span style="color: #990000">.</span>level <span style="color: #990000">=</span> ActiveSupport<span style="color: #990000">::</span>BufferedLogger<span style="color: #990000">::</span>INFO</tt></pre></div></div>
+<div class="paragraph"><p>As <tt>ActionController::Base.perform_caching</tt> is set to <tt>true</tt>, performance tests will behave much as they do in the <tt>production</tt> environment.</p></div>
+<h3 id="gc">1.8. Installing GC-Patched Ruby</h3>
+<div class="paragraph"><p>To get the best from Rails performance tests, you need to build a special Ruby binary with some super powers - <a href="http://rubyforge.org/tracker/download.php/1814/7062/17676/3291/ruby186gc.patch">GC patch</a> for measuring GC Runs/Time and memory/object allocation.</p></div>
+<div class="paragraph"><p>The process is fairly straight forward. If you&#8217;ve never compiled a Ruby binary before, follow these steps to build a ruby binary inside your home directory:</p></div>
+<h4 id="_installation">1.8.1. Installation</h4>
+<div class="paragraph"><p>Compile Ruby and apply this <a href="http://rubyforge.org/tracker/download.php/1814/7062/17676/3291/ruby186gc.patch">GC Patch</a>:</p></div>
+<h4 id="_download_and_extract">1.8.2. Download and Extract</h4>
+<div class="listingblock">
+<div class="content"><!-- Generator: GNU source-highlight 2.9
+by Lorenzo Bettini
+http://www.lorenzobettini.it
+http://www.gnu.org/software/src-highlite -->
+<pre><tt><span style="color: #990000">[</span>lifo@null <span style="color: #990000">~]</span>$ mkdir rubygc
+<span style="color: #990000">[</span>lifo@null <span style="color: #990000">~]</span>$ wget <span style="color: #990000">&lt;</span>download the latest stable ruby from ftp<span style="color: #990000">:</span>//ftp<span style="color: #990000">.</span>ruby-lang<span style="color: #990000">.</span>org/pub/ruby<span style="color: #990000">&gt;</span>
+<span style="color: #990000">[</span>lifo@null <span style="color: #990000">~]</span>$ tar -xzvf <span style="color: #990000">&lt;</span>ruby-version<span style="color: #990000">.</span>tar<span style="color: #990000">.</span>gz<span style="color: #990000">&gt;</span>
+<span style="color: #990000">[</span>lifo@null <span style="color: #990000">~]</span>$ cd <span style="color: #990000">&lt;</span>ruby-version<span style="color: #990000">&gt;</span></tt></pre></div></div>
+<h4 id="_apply_the_patch">1.8.3. Apply the patch</h4>
+<div class="listingblock">
+<div class="content"><!-- Generator: GNU source-highlight 2.9
+by Lorenzo Bettini
+http://www.lorenzobettini.it
+http://www.gnu.org/software/src-highlite -->
+<pre><tt><span style="color: #990000">[</span>lifo@null ruby-version<span style="color: #990000">]</span>$ curl http<span style="color: #990000">:</span>//rubyforge<span style="color: #990000">.</span>org/tracker/download<span style="color: #990000">.</span>php<span style="color: #990000">/</span><span style="color: #993399">1814</span><span style="color: #990000">/</span><span style="color: #993399">7062</span><span style="color: #990000">/</span><span style="color: #993399">17676</span><span style="color: #990000">/</span><span style="color: #993399">3291</span>/ruby186gc<span style="color: #990000">.</span>patch <span style="color: #990000">|</span> patch -p<span style="color: #993399">0</span></tt></pre></div></div>
+<h4 id="_configure_and_install">1.8.4. Configure and Install</h4>
+<div class="paragraph"><p>The following will install ruby in your home directory&#8217;s <tt>/rubygc</tt> directory. Make sure to replace <tt>&lt;homedir&gt;</tt> with a full patch to your actual home directory.</p></div>
+<div class="listingblock">
+<div class="content"><!-- Generator: GNU source-highlight 2.9
+by Lorenzo Bettini
+http://www.lorenzobettini.it
+http://www.gnu.org/software/src-highlite -->
+<pre><tt><span style="color: #990000">[</span>lifo@null ruby-version<span style="color: #990000">]</span>$ <span style="color: #990000">.</span>/configure --prefix<span style="color: #990000">=/&lt;</span>homedir<span style="color: #990000">&gt;</span>/rubygc
+<span style="color: #990000">[</span>lifo@null ruby-version<span style="color: #990000">]</span>$ make <span style="color: #990000">&amp;&amp;</span> make install</tt></pre></div></div>
+<h4 id="_prepare_aliases">1.8.5. Prepare aliases</h4>
+<div class="paragraph"><p>For convenience, add the following lines in your <tt>~/.profile</tt>:</p></div>
+<div class="listingblock">
+<div class="content">
+<pre><tt>alias gcruby='~/rubygc/bin/ruby'
+alias gcrake='~/rubygc/bin/rake'
+alias gcgem='~/rubygc/bin/gem'
+alias gcirb='~/rubygc/bin/irb'
+alias gcrails='~/rubygc/bin/rails'</tt></pre>
+</div></div>
+<h4 id="_install_rubygems_and_dependency_gems">1.8.6. Install rubygems and dependency gems</h4>
+<div class="paragraph"><p>Download <a href="http://rubyforge.org/projects/rubygems">Rubygems</a> and install it from source. Rubygem&#8217;s README file should have necessary installation instructions.</p></div>
+<div class="paragraph"><p>Additionally, install the following gems :</p></div>
+<div class="ulist"><ul>
+<li>
+<p>
+<tt>rake</tt>
+</p>
+</li>
+<li>
+<p>
+<tt>rails</tt>
+</p>
+</li>
+<li>
+<p>
+<tt>ruby-prof</tt>
+</p>
+</li>
+<li>
+<p>
+<tt>rack</tt>
+</p>
+</li>
+<li>
+<p>
+<tt>mysql</tt>
+</p>
+</li>
+</ul></div>
+<div class="paragraph"><p>If installing <tt>mysql</tt> fails, you can try to install it manually:</p></div>
+<div class="listingblock">
+<div class="content"><!-- Generator: GNU source-highlight 2.9
+by Lorenzo Bettini
+http://www.lorenzobettini.it
+http://www.gnu.org/software/src-highlite -->
+<pre><tt><span style="color: #990000">[</span>lifo@null mysql<span style="color: #990000">]</span>$ gcruby extconf<span style="color: #990000">.</span>rb --with-mysql-config
+<span style="color: #990000">[</span>lifo@null mysql<span style="color: #990000">]</span>$ make <span style="color: #990000">&amp;&amp;</span> make install</tt></pre></div></div>
+<div class="paragraph"><p>And you&#8217;re ready to go. Don&#8217;t forget to use <tt>gcruby</tt> and <tt>gcrake</tt> aliases when running the performance tests.</p></div>
+</div>
+<h2 id="_command_line_tools">2. Command Line Tools</h2>
+<div class="sectionbody">
+<div class="paragraph"><p>Writing performance test cases could be an overkill when you are looking for one time tests. Rails ships with two command line tools that enable quick and dirty performance testing:</p></div>
+<h3 id="_benchmarker">2.1. benchmarker</h3>
+<div class="paragraph"><p><tt>benchmarker</tt> is a wrapper around Ruby&#8217;s <a href="http://ruby-doc.org/core/classes/Benchmark.html">Benchmark</a> module.</p></div>
+<div class="paragraph"><p>Usage:</p></div>
+<div class="listingblock">
+<div class="content"><!-- Generator: GNU source-highlight 2.9
+by Lorenzo Bettini
+http://www.lorenzobettini.it
+http://www.gnu.org/software/src-highlite -->
+<pre><tt>$ script/performance/benchmarker <span style="color: #990000">[</span><span style="font-weight: bold"><span style="color: #0000FF">times</span></span><span style="color: #990000">]</span> <span style="color: #FF0000">'Person.expensive_way'</span> <span style="color: #FF0000">'Person.another_expensive_way'</span> <span style="color: #990000">...</span></tt></pre></div></div>
+<div class="paragraph"><p>Examples:</p></div>
+<div class="listingblock">
+<div class="content"><!-- Generator: GNU source-highlight 2.9
+by Lorenzo Bettini
+http://www.lorenzobettini.it
+http://www.gnu.org/software/src-highlite -->
+<pre><tt>$ script/performance/benchmarker <span style="color: #993399">10</span> <span style="color: #FF0000">'Item.all'</span> <span style="color: #FF0000">'CouchItem.all'</span></tt></pre></div></div>
+<div class="paragraph"><p>If the <tt>[times]</tt> argument is omitted, supplied methods are run just once:</p></div>
+<div class="listingblock">
+<div class="content"><!-- Generator: GNU source-highlight 2.9
+by Lorenzo Bettini
+http://www.lorenzobettini.it
+http://www.gnu.org/software/src-highlite -->
+<pre><tt>$ script/performance/benchmarker <span style="color: #FF0000">'Item.first'</span> <span style="color: #FF0000">'Item.last'</span></tt></pre></div></div>
+<h3 id="_profiler">2.2. profiler</h3>
+<div class="paragraph"><p><tt>profiler</tt> is a wrapper around <a href="http://ruby-prof.rubyforge.org/">ruby-prof</a> gem.</p></div>
+<div class="paragraph"><p>Usage:</p></div>
+<div class="listingblock">
+<div class="content"><!-- Generator: GNU source-highlight 2.9
+by Lorenzo Bettini
+http://www.lorenzobettini.it
+http://www.gnu.org/software/src-highlite -->
+<pre><tt>$ script/performance/profiler <span style="color: #FF0000">'Person.expensive_method(10)'</span> <span style="color: #990000">[</span><span style="font-weight: bold"><span style="color: #0000FF">times</span></span><span style="color: #990000">]</span> <span style="color: #990000">[</span>flat<span style="color: #990000">|</span>graph<span style="color: #990000">|</span>graph_html<span style="color: #990000">]</span></tt></pre></div></div>
+<div class="paragraph"><p>Examples:</p></div>
+<div class="listingblock">
+<div class="content"><!-- Generator: GNU source-highlight 2.9
+by Lorenzo Bettini
+http://www.lorenzobettini.it
+http://www.gnu.org/software/src-highlite -->
+<pre><tt>$ script/performance/profiler <span style="color: #FF0000">'Item.all'</span></tt></pre></div></div>
+<div class="paragraph"><p>This will profile <tt>Item.all</tt> in <tt>RubyProf::WALL_TIME</tt> measure mode. By default, it prints flat output to the shell.</p></div>
+<div class="listingblock">
+<div class="content"><!-- Generator: GNU source-highlight 2.9
+by Lorenzo Bettini
+http://www.lorenzobettini.it
+http://www.gnu.org/software/src-highlite -->
+<pre><tt>$ script/performance/profiler <span style="color: #FF0000">'Item.all'</span> <span style="color: #993399">10</span> graph</tt></pre></div></div>
+<div class="paragraph"><p>This will profile <tt>10.times { Item.all }</tt> with <tt>RubyProf::WALL_TIME</tt> measure mode and print graph output to the shell.</p></div>
+<div class="paragraph"><p>If you want to store the output in a file:</p></div>
+<div class="listingblock">
+<div class="content"><!-- Generator: GNU source-highlight 2.9
+by Lorenzo Bettini
+http://www.lorenzobettini.it
+http://www.gnu.org/software/src-highlite -->
+<pre><tt>$ script/performance/profiler <span style="color: #FF0000">'Item.all'</span> <span style="color: #993399">10</span> graph <span style="color: #993399">2</span><span style="color: #990000">&gt;</span> graph<span style="color: #990000">.</span>txt</tt></pre></div></div>
+</div>
+<h2 id="_helper_methods">3. Helper methods</h2>
+<div class="sectionbody">
+<div class="paragraph"><p>Rails provides various helper methods inside Active Record, Action Controller and Action View to measure the time taken by a given piece of code. The method is called <tt>benchmark()</tt> in all the three components.</p></div>
+<h3 id="_model">3.1. Model</h3>
+<div class="listingblock">
+<div class="content"><!-- Generator: GNU source-highlight 2.9
+by Lorenzo Bettini
+http://www.lorenzobettini.it
+http://www.gnu.org/software/src-highlite -->
+<pre><tt>Project<span style="color: #990000">.</span>benchmark<span style="color: #990000">(</span><span style="color: #FF0000">"Creating project"</span><span style="color: #990000">)</span> <span style="font-weight: bold"><span style="color: #0000FF">do</span></span>
+  project <span style="color: #990000">=</span> Project<span style="color: #990000">.</span>create<span style="color: #990000">(</span><span style="color: #FF0000">"name"</span> <span style="color: #990000">=&gt;</span> <span style="color: #FF0000">"stuff"</span><span style="color: #990000">)</span>
+  project<span style="color: #990000">.</span>create_manager<span style="color: #990000">(</span><span style="color: #FF0000">"name"</span> <span style="color: #990000">=&gt;</span> <span style="color: #FF0000">"David"</span><span style="color: #990000">)</span>
+  project<span style="color: #990000">.</span>milestones <span style="color: #990000">&lt;&lt;</span> Milestone<span style="color: #990000">.</span>find<span style="color: #990000">(:</span>all<span style="color: #990000">)</span>
+<span style="font-weight: bold"><span style="color: #0000FF">end</span></span></tt></pre></div></div>
+<div class="paragraph"><p>This benchmarks the code enclosed in the <tt>Project.benchmark("Creating project") do..end</tt> block and prints the result to the log file:</p></div>
+<div class="listingblock">
+<div class="content"><!-- Generator: GNU source-highlight 2.9
+by Lorenzo Bettini
+http://www.lorenzobettini.it
+http://www.gnu.org/software/src-highlite -->
+<pre><tt>Creating project <span style="color: #990000">(</span><span style="color: #993399">185</span><span style="color: #990000">.</span>3ms<span style="color: #990000">)</span></tt></pre></div></div>
+<div class="paragraph"><p>Please refer to the <a href="http://api.rubyonrails.com/classes/ActiveRecord/Base.html#M001336">API docs</a> for additional options to <tt>benchmark()</tt></p></div>
+<h3 id="_controller">3.2. Controller</h3>
+<div class="paragraph"><p>Similarly, you could use this helper method inside <a href="http://api.rubyonrails.com/classes/ActionController/Benchmarking/ClassMethods.html#M000715">controllers</a></p></div>
+<div class="admonitionblock">
+<table><tr>
+<td class="icon">
+<img src="./images/icons/note.png" alt="Note" />
+</td>
+<td class="content"><tt>benchmark</tt> is a class method inside controllers</td>
+</tr></table>
+</div>
+<div class="listingblock">
+<div class="content"><!-- Generator: GNU source-highlight 2.9
+by Lorenzo Bettini
+http://www.lorenzobettini.it
+http://www.gnu.org/software/src-highlite -->
+<pre><tt><span style="font-weight: bold"><span style="color: #0000FF">def</span></span> process_projects
+  <span style="font-weight: bold"><span style="color: #0000FF">self</span></span><span style="color: #990000">.</span><span style="font-weight: bold"><span style="color: #0000FF">class</span></span><span style="color: #990000">.</span>benchmark<span style="color: #990000">(</span><span style="color: #FF0000">"Processing projects"</span><span style="color: #990000">)</span> <span style="font-weight: bold"><span style="color: #0000FF">do</span></span>
+    Project<span style="color: #990000">.</span>process<span style="color: #990000">(</span>params<span style="color: #990000">[:</span>project_ids<span style="color: #990000">])</span>
+    Project<span style="color: #990000">.</span>update_cached_projects
+  <span style="font-weight: bold"><span style="color: #0000FF">end</span></span>
+<span style="font-weight: bold"><span style="color: #0000FF">end</span></span></tt></pre></div></div>
+<h3 id="_view">3.3. View</h3>
+<div class="paragraph"><p>And in <a href="http://api.rubyonrails.com/classes/ActionController/Benchmarking/ClassMethods.html#M000715">views</a>:</p></div>
+<div class="listingblock">
+<div class="content"><!-- Generator: GNU source-highlight 2.9
+by Lorenzo Bettini
+http://www.lorenzobettini.it
+http://www.gnu.org/software/src-highlite -->
+<pre><tt><span style="color: #FF0000">&lt;% benchmark("Showing projects partial") do %&gt;</span>
+  <span style="color: #FF0000">&lt;%= render :partial =&gt;</span> <span style="color: #009900">@projects</span> <span style="color: #990000">%&gt;</span>
+<span style="color: #FF0000">&lt;% end %&gt;</span></tt></pre></div></div>
+</div>
+<h2 id="_request_logging">4. Request Logging</h2>
+<div class="sectionbody">
+<div class="paragraph"><p>Rails log files contain very useful information about the time taken to serve each request. Here&#8217;s a typical log file entry:</p></div>
+<div class="listingblock">
+<div class="content"><!-- Generator: GNU source-highlight 2.9
+by Lorenzo Bettini
+http://www.lorenzobettini.it
+http://www.gnu.org/software/src-highlite -->
+<pre><tt>Processing ItemsController<span style="font-style: italic"><span style="color: #9A1900">#index (for 127.0.0.1 at 2009-01-08 03:06:39) [GET]</span></span>
+Rendering template within layouts<span style="color: #990000">/</span>items
+Rendering items<span style="color: #990000">/</span>index
+Completed <span style="font-weight: bold"><span style="color: #0000FF">in</span></span> 5ms <span style="color: #990000">(</span>View<span style="color: #990000">:</span> <span style="color: #993399">2</span><span style="color: #990000">,</span> DB<span style="color: #990000">:</span> <span style="color: #993399">0</span><span style="color: #990000">)</span> <span style="color: #990000">|</span> <span style="color: #993399">200</span> OK <span style="color: #990000">[</span>http<span style="color: #990000">:</span><span style="color: #FF6600">//0.0.0.0/</span>items<span style="color: #990000">]</span></tt></pre></div></div>
+<div class="paragraph"><p>For this section, we&#8217;re only interested in the last line:</p></div>
+<div class="listingblock">
+<div class="content"><!-- Generator: GNU source-highlight 2.9
+by Lorenzo Bettini
+http://www.lorenzobettini.it
+http://www.gnu.org/software/src-highlite -->
+<pre><tt>Completed <span style="font-weight: bold"><span style="color: #0000FF">in</span></span> 5ms <span style="color: #990000">(</span>View<span style="color: #990000">:</span> <span style="color: #993399">2</span><span style="color: #990000">,</span> DB<span style="color: #990000">:</span> <span style="color: #993399">0</span><span style="color: #990000">)</span> <span style="color: #990000">|</span> <span style="color: #993399">200</span> OK <span style="color: #990000">[</span>http<span style="color: #990000">:</span><span style="color: #FF6600">//0.0.0.0/</span>items<span style="color: #990000">]</span></tt></pre></div></div>
+<div class="paragraph"><p>This data is fairly straightforward to understand. Rails uses millisecond(ms) as the metric to measures the time taken. The complete request spent 5 ms inside Rails, out of which 2 ms were spent rendering views and none was spent communication with the database. It&#8217;s safe to assume that the remaining 3 ms were spent inside the controller.</p></div>
+<div class="paragraph"><p>Michael Koziarski has an <a href="http://www.therailsway.com/2009/1/6/requests-per-second">interesting blog post</a> explaining the importance of using milliseconds as the metric.</p></div>
+</div>
+<h2 id="_useful_links">5. Useful Links</h2>
+<div class="sectionbody">
+<h3 id="_rails_plugins_and_gems">5.1. Rails Plugins and Gems</h3>
+<div class="ulist"><ul>
+<li>
+<p>
+<a href="http://rails-analyzer.rubyforge.org/">Rails Analyzer</a>
+</p>
+</li>
+<li>
+<p>
+<a href="http://www.flyingmachinestudios.com/projects/">Palmist</a>
+</p>
+</li>
+<li>
+<p>
+<a href="http://github.com/josevalim/rails-footnotes/tree/master">Rails Footnotes</a>
+</p>
+</li>
+<li>
+<p>
+<a href="http://github.com/dsboulder/query_reviewer/tree/master">Query Reviewer</a>
+</p>
+</li>
+</ul></div>
+<h3 id="_generic_tools">5.2. Generic Tools</h3>
+<div class="ulist"><ul>
+<li>
+<p>
+<a href="http://www.hpl.hp.com/research/linux/httperf">httperf</a>
+</p>
+</li>
+<li>
+<p>
+<a href="http://httpd.apache.org/docs/2.2/programs/ab.html">ab</a>
+</p>
+</li>
+<li>
+<p>
+<a href="http://jakarta.apache.org/jmeter">JMeter</a>
+</p>
+</li>
+<li>
+<p>
+<a href="http://kcachegrind.sourceforge.net/html/Home.html">kcachegrind</a>
+</p>
+</li>
+</ul></div>
+<h3 id="_tutorials_and_documentation">5.3. Tutorials and Documentation</h3>
+<div class="ulist"><ul>
+<li>
+<p>
+<a href="http://ruby-prof.rubyforge.org">ruby-prof API Documentation</a>
+</p>
+</li>
+<li>
+<p>
+<a href="http://railscasts.com/episodes/98-request-profiling">Request Profiling Railscast</a> - Outdated, but useful for understanding call graphs
+</p>
+</li>
+</ul></div>
+</div>
+<h2 id="_commercial_products">6. Commercial Products</h2>
+<div class="sectionbody">
+<div class="paragraph"><p>Rails has been lucky to have three startups dedicated to Rails specific performance tools:</p></div>
+<div class="ulist"><ul>
+<li>
+<p>
+<a href="http://www.newrelic.com">New Relic</a>
+</p>
+</li>
+<li>
+<p>
+<a href="http://www.fiveruns.com">Fiveruns</a>
+</p>
+</li>
+<li>
+<p>
+<a href="http://scoutapp.com">Scout</a>
+</p>
+</li>
+</ul></div>
+</div>
+<h2 id="_changelog">7. Changelog</h2>
+<div class="sectionbody">
+<div class="paragraph"><p><a href="http://rails.lighthouseapp.com/projects/16213-rails-guides/tickets/4">Lighthouse ticket</a></p></div>
+<div class="ulist"><ul>
+<li>
+<p>
+January 9, 2009: Complete rewrite by <a href="../authors.html#lifo">Pratik</a>
+</p>
+</li>
+<li>
+<p>
+September 6, 2008: Initial version by Matthew Bergman
+</p>
+</li>
+</ul></div>
+</div>
+
+    </div>
+  </div>
+</body>
+</html>

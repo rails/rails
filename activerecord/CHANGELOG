@@ -5254,7 +5254,7 @@ in effect.  Added :readonly finder constraint.  Calling an association collectio
     end
   
   This will assume that settings is a text column and will now YAMLize any object put in that attribute. You can also specify
-  an optional :class_name option that'll raise an exception if a serialized object is retrieved as a descendent of a class not in
+  an optional :class_name option that'll raise an exception if a serialized object is retrieved as a descendant of a class not in
   the hierarchy. Example:
   
     class User < ActiveRecord::Base
@@ -5750,7 +5750,7 @@ _Misc_
 *0.8.2*
 
 * Added inheritable callback queues that can ensure that certain callback methods or inline fragments are
-  run throughout the entire inheritance hierarchy. Regardless of whether a descendent overwrites the callback
+  run throughout the entire inheritance hierarchy. Regardless of whether a descendant overwrites the callback
   method:
   
     class Topic < ActiveRecord::Base
