@@ -780,10 +780,10 @@ class HasAndBelongsToManyAssociationsTest < ActiveRecord::TestCase
     david = Developer.find(1)
     # clear cache possibly created by other tests
     david.projects.reset_column_information
-    assert_queries(1) { david.projects.columns; david.projects.columns }
+    assert_queries(0) { david.projects.columns; david.projects.columns }
     # and again to verify that reset_column_information clears the cache correctly
     david.projects.reset_column_information
-    assert_queries(1) { david.projects.columns; david.projects.columns }
+    assert_queries(0) { david.projects.columns; david.projects.columns }
   end
 
 end
