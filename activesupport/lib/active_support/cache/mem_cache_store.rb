@@ -23,24 +23,6 @@ module ActiveSupport
         DELETED     = "DELETED\r\n"
       end
 
-      # this allows caching of the fact that there is nothing in the remote cache
-      NULL = 'mem_cache_store:null'
-
-      THREAD_LOCAL_KEY = :mem_cache_store_cache
-
-      class LocalCache
-        def initialize(app)
-          @app = app
-        end
-
-        def call(env)
-          Thread.current[THREAD_LOCAL_KEY] = MemoryStore.new
-          @app.call(env)
-        ensure
-          Thread.current[THREAD_LOCAL_KEY] = nil
-        end
-      end
-
       attr_reader :addresses
 
       # Creates a new MemCacheStore object, with the given memcached server
@@ -57,22 +39,13 @@ module ActiveSupport
         addresses = ["localhost"] if addresses.empty?
         @addresses = addresses
         @data = MemCache.new(addresses, options)
+
+        extend Strategy::LocalCache
       end
 
       def read(key, options = nil) # :nodoc:
         super
-
-        value = local_cache && local_cache.read(key)
-        if value == NULL
-          nil
-        elsif value.nil?
-          value = @data.get(key, raw?(options))
-          local_cache.write(key, value || NULL) if local_cache
-          value
-        else
-          # forcing the value to be immutable
-          value.dup
-        end
+        @data.get(key, raw?(options))
       rescue MemCache::MemCacheError => e
         logger.error("MemCacheError (#{e}): #{e.message}")
         nil
@@ -91,7 +64,6 @@ module ActiveSupport
         # memcache-client will break the connection if you send it an integer
         # in raw mode, so we convert it to a string to be sure it continues working.
         value = value.to_s if raw?(options)
-        local_cache.write(key, value || NULL) if local_cache
         response = @data.send(method, key, value, expires_in(options), raw?(options))
         response == Response::STORED
       rescue MemCache::MemCacheError => e
@@ -101,7 +73,6 @@ module ActiveSupport
 
       def delete(key, options = nil) # :nodoc:
         super
-        local_cache.write(key, NULL) if local_cache
         response = @data.delete(key, expires_in(options))
         response == Response::DELETED
       rescue MemCache::MemCacheError => e
@@ -113,40 +84,22 @@ module ActiveSupport
         # Doesn't call super, cause exist? in memcache is in fact a read
         # But who cares? Reading is very fast anyway
         # Local cache is checked first, if it doesn't know then memcache itself is read from
-        value = local_cache.read(key) if local_cache
-        if value == NULL
-          false
-        elsif value
-          true
-        else
-          !read(key, options).nil?
-        end
+        !read(key, options).nil?
       end
 
       def increment(key, amount = 1) # :nodoc:
         log("incrementing", key, amount)
 
         response = @data.incr(key, amount)
-        unless response == Response::NOT_FOUND
-          local_cache.write(key, response.to_s) if local_cache
-          response
-        else
-          nil
-        end
+        response == Response::NOT_FOUND ? nil : response
       rescue MemCache::MemCacheError
         nil
       end
 
       def decrement(key, amount = 1) # :nodoc:
         log("decrement", key, amount)
-
         response = @data.decr(key, amount)
-        unless response == Response::NOT_FOUND
-          local_cache.write(key, response.to_s) if local_cache
-          response
-        else
-          nil
-        end
+        response == Response::NOT_FOUND ? nil : response
       rescue MemCache::MemCacheError
         nil
       end
@@ -159,7 +112,6 @@ module ActiveSupport
       end
 
       def clear
-        local_cache.clear if local_cache
         @data.flush_all
       end
 
@@ -168,10 +120,6 @@ module ActiveSupport
       end
 
       private
-        def local_cache
-          Thread.current[THREAD_LOCAL_KEY]
-        end
-
         def expires_in(options)
           (options && options[:expires_in]) || 0
         end

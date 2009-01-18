@@ -161,7 +161,7 @@ uses_memcached 'memcached backed store' do
     include CacheStoreBehavior
 
     def test_store_objects_should_be_immutable
-      with_local_cache do
+      @cache.with_local_cache do
         @cache.write('foo', 'bar')
         @cache.read('foo').gsub!(/.*/, 'baz')
         assert_equal 'bar', @cache.read('foo')
@@ -169,7 +169,7 @@ uses_memcached 'memcached backed store' do
     end
 
     def test_write_should_return_true_on_success
-      with_local_cache do
+      @cache.with_local_cache do
         result = @cache.write('foo', 'bar')
         assert_equal 'bar', @cache.read('foo') # make sure 'foo' was written
         assert result
@@ -177,7 +177,7 @@ uses_memcached 'memcached backed store' do
     end
 
     def test_local_writes_are_persistent_on_the_remote_cache
-      with_local_cache do
+      @cache.with_local_cache do
         @cache.write('foo', 'bar')
       end
 
@@ -185,7 +185,7 @@ uses_memcached 'memcached backed store' do
     end
 
     def test_clear_also_clears_local_cache
-      with_local_cache do
+      @cache.with_local_cache do
         @cache.write('foo', 'bar')
         @cache.clear
         assert_nil @cache.read('foo')
@@ -193,7 +193,7 @@ uses_memcached 'memcached backed store' do
     end
 
     def test_local_cache_of_read_and_write
-      with_local_cache do
+      @cache.with_local_cache do
         @cache.write('foo', 'bar')
         @data.flush_all # Clear remote cache
         assert_equal 'bar', @cache.read('foo')
@@ -201,7 +201,7 @@ uses_memcached 'memcached backed store' do
     end
 
     def test_local_cache_of_delete
-      with_local_cache do
+      @cache.with_local_cache do
         @cache.write('foo', 'bar')
         @cache.delete('foo')
         @data.flush_all # Clear remote cache
@@ -210,7 +210,7 @@ uses_memcached 'memcached backed store' do
     end
 
     def test_local_cache_of_exist
-      with_local_cache do
+      @cache.with_local_cache do
         @cache.write('foo', 'bar')
         @cache.instance_variable_set(:@data, nil)
         @data.flush_all # Clear remote cache
@@ -219,7 +219,7 @@ uses_memcached 'memcached backed store' do
     end
 
     def test_local_cache_of_increment
-      with_local_cache do
+      @cache.with_local_cache do
         @cache.write('foo', 1, :raw => true)
         @cache.increment('foo')
         @data.flush_all # Clear remote cache
@@ -228,7 +228,7 @@ uses_memcached 'memcached backed store' do
     end
 
     def test_local_cache_of_decrement
-      with_local_cache do
+      @cache.with_local_cache do
         @cache.write('foo', 1, :raw => true)
         @cache.decrement('foo')
         @data.flush_all # Clear remote cache
@@ -237,20 +237,22 @@ uses_memcached 'memcached backed store' do
     end
 
     def test_exist_with_nulls_cached_locally
-      with_local_cache do
+      @cache.with_local_cache do
         @cache.write('foo', 'bar')
         @cache.delete('foo')
         assert !@cache.exist?('foo')
       end
     end
 
-    private
-      def with_local_cache
-        Thread.current[ActiveSupport::Cache::MemCacheStore::THREAD_LOCAL_KEY] = ActiveSupport::Cache::MemoryStore.new
-        yield
-      ensure
-        Thread.current[ActiveSupport::Cache::MemCacheStore::THREAD_LOCAL_KEY] = nil
-      end
+    def test_middleware
+      app = lambda { |env|
+        result = @cache.write('foo', 'bar')
+        assert_equal 'bar', @cache.read('foo') # make sure 'foo' was written
+        assert result
+      }
+      app = @cache.middleware.new(app)
+      app.call({})
+    end
   end
 
   class CompressedMemCacheStore < ActiveSupport::TestCase

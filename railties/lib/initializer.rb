@@ -414,8 +414,10 @@ Run `rake gems:install` to install the missing gems.
     def initialize_cache
       unless defined?(RAILS_CACHE)
         silence_warnings { Object.const_set "RAILS_CACHE", ActiveSupport::Cache.lookup_store(configuration.cache_store) }
-        if RAILS_CACHE.class.name == "ActiveSupport::Cache::MemCacheStore"
-          configuration.middleware.insert_after(:"ActionController::Failsafe", ActiveSupport::Cache::MemCacheStore::LocalCache)
+
+        if RAILS_CACHE.respond_to?(:middleware)
+          # Insert middleware to setup and teardown local cache for each request
+          configuration.middleware.insert_after(:"ActionController::Failsafe", RAILS_CACHE.middleware)
         end
       end
     end
