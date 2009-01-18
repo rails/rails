@@ -31,7 +31,7 @@ rescue LoadError
 end
 
 ActiveRecord::Base.connection.class.class_eval do
-  IGNORED_SQL = [/^PRAGMA/, /^SELECT currval/, /^SELECT CAST/, /^SELECT @@IDENTITY/, /^SELECT @@ROWCOUNT/]
+  IGNORED_SQL = [/^PRAGMA/, /^SELECT currval/, /^SELECT CAST/, /^SELECT @@IDENTITY/, /^SELECT @@ROWCOUNT/, /SHOW FIELDS/]
 
   def execute_with_query_record(sql, name = nil, &block)
     $queries_executed ||= []
