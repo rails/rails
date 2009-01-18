@@ -204,7 +204,7 @@ module ActionView #:nodoc:
 
     private
       def valid_extension?(extension)
-        Template.template_handler_extensions.include?(extension)
+        !Template.registered_template_handler(extension).nil?
       end
 
       def find_full_path(path, load_paths)

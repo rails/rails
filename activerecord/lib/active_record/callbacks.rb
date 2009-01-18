@@ -219,8 +219,9 @@ module ActiveRecord
     def after_save()  end
     def create_or_update_with_callbacks #:nodoc:
       return false if callback(:before_save) == false
-      result = create_or_update_without_callbacks
-      callback(:after_save)
+      if result = create_or_update_without_callbacks
+        callback(:after_save)
+      end
       result
     end
     private :create_or_update_with_callbacks

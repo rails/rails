@@ -9,11 +9,6 @@ module ActionController
   class Request < Rack::Request
     extend ActiveSupport::Memoizable
 
-    def initialize(env)
-      super
-      @parser = ActionController::RequestParser.new(env)
-    end
-
     %w[ AUTH_TYPE GATEWAY_INTERFACE
         PATH_TRANSLATED REMOTE_HOST
         REMOTE_IDENT REMOTE_USER REMOTE_ADDR
@@ -94,7 +89,11 @@ module ActionController
     # For backward compatibility, the post \format is extracted from the
     # X-Post-Data-Format HTTP header if present.
     def content_type
-      Mime::Type.lookup(@parser.content_type_without_parameters)
+      if @env['CONTENT_TYPE'] =~ /^([^,\;]*)/
+        Mime::Type.lookup($1.strip.downcase)
+      else
+        nil
+      end
     end
     memoize :content_type
 
@@ -382,7 +381,11 @@ EOM
     # Read the request \body. This is useful for web services that need to
     # work with raw requests directly.
     def raw_post
-      @parser.raw_post
+      unless @env.include? 'RAW_POST_DATA'
+        @env['RAW_POST_DATA'] = body.read(@env['CONTENT_LENGTH'].to_i)
+        body.rewind if body.respond_to?(:rewind)
+      end
+      @env['RAW_POST_DATA']
     end
 
     # Returns both GET and POST \parameters in a single hash.
@@ -411,19 +414,30 @@ EOM
       @env["rack.routing_args"] ||= {}
     end
 
+    # The request body is an IO input stream. If the RAW_POST_DATA environment
+    # variable is already set, wrap it in a StringIO.
     def body
-      @parser.body
+      if raw_post = @env['RAW_POST_DATA']
+        raw_post.force_encoding(Encoding::BINARY) if raw_post.respond_to?(:force_encoding)
+        StringIO.new(raw_post)
+      else
+        @env['rack.input']
+      end
+    end
+
+    def form_data?
+      FORM_DATA_MEDIA_TYPES.include?(content_type.to_s)
     end
 
     # Override Rack's GET method to support nested query strings
     def GET
-      @parser.query_parameters
+      @env["action_controller.request.query_parameters"] ||= UrlEncodedPairParser.parse_query_parameters(query_string)
     end
     alias_method :query_parameters, :GET
 
     # Override Rack's POST method to support nested query strings
     def POST
-      @parser.request_parameters
+      @env["action_controller.request.request_parameters"] ||= UrlEncodedPairParser.parse_hash_parameters(super)
     end
     alias_method :request_parameters, :POST
 

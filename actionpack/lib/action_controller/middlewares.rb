@@ -1,4 +1,4 @@
-use "ActionController::Lock", :if => lambda {
+use "Rack::Lock", :if => lambda {
   !ActionController::Base.allow_concurrency
 }
 
@@ -19,4 +19,5 @@ use "ActiveRecord::QueryCache", :if => lambda { defined?(ActiveRecord) }
 end
 
 use ActionController::RewindableInput
+use ActionController::ParamsParser
 use Rack::MethodOverride
