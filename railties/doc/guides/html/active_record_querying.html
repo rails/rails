@@ -174,7 +174,7 @@ Perform various calculations on Active Record models
 <div class="paragraph"><p>If you&#8217;re used to using raw SQL to find database records then, generally, you will find that there are better ways to carry out the same operations in Rails. Active Record insulates you from the need to use SQL in most cases.</p></div>
 <div class="paragraph"><p>Code examples throughout this guide will refer to one or more of the following models:</p></div>
 <div class="listingblock">
-<div class="content"><!-- Generator: GNU source-highlight 2.11.1
+<div class="content"><!-- Generator: GNU source-highlight 2.9
 by Lorenzo Bettini
 http://www.lorenzobettini.it
 http://www.gnu.org/software/src-highlite -->
@@ -185,7 +185,7 @@ http://www.gnu.org/software/src-highlite -->
   has_and_belongs_to_many <span style="color: #990000">:</span>roles
 <span style="font-weight: bold"><span style="color: #0000FF">end</span></span></tt></pre></div></div>
 <div class="listingblock">
-<div class="content"><!-- Generator: GNU source-highlight 2.11.1
+<div class="content"><!-- Generator: GNU source-highlight 2.9
 by Lorenzo Bettini
 http://www.lorenzobettini.it
 http://www.gnu.org/software/src-highlite -->
@@ -193,14 +193,14 @@ http://www.gnu.org/software/src-highlite -->
   belongs_to <span style="color: #990000">:</span>client
 <span style="font-weight: bold"><span style="color: #0000FF">end</span></span></tt></pre></div></div>
 <div class="listingblock">
-<div class="content"><!-- Generator: GNU source-highlight 2.11.1
+<div class="content"><!-- Generator: GNU source-highlight 2.9
 by Lorenzo Bettini
 http://www.lorenzobettini.it
 http://www.gnu.org/software/src-highlite -->
 <pre><tt><span style="font-weight: bold"><span style="color: #0000FF">class</span></span> MailingAddress <span style="color: #990000">&lt;</span> Address
 <span style="font-weight: bold"><span style="color: #0000FF">end</span></span></tt></pre></div></div>
 <div class="listingblock">
-<div class="content"><!-- Generator: GNU source-highlight 2.11.1
+<div class="content"><!-- Generator: GNU source-highlight 2.9
 by Lorenzo Bettini
 http://www.lorenzobettini.it
 http://www.gnu.org/software/src-highlite -->
@@ -208,7 +208,7 @@ http://www.gnu.org/software/src-highlite -->
   belongs_to <span style="color: #990000">:</span>client<span style="color: #990000">,</span> <span style="color: #990000">:</span>counter_cache <span style="color: #990000">=&gt;</span> <span style="font-weight: bold"><span style="color: #0000FF">true</span></span>
 <span style="font-weight: bold"><span style="color: #0000FF">end</span></span></tt></pre></div></div>
 <div class="listingblock">
-<div class="content"><!-- Generator: GNU source-highlight 2.11.1
+<div class="content"><!-- Generator: GNU source-highlight 2.9
 by Lorenzo Bettini
 http://www.lorenzobettini.it
 http://www.gnu.org/software/src-highlite -->
@@ -225,7 +225,7 @@ http://www.gnu.org/software/src-highlite -->
 <div class="sectionbody">
 <div class="paragraph"><p>To retrieve objects from the database, Active Record provides a primary method called <tt>find</tt>. This method allows you to pass arguments into it to perform certain queries on your database without the need of SQL. If you wanted to find the record with the id of 1, you could type <tt>Client.find(1)</tt> which would execute this query on your database:</p></div>
 <div class="listingblock">
-<div class="content"><!-- Generator: GNU source-highlight 2.11.1
+<div class="content"><!-- Generator: GNU source-highlight 2.9
 by Lorenzo Bettini
 http://www.lorenzobettini.it
 http://www.gnu.org/software/src-highlite -->
@@ -240,7 +240,7 @@ http://www.gnu.org/software/src-highlite -->
 </div>
 <div class="paragraph"><p>If you wanted to find clients with id 1 or 2, you call <tt>Client.find([1,2])</tt> or <tt>Client.find(1,2)</tt> and then this will be executed as:</p></div>
 <div class="listingblock">
-<div class="content"><!-- Generator: GNU source-highlight 2.11.1
+<div class="content"><!-- Generator: GNU source-highlight 2.9
 by Lorenzo Bettini
 http://www.lorenzobettini.it
 http://www.gnu.org/software/src-highlite -->
@@ -271,7 +271,7 @@ http://www.gnu.org/software/src-highlite -->
 </div></div>
 <div class="paragraph"><p>If you were reading your log file (the default is log/development.log) you may see something like this:</p></div>
 <div class="listingblock">
-<div class="content"><!-- Generator: GNU source-highlight 2.11.1
+<div class="content"><!-- Generator: GNU source-highlight 2.9
 by Lorenzo Bettini
 http://www.lorenzobettini.it
 http://www.gnu.org/software/src-highlite -->
@@ -286,7 +286,7 @@ http://www.gnu.org/software/src-highlite -->
 </div></div>
 <div class="paragraph"><p>If you were reading your log file (the default is log/development.log) you may see something like this:</p></div>
 <div class="listingblock">
-<div class="content"><!-- Generator: GNU source-highlight 2.11.1
+<div class="content"><!-- Generator: GNU source-highlight 2.9
 by Lorenzo Bettini
 http://www.lorenzobettini.it
 http://www.gnu.org/software/src-highlite -->
@@ -300,7 +300,7 @@ http://www.gnu.org/software/src-highlite -->
 </tr></table>
 </div>
 <div class="listingblock">
-<div class="content"><!-- Generator: GNU source-highlight 2.11.1
+<div class="content"><!-- Generator: GNU source-highlight 2.9
 by Lorenzo Bettini
 http://www.lorenzobettini.it
 http://www.gnu.org/software/src-highlite -->
@@ -334,14 +334,14 @@ http://www.gnu.org/software/src-highlite -->
 <div class="paragraph"><p>Now what if that number could vary, say as a argument from somewhere, or perhaps from the user&#8217;s level status somewhere? The find then becomes something like <tt>Client.first(:conditions =&gt; ["orders_count = ?", params[:orders]])</tt>. Active Record will go through the first element in the conditions value and any additional elements will replace the question marks (?) in the first element. If you want to specify two conditions, you can do it like <tt>Client.first(:conditions =&gt; ["orders_count = ? AND locked = ?", params[:orders], false])</tt>. In this example, the first question mark will be replaced with the value in <tt>params[:orders]</tt> and the second will be replaced with the SQL representation of <tt>false</tt>, which depends on the adapter.</p></div>
 <div class="paragraph"><p>The reason for doing code like:</p></div>
 <div class="listingblock">
-<div class="content"><!-- Generator: GNU source-highlight 2.11.1
+<div class="content"><!-- Generator: GNU source-highlight 2.9
 by Lorenzo Bettini
 http://www.lorenzobettini.it
 http://www.gnu.org/software/src-highlite -->
 <pre><tt>Client<span style="color: #990000">.</span>first<span style="color: #990000">(:</span>conditions <span style="color: #990000">=&gt;</span> <span style="color: #990000">[</span><span style="color: #FF0000">"orders_count = ?"</span><span style="color: #990000">,</span> params<span style="color: #990000">[:</span>orders<span style="color: #990000">]])</span></tt></pre></div></div>
 <div class="paragraph"><p>instead of:</p></div>
 <div class="listingblock">
-<div class="content"><!-- Generator: GNU source-highlight 2.11.1
+<div class="content"><!-- Generator: GNU source-highlight 2.9
 by Lorenzo Bettini
 http://www.lorenzobettini.it
 http://www.gnu.org/software/src-highlite -->
@@ -357,7 +357,7 @@ http://www.gnu.org/software/src-highlite -->
 </div>
 <div class="paragraph"><p>If you&#8217;re looking for a range inside of a table (for example, users created in a certain timeframe) you can use the conditions option coupled with the IN sql statement for this. If you had two dates coming in from a controller you could do something like this to look for a range:</p></div>
 <div class="listingblock">
-<div class="content"><!-- Generator: GNU source-highlight 2.11.1
+<div class="content"><!-- Generator: GNU source-highlight 2.9
 by Lorenzo Bettini
 http://www.lorenzobettini.it
 http://www.gnu.org/software/src-highlite -->
@@ -365,7 +365,7 @@ http://www.gnu.org/software/src-highlite -->
   <span style="color: #990000">(</span>params<span style="color: #990000">[:</span>start_date<span style="color: #990000">].</span>to_date<span style="color: #990000">)..(</span>params<span style="color: #990000">[:</span>end_date<span style="color: #990000">].</span>to_date<span style="color: #990000">)])</span></tt></pre></div></div>
 <div class="paragraph"><p>This would generate the proper query which is great for small ranges but not so good for larger ranges. For example if you pass in a range of date objects spanning a year that&#8217;s 365 (or possibly 366, depending on the year) strings it will attempt to match your field against.</p></div>
 <div class="listingblock">
-<div class="content"><!-- Generator: GNU source-highlight 2.11.1
+<div class="content"><!-- Generator: GNU source-highlight 2.9
 by Lorenzo Bettini
 http://www.lorenzobettini.it
 http://www.gnu.org/software/src-highlite -->
@@ -379,14 +379,14 @@ http://www.gnu.org/software/src-highlite -->
 <span style="color: #FF0000">  '</span><span style="color: #993399">2008</span><span style="color: #990000">-</span><span style="color: #993399">12</span><span style="color: #990000">-</span><span style="color: #993399">27</span><span style="color: #FF0000">','</span><span style="color: #993399">2008</span><span style="color: #990000">-</span><span style="color: #993399">12</span><span style="color: #990000">-</span><span style="color: #993399">28</span><span style="color: #FF0000">','</span><span style="color: #993399">2008</span><span style="color: #990000">-</span><span style="color: #993399">12</span><span style="color: #990000">-</span><span style="color: #993399">29</span><span style="color: #FF0000">','</span><span style="color: #993399">2008</span><span style="color: #990000">-</span><span style="color: #993399">12</span><span style="color: #990000">-</span><span style="color: #993399">30</span><span style="color: #FF0000">','</span><span style="color: #993399">2008</span><span style="color: #990000">-</span><span style="color: #993399">12</span><span style="color: #990000">-</span><span style="color: #993399">31</span><span style="color: #FF0000">'))</span></tt></pre></div></div>
 <div class="paragraph"><p>Things can get <strong>really</strong> messy if you pass in Time objects as it will attempt to compare your field to <strong>every second</strong> in that range:</p></div>
 <div class="listingblock">
-<div class="content"><!-- Generator: GNU source-highlight 2.11.1
+<div class="content"><!-- Generator: GNU source-highlight 2.9
 by Lorenzo Bettini
 http://www.lorenzobettini.it
 http://www.gnu.org/software/src-highlite -->
 <pre><tt>Client<span style="color: #990000">.</span>all<span style="color: #990000">(:</span>conditions <span style="color: #990000">=&gt;</span> <span style="color: #990000">[</span><span style="color: #FF0000">"created_at IN (?)"</span><span style="color: #990000">,</span>
   <span style="color: #990000">(</span>params<span style="color: #990000">[:</span>start_date<span style="color: #990000">].</span>to_date<span style="color: #990000">.</span>to_time<span style="color: #990000">)..(</span>params<span style="color: #990000">[:</span>end_date<span style="color: #990000">].</span>to_date<span style="color: #990000">.</span>to_time<span style="color: #990000">)])</span></tt></pre></div></div>
 <div class="listingblock">
-<div class="content"><!-- Generator: GNU source-highlight 2.11.1
+<div class="content"><!-- Generator: GNU source-highlight 2.9
 by Lorenzo Bettini
 http://www.lorenzobettini.it
 http://www.gnu.org/software/src-highlite -->
@@ -401,7 +401,7 @@ http://www.gnu.org/software/src-highlite -->
 <div class="paragraph"><p>Where <em>query</em> is the actual query used to get that error.</p></div>
 <div class="paragraph"><p>In this example it would be better to use greater-than and less-than operators in SQL, like so:</p></div>
 <div class="listingblock">
-<div class="content"><!-- Generator: GNU source-highlight 2.11.1
+<div class="content"><!-- Generator: GNU source-highlight 2.9
 by Lorenzo Bettini
 http://www.lorenzobettini.it
 http://www.gnu.org/software/src-highlite -->
@@ -409,7 +409,7 @@ http://www.gnu.org/software/src-highlite -->
   <span style="color: #990000">[</span><span style="color: #FF0000">"created_at &gt; ? AND created_at &lt; ?"</span><span style="color: #990000">,</span> params<span style="color: #990000">[:</span>start_date<span style="color: #990000">],</span> params<span style="color: #990000">[:</span>end_date<span style="color: #990000">]])</span></tt></pre></div></div>
 <div class="paragraph"><p>You can also use the greater-than-or-equal-to and less-than-or-equal-to like this:</p></div>
 <div class="listingblock">
-<div class="content"><!-- Generator: GNU source-highlight 2.11.1
+<div class="content"><!-- Generator: GNU source-highlight 2.9
 by Lorenzo Bettini
 http://www.lorenzobettini.it
 http://www.gnu.org/software/src-highlite -->
@@ -419,7 +419,7 @@ http://www.gnu.org/software/src-highlite -->
 <h3 id="_placeholder_conditions">2.3. Placeholder Conditions</h3>
 <div class="paragraph"><p>Similar to the array style of params you can also specify keys in your conditions:</p></div>
 <div class="listingblock">
-<div class="content"><!-- Generator: GNU source-highlight 2.11.1
+<div class="content"><!-- Generator: GNU source-highlight 2.9
 by Lorenzo Bettini
 http://www.lorenzobettini.it
 http://www.gnu.org/software/src-highlite -->
@@ -429,28 +429,28 @@ http://www.gnu.org/software/src-highlite -->
 <h3 id="_hash_conditions">2.4. Hash Conditions</h3>
 <div class="paragraph"><p>Rails also allows you to pass in a hash conditions which can increase the readability of your conditions syntax. With hash conditions, you pass in a hash with keys of the fields you want conditionalised and the values of how you want to conditionalise them:</p></div>
 <div class="listingblock">
-<div class="content"><!-- Generator: GNU source-highlight 2.11.1
+<div class="content"><!-- Generator: GNU source-highlight 2.9
 by Lorenzo Bettini
 http://www.lorenzobettini.it
 http://www.gnu.org/software/src-highlite -->
 <pre><tt>Client<span style="color: #990000">.</span>all<span style="color: #990000">(:</span>conditions <span style="color: #990000">=&gt;</span> <span style="color: #FF0000">{</span> <span style="color: #990000">:</span>locked <span style="color: #990000">=&gt;</span> <span style="font-weight: bold"><span style="color: #0000FF">true</span></span> <span style="color: #FF0000">}</span><span style="color: #990000">)</span></tt></pre></div></div>
 <div class="paragraph"><p>The field name does not have to be a symbol it can also be a string:</p></div>
 <div class="listingblock">
-<div class="content"><!-- Generator: GNU source-highlight 2.11.1
+<div class="content"><!-- Generator: GNU source-highlight 2.9
 by Lorenzo Bettini
 http://www.lorenzobettini.it
 http://www.gnu.org/software/src-highlite -->
 <pre><tt>Client<span style="color: #990000">.</span>all<span style="color: #990000">(:</span>conditions <span style="color: #990000">=&gt;</span> <span style="color: #FF0000">{</span> <span style="color: #FF0000">'locked'</span> <span style="color: #990000">=&gt;</span> <span style="font-weight: bold"><span style="color: #0000FF">true</span></span> <span style="color: #FF0000">}</span><span style="color: #990000">)</span></tt></pre></div></div>
 <div class="paragraph"><p>The good thing about this is that we can pass in a range for our fields without it generating a large query as shown in the preamble of this section.</p></div>
 <div class="listingblock">
-<div class="content"><!-- Generator: GNU source-highlight 2.11.1
+<div class="content"><!-- Generator: GNU source-highlight 2.9
 by Lorenzo Bettini
 http://www.lorenzobettini.it
 http://www.gnu.org/software/src-highlite -->
 <pre><tt>Client<span style="color: #990000">.</span>all<span style="color: #990000">(:</span>conditions <span style="color: #990000">=&gt;</span> <span style="color: #FF0000">{</span> <span style="color: #990000">:</span>created_at <span style="color: #990000">=&gt;</span> <span style="color: #990000">(</span>Time<span style="color: #990000">.</span>now<span style="color: #990000">.</span>midnight <span style="color: #990000">-</span> <span style="color: #993399">1</span><span style="color: #990000">.</span>day<span style="color: #990000">)..</span>Time<span style="color: #990000">.</span>now<span style="color: #990000">.</span>midnight<span style="color: #FF0000">}</span><span style="color: #990000">)</span></tt></pre></div></div>
 <div class="paragraph"><p>This will find all clients created yesterday by using a BETWEEN sql statement:</p></div>
 <div class="listingblock">
-<div class="content"><!-- Generator: GNU source-highlight 2.11.1
+<div class="content"><!-- Generator: GNU source-highlight 2.9
 by Lorenzo Bettini
 http://www.lorenzobettini.it
 http://www.gnu.org/software/src-highlite -->
@@ -458,14 +458,14 @@ http://www.gnu.org/software/src-highlite -->
 <div class="paragraph"><p>This demonstrates a shorter syntax for the examples in <a href="#_array_conditions">Array Conditions</a></p></div>
 <div class="paragraph"><p>You can also join in tables and specify their columns in the hash:</p></div>
 <div class="listingblock">
-<div class="content"><!-- Generator: GNU source-highlight 2.11.1
+<div class="content"><!-- Generator: GNU source-highlight 2.9
 by Lorenzo Bettini
 http://www.lorenzobettini.it
 http://www.gnu.org/software/src-highlite -->
 <pre><tt>Client<span style="color: #990000">.</span>all<span style="color: #990000">(:</span><span style="font-weight: bold"><span style="color: #0000FF">include</span></span> <span style="color: #990000">=&gt;</span> <span style="color: #FF0000">"orders"</span><span style="color: #990000">,</span> <span style="color: #990000">:</span>conditions <span style="color: #990000">=&gt;</span> <span style="color: #FF0000">{</span> <span style="color: #FF0000">'orders.created_at'</span> <span style="color: #990000">=&gt;</span> <span style="color: #990000">(</span>Time<span style="color: #990000">.</span>now<span style="color: #990000">.</span>midnight <span style="color: #990000">-</span> <span style="color: #993399">1</span><span style="color: #990000">.</span>day<span style="color: #990000">)..</span>Time<span style="color: #990000">.</span>now<span style="color: #990000">.</span>midnight <span style="color: #FF0000">}</span><span style="color: #990000">)</span></tt></pre></div></div>
 <div class="paragraph"><p>An alternative and cleaner syntax to this is:</p></div>
 <div class="listingblock">
-<div class="content"><!-- Generator: GNU source-highlight 2.11.1
+<div class="content"><!-- Generator: GNU source-highlight 2.9
 by Lorenzo Bettini
 http://www.lorenzobettini.it
 http://www.gnu.org/software/src-highlite -->
@@ -473,14 +473,14 @@ http://www.gnu.org/software/src-highlite -->
 <div class="paragraph"><p>This will find all clients who have orders that were created yesterday, again using a BETWEEN expression.</p></div>
 <div class="paragraph"><p>If you want to find records using the IN expression you can pass an array to the conditions hash:</p></div>
 <div class="listingblock">
-<div class="content"><!-- Generator: GNU source-highlight 2.11.1
+<div class="content"><!-- Generator: GNU source-highlight 2.9
 by Lorenzo Bettini
 http://www.lorenzobettini.it
 http://www.gnu.org/software/src-highlite -->
 <pre><tt>Client<span style="color: #990000">.</span>all<span style="color: #990000">(:</span><span style="font-weight: bold"><span style="color: #0000FF">include</span></span> <span style="color: #990000">=&gt;</span> <span style="color: #FF0000">"orders"</span><span style="color: #990000">,</span> <span style="color: #990000">:</span>conditions <span style="color: #990000">=&gt;</span> <span style="color: #FF0000">{</span> <span style="color: #990000">:</span>orders_count <span style="color: #990000">=&gt;</span> <span style="color: #990000">[</span><span style="color: #993399">1</span><span style="color: #990000">,</span><span style="color: #993399">3</span><span style="color: #990000">,</span><span style="color: #993399">5</span><span style="color: #990000">]</span> <span style="color: #FF0000">}</span></tt></pre></div></div>
 <div class="paragraph"><p>This code will generate SQL like this:</p></div>
 <div class="listingblock">
-<div class="content"><!-- Generator: GNU source-highlight 2.11.1
+<div class="content"><!-- Generator: GNU source-highlight 2.9
 by Lorenzo Bettini
 http://www.lorenzobettini.it
 http://www.gnu.org/software/src-highlite -->
@@ -505,27 +505,27 @@ http://www.gnu.org/software/src-highlite -->
 <div class="sectionbody">
 <div class="paragraph"><p>If you want to limit the amount of records to a certain subset of all the records retrieved you usually use limit for this, sometimes coupled with offset. Limit is the maximum number of records that will be retrieved from a query, and offset is the number of records it will start reading from from the first record of the set. Take this code for example:</p></div>
 <div class="listingblock">
-<div class="content"><!-- Generator: GNU source-highlight 2.11.1
+<div class="content"><!-- Generator: GNU source-highlight 2.9
 by Lorenzo Bettini
 http://www.lorenzobettini.it
 http://www.gnu.org/software/src-highlite -->
 <pre><tt>Client<span style="color: #990000">.</span>all<span style="color: #990000">(:</span>limit <span style="color: #990000">=&gt;</span> <span style="color: #993399">5</span><span style="color: #990000">)</span></tt></pre></div></div>
 <div class="paragraph"><p>This code will return a maximum of 5 clients and because it specifies no offset it will return the first 5 clients in the table. The SQL it executes will look like this:</p></div>
 <div class="listingblock">
-<div class="content"><!-- Generator: GNU source-highlight 2.11.1
+<div class="content"><!-- Generator: GNU source-highlight 2.9
 by Lorenzo Bettini
 http://www.lorenzobettini.it
 http://www.gnu.org/software/src-highlite -->
 <pre><tt><span style="font-weight: bold"><span style="color: #0000FF">SELECT</span></span> <span style="color: #990000">*</span> <span style="font-weight: bold"><span style="color: #0000FF">FROM</span></span> clients <span style="font-weight: bold"><span style="color: #0000FF">LIMIT</span></span> <span style="color: #993399">5</span></tt></pre></div></div>
 <div class="listingblock">
-<div class="content"><!-- Generator: GNU source-highlight 2.11.1
+<div class="content"><!-- Generator: GNU source-highlight 2.9
 by Lorenzo Bettini
 http://www.lorenzobettini.it
 http://www.gnu.org/software/src-highlite -->
 <pre><tt>Client<span style="color: #990000">.</span>all<span style="color: #990000">(:</span>limit <span style="color: #990000">=&gt;</span> <span style="color: #993399">5</span><span style="color: #990000">,</span> <span style="color: #990000">:</span>offset <span style="color: #990000">=&gt;</span> <span style="color: #993399">5</span><span style="color: #990000">)</span></tt></pre></div></div>
 <div class="paragraph"><p>This code will return a maximum of 5 clients and because it specifies an offset this time, it will return these records starting from the 5th client in the clients table. The SQL looks like:</p></div>
 <div class="listingblock">
-<div class="content"><!-- Generator: GNU source-highlight 2.11.1
+<div class="content"><!-- Generator: GNU source-highlight 2.9
 by Lorenzo Bettini
 http://www.lorenzobettini.it
 http://www.gnu.org/software/src-highlite -->
@@ -535,7 +535,7 @@ http://www.gnu.org/software/src-highlite -->
 <div class="sectionbody">
 <div class="paragraph"><p>The group option for find is useful, for example, if you want to find a collection of the dates orders were created on. You could use the option in this context:</p></div>
 <div class="listingblock">
-<div class="content"><!-- Generator: GNU source-highlight 2.11.1
+<div class="content"><!-- Generator: GNU source-highlight 2.9
 by Lorenzo Bettini
 http://www.lorenzobettini.it
 http://www.gnu.org/software/src-highlite -->
@@ -543,7 +543,7 @@ http://www.gnu.org/software/src-highlite -->
 <div class="paragraph"><p>And this will give you a single <tt>Order</tt> object for each date where there are orders in the database.</p></div>
 <div class="paragraph"><p>The SQL that would be executed would be something like this:</p></div>
 <div class="listingblock">
-<div class="content"><!-- Generator: GNU source-highlight 2.11.1
+<div class="content"><!-- Generator: GNU source-highlight 2.9
 by Lorenzo Bettini
 http://www.lorenzobettini.it
 http://www.gnu.org/software/src-highlite -->
@@ -554,7 +554,7 @@ http://www.gnu.org/software/src-highlite -->
 <div class="paragraph"><p>The <tt>:having</tt> option allows you to specify SQL and acts as a kind of a filter on the group option. <tt>:having</tt> can only be specified when <tt>:group</tt> is specified.</p></div>
 <div class="paragraph"><p>An example of using it would be:</p></div>
 <div class="listingblock">
-<div class="content"><!-- Generator: GNU source-highlight 2.11.1
+<div class="content"><!-- Generator: GNU source-highlight 2.9
 by Lorenzo Bettini
 http://www.lorenzobettini.it
 http://www.gnu.org/software/src-highlite -->
@@ -565,14 +565,14 @@ http://www.gnu.org/software/src-highlite -->
 <div class="sectionbody">
 <div class="paragraph"><p><tt>readonly</tt> is a <tt>find</tt> option that you can set in order to make that instance of the record read-only. Any attempt to alter or destroy the record will not succeed, raising an ActiveRecord::ReadOnlyRecord exception. To set this option, specify it like this:</p></div>
 <div class="listingblock">
-<div class="content"><!-- Generator: GNU source-highlight 2.11.1
+<div class="content"><!-- Generator: GNU source-highlight 2.9
 by Lorenzo Bettini
 http://www.lorenzobettini.it
 http://www.gnu.org/software/src-highlite -->
 <pre><tt>Client<span style="color: #990000">.</span>first<span style="color: #990000">(:</span>readonly <span style="color: #990000">=&gt;</span> <span style="font-weight: bold"><span style="color: #0000FF">true</span></span><span style="color: #990000">)</span></tt></pre></div></div>
 <div class="paragraph"><p>If you assign this record to a variable client, calling the following code will raise an ActiveRecord::ReadOnlyRecord exception:</p></div>
 <div class="listingblock">
-<div class="content"><!-- Generator: GNU source-highlight 2.11.1
+<div class="content"><!-- Generator: GNU source-highlight 2.9
 by Lorenzo Bettini
 http://www.lorenzobettini.it
 http://www.gnu.org/software/src-highlite -->
@@ -584,7 +584,7 @@ client<span style="color: #990000">.</span>save</tt></pre></div></div>
 <div class="sectionbody">
 <div class="paragraph"><p>If you&#8217;re wanting to stop race conditions for a specific record (for example, you&#8217;re incrementing a single field for a record, potentially from multiple simultaneous connections) you can use the lock option to ensure that the record is updated correctly. For safety, you should use this inside a transaction.</p></div>
 <div class="listingblock">
-<div class="content"><!-- Generator: GNU source-highlight 2.11.1
+<div class="content"><!-- Generator: GNU source-highlight 2.9
 by Lorenzo Bettini
 http://www.lorenzobettini.it
 http://www.gnu.org/software/src-highlite -->
@@ -594,7 +594,7 @@ http://www.gnu.org/software/src-highlite -->
 <span style="font-weight: bold"><span style="color: #0000FF">end</span></span></tt></pre></div></div>
 <div class="paragraph"><p>You can also pass SQL to this option to allow different types of locks. For example, MySQL has an expression called LOCK IN SHARE MODE where you can lock a record but still allow other queries to read it. To specify this expression just pass it in as the lock option:</p></div>
 <div class="listingblock">
-<div class="content"><!-- Generator: GNU source-highlight 2.11.1
+<div class="content"><!-- Generator: GNU source-highlight 2.9
 by Lorenzo Bettini
 http://www.lorenzobettini.it
 http://www.gnu.org/software/src-highlite -->
@@ -611,7 +611,7 @@ http://www.gnu.org/software/src-highlite -->
 <div class="sectionbody">
 <div class="paragraph"><p>Eager loading is loading associated records along with any number of records in as few queries as possible. For example, if you wanted to load all the addresses associated with all the clients in a single query you could use <tt>Client.all(:include =&gt; :address)</tt>. If you wanted to include both the address and mailing address for the client you would use <tt>Client.find(:all, :include =&gt; [:address, :mailing_address])</tt>. Include will first find the client records and then load the associated address records. Running script/server in one window, and executing the code through script/console in another window, the output should look similar to this:</p></div>
 <div class="listingblock">
-<div class="content"><!-- Generator: GNU source-highlight 2.11.1
+<div class="content"><!-- Generator: GNU source-highlight 2.9
 by Lorenzo Bettini
 http://www.lorenzobettini.it
 http://www.gnu.org/software/src-highlite -->
@@ -624,7 +624,7 @@ MailingAddress <span style="font-weight: bold"><span style="color: #0000FF">Load
 <div class="paragraph"><p>If you wanted to get all the addresses for a client in the same query you would do <tt>Client.all(:joins =&gt; :address)</tt>.
 If you wanted to find the address and mailing address for that client you would do <tt>Client.all(:joins =&gt; [:address, :mailing_address])</tt>. This is more efficient because it does all the SQL in one query, as shown by this example:</p></div>
 <div class="listingblock">
-<div class="content"><!-- Generator: GNU source-highlight 2.11.1
+<div class="content"><!-- Generator: GNU source-highlight 2.9
 by Lorenzo Bettini
 http://www.lorenzobettini.it
 http://www.gnu.org/software/src-highlite -->
@@ -633,7 +633,7 @@ http://www.gnu.org/software/src-highlite -->
   mailing_addresses<span style="color: #990000">.</span>client_id <span style="color: #990000">=</span> client<span style="color: #990000">.</span>id</tt></pre></div></div>
 <div class="paragraph"><p>This query is more efficent, but there&#8217;s a gotcha: if you have a client who does not have an address or a mailing address they will not be returned in this query at all. If you have any association as an optional association, you may want to use include rather than joins. Alternatively, you can use a SQL join clause to specify exactly the join you need (Rails always assumes an inner join):</p></div>
 <div class="listingblock">
-<div class="content"><!-- Generator: GNU source-highlight 2.11.1
+<div class="content"><!-- Generator: GNU source-highlight 2.9
 by Lorenzo Bettini
 http://www.lorenzobettini.it
 http://www.gnu.org/software/src-highlite -->
@@ -642,7 +642,7 @@ http://www.gnu.org/software/src-highlite -->
   client<span style="color: #990000">.</span>id <span style="color: #990000">=</span> mailing_addresses<span style="color: #990000">.</span>client_id”<span style="color: #990000">)</span></tt></pre></div></div>
 <div class="paragraph"><p>When using eager loading you can specify conditions for the columns of the tables inside the eager loading to get back a smaller subset. If, for example, you want to find a client and all their orders within the last two weeks you could use eager loading with conditions for this:</p></div>
 <div class="listingblock">
-<div class="content"><!-- Generator: GNU source-highlight 2.11.1
+<div class="content"><!-- Generator: GNU source-highlight 2.9
 by Lorenzo Bettini
 http://www.lorenzobettini.it
 http://www.gnu.org/software/src-highlite -->
@@ -657,7 +657,7 @@ http://www.gnu.org/software/src-highlite -->
 <div class="paragraph"><p>If you want to find both by name and locked, you can chain these finders together by simply typing <tt>and</tt> between the fields for example <tt>Client.find_by_name_and_locked("Ryan", true)</tt>.</p></div>
 <div class="paragraph"><p>There&#8217;s another set of dynamic finders that let you find or create/initialize objects if they aren&#8217;t found. These work in a similar fashion to the other finders and can be used like <tt>find_or_create_by_name(params[:name])</tt>. Using this will firstly perform a find and then create if the find returns nil. The SQL looks like this for <tt>Client.find_or_create_by_name("Ryan")</tt>:</p></div>
 <div class="listingblock">
-<div class="content"><!-- Generator: GNU source-highlight 2.11.1
+<div class="content"><!-- Generator: GNU source-highlight 2.9
 by Lorenzo Bettini
 http://www.lorenzobettini.it
 http://www.gnu.org/software/src-highlite -->
@@ -668,7 +668,7 @@ BEGIN
 COMMIT</tt></pre></div></div>
 <div class="paragraph"><p><tt>find_or_create</tt>'s sibling, <tt>find_or_initialize</tt>, will find an object and if it does not exist will act similar to calling <tt>new</tt> with the arguments you passed in. For example:</p></div>
 <div class="listingblock">
-<div class="content"><!-- Generator: GNU source-highlight 2.11.1
+<div class="content"><!-- Generator: GNU source-highlight 2.9
 by Lorenzo Bettini
 http://www.lorenzobettini.it
 http://www.gnu.org/software/src-highlite -->
@@ -679,7 +679,7 @@ http://www.gnu.org/software/src-highlite -->
 <div class="sectionbody">
 <div class="paragraph"><p>If you&#8217;d like to use your own SQL to find records in a table you can use <tt>find_by_sql</tt>. The <tt>find_by_sql</tt> method will return an array of objects even the underlying query returns just a single record. For example you could run this query:</p></div>
 <div class="listingblock">
-<div class="content"><!-- Generator: GNU source-highlight 2.11.1
+<div class="content"><!-- Generator: GNU source-highlight 2.9
 by Lorenzo Bettini
 http://www.lorenzobettini.it
 http://www.gnu.org/software/src-highlite -->
@@ -690,7 +690,7 @@ http://www.gnu.org/software/src-highlite -->
 <div class="sectionbody">
 <div class="paragraph"><p><tt>find_by_sql</tt> has a close relative called <tt>connection#select_all</tt>. <tt>select_all</tt> will retrieve objects from the database using custom SQL just like <tt>find_by_sql</tt> but will not instantiate them. Instead, you will get an array of hashes where each hash indicates a record.</p></div>
 <div class="listingblock">
-<div class="content"><!-- Generator: GNU source-highlight 2.11.1
+<div class="content"><!-- Generator: GNU source-highlight 2.9
 by Lorenzo Bettini
 http://www.lorenzobettini.it
 http://www.gnu.org/software/src-highlite -->
@@ -706,7 +706,7 @@ http://www.gnu.org/software/src-highlite -->
 <h3 id="_simple_named_scopes">16.1. Simple Named Scopes</h3>
 <div class="paragraph"><p>Suppose we want to find all clients who are male. You could use this code:</p></div>
 <div class="listingblock">
-<div class="content"><!-- Generator: GNU source-highlight 2.11.1
+<div class="content"><!-- Generator: GNU source-highlight 2.9
 by Lorenzo Bettini
 http://www.lorenzobettini.it
 http://www.gnu.org/software/src-highlite -->
@@ -716,7 +716,7 @@ http://www.gnu.org/software/src-highlite -->
 <div class="paragraph"><p>Then you could call <tt>Client.males.all</tt> to get all the clients who are male. Please note that if you do not specify the <tt>all</tt> on the end you will get a <tt>Scope</tt> object back, not a set of records which you do get back if you put the <tt>all</tt> on the end.</p></div>
 <div class="paragraph"><p>If you wanted to find all the clients who are active, you could use this:</p></div>
 <div class="listingblock">
-<div class="content"><!-- Generator: GNU source-highlight 2.11.1
+<div class="content"><!-- Generator: GNU source-highlight 2.9
 by Lorenzo Bettini
 http://www.lorenzobettini.it
 http://www.gnu.org/software/src-highlite -->
@@ -727,14 +727,14 @@ http://www.gnu.org/software/src-highlite -->
 <h3 id="_combining_named_scopes">16.2. Combining Named Scopes</h3>
 <div class="paragraph"><p>If you wanted to find all the clients who are active and male you can stack the named scopes like this:</p></div>
 <div class="listingblock">
-<div class="content"><!-- Generator: GNU source-highlight 2.11.1
+<div class="content"><!-- Generator: GNU source-highlight 2.9
 by Lorenzo Bettini
 http://www.lorenzobettini.it
 http://www.gnu.org/software/src-highlite -->
 <pre><tt>Client<span style="color: #990000">.</span>males<span style="color: #990000">.</span>active<span style="color: #990000">.</span>all</tt></pre></div></div>
 <div class="paragraph"><p>If you would then like to do a <tt>all</tt> on that scope, you can. Just like an association, named scopes allow you to call <tt>all</tt> on them:</p></div>
 <div class="listingblock">
-<div class="content"><!-- Generator: GNU source-highlight 2.11.1
+<div class="content"><!-- Generator: GNU source-highlight 2.9
 by Lorenzo Bettini
 http://www.lorenzobettini.it
 http://www.gnu.org/software/src-highlite -->
@@ -742,7 +742,7 @@ http://www.gnu.org/software/src-highlite -->
 <h3 id="_runtime_evaluation_of_named_scope_conditions">16.3. Runtime Evaluation of Named Scope Conditions</h3>
 <div class="paragraph"><p>Consider the following code:</p></div>
 <div class="listingblock">
-<div class="content"><!-- Generator: GNU source-highlight 2.11.1
+<div class="content"><!-- Generator: GNU source-highlight 2.9
 by Lorenzo Bettini
 http://www.lorenzobettini.it
 http://www.gnu.org/software/src-highlite -->
@@ -751,7 +751,7 @@ http://www.gnu.org/software/src-highlite -->
 <span style="font-weight: bold"><span style="color: #0000FF">end</span></span></tt></pre></div></div>
 <div class="paragraph"><p>This looks like a standard named scope that defines a method called <tt>recent</tt> which gathers all records created any time between now and 2 weeks ago. That&#8217;s correct for the first time the model is loaded but for any time after that, <tt>2.weeks.ago</tt> is set to that same value, so you will consistently get records from a certain date until your model is reloaded by something like your application restarting. The way to fix this is to put the code in a lambda block:</p></div>
 <div class="listingblock">
-<div class="content"><!-- Generator: GNU source-highlight 2.11.1
+<div class="content"><!-- Generator: GNU source-highlight 2.9
 by Lorenzo Bettini
 http://www.lorenzobettini.it
 http://www.gnu.org/software/src-highlite -->
@@ -762,7 +762,7 @@ http://www.gnu.org/software/src-highlite -->
 <h3 id="_named_scopes_with_multiple_models">16.4. Named Scopes with Multiple Models</h3>
 <div class="paragraph"><p>In a named scope you can use <tt>:include</tt> and <tt>:joins</tt> options just like in <tt>find</tt>.</p></div>
 <div class="listingblock">
-<div class="content"><!-- Generator: GNU source-highlight 2.11.1
+<div class="content"><!-- Generator: GNU source-highlight 2.9
 by Lorenzo Bettini
 http://www.lorenzobettini.it
 http://www.gnu.org/software/src-highlite -->
@@ -774,7 +774,7 @@ http://www.gnu.org/software/src-highlite -->
 <h3 id="_arguments_to_named_scopes">16.5. Arguments to Named Scopes</h3>
 <div class="paragraph"><p>If you want to pass to a named scope a required arugment, just specify it as a block argument like this:</p></div>
 <div class="listingblock">
-<div class="content"><!-- Generator: GNU source-highlight 2.11.1
+<div class="content"><!-- Generator: GNU source-highlight 2.9
 by Lorenzo Bettini
 http://www.lorenzobettini.it
 http://www.gnu.org/software/src-highlite -->
@@ -783,7 +783,7 @@ http://www.gnu.org/software/src-highlite -->
 <span style="font-weight: bold"><span style="color: #0000FF">end</span></span></tt></pre></div></div>
 <div class="paragraph"><p>This will work if you call <tt>Client.recent(2.weeks.ago).all</tt> but not if you call <tt>Client.recent</tt>. If you want to add an optional argument for this, you have to use prefix the arugment with an *.</p></div>
 <div class="listingblock">
-<div class="content"><!-- Generator: GNU source-highlight 2.11.1
+<div class="content"><!-- Generator: GNU source-highlight 2.9
 by Lorenzo Bettini
 http://www.lorenzobettini.it
 http://www.gnu.org/software/src-highlite -->
@@ -795,7 +795,7 @@ http://www.gnu.org/software/src-highlite -->
 <h3 id="_anonymous_scopes">16.6. Anonymous Scopes</h3>
 <div class="paragraph"><p>All Active Record models come with a named scope named <tt>scoped</tt>, which allows you to create anonymous scopes. For example:</p></div>
 <div class="listingblock">
-<div class="content"><!-- Generator: GNU source-highlight 2.11.1
+<div class="content"><!-- Generator: GNU source-highlight 2.9
 by Lorenzo Bettini
 http://www.lorenzobettini.it
 http://www.gnu.org/software/src-highlite -->
@@ -806,7 +806,7 @@ http://www.gnu.org/software/src-highlite -->
 <span style="font-weight: bold"><span style="color: #0000FF">end</span></span></tt></pre></div></div>
 <div class="paragraph"><p>Anonymous scopes are most useful to create scopes "on the fly":</p></div>
 <div class="listingblock">
-<div class="content"><!-- Generator: GNU source-highlight 2.11.1
+<div class="content"><!-- Generator: GNU source-highlight 2.9
 by Lorenzo Bettini
 http://www.lorenzobettini.it
 http://www.gnu.org/software/src-highlite -->
@@ -817,14 +817,14 @@ http://www.gnu.org/software/src-highlite -->
 <div class="sectionbody">
 <div class="paragraph"><p>If you simply want to check for the existence of the object there&#8217;s a method called <tt>exists?</tt>. This method will query the database using the same query as <tt>find</tt>, but instead of returning an object or collection of objects it will return either <tt>true</tt> or false+.</p></div>
 <div class="listingblock">
-<div class="content"><!-- Generator: GNU source-highlight 2.11.1
+<div class="content"><!-- Generator: GNU source-highlight 2.9
 by Lorenzo Bettini
 http://www.lorenzobettini.it
 http://www.gnu.org/software/src-highlite -->
 <pre><tt>Client<span style="color: #990000">.</span>exists?<span style="color: #990000">(</span><span style="color: #993399">1</span><span style="color: #990000">)</span></tt></pre></div></div>
 <div class="paragraph"><p>The <tt>exists?</tt> method also takes multiple ids, but the catch is that it will return true if any one of those records exists.</p></div>
 <div class="listingblock">
-<div class="content"><!-- Generator: GNU source-highlight 2.11.1
+<div class="content"><!-- Generator: GNU source-highlight 2.9
 by Lorenzo Bettini
 http://www.lorenzobettini.it
 http://www.gnu.org/software/src-highlite -->
@@ -833,7 +833,7 @@ http://www.gnu.org/software/src-highlite -->
 Client<span style="color: #990000">.</span>exists?<span style="color: #990000">([</span><span style="color: #993399">1</span><span style="color: #990000">,</span><span style="color: #993399">2</span><span style="color: #990000">,</span><span style="color: #993399">3</span><span style="color: #990000">])</span></tt></pre></div></div>
 <div class="paragraph"><p>Further more, <tt>exists</tt> takes a <tt>conditions</tt> option much like find:</p></div>
 <div class="listingblock">
-<div class="content"><!-- Generator: GNU source-highlight 2.11.1
+<div class="content"><!-- Generator: GNU source-highlight 2.9
 by Lorenzo Bettini
 http://www.lorenzobettini.it
 http://www.gnu.org/software/src-highlite -->
@@ -844,28 +844,28 @@ http://www.gnu.org/software/src-highlite -->
 <div class="paragraph"><p>This section uses count as an example method in this preamble, but the options described apply to all sub-sections.</p></div>
 <div class="paragraph"><p><tt>count</tt> takes conditions much in the same way <tt>exists?</tt> does:</p></div>
 <div class="listingblock">
-<div class="content"><!-- Generator: GNU source-highlight 2.11.1
+<div class="content"><!-- Generator: GNU source-highlight 2.9
 by Lorenzo Bettini
 http://www.lorenzobettini.it
 http://www.gnu.org/software/src-highlite -->
 <pre><tt>Client<span style="color: #990000">.</span>count<span style="color: #990000">(:</span>conditions <span style="color: #990000">=&gt;</span> <span style="color: #FF0000">"first_name = 'Ryan'"</span><span style="color: #990000">)</span></tt></pre></div></div>
 <div class="paragraph"><p>Which will execute:</p></div>
 <div class="listingblock">
-<div class="content"><!-- Generator: GNU source-highlight 2.11.1
+<div class="content"><!-- Generator: GNU source-highlight 2.9
 by Lorenzo Bettini
 http://www.lorenzobettini.it
 http://www.gnu.org/software/src-highlite -->
 <pre><tt><span style="font-weight: bold"><span style="color: #0000FF">SELECT</span></span> count<span style="color: #990000">(*)</span> <span style="font-weight: bold"><span style="color: #0000FF">AS</span></span> count_all <span style="font-weight: bold"><span style="color: #0000FF">FROM</span></span> clients <span style="font-weight: bold"><span style="color: #0000FF">WHERE</span></span> <span style="color: #990000">(</span>first_name <span style="color: #990000">=</span> <span style="color: #FF0000">'Ryan'</span><span style="color: #990000">)</span></tt></pre></div></div>
 <div class="paragraph"><p>You can also use <tt>:include</tt> or <tt>:joins</tt> for this to do something a little more complex:</p></div>
 <div class="listingblock">
-<div class="content"><!-- Generator: GNU source-highlight 2.11.1
+<div class="content"><!-- Generator: GNU source-highlight 2.9
 by Lorenzo Bettini
 http://www.lorenzobettini.it
 http://www.gnu.org/software/src-highlite -->
 <pre><tt>Client<span style="color: #990000">.</span>count<span style="color: #990000">(:</span>conditions <span style="color: #990000">=&gt;</span> <span style="color: #FF0000">"clients.first_name = 'Ryan' AND orders.status = 'received'"</span><span style="color: #990000">,</span> <span style="color: #990000">:</span><span style="font-weight: bold"><span style="color: #0000FF">include</span></span> <span style="color: #990000">=&gt;</span> <span style="color: #FF0000">"orders"</span><span style="color: #990000">)</span></tt></pre></div></div>
 <div class="paragraph"><p>Which will execute:</p></div>
 <div class="listingblock">
-<div class="content"><!-- Generator: GNU source-highlight 2.11.1
+<div class="content"><!-- Generator: GNU source-highlight 2.9
 by Lorenzo Bettini
 http://www.lorenzobettini.it
 http://www.gnu.org/software/src-highlite -->
@@ -879,7 +879,7 @@ http://www.gnu.org/software/src-highlite -->
 <h3 id="_average">18.2. Average</h3>
 <div class="paragraph"><p>If you want to see the average of a certain number in one of your tables you can call the <tt>average</tt> method on the class that relates to the table. This method call will look something like this:</p></div>
 <div class="listingblock">
-<div class="content"><!-- Generator: GNU source-highlight 2.11.1
+<div class="content"><!-- Generator: GNU source-highlight 2.9
 by Lorenzo Bettini
 http://www.lorenzobettini.it
 http://www.gnu.org/software/src-highlite -->
@@ -889,7 +889,7 @@ http://www.gnu.org/software/src-highlite -->
 <h3 id="_minimum">18.3. Minimum</h3>
 <div class="paragraph"><p>If you want to find the minimum value of a field in your table you can call the <tt>minimum</tt> method on the class that relates to the table. This method call will look something like this:</p></div>
 <div class="listingblock">
-<div class="content"><!-- Generator: GNU source-highlight 2.11.1
+<div class="content"><!-- Generator: GNU source-highlight 2.9
 by Lorenzo Bettini
 http://www.lorenzobettini.it
 http://www.gnu.org/software/src-highlite -->
@@ -898,7 +898,7 @@ http://www.gnu.org/software/src-highlite -->
 <h3 id="_maximum">18.4. Maximum</h3>
 <div class="paragraph"><p>If you want to find the maximum value of a field in your table you can call the <tt>maximum</tt> method on the class that relates to the table. This method call will look something like this:</p></div>
 <div class="listingblock">
-<div class="content"><!-- Generator: GNU source-highlight 2.11.1
+<div class="content"><!-- Generator: GNU source-highlight 2.9
 by Lorenzo Bettini
 http://www.lorenzobettini.it
 http://www.gnu.org/software/src-highlite -->
@@ -907,7 +907,7 @@ http://www.gnu.org/software/src-highlite -->
 <h3 id="_sum">18.5. Sum</h3>
 <div class="paragraph"><p>If you want to find the sum of a field for all records in your table you can call the <tt>sum</tt> method on the class that relates to the table. This method call will look something like this:</p></div>
 <div class="listingblock">
-<div class="content"><!-- Generator: GNU source-highlight 2.11.1
+<div class="content"><!-- Generator: GNU source-highlight 2.9
 by Lorenzo Bettini
 http://www.lorenzobettini.it
 http://www.gnu.org/software/src-highlite -->

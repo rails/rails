@@ -125,7 +125,7 @@ Use the methods added to your models by creating associations
 <div class="sectionbody">
 <div class="paragraph"><p>Why do we need associations between models? Because they make common operations simpler and easier in your code. For example, consider a simple Rails application that includes a model for customers and a model for orders. Each customer can have many orders. Without associations, the model declarations would look like this:</p></div>
 <div class="listingblock">
-<div class="content"><!-- Generator: GNU source-highlight 2.11.1
+<div class="content"><!-- Generator: GNU source-highlight 2.9
 by Lorenzo Bettini
 http://www.lorenzobettini.it
 http://www.gnu.org/software/src-highlite -->
@@ -136,14 +136,14 @@ http://www.gnu.org/software/src-highlite -->
 <span style="font-weight: bold"><span style="color: #0000FF">end</span></span></tt></pre></div></div>
 <div class="paragraph"><p>Now, suppose we wanted to add a new order for an existing customer. We&#8217;d need to do something like this:</p></div>
 <div class="listingblock">
-<div class="content"><!-- Generator: GNU source-highlight 2.11.1
+<div class="content"><!-- Generator: GNU source-highlight 2.9
 by Lorenzo Bettini
 http://www.lorenzobettini.it
 http://www.gnu.org/software/src-highlite -->
 <pre><tt><span style="color: #009900">@order</span> <span style="color: #990000">=</span> Order<span style="color: #990000">.</span>create<span style="color: #990000">(:</span>order_date <span style="color: #990000">=&gt;</span> Time<span style="color: #990000">.</span>now<span style="color: #990000">,</span> <span style="color: #990000">:</span>customer_id <span style="color: #990000">=&gt;</span> <span style="color: #009900">@customer</span><span style="color: #990000">.</span>id<span style="color: #990000">)</span></tt></pre></div></div>
 <div class="paragraph"><p>Or consider deleting a customer, and ensuring that all of its orders get deleted as well:</p></div>
 <div class="listingblock">
-<div class="content"><!-- Generator: GNU source-highlight 2.11.1
+<div class="content"><!-- Generator: GNU source-highlight 2.9
 by Lorenzo Bettini
 http://www.lorenzobettini.it
 http://www.gnu.org/software/src-highlite -->
@@ -154,7 +154,7 @@ http://www.gnu.org/software/src-highlite -->
 <span style="color: #009900">@customer</span><span style="color: #990000">.</span>destroy</tt></pre></div></div>
 <div class="paragraph"><p>With Active Record associations, we can streamline these - and other - operations by declaratively telling Rails that there is a connection between the two models. Here&#8217;s the revised code for setting up customers and orders:</p></div>
 <div class="listingblock">
-<div class="content"><!-- Generator: GNU source-highlight 2.11.1
+<div class="content"><!-- Generator: GNU source-highlight 2.9
 by Lorenzo Bettini
 http://www.lorenzobettini.it
 http://www.gnu.org/software/src-highlite -->
@@ -167,14 +167,14 @@ http://www.gnu.org/software/src-highlite -->
 <span style="font-weight: bold"><span style="color: #0000FF">end</span></span></tt></pre></div></div>
 <div class="paragraph"><p>With this change, creating a new order for a particular customer is easier:</p></div>
 <div class="listingblock">
-<div class="content"><!-- Generator: GNU source-highlight 2.11.1
+<div class="content"><!-- Generator: GNU source-highlight 2.9
 by Lorenzo Bettini
 http://www.lorenzobettini.it
 http://www.gnu.org/software/src-highlite -->
 <pre><tt><span style="color: #009900">@order</span> <span style="color: #990000">=</span> <span style="color: #009900">@customer</span><span style="color: #990000">.</span>orders<span style="color: #990000">.</span>create<span style="color: #990000">(:</span>order_date <span style="color: #990000">=&gt;</span> Time<span style="color: #990000">.</span>now<span style="color: #990000">)</span></tt></pre></div></div>
 <div class="paragraph"><p>Deleting a customer and all of its orders is <em>much</em> easier:</p></div>
 <div class="listingblock">
-<div class="content"><!-- Generator: GNU source-highlight 2.11.1
+<div class="content"><!-- Generator: GNU source-highlight 2.9
 by Lorenzo Bettini
 http://www.lorenzobettini.it
 http://www.gnu.org/software/src-highlite -->
@@ -220,7 +220,7 @@ http://www.gnu.org/software/src-highlite -->
 <h3 id="_the_tt_belongs_to_tt_association">2.1. The <tt>belongs_to</tt> Association</h3>
 <div class="paragraph"><p>A <tt>belongs_to</tt> association sets up a one-to-one connection with another model, such that each instance of the declaring model "belongs to" one instance of the other model. For example, if your application includes customers and orders, and each order can be assigned to exactly one customer, you&#8217;d declare the order model this way:</p></div>
 <div class="listingblock">
-<div class="content"><!-- Generator: GNU source-highlight 2.11.1
+<div class="content"><!-- Generator: GNU source-highlight 2.9
 by Lorenzo Bettini
 http://www.lorenzobettini.it
 http://www.gnu.org/software/src-highlite -->
@@ -233,7 +233,7 @@ http://www.gnu.org/software/src-highlite -->
 <h3 id="_the_tt_has_one_tt_association">2.2. The <tt>has_one</tt> Association</h3>
 <div class="paragraph"><p>A <tt>has_one</tt> association also sets up a one-to-one connection with another model, but with somewhat different semantics (and consequences). This association indicates that each instance of a model contains or possesses one instance of another model. For example, if each supplier in your application has only one account, you&#8217;d declare the supplier model like this:</p></div>
 <div class="listingblock">
-<div class="content"><!-- Generator: GNU source-highlight 2.11.1
+<div class="content"><!-- Generator: GNU source-highlight 2.9
 by Lorenzo Bettini
 http://www.lorenzobettini.it
 http://www.gnu.org/software/src-highlite -->
@@ -246,7 +246,7 @@ http://www.gnu.org/software/src-highlite -->
 <h3 id="_the_tt_has_many_tt_association">2.3. The <tt>has_many</tt> Association</h3>
 <div class="paragraph"><p>A <tt>has_many</tt> association indicates a one-to-many connection with another model. You&#8217;ll often find this association on the "other side" of a <tt>belongs_to</tt> association. This association indicates that each instance of the model has zero or more instances of another model. For example, in an application containing customers and orders, the customer model could be declared like this:</p></div>
 <div class="listingblock">
-<div class="content"><!-- Generator: GNU source-highlight 2.11.1
+<div class="content"><!-- Generator: GNU source-highlight 2.9
 by Lorenzo Bettini
 http://www.lorenzobettini.it
 http://www.gnu.org/software/src-highlite -->
@@ -267,7 +267,7 @@ http://www.gnu.org/software/src-highlite -->
 <h3 id="_the_tt_has_many_through_tt_association">2.4. The <tt>has_many :through</tt> Association</h3>
 <div class="paragraph"><p>A <tt>has_many :through</tt> association is often used to set up a many-to-many connection with another model. This association indicates that the declaring model can be matched with zero or more instances of another model by proceeding <em>through</em> a third model. For example, consider a medical practice where patients make appointments to see physicians. The relevant association declarations could look like this:</p></div>
 <div class="listingblock">
-<div class="content"><!-- Generator: GNU source-highlight 2.11.1
+<div class="content"><!-- Generator: GNU source-highlight 2.9
 by Lorenzo Bettini
 http://www.lorenzobettini.it
 http://www.gnu.org/software/src-highlite -->
@@ -290,7 +290,7 @@ http://www.gnu.org/software/src-highlite -->
 </span></p></div>
 <div class="paragraph"><p>The <tt>has_many :through</tt> association is also useful for setting up "shortcuts" through nested :<tt>has_many</tt> associations. For example, if a document has many sections, and a section has many paragraphs, you may sometimes want to get a simple collection of all paragraphs in the document. You could set that up this way:</p></div>
 <div class="listingblock">
-<div class="content"><!-- Generator: GNU source-highlight 2.11.1
+<div class="content"><!-- Generator: GNU source-highlight 2.9
 by Lorenzo Bettini
 http://www.lorenzobettini.it
 http://www.gnu.org/software/src-highlite -->
@@ -310,7 +310,7 @@ http://www.gnu.org/software/src-highlite -->
 <h3 id="_the_tt_has_one_through_tt_association">2.5. The <tt>has_one :through</tt> Association</h3>
 <div class="paragraph"><p>A <tt>has_one :through</tt> association sets up a one-to-one connection with another model. This association indicates that the declaring model can be matched with one instance of another model by proceeding <em>through</em> a third model. For example, if each supplier has one account, and each account is associated with one account history, then the customer model could look like this:</p></div>
 <div class="listingblock">
-<div class="content"><!-- Generator: GNU source-highlight 2.11.1
+<div class="content"><!-- Generator: GNU source-highlight 2.9
 by Lorenzo Bettini
 http://www.lorenzobettini.it
 http://www.gnu.org/software/src-highlite -->
@@ -333,7 +333,7 @@ http://www.gnu.org/software/src-highlite -->
 <h3 id="_the_tt_has_and_belongs_to_many_tt_association">2.6. The <tt>has_and_belongs_to_many</tt> Association</h3>
 <div class="paragraph"><p>A <tt>has_and_belongs_to_many</tt> association creates a direct many-to-many connection with another model, with no intervening model. For example, if your application includes assemblies and parts, with each assembly having many parts and each part appearing in many assemblies, you could declare the models this way:</p></div>
 <div class="listingblock">
-<div class="content"><!-- Generator: GNU source-highlight 2.11.1
+<div class="content"><!-- Generator: GNU source-highlight 2.9
 by Lorenzo Bettini
 http://www.lorenzobettini.it
 http://www.gnu.org/software/src-highlite -->
@@ -351,7 +351,7 @@ http://www.gnu.org/software/src-highlite -->
 <div class="paragraph"><p>If you want to set up a 1-1 relationship between two models, you&#8217;ll need to add <tt>belongs_to</tt> to one, and <tt>has_one</tt> to the other. How do you know which is which?</p></div>
 <div class="paragraph"><p>The distinction is in where you place the foreign key (it goes on the table for the class declaring the <tt>belongs_to</tt> association), but you should give some thought to the actual meaning of the data as well. The <tt>has_one</tt> relationship says that one of something is yours - that is, that something points back to you. For example, it makes more sense to say that a supplier owns an account than that an account owns a supplier. This suggests that the correct relationships are like this:</p></div>
 <div class="listingblock">
-<div class="content"><!-- Generator: GNU source-highlight 2.11.1
+<div class="content"><!-- Generator: GNU source-highlight 2.9
 by Lorenzo Bettini
 http://www.lorenzobettini.it
 http://www.gnu.org/software/src-highlite -->
@@ -364,7 +364,7 @@ http://www.gnu.org/software/src-highlite -->
 <span style="font-weight: bold"><span style="color: #0000FF">end</span></span></tt></pre></div></div>
 <div class="paragraph"><p>The corresponding migration might look like this:</p></div>
 <div class="listingblock">
-<div class="content"><!-- Generator: GNU source-highlight 2.11.1
+<div class="content"><!-- Generator: GNU source-highlight 2.9
 by Lorenzo Bettini
 http://www.lorenzobettini.it
 http://www.gnu.org/software/src-highlite -->
@@ -398,7 +398,7 @@ http://www.gnu.org/software/src-highlite -->
 <h3 id="_choosing_between_tt_has_many_through_tt_and_tt_has_and_belongs_to_many_tt">2.8. Choosing Between <tt>has_many :through</tt> and <tt>has_and_belongs_to_many</tt></h3>
 <div class="paragraph"><p>Rails offers two different ways to declare a many-to-many relationship between models. The simpler way is to use <tt>has_and_belongs_to_many</tt>, which allows you to make the association directly:</p></div>
 <div class="listingblock">
-<div class="content"><!-- Generator: GNU source-highlight 2.11.1
+<div class="content"><!-- Generator: GNU source-highlight 2.9
 by Lorenzo Bettini
 http://www.lorenzobettini.it
 http://www.gnu.org/software/src-highlite -->
@@ -411,7 +411,7 @@ http://www.gnu.org/software/src-highlite -->
 <span style="font-weight: bold"><span style="color: #0000FF">end</span></span></tt></pre></div></div>
 <div class="paragraph"><p>The second way to declare a many-to-many relationship is to use <tt>has_many :through</tt>. This makes the association indirectly, through a join model:</p></div>
 <div class="listingblock">
-<div class="content"><!-- Generator: GNU source-highlight 2.11.1
+<div class="content"><!-- Generator: GNU source-highlight 2.9
 by Lorenzo Bettini
 http://www.lorenzobettini.it
 http://www.gnu.org/software/src-highlite -->
@@ -434,7 +434,7 @@ http://www.gnu.org/software/src-highlite -->
 <h3 id="_polymorphic_associations">2.9. Polymorphic Associations</h3>
 <div class="paragraph"><p>A slightly more advanced twist on associations is the <em>polymorphic association</em>. With polymorphic associations, a model can belong to more than one other model, on a single association. For example, you might have a picture model that belongs to either an employee model or a product model. Here&#8217;s how this could be declared:</p></div>
 <div class="listingblock">
-<div class="content"><!-- Generator: GNU source-highlight 2.11.1
+<div class="content"><!-- Generator: GNU source-highlight 2.9
 by Lorenzo Bettini
 http://www.lorenzobettini.it
 http://www.gnu.org/software/src-highlite -->
@@ -451,7 +451,7 @@ http://www.gnu.org/software/src-highlite -->
 <span style="font-weight: bold"><span style="color: #0000FF">end</span></span></tt></pre></div></div>
 <div class="paragraph"><p>You can think of a polymorphic <tt>belongs_to</tt> declaration as setting up an interface that any other model can use. From an instance of the <tt>Employee</tt> model, you can retrieve a collection of pictures: <tt>@employee.pictures</tt>. Similarly, you can retrieve <tt>@product.pictures</tt>. If you have an instance of the <tt>Picture</tt> model, you can get to its parent via <tt>@picture.imageable</tt>. To make this work, you need to declare both a foreign key column and a type column in the model that declares the polymorphic interface:</p></div>
 <div class="listingblock">
-<div class="content"><!-- Generator: GNU source-highlight 2.11.1
+<div class="content"><!-- Generator: GNU source-highlight 2.9
 by Lorenzo Bettini
 http://www.lorenzobettini.it
 http://www.gnu.org/software/src-highlite -->
@@ -471,7 +471,7 @@ http://www.gnu.org/software/src-highlite -->
 <span style="font-weight: bold"><span style="color: #0000FF">end</span></span></tt></pre></div></div>
 <div class="paragraph"><p>This migration can be simplified by using the <tt>t.references</tt> form:</p></div>
 <div class="listingblock">
-<div class="content"><!-- Generator: GNU source-highlight 2.11.1
+<div class="content"><!-- Generator: GNU source-highlight 2.9
 by Lorenzo Bettini
 http://www.lorenzobettini.it
 http://www.gnu.org/software/src-highlite -->
@@ -494,7 +494,7 @@ http://www.gnu.org/software/src-highlite -->
 <h3 id="_self_joins">2.10. Self Joins</h3>
 <div class="paragraph"><p>In designing a data model, you will sometimes find a model that should have a relation to itself. For example, you may want to store all employees in a single database model, but be able to trace relationships such as manager and subordinates. This situation can be modeled with self-joining associations:</p></div>
 <div class="listingblock">
-<div class="content"><!-- Generator: GNU source-highlight 2.11.1
+<div class="content"><!-- Generator: GNU source-highlight 2.9
 by Lorenzo Bettini
 http://www.lorenzobettini.it
 http://www.gnu.org/software/src-highlite -->
@@ -532,7 +532,7 @@ Controlling association scope
 <h3 id="_controlling_caching">3.1. Controlling Caching</h3>
 <div class="paragraph"><p>All of the association methods are built around caching that keeps the result of the most recent query available for further operations. The cache is even shared across methods. For example:</p></div>
 <div class="listingblock">
-<div class="content"><!-- Generator: GNU source-highlight 2.11.1
+<div class="content"><!-- Generator: GNU source-highlight 2.9
 by Lorenzo Bettini
 http://www.lorenzobettini.it
 http://www.gnu.org/software/src-highlite -->
@@ -541,7 +541,7 @@ customer<span style="color: #990000">.</span>orders<span style="color: #990000">
 customer<span style="color: #990000">.</span>orders<span style="color: #990000">.</span>empty?          <span style="font-style: italic"><span style="color: #9A1900"># uses the cached copy of orders</span></span></tt></pre></div></div>
 <div class="paragraph"><p>But what if you want to reload the cache, because data might have been changed by some other part of the application? Just pass <tt>true</tt> to the association call:</p></div>
 <div class="listingblock">
-<div class="content"><!-- Generator: GNU source-highlight 2.11.1
+<div class="content"><!-- Generator: GNU source-highlight 2.9
 by Lorenzo Bettini
 http://www.lorenzobettini.it
 http://www.gnu.org/software/src-highlite -->
@@ -555,7 +555,7 @@ customer<span style="color: #990000">.</span>orders<span style="color: #990000">
 <h4 id="_creating_foreign_keys_for_tt_belongs_to_tt_associations">3.3.1. Creating Foreign Keys for <tt>belongs_to</tt> Associations</h4>
 <div class="paragraph"><p>When you declare a <tt>belongs_to</tt> association, you need to create foreign keys as appropriate. For example, consider this model:</p></div>
 <div class="listingblock">
-<div class="content"><!-- Generator: GNU source-highlight 2.11.1
+<div class="content"><!-- Generator: GNU source-highlight 2.9
 by Lorenzo Bettini
 http://www.lorenzobettini.it
 http://www.gnu.org/software/src-highlite -->
@@ -564,7 +564,7 @@ http://www.gnu.org/software/src-highlite -->
 <span style="font-weight: bold"><span style="color: #0000FF">end</span></span></tt></pre></div></div>
 <div class="paragraph"><p>This declaration needs to be backed up by the proper foreign key declaration on the orders table:</p></div>
 <div class="listingblock">
-<div class="content"><!-- Generator: GNU source-highlight 2.11.1
+<div class="content"><!-- Generator: GNU source-highlight 2.9
 by Lorenzo Bettini
 http://www.lorenzobettini.it
 http://www.gnu.org/software/src-highlite -->
@@ -594,7 +594,7 @@ http://www.gnu.org/software/src-highlite -->
 </div>
 <div class="paragraph"><p>Whatever the name, you must manually generate the join table with an appropriate migration. For example, consider these associations:</p></div>
 <div class="listingblock">
-<div class="content"><!-- Generator: GNU source-highlight 2.11.1
+<div class="content"><!-- Generator: GNU source-highlight 2.9
 by Lorenzo Bettini
 http://www.lorenzobettini.it
 http://www.gnu.org/software/src-highlite -->
@@ -607,7 +607,7 @@ http://www.gnu.org/software/src-highlite -->
 <span style="font-weight: bold"><span style="color: #0000FF">end</span></span></tt></pre></div></div>
 <div class="paragraph"><p>These need to be backed up by a migration to create the <tt>assemblies_parts</tt> table. This table should be created without a primary key:</p></div>
 <div class="listingblock">
-<div class="content"><!-- Generator: GNU source-highlight 2.11.1
+<div class="content"><!-- Generator: GNU source-highlight 2.9
 by Lorenzo Bettini
 http://www.lorenzobettini.it
 http://www.gnu.org/software/src-highlite -->
@@ -626,7 +626,7 @@ http://www.gnu.org/software/src-highlite -->
 <h3 id="_controlling_association_scope">3.4. Controlling Association Scope</h3>
 <div class="paragraph"><p>By default, associations look for objects only within the current module&#8217;s scope. This can be important when you declare Active Record models within a module. For example:</p></div>
 <div class="listingblock">
-<div class="content"><!-- Generator: GNU source-highlight 2.11.1
+<div class="content"><!-- Generator: GNU source-highlight 2.9
 by Lorenzo Bettini
 http://www.lorenzobettini.it
 http://www.gnu.org/software/src-highlite -->
@@ -643,7 +643,7 @@ http://www.gnu.org/software/src-highlite -->
 <span style="font-weight: bold"><span style="color: #0000FF">end</span></span></tt></pre></div></div>
 <div class="paragraph"><p>This will work fine, because both the <tt>Supplier</tt> and the <tt>Account</tt> class are defined within the same scope. But this will not work, because <tt>Supplier</tt> and <tt>Account</tt> are defined in different scopes:</p></div>
 <div class="listingblock">
-<div class="content"><!-- Generator: GNU source-highlight 2.11.1
+<div class="content"><!-- Generator: GNU source-highlight 2.9
 by Lorenzo Bettini
 http://www.lorenzobettini.it
 http://www.gnu.org/software/src-highlite -->
@@ -662,7 +662,7 @@ http://www.gnu.org/software/src-highlite -->
 <span style="font-weight: bold"><span style="color: #0000FF">end</span></span></tt></pre></div></div>
 <div class="paragraph"><p>To associate a model with a model in a different scope, you must specify the complete class name in your association declaration:</p></div>
 <div class="listingblock">
-<div class="content"><!-- Generator: GNU source-highlight 2.11.1
+<div class="content"><!-- Generator: GNU source-highlight 2.9
 by Lorenzo Bettini
 http://www.lorenzobettini.it
 http://www.gnu.org/software/src-highlite -->
@@ -716,7 +716,7 @@ http://www.gnu.org/software/src-highlite -->
 </ul></div>
 <div class="paragraph"><p>In all of these methods, <tt><em>association</em></tt> is replaced with the symbol passed as the first argument to <tt>belongs_to</tt>. For example, given the declaration:</p></div>
 <div class="listingblock">
-<div class="content"><!-- Generator: GNU source-highlight 2.11.1
+<div class="content"><!-- Generator: GNU source-highlight 2.9
 by Lorenzo Bettini
 http://www.lorenzobettini.it
 http://www.gnu.org/software/src-highlite -->
@@ -725,7 +725,7 @@ http://www.gnu.org/software/src-highlite -->
 <span style="font-weight: bold"><span style="color: #0000FF">end</span></span></tt></pre></div></div>
 <div class="paragraph"><p>Each instance of the order model will have these methods:</p></div>
 <div class="listingblock">
-<div class="content"><!-- Generator: GNU source-highlight 2.11.1
+<div class="content"><!-- Generator: GNU source-highlight 2.9
 by Lorenzo Bettini
 http://www.lorenzobettini.it
 http://www.gnu.org/software/src-highlite -->
@@ -737,7 +737,7 @@ create_customer</tt></pre></div></div>
 <h5 id="_tt_em_association_em_force_reload_false_tt"><tt><em>association</em>(force_reload = false)</tt></h5>
 <div class="paragraph"><p>The <tt><em>association</em></tt> method returns the associated object, if any. If no associated object is found, it returns <tt>nil</tt>.</p></div>
 <div class="listingblock">
-<div class="content"><!-- Generator: GNU source-highlight 2.11.1
+<div class="content"><!-- Generator: GNU source-highlight 2.9
 by Lorenzo Bettini
 http://www.lorenzobettini.it
 http://www.gnu.org/software/src-highlite -->
@@ -746,7 +746,7 @@ http://www.gnu.org/software/src-highlite -->
 <h5 id="_tt_em_association_em_associate_tt"><tt><em>association</em>=(associate)</tt></h5>
 <div class="paragraph"><p>The <tt><em>association</em>=</tt> method assigns an associated object to this object. Behind the scenes, this means extracting the primary key from the associate object and setting this object&#8217;s foreign key to the same value.</p></div>
 <div class="listingblock">
-<div class="content"><!-- Generator: GNU source-highlight 2.11.1
+<div class="content"><!-- Generator: GNU source-highlight 2.9
 by Lorenzo Bettini
 http://www.lorenzobettini.it
 http://www.gnu.org/software/src-highlite -->
@@ -754,7 +754,7 @@ http://www.gnu.org/software/src-highlite -->
 <h5 id="_tt_em_association_em_nil_tt"><tt><em>association</em>.nil?</tt></h5>
 <div class="paragraph"><p>The <tt><em>association</em>.nil?</tt> method returns <tt>true</tt> if there is no associated object.</p></div>
 <div class="listingblock">
-<div class="content"><!-- Generator: GNU source-highlight 2.11.1
+<div class="content"><!-- Generator: GNU source-highlight 2.9
 by Lorenzo Bettini
 http://www.lorenzobettini.it
 http://www.gnu.org/software/src-highlite -->
@@ -764,7 +764,7 @@ http://www.gnu.org/software/src-highlite -->
 <h5 id="_tt_build_em_association_em_attributes_tt"><tt>build<em>_association</em>(attributes = {})</tt></h5>
 <div class="paragraph"><p>The <tt>build<em>_association</em></tt> method returns a new object of the associated type. This object will be instantiated from the passed attributes, and the link through this object&#8217;s foreign key will be set, but the associated object will <em>not</em> yet be saved.</p></div>
 <div class="listingblock">
-<div class="content"><!-- Generator: GNU source-highlight 2.11.1
+<div class="content"><!-- Generator: GNU source-highlight 2.9
 by Lorenzo Bettini
 http://www.lorenzobettini.it
 http://www.gnu.org/software/src-highlite -->
@@ -772,7 +772,7 @@ http://www.gnu.org/software/src-highlite -->
 <h5 id="_tt_create_em_association_em_attributes_tt"><tt>create<em>_association</em>(attributes = {})</tt></h5>
 <div class="paragraph"><p>The <tt>create<em>_association</em></tt> method returns a new object of the associated type. This object will be instantiated from the passed attributes, and the link through this object&#8217;s foreign key will be set. In addition, the associated object <em>will</em> be saved (assuming that it passes any validations).</p></div>
 <div class="listingblock">
-<div class="content"><!-- Generator: GNU source-highlight 2.11.1
+<div class="content"><!-- Generator: GNU source-highlight 2.9
 by Lorenzo Bettini
 http://www.lorenzobettini.it
 http://www.gnu.org/software/src-highlite -->
@@ -780,7 +780,7 @@ http://www.gnu.org/software/src-highlite -->
 <h4 id="_options_for_tt_belongs_to_tt">4.1.2. Options for <tt>belongs_to</tt></h4>
 <div class="paragraph"><p>In many situations, you can use the default behavior of <tt>belongs_to</tt> without any customization. But despite Rails' emphasis of convention over customization, you can alter that behavior in a number of ways. This section covers the options that you can pass when you create a <tt>belongs_to</tt> association. For example, an association with several options might look like this:</p></div>
 <div class="listingblock">
-<div class="content"><!-- Generator: GNU source-highlight 2.11.1
+<div class="content"><!-- Generator: GNU source-highlight 2.9
 by Lorenzo Bettini
 http://www.lorenzobettini.it
 http://www.gnu.org/software/src-highlite -->
@@ -843,7 +843,7 @@ http://www.gnu.org/software/src-highlite -->
 <h5 id="_tt_class_name_tt"><tt>:class_name</tt></h5>
 <div class="paragraph"><p>If the name of the other model cannot be derived from the association name, you can use the <tt>:class_name</tt> option to supply the model name. For example, if an order belongs to a customer, but the actual name of the model containing customers is <tt>Patron</tt>, you&#8217;d set things up this way:</p></div>
 <div class="listingblock">
-<div class="content"><!-- Generator: GNU source-highlight 2.11.1
+<div class="content"><!-- Generator: GNU source-highlight 2.9
 by Lorenzo Bettini
 http://www.lorenzobettini.it
 http://www.gnu.org/software/src-highlite -->
@@ -853,7 +853,7 @@ http://www.gnu.org/software/src-highlite -->
 <h5 id="_tt_conditions_tt"><tt>:conditions</tt></h5>
 <div class="paragraph"><p>The <tt>:conditions</tt> option lets you specify the conditions that the associated object must meet (in the syntax used by a SQL <tt>WHERE</tt> clause).</p></div>
 <div class="listingblock">
-<div class="content"><!-- Generator: GNU source-highlight 2.11.1
+<div class="content"><!-- Generator: GNU source-highlight 2.9
 by Lorenzo Bettini
 http://www.lorenzobettini.it
 http://www.gnu.org/software/src-highlite -->
@@ -863,7 +863,7 @@ http://www.gnu.org/software/src-highlite -->
 <h5 id="_tt_counter_cache_tt"><tt>:counter_cache</tt></h5>
 <div class="paragraph"><p>The <tt>:counter_cache</tt> option can be used to make finding the number of belonging objects more efficient. Consider these models:</p></div>
 <div class="listingblock">
-<div class="content"><!-- Generator: GNU source-highlight 2.11.1
+<div class="content"><!-- Generator: GNU source-highlight 2.9
 by Lorenzo Bettini
 http://www.lorenzobettini.it
 http://www.gnu.org/software/src-highlite -->
@@ -875,7 +875,7 @@ http://www.gnu.org/software/src-highlite -->
 <span style="font-weight: bold"><span style="color: #0000FF">end</span></span></tt></pre></div></div>
 <div class="paragraph"><p>With these declarations, asking for the value of <tt>@customer.orders.size</tt> requires making a call to the database to perform a <tt>COUNT(*)</tt> query. To avoid this call, you can add a counter cache to the <em>belonging</em> model:</p></div>
 <div class="listingblock">
-<div class="content"><!-- Generator: GNU source-highlight 2.11.1
+<div class="content"><!-- Generator: GNU source-highlight 2.9
 by Lorenzo Bettini
 http://www.lorenzobettini.it
 http://www.gnu.org/software/src-highlite -->
@@ -888,7 +888,7 @@ http://www.gnu.org/software/src-highlite -->
 <div class="paragraph"><p>With this declaration, Rails will keep the cache value up to date, and then return that value in response to the <tt>.size</tt> method.</p></div>
 <div class="paragraph"><p>Although the <tt>:counter_cache</tt> option is specified on the model that includes the <tt>belongs_to</tt> declaration, the actual column must be added to the <em>associated</em> model. In the case above, you would need to add a column named <tt>orders_count</tt> to the <tt>Customer</tt> model. You can override the default column name if you need to:</p></div>
 <div class="listingblock">
-<div class="content"><!-- Generator: GNU source-highlight 2.11.1
+<div class="content"><!-- Generator: GNU source-highlight 2.9
 by Lorenzo Bettini
 http://www.lorenzobettini.it
 http://www.gnu.org/software/src-highlite -->
@@ -912,7 +912,7 @@ http://www.gnu.org/software/src-highlite -->
 <h5 id="_tt_foreign_key_tt"><tt>:foreign_key</tt></h5>
 <div class="paragraph"><p>By convention, Rails guesses that the column used to hold the foreign key on this model is the name of the association with the suffix <tt>_id</tt> added. The <tt>:foreign_key</tt> option lets you set the name of the foreign key directly:</p></div>
 <div class="listingblock">
-<div class="content"><!-- Generator: GNU source-highlight 2.11.1
+<div class="content"><!-- Generator: GNU source-highlight 2.9
 by Lorenzo Bettini
 http://www.lorenzobettini.it
 http://www.gnu.org/software/src-highlite -->
@@ -930,7 +930,7 @@ http://www.gnu.org/software/src-highlite -->
 <h5 id="_tt_include_tt"><tt>:include</tt></h5>
 <div class="paragraph"><p>You can use the :include option to specify second-order associations that should be eager-loaded when this association is used. For example, consider these models:</p></div>
 <div class="listingblock">
-<div class="content"><!-- Generator: GNU source-highlight 2.11.1
+<div class="content"><!-- Generator: GNU source-highlight 2.9
 by Lorenzo Bettini
 http://www.lorenzobettini.it
 http://www.gnu.org/software/src-highlite -->
@@ -946,7 +946,7 @@ http://www.gnu.org/software/src-highlite -->
 <span style="font-weight: bold"><span style="color: #0000FF">end</span></span></tt></pre></div></div>
 <div class="paragraph"><p>If you frequently retrieve customers directly from line items (<tt>@line_item.order.customer</tt>), then you can make your code somewhat more efficient by including customers in the association from line items to orders:</p></div>
 <div class="listingblock">
-<div class="content"><!-- Generator: GNU source-highlight 2.11.1
+<div class="content"><!-- Generator: GNU source-highlight 2.9
 by Lorenzo Bettini
 http://www.lorenzobettini.it
 http://www.gnu.org/software/src-highlite -->
@@ -1019,7 +1019,7 @@ http://www.gnu.org/software/src-highlite -->
 </ul></div>
 <div class="paragraph"><p>In all of these methods, <tt><em>association</em></tt> is replaced with the symbol passed as the first argument to <tt>has_one</tt>. For example, given the declaration:</p></div>
 <div class="listingblock">
-<div class="content"><!-- Generator: GNU source-highlight 2.11.1
+<div class="content"><!-- Generator: GNU source-highlight 2.9
 by Lorenzo Bettini
 http://www.lorenzobettini.it
 http://www.gnu.org/software/src-highlite -->
@@ -1028,7 +1028,7 @@ http://www.gnu.org/software/src-highlite -->
 <span style="font-weight: bold"><span style="color: #0000FF">end</span></span></tt></pre></div></div>
 <div class="paragraph"><p>Each instance of the <tt>Supplier</tt> model will have these methods:</p></div>
 <div class="listingblock">
-<div class="content"><!-- Generator: GNU source-highlight 2.11.1
+<div class="content"><!-- Generator: GNU source-highlight 2.9
 by Lorenzo Bettini
 http://www.lorenzobettini.it
 http://www.gnu.org/software/src-highlite -->
@@ -1040,7 +1040,7 @@ create_account</tt></pre></div></div>
 <h5 id="_tt_em_association_em_force_reload_false_tt_2"><tt><em>association</em>(force_reload = false)</tt></h5>
 <div class="paragraph"><p>The <tt><em>association</em></tt> method returns the associated object, if any. If no associated object is found, it returns <tt>nil</tt>.</p></div>
 <div class="listingblock">
-<div class="content"><!-- Generator: GNU source-highlight 2.11.1
+<div class="content"><!-- Generator: GNU source-highlight 2.9
 by Lorenzo Bettini
 http://www.lorenzobettini.it
 http://www.gnu.org/software/src-highlite -->
@@ -1049,7 +1049,7 @@ http://www.gnu.org/software/src-highlite -->
 <h5 id="_tt_em_association_em_associate_tt_2"><tt><em>association</em>=(associate)</tt></h5>
 <div class="paragraph"><p>The <tt><em>association</em>=</tt> method assigns an associated object to this object. Behind the scenes, this means extracting the primary key from this object and setting the associate object&#8217;s foreign key to the same value.</p></div>
 <div class="listingblock">
-<div class="content"><!-- Generator: GNU source-highlight 2.11.1
+<div class="content"><!-- Generator: GNU source-highlight 2.9
 by Lorenzo Bettini
 http://www.lorenzobettini.it
 http://www.gnu.org/software/src-highlite -->
@@ -1057,7 +1057,7 @@ http://www.gnu.org/software/src-highlite -->
 <h5 id="_tt_em_association_em_nil_tt_2"><tt><em>association</em>.nil?</tt></h5>
 <div class="paragraph"><p>The <tt><em>association</em>.nil?</tt> method returns <tt>true</tt> if there is no associated object.</p></div>
 <div class="listingblock">
-<div class="content"><!-- Generator: GNU source-highlight 2.11.1
+<div class="content"><!-- Generator: GNU source-highlight 2.9
 by Lorenzo Bettini
 http://www.lorenzobettini.it
 http://www.gnu.org/software/src-highlite -->
@@ -1067,7 +1067,7 @@ http://www.gnu.org/software/src-highlite -->
 <h5 id="_tt_build_em_association_em_attributes_tt_2"><tt>build<em>_association</em>(attributes = {})</tt></h5>
 <div class="paragraph"><p>The <tt>build<em>_association</em></tt> method returns a new object of the associated type. This object will be instantiated from the passed attributes, and the link through its foreign key will be set, but the associated object will <em>not</em> yet be saved.</p></div>
 <div class="listingblock">
-<div class="content"><!-- Generator: GNU source-highlight 2.11.1
+<div class="content"><!-- Generator: GNU source-highlight 2.9
 by Lorenzo Bettini
 http://www.lorenzobettini.it
 http://www.gnu.org/software/src-highlite -->
@@ -1075,7 +1075,7 @@ http://www.gnu.org/software/src-highlite -->
 <h5 id="_tt_create_em_association_em_attributes_tt_2"><tt>create<em>_association</em>(attributes = {})</tt></h5>
 <div class="paragraph"><p>The <tt>create<em>_association</em></tt> method returns a new object of the associated type. This object will be instantiated from the passed attributes, and the link through its foreign key will be set. In addition, the associated object <em>will</em> be saved (assuming that it passes any validations).</p></div>
 <div class="listingblock">
-<div class="content"><!-- Generator: GNU source-highlight 2.11.1
+<div class="content"><!-- Generator: GNU source-highlight 2.9
 by Lorenzo Bettini
 http://www.lorenzobettini.it
 http://www.gnu.org/software/src-highlite -->
@@ -1083,7 +1083,7 @@ http://www.gnu.org/software/src-highlite -->
 <h4 id="_options_for_tt_has_one_tt">4.2.2. Options for <tt>has_one</tt></h4>
 <div class="paragraph"><p>In many situations, you can use the default behavior of <tt>has_one</tt> without any customization. But despite Rails' emphasis of convention over customization, you can alter that behavior in a number of ways. This section covers the options that you can pass when you create a <tt>has_one</tt> association. For example, an association with several options might look like this:</p></div>
 <div class="listingblock">
-<div class="content"><!-- Generator: GNU source-highlight 2.11.1
+<div class="content"><!-- Generator: GNU source-highlight 2.9
 by Lorenzo Bettini
 http://www.lorenzobettini.it
 http://www.gnu.org/software/src-highlite -->
@@ -1168,7 +1168,7 @@ http://www.gnu.org/software/src-highlite -->
 <h5 id="_tt_class_name_tt_2"><tt>:class_name</tt></h5>
 <div class="paragraph"><p>If the name of the other model cannot be derived from the association name, you can use the <tt>:class_name</tt> option to supply the model name. For example, if a supplier has an account, but the actual name of the model containing accounts is Billing, you&#8217;d set things up this way:</p></div>
 <div class="listingblock">
-<div class="content"><!-- Generator: GNU source-highlight 2.11.1
+<div class="content"><!-- Generator: GNU source-highlight 2.9
 by Lorenzo Bettini
 http://www.lorenzobettini.it
 http://www.gnu.org/software/src-highlite -->
@@ -1178,7 +1178,7 @@ http://www.gnu.org/software/src-highlite -->
 <h5 id="_tt_conditions_tt_2"><tt>:conditions</tt></h5>
 <div class="paragraph"><p>The <tt>:conditions</tt> option lets you specify the conditions that the associated object must meet (in the syntax used by a SQL <tt>WHERE</tt> clause).</p></div>
 <div class="listingblock">
-<div class="content"><!-- Generator: GNU source-highlight 2.11.1
+<div class="content"><!-- Generator: GNU source-highlight 2.9
 by Lorenzo Bettini
 http://www.lorenzobettini.it
 http://www.gnu.org/software/src-highlite -->
@@ -1190,7 +1190,7 @@ http://www.gnu.org/software/src-highlite -->
 <h5 id="_tt_foreign_key_tt_2"><tt>:foreign_key</tt></h5>
 <div class="paragraph"><p>By convention, Rails guesses that the column used to hold the foreign key on the other model is the name of this model with the suffix <tt>_id</tt> added. The <tt>:foreign_key</tt> option lets you set the name of the foreign key directly:</p></div>
 <div class="listingblock">
-<div class="content"><!-- Generator: GNU source-highlight 2.11.1
+<div class="content"><!-- Generator: GNU source-highlight 2.9
 by Lorenzo Bettini
 http://www.lorenzobettini.it
 http://www.gnu.org/software/src-highlite -->
@@ -1208,7 +1208,7 @@ http://www.gnu.org/software/src-highlite -->
 <h5 id="_tt_include_tt_2"><tt>:include</tt></h5>
 <div class="paragraph"><p>You can use the :include option to specify second-order associations that should be eager-loaded when this association is used. For example, consider these models:</p></div>
 <div class="listingblock">
-<div class="content"><!-- Generator: GNU source-highlight 2.11.1
+<div class="content"><!-- Generator: GNU source-highlight 2.9
 by Lorenzo Bettini
 http://www.lorenzobettini.it
 http://www.gnu.org/software/src-highlite -->
@@ -1224,7 +1224,7 @@ http://www.gnu.org/software/src-highlite -->
 <span style="font-weight: bold"><span style="color: #0000FF">end</span></span></tt></pre></div></div>
 <div class="paragraph"><p>If you frequently retrieve representatives directly from suppliers (<tt>@supplier.account.representative</tt>), then you can make your code somewhat more efficient by including representatives in the association from suppliers to accounts:</p></div>
 <div class="listingblock">
-<div class="content"><!-- Generator: GNU source-highlight 2.11.1
+<div class="content"><!-- Generator: GNU source-highlight 2.9
 by Lorenzo Bettini
 http://www.lorenzobettini.it
 http://www.gnu.org/software/src-highlite -->
@@ -1332,7 +1332,7 @@ http://www.gnu.org/software/src-highlite -->
 </ul></div>
 <div class="paragraph"><p>In all of these methods, <tt><em>collection</em></tt> is replaced with the symbol passed as the first argument to <tt>has_many</tt>, and <tt><em>collection\_singular</em></tt> is replaced with the singularized version of that symbol.. For example, given the declaration:</p></div>
 <div class="listingblock">
-<div class="content"><!-- Generator: GNU source-highlight 2.11.1
+<div class="content"><!-- Generator: GNU source-highlight 2.9
 by Lorenzo Bettini
 http://www.lorenzobettini.it
 http://www.gnu.org/software/src-highlite -->
@@ -1341,7 +1341,7 @@ http://www.gnu.org/software/src-highlite -->
 <span style="font-weight: bold"><span style="color: #0000FF">end</span></span></tt></pre></div></div>
 <div class="paragraph"><p>Each instance of the customer model will have these methods:</p></div>
 <div class="listingblock">
-<div class="content"><!-- Generator: GNU source-highlight 2.11.1
+<div class="content"><!-- Generator: GNU source-highlight 2.9
 by Lorenzo Bettini
 http://www.lorenzobettini.it
 http://www.gnu.org/software/src-highlite -->
@@ -1361,7 +1361,7 @@ orders<span style="color: #990000">.</span>create<span style="color: #990000">(<
 <h5 id="_tt_em_collection_em_force_reload_false_tt"><tt><em>collection</em>(force_reload = false)</tt></h5>
 <div class="paragraph"><p>The <tt><em>collection</em></tt> method returns an array of all of the associated objects. If there are no associated objects, it returns an empty array.</p></div>
 <div class="listingblock">
-<div class="content"><!-- Generator: GNU source-highlight 2.11.1
+<div class="content"><!-- Generator: GNU source-highlight 2.9
 by Lorenzo Bettini
 http://www.lorenzobettini.it
 http://www.gnu.org/software/src-highlite -->
@@ -1369,7 +1369,7 @@ http://www.gnu.org/software/src-highlite -->
 <h5 id="_tt_em_collection_em_lt_lt_object_tt"><tt><em>collection</em>&lt;&lt;(object, ...)</tt></h5>
 <div class="paragraph"><p>The <tt><em>collection</em>&lt;&lt;</tt> method adds one or more objects to the collection by setting their foreign keys to the primary key of the calling model.</p></div>
 <div class="listingblock">
-<div class="content"><!-- Generator: GNU source-highlight 2.11.1
+<div class="content"><!-- Generator: GNU source-highlight 2.9
 by Lorenzo Bettini
 http://www.lorenzobettini.it
 http://www.gnu.org/software/src-highlite -->
@@ -1377,7 +1377,7 @@ http://www.gnu.org/software/src-highlite -->
 <h5 id="_tt_em_collection_em_delete_object_tt"><tt><em>collection</em>.delete(object, ...)</tt></h5>
 <div class="paragraph"><p>The <tt><em>collection</em>.delete</tt> method removes one or more objects from the collection by setting their foreign keys to <tt>NULL</tt>.</p></div>
 <div class="listingblock">
-<div class="content"><!-- Generator: GNU source-highlight 2.11.1
+<div class="content"><!-- Generator: GNU source-highlight 2.9
 by Lorenzo Bettini
 http://www.lorenzobettini.it
 http://www.gnu.org/software/src-highlite -->
@@ -1395,7 +1395,7 @@ http://www.gnu.org/software/src-highlite -->
 <h5 id="_tt_em_collection_singular_em_ids_tt"><tt><em>collection\_singular</em>\_ids</tt></h5>
 <div class="paragraph"><p>The <tt><em>collection\_singular</em>\_ids</tt> method returns an array of the ids of the objects in the collection.</p></div>
 <div class="listingblock">
-<div class="content"><!-- Generator: GNU source-highlight 2.11.1
+<div class="content"><!-- Generator: GNU source-highlight 2.9
 by Lorenzo Bettini
 http://www.lorenzobettini.it
 http://www.gnu.org/software/src-highlite -->
@@ -1407,7 +1407,7 @@ http://www.gnu.org/software/src-highlite -->
 <h5 id="_tt_em_collection_em_empty_tt"><tt><em>collection</em>.empty?</tt></h5>
 <div class="paragraph"><p>The <tt><em>collection</em>.empty?</tt> method returns <tt>true</tt> if the collection does not contain any associated objects.</p></div>
 <div class="listingblock">
-<div class="content"><!-- Generator: GNU source-highlight 2.11.1
+<div class="content"><!-- Generator: GNU source-highlight 2.9
 by Lorenzo Bettini
 http://www.lorenzobettini.it
 http://www.gnu.org/software/src-highlite -->
@@ -1417,7 +1417,7 @@ http://www.gnu.org/software/src-highlite -->
 <h5 id="_tt_em_collection_em_size_tt"><tt><em>collection</em>.size</tt></h5>
 <div class="paragraph"><p>The <tt><em>collection</em>.size</tt> method returns the number of objects in the collection.</p></div>
 <div class="listingblock">
-<div class="content"><!-- Generator: GNU source-highlight 2.11.1
+<div class="content"><!-- Generator: GNU source-highlight 2.9
 by Lorenzo Bettini
 http://www.lorenzobettini.it
 http://www.gnu.org/software/src-highlite -->
@@ -1425,7 +1425,7 @@ http://www.gnu.org/software/src-highlite -->
 <h5 id="_tt_em_collection_em_find_tt"><tt><em>collection</em>.find(...)</tt></h5>
 <div class="paragraph"><p>The <tt><em>collection</em>.find</tt> method finds objects within the collection. It uses the same syntax and options as <tt>ActiveRecord::Base.find</tt>.</p></div>
 <div class="listingblock">
-<div class="content"><!-- Generator: GNU source-highlight 2.11.1
+<div class="content"><!-- Generator: GNU source-highlight 2.9
 by Lorenzo Bettini
 http://www.lorenzobettini.it
 http://www.gnu.org/software/src-highlite -->
@@ -1435,7 +1435,7 @@ http://www.gnu.org/software/src-highlite -->
 <h5 id="_tt_em_collection_em_build_attributes_tt"><tt><em>collection</em>.build(attributes = {}, ...)</tt></h5>
 <div class="paragraph"><p>The <tt><em>collection</em>.build</tt> method returns one or more new objects of the associated type. These objects will be instantiated from the passed attributes, and the link through their foreign key will be created, but the associated objects will <em>not</em> yet be saved.</p></div>
 <div class="listingblock">
-<div class="content"><!-- Generator: GNU source-highlight 2.11.1
+<div class="content"><!-- Generator: GNU source-highlight 2.9
 by Lorenzo Bettini
 http://www.lorenzobettini.it
 http://www.gnu.org/software/src-highlite -->
@@ -1443,7 +1443,7 @@ http://www.gnu.org/software/src-highlite -->
 <h5 id="_tt_em_collection_em_create_attributes_tt"><tt><em>collection</em>.create(attributes = {})</tt></h5>
 <div class="paragraph"><p>The <tt><em>collection</em>.create</tt> method returns a new object of the associated type. This object will be instantiated from the passed attributes, the link through its foreign key will be created, and the associated object <em>will</em> be saved (assuming that it passes any validations).</p></div>
 <div class="listingblock">
-<div class="content"><!-- Generator: GNU source-highlight 2.11.1
+<div class="content"><!-- Generator: GNU source-highlight 2.9
 by Lorenzo Bettini
 http://www.lorenzobettini.it
 http://www.gnu.org/software/src-highlite -->
@@ -1451,7 +1451,7 @@ http://www.gnu.org/software/src-highlite -->
 <h4 id="_options_for_has_many">4.3.2. Options for has_many</h4>
 <div class="paragraph"><p>In many situations, you can use the default behavior for <tt>has_many</tt> without any customization. But you can alter that behavior in a number of ways. This section covers the options that you can pass when you create a <tt>has_many</tt> association. For example, an association with several options might look like this:</p></div>
 <div class="listingblock">
-<div class="content"><!-- Generator: GNU source-highlight 2.11.1
+<div class="content"><!-- Generator: GNU source-highlight 2.9
 by Lorenzo Bettini
 http://www.lorenzobettini.it
 http://www.gnu.org/software/src-highlite -->
@@ -1571,7 +1571,7 @@ http://www.gnu.org/software/src-highlite -->
 <h5 id="_tt_class_name_tt_3"><tt>:class_name</tt></h5>
 <div class="paragraph"><p>If the name of the other model cannot be derived from the association name, you can use the <tt>:class_name</tt> option to supply the model name. For example, if a customer has many orders, but the actual name of the model containing orders is <tt>Transaction</tt>, you&#8217;d set things up this way:</p></div>
 <div class="listingblock">
-<div class="content"><!-- Generator: GNU source-highlight 2.11.1
+<div class="content"><!-- Generator: GNU source-highlight 2.9
 by Lorenzo Bettini
 http://www.lorenzobettini.it
 http://www.gnu.org/software/src-highlite -->
@@ -1581,7 +1581,7 @@ http://www.gnu.org/software/src-highlite -->
 <h5 id="_tt_conditions_tt_3"><tt>:conditions</tt></h5>
 <div class="paragraph"><p>The <tt>:conditions</tt> option lets you specify the conditions that the associated object must meet (in the syntax used by a SQL <tt>WHERE</tt> clause).</p></div>
 <div class="listingblock">
-<div class="content"><!-- Generator: GNU source-highlight 2.11.1
+<div class="content"><!-- Generator: GNU source-highlight 2.9
 by Lorenzo Bettini
 http://www.lorenzobettini.it
 http://www.gnu.org/software/src-highlite -->
@@ -1590,7 +1590,7 @@ http://www.gnu.org/software/src-highlite -->
 <span style="font-weight: bold"><span style="color: #0000FF">end</span></span></tt></pre></div></div>
 <div class="paragraph"><p>You can also set conditions via a hash:</p></div>
 <div class="listingblock">
-<div class="content"><!-- Generator: GNU source-highlight 2.11.1
+<div class="content"><!-- Generator: GNU source-highlight 2.9
 by Lorenzo Bettini
 http://www.lorenzobettini.it
 http://www.gnu.org/software/src-highlite -->
@@ -1625,7 +1625,7 @@ http://www.gnu.org/software/src-highlite -->
 <h5 id="_tt_foreign_key_tt_3"><tt>:foreign_key</tt></h5>
 <div class="paragraph"><p>By convention, Rails guesses that the column used to hold the foreign key on the other model is the name of this model with the suffix <tt>_id</tt> added. The <tt>:foreign_key</tt> option lets you set the name of the foreign key directly:</p></div>
 <div class="listingblock">
-<div class="content"><!-- Generator: GNU source-highlight 2.11.1
+<div class="content"><!-- Generator: GNU source-highlight 2.9
 by Lorenzo Bettini
 http://www.lorenzobettini.it
 http://www.gnu.org/software/src-highlite -->
@@ -1643,7 +1643,7 @@ http://www.gnu.org/software/src-highlite -->
 <h5 id="_tt_group_tt"><tt>:group</tt></h5>
 <div class="paragraph"><p>The <tt>:group</tt> option supplies an attribute name to group the result set by, using a <tt>GROUP BY</tt> clause in the finder SQL.</p></div>
 <div class="listingblock">
-<div class="content"><!-- Generator: GNU source-highlight 2.11.1
+<div class="content"><!-- Generator: GNU source-highlight 2.9
 by Lorenzo Bettini
 http://www.lorenzobettini.it
 http://www.gnu.org/software/src-highlite -->
@@ -1653,7 +1653,7 @@ http://www.gnu.org/software/src-highlite -->
 <h5 id="_tt_include_tt_3"><tt>:include</tt></h5>
 <div class="paragraph"><p>You can use the :include option to specify second-order associations that should be eager-loaded when this association is used. For example, consider these models:</p></div>
 <div class="listingblock">
-<div class="content"><!-- Generator: GNU source-highlight 2.11.1
+<div class="content"><!-- Generator: GNU source-highlight 2.9
 by Lorenzo Bettini
 http://www.lorenzobettini.it
 http://www.gnu.org/software/src-highlite -->
@@ -1669,7 +1669,7 @@ http://www.gnu.org/software/src-highlite -->
 <span style="font-weight: bold"><span style="color: #0000FF">end</span></span></tt></pre></div></div>
 <div class="paragraph"><p>If you frequently retrieve line items directly from customers (<tt>@customer.orders.line_items</tt>), then you can make your code somewhat more efficient by including line items in the association from customers to orders:</p></div>
 <div class="listingblock">
-<div class="content"><!-- Generator: GNU source-highlight 2.11.1
+<div class="content"><!-- Generator: GNU source-highlight 2.9
 by Lorenzo Bettini
 http://www.lorenzobettini.it
 http://www.gnu.org/software/src-highlite -->
@@ -1686,7 +1686,7 @@ http://www.gnu.org/software/src-highlite -->
 <h5 id="_tt_limit_tt"><tt>:limit</tt></h5>
 <div class="paragraph"><p>The <tt>:limit</tt> option lets you restrict the total number of objects that will be fetched through an association.</p></div>
 <div class="listingblock">
-<div class="content"><!-- Generator: GNU source-highlight 2.11.1
+<div class="content"><!-- Generator: GNU source-highlight 2.9
 by Lorenzo Bettini
 http://www.lorenzobettini.it
 http://www.gnu.org/software/src-highlite -->
@@ -1698,7 +1698,7 @@ http://www.gnu.org/software/src-highlite -->
 <h5 id="_tt_order_tt_2"><tt>:order</tt></h5>
 <div class="paragraph"><p>The <tt>:order</tt> option dictates the order in which associated objects will be received (in the syntax used by a SQL <tt>ORDER BY</tt> clause).</p></div>
 <div class="listingblock">
-<div class="content"><!-- Generator: GNU source-highlight 2.11.1
+<div class="content"><!-- Generator: GNU source-highlight 2.9
 by Lorenzo Bettini
 http://www.lorenzobettini.it
 http://www.gnu.org/software/src-highlite -->
@@ -1807,7 +1807,7 @@ http://www.gnu.org/software/src-highlite -->
 </ul></div>
 <div class="paragraph"><p>In all of these methods, <tt><em>collection</em></tt> is replaced with the symbol passed as the first argument to <tt>has_many</tt>, and <tt><em>collection</em>\_singular</tt> is replaced with the singularized version of that symbol.. For example, given the declaration:</p></div>
 <div class="listingblock">
-<div class="content"><!-- Generator: GNU source-highlight 2.11.1
+<div class="content"><!-- Generator: GNU source-highlight 2.9
 by Lorenzo Bettini
 http://www.lorenzobettini.it
 http://www.gnu.org/software/src-highlite -->
@@ -1816,7 +1816,7 @@ http://www.gnu.org/software/src-highlite -->
 <span style="font-weight: bold"><span style="color: #0000FF">end</span></span></tt></pre></div></div>
 <div class="paragraph"><p>Each instance of the part model will have these methods:</p></div>
 <div class="listingblock">
-<div class="content"><!-- Generator: GNU source-highlight 2.11.1
+<div class="content"><!-- Generator: GNU source-highlight 2.9
 by Lorenzo Bettini
 http://www.lorenzobettini.it
 http://www.gnu.org/software/src-highlite -->
@@ -1846,7 +1846,7 @@ assemblies<span style="color: #990000">.</span>create<span style="color: #990000
 <h5 id="_tt_em_collection_em_force_reload_false_tt_2"><tt><em>collection</em>(force_reload = false)</tt></h5>
 <div class="paragraph"><p>The <tt><em>collection</em></tt> method returns an array of all of the associated objects. If there are no associated objects, it returns an empty array.</p></div>
 <div class="listingblock">
-<div class="content"><!-- Generator: GNU source-highlight 2.11.1
+<div class="content"><!-- Generator: GNU source-highlight 2.9
 by Lorenzo Bettini
 http://www.lorenzobettini.it
 http://www.gnu.org/software/src-highlite -->
@@ -1854,7 +1854,7 @@ http://www.gnu.org/software/src-highlite -->
 <h5 id="_tt_em_collection_em_lt_lt_object_tt_2"><tt><em>collection</em>&lt;&lt;(object, ...)</tt></h5>
 <div class="paragraph"><p>The <tt><em>collection</em>&lt;&lt;</tt> method adds one or more objects to the collection by creating records in the join table.</p></div>
 <div class="listingblock">
-<div class="content"><!-- Generator: GNU source-highlight 2.11.1
+<div class="content"><!-- Generator: GNU source-highlight 2.9
 by Lorenzo Bettini
 http://www.lorenzobettini.it
 http://www.gnu.org/software/src-highlite -->
@@ -1870,7 +1870,7 @@ http://www.gnu.org/software/src-highlite -->
 <h5 id="_tt_em_collection_em_delete_object_tt_2"><tt><em>collection</em>.delete(object, ...)</tt></h5>
 <div class="paragraph"><p>The <tt><em>collection</em>.delete</tt> method removes one or more objects from the collection by deleting records in the join table. This does not destroy the objects.</p></div>
 <div class="listingblock">
-<div class="content"><!-- Generator: GNU source-highlight 2.11.1
+<div class="content"><!-- Generator: GNU source-highlight 2.9
 by Lorenzo Bettini
 http://www.lorenzobettini.it
 http://www.gnu.org/software/src-highlite -->
@@ -1881,7 +1881,7 @@ http://www.gnu.org/software/src-highlite -->
 <div class="paragraph"><p>#   Returns an array of the associated objects' ids</p></div>
 <div class="paragraph"><p>The <tt><em>collection\_singular</em>\_ids</tt> method returns an array of the ids of the objects in the collection.</p></div>
 <div class="listingblock">
-<div class="content"><!-- Generator: GNU source-highlight 2.11.1
+<div class="content"><!-- Generator: GNU source-highlight 2.9
 by Lorenzo Bettini
 http://www.lorenzobettini.it
 http://www.gnu.org/software/src-highlite -->
@@ -1893,7 +1893,7 @@ http://www.gnu.org/software/src-highlite -->
 <h5 id="_tt_em_collection_em_empty_tt_2"><tt><em>collection</em>.empty?</tt></h5>
 <div class="paragraph"><p>The <tt><em>collection</em>.empty?</tt> method returns <tt>true</tt> if the collection does not contain any associated objects.</p></div>
 <div class="listingblock">
-<div class="content"><!-- Generator: GNU source-highlight 2.11.1
+<div class="content"><!-- Generator: GNU source-highlight 2.9
 by Lorenzo Bettini
 http://www.lorenzobettini.it
 http://www.gnu.org/software/src-highlite -->
@@ -1903,7 +1903,7 @@ http://www.gnu.org/software/src-highlite -->
 <h5 id="_tt_em_collection_em_size_tt_2"><tt><em>collection</em>.size</tt></h5>
 <div class="paragraph"><p>The <tt><em>collection</em>.size</tt> method returns the number of objects in the collection.</p></div>
 <div class="listingblock">
-<div class="content"><!-- Generator: GNU source-highlight 2.11.1
+<div class="content"><!-- Generator: GNU source-highlight 2.9
 by Lorenzo Bettini
 http://www.lorenzobettini.it
 http://www.gnu.org/software/src-highlite -->
@@ -1911,7 +1911,7 @@ http://www.gnu.org/software/src-highlite -->
 <h5 id="_tt_em_collection_em_find_tt_2"><tt><em>collection</em>.find(...)</tt></h5>
 <div class="paragraph"><p>The <tt><em>collection</em>.find</tt> method finds objects within the collection. It uses the same syntax and options as <tt>ActiveRecord::Base.find</tt>. It also adds the additional condition that the object must be in the collection.</p></div>
 <div class="listingblock">
-<div class="content"><!-- Generator: GNU source-highlight 2.11.1
+<div class="content"><!-- Generator: GNU source-highlight 2.9
 by Lorenzo Bettini
 http://www.lorenzobettini.it
 http://www.gnu.org/software/src-highlite -->
@@ -1921,7 +1921,7 @@ http://www.gnu.org/software/src-highlite -->
 <h5 id="_tt_em_collection_em_build_attributes_tt_2"><tt><em>collection</em>.build(attributes = {})</tt></h5>
 <div class="paragraph"><p>The <tt><em>collection</em>.build</tt> method returns a new object of the associated type. This object will be instantiated from the passed attributes, and the link through the join table will be created, but the associated object will <em>not</em> yet be saved.</p></div>
 <div class="listingblock">
-<div class="content"><!-- Generator: GNU source-highlight 2.11.1
+<div class="content"><!-- Generator: GNU source-highlight 2.9
 by Lorenzo Bettini
 http://www.lorenzobettini.it
 http://www.gnu.org/software/src-highlite -->
@@ -1929,7 +1929,7 @@ http://www.gnu.org/software/src-highlite -->
 <h5 id="_tt_em_collection_em_create_attributes_tt_2"><tt><em>collection</em>.create(attributes = {})</tt></h5>
 <div class="paragraph"><p>The <tt><em>collection</em>.create</tt> method returns a new object of the associated type. This objects will be instantiated from the passed attributes, the link through the join table will be created, and the associated object <em>will</em> be saved (assuming that it passes any validations).</p></div>
 <div class="listingblock">
-<div class="content"><!-- Generator: GNU source-highlight 2.11.1
+<div class="content"><!-- Generator: GNU source-highlight 2.9
 by Lorenzo Bettini
 http://www.lorenzobettini.it
 http://www.gnu.org/software/src-highlite -->
@@ -1937,7 +1937,7 @@ http://www.gnu.org/software/src-highlite -->
 <h4 id="_options_for_has_and_belongs_to_many">4.4.2. Options for has_and_belongs_to_many</h4>
 <div class="paragraph"><p>In many situations, you can use the default behavior for <tt>has_and_belongs_to_many</tt> without any customization. But you can alter that behavior in a number of ways. This section cover the options that you can pass when you create a <tt>has_and_belongs_to_many</tt> association. For example, an association with several options might look like this:</p></div>
 <div class="listingblock">
-<div class="content"><!-- Generator: GNU source-highlight 2.11.1
+<div class="content"><!-- Generator: GNU source-highlight 2.9
 by Lorenzo Bettini
 http://www.lorenzobettini.it
 http://www.gnu.org/software/src-highlite -->
@@ -2053,7 +2053,7 @@ http://www.gnu.org/software/src-highlite -->
 </tr></table>
 </div>
 <div class="listingblock">
-<div class="content"><!-- Generator: GNU source-highlight 2.11.1
+<div class="content"><!-- Generator: GNU source-highlight 2.9
 by Lorenzo Bettini
 http://www.lorenzobettini.it
 http://www.gnu.org/software/src-highlite -->
@@ -2064,7 +2064,7 @@ http://www.gnu.org/software/src-highlite -->
 <h5 id="_tt_class_name_tt_4"><tt>:class_name</tt></h5>
 <div class="paragraph"><p>If the name of the other model cannot be derived from the association name, you can use the <tt>:class_name</tt> option to supply the model name. For example, if a part has many assemblies, but the actual name of the model containing assemblies is <tt>Gadget</tt>, you&#8217;d set things up this way:</p></div>
 <div class="listingblock">
-<div class="content"><!-- Generator: GNU source-highlight 2.11.1
+<div class="content"><!-- Generator: GNU source-highlight 2.9
 by Lorenzo Bettini
 http://www.lorenzobettini.it
 http://www.gnu.org/software/src-highlite -->
@@ -2074,7 +2074,7 @@ http://www.gnu.org/software/src-highlite -->
 <h5 id="_tt_conditions_tt_4"><tt>:conditions</tt></h5>
 <div class="paragraph"><p>The <tt>:conditions</tt> option lets you specify the conditions that the associated object must meet (in the syntax used by a SQL <tt>WHERE</tt> clause).</p></div>
 <div class="listingblock">
-<div class="content"><!-- Generator: GNU source-highlight 2.11.1
+<div class="content"><!-- Generator: GNU source-highlight 2.9
 by Lorenzo Bettini
 http://www.lorenzobettini.it
 http://www.gnu.org/software/src-highlite -->
@@ -2083,7 +2083,7 @@ http://www.gnu.org/software/src-highlite -->
 <span style="font-weight: bold"><span style="color: #0000FF">end</span></span></tt></pre></div></div>
 <div class="paragraph"><p>You can also set conditions via a hash:</p></div>
 <div class="listingblock">
-<div class="content"><!-- Generator: GNU source-highlight 2.11.1
+<div class="content"><!-- Generator: GNU source-highlight 2.9
 by Lorenzo Bettini
 http://www.lorenzobettini.it
 http://www.gnu.org/software/src-highlite -->
@@ -2110,7 +2110,7 @@ http://www.gnu.org/software/src-highlite -->
 <h5 id="_tt_foreign_key_tt_4"><tt>:foreign_key</tt></h5>
 <div class="paragraph"><p>By convention, Rails guesses that the column in the join table used to hold the foreign key pointing to this model is the name of this model with the suffix <tt>_id</tt> added. The <tt>:foreign_key</tt> option lets you set the name of the foreign key directly:</p></div>
 <div class="listingblock">
-<div class="content"><!-- Generator: GNU source-highlight 2.11.1
+<div class="content"><!-- Generator: GNU source-highlight 2.9
 by Lorenzo Bettini
 http://www.lorenzobettini.it
 http://www.gnu.org/software/src-highlite -->
@@ -2121,7 +2121,7 @@ http://www.gnu.org/software/src-highlite -->
 <h5 id="_tt_group_tt_2"><tt>:group</tt></h5>
 <div class="paragraph"><p>The <tt>:group</tt> option supplies an attribute name to group the result set by, using a <tt>GROUP BY</tt> clause in the finder SQL.</p></div>
 <div class="listingblock">
-<div class="content"><!-- Generator: GNU source-highlight 2.11.1
+<div class="content"><!-- Generator: GNU source-highlight 2.9
 by Lorenzo Bettini
 http://www.lorenzobettini.it
 http://www.gnu.org/software/src-highlite -->
@@ -2137,7 +2137,7 @@ http://www.gnu.org/software/src-highlite -->
 <h5 id="_tt_limit_tt_2"><tt>:limit</tt></h5>
 <div class="paragraph"><p>The <tt>:limit</tt> option lets you restrict the total number of objects that will be fetched through an association.</p></div>
 <div class="listingblock">
-<div class="content"><!-- Generator: GNU source-highlight 2.11.1
+<div class="content"><!-- Generator: GNU source-highlight 2.9
 by Lorenzo Bettini
 http://www.lorenzobettini.it
 http://www.gnu.org/software/src-highlite -->
@@ -2149,7 +2149,7 @@ http://www.gnu.org/software/src-highlite -->
 <h5 id="_tt_order_tt_3"><tt>:order</tt></h5>
 <div class="paragraph"><p>The <tt>:order</tt> option dictates the order in which associated objects will be received (in the syntax used by a SQL <tt>ORDER BY</tt> clause).</p></div>
 <div class="listingblock">
-<div class="content"><!-- Generator: GNU source-highlight 2.11.1
+<div class="content"><!-- Generator: GNU source-highlight 2.9
 by Lorenzo Bettini
 http://www.lorenzobettini.it
 http://www.gnu.org/software/src-highlite -->
@@ -2196,7 +2196,7 @@ http://www.gnu.org/software/src-highlite -->
 </ul></div>
 <div class="paragraph"><p>You define association callbacks by adding options to the association declaration. For example:</p></div>
 <div class="listingblock">
-<div class="content"><!-- Generator: GNU source-highlight 2.11.1
+<div class="content"><!-- Generator: GNU source-highlight 2.9
 by Lorenzo Bettini
 http://www.lorenzobettini.it
 http://www.gnu.org/software/src-highlite -->
@@ -2210,7 +2210,7 @@ http://www.gnu.org/software/src-highlite -->
 <div class="paragraph"><p>Rails passes the object being added or removed to the callback.</p></div>
 <div class="paragraph"><p>You can stack callbacks on a single event by passing them as an array:</p></div>
 <div class="listingblock">
-<div class="content"><!-- Generator: GNU source-highlight 2.11.1
+<div class="content"><!-- Generator: GNU source-highlight 2.9
 by Lorenzo Bettini
 http://www.lorenzobettini.it
 http://www.gnu.org/software/src-highlite -->
@@ -2229,7 +2229,7 @@ http://www.gnu.org/software/src-highlite -->
 <h3 id="_association_extensions">4.6. Association Extensions</h3>
 <div class="paragraph"><p>You&#8217;re not limited to the functionality that Rails automatically builds into association proxy objects. You can also extend these objects through anonymous modules, adding new finders, creators, or other methods. For example:</p></div>
 <div class="listingblock">
-<div class="content"><!-- Generator: GNU source-highlight 2.11.1
+<div class="content"><!-- Generator: GNU source-highlight 2.9
 by Lorenzo Bettini
 http://www.lorenzobettini.it
 http://www.gnu.org/software/src-highlite -->
@@ -2242,7 +2242,7 @@ http://www.gnu.org/software/src-highlite -->
 <span style="font-weight: bold"><span style="color: #0000FF">end</span></span></tt></pre></div></div>
 <div class="paragraph"><p>If you have an extension that should be shared by many associations, you can use a named extension module. For example:</p></div>
 <div class="listingblock">
-<div class="content"><!-- Generator: GNU source-highlight 2.11.1
+<div class="content"><!-- Generator: GNU source-highlight 2.9
 by Lorenzo Bettini
 http://www.lorenzobettini.it
 http://www.gnu.org/software/src-highlite -->
@@ -2261,7 +2261,7 @@ http://www.gnu.org/software/src-highlite -->
 <span style="font-weight: bold"><span style="color: #0000FF">end</span></span></tt></pre></div></div>
 <div class="paragraph"><p>To include more than one extension module in a single association, specify an array of names:</p></div>
 <div class="listingblock">
-<div class="content"><!-- Generator: GNU source-highlight 2.11.1
+<div class="content"><!-- Generator: GNU source-highlight 2.9
 by Lorenzo Bettini
 http://www.lorenzobettini.it
 http://www.gnu.org/software/src-highlite -->
