@@ -486,8 +486,8 @@ There is also `time_zone_options_for_select` helper for a more manual (therefore
 
 Rails _used_ to have a `country_select` helper for choosing countries but this has been extracted to the http://github.com/rails/country_select/tree/master[country_select plugin]. When using this do be aware that the exclusion or inclusion of certain names from the list can be somewhat controversial (and was the reason this functionality was extracted from rails).
 
-Date and time select boxes
---------------------------
+Using Date and Time Form Helpers
+--------------------------------
 
 The date and time helpers differ from all the other form helpers in two important respects:
 
@@ -581,7 +581,7 @@ Dealing with Ajax
 ~~~~~~~~~~~~~~~~~
 Unlike other forms making an asynchronous file upload form is not as simple as replacing `form_for` with `remote_form_for`. With an AJAX form the serialization is done by javascript running inside the browser and since javascript cannot read files from your hard drive the file cannot be uploaded. The most common workaround is to use an invisible iframe that serves as the target for the form submission.
 
-Form builders
+Customising Form Builders
 -------------
 
 As mentioned previously the object yielded by `form_for` and `fields_for` is an instance of FormBuilder (or a subclass thereof). Form builders encapsulate the notion of displaying a form elements for a single object. While you can of course write helpers for your forms in the usual way you can also subclass FormBuilder and add the helpers there. For example 
