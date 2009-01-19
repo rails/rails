@@ -584,7 +584,7 @@ Dealing with Ajax
 Unlike other forms making an asynchronous file upload form is not as simple as replacing `form_for` with `remote_form_for`. With an AJAX form the serialization is done by javascript running inside the browser and since javascript cannot read files from your hard drive the file cannot be uploaded. The most common workaround is to use an invisible iframe that serves as the target for the form submission.
 
 Customising Form Builders
--------------
+-------------------------
 
 As mentioned previously the object yielded by `form_for` and `fields_for` is an instance of FormBuilder (or a subclass thereof). Form builders encapsulate the notion of displaying a form elements for a single object. While you can of course write helpers for your forms in the usual way you can also subclass FormBuilder and add the helpers there. For example 
 
