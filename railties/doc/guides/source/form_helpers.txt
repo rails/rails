@@ -215,6 +215,8 @@ Upon form submission the value entered by the user will be stored in `params[:pe
 You must pass the name of an instance variable, i.e. `:person` or `"person"`, not an actual instance of your model object.
 ============================================================================
 
+Rails provides helpers for displaying the validation errors associated with a model object. These are covered in detail by the link:./activerecord_validations_callbacks.html#_using_the_tt_errors_tt_collection_in_your_view_templates[Active Record Validations and Callbacks] guide.
+
 Binding a form to an object
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
@@ -319,7 +321,7 @@ will create a form that submits to the articles controller inside the admin name
 -------
 form_for [:admin, :management, @article]
 ------- 
-For more information on Rails' routing system and the associated conventions, please see the link:../routing_outside_in.html[routing guide].
+For more information on Rails' routing system and the associated conventions, please see the link:./routing_outside_in.html[routing guide].
 
 
 How do forms with PUT or DELETE methods work?
