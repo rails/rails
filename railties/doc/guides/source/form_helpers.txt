@@ -543,7 +543,7 @@ As a rule of thumb you should be using `date_select` when working with model obj
 
 NOTE: In many cases the built in date pickers are clumsy as they do not aid the user in working out the relationship between the date and the day of the week.
 
-File Uploads
+Uploading Files
 --------------
 A common task is uploading some sort of file, whether it's a picture of a person or a CSV file containing data to process. The most important thing to remember with file uploads is that the form's encoding *MUST* be set to multipart/form-data. If you forget to do this the file will not be uploaded. This can be done by passing `:multi_part => true` as an HTML option. This means that in the case of `form_tag` it must be passed in the second options hash and in the case of `form_for` inside the `:html` hash.
 
