@@ -315,9 +315,9 @@ For more information on Rails' routing system and the associated conventions, pl
 Making select boxes with ease
 -----------------------------
 
-Select boxes in HTML require a significant amount of markup (one `OPTION` element for each option to choose from), therefore it makes the most sense for them to be dynamically generated from data stored in arrays or hashes.
+Select boxes in HTML require a significant amount of markup (one `OPTION` element for each option to choose from), therefore it makes the most sense for them to be dynamically generated.
 
-Here is what our wanted markup might look like:
+Here is what the markup might look like:
 
 ----------------------------------------------------------------------------
 <select name="city_id" id="city_id">
@@ -328,7 +328,7 @@ Here is what our wanted markup might look like:
 </select>
 ----------------------------------------------------------------------------
 
-Here you have a list of cities where their names are presented to the user, but internally the application only wants to handle their IDs so they are used as the options' value attributes. Let's see how Rails can help out here.
+Here you have a list of cities whose names are presented to the user. Internally the application only wants to handle their IDs so they are used as the options' value attribute. Let's see how Rails can help out here.
 
 The select tag and options
 ~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -452,7 +452,7 @@ To leverage time zone support in Rails, you have to ask our users what time zone
 
 There is also `time_zone_options_for_select` helper for a more manual (therefore more customizable) way of doing this. Read the API documentation to learn about the possible arguments for these two methods.
 
-Rails _used_ to have a `country_select` helper for choosing countries but this has been extracted to the http://github.com/rails/country_select/tree/master[country_select plugin]. When using this do be aware that the exclusion or inclusion of certain names from the list can be somewhat controversial (and was the reason this functionality was extracted from rails)
+Rails _used_ to have a `country_select` helper for choosing countries but this has been extracted to the http://github.com/rails/country_select/tree/master[country_select plugin]. When using this do be aware that the exclusion or inclusion of certain names from the list can be somewhat controversial (and was the reason this functionality was extracted from rails).
 
 Date and time select boxes
 --------------------------
