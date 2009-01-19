@@ -644,7 +644,7 @@ module ActionController #:nodoc:
       end
 
       def session_enabled?
-        request.session_options && request.session_options[:disabled] != false
+        ActiveSupport::Deprecation.warn("Sessions are now lazy loaded. So if you don't access them, consider them disabled.", caller)
       end
 
       self.view_paths = []
