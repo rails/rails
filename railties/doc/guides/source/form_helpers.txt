@@ -511,6 +511,44 @@ As a rule of thumb you should be using `date_select` when working with model obj
 
 NOTE: In many cases the built in date pickers are clumsy as they do not aid the user in working out the relationship between the date and the day of the week.
 
+File Uploads
+--------------
+A common task is uploading some sort of file, whether it's a picture of a person or a CSV file containing data to process. The most important thing to remember with file uploads is that the form's encoding *MUST* be set to multipart/form-data. If you forget to do this the file will not be uploaded. This can be done by passing `:multi_part => true` as an HTML option. This means that in the case of `form_tag` it must be passed in the second options hash and in the case of `form_for` inside the `:html` hash.
+
+The following two forms both upload a file. 
+-----------
+<% form_tag({:action => :upload}, :multipart => true) do %>
+  <%= file_field_tag 'picture' %>
+<% end %>
+
+<% form_for @person, :html => {:multipart => true} do |f| %>
+  <%= f.file_field :picture %>
+<% end %>
+-----------
+Rails provides the usual pair of helpers: the barebones `file_field_tag` and the model oriented `file_field`. The only difference with other helpers is that you cannot set a default value for file inputs as this would have no meaning. As you would expect in the first case the uploaded file is in `params[:picture]` and in the second case in `params[:person][:picture]`.
+
+What gets uploaded
+~~~~~~~~~~~~~~~~~~
+The object in the params hash is an instance of a subclass of IO. Depending on the size of the uploaded file it may in fact be a StringIO or an instance of File backed by a temporary file. In both cases the object will have an `original_filename` attribute containing the name the file had on the user's computer and a `content_type` attribute containing the MIME type of the uploaded file. The following snippet saves the uploaded content in `#\{RAILS_ROOT\}/public/uploads` under the same name as the original file (assuming the form was the one in the previous example).
+
+[source, ruby]
+-----------------
+def upload
+  uploaded_io = params[:person][:picture]
+  File.open(Rails.root.join('public', 'uploads', uploaded_io.original_filename), 'w') do |file|
+    file.write(uploaded_io.read)
+  end
+end
+----------------
+
+Once a file has been uploaded there are a multitude of potential tasks, ranging from where to store the files (on disk, Amazon S3, etc) and associating them with models to resizing image files and generating thumbnails. The intricacies of this are beyond the scope of this guide, but there are several plugins designed to assist with these. Two of the better known ones are http://github.com/technoweenie/attachment_fu[Attachment-Fu] and http://www.thoughtbot.com/projects/paperclip[Paperclip].
+
+NOTE: If the user has not selected a file the corresponding parameter will be an empty string.
+
+Dealing with Ajax
+~~~~~~~~~~~~~~~~~
+Unlike other forms making an asynchronous file upload form is not as simple as replacing `form_for` with `remote_form_for`. With an AJAX form the serialization is done by javascript running inside the browser and since javascript cannot read files from your hard drive the file cannot be uploaded. The most common workaround is to use an invisible iframe that serves as the target for the form submission.
+
 Form builders
 -------------
 
@@ -566,44 +604,6 @@ which produces the following output:
   <input id="contact_detail_phone_number" name="contact_detail[phone_number]" size="30" type="text" />
 </form>
 -------------
-
-File Uploads
---------------
-A common task is uploading some sort of file, whether it's a picture of a person or a CSV file containing data to process. The most important thing to remember with file uploads is that the form's encoding *MUST* be set to multipart/form-data. If you forget to do this the file will not be uploaded. This can be done by passing `:multi_part => true` as an HTML option. This means that in the case of `form_tag` it must be passed in the second options hash and in the case of `form_for` inside the `:html` hash.
-
-The following two forms both upload a file. 
------------
-<% form_tag({:action => :upload}, :multipart => true) do %>
-  <%= file_field_tag 'picture' %>
-<% end %>
-
-<% form_for @person, :html => {:multipart => true} do |f| %>
-  <%= f.file_field :picture %>
-<% end %>
------------
-Rails provides the usual pair of helpers: the barebones `file_field_tag` and the model oriented `file_field`. The only difference with other helpers is that you cannot set a default value for file inputs as this would have no meaning. As you would expect in the first case the uploaded file is in `params[:picture]` and in the second case in `params[:person][:picture]`.
-
-What gets uploaded
-~~~~~~~~~~~~~~~~~~
-The object in the params hash is an instance of a subclass of IO. Depending on the size of the uploaded file it may in fact be a StringIO or an instance of File backed by a temporary file. In both cases the object will have an `original_filename` attribute containing the name the file had on the user's computer and a `content_type` attribute containing the MIME type of the uploaded file. The following snippet saves the uploaded content in `#\{RAILS_ROOT\}/public/uploads` under the same name as the original file (assuming the form was the one in the previous example).
-
-[source, ruby]
------------------
-def upload
-  uploaded_io = params[:person][:picture]
-  File.open(Rails.root.join('public', 'uploads', uploaded_io.original_filename), 'w') do |file|
-    file.write(uploaded_io.read)
-  end
-end
-----------------
-
-Once a file has been uploaded there are a multitude of potential tasks, ranging from where to store the files (on disk, Amazon S3, etc) and associating them with models to resizing image files and generating thumbnails. The intricacies of this are beyond the scope of this guide, but there are several plugins designed to assist with these. Two of the better known ones are http://github.com/technoweenie/attachment_fu[Attachment-Fu] and http://www.thoughtbot.com/projects/paperclip[Paperclip].
-
-NOTE: If the user has not selected a file the corresponding parameter will be an empty string.
-
-Dealing with Ajax
-~~~~~~~~~~~~~~~~~
-Unlike other forms making an asynchronous file upload form is not as simple as replacing `form_for` with `remote_form_for`. With an AJAX form the serialization is done by javascript running inside the browser and since javascript cannot read files from your hard drive the file cannot be uploaded. The most common workaround is to use an invisible iframe that serves as the target for the form submission.
 
 Parameter Names
 ---------------
