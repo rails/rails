@@ -731,7 +731,38 @@ I18n.t :foo, :raise => true # always re-raises exceptions from the backend
 -------------------------------------------------------
 
 
+== Conclusion
+
+At this point you hopefully have a good overview about how I18n support in Ruby on Rails works and are ready to start translating your project.
+
+If you find anything missing or wrong in this guide please file a ticket on http://i18n.lighthouseapp.com/projects/14948-rails-i18n/overview[our issue tracker]. If you want to discuss certain portions or have questions please sign up to our http://groups.google.com/group/rails-i18n[mailinglist].
+
+
+== Contributing to Rails I18n
+
+I18n support in Ruby on Rails was introduced in the release 2.2 and is still evolving. The project follows the good Ruby on Rails development tradition of evolving solutions in plugins and real applications first and then cherry-picking the best bread of most widely useful features second for inclusion to the core.
+
+Thus we encourage everybody to experiment with new ideas and features in plugins or other libraries and make them available to the community. (Don't forget to announce your work on our http://groups.google.com/group/rails-i18n[mailinglist]!)
+
+If you find your own locale (language) missing from our http://github.com/svenfuchs/rails-i18n/tree/master/rails/locale[example translations data] repository for Ruby on Rails
+
+
 == Resources
+
+* http://rails-i18n.org[rails-i18n.org] - Homepage of the rails-i18n project. You can find lots of useful resources on the http://rails-i18n.org/wiki[wiki].
+* http://groups.google.com/group/rails-i18n[rails-i18n Google group] - The project's mailinglist. 
+* http://github.com/svenfuchs/rails-i18n/tree/master[Github: rails-i18n] - Code repository for the rails-i18n project. Most importantly you can find lots of http://github.com/svenfuchs/rails-i18n/tree/master/rails/locale[example translations] for Rails that should work for your application in most cases.
+* http://i18n.lighthouseapp.com/projects/14948-rails-i18n/overview[Lighthouse: rails-i18n] - Issue tracker for the rails-i18n project.
+* http://github.com/svenfuchs/i18n/tree/master[Github: i18n] - Code repository for the i18n gem.
+* http://i18n.lighthouseapp.com/projects/14947-ruby-i18n/overview[Lighthouse: i18n] - Issue tracker for the i18n gem.
+
+
+== Authors
+
+* Sven Fuchs[http://www.workingwithrails.com/person/9963-sven-fuchs] (initial author)
+* Karel Minarik[http://www.workingwithrails.com/person/7476-karel-mina-k]
+
+If you found this guide useful please consider recommending its authors on http://www.workingwithrails.com[workingwithrails].
 
 
 == Footnotes
@@ -741,6 +772,7 @@ I18n.t :foo, :raise => true # always re-raises exceptions from the backend
 [[[2]]] Other backends might allow or require to use other formats, e.g. a GetText backend might allow to read GetText files.
 
 [[[3]]] One of these reasons is that we don't want to any unnecessary load for applications that do not need any I18n capabilities, so we need to keep the I18n library as simple as possible for English. Another reason is that it is virtually impossible to implement a one-fits-all solution for all problems related to I18n for all existing languages. So a solution that allows us to exchange the entire implementation easily is appropriate anyway. This also makes it much easier to experiment with custom features and extensions.
+
 
 == Changelog ==
 
