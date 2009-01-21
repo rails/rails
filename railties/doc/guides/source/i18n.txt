@@ -682,9 +682,9 @@ Rails uses fixed strings and other localizations, such as format strings and oth
 
 ==== ActiveRecord methods
 
-* human_name and human_attribute_name use translations for model names and attribute names if available in the http://github.com/rails/rails/blob/master/activerecord/lib/active_record/locale/en.yml#L43[activerecord.models] scope. They also support translations for inherited class names (e.g. for use with STI) as explained in (TODO:link).
+* human_name and human_attribute_name use translations for model names and attribute names if available in the http://github.com/rails/rails/blob/master/activerecord/lib/active_record/locale/en.yml#L43[activerecord.models] scope. They also support translations for inherited class names (e.g. for use with STI) as explained above in "Error message scopes".
 
-* ActiveRecord::Errors#generate_message (which is used by ActiveRecord validations but may also be used manually) uses human_name and human_attribute_name (see above). It also translates the error message and supports translations for inherited class names as explained in (TODO:link).
+* ActiveRecord::Errors#generate_message (which is used by ActiveRecord validations but may also be used manually) uses human_name and human_attribute_name (see above). It also translates the error message and supports translations for inherited class names as explained above in "Error message scopes".
 
 * ActiveRecord::Errors#full_messages prepends the attribute name to the error message using a separator that will be looked up from http://github.com/rails/rails/blob/master/actionpack/lib/action_view/locale/en.yml#L91[activerecord.errors.format.separator] (and defaults to ' ').
 
