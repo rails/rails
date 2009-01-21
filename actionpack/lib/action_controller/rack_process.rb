@@ -1,5 +1,6 @@
 require 'action_controller/cgi_ext'
 require 'action_controller/session/cookie_store'
+require 'action_controller/cgi_process'
 
 module ActionController #:nodoc:
   class RackRequest < AbstractRequest #:nodoc:
@@ -9,14 +10,7 @@ module ActionController #:nodoc:
     class SessionFixationAttempt < StandardError #:nodoc:
     end
 
-    DEFAULT_SESSION_OPTIONS = {
-      :database_manager => CGI::Session::CookieStore, # store data in cookie
-      :prefix           => "ruby_sess.",    # prefix session file names
-      :session_path     => "/",             # available to all paths in app
-      :session_key      => "_session_id",
-      :cookie_only      => true,
-      :session_http_only=> true
-    }
+    DEFAULT_SESSION_OPTIONS = ActionController::CgiRequest::DEFAULT_SESSION_OPTIONS
 
     def initialize(env, session_options = DEFAULT_SESSION_OPTIONS)
       @session_options = session_options
