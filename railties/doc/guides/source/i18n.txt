@@ -668,11 +668,29 @@ en:
 -------------------------------------------------------
 
 
-=== Other translations and localizations
+=== Overview of other built-in methods that provide I18n support
 
-Rails uses fixed strings and other localizations, such as format strings and other format information in a couple of helpers.
+Rails uses fixed strings and other localizations, such as format strings and other format information in a couple of helpers. Here's a brief overview.
 
-TODO list helpers and available keys
+==== ActionView helper methods
+
+* distance_of_time_in_words translates and pluralizes its result and interpolates the number of seconds, minutes, hours and so on. See http://github.com/rails/rails/blob/master/actionpack/lib/action_view/locale/en.yml#L51[datetime.distance_in_words] translations.
+
+* datetime_select and select_month use translated month names for populating the resulting select tag. See http://github.com/rails/rails/blob/master/activesupport/lib/active_support/locale/en.yml#L15[date.month_names] for translations. datetime_select also looks up the order option from http://github.com/rails/rails/blob/master/activesupport/lib/active_support/locale/en.yml#L18[date.order] (unless you pass the option explicitely). All date select helpers translate the prompt using the translations in the http://github.com/rails/rails/blob/master/actionpack/lib/action_view/locale/en.yml#L83[datetime.prompts] scope if applicable.
+
+* The number_to_currency, number_with_precision, number_to_percentage, number_with_delimiter and humber_to_human_size helpers use the number format settings located in the http://github.com/rails/rails/blob/master/actionpack/lib/action_view/locale/en.yml#L2[number] scope.
+
+==== ActiveRecord methods
+
+* human_name and human_attribute_name use translations for model names and attribute names if available in the http://github.com/rails/rails/blob/master/activerecord/lib/active_record/locale/en.yml#L43[activerecord.models] scope. They also support translations for inherited class names (e.g. for use with STI) as explained in (TODO:link).
+
+* ActiveRecord::Errors#generate_message (which is used by ActiveRecord validations but may also be used manually) uses human_name and human_attribute_name (see above). It also translates the error message and supports translations for inherited class names as explained in (TODO:link).
+
+* ActiveRecord::Errors#full_messages prepends the attribute name to the error message using a separator that will be looked up from http://github.com/rails/rails/blob/master/actionpack/lib/action_view/locale/en.yml#L91[activerecord.errors.format.separator] (and defaults to ' ').
+
+==== ActiveSupport methods
+
+* Array#to_sentence uses format settings as given in the http://github.com/rails/rails/blob/master/activesupport/lib/active_support/locale/en.yml#L30[support.array] scope.
 
 
 == Customize your I18n setup
