@@ -292,7 +292,7 @@ pirate:
 
 There you go. Because you haven't changed the default_locale I18n will use English. Your application now shows:
 
-image:images/i18n/demo_translated_english.png[rails i18n demo translated to english]
+image:images/i18n/demo_translated_en.png[rails i18n demo translated to english]
 
 And when you change the URL to pass the pirate locale you get:
 
