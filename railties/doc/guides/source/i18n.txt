@@ -12,7 +12,7 @@ Internationalization is a complex problem. Natural languages differ in so many w
 * providing support for English and similar languages out of the box
 * making it easy to customize and extend everything for other languages
 
-As part of this solution, *every static string in the Rails framework* -- eg. ActiveRecord validation messages, time and date formats -- *has been internationalized*, so _localization_ of a Rails application means "over-riding" these defaults.
+As part of this solution, *every static string in the Rails framework* -- eg. Active Record validation messages, time and date formats -- *has been internationalized*, so _localization_ of a Rails application means "over-riding" these defaults.
 
 === The overall architecture of the library
 
@@ -74,7 +74,7 @@ en:
   hello: "Hello world"
 -------------------------------------------------------
 
-This means, that in the +:en+ locale, the key _hello_ will map to _Hello world_ string. Every string inside Rails is internationalized in this way, see for instance ActiveRecord validation messages in the http://github.com/rails/rails/blob/master/activerecord/lib/active_record/locale/en.yml[+activerecord/lib/active_record/locale/en.yml+] file or time and date formats in the http://github.com/rails/rails/blob/master/activesupport/lib/active_support/locale/en.yml[+activesupport/lib/active_support/locale/en.yml+] file. You can use YAML or standard Ruby Hashes to store translations in the default (Simple) backend.
+This means, that in the +:en+ locale, the key _hello_ will map to _Hello world_ string. Every string inside Rails is internationalized in this way, see for instance Active Record validation messages in the http://github.com/rails/rails/blob/master/activerecord/lib/active_record/locale/en.yml[+activerecord/lib/active_record/locale/en.yml+] file or time and date formats in the http://github.com/rails/rails/blob/master/activesupport/lib/active_support/locale/en.yml[+activesupport/lib/active_support/locale/en.yml+] file. You can use YAML or standard Ruby Hashes to store translations in the default (Simple) backend.
 
 The I18n library will use *English* as a *default locale*, ie. if you don't set a different locale, +:en+ will be used for looking up translations.
 
@@ -358,7 +358,7 @@ translate also takes a :scope option which can contain one or many additional ke
 I18n.t :invalid, :scope => [:active_record, :error_messages]
 -------------------------------------------------------
 
-This looks up the :invalid message in the ActiveRecord error messages.
+This looks up the :invalid message in the Active Record error messages.
 
 Additionally, both the key and scopes can be specified as dot separated keys as in:
 
@@ -407,7 +407,7 @@ I18n.t [:odd, :even], :scope => 'active_record.error_messages'
 # => ["must be odd", "must be even"]
 -------------------------------------------------------
 
-Also, a key can translate to a (potentially nested) hash as grouped translations. E.g. one can receive all ActiveRecord error messages as a Hash with:
+Also, a key can translate to a (potentially nested) hash as grouped translations. E.g. one can receive all Active Record error messages as a Hash with:
 
 [source, ruby]
 -------------------------------------------------------
@@ -538,7 +538,7 @@ I18n.t :short, :scope => [:date, :formats]
 
 Generally we recommend using YAML as a format for storing translations. There are cases though where you want to store Ruby lambdas as part of your locale data, e.g. for special date 
 
-=== Translations for ActiveRecord models
+=== Translations for Active Record models
 
 You can use the methods Model.human_name and Model.human_attribute_name(attribute) to transparently lookup translations for your model and attribute names.
 
@@ -560,7 +560,7 @@ Then User.human_name will return "Dude" and User.human_attribute_name(:login) wi
       
 ==== Error message scopes
 
-ActiveRecord validation error messages can also be translated easily. ActiveRecord gives you a couple of namespaces where you can place your message translations in order to provide different messages and translation for certain models, attributes and/or validations. It also transparently takes single table inheritance into account.
+Active Record validation error messages can also be translated easily. Active Record gives you a couple of namespaces where you can place your message translations in order to provide different messages and translation for certain models, attributes and/or validations. It also transparently takes single table inheritance into account.
 
 This gives you quite powerful means to flexibly adjust your messages to your application's needs.
 
@@ -573,7 +573,7 @@ class User < ActiveRecord::Base
 end
 -------------------------------------------------------
 
-The key for the error message in this case is :blank. ActiveRecord will lookup this key in the namespaces:
+The key for the error message in this case is :blank. Active Record will lookup this key in the namespaces:
 
 [source, ruby]
 -------------------------------------------------------
@@ -602,7 +602,7 @@ class Admin < User
 end
 -------------------------------------------------------
 
-Then ActiveRecord will look for messages in this order:
+Then Active Record will look for messages in this order:
 
 [source, ruby]
 -------------------------------------------------------
@@ -649,9 +649,9 @@ count and/or value are available where applicable. Count can be used for plurali
 |=====================================================================================================
 
 
-==== Translations for the ActiveRecord error_messages_for helper
+==== Translations for the Active Record error_messages_for helper
 
-If you are using the ActiveRecord error_messages_for helper you will want to add translations for it. 
+If you are using the Active Record error_messages_for helper you will want to add translations for it. 
 
 Rails ships with the following translations:
 
@@ -680,11 +680,11 @@ Rails uses fixed strings and other localizations, such as format strings and oth
 
 * The number_to_currency, number_with_precision, number_to_percentage, number_with_delimiter and humber_to_human_size helpers use the number format settings located in the http://github.com/rails/rails/blob/master/actionpack/lib/action_view/locale/en.yml#L2[number] scope.
 
-==== ActiveRecord methods
+==== Active Record methods
 
 * human_name and human_attribute_name use translations for model names and attribute names if available in the http://github.com/rails/rails/blob/master/activerecord/lib/active_record/locale/en.yml#L43[activerecord.models] scope. They also support translations for inherited class names (e.g. for use with STI) as explained above in "Error message scopes".
 
-* ActiveRecord::Errors#generate_message (which is used by ActiveRecord validations but may also be used manually) uses human_name and human_attribute_name (see above). It also translates the error message and supports translations for inherited class names as explained above in "Error message scopes".
+* ActiveRecord::Errors#generate_message (which is used by Active Record validations but may also be used manually) uses human_name and human_attribute_name (see above). It also translates the error message and supports translations for inherited class names as explained above in "Error message scopes".
 
 * ActiveRecord::Errors#full_messages prepends the attribute name to the error message using a separator that will be looked up from http://github.com/rails/rails/blob/master/actionpack/lib/action_view/locale/en.yml#L91[activerecord.errors.format.separator] (and defaults to ' ').
 

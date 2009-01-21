@@ -84,7 +84,7 @@
           <a href="#_how_to_store_your_custom_translations">How to store your custom translations</a>
             <ul>
             
-              <li><a href="#_translations_for_activerecord_models">Translations for ActiveRecord models</a></li>
+              <li><a href="#_translations_for_active_record_models">Translations for Active Record models</a></li>
             
               <li><a href="#_overview_of_other_built_in_methods_that_provide_i18n_support">Overview of other built-in methods that provide I18n support</a></li>
             
@@ -151,7 +151,7 @@ making it easy to customize and extend everything for other languages
 </p>
 </li>
 </ul></div>
-<div class="paragraph"><p>As part of this solution, <strong>every static string in the Rails framework</strong>&#8201;&#8212;&#8201;eg. ActiveRecord validation messages, time and date formats&#8201;&#8212;&#8201;<strong>has been internationalized</strong>, so <em>localization</em> of a Rails application means "over-riding" these defaults.</p></div>
+<div class="paragraph"><p>As part of this solution, <strong>every static string in the Rails framework</strong>&#8201;&#8212;&#8201;eg. Active Record validation messages, time and date formats&#8201;&#8212;&#8201;<strong>has been internationalized</strong>, so <em>localization</em> of a Rails application means "over-riding" these defaults.</p></div>
 <h3 id="_the_overall_architecture_of_the_library">1.1. The overall architecture of the library</h3>
 <div class="paragraph"><p>Thus, the Ruby I18n gem is split into two parts:</p></div>
 <div class="ulist"><ul>
@@ -219,7 +219,7 @@ http://www.lorenzobettini.it
 http://www.gnu.org/software/src-highlite -->
 <pre><tt>en<span style="color: #990000">:</span>
   hello<span style="color: #990000">:</span> <span style="color: #FF0000">"Hello world"</span></tt></pre></div></div>
-<div class="paragraph"><p>This means, that in the <tt>:en</tt> locale, the key <em>hello</em> will map to <em>Hello world</em> string. Every string inside Rails is internationalized in this way, see for instance ActiveRecord validation messages in the <a href="http://github.com/rails/rails/blob/master/activerecord/lib/active_record/locale/en.yml"><tt>activerecord/lib/active_record/locale/en.yml</tt></a> file or time and date formats in the <a href="http://github.com/rails/rails/blob/master/activesupport/lib/active_support/locale/en.yml"><tt>activesupport/lib/active_support/locale/en.yml</tt></a> file. You can use YAML or standard Ruby Hashes to store translations in the default (Simple) backend.</p></div>
+<div class="paragraph"><p>This means, that in the <tt>:en</tt> locale, the key <em>hello</em> will map to <em>Hello world</em> string. Every string inside Rails is internationalized in this way, see for instance Active Record validation messages in the <a href="http://github.com/rails/rails/blob/master/activerecord/lib/active_record/locale/en.yml"><tt>activerecord/lib/active_record/locale/en.yml</tt></a> file or time and date formats in the <a href="http://github.com/rails/rails/blob/master/activesupport/lib/active_support/locale/en.yml"><tt>activesupport/lib/active_support/locale/en.yml</tt></a> file. You can use YAML or standard Ruby Hashes to store translations in the default (Simple) backend.</p></div>
 <div class="paragraph"><p>The I18n library will use <strong>English</strong> as a <strong>default locale</strong>, ie. if you don&#8217;t set a different locale, <tt>:en</tt> will be used for looking up translations.</p></div>
 <div class="paragraph"><p>The <strong>translations load path</strong> (<tt>I18n.load_path</tt>) is just a Ruby Array of paths to your translation files that will be loaded automatically and available in your application. You can pick whatever directory and translation file naming scheme makes sense for you.</p></div>
 <div class="admonitionblock">
@@ -554,7 +554,7 @@ by Lorenzo Bettini
 http://www.lorenzobettini.it
 http://www.gnu.org/software/src-highlite -->
 <pre><tt>I18n<span style="color: #990000">.</span>t <span style="color: #990000">:</span>invalid<span style="color: #990000">,</span> <span style="color: #990000">:</span>scope <span style="color: #990000">=&gt;</span> <span style="color: #990000">[:</span>active_record<span style="color: #990000">,</span> <span style="color: #990000">:</span>error_messages<span style="color: #990000">]</span></tt></pre></div></div>
-<div class="paragraph"><p>This looks up the :invalid message in the ActiveRecord error messages.</p></div>
+<div class="paragraph"><p>This looks up the :invalid message in the Active Record error messages.</p></div>
 <div class="paragraph"><p>Additionally, both the key and scopes can be specified as dot separated keys as in:</p></div>
 <div class="listingblock">
 <div class="content"><!-- Generator: GNU source-highlight 2.9
@@ -599,7 +599,7 @@ http://www.lorenzobettini.it
 http://www.gnu.org/software/src-highlite -->
 <pre><tt>I18n<span style="color: #990000">.</span>t <span style="color: #990000">[:</span>odd<span style="color: #990000">,</span> <span style="color: #990000">:</span>even<span style="color: #990000">],</span> <span style="color: #990000">:</span>scope <span style="color: #990000">=&gt;</span> <span style="color: #FF0000">'active_record.error_messages'</span>
 <span style="font-style: italic"><span style="color: #9A1900"># =&gt; ["must be odd", "must be even"]</span></span></tt></pre></div></div>
-<div class="paragraph"><p>Also, a key can translate to a (potentially nested) hash as grouped translations. E.g. one can receive all ActiveRecord error messages as a Hash with:</p></div>
+<div class="paragraph"><p>Also, a key can translate to a (potentially nested) hash as grouped translations. E.g. one can receive all Active Record error messages as a Hash with:</p></div>
 <div class="listingblock">
 <div class="content"><!-- Generator: GNU source-highlight 2.9
 by Lorenzo Bettini
@@ -718,7 +718,7 @@ I18n<span style="color: #990000">.</span>t <span style="color: #FF0000">'formats
 I18n<span style="color: #990000">.</span>t <span style="color: #990000">:</span>short<span style="color: #990000">,</span> <span style="color: #990000">:</span>scope <span style="color: #990000">=&gt;</span> <span style="color: #FF0000">'date.formats'</span>
 I18n<span style="color: #990000">.</span>t <span style="color: #990000">:</span>short<span style="color: #990000">,</span> <span style="color: #990000">:</span>scope <span style="color: #990000">=&gt;</span> <span style="color: #990000">[:</span>date<span style="color: #990000">,</span> <span style="color: #990000">:</span>formats<span style="color: #990000">]</span></tt></pre></div></div>
 <div class="paragraph"><p>Generally we recommend using YAML as a format for storing translations. There are cases though where you want to store Ruby lambdas as part of your locale data, e.g. for special date</p></div>
-<h3 id="_translations_for_activerecord_models">5.1. Translations for ActiveRecord models</h3>
+<h3 id="_translations_for_active_record_models">5.1. Translations for Active Record models</h3>
 <div class="paragraph"><p>You can use the methods Model.human_name and Model.human_attribute_name(attribute) to transparently lookup translations for your model and attribute names.</p></div>
 <div class="paragraph"><p>For example when you add the following translations:</p></div>
 <div class="listingblock">
@@ -736,7 +736,7 @@ http://www.gnu.org/software/src-highlite -->
       <span style="font-style: italic"><span style="color: #9A1900"># will translate User attribute "login" as "Handle"</span></span></tt></pre></div></div>
 <div class="paragraph"><p>Then User.human_name will return "Dude" and User.human_attribute_name(:login) will return "Handle".</p></div>
 <h4 id="_error_message_scopes">5.1.1. Error message scopes</h4>
-<div class="paragraph"><p>ActiveRecord validation error messages can also be translated easily. ActiveRecord gives you a couple of namespaces where you can place your message translations in order to provide different messages and translation for certain models, attributes and/or validations. It also transparently takes single table inheritance into account.</p></div>
+<div class="paragraph"><p>Active Record validation error messages can also be translated easily. Active Record gives you a couple of namespaces where you can place your message translations in order to provide different messages and translation for certain models, attributes and/or validations. It also transparently takes single table inheritance into account.</p></div>
 <div class="paragraph"><p>This gives you quite powerful means to flexibly adjust your messages to your application&#8217;s needs.</p></div>
 <div class="paragraph"><p>Consider a User model with a validates_presence_of validation for the name attribute like this:</p></div>
 <div class="listingblock">
@@ -747,7 +747,7 @@ http://www.gnu.org/software/src-highlite -->
 <pre><tt><span style="font-weight: bold"><span style="color: #0000FF">class</span></span> User <span style="color: #990000">&lt;</span> ActiveRecord<span style="color: #990000">::</span>Base
   validates_presence_of <span style="color: #990000">:</span>name
 <span style="font-weight: bold"><span style="color: #0000FF">end</span></span></tt></pre></div></div>
-<div class="paragraph"><p>The key for the error message in this case is :blank. ActiveRecord will lookup this key in the namespaces:</p></div>
+<div class="paragraph"><p>The key for the error message in this case is :blank. Active Record will lookup this key in the namespaces:</p></div>
 <div class="listingblock">
 <div class="content"><!-- Generator: GNU source-highlight 2.9
 by Lorenzo Bettini
@@ -775,7 +775,7 @@ http://www.gnu.org/software/src-highlite -->
 <pre><tt><span style="font-weight: bold"><span style="color: #0000FF">class</span></span> Admin <span style="color: #990000">&lt;</span> User
   validates_presence_of <span style="color: #990000">:</span>name
 <span style="font-weight: bold"><span style="color: #0000FF">end</span></span></tt></pre></div></div>
-<div class="paragraph"><p>Then ActiveRecord will look for messages in this order:</p></div>
+<div class="paragraph"><p>Then Active Record will look for messages in this order:</p></div>
 <div class="listingblock">
 <div class="content"><!-- Generator: GNU source-highlight 2.9
 by Lorenzo Bettini
@@ -936,8 +936,8 @@ cellspacing="0" cellpadding="4">
 </tbody>
 </table>
 </div>
-<h4 id="_translations_for_the_activerecord_error_messages_for_helper">5.1.3. Translations for the ActiveRecord error_messages_for helper</h4>
-<div class="paragraph"><p>If you are using the ActiveRecord error_messages_for helper you will want to add translations for it.</p></div>
+<h4 id="_translations_for_the_active_record_error_messages_for_helper">5.1.3. Translations for the Active Record error_messages_for helper</h4>
+<div class="paragraph"><p>If you are using the Active Record error_messages_for helper you will want to add translations for it.</p></div>
 <div class="paragraph"><p>Rails ships with the following translations:</p></div>
 <div class="listingblock">
 <div class="content"><!-- Generator: GNU source-highlight 2.9
@@ -972,7 +972,7 @@ The number_to_currency, number_with_precision, number_to_percentage, number_with
 </p>
 </li>
 </ul></div>
-<h4 id="_activerecord_methods">5.2.2. ActiveRecord methods</h4>
+<h4 id="_active_record_methods">5.2.2. Active Record methods</h4>
 <div class="ulist"><ul>
 <li>
 <p>
@@ -981,7 +981,7 @@ human_name and human_attribute_name use translations for model names and attribu
 </li>
 <li>
 <p>
-ActiveRecord::Errors#generate_message (which is used by ActiveRecord validations but may also be used manually) uses human_name and human_attribute_name (see above). It also translates the error message and supports translations for inherited class names as explained above in "Error message scopes".
+ActiveRecord::Errors#generate_message (which is used by Active Record validations but may also be used manually) uses human_name and human_attribute_name (see above). It also translates the error message and supports translations for inherited class names as explained above in "Error message scopes".
 </p>
 </li>
 <li>
