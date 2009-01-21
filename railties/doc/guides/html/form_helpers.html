@@ -90,6 +90,15 @@
             
               <li><a href="#_dealing_with_ajax">Dealing with Ajax</a></li>
             
+            </ul>
+          </li>
+          <li>
+          <a href="#_customising_form_builders">Customising Form Builders</a>
+          </li>
+          <li>
+          <a href="#_understanding_parameter_naming_conventions">Understanding Parameter Naming Conventions</a>
+            <ul>
+            
               <li><a href="#_basic_structures">Basic structures</a></li>
             
               <li><a href="#_combining_them">Combining them</a></li>
@@ -738,45 +747,44 @@ http://www.gnu.org/software/src-highlite -->
 </div>
 <h3 id="_dealing_with_ajax">5.2. Dealing with Ajax</h3>
 <div class="paragraph"><p>Unlike other forms making an asynchronous file upload form is not as simple as replacing <tt>form_for</tt> with <tt>remote_form_for</tt>. With an AJAX form the serialization is done by javascript running inside the browser and since javascript cannot read files from your hard drive the file cannot be uploaded. The most common workaround is to use an invisible iframe that serves as the target for the form submission.</p></div>
-<div class="paragraph"><p>Customising Form Builders</p></div>
+</div>
+<h2 id="_customising_form_builders">6. Customising Form Builders</h2>
+<div class="sectionbody">
+<div class="paragraph"><p>As mentioned previously the object yielded by <tt>form_for</tt> and <tt>fields_for</tt> is an instance of FormBuilder (or a subclass thereof). Form builders encapsulate the notion of displaying a form elements for a single object. While you can of course write helpers for your forms in the usual way you can also subclass FormBuilder and add the helpers there. For example</p></div>
 <div class="listingblock">
 <div class="content">
-<pre><tt>As mentioned previously the object yielded by `form_for` and `fields_for` is an instance of FormBuilder (or a subclass thereof). Form builders encapsulate the notion of displaying a form elements for a single object. While you can of course write helpers for your forms in the usual way you can also subclass FormBuilder and add the helpers there. For example</tt></pre>
-</div></div>
-<div class="paragraph"><p>&lt;% form_for @person  do |f| %&gt;
+<pre><tt>&lt;% form_for @person  do |f| %&gt;
   &lt;%= text_field_with_label f, :first_name %&gt;
-&lt;% end %&gt;</p></div>
+&lt;% end %&gt;</tt></pre>
+</div></div>
+<div class="paragraph"><p>can be replaced with</p></div>
 <div class="listingblock">
 <div class="content">
-<pre><tt>can be replaced with</tt></pre>
-</div></div>
-<div class="paragraph"><p>&lt;% form_for @person, :builder =&gt; LabellingFormBuilder do |f| %&gt;
+<pre><tt>&lt;% form_for @person, :builder =&gt; LabellingFormBuilder do |f| %&gt;
   &lt;%= f.text_field :first_name %&gt;
-&lt;% end %&gt;</p></div>
+&lt;% end %&gt;</tt></pre>
+</div></div>
+<div class="paragraph"><p>by defining a LabellingFormBuilder class similar to the following:</p></div>
+<div class="listingblock">
+<div class="content"><!-- Generator: GNU source-highlight 2.9
+by Lorenzo Bettini
+http://www.lorenzobettini.it
+http://www.gnu.org/software/src-highlite -->
+<pre><tt><span style="font-weight: bold"><span style="color: #0000FF">class</span></span> LabellingFormBuilder <span style="color: #990000">&lt;</span> FormBuilder
+  <span style="font-weight: bold"><span style="color: #0000FF">def</span></span> text_field attribute<span style="color: #990000">,</span> options<span style="color: #990000">=</span><span style="color: #FF0000">{}</span>
+    label<span style="color: #990000">(</span>attribute<span style="color: #990000">)</span> <span style="color: #990000">+</span> text_field<span style="color: #990000">(</span>attribute<span style="color: #990000">,</span> options<span style="color: #990000">)</span>
+  <span style="font-weight: bold"><span style="color: #0000FF">end</span></span>
+<span style="font-weight: bold"><span style="color: #0000FF">end</span></span></tt></pre></div></div>
+<div class="paragraph"><p>If you reuse this frequently you could define a <tt>labeled_form_for</tt> helper that automatically applies the <tt>:builder =&gt; LabellingFormBuilder</tt> option.</p></div>
+<div class="paragraph"><p>The form builder used also determines what happens when you do</p></div>
 <div class="listingblock">
 <div class="content">
-<pre><tt>by defining a LabellingFormBuilder class similar to the following:
-
-[source, ruby]</tt></pre>
+<pre><tt>&lt;%= render :partial =&gt; f %&gt;</tt></pre>
 </div></div>
-<div class="paragraph"><p>class LabellingFormBuilder &lt; FormBuilder
-  def text_field attribute, options={}
-    label(attribute) + text_field(attribute, options)
-  end
-end</p></div>
-<div class="listingblock">
-<div class="content">
-<pre><tt>If you reuse this frequently you could define a `labeled_form_for` helper that automatically applies the `:builder =&gt; LabellingFormBuilder` option.
-
-The form builder used also determines what happens when you do</tt></pre>
-</div></div>
-<div class="paragraph"><p>&lt;%= render :partial =&gt; f %&gt;</p></div>
-<div class="listingblock">
-<div class="content">
-<pre><tt>If `f` is an instance of FormBuilder then this will render the 'form' partial, setting the partial's object to the form builder. If the form builder is of class LabellingFormBuilder then the 'labelling_form' partial would be rendered instead.
-
-Understanding Parameter Naming Conventions</tt></pre>
-</div></div>
+<div class="paragraph"><p>If <tt>f</tt> is an instance of FormBuilder then this will render the <em>form</em> partial, setting the partial&#8217;s object to the form builder. If the form builder is of class LabellingFormBuilder then the <em>labelling_form</em> partial would be rendered instead.</p></div>
+</div>
+<h2 id="_understanding_parameter_naming_conventions">7. Understanding Parameter Naming Conventions</h2>
+<div class="sectionbody">
 <div class="paragraph" id="parameter_names"><p>As you&#8217;ve seen in the previous sections, values from forms can appear either at the top level of the params hash or may appear nested in another hash. For example in a standard create
 action for a Person model, <tt>params[:model]</tt> would usually be a hash of all the attributes for the person to create. The params hash can also contain arrays, arrays of hashes and so on.</p></div>
 <div class="paragraph"><p>Fundamentally HTML forms don&#8217;t know about any sort of structured data, all they generate is name-value pairs. The arrays and hashes you see in your application are the result of some parameter naming conventions that Rails uses.</p></div>
@@ -795,7 +803,7 @@ action for a Person model, <tt>params[:model]</tt> would usually be a hash of al
 </td>
 </tr></table>
 </div>
-<h3 id="_basic_structures">5.3. Basic structures</h3>
+<h3 id="_basic_structures">7.1. Basic structures</h3>
 <div class="paragraph"><p>The two basic structures are arrays and hashes. Hashes mirror the syntax used for accessing the value in the params. For example if a form contains</p></div>
 <div class="listingblock">
 <div class="content">
@@ -829,7 +837,7 @@ http://www.gnu.org/software/src-highlite -->
 &lt;input name="person[phone_number][]" type="text"/&gt;</tt></pre>
 </div></div>
 <div class="paragraph"><p>This would result in <tt>params[:person][:phone_number]</tt> being an array.</p></div>
-<h3 id="_combining_them">5.4. Combining them</h3>
+<h3 id="_combining_them">7.2. Combining them</h3>
 <div class="paragraph"><p>We can mix and match these two concepts. For example, one element of a hash might be an array as in the previous example, or you can have an array of hashes. For example a form might let you create any number of addresses by repeating the following form fragment</p></div>
 <div class="listingblock">
 <div class="content">
@@ -847,7 +855,7 @@ http://www.gnu.org/software/src-highlite -->
 <td class="content">Array parameters do not play well with the <tt>check_box</tt> helper. According to the HTML specification unchecked checkboxes submit no value. However it is often convenient for a checkbox to always submit a value. The <tt>check_box</tt> helper fakes this by creating a second hidden input with the same name. If the checkbox is unchecked only the hidden input is submitted. If the checkbox is checked then both are submitted but the value submitted by the checkbox takes precedence. When working with array parameters this duplicate submission will confuse Rails since duplicate input names are how it decides when to start a new hash. It is preferable to either use <tt>check_box_tag</tt> or to use hashes instead of arrays.</td>
 </tr></table>
 </div>
-<h3 id="_using_form_helpers">5.5. Using form helpers</h3>
+<h3 id="_using_form_helpers">7.3. Using form helpers</h3>
 <div class="paragraph"><p>The previous sections did not use the Rails form helpers at all. While you can craft the input names yourself and pass them directly to helpers such as <tt>text_field_tag</tt> Rails also provides higher level support. The two tools at your disposal here are the name parameter to <tt>form_for</tt>/<tt>fields_for</tt> and the <tt>:index</tt> option.</p></div>
 <div class="paragraph"><p>You might want to render a form with a set of edit fields for each of a person&#8217;s addresses. Something a little like this will do the trick</p></div>
 <div class="listingblock">
@@ -900,7 +908,7 @@ http://www.gnu.org/software/src-highlite -->
 </div></div>
 <div class="paragraph"><p>produces exactly the same output as the previous example.</p></div>
 </div>
-<h2 id="_building_complex_forms">6. Building Complex forms</h2>
+<h2 id="_building_complex_forms">8. Building Complex forms</h2>
 <div class="sectionbody">
 <div class="paragraph"><p>Many apps grow beyond simple forms editing a single object. For example when creating a Person instance you might want to allow the user to (on the same form) create multiple address records (home, work etc.). When later editing that person the user should be able to add, remove or amend addresses as necessary. While this guide has shown you all the pieces necessary to handle this, Rails does not yet have a standard end-to-end way of accomplishing this, but many have come up with viable approaches. These include:</p></div>
 <div class="ulist"><ul>
@@ -931,7 +939,7 @@ James Golick&#8217;s <a href="http://github.com/giraffesoft/attribute_fu/tree">a
 </li>
 </ul></div>
 </div>
-<h2 id="_changelog">7. Changelog</h2>
+<h2 id="_changelog">9. Changelog</h2>
 <div class="sectionbody">
 <div class="paragraph"><p><a href="http://rails.lighthouseapp.com/projects/16213-rails-guides/tickets/1">Lighthouse ticket</a></p></div>
 <div class="ulist"><div class="title">Authors</div><ul>
