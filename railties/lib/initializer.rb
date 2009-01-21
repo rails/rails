@@ -408,6 +408,7 @@ Run `rake gems:install` to install the missing gems.
       if configuration.frameworks.include?(:active_record)
         ActiveRecord::Base.configurations = configuration.database_configuration
         ActiveRecord::Base.establish_connection
+        configuration.middleware.use ActiveRecord::QueryCache
       end
     end
 
