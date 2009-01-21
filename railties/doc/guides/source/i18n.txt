@@ -112,22 +112,41 @@ I18n.default_locale = :pt
 
 === Setting and passing the locale
 
-By default the I18n library will use :en (English) as a I18n.default_locale for looking up translations (if you do not specify a locale for a lookup).
+If you want to translate your Rails application to a *single language other than English* (the default locale), you can set I18n.default_locale to your locale in +environment.rb+ or an initializer as shown above, and it will persist.
 
-If you want to translate your Rails application to a single language other than English you can set I18n.default_locale to your locale. If you want to change the locale on a per-request basis though you can set it in a before_filter on the ApplicationController like this:
+However, you would probably like to *provide support for more locales* in your applications. In such case, you need to set and pass the locale between requests.
+
+WARNING: You may be tempted to store choosed locale in a _session_ or a _cookie_. *Do not do so*. The locale should be transparent and a part of the URL. This way you don't break people's basic assumptions about the web itself: if you send a URL of some page to a friend, she should see the same page, same content. A fancy word for this would be that you're being http://en.wikipedia.org/wiki/Representational_State_Transfer[_RESTful_]. There may be some exceptions to this rule, which are discussed below.
+
+You can simply set locale in a +before_filter+ in the ApplicationController like this:
 
 [source, ruby]
 -------------------------------------------------------
 before_filter :set_locale
 def set_locale
-  # if this is nil then I18n.default_locale will be used
+  # if params[:locale] is nil then I18n.default_locale will be used
   I18n.locale = params[:locale] 
 end
 -------------------------------------------------------
 
-This will already work for URLs where you pass the locale as a query parameter as in example.com?locale=pt (which is what Google also does). 
+This requires you to pass the locale as a URL query parameter as in +http://example.com/books?locale=pt+. (This is eg. Google's approach). So +http://localhost:3000?locale=pt+ will load the Portugese localization, whereas +http://localhost:3000?locale=de+ would load the German localization, and so on.
 
-TIP: For other URL designs, see http://rails-i18n.org/wiki/pages/how-to-encode-the-current-locale-in-the-url[How to encode the current locale in the URL].
+Of course, you probably don't want to manually include locale in every URL all over your application, or want the URLs look differently, eg. the usual +http://example.com/pt/books+ versus +http://example.com/en/books+. Let's discuss the different options you have.
+
+=== Setting locale from the domain name
+
+* TODO : Based on http://github.com/karmi/rails_i18n_demo_app/blob/master/app/controllers/application.rb#L44-47
+
+* TODO : Setting locale from subdomain -- similar to above
+
+=== Setting locale from the URL params
+
+* TODO : Based on *+default_url options+*, http://github.com/karmi/test_default_url_options/blob/master/app/controllers/application.rb#L22-26
+
+* TODO : Discussion of plugins (translate_routes and routing_filter)
+
+
+TIP: For setting locale from URL see http://rails-i18n.org/wiki/pages/how-to-encode-the-current-locale-in-the-url[How to encode the current locale in the URL] in the Rails i18n Wiki.
 
 Now you've initialized I18n support for your application and told it which locale should be used. With that in place you're now ready for the really interesting stuff.
 
