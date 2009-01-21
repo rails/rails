@@ -60,6 +60,12 @@ class MiddlewareStackTest < ActiveSupport::TestCase
     assert_equal BazMiddleware, @stack[2].klass
   end
 
+  test "swaps one middleware out for another" do
+    assert_equal FooMiddleware, @stack[0].klass
+    @stack.swap(FooMiddleware, BazMiddleware)
+    assert_equal BazMiddleware, @stack[0].klass
+  end
+
   test "active returns all only enabled middleware" do
     assert_no_difference "@stack.active.size" do
       assert_difference "@stack.size" do
