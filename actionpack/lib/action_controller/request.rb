@@ -305,6 +305,15 @@ EOM
         else 80
       end
     end
+    
+    # Returns the value of ActionController::Base.relative_url_root.  This method is 
+    # deprecated as the value is an application wide setting, not something which
+    # changes per request.
+    def relative_url_root
+      ActiveSupport::Deprecation.warn(
+        "relative_url_root is now set application-wide, use ActionController::Base.relative_url_root instead.", caller)
+      ActionController::Base.relative_url_root
+    end
 
     # Returns a \port suffix like ":8080" if the \port number of this request
     # is not the default HTTP \port 80 or HTTPS \port 443.

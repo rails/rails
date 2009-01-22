@@ -1,5 +1,7 @@
 *2.2.3 (pending release)*
 
+* Backwards Compatibility: bring back Request#relative_url_root but deprecate it.
+
 * Rationalise the session options to one hash, prevents rack or integration tests from seeing in correct defaults. [Koz]
 
 * I18n: translate number_to_human_size. Add storage_units: [Bytes, KB, MB, GB, TB] to your translations.  #1448 [Yaroslav Markin]

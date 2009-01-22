@@ -161,6 +161,12 @@ class CgiRequestTest < BaseCgiTest
     assert_equal ["c84ace847,96670c052c6ceb2451fb0f2"], alt_cookies["_session_id"], alt_cookies.inspect
     assert_equal ["yes"], alt_cookies["is_admin"], alt_cookies.inspect
   end
+  
+  def test_relative_url_root
+    assert_deprecated("ActionController::Base.relative_url_root") do
+      assert_equal ActionController::Base.relative_url_root, @request.relative_url_root
+    end
+  end
 end
 
 class CgiRequestParamsParsingTest < BaseCgiTest
