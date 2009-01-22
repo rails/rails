@@ -123,7 +123,7 @@ If you want to translate your Rails application to a *single language other than
 
 However, you would probably like to *provide support for more locales* in your application. In such case, you need to set and pass the locale between requests.
 
-WARNING: You may be tempted to store choosed locale in a _session_ or a _cookie_. *Do not do so*. The locale should be transparent and a part of the URL. This way you don't break people's basic assumptions about the web itself: if you send a URL of some page to a friend, she should see the same page, same content. A fancy word for this would be that you're being http://en.wikipedia.org/wiki/Representational_State_Transfer[_RESTful_]. There may be some exceptions to this rule, which are discussed below.
+WARNING: You may be tempted to store choosed locale in a _session_ or a _cookie_. *Do not do so*. The locale should be transparent and a part of the URL. This way you don't break people's basic assumptions about the web itself: if you send a URL of some page to a friend, she should see the same page, same content. A fancy word for this would be that you're being http://en.wikipedia.org/wiki/Representational_State_Transfer[_RESTful_]. Read more about RESTful approach in http://www.infoq.com/articles/rest-introduction[Stefan Tilkov's articles]. There may be some exceptions to this rule, which are discussed below.
 
 The _setting part_ is easy. You can set locale in a +before_filter+ in the ApplicationController like this:
 
@@ -132,11 +132,11 @@ The _setting part_ is easy. You can set locale in a +before_filter+ in the Appli
 before_filter :set_locale
 def set_locale
   # if params[:locale] is nil then I18n.default_locale will be used
-  I18n.locale = params[:locale] 
+  I18n.locale = params[:locale]
 end
 -------------------------------------------------------
 
-This requires you to pass the locale as a URL query parameter as in +http://example.com/books?locale=pt+. (This is eg. Google's approach). So +http://localhost:3000?locale=pt+ will load the Portugese localization, whereas +http://localhost:3000?locale=de+ would load the German localization, and so on.
+This requires you to pass the locale as a URL query parameter as in +http://example.com/books?locale=pt+. (This is eg. Google's approach). So +http://localhost:3000?locale=pt+ will load the Portugese localization, whereas +http://localhost:3000?locale=de+ would load the German localization, and so on. You may skip the next section and head over to the *Internationalize your application* section, if you want to try things out by manually placing locale in the URL and reloading the page.
 
 Of course, you probably don't want to manually include locale in every URL all over your application, or want the URLs look differently, eg. the usual +http://example.com/pt/books+ versus +http://example.com/en/books+. Let's discuss the different options you have.
 
@@ -179,7 +179,7 @@ end
 
 === Setting locale from the domain name
 
-One option you have is to set the locale from the domain name, where your application runs. For example, we want +www.example.com+ to load English (or default) locale, and +www.example.es+ to load Spanish locale. Thus the _top-level domain name_ is used for locale setting. This has several advantages:
+One option you have is to set the locale from the domain name where your application runs. For example, we want +www.example.com+ to load English (or default) locale, and +www.example.es+ to load Spanish locale. Thus the _top-level domain name_ is used for locale setting. This has several advantages:
 
 * Locale is an _obvious_ part of the URL
 * People intuitively grasp in which language the content will be displayed
@@ -233,14 +233,58 @@ This solution has aforementioned advantages, however, you may not be able or may
 
 === Setting locale from the URL params
 
-* TODO : Based on *+default_url options+*, http://github.com/karmi/test_default_url_options/blob/master/app/controllers/application.rb#L22-26
+Most usual way of setting (and passing) the locale would be to include it in URL params, as we did in the +I18n.locale = params[:locale]+ _before_filter_ in the first example. We would like to have URLs like +www.example.com/books?locale=ja+ or +www.example.com/ja/books+ in this case.
 
-* TODO : Discussion of plugins (translate_routes and routing_filter)
+This approach has almost the same set of advantages as setting the locale from domain name: namely that it's RESTful and in accord with rest of the World Wide Web. It does require a little bit more work to implement, though.
 
+Getting the locale from +params+ and setting it accordingly is not hard; including it in every URL and thus *passing it through the requests* is. To include an explicit option in every URL (eg. +link_to( books_url(:locale => I18n.locale) )+) would be tedious and probably impossible, of course.
 
-TIP: For setting locale from URL see http://rails-i18n.org/wiki/pages/how-to-encode-the-current-locale-in-the-url[How to encode the current locale in the URL] in the Rails i18n Wiki.
+Rails contains infrastructure for "centralizing dynamic decisions about the URLs" in its http://api.rubyonrails.org/classes/ActionController/Base.html#M000515[+*ApplicationController#default_url_options*+], which is useful precisely in this scenario: it enables us to set "defaults" for http://api.rubyonrails.org/classes/ActionController/Base.html#M000503[+url_for+] and helper methods dependent on it (by implementing/overriding this method).
 
-Now you've initialized I18n support for your application and told it which locale should be used. With that in place you're now ready for the really interesting stuff.
+We can include something like this in our ApplicationController then:
+
+[source, ruby]
+-------------------------------------------------------
+# app/controllers/application_controller.rb
+def default_url_options(options={})
+  logger.debug "default_url_options is passed options: #{options.inspect}\n"
+  { :locale => I18n.locale }
+end
+-------------------------------------------------------
+
+Every helper method dependent on +url_for+ (eg. helpers for named routes like +root_path+ or +root_url+, resource routes like +books_path+ or +books_url+, etc.) will now *automatically include the locale in the query string*, like this: +http://localhost:3001/?locale=ja+.
+
+You may be satisfied with this. It does impact the readability of URLs, though, when the locale "hangs" at the end of every URL in your application. Moreover, from the architectural standpoint, locale is usually hierarchically above the other parts of application domain: and URLs should reflect this.
+
+You probably want URLs look like this: +www.example.com/en/books+ versus +www.example.com/nl/books+. This is achievable with the over-riding +default_url_options+ strategy: you just have to set up your routes with http://api.rubyonrails.org/classes/ActionController/Resources.html#M000354[+path_prefix+] option in this way:
+
+[source, ruby]
+-------------------------------------------------------
+# config/routes.rb
+map.resources :books, :path_prefix => '/:locale'
+-------------------------------------------------------
+
+Now, when you call +books_path+ method you should get +"/en/books"+ (for the default locale). An URL like +http://localhost:3001/nl/books+ should load the Netherlands locale, then, and so on.
+
+Of course, you need to take special care of root URL (usually "homepage" or "dashboard") of your application. An URL like +http://localhost:3001/nl+ will not work automatically, because the +map.root :controller => "dashboard"+ declaration in your +routes.rb+ doesn't take locale into account. (And rightly so. There's only one "root" URL.)
+
+You would probably need to map URLs like these:
+
+[source, ruby]
+-------------------------------------------------------
+# config/routes.rb
+map.dashboard '/:locale', :controller => "dashboard"
+-------------------------------------------------------
+
+Do take special care about the *order of your routes*, so this route declaration does not "eat" other ones. (You may want to add it directly before the +map.root+ declaration.)
+
+IMPORTANT: This solution has currently one rather big *downside*. Due to the _default_url_options_ implementation, you have to pass the +:id+ option explicitely, like this: +link_to 'Show', book_url(:id => book)+ and not depend on Rails' magic in code like +link_to 'Show', book+. If this should be a problem, have a look on two plugins which simplify working with routes in this way: Sven Fuchs's http://github.com/svenfuchs/routing-filter/tree/master[_routing_filter_] and Raul Murciano's http://github.com/raul/translate_routes/tree/master[_translate_routes_]. See also the page http://rails-i18n.org/wiki/pages/how-to-encode-the-current-locale-in-the-url[How to encode the current locale in the URL] in the Rails i18n Wiki.
+
+=== Setting locale from the client supplied information
+
+# TODO: Accept-Language, GeoIP, etc. Explain why it is not such a good idea in most cases.
+
+OK! Now you've initialized I18n support for your application and told it which locale should be used and how to preserve it between requests. With that in place you're now ready for the really interesting stuff.
 
 == Internationalize your application
 
@@ -795,8 +839,8 @@ If you find your own locale (language) missing from our http://github.com/svenfu
 
 == Authors
 
-* Sven Fuchs[http://www.workingwithrails.com/person/9963-sven-fuchs] (initial author)
-* Karel Minarik[http://www.workingwithrails.com/person/7476-karel-mina-k]
+* http://www.workingwithrails.com/person/9963-sven-fuchs[Sven Fuchs] (initial author)
+* http://www.workingwithrails.com/person/7476-karel-mina-k[Karel Minarik]
 
 If you found this guide useful please consider recommending its authors on http://www.workingwithrails.com[workingwithrails].
 
