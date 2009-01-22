@@ -21,42 +21,11 @@ If you need a different session storage mechanism, you can change it in the `con
 config.action_controller.session_store = :active_record_store
 ------------------------------------------
 
-=== Disabling the Session ===
-
-Sometimes you don't need a session. In this case, you can turn it off to avoid the unnecessary overhead. To do this, use the `session` class method in your controller:
-
-[source, ruby]
-------------------------------------------
-class ApplicationController < ActionController::Base
-  session :off
-end
-------------------------------------------
-
-You can also turn the session on or off for a single controller:
-
-[source, ruby]
-------------------------------------------
-# The session is turned off by default in ApplicationController, but we
-# want to turn it on for log in/out.
-class LoginsController < ActionController::Base
-  session :on
-end
-------------------------------------------
-
-Or even for specified actions:
-
-[source, ruby]
-------------------------------------------
-class ProductsController < ActionController::Base
-  session :on, :only => [:create, :update]
-end
-------------------------------------------
-
 === Accessing the Session ===
 
 In your controller you can access the session through the `session` instance method.
 
-NOTE: There are two `session` methods, the class and the instance method. The class method which is described above is used to turn the session on and off while the instance method described below is used to access session values.
+NOTE: Sessions are lazily loaded. If you don't access sessions in your action's code, they will not be loaded. Hence you will never need to disable sessions, just not accessing them will do the job.
 
 Session values are stored using key/value pairs like a hash:
 

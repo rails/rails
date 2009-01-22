@@ -252,6 +252,7 @@ ActiveRecord::Schema.define do
     t.decimal :world_population, :precision => 10, :scale => 0
     t.decimal :my_house_population, :precision => 2, :scale => 0
     t.decimal :decimal_number_with_default, :precision => 3, :scale => 2, :default => 2.78
+    t.float   :temperature
   end
 
   create_table :orders, :force => true do |t|

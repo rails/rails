@@ -1,5 +1,66 @@
 module ActionController
   class UrlEncodedPairParser < StringScanner #:nodoc:
+    class << self
+      def parse_query_parameters(query_string)
+        return {} if query_string.blank?
+
+        pairs = query_string.split('&').collect do |chunk|
+          next if chunk.empty?
+          key, value = chunk.split('=', 2)
+          next if key.empty?
+          value = value.nil? ? nil : CGI.unescape(value)
+          [ CGI.unescape(key), value ]
+        end.compact
+
+        new(pairs).result
+      end
+
+      def parse_hash_parameters(params)
+        parser = new
+
+        params = params.dup
+        until params.empty?
+          for key, value in params
+            if key.blank?
+              params.delete(key)
+            elsif value.is_a?(Array)
+              parser.parse(key, get_typed_value(value.shift))
+              params.delete(key) if value.empty?
+            else
+              parser.parse(key, get_typed_value(value))
+              params.delete(key)
+            end
+          end
+        end
+
+        parser.result
+      end
+
+      private
+        def get_typed_value(value)
+          case value
+          when String
+            value
+          when NilClass
+            ''
+          when Array
+            value.map { |v| get_typed_value(v) }
+          when Hash
+            if value.has_key?(:tempfile) && value[:filename].any?
+              upload = value[:tempfile]
+              upload.extend(UploadedFile)
+              upload.original_path = value[:filename]
+              upload.content_type = value[:type]
+              upload
+            else
+              nil
+            end
+          else
+            raise "Unknown form value: #{value.inspect}"
+          end
+        end
+    end
+
     attr_reader :top, :parent, :result
 
     def initialize(pairs = [])

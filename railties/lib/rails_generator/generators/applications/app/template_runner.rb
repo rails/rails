@@ -338,6 +338,12 @@ module Rails
       !yes?(question)
     end
 
+    # Run a regular expression replacement on a file
+    #
+    # ==== Example
+    #
+    #   gsub_file 'app/controllers/application_controller.rb', /#\s*(filter_parameter_logging :password)/, '\1'
+    #
     def gsub_file(relative_destination, regexp, *args, &block)
       path = destination_path(relative_destination)
       content = File.read(path).gsub(regexp, *args, &block)

@@ -150,6 +150,18 @@ class UrlEncodedParamsParsingTest < ActionController::IntegrationTest
     assert_parses expected, query
   end
 
+  test "parses params with Safari 2 trailing null character" do
+    query = "selected[]=1&selected[]=2&selected[]=3\0"
+    expected = { "selected" => [ "1", "2", "3" ] }
+    assert_parses expected, query
+  end
+
+  test "parses params with Prototype's hack around Safari 2 trailing null character" do
+    query = "selected[]=1&selected[]=2&selected[]=3&_="
+    expected = { "selected" => [ "1", "2", "3" ] }
+    assert_parses expected, query
+  end
+
   test "passes through rack middleware and parses params" do
     with_muck_middleware do
       assert_parses({ "a" => { "b" => "c" } }, "a[b]=c")

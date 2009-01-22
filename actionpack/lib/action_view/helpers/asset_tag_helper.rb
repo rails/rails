@@ -6,54 +6,70 @@ module ActionView
   module Helpers #:nodoc:
     # This module provides methods for generating HTML that links views to assets such
     # as images, javascripts, stylesheets, and feeds. These methods do not verify
-    # the assets exist before linking to them.
+    # the assets exist before linking to them:
+    #
+    #   image_tag("rails.png")
+    #   # => <img alt="Rails src="/images/rails.png?1230601161" />
+    #   stylesheet_link_tag("application")
+    #   # => <link href="/stylesheets/application.css?1232285206" media="screen" rel="stylesheet" type="text/css" />
     #
     # === Using asset hosts
+    #
     # By default, Rails links to these assets on the current host in the public
-    # folder, but you can direct Rails to link to assets from a dedicated assets server by
-    # setting ActionController::Base.asset_host in your <tt>config/environment.rb</tt>.  For example,
-    # let's say your asset host is <tt>assets.example.com</tt>.
+    # folder, but you can direct Rails to link to assets from a dedicated asset
+    # server by setting ActionController::Base.asset_host in the application
+    # configuration, typically in <tt>config/environments/production.rb</tt>.
+    # For example, you'd define <tt>assets.example.com</tt> to be your asset
+    # host this way:
     #
     #   ActionController::Base.asset_host = "assets.example.com"
-    #   image_tag("rails.png")
-    #     => <img src="http://assets.example.com/images/rails.png" alt="Rails" />
-    #   stylesheet_link_tag("application")
-    #     => <link href="http://assets.example.com/stylesheets/application.css" media="screen" rel="stylesheet" type="text/css" />
     #
-    # This is useful since browsers typically open at most two connections to a single host,
-    # which means your assets often wait in single file for their turn to load.  You can
-    # alleviate this by using a <tt>%d</tt> wildcard in <tt>asset_host</tt> (for example, "assets%d.example.com")
-    # to automatically distribute asset requests among four hosts (e.g., "assets0.example.com" through "assets3.example.com")
-    # so browsers will open eight connections rather than two.
+    # Helpers take that into account:
     #
     #   image_tag("rails.png")
-    #     => <img src="http://assets0.example.com/images/rails.png" alt="Rails" />
+    #   # => <img alt="Rails" src="http://assets.example.com/images/rails.png?1230601161" />
     #   stylesheet_link_tag("application")
-    #     => <link href="http://assets3.example.com/stylesheets/application.css" media="screen" rel="stylesheet" type="text/css" />
+    #   # => <link href="http://assets.example.com/stylesheets/application.css?1232285206" media="screen" rel="stylesheet" type="text/css" />
     #
-    # To do this, you can either setup 4 actual hosts, or you can use wildcard DNS to CNAME
-    # the wildcard to a single asset host.  You can read more about setting up your DNS CNAME records from
-    # your ISP.
+    # Browsers typically open at most two simultaneous connections to a single
+    # host, which means your assets often have to wait for other assets to finish
+    # downloading. You can alleviate this by using a <tt>%d</tt> wildcard in the
+    # +asset_host+. For example, "assets%d.example.com". If that wildcard is
+    # present Rails distributes asset requests among the corresponding four hosts
+    # "assets0.example.com", ..., "assets3.example.com". With this trick browsers
+    # will open eight simultaneous connections rather than two.
+    #
+    #   image_tag("rails.png")
+    #   # => <img alt="Rails" src="http://assets0.example.com/images/rails.png?1230601161" />
+    #   stylesheet_link_tag("application")
+    #   # => <link href="http://assets2.example.com/stylesheets/application.css?1232285206" media="screen" rel="stylesheet" type="text/css" />
+    #
+    # To do this, you can either setup four actual hosts, or you can use wildcard
+    # DNS to CNAME the wildcard to a single asset host. You can read more about
+    # setting up your DNS CNAME records from your ISP.
     #
     # Note: This is purely a browser performance optimization and is not meant
     # for server load balancing. See http://www.die.net/musings/page_load_time/
     # for background.
     #
-    # Alternatively, you can exert more control over the asset host by setting <tt>asset_host</tt> to a proc
-    # that takes a single source argument. This is useful if you are unable to setup 4 actual hosts or have
-    # fewer/more than 4 hosts. The example proc below generates http://assets1.example.com and
-    # http://assets2.example.com randomly.
+    # Alternatively, you can exert more control over the asset host by setting
+    # +asset_host+ to a proc like this:
     #
-    #   ActionController::Base.asset_host = Proc.new { |source| "http://assets#{rand(2) + 1}.example.com" }
+    #   ActionController::Base.asset_host = Proc.new { |source|
+    #     "http://assets#{rand(2) + 1}.example.com"
+    #   }
     #   image_tag("rails.png")
-    #     => <img src="http://assets2.example.com/images/rails.png" alt="Rails" />
+    #   # => <img alt="Rails" src="http://assets0.example.com/images/rails.png?1230601161" />
     #   stylesheet_link_tag("application")
-    #     => <link href="http://assets1.example.com/stylesheets/application.css" media="screen" rel="stylesheet" type="text/css" />
+    #   # => <link href="http://assets1.example.com/stylesheets/application.css?1232285206" media="screen" rel="stylesheet" type="text/css" />
     #
-    # The proc takes a <tt>source</tt> parameter (which is the path of the source asset) and an optional
-    # <tt>request</tt> parameter (which is an entire instance of an <tt>ActionController::AbstractRequest</tt>
-    # subclass). This can be used to generate a particular asset host depending on the asset path and the particular
-    # request.
+    # The example above generates "http://assets1.example.com" and
+    # "http://assets2.example.com" randomly. This option is useful for example if
+    # you need fewer/more than four hosts, custom host names, etc.
+    #
+    # As you see the proc takes a +source+ parameter. That's a string with the
+    # absolute path of the asset with any extensions and timestamps in place,
+    # for example "/images/rails.png?1230601161".
     #
     #    ActionController::Base.asset_host = Proc.new { |source|
     #      if source.starts_with?('/images')
@@ -63,14 +79,16 @@ module ActionView
     #      end
     #    }
     #   image_tag("rails.png")
-    #     => <img src="http://images.example.com/images/rails.png" alt="Rails" />
+    #   # => <img alt="Rails" src="http://images.example.com/images/rails.png?1230601161" />
     #   stylesheet_link_tag("application")
-    #     => <link href="http://assets.example.com/stylesheets/application.css" media="screen" rel="stylesheet" type="text/css" />
+    #   # => <link href="http://assets.example.com/stylesheets/application.css?1232285206" media="screen" rel="stylesheet" type="text/css" />
     #
-    # The optional <tt>request</tt> parameter to the proc is useful in particular for serving assets from an
-    # SSL-protected page. The example proc below disables asset hosting for HTTPS connections, while still sending
-    # assets for plain HTTP requests from asset hosts. This is useful for avoiding mixed media warnings when serving
-    # non-HTTP assets from HTTPS web pages when you don't have an SSL certificate for each of the asset hosts.
+    # Alternatively you may ask for a second parameter +request+. That one is
+    # particularly useful for serving assets from an SSL-protected page. The
+    # example proc below disables asset hosting for HTTPS connections, while
+    # still sending assets for plain HTTP requests from asset hosts. If you don't
+    # have SSL certificates for each of the asset hosts this technique allows you
+    # to avoid warnings in the client about mixed media.
     #
     #   ActionController::Base.asset_host = Proc.new { |source, request|
     #     if request.ssl?
@@ -80,7 +98,8 @@ module ActionView
     #     end
     #   }
     #
-    # You can also implement a custom asset host object that responds to the call method and tasks one or two parameters just like the proc.
+    # You can also implement a custom asset host object that responds to +call+
+    # and takes either one or two parameters just like the proc.
     #
     #   config.action_controller.asset_host = AssetHostingWithMinimumSsl.new(
     #     "http://asset%d.example.com", "https://asset1.example.com"
@@ -88,24 +107,29 @@ module ActionView
     #
     # === Using asset timestamps
     #
-    # By default, Rails will append all asset paths with that asset's timestamp. This allows you to set a cache-expiration date for the
-    # asset far into the future, but still be able to instantly invalidate it by simply updating the file (and hence updating the timestamp,
-    # which then updates the URL as the timestamp is part of that, which in turn busts the cache).
+    # By default, Rails appends asset's timestamps to all asset paths. This allows
+    # you to set a cache-expiration date for the asset far into the future, but
+    # still be able to instantly invalidate it by simply updating the file (and
+    # hence updating the timestamp, which then updates the URL as the timestamp
+    # is part of that, which in turn busts the cache).
     #
-    # It's the responsibility of the web server you use to set the far-future expiration date on cache assets that you need to take
-    # advantage of this feature. Here's an example for Apache:
+    # It's the responsibility of the web server you use to set the far-future
+    # expiration date on cache assets that you need to take advantage of this
+    # feature. Here's an example for Apache:
     #
-    # # Asset Expiration
-    # ExpiresActive On
-    # <FilesMatch "\.(ico|gif|jpe?g|png|js|css)$">
-    #   ExpiresDefault "access plus 1 year"
-    # </FilesMatch>
+    #   # Asset Expiration
+    #   ExpiresActive On
+    #   <FilesMatch "\.(ico|gif|jpe?g|png|js|css)$">
+    #     ExpiresDefault "access plus 1 year"
+    #   </FilesMatch>
     #
-    # Also note that in order for this to work, all your application servers must return the same timestamps. This means that they must
-    # have their clocks synchronized. If one of them drift out of sync, you'll see different timestamps at random and the cache won't
-    # work. Which means that the browser will request the same assets over and over again even thought they didn't change. You can use
-    # something like Live HTTP Headers for Firefox to verify that the cache is indeed working (and that the assets are not being
-    # requested over and over).
+    # Also note that in order for this to work, all your application servers must
+    # return the same timestamps. This means that they must have their clocks
+    # synchronized. If one of them drifts out of sync, you'll see different
+    # timestamps at random and the cache won't work. In that case the browser
+    # will request the same assets over and over again even thought they didn't
+    # change. You can use something like Live HTTP Headers for Firefox to verify
+    # that the cache is indeed working.
     module AssetTagHelper
       ASSETS_DIR      = defined?(Rails.public_path) ? Rails.public_path : "public"
       JAVASCRIPTS_DIR = "#{ASSETS_DIR}/javascripts"
@@ -117,7 +141,7 @@ module ActionView
       # <tt>:atom</tt>. Control the link options in url_for format using the
       # +url_options+. You can modify the LINK tag itself in +tag_options+.
       #
-      # ==== Options:
+      # ==== Options
       # * <tt>:rel</tt>  - Specify the relation of this link, defaults to "alternate"
       # * <tt>:type</tt>  - Override the auto-generated mime type
       # * <tt>:title</tt>  - Specify the title of the link, defaults to the +type+

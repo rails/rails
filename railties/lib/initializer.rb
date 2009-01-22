@@ -408,12 +408,18 @@ Run `rake gems:install` to install the missing gems.
       if configuration.frameworks.include?(:active_record)
         ActiveRecord::Base.configurations = configuration.database_configuration
         ActiveRecord::Base.establish_connection
+        configuration.middleware.use ActiveRecord::QueryCache
       end
     end
 
     def initialize_cache
       unless defined?(RAILS_CACHE)
         silence_warnings { Object.const_set "RAILS_CACHE", ActiveSupport::Cache.lookup_store(configuration.cache_store) }
+
+        if RAILS_CACHE.respond_to?(:middleware)
+          # Insert middleware to setup and teardown local cache for each request
+          configuration.middleware.insert_after(:"ActionController::Failsafe", RAILS_CACHE.middleware)
+        end
       end
     end
 
@@ -537,7 +543,9 @@ Run `rake gems:install` to install the missing gems.
     end
 
     def initialize_metal
-      configuration.middleware.insert_before(:"ActionController::RewindableInput", Rails::Rack::Metal)
+      configuration.middleware.insert_before(
+        :"ActionController::RewindableInput",
+        Rails::Rack::Metal, :if => Rails::Rack::Metal.metals.any?)
     end
 
     # Initializes framework-specific settings for each of the loaded frameworks

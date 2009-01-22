@@ -45,7 +45,7 @@ module ActionController
         :domain       => nil,
         :path         => "/",
         :expire_after => nil,
-        :httponly     => false
+        :httponly     => true
       }.freeze
 
       ENV_SESSION_KEY = "rack.session".freeze
@@ -56,8 +56,6 @@ module ActionController
       class CookieOverflow < StandardError; end
 
       def initialize(app, options = {})
-        options = options.dup
-
         # Process legacy CGI options
         options = options.symbolize_keys
         if options.has_key?(:session_path)
