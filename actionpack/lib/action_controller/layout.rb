@@ -2,11 +2,7 @@ module ActionController #:nodoc:
   module Layout #:nodoc:
     def self.included(base)
       base.extend(ClassMethods)
-      base.class_eval do
-        class << self
-          alias_method_chain :inherited, :layout
-        end
-      end
+      base.class_inheritable_accessor :layout_name, :layout_conditions
     end
 
     # Layouts reverse the common pattern of including shared headers and footers in many templates to isolate changes in
@@ -159,122 +155,90 @@ module ActionController #:nodoc:
     #
     # This will render the help action with the "help" layout instead of the controller-wide "weblog_standard" layout.
     module ClassMethods
+      extend ActiveSupport::Memoizable
+
       # If a layout is specified, all rendered actions will have their result rendered
       # when the layout <tt>yield</tt>s. This layout can itself depend on instance variables assigned during action
       # performance and have access to them as any normal template would.
       def layout(template_name, conditions = {}, auto = false)
         add_layout_conditions(conditions)
-        write_inheritable_attribute(:layout, template_name)
-        write_inheritable_attribute(:auto_layout, auto)
+        self.layout_name = template_name
       end
 
-      def layout_conditions #:nodoc:
-        @layout_conditions ||= read_inheritable_attribute(:layout_conditions)
+      def memoized_default_layout(formats) #:nodoc:
+        self.layout_name || begin
+          layout = default_layout_name
+          layout.is_a?(String) ? find_layout(layout, formats) : layout
+        rescue ActionView::MissingTemplate
+        end
       end
 
-      def default_layout(format) #:nodoc:
-        layout = read_inheritable_attribute(:layout)
-        return layout unless read_inheritable_attribute(:auto_layout)
-        find_layout(layout, format)
+      def default_layout(*args)
+        (@_memoized_default_layout ||= ::ActiveSupport::ConcurrentHash.new)[args] ||= memoized_default_layout(*args)
+      end
+
+      def memoized_find_layout(layout, formats) #:nodoc:
+        return layout if layout.nil? || layout.respond_to?(:render)
+        prefix = layout.to_s =~ /layouts\// ? nil : "layouts"
+        view_paths.find_by_parts(layout.to_s, formats, prefix)
+      end
+
+      def find_layout(*args)
+        (@_memoized_find_layout ||= ::ActiveSupport::ConcurrentHash.new)[args] ||= memoized_find_layout(*args)
       end
 
       def layout_list #:nodoc:
         Array(view_paths).sum([]) { |path| Dir["#{path}/layouts/**/*"] }
       end
+      memoize :layout_list
 
-      def find_layout(layout, *formats) #:nodoc:
-        return layout if layout.respond_to?(:render)
-        view_paths.find_template(layout.to_s =~ /layouts\// ? layout : "layouts/#{layout}", *formats)
-      rescue ActionView::MissingTemplate
-        nil
+      def default_layout_name
+        layout_match = name.underscore.sub(/_controller$/, '')
+        if layout_list.grep(%r{layouts/#{layout_match}(\.[a-z][0-9a-z]*)+$}).empty?
+          superclass.default_layout_name if superclass.respond_to?(:default_layout_name)
+        else
+          layout_match
+        end
       end
+      memoize :default_layout_name
 
       private
-        def inherited_with_layout(child)
-          inherited_without_layout(child)
-          unless child.name.blank?
-            layout_match = child.name.underscore.sub(/_controller$/, '').sub(/^controllers\//, '')
-            child.layout(layout_match, {}, true) unless child.layout_list.grep(%r{layouts/#{layout_match}(\.[a-z][0-9a-z]*)+$}).empty?
-          end
-        end
-
         def add_layout_conditions(conditions)
-          write_inheritable_hash(:layout_conditions, normalize_conditions(conditions))
-        end
-
-        def normalize_conditions(conditions)
-          conditions.inject({}) {|hash, (key, value)| hash.merge(key => [value].flatten.map {|action| action.to_s})}
+          # :except => :foo == :except => [:foo] == :except => "foo" == :except => ["foo"]
+          conditions.each {|k, v| conditions[k] = Array(v).map {|a| a.to_s} }
+          write_inheritable_hash(:layout_conditions, conditions)
         end
     end
-
-    # Returns the name of the active layout. If the layout was specified as a method reference (through a symbol), this method
-    # is called and the return value is used. Likewise if the layout was specified as an inline method (through a proc or method
-    # object). If the layout was defined without a directory, layouts is assumed. So <tt>layout "weblog/standard"</tt> will return
-    # weblog/standard, but <tt>layout "standard"</tt> will return layouts/standard.
-    def active_layout(passed_layout = nil)
-      layout = passed_layout || self.class.default_layout(default_template_format)
-
-      active_layout = case layout
-        when Symbol then __send__(layout)
-        when Proc   then layout.call(self)
-        else layout
+    
+    def active_layout(name)
+      name = self.class.default_layout(formats) if name == true
+      
+      layout_name = case name
+        when Symbol     then __send__(name)
+        when Proc       then name.call(self)
+        else name
       end
 
-      if active_layout
-        if layout = self.class.find_layout(active_layout, @template.template_format)
-          layout
-        else
-          raise ActionView::MissingTemplate.new(self.class.view_paths, active_layout)
-        end
-      end
+      self.class.find_layout(layout_name, formats)
+    end
+
+    def _pick_layout(layout_name, implicit = false)
+      return unless layout_name || implicit
+      layout_name = true if layout_name.nil?
+      active_layout(layout_name) if action_has_layout? && layout_name
     end
 
     private
-      def candidate_for_layout?(options)
-        template = options[:template] || default_template(options[:action])
-        if options.values_at(:text, :xml, :json, :file, :inline, :partial, :nothing, :update).compact.empty?
-          begin
-            !self.view_paths.find_template(template, default_template_format).exempt_from_layout?
-          rescue ActionView::MissingTemplate
-            true
-          end
-        end
-      rescue ActionView::MissingTemplate
-        false
-      end
-
-      def pick_layout(options)
-        if options.has_key?(:layout)
-          case layout = options.delete(:layout)
-          when FalseClass
-            nil
-          when NilClass, TrueClass
-            active_layout if action_has_layout? && candidate_for_layout?(:template => default_template_name)
-          else
-            active_layout(layout)
-          end
-        else
-          active_layout if action_has_layout? && candidate_for_layout?(options)
-        end
-      end
-
       def action_has_layout?
         if conditions = self.class.layout_conditions
-          case
-            when only = conditions[:only]
-              only.include?(action_name)
-            when except = conditions[:except]
-              !except.include?(action_name)
-            else
-              true
+          if only = conditions[:only]
+            return only.include?(action_name)
+          elsif except = conditions[:except]
+            return !except.include?(action_name) 
           end
-        else
-          true
         end
+        true
       end
 
-      def default_template_format
-        response.template.template_format
-      end
   end
 end

@@ -55,7 +55,7 @@ class LayoutAutoDiscoveryTest < ActionController::TestCase
   def test_third_party_template_library_auto_discovers_layout
     @controller = ThirdPartyTemplateLibraryController.new
     get :hello
-    assert_equal 'layouts/third_party_template_library.mab', @controller.active_layout.to_s
+    assert_equal 'layouts/third_party_template_library.mab', @controller.active_layout(true).to_s
     assert_equal 'layouts/third_party_template_library', @response.layout
     assert_response :success
     assert_equal 'Mab', @response.body
@@ -64,14 +64,14 @@ class LayoutAutoDiscoveryTest < ActionController::TestCase
   def test_namespaced_controllers_auto_detect_layouts
     @controller = ControllerNameSpace::NestedController.new
     get :hello
-    assert_equal 'layouts/controller_name_space/nested', @controller.active_layout.to_s
+    assert_equal 'layouts/controller_name_space/nested', @controller.active_layout(true).to_s
     assert_equal 'controller_name_space/nested.rhtml hello.rhtml', @response.body
   end
 
   def test_namespaced_controllers_auto_detect_layouts
     @controller = MultipleExtensions.new
     get :hello
-    assert_equal 'layouts/multiple_extensions.html.erb', @controller.active_layout.to_s
+    assert_equal 'layouts/multiple_extensions.html.erb', @controller.active_layout(true).to_s
     assert_equal 'multiple_extensions.html.erb hello.rhtml', @response.body.strip
   end
 end
@@ -81,6 +81,14 @@ end
 
 class HasOwnLayoutController < LayoutTest
   layout 'item'
+end
+
+class OnlyLayoutController < LayoutTest
+  layout 'item', :only => "hello"
+end
+
+class ExceptLayoutController < LayoutTest
+  layout 'item', :except => "goodbye"
 end
 
 class SetsLayoutInRenderController < LayoutTest
@@ -106,6 +114,30 @@ class LayoutSetInResponseTest < ActionController::TestCase
     @controller = HasOwnLayoutController.new
     get :hello
     assert_equal 'layouts/item', @response.layout
+  end
+  
+  def test_layout_only_exception_when_included
+    @controller = OnlyLayoutController.new
+    get :hello
+    assert_equal 'layouts/item', @response.layout
+  end
+
+  def test_layout_only_exception_when_excepted
+    @controller = OnlyLayoutController.new
+    get :goodbye
+    assert_equal nil, @response.layout
+  end
+
+  def test_layout_except_exception_when_included
+    @controller = ExceptLayoutController.new
+    get :hello
+    assert_equal 'layouts/item', @response.layout
+  end
+
+  def test_layout_except_exception_when_excepted
+    @controller = ExceptLayoutController.new
+    get :goodbye
+    assert_equal nil, @response.layout
   end
 
   def test_layout_set_when_using_render

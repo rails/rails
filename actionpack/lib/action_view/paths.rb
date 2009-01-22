@@ -32,14 +32,24 @@ module ActionView #:nodoc:
       super(*objs.map { |obj| self.class.type_cast(obj) })
     end
 
+    def find_by_parts(path, extension = nil, prefix = nil, partial = false)
+      template_path = path.sub(/^\//, '')
+
+      each do |load_path|
+        if template = load_path.find_by_parts(template_path, extension, prefix, partial)
+          return template
+        end
+      end
+
+      Template.new(path, self)
+    end
+
     def find_template(original_template_path, format = nil)
       return original_template_path if original_template_path.respond_to?(:render)
       template_path = original_template_path.sub(/^\//, '')
 
       each do |load_path|
-        if format && (template = load_path["#{template_path}.#{format}"])
-          return template
-        elsif template = load_path[template_path]
+        if template = load_path.find_by_parts(template_path, format)
           return template
         end
       end

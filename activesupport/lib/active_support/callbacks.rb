@@ -204,7 +204,7 @@ module ActiveSupport
     module ClassMethods
       def define_callbacks(*callbacks)
         callbacks.each do |callback|
-          class_eval <<-"end_eval"
+          class_eval <<-"end_eval", __FILE__, __LINE__ + 1
             def self.#{callback}(*methods, &block)                             # def self.before_save(*methods, &block)
               callbacks = CallbackChain.build(:#{callback}, *methods, &block)  #   callbacks = CallbackChain.build(:before_save, *methods, &block)
               @#{callback}_callbacks ||= CallbackChain.new                     #   @before_save_callbacks ||= CallbackChain.new

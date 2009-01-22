@@ -5,6 +5,10 @@ module Mime
   EXTENSION_LOOKUP = Hash.new { |h, k| h[k] = Type.new(k) unless k.blank? }
   LOOKUP           = Hash.new { |h, k| h[k] = Type.new(k) unless k.blank? }
 
+  def self.[](type)
+    Type.lookup_by_extension(type.to_s)
+  end
+
   # Encapsulates the notion of a mime type. Can be used at render time, for example, with:
   #
   #   class PostsController < ActionController::Base
@@ -27,7 +31,7 @@ module Mime
     # only needs to protect against these types.
     @@browser_generated_types = Set.new [:html, :url_encoded_form, :multipart_form, :text]
     cattr_reader :browser_generated_types
-
+    attr_reader :symbol
 
     @@unverifiable_types = Set.new [:text, :json, :csv, :xml, :rss, :atom, :yaml]
     def self.unverifiable_types
@@ -172,6 +176,8 @@ module Mime
     def ==(mime_type)
       return false if mime_type.blank?
       (@synonyms + [ self ]).any? do |synonym| 
+        require "ruby-debug"
+        debugger if mime_type.is_a?(Array)
         synonym.to_s == mime_type.to_s || synonym.to_sym == mime_type.to_sym 
       end
     end
@@ -187,15 +193,11 @@ module Mime
     # Returns true if Action Pack should check requests using this Mime Type for possible request forgery.  See
     # ActionController::RequestForgeryProtection.
     def verify_request?
-      browser_generated?
+      @@browser_generated_types.include?(to_sym)
     end
 
     def html?
       @@html_types.include?(to_sym) || @string =~ /html/
-    end
-
-    def browser_generated?
-      @@browser_generated_types.include?(to_sym)
     end
 
     private

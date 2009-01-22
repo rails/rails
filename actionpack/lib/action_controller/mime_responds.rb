@@ -109,16 +109,13 @@ module ActionController #:nodoc:
     end
 
     class Responder #:nodoc:
+      
       def initialize(controller)
         @controller = controller
         @request    = controller.request
         @response   = controller.response
 
-        if ActionController::Base.use_accept_header
-          @mime_type_priority = Array(Mime::Type.lookup_by_extension(@request.parameters[:format]) || @request.accepts)
-        else
-          @mime_type_priority = [@request.format]
-        end
+        @mime_type_priority = @request.formats
 
         @order     = []
         @responses = {}
@@ -130,7 +127,7 @@ module ActionController #:nodoc:
         @order << mime_type
 
         @responses[mime_type] ||= Proc.new do
-          @response.template.template_format = mime_type.to_sym
+          @response.template.formats = [mime_type.to_sym]
           @response.content_type = mime_type.to_s
           block_given? ? block.call : @controller.send(:render, :action => @controller.action_name)
         end

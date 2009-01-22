@@ -138,7 +138,7 @@ module RenderTestCases
 
   # TODO: The reason for this test is unclear, improve documentation
   def test_render_missing_xml_partial_and_raise_missing_template
-    @view.template_format = :xml
+    @view.formats = [:xml]
     assert_raise(ActionView::MissingTemplate) { @view.render(:partial => "test/layout_for_partial") }
   end
 

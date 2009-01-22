@@ -342,7 +342,7 @@ class TestController < ActionController::Base
   end
 
   def accessing_params_in_template_with_layout
-    render :layout => nil, :inline =>  "Hello: <%= params[:name] %>"
+    render :layout => true, :inline =>  "Hello: <%= params[:name] %>"
   end
 
   def render_with_explicit_template
@@ -1612,7 +1612,7 @@ class RenderingLoggingTest < ActionController::TestCase
     @controller.logger = MockLogger.new
     get :layout_test
     logged = @controller.logger.logged.find_all {|l| l =~ /render/i }
-    assert_equal "Rendering template within layouts/standard", logged[0]
-    assert_equal "Rendering test/hello_world", logged[1]
+    assert_equal "Rendering test/hello_world", logged[0]
+    assert_equal "Rendering template within layouts/standard", logged[1]
   end
 end

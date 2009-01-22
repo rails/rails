@@ -25,7 +25,7 @@ class Author::Nested < Author; end
 
 
 class PrototypeHelperBaseTest < ActionView::TestCase
-  attr_accessor :template_format, :output_buffer
+  attr_accessor :formats, :output_buffer
 
   def setup
     @template = self

@@ -55,7 +55,11 @@ module ActiveSupport #:nodoc:
 
           unless '1.8.7 and later'.respond_to?(:chars)
             def chars
-              ActiveSupport::Deprecation.warn('String#chars has been deprecated in favor of String#mb_chars.', caller)
+              # FIXME:
+              # ActiveSupport::Deprecation refers to RAILS_ENV
+              # and is a show stopper for 3rd party applications
+              # that only want ActiveSupport
+              ActiveSupport::Deprecation.warn('String#chars has been deprecated in favor of String#mb_chars.', caller) if defined?(ActiveSupport::Deprecation)
               mb_chars
             end
           end

@@ -38,7 +38,7 @@ module ActionView #:nodoc:
       # should not be confused with format extensions +html+, +js+, +xml+,
       # etc. A format must be supplied to match a formated file. +hello/index+
       # will never match +hello/index.html.erb+.
-      def [](path)
+      def find_template(path)
         templates_in_path do |template|
           if template.accessible_paths.include?(path)
             return template
@@ -47,6 +47,24 @@ module ActionView #:nodoc:
         nil
       end
 
+      def find_by_parts(name, extensions = nil, prefix = nil, partial = nil)
+        path = prefix ? "#{prefix}/" : ""
+        
+        name = name.split("/")
+        name[-1] = "_#{name[-1]}" if partial
+        
+        path << name.join("/")
+
+        template = nil
+
+        Array(extensions).each do |extension|
+          extensioned_path = extension ? "#{path}.#{extension}" : path
+          template = find_template(extensioned_path) || find_template(path)
+          break if template
+        end
+        template
+      end
+      
       private
         def templates_in_path
           (Dir.glob("#{@path}/**/*/**") | Dir.glob("#{@path}/**")).each do |file|
@@ -73,7 +91,7 @@ module ActionView #:nodoc:
         @paths.freeze
       end
 
-      def [](path)
+      def find_template(path)
         @paths[path]
       end
     end
@@ -176,18 +194,6 @@ module ActionView #:nodoc:
       relative_path.to_s.gsub(/([^a-zA-Z0-9_])/) { $1.ord }
     end
     memoize :method_segment
-
-    def render_template(view, local_assigns = {})
-      render(view, local_assigns)
-    rescue Exception => e
-      raise e unless filename
-      if TemplateError === e
-        e.sub_template_of(self)
-        raise e
-      else
-        raise TemplateError.new(self, view.assigns, e)
-      end
-    end
 
     def stale?
       File.mtime(filename) > mtime

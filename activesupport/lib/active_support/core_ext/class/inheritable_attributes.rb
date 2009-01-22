@@ -10,14 +10,14 @@ class Class # :nodoc:
   def class_inheritable_reader(*syms)
     syms.each do |sym|
       next if sym.is_a?(Hash)
-      class_eval <<-EOS
-        def self.#{sym}                        # def self.before_add_for_comments
-          read_inheritable_attribute(:#{sym})  #   read_inheritable_attribute(:before_add_for_comments)
-        end                                    # end
-                                               #
-        def #{sym}                             # def before_add_for_comments
-          self.class.#{sym}                    #   self.class.before_add_for_comments
-        end                                    # end
+      class_eval(<<-EOS, __FILE__, __LINE__ + 1)
+        def self.#{sym}                         # def self.after_add
+          read_inheritable_attribute(:#{sym})   #   read_inheritable_attribute(:after_add)
+        end                                     # end
+
+        def #{sym}                              # def after_add
+          self.class.#{sym}                     #   self.class.after_add
+        end                                     # end
       EOS
     end
   end
@@ -25,7 +25,7 @@ class Class # :nodoc:
   def class_inheritable_writer(*syms)
     options = syms.extract_options!
     syms.each do |sym|
-      class_eval <<-EOS
+      class_eval(<<-EOS, __FILE__, __LINE__ + 1)
         def self.#{sym}=(obj)                          # def self.color=(obj)
           write_inheritable_attribute(:#{sym}, obj)    #   write_inheritable_attribute(:color, obj)
         end                                            # end
@@ -42,7 +42,7 @@ class Class # :nodoc:
   def class_inheritable_array_writer(*syms)
     options = syms.extract_options!
     syms.each do |sym|
-      class_eval <<-EOS
+      class_eval(<<-EOS, __FILE__, __LINE__ + 1)
         def self.#{sym}=(obj)                          # def self.levels=(obj)
           write_inheritable_array(:#{sym}, obj)        #   write_inheritable_array(:levels, obj)
         end                                            # end
@@ -59,7 +59,7 @@ class Class # :nodoc:
   def class_inheritable_hash_writer(*syms)
     options = syms.extract_options!
     syms.each do |sym|
-      class_eval <<-EOS
+      class_eval(<<-EOS, __FILE__, __LINE__ + 1)
         def self.#{sym}=(obj)                          # def self.nicknames=(obj)
           write_inheritable_hash(:#{sym}, obj)         #   write_inheritable_hash(:nicknames, obj)
         end                                            # end

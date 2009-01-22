@@ -29,8 +29,8 @@ class ViewLoadPathsTest < ActionController::TestCase
 
     @controller = TestController.new
     # Following is needed in order to setup @controller.template object properly
-    @controller.send :initialize_template_class, @response
     @controller.send :assign_shortcuts, @request, @response
+    @controller.send :initialize_template_class, @response
 
     # Track the last warning.
     @old_behavior = ActiveSupport::Deprecation.behavior
