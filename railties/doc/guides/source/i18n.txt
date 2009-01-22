@@ -1,32 +1,38 @@
-The Rails Internationalization API
-==================================
+The Rails Internationalization (I18n) API
+=========================================
 
-The Ruby I18n gem which is shipped with Ruby on Rails (starting from Rails 2.2) provides an easy-to-use and extensible framework for translating your application to a single custom language other than English or providing multi-language support in your application.
+The Ruby I18n (shorthand for _internationalization_) gem which is shipped with Ruby on Rails (starting from Rails 2.2) provides an easy-to-use and extensible framework for translating your application to a single custom language other than English or providing multi-language support in your application.
+
+NOTE: The Ruby I18n framework provides you with all neccessary means for internationalization/localization of your Rails application. You may, however, use any of various plugins and extensions available. See Rails http://rails-i18n.org/wiki[I18n Wiki] for more information.
 
 == How I18n in Ruby on Rails works
 
-Internationalization is a complex problem. Natural languages differ in so many ways that it is hard to provide tools for solving all problems at once. For that reason the Rails I18n API focusses on:
+Internationalization is a complex problem. Natural languages differ in so many ways (eg. in pluralization rules) that it is hard to provide tools for solving all problems at once. For that reason the Rails I18n API focuses on:
 
 * providing support for English and similar languages out of the box
 * making it easy to customize and extend everything for other languages
+
+As part of this solution, *every static string in the Rails framework* -- eg. ActiveRecord validation messages, time and date formats -- *has been internationalized*, so _localization_ of a Rails application means "over-riding" these defaults.
 
 === The overall architecture of the library
 
 Thus, the Ruby I18n gem is split into two parts:
 
-* The public API which is just a Ruby module with a bunch of public methods and definitions how the library works.
-* A shipped backend (which is intentionally named the Simple backend) that implements these methods.
+* The public API of the i18n framework -- a Ruby module with public methods and definitions how the library works
+* A default backend (which is intentionally named _Simple_ backend) that implements these methods
 
-As a user you should always only access the public methods on the I18n module but it is useful to know about the capabilities of the backend you use and maybe exchange the shipped Simple backend with a more powerful one.
+As a user you should always only access the public methods on the I18n module, but it is useful to know about the capabilities of the backend.
+
+NOTE: It is possible (or even desirable) to swap the shipped Simple backend with a more powerful one, which would store translation data in a relational database, GetText dictionary, or similar. See section <<_using_different_backends,Using different backends>> below.
 
 === The public I18n API
 
-We will go into more detail about the public methods later but here's a quick overview. The most important methods are:
+The most important methods of the I18n API are:
 
 [source, ruby]
 -------------------------------------------------------
-translate         # lookup translations
-localize          # localize Date and Time objects to local formats
+translate         # Lookup text translations
+localize          # Localize Date and Time objects to local formats
 -------------------------------------------------------
 
 These have the aliases #t and #l so you can use them like this:
@@ -41,28 +47,42 @@ There are also attribute readers and writers for the following attributes:
 
 [source, ruby]
 -------------------------------------------------------
-load_path         # announce your custom translation files
-locale            # get and set the current locale
-default_locale    # get and set the default locale
-exception_handler # use a different exception_handler
-backend           # use a different backend
+load_path         # Announce your custom translation files
+locale            # Get and set the current locale
+default_locale    # Get and set the default locale
+exception_handler # Use a different exception_handler
+backend           # Use a different backend
 -------------------------------------------------------
 
-== Walkthrough: setup a simple I18n'ed Rails application
+So, let's internationalize a simple Rails application from the ground up in the next chapters!
 
-There are just a few, simple steps to get up and running with a I18n support for your application.
+== Setup the Rails application for internationalization
+
+There are just a few, simple steps to get up and running with I18n support for your application.
 
 === Configure the I18n module
 
-Rails will wire up all required settings for you with sane defaults. If you need different settings you can overwrite them easily.
+Following the _convention over configuration_ philosophy, Rails will set-up your application with reasonable defaults. If you need different settings, you can overwrite them easily.
 
-The I18n library will use English (:en) as a *default locale* by default. I.e if you don't set a different locale, :en will be used for looking up translations. Also, Rails adds all files from config/locales/*.rb,yml to your translations load path. 
+Rails adds all +.rb+ and +.yml+ files from +config/locales+ directory to your *translations load path*, automatically.
 
-The *translations load path* (I18n.load_path) is just a Ruby Array of paths to your translation files that will be loaded automatically and available in your application. You can pick whatever directory and translation file naming scheme makes sense for you. 
+See the default +en.yml+ locale in this directory, containing a sample pair of translation strings:
 
-(Hint: The backend will lazy-load these translations when a translation is looked up for the first time. This makes it possible to just swap the backend with something else even after translations have already been announced.)
+[source, ruby]
+-------------------------------------------------------
+en:
+  hello: "Hello world"
+-------------------------------------------------------
 
-The default environment.rb says:
+This means, that in the +:en+ locale, the key _hello_ will map to _Hello world_ string. Every string inside Rails is internationalized in this way, see for instance ActiveRecord validation messages in the http://github.com/rails/rails/blob/master/activerecord/lib/active_record/locale/en.yml[+activerecord/lib/active_record/locale/en.yml+] file or time and date formats in the http://github.com/rails/rails/blob/master/activesupport/lib/active_support/locale/en.yml[+activesupport/lib/active_support/locale/en.yml+] file. You can use YAML or standard Ruby Hashes to store translations in the default (Simple) backend.
+
+The I18n library will use *English* as a *default locale*, ie. if you don't set a different locale, +:en+ will be used for looking up translations.
+
+The *translations load path* (+I18n.load_path+) is just a Ruby Array of paths to your translation files that will be loaded automatically and available in your application. You can pick whatever directory and translation file naming scheme makes sense for you. 
+
+NOTE: The backend will lazy-load these translations when a translation is looked up for the first time. This makes it possible to just swap the backend with something else even after translations have already been announced.
+
+The default +environment.rb+ files has instruction how to add locales from another directory and how to set different default locale. Just uncomment and edit the specific lines.
 
 [source, ruby]
 -------------------------------------------------------
@@ -75,22 +95,22 @@ The default environment.rb says:
 
 === Optional: custom I18n configuration setup
 
-For the sake of completeness let's mention that if you do not want to use the environment for some reason you can always wire up things manually, too.
+For the sake of completeness, let's mention that if you do not want to use the +environment.rb+ file for some reason, you can always wire up things manually, too.
 
-To tell the I18n library where it can find your custom translation files you can specify the load path anywhere in your application - just make sure it gets run before any translations are actually looked up. You might also want to change the default locale. The simplest thing possible is to put the following into an initializer:
+To tell the I18n library where it can find your custom translation files you can specify the load path anywhere in your application - just make sure it gets run before any translations are actually looked up. You might also want to change the default locale. The simplest thing possible is to put the following into an *initializer*:
 
 [source, ruby]
 -------------------------------------------------------
 # in config/initializer/locale.rb
 
 # tell the I18n library where to find your translations
-I18n.load_path += Dir[ File.join(RAILS_ROOT, 'lib', 'locale', '*.{rb,yml}') ]
+I18n.load_path << Dir[ File.join(RAILS_ROOT, 'lib', 'locale', '*.{rb,yml}') ]
 
-# you can omit this if you're happy with English as a default locale
+# set default locale to something else then :en
 I18n.default_locale = :pt
 -------------------------------------------------------
 
-=== Set the locale in each request
+=== Setting and passing the locale
 
 By default the I18n library will use :en (English) as a I18n.default_locale for looking up translations (if you do not specify a locale for a lookup).
 
@@ -510,25 +530,30 @@ So, for example, instead of the default error message "can not be blank" you cou
 
 count and/or value are available where applicable. Count can be used for pluralization if present:
 
-|==================================================================================
-| validation                   | with option      | message         | interpolation
-| validates_confirmation_of    | -                | :confirmation   | -
-| validates_acceptance_of      | -                | :accepted       | -
-| validates_presence_of        | -                | :blank          | -
-| validates_length_of          | :within, :in     | :too_short      | count
-| validates_length_of          | :within, :in     | :too_long       | count
-| validates_length_of          | :is              | :wrong_length   | count
-| validates_length_of          | :minimum         | :too_short      | count
-| validates_length_of          | :maximum         | :too_long       | count
-| validates_uniqueness_of      | -                | :taken          | value
-| validates_format_of          | -                | :invalid        | value
-| validates_inclusion_of       | -                | :inclusion      | value
-| validates_exclusion_of       | -                | :exclusion      | value
-| validates_associated         | -                | :invalid        | value
-| validates_numericality_of    | -                | :not_a_number   | value
-| validates_numericality_of    | :odd             | :odd            | value
-| validates_numericality_of    | :even            | :even           | value
-|==================================================================================
+|=====================================================================================================
+| validation                   | with option               | message                   | interpolation
+| validates_confirmation_of    | -                         | :confirmation             | -
+| validates_acceptance_of      | -                         | :accepted                 | -
+| validates_presence_of        | -                         | :blank                    | -
+| validates_length_of          | :within, :in              | :too_short                | count
+| validates_length_of          | :within, :in              | :too_long                 | count
+| validates_length_of          | :is                       | :wrong_length             | count
+| validates_length_of          | :minimum                  | :too_short                | count
+| validates_length_of          | :maximum                  | :too_long                 | count
+| validates_uniqueness_of      | -                         | :taken                    | value
+| validates_format_of          | -                         | :invalid                  | value
+| validates_inclusion_of       | -                         | :inclusion                | value
+| validates_exclusion_of       | -                         | :exclusion                | value
+| validates_associated         | -                         | :invalid                  | value
+| validates_numericality_of    | -                         | :not_a_number             | value
+| validates_numericality_of    | :greater_than             | :greater_than             | value
+| validates_numericality_of    | :greater_than_or_equal_to | :greater_than_or_equal_to | value
+| validates_numericality_of    | :equal_to                 | :equal_to                 | value
+| validates_numericality_of    | :less_than                | :less_than                | value
+| validates_numericality_of    | :less_than_or_equal_to    | :less_than_or_equal_to    | value
+| validates_numericality_of    | :odd                      | :odd                      | value
+| validates_numericality_of    | :even                     | :even                     | value
+|=====================================================================================================
 
 
 ==== Translations for the ActiveRecord error_messages_for helper
@@ -624,9 +649,6 @@ I18n.t :foo, :raise => true # always re-raises exceptions from the backend
 
 [[[3]]] One of these reasons is that we don't want to any unnecessary load for applications that do not need any I18n capabilities, so we need to keep the I18n library as simple as possible for English. Another reason is that it is virtually impossible to implement a one-fits-all solution for all problems related to I18n for all existing languages. So a solution that allows us to exchange the entire implementation easily is appropriate anyway. This also makes it much easier to experiment with custom features and extensions.
 
-== Credits
+== Changelog ==
 
-== NOTES
-
-How to contribute?
-
+http://rails.lighthouseapp.com/projects/16213/tickets/23[Lighthouse ticket]

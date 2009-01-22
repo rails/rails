@@ -2,7 +2,7 @@ class DateTime
   # Returns a JSON string representing the datetime. If ActiveSupport.use_standard_json_time_format is set to true, the
   # ISO 8601 format is used.
   #
-  # ==== Examples:
+  # ==== Examples
   #
   #   # With ActiveSupport.use_standard_json_time_format = true
   #   DateTime.civil(2005,2,1,15,15,10).to_json

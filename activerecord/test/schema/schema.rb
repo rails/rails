@@ -252,6 +252,7 @@ ActiveRecord::Schema.define do
     t.decimal :world_population, :precision => 10, :scale => 0
     t.decimal :my_house_population, :precision => 2, :scale => 0
     t.decimal :decimal_number_with_default, :precision => 3, :scale => 2, :default => 2.78
+    t.float   :temperature
   end
 
   create_table :orders, :force => true do |t|
@@ -298,8 +299,10 @@ ActiveRecord::Schema.define do
   end
 
   create_table :people, :force => true do |t|
-    t.string  :first_name, :null => false
-    t.integer :lock_version, :null => false, :default => 0
+    t.string     :first_name, :null => false
+    t.references :primary_contact
+    t.string     :gender, :limit => 1
+    t.integer    :lock_version, :null => false, :default => 0
   end
 
   create_table :pets, :primary_key => :pet_id ,:force => true do |t|

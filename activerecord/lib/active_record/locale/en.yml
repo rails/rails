@@ -37,7 +37,7 @@ en:
       #           blank: "This is a custom blank message for User login"
       # Will define custom blank validation message for User model and 
       # custom blank validation message for login attribute of User model.
-      models:
+      #models:
         
     # Translate model names. Used in Model.human_name().
     #models:

@@ -22,7 +22,7 @@ module ActiveRecord
       through_reflection      = reflection.through_reflection
       source_reflection_names = reflection.source_reflection_names
       source_associations     = reflection.through_reflection.klass.reflect_on_all_associations.collect { |a| a.name.inspect }
-      super("Could not find the source association(s) #{source_reflection_names.collect(&:inspect).to_sentence :connector => 'or'} in model #{through_reflection.klass}.  Try 'has_many #{reflection.name.inspect}, :through => #{through_reflection.name.inspect}, :source => <name>'.  Is it one of #{source_associations.to_sentence :connector => 'or'}?")
+      super("Could not find the source association(s) #{source_reflection_names.collect(&:inspect).to_sentence :two_words_connector => ' or ', :last_word_connector => ', or '} in model #{through_reflection.klass}.  Try 'has_many #{reflection.name.inspect}, :through => #{through_reflection.name.inspect}, :source => <name>'.  Is it one of #{source_associations.to_sentence :two_words_connector => ' or ', :last_word_connector => ', or '}?")
     end
   end
 
@@ -1216,11 +1216,11 @@ module ActiveRecord
         # callbacks will be executed after the association is wiped out.
         old_method = "destroy_without_habtm_shim_for_#{reflection.name}"
         class_eval <<-end_eval unless method_defined?(old_method)
-          alias_method :#{old_method}, :destroy_without_callbacks
-          def destroy_without_callbacks
-            #{reflection.name}.clear
-            #{old_method}
-          end
+          alias_method :#{old_method}, :destroy_without_callbacks  # alias_method :destroy_without_habtm_shim_for_posts, :destroy_without_callbacks
+          def destroy_without_callbacks                            # def destroy_without_callbacks
+            #{reflection.name}.clear                               #   posts.clear
+            #{old_method}                                          #   destroy_without_habtm_shim_for_posts
+          end                                                      # end
         end_eval
 
         add_association_callbacks(reflection.name, options)
@@ -1463,22 +1463,22 @@ module ActiveRecord
                 before_destroy method_name
               when :delete_all
                 module_eval %Q{
-                  before_destroy do |record|
-                    delete_all_has_many_dependencies(record,
-                      "#{reflection.name}",
-                      #{reflection.class_name},
-                      %@#{dependent_conditions}@)
-                  end
+                  before_destroy do |record|                  # before_destroy do |record|
+                    delete_all_has_many_dependencies(record,  #   delete_all_has_many_dependencies(record,
+                      "#{reflection.name}",                   #     "posts",
+                      #{reflection.class_name},               #     Post,
+                      %@#{dependent_conditions}@)             #     %@...@) # this is a string literal like %(...)
+                  end                                         # end
                 }
               when :nullify
                 module_eval %Q{
-                  before_destroy do |record|
-                    nullify_has_many_dependencies(record,
-                      "#{reflection.name}",
-                      #{reflection.class_name},
-                      "#{reflection.primary_key_name}",
-                      %@#{dependent_conditions}@)
-                  end
+                  before_destroy do |record|                  # before_destroy do |record|
+                    nullify_has_many_dependencies(record,     #   nullify_has_many_dependencies(record,
+                      "#{reflection.name}",                   #     "posts",
+                      #{reflection.class_name},               #     Post,
+                      "#{reflection.primary_key_name}",       #     "user_id",
+                      %@#{dependent_conditions}@)             #     %@...@) # this is a string literal like %(...)
+                  end                                         # end
                 }
               else
                 raise ArgumentError, "The :dependent option expects either :destroy, :delete_all, or :nullify (#{reflection.options[:dependent].inspect})"
@@ -1531,14 +1531,14 @@ module ActiveRecord
                   association = send(reflection.name)
                   association.destroy unless association.nil?
                 end
-                before_destroy method_name
+                after_destroy method_name
               when :delete
                 method_name = "belongs_to_dependent_delete_for_#{reflection.name}".to_sym
                 define_method(method_name) do
                   association = send(reflection.name)
                   association.delete unless association.nil?
                 end
-                before_destroy method_name
+                after_destroy method_name
               else
                 raise ArgumentError, "The :dependent option expects either :destroy or :delete (#{reflection.options[:dependent].inspect})"
             end
@@ -2171,7 +2171,7 @@ module ActiveRecord
                         aliased_table_name,
                         foreign_key,
                         parent.aliased_table_name,
-                        parent.primary_key
+                        reflection.options[:primary_key] || parent.primary_key
                       ]
                   end
                 when :belongs_to

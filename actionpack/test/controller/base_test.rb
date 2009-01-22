@@ -129,6 +129,8 @@ class PerformActionTest < ActionController::TestCase
     @response   = ActionController::TestResponse.new
 
     @request.host = "www.nextangle.com"
+
+    rescue_action_in_public!
   end
   
   def test_get_on_priv_should_show_selector
@@ -164,14 +166,12 @@ class PerformActionTest < ActionController::TestCase
   end
 end
 
-class DefaultUrlOptionsTest < Test::Unit::TestCase
+class DefaultUrlOptionsTest < ActionController::TestCase
+  tests DefaultUrlOptionsController
+
   def setup
-    @controller = DefaultUrlOptionsController.new
-
-    @request    = ActionController::TestRequest.new
-    @response   = ActionController::TestResponse.new
-
     @request.host = 'www.example.com'
+    rescue_action_in_public!
   end
 
   def test_default_url_options_are_used_if_set
@@ -189,14 +189,12 @@ class DefaultUrlOptionsTest < Test::Unit::TestCase
   end
 end
 
-class EmptyUrlOptionsTest < Test::Unit::TestCase
+class EmptyUrlOptionsTest < ActionController::TestCase
+  tests NonEmptyController
+
   def setup
-    @controller = NonEmptyController.new
-
-    @request    = ActionController::TestRequest.new
-    @response   = ActionController::TestResponse.new
-
     @request.host = 'www.example.com'
+    rescue_action_in_public!
   end
 
   def test_ensure_url_for_works_as_expected_when_called_with_no_options_if_default_url_options_is_not_set

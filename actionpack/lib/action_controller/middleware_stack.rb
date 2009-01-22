@@ -1,6 +1,14 @@
 module ActionController
   class MiddlewareStack < Array
     class Middleware
+      def self.new(klass, *args, &block)
+        if klass.is_a?(self)
+          klass
+        else
+          super
+        end
+      end
+
       attr_reader :args, :block
 
       def initialize(klass, *args, &block)
@@ -24,6 +32,8 @@ module ActionController
         else
           @klass.to_s.constantize
         end
+      rescue NameError
+        @klass
       end
 
       def active?
@@ -63,6 +73,24 @@ module ActionController
     def initialize(*args, &block)
       super(*args)
       block.call(self) if block_given?
+    end
+
+    def insert(index, *args, &block)
+      index = self.index(index) unless index.is_a?(Integer)
+      middleware = Middleware.new(*args, &block)
+      super(index, middleware)
+    end
+
+    alias_method :insert_before, :insert
+
+    def insert_after(index, *args, &block)
+      index = self.index(index) unless index.is_a?(Integer)
+      insert(index + 1, *args, &block)
+    end
+
+    def swap(target, *args, &block)
+      insert_before(target, *args, &block)
+      delete(target)
     end
 
     def use(*args, &block)

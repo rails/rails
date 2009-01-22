@@ -23,16 +23,13 @@ class CaptureController < ActionController::Base
   def rescue_action(e) raise end
 end
 
-class CaptureTest < Test::Unit::TestCase
-  def setup
-    @controller = CaptureController.new
+class CaptureTest < ActionController::TestCase
+  tests CaptureController
 
+  def setup
     # enable a logger so that (e.g.) the benchmarking stuff runs, so we can get
     # a more accurate simulation of what happens in "real life".
     @controller.logger = Logger.new(nil)
-
-    @request    = ActionController::TestRequest.new
-    @response   = ActionController::TestResponse.new
 
     @request.host = "www.nextangle.com"
   end

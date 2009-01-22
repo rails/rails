@@ -52,7 +52,7 @@ NOTE: This output will seem very familiar when we get to the `generate` command.
 
 === server ===
 
-Let's try it! The `server` command launches a small web server written in Ruby named WEBrick which was also installed when you installed Rails. You'll use this any time you want to view your work through a web browser.
+Let's try it! The `server` command launches a small web server named WEBrick which comes bundled with Ruby. You'll use this any time you want to view your work through a web browser.
 
 NOTE: WEBrick isn't your only option for serving Rails. We'll get to that in a later section. [XXX: which section]
 
@@ -99,7 +99,7 @@ Using generators will save you a large amount of time by writing *boilerplate co
 
 Let's make our own controller with the controller generator. But what command should we use? Let's ask the generator:
 
-NOTE: All Rails console utilities have help text. For commands that require a lot of input to run correctly, you can try the command without any parameters (like `rails` or `./script/generate`). For others, you can try adding `--help` or `-h` to the end, as in `./script/server --help`.
+NOTE: All Rails console utilities have help text. As with most *NIX utilities, you can try adding `--help` or `-h` to the end, for example `./script/server --help`.
 
 [source,shell]
 ------------------------------------------------------
@@ -200,24 +200,47 @@ Examples:
         creates a Post model with a string title, text body, and published flag.
 ------------------------------------------------------
 
-Let's set up a simple model called "HighScore" that will keep track of our highest score on video games we play. Then we'll wire up our controller and view to modify and list our scores.
+But instead of generating a model directly (which we'll be doing later), let's set up a scaffold. A *scaffold* in Rails is a full set of model, database migration for that model, controller to manipulate it, views to view and manipulate the data, and a test suite for each of the above.  
+
+Let's set up a simple resource called "HighScore" that will keep track of our highest score on video games we play.
 
 [source,shell]
 ------------------------------------------------------
-$ ./script/generate model HighScore id:integer game:string score:integer
-      exists  app/models/
-      exists  test/unit/
-      exists  test/fixtures/
-      create  app/models/high_score.rb
-      create  test/unit/high_score_test.rb
-      create  test/fixtures/high_scores.yml
-      create  db/migrate
-      create  db/migrate/20081126032945_create_high_scores.rb
+$ ./script/generate scaffold HighScore game:string score:integer
+    exists  app/models/
+    exists  app/controllers/
+    exists  app/helpers/
+    create  app/views/high_scores
+    create  app/views/layouts/
+    exists  test/functional/
+    create  test/unit/
+    create  public/stylesheets/
+    create  app/views/high_scores/index.html.erb
+    create  app/views/high_scores/show.html.erb
+    create  app/views/high_scores/new.html.erb
+    create  app/views/high_scores/edit.html.erb
+    create  app/views/layouts/high_scores.html.erb
+    create  public/stylesheets/scaffold.css
+    create  app/controllers/high_scores_controller.rb
+    create  test/functional/high_scores_controller_test.rb
+    create  app/helpers/high_scores_helper.rb
+     route  map.resources :high_scores
+dependency  model
+    exists    app/models/
+    exists    test/unit/
+    create    test/fixtures/
+    create    app/models/high_score.rb
+    create    test/unit/high_score_test.rb
+    create    test/fixtures/high_scores.yml
+    exists    db/migrate
+    create    db/migrate/20081217071914_create_high_scores.rb
 ------------------------------------------------------
 
-Taking it from the top, we have the *models* directory, where all of your data models live. *test/unit*, where all the unit tests live (gasp! -- unit tests!), fixtures for those tests, a test, the *migrate* directory, where the database-modifying migrations live, and a migration to create the `high_scores` table with the right fields.
+Taking it from the top - the generator checks that there exist the directories for models, controllers, helpers, layouts, functional and unit tests, stylesheets, creates the views, controller, model and database migration for HighScore (creating the `high_scores` table and fields), takes care of the route for the *resource*, and new tests for everything.
 
-The migration requires that we *migrate*, that is, run some Ruby code (living in that `20081126032945_create_high_scores.rb`) to modify the schema of our database. Which database? The sqlite3 database that Rails will create for you when we run the `rake db:migrate` command. We'll talk more about Rake in-depth in a little while.
+The migration requires that we *migrate*, that is, run some Ruby code (living in that `20081217071914_create_high_scores.rb`) to modify the schema of our database. Which database? The sqlite3 database that Rails will create for you when we run the `rake db:migrate` command. We'll talk more about Rake in-depth in a little while.
+
+NOTE: Hey. Install the sqlite3-ruby gem while you're at it. `gem install sqlite3-ruby`
 
 [source,shell]
 ------------------------------------------------------
@@ -231,23 +254,87 @@ $ rake db:migrate
 
 NOTE: Let's talk about unit tests. Unit tests are code that tests and makes assertions about code. In unit testing, we take a little part of code, say a method of a model, and test its inputs and outputs. Unit tests are your friend. The sooner you make peace with the fact that your quality of life will drastically increase when you unit test your code, the better. Seriously. We'll make one in a moment.
 
-Yo! Let's shove a small table into our greeting controller and view, listing our sweet scores.
+Let's see the interface Rails created for us. ./script/server; http://localhost:3000/high_scores
 
-[source,ruby]
+We can create new high scores (55,160 on Space Invaders!)
+
+=== console ===
+The `console` command lets you interact with your Rails application from the command line. On the underside, `script/console` uses IRB, so if you've ever used it, you'll be right at home. This is useful for testing out quick ideas with code and changing data server-side without touching the website.
+
+=== dbconsole ===
+`dbconsole` figures out which database you're using and drops you into whichever command line interface you would use with it (and figures out the command line parameters to give to it, too!). It supports MySQL, PostgreSQL, SQLite and SQLite3.
+
+=== plugin ===
+The `plugin` command simplifies plugin management; think a miniature version of the Gem utility. Let's walk through installing a plugin. You can call the sub-command *discover*, which sifts through repositories looking for plugins, or call *source* to add a specific repository of plugins, or you can specify the plugin location directly.
+
+Let's say you're creating a website for a client who wants a small accounting system. Every event having to do with money must be logged, and must never be deleted. Wouldn't it be great if we could override the behavior of a model to never actually take its record out of the database, but *instead*, just set a field?
+
+There is such a thing! The plugin we're installing is called "acts_as_paranoid", and it lets models implement a "deleted_at" column that gets set when you call destroy. Later, when calling find, the plugin will tack on a database check to filter out "deleted" things.
+
+[source,shell]
 ------------------------------------------------------
-class GreetingController < ApplicationController
-  def hello
-    if request.post?
-      score = HighScore.new(params[:high_score])
-      if score.save
-        flash[:notice] = "New score posted!"
-      end
-    end
-    
-    @scores = HighScore.find(:all)
-  end
-
-end
+$ ./script/plugin install http://svn.techno-weenie.net/projects/plugins/acts_as_paranoid
++ ./CHANGELOG
++ ./MIT-LICENSE
+...
+...
 ------------------------------------------------------
 
-XXX: Go with scaffolding instead, modifying greeting controller for high scores seems dumb.
+=== runner ===
+`runner` runs Ruby code in the context of Rails non-interactively. For instance:
+
+[source,shell]
+------------------------------------------------------
+$ ./script/runner "Model.long_running_method"
+------------------------------------------------------
+
+=== destroy ===
+Think of `destroy` as the opposite of `generate`. It'll figure out what generate did, and undo it. Believe you-me, the creation of this tutorial used this command many times!
+
+[source,shell]
+------------------------------------------------------
+$ ./script/generate model Oops
+      exists  app/models/
+      exists  test/unit/
+      exists  test/fixtures/
+      create  app/models/oops.rb
+      create  test/unit/oops_test.rb
+      create  test/fixtures/oops.yml
+      exists  db/migrate
+      create  db/migrate/20081221040817_create_oops.rb
+$ ./script/destroy model Oops
+    notempty  db/migrate
+    notempty  db
+          rm  db/migrate/20081221040817_create_oops.rb
+          rm  test/fixtures/oops.yml
+          rm  test/unit/oops_test.rb
+          rm  app/models/oops.rb
+    notempty  test/fixtures
+    notempty  test
+    notempty  test/unit
+    notempty  test
+    notempty  app/models
+    notempty  app
+------------------------------------------------------
+
+=== about ===
+Check it: Version numbers for Ruby, RubyGems, Rails, the Rails subcomponents, your application's folder, the current Rails environment name, your app's database adapter, and schema version! `about` is useful when you need to ask help, check if a security patch might affect you, or when you need some stats for an existing Rails installation.
+
+[source,shell]
+------------------------------------------------------
+$ ./script/about
+About your application's environment
+Ruby version              1.8.6 (i486-linux)
+RubyGems version          1.3.1
+Rails version             2.2.0
+Active Record version     2.2.0
+Action Pack version       2.2.0
+Active Resource version   2.2.0
+Action Mailer version     2.2.0
+Active Support version    2.2.0
+Edge Rails revision       unknown
+Application root          /home/commandsapp
+Environment               development
+Database adapter          sqlite3
+Database schema version   20081217073400
+------------------------------------------------------

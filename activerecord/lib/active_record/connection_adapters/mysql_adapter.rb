@@ -13,23 +13,25 @@ module MysqlCompat #:nodoc:
     # C driver >= 2.7 returns null values in each_hash
     if Mysql.const_defined?(:VERSION) && (Mysql::VERSION.is_a?(String) || Mysql::VERSION >= 20700)
       target.class_eval <<-'end_eval'
-      def all_hashes
-        rows = []
-        each_hash { |row| rows << row }
-        rows
-      end
+      def all_hashes                     # def all_hashes
+        rows = []                        #   rows = []
+        each_hash { |row| rows << row }  #   each_hash { |row| rows << row }
+        rows                             #   rows
+      end                                # end
       end_eval
 
     # adapters before 2.7 don't have a version constant
     # and don't return null values in each_hash
     else
       target.class_eval <<-'end_eval'
-      def all_hashes
-        rows = []
-        all_fields = fetch_fields.inject({}) { |fields, f| fields[f.name] = nil; fields }
-        each_hash { |row| rows << all_fields.dup.update(row) }
-        rows
-      end
+      def all_hashes                                            # def all_hashes
+        rows = []                                               #   rows = []
+        all_fields = fetch_fields.inject({}) { |fields, f|      #   all_fields = fetch_fields.inject({}) { |fields, f|
+          fields[f.name] = nil; fields                          #     fields[f.name] = nil; fields
+        }                                                       #   }
+        each_hash { |row| rows << all_fields.dup.update(row) }  #   each_hash { |row| rows << all_fields.dup.update(row) }
+        rows                                                    #   rows
+      end                                                       # end
       end_eval
     end
 
@@ -208,6 +210,10 @@ module ActiveRecord
       def supports_migrations? #:nodoc:
         true
       end
+      
+      def supports_savepoints? #:nodoc:
+        true
+      end
 
       def native_database_types #:nodoc:
         NATIVE_DATABASE_TYPES
@@ -347,6 +353,17 @@ module ActiveRecord
         # Transactions aren't supported
       end
 
+      def create_savepoint
+        execute("SAVEPOINT #{current_savepoint_name}")
+      end
+
+      def rollback_to_savepoint
+        execute("ROLLBACK TO SAVEPOINT #{current_savepoint_name}")
+      end
+
+      def release_savepoint
+        execute("RELEASE SAVEPOINT #{current_savepoint_name}")
+      end
 
       def add_limit_offset!(sql, options) #:nodoc:
         if limit = options[:limit]

@@ -1,0 +1,256 @@
+Rails on Rack
+=============
+
+This guide covers Rails integration with Rack and interfacing with other Rack components. By referring to this guide, you will be able to:
+
+  * Create Rails Metal applications
+  * Use Rack Middlewares in your Rails applications
+  * Understand Action Pack's internal Middleware stack
+  * Define custom internal Middleware stack
+  * Understand the best practices for developing a middleware aimed at Rails applications
+
+NOTE: This guide assumes a working knowledge of Rack protocol and Rack concepts such as middlewares, url maps and Rack::Builder.
+
+== Introduction to Rack ==
+
+****
+Rack provides a minimal, modular and adaptable interface for developing web applications in Ruby. By wrapping HTTP requests and responses in the simplest way possible, it unifies and distills the API for web servers, web frameworks, and software in between (the so-called middleware) into a single method call.
+
+- http://rack.rubyforge.org/doc[Rack API Documentation]
+****
+
+Explaining Rack is not really in the scope of this guide. In case you are not familiar with Rack's basics, you should check out the following links:
+
+* http://rack.github.com[Official Rack Website]
+* http://chneukirchen.org/blog/archive/2007/02/introducing-rack.html[Introducing Rack]
+* http://m.onkey.org/2008/11/17/ruby-on-rack-1[Ruby on Rack #1 - Hello Rack!]
+* http://m.onkey.org/2008/11/18/ruby-on-rack-2-rack-builder[Ruby on Rack #2 - The Builder]
+
+== Rails on Rack ==
+
+=== ActionController::Dispatcher.new ===
+
++ActionController::Dispatcher.new+ is the primary Rack application object of a Rails application. It responds to +call+ method with a single +env+ argument and returns a Rack response. Any Rack compliant web server should be using +ActionController::Dispatcher.new+ object to serve a Rails application.
+
+=== script/server ===
+
++script/server+ does the basic job of creating a +Rack::Builder+ object and starting the webserver. This is Rails equivalent of Rack's +rackup+ script.
+
+Here's how +script/server+ creates an instance of +Rack::Builder+
+
+[source, ruby]
+----------------------------------------------------------------------------
+app = Rack::Builder.new {
+  use Rails::Rack::LogTailer unless options[:detach]
+  use Rails::Rack::Static
+  use Rails::Rack::Debugger if options[:debugger]
+  run ActionController::Dispatcher.new
+}.to_app
+----------------------------------------------------------------------------
+
+Middlewares used in the code above are most useful in development envrionment. The following table explains their usage:
+
+[options="header"]
+|==========================================================================================================
+|Middleware |Purpose
+|Rails::Rack::LogTailer | Appends log file output to console
+|Rails::Rack::Static | Serves static files inside +RAILS_ROOT/public+ directory
+|Rails::Rack::Debugger | Starts Debugger
+|==========================================================================================================
+
+=== rackup ===
+
+To use +rackup+ instead of Rails' +script/server+, you can put the following inside +config.ru+ of your Rails application's root directory:
+
+[source, ruby]
+----------------------------------------------------------------------------
+# RAILS_ROOT/config.ru
+require "config/environment"
+
+use Rails::Rack::LogTailer
+use Rails::Rack::Static
+run ActionController::Dispatcher.new
+----------------------------------------------------------------------------
+
+And start the server:
+
+[source, shell]
+----------------------------------------------------------------------------
+[lifo@null application]$ rackup
+----------------------------------------------------------------------------
+
+To find out more about different +rackup+ options:
+
+[source, shell]
+----------------------------------------------------------------------------
+[lifo@null application]$ rackup --help
+----------------------------------------------------------------------------
+
+== Action Controller Middleware Stack ==
+
+Many of Action Controller's internal components are implemented as Rack middlewares. +ActionController::Dispatcher+ uses +ActionController::MiddlewareStack+ to combine various internal and external middlewares to form a complete Rails Rack application.
+
+.What is ActionController::MiddlewareStack ?
+NOTE: +ActionController::MiddlewareStack+ is Rails equivalent of +Rack::Builder+, but built for better flexibility and more features to meet Rails' requirements.
+
+=== Inspecting Middleware Stack  ===
+
+Rails has a handy rake task for inspecting the middleware stack in use:
+
+[source, shell]
+----------------------------------------------------------------------------
+$ rake middleware
+----------------------------------------------------------------------------
+
+For a freshly generated Rails application, this will produce:
+
+[source, ruby]
+----------------------------------------------------------------------------
+use ActionController::Lock
+use ActionController::Failsafe
+use ActiveRecord::QueryCache
+use ActionController::Session::CookieStore, {:secret=>"<secret>", :session_key=>"_<app>_session"}
+use Rails::Rack::Metal
+use ActionController::VerbPiggybacking
+run ActionController::Dispatcher.new
+----------------------------------------------------------------------------
+
+=== Adding Middlewares ===
+
+Rails provides a very simple configuration interface for adding generic Rack middlewares to a Rails applications.
+
+Here's how you can add middlewares via +environment.rb+
+
+[source, ruby]
+----------------------------------------------------------------------------
+# environment.rb
+
+config.middleware.use Rack::BounceFavicon
+----------------------------------------------------------------------------
+
+=== Internal Middleware Stack  ===
+
+[source, ruby]
+----------------------------------------------------------------------------
+use "ActionController::Lock", :if => lambda {
+  !ActionController::Base.allow_concurrency
+}
+
+use "ActionController::Failsafe"
+
+use "ActiveRecord::QueryCache", :if => lambda { defined?(ActiveRecord) }
+
+["ActionController::Session::CookieStore",
+ "ActionController::Session::MemCacheStore",
+ "ActiveRecord::SessionStore"].each do |store|
+   use(store, ActionController::Base.session_options,
+      :if => lambda {
+        if session_store = ActionController::Base.session_store
+          session_store.name == store
+        end
+      }
+    )
+end
+
+use ActionController::VerbPiggybacking
+----------------------------------------------------------------------------
+
+[options="header"]
+|==========================================================================================================
+|Middleware |Purpose
+|ActionController::Lock | Sets +env["rack.multithread"]+ flag to +true+ and wraps the application within a Mutex.
+|ActionController::Failsafe | Returns HTTP Status +500+ to the client if an exception gets raised while dispatching.
+|ActiveRecord::QueryCache | Enable the Active Record query cache.
+|ActionController::Session::CookieStore | Uses the cookie based session store.
+|ActionController::Session::MemCacheStore | Uses the memcached based session store.
+|ActiveRecord::SessionStore | Uses the database based session store.
+|ActionController::VerbPiggybacking | Sets HTTP method based on +_method+ parameter or +env["HTTP_X_HTTP_METHOD_OVERRIDE"]+.
+|==========================================================================================================
+
+=== Customizing Internal Middleware Stack  ===
+
+VERIFY THIS WORKS. Just a code dump at the moment.
+
+Put the following in an initializer.
+[source, ruby]
+----------------------------------------------------------------------------
+ActionController::Dispatcher.middleware = ActionController::MiddlewareStack.new do |m|
+  m.use ActionController::Lock
+  m.use ActionController::Failsafe
+  m.use ActiveRecord::QueryCache
+  m.use ActionController::Session::CookieStore
+  m.use ActionController::VerbPiggybacking
+end
+----------------------------------------------------------------------------
+
+Josh says :
+
+****
+3.3: I wouldn't recommend this: custom internal stack
+i'd recommend using config.middleware.use api
+we still need a better api for swapping out existing middleware, etc
+config.middleware.swap AC::Sessions, My::Sessoins
+or something like that
+****
+
+== Rails Metal Applications ==
+
+Rails Metal applications are minimal Rack applications specially designed for integrating with a typical Rails application. As Rails Metal Applications skip all of the Action Controller stack, serving a request has no overhead from the Rails framework itself. This is especially useful for infrequent cases where the performance of the full stack Rails framework is an issue.
+
+=== Generating a Metal Application ===
+
+Rails provides a generator called +performance_test+ for creating new performance tests:
+
+[source, shell]
+----------------------------------------------------------------------------
+script/generate metal poller
+----------------------------------------------------------------------------
+
+This generates +poller.rb+ in the +app/metal+ directory:
+
+[source, ruby]
+----------------------------------------------------------------------------
+# Allow the metal piece to run in isolation
+require(File.dirname(__FILE__) + "/../../config/environment") unless defined?(Rails)
+
+class Poller
+  def self.call(env)
+    if env["PATH_INFO"] =~ /^\/poller/
+      [200, {"Content-Type" => "text/html"}, ["Hello, World!"]]
+    else
+      [404, {"Content-Type" => "text/html"}, ["Not Found"]]
+    end
+  end
+end
+----------------------------------------------------------------------------
+
+Metal applications are an optimization. You should make sure to http://weblog.rubyonrails.org/2008/12/20/performance-of-rails-metal[understand the related performance implications] before using it.
+
+=== Execution Order ===
+
+All Metal Applications are executed by +Rails::Rack::Metal+ middleware, which is a part of the +ActionController::MiddlewareStack+ chain. 
+
+Here's the primary method responsible for running the Metal applications:
+
+[source, ruby]
+----------------------------------------------------------------------------
+def call(env)
+  @metals.keys.each do |app|
+    result = app.call(env)
+    return result unless result[0].to_i == 404
+  end
+  @app.call(env)
+end
+----------------------------------------------------------------------------
+
+In the code above, +@metals+ is an ordered ( alphabetical ) hash of metal applications. Due to the alphabetical ordering, +aaa.rb+ will come before +bbb.rb+ in the metal chain.
+
+IMPORTANT: Metal applications cannot return the HTTP Status +404+ to a client, as it is used for continuing the Metal chain execution. Please use normal Rails controllers or a custom middleware if returning +404+ is a requirement.
+
+== Middlewares and Rails ==
+
+== Changelog ==
+
+http://rails.lighthouseapp.com/projects/16213-rails-guides/tickets/4[Lighthouse ticket]
+
+* January 11, 2009: First version by link:../authors.html#lifo[Pratik]

@@ -948,6 +948,7 @@ EOF
   end
 
   def test_starttls_is_enabled_if_supported
+    ActionMailer::Base.smtp_settings[:enable_starttls_auto] = true
     MockSMTP.any_instance.expects(:respond_to?).with(:enable_starttls_auto).returns(true)
     MockSMTP.any_instance.expects(:enable_starttls_auto)
     ActionMailer::Base.delivery_method = :smtp
@@ -955,10 +956,21 @@ EOF
   end
 
   def test_starttls_is_disabled_if_not_supported
+    ActionMailer::Base.smtp_settings[:enable_starttls_auto] = true
     MockSMTP.any_instance.expects(:respond_to?).with(:enable_starttls_auto).returns(false)
     MockSMTP.any_instance.expects(:enable_starttls_auto).never
     ActionMailer::Base.delivery_method = :smtp
     TestMailer.deliver_signed_up(@recipient)
+  end
+
+  def test_starttls_is_not_enabled
+    ActionMailer::Base.smtp_settings[:enable_starttls_auto] = false
+    MockSMTP.any_instance.expects(:respond_to?).never
+    MockSMTP.any_instance.expects(:enable_starttls_auto).never
+    ActionMailer::Base.delivery_method = :smtp
+    TestMailer.deliver_signed_up(@recipient)
+  ensure
+    ActionMailer::Base.smtp_settings[:enable_starttls_auto] = true
   end
 end
 

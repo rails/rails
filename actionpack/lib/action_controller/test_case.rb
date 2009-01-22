@@ -1,4 +1,5 @@
 require 'active_support/test_case'
+require 'action_controller/test_process'
 
 module ActionController
   # Superclass for ActionController functional tests. Functional tests allow you to
@@ -102,6 +103,8 @@ module ActionController
   #
   #  assert_redirected_to page_url(:title => 'foo')
   class TestCase < ActiveSupport::TestCase
+    include TestProcess
+
     module Assertions
       %w(response selector tag dom routing model).each do |kind|
         include ActionController::Assertions.const_get("#{kind.camelize}Assertions")
@@ -124,17 +127,18 @@ module ActionController
     #
     # The exception is stored in the exception accessor for further inspection.
     module RaiseActionExceptions
-      attr_accessor :exception
+      protected
+        attr_accessor :exception
 
-      def rescue_action_without_handler(e)
-        self.exception = e
-        
-        if request.remote_addr == "0.0.0.0"
-          raise(e)
-        else
-          super(e)
+        def rescue_action_without_handler(e)
+          self.exception = e
+
+          if request.remote_addr == "0.0.0.0"
+            raise(e)
+          else
+            super(e)
+          end
         end
-      end
     end
 
     setup :setup_controller_request_and_response

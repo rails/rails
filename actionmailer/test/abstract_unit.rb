@@ -17,7 +17,6 @@ $:.unshift "#{File.dirname(__FILE__)}/fixtures/helpers"
 
 FIXTURE_LOAD_PATH = File.join(File.dirname(__FILE__), 'fixtures')
 ActionMailer::Base.template_root = FIXTURE_LOAD_PATH
-ActionMailer::Base.template_root.load
 
 class MockSMTP
   def self.deliveries

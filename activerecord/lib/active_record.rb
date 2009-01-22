@@ -1,5 +1,5 @@
 #--
-# Copyright (c) 2004-2008 David Heinemeier Hansson
+# Copyright (c) 2004-2009 David Heinemeier Hansson
 #
 # Permission is hereby granted, free of charge, to any person obtaining
 # a copy of this software and associated documentation files (the
@@ -51,6 +51,7 @@ module ActiveRecord
   autoload :Callbacks, 'active_record/callbacks'
   autoload :Dirty, 'active_record/dirty'
   autoload :DynamicFinderMatch, 'active_record/dynamic_finder_match'
+  autoload :DynamicScopeMatch, 'active_record/dynamic_scope_match'
   autoload :Migration, 'active_record/migration'
   autoload :Migrator, 'active_record/migration'
   autoload :NamedScope, 'active_record/named_scope'

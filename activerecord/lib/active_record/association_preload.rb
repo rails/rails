@@ -43,7 +43,7 @@ module ActiveRecord
     # loading in a more high-level (application developer-friendly) manner.
     module ClassMethods
       protected
-      
+
       # Eager loads the named associations for the given ActiveRecord record(s).
       #
       # In this description, 'association name' shall refer to the name passed
@@ -94,8 +94,8 @@ module ActiveRecord
             raise "parent must be an association name" unless parent.is_a?(String) || parent.is_a?(Symbol)
             preload_associations(records, parent, preload_options)
             reflection = reflections[parent]
-            parents = records.map {|record| record.send(reflection.name)}.flatten
-            unless parents.empty? || parents.first.nil?
+            parents = records.map {|record| record.send(reflection.name)}.flatten.compact
+            unless parents.empty?
               parents.first.class.preload_associations(parents, child)
             end
           end
@@ -113,7 +113,7 @@ module ActiveRecord
         # unnecessarily
         records.group_by {|record| class_to_reflection[record.class] ||= record.class.reflections[association]}.each do |reflection, records|
           raise ConfigurationError, "Association named '#{ association }' was not found; perhaps you misspelled it?" unless reflection
-          
+
           # 'reflection.macro' can return 'belongs_to', 'has_many', etc. Thus,
           # the following could call 'preload_belongs_to_association',
           # 'preload_has_many_association', etc.
@@ -128,7 +128,7 @@ module ActiveRecord
           association_proxy.target.push(*[associated_record].flatten)
         end
       end
-      
+
       def add_preloaded_record_to_collection(parent_records, reflection_name, associated_record)
         parent_records.each do |parent_record|
           parent_record.send("set_#{reflection_name}_target", associated_record)
@@ -183,18 +183,19 @@ module ActiveRecord
         conditions = "t0.#{reflection.primary_key_name} #{in_or_equals_for_ids(ids)}"
         conditions << append_conditions(reflection, preload_options)
 
-        associated_records = reflection.klass.find(:all, :conditions => [conditions, ids],
-        :include => options[:include],
-        :joins => "INNER JOIN #{connection.quote_table_name options[:join_table]} t0 ON #{reflection.klass.quoted_table_name}.#{reflection.klass.primary_key} = t0.#{reflection.association_foreign_key}",
-        :select => "#{options[:select] || table_name+'.*'}, t0.#{reflection.primary_key_name} as the_parent_record_id",
-        :order => options[:order])
-
+        associated_records = reflection.klass.with_exclusive_scope do
+          reflection.klass.find(:all, :conditions => [conditions, ids],
+            :include => options[:include],
+            :joins => "INNER JOIN #{connection.quote_table_name options[:join_table]} t0 ON #{reflection.klass.quoted_table_name}.#{reflection.klass.primary_key} = t0.#{reflection.association_foreign_key}",
+            :select => "#{options[:select] || table_name+'.*'}, t0.#{reflection.primary_key_name} as the_parent_record_id",
+            :order => options[:order])
+        end
         set_association_collection_records(id_to_record_map, reflection.name, associated_records, 'the_parent_record_id')
       end
 
       def preload_has_one_association(records, reflection, preload_options={})
         return if records.first.send("loaded_#{reflection.name}?")
-        id_to_record_map, ids = construct_id_map(records)        
+        id_to_record_map, ids = construct_id_map(records, reflection.options[:primary_key])
         options = reflection.options
         records.each {|record| record.send("set_#{reflection.name}_target", nil)}
         if options[:through]
@@ -228,7 +229,7 @@ module ActiveRecord
         options = reflection.options
 
         primary_key_name = reflection.through_reflection_primary_key_name
-        id_to_record_map, ids = construct_id_map(records, primary_key_name)
+        id_to_record_map, ids = construct_id_map(records, primary_key_name || reflection.options[:primary_key])
         records.each {|record| record.send(reflection.name).loaded}
 
         if options[:through]
@@ -248,7 +249,7 @@ module ActiveRecord
                                              reflection.primary_key_name)
         end
       end
-      
+
       def preload_through_records(records, reflection, through_association)
         through_reflection = reflections[through_association]
         through_primary_key = through_reflection.primary_key_name
@@ -333,11 +334,13 @@ module ActiveRecord
           end
           conditions = "#{table_name}.#{connection.quote_column_name(primary_key)} #{in_or_equals_for_ids(ids)}"
           conditions << append_conditions(reflection, preload_options)
-          associated_records = klass.find(:all, :conditions => [conditions, ids],
+          associated_records = klass.with_exclusive_scope do
+            klass.find(:all, :conditions => [conditions, ids],
                                           :include => options[:include],
                                           :select => options[:select],
                                           :joins => options[:joins],
                                           :order => options[:order])
+          end
           set_association_single_records(id_map, reflection.name, associated_records, primary_key)
         end
       end
@@ -355,13 +358,15 @@ module ActiveRecord
 
         conditions << append_conditions(reflection, preload_options)
 
-        reflection.klass.find(:all,
+        reflection.klass.with_exclusive_scope do
+          reflection.klass.find(:all,
                               :select => (preload_options[:select] || options[:select] || "#{table_name}.*"),
                               :include => preload_options[:include] || options[:include],
                               :conditions => [conditions, ids],
                               :joins => options[:joins],
                               :group => preload_options[:group] || options[:group],
                               :order => preload_options[:order] || options[:order])
+        end
       end
 
 

@@ -2,17 +2,6 @@ require 'stringio'
 require 'uri'
 require 'active_support/test_case'
 
-# Monkey patch Rack::Lint to support rewind
-module Rack
-  class Lint
-    class InputWrapper
-      def rewind
-        @input.rewind
-      end
-    end
-  end
-end
-
 module ActionController
   module Integration #:nodoc:
     # An integration Session instance represents a set of requests and responses
@@ -72,8 +61,8 @@ module ActionController
       end
 
       # Create and initialize a new Session instance.
-      def initialize(app)
-        @application = app
+      def initialize(app = nil)
+        @application = app || ActionController::Dispatcher.new
         reset!
       end
 
@@ -311,8 +300,10 @@ module ActionController
             env[key] = value
           end
 
-          unless ActionController::Base.respond_to?(:clear_last_instantiation!)
-            ActionController::Base.module_eval { include ControllerCapture }
+          [ControllerCapture, ActionController::ProcessWithTest].each do |mod|
+            unless ActionController::Base < mod
+              ActionController::Base.class_eval { include mod }
+            end
           end
 
           ActionController::Base.clear_last_instantiation!
@@ -340,6 +331,7 @@ module ActionController
           if @controller = ActionController::Base.last_instantiation
             @request = @controller.request
             @response = @controller.response
+            @controller.send(:set_test_assigns)
           else
             # Decorate responses from Rack Middleware and Rails Metal
             # as an Response for the purposes of integration testing
@@ -428,7 +420,7 @@ module ActionController
         def multipart_body(params, boundary)
           multipart_requestify(params).map do |key, value|
             if value.respond_to?(:original_filename)
-              File.open(value.path) do |f|
+              File.open(value.path, "rb") do |f|
                 f.set_encoding(Encoding::BINARY) if f.respond_to?(:set_encoding)
 
                 <<-EOF
@@ -509,7 +501,6 @@ EOF
       # can use this method to open multiple sessions that ought to be tested
       # simultaneously.
       def open_session(application = nil)
-        application ||= ActionController::Dispatcher.new
         session = Integration::Session.new(application)
 
         # delegate the fixture accessors back to the test instance

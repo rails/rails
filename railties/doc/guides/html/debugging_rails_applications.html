@@ -1,287 +1,119 @@
 <!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
 <html xmlns="http://www.w3.org/1999/xhtml" lang="en" xml:lang="en">
 <head>
-	<meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
-	<title>Debugging Rails Applications</title>
-	<!--[if lt IE 8]>
-	<script src="http://ie7-js.googlecode.com/svn/version/2.0(beta3)/IE8.js" type="text/javascript"></script>
-	<![endif]-->
-	<link href="stylesheets/base.css" media="screen" rel="Stylesheet" type="text/css" />
-	<link href="stylesheets/forms.css" media="screen" rel="Stylesheet" type="text/css" />
-	<link href="stylesheets/more.css" media="screen" rel="Stylesheet" type="text/css" />
-	<style type="text/css">
-		div#container {
-	max-width: 900px;
-	padding-bottom: 3em;
-}
-
-div#content {
-	margin-left: 200px;
-}
-
-div#container.notoc {
-	max-width: 600px;
-}
-
-.notoc div#content {
-	margin-left: 0;
-}
-
-pre {
-	line-height: 1.4em;
-}
-
-#content p tt {
-	background: #eeeeee;
-	border: solid 1px #cccccc;
-	padding: 3px;
-}
-
-dt {
-	font-weight: bold;
-}
-
-#content dt tt {
-	font-size: 10pt;
-}
-
-dd {
-	margin-left: 3em;
-}
-
-#content dt tt, #content pre tt {
-	background: none;
-	padding: 0;
-	border: 0;
-}
-
-#content .olist ol {
-	margin-left: 2em;
-}
-
-#header {
-	position: relative;
-	max-width: 840px;
-	margin-left: auto;
-	margin-right: auto;
-}
-
-#header.notoc {
-	max-width: 580px;
-}
-
-#logo {
-	position: absolute;
-	left: 10px;
-	top: 10px;
-	width: 110px;
-	height: 140px;
-}
-
-div#header h1#site_title {
-	background: url('images/ruby_on_rails_by_mike_rundle2.gif') top left no-repeat;
-	position: absolute;
-	width: 392px;
-	height: 55px;
-	left: 145px;
-	top: 20px;
-	margin: 0;
-	padding: 0;
-}
-
-#site_title span {
-	display: none;
-}
-
-#site_title_tagline {
-	display: none;
-}
-
-ul#navMain {
-	position: absolute;
-	margin: 0;
-	padding: 0;
-	top: 97px;
-	left: 145px;
-}
-
-.left-floaty, .right-floaty {
-	padding: 15px;
-}
-
-.admonitionblock,
-.tableblock {
-	margin-left: 1em;
-	margin-right: 1em;
-	margin-top: 0.25em;
-	margin-bottom: 1em;
-}
-
-.admonitionblock .icon {
-	padding-right: 8px;
-}
-
-.admonitionblock .content {
-	border: solid 1px #ffda78;
-	background: #fffebd;
-	padding: 10px;
-	padding-top: 8px;
-	padding-bottom: 8px;
-}
-
-.admonitionblock .title {
-	font-size: 140%;
-	margin-bottom: 0.5em;
-}
-
-.tableblock table {
-	border: solid 1px #aaaaff;
-	background: #f0f0ff;
-}
-
-.tableblock th {
-	background: #e0e0e0;
-}
-
-.tableblock th,
-.tableblock td {
-	padding: 3px;
-	padding-left: 5px;
-	padding-right: 5px;
-}
-
-.sidebarblock {
-	margin-top: 0.25em;
-	margin: 1em;
-	border: solid 1px #ccccbb;
-	padding: 8px;
-	background: #ffffe0;
-}
-
-.sidebarblock .sidebar-title {
-	font-size: 140%;
-	font-weight: 600;
-	margin-bottom: 0.3em;
-}
-
-.sidebarblock .sidebar-content > .para:last-child > p {
-	margin-bottom: 0;
-}
-
-.sidebarblock .sidebar-title a {
-	text-decoration: none;
-}
-
-.sidebarblock .sidebar-title a:hover {
-	text-decoration: underline;
-}
-
-	</style>
+  <meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
+  <title>Debugging Rails Applications</title>
+  <!--[if lt IE 8]>
+  <script src="http://ie7-js.googlecode.com/svn/version/2.0(beta3)/IE8.js" type="text/javascript"></script>
+  <![endif]-->
+  <link href="stylesheets/base.css" media="screen" rel="Stylesheet" type="text/css" />
+  <link href="stylesheets/forms.css" media="screen" rel="Stylesheet" type="text/css" />
+  <link href="stylesheets/more.css" media="screen" rel="Stylesheet" type="text/css" />
 </head>
 <body>
-	<div id="header" >
-		<div id="logo">
-			<a href="index.html" title="Ruby on Rails"><img src="images/rails_logo_remix.gif" alt="Rails" height="140" width="110" /></a>
-		</div>
-		
-		<h1 id="site_title"><span>Ruby on Rails</span></h1>
-		<h2 id="site_title_tagline">Sustainable productivity for web-application development</h2>
+  <div id="header" >
+    <div id="logo">
+      <a href="index.html" title="Ruby on Rails"><img src="images/rails_logo_remix.gif" alt="Rails" height="140" width="110" /></a>
+    </div>
 
-		<ul id="navMain">
-			<li class="first-child"><a href="http://www.rubyonrails.org/" title="Ruby on Rails" class="ruby_on_rails">Ruby on Rails</a></li>
-			<li><a class="manuals" href="index.html" title="Manuals Index">Guides Index</a></li>
-		</ul>
-	</div>
+    <h1 id="site_title"><span>Ruby on Rails</span></h1>
+    <h2 id="site_title_tagline">Sustainable productivity for web-application development</h2>
 
-	<div id="container">
-		
-		<div id="sidebar">
-			<h2>Chapters</h2>
-			<ol>
-					<li>
-					<a href="#_view_helpers_for_debugging">View Helpers for Debugging</a>
-						<ul>
-						
-							<li><a href="#_debug">debug</a></li>
-						
-							<li><a href="#_to_yaml">to_yaml</a></li>
-						
-							<li><a href="#_inspect">inspect</a></li>
-						
-							<li><a href="#_debugging_javascript">Debugging Javascript</a></li>
-						
-						</ul>
-					</li>
-					<li>
-					<a href="#_the_logger">The Logger</a>
-						<ul>
-						
-							<li><a href="#_what_is_the_logger">What is The Logger?</a></li>
-						
-							<li><a href="#_log_levels">Log Levels</a></li>
-						
-							<li><a href="#_sending_messages">Sending Messages</a></li>
-						
-						</ul>
-					</li>
-					<li>
-					<a href="#_debugging_with_ruby_debug">Debugging with ruby-debug</a>
-						<ul>
-						
-							<li><a href="#_setup">Setup</a></li>
-						
-							<li><a href="#_the_shell">The Shell</a></li>
-						
-							<li><a href="#_the_context">The Context</a></li>
-						
-							<li><a href="#_threads">Threads</a></li>
-						
-							<li><a href="#_inspecting_variables">Inspecting Variables</a></li>
-						
-							<li><a href="#_step_by_step">Step by Step</a></li>
-						
-							<li><a href="#_breakpoints">Breakpoints</a></li>
-						
-							<li><a href="#_catching_exceptions">Catching Exceptions</a></li>
-						
-							<li><a href="#_resuming_execution">Resuming Execution</a></li>
-						
-							<li><a href="#_editing">Editing</a></li>
-						
-							<li><a href="#_quitting">Quitting</a></li>
-						
-							<li><a href="#_settings">Settings</a></li>
-						
-						</ul>
-					</li>
-					<li>
-					<a href="#_debugging_memory_leaks">Debugging Memory Leaks</a>
-						<ul>
-						
-							<li><a href="#_bleakhouse">BleakHouse</a></li>
-						
-							<li><a href="#_valgrind">Valgrind</a></li>
-						
-						</ul>
-					</li>
-					<li>
-					<a href="#_plugins_for_debugging">Plugins for Debugging</a>
-					</li>
-					<li>
-					<a href="#_references">References</a>
-					</li>
-					<li>
-					<a href="#_changelog">Changelog</a>
-					</li>
-			</ol>
-		</div>
-		
-		<div id="content">
-				<h1>Debugging Rails Applications</h1>
-			<div id="preamble">
+    <ul id="navMain">
+      <li class="first-child"><a href="http://www.rubyonrails.org/" title="Ruby on Rails" class="ruby_on_rails">Ruby on Rails</a></li>
+      <li><a class="manuals" href="index.html" title="Manuals Index">Guides Index</a></li>
+    </ul>
+  </div>
+
+  <div id="container">
+    
+    <div id="sidebar">
+      <h2>Chapters</h2>
+      <ol>
+          <li>
+          <a href="#_view_helpers_for_debugging">View Helpers for Debugging</a>
+            <ul>
+            
+              <li><a href="#_debug">debug</a></li>
+            
+              <li><a href="#_to_yaml">to_yaml</a></li>
+            
+              <li><a href="#_inspect">inspect</a></li>
+            
+              <li><a href="#_debugging_javascript">Debugging Javascript</a></li>
+            
+            </ul>
+          </li>
+          <li>
+          <a href="#_the_logger">The Logger</a>
+            <ul>
+            
+              <li><a href="#_what_is_the_logger">What is The Logger?</a></li>
+            
+              <li><a href="#_log_levels">Log Levels</a></li>
+            
+              <li><a href="#_sending_messages">Sending Messages</a></li>
+            
+            </ul>
+          </li>
+          <li>
+          <a href="#_debugging_with_ruby_debug">Debugging with ruby-debug</a>
+            <ul>
+            
+              <li><a href="#_setup">Setup</a></li>
+            
+              <li><a href="#_the_shell">The Shell</a></li>
+            
+              <li><a href="#_the_context">The Context</a></li>
+            
+              <li><a href="#_threads">Threads</a></li>
+            
+              <li><a href="#_inspecting_variables">Inspecting Variables</a></li>
+            
+              <li><a href="#_step_by_step">Step by Step</a></li>
+            
+              <li><a href="#_breakpoints">Breakpoints</a></li>
+            
+              <li><a href="#_catching_exceptions">Catching Exceptions</a></li>
+            
+              <li><a href="#_resuming_execution">Resuming Execution</a></li>
+            
+              <li><a href="#_editing">Editing</a></li>
+            
+              <li><a href="#_quitting">Quitting</a></li>
+            
+              <li><a href="#_settings">Settings</a></li>
+            
+            </ul>
+          </li>
+          <li>
+          <a href="#_debugging_memory_leaks">Debugging Memory Leaks</a>
+            <ul>
+            
+              <li><a href="#_bleakhouse">BleakHouse</a></li>
+            
+              <li><a href="#_valgrind">Valgrind</a></li>
+            
+            </ul>
+          </li>
+          <li>
+          <a href="#_plugins_for_debugging">Plugins for Debugging</a>
+          </li>
+          <li>
+          <a href="#_references">References</a>
+          </li>
+          <li>
+          <a href="#_changelog">Changelog</a>
+          </li>
+      </ol>
+    </div>
+    
+    <div id="content">
+        <h1>Debugging Rails Applications</h1>
+      <div id="preamble">
 <div class="sectionbody">
-<div class="para"><p>This guide introduces techniques for debugging Ruby on Rails applications. By referring to this guide, you will be able to:</p></div>
-<div class="ilist"><ul>
+<div class="paragraph"><p>This guide introduces techniques for debugging Ruby on Rails applications. By referring to this guide, you will be able to:</p></div>
+<div class="ulist"><ul>
 <li>
 <p>
 Understand the purpose of debugging
@@ -289,7 +121,7 @@ Understand the purpose of debugging
 </li>
 <li>
 <p>
-Track down problems and issues in your application that your tests aren't identifying
+Track down problems and issues in your application that your tests aren&#8217;t identifying
 </p>
 </li>
 <li>
@@ -307,8 +139,8 @@ Analyze the stack trace
 </div>
 <h2 id="_view_helpers_for_debugging">1. View Helpers for Debugging</h2>
 <div class="sectionbody">
-<div class="para"><p>One common task is to inspect the contents of a variable. In Rails, you can do this with three methods:</p></div>
-<div class="ilist"><ul>
+<div class="paragraph"><p>One common task is to inspect the contents of a variable. In Rails, you can do this with three methods:</p></div>
+<div class="ulist"><ul>
 <li>
 <p>
 <tt>debug</tt>
@@ -326,7 +158,7 @@ Analyze the stack trace
 </li>
 </ul></div>
 <h3 id="_debug">1.1. debug</h3>
-<div class="para"><p>The <tt>debug</tt> helper will return a &lt;pre&gt;-tag that renders the object using the YAML format. This will generate human-readable data from any object. For example, if you have this code in a view:</p></div>
+<div class="paragraph"><p>The <tt>debug</tt> helper will return a &lt;pre&gt;-tag that renders the object using the YAML format. This will generate human-readable data from any object. For example, if you have this code in a view:</p></div>
 <div class="listingblock">
 <div class="content"><!-- Generator: GNU source-highlight 2.9
 by Lorenzo Bettini
@@ -336,9 +168,8 @@ http://www.gnu.org/software/src-highlite -->
 <span style="font-weight: bold"><span style="color: #0000FF">&lt;p&gt;</span></span>
   <span style="font-weight: bold"><span style="color: #0000FF">&lt;b&gt;</span></span>Title:<span style="font-weight: bold"><span style="color: #0000FF">&lt;/b&gt;</span></span>
   &lt;%=h @post.title %&gt;
-<span style="font-weight: bold"><span style="color: #0000FF">&lt;/p&gt;</span></span>
-</tt></pre></div></div>
-<div class="para"><p>You'll see something like this:</p></div>
+<span style="font-weight: bold"><span style="color: #0000FF">&lt;/p&gt;</span></span></tt></pre></div></div>
+<div class="paragraph"><p>You&#8217;ll see something like this:</p></div>
 <div class="listingblock">
 <div class="content">
 <pre><tt>--- !ruby/object:Post
@@ -355,7 +186,7 @@ attributes_cache: {}
 Title: Rails debugging guide</tt></pre>
 </div></div>
 <h3 id="_to_yaml">1.2. to_yaml</h3>
-<div class="para"><p>Displaying an instance variable, or any other object or method, in yaml format can be achieved this way:</p></div>
+<div class="paragraph"><p>Displaying an instance variable, or any other object or method, in yaml format can be achieved this way:</p></div>
 <div class="listingblock">
 <div class="content"><!-- Generator: GNU source-highlight 2.9
 by Lorenzo Bettini
@@ -365,10 +196,9 @@ http://www.gnu.org/software/src-highlite -->
 <span style="font-weight: bold"><span style="color: #0000FF">&lt;p&gt;</span></span>
   <span style="font-weight: bold"><span style="color: #0000FF">&lt;b&gt;</span></span>Title:<span style="font-weight: bold"><span style="color: #0000FF">&lt;/b&gt;</span></span>
   &lt;%=h @post.title %&gt;
-<span style="font-weight: bold"><span style="color: #0000FF">&lt;/p&gt;</span></span>
-</tt></pre></div></div>
-<div class="para"><p>The <tt>to_yaml</tt> method converts the method to YAML format leaving it more readable, and then the <tt>simple_format</tt> helper is used to render each line as in the console. This is how <tt>debug</tt> method does its magic.</p></div>
-<div class="para"><p>As a result of this, you will have something like this in your view:</p></div>
+<span style="font-weight: bold"><span style="color: #0000FF">&lt;/p&gt;</span></span></tt></pre></div></div>
+<div class="paragraph"><p>The <tt>to_yaml</tt> method converts the method to YAML format leaving it more readable, and then the <tt>simple_format</tt> helper is used to render each line as in the console. This is how <tt>debug</tt> method does its magic.</p></div>
+<div class="paragraph"><p>As a result of this, you will have something like this in your view:</p></div>
 <div class="listingblock">
 <div class="content">
 <pre><tt>--- !ruby/object:Post
@@ -384,7 +214,7 @@ attributes_cache: {}
 Title: Rails debugging guide</tt></pre>
 </div></div>
 <h3 id="_inspect">1.3. inspect</h3>
-<div class="para"><p>Another useful method for displaying object values is <tt>inspect</tt>, especially when working with arrays or hashes. This will print the object value as a string. For example:</p></div>
+<div class="paragraph"><p>Another useful method for displaying object values is <tt>inspect</tt>, especially when working with arrays or hashes. This will print the object value as a string. For example:</p></div>
 <div class="listingblock">
 <div class="content"><!-- Generator: GNU source-highlight 2.9
 by Lorenzo Bettini
@@ -394,9 +224,8 @@ http://www.gnu.org/software/src-highlite -->
 <span style="font-weight: bold"><span style="color: #0000FF">&lt;p&gt;</span></span>
   <span style="font-weight: bold"><span style="color: #0000FF">&lt;b&gt;</span></span>Title:<span style="font-weight: bold"><span style="color: #0000FF">&lt;/b&gt;</span></span>
   &lt;%=h @post.title %&gt;
-<span style="font-weight: bold"><span style="color: #0000FF">&lt;/p&gt;</span></span>
-</tt></pre></div></div>
-<div class="para"><p>Will be rendered as follows:</p></div>
+<span style="font-weight: bold"><span style="color: #0000FF">&lt;/p&gt;</span></span></tt></pre></div></div>
+<div class="paragraph"><p>Will be rendered as follows:</p></div>
 <div class="listingblock">
 <div class="content">
 <pre><tt>[1, 2, 3, 4, 5]
@@ -404,23 +233,21 @@ http://www.gnu.org/software/src-highlite -->
 Title: Rails debugging guide</tt></pre>
 </div></div>
 <h3 id="_debugging_javascript">1.4. Debugging Javascript</h3>
-<div class="para"><p>Rails has built-in support to debug RJS, to active it, set <tt>ActionView::Base.debug_rjs</tt> to <em>true</em>, this will specify whether RJS responses should be wrapped in a try/catch block that alert()s the caught exception (and then re-raises it).</p></div>
-<div class="para"><p>To enable it, add the following in the <tt>Rails::Initializer do |config|</tt> block inside <tt>environment.rb</tt>:</p></div>
+<div class="paragraph"><p>Rails has built-in support to debug RJS, to active it, set <tt>ActionView::Base.debug_rjs</tt> to <em>true</em>, this will specify whether RJS responses should be wrapped in a try/catch block that alert()s the caught exception (and then re-raises it).</p></div>
+<div class="paragraph"><p>To enable it, add the following in the <tt>Rails::Initializer do |config|</tt> block inside <tt>environment.rb</tt>:</p></div>
 <div class="listingblock">
 <div class="content"><!-- Generator: GNU source-highlight 2.9
 by Lorenzo Bettini
 http://www.lorenzobettini.it
 http://www.gnu.org/software/src-highlite -->
-<pre><tt>config<span style="color: #990000">.</span>action_view<span style="color: #990000">[:</span>debug_rjs<span style="color: #990000">]</span> <span style="color: #990000">=</span> <span style="font-weight: bold"><span style="color: #0000FF">true</span></span>
-</tt></pre></div></div>
-<div class="para"><p>Or, at any time, setting <tt>ActionView::Base.debug_rjs</tt> to <em>true</em>:</p></div>
+<pre><tt>config<span style="color: #990000">.</span>action_view<span style="color: #990000">[:</span>debug_rjs<span style="color: #990000">]</span> <span style="color: #990000">=</span> <span style="font-weight: bold"><span style="color: #0000FF">true</span></span></tt></pre></div></div>
+<div class="paragraph"><p>Or, at any time, setting <tt>ActionView::Base.debug_rjs</tt> to <em>true</em>:</p></div>
 <div class="listingblock">
 <div class="content"><!-- Generator: GNU source-highlight 2.9
 by Lorenzo Bettini
 http://www.lorenzobettini.it
 http://www.gnu.org/software/src-highlite -->
-<pre><tt>ActionView<span style="color: #990000">::</span>Base<span style="color: #990000">.</span>debug_rjs <span style="color: #990000">=</span> <span style="font-weight: bold"><span style="color: #0000FF">true</span></span>
-</tt></pre></div></div>
+<pre><tt>ActionView<span style="color: #990000">::</span>Base<span style="color: #990000">.</span>debug_rjs <span style="color: #990000">=</span> <span style="font-weight: bold"><span style="color: #0000FF">true</span></span></tt></pre></div></div>
 <div class="admonitionblock">
 <table><tr>
 <td class="icon">
@@ -432,27 +259,25 @@ http://www.gnu.org/software/src-highlite -->
 </div>
 <h2 id="_the_logger">2. The Logger</h2>
 <div class="sectionbody">
-<div class="para"><p>It can also be useful to save information to log files at runtime. Rails maintains a separate log file for each runtime environment.</p></div>
+<div class="paragraph"><p>It can also be useful to save information to log files at runtime. Rails maintains a separate log file for each runtime environment.</p></div>
 <h3 id="_what_is_the_logger">2.1. What is The Logger?</h3>
-<div class="para"><p>Rails makes use of Ruby's standard <tt>logger</tt> to write log information. You can also substitute another logger such as <tt>Log4R</tt> if you wish.</p></div>
-<div class="para"><p>You can specify an alternative logger in your <tt>environment.rb</tt> or any environment file:</p></div>
+<div class="paragraph"><p>Rails makes use of Ruby&#8217;s standard <tt>logger</tt> to write log information. You can also substitute another logger such as <tt>Log4R</tt> if you wish.</p></div>
+<div class="paragraph"><p>You can specify an alternative logger in your <tt>environment.rb</tt> or any environment file:</p></div>
 <div class="listingblock">
 <div class="content"><!-- Generator: GNU source-highlight 2.9
 by Lorenzo Bettini
 http://www.lorenzobettini.it
 http://www.gnu.org/software/src-highlite -->
 <pre><tt>ActiveRecord<span style="color: #990000">::</span>Base<span style="color: #990000">.</span>logger <span style="color: #990000">=</span> Logger<span style="color: #990000">.</span>new<span style="color: #990000">(</span>STDOUT<span style="color: #990000">)</span>
-ActiveRecord<span style="color: #990000">::</span>Base<span style="color: #990000">.</span>logger <span style="color: #990000">=</span> Log4r<span style="color: #990000">::</span>Logger<span style="color: #990000">.</span>new<span style="color: #990000">(</span><span style="color: #FF0000">"Application Log"</span><span style="color: #990000">)</span>
-</tt></pre></div></div>
-<div class="para"><p>Or in the <tt>Initializer</tt> section, add <em>any</em> of the following</p></div>
+ActiveRecord<span style="color: #990000">::</span>Base<span style="color: #990000">.</span>logger <span style="color: #990000">=</span> Log4r<span style="color: #990000">::</span>Logger<span style="color: #990000">.</span>new<span style="color: #990000">(</span><span style="color: #FF0000">"Application Log"</span><span style="color: #990000">)</span></tt></pre></div></div>
+<div class="paragraph"><p>Or in the <tt>Initializer</tt> section, add <em>any</em> of the following</p></div>
 <div class="listingblock">
 <div class="content"><!-- Generator: GNU source-highlight 2.9
 by Lorenzo Bettini
 http://www.lorenzobettini.it
 http://www.gnu.org/software/src-highlite -->
 <pre><tt>config<span style="color: #990000">.</span>logger <span style="color: #990000">=</span> Logger<span style="color: #990000">.</span>new<span style="color: #990000">(</span>STDOUT<span style="color: #990000">)</span>
-config<span style="color: #990000">.</span>logger <span style="color: #990000">=</span> Log4r<span style="color: #990000">::</span>Logger<span style="color: #990000">.</span>new<span style="color: #990000">(</span><span style="color: #FF0000">"Application Log"</span><span style="color: #990000">)</span>
-</tt></pre></div></div>
+config<span style="color: #990000">.</span>logger <span style="color: #990000">=</span> Log4r<span style="color: #990000">::</span>Logger<span style="color: #990000">.</span>new<span style="color: #990000">(</span><span style="color: #FF0000">"Application Log"</span><span style="color: #990000">)</span></tt></pre></div></div>
 <div class="admonitionblock">
 <table><tr>
 <td class="icon">
@@ -462,17 +287,16 @@ config<span style="color: #990000">.</span>logger <span style="color: #990000">=
 </tr></table>
 </div>
 <h3 id="_log_levels">2.2. Log Levels</h3>
-<div class="para"><p>When something is logged it's printed into the corresponding log if the log level of the message is equal or higher than the configured log level. If you want to know the current log level you can call the <tt>ActiveRecord::Base.logger.level</tt> method.</p></div>
-<div class="para"><p>The available log levels are: <tt>:debug</tt>, <tt>:info</tt>, <tt>:warn</tt>, <tt>:error</tt>, and <tt>:fatal</tt>, corresponding to the log level numbers from 0 up to 4 respectively. To change the default log level, use</p></div>
+<div class="paragraph"><p>When something is logged it&#8217;s printed into the corresponding log if the log level of the message is equal or higher than the configured log level. If you want to know the current log level you can call the <tt>ActiveRecord::Base.logger.level</tt> method.</p></div>
+<div class="paragraph"><p>The available log levels are: <tt>:debug</tt>, <tt>:info</tt>, <tt>:warn</tt>, <tt>:error</tt>, and <tt>:fatal</tt>, corresponding to the log level numbers from 0 up to 4 respectively. To change the default log level, use</p></div>
 <div class="listingblock">
 <div class="content"><!-- Generator: GNU source-highlight 2.9
 by Lorenzo Bettini
 http://www.lorenzobettini.it
 http://www.gnu.org/software/src-highlite -->
 <pre><tt>config<span style="color: #990000">.</span>log_level <span style="color: #990000">=</span> Logger<span style="color: #990000">::</span>WARN <span style="font-style: italic"><span style="color: #9A1900"># In any environment initializer, or</span></span>
-ActiveRecord<span style="color: #990000">::</span>Base<span style="color: #990000">.</span>logger<span style="color: #990000">.</span>level <span style="color: #990000">=</span> <span style="color: #993399">0</span> <span style="font-style: italic"><span style="color: #9A1900"># at any time</span></span>
-</tt></pre></div></div>
-<div class="para"><p>This is useful when you want to log under development or staging, but you don't want to flood your production log with unnecessary information.</p></div>
+ActiveRecord<span style="color: #990000">::</span>Base<span style="color: #990000">.</span>logger<span style="color: #990000">.</span>level <span style="color: #990000">=</span> <span style="color: #993399">0</span> <span style="font-style: italic"><span style="color: #9A1900"># at any time</span></span></tt></pre></div></div>
+<div class="paragraph"><p>This is useful when you want to log under development or staging, but you don&#8217;t want to flood your production log with unnecessary information.</p></div>
 <div class="admonitionblock">
 <table><tr>
 <td class="icon">
@@ -482,7 +306,7 @@ ActiveRecord<span style="color: #990000">::</span>Base<span style="color: #99000
 </tr></table>
 </div>
 <h3 id="_sending_messages">2.3. Sending Messages</h3>
-<div class="para"><p>To write in the current log use the <tt>logger.(debug|info|warn|error|fatal)</tt> method from within a controller, model or mailer:</p></div>
+<div class="paragraph"><p>To write in the current log use the <tt>logger.(debug|info|warn|error|fatal)</tt> method from within a controller, model or mailer:</p></div>
 <div class="listingblock">
 <div class="content"><!-- Generator: GNU source-highlight 2.9
 by Lorenzo Bettini
@@ -490,9 +314,8 @@ http://www.lorenzobettini.it
 http://www.gnu.org/software/src-highlite -->
 <pre><tt>logger<span style="color: #990000">.</span>debug <span style="color: #FF0000">"Person attributes hash: #{@person.attributes.inspect}"</span>
 logger<span style="color: #990000">.</span>info <span style="color: #FF0000">"Processing the request..."</span>
-logger<span style="color: #990000">.</span>fatal <span style="color: #FF0000">"Terminating application, raised unrecoverable error!!!"</span>
-</tt></pre></div></div>
-<div class="para"><p>Here's an example of a method instrumented with extra logging:</p></div>
+logger<span style="color: #990000">.</span>fatal <span style="color: #FF0000">"Terminating application, raised unrecoverable error!!!"</span></tt></pre></div></div>
+<div class="paragraph"><p>Here&#8217;s an example of a method instrumented with extra logging:</p></div>
 <div class="listingblock">
 <div class="content"><!-- Generator: GNU source-highlight 2.9
 by Lorenzo Bettini
@@ -516,9 +339,8 @@ http://www.gnu.org/software/src-highlite -->
   <span style="font-weight: bold"><span style="color: #0000FF">end</span></span>
 
   <span style="font-style: italic"><span style="color: #9A1900"># ...</span></span>
-<span style="font-weight: bold"><span style="color: #0000FF">end</span></span>
-</tt></pre></div></div>
-<div class="para"><p>Here's an example of the log generated by this method:</p></div>
+<span style="font-weight: bold"><span style="color: #0000FF">end</span></span></tt></pre></div></div>
+<div class="paragraph"><p>Here&#8217;s an example of the log generated by this method:</p></div>
 <div class="listingblock">
 <div class="content">
 <pre><tt>Processing PostsController#create (for 127.0.0.1 at 2008-09-08 11:52:54) [POST]
@@ -537,24 +359,23 @@ The post was saved and now is the user is going to be redirected...
 Redirected to #&lt;Post:0x20af760&gt;
 Completed in 0.01224 (81 reqs/sec) | DB: 0.00044 (3%) | 302 Found [http://localhost/posts]</tt></pre>
 </div></div>
-<div class="para"><p>Adding extra logging like this makes it easy to search for unexpected or unusual behavior in your logs. If you add extra logging, be sure to make sensible use of log levels, to avoid filling your production logs with useless trivia.</p></div>
+<div class="paragraph"><p>Adding extra logging like this makes it easy to search for unexpected or unusual behavior in your logs. If you add extra logging, be sure to make sensible use of log levels, to avoid filling your production logs with useless trivia.</p></div>
 </div>
 <h2 id="_debugging_with_ruby_debug">3. Debugging with ruby-debug</h2>
 <div class="sectionbody">
-<div class="para"><p>When your code is behaving in unexpected ways, you can try printing to logs or the console to diagnose the problem. Unfortunately, there are times when this sort of error tracking is not effective in finding the root cause of a problem. When you actually need to journey into your running source code, the debugger is your best companion.</p></div>
-<div class="para"><p>The debugger can also help you if you want to learn about the Rails source code but don't know where to start. Just debug any request to your application and use this guide to learn how to move from the code you have written deeper into Rails code.</p></div>
+<div class="paragraph"><p>When your code is behaving in unexpected ways, you can try printing to logs or the console to diagnose the problem. Unfortunately, there are times when this sort of error tracking is not effective in finding the root cause of a problem. When you actually need to journey into your running source code, the debugger is your best companion.</p></div>
+<div class="paragraph"><p>The debugger can also help you if you want to learn about the Rails source code but don&#8217;t know where to start. Just debug any request to your application and use this guide to learn how to move from the code you have written deeper into Rails code.</p></div>
 <h3 id="_setup">3.1. Setup</h3>
-<div class="para"><p>The debugger used by Rails, <tt>ruby-debug</tt>, comes as a gem. To install it, just run:</p></div>
+<div class="paragraph"><p>The debugger used by Rails, <tt>ruby-debug</tt>, comes as a gem. To install it, just run:</p></div>
 <div class="listingblock">
 <div class="content"><!-- Generator: GNU source-highlight 2.9
 by Lorenzo Bettini
 http://www.lorenzobettini.it
 http://www.gnu.org/software/src-highlite -->
-<pre><tt>$ sudo gem install ruby-debug
-</tt></pre></div></div>
-<div class="para"><p>In case you want to download a particular version or get the source code, refer to the <a href="http://rubyforge.org/projects/ruby-debug/">project's page on rubyforge</a>.</p></div>
-<div class="para"><p>Rails has had built-in support for ruby-debug since Rails 2.0. Inside any Rails application you can invoke the debugger by calling the <tt>debugger</tt> method.</p></div>
-<div class="para"><p>Here's an example:</p></div>
+<pre><tt>$ sudo gem install ruby-debug</tt></pre></div></div>
+<div class="paragraph"><p>In case you want to download a particular version or get the source code, refer to the <a href="http://rubyforge.org/projects/ruby-debug/">project&#8217;s page on rubyforge</a>.</p></div>
+<div class="paragraph"><p>Rails has had built-in support for ruby-debug since Rails 2.0. Inside any Rails application you can invoke the debugger by calling the <tt>debugger</tt> method.</p></div>
+<div class="paragraph"><p>Here&#8217;s an example:</p></div>
 <div class="listingblock">
 <div class="content"><!-- Generator: GNU source-highlight 2.9
 by Lorenzo Bettini
@@ -565,14 +386,13 @@ http://www.gnu.org/software/src-highlite -->
     debugger
     <span style="color: #009900">@person</span> <span style="color: #990000">=</span> Person<span style="color: #990000">.</span>new
   <span style="font-weight: bold"><span style="color: #0000FF">end</span></span>
-<span style="font-weight: bold"><span style="color: #0000FF">end</span></span>
-</tt></pre></div></div>
-<div class="para"><p>If you see the message in the console or logs:</p></div>
+<span style="font-weight: bold"><span style="color: #0000FF">end</span></span></tt></pre></div></div>
+<div class="paragraph"><p>If you see the message in the console or logs:</p></div>
 <div class="listingblock">
 <div class="content">
 <pre><tt>***** Debugger requested, but was not available: Start server with --debugger to enable *****</tt></pre>
 </div></div>
-<div class="para"><p>Make sure you have started your web server with the option <tt>&#8212;debugger</tt>:</p></div>
+<div class="paragraph"><p>Make sure you have started your web server with the option <tt>--debugger</tt>:</p></div>
 <div class="listingblock">
 <div class="content"><!-- Generator: GNU source-highlight 2.9
 by Lorenzo Bettini
@@ -582,27 +402,26 @@ http://www.gnu.org/software/src-highlite -->
 <span style="color: #990000">=&gt;</span> Booting Mongrel <span style="color: #990000">(</span>use <span style="color: #FF0000">'script/server webrick'</span> to force WEBrick<span style="color: #990000">)</span>
 <span style="color: #990000">=&gt;</span> Rails <span style="color: #993399">2.2</span><span style="color: #990000">.</span><span style="color: #993399">0</span> application starting on http<span style="color: #990000">://</span><span style="color: #993399">0.0</span><span style="color: #990000">.</span><span style="color: #993399">0.0</span><span style="color: #990000">:</span><span style="color: #993399">3000</span>
 <span style="color: #990000">=&gt;</span> Debugger enabled
-<span style="color: #990000">...</span>
-</tt></pre></div></div>
+<span style="color: #990000">...</span></tt></pre></div></div>
 <div class="admonitionblock">
 <table><tr>
 <td class="icon">
 <img src="./images/icons/tip.png" alt="Tip" />
 </td>
-<td class="content">In development mode, you can dynamically <tt>require 'ruby-debug'</tt> instead of restarting the server, if it was started without <tt>&#8212;debugger</tt>.</td>
+<td class="content">In development mode, you can dynamically &#8216;require 'ruby-debug\&#8217;<tt> instead of restarting the server, if it was started without `--debugger</tt>.</td>
 </tr></table>
 </div>
-<div class="para"><p>In order to use Rails debugging you'll need to be running either <strong>WEBrick</strong> or <strong>Mongrel</strong>. For the moment, no alternative servers are supported.</p></div>
+<div class="paragraph"><p>In order to use Rails debugging you&#8217;ll need to be running either <strong>WEBrick</strong> or <strong>Mongrel</strong>. For the moment, no alternative servers are supported.</p></div>
 <h3 id="_the_shell">3.2. The Shell</h3>
-<div class="para"><p>As soon as your application calls the <tt>debugger</tt> method, the debugger will be started in a debugger shell inside the terminal window where you launched your application server, and you will be placed at ruby-debug's prompt <tt>(rdb:n)</tt>. The <em>n</em> is the thread number. The prompt will also show you the next line of code that is waiting to run.</p></div>
-<div class="para"><p>If you got there by a browser request, the browser tab containing the request will be hung until the debugger has finished and the trace has finished processing the entire request.</p></div>
-<div class="para"><p>For example:</p></div>
+<div class="paragraph"><p>As soon as your application calls the <tt>debugger</tt> method, the debugger will be started in a debugger shell inside the terminal window where you launched your application server, and you will be placed at ruby-debug&#8217;s prompt <tt>(rdb:n)</tt>. The <em>n</em> is the thread number. The prompt will also show you the next line of code that is waiting to run.</p></div>
+<div class="paragraph"><p>If you got there by a browser request, the browser tab containing the request will be hung until the debugger has finished and the trace has finished processing the entire request.</p></div>
+<div class="paragraph"><p>For example:</p></div>
 <div class="listingblock">
 <div class="content">
 <pre><tt>@posts = Post.find(:all)
 (rdb:7)</tt></pre>
 </div></div>
-<div class="para"><p>Now it's time to explore and dig into your application. A good place to start is by asking the debugger for help&#8230; so type: <tt>help</tt> (You didn't see that coming, right?)</p></div>
+<div class="paragraph"><p>Now it&#8217;s time to explore and dig into your application. A good place to start is by asking the debugger for help... so type: <tt>help</tt> (You didn&#8217;t see that coming, right?)</p></div>
 <div class="listingblock">
 <div class="content">
 <pre><tt>(rdb:7) help
@@ -621,11 +440,11 @@ continue   edit     frame   method  putl  set      tmate   where</tt></pre>
 <td class="icon">
 <img src="./images/icons/tip.png" alt="Tip" />
 </td>
-<td class="content">To view the help menu for any command use <tt>help &lt;command-name&gt;</tt> in active debug mode. For example: <em><tt>help var</tt></em></td>
+<td class="content">To view the help menu for any command use <tt>help &lt;command-name&gt;</tt> in active debug mode. For example: <em>+help var+</em></td>
 </tr></table>
 </div>
-<div class="para"><p>The next command to learn is one of the most useful: <tt>list</tt>. You can also abbreviate ruby-debug commands by supplying just enough letters to distinguish them from other commands, so you can also use <tt>l</tt> for the <tt>list</tt> command.</p></div>
-<div class="para"><p>This command shows you where you are in the code by printing 10 lines centered around the current line; the current line in this particular case is line 6 and is marked by <tt>&#8658;</tt>.</p></div>
+<div class="paragraph"><p>The next command to learn is one of the most useful: <tt>list</tt>. You can also abbreviate ruby-debug commands by supplying just enough letters to distinguish them from other commands, so you can also use <tt>l</tt> for the <tt>list</tt> command.</p></div>
+<div class="paragraph"><p>This command shows you where you are in the code by printing 10 lines centered around the current line; the current line in this particular case is line 6 and is marked by <tt>=&gt;</tt>.</p></div>
 <div class="listingblock">
 <div class="content">
 <pre><tt>(rdb:7) list
@@ -641,7 +460,7 @@ continue   edit     frame   method  putl  set      tmate   where</tt></pre>
    9        format.html # index.html.erb
    10        format.xml  { render :xml =&gt; @posts }</tt></pre>
 </div></div>
-<div class="para"><p>If you repeat the <tt>list</tt> command, this time using just <tt>l</tt>, the next ten lines of the file will be printed out.</p></div>
+<div class="paragraph"><p>If you repeat the <tt>list</tt> command, this time using just <tt>l</tt>, the next ten lines of the file will be printed out.</p></div>
 <div class="listingblock">
 <div class="content">
 <pre><tt>(rdb:7) l
@@ -657,11 +476,11 @@ continue   edit     frame   method  putl  set      tmate   where</tt></pre>
    19      respond_to do |format|
    20        format.html # show.html.erb</tt></pre>
 </div></div>
-<div class="para"><p>And so on until the end of the current file. When the end of file is reached, the <tt>list</tt> command will start again from the beginning of the file and continue again up to the end, treating the file as a circular buffer.</p></div>
+<div class="paragraph"><p>And so on until the end of the current file. When the end of file is reached, the <tt>list</tt> command will start again from the beginning of the file and continue again up to the end, treating the file as a circular buffer.</p></div>
 <h3 id="_the_context">3.3. The Context</h3>
-<div class="para"><p>When you start debugging your application, you will be placed in different contexts as you go through the different parts of the stack.</p></div>
-<div class="para"><p>ruby-debug creates a content when a stopping point or an event is reached. The context has information about the suspended program which enables a debugger to inspect the frame stack, evaluate variables from the perspective of the debugged program, and contains information about the place where the debugged program is stopped.</p></div>
-<div class="para"><p>At any time you can call the <tt>backtrace</tt> command (or its alias <tt>where</tt>) to print the backtrace of the application. This can be very helpful to know how you got where you are. If you ever wondered about how you got somewhere in your code, then <tt>backtrace</tt> will supply the answer.</p></div>
+<div class="paragraph"><p>When you start debugging your application, you will be placed in different contexts as you go through the different parts of the stack.</p></div>
+<div class="paragraph"><p>ruby-debug creates a content when a stopping point or an event is reached. The context has information about the suspended program which enables a debugger to inspect the frame stack, evaluate variables from the perspective of the debugged program, and contains information about the place where the debugged program is stopped.</p></div>
+<div class="paragraph"><p>At any time you can call the <tt>backtrace</tt> command (or its alias <tt>where</tt>) to print the backtrace of the application. This can be very helpful to know how you got where you are. If you ever wondered about how you got somewhere in your code, then <tt>backtrace</tt> will supply the answer.</p></div>
 <div class="listingblock">
 <div class="content">
 <pre><tt>(rdb:5) where
@@ -675,18 +494,18 @@ continue   edit     frame   method  putl  set      tmate   where</tt></pre>
        at line /PathTo/project/vendor/rails/actionpack/lib/action_controller/filters.rb:617
 ...</tt></pre>
 </div></div>
-<div class="para"><p>You move anywhere you want in this trace (thus changing the context) by using the <tt>frame <em>n</em></tt> command, where <em>n</em> is the specified frame number.</p></div>
+<div class="paragraph"><p>You move anywhere you want in this trace (thus changing the context) by using the <tt>frame <em>n</em></tt> command, where <em>n</em> is the specified frame number.</p></div>
 <div class="listingblock">
 <div class="content">
 <pre><tt>(rdb:5) frame 2
 #2 ActionController::Base.perform_action_without_filters
        at line /PathTo/project/vendor/rails/actionpack/lib/action_controller/base.rb:1175</tt></pre>
 </div></div>
-<div class="para"><p>The available variables are the same as if you were running the code line by line. After all, that's what debugging is.</p></div>
-<div class="para"><p>Moving up and down the stack frame: You can use <tt>up [n]</tt> (<tt>u</tt> for abbreviated) and <tt>down [n]</tt> commands in order to change the context <em>n</em> frames up or down the stack respectively. <em>n</em> defaults to one. Up in this case is towards higher-numbered stack frames, and down is towards lower-numbered stack frames.</p></div>
+<div class="paragraph"><p>The available variables are the same as if you were running the code line by line. After all, that&#8217;s what debugging is.</p></div>
+<div class="paragraph"><p>Moving up and down the stack frame: You can use <tt>up [n]</tt> (<tt>u</tt> for abbreviated) and <tt>down [n]</tt> commands in order to change the context <em>n</em> frames up or down the stack respectively. <em>n</em> defaults to one. Up in this case is towards higher-numbered stack frames, and down is towards lower-numbered stack frames.</p></div>
 <h3 id="_threads">3.4. Threads</h3>
-<div class="para"><p>The debugger can list, stop, resume and switch between running threads by using the command <tt>thread</tt> (or the abbreviated <tt>th</tt>). This command has a handful of options:</p></div>
-<div class="ilist"><ul>
+<div class="paragraph"><p>The debugger can list, stop, resume and switch between running threads by using the command <tt>thread</tt> (or the abbreviated <tt>th</tt>). This command has a handful of options:</p></div>
+<div class="ulist"><ul>
 <li>
 <p>
 <tt>thread</tt> shows the current thread.
@@ -713,17 +532,17 @@ continue   edit     frame   method  putl  set      tmate   where</tt></pre>
 </p>
 </li>
 </ul></div>
-<div class="para"><p>This command is very helpful, among other occasions, when you are debugging concurrent threads and need to verify that there are no race conditions in your code.</p></div>
+<div class="paragraph"><p>This command is very helpful, among other occasions, when you are debugging concurrent threads and need to verify that there are no race conditions in your code.</p></div>
 <h3 id="_inspecting_variables">3.5. Inspecting Variables</h3>
-<div class="para"><p>Any expression can be evaluated in the current context. To evaluate an expression, just type it!</p></div>
-<div class="para"><p>This example shows how you can print the instance_variables defined within the current context:</p></div>
+<div class="paragraph"><p>Any expression can be evaluated in the current context. To evaluate an expression, just type it!</p></div>
+<div class="paragraph"><p>This example shows how you can print the instance_variables defined within the current context:</p></div>
 <div class="listingblock">
 <div class="content">
 <pre><tt>@posts = Post.find(:all)
 (rdb:11) instance_variables
 ["@_response", "@action_name", "@url", "@_session", "@_cookies", "@performed_render", "@_flash", "@template", "@_params", "@before_filter_chain_aborted", "@request_origin", "@_headers", "@performed_redirect", "@_request"]</tt></pre>
 </div></div>
-<div class="para"><p>As you may have figured out, all of the variables that you can access from a controller are displayed. This list is dynamically updated as you execute code. For example, run the next line using <tt>next</tt> (you'll learn more about this command later in this guide).</p></div>
+<div class="paragraph"><p>As you may have figured out, all of the variables that you can access from a controller are displayed. This list is dynamically updated as you execute code. For example, run the next line using <tt>next</tt> (you&#8217;ll learn more about this command later in this guide).</p></div>
 <div class="listingblock">
 <div class="content">
 <pre><tt>(rdb:11) next
@@ -733,13 +552,13 @@ Processing PostsController#index (for 127.0.0.1 at 2008-09-04 19:51:34) [GET]
 /PathToProject/posts_controller.rb:8
 respond_to do |format|</tt></pre>
 </div></div>
-<div class="para"><p>And then ask again for the instance_variables:</p></div>
+<div class="paragraph"><p>And then ask again for the instance_variables:</p></div>
 <div class="listingblock">
 <div class="content">
 <pre><tt>(rdb:11) instance_variables.include? "@posts"
 true</tt></pre>
 </div></div>
-<div class="para"><p>Now <tt>@posts</tt> is a included in the instance variables, because the line defining it was executed.</p></div>
+<div class="paragraph"><p>Now <tt>@posts</tt> is a included in the instance variables, because the line defining it was executed.</p></div>
 <div class="admonitionblock">
 <table><tr>
 <td class="icon">
@@ -748,7 +567,7 @@ true</tt></pre>
 <td class="content">You can also step into <strong>irb</strong> mode with the command <tt>irb</tt> (of course!). This way an irb session will be started within the context you invoked it. But be warned: this is an experimental feature.</td>
 </tr></table>
 </div>
-<div class="para"><p>The <tt>var</tt> method is the most convenient way to show variables and their values:</p></div>
+<div class="paragraph"><p>The <tt>var</tt> method is the most convenient way to show variables and their values:</p></div>
 <div class="listingblock">
 <div class="content">
 <pre><tt>var
@@ -757,13 +576,13 @@ true</tt></pre>
 (rdb:1) v[ar] i[nstance] &lt;object&gt;       show instance variables of object
 (rdb:1) v[ar] l[ocal]                   show local variables</tt></pre>
 </div></div>
-<div class="para"><p>This is a great way to inspect the values of the current context variables. For example:</p></div>
+<div class="paragraph"><p>This is a great way to inspect the values of the current context variables. For example:</p></div>
 <div class="listingblock">
 <div class="content">
 <pre><tt>(rdb:9) var local
   __dbg_verbose_save =&gt; false</tt></pre>
 </div></div>
-<div class="para"><p>You can also inspect for an object method this way:</p></div>
+<div class="paragraph"><p>You can also inspect for an object method this way:</p></div>
 <div class="listingblock">
 <div class="content">
 <pre><tt>(rdb:9) var instance Post.new
@@ -779,16 +598,16 @@ true</tt></pre>
 <td class="content">The commands <tt>p</tt> (print) and <tt>pp</tt> (pretty print) can be used to evaluate Ruby expressions and display the value of variables to the console.</td>
 </tr></table>
 </div>
-<div class="para"><p>You can use also <tt>display</tt> to start watching variables. This is a good way of tracking the values of a variable while the execution goes on.</p></div>
+<div class="paragraph"><p>You can use also <tt>display</tt> to start watching variables. This is a good way of tracking the values of a variable while the execution goes on.</p></div>
 <div class="listingblock">
 <div class="content">
 <pre><tt>(rdb:1) display @recent_comments
 1: @recent_comments =</tt></pre>
 </div></div>
-<div class="para"><p>The variables inside the displaying list will be printed with their values after you move in the stack. To stop displaying a variable use <tt>undisplay <em>n</em></tt> where <em>n</em> is the variable number (1 in the last example).</p></div>
+<div class="paragraph"><p>The variables inside the displaying list will be printed with their values after you move in the stack. To stop displaying a variable use <tt>undisplay <em>n</em></tt> where <em>n</em> is the variable number (1 in the last example).</p></div>
 <h3 id="_step_by_step">3.6. Step by Step</h3>
-<div class="para"><p>Now you should know where you are in the running trace and be able to print the available variables. But lets continue and move on with the application execution.</p></div>
-<div class="para"><p>Use <tt>step</tt> (abbreviated <tt>s</tt>) to continue running your program until the next logical stopping point and return control to ruby-debug.</p></div>
+<div class="paragraph"><p>Now you should know where you are in the running trace and be able to print the available variables. But lets continue and move on with the application execution.</p></div>
+<div class="paragraph"><p>Use <tt>step</tt> (abbreviated <tt>s</tt>) to continue running your program until the next logical stopping point and return control to ruby-debug.</p></div>
 <div class="admonitionblock">
 <table><tr>
 <td class="icon">
@@ -797,9 +616,9 @@ true</tt></pre>
 <td class="content">You can also use <tt>step+ <em>n</em></tt> and <tt>step- <em>n</em></tt> to move forward or backward <em>n</em> steps respectively.</td>
 </tr></table>
 </div>
-<div class="para"><p>You may also use <tt>next</tt> which is similar to step, but function or method calls that appear within the line of code are executed without stopping. As with step, you may use plus sign to move <em>n</em> steps.</p></div>
-<div class="para"><p>The difference between <tt>next</tt> and <tt>step</tt> is that <tt>step</tt> stops at the next line of code executed, doing just a single step, while <tt>next</tt> moves to the next line without descending inside methods.</p></div>
-<div class="para"><p>For example, consider this block of code with an included <tt>debugger</tt> statement:</p></div>
+<div class="paragraph"><p>You may also use <tt>next</tt> which is similar to step, but function or method calls that appear within the line of code are executed without stopping. As with step, you may use plus sign to move <em>n</em> steps.</p></div>
+<div class="paragraph"><p>The difference between <tt>next</tt> and <tt>step</tt> is that <tt>step</tt> stops at the next line of code executed, doing just a single step, while <tt>next</tt> moves to the next line without descending inside methods.</p></div>
+<div class="paragraph"><p>For example, consider this block of code with an included <tt>debugger</tt> statement:</p></div>
 <div class="listingblock">
 <div class="content"><!-- Generator: GNU source-highlight 2.9
 by Lorenzo Bettini
@@ -817,8 +636,7 @@ http://www.gnu.org/software/src-highlite -->
       <span style="color: #990000">:</span>limit <span style="color: #990000">=&gt;</span> limit
     <span style="color: #990000">)</span>
   <span style="font-weight: bold"><span style="color: #0000FF">end</span></span>
-<span style="font-weight: bold"><span style="color: #0000FF">end</span></span>
-</tt></pre></div></div>
+<span style="font-weight: bold"><span style="color: #0000FF">end</span></span></tt></pre></div></div>
 <div class="admonitionblock">
 <table><tr>
 <td class="icon">
@@ -839,7 +657,7 @@ Loading development environment (Rails 2.1.0)
 /PathTo/project/app/models/author.rb:11
 )</tt></pre>
 </div></div>
-<div class="para"><p>With the code stopped, take a look around:</p></div>
+<div class="paragraph"><p>With the code stopped, take a look around:</p></div>
 <div class="listingblock">
 <div class="content">
 <pre><tt>(rdb:1) list
@@ -853,14 +671,14 @@ Loading development environment (Rails 2.1.0)
    12    end
    13  end</tt></pre>
 </div></div>
-<div class="para"><p>You are at the end of the line, but&#8230; was this line executed? You can inspect the instance variables.</p></div>
+<div class="paragraph"><p>You are at the end of the line, but... was this line executed? You can inspect the instance variables.</p></div>
 <div class="listingblock">
 <div class="content">
 <pre><tt>(rdb:1) var instance
 @attributes = {"updated_at"=&gt;"2008-07-31 12:46:10", "id"=&gt;"1", "first_name"=&gt;"Bob", "las...
 @attributes_cache = {}</tt></pre>
 </div></div>
-<div class="para"><p><tt>@recent_comments</tt> hasn't been defined yet, so it's clear that this line hasn't been executed yet. Use the <tt>next</tt> command to move on in the code:</p></div>
+<div class="paragraph"><p><tt>@recent_comments</tt> hasn&#8217;t been defined yet, so it&#8217;s clear that this line hasn&#8217;t been executed yet. Use the <tt>next</tt> command to move on in the code:</p></div>
 <div class="listingblock">
 <div class="content">
 <pre><tt>(rdb:1) next
@@ -872,12 +690,12 @@ Loading development environment (Rails 2.1.0)
 @comments = []
 @recent_comments = []</tt></pre>
 </div></div>
-<div class="para"><p>Now you can see that the <tt>@comments</tt> relationship was loaded and @recent_comments defined because the line was executed.</p></div>
-<div class="para"><p>If you want to go deeper into the stack trace you can move single <tt>steps</tt>, through your calling methods and into Rails code. This is one of the best ways to find bugs in your code, or perhaps in Ruby or Rails.</p></div>
+<div class="paragraph"><p>Now you can see that the <tt>@comments</tt> relationship was loaded and @recent_comments defined because the line was executed.</p></div>
+<div class="paragraph"><p>If you want to go deeper into the stack trace you can move single <tt>steps</tt>, through your calling methods and into Rails code. This is one of the best ways to find bugs in your code, or perhaps in Ruby or Rails.</p></div>
 <h3 id="_breakpoints">3.7. Breakpoints</h3>
-<div class="para"><p>A breakpoint makes your application stop whenever a certain point in the program is reached. The debugger shell is invoked in that line.</p></div>
-<div class="para"><p>You can add breakpoints dynamically with the command <tt>break</tt> (or just <tt>b</tt>). There are 3 possible ways of adding breakpoints manually:</p></div>
-<div class="ilist"><ul>
+<div class="paragraph"><p>A breakpoint makes your application stop whenever a certain point in the program is reached. The debugger shell is invoked in that line.</p></div>
+<div class="paragraph"><p>You can add breakpoints dynamically with the command <tt>break</tt> (or just <tt>b</tt>). There are 3 possible ways of adding breakpoints manually:</p></div>
+<div class="ulist"><ul>
 <li>
 <p>
 <tt>break line</tt>: set breakpoint in the <em>line</em> in the current source file.
@@ -890,7 +708,7 @@ Loading development environment (Rails 2.1.0)
 </li>
 <li>
 <p>
-<tt>break class(.|#)method [if expression]</tt>: set breakpoint in <em>method</em> (. and # for class and instance method respectively) defined in <em>class</em>. The <em>expression</em> works the same way as with file:line.
+<tt>break class(.|#)method [if expression]</tt>: set breakpoint in <em>method</em> (. and \# for class and instance method respectively) defined in <em>class</em>. The <em>expression</em> works the same way as with file:line.
 </p>
 </li>
 </ul></div>
@@ -899,22 +717,22 @@ Loading development environment (Rails 2.1.0)
 <pre><tt>(rdb:5) break 10
 Breakpoint 1 file /PathTo/project/vendor/rails/actionpack/lib/action_controller/filters.rb, line 10</tt></pre>
 </div></div>
-<div class="para"><p>Use <tt>info breakpoints <em>n</em></tt> or <tt>info break <em>n</em></tt> to list breakpoints. If you supply a number, it lists that breakpoint. Otherwise it lists all breakpoints.</p></div>
+<div class="paragraph"><p>Use <tt>info breakpoints <em>n</em></tt> or <tt>info break <em>n</em></tt> to list breakpoints. If you supply a number, it lists that breakpoint. Otherwise it lists all breakpoints.</p></div>
 <div class="listingblock">
 <div class="content">
 <pre><tt>(rdb:5) info breakpoints
 Num Enb What
   1 y   at filters.rb:10</tt></pre>
 </div></div>
-<div class="para"><p>To delete breakpoints: use the command <tt>delete <em>n</em></tt> to remove the breakpoint number <em>n</em>. If no number is specified, it deletes all breakpoints that are currently active..</p></div>
+<div class="paragraph"><p>To delete breakpoints: use the command <tt>delete <em>n</em></tt> to remove the breakpoint number <em>n</em>. If no number is specified, it deletes all breakpoints that are currently active..</p></div>
 <div class="listingblock">
 <div class="content">
 <pre><tt>(rdb:5) delete 1
 (rdb:5) info breakpoints
 No breakpoints.</tt></pre>
 </div></div>
-<div class="para"><p>You can also enable or disable breakpoints:</p></div>
-<div class="ilist"><ul>
+<div class="paragraph"><p>You can also enable or disable breakpoints:</p></div>
+<div class="ulist"><ul>
 <li>
 <p>
 <tt>enable breakpoints</tt>: allow a list <em>breakpoints</em> or all of them if no list is specified, to stop your program. This is the default state when you create a breakpoint.
@@ -927,11 +745,11 @@ No breakpoints.</tt></pre>
 </li>
 </ul></div>
 <h3 id="_catching_exceptions">3.8. Catching Exceptions</h3>
-<div class="para"><p>The command <tt>catch exception-name</tt> (or just <tt>cat exception-name</tt>) can be used to intercept an exception of type <em>exception-name</em> when there would otherwise be is no handler for it.</p></div>
-<div class="para"><p>To list all active catchpoints use <tt>catch</tt>.</p></div>
+<div class="paragraph"><p>The command <tt>catch exception-name</tt> (or just <tt>cat exception-name</tt>) can be used to intercept an exception of type <em>exception-name</em> when there would otherwise be is no handler for it.</p></div>
+<div class="paragraph"><p>To list all active catchpoints use <tt>catch</tt>.</p></div>
 <h3 id="_resuming_execution">3.9. Resuming Execution</h3>
-<div class="para"><p>There are two ways to resume execution of an application that is stopped in the debugger:</p></div>
-<div class="ilist"><ul>
+<div class="paragraph"><p>There are two ways to resume execution of an application that is stopped in the debugger:</p></div>
+<div class="ulist"><ul>
 <li>
 <p>
 <tt>continue</tt> [line-specification] (or <tt>c</tt>): resume program execution, at the address where your script last stopped; any breakpoints set at that address are bypassed. The optional argument line-specification allows you to specify a line number to set a one-time breakpoint which is deleted when that breakpoint is reached.
@@ -944,8 +762,8 @@ No breakpoints.</tt></pre>
 </li>
 </ul></div>
 <h3 id="_editing">3.10. Editing</h3>
-<div class="para"><p>Two commands allow you to open code from the debugger into an editor:</p></div>
-<div class="ilist"><ul>
+<div class="paragraph"><p>Two commands allow you to open code from the debugger into an editor:</p></div>
+<div class="ulist"><ul>
 <li>
 <p>
 <tt>edit [file:line]</tt>: edit <em>file</em> using the editor specified by the EDITOR environment variable. A specific <em>line</em> can also be given.
@@ -958,11 +776,11 @@ No breakpoints.</tt></pre>
 </li>
 </ul></div>
 <h3 id="_quitting">3.11. Quitting</h3>
-<div class="para"><p>To exit the debugger, use the <tt>quit</tt> command (abbreviated <tt>q</tt>), or its alias <tt>exit</tt>.</p></div>
-<div class="para"><p>A simple quit tries to terminate all threads in effect. Therefore your server will be stopped and you will have to start it again.</p></div>
+<div class="paragraph"><p>To exit the debugger, use the <tt>quit</tt> command (abbreviated <tt>q</tt>), or its alias <tt>exit</tt>.</p></div>
+<div class="paragraph"><p>A simple quit tries to terminate all threads in effect. Therefore your server will be stopped and you will have to start it again.</p></div>
 <h3 id="_settings">3.12. Settings</h3>
-<div class="para"><p>There are some settings that can be configured in ruby-debug to make it easier to debug your code. Here are a few of the available options:</p></div>
-<div class="ilist"><ul>
+<div class="paragraph"><p>There are some settings that can be configured in ruby-debug to make it easier to debug your code. Here are a few of the available options:</p></div>
+<div class="ulist"><ul>
 <li>
 <p>
 <tt>set reload</tt>: Reload source code when changed.
@@ -984,7 +802,7 @@ No breakpoints.</tt></pre>
 </p>
 </li>
 </ul></div>
-<div class="para"><p>You can see the full list by using <tt>help set</tt>. Use <tt>help set <em>subcommand</em></tt> to learn about a particular <tt>set</tt> command.</p></div>
+<div class="paragraph"><p>You can see the full list by using <tt>help set</tt>. Use <tt>help set <em>subcommand</em></tt> to learn about a particular <tt>set</tt> command.</p></div>
 <div class="admonitionblock">
 <table><tr>
 <td class="icon">
@@ -993,7 +811,7 @@ No breakpoints.</tt></pre>
 <td class="content">You can include any number of these configuration lines inside a <tt>.rdebugrc</tt> file in your HOME directory. ruby-debug will read this file every time it is loaded. and configure itself accordingly.</td>
 </tr></table>
 </div>
-<div class="para"><p>Here's a good start for an <tt>.rdebugrc</tt>:</p></div>
+<div class="paragraph"><p>Here&#8217;s a good start for an <tt>.rdebugrc</tt>:</p></div>
 <div class="listingblock">
 <div class="content">
 <pre><tt>set autolist
@@ -1003,37 +821,36 @@ set listsize 25</tt></pre>
 </div>
 <h2 id="_debugging_memory_leaks">4. Debugging Memory Leaks</h2>
 <div class="sectionbody">
-<div class="para"><p>A Ruby application (on Rails or not), can leak memory - either in the Ruby code or at the C code level.</p></div>
-<div class="para"><p>In this section, you will learn how to find and fix such leaks by using Bleak House and Valgrind debugging tools.</p></div>
+<div class="paragraph"><p>A Ruby application (on Rails or not), can leak memory - either in the Ruby code or at the C code level.</p></div>
+<div class="paragraph"><p>In this section, you will learn how to find and fix such leaks by using Bleak House and Valgrind debugging tools.</p></div>
 <h3 id="_bleakhouse">4.1. BleakHouse</h3>
-<div class="para"><p><a href="http://github.com/fauna/bleak_house/tree/master">BleakHouse</a> is a library for finding memory leaks.</p></div>
-<div class="para"><p>If a Ruby object does not go out of scope, the Ruby Garbage Collector won't sweep it since it is referenced somewhere. Leaks like this can grow slowly and your application will consume more and more memory, gradually affecting the overall system performance. This tool will help you find leaks on the Ruby heap.</p></div>
-<div class="para"><p>To install it run:</p></div>
+<div class="paragraph"><p><a href="http://github.com/fauna/bleak_house/tree/master">BleakHouse</a> is a library for finding memory leaks.</p></div>
+<div class="paragraph"><p>If a Ruby object does not go out of scope, the Ruby Garbage Collector won&#8217;t sweep it since it is referenced somewhere. Leaks like this can grow slowly and your application will consume more and more memory, gradually affecting the overall system performance. This tool will help you find leaks on the Ruby heap.</p></div>
+<div class="paragraph"><p>To install it run:</p></div>
 <div class="listingblock">
 <div class="content">
 <pre><tt>sudo gem install bleak_house</tt></pre>
 </div></div>
-<div class="para"><p>Then setup you application for profiling. Then add the following at the bottom of config/environment.rb:</p></div>
+<div class="paragraph"><p>Then setup you application for profiling. Then add the following at the bottom of config/environment.rb:</p></div>
 <div class="listingblock">
 <div class="content"><!-- Generator: GNU source-highlight 2.9
 by Lorenzo Bettini
 http://www.lorenzobettini.it
 http://www.gnu.org/software/src-highlite -->
-<pre><tt><span style="font-weight: bold"><span style="color: #000080">require</span></span> <span style="color: #FF0000">'bleak_house'</span> <span style="font-weight: bold"><span style="color: #0000FF">if</span></span> ENV<span style="color: #990000">[</span><span style="color: #FF0000">'BLEAK_HOUSE'</span><span style="color: #990000">]</span>
-</tt></pre></div></div>
-<div class="para"><p>Start a server instance with BleakHouse integration:</p></div>
+<pre><tt><span style="font-weight: bold"><span style="color: #000080">require</span></span> <span style="color: #FF0000">'bleak_house'</span> <span style="font-weight: bold"><span style="color: #0000FF">if</span></span> ENV<span style="color: #990000">[</span><span style="color: #FF0000">'BLEAK_HOUSE'</span><span style="color: #990000">]</span></tt></pre></div></div>
+<div class="paragraph"><p>Start a server instance with BleakHouse integration:</p></div>
 <div class="listingblock">
 <div class="content">
 <pre><tt>RAILS_ENV=production BLEAK_HOUSE=1 ruby-bleak-house ./script/server</tt></pre>
 </div></div>
-<div class="para"><p>Make sure to run a couple hundred requests to get better data samples, then press <tt>CTRL-C</tt>. The server will stop and Bleak House will produce a dumpfile in <tt>/tmp</tt>:</p></div>
+<div class="paragraph"><p>Make sure to run a couple hundred requests to get better data samples, then press <tt>CTRL-C</tt>. The server will stop and Bleak House will produce a dumpfile in <tt>/tmp</tt>:</p></div>
 <div class="listingblock">
 <div class="content">
 <pre><tt>** BleakHouse: working...
 ** BleakHouse: complete
 ** Bleakhouse: run 'bleak /tmp/bleak.5979.0.dump' to analyze.</tt></pre>
 </div></div>
-<div class="para"><p>To analyze it, just run the listed command. The top 20 leakiest lines will be listed:</p></div>
+<div class="paragraph"><p>To analyze it, just run the listed command. The top 20 leakiest lines will be listed:</p></div>
 <div class="listingblock">
 <div class="content">
 <pre><tt>  191691 total objects
@@ -1049,17 +866,17 @@ http://www.gnu.org/software/src-highlite -->
    834 /opt/local//lib/ruby/site_ruby/1.8/rubygems/version.rb:146:Array
   ...</tt></pre>
 </div></div>
-<div class="para"><p>This way you can find where your application is leaking memory and fix it.</p></div>
-<div class="para"><p>If <a href="http://github.com/fauna/bleak_house/tree/master">BleakHouse</a> doesn't report any heap growth but you still have memory growth, you might have a broken C extension, or real leak in the interpreter. In that case, try using Valgrind to investigate further.</p></div>
+<div class="paragraph"><p>This way you can find where your application is leaking memory and fix it.</p></div>
+<div class="paragraph"><p>If <a href="http://github.com/fauna/bleak_house/tree/master">BleakHouse</a> doesn&#8217;t report any heap growth but you still have memory growth, you might have a broken C extension, or real leak in the interpreter. In that case, try using Valgrind to investigate further.</p></div>
 <h3 id="_valgrind">4.2. Valgrind</h3>
-<div class="para"><p><a href="http://valgrind.org/">Valgrind</a> is a Linux-only application for detecting C-based memory leaks and race conditions.</p></div>
-<div class="para"><p>There are Valgrind tools that can automatically detect many memory management and threading bugs, and profile your programs in detail. For example, a C extension in the interpreter calls <tt>malloc()</tt> but is doesn't properly call <tt>free()</tt>, this memory won't be available until the app terminates.</p></div>
-<div class="para"><p>For further information on how to install Valgrind and use with Ruby, refer to <a href="http://blog.evanweaver.com/articles/2008/02/05/valgrind-and-ruby/">Valgrind and Ruby</a> by Evan Weaver.</p></div>
+<div class="paragraph"><p><a href="http://valgrind.org/">Valgrind</a> is a Linux-only application for detecting C-based memory leaks and race conditions.</p></div>
+<div class="paragraph"><p>There are Valgrind tools that can automatically detect many memory management and threading bugs, and profile your programs in detail. For example, a C extension in the interpreter calls <tt>malloc()</tt> but is doesn&#8217;t properly call <tt>free()</tt>, this memory won&#8217;t be available until the app terminates.</p></div>
+<div class="paragraph"><p>For further information on how to install Valgrind and use with Ruby, refer to <a href="http://blog.evanweaver.com/articles/2008/02/05/valgrind-and-ruby/">Valgrind and Ruby</a> by Evan Weaver.</p></div>
 </div>
 <h2 id="_plugins_for_debugging">5. Plugins for Debugging</h2>
 <div class="sectionbody">
-<div class="para"><p>There are some Rails plugins to help you to find errors and debug your application. Here is a list of useful plugins for debugging:</p></div>
-<div class="ilist"><ul>
+<div class="paragraph"><p>There are some Rails plugins to help you to find errors and debug your application. Here is a list of useful plugins for debugging:</p></div>
+<div class="ulist"><ul>
 <li>
 <p>
 <a href="http://github.com/drnic/rails-footnotes/tree/master">Footnotes</a>: Every Rails page has footnotes that give request information and link back to your source via TextMate.
@@ -1094,7 +911,7 @@ http://www.gnu.org/software/src-highlite -->
 </div>
 <h2 id="_references">6. References</h2>
 <div class="sectionbody">
-<div class="ilist"><ul>
+<div class="ulist"><ul>
 <li>
 <p>
 <a href="http://www.datanoise.com/ruby-debug">ruby-debug Homepage</a>
@@ -1112,17 +929,17 @@ http://www.gnu.org/software/src-highlite -->
 </li>
 <li>
 <p>
-<a href="http://railscasts.com/episodes/54-debugging-with-ruby-debug">Ryan Bate's ruby-debug screencast</a>
+<a href="http://railscasts.com/episodes/54-debugging-with-ruby-debug">Ryan Bate&#8217;s ruby-debug screencast</a>
 </p>
 </li>
 <li>
 <p>
-<a href="http://railscasts.com/episodes/24-the-stack-trace">Ryan Bate's stack trace screencast</a>
+<a href="http://railscasts.com/episodes/24-the-stack-trace">Ryan Bate&#8217;s stack trace screencast</a>
 </p>
 </li>
 <li>
 <p>
-<a href="http://railscasts.com/episodes/56-the-logger">Ryan Bate's logger screencast</a>
+<a href="http://railscasts.com/episodes/56-the-logger">Ryan Bate&#8217;s logger screencast</a>
 </p>
 </li>
 <li>
@@ -1149,8 +966,8 @@ http://www.gnu.org/software/src-highlite -->
 </div>
 <h2 id="_changelog">7. Changelog</h2>
 <div class="sectionbody">
-<div class="para"><p><a href="http://rails.lighthouseapp.com/projects/16213-rails-guides/tickets/5">Lighthouse ticket</a></p></div>
-<div class="ilist"><ul>
+<div class="paragraph"><p><a href="http://rails.lighthouseapp.com/projects/16213-rails-guides/tickets/5">Lighthouse ticket</a></p></div>
+<div class="ulist"><ul>
 <li>
 <p>
 November 3, 2008: Accepted for publication. Added RJS, memory leaks and plugins chapters by <a href="../authors.html#miloops">Emilio Tagua</a>
@@ -1169,7 +986,7 @@ September 16, 2008: initial version by <a href="../authors.html#miloops">Emilio 
 </ul></div>
 </div>
 
-		</div>
-	</div>
+    </div>
+  </div>
 </body>
 </html>

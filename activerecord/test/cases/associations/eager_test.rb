@@ -771,4 +771,52 @@ class EagerAssociationTest < ActiveRecord::TestCase
     assert_equal author_addresses(:david_address), authors[0].author_address
   end
 
+  def test_preload_belongs_to_uses_exclusive_scope
+    people = Person.males.find(:all, :include => :primary_contact)
+    assert_not_equal people.length, 0
+    people.each do |person|
+      assert_no_queries {assert_not_nil person.primary_contact}
+      assert_equal Person.find(person.id).primary_contact, person.primary_contact
+    end
+  end
+
+  def test_preload_has_many_uses_exclusive_scope
+    people = Person.males.find :all, :include => :agents
+    people.each do |person|
+      assert_equal Person.find(person.id).agents, person.agents
+    end
+  end
+
+  def test_preload_has_many_using_primary_key
+    expected = Firm.find(:first).clients_using_primary_key.to_a
+    firm = Firm.find :first, :include => :clients_using_primary_key
+    assert_no_queries do
+      assert_equal expected, firm.clients_using_primary_key
+    end
+  end
+
+  def test_include_has_many_using_primary_key
+    expected = Firm.find(1).clients_using_primary_key.sort_by &:name
+    firm = Firm.find 1, :include => :clients_using_primary_key, :order => 'clients_using_primary_keys_companies.name'
+    assert_no_queries do
+      assert_equal expected, firm.clients_using_primary_key
+    end
+  end
+  
+  def test_preload_has_one_using_primary_key
+    expected = Firm.find(:first).account_using_primary_key
+    firm = Firm.find :first, :include => :account_using_primary_key
+    assert_no_queries do
+      assert_equal expected, firm.account_using_primary_key
+    end
+  end
+
+  def test_include_has_one_using_primary_key
+    expected = Firm.find(1).account_using_primary_key
+    firm = Firm.find(:all, :include => :account_using_primary_key, :order => 'accounts.id').detect {|f| f.id == 1}
+    assert_no_queries do
+      assert_equal expected, firm.account_using_primary_key
+    end
+  end
+  
 end

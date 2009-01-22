@@ -4,7 +4,7 @@ class BaseRackTest < Test::Unit::TestCase
   def setup
     @env = {
       "HTTP_MAX_FORWARDS" => "10",
-      "SERVER_NAME" => "glu.ttono.us:8007",
+      "SERVER_NAME" => "glu.ttono.us",
       "FCGI_ROLE" => "RESPONDER",
       "AUTH_TYPE" => "Basic",
       "HTTP_X_FORWARDED_HOST" => "glu.ttono.us",
@@ -57,7 +57,7 @@ class BaseRackTest < Test::Unit::TestCase
     @request.env['REQUEST_METHOD'] = 'POST'
     @request.env['CONTENT_LENGTH'] = data.length
     @request.env['CONTENT_TYPE'] = 'application/x-www-form-urlencoded; charset=utf-8'
-    @request.env['RAW_POST_DATA'] = data
+    @request.env['rack.input'] = StringIO.new(data)
   end
 end
 
@@ -145,7 +145,7 @@ class RackRequestTest < BaseRackTest
     assert_equal "kevin", @request.remote_user
     assert_equal :get, @request.request_method
     assert_equal "/dispatch.fcgi", @request.script_name
-    assert_equal "glu.ttono.us:8007", @request.server_name
+    assert_equal "glu.ttono.us", @request.server_name
     assert_equal 8007, @request.server_port
     assert_equal "HTTP/1.1", @request.server_protocol
     assert_equal "lighttpd", @request.server_software
@@ -236,7 +236,12 @@ class RackResponseTest < BaseRackTest
 
     status, headers, body = @response.to_a
     assert_equal 200, status
-    assert_equal({"Content-Type" => "text/html; charset=utf-8", "Cache-Control" => "no-cache", "Set-Cookie" => []}, headers)
+    assert_equal({
+      "Content-Type" => "text/html; charset=utf-8",
+      "Content-Length" => "",
+      "Cache-Control" => "no-cache",
+      "Set-Cookie" => []
+    }, headers)
 
     parts = []
     body.each { |part| parts << part }

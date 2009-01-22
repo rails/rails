@@ -40,6 +40,21 @@ class Object
     value
   end
 
+  # Yields <code>x</code> to the block, and then returns <code>x</code>.
+  # The primary purpose of this method is to "tap into" a method chain,
+  # in order to perform operations on intermediate results within the chain.
+  #
+  #   (1..10).tap { |x| puts "original: #{x.inspect}" }.to_a.
+  #     tap    { |x| puts "array: #{x.inspect}" }.
+  #     select { |x| x%2 == 0 }.
+  #     tap    { |x| puts "evens: #{x.inspect}" }.
+  #     map    { |x| x*x }.
+  #     tap    { |x| puts "squares: #{x.inspect}" }
+  def tap
+    yield self
+    self
+  end unless Object.respond_to?(:tap)
+
   # An elegant way to factor duplication out of options passed to a series of
   # method calls. Each method called in the block, with the block variable as
   # the receiver, will have its options merged with the default +options+ hash
@@ -72,21 +87,4 @@ class Object
     respond_to? "acts_like_#{duck}?"
   end
 
-  # Tries to send the method only if object responds to it. Return +nil+ otherwise.
-  # It will also forward any arguments and/or block like Object#send does.
-  # 
-  # ==== Example :
-  # 
-  # # Without try
-  # @person ? @person.name : nil
-  # 
-  # With try
-  # @person.try(:name)
-  #
-  # # try also accepts arguments/blocks for the method it is trying
-  # Person.try(:find, 1)
-  # @people.try(:map) {|p| p.name}
-  def try(method, *args, &block)
-    send(method, *args, &block) if respond_to?(method, true)
-  end
 end

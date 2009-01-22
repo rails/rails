@@ -48,30 +48,38 @@ module ActiveRecord
         calculate(:count, *construct_count_options_from_args(*args))
       end
 
-      # Calculates the average value on a given column.  The value is returned as a float.  See +calculate+ for examples with options.
+      # Calculates the average value on a given column. The value is returned as
+      # a float, or +nil+ if there's no row. See +calculate+ for examples with
+      # options.
       #
-      #   Person.average('age')
+      #   Person.average('age') # => 35.8
       def average(column_name, options = {})
         calculate(:avg, column_name, options)
       end
 
-      # Calculates the minimum value on a given column.  The value is returned with the same data type of the column.  See +calculate+ for examples with options.
+      # Calculates the minimum value on a given column.  The value is returned
+      # with the same data type of the column, or +nil+ if there's no row. See
+      # +calculate+ for examples with options.
       #
-      #   Person.minimum('age')
+      #   Person.minimum('age') # => 7
       def minimum(column_name, options = {})
         calculate(:min, column_name, options)
       end
 
-      # Calculates the maximum value on a given column.  The value is returned with the same data type of the column.  See +calculate+ for examples with options.
+      # Calculates the maximum value on a given column. The value is returned
+      # with the same data type of the column, or +nil+ if there's no row. See
+      # +calculate+ for examples with options.
       #
-      #   Person.maximum('age')
+      #   Person.maximum('age') # => 93
       def maximum(column_name, options = {})
         calculate(:max, column_name, options)
       end
 
-      # Calculates the sum of values on a given column.  The value is returned with the same data type of the column.  See +calculate+ for examples with options.
+      # Calculates the sum of values on a given column. The value is returned
+      # with the same data type of the column, 0 if there's no row. See
+      # +calculate+ for examples with options.
       #
-      #   Person.sum('age')
+      #   Person.sum('age') # => 4562
       def sum(column_name, options = {})
         calculate(:sum, column_name, options)
       end

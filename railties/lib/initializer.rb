@@ -370,8 +370,9 @@ Run `rake gems:install` to install the missing gems.
     def load_view_paths
       if configuration.frameworks.include?(:action_view)
         if configuration.cache_classes
-          ActionController::Base.view_paths.load if configuration.frameworks.include?(:action_controller)
-          ActionMailer::Base.template_root.load if configuration.frameworks.include?(:action_mailer)
+          view_path = ActionView::Template::EagerPath.new(configuration.view_path)
+          ActionController::Base.view_paths = view_path if configuration.frameworks.include?(:action_controller)
+          ActionMailer::Base.template_root = view_path if configuration.frameworks.include?(:action_mailer)
         end
       end
     end
@@ -407,12 +408,18 @@ Run `rake gems:install` to install the missing gems.
       if configuration.frameworks.include?(:active_record)
         ActiveRecord::Base.configurations = configuration.database_configuration
         ActiveRecord::Base.establish_connection
+        configuration.middleware.use ActiveRecord::QueryCache
       end
     end
 
     def initialize_cache
       unless defined?(RAILS_CACHE)
         silence_warnings { Object.const_set "RAILS_CACHE", ActiveSupport::Cache.lookup_store(configuration.cache_store) }
+
+        if RAILS_CACHE.respond_to?(:middleware)
+          # Insert middleware to setup and teardown local cache for each request
+          configuration.middleware.insert_after(:"ActionController::Failsafe", RAILS_CACHE.middleware)
+        end
       end
     end
 
@@ -473,7 +480,7 @@ Run `rake gems:install` to install the missing gems.
     # set to use Configuration#view_path.
     def initialize_framework_views
       if configuration.frameworks.include?(:action_view)
-        view_path = ActionView::PathSet::Path.new(configuration.view_path, false)
+        view_path = ActionView::Template::Path.new(configuration.view_path)
         ActionMailer::Base.template_root ||= view_path if configuration.frameworks.include?(:action_mailer)
         ActionController::Base.view_paths = view_path if configuration.frameworks.include?(:action_controller) && ActionController::Base.view_paths.empty?
       end
@@ -536,7 +543,9 @@ Run `rake gems:install` to install the missing gems.
     end
 
     def initialize_metal
-      configuration.middleware.use Rails::Rack::Metal
+      configuration.middleware.insert_before(
+        :"ActionController::RewindableInput",
+        Rails::Rack::Metal, :if => Rails::Rack::Metal.metals.any?)
     end
 
     # Initializes framework-specific settings for each of the loaded frameworks

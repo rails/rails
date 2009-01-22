@@ -145,10 +145,10 @@ module ActionController
           def define_hash_access(route, name, kind, options)
             selector = hash_access_name(name, kind)
             named_helper_module_eval <<-end_eval # We use module_eval to avoid leaks
-              def #{selector}(options = nil)
-                options ? #{options.inspect}.merge(options) : #{options.inspect}
-              end
-              protected :#{selector}
+              def #{selector}(options = nil)                                      # def hash_for_users_url(options = nil)
+                options ? #{options.inspect}.merge(options) : #{options.inspect}  #   options ? {:only_path=>false}.merge(options) : {:only_path=>false}
+              end                                                                 # end
+              protected :#{selector}                                              # protected :hash_for_users_url
             end_eval
             helpers << selector
           end
@@ -173,32 +173,33 @@ module ActionController
             #   foo_url(bar, baz, bang, :sort_by => 'baz')
             #
             named_helper_module_eval <<-end_eval # We use module_eval to avoid leaks
-              def #{selector}(*args)
-
-                #{generate_optimisation_block(route, kind)}
-
-                opts = if args.empty? || Hash === args.first
-                  args.first || {}
-                else
-                  options = args.extract_options!
-                  args = args.zip(#{route.segment_keys.inspect}).inject({}) do |h, (v, k)|
-                    h[k] = v
-                    h
-                  end
-                  options.merge(args)
-                end
-
-                url_for(#{hash_access_method}(opts))
-                
-              end
-              #Add an alias to support the now deprecated formatted_* URL.
-              def formatted_#{selector}(*args)
-                ActiveSupport::Deprecation.warn(
-                  "formatted_#{selector}() has been deprecated. please pass format to the standard" +
-                  "#{selector}() method instead.", caller)
-                #{selector}(*args)
-              end
-              protected :#{selector}
+              def #{selector}(*args)                                                        # def users_url(*args)
+                                                                                            #
+                #{generate_optimisation_block(route, kind)}                                 #   #{generate_optimisation_block(route, kind)}
+                                                                                            #
+                opts = if args.empty? || Hash === args.first                                #   opts = if args.empty? || Hash === args.first
+                  args.first || {}                                                          #     args.first || {}
+                else                                                                        #   else
+                  options = args.extract_options!                                           #     options = args.extract_options!
+                  args = args.zip(#{route.segment_keys.inspect}).inject({}) do |h, (v, k)|  #     args = args.zip([]).inject({}) do |h, (v, k)|
+                    h[k] = v                                                                #       h[k] = v
+                    h                                                                       #       h
+                  end                                                                       #     end
+                  options.merge(args)                                                       #     options.merge(args)
+                end                                                                         #   end
+                                                                                            #
+                url_for(#{hash_access_method}(opts))                                        #   url_for(hash_for_users_url(opts))
+                                                                                            #
+              end                                                                           # end
+              #Add an alias to support the now deprecated formatted_* URL.                  # #Add an alias to support the now deprecated formatted_* URL.
+              def formatted_#{selector}(*args)                                              # def formatted_users_url(*args)
+                ActiveSupport::Deprecation.warn(                                            #   ActiveSupport::Deprecation.warn(
+                  "formatted_#{selector}() has been deprecated. " +                         #     "formatted_users_url() has been deprecated. " +
+                  "Please pass format to the standard " +                                   #     "Please pass format to the standard " +
+                  "#{selector} method instead.", caller)                                    #     "users_url method instead.", caller)
+                #{selector}(*args)                                                          #   users_url(*args)
+              end                                                                           # end
+              protected :#{selector}                                                        # protected :users_url
             end_eval
             helpers << selector
           end
@@ -424,6 +425,12 @@ module ActionController
           required_keys_or_values = required_segments.map { |seg| seg.key rescue seg.value } # we want either the key or the value from the segment
           raise RoutingError, "#{named_route_name}_url failed to generate from #{options.inspect} - you may have ambiguous routes, or you may need to supply additional parameters for this route.  content_url has the following required parameters: #{required_keys_or_values.inspect} - are they all satisfied?"
         end
+      end
+
+      def call(env)
+        request = Request.new(env)
+        app = Routing::Routes.recognize(request)
+        app.call(env).to_a
       end
 
       def recognize(request)

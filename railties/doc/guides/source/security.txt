@@ -93,7 +93,7 @@ That means the security of this storage depends on this secret (and of the diges
 
 ....................................
 config.action_controller.session = {
-  :session_key => ‘_app_session’,
+  :key         => ‘_app_session’,
   :secret      => ‘0x0dkfj3927dkc7djdh36rkckdfzsg...’
 }
 ....................................

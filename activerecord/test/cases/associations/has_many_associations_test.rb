@@ -698,7 +698,8 @@ class HasManyAssociationsTest < ActiveRecord::TestCase
       authors(:david).destroy
     end
 
-    assert_equal [author_address.id], AuthorAddress.destroyed_author_address_ids[authors(:david).id]
+    assert_equal nil, AuthorAddress.find_by_id(authors(:david).author_address_id)
+    assert_equal nil, AuthorAddress.find_by_id(authors(:david).author_address_extra_id)
   end
 
   def test_invalid_belongs_to_dependent_option_raises_exception
@@ -1114,6 +1115,12 @@ class HasManyAssociationsTest < ActiveRecord::TestCase
     client_association = companies(:first_firm).clients
     assert !client_association.respond_to?(:private_method)
     assert client_association.respond_to?(:private_method, true)
+  end
+
+  def test_creating_using_primary_key
+    firm = Firm.find(:first)
+    client = firm.clients_using_primary_key.create!(:name => 'test')
+    assert_equal firm.name, client.firm_name
   end
 end
 
