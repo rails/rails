@@ -5,7 +5,7 @@ If you prefer to use RSpec instead of Test::Unit, you may be interested in the h
 === References ===
 
  * http://nubyonrails.com/articles/the-complete-guide-to-rails-plugins-part-i
- * http://nubyonrails.com/articles/2006/05/09/the-complete-guide-to-rails-plugins-part-ii
+ * http://nubyonrails.com/articles/the-complete-guide-to-rails-plugins-part-ii
  * http://github.com/technoweenie/attachment_fu/tree/master
  * http://daddy.platte.name/2007/05/rails-plugins-keep-initrb-thin.html
  * http://www.mbleigh.com/2008/6/11/gemplugins-a-brief-introduction-to-the-future-of-rails-plugins
