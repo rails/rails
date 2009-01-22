@@ -131,3 +131,29 @@ Notice how we call deliver_welcome_email? Where is that method? Well if you reme
 That's it! Now whenever your users signup, they will be greeted with a nice welcome email. Next up, we'll talk about how to test a mailer model.
 
 == Mailer Testing
+Testing mailers involves 2 things. One is that the mail was queued and the other that the body contains what we expect it to contain. With that in mind, we could test our example mailer from above like so:
+
+[source, ruby]
+-------------------------------------------------------
+class UserMailerTest < ActionMailer::TestCase
+    tests UserMailer
+
+    def test_welcome_email
+      user = users(:some_user_in_your_fixtures)
+
+      # Send the email, then test that it got queued
+      email = UserMailer.deliver_welcome_email(user)
+      assert !ActionMailer::Base.deliveries.empty?
+
+      # Test the body of the sent email contains what we expect it to
+      assert_equal [@user.email],                 email.to
+      assert_equal "Welcome to My Awesome Site",  email.subject
+      assert       email.body =~ /Welcome to example.com, #{user.first_name}/
+    end
+  end
+-------------------------------------------------------
+
+What have we done? Well, we sent the email and stored the returned object in the email variable. We then ensured that it was sent (the first assert), then, in the second batch of assertion, we ensure that the email does indeed contain the values that we expect.
+
+== Epilogue
+This guide presented how to create a mailer and how to test it. In reality, you may find that writing your tests before you actually write your code to be a rewarding experience. It may take some time to get used to TDD (Test Driven Development), but coding this way achieves two major benefits. Firstly, you know that the code does indeed work, because the tests fail (because there's no code), then they pass, because the code that satisfies the tests was written. Secondly, when you start with the tests, you don't have to make time AFTER you write the code, to write the tests, then never get around to it. The tests are already there and testing has now become part of your coding regimen.
