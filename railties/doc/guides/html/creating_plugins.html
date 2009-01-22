@@ -299,7 +299,7 @@ create  vendor/plugins/yaffle/generators/yaffle/USAGE</tt></pre>
 </div></div>
 <div class="paragraph"><p><strong>vendor/plugins/yaffle/rails/init.rb</strong></p></div>
 <div class="listingblock">
-<div class="content"><!-- Generator: GNU source-highlight 2.11.1
+<div class="content"><!-- Generator: GNU source-highlight 2.9
 by Lorenzo Bettini
 http://www.lorenzobettini.it
 http://www.gnu.org/software/src-highlite -->
@@ -355,7 +355,7 @@ mysql:
 <div class="paragraph"><p>For this guide you&#8217;ll need 2 tables/models, Hickwalls and Wickwalls, so add the following:</p></div>
 <div class="paragraph"><p><strong>vendor/plugins/yaffle/test/schema.rb:</strong></p></div>
 <div class="listingblock">
-<div class="content"><!-- Generator: GNU source-highlight 2.11.1
+<div class="content"><!-- Generator: GNU source-highlight 2.9
 by Lorenzo Bettini
 http://www.lorenzobettini.it
 http://www.gnu.org/software/src-highlite -->
@@ -376,7 +376,7 @@ http://www.gnu.org/software/src-highlite -->
 <span style="font-weight: bold"><span style="color: #0000FF">end</span></span></tt></pre></div></div>
 <div class="paragraph"><p><strong>vendor/plugins/yaffle/test/test_helper.rb:</strong></p></div>
 <div class="listingblock">
-<div class="content"><!-- Generator: GNU source-highlight 2.11.1
+<div class="content"><!-- Generator: GNU source-highlight 2.9
 by Lorenzo Bettini
 http://www.lorenzobettini.it
 http://www.gnu.org/software/src-highlite -->
@@ -419,7 +419,7 @@ ENV<span style="color: #990000">[</span><span style="color: #FF0000">'RAILS_ROOT
 <div class="paragraph"><p>Once you have these files in place, you can write your first test to ensure that your plugin-testing setup is correct.  By default rails generates a file in <em>vendor/plugins/yaffle/test/yaffle_test.rb</em> with a sample test.  Replace the contents of that file with:</p></div>
 <div class="paragraph"><p><strong>vendor/plugins/yaffle/test/yaffle_test.rb:</strong></p></div>
 <div class="listingblock">
-<div class="content"><!-- Generator: GNU source-highlight 2.11.1
+<div class="content"><!-- Generator: GNU source-highlight 2.9
 by Lorenzo Bettini
 http://www.lorenzobettini.it
 http://www.gnu.org/software/src-highlite -->
@@ -481,7 +481,7 @@ rake DB=postgresql</tt></pre>
 <div class="paragraph"><p>In this example you will add a method to String named <tt>to_squawk</tt>.  To begin, create a new test file with a few assertions:</p></div>
 <div class="paragraph"><p><strong>vendor/plugins/yaffle/test/core_ext_test.rb</strong></p></div>
 <div class="listingblock">
-<div class="content"><!-- Generator: GNU source-highlight 2.11.1
+<div class="content"><!-- Generator: GNU source-highlight 2.9
 by Lorenzo Bettini
 http://www.lorenzobettini.it
 http://www.gnu.org/software/src-highlite -->
@@ -510,7 +510,7 @@ NoMethodError: undefined method `to_squawk' for "Hello World":String
 <div class="paragraph"><p>Then in <em>lib/yaffle.rb</em> require <em>lib/core_ext.rb</em>:</p></div>
 <div class="paragraph"><p><strong>vendor/plugins/yaffle/lib/yaffle.rb</strong></p></div>
 <div class="listingblock">
-<div class="content"><!-- Generator: GNU source-highlight 2.11.1
+<div class="content"><!-- Generator: GNU source-highlight 2.9
 by Lorenzo Bettini
 http://www.lorenzobettini.it
 http://www.gnu.org/software/src-highlite -->
@@ -518,7 +518,7 @@ http://www.gnu.org/software/src-highlite -->
 <div class="paragraph"><p>Finally, create the <em>core_ext.rb</em> file and add the <em>to_squawk</em> method:</p></div>
 <div class="paragraph"><p><strong>vendor/plugins/yaffle/lib/yaffle/core_ext.rb</strong></p></div>
 <div class="listingblock">
-<div class="content"><!-- Generator: GNU source-highlight 2.11.1
+<div class="content"><!-- Generator: GNU source-highlight 2.9
 by Lorenzo Bettini
 http://www.lorenzobettini.it
 http://www.gnu.org/software/src-highlite -->
@@ -540,7 +540,7 @@ http://www.gnu.org/software/src-highlite -->
 <div class="paragraph"><p>If you must reopen a class in <tt>init.rb</tt> you can use <tt>module_eval</tt> or <tt>class_eval</tt> to avoid any issues:</p></div>
 <div class="paragraph"><p><strong>vendor/plugins/yaffle/rails/init.rb</strong></p></div>
 <div class="listingblock">
-<div class="content"><!-- Generator: GNU source-highlight 2.11.1
+<div class="content"><!-- Generator: GNU source-highlight 2.9
 by Lorenzo Bettini
 http://www.lorenzobettini.it
 http://www.gnu.org/software/src-highlite -->
@@ -552,7 +552,7 @@ http://www.gnu.org/software/src-highlite -->
 <div class="paragraph"><p>Another way is to explicitly define the top-level module space for all modules and classes, like <tt>::Hash</tt>:</p></div>
 <div class="paragraph"><p><strong>vendor/plugins/yaffle/rails/init.rb</strong></p></div>
 <div class="listingblock">
-<div class="content"><!-- Generator: GNU source-highlight 2.11.1
+<div class="content"><!-- Generator: GNU source-highlight 2.9
 by Lorenzo Bettini
 http://www.lorenzobettini.it
 http://www.gnu.org/software/src-highlite -->
@@ -568,7 +568,7 @@ http://www.gnu.org/software/src-highlite -->
 <div class="paragraph"><p>To begin, set up your files so that you have:</p></div>
 <div class="paragraph"><p><strong>vendor/plugins/yaffle/test/acts_as_yaffle_test.rb</strong></p></div>
 <div class="listingblock">
-<div class="content"><!-- Generator: GNU source-highlight 2.11.1
+<div class="content"><!-- Generator: GNU source-highlight 2.9
 by Lorenzo Bettini
 http://www.lorenzobettini.it
 http://www.gnu.org/software/src-highlite -->
@@ -578,14 +578,14 @@ http://www.gnu.org/software/src-highlite -->
 <span style="font-weight: bold"><span style="color: #0000FF">end</span></span></tt></pre></div></div>
 <div class="paragraph"><p><strong>vendor/plugins/yaffle/lib/yaffle.rb</strong></p></div>
 <div class="listingblock">
-<div class="content"><!-- Generator: GNU source-highlight 2.11.1
+<div class="content"><!-- Generator: GNU source-highlight 2.9
 by Lorenzo Bettini
 http://www.lorenzobettini.it
 http://www.gnu.org/software/src-highlite -->
 <pre><tt><span style="font-weight: bold"><span style="color: #000080">require</span></span> <span style="color: #FF0000">'yaffle/acts_as_yaffle'</span></tt></pre></div></div>
 <div class="paragraph"><p><strong>vendor/plugins/yaffle/lib/yaffle/acts_as_yaffle.rb</strong></p></div>
 <div class="listingblock">
-<div class="content"><!-- Generator: GNU source-highlight 2.11.1
+<div class="content"><!-- Generator: GNU source-highlight 2.9
 by Lorenzo Bettini
 http://www.lorenzobettini.it
 http://www.gnu.org/software/src-highlite -->
@@ -596,7 +596,7 @@ http://www.gnu.org/software/src-highlite -->
 <div class="paragraph"><p>One of the most common plugin patterns for <em>acts_as_yaffle</em> plugins is to structure your file like so:</p></div>
 <div class="paragraph"><p><strong>vendor/plugins/yaffle/lib/yaffle/acts_as_yaffle.rb</strong></p></div>
 <div class="listingblock">
-<div class="content"><!-- Generator: GNU source-highlight 2.11.1
+<div class="content"><!-- Generator: GNU source-highlight 2.9
 by Lorenzo Bettini
 http://www.lorenzobettini.it
 http://www.gnu.org/software/src-highlite -->
@@ -622,7 +622,7 @@ http://www.gnu.org/software/src-highlite -->
 <div class="paragraph"><p>To start out, write a failing test that shows the behavior you&#8217;d like:</p></div>
 <div class="paragraph"><p><strong>vendor/plugins/yaffle/test/acts_as_yaffle_test.rb</strong></p></div>
 <div class="listingblock">
-<div class="content"><!-- Generator: GNU source-highlight 2.11.1
+<div class="content"><!-- Generator: GNU source-highlight 2.9
 by Lorenzo Bettini
 http://www.lorenzobettini.it
 http://www.gnu.org/software/src-highlite -->
@@ -650,7 +650,7 @@ http://www.gnu.org/software/src-highlite -->
 <div class="paragraph"><p>To make these tests pass, you could modify your <tt>acts_as_yaffle</tt> file like so:</p></div>
 <div class="paragraph"><p><strong>vendor/plugins/yaffle/lib/yaffle/acts_as_yaffle.rb</strong></p></div>
 <div class="listingblock">
-<div class="content"><!-- Generator: GNU source-highlight 2.11.1
+<div class="content"><!-- Generator: GNU source-highlight 2.9
 by Lorenzo Bettini
 http://www.lorenzobettini.it
 http://www.gnu.org/software/src-highlite -->
@@ -673,7 +673,7 @@ ActiveRecord<span style="color: #990000">::</span>Base<span style="color: #99000
 <div class="paragraph"><p>To start out, write a failing test that shows the behavior you&#8217;d like:</p></div>
 <div class="paragraph"><p><strong>vendor/plugins/yaffle/test/acts_as_yaffle_test.rb</strong></p></div>
 <div class="listingblock">
-<div class="content"><!-- Generator: GNU source-highlight 2.11.1
+<div class="content"><!-- Generator: GNU source-highlight 2.9
 by Lorenzo Bettini
 http://www.lorenzobettini.it
 http://www.gnu.org/software/src-highlite -->
@@ -713,7 +713,7 @@ http://www.gnu.org/software/src-highlite -->
 <div class="paragraph"><p>Run this test to make sure the last two tests fail, then update <em>acts_as_yaffle.rb</em> to look like this:</p></div>
 <div class="paragraph"><p><strong>vendor/plugins/yaffle/lib/yaffle/acts_as_yaffle.rb</strong></p></div>
 <div class="listingblock">
-<div class="content"><!-- Generator: GNU source-highlight 2.11.1
+<div class="content"><!-- Generator: GNU source-highlight 2.9
 by Lorenzo Bettini
 http://www.lorenzobettini.it
 http://www.gnu.org/software/src-highlite -->
@@ -770,7 +770,7 @@ ActiveRecord<span style="color: #990000">::</span>Base<span style="color: #99000
 <div class="paragraph"><p>As always, start with a test:</p></div>
 <div class="paragraph"><p><strong>vendor/plugins/yaffle/yaffle/woodpecker_test.rb:</strong></p></div>
 <div class="listingblock">
-<div class="content"><!-- Generator: GNU source-highlight 2.11.1
+<div class="content"><!-- Generator: GNU source-highlight 2.9
 by Lorenzo Bettini
 http://www.lorenzobettini.it
 http://www.gnu.org/software/src-highlite -->
@@ -786,7 +786,7 @@ http://www.gnu.org/software/src-highlite -->
 <div class="paragraph"><p>This is just a simple test to make sure the class is being loaded correctly.  After watching it fail with <tt>rake</tt>, you can make it pass like so:</p></div>
 <div class="paragraph"><p><strong>vendor/plugins/yaffle/lib/yaffle.rb:</strong></p></div>
 <div class="listingblock">
-<div class="content"><!-- Generator: GNU source-highlight 2.11.1
+<div class="content"><!-- Generator: GNU source-highlight 2.9
 by Lorenzo Bettini
 http://www.lorenzobettini.it
 http://www.gnu.org/software/src-highlite -->
@@ -799,7 +799,7 @@ http://www.gnu.org/software/src-highlite -->
 <div class="paragraph"><p>Adding directories to the load path makes them appear just like files in the the main app directory - except that they are only loaded once, so you have to restart the web server to see the changes in the browser.  Removing directories from the <em>load_once_paths</em> allow those changes to picked up as soon as you save the file - without having to restart the web server.  This is particularly useful as you develop the plugin.</p></div>
 <div class="paragraph"><p><strong>vendor/plugins/yaffle/lib/app/models/woodpecker.rb:</strong></p></div>
 <div class="listingblock">
-<div class="content"><!-- Generator: GNU source-highlight 2.11.1
+<div class="content"><!-- Generator: GNU source-highlight 2.9
 by Lorenzo Bettini
 http://www.lorenzobettini.it
 http://www.gnu.org/software/src-highlite -->
@@ -808,7 +808,7 @@ http://www.gnu.org/software/src-highlite -->
 <div class="paragraph"><p>Finally, add the following to your plugin&#8217;s <em>schema.rb</em>:</p></div>
 <div class="paragraph"><p><strong>vendor/plugins/yaffle/test/schema.rb:</strong></p></div>
 <div class="listingblock">
-<div class="content"><!-- Generator: GNU source-highlight 2.11.1
+<div class="content"><!-- Generator: GNU source-highlight 2.9
 by Lorenzo Bettini
 http://www.lorenzobettini.it
 http://www.gnu.org/software/src-highlite -->
@@ -823,7 +823,7 @@ http://www.gnu.org/software/src-highlite -->
 <div class="paragraph"><p>You can test your plugin&#8217;s controller as you would test any other controller:</p></div>
 <div class="paragraph"><p><strong>vendor/plugins/yaffle/test/woodpeckers_controller_test.rb:</strong></p></div>
 <div class="listingblock">
-<div class="content"><!-- Generator: GNU source-highlight 2.11.1
+<div class="content"><!-- Generator: GNU source-highlight 2.9
 by Lorenzo Bettini
 http://www.lorenzobettini.it
 http://www.gnu.org/software/src-highlite -->
@@ -852,7 +852,7 @@ http://www.gnu.org/software/src-highlite -->
 <div class="paragraph"><p>This is just a simple test to make sure the controller is being loaded correctly.  After watching it fail with <tt>rake</tt>, you can make it pass like so:</p></div>
 <div class="paragraph"><p><strong>vendor/plugins/yaffle/lib/yaffle.rb:</strong></p></div>
 <div class="listingblock">
-<div class="content"><!-- Generator: GNU source-highlight 2.11.1
+<div class="content"><!-- Generator: GNU source-highlight 2.9
 by Lorenzo Bettini
 http://www.lorenzobettini.it
 http://www.gnu.org/software/src-highlite -->
@@ -864,7 +864,7 @@ http://www.gnu.org/software/src-highlite -->
 <span style="font-weight: bold"><span style="color: #0000FF">end</span></span></tt></pre></div></div>
 <div class="paragraph"><p><strong>vendor/plugins/yaffle/lib/app/controllers/woodpeckers_controller.rb:</strong></p></div>
 <div class="listingblock">
-<div class="content"><!-- Generator: GNU source-highlight 2.11.1
+<div class="content"><!-- Generator: GNU source-highlight 2.9
 by Lorenzo Bettini
 http://www.lorenzobettini.it
 http://www.gnu.org/software/src-highlite -->
@@ -883,7 +883,7 @@ http://www.gnu.org/software/src-highlite -->
 <div class="paragraph"><p>You can test your plugin&#8217;s helper as you would test any other helper:</p></div>
 <div class="paragraph"><p><strong>vendor/plugins/yaffle/test/woodpeckers_helper_test.rb</strong></p></div>
 <div class="listingblock">
-<div class="content"><!-- Generator: GNU source-highlight 2.11.1
+<div class="content"><!-- Generator: GNU source-highlight 2.9
 by Lorenzo Bettini
 http://www.lorenzobettini.it
 http://www.gnu.org/software/src-highlite -->
@@ -898,7 +898,7 @@ http://www.gnu.org/software/src-highlite -->
 <div class="paragraph"><p>This is just a simple test to make sure the helper is being loaded correctly.  After watching it fail with <tt>rake</tt>, you can make it pass like so:</p></div>
 <div class="paragraph"><p><strong>vendor/plugins/yaffle/lib/yaffle.rb:</strong></p></div>
 <div class="listingblock">
-<div class="content"><!-- Generator: GNU source-highlight 2.11.1
+<div class="content"><!-- Generator: GNU source-highlight 2.9
 by Lorenzo Bettini
 http://www.lorenzobettini.it
 http://www.gnu.org/software/src-highlite -->
@@ -910,7 +910,7 @@ http://www.gnu.org/software/src-highlite -->
 <span style="font-weight: bold"><span style="color: #0000FF">end</span></span></tt></pre></div></div>
 <div class="paragraph"><p><strong>vendor/plugins/yaffle/lib/app/helpers/woodpeckers_helper.rb:</strong></p></div>
 <div class="listingblock">
-<div class="content"><!-- Generator: GNU source-highlight 2.11.1
+<div class="content"><!-- Generator: GNU source-highlight 2.9
 by Lorenzo Bettini
 http://www.lorenzobettini.it
 http://www.gnu.org/software/src-highlite -->
@@ -929,7 +929,7 @@ http://www.gnu.org/software/src-highlite -->
 <div class="paragraph"><p>Testing routes from plugins is slightly different from testing routes in a standard rails app.  To begin, add a test like this:</p></div>
 <div class="paragraph"><p><strong>vendor/plugins/yaffle/test/routing_test.rb</strong></p></div>
 <div class="listingblock">
-<div class="content"><!-- Generator: GNU source-highlight 2.11.1
+<div class="content"><!-- Generator: GNU source-highlight 2.9
 by Lorenzo Bettini
 http://www.lorenzobettini.it
 http://www.gnu.org/software/src-highlite -->
@@ -957,14 +957,14 @@ http://www.gnu.org/software/src-highlite -->
 <div class="paragraph"><p>Once you see the tests fail by running <em>rake</em>, you can make them pass with:</p></div>
 <div class="paragraph"><p><strong>vendor/plugins/yaffle/lib/yaffle.rb</strong></p></div>
 <div class="listingblock">
-<div class="content"><!-- Generator: GNU source-highlight 2.11.1
+<div class="content"><!-- Generator: GNU source-highlight 2.9
 by Lorenzo Bettini
 http://www.lorenzobettini.it
 http://www.gnu.org/software/src-highlite -->
 <pre><tt><span style="font-weight: bold"><span style="color: #000080">require</span></span> <span style="color: #FF0000">"yaffle/routing"</span></tt></pre></div></div>
 <div class="paragraph"><p><strong>vendor/plugins/yaffle/lib/yaffle/routing.rb</strong></p></div>
 <div class="listingblock">
-<div class="content"><!-- Generator: GNU source-highlight 2.11.1
+<div class="content"><!-- Generator: GNU source-highlight 2.9
 by Lorenzo Bettini
 http://www.lorenzobettini.it
 http://www.gnu.org/software/src-highlite -->
@@ -981,7 +981,7 @@ http://www.gnu.org/software/src-highlite -->
 ActionController<span style="color: #990000">::</span>Routing<span style="color: #990000">::</span>RouteSet<span style="color: #990000">::</span>Mapper<span style="color: #990000">.</span>send <span style="color: #990000">:</span><span style="font-weight: bold"><span style="color: #0000FF">include</span></span><span style="color: #990000">,</span> Yaffle<span style="color: #990000">::</span>Routing<span style="color: #990000">::</span>MapperExtensions</tt></pre></div></div>
 <div class="paragraph"><p><strong>config/routes.rb</strong></p></div>
 <div class="listingblock">
-<div class="content"><!-- Generator: GNU source-highlight 2.11.1
+<div class="content"><!-- Generator: GNU source-highlight 2.9
 by Lorenzo Bettini
 http://www.lorenzobettini.it
 http://www.gnu.org/software/src-highlite -->
@@ -1021,7 +1021,7 @@ Removes the fake rails root
 <div class="paragraph"><p>This section will describe how to create a simple generator that adds a file.  For the generator in this section, the test could look something like this:</p></div>
 <div class="paragraph"><p><strong>vendor/plugins/yaffle/test/definition_generator_test.rb</strong></p></div>
 <div class="listingblock">
-<div class="content"><!-- Generator: GNU source-highlight 2.11.1
+<div class="content"><!-- Generator: GNU source-highlight 2.9
 by Lorenzo Bettini
 http://www.lorenzobettini.it
 http://www.gnu.org/software/src-highlite -->
@@ -1061,7 +1061,7 @@ http://www.gnu.org/software/src-highlite -->
 <div class="paragraph"><p>To make it pass, create the generator:</p></div>
 <div class="paragraph"><p><strong>vendor/plugins/yaffle/generators/yaffle_definition/yaffle_definition_generator.rb</strong></p></div>
 <div class="listingblock">
-<div class="content"><!-- Generator: GNU source-highlight 2.11.1
+<div class="content"><!-- Generator: GNU source-highlight 2.9
 by Lorenzo Bettini
 http://www.lorenzobettini.it
 http://www.gnu.org/software/src-highlite -->
@@ -1101,7 +1101,7 @@ http://www.gnu.org/software/src-highlite -->
 <div class="paragraph"><p>To start, add the following test method:</p></div>
 <div class="paragraph"><p><strong>vendor/plugins/yaffle/test/route_generator_test.rb</strong></p></div>
 <div class="listingblock">
-<div class="content"><!-- Generator: GNU source-highlight 2.11.1
+<div class="content"><!-- Generator: GNU source-highlight 2.9
 by Lorenzo Bettini
 http://www.lorenzobettini.it
 http://www.gnu.org/software/src-highlite -->
@@ -1161,14 +1161,14 @@ http://www.gnu.org/software/src-highlite -->
 <div class="paragraph"><p>Run <tt>rake</tt> to watch the test fail, then make the test pass add the following:</p></div>
 <div class="paragraph"><p><strong>vendor/plugins/yaffle/lib/yaffle.rb</strong></p></div>
 <div class="listingblock">
-<div class="content"><!-- Generator: GNU source-highlight 2.11.1
+<div class="content"><!-- Generator: GNU source-highlight 2.9
 by Lorenzo Bettini
 http://www.lorenzobettini.it
 http://www.gnu.org/software/src-highlite -->
 <pre><tt><span style="font-weight: bold"><span style="color: #000080">require</span></span> <span style="color: #FF0000">"yaffle/commands"</span></tt></pre></div></div>
 <div class="paragraph"><p><strong>vendor/plugins/yaffle/lib/yaffle/commands.rb</strong></p></div>
 <div class="listingblock">
-<div class="content"><!-- Generator: GNU source-highlight 2.11.1
+<div class="content"><!-- Generator: GNU source-highlight 2.9
 by Lorenzo Bettini
 http://www.lorenzobettini.it
 http://www.gnu.org/software/src-highlite -->
@@ -1214,7 +1214,7 @@ Rails<span style="color: #990000">::</span>Generator<span style="color: #990000"
 Rails<span style="color: #990000">::</span>Generator<span style="color: #990000">::</span>Commands<span style="color: #990000">::</span>Update<span style="color: #990000">.</span>send   <span style="color: #990000">:</span><span style="font-weight: bold"><span style="color: #0000FF">include</span></span><span style="color: #990000">,</span>  Yaffle<span style="color: #990000">::</span>Generator<span style="color: #990000">::</span>Commands<span style="color: #990000">::</span>Update</tt></pre></div></div>
 <div class="paragraph"><p><strong>vendor/plugins/yaffle/generators/yaffle/yaffle_route_generator.rb</strong></p></div>
 <div class="listingblock">
-<div class="content"><!-- Generator: GNU source-highlight 2.11.1
+<div class="content"><!-- Generator: GNU source-highlight 2.9
 by Lorenzo Bettini
 http://www.lorenzobettini.it
 http://www.gnu.org/software/src-highlite -->
@@ -1248,7 +1248,7 @@ http://www.gnu.org/software/src-highlite -->
 <div class="paragraph"><p>Let&#8217;s say you have the following migration in your plugin:</p></div>
 <div class="paragraph"><p><strong>vendor/plugins/yaffle/lib/db/migrate/20081116181115_create_birdhouses.rb:</strong></p></div>
 <div class="listingblock">
-<div class="content"><!-- Generator: GNU source-highlight 2.11.1
+<div class="content"><!-- Generator: GNU source-highlight 2.9
 by Lorenzo Bettini
 http://www.lorenzobettini.it
 http://www.gnu.org/software/src-highlite -->
@@ -1268,7 +1268,7 @@ http://www.gnu.org/software/src-highlite -->
 <h3 id="_create_a_custom_rake_task">11.1. Create a custom rake task</h3>
 <div class="paragraph"><p><strong>vendor/plugins/yaffle/lib/db/migrate/20081116181115_create_birdhouses.rb:</strong></p></div>
 <div class="listingblock">
-<div class="content"><!-- Generator: GNU source-highlight 2.11.1
+<div class="content"><!-- Generator: GNU source-highlight 2.9
 by Lorenzo Bettini
 http://www.lorenzobettini.it
 http://www.gnu.org/software/src-highlite -->
@@ -1286,7 +1286,7 @@ http://www.gnu.org/software/src-highlite -->
 <span style="font-weight: bold"><span style="color: #0000FF">end</span></span></tt></pre></div></div>
 <div class="paragraph"><p><strong>vendor/plugins/yaffle/tasks/yaffle.rake:</strong></p></div>
 <div class="listingblock">
-<div class="content"><!-- Generator: GNU source-highlight 2.11.1
+<div class="content"><!-- Generator: GNU source-highlight 2.9
 by Lorenzo Bettini
 http://www.lorenzobettini.it
 http://www.gnu.org/software/src-highlite -->
@@ -1303,7 +1303,7 @@ http://www.gnu.org/software/src-highlite -->
 <h3 id="_call_migrations_directly">11.2. Call migrations directly</h3>
 <div class="paragraph"><p><strong>vendor/plugins/yaffle/lib/yaffle.rb:</strong></p></div>
 <div class="listingblock">
-<div class="content"><!-- Generator: GNU source-highlight 2.11.1
+<div class="content"><!-- Generator: GNU source-highlight 2.9
 by Lorenzo Bettini
 http://www.lorenzobettini.it
 http://www.gnu.org/software/src-highlite -->
@@ -1312,7 +1312,7 @@ http://www.gnu.org/software/src-highlite -->
 <span style="font-weight: bold"><span style="color: #0000FF">end</span></span></tt></pre></div></div>
 <div class="paragraph"><p><strong>db/migrate/20081116181115_create_birdhouses.rb:</strong></p></div>
 <div class="listingblock">
-<div class="content"><!-- Generator: GNU source-highlight 2.11.1
+<div class="content"><!-- Generator: GNU source-highlight 2.9
 by Lorenzo Bettini
 http://www.lorenzobettini.it
 http://www.gnu.org/software/src-highlite -->
@@ -1351,7 +1351,7 @@ examine the generated migration, adding/removing columns or other options as nec
 <div class="paragraph"><p>This example will demonstrate how to use one of the built-in generator methods named <em>migration_template</em> to create a migration file.  Extending the rails migration generator requires a somewhat intimate knowledge of the migration generator internals, so it&#8217;s best to write a test first:</p></div>
 <div class="paragraph"><p><strong>vendor/plugins/yaffle/test/yaffle_migration_generator_test.rb</strong></p></div>
 <div class="listingblock">
-<div class="content"><!-- Generator: GNU source-highlight 2.11.1
+<div class="content"><!-- Generator: GNU source-highlight 2.9
 by Lorenzo Bettini
 http://www.lorenzobettini.it
 http://www.gnu.org/software/src-highlite -->
@@ -1408,7 +1408,7 @@ http://www.gnu.org/software/src-highlite -->
 <div class="paragraph"><p>After running the test with <em>rake</em> you can make it pass with:</p></div>
 <div class="paragraph"><p><strong>vendor/plugins/yaffle/generators/yaffle/yaffle_generator.rb</strong></p></div>
 <div class="listingblock">
-<div class="content"><!-- Generator: GNU source-highlight 2.11.1
+<div class="content"><!-- Generator: GNU source-highlight 2.9
 by Lorenzo Bettini
 http://www.lorenzobettini.it
 http://www.gnu.org/software/src-highlite -->
@@ -1447,7 +1447,7 @@ http://www.gnu.org/software/src-highlite -->
 <div class="paragraph"><p>and you will see a new file:</p></div>
 <div class="paragraph"><p><strong>db/migrate/20080529225649_add_yaffle_fields_to_birds.rb</strong></p></div>
 <div class="listingblock">
-<div class="content"><!-- Generator: GNU source-highlight 2.11.1
+<div class="content"><!-- Generator: GNU source-highlight 2.9
 by Lorenzo Bettini
 http://www.lorenzobettini.it
 http://www.gnu.org/software/src-highlite -->
@@ -1467,7 +1467,7 @@ http://www.gnu.org/software/src-highlite -->
 <div class="paragraph"><p>Many plugin authors put all of their rake tasks into a common namespace that is the same as the plugin, like so:</p></div>
 <div class="paragraph"><p><strong>vendor/plugins/yaffle/tasks/yaffle.rake</strong></p></div>
 <div class="listingblock">
-<div class="content"><!-- Generator: GNU source-highlight 2.11.1
+<div class="content"><!-- Generator: GNU source-highlight 2.9
 by Lorenzo Bettini
 http://www.lorenzobettini.it
 http://www.gnu.org/software/src-highlite -->
@@ -1492,7 +1492,7 @@ http://www.gnu.org/software/src-highlite -->
 <div class="paragraph"><p>It&#8217;s common practice to put any developer-centric rake tasks (such as tests, rdoc and gem package tasks) in <em>Rakefile</em>.  A rake task that packages the gem might look like this:</p></div>
 <div class="paragraph"><p><strong>vendor/plugins/yaffle/Rakefile:</strong></p></div>
 <div class="listingblock">
-<div class="content"><!-- Generator: GNU source-highlight 2.11.1
+<div class="content"><!-- Generator: GNU source-highlight 2.9
 by Lorenzo Bettini
 http://www.lorenzobettini.it
 http://www.gnu.org/software/src-highlite -->
@@ -1604,7 +1604,7 @@ Warning, gotchas or tips that might help save users time
 <h3 id="_contents_of_em_lib_yaffle_rb_em">15.2. Contents of <em>lib/yaffle.rb</em></h3>
 <div class="paragraph"><p><strong>vendor/plugins/yaffle/lib/yaffle.rb:</strong></p></div>
 <div class="listingblock">
-<div class="content"><!-- Generator: GNU source-highlight 2.11.1
+<div class="content"><!-- Generator: GNU source-highlight 2.9
 by Lorenzo Bettini
 http://www.lorenzobettini.it
 http://www.gnu.org/software/src-highlite -->

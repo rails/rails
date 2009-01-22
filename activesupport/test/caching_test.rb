@@ -1,18 +1,18 @@
 require 'abstract_unit'
 
-class CacheKeyTest < Test::Unit::TestCase
+class CacheKeyTest < ActiveSupport::TestCase
   def test_expand_cache_key
     assert_equal 'name/1/2/true', ActiveSupport::Cache.expand_cache_key([1, '2', true], :name)
   end
 end
 
-class CacheStoreSettingTest < Test::Unit::TestCase
+class CacheStoreSettingTest < ActiveSupport::TestCase
   def test_file_fragment_cache_store
     store = ActiveSupport::Cache.lookup_store :file_store, "/path/to/cache/directory"
     assert_kind_of(ActiveSupport::Cache::FileStore, store)
     assert_equal "/path/to/cache/directory", store.cache_path
   end
-  
+
   def test_drb_fragment_cache_store
     store = ActiveSupport::Cache.lookup_store :drb_store, "druby://localhost:9192"
     assert_kind_of(ActiveSupport::Cache::DRbStore, store)
@@ -24,13 +24,13 @@ class CacheStoreSettingTest < Test::Unit::TestCase
     assert_kind_of(ActiveSupport::Cache::MemCacheStore, store)
     assert_equal %w(localhost), store.addresses
   end
-  
+
   def test_mem_cache_fragment_cache_store_with_multiple_servers
     store = ActiveSupport::Cache.lookup_store :mem_cache_store, "localhost", '192.168.1.1'
     assert_kind_of(ActiveSupport::Cache::MemCacheStore, store)
     assert_equal %w(localhost 192.168.1.1), store.addresses
   end
-  
+
   def test_mem_cache_fragment_cache_store_with_options
     store = ActiveSupport::Cache.lookup_store :mem_cache_store, "localhost", '192.168.1.1', :namespace => 'foo'
     assert_kind_of(ActiveSupport::Cache::MemCacheStore, store)
@@ -45,7 +45,7 @@ class CacheStoreSettingTest < Test::Unit::TestCase
   end
 end
 
-class CacheStoreTest < Test::Unit::TestCase
+class CacheStoreTest < ActiveSupport::TestCase
   def setup
     @cache = ActiveSupport::Cache.lookup_store(:memory_store)
   end
@@ -116,9 +116,15 @@ module CacheStoreBehavior
     assert_equal 1, @cache.decrement('foo')
     assert_equal 1, @cache.read('foo', :raw => true).to_i
   end
+
+  def test_exist
+    @cache.write('foo', 'bar')
+    assert @cache.exist?('foo')
+    assert !@cache.exist?('bar')
+  end
 end
 
-class FileStoreTest < Test::Unit::TestCase
+class FileStoreTest < ActiveSupport::TestCase
   def setup
     @cache = ActiveSupport::Cache.lookup_store(:file_store, Dir.pwd)
   end
@@ -130,7 +136,7 @@ class FileStoreTest < Test::Unit::TestCase
   include CacheStoreBehavior
 end
 
-class MemoryStoreTest < Test::Unit::TestCase
+class MemoryStoreTest < ActiveSupport::TestCase
   def setup
     @cache = ActiveSupport::Cache.lookup_store(:memory_store)
   end
@@ -145,28 +151,111 @@ class MemoryStoreTest < Test::Unit::TestCase
 end
 
 uses_memcached 'memcached backed store' do
-  class MemCacheStoreTest < Test::Unit::TestCase
+  class MemCacheStoreTest < ActiveSupport::TestCase
     def setup
       @cache = ActiveSupport::Cache.lookup_store(:mem_cache_store)
+      @data = @cache.instance_variable_get(:@data)
       @cache.clear
     end
 
     include CacheStoreBehavior
 
     def test_store_objects_should_be_immutable
-      @cache.write('foo', 'bar')
-      @cache.read('foo').gsub!(/.*/, 'baz')
-      assert_equal 'bar', @cache.read('foo')
+      @cache.with_local_cache do
+        @cache.write('foo', 'bar')
+        @cache.read('foo').gsub!(/.*/, 'baz')
+        assert_equal 'bar', @cache.read('foo')
+      end
     end
 
     def test_write_should_return_true_on_success
-      result = @cache.write('foo', 'bar')
-      assert_equal 'bar', @cache.read('foo') # make sure 'foo' was written
-      assert result
+      @cache.with_local_cache do
+        result = @cache.write('foo', 'bar')
+        assert_equal 'bar', @cache.read('foo') # make sure 'foo' was written
+        assert result
+      end
+    end
+
+    def test_local_writes_are_persistent_on_the_remote_cache
+      @cache.with_local_cache do
+        @cache.write('foo', 'bar')
+      end
+
+      assert_equal 'bar', @cache.read('foo')
+    end
+
+    def test_clear_also_clears_local_cache
+      @cache.with_local_cache do
+        @cache.write('foo', 'bar')
+        @cache.clear
+        assert_nil @cache.read('foo')
+      end
+    end
+
+    def test_local_cache_of_read_and_write
+      @cache.with_local_cache do
+        @cache.write('foo', 'bar')
+        @data.flush_all # Clear remote cache
+        assert_equal 'bar', @cache.read('foo')
+      end
+    end
+
+    def test_local_cache_of_delete
+      @cache.with_local_cache do
+        @cache.write('foo', 'bar')
+        @cache.delete('foo')
+        @data.flush_all # Clear remote cache
+        assert_nil @cache.read('foo')
+      end
+    end
+
+    def test_local_cache_of_exist
+      @cache.with_local_cache do
+        @cache.write('foo', 'bar')
+        @cache.instance_variable_set(:@data, nil)
+        @data.flush_all # Clear remote cache
+        assert @cache.exist?('foo')
+      end
+    end
+
+    def test_local_cache_of_increment
+      @cache.with_local_cache do
+        @cache.write('foo', 1, :raw => true)
+        @cache.increment('foo')
+        @data.flush_all # Clear remote cache
+        assert_equal 2, @cache.read('foo', :raw => true).to_i
+      end
+    end
+
+    def test_local_cache_of_decrement
+      @cache.with_local_cache do
+        @cache.write('foo', 1, :raw => true)
+        @cache.decrement('foo')
+        @data.flush_all # Clear remote cache
+        assert_equal 0, @cache.read('foo', :raw => true).to_i
+      end
+    end
+
+    def test_exist_with_nulls_cached_locally
+      @cache.with_local_cache do
+        @cache.write('foo', 'bar')
+        @cache.delete('foo')
+        assert !@cache.exist?('foo')
+      end
+    end
+
+    def test_middleware
+      app = lambda { |env|
+        result = @cache.write('foo', 'bar')
+        assert_equal 'bar', @cache.read('foo') # make sure 'foo' was written
+        assert result
+      }
+      app = @cache.middleware.new(app)
+      app.call({})
     end
   end
 
-  class CompressedMemCacheStore < Test::Unit::TestCase
+  class CompressedMemCacheStore < ActiveSupport::TestCase
     def setup
       @cache = ActiveSupport::Cache.lookup_store(:compressed_mem_cache_store)
       @cache.clear

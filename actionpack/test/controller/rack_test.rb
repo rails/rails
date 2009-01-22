@@ -57,7 +57,7 @@ class BaseRackTest < Test::Unit::TestCase
     @request.env['REQUEST_METHOD'] = 'POST'
     @request.env['CONTENT_LENGTH'] = data.length
     @request.env['CONTENT_TYPE'] = 'application/x-www-form-urlencoded; charset=utf-8'
-    @request.env['RAW_POST_DATA'] = data
+    @request.env['rack.input'] = StringIO.new(data)
   end
 end
 

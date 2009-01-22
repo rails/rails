@@ -36,7 +36,7 @@ class MultipartParamsParsingTest < ActionController::IntegrationTest
     assert_equal 'bar', params['foo']
 
     file = params['file']
-    assert_kind_of StringIO, file
+    assert_kind_of Tempfile, file
     assert_equal 'file.txt', file.original_filename
     assert_equal "text/plain", file.content_type
     assert_equal 'contents', file.read
@@ -77,13 +77,13 @@ class MultipartParamsParsingTest < ActionController::IntegrationTest
     assert_equal 'bar', params['foo']
 
     file = params['file']
-    assert_kind_of StringIO, file
+    assert_kind_of Tempfile, file
     assert_equal 'file.csv', file.original_filename
     assert_nil file.content_type
     assert_equal 'contents', file.read
 
     file = params['flowers']
-    assert_kind_of StringIO, file
+    assert_kind_of Tempfile, file
     assert_equal 'flowers.jpg', file.original_filename
     assert_equal "image/jpeg", file.content_type
     assert_equal 19512, file.size

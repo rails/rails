@@ -1,5 +1,11 @@
 *2.3.0 [Edge]*
 
+* Remove script/performance/profiler in favour of performance integration tests. [Pratik Naik]
+
+  To continue using script/performance/profiler, install the request_profiler plugin :
+
+    script/plugin install git://github.com/rails/request_profiler.git
+
 * Add a rake task to apply a template to an existing application : rake rails:template LOCATION=~/template.rb [Pratik Naik]
 
 * Add "-m/--template" option to Rails generator to apply a template to the generated application. [Jeremy McAnally]

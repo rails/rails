@@ -125,7 +125,7 @@ This guide covers how to build a plugin to extend the functionality of Rails.
 
 .link:i18n.html[The Rails Internationalization API]
 ***********************************************************
-CAUTION: still a basic draft
+CAUTION: link:http://rails.lighthouseapp.com/projects/16213/tickets/23[Lighthouse ticket]
 
 This guide introduces you to the basic concepts and features of the Rails I18n API and shows you how to localize your application.
 ***********************************************************

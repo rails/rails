@@ -210,7 +210,7 @@ And the most popular injection attack methods
 Rails will create a new session automatically if a new user accesses the application. It will load an existing session if the user has already used the application.</p></div>
 <div class="paragraph"><p>A session usually consists of a hash of values and a session id, usually a 32-character string, to identify the hash. Every cookie sent to the client&#8217;s browser includes the session id. And the other way round: the browser will send it to the server on every request from the client. In Rails you can save and retrieve values using the session method:</p></div>
 <div class="listingblock">
-<div class="content"><!-- Generator: GNU source-highlight 2.11.1
+<div class="content"><!-- Generator: GNU source-highlight 2.9
 by Lorenzo Bettini
 http://www.lorenzobettini.it
 http://www.gnu.org/software/src-highlite -->
@@ -363,7 +363,7 @@ From now on, the victim and the attacker will co-use the web application with th
 <div class="paragraph"><p>-- <em>One line of code will protect you from session fixation.</em></p></div>
 <div class="paragraph"><p>The most effective countermeasure is to <span style="background-color: #fffcdb;">issue a new session identifier</span> and declare the old one invalid after a successful login. That way, an attacker cannot use the fixed session identifier. This is a good countermeasure against session hijacking, as well. Here is how to create a new session in Rails:</p></div>
 <div class="listingblock">
-<div class="content"><!-- Generator: GNU source-highlight 2.11.1
+<div class="content"><!-- Generator: GNU source-highlight 2.9
 by Lorenzo Bettini
 http://www.lorenzobettini.it
 http://www.gnu.org/software/src-highlite -->
@@ -374,7 +374,7 @@ http://www.gnu.org/software/src-highlite -->
 <div class="paragraph"><p>-- <em>Sessions that never expire extend the time-frame for attacks such as cross-site reference forgery (CSRF), session hijacking and session fixation.</em></p></div>
 <div class="paragraph"><p>One possibility is to set the expiry time-stamp of the cookie with the session id. However the client can edit cookies that are stored in the web browser so expiring sessions on the server is safer. Here is an example of how to <span style="background-color: #fffcdb;">expire sessions in a database table</span>. Call Session.sweep("20m") to expire sessions that were used longer than 20 minutes ago.</p></div>
 <div class="listingblock">
-<div class="content"><!-- Generator: GNU source-highlight 2.11.1
+<div class="content"><!-- Generator: GNU source-highlight 2.9
 by Lorenzo Bettini
 http://www.lorenzobettini.it
 http://www.gnu.org/software/src-highlite -->
@@ -391,7 +391,7 @@ http://www.gnu.org/software/src-highlite -->
  <span style="font-weight: bold"><span style="color: #0000FF">end</span></span></tt></pre></div></div>
 <div class="paragraph"><p>The section about session fixation introduced the problem of maintained sessions. An attacker maintaining a session every five minutes can keep the session alive forever, although you are expiring sessions. A simple solution for this would be to add a created_at column to the sessions table. Now you can delete sessions that were created a long time ago. Use this line in the sweep method above:</p></div>
 <div class="listingblock">
-<div class="content"><!-- Generator: GNU source-highlight 2.11.1
+<div class="content"><!-- Generator: GNU source-highlight 2.9
 by Lorenzo Bettini
 http://www.lorenzobettini.it
 http://www.gnu.org/software/src-highlite -->
@@ -478,7 +478,7 @@ The user is <span style="background-color: #fffcdb;">held accountable for the re
 <div class="paragraph"><p>With this precaution, the attack from above will not work, because the browser sends a GET request for images, which will not be accepted by the web application.</p></div>
 <div class="paragraph"><p>But this was only the first step, because <span style="background-color: #fffcdb;">POST requests can be send automatically, too</span>. Here is an example for a link which displays www.harmless.com as destination in the browser&#8217;s status bar. In fact it dynamically creates a new form that sends a POST request.</p></div>
 <div class="listingblock">
-<div class="content"><!-- Generator: GNU source-highlight 2.11.1
+<div class="content"><!-- Generator: GNU source-highlight 2.9
 by Lorenzo Bettini
 http://www.lorenzobettini.it
 http://www.gnu.org/software/src-highlite -->
@@ -504,7 +504,7 @@ http://www.gnu.org/software/src-highlite -->
 <div class="paragraph"><p>-- <em>Redirection in a web application is an underestimated cracker tool: Not only can the attacker forward the user to a trap web site, he may also create a self-contained attack.</em></p></div>
 <div class="paragraph"><p>Whenever the user is allowed to pass (parts of) the URL for redirection, it is possibly vulnerable. The most obvious attack would be to redirect users to a fake web application which looks and feels exactly as the original one. This so-called phishing attack works by sending an unsuspicious link in an email to the users, injecting the link by XSS in the web application or putting the link into an external site. It is unsuspicious, because the link starts with the URL to the web application and the URL to the malicious site is hidden in the redirection parameter: <a href="http://www.example.com/site/redirect?to">http://www.example.com/site/redirect?to</a>= www.attacker.com. Here is an example of a legacy action:</p></div>
 <div class="listingblock">
-<div class="content"><!-- Generator: GNU source-highlight 2.11.1
+<div class="content"><!-- Generator: GNU source-highlight 2.9
 by Lorenzo Bettini
 http://www.lorenzobettini.it
 http://www.gnu.org/software/src-highlite -->
@@ -523,7 +523,7 @@ http://www.gnu.org/software/src-highlite -->
 <div class="paragraph"><p>Many web applications allow users to upload files. <span style="background-color: #fffcdb;">File names, which the user may choose (partly), should always be filtered</span> as an attacker could use a malicious file name to overwrite any file on the server. If you store file uploads at /var/www/uploads, and the user enters a file name like “../../../etc/passwd”, it may overwrite an important file. Of course, the Ruby interpreter would need the appropriate permissions to do so – one more reason to run web servers, database servers and other programs as a less privileged Unix user.</p></div>
 <div class="paragraph"><p>When filtering user input file names, <span style="background-color: #fffcdb;">don&#8217;t try to remove malicious parts</span>. Think of a situation where the web application removes all “../” in a file name and an attacker uses a string such as “....//” - the result will be “../”. It is best to use a whitelist approach, which <span style="background-color: #fffcdb;">checks for the validity of a file name with a set of accepted characters</span>. This is opposed to a blacklist approach which attempts to remove not allowed characters. In case it isn&#8217;t a valid file name, reject it (or replace not accepted characters), but don&#8217;t remove them. Here is the file name sanitizer from the <a href="http://github.com/technoweenie/attachment_fu/tree/master">attachment_fu plugin</a>:</p></div>
 <div class="listingblock">
-<div class="content"><!-- Generator: GNU source-highlight 2.11.1
+<div class="content"><!-- Generator: GNU source-highlight 2.9
 by Lorenzo Bettini
 http://www.lorenzobettini.it
 http://www.gnu.org/software/src-highlite -->
@@ -547,14 +547,14 @@ http://www.gnu.org/software/src-highlite -->
 <div class="paragraph"><p>-- <em>Make sure users cannot download arbitrary files.</em></p></div>
 <div class="paragraph"><p>Just as you have to filter file names for uploads, you have to do so for downloads. The send_file() method sends files from the server to the client. If you use a file name, that the user entered, without filtering, any file can be downloaded:</p></div>
 <div class="listingblock">
-<div class="content"><!-- Generator: GNU source-highlight 2.11.1
+<div class="content"><!-- Generator: GNU source-highlight 2.9
 by Lorenzo Bettini
 http://www.lorenzobettini.it
 http://www.gnu.org/software/src-highlite -->
 <pre><tt>send_file<span style="color: #990000">(</span><span style="color: #FF0000">'/var/www/uploads/'</span> <span style="color: #990000">+</span> params<span style="color: #990000">[:</span>filename<span style="color: #990000">])</span></tt></pre></div></div>
 <div class="paragraph"><p>Simply pass a file name like “../../../etc/passwd” to download the server&#8217;s login information. A simple solution against this, is to <span style="background-color: #fffcdb;">check that the requested file is in the expected directory</span>:</p></div>
 <div class="listingblock">
-<div class="content"><!-- Generator: GNU source-highlight 2.11.1
+<div class="content"><!-- Generator: GNU source-highlight 2.9
 by Lorenzo Bettini
 http://www.lorenzobettini.it
 http://www.gnu.org/software/src-highlite -->
@@ -602,7 +602,7 @@ Does the admin really have to access the interface from everywhere in the world?
 <div class="paragraph"><p>-- <em>Without any precautions Model.new(params[:model]) allows attackers to set any database column&#8217;s value.</em></p></div>
 <div class="paragraph"><p>The mass-assignment feature may become a problem, as it allows an attacker to set any model&#8217;s attribute by manipulating the hash passed to a model&#8217;s new() method:</p></div>
 <div class="listingblock">
-<div class="content"><!-- Generator: GNU source-highlight 2.11.1
+<div class="content"><!-- Generator: GNU source-highlight 2.9
 by Lorenzo Bettini
 http://www.lorenzobettini.it
 http://www.gnu.org/software/src-highlite -->
@@ -617,7 +617,7 @@ http://www.gnu.org/software/src-highlite -->
 </div></div>
 <div class="paragraph"><p>This will set the following parameters in the controller:</p></div>
 <div class="listingblock">
-<div class="content"><!-- Generator: GNU source-highlight 2.11.1
+<div class="content"><!-- Generator: GNU source-highlight 2.9
 by Lorenzo Bettini
 http://www.lorenzobettini.it
 http://www.gnu.org/software/src-highlite -->
@@ -626,21 +626,21 @@ http://www.gnu.org/software/src-highlite -->
 <h3 id="_countermeasures">6.1. Countermeasures</h3>
 <div class="paragraph"><p>To avoid this, Rails provides two class methods in your ActiveRecord class to control access to your attributes. The attr_protected method takes a list of attributes that will not be accessible for mass-assignment. For example:</p></div>
 <div class="listingblock">
-<div class="content"><!-- Generator: GNU source-highlight 2.11.1
+<div class="content"><!-- Generator: GNU source-highlight 2.9
 by Lorenzo Bettini
 http://www.lorenzobettini.it
 http://www.gnu.org/software/src-highlite -->
 <pre><tt>attr_protected <span style="color: #990000">:</span>admin</tt></pre></div></div>
 <div class="paragraph"><p>A much better way, because it follows the whitelist-principle, is the <span style="background-color: #fffcdb;">attr_accessible method</span>. It is the exact opposite of attr_protected, because <span style="background-color: #fffcdb;">it takes a list of attributes that will be accessible</span>. All other attributes will be protected. This way you won&#8217;t forget to protect attributes when adding new ones in the course of development. Here is an example:</p></div>
 <div class="listingblock">
-<div class="content"><!-- Generator: GNU source-highlight 2.11.1
+<div class="content"><!-- Generator: GNU source-highlight 2.9
 by Lorenzo Bettini
 http://www.lorenzobettini.it
 http://www.gnu.org/software/src-highlite -->
 <pre><tt>attr_accessible <span style="color: #990000">:</span>name</tt></pre></div></div>
 <div class="paragraph"><p>If you want to set a protected attribute, you will to have to assign it individually:</p></div>
 <div class="listingblock">
-<div class="content"><!-- Generator: GNU source-highlight 2.11.1
+<div class="content"><!-- Generator: GNU source-highlight 2.9
 by Lorenzo Bettini
 http://www.lorenzobettini.it
 http://www.gnu.org/software/src-highlite -->
@@ -662,7 +662,7 @@ http://localhost:3006/user/activate?id=</tt></pre>
 </div></div>
 <div class="paragraph"><p>This is possible because on some servers, this way the parameter id, as in params[:id], would be nil. However, here is the finder from the activation action:</p></div>
 <div class="listingblock">
-<div class="content"><!-- Generator: GNU source-highlight 2.11.1
+<div class="content"><!-- Generator: GNU source-highlight 2.9
 by Lorenzo Bettini
 http://www.lorenzobettini.it
 http://www.gnu.org/software/src-highlite -->
@@ -735,7 +735,7 @@ Include more than one honeypot field of all types, including submission buttons
 <div class="paragraph"><p>-- <em>Tell Rails not to put passwords in the log files.</em></p></div>
 <div class="paragraph"><p>By default, Rails logs all requests being made to the web application. But log files can be a huge security issue, as they may contain login credentials, credit card numbers etcetera. When designing a web application security concept, you should also think about what will happen if an attacker got (full) access to the web server. Encrypting secrets and passwords in the database will be quite useless, if the log files list them in clear text. You can <span style="background-color: #fffcdb;">filter certain request parameters from your log files</span> by the filter_parameter_logging method in a controller. These parameters will be marked [FILTERED] in the log.</p></div>
 <div class="listingblock">
-<div class="content"><!-- Generator: GNU source-highlight 2.11.1
+<div class="content"><!-- Generator: GNU source-highlight 2.9
 by Lorenzo Bettini
 http://www.lorenzobettini.it
 http://www.gnu.org/software/src-highlite -->
@@ -750,7 +750,7 @@ http://www.gnu.org/software/src-highlite -->
 <div class="paragraph"><p>-- <em>A common pitfall in Ruby&#8217;s regular expressions is to match the string&#8217;s beginning and end by ^ and $, instead of \A and \z.</em></p></div>
 <div class="paragraph"><p>Ruby uses a slightly different approach than many other languages to match the end and the beginning of a string. That is why even many Ruby and Rails books make this wrong. So how is this a security threat? Imagine you have a File model and you validate the file name by a regular expression like this:</p></div>
 <div class="listingblock">
-<div class="content"><!-- Generator: GNU source-highlight 2.11.1
+<div class="content"><!-- Generator: GNU source-highlight 2.9
 by Lorenzo Bettini
 http://www.lorenzobettini.it
 http://www.gnu.org/software/src-highlite -->
@@ -764,7 +764,7 @@ http://www.gnu.org/software/src-highlite -->
 </div></div>
 <div class="paragraph"><p>Whereas %0A is a line feed in URL encoding, so Rails automatically converts it to "file.txt\n&lt;script&gt;alert(<em>hello</em>)&lt;/script&gt;". This file name passes the filter because the regular expression matches – up to the line end, the rest does not matter. The correct expression should read:</p></div>
 <div class="listingblock">
-<div class="content"><!-- Generator: GNU source-highlight 2.11.1
+<div class="content"><!-- Generator: GNU source-highlight 2.9
 by Lorenzo Bettini
 http://www.lorenzobettini.it
 http://www.gnu.org/software/src-highlite -->
@@ -774,14 +774,14 @@ http://www.gnu.org/software/src-highlite -->
 <div class="paragraph"><p>-- <em>Changing a single parameter may give the user unauthorized access. Remember that every parameter may be changed, no matter how much you hide or obfuscate it.</em></p></div>
 <div class="paragraph"><p>The most common parameter that a user might tamper with, is the id parameter, as in <tt>http://www.domain.com/project/1</tt>, whereas 1 is the id. It will be available in params[:id] in the controller. There, you will most likely do something like this:</p></div>
 <div class="listingblock">
-<div class="content"><!-- Generator: GNU source-highlight 2.11.1
+<div class="content"><!-- Generator: GNU source-highlight 2.9
 by Lorenzo Bettini
 http://www.lorenzobettini.it
 http://www.gnu.org/software/src-highlite -->
 <pre><tt><span style="color: #009900">@project</span> <span style="color: #990000">=</span> Project<span style="color: #990000">.</span>find<span style="color: #990000">(</span>params<span style="color: #990000">[:</span>id<span style="color: #990000">])</span></tt></pre></div></div>
 <div class="paragraph"><p>This is alright for some web applications, but certainly not if the user is not authorized to view all projects. If the user changes the id to 42, and he is not allowed to see that information, he will have access to it anyway. Instead, <span style="background-color: #fffcdb;">query the user&#8217;s access rights, too</span>:</p></div>
 <div class="listingblock">
-<div class="content"><!-- Generator: GNU source-highlight 2.11.1
+<div class="content"><!-- Generator: GNU source-highlight 2.9
 by Lorenzo Bettini
 http://www.lorenzobettini.it
 http://www.gnu.org/software/src-highlite -->
@@ -836,7 +836,7 @@ But reject malformed input
 <h4 id="_introduction_2">8.2.1. Introduction</h4>
 <div class="paragraph"><p>SQL injection attacks aim at influencing database queries by manipulating web application parameters. A popular goal of SQL injection attacks is to bypass authorization. Another goal is to carry out data manipulation or reading arbitrary data. Here is an example of how not to use user input data in a query:</p></div>
 <div class="listingblock">
-<div class="content"><!-- Generator: GNU source-highlight 2.11.1
+<div class="content"><!-- Generator: GNU source-highlight 2.9
 by Lorenzo Bettini
 http://www.lorenzobettini.it
 http://www.gnu.org/software/src-highlite -->
@@ -850,7 +850,7 @@ http://www.gnu.org/software/src-highlite -->
 <h4 id="_bypassing_authorization">8.2.2. Bypassing authorization</h4>
 <div class="paragraph"><p>Usually a web application includes access control. The user enters his login credentials, the web applications tries to find the matching record in the users table. The application grants access when it finds a record. However, an attacker may possibly bypass this check with SQL injection. The following shows a typical database query in Rails to find the first record in the users table which matches the login credentials parameters supplied by the user.</p></div>
 <div class="listingblock">
-<div class="content"><!-- Generator: GNU source-highlight 2.11.1
+<div class="content"><!-- Generator: GNU source-highlight 2.9
 by Lorenzo Bettini
 http://www.lorenzobettini.it
 http://www.gnu.org/software/src-highlite -->
@@ -864,7 +864,7 @@ http://www.gnu.org/software/src-highlite -->
 <h4 id="_unauthorized_reading">8.2.3. Unauthorized reading</h4>
 <div class="paragraph"><p>The UNION statement connects two SQL queries and returns the data in one set. An attacker can use it to read arbitrary data from the database. Let&#8217;s take the example from above:</p></div>
 <div class="listingblock">
-<div class="content"><!-- Generator: GNU source-highlight 2.11.1
+<div class="content"><!-- Generator: GNU source-highlight 2.9
 by Lorenzo Bettini
 http://www.lorenzobettini.it
 http://www.gnu.org/software/src-highlite -->
@@ -886,14 +886,14 @@ http://www.gnu.org/software/src-highlite -->
 <div class="paragraph"><p>Ruby on Rails has a built in filter for special SQL characters, which will escape ' , " , NULL character and line breaks. <span style="background-color: #fffcdb;">Using Model.find(id) or Model.find_by_some thing(something) automatically applies this countermeasure[,#fffcdb]</span>. But in SQL fragments, especially <span style="background-color: #fffcdb;">in conditions fragments (:conditions =&gt; "..."), the connection.execute() or Model.find_by_sql() methods, it has to be applied manually</span>.</p></div>
 <div class="paragraph"><p>Instead of passing a string to the conditions option, you can pass an array to sanitize tainted strings like this:</p></div>
 <div class="listingblock">
-<div class="content"><!-- Generator: GNU source-highlight 2.11.1
+<div class="content"><!-- Generator: GNU source-highlight 2.9
 by Lorenzo Bettini
 http://www.lorenzobettini.it
 http://www.gnu.org/software/src-highlite -->
 <pre><tt>Model<span style="color: #990000">.</span>find<span style="color: #990000">(:</span>first<span style="color: #990000">,</span> <span style="color: #990000">:</span>conditions <span style="color: #990000">=&gt;</span> <span style="color: #990000">[</span><span style="color: #FF0000">"login = ? AND password = ?"</span><span style="color: #990000">,</span> entered_user_name<span style="color: #990000">,</span> entered_password<span style="color: #990000">])</span></tt></pre></div></div>
 <div class="paragraph"><p>As you can see, the first part of the array is an SQL fragment with question marks. The sanitized versions of the variables in the second part of the array replace the question marks. Or you can pass a hash for the same result:</p></div>
 <div class="listingblock">
-<div class="content"><!-- Generator: GNU source-highlight 2.11.1
+<div class="content"><!-- Generator: GNU source-highlight 2.9
 by Lorenzo Bettini
 http://www.lorenzobettini.it
 http://www.gnu.org/software/src-highlite -->

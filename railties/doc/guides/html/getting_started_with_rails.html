@@ -347,7 +347,7 @@ Transferring representations of the state of that resource between system compon
 <h3 id="_installing_rails">3.1. Installing Rails</h3>
 <div class="paragraph"><p>In most cases, the easiest way to install Rails is to take advantage of RubyGems:</p></div>
 <div class="listingblock">
-<div class="content"><!-- Generator: GNU source-highlight 2.11.1
+<div class="content"><!-- Generator: GNU source-highlight 2.9
 by Lorenzo Bettini
 http://www.lorenzobettini.it
 http://www.gnu.org/software/src-highlite -->
@@ -375,28 +375,28 @@ If you want to keep up with cutting-edge changes to Rails, you&#8217;ll want to 
 <h3 id="_creating_the_blog_application">3.2. Creating the Blog Application</h3>
 <div class="paragraph"><p>Open a terminal, navigate to a folder where you have rights to create files, and type:</p></div>
 <div class="listingblock">
-<div class="content"><!-- Generator: GNU source-highlight 2.11.1
+<div class="content"><!-- Generator: GNU source-highlight 2.9
 by Lorenzo Bettini
 http://www.lorenzobettini.it
 http://www.gnu.org/software/src-highlite -->
 <pre><tt>$ rails blog</tt></pre></div></div>
 <div class="paragraph"><p>This will create a Rails application that uses a SQLite database for data storage. If you prefer to use MySQL, run this command instead:</p></div>
 <div class="listingblock">
-<div class="content"><!-- Generator: GNU source-highlight 2.11.1
+<div class="content"><!-- Generator: GNU source-highlight 2.9
 by Lorenzo Bettini
 http://www.lorenzobettini.it
 http://www.gnu.org/software/src-highlite -->
 <pre><tt>$ rails blog -d mysql</tt></pre></div></div>
 <div class="paragraph"><p>And if you&#8217;re using PostgreSQL for data storage, run this command:</p></div>
 <div class="listingblock">
-<div class="content"><!-- Generator: GNU source-highlight 2.11.1
+<div class="content"><!-- Generator: GNU source-highlight 2.9
 by Lorenzo Bettini
 http://www.lorenzobettini.it
 http://www.gnu.org/software/src-highlite -->
 <pre><tt>$ rails blog -d postgresql</tt></pre></div></div>
 <div class="paragraph"><p>After you create the blog application, switch to its folder to continue work directly in that application:</p></div>
 <div class="listingblock">
-<div class="content"><!-- Generator: GNU source-highlight 2.11.1
+<div class="content"><!-- Generator: GNU source-highlight 2.9
 by Lorenzo Bettini
 http://www.lorenzobettini.it
 http://www.gnu.org/software/src-highlite -->
@@ -495,7 +495,7 @@ The <tt>production</tt> environment is used when you deploy your application for
 <div class="paragraph"><p>Rails comes with built-in support for <a href="http://www.sqlite.org/">SQLite</a>, which is a lightweight serverless database application. While a busy production environment may overload SQLite, it works well for development and testing. Rails defaults to using a SQLite database when creating a new project, but you can always change it later.</p></div>
 <div class="paragraph"><p>Here&#8217;s the section of the default configuration file with connection information for the development environment:</p></div>
 <div class="listingblock">
-<div class="content"><!-- Generator: GNU source-highlight 2.11.1
+<div class="content"><!-- Generator: GNU source-highlight 2.9
 by Lorenzo Bettini
 http://www.lorenzobettini.it
 http://www.gnu.org/software/src-highlite -->
@@ -506,7 +506,7 @@ http://www.gnu.org/software/src-highlite -->
 <div class="paragraph"><p>If you don&#8217;t have any database set up, SQLite is the easiest to get installed. If you&#8217;re on OS X 10.5 or greater on a Mac, you already have it. Otherwise, you can install it using RubyGems:</p></div>
 <div class="paragraph"><p>If you&#8217;re not running OS X 10.5 or greater, you&#8217;ll need to install the SQLite gem.  Similar to installing Rails you just need to run:</p></div>
 <div class="listingblock">
-<div class="content"><!-- Generator: GNU source-highlight 2.11.1
+<div class="content"><!-- Generator: GNU source-highlight 2.9
 by Lorenzo Bettini
 http://www.lorenzobettini.it
 http://www.gnu.org/software/src-highlite -->
@@ -514,7 +514,7 @@ http://www.gnu.org/software/src-highlite -->
 <h4 id="_configuring_a_mysql_database">3.3.2. Configuring a MySQL Database</h4>
 <div class="paragraph"><p>If you choose to use MySQL, your <tt>config/database.yml</tt> will look a little different. Here&#8217;s the development section:</p></div>
 <div class="listingblock">
-<div class="content"><!-- Generator: GNU source-highlight 2.11.1
+<div class="content"><!-- Generator: GNU source-highlight 2.9
 by Lorenzo Bettini
 http://www.lorenzobettini.it
 http://www.gnu.org/software/src-highlite -->
@@ -529,7 +529,7 @@ http://www.gnu.org/software/src-highlite -->
 <h4 id="_configuring_a_postgresql_database">3.3.3. Configuring a PostgreSQL Database</h4>
 <div class="paragraph"><p>If you choose to use PostgreSQL, your <tt>config/database.yml</tt> will be customized to use PostgreSQL databases:</p></div>
 <div class="listingblock">
-<div class="content"><!-- Generator: GNU source-highlight 2.11.1
+<div class="content"><!-- Generator: GNU source-highlight 2.9
 by Lorenzo Bettini
 http://www.lorenzobettini.it
 http://www.gnu.org/software/src-highlite -->
@@ -543,7 +543,7 @@ http://www.gnu.org/software/src-highlite -->
 <h4 id="_creating_the_database">3.3.4. Creating the Database</h4>
 <div class="paragraph"><p>Now that you have your database configured, it&#8217;s time to have Rails create an empty database for you. You can do this by running a rake command:</p></div>
 <div class="listingblock">
-<div class="content"><!-- Generator: GNU source-highlight 2.11.1
+<div class="content"><!-- Generator: GNU source-highlight 2.9
 by Lorenzo Bettini
 http://www.lorenzobettini.it
 http://www.gnu.org/software/src-highlite -->
@@ -553,7 +553,7 @@ http://www.gnu.org/software/src-highlite -->
 <div class="sectionbody">
 <div class="paragraph"><p>One of the traditional places to start with a new language is by getting some text up on screen quickly. To do that in Rails, you need to create at minimum a controller and a view. Fortunately, you can do that in a single command. Enter this command in your terminal:</p></div>
 <div class="listingblock">
-<div class="content"><!-- Generator: GNU source-highlight 2.11.1
+<div class="content"><!-- Generator: GNU source-highlight 2.9
 by Lorenzo Bettini
 http://www.lorenzobettini.it
 http://www.gnu.org/software/src-highlite -->
@@ -568,7 +568,7 @@ http://www.gnu.org/software/src-highlite -->
 </div>
 <div class="paragraph"><p>Rails will create several files for you, including <tt>app/views/home/index.html.erb</tt>. This is the template that will be used to display the results of the <tt>index</tt> action (method) in the <tt>home</tt> controller. Open this file in your text editor and edit it to contain a single line of code:</p></div>
 <div class="listingblock">
-<div class="content"><!-- Generator: GNU source-highlight 2.11.1
+<div class="content"><!-- Generator: GNU source-highlight 2.9
 by Lorenzo Bettini
 http://www.lorenzobettini.it
 http://www.gnu.org/software/src-highlite -->
@@ -576,7 +576,7 @@ http://www.gnu.org/software/src-highlite -->
 <h3 id="_starting_up_the_web_server">4.1. Starting up the Web Server</h3>
 <div class="paragraph"><p>You actually have a functional Rails application already - after running only two commands! To see it, you need to start a web server on your development machine. You can do this by running another command:</p></div>
 <div class="listingblock">
-<div class="content"><!-- Generator: GNU source-highlight 2.11.1
+<div class="content"><!-- Generator: GNU source-highlight 2.9
 by Lorenzo Bettini
 http://www.lorenzobettini.it
 http://www.gnu.org/software/src-highlite -->
@@ -597,14 +597,14 @@ http://www.gnu.org/software/src-highlite -->
 <h3 id="_setting_the_application_home_page">4.2. Setting the Application Home Page</h3>
 <div class="paragraph"><p>You&#8217;d probably like to replace the "Welcome Aboard" page with your own application&#8217;s home page. The first step to doing this is to delete the default page from your application:</p></div>
 <div class="listingblock">
-<div class="content"><!-- Generator: GNU source-highlight 2.11.1
+<div class="content"><!-- Generator: GNU source-highlight 2.9
 by Lorenzo Bettini
 http://www.lorenzobettini.it
 http://www.gnu.org/software/src-highlite -->
 <pre><tt>$ rm public/index<span style="color: #990000">.</span>html</tt></pre></div></div>
 <div class="paragraph"><p>Now, you have to tell Rails where your actual home page is located. Open the file <tt>config/routes.rb</tt> in your editor. This is your application&#8217;s, <em>routing file</em>, which holds entries in a special DSL (domain-specific language) that tells Rails how to connect incoming requests to controllers and actions. At the bottom of the file you&#8217;ll see the <em>default routes</em>:</p></div>
 <div class="listingblock">
-<div class="content"><!-- Generator: GNU source-highlight 2.11.1
+<div class="content"><!-- Generator: GNU source-highlight 2.9
 by Lorenzo Bettini
 http://www.lorenzobettini.it
 http://www.gnu.org/software/src-highlite -->
@@ -613,7 +613,7 @@ map<span style="color: #990000">.</span>connect <span style="color: #FF0000">':c
 <div class="paragraph"><p>The default routes handle simple requests such as <tt>/home/index</tt>: Rails translates that into a call to the <tt>index</tt> action in the <tt>home</tt> controller. As another example, <tt>/posts/edit/1</tt> would run the <tt>edit</tt> action in the <tt>posts</tt> controller with an <tt>id</tt> of 1.</p></div>
 <div class="paragraph"><p>To hook up your home page, you need to add another line to the routing file, above the default routes:</p></div>
 <div class="listingblock">
-<div class="content"><!-- Generator: GNU source-highlight 2.11.1
+<div class="content"><!-- Generator: GNU source-highlight 2.9
 by Lorenzo Bettini
 http://www.lorenzobettini.it
 http://www.gnu.org/software/src-highlite -->
@@ -637,7 +637,7 @@ http://www.gnu.org/software/src-highlite -->
 <div class="sectionbody">
 <div class="paragraph"><p>In the case of the blog application, you can start by generating a scaffolded Post resource: this will represent a single blog posting. To do this, enter this command in your terminal:</p></div>
 <div class="listingblock">
-<div class="content"><!-- Generator: GNU source-highlight 2.11.1
+<div class="content"><!-- Generator: GNU source-highlight 2.9
 by Lorenzo Bettini
 http://www.lorenzobettini.it
 http://www.gnu.org/software/src-highlite -->
@@ -728,7 +728,7 @@ cellspacing="0" cellpadding="4">
 <div class="paragraph"><p>One of the products of the <tt>script/generate scaffold</tt> command is a <em>database migration</em>. Migrations are Ruby classes that are designed to make it simple to create and modify database tables. Rails uses rake commands to run migrations, and it&#8217;s possible to undo a migration after it&#8217;s been applied to your database. Migration filenames include a timestamp to ensure that they&#8217;re processed in the order that they were created.</p></div>
 <div class="paragraph"><p>If you look in the <tt>db/migrate/20081013124235_create_posts.rb</tt> file (remember, yours will have a slightly different name), here&#8217;s what you&#8217;ll find:</p></div>
 <div class="listingblock">
-<div class="content"><!-- Generator: GNU source-highlight 2.11.1
+<div class="content"><!-- Generator: GNU source-highlight 2.9
 by Lorenzo Bettini
 http://www.lorenzobettini.it
 http://www.gnu.org/software/src-highlite -->
@@ -750,7 +750,7 @@ http://www.gnu.org/software/src-highlite -->
 <div class="paragraph"><p>If you were to translate that into words, it says something like: when this migration is run, create a table named <tt>posts</tt> with two string columns (<tt>name</tt> and <tt>title</tt>) and a text column (<tt>content</tt>), and generate timestamp fields to track record creation and updating. You can learn the detailed syntax for migrations in the <a href="../migrations.html">Rails Database Migrations</a> guide.</p></div>
 <div class="paragraph"><p>At this point, you can use a rake command to run the migration:</p></div>
 <div class="listingblock">
-<div class="content"><!-- Generator: GNU source-highlight 2.11.1
+<div class="content"><!-- Generator: GNU source-highlight 2.9
 by Lorenzo Bettini
 http://www.lorenzobettini.it
 http://www.gnu.org/software/src-highlite -->
@@ -767,7 +767,7 @@ $ rake db<span style="color: #990000">:</span>migrate</tt></pre></div></div>
 <h3 id="_adding_a_link">6.2. Adding a Link</h3>
 <div class="paragraph"><p>To hook the posts up to the home page you&#8217;ve already created, you can add a link to the home page. Open <tt>/app/views/home/index.html.erb</tt> and modify it as follows:</p></div>
 <div class="listingblock">
-<div class="content"><!-- Generator: GNU source-highlight 2.11.1
+<div class="content"><!-- Generator: GNU source-highlight 2.9
 by Lorenzo Bettini
 http://www.lorenzobettini.it
 http://www.gnu.org/software/src-highlite -->
@@ -793,7 +793,7 @@ http://www.gnu.org/software/src-highlite -->
 <h3 id="_the_model">6.4. The Model</h3>
 <div class="paragraph"><p>The model file, <tt>app/models/post.rb</tt> is about as simple as it can get:</p></div>
 <div class="listingblock">
-<div class="content"><!-- Generator: GNU source-highlight 2.11.1
+<div class="content"><!-- Generator: GNU source-highlight 2.9
 by Lorenzo Bettini
 http://www.lorenzobettini.it
 http://www.gnu.org/software/src-highlite -->
@@ -803,7 +803,7 @@ http://www.gnu.org/software/src-highlite -->
 <h3 id="_adding_some_validation">6.5. Adding Some Validation</h3>
 <div class="paragraph"><p>Rails includes methods to help you validate the data that you send to models. Open the <tt>app/models/post.rb</tt> file and edit it:</p></div>
 <div class="listingblock">
-<div class="content"><!-- Generator: GNU source-highlight 2.11.1
+<div class="content"><!-- Generator: GNU source-highlight 2.9
 by Lorenzo Bettini
 http://www.lorenzobettini.it
 http://www.gnu.org/software/src-highlite -->
@@ -815,14 +815,14 @@ http://www.gnu.org/software/src-highlite -->
 <h3 id="_using_the_console">6.6. Using the Console</h3>
 <div class="paragraph"><p>To see your validations in action, you can use the console. The console is a command-line tool that lets you execute Ruby code in the context of your application:</p></div>
 <div class="listingblock">
-<div class="content"><!-- Generator: GNU source-highlight 2.11.1
+<div class="content"><!-- Generator: GNU source-highlight 2.9
 by Lorenzo Bettini
 http://www.lorenzobettini.it
 http://www.gnu.org/software/src-highlite -->
 <pre><tt>$ script/console</tt></pre></div></div>
 <div class="paragraph"><p>After the console loads, you can use it to work with your application&#8217;s models:</p></div>
 <div class="listingblock">
-<div class="content"><!-- Generator: GNU source-highlight 2.11.1
+<div class="content"><!-- Generator: GNU source-highlight 2.9
 by Lorenzo Bettini
 http://www.lorenzobettini.it
 http://www.gnu.org/software/src-highlite -->
@@ -848,7 +848,7 @@ title<span style="color: #990000">:</span> nil<span style="color: #990000">,</sp
 <h3 id="_listing_all_posts">6.7. Listing All Posts</h3>
 <div class="paragraph"><p>The easiest place to start looking at functionality is with the code that lists all posts. Open the file <tt>app/controllers/posts_controller.rb + and look at the +index</tt> action:</p></div>
 <div class="listingblock">
-<div class="content"><!-- Generator: GNU source-highlight 2.11.1
+<div class="content"><!-- Generator: GNU source-highlight 2.9
 by Lorenzo Bettini
 http://www.lorenzobettini.it
 http://www.gnu.org/software/src-highlite -->
@@ -871,7 +871,7 @@ http://www.gnu.org/software/src-highlite -->
 </div>
 <div class="paragraph"><p>The <tt>respond_to</tt> block handles both HTML and XML calls to this action. If you browse to <tt>http://localhost:3000/posts.xml</tt>, you&#8217;ll see all of the posts in XML format. The HTML format looks for a view in <tt>app/views/posts/</tt> with a name that corresponds to the action name. Rails makes all of the instance variables from the action available to the view. Here&#8217;s <tt>app/view/posts/index.html.erb</tt>:</p></div>
 <div class="listingblock">
-<div class="content"><!-- Generator: GNU source-highlight 2.11.1
+<div class="content"><!-- Generator: GNU source-highlight 2.9
 by Lorenzo Bettini
 http://www.lorenzobettini.it
 http://www.gnu.org/software/src-highlite -->
@@ -928,7 +928,7 @@ http://www.gnu.org/software/src-highlite -->
 <h3 id="_customizing_the_layout">6.8. Customizing the Layout</h3>
 <div class="paragraph"><p>The view is only part of the story of how HTML is displayed in your web browser. Rails also has the concept of <tt>layouts</tt>, which are containers for views. When Rails renders a view to the browser, it does so by putting the view&#8217;s HTML into a layout&#8217;s HTML. The <tt>script/generate scaffold</tt> command automatically created a default layout, <tt>app/views/layouts/posts.html.erb</tt>, for the posts. Open this layout in your editor and modify the <tt>body</tt> tag:</p></div>
 <div class="listingblock">
-<div class="content"><!-- Generator: GNU source-highlight 2.11.1
+<div class="content"><!-- Generator: GNU source-highlight 2.9
 by Lorenzo Bettini
 http://www.lorenzobettini.it
 http://www.gnu.org/software/src-highlite -->
@@ -953,7 +953,7 @@ http://www.gnu.org/software/src-highlite -->
 <h3 id="_creating_new_posts">6.9. Creating New Posts</h3>
 <div class="paragraph"><p>Creating a new post involves two actions. The first is the <tt>new</tt> action, which instantiates an empty <tt>Post</tt> object:</p></div>
 <div class="listingblock">
-<div class="content"><!-- Generator: GNU source-highlight 2.11.1
+<div class="content"><!-- Generator: GNU source-highlight 2.9
 by Lorenzo Bettini
 http://www.lorenzobettini.it
 http://www.gnu.org/software/src-highlite -->
@@ -967,7 +967,7 @@ http://www.gnu.org/software/src-highlite -->
 <span style="font-weight: bold"><span style="color: #0000FF">end</span></span></tt></pre></div></div>
 <div class="paragraph"><p>The <tt>new.html.erb</tt> view displays this empty Post to the user:</p></div>
 <div class="listingblock">
-<div class="content"><!-- Generator: GNU source-highlight 2.11.1
+<div class="content"><!-- Generator: GNU source-highlight 2.9
 by Lorenzo Bettini
 http://www.lorenzobettini.it
 http://www.gnu.org/software/src-highlite -->
@@ -1005,7 +1005,7 @@ http://www.gnu.org/software/src-highlite -->
 </div>
 <div class="paragraph"><p>When the user clicks the <tt>Create</tt> button on this form, the browser will send information back to the <tt>create</tt> method of the controller (Rails knows to call the <tt>create</tt> method because the form is sent with an HTTP POST request; that&#8217;s one of the conventions that I mentioned earlier):</p></div>
 <div class="listingblock">
-<div class="content"><!-- Generator: GNU source-highlight 2.11.1
+<div class="content"><!-- Generator: GNU source-highlight 2.9
 by Lorenzo Bettini
 http://www.lorenzobettini.it
 http://www.gnu.org/software/src-highlite -->
@@ -1028,7 +1028,7 @@ http://www.gnu.org/software/src-highlite -->
 <h3 id="_showing_an_individual_post">6.10. Showing an Individual Post</h3>
 <div class="paragraph"><p>When you click the <tt>show</tt> link for a post on the index page, it will bring you to a URL like <tt>http://localhost:3000/posts/1</tt>. Rails interprets this as a call to the <tt>show</tt> action for the resource, and passes in <tt>1</tt> as the <tt>:id</tt> parameter. Here&#8217;s the <tt>show</tt> action:</p></div>
 <div class="listingblock">
-<div class="content"><!-- Generator: GNU source-highlight 2.11.1
+<div class="content"><!-- Generator: GNU source-highlight 2.9
 by Lorenzo Bettini
 http://www.lorenzobettini.it
 http://www.gnu.org/software/src-highlite -->
@@ -1042,7 +1042,7 @@ http://www.gnu.org/software/src-highlite -->
 <span style="font-weight: bold"><span style="color: #0000FF">end</span></span></tt></pre></div></div>
 <div class="paragraph"><p>The <tt>show</tt> action uses <tt>Post.find</tt> to search for a single record in the database by its id value. After finding the record, Rails displays it by using <tt>show.html.erb</tt>:</p></div>
 <div class="listingblock">
-<div class="content"><!-- Generator: GNU source-highlight 2.11.1
+<div class="content"><!-- Generator: GNU source-highlight 2.9
 by Lorenzo Bettini
 http://www.lorenzobettini.it
 http://www.gnu.org/software/src-highlite -->
@@ -1067,7 +1067,7 @@ http://www.gnu.org/software/src-highlite -->
 <h3 id="_editing_posts">6.11. Editing Posts</h3>
 <div class="paragraph"><p>Like creating a new post, editing a post is a two-part process. The first step is a request to <tt>edit_post_path(@post)</tt> with a particular post. This calls the <tt>edit</tt> action in the controller:</p></div>
 <div class="listingblock">
-<div class="content"><!-- Generator: GNU source-highlight 2.11.1
+<div class="content"><!-- Generator: GNU source-highlight 2.9
 by Lorenzo Bettini
 http://www.lorenzobettini.it
 http://www.gnu.org/software/src-highlite -->
@@ -1076,7 +1076,7 @@ http://www.gnu.org/software/src-highlite -->
 <span style="font-weight: bold"><span style="color: #0000FF">end</span></span></tt></pre></div></div>
 <div class="paragraph"><p>After finding the requested post, Rails uses the <tt>edit.html.erb</tt> view to display it:</p></div>
 <div class="listingblock">
-<div class="content"><!-- Generator: GNU source-highlight 2.11.1
+<div class="content"><!-- Generator: GNU source-highlight 2.9
 by Lorenzo Bettini
 http://www.lorenzobettini.it
 http://www.gnu.org/software/src-highlite -->
@@ -1106,7 +1106,7 @@ http://www.gnu.org/software/src-highlite -->
 <span style="color: #FF0000">&lt;%= link_to 'Back', posts_path %&gt;</span></tt></pre></div></div>
 <div class="paragraph"><p>Submitting the form created by this view will invoke the <tt>update</tt> action within the controller:</p></div>
 <div class="listingblock">
-<div class="content"><!-- Generator: GNU source-highlight 2.11.1
+<div class="content"><!-- Generator: GNU source-highlight 2.9
 by Lorenzo Bettini
 http://www.lorenzobettini.it
 http://www.gnu.org/software/src-highlite -->
@@ -1136,7 +1136,7 @@ http://www.gnu.org/software/src-highlite -->
 <h3 id="_destroying_a_post">6.12. Destroying a Post</h3>
 <div class="paragraph"><p>Finally, clicking one of the <tt>destroy</tt> links sends the associated id to the <tt>destroy</tt> action:</p></div>
 <div class="listingblock">
-<div class="content"><!-- Generator: GNU source-highlight 2.11.1
+<div class="content"><!-- Generator: GNU source-highlight 2.9
 by Lorenzo Bettini
 http://www.lorenzobettini.it
 http://www.gnu.org/software/src-highlite -->
@@ -1158,7 +1158,7 @@ http://www.gnu.org/software/src-highlite -->
 <div class="paragraph"><p>As you saw earlier, the scaffold-generated views for the <tt>new</tt> and <tt>edit</tt> actions are largely identical. You can pull the shared code out into a <tt>partial</tt> template. This requires editing the new and edit views, and adding a new template. The new <tt>_form.html.erb</tt> template should be saved in the same <tt>app/views/posts</tt> folder as the files from which it is being extracted:</p></div>
 <div class="paragraph"><p><tt>new.html.erb</tt>:</p></div>
 <div class="listingblock">
-<div class="content"><!-- Generator: GNU source-highlight 2.11.1
+<div class="content"><!-- Generator: GNU source-highlight 2.9
 by Lorenzo Bettini
 http://www.lorenzobettini.it
 http://www.gnu.org/software/src-highlite -->
@@ -1169,7 +1169,7 @@ http://www.gnu.org/software/src-highlite -->
 <span style="color: #FF0000">&lt;%= link_to 'Back', posts_path %&gt;</span></tt></pre></div></div>
 <div class="paragraph"><p><tt>edit.html.erb</tt>:</p></div>
 <div class="listingblock">
-<div class="content"><!-- Generator: GNU source-highlight 2.11.1
+<div class="content"><!-- Generator: GNU source-highlight 2.9
 by Lorenzo Bettini
 http://www.lorenzobettini.it
 http://www.gnu.org/software/src-highlite -->
@@ -1181,7 +1181,7 @@ http://www.gnu.org/software/src-highlite -->
 <span style="color: #FF0000">&lt;%= link_to 'Back', posts_path %&gt;</span></tt></pre></div></div>
 <div class="paragraph"><p><tt>_form.html.erb</tt>:</p></div>
 <div class="listingblock">
-<div class="content"><!-- Generator: GNU source-highlight 2.11.1
+<div class="content"><!-- Generator: GNU source-highlight 2.9
 by Lorenzo Bettini
 http://www.lorenzobettini.it
 http://www.gnu.org/software/src-highlite -->
@@ -1209,7 +1209,7 @@ http://www.gnu.org/software/src-highlite -->
 <h3 id="_using_filters_to_eliminate_controller_duplication">7.2. Using Filters to Eliminate Controller Duplication</h3>
 <div class="paragraph"><p>At this point, if you look at the controller for posts, you’ll see some duplication:</p></div>
 <div class="listingblock">
-<div class="content"><!-- Generator: GNU source-highlight 2.11.1
+<div class="content"><!-- Generator: GNU source-highlight 2.9
 by Lorenzo Bettini
 http://www.lorenzobettini.it
 http://www.gnu.org/software/src-highlite -->
@@ -1236,7 +1236,7 @@ http://www.gnu.org/software/src-highlite -->
 <span style="font-weight: bold"><span style="color: #0000FF">end</span></span></tt></pre></div></div>
 <div class="paragraph"><p>Four instances of the exact same line of code doesn’t seem very DRY. Rails provides <em>filters</em> as a way to address this sort of repeated code. In this case, you can DRY things up by using a <tt>before_filter</tt>:</p></div>
 <div class="listingblock">
-<div class="content"><!-- Generator: GNU source-highlight 2.11.1
+<div class="content"><!-- Generator: GNU source-highlight 2.9
 by Lorenzo Bettini
 http://www.lorenzobettini.it
 http://www.gnu.org/software/src-highlite -->
@@ -1272,7 +1272,7 @@ http://www.gnu.org/software/src-highlite -->
 <h3 id="_generating_a_model">8.1. Generating a Model</h3>
 <div class="paragraph"><p>Models in Rails use a singular name, and their corresponding database tables use a plural name. For the model to hold comments, the convention is to use the name Comment. Even if you don&#8217;t want to use the entire apparatus set up by scaffolding, most Rails developers still use generators to make things like models and controllers. To create the new model, run this command in your terminal:</p></div>
 <div class="listingblock">
-<div class="content"><!-- Generator: GNU source-highlight 2.11.1
+<div class="content"><!-- Generator: GNU source-highlight 2.9
 by Lorenzo Bettini
 http://www.lorenzobettini.it
 http://www.gnu.org/software/src-highlite -->
@@ -1297,7 +1297,7 @@ http://www.gnu.org/software/src-highlite -->
 </ul></div>
 <div class="paragraph"><p>First, take a look at <tt>comment.rb</tt>:</p></div>
 <div class="listingblock">
-<div class="content"><!-- Generator: GNU source-highlight 2.11.1
+<div class="content"><!-- Generator: GNU source-highlight 2.9
 by Lorenzo Bettini
 http://www.lorenzobettini.it
 http://www.gnu.org/software/src-highlite -->
@@ -1307,7 +1307,7 @@ http://www.gnu.org/software/src-highlite -->
 <div class="paragraph"><p>This is very similar to the <tt>post.rb</tt> model that you saw earlier. The difference is the line <tt>belongs_to :post</tt>, which sets up an Active Record <em>association</em>. You&#8217;ll learn a little about associations in the next section of this guide.</p></div>
 <div class="paragraph"><p>In addition to the model, Rails has also made a migration to create the corresponding database table:</p></div>
 <div class="listingblock">
-<div class="content"><!-- Generator: GNU source-highlight 2.11.1
+<div class="content"><!-- Generator: GNU source-highlight 2.9
 by Lorenzo Bettini
 http://www.lorenzobettini.it
 http://www.gnu.org/software/src-highlite -->
@@ -1328,7 +1328,7 @@ http://www.gnu.org/software/src-highlite -->
 <span style="font-weight: bold"><span style="color: #0000FF">end</span></span></tt></pre></div></div>
 <div class="paragraph"><p>The <tt>t.references</tt> line sets up a foreign key column for the association between the two models. Go ahead and run the migration:</p></div>
 <div class="listingblock">
-<div class="content"><!-- Generator: GNU source-highlight 2.11.1
+<div class="content"><!-- Generator: GNU source-highlight 2.9
 by Lorenzo Bettini
 http://www.lorenzobettini.it
 http://www.gnu.org/software/src-highlite -->
@@ -1350,7 +1350,7 @@ One post can have many comments
 </ul></div>
 <div class="paragraph"><p>In fact, this is very close to the syntax that Rails uses to declare this association. You&#8217;ve already seen the line of code inside the Comment model that makes each comment belong to a Post:</p></div>
 <div class="listingblock">
-<div class="content"><!-- Generator: GNU source-highlight 2.11.1
+<div class="content"><!-- Generator: GNU source-highlight 2.9
 by Lorenzo Bettini
 http://www.lorenzobettini.it
 http://www.gnu.org/software/src-highlite -->
@@ -1359,7 +1359,7 @@ http://www.gnu.org/software/src-highlite -->
 <span style="font-weight: bold"><span style="color: #0000FF">end</span></span></tt></pre></div></div>
 <div class="paragraph"><p>You&#8217;ll need to edit the <tt>post.rb</tt> file to add the other side of the association:</p></div>
 <div class="listingblock">
-<div class="content"><!-- Generator: GNU source-highlight 2.11.1
+<div class="content"><!-- Generator: GNU source-highlight 2.9
 by Lorenzo Bettini
 http://www.lorenzobettini.it
 http://www.gnu.org/software/src-highlite -->
@@ -1380,7 +1380,7 @@ http://www.gnu.org/software/src-highlite -->
 <h3 id="_adding_a_route">8.3. Adding a Route</h3>
 <div class="paragraph"><p><em>Routes</em> are entries in the <tt>config/routes.rb</tt> file that tell Rails how to match incoming HTTP requests to controller actions. Open up that file and find the existing line referring to <tt>posts</tt>. Then edit it as follows:</p></div>
 <div class="listingblock">
-<div class="content"><!-- Generator: GNU source-highlight 2.11.1
+<div class="content"><!-- Generator: GNU source-highlight 2.9
 by Lorenzo Bettini
 http://www.lorenzobettini.it
 http://www.gnu.org/software/src-highlite -->
@@ -1399,7 +1399,7 @@ http://www.gnu.org/software/src-highlite -->
 <h3 id="_generating_a_controller">8.4. Generating a Controller</h3>
 <div class="paragraph"><p>With the model in hand, you can turn your attention to creating a matching controller. Again, there&#8217;s a generator for this:</p></div>
 <div class="listingblock">
-<div class="content"><!-- Generator: GNU source-highlight 2.11.1
+<div class="content"><!-- Generator: GNU source-highlight 2.9
 by Lorenzo Bettini
 http://www.lorenzobettini.it
 http://www.gnu.org/software/src-highlite -->
@@ -1444,7 +1444,7 @@ http://www.gnu.org/software/src-highlite -->
 </ul></div>
 <div class="paragraph"><p>The controller will be generated with empty methods for each action that you specified in the call to <tt>script/generate controller</tt>:</p></div>
 <div class="listingblock">
-<div class="content"><!-- Generator: GNU source-highlight 2.11.1
+<div class="content"><!-- Generator: GNU source-highlight 2.9
 by Lorenzo Bettini
 http://www.lorenzobettini.it
 http://www.gnu.org/software/src-highlite -->
@@ -1464,7 +1464,7 @@ http://www.gnu.org/software/src-highlite -->
 <span style="font-weight: bold"><span style="color: #0000FF">end</span></span></tt></pre></div></div>
 <div class="paragraph"><p>You&#8217;ll need to flesh this out with code to actually process requests appropriately in each method. Here&#8217;s a version that (for simplicity&#8217;s sake) only responds to requests that require HTML:</p></div>
 <div class="listingblock">
-<div class="content"><!-- Generator: GNU source-highlight 2.11.1
+<div class="content"><!-- Generator: GNU source-highlight 2.9
 by Lorenzo Bettini
 http://www.lorenzobettini.it
 http://www.gnu.org/software/src-highlite -->
@@ -1513,7 +1513,7 @@ http://www.gnu.org/software/src-highlite -->
 <div class="paragraph"><p>You&#8217;ll see a bit more complexity here than you did in the controller for posts. That&#8217;s a side-effect of the nesting that you&#8217;ve set up; each request for a comment has to keep track of the post to which the comment is attached.</p></div>
 <div class="paragraph"><p>In addition, the code takes advantage of some of the methods available for an association. For example, in the <tt>new</tt> method, it calls</p></div>
 <div class="listingblock">
-<div class="content"><!-- Generator: GNU source-highlight 2.11.1
+<div class="content"><!-- Generator: GNU source-highlight 2.9
 by Lorenzo Bettini
 http://www.lorenzobettini.it
 http://www.gnu.org/software/src-highlite -->
@@ -1523,7 +1523,7 @@ http://www.gnu.org/software/src-highlite -->
 <div class="paragraph"><p>Because you skipped scaffolding, you&#8217;ll need to build views for comments "by hand." Invoking <tt>script/generate controller</tt> will give you skeleton views, but they&#8217;ll be devoid of actual content. Here&#8217;s a first pass at fleshing out the comment views.</p></div>
 <div class="paragraph"><p>The <tt>index.html.erb</tt> view:</p></div>
 <div class="listingblock">
-<div class="content"><!-- Generator: GNU source-highlight 2.11.1
+<div class="content"><!-- Generator: GNU source-highlight 2.9
 by Lorenzo Bettini
 http://www.lorenzobettini.it
 http://www.gnu.org/software/src-highlite -->
@@ -1552,7 +1552,7 @@ http://www.gnu.org/software/src-highlite -->
 <span style="color: #FF0000">&lt;%= link_to 'Back to Post', @post %&gt;</span></tt></pre></div></div>
 <div class="paragraph"><p>The <tt>new.html.erb</tt> view:</p></div>
 <div class="listingblock">
-<div class="content"><!-- Generator: GNU source-highlight 2.11.1
+<div class="content"><!-- Generator: GNU source-highlight 2.9
 by Lorenzo Bettini
 http://www.lorenzobettini.it
 http://www.gnu.org/software/src-highlite -->
@@ -1577,7 +1577,7 @@ http://www.gnu.org/software/src-highlite -->
 <span style="color: #FF0000">&lt;%= link_to 'Back', post_comments_path(@post) %&gt;</span></tt></pre></div></div>
 <div class="paragraph"><p>The <tt>show.html.erb</tt> view:</p></div>
 <div class="listingblock">
-<div class="content"><!-- Generator: GNU source-highlight 2.11.1
+<div class="content"><!-- Generator: GNU source-highlight 2.9
 by Lorenzo Bettini
 http://www.lorenzobettini.it
 http://www.gnu.org/software/src-highlite -->
@@ -1597,7 +1597,7 @@ http://www.gnu.org/software/src-highlite -->
 <span style="color: #FF0000">&lt;%= link_to 'Back', post_comments_path(@post) %&gt;</span></tt></pre></div></div>
 <div class="paragraph"><p>The <tt>edit.html.erb</tt> view:</p></div>
 <div class="listingblock">
-<div class="content"><!-- Generator: GNU source-highlight 2.11.1
+<div class="content"><!-- Generator: GNU source-highlight 2.9
 by Lorenzo Bettini
 http://www.lorenzobettini.it
 http://www.gnu.org/software/src-highlite -->
@@ -1625,7 +1625,7 @@ http://www.gnu.org/software/src-highlite -->
 <h3 id="_hooking_comments_to_posts">8.6. Hooking Comments to Posts</h3>
 <div class="paragraph"><p>As a final step, I&#8217;ll modify the <tt>show.html.erb</tt> view for a post to show the comments on that post, and to allow managing those comments:</p></div>
 <div class="listingblock">
-<div class="content"><!-- Generator: GNU source-highlight 2.11.1
+<div class="content"><!-- Generator: GNU source-highlight 2.9
 by Lorenzo Bettini
 http://www.lorenzobettini.it
 http://www.gnu.org/software/src-highlite -->

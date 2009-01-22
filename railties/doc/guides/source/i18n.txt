@@ -12,7 +12,7 @@ Internationalization is a complex problem. Natural languages differ in so many w
 * providing support for English and similar languages out of the box
 * making it easy to customize and extend everything for other languages
 
-As part of this solution, *every static string in the Rails framework* -- eg. ActiveRecord validation messages, time and date formats -- *has been internationalized*, so _localization_ of a Rails application means "over-riding" these defaults.
+As part of this solution, *every static string in the Rails framework* -- eg. Active Record validation messages, time and date formats -- *has been internationalized*, so _localization_ of a Rails application means "over-riding" these defaults.
 
 === The overall architecture of the library
 
@@ -74,7 +74,7 @@ en:
   hello: "Hello world"
 -------------------------------------------------------
 
-This means, that in the +:en+ locale, the key _hello_ will map to _Hello world_ string. Every string inside Rails is internationalized in this way, see for instance ActiveRecord validation messages in the http://github.com/rails/rails/blob/master/activerecord/lib/active_record/locale/en.yml[+activerecord/lib/active_record/locale/en.yml+] file or time and date formats in the http://github.com/rails/rails/blob/master/activesupport/lib/active_support/locale/en.yml[+activesupport/lib/active_support/locale/en.yml+] file. You can use YAML or standard Ruby Hashes to store translations in the default (Simple) backend.
+This means, that in the +:en+ locale, the key _hello_ will map to _Hello world_ string. Every string inside Rails is internationalized in this way, see for instance Active Record validation messages in the http://github.com/rails/rails/blob/master/activerecord/lib/active_record/locale/en.yml[+activerecord/lib/active_record/locale/en.yml+] file or time and date formats in the http://github.com/rails/rails/blob/master/activesupport/lib/active_support/locale/en.yml[+activesupport/lib/active_support/locale/en.yml+] file. You can use YAML or standard Ruby Hashes to store translations in the default (Simple) backend.
 
 The I18n library will use *English* as a *default locale*, ie. if you don't set a different locale, +:en+ will be used for looking up translations.
 
@@ -112,22 +112,115 @@ I18n.default_locale = :pt
 
 === Setting and passing the locale
 
-By default the I18n library will use :en (English) as a I18n.default_locale for looking up translations (if you do not specify a locale for a lookup).
+If you want to translate your Rails application to a *single language other than English* (the default locale), you can set I18n.default_locale to your locale in +environment.rb+ or an initializer as shown above, and it will persist through the requests.
 
-If you want to translate your Rails application to a single language other than English you can set I18n.default_locale to your locale. If you want to change the locale on a per-request basis though you can set it in a before_filter on the ApplicationController like this:
+However, you would probably like to *provide support for more locales* in your application. In such case, you need to set and pass the locale between requests.
+
+WARNING: You may be tempted to store choosed locale in a _session_ or a _cookie_. *Do not do so*. The locale should be transparent and a part of the URL. This way you don't break people's basic assumptions about the web itself: if you send a URL of some page to a friend, she should see the same page, same content. A fancy word for this would be that you're being http://en.wikipedia.org/wiki/Representational_State_Transfer[_RESTful_]. There may be some exceptions to this rule, which are discussed below.
+
+The _setting part_ is easy. You can set locale in a +before_filter+ in the ApplicationController like this:
 
 [source, ruby]
 -------------------------------------------------------
 before_filter :set_locale
 def set_locale
-  # if this is nil then I18n.default_locale will be used
+  # if params[:locale] is nil then I18n.default_locale will be used
   I18n.locale = params[:locale] 
 end
 -------------------------------------------------------
 
-This will already work for URLs where you pass the locale as a query parameter as in example.com?locale=pt (which is what Google also does). 
+This requires you to pass the locale as a URL query parameter as in +http://example.com/books?locale=pt+. (This is eg. Google's approach). So +http://localhost:3000?locale=pt+ will load the Portugese localization, whereas +http://localhost:3000?locale=de+ would load the German localization, and so on.
 
-TIP: For other URL designs, see http://rails-i18n.org/wiki/pages/how-to-encode-the-current-locale-in-the-url[How to encode the current locale in the URL].
+Of course, you probably don't want to manually include locale in every URL all over your application, or want the URLs look differently, eg. the usual +http://example.com/pt/books+ versus +http://example.com/en/books+. Let's discuss the different options you have.
+
+IMPORTANT: Following examples rely on having locales loaded into your application available as an array of strings like +["en", "es", "gr"]+. This is not inclued in current version of Rails 2.2 -- forthcoming Rails version 2.3 will contain easy accesor +available_locales+. (See http://github.com/svenfuchs/i18n/commit/411f8fe7[this commit] and background at http://rails-i18n.org/wiki/pages/i18n-available_locales[Rails I18n Wiki].) 
+
+We have to include support for getting available locales manually in an initializer like this:
+
+[source, ruby]
+-------------------------------------------------------
+# config/initializers/available_locales.rb
+#
+# Get loaded locales conveniently
+# See http://rails-i18n.org/wiki/pages/i18n-available_locales
+module I18n
+  class << self
+    def available_locales; backend.available_locales; end
+  end
+  module Backend
+    class Simple
+      def available_locales; translations.keys.collect { |l| l.to_s }.sort; end
+    end
+  end
+end
+
+# You need to "force-initialize" loaded locales
+I18n.backend.send(:init_translations)
+
+AVAILABLE_LOCALES = I18n.backend.available_locales
+RAILS_DEFAULT_LOGGER.debug "* Loaded locales: #{AVAILABLE_LOCALES.inspect}"
+-------------------------------------------------------
+
+You can then wrap the constant for easy access in ApplicationController:
+
+[source, ruby]
+-------------------------------------------------------
+class ApplicationController < ActionController::Base
+  def available_locales; AVAILABLE_LOCALES; end
+end
+-------------------------------------------------------
+
+=== Setting locale from the domain name
+
+One option you have is to set the locale from the domain name, where your application runs. For example, we want +www.example.com+ to load English (or default) locale, and +www.example.es+ to load Spanish locale. Thus the _top-level domain name_ is used for locale setting. This has several advantages:
+
+* Locale is an _obvious_ part of the URL
+* People intuitively grasp in which language the content will be displayed
+* It is very trivial to implement in Rails
+* Search engines seem to like that content in different languages lives at different, inter-linked domains
+
+You can implement it like this in your ApplicationController:
+
+[source, ruby]
+-------------------------------------------------------
+before_filter :set_locale
+def set_locale
+  I18n.locale = extract_locale_from_uri
+end
+# Get locale from top-level domain or return nil if such locale is not available
+# You have to put something like:
+#   127.0.0.1 application.com
+#   127.0.0.1 application.it
+#   127.0.0.1 application.pl
+# in your /etc/hosts file to try this out locally
+def extract_locale_from_tld
+  parsed_locale = request.host.split('.').last
+  (available_locales.include? parsed_locale) ? parsed_locale  : nil
+end
+-------------------------------------------------------
+
+We can also set the locale from the _subdomain_ in very similar way:
+
+[source, ruby]
+-------------------------------------------------------
+# Get locale code from request subdomain (like http://it.application.local:3000)
+# You have to put something like:
+#   127.0.0.1 gr.application.local
+# in your /etc/hosts file to try this out locally
+def extract_locale_from_subdomain
+  parsed_locale = request.subdomains.first
+  (available_locales.include? parsed_locale) ? parsed_locale  : nil
+end
+-------------------------------------------------------
+
+=== Setting locale from the URL params
+
+* TODO : Based on *+default_url options+*, http://github.com/karmi/test_default_url_options/blob/master/app/controllers/application.rb#L22-26
+
+* TODO : Discussion of plugins (translate_routes and routing_filter)
+
+
+TIP: For setting locale from URL see http://rails-i18n.org/wiki/pages/how-to-encode-the-current-locale-in-the-url[How to encode the current locale in the URL] in the Rails i18n Wiki.
 
 Now you've initialized I18n support for your application and told it which locale should be used. With that in place you're now ready for the really interesting stuff.
 
@@ -199,7 +292,7 @@ pirate:
 
 There you go. Because you haven't changed the default_locale I18n will use English. Your application now shows:
 
-image:images/i18n/demo_translated_english.png[rails i18n demo translated to english]
+image:images/i18n/demo_translated_en.png[rails i18n demo translated to english]
 
 And when you change the URL to pass the pirate locale you get:
 
@@ -265,7 +358,7 @@ translate also takes a :scope option which can contain one or many additional ke
 I18n.t :invalid, :scope => [:active_record, :error_messages]
 -------------------------------------------------------
 
-This looks up the :invalid message in the ActiveRecord error messages.
+This looks up the :invalid message in the Active Record error messages.
 
 Additionally, both the key and scopes can be specified as dot separated keys as in:
 
@@ -314,7 +407,7 @@ I18n.t [:odd, :even], :scope => 'active_record.error_messages'
 # => ["must be odd", "must be even"]
 -------------------------------------------------------
 
-Also, a key can translate to a (potentially nested) hash as grouped translations. E.g. one can receive all ActiveRecord error messages as a Hash with:
+Also, a key can translate to a (potentially nested) hash as grouped translations. E.g. one can receive all Active Record error messages as a Hash with:
 
 [source, ruby]
 -------------------------------------------------------
@@ -445,7 +538,7 @@ I18n.t :short, :scope => [:date, :formats]
 
 Generally we recommend using YAML as a format for storing translations. There are cases though where you want to store Ruby lambdas as part of your locale data, e.g. for special date 
 
-=== Translations for ActiveRecord models
+=== Translations for Active Record models
 
 You can use the methods Model.human_name and Model.human_attribute_name(attribute) to transparently lookup translations for your model and attribute names.
 
@@ -467,7 +560,7 @@ Then User.human_name will return "Dude" and User.human_attribute_name(:login) wi
       
 ==== Error message scopes
 
-ActiveRecord validation error messages can also be translated easily. ActiveRecord gives you a couple of namespaces where you can place your message translations in order to provide different messages and translation for certain models, attributes and/or validations. It also transparently takes single table inheritance into account.
+Active Record validation error messages can also be translated easily. Active Record gives you a couple of namespaces where you can place your message translations in order to provide different messages and translation for certain models, attributes and/or validations. It also transparently takes single table inheritance into account.
 
 This gives you quite powerful means to flexibly adjust your messages to your application's needs.
 
@@ -480,7 +573,7 @@ class User < ActiveRecord::Base
 end
 -------------------------------------------------------
 
-The key for the error message in this case is :blank. ActiveRecord will lookup this key in the namespaces:
+The key for the error message in this case is :blank. Active Record will lookup this key in the namespaces:
 
 [source, ruby]
 -------------------------------------------------------
@@ -509,7 +602,7 @@ class Admin < User
 end
 -------------------------------------------------------
 
-Then ActiveRecord will look for messages in this order:
+Then Active Record will look for messages in this order:
 
 [source, ruby]
 -------------------------------------------------------
@@ -524,36 +617,41 @@ This way you can provide special translations for various error messages at diff
 
 ==== Error message interpolation
 
-The translated model name and translated attribute name are always available for interpolation. 
+The translated model name, translated attribute name, and value are always available for interpolation.
 
 So, for example, instead of the default error message "can not be blank" you could use the attribute name like this: "Please fill in your {{attribute}}".
 
-count and/or value are available where applicable. Count can be used for pluralization if present:
+count, where available, can be used for pluralization if present:
 
-|==================================================================================
-| validation                   | with option      | message         | interpolation
-| validates_confirmation_of    | -                | :confirmation   | -
-| validates_acceptance_of      | -                | :accepted       | -
-| validates_presence_of        | -                | :blank          | -
-| validates_length_of          | :within, :in     | :too_short      | count
-| validates_length_of          | :within, :in     | :too_long       | count
-| validates_length_of          | :is              | :wrong_length   | count
-| validates_length_of          | :minimum         | :too_short      | count
-| validates_length_of          | :maximum         | :too_long       | count
-| validates_uniqueness_of      | -                | :taken          | value
-| validates_format_of          | -                | :invalid        | value
-| validates_inclusion_of       | -                | :inclusion      | value
-| validates_exclusion_of       | -                | :exclusion      | value
-| validates_associated         | -                | :invalid        | value
-| validates_numericality_of    | -                | :not_a_number   | value
-| validates_numericality_of    | :odd             | :odd            | value
-| validates_numericality_of    | :even            | :even           | value
-|==================================================================================
+|=====================================================================================================
+| validation                   | with option               | message                   | interpolation
+| validates_confirmation_of    | -                         | :confirmation             | -
+| validates_acceptance_of      | -                         | :accepted                 | -
+| validates_presence_of        | -                         | :blank                    | -
+| validates_length_of          | :within, :in              | :too_short                | count
+| validates_length_of          | :within, :in              | :too_long                 | count
+| validates_length_of          | :is                       | :wrong_length             | count
+| validates_length_of          | :minimum                  | :too_short                | count
+| validates_length_of          | :maximum                  | :too_long                 | count
+| validates_uniqueness_of      | -                         | :taken                    | -
+| validates_format_of          | -                         | :invalid                  | -
+| validates_inclusion_of       | -                         | :inclusion                | -
+| validates_exclusion_of       | -                         | :exclusion                | -
+| validates_associated         | -                         | :invalid                  | -
+| validates_numericality_of    | -                         | :not_a_number             | -
+| validates_numericality_of    | :greater_than             | :greater_than             | count
+| validates_numericality_of    | :greater_than_or_equal_to | :greater_than_or_equal_to | count
+| validates_numericality_of    | :equal_to                 | :equal_to                 | count
+| validates_numericality_of    | :less_than                | :less_than                | count
+| validates_numericality_of    | :less_than_or_equal_to    | :less_than_or_equal_to    | count
+| validates_numericality_of    | :odd                      | :odd                      | -
+| validates_numericality_of    | :even                     | :even                     | -
+|=====================================================================================================
 
 
-==== Translations for the ActiveRecord error_messages_for helper
+==== Translations for the Active Record error_messages_for helper
 
-If you are using the ActiveRecord error_messages_for helper you will want to add translations for it. 
+If you are using the Active Record error_messages_for helper you will want to add translations for it. 
 
 Rails ships with the following translations:
 
@@ -570,11 +668,29 @@ en:
 -------------------------------------------------------
 
 
-=== Other translations and localizations
+=== Overview of other built-in methods that provide I18n support
 
-Rails uses fixed strings and other localizations, such as format strings and other format information in a couple of helpers.
+Rails uses fixed strings and other localizations, such as format strings and other format information in a couple of helpers. Here's a brief overview.
 
-TODO list helpers and available keys
+==== ActionView helper methods
+
+* distance_of_time_in_words translates and pluralizes its result and interpolates the number of seconds, minutes, hours and so on. See http://github.com/rails/rails/blob/master/actionpack/lib/action_view/locale/en.yml#L51[datetime.distance_in_words] translations.
+
+* datetime_select and select_month use translated month names for populating the resulting select tag. See http://github.com/rails/rails/blob/master/activesupport/lib/active_support/locale/en.yml#L15[date.month_names] for translations. datetime_select also looks up the order option from http://github.com/rails/rails/blob/master/activesupport/lib/active_support/locale/en.yml#L18[date.order] (unless you pass the option explicitely). All date select helpers translate the prompt using the translations in the http://github.com/rails/rails/blob/master/actionpack/lib/action_view/locale/en.yml#L83[datetime.prompts] scope if applicable.
+
+* The number_to_currency, number_with_precision, number_to_percentage, number_with_delimiter and humber_to_human_size helpers use the number format settings located in the http://github.com/rails/rails/blob/master/actionpack/lib/action_view/locale/en.yml#L2[number] scope.
+
+==== Active Record methods
+
+* human_name and human_attribute_name use translations for model names and attribute names if available in the http://github.com/rails/rails/blob/master/activerecord/lib/active_record/locale/en.yml#L43[activerecord.models] scope. They also support translations for inherited class names (e.g. for use with STI) as explained above in "Error message scopes".
+
+* ActiveRecord::Errors#generate_message (which is used by Active Record validations but may also be used manually) uses human_name and human_attribute_name (see above). It also translates the error message and supports translations for inherited class names as explained above in "Error message scopes".
+
+* ActiveRecord::Errors#full_messages prepends the attribute name to the error message using a separator that will be looked up from http://github.com/rails/rails/blob/master/actionpack/lib/action_view/locale/en.yml#L91[activerecord.errors.format.separator] (and defaults to ' ').
+
+==== ActiveSupport methods
+
+* Array#to_sentence uses format settings as given in the http://github.com/rails/rails/blob/master/activesupport/lib/active_support/locale/en.yml#L30[support.array] scope.
 
 
 == Customize your I18n setup
@@ -633,7 +749,38 @@ I18n.t :foo, :raise => true # always re-raises exceptions from the backend
 -------------------------------------------------------
 
 
+== Conclusion
+
+At this point you hopefully have a good overview about how I18n support in Ruby on Rails works and are ready to start translating your project.
+
+If you find anything missing or wrong in this guide please file a ticket on http://i18n.lighthouseapp.com/projects/14948-rails-i18n/overview[our issue tracker]. If you want to discuss certain portions or have questions please sign up to our http://groups.google.com/group/rails-i18n[mailinglist].
+
+
+== Contributing to Rails I18n
+
+I18n support in Ruby on Rails was introduced in the release 2.2 and is still evolving. The project follows the good Ruby on Rails development tradition of evolving solutions in plugins and real applications first and then cherry-picking the best bread of most widely useful features second for inclusion to the core.
+
+Thus we encourage everybody to experiment with new ideas and features in plugins or other libraries and make them available to the community. (Don't forget to announce your work on our http://groups.google.com/group/rails-i18n[mailinglist]!)
+
+If you find your own locale (language) missing from our http://github.com/svenfuchs/rails-i18n/tree/master/rails/locale[example translations data] repository for Ruby on Rails
+
+
 == Resources
+
+* http://rails-i18n.org[rails-i18n.org] - Homepage of the rails-i18n project. You can find lots of useful resources on the http://rails-i18n.org/wiki[wiki].
+* http://groups.google.com/group/rails-i18n[rails-i18n Google group] - The project's mailinglist. 
+* http://github.com/svenfuchs/rails-i18n/tree/master[Github: rails-i18n] - Code repository for the rails-i18n project. Most importantly you can find lots of http://github.com/svenfuchs/rails-i18n/tree/master/rails/locale[example translations] for Rails that should work for your application in most cases.
+* http://i18n.lighthouseapp.com/projects/14948-rails-i18n/overview[Lighthouse: rails-i18n] - Issue tracker for the rails-i18n project.
+* http://github.com/svenfuchs/i18n/tree/master[Github: i18n] - Code repository for the i18n gem.
+* http://i18n.lighthouseapp.com/projects/14947-ruby-i18n/overview[Lighthouse: i18n] - Issue tracker for the i18n gem.
+
+
+== Authors
+
+* Sven Fuchs[http://www.workingwithrails.com/person/9963-sven-fuchs] (initial author)
+* Karel Minarik[http://www.workingwithrails.com/person/7476-karel-mina-k]
+
+If you found this guide useful please consider recommending its authors on http://www.workingwithrails.com[workingwithrails].
 
 
 == Footnotes
@@ -644,9 +791,7 @@ I18n.t :foo, :raise => true # always re-raises exceptions from the backend
 
 [[[3]]] One of these reasons is that we don't want to any unnecessary load for applications that do not need any I18n capabilities, so we need to keep the I18n library as simple as possible for English. Another reason is that it is virtually impossible to implement a one-fits-all solution for all problems related to I18n for all existing languages. So a solution that allows us to exchange the entire implementation easily is appropriate anyway. This also makes it much easier to experiment with custom features and extensions.
 
-== Credits
 
-== NOTES
+== Changelog ==
 
-How to contribute?
-
+http://rails.lighthouseapp.com/projects/16213/tickets/23[Lighthouse ticket]

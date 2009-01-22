@@ -1,5 +1,9 @@
 *2.3.0/3.0*
 
+* Make after_save callbacks fire only if the record was successfully saved.  #1735 [Michael Lovitt]
+
+  Previously the callbacks would fire if a before_save cancelled saving.
+
 * Support nested transactions using database savepoints.  #383 [Jonathan Viney, Hongli Lai]
 
 * Added dynamic scopes ala dynamic finders #1648 [Yaroslav Markin]
