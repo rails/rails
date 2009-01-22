@@ -285,7 +285,7 @@ task :guides do
   asciidoc_conf = 'doc/guides/asciidoc.conf'
 
   ignore = ['..', 'icons', 'images', 'templates', 'stylesheets']
-  ignore << 'active_record_basics.txt'
+  #ignore << 'active_record_basics.txt'
 
   indexless = ['index.txt', 'authors.txt']
 
@@ -301,7 +301,7 @@ task :guides do
   end
 
   entries.each do |entry|
-    next if ignore.include?(entry)
+    next if ignore.include?(entry) or entry =~ /^\./ # because Vim is always saving hidden swap files
 
     if File.directory?(File.join(source, entry))
       # If the current entry is a directory, then we will want to compile
