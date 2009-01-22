@@ -220,6 +220,17 @@ def extract_locale_from_subdomain
 end
 -------------------------------------------------------
 
+If your application includes a locale switching menu, you would then have something like this in it:
+
+[source, ruby]
+-------------------------------------------------------
+link_to("Deutsch", "#{APP_CONFIG[:deutsch_website_url]}#{request.env['REQUEST_URI']}")
+-------------------------------------------------------
+
+assuming you would set +APP_CONFIG[:deutsch_website_url]+ to some value like +http://www.application.de+.
+
+This solution has aforementioned advantages, however, you may not be able or may not want to provide different localizations ("language versions") on different domains. The most obvious solution would be to include locale code in the URL params (or request path).
+
 === Setting locale from the URL params
 
 * TODO : Based on *+default_url options+*, http://github.com/karmi/test_default_url_options/blob/master/app/controllers/application.rb#L22-26
