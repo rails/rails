@@ -120,7 +120,7 @@ Rails::Generator::Commands::List.send     :include,  Yaffle::Generator::Commands
 Rails::Generator::Commands::Update.send   :include,  Yaffle::Generator::Commands::Update
 -----------------------------------------------------------
 
-*vendor/plugins/yaffle/generators/yaffle/yaffle_route_generator.rb*
+*vendor/plugins/yaffle/generators/yaffle_route/yaffle_route_generator.rb*
 
 [source, ruby]
 -----------------------------------------------------------
