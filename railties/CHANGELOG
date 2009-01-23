@@ -1,8 +1,8 @@
 *2.3.0 [Edge]*
 
-* Remove script/performance/profiler in favour of performance integration tests. [Pratik Naik]
+* Remove script/performance/request in favour of the performance integration tests. [Pratik Naik]
 
-  To continue using script/performance/profiler, install the request_profiler plugin :
+  To continue using script/performance/request, install the request_profiler plugin :
 
     script/plugin install git://github.com/rails/request_profiler.git
 
