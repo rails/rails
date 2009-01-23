@@ -36,7 +36,7 @@
             
               <li><a href="#_generic_search_form">Generic search form</a></li>
             
-              <li><a href="#_multiple_hashes_in_form_helper_attributes">Multiple hashes in form helper attributes</a></li>
+              <li><a href="#_multiple_hashes_in_form_helper_calls">Multiple hashes in form helper calls</a></li>
             
               <li><a href="#_helpers_for_generating_form_elements">Helpers for generating form elements</a></li>
             
@@ -125,22 +125,32 @@
 <div class="ulist"><ul>
 <li>
 <p>
-Create search forms and similar kind of generic forms not representing any specific model in your application;
+Create search forms and similar kind of generic forms not representing any specific model in your application
 </p>
 </li>
 <li>
 <p>
-Make model-centric forms for creation and editing of specific database records;
+Make model-centric forms for creation and editing of specific database records
 </p>
 </li>
 <li>
 <p>
-Generate select boxes from multiple types of data;
+Generate select boxes from multiple types of data
 </p>
 </li>
 <li>
 <p>
-Learn what makes a file upload form different;
+Understand the date and time helpers Rails provides
+</p>
+</li>
+<li>
+<p>
+Learn what makes a file upload form different
+</p>
+</li>
+<li>
+<p>
+Find out where to look for complex forms
 </p>
 </li>
 </ul></div>
@@ -163,7 +173,7 @@ Learn what makes a file upload form different;
   Form contents
 &lt;% end %&gt;</tt></pre>
 </div></div>
-<div class="paragraph"><p>When called without arguments like this, it creates a form element that has the current page for action attribute and "POST" as method (some line breaks added for readability):</p></div>
+<div class="paragraph"><p>When called without arguments like this, it creates a form element that has the current page for action attribute and "post" as method (some line breaks added for readability):</p></div>
 <div class="listingblock">
 <div class="title">Sample output from <tt>form_tag</tt></div>
 <div class="content">
@@ -174,7 +184,7 @@ Learn what makes a file upload form different;
   Form contents
 &lt;/form&gt;</tt></pre>
 </div></div>
-<div class="paragraph"><p>If you carefully observe this output, you can see that the helper generated something you didn&#8217;t specify: a <tt>div</tt> element with a hidden input inside. This is a security feature of Rails called <strong>cross-site request forgery protection</strong> and form helpers generate it for every form which action isn&#8217;t "GET" (provided that this security feature is enabled).</p></div>
+<div class="paragraph"><p>If you carefully observe this output, you can see that the helper generated something you didn&#8217;t specify: a <tt>div</tt> element with a hidden input inside. This is a security feature of Rails called <strong>cross-site request forgery protection</strong> and form helpers generate it for every form whose action is not "get" (provided that this security feature is enabled).</p></div>
 <div class="admonitionblock">
 <table><tr>
 <td class="icon">
@@ -212,10 +222,10 @@ a submit element.
 <td class="icon">
 <img src="./images/icons/important.png" alt="Important" />
 </td>
-<td class="content">Always use "GET" as the method for search forms. Benefits are many: users are able to bookmark a specific search and get back to it; browsers cache results of "GET" requests, but not "POST"; and others.</td>
+<td class="content">Always use "GET" as the method for search forms. This allows users are able to bookmark a specific search and get back to it, more generally Rails encourages you to use the right HTTP verb for an action.</td>
 </tr></table>
 </div>
-<div class="paragraph"><p>To create that, you will use <tt>form_tag</tt>, <tt>label_tag</tt>, <tt>text_field_tag</tt> and <tt>submit_tag</tt>, respectively.</p></div>
+<div class="paragraph"><p>To create this form you will use <tt>form_tag</tt>, <tt>label_tag</tt>, <tt>text_field_tag</tt> and <tt>submit_tag</tt>, respectively.</p></div>
 <div class="listingblock">
 <div class="title">A basic search form</div>
 <div class="content">
@@ -258,8 +268,8 @@ a submit element.
 <td class="content">For every form input, an ID attribute is generated from its name ("q" in the example). These IDs can be very useful for CSS styling or manipulation of form controls with JavaScript.</td>
 </tr></table>
 </div>
-<h3 id="_multiple_hashes_in_form_helper_attributes">1.2. Multiple hashes in form helper attributes</h3>
-<div class="paragraph"><p>By now you&#8217;ve seen that the <tt>form_tag</tt> helper accepts 2 arguments: the path for the action and an options hash. This hash specifies the method of form submission and HTML  options such as the form element&#8217;s class.</p></div>
+<h3 id="_multiple_hashes_in_form_helper_calls">1.2. Multiple hashes in form helper calls</h3>
+<div class="paragraph"><p>By now you&#8217;ve seen that the <tt>form_tag</tt> helper accepts 2 arguments: the path for the action and an options hash. This hash specifies the method of form submission and HTML options such as the form element&#8217;s class.</p></div>
 <div class="paragraph"><p>As with the &#8216;link_to` helper, the path argument doesn&#8217;t have to be given a string. It can be a hash of URL parameters that Rails&#8217; routing mechanism will turn into a valid URL. Still, you cannot simply write this:</p></div>
 <div class="listingblock">
 <div class="title">A bad way to pass multiple hashes as method arguments</div>
@@ -284,7 +294,7 @@ a submit element.
 </tr></table>
 </div>
 <h3 id="_helpers_for_generating_form_elements">1.3. Helpers for generating form elements</h3>
-<div class="paragraph"><p>Rails provides a series of helpers for generating form elements such as checkboxes, text fields, radio buttons and so. These basic helpers, with names ending in _tag such as <tt>text_field_tag</tt>, <tt>check_box_tag</tt> just generate a single <tt>&lt;input&gt;</tt> element. The first parameter to these is always the name of the input. This is the name under which value will appear in the <tt>params</tt> hash in the controller. For example if the form contains</p></div>
+<div class="paragraph"><p>Rails provides a series of helpers for generating form elements such as checkboxes, text fields, radio buttons and so. These basic helpers, with names ending in _tag such as <tt>text_field_tag</tt>, <tt>check_box_tag</tt> just generate a single <tt>&lt;input&gt;</tt> element. The first parameter to these is always the name of the input. In the controller, this name will be the key in the <tt>params</tt> hash used to get the value entered by the user. For example if the form contains</p></div>
 <div class="listingblock">
 <div class="content">
 <pre><tt>&lt;%= text_field_tag(:query) %&gt;</tt></pre>
@@ -294,7 +304,7 @@ a submit element.
 <div class="content">
 <pre><tt>params[:query]</tt></pre>
 </div></div>
-<div class="paragraph"><p>to retrieve the value entered by the user. When naming inputs be aware that Rails uses certain conventions that control whether values appear at the top level of the params hash, inside an array or a nested hash and so on. You can read more about them in the <a href="#parameter_names">parameter names</a> section. For details on the precise usage of these helpers, please refer to the <a href="http://api.rubyonrails.org/classes/ActionView/Helpers/FormTagHelper.html">API documentation</a>.</p></div>
+<div class="paragraph"><p>to retrieve the value entered by the user. When naming inputs be aware that Rails uses certain conventions that control whether values are at the top level of the <tt>params</tt> hash, inside an array or a nested hash and so on. You can read more about them in the <a href="#parameter_names">parameter names</a> section. For details on the precise usage of these helpers, please refer to the <a href="http://api.rubyonrails.org/classes/ActionView/Helpers/FormTagHelper.html">API documentation</a>.</p></div>
 <h4 id="_checkboxes">1.3.1. Checkboxes</h4>
 <div class="paragraph"><p>Checkboxes are form controls that give the user a set of options they can enable or disable:</p></div>
 <div class="listingblock">
@@ -311,7 +321,7 @@ output:
 &lt;input id="pet_cat" name="pet_cat" type="checkbox" value="1" /&gt;
   &lt;label for="pet_cat"&gt;I own a cat&lt;/label&gt;</tt></pre>
 </div></div>
-<div class="paragraph"><p>The second parameter to <tt>check_box_tag</tt> is the value of the input. This is the value that will be submitted by the browser if the checkbox is ticked (i.e. the value that will be present in the params hash). With the above form you would check the value of <tt>params[:pet_dog]</tt> and <tt>params[:pet_cat]</tt> to see which pets the user owns.</p></div>
+<div class="paragraph"><p>The second parameter to <tt>check_box_tag</tt> is the value of the input. This is the value that will be submitted by the browser if the checkbox is ticked (i.e. the value that will be present in the <tt>params</tt> hash). With the above form you would check the value of <tt>params[:pet_dog]</tt> and <tt>params[:pet_cat]</tt> to see which pets the user owns.</p></div>
 <h4 id="_radio_buttons">1.3.2. Radio buttons</h4>
 <div class="paragraph"><p>Radio buttons, while similar to checkboxes, are controls that specify a set of options in which they are mutually exclusive (user can only pick one):</p></div>
 <div class="listingblock">
@@ -328,7 +338,7 @@ output:
 &lt;input id="age_adult" name="age" type="radio" value="adult" /&gt;
   &lt;label for="age_adult"&gt;I'm over 21&lt;/label&gt;</tt></pre>
 </div></div>
-<div class="paragraph"><p>As with <tt>check_box_tag</tt> the second parameter to <tt>radio_button_tag</tt> is the value of the input. Because these two radio buttons share the same name (age) the user will only be able to select one and <tt>params[:age]</tt> will contain either <tt>child</tt> or <tt>adult</tt>.</p></div>
+<div class="paragraph"><p>As with <tt>check_box_tag</tt> the second parameter to <tt>radio_button_tag</tt> is the value of the input. Because these two radio buttons share the same name (age) the user will only be able to select one and <tt>params[:age]</tt> will contain either "child" or "adult".</p></div>
 <div class="admonitionblock">
 <table><tr>
 <td class="icon">
@@ -439,7 +449,7 @@ Methods to create form controls are called <strong>on</strong> the form builder 
   &lt;input name="commit" type="submit" value="Create" /&gt;
 &lt;/form&gt;</tt></pre>
 </div></div>
-<div class="paragraph"><p>The name passed to <tt>form_for</tt> controls where in the params hash the form values will appear. Here the name is <tt>article</tt> and so all the inputs have names of the form <tt>article[attribute_name]</tt>. Accordingly, in the <tt>create</tt> action <tt>params[:article]</tt> will be a hash with keys <tt>:title</tt> and <tt>:body</tt>. You can read more about the significance of input names in the <a href="#parameter_names">parameter names</a> section.</p></div>
+<div class="paragraph"><p>The name passed to <tt>form_for</tt> controls the key used in <tt>params</tt> for form&#8217;s values. Here the name is <tt>article</tt> and so all the inputs have names of the form <tt>article[attribute_name]</tt>. Accordingly, in the <tt>create</tt> action <tt>params[:article]</tt> will be a hash with keys <tt>:title</tt> and <tt>:body</tt>. You can read more about the significance of input names in the <a href="#parameter_names">parameter names</a> section.</p></div>
 <div class="paragraph"><p>The helper methods called on the form builder are identical to the model object helpers except that it is not necessary to specify which object is being edited since this is already managed by the form builder.</p></div>
 <div class="paragraph"><p>You can create a similar binding without actually creating  <tt>&lt;form&gt;</tt> tags with the <tt>fields_for</tt> helper. This is useful for editing additional model objects with the same form. For example if you had a Person model with an associated ContactDetail model you could create a form for editing both like so:</p></div>
 <div class="listingblock">
@@ -572,7 +582,7 @@ output:
 <img src="./images/icons/tip.png" alt="Tip" />
 </td>
 <td class="content">
-<div class="paragraph"><p>The second argument to <tt>options_for_select</tt> must be exactly equal to the desired internal value. In particular if the internal value is the integer 2 you cannot pass "2" to <tt>options_for_select</tt>&#8201;&#8212;&#8201;you must pass 2. Be aware of values extracted from the params hash as they are all strings.</p></div>
+<div class="paragraph"><p>The second argument to <tt>options_for_select</tt> must be exactly equal to the desired internal value. In particular if the internal value is the integer 2 you cannot pass "2" to <tt>options_for_select</tt>&#8201;&#8212;&#8201;you must pass 2. Be aware of values extracted from the <tt>params</tt> hash as they are all strings.</p></div>
 </td>
 </tr></table>
 </div>
@@ -605,7 +615,7 @@ output:
 <div class="content">
 <pre><tt>ActiveRecord::AssociationTypeMismatch: City(#17815740) expected, got Fixnum(#1138750)</tt></pre>
 </div></div>
-<div class="paragraph"><p>when you pass the params hash to <tt>Person.new</tt> or <tt>update_attributes</tt>. Another way of looking at this is that form helpers only edit attributes.</p></div>
+<div class="paragraph"><p>when you pass the <tt>params</tt> hash to <tt>Person.new</tt> or <tt>update_attributes</tt>. Another way of looking at this is that form helpers only edit attributes.</p></div>
 </td>
 </tr></table>
 </div>
@@ -647,7 +657,7 @@ output:
 <div class="olist arabic"><ol class="arabic">
 <li>
 <p>
-Unlike other attributes you might typically have, dates and times are not representable by a single input element. Instead you have several, one for each component (year, month, day etc...). So in particular, there is no single value in your params hash with your date or time.
+Unlike other attributes you might typically have, dates and times are not representable by a single input element. Instead you have several, one for each component (year, month, day etc...). So in particular, there is no single value in your <tt>params</tt> hash with your date or time.
 </p>
 </li>
 <li>
@@ -675,9 +685,9 @@ Other helpers use the _tag suffix to indicate whether a helper is a barebones he
 <div class="content">
 <pre><tt>Date::civil(params[:start_date][:year].to_i, params[:start_date][:month].to_i, params[:start_date][:day].to_i)</tt></pre>
 </div></div>
-<div class="paragraph"><p>The :prefix option controls where in the params hash the date components will be placed. Here it was set to <tt>start_date</tt>, if omitted it will default to <tt>date</tt>.</p></div>
+<div class="paragraph"><p>The :prefix option controls where in the <tt>params</tt> hash the date components will be placed. Here it was set to <tt>start_date</tt>, if omitted it will default to <tt>date</tt>.</p></div>
 <h3 id="_model_object_helpers_2">4.2. Model object helpers</h3>
-<div class="paragraph"><p><tt>select_date</tt> does not work well with forms that update or create Active Record objects as Active Record expects each element of the params hash to correspond to one attribute.
+<div class="paragraph"><p><tt>select_date</tt> does not work well with forms that update or create Active Record objects as Active Record expects each element of the <tt>params</tt> hash to correspond to one attribute.
 The model object helpers for dates and times submit parameters with special names. When Active Record sees parameters with such names it knows they must be combined with the other parameters and given to a constructor appropriate to the column type. For example</p></div>
 <div class="listingblock">
 <div class="content">
@@ -690,7 +700,7 @@ The model object helpers for dates and times submit parameters with special name
 &lt;select id="person_birth_date_2i" name="person[birth_date(2i)]"&gt; ... &lt;/select&gt;
 &lt;select id="person_birth_date_3i" name="person[birth_date(3i)]"&gt; ... &lt;/select&gt;</tt></pre>
 </div></div>
-<div class="paragraph"><p>which results in a params hash like</p></div>
+<div class="paragraph"><p>which results in a <tt>params</tt> hash like</p></div>
 <div class="listingblock">
 <div class="content">
 <pre><tt>{:person =&gt; {'birth_date(1i)' =&gt; '2008', 'birth_date(2i)' =&gt; '11', 'birth_date(3i)' =&gt; '22'}}</tt></pre>
@@ -724,7 +734,7 @@ The model object helpers for dates and times submit parameters with special name
 </div></div>
 <div class="paragraph"><p>Rails provides the usual pair of helpers: the barebones <tt>file_field_tag</tt> and the model oriented <tt>file_field</tt>. The only difference with other helpers is that you cannot set a default value for file inputs as this would have no meaning. As you would expect in the first case the uploaded file is in <tt>params[:picture]</tt> and in the second case in <tt>params[:person][:picture]</tt>.</p></div>
 <h3 id="_what_gets_uploaded">5.1. What gets uploaded</h3>
-<div class="paragraph"><p>The object in the params hash is an instance of a subclass of IO. Depending on the size of the uploaded file it may in fact be a StringIO or an instance of File backed by a temporary file. In both cases the object will have an <tt>original_filename</tt> attribute containing the name the file had on the user&#8217;s computer and a <tt>content_type</tt> attribute containing the MIME type of the uploaded file. The following snippet saves the uploaded content in <tt>#{RAILS_ROOT}/public/uploads</tt> under the same name as the original file (assuming the form was the one in the previous example).</p></div>
+<div class="paragraph"><p>The object in the <tt>params</tt> hash is an instance of a subclass of IO. Depending on the size of the uploaded file it may in fact be a StringIO or an instance of File backed by a temporary file. In both cases the object will have an <tt>original_filename</tt> attribute containing the name the file had on the user&#8217;s computer and a <tt>content_type</tt> attribute containing the MIME type of the uploaded file. The following snippet saves the uploaded content in <tt>#{RAILS_ROOT}/public/uploads</tt> under the same name as the original file (assuming the form was the one in the previous example).</p></div>
 <div class="listingblock">
 <div class="content"><!-- Generator: GNU source-highlight 2.9
 by Lorenzo Bettini
@@ -785,8 +795,8 @@ http://www.gnu.org/software/src-highlite -->
 </div>
 <h2 id="_understanding_parameter_naming_conventions">7. Understanding Parameter Naming Conventions</h2>
 <div class="sectionbody">
-<div class="paragraph" id="parameter_names"><p>As you&#8217;ve seen in the previous sections, values from forms can appear either at the top level of the params hash or may appear nested in another hash. For example in a standard create
-action for a Person model, <tt>params[:model]</tt> would usually be a hash of all the attributes for the person to create. The params hash can also contain arrays, arrays of hashes and so on.</p></div>
+<div class="paragraph" id="parameter_names"><p>As you&#8217;ve seen in the previous sections, values from forms can be at the top level of the <tt>params</tt> hash or nested in another hash. For example in a standard create
+action for a Person model, <tt>params[:model]</tt> would usually be a hash of all the attributes for the person to create. The <tt>params</tt> hash can also contain arrays, arrays of hashes and so on.</p></div>
 <div class="paragraph"><p>Fundamentally HTML forms don&#8217;t know about any sort of structured data, all they generate is name-value pairs. The arrays and hashes you see in your application are the result of some parameter naming conventions that Rails uses.</p></div>
 <div class="admonitionblock">
 <table><tr>
@@ -804,12 +814,12 @@ action for a Person model, <tt>params[:model]</tt> would usually be a hash of al
 </tr></table>
 </div>
 <h3 id="_basic_structures">7.1. Basic structures</h3>
-<div class="paragraph"><p>The two basic structures are arrays and hashes. Hashes mirror the syntax used for accessing the value in the params. For example if a form contains</p></div>
+<div class="paragraph"><p>The two basic structures are arrays and hashes. Hashes mirror the syntax used for accessing the value in <tt>params</tt>. For example if a form contains</p></div>
 <div class="listingblock">
 <div class="content">
 <pre><tt>&lt;input id="person_name" name="person[name]" type="text" value="Henry"/&gt;</tt></pre>
 </div></div>
-<div class="paragraph"><p>the params hash will contain</p></div>
+<div class="paragraph"><p>the <tt>params</tt> hash will contain</p></div>
 <div class="listingblock">
 <div class="content"><!-- Generator: GNU source-highlight 2.9
 by Lorenzo Bettini
@@ -822,7 +832,7 @@ http://www.gnu.org/software/src-highlite -->
 <div class="content">
 <pre><tt>&lt;input id="person_address_city" name="person[address][city]" type="text" value="New York"/&gt;</tt></pre>
 </div></div>
-<div class="paragraph"><p>will result in the params hash being</p></div>
+<div class="paragraph"><p>will result in the <tt>params</tt> hash being</p></div>
 <div class="listingblock">
 <div class="content"><!-- Generator: GNU source-highlight 2.9
 by Lorenzo Bettini
@@ -878,7 +888,7 @@ http://www.gnu.org/software/src-highlite -->
   &lt;input id="person_address_45_city" name="person[address][45][city]" size="30" type="text" /&gt;
 &lt;/form&gt;</tt></pre>
 </div></div>
-<div class="paragraph"><p>This will result in a params hash that looks like</p></div>
+<div class="paragraph"><p>This will result in a <tt>params</tt> hash that looks like</p></div>
 <div class="listingblock">
 <div class="content"><!-- Generator: GNU source-highlight 2.9
 by Lorenzo Bettini

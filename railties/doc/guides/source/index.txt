@@ -91,6 +91,13 @@ This guide covers the three types of caching that Rails provides by default.
 <h2>Digging Deeper</h2>
 ++++++++++++++++++++++++++++++++++++++
 
+.link:action_mailer_basics.html[Action Mailer Basics]
+***********************************************************
+CAUTION: link:http://rails.lighthouseapp.com/projects/16213/tickets/25[Lighthouse ticket]
+
+This guide describes how to use Action Mailer to send and receive emails.
+***********************************************************
+
 .link:testing_rails_applications.html[Testing Rails Applications]
 ***********************************************************
 CAUTION: link:http://rails.lighthouseapp.com/projects/16213/tickets/8[Lighthouse Ticket]
