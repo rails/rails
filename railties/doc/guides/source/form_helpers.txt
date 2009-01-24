@@ -494,8 +494,8 @@ Using Date and Time Form Helpers
 
 The date and time helpers differ from all the other form helpers in two important respects:
 
-1. Unlike other attributes you might typically have, dates and times are not representable by a single input element. Instead you have several, one for each component (year, month, day etc...). So in particular, there is no single value in your `params` hash with your date or time.
-2. Other helpers use the _tag suffix to indicate whether a helper is a barebones helper or one that operates on model objects. With dates and times, `select\_date`, `select\_time` and `select_datetime` are the barebones helpers, `date_select`, `time_select` and `datetime_select` are the equivalent model object helpers
+1. Dates and times are not representable by a single input element. Instead you have several, one for each component (year, month, day etc.) and so there is no single value in your `params` hash with your date or time.
+2. Other helpers use the _tag suffix to indicate whether a helper is a barebones helper or one that operates on model objects. With dates and times, `select\_date`, `select\_time` and `select_datetime` are the barebones helpers, `date_select`, `time_select` and `datetime_select` are the equivalent model object helpers.
 
 Both of these families of helpers will create a series of select boxes for the different components (year, month, day etc...).
 
@@ -506,26 +506,26 @@ The `select_*` family of helpers take as their first argument an instance of Dat
 -----------
 <%= select_date Date::today, :prefix => :start_date %>
 -----------
-outputs (with the actual option values omitted for brevity)
+outputs (with actual option values omitted for brevity)
 -----------
 <select id="start_date_year" name="start_date[year]"> ... </select>
 <select id="start_date_month" name="start_date[month]"> ... </select>
 <select id="start_date_day" name="start_date[day]"> ... </select>
 -----------
-The above inputs would result in `params[:start_date]` being a hash with keys :year, :month, :day. To get an actual Time or Date object you would have to extract these values and pass them to the appropriate constructor, for example
+The above inputs would result in `params[:start_date]` being a hash with keys `:year`, `:month`, `:day`. To get an actual Time or Date object you would have to extract these values and pass them to the appropriate constructor, for example
 -----------
 Date::civil(params[:start_date][:year].to_i, params[:start_date][:month].to_i, params[:start_date][:day].to_i)
 -----------
-The :prefix option controls where in the `params` hash the date components will be placed. Here it was set to `start_date`, if omitted it will default to `date`.
+The `:prefix` option is the key used to retrieve the hash of date components from the `params` hash. Here it was set to `start_date`, if omitted it will default to `date`.
 
 Model object helpers
 ~~~~~~~~~~~~~~~~~~~~
 `select_date` does not work well with forms that update or create Active Record objects as Active Record expects each element of the `params` hash to correspond to one attribute.
-The model object helpers for dates and times submit parameters with special names. When Active Record sees parameters with such names it knows they must be combined with the other parameters and given to a constructor appropriate to the column type. For example
+The model object helpers for dates and times submit parameters with special names,  when Active Record sees parameters with such names it knows they must be combined with the other parameters and given to a constructor appropriate to the column type. For example:
 ---------------
 <%= date_select :person, :birth_date %>
 ---------------
-outputs (with the actual option values omitted for brevity)
+outputs (with actual option values omitted for brevity)
 --------------
 <select id="person_birth_date_1i" name="person[birth_date(1i)]"> ... </select>
 <select id="person_birth_date_2i" name="person[birth_date(2i)]"> ... </select>
@@ -536,7 +536,7 @@ which results in a `params` hash like
 {:person => {'birth_date(1i)' => '2008', 'birth_date(2i)' => '11', 'birth_date(3i)' => '22'}}
 --------------
 
-When this is passed to `Person.new`, Active Record spots that these parameters should all be used to construct the `birth_date` attribute and uses the suffixed information to determine in which order it should pass these parameters to functions such as `Date::civil`.
+When this is passed to `Person.new` (or `update_attributes`), Active Record spots that these parameters should all be used to construct the `birth_date` attribute and uses the suffixed information to determine in which order it should pass these parameters to functions such as `Date::civil`.
 
 Common options
 ~~~~~~~~~~~~~~
@@ -545,6 +545,20 @@ Both families of helpers use the same core set of functions to generate the indi
 As a rule of thumb you should be using `date_select` when working with model objects and `select_date` in others cases, such as a search form which filters results by date.
 
 NOTE: In many cases the built in date pickers are clumsy as they do not aid the user in working out the relationship between the date and the day of the week.
+
+Individual Components
+~~~~~~~~~~~~~~~~~~~~~
+
+Occasionally you need to display just a single date component such as a year or a month. Rails provides a series of helpers for this, one for each component `select_year`, `select_month`, `select_day`, `select_hour`, `select_minute`, `select_second`. These helpers are fairly straightforward. By default they will generate a input named after the time component (for example "year" for `select_year`, "month" for `select_month` etc.) although this can be override with the  `:field_name` option. The `:prefix` option works in the same way that it does for `select_date` and `select_time` and has the same default value.
+
+The first parameter specifies which value should be selected and can either be an instance of a Date, Time or DateTime, in which case the relevant component will be extracted, or a numerical value. For example
+
+---------------
+<%= select_year(2009) %>
+<%= select_year(Time.now) %>
+---------------
+
+Will produce the same output if the current year is 2009 and the value chosen by the user can be retrieved by `params[:date][:year]`.
 
 Uploading Files
 --------------
