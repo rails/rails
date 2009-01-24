@@ -26,7 +26,7 @@ The most basic form helper is `form_tag`.
 <% end %>
 ----------------------------------------------------------------------------
 
-When called without arguments like this, it creates a form element that has the current page for action attribute and "post" as method (some line breaks added for readability):
+When called without arguments like this, it creates a form element that has the current page as its action and "post" as its method (some line breaks added for readability):
 
 .Sample output from `form_tag`
 ----------------------------------------------------------------------------
@@ -38,12 +38,12 @@ When called without arguments like this, it creates a form element that has the 
 </form>
 ----------------------------------------------------------------------------
 
-If you carefully observe this output, you can see that the helper generated something you didn't specify: a `div` element with a hidden input inside. This is a security feature of Rails called *cross-site request forgery protection* and form helpers generate it for every form whose action is not "get" (provided that this security feature is enabled).
+If you carefully observe this output, you can see that the helper generated something you didn't specify: a `div` element with a hidden input inside. This is a security feature of Rails called *cross-site request forgery protection* and form helpers generate it for every form whose action is not "get" (provided that this security feature is enabled). You can read more about this in the link:./security.html#_cross_site_reference_forgery_csrf[Ruby On Rails Security Guide].
 
 NOTE: Throughout this guide, this `div` with the hidden input will be stripped away to have clearer code samples.
 
-Generic search form
-~~~~~~~~~~~~~~~~~~~
+A Generic search form
+~~~~~~~~~~~~~~~~~~~~~
 
 Probably the most minimal form often seen on the web is a search form with a single text input for search terms. This form consists of:
 
