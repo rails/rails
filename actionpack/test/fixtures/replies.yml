@@ -13,3 +13,11 @@ another:
   content: Nuh uh!
   created_at: <%= 1.hour.ago.to_s(:db) %>
   updated_at: nil
+
+best_reply:
+  id: 3
+  topic_id: 3
+  developer_id: 2
+  content: No one can know
+  created_at: <%= 5.hours.ago.to_s(:db) %>
+  updated_at: nil
