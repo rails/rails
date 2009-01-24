@@ -209,7 +209,7 @@ will produce output similar to
 ---------------------------
 <input id="person_name" name="person[name]" type="text" value="Henry"/>
 ---------------------------
-Upon form submission the value entered by the user will be stored in `params[:person][:name]`. The `params[:person]` hash is suitable for passing to `Person.new` or, if `@person` is an instance of Person, `@person.update_attributes`.
+Upon form submission the value entered by the user will be stored in `params[:person][:name]`. The `params[:person]` hash is suitable for passing to `Person.new` or, if `@person` is an instance of Person, `@person.update_attributes`. While the name of an attribute is the most common second parameter to these helpers this is not compulsory. In the example above, as long as person objects have a `name` and a `name=` method Rails will be happy.
 
 [WARNING]
 ============================================================================
@@ -259,7 +259,7 @@ The resulting HTML is:
   <input name="commit" type="submit" value="Create" />
 </form>
 ----------------------------------------------------------------------------
-The name passed to `form_for` controls the key used in `params` for form's values. Here the name is `article` and so all the inputs have names of the form `article[attribute_name]`. Accordingly, in the `create` action `params[:article]` will be a hash with keys `:title` and `:body`. You can read more about the significance of input names in the <<parameter_names,parameter names>> section.
+The name passed to `form_for` controls the key used in `params` to access the form's values. Here the name is `article` and so all the inputs have names of the form `article[attribute_name]`. Accordingly, in the `create` action `params[:article]` will be a hash with keys `:title` and `:body`. You can read more about the significance of input names in the <<parameter_names,parameter names>> section.
 
 The helper methods called on the form builder are identical to the model object helpers except that it is not necessary to specify which object is being edited since this is already managed by the form builder.
 
@@ -306,7 +306,7 @@ form_for(@article)
 
 Notice how the short-style `form_for` invocation is conveniently the same, regardless of the record being new or existing. Record identification is smart enough to figure out if the record is new by asking `record.new_record?`. It also selects the correct path to submit to and the name based on the class of the object.
 
-Rails will also automatically set the class and id of the form appropriately: a form creating an article would have id and class `new_article`. If you were editing the article with id 23 the class would be set to `edit_article` and the id to `edit_article_23`. The attributes will be omitted or brevity in the rest of this guide.
+Rails will also automatically set the class and id of the form appropriately: a form creating an article would have id and class `new_article`. If you were editing the article with id 23 the class would be set to `edit_article` and the id to `edit_article_23`. These attributes will be omitted for brevity in the rest of this guide.
 
 WARNING: When you're using STI (single-table inheritance) with your models, you can't rely on record identification on a subclass if only their parent class is declared a resource. You will have to specify the model name, `:url` and `:method` explicitly.
 
@@ -328,7 +328,7 @@ For more information on Rails' routing system and the associated conventions, pl
 How do forms with PUT or DELETE methods work?
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-Rails framework encourages RESTful design of your applications, which means you'll be making a lot of "PUT" and "DELETE" requests (besides "GET" and "POST"). Still, most browsers _don't support_ methods other than "GET" and "POST" when it comes to submitting forms. How does this work, then?
+Rails framework encourages RESTful design of your applications, which means you'll be making a lot of "PUT" and "DELETE" requests (besides "GET" and "POST"). Still, most browsers _don't support_ methods other than "GET" and "POST" when it comes to submitting forms.
 
 Rails works around this issue by emulating other methods over POST with a hidden input named `"_method"` that is set to reflect the desired method:
 
@@ -344,7 +344,7 @@ output:
   </div>
   ...
 ----------------------------------------------------------------------------
-When parsing POSTed data, Rails will take into account the special `_method` parameter and act as if the HTTP method was the one specified inside it ("PUT" in this example).
+When parsing POSTed data, Rails will take into account the special `_method` parameter and acts as if the HTTP method was the one specified inside it ("PUT" in this example).
 
 
 Making select boxes with ease
