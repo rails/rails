@@ -286,7 +286,7 @@ The object yielded by `fields_for` is a form builder like the one yielded by `fo
 Relying on record identification
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-The Article model is directly available to users of our application, so -- following the best practices for developing with Rails -- you should declare it *a resource*.
+The Article model is directly available to users of the application, so -- following the best practices for developing with Rails -- you should declare it *a resource*.
 
 When dealing with RESTful resources, calls to `form_for` can get significantly easier if you rely on *record identification*. In short, you can just pass the model instance and have Rails figure out model name and the rest:
 
@@ -356,7 +356,7 @@ Here is what the markup might look like:
 
 ----------------------------------------------------------------------------
 <select name="city_id" id="city_id">
-  <option value="1">Lisabon</option>
+  <option value="1">Lisbon</option>
   <option value="2">Madrid</option>
   ...
   <option value="12">Berlin</option>
@@ -371,22 +371,22 @@ The select tag and options
 The most generic helper is `select_tag`, which -- as the name implies -- simply generates the `SELECT` tag that encapsulates an options string:
 
 ----------------------------------------------------------------------------
-<%= select_tag(:city_id, '<option value="1">Lisabon</option>...') %>
+<%= select_tag(:city_id, '<option value="1">Lisbon</option>...') %>
 ----------------------------------------------------------------------------
 
-This is a start, but it doesn't dynamically create our option tags. You can generate option tags with the `options_for_select` helper:
+This is a start, but it doesn't dynamically create the option tags. You can generate option tags with the `options_for_select` helper:
 
 ----------------------------------------------------------------------------
-<%= options_for_select([['Lisabon', 1], ['Madrid', 2], ...]) %>
+<%= options_for_select([['Lisbon', 1], ['Madrid', 2], ...]) %>
 
 output:
 
-<option value="1">Lisabon</option>
+<option value="1">Lisbon</option>
 <option value="2">Madrid</option>
 ...
 ----------------------------------------------------------------------------
 
-For input data you use a nested array where each element has two elements: option text (city name) and option value (city id). The option value is what will get submitted to your controller. It is often true that the option value is the id of a corresponding database object but this does not have to be the case.
+The first argument to `options_for_select` is a nested array where each element has two elements: option text (city name) and option value (city id). The option value is what will be submitted to your controller. Often this will be the id of a corresponding database object but this does not have to be the case.
 
 Knowing this, you can combine `select_tag` and `options_for_select` to achieve the desired, complete markup:
 
@@ -394,7 +394,7 @@ Knowing this, you can combine `select_tag` and `options_for_select` to achieve t
 <%= select_tag(:city_id, options_for_select(...)) %>
 ----------------------------------------------------------------------------
 
-Sometimes, depending on an application's needs, you also wish a specific option to be pre-selected. The `options_for_select` helper supports this with an optional second argument:
+`options_for_select` allows you to pre-select an option by specify its value as the second argument:
 
 ----------------------------------------------------------------------------
 <%= options_for_select([['Lisabon', 1], ['Madrid', 2], ...], 2) %>
@@ -406,20 +406,18 @@ output:
 ...
 ----------------------------------------------------------------------------
 
-So whenever Rails sees that the internal value of an option being generated matches this value, it will add the `selected` attribute to that option.
+Whenever Rails sees that the internal value of an option being generated matches this value, it will add the `selected` attribute to that option.
 
 [TIP]
 ============================================================================
-The second argument to `options_for_select` must be exactly equal to the desired internal value. In particular if the internal value is the integer 2 you cannot pass "2" to `options_for_select` -- you must pass 2. Be aware of values extracted from the `params` hash as they are all strings.
+The second argument to `options_for_select` must be exactly equal to the desired internal value. In particular if the value is the integer 2 you cannot pass "2" to `options_for_select` -- you must pass 2. Be aware of values extracted from the `params` hash as they are all strings.
 
 ============================================================================
 
 Select boxes for dealing with models
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-Until now you've seen how to make generic select boxes, but in most cases our form controls will be tied to a specific database model. So, to continue from our previous examples, let's assume that you have a "Person" model with a `city_id` attribute.
-
-Consistent with other form helpers, when dealing with models you drop the `_tag` suffix from `select_tag`.
+In most cases form controls will be tied to a specific database model and as you might expect Rails provides helpers tailored for that purpose. Consistent with other form helpers, when dealing with models you drop the `_tag` suffix from `select_tag`:
 
 ----------------------------------------------------------------------------
 # controller:
@@ -431,7 +429,7 @@ Consistent with other form helpers, when dealing with models you drop the `_tag`
 
 Notice that the third parameter, the options array, is the same kind of argument you pass to `options_for_select`. One advantage here is that you don't have to worry about pre-selecting the correct city if the user already has one -- Rails will do this for you by reading from the `@person.city_id` attribute.
 
-As before, if you were to use `select` helper on a form builder scoped to `@person` object, the syntax would be:
+As with other helpers, if you were to use `select` helper on a form builder scoped to `@person` object, the syntax would be:
 
 ----------------------------------------------------------------------------
 # select on a form builder
@@ -440,22 +438,19 @@ As before, if you were to use `select` helper on a form builder scoped to `@pers
 
 [WARNING] 
 =============================
-If you are using `select` (or similar helpers such as `collection_select`, `select_tag`) to set a `belongs_to` association you must pass the name of the foreign key (in the example above `city_id`), not the name of association itself. If you specify `city` instead of `city_id Active Record will raise an error along the lines of
+If you are using `select` (or similar helpers such as `collection_select`, `select_tag`) to set a `belongs_to` association you must pass the name of the foreign key (in the example above `city_id`), not the name of association itself.
+
+If you specify `city` instead of `city_id` Active Record will raise an error along the lines of
 --------
-ActiveRecord::AssociationTypeMismatch: City(#17815740) expected, got Fixnum(#1138750)
+ActiveRecord::AssociationTypeMismatch: City(#17815740) expected, got String(#1138750)
 --------
 when you pass the `params` hash to `Person.new` or `update_attributes`. Another way of looking at this is that form helpers only edit attributes.
 ============================
+
 Option tags from a collection of arbitrary objects
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-Until now you were generating option tags from nested arrays with the help of `options_for_select` method. Data in our array were raw values:
-
-----------------------------------------------------------------------------
-<%= options_for_select([['Lisabon', 1], ['Madrid', 2], ...]) %>
-----------------------------------------------------------------------------
-
-But what if you had a *City* model (perhaps an Active Record one) and you wanted to generate option tags from a collection of those objects? One solution would be to make a nested array by iterating over them:
+Generating options tags with `options_for_select` requires that you create an array containing the text and value for each option. But what if you had a City model (perhaps an Active Record one) and you wanted to generate option tags from a collection of those objects? One solution would be to make a nested array by iterating over them:
 
 ----------------------------------------------------------------------------
 <% cities_array = City.find(:all).map { |city| [city.name, city.id] } %>
@@ -468,7 +463,7 @@ This is a perfectly valid solution, but Rails provides a less verbose alternativ
 <%= options_from_collection_for_select(City.all, :id, :name) %>
 ----------------------------------------------------------------------------
 
-As the name implies, this only generates option tags. To generate a working select box you would need to use it in conjunction with `select_tag`, just as you would with `options_for_select`. A method to go along with it is `collection_select`:
+As the name implies, this only generates option tags. To generate a working select box you would need to use it in conjunction with `select_tag`, just as you would with `options_for_select`. When working with model objects, just as `select` combines `select_tag` and `options_for_select`, `collection_select` combines `select_tag` with `options_from_collection_for_select`.
 
 ----------------------------------------------------------------------------
 <%= collection_select(:person, :city_id, City.all, :id, :name) %>
@@ -479,10 +474,10 @@ To recap, `options_from_collection_for_select` is to `collection_select` what `o
 Time zone and country select
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-To leverage time zone support in Rails, you have to ask our users what time zone they are in. Doing so would require generating select options from a list of pre-defined TimeZone objects using `collection_select`, but you can simply use the `time_zone_select` helper that already wraps this:
+To leverage time zone support in Rails, you have to ask your users what time zone they are in. Doing so would require generating select options from a list of pre-defined TimeZone objects using `collection_select`, but you can simply use the `time_zone_select` helper that already wraps this:
 
 ----------------------------------------------------------------------------
-<%= time_zone_select(:person, :city_id) %>
+<%= time_zone_select(:person, :time_zone) %>
 ----------------------------------------------------------------------------
 
 There is also `time_zone_options_for_select` helper for a more manual (therefore more customizable) way of doing this. Read the API documentation to learn about the possible arguments for these two methods.
@@ -714,7 +709,7 @@ You might want to render a form with a set of edit fields for each of a person's
   <% end %>
 <% end %>
 --------
-Assuming our person had two addresses, with ids 23 and 45 this would create output similar to this:
+Assuming the person had two addresses, with ids 23 and 45 this would create output similar to this:
 --------
 <form action="/people/1" class="edit_person" id="edit_person_1" method="post">
   <input id="person_name" name="person[name]" size="30" type="text" />
