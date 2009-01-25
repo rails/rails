@@ -436,7 +436,7 @@ As with other helpers, if you were to use `select` helper on a form builder scop
 <%= f.select(:city_id, ...) %>
 ----------------------------------------------------------------------------
 
-[WARNING] 
+[WARNING]
 =============================
 If you are using `select` (or similar helpers such as `collection_select`, `select_tag`) to set a `belongs_to` association you must pass the name of the foreign key (in the example above `city_id`), not the name of association itself.
 
@@ -462,7 +462,6 @@ This is a perfectly valid solution, but Rails provides a less verbose alternativ
 ----------------------------------------------------------------------------
 <%= options_from_collection_for_select(City.all, :id, :name) %>
 ----------------------------------------------------------------------------
-
 As the name implies, this only generates option tags. To generate a working select box you would need to use it in conjunction with `select_tag`, just as you would with `options_for_select`. When working with model objects, just as `select` combines `select_tag` and `options_for_select`, `collection_select` combines `select_tag` with `options_from_collection_for_select`.
 
 ----------------------------------------------------------------------------
@@ -470,6 +469,11 @@ As the name implies, this only generates option tags. To generate a working sele
 ----------------------------------------------------------------------------
 
 To recap, `options_from_collection_for_select` is to `collection_select` what `options_for_select` is to `select`.
+
+[NOTE]
+=============================
+Pairs passed to `options_for_select` should have the name first and the id second, however with `options_from_collection_for_select` the first argument is the value method and the second the text method.
+=============================
 
 Time zone and country select
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~
