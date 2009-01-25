@@ -550,7 +550,7 @@ NOTE: In many cases the built in date pickers are clumsy as they do not aid the 
 Individual Components
 ~~~~~~~~~~~~~~~~~~~~~
 
-Occasionally you need to display just a single date component such as a year or a month. Rails provides a series of helpers for this, one for each component `select_year`, `select_month`, `select_day`, `select_hour`, `select_minute`, `select_second`. These helpers are fairly straightforward. By default they will generate a input named after the time component (for example "year" for `select_year`, "month" for `select_month` etc.) although this can be override with the  `:field_name` option. The `:prefix` option works in the same way that it does for `select_date` and `select_time` and has the same default value.
+Occasionally you need to display just a single date component such as a year or a month. Rails provides a series of helpers for this, one for each component `select_year`, `select_month`, `select_day`, `select_hour`, `select_minute`, `select_second`. These helpers are fairly straightforward. By default they will generate a input named after the time component (for example "year" for `select_year`, "month" for `select_month` etc.) although this can be overriden with the  `:field_name` option. The `:prefix` option works in the same way that it does for `select_date` and `select_time` and has the same default value.
 
 The first parameter specifies which value should be selected and can either be an instance of a Date, Time or DateTime, in which case the relevant component will be extracted, or a numerical value. For example
 
@@ -559,7 +559,7 @@ The first parameter specifies which value should be selected and can either be a
 <%= select_year(Time.now) %>
 ---------------
 
-Will produce the same output if the current year is 2009 and the value chosen by the user can be retrieved by `params[:date][:year]`.
+will produce the same output if the current year is 2009 and the value chosen by the user can be retrieved by `params[:date][:year]`.
 
 Uploading Files
 --------------
@@ -597,15 +597,15 @@ NOTE: If the user has not selected a file the corresponding parameter will be an
 
 Dealing with Ajax
 ~~~~~~~~~~~~~~~~~
-Unlike other forms making an asynchronous file upload form is not as simple as replacing `form_for` with `remote_form_for`. With an AJAX form the serialization is done by javascript running inside the browser and since javascript cannot read files from your hard drive the file cannot be uploaded. The most common workaround is to use an invisible iframe that serves as the target for the form submission.
+Unlike other forms making an asynchronous file upload form is not as simple as replacing `form_for` with `remote_form_for`. With an AJAX form the serialization is done by JavaScript running inside the browser and since JavaScript cannot read files from your hard drive the file cannot be uploaded. The most common workaround is to use an invisible iframe that serves as the target for the form submission.
 
 Customising Form Builders
 -------------------------
 
-As mentioned previously the object yielded by `form_for` and `fields_for` is an instance of FormBuilder (or a subclass thereof). Form builders encapsulate the notion of displaying a form elements for a single object. While you can of course write helpers for your forms in the usual way you can also subclass FormBuilder and add the helpers there. For example 
+As mentioned previously the object yielded by `form_for` and `fields_for` is an instance of FormBuilder (or a subclass thereof). Form builders encapsulate the notion of displaying form elements for a single object. While you can of course write helpers for your forms in the usual way you can also subclass FormBuilder and add the helpers there. For example 
 
 ----------
-<% form_for @person  do |f| %>
+<% form_for @person do |f| %>
   <%= text_field_with_label f, :first_name %>
 <% end %>
 ----------
@@ -620,7 +620,7 @@ by defining a LabellingFormBuilder class similar to the following:
 [source, ruby]
 -------
 class LabellingFormBuilder < FormBuilder
-  def text_field attribute, options={}
+  def text_field(attribute, options={})
     label(attribute) + text_field(attribute, options)
   end
 end
@@ -631,7 +631,7 @@ The form builder used also determines what happens when you do
 ------
 <%= render :partial => f %>
 ------
-If `f` is an instance of FormBuilder then this will render the 'form' partial, setting the partial's object to the form builder. If the form builder is of class LabellingFormBuilder then the 'labelling_form' partial would be rendered instead.
+If `f` is an instance of FormBuilder then this will render the `form` partial, setting the partial's object to the form builder. If the form builder is of class LabellingFormBuilder then the `labelling_form` partial would be rendered instead.
 
 Understanding Parameter Naming Conventions
 -----------------------------------------
