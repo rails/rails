@@ -60,7 +60,7 @@
           <a href="#_making_select_boxes_with_ease">Making select boxes with ease</a>
             <ul>
             
-              <li><a href="#_the_select_tag_and_options">The select tag and options</a></li>
+              <li><a href="#_the_select_and_options_tag">The select and options tag</a></li>
             
               <li><a href="#_select_boxes_for_dealing_with_models">Select boxes for dealing with models</a></li>
             
@@ -453,10 +453,10 @@ Methods to create form controls are called <strong>on</strong> the form builder 
 </div></div>
 <div class="paragraph"><p>The name passed to <tt>form_for</tt> controls the key used in <tt>params</tt> to access the form&#8217;s values. Here the name is <tt>article</tt> and so all the inputs have names of the form <tt>article[attribute_name]</tt>. Accordingly, in the <tt>create</tt> action <tt>params[:article]</tt> will be a hash with keys <tt>:title</tt> and <tt>:body</tt>. You can read more about the significance of input names in the <a href="#parameter_names">parameter names</a> section.</p></div>
 <div class="paragraph"><p>The helper methods called on the form builder are identical to the model object helpers except that it is not necessary to specify which object is being edited since this is already managed by the form builder.</p></div>
-<div class="paragraph"><p>You can create a similar binding without actually creating  <tt>&lt;form&gt;</tt> tags with the <tt>fields_for</tt> helper. This is useful for editing additional model objects with the same form. For example if you had a Person model with an associated ContactDetail model you could create a form for editing both like so:</p></div>
+<div class="paragraph"><p>You can create a similar binding without actually creating  <tt>&lt;form&gt;</tt> tags with the <tt>fields_for</tt> helper. This is useful for editing additional model objects with the same form. For example if you had a Person model with an associated ContactDetail model you could create a form for creating both like so:</p></div>
 <div class="listingblock">
 <div class="content">
-<pre><tt>&lt;% form_for @person do |person_form| %&gt;
+<pre><tt>&lt;% form_for :person, @person, :url =&gt; { :action =&gt; "create" } do |person_form| %&gt;
   &lt;%= person_form.text_field :name %&gt;
   &lt;% fields_for @person.contact_detail do |contact_details_form| %&gt;
     &lt;%= contact_details_form.text_field :phone_number %&gt;
@@ -466,7 +466,7 @@ Methods to create form controls are called <strong>on</strong> the form builder 
 <div class="paragraph"><p>which produces the following output:</p></div>
 <div class="listingblock">
 <div class="content">
-<pre><tt>&lt;form action="/people/1" class="edit_person" id="edit_person_1" method="post"&gt;
+<pre><tt>&lt;form action="/people/create" class="new_person" id="new_person" method="post"&gt;
   &lt;input id="person_name" name="person[name]" size="30" type="text" /&gt;
   &lt;input id="contact_detail_phone_number" name="contact_detail[phone_number]" size="30" type="text" /&gt;
 &lt;/form&gt;</tt></pre>
@@ -490,7 +490,7 @@ form_for(:article, @article, :url =&gt; article_path(@article), :method =&gt; "p
 form_for(@article)</tt></pre>
 </div></div>
 <div class="paragraph"><p>Notice how the short-style <tt>form_for</tt> invocation is conveniently the same, regardless of the record being new or existing. Record identification is smart enough to figure out if the record is new by asking <tt>record.new_record?</tt>. It also selects the correct path to submit to and the name based on the class of the object.</p></div>
-<div class="paragraph"><p>Rails will also automatically set the class and id of the form appropriately: a form creating an article would have id and class <tt>new_article</tt>. If you were editing the article with id 23 the class would be set to <tt>edit_article</tt> and the id to <tt>edit_article_23</tt>. These attributes will be omitted for brevity in the rest of this guide.</p></div>
+<div class="paragraph"><p>Rails will also automatically set the <tt>class</tt> and <tt>id</tt> of the form appropriately: a form creating an article would have <tt>id</tt> and <tt>class</tt> <tt>new_article</tt>. If you were editing the article with id 23 the <tt>class</tt> would be set to <tt>edit_article</tt> and the id to <tt>edit_article_23</tt>. These attributes will be omitted for brevity in the rest of this guide.</p></div>
 <div class="admonitionblock">
 <table><tr>
 <td class="icon">
@@ -543,7 +543,7 @@ output:
 &lt;/select&gt;</tt></pre>
 </div></div>
 <div class="paragraph"><p>Here you have a list of cities whose names are presented to the user. Internally the application only wants to handle their IDs so they are used as the options' value attribute. Let&#8217;s see how Rails can help out here.</p></div>
-<h3 id="_the_select_tag_and_options">3.1. The select tag and options</h3>
+<h3 id="_the_select_and_options_tag">3.1. The select and options tag</h3>
 <div class="paragraph"><p>The most generic helper is <tt>select_tag</tt>, which&#8201;&#8212;&#8201;as the name implies&#8201;&#8212;&#8201;simply generates the <tt>SELECT</tt> tag that encapsulates an options string:</p></div>
 <div class="listingblock">
 <div class="content">
@@ -566,14 +566,14 @@ output:
 <div class="content">
 <pre><tt>&lt;%= select_tag(:city_id, options_for_select(...)) %&gt;</tt></pre>
 </div></div>
-<div class="paragraph"><p><tt>options_for_select</tt> allows you to pre-select an option by specify its value as the second argument:</p></div>
+<div class="paragraph"><p><tt>options_for_select</tt> allows you to pre-select an option by passing its value.</p></div>
 <div class="listingblock">
 <div class="content">
-<pre><tt>&lt;%= options_for_select([['Lisabon', 1], ['Madrid', 2], ...], 2) %&gt;
+<pre><tt>&lt;%= options_for_select([['Lisbon', 1], ['Madrid', 2], ...], 2) %&gt;
 
 output:
 
-&lt;option value="1"&gt;Lisabon&lt;/option&gt;
+&lt;option value="1"&gt;Lisbon&lt;/option&gt;
 &lt;option value="2" selected="selected"&gt;Madrid&lt;/option&gt;
 ...</tt></pre>
 </div></div>
@@ -596,7 +596,7 @@ output:
 @person = Person.new(:city_id =&gt; 2)
 
 # view:
-&lt;%= select(:person, :city_id, [['Lisabon', 1], ['Madrid', 2], ...]) %&gt;</tt></pre>
+&lt;%= select(:person, :city_id, [['Lisbon', 1], ['Madrid', 2], ...]) %&gt;</tt></pre>
 </div></div>
 <div class="paragraph"><p>Notice that the third parameter, the options array, is the same kind of argument you pass to <tt>options_for_select</tt>. One advantage here is that you don&#8217;t have to worry about pre-selecting the correct city if the user already has one&#8201;&#8212;&#8201;Rails will do this for you by reading from the <tt>@person.city_id</tt> attribute.</p></div>
 <div class="paragraph"><p>As with other helpers, if you were to use <tt>select</tt> helper on a form builder scoped to <tt>@person</tt> object, the syntax would be:</p></div>
@@ -618,6 +618,7 @@ output:
 <pre><tt>ActiveRecord::AssociationTypeMismatch: City(#17815740) expected, got String(#1138750)</tt></pre>
 </div></div>
 <div class="paragraph"><p>when you pass the <tt>params</tt> hash to <tt>Person.new</tt> or <tt>update_attributes</tt>. Another way of looking at this is that form helpers only edit attributes.</p></div>
+<div class="paragraph"><p>You should also be aware of the potential security ramifications of allowing users to edit foreign keys directly. You may wish to consider the use of <tt>attr_protected</tt> and <tt>attr_accessible</tt>. For further details on this, see the <a href="security.html#_mass_assignment">Ruby On Rails Security Guide</a>.</p></div>
 </td>
 </tr></table>
 </div>
@@ -625,7 +626,7 @@ output:
 <div class="paragraph"><p>Generating options tags with <tt>options_for_select</tt> requires that you create an array containing the text and value for each option. But what if you had a City model (perhaps an Active Record one) and you wanted to generate option tags from a collection of those objects? One solution would be to make a nested array by iterating over them:</p></div>
 <div class="listingblock">
 <div class="content">
-<pre><tt>&lt;% cities_array = City.find(:all).map { |city| [city.name, city.id] } %&gt;
+<pre><tt>&lt;% cities_array = City.all.map { |city| [city.name, city.id] } %&gt;
 &lt;%= options_for_select(cities_array) %&gt;</tt></pre>
 </div></div>
 <div class="paragraph"><p>This is a perfectly valid solution, but Rails provides a less verbose alternative: <tt>options_from_collection_for_select</tt>. This helper expects a collection of arbitrary objects and two additional arguments: the names of the methods to read the option <strong>value</strong> and <strong>text</strong> from, respectively:</p></div>
@@ -639,6 +640,16 @@ output:
 <pre><tt>&lt;%= collection_select(:person, :city_id, City.all, :id, :name) %&gt;</tt></pre>
 </div></div>
 <div class="paragraph"><p>To recap, <tt>options_from_collection_for_select</tt> is to <tt>collection_select</tt> what <tt>options_for_select</tt> is to <tt>select</tt>.</p></div>
+<div class="admonitionblock">
+<table><tr>
+<td class="icon">
+<img src="./images/icons/note.png" alt="Note" />
+</td>
+<td class="content">
+<div class="paragraph"><p>Pairs passed to <tt>options_for_select</tt> should have the name first and the id second, however with <tt>options_from_collection_for_select</tt> the first argument is the value method and the second the text method.</p></div>
+</td>
+</tr></table>
+</div>
 <h3 id="_time_zone_and_country_select">3.4. Time zone and country select</h3>
 <div class="paragraph"><p>To leverage time zone support in Rails, you have to ask your users what time zone they are in. Doing so would require generating select options from a list of pre-defined TimeZone objects using <tt>collection_select</tt>, but you can simply use the <tt>time_zone_select</tt> helper that already wraps this:</p></div>
 <div class="listingblock">
