@@ -445,6 +445,8 @@ If you specify `city` instead of `city_id` Active Record will raise an error alo
 ActiveRecord::AssociationTypeMismatch: City(#17815740) expected, got String(#1138750)
 --------
 when you pass the `params` hash to `Person.new` or `update_attributes`. Another way of looking at this is that form helpers only edit attributes.
+
+You should also be aware of the potential security ramifications of allowing users to edit foreign keys directly. You may wish to consider the use of `attr_protected` and `attr_accessible`. For further details on this, see the link:security.html#_mass_assignment[Ruby On Rails Security Guide].
 ============================
 
 Option tags from a collection of arbitrary objects
