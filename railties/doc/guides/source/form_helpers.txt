@@ -453,7 +453,7 @@ Option tags from a collection of arbitrary objects
 Generating options tags with `options_for_select` requires that you create an array containing the text and value for each option. But what if you had a City model (perhaps an Active Record one) and you wanted to generate option tags from a collection of those objects? One solution would be to make a nested array by iterating over them:
 
 ----------------------------------------------------------------------------
-<% cities_array = City.find(:all).map { |city| [city.name, city.id] } %>
+<% cities_array = City.all.map { |city| [city.name, city.id] } %>
 <%= options_for_select(cities_array) %>
 ----------------------------------------------------------------------------
 
