@@ -397,11 +397,11 @@ Knowing this, you can combine `select_tag` and `options_for_select` to achieve t
 `options_for_select` allows you to pre-select an option by specify its value as the second argument:
 
 ----------------------------------------------------------------------------
-<%= options_for_select([['Lisabon', 1], ['Madrid', 2], ...], 2) %>
+<%= options_for_select([['Lisbon', 1], ['Madrid', 2], ...], 2) %>
 
 output:
 
-<option value="1">Lisabon</option>
+<option value="1">Lisbon</option>
 <option value="2" selected="selected">Madrid</option>
 ...
 ----------------------------------------------------------------------------
@@ -424,7 +424,7 @@ In most cases form controls will be tied to a specific database model and as you
 @person = Person.new(:city_id => 2)
 
 # view:
-<%= select(:person, :city_id, [['Lisabon', 1], ['Madrid', 2], ...]) %>
+<%= select(:person, :city_id, [['Lisbon', 1], ['Madrid', 2], ...]) %>
 ----------------------------------------------------------------------------
 
 Notice that the third parameter, the options array, is the same kind of argument you pass to `options_for_select`. One advantage here is that you don't have to worry about pre-selecting the correct city if the user already has one -- Rails will do this for you by reading from the `@person.city_id` attribute.
