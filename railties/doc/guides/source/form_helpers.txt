@@ -365,7 +365,7 @@ Here is what the markup might look like:
 
 Here you have a list of cities whose names are presented to the user. Internally the application only wants to handle their IDs so they are used as the options' value attribute. Let's see how Rails can help out here.
 
-The select tag and options
+The select and options tag
 ~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 The most generic helper is `select_tag`, which -- as the name implies -- simply generates the `SELECT` tag that encapsulates an options string:
