@@ -394,7 +394,7 @@ Knowing this, you can combine `select_tag` and `options_for_select` to achieve t
 <%= select_tag(:city_id, options_for_select(...)) %>
 ----------------------------------------------------------------------------
 
-`options_for_select` allows you to pre-select an option by specify its value as the second argument:
+`options_for_select` allows you to pre-select an option by passing its value.
 
 ----------------------------------------------------------------------------
 <%= options_for_select([['Lisbon', 1], ['Madrid', 2], ...], 2) %>
