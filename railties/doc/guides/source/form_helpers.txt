@@ -276,7 +276,7 @@ You can create a similar binding without actually creating  `<form>` tags with t
 which produces the following output:
 
 -------------
-<form action="/people/create" class="create_person" id="create_person" method="post">
+<form action="/people/create" class="new_person" id="new_person" method="post">
   <input id="person_name" name="person[name]" size="30" type="text" />  
   <input id="contact_detail_phone_number" name="contact_detail[phone_number]" size="30" type="text" />
 </form>
@@ -306,7 +306,7 @@ form_for(@article)
 
 Notice how the short-style `form_for` invocation is conveniently the same, regardless of the record being new or existing. Record identification is smart enough to figure out if the record is new by asking `record.new_record?`. It also selects the correct path to submit to and the name based on the class of the object.
 
-Rails will also automatically set the class and id of the form appropriately: a form creating an article would have id and class `new_article`. If you were editing the article with id 23 the class would be set to `edit_article` and the id to `edit_article_23`. These attributes will be omitted for brevity in the rest of this guide.
+Rails will also automatically set the `class` and `id` of the form appropriately: a form creating an article would have `id` and `class` `new_article`. If you were editing the article with id 23 the `class` would be set to `edit_article` and the id to `edit_article_23`. These attributes will be omitted for brevity in the rest of this guide.
 
 WARNING: When you're using STI (single-table inheritance) with your models, you can't rely on record identification on a subclass if only their parent class is declared a resource. You will have to specify the model name, `:url` and `:method` explicitly.
 
