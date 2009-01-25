@@ -498,7 +498,7 @@ The date and time helpers differ from all the other form helpers in two importan
 1. Dates and times are not representable by a single input element. Instead you have several, one for each component (year, month, day etc.) and so there is no single value in your `params` hash with your date or time.
 2. Other helpers use the _tag suffix to indicate whether a helper is a barebones helper or one that operates on model objects. With dates and times, `select\_date`, `select\_time` and `select_datetime` are the barebones helpers, `date_select`, `time_select` and `datetime_select` are the equivalent model object helpers.
 
-Both of these families of helpers will create a series of select boxes for the different components (year, month, day etc...).
+Both of these families of helpers will create a series of select boxes for the different components (year, month, day etc.).
 
 Barebones helpers
 ~~~~~~~~~~~~~~~~~
