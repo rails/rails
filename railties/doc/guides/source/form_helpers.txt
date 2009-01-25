@@ -505,7 +505,7 @@ Barebones helpers
 The `select_*` family of helpers take as their first argument an instance of Date, Time or DateTime that is used as the currently selected value. You may omit this parameter, in which case the current date is used. For example
 
 -----------
-<%= select_date Date::today, :prefix => :start_date %>
+<%= select_date Date.today, :prefix => :start_date %>
 -----------
 outputs (with actual option values omitted for brevity)
 -----------
@@ -515,7 +515,7 @@ outputs (with actual option values omitted for brevity)
 -----------
 The above inputs would result in `params[:start_date]` being a hash with keys `:year`, `:month`, `:day`. To get an actual Time or Date object you would have to extract these values and pass them to the appropriate constructor, for example
 -----------
-Date::civil(params[:start_date][:year].to_i, params[:start_date][:month].to_i, params[:start_date][:day].to_i)
+Date.civil(params[:start_date][:year].to_i, params[:start_date][:month].to_i, params[:start_date][:day].to_i)
 -----------
 The `:prefix` option is the key used to retrieve the hash of date components from the `params` hash. Here it was set to `start_date`, if omitted it will default to `date`.
 
@@ -537,7 +537,7 @@ which results in a `params` hash like
 {:person => {'birth_date(1i)' => '2008', 'birth_date(2i)' => '11', 'birth_date(3i)' => '22'}}
 --------------
 
-When this is passed to `Person.new` (or `update_attributes`), Active Record spots that these parameters should all be used to construct the `birth_date` attribute and uses the suffixed information to determine in which order it should pass these parameters to functions such as `Date::civil`.
+When this is passed to `Person.new` (or `update_attributes`), Active Record spots that these parameters should all be used to construct the `birth_date` attribute and uses the suffixed information to determine in which order it should pass these parameters to functions such as `Date.civil`.
 
 Common options
 ~~~~~~~~~~~~~~
@@ -563,7 +563,7 @@ will produce the same output if the current year is 2009 and the value chosen by
 
 Uploading Files
 --------------
-A common task is uploading some sort of file, whether it's a picture of a person or a CSV file containing data to process. The most important thing to remember with file uploads is that the form's encoding *MUST* be set to multipart/form-data. If you forget to do this the file will not be uploaded. This can be done by passing `:multi_part => true` as an HTML option. This means that in the case of `form_tag` it must be passed in the second options hash and in the case of `form_for` inside the `:html` hash.
+A common task is uploading some sort of file, whether it's a picture of a person or a CSV file containing data to process. The most important thing to remember with file uploads is that the form's encoding *MUST* be set to "multipart/form-data". If you forget to do this the file will not be uploaded. This can be done by passing `:multi_part => true` as an HTML option. This means that in the case of `form_tag` it must be passed in the second options hash and in the case of `form_for` inside the `:html` hash.
 
 The following two forms both upload a file. 
 -----------
