@@ -1,13 +1,46 @@
 Active Record Basics
 ====================
 
-Active Record is a design pattern that mitigates the mind-numbing mental gymnastics often needed to get your application to communicate with a database. This guide uses a mix of real-world examples, metaphors and detailed explanations of the actual Rails source code to help you make the most of ActiveRecord.
+This guide will give you a strong grasp of the Active Record pattern and how it can be used with or without Rails. Hopefully, some of the philosophical and theoretical intentions discussed here will also make you a stronger and better developer.
 
-After reading this guide readers should have a strong grasp of the Active Record pattern and how it can be used with or without Rails. Hopefully, some of the philosophical and theoretical intentions discussed here will also make them a stronger and better developer.
+After reading this guide we hope that you'll be able to:
 
-== ORM The Blueprint of Active Record
+* Understand the way Active Record fits into the MVC model.
+* Create basic Active Record models and map them with your database tables.
+* Use your models to execute CRUD (Create, Read, Update and Delete) database operations.
+* Follow the naming conventions used by Rails to make developing database applications easier and obvious.
+* Take advantage of the way Active Record maps it's attributes with the database tables' columns to implement your application's logic. 
+* Use Active Record with legacy databases that do not follow the Rails naming conventions.
 
-If Active Record is the engine of Rails then ORM is the blueprint of that engine. ORM is short for “Object Relational Mapping” and is a programming concept used to make structures within a system relational. As a thought experiment imagine the components that make up a typical car. There are doors, seats, windows, engines etc. Viewed independently they are simple parts, yet when bolted together through the aid of a blueprint, the parts become a more complex device. ORM is the blueprint that describes how the individual parts relate to one another and in some cases infers the part’s purpose through the way the associations are described.
+== What's Active Record
+
+Rails' ActiveRecord is an implementation of Martin Fowler's http://martinfowler.com/eaaCatalog/activeRecord.html[Active Record Design Pattern]. This pattern is based on the idea of creating relations between the database and the application in the following way:
+
+* Each database table is mapped to a class.
+* Each table column is mapped to an attribute of this class.
+* Each instance of this class is mapped to a single row in the database table.
+
+== Object Relational Mapping
+
+The relation between databases and object-oriented software is called ORM, which is short for "Object Relational Mapping". The purpose of an ORM framework is to minimize the mismatch existent between relational databases and object-oriented software. In applications with a domain model, we have objects that represent both the state of the system and the behaviour of the real world elements that were modeled through these objects. Since we need to store the system's state somehow, we can use relational databases, which are proven to be an excelent approach to data management. Usually this may become a very hard thing to do, since we need to create an object-oriented model of everything that lives in the database, from simple columns to complicated relations between different tables. Doing this kind of thing by hand is a tedious and error prone job. This is where an ORM framework comes in.
+
+== ActiveRecord as an ORM framework
+
+ActiveRecord gives us several mechanisms, being the most important ones the hability to:
+
+* Represent models.
+* Represent associations between these models.
+* Validate models before they get recorded to the database.
+* Perform database operations in an object-oriented fashion.
+
+It's easy to see that the Rails Active Record implementation goes way beyond the basic description of the Active Record Pattern. 
+
+== Active Record inside the MVC model
+
+
+
+
+
 
 == Active Record The Engine of Rails
 
