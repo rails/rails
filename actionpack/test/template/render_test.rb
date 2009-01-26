@@ -5,6 +5,13 @@ module RenderTestCases
   def setup_view(paths)
     @assigns = { :secret => 'in the sauce' }
     @view = ActionView::Base.new(paths, @assigns)
+
+    # Reload and register danish language for testing
+    I18n.reload!
+    I18n.backend.store_translations 'da', {}
+
+    # Ensure original are still the same since we are reindexing view paths
+    assert_equal ORIGINAL_LOCALES, I18n.available_locales
   end
 
   def test_render_file
@@ -17,6 +24,14 @@ module RenderTestCases
 
   def test_render_file_without_specific_extension
     assert_equal "Hello world!", @view.render(:file => "test/hello_world")
+  end
+
+  def test_render_file_with_localization
+    old_locale = I18n.locale
+    I18n.locale = :da
+    assert_equal "Hey verden", @view.render(:file => "test/hello_world")
+  ensure
+    I18n.locale = old_locale
   end
 
   def test_render_file_at_top_level
