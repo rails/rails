@@ -327,7 +327,7 @@ You can also provide users of your application with means to set (and possibly o
 
 == Internationalizing your application
 
-OK! Now you've initialized I18n support for your Ruby on Rails application and told it which locale should be used and how to preserve it between requests. With that in place you're now ready for the really interesting stuff.
+OK! Now you've initialized I18n support for your Ruby on Rails application and told it which locale should be used and how to preserve it between requests. With that in place, you're now ready for the really interesting stuff.
 
 Let's _internationalize_ our application, ie. abstract every locale-specific parts, and that _localize_ it, ie. provide neccessary translations for these abstracts. 
 
@@ -356,7 +356,7 @@ image:images/i18n/demo_untranslated.png[rails i18n demo untranslated]
 
 === Adding Translations
 
-Obviously there are *two strings that are localized to English*. In order to internationalize this code replace these strings with calls to Rails' +#t+ helper with a key that makes sense for the translation:
+Obviously there are *two strings that are localized to English*. In order to internationalize this code, *replace these strings* with calls to Rails' +#t+ helper with a key that makes sense for the translation:
 
 [source, ruby]
 -------------------------------------------------------
@@ -372,13 +372,13 @@ end
 <p><%= flash[:notice] %></p>
 -------------------------------------------------------
 
-When you now render this view it will show an error message that tells you that the translations for the keys :hello_world and :hello_flash are missing.
+When you now render this view, it will show an error message which tells you that the translations for the keys +:hello_world+ and +:hello_flash+ are missing.
 
 image:images/i18n/demo_translation_missing.png[rails i18n demo translation missing]
 
-NOTE: Rails adds a +t+ (+translate+) helper method to your views so that you do not need to spell out +I18n.t+ all the time. Additionally this helper will catch missing translations and wrap the resulting error message into a &lt;span class="translation_missing"&gt;.
+NOTE: Rails adds a +t+ (+translate+) helper method to your views so that you do not need to spell out +I18n.t+ all the time. Additionally this helper will catch missing translations and wrap the resulting error message into a +<span class="translation_missing">+.
 
-So let's add the missing translations (i.e. do the "localization" part):
+So let's add the missing translations into the dictionary files (i.e. do the "localization" part):
 
 [source, ruby]
 -------------------------------------------------------
@@ -397,7 +397,7 @@ There you go. Because you haven't changed the default_locale, I18n will use Engl
 
 image:images/i18n/demo_translated_en.png[rails i18n demo translated to english]
 
-And when you change the URL to pass the pirate locale you get:
+And when you change the URL to pass the pirate locale (+http://localhost:3000?locale=pirate+), you'll get:
 
 image:images/i18n/demo_translated_pirate.png[rails i18n demo translated to pirate]
 
