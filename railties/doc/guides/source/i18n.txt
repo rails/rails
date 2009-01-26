@@ -319,11 +319,11 @@ Of course, in production environment you would need much robust code, and could 
 
 ==== Using GeoIP (or similar) database
 
-#TODO http://www.maxmind.com/app/geolitecountry
+Another way of choosing the locale from client's information would be to use a database for mapping client IP to region, such as http://www.maxmind.com/app/geolitecountry[GeoIP Lite Country]. The mechanics of the code would be very similar to the code above -- you would need to query database for user's IP, and lookup your preffered locale for the country/region/city returned.
 
 ==== User profile
 
-#TODO
+You can also provide users of your application with means to set (and possibly over-ride) locale in your application interface, as well. Again, mechanics for this approach would be very similar to the code above -- you'd probably let users choose a locale from a dropdown list and save it to their profile in database. Then you'd set the locale to this value.
 
 == Internationalizing your application
 
