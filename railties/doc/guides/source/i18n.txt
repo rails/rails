@@ -265,7 +265,7 @@ Every helper method dependent on +url_for+ (eg. helpers for named routes like +r
 
 You may be satisfied with this. It does impact the readability of URLs, though, when the locale "hangs" at the end of every URL in your application. Moreover, from the architectural standpoint, locale is usually hierarchically above the other parts of application domain: and URLs should reflect this.
 
-You probably want URLs look like this: +www.example.com/en/books+ versus +www.example.com/nl/books+. This is achievable with the over-riding +default_url_options+ strategy: you just have to set up your routes with http://api.rubyonrails.org/classes/ActionController/Resources.html#M000354[+path_prefix+] option in this way:
+You probably want URLs look like this: +www.example.com/en/books+ (which loads English locale) and +www.example.com/nl/books+ (which loads Netherlands locale). This is achievable with the "over-riding +default_url_options+" strategy from above: you just have to set up your routes with http://api.rubyonrails.org/classes/ActionController/Resources.html#M000354[+path_prefix+] option in this way:
 
 [source, ruby]
 -------------------------------------------------------
@@ -273,7 +273,7 @@ You probably want URLs look like this: +www.example.com/en/books+ versus +www.ex
 map.resources :books, :path_prefix => '/:locale'
 -------------------------------------------------------
 
-Now, when you call +books_path+ method you should get +"/en/books"+ (for the default locale). An URL like +http://localhost:3001/nl/books+ should load the Netherlands locale, then, and so on.
+Now, when you call +books_path+ method you should get +"/en/books"+ (for the default locale). An URL like +http://localhost:3001/nl/books+ should load the Netherlands locale, then, and following call to +books_path+ should return +"/nl/books"+ (because the locale changed).
 
 Of course, you need to take special care of root URL (usually "homepage" or "dashboard") of your application. An URL like +http://localhost:3001/nl+ will not work automatically, because the +map.root :controller => "dashboard"+ declaration in your +routes.rb+ doesn't take locale into account. (And rightly so. There's only one "root" URL.)
 
