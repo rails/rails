@@ -275,7 +275,7 @@ You probably want URLs look like this: +www.example.com/en/books+ (which loads E
 map.resources :books, :path_prefix => '/:locale'
 -------------------------------------------------------
 
-Now, when you call +books_path+ method you should get +"/en/books"+ (for the default locale). An URL like +http://localhost:3001/nl/books+ should load the Netherlands locale, then, and following call to +books_path+ should return +"/nl/books"+ (because the locale changed).
+Now, when you call +books_path+ method you should get +"/en/books"+ (for the default locale). An URL like +http://localhost:3001/nl/books+ should load the Netherlands locale, then, and following calls to +books_path+ should return +"/nl/books"+ (because the locale changed).
 
 Of course, you need to take special care of root URL (usually "homepage" or "dashboard") of your application. An URL like +http://localhost:3001/nl+ will not work automatically, because the +map.root :controller => "dashboard"+ declaration in your +routes.rb+ doesn't take locale into account. (And rightly so. There's only one "root" URL.)
 
@@ -293,8 +293,37 @@ IMPORTANT: This solution has currently one rather big *downside*. Due to the _de
 
 === Setting locale from the client supplied information
 
-# TODO: Accept-Language, GeoIP, etc. Explain why it is not such a good idea in most cases.
+In specific cases, it would make sense to set locale from client supplied information, ie. not from URL. This information may come for example from users' preffered language (set in their browser), can be based on users' geographical location inferred from their IP, or users can provide it simply by choosing locale in your application interface and saving it to their profile. This approach is more suitable for web-based applications or services, not for websites -- see the box about _sessions_, _cookies_ and RESTful architecture above.
 
+
+==== Using Accept-Language
+
+One source of client supplied information would be an +Accept-Language+ HTTP header. People may http://www.w3.org/International/questions/qa-lang-priorities[set this in their browser] or other clients (such as _curl_).
+
+A trivial implementation of using +Accept-Language+ header would be:
+
+[source, ruby]
+-------------------------------------------------------
+def set_locale
+  logger.debug "* Accept-Language: #{request.env['HTTP_ACCEPT_LANGUAGE']}"
+  I18n.locale = extract_locale_from_accept_language_header
+  logger.debug "* Locale set to '#{I18n.locale}'"
+end
+private
+def extract_locale_from_accept_language_header
+  request.env['HTTP_ACCEPT_LANGUAGE'].scan(/^[a-z]{2}/).first
+end
+-------------------------------------------------------
+
+Of course, in production environment you would need much robust code, and could use a plugin such as Iaian Hecker's http://github.com/iain/http_accept_language[http_accept_language].
+
+==== Using GeoIP (or similar) database
+
+#TODO http://www.maxmind.com/app/geolitecountry
+
+==== User profile
+
+#TODO
 
 == Internationalizing your application
 
