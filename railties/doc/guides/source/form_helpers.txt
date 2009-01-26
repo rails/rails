@@ -637,7 +637,7 @@ Understanding Parameter Naming Conventions
 -----------------------------------------
 
 [[parameter_names]]
-As you've seen in the previous sections, values from forms can be at the top level of the `params` hash or nested in another hash. For example in a standard create
+As you've seen in the previous sections, values from forms can be at the top level of the `params` hash or nested in another hash. For example in a standard `create`
 action for a Person model, `params[:model]` would usually be a hash of all the attributes for the person to create. The `params` hash can also contain arrays, arrays of hashes and so on.
 
 Fundamentally HTML forms don't know about any sort of structured data, all they generate is name-value pairs. The arrays and hashes you see in your application are the result of some parameter naming conventions that Rails uses.
@@ -647,8 +647,8 @@ Fundamentally HTML forms don't know about any sort of structured data, all they 
 You may find you can try out examples in this section faster by using the console to directly invoke Rails' parameter parser. For example
 
 -------------
-ActionController::RequestParser.parse_query_parameters "name=fred&phone=0123456789"
-#=> {"name"=>"fred", "phone"=>"0123456789"}
+ActionController::UrlEncodedPairParser.parse_query_parameters "name=fred&phone=0123456789"
+# => {"name"=>"fred", "phone"=>"0123456789"}
 -------------
 ========================
 
@@ -660,7 +660,6 @@ The two basic structures are arrays and hashes. Hashes mirror the syntax used fo
 -----------------
 the `params` hash will contain
 
-[source, ruby]
 -----------------
 {'person' => {'name' => 'Henry'}}
 -----------------
@@ -672,7 +671,6 @@ Hashes can be nested as many levels as required, for example
 ------------------
 will result in the `params` hash being
 
-[source, ruby]
 -----------------
 {'person' => {'address' => {'city' => 'New York'}}}
 -----------------
@@ -693,9 +691,9 @@ We can mix and match these two concepts. For example, one element of a hash migh
 <input name="addresses[][line2]" type="text"/>
 <input name="addresses[][city]" type="text"/>
 -----------------
-This would result in `params[:addresses]` being an array of hashes with keys `line1`, `line2` and `city`. Rails decides to start accumulating values in a new hash whenever it encounters a input name that already exists in the current hash.
+This would result in `params[:addresses]` being an array of hashes with keys `line1`, `line2` and `city`. Rails decides to start accumulating values in a new hash whenever it encounters an input name that already exists in the current hash.
 
-The one restriction is that although hashes can be nested arbitrarily deep then can be only one level of "arrayness". Arrays can be usually replaced by hashes, for example instead of having an array of model objects one can have a hash of model objects keyed by their id, an array index or some other parameter.
+There's a restriction, however, while hashes can be nested arbitrarily, only one level of "arrayness" is allowed. Arrays can be usually replaced by hashes, for example instead of having an array of model objects one can have a hash of model objects keyed by their id, an array index or some other parameter.
 
 [WARNING]
 Array parameters do not play well with the `check_box` helper. According to the HTML specification unchecked checkboxes submit no value. However it is often convenient for a checkbox to always submit a value. The `check_box` helper fakes this by creating a second hidden input with the same name. If the checkbox is unchecked only the hidden input is submitted and if it is checked then both are submitted but the value submitted by the checkbox takes precedence. When working with array parameters this duplicate submission will confuse Rails since duplicate input names are how it decides when to start a new array element. It is preferable to either use `check_box_tag` or to use hashes instead of arrays.
@@ -707,7 +705,7 @@ The previous sections did not use the Rails form helpers at all. While you can c
 You might want to render a form with a set of edit fields for each of a person's addresses. For example:
 --------
 <% form_for @person do |person_form| %>
-  <%= person_form.text_field :name%>
+  <%= person_form.text_field :name %>
   <% for address in @person.addresses %> 
     <% person_form.fields_for address, :index => address do |address_form|%>
       <%= address_form.text_field :city %> 
@@ -725,9 +723,8 @@ Assuming the person had two addresses, with ids 23 and 45 this would create outp
 --------
 This will result in a `params` hash that looks like
 
-[source, ruby]
 --------
-{'person' => {'name' => 'Bob', 'address' => { '23' => {'city' => 'Paris'}, '45' => {'city' => 'London'} }}}
+{'person' => {'name' => 'Bob', 'address' => {'23' => {'city' => 'Paris'}, '45' => {'city' => 'London'}}}}
 --------
 
 Rails knows that all these inputs should be part of the person hash because you called `fields_for` on the first form builder. By specifying an `:index` option you're telling rails that instead of naming the inputs `person[address][city]` it should insert that index surrounded by [] between the address and the city. If you pass an Active Record object as we did then Rails will call `to_param` on it, which by default returns the database id. This is often useful as it is then easy to locate which Address record should be modified. You can pass numbers with some other significance, strings or even nil (which will result in an array parameter being created).
