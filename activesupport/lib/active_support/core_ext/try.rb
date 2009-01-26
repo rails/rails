@@ -1,5 +1,5 @@
 class Object
-  # Invokes the method identified by +symbol+, passing it any arguments 
+  # Invokes the method identified by the symbol +method+, passing it any arguments 
   # and/or the block specified, just like the regular Ruby <tt>Object#send</tt> does.
   #
   # *Unlike* that method however, a +NoMethodError+ exception will *not* be raised 
