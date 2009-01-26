@@ -469,14 +469,14 @@ Do check the http://rails-i18n.org/wiki[Rails i18n Wiki] for list of tools avail
 
 == Overview of the I18n API features
 
-By knowing all neccessary aspects of internationalizing a basic Ruby on Rails application, now you should have good understanding of using the i18n library. In the following chapters, we'll cover it's features in more depth.
+You should have good understanding of using the i18n library now, knowing all neccessary aspects of internationalizing a basic Rails application.  In the following chapters, we'll cover it's features in more depth.
 
 Covered are features like these:
 
-* lookup translations
-* interpolate data into translations
-* pluralize translations
-* localize dates, numbers, currency etc.
+* looking up translations
+* interpolating data into translations
+* pluralizing translations
+* localizing dates, numbers, currency etc.
 
 === Looking up translations
 
