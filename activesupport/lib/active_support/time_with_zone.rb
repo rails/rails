@@ -155,6 +155,7 @@ module ActiveSupport
         "#{time.strftime("%Y-%m-%d %H:%M:%S")} #{formatted_offset(false, 'UTC')}" # mimicking Ruby 1.9 Time#to_s format
       end
     end
+    alias_method :to_formatted_s, :to_s
 
     # Replaces <tt>%Z</tt> and <tt>%z</tt> directives with +zone+ and +formatted_offset+, respectively, before passing to
     # Time#strftime, so that zone information is correct
