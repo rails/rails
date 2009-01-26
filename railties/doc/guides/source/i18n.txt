@@ -151,7 +151,7 @@ Of course, you probably don't want to manually include locale in every URL all o
 
 IMPORTANT: Following examples rely on having locales loaded into your application available as an array of strings like +["en", "es", "gr"]+. This is not inclued in current version of Rails 2.2 -- forthcoming Rails version 2.3 will contain easy accesor +available_locales+. (See http://github.com/svenfuchs/i18n/commit/411f8fe7[this commit] and background at http://rails-i18n.org/wiki/pages/i18n-available_locales[Rails I18n Wiki].) 
 
-We have to include support for getting available locales manually in an initializer like this:
+So, for having available locales easily available in Rails 2.2, we have to include this support manually in an initializer, like this:
 
 [source, ruby]
 -------------------------------------------------------
