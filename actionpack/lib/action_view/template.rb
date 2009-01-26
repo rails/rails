@@ -244,14 +244,14 @@ module ActionView #:nodoc:
           elsif m[1] && m[2] && valid_extension?(m[3]) # Multipart formats
             format = "#{m[1]}.#{m[2]}"
             extension = m[3]
-          elsif valid_extension?(m[1]) # Just extension
-            extension = m[1]
           elsif valid_locale?(m[1]) && valid_extension?(m[2]) # locale and extension
             locale = m[1]
             extension = m[2]
           elsif valid_extension?(m[2]) # format and extension
             format = m[1]
             extension = m[2]
+          elsif valid_extension?(m[1]) # Just extension
+            extension = m[1]
           else # No extension
             format = m[1]
           end
