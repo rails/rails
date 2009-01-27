@@ -80,13 +80,6 @@ understand how to use routing in your own Rails applications, start here.
 This guide covers how controllers work and how they fit into the request cycle in your application. It includes sessions, filters, and cookies, data streaming, and dealing with exceptions raised by a request, among other topics.
 ***********************************************************
 
-.link:caching_with_rails.html[Rails Caching]
-***********************************************************
-CAUTION: link:http://rails.lighthouseapp.com/projects/16213/tickets/10[Lighthouse Ticket]
-
-This guide covers the three types of caching that Rails provides by default.
-***********************************************************
-
 ++++++++++++++++++++++++++++++++++++++
 <h2>Digging Deeper</h2>
 ++++++++++++++++++++++++++++++++++++++
