@@ -302,7 +302,7 @@ module Rails
       if unloaded_gems.size > 0
         @gems_dependencies_loaded = false
         # don't print if the gems rake tasks are being run
-        unless $rails_gem_installer
+        unless $rails_rake_task
           abort <<-end_error
 Missing these required gems:
   #{unloaded_gems.map { |gem| "#{gem.name}  #{gem.requirement}" } * "\n  "}
@@ -379,6 +379,7 @@ Run `rake gems:install` to install the missing gems.
 
     # Eager load application classes
     def load_application_classes
+      return if $rails_rake_task
       if configuration.cache_classes
         configuration.eager_load_paths.each do |load_path|
           matcher = /\A#{Regexp.escape(load_path)}(.*)\.rb\Z/
