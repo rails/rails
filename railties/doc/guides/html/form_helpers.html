@@ -80,7 +80,7 @@
             
               <li><a href="#_common_options">Common options</a></li>
             
-              <li><a href="#_individual_components">Individual Components</a></li>
+              <li><a href="#_individual_components">Individual components</a></li>
             
             </ul>
           </li>
@@ -670,16 +670,16 @@ Dates and times are not representable by a single input element. Instead you hav
 </li>
 <li>
 <p>
-Other helpers use the _tag suffix to indicate whether a helper is a barebones helper or one that operates on model objects. With dates and times, <tt>select\_date</tt>, <tt>select\_time</tt> and <tt>select_datetime</tt> are the barebones helpers, <tt>date_select</tt>, <tt>time_select</tt> and <tt>datetime_select</tt> are the equivalent model object helpers.
+Other helpers use the _tag suffix to indicate whether a helper is a barebones helper or one that operates on model objects. With dates and times, <tt>select_date</tt>, <tt>select_time</tt> and <tt>select_datetime</tt> are the barebones helpers, <tt>date_select</tt>, <tt>time_select</tt> and <tt>datetime_select</tt> are the equivalent model object helpers.
 </p>
 </li>
 </ol></div>
-<div class="paragraph"><p>Both of these families of helpers will create a series of select boxes for the different components (year, month, day etc...).</p></div>
+<div class="paragraph"><p>Both of these families of helpers will create a series of select boxes for the different components (year, month, day etc.).</p></div>
 <h3 id="_barebones_helpers">4.1. Barebones helpers</h3>
 <div class="paragraph"><p>The <tt>select_*</tt> family of helpers take as their first argument an instance of Date, Time or DateTime that is used as the currently selected value. You may omit this parameter, in which case the current date is used. For example</p></div>
 <div class="listingblock">
 <div class="content">
-<pre><tt>&lt;%= select_date Date::today, :prefix =&gt; :start_date %&gt;</tt></pre>
+<pre><tt>&lt;%= select_date Date.today, :prefix =&gt; :start_date %&gt;</tt></pre>
 </div></div>
 <div class="paragraph"><p>outputs (with actual option values omitted for brevity)</p></div>
 <div class="listingblock">
@@ -691,7 +691,7 @@ Other helpers use the _tag suffix to indicate whether a helper is a barebones he
 <div class="paragraph"><p>The above inputs would result in <tt>params[:start_date]</tt> being a hash with keys <tt>:year</tt>, <tt>:month</tt>, <tt>:day</tt>. To get an actual Time or Date object you would have to extract these values and pass them to the appropriate constructor, for example</p></div>
 <div class="listingblock">
 <div class="content">
-<pre><tt>Date::civil(params[:start_date][:year].to_i, params[:start_date][:month].to_i, params[:start_date][:day].to_i)</tt></pre>
+<pre><tt>Date.civil(params[:start_date][:year].to_i, params[:start_date][:month].to_i, params[:start_date][:day].to_i)</tt></pre>
 </div></div>
 <div class="paragraph"><p>The <tt>:prefix</tt> option is the key used to retrieve the hash of date components from the <tt>params</tt> hash. Here it was set to <tt>start_date</tt>, if omitted it will default to <tt>date</tt>.</p></div>
 <h3 id="_model_object_helpers_2">4.2. Model object helpers</h3>
@@ -713,7 +713,7 @@ The model object helpers for dates and times submit parameters with special name
 <div class="content">
 <pre><tt>{:person =&gt; {'birth_date(1i)' =&gt; '2008', 'birth_date(2i)' =&gt; '11', 'birth_date(3i)' =&gt; '22'}}</tt></pre>
 </div></div>
-<div class="paragraph"><p>When this is passed to <tt>Person.new</tt> (or <tt>update_attributes</tt>), Active Record spots that these parameters should all be used to construct the <tt>birth_date</tt> attribute and uses the suffixed information to determine in which order it should pass these parameters to functions such as <tt>Date::civil</tt>.</p></div>
+<div class="paragraph"><p>When this is passed to <tt>Person.new</tt> (or <tt>update_attributes</tt>), Active Record spots that these parameters should all be used to construct the <tt>birth_date</tt> attribute and uses the suffixed information to determine in which order it should pass these parameters to functions such as <tt>Date.civil</tt>.</p></div>
 <h3 id="_common_options">4.3. Common options</h3>
 <div class="paragraph"><p>Both families of helpers use the same core set of functions to generate the individual select tags and so both accept largely the same options. In particular, by default Rails will generate year options 5 years either side of the current year. If this is not an appropriate range, the <tt>:start_year</tt> and <tt>:end_year</tt> options override this. For an exhaustive list of the available options, refer to the <a href="http://api.rubyonrails.org/classes/ActionView/Helpers/DateHelper.html">API documentation</a>.</p></div>
 <div class="paragraph"><p>As a rule of thumb you should be using <tt>date_select</tt> when working with model objects and <tt>select_date</tt> in others cases, such as a search form which filters results by date.</p></div>
@@ -725,19 +725,19 @@ The model object helpers for dates and times submit parameters with special name
 <td class="content">In many cases the built in date pickers are clumsy as they do not aid the user in working out the relationship between the date and the day of the week.</td>
 </tr></table>
 </div>
-<h3 id="_individual_components">4.4. Individual Components</h3>
-<div class="paragraph"><p>Occasionally you need to display just a single date component such as a year or a month. Rails provides a series of helpers for this, one for each component <tt>select_year</tt>, <tt>select_month</tt>, <tt>select_day</tt>, <tt>select_hour</tt>, <tt>select_minute</tt>, <tt>select_second</tt>. These helpers are fairly straightforward. By default they will generate a input named after the time component (for example "year" for <tt>select_year</tt>, "month" for <tt>select_month</tt> etc.) although this can be override with the  <tt>:field_name</tt> option. The <tt>:prefix</tt> option works in the same way that it does for <tt>select_date</tt> and <tt>select_time</tt> and has the same default value.</p></div>
+<h3 id="_individual_components">4.4. Individual components</h3>
+<div class="paragraph"><p>Occasionally you need to display just a single date component such as a year or a month. Rails provides a series of helpers for this, one for each component <tt>select_year</tt>, <tt>select_month</tt>, <tt>select_day</tt>, <tt>select_hour</tt>, <tt>select_minute</tt>, <tt>select_second</tt>. These helpers are fairly straightforward. By default they will generate a input named after the time component (for example "year" for <tt>select_year</tt>, "month" for <tt>select_month</tt> etc.) although this can be overriden with the  <tt>:field_name</tt> option. The <tt>:prefix</tt> option works in the same way that it does for <tt>select_date</tt> and <tt>select_time</tt> and has the same default value.</p></div>
 <div class="paragraph"><p>The first parameter specifies which value should be selected and can either be an instance of a Date, Time or DateTime, in which case the relevant component will be extracted, or a numerical value. For example</p></div>
 <div class="listingblock">
 <div class="content">
 <pre><tt>&lt;%= select_year(2009) %&gt;
 &lt;%= select_year(Time.now) %&gt;</tt></pre>
 </div></div>
-<div class="paragraph"><p>Will produce the same output if the current year is 2009 and the value chosen by the user can be retrieved by <tt>params[:date][:year]</tt>.</p></div>
+<div class="paragraph"><p>will produce the same output if the current year is 2009 and the value chosen by the user can be retrieved by <tt>params[:date][:year]</tt>.</p></div>
 </div>
 <h2 id="_uploading_files">5. Uploading Files</h2>
 <div class="sectionbody">
-<div class="paragraph"><p>A common task is uploading some sort of file, whether it&#8217;s a picture of a person or a CSV file containing data to process. The most important thing to remember with file uploads is that the form&#8217;s encoding <strong>MUST</strong> be set to multipart/form-data. If you forget to do this the file will not be uploaded. This can be done by passing <tt>:multi_part =&gt; true</tt> as an HTML option. This means that in the case of <tt>form_tag</tt> it must be passed in the second options hash and in the case of <tt>form_for</tt> inside the <tt>:html</tt> hash.</p></div>
+<div class="paragraph"><p>A common task is uploading some sort of file, whether it&#8217;s a picture of a person or a CSV file containing data to process. The most important thing to remember with file uploads is that the form&#8217;s encoding <strong>MUST</strong> be set to "multipart/form-data". If you forget to do this the file will not be uploaded. This can be done by passing <tt>:multi_part =&gt; true</tt> as an HTML option. This means that in the case of <tt>form_tag</tt> it must be passed in the second options hash and in the case of <tt>form_for</tt> inside the <tt>:html</tt> hash.</p></div>
 <div class="paragraph"><p>The following two forms both upload a file.</p></div>
 <div class="listingblock">
 <div class="content">
@@ -751,7 +751,7 @@ The model object helpers for dates and times submit parameters with special name
 </div></div>
 <div class="paragraph"><p>Rails provides the usual pair of helpers: the barebones <tt>file_field_tag</tt> and the model oriented <tt>file_field</tt>. The only difference with other helpers is that you cannot set a default value for file inputs as this would have no meaning. As you would expect in the first case the uploaded file is in <tt>params[:picture]</tt> and in the second case in <tt>params[:person][:picture]</tt>.</p></div>
 <h3 id="_what_gets_uploaded">5.1. What gets uploaded</h3>
-<div class="paragraph"><p>The object in the <tt>params</tt> hash is an instance of a subclass of IO. Depending on the size of the uploaded file it may in fact be a StringIO or an instance of File backed by a temporary file. In both cases the object will have an <tt>original_filename</tt> attribute containing the name the file had on the user&#8217;s computer and a <tt>content_type</tt> attribute containing the MIME type of the uploaded file. The following snippet saves the uploaded content in <tt>#{RAILS_ROOT}/public/uploads</tt> under the same name as the original file (assuming the form was the one in the previous example).</p></div>
+<div class="paragraph"><p>The object in the <tt>params</tt> hash is an instance of a subclass of IO. Depending on the size of the uploaded file it may in fact be a StringIO or an instance of File backed by a temporary file. In both cases the object will have an <tt>original_filename</tt> attribute containing the name the file had on the user&#8217;s computer and a <tt>content_type</tt> attribute containing the MIME type of the uploaded file. The following snippet saves the uploaded content in <tt>#{Rails.root}/public/uploads</tt> under the same name as the original file (assuming the form was the one in the previous example).</p></div>
 <div class="listingblock">
 <div class="content"><!-- Generator: GNU source-highlight 2.9
 by Lorenzo Bettini
@@ -773,14 +773,14 @@ http://www.gnu.org/software/src-highlite -->
 </tr></table>
 </div>
 <h3 id="_dealing_with_ajax">5.2. Dealing with Ajax</h3>
-<div class="paragraph"><p>Unlike other forms making an asynchronous file upload form is not as simple as replacing <tt>form_for</tt> with <tt>remote_form_for</tt>. With an AJAX form the serialization is done by javascript running inside the browser and since javascript cannot read files from your hard drive the file cannot be uploaded. The most common workaround is to use an invisible iframe that serves as the target for the form submission.</p></div>
+<div class="paragraph"><p>Unlike other forms making an asynchronous file upload form is not as simple as replacing <tt>form_for</tt> with <tt>remote_form_for</tt>. With an Ajax form the serialization is done by JavaScript running inside the browser and since JavaScript cannot read files from your hard drive the file cannot be uploaded. The most common workaround is to use an invisible iframe that serves as the target for the form submission.</p></div>
 </div>
 <h2 id="_customising_form_builders">6. Customising Form Builders</h2>
 <div class="sectionbody">
-<div class="paragraph"><p>As mentioned previously the object yielded by <tt>form_for</tt> and <tt>fields_for</tt> is an instance of FormBuilder (or a subclass thereof). Form builders encapsulate the notion of displaying a form elements for a single object. While you can of course write helpers for your forms in the usual way you can also subclass FormBuilder and add the helpers there. For example</p></div>
+<div class="paragraph"><p>As mentioned previously the object yielded by <tt>form_for</tt> and <tt>fields_for</tt> is an instance of FormBuilder (or a subclass thereof). Form builders encapsulate the notion of displaying form elements for a single object. While you can of course write helpers for your forms in the usual way you can also subclass FormBuilder and add the helpers there. For example</p></div>
 <div class="listingblock">
 <div class="content">
-<pre><tt>&lt;% form_for @person  do |f| %&gt;
+<pre><tt>&lt;% form_for @person do |f| %&gt;
   &lt;%= text_field_with_label f, :first_name %&gt;
 &lt;% end %&gt;</tt></pre>
 </div></div>
@@ -798,7 +798,7 @@ by Lorenzo Bettini
 http://www.lorenzobettini.it
 http://www.gnu.org/software/src-highlite -->
 <pre><tt><span style="font-weight: bold"><span style="color: #0000FF">class</span></span> LabellingFormBuilder <span style="color: #990000">&lt;</span> FormBuilder
-  <span style="font-weight: bold"><span style="color: #0000FF">def</span></span> text_field attribute<span style="color: #990000">,</span> options<span style="color: #990000">=</span><span style="color: #FF0000">{}</span>
+  <span style="font-weight: bold"><span style="color: #0000FF">def</span></span> text_field<span style="color: #990000">(</span>attribute<span style="color: #990000">,</span> options<span style="color: #990000">=</span><span style="color: #FF0000">{}</span><span style="color: #990000">)</span>
     label<span style="color: #990000">(</span>attribute<span style="color: #990000">)</span> <span style="color: #990000">+</span> text_field<span style="color: #990000">(</span>attribute<span style="color: #990000">,</span> options<span style="color: #990000">)</span>
   <span style="font-weight: bold"><span style="color: #0000FF">end</span></span>
 <span style="font-weight: bold"><span style="color: #0000FF">end</span></span></tt></pre></div></div>
@@ -808,13 +808,13 @@ http://www.gnu.org/software/src-highlite -->
 <div class="content">
 <pre><tt>&lt;%= render :partial =&gt; f %&gt;</tt></pre>
 </div></div>
-<div class="paragraph"><p>If <tt>f</tt> is an instance of FormBuilder then this will render the <em>form</em> partial, setting the partial&#8217;s object to the form builder. If the form builder is of class LabellingFormBuilder then the <em>labelling_form</em> partial would be rendered instead.</p></div>
+<div class="paragraph"><p>If <tt>f</tt> is an instance of FormBuilder then this will render the <tt>form</tt> partial, setting the partial&#8217;s object to the form builder. If the form builder is of class LabellingFormBuilder then the <tt>labelling_form</tt> partial would be rendered instead.</p></div>
 </div>
 <h2 id="_understanding_parameter_naming_conventions">7. Understanding Parameter Naming Conventions</h2>
 <div class="sectionbody">
-<div class="paragraph" id="parameter_names"><p>As you&#8217;ve seen in the previous sections, values from forms can be at the top level of the <tt>params</tt> hash or nested in another hash. For example in a standard create
+<div class="paragraph" id="parameter_names"><p>As you&#8217;ve seen in the previous sections, values from forms can be at the top level of the <tt>params</tt> hash or nested in another hash. For example in a standard <tt>create</tt>
 action for a Person model, <tt>params[:model]</tt> would usually be a hash of all the attributes for the person to create. The <tt>params</tt> hash can also contain arrays, arrays of hashes and so on.</p></div>
-<div class="paragraph"><p>Fundamentally HTML forms don&#8217;t know about any sort of structured data, all they generate is name-value pairs. The arrays and hashes you see in your application are the result of some parameter naming conventions that Rails uses.</p></div>
+<div class="paragraph"><p>Fundamentally HTML forms don&#8217;t know about any sort of structured data, all they generate is name-value pairs, where pairs are just plain strings. The arrays and hashes you see in your application are the result of some parameter naming conventions that Rails uses.</p></div>
 <div class="admonitionblock">
 <table><tr>
 <td class="icon">
@@ -824,8 +824,8 @@ action for a Person model, <tt>params[:model]</tt> would usually be a hash of al
 <div class="paragraph"><p>You may find you can try out examples in this section faster by using the console to directly invoke Rails' parameter parser. For example</p></div>
 <div class="listingblock">
 <div class="content">
-<pre><tt>ActionController::RequestParser.parse_query_parameters "name=fred&amp;phone=0123456789"
-#=&gt; {"name"=&gt;"fred", "phone"=&gt;"0123456789"}</tt></pre>
+<pre><tt>ActionController::UrlEncodedPairParser.parse_query_parameters "name=fred&amp;phone=0123456789"
+# =&gt; {"name"=&gt;"fred", "phone"=&gt;"0123456789"}</tt></pre>
 </div></div>
 </td>
 </tr></table>
@@ -838,11 +838,9 @@ action for a Person model, <tt>params[:model]</tt> would usually be a hash of al
 </div></div>
 <div class="paragraph"><p>the <tt>params</tt> hash will contain</p></div>
 <div class="listingblock">
-<div class="content"><!-- Generator: GNU source-highlight 2.9
-by Lorenzo Bettini
-http://www.lorenzobettini.it
-http://www.gnu.org/software/src-highlite -->
-<pre><tt><span style="color: #FF0000">{</span><span style="color: #FF0000">'person'</span> <span style="color: #990000">=&gt;</span> <span style="color: #FF0000">{</span><span style="color: #FF0000">'name'</span> <span style="color: #990000">=&gt;</span> <span style="color: #FF0000">'Henry'</span><span style="color: #FF0000">}}</span></tt></pre></div></div>
+<div class="content">
+<pre><tt>{'person' =&gt; {'name' =&gt; 'Henry'}}</tt></pre>
+</div></div>
 <div class="paragraph"><p>and <tt>params["name"]</tt> will retrieve the submitted value in the controller.</p></div>
 <div class="paragraph"><p>Hashes can be nested as many levels as required, for example</p></div>
 <div class="listingblock">
@@ -851,11 +849,9 @@ http://www.gnu.org/software/src-highlite -->
 </div></div>
 <div class="paragraph"><p>will result in the <tt>params</tt> hash being</p></div>
 <div class="listingblock">
-<div class="content"><!-- Generator: GNU source-highlight 2.9
-by Lorenzo Bettini
-http://www.lorenzobettini.it
-http://www.gnu.org/software/src-highlite -->
-<pre><tt><span style="color: #FF0000">{</span><span style="color: #FF0000">'person'</span> <span style="color: #990000">=&gt;</span> <span style="color: #FF0000">{</span><span style="color: #FF0000">'address'</span> <span style="color: #990000">=&gt;</span> <span style="color: #FF0000">{</span><span style="color: #FF0000">'city'</span> <span style="color: #990000">=&gt;</span> <span style="color: #FF0000">'New York'</span><span style="color: #FF0000">}}}</span></tt></pre></div></div>
+<div class="content">
+<pre><tt>{'person' =&gt; {'address' =&gt; {'city' =&gt; 'New York'}}}</tt></pre>
+</div></div>
 <div class="paragraph"><p>Normally Rails ignores duplicate parameter names. If the parameter name contains [] then they will be accumulated in an array. If you wanted people to be able to input multiple phone numbers, your could place this in the form:</p></div>
 <div class="listingblock">
 <div class="content">
@@ -872,8 +868,8 @@ http://www.gnu.org/software/src-highlite -->
 &lt;input name="addresses[][line2]" type="text"/&gt;
 &lt;input name="addresses[][city]" type="text"/&gt;</tt></pre>
 </div></div>
-<div class="paragraph"><p>This would result in <tt>params[:addresses]</tt> being an array of hashes with keys <tt>line1</tt>, <tt>line2</tt> and <tt>city</tt>. Rails decides to start accumulating values in a new hash whenever it encounters a input name that already exists in the current hash.</p></div>
-<div class="paragraph"><p>The one restriction is that although hashes can be nested arbitrarily deep then can be only one level of "arrayness". Arrays can be usually replaced by hashes, for example instead of having an array of model objects one can have a hash of model objects keyed by their id, an array index or some other parameter.</p></div>
+<div class="paragraph"><p>This would result in <tt>params[:addresses]</tt> being an array of hashes with keys <tt>line1</tt>, <tt>line2</tt> and <tt>city</tt>. Rails decides to start accumulating values in a new hash whenever it encounters an input name that already exists in the current hash.</p></div>
+<div class="paragraph"><p>There&#8217;s a restriction, however, while hashes can be nested arbitrarily, only one level of "arrayness" is allowed. Arrays can be usually replaced by hashes, for example instead of having an array of model objects one can have a hash of model objects keyed by their id, an array index or some other parameter.</p></div>
 <div class="admonitionblock">
 <table><tr>
 <td class="icon">
@@ -888,7 +884,7 @@ http://www.gnu.org/software/src-highlite -->
 <div class="listingblock">
 <div class="content">
 <pre><tt>&lt;% form_for @person do |person_form| %&gt;
-  &lt;%= person_form.text_field :name%&gt;
+  &lt;%= person_form.text_field :name %&gt;
   &lt;% for address in @person.addresses %&gt;
     &lt;% person_form.fields_for address, :index =&gt; address do |address_form|%&gt;
       &lt;%= address_form.text_field :city %&gt;
@@ -907,12 +903,10 @@ http://www.gnu.org/software/src-highlite -->
 </div></div>
 <div class="paragraph"><p>This will result in a <tt>params</tt> hash that looks like</p></div>
 <div class="listingblock">
-<div class="content"><!-- Generator: GNU source-highlight 2.9
-by Lorenzo Bettini
-http://www.lorenzobettini.it
-http://www.gnu.org/software/src-highlite -->
-<pre><tt><span style="color: #FF0000">{</span><span style="color: #FF0000">'person'</span> <span style="color: #990000">=&gt;</span> <span style="color: #FF0000">{</span><span style="color: #FF0000">'name'</span> <span style="color: #990000">=&gt;</span> <span style="color: #FF0000">'Bob'</span><span style="color: #990000">,</span> <span style="color: #FF0000">'address'</span> <span style="color: #990000">=&gt;</span> <span style="color: #FF0000">{</span> <span style="color: #FF0000">'23'</span> <span style="color: #990000">=&gt;</span> <span style="color: #FF0000">{</span><span style="color: #FF0000">'city'</span> <span style="color: #990000">=&gt;</span> <span style="color: #FF0000">'Paris'</span><span style="color: #FF0000">}</span><span style="color: #990000">,</span> <span style="color: #FF0000">'45'</span> <span style="color: #990000">=&gt;</span> <span style="color: #FF0000">{</span><span style="color: #FF0000">'city'</span> <span style="color: #990000">=&gt;</span> <span style="color: #FF0000">'London'</span><span style="color: #FF0000">}</span> <span style="color: #FF0000">}}}</span></tt></pre></div></div>
-<div class="paragraph"><p>Rails knows that all these inputs should be part of the person hash because you called <tt>fields_for</tt> on the first form builder. By specifying an <tt>:index</tt> option you&#8217;re telling rails that instead of naming the inputs <tt>person[address][city]</tt> it should insert that index surrounded by [] between the address and the city. If you pass an Active Record object as we did then Rails will call <tt>to_param</tt> on it, which by default returns the database id. This is often useful as it is then easy to locate which Address record should be modified. You can pass numbers with some other significance, strings or even nil (which will result in an array parameter being created).</p></div>
+<div class="content">
+<pre><tt>{'person' =&gt; {'name' =&gt; 'Bob', 'address' =&gt; {'23' =&gt; {'city' =&gt; 'Paris'}, '45' =&gt; {'city' =&gt; 'London'}}}}</tt></pre>
+</div></div>
+<div class="paragraph"><p>Rails knows that all these inputs should be part of the person hash because you called <tt>fields_for</tt> on the first form builder. By specifying an <tt>:index</tt> option you&#8217;re telling rails that instead of naming the inputs <tt>person[address][city]</tt> it should insert that index surrounded by [] between the address and the city. If you pass an Active Record object as we did then Rails will call <tt>to_param</tt> on it, which by default returns the database id. This is often useful as it is then easy to locate which Address record should be modified. You can pass numbers with some other significance, strings or even <tt>nil</tt> (which will result in an array parameter being created).</p></div>
 <div class="paragraph"><p>To create more intricate nestings, you can specify the first part of the input name (<tt>person[address]</tt> in the previous example) explicitly, for example</p></div>
 <div class="listingblock">
 <div class="content">
@@ -937,7 +931,7 @@ http://www.gnu.org/software/src-highlite -->
 </div>
 <h2 id="_building_complex_forms">8. Building Complex forms</h2>
 <div class="sectionbody">
-<div class="paragraph"><p>Many apps grow beyond simple forms editing a single object. For example when creating a Person you might want to allow the user to (on the same form) create multiple address records (home, work etc.). When later editing that person the user should be able to add, remove or amend addresses as necessary. While this guide has shown you all the pieces necessary to handle this, Rails does not yet have a standard end-to-end way of accomplishing this, but many have come up with viable approaches. These include:</p></div>
+<div class="paragraph"><p>Many apps grow beyond simple forms editing a single object. For example when creating a Person you might want to allow the user to (on the same form) create multiple address records (home, work, etc.). When later editing that person the user should be able to add, remove or amend addresses as necessary. While this guide has shown you all the pieces necessary to handle this, Rails does not yet have a standard end-to-end way of accomplishing this, but many have come up with viable approaches. These include:</p></div>
 <div class="ulist"><ul>
 <li>
 <p>

@@ -59,12 +59,14 @@
             </ul>
           </li>
           <li>
-          <a href="#_internationalize_your_application">Internationalize your application</a>
+          <a href="#_internationalizing_your_application">Internationalizing your application</a>
             <ul>
             
               <li><a href="#_adding_translations">Adding Translations</a></li>
             
               <li><a href="#_adding_date_time_formats">Adding Date/Time formats</a></li>
+            
+              <li><a href="#_organization_of_locale_files">Organization of locale files</a></li>
             
             </ul>
           </li>
@@ -128,7 +130,26 @@
       <div id="preamble">
 <div class="sectionbody">
 <div class="paragraph"><p>The Ruby I18n (shorthand for <em>internationalization</em>) gem which is shipped with Ruby on Rails (starting from Rails 2.2) provides an easy-to-use and extensible framework for <strong>translating your application to a single custom language</strong> other than English or for <strong>providing multi-language support</strong> in your application.</p></div>
-<div class="paragraph"><p>In the process of <em>localizing</em> your application you&#8217;ll probably want to do following two things:</p></div>
+<div class="paragraph"><p>The process of "internationalization" usually means to abstract all strings and other locale specific bits (such as date or currency formats) out of your application. The process of "localization" means to provide translations and localized formats for these bits. <a href="#1">[1]</a></p></div>
+<div class="paragraph"><p>So, in the process of <em>internationalizing</em> your Rails application you have to:</p></div>
+<div class="ulist"><ul>
+<li>
+<p>
+Ensure you have support for i18n
+</p>
+</li>
+<li>
+<p>
+Tell Rails where to find locale dictionaries
+</p>
+</li>
+<li>
+<p>
+Tell Rails how to set, preserve and switch locale
+</p>
+</li>
+</ul></div>
+<div class="paragraph"><p>In the process of <em>localizing</em> your application you&#8217;ll probably want to do following three things:</p></div>
 <div class="ulist"><ul>
 <li>
 <p>
@@ -138,6 +159,11 @@ Replace or supplement Rail&#8217;s default locale&#8201;&#8212;&#8201;eg. date a
 <li>
 <p>
 Abstract texts in your application into keyed dictionaries&#8201;&#8212;&#8201;eg. flash messages, static texts in your views, etc
+</p>
+</li>
+<li>
+<p>
+Store the resulting dictionaries somewhere
 </p>
 </li>
 </ul></div>
@@ -237,6 +263,14 @@ http://www.gnu.org/software/src-highlite -->
   hello<span style="color: #990000">:</span> <span style="color: #FF0000">"Hello world"</span></tt></pre></div></div>
 <div class="paragraph"><p>This means, that in the <tt>:en</tt> locale, the key <em>hello</em> will map to <em>Hello world</em> string. Every string inside Rails is internationalized in this way, see for instance Active Record validation messages in the <a href="http://github.com/rails/rails/blob/master/activerecord/lib/active_record/locale/en.yml"><tt>activerecord/lib/active_record/locale/en.yml</tt></a> file or time and date formats in the <a href="http://github.com/rails/rails/blob/master/activesupport/lib/active_support/locale/en.yml"><tt>activesupport/lib/active_support/locale/en.yml</tt></a> file. You can use YAML or standard Ruby Hashes to store translations in the default (Simple) backend.</p></div>
 <div class="paragraph"><p>The I18n library will use <strong>English</strong> as a <strong>default locale</strong>, ie. if you don&#8217;t set a different locale, <tt>:en</tt> will be used for looking up translations.</p></div>
+<div class="admonitionblock">
+<table><tr>
+<td class="icon">
+<img src="./images/icons/note.png" alt="Note" />
+</td>
+<td class="content">The i18n library takes <strong>pragmatic approach</strong> to locale keys (after <a href="http://groups.google.com/group/rails-i18n/browse_thread/thread/14dede2c7dbe9470/80eec34395f64f3c?hl=en">some discussion</a>), including only the <em>locale</em> ("language") part, like <tt>:en</tt>, <tt>:pl</tt>, not the <em>region</em> part, like <tt>:en-US</tt> or <tt>:en-UK</tt>, which are traditionally used for separating "languages" and "regional setting" or "dialects". (For instance, in the <tt>:en-US</tt> locale you would have $ as a currency symbol, while in <tt>:en-UK</tt>, you would have €. Also, insults would be different in American and British English :) Reason for this pragmatic approach is that most of the time, you usually care about making your application available in different "languages", and working with locales is much simpler this way. However, nothing stops you from separating regional and other settings in the traditional way. In this case, you could eg. inherit from the default <tt>en</tt> locale and then provide UK specific settings in a <tt>:en-UK</tt> dictionary.</td>
+</tr></table>
+</div>
 <div class="paragraph"><p>The <strong>translations load path</strong> (<tt>I18n.load_path</tt>) is just a Ruby Array of paths to your translation files that will be loaded automatically and available in your application. You can pick whatever directory and translation file naming scheme makes sense for you.</p></div>
 <div class="admonitionblock">
 <table><tr>
@@ -304,7 +338,7 @@ http://www.gnu.org/software/src-highlite -->
 <td class="content">Following examples rely on having locales loaded into your application available as an array of strings like <tt>["en", "es", "gr"]</tt>. This is not inclued in current version of Rails 2.2&#8201;&#8212;&#8201;forthcoming Rails version 2.3 will contain easy accesor <tt>available_locales</tt>. (See <a href="http://github.com/svenfuchs/i18n/commit/411f8fe7">this commit</a> and background at <a href="http://rails-i18n.org/wiki/pages/i18n-available_locales">Rails I18n Wiki</a>.)</td>
 </tr></table>
 </div>
-<div class="paragraph"><p>We have to include support for getting available locales manually in an initializer like this:</p></div>
+<div class="paragraph"><p>So, for having available locales easily available in Rails 2.2, we have to include this support manually in an initializer, like this:</p></div>
 <div class="listingblock">
 <div class="content"><!-- Generator: GNU source-highlight 2.9
 by Lorenzo Bettini
@@ -424,7 +458,7 @@ http://www.gnu.org/software/src-highlite -->
 <span style="font-weight: bold"><span style="color: #0000FF">end</span></span></tt></pre></div></div>
 <div class="paragraph"><p>Every helper method dependent on <tt>url_for</tt> (eg. helpers for named routes like <tt>root_path</tt> or <tt>root_url</tt>, resource routes like <tt>books_path</tt> or <tt>books_url</tt>, etc.) will now <strong>automatically include the locale in the query string</strong>, like this: <tt>http://localhost:3001/?locale=ja</tt>.</p></div>
 <div class="paragraph"><p>You may be satisfied with this. It does impact the readability of URLs, though, when the locale "hangs" at the end of every URL in your application. Moreover, from the architectural standpoint, locale is usually hierarchically above the other parts of application domain: and URLs should reflect this.</p></div>
-<div class="paragraph"><p>You probably want URLs look like this: <tt>www.example.com/en/books</tt> versus <tt>www.example.com/nl/books</tt>. This is achievable with the over-riding <tt>default_url_options</tt> strategy: you just have to set up your routes with <a href="http://api.rubyonrails.org/classes/ActionController/Resources.html#M000354"><tt>path_prefix</tt></a> option in this way:</p></div>
+<div class="paragraph"><p>You probably want URLs look like this: <tt>www.example.com/en/books</tt> (which loads English locale) and <tt>www.example.com/nl/books</tt> (which loads Netherlands locale). This is achievable with the "over-riding <tt>default_url_options</tt>" strategy from above: you just have to set up your routes with <a href="http://api.rubyonrails.org/classes/ActionController/Resources.html#M000354"><tt>path_prefix</tt></a> option in this way:</p></div>
 <div class="listingblock">
 <div class="content"><!-- Generator: GNU source-highlight 2.9
 by Lorenzo Bettini
@@ -432,7 +466,7 @@ http://www.lorenzobettini.it
 http://www.gnu.org/software/src-highlite -->
 <pre><tt><span style="font-style: italic"><span style="color: #9A1900"># config/routes.rb</span></span>
 map<span style="color: #990000">.</span>resources <span style="color: #990000">:</span>books<span style="color: #990000">,</span> <span style="color: #990000">:</span>path_prefix <span style="color: #990000">=&gt;</span> <span style="color: #FF0000">'/:locale'</span></tt></pre></div></div>
-<div class="paragraph"><p>Now, when you call <tt>books_path</tt> method you should get <tt>"/en/books"</tt> (for the default locale). An URL like <tt>http://localhost:3001/nl/books</tt> should load the Netherlands locale, then, and so on.</p></div>
+<div class="paragraph"><p>Now, when you call <tt>books_path</tt> method you should get <tt>"/en/books"</tt> (for the default locale). An URL like <tt>http://localhost:3001/nl/books</tt> should load the Netherlands locale, then, and following calls to <tt>books_path</tt> should return <tt>"/nl/books"</tt> (because the locale changed).</p></div>
 <div class="paragraph"><p>Of course, you need to take special care of root URL (usually "homepage" or "dashboard") of your application. An URL like <tt>http://localhost:3001/nl</tt> will not work automatically, because the <tt>map.root :controller =&gt; "dashboard"</tt> declaration in your <tt>routes.rb</tt> doesn&#8217;t take locale into account. (And rightly so. There&#8217;s only one "root" URL.)</p></div>
 <div class="paragraph"><p>You would probably need to map URLs like these:</p></div>
 <div class="listingblock">
@@ -452,13 +486,35 @@ map<span style="color: #990000">.</span>dashboard <span style="color: #FF0000">'
 </tr></table>
 </div>
 <h3 id="_setting_locale_from_the_client_supplied_information">2.6. Setting locale from the client supplied information</h3>
-<div class="paragraph"><p># TODO: Accept-Language, GeoIP, etc. Explain why it is not such a good idea in most cases.</p></div>
-<div class="paragraph"><p>OK! Now you&#8217;ve initialized I18n support for your application and told it which locale should be used and how to preserve it between requests. With that in place you&#8217;re now ready for the really interesting stuff.</p></div>
+<div class="paragraph"><p>In specific cases, it would make sense to set locale from client supplied information, ie. not from URL. This information may come for example from users' preffered language (set in their browser), can be based on users' geographical location inferred from their IP, or users can provide it simply by choosing locale in your application interface and saving it to their profile. This approach is more suitable for web-based applications or services, not for websites&#8201;&#8212;&#8201;see the box about <em>sessions</em>, <em>cookies</em> and RESTful architecture above.</p></div>
+<h4 id="_using_accept_language">2.6.1. Using Accept-Language</h4>
+<div class="paragraph"><p>One source of client supplied information would be an <tt>Accept-Language</tt> HTTP header. People may <a href="http://www.w3.org/International/questions/qa-lang-priorities">set this in their browser</a> or other clients (such as <em>curl</em>).</p></div>
+<div class="paragraph"><p>A trivial implementation of using <tt>Accept-Language</tt> header would be:</p></div>
+<div class="listingblock">
+<div class="content"><!-- Generator: GNU source-highlight 2.9
+by Lorenzo Bettini
+http://www.lorenzobettini.it
+http://www.gnu.org/software/src-highlite -->
+<pre><tt><span style="font-weight: bold"><span style="color: #0000FF">def</span></span> set_locale
+  logger<span style="color: #990000">.</span>debug <span style="color: #FF0000">"* Accept-Language: #{request.env['HTTP_ACCEPT_LANGUAGE']}"</span>
+  I18n<span style="color: #990000">.</span>locale <span style="color: #990000">=</span> extract_locale_from_accept_language_header
+  logger<span style="color: #990000">.</span>debug <span style="color: #FF0000">"* Locale set to '#{I18n.locale}'"</span>
+<span style="font-weight: bold"><span style="color: #0000FF">end</span></span>
+private
+<span style="font-weight: bold"><span style="color: #0000FF">def</span></span> extract_locale_from_accept_language_header
+  request<span style="color: #990000">.</span>env<span style="color: #990000">[</span><span style="color: #FF0000">'HTTP_ACCEPT_LANGUAGE'</span><span style="color: #990000">].</span>scan<span style="color: #990000">(</span><span style="color: #FF6600">/^[a-z]{2}/</span><span style="color: #990000">).</span>first
+<span style="font-weight: bold"><span style="color: #0000FF">end</span></span></tt></pre></div></div>
+<div class="paragraph"><p>Of course, in production environment you would need much robust code, and could use a plugin such as Iaian Hecker&#8217;s <a href="http://github.com/iain/http_accept_language">http_accept_language</a>.</p></div>
+<h4 id="_using_geoip_or_similar_database">2.6.2. Using GeoIP (or similar) database</h4>
+<div class="paragraph"><p>Another way of choosing the locale from client&#8217;s information would be to use a database for mapping client IP to region, such as <a href="http://www.maxmind.com/app/geolitecountry">GeoIP Lite Country</a>. The mechanics of the code would be very similar to the code above&#8201;&#8212;&#8201;you would need to query database for user&#8217;s IP, and lookup your preffered locale for the country/region/city returned.</p></div>
+<h4 id="_user_profile">2.6.3. User profile</h4>
+<div class="paragraph"><p>You can also provide users of your application with means to set (and possibly over-ride) locale in your application interface, as well. Again, mechanics for this approach would be very similar to the code above&#8201;&#8212;&#8201;you&#8217;d probably let users choose a locale from a dropdown list and save it to their profile in database. Then you&#8217;d set the locale to this value.</p></div>
 </div>
-<h2 id="_internationalize_your_application">3. Internationalize your application</h2>
+<h2 id="_internationalizing_your_application">3. Internationalizing your application</h2>
 <div class="sectionbody">
-<div class="paragraph"><p>The process of "internationalization" usually means to abstract all strings and other locale specific bits out of your application. The process of "localization" means to then provide translations and localized formats for these bits. <a href="#1">[1]</a></p></div>
-<div class="paragraph"><p>So, let&#8217;s internationalize something. You most probably have something like this in one of your applications:</p></div>
+<div class="paragraph"><p>OK! Now you&#8217;ve initialized I18n support for your Ruby on Rails application and told it which locale should be used and how to preserve it between requests. With that in place, you&#8217;re now ready for the really interesting stuff.</p></div>
+<div class="paragraph"><p>Let&#8217;s <em>internationalize</em> our application, ie. abstract every locale-specific parts, and that <em>localize</em> it, ie. provide neccessary translations for these abstracts.</p></div>
+<div class="paragraph"><p>You most probably have something like this in one of your applications:</p></div>
 <div class="listingblock">
 <div class="content"><!-- Generator: GNU source-highlight 2.9
 by Lorenzo Bettini
@@ -483,7 +539,7 @@ ActionController<span style="color: #990000">::</span>Routing<span style="color:
 <img src="images/i18n/demo_untranslated.png" alt="rails i18n demo untranslated" title="rails i18n demo untranslated" />
 </span></p></div>
 <h3 id="_adding_translations">3.1. Adding Translations</h3>
-<div class="paragraph"><p>Obviously there are <strong>two strings that are localized to English</strong>. In order to internationalize this code replace these strings with calls to Rails' <tt>#t</tt> helper with a key that makes sense for the translation:</p></div>
+<div class="paragraph"><p>Obviously there are <strong>two strings that are localized to English</strong>. In order to internationalize this code, <strong>replace these strings</strong> with calls to Rails' <tt>#t</tt> helper with a key that makes sense for the translation:</p></div>
 <div class="listingblock">
 <div class="content"><!-- Generator: GNU source-highlight 2.9
 by Lorenzo Bettini
@@ -499,7 +555,7 @@ http://www.gnu.org/software/src-highlite -->
 <span style="font-style: italic"><span style="color: #9A1900"># app/views/home/index.html.erb</span></span>
 <span style="color: #FF0000">&lt;h1&gt;&lt;%=t :hello_world %&gt;&lt;/h1&gt;</span>
 <span style="color: #FF0000">&lt;p&gt;&lt;%= flash[:notice] %&gt;&lt;/p&gt;</span></tt></pre></div></div>
-<div class="paragraph"><p>When you now render this view it will show an error message that tells you that the translations for the keys :hello_world and :hello_flash are missing.</p></div>
+<div class="paragraph"><p>When you now render this view, it will show an error message which tells you that the translations for the keys <tt>:hello_world</tt> and <tt>:hello_flash</tt> are missing.</p></div>
 <div class="paragraph"><p><span class="image">
 <img src="images/i18n/demo_translation_missing.png" alt="rails i18n demo translation missing" title="rails i18n demo translation missing" />
 </span></p></div>
@@ -508,10 +564,10 @@ http://www.gnu.org/software/src-highlite -->
 <td class="icon">
 <img src="./images/icons/note.png" alt="Note" />
 </td>
-<td class="content">Rails adds a <tt>t</tt> (<tt>translate</tt>) helper method to your views so that you do not need to spell out <tt>I18n.t</tt> all the time. Additionally this helper will catch missing translations and wrap the resulting error message into a &lt;span class="translation_missing"&gt;.</td>
+<td class="content">Rails adds a <tt>t</tt> (<tt>translate</tt>) helper method to your views so that you do not need to spell out <tt>I18n.t</tt> all the time. Additionally this helper will catch missing translations and wrap the resulting error message into a <tt>&lt;span class="translation_missing"&gt;</tt>.</td>
 </tr></table>
 </div>
-<div class="paragraph"><p>So let&#8217;s add the missing translations (i.e. do the "localization" part):</p></div>
+<div class="paragraph"><p>So let&#8217;s add the missing translations into the dictionary files (i.e. do the "localization" part):</p></div>
 <div class="listingblock">
 <div class="content"><!-- Generator: GNU source-highlight 2.9
 by Lorenzo Bettini
@@ -530,7 +586,7 @@ pirate<span style="color: #990000">:</span>
 <div class="paragraph"><p><span class="image">
 <img src="images/i18n/demo_translated_en.png" alt="rails i18n demo translated to english" title="rails i18n demo translated to english" />
 </span></p></div>
-<div class="paragraph"><p>And when you change the URL to pass the pirate locale you get:</p></div>
+<div class="paragraph"><p>And when you change the URL to pass the pirate locale (<tt>http://localhost:3000?locale=pirate</tt>), you&#8217;ll get:</p></div>
 <div class="paragraph"><p><span class="image">
 <img src="images/i18n/demo_translated_pirate.png" alt="rails i18n demo translated to pirate" title="rails i18n demo translated to pirate" />
 </span></p></div>
@@ -576,29 +632,59 @@ pirate<span style="color: #990000">:</span>
 <td class="content">Right now you might need to add some more date/time formats in order to make the I18n backend work as expected. Of course, there&#8217;s a great chance that somebody already did all the work by <strong>translating Rails&#8217;s defaults for your locale</strong>. See the <a href="http://github.com/svenfuchs/rails-i18n/tree/master/rails/locale">rails-i18n repository at Github</a> for an archive of various locale files. When you put such file(s) in <tt>config/locale/</tt> directory, they will automatically ready for use.</td>
 </tr></table>
 </div>
+<h3 id="_organization_of_locale_files">3.3. Organization of locale files</h3>
+<div class="paragraph"><p>When you are using the default SimpleStore, shipped with the i18n library, you store dictionaries in plain-text files on the disc. Putting translations for all parts of your application in one file per locale could be hard to manage. You can store these files in a hierarchy which makes sense to you.</p></div>
+<div class="paragraph"><p>For example, your <tt>config/locale</tt> directory could look like this:</p></div>
+<div class="listingblock">
+<div class="content">
+<pre><tt>|-defaults
+|---es.rb
+|---en.rb
+|-models
+|---book
+|-----es.rb
+|-----en.rb
+|-views
+|---defaults
+|-----es.rb
+|-----en.rb
+|---books
+|-----es.rb
+|-----en.rb
+|---users
+|-----es.rb
+|-----en.rb
+|---navigation
+|-----es.rb
+|-----en.rb</tt></pre>
+</div></div>
+<div class="paragraph"><p>This way, you can separate model and model attribute names from text inside views, and all of this from the "defaults" (eg. date and time formats).</p></div>
+<div class="paragraph"><p>Other stores for the i18n library could provide different means of such separation.</p></div>
+<div class="paragraph"><p>Do check the <a href="http://rails-i18n.org/wiki">Rails i18n Wiki</a> for list of tools available for managing translations.</p></div>
 </div>
 <h2 id="_overview_of_the_i18n_api_features">4. Overview of the I18n API features</h2>
 <div class="sectionbody">
-<div class="paragraph"><p>The following purposes are covered:</p></div>
+<div class="paragraph"><p>You should have good understanding of using the i18n library now, knowing all neccessary aspects of internationalizing a basic Rails application.  In the following chapters, we&#8217;ll cover it&#8217;s features in more depth.</p></div>
+<div class="paragraph"><p>Covered are features like these:</p></div>
 <div class="ulist"><ul>
 <li>
 <p>
-lookup translations
+looking up translations
 </p>
 </li>
 <li>
 <p>
-interpolate data into translations
+interpolating data into translations
 </p>
 </li>
 <li>
 <p>
-pluralize translations
+pluralizing translations
 </p>
 </li>
 <li>
 <p>
-localize dates, numbers, currency etc.
+localizing dates, numbers, currency etc.
 </p>
 </li>
 </ul></div>
