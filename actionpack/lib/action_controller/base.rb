@@ -1315,10 +1315,6 @@ module ActionController #:nodoc:
         "#{request.protocol}#{request.host}#{request.request_uri}"
       end
 
-      def close_session
-        @_session.close if @_session && @_session.respond_to?(:close)
-      end
-
       def default_template(action_name = self.action_name)
         self.view_paths.find_template(default_template_name(action_name), default_template_format)
       end
@@ -1342,7 +1338,6 @@ module ActionController #:nodoc:
       end
 
       def process_cleanup
-        close_session
       end
   end
 

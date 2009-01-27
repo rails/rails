@@ -280,38 +280,47 @@ module ActionController #:nodoc:
     end
   end
 
-  class TestSession #:nodoc:
+  class TestSession < Hash #:nodoc:
     attr_accessor :session_id
 
     def initialize(attributes = nil)
       @session_id = ''
-      @attributes = attributes.nil? ? nil : attributes.stringify_keys
-      @saved_attributes = nil
+      attributes ||= {}
+      replace(attributes.stringify_keys)
     end
 
     def data
-      @attributes ||= @saved_attributes || {}
+      to_hash
     end
 
     def [](key)
-      data[key.to_s]
+      super(key.to_s)
     end
 
     def []=(key, value)
-      data[key.to_s] = value
+      super(key.to_s, value)
     end
 
-    def update
-      @saved_attributes = @attributes
+    def update(hash = nil)
+      if hash.nil?
+        ActiveSupport::Deprecation.warn('use replace instead', caller)
+        replace({})
+      else
+        super(hash)
+      end
     end
 
-    def delete
-      @attributes = nil
+    def delete(key = nil)
+      if key.nil?
+        ActiveSupport::Deprecation.warn('use clear instead', caller)
+        clear
+      else
+        super(key.to_s)
+      end
     end
 
     def close
-      update
-      delete
+      ActiveSupport::Deprecation.warn('sessions should no longer be closed', caller)
     end
   end
 
