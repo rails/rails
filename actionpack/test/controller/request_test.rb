@@ -14,53 +14,53 @@ class RequestTest < ActiveSupport::TestCase
     assert_equal '0.0.0.0', @request.remote_ip
 
     @request.remote_addr = '1.2.3.4'
-    assert_equal '1.2.3.4', @request.remote_ip(true)
+    assert_equal '1.2.3.4', @request.remote_ip
 
     @request.remote_addr = '1.2.3.4,3.4.5.6'
-    assert_equal '1.2.3.4', @request.remote_ip(true)
+    assert_equal '1.2.3.4', @request.remote_ip
 
     @request.env['HTTP_CLIENT_IP'] = '2.3.4.5'
-    assert_equal '1.2.3.4', @request.remote_ip(true)
+    assert_equal '1.2.3.4', @request.remote_ip
 
     @request.remote_addr = '192.168.0.1'
-    assert_equal '2.3.4.5', @request.remote_ip(true)
+    assert_equal '2.3.4.5', @request.remote_ip
     @request.env.delete 'HTTP_CLIENT_IP'
 
     @request.remote_addr = '1.2.3.4'
     @request.env['HTTP_X_FORWARDED_FOR'] = '3.4.5.6'
-    assert_equal '1.2.3.4', @request.remote_ip(true)
+    assert_equal '1.2.3.4', @request.remote_ip
 
     @request.remote_addr = '127.0.0.1'
     @request.env['HTTP_X_FORWARDED_FOR'] = '3.4.5.6'
-    assert_equal '3.4.5.6', @request.remote_ip(true)
+    assert_equal '3.4.5.6', @request.remote_ip
 
     @request.env['HTTP_X_FORWARDED_FOR'] = 'unknown,3.4.5.6'
-    assert_equal '3.4.5.6', @request.remote_ip(true)
+    assert_equal '3.4.5.6', @request.remote_ip
 
     @request.env['HTTP_X_FORWARDED_FOR'] = '172.16.0.1,3.4.5.6'
-    assert_equal '3.4.5.6', @request.remote_ip(true)
+    assert_equal '3.4.5.6', @request.remote_ip
 
     @request.env['HTTP_X_FORWARDED_FOR'] = '192.168.0.1,3.4.5.6'
-    assert_equal '3.4.5.6', @request.remote_ip(true)
+    assert_equal '3.4.5.6', @request.remote_ip
 
     @request.env['HTTP_X_FORWARDED_FOR'] = '10.0.0.1,3.4.5.6'
-    assert_equal '3.4.5.6', @request.remote_ip(true)
+    assert_equal '3.4.5.6', @request.remote_ip
 
     @request.env['HTTP_X_FORWARDED_FOR'] = '10.0.0.1, 10.0.0.1, 3.4.5.6'
-    assert_equal '3.4.5.6', @request.remote_ip(true)
+    assert_equal '3.4.5.6', @request.remote_ip
 
     @request.env['HTTP_X_FORWARDED_FOR'] = '127.0.0.1,3.4.5.6'
-    assert_equal '3.4.5.6', @request.remote_ip(true)
+    assert_equal '3.4.5.6', @request.remote_ip
 
     @request.env['HTTP_X_FORWARDED_FOR'] = 'unknown,192.168.0.1'
-    assert_equal 'unknown', @request.remote_ip(true)
+    assert_equal 'unknown', @request.remote_ip
 
     @request.env['HTTP_X_FORWARDED_FOR'] = '9.9.9.9, 3.4.5.6, 10.0.0.1, 172.31.4.4'
-    assert_equal '3.4.5.6', @request.remote_ip(true)
+    assert_equal '3.4.5.6', @request.remote_ip
 
     @request.env['HTTP_CLIENT_IP'] = '8.8.8.8'
     e = assert_raises(ActionController::ActionControllerError) {
-      @request.remote_ip(true)
+      @request.remote_ip
     }
     assert_match /IP spoofing attack/, e.message
     assert_match /HTTP_X_FORWARDED_FOR="9.9.9.9, 3.4.5.6, 10.0.0.1, 172.31.4.4"/, e.message
@@ -72,11 +72,11 @@ class RequestTest < ActiveSupport::TestCase
     # leap of faith to assume that their proxies are ever going to set the
     # HTTP_CLIENT_IP/HTTP_X_FORWARDED_FOR headers properly.
     ActionController::Base.ip_spoofing_check = false
-    assert_equal('8.8.8.8', @request.remote_ip(true))
+    assert_equal('8.8.8.8', @request.remote_ip)
     ActionController::Base.ip_spoofing_check = true
 
     @request.env['HTTP_X_FORWARDED_FOR'] = '8.8.8.8, 9.9.9.9'
-    assert_equal '8.8.8.8', @request.remote_ip(true)
+    assert_equal '8.8.8.8', @request.remote_ip
 
     @request.env.delete 'HTTP_CLIENT_IP'
     @request.env.delete 'HTTP_X_FORWARDED_FOR'
@@ -189,8 +189,8 @@ class RequestTest < ActiveSupport::TestCase
     @request.env['PATH_INFO'] = "/path/of/some/uri?mapped=1"
     @request.env['SCRIPT_NAME'] = "/path/dispatch.rb"
     @request.set_REQUEST_URI nil
-    assert_equal "/path/of/some/uri?mapped=1", @request.request_uri(true)
-    assert_equal "/of/some/uri", @request.path(true)
+    assert_equal "/path/of/some/uri?mapped=1", @request.request_uri
+    assert_equal "/of/some/uri", @request.path
     ActionController::Base.relative_url_root = nil
 
     @request.env['PATH_INFO'] = "/path/of/some/uri"
@@ -225,12 +225,12 @@ class RequestTest < ActiveSupport::TestCase
 
     @request.set_REQUEST_URI '/hieraki/dispatch.cgi'
     ActionController::Base.relative_url_root = '/hieraki'
-    assert_equal "/dispatch.cgi", @request.path(true)
+    assert_equal "/dispatch.cgi", @request.path
     ActionController::Base.relative_url_root = nil
 
     @request.set_REQUEST_URI '/hieraki/dispatch.cgi'
     ActionController::Base.relative_url_root = '/foo'
-    assert_equal "/hieraki/dispatch.cgi", @request.path(true)
+    assert_equal "/hieraki/dispatch.cgi", @request.path
     ActionController::Base.relative_url_root = nil
 
     # This test ensures that Rails uses REQUEST_URI over PATH_INFO
@@ -238,8 +238,8 @@ class RequestTest < ActiveSupport::TestCase
     @request.env['REQUEST_URI'] = "/some/path"
     @request.env['PATH_INFO'] = "/another/path"
     @request.env['SCRIPT_NAME'] = "/dispatch.cgi"
-    assert_equal "/some/path", @request.request_uri(true)
-    assert_equal "/some/path", @request.path(true)
+    assert_equal "/some/path", @request.request_uri
+    assert_equal "/some/path", @request.path
   end
 
   def test_host_with_default_port
@@ -255,13 +255,13 @@ class RequestTest < ActiveSupport::TestCase
   end
 
   def test_server_software
-    assert_equal nil, @request.server_software(true)
+    assert_equal nil, @request.server_software
 
     @request.env['SERVER_SOFTWARE'] = 'Apache3.422'
-    assert_equal 'apache', @request.server_software(true)
+    assert_equal 'apache', @request.server_software
 
     @request.env['SERVER_SOFTWARE'] = 'lighttpd(1.1.4)'
-    assert_equal 'lighttpd', @request.server_software(true)
+    assert_equal 'lighttpd', @request.server_software
   end
 
   def test_xml_http_request
@@ -299,13 +299,13 @@ class RequestTest < ActiveSupport::TestCase
   def test_invalid_http_method_raises_exception
     assert_raises(ActionController::UnknownHttpMethod) do
       self.request_method = :random_method
+      @request.request_method
     end
   end
 
   def test_allow_method_hacking_on_post
     [:get, :head, :options, :put, :post, :delete].each do |method|
       self.request_method = method
-      @request.request_method(true)
       assert_equal(method == :head ? :get : method, @request.method)
     end
   end
@@ -313,7 +313,7 @@ class RequestTest < ActiveSupport::TestCase
   def test_invalid_method_hacking_on_post_raises_exception
     assert_raises(ActionController::UnknownHttpMethod) do
       self.request_method = :_random_method
-      @request.request_method(true)
+      @request.request_method
     end
   end
 
@@ -402,6 +402,6 @@ class RequestTest < ActiveSupport::TestCase
   protected
     def request_method=(method)
       @request.env['REQUEST_METHOD'] = method.to_s.upcase
-      @request.request_method(true)
+      @request.request_method = nil # Reset the ivar cache
     end
 end

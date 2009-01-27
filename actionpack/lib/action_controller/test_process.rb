@@ -35,7 +35,6 @@ module ActionController #:nodoc:
 
     def port=(number)
       @env["SERVER_PORT"] = number.to_i
-      port(true)
     end
 
     def action=(action_name)
@@ -49,8 +48,6 @@ module ActionController #:nodoc:
       @env["REQUEST_URI"] = value
       @request_uri = nil
       @path = nil
-      request_uri(true)
-      path(true)
     end
 
     def request_uri=(uri)
@@ -58,9 +55,13 @@ module ActionController #:nodoc:
       @path = uri.split("?").first
     end
 
+    def request_method=(method)
+      @request_method = method
+    end
+
     def accept=(mime_types)
       @env["HTTP_ACCEPT"] = Array(mime_types).collect { |mime_types| mime_types.to_s }.join(",")
-      accepts(true)
+      @accepts = nil
     end
 
     def if_modified_since=(last_modified)
@@ -76,11 +77,11 @@ module ActionController #:nodoc:
     end
 
     def request_uri(*args)
-      @request_uri || super
+      @request_uri || super()
     end
 
     def path(*args)
-      @path || super
+      @path || super()
     end
 
     def assign_parameters(controller_path, action, parameters)
@@ -107,7 +108,7 @@ module ActionController #:nodoc:
     def recycle!
       self.query_parameters   = {}
       self.path_parameters    = {}
-      unmemoize_all
+      @headers, @request_method, @accepts, @content_type = nil, nil, nil, nil
     end
 
     def user_agent=(user_agent)
