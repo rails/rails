@@ -92,15 +92,12 @@ module ActionController
   #     end
   #   end
   module UrlWriter
-    # The default options for urls written by this writer. Typically a <tt>:host</tt>
-    # pair is provided.
-    mattr_accessor :default_url_options
-    self.default_url_options = {}
-
     def self.included(base) #:nodoc:
       ActionController::Routing::Routes.install_helpers(base)
       base.mattr_accessor :default_url_options
-      base.default_url_options ||= default_url_options
+
+      # The default options for urls written by this writer. Typically a <tt>:host</tt> pair is provided.
+      base.default_url_options ||= {}
     end
 
     # Generate a url based on the options provided, default_url_options and the
