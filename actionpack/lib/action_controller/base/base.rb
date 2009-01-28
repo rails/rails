@@ -58,22 +58,6 @@ module ActionController #:nodoc:
     end
   end
 
-  class DoubleRenderError < ActionControllerError #:nodoc:
-    DEFAULT_MESSAGE = "Render and/or redirect were called multiple times in this action. Please note that you may only call render OR redirect, and at most once per action. Also note that neither redirect nor render terminate execution of the action, so if you want to exit an action after redirecting, you need to do something like \"redirect_to(...) and return\"."
-
-    def initialize(message = nil)
-      super(message || DEFAULT_MESSAGE)
-    end
-  end
-
-  class RedirectBackError < ActionControllerError #:nodoc:
-    DEFAULT_MESSAGE = 'No HTTP_REFERER was set in the request to this action, so redirect_to :back could not be called successfully. If this is a test, make sure to specify request.env["HTTP_REFERER"].'
-
-    def initialize(message = nil)
-      super(message || DEFAULT_MESSAGE)
-    end
-  end
-
   class UnknownHttpMethod < ActionControllerError #:nodoc:
   end
 
@@ -247,7 +231,6 @@ module ActionController #:nodoc:
   #   end
   #
   class Base
-    DEFAULT_RENDER_STATUS_CODE = "200 OK"
 
     include StatusCodes
 
@@ -301,7 +284,10 @@ module ActionController #:nodoc:
     # A YAML parser is also available and can be turned on with:
     #
     #   ActionController::Base.param_parsers[Mime::YAML] = :yaml
-    @@param_parsers = {}
+    @@param_parsers = { Mime::MULTIPART_FORM   => :multipart_form,
+                        Mime::URL_ENCODED_FORM => :url_encoded_form,
+                        Mime::XML              => :xml_simple,
+                        Mime::JSON             => :json }
     cattr_accessor :param_parsers
 
     # Controls the default charset for all renders.
@@ -644,7 +630,7 @@ module ActionController #:nodoc:
       end
 
       def session_enabled?
-        ActiveSupport::Deprecation.warn("Sessions are now lazy loaded. So if you don't access them, consider them disabled.", caller)
+        request.session_options && request.session_options[:disabled] != false
       end
 
       self.view_paths = []
@@ -678,331 +664,6 @@ module ActionController #:nodoc:
         @template.view_paths.push(*path)
       end
 
-    protected
-      # Renders the content that will be returned to the browser as the response body.
-      #
-      # === Rendering an action
-      #
-      # Action rendering is the most common form and the type used automatically by Action Controller when nothing else is
-      # specified. By default, actions are rendered within the current layout (if one exists).
-      #
-      #   # Renders the template for the action "goal" within the current controller
-      #   render :action => "goal"
-      #
-      #   # Renders the template for the action "short_goal" within the current controller,
-      #   # but without the current active layout
-      #   render :action => "short_goal", :layout => false
-      #
-      #   # Renders the template for the action "long_goal" within the current controller,
-      #   # but with a custom layout
-      #   render :action => "long_goal", :layout => "spectacular"
-      #
-      # === Rendering partials
-      #
-      # Partial rendering in a controller is most commonly used together with Ajax calls that only update one or a few elements on a page
-      # without reloading. Rendering of partials from the controller makes it possible to use the same partial template in
-      # both the full-page rendering (by calling it from within the template) and when sub-page updates happen (from the
-      # controller action responding to Ajax calls). By default, the current layout is not used.
-      #
-      #   # Renders the same partial with a local variable.
-      #   render :partial => "person", :locals => { :name => "david" }
-      #
-      #   # Renders the partial, making @new_person available through
-      #   # the local variable 'person'
-      #   render :partial => "person", :object => @new_person
-      #
-      #   # Renders a collection of the same partial by making each element
-      #   # of @winners available through the local variable "person" as it
-      #   # builds the complete response.
-      #   render :partial => "person", :collection => @winners
-      #
-      #   # Renders a collection of partials but with a custom local variable name
-      #   render :partial => "admin_person", :collection => @winners, :as => :person
-      #
-      #   # Renders the same collection of partials, but also renders the
-      #   # person_divider partial between each person partial.
-      #   render :partial => "person", :collection => @winners, :spacer_template => "person_divider"
-      #
-      #   # Renders a collection of partials located in a view subfolder
-      #   # outside of our current controller.  In this example we will be
-      #   # rendering app/views/shared/_note.r(html|xml)  Inside the partial
-      #   # each element of @new_notes is available as the local var "note".
-      #   render :partial => "shared/note", :collection => @new_notes
-      #
-      #   # Renders the partial with a status code of 500 (internal error).
-      #   render :partial => "broken", :status => 500
-      #
-      # Note that the partial filename must also be a valid Ruby variable name,
-      # so e.g. 2005 and register-user are invalid.
-      #
-      #
-      # == Automatic etagging
-      #
-      # Rendering will automatically insert the etag header on 200 OK responses. The etag is calculated using MD5 of the
-      # response body. If a request comes in that has a matching etag, the response will be changed to a 304 Not Modified
-      # and the response body will be set to an empty string. No etag header will be inserted if it's already set.
-      #
-      # === Rendering a template
-      #
-      # Template rendering works just like action rendering except that it takes a path relative to the template root.
-      # The current layout is automatically applied.
-      #
-      #   # Renders the template located in [TEMPLATE_ROOT]/weblog/show.r(html|xml) (in Rails, app/views/weblog/show.erb)
-      #   render :template => "weblog/show"
-      #
-      #   # Renders the template with a local variable
-      #   render :template => "weblog/show", :locals => {:customer => Customer.new}
-      #
-      # === Rendering a file
-      #
-      # File rendering works just like action rendering except that it takes a filesystem path. By default, the path
-      # is assumed to be absolute, and the current layout is not applied.
-      #
-      #   # Renders the template located at the absolute filesystem path
-      #   render :file => "/path/to/some/template.erb"
-      #   render :file => "c:/path/to/some/template.erb"
-      #
-      #   # Renders a template within the current layout, and with a 404 status code
-      #   render :file => "/path/to/some/template.erb", :layout => true, :status => 404
-      #   render :file => "c:/path/to/some/template.erb", :layout => true, :status => 404
-      #
-      # === Rendering text
-      #
-      # Rendering of text is usually used for tests or for rendering prepared content, such as a cache. By default, text
-      # rendering is not done within the active layout.
-      #
-      #   # Renders the clear text "hello world" with status code 200
-      #   render :text => "hello world!"
-      #
-      #   # Renders the clear text "Explosion!"  with status code 500
-      #   render :text => "Explosion!", :status => 500
-      #
-      #   # Renders the clear text "Hi there!" within the current active layout (if one exists)
-      #   render :text => "Hi there!", :layout => true
-      #
-      #   # Renders the clear text "Hi there!" within the layout
-      #   # placed in "app/views/layouts/special.r(html|xml)"
-      #   render :text => "Hi there!", :layout => "special"
-      #
-      # The <tt>:text</tt> option can also accept a Proc object, which can be used to manually control the page generation. This should
-      # generally be avoided, as it violates the separation between code and content, and because almost everything that can be
-      # done with this method can also be done more cleanly using one of the other rendering methods, most notably templates.
-      #
-      #   # Renders "Hello from code!"
-      #   render :text => proc { |response, output| output.write("Hello from code!") }
-      #
-      # === Rendering XML
-      #
-      # Rendering XML sets the content type to application/xml.
-      #
-      #   # Renders '<name>David</name>'
-      #   render :xml => {:name => "David"}.to_xml
-      #
-      # It's not necessary to call <tt>to_xml</tt> on the object you want to render, since <tt>render</tt> will
-      # automatically do that for you:
-      #
-      #   # Also renders '<name>David</name>'
-      #   render :xml => {:name => "David"}
-      #
-      # === Rendering JSON
-      #
-      # Rendering JSON sets the content type to application/json and optionally wraps the JSON in a callback. It is expected
-      # that the response will be parsed (or eval'd) for use as a data structure.
-      #
-      #   # Renders '{"name": "David"}'
-      #   render :json => {:name => "David"}.to_json
-      #
-      # It's not necessary to call <tt>to_json</tt> on the object you want to render, since <tt>render</tt> will
-      # automatically do that for you:
-      #
-      #   # Also renders '{"name": "David"}'
-      #   render :json => {:name => "David"}
-      #
-      # Sometimes the result isn't handled directly by a script (such as when the request comes from a SCRIPT tag),
-      # so the <tt>:callback</tt> option is provided for these cases.
-      #
-      #   # Renders 'show({"name": "David"})'
-      #   render :json => {:name => "David"}.to_json, :callback => 'show'
-      #
-      # === Rendering an inline template
-      #
-      # Rendering of an inline template works as a cross between text and action rendering where the source for the template
-      # is supplied inline, like text, but its interpreted with ERb or Builder, like action. By default, ERb is used for rendering
-      # and the current layout is not used.
-      #
-      #   # Renders "hello, hello, hello, again"
-      #   render :inline => "<%= 'hello, ' * 3 + 'again' %>"
-      #
-      #   # Renders "<p>Good seeing you!</p>" using Builder
-      #   render :inline => "xml.p { 'Good seeing you!' }", :type => :builder
-      #
-      #   # Renders "hello david"
-      #   render :inline => "<%= 'hello ' + name %>", :locals => { :name => "david" }
-      #
-      # === Rendering inline JavaScriptGenerator page updates
-      #
-      # In addition to rendering JavaScriptGenerator page updates with Ajax in RJS templates (see ActionView::Base for details),
-      # you can also pass the <tt>:update</tt> parameter to +render+, along with a block, to render page updates inline.
-      #
-      #   render :update do |page|
-      #     page.replace_html  'user_list', :partial => 'user', :collection => @users
-      #     page.visual_effect :highlight, 'user_list'
-      #   end
-      #
-      # === Rendering vanilla JavaScript
-      #
-      # In addition to using RJS with render :update, you can also just render vanilla JavaScript with :js.
-      #
-      #   # Renders "alert('hello')" and sets the mime type to text/javascript
-      #   render :js => "alert('hello')"
-      #
-      # === Rendering with status and location headers
-      # All renders take the <tt>:status</tt> and <tt>:location</tt> options and turn them into headers. They can even be used together:
-      #
-      #   render :xml => post.to_xml, :status => :created, :location => post_url(post)
-      def render(options = nil, extra_options = {}, &block) #:doc:
-        raise DoubleRenderError, "Can only render or redirect once per action" if performed?
-
-        options = { :layout => true } if options.nil?
-        original, options = options, extra_options unless options.is_a?(Hash)
-        
-        layout_name = options.delete(:layout)
-
-        _process_options(options)
-        
-        if block_given?
-          @template.send(:_evaluate_assigns_and_ivars)
-
-          generator = ActionView::Helpers::PrototypeHelper::JavaScriptGenerator.new(@template, &block)
-          response.content_type = Mime::JS
-          return render_for_text(generator.to_s)
-        end
-        
-        if original
-          return render_for_name(original, layout_name, options) unless block_given?
-        end
-        
-        if options.key?(:text)
-          return render_for_text(@template._render_text(options[:text], 
-            _pick_layout(layout_name), options))
-        end
-
-        file, template = options.values_at(:file, :template)
-        if file || template
-          file = template.sub(/^\//, '') if template
-          return render_for_file(file, [layout_name, !!template], options)
-        end
-        
-        if action_option = options[:action]
-          return render_for_action(action_option, [layout_name, true], options)
-        end
-        
-        if inline = options[:inline]
-          render_for_text(@template._render_inline(inline, _pick_layout(layout_name), options))
-
-        elsif xml = options[:xml]
-          response.content_type ||= Mime::XML
-          render_for_text(xml.respond_to?(:to_xml) ? xml.to_xml : xml)
-
-        elsif js = options[:js]
-          response.content_type ||= Mime::JS
-          render_for_text(js)
-
-        elsif json = options[:json]
-          json = json.to_json unless json.is_a?(String)
-          json = "#{options[:callback]}(#{json})" unless options[:callback].blank?
-          response.content_type ||= Mime::JSON
-          render_for_text(json)
-
-        elsif partial = options[:partial]
-          if partial == true
-            parts = [action_name_base, formats, controller_name, true]
-          elsif partial.is_a?(String)
-            parts = partial_parts(partial, options)
-          else
-            return render_for_text(@template._render_partial(options))
-          end
-          
-          render_for_parts(parts, layout_name, options)
-          
-        elsif options[:nothing]
-          render_for_text(nil)
-
-        else
-          render_for_parts([action_name, formats, controller_path], layout_name, options)
-        end
-      end
-
-      def formats
-        @_request.formats.map {|f| f.symbol }.compact
-      end
-
-      def action_name_base(name = action_name)
-        (name.is_a?(String) ? name.sub(/^#{controller_path}\//, '') : name).to_s
-      end
-
-      # Renders according to the same rules as <tt>render</tt>, but returns the result in a string instead
-      # of sending it as the response body to the browser.
-      def render_to_string(options = nil, &block) #:doc:
-        render(options, &block)
-      ensure
-        response.content_type = nil
-        erase_render_results
-        reset_variables_added_to_assigns
-      end
-
-      # Return a response that has no content (merely headers). The options
-      # argument is interpreted to be a hash of header names and values.
-      # This allows you to easily return a response that consists only of
-      # significant headers:
-      #
-      #   head :created, :location => person_path(@person)
-      #
-      # It can also be used to return exceptional conditions:
-      #
-      #   return head(:method_not_allowed) unless request.post?
-      #   return head(:bad_request) unless valid_request?
-      #   render
-      def head(*args)
-        if args.length > 2
-          raise ArgumentError, "too many arguments to head"
-        elsif args.empty?
-          raise ArgumentError, "too few arguments to head"
-        end
-        options = args.extract_options!
-        status = interpret_status(args.shift || options.delete(:status) || :ok)
-
-        options.each do |key, value|
-          headers[key.to_s.dasherize.split(/-/).map { |v| v.capitalize }.join("-")] = value.to_s
-        end
-
-        render :nothing => true, :status => status
-      end
-
-      # Clears the rendered results, allowing for another render to be performed.
-      def erase_render_results #:nodoc:
-        response.body = nil
-        @performed_render = false
-      end
-
-      # Clears the redirected results from the headers, resets the status to 200 and returns
-      # the URL that was used to redirect or nil if there was no redirected URL
-      # Note that +redirect_to+ will change the body of the response to indicate a redirection.
-      # The response body is not reset here, see +erase_render_results+
-      def erase_redirect_results #:nodoc:
-        @performed_redirect = false
-        response.redirected_to = nil
-        response.redirected_to_method_params = nil
-        response.status = DEFAULT_RENDER_STATUS_CODE
-        response.headers.delete('Location')
-      end
-
-      # Erase both render and redirect results
-      def erase_results #:nodoc:
-        erase_render_results
-        erase_redirect_results
-      end
-
       def rewrite_options(options) #:nodoc:
         if defaults = default_url_options(options)
           defaults.merge(options)
@@ -1022,73 +683,6 @@ module ActionController #:nodoc:
       # urls as they stem from the business domain. Please note that any individual url_for call can always override the defaults set
       # by this method.
       def default_url_options(options = nil)
-      end
-
-      # Redirects the browser to the target specified in +options+. This parameter can take one of three forms:
-      #
-      # * <tt>Hash</tt> - The URL will be generated by calling url_for with the +options+.
-      # * <tt>Record</tt> - The URL will be generated by calling url_for with the +options+, which will reference a named URL for that record.
-      # * <tt>String</tt> starting with <tt>protocol://</tt> (like <tt>http://</tt>) - Is passed straight through as the target for redirection.
-      # * <tt>String</tt> not containing a protocol - The current protocol and host is prepended to the string.
-      # * <tt>:back</tt> - Back to the page that issued the request. Useful for forms that are triggered from multiple places.
-      #   Short-hand for <tt>redirect_to(request.env["HTTP_REFERER"])</tt>
-      #
-      # Examples:
-      #   redirect_to :action => "show", :id => 5
-      #   redirect_to post
-      #   redirect_to "http://www.rubyonrails.org"
-      #   redirect_to "/images/screenshot.jpg"
-      #   redirect_to articles_url
-      #   redirect_to :back
-      #
-      # The redirection happens as a "302 Moved" header unless otherwise specified.
-      #
-      # Examples:
-      #   redirect_to post_url(@post), :status=>:found
-      #   redirect_to :action=>'atom', :status=>:moved_permanently
-      #   redirect_to post_url(@post), :status=>301
-      #   redirect_to :action=>'atom', :status=>302
-      #
-      # When using <tt>redirect_to :back</tt>, if there is no referrer,
-      # RedirectBackError will be raised. You may specify some fallback
-      # behavior for this case by rescuing RedirectBackError.
-      def redirect_to(options = {}, response_status = {}) #:doc:
-        raise ActionControllerError.new("Cannot redirect to nil!") if options.nil?
-
-        if options.is_a?(Hash) && options[:status]
-          status = options.delete(:status)
-        elsif response_status[:status]
-          status = response_status[:status]
-        else
-          status = 302
-        end
-
-        response.redirected_to = options
-        logger.info("Redirected to #{options}") if logger && logger.info?
-
-        case options
-          # The scheme name consist of a letter followed by any combination of
-          # letters, digits, and the plus ("+"), period ("."), or hyphen ("-")
-          # characters; and is terminated by a colon (":").
-          when %r{^\w[\w\d+.-]*:.*}
-            redirect_to_full_url(options, status)
-          when String
-            redirect_to_full_url(request.protocol + request.host_with_port + options, status)
-          when :back
-            if referer = request.headers["Referer"]
-              redirect_to(referer, :status=>status)
-            else
-              raise RedirectBackError
-            end
-          else
-            redirect_to_full_url(url_for(options), status)
-        end
-      end
-
-      def redirect_to_full_url(url, status)
-        raise DoubleRenderError if performed?
-        response.redirect(url, interpret_status(status))
-        @performed_redirect = true
       end
 
       # Sets the etag and/or last_modified on the response and checks it against
@@ -1178,71 +772,6 @@ module ActionController #:nodoc:
         response.status = interpret_status(options[:status] || DEFAULT_RENDER_STATUS_CODE)
       end
 
-      def render_for_name(name, layout, options)
-        case name.to_s.index('/')
-        when 0
-          render_for_file(name, layout, options)
-        when nil
-          render_for_action(name, layout, options)
-        else
-          render_for_file(name.sub(/^\//, ''), [layout, true], options)
-        end
-      end
-    
-      def render_for_parts(parts, layout, options = {})
-        tmp = view_paths.find_by_parts(*parts)        
-        layout = _pick_layout(*layout) unless tmp.exempt_from_layout?
-        
-        render_for_text(
-          @template._render_template_with_layout(tmp, layout, options, parts[3]))
-      end
-
-      def partial_parts(name, options)
-        segments = name.split("/")
-        parts = segments.pop.split(".")
-
-        case parts.size
-        when 1
-          parts
-        when 2, 3
-          extension = parts.delete_at(1).to_sym
-          if formats.include?(extension)
-            self.formats.replace [extension]
-          end
-          parts.pop if parts.size == 2
-        end
-
-        path = parts.join(".")
-        prefix = segments[0..-1].join("/")
-        prefix = prefix.blank? ? controller_path : prefix
-        parts = [path, formats, prefix]
-        parts.push options[:object] || true
-      end
-
-      def render_for_file(file, layout, options)
-        render_for_parts([file, [request.format.to_sym]], layout, options)
-      end
-      
-      def render_for_action(name, layout, options)
-        parts = [action_name_base(name), formats, controller_name]
-        render_for_parts(parts, layout, options)
-      end
-      
-      def render_for_text(text = nil, append_response = false) #:nodoc:
-        @performed_render = true
-
-        if append_response
-          response.body ||= ''
-          response.body << text.to_s
-        else
-          response.body = case text
-            when Proc then text
-            when nil  then " " # Safari doesn't pass the headers of the return if the response is zero length
-            else           text.to_s
-          end
-        end
-      end
-
       def initialize_template_class(response)
         @template = response.template = ActionView::Base.new(self.class.view_paths, {}, self, formats)
         response.template.helpers.send :include, self.class.master_helper_module
@@ -1318,22 +847,6 @@ module ActionController #:nodoc:
         @action_name = (params['action'] || 'index')
       end
 
-      def action_methods
-        self.class.action_methods
-      end
-
-      def self.action_methods
-        @action_methods ||=
-          # All public instance methods of this class, including ancestors
-          public_instance_methods(true).map { |m| m.to_s }.to_set -
-          # Except for public instance methods of Base and its ancestors
-          Base.public_instance_methods(true).map { |m| m.to_s } +
-          # Be sure to include shadowed public instance methods of this class
-          public_instance_methods(false).map { |m| m.to_s } -
-          # And always exclude explicitly hidden actions
-          hidden_actions
-      end
-
       def reset_variables_added_to_assigns
         @template.instance_variable_set("@assigns_added", nil)
       end
@@ -1363,13 +876,12 @@ module ActionController #:nodoc:
             action_name = strip_out_controller(action_name)
           end
         end
-        "#{self.controller_path}/#{action_name}"
+        "#{controller_path}/#{action_name}"
       end
 
       def strip_out_controller(path)
         path.split('/', 2).last
       end
-
 
       def template_path_includes_controller?(path)
         self.controller_path.split('/')[-1] == path.split('/')[0]
@@ -1381,7 +893,7 @@ module ActionController #:nodoc:
   end
 
   Base.class_eval do
-    [ Filters, Layout, Benchmarking, Rescue, Flash, MimeResponds, Helpers,
+    [ Filters, Layout, Renderer, Redirector, Responder, Benchmarking, Rescue, Flash, MimeResponds, Helpers,
       Cookies, Caching, Verification, Streaming, SessionManagement,
       HttpAuthentication::Basic::ControllerMethods, RecordIdentifier,
       RequestForgeryProtection, Translation

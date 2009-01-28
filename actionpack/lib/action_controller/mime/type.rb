@@ -211,4 +211,4 @@ module Mime
   end
 end
 
-require 'action_controller/mime_types'
+require 'action_controller/mime/default_types'

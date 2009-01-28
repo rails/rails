@@ -1,6 +1,6 @@
-require 'action_controller/cgi_ext/stdinput'
-require 'action_controller/cgi_ext/query_extension'
-require 'action_controller/cgi_ext/cookie'
+require 'action_controller/cgi/ext/stdinput'
+require 'action_controller/cgi/ext/query_extension'
+require 'action_controller/cgi/ext/cookie'
 
 class CGI #:nodoc:
   include ActionController::CgiExt::Stdinput

@@ -1,5 +1,5 @@
 require 'active_support/test_case'
-require 'action_controller/test_process'
+require 'action_controller/testing/process'
 
 module ActionController
   # Superclass for ActionController functional tests. Functional tests allow you to

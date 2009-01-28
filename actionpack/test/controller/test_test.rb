@@ -612,7 +612,7 @@ class CleanBacktraceTest < ActionController::TestCase
   end
 
   def test_should_clean_assertion_lines_from_backtrace
-    path = File.expand_path("#{File.dirname(__FILE__)}/../../lib/action_controller")
+    path = File.expand_path("#{File.dirname(__FILE__)}/../../lib/action_controller/testing")
     exception = ActiveSupport::TestCase::Assertion.new('message')
     exception.set_backtrace ["#{path}/abc", "#{path}/assertions/def"]
     clean_backtrace { raise exception }

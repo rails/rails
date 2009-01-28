@@ -1,4 +1,4 @@
-module ActionController  
+module ActionController
   # The record identifier encapsulates a number of naming conventions for dealing with records, like Active Records or 
   # Active Resources or pretty much any other model type that has an id. These patterns are then used to try elevate
   # the view actions to a higher logical level. Example:

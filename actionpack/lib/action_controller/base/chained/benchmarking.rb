@@ -64,7 +64,7 @@ module ActionController #:nodoc:
 
     private
       def perform_action_with_benchmark
-        if logger
+        if logger && logger.info?
           ms = [Benchmark.ms { perform_action_without_benchmark }, 0.01].max
           logging_view          = defined?(@view_runtime)
           logging_active_record = Object.const_defined?("ActiveRecord") && ActiveRecord::Base.connected?

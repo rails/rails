@@ -1,5 +1,3 @@
-require 'action_controller/cgi_ext'
-
 module ActionController #:nodoc:
   class CGIHandler
     module ProperStream
