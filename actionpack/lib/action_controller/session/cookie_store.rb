@@ -93,12 +93,14 @@ module ActionController
         status, headers, body = @app.call(env)
 
         session_data = env[ENV_SESSION_KEY]
-        if !session_data.is_a?(AbstractStore::SessionHash) || session_data.send(:loaded?)
+        options = env[ENV_SESSION_OPTIONS_KEY]
+
+        if !session_data.is_a?(AbstractStore::SessionHash) || session_data.send(:loaded?) || options[:expire_after]
+          session_data.send(:load!) if session_data.is_a?(AbstractStore::SessionHash) && !session_data.send(:loaded?)
           session_data = marshal(session_data.to_hash)
 
           raise CookieOverflow if session_data.size > MAX
 
-          options = env[ENV_SESSION_OPTIONS_KEY]
           cookie = Hash.new
           cookie[:value] = session_data
           unless options[:expire_after].nil?
