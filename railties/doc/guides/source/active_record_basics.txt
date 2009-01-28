@@ -20,6 +20,10 @@ Rails' ActiveRecord is an implementation of Martin Fowler's http://martinfowler.
 * Each table column is mapped to an attribute of this class.
 * Each instance of this class is mapped to a single row in the database table.
 
+The definition of the Active Record pattern in Martin Fowler's words:
+
+"_An object that wraps a row in a database table or view, encapsulates the database access, and adds domain logic on that data."_
+
 == Object Relational Mapping
 
 The relation between databases and object-oriented software is called ORM, which is short for "Object Relational Mapping". The purpose of an ORM framework is to minimize the mismatch existent between relational databases and object-oriented software. In applications with a domain model, we have objects that represent both the state of the system and the behaviour of the real world elements that were modeled through these objects. Since we need to store the system's state somehow, we can use relational databases, which are proven to be an excelent approach to data management. Usually this may become a very hard thing to do, since we need to create an object-oriented model of everything that lives in the database, from simple columns to complicated relations between different tables. Doing this kind of thing by hand is a tedious and error prone job. This is where an ORM framework comes in.
@@ -30,6 +34,7 @@ ActiveRecord gives us several mechanisms, being the most important ones the habi
 
 * Represent models.
 * Represent associations between these models.
+* Represent inheritance hierarquies through related models.
 * Validate models before they get recorded to the database.
 * Perform database operations in an object-oriented fashion.
 
@@ -37,26 +42,51 @@ It's easy to see that the Rails Active Record implementation goes way beyond the
 
 == Active Record inside the MVC model
 
+Active Record plays the role of model inside the MVC structure followed by Rails applications. Since model objects should encapsulate both state and logic of your applications, it's ActiveRecord responsability to deliver you the easiest possible way to recover this data from the database.
 
+== Creating ActiveRecord models
 
+It's very easy to create ActiveRecord models. All you have to do is to subclass the ActiveRecord::Base class and you're good to go:
 
+[source, ruby]
+------------------------------------------------------------------
+class Product < ActiveRecord::Base; end
+------------------------------------------------------------------
 
+This will create a +Product+ model, mapped to a *products* table at the database. By doing this you'll also have the hability to map the columns of each row in that table with the attributes of the instances of your model. So, suppose that the *products* table was created using a SQL sentence like:
 
-== Active Record The Engine of Rails
+[source, sql]
+------------------------------------------------------------------
+CREATE TABLE products (
+   id int(11) NOT NULL auto_increment,
+   name varchar(255),
+   PRIMARY KEY  (id)
+);
+------------------------------------------------------------------
 
-Active Record is a design pattern used to access data within a database. The name “Active Record” was coined by Martin Fowler in his book “Patterns of Enterprise Application Architecture”. Essentially, when a record is returned from the database instead of being just the data it is wrapped in a class, which gives you methods to control that data with. The rails framework is built around the MVC (Model View Controller) design patten and the Active Record is used as the default Model. 
+Following the table schema above, you would be able to write code like the following:
 
-The Rails community added several useful concepts to their version of Active Record, including inheritance and associations, which are extremely useful for web applications. The associations are created by using a DSL (domain specific language) of macros, and inheritance is achieved through the use of STI (Single Table Inheritance) at the database level.
+[source, ruby]
+------------------------------------------------------------------
+p = Product.new
+p.name = "Some Book"
+puts p.name # "Some Book"
+------------------------------------------------------------------
 
-By following a few simple conventions the Rails Active Record will automatically map between:
+== Convention over Configuration in ActiveRecord
 
-* Classes & Database Tables
-* Class attributes & Database Table Columns
+When writing applications using other programming languages or frameworks, it may be necessary to write a lot of configuration code. This is particulary true for ORM frameworks in general. However, if you follow the conventions adopted by Rails, you'll need to write very little configuration (in some case no configuration at all) when creating ActiveRecord models. The idea is that if you configure your applications in the very same way most of the times then this should be the default way. In this cases, explicity configuration would be needed only in those cases where you can't follow the conventions for any reason.
 
-=== Rails Active Record Conventions
-Here are the key conventions to consider when using Active Record.
+=== Naming Conventions
 
-==== Naming Conventions
+By default, ActiveRecord uses some naming conventions to find out how the mapping between models and database tables should be created. It uses two basic strategies to convert between class names and table names:
+
+==== Pluralization
+
+Rails will pluralize your class names to find the respective database table. So, for a class +Book+, you should have a database table called *books*. The Rails pluralization mechanisms are very powerful, being capable to pluralize (and singularize) both regular and irregular words.
+
+== STOPED HERE
+
 Database Table - Plural with underscores separating words i.e. (book_clubs)
 Model Class - Singular with the first letter of each word capitalized i.e. (BookClub) 
 Here are some additional Examples:
@@ -72,7 +102,7 @@ Mouse         mice
 Person        people
 ----------------------------
 
-==== Schema Conventions
+=== Schema Conventions
 
 To take advantage of some of the magic of Rails database tables must be modeled 
 to reflect the ORM decisions that Rails makes.
