@@ -746,8 +746,8 @@ module ActiveResource
     #   # => true
     #
     def ==(other)
-      other.equal?(self) || (other.instance_of?(self.class) && !other.new? && other.id == id)
-    end
+      other.equal?(self) || (other.instance_of?(self.class) && other.id == id && other.prefix_options == prefix_options)
+		end
 
     # Tests for equality (delegates to ==).
     def eql?(other)
