@@ -1,4 +1,4 @@
-module ActionController
+module ActionDispatch
   class Failsafe
     cattr_accessor :error_file_path
     self.error_file_path = Rails.public_path if defined?(Rails.public_path)

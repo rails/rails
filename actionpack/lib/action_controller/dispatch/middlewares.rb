@@ -2,10 +2,10 @@ use "Rack::Lock", :if => lambda {
   !ActionController::Base.allow_concurrency
 }
 
-use "ActionController::Failsafe"
+use "ActionDispatch::Failsafe"
 
-["ActionController::Session::CookieStore",
- "ActionController::Session::MemCacheStore",
+["ActionDispatch::Session::CookieStore",
+ "ActionDispatch::Session::MemCacheStore",
  "ActiveRecord::SessionStore"].each do |store|
    use(store, ActionController::Base.session_options,
       :if => lambda {
@@ -16,6 +16,6 @@ use "ActionController::Failsafe"
     )
 end
 
-use "ActionController::RewindableInput"
-use "ActionController::ParamsParser"
+use "ActionDispatch::RewindableInput"
+use "ActionDispatch::ParamsParser"
 use "Rack::MethodOverride"

@@ -1,4 +1,4 @@
-module ActionController
+module ActionDispatch
   module UploadedFile
     def self.included(base)
       base.class_eval do

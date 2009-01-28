@@ -11,7 +11,7 @@ module ActionController
       #
       # You can also pass an explicit status number like assert_response(501)
       # or its symbolic equivalent assert_response(:not_implemented).
-      # See ActionController::StatusCodes for a full list.
+      # See ActionDispatch::StatusCodes for a full list.
       #
       # ==== Examples
       #
@@ -27,7 +27,7 @@ module ActionController
             assert_block("") { true } # to count the assertion
           elsif type.is_a?(Fixnum) && @response.response_code == type
             assert_block("") { true } # to count the assertion
-          elsif type.is_a?(Symbol) && @response.response_code == ActionController::StatusCodes::SYMBOL_TO_STATUS_CODE[type]
+          elsif type.is_a?(Symbol) && @response.response_code == ActionDispatch::StatusCodes::SYMBOL_TO_STATUS_CODE[type]
             assert_block("") { true } # to count the assertion
           else
             if @response.error?

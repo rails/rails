@@ -1,4 +1,4 @@
-module ActionController
+module ActionDispatch
   class MiddlewareStack < Array
     class Middleware
       def self.new(klass, *args, &block)

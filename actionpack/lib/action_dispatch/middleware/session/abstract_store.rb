@@ -1,6 +1,6 @@
 require 'rack/utils'
 
-module ActionController
+module ActionDispatch
   module Session
     class AbstractStore
       ENV_SESSION_KEY = 'rack.session'.freeze

@@ -6,7 +6,7 @@ class MiddlewareStackTest < ActiveSupport::TestCase
   class BazMiddleware; end
 
   def setup
-    @stack = ActionController::MiddlewareStack.new
+    @stack = ActionDispatch::MiddlewareStack.new
     @stack.use FooMiddleware
     @stack.use BarMiddleware
   end

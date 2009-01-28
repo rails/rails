@@ -232,7 +232,7 @@ module ActionController #:nodoc:
   #
   class Base
 
-    include StatusCodes
+    include ActionDispatch::StatusCodes
 
     cattr_reader :protected_instance_variables
     # Controller specific instance variables which will not be accessible inside views.
@@ -367,8 +367,8 @@ module ActionController #:nodoc:
     class << self
       def call(env)
         # HACK: For global rescue to have access to the original request and response
-        request = env["action_controller.rescue.request"] ||= Request.new(env)
-        response = env["action_controller.rescue.response"] ||= Response.new
+        request = env["action_controller.rescue.request"] ||= ActionDispatch::Request.new(env)
+        response = env["action_controller.rescue.response"] ||= ActionDispatch::Response.new
         process(request, response)
       end
 

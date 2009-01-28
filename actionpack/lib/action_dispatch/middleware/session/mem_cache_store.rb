@@ -1,7 +1,7 @@
 begin
   require_library_or_gem 'memcache'
 
-  module ActionController
+  module ActionDispatch
     module Session
       class MemCacheStore < AbstractStore
         def initialize(app, options = {})

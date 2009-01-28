@@ -1,4 +1,4 @@
-module ActionController
+module ActionDispatch
   class UrlEncodedPairParser < StringScanner #:nodoc:
     class << self
       def parse_query_parameters(query_string)

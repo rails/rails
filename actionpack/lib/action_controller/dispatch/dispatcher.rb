@@ -45,8 +45,8 @@ module ActionController
     end
 
     cattr_accessor :middleware
-    self.middleware = MiddlewareStack.new do |middleware|
-      middlewares = File.join(File.dirname(__FILE__), "rack", "middlewares.rb")
+    self.middleware = ActionDispatch::MiddlewareStack.new do |middleware|
+      middlewares = File.join(File.dirname(__FILE__), "middlewares.rb")
       middleware.instance_eval(File.read(middlewares))
     end
 

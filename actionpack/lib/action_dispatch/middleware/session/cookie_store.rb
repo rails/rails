@@ -1,4 +1,4 @@
-module ActionController
+module ActionDispatch
   module Session
     # This cookie-based session store is the Rails default. Sessions typically
     # contain at most a user_id and flash message; both fit within the 4K cookie

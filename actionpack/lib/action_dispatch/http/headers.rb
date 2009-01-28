@@ -1,6 +1,6 @@
 require 'active_support/memoizable'
 
-module ActionController
+module ActionDispatch
   module Http
     class Headers < ::Hash
       extend ActiveSupport::Memoizable

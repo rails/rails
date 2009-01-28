@@ -1,5 +1,5 @@
 module ActionController #:nodoc:
-  class TestRequest < Request #:nodoc:
+  class TestRequest < ActionDispatch::Request #:nodoc:
     attr_accessor :cookies, :session_options
     attr_accessor :query_parameters, :path, :session
     attr_accessor :host
@@ -270,7 +270,7 @@ module ActionController #:nodoc:
   # controller actions.
   #
   # See Response for more information on controller response objects.
-  class TestResponse < Response
+  class TestResponse < ActionDispatch::Response
     include TestResponseBehavior
 
     def recycle!

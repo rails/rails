@@ -26,7 +26,7 @@ module ActionController #:nodoc:
         if defined? @@session_store
           @@session_store
         else
-          Session::CookieStore
+          ActionDispatch::Session::CookieStore
         end
       end
 

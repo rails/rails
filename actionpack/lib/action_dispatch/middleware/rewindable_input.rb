@@ -1,4 +1,4 @@
-module ActionController
+module ActionDispatch
   class RewindableInput
     class RewindableIO < ActiveSupport::BasicObject
       def initialize(io)

@@ -1,4 +1,4 @@
-module ActionController
+module ActionDispatch
   class ParamsParser
     ActionController::Base.param_parsers[Mime::XML] = :xml_simple
     ActionController::Base.param_parsers[Mime::JSON] = :json

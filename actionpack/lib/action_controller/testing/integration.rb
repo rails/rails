@@ -316,7 +316,7 @@ module ActionController
           @html_document = nil
 
           @status = status.to_i
-          @status_message = StatusCodes::STATUS_CODES[@status]
+          @status_message = ActionDispatch::StatusCodes::STATUS_CODES[@status]
 
           @headers = Rack::Utils::HeaderHash.new(headers)
 
@@ -335,7 +335,7 @@ module ActionController
           else
             # Decorate responses from Rack Middleware and Rails Metal
             # as an Response for the purposes of integration testing
-            @response = Response.new
+            @response = ActionDispatch::Response.new
             @response.status = status.to_s
             @response.headers.replace(@headers)
             @response.body = @body
@@ -374,7 +374,7 @@ module ActionController
             "SERVER_PORT"    => https? ? "443" : "80",
             "HTTPS"          => https? ? "on" : "off"
           }
-          UrlRewriter.new(Request.new(env), {})
+          UrlRewriter.new(ActionDispatch::Request.new(env), {})
         end
 
         def name_with_prefix(prefix, name)

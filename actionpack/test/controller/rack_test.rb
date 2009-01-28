@@ -43,10 +43,10 @@ class BaseRackTest < Test::Unit::TestCase
       "REDIRECT_STATUS" => "200",
       "REQUEST_METHOD" => "GET"
     }
-    @request = ActionController::Request.new(@env)
+    @request = ActionDispatch::Request.new(@env)
     # some Nokia phone browsers omit the space after the semicolon separator.
     # some developers have grown accustomed to using comma in cookie values.
-    @alt_cookie_fmt_request = ActionController::Request.new(@env.merge({"HTTP_COOKIE"=>"_session_id=c84ace847,96670c052c6ceb2451fb0f2;is_admin=yes"}))
+    @alt_cookie_fmt_request = ActionDispatch::Request.new(@env.merge({"HTTP_COOKIE"=>"_session_id=c84ace847,96670c052c6ceb2451fb0f2;is_admin=yes"}))
   end
 
   def default_test; end
@@ -195,7 +195,7 @@ class RackRequestNeedsRewoundTest < BaseRackTest
     @env['CONTENT_TYPE'] = 'application/x-www-form-urlencoded; charset=utf-8'
 
     # Read the request body by parsing params.
-    request = ActionController::Request.new(@env)
+    request = ActionDispatch::Request.new(@env)
     request.request_parameters
 
     # Should have rewound the body.
@@ -206,7 +206,7 @@ end
 class RackResponseTest < BaseRackTest
   def setup
     super
-    @response = ActionController::Response.new
+    @response = ActionDispatch::Response.new
   end
 
   def test_simple_output
@@ -252,7 +252,7 @@ end
 class RackResponseHeadersTest < BaseRackTest
   def setup
     super
-    @response = ActionController::Response.new
+    @response = ActionDispatch::Response.new
     @response.status = "200 OK"
   end
 

@@ -1,4 +1,4 @@
-module ActionController
+module ActionDispatch
   module StatusCodes #:nodoc:
     # Defines the standard HTTP status codes, by integer, with their
     # corresponding default message texts.

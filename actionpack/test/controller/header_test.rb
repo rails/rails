@@ -2,7 +2,7 @@ require 'abstract_unit'
 
 class HeaderTest < Test::Unit::TestCase
   def setup
-    @headers = ActionController::Http::Headers.new("HTTP_CONTENT_TYPE"=>"text/plain")
+    @headers = ActionDispatch::Http::Headers.new("HTTP_CONTENT_TYPE"=>"text/plain")
   end
   
   def test_content_type_works

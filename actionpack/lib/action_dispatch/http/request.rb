@@ -5,7 +5,7 @@ require 'strscan'
 require 'active_support/memoizable'
 require 'action_controller/cgi_ext'
 
-module ActionController
+module ActionDispatch
   class Request < Rack::Request
     extend ActiveSupport::Memoizable
 
@@ -33,7 +33,7 @@ module ActionController
     # <tt>:get</tt>. If the request \method is not listed in the HTTP_METHODS
     # constant above, an UnknownHttpMethod exception is raised.
     def request_method
-      HTTP_METHOD_LOOKUP[super] || raise(UnknownHttpMethod, "#{super}, accepted HTTP methods are #{HTTP_METHODS.to_sentence}")
+      HTTP_METHOD_LOOKUP[super] || raise(ActionController::UnknownHttpMethod, "#{super}, accepted HTTP methods are #{HTTP_METHODS.to_sentence}")
     end
     memoize :request_method
 
@@ -75,7 +75,7 @@ module ActionController
     #
     #   request.headers["Content-Type"] # => "text/plain"
     def headers
-      ActionController::Http::Headers.new(@env)
+      Http::Headers.new(@env)
     end
     memoize :headers
 
@@ -162,7 +162,7 @@ module ActionController
       @format ||=
         if parameters[:format]
                         Mime[parameters[:format]]
-        elsif Base.use_accept_header && !(accepts == ONLY_ALL)
+        elsif ActionController::Base.use_accept_header && !(accepts == ONLY_ALL)
                         accepts.first
         elsif xhr? then Mime::JS
         else            Mime::HTML
@@ -171,7 +171,7 @@ module ActionController
 
     def formats
       @formats = 
-        if Base.use_accept_header
+        if ActionController::Base.use_accept_header
           ret = Array(Mime[parameters[:format]] || accepts)
         else
           [format]
@@ -243,7 +243,7 @@ module ActionController
       if @env.include? 'HTTP_CLIENT_IP'
         if ActionController::Base.ip_spoofing_check && remote_ips && !remote_ips.include?(@env['HTTP_CLIENT_IP'])
           # We don't know which came from the proxy, and which from the user
-          raise ActionControllerError.new(<<EOM)
+          raise ActionController::ActionControllerError.new(<<EOM)
 IP spoofing attack?!
 HTTP_CLIENT_IP=#{@env['HTTP_CLIENT_IP'].inspect}
 HTTP_X_FORWARDED_FOR=#{@env['HTTP_X_FORWARDED_FOR'].inspect}
