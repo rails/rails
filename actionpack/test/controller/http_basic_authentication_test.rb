@@ -1,35 +1,35 @@
 require 'abstract_unit'
 
-class DummyController < ActionController::Base
-  before_filter :authenticate, :only => :index
-  before_filter :authenticate_with_request, :only => :display
-
-  def index
-    render :text => "Hello Secret"
-  end
-
-  def display
-    render :text => 'Definitely Maybe'
-  end
-
-  private
-
-  def authenticate
-    authenticate_or_request_with_http_basic do |username, password|
-      username == 'lifo' && password == 'world'
-    end
-  end
-
-  def authenticate_with_request
-    if authenticate_with_http_basic { |username, password| username == 'pretty' && password == 'please' }
-      @logged_in = true
-    else
-      request_http_basic_authentication("SuperSecret")
-    end
-  end
-end
-
 class HttpBasicAuthenticationTest < ActionController::TestCase
+  class DummyController < ActionController::Base
+    before_filter :authenticate, :only => :index
+    before_filter :authenticate_with_request, :only => :display
+
+    def index
+      render :text => "Hello Secret"
+    end
+
+    def display
+      render :text => 'Definitely Maybe'
+    end
+
+    private
+
+    def authenticate
+      authenticate_or_request_with_http_basic do |username, password|
+        username == 'lifo' && password == 'world'
+      end
+    end
+
+    def authenticate_with_request
+      if authenticate_with_http_basic { |username, password| username == 'pretty' && password == 'please' }
+        @logged_in = true
+      else
+        request_http_basic_authentication("SuperSecret")
+      end
+    end
+  end
+
   AUTH_HEADERS = ['HTTP_AUTHORIZATION', 'X-HTTP_AUTHORIZATION', 'X_HTTP_AUTHORIZATION', 'REDIRECT_X_HTTP_AUTHORIZATION']
 
   tests DummyController
