@@ -29,7 +29,7 @@ Here's a summary of the rack-related changes:
 * +CGI::Session::CookieStore+ has been replaced by +ActionController::Session::CookieStore+
 * +CGI::Session::MemCacheStore+ has been replaced by +ActionController::Session::MemCacheStore+
 * +CGI::Session::ActiveRecordStore+ has been replaced by +ActiveRecord::SessionStore+
-* You can still change you session store with +ActionController::Base.session_store = :active_record_store+
+* You can still change your session store with +ActionController::Base.session_store = :active_record_store+
 * Default sessions options are still set with +ActionController::Base.session = { :key => "..." }+
 * The mutex that normally wraps your entire request has been moved into middleware, +ActionController::Lock+
 * +ActionController::AbstractRequest+ and +ActionController::Request+ have been unified. The new +ActionController::Request+ inherits from +Rack::Request+. This affects access to +response.headers['type']+ in test requests. Use +response.content_type+ instead.
