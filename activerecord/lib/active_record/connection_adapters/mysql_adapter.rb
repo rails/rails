@@ -152,6 +152,7 @@ module ActiveRecord
     # * <tt>:password</tt> - Defaults to nothing.
     # * <tt>:database</tt> - The name of the database. No default, must be provided.
     # * <tt>:encoding</tt> - (Optional) Sets the client encoding by executing "SET NAMES <encoding>" after connection.
+    # * <tt>:reconnect</tt> - Defaults to false (See MySQL documentation: http://dev.mysql.com/doc/refman/5.0/en/auto-reconnect.html).
     # * <tt>:sslca</tt> - Necessary to use MySQL with an SSL connection.
     # * <tt>:sslkey</tt> - Necessary to use MySQL with an SSL connection.
     # * <tt>:sslcert</tt> - Necessary to use MySQL with an SSL connection.
@@ -563,8 +564,6 @@ module ActiveRecord
 
       private
         def connect
-          @connection.reconnect = true if @connection.respond_to?(:reconnect=)
-
           encoding = @config[:encoding]
           if encoding
             @connection.options(Mysql::SET_CHARSET_NAME, encoding) rescue nil
@@ -575,6 +574,10 @@ module ActiveRecord
           end
 
           @connection.real_connect(*@connection_options)
+
+          # reconnect must be set after real_connect is called, because real_connect sets it to false internally
+          @connection.reconnect = !!@config[:reconnect] if @connection.respond_to?(:reconnect=)
+
           configure_connection
         end
 

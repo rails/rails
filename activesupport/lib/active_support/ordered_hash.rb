@@ -92,6 +92,10 @@ module ActiveSupport
         dup.merge!(other_hash)
       end
 
+      def inspect
+        "#<OrderedHash #{self.to_hash.inspect}>"
+      end
+
     private
 
       def sync_keys!

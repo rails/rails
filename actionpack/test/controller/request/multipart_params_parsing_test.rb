@@ -101,6 +101,21 @@ class MultipartParamsParsingTest < ActionController::IntegrationTest
     assert_equal 19756, files.size
   end
 
+  test "does not create tempfile if no file has been selected" do
+    params = parse_multipart('none')
+    assert_equal %w(files submit-name), params.keys.sort
+    assert_equal 'Larry', params['submit-name']
+    assert_equal nil, params['files']
+  end
+
+  test "parses empty upload file" do
+    params = parse_multipart('empty')
+    assert_equal %w(files submit-name), params.keys.sort
+    assert_equal 'Larry', params['submit-name']
+    assert params['files']
+    assert_equal "", params['files'].read
+  end
+
   test "uploads and reads binary file" do
     with_test_routing do
       fixture = FIXTURE_PATH + "/mona_lisa.jpg"

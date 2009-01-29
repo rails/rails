@@ -63,7 +63,6 @@ module ActionController
   autoload :RecordIdentifier, 'action_controller/record_identifier'
   autoload :Request, 'action_controller/request'
   autoload :RequestForgeryProtection, 'action_controller/request_forgery_protection'
-  autoload :RequestParser, 'action_controller/request_parser'
   autoload :Rescue, 'action_controller/rescue'
   autoload :Resources, 'action_controller/resources'
   autoload :Response, 'action_controller/response'

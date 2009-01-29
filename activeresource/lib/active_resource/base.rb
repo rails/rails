@@ -746,8 +746,8 @@ module ActiveResource
     #   # => true
     #
     def ==(other)
-      other.equal?(self) || (other.instance_of?(self.class) && !other.new? && other.id == id)
-    end
+      other.equal?(self) || (other.instance_of?(self.class) && other.id == id && other.prefix_options == prefix_options)
+		end
 
     # Tests for equality (delegates to ==).
     def eql?(other)
@@ -1006,7 +1006,7 @@ module ActiveResource
 
       # Takes a response from a typical create post and pulls the ID out
       def id_from_response(response)
-        response['Location'][/\/([^\/]*?)(\.\w+)?$/, 1]
+        response['Location'][/\/([^\/]*?)(\.\w+)?$/, 1] if response['Location']
       end
 
       def element_path(options = nil)

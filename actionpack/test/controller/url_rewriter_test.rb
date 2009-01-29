@@ -303,7 +303,6 @@ class UrlWriterTests < ActionController::TestCase
 
   def test_named_routes_with_nil_keys
     ActionController::Routing::Routes.clear!
-    add_host!
     ActionController::Routing::Routes.draw do |map|
       map.main '', :controller => 'posts'
       map.resources :posts
@@ -311,6 +310,8 @@ class UrlWriterTests < ActionController::TestCase
     end
     # We need to create a new class in order to install the new named route.
     kls = Class.new { include ActionController::UrlWriter }
+    kls.default_url_options[:host] = 'www.basecamphq.com'
+
     controller = kls.new
     params = {:action => :index, :controller => :posts, :format => :xml}
     assert_equal("http://www.basecamphq.com/posts.xml", controller.send(:url_for, params))    
@@ -337,6 +338,20 @@ class UrlWriterTests < ActionController::TestCase
   ensure
     ActionController::Routing::Routes.load!
   end
+
+  def test_multiple_includes_maintain_distinct_options
+    first_class = Class.new { include ActionController::UrlWriter }
+    second_class = Class.new { include ActionController::UrlWriter }
+
+    first_host, second_host = 'firsthost.com', 'secondhost.com'
+
+    first_class.default_url_options[:host] = first_host
+    second_class.default_url_options[:host] = second_host
+
+    assert_equal first_class.default_url_options[:host], first_host
+    assert_equal second_class.default_url_options[:host], second_host
+  end
+
   private
     def extract_params(url)
       url.split('?', 2).last.split('&')

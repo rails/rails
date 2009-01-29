@@ -179,7 +179,7 @@ module ActionController #:nodoc:
       end
 
       def layout_list #:nodoc:
-        Array(view_paths).sum([]) { |path| Dir["#{path}/layouts/**/*"] }
+        Array(view_paths).sum([]) { |path| Dir["#{path.to_str}/layouts/**/*"] }
       end
 
       def find_layout(layout, *formats) #:nodoc:

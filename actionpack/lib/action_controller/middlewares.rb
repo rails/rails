@@ -4,8 +4,6 @@ use "Rack::Lock", :if => lambda {
 
 use "ActionController::Failsafe"
 
-use "ActiveRecord::QueryCache", :if => lambda { defined?(ActiveRecord) }
-
 ["ActionController::Session::CookieStore",
  "ActionController::Session::MemCacheStore",
  "ActiveRecord::SessionStore"].each do |store|
@@ -18,6 +16,6 @@ use "ActiveRecord::QueryCache", :if => lambda { defined?(ActiveRecord) }
     )
 end
 
-use ActionController::RewindableInput
-use ActionController::ParamsParser
-use Rack::MethodOverride
+use "ActionController::RewindableInput"
+use "ActionController::ParamsParser"
+use "Rack::MethodOverride"

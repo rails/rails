@@ -75,17 +75,22 @@ module ActionController
       block.call(self) if block_given?
     end
 
-    def insert(index, *objs)
+    def insert(index, *args, &block)
       index = self.index(index) unless index.is_a?(Integer)
-      objs = objs.map { |obj| Middleware.new(obj) }
-      super(index, *objs)
+      middleware = Middleware.new(*args, &block)
+      super(index, middleware)
     end
 
     alias_method :insert_before, :insert
 
-    def insert_after(index, *objs)
+    def insert_after(index, *args, &block)
       index = self.index(index) unless index.is_a?(Integer)
-      insert(index + 1, *objs)
+      insert(index + 1, *args, &block)
+    end
+
+    def swap(target, *args, &block)
+      insert_before(target, *args, &block)
+      delete(target)
     end
 
     def use(*args, &block)
