@@ -10,7 +10,7 @@ class RequestTest < ActiveSupport::TestCase
     ActionController::Base.relative_url_root = nil
   end
 
-  def test_remote_ip
+  test "remote ip" do
     assert_equal '0.0.0.0', @request.remote_ip
 
     @request.remote_addr = '1.2.3.4'
@@ -82,7 +82,7 @@ class RequestTest < ActiveSupport::TestCase
     @request.env.delete 'HTTP_X_FORWARDED_FOR'
   end
 
-  def test_domains
+  test "domains" do
     @request.host = "www.rubyonrails.org"
     assert_equal "rubyonrails.org", @request.domain
 
@@ -102,7 +102,7 @@ class RequestTest < ActiveSupport::TestCase
     assert_nil @request.domain
   end
 
-  def test_subdomains
+  test "subdomains" do
     @request.host = "www.rubyonrails.org"
     assert_equal %w( www ), @request.subdomains
 
@@ -128,7 +128,7 @@ class RequestTest < ActiveSupport::TestCase
     assert_equal [], @request.subdomains
   end
 
-  def test_port_string
+  test "port string" do
     @request.port = 80
     assert_equal "", @request.port_string
 
@@ -136,7 +136,7 @@ class RequestTest < ActiveSupport::TestCase
     assert_equal ":8080", @request.port_string
   end
 
-  def test_request_uri
+  test "request uri" do
     @request.env['SERVER_SOFTWARE'] = 'Apache 42.342.3432'
 
     @request.set_REQUEST_URI "http://www.rubyonrails.org/path/of/some/uri?mapped=1"
@@ -242,19 +242,19 @@ class RequestTest < ActiveSupport::TestCase
     assert_equal "/some/path", @request.path(true)
   end
 
-  def test_host_with_default_port
+  test "host with default port" do
     @request.host = "rubyonrails.org"
     @request.port = 80
     assert_equal "rubyonrails.org", @request.host_with_port
   end
 
-  def test_host_with_non_default_port
+  test "host with non default port" do
     @request.host = "rubyonrails.org"
     @request.port = 81
     assert_equal "rubyonrails.org:81", @request.host_with_port
   end
 
-  def test_server_software
+  test "server software" do
     assert_equal nil, @request.server_software(true)
 
     @request.env['SERVER_SOFTWARE'] = 'Apache3.422'
@@ -264,7 +264,7 @@ class RequestTest < ActiveSupport::TestCase
     assert_equal 'lighttpd', @request.server_software(true)
   end
 
-  def test_xml_http_request
+  test "xml http request" do
     assert !@request.xml_http_request?
     assert !@request.xhr?
 
@@ -277,32 +277,32 @@ class RequestTest < ActiveSupport::TestCase
     assert @request.xhr?
   end
 
-  def test_reports_ssl
+  test "reports ssl" do
     assert !@request.ssl?
     @request.env['HTTPS'] = 'on'
     assert @request.ssl?
   end
 
-  def test_reports_ssl_when_proxied_via_lighttpd
+  test "reports ssl when proxied via lighttpd" do
     assert !@request.ssl?
     @request.env['HTTP_X_FORWARDED_PROTO'] = 'https'
     assert @request.ssl?
   end
 
-  def test_symbolized_request_methods
+  test "symbolized request methods" do
     [:get, :post, :put, :delete].each do |method|
       self.request_method = method
       assert_equal method, @request.method
     end
   end
 
-  def test_invalid_http_method_raises_exception
+  test "invalid http method raises exception" do
     assert_raises(ActionController::UnknownHttpMethod) do
       self.request_method = :random_method
     end
   end
 
-  def test_allow_method_hacking_on_post
+  test "allow method hacking on post" do
     [:get, :head, :options, :put, :post, :delete].each do |method|
       self.request_method = method
       @request.request_method(true)
@@ -310,14 +310,14 @@ class RequestTest < ActiveSupport::TestCase
     end
   end
 
-  def test_invalid_method_hacking_on_post_raises_exception
+  test "invalid method hacking on post raises exception" do
     assert_raises(ActionController::UnknownHttpMethod) do
       self.request_method = :_random_method
       @request.request_method(true)
     end
   end
 
-  def test_restrict_method_hacking
+  test "restrict method hacking" do
     @request.instance_eval { @parameters = { :_method => 'put' } }
     [:get, :put, :delete].each do |method|
       self.request_method = method
@@ -325,72 +325,74 @@ class RequestTest < ActiveSupport::TestCase
     end
   end
 
-  def test_head_masquerading_as_get
+  test "head masquerading as get" do
     self.request_method = :head
     assert_equal :get, @request.method
     assert @request.get?
     assert @request.head?
   end
 
-  def test_xml_format
+  test "xml format" do
     @request.instance_eval { @parameters = { :format => 'xml' } }
     assert_equal Mime::XML, @request.format
   end
 
-  def test_xhtml_format
+  test "xhtml format" do
     @request.instance_eval { @parameters = { :format => 'xhtml' } }
     assert_equal Mime::HTML, @request.format
   end
 
-  def test_txt_format
+  test "txt format" do
     @request.instance_eval { @parameters = { :format => 'txt' } }
     assert_equal Mime::TEXT, @request.format
   end
 
-  def test_nil_format
-    ActionController::Base.use_accept_header, old =
-      false, ActionController::Base.use_accept_header
+  test "nil format" do
+    begin
+      ActionController::Base.use_accept_header, old =
+        false, ActionController::Base.use_accept_header
 
-    @request.instance_eval { @parameters = {} }
-    @request.env["HTTP_X_REQUESTED_WITH"] = "XMLHttpRequest"
-    assert @request.xhr?
-    assert_equal Mime::JS, @request.format
+      @request.instance_eval { @parameters = {} }
+      @request.env["HTTP_X_REQUESTED_WITH"] = "XMLHttpRequest"
+      assert @request.xhr?
+      assert_equal Mime::JS, @request.format
 
-  ensure
-    ActionController::Base.use_accept_header = old
+    ensure
+      ActionController::Base.use_accept_header = old
+    end
   end
 
-  def test_content_type
+  test "content type" do
     @request.env["CONTENT_TYPE"] = "text/html"
     assert_equal Mime::HTML, @request.content_type
   end
 
-  def test_format_assignment_should_set_format
+  test "format assignment should set format" do
     @request.instance_eval { self.format = :txt }
     assert !@request.format.xml?
     @request.instance_eval { self.format = :xml }
     assert @request.format.xml?
   end
 
-  def test_content_no_type
+  test "content no type" do
     assert_equal nil, @request.content_type
   end
 
-  def test_content_type_xml
+  test "content type xml" do
     @request.env["CONTENT_TYPE"] = "application/xml"
     assert_equal Mime::XML, @request.content_type
   end
 
-  def test_content_type_with_charset
+  test "content type with charset" do
     @request.env["CONTENT_TYPE"] = "application/xml; charset=UTF-8"
     assert_equal Mime::XML, @request.content_type
   end
 
-  def test_user_agent
+  test "user agent" do
     assert_not_nil @request.user_agent
   end
 
-  def test_parameters
+  test "parameters" do
     @request.stubs(:request_parameters).returns({ "foo" => 1 })
     @request.stubs(:query_parameters).returns({ "bar" => 2 })
 
