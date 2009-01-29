@@ -166,7 +166,7 @@ module ActionController
 
       # Returns false on a valid response, true otherwise
       def authenticate(controller, realm, &password_procedure)
-        authorization(controller.request) && validate_digest_response(controller, realm, &password_procedure)
+        authorization(controller.request) && validate_digest_response(controller.request, realm, &password_procedure)
       end
 
       def authorization(request)
@@ -177,13 +177,13 @@ module ActionController
       end
 
       # Raises error unless the request credentials response value matches the expected value.
-      def validate_digest_response(controller, realm, &password_procedure)
-        credentials = decode_credentials_header(controller.request)
-        valid_nonce = validate_nonce(controller.request, credentials[:nonce])
+      def validate_digest_response(request, realm, &password_procedure)
+        credentials = decode_credentials_header(request)
+        valid_nonce = validate_nonce(request, credentials[:nonce])
 
-        if valid_nonce && realm == credentials[:realm] && opaque(controller.request.session.session_id) == credentials[:opaque]
+        if valid_nonce && realm == credentials[:realm] && opaque(request.session.session_id) == credentials[:opaque]
           password = password_procedure.call(credentials[:username])
-          expected = expected_response(controller.request.env['REQUEST_METHOD'], controller.request.url, credentials, password)
+          expected = expected_response(request.env['REQUEST_METHOD'], request.url, credentials, password)
           expected == credentials[:response]
         end
       end
