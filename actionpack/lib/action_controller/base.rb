@@ -1344,8 +1344,8 @@ module ActionController #:nodoc:
   Base.class_eval do
     [ Filters, Layout, Benchmarking, Rescue, Flash, MimeResponds, Helpers,
       Cookies, Caching, Verification, Streaming, SessionManagement,
-      HttpAuthentication::Basic::ControllerMethods, RecordIdentifier,
-      RequestForgeryProtection, Translation
+      HttpAuthentication::Basic::ControllerMethods, HttpAuthentication::Digest::ControllerMethods,
+      RecordIdentifier, RequestForgeryProtection, Translation
     ].each do |mod|
       include mod
     end
