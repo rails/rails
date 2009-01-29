@@ -1,5 +1,7 @@
 *2.3.0 [Edge]*
 
+* Added grouped_options_for_select helper method for wrapping option tags in optgroups. #977 [Jon Crawford]
+
 * Implement HTTP Digest authentication. #1230 [Gregg Kellogg, Pratik Naik] Example :
 
   class DummyDigestController < ActionController::Base
