@@ -41,7 +41,7 @@ module ActiveSupport
             value
           else
             # forcing the value to be immutable
-            value.dup
+            value.duplicable? ? value.dup : value
           end
         end
 

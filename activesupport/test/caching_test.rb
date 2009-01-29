@@ -81,6 +81,11 @@ module CacheStoreBehavior
     assert_equal({:a => "b"}, @cache.read('foo'))
   end
 
+  def test_should_read_and_write_integer
+    @cache.write('foo', 1)
+    assert_equal 1, @cache.read('foo')
+  end
+
   def test_should_read_and_write_nil
     @cache.write('foo', nil)
     assert_equal nil, @cache.read('foo')
@@ -197,6 +202,13 @@ uses_memcached 'memcached backed store' do
         @cache.write('foo', 'bar')
         @data.flush_all # Clear remote cache
         assert_equal 'bar', @cache.read('foo')
+      end
+    end
+
+    def test_local_cache_should_read_and_write_integer
+      @cache.with_local_cache do
+        @cache.write('foo', 1)
+        assert_equal 1, @cache.read('foo')
       end
     end
 
