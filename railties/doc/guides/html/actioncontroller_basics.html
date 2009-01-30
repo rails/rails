@@ -88,7 +88,14 @@
             </ul>
           </li>
           <li>
-          <a href="#_http_basic_authentication">HTTP Basic Authentication</a>
+          <a href="#_http_authentications">HTTP Authentications</a>
+            <ul>
+            
+              <li><a href="#_http_basic_authentication">HTTP Basic Authentication</a></li>
+            
+              <li><a href="#_http_digest_authentication">HTTP Digest Authentication</a></li>
+            
+            </ul>
           </li>
           <li>
           <a href="#_streaming_and_file_downloads">Streaming and File Downloads</a>
@@ -803,9 +810,23 @@ http://www.lorenzobettini.it
 http://www.gnu.org/software/src-highlite -->
 <pre><tt>response<span style="color: #990000">.</span>headers<span style="color: #990000">[</span><span style="color: #FF0000">"Content-Type"</span><span style="color: #990000">]</span> <span style="color: #990000">=</span> <span style="color: #FF0000">"application/pdf"</span></tt></pre></div></div>
 </div>
-<h2 id="_http_basic_authentication">10. HTTP Basic Authentication</h2>
+<h2 id="_http_authentications">10. HTTP Authentications</h2>
 <div class="sectionbody">
-<div class="paragraph"><p>Rails comes with built-in HTTP Basic authentication. This is an authentication scheme that is supported by the majority of browsers and other HTTP clients. As an example, consider an administration section which will only be available by entering a username and a password into the browser&#8217;s HTTP Basic dialog window. Using the built-in authentication is quite easy and only requires you to use one method, <tt>authenticate_or_request_with_http_basic</tt>.</p></div>
+<div class="paragraph"><p>Rails comes with two built-in HTTP authentication mechanisms :</p></div>
+<div class="ulist"><ul>
+<li>
+<p>
+Basic Authentication
+</p>
+</li>
+<li>
+<p>
+Digest Authentication
+</p>
+</li>
+</ul></div>
+<h3 id="_http_basic_authentication">10.1. HTTP Basic Authentication</h3>
+<div class="paragraph"><p>HTTP Basic authentication is an authentication scheme that is supported by the majority of browsers and other HTTP clients. As an example, consider an administration section which will only be available by entering a username and a password into the browser&#8217;s HTTP Basic dialog window. Using the built-in authentication is quite easy and only requires you to use one method, <tt>authenticate_or_request_with_http_basic</tt>.</p></div>
 <div class="listingblock">
 <div class="content"><!-- Generator: GNU source-highlight 2.9
 by Lorenzo Bettini
@@ -817,7 +838,7 @@ http://www.gnu.org/software/src-highlite -->
 
   before_filter <span style="color: #990000">:</span>authenticate
 
-private
+  private
 
   <span style="font-weight: bold"><span style="color: #0000FF">def</span></span> authenticate
     authenticate_or_request_with_http_basic <span style="font-weight: bold"><span style="color: #0000FF">do</span></span> <span style="color: #990000">|</span>username<span style="color: #990000">,</span> password<span style="color: #990000">|</span>
@@ -827,6 +848,29 @@ private
 
 <span style="font-weight: bold"><span style="color: #0000FF">end</span></span></tt></pre></div></div>
 <div class="paragraph"><p>With this in place, you can create namespaced controllers that inherit from AdminController. The before filter will thus be run for all actions in those controllers, protecting them with HTTP Basic authentication.</p></div>
+<h3 id="_http_digest_authentication">10.2. HTTP Digest Authentication</h3>
+<div class="paragraph"><p>HTTP Digest authentication is superior to the Basic authentication as it does not require the client to send unencrypted password over the network. Using Digest authentication with Rails is quite easy and only requires using one method, <tt>authenticate_or_request_with_http_digest</tt>.</p></div>
+<div class="listingblock">
+<div class="content"><!-- Generator: GNU source-highlight 2.9
+by Lorenzo Bettini
+http://www.lorenzobettini.it
+http://www.gnu.org/software/src-highlite -->
+<pre><tt><span style="font-weight: bold"><span style="color: #0000FF">class</span></span> AdminController <span style="color: #990000">&lt;</span> ApplicationController
+
+  USERS <span style="color: #990000">=</span> <span style="color: #FF0000">{</span> <span style="color: #FF0000">"lifo"</span> <span style="color: #990000">=&gt;</span> <span style="color: #FF0000">"world"</span> <span style="color: #FF0000">}</span>
+
+  before_filter <span style="color: #990000">:</span>authenticate
+
+  private
+
+  <span style="font-weight: bold"><span style="color: #0000FF">def</span></span> authenticate
+    authenticate_or_request_with_http_digest <span style="font-weight: bold"><span style="color: #0000FF">do</span></span> <span style="color: #990000">|</span>username<span style="color: #990000">|</span>
+      USERS<span style="color: #990000">[</span>username<span style="color: #990000">]</span>
+    <span style="font-weight: bold"><span style="color: #0000FF">end</span></span>
+  <span style="font-weight: bold"><span style="color: #0000FF">end</span></span>
+
+<span style="font-weight: bold"><span style="color: #0000FF">end</span></span></tt></pre></div></div>
+<div class="paragraph"><p>As seen in the example above, <tt>authenticate_or_request_with_http_digest</tt> block takes only one argument - the username. And the block returns the password. Returning <tt>false</tt> or <tt>nil</tt> from the <tt>authenticate_or_request_with_http_digest</tt> will cause authentication failure.</p></div>
 </div>
 <h2 id="_streaming_and_file_downloads">11. Streaming and File Downloads</h2>
 <div class="sectionbody">

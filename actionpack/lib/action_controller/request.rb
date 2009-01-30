@@ -7,7 +7,6 @@ require 'action_controller/cgi_ext'
 
 module ActionController
   class Request < Rack::Request
-    extend ActiveSupport::Memoizable
 
     %w[ AUTH_TYPE GATEWAY_INTERFACE
         PATH_TRANSLATED REMOTE_HOST
@@ -33,9 +32,8 @@ module ActionController
     # <tt>:get</tt>. If the request \method is not listed in the HTTP_METHODS
     # constant above, an UnknownHttpMethod exception is raised.
     def request_method
-      HTTP_METHOD_LOOKUP[super] || raise(UnknownHttpMethod, "#{super}, accepted HTTP methods are #{HTTP_METHODS.to_sentence}")
+      @request_method ||= HTTP_METHOD_LOOKUP[super] || raise(UnknownHttpMethod, "#{super}, accepted HTTP methods are #{HTTP_METHODS.to_sentence}")
     end
-    memoize :request_method
 
     # Returns the HTTP request \method used for action processing as a
     # lowercase symbol, such as <tt>:post</tt>. (Unlike #request_method, this
@@ -75,9 +73,8 @@ module ActionController
     #
     #   request.headers["Content-Type"] # => "text/plain"
     def headers
-      ActionController::Http::Headers.new(@env)
+      @headers ||= ActionController::Http::Headers.new(@env)
     end
-    memoize :headers
 
     # Returns the content length of the request as an integer.
     def content_length
@@ -89,32 +86,33 @@ module ActionController
     # For backward compatibility, the post \format is extracted from the
     # X-Post-Data-Format HTTP header if present.
     def content_type
-      if @env['CONTENT_TYPE'] =~ /^([^,\;]*)/
-        Mime::Type.lookup($1.strip.downcase)
-      else
-        nil
+      @content_type ||= begin
+        if @env['CONTENT_TYPE'] =~ /^([^,\;]*)/
+          Mime::Type.lookup($1.strip.downcase)
+        else
+          nil
+        end
       end
     end
-    memoize :content_type
 
     # Returns the accepted MIME type for the request.
     def accepts
-      header = @env['HTTP_ACCEPT'].to_s.strip
+      @accepts ||= begin
+        header = @env['HTTP_ACCEPT'].to_s.strip
 
-      if header.empty?
-        [content_type, Mime::ALL].compact
-      else
-        Mime::Type.parse(header)
+        if header.empty?
+          [content_type, Mime::ALL].compact
+        else
+          Mime::Type.parse(header)
+        end
       end
     end
-    memoize :accepts
 
     def if_modified_since
       if since = env['HTTP_IF_MODIFIED_SINCE']
         Time.rfc2822(since) rescue nil
       end
     end
-    memoize :if_modified_since
 
     def if_none_match
       env['HTTP_IF_NONE_MATCH']
@@ -248,25 +246,21 @@ EOM
 
       @env['REMOTE_ADDR']
     end
-    memoize :remote_ip
 
     # Returns the lowercase name of the HTTP server software.
     def server_software
       (@env['SERVER_SOFTWARE'] && /^([a-zA-Z]+)/ =~ @env['SERVER_SOFTWARE']) ? $1.downcase : nil
     end
-    memoize :server_software
 
     # Returns the complete URL used for this request.
     def url
       protocol + host_with_port + request_uri
     end
-    memoize :url
 
     # Returns 'https://' if this is an SSL request and 'http://' otherwise.
     def protocol
       ssl? ? 'https://' : 'http://'
     end
-    memoize :protocol
 
     # Is this an SSL request?
     def ssl?
@@ -286,14 +280,12 @@ EOM
     def host
       raw_host_with_port.sub(/:\d+$/, '')
     end
-    memoize :host
 
     # Returns a \host:\port string for this request, such as "example.com" or
     # "example.com:8080".
     def host_with_port
       "#{host}#{port_string}"
     end
-    memoize :host_with_port
 
     # Returns the port number of this request as an integer.
     def port
@@ -303,7 +295,6 @@ EOM
         standard_port
       end
     end
-    memoize :port
 
     # Returns the standard \port number for this request's protocol.
     def standard_port
@@ -341,7 +332,6 @@ EOM
     def query_string
       @env['QUERY_STRING'].present? ? @env['QUERY_STRING'] : (@env['REQUEST_URI'].split('?', 2)[1] || '')
     end
-    memoize :query_string
 
     # Returns the request URI, accounting for server idiosyncrasies.
     # WEBrick includes the full URL. IIS leaves REQUEST_URI blank.
@@ -367,7 +357,6 @@ EOM
         end
       end
     end
-    memoize :request_uri
 
     # Returns the interpreted \path to requested resource after all the installation
     # directory of this application was taken into account.
@@ -376,7 +365,6 @@ EOM
       path.sub!(/\A#{ActionController::Base.relative_url_root}/, '')
       path
     end
-    memoize :path
 
     # Read the request \body. This is useful for web services that need to
     # work with raw requests directly.

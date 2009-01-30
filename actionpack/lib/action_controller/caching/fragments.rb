@@ -25,6 +25,13 @@ module ActionController #:nodoc:
     # The expiration call for this example is:
     #
     #   expire_fragment(:controller => "topics", :action => "list", :action_suffix => "all_topics")
+    #
+    # You can also pass a options hash to the call, which is passed on to the read and write methods of your fragment cache store. For example,
+    # if you are using the MemCacheStore, then you can pass the :expire_in option to make the fragment expire in a certain amount of time.
+    #
+    #  <% cache "latest_photos", :expires_in => 5.minutes do %>
+    #    <%= render :partial => "photo", :collection => Photo.latest%>
+    #  <% end%>
     module Fragments
       # Given a key (as described in <tt>expire_fragment</tt>), returns a key suitable for use in reading,
       # writing, or expiring a cached fragment. If the key is a hash, the generated key is the return

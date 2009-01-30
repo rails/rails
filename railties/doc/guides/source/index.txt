@@ -80,16 +80,16 @@ understand how to use routing in your own Rails applications, start here.
 This guide covers how controllers work and how they fit into the request cycle in your application. It includes sessions, filters, and cookies, data streaming, and dealing with exceptions raised by a request, among other topics.
 ***********************************************************
 
-.link:caching_with_rails.html[Rails Caching]
-***********************************************************
-CAUTION: link:http://rails.lighthouseapp.com/projects/16213/tickets/10[Lighthouse Ticket]
-
-This guide covers the three types of caching that Rails provides by default.
-***********************************************************
-
 ++++++++++++++++++++++++++++++++++++++
 <h2>Digging Deeper</h2>
 ++++++++++++++++++++++++++++++++++++++
+
+.link:action_mailer_basics.html[Action Mailer Basics]
+***********************************************************
+CAUTION: link:http://rails.lighthouseapp.com/projects/16213/tickets/25[Lighthouse ticket]
+
+This guide describes how to use Action Mailer to send and receive emails.
+***********************************************************
 
 .link:testing_rails_applications.html[Testing Rails Applications]
 ***********************************************************
@@ -142,4 +142,4 @@ This guide covers the command line tools and rake tasks provided by Rails.
 
 Authors who have contributed to complete guides are listed link:authors.html[here].
 
-This work is licensed under a link:http://creativecommons.org/licenses/by-nc-sa/3.0/[Creative Commons Attribution-Noncommercial-Share Alike 3.0  License]
+This work is licensed under a link:http://creativecommons.org/licenses/by-sa/3.0[Creative Commons Attribution-Share Alike 3.0 License]

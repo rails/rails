@@ -639,6 +639,13 @@ class BasicsTest < ActiveRecord::TestCase
     category.reload
     assert_not_nil category.categorizations_count
     assert_equal 4, category.categorizations_count
+
+    category_2 = categories(:technology)
+    count_1, count_2 = (category.categorizations_count || 0), (category_2.categorizations_count || 0)
+    Category.update_counters([category.id, category_2.id], "categorizations_count" => 2)
+    category.reload; category_2.reload
+    assert_equal count_1 + 2, category.categorizations_count
+    assert_equal count_2 + 2, category_2.categorizations_count
   end
 
   def test_update_all

@@ -17,6 +17,12 @@ class Post < ActiveRecord::Base
 
   has_one :last_comment, :class_name => 'Comment', :order => 'id desc'
 
+  named_scope :with_special_comments, :joins => :comments, :conditions => {:comments => {:type => 'SpecialComment'} }
+  named_scope :with_very_special_comments, :joins => :comments, :conditions => {:comments => {:type => 'VerySpecialComment'} }
+  named_scope :with_post, lambda {|post_id|
+    { :joins => :comments, :conditions => {:comments => {:post_id => post_id} } }
+  }
+
   has_many   :comments, :order => "body" do
     def find_most_recent
       find(:first, :order => "id DESC")

@@ -343,3 +343,7 @@ What have we done? Well, we sent the email and stored the returned object in the
 
 == Epilogue
 This guide presented how to create a mailer and how to test it. In reality, you may find that writing your tests before you actually write your code to be a rewarding experience. It may take some time to get used to TDD (Test Driven Development), but coding this way achieves two major benefits. Firstly, you know that the code does indeed work, because the tests fail (because there's no code), then they pass, because the code that satisfies the tests was written. Secondly, when you start with the tests, you don't have to make time AFTER you write the code, to write the tests, then never get around to it. The tests are already there and testing has now become part of your coding regimen.
+
+== Changelog ==
+
+http://rails.lighthouseapp.com/projects/16213/tickets/25[Lighthouse ticket]

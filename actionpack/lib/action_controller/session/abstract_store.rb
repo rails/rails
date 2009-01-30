@@ -102,8 +102,10 @@ module ActionController
         response = @app.call(env)
 
         session_data = env[ENV_SESSION_KEY]
-        if !session_data.is_a?(AbstractStore::SessionHash) || session_data.send(:loaded?)
-          options = env[ENV_SESSION_OPTIONS_KEY]
+        options = env[ENV_SESSION_OPTIONS_KEY]
+
+        if !session_data.is_a?(AbstractStore::SessionHash) || session_data.send(:loaded?) || options[:expire_after]
+          session_data.send(:load!) if session_data.is_a?(AbstractStore::SessionHash) && !session_data.send(:loaded?)
 
           if session_data.is_a?(AbstractStore::SessionHash)
             sid = session_data.id

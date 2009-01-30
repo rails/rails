@@ -277,6 +277,26 @@ class NamedScopeTest < ActiveRecord::TestCase
     post = Post.find(1)
     assert_equal post.comments.size, Post.scoped(:joins => join).scoped(:joins => join, :conditions => "posts.id = #{post.id}").size
   end
+
+  def test_chanining_should_use_latest_conditions_when_creating
+    post1 = Topic.rejected.approved.new
+    assert post1.approved?
+
+    post2 = Topic.approved.rejected.new
+    assert ! post2.approved?
+  end
+
+  def test_chanining_should_use_latest_conditions_when_searching
+    # Normal hash conditions
+    assert_equal Topic.all(:conditions => {:approved => true}), Topic.rejected.approved.all
+    assert_equal Topic.all(:conditions => {:approved => false}), Topic.approved.rejected.all
+
+    # Nested hash conditions with same keys
+    assert_equal [posts(:sti_comments)], Post.with_special_comments.with_very_special_comments.all
+
+    # Nested hash conditions with different keys
+    assert_equal [posts(:sti_comments)], Post.with_special_comments.with_post(4).all.uniq
+  end
 end
 
 class DynamicScopeMatchTest < ActiveRecord::TestCase  

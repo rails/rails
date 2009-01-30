@@ -93,13 +93,14 @@ module ActionView #:nodoc:
       @@exempt_from_layout.merge(regexps)
     end
 
-    attr_accessor :filename, :load_path, :base_path, :name, :format, :extension
+    attr_accessor :filename, :load_path, :base_path
+    attr_accessor :locale, :name, :format, :extension
     delegate :to_s, :to => :path
 
     def initialize(template_path, load_paths = [])
       template_path = template_path.dup
       @load_path, @filename = find_full_path(template_path, load_paths)
-      @base_path, @name, @format, @extension = split(template_path)
+      @base_path, @name, @locale, @format, @extension = split(template_path)
       @base_path.to_s.gsub!(/\/$/, '') # Push to split method
 
       # Extend with partial super powers
@@ -137,17 +138,17 @@ module ActionView #:nodoc:
     memoize :mime_type
 
     def path
-      [base_path, [name, format, extension].compact.join('.')].compact.join('/')
+      [base_path, [name, locale, format, extension].compact.join('.')].compact.join('/')
     end
     memoize :path
 
     def path_without_extension
-      [base_path, [name, format].compact.join('.')].compact.join('/')
+      [base_path, [name, locale, format].compact.join('.')].compact.join('/')
     end
     memoize :path_without_extension
 
     def path_without_format_and_extension
-      [base_path, name].compact.join('/')
+      [base_path, [name, locale].compact.join('.')].compact.join('/')
     end
     memoize :path_without_format_and_extension
 
@@ -207,6 +208,10 @@ module ActionView #:nodoc:
         !Template.registered_template_handler(extension).nil?
       end
 
+      def valid_locale?(locale)
+        I18n.available_locales.include?(locale.to_sym)
+      end
+
       def find_full_path(path, load_paths)
         load_paths = Array(load_paths) + [nil]
         load_paths.each do |load_path|
@@ -217,19 +222,42 @@ module ActionView #:nodoc:
       end
 
       # Returns file split into an array
-      #   [base_path, name, format, extension]
+      #   [base_path, name, locale, format, extension]
       def split(file)
-        if m = file.match(/^(.*\/)?([^\.]+)\.?(\w+)?\.?(\w+)?\.?(\w+)?$/)
-          if valid_extension?(m[5]) # Multipart formats
-            [m[1], m[2], "#{m[3]}.#{m[4]}", m[5]]
-          elsif valid_extension?(m[4]) # Single format
-            [m[1], m[2], m[3], m[4]]
-          elsif valid_extension?(m[3]) # No format
-            [m[1], m[2], nil, m[3]]
+        if m = file.match(/^(.*\/)?([^\.]+)\.(.*)$/)
+          base_path = m[1]
+          name = m[2]
+          extensions = m[3]
+        else
+          return
+        end
+
+        locale = nil
+        format = nil
+        extension = nil
+
+        if m = extensions.match(/^(\w+)?\.?(\w+)?\.?(\w+)?\.?/)
+          if valid_locale?(m[1]) && m[2] && valid_extension?(m[3]) # All three
+            locale = m[1]
+            format = m[2]
+            extension = m[3]
+          elsif m[1] && m[2] && valid_extension?(m[3]) # Multipart formats
+            format = "#{m[1]}.#{m[2]}"
+            extension = m[3]
+          elsif valid_locale?(m[1]) && valid_extension?(m[2]) # locale and extension
+            locale = m[1]
+            extension = m[2]
+          elsif valid_extension?(m[2]) # format and extension
+            format = m[1]
+            extension = m[2]
+          elsif valid_extension?(m[1]) # Just extension
+            extension = m[1]
           else # No extension
-            [m[1], m[2], m[3], nil]
+            format = m[1]
           end
         end
+
+        [base_path, name, locale, format, extension]
       end
   end
 end

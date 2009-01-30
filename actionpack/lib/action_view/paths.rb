@@ -37,9 +37,16 @@ module ActionView #:nodoc:
       template_path = original_template_path.sub(/^\//, '')
 
       each do |load_path|
-        if format && (template = load_path["#{template_path}.#{format}"])
+        if format && (template = load_path["#{template_path}.#{I18n.locale}.#{format}"])
+          return template
+        elsif format && (template = load_path["#{template_path}.#{format}"])
+          return template
+        elsif template = load_path["#{template_path}.#{I18n.locale}"]
           return template
         elsif template = load_path[template_path]
+          return template
+        # Try to find html version if the format is javascript
+        elsif format == :js && template = load_path["#{template_path}.html"]
           return template
         end
       end

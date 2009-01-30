@@ -116,9 +116,6 @@ ActiveRecord::Schema.define(:version => 0) do
     t.string :last_tweet
     t.datetime :last_tweeted_at
   end
-  create_table :woodpeckers, :force => true do |t|
-    t.string :name
-  end
 end
 ----------------------------------------------
 

@@ -31,13 +31,27 @@
       <h2>Chapters</h2>
       <ol>
           <li>
-          <a href="#_orm_the_blueprint_of_active_record">ORM The Blueprint of Active Record</a>
+          <a href="#_what_8217_s_active_record">What&#8217;s Active Record</a>
           </li>
           <li>
-          <a href="#_active_record_the_engine_of_rails">Active Record The Engine of Rails</a>
+          <a href="#_object_relational_mapping">Object Relational Mapping</a>
+          </li>
+          <li>
+          <a href="#_activerecord_as_an_orm_framework">ActiveRecord as an ORM framework</a>
+          </li>
+          <li>
+          <a href="#_active_record_inside_the_mvc_model">Active Record inside the MVC model</a>
+          </li>
+          <li>
+          <a href="#_creating_activerecord_models">Creating ActiveRecord models</a>
+          </li>
+          <li>
+          <a href="#_convention_over_configuration_in_activerecord">Convention over Configuration in ActiveRecord</a>
             <ul>
             
-              <li><a href="#_rails_active_record_conventions">Rails Active Record Conventions</a></li>
+              <li><a href="#_naming_conventions">Naming Conventions</a></li>
+            
+              <li><a href="#_schema_conventions">Schema Conventions</a></li>
             
             </ul>
           </li>
@@ -66,146 +80,227 @@
         <h1>Active Record Basics</h1>
       <div id="preamble">
 <div class="sectionbody">
-<div class="paragraph"><p>Active Record is a design pattern that mitigates the mind-numbing mental gymnastics often needed to get your application to communicate with a database. This guide uses a mix of real-world examples, metaphors and detailed explanations of the actual Rails source code to help you make the most of ActiveRecord.</p></div>
-<div class="paragraph"><p>After reading this guide readers should have a strong grasp of the Active Record pattern and how it can be used with or without Rails. Hopefully, some of the philosophical and theoretical intentions discussed here will also make them a stronger and better developer.</p></div>
-</div>
-</div>
-<h2 id="_orm_the_blueprint_of_active_record">1. ORM The Blueprint of Active Record</h2>
-<div class="sectionbody">
-<div class="paragraph"><p>If Active Record is the engine of Rails then ORM is the blueprint of that engine. ORM is short for “Object Relational Mapping” and is a programming concept used to make structures within a system relational. As a thought experiment imagine the components that make up a typical car. There are doors, seats, windows, engines etc. Viewed independently they are simple parts, yet when bolted together through the aid of a blueprint, the parts become a more complex device. ORM is the blueprint that describes how the individual parts relate to one another and in some cases infers the part’s purpose through the way the associations are described.</p></div>
-</div>
-<h2 id="_active_record_the_engine_of_rails">2. Active Record The Engine of Rails</h2>
-<div class="sectionbody">
-<div class="paragraph"><p>Active Record is a design pattern used to access data within a database. The name “Active Record” was coined by Martin Fowler in his book “Patterns of Enterprise Application Architecture”. Essentially, when a record is returned from the database instead of being just the data it is wrapped in a class, which gives you methods to control that data with. The rails framework is built around the MVC (Model View Controller) design patten and the Active Record is used as the default Model.</p></div>
-<div class="paragraph"><p>The Rails community added several useful concepts to their version of Active Record, including inheritance and associations, which are extremely useful for web applications. The associations are created by using a DSL (domain specific language) of macros, and inheritance is achieved through the use of STI (Single Table Inheritance) at the database level.</p></div>
-<div class="paragraph"><p>By following a few simple conventions the Rails Active Record will automatically map between:</p></div>
+<div class="paragraph"><p>This guide will give you a strong grasp of the Active Record pattern and how it can be used with or without Rails. Hopefully, some of the philosophical and theoretical intentions discussed here will also make you a stronger and better developer.</p></div>
+<div class="paragraph"><p>After reading this guide we hope that you&#8217;ll be able to:</p></div>
 <div class="ulist"><ul>
 <li>
 <p>
-Classes &amp; Database Tables
+Understand the way Active Record fits into the MVC model.
 </p>
 </li>
 <li>
 <p>
-Class attributes &amp; Database Table Columns
+Create basic Active Record models and map them with your database tables.
+</p>
+</li>
+<li>
+<p>
+Use your models to execute CRUD (Create, Read, Update and Delete) database operations.
+</p>
+</li>
+<li>
+<p>
+Follow the naming conventions used by Rails to make developing database applications easier and obvious.
+</p>
+</li>
+<li>
+<p>
+Take advantage of the way Active Record maps it&#8217;s attributes with the database tables' columns to implement your application&#8217;s logic.
+</p>
+</li>
+<li>
+<p>
+Use Active Record with legacy databases that do not follow the Rails naming conventions.
 </p>
 </li>
 </ul></div>
-<h3 id="_rails_active_record_conventions">2.1. Rails Active Record Conventions</h3>
-<div class="paragraph"><p>Here are the key conventions to consider when using Active Record.</p></div>
-<h4 id="_naming_conventions">2.1.1. Naming Conventions</h4>
+</div>
+</div>
+<h2 id="_what_8217_s_active_record">1. What&#8217;s Active Record</h2>
+<div class="sectionbody">
+<div class="paragraph"><p>Rails' ActiveRecord is an implementation of Martin Fowler&#8217;s <a href="http://martinfowler.com/eaaCatalog/activeRecord.html">Active Record Design Pattern</a>. This pattern is based on the idea of creating relations between the database and the application in the following way:</p></div>
+<div class="ulist"><ul>
+<li>
+<p>
+Each database table is mapped to a class.
+</p>
+</li>
+<li>
+<p>
+Each table column is mapped to an attribute of this class.
+</p>
+</li>
+<li>
+<p>
+Each instance of this class is mapped to a single row in the database table.
+</p>
+</li>
+</ul></div>
+<div class="paragraph"><p>The definition of the Active Record pattern in Martin Fowler&#8217;s words:</p></div>
+<div class="paragraph"><p>"<em>An object that wraps a row in a database table or view, encapsulates the database access, and adds domain logic on that data."</em></p></div>
+</div>
+<h2 id="_object_relational_mapping">2. Object Relational Mapping</h2>
+<div class="sectionbody">
+<div class="paragraph"><p>The relation between databases and object-oriented software is called ORM, which is short for "Object Relational Mapping". The purpose of an ORM framework is to minimize the mismatch existent between relational databases and object-oriented software. In applications with a domain model, we have objects that represent both the state of the system and the behaviour of the real world elements that were modeled through these objects. Since we need to store the system&#8217;s state somehow, we can use relational databases, which are proven to be an excelent approach to data management. Usually this may become a very hard thing to do, since we need to create an object-oriented model of everything that lives in the database, from simple columns to complicated relations between different tables. Doing this kind of thing by hand is a tedious and error prone job. This is where an ORM framework comes in.</p></div>
+</div>
+<h2 id="_activerecord_as_an_orm_framework">3. ActiveRecord as an ORM framework</h2>
+<div class="sectionbody">
+<div class="paragraph"><p>ActiveRecord gives us several mechanisms, being the most important ones the hability to:</p></div>
+<div class="ulist"><ul>
+<li>
+<p>
+Represent models.
+</p>
+</li>
+<li>
+<p>
+Represent associations between these models.
+</p>
+</li>
+<li>
+<p>
+Represent inheritance hierarquies through related models.
+</p>
+</li>
+<li>
+<p>
+Validate models before they get recorded to the database.
+</p>
+</li>
+<li>
+<p>
+Perform database operations in an object-oriented fashion.
+</p>
+</li>
+</ul></div>
+<div class="paragraph"><p>It&#8217;s easy to see that the Rails Active Record implementation goes way beyond the basic description of the Active Record Pattern.</p></div>
+</div>
+<h2 id="_active_record_inside_the_mvc_model">4. Active Record inside the MVC model</h2>
+<div class="sectionbody">
+<div class="paragraph"><p>Active Record plays the role of model inside the MVC structure followed by Rails applications. Since model objects should encapsulate both state and logic of your applications, it&#8217;s ActiveRecord responsability to deliver you the easiest possible way to recover this data from the database.</p></div>
+</div>
+<h2 id="_creating_activerecord_models">5. Creating ActiveRecord models</h2>
+<div class="sectionbody">
+<div class="paragraph"><p>It&#8217;s very easy to create ActiveRecord models. All you have to do is to subclass the ActiveRecord::Base class and you&#8217;re good to go:</p></div>
+<div class="listingblock">
+<div class="content"><!-- Generator: GNU source-highlight 2.9
+by Lorenzo Bettini
+http://www.lorenzobettini.it
+http://www.gnu.org/software/src-highlite -->
+<pre><tt><span style="font-weight: bold"><span style="color: #0000FF">class</span></span> Product <span style="color: #990000">&lt;</span> ActiveRecord<span style="color: #990000">::</span>Base<span style="color: #990000">;</span> <span style="font-weight: bold"><span style="color: #0000FF">end</span></span></tt></pre></div></div>
+<div class="paragraph"><p>This will create a <tt>Product</tt> model, mapped to a <strong>products</strong> table at the database. By doing this you&#8217;ll also have the hability to map the columns of each row in that table with the attributes of the instances of your model. So, suppose that the <strong>products</strong> table was created using a SQL sentence like:</p></div>
+<div class="listingblock">
+<div class="content"><!-- Generator: GNU source-highlight 2.9
+by Lorenzo Bettini
+http://www.lorenzobettini.it
+http://www.gnu.org/software/src-highlite -->
+<pre><tt><span style="font-weight: bold"><span style="color: #0000FF">CREATE</span></span> <span style="font-weight: bold"><span style="color: #0000FF">TABLE</span></span> products <span style="color: #990000">(</span>
+   id <span style="color: #009900">int</span><span style="color: #990000">(</span><span style="color: #993399">11</span><span style="color: #990000">)</span> <span style="font-weight: bold"><span style="color: #0000FF">NOT</span></span> <span style="font-weight: bold"><span style="color: #0000FF">NULL</span></span> <span style="font-weight: bold"><span style="color: #0000FF">auto_increment</span></span><span style="color: #990000">,</span>
+   name <span style="color: #009900">varchar</span><span style="color: #990000">(</span><span style="color: #993399">255</span><span style="color: #990000">),</span>
+   <span style="font-weight: bold"><span style="color: #0000FF">PRIMARY</span></span> <span style="font-weight: bold"><span style="color: #0000FF">KEY</span></span>  <span style="color: #990000">(</span>id<span style="color: #990000">)</span>
+<span style="color: #990000">);</span></tt></pre></div></div>
+<div class="paragraph"><p>Following the table schema above, you would be able to write code like the following:</p></div>
+<div class="listingblock">
+<div class="content"><!-- Generator: GNU source-highlight 2.9
+by Lorenzo Bettini
+http://www.lorenzobettini.it
+http://www.gnu.org/software/src-highlite -->
+<pre><tt>p <span style="color: #990000">=</span> Product<span style="color: #990000">.</span>new
+p<span style="color: #990000">.</span>name <span style="color: #990000">=</span> <span style="color: #FF0000">"Some Book"</span>
+puts p<span style="color: #990000">.</span>name <span style="font-style: italic"><span style="color: #9A1900"># "Some Book"</span></span></tt></pre></div></div>
+</div>
+<h2 id="_convention_over_configuration_in_activerecord">6. Convention over Configuration in ActiveRecord</h2>
+<div class="sectionbody">
+<div class="paragraph"><p>When writing applications using other programming languages or frameworks, it may be necessary to write a lot of configuration code. This is particulary true for ORM frameworks in general. However, if you follow the conventions adopted by Rails, you&#8217;ll need to write very little configuration (in some case no configuration at all) when creating ActiveRecord models. The idea is that if you configure your applications in the very same way most of the times then this should be the default way. In this cases, explicity configuration would be needed only in those cases where you can&#8217;t follow the conventions for any reason.</p></div>
+<h3 id="_naming_conventions">6.1. Naming Conventions</h3>
+<div class="paragraph"><p>By default, ActiveRecord uses some naming conventions to find out how the mapping between models and database tables should be created. Rails will pluralize your class names to find the respective database table. So, for a class <tt>Book</tt>, you should have a database table called <strong>books</strong>. The Rails pluralization mechanisms are very powerful, being capable to pluralize (and singularize) both regular and irregular words. When using class names composed of two or more words, the model class name should follow the Ruby conventions, using the camelCase form, while the table name must contain the words separated by underscores. Examples:</p></div>
 <div class="paragraph"><p>Database Table - Plural with underscores separating words i.e. (book_clubs)
-Model Class - Singular with the first letter of each word capitalized i.e. (BookClub)
-Here are some additional Examples:</p></div>
+Model Class - Singular with the first letter of each word capitalized i.e. (BookClub)</p></div>
 <div class="tableblock">
 <table rules="all"
-frame="hsides"
+width="60%"
+frame="border"
 cellspacing="0" cellpadding="4">
-<col width="160" />
-<col width="182" />
-<thead>
-  <tr>
-    <th align="left">
-    Model / Class
-    </th>
-    <th align="left">
-    Table / Schema
-    </th>
-  </tr>
+<col width="50%" />
+<col width="50%" />
+<thead valign="top">
+<tr>
+<th align="left">Model / Class </th>
+<th align="left">Table / Schema</th>
+</tr>
 </thead>
 <tbody valign="top">
-  <tr>
-    <td align="left">
-    Post
-    </td>
-    <td align="left">
-    posts
-    </td>
-  </tr>
-  <tr>
-    <td align="left">
-    LineItem
-    </td>
-    <td align="left">
-    line_items
-    </td>
-  </tr>
-  <tr>
-    <td align="left">
-    Deer
-    </td>
-    <td align="left">
-    deer
-    </td>
-  </tr>
-  <tr>
-    <td align="left">
-    Mouse
-    </td>
-    <td align="left">
-    mice
-    </td>
-  </tr>
-  <tr>
-    <td align="left">
-    Person
-    </td>
-    <td align="left">
-    people
-    </td>
-  </tr>
+<tr>
+<td align="left"><p class="table">Post</p></td>
+<td align="left"><p class="table">posts</p></td>
+</tr>
+<tr>
+<td align="left"><p class="table">LineItem</p></td>
+<td align="left"><p class="table">line_items</p></td>
+</tr>
+<tr>
+<td align="left"><p class="table">Deer</p></td>
+<td align="left"><p class="table">deer</p></td>
+</tr>
+<tr>
+<td align="left"><p class="table">Mouse</p></td>
+<td align="left"><p class="table">mice</p></td>
+</tr>
+<tr>
+<td align="left"><p class="table">Person</p></td>
+<td align="left"><p class="table">people</p></td>
+</tr>
 </tbody>
 </table>
 </div>
-<h4 id="_schema_conventions">2.1.2. Schema Conventions</h4>
-<div class="paragraph"><p>To take advantage of some of the magic of Rails database tables must be modeled
-to reflect the ORM decisions that Rails makes.</p></div>
-<div class="tableblock">
-<table rules="all"
-frame="hsides"
-cellspacing="0" cellpadding="4">
-<col width="160" />
-<col width="937" />
-<thead>
-  <tr>
-    <th align="left">
-    Convention
-    </th>
-    <th align="left">
-    </th>
-  </tr>
-</thead>
-<tbody valign="top">
-  <tr>
-    <td align="left">
-    Foreign keys
-    </td>
-    <td align="left">
-    These fields are named table_id i.e. (item_id, order_id)
-    </td>
-  </tr>
-  <tr>
-    <td align="left">
-    Primary Key
-    </td>
-    <td align="left">
-    Rails automatically creates a primary key column named "id" unless told otherwise.
-    </td>
-  </tr>
-</tbody>
-</table>
-</div>
-<h4 id="_magic_field_names">2.1.3. Magic Field Names</h4>
-<div class="paragraph"><p>When these optional fields are used in your database table definition they give the Active Record
-instance additional features.</p></div>
+<h3 id="_schema_conventions">6.2. Schema Conventions</h3>
+<div class="paragraph"><p>ActiveRecord uses naming conventions for the columns in database tables, depending on the purpose of these columns.</p></div>
+<div class="ulist"><ul>
+<li>
+<p>
+<strong>Foreign keys</strong> - These fields should be named following the pattern table_id i.e. (item_id, order_id). These are the fields that ActiveRecord will look for when you create associations between your models.
+</p>
+</li>
+<li>
+<p>
+<strong>Primary keys</strong> - By default, ActiveRecord will use a integer column named "id" as the table&#8217;s primary key. When using <a href="http://guides.rails.info/migrations.html">Rails Migrations</a> to create your tables, this column will be automaticaly created.
+</p>
+</li>
+</ul></div>
+<div class="paragraph"><p>There are also some optional column names that will create additional features to ActiveRecord instances:</p></div>
+<div class="ulist"><ul>
+<li>
+<p>
+<strong>created_at / created_on</strong> - ActiveRecord will store the current date and time to this field when creating the record.
+</p>
+</li>
+<li>
+<p>
+<strong>updated_at / updated_on</strong> - ActiveRecord will store the current date and times to this field when updating the record.
+</p>
+</li>
+<li>
+<p>
+<strong>lock_version</strong> - Adds <a href="http://api.rubyonrails.com/classes/ActiveRecord/Locking.html">optimistic locking</a> to a model.
+</p>
+</li>
+<li>
+<p>
+<strong>type</strong> - Specifies that the model uses <a href="http://api.rubyonrails.com/classes/ActiveRecord/Base.html">Single Table Inheritance</a>
+</p>
+</li>
+<li>
+<p>
+<strong>(table_name)_count</strong> - Used to cache the number of belonging objects on associations. For example, a <tt>comments_count</tt> column in a <tt>Post</tt> class that has many instances of <tt>Comment</tt> will cache the number of existent comments for each post.
+</p>
+</li>
+</ul></div>
 <div class="admonitionblock">
 <table><tr>
 <td class="icon">
 <img src="./images/icons/note.png" alt="Note" />
 </td>
-<td class="content">While these column names are optional they are in fact reserved by ActiveRecord. Steer clear of reserved keywords unless you want the extra functionality. For example, "type" is a reserved keyword
-used to designate a table using Single Table Inheritance. If you are not using STI, try an analogous
-keyword like "context", that may still accurately describe the data you are modeling.</td>
+<td class="content">While these column names are optional they are in fact reserved by ActiveRecord. Steer clear of reserved keywords unless you want the extra functionality. For example, "type" is a reserved keyword used to designate a table using Single Table Inheritance. If you are not using STI, try an analogous keyword like "context", that may still accurately describe the data you are modeling.</td>
 </tr></table>
 </div>
 <div class="tableblock">
@@ -332,11 +427,11 @@ http://www.gnu.org/software/src-highlite -->
 <div class="paragraph"><p>Rails further extends this model by giving each ActiveRecord a way of describing the variety of ways records are associated with one another. We will touch on some of these associations later in the guide but I encourage readers who are interested to read the guide to ActiveRecord associations for an in-depth explanation of the variety of ways rails can model associations.
 - Associations between objects controlled by meta-programming macros.</p></div>
 </div>
-<h2 id="_philosophical_approaches_amp_common_conventions">3. Philosophical Approaches &amp; Common Conventions</h2>
+<h2 id="_philosophical_approaches_amp_common_conventions">7. Philosophical Approaches &amp; Common Conventions</h2>
 <div class="sectionbody">
 <div class="paragraph"><p>Rails has a reputation of being a zero-config  framework which means that it aims to get you off the ground with as little pre-flight checking as possible. This speed benefit is achieved by following “Convention over Configuration”, which is to say that if you agree to live with the defaults then you benefit from a the inherent speed-boost. As Courtneay Gasking put it to me once “You don’t want to off-road on Rails”. ActiveRecord is no different, while it’s possible to override or subvert any of the conventions of AR, unless you have a good reason for doing so you will probably be happy with the defaults. The following is a list of the common conventions of ActiveRecord</p></div>
 </div>
-<h2 id="_activerecord_magic">4. ActiveRecord Magic</h2>
+<h2 id="_activerecord_magic">8. ActiveRecord Magic</h2>
 <div class="sectionbody">
 <div class="ulist"><ul>
 <li>
@@ -351,7 +446,7 @@ updates
 </li>
 </ul></div>
 </div>
-<h2 id="_how_activerecord_maps_your_database">5. How ActiveRecord Maps your Database.</h2>
+<h2 id="_how_activerecord_maps_your_database">9. How ActiveRecord Maps your Database.</h2>
 <div class="sectionbody">
 <div class="ulist"><ul>
 <li>
@@ -366,10 +461,10 @@ overriding conventions
 </li>
 </ul></div>
 </div>
-<h2 id="_growing_your_database_relationships_naturally">6. Growing Your Database Relationships Naturally</h2>
+<h2 id="_growing_your_database_relationships_naturally">10. Growing Your Database Relationships Naturally</h2>
 <div class="sectionbody">
 </div>
-<h2 id="_attributes">7. Attributes</h2>
+<h2 id="_attributes">11. Attributes</h2>
 <div class="sectionbody">
 <div class="ulist"><ul>
 <li>
@@ -391,7 +486,7 @@ dirty records
 </li>
 </ul></div>
 </div>
-<h2 id="_validations_amp_callbacks">8. Validations &amp; Callbacks</h2>
+<h2 id="_validations_amp_callbacks">12. Validations &amp; Callbacks</h2>
 <div class="sectionbody">
 <div class="paragraph"><p>see the Validations &amp; Callbacks guide for more info.</p></div>
 </div>

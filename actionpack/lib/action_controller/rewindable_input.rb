@@ -3,12 +3,12 @@ module ActionController
     class RewindableIO < ActiveSupport::BasicObject
       def initialize(io)
         @io = io
-        @rewindable = io.is_a?(StringIO)
+        @rewindable = io.is_a?(::StringIO)
       end
 
       def method_missing(method, *args, &block)
         unless @rewindable
-          @io = StringIO.new(@io.read)
+          @io = ::StringIO.new(@io.read)
           @rewindable = true
         end
 

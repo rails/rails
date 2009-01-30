@@ -1,10 +1,10 @@
 == Rake tasks ==
 
-When you created the plugin with the built-in rails generator, it generated a rake file for you in 'vendor/plugins/yaffle/tasks/yaffle.rake'.  Any rake task you add here will be available to the app.
+When you created the plugin with the built-in rails generator, it generated a rake file for you in 'vendor/plugins/yaffle/tasks/yaffle_tasks.rake'.  Any rake task you add here will be available to the app.
 
 Many plugin authors put all of their rake tasks into a common namespace that is the same as the plugin, like so:
 
-*vendor/plugins/yaffle/tasks/yaffle.rake*
+*vendor/plugins/yaffle/tasks/yaffle_tasks.rake*
 
 [source, ruby]
 ---------------------------------------------------------

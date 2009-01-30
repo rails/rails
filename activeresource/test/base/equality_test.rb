@@ -40,4 +40,13 @@ class BaseEqualityTest < Test::Unit::TestCase
       assert_equal resource.id.hash, resource.hash
     end
   end
+
+	def test_with_prefix_options
+    assert_equal @one == @one, @one.eql?(@one)
+    assert_equal @one == @one.dup, @one.eql?(@one.dup)
+    new_one = @one.dup
+    new_one.prefix_options = {:foo => 'bar'}
+    assert_not_equal @one, new_one
+	end
+
 end

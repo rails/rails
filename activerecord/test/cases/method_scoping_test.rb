@@ -186,6 +186,16 @@ class MethodScopingTest < ActiveRecord::TestCase
     assert_equal authors(:david).attributes, scoped_authors.first.attributes
   end
 
+  def test_scoped_find_strips_spaces_from_string_joins_and_eliminates_duplicate_string_joins
+    scoped_authors = Author.with_scope(:find => { :joins => ' INNER JOIN posts ON posts.author_id = authors.id '}) do
+      Author.find(:all, :select => 'DISTINCT authors.*', :joins => ['INNER JOIN posts ON posts.author_id = authors.id'], :conditions => 'posts.id = 1')
+    end
+    assert scoped_authors.include?(authors(:david))
+    assert !scoped_authors.include?(authors(:mary))
+    assert_equal 1, scoped_authors.size
+    assert_equal authors(:david).attributes, scoped_authors.first.attributes
+  end
+
   def test_scoped_count_include
     # with the include, will retrieve only developers for the given project
     Developer.with_scope(:find => { :include => :projects }) do

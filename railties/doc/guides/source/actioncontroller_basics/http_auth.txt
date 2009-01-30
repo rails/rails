@@ -1,6 +1,13 @@
-== HTTP Basic Authentication ==
+== HTTP Authentications ==
 
-Rails comes with built-in HTTP Basic authentication. This is an authentication scheme that is supported by the majority of browsers and other HTTP clients. As an example, consider an administration section which will only be available by entering a username and a password into the browser's HTTP Basic dialog window. Using the built-in authentication is quite easy and only requires you to use one method, `authenticate_or_request_with_http_basic`.
+Rails comes with two built-in HTTP authentication mechanisms :
+
+ * Basic Authentication
+ * Digest Authentication
+
+=== HTTP Basic Authentication ===
+
+HTTP Basic authentication is an authentication scheme that is supported by the majority of browsers and other HTTP clients. As an example, consider an administration section which will only be available by entering a username and a password into the browser's HTTP Basic dialog window. Using the built-in authentication is quite easy and only requires you to use one method, `authenticate_or_request_with_http_basic`.
 
 [source, ruby]
 -------------------------------------
@@ -10,7 +17,7 @@ class AdminController < ApplicationController
 
   before_filter :authenticate
 
-private
+  private
 
   def authenticate
     authenticate_or_request_with_http_basic do |username, password|
@@ -22,3 +29,29 @@ end
 -------------------------------------
 
 With this in place, you can create namespaced controllers that inherit from AdminController. The before filter will thus be run for all actions in those controllers, protecting them with HTTP Basic authentication.
+
+=== HTTP Digest Authentication ===
+
+HTTP Digest authentication is superior to the Basic authentication as it does not require the client to send unencrypted password over the network. Using Digest authentication with Rails is quite easy and only requires using one method, +authenticate_or_request_with_http_digest+.
+
+[source, ruby]
+-------------------------------------
+class AdminController < ApplicationController
+
+  USERS = { "lifo" => "world" }
+
+  before_filter :authenticate
+
+  private
+
+  def authenticate
+    authenticate_or_request_with_http_digest do |username|
+      USERS[username]
+    end
+  end
+
+end
+-------------------------------------
+
+
+As seen in the example above, +authenticate_or_request_with_http_digest+ block takes only one argument - the username. And the block returns the password. Returning +false+ or +nil+ from the +authenticate_or_request_with_http_digest+ will cause authentication failure.

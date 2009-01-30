@@ -50,6 +50,12 @@
           <li>
           <a href="#_mailer_testing">Mailer Testing</a>
           </li>
+          <li>
+          <a href="#_epilogue">Epilogue</a>
+          </li>
+          <li>
+          <a href="#_changelog">Changelog</a>
+          </li>
       </ol>
     </div>
     
@@ -189,6 +195,37 @@ http://www.gnu.org/software/src-highlite -->
 </div>
 <h2 id="_mailer_testing">3. Mailer Testing</h2>
 <div class="sectionbody">
+<div class="paragraph"><p>Testing mailers involves 2 things. One is that the mail was queued and the other that the body contains what we expect it to contain. With that in mind, we could test our example mailer from above like so:</p></div>
+<div class="listingblock">
+<div class="content"><!-- Generator: GNU source-highlight 2.9
+by Lorenzo Bettini
+http://www.lorenzobettini.it
+http://www.gnu.org/software/src-highlite -->
+<pre><tt><span style="font-weight: bold"><span style="color: #0000FF">class</span></span> UserMailerTest <span style="color: #990000">&lt;</span> ActionMailer<span style="color: #990000">::</span>TestCase
+    tests UserMailer
+
+    <span style="font-weight: bold"><span style="color: #0000FF">def</span></span> test_welcome_email
+      user <span style="color: #990000">=</span> users<span style="color: #990000">(:</span>some_user_in_your_fixtures<span style="color: #990000">)</span>
+
+      <span style="font-style: italic"><span style="color: #9A1900"># Send the email, then test that it got queued</span></span>
+      email <span style="color: #990000">=</span> UserMailer<span style="color: #990000">.</span>deliver_welcome_email<span style="color: #990000">(</span>user<span style="color: #990000">)</span>
+      assert <span style="color: #990000">!</span>ActionMailer<span style="color: #990000">::</span>Base<span style="color: #990000">.</span>deliveries<span style="color: #990000">.</span>empty?
+
+      <span style="font-style: italic"><span style="color: #9A1900"># Test the body of the sent email contains what we expect it to</span></span>
+      assert_equal <span style="color: #990000">[</span><span style="color: #009900">@user</span><span style="color: #990000">.</span>email<span style="color: #990000">],</span>                 email<span style="color: #990000">.</span>to
+      assert_equal <span style="color: #FF0000">"Welcome to My Awesome Site"</span><span style="color: #990000">,</span>  email<span style="color: #990000">.</span>subject
+      assert       email<span style="color: #990000">.</span>body <span style="color: #990000">=~</span> <span style="color: #FF6600">/Welcome to example.com, #{user.first_name}/</span>
+    <span style="font-weight: bold"><span style="color: #0000FF">end</span></span>
+  <span style="font-weight: bold"><span style="color: #0000FF">end</span></span></tt></pre></div></div>
+<div class="paragraph"><p>What have we done? Well, we sent the email and stored the returned object in the email variable. We then ensured that it was sent (the first assert), then, in the second batch of assertion, we ensure that the email does indeed contain the values that we expect.</p></div>
+</div>
+<h2 id="_epilogue">4. Epilogue</h2>
+<div class="sectionbody">
+<div class="paragraph"><p>This guide presented how to create a mailer and how to test it. In reality, you may find that writing your tests before you actually write your code to be a rewarding experience. It may take some time to get used to TDD (Test Driven Development), but coding this way achieves two major benefits. Firstly, you know that the code does indeed work, because the tests fail (because there&#8217;s no code), then they pass, because the code that satisfies the tests was written. Secondly, when you start with the tests, you don&#8217;t have to make time AFTER you write the code, to write the tests, then never get around to it. The tests are already there and testing has now become part of your coding regimen.</p></div>
+</div>
+<h2 id="_changelog">5. Changelog</h2>
+<div class="sectionbody">
+<div class="paragraph"><p><a href="http://rails.lighthouseapp.com/projects/16213/tickets/25">Lighthouse ticket</a></p></div>
 </div>
 
     </div>

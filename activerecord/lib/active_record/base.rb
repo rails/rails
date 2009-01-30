@@ -927,7 +927,7 @@ module ActiveRecord #:nodoc:
       #
       # ==== Parameters
       #
-      # * +id+ - The id of the object you wish to update a counter on.
+      # * +id+ - The id of the object you wish to update a counter on or an Array of ids.
       # * +counters+ - An Array of Hashes containing the names of the fields
       #   to update as keys and the amount to update the field by as values.
       #
@@ -941,12 +941,27 @@ module ActiveRecord #:nodoc:
       #   #    SET comment_count = comment_count - 1,
       #   #        action_count = action_count + 1
       #   #  WHERE id = 5
+      #
+      #   # For the Posts with id of 10 and 15, increment the comment_count by 1
+      #   Post.update_counters [10, 15], :comment_count => 1
+      #   # Executes the following SQL:
+      #   # UPDATE posts
+      #   #    SET comment_count = comment_count + 1,
+      #   #  WHERE id IN (10, 15)
       def update_counters(id, counters)
         updates = counters.inject([]) { |list, (counter_name, increment)|
           sign = increment < 0 ? "-" : "+"
           list << "#{connection.quote_column_name(counter_name)} = COALESCE(#{connection.quote_column_name(counter_name)}, 0) #{sign} #{increment.abs}"
         }.join(", ")
-        update_all(updates, "#{connection.quote_column_name(primary_key)} = #{quote_value(id)}")
+
+        if id.is_a?(Array)
+          ids_list = id.map {|i| quote_value(i)}.join(', ')
+          condition = "IN  (#{ids_list})"
+        else
+          condition = "= #{quote_value(id)}"
+        end
+
+        update_all(updates, "#{connection.quote_column_name(primary_key)} #{condition}")
       end
 
       # Increment a number field by one, usually representing a count.
@@ -1700,7 +1715,7 @@ module ActiveRecord #:nodoc:
               end
               join
             end
-            joins.flatten.uniq
+            joins.flatten.map{|j| j.strip}.uniq
           else
             joins.collect{|j| safe_to_array(j)}.flatten.uniq
           end
@@ -2097,7 +2112,11 @@ module ActiveRecord #:nodoc:
                     (hash[method].keys + params.keys).uniq.each do |key|
                       merge = hash[method][key] && params[key] # merge if both scopes have the same key
                       if key == :conditions && merge
-                        hash[method][key] = merge_conditions(params[key], hash[method][key])
+                        if params[key].is_a?(Hash) && hash[method][key].is_a?(Hash)
+                          hash[method][key] = merge_conditions(hash[method][key].deep_merge(params[key]))
+                        else
+                          hash[method][key] = merge_conditions(params[key], hash[method][key])
+                        end
                       elsif key == :include && merge
                         hash[method][key] = merge_includes(hash[method][key], params[key]).uniq
                       elsif key == :joins && merge
@@ -2107,7 +2126,7 @@ module ActiveRecord #:nodoc:
                       end
                     end
                   else
-                    hash[method] = params.merge(hash[method])
+                    hash[method] = hash[method].merge(params)
                   end
                 else
                   hash[method] = params
