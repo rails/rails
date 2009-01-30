@@ -627,6 +627,12 @@ class BaseTest < Test::Unit::TestCase
     assert_equal '1', p.__send__(:id_from_response, resp)
   end
 
+  def test_id_from_response_without_location
+    p = Person.new
+    resp = {}
+    assert_equal nil, p.__send__(:id_from_response, resp)
+  end
+
   def test_create_with_custom_prefix
     matzs_house = StreetAddress.new(:person_id => 1)
     matzs_house.save
@@ -670,7 +676,6 @@ class BaseTest < Test::Unit::TestCase
     assert_equal person, person.reload
   end
 
-
   def test_create
     rick = Person.create(:name => 'Rick')
     assert rick.valid?
@@ -685,6 +690,14 @@ class BaseTest < Test::Unit::TestCase
       mock.post   "/people.xml", {}, nil, 409
     end
     assert_raises(ActiveResource::ResourceConflict) { Person.create(:name => 'Rick') }
+  end
+
+  def test_create_without_location
+    ActiveResource::HttpMock.respond_to do |mock|
+      mock.post   "/people.xml", {}, nil, 201
+    end
+    person = Person.create(:name => 'Rick')
+    assert_equal nil, person.id
   end
 
   def test_clone

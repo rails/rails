@@ -302,7 +302,7 @@ module Rails
       if unloaded_gems.size > 0
         @gems_dependencies_loaded = false
         # don't print if the gems rake tasks are being run
-        unless $rails_gem_installer
+        unless $rails_rake_task
           abort <<-end_error
 Missing these required gems:
   #{unloaded_gems.map { |gem| "#{gem.name}  #{gem.requirement}" } * "\n  "}
@@ -379,6 +379,7 @@ Run `rake gems:install` to install the missing gems.
 
     # Eager load application classes
     def load_application_classes
+      return if $rails_rake_task
       if configuration.cache_classes
         configuration.eager_load_paths.each do |load_path|
           matcher = /\A#{Regexp.escape(load_path)}(.*)\.rb\Z/
@@ -408,12 +409,18 @@ Run `rake gems:install` to install the missing gems.
       if configuration.frameworks.include?(:active_record)
         ActiveRecord::Base.configurations = configuration.database_configuration
         ActiveRecord::Base.establish_connection
+        configuration.middleware.use ActiveRecord::QueryCache
       end
     end
 
     def initialize_cache
       unless defined?(RAILS_CACHE)
         silence_warnings { Object.const_set "RAILS_CACHE", ActiveSupport::Cache.lookup_store(configuration.cache_store) }
+
+        if RAILS_CACHE.respond_to?(:middleware)
+          # Insert middleware to setup and teardown local cache for each request
+          configuration.middleware.insert_after(:"ActionController::Failsafe", RAILS_CACHE.middleware)
+        end
       end
     end
 
@@ -537,7 +544,9 @@ Run `rake gems:install` to install the missing gems.
     end
 
     def initialize_metal
-      configuration.middleware.insert_before(:"ActionController::RewindableInput", Rails::Rack::Metal)
+      configuration.middleware.insert_before(
+        :"ActionController::RewindableInput",
+        Rails::Rack::Metal, :if => Rails::Rack::Metal.metals.any?)
     end
 
     # Initializes framework-specific settings for each of the loaded frameworks

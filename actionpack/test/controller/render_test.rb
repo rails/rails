@@ -274,6 +274,9 @@ class TestController < ActionController::Base
   def render_explicit_html_template
   end
 
+  def render_implicit_html_template_from_xhr_request
+  end
+
   def formatted_html_erb
   end
 
@@ -1008,6 +1011,11 @@ class RenderTest < ActionController::TestCase
         assert_equal %(document.write("Hello world\\n");), @response.body
       end
     end
+  end
+
+  def test_should_implicitly_render_html_template_from_xhr_request
+    get :render_implicit_html_template_from_xhr_request, :format => :js
+    assert_equal "Hello HTML!", @response.body
   end
 
   def test_should_render_formatted_template

@@ -277,6 +277,62 @@ module ActionView
         end
       end
 
+      # Returns a string of <tt><option></tt> tags, like <tt>options_for_select</tt>, but
+      # wraps them with <tt><optgroup></tt> tags.
+      #
+      # Parameters:
+      # * +grouped_options+ - Accepts a nested array or hash of strings.  The first value serves as the
+      #   <tt><optgroup></tt> label while the second value must be an array of options. The second value can be a
+      #   nested array of text-value pairs. See <tt>options_for_select</tt> for more info.
+      #    Ex. ["North America",[["United States","US"],["Canada","CA"]]]
+      # * +selected_key+ - A value equal to the +value+ attribute for one of the <tt><option></tt> tags,
+      #   which will have the +selected+ attribute set. Note: It is possible for this value to match multiple options
+      #   as you might have the same option in multiple groups.  Each will then get <tt>selected="selected"</tt>.
+      # * +prompt+ - set to true or a prompt string. When the select element doesn’t have a value yet, this
+      #   prepends an option with a generic prompt — "Please select" — or the given prompt string.
+      #
+      # Sample usage (Array):
+      #   grouped_options = [
+      #    ['North America',
+      #      [['United States','US'],'Canada']],
+      #    ['Europe',
+      #      ['Denmark','Germany','France']]
+      #   ]
+      #   grouped_options_for_select(grouped_options)
+      #
+      # Sample usage (Hash):
+      #   grouped_options = {
+      #    'North America' => [['United States','US], 'Canada'],
+      #    'Europe' => ['Denmark','Germany','France']
+      #   }
+      #   grouped_options_for_select(grouped_options)
+      #
+      # Possible output:
+      #   <optgroup label="Europe">
+      #     <option value="Denmark">Denmark</option>
+      #     <option value="Germany">Germany</option>
+      #     <option value="France">France</option>
+      #   </optgroup>
+      #   <optgroup label="North America">
+      #     <option value="US">United States</option>
+      #     <option value="Canada">Canada</option>
+      #   </optgroup>
+      #
+      # <b>Note:</b> Only the <tt><optgroup></tt> and <tt><option></tt> tags are returned, so you still have to
+      # wrap the output in an appropriate <tt><select></tt> tag.
+      def grouped_options_for_select(grouped_options, selected_key = nil, prompt = nil)
+        body = ''
+        body << content_tag(:option, prompt, :value => "") if prompt
+
+        grouped_options = grouped_options.sort if grouped_options.is_a?(Hash)
+
+        grouped_options.each do |group|
+          body << content_tag(:optgroup, options_for_select(group[1], selected_key), :label => group[0])
+        end
+
+        body
+      end
+
       # Returns a string of option tags for pretty much any time zone in the
       # world. Supply a TimeZone name as +selected+ to have it marked as the
       # selected option tag. You can also supply an array of TimeZone objects
@@ -349,8 +405,9 @@ module ActionView
         html_options = html_options.stringify_keys
         add_default_name_and_id(html_options)
         value = value(object)
+        selected_value = options.has_key?(:selected) ? options[:selected] : value
         content_tag(
-          "select", add_options(options_from_collection_for_select(collection, value_method, text_method, value), options, value), html_options
+          "select", add_options(options_from_collection_for_select(collection, value_method, text_method, selected_value), options, value), html_options
         )
       end
 

@@ -36,7 +36,7 @@ class MultipartParamsParsingTest < ActionController::IntegrationTest
     assert_equal 'bar', params['foo']
 
     file = params['file']
-    assert_kind_of StringIO, file
+    assert_kind_of Tempfile, file
     assert_equal 'file.txt', file.original_filename
     assert_equal "text/plain", file.content_type
     assert_equal 'contents', file.read
@@ -77,13 +77,13 @@ class MultipartParamsParsingTest < ActionController::IntegrationTest
     assert_equal 'bar', params['foo']
 
     file = params['file']
-    assert_kind_of StringIO, file
+    assert_kind_of Tempfile, file
     assert_equal 'file.csv', file.original_filename
     assert_nil file.content_type
     assert_equal 'contents', file.read
 
     file = params['flowers']
-    assert_kind_of StringIO, file
+    assert_kind_of Tempfile, file
     assert_equal 'flowers.jpg', file.original_filename
     assert_equal "image/jpeg", file.content_type
     assert_equal 19512, file.size
@@ -99,6 +99,21 @@ class MultipartParamsParsingTest < ActionController::IntegrationTest
     assert_kind_of String, files
     files.force_encoding('ASCII-8BIT') if files.respond_to?(:force_encoding)
     assert_equal 19756, files.size
+  end
+
+  test "does not create tempfile if no file has been selected" do
+    params = parse_multipart('none')
+    assert_equal %w(files submit-name), params.keys.sort
+    assert_equal 'Larry', params['submit-name']
+    assert_equal nil, params['files']
+  end
+
+  test "parses empty upload file" do
+    params = parse_multipart('empty')
+    assert_equal %w(files submit-name), params.keys.sort
+    assert_equal 'Larry', params['submit-name']
+    assert params['files']
+    assert_equal "", params['files'].read
   end
 
   test "uploads and reads binary file" do

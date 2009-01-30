@@ -143,6 +143,32 @@ uses_mocha "FormOptionsHelperTest" do
       )
     end
 
+    def test_grouped_options_for_select_with_array
+      assert_dom_equal(
+        "<optgroup label=\"North America\"><option value=\"US\">United States</option>\n<option value=\"Canada\">Canada</option></optgroup><optgroup label=\"Europe\"><option value=\"GB\">Great Britain</option>\n<option value=\"Germany\">Germany</option></optgroup>",
+        grouped_options_for_select([
+           ["North America",
+               [['United States','US'],"Canada"]],
+           ["Europe",
+               [["Great Britain","GB"], "Germany"]]
+         ])
+      )
+    end
+
+    def test_grouped_options_for_select_with_selected_and_prompt
+      assert_dom_equal(
+          "<option value=\"\">Choose a product...</option><optgroup label=\"Hats\"><option value=\"Baseball Cap\">Baseball Cap</option>\n<option selected=\"selected\" value=\"Cowboy Hat\">Cowboy Hat</option></optgroup>",
+          grouped_options_for_select([["Hats", ["Baseball Cap","Cowboy Hat"]]], "Cowboy Hat", "Choose a product...")
+      )
+    end
+
+    def test_optgroups_with_with_options_with_hash
+      assert_dom_equal(
+         "<optgroup label=\"Europe\"><option value=\"Denmark\">Denmark</option>\n<option value=\"Germany\">Germany</option></optgroup><optgroup label=\"North America\"><option value=\"United States\">United States</option>\n<option value=\"Canada\">Canada</option></optgroup>",
+         grouped_options_for_select({'North America' => ['United States','Canada'], 'Europe' => ['Denmark','Germany']})
+      )
+    end
+
     def test_time_zone_options_no_parms
       opts = time_zone_options_for_select
       assert_dom_equal "<option value=\"A\">A</option>\n" +
@@ -471,6 +497,22 @@ uses_mocha "FormOptionsHelperTest" do
 
       # Shouldn't suffix custom name with [].
       assert_dom_equal expected, collection_select("post", "author_name", @posts, "author_name", "author_name", { :include_blank => true, :name => 'post[author_name][]' }, :multiple => true)
+    end
+
+    def test_collection_select_with_blank_and_selected
+      @posts = [
+        Post.new("<Abe> went home", "<Abe>", "To a little house", "shh!"),
+        Post.new("Babe went home", "Babe", "To a little house", "shh!"),
+        Post.new("Cabe went home", "Cabe", "To a little house", "shh!")
+      ]
+
+      @post = Post.new
+      @post.author_name = "Babe"
+
+      assert_dom_equal(
+        %{<select id="post_author_name" name="post[author_name]"><option value=""></option>\n<option value="&lt;Abe&gt;" selected="selected">&lt;Abe&gt;</option>\n<option value="Babe">Babe</option>\n<option value="Cabe">Cabe</option></select>},
+        collection_select("post", "author_name", @posts, "author_name", "author_name", {:include_blank => true, :selected => "<Abe>"})
+      )
     end
 
     def test_time_zone_select

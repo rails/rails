@@ -121,9 +121,19 @@ end
 
 class CallbackCancellationDeveloper < ActiveRecord::Base
   set_table_name 'developers'
-  def before_create
-    false
-  end
+
+  attr_reader   :after_save_called, :after_create_called, :after_update_called, :after_destroy_called
+  attr_accessor :cancel_before_save, :cancel_before_create, :cancel_before_update, :cancel_before_destroy
+
+  def before_save;    !@cancel_before_save;    end
+  def before_create;  !@cancel_before_create;  end
+  def before_update;  !@cancel_before_update;  end
+  def before_destroy; !@cancel_before_destroy; end
+
+  def after_save;      @after_save_called    = true; end
+  def after_update;    @after_update_called  = true; end
+  def after_create;    @after_create_called  = true; end
+  def after_destroy;   @after_destroy_called = true; end
 end
 
 class CallbacksTest < ActiveRecord::TestCase
@@ -349,19 +359,47 @@ class CallbacksTest < ActiveRecord::TestCase
     assert !david.valid?
     assert !david.save
     assert_raises(ActiveRecord::RecordInvalid) { david.save! }
+
+    someone = CallbackCancellationDeveloper.find(1)
+    someone.cancel_before_save = true
+    assert someone.valid?
+    assert !someone.save
+    assert_save_callbacks_not_called(someone)
   end
 
   def test_before_create_returning_false
     someone = CallbackCancellationDeveloper.new
+    someone.cancel_before_create = true
     assert someone.valid?
     assert !someone.save
+    assert_save_callbacks_not_called(someone)
+  end
+
+  def test_before_update_returning_false
+    someone = CallbackCancellationDeveloper.find(1)
+    someone.cancel_before_update = true
+    assert someone.valid?
+    assert !someone.save
+    assert_save_callbacks_not_called(someone)
   end
 
   def test_before_destroy_returning_false
     david = ImmutableDeveloper.find(1)
     assert !david.destroy
     assert_not_nil ImmutableDeveloper.find_by_id(1)
+
+    someone = CallbackCancellationDeveloper.find(1)
+    someone.cancel_before_destroy = true
+    assert !someone.destroy
+    assert !someone.after_destroy_called
   end
+
+  def assert_save_callbacks_not_called(someone)
+    assert !someone.after_save_called
+    assert !someone.after_create_called
+    assert !someone.after_update_called
+  end
+  private :assert_save_callbacks_not_called
 
   def test_zzz_callback_returning_false # must be run last since we modify CallbackDeveloper
     david = CallbackDeveloper.find(1)

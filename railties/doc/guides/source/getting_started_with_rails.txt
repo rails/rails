@@ -163,24 +163,23 @@ $ cd blog
 
 In any case, Rails will create a folder in your working directory called +blog+. Open up that folder and explore its contents. Most of the work in this tutorial will happen in the +app/+ folder, but here's a basic rundown on the function of each folder that Rails creates in a new application by default:
 
-[grid="all"]
-`-----------`-----------------------------------------------------------------------------------------------------------------------------
-File/Folder Purpose
-------------------------------------------------------------------------------------------------------------------------------------------
-+README+		This is a brief instruction manual for your application. Use it to tell others what your application does, how to set it up, and so on.
-+Rakefile+	This file contains batch jobs that can be run from the terminal.
-+app/+		Contains the controllers, models, and views for your application. You'll focus on this folder for the remainder of this guide.
-+config/+		Configure your application's runtime rules, routes, database, and more.
-+db/+			Shows your current database schema, as well as the database migrations. You'll learn about migrations shortly.
-+doc/+		In-depth documentation for your application.
-+lib/+		Extended modules for your application (not covered in this guide).
-+log/+		Application log files.
-+public/+		The only folder seen to the world as-is.  This is where your images, javascript, stylesheets (CSS), and other static files go.
-+script/+		Scripts provided by Rails to do recurring tasks, such as benchmarking, plugin installation, and starting the console or the web server.
-+test/+		Unit tests, fixtures, and other test apparatus. These are covered in link:../testing_rails_applications.html[Testing Rails Applications]
-+tmp/+		Temporary files
-+vendor/+		A place for third-party code. In a typical Rails application, this includes Ruby Gems, the Rails source code (if you install it into your project) and plugins containing additional prepackaged functionality.
--------------------------------------------------------------------------------------------------------------------------------------------
+[options="header"]
+|==========================================================================================================
+|File/Folder |Purpose
+|+README+		|This is a brief instruction manual for your application. Use it to tell others what your application does, how to set it up, and so on.
+|+Rakefile+	|This file contains batch jobs that can be run from the terminal.
+|+app/+		|Contains the controllers, models, and views for your application. You'll focus on this folder for the remainder of this guide.
+|+config/+		|Configure your application's runtime rules, routes, database, and more.
+|+db/+			|Shows your current database schema, as well as the database migrations. You'll learn about migrations shortly.
+|+doc/+		|In-depth documentation for your application.
+|+lib/+		|Extended modules for your application (not covered in this guide).
+|+log/+		|Application log files.
+|+public/+		|The only folder seen to the world as-is.  This is where your images, javascript, stylesheets (CSS), and other static files go.
+|+script/+		|Scripts provided by Rails to do recurring tasks, such as benchmarking, plugin installation, and starting the console or the web server.
+|+test/+		|Unit tests, fixtures, and other test apparatus. These are covered in link:../testing_rails_applications.html[Testing Rails Applications]
+|+tmp/+		|Temporary files
+|+vendor/+		|A place for third-party code. In a typical Rails application, this includes Ruby Gems, the Rails source code (if you install it into your project) and plugins containing additional prepackaged functionality.
+|==========================================================================================================
 
 === Configuring a Database
 
@@ -339,25 +338,24 @@ NOTE: While scaffolding will get you up and running quickly, the "one size fits 
 
 The scaffold generator will build 13 files in your application, along with some folders, and edit one more. Here's a quick overview of what it creates:
 
-[grid="all"]
-`---------------------------------------------`--------------------------------------------------------------------------------------------
-File                                          Purpose
-------------------------------------------------------------------------------------------------------------------------------------------
-app/models/post.rb                            The Post model
-db/migrate/20081013124235_create_posts.rb     Migration to create the posts table in your database (your name will include a different timestamp)
-app/views/posts/index.html.erb                A view to display an index of all posts 
-app/views/posts/show.html.erb                 A view to display a single post
-app/views/posts/new.html.erb                  A view to create a new post
-app/views/posts/edit.html.erb                 A view to edit an existing post
-app/views/layouts/posts.html.erb              A view to control the overall look and feel of the other posts views
-public/stylesheets/scaffold.css               Cascading style sheet to make the scaffolded views look better
-app/controllers/posts_controller.rb           The Posts controller
-test/functional/posts_controller_test.rb      Functional testing harness for the posts controller
-app/helpers/posts_helper.rb                   Helper functions to be used from the posts views
-config/routes.rb                              Edited to include routing information for posts
-test/fixtures/posts.yml                       Dummy posts for use in testing
-test/unit/post_test.rb                        Unit testing harness for the posts model
--------------------------------------------------------------------------------------------------------------------------------------------
+[options="header"]
+|==========================================================================================================
+|File                                          |Purpose
+|app/models/post.rb                            |The Post model
+|db/migrate/20081013124235_create_posts.rb     |Migration to create the posts table in your database (your name will include a different timestamp)
+|app/views/posts/index.html.erb                |A view to display an index of all posts 
+|app/views/posts/show.html.erb                 |A view to display a single post
+|app/views/posts/new.html.erb                  |A view to create a new post
+|app/views/posts/edit.html.erb                 |A view to edit an existing post
+|app/views/layouts/posts.html.erb              |A view to control the overall look and feel of the other posts views
+|public/stylesheets/scaffold.css               |Cascading style sheet to make the scaffolded views look better
+|app/controllers/posts_controller.rb           |The Posts controller
+|test/functional/posts_controller_test.rb      |Functional testing harness for the posts controller
+|app/helpers/posts_helper.rb                   |Helper functions to be used from the posts views
+|config/routes.rb                              |Edited to include routing information for posts
+|test/fixtures/posts.yml                       |Dummy posts for use in testing
+|test/unit/post_test.rb                        |Unit testing harness for the posts model
+|==========================================================================================================
 
 === Running a Migration
 

@@ -48,8 +48,10 @@ class QuotingTest < Test::Unit::TestCase
 
     result = execute_in_sandbox(<<-CODE)
       $:.unshift(File.dirname(__FILE__) + "/../lib/")
-      $KCODE = 'u'
-      require 'jcode'
+      if RUBY_VERSION < '1.9'
+        $KCODE = 'u'
+        require 'jcode'
+      end
       require 'action_mailer/quoting'
       include ActionMailer::Quoting
       quoted_printable(#{original.inspect}, "UTF-8")

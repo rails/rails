@@ -15,7 +15,7 @@ module ActionController #:nodoc:
     end
 
     def reset_session
-      @session = TestSession.new
+      @session.reset
     end
 
     # Wraps raw_post in a StringIO.
@@ -35,7 +35,6 @@ module ActionController #:nodoc:
 
     def port=(number)
       @env["SERVER_PORT"] = number.to_i
-      port(true)
     end
 
     def action=(action_name)
@@ -49,8 +48,6 @@ module ActionController #:nodoc:
       @env["REQUEST_URI"] = value
       @request_uri = nil
       @path = nil
-      request_uri(true)
-      path(true)
     end
 
     def request_uri=(uri)
@@ -58,9 +55,13 @@ module ActionController #:nodoc:
       @path = uri.split("?").first
     end
 
+    def request_method=(method)
+      @request_method = method
+    end
+
     def accept=(mime_types)
       @env["HTTP_ACCEPT"] = Array(mime_types).collect { |mime_types| mime_types.to_s }.join(",")
-      accepts(true)
+      @accepts = nil
     end
 
     def if_modified_since=(last_modified)
@@ -76,11 +77,11 @@ module ActionController #:nodoc:
     end
 
     def request_uri(*args)
-      @request_uri || super
+      @request_uri || super()
     end
 
     def path(*args)
-      @path || super
+      @path || super()
     end
 
     def assign_parameters(controller_path, action, parameters)
@@ -107,7 +108,7 @@ module ActionController #:nodoc:
     def recycle!
       self.query_parameters   = {}
       self.path_parameters    = {}
-      unmemoize_all
+      @headers, @request_method, @accepts, @content_type = nil, nil, nil, nil
     end
 
     def user_agent=(user_agent)
@@ -279,38 +280,62 @@ module ActionController #:nodoc:
     end
   end
 
-  class TestSession #:nodoc:
+  class TestSession < Hash #:nodoc:
     attr_accessor :session_id
 
     def initialize(attributes = nil)
-      @session_id = ''
-      @attributes = attributes.nil? ? nil : attributes.stringify_keys
-      @saved_attributes = nil
+      reset_session_id
+      replace_attributes(attributes)
+    end
+
+    def reset
+      reset_session_id
+      replace_attributes({ })
     end
 
     def data
-      @attributes ||= @saved_attributes || {}
+      to_hash
     end
 
     def [](key)
-      data[key.to_s]
+      super(key.to_s)
     end
 
     def []=(key, value)
-      data[key.to_s] = value
+      super(key.to_s, value)
     end
 
-    def update
-      @saved_attributes = @attributes
+    def update(hash = nil)
+      if hash.nil?
+        ActiveSupport::Deprecation.warn('use replace instead', caller)
+        replace({})
+      else
+        super(hash)
+      end
     end
 
-    def delete
-      @attributes = nil
+    def delete(key = nil)
+      if key.nil?
+        ActiveSupport::Deprecation.warn('use clear instead', caller)
+        clear
+      else
+        super(key.to_s)
+      end
     end
 
     def close
-      update
-      delete
+      ActiveSupport::Deprecation.warn('sessions should no longer be closed', caller)
+    end
+
+  private
+
+    def reset_session_id
+      @session_id = ''
+    end
+
+    def replace_attributes(attributes = nil)
+      attributes ||= {}
+      replace(attributes.stringify_keys)
     end
   end
 

@@ -6,6 +6,7 @@ This guide covers the basic layout features of Action Controller and Action View
 * Use the various rendering methods built in to Rails
 * Create layouts with multiple content sections
 * Use partials to DRY up your views
+* Use nested layouts (sub-templates)
 
 == Overview: How the Pieces Fit Together
 
@@ -34,9 +35,9 @@ def show
 end
 -------------------------------------------------------
 
-Rails will automatically render +app/views/books/show.html.erb+ after running the method. In fact, if you have the default catch-all route in place (+map.connect ':controller/:action/:id'+), Rails will even render views that don't have any code at all in the controller. For example, if you have the default route in place and a request comes in for +/books/sale_list+, Rails will render +app/views/books/sale_list.html.erb+ in response.
+Rails will automatically render +app/views/books/show.html.erb+ after running the method. In fact, if you have the default catch-all route in place (+map.connect \':controller/:action/:id'+), Rails will even render views that don't have any code at all in the controller. For example, if you have the default route in place and a request comes in for +/books/sale_list+, Rails will render +app/views/books/sale_list.html.erb+ in response.
 
-NOTE: The actual rendering is done by subclasses of +ActionView::TemplateHandlers+. This guide does not dig into that process, but it's important to know that the file extension on your view controls the choice of template handler. In Rails 2, the standard extensions are +.erb+ for ERB (HTML with embedded Ruby), +.rjs+ for RJS (javascript with embedded ruby) and +.builder+ for Builder (XML generator). You'll also find +.rhtml+ used for ERB templates and .rxml for Builder templates, but those extensions are now formally deprecated and will be removed from a future version of Rails.
+NOTE: The actual rendering is done by subclasses of +ActionView::TemplateHandlers+. This guide does not dig into that process, but it's important to know that the file extension on your view controls the choice of template handler. In Rails 2, the standard extensions are +.erb+ for ERB (HTML with embedded Ruby), +.rjs+ for RJS (javascript with embedded ruby) and +.builder+ for Builder (XML generator). You'll also find +.rhtml+ used for ERB templates and +.rxml+ for Builder templates, but those extensions are now formally deprecated and will be removed from a future version of Rails.
 
 === Using +render+
 
@@ -57,9 +58,40 @@ This will send an empty response to the browser (though it will include any stat
 
 TIP: You should probably be using the +head+ method, discussed later in this guide, instead of +render :nothing+. This provides additional flexibility and makes it explicit that you're only generating HTTP headers.
 
-==== Using +render+ with +:action+
+==== Rendering an Action's View
 
-If you want to render the view that corresponds to a different action within the same template, you can use +render+ with the +:action+ option:
+If you want to render the view that corresponds to a different action within the same template, you can use +render+ with the name of the view:
+
+[source, ruby]
+-------------------------------------------------------
+def update
+  @book = Book.find(params[:id])
+    if @book.update_attributes(params[:book])
+      redirect_to(@book)
+    else
+      render "edit"
+    end
+  end
+end
+-------------------------------------------------------
+If the call to +update_attributes+ fails, calling the +update+ action in this controller will render the +edit.html.erb+ template belonging to the same controller.
+
+If you prefer, you can use a symbol instead of a string to specify the action to render:
+
+[source, ruby]
+-------------------------------------------------------
+def update
+  @book = Book.find(params[:id])
+    if @book.update_attributes(params[:book])
+      redirect_to(@book)
+    else
+      render :edit
+    end
+  end
+end
+-------------------------------------------------------
+
+To be explicit, you can use +render+ with the +:action+ option (though this is no longer necessary as of Rails 2.3):
 
 [source, ruby]
 -------------------------------------------------------
@@ -74,22 +106,34 @@ def update
 end
 -------------------------------------------------------
 
-If the call to +update_attributes_ fails, calling the +update+ action in this controller will render the +edit.html.erb+ template belonging to the same controller.
-
 WARNING: Using +render+ with +:action+ is a frequent source of confusion for Rails newcomers. The specified action is used to determine which view to render, but Rails does _not_ run any of the code for that action in the controller. Any instance variables that you require in the view must be set up in the current action before calling +render+.
 
-==== Using +render+ with +:template+
+==== Rendering an Action's Template from Another Controller
 
-What if you want to render a template from an entirely different controller from the one that contains the action code? You can do that with the +:template+ option to +render+, which accepts the full path (relative to +app/views+) of the template to render. For example, if you're running code in an +AdminProductsController+ that lives in +app/controllers/admin+, you can render the results of an action to a template in +app/views/products+ this way:
+What if you want to render a template from an entirely different controller from the one that contains the action code? You can also do that with +render+, which accepts the full path (relative to +app/views+) of the template to render. For example, if you're running code in an +AdminProductsController+ that lives in +app/controllers/admin+, you can render the results of an action to a template in +app/views/products+ this way:
+
+[source, ruby]
+-------------------------------------------------------
+render 'products/show'
+-------------------------------------------------------
+
+Rails knows that this view belongs to a different controller because of the embedded slash character in the string. If you want to be explicit, you can use the +:template+ option (which was required on Rails 2.2 and earlier):
 
 [source, ruby]
 -------------------------------------------------------
 render :template => 'products/show'
 -------------------------------------------------------
 
-==== Using +render+ with +:file+
+==== Rendering an Arbitrary File
 
-If you want to use a view that's entirely outside of your application (perhaps you're sharing views between two Rails applications), you can use the +:file+ option to +render+:
+The +render+ method can also use a view that's entirely outside of your application (perhaps you're sharing views between two Rails applications):
+
+[source, ruby]
+-------------------------------------------------------
+render "/u/apps/warehouse_app/current/app/views/products/show"
+-------------------------------------------------------
+
+Rails determines that this is a file render because of the leading slash character. To be explicit, you can use the +:file+ option (which was required on Rails 2.2 and earlier):
 
 [source, ruby]
 -------------------------------------------------------
@@ -98,7 +142,9 @@ render :file => "/u/apps/warehouse_app/current/app/views/products/show"
 
 The +:file+ option takes an absolute file-system path. Of course, you need to have rights to the view that you're using to render the content.
 
-NOTE: By default, if you use the +:file+ option, the file is rendered without using the current layout. If you want Rails to put the file into the current layout, you need to add the +:layout => true+ option
+NOTE: By default, the file is rendered without using the current layout. If you want Rails to put the file into the current layout, you need to add the +:layout => true+ option.
+
+TIP: If you're running on Microsoft Windows, you should use the +:file+ option to render a file, because Windows filenames do not have the same format as Unix filenames.
 
 ==== Using +render+ with +:inline+
 
@@ -931,10 +977,59 @@ Rails determines the name of the partial to use by looking at the model name in 
 
 In this case, Rails will use the customer or employee partials as appropriate for each member of the collection.
 
+=== Using Nested Layouts
+
+You may find that your application requires a layout that differs slightly from your regular application layout to support one particular controller. Rather than repeating the main layout and editing it, you can accomplish this by using nested layouts (sometimes called sub-templates). Here's an example:
+
+Suppose you have the follow ApplicationController layout:
+
++app/views/layouts/application.erb+
+
+[source, html]
+-------------------------------------------------------
+<html>
+<head>
+  <title><%= @page_title %><title>
+  <% stylesheet_tag 'layout' %>
+  <style type="text/css"><%= yield :stylesheets %></style>
+<head>
+<body>
+  <div id="top_menu">Top menu items here</div>
+  <div id="menu">Menu items here</div>
+  <div id="main"><%= yield %></div>
+</body>
+</html>
+-------------------------------------------------------
+
+On pages generated by NewsController, you want to hide the top menu and add a right menu:
+
++app/views/layouts/news.erb+
+
+[source, html]
+-------------------------------------------------------
+<% content_for :stylesheets do %>
+  #top_menu {display: none}
+  #right_menu {float: right; background-color: yellow; color: black}
+<% end -%>
+<% content_for :main %>
+  <div id="right_menu">Right menu items here</div>
+  <%= yield %>
+  <% end -%>
+<% render :file => 'layouts/application' %>
+-------------------------------------------------------
+
+NOTE: In versions of Rails before Rails 2.3, you should use +render \'layouts/applications\'+ instead of +render :file => \'layouts/applications\'+
+
+That's it. The News views will use the new layout, hiding the top menu and adding a new right menu inside the "content" div.
+
+There are several ways of getting similar results with differents sub-templating schemes using this technique. Note that there is no limit in nesting levels. One can use the +ActionView::render+ method via +render \'layouts/news\'+ to base a new layout on the News layout.
+
 == Changelog ==
 
 http://rails.lighthouseapp.com/projects/16213-rails-guides/tickets/15[Lighthouse ticket]
 
+* December 27, 2008: Merge patch from Rodrigo Rosenfeld Rosas covering subtemplates
+* December 27, 2008: Information on new rendering defaults by link:../authors.html#mgunderloy[Mike Gunderloy] 
 * November 9, 2008: Added partial collection counter by link:../authors.html#mgunderloy[Mike Gunderloy] 
 * November 1, 2008: Added +:js+ option for +render+ by link:../authors.html#mgunderloy[Mike Gunderloy] 
 * October 16, 2008: Ready for publication by link:../authors.html#mgunderloy[Mike Gunderloy] 

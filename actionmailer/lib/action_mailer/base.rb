@@ -213,6 +213,8 @@ module ActionMailer #:nodoc:
   #   * <tt>:password</tt> - If your mail server requires authentication, set the password in this setting.
   #   * <tt>:authentication</tt> - If your mail server requires authentication, you need to specify the authentication type here.
   #     This is a symbol and one of <tt>:plain</tt>, <tt>:login</tt>, <tt>:cram_md5</tt>.
+  #   * <tt>:enable_starttls_auto</tt> - When set to true, detects if STARTTLS is enabled in your SMTP server and starts to use it.
+  #     It works only on Ruby >= 1.8.7 and Ruby >= 1.9. Default is true.
   #
   # * <tt>sendmail_settings</tt> - Allows you to override options for the <tt>:sendmail</tt> delivery method.
   #   * <tt>:location</tt> - The location of the sendmail executable. Defaults to <tt>/usr/sbin/sendmail</tt>.
@@ -230,10 +232,13 @@ module ActionMailer #:nodoc:
   #
   # * <tt>default_charset</tt> - The default charset used for the body and to encode the subject. Defaults to UTF-8. You can also
   #   pick a different charset from inside a method with +charset+.
+  #
   # * <tt>default_content_type</tt> - The default content type used for the main part of the message. Defaults to "text/plain". You
   #   can also pick a different content type from inside a method with +content_type+.
+  #
   # * <tt>default_mime_version</tt> - The default mime version used for the message. Defaults to <tt>1.0</tt>. You
   #   can also pick a different value from inside a method with +mime_version+.
+  #
   # * <tt>default_implicit_parts_order</tt> - When a message is built implicitly (i.e. multiple parts are assembled from templates
   #   which specify the content type in their filenames) this variable controls how the parts are ordered. Defaults to
   #   <tt>["text/html", "text/enriched", "text/plain"]</tt>. Items that appear first in the array have higher priority in the mail client
@@ -252,12 +257,13 @@ module ActionMailer #:nodoc:
     cattr_accessor :logger
 
     @@smtp_settings = {
-      :address        => "localhost",
-      :port           => 25,
-      :domain         => 'localhost.localdomain',
-      :user_name      => nil,
-      :password       => nil,
-      :authentication => nil
+      :address              => "localhost",
+      :port                 => 25,
+      :domain               => 'localhost.localdomain',
+      :user_name            => nil,
+      :password             => nil,
+      :authentication       => nil,
+      :enable_starttls_auto => true,
     }
     cattr_accessor :smtp_settings
 
@@ -669,7 +675,7 @@ module ActionMailer #:nodoc:
         sender = mail['return-path'] || mail.from
 
         smtp = Net::SMTP.new(smtp_settings[:address], smtp_settings[:port])
-        smtp.enable_starttls_auto if smtp.respond_to?(:enable_starttls_auto)
+        smtp.enable_starttls_auto if smtp_settings[:enable_starttls_auto] && smtp.respond_to?(:enable_starttls_auto)
         smtp.start(smtp_settings[:domain], smtp_settings[:user_name], smtp_settings[:password],
                    smtp_settings[:authentication]) do |smtp|
           smtp.sendmail(mail.encoded, sender, destinations)

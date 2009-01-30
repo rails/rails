@@ -7,6 +7,13 @@ module ActionController
       end
     end
 
+    def self.extended(object)
+      object.class_eval do
+        attr_accessor :original_path, :content_type
+        alias_method :local_path, :path
+      end
+    end
+
     # Take the basename of the upload's original filename.
     # This handles the full Windows paths given by Internet Explorer
     # (and perhaps other broken user agents) without affecting

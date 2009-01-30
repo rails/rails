@@ -1,0 +1,133 @@
+Action Mailer Basics
+====================
+
+This guide should provide you with all you need to get started in sending emails from your application, and will also cover how to test your mailers.
+
+== What is Action Mailer?
+Action Mailer allows you to send email from your application using a mailer model and views.
+Yes, that is correct, in Rails, emails are used by creating Models that inherit from ActionMailer::Base. They live alongside other models in /app/models BUT they have views just like controllers that appear alongside other views in app/views.
+
+== Quick walkthrough to creating a Mailer
+Let's say you want to send a welcome email to a user after they signup. Here is how you would go about this:
+
+=== 1. Create the mailer:
+[source, shell]
+-------------------------------------------------------
+./script/generate mailer UserMailer
+exists  app/models/
+create  app/views/user_mailer
+exists  test/unit/
+create  test/fixtures/user_mailer
+create  app/models/user_mailer.rb
+create  test/unit/user_mailer_test.rb
+-------------------------------------------------------
+
+So we got the model, the fixtures, and the tests all created for us
+
+=== 2. Edit the model:
+[source, ruby]
+-------------------------------------------------------
+class UserMailer < ActionMailer::Base
+
+end
+-------------------------------------------------------
+
+Lets add a method called welcome_email, that will send an email to the user's registered email address:
+
+[source, ruby]
+-------------------------------------------------------
+class UserMailer < ActionMailer::Base
+
+  def welcome_email(user)
+    recipients    user.email
+    from          "My Awesome Site Notifications<notifications@example.com>"
+    subject       "Welcome to My Awesome Site"
+    sent_on       Time.now
+    body          {:user => user, :url => "http://example.com/login"}
+    content_type  "text/html"
+  end
+
+end
+-------------------------------------------------------
+
+So what do we have here?
+recipients: who the recipients are, put in an array for multiple, ie, @recipients = ["user1@example.com", "user2@example.com"]
+from: Who the email will appear to come from in the recipients' mailbox
+subject: The subject of the email
+sent_on: Timestamp for the email
+content_type: The content type, by default is text/plain
+
+How about @body[:user]? Well anything you put in the @body hash will appear in the mailer view (more about mailer views below) as an instance variable ready for you to use, ie, in our example the mailer view will have a @user instance variable available for its consumption.
+
+=== 3. Create the mailer view
+Create a file called welcome_email.html.erb in #{RAILS_ROOT}/app/views/user_mailer/ . This will be the template used for the email. This file will be used for html formatted emails. Had we wanted to send text-only emails, the file would have been called welcome_email.txt.erb, and we would have set the content type to text/plain in the mailer model.
+
+The file can look like:
+[source, html]
+-------------------------------------------------------
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html>
+  <head>
+    <meta content='text/html; charset=iso-8859-1' http-equiv='Content-Type' />
+  </head>
+  <body>
+    <h1>Welcome to example.com, <%= @user.first_name %></h1>
+    
+    <p>
+      You have successfully signed up to example.com, and your username is: <%= @user.login %>.<br/>
+      To login to the site, just follow this link: <%= @url %>.
+    </p>
+    <p>Thanks for joining and have a great day!</p>
+  </body>
+</html>
+-------------------------------------------------------
+
+=== 4. Wire it up so that the system sends the email when a user signs up
+There are 3 was to achieve this. One is to send the email from the controller that sends the email, another is to put it in a before_create block in the user model, and the last one is to use an observer on the user model. Whether you use the second or third methods is up to you, but staying away from the first is recommended. Not because it's wrong, but because it keeps your controller clean, and keeps all logic related to the user model within the user model. This way, whichever way a user is created (from a web form, or from an API call, for example), we are guaranteed that the email will be sent.
+
+Edit #{RAILS_ROOT}/config/environment.rb
+[source, ruby]
+-------------------------------------------------------
+# Code that already exists
+
+Rails::Initializer.run do |config|
+
+  # Code that already exists
+
+  config.active_record.observers = :user_observer
+  
+end
+-------------------------------------------------------
+
+There was a bit of a debate on where to put observers. I put them in models, but you can create #{RAILS_ROOT}/app/observers if you like, and add that to your load path. Open #{RAILS_ROOT}/config/environment.rb and make it look like:
+[source, ruby]
+-------------------------------------------------------
+# Code that already exists
+
+Rails::Initializer.run do |config|
+
+  # Code that already exists
+
+  config.load_paths += %W(#{RAILS_ROOT}/app/observers)
+
+  config.active_record.observers = :user_observer
+  
+end
+-------------------------------------------------------
+
+ALMOST THERE :) Now all we need is that danged observer, and we're done:
+Create a file called user_observer in #{RAILS_ROOT}/app/models or #{RAILS_ROOT}/app/observers, and make it look like:
+[source, ruby]
+-------------------------------------------------------
+class UserObserver < ActiveRecord::Observer
+  def after_create(user)
+    UserMailer.deliver_welcome_email(user)
+  end
+end
+-------------------------------------------------------
+
+Notice how we call deliver_welcome_email? Where is that method? Well if you remember, we created a method called welcome_email in UserMailer, right? Well, as part of the "magic" of rails, we deliver the email identified by welcome_email by calling deliver_welcome_email.
+
+That's it! Now whenever your users signup, they will be greeted with a nice welcome email. Next up, we'll talk about how to test a mailer model.
+
+== Mailer Testing

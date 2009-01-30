@@ -154,6 +154,11 @@ ActiveRecord::Schema.define do
     t.string :name
   end
 
+  create_table :goofy_string_id, :force => true, :id => false do |t|
+    t.string :id, :null => false
+    t.string :info
+  end
+
   create_table :items, :force => true do |t|
     t.column :name, :integer
   end
@@ -252,6 +257,7 @@ ActiveRecord::Schema.define do
     t.decimal :world_population, :precision => 10, :scale => 0
     t.decimal :my_house_population, :precision => 2, :scale => 0
     t.decimal :decimal_number_with_default, :precision => 3, :scale => 2, :default => 2.78
+    t.float   :temperature
   end
 
   create_table :orders, :force => true do |t|

@@ -4,20 +4,22 @@ module ActionController #:nodoc:
   # action that sets <tt>flash[:notice] = "Successfully created"</tt> before redirecting to a display action that can
   # then expose the flash to its template. Actually, that exposure is automatically done. Example:
   #
-  #   class WeblogController < ActionController::Base
+  #   class PostsController < ActionController::Base
   #     def create
   #       # save post
   #       flash[:notice] = "Successfully created post"
-  #       redirect_to :action => "display", :params => { :id => post.id }
+  #       redirect_to posts_path(@post)
   #     end
   #
-  #     def display
+  #     def show
   #       # doesn't need to assign the flash notice to the template, that's done automatically
   #     end
   #   end
   #
-  #   display.erb
-  #     <% if flash[:notice] %><div class="notice"><%= flash[:notice] %></div><% end %>
+  #   show.html.erb
+  #     <% if flash[:notice] %>
+  #       <div class="notice"><%= flash[:notice] %></div>
+  #     <% end %>
   #
   # This example just places a string in the flash, but you can put any object in there. And of course, you can put as
   # many as you like at a time too. Just remember: They'll be gone by the time the next action has been performed.

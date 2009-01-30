@@ -200,6 +200,6 @@ class DatabaseConnectedJsonEncodingTest < ActiveRecord::TestCase
       2 => @mary
     }
 
-    assert_equal %({1: {"name": "David"}}), authors_hash.to_json(:only => [1, :name])
+    assert_equal %({"1": {"name": "David"}}), authors_hash.to_json(:only => [1, :name])
   end
 end

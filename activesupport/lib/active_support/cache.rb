@@ -10,6 +10,10 @@ module ActiveSupport
     autoload :MemCacheStore, 'active_support/cache/mem_cache_store'
     autoload :CompressedMemCacheStore, 'active_support/cache/compressed_mem_cache_store'
 
+    module Strategy
+      autoload :LocalCache, 'active_support/cache/strategy/local_cache'
+    end
+
     # Creates a new CacheStore object according to the given options.
     #
     # If no arguments are passed to this method, then a new

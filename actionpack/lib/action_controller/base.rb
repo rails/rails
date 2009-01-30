@@ -301,10 +301,7 @@ module ActionController #:nodoc:
     # A YAML parser is also available and can be turned on with:
     #
     #   ActionController::Base.param_parsers[Mime::YAML] = :yaml
-    @@param_parsers = { Mime::MULTIPART_FORM   => :multipart_form,
-                        Mime::URL_ENCODED_FORM => :url_encoded_form,
-                        Mime::XML              => :xml_simple,
-                        Mime::JSON             => :json }
+    @@param_parsers = {}
     cattr_accessor :param_parsers
 
     # Controls the default charset for all renders.
@@ -647,7 +644,7 @@ module ActionController #:nodoc:
       end
 
       def session_enabled?
-        request.session_options && request.session_options[:disabled] != false
+        ActiveSupport::Deprecation.warn("Sessions are now lazy loaded. So if you don't access them, consider them disabled.", caller)
       end
 
       self.view_paths = []
@@ -1318,10 +1315,6 @@ module ActionController #:nodoc:
         "#{request.protocol}#{request.host}#{request.request_uri}"
       end
 
-      def close_session
-        @_session.close if @_session && @_session.respond_to?(:close)
-      end
-
       def default_template(action_name = self.action_name)
         self.view_paths.find_template(default_template_name(action_name), default_template_format)
       end
@@ -1345,15 +1338,14 @@ module ActionController #:nodoc:
       end
 
       def process_cleanup
-        close_session
       end
   end
 
   Base.class_eval do
     [ Filters, Layout, Benchmarking, Rescue, Flash, MimeResponds, Helpers,
       Cookies, Caching, Verification, Streaming, SessionManagement,
-      HttpAuthentication::Basic::ControllerMethods, RecordIdentifier,
-      RequestForgeryProtection, Translation
+      HttpAuthentication::Basic::ControllerMethods, HttpAuthentication::Digest::ControllerMethods,
+      RecordIdentifier, RequestForgeryProtection, Translation
     ].each do |mod|
       include mod
     end

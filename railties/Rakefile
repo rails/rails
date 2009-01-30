@@ -272,7 +272,7 @@ Rake::RDocTask.new { |rdoc|
   rdoc.rdoc_files.include('lib/commands/**/*.rb')
 }
 
-desc "Generate guides for the framework"
+desc "Generate guides for the framework. Use ONLY='migrations i18n.txt' option to build just specific ones."
 task :guides do
   require 'mizuho/generator'
 
@@ -289,8 +289,18 @@ task :guides do
 
   indexless = ['index.txt', 'authors.txt']
 
-  # Traverse all entries in doc/guides/source/
-  Dir.entries(source).each do |entry|
+  # Traverse all entries in doc/guides/source/ or only those specified in ONLY env variable
+  entries = Dir.entries(source)
+  if ENV['ONLY']
+    only = ENV['ONLY'].split(' ')
+    unless only.empty?
+      entries = entries.select do |e|
+        only.include?(e) || only.include?(e.sub(/\.txt$/, ''))
+      end
+    end
+  end
+
+  entries.each do |entry|
     next if ignore.include?(entry)
 
     if File.directory?(File.join(source, entry))
