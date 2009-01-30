@@ -51,12 +51,6 @@
             
               <li><a href="#_naming_conventions">Naming Conventions</a></li>
             
-            </ul>
-          </li>
-          <li>
-          <a href="#_stoped_here">STOPED HERE</a>
-            <ul>
-            
               <li><a href="#_schema_conventions">Schema Conventions</a></li>
             
             </ul>
@@ -219,124 +213,94 @@ puts p<span style="color: #990000">.</span>name <span style="font-style: italic"
 <div class="sectionbody">
 <div class="paragraph"><p>When writing applications using other programming languages or frameworks, it may be necessary to write a lot of configuration code. This is particulary true for ORM frameworks in general. However, if you follow the conventions adopted by Rails, you&#8217;ll need to write very little configuration (in some case no configuration at all) when creating ActiveRecord models. The idea is that if you configure your applications in the very same way most of the times then this should be the default way. In this cases, explicity configuration would be needed only in those cases where you can&#8217;t follow the conventions for any reason.</p></div>
 <h3 id="_naming_conventions">6.1. Naming Conventions</h3>
-<div class="paragraph"><p>By default, ActiveRecord uses some naming conventions to find out how the mapping between models and database tables should be created. It uses two basic strategies to convert between class names and table names:</p></div>
-<h4 id="_pluralization">6.1.1. Pluralization</h4>
-<div class="paragraph"><p>Rails will pluralize your class names to find the respective database table. So, for a class <tt>Book</tt>, you should have a database table called <strong>books</strong>. The Rails pluralization mechanisms are very powerful, being capable to pluralize (and singularize) both regular and irregular words.</p></div>
-</div>
-<h2 id="_stoped_here">7. STOPED HERE</h2>
-<div class="sectionbody">
+<div class="paragraph"><p>By default, ActiveRecord uses some naming conventions to find out how the mapping between models and database tables should be created. Rails will pluralize your class names to find the respective database table. So, for a class <tt>Book</tt>, you should have a database table called <strong>books</strong>. The Rails pluralization mechanisms are very powerful, being capable to pluralize (and singularize) both regular and irregular words. When using class names composed of two or more words, the model class name should follow the Ruby conventions, using the camelCase form, while the table name must contain the words separated by underscores. Examples:</p></div>
 <div class="paragraph"><p>Database Table - Plural with underscores separating words i.e. (book_clubs)
-Model Class - Singular with the first letter of each word capitalized i.e. (BookClub)
-Here are some additional Examples:</p></div>
+Model Class - Singular with the first letter of each word capitalized i.e. (BookClub)</p></div>
 <div class="tableblock">
 <table rules="all"
-frame="hsides"
+width="60%"
+frame="border"
 cellspacing="0" cellpadding="4">
-<col width="160" />
-<col width="182" />
-<thead>
-  <tr>
-    <th align="left">
-    Model / Class
-    </th>
-    <th align="left">
-    Table / Schema
-    </th>
-  </tr>
+<col width="50%" />
+<col width="50%" />
+<thead valign="top">
+<tr>
+<th align="left">Model / Class </th>
+<th align="left">Table / Schema</th>
+</tr>
 </thead>
 <tbody valign="top">
-  <tr>
-    <td align="left">
-    Post
-    </td>
-    <td align="left">
-    posts
-    </td>
-  </tr>
-  <tr>
-    <td align="left">
-    LineItem
-    </td>
-    <td align="left">
-    line_items
-    </td>
-  </tr>
-  <tr>
-    <td align="left">
-    Deer
-    </td>
-    <td align="left">
-    deer
-    </td>
-  </tr>
-  <tr>
-    <td align="left">
-    Mouse
-    </td>
-    <td align="left">
-    mice
-    </td>
-  </tr>
-  <tr>
-    <td align="left">
-    Person
-    </td>
-    <td align="left">
-    people
-    </td>
-  </tr>
+<tr>
+<td align="left"><p class="table">Post</p></td>
+<td align="left"><p class="table">posts</p></td>
+</tr>
+<tr>
+<td align="left"><p class="table">LineItem</p></td>
+<td align="left"><p class="table">line_items</p></td>
+</tr>
+<tr>
+<td align="left"><p class="table">Deer</p></td>
+<td align="left"><p class="table">deer</p></td>
+</tr>
+<tr>
+<td align="left"><p class="table">Mouse</p></td>
+<td align="left"><p class="table">mice</p></td>
+</tr>
+<tr>
+<td align="left"><p class="table">Person</p></td>
+<td align="left"><p class="table">people</p></td>
+</tr>
 </tbody>
 </table>
 </div>
-<h3 id="_schema_conventions">7.1. Schema Conventions</h3>
-<div class="paragraph"><p>To take advantage of some of the magic of Rails database tables must be modeled
-to reflect the ORM decisions that Rails makes.</p></div>
-<div class="tableblock">
-<table rules="all"
-frame="hsides"
-cellspacing="0" cellpadding="4">
-<col width="160" />
-<col width="937" />
-<thead>
-  <tr>
-    <th align="left">
-    Convention
-    </th>
-    <th align="left">
-    </th>
-  </tr>
-</thead>
-<tbody valign="top">
-  <tr>
-    <td align="left">
-    Foreign keys
-    </td>
-    <td align="left">
-    These fields are named table_id i.e. (item_id, order_id)
-    </td>
-  </tr>
-  <tr>
-    <td align="left">
-    Primary Key
-    </td>
-    <td align="left">
-    Rails automatically creates a primary key column named "id" unless told otherwise.
-    </td>
-  </tr>
-</tbody>
-</table>
-</div>
-<h4 id="_magic_field_names">7.1.1. Magic Field Names</h4>
-<div class="paragraph"><p>When these optional fields are used in your database table definition they give the Active Record
-instance additional features.</p></div>
+<h3 id="_schema_conventions">6.2. Schema Conventions</h3>
+<div class="paragraph"><p>ActiveRecord uses naming conventions for the columns in database tables, depending on the purpose of these columns.</p></div>
+<div class="ulist"><ul>
+<li>
+<p>
+<strong>Foreign keys</strong> - These fields should be named following the pattern table_id i.e. (item_id, order_id). These are the fields that ActiveRecord will look for when you create associations between your models.
+</p>
+</li>
+<li>
+<p>
+<strong>Primary keys</strong> - By default, ActiveRecord will use a integer column named "id" as the table&#8217;s primary key. When using <a href="http://guides.rails.info/migrations.html">Rails Migrations</a> to create your tables, this column will be automaticaly created.
+</p>
+</li>
+</ul></div>
+<div class="paragraph"><p>There are also some optional column names that will create additional features to ActiveRecord instances:</p></div>
+<div class="ulist"><ul>
+<li>
+<p>
+<strong>created_at / created_on</strong> - ActiveRecord will store the current date and time to this field when creating the record.
+</p>
+</li>
+<li>
+<p>
+<strong>updated_at / updated_on</strong> - ActiveRecord will store the current date and times to this field when updating the record.
+</p>
+</li>
+<li>
+<p>
+<strong>lock_version</strong> - Adds <a href="http://api.rubyonrails.com/classes/ActiveRecord/Locking.html">optimistic locking</a> to a model.
+</p>
+</li>
+<li>
+<p>
+<strong>type</strong> - Specifies that the model uses <a href="http://api.rubyonrails.com/classes/ActiveRecord/Base.html">Single Table Inheritance</a>
+</p>
+</li>
+<li>
+<p>
+<strong>(table_name)_count</strong> - Used to cache the number of belonging objects on associations. For example, a <tt>comments_count</tt> column in a <tt>Post</tt> class that has many instances of <tt>Comment</tt> will cache the number of existent comments for each post.
+</p>
+</li>
+</ul></div>
 <div class="admonitionblock">
 <table><tr>
 <td class="icon">
 <img src="./images/icons/note.png" alt="Note" />
 </td>
-<td class="content">While these column names are optional they are in fact reserved by ActiveRecord. Steer clear of reserved keywords unless you want the extra functionality. For example, "type" is a reserved keyword
-used to designate a table using Single Table Inheritance. If you are not using STI, try an analogous
-keyword like "context", that may still accurately describe the data you are modeling.</td>
+<td class="content">While these column names are optional they are in fact reserved by ActiveRecord. Steer clear of reserved keywords unless you want the extra functionality. For example, "type" is a reserved keyword used to designate a table using Single Table Inheritance. If you are not using STI, try an analogous keyword like "context", that may still accurately describe the data you are modeling.</td>
 </tr></table>
 </div>
 <div class="tableblock">
@@ -463,11 +427,11 @@ http://www.gnu.org/software/src-highlite -->
 <div class="paragraph"><p>Rails further extends this model by giving each ActiveRecord a way of describing the variety of ways records are associated with one another. We will touch on some of these associations later in the guide but I encourage readers who are interested to read the guide to ActiveRecord associations for an in-depth explanation of the variety of ways rails can model associations.
 - Associations between objects controlled by meta-programming macros.</p></div>
 </div>
-<h2 id="_philosophical_approaches_amp_common_conventions">8. Philosophical Approaches &amp; Common Conventions</h2>
+<h2 id="_philosophical_approaches_amp_common_conventions">7. Philosophical Approaches &amp; Common Conventions</h2>
 <div class="sectionbody">
 <div class="paragraph"><p>Rails has a reputation of being a zero-config  framework which means that it aims to get you off the ground with as little pre-flight checking as possible. This speed benefit is achieved by following “Convention over Configuration”, which is to say that if you agree to live with the defaults then you benefit from a the inherent speed-boost. As Courtneay Gasking put it to me once “You don’t want to off-road on Rails”. ActiveRecord is no different, while it’s possible to override or subvert any of the conventions of AR, unless you have a good reason for doing so you will probably be happy with the defaults. The following is a list of the common conventions of ActiveRecord</p></div>
 </div>
-<h2 id="_activerecord_magic">9. ActiveRecord Magic</h2>
+<h2 id="_activerecord_magic">8. ActiveRecord Magic</h2>
 <div class="sectionbody">
 <div class="ulist"><ul>
 <li>
@@ -482,7 +446,7 @@ updates
 </li>
 </ul></div>
 </div>
-<h2 id="_how_activerecord_maps_your_database">10. How ActiveRecord Maps your Database.</h2>
+<h2 id="_how_activerecord_maps_your_database">9. How ActiveRecord Maps your Database.</h2>
 <div class="sectionbody">
 <div class="ulist"><ul>
 <li>
@@ -497,10 +461,10 @@ overriding conventions
 </li>
 </ul></div>
 </div>
-<h2 id="_growing_your_database_relationships_naturally">11. Growing Your Database Relationships Naturally</h2>
+<h2 id="_growing_your_database_relationships_naturally">10. Growing Your Database Relationships Naturally</h2>
 <div class="sectionbody">
 </div>
-<h2 id="_attributes">12. Attributes</h2>
+<h2 id="_attributes">11. Attributes</h2>
 <div class="sectionbody">
 <div class="ulist"><ul>
 <li>
@@ -522,7 +486,7 @@ dirty records
 </li>
 </ul></div>
 </div>
-<h2 id="_validations_amp_callbacks">13. Validations &amp; Callbacks</h2>
+<h2 id="_validations_amp_callbacks">12. Validations &amp; Callbacks</h2>
 <div class="sectionbody">
 <div class="paragraph"><p>see the Validations &amp; Callbacks guide for more info.</p></div>
 </div>
