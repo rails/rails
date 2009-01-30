@@ -32,6 +32,7 @@ module ActiveSupport
   autoload :BufferedLogger, 'active_support/buffered_logger'
   autoload :Cache, 'active_support/cache'
   autoload :Callbacks, 'active_support/callbacks'
+  autoload :ConcurrentHash, 'active_support/concurrent_hash'
   autoload :Deprecation, 'active_support/deprecation'
   autoload :Duration, 'active_support/duration'
   autoload :Gzip, 'active_support/gzip'

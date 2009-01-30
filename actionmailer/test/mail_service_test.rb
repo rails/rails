@@ -566,13 +566,31 @@ class ActionMailerTest < Test::Unit::TestCase
     TestMailer.deliver_signed_up(@recipient)
   end
 
+  class FakeLogger
+    attr_reader :info_contents, :debug_contents
+    
+    def initialize
+      @info_contents, @debug_contents = "", ""
+    end
+    
+    def info(str)
+      @info_contents << str
+    end
+    
+    def debug(str)
+      @debug_contents << str
+    end
+  end
+
   def test_delivery_logs_sent_mail
     mail = TestMailer.create_signed_up(@recipient)
-    logger = mock()
-    logger.expects(:info).with("Sent mail to #{@recipient}")
-    logger.expects(:debug).with("\n#{mail.encoded}")
-    TestMailer.logger = logger
+    # logger = mock()
+    # logger.expects(:info).with("Sent mail to #{@recipient}")
+    # logger.expects(:debug).with("\n#{mail.encoded}")
+    TestMailer.logger = FakeLogger.new
     TestMailer.deliver_signed_up(@recipient)
+    assert(TestMailer.logger.info_contents =~ /Sent mail to #{@recipient}/)
+    assert_equal(TestMailer.logger.debug_contents, "\n#{mail.encoded}")
   end
 
   def test_unquote_quoted_printable_subject

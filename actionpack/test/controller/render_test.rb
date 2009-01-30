@@ -345,7 +345,7 @@ class TestController < ActionController::Base
   end
 
   def accessing_params_in_template_with_layout
-    render :layout => nil, :inline =>  "Hello: <%= params[:name] %>"
+    render :layout => true, :inline =>  "Hello: <%= params[:name] %>"
   end
 
   def render_with_explicit_template
@@ -1231,7 +1231,7 @@ class RenderTest < ActionController::TestCase
     assert !@response.headers.include?('Content-Length')
     assert_response :no_content
 
-    ActionController::StatusCodes::SYMBOL_TO_STATUS_CODE.each do |status, code|
+    ActionDispatch::StatusCodes::SYMBOL_TO_STATUS_CODE.each do |status, code|
       get :head_with_symbolic_status, :status => status.to_s
       assert_equal code, @response.response_code
       assert_response status
@@ -1239,7 +1239,7 @@ class RenderTest < ActionController::TestCase
   end
 
   def test_head_with_integer_status
-    ActionController::StatusCodes::STATUS_CODES.each do |code, message|
+    ActionDispatch::StatusCodes::STATUS_CODES.each do |code, message|
       get :head_with_integer_status, :status => code.to_s
       assert_equal message, @response.message
     end
@@ -1620,7 +1620,7 @@ class RenderingLoggingTest < ActionController::TestCase
     @controller.logger = MockLogger.new
     get :layout_test
     logged = @controller.logger.logged.find_all {|l| l =~ /render/i }
-    assert_equal "Rendering template within layouts/standard", logged[0]
-    assert_equal "Rendering test/hello_world", logged[1]
+    assert_equal "Rendering test/hello_world", logged[0]
+    assert_equal "Rendering template within layouts/standard", logged[1]
   end
 end

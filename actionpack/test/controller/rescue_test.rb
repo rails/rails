@@ -393,7 +393,7 @@ class RescueControllerTest < ActionController::TestCase
   def test_rescue_dispatcher_exceptions_without_request_set
     @request.env['REQUEST_URI'] = '/no_way'
     response = RescueController.call_with_exception(@request.env, ActionController::RoutingError.new("Route not found"))
-    assert_kind_of ActionController::Response, response
+    assert_kind_of ActionDispatch::Response, response
     assert_equal "no way", response.body
   end
 

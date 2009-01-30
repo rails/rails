@@ -437,7 +437,7 @@ class MimeControllerTest < ActionController::TestCase
         unless args.empty?
           @action = args.first[:action]
         end
-        response.body = "#{@action} - #{@template.template_format}"
+        response.body = "#{@action} - #{@template.formats}"
       end
     end
 

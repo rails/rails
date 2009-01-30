@@ -40,7 +40,7 @@ module ActiveRecord
   #
   # The example SqlBypass class is a generic SQL session store.  You may
   # use it as a basis for high-performance database-specific stores.
-  class SessionStore < ActionController::Session::AbstractStore
+  class SessionStore < ActionDispatch::Session::AbstractStore
     # The default Active Record class.
     class Session < ActiveRecord::Base
       ##

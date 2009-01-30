@@ -3,7 +3,7 @@ require 'abstract_unit'
 class JavaScriptHelperTest < ActionView::TestCase
   tests ActionView::Helpers::JavaScriptHelper
 
-  attr_accessor :template_format, :output_buffer
+  attr_accessor :formats, :output_buffer
 
   def setup
     @template = self
