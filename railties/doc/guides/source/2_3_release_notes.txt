@@ -228,14 +228,14 @@ Rails now keeps a per-request local cache of requests, cutting down on unnecessa
 
 Action View in Rails 2.3 picks up improvements to +render+, more flexible prompts for the date select helpers, and a speedup in asset caching, among other things.
 
-=== Smart Rendering
+=== Smart Rendering of Partials
 
 The render method has been getting smarter over the years, and it's even smarter now. If you have an object or a collection and an appropriate partial, and the naming matches up, you can now just render the object and things will work. For example, in Rails 2.3, these render calls will work in your view (assuming sensible naming):
 
 [source, ruby]
 -------------------------------------------------------
-<% render @article %>
-<% render @articles %>
+render @article  # Equivalent of render :partial => 'articles/_article', :object => @article
+render @articles # Equivalent of render :partial => 'articles/_article', :collection => @articles
 -------------------------------------------------------
 
 * More Information: link:http://ryandaigle.com/articles/2008/11/20/what-s-new-in-edge-rails-render-stops-being-high-maintenance[What's New in Edge Rails: render Stops Being High-Maintenance]

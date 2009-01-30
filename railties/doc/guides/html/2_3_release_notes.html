@@ -89,7 +89,7 @@
           <a href="#_action_view">Action View</a>
             <ul>
             
-              <li><a href="#_smart_rendering">Smart Rendering</a></li>
+              <li><a href="#_smart_rendering_of_partials">Smart Rendering of Partials</a></li>
             
               <li><a href="#_prompts_for_date_select_helpers">Prompts for Date Select Helpers</a></li>
             
@@ -553,15 +553,15 @@ You can now use symbols for the <tt>:type</tt> option of <tt>send_file</tt> and 
 <h2 id="_action_view">5. Action View</h2>
 <div class="sectionbody">
 <div class="paragraph"><p>Action View in Rails 2.3 picks up improvements to <tt>render</tt>, more flexible prompts for the date select helpers, and a speedup in asset caching, among other things.</p></div>
-<h3 id="_smart_rendering">5.1. Smart Rendering</h3>
+<h3 id="_smart_rendering_of_partials">5.1. Smart Rendering of Partials</h3>
 <div class="paragraph"><p>The render method has been getting smarter over the years, and it&#8217;s even smarter now. If you have an object or a collection and an appropriate partial, and the naming matches up, you can now just render the object and things will work. For example, in Rails 2.3, these render calls will work in your view (assuming sensible naming):</p></div>
 <div class="listingblock">
 <div class="content"><!-- Generator: GNU source-highlight 2.9
 by Lorenzo Bettini
 http://www.lorenzobettini.it
 http://www.gnu.org/software/src-highlite -->
-<pre><tt><span style="color: #FF0000">&lt;% render @article %&gt;</span>
-<span style="color: #FF0000">&lt;% render @articles %&gt;</span></tt></pre></div></div>
+<pre><tt>render <span style="color: #009900">@article</span>  <span style="font-style: italic"><span style="color: #9A1900"># Equivalent of render :partial =&gt; 'articles/_article', :object =&gt; @article</span></span>
+render <span style="color: #009900">@articles</span> <span style="font-style: italic"><span style="color: #9A1900"># Equivalent of render :partial =&gt; 'articles/_article', :collection =&gt; @articles</span></span></tt></pre></div></div>
 <div class="ulist"><ul>
 <li>
 <p>
