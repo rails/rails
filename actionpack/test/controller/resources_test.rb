@@ -942,19 +942,6 @@ class ResourcesTest < ActionController::TestCase
     end
   end
 
-  def test_nested_resource_inherits_only_show_action
-    with_routing do |set|
-      set.draw do |map|
-        map.resources :products, :only => :show do |product|
-          product.resources :images
-        end
-      end
-
-      assert_resource_allowed_routes('images', { :product_id => '1' },                    { :id => '2' }, :show, [:index, :new, :create, :edit, :update, :destroy], 'products/1/images')
-      assert_resource_allowed_routes('images', { :product_id => '1', :format => 'xml' },  { :id => '2' }, :show, [:index, :new, :create, :edit, :update, :destroy], 'products/1/images')
-    end
-  end
-
   def test_nested_resource_has_only_show_and_member_action
     with_routing do |set|
       set.draw do |map|
@@ -971,7 +958,7 @@ class ResourcesTest < ActionController::TestCase
     end
   end
 
-  def test_nested_resource_ignores_only_option
+  def test_nested_resource_does_not_inherit_only_option
     with_routing do |set|
       set.draw do |map|
         map.resources :products, :only => :show do |product|
@@ -984,7 +971,20 @@ class ResourcesTest < ActionController::TestCase
     end
   end
 
-  def test_nested_resource_ignores_except_option
+  def test_nested_resource_does_not_inherit_only_option_by_default
+    with_routing do |set|
+      set.draw do |map|
+        map.resources :products, :only => :show do |product|
+          product.resources :images
+        end
+      end
+
+      assert_resource_allowed_routes('images', { :product_id => '1' },                    { :id => '2' }, [:index, :new, :create, :show, :edit, :update, :destory], [], 'products/1/images')
+      assert_resource_allowed_routes('images', { :product_id => '1', :format => 'xml' },  { :id => '2' }, [:index, :new, :create, :show, :edit, :update, :destroy], [], 'products/1/images')
+    end
+  end
+
+  def test_nested_resource_does_not_inherit_except_option
     with_routing do |set|
       set.draw do |map|
         map.resources :products, :except => :show do |product|
@@ -994,6 +994,19 @@ class ResourcesTest < ActionController::TestCase
 
       assert_resource_allowed_routes('images', { :product_id => '1' },                    { :id => '2' }, :destroy, [:index, :new, :create, :show, :edit, :update], 'products/1/images')
       assert_resource_allowed_routes('images', { :product_id => '1', :format => 'xml' },  { :id => '2' }, :destroy, [:index, :new, :create, :show, :edit, :update], 'products/1/images')
+    end
+  end
+
+  def test_nested_resource_does_not_inherit_except_option_by_default
+    with_routing do |set|
+      set.draw do |map|
+        map.resources :products, :except => :show do |product|
+          product.resources :images
+        end
+      end
+
+      assert_resource_allowed_routes('images', { :product_id => '1' },                    { :id => '2' }, [:index, :new, :create, :show, :edit, :update, :destroy], [], 'products/1/images')
+      assert_resource_allowed_routes('images', { :product_id => '1', :format => 'xml' },  { :id => '2' }, [:index, :new, :create, :show, :edit, :update, :destroy], [], 'products/1/images')
     end
   end
 
