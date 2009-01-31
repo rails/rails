@@ -308,7 +308,11 @@ module ActionController
 
           ActionController::Base.clear_last_instantiation!
 
-          app = Rack::Lint.new(@application)
+          app = @application
+          # Rack::Lint doesn't accept String headers or bodies in Ruby 1.9
+          unless RUBY_VERSION >= '1.9.0' && Rack.release <= '0.9.0'
+            app = Rack::Lint.new(app)
+          end
 
           status, headers, body = app.call(env)
           @request_count += 1
