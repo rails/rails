@@ -1,7 +1,7 @@
 Ruby on Rails 2.3 Release Notes
 ===============================
 
-Rails 2.3 delivers a variety of new and improved features, including pervasive Rack integration, refreshed support for Rails Engines, nested transactions for Active Record, dynamic and default scopes, unified rendering, more efficient routing, application templates, and quiet backtraces. This list covers the major upgrades, but doesn't include every little bug fix and change. If you want to see everything, check out the link:http://github.com/rails/rails/commits/master[list of commits] in the main Rails repository on GitHub.
+Rails 2.3 delivers a variety of new and improved features, including pervasive Rack integration, refreshed support for Rails Engines, nested transactions for Active Record, dynamic and default scopes, unified rendering, more efficient routing, application templates, and quiet backtraces. This list covers the major upgrades, but doesn't include every little bug fix and change. If you want to see everything, check out the link:http://github.com/rails/rails/commits/master[list of commits] in the main Rails repository on GitHub or review the +CHANGELOG+ files for the individual Rails components.
 
 == Application Architecture
 
@@ -20,7 +20,7 @@ Here's a summary of the rack-related changes:
 
 * +script/server+ has been switched to use Rack, which means it supports any Rack compatible server. +script/server+ will also pick up a rackup configuration file if one exists. By default, it will look for a +config.ru+ file, but you can override this with the +-c+ switch.
 * The FCGI handler goes through Rack
-* ActionController::Dispatcher maintains its own default middleware stack. Middlewares can be injected in, reordered, and removed. The stack is compiled into a chain on boot. You can configure the middleware stack in +environment.rb+
+* +ActionController::Dispatcher+ maintains its own default middleware stack. Middlewares can be injected in, reordered, and removed. The stack is compiled into a chain on boot. You can configure the middleware stack in +environment.rb+
 * The +rake middleware+ task has been added to inspect the middleware stack. This is useful for debugging the order of the middleware stack.
 * The integration test runner has been modified to execute the entire middleware and application stack. This makes integration tests perfect for testing Rack middleware.
 * +ActionController::CGIHandler+ is a backwards compatible CGI wrapper around Rack. The +CGIHandler+ is meant to take an old CGI object and converts its environment information into a Rack compatible form.
@@ -76,7 +76,7 @@ Nested transactions let you roll back an inner transaction without affecting the
 
 === Dynamic Scopes
 
-You know about dynamic finders in Rails (which allow you to concoct methods like +find_by_color_and_flavor+ on the fly) and named scopes (which allow you to encapsulate reusable query conditions into friendly names like +currently_active+). Well, now you can have dynamic scope methods. The idea is to put together syntax that allows filtering on the fly <i>and</i> method chaining. For example:
+You know about dynamic finders in Rails (which allow you to concoct methods like +find_by_color_and_flavor+ on the fly) and named scopes (which allow you to encapsulate reusable query conditions into friendly names like +currently_active+). Well, now you can have dynamic scope methods. The idea is to put together syntax that allows filtering on the fly _and_ method chaining. For example:
 
 [source, ruby]
 -------------------------------------------------------
@@ -134,15 +134,22 @@ That worked in Rails 2.1, fails in Rails 2.2, and will now work again in Rails 2
 
 * Lead Contributor: link:http://www.spacevatican.org/[Frederick Cheung]
 
+=== Reconnecting MySQL Connections
+
+MySQL supports a reconnect flag in its connections - if set to true, then the client will try reconnecting to the server before giving up in case of a lost connection. You can now set +reconnect = true+ for your MySQL connections in +database.yml+ to get this behavior from a Rails application. The default is +false+, so the behavior of existing applications doesn't change.
+
+* Lead Contributor: link:http://twitter.com/dubek[Dov Murik]
+
 === Other Active Record Changes
 
-* An extra +AS+ was removed from the code for has_and_belongs_to_many preloading, making it work better for some databases.
+* An extra +AS+ was removed from the generated SQL for has_and_belongs_to_many preloading, making it work better for some databases.
 * +ActiveRecord::Base#new_record?+ now returns false rather than nil when confronted with an existing record.
 * A bug in quoting table names in some +has_many :through+ associations was fixed.
 * You can now specify a particular timestamp for +updated_at+ timestamps: +cust = Customer.create(:name => "ABC Industries", :updated_at => 1.day.ago)+ 
 * Better error messages on failed +find_by_attribute!+ calls.
 * Active Record's +to_xml+ support gets just a little bit more flexible with the addition of a +:camelize+ option.
 * A bug in canceling callbacks from +before_update+ or +before_create_ was fixed.
+* Rake tasks for testing databases via JDBC have been added.
 
 == Action Controller
 
@@ -168,7 +175,7 @@ render 'other_controller/action'
 render 'show'
 render :show
 -------------------------------------------------------
-Rails chooses between file, template, and action depending on whether there is a leading slash, an embedded slash, or no slash at all in what's to be rendered. Note that you can also use a symbol instead of a string when rendering an action. Other rendering styles (+:inline, :text, :update, :nothing, :json, :xml, :js+) still require an explicit option.
+Rails chooses between file, template, and action depending on whether there is a leading slash, an embedded slash, or no slash at all in what's to be rendered. Note that you can also use a symbol instead of a string when rendering an action. Other rendering styles (+:inline+, +:text+, +:update+, +:nothing+, +:json+, +:xml+, +:js+) still require an explicit option.
 
 === Application Controller Renamed
 
@@ -178,11 +185,38 @@ If you're one of the people who has always been bothered by the special-case nam
  - link:http://afreshcup.com/2008/11/17/rails-2x-the-death-of-applicationrb/[The Death of Application.rb]    
  - link:http://ryandaigle.com/articles/2008/11/19/what-s-new-in-edge-rails-application-rb-duality-is-no-more[What's New in Edge Rails: Application.rb Duality is no More]
 
+=== HTTP Digest Authentication Support
+
+Rails now has built-in support for HTTP digest authentication. To use it, you call +authenticate_or_request_with_http_digest+ with a block that returns the user’s password (which is then hashed and compared against the transmitted credentials):
+
+[source, ruby]
+-------------------------------------------------------
+class PostsController < ApplicationController
+  Users = {"dhh" => "secret"}
+  before_filter :authenticate
+
+  def secret
+    render :text => "Password Required!" 
+  end
+
+  private
+  def authenticate
+    realm = "Application" 
+    authenticate_or_request_with_http_digest(realm) do |name|
+      Users[name]
+    end
+  end
+end
+-------------------------------------------------------
+
+* Lead Contributor: link:http://www.kellogg-assoc.com/[Gregg Kellogg]
+* More Information: link:http://ryandaigle.com/articles/2009/1/30/what-s-new-in-edge-rails-http-digest-authentication[What's New in Edge Rails: HTTP Digest Authentication]
+
 === More Efficient Routing
 
 There are a couple of significant routing changes in Rails 2.3. The +formatted_+ route helpers are gone, in favor just passing in +:format+ as an option. This cuts down the route generation process by 50% for any resource - and can save a substantial amount of memory (up to 100MB on large applications). If your code uses the +formatted_+ helpers, it will still work for the time being - but that behavior is deprecated and your application will be more efficient if you rewrite those routes using the new standard. Another big change is that Rails now supports multiple routing files, not just routes.rb. You can use +RouteSet#add_configuration_file+ to bring in more routes at any time - without clearing the currently-loaded routes. While this change is most useful for Engines, you can use it in any application that needs to load routes in batches.
 
-Lead Contributors: link:http://blog.hungrymachine.com/[Aaron Batalion] and link:http://www.loudthinking.com/[David Heinemeier Hansson]
+Lead Contributors: link:http://blog.hungrymachine.com/[Aaron Batalion]
 
 === Rack-based Lazy-loaded Sessions
 
@@ -216,11 +250,15 @@ Rails now keeps a per-request local cache of requests, cutting down on unnecessa
 
 * Lead Contributor: link:http://www.motionstandingstill.com/[Nahum Wild]
 
+=== Localized Views
+
+Rails can now provide localized views, depending on the locale that you have set. For example, suppose you have a +Posts+ controller with a +show+ action. By default, this will render +app/views/posts/show.html.erb+. But if you set +I18n.locale = :da+, it will render +app/views/posts/show.da.html.erb+. If the localized template isn't present, the undecorated version will be used. Rails also includes +I18n#available_locales+ and +I18n::SimpleBackend#available_locales+, which return an array of the translations that are available in the current Rails project. 
+
 === Other Action Controller Changes
 
 * ETag handling has been cleaned up a bit: Rails will now skip sending an ETag header when there's no body to the response or when sending files with +send_file+.
 * The fact that Rails checks for IP spoofing can be a nuisance for sites that do heavy traffic with cell phones, because their proxies don't generally set things up right. If that's you, you can now set +ActionController::Base.ip_spoofing_check = false+ to disable the check entirely. 
-* ActionController::Dispatcher now implements its own middleware stack, which you can see by running +rake middleware+. 
+* +ActionController::Dispatcher+ now implements its own middleware stack, which you can see by running +rake middleware+. 
 * Cookie sessions now have persistent session identifiers, with API compatibility with the server-side stores. 
 * You can now use symbols for the +:type+ option of +send_file+ and +send_data+, like this: +send_file("fabulous.png", :type => :png)+. 
 
@@ -267,6 +305,27 @@ You're likely familiar with Rails' practice of adding timestamps to static asset
 Asset hosts get more flexible in edge Rails with the ability to declare an asset host as a specific object that responds to a call. This allows you to to implement any complex logic you need in your asset hosting.
 
 * More Information: link:http://github.com/dhh/asset-hosting-with-minimum-ssl/tree/master[asset-hosting-with-minimum-ssl]
+
+=== grouped_options_for_select Helper Method
+
+Action View already haD a bunch of helpers to aid in generating select controls, but now there's one more: +grouped_options_for_select+. This one accepts an array or hash of strings, and converts them into a string of +option+ tags wrapped with +optgroup+ tags. For example:
+
+[source, ruby]
+-------------------------------------------------------
+grouped_options_for_select([["Hats", ["Baseball Cap","Cowboy Hat"]]], 
+  "Cowboy Hat", "Choose a product...")
+-------------------------------------------------------
+
+returns
+
+[source, ruby]
+-------------------------------------------------------
+<option value="">Choose a product...</option>
+<optgroup label="Hats">
+  <option value="Baseball Cap">Baseball Cap</option>
+  <option selected="selected" value="Cowboy Hat">Cowboy Hat</option>
+</optgroup>
+-------------------------------------------------------
 
 === Other Action View Changes
 
@@ -328,7 +387,7 @@ Rails Metal is a new mechanism that provides superfast endpoints inside of your 
 
 === Application Templates
 
-Rails 2.3 incorporates Jeremy McAnally's "rg":http://github.com/jeremymcanally/rg/tree/master application generator. What this means is that we now have template-based application generation built right into Rails; if you have a set of plugins you include in every application (among many other use cases), you can just set up a template once and use it over and over again when you run the +rails+ command. There's also a rake task to apply a template to an existing application:
+Rails 2.3 incorporates Jeremy McAnally's link:http://github.com/jeremymcanally/rg/tree/master[rg] application generator. What this means is that we now have template-based application generation built right into Rails; if you have a set of plugins you include in every application (among many other use cases), you can just set up a template once and use it over and over again when you run the +rails+ command. There's also a rake task to apply a template to an existing application:
 
 [source, ruby]
 -------------------------------------------------------
@@ -342,7 +401,7 @@ This will layer the changes from the template on top of whatever code the projec
 
 === Quieter Backtraces
 
-Building on Thoughtbot's "Quiet Backtrace":http://www.thoughtbot.com/projects/quietbacktrace plugin, which allows you to selectively remove lines from Test::Unit backtraces, Rails 2.3 implements +ActiveSupport::BacktraceCleaner+ and +Rails::BacktraceCleaner+ in core. This supports both filters (to perform regex-based substitutions on backtrace lines) and silencers (to remove backtrace lines entirely). Rails automatically adds silencers to get rid of the most common noise in a new application, and builds a +config/backtrace_silencers.rb+ file to hold your own additions. This feature also enables prettier printing from any gem in the backtrace.
+Building on Thoughtbot's link:http://www.thoughtbot.com/projects/quietbacktrace[Quiet Backtrace] plugin, which allows you to selectively remove lines from +Test::Unit+ backtraces, Rails 2.3 implements +ActiveSupport::BacktraceCleaner+ and +Rails::BacktraceCleaner+ in core. This supports both filters (to perform regex-based substitutions on backtrace lines) and silencers (to remove backtrace lines entirely). Rails automatically adds silencers to get rid of the most common noise in a new application, and builds a +config/backtrace_silencers.rb+ file to hold your own additions. This feature also enables prettier printing from any gem in the backtrace.
 
 === Faster Boot Time in Development Mode with Lazy Loading/Autoload
 
@@ -370,6 +429,7 @@ A few pieces of older code are deprecated in this release:
 * +ActionController::Base#session_enabled?+ is deprecated because sessions are lazy-loaded now.
 * The +:digest+ and +:secret+ options to +protect_from_forgery+ are deprecated and have no effect.
 * Some integration test helpers have been removed. +response.headers["Status"]+ and +headers["Status"]+ will no longer return anything. Rack does not allow "Status" in its return headers. However you can still use the +status+ and +status_message+ helpers. +response.headers["cookie"]+ and +headers["cookie"]+ will no longer return any CGI cookies. You can inspect +headers["Set-Cookie"]+ to see the raw cookie header or use the +cookies+ helper to get a hash of the cookies sent to the client.
+* +formatted_polymorphic_url+ is deprecated. Use +polymorphic_url+ with +:format+ instead.
 
 == Credits
 
