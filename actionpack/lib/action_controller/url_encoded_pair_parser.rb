@@ -46,7 +46,7 @@ module ActionController
           when Array
             value.map { |v| get_typed_value(v) }
           when Hash
-            if value.has_key?(:tempfile) && value[:filename].any?
+            if value.has_key?(:tempfile) && !value[:filename].blank?
               upload = value[:tempfile]
               upload.extend(UploadedFile)
               upload.original_path = value[:filename]

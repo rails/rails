@@ -326,7 +326,11 @@ module ActionController
           end
 
           @body = ""
-          body.each { |part| @body << part }
+          if body.is_a?(String)
+            @body << body
+          else
+            body.each { |part| @body << part }
+          end
 
           if @controller = ActionController::Base.last_instantiation
             @request = @controller.request
