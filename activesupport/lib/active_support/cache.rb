@@ -138,7 +138,7 @@ module ActiveSupport
       #   cache.fetch("foo")  # => nil
       def fetch(key, options = {})
         @logger_off = true
-        if !options[:force] && value = read(key, options)
+        if !options[:force] && ((value = read(key, options)) || exist?(key, options))
           @logger_off = false
           log("hit", key, options)
           value
