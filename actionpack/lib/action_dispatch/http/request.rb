@@ -3,7 +3,6 @@ require 'stringio'
 require 'strscan'
 
 require 'active_support/memoizable'
-require 'action_controller/cgi_ext'
 
 module ActionDispatch
   class Request < Rack::Request
