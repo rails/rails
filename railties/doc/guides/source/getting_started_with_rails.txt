@@ -1342,7 +1342,7 @@ Rails also comes with built-in help that you can generate using the rake command
 
 http://rails.lighthouseapp.com/projects/16213-rails-guides/tickets/2[Lighthouse ticket]
 
-* 
+* February 1, 2009: Updated for Rails 2.3 by link:../authors.html#mgunderloy[Mike Gunderloy]
 * November 3, 2008: Formatting patch from Dave Rothlisberger
 * November 1, 2008: First approved version by link:../authors.html#mgunderloy[Mike Gunderloy]
 * October 16, 2008: Revised based on feedback from Pratik Naik by link:../authors.html#mgunderloy[Mike Gunderloy] (not yet approved for publication)
