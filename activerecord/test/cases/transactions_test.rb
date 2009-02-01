@@ -182,6 +182,40 @@ class TransactionTest < ActiveRecord::TestCase
     end
   end
 
+  def test_update_attribute_should_rollback_on_failure
+    Developer.before_save do
+      false
+    end
+    developer = Developer.first
+    developer.audit_logs.clear
+    2.times { developer.audit_logs.create(:message => 'message') }
+    assert_equal 2, developer.audit_logs.size
+    status = developer.update_attribute(:audit_log_ids, [])
+    assert !status
+    assert_equal 2, developer.audit_logs(true).size
+  end
+
+  def test_update_attributes_should_rollback_on_failure
+    developer = Developer.first
+    developer.audit_logs.clear
+    2.times { developer.audit_logs.create(:message => 'message') }
+    assert_equal 2, developer.audit_logs.size
+    status = developer.update_attributes(:audit_log_ids => [], :name => nil)
+    assert !status
+    assert_equal 2, developer.audit_logs(true).size
+  end
+
+  def test_update_attributes_should_rollback_on_failure!
+    developer = Developer.first
+    developer.audit_logs.clear
+    2.times { developer.audit_logs.create(:message => 'message') }
+    assert_equal 2, developer.audit_logs.size
+    assert_raise(ActiveRecord::RecordInvalid) do
+      developer.update_attributes!(:audit_log_ids => [], :name => nil)
+    end
+    assert_equal 2, developer.audit_logs(true).size
+  end
+
   def test_nested_explicit_transactions
     Topic.transaction do
       Topic.transaction do

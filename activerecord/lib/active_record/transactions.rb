@@ -10,7 +10,7 @@ module ActiveRecord
       base.extend(ClassMethods)
 
       base.class_eval do
-        [:destroy, :save, :save!].each do |method|
+        [:destroy, :save, :save!, :update_attribute, :update_attributes, :update_attributes!].each do |method|
           alias_method_chain method, :transactions
         end
       end
@@ -198,6 +198,20 @@ module ActiveRecord
 
     def save_with_transactions! #:nodoc:
       rollback_active_record_state! { self.class.transaction { save_without_transactions! } }
+    end
+
+    def update_attribute_with_transactions(name, value)
+      with_transaction_returning_status(:update_attribute_without_transactions, name, value)
+    end
+
+    def update_attributes_with_transactions(attributes)
+      with_transaction_returning_status(:update_attributes_without_transactions, attributes)
+    end
+
+    def update_attributes_with_transactions!(attributes)
+      transaction do
+        update_attributes_without_transactions!(attributes)
+      end
     end
 
     # Reset id and @new_record if the transaction rolls back.
