@@ -1,3 +1,8 @@
+*2.3.0 [RC1] (February 1st, 2009)*
+
+* Nothing new, just included in 2.3.0
+
+
 *2.2.1 [RC2] (November 14th, 2008)*
 
 * Fixed that ActiveResource#post would post an empty string when it shouldn't be posting anything #525 [Paolo Angelini]

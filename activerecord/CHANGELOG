@@ -1,4 +1,4 @@
-*2.3.0/3.0*
+*2.3.0 [RC1] (February 1st, 2009)*
 
 * Add Support for updating deeply nested models from a single form. #1202 [Eloy Duran]
 

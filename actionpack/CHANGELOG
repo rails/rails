@@ -1,4 +1,4 @@
-*2.3.0 [Edge]*
+*2.3.0 [RC1] (February 1st, 2009)*
 
 * Make the form_for and fields_for helpers support the new Active Record nested update options.  #1202 [Eloy Duran]
 

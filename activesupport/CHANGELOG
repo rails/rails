@@ -1,4 +1,4 @@
-*2.3.0 [Edge]*
+*2.3.0 [RC1] (February 1st, 2009)*
 
 * TimeWithZone#xmlschema accepts optional fraction_digits argument [#1725 state:resolved] [Nicholas Dainty]
 
