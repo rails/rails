@@ -51,7 +51,26 @@ The link:http://guides.rubyonrails.org/[Ruby on Rails guides] project has publis
 
 == Active Record
 
-Active Record gets quite a number of new features and bug fixes in Rails 2.3. The highlights include nested transactions, dynamic scopes, and default scopes.
+Active Record gets quite a number of new features and bug fixes in Rails 2.3. The highlights include nested attributes, nested transactions, dynamic scopes, and default scopes.
+
+=== Nested Attributes
+
+Active Record can now update the attributes on nested models directly, provided you tell it to do so:
+
+[source, ruby]
+-------------------------------------------------------
+class Book < ActiveRecord::Base
+  has_one :author
+  has_many :pages
+
+  accepts_nested_attributes_for :author, :pages
+end
+-------------------------------------------------------
+
+Turning on nested attributes enables a number of things: automatic (and atomic) saving of a record together with its associated children, child-aware validations, and support for nested forms (discussed later).
+ 
+* Lead Contributor: link_to:http://www.superalloy.nl/blog/[Eloy Duran]
+* More Information: link_to:http://weblog.rubyonrails.org/2009/1/26/nested-model-forms[Nested Model Forms]
 
 === Nested Transactions
 
@@ -150,6 +169,7 @@ MySQL supports a reconnect flag in its connections - if set to true, then the cl
 * Active Record's +to_xml+ support gets just a little bit more flexible with the addition of a +:camelize+ option.
 * A bug in canceling callbacks from +before_update+ or +before_create_ was fixed.
 * Rake tasks for testing databases via JDBC have been added.
+* +validates_length_of+ will use a custom error message with the +:in+ or +:within+ options (if one is supplied)
 
 == Action Controller
 
@@ -261,10 +281,64 @@ Rails can now provide localized views, depending on the locale that you have set
 * +ActionController::Dispatcher+ now implements its own middleware stack, which you can see by running +rake middleware+. 
 * Cookie sessions now have persistent session identifiers, with API compatibility with the server-side stores. 
 * You can now use symbols for the +:type+ option of +send_file+ and +send_data+, like this: +send_file("fabulous.png", :type => :png)+. 
+* The +:only+ and +:except+ options for +map.resources+ are no longer inherited by nested resources.
 
 == Action View
 
-Action View in Rails 2.3 picks up improvements to +render+, more flexible prompts for the date select helpers, and a speedup in asset caching, among other things.
+Action View in Rails 2.3 picks up nested model forms, improvements to +render+, more flexible prompts for the date select helpers, and a speedup in asset caching, among other things.
+
+=== Nested Object Forms
+
+Provided the parent model accepts nested attributes for the child objects (as discussed in the Active Record section), you can create nested forms using +form_for+ and +field_for+. These forms can be nested arbitrarily deep, allowing you to edit complex object hierarchies on a single view without excessive code. For example, given this model:
+
+[source, ruby]
+-------------------------------------------------------
+class Customer < ActiveRecord::Base
+  has_many :orders
+
+  accepts_nested_attributes_for :orders, :allow_destroy => true
+end
+-------------------------------------------------------
+
+You can write this view in Rails 2.3:
+
+[source, ruby]
+-------------------------------------------------------
+<% form_for @customer do |customer_form| %>
+  <div>
+    <%= customer_form.label :name, 'Customer Name:' %>
+    <%= customer_form.text_field :name %>
+  </div>
+
+  <!-- Here we call fields_for on the customer_form builder instance.
+       The block is called for each member of the orders collection. -->
+  <% customer_form.fields_for :orders do |order_form| %>
+      <p>
+        <div>
+          <%= order_form.label :number, 'Order Number:' %>
+          <%= order_form.text_field :number %>
+        </div>
+
+  <!-- The allow_destroy option in the model enables deletion of
+       child records. -->
+        <% unless order_form.object.new_record? %>
+          <div>
+            <%= order_form.label :_delete, 'Remove:' %>
+            <%= order_form.check_box :_delete %>
+          </div>
+        <% end %>
+      </p>
+    <% end %>
+  <% end %>
+
+  <%= customer_form.submit %>
+<% end %>
+-------------------------------------------------------
+
+* Lead Contributor: link_to:http://www.superalloy.nl/blog/[Eloy Duran]
+* More Information: 
+ - link_to:http://weblog.rubyonrails.org/2009/1/26/nested-model-forms[Nested Model Forms]
+ - link_to:http://github.com/alloy/complex-form-examples/tree/nested_attributes[complex-form-examples]
 
 === Smart Rendering of Partials
 
