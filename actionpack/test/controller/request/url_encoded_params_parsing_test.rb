@@ -80,36 +80,6 @@ class UrlEncodedParamsParsingTest < ActionController::IntegrationTest
     assert_parses expected, query
   end
 
-  test "parses params with non alphanumeric name" do
-    query     = "a/b[c]=d"
-    expected  = { "a/b" => { "c" => "d" }}
-    assert_parses expected, query
-  end
-
-  test "parses params with single brackets in the middle" do
-    query     = "a/b[c]d=e"
-    expected  = { "a/b" => {} }
-    assert_parses expected, query
-  end
-
-  test "parses params with separated brackets" do
-    query     = "a/b@[c]d[e]=f"
-    expected  = { "a/b@" => { }}
-    assert_parses expected, query
-  end
-
-  test "parses params with separated brackets and array" do
-    query     = "a/b@[c]d[e][]=f"
-    expected  = { "a/b@" => { }}
-    assert_parses expected, query
-  end
-
-  test "parses params with unmatched brackets and array" do
-    query     = "a/b@[c][d[e][]=f"
-    expected  = { "a/b@" => { "c" => { }}}
-    assert_parses expected, query
-  end
-
   test "parses params with nil key" do
     query    = "=&test2=value1"
     expected = { "test2" => "value1" }
