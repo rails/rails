@@ -23,6 +23,11 @@ class TestTest < ActionController::TestCase
       render :text => 'Success'
     end
 
+    def reset_the_session
+      reset_session
+      render :text => 'ignore me'
+    end
+
     def render_raw_post
       raise ActiveSupport::TestCase::Assertion, "#raw_post is blank" if request.raw_post.blank?
       render :text => request.raw_post
@@ -169,6 +174,24 @@ XML
     assert_equal 'value1', session[:string]
     assert_equal 'value2', session['symbol']
     assert_equal 'value2', session[:symbol]
+  end
+
+  def test_session_is_cleared_from_controller_after_reset_session
+    process :set_session
+    process :reset_the_session
+    assert_equal Hash.new, @controller.session.to_hash
+  end
+
+  def test_session_is_cleared_from_response_after_reset_session
+    process :set_session
+    process :reset_the_session
+    assert_equal Hash.new, @response.session.to_hash
+  end
+
+  def test_session_is_cleared_from_request_after_reset_session
+    process :set_session
+    process :reset_the_session
+    assert_equal Hash.new, @request.session.to_hash
   end
 
   def test_process_with_request_uri_with_no_params

@@ -1,5 +1,14 @@
 *2.3.0/3.0*
 
+* Add Support for updating deeply nested models from a single form. #1202 [Eloy Duran]
+
+	class Book < ActiveRecord::Base
+	  has_one :author
+	  has_many :pages
+
+	  accepts_nested_attributes_for :author, :pages
+	end
+
 * Make after_save callbacks fire only if the record was successfully saved.  #1735 [Michael Lovitt]
 
   Previously the callbacks would fire if a before_save cancelled saving.

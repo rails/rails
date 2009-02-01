@@ -1,5 +1,17 @@
 *2.3.0 [Edge]*
 
+* Make the form_for and fields_for helpers support the new Active Record nested update options.  #1202 [Eloy Duran]
+
+		<% form_for @person do |person_form| %>
+		  ...
+		  <% person_form.fields_for :projects do |project_fields| %>
+		    <% if project_fields.object.active? %>
+		      Name: <%= project_fields.text_field :name %>
+		    <% end %>
+		  <% end %>
+		<% end %>
+
+
 * Added grouped_options_for_select helper method for wrapping option tags in optgroups. #977 [Jon Crawford]
 
 * Implement HTTP Digest authentication. #1230 [Gregg Kellogg, Pratik Naik] Example :

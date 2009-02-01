@@ -65,6 +65,11 @@ module ActiveRecord
       def reflect_on_association(association)
         reflections[association].is_a?(AssociationReflection) ? reflections[association] : nil
       end
+
+      # Returns an array of AssociationReflection objects for all associations which have <tt>:autosave</tt> enabled.
+      def reflect_on_all_autosave_associations
+        reflections.values.select { |reflection| reflection.options[:autosave] }
+      end
     end
 
 

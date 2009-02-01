@@ -266,6 +266,7 @@ class IntegrationProcessTest < ActionController::IntegrationTest
       assert_response :success
       assert_response :ok
       assert_equal({}, cookies)
+      assert_equal "OK", body
       assert_equal "OK", response.body
       assert_kind_of HTML::Document, html_document
       assert_equal 1, request_count
@@ -281,6 +282,7 @@ class IntegrationProcessTest < ActionController::IntegrationTest
       assert_response :success
       assert_response :created
       assert_equal({}, cookies)
+      assert_equal "Created", body
       assert_equal "Created", response.body
       assert_kind_of HTML::Document, html_document
       assert_equal 1, request_count
@@ -357,6 +359,18 @@ class IntegrationProcessTest < ActionController::IntegrationTest
 
       assert_equal 200, status
       assert_equal "foo: bar", response.body
+    end
+  end
+
+  def test_head
+    with_test_route_set do
+      head '/get'
+      assert_equal 200, status
+      assert_equal "", body
+
+      head '/post'
+      assert_equal 201, status
+      assert_equal "", body
     end
   end
 

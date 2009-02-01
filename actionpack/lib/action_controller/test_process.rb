@@ -15,7 +15,7 @@ module ActionController #:nodoc:
     end
 
     def reset_session
-      @session = TestSession.new
+      @session.reset
     end
 
     # Wraps raw_post in a StringIO.
@@ -284,9 +284,13 @@ module ActionController #:nodoc:
     attr_accessor :session_id
 
     def initialize(attributes = nil)
-      @session_id = ''
-      attributes ||= {}
-      replace(attributes.stringify_keys)
+      reset_session_id
+      replace_attributes(attributes)
+    end
+
+    def reset
+      reset_session_id
+      replace_attributes({ })
     end
 
     def data
@@ -321,6 +325,17 @@ module ActionController #:nodoc:
 
     def close
       ActiveSupport::Deprecation.warn('sessions should no longer be closed', caller)
+    end
+
+  private
+
+    def reset_session_id
+      @session_id = ''
+    end
+
+    def replace_attributes(attributes = nil)
+      attributes ||= {}
+      replace(attributes.stringify_keys)
     end
   end
 

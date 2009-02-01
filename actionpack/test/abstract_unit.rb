@@ -34,7 +34,7 @@ ActionController::Base.session_store = nil
 
 # Register danish language for testing
 I18n.backend.store_translations 'da', {}
-ORIGINAL_LOCALES = I18n.available_locales
+ORIGINAL_LOCALES = I18n.available_locales.map(&:to_s).sort
 
 FIXTURE_LOAD_PATH = File.join(File.dirname(__FILE__), 'fixtures')
 ActionController::Base.view_paths = FIXTURE_LOAD_PATH
