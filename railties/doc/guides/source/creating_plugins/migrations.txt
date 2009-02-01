@@ -28,26 +28,7 @@ Here are a few possibilities for how to allow developers to use your plugin migr
 
 === Create a custom rake task ===
 
-*vendor/plugins/yaffle/lib/db/migrate/20081116181115_create_birdhouses.rb:*
-
-[source, ruby]
-----------------------------------------------
-class CreateBirdhouses < ActiveRecord::Migration
-  def self.up
-    create_table :birdhouses, :force => true do |t|
-      t.string :name
-      t.timestamps
-    end
-  end
-
-  def self.down
-    drop_table :birdhouses
-  end
-end
-----------------------------------------------
-
-
-*vendor/plugins/yaffle/tasks/yaffle.rake:*
+*vendor/plugins/yaffle/tasks/yaffle_tasks.rake:*
 
 [source, ruby]
 ----------------------------------------------
@@ -153,7 +134,7 @@ NOTE: the migration generator checks to see if a migation already exists, and it
 
 After running the test with 'rake' you can make it pass with:
 
-*vendor/plugins/yaffle/generators/yaffle/yaffle_generator.rb*
+*vendor/plugins/yaffle/generators/yaffle_migration/yaffle_migration_generator.rb*
 
 [source, ruby]
 ------------------------------------------------------------------

@@ -20,7 +20,7 @@ vendor/plugins/yaffle/
 
 As always, start with a test:
 
-*vendor/plugins/yaffle/yaffle/woodpecker_test.rb:*
+*vendor/plugins/yaffle/test/woodpecker_test.rb:*
 
 [source, ruby]
 ----------------------------------------------

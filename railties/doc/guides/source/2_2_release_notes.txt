@@ -430,6 +430,7 @@ Previously the above code made available a local variable called +customer+ insi
 * The +%s+ and +%d+ interpolation syntax for internationalization is deprecated.
 * +String#chars+ has been deprecated in favor of +String#mb_chars+.
 * Durations of fractional months or fractional years are deprecated. Use Ruby's core +Date+ and +Time+ class arithmetic instead.
+* +Request#relative_url_root+ is deprecated. Use +ActionController::Base.relative_url_root+ instead.
 
 == Credits
 

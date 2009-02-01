@@ -1166,11 +1166,12 @@ module ActiveRecord
       # [:foreign_key]
       #   Specify the foreign key used for the association. By default this is guessed to be the name
       #   of this class in lower-case and "_id" suffixed. So a Person class that makes a +has_and_belongs_to_many+ association
-      #   will use "person_id" as the default <tt>:foreign_key</tt>.
+      #   to Project will use "person_id" as the default <tt>:foreign_key</tt>.
       # [:association_foreign_key]
-      #   Specify the association foreign key used for the association. By default this is
-      #   guessed to be the name of the associated class in lower-case and "_id" suffixed. So if the associated class is Project,
-      #   the +has_and_belongs_to_many+ association will use "project_id" as the default <tt>:association_foreign_key</tt>.
+      #   Specify the foreign key used for the association on the receiving side of the association.
+      #   By default this is guessed to be the name of the associated class in lower-case and "_id" suffixed.
+      #   So if a Person class makes a +has_and_belongs_to_many+ association to Project,
+      #   the association will use "project_id" as the default <tt>:association_foreign_key</tt>.
       # [:conditions]
       #   Specify the conditions that the associated object must meet in order to be included as a +WHERE+
       #   SQL fragment, such as <tt>authorized = 1</tt>.  Record creations from the association are scoped if a hash is used.  

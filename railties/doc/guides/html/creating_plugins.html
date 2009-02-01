@@ -768,7 +768,7 @@ ActiveRecord<span style="color: #990000">::</span>Base<span style="color: #99000
 |   `-- yaffle.rb</tt></pre>
 </div></div>
 <div class="paragraph"><p>As always, start with a test:</p></div>
-<div class="paragraph"><p><strong>vendor/plugins/yaffle/yaffle/woodpecker_test.rb:</strong></p></div>
+<div class="paragraph"><p><strong>vendor/plugins/yaffle/test/woodpecker_test.rb:</strong></p></div>
 <div class="listingblock">
 <div class="content"><!-- Generator: GNU source-highlight 2.9
 by Lorenzo Bettini
@@ -1212,7 +1212,7 @@ Rails<span style="color: #990000">::</span>Generator<span style="color: #990000"
 Rails<span style="color: #990000">::</span>Generator<span style="color: #990000">::</span>Commands<span style="color: #990000">::</span>Destroy<span style="color: #990000">.</span>send  <span style="color: #990000">:</span><span style="font-weight: bold"><span style="color: #0000FF">include</span></span><span style="color: #990000">,</span>  Yaffle<span style="color: #990000">::</span>Generator<span style="color: #990000">::</span>Commands<span style="color: #990000">::</span>Destroy
 Rails<span style="color: #990000">::</span>Generator<span style="color: #990000">::</span>Commands<span style="color: #990000">::</span>List<span style="color: #990000">.</span>send     <span style="color: #990000">:</span><span style="font-weight: bold"><span style="color: #0000FF">include</span></span><span style="color: #990000">,</span>  Yaffle<span style="color: #990000">::</span>Generator<span style="color: #990000">::</span>Commands<span style="color: #990000">::</span>List
 Rails<span style="color: #990000">::</span>Generator<span style="color: #990000">::</span>Commands<span style="color: #990000">::</span>Update<span style="color: #990000">.</span>send   <span style="color: #990000">:</span><span style="font-weight: bold"><span style="color: #0000FF">include</span></span><span style="color: #990000">,</span>  Yaffle<span style="color: #990000">::</span>Generator<span style="color: #990000">::</span>Commands<span style="color: #990000">::</span>Update</tt></pre></div></div>
-<div class="paragraph"><p><strong>vendor/plugins/yaffle/generators/yaffle/yaffle_route_generator.rb</strong></p></div>
+<div class="paragraph"><p><strong>vendor/plugins/yaffle/generators/yaffle_route/yaffle_route_generator.rb</strong></p></div>
 <div class="listingblock">
 <div class="content"><!-- Generator: GNU source-highlight 2.9
 by Lorenzo Bettini
@@ -1266,25 +1266,7 @@ http://www.gnu.org/software/src-highlite -->
 <span style="font-weight: bold"><span style="color: #0000FF">end</span></span></tt></pre></div></div>
 <div class="paragraph"><p>Here are a few possibilities for how to allow developers to use your plugin migrations:</p></div>
 <h3 id="_create_a_custom_rake_task">11.1. Create a custom rake task</h3>
-<div class="paragraph"><p><strong>vendor/plugins/yaffle/lib/db/migrate/20081116181115_create_birdhouses.rb:</strong></p></div>
-<div class="listingblock">
-<div class="content"><!-- Generator: GNU source-highlight 2.9
-by Lorenzo Bettini
-http://www.lorenzobettini.it
-http://www.gnu.org/software/src-highlite -->
-<pre><tt><span style="font-weight: bold"><span style="color: #0000FF">class</span></span> CreateBirdhouses <span style="color: #990000">&lt;</span> ActiveRecord<span style="color: #990000">::</span>Migration
-  <span style="font-weight: bold"><span style="color: #0000FF">def</span></span> <span style="font-weight: bold"><span style="color: #0000FF">self</span></span><span style="color: #990000">.</span>up
-    create_table <span style="color: #990000">:</span>birdhouses<span style="color: #990000">,</span> <span style="color: #990000">:</span>force <span style="color: #990000">=&gt;</span> <span style="font-weight: bold"><span style="color: #0000FF">true</span></span> <span style="font-weight: bold"><span style="color: #0000FF">do</span></span> <span style="color: #990000">|</span>t<span style="color: #990000">|</span>
-      t<span style="color: #990000">.</span>string <span style="color: #990000">:</span>name
-      t<span style="color: #990000">.</span>timestamps
-    <span style="font-weight: bold"><span style="color: #0000FF">end</span></span>
-  <span style="font-weight: bold"><span style="color: #0000FF">end</span></span>
-
-  <span style="font-weight: bold"><span style="color: #0000FF">def</span></span> <span style="font-weight: bold"><span style="color: #0000FF">self</span></span><span style="color: #990000">.</span>down
-    drop_table <span style="color: #990000">:</span>birdhouses
-  <span style="font-weight: bold"><span style="color: #0000FF">end</span></span>
-<span style="font-weight: bold"><span style="color: #0000FF">end</span></span></tt></pre></div></div>
-<div class="paragraph"><p><strong>vendor/plugins/yaffle/tasks/yaffle.rake:</strong></p></div>
+<div class="paragraph"><p><strong>vendor/plugins/yaffle/tasks/yaffle_tasks.rake:</strong></p></div>
 <div class="listingblock">
 <div class="content"><!-- Generator: GNU source-highlight 2.9
 by Lorenzo Bettini
@@ -1406,7 +1388,7 @@ http://www.gnu.org/software/src-highlite -->
 </tr></table>
 </div>
 <div class="paragraph"><p>After running the test with <em>rake</em> you can make it pass with:</p></div>
-<div class="paragraph"><p><strong>vendor/plugins/yaffle/generators/yaffle/yaffle_generator.rb</strong></p></div>
+<div class="paragraph"><p><strong>vendor/plugins/yaffle/generators/yaffle_migration/yaffle_migration_generator.rb</strong></p></div>
 <div class="listingblock">
 <div class="content"><!-- Generator: GNU source-highlight 2.9
 by Lorenzo Bettini
@@ -1463,9 +1445,9 @@ http://www.gnu.org/software/src-highlite -->
 </div>
 <h2 id="_rake_tasks">12. Rake tasks</h2>
 <div class="sectionbody">
-<div class="paragraph"><p>When you created the plugin with the built-in rails generator, it generated a rake file for you in <em>vendor/plugins/yaffle/tasks/yaffle.rake</em>.  Any rake task you add here will be available to the app.</p></div>
+<div class="paragraph"><p>When you created the plugin with the built-in rails generator, it generated a rake file for you in <em>vendor/plugins/yaffle/tasks/yaffle_tasks.rake</em>.  Any rake task you add here will be available to the app.</p></div>
 <div class="paragraph"><p>Many plugin authors put all of their rake tasks into a common namespace that is the same as the plugin, like so:</p></div>
-<div class="paragraph"><p><strong>vendor/plugins/yaffle/tasks/yaffle.rake</strong></p></div>
+<div class="paragraph"><p><strong>vendor/plugins/yaffle/tasks/yaffle_tasks.rake</strong></p></div>
 <div class="listingblock">
 <div class="content"><!-- Generator: GNU source-highlight 2.9
 by Lorenzo Bettini
@@ -1577,7 +1559,7 @@ Warning, gotchas or tips that might help save users time
 </li>
 <li>
 <p>
-<a href="http://nubyonrails.com/articles/2006/05/09/the-complete-guide-to-rails-plugins-part-ii">http://nubyonrails.com/articles/2006/05/09/the-complete-guide-to-rails-plugins-part-ii</a>
+<a href="http://nubyonrails.com/articles/the-complete-guide-to-rails-plugins-part-ii">http://nubyonrails.com/articles/the-complete-guide-to-rails-plugins-part-ii</a>
 </p>
 </li>
 <li>
