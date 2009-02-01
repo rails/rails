@@ -26,6 +26,9 @@ module ActionController
       # The status message that accompanied the status code of the last request.
       attr_reader :status_message
 
+      # The body of the last request.
+      attr_reader :body
+
       # The URI of the last request.
       attr_reader :path
 
