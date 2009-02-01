@@ -199,6 +199,31 @@ class RescueControllerTest < ActionController::TestCase
     end
   end
 
+  def test_rescue_action_in_public_with_localized_error_file
+    # Reload and register danish language for testing
+    I18n.reload!
+    I18n.backend.store_translations 'da', {}
+
+    # Ensure original are still the same since we are reindexing view paths
+    assert_equal ORIGINAL_LOCALES, I18n.available_locales.map(&:to_s).sort
+
+    # Change locale
+    old_locale = I18n.locale
+    I18n.locale = :da
+
+    with_rails_root FIXTURE_PUBLIC do
+      with_all_requests_local false do
+        get :raises
+      end
+    end
+
+    assert_response :internal_server_error
+    body = File.read("#{FIXTURE_PUBLIC}/public/500.da.html")
+    assert_equal body, @response.body
+  ensure
+    I18n.locale = old_locale
+  end
+
   def test_rescue_action_in_public_with_error_file
     with_rails_root FIXTURE_PUBLIC do
       with_all_requests_local false do
