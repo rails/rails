@@ -47,6 +47,8 @@
           <a href="#_active_record">Active Record</a>
             <ul>
             
+              <li><a href="#_nested_attributes">Nested Attributes</a></li>
+            
               <li><a href="#_nested_transactions">Nested Transactions</a></li>
             
               <li><a href="#_dynamic_scopes">Dynamic Scopes</a></li>
@@ -94,6 +96,8 @@
           <li>
           <a href="#_action_view">Action View</a>
             <ul>
+            
+              <li><a href="#_nested_object_forms">Nested Object Forms</a></li>
             
               <li><a href="#_smart_rendering_of_partials">Smart Rendering of Partials</a></li>
             
@@ -303,8 +307,34 @@ More Information: <a href="http://weblog.rubyonrails.org/2009/1/15/rails-documen
 </div>
 <h2 id="_active_record">3. Active Record</h2>
 <div class="sectionbody">
-<div class="paragraph"><p>Active Record gets quite a number of new features and bug fixes in Rails 2.3. The highlights include nested transactions, dynamic scopes, and default scopes.</p></div>
-<h3 id="_nested_transactions">3.1. Nested Transactions</h3>
+<div class="paragraph"><p>Active Record gets quite a number of new features and bug fixes in Rails 2.3. The highlights include nested attributes, nested transactions, dynamic scopes, and default scopes.</p></div>
+<h3 id="_nested_attributes">3.1. Nested Attributes</h3>
+<div class="paragraph"><p>Active Record can now update the attributes on nested models directly, provided you tell it to do so:</p></div>
+<div class="listingblock">
+<div class="content"><!-- Generator: GNU source-highlight 2.9
+by Lorenzo Bettini
+http://www.lorenzobettini.it
+http://www.gnu.org/software/src-highlite -->
+<pre><tt><span style="font-weight: bold"><span style="color: #0000FF">class</span></span> Book <span style="color: #990000">&lt;</span> ActiveRecord<span style="color: #990000">::</span>Base
+  has_one <span style="color: #990000">:</span>author
+  has_many <span style="color: #990000">:</span>pages
+
+  accepts_nested_attributes_for <span style="color: #990000">:</span>author<span style="color: #990000">,</span> <span style="color: #990000">:</span>pages
+<span style="font-weight: bold"><span style="color: #0000FF">end</span></span></tt></pre></div></div>
+<div class="paragraph"><p>Turning on nested attributes enables a number of things: automatic (and atomic) saving of a record together with its associated children, child-aware validations, and support for nested forms (discussed later).</p></div>
+<div class="ulist"><ul>
+<li>
+<p>
+Lead Contributor: link_to:<a href="http://www.superalloy.nl/blog/">Eloy Duran</a>
+</p>
+</li>
+<li>
+<p>
+More Information: link_to:<a href="http://weblog.rubyonrails.org/2009/1/26/nested-model-forms">Nested Model Forms</a>
+</p>
+</li>
+</ul></div>
+<h3 id="_nested_transactions">3.2. Nested Transactions</h3>
 <div class="paragraph"><p>Active Record now supports nested transactions, a much-requested feature. Now you can write code like this:</p></div>
 <div class="listingblock">
 <div class="content"><!-- Generator: GNU source-highlight 2.9
@@ -328,7 +358,7 @@ Lead Contributors: <a href="http://www.workingwithrails.com/person/4985-jonathan
 </p>
 </li>
 </ul></div>
-<h3 id="_dynamic_scopes">3.2. Dynamic Scopes</h3>
+<h3 id="_dynamic_scopes">3.3. Dynamic Scopes</h3>
 <div class="paragraph"><p>You know about dynamic finders in Rails (which allow you to concoct methods like <tt>find_by_color_and_flavor</tt> on the fly) and named scopes (which allow you to encapsulate reusable query conditions into friendly names like <tt>currently_active</tt>). Well, now you can have dynamic scope methods. The idea is to put together syntax that allows filtering on the fly <em>and</em> method chaining. For example:</p></div>
 <div class="listingblock">
 <div class="content"><!-- Generator: GNU source-highlight 2.9
@@ -352,7 +382,7 @@ More Information: <a href="http://ryandaigle.com/articles/2008/12/29/what-s-new-
 </p>
 </li>
 </ul></div>
-<h3 id="_default_scopes">3.3. Default Scopes</h3>
+<h3 id="_default_scopes">3.4. Default Scopes</h3>
 <div class="paragraph"><p>Rails 2.3 will introduce the notion of <em>default scopes</em> similar to named scopes, but applying to all named scopes or find methods within the model. For example, you can write <tt>default_scope :order =&gt; <em>name ASC</em></tt> and any time you retrieve records from that model they&#8217;ll come out sorted by name (unless you override the option, of course).</p></div>
 <div class="ulist"><ul>
 <li>
@@ -366,7 +396,7 @@ More Information: <a href="http://ryandaigle.com/articles/2008/11/18/what-s-new-
 </p>
 </li>
 </ul></div>
-<h3 id="_multiple_conditions_for_callbacks">3.4. Multiple Conditions for Callbacks</h3>
+<h3 id="_multiple_conditions_for_callbacks">3.5. Multiple Conditions for Callbacks</h3>
 <div class="paragraph"><p>When using Active Record callbacks, you can now combine <tt>:if</tt> and <tt>:unless</tt> options on the same callback, and supply multiple conditions as an array:</p></div>
 <div class="listingblock">
 <div class="content"><!-- Generator: GNU source-highlight 2.9
@@ -382,7 +412,7 @@ Lead Contributor: L. Caviola
 </p>
 </li>
 </ul></div>
-<h3 id="_find_with_having">3.5. Find with having</h3>
+<h3 id="_find_with_having">3.6. Find with having</h3>
 <div class="paragraph"><p>Rails now has a <tt>:having</tt> option on find (as well as on <tt>has_many</tt> and <tt>has_and_belongs_to_many</tt> associations) for filtering records in grouped finds. As those with heavy SQL backgrounds know, this allows filtering based on grouped results:</p></div>
 <div class="listingblock">
 <div class="content"><!-- Generator: GNU source-highlight 2.9
@@ -398,7 +428,7 @@ Lead Contributor: <a href="http://github.com/miloops">Emilio Tagua</a>
 </p>
 </li>
 </ul></div>
-<h3 id="_hash_conditions_for_tt_has_many_tt_relationships">3.6. Hash Conditions for <tt>has_many</tt> relationships</h3>
+<h3 id="_hash_conditions_for_tt_has_many_tt_relationships">3.7. Hash Conditions for <tt>has_many</tt> relationships</h3>
 <div class="paragraph"><p>You can once again use a hash in conditions for a <tt>has_many</tt> relationship:</p></div>
 <div class="listingblock">
 <div class="content"><!-- Generator: GNU source-highlight 2.9
@@ -414,7 +444,7 @@ Lead Contributor: <a href="http://www.spacevatican.org/">Frederick Cheung</a>
 </p>
 </li>
 </ul></div>
-<h3 id="_reconnecting_mysql_connections">3.7. Reconnecting MySQL Connections</h3>
+<h3 id="_reconnecting_mysql_connections">3.8. Reconnecting MySQL Connections</h3>
 <div class="paragraph"><p>MySQL supports a reconnect flag in its connections - if set to true, then the client will try reconnecting to the server before giving up in case of a lost connection. You can now set <tt>reconnect = true</tt> for your MySQL connections in <tt>database.yml</tt> to get this behavior from a Rails application. The default is <tt>false</tt>, so the behavior of existing applications doesn&#8217;t change.</p></div>
 <div class="ulist"><ul>
 <li>
@@ -423,7 +453,7 @@ Lead Contributor: <a href="http://twitter.com/dubek">Dov Murik</a>
 </p>
 </li>
 </ul></div>
-<h3 id="_other_active_record_changes">3.8. Other Active Record Changes</h3>
+<h3 id="_other_active_record_changes">3.9. Other Active Record Changes</h3>
 <div class="ulist"><ul>
 <li>
 <p>
@@ -463,6 +493,11 @@ A bug in canceling callbacks from <tt>before_update</tt> or +before_create_ was 
 <li>
 <p>
 Rake tasks for testing databases via JDBC have been added.
+</p>
+</li>
+<li>
+<p>
+<tt>validates_length_of</tt> will use a custom error message with the <tt>:in</tt> or <tt>:within</tt> options (if one is supplied)
 </p>
 </li>
 </ul></div>
@@ -607,12 +642,88 @@ Cookie sessions now have persistent session identifiers, with API compatibility 
 You can now use symbols for the <tt>:type</tt> option of <tt>send_file</tt> and <tt>send_data</tt>, like this: <tt>send_file("fabulous.png", :type =&gt; :png)</tt>.
 </p>
 </li>
+<li>
+<p>
+The <tt>:only</tt> and <tt>:except</tt> options for <tt>map.resources</tt> are no longer inherited by nested resources.
+</p>
+</li>
 </ul></div>
 </div>
 <h2 id="_action_view">5. Action View</h2>
 <div class="sectionbody">
-<div class="paragraph"><p>Action View in Rails 2.3 picks up improvements to <tt>render</tt>, more flexible prompts for the date select helpers, and a speedup in asset caching, among other things.</p></div>
-<h3 id="_smart_rendering_of_partials">5.1. Smart Rendering of Partials</h3>
+<div class="paragraph"><p>Action View in Rails 2.3 picks up nested model forms, improvements to <tt>render</tt>, more flexible prompts for the date select helpers, and a speedup in asset caching, among other things.</p></div>
+<h3 id="_nested_object_forms">5.1. Nested Object Forms</h3>
+<div class="paragraph"><p>Provided the parent model accepts nested attributes for the child objects (as discussed in the Active Record section), you can create nested forms using <tt>form_for</tt> and <tt>field_for</tt>. These forms can be nested arbitrarily deep, allowing you to edit complex object hierarchies on a single view without excessive code. For example, given this model:</p></div>
+<div class="listingblock">
+<div class="content"><!-- Generator: GNU source-highlight 2.9
+by Lorenzo Bettini
+http://www.lorenzobettini.it
+http://www.gnu.org/software/src-highlite -->
+<pre><tt><span style="font-weight: bold"><span style="color: #0000FF">class</span></span> Customer <span style="color: #990000">&lt;</span> ActiveRecord<span style="color: #990000">::</span>Base
+  has_many <span style="color: #990000">:</span>orders
+
+  accepts_nested_attributes_for <span style="color: #990000">:</span>orders<span style="color: #990000">,</span> <span style="color: #990000">:</span>allow_destroy <span style="color: #990000">=&gt;</span> <span style="font-weight: bold"><span style="color: #0000FF">true</span></span>
+<span style="font-weight: bold"><span style="color: #0000FF">end</span></span></tt></pre></div></div>
+<div class="paragraph"><p>You can write this view in Rails 2.3:</p></div>
+<div class="listingblock">
+<div class="content"><!-- Generator: GNU source-highlight 2.9
+by Lorenzo Bettini
+http://www.lorenzobettini.it
+http://www.gnu.org/software/src-highlite -->
+<pre><tt><span style="color: #FF0000">&lt;% form_for @customer do |customer_form| %&gt;</span>
+  <span style="color: #FF0000">&lt;div&gt;</span>
+    <span style="color: #FF0000">&lt;%= customer_form.label :name, 'Customer Name:' %&gt;</span>
+    <span style="color: #FF0000">&lt;%= customer_form.text_field :name %&gt;</span>
+  <span style="color: #FF0000">&lt;/div&gt;</span>
+
+  <span style="color: #990000">&lt;!--</span> Here we call fields_for on the customer_form builder instance<span style="color: #990000">.</span>
+       The block is called <span style="font-weight: bold"><span style="color: #0000FF">for</span></span> each member of the orders collection<span style="color: #990000">.</span> <span style="color: #990000">--&gt;</span>
+  <span style="color: #FF0000">&lt;% customer_form.fields_for :orders do |order_form| %&gt;</span>
+      <span style="color: #FF0000">&lt;p&gt;</span>
+        <span style="color: #FF0000">&lt;div&gt;</span>
+          <span style="color: #FF0000">&lt;%= order_form.label :number, 'Order Number:' %&gt;</span>
+          <span style="color: #FF0000">&lt;%= order_form.text_field :number %&gt;</span>
+        <span style="color: #FF0000">&lt;/div&gt;</span>
+
+  <span style="color: #990000">&lt;!--</span> The allow_destroy option <span style="font-weight: bold"><span style="color: #0000FF">in</span></span> the model enables deletion of
+       child records<span style="color: #990000">.</span> <span style="color: #990000">--&gt;</span>
+        <span style="color: #FF0000">&lt;% unless order_form.object.new_record? %&gt;</span>
+          <span style="color: #FF0000">&lt;div&gt;</span>
+            <span style="color: #FF0000">&lt;%= order_form.label :_delete, 'Remove:' %&gt;</span>
+            <span style="color: #FF0000">&lt;%= order_form.check_box :_delete %&gt;</span>
+          <span style="color: #FF0000">&lt;/div&gt;</span>
+        <span style="color: #FF0000">&lt;% end %&gt;</span>
+      <span style="color: #FF0000">&lt;/p&gt;</span>
+    <span style="color: #FF0000">&lt;% end %&gt;</span>
+  <span style="color: #FF0000">&lt;% end %&gt;</span>
+
+  <span style="color: #FF0000">&lt;%= customer_form.submit %&gt;</span>
+<span style="color: #FF0000">&lt;% end %&gt;</span></tt></pre></div></div>
+<div class="ulist"><ul>
+<li>
+<p>
+Lead Contributor: link_to:<a href="http://www.superalloy.nl/blog/">Eloy Duran</a>
+</p>
+</li>
+<li>
+<p>
+More Information:
+</p>
+<div class="ulist"><ul>
+<li>
+<p>
+link_to:<a href="http://weblog.rubyonrails.org/2009/1/26/nested-model-forms">Nested Model Forms</a>
+</p>
+</li>
+<li>
+<p>
+link_to:<a href="http://github.com/alloy/complex-form-examples/tree/nested_attributes">complex-form-examples</a>
+</p>
+</li>
+</ul></div>
+</li>
+</ul></div>
+<h3 id="_smart_rendering_of_partials">5.2. Smart Rendering of Partials</h3>
 <div class="paragraph"><p>The render method has been getting smarter over the years, and it&#8217;s even smarter now. If you have an object or a collection and an appropriate partial, and the naming matches up, you can now just render the object and things will work. For example, in Rails 2.3, these render calls will work in your view (assuming sensible naming):</p></div>
 <div class="listingblock">
 <div class="content"><!-- Generator: GNU source-highlight 2.9
@@ -628,7 +739,7 @@ More Information: <a href="http://ryandaigle.com/articles/2008/11/20/what-s-new-
 </p>
 </li>
 </ul></div>
-<h3 id="_prompts_for_date_select_helpers">5.2. Prompts for Date Select Helpers</h3>
+<h3 id="_prompts_for_date_select_helpers">5.3. Prompts for Date Select Helpers</h3>
 <div class="paragraph"><p>In Rails 2.3, you can supply custom prompts for the various date select helpers (<tt>date_select</tt>, <tt>time_select</tt>, and <tt>datetime_select</tt>), the same way you can with collection select helpers. You can supply a prompt string or a hash of individual prompt strings for the various components. You can also just set <tt>:prompt</tt> to <tt>true</tt> to use the custom generic prompt:</p></div>
 <div class="listingblock">
 <div class="content"><!-- Generator: GNU source-highlight 2.9
@@ -644,9 +755,9 @@ select_datetime<span style="color: #990000">(</span>DateTime<span style="color: 
    <span style="color: #990000">:</span>year <span style="color: #990000">=&gt;</span> <span style="color: #FF0000">'Choose year'</span><span style="color: #990000">,</span> <span style="color: #990000">:</span>hour <span style="color: #990000">=&gt;</span> <span style="color: #FF0000">'Choose hour'</span><span style="color: #990000">,</span>
    <span style="color: #990000">:</span>minute <span style="color: #990000">=&gt;</span> <span style="color: #FF0000">'Choose minute'</span><span style="color: #FF0000">}</span><span style="color: #990000">)</span></tt></pre></div></div>
 <div class="paragraph"><p>Lead Contributor: <a href="http://samoliver.com/">Sam Oliver</a></p></div>
-<h3 id="_assettag_timestamp_caching">5.3. AssetTag Timestamp Caching</h3>
+<h3 id="_assettag_timestamp_caching">5.4. AssetTag Timestamp Caching</h3>
 <div class="paragraph"><p>You&#8217;re likely familiar with Rails' practice of adding timestamps to static asset paths as a "cache buster." This helps ensure that stale copies of things like images and stylesheets don&#8217;t get served out of the user&#8217;s browser cache when you change them on the server. You can now modify this behavior with the <tt>cache_asset_timestamps</tt> configuration option for Action View. If you enable the cache, then Rails will calculate the timestamp once when it first serves an asset, and save that value. This means fewer (expensive) file system calls to serve static assets - but it also means that you can&#8217;t modify any of the assets while the server is running and expect the changes to get picked up by clients.</p></div>
-<h3 id="_asset_hosts_as_objects">5.4. Asset Hosts as Objects</h3>
+<h3 id="_asset_hosts_as_objects">5.5. Asset Hosts as Objects</h3>
 <div class="paragraph"><p>Asset hosts get more flexible in edge Rails with the ability to declare an asset host as a specific object that responds to a call. This allows you to to implement any complex logic you need in your asset hosting.</p></div>
 <div class="ulist"><ul>
 <li>
@@ -655,7 +766,7 @@ More Information: <a href="http://github.com/dhh/asset-hosting-with-minimum-ssl/
 </p>
 </li>
 </ul></div>
-<h3 id="_grouped_options_for_select_helper_method">5.5. grouped_options_for_select Helper Method</h3>
+<h3 id="_grouped_options_for_select_helper_method">5.6. grouped_options_for_select Helper Method</h3>
 <div class="paragraph"><p>Action View already haD a bunch of helpers to aid in generating select controls, but now there&#8217;s one more: <tt>grouped_options_for_select</tt>. This one accepts an array or hash of strings, and converts them into a string of <tt>option</tt> tags wrapped with <tt>optgroup</tt> tags. For example:</p></div>
 <div class="listingblock">
 <div class="content"><!-- Generator: GNU source-highlight 2.9
@@ -675,7 +786,7 @@ http://www.gnu.org/software/src-highlite -->
   <span style="color: #FF0000">&lt;option value="Baseball Cap"&gt;</span>Baseball Cap<span style="color: #FF0000">&lt;/option&gt;</span>
   <span style="color: #FF0000">&lt;option selected="selected" value="Cowboy Hat"&gt;</span>Cowboy Hat<span style="color: #FF0000">&lt;/option&gt;</span>
 <span style="color: #FF0000">&lt;/optgroup&gt;</span></tt></pre></div></div>
-<h3 id="_other_action_view_changes">5.6. Other Action View Changes</h3>
+<h3 id="_other_action_view_changes">5.7. Other Action View Changes</h3>
 <div class="ulist"><ul>
 <li>
 <p>
