@@ -27,6 +27,7 @@ module ActiveRecord
       $queries_executed = []
       yield
     ensure
+      %w{ BEGIN COMMIT }.each { |x| $queries_executed.delete(x) }
       assert_equal num, $queries_executed.size, "#{$queries_executed.size} instead of #{num} queries were executed.#{$queries_executed.size == 0 ? '' : "\nQueries:\n#{$queries_executed.join("\n")}"}"
     end
 

@@ -55,6 +55,11 @@ ActiveRecord::Schema.define do
     t.binary :data
   end
 
+  create_table :birds, :force => true do |t|
+    t.string :name
+    t.integer :pirate_id
+  end
+
   create_table :books, :force => true do |t|
     t.column :name, :string
   end
@@ -356,10 +361,16 @@ ActiveRecord::Schema.define do
 
   create_table :ships, :force => true do |t|
     t.string :name
+    t.integer :pirate_id
     t.datetime :created_at
     t.datetime :created_on
     t.datetime :updated_at
     t.datetime :updated_on
+  end
+
+  create_table :ship_parts, :force => true do |t|
+    t.string :name
+    t.integer :ship_id
   end
 
   create_table :sponsors, :force => true do |t|

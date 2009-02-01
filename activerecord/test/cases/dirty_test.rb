@@ -166,7 +166,7 @@ class DirtyTest < ActiveRecord::TestCase
 
   def test_association_assignment_changes_foreign_key
     pirate = Pirate.create!(:catchphrase => 'jarl')
-    pirate.parrot = Parrot.create!
+    pirate.parrot = Parrot.create!(:name => 'Lorre')
     assert pirate.changed?
     assert_equal %w(parrot_id), pirate.changed
   end

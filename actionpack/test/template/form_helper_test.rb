@@ -15,21 +15,31 @@ silence_warnings do
     def new_record?
       @new_record
     end
+
+    attr_accessor :author
+    def author_attributes=(attributes); end
+
+    attr_accessor :comments
+    def comments_attributes=(attributes); end
   end
 
   class Comment
     attr_reader :id
     attr_reader :post_id
+    def initialize(id = nil, post_id = nil); @id, @post_id = id, post_id end
     def save; @id = 1; @post_id = 1 end
     def new_record?; @id.nil? end
     def to_param; @id; end
     def name
-      @id.nil? ? 'new comment' : "comment ##{@id}"
+      @id.nil? ? "new #{self.class.name.downcase}" : "#{self.class.name.downcase} ##{@id}"
     end
   end
-end
 
-class Comment::Nested < Comment; end
+  class Author < Comment
+    attr_accessor :post
+    def post_attributes=(attributes); end
+  end
+end
 
 class FormHelperTest < ActionView::TestCase
   tests ActionView::Helpers::FormHelper
@@ -479,7 +489,7 @@ class FormHelperTest < ActionView::TestCase
     assert_dom_equal expected, output_buffer
   end
 
-  def test_nested_fields_for_with_index
+  def test_form_for_with_index_and_nested_fields_for
     form_for(:post, @post, :index => 1) do |f|
       f.fields_for(:comment, @post) do |c|
         concat c.text_field(:title)
@@ -556,6 +566,127 @@ class FormHelperTest < ActionView::TestCase
                "</form>"
 
     assert_dom_equal expected, output_buffer
+  end
+
+  def test_nested_fields_for_with_a_new_record_on_a_nested_attributes_one_to_one_association
+    @post.author = Author.new
+
+    form_for(:post, @post) do |f|
+      concat f.text_field(:title)
+      f.fields_for(:author) do |af|
+        concat af.text_field(:name)
+      end
+    end
+
+    expected = '<form action="http://www.example.com" method="post">' +
+               '<input name="post[title]" size="30" type="text" id="post_title" value="Hello World" />' +
+               '<input id="post_author_attributes_name" name="post[author_attributes][name]" size="30" type="text" value="new author" />' +
+               '</form>'
+
+    assert_dom_equal expected, output_buffer
+  end
+
+  def test_nested_fields_for_with_an_existing_record_on_a_nested_attributes_one_to_one_association
+    @post.author = Author.new(321)
+
+    form_for(:post, @post) do |f|
+      concat f.text_field(:title)
+      f.fields_for(:author) do |af|
+        concat af.text_field(:name)
+      end
+    end
+
+    expected = '<form action="http://www.example.com" method="post">' +
+               '<input name="post[title]" size="30" type="text" id="post_title" value="Hello World" />' +
+               '<input id="post_author_attributes_name" name="post[author_attributes][name]" size="30" type="text" value="author #321" />' +
+               '</form>'
+
+    assert_dom_equal expected, output_buffer
+  end
+
+  def test_nested_fields_for_with_existing_records_on_a_nested_attributes_collection_association
+    @post.comments = Array.new(2) { |id| Comment.new(id + 1) }
+
+    form_for(:post, @post) do |f|
+      concat f.text_field(:title)
+      @post.comments.each do |comment|
+        f.fields_for(:comments, comment) do |cf|
+          concat cf.text_field(:name)
+        end
+      end
+    end
+
+    expected = '<form action="http://www.example.com" method="post">' +
+               '<input name="post[title]" size="30" type="text" id="post_title" value="Hello World" />' +
+               '<input id="post_comments_attributes_1_name" name="post[comments_attributes][1][name]" size="30" type="text" value="comment #1" />' +
+               '<input id="post_comments_attributes_2_name" name="post[comments_attributes][2][name]" size="30" type="text" value="comment #2" />' +
+               '</form>'
+
+    assert_dom_equal expected, output_buffer
+  end
+
+  def test_nested_fields_for_with_new_records_on_a_nested_attributes_collection_association
+    @post.comments = [Comment.new, Comment.new]
+
+    form_for(:post, @post) do |f|
+      concat f.text_field(:title)
+      @post.comments.each do |comment|
+        f.fields_for(:comments, comment) do |cf|
+          concat cf.text_field(:name)
+        end
+      end
+    end
+
+    expected = '<form action="http://www.example.com" method="post">' +
+               '<input name="post[title]" size="30" type="text" id="post_title" value="Hello World" />' +
+               '<input id="post_comments_attributes_new_1_name" name="post[comments_attributes][new_1][name]" size="30" type="text" value="new comment" />' +
+               '<input id="post_comments_attributes_new_2_name" name="post[comments_attributes][new_2][name]" size="30" type="text" value="new comment" />' +
+               '</form>'
+
+    assert_dom_equal expected, output_buffer
+  end
+
+  def test_nested_fields_for_with_existing_and_new_records_on_a_nested_attributes_collection_association
+    @post.comments = [Comment.new(321), Comment.new]
+
+    form_for(:post, @post) do |f|
+      concat f.text_field(:title)
+      @post.comments.each do |comment|
+        f.fields_for(:comments, comment) do |cf|
+          concat cf.text_field(:name)
+        end
+      end
+    end
+
+    expected = '<form action="http://www.example.com" method="post">' +
+               '<input name="post[title]" size="30" type="text" id="post_title" value="Hello World" />' +
+               '<input id="post_comments_attributes_321_name" name="post[comments_attributes][321][name]" size="30" type="text" value="comment #321" />' +
+               '<input id="post_comments_attributes_new_1_name" name="post[comments_attributes][new_1][name]" size="30" type="text" value="new comment" />' +
+               '</form>'
+
+    assert_dom_equal expected, output_buffer
+  end
+
+  def test_nested_fields_for_on_a_nested_attributes_collection_association_yields_only_builder
+    @post.comments = [Comment.new(321), Comment.new]
+    yielded_comments = []
+
+    form_for(:post, @post) do |f|
+      concat f.text_field(:title)
+      f.fields_for(:comments) do |cf|
+        concat cf.text_field(:name)
+        yielded_comments << cf.object
+      end
+    end
+
+    expected = '<form action="http://www.example.com" method="post">' +
+               '<input name="post[title]" size="30" type="text" id="post_title" value="Hello World" />' +
+               '<input id="post_comments_attributes_321_name" name="post[comments_attributes][321][name]" size="30" type="text" value="comment #321" />' +
+               '<input id="post_comments_attributes_new_1_name" name="post[comments_attributes][new_1][name]" size="30" type="text" value="new comment" />' +
+               '</form>'
+
+    assert_dom_equal expected, output_buffer
+    assert_equal yielded_comments, @post.comments
   end
 
   def test_fields_for

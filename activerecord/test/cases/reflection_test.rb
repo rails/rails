@@ -91,6 +91,15 @@ class ReflectionTest < ActiveRecord::TestCase
     assert_equal Money, Customer.reflect_on_aggregation(:balance).klass
   end
 
+  def test_reflect_on_all_autosave_associations
+    expected = Pirate.reflect_on_all_associations.select { |r| r.options[:autosave] }
+    received = Pirate.reflect_on_all_autosave_associations
+
+    assert !received.empty?
+    assert_not_equal Pirate.reflect_on_all_associations.length, received.length
+    assert_equal expected, received
+  end
+
   def test_has_many_reflection
     reflection_for_clients = ActiveRecord::Reflection::AssociationReflection.new(:has_many, :clients, { :order => "id", :dependent => :destroy }, Firm)
 
