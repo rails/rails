@@ -1164,12 +1164,11 @@ module ActiveRecord
       #   <b>WARNING:</b> If you're overwriting the table name of either class, the +table_name+ method
       #   MUST be declared underneath any +has_and_belongs_to_many+ declaration in order to work.
       # [:foreign_key]
-      #   Specify the foreign key used for the association (on "this side" of association).
-      #   By default this is guessed to be the name of this class in lower-case and "_id" suffixed.
-      #   So a Person class that makes a +has_and_belongs_to_many+ association to Project
-      #   will use "person_id" as the default <tt>:foreign_key</tt>.
+      #   Specify the foreign key used for the association. By default this is guessed to be the name
+      #   of this class in lower-case and "_id" suffixed. So a Person class that makes a +has_and_belongs_to_many+ association
+      #   to Project will use "person_id" as the default <tt>:foreign_key</tt>.
       # [:association_foreign_key]
-      #   Specify the association foreign key used for the association (on the "other side" of association). 
+      #   Specify the foreign key used for the association on the receiving side of the association.
       #   By default this is guessed to be the name of the associated class in lower-case and "_id" suffixed.
       #   So if a Person class makes a +has_and_belongs_to_many+ association to Project,
       #   the association will use "project_id" as the default <tt>:association_foreign_key</tt>.
