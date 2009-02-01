@@ -129,6 +129,9 @@
             </ul>
           </li>
           <li>
+          <a href="#_building_a_multi_model_form">Building a Multi-Model Form</a>
+          </li>
+          <li>
           <a href="#_what_8217_s_next">What&#8217;s Next?</a>
           </li>
           <li>
@@ -164,6 +167,14 @@ How to quickly generate the starting pieces of a Rails application.
 </p>
 </li>
 </ul></div>
+<div class="admonitionblock">
+<table><tr>
+<td class="icon">
+<img src="./images/icons/note.png" alt="Note" />
+</td>
+<td class="content">This Guide is based on Rails 2.3. Some of the code shown here will not work in older versions of Rails.</td>
+</tr></table>
+</div>
 </div>
 </div>
 <h2 id="_this_guide_assumes">1. This Guide Assumes</h2>
@@ -186,7 +197,7 @@ A working installation of <a href="http://www.sqlite.org/">SQLite</a> (preferred
 </p>
 </li>
 </ul></div>
-<div class="paragraph"><p>It is highly recommended that you <strong>familiarize yourself with Ruby before diving into Rails</strong>. You will find it much easier to follow what&#8217;s going on with a Rails application if you understand basic Ruby syntax. Rails isn&#8217;t going to magically revolutionize the way you write web applications if you have no experience with the language it uses. There are some good free resources on the net for learning Ruby, including:</p></div>
+<div class="paragraph"><p>It is highly recommended that you <strong>familiarize yourself with Ruby before diving into Rails</strong>. You will find it much easier to follow what&#8217;s going on with a Rails application if you understand basic Ruby syntax. Rails isn&#8217;t going to magically revolutionize the way you write web applications if you have no experience with the language it uses. There are some good free resources on the internet for learning Ruby, including:</p></div>
 <div class="ulist"><ul>
 <li>
 <p>
@@ -208,7 +219,7 @@ A working installation of <a href="http://www.sqlite.org/">SQLite</a> (preferred
 <h2 id="_what_is_rails">2. What is Rails?</h2>
 <div class="sectionbody">
 <div class="paragraph"><p>Rails is a web development framework written in the Ruby language. It is designed to make programming web applications easier by making several assumptions about what every developer needs to get started. It allows you to write less code while accomplishing more than many other languages and frameworks. Longtime Rails developers also report that it makes web application development more fun.</p></div>
-<div class="paragraph"><p>Rails is <em>opinionated software</em>. That is, it assumes that there is a best way to do things, and it&#8217;s designed to encourage that best way - and in some cases discourage alternatives. If you learn "The Rails Way" you&#8217;ll probably discover a tremendous increase in productivity. If you persist in bringing old habits from other languages to your Rails development, and trying to use patterns you learned elsewhere, you may have a less happy experience.</p></div>
+<div class="paragraph"><p>Rails is <em>opinionated software</em>. That is, it assumes that there is a best way to do things, and it&#8217;s designed to encourage that best way - and in some cases to discourage alternatives. If you learn "The Rails Way" you&#8217;ll probably discover a tremendous increase in productivity. If you persist in bringing old habits from other languages to your Rails development, and trying to use patterns you learned elsewhere, you may have a less happy experience.</p></div>
 <div class="paragraph"><p>The Rails philosophy includes several guiding principles:</p></div>
 <div class="ulist"><ul>
 <li>
@@ -321,7 +332,7 @@ Transferring representations of the state of that resource between system compon
 </ul></div>
 <div class="paragraph"><p>For example, to a Rails application a request such as this:</p></div>
 <div class="paragraph"><p><tt>DELETE /photos/17</tt></p></div>
-<div class="paragraph"><p>would be understood to refer to a photo resource with the ID of 17, and to indicate a desired action - deleting that resource. REST is a natural style for the architecture of web applications, and Rails makes it even more natural by using conventions to shield you from some of the RESTful complexities.</p></div>
+<div class="paragraph"><p>would be understood to refer to a photo resource with the ID of 17, and to indicate a desired action - deleting that resource. REST is a natural style for the architecture of web applications, and Rails makes it even more natural by using conventions to shield you from some of the RESTful complexities and browser quirks.</p></div>
 <div class="paragraph"><p>If you’d like more details on REST as an architectural style, these resources are more approachable than Fielding’s thesis:</p></div>
 <div class="ulist"><ul>
 <li>
@@ -394,6 +405,14 @@ by Lorenzo Bettini
 http://www.lorenzobettini.it
 http://www.gnu.org/software/src-highlite -->
 <pre><tt>$ rails blog -d postgresql</tt></pre></div></div>
+<div class="admonitionblock">
+<table><tr>
+<td class="icon">
+<img src="./images/icons/tip.png" alt="Tip" />
+</td>
+<td class="content">You can see all of the switches that the Rails application builder accepts by running <tt>rails -h</tt>.</td>
+</tr></table>
+</div>
 <div class="paragraph"><p>After you create the blog application, switch to its folder to continue work directly in that application:</p></div>
 <div class="listingblock">
 <div class="content"><!-- Generator: GNU source-highlight 2.9
@@ -502,9 +521,9 @@ http://www.gnu.org/software/src-highlite -->
 <pre><tt>development<span style="color: #990000">:</span>
   adapter<span style="color: #990000">:</span> sqlite3
   database<span style="color: #990000">:</span> db<span style="color: #990000">/</span>development<span style="color: #990000">.</span>sqlite3
+  pool<span style="color: #990000">:</span> <span style="color: #993399">5</span>
   timeout<span style="color: #990000">:</span> <span style="color: #993399">5000</span></tt></pre></div></div>
 <div class="paragraph"><p>If you don&#8217;t have any database set up, SQLite is the easiest to get installed. If you&#8217;re on OS X 10.5 or greater on a Mac, you already have it. Otherwise, you can install it using RubyGems:</p></div>
-<div class="paragraph"><p>If you&#8217;re not running OS X 10.5 or greater, you&#8217;ll need to install the SQLite gem.  Similar to installing Rails you just need to run:</p></div>
 <div class="listingblock">
 <div class="content"><!-- Generator: GNU source-highlight 2.9
 by Lorenzo Bettini
@@ -522,6 +541,7 @@ http://www.gnu.org/software/src-highlite -->
   adapter<span style="color: #990000">:</span> mysql
   encoding<span style="color: #990000">:</span> utf8
   database<span style="color: #990000">:</span> blog_development
+  pool<span style="color: #990000">:</span> <span style="color: #993399">5</span>
   username<span style="color: #990000">:</span> root
   password<span style="color: #990000">:</span>
   socket<span style="color: #990000">:</span> <span style="color: #FF6600">/tmp/</span>mysql<span style="color: #990000">.</span>sock</tt></pre></div></div>
@@ -537,6 +557,7 @@ http://www.gnu.org/software/src-highlite -->
   adapter<span style="color: #990000">:</span> postgresql
   encoding<span style="color: #990000">:</span> unicode
   database<span style="color: #990000">:</span> blog_development
+  pool<span style="color: #990000">:</span> <span style="color: #993399">5</span>
   username<span style="color: #990000">:</span> blog
   password<span style="color: #990000">:</span></tt></pre></div></div>
 <div class="paragraph"><p>Change the username and password in the <tt>development</tt> section as appropriate.</p></div>
@@ -548,6 +569,14 @@ by Lorenzo Bettini
 http://www.lorenzobettini.it
 http://www.gnu.org/software/src-highlite -->
 <pre><tt>$ rake db<span style="color: #990000">:</span>create</tt></pre></div></div>
+<div class="admonitionblock">
+<table><tr>
+<td class="icon">
+<img src="./images/icons/note.png" alt="Note" />
+</td>
+<td class="content">Rake is a general-purpose command-runner that Rails uses for many things. You can see the list of available rake commands in your application by running <tt>rake -T</tt>.</td>
+</tr></table>
+</div>
 </div>
 <h2 id="_hello_rails">4. Hello, Rails!</h2>
 <div class="sectionbody">
@@ -581,7 +610,7 @@ by Lorenzo Bettini
 http://www.lorenzobettini.it
 http://www.gnu.org/software/src-highlite -->
 <pre><tt>$ script/server</tt></pre></div></div>
-<div class="paragraph"><p>This will fire up the lightweight Webrick web server by default. To see your application in action, open a browser window and navigate to <tt>http://localhost:3000</tt>. You should see Rails' default information page:</p></div>
+<div class="paragraph"><p>This will fire up an instance of the Mongrel web server by default (Rails can also use several other web servers). To see your application in action, open a browser window and navigate to <tt>http://localhost:3000</tt>. You should see Rails' default information page:</p></div>
 <div class="paragraph"><p><span class="image">
 <img src="images/rails_welcome.png" alt="Welcome Aboard screenshot" title="Welcome Aboard screenshot" />
 </span></p></div>
@@ -593,7 +622,7 @@ http://www.gnu.org/software/src-highlite -->
 <td class="content">To stop the web server, hit Ctrl+C in the terminal window where it&#8217;s running. In development mode, Rails does not generally require you to stop the server; changes you make in files will be automatically picked up by the server.</td>
 </tr></table>
 </div>
-<div class="paragraph"><p>The "Welcome Aboard" page is the smoke test for a new Rails application: it makes sure that you have your software configured correctly enough to serve a page. To view the page you just created, navigate to <tt>http://localhost:3000/home/index</tt>.</p></div>
+<div class="paragraph"><p>The "Welcome Aboard" page is the <em>smoke test</em> for a new Rails application: it makes sure that you have your software configured correctly enough to serve a page. To view the page you just created, navigate to <tt>http://localhost:3000/home/index</tt>.</p></div>
 <h3 id="_setting_the_application_home_page">4.2. Setting the Application Home Page</h3>
 <div class="paragraph"><p>You&#8217;d probably like to replace the "Welcome Aboard" page with your own application&#8217;s home page. The first step to doing this is to delete the default page from your application:</p></div>
 <div class="listingblock">
@@ -650,7 +679,7 @@ http://www.gnu.org/software/src-highlite -->
 <td class="content">While scaffolding will get you up and running quickly, the "one size fits all" code that it generates is unlikely to be a perfect fit for your application. In most cases, you&#8217;ll need to customize the generated code. Many experienced Rails developers avoid scaffolding entirely, preferring to write all or most of their source code from scratch.</td>
 </tr></table>
 </div>
-<div class="paragraph"><p>The scaffold generator will build 13 files in your application, along with some folders, and edit one more. Here&#8217;s a quick overview of what it creates:</p></div>
+<div class="paragraph"><p>The scaffold generator will build 14 files in your application, along with some folders, and edit one more. Here&#8217;s a quick overview of what it creates:</p></div>
 <div class="tableblock">
 <table rules="all"
 width="100%"
@@ -670,7 +699,7 @@ cellspacing="0" cellpadding="4">
 <td align="left"><p class="table">The Post model</p></td>
 </tr>
 <tr>
-<td align="left"><p class="table">db/migrate/20081013124235_create_posts.rb</p></td>
+<td align="left"><p class="table">db/migrate/20090113124235_create_posts.rb</p></td>
 <td align="left"><p class="table">Migration to create the posts table in your database (your name will include a different timestamp)</p></td>
 </tr>
 <tr>
@@ -721,12 +750,16 @@ cellspacing="0" cellpadding="4">
 <td align="left"><p class="table">test/unit/post_test.rb</p></td>
 <td align="left"><p class="table">Unit testing harness for the posts model</p></td>
 </tr>
+<tr>
+<td align="left"><p class="table">test/unit/helpers/posts_helper_test.rb</p></td>
+<td align="left"><p class="table">Unit testing harness for the posts helper</p></td>
+</tr>
 </tbody>
 </table>
 </div>
 <h3 id="_running_a_migration">6.1. Running a Migration</h3>
 <div class="paragraph"><p>One of the products of the <tt>script/generate scaffold</tt> command is a <em>database migration</em>. Migrations are Ruby classes that are designed to make it simple to create and modify database tables. Rails uses rake commands to run migrations, and it&#8217;s possible to undo a migration after it&#8217;s been applied to your database. Migration filenames include a timestamp to ensure that they&#8217;re processed in the order that they were created.</p></div>
-<div class="paragraph"><p>If you look in the <tt>db/migrate/20081013124235_create_posts.rb</tt> file (remember, yours will have a slightly different name), here&#8217;s what you&#8217;ll find:</p></div>
+<div class="paragraph"><p>If you look in the <tt>db/migrate/20090113124235_create_posts.rb</tt> file (remember, yours will have a slightly different name), here&#8217;s what you&#8217;ll find:</p></div>
 <div class="listingblock">
 <div class="content"><!-- Generator: GNU source-highlight 2.9
 by Lorenzo Bettini
@@ -754,8 +787,8 @@ http://www.gnu.org/software/src-highlite -->
 by Lorenzo Bettini
 http://www.lorenzobettini.it
 http://www.gnu.org/software/src-highlite -->
-<pre><tt>$ rake db<span style="color: #990000">:</span>create
-$ rake db<span style="color: #990000">:</span>migrate</tt></pre></div></div>
+<pre><tt>$ rake db<span style="color: #990000">:</span>migrate</tt></pre></div></div>
+<div class="paragraph"><p>Remember, you can&#8217;t run migrations before running <tt>rake db:create</tt> to create your database, as we covered earlier.</p></div>
 <div class="admonitionblock">
 <table><tr>
 <td class="icon">
@@ -842,7 +875,7 @@ title<span style="color: #990000">:</span> nil<span style="color: #990000">,</sp
 <td class="icon">
 <img src="./images/icons/tip.png" alt="Tip" />
 </td>
-<td class="content">Unlike the development web server, the console does not automatically load your code afresh for each line. If you make changes, type <tt>reload!</tt> at the console prompt to load them.</td>
+<td class="content">Unlike the development web server, the console does not automatically load your code afresh for each line. If you make changes to your models while the console is open, type <tt>reload!</tt> at the console prompt to load them.</td>
 </tr></table>
 </div>
 <h3 id="_listing_all_posts">6.7. Listing All Posts</h3>
@@ -1155,7 +1188,7 @@ http://www.gnu.org/software/src-highlite -->
 <div class="sectionbody">
 <div class="paragraph"><p>At this point, it’s worth looking at some of the tools that Rails provides to eliminate duplication in your code. In particular, you can use <em>partials</em> to clean up duplication in views and <em>filters</em> to help with duplication in controllers.</p></div>
 <h3 id="_using_partials_to_eliminate_view_duplication">7.1. Using Partials to Eliminate View Duplication</h3>
-<div class="paragraph"><p>As you saw earlier, the scaffold-generated views for the <tt>new</tt> and <tt>edit</tt> actions are largely identical. You can pull the shared code out into a <tt>partial</tt> template. This requires editing the new and edit views, and adding a new template. The new <tt>_form.html.erb</tt> template should be saved in the same <tt>app/views/posts</tt> folder as the files from which it is being extracted:</p></div>
+<div class="paragraph"><p>As you saw earlier, the scaffold-generated views for the <tt>new</tt> and <tt>edit</tt> actions are largely identical. You can pull the shared code out into a partial template. This requires editing the new and edit views, and adding a new template. The new <tt>_form.html.erb</tt> template should be saved in the same <tt>app/views/posts</tt> folder as the files from which it is being extracted. Note that the name of this file begins with an underscore; that&#8217;s the Rails naming convention for partial templates.</p></div>
 <div class="paragraph"><p><tt>new.html.erb</tt>:</p></div>
 <div class="listingblock">
 <div class="content"><!-- Generator: GNU source-highlight 2.9
@@ -1264,7 +1297,7 @@ http://www.gnu.org/software/src-highlite -->
     <span style="font-weight: bold"><span style="color: #0000FF">end</span></span>
 <span style="font-weight: bold"><span style="color: #0000FF">end</span></span></tt></pre></div></div>
 <div class="paragraph"><p>Rails runs <em>before filters</em> before any action in the controller. You can use the <tt>:only</tt> clause to limit a before filter to only certain actions, or an <tt>:except</tt> clause to specifically skip a before filter for certain actions. Rails also allows you to define <em>after filters</em> that run after processing an action, as well as <em>around filters</em> that surround the processing of actions. Filters can also be defined in external classes to make it easy to share them between controllers.</p></div>
-<div class="paragraph"><p>For more information on filters, see the <a href="actioncontroller_basics.html">Action Controller Basics</a> guide.</p></div>
+<div class="paragraph"><p>For more information on filters, see the <a href="../actioncontroller_basics.html">Action Controller Basics</a> guide.</p></div>
 </div>
 <h2 id="_adding_a_second_model">8. Adding a Second Model</h2>
 <div class="sectionbody">
@@ -1286,7 +1319,7 @@ http://www.gnu.org/software/src-highlite -->
 </li>
 <li>
 <p>
-+db/migrate/20081013214407_create_comments.rb - The migration
++db/migrate/20091013214407_create_comments.rb - The migration
 </p>
 </li>
 <li>
@@ -1333,7 +1366,7 @@ by Lorenzo Bettini
 http://www.lorenzobettini.it
 http://www.gnu.org/software/src-highlite -->
 <pre><tt>$ rake db<span style="color: #990000">:</span>migrate</tt></pre></div></div>
-<div class="paragraph"><p>Rails is smart enough to only execute the migrations that have not already been run against this particular database.</p></div>
+<div class="paragraph"><p>Rails is smart enough to only execute the migrations that have not already been run against the current database.</p></div>
 <h3 id="_associating_models">8.2. Associating Models</h3>
 <div class="paragraph"><p>Active Record associations let you easily declare the relationship between two models. In the case of comments and posts, you could write out the relationships this way:</p></div>
 <div class="ulist"><ul>
@@ -1378,15 +1411,13 @@ http://www.gnu.org/software/src-highlite -->
 </tr></table>
 </div>
 <h3 id="_adding_a_route">8.3. Adding a Route</h3>
-<div class="paragraph"><p><em>Routes</em> are entries in the <tt>config/routes.rb</tt> file that tell Rails how to match incoming HTTP requests to controller actions. Open up that file and find the existing line referring to <tt>posts</tt>. Then edit it as follows:</p></div>
+<div class="paragraph"><p><em>Routes</em> are entries in the <tt>config/routes.rb</tt> file that tell Rails how to match incoming HTTP requests to controller actions. Open up that file and find the existing line referring to <tt>posts</tt> (it will be right at the top of the file). Then edit it as follows:</p></div>
 <div class="listingblock">
 <div class="content"><!-- Generator: GNU source-highlight 2.9
 by Lorenzo Bettini
 http://www.lorenzobettini.it
 http://www.gnu.org/software/src-highlite -->
-<pre><tt>map<span style="color: #990000">.</span>resources <span style="color: #990000">:</span>posts <span style="font-weight: bold"><span style="color: #0000FF">do</span></span> <span style="color: #990000">|</span>post<span style="color: #990000">|</span>
-  post<span style="color: #990000">.</span>resources <span style="color: #990000">:</span>comments
-<span style="font-weight: bold"><span style="color: #0000FF">end</span></span></tt></pre></div></div>
+<pre><tt>map<span style="color: #990000">.</span>resources <span style="color: #990000">:</span>posts<span style="color: #990000">,</span> <span style="color: #990000">:</span>has_many <span style="color: #990000">=&gt;</span> <span style="color: #990000">:</span>comments</tt></pre></div></div>
 <div class="paragraph"><p>This creates <tt>comments</tt> as a <em>nested resource</em> within <tt>posts</tt>. This is another part of capturing the hierarchical relationship that exists between posts and comments.</p></div>
 <div class="admonitionblock">
 <table><tr>
@@ -1442,7 +1473,7 @@ http://www.gnu.org/software/src-highlite -->
 </p>
 </li>
 </ul></div>
-<div class="paragraph"><p>The controller will be generated with empty methods for each action that you specified in the call to <tt>script/generate controller</tt>:</p></div>
+<div class="paragraph"><p>The controller will be generated with empty methods and views for each action that you specified in the call to <tt>script/generate controller</tt>:</p></div>
 <div class="listingblock">
 <div class="content"><!-- Generator: GNU source-highlight 2.9
 by Lorenzo Bettini
@@ -1509,6 +1540,17 @@ http://www.gnu.org/software/src-highlite -->
     <span style="font-weight: bold"><span style="color: #0000FF">end</span></span>
   <span style="font-weight: bold"><span style="color: #0000FF">end</span></span>
 
+  <span style="font-weight: bold"><span style="color: #0000FF">def</span></span> destroy
+    <span style="color: #009900">@post</span> <span style="color: #990000">=</span> Post<span style="color: #990000">.</span>find<span style="color: #990000">(</span>params<span style="color: #990000">[:</span>post_id<span style="color: #990000">])</span>
+    <span style="color: #009900">@comment</span> <span style="color: #990000">=</span> Comment<span style="color: #990000">.</span>find<span style="color: #990000">(</span>params<span style="color: #990000">[:</span>id<span style="color: #990000">])</span>
+    <span style="color: #009900">@comment</span><span style="color: #990000">.</span>destroy
+
+    respond_to <span style="font-weight: bold"><span style="color: #0000FF">do</span></span> <span style="color: #990000">|</span>format<span style="color: #990000">|</span>
+      format<span style="color: #990000">.</span>html <span style="color: #FF0000">{</span> redirect_to post_comments_path<span style="color: #990000">(</span><span style="color: #009900">@post</span><span style="color: #990000">)</span> <span style="color: #FF0000">}</span>
+      format<span style="color: #990000">.</span>xml  <span style="color: #FF0000">{</span> head <span style="color: #990000">:</span>ok <span style="color: #FF0000">}</span>
+    <span style="font-weight: bold"><span style="color: #0000FF">end</span></span>
+  <span style="font-weight: bold"><span style="color: #0000FF">end</span></span>
+
 <span style="font-weight: bold"><span style="color: #0000FF">end</span></span></tt></pre></div></div>
 <div class="paragraph"><p>You&#8217;ll see a bit more complexity here than you did in the controller for posts. That&#8217;s a side-effect of the nesting that you&#8217;ve set up; each request for a comment has to keep track of the post to which the comment is attached.</p></div>
 <div class="paragraph"><p>In addition, the code takes advantage of some of the methods available for an association. For example, in the <tt>new</tt> method, it calls</p></div>
@@ -1521,7 +1563,7 @@ http://www.gnu.org/software/src-highlite -->
 <div class="paragraph"><p>This creates a new <tt>Comment</tt> object <em>and</em> sets up the <tt>post_id</tt> field to have the <tt>id</tt> from the specified <tt>Post</tt> object in a single operation.</p></div>
 <h3 id="_building_views">8.5. Building Views</h3>
 <div class="paragraph"><p>Because you skipped scaffolding, you&#8217;ll need to build views for comments "by hand." Invoking <tt>script/generate controller</tt> will give you skeleton views, but they&#8217;ll be devoid of actual content. Here&#8217;s a first pass at fleshing out the comment views.</p></div>
-<div class="paragraph"><p>The <tt>index.html.erb</tt> view:</p></div>
+<div class="paragraph"><p>The <tt>views/comments/index.html.erb</tt> view:</p></div>
 <div class="listingblock">
 <div class="content"><!-- Generator: GNU source-highlight 2.9
 by Lorenzo Bettini
@@ -1550,7 +1592,7 @@ http://www.gnu.org/software/src-highlite -->
 
 <span style="color: #FF0000">&lt;%= link_to 'New comment', new_post_comment_path(@post) %&gt;</span>
 <span style="color: #FF0000">&lt;%= link_to 'Back to Post', @post %&gt;</span></tt></pre></div></div>
-<div class="paragraph"><p>The <tt>new.html.erb</tt> view:</p></div>
+<div class="paragraph"><p>The <tt>views/comments/new.html.erb</tt> view:</p></div>
 <div class="listingblock">
 <div class="content"><!-- Generator: GNU source-highlight 2.9
 by Lorenzo Bettini
@@ -1575,7 +1617,7 @@ http://www.gnu.org/software/src-highlite -->
 <span style="color: #FF0000">&lt;% end %&gt;</span>
 
 <span style="color: #FF0000">&lt;%= link_to 'Back', post_comments_path(@post) %&gt;</span></tt></pre></div></div>
-<div class="paragraph"><p>The <tt>show.html.erb</tt> view:</p></div>
+<div class="paragraph"><p>The <tt>views/comments/show.html.erb</tt> view:</p></div>
 <div class="listingblock">
 <div class="content"><!-- Generator: GNU source-highlight 2.9
 by Lorenzo Bettini
@@ -1595,7 +1637,7 @@ http://www.gnu.org/software/src-highlite -->
 
 <span style="color: #FF0000">&lt;%= link_to 'Edit', edit_post_comment_path(@post, @comment) %&gt;</span> <span style="color: #990000">|</span>
 <span style="color: #FF0000">&lt;%= link_to 'Back', post_comments_path(@post) %&gt;</span></tt></pre></div></div>
-<div class="paragraph"><p>The <tt>edit.html.erb</tt> view:</p></div>
+<div class="paragraph"><p>The <tt>views/comments/edit.html.erb</tt> view:</p></div>
 <div class="listingblock">
 <div class="content"><!-- Generator: GNU source-highlight 2.9
 by Lorenzo Bettini
@@ -1621,9 +1663,9 @@ http://www.gnu.org/software/src-highlite -->
 
 <span style="color: #FF0000">&lt;%= link_to 'Show', post_comment_path(@post, @comment) %&gt;</span> <span style="color: #990000">|</span>
 <span style="color: #FF0000">&lt;%= link_to 'Back', post_comments_path(@post) %&gt;</span></tt></pre></div></div>
-<div class="paragraph"><p>Again, the added complexity here (compared to the views you saw for managing comments) comes from the necessity of juggling a post and its comments at the same time.</p></div>
+<div class="paragraph"><p>Again, the added complexity here (compared to the views you saw for managing posts) comes from the necessity of juggling a post and its comments at the same time.</p></div>
 <h3 id="_hooking_comments_to_posts">8.6. Hooking Comments to Posts</h3>
-<div class="paragraph"><p>As a final step, I&#8217;ll modify the <tt>show.html.erb</tt> view for a post to show the comments on that post, and to allow managing those comments:</p></div>
+<div class="paragraph"><p>As a next step, I&#8217;ll modify the <tt>views/posts/show.html.erb</tt> view to show the comments on that post, and to allow managing those comments:</p></div>
 <div class="listingblock">
 <div class="content"><!-- Generator: GNU source-highlight 2.9
 by Lorenzo Bettini
@@ -1657,12 +1699,94 @@ http://www.gnu.org/software/src-highlite -->
         <span style="color: #FF0000">&lt;/p&gt;</span>
 <span style="color: #FF0000">&lt;% end %&gt;</span>
 
-<span style="color: #FF0000">&lt;%= link_to 'Edit', edit_post_path(@post) %&gt;</span> <span style="color: #990000">|</span>
-<span style="color: #FF0000">&lt;%= link_to 'Back', posts_path %&gt;</span>
+<span style="color: #FF0000">&lt;%= link_to 'Edit Post', edit_post_path(@post) %&gt;</span> <span style="color: #990000">|</span>
+<span style="color: #FF0000">&lt;%= link_to 'Back to Posts', posts_path %&gt;</span> <span style="color: #990000">|</span>
 <span style="color: #FF0000">&lt;%= link_to 'Manage Comments', post_comments_path(@post) %&gt;</span></tt></pre></div></div>
 <div class="paragraph"><p>Note that each post has its own individual comments collection, accessible as <tt>@post.comments</tt>. That&#8217;s a consequence of the declarative associations in the models. Path helpers such as <tt>post_comments_path</tt> come from the nested route declaration in <tt>config/routes.rb</tt>.</p></div>
 </div>
-<h2 id="_what_8217_s_next">9. What&#8217;s Next?</h2>
+<h2 id="_building_a_multi_model_form">9. Building a Multi-Model Form</h2>
+<div class="sectionbody">
+<div class="paragraph"><p>Comments and posts are edited on two separate forms - which makes sense, given the flow of this mini-application. But what if you want to edit more than one thing on a single form? Rails 2.3 offers new support for nested forms. Let&#8217;s add support for giving each post multiple tags, right in the form where you create the post. First, create a new model to hold the tags:</p></div>
+<div class="listingblock">
+<div class="content"><!-- Generator: GNU source-highlight 2.9
+by Lorenzo Bettini
+http://www.lorenzobettini.it
+http://www.gnu.org/software/src-highlite -->
+<pre><tt>$ script/generate model tag name<span style="color: #990000">:</span>string post<span style="color: #990000">:</span>references</tt></pre></div></div>
+<div class="paragraph"><p>Run the migration to create the database table:</p></div>
+<div class="listingblock">
+<div class="content"><!-- Generator: GNU source-highlight 2.9
+by Lorenzo Bettini
+http://www.lorenzobettini.it
+http://www.gnu.org/software/src-highlite -->
+<pre><tt>$ rake db<span style="color: #990000">:</span>migrate</tt></pre></div></div>
+<div class="paragraph"><p>Next, edit the <tt>post.rb</tt> file to create the other side of the association, and to tell Rails that you intend to edit tags via posts:</p></div>
+<div class="listingblock">
+<div class="content"><!-- Generator: GNU source-highlight 2.9
+by Lorenzo Bettini
+http://www.lorenzobettini.it
+http://www.gnu.org/software/src-highlite -->
+<pre><tt><span style="font-weight: bold"><span style="color: #0000FF">class</span></span> Post <span style="color: #990000">&lt;</span> ActiveRecord<span style="color: #990000">::</span>Base
+  validates_presence_of <span style="color: #990000">:</span>name<span style="color: #990000">,</span> <span style="color: #990000">:</span>title
+  validates_length_of <span style="color: #990000">:</span>title<span style="color: #990000">,</span> <span style="color: #990000">:</span>minimum <span style="color: #990000">=&gt;</span> <span style="color: #993399">5</span>
+  has_many <span style="color: #990000">:</span>comments
+  has_many <span style="color: #990000">:</span>tags
+
+  accepts_nested_attributes_for <span style="color: #990000">:</span>tags<span style="color: #990000">,</span> <span style="color: #990000">:</span>allow_destroy <span style="color: #990000">=&gt;</span> <span style="color: #990000">:</span><span style="font-weight: bold"><span style="color: #0000FF">true</span></span>  <span style="color: #990000">,</span>
+        <span style="color: #990000">:</span>reject_if <span style="color: #990000">=&gt;</span> proc <span style="color: #FF0000">{</span> <span style="color: #990000">|</span>attrs<span style="color: #990000">|</span> attrs<span style="color: #990000">.</span>all? <span style="color: #FF0000">{</span> <span style="color: #990000">|</span>k<span style="color: #990000">,</span> v<span style="color: #990000">|</span> v<span style="color: #990000">.</span>blank? <span style="color: #FF0000">}</span> <span style="color: #FF0000">}</span>
+<span style="font-weight: bold"><span style="color: #0000FF">end</span></span></tt></pre></div></div>
+<div class="paragraph"><p>The <tt>:allow_destroy</tt> option on the nested attribute declaration tells Rails to display a "remove" checkbox on the view that you&#8217;ll build shortly. The <tt>:reject_if</tt> option prevents saving new tags that do not have any attributes filled in.</p></div>
+<div class="paragraph"><p>You&#8217;ll also need to modify <tt>views/posts/_form.html.erb</tt> to include the tags:</p></div>
+<div class="listingblock">
+<div class="content"><!-- Generator: GNU source-highlight 2.9
+by Lorenzo Bettini
+http://www.lorenzobettini.it
+http://www.gnu.org/software/src-highlite -->
+<pre><tt><span style="color: #FF0000">&lt;% @post.tags.build if @post.tags.empty? %&gt;</span>
+<span style="color: #FF0000">&lt;% form_for(@post) do |post_form| %&gt;</span>
+  <span style="color: #FF0000">&lt;%= post_form.error_messages %&gt;</span>
+
+  <span style="color: #FF0000">&lt;p&gt;</span>
+    <span style="color: #FF0000">&lt;%= post_form.label :name %&gt;&lt;br /&gt;</span>
+    <span style="color: #FF0000">&lt;%= post_form.text_field :name %&gt;</span>
+  <span style="color: #FF0000">&lt;/p&gt;</span>
+  <span style="color: #FF0000">&lt;p&gt;</span>
+    <span style="color: #FF0000">&lt;%= post_form.label :title, "title" %&gt;&lt;br /&gt;</span>
+    <span style="color: #FF0000">&lt;%= post_form.text_field :title %&gt;</span>
+  <span style="color: #FF0000">&lt;/p&gt;</span>
+  <span style="color: #FF0000">&lt;p&gt;</span>
+    <span style="color: #FF0000">&lt;%= post_form.label :content %&gt;&lt;br /&gt;</span>
+    <span style="color: #FF0000">&lt;%= post_form.text_area :content %&gt;</span>
+  <span style="color: #FF0000">&lt;/p&gt;</span>
+  <span style="color: #FF0000">&lt;h2&gt;</span>Tags<span style="color: #FF0000">&lt;/h2&gt;</span>
+  <span style="color: #FF0000">&lt;% post_form.fields_for :tags do |tag_form| %&gt;</span>
+    <span style="color: #FF0000">&lt;p&gt;</span>
+      <span style="color: #FF0000">&lt;%= tag_form.label :name, 'Tag:' %&gt;</span>
+      <span style="color: #FF0000">&lt;%= tag_form.text_field :name %&gt;</span>
+    <span style="color: #FF0000">&lt;/p&gt;</span>
+    <span style="color: #FF0000">&lt;% unless tag_form.object.nil? || tag_form.object.new_record? %&gt;</span>
+      <span style="color: #FF0000">&lt;p&gt;</span>
+        <span style="color: #FF0000">&lt;%= tag_form.label :_delete, 'Remove:' %&gt;</span>
+        <span style="color: #FF0000">&lt;%= tag_form.check_box :_delete %&gt;</span>
+      <span style="color: #FF0000">&lt;/p&gt;</span>
+    <span style="color: #FF0000">&lt;% end %&gt;</span>
+  <span style="color: #FF0000">&lt;% end %&gt;</span>
+
+  <span style="color: #FF0000">&lt;p&gt;</span>
+    <span style="color: #FF0000">&lt;%= post_form.submit "Save" %&gt;</span>
+  <span style="color: #FF0000">&lt;/p&gt;</span>
+<span style="color: #FF0000">&lt;% end %&gt;</span></tt></pre></div></div>
+<div class="paragraph"><p>With these changes in place, you&#8217;ll find that you can edit a post and its tags directly on the same view.</p></div>
+<div class="admonitionblock">
+<table><tr>
+<td class="icon">
+<img src="./images/icons/note.png" alt="Note" />
+</td>
+<td class="content">You may want to use javascript to dynamically add additional tags on a single form. For an example of this and other advanced techniques, see the <a href="http://github.com/alloy/complex-form-examples/tree/nested_attributes">nested model sample application</a>.</td>
+</tr></table>
+</div>
+</div>
+<h2 id="_what_8217_s_next">10. What&#8217;s Next?</h2>
 <div class="sectionbody">
 <div class="paragraph"><p>Now that you&#8217;ve seen your first Rails application, you should feel free to update it and experiment on your own. But you don&#8217;t have to do everything without help. As you need assistance getting up and running with Rails, feel free to consult these support resources:</p></div>
 <div class="ulist"><ul>
@@ -1701,41 +1825,16 @@ Running <tt>rake doc:rails</tt> will put a full copy of the API documentation fo
 </li>
 </ul></div>
 </div>
-<h2 id="_changelog">10. Changelog</h2>
+<h2 id="_changelog">11. Changelog</h2>
 <div class="sectionbody">
 <div class="paragraph"><p><a href="http://rails.lighthouseapp.com/projects/16213-rails-guides/tickets/2">Lighthouse ticket</a></p></div>
-<div class="ulist"><ul>
-<li>
-<p>
-November 3, 2008: Formatting patch from Dave Rothlisberger
-</p>
-</li>
-<li>
-<p>
-November 1, 2008: First approved version by <a href="../authors.html#mgunderloy">Mike Gunderloy</a>
-</p>
-</li>
-<li>
-<p>
-October 16, 2008: Revised based on feedback from Pratik Naik by <a href="../authors.html#mgunderloy">Mike Gunderloy</a> (not yet approved for publication)
-</p>
-</li>
-<li>
-<p>
-October 13, 2008: First complete draft by <a href="../authors.html#mgunderloy">Mike Gunderloy</a> (not yet approved for publication)
-</p>
-</li>
-<li>
-<p>
-October 12, 2008: More detail, rearrangement, editing by <a href="../authors.html#mgunderloy">Mike Gunderloy</a> (not yet approved for publication)
-</p>
-</li>
-<li>
-<p>
-September 8, 2008: initial version by James Miller (not yet approved for publication)
-</p>
-</li>
-</ul></div>
+<div class="paragraph"><p>*
+* November 3, 2008: Formatting patch from Dave Rothlisberger
+* November 1, 2008: First approved version by <a href="../authors.html#mgunderloy">Mike Gunderloy</a>
+* October 16, 2008: Revised based on feedback from Pratik Naik by <a href="../authors.html#mgunderloy">Mike Gunderloy</a> (not yet approved for publication)
+* October 13, 2008: First complete draft by <a href="../authors.html#mgunderloy">Mike Gunderloy</a> (not yet approved for publication)
+* October 12, 2008: More detail, rearrangement, editing by <a href="../authors.html#mgunderloy">Mike Gunderloy</a> (not yet approved for publication)
+* September 8, 2008: initial version by James Miller (not yet approved for publication)</p></div>
 </div>
 
     </div>
