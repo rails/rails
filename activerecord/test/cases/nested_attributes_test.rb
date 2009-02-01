@@ -239,7 +239,7 @@ module NestedAttributesOnACollectionAssociationTests
     attributes['new_2'] = { :name => 'Privateers Greed' } # 2 is lower then 123726353
     @pirate.send(association_setter, attributes)
 
-    assert_equal ['Posideons Killer', 'Killer bandita Dionne', 'Privateers Greed', 'Grace OMalley'], @pirate.send(@association_name).map(&:name)
+    assert_equal ['Posideons Killer', 'Killer bandita Dionne', 'Privateers Greed', 'Grace OMalley'].to_set, @pirate.send(@association_name).map(&:name).to_set
   end
 
   def test_should_raise_an_argument_error_if_something_else_than_a_hash_is_passed
@@ -271,7 +271,7 @@ module NestedAttributesOnACollectionAssociationTests
     assert_difference('@pirate.send(@association_name).count', +1) do
       @pirate.update_attributes @alternate_params
     end
-    assert_equal ['Grace OMalley', 'Privateers Greed', 'Buccaneers Servant'], @pirate.reload.send(@association_name).map(&:name)
+    assert_equal ['Grace OMalley', 'Privateers Greed', 'Buccaneers Servant'].to_set, @pirate.reload.send(@association_name).map(&:name).to_set
   end
 
   def test_should_be_possible_to_destroy_a_record
