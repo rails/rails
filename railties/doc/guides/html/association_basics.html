@@ -791,6 +791,11 @@ http://www.gnu.org/software/src-highlite -->
 <div class="ulist"><ul>
 <li>
 <p>
+<tt>:autosave</tt>
+</p>
+</li>
+<li>
+<p>
 <tt>:class_name</tt>
 </p>
 </li>
@@ -840,6 +845,8 @@ http://www.gnu.org/software/src-highlite -->
 </p>
 </li>
 </ul></div>
+<h5 id="_tt_autosave_tt"><tt>:autosave</tt></h5>
+<div class="paragraph"><p>If you set the <tt>:autosave</tt> option to <tt>true</tt>, Rails will save any loaded members and destroy members that are marked for destruction whenever you save the parent object.</p></div>
 <h5 id="_tt_class_name_tt"><tt>:class_name</tt></h5>
 <div class="paragraph"><p>If the name of the other model cannot be derived from the association name, you can use the <tt>:class_name</tt> option to supply the model name. For example, if an order belongs to a customer, but the actual name of the model containing customers is <tt>Patron</tt>, you&#8217;d set things up this way:</p></div>
 <div class="listingblock">
@@ -1099,6 +1106,11 @@ http://www.gnu.org/software/src-highlite -->
 </li>
 <li>
 <p>
+<tt>:autosave</tt>
+</p>
+</li>
+<li>
+<p>
 <tt>:class_name</tt>
 </p>
 </li>
@@ -1165,6 +1177,8 @@ http://www.gnu.org/software/src-highlite -->
 </ul></div>
 <h5 id="_tt_as_tt"><tt>:as</tt></h5>
 <div class="paragraph"><p>Setting the <tt>:as</tt> option indicates that this is a polymorphic association. Polymorphic associations are discussed in detail later in this guide.</p></div>
+<h5 id="_tt_autosave_tt_2"><tt>:autosave</tt></h5>
+<div class="paragraph"><p>If you set the <tt>:autosave</tt> option to <tt>true</tt>, Rails will save any loaded members and destroy members that are marked for destruction whenever you save the parent object.</p></div>
 <h5 id="_tt_class_name_tt_2"><tt>:class_name</tt></h5>
 <div class="paragraph"><p>If the name of the other model cannot be derived from the association name, you can use the <tt>:class_name</tt> option to supply the model name. For example, if a supplier has an account, but the actual name of the model containing accounts is Billing, you&#8217;d set things up this way:</p></div>
 <div class="listingblock">
@@ -1467,6 +1481,11 @@ http://www.gnu.org/software/src-highlite -->
 </li>
 <li>
 <p>
+<tt>:autosave</tt>
+</p>
+</li>
+<li>
+<p>
 <tt>:class_name</tt>
 </p>
 </li>
@@ -1568,6 +1587,8 @@ http://www.gnu.org/software/src-highlite -->
 </ul></div>
 <h5 id="_tt_as_tt_2"><tt>:as</tt></h5>
 <div class="paragraph"><p>Setting the <tt>:as</tt> option indicates that this is a polymorphic association, as discussed earlier in this guide.</p></div>
+<h5 id="_tt_autosave_tt_3"><tt>:autosave</tt></h5>
+<div class="paragraph"><p>If you set the <tt>:autosave</tt> option to <tt>true</tt>, Rails will save any loaded members and destroy members that are marked for destruction whenever you save the parent object.</p></div>
 <h5 id="_tt_class_name_tt_3"><tt>:class_name</tt></h5>
 <div class="paragraph"><p>If the name of the other model cannot be derived from the association name, you can use the <tt>:class_name</tt> option to supply the model name. For example, if a customer has many orders, but the actual name of the model containing orders is <tt>Transaction</tt>, you&#8217;d set things up this way:</p></div>
 <div class="listingblock">
@@ -1953,6 +1974,11 @@ http://www.gnu.org/software/src-highlite -->
 </li>
 <li>
 <p>
+<tt>:autosave</tt>
+</p>
+</li>
+<li>
+<p>
 <tt>:class_name</tt>
 </p>
 </li>
@@ -2061,6 +2087,8 @@ http://www.gnu.org/software/src-highlite -->
   has_and_belongs_to_many <span style="color: #990000">:</span>friends<span style="color: #990000">,</span> <span style="color: #990000">:</span>class_name <span style="color: #990000">=&gt;</span> <span style="color: #FF0000">"User"</span><span style="color: #990000">,</span>
     <span style="color: #990000">:</span>foreign_key <span style="color: #990000">=&gt;</span> <span style="color: #FF0000">"this_user_id"</span><span style="color: #990000">,</span> <span style="color: #990000">:</span>association_foreign_key <span style="color: #990000">=&gt;</span> <span style="color: #FF0000">"other_user_id"</span>
 <span style="font-weight: bold"><span style="color: #0000FF">end</span></span></tt></pre></div></div>
+<h5 id="_tt_autosave_tt_4"><tt>:autosave</tt></h5>
+<div class="paragraph"><p>If you set the <tt>:autosave</tt> option to <tt>true</tt>, Rails will save any loaded members and destroy members that are marked for destruction whenever you save the parent object.</p></div>
 <h5 id="_tt_class_name_tt_4"><tt>:class_name</tt></h5>
 <div class="paragraph"><p>If the name of the other model cannot be derived from the association name, you can use the <tt>:class_name</tt> option to supply the model name. For example, if a part has many assemblies, but the actual name of the model containing assemblies is <tt>Gadget</tt>, you&#8217;d set things up this way:</p></div>
 <div class="listingblock">
@@ -2291,6 +2319,11 @@ http://www.gnu.org/software/src-highlite -->
 <div class="sectionbody">
 <div class="paragraph"><p><a href="http://rails.lighthouseapp.com/projects/16213-rails-guides/tickets/11">Lighthouse ticket</a></p></div>
 <div class="ulist"><ul>
+<li>
+<p>
+February 1, 2009: Added <tt>:autosave</tt> option <a href="../authors.html#mgunderloy">Mike Gunderloy</a>
+</p>
+</li>
 <li>
 <p>
 September 28, 2008: Corrected <tt>has_many :through</tt> diagram, added polymorphic diagram, some reorganization by <a href="../authors.html#mgunderloy">Mike Gunderloy</a> . First release version.
