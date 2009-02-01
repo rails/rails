@@ -624,7 +624,7 @@ end
 
 The +belongs_to+ association supports these options:
 
-// * +:accessible+
+* +:autosave+
 * +:class_name+
 * +:conditions+
 * +:counter_cache+
@@ -636,10 +636,10 @@ The +belongs_to+ association supports these options:
 * +:select+
 * +:validate+
 
-// ===== +:accessible+
-//
-// The +:accessible+ option is the association version of +ActiveRecord::Base#attr_accessible+. If you set the +:accessible+ option to true, then mass // assignment is allowed for this association.
-//
+===== +:autosave+
+
+If you set the +:autosave+ option to +true+, Rails will save any loaded members and destroy members that are marked for destruction whenever you save the parent object.
+
 ===== +:class_name+
 
 If the name of the other model cannot be derived from the association name, you can use the +:class_name+ option to supply the model name. For example, if an order belongs to a customer, but the actual name of the model containing customers is +Patron+, you'd set things up this way:
@@ -877,8 +877,8 @@ end
 
 The +has_one+ association supports these options:
 
-// * +:accessible+
 * +:as+
+* +:autosave+
 * +:class_name+
 * +:conditions+
 * +:dependent+
@@ -893,13 +893,13 @@ The +has_one+ association supports these options:
 * +:through+
 * +:validate+
 
-// ===== +:accessible+
-//
-// The +:accessible+ option is the association version of +ActiveRecord::Base#attr_accessible+. If you set the +:accessible+ option to true, then mass // assignment is allowed for this association.
-//
 ===== +:as+
 
 Setting the +:as+ option indicates that this is a polymorphic association. Polymorphic associations are discussed in detail later in this guide.
+
+===== +:autosave+
+
+If you set the +:autosave+ option to +true+, Rails will save any loaded members and destroy members that are marked for destruction whenever you save the parent object.
 
 ===== +:class_name+
 
@@ -1181,8 +1181,8 @@ end
 
 The +has_many+ association supports these options:
 
-// * +:accessible+
 * +:as+
+* +:autosave+
 * +:class_name+
 * +:conditions+
 * +:counter_sql+
@@ -1204,13 +1204,13 @@ The +has_many+ association supports these options:
 * +:uniq+
 * +:validate+
 
-// ===== +:accessible+
-//
-// The +:accessible+ option is the association version of +ActiveRecord::Base#attr_accessible+. If you set the +:accessible+ option to true, then mass // assignment is allowed for this association.
-//
 ===== +:as+
 
 Setting the +:as+ option indicates that this is a polymorphic association, as discussed earlier in this guide.
+
+===== +:autosave+
+
+If you set the +:autosave+ option to +true+, Rails will save any loaded members and destroy members that are marked for destruction whenever you save the parent object.
 
 ===== +:class_name+
 
@@ -1566,8 +1566,8 @@ end
 
 The +has_and_belongs_to_many+ association supports these options:
 
-// * +:accessible+
 * +:association_foreign_key+
+* +:autosave+
 * +:class_name+
 * +:conditions+
 * +:counter_sql+
@@ -1587,10 +1587,6 @@ The +has_and_belongs_to_many+ association supports these options:
 * +:uniq+
 * +:validate+
 
-// ===== +:accessible+
-//
-// The +:accessible+ option is the association version of +ActiveRecord::Base#attr_accessible+. If you set the +:accessible+ option to true, then mass // assignment is allowed for this association.
-//
 ===== +:association_foreign_key+
 
 By convention, Rails guesses that the column in the join table used to hold the foreign key pointing to the other model is the name of that model with the suffix +_id+ added. The +:association_foreign_key+ option lets you set the name of the foreign key directly:
@@ -1604,6 +1600,10 @@ class User < ActiveRecord::Base
     :foreign_key => "this_user_id", :association_foreign_key => "other_user_id"
 end
 -------------------------------------------------------
+
+===== +:autosave+
+
+If you set the +:autosave+ option to +true+, Rails will save any loaded members and destroy members that are marked for destruction whenever you save the parent object.
 
 ===== +:class_name+
 
@@ -1841,6 +1841,7 @@ Extensions can refer to the internals of the association proxy using these three
 
 http://rails.lighthouseapp.com/projects/16213-rails-guides/tickets/11[Lighthouse ticket]
 
+* February 1, 2009: Added +:autosave+ option link:../authors.html#mgunderloy[Mike Gunderloy] 
 * September 28, 2008: Corrected +has_many :through+ diagram, added polymorphic diagram, some reorganization by link:../authors.html#mgunderloy[Mike Gunderloy] . First release version.
 * September 22, 2008: Added diagrams, misc. cleanup by link:../authors.html#mgunderloy[Mike Gunderloy] (not yet approved for publication)
 * September 14, 2008: initial version by link:../authors.html#mgunderloy[Mike Gunderloy] (not yet approved for publication)
