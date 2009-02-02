@@ -315,7 +315,7 @@ def extract_locale_from_accept_language_header
 end
 -------------------------------------------------------
 
-Of course, in production environment you would need much robust code, and could use a plugin such as Iaian Hecker's http://github.com/iain/http_accept_language[http_accept_language].
+Of course, in production environment you would need much robust code, and could use a plugin such as Iaian Hecker's http://github.com/iain/http_accept_language[http_accept_language] or even Rack middleware such as Ryan Tomayko's http://github.com/rtomayko/rack-contrib/blob/master/lib/rack/locale.rb[locale].
 
 ==== Using GeoIP (or similar) database
 
