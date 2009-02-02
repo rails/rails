@@ -1,6 +1,6 @@
 require 'abstract_unit'
 require 'action_controller'
-require 'action_controller/test_case'
+require 'action_controller/testing/test_case'
 
 RAILS_ENV = "test"
 CURRENT_DIR = File.expand_path(File.dirname(__FILE__))
