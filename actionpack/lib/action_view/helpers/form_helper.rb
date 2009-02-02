@@ -971,7 +971,8 @@ module ActionView
               @template.fields_for(child_name, child, *args, &block)
             end.join
           else
-            @template.fields_for(name, association, *args, &block)
+            object = args.first.respond_to?(:new_record?) ? args.first : association
+            @template.fields_for(name, object, *args, &block)
           end
         end
 
