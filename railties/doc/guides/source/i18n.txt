@@ -403,7 +403,7 @@ image:images/i18n/demo_translated_pirate.png[rails i18n demo translated to pirat
 
 NOTE: You need to restart the server when you add new locale files.
 
-You may use YAML (+.yml+) or plain Ruby (+.rb+) files for storing your translations in SimpleStore. YAML is the preffered option among Rails developers, has one big disadvantage, though. YAML is very sensitive to whitespace and special characters, so the application may not load your dictionary properly. Ruby files will crash your application during start-up time, so you may easily find what's wrong. (If you encounter any "weird issues" with YAML dictionaries, try putting the relevant portion of your dictionary into Ruby file.)
+You may use YAML (+.yml+) or plain Ruby (+.rb+) files for storing your translations in SimpleStore. YAML is the preffered option among Rails developers, has one big disadvantage, though. YAML is very sensitive to whitespace and special characters, so the application may not load your dictionary properly. Ruby files will crash your application on first request, so you may easily find what's wrong. (If you encounter any "weird issues" with YAML dictionaries, try putting the relevant portion of your dictionary into Ruby file.)
 
 === Adding Date/Time formats
 
