@@ -56,7 +56,7 @@ Let's try it! The `server` command launches a small web server named WEBrick whi
 
 NOTE: WEBrick isn't your only option for serving Rails. We'll get to that in a later section. [XXX: which section]
 
-Here we'll flex our `server` command, which without any prodding of any kind will run our new shiny Rails app:
+Without any prodding of any kind, `server` will run our new shiny Rails app:
 
 [source,shell]
 ------------------------------------------------------
@@ -318,7 +318,7 @@ $ ./script/destroy model Oops
 ------------------------------------------------------
 
 === about ===
-Check it: Version numbers for Ruby, RubyGems, Rails, the Rails subcomponents, your application's folder, the current Rails environment name, your app's database adapter, and schema version! `about` is useful when you need to ask help, check if a security patch might affect you, or when you need some stats for an existing Rails installation.
+Check it: Version numbers for Ruby, RubyGems, Rails, the Rails subcomponents, your application's folder, the current Rails environment name, your app's database adapter, and schema version! `about` is useful when you need to ask for help, check if a security patch might affect you, or when you need some stats for an existing Rails installation.
 
 [source,shell]
 ------------------------------------------------------
@@ -338,3 +338,65 @@ Environment               development
 Database adapter          sqlite3
 Database schema version   20081217073400
 ------------------------------------------------------
+
+== The Rails Advanced Command Line (RACL!) ==
+The more advanced uses of the command line are focused around finding useful (even surprising at times) options in the utilities, and fitting utilities to your needs and specific work flow. Listed here are some tricks up Rails' sleeve.
+
+=== rails with databases and SCM ===
+When creating a new Rails application, you have the option to specify what kind of database and what kind of source code management system your application is going to use. This will save you a few minutes, and certainly many keystrokes.
+
+Let's see what a `--git` option and a `--database=postgresql` option will do for us:
+
+[source,shell]
+------------------------------------------------------
+$ mkdir gitapp
+$ cd gitapp
+$ git init
+Initialized empty Git repository in .git/
+$ rails . --git --database=postgresql
+      exists  
+      create  app/controllers
+      create  app/helpers
+...
+...
+      create  tmp/cache
+      create  tmp/pids
+      create  Rakefile
+add 'Rakefile'
+      create  README
+add 'README'
+      create  app/controllers/application.rb
+add 'app/controllers/application.rb'
+      create  app/helpers/application_helper.rb
+...
+      create  log/test.log
+add 'log/test.log'
+------------------------------------------------------
+
+We had to create the *gitapp* directory and initialize an empty git repository before Rails would add files it created to our repository. Let's see what it put in our database configuration:
+
+[source,shell]
+------------------------------------------------------
+$ cat config/database.yml 
+# PostgreSQL. Versions 7.4 and 8.x are supported.
+#
+# Install the ruby-postgres driver:
+#   gem install ruby-postgres
+# On Mac OS X:
+#   gem install ruby-postgres -- --include=/usr/local/pgsql
+# On Windows:
+#   gem install ruby-postgres
+#       Choose the win32 build.
+#       Install PostgreSQL and put its /bin directory on your path.
+development:
+  adapter: postgresql
+  encoding: unicode
+  database: gitapp_development
+  pool: 5
+  username: gitapp
+  password:
+...
+...
+------------------------------------------------------
+
+It also generated some lines in our database.yml configuration corresponding to our choice of PostgreSQL for database. The only catch with using the SCM options is that you have to make your application's directory first, then initialize your SCM, then you can run the `rails` command to generate the basis of your app.
