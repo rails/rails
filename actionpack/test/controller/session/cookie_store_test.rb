@@ -177,7 +177,7 @@ class CookieStoreTest < ActionController::IntegrationTest
   end
 
   def test_session_store_with_expire_after
-    app = ActionController::Session::CookieStore.new(DispatcherApp, :key => SessionKey, :secret => SessionSecret, :expire_after => 5.hours)
+    app = ActionDispatch::Session::CookieStore.new(DispatcherApp, :key => SessionKey, :secret => SessionSecret, :expire_after => 5.hours)
     @integration_session = open_session(app)
 
     with_test_route_set do

@@ -62,7 +62,7 @@ end
 
 class RackRequestTest < BaseRackTest
   test "proxy request" do
-    assert_equal 'glu.ttono.us', @request.host_with_port(true)
+    assert_equal 'glu.ttono.us', @request.host_with_port
   end
 
   test "http host" do

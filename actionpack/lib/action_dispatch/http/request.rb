@@ -94,25 +94,26 @@ module ActionDispatch
         end
       end
     end
-
+    
     # Returns the accepted MIME type for the request.
     def accepts
       @accepts ||= begin
         header = @env['HTTP_ACCEPT'].to_s.strip
 
-      fallback = xhr? ? Mime::JS : Mime::HTML
+        fallback = xhr? ? Mime::JS : Mime::HTML
 
-      if header.empty?
-        [content_type, fallback, Mime::ALL].compact
-      else
-        ret = Mime::Type.parse(header)
-        if ret.last == Mime::ALL
-          ret.insert(-2, fallback)
+        if header.empty?
+          [content_type, fallback, Mime::ALL].compact
+        else
+          ret = Mime::Type.parse(header)
+          if ret.last == Mime::ALL
+            ret.insert(-2, fallback)
+          end
+          ret
         end
-        ret
       end
     end
-
+    
     def if_modified_since
       if since = env['HTTP_IF_MODIFIED_SINCE']
         Time.rfc2822(since) rescue nil

@@ -255,7 +255,7 @@ class RequestTest < ActiveSupport::TestCase
   end
 
   test "server software" do
-    assert_equal nil, @request.server_software(true)
+    assert_equal nil, @request.server_software
 
     @request.env['SERVER_SOFTWARE'] = 'Apache3.422'
     assert_equal 'apache', @request.server_software

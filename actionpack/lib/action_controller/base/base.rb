@@ -862,7 +862,7 @@ module ActionController #:nodoc:
       end
 
       def close_session
-        @_session.close if @_session && @_session.respond_to?(:close)
+        # @_session.close if @_session && @_session.respond_to?(:close)
       end
 
       def default_template(action_name = self.action_name)
@@ -895,7 +895,7 @@ module ActionController #:nodoc:
   Base.class_eval do
     [ Filters, Layout, Renderer, Redirector, Responder, Benchmarking, Rescue, Flash, MimeResponds, Helpers,
       Cookies, Caching, Verification, Streaming, SessionManagement,
-      HttpAuthentication::Basic::ControllerMethods, RecordIdentifier,
+      HttpAuthentication::Basic::ControllerMethods, HttpAuthentication::Digest::ControllerMethods, RecordIdentifier,
       RequestForgeryProtection, Translation
     ].each do |mod|
       include mod
