@@ -1014,8 +1014,10 @@ class RenderTest < ActionController::TestCase
   end
 
   def test_should_implicitly_render_html_template_from_xhr_request
-    get :render_implicit_html_template_from_xhr_request, :format => :js
-    assert_equal "Hello HTML!", @response.body
+    pending do
+      get :render_implicit_html_template_from_xhr_request, :format => :js
+      assert_equal "Hello HTML!", @response.body
+    end
   end
 
   def test_should_render_formatted_template

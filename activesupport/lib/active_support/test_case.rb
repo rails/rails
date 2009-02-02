@@ -12,6 +12,7 @@ require 'active_support/testing/setup_and_teardown'
 require 'active_support/testing/assertions'
 require 'active_support/testing/deprecation'
 require 'active_support/testing/declarative'
+require 'active_support/testing/pending'
 
 module ActiveSupport
   class TestCase < ::Test::Unit::TestCase
@@ -34,6 +35,7 @@ module ActiveSupport
     include ActiveSupport::Testing::SetupAndTeardown
     include ActiveSupport::Testing::Assertions
     include ActiveSupport::Testing::Deprecation
+    include ActiveSupport::Testing::Pending
     extend ActiveSupport::Testing::Declarative
   end
 end
