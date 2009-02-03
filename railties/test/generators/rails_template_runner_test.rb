@@ -53,12 +53,12 @@ class RailsTemplateRunnerTest < GeneratorTestCase
   end
 
   def test_plugin_with_git_option_should_run_plugin_install
-    expects_run_with_command("script/plugin install #{@git_plugin_uri}")
+    expects_run_ruby_script_with_command("script/plugin install #{@git_plugin_uri}")
     run_template_method(:plugin, 'restful-authentication', :git => @git_plugin_uri)
   end
 
   def test_plugin_with_svn_option_should_run_plugin_install
-    expects_run_with_command("script/plugin install #{@svn_plugin_uri}")
+    expects_run_ruby_script_with_command("script/plugin install #{@svn_plugin_uri}")
     run_template_method(:plugin, 'restful-authentication', :svn => @svn_plugin_uri)
   end
 
@@ -127,7 +127,7 @@ class RailsTemplateRunnerTest < GeneratorTestCase
   end
 
   def test_generate_should_run_script_generate_with_argument_and_options
-    expects_run_with_command('script/generate model MyModel')
+    expects_run_ruby_script_with_command('script/generate model MyModel')
     run_template_method(:generate, 'model', 'MyModel')
   end
 
@@ -162,6 +162,12 @@ class RailsTemplateRunnerTest < GeneratorTestCase
     assert_generated_file_with_data 'config/routes.rb', route_command
   end
 
+  def test_run_ruby_script_should_add_ruby_to_command_in_win32_environment
+    ruby_command = RUBY_PLATFORM =~ /win32/ ? 'ruby ' : ''
+    expects_run_with_command("#{ruby_command}script/generate model MyModel")
+    run_template_method(:generate, 'model', 'MyModel')
+  end
+
   protected
   def run_template_method(method_name, *args, &block)
     silence_generator do
@@ -172,6 +178,10 @@ class RailsTemplateRunnerTest < GeneratorTestCase
 
   def expects_run_with_command(command)
     Rails::TemplateRunner.any_instance.stubs(:run).once.with(command, false)
+  end
+
+  def expects_run_ruby_script_with_command(command)
+    Rails::TemplateRunner.any_instance.stubs(:run_ruby_script).once.with(command,false)
   end
 
   def assert_rails_initializer_includes(data, message = nil)
