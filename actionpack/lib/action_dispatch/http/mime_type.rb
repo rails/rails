@@ -176,8 +176,6 @@ module Mime
     def ==(mime_type)
       return false if mime_type.blank?
       (@synonyms + [ self ]).any? do |synonym| 
-        require "ruby-debug"
-        debugger if mime_type.is_a?(Array)
         synonym.to_s == mime_type.to_s || synonym.to_sym == mime_type.to_sym 
       end
     end
