@@ -1,4 +1,9 @@
-*2.3.0 [Edge]*
+*Edge*
+
+* Added localized rescue template when I18n.locale is set (ex: public/404.da.html) #1835 [José Valim]
+
+
+*2.3.0 [RC1] (February 1st, 2009)*
 
 * Make the form_for and fields_for helpers support the new Active Record nested update options.  #1202 [Eloy Duran]
 

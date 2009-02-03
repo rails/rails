@@ -133,7 +133,7 @@ module ActionView #:nodoc:
     end
 
     def mime_type
-      Mime::Type.lookup_by_extension(format) if format
+      Mime::Type.lookup_by_extension(format) if format && defined?(::Mime)
     end
     memoize :mime_type
 
