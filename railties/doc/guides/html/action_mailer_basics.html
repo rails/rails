@@ -37,9 +37,9 @@
           <a href="#_sending_emails">Sending Emails</a>
             <ul>
             
-              <li><a href="#_walkthrough_to_generating_a_mailer">Walkthrough to generating a Mailer</a></li>
+              <li><a href="#_walkthrough_to_generating_a_mailer">Walkthrough to generating a mailer</a></li>
             
-              <li><a href="#_action_mailer_and_dynamic_deliver_methods">Action Mailer and dynamic deliver_ methods</a></li>
+              <li><a href="#_action_mailer_and_dynamic_deliver_methods">Action Mailer and dynamic deliver_* methods</a></li>
             
               <li><a href="#_complete_list_of_actionmailer_user_settable_attributes">Complete List of ActionMailer user-settable attributes</a></li>
             
@@ -86,18 +86,18 @@
         <h1>Action Mailer Basics</h1>
       <div id="preamble">
 <div class="sectionbody">
-<div class="paragraph"><p>This guide should provide you with all you need to get started in sending and receiving emails from/to your application, and many internals of the ActionMailer class. It will also cover how to test your mailers.</p></div>
+<div class="paragraph"><p>This guide should provide you with all you need to get started in sending and receiving emails from/to your application, and many internals of Action Mailer. It will also cover how to test your mailers.</p></div>
 </div>
 </div>
 <h2 id="_introduction">1. Introduction</h2>
 <div class="sectionbody">
 <div class="paragraph"><p>Action Mailer allows you to send email from your application using a mailer model and views.
-Yes, that is correct, in Rails, emails are used by creating models that inherit from ActionMailer::Base. They live alongside other models in /app/models BUT they have views just like controllers that appear alongside other views in app/views.</p></div>
+Yes, that is correct, in Rails, emails are used by creating models that inherit from ActionMailer::Base. They live alongside other models in <tt>app/models</tt> but they have views just like controllers that appear alongside other views in <tt>app/views</tt>.</p></div>
 </div>
 <h2 id="_sending_emails">2. Sending Emails</h2>
 <div class="sectionbody">
 <div class="paragraph"><p>Let&#8217;s say you want to send a welcome email to a user after they signup. Here is how you would go about this:</p></div>
-<h3 id="_walkthrough_to_generating_a_mailer">2.1. Walkthrough to generating a Mailer</h3>
+<h3 id="_walkthrough_to_generating_a_mailer">2.1. Walkthrough to generating a mailer</h3>
 <h4 id="_create_the_mailer">2.1.1. Create the mailer:</h4>
 <div class="listingblock">
 <div class="content"><!-- Generator: GNU source-highlight 2.9
@@ -113,7 +113,7 @@ create  app/models/user_mailer<span style="color: #990000">.</span>rb
 create  test/unit/user_mailer_test<span style="color: #990000">.</span>rb</tt></pre></div></div>
 <div class="paragraph"><p>So we got the model, the fixtures, and the tests all created for us</p></div>
 <h4 id="_edit_the_model">2.1.2. Edit the model:</h4>
-<div class="paragraph"><p>If you look at app/models/user_mailer.rb, you will see:</p></div>
+<div class="paragraph"><p>If you look at <tt>app/models/user_mailer.rb</tt>, you will see:</p></div>
 <div class="listingblock">
 <div class="content"><!-- Generator: GNU source-highlight 2.9
 by Lorenzo Bettini
@@ -122,7 +122,7 @@ http://www.gnu.org/software/src-highlite -->
 <pre><tt><span style="font-weight: bold"><span style="color: #0000FF">class</span></span> UserMailer <span style="color: #990000">&lt;</span> ActionMailer<span style="color: #990000">::</span>Base
 
 <span style="font-weight: bold"><span style="color: #0000FF">end</span></span></tt></pre></div></div>
-<div class="paragraph"><p>Lets add a method called welcome_email, that will send an email to the user&#8217;s registered email address:</p></div>
+<div class="paragraph"><p>Lets add a method called <tt>welcome_email</tt>, that will send an email to the user&#8217;s registered email address:</p></div>
 <div class="listingblock">
 <div class="content"><!-- Generator: GNU source-highlight 2.9
 by Lorenzo Bettini
@@ -132,7 +132,7 @@ http://www.gnu.org/software/src-highlite -->
 
   <span style="font-weight: bold"><span style="color: #0000FF">def</span></span> welcome_email<span style="color: #990000">(</span>user<span style="color: #990000">)</span>
     recipients    user<span style="color: #990000">.</span>email
-    from          <span style="color: #FF0000">"My Awesome Site Notifications&lt;notifications@example.com&gt;"</span>
+    from          <span style="color: #FF0000">"My Awesome Site Notifications &lt;notifications@example.com&gt;"</span>
     subject       <span style="color: #FF0000">"Welcome to My Awesome Site"</span>
     sent_on       Time<span style="color: #990000">.</span>now
     body          <span style="color: #FF0000">{</span><span style="color: #990000">:</span>user <span style="color: #990000">=&gt;</span> user<span style="color: #990000">,</span> <span style="color: #990000">:</span>url <span style="color: #990000">=&gt;</span> <span style="color: #FF0000">"http://example.com/login"</span><span style="color: #FF0000">}</span>
@@ -151,7 +151,7 @@ cellspacing="0" cellpadding="4">
 <tbody valign="top">
 <tr>
 <td align="left"><p class="table">recipients</p></td>
-<td align="left"><p class="table">who the recipients are, put in an array for multiple, ie, @recipients = ["user1@example.com", "user2@example.com"]</p></td>
+<td align="left"><p class="table">The recipients of the email. It can be a string or, if there are multiple recipients, an array of strings</p></td>
 </tr>
 <tr>
 <td align="left"><p class="table">from</p></td>
@@ -172,7 +172,7 @@ cellspacing="0" cellpadding="4">
 </tbody>
 </table>
 </div>
-<div class="paragraph"><p>How about @body[:user]? Well anything you put in the @body hash will appear in the mailer view (more about mailer views below) as an instance variable ready for you to use, ie, in our example the mailer view will have a @user instance variable available for its consumption.</p></div>
+<div class="paragraph"><p>The keys of the hash passed to <tt>body</tt> become instance variables in the view. Thus, in our example the mailer view will have a @user and a @url instance variables available.</p></div>
 <h4 id="_create_the_mailer_view">2.1.3. Create the mailer view</h4>
 <div class="paragraph"><p></p></div>
 <div class="paragraph"><p>The file can look like:</p></div>
@@ -184,21 +184,21 @@ http://www.gnu.org/software/src-highlite -->
 <pre><tt><span style="font-weight: bold"><span style="color: #000080">&lt;!DOCTYPE</span></span> <span style="color: #009900">html</span> <span style="color: #009900">PUBLIC</span> <span style="color: #FF0000">"-//W3C//DTD XHTML 1.0 Transitional//EN"</span> <span style="color: #FF0000">"http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd"</span><span style="font-weight: bold"><span style="color: #000080">&gt;</span></span>
 <span style="font-weight: bold"><span style="color: #0000FF">&lt;html&gt;</span></span>
   <span style="font-weight: bold"><span style="color: #0000FF">&lt;head&gt;</span></span>
-    <span style="font-weight: bold"><span style="color: #0000FF">&lt;meta</span></span> <span style="color: #009900">content</span><span style="color: #990000">=</span><span style="color: #009900">'text/html;</span> <span style="color: #009900">charset</span><span style="color: #990000">=</span><span style="color: #009900">iso-8859-1'</span> <span style="color: #009900">http-equiv</span><span style="color: #990000">=</span><span style="color: #009900">'Content-Type'</span> <span style="font-weight: bold"><span style="color: #0000FF">/&gt;</span></span>
+    <span style="font-weight: bold"><span style="color: #0000FF">&lt;meta</span></span> <span style="color: #009900">content</span><span style="color: #990000">=</span><span style="color: #FF0000">"text/html; charset=UTF-8"</span> <span style="color: #009900">http-equiv</span><span style="color: #990000">=</span><span style="color: #FF0000">"Content-Type"</span> <span style="font-weight: bold"><span style="color: #0000FF">/&gt;</span></span>
   <span style="font-weight: bold"><span style="color: #0000FF">&lt;/head&gt;</span></span>
   <span style="font-weight: bold"><span style="color: #0000FF">&lt;body&gt;</span></span>
-    <span style="font-weight: bold"><span style="color: #0000FF">&lt;h1&gt;</span></span>Welcome to example.com, &lt;%= @user.first_name %&gt;<span style="font-weight: bold"><span style="color: #0000FF">&lt;/h1&gt;</span></span>
+    <span style="font-weight: bold"><span style="color: #0000FF">&lt;h1&gt;</span></span>Welcome to example.com, &lt;%=h @user.first_name %&gt;<span style="font-weight: bold"><span style="color: #0000FF">&lt;/h1&gt;</span></span>
     <span style="font-weight: bold"><span style="color: #0000FF">&lt;p&gt;</span></span>
-      You have successfully signed up to example.com, and your username is: &lt;%= @user.login %&gt;.<span style="font-weight: bold"><span style="color: #0000FF">&lt;br/&gt;</span></span>
-      To login to the site, just follow this link: &lt;%= @url %&gt;.
+      You have successfully signed up to example.com, and your username is: &lt;%=h @user.login %&gt;.<span style="font-weight: bold"><span style="color: #0000FF">&lt;br/&gt;</span></span>
+      To login to the site, just follow this link: &lt;%=h @url %&gt;.
     <span style="font-weight: bold"><span style="color: #0000FF">&lt;/p&gt;</span></span>
     <span style="font-weight: bold"><span style="color: #0000FF">&lt;p&gt;</span></span>Thanks for joining and have a great day!<span style="font-weight: bold"><span style="color: #0000FF">&lt;/p&gt;</span></span>
   <span style="font-weight: bold"><span style="color: #0000FF">&lt;/body&gt;</span></span>
 <span style="font-weight: bold"><span style="color: #0000FF">&lt;/html&gt;</span></span></tt></pre></div></div>
 <h4 id="_wire_it_up_so_that_the_system_sends_the_email_when_a_user_signs_up">2.1.4. Wire it up so that the system sends the email when a user signs up</h4>
-<div class="paragraph"><p>There are 3 ways to achieve this. One is to send the email from the controller that sends the email, another is to put it in a before_create block in the user model, and the last one is to use an observer on the user model. Whether you use the second or third methods is up to you, but staying away from the first is recommended. Not because it&#8217;s wrong, but because it keeps your controller clean, and keeps all logic related to the user model within the user model. This way, whichever way a user is created (from a web form, or from an API call, for example), we are guaranteed that the email will be sent.</p></div>
+<div class="paragraph"><p>There are three ways to achieve this. One is to send the email from the controller that sends the email, another is to put it in a <tt>before_create</tt> callback in the user model, and the last one is to use an observer on the user model. Whether you use the second or third methods is up to you, but staying away from the first is recommended. Not because it&#8217;s wrong, but because it keeps your controller clean, and keeps all logic related to the user model within the user model. This way, whichever way a user is created (from a web form, or from an API call, for example), we are guaranteed that the email will be sent.</p></div>
 <div class="paragraph"><p>Let&#8217;s see how we would go about wiring it up using an observer:</p></div>
-<div class="paragraph"><p>In config/environment.rb:</p></div>
+<div class="paragraph"><p>In <tt>config/environment.rb</tt>:</p></div>
 <div class="listingblock">
 <div class="content"><!-- Generator: GNU source-highlight 2.9
 by Lorenzo Bettini
@@ -207,11 +207,8 @@ http://www.gnu.org/software/src-highlite -->
 <pre><tt><span style="font-style: italic"><span style="color: #9A1900"># Code that already exists</span></span>
 
 Rails<span style="color: #990000">::</span>Initializer<span style="color: #990000">.</span>run <span style="font-weight: bold"><span style="color: #0000FF">do</span></span> <span style="color: #990000">|</span>config<span style="color: #990000">|</span>
-
   <span style="font-style: italic"><span style="color: #9A1900"># Code that already exists</span></span>
-
   config<span style="color: #990000">.</span>active_record<span style="color: #990000">.</span>observers <span style="color: #990000">=</span> <span style="color: #990000">:</span>user_observer
-
 <span style="font-weight: bold"><span style="color: #0000FF">end</span></span></tt></pre></div></div>
 <div class="paragraph"><p>There was a bit of a debate on where to put observers. Some people put them in app/models, but a cleaner method may be to create an app/observers folder to store all observers, and add that to your load path. Open config/environment.rb and make it look like:</p></div>
 <div class="listingblock">
@@ -230,8 +227,7 @@ Rails<span style="color: #990000">::</span>Initializer<span style="color: #99000
   config<span style="color: #990000">.</span>active_record<span style="color: #990000">.</span>observers <span style="color: #990000">=</span> <span style="color: #990000">:</span>user_observer
 
 <span style="font-weight: bold"><span style="color: #0000FF">end</span></span></tt></pre></div></div>
-<div class="paragraph"><p>ALMOST THERE :) Now all we need is that danged observer, and we&#8217;re done:
-Create a file called user_observer in app/models or app/observers depending on where you stored it, and make it look like:</p></div>
+<div class="paragraph"><p>Now create a file called user_observer in app/models or app/observers depending on where you stored it, and make it look like:</p></div>
 <div class="listingblock">
 <div class="content"><!-- Generator: GNU source-highlight 2.9
 by Lorenzo Bettini
@@ -242,17 +238,17 @@ http://www.gnu.org/software/src-highlite -->
     UserMailer<span style="color: #990000">.</span>deliver_welcome_email<span style="color: #990000">(</span>user<span style="color: #990000">)</span>
   <span style="font-weight: bold"><span style="color: #0000FF">end</span></span>
 <span style="font-weight: bold"><span style="color: #0000FF">end</span></span></tt></pre></div></div>
-<div class="paragraph"><p>Notice how we call deliver_welcome_email? Where is that method? Well if you remember, we created a method called welcome_email in UserMailer, right? Well, as part of the "magic" of rails, we deliver the email identified by welcome_email by calling deliver_welcome_email. The next section will go through this in more detail.</p></div>
+<div class="paragraph"><p>Notice how we call <tt>deliver_welcome_email</tt>? Where is that method? Well if you remember, we created a method called <tt>welcome_email</tt> in UserMailer, right? Well, as part of the "magic" of Rails, we deliver the email identified by <tt>welcome_email</tt> by calling <tt>deliver_welcome_email</tt>. The next section will go through this in more detail.</p></div>
 <div class="paragraph"><p>That&#8217;s it! Now whenever your users signup, they will be greeted with a nice welcome email.</p></div>
-<h3 id="_action_mailer_and_dynamic_deliver_methods">2.2. Action Mailer and dynamic deliver_ methods</h3>
+<h3 id="_action_mailer_and_dynamic_deliver_methods">2.2. Action Mailer and dynamic deliver_* methods</h3>
 <div class="paragraph"><p>So how does Action Mailer understand this deliver_welcome_email call? If you read the documentation (<a href="http://api.rubyonrails.org/files/vendor/rails/actionmailer/README.html">http://api.rubyonrails.org/files/vendor/rails/actionmailer/README.html</a>), you will find this in the "Sending Emails" section:</p></div>
 <div class="paragraph"><p>You never instantiate your mailer class. Rather, your delivery instance
 methods are automatically wrapped in class methods that start with the word
-deliver_ followed by the name of the mailer method that you would
-like to deliver. The signup_notification method defined above is
-delivered by invoking Notifier.deliver_signup_notification.</p></div>
+"deliver_" followed by the name of the mailer method that you would
+like to deliver. The <tt>welcome_email</tt> method defined above is
+delivered by invoking <tt>Notifier.deliver_welcome_email</tt>.</p></div>
 <div class="paragraph"><p>So, how exactly does this work?</p></div>
-<div class="paragraph"><p>In ActionMailer:Base, you will find this:</p></div>
+<div class="paragraph"><p>In ActionMailer::Base, you will find this:</p></div>
 <div class="listingblock">
 <div class="content"><!-- Generator: GNU source-highlight 2.9
 by Lorenzo Bettini
@@ -266,7 +262,7 @@ http://www.gnu.org/software/src-highlite -->
     <span style="font-weight: bold"><span style="color: #0000FF">else</span></span> <span style="font-weight: bold"><span style="color: #0000FF">super</span></span>
   <span style="font-weight: bold"><span style="color: #0000FF">end</span></span>
 <span style="font-weight: bold"><span style="color: #0000FF">end</span></span></tt></pre></div></div>
-<div class="paragraph"><p>Ah, this makes things so much clearer :) so if the method name starts with deliver_ followed by any combination of lowercase letters or underscore, method missing calls new on your mailer class (UserMailer in our example above), sending the combination of lower case letters or underscore, along with the parameter. The resulting object is then sent the deliver! method, which well... delivers it.</p></div>
+<div class="paragraph"><p>Hence, if the method name starts with "deliver_" followed by any combination of lowercase letters or underscore, <tt>method_missing+  calls `new</tt> on your mailer class (UserMailer in our example above), sending the combination of lower case letters or underscore, along with the parameters. The resulting object is then sent the <tt>deliver!</tt> method, which well... delivers it.</p></div>
 <h3 id="_complete_list_of_actionmailer_user_settable_attributes">2.3. Complete List of ActionMailer user-settable attributes</h3>
 <div class="tableblock">
 <table rules="all"

@@ -1,16 +1,16 @@
 Action Mailer Basics
 ====================
 
-This guide should provide you with all you need to get started in sending and receiving emails from/to your application, and many internals of the ActionMailer class. It will also cover how to test your mailers.
+This guide should provide you with all you need to get started in sending and receiving emails from/to your application, and many internals of Action Mailer. It will also cover how to test your mailers.
 
 == Introduction
 Action Mailer allows you to send email from your application using a mailer model and views.
-Yes, that is correct, in Rails, emails are used by creating models that inherit from ActionMailer::Base. They live alongside other models in /app/models BUT they have views just like controllers that appear alongside other views in app/views.
+Yes, that is correct, in Rails, emails are used by creating models that inherit from ActionMailer::Base. They live alongside other models in `app/models` but they have views just like controllers that appear alongside other views in `app/views`.
 
 == Sending Emails
 Let's say you want to send a welcome email to a user after they signup. Here is how you would go about this:
 
-=== Walkthrough to generating a Mailer
+=== Walkthrough to generating a mailer
 ==== Create the mailer:
 [source, shell]
 -------------------------------------------------------
@@ -27,7 +27,7 @@ So we got the model, the fixtures, and the tests all created for us
 
 ==== Edit the model:
 
-If you look at app/models/user_mailer.rb, you will see:
+If you look at `app/models/user_mailer.rb`, you will see:
 [source, ruby]
 -------------------------------------------------------
 class UserMailer < ActionMailer::Base
@@ -35,14 +35,14 @@ class UserMailer < ActionMailer::Base
 end
 -------------------------------------------------------
 
-Lets add a method called welcome_email, that will send an email to the user's registered email address:
+Lets add a method called `welcome_email`, that will send an email to the user's registered email address:
 [source, ruby]
 -------------------------------------------------------
 class UserMailer < ActionMailer::Base
 
   def welcome_email(user)
     recipients    user.email
-    from          "My Awesome Site Notifications<notifications@example.com>"
+    from          "My Awesome Site Notifications <notifications@example.com>"
     subject       "Welcome to My Awesome Site"
     sent_on       Time.now
     body          {:user => user, :url => "http://example.com/login"}
@@ -55,17 +55,17 @@ end
 So what do we have here?
 [width="100%", cols="20%,80%"]
 |======================================================
-|recipients| who the recipients are, put in an array for multiple, ie, @recipients = ["user1@example.com", "user2@example.com"]
+|recipients| The recipients of the email. It can be a string or, if there are multiple recipients, an array of strings
 |from| Who the email will appear to come from in the recipients' mailbox
 |subject| The subject of the email
 |sent_on| Timestamp for the email
 |content_type| The content type, by default is text/plain
 |======================================================
 
-How about @body[:user]? Well anything you put in the @body hash will appear in the mailer view (more about mailer views below) as an instance variable ready for you to use, ie, in our example the mailer view will have a @user instance variable available for its consumption.
+The keys of the hash passed to `body` become instance variables in the view. Thus, in our example the mailer view will have a @user and a @url instance variables available.
 
 ==== Create the mailer view
-Create a file called welcome_email.html.erb in #{RAILS_ROOT}/app/views/user_mailer/ . This will be the template used for the email. This file will be used for html formatted emails. Had we wanted to send text-only emails, the file would have been called welcome_email.txt.erb, and we would have set the content type to text/plain in the mailer model.
+Create a file called `welcome_email.html.erb` in #{RAILS_ROOT}/app/views/user_mailer/ . This will be the template used for the email. This file will be used for html formatted emails. Had we wanted to send text-only emails, the file would have been called welcome_email.txt.erb, and we would have set the content type to text/plain in the mailer model.
 
 The file can look like:
 [source, html]
@@ -73,13 +73,13 @@ The file can look like:
 <!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
 <html>
   <head>
-    <meta content='text/html; charset=iso-8859-1' http-equiv='Content-Type' />
+    <meta content="text/html; charset=UTF-8" http-equiv="Content-Type" />
   </head>
   <body>
-    <h1>Welcome to example.com, <%= @user.first_name %></h1>
+    <h1>Welcome to example.com, <%=h @user.first_name %></h1>
     <p>
-      You have successfully signed up to example.com, and your username is: <%= @user.login %>.<br/>
-      To login to the site, just follow this link: <%= @url %>.
+      You have successfully signed up to example.com, and your username is: <%=h @user.login %>.<br/>
+      To login to the site, just follow this link: <%=h @url %>.
     </p>
     <p>Thanks for joining and have a great day!</p>
   </body>
@@ -87,21 +87,18 @@ The file can look like:
 -------------------------------------------------------
 
 ==== Wire it up so that the system sends the email when a user signs up
-There are 3 ways to achieve this. One is to send the email from the controller that sends the email, another is to put it in a before_create block in the user model, and the last one is to use an observer on the user model. Whether you use the second or third methods is up to you, but staying away from the first is recommended. Not because it's wrong, but because it keeps your controller clean, and keeps all logic related to the user model within the user model. This way, whichever way a user is created (from a web form, or from an API call, for example), we are guaranteed that the email will be sent.
+There are three ways to achieve this. One is to send the email from the controller that sends the email, another is to put it in a `before_create` callback in the user model, and the last one is to use an observer on the user model. Whether you use the second or third methods is up to you, but staying away from the first is recommended. Not because it's wrong, but because it keeps your controller clean, and keeps all logic related to the user model within the user model. This way, whichever way a user is created (from a web form, or from an API call, for example), we are guaranteed that the email will be sent.
 
 Let's see how we would go about wiring it up using an observer:
 
-In config/environment.rb:
+In `config/environment.rb`:
 [source, ruby]
 -------------------------------------------------------
 # Code that already exists
 
 Rails::Initializer.run do |config|
-
   # Code that already exists
-
   config.active_record.observers = :user_observer
-  
 end
 -------------------------------------------------------
 
@@ -121,8 +118,7 @@ Rails::Initializer.run do |config|
 end
 -------------------------------------------------------
 
-ALMOST THERE :) Now all we need is that danged observer, and we're done:
-Create a file called user_observer in app/models or app/observers depending on where you stored it, and make it look like:
+Now create a file called user_observer in app/models or app/observers depending on where you stored it, and make it look like:
 [source, ruby]
 -------------------------------------------------------
 class UserObserver < ActiveRecord::Observer
@@ -132,22 +128,22 @@ class UserObserver < ActiveRecord::Observer
 end
 -------------------------------------------------------
 
-Notice how we call deliver_welcome_email? Where is that method? Well if you remember, we created a method called welcome_email in UserMailer, right? Well, as part of the "magic" of rails, we deliver the email identified by welcome_email by calling deliver_welcome_email. The next section will go through this in more detail.
+Notice how we call `deliver_welcome_email`? Where is that method? Well if you remember, we created a method called `welcome_email` in UserMailer, right? Well, as part of the "magic" of Rails, we deliver the email identified by `welcome_email` by calling `deliver_welcome_email`. The next section will go through this in more detail.
 
 That's it! Now whenever your users signup, they will be greeted with a nice welcome email.
 
-=== Action Mailer and dynamic deliver_ methods
+=== Action Mailer and dynamic deliver_* methods
 So how does Action Mailer understand this deliver_welcome_email call? If you read the documentation (http://api.rubyonrails.org/files/vendor/rails/actionmailer/README.html), you will find this in the "Sending Emails" section:
 
 You never instantiate your mailer class. Rather, your delivery instance
 methods are automatically wrapped in class methods that start with the word
-deliver_ followed by the name of the mailer method that you would
-like to deliver. The signup_notification method defined above is
-delivered by invoking Notifier.deliver_signup_notification.
+"deliver_" followed by the name of the mailer method that you would
+like to deliver. The `welcome_email` method defined above is
+delivered by invoking `Notifier.deliver_welcome_email`.
 
 So, how exactly does this work?
 
-In ActionMailer:Base, you will find this:
+In ActionMailer::Base, you will find this:
 [source, ruby]
 -------------------------------------------------------
 def method_missing(method_symbol, *parameters)#:nodoc:
@@ -160,7 +156,7 @@ def method_missing(method_symbol, *parameters)#:nodoc:
 end
 -------------------------------------------------------
 
-Ah, this makes things so much clearer :) so if the method name starts with deliver_ followed by any combination of lowercase letters or underscore, method missing calls new on your mailer class (UserMailer in our example above), sending the combination of lower case letters or underscore, along with the parameter. The resulting object is then sent the deliver! method, which well... delivers it.
+Hence, if the method name starts with "deliver_" followed by any combination of lowercase letters or underscore, `method_missing+  calls `new` on your mailer class (UserMailer in our example above), sending the combination of lower case letters or underscore, along with the parameters. The resulting object is then sent the `deliver!` method, which well... delivers it.
 
 === Complete List of ActionMailer user-settable attributes
 

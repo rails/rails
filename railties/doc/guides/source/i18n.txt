@@ -315,7 +315,7 @@ def extract_locale_from_accept_language_header
 end
 -------------------------------------------------------
 
-Of course, in production environment you would need much robust code, and could use a plugin such as Iaian Hecker's http://github.com/iain/http_accept_language[http_accept_language].
+Of course, in production environment you would need much robust code, and could use a plugin such as Iaian Hecker's http://github.com/iain/http_accept_language[http_accept_language] or even Rack middleware such as Ryan Tomayko's http://github.com/rtomayko/rack-contrib/blob/master/lib/rack/locale.rb[locale].
 
 ==== Using GeoIP (or similar) database
 
@@ -402,6 +402,8 @@ And when you change the URL to pass the pirate locale (+http://localhost:3000?lo
 image:images/i18n/demo_translated_pirate.png[rails i18n demo translated to pirate]
 
 NOTE: You need to restart the server when you add new locale files.
+
+You may use YAML (+.yml+) or plain Ruby (+.rb+) files for storing your translations in SimpleStore. YAML is the preffered option among Rails developers, has one big disadvantage, though. YAML is very sensitive to whitespace and special characters, so the application may not load your dictionary properly. Ruby files will crash your application on first request, so you may easily find what's wrong. (If you encounter any "weird issues" with YAML dictionaries, try putting the relevant portion of your dictionary into Ruby file.)
 
 === Adding Date/Time formats
 

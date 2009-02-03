@@ -504,7 +504,7 @@ private
 <span style="font-weight: bold"><span style="color: #0000FF">def</span></span> extract_locale_from_accept_language_header
   request<span style="color: #990000">.</span>env<span style="color: #990000">[</span><span style="color: #FF0000">'HTTP_ACCEPT_LANGUAGE'</span><span style="color: #990000">].</span>scan<span style="color: #990000">(</span><span style="color: #FF6600">/^[a-z]{2}/</span><span style="color: #990000">).</span>first
 <span style="font-weight: bold"><span style="color: #0000FF">end</span></span></tt></pre></div></div>
-<div class="paragraph"><p>Of course, in production environment you would need much robust code, and could use a plugin such as Iaian Hecker&#8217;s <a href="http://github.com/iain/http_accept_language">http_accept_language</a>.</p></div>
+<div class="paragraph"><p>Of course, in production environment you would need much robust code, and could use a plugin such as Iaian Hecker&#8217;s <a href="http://github.com/iain/http_accept_language">http_accept_language</a> or even Rack middleware such as Ryan Tomayko&#8217;s <a href="http://github.com/rtomayko/rack-contrib/blob/master/lib/rack/locale.rb">locale</a>.</p></div>
 <h4 id="_using_geoip_or_similar_database">2.6.2. Using GeoIP (or similar) database</h4>
 <div class="paragraph"><p>Another way of choosing the locale from client&#8217;s information would be to use a database for mapping client IP to region, such as <a href="http://www.maxmind.com/app/geolitecountry">GeoIP Lite Country</a>. The mechanics of the code would be very similar to the code above&#8201;&#8212;&#8201;you would need to query database for user&#8217;s IP, and lookup your preffered locale for the country/region/city returned.</p></div>
 <h4 id="_user_profile">2.6.3. User profile</h4>
@@ -598,6 +598,7 @@ pirate<span style="color: #990000">:</span>
 <td class="content">You need to restart the server when you add new locale files.</td>
 </tr></table>
 </div>
+<div class="paragraph"><p>You may use YAML (<tt>.yml</tt>) or plain Ruby (<tt>.rb</tt>) files for storing your translations in SimpleStore. YAML is the preffered option among Rails developers, has one big disadvantage, though. YAML is very sensitive to whitespace and special characters, so the application may not load your dictionary properly. Ruby files will crash your application on first request, so you may easily find what&#8217;s wrong. (If you encounter any "weird issues" with YAML dictionaries, try putting the relevant portion of your dictionary into Ruby file.)</p></div>
 <h3 id="_adding_date_time_formats">3.2. Adding Date/Time formats</h3>
 <div class="paragraph"><p>OK! Now let&#8217;s add a timestamp to the view, so we can demo the <strong>date/time localization</strong> feature as well. To localize the time format you pass the Time object to <tt>I18n.l</tt> or (preferably) use Rails' <tt>#l</tt> helper. You can pick a format by passing the <tt>:format</tt> option&#8201;&#8212;&#8201;by default the <tt>:default</tt> format is used.</p></div>
 <div class="listingblock">
