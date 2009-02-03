@@ -54,6 +54,14 @@
             
             </ul>
           </li>
+          <li>
+          <a href="#_the_rails_advanced_command_line_racl">The Rails Advanced Command Line (RACL!)</a>
+            <ul>
+            
+              <li><a href="#_rails_with_databases_and_scm">rails with databases and SCM</a></li>
+            
+            </ul>
+          </li>
       </ol>
     </div>
     
@@ -169,7 +177,7 @@ http://www.gnu.org/software/src-highlite -->
 <td class="content">WEBrick isn&#8217;t your only option for serving Rails. We&#8217;ll get to that in a later section. [XXX: which section]</td>
 </tr></table>
 </div>
-<div class="paragraph"><p>Here we&#8217;ll flex our <tt>server</tt> command, which without any prodding of any kind will run our new shiny Rails app:</p></div>
+<div class="paragraph"><p>Without any prodding of any kind, <tt>server</tt> will run our new shiny Rails app:</p></div>
 <div class="listingblock">
 <div class="content"><!-- Generator: GNU source-highlight 2.9
 by Lorenzo Bettini
@@ -447,7 +455,7 @@ $ <span style="color: #990000">.</span>/script/destroy model Oops
     notempty  app/models
     notempty  app</tt></pre></div></div>
 <h3 id="_about">1.9. about</h3>
-<div class="paragraph"><p>Check it: Version numbers for Ruby, RubyGems, Rails, the Rails subcomponents, your application&#8217;s folder, the current Rails environment name, your app&#8217;s database adapter, and schema version! <tt>about</tt> is useful when you need to ask help, check if a security patch might affect you, or when you need some stats for an existing Rails installation.</p></div>
+<div class="paragraph"><p>Check it: Version numbers for Ruby, RubyGems, Rails, the Rails subcomponents, your application&#8217;s folder, the current Rails environment name, your app&#8217;s database adapter, and schema version! <tt>about</tt> is useful when you need to ask for help, check if a security patch might affect you, or when you need some stats for an existing Rails installation.</p></div>
 <div class="listingblock">
 <div class="content"><!-- Generator: GNU source-highlight 2.9
 by Lorenzo Bettini
@@ -468,6 +476,67 @@ About your application<span style="color: #FF0000">'s environment</span>
 <span style="color: #FF0000">Environment               development</span>
 <span style="color: #FF0000">Database adapter          sqlite3</span>
 <span style="color: #FF0000">Database schema version   20081217073400</span></tt></pre></div></div>
+</div>
+<h2 id="_the_rails_advanced_command_line_racl">2. The Rails Advanced Command Line (RACL!)</h2>
+<div class="sectionbody">
+<div class="paragraph"><p>The more advanced uses of the command line are focused around finding useful (even surprising at times) options in the utilities, and fitting utilities to your needs and specific work flow. Listed here are some tricks up Rails' sleeve.</p></div>
+<h3 id="_rails_with_databases_and_scm">2.1. rails with databases and SCM</h3>
+<div class="paragraph"><p>When creating a new Rails application, you have the option to specify what kind of database and what kind of source code management system your application is going to use. This will save you a few minutes, and certainly many keystrokes.</p></div>
+<div class="paragraph"><p>Let&#8217;s see what a <tt>--git</tt> option and a <tt>--database=postgresql</tt> option will do for us:</p></div>
+<div class="listingblock">
+<div class="content"><!-- Generator: GNU source-highlight 2.9
+by Lorenzo Bettini
+http://www.lorenzobettini.it
+http://www.gnu.org/software/src-highlite -->
+<pre><tt>$ mkdir gitapp
+$ cd gitapp
+$ git init
+Initialized empty Git repository <span style="font-weight: bold"><span style="color: #0000FF">in</span></span> <span style="color: #990000">.</span>git<span style="color: #990000">/</span>
+$ rails <span style="color: #990000">.</span> --git --database<span style="color: #990000">=</span>postgresql
+      exists
+      create  app/controllers
+      create  app/helpers
+<span style="color: #990000">...</span>
+<span style="color: #990000">...</span>
+      create  tmp/cache
+      create  tmp/pids
+      create  Rakefile
+add <span style="color: #FF0000">'Rakefile'</span>
+      create  README
+add <span style="color: #FF0000">'README'</span>
+      create  app/controllers/application<span style="color: #990000">.</span>rb
+add <span style="color: #FF0000">'app/controllers/application.rb'</span>
+      create  app/helpers/application_helper<span style="color: #990000">.</span>rb
+<span style="color: #990000">...</span>
+      create  log/test<span style="color: #990000">.</span>log
+add <span style="color: #FF0000">'log/test.log'</span></tt></pre></div></div>
+<div class="paragraph"><p>We had to create the <strong>gitapp</strong> directory and initialize an empty git repository before Rails would add files it created to our repository. Let&#8217;s see what it put in our database configuration:</p></div>
+<div class="listingblock">
+<div class="content"><!-- Generator: GNU source-highlight 2.9
+by Lorenzo Bettini
+http://www.lorenzobettini.it
+http://www.gnu.org/software/src-highlite -->
+<pre><tt>$ cat config/database<span style="color: #990000">.</span>yml
+<span style="font-style: italic"><span style="color: #9A1900"># PostgreSQL. Versions 7.4 and 8.x are supported.</span></span>
+<span style="font-style: italic"><span style="color: #9A1900">#</span></span>
+<span style="font-style: italic"><span style="color: #9A1900"># Install the ruby-postgres driver:</span></span>
+<span style="font-style: italic"><span style="color: #9A1900">#   gem install ruby-postgres</span></span>
+<span style="font-style: italic"><span style="color: #9A1900"># On Mac OS X:</span></span>
+<span style="font-style: italic"><span style="color: #9A1900">#   gem install ruby-postgres -- --include=/usr/local/pgsql</span></span>
+<span style="font-style: italic"><span style="color: #9A1900"># On Windows:</span></span>
+<span style="font-style: italic"><span style="color: #9A1900">#   gem install ruby-postgres</span></span>
+<span style="font-style: italic"><span style="color: #9A1900">#       Choose the win32 build.</span></span>
+<span style="font-style: italic"><span style="color: #9A1900">#       Install PostgreSQL and put its /bin directory on your path.</span></span>
+development<span style="color: #990000">:</span>
+  adapter<span style="color: #990000">:</span> postgresql
+  encoding<span style="color: #990000">:</span> unicode
+  database<span style="color: #990000">:</span> gitapp_development
+  pool<span style="color: #990000">:</span> <span style="color: #993399">5</span>
+  username<span style="color: #990000">:</span> gitapp
+  password<span style="color: #990000">:</span>
+<span style="color: #990000">...</span>
+<span style="color: #990000">...</span></tt></pre></div></div>
+<div class="paragraph"><p>It also generated some lines in our database.yml configuration corresponding to our choice of PostgreSQL for database. The only catch with using the SCM options is that you have to make your application&#8217;s directory first, then initialize your SCM, then you can run the <tt>rails</tt> command to generate the basis of your app.</p></div>
 </div>
 
     </div>
