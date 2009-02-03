@@ -938,6 +938,7 @@ EOF
     ActionMailer::Base.delivery_method = :smtp
     TestMailer.deliver_return_path
     assert_match %r{^Return-Path: <another@somewhere.test>}, MockSMTP.deliveries[0][0]
+    assert_equal "another@somewhere.test", MockSMTP.deliveries[0][1].to_s
   end
 
   def test_body_is_stored_as_an_ivar
