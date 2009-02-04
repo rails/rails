@@ -1,3 +1,4 @@
+require 'rubygems'
 require 'test/unit'
 
 gem 'mocha', '>= 0.9.5'
@@ -13,7 +14,6 @@ require 'setter_trap'
 ActiveResource::Base.logger = Logger.new("#{File.dirname(__FILE__)}/debug.log")
 
 def uses_gem(gem_name, test_name, version = '> 0')
-  require 'rubygems'
   gem gem_name.to_s, version
   require gem_name.to_s
   yield

@@ -1,3 +1,4 @@
+require 'rubygems'
 require 'test/unit'
 
 gem 'mocha', '>= 0.9.5'
@@ -46,7 +47,6 @@ class Net::SMTP
 end
 
 def uses_gem(gem_name, test_name, version = '> 0')
-  require 'rubygems'
   gem gem_name.to_s, version
   require gem_name.to_s
   yield
