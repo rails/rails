@@ -54,15 +54,8 @@ namespace :doc do
 
   desc "Generate Rails guides"
   task :guides do
-    source = File.join(RAILTIES_PATH, "doc/guides")
-    destination = File.join(RAILS_ROOT, "doc/guides")
-    FileUtils.rm_r(destination) if File.directory?(destination)
-    FileUtils.mkdir(destination)
-
-    FileUtils.cp_r File.join(source, 'html/.'), File.join(destination)
-    # Copy images and css files to html directory. These dirs are in .gitigore and shouldn't be source controlled.
-    FileUtils.cp_r File.join(source, 'source/images'), File.join(destination)
-    FileUtils.cp_r File.join(source, 'source/stylesheets'), File.join(destination, 'stylesheets')
+    require File.join(RAILTIES_PATH, "guides/rails_guides")
+    RailsGuides::Generator.new(File.join(RAILS_ROOT, "doc/guides")).generate
   end
 
   namespace :plugins do
