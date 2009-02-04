@@ -55,32 +55,38 @@ CAUTION: There are many ways to change the state of an object in the database. S
 
 The following methods trigger validations, and will save the object to the database only if the object is valid. The bang versions (e.g. +save!+) will raise an exception if the record is invalid. The non-bang versions (e.g. +save+) simply return +false+.
 
-* "+create+":http://api.rubyonrails.org/classes/ActiveRecord/Base.html#M002214 
-* "+create!+":http://api.rubyonrails.org/classes/ActiveRecord/Validations/ClassMethods.html#M002116
-* "+save+":http://api.rubyonrails.org/classes/ActiveRecord/Base.html#M002274
-* "+save!+":http://api.rubyonrails.org/classes/ActiveRecord/Base.html#M002275
-* "+update+":http://api.rubyonrails.org/classes/ActiveRecord/Base.html#M002215
-* "+update_attributes+":http://api.rubyonrails.org/classes/ActiveRecord/Base.html#M002281
-* "+update_attributes!+":http://api.rubyonrails.org/classes/ActiveRecord/Base.html#M002282
+* +create+
+* +create!+
+* +save+
+* +save!+
+* +update+
+* +update_attributes+
+* +update_attributes!+
 
-The following methods bypass validations, and will save the object to the database regardless of its validity. They should be used with caution:
+The following methods skip validations, and will save the object to the database regardless of its validity. They should be used with caution:
 
-* "+decrement!+":http://api.rubyonrails.org/classes/ActiveRecord/Base.html#M002286
-* "+decrement_counter+":http://api.rubyonrails.org/classes/ActiveRecord/Base.html#M002224
-* "+increment!+":http://api.rubyonrails.org/classes/ActiveRecord/Base.html#M002284
-* "+increment_counter+":http://api.rubyonrails.org/classes/ActiveRecord/Base.html#M002223
-* "+toggle!+":http://api.rubyonrails.org/classes/ActiveRecord/Base.html#M002288
-* "+update_all+":http://api.rubyonrails.org/classes/ActiveRecord/Base.html#M002218
-* "+update_attribute+":http://api.rubyonrails.org/classes/ActiveRecord/Base.html#M002280
-* "+update_counters+":http://api.rubyonrails.org/classes/ActiveRecord/Base.html#M002222
+* +decrement!+
+* +decrement_counter+
+* +increment!+
+* +increment_counter+
+* +toggle!+
+* +update_all+
+* +update_attribute+
+* +update_counters+
 
-Note that +save+ also has the ability to bypass validations if passed +false+. This technique should be used with caution: 
+Note that +save+ also has the ability to skip validations if passed +false+. This technique should be used with caution: 
 
 * "+save(false)+":http://api.rubyonrails.org/classes/ActiveRecord/Base.html#M002274
+
+h4. Skipping Validations
+
+TODO: Probably move the list above and mention save(false). Also mention that save(false) doesn't only skip the validations, but a lots of other callbacks too.
 
 h4. Object#valid?
 
 To verify whether an object is valid, Active Record uses the +valid?+ method, which basically looks inside the object to see if it has any validation errors. These errors live in a collection that can be accessed through the +errors+ instance method. The process is really simple: If the +errors+ method returns an empty collection, the object is valid and can be saved. Each time a validation fails, an error message is added to the +errors+ collection.
+
+h4. Object#invalid?
 
 h3. Declarative Validation Helpers
 

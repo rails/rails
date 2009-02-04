@@ -472,7 +472,7 @@ end
 
 This code sets the +@posts+ instance variable to an array of all posts in the database. +Post.find(:all)+ or +Post.all+ calls the +Post+ model to return all of the posts that are currently in the database, with no limiting conditions.
 
-TIP. For more information on finding records with Active Record, see "Active Record Finders":finders.html.
+TIP: For more information on finding records with Active Record, see "Active Record Finders":finders.html.
 
 The +respond_to+ block handles both HTML and XML calls to this action. If you browse to +http://localhost:3000/posts.xml+, you'll see all of the posts in XML format. The HTML format looks for a view in +app/views/posts/+ with a name that corresponds to the action name. Rails makes all of the instance variables from the action available to the view. Here's +app/view/posts/index.html.erb+:
 
@@ -493,7 +493,8 @@ The +respond_to+ block handles both HTML and XML calls to this action. If you br
     <td><%=h post.content %></td>
     <td><%= link_to 'Show', post %></td>
     <td><%= link_to 'Edit', edit_post_path(post) %></td>
-    <td><%= link_to 'Destroy', post, :confirm => 'Are you sure?', :method => :delete %></td>
+    <td><%= link_to 'Destroy', post, :confirm => 'Are you sure?', 
+            :method => :delete %></td>
   </tr>
 <% end %>
 </table>
@@ -521,7 +522,8 @@ The view is only part of the story of how HTML is displayed in your web browser.
 
 <html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en" lang="en">
 <head>
-  <meta http-equiv="content-type" content="text/html;charset=UTF-8" />
+  <meta http-equiv="content-type" 
+        content="text/html;charset=UTF-8" />
   <title>Posts: <%= controller.action_name %></title>
   <%= stylesheet_link_tag 'scaffold' %>
 </head>
@@ -594,10 +596,12 @@ def create
     if @post.save
       flash[:notice] = 'Post was successfully created.'
       format.html { redirect_to(@post) }
-      format.xml  { render :xml => @post, :status => :created, :location => @post }
+      format.xml  { render :xml => @post, :status => :created, 
+	                :location => @post }
     else
       format.html { render :action => "new" }
-      format.xml  { render :xml => @post.errors, :status => :unprocessable_entity }
+      format.xml  { render :xml => @post.errors, 
+	                :status => :unprocessable_entity }
     end
   end
 end
@@ -697,7 +701,8 @@ def update
       format.xml  { head :ok }
     else
       format.html { render :action => "edit" }
-      format.xml  { render :xml => @post.errors, :status => :unprocessable_entity }
+      format.xml  { render :xml => @post.errors, 
+	                :status => :unprocessable_entity }
     end
   end
 end
@@ -733,7 +738,7 @@ h4. Using Partials to Eliminate View Duplication
 
 As you saw earlier, the scaffold-generated views for the +new+ and +edit+ actions are largely identical. You can pull the shared code out into a partial template. This requires editing the new and edit views, and adding a new template. The new +_form.html.erb+ template should be saved in the same +app/views/posts+ folder as the files from which it is being extracted. Note that the name of this file begins with an underscore; that's the Rails naming convention for partial templates.
 
-+new.html.erb+:
+<tt>new.html.erb</tt>:
 
 <html>
 <h1>New post</h1>
@@ -743,7 +748,7 @@ As you saw earlier, the scaffold-generated views for the +new+ and +edit+ action
 <%= link_to 'Back', posts_path %>
 </html>
 
-+edit.html.erb+:
+<tt>edit.html.erb</tt>:
 
 <erb>
 <h1>Editing post</h1>
@@ -754,7 +759,7 @@ As you saw earlier, the scaffold-generated views for the +new+ and +edit+ action
 <%= link_to 'Back', posts_path %>
 </erb>
 
-+_form.html.erb+:
+<tt>_form.html.erb</tt>:
 
 <erb>
 <% form_for(@post) do |f| %>
@@ -814,7 +819,8 @@ Four instances of the exact same line of code doesn’t seem very DRY. Rails pro
 
 <ruby>
 class PostsController < ApplicationController
-  before_filter :find_post, :only => [:show, :edit, :update, :destroy]
+  before_filter :find_post, 
+    :only => [:show, :edit, :update, :destroy]
   # ...
   def show
   # ... 
@@ -851,7 +857,8 @@ h4. Generating a Model
 Models in Rails use a singular name, and their corresponding database tables use a plural name. For the model to hold comments, the convention is to use the name Comment. Even if you don't want to use the entire apparatus set up by scaffolding, most Rails developers still use generators to make things like models and controllers. To create the new model, run this command in your terminal:
 
 <shell>
-$ script/generate model Comment commenter:string body:text post:references
+$ script/generate model Comment commenter:string body:text 
+    post:references
 </shell>
 
 This command will generate four files:
@@ -1064,8 +1071,13 @@ The +views/comments/index.html.erb+ view:
     <td><%=h comment.commenter %></td>
     <td><%=h comment.body %></td>
     <td><%= link_to 'Show', post_comment_path(@post, comment) %></td>
-    <td><%= link_to 'Edit', edit_post_comment_path(@post, comment) %></td>
-    <td><%= link_to 'Destroy', post_comment_path(@post, comment), :confirm => 'Are you sure?', :method => :delete %></td>
+    <td>
+        <%= link_to 'Edit', edit_post_comment_path(@post, comment) %>
+    </td>
+    <td>
+        <%= link_to 'Destroy', post_comment_path(@post, comment), 
+            :confirm => 'Are you sure?', :method => :delete %>
+    </td>
   </tr>
 <% end %>
 </table>

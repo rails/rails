@@ -11,7 +11,7 @@ These guides are designed to make you immediately productive with Rails, and to 
 <% content_for :index_section do %>
 <div id="subCol">
   <dl>
-    <dd class="warning">This page is the result of ongoing Rails Guides hackfest and a work in progress.</dd>
+    <dd class="warning">Rails Guides are a result of the ongoing "Guides hackfest":http://hackfest.rubyonrails.org and a work in progress.</dd>
     <dd class="ticket">Guides marked with this icon are currently being worked on. While they might still be useful to you, they may contain incomplete information and even errors. You can help by reviewing them and posting your comments and corrections at the respective Lighthouse ticket.</dd>
   </dl>
 </div>
