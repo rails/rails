@@ -49,35 +49,34 @@ We can see how it works by looking at some script/console output:
 => false
 </shell>
 
-Creating and saving a new record will send an SQL +INSERT+ operation to the database. Updating an existing record will send an SQL +UPDATE+ operation instead. Validations are run before these commands are sent to the database. If any validations fail, the object will be marked as invalid and Active Record will not trigger the +INSERT+ or +UPDATE+ operation. This helps to avoid storing an object in the database that's invalid. You can choose to have specific validations run when an object is created, saved, or updated.
+Creating and saving a new record will send an SQL +INSERT+ operation to the database. Updating an existing record will send an SQL +UPDATE+ operation instead. Validations are typically run before these commands are sent to the database. If any validations fail, the object will be marked as invalid and Active Record will not trigger the +INSERT+ or +UPDATE+ operation. This helps to avoid storing an object in the database that's invalid. You can choose to have specific validations run when an object is created, saved, or updated.
 
 CAUTION: There are many ways to change the state of an object in the database. Some will trigger validations, and some will not. This means it is possible to save an object in the database that's in an invalid state. Be careful when using Active Record methods that bypass validations.
 
-The following methods trigger validations and generally save the object to the database:
+The following methods trigger validations, and will save the object to the database only if the object is valid. The bang versions (e.g. +save!+) will raise an exception if the record is invalid. The non-bang versions (e.g. +save+) simply return +false+.
 
-* "create":http://api.rubyonrails.org/classes/ActiveRecord/Base.html#M002214 (creates an object, but does not save to the database)
-* "create!":http://api.rubyonrails.org/classes/ActiveRecord/Validations/ClassMethods.html#M002116
-* "save":http://api.rubyonrails.org/classes/ActiveRecord/Base.html#M002274
-* "save!":http://api.rubyonrails.org/classes/ActiveRecord/Base.html#M002275
-* "update":http://api.rubyonrails.org/classes/ActiveRecord/Base.html#M002215
-* "update_attributes":http://api.rubyonrails.org/classes/ActiveRecord/Base.html#M002281
-* "update_attributes!":http://api.rubyonrails.org/classes/ActiveRecord/Base.html#M002282
+* "+create+":http://api.rubyonrails.org/classes/ActiveRecord/Base.html#M002214 
+* "+create!+":http://api.rubyonrails.org/classes/ActiveRecord/Validations/ClassMethods.html#M002116
+* "+save+":http://api.rubyonrails.org/classes/ActiveRecord/Base.html#M002274
+* "+save!+":http://api.rubyonrails.org/classes/ActiveRecord/Base.html#M002275
+* "+update+":http://api.rubyonrails.org/classes/ActiveRecord/Base.html#M002215
+* "+update_attributes+":http://api.rubyonrails.org/classes/ActiveRecord/Base.html#M002281
+* "+update_attributes!+":http://api.rubyonrails.org/classes/ActiveRecord/Base.html#M002282
 
-The following methods _do not_ trigger validations, but _do_ change the state of the object in the database. They should be used with caution:
+The following methods bypass validations, and will save the object to the database regardless of its validity. They should be used with caution:
 
-* "decrement!":http://api.rubyonrails.org/classes/ActiveRecord/Base.html#M002286
-* "decrement_counter":http://api.rubyonrails.org/classes/ActiveRecord/Base.html#M002224
-* "increment!":http://api.rubyonrails.org/classes/ActiveRecord/Base.html#M002284
-* "increment_counter":http://api.rubyonrails.org/classes/ActiveRecord/Base.html#M002223
-* "toggle":http://api.rubyonrails.org/classes/ActiveRecord/Base.html#M002287
-* "toggle!":http://api.rubyonrails.org/classes/ActiveRecord/Base.html#M002288
-* "update_all":http://api.rubyonrails.org/classes/ActiveRecord/Base.html#M002218
-* "update_attribute":http://api.rubyonrails.org/classes/ActiveRecord/Base.html#M002280
-* "update_counters":http://api.rubyonrails.org/classes/ActiveRecord/Base.html#M002222
+* "+decrement!+":http://api.rubyonrails.org/classes/ActiveRecord/Base.html#M002286
+* "+decrement_counter+":http://api.rubyonrails.org/classes/ActiveRecord/Base.html#M002224
+* "+increment!+":http://api.rubyonrails.org/classes/ActiveRecord/Base.html#M002284
+* "+increment_counter+":http://api.rubyonrails.org/classes/ActiveRecord/Base.html#M002223
+* "+toggle!+":http://api.rubyonrails.org/classes/ActiveRecord/Base.html#M002288
+* "+update_all+":http://api.rubyonrails.org/classes/ActiveRecord/Base.html#M002218
+* "+update_attribute+":http://api.rubyonrails.org/classes/ActiveRecord/Base.html#M002280
+* "+update_counters+":http://api.rubyonrails.org/classes/ActiveRecord/Base.html#M002222
 
-Note that +save+ has the ability to bypass validations. This technique should be used with caution: 
+Note that +save+ also has the ability to bypass validations if passed +false+. This technique should be used with caution: 
 
-* "save(false)":http://api.rubyonrails.org/classes/ActiveRecord/Base.html#M002274
+* "+save(false)+":http://api.rubyonrails.org/classes/ActiveRecord/Base.html#M002274
 
 h4. Object#valid?
 
