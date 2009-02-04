@@ -6,6 +6,10 @@ class CookieTest < ActionController::TestCase
       cookies["user_name"] = "david"
     end
 
+    def set_with_with_escapable_characters
+      cookies["that & guy"] = "foo & bar => baz"
+    end
+
     def authenticate_for_fourteen_days
       cookies["user_name"] = { "value" => "david", "expires" => Time.utc(2005, 10, 10,5) }
     end
@@ -51,6 +55,12 @@ class CookieTest < ActionController::TestCase
     get :authenticate
     assert_equal ["user_name=david; path=/"], @response.headers["Set-Cookie"]
     assert_equal({"user_name" => "david"}, @response.cookies)
+  end
+
+  def test_setting_with_escapable_characters
+    get :set_with_with_escapable_characters
+    assert_equal ["that+%26+guy=foo+%26+bar+%3D%3E+baz; path=/"], @response.headers["Set-Cookie"]
+    assert_equal({"that & guy" => "foo & bar => baz"}, @response.cookies)
   end
 
   def test_setting_cookie_for_fourteen_days

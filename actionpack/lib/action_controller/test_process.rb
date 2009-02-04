@@ -258,7 +258,7 @@ module ActionController #:nodoc:
     def cookies
       cookies = {}
       Array(headers['Set-Cookie']).each do |cookie|
-        key, value = cookie.split(";").first.split("=")
+        key, value = cookie.split(";").first.split("=").map {|val| Rack::Utils.unescape(val)}
         cookies[key] = value
       end
       cookies
