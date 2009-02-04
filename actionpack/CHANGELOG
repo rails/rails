@@ -1,3 +1,8 @@
+*Edge*
+
+* Fixed that TestResponse.cookies was returning cookies unescaped #1867 [Doug McInnes]
+
+
 *2.3.2 [Final] (March 15, 2009)*
 
 * Fixed that redirection would just log the options, not the final url (which lead to "Redirected to #<Post:0x23150b8>") [DHH]
