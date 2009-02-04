@@ -98,9 +98,9 @@ puts "[CruiseControl]   #{`mysql --version`}"
 puts "[CruiseControl]   #{`pg_config --version`}"
 puts "[CruiseControl]   SQLite2: #{`sqlite -version`}"
 puts "[CruiseControl]   SQLite3: #{`sqlite3 -version`}"
-`gem env`.each {|line| print "[CruiseControl]   #{line}"}
+`gem env`.each_line {|line| print "[CruiseControl]   #{line}"}
 puts "[CruiseControl]   Local gems:"
-`gem list`.each {|line| print "[CruiseControl]     #{line}"}
+`gem list`.each_line {|line| print "[CruiseControl]     #{line}"}
 
 failures = build_results.select { |key, value| value == false }
 
