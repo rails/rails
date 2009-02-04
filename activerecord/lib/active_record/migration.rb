@@ -338,6 +338,10 @@ module ActiveRecord
         self.verbose = save
       end
 
+      def connection
+        ActiveRecord::Base.connection
+      end
+
       def method_missing(method, *arguments, &block)
         arg_list = arguments.map(&:inspect) * ', '
 
@@ -345,7 +349,7 @@ module ActiveRecord
           unless arguments.empty? || method == :execute
             arguments[0] = Migrator.proper_table_name(arguments.first)
           end
-          ActiveRecord::Base.connection.send(method, *arguments, &block)
+          connection.send(method, *arguments, &block)
         end
       end
     end
