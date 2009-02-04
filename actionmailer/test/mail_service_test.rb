@@ -289,8 +289,6 @@ class TestMailer < ActionMailer::Base
   end
 end
 
-uses_mocha 'ActionMailerTest' do
-
 class ActionMailerTest < Test::Unit::TestCase
   include ActionMailer::Quoting
 
@@ -973,8 +971,6 @@ EOF
     ActionMailer::Base.smtp_settings[:enable_starttls_auto] = true
   end
 end
-
-end # uses_mocha
 
 class InheritableTemplateRootTest < Test::Unit::TestCase
   def test_attr

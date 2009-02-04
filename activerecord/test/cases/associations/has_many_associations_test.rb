@@ -1097,12 +1097,10 @@ class HasManyAssociationsTest < ActiveRecord::TestCase
     ActiveRecord::Base.store_full_sti_class = old
   end
 
-  uses_mocha 'mocking Comment.transaction' do
-    def test_association_proxy_transaction_method_starts_transaction_in_association_class
-      Comment.expects(:transaction)
-      Post.find(:first).comments.transaction do
-        # nothing
-      end
+  def test_association_proxy_transaction_method_starts_transaction_in_association_class
+    Comment.expects(:transaction)
+    Post.find(:first).comments.transaction do
+      # nothing
     end
   end
 

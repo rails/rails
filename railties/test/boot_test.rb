@@ -2,8 +2,6 @@ require 'abstract_unit'
 require 'initializer'
 require "#{File.dirname(__FILE__)}/../environments/boot"
 
-uses_mocha 'boot tests' do
-
 class BootTest < Test::Unit::TestCase
   def test_boot_returns_if_booted
     Rails.expects(:booted?).returns(true)
@@ -120,9 +118,6 @@ class GemBootTest < Test::Unit::TestCase
     boot.load_rails_gem
   end
 end
-
-end # uses_mocha
-
 
 class ParseGemVersionTest < Test::Unit::TestCase
   def test_should_return_nil_if_no_lines_are_passed

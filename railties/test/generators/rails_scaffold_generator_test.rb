@@ -107,17 +107,15 @@ class RailsScaffoldGeneratorTest < GeneratorTestCase
     assert_added_route_for :products
   end
 
-  uses_mocha("scaffold_force_plural_names") do
-    def test_scaffolded_plural_names
-      Rails::Generator::Base.logger.expects(:warning)
-      g = Rails::Generator::Base.instance('scaffold', %w(ProductLines))
-      assert_equal "ProductLines", g.controller_name
-      assert_equal "ProductLines", g.controller_class_name
-      assert_equal "ProductLine", g.controller_singular_name
-      assert_equal "product_lines", g.controller_plural_name
-      assert_equal "product_lines", g.controller_file_name
-      assert_equal "product_lines", g.controller_table_name
-    end
+  def test_scaffolded_plural_names
+    Rails::Generator::Base.logger.expects(:warning)
+    g = Rails::Generator::Base.instance('scaffold', %w(ProductLines))
+    assert_equal "ProductLines", g.controller_name
+    assert_equal "ProductLines", g.controller_class_name
+    assert_equal "ProductLine", g.controller_singular_name
+    assert_equal "product_lines", g.controller_plural_name
+    assert_equal "product_lines", g.controller_file_name
+    assert_equal "product_lines", g.controller_table_name
   end
 
   def test_scaffold_plural_model_name_without_force_plural_generates_singular_model

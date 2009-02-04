@@ -1,6 +1,7 @@
 require 'rubygems'
 require 'test/unit'
-gem 'mocha', '>= 0.9.3'
+
+gem 'mocha', '>= 0.9.5'
 require 'mocha'
 
 $:.unshift "#{File.dirname(__FILE__)}/../lib"

@@ -507,21 +507,19 @@ class FinderTest < ActiveRecord::TestCase
     assert_equal(2, Entrant.count_by_sql(["SELECT COUNT(*) FROM entrants WHERE id > ?", 1]))
   end
 
-  uses_mocha('test_dynamic_finder_should_go_through_the_find_class_method') do
-    def test_dynamic_finders_should_go_through_the_find_class_method
-      Topic.expects(:find).with(:first, :conditions => { :title => 'The First Topic!' })
-      Topic.find_by_title("The First Topic!")
+  def test_dynamic_finders_should_go_through_the_find_class_method
+    Topic.expects(:find).with(:first, :conditions => { :title => 'The First Topic!' })
+    Topic.find_by_title("The First Topic!")
 
-      Topic.expects(:find).with(:last, :conditions => { :title => 'The Last Topic!' })
-      Topic.find_last_by_title("The Last Topic!")
+    Topic.expects(:find).with(:last, :conditions => { :title => 'The Last Topic!' })
+    Topic.find_last_by_title("The Last Topic!")
 
-      Topic.expects(:find).with(:all, :conditions => { :title => 'A Topic.' })
-      Topic.find_all_by_title("A Topic.")
+    Topic.expects(:find).with(:all, :conditions => { :title => 'A Topic.' })
+    Topic.find_all_by_title("A Topic.")
 
-      Topic.expects(:find).with(:first, :conditions => { :title => 'Does not exist yet for sure!' }).times(2)
-      Topic.find_or_initialize_by_title('Does not exist yet for sure!')
-      Topic.find_or_create_by_title('Does not exist yet for sure!')
-    end
+    Topic.expects(:find).with(:first, :conditions => { :title => 'Does not exist yet for sure!' }).times(2)
+    Topic.find_or_initialize_by_title('Does not exist yet for sure!')
+    Topic.find_or_create_by_title('Does not exist yet for sure!')
   end
 
   def test_find_by_one_attribute

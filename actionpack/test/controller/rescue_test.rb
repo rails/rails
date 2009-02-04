@@ -1,7 +1,5 @@
 require 'abstract_unit'
 
-uses_mocha 'rescue' do
-
 class RescueController < ActionController::Base
   class NotAuthorized < StandardError
   end
@@ -543,4 +541,3 @@ class ControllerInheritanceRescueControllerTest < ActionController::TestCase
     assert_response :created
   end
 end
-end # uses_mocha

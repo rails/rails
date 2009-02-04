@@ -2,7 +2,11 @@ $:.unshift(File.dirname(__FILE__) + '/../../lib')
 $:.unshift(File.dirname(__FILE__) + '/../../../activesupport/lib')
 
 require 'config'
+
+require 'rubygems'
 require 'test/unit'
+gem 'mocha', '>= 0.9.5'
+require 'mocha'
 
 require 'active_record'
 require 'active_record/test_case'
@@ -22,15 +26,6 @@ def current_adapter?(*types)
     ActiveRecord::ConnectionAdapters.const_defined?(type) &&
       ActiveRecord::Base.connection.is_a?(ActiveRecord::ConnectionAdapters.const_get(type))
   end
-end
-
-def uses_mocha(description)
-  require 'rubygems'
-  gem 'mocha', '>= 0.9.3'
-  require 'mocha'
-  yield
-rescue LoadError
-  $stderr.puts "Skipping #{description} tests. `gem install mocha` and try again."
 end
 
 ActiveRecord::Base.connection.class.class_eval do

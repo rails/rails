@@ -156,25 +156,23 @@ class CalculationsTest < ActiveRecord::TestCase
     assert_equal 1, c[companies(:first_client)]
   end
 
-  uses_mocha 'group_by_non_numeric_foreign_key_association' do
-    def test_should_group_by_association_with_non_numeric_foreign_key
-      ActiveRecord::Base.connection.expects(:select_all).returns([{"count_all" => 1, "firm_id" => "ABC"}])
+  def test_should_group_by_association_with_non_numeric_foreign_key
+    ActiveRecord::Base.connection.expects(:select_all).returns([{"count_all" => 1, "firm_id" => "ABC"}])
 
-      firm = mock()
-      firm.expects(:id).returns("ABC")
-      firm.expects(:class).returns(Firm)
-      Company.expects(:find).with(["ABC"]).returns([firm])
+    firm = mock()
+    firm.expects(:id).returns("ABC")
+    firm.expects(:class).returns(Firm)
+    Company.expects(:find).with(["ABC"]).returns([firm])
 
-      column = mock()
-      column.expects(:name).at_least_once.returns(:firm_id)
-      column.expects(:type_cast).with("ABC").returns("ABC")
-      Account.expects(:columns).at_least_once.returns([column])
+    column = mock()
+    column.expects(:name).at_least_once.returns(:firm_id)
+    column.expects(:type_cast).with("ABC").returns("ABC")
+    Account.expects(:columns).at_least_once.returns([column])
 
-      c = Account.count(:all, :group => :firm)
-      first_key = c.keys.first
-      assert_equal Firm, first_key.class
-      assert_equal 1, c[first_key]
-    end
+    c = Account.count(:all, :group => :firm)
+    first_key = c.keys.first
+    assert_equal Firm, first_key.class
+    assert_equal 1, c[first_key]
   end
 
   def test_should_calculate_grouped_association_with_foreign_key_option
