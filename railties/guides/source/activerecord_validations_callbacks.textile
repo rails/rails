@@ -76,7 +76,7 @@ The following methods skip validations, and will save the object to the database
 
 Note that +save+ also has the ability to skip validations if passed +false+. This technique should be used with caution: 
 
-* "+save(false)+":http://api.rubyonrails.org/classes/ActiveRecord/Base.html#M002274
+* +save(false)+
 
 h4. Skipping Validations
 
