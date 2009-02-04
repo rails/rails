@@ -937,6 +937,7 @@ The built-in +test/unit+ based testing is not the only way to test Rails applica
 
 * "NullDB":http://avdi.org/projects/nulldb/, a way to speed up testing by avoiding database use.
 * "Factory Girl":http://github.com/thoughtbot/factory_girl/tree/master, as replacement for fixtures.
+* "Machinist":http://github.com/notahat/machinist/tree/master, another replacement for fixtures.
 * "Shoulda":http://www.thoughtbot.com/projects/shoulda, an extension to +test/unit+ with additional helpers, macros, and assertions.
 * "RSpec":http://rspec.info/, a behavior-driven development framework
 
