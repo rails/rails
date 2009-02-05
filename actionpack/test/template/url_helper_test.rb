@@ -252,6 +252,27 @@ class UrlHelperTest < ActionView::TestCase
     assert_equal "Showing", link_to_if(false, "Showing", :action => "show", :controller => "weblog", :id => 1)
   end
 
+  def test_current_page_with_simple_url
+    @controller.request = RequestMock.new("http://www.example.com/weblog/show")
+    @controller.url = "http://www.example.com/weblog/show"
+    assert current_page?({ :action => "show", :controller => "weblog" })
+    assert current_page?("http://www.example.com/weblog/show")
+  end
+  
+  def test_current_page_ignoring_params
+    @controller.request = RequestMock.new("http://www.example.com/weblog/show?order=desc&page=1")
+    @controller.url = "http://www.example.com/weblog/show?order=desc&page=1"
+    assert current_page?({ :action => "show", :controller => "weblog" })
+    assert current_page?("http://www.example.com/weblog/show")
+  end
+  
+  def test_current_page_with_params_that_match
+    @controller.request = RequestMock.new("http://www.example.com/weblog/show?order=desc&page=1")
+    @controller.url = "http://www.example.com/weblog/show?order=desc&page=1"
+    assert current_page?({ :action => "show", :controller => "weblog", :order => "desc", :page => "1" })
+    assert current_page?("http://www.example.com/weblog/show?order=desc&amp;page=1")
+  end
+  
   def test_link_unless_current
     @controller.request = RequestMock.new("http://www.example.com/weblog/show")
     @controller.url = "http://www.example.com/weblog/show"
