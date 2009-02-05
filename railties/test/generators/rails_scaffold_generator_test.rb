@@ -19,7 +19,7 @@ class RailsScaffoldGeneratorTest < GeneratorTestCase
     assert_generated_controller_for :products do |f|
 
       assert_has_method f, :index do |name, m|
-        assert_match /@products = Product\.find\(:all\)/, m, "#{name} should query products table"
+        assert_match /@products = Product\.all/, m, "#{name} should query products table"
       end
 
       assert_has_method f, :show, :edit, :update, :destroy do |name, m|
@@ -71,7 +71,7 @@ class RailsScaffoldGeneratorTest < GeneratorTestCase
     assert_generated_controller_for :products do |f|
 
       assert_has_method f, :index do |name, m|
-        assert_match /@products = Product\.find\(:all\)/, m, "#{name} should query products table"
+        assert_match /@products = Product\.all/, m, "#{name} should query products table"
       end
 
       assert_has_method f, :show, :edit, :update, :destroy do |name, m|
