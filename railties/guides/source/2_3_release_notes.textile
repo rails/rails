@@ -24,7 +24,7 @@ Here's a summary of the rack-related changes:
 * +ActionController::Dispatcher+ maintains its own default middleware stack. Middlewares can be injected in, reordered, and removed. The stack is compiled into a chain on boot. You can configure the middleware stack in +environment.rb+
 * The +rake middleware+ task has been added to inspect the middleware stack. This is useful for debugging the order of the middleware stack.
 * The integration test runner has been modified to execute the entire middleware and application stack. This makes integration tests perfect for testing Rack middleware.
-* +ActionController::CGIHandler+ is a backwards compatible CGI wrapper around Rack. The +CGIHandler+ is meant to take an old CGI object and converts its environment information into a Rack compatible form.
+* +ActionController::CGIHandler+ is a backwards compatible CGI wrapper around Rack. The +CGIHandler+ is meant to take an old CGI object and convert its environment information into a Rack compatible form.
 * +CgiRequest+ and +CgiResponse+ have been removed
 * Session stores are now lazy loaded. If you never access the session object during a request, it will never attempt to load the session data (parse the cookie, load the data from memcache, or lookup an Active Record object).
 * +CGI::Session::CookieStore+ has been replaced by +ActionController::Session::CookieStore+
@@ -160,7 +160,7 @@ MySQL supports a reconnect flag in its connections - if set to true, then the cl
 h4. Other Active Record Changes
 
 * An extra +AS+ was removed from the generated SQL for has_and_belongs_to_many preloading, making it work better for some databases.
-* +ActiveRecord::Base#new_record?+ now returns false rather than nil when confronted with an existing record.
+* +ActiveRecord::Base#new_record?+ now returns +false+ rather than +nil+ when confronted with an existing record.
 * A bug in quoting table names in some +has_many :through+ associations was fixed.
 * You can now specify a particular timestamp for +updated_at+ timestamps: +cust = Customer.create(:name => "ABC Industries", :updated_at => 1.day.ago)+ 
 * Better error messages on failed +find_by_attribute!+ calls.
@@ -229,7 +229,7 @@ end
 
 h4. More Efficient Routing
 
-There are a couple of significant routing changes in Rails 2.3. The +formatted_+ route helpers are gone, in favor just passing in +:format+ as an option. This cuts down the route generation process by 50% for any resource - and can save a substantial amount of memory (up to 100MB on large applications). If your code uses the +formatted_+ helpers, it will still work for the time being - but that behavior is deprecated and your application will be more efficient if you rewrite those routes using the new standard. Another big change is that Rails now supports multiple routing files, not just routes.rb. You can use +RouteSet#add_configuration_file+ to bring in more routes at any time - without clearing the currently-loaded routes. While this change is most useful for Engines, you can use it in any application that needs to load routes in batches.
+There are a couple of significant routing changes in Rails 2.3. The +formatted_+ route helpers are gone, in favor just passing in +:format+ as an option. This cuts down the route generation process by 50% for any resource - and can save a substantial amount of memory (up to 100MB on large applications). If your code uses the +formatted_+ helpers, it will still work for the time being - but that behavior is deprecated and your application will be more efficient if you rewrite those routes using the new standard. Another big change is that Rails now supports multiple routing files, not just +routes.rb+. You can use +RouteSet#add_configuration_file+ to bring in more routes at any time - without clearing the currently-loaded routes. While this change is most useful for Engines, you can use it in any application that needs to load routes in batches.
 
 * Lead Contributors: "Aaron Batalion":http://blog.hungrymachine.com/
 
@@ -295,7 +295,7 @@ end
 
 You can write this view in Rails 2.3:
 
-<ruby>
+<erb>
 <% form_for @customer do |customer_form| %>
   <div>
     <%= customer_form.label :name, 'Customer Name:' %>
@@ -303,29 +303,28 @@ You can write this view in Rails 2.3:
   </div>
 
   <!-- Here we call fields_for on the customer_form builder instance.
-       The block is called for each member of the orders collection. -->
+   The block is called for each member of the orders collection. -->
   <% customer_form.fields_for :orders do |order_form| %>
-      <p>
-        <div>
-          <%= order_form.label :number, 'Order Number:' %>
-          <%= order_form.text_field :number %>
-        </div>
+    <p>
+      <div>
+        <%= order_form.label :number, 'Order Number:' %>
+        <%= order_form.text_field :number %>
+      </div>
 
   <!-- The allow_destroy option in the model enables deletion of
-       child records. -->
-        <% unless order_form.object.new_record? %>
-          <div>
-            <%= order_form.label :_delete, 'Remove:' %>
-            <%= order_form.check_box :_delete %>
-          </div>
-        <% end %>
-      </p>
-    <% end %>
+   child records. -->
+      <% unless order_form.object.new_record? %>
+        <div>
+          <%= order_form.label :_delete, 'Remove:' %>
+          <%= order_form.check_box :_delete %>
+        </div>
+      <% end %>
+    </p>
   <% end %>
 
   <%= customer_form.submit %>
 <% end %>
-</ruby>
+</erb>
 
 * Lead Contributor: "Eloy Duran":http://www.superalloy.nl/blog/
 * More Information: 
@@ -338,8 +337,13 @@ h4. Smart Rendering of Partials
 The render method has been getting smarter over the years, and it's even smarter now. If you have an object or a collection and an appropriate partial, and the naming matches up, you can now just render the object and things will work. For example, in Rails 2.3, these render calls will work in your view (assuming sensible naming):
 
 <ruby>
-render @article  # Equivalent of render :partial => 'articles/_article', :object => @article
-render @articles # Equivalent of render :partial => 'articles/_article', :collection => @articles
+# Equivalent of render :partial => 'articles/_article', 
+# :object => @article
+render @article  
+
+# Equivalent of render :partial => 'articles/_article', 
+# :collection => @articles
+render @articles
 </ruby>
 
 * More Information: "What's New in Edge Rails: render Stops Being High-Maintenance":http://ryandaigle.com/articles/2008/11/20/what-s-new-in-edge-rails-render-stops-being-high-maintenance
@@ -373,7 +377,7 @@ Asset hosts get more flexible in edge Rails with the ability to declare an asset
 
 h4. grouped_options_for_select Helper Method
 
-Action View already haD a bunch of helpers to aid in generating select controls, but now there's one more: +grouped_options_for_select+. This one accepts an array or hash of strings, and converts them into a string of +option+ tags wrapped with +optgroup+ tags. For example:
+Action View already had a bunch of helpers to aid in generating select controls, but now there's one more: +grouped_options_for_select+. This one accepts an array or hash of strings, and converts them into a string of +option+ tags wrapped with +optgroup+ tags. For example:
 
 <ruby>
 grouped_options_for_select([["Hats", ["Baseball Cap","Cowboy Hat"]]], 
@@ -393,7 +397,7 @@ returns
 h4. Other Action View Changes
 
 * Token generation for CSRF protection has been simplified; now Rails uses a simple random string generated by +ActiveSupport::SecureRandom+ rather than mucking around with session IDs. 
-* +auto_link+ now properly applies options (such as :target and :class) to generated e-mail links. 
+* +auto_link+ now properly applies options (such as +:target+ and +:class+) to generated e-mail links. 
 * The +autolink+ helper has been refactored to make it a bit less messy and more intuitive. 
 
 h3. Active Support
@@ -402,7 +406,7 @@ Active Support has a few interesting changes, including the introduction of +Obj
 
 h4. Object#try
 
-A lot of folks have adopted the notion of using try() to attempt operations on objects - It's especially helpful in views where you can avoid nil-checking by writing code like +<%= @person.try(:name) %>+. Well, now it's baked right into Rails. As implemented in Rails, it raises +NoMethodError+ on private methods and always returns +nil+ if the object is nil.
+A lot of folks have adopted the notion of using try() to attempt operations on objects. It's especially helpful in views where you can avoid nil-checking by writing code like +<%= @person.try(:name) %>+. Well, now it's baked right into Rails. As implemented in Rails, it raises +NoMethodError+ on private methods and always returns +nil+ if the object is nil.
 
 * More Information: "try()":http://ozmm.org/posts/try.html. 
 
@@ -423,12 +427,12 @@ The +Time+ and +TimeWithZone+ classes include an +xmlschema+ method to return th
 
 h4. JSON Key Quoting
 
-If you look up the spec on the "json.org" site, you'll discover that all keys in a JSON structure must be strings, and they must be quoted with double quotes. Starting with Rails 2.3, we doe the right thing here, even with numeric keys.
+If you look up the spec on the "json.org" site, you'll discover that all keys in a JSON structure must be strings, and they must be quoted with double quotes. Starting with Rails 2.3, we do the right thing here, even with numeric keys.
 
 h4. Other Active Support Changes
 
 * You can use +Enumerable#none?+ to check that none of the elements match the supplied block.
-* If you're using Active Support "delegates":http://afreshcup.com/2008/10/19/coming-in-rails-22-delegate-prefixes/, the new +:allow_nil+ option lets you return nil instead of raising an exception when the target object is nil. 
+* If you're using Active Support "delegates":http://afreshcup.com/2008/10/19/coming-in-rails-22-delegate-prefixes/, the new +:allow_nil+ option lets you return +nil+ instead of raising an exception when the target object is nil. 
 * +ActiveSupport::OrderedHash+: now implements +each_key+ and +each_value+. 
 * +ActiveSupport::MessageEncryptor+ provides a simple way to encrypt information for storage in an untrusted location (like cookies). 
 * Active Support's +from_xml+ no longer depends on XmlSimple. Instead, Rails now includes its own XmlMini implementation, with just the functionality that it requires. This lets Rails dispense with the bundled copy of XmlSimple that it's been carting around. 
@@ -476,8 +480,8 @@ h4. Other Railties Changes
 * Internal Rails testing has been switched from +Test::Unit::TestCase+ to +ActiveSupport::TestCase+, and the Rails core requires Mocha to test.
 * The default +environment.rb+ file has been decluttered.
 * The dbconsole script now lets you use an all-numeric password without crashing. 
-* Rails.root now returns a Pathname object, which means you can use it directly with the join method to "clean up existing code":http://afreshcup.com/2008/12/05/a-little-rails_root-tidiness/ that uses File.join. 
-* Various files in /public that deal with CGI and FCGI dispatching are no longer generated in every Rails application by default (you can still get them if you need them by adding +--with-dispatches+ when you run the rails command, or add them later with +rake rails:generate_dispatchers+). 
+* +Rails.root+ now returns a +Pathname+ object, which means you can use it directly with the +join+ method to "clean up existing code":http://afreshcup.com/2008/12/05/a-little-rails_root-tidiness/ that uses +File.join+. 
+* Various files in /public that deal with CGI and FCGI dispatching are no longer generated in every Rails application by default (you can still get them if you need them by adding +--with-dispatches+ when you run the +rails+ command, or add them later with +rake rails:generate_dispatchers+). 
 
 h3. Deprecated
 
