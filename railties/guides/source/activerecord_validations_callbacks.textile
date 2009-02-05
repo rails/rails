@@ -13,6 +13,10 @@ After reading this guide and trying out the presented concepts, we hope that you
 
 endprologue.
 
+# TODO consider starting with an overview of what validations and callbacks are, and the object lifecycle
+# http://api.rubyonrails.org/classes/ActiveRecord/Callbacks.html
+# http://api.rubyonrails.org/classes/ActiveRecord/Base.html
+
 h3. Overview of ActiveRecord Validation
 
 Before you dive into the detail of validations in Rails, you should understand a bit about how validations fit into the big picture. Why should you use validations? When do these validations take place?
@@ -26,6 +30,9 @@ There are several ways that you could validate the data that goes to the databas
 * Using database constraints and/or stored procedures makes the validation mechanisms database-dependent and may turn your application into a hard to test and maintain beast. However, if your database is used by other applications, it may be a good idea to use some constraints also at the database level. Additionally, database-level validations can safely handle some things (such as uniqueness in heavily-used tables) that are problematic to implement from the application level.
 * Implementing validations only at the client side can be difficult in web-based applications. Usually this kind of validation is done using javascript, which may be turned off in the user's browser, leading to invalid data getting inside your database. However, if combined with server side validation, client side validation may be useful, since the user can have a faster feedback from the application when trying to save invalid data.
 * Using validation directly in your Active Record classes ensures that only valid data gets recorded, while still keeping the validation code in the right place, avoiding breaking the MVC pattern. Since the validation happens on the server side, the user cannot disable it, so it's also safer. It may be a hard and tedious work to implement some of the logic involved in your models' validations, but fear not: Active Record gives you the ability to easily create validations, providing built-in helpers for common validations while still allowing you to create your own validation methods.
+
+# TODO consider adding a bullet point on validations in controllers, and why model validations should be preferred over complicated controllers.  
+# http://weblog.jamisbuck.org/2006/10/18/skinny-controller-fat-model
 
 h4. When Does Validation Happen?
 
@@ -51,7 +58,7 @@ We can see how it works by looking at some script/console output:
 
 Creating and saving a new record will send an SQL +INSERT+ operation to the database. Updating an existing record will send an SQL +UPDATE+ operation instead. Validations are typically run before these commands are sent to the database. If any validations fail, the object will be marked as invalid and Active Record will not trigger the +INSERT+ or +UPDATE+ operation. This helps to avoid storing an object in the database that's invalid. You can choose to have specific validations run when an object is created, saved, or updated.
 
-CAUTION: There are many ways to change the state of an object in the database. Some will trigger validations, and some will not. This means that it _is_ possible to save an object in the database that's in an invalid state. Be careful when using Active Record methods that bypass validations.
+CAUTION: There are many ways to change the state of an object in the database. Some methods will trigger validations, but some will not. This means that it's possible to save an object in the database in an invalid state if you aren't careful. 
 
 The following methods trigger validations, and will save the object to the database only if the object is valid. The bang versions (e.g. +save!+) will raise an exception if the record is invalid. The non-bang versions (e.g. +save+) simply return +false+.
 
@@ -65,7 +72,7 @@ The following methods trigger validations, and will save the object to the datab
 
 h4. Skipping Validations
 
-The following methods skip validations, and will save the object to the database regardless of its validity. They should be used with caution:
+The following methods skip validations, and will save the object to the database regardless of its validity. They should be used with caution.
 
 * +decrement!+
 * +decrement_counter+
@@ -76,7 +83,7 @@ The following methods skip validations, and will save the object to the database
 * +update_attribute+
 * +update_counters+
 
-Note that +save+ also has the ability to skip validations (and callbacks!) if passed +false+. This technique should be used with caution:
+Note that +save+ also has the ability to skip validations (and callbacks!) if passed +false+. This technique should be used with caution.
 
 * +save(false)+
 
@@ -93,7 +100,9 @@ Person.create(:name => "John Doe").valid? # => true
 Person.create.valid? # => false
 </ruby>
 
-When Active Record is performing validations, any errors found are collected into an +errors+ instance variable and can be accessed through an +errors+ instance method. An object is considered invalid if it has errors, and calling +save+ or +save!+ will not save it to the database. Note that an object instantiated with +new+ will not report errors even if it's technically invalid, because validations are not run when using +new+.
+When Active Record is performing validations, any errors found are collected into an +errors+ instance variable and can be accessed through an +errors+ instance method. An object is considered invalid if it has errors, and calling +save+ or +save!+ will not save it to the database. 
+
+However, note that an object instantiated with +new+ will not report errors even if it's technically invalid, because validations are not run when using +new+.
 
 <ruby>
 class Person < ActiveRecord::Base
@@ -450,7 +459,7 @@ end
 
 h4. Using a Proc object with :if and :unless
 
-Finally, it's possible to associate +:if+ and +:unless+ with a Ruby Proc object which will be called. Using a Proc object can give you the hability to write a condition that will be executed only when the validation happens and not when your code is loaded by the Ruby interpreter. This option is best suited when writing short validation methods, usually one-liners.
+Finally, it's possible to associate +:if+ and +:unless+ with a Ruby Proc object which will be called. Using a Proc object can give you the ability to write a condition that will be executed only when the validation happens and not when your code is loaded by the Ruby interpreter. This option is best suited when writing short validation methods, usually one-liners.
 
 <ruby>
 class Account < ActiveRecord::Base
@@ -507,7 +516,11 @@ end
 
 h3. Manipulating the errors collection
 
-You can do more than just call +valid?+ upon your objects based on the existance of the +errors+ collection. Here is a list of the other available methods that you can use to manipulate errors or ask for an object's state.
+# TODO consider renaming section to something more simple, like "Validation errors"
+# Consider combining with new section at the top with Object#valid? and Object#invalid?
+# Consider moving this stuff above the current 2-6 sections (e.g. save the validation details until after this?)
+
+You can do more than just call +valid?+ upon your objects based on the existence of the +errors+ collection. Here is a list of the other available methods that you can use to manipulate errors or ask for an object's state.
 
 * +add_to_base+ lets you add errors messages that are related to the object's state as a whole, instead of being related to a specific attribute. You can use this method when you want to say that the object is invalid, no matter the values of it's attributes. +add_to_base+ receives a string with the message.
 
@@ -582,6 +595,9 @@ p.save # => false
 p.errors.on(:name)
 # => ["can't be blank", "is too short (minimum is 3 characters)"]
 </ruby>
+
+# TODO consider discussing other methods (e.g. errors.size)
+# http://api.rubyonrails.org/classes/ActiveRecord/Errors.html
 
 h3. Using error collection in views
 
@@ -672,9 +688,14 @@ h3. Callbacks
 
 Callbacks are methods that get called at certain moments of an object's lifecycle. With callbacks it's possible to write code that will run whenever an Active Record object is created, saved, updated, deleted or loaded from the database.
 
+# TODO discuss what does/doesn't trigger callbacks, like we did in the validations section (e.g. destroy versus delete).
+# Consider moving up to the (new) intro overview section, before getting into details. 
+# http://api.rubyonrails.org/classes/ActiveRecord/Base.html#M002220
+# http://api.rubyonrails.org/classes/ActiveRecord/Callbacks.html
+
 h4. Callback registration
 
-In order to use the available callbacks, you need to registrate them. You can do that by implementing them as an ordinary methods, and then using a macro-style class method to register then as callbacks.
+In order to use the available callbacks, you need to register them. You can do that by implementing them as an ordinary methods, and then using a macro-style class method to register then as callbacks.
 
 <ruby>
 class User < ActiveRecord::Base
@@ -702,6 +723,8 @@ end
 </ruby>
 
 CAUTION: Remember to always declare the callback methods as being protected or private. These methods should never be public, otherwise it will be possible to call them from code outside the model, violating object encapsulation and exposing implementation details.
+
+# TODO consider not making this a warning, just a note (this is an implementation detail, not a requirement of the library)
 
 h3. Conditional callbacks
 
@@ -751,9 +774,14 @@ end
 
 h3. Available callbacks
 
+# TODO consider moving above the code examples and details, possibly combining with intro lifecycle stuff? 
+
 Here is a list with all the available Active Record callbacks, listed in the same order in which they will get called during the respective operations.
 
 h4. Callbacks called both when creating or updating a record.
+
+# TODO consider just listing these in the possible lifecycle of an object, roughly as they do here:
+# http://api.rubyonrails.org/classes/ActiveRecord/Callbacks.html
 
 * +before_validation+ 
 * +after_validation+ 
@@ -787,7 +815,7 @@ The +before_destroy+ and +after_destroy+ callbacks will only be called if you de
 
 h4. after_initialize and after_find callbacks
 
-The +after_initialize+ callback will be called whenever an Active Record object is instantiated, either by direcly using +new+ or when a record is loaded from the database. It can be useful to avoid the need to directly override your Active Record +initialize+ method.
+The +after_initialize+ callback will be called whenever an Active Record object is instantiated, either by directly using +new+ or when a record is loaded from the database. It can be useful to avoid the need to directly override your Active Record +initialize+ method.
 
 The +after_find+ callback will be called whenever Active Record loads a record from the database. When used together with +after_initialize+ it will run first, since Active Record will first read the record from the database and them create the model object that will hold it. 
 
@@ -883,6 +911,8 @@ It's also possible to register callbacks in any of the files living at *config/e
 h4. Where to put the observers' source files
 
 By convention, you should always save your observers' source files inside *app/models*.
+
+# TODO this probably doesn't need it's own section and entry in the table of contents.
 
 h3. Changelog
 
