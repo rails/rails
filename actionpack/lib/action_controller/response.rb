@@ -236,7 +236,7 @@ module ActionController # :nodoc:
         elsif length = headers['Content-Length']
           headers['Content-Length'] = length.to_s
         elsif !body.respond_to?(:call) && (!status || status.to_s[0..2] != '304')
-          headers["Content-Length"] = body.size.to_s
+          headers["Content-Length"] = (body.respond_to?(:bytesize) ? body.bytesize : body.size).to_s
         end
       end
 
