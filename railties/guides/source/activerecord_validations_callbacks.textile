@@ -537,7 +537,7 @@ class Person < ActiveRecord::Base
 end
 
 person = Person.new(:name => "John Doe")
-person.invalid?(:email) # => true
+person.errors.invalid?(:email) # => true
 </ruby>
 
 * +on+ is used when you want to check the error messages for a specific attribute. It will return different kinds of objects depending on the state of the +errors+ collection for the given attribute. If there are no errors related to the attribute, +on+ will return +nil+. If there is just one errors message for this attribute, +on+ will return a string with the message. When +errors+ holds two or more error messages for the attribute, +on+ will return an array of strings, each one with one error message.
