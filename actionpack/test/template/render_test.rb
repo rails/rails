@@ -1,3 +1,4 @@
+# encoding: utf-8
 require 'abstract_unit'
 require 'controller/fake_models'
 
@@ -203,6 +204,14 @@ module RenderTestCases
   def test_render_with_nested_layout
     assert_equal %(<title>title</title>\n<div id="column">column</div>\n<div id="content">content</div>\n),
       @view.render(:file => "test/nested_layout.erb", :layout => "layouts/yield")
+  end
+
+  if '1.9'.respond_to?(:force_encoding)
+    def test_render_utf8_template
+      result = @view.render(:file => "test/utf8.html.erb", :layouts => "layouts/yield")
+      assert_equal "Русский текст\n日本語のテキスト", result
+      assert_equal Encoding::UTF_8, result.encoding
+    end
   end
 end
 
