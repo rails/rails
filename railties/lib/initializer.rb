@@ -132,10 +132,10 @@ module Rails
       add_gem_load_paths
 
       require_frameworks
-      preload_frameworks
       set_autoload_paths
       add_plugin_load_paths
       load_environment
+      preload_frameworks
 
       initialize_encoding
       initialize_database
@@ -270,7 +270,7 @@ module Rails
         configuration.frameworks.each do |framework|
           # String#classify and #constantize aren't available yet.
           toplevel = Object.const_get(framework.to_s.gsub(/(?:^|_)(.)/) { $1.upcase })
-          toplevel.load_all!
+          toplevel.load_all! if toplevel.respond_to?(:load_all!)
         end
       end
     end
