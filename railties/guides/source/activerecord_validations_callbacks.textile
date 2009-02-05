@@ -51,7 +51,7 @@ We can see how it works by looking at some script/console output:
 
 Creating and saving a new record will send an SQL +INSERT+ operation to the database. Updating an existing record will send an SQL +UPDATE+ operation instead. Validations are typically run before these commands are sent to the database. If any validations fail, the object will be marked as invalid and Active Record will not trigger the +INSERT+ or +UPDATE+ operation. This helps to avoid storing an object in the database that's invalid. You can choose to have specific validations run when an object is created, saved, or updated.
 
-CAUTION: There are many ways to change the state of an object in the database. Some will trigger validations, and some will not. This means it is possible to save an object in the database that's in an invalid state. Be careful when using Active Record methods that bypass validations.
+CAUTION: There are many ways to change the state of an object in the database. Some will trigger validations, and some will not. This means that it _is_ possible to save an object in the database that's in an invalid state. Be careful when using Active Record methods that bypass validations.
 
 The following methods trigger validations, and will save the object to the database only if the object is valid. The bang versions (e.g. +save!+) will raise an exception if the record is invalid. The non-bang versions (e.g. +save+) simply return +false+.
 
@@ -62,6 +62,8 @@ The following methods trigger validations, and will save the object to the datab
 * +update+
 * +update_attributes+
 * +update_attributes!+
+
+h4. Skipping Validations
 
 The following methods skip validations, and will save the object to the database regardless of its validity. They should be used with caution:
 
@@ -74,19 +76,60 @@ The following methods skip validations, and will save the object to the database
 * +update_attribute+
 * +update_counters+
 
-Note that +save+ also has the ability to skip validations if passed +false+. This technique should be used with caution: 
+Note that +save+ also has the ability to skip validations (and callbacks!) if passed +false+. This technique should be used with caution:
 
 * +save(false)+
 
-h4. Skipping Validations
+h4. Object#valid? and Object#invalid?
 
-TODO: Probably move the list above and mention save(false). Also mention that save(false) doesn't only skip the validations, but a lots of other callbacks too.
+To verify whether or not an object is valid, you can use the +valid?+ method. This runs validations and returns true if no errors were added to the object, and false otherwise.
 
-h4. Object#valid?
+<ruby>
+class Person < ActiveRecord::Base
+  validates_presence_of :name
+end
 
-To verify whether an object is valid, Active Record uses the +valid?+ method, which basically looks inside the object to see if it has any validation errors. These errors live in a collection that can be accessed through the +errors+ instance method. The process is really simple: If the +errors+ method returns an empty collection, the object is valid and can be saved. Each time a validation fails, an error message is added to the +errors+ collection.
+Person.create(:name => "John Doe").valid? # => true
+Person.create.valid? # => false
+</ruby>
 
-h4. Object#invalid?
+When Active Record is performing validations, any errors found are collected into an +errors+ instance variable and can be accessed through an +errors+ instance method. An object is considered invalid if it has errors, and calling +save+ or +save!+ will not save it to the database. Note that an object instantiated with +new+ will not report errors even if it's technically invalid, because validations are not run when using +new+.
+
+<ruby>
+class Person < ActiveRecord::Base
+  validates_presence_of :name
+end
+
+>> p = Person.new
+=> #<Person id: nil, name: nil>
+>> p.errors
+=> #<ActiveRecord::Errors:0x3b8b46c @base=#<Person id: nil, name: nil>, @errors={}>
+>> p.valid?
+=> false
+>> p.errors
+=> #<ActiveRecord::Errors:0x3b8b46c @base=#<Person id: nil, name: nil>, @errors={"name"=>["can't be blank"]}>
+>> p = Person.create
+=> #<Person id: nil, name: nil>
+>> p.errors
+=> #<ActiveRecord::Errors:0x3b8b46c @base=#<Person id: nil, name: nil>, @errors={"name"=>["can't be blank"]}>
+>> p.save
+=> false
+>> p.save!
+=> ActiveRecord::RecordInvalid: Validation failed: Name can't be blank
+>> p = Person.create!
+=> ActiveRecord::RecordInvalid: Validation failed: Name can't be blank
+</ruby>
+
+To verify whether or not a particular attribute of an object is valid, you can use the +invalid?+ method. This method is only useful _after_ validations have been run, because it only inspects the errors collection and does not trigger validations itself. It's different from the +valid?+ method because it doesn't verify the validity of the object as a whole, but only if there are errors found on an individual attribute of the object. 
+
+<ruby>
+class Person < ActiveRecord::Base
+  validates_presence_of :name
+end
+  
+>> Person.new.errors.invalid?(:name) # => false
+>> Person.create.errors.invalid?(:name) # => true
+</ruby>
 
 h3. Declarative Validation Helpers
 
