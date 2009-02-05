@@ -189,25 +189,25 @@ h5. Memory
 
 Memory measures the amount of memory used for the performance test case.
 
-Mode : Benchmarking, Profiling [xref:gc[Requires GC-Patched Ruby]]
+Mode : Benchmarking, Profiling "Requires GC Patched Ruby":#installing-gc-patched-ruby
 
 h5. Objects
 
 Objects measures the number of objects allocated for the performance test case.
 
-Mode : Benchmarking, Profiling [xref:gc[Requires GC-Patched Ruby]]
+Mode : Benchmarking, Profiling "Requires GC Patched Ruby":#installing-gc-patched-ruby
 
 h5. GC Runs
 
 GC Runs measures the number of times GC was invoked for the performance test case.
 
-Mode : Benchmarking [xref:gc[Requires GC-Patched Ruby]]
+Mode : Benchmarking "Requires GC Patched Ruby":#installing-gc-patched-ruby
 
 h5. GC Time
 
 GC Time measures the amount of time spent in GC for the performance test case.
 
-Mode : Benchmarking [xref:gc[Requires GC-Patched Ruby]]
+Mode : Benchmarking "Requires GC Patched Ruby":#installing-gc-patched-ruby
 
 h4. Understanding the output
 
