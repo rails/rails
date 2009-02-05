@@ -93,8 +93,8 @@ h3. Digging Deeper
   This guide describes how to debug Rails applications. It covers the different ways of achieving this and how to understand what is happening "behind the scenes" of your code.
 <% end %>
 
-<% guide("Benchmarking and Profiling Rails Applications", 'performance_testing.html') do %>
-  This guide covers ways to analyze and optimize your running Rails code.
+<% guide("Performance Testing Rails Applications", 'performance_testing.html') do %>
+  This guide covers the various ways of performance testing a Ruby on Rails application.
 <% end %>
 
 <% guide("The Basics of Creating Rails Plugins", 'plugins.html') do %>
