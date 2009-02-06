@@ -55,13 +55,13 @@ want to put other static html in /public, but changing this will require web
 server reconfiguration to let the web server know where to serve the cached
 files from.
 
-The Page Caching mechanism will automatically add a +.html+ exxtension to
+The Page Caching mechanism will automatically add a +.html+ extension to
 requests for pages that do not have an extension to make it easy for the
 webserver to find those pages and this can be configured by changing the
 configuration setting +config.action_controller.page_cache_extension+.
 
 In order to expire this page when a new product is added we could extend our
-example controler like this:
+example controller like this:
 
 <ruby>
 class ProductsController < ActionController
