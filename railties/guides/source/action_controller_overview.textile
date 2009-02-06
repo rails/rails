@@ -163,9 +163,11 @@ Your application has a session for each user in which you can store small amount
 * MemCacheStore - Stores the data in a memcache.
 * ActiveRecordStore - Stores the data in a database using Active Record.
 
-All session stores use a cookie - this is required and Rails does not allow any part of the session to be passed in any other way (e.g. you can't use the query string to pass a session ID) because of security concerns (it's easier to hijack a session when the ID is part of the URL).
+All session stores use a cookie to store a unique ID for each session (you must use a cookie, Rails will not allow you to pass the session ID in the URL as this is less secure).
 
-Most stores use a cookie to store the session ID which is then used to look up the session data on the server. The default and recommended store, the CookieStore, does not store session data on the server, but in the cookie itself. The data is cryptographically signed to make it tamper-proof, but it is not encrypted, so anyone with access to it can read its contents but not edit it (Rails will not accept it if it has been edited). It can only store about 4kB of data - much less than the others - but this is usually enough. Storing large amounts of data is discouraged no matter which session store your application uses. You should especially avoid storing complex objects (anything other than basic Ruby objects, the most common example being model instances) in the session, as the server might not be able to reassemble them between requests, which will result in an error. The CookieStore has the added advantage that it does not require any setting up beforehand - Rails will generate a "secret key" which will be used to sign the cookie when you create the application.
+For most stores this ID is used to look up the session data on the server, e.g. in a database table. There is one exception, and that is the default and recommended session store - the CookieStore - which stores all session data in the cookie itself (the ID is still available to you if you need it). This has the advantage of being very lightweight and it requires zero setup in a new application in order to use the session. The cookie data is cryptographically signed to make it tamper-proof, but it is not encrypted, so anyone with access to it can read its contents but not edit it (Rails will not accept it if it has been edited).The cookie data is cryptographically signed to make it tamper-proof, but it is not encrypted, so anyone with access to it can read its contents but not edit it (Rails will not accept it if it has been edited).
+
+The CookieStore can store around 4kB of data - much less than the others - but this is usually enough. Storing large amounts of data in the session is discouraged no matter which session store your application uses. You should especially avoid storing complex objects (anything other than basic Ruby objects, the most common example being model instances) in the session, as the server might not be able to reassemble them between requests, which will result in an error.
 
 Read more about session storage in the "Security Guide":security.html.
 
@@ -175,6 +177,17 @@ If you need a different session storage mechanism, you can change it in the +con
 # Set to one of [:active_record_store, :drb_store, :mem_cache_store, :cookie_store]
 config.action_controller.session_store = :active_record_store
 </ruby>
+
+Rails sets up a session key (the name of the cookie) and (for the CookieStore) a secret key used when signing the session data. These can also be changed in +config/environment.rb+:
+
+<ruby>
+config.actioncontroller.session = {
+  :key => "_yourappname_session",
+  :secret => "g7tr273tr823ter823tr2qtr8q73w8q3trh76t878..."
+}
+</ruby>
+
+NOTE: Changing the secret when using the CookieStore will invalidate all existing sessions.
 
 h4. Accessing the Session
 
