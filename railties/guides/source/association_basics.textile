@@ -514,7 +514,7 @@ The +belongs_to+ association creates a one-to-one match with another model. In d
 
 h5. Methods Added by belongs_to
 
-When you declare a +belongs_to+ assocation, the declaring class automatically gains five methods related to the association:
+When you declare a +belongs_to+ association, the declaring class automatically gains five methods related to the association:
 
 * <tt><em>association</em>(force_reload = false)</tt>
 * <tt><em>association</em>=(associate)</tt>
