@@ -48,9 +48,9 @@ h3. Editing
 
 To ensure consistent quality and structure, Mike Gunderloy will make a copy editing pass over each guide. To make this easier, all authors should read and follow the Rails Guides Conventions and the Rails API Documentation Conventions.
 
-IRC Channel
+h3. IRC Channel
 
-#docrails @ irc.freenode.net
+==#docrails @ irc.freenode.net==
 
 h3. Contact
 
