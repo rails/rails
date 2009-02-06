@@ -123,13 +123,13 @@ module ActiveResource
         # def post(path, body, headers)
         #   request = ActiveResource::Request.new(:post, path, body, headers)
         #   self.class.requests << request
-        #   self.class.responses.assoc(request)[0] || raise(InvalidRequestError.new("No response recorded for #{request}"))
+        #   self.class.responses.assoc(request).try(:second) || raise(InvalidRequestError.new("No response recorded for #{request}"))
         # end
         module_eval <<-EOE, __FILE__, __LINE__
           def #{method}(path, #{'body, ' if has_body}headers)
             request = ActiveResource::Request.new(:#{method}, path, #{has_body ? 'body, ' : 'nil, '}headers)
             self.class.requests << request
-            self.class.responses.assoc(request).try(:second) || raise(InvalidRequestError.new("No response recorded for \#{request.inspect} in \#{self.class.responses.select { |req, res| req.path == request.path }.inspect}"))
+            self.class.responses.assoc(request).try(:second) || raise(InvalidRequestError.new("No response recorded for \#{request}"))
           end
         EOE
       end
