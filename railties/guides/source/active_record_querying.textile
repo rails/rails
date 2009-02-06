@@ -294,7 +294,7 @@ Be careful because this also means you're initializing a model object with only 
 ActiveRecord::MissingAttributeError: missing attribute: <attribute>
 </shell>
 
-Where <attribute> is the atrribute you asked for. The +id+ method will not raise the +ActiveRecord::MissingAttributeError+, so just be careful when working with associations because they need the +id+ method to function properly.
+Where <attribute> is the attribute you asked for. The +id+ method will not raise the +ActiveRecord::MissingAttributeError+, so just be careful when working with associations because they need the +id+ method to function properly.
 
 You can also call SQL functions within the select option. For example, if you would like to only grab a single record per unique value in a certain field by using the +DISTINCT+ function you can do it like this: +Client.all(:select => "DISTINCT(name)")+.
 
@@ -413,7 +413,7 @@ If you wanted to find the address and mailing address for that client you would 
   mailing_addresses.client_id = client.id
 </sql>
 
-This query is more efficent, but there's a gotcha: if you have a client who does not have an address or a mailing address they will not be returned in this query at all. If you have any association as an optional association, you may want to use include rather than joins. Alternatively, you can use a SQL join clause to specify exactly the join you need (Rails always assumes an inner join):
+This query is more efficient, but there's a gotcha: if you have a client who does not have an address or a mailing address they will not be returned in this query at all. If you have any association as an optional association, you may want to use include rather than joins. Alternatively, you can use a SQL join clause to specify exactly the join you need (Rails always assumes an inner join):
 
 <ruby>
 Client.all(:joins => “LEFT OUTER JOIN addresses ON
@@ -555,7 +555,7 @@ This method, called as +Client.active_within_2_weeks.all+, will return all clien
 
 h4. Arguments to Named Scopes
 
-If you want to pass to a named scope a required arugment, just specify it as a block argument like this:
+If you want to pass to a named scope a required argument, just specify it as a block argument like this:
 
 <ruby>
 class Client < ActiveRecord::Base
