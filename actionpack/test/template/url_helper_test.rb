@@ -252,6 +252,27 @@ class UrlHelperTest < ActionView::TestCase
     assert_equal "Showing", link_to_if(false, "Showing", :action => "show", :controller => "weblog", :id => 1)
   end
 
+  def test_current_page_with_simple_url
+    @controller.request = RequestMock.new("http://www.example.com/weblog/show")
+    @controller.url = "http://www.example.com/weblog/show"
+    assert current_page?({ :action => "show", :controller => "weblog" })
+    assert current_page?("http://www.example.com/weblog/show")
+  end
+  
+  def test_current_page_ignoring_params
+    @controller.request = RequestMock.new("http://www.example.com/weblog/show?order=desc&page=1")
+    @controller.url = "http://www.example.com/weblog/show?order=desc&page=1"
+    assert current_page?({ :action => "show", :controller => "weblog" })
+    assert current_page?("http://www.example.com/weblog/show")
+  end
+  
+  def test_current_page_with_params_that_match
+    @controller.request = RequestMock.new("http://www.example.com/weblog/show?order=desc&page=1")
+    @controller.url = "http://www.example.com/weblog/show?order=desc&page=1"
+    assert current_page?({ :action => "show", :controller => "weblog", :order => "desc", :page => "1" })
+    assert current_page?("http://www.example.com/weblog/show?order=desc&amp;page=1")
+  end
+  
   def test_link_unless_current
     @controller.request = RequestMock.new("http://www.example.com/weblog/show")
     @controller.url = "http://www.example.com/weblog/show"
@@ -263,10 +284,22 @@ class UrlHelperTest < ActionView::TestCase
     assert_equal "Showing", link_to_unless_current("Showing", { :action => "show", :controller => "weblog" })
     assert_equal "Showing", link_to_unless_current("Showing", "http://www.example.com/weblog/show")
 
+    @controller.request = RequestMock.new("http://www.example.com/weblog/show?order=desc&page=1")
+    @controller.url = "http://www.example.com/weblog/show?order=desc&page=1"
+    assert_equal "Showing", link_to_unless_current("Showing", { :action => "show", :controller => "weblog", :order=>'desc', :page=>'1' })
+    assert_equal "Showing", link_to_unless_current("Showing", "http://www.example.com/weblog/show?order=desc&amp;page=1")
+    assert_equal "Showing", link_to_unless_current("Showing", "http://www.example.com/weblog/show?order=desc&page=1")
+
     @controller.request = RequestMock.new("http://www.example.com/weblog/show?order=desc")
     @controller.url = "http://www.example.com/weblog/show?order=asc"
     assert_equal "<a href=\"http://www.example.com/weblog/show?order=asc\">Showing</a>", link_to_unless_current("Showing", { :action => "show", :controller => "weblog" })
     assert_equal "<a href=\"http://www.example.com/weblog/show?order=asc\">Showing</a>", link_to_unless_current("Showing", "http://www.example.com/weblog/show?order=asc")
+
+    @controller.request = RequestMock.new("http://www.example.com/weblog/show?order=desc&page=1")
+    @controller.url = "http://www.example.com/weblog/show?order=desc&page=2"
+    assert_equal "<a href=\"http://www.example.com/weblog/show?order=desc&amp;page=2\">Showing</a>", link_to_unless_current("Showing", { :action => "show", :controller => "weblog" })
+    assert_equal "<a href=\"http://www.example.com/weblog/show?order=desc&amp;page=2\">Showing</a>", link_to_unless_current("Showing", "http://www.example.com/weblog/show?order=desc&page=2")
+
 
     @controller.request = RequestMock.new("http://www.example.com/weblog/show")
     @controller.url = "http://www.example.com/weblog/list"
@@ -319,7 +352,7 @@ class UrlHelperTest < ActionView::TestCase
     assert_dom_equal "<script type=\"text/javascript\">eval(decodeURIComponent('%64%6f%63%75%6d%65%6e%74%2e%77%72%69%74%65%28%27%3c%61%20%68%72%65%66%3d%22%6d%61%69%6c%74%6f%3a%6d%65%40%64%6f%6d%61%69%6e%2e%63%6f%6d%22%3e%4d%79%20%65%6d%61%69%6c%3c%2f%61%3e%27%29%3b'))</script>", mail_to("me@domain.com", "My email", :encode => "javascript", :replace_at => "(at)", :replace_dot => "(dot)")
     assert_dom_equal "<script type=\"text/javascript\">eval(decodeURIComponent('%64%6f%63%75%6d%65%6e%74%2e%77%72%69%74%65%28%27%3c%61%20%68%72%65%66%3d%22%6d%61%69%6c%74%6f%3a%6d%65%40%64%6f%6d%61%69%6e%2e%63%6f%6d%22%3e%6d%65%28%61%74%29%64%6f%6d%61%69%6e%28%64%6f%74%29%63%6f%6d%3c%2f%61%3e%27%29%3b'))</script>", mail_to("me@domain.com", nil, :encode => "javascript", :replace_at => "(at)", :replace_dot => "(dot)")
   end
-
+  
   def protect_against_forgery?
     false
   end

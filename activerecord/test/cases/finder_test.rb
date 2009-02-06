@@ -94,7 +94,16 @@ class FinderTest < ActiveRecord::TestCase
 
     assert_raise(NoMethodError) { Topic.exists?([1,2]) }
   end
-
+  
+  def test_exists_returns_true_with_one_record_and_no_args
+    assert Topic.exists?
+  end
+  
+  def test_does_not_exist_with_empty_table_and_no_args_given
+    Topic.delete_all
+    assert !Topic.exists?
+  end
+  
   def test_exists_with_aggregate_having_three_mappings
     existing_address = customers(:david).address
     assert Customer.exists?(:address => existing_address)
@@ -296,6 +305,12 @@ class FinderTest < ActiveRecord::TestCase
   def test_find_on_hash_conditions_with_range
     assert_equal [1,2], Topic.find(:all, :conditions => { :id => 1..2 }).map(&:id).sort
     assert_raises(ActiveRecord::RecordNotFound) { Topic.find(1, :conditions => { :id => 2..3 }) }
+  end
+
+  def test_find_on_hash_conditions_with_end_exclusive_range
+    assert_equal [1,2,3], Topic.find(:all, :conditions => { :id => 1..3 }).map(&:id).sort
+    assert_equal [1,2], Topic.find(:all, :conditions => { :id => 1...3 }).map(&:id).sort
+    assert_raises(ActiveRecord::RecordNotFound) { Topic.find(3, :conditions => { :id => 2...3 }) }
   end
 
   def test_find_on_hash_conditions_with_multiple_ranges

@@ -233,6 +233,20 @@ module NestedAttributesOnACollectionAssociationTests
     assert_equal 'Privateers Greed', @pirate.send(@association_name).last.name
   end
 
+  def test_should_remove_delete_key_from_arguments_hash_of_new_records
+    assert_nothing_raised ActiveRecord::UnknownAttributeError do
+      @pirate.send(association_setter, { 'new_1' => { '_delete' => '0' }})
+    end
+  end
+
+  def test_should_ignore_new_associated_records_with_truthy_delete_attribute
+    @pirate.send(@association_name).destroy_all
+    @pirate.reload.attributes = { association_getter => { 'new_1' => { :name => 'Grace OMalley' }, 'new_2' => { :name => 'Privateers Greed', '_delete' => '1' }}}
+
+    assert_equal 1, @pirate.send(@association_name).length
+    assert_equal 'Grace OMalley', @pirate.send(@association_name).first.name
+  end
+
   def test_should_sort_the_hash_by_the_keys_before_building_new_associated_models
     attributes = ActiveSupport::OrderedHash.new
     attributes['new_123726353'] = { :name => 'Grace OMalley' }

@@ -129,6 +129,7 @@ module ActiveRecord
       base.class_eval do
         alias_method_chain :reload, :autosave_associations
         alias_method_chain :save,   :autosave_associations
+        alias_method_chain :save!,  :autosave_associations
         alias_method_chain :valid?, :autosave_associations
 
         %w{ has_one belongs_to has_many has_and_belongs_to_many }.each do |type|
@@ -158,6 +159,17 @@ module ActiveRecord
             end
           end
         end
+      end
+    end
+
+    # Attempts to save the record just like save_with_autosave_associations but
+    # will raise a RecordInvalid exception instead of returning false if the
+    # record is not valid.
+    def save_with_autosave_associations!
+      if valid_with_autosave_associations?
+        save_with_autosave_associations(false) || raise(RecordNotSaved)
+      else
+        raise RecordInvalid.new(self)
       end
     end
 

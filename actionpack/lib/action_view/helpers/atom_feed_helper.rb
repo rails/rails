@@ -30,7 +30,7 @@ module ActionView
       #   app/views/posts/index.atom.builder:
       #     atom_feed do |feed|
       #       feed.title("My great blog!")
-      #       feed.updated((@posts.first.created_at))
+      #       feed.updated(@posts.first.created_at)
       #
       #       for post in @posts
       #         feed.entry(post) do |entry|
