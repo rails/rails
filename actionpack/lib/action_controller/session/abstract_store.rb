@@ -58,9 +58,28 @@ module ActionController
           end
 
           def load!
-            @id, session = @by.send(:load_session, @env)
-            replace(session)
-            @loaded = true
+            stale_session_check! do
+              @id, session = @by.send(:load_session, @env)
+              replace(session)
+              @loaded = true
+            end
+          end
+
+          def stale_session_check!
+            yield
+          rescue ArgumentError => argument_error
+            if argument_error.message =~ %r{undefined class/module ([\w:]*\w)}
+              begin
+                # Note that the regexp does not allow $1 to end with a ':'
+                $1.constantize
+              rescue LoadError, NameError => const_error
+                raise ActionController::SessionRestoreError, "Session contains objects whose class definition isn\\'t available.\nRemember to require the classes for all objects kept in the session.\n(Original exception: \#{const_error.message} [\#{const_error.class}])\n"
+              end
+
+              retry
+            else
+              raise
+            end
           end
       end
 
