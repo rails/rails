@@ -83,7 +83,7 @@ Usage: ./script/generate generator [options] [args]
 ...
 
 Installed Generators
-  Builtin: controller, integration_test, mailer, migration, model, observer, performance_test, plugin, resource, scaffold, session_migration
+  Built-in: controller, integration_test, mailer, migration, model, observer, performance_test, plugin, resource, scaffold, session_migration
 
 ...
 ...
@@ -356,8 +356,8 @@ $ rails . --git --database=postgresql
 add 'Rakefile'
       create  README
 add 'README'
-      create  app/controllers/application.rb
-add 'app/controllers/application.rb'
+      create  app/controllers/application_controller_.rb
+add 'app/controllers/application_controller_.rb'
       create  app/helpers/application_helper.rb
 ...
       create  log/test.log
