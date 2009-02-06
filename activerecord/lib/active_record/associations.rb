@@ -1094,16 +1094,17 @@ module ActiveRecord
       # join table with a migration such as this:
       #
       #   class CreateDevelopersProjectsJoinTable < ActiveRecord::Migration
-      #     def self.up 
+      #     def self.up
       #       create_table :developers_projects, :id => false do |t|
-      #         t.integer :developer_id  
-      #         t.integer :project_id  
-      #       end  
-      #     end  
-      #     def self.down 
-      #       drop_table :developers_projects  
-      #     end 
-      #   end 
+      #         t.integer :developer_id
+      #         t.integer :project_id
+      #       end
+      #     end
+      #
+      #     def self.down
+      #       drop_table :developers_projects
+      #     end
+      #   end
       #
       # Deprecated: Any additional fields added to the join table will be placed as attributes when pulling records out through
       # +has_and_belongs_to_many+ associations. Records returned from join tables with additional attributes will be marked as
