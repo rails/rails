@@ -27,15 +27,15 @@ The definition of the Active Record pattern in Martin Fowler's words:
 
 h3. Object Relational Mapping
 
-The relation between databases and object-oriented software is called ORM, which is short for "Object Relational Mapping". The purpose of an ORM framework is to minimize the mismatch existent between relational databases and object-oriented software. In applications with a domain model, we have objects that represent both the state of the system and the behaviour of the real world elements that were modeled through these objects. Since we need to store the system's state somehow, we can use relational databases, which are proven to be an excelent approach to data management. Usually this may become a very hard thing to do, since we need to create an object-oriented model of everything that lives in the database, from simple columns to complicated relations between different tables. Doing this kind of thing by hand is a tedious and error prone job. This is where an ORM framework comes in.
+The relation between databases and object-oriented software is called ORM, which is short for "Object Relational Mapping". The purpose of an ORM framework is to minimize the mismatch existent between relational databases and object-oriented software. In applications with a domain model, we have objects that represent both the state of the system and the behavior of the real world elements that were modeled through these objects. Since we need to store the system's state somehow, we can use relational databases, which are proven to be an excellent approach to data management. Usually this may become a very hard thing to do, since we need to create an object-oriented model of everything that lives in the database, from simple columns to complicated relations between different tables. Doing this kind of thing by hand is a tedious and error prone job. This is where an ORM framework comes in.
 
 h3. ActiveRecord as an ORM framework
 
-ActiveRecord gives us several mechanisms, being the most important ones the hability to:
+ActiveRecord gives us several mechanisms, being the most important ones the ability to:
 
 * Represent models.
 * Represent associations between these models.
-* Represent inheritance hierarquies through related models.
+* Represent inheritance hierarchies through related models.
 * Validate models before they get recorded to the database.
 * Perform database operations in an object-oriented fashion.
 
@@ -43,11 +43,11 @@ It's easy to see that the Rails Active Record implementation goes way beyond the
 
 h3. Active Record inside the MVC model
 
-Active Record plays the role of model inside the MVC structure followed by Rails applications. Since model objects should encapsulate both state and logic of your applications, it's ActiveRecord responsability to deliver you the easiest possible way to recover this data from the database.
+Active Record plays the role of model inside the MVC structure followed by Rails applications. Since model objects should encapsulate both state and logic of your applications, it's ActiveRecord responsibility to deliver you the easiest possible way to recover this data from the database.
 
 h3. Convention over Configuration in ActiveRecord
 
-When writing applications using other programming languages or frameworks, it may be necessary to write a lot of configuration code. This is particulary true for ORM frameworks in general. However, if you follow the conventions adopted by Rails, you'll need to write very little configuration (in some case no configuration at all) when creating ActiveRecord models. The idea is that if you configure your applications in the very same way most of the times then this should be the default way. In this cases, explicity configuration would be needed only in those cases where you can't follow the conventions for any reason.
+When writing applications using other programming languages or frameworks, it may be necessary to write a lot of configuration code. This is particularly true for ORM frameworks in general. However, if you follow the conventions adopted by Rails, you'll need to write very little configuration (in some case no configuration at all) when creating ActiveRecord models. The idea is that if you configure your applications in the very same way most of the times then this should be the default way. In this cases, explicit configuration would be needed only in those cases where you can't follow the conventions for any reason.
 
 h4. Naming Conventions
 
@@ -69,7 +69,7 @@ h4. Schema Conventions
 ActiveRecord uses naming conventions for the columns in database tables, depending on the purpose of these columns.
 
 * *Foreign keys* - These fields should be named following the pattern table_id i.e. (item_id, order_id). These are the fields that ActiveRecord will look for when you create associations between your models.
-* *Primary keys* - By default, ActiveRecord will use a integer column named "id" as the table's primary key. When using "Rails Migrations":http://guides.rails.info/migrations.html to create your tables, this column will be automaticaly created.
+* *Primary keys* - By default, ActiveRecord will use a integer column named "id" as the table's primary key. When using "Rails Migrations":http://guides.rails.info/migrations.html to create your tables, this column will be automatically created.
 
 There are also some optional column names that will create additional features to ActiveRecord instances:
 
@@ -89,7 +89,7 @@ It's very easy to create ActiveRecord models. All you have to do is to subclass 
 class Product < ActiveRecord::Base; end
 </ruby>
 
-This will create a +Product+ model, mapped to a *products* table at the database. By doing this you'll also have the hability to map the columns of each row in that table with the attributes of the instances of your model. So, suppose that the *products* table was created using a SQL sentence like:
+This will create a +Product+ model, mapped to a *products* table at the database. By doing this you'll also have the ability to map the columns of each row in that table with the attributes of the instances of your model. So, suppose that the *products* table was created using a SQL sentence like:
 
 <sql>
 CREATE TABLE products (
@@ -127,9 +127,9 @@ end
 
 h3. Validations
 
-ActiveRecord gives the hability to validate the state of your models before they get recorded into the database. There are several methods that you can use to hook into the lifecycle of your models and validate that an attribute value is not empty or follow a specific format and so on. You can learn more about validations in the "Active Record Validations and Callbacks guide":http://guides.rails.info/activerecord_validations_callbacks.html#_overview_of_activerecord_validation.
+ActiveRecord gives the ability to validate the state of your models before they get recorded into the database. There are several methods that you can use to hook into the life-cycle of your models and validate that an attribute value is not empty or follow a specific format and so on. You can learn more about validations in the "Active Record Validations and Callbacks guide":http://guides.rails.info/activerecord_validations_callbacks.html#_overview_of_activerecord_validation.
 
 h3. Callbacks
 
-ActiveRecord callbacks allow you to attach code to certain events in the lifecycle of your models. This way you can add behaviour to your models by transparently executing code when those events occur, like when you create a new record, update it, destroy it and so on. You can learn more about callbacks in the "Active Record Validations and Callbacks guide":http://guides.rails.info/activerecord_validations_callbacks.html#_callbacks.
+ActiveRecord callbacks allow you to attach code to certain events in the life-cycle of your models. This way you can add behavior to your models by transparently executing code when those events occur, like when you create a new record, update it, destroy it and so on. You can learn more about callbacks in the "Active Record Validations and Callbacks guide":http://guides.rails.info/activerecord_validations_callbacks.html#_callbacks.
 
