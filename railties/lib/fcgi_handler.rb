@@ -1,4 +1,3 @@
-FCGI_PURE_RUBY = true
 require 'fcgi'
 require 'logger'
 require 'dispatcher'
@@ -99,7 +98,6 @@ class RailsFCGIHandler
 
       with_signal_handler 'USR1' do
         begin
-          cgi = FCGI::Request.new(cgi.id, cgi.env_table, cgi.stdinput, cgi.stdoutput)
           ::Rack::Handler::FastCGI.serve(cgi, Dispatcher.new)
         rescue SignalException, SystemExit
           raise
