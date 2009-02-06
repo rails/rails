@@ -38,7 +38,7 @@ Here's a summary of the rack-related changes:
 * The Rails router and controller classes follow the Rack spec. You can call a controller directly with +SomeController.call(env)+. The router stores the routing parameters in +rack.routing_args+.
 * +ActionController::Request+ inherits from +Rack::Request+
 * Instead of +config.action_controller.session = { :session_key => 'foo', ...+ use  +config.action_controller.session = { :key => 'foo', ...+
-* Using the +ParamsParser+ middleware preprocesses any XML, JSON, or YAML requests so they can be read normally with any +Rack::Request+ object after it. 
+* Using the +ParamsParser+ middleware preprocesses any XML, JSON, or YAML requests so they can be read normally with any +Rack::Request+ object after it.
 
 h4. Renewed Support for Rails Engines
 
@@ -68,7 +68,7 @@ end
 </ruby>
 
 Turning on nested attributes enables a number of things: automatic (and atomic) saving of a record together with its associated children, child-aware validations, and support for nested forms (discussed later).
- 
+
 * Lead Contributor: "Eloy Duran":http://www.superalloy.nl/blog/
 * More Information: "Nested Model Forms":http://weblog.rubyonrails.org/2009/1/26/nested-model-forms
 
@@ -84,7 +84,7 @@ User.transaction do
       raise ActiveRecord::Rollback
     end
   end
-  
+
   User.find(:all)  # => Returns only Admin
 </ruby>
 
@@ -98,7 +98,7 @@ You know about dynamic finders in Rails (which allow you to concoct methods like
 
 <ruby>
 Order.scoped_by_customer_id(12)
-Order.scoped_by_customer_id(12).find(:all, 
+Order.scoped_by_customer_id(12).find(:all,
   :conditions => "status = 'open'")
 Order.scoped_by_customer_id(12).scoped_by_status("open")
 </ruby>
@@ -110,7 +110,7 @@ There's nothing to define to use dynamic scopes: they just work.
 
 h4. Default Scopes
 
-Rails 2.3 will introduce the notion of _default scopes_ similar to named scopes, but applying to all named scopes or find methods within the model. For example, you can write +default_scope :order => 'name ASC'+ and any time you retrieve records from that model they'll come out sorted by name (unless you override the option, of course). 
+Rails 2.3 will introduce the notion of _default scopes_ similar to named scopes, but applying to all named scopes or find methods within the model. For example, you can write +default_scope :order => 'name ASC'+ and any time you retrieve records from that model they'll come out sorted by name (unless you override the option, of course).
 
 * Lead Contributor: Paweł Kondzior
 * More Information: "What's New in Edge Rails: Default Scoping":http://ryandaigle.com/articles/2008/11/18/what-s-new-in-edge-rails-default-scoping
@@ -120,7 +120,7 @@ h4. Multiple Conditions for Callbacks
 When using Active Record callbacks, you can now combine +:if+ and +:unless+ options on the same callback, and supply multiple conditions as an array:
 
 <ruby>
-before_save :update_credit_rating, :if => :active, 
+before_save :update_credit_rating, :if => :active,
   :unless => [:admin, :cash_only]
 </ruby>
 * Lead Contributor: L. Caviola
@@ -130,7 +130,7 @@ h4. Find with having
 Rails now has a +:having+ option on find (as well as on +has_many+ and +has_and_belongs_to_many+ associations) for filtering records in grouped finds. As those with heavy SQL backgrounds know, this allows filtering based on grouped results:
 
 <ruby>
-developers =  Developer.find(:all, :group => "salary", 
+developers =  Developer.find(:all, :group => "salary",
   :having => "sum(salary) >  10000", :select => "salary")
 </ruby>
 
@@ -144,7 +144,7 @@ You can once again use a hash in conditions for a +has_many+ relationship:
 has_many :orders, :conditions => {:status => 'confirmed'}
 </ruby>
 
-That worked in Rails 2.1, fails in Rails 2.2, and will now work again in Rails 2.3 (if you're dealing with this issue in Rails 2.2, you can use a string rather than a hash to specify conditions). 
+That worked in Rails 2.1, fails in Rails 2.2, and will now work again in Rails 2.3 (if you're dealing with this issue in Rails 2.2, you can use a string rather than a hash to specify conditions).
 
 * Lead Contributor: "Frederick Cheung":http://www.spacevatican.org/
 
@@ -153,7 +153,7 @@ h4. Reconnecting MySQL Connections
 MySQL supports a reconnect flag in its connections - if set to true, then the client will try reconnecting to the server before giving up in case of a lost connection. You can now set +reconnect = true+ for your MySQL connections in +database.yml+ to get this behavior from a Rails application. The default is +false+, so the behavior of existing applications doesn't change.
 
 * Lead Contributor: "Dov Murik":http://twitter.com/dubek
-* More information: 
+* More information:
 ** "Controlling Automatic Reconnection Behavior":http://dev.mysql.com/doc/refman/5.0/en/auto-reconnect.html
 ** "MySQL auto-reconnect revisited":http://groups.google.com/group/rubyonrails-core/browse_thread/thread/49d2a7e9c96cb9f4
 
@@ -162,7 +162,7 @@ h4. Other Active Record Changes
 * An extra +AS+ was removed from the generated SQL for has_and_belongs_to_many preloading, making it work better for some databases.
 * +ActiveRecord::Base#new_record?+ now returns +false+ rather than +nil+ when confronted with an existing record.
 * A bug in quoting table names in some +has_many :through+ associations was fixed.
-* You can now specify a particular timestamp for +updated_at+ timestamps: +cust = Customer.create(:name => "ABC Industries", :updated_at => 1.day.ago)+ 
+* You can now specify a particular timestamp for +updated_at+ timestamps: +cust = Customer.create(:name => "ABC Industries", :updated_at => 1.day.ago)+
 * Better error messages on failed +find_by_attribute!+ calls.
 * Active Record's +to_xml+ support gets just a little bit more flexible with the addition of a +:camelize+ option.
 * A bug in canceling callbacks from +before_update+ or +before_create_ was fixed.
@@ -195,10 +195,10 @@ Rails chooses between file, template, and action depending on whether there is a
 
 h4. Application Controller Renamed
 
-If you're one of the people who has always been bothered by the special-case naming of +application.rb+, rejoice! It's been reworked to be application_controller.rb in Rails 2.3. In addition, there's a new rake task, +rake rails:update:application_controller+ to do this automatically for you - and it will be run as part of the normal +rake rails:update+ process. 
+If you're one of the people who has always been bothered by the special-case naming of +application.rb+, rejoice! It's been reworked to be application_controller.rb in Rails 2.3. In addition, there's a new rake task, +rake rails:update:application_controller+ to do this automatically for you - and it will be run as part of the normal +rake rails:update+ process.
 
 * More Information:
-** "The Death of Application.rb":http://afreshcup.com/2008/11/17/rails-2x-the-death-of-applicationrb/    
+** "The Death of Application.rb":http://afreshcup.com/2008/11/17/rails-2x-the-death-of-applicationrb/
 ** "What's New in Edge Rails: Application.rb Duality is no More":http://ryandaigle.com/articles/2008/11/19/what-s-new-in-edge-rails-application-rb-duality-is-no-more
 
 h4. HTTP Digest Authentication Support
@@ -211,12 +211,12 @@ class PostsController < ApplicationController
   before_filter :authenticate
 
   def secret
-    render :text => "Password Required!" 
+    render :text => "Password Required!"
   end
 
   private
   def authenticate
-    realm = "Application" 
+    realm = "Application"
     authenticate_or_request_with_http_digest(realm) do |name|
       Users[name]
     end
@@ -266,15 +266,15 @@ Rails now keeps a per-request local cache of requests, cutting down on unnecessa
 
 h4. Localized Views
 
-Rails can now provide localized views, depending on the locale that you have set. For example, suppose you have a +Posts+ controller with a +show+ action. By default, this will render +app/views/posts/show.html.erb+. But if you set +I18n.locale = :da+, it will render +app/views/posts/show.da.html.erb+. If the localized template isn't present, the undecorated version will be used. Rails also includes +I18n#available_locales+ and +I18n::SimpleBackend#available_locales+, which return an array of the translations that are available in the current Rails project. 
+Rails can now provide localized views, depending on the locale that you have set. For example, suppose you have a +Posts+ controller with a +show+ action. By default, this will render +app/views/posts/show.html.erb+. But if you set +I18n.locale = :da+, it will render +app/views/posts/show.da.html.erb+. If the localized template isn't present, the undecorated version will be used. Rails also includes +I18n#available_locales+ and +I18n::SimpleBackend#available_locales+, which return an array of the translations that are available in the current Rails project.
 
 h4. Other Action Controller Changes
 
 * ETag handling has been cleaned up a bit: Rails will now skip sending an ETag header when there's no body to the response or when sending files with +send_file+.
-* The fact that Rails checks for IP spoofing can be a nuisance for sites that do heavy traffic with cell phones, because their proxies don't generally set things up right. If that's you, you can now set +ActionController::Base.ip_spoofing_check = false+ to disable the check entirely. 
-* +ActionController::Dispatcher+ now implements its own middleware stack, which you can see by running +rake middleware+. 
-* Cookie sessions now have persistent session identifiers, with API compatibility with the server-side stores. 
-* You can now use symbols for the +:type+ option of +send_file+ and +send_data+, like this: +send_file("fabulous.png", :type => :png)+. 
+* The fact that Rails checks for IP spoofing can be a nuisance for sites that do heavy traffic with cell phones, because their proxies don't generally set things up right. If that's you, you can now set +ActionController::Base.ip_spoofing_check = false+ to disable the check entirely.
+* +ActionController::Dispatcher+ now implements its own middleware stack, which you can see by running +rake middleware+.
+* Cookie sessions now have persistent session identifiers, with API compatibility with the server-side stores.
+* You can now use symbols for the +:type+ option of +send_file+ and +send_data+, like this: +send_file("fabulous.png", :type => :png)+.
 * The +:only+ and +:except+ options for +map.resources+ are no longer inherited by nested resources.
 
 h3. Action View
@@ -327,7 +327,7 @@ You can write this view in Rails 2.3:
 </erb>
 
 * Lead Contributor: "Eloy Duran":http://www.superalloy.nl/blog/
-* More Information: 
+* More Information:
 ** "Nested Model Forms":http://weblog.rubyonrails.org/2009/1/26/nested-model-forms
 ** "complex-form-examples":http://github.com/alloy/complex-form-examples/tree/nested_attributes
 ** "What's New in Edge Rails: Nested Object Forms":http://ryandaigle.com/articles/2009/2/1/what-s-new-in-edge-rails-nested-attributes
@@ -337,11 +337,11 @@ h4. Smart Rendering of Partials
 The render method has been getting smarter over the years, and it's even smarter now. If you have an object or a collection and an appropriate partial, and the naming matches up, you can now just render the object and things will work. For example, in Rails 2.3, these render calls will work in your view (assuming sensible naming):
 
 <ruby>
-# Equivalent of render :partial => 'articles/_article', 
+# Equivalent of render :partial => 'articles/_article',
 # :object => @article
-render @article  
+render @article
 
-# Equivalent of render :partial => 'articles/_article', 
+# Equivalent of render :partial => 'articles/_article',
 # :collection => @articles
 render @articles
 </ruby>
@@ -357,9 +357,9 @@ select_datetime(DateTime.now, :prompt => true)
 
 select_datetime(DateTime.now, :prompt => "Choose date and time")
 
-select_datetime(DateTime.now, :prompt => 
-  {:day => 'Choose day', :month => 'Choose month', 
-   :year => 'Choose year', :hour => 'Choose hour', 
+select_datetime(DateTime.now, :prompt =>
+  {:day => 'Choose day', :month => 'Choose month',
+   :year => 'Choose year', :hour => 'Choose hour',
    :minute => 'Choose minute'})
 </ruby>
 
@@ -380,7 +380,7 @@ h4. grouped_options_for_select Helper Method
 Action View already had a bunch of helpers to aid in generating select controls, but now there's one more: +grouped_options_for_select+. This one accepts an array or hash of strings, and converts them into a string of +option+ tags wrapped with +optgroup+ tags. For example:
 
 <ruby>
-grouped_options_for_select([["Hats", ["Baseball Cap","Cowboy Hat"]]], 
+grouped_options_for_select([["Hats", ["Baseball Cap","Cowboy Hat"]]],
   "Cowboy Hat", "Choose a product...")
 </ruby>
 
@@ -396,9 +396,9 @@ returns
 
 h4. Other Action View Changes
 
-* Token generation for CSRF protection has been simplified; now Rails uses a simple random string generated by +ActiveSupport::SecureRandom+ rather than mucking around with session IDs. 
-* +auto_link+ now properly applies options (such as +:target+ and +:class+) to generated e-mail links. 
-* The +autolink+ helper has been refactored to make it a bit less messy and more intuitive. 
+* Token generation for CSRF protection has been simplified; now Rails uses a simple random string generated by +ActiveSupport::SecureRandom+ rather than mucking around with session IDs.
+* +auto_link+ now properly applies options (such as +:target+ and +:class+) to generated e-mail links.
+* The +autolink+ helper has been refactored to make it a bit less messy and more intuitive.
 
 h3. Active Support
 
@@ -408,7 +408,7 @@ h4. Object#try
 
 A lot of folks have adopted the notion of using try() to attempt operations on objects. It's especially helpful in views where you can avoid nil-checking by writing code like +<%= @person.try(:name) %>+. Well, now it's baked right into Rails. As implemented in Rails, it raises +NoMethodError+ on private methods and always returns +nil+ if the object is nil.
 
-* More Information: "try()":http://ozmm.org/posts/try.html. 
+* More Information: "try()":http://ozmm.org/posts/try.html.
 
 h4. Object#tap Backport
 
@@ -432,10 +432,10 @@ If you look up the spec on the "json.org" site, you'll discover that all keys in
 h4. Other Active Support Changes
 
 * You can use +Enumerable#none?+ to check that none of the elements match the supplied block.
-* If you're using Active Support "delegates":http://afreshcup.com/2008/10/19/coming-in-rails-22-delegate-prefixes/, the new +:allow_nil+ option lets you return +nil+ instead of raising an exception when the target object is nil. 
-* +ActiveSupport::OrderedHash+: now implements +each_key+ and +each_value+. 
-* +ActiveSupport::MessageEncryptor+ provides a simple way to encrypt information for storage in an untrusted location (like cookies). 
-* Active Support's +from_xml+ no longer depends on XmlSimple. Instead, Rails now includes its own XmlMini implementation, with just the functionality that it requires. This lets Rails dispense with the bundled copy of XmlSimple that it's been carting around. 
+* If you're using Active Support "delegates":http://afreshcup.com/2008/10/19/coming-in-rails-22-delegate-prefixes/, the new +:allow_nil+ option lets you return +nil+ instead of raising an exception when the target object is nil.
+* +ActiveSupport::OrderedHash+: now implements +each_key+ and +each_value+.
+* +ActiveSupport::MessageEncryptor+ provides a simple way to encrypt information for storage in an untrusted location (like cookies).
+* Active Support's +from_xml+ no longer depends on XmlSimple. Instead, Rails now includes its own XmlMini implementation, with just the functionality that it requires. This lets Rails dispense with the bundled copy of XmlSimple that it's been carting around.
 
 h3. Railties
 
@@ -443,7 +443,7 @@ In addition to the Rack changes covered above, Railties (the core code of Rails 
 
 h4. Rails Metal
 
-Rails Metal is a new mechanism that provides superfast endpoints inside of your Rails applications. Metal classes bypass routing and Action Controller to give you raw speed (at the cost of all the things in Action Controller, of course). This builds on all of the recent foundation work to make Rails a Rack application with an exposed middleware stack. 
+Rails Metal is a new mechanism that provides superfast endpoints inside of your Rails applications. Metal classes bypass routing and Action Controller to give you raw speed (at the cost of all the things in Action Controller, of course). This builds on all of the recent foundation work to make Rails a Rack application with an exposed middleware stack.
 
 * More Information:
 ** "Introducing Rails Metal":http://weblog.rubyonrails.org/2008/12/17/introducing-rails-metal
@@ -470,7 +470,7 @@ Building on Thoughtbot's "Quiet Backtrace":http://www.thoughtbot.com/projects/qu
 
 h4. Faster Boot Time in Development Mode with Lazy Loading/Autoload
 
-Quite a bit of work was done to make sure that bits of Rails (and its dependencies) are only brought into memory when they're actually needed. The core frameworks - Active Support, Active Record, Action Controller, Action Mailer and Action View - are now using +autoload+ to lazy-load their individual classes. This work should help keep the memory footprint down and improve overall Rails performance. 
+Quite a bit of work was done to make sure that bits of Rails (and its dependencies) are only brought into memory when they're actually needed. The core frameworks - Active Support, Active Record, Action Controller, Action Mailer and Action View - are now using +autoload+ to lazy-load their individual classes. This work should help keep the memory footprint down and improve overall Rails performance.
 
 You can also specify (by using the new +preload_frameworks+ option) whether the core libraries should be autoloaded at startup. This defaults to +false+ so that Rails autoloads itself piece-by-piece, but there are some circumstances where you still need to bring in everything at once - Passenger and JRuby both want to see all of Rails loaded together.
 
@@ -479,16 +479,16 @@ h4. Other Railties Changes
 * The instructions for updating a CI server to build Rails have been updated and expanded.
 * Internal Rails testing has been switched from +Test::Unit::TestCase+ to +ActiveSupport::TestCase+, and the Rails core requires Mocha to test.
 * The default +environment.rb+ file has been decluttered.
-* The dbconsole script now lets you use an all-numeric password without crashing. 
-* +Rails.root+ now returns a +Pathname+ object, which means you can use it directly with the +join+ method to "clean up existing code":http://afreshcup.com/2008/12/05/a-little-rails_root-tidiness/ that uses +File.join+. 
-* Various files in /public that deal with CGI and FCGI dispatching are no longer generated in every Rails application by default (you can still get them if you need them by adding +--with-dispatches+ when you run the +rails+ command, or add them later with +rake rails:generate_dispatchers+). 
+* The dbconsole script now lets you use an all-numeric password without crashing.
+* +Rails.root+ now returns a +Pathname+ object, which means you can use it directly with the +join+ method to "clean up existing code":http://afreshcup.com/2008/12/05/a-little-rails_root-tidiness/ that uses +File.join+.
+* Various files in /public that deal with CGI and FCGI dispatching are no longer generated in every Rails application by default (you can still get them if you need them by adding +--with-dispatches+ when you run the +rails+ command, or add them later with +rake rails:generate_dispatchers+).
 
 h3. Deprecated
 
 A few pieces of older code are deprecated in this release:
 
-* If you're one of the (fairly rare) Rails developers who deploys in a fashion that depends on the inspector, reaper, and spawner scripts, you'll need to know that those scripts are no longer included in core Rails. If you need them, you'll be able to pick up copies via the "irs_process_scripts":http://github.com/rails/irs_process_scripts/tree plugin. 
-* +render_component+ goes from "deprecated" to "nonexistent" in Rails 2.3. If you still need it, you can install the "render_component plugin":http://github.com/rails/render_component/tree/master. 
+* If you're one of the (fairly rare) Rails developers who deploys in a fashion that depends on the inspector, reaper, and spawner scripts, you'll need to know that those scripts are no longer included in core Rails. If you need them, you'll be able to pick up copies via the "irs_process_scripts":http://github.com/rails/irs_process_scripts/tree plugin.
+* +render_component+ goes from "deprecated" to "nonexistent" in Rails 2.3. If you still need it, you can install the "render_component plugin":http://github.com/rails/render_component/tree/master.
 * Support for Rails components has been removed.
 * If you were one of the people who got used to running +script/performance/request+ to look at performance based on integration tests, you need to learn a new trick: that script has been removed from core Rails now. There’s a new request_profiler plugin that you can install to get the exact same functionality back.
 * +ActionController::Base#session_enabled?+ is deprecated because sessions are lazy-loaded now.

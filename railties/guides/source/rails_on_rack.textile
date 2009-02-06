@@ -199,7 +199,7 @@ Metal applications are an optimization. You should make sure to "understand the 
 
 h4. Execution Order
 
-All Metal Applications are executed by +Rails::Rack::Metal+ middleware, which is a part of the +ActionController::MiddlewareStack+ chain. 
+All Metal Applications are executed by +Rails::Rack::Metal+ middleware, which is a part of the +ActionController::MiddlewareStack+ chain.
 
 Here's the primary method responsible for running the Metal applications:
 

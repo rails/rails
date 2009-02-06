@@ -169,6 +169,12 @@ class TestAutosaveAssociationOnAHasOneAssociation < ActiveRecord::TestCase
     assert_equal 'The Vile Insanity', @pirate.reload.ship.name
   end
 
+  def test_should_automatically_save_bang_the_associated_model
+    @pirate.ship.name = 'The Vile Insanity'
+    @pirate.save!
+    assert_equal 'The Vile Insanity', @pirate.reload.ship.name
+  end
+
   def test_should_automatically_validate_the_associated_model
     @pirate.ship.name = ''
     assert !@pirate.valid?
@@ -245,6 +251,12 @@ class TestAutosaveAssociationOnABelongsToAssociation < ActiveRecord::TestCase
     assert_equal 'Arr', @ship.reload.pirate.catchphrase
   end
 
+  def test_should_automatically_save_bang_the_associated_model
+    @ship.pirate.catchphrase = 'Arr'
+    @ship.save!
+    assert_equal 'Arr', @ship.reload.pirate.catchphrase
+  end
+
   def test_should_automatically_validate_the_associated_model
     @ship.pirate.catchphrase = ''
     assert !@ship.valid?
@@ -298,6 +310,14 @@ module AutosaveAssociationOnACollectionAssociationTests
     assert_equal new_names, @pirate.reload.send(@association_name).map(&:name)
   end
 
+  def test_should_automatically_save_bang_the_associated_models
+    new_names = ['Grace OMalley', 'Privateers Greed']
+    @pirate.send(@association_name).each_with_index { |child, i| child.name = new_names[i] }
+
+    @pirate.save!
+    assert_equal new_names, @pirate.reload.send(@association_name).map(&:name)
+  end
+
   def test_should_automatically_validate_the_associated_models
     @pirate.send(@association_name).each { |child| child.name = '' }
 
@@ -347,7 +367,9 @@ module AutosaveAssociationOnACollectionAssociationTests
   def test_should_not_load_the_associated_models_if_they_were_not_loaded_yet
     assert_queries(1) { @pirate.catchphrase = 'Arr'; @pirate.save! }
 
-    assert_queries(2) do
+    @pirate.send(@association_name).class # hack to load the target
+
+    assert_queries(3) do
       @pirate.catchphrase = 'Yarr'
       new_names = ['Grace OMalley', 'Privateers Greed']
       @pirate.send(@association_name).each_with_index { |child, i| child.name = new_names[i] }

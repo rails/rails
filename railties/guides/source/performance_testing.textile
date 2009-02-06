@@ -88,7 +88,7 @@ class Post < ActiveRecord::Base
   end
 
   private
-  
+
   def recalculate_costly_stats
     # CPU heavy calculations
   end
@@ -97,7 +97,7 @@ end
 
 h5. Controller Example
 
-Because performance tests are a special kind of integration test, you can use the +get+ and +post+ methods in them. 
+Because performance tests are a special kind of integration test, you can use the +get+ and +post+ methods in them.
 
 Here's the performance test for +HomeController#dashboard+ and +PostsController#create+:
 
@@ -151,7 +151,7 @@ Performance tests can be run in two modes : Benchmarking and Profiling.
 
 h5. Benchmarking
 
-Benchmarking helps find out how fast each performance test runs. Each test case is run +4 times+ in benchmarking mode. 
+Benchmarking helps find out how fast each performance test runs. Each test case is run +4 times+ in benchmarking mode.
 
 To run performance tests in benchmarking mode:
 
@@ -161,7 +161,7 @@ $ rake test:benchmark
 
 h5. Profiling
 
-Profiling helps you see the details of a performance test and provide an in-depth picture of the slow and memory hungry parts. Each test case is run +1 time+ in profiling mode. 
+Profiling helps you see the details of a performance test and provide an in-depth picture of the slow and memory hungry parts. Each test case is run +1 time+ in profiling mode.
 
 To run performance tests in profiling mode:
 
@@ -305,7 +305,7 @@ As +ActionController::Base.perform_caching+ is set to +true+, performance tests 
 
 h4. Installing GC-Patched Ruby
 
-To get the best from Rails performance tests, you need to build a special Ruby binary with some super powers - "GC patch":http://rubyforge.org/tracker/download.php/1814/7062/17676/3291/ruby186gc.patch for measuring GC Runs/Time and memory/object allocation. 
+To get the best from Rails performance tests, you need to build a special Ruby binary with some super powers - "GC patch":http://rubyforge.org/tracker/download.php/1814/7062/17676/3291/ruby186gc.patch for measuring GC Runs/Time and memory/object allocation.
 
 The process is fairly straight forward. If you've never compiled a Ruby binary before, follow these steps to build a ruby binary inside your home directory:
 
@@ -490,7 +490,7 @@ For this section, we're only interested in the last line:
 Completed in 5ms (View: 2, DB: 0) | 200 OK [http://0.0.0.0/items]
 </shell>
 
-This data is fairly straightforward to understand. Rails uses millisecond(ms) as the metric to measures the time taken. The complete request spent 5 ms inside Rails, out of which 2 ms were spent rendering views and none was spent communication with the database. It's safe to assume that the remaining 3 ms were spent inside the controller. 
+This data is fairly straightforward to understand. Rails uses millisecond(ms) as the metric to measures the time taken. The complete request spent 5 ms inside Rails, out of which 2 ms were spent rendering views and none was spent communication with the database. It's safe to assume that the remaining 3 ms were spent inside the controller.
 
 Michael Koziarski has an "interesting blog post":http://www.therailsway.com/2009/1/6/requests-per-second explaining the importance of using milliseconds as the metric.
 

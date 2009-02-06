@@ -23,7 +23,7 @@ end
 Now, suppose we wanted to add a new order for an existing customer. We'd need to do something like this:
 
 <ruby>
-@order = Order.create(:order_date => Time.now, 
+@order = Order.create(:order_date => Time.now,
   :customer_id => @customer.id)
 </ruby>
 
@@ -268,7 +268,7 @@ class Part < ActiveRecord::Base
 end
 </ruby>
 
-The simplest rule of thumb is that you should set up a +has_many :through+ relationship if you need to work with the relationship model as an independent entity. If you don't need to do anything with the relationship model, it may be simpler to set up a +has_and_belongs_to_many+ relationship (though you'll need to remember to create the joining table). 
+The simplest rule of thumb is that you should set up a +has_many :through+ relationship if you need to work with the relationship model as an independent entity. If you don't need to do anything with the relationship model, it may be simpler to set up a +has_and_belongs_to_many+ relationship (though you'll need to remember to create the joining table).
 
 You should use +has_many :through+ if you need validations, callbacks, or extra attributes on the join model.
 
@@ -290,7 +290,7 @@ class Product < ActiveRecord::Base
 end
 </ruby>
 
-You can think of a polymorphic +belongs_to+ declaration as setting up an interface that any other model can use. From an instance of the +Employee+ model, you can retrieve a collection of pictures: +@employee.pictures+. 
+You can think of a polymorphic +belongs_to+ declaration as setting up an interface that any other model can use. From an instance of the +Employee+ model, you can retrieve a collection of pictures: +@employee.pictures+.
 
 Similarly, you can retrieve +@product.pictures+.
 
@@ -371,7 +371,7 @@ But what if you want to reload the cache, because data might have been changed b
 <ruby>
 customer.orders                 # retrieves orders from the database
 customer.orders.size            # uses the cached copy of orders
-customer.orders(true).empty?    # discards the cached copy of orders 
+customer.orders(true).empty?    # discards the cached copy of orders
                                 # and goes back to the database
 </ruby>
 
@@ -400,8 +400,8 @@ class CreateOrders < ActiveRecord::Migration
   def self.up
     create_table :orders do |t|
       t.datetime   :order_date
-      t.string     :order_number 
-      t.integer    :customer_id 
+      t.string     :order_number
+      t.integer    :customer_id
     end
   end
 
@@ -415,7 +415,7 @@ If you create an association some time after you build the underlying model, you
 
 h5. Creating Join Tables for has_and_belongs_to_many Associations
 
-If you create a +has_and_belongs_to_many+ association, you need to explicitly create the joining table. Unless the name of the join table is explicitly specified by using the +:join_table+ option, Active Record create the name by using the lexical order of the class names. So a join between customer and order models will give the default join table name of "customers_orders" because "c" outranks "o" in lexical ordering. 
+If you create a +has_and_belongs_to_many+ association, you need to explicitly create the joining table. Unless the name of the join table is explicitly specified by using the +:join_table+ option, Active Record create the name by using the lexical order of the class names. So a join between customer and order models will give the default join table name of "customers_orders" because "c" outranks "o" in lexical ordering.
 
 WARNING: The precedence between model names is calculated using the +<+ operator for +String+. This means that if the strings are of different lengths, and the strings are equal when compared up to the shortest length, then the longer string is considered of higher lexical precedence than the shorter one. For example, one would expect the tables "paper_boxes" and "papers" to generate a join table name of "papers_paper_boxes" because of the length of the name "paper_boxes", but it in fact generates a join table name of "paper_boxes_papers".
 
@@ -490,14 +490,14 @@ To associate a model with a model in a different scope, you must specify the com
 module MyApplication
   module Business
     class Supplier < ActiveRecord::Base
-       has_one :account, 
+       has_one :account,
         :class_name => "MyApplication::Billing::Account"
     end
   end
 
   module Billing
     class Account < ActiveRecord::Base
-       belongs_to :supplier, 
+       belongs_to :supplier,
         :class_name => "MyApplication::Business::Supplier"
     end
   end
@@ -573,7 +573,7 @@ h6. build_<em>association</em>(attributes = {})
 The <tt>build_<em>association</em></tt> method returns a new object of the associated type. This object will be instantiated from the passed attributes, and the link through this object's foreign key will be set, but the associated object will _not_ yet be saved.
 
 <ruby>
-@customer = @order.build_customer({:customer_number => 123, 
+@customer = @order.build_customer({:customer_number => 123,
   :customer_name => "John Doe"})
 </ruby>
 
@@ -582,7 +582,7 @@ h6. create_<em>association</em>(attributes = {})
 The <tt>create_<em>association</em></tt> method returns a new object of the associated type. This object will be instantiated from the passed attributes, and the link through this object's foreign key will be set. In addition, the associated object _will_ be saved (assuming that it passes any validations).
 
 <ruby>
-@customer = @order.create_customer({:customer_number => 123, 
+@customer = @order.create_customer({:customer_number => 123,
   :customer_name => "John Doe"})
 </ruby>
 
@@ -592,7 +592,7 @@ In many situations, you can use the default behavior of +belongs_to+ without any
 
 <ruby>
 class Order < ActiveRecord::Base
-  belongs_to :customer, :counter_cache => true, 
+  belongs_to :customer, :counter_cache => true,
     :conditions => "active = 1"
 end
 </ruby>
@@ -659,7 +659,7 @@ class Customer < ActiveRecord::Base
 end
 </ruby>
 
-With this declaration, Rails will keep the cache value up to date, and then return that value in response to the +.size+ method. 
+With this declaration, Rails will keep the cache value up to date, and then return that value in response to the +.size+ method.
 
 Although the +:counter_cache+ option is specified on the model that includes the +belongs_to+ declaration, the actual column must be added to the _associated_ model. In the case above, you would need to add a column named +orders_count+ to the +Customer+ model. You can override the default column name if you need to:
 
@@ -686,7 +686,7 @@ By convention, Rails guesses that the column used to hold the foreign key on thi
 
 <ruby>
 class Order < ActiveRecord::Base
-  belongs_to :customer, :class_name => "Patron", 
+  belongs_to :customer, :class_name => "Patron",
     :foreign_key => "patron_id"
 end
 </ruby>
@@ -1109,7 +1109,7 @@ h6. <em>collection</em>.build(attributes = {}, ...)
 The <tt><em>collection</em>.build</tt> method returns one or more new objects of the associated type. These objects will be instantiated from the passed attributes, and the link through their foreign key will be created, but the associated objects will _not_ yet be saved.
 
 <ruby>
-@order = @customer.orders.build({:order_date => Time.now, 
+@order = @customer.orders.build({:order_date => Time.now,
   :order_number => "A12345"})
 </ruby>
 
@@ -1118,7 +1118,7 @@ h6. <em>collection</em>.create(attributes = {})
 The <tt><em>collection</em>.create</tt> method returns a new object of the associated type. This object will be instantiated from the passed attributes, the link through its foreign key will be created, and the associated object _will_ be saved (assuming that it passes any validations).
 
 <ruby>
-@order = @customer.orders.create({:order_date => Time.now, 
+@order = @customer.orders.create({:order_date => Time.now,
   :order_number => "A12345"})
 </ruby>
 
@@ -1181,7 +1181,7 @@ The +:conditions+ option lets you specify the conditions that the associated obj
 
 <ruby>
 class Customer < ActiveRecord::Base
-  has_many :confirmed_orders, :class_name => "Order", 
+  has_many :confirmed_orders, :class_name => "Order",
     :conditions => "confirmed = 1"
 end
 </ruby>
@@ -1190,7 +1190,7 @@ You can also set conditions via a hash:
 
 <ruby>
 class Customer < ActiveRecord::Base
-  has_many :confirmed_orders, :class_name => "Order", 
+  has_many :confirmed_orders, :class_name => "Order",
     :conditions => { :confirmed => true }
 end
 </ruby>
@@ -1199,7 +1199,7 @@ If you use a hash-style +:conditions+ option, then record creation via this asso
 
 h6. :counter_sql
 
-Normally Rails automatically generates the proper SQL to count the association members. With the +:counter_sql+ option, you can specify a complete SQL statement to count them yourself. 
+Normally Rails automatically generates the proper SQL to count the association members. With the +:counter_sql+ option, you can specify a complete SQL statement to count them yourself.
 
 NOTE: If you specify +:finder_sql+ but not +:counter_sql+, then the counter SQL will be generated by substituting +SELECT COUNT(*) FROM+ for the +SELECT ... FROM+ clause of your +:finder_sql+ statement.
 
@@ -1281,7 +1281,7 @@ The +:limit+ option lets you restrict the total number of objects that will be f
 
 <ruby>
 class Customer < ActiveRecord::Base
-  has_many :recent_orders, :class_name => "Order", 
+  has_many :recent_orders, :class_name => "Order",
     :order => "order_date DESC", :limit => 100
 end
 </ruby>
@@ -1468,7 +1468,7 @@ h6. <em>collection</em>.find(...)
 The <tt><em>collection</em>.find</tt> method finds objects within the collection. It uses the same syntax and options as +ActiveRecord::Base.find+. It also adds the additional condition that the object must be in the collection.
 
 <ruby>
-@new_assemblies = @part.assemblies.find(:all, 
+@new_assemblies = @part.assemblies.find(:all,
   :conditions => ["created_at > ?", 2.days.ago])
 </ruby>
 
@@ -1500,7 +1500,7 @@ In many situations, you can use the default behavior for +has_and_belongs_to_man
 
 <ruby>
 class Parts < ActiveRecord::Base
-  has_and_belongs_to_many :assemblies, :uniq => true, 
+  has_and_belongs_to_many :assemblies, :uniq => true,
     :read_only => true
 end
 </ruby>
@@ -1536,8 +1536,8 @@ TIP: The +:foreign_key+ and +:association_foreign_key+ options are useful when s
 
 <ruby>
 class User < ActiveRecord::Base
-  has_and_belongs_to_many :friends, :class_name => "User", 
-    :foreign_key => "this_user_id", 
+  has_and_belongs_to_many :friends, :class_name => "User",
+    :foreign_key => "this_user_id",
     :association_foreign_key => "other_user_id"
 end
 </ruby>
@@ -1562,7 +1562,7 @@ The +:conditions+ option lets you specify the conditions that the associated obj
 
 <ruby>
 class Parts < ActiveRecord::Base
-  has_and_belongs_to_many :assemblies, 
+  has_and_belongs_to_many :assemblies,
     :conditions => "factory = 'Seattle'"
 end
 </ruby>
@@ -1571,7 +1571,7 @@ You can also set conditions via a hash:
 
 <ruby>
 class Parts < ActiveRecord::Base
-  has_and_belongs_to_many :assemblies, 
+  has_and_belongs_to_many :assemblies,
     :conditions => { :factory => 'Seattle' }
 end
 </ruby>
@@ -1580,7 +1580,7 @@ If you use a hash-style +:conditions+ option, then record creation via this asso
 
 h6. :counter_sql
 
-Normally Rails automatically generates the proper SQL to count the association members. With the +:counter_sql+ option, you can specify a complete SQL statement to count them yourself. 
+Normally Rails automatically generates the proper SQL to count the association members. With the +:counter_sql+ option, you can specify a complete SQL statement to count them yourself.
 
 NOTE: If you specify +:finder_sql+ but not +:counter_sql+, then the counter SQL will be generated by substituting +SELECT COUNT(*) FROM+ for the +SELECT ... FROM+ clause of your +:finder_sql+ statement.
 
@@ -1602,8 +1602,8 @@ By convention, Rails guesses that the column in the join table used to hold the 
 
 <ruby>
 class User < ActiveRecord::Base
-  has_and_belongs_to_many :friends, :class_name => "User", 
-    :foreign_key => "this_user_id", 
+  has_and_belongs_to_many :friends, :class_name => "User",
+    :foreign_key => "this_user_id",
     :association_foreign_key => "other_user_id"
 end
 </ruby>
@@ -1620,7 +1620,7 @@ end
 
 h6. :include
 
-You can use the :include option to specify second-order associations that should be eager-loaded when this association is used. 
+You can use the :include option to specify second-order associations that should be eager-loaded when this association is used.
 
 h6. :insert_sql
 
@@ -1710,7 +1710,7 @@ You can stack callbacks on a single event by passing them as an array:
 
 <ruby>
 class Customer < ActiveRecord::Base
-  has_many :orders, 
+  has_many :orders,
     :before_add => [:check_credit_limit, :calculate_shipping_charges]
 
   def check_credit_limit(order)
@@ -1761,7 +1761,7 @@ To include more than one extension module in a single association, specify an ar
 
 <ruby>
 class Customer < ActiveRecord::Base
-  has_many :orders, 
+  has_many :orders,
     :extend => [FindRecentExtension, FindActiveExtension]
 end
 </ruby>
@@ -1776,7 +1776,7 @@ h3. Changelog
 
 "Lighthouse ticket":http://rails.lighthouseapp.com/projects/16213-rails-guides/tickets/11
 
-* February 1, 2009: Added +:autosave+ option "Mike Gunderloy":credits.html#mgunderloy 
+* February 1, 2009: Added +:autosave+ option "Mike Gunderloy":credits.html#mgunderloy
 * September 28, 2008: Corrected +has_many :through+ diagram, added polymorphic diagram, some reorganization by "Mike Gunderloy":credits.html#mgunderloy . First release version.
 * September 22, 2008: Added diagrams, misc. cleanup by "Mike Gunderloy":credits.html#mgunderloy (not yet approved for publication)
 * September 14, 2008: initial version by "Mike Gunderloy":credits.html#mgunderloy (not yet approved for publication)

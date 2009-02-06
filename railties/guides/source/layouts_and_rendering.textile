@@ -228,7 +228,7 @@ render :file => filename, :content_type => 'application/rss'
 
 h6. The :layout Option
 
-With most of the options to +render+, the rendered content is displayed as part of the current layout. You'll learn more about layouts and how to use them later in this guide. 
+With most of the options to +render+, the rendered content is displayed as part of the current layout. You'll learn more about layouts and how to use them later in this guide.
 
 You can use the +:layout+ option to tell Rails to use a specific file as the layout for the current action:
 
@@ -296,7 +296,7 @@ You can use a symbol to defer the choice of layout until a request is processed:
 <ruby>
 class ProductsController < ApplicationController
   layout :products_layout
-  
+
   def show
     @product = Product.find(params[:id])
   end
@@ -314,7 +314,7 @@ Now, if the current user is a special user, they'll get a special layout when vi
 <ruby>
 class ProductsController < ApplicationController
   layout proc{ |controller| controller.
-  # ... 
+  # ...
 end
 </ruby>
 
@@ -725,7 +725,7 @@ The +content_for+ method is very helpful when your layout contains distinct regi
 
 h4. Using Partials
 
-Partial templates - usually just called "partials" - are another device for breaking apart the rendering process into more manageable chunks. With a partial, you can move the code for rendering a particular piece of a response to its own file. 
+Partial templates - usually just called "partials" - are another device for breaking apart the rendering process into more manageable chunks. With a partial, you can move the code for rendering a particular piece of a response to its own file.
 
 h5. Naming Partials
 
@@ -826,7 +826,7 @@ If you have an instance of a model to render into a partial, you can use a short
 
 Assuming that the +@customer+ instance variable contains an instance of the +Customer+ model, this will use +_customer.html.erb+ to render it.
 
-h5. Rendering Collections 
+h5. Rendering Collections
 
 Partials are very useful in rendering collections. When you pass a collection to a partial via the +:collection+ option, the partial will be inserted once for each member in the collection:
 
@@ -949,9 +949,9 @@ h3. Changelog
 "Lighthouse ticket":http://rails.lighthouseapp.com/projects/16213-rails-guides/tickets/15
 
 * December 27, 2008: Merge patch from Rodrigo Rosenfeld Rosas covering subtemplates
-* December 27, 2008: Information on new rendering defaults by "Mike Gunderloy":credits.html#mgunderloy 
-* November 9, 2008: Added partial collection counter by "Mike Gunderloy":credits.html#mgunderloy 
-* November 1, 2008: Added +:js+ option for +render+ by "Mike Gunderloy":credits.html#mgunderloy 
-* October 16, 2008: Ready for publication by "Mike Gunderloy":credits.html#mgunderloy 
+* December 27, 2008: Information on new rendering defaults by "Mike Gunderloy":credits.html#mgunderloy
+* November 9, 2008: Added partial collection counter by "Mike Gunderloy":credits.html#mgunderloy
+* November 1, 2008: Added +:js+ option for +render+ by "Mike Gunderloy":credits.html#mgunderloy
+* October 16, 2008: Ready for publication by "Mike Gunderloy":credits.html#mgunderloy
 * October 4, 2008: Additional info on partials (+:object+, +:as+, and +:spacer_template+) by "Mike Gunderloy":credits.html#mgunderloy (not yet approved for publication)
 * September 28, 2008: First draft by "Mike Gunderloy":credits.html#mgunderloy (not yet approved for publication)

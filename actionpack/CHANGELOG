@@ -1,5 +1,7 @@
 *Edge*
 
+* Fix a syntax error in current_page?() that was prevent matches against URL's with multiple query parameters #1385, #1868 [chris finne/Andrew White]
+
 * Added localized rescue template when I18n.locale is set (ex: public/404.da.html) #1835 [José Valim]
 
 

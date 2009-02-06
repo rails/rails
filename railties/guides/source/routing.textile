@@ -22,7 +22,7 @@ GET /patients/17
 </pre>
 
 the routing engine within Rails is the piece of code that dispatches the request to the appropriate spot in your application. In this case, the application would most likely end up running the +show+ action within the +patients+ controller, displaying the details of the patient whose ID is 17.
- 
+
 h4. Generating URLs from Code
 
 Routing also works in reverse. If your application contains this code:
@@ -111,7 +111,7 @@ h4. What is REST?
 The foundation of RESTful routing is generally considered to be Roy Fielding's doctoral thesis, "Architectural Styles and the Design of Network-based Software Architectures":http://www.ics.uci.edu/~fielding/pubs/dissertation/top.htm. Fortunately, you need not read this entire document to understand how REST works in Rails. REST, an acronym for Representational State Transfer, boils down to two main principles for our purposes:
 
 * Using resource identifiers (which, for the purposes of discussion, you can think of as URLs) to represent resources
-* Transferring representations of the state of that resource between system components. 
+* Transferring representations of the state of that resource between system components.
 
 For example, to a Rails application a request such as this:
 
@@ -120,7 +120,7 @@ DELETE /photos/17
 </pre>
 
 would be understood to refer to a photo resource with the ID of 17, and to indicate a desired action - deleting that resource. REST is a natural style for the architecture of web applications, and Rails makes it even more natural by using conventions to shield you from some of the RESTful complexities.
-  
+
 h4. CRUD, Verbs, and Actions
 
 In Rails, a RESTful route provides a mapping between HTTP verbs, controller actions, and (implicitly) CRUD operations in a database. A single entry in the routing file, such as
@@ -170,7 +170,7 @@ If you need to create routes for more than one RESTful resource, you can save a 
 map.resources :photos, :books, :videos
 </ruby>
 
-This has exactly the same effect as 
+This has exactly the same effect as
 
 <ruby>
 map.resources :photos
@@ -229,7 +229,7 @@ The +:controller+ option lets you use a controller name that is different from t
 map.resources :photos, :controller => "images"
 </ruby>
 
-will recognize incoming URLs containing +photo+ but route the requests to the Images controller: 
+will recognize incoming URLs containing +photo+ but route the requests to the Images controller:
 
 |_.HTTP verb  |_.URL             |_.controller  |_.action   |_.used for|
 |GET        |/photos         |Images      |index    |display a list of all images|
@@ -302,7 +302,7 @@ The +:as+ option lets you override the normal naming for the actual generated pa
 map.resources :photos, :as => "images"
 </ruby>
 
-will recognize incoming URLs containing +image+ but route the requests to the Photos controller: 
+will recognize incoming URLs containing +image+ but route the requests to the Photos controller:
 
 |_.HTTP verb  |_.URL             |_.controller  |_.action   |_:used for|
 |GET        |/images         |Photos      |index    |display a list of all photos|
@@ -411,7 +411,7 @@ Each ad is logically subservient to one magazine. Nested routes allow you to cap
 <ruby>
 map.resources :magazines do |magazine|
   magazine.resources :ads
-end 
+end
 </ruby>
 
 In addition to the routes for magazines, this declaration will also create routes for ads, each of which requires the specification of a magazine in the URL:
@@ -435,7 +435,7 @@ The +:name_prefix+ option overrides the automatically-generated prefix in nested
 <ruby>
 map.resources :magazines do |magazine|
   magazine.resources :ads, :name_prefix => 'periodical'
-end 
+end
 </ruby>
 
 This will create routing helpers such as +periodical_ads_url+ and +periodical_edit_ad_path+. You can even use +:name_prefix+ to suppress the prefix entirely:
@@ -443,7 +443,7 @@ This will create routing helpers such as +periodical_ads_url+ and +periodical_ed
 <ruby>
 map.resources :magazines do |magazine|
   magazine.resources :ads, :name_prefix => nil
-end 
+end
 </ruby>
 
 This will create routing helpers such as +ads_url+ and +edit_ad_path+. Note that calling these will still require supplying an article id:
@@ -470,7 +470,7 @@ map.resources :photos do |photo|
   photo.resources :versions
 end
 </ruby>
- 
+
 h5. Limits to Nesting
 
 You can nest resources within other nested resources if you like. For example:
@@ -544,7 +544,7 @@ Another way to refer to the same route is with an array of objects:
 </ruby>
 
 This format is especially useful when you might not know until runtime which of several types of object will be used in a particular link.
- 
+
 h4. Namespaced Resources
 
 It's possible to do some quite complex things by combining +:path_prefix+ and +:name_prefix+. For example, you can use the combination of these two options to move administrative resources to their own folder in your application:
@@ -628,7 +628,7 @@ h3. Regular Routes
 
 In addition to RESTful routing, Rails supports regular routing - a way to map URLs to controllers and actions. With regular routing, you don't get the masses of routes automatically generated by RESTful routing. Instead, you must set up each route within your application separately.
 
-While RESTful routing has become the Rails standard, there are still plenty of places where the simpler regular routing works fine. You can even mix the two styles within a single application. In general, you should prefer RESTful routing _when possible_, because it will make parts of your application easier to write. But there's no need to try to shoehorn every last piece of your application into a RESTful framework if that's not a good fit. 
+While RESTful routing has become the Rails standard, there are still plenty of places where the simpler regular routing works fine. You can even mix the two styles within a single application. In general, you should prefer RESTful routing _when possible_, because it will make parts of your application easier to write. But there's no need to try to shoehorn every last piece of your application into a RESTful framework if that's not a good fit.
 
 h4. Bound Parameters
 
@@ -711,7 +711,7 @@ This route would respond to URLs such as +/photo/A12345+. You can more succinctl
 
 <ruby>
 map.connect 'photo/:id', :controller => 'photos', :action => 'show',
-  :id => /[A-Z]\d{5}/ 
+  :id => /[A-Z]\d{5}/
 </ruby>
 
 h4. Route Conditions

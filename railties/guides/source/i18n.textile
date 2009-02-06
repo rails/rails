@@ -93,7 +93,7 @@ The I18n library will use *English* as a *default locale*, ie. if you don't set 
 
 NOTE: The i18n library takes *pragmatic approach* to locale keys (after "some discussion":http://groups.google.com/group/rails-i18n/browse_thread/thread/14dede2c7dbe9470/80eec34395f64f3c?hl=en), including only the _locale_ ("language") part, like +:en+, +:pl+, not the _region_ part, like +:en-US+ or +:en-UK+, which are traditionally used for separating "languages" and "regional setting" or "dialects". (For instance, in the +:en-US+ locale you would have $ as a currency symbol, while in +:en-UK+, you would have £. Also, insults would be different in American and British English :) Reason for this pragmatic approach is that most of the time, you usually care about making your application available in different "languages", and working with locales is much simpler this way. However, nothing stops you from separating regional and other settings in the traditional way. In this case, you could eg. inherit from the default +en+ locale and then provide UK specific settings in a +:en-UK+ dictionary.
 
-The *translations load path* (+I18n.load_path+) is just a Ruby Array of paths to your translation files that will be loaded automatically and available in your application. You can pick whatever directory and translation file naming scheme makes sense for you. 
+The *translations load path* (+I18n.load_path+) is just a Ruby Array of paths to your translation files that will be loaded automatically and available in your application. You can pick whatever directory and translation file naming scheme makes sense for you.
 
 NOTE: The backend will lazy-load these translations when a translation is looked up for the first time. This makes it possible to just swap the backend with something else even after translations have already been announced.
 
@@ -145,7 +145,7 @@ This requires you to pass the locale as a URL query parameter as in +http://exam
 
 Of course, you probably don't want to manually include locale in every URL all over your application, or want the URLs look differently, eg. the usual +http://example.com/pt/books+ versus +http://example.com/en/books+. Let's discuss the different options you have.
 
-IMPORTANT: Following examples rely on having locales loaded into your application available as an array of strings like +["en", "es", "gr"]+. This is not inclued in current version of Rails 2.2 -- forthcoming Rails version 2.3 will contain easy accesor +available_locales+. (See "this commit":http://github.com/svenfuchs/i18n/commit/411f8fe7 and background at "Rails I18n Wiki":http://rails-i18n.org/wiki/pages/i18n-available_locales.) 
+IMPORTANT: Following examples rely on having locales loaded into your application available as an array of strings like +["en", "es", "gr"]+. This is not inclued in current version of Rails 2.2 -- forthcoming Rails version 2.3 will contain easy accesor +available_locales+. (See "this commit":http://github.com/svenfuchs/i18n/commit/411f8fe7 and background at "Rails I18n Wiki":http://rails-i18n.org/wiki/pages/i18n-available_locales.)
 
 So, for having available locales easily available in Rails 2.2, we have to include this support manually in an initializer, like this:
 
@@ -314,7 +314,7 @@ h3. Internationalizing your application
 
 OK! Now you've initialized I18n support for your Ruby on Rails application and told it which locale should be used and how to preserve it between requests. With that in place, you're now ready for the really interesting stuff.
 
-Let's _internationalize_ our application, ie. abstract every locale-specific parts, and that _localize_ it, ie. provide neccessary translations for these abstracts. 
+Let's _internationalize_ our application, ie. abstract every locale-specific parts, and that _localize_ it, ie. provide neccessary translations for these abstracts.
 
 You most probably have something like this in one of your applications:
 
@@ -323,7 +323,7 @@ You most probably have something like this in one of your applications:
 ActionController::Routing::Routes.draw do |map|
   map.root :controller => 'home', :action => 'index'
 end
-  
+
 # app/controllers/home_controller.rb
 class HomeController < ApplicationController
   def index
@@ -368,12 +368,12 @@ So let's add the missing translations into the dictionary files (i.e. do the "lo
 en:
   hello_world: Hello World
   hello_flash: Hello Flash
-  
+
 # config/locale/pirate.yml
 pirate:
   hello_world: Ahoy World
   hello_flash: Ahoy Flash
-</ruby>  
+</ruby>
 
 There you go. Because you haven't changed the default_locale, I18n will use English. Your application now shows:
 
@@ -551,7 +551,7 @@ The +:count+ interpolation variable has a special role in that it both is interp
 
 <ruby>
 I18n.backend.store_translations :en, :inbox => {
-  :one => '1 message', 
+  :one => '1 message',
   :other => '{{count}} messages'
 }
 I18n.translate :inbox, :count => 2
@@ -561,7 +561,7 @@ I18n.translate :inbox, :count => 2
 The algorithm for pluralizations in +:en+ is as simple as:
 
 <ruby>
-entry[count == 1 ? 0 : 1]  
+entry[count == 1 ? 0 : 1]
 </ruby>
 
 I.e. the translation denoted as +:one+ is regarded as singular, the other is used as plural (including the count being zero).
@@ -576,7 +576,7 @@ If no locale is passed +I18n.locale+ is used:
 
 <ruby>
 I18n.locale = :de
-I18n.t :foo 
+I18n.t :foo
 I18n.l Time.now
 </ruby>
 
@@ -615,7 +615,7 @@ The equivalent YAML file would look like this:
 pt:
   foo:
     bar: baz
-</ruby>    
+</ruby>
 
 As you see in both cases the toplevel key is the locale. +:foo+ is a namespace key and +:bar+ is the key for the translation "baz".
 
@@ -657,9 +657,9 @@ en:
         login: "Handle"
       # will translate User attribute "login" as "Handle"
 </ruby>
-      
+
 Then +User.human_name+ will return "Dude" and +User.human_attribute_name(:login)+ will return "Handle".
-      
+
 h5. Error message scopes
 
 Active Record validation error messages can also be translated easily. Active Record gives you a couple of namespaces where you can place your message translations in order to provide different messages and translation for certain models, attributes and/or validations. It also transparently takes single table inheritance into account.
@@ -690,7 +690,7 @@ activerecord.errors.messages.models.user.blank
 activerecord.errors.messages.blank
 </ruby>
 
-When your models are additionally using inheritance then the messages are looked up for the inherited model class names are looked up. 
+When your models are additionally using inheritance then the messages are looked up for the inherited model class names are looked up.
 
 For example, you might have an Admin model inheriting from User:
 
@@ -810,9 +810,9 @@ ReservedInterpolationKey     # the translation contains a reserved interpolation
 UnknownFileType              # the backend does not know how to handle a file type that was added to I18n.load_path
 </ruby>
 
-The I18n API will catch all of these exceptions when they were thrown in the backend and pass them to the default_exception_handler method. This method will re-raise all exceptions except for +MissingTranslationData+ exceptions. When a +MissingTranslationData+ exception has been caught it will return the exception’s error message string containing the missing key/scope. 
+The I18n API will catch all of these exceptions when they were thrown in the backend and pass them to the default_exception_handler method. This method will re-raise all exceptions except for +MissingTranslationData+ exceptions. When a +MissingTranslationData+ exception has been caught it will return the exception’s error message string containing the missing key/scope.
 
-The reason for this is that during development you'd usually want your views to still render even though a translation is missing. 
+The reason for this is that during development you'd usually want your views to still render even though a translation is missing.
 
 In other contexts you might want to change this behaviour though. E.g. the default exception handling does not allow to catch missing translations during automated tests easily. For this purpose a different exception handler can be specified. The specified exception handler must be a method on the I18n module:
 
@@ -855,7 +855,7 @@ If you find your own locale (language) missing from our "example translations da
 h3. Resources
 
 * "rails-i18n.org":http://rails-i18n.org - Homepage of the rails-i18n project. You can find lots of useful resources on the "wiki":http://rails-i18n.org/wiki.
-* "rails-i18n Google group":http://groups.google.com/group/rails-i18n - The project's mailing list. 
+* "rails-i18n Google group":http://groups.google.com/group/rails-i18n - The project's mailing list.
 * "Github: rails-i18n":http://github.com/svenfuchs/rails-i18n/tree/master - Code repository for the rails-i18n project. Most importantly you can find lots of "example translations":http://github.com/svenfuchs/rails-i18n/tree/master/rails/locale for Rails that should work for your application in most cases.
 * "Lighthouse: rails-i18n":http://i18n.lighthouseapp.com/projects/14948-rails-i18n/overview - Issue tracker for the rails-i18n project.
 * "Github: i18n":http://github.com/svenfuchs/i18n/tree/master - Code repository for the i18n gem.

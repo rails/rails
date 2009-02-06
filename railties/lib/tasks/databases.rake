@@ -250,6 +250,7 @@ namespace :db do
       File.open(ENV['SCHEMA'] || "#{RAILS_ROOT}/db/schema.rb", "w") do |file|
         ActiveRecord::SchemaDumper.dump(ActiveRecord::Base.connection, file)
       end
+      Rake::Task["db:schema:dump"].reenable
     end
 
     desc "Load a schema.rb file into the database"

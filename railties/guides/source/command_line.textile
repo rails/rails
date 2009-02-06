@@ -21,7 +21,7 @@ There are a few commands that are absolutely critical to your everyday usage of 
 * rake
 * generate
 * rails
- 
+
 Let's create a simple Rails application to step through each of these commands in context.
 
 h4. rails
@@ -33,7 +33,7 @@ WARNING: You know you need the rails gem installed by typing +gem install rails+
 <shell>
 $ rails commandsapp
 
-     create  
+     create
      create  app/controllers
      create  app/helpers
      create  app/models
@@ -190,7 +190,7 @@ Examples:
         creates a Post model with a string title, text body, and published flag.
 </shell>
 
-But instead of generating a model directly (which we'll be doing later), let's set up a scaffold. A *scaffold* in Rails is a full set of model, database migration for that model, controller to manipulate it, views to view and manipulate the data, and a test suite for each of the above.  
+But instead of generating a model directly (which we'll be doing later), let's set up a scaffold. A *scaffold* in Rails is a full set of model, database migration for that model, controller to manipulate it, views to view and manipulate the data, and a test suite for each of the above.
 
 Let's set up a simple resource called "HighScore" that will keep track of our highest score on video games we play.
 
@@ -345,7 +345,7 @@ $ cd gitapp
 $ git init
 Initialized empty Git repository in .git/
 $ rails . --git --database=postgresql
-      exists  
+      exists
       create  app/controllers
       create  app/helpers
 ...
@@ -367,7 +367,7 @@ add 'log/test.log'
 We had to create the *gitapp* directory and initialize an empty git repository before Rails would add files it created to our repository. Let's see what it put in our database configuration:
 
 <shell>
-$ cat config/database.yml 
+$ cat config/database.yml
 # PostgreSQL. Versions 7.4 and 8.x are supported.
 #
 # Install the ruby-postgres driver:
@@ -448,7 +448,7 @@ class TutorialTestGenerator < Rails::Generator::Base
     super(*runtime_args)
     @tut_args = runtime_args
   end
-  
+
   def manifest
     record do |m|
       m.directory "public"
@@ -469,10 +469,10 @@ We take whatever args are supplied, save them to an instance variable, and liter
 Next we'll build the template:
 
 <shell>
-$ cat ~/.rails/generators/tutorial_test/templates/tutorial.erb 
+$ cat ~/.rails/generators/tutorial_test/templates/tutorial.erb
 I'm a template!
 
-I got assigned some args: 
+I got assigned some args:
 <%= require 'pp'; PP.pp(args, "") %>
 </shell>
 
@@ -497,10 +497,10 @@ $ ./script/generate tutorial_test arg1 arg2 arg3
 And the result:
 
 <shell>
-$ cat public/tutorial.txt 
+$ cat public/tutorial.txt
 I'm a template!
 
-I got assigned some args: 
+I got assigned some args:
 [["arg1", "arg2", "arg3"],
  {:collision=>:ask,
   :quiet=>false,

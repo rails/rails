@@ -767,12 +767,10 @@ class HasAndBelongsToManyAssociationsTest < ActiveRecord::TestCase
     assert_equal 1, developer.projects.count
   end
 
-  uses_mocha 'mocking Post.transaction' do
-    def test_association_proxy_transaction_method_starts_transaction_in_association_class
-      Post.expects(:transaction)
-      Category.find(:first).posts.transaction do
-        # nothing
-      end
+  def test_association_proxy_transaction_method_starts_transaction_in_association_class
+    Post.expects(:transaction)
+    Category.find(:first).posts.transaction do
+      # nothing
     end
   end
 

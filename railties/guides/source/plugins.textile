@@ -222,18 +222,18 @@ require File.dirname(__FILE__) + '/test_helper.rb'
 
 class YaffleTest < Test::Unit::TestCase
   load_schema
-  
+
   class Hickwall < ActiveRecord::Base
   end
 
   class Wickwall < ActiveRecord::Base
   end
-  
+
   def test_schema_has_loaded_correctly
     assert_equal [], Hickwall.all
     assert_equal [], Wickwall.all
   end
-  
+
 end
 </ruby>
 
@@ -247,7 +247,7 @@ rake
 You should see output like:
 
 <shell>
-/opt/local/bin/ruby -Ilib:lib "/opt/local/lib/ruby/gems/1.8/gems/rake-0.8.3/lib/rake/rake_test_loader.rb" "test/yaffle_test.rb" 
+/opt/local/bin/ruby -Ilib:lib "/opt/local/lib/ruby/gems/1.8/gems/rake-0.8.3/lib/rake/rake_test_loader.rb" "test/yaffle_test.rb"
   create_table(:hickwalls, {:force=>true})
    -> 0.0220s
 -- create_table(:wickwalls, {:force=>true})
@@ -507,18 +507,18 @@ class ActsAsYaffleTest < Test::Unit::TestCase
   def test_a_wickwalls_yaffle_text_field_should_be_last_tweet
     assert_equal "last_tweet", Wickwall.yaffle_text_field
   end
-  
+
   def test_hickwalls_squawk_should_populate_last_squawk
     hickwall = Hickwall.new
     hickwall.squawk("Hello World")
     assert_equal "squawk! Hello World", hickwall.last_squawk
-  end  
-  
+  end
+
   def test_wickwalls_squawk_should_populate_last_tweeted_at
     wickwall = Wickwall.new
     wickwall.squawk("Hello World")
     assert_equal "squawk! Hello World", wickwall.last_tweet
-  end  
+  end
 end
 </ruby>
 
@@ -642,10 +642,10 @@ class WoodpeckersControllerTest < Test::Unit::TestCase
     @controller = WoodpeckersController.new
     @request = ActionController::TestRequest.new
     @response = ActionController::TestResponse.new
-    
+
     ActionController::Routing::Routes.draw do |map|
       map.resources :woodpeckers
-    end    
+    end
   end
 
   def test_index
@@ -672,11 +672,11 @@ end
 
 <ruby>
 class WoodpeckersController < ActionController::Base
-  
+
   def index
     render :text => "Squawk!"
   end
-  
+
 end
 </ruby>
 
@@ -718,11 +718,11 @@ end
 
 <ruby>
 module WoodpeckersHelper
-  
+
   def tweet(text)
     "Tweet! #{text}"
   end
-  
+
 end
 </ruby>
 
@@ -828,7 +828,7 @@ class DefinitionGeneratorTest < Test::Unit::TestCase
   def teardown
     FileUtils.rm_r(fake_rails_root)
   end
-  
+
   def test_generates_correct_file_name
     Rails::Generator::Scripts::Generate.new.run(["yaffle_definition"], :destination => fake_rails_root)
     new_file = (file_list - @original_files).first
@@ -836,15 +836,15 @@ class DefinitionGeneratorTest < Test::Unit::TestCase
   end
 
   private
-  
+
     def fake_rails_root
       File.join(File.dirname(__FILE__), 'rails_root')
     end
-  
+
     def file_list
       Dir.glob(File.join(fake_rails_root, "*"))
     end
-  
+
 end
 </ruby>
 
@@ -882,7 +882,7 @@ Installed Generators
   Builtin: controller, integration_test, mailer, migration, model, observer, plugin, resource, scaffold, session_migration
 </shell>
 
-When you run +script/generate yaffle_definition -h+ you should see the contents of your 'vendor/plugins/yaffle/generators/yaffle_definition/USAGE'.  
+When you run +script/generate yaffle_definition -h+ you should see the contents of your 'vendor/plugins/yaffle/generators/yaffle_definition/USAGE'.
 
 For this plugin, update the USAGE file could look like this:
 
@@ -998,11 +998,11 @@ class RouteGeneratorTest < Test::Unit::TestCase
   def setup
     FileUtils.mkdir_p(File.join(fake_rails_root, "config"))
   end
-  
+
   def teardown
     FileUtils.rm_r(fake_rails_root)
   end
-  
+
   def test_generates_route
     content = <<-END
       ActionController::Routing::Routes.draw do |map|
@@ -1011,7 +1011,7 @@ class RouteGeneratorTest < Test::Unit::TestCase
       end
     END
     File.open(routes_path, 'wb') {|f| f.write(content) }
-    
+
     Rails::Generator::Scripts::Generate.new.run(["yaffle_route"], :destination => fake_rails_root)
     assert_match /map\.yaffles/, File.read(routes_path)
   end
@@ -1025,21 +1025,21 @@ class RouteGeneratorTest < Test::Unit::TestCase
       end
     END
     File.open(routes_path, 'wb') {|f| f.write(content) }
-    
+
     Rails::Generator::Scripts::Destroy.new.run(["yaffle_route"], :destination => fake_rails_root)
     assert_no_match /map\.yaffles/, File.read(routes_path)
   end
-  
+
   private
-  
+
     def fake_rails_root
       File.join(File.dirname(__FILE__), "rails_root")
     end
-  
+
     def routes_path
       File.join(fake_rails_root, "config", "routes.rb")
     end
-  
+
 end
 </ruby>
 
@@ -1152,7 +1152,7 @@ h4. Create a custom rake task
 namespace :db do
   namespace :migrate do
     description = "Migrate the database through scripts in vendor/plugins/yaffle/lib/db/migrate"
-    description << "and update db/schema.rb by invoking db:schema:dump." 
+    description << "and update db/schema.rb by invoking db:schema:dump."
     description << "Target specific version with VERSION=x. Turn off output with VERBOSE=false."
 
     desc description
@@ -1218,9 +1218,9 @@ class MigrationGeneratorTest < Test::Unit::TestCase
     ActiveRecord::Base.pluralize_table_names = true
     FileUtils.rm_r(fake_rails_root)
   end
-  
+
   def test_generates_correct_file_name
-    Rails::Generator::Scripts::Generate.new.run(["yaffle_migration", "some_name_nobody_is_likely_to_ever_use_in_a_real_migration"], 
+    Rails::Generator::Scripts::Generate.new.run(["yaffle_migration", "some_name_nobody_is_likely_to_ever_use_in_a_real_migration"],
       :destination => fake_rails_root)
     new_file = (file_list - @original_files).first
     assert_match /add_yaffle_fields_to_some_name_nobody_is_likely_to_ever_use_in_a_real_migrations/, new_file
@@ -1229,7 +1229,7 @@ class MigrationGeneratorTest < Test::Unit::TestCase
 
   def test_pluralizes_properly
     ActiveRecord::Base.pluralize_table_names = false
-    Rails::Generator::Scripts::Generate.new.run(["yaffle_migration", "some_name_nobody_is_likely_to_ever_use_in_a_real_migration"], 
+    Rails::Generator::Scripts::Generate.new.run(["yaffle_migration", "some_name_nobody_is_likely_to_ever_use_in_a_real_migration"],
       :destination => fake_rails_root)
     new_file = (file_list - @original_files).first
     assert_match /add_yaffle_fields_to_some_name_nobody_is_likely_to_ever_use_in_a_real_migration/, new_file
@@ -1240,11 +1240,11 @@ class MigrationGeneratorTest < Test::Unit::TestCase
     def fake_rails_root
       File.join(File.dirname(__FILE__), 'rails_root')
     end
-  
+
     def file_list
       Dir.glob(File.join(fake_rails_root, "db", "migrate", "*"))
     end
-      
+
 end
 </ruby>
 
@@ -1348,14 +1348,14 @@ It's common practice to put any developer-centric rake tasks (such as tests, rdo
 <ruby>
 PKG_FILES = FileList[
   '[a-zA-Z]*',
-  'generators/**/*', 
-  'lib/**/*', 
+  'generators/**/*',
+  'lib/**/*',
   'rails/**/*',
-  'tasks/**/*', 
+  'tasks/**/*',
   'test/**/*'
 ]
 
-spec = Gem::Specification.new do |s| 
+spec = Gem::Specification.new do |s|
   s.name = "yaffle"
   s.version = "0.0.1"
   s.author = "Gleeful Yaffler"
@@ -1372,7 +1372,7 @@ end
 desc 'Turn this plugin into a gem.'
 Rake::GemPackageTask.new(spec) do |pkg|
   pkg.gem_spec = spec
-end 
+end
 </ruby>
 
 To build and install the gem locally, run the following commands:

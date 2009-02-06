@@ -641,7 +641,7 @@ And now let's inject another query using the UNION statement:
 This will result in the following SQL query:
 
 <pre>
-SELECT * FROM projects WHERE (name = '') UNION 
+SELECT * FROM projects WHERE (name = '') UNION
   SELECT id,login AS name,password AS description,1,1,1 FROM users --')
 </pre>
 
@@ -750,7 +750,7 @@ Especially for XSS, it is important to do _(highlight)whitelist input filtering 
 Imagine a blacklist deletes “script” from the user input. Now the attacker injects “&lt;scrscriptipt&gt;”, and after the filter, “&lt;script&gt;” remains. Earlier versions of Rails used a blacklist approach for the strip_tags(), strip_links() and sanitize() method. So this kind of injection was possible:
 
 <pre>
-strip_tags("some<<b>script>alert('hello')<</b>/script>") 
+strip_tags("some<<b>script>alert('hello')<</b>/script>")
 </pre>
 
 This returned "some&lt;script&gt;alert('hello')&lt;/script&gt;", which makes an attack work. That's why I vote for a whitelist approach, using the updated Rails 2 method sanitize():
@@ -782,7 +782,7 @@ h5. Examples from the underground
 The following is an excerpt from the "Js.Yamanner@m":http://www.symantec.com/security_response/writeup.jsp?docid=2006-061211-4111-99&tabid=1 Yahoo! Mail "worm":http://groovin.net/stuff/yammer.txt. It appeared on June 11, 2006 and was the first webmail interface worm:
 
 <pre>
-<img src='http://us.i1.yimg.com/us.yimg.com/i/us/nt/ma/ma_mail_1.gif' 
+<img src='http://us.i1.yimg.com/us.yimg.com/i/us/nt/ma/ma_mail_1.gif'
   target=""onload="var http_request = false;    var Email = '';
   var IDList = '';   var CRumb = '';   function makeRequest(url, Func, Method,Param) { ...
 </pre>
@@ -810,13 +810,13 @@ MySpace blocks many tags, however it allows CSS. So the worm's author put JavaSc
 So the payload is in the style attribute. But there are no quotes allowed in the payload, because single and double quotes have already been used. But JavaScript allows has a handy eval() function which executes any string as code.
 
 <pre>
-<div id="mycode" expr="alert('hah!')" style="background:url('javascript:eval(document.all.mycode.expr)')"> 
+<div id="mycode" expr="alert('hah!')" style="background:url('javascript:eval(document.all.mycode.expr)')">
 </pre>
 
 The eval() function is a nightmare for blacklist input filters, as it allows the style attribute to hide the word “innerHTML”:
 
 <pre>
-alert(eval('document.body.inne' + 'rHTML')); 
+alert(eval('document.body.inne' + 'rHTML'));
 </pre>
 
 The next problem was MySpace filtering the word “javascript”, so the author used “java&lt;NEWLINE&gt;script" to get around this:

@@ -86,7 +86,8 @@ module ActiveRecord
     # For each key in the hash that starts with the string 'new' a new model
     # will be instantiated. When the proc given with the <tt>:reject_if</tt>
     # option evaluates to +false+ for a certain attribute hash no record will
-    # be built for that hash.
+    # be built for that hash. (Rejecting new records can alternatively be done
+    # by utilizing the <tt>'_delete'</tt> key. Scroll down for more info.)
     #
     #   params = { 'member' => {
     #     'name' => 'joe', 'posts_attributes' => {
@@ -258,11 +259,14 @@ module ActiveRecord
     # If a <tt>:reject_if</tt> proc exists for this association, it will be
     # called with the attributes as its argument. If the proc returns a truthy
     # value, the record is _not_ build.
+    #
+    # Alternatively, you can specify the <tt>'_delete'</tt> key to _not_ build
+    # a record. See should_destroy_nested_attributes_record? for more info.
     def build_new_nested_attributes_record(association_name, attributes)
       if reject_proc = self.class.reject_new_nested_attributes_procs[association_name]
         return if reject_proc.call(attributes)
       end
-      send(association_name).build(attributes)
+      send(association_name).build(attributes) unless should_destroy_nested_attributes_record?(true, attributes)
     end
 
     # Assigns the attributes to the record specified by +id+. Or marks it for

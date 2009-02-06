@@ -516,7 +516,8 @@ module ActionView
         def compute_public_path(source, dir, ext = nil, include_host = true)
           has_request = @controller.respond_to?(:request)
 
-          if ext && (File.extname(source).blank? || File.exist?(File.join(ASSETS_DIR, dir, "#{source}.#{ext}")))
+          source_ext = File.extname(source)[1..-1]
+          if ext && (source_ext.blank? || (ext != source_ext && File.exist?(File.join(ASSETS_DIR, dir, "#{source}.#{ext}"))))
             source += ".#{ext}"
           end
 

@@ -184,7 +184,7 @@ class UserMailer < ActionMailer::Base
     sent_on       Time.now
     body          {:user => user, :url => "http://example.com/login"}
     content_type  "text/html"
-    
+
     # change the default from welcome_email.[html, txt].erb
     template "some_other_template" # this will be in app/views/user_mailer/some_other_template.[html, txt].erb
   end
@@ -254,15 +254,15 @@ class UserMailer < ActionMailer::Base
     subject         "New account information"
     from            "system@example.com"
     content_type    "multipart/alternative"
-    
+
     part :content_type => "text/html",
       :body => "<p>html content, can also be the name of an action that you call<p>"
-    
+
     part "text/plain" do |p|
       p.body = "text content, can also be the name of an action that you call"
     end
   end
-  
+
 end
 </ruby>
 
@@ -278,15 +278,15 @@ class UserMailer < ActionMailer::Base
     subject         "New account information"
     from            "system@example.com"
     content_type    "multipart/alternative"
-    
+
     attachment :content_type => "image/jpeg",
       :body => File.read("an-image.jpg")
-    
+
     attachment "application/pdf" do |a|
       a.body = generate_your_pdf_here()
     end
   end
-  
+
 end
 </ruby>
 
@@ -307,21 +307,21 @@ class UserMailer < ActionMailer::Base
   def receive(email)
     page = Page.find_by_address(email.to.first)
     page.emails.create(
-      :subject => email.subject, 
+      :subject => email.subject,
       :body => email.body
     )
 
     if email.has_attachments?
       for attachment in email.attachments
-        page.attachments.create({ 
-          :file => attachment, 
+        page.attachments.create({
+          :file => attachment,
           :description => email.subject
         })
       end
     end
   end
-  
-  
+
+
 end
 </ruby>
 
@@ -363,8 +363,8 @@ ActionMailer::Base.sendmail_settings = {
   :location => '/usr/sbin/sendmail',
   :arguments => '-i -t'
 }
-ActionMailer::Base.perform_deliveries = true  
-ActionMailer::Base.raise_delivery_errors = true  
+ActionMailer::Base.perform_deliveries = true
+ActionMailer::Base.raise_delivery_errors = true
 ActionMailer::Base.default_charset = "iso-8859-1"
 </ruby>
 

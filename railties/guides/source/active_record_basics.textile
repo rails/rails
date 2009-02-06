@@ -8,7 +8,7 @@ After reading this guide we hope that you'll be able to:
 * Create basic Active Record models and map them with your database tables.
 * Use your models to execute CRUD (Create, Read, Update and Delete) database operations.
 * Follow the naming conventions used by Rails to make developing database applications easier and obvious.
-* Take advantage of the way Active Record maps it's attributes with the database tables' columns to implement your application's logic. 
+* Take advantage of the way Active Record maps it's attributes with the database tables' columns to implement your application's logic.
 * Use Active Record with legacy databases that do not follow the Rails naming conventions.
 
 endprologue.
@@ -39,7 +39,7 @@ ActiveRecord gives us several mechanisms, being the most important ones the habi
 * Validate models before they get recorded to the database.
 * Perform database operations in an object-oriented fashion.
 
-It's easy to see that the Rails Active Record implementation goes way beyond the basic description of the Active Record Pattern. 
+It's easy to see that the Rails Active Record implementation goes way beyond the basic description of the Active Record Pattern.
 
 h3. Active Record inside the MVC model
 
@@ -54,7 +54,7 @@ h4. Naming Conventions
 By default, ActiveRecord uses some naming conventions to find out how the mapping between models and database tables should be created. Rails will pluralize your class names to find the respective database table. So, for a class +Book+, you should have a database table called *books*. The Rails pluralization mechanisms are very powerful, being capable to pluralize (and singularize) both regular and irregular words. When using class names composed of two or more words, the model class name should follow the Ruby conventions, using the camelCase form, while the table name must contain the words separated by underscores. Examples:
 
 * Database Table - Plural with underscores separating words i.e. (book_clubs)
-* Model Class - Singular with the first letter of each word capitalized i.e. (BookClub) 
+* Model Class - Singular with the first letter of each word capitalized i.e. (BookClub)
 
 |_.Model / Class |_.Table / Schema |
 |Post          |posts|
@@ -109,7 +109,7 @@ puts p.name # "Some Book"
 
 h3. Overriding the naming conventions
 
-What if you need to follow a different naming convention or need to use your Rails application with a legacy database? No problem, you can easily override the default conventions. 
+What if you need to follow a different naming convention or need to use your Rails application with a legacy database? No problem, you can easily override the default conventions.
 
 You can use the +ActiveRecord::Base.set_table_name+ method to specify the table name that should be used:
 <ruby>

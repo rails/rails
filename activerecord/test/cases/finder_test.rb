@@ -94,7 +94,16 @@ class FinderTest < ActiveRecord::TestCase
 
     assert_raise(NoMethodError) { Topic.exists?([1,2]) }
   end
-
+  
+  def test_exists_returns_true_with_one_record_and_no_args
+    assert Topic.exists?
+  end
+  
+  def test_does_not_exist_with_empty_table_and_no_args_given
+    Topic.delete_all
+    assert !Topic.exists?
+  end
+  
   def test_exists_with_aggregate_having_three_mappings
     existing_address = customers(:david).address
     assert Customer.exists?(:address => existing_address)
@@ -296,6 +305,12 @@ class FinderTest < ActiveRecord::TestCase
   def test_find_on_hash_conditions_with_range
     assert_equal [1,2], Topic.find(:all, :conditions => { :id => 1..2 }).map(&:id).sort
     assert_raises(ActiveRecord::RecordNotFound) { Topic.find(1, :conditions => { :id => 2..3 }) }
+  end
+
+  def test_find_on_hash_conditions_with_end_exclusive_range
+    assert_equal [1,2,3], Topic.find(:all, :conditions => { :id => 1..3 }).map(&:id).sort
+    assert_equal [1,2], Topic.find(:all, :conditions => { :id => 1...3 }).map(&:id).sort
+    assert_raises(ActiveRecord::RecordNotFound) { Topic.find(3, :conditions => { :id => 2...3 }) }
   end
 
   def test_find_on_hash_conditions_with_multiple_ranges
@@ -507,21 +522,19 @@ class FinderTest < ActiveRecord::TestCase
     assert_equal(2, Entrant.count_by_sql(["SELECT COUNT(*) FROM entrants WHERE id > ?", 1]))
   end
 
-  uses_mocha('test_dynamic_finder_should_go_through_the_find_class_method') do
-    def test_dynamic_finders_should_go_through_the_find_class_method
-      Topic.expects(:find).with(:first, :conditions => { :title => 'The First Topic!' })
-      Topic.find_by_title("The First Topic!")
+  def test_dynamic_finders_should_go_through_the_find_class_method
+    Topic.expects(:find).with(:first, :conditions => { :title => 'The First Topic!' })
+    Topic.find_by_title("The First Topic!")
 
-      Topic.expects(:find).with(:last, :conditions => { :title => 'The Last Topic!' })
-      Topic.find_last_by_title("The Last Topic!")
+    Topic.expects(:find).with(:last, :conditions => { :title => 'The Last Topic!' })
+    Topic.find_last_by_title("The Last Topic!")
 
-      Topic.expects(:find).with(:all, :conditions => { :title => 'A Topic.' })
-      Topic.find_all_by_title("A Topic.")
+    Topic.expects(:find).with(:all, :conditions => { :title => 'A Topic.' })
+    Topic.find_all_by_title("A Topic.")
 
-      Topic.expects(:find).with(:first, :conditions => { :title => 'Does not exist yet for sure!' }).times(2)
-      Topic.find_or_initialize_by_title('Does not exist yet for sure!')
-      Topic.find_or_create_by_title('Does not exist yet for sure!')
-    end
+    Topic.expects(:find).with(:first, :conditions => { :title => 'Does not exist yet for sure!' }).times(2)
+    Topic.find_or_initialize_by_title('Does not exist yet for sure!')
+    Topic.find_or_create_by_title('Does not exist yet for sure!')
   end
 
   def test_find_by_one_attribute

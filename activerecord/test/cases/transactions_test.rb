@@ -306,17 +306,15 @@ class TransactionTest < ActiveRecord::TestCase
     assert_equal "Three", @three
   end if Topic.connection.supports_savepoints?
 
-  uses_mocha 'mocking connection.commit_db_transaction' do
-    def test_rollback_when_commit_raises
-      Topic.connection.expects(:begin_db_transaction)
-      Topic.connection.expects(:commit_db_transaction).raises('OH NOES')
-      Topic.connection.expects(:outside_transaction?).returns(false)
-      Topic.connection.expects(:rollback_db_transaction)
+  def test_rollback_when_commit_raises
+    Topic.connection.expects(:begin_db_transaction)
+    Topic.connection.expects(:commit_db_transaction).raises('OH NOES')
+    Topic.connection.expects(:outside_transaction?).returns(false)
+    Topic.connection.expects(:rollback_db_transaction)
 
-      assert_raise RuntimeError do
-        Topic.transaction do
-          # do nothing
-        end
+    assert_raise RuntimeError do
+      Topic.transaction do
+        # do nothing
       end
     end
   end
@@ -330,14 +328,12 @@ class TransactionTest < ActiveRecord::TestCase
       assert Topic.connection.outside_transaction?
     end
     
-    uses_mocha 'mocking connection.rollback_db_transaction' do
-      def test_rollback_wont_be_executed_if_no_transaction_active
-        assert_raise RuntimeError do
-          Topic.transaction do
-            Topic.connection.rollback_db_transaction
-            Topic.connection.expects(:rollback_db_transaction).never
-            raise "Rails doesn't scale!"
-          end
+    def test_rollback_wont_be_executed_if_no_transaction_active
+      assert_raise RuntimeError do
+        Topic.transaction do
+          Topic.connection.rollback_db_transaction
+          Topic.connection.expects(:rollback_db_transaction).never
+          raise "Rails doesn't scale!"
         end
       end
     end

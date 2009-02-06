@@ -289,8 +289,6 @@ class TestMailer < ActionMailer::Base
   end
 end
 
-uses_mocha 'ActionMailerTest' do
-
 class ActionMailerTest < Test::Unit::TestCase
   include ActionMailer::Quoting
 
@@ -940,6 +938,7 @@ EOF
     ActionMailer::Base.delivery_method = :smtp
     TestMailer.deliver_return_path
     assert_match %r{^Return-Path: <another@somewhere.test>}, MockSMTP.deliveries[0][0]
+    assert_equal "another@somewhere.test", MockSMTP.deliveries[0][1].to_s
   end
 
   def test_body_is_stored_as_an_ivar
@@ -973,8 +972,6 @@ EOF
     ActionMailer::Base.smtp_settings[:enable_starttls_auto] = true
   end
 end
-
-end # uses_mocha
 
 class InheritableTemplateRootTest < Test::Unit::TestCase
   def test_attr

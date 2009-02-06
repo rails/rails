@@ -1,3 +1,8 @@
+*Edge*
+
+* Added that ActiveRecord::Base.exists? can be called with no arguments #1817 [Scott Taylor]
+
+
 *2.3.0 [RC1] (February 1st, 2009)*
 
 * Add Support for updating deeply nested models from a single form. #1202 [Eloy Duran]

@@ -1,7 +1,5 @@
 require 'abstract_unit'
 
-uses_mocha 'integration' do
-
 class SessionTest < Test::Unit::TestCase
   StubApp = lambda { |env|
     [200, {"Content-Type" => "text/html", "Content-Length" => "13"}, "Hello, World!"]
@@ -416,6 +414,4 @@ class MetalTest < ActionController::IntegrationTest
     assert_response :not_found
     assert_equal '', response.body
   end
-end
-
 end

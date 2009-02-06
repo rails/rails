@@ -99,7 +99,7 @@ module ActiveRecord
               define_method(:session_id=) { |session_id| self.sessid = session_id }
             else
               def self.find_by_session_id(session_id)
-                find :first, :conditions => ["session_id #{attribute_condition(session_id)}", session_id]
+                find :first, :conditions => {:session_id=>session_id}
               end
             end
           end

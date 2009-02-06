@@ -265,12 +265,10 @@ class FixturesWithoutInstantiationTest < ActiveRecord::TestCase
     assert_raise(StandardError) { topics([:first, :second]) }
   end
 
-  uses_mocha 'reloading_fixtures_through_accessor_methods' do
-    def test_reloading_fixtures_through_accessor_methods
-      assert_equal "The First Topic", topics(:first).title
-      @loaded_fixtures['topics']['first'].expects(:find).returns(stub(:title => "Fresh Topic!"))
-      assert_equal "Fresh Topic!", topics(:first, true).title
-    end
+  def test_reloading_fixtures_through_accessor_methods
+    assert_equal "The First Topic", topics(:first).title
+    @loaded_fixtures['topics']['first'].expects(:find).returns(stub(:title => "Fresh Topic!"))
+    assert_equal "Fresh Topic!", topics(:first, true).title
   end
 end
 
@@ -639,17 +637,15 @@ class ActiveSupportSubclassWithFixturesTest < ActiveRecord::TestCase
 end
 
 class FixtureLoadingTest < ActiveRecord::TestCase
-  uses_mocha 'reloading_fixtures_through_accessor_methods' do
-    def test_logs_message_for_failed_dependency_load
-      ActiveRecord::TestCase.expects(:require_dependency).with(:does_not_exist).raises(LoadError)
-      ActiveRecord::Base.logger.expects(:warn)
-      ActiveRecord::TestCase.try_to_load_dependency(:does_not_exist)
-    end
+  def test_logs_message_for_failed_dependency_load
+    ActiveRecord::TestCase.expects(:require_dependency).with(:does_not_exist).raises(LoadError)
+    ActiveRecord::Base.logger.expects(:warn)
+    ActiveRecord::TestCase.try_to_load_dependency(:does_not_exist)
+  end
 
-    def test_does_not_logs_message_for_successful_dependency_load
-      ActiveRecord::TestCase.expects(:require_dependency).with(:works_out_fine)
-      ActiveRecord::Base.logger.expects(:warn).never
-      ActiveRecord::TestCase.try_to_load_dependency(:works_out_fine)
-    end
+  def test_does_not_logs_message_for_successful_dependency_load
+    ActiveRecord::TestCase.expects(:require_dependency).with(:works_out_fine)
+    ActiveRecord::Base.logger.expects(:warn).never
+    ActiveRecord::TestCase.try_to_load_dependency(:works_out_fine)
   end
 end

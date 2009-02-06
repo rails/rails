@@ -8,7 +8,7 @@ require 'yaml'
 require 'stringio'
 require 'test/unit'
 
-gem 'mocha', '>= 0.9.3'
+gem 'mocha', '>= 0.9.5'
 require 'mocha'
 
 begin
@@ -38,7 +38,3 @@ ORIGINAL_LOCALES = I18n.available_locales.map(&:to_s).sort
 
 FIXTURE_LOAD_PATH = File.join(File.dirname(__FILE__), 'fixtures')
 ActionController::Base.view_paths = FIXTURE_LOAD_PATH
-
-def uses_mocha(test_name)
-  yield
-end

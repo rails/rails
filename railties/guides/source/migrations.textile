@@ -1,6 +1,6 @@
 h2. Migrations
 
-Migrations are a convenient way for you to alter your database in a structured and organised manner. You could edit fragments of SQL by hand but you would then be responsible for telling other developers that they need to go and run it. You'd also have to keep track of which changes need to be run against the production machines next time you deploy. Active Record tracks which migrations have already been run so all you have to do is update your source and run +rake db:migrate+. Active Record will work out which migrations should be run. It will also update your db/schema.rb file to match the structure of your database. 
+Migrations are a convenient way for you to alter your database in a structured and organised manner. You could edit fragments of SQL by hand but you would then be responsible for telling other developers that they need to go and run it. You'd also have to keep track of which changes need to be run against the production machines next time you deploy. Active Record tracks which migrations have already been run so all you have to do is update your source and run +rake db:migrate+. Active Record will work out which migrations should be run. It will also update your db/schema.rb file to match the structure of your database.
 
 Migrations also allow you to describe these transformations using Ruby. The great thing about this is that (like most of Active Record's functionality) it is database independent: you don't need to worry about the precise syntax of CREATE TABLE any more that you worry about variations on SELECT * (you can drop down to raw SQL for database specific features). For example you could use SQLite3 in development, but MySQL in production.
 
@@ -15,7 +15,7 @@ endprologue.
 
 h3. Anatomy Of A Migration
 
-Before I dive into the details of a migration, here are a few examples of the sorts of things you can do: 
+Before I dive into the details of a migration, here are a few examples of the sorts of things you can do:
 
 <ruby>
 class CreateProducts < ActiveRecord::Migration
@@ -70,7 +70,7 @@ Active Record provides methods that perform common data definition tasks in a da
 * +add_column+
 * +remove_column+
 * +change_column+
-* +rename_column+ 
+* +rename_column+
 * +add_index+
 * +remove_index+
 
@@ -340,12 +340,12 @@ class ExampleMigration < ActiveRecord::Migration
     end
     #add a foreign key
     execute "ALTER TABLE products ADD CONSTRAINT fk_products_categories FOREIGN KEY (category_id) REFERENCES categories(id)"
-    
+
     add_column :users, :home_page_url, :string
-    
+
     rename_column :users, :email, :email_address
   end
-  
+
   def self.down
     rename_column :users, :email_address, :email
     remove_column :users, :home_page_url
@@ -473,7 +473,7 @@ If you just want Active Record to shut up then running +rake db:migrate VERBOSE=
 
 h3. Using Models In Your Migrations
 
-When creating or updating data in a migration it is often tempting to use one of your models. After all they exist to provide easy access to the underlying data. This can be done but some caution should be observed. 
+When creating or updating data in a migration it is often tempting to use one of your models. After all they exist to provide easy access to the underlying data. This can be done but some caution should be observed.
 
 Consider for example a migration that uses the Product model to update a row in the corresponding table. Alice later updates the Product model, adding a new column and a validation on it. Bob comes back from holiday, updates the source and runs outstanding migrations with +rake db:migrate+, including the one that used the Product model. When the migration runs the source is up to date and so the Product model has the validation added by Alice. The database however is still old and so does not have that column and an error ensues because that validation is on a column that does not yet exist.
 
@@ -483,7 +483,7 @@ Frequently I just want to update rows in the database without writing out the SQ
 class AddPartNumberToProducts < ActiveRecord::Migration
   class Product < ActiveRecord::Base
   end
-  
+
   def self.up
     ...
   end
@@ -503,7 +503,7 @@ For performance reasons information about the columns a model has is cached. For
 class AddPartNumberToProducts < ActiveRecord::Migration
   class Product < ActiveRecord::Base
   end
-  
+
   def self.up
     add_column :product, :part_number, :string
     Product.reset_column_information
@@ -555,7 +555,7 @@ end
 
 In many ways this is exactly what it is. This file is created by inspecting the database and expressing its structure using +create_table+, +add_index+ and so on. Because this is database independent it could be loaded into any database that Active Record supports. This could be very useful if you were to distribute an application that is able to run against multiple databases.
 
-There is however a trade-off: +schema.rb+ cannot express database specific items such as foreign key constraints, triggers or stored procedures. While in a migration you can execute custom SQL statements, the schema dumper cannot reconstitute those statements from the database. If you are using features like this then you should set the schema format to +:sql+. 
+There is however a trade-off: +schema.rb+ cannot express database specific items such as foreign key constraints, triggers or stored procedures. While in a migration you can execute custom SQL statements, the schema dumper cannot reconstitute those statements from the database. If you are using features like this then you should set the schema format to +:sql+.
 
 Instead of using Active Record's schema dumper the database's structure will be dumped using a tool specific to that database (via the +db:structure:dump+ Rake task) into +db/#{RAILS_ENV}_structure.sql+. For example for PostgreSQL the +pg_dump+ utility is used and for MySQL this file will contain the output of SHOW CREATE TABLE for the various tables. Loading this schema is simply a question of executing the SQL statements contained inside.
 

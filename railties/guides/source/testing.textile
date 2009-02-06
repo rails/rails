@@ -186,7 +186,7 @@ The +PostTest+ class defines a _test case_ because it inherits from +ActiveSuppo
 def test_truth
 </ruby>
 
-Any method defined within a test case that begins with +test+ (case sensitive) is simply called a test. So, +test_password+, +test_valid_password+ and +testValidPassword+ all are legal test names and are run automatically when the test case is run. 
+Any method defined within a test case that begins with +test+ (case sensitive) is simply called a test. So, +test_password+, +test_valid_password+ and +testValidPassword+ all are legal test names and are run automatically when the test case is run.
 
 <ruby>
 assert true
@@ -194,10 +194,10 @@ assert true
 
 This line of code is called an _assertion_. An assertion is a line of code that evaluates an object (or expression) for expected results. For example, an assertion can check:
 
-* is this value = that value? 
-* is this object nil? 
-* does this line of code throw an exception? 
-* is the user's password greater than 5 characters? 
+* is this value = that value?
+* is this object nil?
+* does this line of code throw an exception?
+* is the user's password greater than 5 characters?
 
 Every test contains one or more assertions. Only when all the assertions are successful the test passes.
 
@@ -232,7 +232,7 @@ Running a test is as simple as invoking the file containing the test cases throu
 
 <shell>
 $ cd test
-$ ruby unit/post_test.rb 
+$ ruby unit/post_test.rb
 
 Loaded suite unit/post_test
 Started
@@ -257,7 +257,7 @@ Finished in 0.023513 seconds.
 1 tests, 1 assertions, 0 failures, 0 errors
 </pre>
 
-The +.+ (dot) above indicates a passing test. When a test fails you see an +F+; when a test throws an error you see an +E+ in its place. The last line of the output is the summary. 
+The +.+ (dot) above indicates a passing test. When a test fails you see an +F+; when a test throws an error you see an +E+ in its place. The last line of the output is the summary.
 
 To see how a test failure is reported, you can add a failing test to the +post_test.rb+ test case.
 
@@ -336,7 +336,7 @@ Finished in 0.193608 seconds.
 1 tests, 1 assertions, 0 failures, 0 errors
 </pre>
 
-Now if you noticed we first wrote a test which fails for a desired functionality, then we wrote some code which adds the functionality and finally we ensured that our test passes. This approach to software development is referred to as _Test-Driven Development_ (TDD). 
+Now if you noticed we first wrote a test which fails for a desired functionality, then we wrote some code which adds the functionality and finally we ensured that our test passes. This approach to software development is referred to as _Test-Driven Development_ (TDD).
 
 TIP: Many Rails developers practice _Test-Driven Development_ (TDD). This is an excellent way to build up a test suite that exercises every part of your application. TDD is beyond the scope of this guide, but one place to start is with "15 TDD steps to create a Rails application":http://andrzejonsoftware.blogspot.com/2007/05/15-tdd-steps-to-create-rails.html.
 
@@ -370,7 +370,7 @@ NameError: undefined local variable or method `some_undefined_variable' for #<Po
 1 tests, 0 assertions, 0 failures, 1 errors
 </pre>
 
-Notice the 'E' in the output. It denotes a test with error. 
+Notice the 'E' in the output. It denotes a test with error.
 
 NOTE: The execution of each test method stops as soon as any error or a assertion failure is encountered, and the test suite continues with the next method. All test methods are executed in alphabetical order.
 
@@ -427,7 +427,7 @@ You'll see the usage of some of these assertions in the next chapter.
 
 h3. Functional Tests for Your Controllers
 
-In Rails, testing the various actions of a single controller is called writing functional tests for that controller. Controllers handle the incoming web requests to your application and eventually respond with a rendered view. 
+In Rails, testing the various actions of a single controller is called writing functional tests for that controller. Controllers handle the incoming web requests to your application and eventually respond with a rendered view.
 
 h4. What to include in your Functional Tests
 
@@ -451,11 +451,11 @@ def test_should_get_index
 end
 </ruby>
 
-In the +test_should_get_index+ test, Rails simulates a request on the action called index, making sure the request was successful and also ensuring that it assigns a valid +posts+ instance variable. 
+In the +test_should_get_index+ test, Rails simulates a request on the action called index, making sure the request was successful and also ensuring that it assigns a valid +posts+ instance variable.
 
 The +get+ method kicks off the web request and populates the results into the response. It accepts 4 arguments:
 
-* The action of the controller you are requesting. This can be in the form of a string or a symbol. 
+* The action of the controller you are requesting. This can be in the form of a string or a symbol.
 * An optional hash of request parameters to pass into the action (eg. query string parameters or post variables).
 * An optional hash of session variables to pass along with the request.
 * An optional hash of flash values.
@@ -604,12 +604,12 @@ end
 
 h3. Integration Testing
 
-Integration tests are used to test the interaction among any number of controllers. They are generally used to test important work flows within your application. 
+Integration tests are used to test the interaction among any number of controllers. They are generally used to test important work flows within your application.
 
-Unlike Unit and Functional tests, integration tests have to be explicitly created under the 'test/integration' folder within your application. Rails provides a generator to create an integration test skeleton for you. 
+Unlike Unit and Functional tests, integration tests have to be explicitly created under the 'test/integration' folder within your application. Rails provides a generator to create an integration test skeleton for you.
 
 <shell>
-$ script/generate integration_test user_flows 
+$ script/generate integration_test user_flows
       exists  test/integration/
       create  test/integration/user_flows_test.rb
 </shell>
@@ -629,7 +629,7 @@ class UserFlowsTest < ActionController::IntegrationTest
 end
 </ruby>
 
-Integration tests inherit from +ActionController::IntegrationTest+. This makes available some additional helpers to use in your integration tests. Also you need to explicitly include the fixtures to be made available to the test. 
+Integration tests inherit from +ActionController::IntegrationTest+. This makes available some additional helpers to use in your integration tests. Also you need to explicitly include the fixtures to be made available to the test.
 
 h4. Helpers Available for Integration tests
 
@@ -663,11 +663,11 @@ class UserFlowsTest < ActionController::IntegrationTest
     https!
     get "/login"
     assert_response :success
-    
+
     post_via_redirect "/login", :username => users(:avs).username, :password => users(:avs).password
     assert_equal '/welcome', path
     assert_equal 'Welcome avs!', flash[:notice]
-    
+
     https!(false)
     get "/posts/all"
     assert_response :success
@@ -687,26 +687,26 @@ class UserFlowsTest < ActionController::IntegrationTest
   fixtures :users
 
   def test_login_and_browse_site
-    
+
     # User avs logs in
     avs = login(:avs)
     # User guest logs in
     guest = login(:guest)
-    
+
     # Both are now available in different sessions
     assert_equal 'Welcome avs!', avs.flash[:notice]
     assert_equal 'Welcome guest!', guest.flash[:notice]
-    
+
     # User avs can browse site
     avs.browses_site
     # User guest can browse site aswell
     guest.browses_site
-    
+
     # Continue with other assertions
   end
-  
+
   private
-  
+
     module CustomDsl
       def browses_site
         get "/products/all"
@@ -714,7 +714,7 @@ class UserFlowsTest < ActionController::IntegrationTest
         assert assigns(:products)
       end
     end
-    
+
     def login(user)
       open_session do |sess|
         sess.extend(CustomDsl)
@@ -764,7 +764,7 @@ class PostsControllerTest < ActionController::TestCase
   # called after every single test
   def teardown
     # as we are re-initializing @post before every test
-    # setting it to nil here is not essential but I hope 
+    # setting it to nil here is not essential but I hope
     # you understand how you can use the teardown method
     @post = nil
   end
@@ -781,7 +781,7 @@ class PostsControllerTest < ActionController::TestCase
 
     assert_redirected_to posts_path
   end
-  
+
 end
 </ruby>
 
@@ -791,7 +791,7 @@ Above, the +setup+ method is called before each test and so +@post+ is available
 * a method (like in the earlier example)
 * a method name as a symbol
 * a lambda
- 
+
 Let's see the earlier example by specifying +setup+ callback by specifying a method name as a symbol:
 
 <ruby>
@@ -811,7 +811,7 @@ class PostsControllerTest < ActionController::TestCase
     get :show, :id => @post.id
     assert_response :success
   end
-  
+
   def test_should_update_post
     put :update, :id => @post.id, :post => { }
     assert_redirected_to post_path(assigns(:post))
@@ -824,13 +824,13 @@ class PostsControllerTest < ActionController::TestCase
 
     assert_redirected_to posts_path
   end
-  
-  private 
-  
+
+  private
+
   def initialize_post
     @post = posts(:one)
   end
-  
+
 end
 </ruby>
 
@@ -870,7 +870,7 @@ h5. Revenge of the Fixtures
 
 For the purposes of unit testing a mailer, fixtures are used to provide an example of how the output _should_ look. Because these are example emails, and not Active Record data like the other fixtures, they are kept in their own subdirectory apart from the other fixtures. The name of the directory within +test/fixtures+ directly corresponds to the name of the mailer. So, for a mailer named +UserMailer+, the fixtures should reside in +test/fixtures/user_mailer+ directory.
 
-When you generated your mailer, the generator creates stub fixtures for each of the mailers actions. If you didn't use the generator you'll have to make those files yourself. 
+When you generated your mailer, the generator creates stub fixtures for each of the mailers actions. If you didn't use the generator you'll have to make those files yourself.
 
 h5. The Basic Test case
 
@@ -901,7 +901,7 @@ Here's the content of the +invite+ fixture:
 <pre>
 Hi friend@example.com,
 
-You have been invited. 
+You have been invited.
 
 Cheers!
 </pre>
@@ -923,7 +923,7 @@ class UserControllerTest < ActionController::TestCase
       post :invite_friend, :email => 'friend@example.com'
     end
     invite_email = ActionMailer::Base.deliveries.first
-    
+
     assert_equal invite_email.subject, "You have been invited by me@example.com"
     assert_equal invite_email.to[0], 'friend@example.com'
     assert_match /Hi friend@example.com/, invite_email.body

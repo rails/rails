@@ -68,9 +68,9 @@ You will probably want to access data sent in by the user or other parameters in
 <ruby>
 class ClientsController < ActionController::Base
 
-  # This action uses query string parameters because it gets run by a HTTP 
-  # GET request, but this does not make any difference to the way in which 
-  # the parameters are accessed. The URL for this action would look like this 
+  # This action uses query string parameters because it gets run by a HTTP
+  # GET request, but this does not make any difference to the way in which
+  # the parameters are accessed. The URL for this action would look like this
   # in order to list activated clients: /clients?status=activated
   def index
     if params[:status] = "activated"

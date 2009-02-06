@@ -273,7 +273,7 @@ which produces the following output:
 
 <html>
 <form action="/people/create" class="new_person" id="new_person" method="post">
-  <input id="person_name" name="person[name]" size="30" type="text" />  
+  <input id="person_name" name="person[name]" size="30" type="text" />
   <input id="contact_detail_phone_number" name="contact_detail[phone_number]" size="30" type="text" />
 </form>
 </html>
@@ -553,7 +553,7 @@ h3. Uploading Files
 
 A common task is uploading some sort of file, whether it's a picture of a person or a CSV file containing data to process. The most important thing to remember with file uploads is that the form's encoding *MUST* be set to "multipart/form-data". If you forget to do this the file will not be uploaded. This can be done by passing +:multi_part => true+ as an HTML option. This means that in the case of +form_tag+ it must be passed in the second options hash and in the case of +form_for+ inside the +:html+ hash.
 
-The following two forms both upload a file. 
+The following two forms both upload a file.
 
 <erb>
 <% form_tag({:action => :upload}, :multipart => true) do %>
@@ -590,7 +590,7 @@ Unlike other forms making an asynchronous file upload form is not as simple as r
 
 h3. Customising Form Builders
 
-As mentioned previously the object yielded by +form_for+ and +fields_for+ is an instance of FormBuilder (or a subclass thereof). Form builders encapsulate the notion of displaying form elements for a single object. While you can of course write helpers for your forms in the usual way you can also subclass FormBuilder and add the helpers there. For example 
+As mentioned previously the object yielded by +form_for+ and +fields_for+ is an instance of FormBuilder (or a subclass thereof). Form builders encapsulate the notion of displaying form elements for a single object. While you can of course write helpers for your forms in the usual way you can also subclass FormBuilder and add the helpers there. For example
 
 <erb>
 <% form_for @person do |f| %>
@@ -598,7 +598,7 @@ As mentioned previously the object yielded by +form_for+ and +fields_for+ is an 
 <% end %>
 </erb>
 
-can be replaced with 
+can be replaced with
 
 <erb>
 <% form_for @person, :builder => LabellingFormBuilder do |f| %>
@@ -698,9 +698,9 @@ You might want to render a form with a set of edit fields for each of a person's
 <erb>
 <% form_for @person do |person_form| %>
   <%= person_form.text_field :name %>
-  <% for address in @person.addresses %> 
+  <% for address in @person.addresses %>
     <% person_form.fields_for address, :index => address do |address_form|%>
-      <%= address_form.text_field :city %> 
+      <%= address_form.text_field :city %>
     <% end %>
   <% end %>
 <% end %>
@@ -711,8 +711,8 @@ Assuming the person had two addresses, with ids 23 and 45 this would create outp
 <html>
 <form action="/people/1" class="edit_person" id="edit_person_1" method="post">
   <input id="person_name" name="person[name]" size="30" type="text" />
-  <input id="person_address_23_city" name="person[address][23][city]" size="30" type="text" /> 
-  <input id="person_address_45_city" name="person[address][45][city]" size="30" type="text" /> 
+  <input id="person_address_23_city" name="person[address][23][city]" size="30" type="text" />
+  <input id="person_address_45_city" name="person[address][45][city]" size="30" type="text" />
 </form>
 </html>
 

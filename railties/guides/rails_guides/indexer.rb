@@ -43,7 +43,7 @@ module RailsGuides
             counters << last + 1
           end
         end
-        s.getch 
+        s.getch
       end
       level_hash
     end

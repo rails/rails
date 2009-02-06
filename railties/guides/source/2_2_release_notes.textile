@@ -137,7 +137,7 @@ development:
 </ruby>
 
 * Lead Contributor: "Nick Sieger":http://blog.nicksieger.com/
-* More information: 
+* More information:
 ** "What's New in Edge Rails: Connection Pools":http://ryandaigle.com/articles/2008/9/7/what-s-new-in-edge-rails-connection-pools
 
 h4. Hashes for Join Table Conditions
@@ -175,7 +175,7 @@ User.find_last_by_city('London')
 
 * Lead Contributor: "Emilio Tagua":http://www.workingwithrails.com/person/9147-emilio-tagua
 
-h5. +find_by_<attribute>!+ 
+h5. +find_by_<attribute>!+
 
 The new bang! version of +find_by_<attribute>!+ is equivalent to +Model.first(:conditions => {:attribute => value}) || raise ActiveRecord::RecordNotFound+ Instead of returning +nil+ if it can't find a matching record, this method will raise an exception if it cannot find a match.
 
@@ -197,7 +197,7 @@ Active Record association proxies now respect the scope of methods on the proxie
 h4. Other ActiveRecord Changes
 
 * +rake db:migrate:redo+ now accepts an optional VERSION to target that specific migration to redo
-* Set +config.active_record.timestamped_migrations = false+ to have migrations with numeric prefix instead of UTC timestamp. 
+* Set +config.active_record.timestamped_migrations = false+ to have migrations with numeric prefix instead of UTC timestamp.
 * Counter cache columns (for associations declared with +:counter_cache => true+) do not need to be initialized to zero any longer.
 * +ActiveRecord::Base.human_name+ for an internationalization-aware humane translation of model names
 
@@ -207,7 +207,7 @@ On the controller side, there are several changes that will help tidy up your ro
 
 h4. Shallow Route Nesting
 
-Shallow route nesting provides a solution to the well-known difficulty of using deeply-nested resources. With shallow nesting, you need only supply enough information to uniquely identify the resource that you want to work with. 
+Shallow route nesting provides a solution to the well-known difficulty of using deeply-nested resources. With shallow nesting, you need only supply enough information to uniquely identify the resource that you want to work with.
 
 <ruby>
 map.resources :publishers, :shallow => true do |publisher|
@@ -228,7 +228,7 @@ This will enable recognition of (among others) these routes:
 </ruby>
 
 * Lead Contributor: "S. Brent Faulkner":http://www.unwwwired.net/
-* More information: 
+* More information:
 ** "Rails Routing from the Outside In":http://guides.rails.info/routing/routing_outside_in.html#_nested_resources
 ** "What's New in Edge Rails: Shallow Routes":http://ryandaigle.com/articles/2008/9/7/what-s-new-in-edge-rails-shallow-routes
 
