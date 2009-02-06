@@ -1,4 +1,4 @@
-require 'active_support/inflector'
+require 'active_support/inflector' unless defined?(ActiveSupport::Inflector)
 
 module ActiveSupport #:nodoc:
   module CoreExtensions #:nodoc:
