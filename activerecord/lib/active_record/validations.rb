@@ -744,7 +744,7 @@ module ActiveRecord
           if scope = configuration[:scope]
             Array(scope).map do |scope_item|
               scope_value = record.send(scope_item)
-              condition_sql << " AND #{record.class.quoted_table_name}.#{scope_item} #{attribute_condition(scope_value)}"
+              condition_sql << " AND " << attribute_condition("#{record.class.quoted_table_name}.#{scope_item}", scope_value)
               condition_params << scope_value
             end
           end

@@ -1992,12 +1992,16 @@ module ActiveRecord #:nodoc:
           attribute_names.all? { |name| column_methods_hash.include?(name.to_sym) }
         end
 
-        def attribute_condition(argument)
+        def attribute_condition(quoted_column_name, argument)
           case argument
-            when nil   then "IS ?"
-            when Array, ActiveRecord::Associations::AssociationCollection, ActiveRecord::NamedScope::Scope then "IN (?)"
-            when Range then "BETWEEN ? AND ?"
-            else            "= ?"
+            when nil   then "#{quoted_column_name} IS ?"
+            when Array, ActiveRecord::Associations::AssociationCollection, ActiveRecord::NamedScope::Scope then "#{quoted_column_name} IN (?)"
+            when Range then if argument.exclude_end?
+                              "#{quoted_column_name} >= ? AND #{quoted_column_name} < ?"
+                            else
+                              "#{quoted_column_name} BETWEEN ? AND ?"
+                            end
+            else            "#{quoted_column_name} = ?"
           end
         end
 
@@ -2307,7 +2311,7 @@ module ActiveRecord #:nodoc:
                 table_name = connection.quote_table_name(table_name)
               end
 
-              "#{table_name}.#{connection.quote_column_name(attr)} #{attribute_condition(value)}"
+              attribute_condition("#{table_name}.#{connection.quote_column_name(attr)}", value)
             else
               sanitize_sql_hash_for_conditions(value, connection.quote_table_name(attr.to_s))
             end

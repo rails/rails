@@ -173,7 +173,7 @@ module ActionController #:nodoc:
       end
 
       def default_layout(format) #:nodoc:
-        layout = read_inheritable_attribute(:layout)
+        layout = read_inheritable_attribute(:layout) unless format == :js
         return layout unless read_inheritable_attribute(:auto_layout)
         find_layout(layout, format)
       end

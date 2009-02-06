@@ -8,6 +8,7 @@ module ActiveRecord
     # An abstract definition of a column in a table.
     class Column
       TRUE_VALUES = [true, 1, '1', 't', 'T', 'true', 'TRUE'].to_set
+      FALSE_VALUES = [false, 0, '0', 'f', 'F', 'false', 'FALSE'].to_set
 
       module Format
         ISO_DATE = /\A(\d{4})-(\d\d)-(\d\d)\z/

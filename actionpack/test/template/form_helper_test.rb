@@ -586,6 +586,15 @@ class FormHelperTest < ActionView::TestCase
     assert_dom_equal expected, output_buffer
   end
 
+  def test_nested_fields_for_with_explicitly_passed_object_on_a_nested_attributes_one_to_one_association
+    form_for(:post, @post) do |f|
+      f.fields_for(:author, Author.new(123)) do |af|
+        assert_not_nil af.object
+        assert_equal 123, af.object.id
+      end
+    end
+  end
+
   def test_nested_fields_for_with_an_existing_record_on_a_nested_attributes_one_to_one_association
     @post.author = Author.new(321)
 

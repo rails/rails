@@ -7,7 +7,6 @@ module ActionController
         unless cache_classes
           # Development mode callbacks
           before_dispatch :reload_application
-          after_dispatch :cleanup_application
 
           ActionView::Helpers::AssetTagHelper.cache_asset_timestamps = false
         end
@@ -93,11 +92,9 @@ module ActionController
       run_callbacks :prepare_dispatch
 
       Routing::Routes.reload
-    end
 
-    # Cleanup the application by clearing out loaded classes so they can
-    # be reloaded on the next request without restarting the server.
-    def cleanup_application
+      # Cleanup the application by clearing out loaded classes so they can
+      # be reloaded on the next request without restarting the server.
       ActiveRecord::Base.reset_subclasses if defined?(ActiveRecord)
       ActiveSupport::Dependencies.clear
       ActiveRecord::Base.clear_reloadable_connections! if defined?(ActiveRecord)

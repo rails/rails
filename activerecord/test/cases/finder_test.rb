@@ -307,6 +307,12 @@ class FinderTest < ActiveRecord::TestCase
     assert_raises(ActiveRecord::RecordNotFound) { Topic.find(1, :conditions => { :id => 2..3 }) }
   end
 
+  def test_find_on_hash_conditions_with_end_exclusive_range
+    assert_equal [1,2,3], Topic.find(:all, :conditions => { :id => 1..3 }).map(&:id).sort
+    assert_equal [1,2], Topic.find(:all, :conditions => { :id => 1...3 }).map(&:id).sort
+    assert_raises(ActiveRecord::RecordNotFound) { Topic.find(3, :conditions => { :id => 2...3 }) }
+  end
+
   def test_find_on_hash_conditions_with_multiple_ranges
     assert_equal [1,2,3], Comment.find(:all, :conditions => { :id => 1..3, :post_id => 1..2 }).map(&:id).sort
     assert_equal [1], Comment.find(:all, :conditions => { :id => 1..1, :post_id => 1..10 }).map(&:id).sort
