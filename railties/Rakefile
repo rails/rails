@@ -244,6 +244,11 @@ def copy_with_rewritten_ruby_path(src_file, dest_file)
   end
 end
 
+desc 'Generate guides (for authors), use ONLY=foo to process just "foo.textile"'
+task :guides do
+  ruby "guides/rails_guides.rb"
+end
+
 
 # Generate documentation ------------------------------------------------------------------
 

@@ -1090,6 +1090,22 @@ module ActiveRecord
       # but it in fact generates a join table name of "paper_boxes_papers".  Be aware of this caveat, and use the
       # custom <tt>:join_table</tt> option if you need to.
       #
+      # The join table should not have a primary key or a model associated with it. You must manually generate the
+      # join table with a migration such as this:
+      #
+      #   class CreateDevelopersProjectsJoinTable < ActiveRecord::Migration
+      #     def self.up
+      #       create_table :developers_projects, :id => false do |t|
+      #         t.integer :developer_id
+      #         t.integer :project_id
+      #       end
+      #     end
+      #
+      #     def self.down
+      #       drop_table :developers_projects
+      #     end
+      #   end
+      #
       # Deprecated: Any additional fields added to the join table will be placed as attributes when pulling records out through
       # +has_and_belongs_to_many+ associations. Records returned from join tables with additional attributes will be marked as
       # readonly (because we can't save changes to the additional attributes). It's strongly recommended that you upgrade any
