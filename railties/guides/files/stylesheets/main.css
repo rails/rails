@@ -379,6 +379,7 @@ code, pre {
   margin-left: 0;
   margin-top: 0.25em;
   display: block;
+  min-height: 45px;
 }
 
 .note {
