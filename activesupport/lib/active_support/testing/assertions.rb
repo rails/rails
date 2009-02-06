@@ -31,16 +31,18 @@ module ActiveSupport
       #   assert_difference 'Article.count', -1, "An Article should be destroyed" do
       #     post :delete, :id => ...
       #   end
-      def assert_difference(expressions, difference = 1, message = nil, &block)
-        case expressions
+      def assert_difference(expression, difference = 1, message = nil, &block)
+        case expression
         when String
-          before = eval(expressions, block.send(:binding))
+          before = eval(expression, block.send(:binding))
           yield
-          assert_equal(before + difference, eval(expressions, block.send(:binding)), message)
+          error = "#{expression.inspect} didn't change by #{difference}"
+          error = "#{message}.\n#{error}" if message
+          assert_equal(before + difference, eval(expression, block.send(:binding)), error)
         when Enumerable
-          expressions.each { |e| assert_difference(e, difference, message, &block) }
+          expression.each { |e| assert_difference(e, difference, message, &block) }
         else
-          raise ArgumentError, "Unrecognized expression: #{expressions.inspect}"
+          raise ArgumentError, "Unrecognized expression: #{expression.inspect}"
         end
       end
 
@@ -56,8 +58,8 @@ module ActiveSupport
       #   assert_no_difference 'Article.count', "An Article should not be destroyed" do
       #     post :create, :article => invalid_attributes
       #   end
-      def assert_no_difference(expressions, message = nil, &block)
-        assert_difference expressions, 0, message, &block
+      def assert_no_difference(expression, message = nil, &block)
+        assert_difference expression, 0, message, &block
       end
     end
   end
