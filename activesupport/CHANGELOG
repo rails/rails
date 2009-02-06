@@ -1,3 +1,8 @@
+*Edge*
+
+* Introduce Array.wrap(foo) to wrap the argument in an array unless it's already an array. Wraps nil as an empty array. Use instead of Array(foo) and foo.to_a since they treat String as Enumerable.  [Jeremy Kemper]
+
+
 *2.3.0 [RC1] (February 1st, 2009)*
 
 * TimeWithZone#xmlschema accepts optional fraction_digits argument [#1725 state:resolved] [Nicholas Dainty]

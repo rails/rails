@@ -302,3 +302,27 @@ class ArrayExtRandomTests < Test::Unit::TestCase
     assert_equal 2, [1, 2, 3].rand
   end
 end
+
+class ArrayWrapperTests < Test::Unit::TestCase
+  def test_array
+    ary = %w(foo bar)
+    assert_same ary, Array.wrap(ary)
+  end
+
+  def test_nil
+    assert_equal [], Array.wrap(nil)
+  end
+
+  def test_object
+    o = Object.new
+    assert_equal [o], Array.wrap(o)
+  end
+
+  def test_string
+    assert_equal ["foo"], Array.wrap("foo")
+  end
+
+  def test_string_with_newline
+    assert_equal ["foo\nbar"], Array.wrap("foo\nbar")
+  end
+end
