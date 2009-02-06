@@ -76,7 +76,7 @@ class ClientsController < ActionController::Base
     if params[:status] = "activated"
       @clients = Client.activated
     else
-      @clients = Client.unativated
+      @clients = Client.unactivated
     end
   end
 
@@ -540,7 +540,7 @@ The request object contains a lot of useful information about the request coming
 * get?, post?, put?, delete?, head? - Returns true if the HTTP method is GET/POST/PUT/DELETE/HEAD.
 * headers - Returns a hash containing the headers associated with the request.
 * port - The port number (integer) used for the request.
-* protocol - Returns a string containing the prototol used plus "://", for example "http://"
+* protocol - Returns a string containing the protocol used plus "://", for example "http://"
 * query_string - The query string part of the URL - everything after "?".
 * remote_ip - The IP address of the client.
 * url - The entire URL used for the request.
