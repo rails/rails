@@ -1504,3 +1504,9 @@ The final plugin should have a directory structure that looks something like thi
 |   `-- yaffle_test.rb
 `-- uninstall.rb
 </shell>
+
+h3. Changelog
+
+"Lighthouse ticket":http://rails.lighthouseapp.com/projects/16213/tickets/32-update-plugins-guide
+
+* November 17, 2008: Major revision by Jeff Dean
