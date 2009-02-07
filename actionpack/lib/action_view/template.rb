@@ -236,24 +236,24 @@ module ActionView #:nodoc:
         format = nil
         extension = nil
 
-        if m = extensions.match(/^([\w-]+)?\.?(\w+)?\.?(\w+)?\.?/)
-          if valid_locale?(m[1]) && m[2] && valid_extension?(m[3]) # All three
-            locale = m[1]
-            format = m[2]
-            extension = m[3]
-          elsif m[1] && m[2] && valid_extension?(m[3]) # Multipart formats
-            format = "#{m[1]}.#{m[2]}"
-            extension = m[3]
-          elsif valid_locale?(m[1]) && valid_extension?(m[2]) # locale and extension
-            locale = m[1]
-            extension = m[2]
-          elsif valid_extension?(m[2]) # format and extension
+        if m = extensions.split(".")
+          if valid_locale?(m[0]) && m[1] && valid_extension?(m[2]) # All three
+            locale = m[0]
             format = m[1]
             extension = m[2]
-          elsif valid_extension?(m[1]) # Just extension
+          elsif m[0] && m[1] && valid_extension?(m[2]) # Multipart formats
+            format = "#{m[0]}.#{m[1]}"
+            extension = m[2]
+          elsif valid_locale?(m[0]) && valid_extension?(m[1]) # locale and extension
+            locale = m[0]
             extension = m[1]
+          elsif valid_extension?(m[1]) # format and extension
+            format = m[0]
+            extension = m[1]
+          elsif valid_extension?(m[0]) # Just extension
+            extension = m[0]
           else # No extension
-            format = m[1]
+            format = m[0]
           end
         end
 
