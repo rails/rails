@@ -899,6 +899,6 @@ h3. Changelog
 
 "Lighthouse ticket":http://rails.lighthouseapp.com/projects/16213-rails-guides/tickets/3
 
-* October 4, 2008: Added additional detail on specifying verbs for resource member/collection routes , by "Mike Gunderloy":credits.html#mgunderloy
+* October 4, 2008: Added additional detail on specifying verbs for resource member/collection routes, by "Mike Gunderloy":credits.html#mgunderloy
 * September 23, 2008: Added section on namespaced controllers and routing, by "Mike Gunderloy":credits.html#mgunderloy
 * September 10, 2008: initial version by "Mike Gunderloy":credits.html#mgunderloy
