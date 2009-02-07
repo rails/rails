@@ -5,8 +5,7 @@ This guide covers Rails integration with Rack and interfacing with other Rack co
 * Create Rails Metal applications
 * Use Rack Middlewares in your Rails applications
 * Understand Action Pack's internal Middleware stack
-* Define custom internal Middleware stack
-* Understand the best practices for developing a middleware aimed at Rails applications
+* Define a custom Middleware stack
 
 endprologue.
 
@@ -27,26 +26,29 @@ Explaining Rack is not really in the scope of this guide. In case you are not fa
 
 h3. Rails on Rack
 
-h4. ActionController::Dispatcher.new
+h4. Rails Application's Rack Object
 
-+ActionController::Dispatcher.new+ is the primary Rack application object of a Rails application. It responds to +call+ method with a single +env+ argument and returns a Rack response. Any Rack compliant web server should be using +ActionController::Dispatcher.new+ object to serve a Rails application.
+<tt>ActionController::Dispatcher.new</tt> is the primary Rack application object of a Rails application. Any Rack compliant web server should be using +ActionController::Dispatcher.new+ object to serve a Rails application.</p>
 
 h4. script/server
 
-+script/server+ does the basic job of creating a +Rack::Builder+ object and starting the webserver. This is Rails equivalent of Rack's +rackup+ script.
+<tt>script/server</tt> does the basic job of creating a +Rack::Builder+ object and starting the webserver. This is Rails equivalent of Rack's +rackup+ script.
 
 Here's how +script/server+ creates an instance of +Rack::Builder+
 
 <ruby>
 app = Rack::Builder.new {
   use Rails::Rack::LogTailer unless options[:detach]
-  use Rails::Rack::Static
   use Rails::Rack::Debugger if options[:debugger]
-  run ActionController::Dispatcher.new
+
+  map "/" do
+    use Rails::Rack::Static
+    run ActionController::Dispatcher.new
+  end
 }.to_app
 </ruby>
 
-Middlewares used in the code above are most useful in development envrionment. The following table explains their usage:
+Middlewares used in the code above are primarily useful only in the development envrionment. The following table explains their usage:
 
 |Middleware|Purpose|
 |Rails::Rack::LogTailer|Appends log file output to console|
@@ -92,79 +94,108 @@ Rails has a handy rake task for inspecting the middleware stack in use:
 $ rake middleware
 </shell>
 
-For a freshly generated Rails application, this will produce:
+For a freshly generated Rails application, this might produce something like:
 
 <ruby>
-use ActionController::Lock
+use Rack::Lock
 use ActionController::Failsafe
-use ActiveRecord::QueryCache
-use ActionController::Session::CookieStore, {:secret=>"<secret>", :session_key=>"_<app>_session"}
+use ActionController::Session::CookieStore, , {:secret=>"<secret>", :session_key=>"_<app>_session"}
 use Rails::Rack::Metal
-use ActionController::VerbPiggybacking
+use ActionController::RewindableInput
+use ActionController::ParamsParser
+use Rack::MethodOverride
+use Rack::Head
+use ActiveRecord::QueryCache
 run ActionController::Dispatcher.new
 </ruby>
 
-h4. Adding Middlewares
+Purpose of each of this middlewares is explained in "Internal Middlewares":#internal-middleware-stack section.
 
-Rails provides a very simple configuration interface for adding generic Rack middlewares to a Rails applications.
+h4. Configuring Middleware Stack
 
-Here's how you can add middlewares via +environment.rb+
+Rails provides a simple configuration interface +config.middleware+ for adding, removing and modifying the middlewares in the middleware stack via +environment.rb+ or the environment specific configuarion file <tt>environments/&lt;environment&gt;.rb</tt>.
+
+h5. Adding a Middleware
+
+You can add a new middleware to the middleware stack using any of the following methods:
+
+* +config.middleware.add(new_middleware, args)+ - Adds the new middleware at the bottom of the middleware stack.
+
+* +config.middleware.insert(index, new_middleware, args)+ - Adds the new middleware at the position specified by +index+ in the middleware stack.
+
+* +config.middleware.insert_before(existing_middleware, new_middleware, args)+ - Adds the new middleware before the specified existing middleware in the middleware stack.
+
+* +config.middleware.insert_after(existing_middleware, new_middleware, args)+ - Adds the new middleware after the specified existing middleware in the middleware stack.
+
+<strong>Example:</strong>
 
 <ruby>
 # environment.rb
 
+# Push Rack::BounceFavicon at the bottom
 config.middleware.use Rack::BounceFavicon
+
+# Add Lifo::Cache after ActiveRecord::QueryCache.
+# Pass { :page_cache => false } argument to Lifo::Cache.
+config.middleware.insert_after ActiveRecord::QueryCache, Lifo::Cache, :page_cache => false
+</ruby>
+
+h5. Swapping a Middleware
+
+You can swap an existing middleware in the middleware stack using +config.middleware.swap+.
+
+<strong>Example:</strong>
+
+<ruby>
+# environment.rb
+
+# Replace ActionController::Failsafe with Lifo::Failsafe
+config.middleware.swap ActionController::Failsafe, Lifo::Failsafe
 </ruby>
 
 h4. Internal Middleware Stack
 
-<ruby>
-use "ActionController::Lock", :if => lambda {
-  !ActionController::Base.allow_concurrency
-}
-
-use "ActionController::Failsafe"
-
-use "ActiveRecord::QueryCache", :if => lambda { defined?(ActiveRecord) }
-
-["ActionController::Session::CookieStore",
- "ActionController::Session::MemCacheStore",
- "ActiveRecord::SessionStore"].each do |store|
-   use(store, ActionController::Base.session_options,
-      :if => lambda {
-        if session_store = ActionController::Base.session_store
-          session_store.name == store
-        end
-      }
-    )
-end
-
-use ActionController::VerbPiggybacking
-</ruby>
+Much of Action Controller's functionality is implemented as Middlewares. The following table explains the purpose of each of them:
 
 |Middleware|Purpose|
-|ActionController::Lock|Sets +env["rack.multithread"]+ flag to +true+ and wraps the application within a Mutex.|
+|Rack::Lock|Sets +env["rack.multithread"]+ flag to +true+ and wraps the application within a Mutex.|
 |ActionController::Failsafe|Returns HTTP Status +500+ to the client if an exception gets raised while dispatching.|
 |ActiveRecord::QueryCache|Enable the Active Record query cache.|
 |ActionController::Session::CookieStore|Uses the cookie based session store.|
 |ActionController::Session::MemCacheStore|Uses the memcached based session store.|
 |ActiveRecord::SessionStore|Uses the database based session store.|
-|ActionController::VerbPiggybacking|Sets HTTP method based on +_method+ parameter or +env["HTTP_X_HTTP_METHOD_OVERRIDE"]+.|
+|Rack::MethodOverride|Sets HTTP method based on +_method+ parameter or +env["HTTP_X_HTTP_METHOD_OVERRIDE"]+.|
+|Rack::Head|Discards the response body if the client sends a +HEAD+ request.|
+
+TIP: It's possible to use any of the above middlewares in your custom Rack stack.
 
 h4. Customizing Internal Middleware Stack
 
-VERIFY THIS WORKS. Just a code dump at the moment.
+It's possible to replace the entire middleware stack with a custom stack using +ActionController::Dispatcher.middleware=+.
 
-Put the following in an initializer.
+<strong>Example:</strong>
+
+Put the following in an initializer:
+
 <ruby>
+# config/initializers/stack.rb
 ActionController::Dispatcher.middleware = ActionController::MiddlewareStack.new do |m|
-  m.use ActionController::Lock
   m.use ActionController::Failsafe
   m.use ActiveRecord::QueryCache
-  m.use ActionController::Session::CookieStore
-  m.use ActionController::VerbPiggybacking
+  m.use Rack::Head
 end
 </ruby>
+
+And now inspecting the middleware stack:
+
+<shell>
+$ rake middleware
+(in /Users/lifo/Rails/blog)
+use ActionController::Failsafe
+use ActiveRecord::QueryCache
+use Rack::Head
+run ActionController::Dispatcher.new
+</shell>
 
 h3. Rails Metal Applications
 
@@ -172,10 +203,10 @@ Rails Metal applications are minimal Rack applications specially designed for in
 
 h4. Generating a Metal Application
 
-Rails provides a generator called +performance_test+ for creating new performance tests:
+Rails provides a generator called +metal+ for creating a new Metal application:
 
 <shell>
-script/generate metal poller
+$ script/generate metal poller
 </shell>
 
 This generates +poller.rb+ in the +app/metal+ directory:
@@ -217,10 +248,9 @@ In the code above, +@metals+ is an ordered ( alphabetical ) hash of metal applic
 
 WARNING: Metal applications cannot return the HTTP Status +404+ to a client, as it is used for continuing the Metal chain execution. Please use normal Rails controllers or a custom middleware if returning +404+ is a requirement.
 
-h3. Middlewares and Rails
-
 h3. Changelog
 
-"Lighthouse ticket":http://rails.lighthouseapp.com/projects/16213-rails-guides/tickets/4
+"Lighthouse ticket":http://rails.lighthouseapp.com/projects/16213-rails-guides/tickets/58
 
+* February 7, 2009: Second version by "Pratik":credits.html#lifo
 * January 11, 2009: First version by "Pratik":credits.html#lifo
