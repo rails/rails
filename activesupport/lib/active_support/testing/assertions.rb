@@ -32,17 +32,16 @@ module ActiveSupport
       #     post :delete, :id => ...
       #   end
       def assert_difference(expression, difference = 1, message = nil, &block)
-        case expression
-        when String
-          before = eval(expression, block.send(:binding))
-          yield
-          error = "#{expression.inspect} didn't change by #{difference}"
+        b = block.send(:binding)
+        exps = Array.wrap(expression)
+        before = exps.map { |e| eval(e, b) }
+
+        yield
+
+        exps.each_with_index do |e, i|
+          error = "#{e.inspect} didn't change by #{difference}"
           error = "#{message}.\n#{error}" if message
-          assert_equal(before + difference, eval(expression, block.send(:binding)), error)
-        when Enumerable
-          expression.each { |e| assert_difference(e, difference, message, &block) }
-        else
-          raise ArgumentError, "Unrecognized expression: #{expression.inspect}"
+          assert_equal(before[i] + difference, eval(e, b), error)
         end
       end
 
