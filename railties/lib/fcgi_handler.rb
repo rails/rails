@@ -71,7 +71,7 @@ class RailsFCGIHandler
 
   protected
     def process_each_request(provider)
-      cgi = nil
+      request = nil
 
       catch :exit do
         provider.each do |request|
@@ -81,17 +81,17 @@ class RailsFCGIHandler
             when :reload
               reload!
             when :restart
-              close_connection(cgi)
+              close_connection(request)
               restart!
             when :exit
-              close_connection(cgi)
+              close_connection(request)
               throw :exit
           end
         end
       end
     rescue SignalException => signal
       raise unless signal.message == 'SIGUSR1'
-      close_connection(cgi)
+      close_connection(request)
     end
 
     def process_request(request)
@@ -233,7 +233,7 @@ class RailsFCGIHandler
       end
     end
 
-    def close_connection(cgi)
-      cgi.instance_variable_get("@request").finish if cgi
+    def close_connection(request)
+      request.finish if request
     end
 end
