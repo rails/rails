@@ -47,6 +47,11 @@ module ActionController
           to_hash
         end
 
+        def inspect
+          load! unless @loaded
+          super
+        end
+
         private
           def loaded?
             @loaded
