@@ -48,6 +48,8 @@ class ArrayExtToParamTests < Test::Unit::TestCase
 end
 
 class ArrayExtToSentenceTests < Test::Unit::TestCase
+  include ActiveSupport::Testing::Deprecation
+  
   def test_plain_array_to_sentence
     assert_equal "", [].to_sentence
     assert_equal "one", ['one'].to_sentence
@@ -56,12 +58,28 @@ class ArrayExtToSentenceTests < Test::Unit::TestCase
   end
 
   def test_to_sentence_with_words_connector
+    assert_deprecated(":connector has been deprecated. Use :words_connector instead") do
+      assert_equal "one, two, three", ['one', 'two', 'three'].to_sentence(:connector => '')
+    end
+    
+    assert_deprecated(":connector has been deprecated. Use :words_connector instead") do
+      assert_equal "one, two, and three", ['one', 'two', 'three'].to_sentence(:connector => 'and ')
+    end
+    
     assert_equal "one two, and three", ['one', 'two', 'three'].to_sentence(:words_connector => ' ')
     assert_equal "one & two, and three", ['one', 'two', 'three'].to_sentence(:words_connector => ' & ')
     assert_equal "onetwo, and three", ['one', 'two', 'three'].to_sentence(:words_connector => nil)
   end
 
   def test_to_sentence_with_last_word_connector
+    assert_deprecated(":skip_last_comma has been deprecated. Use :last_word_connector instead") do
+      assert_equal "one, two and three", ['one', 'two', 'three'].to_sentence(:skip_last_comma => true)
+    end
+    
+    assert_deprecated(":skip_last_comma has been deprecated. Use :last_word_connector instead") do
+      assert_equal "one, two, and three", ['one', 'two', 'three'].to_sentence(:skip_last_comma => false)
+    end
+    
     assert_equal "one, two, and also three", ['one', 'two', 'three'].to_sentence(:last_word_connector => ', and also ')
     assert_equal "one, twothree", ['one', 'two', 'three'].to_sentence(:last_word_connector => nil)
     assert_equal "one, two three", ['one', 'two', 'three'].to_sentence(:last_word_connector => ' ')
