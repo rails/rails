@@ -348,7 +348,23 @@ Client.all(:joins => "orders", :conditions => { :orders => { :created_at => (Tim
 
 This will find all clients who have orders that were created yesterday, again using a BETWEEN expression.
 
-h3. Ordering
+h3. Find options
+
+Apart from +:conditions+, +Model.find+ takes a variety of other options via the options hash for customizing the resulting record set.
+
+<ruby>
+Model.find(id_or_array_of_ids, options_hash)
+Model.find(:last, options_hash)
+Model.find(:first, options_hash)
+
+Model.first(options_hash)
+Model.last(options_hash)
+Model.all(options_hash)
+</ruby>
+
+The following sections give a top level overview of all the possible keys for the +options_hash+.
+
+h4. Ordering
 
 To retrieve records from the database in a specific order, you can specify the +:order+ option to the +find+ call.
 
@@ -372,7 +388,7 @@ Or ordering by multiple fields:
 Client.all(:order => "orders_count ASC, created_at DESC")
 </ruby>
 
-h3. Selecting specific fields
+h4. Selecting specific fields
 
 By default, <tt>Model.find</tt> selects all the fields from the result set using +select *+.
 
@@ -408,7 +424,7 @@ You can also call SQL functions within the select option. For example, if you wo
 Client.all(:select => "DISTINCT(name)")
 </ruby>
 
-h3. Limit and Offset
+h4. Limit and Offset
 
 To apply +LIMIT+ to the SQL fired by the +Model.find+, you can specify the +LIMIT+ using +:limit+ and +:offset+ options on the find.
 
@@ -436,7 +452,7 @@ This code will return a maximum of 5 clients and because it specifies an offset 
 SELECT * FROM clients LIMIT 5, 5
 </sql>
 
-h3. Group
+h4. Group
 
 To apply +GROUP BY+ clause to the SQL fired by the +Model.find+, you can specify the +:group+ option on the find.
 
@@ -454,7 +470,7 @@ The SQL that would be executed would be something like this:
 SELECT * FROM orders GROUP BY date(created_at)
 </sql>
 
-h3. Having
+h4. Having
 
 SQL uses +HAVING+ clause to specify conditions on the +GROUP BY+ fields. You can specify the +HAVING+ clause to the SQL fired by the +Model.find+ using +:having+ option on the find.
 
@@ -472,7 +488,7 @@ SELECT * FROM orders GROUP BY date(created_at) HAVING created_at > '2009-01-15'
 
 This will return single order objects for each day, but only for the last month.
 
-h3. Readonly objects
+h4. Readonly objects
 
 To explicitly disallow modification/destroyal of the matching records returned by +Model.find+, you could specify the +:readonly+ option as +true+ to the find call.
 
@@ -490,14 +506,14 @@ client.locked = false
 client.save
 </ruby>
 
-h3. Locking records for update
+h4. Locking records for update
 
 Locking is helpful for preventing the race conditions when updating records in the database and ensuring atomic updated. Active Record provides two locking mechanism:
 
 * Optimistic Locking
 * Pessimistic Locking
 
-h4. Optimistic Locking
+h5. Optimistic Locking
 
 Optimistic locking allows multiple users to access the same record for edits, and assumes a minimum of conflicts with the data.  It does this by checking whether another process has made changes to a record since it was opened. An +ActiveRecord::StaleObjectError+ exception is thrown if that has occurred and the update is ignored.
 
@@ -532,7 +548,7 @@ class Client < ActiveRecord::Base
 end
 </ruby>
 
-h4. Pessimistic Locking
+h5. Pessimistic Locking
 
 Pessimistic locking uses locking mechanism provided by the underlying database. Passing +:lock => true+ to +Model.find+ obtains an exclusive lock on the selected rows. +Model.find+ using +:lock+ are usually wrapped inside a transaction for preventing deadlock conditions.
 
