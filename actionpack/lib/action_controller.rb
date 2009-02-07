@@ -31,8 +31,7 @@ rescue LoadError
   end
 end
 
-$:.unshift "#{File.dirname(__FILE__)}/action_controller/vendor/rack-1.0"
-require 'rack'
+require 'action_controller/vendor/rack-1.0/rack'
 
 module ActionController
   # TODO: Review explicit to see if they will automatically be handled by
