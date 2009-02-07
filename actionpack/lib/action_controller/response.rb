@@ -169,6 +169,9 @@ module ActionController # :nodoc:
 
     def set_cookie(key, value)
       if value.has_key?(:http_only)
+        ActiveSupport::Deprecation.warn(
+          "The :http_only option in ActionController::Response#set_cookie " +
+          "has been renamed. Please use :httponly instead.", caller)
         value[:httponly] ||= value.delete(:http_only)
       end
 

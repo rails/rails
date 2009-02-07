@@ -41,7 +41,7 @@ module ActionController #:nodoc:
   # * <tt>:expires</tt> - The time at which this cookie expires, as a Time object.
   # * <tt>:secure</tt> - Whether this cookie is a only transmitted to HTTPS servers.
   #   Default is +false+.
-  # * <tt>:http_only</tt> - Whether this cookie is accessible via scripting or
+  # * <tt>:httponly</tt> - Whether this cookie is accessible via scripting or
   #   only HTTP. Defaults to +false+.
   module Cookies
     def self.included(base)
