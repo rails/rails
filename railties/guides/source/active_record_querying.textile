@@ -330,24 +330,6 @@ This code will generate SQL like this:
 SELECT * FROM clients WHERE (clients.orders_count IN (1,2,3))
 </sql>
 
-h5. Conditions on join tables
-
-TODO: Link to the section explaining :joins
-
-You can also join in tables and specify their columns in the hash:
-
-<ruby>
-Client.all(:joins => "orders", :conditions => { 'orders.created_at' => (Time.now.midnight - 1.day)..Time.now.midnight })
-</ruby>
-
-An alternative and cleaner syntax to this is:
-
-<ruby>
-Client.all(:joins => "orders", :conditions => { :orders => { :created_at => (Time.now.midnight - 1.day)..Time.now.midnight } })
-</ruby>
-
-This will find all clients who have orders that were created yesterday, again using a BETWEEN expression.
-
 h3. Find options
 
 Apart from +:conditions+, +Model.find+ takes a variety of other options via the options hash for customizing the resulting record set.
@@ -580,43 +562,177 @@ Item.transaction do
 end
 </ruby>
 
-h3. Eager Loading
+h3. Joining tables
 
-Eager loading is loading associated records along with any number of records in as few queries as possible. For example, if you wanted to load all the addresses associated with all the clients in a single query you could use +Client.all(:include => :address)+. If you wanted to include both the address and mailing address for the client you would use +Client.find(:all, :include => [:address, :mailing_address])+. Include will first find the client records and then load the associated address records. Running script/server in one window, and executing the code through script/console in another window, the output should look similar to this:
+<tt>Model.find</tt> provides a +:joins+ option for specifying +JOIN+ clauses on the resulting SQL. There multiple different ways to specify the +:joins+ option:
 
-<sql>
-Client Load (0.000383)   SELECT * FROM clients
-Address Load (0.119770)   SELECT addresses.* FROM addresses
-  WHERE (addresses.client_id IN (13,14))
-MailingAddress Load (0.001985) SELECT mailing_addresses.* FROM
-  mailing_addresses WHERE (mailing_addresses.client_id IN (13,14))
-</sql>
+h4. Using a string SQL fragment
 
-The numbers +13+ and +14+ in the above SQL are the ids of the clients gathered from the +Client.all+ query. Rails will then run a query to gather all the addresses and mailing addresses that have a client_id of 13 or 14. Although this is done in 3 queries, this is more efficient than not eager loading because without eager loading it would run a query for every time you called +address+ or +mailing_address+ on one of the objects in the clients array, which may lead to performance issues if you're loading a large number of records at once and is often called the "N+1 query problem". The problem is that the more queries your server has to execute, the slower it will run.
-
-If you wanted to get all the addresses for a client in the same query you would do +Client.all(:joins => :address)+.
-If you wanted to find the address and mailing address for that client you would do +Client.all(:joins => [:address, :mailing_address])+. This is more efficient because it does all the SQL in one query, as shown by this example:
-
-<sql>
-+Client Load (0.000455)   SELECT clients.* FROM clients INNER JOIN addresses
-  ON addresses.client_id = client.id INNER JOIN mailing_addresses ON
-  mailing_addresses.client_id = client.id
-</sql>
-
-This query is more efficient, but there's a gotcha: if you have a client who does not have an address or a mailing address they will not be returned in this query at all. If you have any association as an optional association, you may want to use include rather than joins. Alternatively, you can use a SQL join clause to specify exactly the join you need (Rails always assumes an inner join):
+You can just supply the raw SQL specifying the +JOIN+ clause to the +:joins+ option. For example:
 
 <ruby>
-Client.all(:joins => “LEFT OUTER JOIN addresses ON
-  client.id = addresses.client_id LEFT OUTER JOIN mailing_addresses ON
-  client.id = mailing_addresses.client_id”)
+Client.all(:joins => 'LEFT OUTER JOIN addresses ON addresses.client_id = client.id')
 </ruby>
 
-When using eager loading you can specify conditions for the columns of the tables inside the eager loading to get back a smaller subset. If, for example, you want to find a client and all their orders within the last two weeks you could use eager loading with conditions for this:
+This will result in the following SQL:
+
+<sql>
+SELECT clients.* FROM clients INNER JOIN addresses ON addresses.client_id = clients.id
+</sql>
+
+h4. Using Array/Hash of named associations
+
+WARNING: This method only works with +INNER JOIN+,
+
+<br />
+
+Active Record lets you use the names of the "associations":association_basics.html defined on the Model, as a shortcut for specifying the +:joins+ option.
+
+For example, consider the following +Category+, +Post+, +Comments+ and +Guest+ models:
 
 <ruby>
-Client.first(:include => "orders", :conditions =>
-  ["orders.created_at >= ? AND orders.created_at <= ?", 2.weeks.ago, Time.now])
+class Category < ActiveRecord::Base
+  has_many :posts
+end
+
+class Post < ActiveRecord::Base
+  belongs_to :category
+  has_many :comments
+  has_many :tags
+end
+
+class Comments < ActiveRecord::Base
+  belongs_to :post
+  has_one :guest
+end
+
+class Guest < ActiveRecord::Base
+  belongs_to :comment
+end
 </ruby>
+
+Now all of the following will produce the expected join queries using +INNER JOIN+:
+
+h5. Joining a single association
+
+<ruby>
+Category.all :joins => :posts
+</ruby>
+
+This produces:
+
+<sql>
+SELECT categories.* FROM categories
+  INNER JOIN posts ON posts.category_id = categories.id
+</sql>
+
+h5. Joining multiple associations
+
+<ruby>
+Post.all :joins => [:category, :comments]
+</ruby>
+
+This produces:
+
+<sql>
+SELECT posts.* FROM posts 
+  INNER JOIN categories ON posts.category_id = categories.id
+  INNER JOIN comments ON comments.post_id = posts.id
+</sql>
+
+h5. Joining nested associations (single level)
+
+<ruby>
+Post.all :joins => {:comments => :guest}
+</ruby>
+
+h5. Joining nested associations (multiple level)
+
+<ruby>
+Category.all :joins => {:posts => [{:comments => :guest}, :tags]}
+</ruby>
+
+h4. Specifying conditions on the joined tables
+
+You can specify conditions on the joined tables using the regular "Array":#arrayconditions and "String":#purestringconditions conditions. "Hash conditions":#hashconditions provides a special syntax for specifying conditions for the joined tables:
+
+<ruby>
+time_range = (Time.now.midnight - 1.day)..Time.now.midnight
+Client.all :joins => :orders, :conditions => {'orders.created_at' => time_range}
+</ruby>
+
+An alternative and cleaner syntax to this is to nest the hash conditions:
+
+<ruby>
+time_range = (Time.now.midnight - 1.day)..Time.now.midnight
+Client.all :joins => :orders, :conditions => {:orders => {:created_at => time_range}}
+</ruby>
+
+This will find all clients who have orders that were created yesterday, again using a +BETWEEN+ SQL expression.
+
+h3. Eager loading associations
+
+Eager loading is the mechanism for loading the associated records of the objects returned by +Model.find+ using as few queries as possible.
+
+<strong>N <plus> 1 queries problem</strong>
+
+Consider the following code, which finds 10 clients and prints their postcodes:
+
+<ruby>
+clients = Client.all(:limit => 10)
+
+clients.each do |client|
+  puts client.address.postcode
+end
+</ruby>
+
+This code looks fine at the first sight. But the problem lies within the total number of queries executed. The above code executes 1 ( to find 10 clients ) <plus> 10 ( one per each client to load the address ) = <strong>11</strong> queries in total.
+
+<strong>Solution to N <plus> 1 queries problem</strong>
+
+Active Record lets you specify all the associations in advanced that are going to be loaded. This is possible by specifying the +:include+ option of the +Model.find+ call. By +:include+, Active Record ensures that all the specified associations are loaded using minimum possible number of queries.
+
+Revisiting the above case, we could rewrite +Client.all+ to use eager load addresses:
+
+<ruby>
+clients = Client.all(:include => :address, :limit => 10)
+
+clients.each do |client|
+  puts client.address.postcode
+end
+</ruby>
+
+The above code will execute just <strong>2</strong> queries, as opposed to <strong>11</strong> queries in the previous case:
+
+<sql>
+SELECT * FROM clients
+SELECT addresses.* FROM addresses
+  WHERE (addresses.client_id IN (1,2,3,4,5,6,7,8,9,10))
+</sql>
+
+h4. Eager loading multiple associations
+
+Active Record lets you eager load any possible number of associations with a single +Model.find+ call by using Array, Hash or a nested Hash of Array/Hash with +:include+ find option.
+
+h5. Array of multiple associations 
+
+<ruby>
+Post.all :include => [:category, :comments]
+</ruby>
+
+This loads all the posts and the associated category and comments for each post.
+
+h5. Nested assocaitions hash
+
+<ruby>
+Category.find 1, :include => {:posts => [{:comments => :guest}, :tags]}
+</ruby>
+
+The above code finds the category with id 1 and eager loads all the posts associated with the found category. Additionally, it will also eager load every posts' tags and comments. Every comment's guest association will get eager loaded as well.
+
+h4. Specifying conditions on eager loaded associations
+
+Even though Active Record lets you specify conditions on the eager loaded associations just like +:joins+, the recommended way is to use ":joins":#joiningtables instead. 
 
 h3. Dynamic finders
 
