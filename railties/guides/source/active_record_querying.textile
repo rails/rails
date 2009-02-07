@@ -546,8 +546,8 @@ In a named scope you can use +:include+ and +:joins+ options just like in +find+
 
 <ruby>
 class Client < ActiveRecord::Base
-  named_scope :active_within_2_weeks, :joins => :order,
-    lambda { { :conditions => ["orders.created_at > ?", 2.weeks.ago] } }
+  named_scope :active_within_2_weeks
+    lambda { { :joins => :order, :conditions => ["orders.created_at > ?", 2.weeks.ago] } }
 end
 </ruby>
 
