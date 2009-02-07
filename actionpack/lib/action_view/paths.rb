@@ -50,6 +50,8 @@ module ActionView #:nodoc:
         elsif template = load_path[template_path]
           return template
         # Try to find html version if the format is javascript
+        elsif format == :js && template = load_path["#{template_path}.#{I18n.locale}.html"]
+          return template
         elsif format == :js && template = load_path["#{template_path}.html"]
           return template
         end

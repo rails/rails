@@ -44,6 +44,25 @@ module RenderTestCases
     I18n.locale = old_locale
   end
 
+  def test_render_implicit_html_template_from_xhr_request
+    old_format = @view.template_format
+    @view.template_format = :js
+    assert_equal "Hello HTML!", @view.render(:file => "test/render_implicit_html_template_from_xhr_request")
+  ensure
+    @view.template_format = old_format
+  end
+
+  def test_render_implicit_html_template_from_xhr_request_with_localization
+    old_locale = I18n.locale
+    old_format = @view.template_format
+    I18n.locale = :da
+    @view.template_format = :js
+    assert_equal "Hey HTML!\n", @view.render(:file => "test/render_implicit_html_template_from_xhr_request")
+  ensure
+    I18n.locale = old_locale
+    @view.template_format = old_format
+  end
+
   def test_render_file_at_top_level
     assert_equal 'Elastica', @view.render(:file => '/shared')
   end
