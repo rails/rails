@@ -153,7 +153,7 @@ h5. Find All
 
 <ruby>
 # Find all the clients.
-client = Client.all
+clients = Client.all
 => [#<Client id: 1, name: => "Lifo">, #<Client id: 10, name: => "Ryan">, #<Client id: 221, name: => "Russel">]
 </ruby>
 
@@ -169,7 +169,7 @@ NOTE: +Model.find(:all, options)+ is equivalent to +Model.all(options)+
 
 h3. Conditions
 
-The +find+ method allows you to specify conditions to limit the records returned. You can specify conditions as a string, array, or hash.
+The +find+ method allows you to specify conditions to limit the records returned, representing the WHERE-part of the SQL statement. Conditions can either be specified as a string, array, or hash.
 
 h4. Pure String Conditions
 
@@ -179,7 +179,21 @@ WARNING: Building your own conditions as pure strings can leave you vulnerable t
 
 h4. Array Conditions
 
-Now what if that number could vary, say as a argument from somewhere, or perhaps from the user's level status somewhere? The find then becomes something like +Client.first(:conditions => ["orders_count = ?", params[:orders]])+. Active Record will go through the first element in the conditions value and any additional elements will replace the question marks (?) in the first element. If you want to specify two conditions, you can do it like +Client.first(:conditions => ["orders_count = ? AND locked = ?", params[:orders], false])+. In this example, the first question mark will be replaced with the value in +params[:orders]+ and the second will be replaced with the SQL representation of +false+, which depends on the adapter.
+Now what if that number could vary, say as a argument from somewhere, or perhaps from the user's level status somewhere? The find then becomes something like:
+
+<ruby>
+Client.first(:conditions => ["orders_count = ?", params[:orders]])
+</ruby>
+
+Active Record will go through the first element in the conditions value and any additional elements will replace the question marks +(?)+ in the first element. 
+
+Or if you want to specify two conditions, you can do it like:
+
+<ruby>
+Client.first(:conditions => ["orders_count = ? AND locked = ?", params[:orders], false])
+</ruby>
+
+In this example, the first question mark will be replaced with the value in +params[:orders]+ and the second will be replaced with the SQL representation of +false+, which depends on the adapter.
 
 The reason for doing code like:
 
@@ -196,6 +210,19 @@ Client.first(:conditions => "orders_count = #{params[:orders]}")
 is because of argument safety. Putting the variable directly into the conditions string will pass the variable to the database *as-is*. This means that it will be an unescaped variable directly from a user who may have malicious intent. If you do this, you put your entire database at risk because once a user finds out he or she can exploit your database they can do just about anything to it. Never ever put your arguments directly inside the conditions string.
 
 TIP: For more information on the dangers of SQL injection, see the "Ruby on Rails Security Guide":../security.html#_sql_injection.
+
+h5. Placeholder Conditions
+
+Similar to the +(?)+ replacement style of params, you can also specify keys/values hash in your Array conditions:
+
+<ruby>
+Client.all(:conditions =>
+  ["created_at >= :start_date AND created_at <= :end_date", { :start_date => params[:start_date], :end_date => params[:end_date] }])
+</ruby>
+
+This makes for clearer readability if you have a large number of variable conditions.
+
+h5. Range Conditions
 
 If you're looking for a range inside of a table (for example, users created in a certain timeframe) you can use the conditions option coupled with the IN sql statement for this. If you had two dates coming in from a controller you could do something like this to look for a range:
 
@@ -216,6 +243,8 @@ SELECT * FROM users WHERE (created_at IN
   '2008-12-21','2008-12-22','2008-12-23','2008-12-24','2008-12-25','2008-12-26',
   '2008-12-27','2008-12-28','2008-12-29','2008-12-30','2008-12-31'))
 </sql>
+
+h5. Time and Date Conditions
 
 Things can get *really* messy if you pass in Time objects as it will attempt to compare your field to *every second* in that range:
 
@@ -254,20 +283,13 @@ Client.all(:conditions =>
 
 Just like in Ruby. If you want a shorter syntax be sure to check out the "Hash Conditions":hash-conditions section later on in the guide.
 
-h4. Placeholder Conditions
-
-Similar to the array style of params you can also specify keys in your conditions:
-
-<ruby>
-Client.all(:conditions =>
-  ["created_at >= :start_date AND created_at <= :end_date", { :start_date => params[:start_date], :end_date => params[:end_date] }])
-</ruby>
-
-This makes for clearer readability if you have a large number of variable conditions.
-
 h4. Hash Conditions
 
 Rails also allows you to pass in a hash conditions which can increase the readability of your conditions syntax. With hash conditions, you pass in a hash with keys of the fields you want conditionalised and the values of how you want to conditionalise them:
+
+NOTE: Only equality, range and subset checking are possible with Hash conditions.
+
+h5. Equality conditions
 
 <ruby>
 Client.all(:conditions => { :locked => true })
@@ -278,6 +300,8 @@ The field name does not have to be a symbol it can also be a string:
 <ruby>
 Client.all(:conditions => { 'locked' => true })
 </ruby>
+
+h5. Range conditions
 
 The good thing about this is that we can pass in a range for our fields without it generating a large query as shown in the preamble of this section.
 
@@ -293,21 +317,9 @@ SELECT * FROM clients WHERE (clients.created_at BETWEEN '2008-12-21 00:00:00' AN
 
 This demonstrates a shorter syntax for the examples in "Array Conditions":#array-conditions
 
-You can also join in tables and specify their columns in the hash:
+h5. Subset conditions
 
-<ruby>
-Client.all(:include => "orders", :conditions => { 'orders.created_at' => (Time.now.midnight - 1.day)..Time.now.midnight })
-</ruby>
-
-An alternative and cleaner syntax to this is:
-
-<ruby>
-Client.all(:include => "orders", :conditions => { :orders => { :created_at => (Time.now.midnight - 1.day)..Time.now.midnight } })
-</ruby>
-
-This will find all clients who have orders that were created yesterday, again using a BETWEEN expression.
-
-If you want to find records using the IN expression you can pass an array to the conditions hash:
+If you want to find records using the +IN+ expression you can pass an array to the conditions hash:
 
 <ruby>
 Client.all(:include => "orders", :conditions => { :orders_count => [1,3,5] }
@@ -318,6 +330,24 @@ This code will generate SQL like this:
 <sql>
 SELECT * FROM clients WHERE (clients.orders_count IN (1,2,3))
 </sql>
+
+h5. Conditions on Join tables
+
+TODO: Link to the section explaining :joins
+
+You can also join in tables and specify their columns in the hash:
+
+<ruby>
+Client.all(:joins => "orders", :conditions => { 'orders.created_at' => (Time.now.midnight - 1.day)..Time.now.midnight })
+</ruby>
+
+An alternative and cleaner syntax to this is:
+
+<ruby>
+Client.all(:joins => "orders", :conditions => { :orders => { :created_at => (Time.now.midnight - 1.day)..Time.now.midnight } })
+</ruby>
+
+This will find all clients who have orders that were created yesterday, again using a BETWEEN expression.
 
 h3. Ordering
 
