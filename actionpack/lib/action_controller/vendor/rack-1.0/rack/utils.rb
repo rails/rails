@@ -167,7 +167,14 @@ module Rack
       end
 
       def to_hash
-        {}.replace(self)
+        inject({}) do |hash, (k,v)|
+          if v.respond_to? :to_ary
+            hash[k] = v.to_ary.join("\n")
+          else
+            hash[k] = v
+          end
+          hash
+        end
       end
 
       def [](k)

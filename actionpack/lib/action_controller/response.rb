@@ -41,7 +41,7 @@ module ActionController # :nodoc:
 
     def initialize
       @status = 200
-      @header = DEFAULT_HEADERS.dup
+      @header = Rack::Utils::HeaderHash.new(DEFAULT_HEADERS)
 
       @writer = lambda { |x| @body << x }
       @block = nil

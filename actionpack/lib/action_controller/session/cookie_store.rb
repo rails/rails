@@ -108,12 +108,9 @@ module ActionController
           end
 
           cookie = build_cookie(@key, cookie.merge(options))
-          case headers[HTTP_SET_COOKIE]
-          when Array
-            headers[HTTP_SET_COOKIE] << cookie
-          when String
-            headers[HTTP_SET_COOKIE] = [headers[HTTP_SET_COOKIE], cookie]
-          when nil
+          unless headers[HTTP_SET_COOKIE].blank?
+            headers[HTTP_SET_COOKIE] << "\n#{cookie}"
+          else
             headers[HTTP_SET_COOKIE] = cookie
           end
         end

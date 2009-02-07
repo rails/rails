@@ -118,9 +118,7 @@ module Rack
       @original_headers = headers
       @headers = Rack::Utils::HeaderHash.new
       headers.each { |field, values|
-        values.each { |value|
-          @headers[field] = value
-        }
+        @headers[field] = values
         @headers[field] = ""  if values.empty?
       }
 

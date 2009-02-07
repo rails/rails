@@ -152,7 +152,7 @@ module ActionController #:nodoc:
         end
         content_type = content_type.to_s.strip # fixes a problem with extra '\r' with some browsers
 
-        headers.update(
+        headers.merge!(
           'Content-Length'            => options[:length],
           'Content-Type'              => content_type,
           'Content-Disposition'       => disposition,

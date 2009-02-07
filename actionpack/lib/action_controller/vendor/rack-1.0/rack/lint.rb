@@ -338,16 +338,13 @@ module Rack
         ## but only contain keys that consist of
         ## letters, digits, <tt>_</tt> or <tt>-</tt> and start with a letter.
         assert("invalid header name: #{key}") { key =~ /\A[a-zA-Z][a-zA-Z0-9_-]*\z/ }
-        ##
-        ## The values of the header must respond to #each.
-        assert("header values must respond to #each, but the value of " +
-          "'#{key}' doesn't (is #{value.class})") { value.respond_to? :each }
-        value.each { |item|
-          ## The values passed on #each must be Strings
-          assert("header values must consist of Strings, but '#{key}' also contains a #{item.class}") {
-            item.instance_of?(String)
-          }
-          ## and not contain characters below 037.
+
+        ## The values of the header must be Strings,
+        assert("a header value must be a String, but the value of " +
+          "'#{key}' is a #{value.class}") { value.kind_of? String }
+        ## consisting of lines (for multiple header values) seperated by "\n".
+        value.split("\n").each { |item|
+          ## The lines must not contain characters below 037.
           assert("invalid header value #{key}: #{item.inspect}") {
             item !~ /[\000-\037]/
           }

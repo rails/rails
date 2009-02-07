@@ -38,7 +38,7 @@ module Rack
       def self.send_headers(status, headers)
         STDOUT.print "Status: #{status}\r\n"
         headers.each { |k, vs|
-          vs.each { |v|
+          vs.split("\n").each { |v|
             STDOUT.print "#{k}: #{v}\r\n"
           }
         }

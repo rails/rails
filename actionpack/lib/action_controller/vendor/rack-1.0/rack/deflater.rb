@@ -36,17 +36,19 @@ module Rack
         mtime = headers.key?("Last-Modified") ?
           Time.httpdate(headers["Last-Modified"]) : Time.now
         body = self.class.gzip(body, mtime)
-        headers = headers.merge("Content-Encoding" => "gzip", "Content-Length" => body.length.to_s)
+        size = body.respond_to?(:bytesize) ? body.bytesize : body.size
+        headers = headers.merge("Content-Encoding" => "gzip", "Content-Length" => size.to_s)
         [status, headers, [body]]
       when "deflate"
         body = self.class.deflate(body)
-        headers = headers.merge("Content-Encoding" => "deflate", "Content-Length" => body.length.to_s)
+        size = body.respond_to?(:bytesize) ? body.bytesize : body.size
+        headers = headers.merge("Content-Encoding" => "deflate", "Content-Length" => size.to_s)
         [status, headers, [body]]
       when "identity"
         [status, headers, body]
       when nil
-        message = ["An acceptable encoding for the requested resource #{request.fullpath} could not be found."]
-        [406, {"Content-Type" => "text/plain", "Content-Length" => message[0].length.to_s}, message]
+        message = "An acceptable encoding for the requested resource #{request.fullpath} could not be found."
+        [406, {"Content-Type" => "text/plain", "Content-Length" => message.length.to_s}, [message]]
       end
     end
 

@@ -63,7 +63,7 @@ module Rack
           response.send_status(nil)
 
           headers.each { |k, vs|
-            vs.each { |v|
+            vs.split("\n").each { |v|
               response.header[k] = v
             }
           }

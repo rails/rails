@@ -44,7 +44,7 @@ module Rack
         begin
           socket.write("Status: #{status}\r\n")
           headers.each do |k, vs|
-            vs.each {|v| socket.write("#{k}: #{v}\r\n")}
+            vs.split("\n").each { |v| socket.write("#{k}: #{v}\r\n")}
           end
           socket.write("\r\n")
           body.each {|s| socket.write(s)}
