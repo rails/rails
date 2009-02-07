@@ -74,7 +74,7 @@ h3. Digging Deeper
 <dl>
 
 <% guide("Rails Internationalization API", 'i18n.html', :ticket => 23) do %>
-  This guide covers how to build a plugin to extend the functionality of Rails.
+  This guide covers how to add internationalization to your applications. Your application will be able to translate content to different languages, change pluralization rules, use correct date formats for each country and so on.
 <% end %>
 
 <% guide("Action Mailer Basics", 'action_mailer_basics.html', :ticket => 25) do %>
