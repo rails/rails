@@ -236,7 +236,7 @@ module ActionView #:nodoc:
         format = nil
         extension = nil
 
-        if m = extensions.match(/^(\w+)?\.?(\w+)?\.?(\w+)?\.?/)
+        if m = extensions.match(/^([\w-]+)?\.?(\w+)?\.?(\w+)?\.?/)
           if valid_locale?(m[1]) && m[2] && valid_extension?(m[3]) # All three
             locale = m[1]
             format = m[2]
