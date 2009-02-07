@@ -16,6 +16,10 @@ class MemCacheStoreTest < ActionController::IntegrationTest
       render :text => "foo: #{session[:foo].inspect}"
     end
 
+    def get_session_id
+      render :text => "foo: #{session[:foo].inspect}; id: #{request.session_options[:id]}"
+    end
+
     def call_reset_session
       reset_session
       head :ok
@@ -50,7 +54,20 @@ class MemCacheStoreTest < ActionController::IntegrationTest
       with_test_route_set do
         get '/get_session_value'
         assert_response :success
-      assert_equal 'foo: nil', response.body
+        assert_equal 'foo: nil', response.body
+      end
+    end
+
+    def test_getting_session_id
+      with_test_route_set do
+        get '/set_session_value'
+        assert_response :success
+        assert cookies['_session_id']
+        session_id = cookies['_session_id']
+
+        get '/get_session_id'
+        assert_response :success
+        assert_equal "foo: \"bar\"; id: #{session_id}", response.body
       end
     end
 

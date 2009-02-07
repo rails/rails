@@ -30,6 +30,10 @@ class CookieStoreTest < ActionController::IntegrationTest
       render :text => "foo: #{session[:foo].inspect}"
     end
 
+    def get_session_id
+      render :text => "foo: #{session[:foo].inspect}; id: #{request.session_options[:id]}"
+    end
+
     def call_reset_session
       reset_session
       head :ok
@@ -104,6 +108,20 @@ class CookieStoreTest < ActionController::IntegrationTest
       assert_response :success
       assert_equal 'foo: "bar"', response.body
    end
+  end
+
+  def test_getting_session_id
+    with_test_route_set do
+      cookies[SessionKey] = SignedBar
+      get '/persistent_session_id'
+      assert_response :success
+      assert_equal response.body.size, 32
+      session_id = response.body
+
+      get '/get_session_id'
+      assert_response :success
+      assert_equal "foo: \"bar\"; id: #{session_id}", response.body
+    end
   end
 
   def test_disregards_tampered_sessions

@@ -88,7 +88,7 @@ module ActionController
 
       def call(env)
         env[ENV_SESSION_KEY] = AbstractStore::SessionHash.new(self, env)
-        env[ENV_SESSION_OPTIONS_KEY] = @default_options
+        env[ENV_SESSION_OPTIONS_KEY] = @default_options.dup
 
         status, headers, body = @app.call(env)
 
