@@ -71,7 +71,7 @@ Active Record lets you retrieve a single object using three different ways.
 
 h5. Using a primary key
 
-Using <tt>Model.find(primary_key)</tt>, you can retrieve the object corresponding to the supplied _primary key_. For example:
+Using <tt>Model.find(primary_key, options = nil)</tt>, you can retrieve the object corresponding to the supplied _primary key_ and matching the supplied options (if any). For example:
 
 <ruby>
 # Find the client with primary key (id) 10.
@@ -131,7 +131,7 @@ h4. Retrieving Multiple Objects
 
 h5. Using multiple primary keys
 
-<tt>Model.find(array_of_primary_key)</tt> also accepts an array of _primary keys_. An array of all the matching records for the supplied _primary keys_ is returned. For example:
+<tt>Model.find(array_of_primary_key, options = nil)</tt> also accepts an array of _primary keys_. An array of all the matching records for the supplied _primary keys_ is returned. For example:
 
 <ruby>
 # Find the clients with primary keys 1 and 10.
@@ -164,6 +164,8 @@ SELECT * FROM clients
 </sql>
 
 <tt>Model.all</tt> returns an empty array +[]+ if no matching record is found. No exception will be raised.
+
+NOTE: +Model.find(:all, options)+ is equivalent to +Model.all(options)+
 
 h3. Conditions
 
