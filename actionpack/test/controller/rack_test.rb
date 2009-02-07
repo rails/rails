@@ -253,7 +253,6 @@ class RackResponseTest < BaseRackTest
     assert_equal 200, status
     assert_equal({
       "Content-Type" => "text/html; charset=utf-8",
-      "Content-Length" => "",
       "Cache-Control" => "no-cache",
       "Set-Cookie" => []
     }, headers)

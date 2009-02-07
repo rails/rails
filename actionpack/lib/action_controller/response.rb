@@ -167,33 +167,12 @@ module ActionController # :nodoc:
       str
     end
 
-    # Over Rack::Response#set_cookie to add HttpOnly option
     def set_cookie(key, value)
-      case value
-      when Hash
-        domain  = "; domain="  + value[:domain]    if value[:domain]
-        path    = "; path="    + value[:path]      if value[:path]
-        # According to RFC 2109, we need dashes here.
-        # N.B.: cgi.rb uses spaces...
-        expires = "; expires=" + value[:expires].clone.gmtime.
-          strftime("%a, %d-%b-%Y %H:%M:%S GMT")    if value[:expires]
-        secure = "; secure"  if value[:secure]
-        httponly = "; HttpOnly" if value[:http_only]
-        value = value[:value]
+      if value.has_key?(:http_only)
+        value[:httponly] ||= value.delete(:http_only)
       end
-      value = [value]  unless Array === value
-      cookie = ::Rack::Utils.escape(key) + "=" +
-        value.map { |v| ::Rack::Utils.escape v }.join("&") +
-        "#{domain}#{path}#{expires}#{secure}#{httponly}"
 
-      case self["Set-Cookie"]
-      when Array
-        self["Set-Cookie"] << cookie
-      when String
-        self["Set-Cookie"] = [self["Set-Cookie"], cookie]
-      when nil
-        self["Set-Cookie"] = cookie
-      end
+      super(key, value)
     end
 
     private

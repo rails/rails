@@ -31,9 +31,8 @@ rescue LoadError
   end
 end
 
-gem 'rack', '>= 0.9.0'
+$:.unshift "#{File.dirname(__FILE__)}/action_controller/vendor/rack-1.0"
 require 'rack'
-require 'action_controller/rack_ext'
 
 module ActionController
   # TODO: Review explicit to see if they will automatically be handled by
@@ -77,7 +76,6 @@ module ActionController
   autoload :UploadedFile, 'action_controller/uploaded_file'
   autoload :UploadedStringIO, 'action_controller/uploaded_file'
   autoload :UploadedTempfile, 'action_controller/uploaded_file'
-  autoload :UrlEncodedPairParser, 'action_controller/url_encoded_pair_parser'
   autoload :UrlRewriter, 'action_controller/url_rewriter'
   autoload :UrlWriter, 'action_controller/url_rewriter'
   autoload :Verification, 'action_controller/verification'

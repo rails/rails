@@ -417,15 +417,15 @@ EOM
       FORM_DATA_MEDIA_TYPES.include?(content_type.to_s)
     end
 
-    # Override Rack's GET method to support nested query strings
+    # Override Rack's GET method to support indifferent access
     def GET
-      @env["action_controller.request.query_parameters"] ||= UrlEncodedPairParser.parse_query_parameters(query_string)
+      @env["action_controller.request.query_parameters"] ||= normalize_parameters(super)
     end
     alias_method :query_parameters, :GET
 
-    # Override Rack's POST method to support nested query strings
+    # Override Rack's POST method to support indifferent access
     def POST
-      @env["action_controller.request.request_parameters"] ||= UrlEncodedPairParser.parse_hash_parameters(super)
+      @env["action_controller.request.request_parameters"] ||= normalize_parameters(super)
     end
     alias_method :request_parameters, :POST
 
@@ -460,6 +460,29 @@ EOM
     private
       def named_host?(host)
         !(host.nil? || /\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3}$/.match(host))
+      end
+
+      # Convert nested Hashs to HashWithIndifferentAccess and replace
+      # file upload hashs with UploadedFile objects
+      def normalize_parameters(value)
+        case value
+        when Hash
+          if value.has_key?(:tempfile)
+            upload = value[:tempfile]
+            upload.extend(UploadedFile)
+            upload.original_path = value[:filename]
+            upload.content_type = value[:type]
+            upload
+          else
+            h = {}
+            value.each { |k, v| h[k] = normalize_parameters(v) }
+            h.with_indifferent_access
+          end
+        when Array
+          value.map { |e| normalize_parameters(e) }
+        else
+          value
+        end
       end
   end
 end
