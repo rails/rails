@@ -964,24 +964,34 @@ module ActionView
         def fields_for_with_nested_attributes(association_name, args, block)
           name = "#{object_name}[#{association_name}_attributes]"
           association = @object.send(association_name)
+          explicit_object = args.first if args.first.respond_to?(:new_record?)
 
           if association.is_a?(Array)
-            children = args.first.respond_to?(:new_record?) ? [args.first] : association
+            children = explicit_object ? [explicit_object] : association
+            explicit_child_index = args.last[:child_index] if args.last.is_a?(Hash)
 
             children.map do |child|
-              child_name = "#{name}[#{ child.new_record? ? new_child_id : child.id }]"
-              @template.fields_for(child_name, child, *args, &block)
+              fields_for_nested_model("#{name}[#{explicit_child_index || nested_child_index}]", child, args, block)
             end.join
           else
-            object = args.first.respond_to?(:new_record?) ? args.first : association
-            @template.fields_for(name, object, *args, &block)
+            fields_for_nested_model(name, explicit_object || association, args, block)
           end
         end
 
-        def new_child_id
-          value = (@child_counter ||= 1)
-          @child_counter += 1
-          "new_#{value}"
+        def fields_for_nested_model(name, object, args, block)
+          if object.new_record?
+            @template.fields_for(name, object, *args, &block)
+          else
+            @template.fields_for(name, object, *args) do |builder|
+              @template.concat builder.hidden_field(:id)
+              block.call(builder)
+            end
+          end
+        end
+
+        def nested_child_index
+          @nested_child_index ||= -1
+          @nested_child_index += 1
         end
     end
   end
