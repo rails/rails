@@ -94,19 +94,17 @@ class DurationTest < ActiveSupport::TestCase
   end
 
   def test_since_and_ago_anchored_to_time_zone_now_when_time_zone_default_set
-    silence_warnings do # silence warnings raised by tzinfo gem
-      Time.zone_default = ActiveSupport::TimeZone['Eastern Time (US & Canada)']
-      with_env_tz 'US/Eastern' do
-        Time.stubs(:now).returns Time.local(2000)
-        # since
-        assert_equal true, 5.seconds.since.is_a?(ActiveSupport::TimeWithZone)
-        assert_equal Time.utc(2000,1,1,0,0,5), 5.seconds.since.time
-        assert_equal 'Eastern Time (US & Canada)', 5.seconds.since.time_zone.name
-        # ago
-        assert_equal true, 5.seconds.ago.is_a?(ActiveSupport::TimeWithZone)
-        assert_equal Time.utc(1999,12,31,23,59,55), 5.seconds.ago.time
-        assert_equal 'Eastern Time (US & Canada)', 5.seconds.ago.time_zone.name
-      end
+    Time.zone_default = ActiveSupport::TimeZone['Eastern Time (US & Canada)']
+    with_env_tz 'US/Eastern' do
+      Time.stubs(:now).returns Time.local(2000)
+      # since
+      assert_equal true, 5.seconds.since.is_a?(ActiveSupport::TimeWithZone)
+      assert_equal Time.utc(2000,1,1,0,0,5), 5.seconds.since.time
+      assert_equal 'Eastern Time (US & Canada)', 5.seconds.since.time_zone.name
+      # ago
+      assert_equal true, 5.seconds.ago.is_a?(ActiveSupport::TimeWithZone)
+      assert_equal Time.utc(1999,12,31,23,59,55), 5.seconds.ago.time
+      assert_equal 'Eastern Time (US & Canada)', 5.seconds.ago.time_zone.name
     end
   ensure
     Time.zone_default = nil
