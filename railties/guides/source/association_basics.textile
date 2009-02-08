@@ -41,7 +41,7 @@ With Active Record associations, we can streamline these - and other - operation
 
 <ruby>
 class Customer < ActiveRecord::Base
-  has_many :orders
+  has_many :orders, :dependent => :destroy
 end
 
 class Order < ActiveRecord::Base
