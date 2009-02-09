@@ -328,7 +328,7 @@ module ActiveSupport
       end
 
       def duration_of_variable_length?(obj)
-        ActiveSupport::Duration === obj && obj.parts.flatten.detect {|p| [:years, :months, :days].include? p }
+        ActiveSupport::Duration === obj && obj.parts.flatten.any? {|p| [:years, :months, :days].include? p }
       end
   end
 end
