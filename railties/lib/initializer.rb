@@ -181,6 +181,9 @@ module Rails
       # Observers are loaded after plugins in case Observers or observed models are modified by plugins.
       load_observers
 
+      # Load view path cache
+      load_view_paths
+
       # Load application classes
       load_application_classes
 
@@ -361,6 +364,15 @@ Run `rake gems:install` to install the missing gems.
     def load_observers
       if gems_dependencies_loaded && configuration.frameworks.include?(:active_record)
         ActiveRecord::Base.instantiate_observers
+      end
+    end
+
+    def load_view_paths
+      if configuration.frameworks.include?(:action_view)
+        if configuration.cache_classes
+          ActionController::Base.view_paths = configuration.view_path if configuration.frameworks.include?(:action_controller)
+          ActionMailer::Base.template_root = view_path if configuration.frameworks.include?(:action_mailer)
+        end
       end
     end
 
