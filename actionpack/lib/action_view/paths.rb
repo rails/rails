@@ -2,11 +2,7 @@ module ActionView #:nodoc:
   class PathSet < Array #:nodoc:
     def self.type_cast(obj)
       if obj.is_a?(String)
-        if !Object.const_defined?(:Rails) || Rails.configuration.cache_classes
-          Template::EagerPath.new(obj)
-        else
-          Template::Path.new(obj)
-        end
+        Template::Path.new(obj)
       else
         obj
       end
@@ -36,9 +32,8 @@ module ActionView #:nodoc:
       super(*objs.map { |obj| self.class.type_cast(obj) })
     end
 
-    def find_template(original_template_path, format = nil)
-      return original_template_path if original_template_path.respond_to?(:render)
-      template_path = original_template_path.sub(/^\//, '')
+    def find_template(template_path, format = nil)
+      return template_path if template_path.respond_to?(:render)
 
       each do |load_path|
         if format && (template = load_path["#{template_path}.#{I18n.locale}.#{format}"])
@@ -57,7 +52,11 @@ module ActionView #:nodoc:
         end
       end
 
-      Template.new(original_template_path, self)
+      if File.exist?(template_path)
+        return Template.new(template_path, template_path[0] == 47 ? "" : ".")
+      end
+
+      raise MissingTemplate.new(self, template_path, format)
     end
   end
 end

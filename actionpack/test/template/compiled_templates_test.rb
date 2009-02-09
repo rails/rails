@@ -39,35 +39,29 @@ class CompiledTemplatesTest < Test::Unit::TestCase
   end
 
   def test_template_changes_are_not_reflected_with_cached_templates
-    assert_equal "Hello world!", render(:file => "test/hello_world.erb")
-    modify_template "test/hello_world.erb", "Goodbye world!" do
+    with_caching(true) do
+      assert_equal "Hello world!", render(:file => "test/hello_world.erb")
+      modify_template "test/hello_world.erb", "Goodbye world!" do
+        assert_equal "Hello world!", render(:file => "test/hello_world.erb")
+      end
       assert_equal "Hello world!", render(:file => "test/hello_world.erb")
     end
-    assert_equal "Hello world!", render(:file => "test/hello_world.erb")
   end
 
-  def test_template_changes_are_reflected_with_uncached_templates
-    assert_equal "Hello world!", render_without_cache(:file => "test/hello_world.erb")
-    modify_template "test/hello_world.erb", "Goodbye world!" do
-      assert_equal "Goodbye world!", render_without_cache(:file => "test/hello_world.erb")
+  def test_template_changes_are_reflected_without_cached_templates
+    with_caching(false) do
+      assert_equal "Hello world!", render(:file => "test/hello_world.erb")
+      modify_template "test/hello_world.erb", "Goodbye world!" do
+        assert_equal "Goodbye world!", render(:file => "test/hello_world.erb")
+        sleep(1) # Need to sleep so that the timestamp actually changes
+      end
+      assert_equal "Hello world!", render(:file => "test/hello_world.erb")
     end
-    assert_equal "Hello world!", render_without_cache(:file => "test/hello_world.erb")
   end
 
   private
     def render(*args)
-      render_with_cache(*args)
-    end
-
-    def render_with_cache(*args)
       view_paths = ActionController::Base.view_paths
-      assert_equal ActionView::Template::EagerPath, view_paths.first.class
-      ActionView::Base.new(view_paths, {}).render(*args)
-    end
-
-    def render_without_cache(*args)
-      path = ActionView::Template::Path.new(FIXTURE_LOAD_PATH)
-      view_paths = ActionView::Base.process_view_paths(path)
       assert_equal ActionView::Template::Path, view_paths.first.class
       ActionView::Base.new(view_paths, {}).render(*args)
     end
@@ -80,6 +74,16 @@ class CompiledTemplatesTest < Test::Unit::TestCase
         yield
       ensure
         File.open(filename, "wb+") { |f| f.write(old_content) }
+      end
+    end
+
+    def with_caching(caching_enabled)
+      old_caching_enabled = ActionView::Base.cache_template_loading
+      begin
+        ActionView::Base.cache_template_loading = caching_enabled
+        yield
+      ensure
+        ActionView::Base.cache_template_loading = old_caching_enabled
       end
     end
 end

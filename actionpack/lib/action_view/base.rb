@@ -182,6 +182,10 @@ module ActionView #:nodoc:
     # that alert()s the caught exception (and then re-raises it).
     cattr_accessor :debug_rjs
 
+    # Specify whether to check whether modified templates are recompiled without a restart
+    @@cache_template_loading = false
+    cattr_accessor :cache_template_loading
+
     attr_internal :request
 
     delegate :request_forgery_protection_token, :template, :params, :session, :cookies, :response, :headers,
@@ -243,8 +247,8 @@ module ActionView #:nodoc:
         if options[:layout]
           _render_with_layout(options, local_assigns, &block)
         elsif options[:file]
-          tempalte = self.view_paths.find_template(options[:file], template_format)
-          tempalte.render_template(self, options[:locals])
+          template = self.view_paths.find_template(options[:file], template_format)
+          template.render_template(self, options[:locals])
         elsif options[:partial]
           render_partial(options)
         elsif options[:inline]

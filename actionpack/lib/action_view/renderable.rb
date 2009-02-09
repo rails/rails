@@ -18,7 +18,6 @@ module ActionView
     def compiled_source
       handler.call(self)
     end
-    memoize :compiled_source
 
     def method_name_without_locals
       ['_run', extension, method_segment].compact.join('_')
@@ -80,6 +79,8 @@ module ActionView
 
         begin
           ActionView::Base::CompiledTemplates.module_eval(source, filename, 0)
+        rescue Errno::ENOENT => e
+          raise e # Missing template file, re-raise for Base to rescue
         rescue Exception => e # errors from template code
           if logger = defined?(ActionController) && Base.logger
             logger.debug "ERROR: compiling #{render_symbol} RAISED #{e}"
@@ -89,10 +90,6 @@ module ActionView
 
           raise ActionView::TemplateError.new(self, {}, e)
         end
-      end
-
-      def recompile?
-        false
       end
   end
 end

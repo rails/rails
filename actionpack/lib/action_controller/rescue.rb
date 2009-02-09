@@ -38,7 +38,7 @@ module ActionController #:nodoc:
       'ActionView::TemplateError'         => 'template_error'
     }
 
-    RESCUES_TEMPLATE_PATH = ActionView::Template::EagerPath.new(
+    RESCUES_TEMPLATE_PATH = ActionView::Template::Path.new(
       File.join(File.dirname(__FILE__), "templates"))
 
     def self.included(base) #:nodoc:

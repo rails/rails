@@ -7,6 +7,11 @@ module ActionView #:nodoc:
       def initialize(path)
         raise ArgumentError, "path already is a Path class" if path.is_a?(Path)
         @path = path.freeze
+
+        @paths = {}
+        templates_in_path do |template|
+          load_template(template)
+        end
       end
 
       def to_s
@@ -39,12 +44,7 @@ module ActionView #:nodoc:
       # etc. A format must be supplied to match a formated file. +hello/index+
       # will never match +hello/index.html.erb+.
       def [](path)
-        templates_in_path do |template|
-          if template.accessible_paths.include?(path)
-            return template
-          end
-        end
-        nil
+        @paths[path] || find_template(path)
       end
 
       private
@@ -57,25 +57,30 @@ module ActionView #:nodoc:
         def create_template(file)
           Template.new(file.split("#{self}/").last, self)
         end
-    end
 
-    class EagerPath < Path
-      def initialize(path)
-        super
-
-        @paths = {}
-        templates_in_path do |template|
+        def load_template(template)
           template.load!
           template.accessible_paths.each do |path|
             @paths[path] = template
           end
         end
-        @paths.freeze
-      end
 
-      def [](path)
-        @paths[path]
-      end
+        def matching_templates(template_path)
+          Dir.glob("#{@path}/#{template_path}.*").each do |file|
+            yield create_template(file) unless File.directory?(file)
+          end
+        end
+
+        def find_template(path)
+          return nil if Base.cache_template_loading || ActionController::Base.allow_concurrency
+          matching_templates(path) do |template|
+            if template.accessible_paths.include?(path)
+              load_template(template)
+              return template
+            end
+          end
+          nil
+        end
     end
 
     extend TemplateHandlers
@@ -97,9 +102,9 @@ module ActionView #:nodoc:
     attr_accessor :locale, :name, :format, :extension
     delegate :to_s, :to => :path
 
-    def initialize(template_path, load_paths = [])
+    def initialize(template_path, load_path)
       template_path = template_path.dup
-      @load_path, @filename = find_full_path(template_path, load_paths)
+      @load_path, @filename = load_path, File.join(load_path, template_path)
       @base_path, @name, @locale, @format, @extension = split(template_path)
       @base_path.to_s.gsub!(/\/$/, '') # Push to split method
 
@@ -171,7 +176,6 @@ module ActionView #:nodoc:
     def source
       File.read(filename)
     end
-    memoize :source
 
     def method_segment
       relative_path.to_s.gsub(/([^a-zA-Z0-9_])/) { $1.ord }
@@ -185,40 +189,40 @@ module ActionView #:nodoc:
       if TemplateError === e
         e.sub_template_of(self)
         raise e
+      elsif Errno::ENOENT === e
+        raise MissingTemplate.new(view.view_paths, filename.sub("#{RAILS_ROOT}/#{load_path}/", ""))
       else
         raise TemplateError.new(self, view.assigns, e)
       end
     end
 
     def stale?
-      File.mtime(filename) > mtime
-    end
-
-    def recompile?
-      !@cached
+      !frozen? && mtime < mtime(:reload)
     end
 
     def load!
-      @cached = true
-      freeze
+      reloadable? ? memoize_all : freeze
     end
 
     private
+      def cached?
+        Base.cache_template_loading || ActionController::Base.allow_concurrency
+      end
+
+      def reloadable?
+        !cached?
+      end
+
+      def recompile?
+        reloadable? ? stale? : false
+      end
+
       def valid_extension?(extension)
         !Template.registered_template_handler(extension).nil?
       end
 
       def valid_locale?(locale)
         I18n.available_locales.include?(locale.to_sym)
-      end
-
-      def find_full_path(path, load_paths)
-        load_paths = Array(load_paths) + [nil]
-        load_paths.each do |load_path|
-          file = load_path ? "#{load_path.to_str}/#{path}" : path
-          return load_path, file if File.file?(file)
-        end
-        raise MissingTemplate.new(load_paths, path)
       end
 
       # Returns file split into an array
@@ -259,5 +263,5 @@ module ActionView #:nodoc:
 
         [base_path, name, locale, format, extension]
       end
-  end
+ end
 end
