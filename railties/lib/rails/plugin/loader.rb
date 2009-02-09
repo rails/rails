@@ -175,7 +175,7 @@ module Rails
         def ensure_all_registered_plugins_are_loaded!
           if explicit_plugin_loading_order?
             if configuration.plugins.detect {|plugin| plugin != :all && !loaded?(plugin) }
-              missing_plugins = configuration.plugins - (plugins + [:all])
+              missing_plugins = configuration.plugins - (plugins.map{|p| p.name.to_sym} + [:all])
               raise LoadError, "Could not locate the following plugins: #{missing_plugins.to_sentence}"
             end
           end

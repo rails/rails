@@ -238,6 +238,26 @@ class InitializerPluginLoadingTests < Test::Unit::TestCase
     end
   end
 
+  def test_load_error_messages_mention_missing_plugins_and_no_others
+    valid_plugin_names = [:stubby, :acts_as_chunky_bacon]
+    invalid_plugin_names = [:non_existant_plugin1, :non_existant_plugin2]
+    only_load_the_following_plugins!( valid_plugin_names + invalid_plugin_names )
+    begin
+      load_plugins!
+      flunk "Expected a LoadError but did not get one"
+    rescue LoadError => e
+      failure_tip = "It's likely someone renamed or deleted plugin fixtures without updating this test"
+      assert_plugins valid_plugin_names, @initializer.loaded_plugins, failure_tip
+      invalid_plugin_names.each do |plugin|
+        assert_match(/#{plugin.to_s}/, e.message, "LoadError message should mention plugin '#{plugin}'")
+      end
+      valid_plugin_names.each do |plugin|
+        assert_no_match(/#{plugin.to_s}/, e.message, "LoadError message should not mention '#{plugin}'")
+      end
+
+    end
+  end
+
   def test_should_ensure_all_loaded_plugins_load_paths_are_added_to_the_load_path
     only_load_the_following_plugins! [:stubby, :acts_as_chunky_bacon]
 
