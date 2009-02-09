@@ -837,7 +837,8 @@ Run `rake gems:install` to install the missing gems.
 
     # Enable threaded mode. Allows concurrent requests to controller actions and
     # multiple database connections. Also disables automatic dependency loading
-    # after boot
+    # after boot, and disables reloading code on every request, as these are 
+    # fundamentally incompatible with thread safety.
     def threadsafe!
       self.preload_frameworks = true
       self.cache_classes = true
