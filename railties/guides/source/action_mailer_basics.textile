@@ -6,11 +6,12 @@ endprologue.
 
 h3. Introduction
 
-Action Mailer allows you to send email from your application using a mailer model and views. Yes, that is correct, in Rails, emails are used by creating models that inherit from ActionMailer::Base. They live alongside other models in `app/models` but they have views just like controllers that appear alongside other views in `app/views`.
+Action Mailer allows you to send emails from your application using a mailer model and views.
+So, in Rails, emails are used by creating models that inherit from ActionMailer::Base that live alongside other models in `app/models`. Those models have associated views that appear alongside controller views in `app/views`.
 
 h3. Sending Emails
 
-Let's say you want to send a welcome email to a user after they signup. Here is how you would go about this:
+This section will provide a step-by-step guide to creating a mailer and its views.
 
 h4. Walkthrough to generating a mailer
 
@@ -30,7 +31,7 @@ So we got the model, the fixtures, and the tests all created for us
 
 h5. Edit the model:
 
-If you look at +app/models/user_mailer.rb+, you will see:
+Opening +app/models/user_mailer.rb+, you should see the empty mailer:
 
 <ruby>
 class UserMailer < ActionMailer::Base
@@ -54,7 +55,7 @@ class UserMailer < ActionMailer::Base
 end
 </ruby>
 
-So what do we have here?
+Here is a quick explanation of the options presented in the preceding method. For a full list of all available options, please have a look further down at the Complete List of ActionMailer user-settable attributes section.
 
 |recipients| The recipients of the email. It can be a string or, if there are multiple recipients, an array of strings|
 |from| Who the email will appear to come from in the recipients' mailbox|
@@ -103,7 +104,7 @@ Rails::Initializer.run do |config|
 end
 </ruby>
 
-There was a bit of a debate on where to put observers. Some people put them in app/models, but a cleaner method may be to create an app/observers folder to store all observers, and add that to your load path. Open +config/environment.rb+ and make it look like:
+You can place the observer in +app/models+ where it will be loaded automatically by Rails. Another option is to create an +app/observers+ folder to store all your observers, and add that to your load path. Open +config/environment.rb+ and make it look like:
 
 <ruby>
 # Code that already exists
@@ -124,19 +125,17 @@ class UserObserver < ActiveRecord::Observer
 end
 </ruby>
 
-Notice how we call +deliver_welcome_email+? Where is that method? Well if you remember, we created a method called +welcome_email+ in UserMailer, right? Well, as part of the "magic" of Rails, we deliver the email identified by +welcome_email+ by calling +deliver_welcome_email+. The next section will go through this in more detail.
-
-That's it! Now whenever your users signup, they will be greeted with a nice welcome email.
+Notice how we call +deliver_welcome_email+? In Action Mailer we send emails by calling deliver_name_of_method. In UserMailer, we defined a method called welcome_email, and so we deliver the email by calling deliver_welcome_email. The next section will go through how Action Mailer achieves this.
 
 h4. Action Mailer and dynamic deliver_<method> methods
 
 So how does Action Mailer understand this deliver_welcome_email call? If you read the documentation (http://api.rubyonrails.org/files/vendor/rails/actionmailer/README.html), you will find this in the "Sending Emails" section:
 
-You never instantiate your mailer class. Rather, your delivery instance methods are automatically wrapped in class methods that start with the word +deliver_+ followed by the name of the mailer method that you would like to deliver. The +welcome_email+ method defined above is delivered by invoking +Notifier.deliver_welcome_email+.
+You never instantiate your mailer class. Rather, your delivery instance methods are automatically wrapped in class methods that start with the word +deliver_+ followed by the name of the mailer method that you would like to deliver.
 
 So, how exactly does this work?
 
-In +ActionMailer::Base+, you will find this:
+Looking at the +ActionMailer::Base+ source, you will find this:
 
 <ruby>
 def method_missing(method_symbol, *parameters)#:nodoc:
