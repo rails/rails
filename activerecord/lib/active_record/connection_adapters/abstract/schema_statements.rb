@@ -316,7 +316,7 @@ module ActiveRecord
       def initialize_schema_migrations_table
         sm_table = ActiveRecord::Migrator.schema_migrations_table_name
 
-        unless tables.detect { |t| t == sm_table }
+        unless table_exists?(sm_table)
           create_table(sm_table, :id => false) do |schema_migrations_table|
             schema_migrations_table.column :version, :string, :null => false
           end
@@ -327,7 +327,7 @@ module ActiveRecord
           # migrated up to that point:
           si_table = Base.table_name_prefix + 'schema_info' + Base.table_name_suffix
 
-          if tables.detect { |t| t == si_table }
+          if table_exists?(si_table)
 
             old_version = select_value("SELECT version FROM #{quote_table_name(si_table)}").to_i
             assume_migrated_upto_version(old_version)
