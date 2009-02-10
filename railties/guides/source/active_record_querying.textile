@@ -763,20 +763,21 @@ client = Client.find_or_initialize_by_name('Ryan')
 
 will either assign an existing client object with the name 'Ryan' to the client local variable, or initialize a new object similar to calling +Client.new(:name => 'Ryan')+. From here, you can modify other fields in client by calling the attribute setters on it: +client.locked = true+ and when you want to write it to the database just call +save+ on it.
 
-
 h3. Finding By SQL
 
 If you'd like to use your own SQL to find records in a table you can use +find_by_sql+. The +find_by_sql+ method will return an array of objects even the underlying query returns just a single record. For example you could run this query:
 
 <ruby>
-Client.find_by_sql("SELECT * FROM clients INNER JOIN orders ON clients.id = orders.client_id ORDER clients.created_at desc")
+Client.find_by_sql("SELECT * FROM clients 
+  INNER JOIN orders ON clients.id = orders.client_id 
+  ORDER clients.created_at desc")
 </ruby>
 
 +find_by_sql+ provides you with a simple way of making custom calls to the database and retrieving instantiated objects.
 
 h3. select_all
 
-+find_by_sql+ has a close relative called +connection#select_all+. +select_all+ will retrieve objects from the database using custom SQL just like +find_by_sql+ but will not instantiate them. Instead, you will get an array of hashes where each hash indicates a record.
+<tt>find_by_sql</tt> has a close relative called +connection#select_all+. +select_all+ will retrieve objects from the database using custom SQL just like +find_by_sql+ but will not instantiate them. Instead, you will get an array of hashes where each hash indicates a record.
 
 <ruby>
 Client.connection.select_all("SELECT * FROM clients WHERE id = '1'")
@@ -784,7 +785,7 @@ Client.connection.select_all("SELECT * FROM clients WHERE id = '1'")
 
 h3. Existence of Objects
 
-If you simply want to check for the existence of the object there's a method called +exists?+. This method will query the database using the same query as +find+, but instead of returning an object or collection of objects it will return either +true+ or false+.
+If you simply want to check for the existence of the object there's a method called +exists?+. This method will query the database using the same query as +find+, but instead of returning an object or collection of objects it will return either +true+ or +false+.
 
 <ruby>
 Client.exists?(1)
@@ -804,11 +805,19 @@ Further more, +exists+ takes a +conditions+ option much like find:
 Client.exists?(:conditions => "first_name = 'Ryan'")
 </ruby>
 
+It's even possible to use +exists?+ without any arguments:
+
+<ruby>
+Client.exists?
+</ruby>
+
+The above returns +false+ if the +clients+ table is empty and +true+ otherwise.
+
 h3. Calculations
 
 This section uses count as an example method in this preamble, but the options described apply to all sub-sections.
 
-+count+ takes conditions much in the same way +exists?+ does:
+<tt>count</tt> takes conditions much in the same way +exists?+ does:
 
 <ruby>
 Client.count(:conditions => "first_name = 'Ryan'")
