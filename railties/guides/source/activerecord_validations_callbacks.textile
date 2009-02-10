@@ -869,53 +869,58 @@ You can declare as many callbacks as you want inside your callback classes.
 
 h3. Observers
 
-Active Record callbacks are a powerful feature, but they can pollute your model implementation with code that's not directly related to the model's purpose. In object-oriented software, it's always a good idea to design your classes with a single responsibility in the whole system. For example, it wouldn't make much sense to have a +User+ model with a method that writes data about a login attempt to a log file. Whenever you're using callbacks to write code that's not directly related to your model class purposes, it may be a good moment to create an Observer.
+Observers are similar to callbacks, but with important differences. Whereas callbacks can pollute a model with code that isn't directly related to its purpose, observers allow you to add functionality outside of a model. For example, it could be argued that a +User+ model should not include code to send registration confirmation emails. Whenever you use callbacks with code that isn't directly related to your model, you may want to consider creating an observer instead.
 
-An Active Record Observer is an object that links itself to a model and registers its methods for callbacks. Your model's implementation remains clean, while you can reuse the code in the Observer to add behaviour to more than one model class. OK, you may say that we can also do that using callback classes, but it would still force us to add code to our model's implementation.
+h4. Creating observers
 
-Observer classes are subclasses of the ActiveRecord::Observer class. When this class is subclassed, Active Record will look at the name of the new class and then strip the 'Observer' part to find the name of the Active Record class to observe.
-
-Consider a Registration model, where we want to send an email every time a new registration is created. Since sending emails is not directly related to our model's purpose, we could create an Observer to do just that:
+For example, imagine a +User+ model where we want to send an email every time a new user is created. Because sending emails is not directly related to our model's purpose, we could create an observer to contain this functionality.
 
 <ruby>
-class RegistrationObserver < ActiveRecord::Observer
+class UserObserver < ActiveRecord::Observer
   def after_create(model)
-    # code to send registration confirmation emails...
+    # code to send confirmation email...
   end
 end
 </ruby>
 
-Like in callback classes, the observer's methods receive the observed model as a parameter.
-
-Sometimes using the ModelName + Observer naming convention won't be the best choice, mainly when you want to use the same observer for more than one model class. It's possible to explicity specify the models that our observer should observe.
-
-<ruby>
-class Auditor < ActiveRecord::Observer
-  observe User, Registration, Invoice
-end
-</ruby>
+As with callback classes, the observer's methods receive the observed model as a parameter.
 
 h4. Registering observers
 
-If you paid attention, you may be wondering where Active Record Observers are referenced in our applications, so they get instantiated and begin to interact with our models. For observers to work we need to register them somewhere. The usual place to do that is in our application's *config/environment.rb* file. In this file there is a commented-out line where we can define the observers that our application should load at start-up.
+Observers should be placed inside of your *app/models* directory and registered in your application's *config/environment.rb* file. For example, the +UserObserver+ above would be saved as *app/models/user_observer.rb* and registered in *config/environment.rb*.
 
 <ruby>
 # Activate observers that should always be running
-config.active_record.observers = :registration_observer, :auditor
+config.active_record.observers = :user_observer
 </ruby>
 
-You can uncomment the line with +config.active_record.observers+ and change the symbols for the name of the observers that should be registered.
+As usual, settings in *config/environments/* take precedence over those in *config/environment.rb*. So, if you prefer that an observer not run in all environments, you can simply register it in a specific environment instead.
 
-It's also possible to register callbacks in any of the files living at *config/environments/*, if you want an observer to work only in a specific environment. There is not a +config.active_record.observers+ line at any of those files, but you can simply add it.
+h4. Sharing observers
 
-h4. Where to put the observers' source files
+By default, Rails will simply strip 'observer' from an observer's name to find the model it should observe. However, observers can also be used to add behaviour to more than one model, and so it's possible to manually specify the models that our observer should observe.
 
-By convention, you should always save your observers' source files inside *app/models*.
+<ruby>
+class MailerObserver < ActiveRecord::Observer
+  observe :registration, :user
+  
+  def after_create(model)
+    # code to send confirmation email...
+  end
+end
+</ruby>
 
-# TODO this probably doesn't need it's own section and entry in the table of contents.
+In this example, the +after_create+ method would be called whenever a +Registration+ or +User+ was created. Note that this new +MailerObserver+ would also need to be registered in *config/environment.rb* in order to take effect. 
+
+<ruby>
+# Activate observers that should always be running
+config.active_record.observers = :mailer_observer
+</ruby>
 
 h3. Changelog
 
 "Lighthouse ticket":http://rails.lighthouseapp.com/projects/16213/tickets/26-active-record-validations-and-callbacks
 
-January 9, 2009: Initial version by "Cássio Marques":credits.html#cmarques
+* February 10, 2009: Observers revision by "Trevor Turk":credits.html#trevorturk
+* February 5, 2009: Initial revision by "Trevor Turk":credits.html#trevorturk
+* January 9, 2009: Initial version by "Cássio Marques":credits.html#cmarques
