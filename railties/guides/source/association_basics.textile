@@ -552,7 +552,7 @@ If the associated object has already been retrieved from the database for this o
 
 h6. _association_=(associate)
 
-The <tt><tm>association</em>=</tt> method assigns an associated object to this object. Behind the scenes, this means extracting the primary key from the associate object and setting this object's foreign key to the same value.
+The <tt><em>association</em>=</tt> method assigns an associated object to this object. Behind the scenes, this means extracting the primary key from the associate object and setting this object's foreign key to the same value.
 
 <ruby>
 @order.customer = @customer
