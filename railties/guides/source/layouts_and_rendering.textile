@@ -510,7 +510,7 @@ Asset tags provide methods for generating HTML that links views to assets like i
 * stylesheet_link_tag
 * image_tag
 
-You can use these tags in layouts or other views, although the tags other than +image_tag+ are most commonly used in the <tt><head></tt> section of a layout.
+You can use these tags in layouts or other views, although the tags other than +image_tag+ are most commonly used in the +&lt;head&gt;+ section of a layout.
 
 WARNING: The asset tags do _not_ verify the existence of the assets at the specified locations; they simply assume that you know what you're doing and generate the link.
 
@@ -645,11 +645,11 @@ By default, the combined file will be delivered as +stylesheets/all.css+. You ca
   :cache => 'cache/main/display' %>
 </erb>
 
-You can even use dynamic paths such as "cache/#{current_site}/main/display"+.
+You can even use dynamic paths such as +cache/#{current_site}/main/display+.
 
 h5. Linking to Images with image_tag
 
-The +image_tag+ helper builds an HTML <tt><image></tt> tag to the specified file. By default, files are loaded from +public/images+. If you don't specify an extension, .png is assumed by default:
+The +image_tag+ helper builds an HTML +&lt;image&gt;+ tag to the specified file. By default, files are loaded from +public/images+. If you don't specify an extension, +.png+ is assumed by default:
 
 <erb>
 <%= image_tag "header" %>
@@ -727,7 +727,7 @@ The result of rendering this page into the supplied layout would be this HTML:
 </html>
 </erb>
 
-The +content_for+ method is very helpful when your layout contains distinct regions such as sidebars and footers that should get their own blocks of content inserted. It's also useful for inserting tags that load page-specific javascript or css files into the header of an otherwise-generic layout.
+The +content_for+ method is very helpful when your layout contains distinct regions such as sidebars and footers that should get their own blocks of content inserted. It's also useful for inserting tags that load page-specific javascript or css files into the header of an otherwise generic layout.
 
 h4. Using Partials
 
@@ -952,7 +952,7 @@ NOTE: In versions of Rails before Rails 2.3, you should use +render 'layouts/app
 
 That's it. The News views will use the new layout, hiding the top menu and adding a new right menu inside the "content" div.
 
-There are several ways of getting similar results with differents sub-templating schemes using this technique. Note that there is no limit in nesting levels. One can use the +ActionView::render+ method via +render 'layouts/news'+ to base a new layout on the News layout.
+There are several ways of getting similar results with different sub-templating schemes using this technique. Note that there is no limit in nesting levels. One can use the +ActionView::render+ method via +render 'layouts/news'+ to base a new layout on the News layout.
 
 h3. Changelog
 
