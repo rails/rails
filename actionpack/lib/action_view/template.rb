@@ -7,7 +7,9 @@ module ActionView #:nodoc:
       def initialize(path)
         raise ArgumentError, "path already is a Path class" if path.is_a?(Path)
         @path = path.freeze
+      end
 
+      def load!
         @paths = {}
         templates_in_path do |template|
           load_template(template)
@@ -44,6 +46,7 @@ module ActionView #:nodoc:
       # etc. A format must be supplied to match a formated file. +hello/index+
       # will never match +hello/index.html.erb+.
       def [](path)
+        load! if @paths.nil?
         @paths[path] || find_template(path)
       end
 
@@ -197,26 +200,22 @@ module ActionView #:nodoc:
     end
 
     def stale?
-      !frozen? && mtime < mtime(:reload)
+      reloadable? && (mtime < mtime(:reload))
     end
 
     def load!
       reloadable? ? memoize_all : freeze
     end
 
+    def reloadable?
+      !(Base.cache_template_loading || ActionController::Base.allow_concurrency)
+    end
+
+    def cached?
+      ActionController::Base.perform_caching || !reloadable?
+    end
+
     private
-      def cached?
-        Base.cache_template_loading || ActionController::Base.allow_concurrency
-      end
-
-      def reloadable?
-        !cached?
-      end
-
-      def recompile?
-        reloadable? ? stale? : false
-      end
-
       def valid_extension?(extension)
         !Template.registered_template_handler(extension).nil?
       end
