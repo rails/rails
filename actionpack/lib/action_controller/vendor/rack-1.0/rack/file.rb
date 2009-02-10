@@ -13,6 +13,8 @@ module Rack
     attr_accessor :root
     attr_accessor :path
 
+    alias :to_path :path
+
     def initialize(root)
       @root = root
     end

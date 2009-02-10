@@ -50,12 +50,11 @@ module Rack
       return if k.empty?
 
       if after == ""
-        if cur = params[k]
-          if cur.is_a?(Array)
-            params[k] << v
-          else
-            params[k] = [cur, v]
-          end
+        cur = params[k]
+        if cur.is_a?(Array)
+          params[k] << v
+        elsif cur && name == $1
+          params[k] = [cur, v]
         else
           params[k] = v
         end

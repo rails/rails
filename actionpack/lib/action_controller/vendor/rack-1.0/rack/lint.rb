@@ -442,6 +442,18 @@ module Rack
       ## If the Body responds to #close, it will be called after iteration.
       # XXX howto: assert("Body has not been closed") { @closed }
 
+
+      ##
+      ## If the Body responds to #to_path, it must return a String
+      ## identifying the location of a file whose contents are identical
+      ## to that produced by calling #each.
+
+      if @body.respond_to?(:to_path)
+        assert("The file identified by body.to_path does not exist") {
+          ::File.exist? @body.to_path
+        }
+      end
+
       ##
       ## The Body commonly is an Array of Strings, the application
       ## instance itself, or a File-like object.
