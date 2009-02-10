@@ -586,7 +586,7 @@ By default, the combined file will be delivered as +javascripts/all.js+. You can
   :cache => 'cache/main/display' %>
 </erb>
 
-You can even use dynamic paths such as "cache/#{current_site}/main/display"+.
+You can even use dynamic paths such as +cache/#{current_site}/main/display+.
 
 h5. Linking to CSS Files with stylesheet_link_tag
 
