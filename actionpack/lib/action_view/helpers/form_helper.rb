@@ -753,7 +753,9 @@ module ActionView
         end
         options["checked"] = "checked" if checked
         add_default_name_and_id(options)
-        tag("input", options) << tag("input", "name" => options["name"], "type" => "hidden", "value" => options['disabled'] && checked ? checked_value : unchecked_value)
+        hidden = tag("input", "name" => options["name"], "type" => "hidden", "value" => options['disabled'] && checked ? checked_value : unchecked_value)
+        checkbox = tag("input", options)
+        hidden + checkbox
       end
 
       def to_boolean_select_tag(options = {})
