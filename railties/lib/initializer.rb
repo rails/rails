@@ -371,7 +371,7 @@ Run `rake gems:install` to install the missing gems.
       if configuration.frameworks.include?(:action_view)
         if configuration.cache_classes
           ActionController::Base.view_paths = configuration.view_path if configuration.frameworks.include?(:action_controller)
-          ActionMailer::Base.template_root = view_path if configuration.frameworks.include?(:action_mailer)
+          ActionMailer::Base.template_root = configuration.view_path if configuration.frameworks.include?(:action_mailer)
         end
       end
     end
