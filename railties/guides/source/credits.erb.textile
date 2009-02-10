@@ -36,8 +36,4 @@ p. We'd like to thank the following people for their tireless contributions to t
   Heiko Webers is the founder of "bauland42":http://www.bauland42.de, a German web application security consulting and development company focused on Ruby on Rails. He blogs at the "Ruby on Rails Security Project":http://www.rorsecurity.info. After 10 years of desktop application development, Heiko has rarely looked back.
 <% end %>
 
-<% author('Trevor Turk', 'trevorturk') do %>
- "Trevor Turk":http://trevorturk.com/ is a chess-playing machine of the late 18th century, promoted as an automaton but later proved a hoax.
-<% end %>
-
 <% end %>

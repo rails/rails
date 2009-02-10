@@ -921,6 +921,6 @@ h3. Changelog
 
 "Lighthouse ticket":http://rails.lighthouseapp.com/projects/16213/tickets/26-active-record-validations-and-callbacks
 
-* February 10, 2009: Observers revision by "Trevor Turk":credits.html#trevorturk
-* February 5, 2009: Initial revision by "Trevor Turk":credits.html#trevorturk
+* February 10, 2009: Observers revision by Trevor Turk
+* February 5, 2009: Initial revision by Trevor Turk
 * January 9, 2009: Initial version by "Cássio Marques":credits.html#cmarques
