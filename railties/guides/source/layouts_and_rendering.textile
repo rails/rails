@@ -419,7 +419,7 @@ end
 
 h4. Using redirect_to
 
-Another way to handle returning responses to a HTTP request is with +redirect_to+. As you've seen, +render+ tells Rails which view (or other asset) to use in constructing a response. The +redirect_to+ method does something completely different: it tells the browser to send a new request for a different URL. For example, you could redirect from wherever you are in your code to the index of photos in your application with this call:
+Another way to handle returning responses to an HTTP request is with +redirect_to+. As you've seen, +render+ tells Rails which view (or other asset) to use in constructing a response. The +redirect_to+ method does something completely different: it tells the browser to send a new request for a different URL. For example, you could redirect from wherever you are in your code to the index of photos in your application with this call:
 
 <ruby>
 redirect_to photos_path
@@ -443,7 +443,7 @@ Just like the +:status+ option for +render+, +:status+ for +redirect_to+ accepts
 
 h5. The Difference Between render and redirect
 
-Sometimes inexperienced developers conceive of +redirect_to+ as a sort of +goto+ command, moving execution from one place to another in your Rails code. This is _not_ correct. Your code stops running and waits for a new request for the browser. It just happens that you've told the browser what request it should make next, by sending back a HTTP 302 status code.
+Sometimes inexperienced developers conceive of +redirect_to+ as a sort of +goto+ command, moving execution from one place to another in your Rails code. This is _not_ correct. Your code stops running and waits for a new request for the browser. It just happens that you've told the browser what request it should make next, by sending back an HTTP 302 status code.
 
 Consider these actions to see the difference:
 
