@@ -304,6 +304,12 @@ class ArrayExtRandomTests < Test::Unit::TestCase
 end
 
 class ArrayWrapperTests < Test::Unit::TestCase
+  class FakeCollection
+    def to_ary
+      ["foo", "bar"]
+    end
+  end
+
   def test_array
     ary = %w(foo bar)
     assert_same ary, Array.wrap(ary)
@@ -324,5 +330,9 @@ class ArrayWrapperTests < Test::Unit::TestCase
 
   def test_string_with_newline
     assert_equal ["foo\nbar"], Array.wrap("foo\nbar")
+  end
+
+  def test_object_with_to_ary
+    assert_equal ["foo", "bar"], Array.wrap(FakeCollection.new)
   end
 end
