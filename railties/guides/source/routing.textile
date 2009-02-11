@@ -330,7 +330,7 @@ This would cause the routing to recognize URLs such as
 /photos/1/change
 </pre>
 
-NOTE: The actual action names aren't changed by this option; the two URLs show would still route to the new and edit actions.
+NOTE: The actual action names aren't changed by this option; the two URLs shown would still route to the new and edit actions.
 
 TIP: If you find yourself wanting to change this option uniformly for all of your routes, you can set a default in your environment:
 
@@ -362,8 +362,10 @@ h5. Using :name_prefix
 You can use the :name_prefix option to avoid collisions between routes. This is most useful when you have two resources with the same name that use +:path_prefix+ to map differently. For example:
 
 <ruby>
-map.resources :photos, :path_prefix => '/photographers/:photographer_id', :name_prefix => 'photographer_'
-map.resources :photos, :path_prefix => '/agencies/:agency_id', :name_prefix => 'agency_'
+map.resources :photos, :path_prefix => '/photographers/:photographer_id',
+  :name_prefix => 'photographer_'
+map.resources :photos, :path_prefix => '/agencies/:agency_id',
+  :name_prefix => 'agency_'
 </ruby>
 
 This combination will give you route helpers such as +photographer_photos_path+ and +agency_edit_photo_path+ to use in your code.
@@ -386,7 +388,7 @@ The +:except+ option specifies a route or list of routes that should _not_ be ge
 map.resources :photos, :except => :destroy
 </ruby>
 
-In this case, all of the normal routes except the route for +destroy+ (a +DELETE+ request to +/photos/_id_+) will be generated.
+In this case, all of the normal routes except the route for +destroy+ (a +DELETE+ request to +/photos/<em>id</em>+) will be generated.
 
 In addition to an action or a list of actions, you can also supply the special symbols +:all+ or +:none+ to the +:only+ and +:except+ options.
 
@@ -413,6 +415,8 @@ map.resources :magazines do |magazine|
   magazine.resources :ads
 end
 </ruby>
+
+TIP: Further below you'll learn about a convenient shortcut for this construct:<br/>+map.resources :magazines, :has_many => :ads+.
 
 In addition to the routes for magazines, this declaration will also create routes for ads, each of which requires the specification of a magazine in the URL:
 
@@ -491,7 +495,7 @@ However, without the use of +name_prefix => nil+, deeply-nested resources quickl
 
 The corresponding route helper would be +publisher_magazine_photo_url+, requiring you to specify objects at all three levels. Indeed, this situation is confusing enough that a popular "article":http://weblog.jamisbuck.org/2007/2/5/nesting-resources by Jamis Buck proposes a rule of thumb for good Rails design:
 
-_Resources should never be nested more than 1 level deep._
+TIP: _Resources should never be nested more than 1 level deep._
 
 h5. Shallow Nesting
 
@@ -612,13 +616,7 @@ map.resources :photos, :new => { :upload => :post }
 
 This will enable Rails to recognize URLs such as +/photos/upload+ using the POST HTTP verb, and route them to the upload action of the Photos controller. It will also create a +upload_photos+ route helper.
 
-TIP: If you want to redefine the verbs accepted by one of the standard actions, you can do so by explicitly mapping that action. For example:
-
-<ruby>
-map.resources :photos, :new => { :new => :any }
-</ruby>
-
-This will allow the new action to be invoked by any request to +photos/new+, no matter what HTTP verb you use.
+TIP: If you want to redefine the verbs accepted by one of the standard actions, you can do so by explicitly mapping that action. For example:<br/>+map.resources :photos, :new => { :new => :any }+<br/>This will allow the new action to be invoked by any request to +photos/new+, no matter what HTTP verb you use.
 
 h5. A Note of Caution
 
@@ -680,10 +678,11 @@ map.connect 'photos/:id', :controller => 'photos', :action => 'show'
 
 With this route, an incoming URL of +/photos/12+ would be dispatched to the +show+ action within the +Photos+ controller.
 
-You an also define other defaults in a route by supplying a hash for the +:defaults+ option. This even applies to parameters that are not explicitly defined elsewhere in the route. For example:
+You can also define other defaults in a route by supplying a hash for the +:defaults+ option. This even applies to parameters that are not explicitly defined elsewhere in the route. For example:
 
 <ruby>
-map.connect 'photos/:id', :controller => 'photos', :action => 'show', :defaults => { :format => 'jpg' }
+map.connect 'photos/:id', :controller => 'photos', :action => 'show',
+  :defaults => { :format => 'jpg' }
 </ruby>
 
 With this route, an incoming URL of +photos/12+ would be dispatched to the +show+ action within the +Photos+ controller, and +params[:format]+ will be set to +jpg+.
