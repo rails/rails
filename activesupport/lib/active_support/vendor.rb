@@ -9,7 +9,7 @@ end
 require 'builder'
 
 begin
-  gem 'memcache-client', '~> 1.5.0.5'
+  gem 'memcache-client', '>= 1.5.0.5'
 rescue Gem::LoadError
   $:.unshift "#{File.dirname(__FILE__)}/vendor/memcache-client-1.5.0.5"
 end
