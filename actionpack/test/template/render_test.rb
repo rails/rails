@@ -243,13 +243,34 @@ module RenderTestCases
   end
 end
 
-class CachedRenderTest < Test::Unit::TestCase
-  include RenderTestCases
-
-  # Ensure view path cache is primed
-  def setup
-    view_paths = ActionController::Base.view_paths
-    assert_equal ActionView::Template::Path, view_paths.first.class
+module TemplatesSetupTeardown
+  def setup_view_paths_for(new_cache_template_loading)
+    @previous_cache_template_loading, ActionView::Base.cache_template_loading = ActionView::Base.cache_template_loading, new_cache_template_loading
+    view_paths = new_cache_template_loading ? CACHED_VIEW_PATHS : ActionView::Base.process_view_paths(CACHED_VIEW_PATHS.map(&:to_s))
+    assert_equal(new_cache_template_loading ? ActionView::Template::EagerPath : ActionView::ReloadableTemplate::ReloadablePath, view_paths.first.class)
     setup_view(view_paths)
   end
+  
+  def teardown
+    ActionView::Base.cache_template_loading = @previous_cache_template_loading
+  end
 end
+
+class CachedRenderTest < Test::Unit::TestCase
+  include TemplatesSetupTeardown
+  include RenderTestCases
+
+  def setup
+    setup_view_paths_for(cache_templates = true)
+  end
+end
+
+class ReloadableRenderTest < Test::Unit::TestCase
+  include TemplatesSetupTeardown
+  include RenderTestCases
+
+  def setup
+    setup_view_paths_for(cache_templates = false)
+  end
+end
+

@@ -2,12 +2,16 @@ module ActionView #:nodoc:
   class PathSet < Array #:nodoc:
     def self.type_cast(obj)
       if obj.is_a?(String)
-        Template::Path.new(obj)
+        if Base.cache_template_loading?
+          Template::EagerPath.new(obj.to_s)
+        else
+          ReloadableTemplate::ReloadablePath.new(obj.to_s)
+        end
       else
         obj
       end
     end
-
+    
     def initialize(*args)
       super(*args).map! { |obj| self.class.type_cast(obj) }
     end
@@ -31,9 +35,14 @@ module ActionView #:nodoc:
     def unshift(*objs)
       super(*objs.map { |obj| self.class.type_cast(obj) })
     end
+    
+    def load!
+      each(&:load!)
+    end
 
-    def find_template(template_path, format = nil)
-      return template_path if template_path.respond_to?(:render)
+    def find_template(original_template_path, format = nil)
+      return original_template_path if original_template_path.respond_to?(:render)
+      template_path = original_template_path.sub(/^\//, '')
 
       each do |load_path|
         if format && (template = load_path["#{template_path}.#{I18n.locale}.#{format}"])
@@ -52,11 +61,9 @@ module ActionView #:nodoc:
         end
       end
 
-      if File.exist?(template_path)
-        return Template.new(template_path, template_path[0] == 47 ? "" : ".")
-      end
+      return Template.new(original_template_path, original_template_path =~ /\A\// ? "" : ".") if File.file?(original_template_path)
 
-      raise MissingTemplate.new(self, template_path, format)
+      raise MissingTemplate.new(self, original_template_path, format)
     end
   end
 end

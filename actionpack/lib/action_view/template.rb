@@ -6,14 +6,12 @@ module ActionView #:nodoc:
 
       def initialize(path)
         raise ArgumentError, "path already is a Path class" if path.is_a?(Path)
-        @path = path.freeze
+        @path = expand_path(path).freeze
       end
 
-      def load!
-        @paths = {}
-        templates_in_path do |template|
-          load_template(template)
-        end
+      def expand_path(path)
+        # collapse any directory dots in path ('.' or '..')
+        path.starts_with?('/') ? File.expand_path(path) : File.expand_path(path, '/').from(1)
       end
 
       def to_s
@@ -46,10 +44,42 @@ module ActionView #:nodoc:
       # etc. A format must be supplied to match a formated file. +hello/index+
       # will never match +hello/index.html.erb+.
       def [](path)
-        load! if @paths.nil?
-        @paths[path] || find_template(path)
+      end
+      
+      def load!
+      end
+      
+      def self.new_and_loaded(path)
+        returning new(path) do |path|
+          path.load!
+        end
+      end
+    end
+
+    class EagerPath < Path
+      def initialize(path)
+        super
       end
 
+      def load!
+        return if @loaded
+        
+        @paths = {}
+        templates_in_path do |template|
+          template.load!
+          template.accessible_paths.each do |path|
+            @paths[path] = template
+          end
+        end
+        @paths.freeze
+        @loaded = true
+      end
+
+      def [](path)
+        load! unless @loaded
+        @paths[path]
+      end
+      
       private
         def templates_in_path
           (Dir.glob("#{@path}/**/*/**") | Dir.glob("#{@path}/**")).each do |file|
@@ -59,30 +89,6 @@ module ActionView #:nodoc:
 
         def create_template(file)
           Template.new(file.split("#{self}/").last, self)
-        end
-
-        def load_template(template)
-          template.load!
-          template.accessible_paths.each do |path|
-            @paths[path] = template
-          end
-        end
-
-        def matching_templates(template_path)
-          Dir.glob("#{@path}/#{template_path}.*").each do |file|
-            yield create_template(file) unless File.directory?(file)
-          end
-        end
-
-        def find_template(path)
-          return nil if Base.cache_template_loading || ActionController::Base.allow_concurrency
-          matching_templates(path) do |template|
-            if template.accessible_paths.include?(path)
-              load_template(template)
-              return template
-            end
-          end
-          nil
         end
     end
 
@@ -171,14 +177,10 @@ module ActionView #:nodoc:
       @@exempt_from_layout.any? { |exempted| path =~ exempted }
     end
 
-    def mtime
-      File.mtime(filename)
-    end
-    memoize :mtime
-
     def source
       File.read(filename)
     end
+    memoize :source
 
     def method_segment
       relative_path.to_s.gsub(/([^a-zA-Z0-9_])/) { $1.ord }
@@ -192,27 +194,13 @@ module ActionView #:nodoc:
       if TemplateError === e
         e.sub_template_of(self)
         raise e
-      elsif Errno::ENOENT === e
-        raise MissingTemplate.new(view.view_paths, filename.sub("#{RAILS_ROOT}/#{load_path}/", ""))
       else
         raise TemplateError.new(self, view.assigns, e)
       end
     end
 
-    def stale?
-      reloadable? && (mtime < mtime(:reload))
-    end
-
     def load!
-      reloadable? ? memoize_all : freeze
-    end
-
-    def reloadable?
-      !(Base.cache_template_loading || ActionController::Base.allow_concurrency)
-    end
-
-    def cached?
-      ActionController::Base.perform_caching || !reloadable?
+      freeze
     end
 
     private
@@ -262,5 +250,5 @@ module ActionView #:nodoc:
 
         [base_path, name, locale, format, extension]
       end
- end
+  end
 end

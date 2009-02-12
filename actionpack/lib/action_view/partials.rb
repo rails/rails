@@ -235,5 +235,6 @@ module ActionView
 
         self.view_paths.find_template(path, self.template_format)
       end
+      memoize :_pick_partial_template
   end
 end

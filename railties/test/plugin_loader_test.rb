@@ -130,7 +130,7 @@ class TestPluginLoader < Test::Unit::TestCase
 
     @loader.send :add_engine_view_paths
     
-    assert_equal [ File.join(plugin_fixture_path('engines/engine'), 'app', 'views') ], ActionController::Base.view_paths
+    assert_equal [ File.join(plugin_fixture_path('engines/engine'), 'app', 'views').sub(/\A\.\//, '') ], ActionController::Base.view_paths
   end
 
   def test_should_add_plugin_load_paths_to_Dependencies_load_once_paths

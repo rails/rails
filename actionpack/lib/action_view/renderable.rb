@@ -16,17 +16,7 @@ module ActionView
     memoize :handler
 
     def compiled_source
-      @compiled_at = Time.now
       handler.call(self)
-    end
-    memoize :compiled_source
-
-    def compiled_at
-      @compiled_at
-    end
-
-    def defined_at
-      @defined_at ||= {}
     end
 
     def method_name_without_locals
@@ -71,12 +61,8 @@ module ActionView
       def compile(local_assigns)
         render_symbol = method_name(local_assigns)
 
-        if self.is_a?(InlineTemplate)
+        if !Base::CompiledTemplates.method_defined?(render_symbol) || recompile?
           compile!(render_symbol, local_assigns)
-        else
-          if !Base::CompiledTemplates.method_defined?(render_symbol) || recompile?(render_symbol)
-            recompile!(render_symbol, local_assigns)
-          end
         end
       end
 
@@ -93,7 +79,6 @@ module ActionView
 
         begin
           ActionView::Base::CompiledTemplates.module_eval(source, filename, 0)
-          defined_at[render_symbol] = Time.now if respond_to?(:reloadable?) && reloadable?
         rescue Errno::ENOENT => e
           raise e # Missing template file, re-raise for Base to rescue
         rescue Exception => e # errors from template code
@@ -107,17 +92,8 @@ module ActionView
         end
       end
 
-      def recompile?(render_symbol)
-        !cached? || redefine?(render_symbol) || stale?
-      end
-
-      def recompile!(render_symbol, local_assigns)
-        compiled_source(:reload) if compiled_at.nil? || compiled_at < mtime
-        compile!(render_symbol, local_assigns)
-      end
-
-      def redefine?(render_symbol)
-        compiled_at && defined_at[render_symbol] && compiled_at > defined_at[render_symbol]
+      def recompile?
+        false
       end
   end
 end
