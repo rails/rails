@@ -1,11 +1,12 @@
 module ActiveRecord
   module NamedScope
-    # All subclasses of ActiveRecord::Base have two named \scopes:
-    # * <tt>all</tt> - which is similar to a <tt>find(:all)</tt> query, and
+    # All subclasses of ActiveRecord::Base have one named scope:
     # * <tt>scoped</tt> - which allows for the creation of anonymous \scopes, on the fly: <tt>Shirt.scoped(:conditions => {:color => 'red'}).scoped(:include => :washing_instructions)</tt>
     #
     # These anonymous \scopes tend to be useful when procedurally generating complex queries, where passing
     # intermediate values (scopes) around as first-class objects is convenient.
+    #
+    # You can define a scope that applies to all finders using ActiveRecord::Base.default_scope.
     def self.included(base)
       base.class_eval do
         extend ClassMethods
