@@ -100,7 +100,7 @@ module ActiveRecord
     end
     
     class Scope
-      attr_reader :proxy_scope, :proxy_options
+      attr_reader :proxy_scope, :proxy_options, :current_scoped_methods_when_defined
       NON_DELEGATE_METHODS = %w(nil? send object_id class extend find size count sum average maximum minimum paginate first last empty? any? respond_to?).to_set
       [].methods.each do |m|
         unless m =~ /^__/ || NON_DELEGATE_METHODS.include?(m.to_s)
@@ -113,6 +113,9 @@ module ActiveRecord
       def initialize(proxy_scope, options, &block)
         [options[:extend]].flatten.each { |extension| extend extension } if options[:extend]
         extend Module.new(&block) if block_given?
+        unless Scope === proxy_scope
+          @current_scoped_methods_when_defined = proxy_scope.send(:current_scoped_methods)
+        end
         @proxy_scope, @proxy_options = proxy_scope, options.except(:extend)
       end
 
@@ -168,7 +171,13 @@ module ActiveRecord
         else
           with_scope :find => proxy_options, :create => proxy_options[:conditions].is_a?(Hash) ?  proxy_options[:conditions] : {} do
             method = :new if method == :build
-            proxy_scope.send(method, *args, &block)
+            if current_scoped_methods_when_defined
+              with_scope current_scoped_methods_when_defined do
+                proxy_scope.send(method, *args, &block)
+              end
+            else
+              proxy_scope.send(method, *args, &block)
+            end
           end
         end
       end
