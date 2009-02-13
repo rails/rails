@@ -69,6 +69,13 @@ end
 
 Turning on nested attributes enables a number of things: automatic (and atomic) saving of a record together with its associated children, child-aware validations, and support for nested forms (discussed later).
 
+You can also specify requirements for any new records that are added via nested attributes using the +:reject_if+ option:
+
+<ruby>
+accepts_nested_attributes_for :author, 
+  :reject_if => proc { |attributes| attributes['name'].blank? }
+</ruby>
+
 * Lead Contributor: "Eloy Duran":http://www.superalloy.nl/blog/
 * More Information: "Nested Model Forms":http://weblog.rubyonrails.org/2009/1/26/nested-model-forms
 
@@ -267,6 +274,10 @@ Rails now keeps a per-request local cache of requests, cutting down on unnecessa
 h4. Localized Views
 
 Rails can now provide localized views, depending on the locale that you have set. For example, suppose you have a +Posts+ controller with a +show+ action. By default, this will render +app/views/posts/show.html.erb+. But if you set +I18n.locale = :da+, it will render +app/views/posts/show.da.html.erb+. If the localized template isn't present, the undecorated version will be used. Rails also includes +I18n#available_locales+ and +I18n::SimpleBackend#available_locales+, which return an array of the translations that are available in the current Rails project.
+
+h4. Partial Scoping for Translations
+
+A change to the translation API makes things easier and less repetitive to write key translations within partials. If you call +translate(".foo")+ from the +people/index.html.erb+ template, you'll actually be calling +I18n.translate("people.index.foo")+ If you don't prepend the key with a period, then the API doesn't scope, just as before.
 
 h4. Other Action Controller Changes
 
@@ -499,6 +510,7 @@ A few pieces of older code are deprecated in this release:
 * The +:digest+ and +:secret+ options to +protect_from_forgery+ are deprecated and have no effect.
 * Some integration test helpers have been removed. +response.headers["Status"]+ and +headers["Status"]+ will no longer return anything. Rack does not allow "Status" in its return headers. However you can still use the +status+ and +status_message+ helpers. +response.headers["cookie"]+ and +headers["cookie"]+ will no longer return any CGI cookies. You can inspect +headers["Set-Cookie"]+ to see the raw cookie header or use the +cookies+ helper to get a hash of the cookies sent to the client.
 * +formatted_polymorphic_url+ is deprecated. Use +polymorphic_url+ with +:format+ instead.
+* The +:http_only+ option in +ActionController::Response#set_cookie+ has been renamed to +:httponly+.
 
 h3. Credits
 
