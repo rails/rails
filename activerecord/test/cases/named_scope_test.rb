@@ -142,6 +142,15 @@ class NamedScopeTest < ActiveRecord::TestCase
     assert_equal authors(:david).comments & Comment.containing_the_letter_e, authors(:david).comments.containing_the_letter_e
   end
 
+  def test_named_scopes_honor_current_scopes_from_when_defined
+    assert !Post.ranked_by_comments.limit(5).empty?
+    assert !authors(:david).posts.ranked_by_comments.limit(5).empty?
+    assert_not_equal Post.ranked_by_comments.limit(5), authors(:david).posts.ranked_by_comments.limit(5)
+    assert_not_equal Post.top(5), authors(:david).posts.top(5)
+    assert_equal authors(:david).posts.ranked_by_comments.limit(5), authors(:david).posts.top(5)
+    assert_equal Post.ranked_by_comments.limit(5), Post.top(5)
+  end
+
   def test_active_records_have_scope_named__all__
     assert !Topic.find(:all).empty?
 
