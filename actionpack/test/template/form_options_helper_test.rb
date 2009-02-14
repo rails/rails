@@ -24,42 +24,24 @@ class FormOptionsHelperTest < ActionView::TestCase
   end
 
   def test_collection_options
-    @posts = [
-      Post.new("<Abe> went home", "<Abe>", "To a little house", "shh!"),
-      Post.new("Babe went home", "Babe", "To a little house", "shh!"),
-      Post.new("Cabe went home", "Cabe", "To a little house", "shh!")
-    ]
-
     assert_dom_equal(
       "<option value=\"&lt;Abe&gt;\">&lt;Abe&gt; went home</option>\n<option value=\"Babe\">Babe went home</option>\n<option value=\"Cabe\">Cabe went home</option>",
-      options_from_collection_for_select(@posts, "author_name", "title")
+      options_from_collection_for_select(dummy_posts, "author_name", "title")
     )
   end
 
 
   def test_collection_options_with_preselected_value
-    @posts = [
-      Post.new("<Abe> went home", "<Abe>", "To a little house", "shh!"),
-      Post.new("Babe went home", "Babe", "To a little house", "shh!"),
-      Post.new("Cabe went home", "Cabe", "To a little house", "shh!")
-    ]
-
     assert_dom_equal(
       "<option value=\"&lt;Abe&gt;\">&lt;Abe&gt; went home</option>\n<option value=\"Babe\" selected=\"selected\">Babe went home</option>\n<option value=\"Cabe\">Cabe went home</option>",
-      options_from_collection_for_select(@posts, "author_name", "title", "Babe")
+      options_from_collection_for_select(dummy_posts, "author_name", "title", "Babe")
     )
   end
 
   def test_collection_options_with_preselected_value_array
-      @posts = [
-        Post.new("<Abe> went home", "<Abe>", "To a little house", "shh!"),
-        Post.new("Babe went home", "Babe", "To a little house", "shh!"),
-        Post.new("Cabe went home", "Cabe", "To a little house", "shh!")
-      ]
-
       assert_dom_equal(
         "<option value=\"&lt;Abe&gt;\">&lt;Abe&gt; went home</option>\n<option value=\"Babe\" selected=\"selected\">Babe went home</option>\n<option value=\"Cabe\" selected=\"selected\">Cabe went home</option>",
-        options_from_collection_for_select(@posts, "author_name", "title", [ "Babe", "Cabe" ])
+        options_from_collection_for_select(dummy_posts, "author_name", "title", [ "Babe", "Cabe" ])
       )
   end
 
@@ -371,33 +353,21 @@ class FormOptionsHelperTest < ActionView::TestCase
   end
 
   def test_collection_select
-    @posts = [
-      Post.new("<Abe> went home", "<Abe>", "To a little house", "shh!"),
-      Post.new("Babe went home", "Babe", "To a little house", "shh!"),
-      Post.new("Cabe went home", "Cabe", "To a little house", "shh!")
-    ]
-
     @post = Post.new
     @post.author_name = "Babe"
 
     assert_dom_equal(
       "<select id=\"post_author_name\" name=\"post[author_name]\"><option value=\"&lt;Abe&gt;\">&lt;Abe&gt;</option>\n<option value=\"Babe\" selected=\"selected\">Babe</option>\n<option value=\"Cabe\">Cabe</option></select>",
-      collection_select("post", "author_name", @posts, "author_name", "author_name")
+      collection_select("post", "author_name", dummy_posts, "author_name", "author_name")
     )
   end
 
   def test_collection_select_under_fields_for
-    @posts = [
-      Post.new("<Abe> went home", "<Abe>", "To a little house", "shh!"),
-      Post.new("Babe went home", "Babe", "To a little house", "shh!"),
-      Post.new("Cabe went home", "Cabe", "To a little house", "shh!")
-    ]
-
     @post = Post.new
     @post.author_name = "Babe"
 
     fields_for :post, @post do |f|
-      concat f.collection_select(:author_name, @posts, :author_name, :author_name)
+      concat f.collection_select(:author_name, dummy_posts, :author_name, :author_name)
     end
   
     assert_dom_equal(
@@ -407,17 +377,11 @@ class FormOptionsHelperTest < ActionView::TestCase
   end
 
   def test_collection_select_under_fields_for_with_index
-    @posts = [
-      Post.new("<Abe> went home", "<Abe>", "To a little house", "shh!"),
-      Post.new("Babe went home", "Babe", "To a little house", "shh!"),
-      Post.new("Cabe went home", "Cabe", "To a little house", "shh!")
-    ]
-
     @post = Post.new
     @post.author_name = "Babe"
 
     fields_for :post, @post, :index => 815 do |f|
-      concat f.collection_select(:author_name, @posts, :author_name, :author_name)
+      concat f.collection_select(:author_name, dummy_posts, :author_name, :author_name)
     end
 
     assert_dom_equal(
@@ -427,18 +391,12 @@ class FormOptionsHelperTest < ActionView::TestCase
   end
 
   def test_collection_select_under_fields_for_with_auto_index
-    @posts = [
-      Post.new("<Abe> went home", "<Abe>", "To a little house", "shh!"),
-      Post.new("Babe went home", "Babe", "To a little house", "shh!"),
-      Post.new("Cabe went home", "Cabe", "To a little house", "shh!")
-    ]
-
     @post = Post.new
     @post.author_name = "Babe"
     def @post.to_param; 815; end
 
     fields_for "post[]", @post do |f|
-      concat f.collection_select(:author_name, @posts, :author_name, :author_name)
+      concat f.collection_select(:author_name, dummy_posts, :author_name, :author_name)
     end
 
     assert_dom_equal(
@@ -448,69 +406,45 @@ class FormOptionsHelperTest < ActionView::TestCase
   end
 
   def test_collection_select_with_blank_and_style
-    @posts = [
-      Post.new("<Abe> went home", "<Abe>", "To a little house", "shh!"),
-      Post.new("Babe went home", "Babe", "To a little house", "shh!"),
-      Post.new("Cabe went home", "Cabe", "To a little house", "shh!")
-    ]
-
     @post = Post.new
     @post.author_name = "Babe"
 
     assert_dom_equal(
       "<select id=\"post_author_name\" name=\"post[author_name]\" style=\"width: 200px\"><option value=\"\"></option>\n<option value=\"&lt;Abe&gt;\">&lt;Abe&gt;</option>\n<option value=\"Babe\" selected=\"selected\">Babe</option>\n<option value=\"Cabe\">Cabe</option></select>",
-      collection_select("post", "author_name", @posts, "author_name", "author_name", { :include_blank => true }, "style" => "width: 200px")
+      collection_select("post", "author_name", dummy_posts, "author_name", "author_name", { :include_blank => true }, "style" => "width: 200px")
     )
   end
 
   def test_collection_select_with_blank_as_string_and_style
-    @posts = [
-      Post.new("<Abe> went home", "<Abe>", "To a little house", "shh!"),
-      Post.new("Babe went home", "Babe", "To a little house", "shh!"),
-      Post.new("Cabe went home", "Cabe", "To a little house", "shh!")
-    ]
-
     @post = Post.new
     @post.author_name = "Babe"
 
     assert_dom_equal(
       "<select id=\"post_author_name\" name=\"post[author_name]\" style=\"width: 200px\"><option value=\"\">No Selection</option>\n<option value=\"&lt;Abe&gt;\">&lt;Abe&gt;</option>\n<option value=\"Babe\" selected=\"selected\">Babe</option>\n<option value=\"Cabe\">Cabe</option></select>",
-      collection_select("post", "author_name", @posts, "author_name", "author_name", { :include_blank => 'No Selection' }, "style" => "width: 200px")
+      collection_select("post", "author_name", dummy_posts, "author_name", "author_name", { :include_blank => 'No Selection' }, "style" => "width: 200px")
     )
   end
 
   def test_collection_select_with_multiple_option_appends_array_brackets
-    @posts = [
-      Post.new("<Abe> went home", "<Abe>", "To a little house", "shh!"),
-      Post.new("Babe went home", "Babe", "To a little house", "shh!"),
-      Post.new("Cabe went home", "Cabe", "To a little house", "shh!")
-    ]
-
     @post = Post.new
     @post.author_name = "Babe"
 
     expected = "<select id=\"post_author_name\" name=\"post[author_name][]\" multiple=\"multiple\"><option value=\"\"></option>\n<option value=\"&lt;Abe&gt;\">&lt;Abe&gt;</option>\n<option value=\"Babe\" selected=\"selected\">Babe</option>\n<option value=\"Cabe\">Cabe</option></select>"
 
     # Should suffix default name with [].
-    assert_dom_equal expected, collection_select("post", "author_name", @posts, "author_name", "author_name", { :include_blank => true }, :multiple => true)
+    assert_dom_equal expected, collection_select("post", "author_name", dummy_posts, "author_name", "author_name", { :include_blank => true }, :multiple => true)
 
     # Shouldn't suffix custom name with [].
-    assert_dom_equal expected, collection_select("post", "author_name", @posts, "author_name", "author_name", { :include_blank => true, :name => 'post[author_name][]' }, :multiple => true)
+    assert_dom_equal expected, collection_select("post", "author_name", dummy_posts, "author_name", "author_name", { :include_blank => true, :name => 'post[author_name][]' }, :multiple => true)
   end
 
   def test_collection_select_with_blank_and_selected
-    @posts = [
-      Post.new("<Abe> went home", "<Abe>", "To a little house", "shh!"),
-      Post.new("Babe went home", "Babe", "To a little house", "shh!"),
-      Post.new("Cabe went home", "Cabe", "To a little house", "shh!")
-    ]
-
     @post = Post.new
     @post.author_name = "Babe"
 
     assert_dom_equal(
       %{<select id="post_author_name" name="post[author_name]"><option value=""></option>\n<option value="&lt;Abe&gt;" selected="selected">&lt;Abe&gt;</option>\n<option value="Babe">Babe</option>\n<option value="Cabe">Cabe</option></select>},
-      collection_select("post", "author_name", @posts, "author_name", "author_name", {:include_blank => true, :selected => "<Abe>"})
+      collection_select("post", "author_name", dummy_posts, "author_name", "author_name", {:include_blank => true, :selected => "<Abe>"})
     )
   end
 
@@ -723,4 +657,11 @@ class FormOptionsHelperTest < ActionView::TestCase
                    html
   end
 
+  private
+
+    def dummy_posts
+      [ Post.new("<Abe> went home", "<Abe>", "To a little house", "shh!"),
+        Post.new("Babe went home", "Babe", "To a little house", "shh!"),
+        Post.new("Cabe went home", "Cabe", "To a little house", "shh!") ]
+    end
 end
