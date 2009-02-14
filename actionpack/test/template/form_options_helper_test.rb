@@ -45,6 +45,41 @@ class FormOptionsHelperTest < ActionView::TestCase
       )
   end
 
+  def test_collection_options_with_proc_for_selected
+    assert_dom_equal(
+      "<option value=\"&lt;Abe&gt;\">&lt;Abe&gt; went home</option>\n<option value=\"Babe\" selected=\"selected\">Babe went home</option>\n<option value=\"Cabe\">Cabe went home</option>",
+      options_from_collection_for_select(dummy_posts, "author_name", "title", lambda{|p| p.author_name == 'Babe' })
+    )
+  end
+
+  def test_collection_options_with_disabled_value
+    assert_dom_equal(
+      "<option value=\"&lt;Abe&gt;\">&lt;Abe&gt; went home</option>\n<option value=\"Babe\" disabled=\"disabled\">Babe went home</option>\n<option value=\"Cabe\">Cabe went home</option>",
+      options_from_collection_for_select(dummy_posts, "author_name", "title", :disabled => "Babe")
+    )
+  end
+
+  def test_collection_options_with_disabled_array
+    assert_dom_equal(
+      "<option value=\"&lt;Abe&gt;\">&lt;Abe&gt; went home</option>\n<option value=\"Babe\" disabled=\"disabled\">Babe went home</option>\n<option value=\"Cabe\" disabled=\"disabled\">Cabe went home</option>",
+      options_from_collection_for_select(dummy_posts, "author_name", "title", :disabled => [ "Babe", "Cabe" ])
+    )
+  end
+
+  def test_collection_options_with_preselected_and_disabled_value
+    assert_dom_equal(
+      "<option value=\"&lt;Abe&gt;\">&lt;Abe&gt; went home</option>\n<option value=\"Babe\" disabled=\"disabled\">Babe went home</option>\n<option value=\"Cabe\" selected=\"selected\">Cabe went home</option>",
+      options_from_collection_for_select(dummy_posts, "author_name", "title", :selected => "Cabe", :disabled => "Babe")
+    )
+  end
+
+  def test_collection_options_with_proc_for_disabled
+    assert_dom_equal(
+      "<option value=\"&lt;Abe&gt;\">&lt;Abe&gt; went home</option>\n<option value=\"Babe\" disabled=\"disabled\">Babe went home</option>\n<option value=\"Cabe\" disabled=\"disabled\">Cabe went home</option>",
+      options_from_collection_for_select(dummy_posts, "author_name", "title", :disabled => lambda{|p| %w(Babe Cabe).include? p.author_name })
+    )
+  end
+
   def test_array_options_for_select
     assert_dom_equal(
       "<option value=\"&lt;Denmark&gt;\">&lt;Denmark&gt;</option>\n<option value=\"USA\">USA</option>\n<option value=\"Sweden\">Sweden</option>",
@@ -64,6 +99,27 @@ class FormOptionsHelperTest < ActionView::TestCase
         "<option value=\"Denmark\">Denmark</option>\n<option value=\"&lt;USA&gt;\" selected=\"selected\">&lt;USA&gt;</option>\n<option value=\"Sweden\" selected=\"selected\">Sweden</option>",
         options_for_select([ "Denmark", "<USA>", "Sweden" ], [ "<USA>", "Sweden" ])
       )
+  end
+
+  def test_array_options_for_select_with_disabled_value
+    assert_dom_equal(
+      "<option value=\"Denmark\">Denmark</option>\n<option value=\"&lt;USA&gt;\" disabled=\"disabled\">&lt;USA&gt;</option>\n<option value=\"Sweden\">Sweden</option>",
+      options_for_select([ "Denmark", "<USA>", "Sweden" ], :disabled => "<USA>")
+    )
+  end
+
+  def test_array_options_for_select_with_disabled_array
+    assert_dom_equal(
+      "<option value=\"Denmark\">Denmark</option>\n<option value=\"&lt;USA&gt;\" disabled=\"disabled\">&lt;USA&gt;</option>\n<option value=\"Sweden\" disabled=\"disabled\">Sweden</option>",
+      options_for_select([ "Denmark", "<USA>", "Sweden" ], :disabled => ["<USA>", "Sweden"])
+    )
+  end
+
+  def test_array_options_for_select_with_selection_and_disabled_value
+    assert_dom_equal(
+      "<option value=\"Denmark\" selected=\"selected\">Denmark</option>\n<option value=\"&lt;USA&gt;\" disabled=\"disabled\">&lt;USA&gt;</option>\n<option value=\"Sweden\">Sweden</option>",
+      options_for_select([ "Denmark", "<USA>", "Sweden" ], :selected => "Denmark", :disabled => "<USA>")
+    )
   end
 
   def test_array_options_for_string_include_in_other_string_bug_fix
@@ -352,6 +408,24 @@ class FormOptionsHelperTest < ActionView::TestCase
     )
   end
 
+  def test_select_with_disabled_value
+    @post = Post.new
+    @post.category = "<mus>"
+    assert_dom_equal(
+      "<select id=\"post_category\" name=\"post[category]\"><option value=\"abe\">abe</option>\n<option value=\"&lt;mus&gt;\" selected=\"selected\">&lt;mus&gt;</option>\n<option value=\"hest\" disabled=\"disabled\">hest</option></select>",
+      select("post", "category", %w( abe <mus> hest ), :disabled => 'hest')
+    )
+  end
+
+  def test_select_with_disabled_array
+    @post = Post.new
+    @post.category = "<mus>"
+    assert_dom_equal(
+      "<select id=\"post_category\" name=\"post[category]\"><option value=\"abe\" disabled=\"disabled\">abe</option>\n<option value=\"&lt;mus&gt;\" selected=\"selected\">&lt;mus&gt;</option>\n<option value=\"hest\" disabled=\"disabled\">hest</option></select>",
+      select("post", "category", %w( abe <mus> hest ), :disabled => ['hest', 'abe'])
+    )
+  end
+
   def test_collection_select
     @post = Post.new
     @post.author_name = "Babe"
@@ -446,6 +520,16 @@ class FormOptionsHelperTest < ActionView::TestCase
       %{<select id="post_author_name" name="post[author_name]"><option value=""></option>\n<option value="&lt;Abe&gt;" selected="selected">&lt;Abe&gt;</option>\n<option value="Babe">Babe</option>\n<option value="Cabe">Cabe</option></select>},
       collection_select("post", "author_name", dummy_posts, "author_name", "author_name", {:include_blank => true, :selected => "<Abe>"})
     )
+  end
+
+  def test_collection_select_with_disabled
+    @post = Post.new
+    @post.author_name = "Babe"
+
+    assert_dom_equal(
+      "<select id=\"post_author_name\" name=\"post[author_name]\"><option value=\"&lt;Abe&gt;\">&lt;Abe&gt;</option>\n<option value=\"Babe\" selected=\"selected\">Babe</option>\n<option value=\"Cabe\" disabled=\"disabled\">Cabe</option></select>",
+      collection_select("post", "author_name", dummy_posts, "author_name", "author_name", :disabled => 'Cabe')
+       )
   end
 
   def test_time_zone_select
