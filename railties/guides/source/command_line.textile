@@ -126,10 +126,10 @@ Modules Example:
 Ah, the controller generator is expecting parameters in the form of +generate controller ControllerName action1 action2+. Let's make a +Greetings+ controller with an action of *hello*, which will say something nice to us.
 
 <shell>
-$ ./script/generate controller Greeting hello
+$ ./script/generate controller Greetings hello
      exists  app/controllers/
      exists  app/helpers/
-     create  app/views/greeting
+     create  app/views/greetings
      exists  test/functional/
      create  app/controllers/greetings_controller.rb
      create  test/functional/greetings_controller_test.rb
@@ -139,10 +139,10 @@ $ ./script/generate controller Greeting hello
 
 Look there! Now what all did this generate? It looks like it made sure a bunch of directories were in our application, and created a controller file, a functional test file, a helper for the view, and a view file.
 
-Let's check out the controller and modify it a little (in +app/controllers/greeting_controller.rb+):
+Let's check out the controller and modify it a little (in +app/controllers/greetings_controller.rb+):
 
 <ruby>
-class GreetingController < ApplicationController
+class GreetingsController < ApplicationController
   def hello
     @message = "Hello, how are you today? I am exuberant!"
   end
@@ -150,7 +150,7 @@ class GreetingController < ApplicationController
 end
 </ruby>
 
-Then the view, to display our nice message (in +app/views/greeting/hello.html.erb+):
+Then the view, to display our nice message (in +app/views/greetings/hello.html.erb+):
 
 <html>
 <h1>A Greeting for You!</h1>
@@ -163,6 +163,8 @@ Deal. Go check it out in your browser. Fire up your server. Remember? +./script/
 $ ./script/server
 => Booting WEBrick...
 </shell>
+
+WARNING: Make sure that you do not have any "tilde backup" files in +app/views/(controller)+, or else WEBrick will _not_ show the expected output. This seems to be a *bug* in Rails 2.3.0.
 
 The URL will be +http://localhost:3000/greetings/hello+. I'll wait for you to be suitably impressed.
 
