@@ -1,3 +1,4 @@
+# encoding: UTF-8
 require 'abstract_unit'
 
 class TestJSONDecoding < Test::Unit::TestCase
@@ -10,6 +11,8 @@ class TestJSONDecoding < Test::Unit::TestCase
     %({"returnTo":[1,"\\"a\\",", "b"]})        => {"returnTo" => [1, "\"a\",", "b"]},
     %({a: "'", "b": "5,000"})                  => {"a" => "'", "b" => "5,000"},
     %({a: "a's, b's and c's", "b": "5,000"})   => {"a" => "a's, b's and c's", "b" => "5,000"},
+    # multibyte
+    %({"matzue": "松江", "asakusa": "浅草"}) => {"matzue" => "松江", "asakusa" => "浅草"},
     %({a: "2007-01-01"})                       => {'a' => Date.new(2007, 1, 1)}, 
     %({a: "2007-01-01 01:12:34 Z"})            => {'a' => Time.utc(2007, 1, 1, 1, 12, 34)}, 
     # no time zone
