@@ -29,8 +29,28 @@ module Rack
     # and ';' characters.  You can also use this to parse
     # cookies by changing the characters used in the second
     # parameter (which defaults to '&;').
-
     def parse_query(qs, d = '&;')
+      params = {}
+
+      (qs || '').split(/[#{d}] */n).each do |p|
+        k, v = unescape(p).split('=', 2)
+
+        if cur = params[k]
+          if cur.class == Array
+            params[k] << v
+          else
+            params[k] = [cur, v]
+          end
+        else
+          params[k] = v
+        end
+      end
+
+      return params
+    end
+    module_function :parse_query
+
+    def parse_nested_query(qs, d = '&;')
       params = {}
 
       (qs || '').split(/[#{d}] */n).each do |p|
@@ -40,7 +60,7 @@ module Rack
 
       return params
     end
-    module_function :parse_query
+    module_function :parse_nested_query
 
     def normalize_params(params, name, v = nil)
       name =~ %r([\[\]]*([^\[\]]+)\]*)
@@ -50,14 +70,7 @@ module Rack
       return if k.empty?
 
       if after == ""
-        cur = params[k]
-        if cur.is_a?(Array)
-          params[k] << v
-        elsif cur && name == $1
-          params[k] = [cur, v]
-        else
-          params[k] = v
-        end
+        params[k] = v
       elsif after == "[]"
         params[k] ||= []
         raise TypeError unless params[k].is_a?(Array)

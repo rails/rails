@@ -108,7 +108,7 @@ module Rack
       else
         @env["rack.request.query_string"] = query_string
         @env["rack.request.query_hash"]   =
-          Utils.parse_query(query_string)
+          Utils.parse_nested_query(query_string)
       end
     end
 
@@ -129,7 +129,7 @@ module Rack
           form_vars.sub!(/\0\z/, '')
 
           @env["rack.request.form_vars"] = form_vars
-          @env["rack.request.form_hash"] = Utils.parse_query(form_vars)
+          @env["rack.request.form_hash"] = Utils.parse_nested_query(form_vars)
 
           begin
             @env["rack.input"].rewind if @env["rack.input"].respond_to?(:rewind)
