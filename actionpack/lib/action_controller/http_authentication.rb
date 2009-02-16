@@ -183,7 +183,7 @@ module ActionController
 
         if valid_nonce && realm == credentials[:realm] && opaque(request.session.session_id) == credentials[:opaque]
           password = password_procedure.call(credentials[:username])
-          expected = expected_response(request.env['REQUEST_METHOD'], request.url, credentials, password)
+          expected = expected_response(request.env['REQUEST_METHOD'], credentials[:uri], credentials, password)
           expected == credentials[:response]
         end
       end
