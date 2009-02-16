@@ -50,7 +50,7 @@ app = Rack::Builder.new {
 
 Middlewares used in the code above are primarily useful only in the development envrionment. The following table explains their usage:
 
-|Middleware|Purpose|
+|_.Middleware|_.Purpose|
 |Rails::Rack::LogTailer|Appends log file output to console|
 |Rails::Rack::Static|Serves static files inside +RAILS_ROOT/public+ directory|
 |Rails::Rack::Debugger|Starts Debugger|
@@ -157,7 +157,7 @@ h4. Internal Middleware Stack
 
 Much of Action Controller's functionality is implemented as Middlewares. The following table explains the purpose of each of them:
 
-|Middleware|Purpose|
+|_.Middleware|_.Purpose|
 |Rack::Lock|Sets +env["rack.multithread"]+ flag to +true+ and wraps the application within a Mutex.|
 |ActionController::Failsafe|Returns HTTP Status +500+ to the client if an exception gets raised while dispatching.|
 |ActiveRecord::QueryCache|Enable the Active Record query cache.|
