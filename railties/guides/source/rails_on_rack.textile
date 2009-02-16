@@ -32,7 +32,7 @@ h4. Rails Application's Rack Object
 
 h4. script/server
 
-<tt>script/server</tt> does the basic job of creating a +Rack::Builder+ object and starting the webserver. This is Rails equivalent of Rack's +rackup+ script.
+<tt>script/server</tt> does the basic job of creating a +Rack::Builder+ object and starting the webserver. This is Rails' equivalent of Rack's +rackup+ script.
 
 Here's how +script/server+ creates an instance of +Rack::Builder+
 
@@ -84,7 +84,7 @@ h3. Action Controller Middleware Stack
 
 Many of Action Controller's internal components are implemented as Rack middlewares. +ActionController::Dispatcher+ uses +ActionController::MiddlewareStack+ to combine various internal and external middlewares to form a complete Rails Rack application.
 
-NOTE: +ActionController::MiddlewareStack+ is Rails equivalent of +Rack::Builder+, but built for better flexibility and more features to meet Rails' requirements.
+NOTE: +ActionController::MiddlewareStack+ is Rails' equivalent of +Rack::Builder+, but built for better flexibility and more features to meet Rails' requirements.
 
 h4. Inspecting Middleware Stack
 
