@@ -201,7 +201,7 @@ This line of code is called an _assertion_. An assertion is a line of code that 
 
 Every test contains one or more assertions. Only when all the assertions are successful the test passes.
 
-h4. Preparing you Application for Testing
+h4. Preparing your Application for Testing
 
 Before you can run your tests you need to ensure that the test database structure is current. For this you can use the following rake commands:
 

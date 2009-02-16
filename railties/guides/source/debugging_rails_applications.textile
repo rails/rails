@@ -627,7 +627,7 @@ To install it run:
 sudo gem install bleak_house
 </shell>
 
-Then setup you application for profiling. Then add the following at the bottom of config/environment.rb:
+Then setup your application for profiling. Then add the following at the bottom of config/environment.rb:
 
 <ruby>
 require 'bleak_house' if ENV['BLEAK_HOUSE']
