@@ -144,7 +144,6 @@ module ActionController # :nodoc:
       set_content_length!
       convert_content_type!
       convert_language!
-      convert_expires!
       convert_cookies!
     end
 
@@ -224,10 +223,6 @@ module ActionController # :nodoc:
 
       def convert_language!
         headers["Content-Language"] = headers.delete("language") if headers["language"]
-      end
-
-      def convert_expires!
-        headers["Expires"] = headers.delete("") if headers["expires"]
       end
 
       def convert_cookies!
