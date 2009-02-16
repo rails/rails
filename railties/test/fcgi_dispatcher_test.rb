@@ -1,6 +1,7 @@
 require 'abstract_unit'
 
-begin
+uses_gem "fcgi", "0.8.7" do
+
 require 'action_controller'
 require 'fcgi_handler'
 
@@ -260,7 +261,4 @@ class RailsFCGIHandlerPeriodicGCTest < Test::Unit::TestCase
     assert_nil @handler.when_ready
   end
 end
-
-rescue LoadError => e
-  raise unless e.message =~ /fcgi/
-end
+end # uses_gem "fcgi"
