@@ -224,7 +224,7 @@ h5. Rake Tasks for Preparing your Application for Testing
 |+rake db:test:prepare+          |Check for pending migrations and load the test schema|
 |+rake db:test:purge+            |Empty the test database.|
 
-TIP: You can see all these rake tasks and their descriptions by running +rake \-\-tasks \-\-describe+
+TIP: You can see all these rake tasks and their descriptions by running +rake --tasks --describe+
 
 h4. Running Tests
 
