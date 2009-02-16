@@ -113,7 +113,7 @@ Purpose of each of this middlewares is explained in "Internal Middlewares":#inte
 
 h4. Configuring Middleware Stack
 
-Rails provides a simple configuration interface +config.middleware+ for adding, removing and modifying the middlewares in the middleware stack via +environment.rb+ or the environment specific configuarion file <tt>environments/&lt;environment&gt;.rb</tt>.
+Rails provides a simple configuration interface +config.middleware+ for adding, removing and modifying the middlewares in the middleware stack via +environment.rb+ or the environment specific configuration file <tt>environments/&lt;environment&gt;.rb</tt>.
 
 h5. Adding a Middleware
 
