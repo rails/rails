@@ -497,6 +497,7 @@ code, pre {
     margin-top: 0.25em;
     display: block;
     min-height: 45px;
+    overflow: auto;
 }
 
 .note {
