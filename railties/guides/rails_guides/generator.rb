@@ -82,11 +82,11 @@ module RailsGuides
       # Set index for 2 levels
       i.level_hash.each do |key, value|
         bookmark = '#' + key.gsub(/[^a-z0-9\-_\+]+/i, '').underscore.dasherize
-        link = view.content_tag(:a, :href => bookmark) { key }
+        link = view.content_tag(:a, :href => bookmark) { textile(key) }
 
         children = value.keys.map do |k|
           bm = '#' + k.gsub(/[^a-z0-9\-_\+]+/i, '').underscore.dasherize
-          l = view.content_tag(:a, :href => bm) { k }
+          l = view.content_tag(:a, :href => bm) { textile(k) }
           view.content_tag(:li, l)
         end
 

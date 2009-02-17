@@ -483,6 +483,9 @@ h6 {
     font-size: 1em;
     font-weight: normal;
 }
+#subCol .chapters p {
+    font-size: 1em;    
+}
 
 tt {
     font-family: monaco, "Bitstream Vera Sans Mono", "Courier New", courier, monospace;
