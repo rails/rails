@@ -387,7 +387,6 @@ To hook the posts up to the home page you've already created, you can add a link
 <code lang="ruby">
 <h1>Hello, Rails!</h1>
 <%= link_to "My Blog", posts_path %>
-
 </code>
 
 The +link_to+ method is one of Rails' built-in view helpers. It creates a hyperlink based on text to display and where to go - in this case, to the path for posts.
