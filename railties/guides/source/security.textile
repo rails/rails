@@ -833,6 +833,7 @@ In the end, he got a 4 KB worm, which he injected into his profile page.
 The "moz-binding":http://www.securiteam.com/securitynews/5LP051FHPE.html CSS property proved to be another way to introduce JavaScript in CSS in Gecko-based browsers (Firefox, for example).
 
 h5. Countermeasures
+
 This example, again, showed that a blacklist filter is never complete. However, as custom CSS in web applications is a quite rare feature, I am not aware of a whitelist CSS filter. _(highlight)If you want to allow custom colours or images, you can allow the user to choose them and build the CSS in the web application_. Use Rails' +sanitize()+ method as a model for a whitelist CSS filter, if you really need one.
 
 h4. Textile Injection
@@ -892,6 +893,7 @@ system("/bin/echo","hello; rm *")
 
 
 h4. Header Injection
+
 -- _HTTP headers are dynamically generated and under certain circumstances user input may be injected. This can lead to false redirection, XSS or HTTP response splitting._
 
 HTTP request headers have a Referer, User-Agent (client software) and Cookie field, among others. Response headers for example have a status code, Cookie and Location (redirection target URL) field. All of them are user-supplied and may be manipulated with more or less effort. _(highlight)Remember to escape these header fields, too._ For example when you display the user agent in an administration area.
@@ -923,9 +925,10 @@ HTTP/1.1 302 Moved Temporarily
 Location: http://www.malicious.tld
 </pre>
 
-So _(highlight)attack vectors for Header Injection are based on the injection of CRLF characters in a header field._ And what could an attacker do with a false redirection? He could redirect to a phishing site that looks the same as yours, but asks to login again (and sends the login credentials to the attacker). Or he could install malicious software through browser security holes on that site. _(highlight)Rails 2.1.2 escapes these characters for the Location field in the redirect_to method. Make sure you do it yourself when you build other header fields with user input._
+So _(highlight)attack vectors for Header Injection are based on the injection of CRLF characters in a header field._ And what could an attacker do with a false redirection? He could redirect to a phishing site that looks the same as yours, but asks to login again (and sends the login credentials to the attacker). Or he could install malicious software through browser security holes on that site. Rails 2.1.2 escapes these characters for the Location field in the +redirect_to+ method. _(highlight)Make sure you do it yourself when you build other header fields with user input._
 
 h5. Response Splitting
+
 If Header Injection was possible, Response Splitting might be, too. In HTTP, the header block is followed by two CRLFs and the actual data (usually HTML). The idea of Response Splitting is to inject two CRLFs into a header field, followed by another response with malicious HTML. The response will be:
 
 <pre>
