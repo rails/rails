@@ -59,7 +59,7 @@ class ClientsController < ActionController::Base
   # this action would look like this in order to list activated
   # clients: /clients?status=activated
   def index
-    if params[:status] = "activated"
+    if params[:status] == "activated"
       @clients = Client.activated
     else
       @clients = Client.unactivated
