@@ -406,7 +406,7 @@ TIP: The second argument to +options_for_select+ must be exactly equal to the de
 
 h4. Select boxes for dealing with models
 
-In most cases form controls will be tied to a specific database model and as you might expect Rails provides helpers tailored for that purpose. Consistent with other form helpers, when dealing with models you drop the +<notextile>_tag</notextile>+ suffix from +select_tag+:
+In most cases form controls will be tied to a specific database model and as you might expect Rails provides helpers tailored for that purpose. Consistent with other form helpers, when dealing with models you drop the +_tag+ suffix from +select_tag+:
 
 <ruby>
 # controller:
