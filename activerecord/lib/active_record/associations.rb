@@ -133,41 +133,40 @@ module ActiveRecord
     #                                     |            |  belongs_to  |
     #   generated methods                 | belongs_to | :polymorphic | has_one
     #   ----------------------------------+------------+--------------+---------
-    #   #other                            |     X      |      X       |    X
-    #   #other=(other)                    |     X      |      X       |    X
-    #   #build_other(attributes={})       |     X      |              |    X
-    #   #create_other(attributes={})      |     X      |              |    X
-    #   #other.create!(attributes={})     |            |              |    X
-    #   #other.nil?                       |     X      |      X       |
+    #   other                             |     X      |      X       |    X
+    #   other=(other)                     |     X      |      X       |    X
+    #   build_other(attributes={})        |     X      |              |    X
+    #   create_other(attributes={})       |     X      |              |    X
+    #   other.create!(attributes={})      |            |              |    X
     #
     # ===Collection associations (one-to-many / many-to-many)
     #                                     |       |          | has_many
     #   generated methods                 | habtm | has_many | :through
     #   ----------------------------------+-------+----------+----------
-    #   #others                           |   X   |    X     |    X
-    #   #others=(other,other,...)         |   X   |    X     |    X
-    #   #other_ids                        |   X   |    X     |    X
-    #   #other_ids=(id,id,...)            |   X   |    X     |    X
-    #   #others<<                         |   X   |    X     |    X
-    #   #others.push                      |   X   |    X     |    X
-    #   #others.concat                    |   X   |    X     |    X
-    #   #others.build(attributes={})      |   X   |    X     |    X
-    #   #others.create(attributes={})     |   X   |    X     |    X
-    #   #others.create!(attributes={})    |   X   |    X     |    X
-    #   #others.size                      |   X   |    X     |    X
-    #   #others.length                    |   X   |    X     |    X
-    #   #others.count                     |   X   |    X     |    X
-    #   #others.sum(args*,&block)         |   X   |    X     |    X
-    #   #others.empty?                    |   X   |    X     |    X
-    #   #others.clear                     |   X   |    X     |    X
-    #   #others.delete(other,other,...)   |   X   |    X     |    X
-    #   #others.delete_all                |   X   |    X     |
-    #   #others.destroy_all               |   X   |    X     |    X
-    #   #others.find(*args)               |   X   |    X     |    X
-    #   #others.find_first                |   X   |          |
-    #   #others.exists?                   |   X   |    X     |    X
-    #   #others.uniq                      |   X   |    X     |    X
-    #   #others.reset                     |   X   |    X     |    X
+    #   others                            |   X   |    X     |    X
+    #   others=(other,other,...)          |   X   |    X     |    X
+    #   other_ids                         |   X   |    X     |    X
+    #   other_ids=(id,id,...)             |   X   |    X     |    X
+    #   others<<                          |   X   |    X     |    X
+    #   others.push                       |   X   |    X     |    X
+    #   others.concat                     |   X   |    X     |    X
+    #   others.build(attributes={})       |   X   |    X     |    X
+    #   others.create(attributes={})      |   X   |    X     |    X
+    #   others.create!(attributes={})     |   X   |    X     |    X
+    #   others.size                       |   X   |    X     |    X
+    #   others.length                     |   X   |    X     |    X
+    #   others.count                      |   X   |    X     |    X
+    #   others.sum(args*,&block)          |   X   |    X     |    X
+    #   others.empty?                     |   X   |    X     |    X
+    #   others.clear                      |   X   |    X     |    X
+    #   others.delete(other,other,...)    |   X   |    X     |    X
+    #   others.delete_all                 |   X   |    X     |
+    #   others.destroy_all                |   X   |    X     |    X
+    #   others.find(*args)                |   X   |    X     |    X
+    #   others.find_first                 |   X   |          |
+    #   others.exists?                    |   X   |    X     |    X
+    #   others.uniq                       |   X   |    X     |    X
+    #   others.reset                      |   X   |    X     |    X
     #
     # == Cardinality and associations
     #
@@ -813,8 +812,6 @@ module ActiveRecord
       # [association=(associate)]
       #   Assigns the associate object, extracts the primary key, sets it as the foreign key,
       #   and saves the associate object.
-      # [association.nil?]
-      #   Returns +true+ if there is no associated object.
       # [build_association(attributes = {})]
       #   Returns a new object of the associated type that has been instantiated
       #   with +attributes+ and linked to this object through a foreign key, but has not
@@ -833,7 +830,6 @@ module ActiveRecord
       # An Account class declares <tt>has_one :beneficiary</tt>, which will add:
       # * <tt>Account#beneficiary</tt> (similar to <tt>Beneficiary.find(:first, :conditions => "account_id = #{id}")</tt>)
       # * <tt>Account#beneficiary=(beneficiary)</tt> (similar to <tt>beneficiary.account_id = account.id; beneficiary.save</tt>)
-      # * <tt>Account#beneficiary.nil?</tt>
       # * <tt>Account#build_beneficiary</tt> (similar to <tt>Beneficiary.new("account_id" => id)</tt>)
       # * <tt>Account#create_beneficiary</tt> (similar to <tt>b = Beneficiary.new("account_id" => id); b.save; b</tt>)
       #
@@ -934,8 +930,6 @@ module ActiveRecord
       #   Returns the associated object. +nil+ is returned if none is found.
       # [association=(associate)]
       #   Assigns the associate object, extracts the primary key, and sets it as the foreign key.
-      # [association.nil?]
-      #   Returns +true+ if there is no associated object.
       # [build_association(attributes = {})]
       #   Returns a new object of the associated type that has been instantiated
       #   with +attributes+ and linked to this object through a foreign key, but has not yet been saved.
@@ -953,7 +947,6 @@ module ActiveRecord
       # * <tt>Post#author</tt> (similar to <tt>Author.find(author_id)</tt>)
       # * <tt>Post#author=(author)</tt> (similar to <tt>post.author_id = author.id</tt>)
       # * <tt>Post#author?</tt> (similar to <tt>post.author == some_author</tt>)
-      # * <tt>Post#author.nil?</tt>
       # * <tt>Post#build_author</tt> (similar to <tt>post.author = Author.new</tt>)
       # * <tt>Post#create_author</tt> (similar to <tt>post.author = Author.new; post.author.save; post.author</tt>)
       # The declaration can also include an options hash to specialize the behavior of the association.
