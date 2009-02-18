@@ -652,7 +652,7 @@ Also, the second query renames some columns with the AS statement so that the we
 
 h5. Countermeasures
 
-Ruby on Rails has a built in filter for special SQL characters, which will escape ' , " , NULL character and line breaks. _(highlight)Using Model.find(id) or Model.find_by_some thing(something) automatically applies this countermeasure_. But in SQL fragments, especially _(highlight)in conditions fragments (:conditions => "..."), the connection.execute() or Model.find_by_sql() methods, it has to be applied manually_.
+Ruby on Rails has a built in filter for special SQL characters, which will escape ' , " , NULL character and line breaks. <em class="highlight">Using +Model.find(id)+ or +Model.find_by_some thing(something)+ automatically applies this countermeasure</em>. But in SQL fragments, especially <em class="highlight">in conditions fragments (+:conditions => "..."+), the +connection.execute()+ or +Model.find_by_sql()+ methods, it has to be applied manually</em>.
 
 Instead of passing a string to the conditions option, you can pass an array to sanitize tainted strings like this:
 
@@ -763,7 +763,7 @@ s = sanitize(user_input, :tags => tags, :attributes => %w(href title))
 
 This allows only the given tags and does a good job, even against all kinds of tricks and malformed tags.
 
-As a second step, _(highlight)it is good practice to escape all output of the application_, especially when re-displaying user input, which hasn't been input filtered (as in the search form example earlier on). _(highlight)Use escapeHTML() (or its alias h()) method_ to replace the HTML input characters &amp;, ", &lt;, &gt; by its uninterpreted representations in HTML (+&amp;+, +&quot;+, +&lt+;, and +&gt;+). However, it can easily happen that the programmer forgets to use it, so _(highlight)it is recommended to use the "SafeErb":http://safe-erb.rubyforge.org/svn/plugins/safe_erb/ plugin_. SafeErb reminds you to escape strings from external sources.
+As a second step, _(highlight)it is good practice to escape all output of the application_, especially when re-displaying user input, which hasn't been input-filtered (as in the search form example earlier on). _(highlight)Use +escapeHTML()+ (or its alias +h()+) method_ to replace the HTML input characters &amp;, &quot;, &lt;, &gt; by their uninterpreted representations in HTML (+&amp;amp;+, +&amp;quot;+, +&amp;lt+;, and +&amp;gt;+). However, it can easily happen that the programmer forgets to use it, so <em class="highlight">it is recommended to use the "SafeErb":http://safe-erb.rubyforge.org/svn/plugins/safe_erb/ plugin</em>. SafeErb reminds you to escape strings from external sources.
 
 h6. Obfuscation and Encoding Injection
 
@@ -876,7 +876,7 @@ h4. RJS Injection
 
 -- _Don't forget to escape in JavaScript (RJS) templates, too._
 
-The RJS API generates blocks of JavaScript code based on Ruby code, thus allowing you to manipulate a view or parts of a view from the server side. _(highlight)If you allow user input in RJS templates, do escape it using escape_javascript() within JavaScript functions, and in HTML parts using h()_. Otherwise an attacker could execute arbitrary JavaScript.
+The RJS API generates blocks of JavaScript code based on Ruby code, thus allowing you to manipulate a view or parts of a view from the server side. <em class="highlight">If you allow user input in RJS templates, do escape it using +escape_javascript()+ within JavaScript functions, and in HTML parts using +h()+</em>. Otherwise an attacker could execute arbitrary JavaScript.
 
 h4. Command Line Injection
 
