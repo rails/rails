@@ -164,9 +164,9 @@ h4. New Dynamic Finders
 
 Two new sets of methods have been added to Active Record's dynamic finders family.
 
-h5. +find_last_by_<attribute>+
+h5. +find_last_by_<em>attribute</em>+
 
-The +find_last_by_<attribute>+ method is equivalent to +Model.last(:conditions => {:attribute => value})+
+The +find_last_by_<em>attribute</em>+ method is equivalent to +Model.last(:conditions => {:attribute => value})+
 
 <ruby>
 # Get the last user who signed up from London
@@ -175,9 +175,9 @@ User.find_last_by_city('London')
 
 * Lead Contributor: "Emilio Tagua":http://www.workingwithrails.com/person/9147-emilio-tagua
 
-h5. +find_by_<attribute>!+
+h5. +find_by_<em>attribute</em>!+
 
-The new bang! version of +find_by_<attribute>!+ is equivalent to +Model.first(:conditions => {:attribute => value}) || raise ActiveRecord::RecordNotFound+ Instead of returning +nil+ if it can't find a matching record, this method will raise an exception if it cannot find a match.
+The new bang! version of +find_by_<em>attribute</em>!+ is equivalent to +Model.first(:conditions => {:attribute => value}) || raise ActiveRecord::RecordNotFound+ Instead of returning +nil+ if it can't find a matching record, this method will raise an exception if it cannot find a match.
 
 <ruby>
 # Raise ActiveRecord::RecordNotFound exception if 'Moby' hasn't signed up yet!
