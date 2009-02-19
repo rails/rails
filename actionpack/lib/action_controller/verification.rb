@@ -90,7 +90,7 @@ module ActionController #:nodoc:
     def verify_action(options) #:nodoc:
       if prereqs_invalid?(options)
         flash.update(options[:add_flash])              if options[:add_flash]
-        response.headers.update(options[:add_headers]) if options[:add_headers]
+        response.headers.merge!(options[:add_headers]) if options[:add_headers]
         apply_remaining_actions(options)               unless performed?
       end
     end

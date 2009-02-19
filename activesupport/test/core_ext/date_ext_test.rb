@@ -240,13 +240,11 @@ class DateExtCalculationsTest < Test::Unit::TestCase
   end
 
   def test_current_returns_time_zone_today_when_zone_default_set
-    silence_warnings do # silence warnings raised by tzinfo gem
-      Time.zone_default = ActiveSupport::TimeZone['Eastern Time (US & Canada)']
-      with_env_tz 'US/Central' do
-        Time.stubs(:now).returns Time.local(1999, 12, 31, 23)
-        assert_equal Date.new(1999, 12, 31), Date.today
-        assert_equal Date.new(2000, 1, 1), Date.current
-      end
+    Time.zone_default = ActiveSupport::TimeZone['Eastern Time (US & Canada)']
+    with_env_tz 'US/Central' do
+      Time.stubs(:now).returns Time.local(1999, 12, 31, 23)
+      assert_equal Date.new(1999, 12, 31), Date.today
+      assert_equal Date.new(2000, 1, 1), Date.current
     end
   ensure
     Time.zone_default = nil

@@ -47,6 +47,11 @@ module ActionController #:nodoc:
         out.sync = false if out.respond_to?(:sync=)
 
         headers['Status'] = status.to_s
+
+        if headers.include?('Set-Cookie')
+          headers['cookie'] = headers.delete('Set-Cookie').split("\n")
+        end
+
         out.write(cgi.header(headers))
 
         body.each { |part|

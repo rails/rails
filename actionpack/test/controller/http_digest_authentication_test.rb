@@ -107,6 +107,15 @@ class HttpDigestAuthenticationTest < ActionController::TestCase
     assert_equal 'Definitely Maybe', @response.body
   end
 
+   test "authentication request with relative URI" do
+    @request.env['HTTP_AUTHORIZATION'] = encode_credentials(:uri => "/", :username => 'pretty', :password => 'please')
+    get :display
+
+    assert_response :success
+    assert assigns(:logged_in)
+    assert_equal 'Definitely Maybe', @response.body
+  end
+
   private
 
   def encode_credentials(options)
@@ -120,7 +129,7 @@ class HttpDigestAuthenticationTest < ActionController::TestCase
 
     credentials = decode_credentials(@response.headers['WWW-Authenticate'])
     credentials.merge!(options)
-    credentials.merge!(:uri => "http://#{@request.host}#{@request.env['REQUEST_URI']}")
+    credentials.reverse_merge!(:uri => "http://#{@request.host}#{@request.env['REQUEST_URI']}")
     ActionController::HttpAuthentication::Digest.encode_credentials("GET", credentials, password)
   end
 

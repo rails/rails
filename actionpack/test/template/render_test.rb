@@ -1,3 +1,4 @@
+# encoding: utf-8
 require 'abstract_unit'
 require 'controller/fake_models'
 
@@ -9,6 +10,7 @@ module RenderTestCases
     # Reload and register danish language for testing
     I18n.reload!
     I18n.backend.store_translations 'da', {}
+    I18n.backend.store_translations 'pt-BR', {}
 
     # Ensure original are still the same since we are reindexing view paths
     assert_equal ORIGINAL_LOCALES, I18n.available_locales.map(&:to_s).sort
@@ -32,6 +34,33 @@ module RenderTestCases
     assert_equal "Hey verden", @view.render(:file => "test/hello_world")
   ensure
     I18n.locale = old_locale
+  end
+
+  def test_render_file_with_dashed_locale
+    old_locale = I18n.locale
+    I18n.locale = :"pt-BR"
+    assert_equal "Ola mundo", @view.render(:file => "test/hello_world")
+  ensure
+    I18n.locale = old_locale
+  end
+
+  def test_render_implicit_html_template_from_xhr_request
+    old_format = @view.template_format
+    @view.template_format = :js
+    assert_equal "Hello HTML!", @view.render(:file => "test/render_implicit_html_template_from_xhr_request")
+  ensure
+    @view.template_format = old_format
+  end
+
+  def test_render_implicit_html_template_from_xhr_request_with_localization
+    old_locale = I18n.locale
+    old_format = @view.template_format
+    I18n.locale = :da
+    @view.template_format = :js
+    assert_equal "Hey HTML!\n", @view.render(:file => "test/render_implicit_html_template_from_xhr_request")
+  ensure
+    I18n.locale = old_locale
+    @view.template_format = old_format
   end
 
   def test_render_file_at_top_level
@@ -204,28 +233,44 @@ module RenderTestCases
     assert_equal %(<title>title</title>\n<div id="column">column</div>\n<div id="content">content</div>\n),
       @view.render(:file => "test/nested_layout.erb", :layout => "layouts/yield")
   end
-end
 
-class CachedViewRenderTest < Test::Unit::TestCase
-  include RenderTestCases
-
-  # Ensure view path cache is primed
-  def setup
-    view_paths = ActionController::Base.view_paths
-    assert_equal ActionView::Template::EagerPath, view_paths.first.class
-    setup_view(view_paths)
+  if '1.9'.respond_to?(:force_encoding)
+    def test_render_utf8_template
+      result = @view.render(:file => "test/utf8.html.erb", :layouts => "layouts/yield")
+      assert_equal "Русский текст\n日本語のテキスト", result
+      assert_equal Encoding::UTF_8, result.encoding
+    end
   end
 end
 
-class LazyViewRenderTest < Test::Unit::TestCase
-  include RenderTestCases
-
-  # Test the same thing as above, but make sure the view path
-  # is not eager loaded
-  def setup
-    path = ActionView::Template::Path.new(FIXTURE_LOAD_PATH)
-    view_paths = ActionView::Base.process_view_paths(path)
-    assert_equal ActionView::Template::Path, view_paths.first.class
+module TemplatesSetupTeardown
+  def setup_view_paths_for(new_cache_template_loading)
+    @previous_cache_template_loading, ActionView::Base.cache_template_loading = ActionView::Base.cache_template_loading, new_cache_template_loading
+    view_paths = new_cache_template_loading ? CACHED_VIEW_PATHS : ActionView::Base.process_view_paths(CACHED_VIEW_PATHS.map(&:to_s))
+    assert_equal(new_cache_template_loading ? ActionView::Template::EagerPath : ActionView::ReloadableTemplate::ReloadablePath, view_paths.first.class)
     setup_view(view_paths)
   end
+  
+  def teardown
+    ActionView::Base.cache_template_loading = @previous_cache_template_loading
+  end
 end
+
+class CachedRenderTest < Test::Unit::TestCase
+  include TemplatesSetupTeardown
+  include RenderTestCases
+
+  def setup
+    setup_view_paths_for(cache_templates = true)
+  end
+end
+
+class ReloadableRenderTest < Test::Unit::TestCase
+  include TemplatesSetupTeardown
+  include RenderTestCases
+
+  def setup
+    setup_view_paths_for(cache_templates = false)
+  end
+end
+

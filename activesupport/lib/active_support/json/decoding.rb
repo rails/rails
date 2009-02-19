@@ -46,10 +46,11 @@ module ActiveSupport
             json.gsub(/\\\//, '/')
           else
             left_pos  = [-1].push(*marks)
-            right_pos = marks << json.length
+            right_pos = marks << scanner.pos + scanner.rest_size
             output    = []
             left_pos.each_with_index do |left, i|
-              output << json[left.succ..right_pos[i]]
+              scanner.pos = left.succ
+              output << scanner.peek(right_pos[i] - scanner.pos + 1)
             end
             output = output * " "
             

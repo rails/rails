@@ -44,6 +44,7 @@ module ActionView
   autoload :Renderable, 'action_view/renderable'
   autoload :RenderablePartial, 'action_view/renderable_partial'
   autoload :Template, 'action_view/template'
+  autoload :ReloadableTemplate, 'action_view/reloadable_template'
   autoload :TemplateError, 'action_view/template_error'
   autoload :TemplateHandler, 'action_view/template_handler'
   autoload :TemplateHandlers, 'action_view/template_handlers'

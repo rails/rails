@@ -33,7 +33,7 @@ class CookieTest < ActionController::TestCase
     end
 
     def authenticate_with_http_only
-      cookies["user_name"] = { :value => "david", :http_only => true }
+      cookies["user_name"] = { :value => "david", :httponly => true }
     end
 
     def rescue_action(e)

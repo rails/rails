@@ -23,4 +23,10 @@ class TranslationHelperTest < Test::Unit::TestCase
     I18n.expects(:localize).with(@time)
     localize @time
   end
+  
+  def test_scoping_by_partial
+    expects(:template).returns(stub(:path_without_format_and_extension => "people/index"))
+    I18n.expects(:translate).with("people.index.foo", :locale => 'en', :raise => true)
+    translate ".foo", :locale => 'en'
+  end
 end

@@ -33,7 +33,7 @@ class ActionController::TestSessionTest < ActiveSupport::TestCase
     assert_equal('value', session[:key])
   end
   
-  def test_calling_delete_removes item
+  def test_calling_delete_removes_item
     session = ActionController::TestSession.new
     session[:key] = 'value'
     assert_equal('value', session[:key])

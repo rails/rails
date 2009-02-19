@@ -10,7 +10,7 @@ class Pirate < ActiveRecord::Base
   has_many :birds
 
   accepts_nested_attributes_for :parrots, :birds, :allow_destroy => true, :reject_if => proc { |attributes| attributes.empty? }
-  accepts_nested_attributes_for :ship, :allow_destroy => true
+  accepts_nested_attributes_for :ship, :allow_destroy => true, :reject_if => proc { |attributes| attributes.empty? }
 
   validates_presence_of :catchphrase
 end

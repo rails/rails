@@ -2,16 +2,16 @@ module ActionView #:nodoc:
   class PathSet < Array #:nodoc:
     def self.type_cast(obj)
       if obj.is_a?(String)
-        if !Object.const_defined?(:Rails) || Rails.configuration.cache_classes
-          Template::EagerPath.new(obj)
+        if Base.cache_template_loading?
+          Template::EagerPath.new(obj.to_s)
         else
-          Template::Path.new(obj)
+          ReloadableTemplate::ReloadablePath.new(obj.to_s)
         end
       else
         obj
       end
     end
-
+    
     def initialize(*args)
       super(*args).map! { |obj| self.class.type_cast(obj) }
     end
@@ -35,6 +35,10 @@ module ActionView #:nodoc:
     def unshift(*objs)
       super(*objs.map { |obj| self.class.type_cast(obj) })
     end
+    
+    def load!
+      each(&:load!)
+    end
 
     def find_template(original_template_path, format = nil)
       return original_template_path if original_template_path.respond_to?(:render)
@@ -50,12 +54,16 @@ module ActionView #:nodoc:
         elsif template = load_path[template_path]
           return template
         # Try to find html version if the format is javascript
+        elsif format == :js && template = load_path["#{template_path}.#{I18n.locale}.html"]
+          return template
         elsif format == :js && template = load_path["#{template_path}.html"]
           return template
         end
       end
 
-      Template.new(original_template_path, self)
+      return Template.new(original_template_path, original_template_path =~ /\A\// ? "" : ".") if File.file?(original_template_path)
+
+      raise MissingTemplate.new(self, original_template_path, format)
     end
   end
 end

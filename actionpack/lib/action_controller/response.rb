@@ -41,7 +41,7 @@ module ActionController # :nodoc:
 
     def initialize
       @status = 200
-      @header = DEFAULT_HEADERS.dup
+      @header = Rack::Utils::HeaderHash.new(DEFAULT_HEADERS)
 
       @writer = lambda { |x| @body << x }
       @block = nil
@@ -144,7 +144,6 @@ module ActionController # :nodoc:
       set_content_length!
       convert_content_type!
       convert_language!
-      convert_expires!
       convert_cookies!
     end
 
@@ -167,33 +166,15 @@ module ActionController # :nodoc:
       str
     end
 
-    # Over Rack::Response#set_cookie to add HttpOnly option
     def set_cookie(key, value)
-      case value
-      when Hash
-        domain  = "; domain="  + value[:domain]    if value[:domain]
-        path    = "; path="    + value[:path]      if value[:path]
-        # According to RFC 2109, we need dashes here.
-        # N.B.: cgi.rb uses spaces...
-        expires = "; expires=" + value[:expires].clone.gmtime.
-          strftime("%a, %d-%b-%Y %H:%M:%S GMT")    if value[:expires]
-        secure = "; secure"  if value[:secure]
-        httponly = "; HttpOnly" if value[:http_only]
-        value = value[:value]
+      if value.has_key?(:http_only)
+        ActiveSupport::Deprecation.warn(
+          "The :http_only option in ActionController::Response#set_cookie " +
+          "has been renamed. Please use :httponly instead.", caller)
+        value[:httponly] ||= value.delete(:http_only)
       end
-      value = [value]  unless Array === value
-      cookie = ::Rack::Utils.escape(key) + "=" +
-        value.map { |v| ::Rack::Utils.escape v }.join("&") +
-        "#{domain}#{path}#{expires}#{secure}#{httponly}"
 
-      case self["Set-Cookie"]
-      when Array
-        self["Set-Cookie"] << cookie
-      when String
-        self["Set-Cookie"] = [self["Set-Cookie"], cookie]
-      when nil
-        self["Set-Cookie"] = cookie
-      end
+      super(key, value)
     end
 
     private
@@ -236,16 +217,12 @@ module ActionController # :nodoc:
         elsif length = headers['Content-Length']
           headers['Content-Length'] = length.to_s
         elsif !body.respond_to?(:call) && (!status || status.to_s[0..2] != '304')
-          headers["Content-Length"] = body.size.to_s
+          headers["Content-Length"] = (body.respond_to?(:bytesize) ? body.bytesize : body.size).to_s
         end
       end
 
       def convert_language!
         headers["Content-Language"] = headers.delete("language") if headers["language"]
-      end
-
-      def convert_expires!
-        headers["Expires"] = headers.delete("") if headers["expires"]
       end
 
       def convert_cookies!

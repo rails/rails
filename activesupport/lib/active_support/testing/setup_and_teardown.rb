@@ -8,7 +8,7 @@ module ActiveSupport
           include ActiveSupport::Callbacks
           define_callbacks :setup, :teardown
 
-          if defined? MiniTest
+          if defined?(MiniTest::Assertions) && TestCase < MiniTest::Assertions
             include ForMiniTest
           else
             include ForClassicTestUnit

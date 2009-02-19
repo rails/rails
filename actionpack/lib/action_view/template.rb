@@ -6,7 +6,12 @@ module ActionView #:nodoc:
 
       def initialize(path)
         raise ArgumentError, "path already is a Path class" if path.is_a?(Path)
-        @path = path.freeze
+        @path = expand_path(path).freeze
+      end
+
+      def expand_path(path)
+        # collapse any directory dots in path ('.' or '..')
+        path.starts_with?('/') ? File.expand_path(path) : File.expand_path(path, '/').from(1)
       end
 
       def to_s
@@ -39,14 +44,42 @@ module ActionView #:nodoc:
       # etc. A format must be supplied to match a formated file. +hello/index+
       # will never match +hello/index.html.erb+.
       def [](path)
-        templates_in_path do |template|
-          if template.accessible_paths.include?(path)
-            return template
-          end
+      end
+      
+      def load!
+      end
+      
+      def self.new_and_loaded(path)
+        returning new(path) do |path|
+          path.load!
         end
-        nil
+      end
+    end
+
+    class EagerPath < Path
+      def initialize(path)
+        super
       end
 
+      def load!
+        return if @loaded
+        
+        @paths = {}
+        templates_in_path do |template|
+          template.load!
+          template.accessible_paths.each do |path|
+            @paths[path] = template
+          end
+        end
+        @paths.freeze
+        @loaded = true
+      end
+
+      def [](path)
+        load! unless @loaded
+        @paths[path]
+      end
+      
       private
         def templates_in_path
           (Dir.glob("#{@path}/**/*/**") | Dir.glob("#{@path}/**")).each do |file|
@@ -57,25 +90,6 @@ module ActionView #:nodoc:
         def create_template(file)
           Template.new(file.split("#{self}/").last, self)
         end
-    end
-
-    class EagerPath < Path
-      def initialize(path)
-        super
-
-        @paths = {}
-        templates_in_path do |template|
-          template.load!
-          template.accessible_paths.each do |path|
-            @paths[path] = template
-          end
-        end
-        @paths.freeze
-      end
-
-      def [](path)
-        @paths[path]
-      end
     end
 
     extend TemplateHandlers
@@ -97,9 +111,9 @@ module ActionView #:nodoc:
     attr_accessor :locale, :name, :format, :extension
     delegate :to_s, :to => :path
 
-    def initialize(template_path, load_paths = [])
+    def initialize(template_path, load_path)
       template_path = template_path.dup
-      @load_path, @filename = find_full_path(template_path, load_paths)
+      @load_path, @filename = load_path, File.join(load_path, template_path)
       @base_path, @name, @locale, @format, @extension = split(template_path)
       @base_path.to_s.gsub!(/\/$/, '') # Push to split method
 
@@ -163,11 +177,6 @@ module ActionView #:nodoc:
       @@exempt_from_layout.any? { |exempted| path =~ exempted }
     end
 
-    def mtime
-      File.mtime(filename)
-    end
-    memoize :mtime
-
     def source
       File.read(filename)
     end
@@ -190,16 +199,7 @@ module ActionView #:nodoc:
       end
     end
 
-    def stale?
-      File.mtime(filename) > mtime
-    end
-
-    def recompile?
-      !@cached
-    end
-
     def load!
-      @cached = true
       freeze
     end
 
@@ -210,15 +210,6 @@ module ActionView #:nodoc:
 
       def valid_locale?(locale)
         I18n.available_locales.include?(locale.to_sym)
-      end
-
-      def find_full_path(path, load_paths)
-        load_paths = Array(load_paths) + [nil]
-        load_paths.each do |load_path|
-          file = load_path ? "#{load_path.to_str}/#{path}" : path
-          return load_path, file if File.file?(file)
-        end
-        raise MissingTemplate.new(load_paths, path)
       end
 
       # Returns file split into an array
@@ -236,24 +227,24 @@ module ActionView #:nodoc:
         format = nil
         extension = nil
 
-        if m = extensions.match(/^(\w+)?\.?(\w+)?\.?(\w+)?\.?/)
-          if valid_locale?(m[1]) && m[2] && valid_extension?(m[3]) # All three
-            locale = m[1]
-            format = m[2]
-            extension = m[3]
-          elsif m[1] && m[2] && valid_extension?(m[3]) # Multipart formats
-            format = "#{m[1]}.#{m[2]}"
-            extension = m[3]
-          elsif valid_locale?(m[1]) && valid_extension?(m[2]) # locale and extension
-            locale = m[1]
-            extension = m[2]
-          elsif valid_extension?(m[2]) # format and extension
+        if m = extensions.split(".")
+          if valid_locale?(m[0]) && m[1] && valid_extension?(m[2]) # All three
+            locale = m[0]
             format = m[1]
             extension = m[2]
-          elsif valid_extension?(m[1]) # Just extension
+          elsif m[0] && m[1] && valid_extension?(m[2]) # Multipart formats
+            format = "#{m[0]}.#{m[1]}"
+            extension = m[2]
+          elsif valid_locale?(m[0]) && valid_extension?(m[1]) # locale and extension
+            locale = m[0]
             extension = m[1]
+          elsif valid_extension?(m[1]) # format and extension
+            format = m[0]
+            extension = m[1]
+          elsif valid_extension?(m[0]) # Just extension
+            extension = m[0]
           else # No extension
-            format = m[1]
+            format = m[0]
           end
         end
 
