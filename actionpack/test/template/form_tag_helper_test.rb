@@ -158,6 +158,18 @@ class FormTagHelperTest < ActionView::TestCase
     assert_match VALID_HTML_ID, input_elem['id']
   end
 
+  def test_text_area_tag_escape_content
+    actual = text_area_tag "body", "<b>hello world</b>", :size => "20x40"
+    expected = %(<textarea cols="20" id="body" name="body" rows="40">&lt;b&gt;hello world&lt;/b&gt;</textarea>)
+    assert_dom_equal expected, actual
+  end
+
+  def test_text_area_tag_unescaped_content
+    actual = text_area_tag "body", "<b>hello world</b>", :size => "20x40", :escape => false
+    expected = %(<textarea cols="20" id="body" name="body" rows="40"><b>hello world</b></textarea>)
+    assert_dom_equal expected, actual
+  end
+
   def test_text_field_tag
     actual = text_field_tag "title", "Hello!"
     expected = %(<input id="title" name="title" type="text" value="Hello!" />)
