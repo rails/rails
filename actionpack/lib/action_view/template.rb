@@ -6,12 +6,7 @@ module ActionView #:nodoc:
 
       def initialize(path)
         raise ArgumentError, "path already is a Path class" if path.is_a?(Path)
-        @path = expand_path(path).freeze
-      end
-
-      def expand_path(path)
-        # collapse any directory dots in path ('.' or '..')
-        path.starts_with?('/') ? File.expand_path(path) : File.expand_path(path, '/').from(1)
+        @path = (path.ends_with?(File::SEPARATOR) ? path.to(-2) : path).freeze
       end
 
       def to_s
@@ -45,22 +40,23 @@ module ActionView #:nodoc:
       # will never match +hello/index.html.erb+.
       def [](path)
       end
-      
+
       def load!
       end
-      
+
       def self.new_and_loaded(path)
         returning new(path) do |path|
           path.load!
         end
       end
+
+      private
+        def relative_path_for_template_file(full_file_path)
+          full_file_path.split("#{@path}/").last
+        end
     end
 
     class EagerPath < Path
-      def initialize(path)
-        super
-      end
-
       def load!
         return if @loaded
         
@@ -79,7 +75,7 @@ module ActionView #:nodoc:
         load! unless @loaded
         @paths[path]
       end
-      
+
       private
         def templates_in_path
           (Dir.glob("#{@path}/**/*/**") | Dir.glob("#{@path}/**")).each do |file|
@@ -88,7 +84,7 @@ module ActionView #:nodoc:
         end
 
         def create_template(file)
-          Template.new(file.split("#{self}/").last, self)
+          Template.new(relative_path_for_template_file(file), self)
         end
     end
 

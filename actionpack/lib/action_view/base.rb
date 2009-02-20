@@ -254,8 +254,8 @@ module ActionView #:nodoc:
         if options[:layout]
           _render_with_layout(options, local_assigns, &block)
         elsif options[:file]
-          tempalte = self.view_paths.find_template(options[:file], template_format)
-          tempalte.render_template(self, options[:locals])
+          template = self.view_paths.find_template(options[:file], template_format)
+          template.render_template(self, options[:locals])
         elsif options[:partial]
           render_partial(options)
         elsif options[:inline]
