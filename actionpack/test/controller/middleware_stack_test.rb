@@ -80,4 +80,11 @@ class MiddlewareStackTest < ActiveSupport::TestCase
     end
     assert_equal BazMiddleware, @stack.last.klass
   end
+
+  test "lazy evaluates middleware arguments" do
+    assert_difference "@stack.size" do
+      @stack.use BazMiddleware, lambda { :foo }
+    end
+    assert_equal [:foo], @stack.last.send(:build_args)
+  end
 end

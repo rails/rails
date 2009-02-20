@@ -67,11 +67,17 @@ module ActionController
 
       def build(app)
         if block
-          klass.new(app, *args, &block)
+          klass.new(app, *build_args, &block)
         else
-          klass.new(app, *args)
+          klass.new(app, *build_args)
         end
       end
+
+      private
+
+        def build_args
+          Array(args).map { |arg| arg.respond_to?(:call) ? arg.call : arg }
+        end
     end
 
     def initialize(*args, &block)

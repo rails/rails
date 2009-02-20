@@ -5,7 +5,7 @@ use "Rack::Lock", :if => lambda {
 use "ActionController::Failsafe"
 
 use lambda { ActionController::Base.session_store },
-  ActionController::Base.session_options
+    lambda { ActionController::Base.session_options }
 
 use "ActionController::RewindableInput"
 use "ActionController::ParamsParser"
