@@ -59,6 +59,7 @@ module ActionController
   autoload :ParamsParser, 'action_controller/params_parser'
   autoload :PolymorphicRoutes, 'action_controller/polymorphic_routes'
   autoload :RecordIdentifier, 'action_controller/record_identifier'
+  autoload :Reloader, 'action_controller/reloader'
   autoload :Request, 'action_controller/request'
   autoload :RequestForgeryProtection, 'action_controller/request_forgery_protection'
   autoload :Rescue, 'action_controller/rescue'

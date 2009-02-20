@@ -24,7 +24,6 @@ end
 #reloads the environment
 def reload!
   puts "Reloading..."
-  dispatcher = ActionController::Dispatcher.new($stdout)
-  dispatcher.reload_application
+  Dispatcher.reload_application
   true
 end
