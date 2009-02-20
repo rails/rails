@@ -550,7 +550,7 @@ NOTE: You may find references to +assert_tag+ in other documentation, but this i
 
 There are two forms of +assert_select+:
 
-+assert_select(selector, [equality], [message])`+ ensures that the equality condition is met on the selected elements through the selector. The selector may be a CSS selector expression (String), an expression with substitution values, or an +HTML::Selector+ object.
++assert_select(selector, [equality], [message])+ ensures that the equality condition is met on the selected elements through the selector. The selector may be a CSS selector expression (String), an expression with substitution values, or an +HTML::Selector+ object.
 
 +assert_select(element, selector, [equality], [message])+ ensures that the equality condition is met on all the selected elements through the selector starting from the _element_ (instance of +HTML::Node+) and its descendants.
 

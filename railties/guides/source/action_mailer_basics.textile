@@ -6,8 +6,7 @@ endprologue.
 
 h3. Introduction
 
-Action Mailer allows you to send emails from your application using a mailer model and views.
-So, in Rails, emails are used by creating models that inherit from ActionMailer::Base that live alongside other models in `app/models`. Those models have associated views that appear alongside controller views in `app/views`.
+Action Mailer allows you to send emails from your application using a mailer model and views. So, in Rails, emails are used by creating models that inherit from +ActionMailer::Base+ that live alongside other models in +app/models+. Those models have associated views that appear alongside controller views in +app/views+.
 
 h3. Sending Emails
 
