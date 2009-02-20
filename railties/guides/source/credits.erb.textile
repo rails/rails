@@ -26,7 +26,7 @@ p. We'd like to thank the following people for their tireless contributions to t
 <% end %>
 
 <% author('Pratik Naik', 'lifo') do %>
-  Pratik Naik is a Ruby on Rails consultant with "ActionRails":http://www.actionrails.com and also a member of the "Rails core team":http://rubyonrails.com/core. He blogs semi-regularly at "has_many :bugs, :through => :rails":http://m.onkey.org and has an active "twitter account":http://twitter.com/lifo.
+  Pratik Naik is a Ruby on Rails consultant with "ActionRails":http://www.actionrails.com and also a member of the "Rails core team":http://rubyonrails.com/core. He maintains a blog at "has_many :bugs, :through => :rails":http://m.onkey.org and has an active "twitter account":http://twitter.com/lifo.
 
 <% author('Emilio Tagua', 'miloops') do %>
   Emilio Tagua -- a.k.a. miloops -- is an Argentinian entrepreneur, developer, open source contributor and Rails evangelist. Cofounder of "Eventioz":http://www.eventioz.com. He has been using Rails since 2006 and contributing since early 2008. Can be found at gmail, twitter, freenode, everywhere as miloops.

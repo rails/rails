@@ -3,6 +3,7 @@ $: << pwd
 $: << File.join(pwd, "../../activesupport/lib")
 $: << File.join(pwd, "../../actionpack/lib")
 
+require "action_controller"
 require "action_view"
 
 # Require rubygems after loading Action View
