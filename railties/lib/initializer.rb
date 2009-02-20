@@ -167,6 +167,10 @@ module Rails
       load_gems
       check_gem_dependencies
 
+      # bail out if gems are missing - note that check_gem_dependencies will have
+      # already called abort() unless $gems_rake_task is set
+      return unless gems_dependencies_loaded
+
       load_application_initializers
 
       # the framework is now fully initialized
@@ -302,7 +306,7 @@ module Rails
       if unloaded_gems.size > 0
         @gems_dependencies_loaded = false
         # don't print if the gems rake tasks are being run
-        unless $rails_rake_task
+        unless $gems_rake_task
           abort <<-end_error
 Missing these required gems:
   #{unloaded_gems.map { |gem| "#{gem.name}  #{gem.requirement}" } * "\n  "}
