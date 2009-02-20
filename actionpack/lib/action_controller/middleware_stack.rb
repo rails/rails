@@ -27,7 +27,9 @@ module ActionController
       end
 
       def klass
-        if @klass.is_a?(Class)
+        if @klass.respond_to?(:call)
+          @klass.call
+        elsif @klass.is_a?(Class)
           @klass
         else
           @klass.to_s.constantize
@@ -37,6 +39,8 @@ module ActionController
       end
 
       def active?
+        return false unless klass
+
         if @conditional.respond_to?(:call)
           @conditional.call
         else
