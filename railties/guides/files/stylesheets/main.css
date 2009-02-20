@@ -503,6 +503,13 @@ code, pre {
     overflow: auto;
 }
 
+.info code, .info pre {
+	background-image: none;
+	background-color: #C5D9E6;
+	padding: 0.25em 1em;
+	min-height: 1px;
+}
+
 .note {
     background: #fff9d8 url(../../images/tab_note.gif) no-repeat left top;
     border: none;
