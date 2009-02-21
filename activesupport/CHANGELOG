@@ -1,5 +1,7 @@
 *Edge*
 
+* Ruby 1.9.1p0 fix: URI.unescape can decode multibyte chars.  #2033 [MOROHASHI Kyosuke]
+
 * Time#to_s(:rfc822) uses #formatted_offset instead of unreliable and non-standard %z directive #1899 [Zachary Zolton]
 
 * Make TimeWithZone#to_formatted_s an alias to TimeWithZone#to_s #1796 [Levin Alexander]
