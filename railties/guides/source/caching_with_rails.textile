@@ -80,8 +80,6 @@ end
 If you want a more complicated expiration scheme, you can use cache sweepers
 to expire cached objects when things change. This is covered in the section on Sweepers.
 
-[More: caching paginated results? more examples? Walk-through of page caching?]
-
 h4. Action Caching
 
 One of the issues with Page Caching is that you cannot use it for pages that
@@ -122,11 +120,14 @@ layout so that dynamic information in the layout such as logged in user info
 or the number of items in the cart can be left uncached. This feature is
 available as of Rails 2.2.
 
+You can modify the default action cache path by passing a +:cache_path+ option.
+This will be passed directly to ActionCachePath.path_for.  This is handy for
+actions with multiple possible routes that should be cached differently.  If
+a block is given, it is called with the current controller instance.  
 
-[More: more examples? Walk-through of Action Caching from request to response?
-       Description of Rake tasks to clear cached files? Show example of
-       subdomain caching? Talk about :cache_path, :if and assing blocks/Procs
-       to expire_action?]
+Finally, if you are using memcached, you can also pass +:expires_in+. In fact,
+all parameters not used by caches_action are sent to the underlying cache
+store. 
 
 h4. Fragment Caching
 
@@ -189,8 +190,6 @@ the key and can be expired the same way:
 <ruby>
 expire_fragment(:key => ['all_available_products', @latest_product.created_at].join(':'))
 </ruby>
-
-[More: more examples? description of fragment keys and expiration, etc? pagination?]
 
 h4. Sweepers
 
@@ -258,8 +257,6 @@ class ProductsController < ActionController
 
 end
 </ruby>
-
-[More: more examples? better sweepers?]
 
 h4. SQL Caching
 
