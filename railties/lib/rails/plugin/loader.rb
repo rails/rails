@@ -65,6 +65,9 @@ module Rails
         $LOAD_PATH.uniq!
       end
 
+      def engine_metal_paths
+        engines.collect(&:metal_path)
+      end
 
       protected
         def configure_engines

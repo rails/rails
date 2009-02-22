@@ -120,7 +120,7 @@ class TestPluginLoader < Test::Unit::TestCase
 
     @loader.add_plugin_load_paths
 
-    %w( models controllers helpers ).each do |app_part|
+    %w( models controllers metal helpers ).each do |app_part|
       assert ActiveSupport::Dependencies.load_paths.include?(
         File.join(plugin_fixture_path('engines/engine'), 'app', app_part)
       ), "Couldn't find #{app_part} in load path"
