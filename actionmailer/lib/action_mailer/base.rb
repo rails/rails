@@ -254,6 +254,8 @@ module ActionMailer #:nodoc:
     private_class_method :new #:nodoc:
 
     class_inheritable_accessor :view_paths
+    self.view_paths = []
+
     cattr_accessor :logger
 
     @@smtp_settings = {
@@ -594,7 +596,7 @@ module ActionMailer #:nodoc:
       end
 
       def initialize_template_class(assigns)
-        template = ActionView::Base.new(view_paths, assigns, self)
+        template = ActionView::Base.new(self.class.view_paths, assigns, self)
         template.template_format = default_template_format
         template
       end
