@@ -27,49 +27,50 @@ module ActionView #:nodoc:
           end
         else
           load_all_templates_from_dir(templates_dir_from_path(path))
-          @paths[path]
+          # don't ever hand out a template without running a stale check
+          (new_template = @paths[path]) && new_template.reset_cache_if_stale!
         end
       end
 
-      def register_template_from_file(template_file_path)
-        if !@paths[template_relative_path = template_file_path.split("#{@path}/").last] && File.file?(template_file_path)
-          register_template(ReloadableTemplate.new(template_relative_path, self))
+      private
+        def register_template_from_file(template_full_file_path)
+          if !@paths[relative_path = relative_path_for_template_file(template_full_file_path)] && File.file?(template_full_file_path)
+            register_template(ReloadableTemplate.new(relative_path, self))
+          end
         end
-      end
 
-      def register_template(template)
-        template.accessible_paths.each do |path|
-          @paths[path] = template
+        def register_template(template)
+          template.accessible_paths.each do |path|
+            @paths[path] = template
+          end
         end
-      end
 
-      # remove (probably deleted) template from cache
-      def unregister_template(template)
-        template.accessible_paths.each do |template_path|
-          @paths.delete(template_path) if @paths[template_path] == template
+        # remove (probably deleted) template from cache
+        def unregister_template(template)
+          template.accessible_paths.each do |template_path|
+            @paths.delete(template_path) if @paths[template_path] == template
+          end
+          # fill in any newly created gaps
+          @paths.values.uniq.each do |template|
+            template.accessible_paths.each {|path| @paths[path] ||= template}
+          end
         end
-        # fill in any newly created gaps
-        @paths.values.uniq.each do |template|
-          template.accessible_paths.each {|path| @paths[path] ||= template}
+
+        # load all templates from the directory of the requested template
+        def load_all_templates_from_dir(dir)
+          # hit disk only once per template-dir/request
+          @disk_cache[dir] ||= template_files_from_dir(dir).each {|template_file| register_template_from_file(template_file)}
         end
-      end
 
-      # load all templates from the directory of the requested template
-      def load_all_templates_from_dir(dir)
-        # hit disk only once per template-dir/request
-        @disk_cache[dir] ||= template_files_from_dir(dir).each {|template_file| register_template_from_file(template_file)}
-      end
+        def templates_dir_from_path(path)
+          dirname = File.dirname(path)
+          File.join(@path, dirname == '.' ? '' : dirname)
+        end
 
-      def templates_dir_from_path(path)
-        dirname = File.dirname(path)
-        File.join(@path, dirname == '.' ? '' : dirname)
-      end
-
-      # get all the template filenames from the dir
-      def template_files_from_dir(dir)
-        Dir.glob(File.join(dir, '*'))
-      end
-
+        # get all the template filenames from the dir
+        def template_files_from_dir(dir)
+          Dir.glob(File.join(dir, '*'))
+        end
     end
 
     module Unfreezable
@@ -78,7 +79,6 @@ module ActionView #:nodoc:
 
     def initialize(*args)
       super
-      @compiled_methods = []
       
       # we don't ever want to get frozen
       extend Unfreezable
@@ -106,14 +106,11 @@ module ActionView #:nodoc:
       self
     end
 
+    # remove any compiled methods that look like they might belong to me
     def undef_my_compiled_methods!
-      @compiled_methods.each {|comp_method| ActionView::Base::CompiledTemplates.send(:remove_method, comp_method)}
-      @compiled_methods.clear
-    end
-
-    def compile!(render_symbol, local_assigns)
-      super
-      @compiled_methods << render_symbol
+      ActionView::Base::CompiledTemplates.public_instance_methods.grep(/#{Regexp.escape(method_name_without_locals)}(?:_locals_)?/).each do |m|
+        ActionView::Base::CompiledTemplates.send(:remove_method, m)
+      end
     end
 
   end

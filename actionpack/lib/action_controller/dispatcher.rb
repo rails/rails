@@ -5,8 +5,9 @@ module ActionController
     class << self
       def define_dispatcher_callbacks(cache_classes)
         unless cache_classes
-          # Development mode callbacks
-          before_dispatch :reload_application
+          unless self.middleware.include?(Reloader)
+            self.middleware.insert_after(Failsafe, Reloader)
+          end
 
           ActionView::Helpers::AssetTagHelper.cache_asset_timestamps = false
         end
@@ -40,6 +41,30 @@ module ActionController
         @prepare_dispatch_callbacks ||= ActiveSupport::Callbacks::CallbackChain.new
         callback = ActiveSupport::Callbacks::Callback.new(:prepare_dispatch, block, :identifier => identifier)
         @prepare_dispatch_callbacks.replace_or_append!(callback)
+      end
+
+      def run_prepare_callbacks
+        if defined?(Rails) && Rails.logger
+          logger = Rails.logger
+        else
+          logger = Logger.new($stderr)
+        end
+
+        new(logger).send :run_callbacks, :prepare_dispatch
+      end
+
+      def reload_application
+        # Run prepare callbacks before every request in development mode
+        run_prepare_callbacks
+
+        Routing::Routes.reload
+      end
+
+      def cleanup_application
+        # Cleanup the application before processing the current request.
+        ActiveRecord::Base.reset_subclasses if defined?(ActiveRecord)
+        ActiveSupport::Dependencies.clear
+        ActiveRecord::Base.clear_reloadable_connections! if defined?(ActiveRecord)
       end
     end
 
@@ -85,18 +110,6 @@ module ActionController
     def _call(env)
       @env = env
       dispatch
-    end
-
-    def reload_application
-      # Cleanup the application before processing the current request.
-      ActiveRecord::Base.reset_subclasses if defined?(ActiveRecord)
-      ActiveSupport::Dependencies.clear
-      ActiveRecord::Base.clear_reloadable_connections! if defined?(ActiveRecord)
-
-      # Run prepare callbacks before every request in development mode
-      run_callbacks :prepare_dispatch
-
-      Routing::Routes.reload
     end
 
     def flush_logger

@@ -167,6 +167,10 @@ module Rails
       load_gems
       check_gem_dependencies
 
+      # bail out if gems are missing - note that check_gem_dependencies will have
+      # already called abort() unless $gems_rake_task is set
+      return unless gems_dependencies_loaded
+
       load_application_initializers
 
       # the framework is now fully initialized
@@ -302,7 +306,7 @@ module Rails
       if unloaded_gems.size > 0
         @gems_dependencies_loaded = false
         # don't print if the gems rake tasks are being run
-        unless $rails_rake_task
+        unless $gems_rake_task
           abort <<-end_error
 Missing these required gems:
   #{unloaded_gems.map { |gem| "#{gem.name}  #{gem.requirement}" } * "\n  "}
@@ -479,8 +483,8 @@ Run `rake gems:install` to install the missing gems.
     def initialize_framework_views
       if configuration.frameworks.include?(:action_view)
         view_path = ActionView::PathSet.type_cast(configuration.view_path)
-        ActionMailer::Base.template_root ||= view_path if configuration.frameworks.include?(:action_mailer)
-        ActionController::Base.view_paths = view_path if configuration.frameworks.include?(:action_controller) && ActionController::Base.view_paths.empty?
+        ActionMailer::Base.template_root  = view_path if configuration.frameworks.include?(:action_mailer) && ActionMailer::Base.view_paths.blank?
+        ActionController::Base.view_paths = view_path if configuration.frameworks.include?(:action_controller) && ActionController::Base.view_paths.blank?
       end
     end
 
@@ -492,7 +496,7 @@ Run `rake gems:install` to install the missing gems.
 
       ActionController::Routing.controller_paths += configuration.controller_paths
       ActionController::Routing::Routes.add_configuration_file(configuration.routes_configuration_file)
-      ActionController::Routing::Routes.reload
+      ActionController::Routing::Routes.reload!
     end
 
     # Sets the dependency loading mechanism based on the value of
@@ -583,7 +587,7 @@ Run `rake gems:install` to install the missing gems.
       return unless configuration.frameworks.include?(:action_controller)
       require 'dispatcher' unless defined?(::Dispatcher)
       Dispatcher.define_dispatcher_callbacks(configuration.cache_classes)
-      Dispatcher.new(Rails.logger).send :run_callbacks, :prepare_dispatch
+      Dispatcher.run_prepare_callbacks
     end
 
     def disable_dependency_loading

@@ -27,7 +27,9 @@ module ActionController
       end
 
       def klass
-        if @klass.is_a?(Class)
+        if @klass.respond_to?(:call)
+          @klass.call
+        elsif @klass.is_a?(Class)
           @klass
         else
           @klass.to_s.constantize
@@ -37,6 +39,8 @@ module ActionController
       end
 
       def active?
+        return false unless klass
+
         if @conditional.respond_to?(:call)
           @conditional.call
         else
@@ -63,11 +67,17 @@ module ActionController
 
       def build(app)
         if block
-          klass.new(app, *args, &block)
+          klass.new(app, *build_args, &block)
         else
-          klass.new(app, *args)
+          klass.new(app, *build_args)
         end
       end
+
+      private
+
+        def build_args
+          Array(args).map { |arg| arg.respond_to?(:call) ? arg.call : arg }
+        end
     end
 
     def initialize(*args, &block)

@@ -23,7 +23,7 @@ class CookieStoreTest < ActionController::IntegrationTest
 
     def set_session_value
       session[:foo] = "bar"
-      render :text => Verifier.generate(session.to_hash)
+      render :text => Rack::Utils.escape(Verifier.generate(session.to_hash))
     end
 
     def get_session_value

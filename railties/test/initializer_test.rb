@@ -182,6 +182,7 @@ require File.dirname(__FILE__) + '/plugin_test_helper'
 class InitializerPluginLoadingTests < Test::Unit::TestCase
   def setup
     @configuration     = Rails::Configuration.new
+    @configuration.frameworks -= [:action_mailer]
     @configuration.plugin_paths << plugin_fixture_root_path
     @initializer       = Rails::Initializer.new(@configuration)
     @valid_plugin_path = plugin_fixture_path('default/stubby')
@@ -310,8 +311,8 @@ class InitializerSetupI18nTests < Test::Unit::TestCase
 
     Rails::Initializer.run(:initialize_i18n, config)
     assert_equal [ 
-     File.expand_path("./test/../../activesupport/lib/active_support/locale/en.yml"),
-     File.expand_path("./test/../../actionpack/lib/action_view/locale/en.yml"),
+     File.expand_path(File.dirname(__FILE__) + "/../../activesupport/lib/active_support/locale/en.yml"),
+     File.expand_path(File.dirname(__FILE__) + "/../../actionpack/lib/action_view/locale/en.yml"),
      "my/test/locale.yml",
      "my/other/locale.yml" ], I18n.load_path.collect { |path| path =~ /^\./ ? File.expand_path(path) : path }
   end
