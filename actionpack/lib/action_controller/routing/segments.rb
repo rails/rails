@@ -240,10 +240,6 @@ module ActionController
         "(?i-:(#{(regexp || Regexp.union(*possible_names)).source}))"
       end
 
-      def number_of_captures
-        1
-      end
-
       # Don't URI.escape the controller name since it may contain slashes.
       def interpolation_chunk(value_code = local_name)
         "\#{#{value_code}.to_s}"

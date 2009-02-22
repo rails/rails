@@ -893,6 +893,16 @@ uses_mocha 'LegacyRouteSet, Route, RouteSet and RouteLoading' do
       assert_equal '/content/foo', rs.generate(:controller => "content", :action => "foo")
     end
 
+    def test_route_with_regexp_and_captures_for_controller
+      rs.draw do |map|
+        map.connect ':controller/:action/:id', :controller => /admin\/(accounts|users)/
+      end
+      assert_equal({:controller => "admin/accounts", :action => "index"}, rs.recognize_path("/admin/accounts"))
+      assert_equal({:controller => "admin/users", :action => "index"}, rs.recognize_path("/admin/users"))
+      assert_raises(ActionController::RoutingError) { rs.recognize_path("/admin/products") }
+    end
+
+
     def test_route_with_regexp_and_dot
       rs.draw do |map|
         map.connect ':controller/:action/:file',
