@@ -50,6 +50,10 @@ The "Ruby on Rails guides":http://guides.rubyonrails.org/ project has published 
 
 * More Information: "Rails Documentation Projects":http://weblog.rubyonrails.org/2009/1/15/rails-documentation-projects
 
+h3. Ruby 1.9.1 Support
+
+Rails 2.3 should pass all of its own tests whether you are running on Ruby 1.8 or the now-released Ruby 1.9.1. You should be aware, though, that moving to 1.9.1 entails checking all of the data adapters, plugins, and other code that you depend on for Ruby 1.9.1 compatibility, as well as Rails core. 
+
 h3. Active Record
 
 Active Record gets quite a number of new features and bug fixes in Rails 2.3. The highlights include nested attributes, nested transactions, dynamic scopes, and default scopes.
@@ -511,7 +515,8 @@ A few pieces of older code are deprecated in this release:
 * Some integration test helpers have been removed. +response.headers["Status"]+ and +headers["Status"]+ will no longer return anything. Rack does not allow "Status" in its return headers. However you can still use the +status+ and +status_message+ helpers. +response.headers["cookie"]+ and +headers["cookie"]+ will no longer return any CGI cookies. You can inspect +headers["Set-Cookie"]+ to see the raw cookie header or use the +cookies+ helper to get a hash of the cookies sent to the client.
 * +formatted_polymorphic_url+ is deprecated. Use +polymorphic_url+ with +:format+ instead.
 * The +:http_only+ option in +ActionController::Response#set_cookie+ has been renamed to +:httponly+.
+* The +:connector+ and +:skip_last_comma+ options of +to_sentence+ have been replaced by +:words_connnector+, +:two_words_connector+, and +:last_word_connector+ options.
 
 h3. Credits
 
-Release notes compiled by "Mike Gunderloy":http://afreshcup.com
+Release notes compiled by "Mike Gunderloy":http://afreshcup.com. This version of the Rails 2.3 release notes was compiled based on RC2 of Rails 2.3.
