@@ -53,7 +53,7 @@ class RenderPartialWithRecordIdentificationTest < ActiveRecordTestCase
   def test_rendering_partial_with_has_many_and_belongs_to_association
     get :render_with_has_many_and_belongs_to_association
     assert_template 'projects/_project'
-    assert_equal 'Active RecordActive Controller', @response.body
+    assert_equal assigns(:developer).projects.map(&:name).join, @response.body
   end
 
   def test_rendering_partial_with_has_many_association
@@ -82,7 +82,7 @@ class RenderPartialWithRecordIdentificationTest < ActiveRecordTestCase
 
   def test_render_with_record_collection_and_spacer_template
     get :render_with_record_collection_and_spacer_template
-    assert_equal 'Active Recordonly partialActive Controller', @response.body
+    assert_equal assigns(:developer).projects.map(&:name).join('only partial'), @response.body
   end
 
   def test_rendering_partial_with_has_one_association
