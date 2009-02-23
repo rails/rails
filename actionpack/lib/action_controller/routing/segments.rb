@@ -3,7 +3,11 @@ module ActionController
     class Segment #:nodoc:
       RESERVED_PCHAR = ':@&=+$,;'
       SAFE_PCHAR = "#{URI::REGEXP::PATTERN::UNRESERVED}#{RESERVED_PCHAR}"
-      UNSAFE_PCHAR = Regexp.new("[^#{SAFE_PCHAR}]", false, 'N').freeze
+      if RUBY_VERSION >= '1.9'
+        UNSAFE_PCHAR = Regexp.new("[^#{SAFE_PCHAR}]", false).freeze
+      else
+        UNSAFE_PCHAR = Regexp.new("[^#{SAFE_PCHAR}]", false, 'N').freeze
+      end
 
       # TODO: Convert :is_optional accessor to read only
       attr_accessor :is_optional
