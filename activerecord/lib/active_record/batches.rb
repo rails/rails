@@ -7,7 +7,7 @@ module ActiveRecord
     # When processing large numbers of records, it's often a good idea to do so in batches to prevent memory ballooning.
     module ClassMethods
       # Yields each record that was found by the find +options+. The find is performed by find_in_batches
-      # with a batch size of 1000 (or as specified by the +limit+ option).
+      # with a batch size of 1000 (or as specified by the +batch_size+ option).
       #
       # Example:
       #
@@ -27,7 +27,7 @@ module ActiveRecord
       end
 
       # Yields each batch of records that was found by the find +options+ as an array. The size of each batch is
-      # set by the +limit+ option; the default is 1000.
+      # set by the +batch_size+ option; the default is 1000.
       #
       # You can control the starting point for the batch processing by supplying the +start+ option. This is especially
       # useful if you want multiple workers dealing with the same processing queue. You can make worker 1 handle all the
