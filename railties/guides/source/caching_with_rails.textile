@@ -309,14 +309,14 @@ fragment caches. Page caches are always stored on disk.
 
 Rails 2.1 and above provide ActiveSupport::Cache::Store which can be used to
 cache strings. Some cache store implementations, like MemoryStore, are able to
-cache arbitrary Ruby objects, but don‘t count on every cache store to be able
+cache arbitrary Ruby objects, but don't count on every cache store to be able
 to do that.
 
 The default cache stores provided include:
 
 1) ActiveSupport::Cache::MemoryStore: A cache store implementation which stores
-everything into memory in the same process. If you‘re running multiple Ruby on
-Rails server processes (which is the case if you‘re using mongrel_cluster or
+everything into memory in the same process. If you're running multiple Ruby on
+Rails server processes (which is the case if you're using mongrel_cluster or
 Phusion Passenger), then this means that your Rails server process instances
 won‘t be able to share cache data with each other. If your application never
 performs manual cache item expiry (e.g. when you‘re using generational cache
@@ -368,23 +368,24 @@ Special features:
 
 It also accepts a hash of additional options:
 
- * :namespace - specifies a string that will automatically be prepended to keys when accessing the memcached store.
- * :readonly - a boolean value that when set to true will make the store read-only, with an error raised on any attempt to write.
- * :multithread - a boolean value that adds thread safety to read/write operations - it is unlikely you’ll need to use this option as the Rails threadsafe! method offers the same functionality.
+ * +:namespace+- specifies a string that will automatically be prepended to keys when accessing the memcached store.
+ * +:readonly+- a boolean value that when set to true will make the store read-only, with an error raised on any attempt to write.
+ * +:multithread+ - a boolean value that adds thread safety to read/write operations - it is unlikely you'll need to use this option as the Rails threadsafe! method offers the same functionality.
 
 The read and write methods of the MemCacheStore accept an options hash too.
-When reading you can specify :raw => true to prevent the object being marshaled
+When reading you can specify +:raw => true+ to prevent the object being
+marshaled
 (by default this is false which means the raw value in the cache is passed to
 Marshal.load before being returned to you.)
 
-When writing to the cache it is also possible to specify :raw => true means the
-value is not passed to Marshal.dump before being stored in the cache (by
+When writing to the cache it is also possible to specify +:raw => true+ means
+the value is not passed to Marshal.dump before being stored in the cache (by
 default this is false). 
 
-The write method also accepts an :unless_exist flag which determines whether
+The write method also accepts an +:unless_exist+ flag which determines whether
 the memcached add (when true) or set (when false) method is used to store the
-item in the cache and an :expires_in option that specifies the time-to-live for
-the cached item in seconds.
+item in the cache and an +:expires_in+ option that specifies the time-to-live
+for the cached item in seconds.
 
 
 <ruby>
@@ -442,7 +443,7 @@ identifier (etag) or last modified since timestamp matches the server’s versio
 then the server only needs to send back an empty response with a not modified
 status.
 
-It is the server’s (i.e. our) responsibility to look for a last modified
+It is the server's (i.e. our) responsibility to look for a last modified
 timestamp and the if-none-match header and determine whether or not to send
 back the full response. With conditional-get support in rails this is a pretty
 easy task:
@@ -468,8 +469,8 @@ class ProductsController < ApplicationController
 end
 </ruby>
 
-If you don’t have any special response processing and are using the default
-rendering mechanism (i.e. you’re not using respond_to or calling render
+If you don't have any special response processing and are using the default
+rendering mechanism (i.e. you're not using respond_to or calling render
 yourself) then you’ve got an easy helper in fresh_when:
 
 <ruby>
