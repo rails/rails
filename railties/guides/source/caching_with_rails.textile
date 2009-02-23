@@ -433,7 +433,7 @@ Rails.cache.read("city")   # => "Duckburgh"
 h3. Conditional GET support
 
 Conditional GETs are a facility of the HTTP spec that provide a way for web
-servers to tell browsers that the response to a GET request hasn’t changed
+servers to tell browsers that the response to a GET request hasn't changed
 since the last request and can be safely pulled from the browser cache.
 
 They work by using the HTTP_IF_NONE_MATCH and HTTP_IF_MODIFIED_SINCE headers to
