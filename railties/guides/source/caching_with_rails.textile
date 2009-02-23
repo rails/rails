@@ -304,51 +304,110 @@ that action and thus persist only for the duration of the action.
 
 h4. Cache stores
 
-Rails provides different stores for the cached data for action and fragment
-caches. Page caches are always stored on disk.
+Rails (as of 2.1) provides different stores for the cached data for action and
+fragment caches. Page caches are always stored on disk.
 
-The cache stores provided include:
+Rails 2.1 and above provide ActiveSupport::Cache::Store which can be used to
+cache strings. Some cache store implementations, like MemoryStore, are able to
+cache arbitrary Ruby objects, but don‘t count on every cache store to be able
+to do that.
 
-1) Memory store: Cached data is stored in the memory allocated to the Rails
-                 process, which is fine for WEBrick and for FCGI (if you
-                 don't care that each FCGI process holds its own fragment
-                 store). It's not suitable for CGI as the process is thrown
-                 away at the end of each request. It can potentially also
-                 take up a lot of memory since each process keeps all the
-                 caches in memory.
+The default cache stores provided include:
+
+1) ActiveSupport::Cache::MemoryStore: A cache store implementation which stores
+everything into memory in the same process. If you‘re running multiple Ruby on
+Rails server processes (which is the case if you‘re using mongrel_cluster or
+Phusion Passenger), then this means that your Rails server process instances
+won‘t be able to share cache data with each other. If your application never
+performs manual cache item expiry (e.g. when you‘re using generational cache
+keys), then using +MemoryStore+ is ok. Otherwise, consider carefully whether you
+should be using this cache store.  
+
++MemoryStore+ is not only able to store strings, but also arbitrary Ruby objects.
+
++MemoryStore+ is not thread-safe. Use +SynchronizedMemoryStore+ instead if you
+need thread-safety.
+                                      
 
 <ruby>
 ActionController::Base.cache_store = :memory_store
 </ruby>
 
-2) File store: Cached data is stored on the disk, this is the default store
-               and the default path for this store is: /tmp/cache. Works
-               well for all types of environments and allows all processes
-               running from the same application directory to access the
-               cached content.
+2) ActiveSupport::Cache::FileStore: Cached data is stored on the disk, this is
+the default store and the default path for this store is: /tmp/cache. Works
+well for all types of environments and allows all processes running from the
+same application directory to access the cached content. If /tmp/cache does not
+exist, the default store becomes MemoryStore.
 
 
 <ruby>
 ActionController::Base.cache_store = :file_store, "/path/to/cache/directory"
 </ruby>
 
-3) DRb store: Cached data is stored in a separate shared DRb process that all
-              servers communicate with. This works for all environments and
-              only keeps one cache around for all processes, but requires
-              that you run and manage a separate DRb process.
+3) ActiveSupport::Cache::DRbStore: Cached data is stored in a separate shared
+DRb process that all servers communicate with. This works for all environments
+and only keeps one cache around for all processes, but requires that you run
+and manage a separate DRb process.
+
 
 <ruby>
 ActionController::Base.cache_store = :drb_store, "druby://localhost:9192"
 </ruby>
 
 4) MemCached store: Works like DRbStore, but uses Danga's MemCache instead.
-                    Rails uses the bundled memcached-client gem by default.
+Rails uses the bundled memcached-client gem by default. This is currently the
+most popular cache store for production websites.
+
+Special features:
+ * Clustering and load balancing. One can specify multiple memcached servers,
+   and MemCacheStore will load balance between all available servers. If a
+   server goes down, then MemCacheStore will ignore it until it goes back
+   online.
+ * Time-based expiry support. See write and the +:expires_in+ option.
+ * Per-request in memory cache for all communication with the MemCache server(s).
+
+It also accepts a hash of additional options:
+
+ * :namespace - specifies a string that will automatically be prepended to keys when accessing the memcached store.
+ * :readonly - a boolean value that when set to true will make the store read-only, with an error raised on any attempt to write.
+ * :multithread - a boolean value that adds thread safety to read/write operations - it is unlikely you’ll need to use this option as the Rails threadsafe! method offers the same functionality.
+
+The read and write methods of the MemCacheStore accept an options hash too.
+When reading you can specify :raw => true to prevent the object being marshaled
+(by default this is false which means the raw value in the cache is passed to
+Marshal.load before being returned to you.)
+
+When writing to the cache it is also possible to specify :raw => true means the
+value is not passed to Marshal.dump before being stored in the cache (by
+default this is false). 
+
+The write method also accepts an :unless_exist flag which determines whether
+the memcached add (when true) or set (when false) method is used to store the
+item in the cache and an :expires_in option that specifies the time-to-live for
+the cached item in seconds.
+
 
 <ruby>
 ActionController::Base.cache_store = :mem_cache_store, "localhost"
 </ruby>
 
-5) Custom store: You can define your own cache store (new in Rails 2.1)
+5) ActiveSupport::Cache::SynchronizedMemoryStore: Like ActiveSupport::Cache::MemoryStore but thread-safe.
+
+
+<ruby>
+ActionController::Base.cache_store = :synchronized_memory_store
+</ruby>
+
+6) ActiveSupport::Cache::CompressedMemCacheStore: Works just like the regular
+MemCacheStore but uses GZip to decompress/compress on read/write.
+
+
+<ruby>
+ActionController::Base.cache_store = :compressed_mem_cache_store, "localhost"
+</ruby>
+
+7) Custom store: You can define your own cache store (new in Rails 2.1)
+
 
 <ruby>
 ActionController::Base.cache_store = MyOwnStore.new("parameter")
@@ -357,6 +416,18 @@ ActionController::Base.cache_store = MyOwnStore.new("parameter")
 +Note: config.cache_store can be used in place of
 ActionController::Base.cache_store in your Rails::Initializer.run block in
 environment.rb+
+
+In addition to all of this, Rails also adds the ActiveRecord::Base#cache_key
+method that generates a key using the class name, id and updated_at timestamp
+(if available).
+
+An example:
+
+<ruby>
+Rails.cache.read("city")   # => nil
+Rails.cache.write("city", "Duckburgh")
+Rails.cache.read("city")   # => "Duckburgh"
+</ruby>
 
 h3. Conditional GET support
 
