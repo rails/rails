@@ -495,3 +495,11 @@ interlock plugin (more info here:
 http://blog.evanweaver.com/articles/2007/12/13/better-rails-caching/). Both
 of these plugins play nice with memcached and are a must-see for anyone
 seriously considering optimizing their caching needs.
+
+h3. Changelog
+"Lighthouse ticket":http://rails.lighthouseapp.com/projects/16213-rails-guides/tickets/10-guide-to-caching
+
+February  22, 2009: Beefed up the section on cache_stores
+December  27, 2008: Typo fixes
+November  23, 2008: Incremental updates with various suggested changes and formatting cleanup
+September 15, 2008: Initial version by Aditya Chadha
