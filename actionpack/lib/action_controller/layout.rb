@@ -207,21 +207,23 @@ module ActionController #:nodoc:
         when Proc   then layout.call(self)
         else layout
       end
-      
-      find_layout(active_layout, @template.template_format) if active_layout
+
+      find_layout(active_layout, default_template_format) if active_layout
     end
 
     private
       def default_layout #:nodoc:
-        layout = self.class.read_inheritable_attribute(:layout) unless default_template_format == :js
+        layout = self.class.read_inheritable_attribute(:layout)
         return layout unless self.class.read_inheritable_attribute(:auto_layout)
         find_layout(layout, default_template_format)
       rescue ActionView::MissingTemplate
         nil
       end
 
-      def find_layout(layout, *formats) #:nodoc:
-        view_paths.find_template(layout.to_s =~ /layouts\// ? layout : "layouts/#{layout}", *formats)
+      def find_layout(layout, format) #:nodoc:
+        view_paths.find_template(layout.to_s =~ /layouts\// ? layout : "layouts/#{layout}", format, false)
+      rescue ActionView::MissingTemplate
+        raise if Mime::Type.lookup_by_extension(format.to_s).html?
       end
 
       def pick_layout(options)
@@ -258,7 +260,12 @@ module ActionController #:nodoc:
         template = options[:template] || default_template(options[:action])
         if options.values_at(:text, :xml, :json, :file, :inline, :partial, :nothing, :update).compact.empty?
           begin
-            !self.view_paths.find_template(template, default_template_format).exempt_from_layout?
+            template_object = self.view_paths.find_template(template, default_template_format)
+            # this restores the behavior from 2.2.2, where response.template.template_format was reset
+            # to :html for :js requests with a matching html template.
+            # see v2.2.2, ActionView::Base, lines 328-330
+            @real_format = :html if response.template.template_format == :js && template_object.format == "html"
+            !template_object.exempt_from_layout?
           rescue ActionView::MissingTemplate
             true
           end
@@ -268,7 +275,7 @@ module ActionController #:nodoc:
       end
 
       def default_template_format
-        response.template.template_format
+        @real_format || response.template.template_format
       end
   end
 end
