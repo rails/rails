@@ -369,11 +369,14 @@ tt {
 	font-size: 0.9em;
 }
 
+div.code_container {
+	background: #EEE url(../../images/tab_grey.gif) no-repeat left top;
+	padding: 0.25em 1em 0.5em 48px;    
+}
+
 code {
 	font-family: monaco, "Bitstream Vera Sans Mono", "Courier New", courier, monospace;
-	background: #EEE url(../../images/tab_grey.gif) no-repeat left top;
 	border: none;
-	padding: 0.25em 1em 0.5em 48px;
 	margin: 0.25em 0 1.5em 0;
 	display: block;
 }
