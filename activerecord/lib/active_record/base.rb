@@ -3148,7 +3148,7 @@ module ActiveRecord #:nodoc:
     # #save_with_autosave_associations to be wrapped inside a transaction.
     include AutosaveAssociation, NestedAttributes
 
-    include Aggregations, Transactions, Reflection, Calculations, Serialization
+    include Aggregations, Transactions, Reflection, Batches, Calculations, Serialization
   end
 end
 

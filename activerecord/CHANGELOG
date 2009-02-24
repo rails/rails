@@ -1,5 +1,7 @@
 *Edge*
 
+* Added ActiveRecord::Base.each and ActiveRecord::Base.find_in_batches for batch processing [DHH/Jamis Buck]
+
 * Added that ActiveRecord::Base.exists? can be called with no arguments #1817 [Scott Taylor]
 
 

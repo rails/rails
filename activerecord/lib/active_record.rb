@@ -48,6 +48,7 @@ module ActiveRecord
   autoload :AttributeMethods, 'active_record/attribute_methods'
   autoload :AutosaveAssociation, 'active_record/autosave_association'
   autoload :Base, 'active_record/base'
+  autoload :Batches, 'active_record/batches'
   autoload :Calculations, 'active_record/calculations'
   autoload :Callbacks, 'active_record/callbacks'
   autoload :Dirty, 'active_record/dirty'
