@@ -1,5 +1,7 @@
 *Edge*
 
+* Update bundled memcache-client from 1.5.0.5 to 1.6.4.99. See http://www.mikeperham.com/2009/02/15/memcache-client-performance/  [Mike Perham]
+
 * Ruby 1.9.1p0 fix: URI.unescape can decode multibyte chars.  #2033 [MOROHASHI Kyosuke]
 
 * Time#to_s(:rfc822) uses #formatted_offset instead of unreliable and non-standard %z directive #1899 [Zachary Zolton]
