@@ -23,7 +23,7 @@ dl { margin: 0 0 1.5em 0; }
 dl dt { font-weight: bold; }
 dd { margin-left: 1.5em;}
 	
-pre,code { margin: 1.5em 0; white-space: pre; }
+pre,code { margin: 1.5em 0; white-space: pre; overflow: auto; }
 pre,code,tt { font: 1em 'andale mono', 'lucida console', monospace; line-height: 1.5; }
 
 abbr, acronym { border-bottom: 1px dotted #666; }
