@@ -41,7 +41,7 @@ With Active Record associations, we can streamline these - and other - operation
 
 <ruby>
 class Customer < ActiveRecord::Base
-  has_many :orders
+  has_many :orders, :dependent => :destroy
 end
 
 class Order < ActiveRecord::Base
@@ -65,7 +65,7 @@ To learn more about the different types of associations, read the next section o
 
 h3. The Types of Associations
 
-In Rails, an _association_ is a connection between two Active Record models. Associations are implemented using macro-style calls, so that you can declaratively add features to your models. For example, by declaring that one model +belongs_to+ another, you instruct Rails to maintain Primary Key-Foreign Key information between instances of the two models, and you also get a number of utility methods added to your model. Rails supports six types of association:
+In Rails, an _association_ is a connection between two Active Record models. Associations are implemented using macro-style calls, so that you can declaratively add features to your models. For example, by declaring that one model +belongs_to+ another, you instruct Rails to maintain Primary Key–Foreign Key information between instances of the two models, and you also get a number of utility methods added to your model. Rails supports six types of association:
 
 * +belongs_to+
 * +has_one+
@@ -195,7 +195,7 @@ end
 
 h4. Choosing Between belongs_to and has_one
 
-If you want to set up a 1-1 relationship between two models, you'll need to add +belongs_to+ to one, and +has_one+ to the other. How do you know which is which?
+If you want to set up a 1–1 relationship between two models, you'll need to add +belongs_to+ to one, and +has_one+ to the other. How do you know which is which?
 
 The distinction is in where you place the foreign key (it goes on the table for the class declaring the +belongs_to+ association), but you should give some thought to the actual meaning of the data as well. The +has_one+ relationship says that one of something is yours - that is, that something points back to you. For example, it makes more sense to say that a supplier owns an account than that an account owns a supplier. This suggests that the correct relationships are like this:
 
@@ -233,7 +233,7 @@ class CreateSuppliers < ActiveRecord::Migration
 end
 </ruby>
 
-NOTE: Using +t.integer :supplier_id+ makes the foreign key naming obvious and implicit. In current versions of Rails, you can abstract away this implementation detail by using +t.references :supplier+ instead.
+NOTE: Using +t.integer :supplier_id+ makes the foreign key naming obvious and explicit. In current versions of Rails, you can abstract away this implementation detail by using +t.references :supplier+ instead.
 
 h4. Choosing Between has_many :through and has_and_belongs_to_many
 
@@ -268,7 +268,7 @@ class Part < ActiveRecord::Base
 end
 </ruby>
 
-The simplest rule of thumb is that you should set up a +has_many :through+ relationship if you need to work with the relationship model as an independent entity. If you don't need to do anything with the relationship model, it may be simpler to set up a +has_and_belongs_to_many+ relationship (though you'll need to remember to create the joining table).
+The simplest rule of thumb is that you should set up a +has_many :through+ relationship if you need to work with the relationship model as an independent entity. If you don't need to do anything with the relationship model, it may be simpler to set up a +has_and_belongs_to_many+ relationship (though you'll need to remember to create the joining table in the database).
 
 You should use +has_many :through+ if you need validations, callbacks, or extra attributes on the join model.
 
@@ -335,12 +335,12 @@ end
 
 h4. Self Joins
 
-In designing a data model, you will sometimes find a model that should have a relation to itself. For example, you may want to store all employees in a single database model, but be able to trace relationships such as manager and subordinates. This situation can be modeled with self-joining associations:
+In designing a data model, you will sometimes find a model that should have a relation to itself. For example, you may want to store all employees in a single database model, but be able to trace relationships such as between manager and subordinates. This situation can be modeled with self-joining associations:
 
 <ruby>
 class Employee < ActiveRecord::Base
   has_many :subordinates, :class_name => "Employee",
-  :foreign_key => "manager_id"
+    :foreign_key => "manager_id"
   belongs_to :manager, :class_name => "Employee"
 end
 </ruby>
@@ -358,7 +358,7 @@ Here are a few things you should know to make efficient use of Active Record ass
 
 h4. Controlling Caching
 
-All of the association methods are built around caching that keeps the result of the most recent query available for further operations. The cache is even shared across methods. For example:
+All of the association methods are built around caching, which keeps the result of the most recent query available for further operations. The cache is even shared across methods. For example:
 
 <ruby>
 customer.orders                 # retrieves orders from the database
@@ -415,9 +415,9 @@ If you create an association some time after you build the underlying model, you
 
 h5. Creating Join Tables for has_and_belongs_to_many Associations
 
-If you create a +has_and_belongs_to_many+ association, you need to explicitly create the joining table. Unless the name of the join table is explicitly specified by using the +:join_table+ option, Active Record create the name by using the lexical order of the class names. So a join between customer and order models will give the default join table name of "customers_orders" because "c" outranks "o" in lexical ordering.
+If you create a +has_and_belongs_to_many+ association, you need to explicitly create the joining table. Unless the name of the join table is explicitly specified by using the +:join_table+ option, Active Record creates the name by using the lexical order of the class names. So a join between customer and order models will give the default join table name of "customers_orders" because "c" outranks "o" in lexical ordering.
 
-WARNING: The precedence between model names is calculated using the +<+ operator for +String+. This means that if the strings are of different lengths, and the strings are equal when compared up to the shortest length, then the longer string is considered of higher lexical precedence than the shorter one. For example, one would expect the tables "paper_boxes" and "papers" to generate a join table name of "papers_paper_boxes" because of the length of the name "paper_boxes", but it in fact generates a join table name of "paper_boxes_papers".
+WARNING: The precedence between model names is calculated using the +<+ operator for +String+. This means that if the strings are of different lengths, and the strings are equal when compared up to the shortest length, then the longer string is considered of higher lexical precedence than the shorter one. For example, one would expect the tables "paper_boxes" and "papers" to generate a join table name of "papers_paper_boxes" because of the length of the name "paper_boxes", but it in fact generates a join table name of "paper_boxes_papers" (because the underscore '_' is lexicographically _less_ than 's' in common encodings).
 
 Whatever the name, you must manually generate the join table with an appropriate migration. For example, consider these associations:
 
@@ -466,7 +466,7 @@ module MyApplication
 end
 </ruby>
 
-This will work fine, because both the +Supplier+ and the +Account+ class are defined within the same scope. But this will not work, because +Supplier+ and +Account+ are defined in different scopes:
+This will work fine, because both the +Supplier+ and the +Account+ class are defined within the same scope. But the following will _not_ work, because +Supplier+ and +Account+ are defined in different scopes:
 
 <ruby>
 module MyApplication
@@ -514,7 +514,7 @@ The +belongs_to+ association creates a one-to-one match with another model. In d
 
 h5. Methods Added by belongs_to
 
-When you declare a +belongs_to+ assocation, the declaring class automatically gains five methods related to the association:
+When you declare a +belongs_to+ association, the declaring class automatically gains five methods related to the association:
 
 * <tt><em>association</em>(force_reload = false)</tt>
 * <tt><em>association</em>=(associate)</tt>
@@ -552,7 +552,7 @@ If the associated object has already been retrieved from the database for this o
 
 h6. _association_=(associate)
 
-The <tt><tm>association</em>=</tt> method assigns an associated object to this object. Behind the scenes, this means extracting the primary key from the associate object and setting this object's foreign key to the same value.
+The <tt><em>association</em>=</tt> method assigns an associated object to this object. Behind the scenes, this means extracting the primary key from the associate object and setting this object's foreign key to the same value.
 
 <ruby>
 @order.customer = @customer
@@ -695,7 +695,7 @@ TIP: In any case, Rails will not create foreign key columns for you. You need to
 
 h6. :include
 
-You can use the :include option to specify second-order associations that should be eager-loaded when this association is used. For example, consider these models:
+You can use the +:include+ option to specify second-order associations that should be eager-loaded when this association is used. For example, consider these models:
 
 <ruby>
 class LineItem < ActiveRecord::Base
@@ -733,7 +733,7 @@ NOTE: There's no need to use +:include+ for immediate associations - that is, if
 
 h6. :polymorphic
 
-Passing +true+ to the +:polymorphic+ option indicates that this is a polymorphic association. Polymorphic associations were discussed in detail earlier in this guide.
+Passing +true+ to the +:polymorphic+ option indicates that this is a polymorphic association. Polymorphic associations were discussed in detail <a href="#polymorphic-associations">earlier in this guide</a>.
 
 h6. :readonly
 
@@ -859,7 +859,7 @@ The +has_one+ association supports these options:
 
 h6. :as
 
-Setting the +:as+ option indicates that this is a polymorphic association. Polymorphic associations are discussed in detail later in this guide.
+Setting the +:as+ option indicates that this is a polymorphic association. Polymorphic associations were discussed in detail <a href="#polymorphic-associations">earlier in this guide</a>.
 
 h6. :autosave
 
@@ -903,7 +903,7 @@ TIP: In any case, Rails will not create foreign key columns for you. You need to
 
 h6. :include
 
-You can use the :include option to specify second-order associations that should be eager-loaded when this association is used. For example, consider these models:
+You can use the +:include+ option to specify second-order associations that should be eager-loaded when this association is used. For example, consider these models:
 
 <ruby>
 class Supplier < ActiveRecord::Base
@@ -963,7 +963,7 @@ The +:source_type+ option specifies the source association type for a +has_one :
 
 h6. :through
 
-The +:through+ option specifies a join model through which to perform the query. +has_one :through+ associations are discussed in detail later in this guide.
+The +:through+ option specifies a join model through which to perform the query. +has_one :through+ associations were discussed in detail <a href="#thehas-onethrough-association">earlier in this guide</a>.
 
 h6. :validate
 
@@ -1056,7 +1056,7 @@ WARNING: Objects will be in addition destroyed if they're associated with +:depe
 
 h6. <em>collection</em>=objects
 
-The <tt><em>collection</em></tt>= method makes the collection contain only the supplied objects, by adding and deleting as appropriate.
+The <tt><em>collection</em>=</tt> method makes the collection contain only the supplied objects, by adding and deleting as appropriate.
 
 h6. <em>collection_singular</em>_ids
 
@@ -1159,7 +1159,7 @@ The +has_many+ association supports these options:
 
 h6. :as
 
-Setting the +:as+ option indicates that this is a polymorphic association, as discussed earlier in this guide.
+Setting the +:as+ option indicates that this is a polymorphic association, as discussed <a href="#polymorphic-associations">earlier in this guide</a>.
 
 h6. :autosave
 
@@ -1211,7 +1211,7 @@ NOTE: This option is ignored when you use the +:through+ option on the associati
 
 h6. :extend
 
-The +:extend+ option specifies a named module to extend the association proxy. Association extensions are discussed in detail later in this guide.
+The +:extend+ option specifies a named module to extend the association proxy. Association extensions are discussed in detail <a href="#association-extensions">later in this guide</a>.
 
 h6. :finder_sql
 
@@ -1241,7 +1241,7 @@ end
 
 h6. :include
 
-You can use the :include option to specify second-order associations that should be eager-loaded when this association is used. For example, consider these models:
+You can use the +:include+ option to specify second-order associations that should be eager-loaded when this association is used. For example, consider these models:
 
 <ruby>
 class Customer < ActiveRecord::Base
@@ -1324,7 +1324,7 @@ The +:source_type+ option specifies the source association type for a +has_many 
 
 h6. :through
 
-The +:through+ option specifies a join model through which to perform the query. +has_many :through+ associations provide a way to implement many-to-many relationships, as discussed earlier in this guide.
+The +:through+ option specifies a join model through which to perform the query. +has_many :through+ associations provide a way to implement many-to-many relationships, as discussed <a href="#thehas-manythrough-association">earlier in this guide</a>.
 
 h6. :uniq
 
@@ -1366,7 +1366,7 @@ When you declare a +has_and_belongs_to_many+ association, the declaring class au
 * <tt><em>collection</em>.build(attributes = {})</tt>
 * <tt><em>collection</em>.create(attributes = {})</tt>
 
-In all of these methods, <tt><em>collection</em></tt> is replaced with the symbol passed as the first argument to +has_many+, and <tt><em>collection_singular</em></tt> is replaced with the singularized version of that symbol.. For example, given the declaration:
+In all of these methods, <tt><em>collection</em></tt> is replaced with the symbol passed as the first argument to +has_and_belongs_to_many+, and <tt><em>collection_singular</em></tt> is replaced with the singularized version of that symbol.. For example, given the declaration:
 
 <ruby>
 class Part < ActiveRecord::Base
@@ -1443,7 +1443,7 @@ The <tt><em>collection_singular</em>_ids=</tt> method makes the collection conta
 
 h6. <em>collection</em>.clear
 
-The <tt><em>collection</em>.clear</tt> method removes every object from the collection by deleting the rows from the joining tableassociation. This does not destroy the associated objects.
+The <tt><em>collection</em>.clear</tt> method removes every object from the collection by deleting the rows from the joining table. This does not destroy the associated objects.
 
 h6. <em>collection</em>.empty?
 
@@ -1487,7 +1487,7 @@ The <tt><em>collection</em>.build</tt> method returns a new object of the associ
 
 h6. <em>collection</em>.create(attributes = {})
 
-The <tt><em>collection</em>.create</tt> method returns a new object of the associated type. This objects will be instantiated from the passed attributes, the link through the join table will be created, and the associated object _will_ be saved (assuming that it passes any validations).
+The <tt><em>collection</em>.create</tt> method returns a new object of the associated type. This object will be instantiated from the passed attributes, the link through the join table will be created, and the associated object _will_ be saved (assuming that it passes any validations).
 
 <ruby>
 @assembly = @part.assemblies.create(
@@ -1496,7 +1496,7 @@ The <tt><em>collection</em>.create</tt> method returns a new object of the assoc
 
 h5. Options for has_and_belongs_to_many
 
-In many situations, you can use the default behavior for +has_and_belongs_to_many+ without any customization. But you can alter that behavior in a number of ways. This section cover the options that you can pass when you create a +has_and_belongs_to_many+ association. For example, an association with several options might look like this:
+In many situations, you can use the default behavior for +has_and_belongs_to_many+ without any customization. But you can alter that behavior in a number of ways. This section covers the options that you can pass when you create a +has_and_belongs_to_many+ association. For example, an association with several options might look like this:
 
 <ruby>
 class Parts < ActiveRecord::Base
@@ -1590,7 +1590,7 @@ Normally Rails automatically generates the proper SQL to remove links between th
 
 h6. :extend
 
-The +:extend+ option specifies a named module to extend the association proxy. Association extensions are discussed in detail later in this guide.
+The +:extend+ option specifies a named module to extend the association proxy. Association extensions are discussed in detail <a href="#association-extensions">later in this guide</a>.
 
 h6. :finder_sql
 
@@ -1620,7 +1620,7 @@ end
 
 h6. :include
 
-You can use the :include option to specify second-order associations that should be eager-loaded when this association is used.
+You can use the +:include+ option to specify second-order associations that should be eager-loaded when this association is used.
 
 h6. :insert_sql
 
@@ -1637,7 +1637,7 @@ The +:limit+ option lets you restrict the total number of objects that will be f
 <ruby>
 class Parts < ActiveRecord::Base
   has_and_belongs_to_many :assemblies, :order => "created_at DESC",
- :limit => 50
+    :limit => 50
 end
 </ruby>
 

@@ -784,9 +784,37 @@ module ActionController #:nodoc:
       #   # placed in "app/views/layouts/special.r(html|xml)"
       #   render :text => "Hi there!", :layout => "special"
       #
-      # The <tt>:text</tt> option can also accept a Proc object, which can be used to manually control the page generation. This should
-      # generally be avoided, as it violates the separation between code and content, and because almost everything that can be
-      # done with this method can also be done more cleanly using one of the other rendering methods, most notably templates.
+      # === Streaming data and/or controlling the page generation
+      #
+      # The <tt>:text</tt> option can also accept a Proc object, which can be used to:
+      #
+      # 1. stream on-the-fly generated data to the browser. Note that you should
+      #    use the methods provided by ActionController::Steaming instead if you
+      #    want to stream a buffer or a file.
+      # 2. manually control the page generation. This should generally be avoided,
+      #    as it violates the separation between code and content, and because almost
+      #    everything that can be done with this method can also be done more cleanly
+      #    using one of the other rendering methods, most notably templates.
+      #
+      # Two arguments are passed to the proc, a <tt>response</tt> object and an
+      # <tt>output</tt> object. The response object is equivalent to the return
+      # value of the ActionController::Base#response method, and can be used to
+      # control various things in the HTTP response, such as setting the
+      # Content-Type header. The output object is an writable <tt>IO</tt>-like
+      # object, so one can call <tt>write</tt> and <tt>flush</tt> on it.
+      #
+      # The following example demonstrates how one can stream a large amount of
+      # on-the-fly generated data to the browser:
+      #
+      #   # Streams about 180 MB of generated data to the browser.
+      #   render :text => proc { |response, output|
+      #     10_000_000.times do |i|
+      #       output.write("This is line #{i}\n")
+      #       output.flush
+      #     end
+      #   }
+      #
+      # Another example:
       #
       #   # Renders "Hello from code!"
       #   render :text => proc { |response, output| output.write("Hello from code!") }

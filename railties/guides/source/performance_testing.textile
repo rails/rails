@@ -95,7 +95,7 @@ class Post < ActiveRecord::Base
 end
 </ruby>
 
-h5. Controller Example
+h5. Controller example
 
 Because performance tests are a special kind of integration test, you can use the +get+ and +post+ methods in them.
 
@@ -123,7 +123,7 @@ end
 
 You can find more details about the +get+ and +post+ methods in the link:../testing_rails_applications.html#mgunderloy[Testing Rails Applications] guide.
 
-h5. Model Example
+h5. Model example
 
 Even though the performance tests are integration tests and hence closer to the request/response cycle by nature, you can still performance test pure model code.
 
@@ -147,7 +147,7 @@ end
 
 h4. Modes
 
-Performance tests can be run in two modes : Benchmarking and Profiling.
+Performance tests can be run in two modes: Benchmarking and Profiling.
 
 h5. Benchmarking
 
@@ -173,41 +173,41 @@ h4. Metrics
 
 Benchmarking and profiling run performance tests in various modes described below.
 
-h5. Wall Time
+h5. Wall time
 
 Wall time measures the real world time elapsed during the test run. It is affected by any other processes concurrently running on the system.
 
-Mode : Benchmarking
+Mode: Benchmarking
 
-h5. Process Time
+h5. Process time
 
 Process time measures the time taken by the process. It is unaffected by any other processes running concurrently on the same system. Hence, process time is likely to be constant for any given performance test, irrespective of the machine load.
 
-Mode : Profiling
+Mode: Profiling
 
 h5. Memory
 
 Memory measures the amount of memory used for the performance test case.
 
-Mode : Benchmarking, Profiling "Requires GC Patched Ruby":#installing-gc-patched-ruby
+Mode: Benchmarking, Profiling "Requires GC Patched Ruby":#installing-gc-patched-ruby
 
 h5. Objects
 
 Objects measures the number of objects allocated for the performance test case.
 
-Mode : Benchmarking, Profiling "Requires GC Patched Ruby":#installing-gc-patched-ruby
+Mode: Benchmarking, Profiling "Requires GC Patched Ruby":#installing-gc-patched-ruby
 
-h5. GC Runs
+h5. GC runs
 
 GC Runs measures the number of times GC was invoked for the performance test case.
 
-Mode : Benchmarking "Requires GC Patched Ruby":#installing-gc-patched-ruby
+Mode: Benchmarking "Requires GC Patched Ruby":#installing-gc-patched-ruby
 
-h5. GC Time
+h5. GC time
 
 GC Time measures the amount of time spent in GC for the performance test case.
 
-Mode : Benchmarking "Requires GC Patched Ruby":#installing-gc-patched-ruby
+Mode: Benchmarking "Requires GC Patched Ruby":#installing-gc-patched-ruby
 
 h4. Understanding the output
 
@@ -215,11 +215,11 @@ Performance tests generate different outputs inside +tmp/performance+ directory 
 
 h5. Benchmarking
 
-In benchmarking mode, performance tests generate two types of outputs :
+In benchmarking mode, performance tests generate two types of outputs:
 
 h6. Command line
 
-This is the primary form of output in benchmarking mode. Example :
+This is the primary form of output in benchmarking mode. Example:
 
 <shell>
 BrowsingTest#test_homepage (31 ms warmup)
@@ -232,7 +232,7 @@ BrowsingTest#test_homepage (31 ms warmup)
 
 h6. CSV files
 
-Performance test results are also appended to +.csv+ files inside +tmp/performance+. For example, running the default +BrowsingTest#test_homepage+ will generate following five files :
+Performance test results are also appended to +.csv+ files inside +tmp/performance+. For example, running the default +BrowsingTest#test_homepage+ will generate following five files:
 
 * BrowsingTest#test_homepage_gc_runs.csv
 * BrowsingTest#test_homepage_gc_time.csv
@@ -285,13 +285,13 @@ h6. Tree
 
 Tree output is profiling information in calltree format for use by http://kcachegrind.sourceforge.net/html/Home.html[kcachegrind] and similar tools.
 
-h4. Tuning Test Runs
+h4. Tuning test runs
 
 By default, each performance test is run +4 times+ in benchmarking mode and +1 time+ in profiling. However, test runs can easily be configured.
 
 WARNING: Performance test configurability is not yet enabled in Rails. But it will be soon.
 
-h4. Performance Test Environment
+h4. Performance test environment
 
 Performance tests are run in the +development+ environment. But running performance tests will set the following configuration parameters:
 
@@ -303,17 +303,17 @@ Rails.logger.level = ActiveSupport::BufferedLogger::INFO
 
 As +ActionController::Base.perform_caching+ is set to +true+, performance tests will behave much as they do in the +production+ environment.
 
-h4. Installing GC-Patched Ruby
+h4. Installing GC-patched Ruby
 
 To get the best from Rails performance tests, you need to build a special Ruby binary with some super powers - "GC patch":http://rubyforge.org/tracker/download.php/1814/7062/17676/3291/ruby186gc.patch for measuring GC Runs/Time and memory/object allocation.
 
-The process is fairly straight forward. If you've never compiled a Ruby binary before, follow these steps to build a ruby binary inside your home directory:
+The process is fairly straightforward. If you've never compiled a Ruby binary before, follow these steps to build a ruby binary inside your home directory:
 
 h5. Installation
 
 Compile Ruby and apply this "GC Patch":http://rubyforge.org/tracker/download.php/1814/7062/17676/3291/ruby186gc.patch.
 
-h5. Download and Extract
+h5. Download and extract
 
 <shell>
 [lifo@null ~]$ mkdir rubygc
@@ -328,7 +328,7 @@ h5. Apply the patch
 [lifo@null ruby-version]$ curl http://rubyforge.org/tracker/download.php/1814/7062/17676/3291/ruby186gc.patch | patch -p0
 </shell>
 
-h5. Configure and Install
+h5. Configure and install
 
 The following will install ruby in your home directory's +/rubygc+ directory. Make sure to replace +<homedir>+ with a full patch to your actual home directory.
 
@@ -349,11 +349,11 @@ alias gcirb='~/rubygc/bin/irb'
 alias gcrails='~/rubygc/bin/rails'
 </shell>
 
-h5. Install rubygems and dependency gems
+h5. Install Rubygems and dependency gems
 
 Download "Rubygems":http://rubyforge.org/projects/rubygems and install it from source. Rubygem's README file should have necessary installation instructions.
 
-Additionally, install the following gems :
+Additionally, install the following gems:
 
 * +rake+
 * +rails+
@@ -374,9 +374,9 @@ h3. Command Line Tools
 
 Writing performance test cases could be an overkill when you are looking for one time tests. Rails ships with two command line tools that enable quick and dirty performance testing:
 
-h4. benchmarker
+h4. +benchmarker+
 
-+benchmarker+ is a wrapper around Ruby's "Benchmark":http://ruby-doc.org/core/classes/Benchmark.html module.
++benchmarker+ is a wrapper around Ruby's "Benchmark":http://ruby-doc.org/core/classes/Benchmark.html standard library.
 
 Usage:
 
@@ -396,7 +396,7 @@ If the +[times]+ argument is omitted, supplied methods are run just once:
 $ script/performance/benchmarker 'Item.first' 'Item.last'
 </shell>
 
-h4. profiler
+h4. +profiler+
 
 +profiler+ is a wrapper around http://ruby-prof.rubyforge.org/[ruby-prof] gem.
 
@@ -426,7 +426,7 @@ If you want to store the output in a file:
 $ script/performance/profiler 'Item.all' 10 graph 2> graph.txt
 </shell>
 
-h3. Helper methods
+h3. Helper Methods
 
 Rails provides various helper methods inside Active Record, Action Controller and Action View to measure the time taken by a given piece of code. The method is called +benchmark()+ in all the three components.
 
@@ -440,7 +440,7 @@ Project.benchmark("Creating project") do
 end
 </ruby>
 
-This benchmarks the code enclosed in the +Project.benchmark("Creating project") do..end+ block and prints the result to the log file:
+This benchmarks the code enclosed in the +Project.benchmark("Creating project") do...end+ block and prints the result to the log file:
 
 <ruby>
 Creating project (185.3ms)
@@ -490,27 +490,27 @@ For this section, we're only interested in the last line:
 Completed in 5ms (View: 2, DB: 0) | 200 OK [http://0.0.0.0/items]
 </shell>
 
-This data is fairly straightforward to understand. Rails uses millisecond(ms) as the metric to measures the time taken. The complete request spent 5 ms inside Rails, out of which 2 ms were spent rendering views and none was spent communication with the database. It's safe to assume that the remaining 3 ms were spent inside the controller.
+This data is fairly straightforward to understand. Rails uses millisecond(ms) as the metric to measure the time taken. The complete request spent 5 ms inside Rails, out of which 2 ms were spent rendering views and none was spent communication with the database. It's safe to assume that the remaining 3 ms were spent inside the controller.
 
 Michael Koziarski has an "interesting blog post":http://www.therailsway.com/2009/1/6/requests-per-second explaining the importance of using milliseconds as the metric.
 
 h3. Useful Links
 
-h4. Rails Plugins and Gems
+h4. Rails plugins and gems
 
 * "Rails Analyzer":http://rails-analyzer.rubyforge.org
 * "Palmist":http://www.flyingmachinestudios.com/projects
 * "Rails Footnotes":http://github.com/josevalim/rails-footnotes/tree/master
 * "Query Reviewer":http://github.com/dsboulder/query_reviewer/tree/master
 
-h4. Generic Tools
+h4. Generic tools
 
 * "httperf":http://www.hpl.hp.com/research/linux/httperf
 * "ab":http://httpd.apache.org/docs/2.2/programs/ab.html
 * "JMeter":http://jakarta.apache.org/jmeter
 * "kcachegrind":http://kcachegrind.sourceforge.net/html/Home.html
 
-h4. Tutorials and Documentation
+h4. Tutorials and documentation
 
 * "ruby-prof API Documentation":http://ruby-prof.rubyforge.org
 * "Request Profiling Railscast":http://railscasts.com/episodes/98-request-profiling - Outdated, but useful for understanding call graphs

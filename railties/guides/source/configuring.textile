@@ -7,7 +7,6 @@ This guide covers the configuration and initialization features available to Rai
 
 endprologue.
 
-NOTE: The first edition of this Guide was written from the Rails 2.3 source code. While the information it contains is broadly applicable to Rails 2.2, backwards compatibility is not guaranteed.
 
 h3. Locations for Initialization Code
 
@@ -81,7 +80,9 @@ h4. Configuring Action Controller
 
 * +consider_all_requests_local+ is generally set to +true+ during development and +false+ during production; if it is set to +true+, then any error will cause detailed debugging information to be dumped in the HTTP response. For finer-grained control, set this to +false+ and implement +local_request?+ to specify which requests should provide debugging information on errors.
 
-* +allow_concurrency+ should be set to +true+ to allow concurrent (threadsafe) action processing. Set to +false+ by default.
+* +allow_concurrency+ should be set to +true+ to allow concurrent (threadsafe) action processing. Set to +false+ by default. You probably don't want to call this one directly, though, because a series of other adjustments need to be made for threadsafe mode to work properly. Instead, you should simply call +config.threadsafe!+ inside your +production.rb+ file, which makes all the necessary adjustments.
+
+WARNING: Threadsafe operation in incompatible with the normal workings of development mode Rails. In particular, automatic dependency loading and class reloading are automatically disabled when you call +config.threadsafe!+.
 
 * +param_parsers+ provides an array of handlers that can extract information from incoming HTTP requests and add it to the +params+ hash. By default, parsers for multipart forms, URL-encoded forms, XML, and JSON are active.
 
@@ -125,7 +126,7 @@ There are only a few configuration options for Action View, starting with four o
 
 * +warn_cache_misses+ tells Rails to display a warning whenever an action results in a cache miss on your view paths. The default is +false+.
 
-* +field_error_proc+ provides an HTML generator for displaying errors that come from Active Record. The default is +Proc.new{ |html_tag, instance| "<div class=\"fieldWithErrors\">#{html_tag}</div>" }+
+* +field_error_proc+ provides an HTML generator for displaying errors that come from Active Record. The default is <tt>Proc.new{ |html_tag, instance| "<div class=\"fieldWithErrors\">#{html_tag}</div>" }</tt>
 
 * +default_form_builder+ tells Rails which form builder to use by default. The default is +ActionView::Helpers::FormBuilder+.
 
@@ -166,8 +167,7 @@ There are a number of settings available on +ActionMailer::Base+:
 * +default_mime_version+ is the default MIME version for the message. It defaults to +1.0+.
 
 * +default_implicit_parts_order+ - When a message is built implicitly (i.e. multiple parts are assembled from templates
-which specify the content type in their filenames) this variable controls how the parts are ordered. Defaults to
-* +["text/html", "text/enriched", "text/plain"]+. Items that appear first in the array have higher priority in the mail client
+which specify the content type in their filenames) this variable controls how the parts are ordered. Defaults to +["text/html", "text/enriched", "text/plain"]+. Items that appear first in the array have higher priority in the mail client
 and appear last in the mime encoded message.
 
 h4. Configuring Active Resource

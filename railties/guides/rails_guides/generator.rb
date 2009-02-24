@@ -25,34 +25,38 @@ module RailsGuides
       end
 
       guides.each do |guide|
-        guide =~ /(.*?)(\.erb)?\.textile/
-        name = $1
-
-        puts "Generating #{name}"
-
-        file = File.join(output, "#{name}.html")
-        File.open(file, 'w') do |f|
-          @view = ActionView::Base.new(view_path)
-          @view.extend(Helpers)
-
-          if guide =~ /\.erb\.textile/
-            # Generate the erb pages with textile formatting - e.g. index/authors
-            result = view.render(:layout => 'layout', :file => guide)
-            f.write textile(result)
-          else
-            body = File.read(File.join(view_path, guide))
-            body = set_header_section(body, @view)
-            body = set_index(body, @view)
-
-            result = view.render(:layout => 'layout', :text => textile(body))
-            f.write result
-          end
-        end
+        generate_guide(guide)
       end
 
       # Copy images and css files to html directory
       FileUtils.cp_r File.join(guides_dir, 'images'), File.join(output, 'images')
       FileUtils.cp_r File.join(guides_dir, 'files'), File.join(output, 'files')
+    end
+
+    def generate_guide(guide)
+      guide =~ /(.*?)(\.erb)?\.textile/
+      name = $1
+
+      puts "Generating #{name}"
+
+      file = File.join(output, "#{name}.html")
+      File.open(file, 'w') do |f|
+        @view = ActionView::Base.new(view_path)
+        @view.extend(Helpers)
+
+        if guide =~ /\.erb\.textile/
+          # Generate the erb pages with textile formatting - e.g. index/authors
+          result = view.render(:layout => 'layout', :file => name)
+          f.write textile(result)
+        else
+          body = File.read(File.join(view_path, guide))
+          body = set_header_section(body, @view)
+          body = set_index(body, @view)
+
+          result = view.render(:layout => 'layout', :text => textile(body))
+          f.write result
+        end
+      end
     end
 
     def set_header_section(body, view)
@@ -72,21 +76,19 @@ module RailsGuides
     def set_index(body, view)
       index = <<-INDEX
       <div id="subCol">
-        <h3 class="chapter"><img src="images/chapters_icon.gif" alt="" /> Chapters</h3>
+        <h3 class="chapter"><img src="images/chapters_icon.gif" alt="" />Chapters</h3>
         <ol class="chapters">
-  INDEX
+      INDEX
 
       i = Indexer.new(body)
       i.index
 
       # Set index for 2 levels
       i.level_hash.each do |key, value|
-        bookmark = '#' + key.gsub(/[^a-z0-9\-_\+]+/i, '').underscore.dasherize
-        link = view.content_tag(:a, :href => bookmark) { key }
+        link = view.content_tag(:a, :href => key[:id]) { textile(key[:title]) }
 
         children = value.keys.map do |k|
-          bm = '#' + k.gsub(/[^a-z0-9\-_\+]+/i, '').underscore.dasherize
-          l = view.content_tag(:a, :href => bm) { k }
+          l = view.content_tag(:a, :href => k[:id]) { textile(k[:title]) }
           view.content_tag(:li, l)
         end
 

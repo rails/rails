@@ -646,8 +646,10 @@ module ActionView
 
       # Returns a radio button tag for accessing a specified attribute (identified by +method+) on an object
       # assigned to the template (identified by +object+). If the current value of +method+ is +tag_value+ the
-      # radio button will be checked. Additional options on the input tag can be passed as a
-      # hash with +options+.
+      # radio button will be checked.
+      #
+      # To force the radio button to be checked pass <tt>:checked => true</tt> in the
+      # +options+ hash. You may pass HTML options there as well.
       #
       # ==== Examples
       #   # Let's say that @post.category returns "rails":

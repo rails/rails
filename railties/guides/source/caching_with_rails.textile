@@ -55,13 +55,13 @@ want to put other static html in /public, but changing this will require web
 server reconfiguration to let the web server know where to serve the cached
 files from.
 
-The Page Caching mechanism will automatically add a +.html+ exxtension to
+The Page Caching mechanism will automatically add a +.html+ extension to
 requests for pages that do not have an extension to make it easy for the
 webserver to find those pages and this can be configured by changing the
 configuration setting +config.action_controller.page_cache_extension+.
 
 In order to expire this page when a new product is added we could extend our
-example controler like this:
+example controller like this:
 
 <ruby>
 class ProductsController < ActionController
@@ -80,7 +80,7 @@ end
 If you want a more complicated expiration scheme, you can use cache sweepers
 to expire cached objects when things change. This is covered in the section on Sweepers.
 
-[More: caching paginated results? more examples? Walk-through of page caching?]
+Note: Page caching ignores all parameters, so /products/list?page=1 will be written out to the filesystem as /products/list.html and if someone requests /products/list?page=2, they will be returned the same result as page=1, so be careful when page caching GET parameters in the URL!
 
 h4. Action Caching
 
@@ -122,11 +122,14 @@ layout so that dynamic information in the layout such as logged in user info
 or the number of items in the cart can be left uncached. This feature is
 available as of Rails 2.2.
 
+You can modify the default action cache path by passing a +:cache_path+ option.
+This will be passed directly to ActionCachePath.path_for.  This is handy for
+actions with multiple possible routes that should be cached differently.  If
+a block is given, it is called with the current controller instance.  
 
-[More: more examples? Walk-through of Action Caching from request to response?
-       Description of Rake tasks to clear cached files? Show example of
-       subdomain caching? Talk about :cache_path, :if and assing blocks/Procs
-       to expire_action?]
+Finally, if you are using memcached, you can also pass +:expires_in+. In fact,
+all parameters not used by caches_action are sent to the underlying cache
+store. 
 
 h4. Fragment Caching
 
@@ -189,8 +192,6 @@ the key and can be expired the same way:
 <ruby>
 expire_fragment(:key => ['all_available_products', @latest_product.created_at].join(':'))
 </ruby>
-
-[More: more examples? description of fragment keys and expiration, etc? pagination?]
 
 h4. Sweepers
 
@@ -259,8 +260,6 @@ class ProductsController < ActionController
 end
 </ruby>
 
-[More: more examples? better sweepers?]
-
 h4. SQL Caching
 
 Query caching is a Rails feature that caches the result set returned by each
@@ -307,51 +306,111 @@ that action and thus persist only for the duration of the action.
 
 h4. Cache stores
 
-Rails provides different stores for the cached data for action and fragment
-caches. Page caches are always stored on disk.
+Rails (as of 2.1) provides different stores for the cached data for action and
+fragment caches. Page caches are always stored on disk.
 
-The cache stores provided include:
+Rails 2.1 and above provide ActiveSupport::Cache::Store which can be used to
+cache strings. Some cache store implementations, like MemoryStore, are able to
+cache arbitrary Ruby objects, but don't count on every cache store to be able
+to do that.
 
-1) Memory store: Cached data is stored in the memory allocated to the Rails
-                 process, which is fine for WEBrick and for FCGI (if you
-                 don't care that each FCGI process holds its own fragment
-                 store). It's not suitable for CGI as the process is thrown
-                 away at the end of each request. It can potentially also
-                 take up a lot of memory since each process keeps all the
-                 caches in memory.
+The default cache stores provided include:
+
+1) ActiveSupport::Cache::MemoryStore: A cache store implementation which stores
+everything into memory in the same process. If you're running multiple Ruby on
+Rails server processes (which is the case if you're using mongrel_cluster or
+Phusion Passenger), then this means that your Rails server process instances
+won't be able to share cache data with each other. If your application never
+performs manual cache item expiry (e.g. when you‘re using generational cache
+keys), then using +MemoryStore+ is ok. Otherwise, consider carefully whether you
+should be using this cache store.  
+
++MemoryStore+ is not only able to store strings, but also arbitrary Ruby objects.
+
++MemoryStore+ is not thread-safe. Use +SynchronizedMemoryStore+ instead if you
+need thread-safety.
+                                      
 
 <ruby>
 ActionController::Base.cache_store = :memory_store
 </ruby>
 
-2) File store: Cached data is stored on the disk, this is the default store
-               and the default path for this store is: /tmp/cache. Works
-               well for all types of environments and allows all processes
-               running from the same application directory to access the
-               cached content.
+2) ActiveSupport::Cache::FileStore: Cached data is stored on the disk, this is
+the default store and the default path for this store is: /tmp/cache. Works
+well for all types of environments and allows all processes running from the
+same application directory to access the cached content. If /tmp/cache does not
+exist, the default store becomes MemoryStore.
 
 
 <ruby>
 ActionController::Base.cache_store = :file_store, "/path/to/cache/directory"
 </ruby>
 
-3) DRb store: Cached data is stored in a separate shared DRb process that all
-              servers communicate with. This works for all environments and
-              only keeps one cache around for all processes, but requires
-              that you run and manage a separate DRb process.
+3) ActiveSupport::Cache::DRbStore: Cached data is stored in a separate shared
+DRb process that all servers communicate with. This works for all environments
+and only keeps one cache around for all processes, but requires that you run
+and manage a separate DRb process.
+
 
 <ruby>
 ActionController::Base.cache_store = :drb_store, "druby://localhost:9192"
 </ruby>
 
 4) MemCached store: Works like DRbStore, but uses Danga's MemCache instead.
-                    Rails uses the bundled memcached-client gem by default.
+Rails uses the bundled memcached-client gem by default. This is currently the
+most popular cache store for production websites.
+
+Special features:
+ * Clustering and load balancing. One can specify multiple memcached servers,
+   and MemCacheStore will load balance between all available servers. If a
+   server goes down, then MemCacheStore will ignore it until it goes back
+   online.
+ * Time-based expiry support. See write and the +:expires_in+ option.
+ * Per-request in memory cache for all communication with the MemCache server(s).
+
+It also accepts a hash of additional options:
+
+ * +:namespace+- specifies a string that will automatically be prepended to keys when accessing the memcached store.
+ * +:readonly+- a boolean value that when set to true will make the store read-only, with an error raised on any attempt to write.
+ * +:multithread+ - a boolean value that adds thread safety to read/write operations - it is unlikely you'll need to use this option as the Rails threadsafe! method offers the same functionality.
+
+The read and write methods of the MemCacheStore accept an options hash too.
+When reading you can specify +:raw => true+ to prevent the object being
+marshaled
+(by default this is false which means the raw value in the cache is passed to
+Marshal.load before being returned to you.)
+
+When writing to the cache it is also possible to specify +:raw => true+ means
+the value is not passed to Marshal.dump before being stored in the cache (by
+default this is false). 
+
+The write method also accepts an +:unless_exist+ flag which determines whether
+the memcached add (when true) or set (when false) method is used to store the
+item in the cache and an +:expires_in+ option that specifies the time-to-live
+for the cached item in seconds.
+
 
 <ruby>
 ActionController::Base.cache_store = :mem_cache_store, "localhost"
 </ruby>
 
-5) Custom store: You can define your own cache store (new in Rails 2.1)
+5) ActiveSupport::Cache::SynchronizedMemoryStore: Like ActiveSupport::Cache::MemoryStore but thread-safe.
+
+
+<ruby>
+ActionController::Base.cache_store = :synchronized_memory_store
+</ruby>
+
+6) ActiveSupport::Cache::CompressedMemCacheStore: Works just like the regular
+MemCacheStore but uses GZip to decompress/compress on read/write.
+
+
+<ruby>
+ActionController::Base.cache_store = :compressed_mem_cache_store, "localhost"
+</ruby>
+
+7) Custom store: You can define your own cache store (new in Rails 2.1)
+
 
 <ruby>
 ActionController::Base.cache_store = MyOwnStore.new("parameter")
@@ -361,10 +420,22 @@ ActionController::Base.cache_store = MyOwnStore.new("parameter")
 ActionController::Base.cache_store in your Rails::Initializer.run block in
 environment.rb+
 
+In addition to all of this, Rails also adds the ActiveRecord::Base#cache_key
+method that generates a key using the class name, id and updated_at timestamp
+(if available).
+
+An example:
+
+<ruby>
+Rails.cache.read("city")   # => nil
+Rails.cache.write("city", "Duckburgh")
+Rails.cache.read("city")   # => "Duckburgh"
+</ruby>
+
 h3. Conditional GET support
 
 Conditional GETs are a facility of the HTTP spec that provide a way for web
-servers to tell browsers that the response to a GET request hasn’t changed
+servers to tell browsers that the response to a GET request hasn't changed
 since the last request and can be safely pulled from the browser cache.
 
 They work by using the HTTP_IF_NONE_MATCH and HTTP_IF_MODIFIED_SINCE headers to
@@ -374,7 +445,7 @@ identifier (etag) or last modified since timestamp matches the server’s versio
 then the server only needs to send back an empty response with a not modified
 status.
 
-It is the server’s (i.e. our) responsibility to look for a last modified
+It is the server's (i.e. our) responsibility to look for a last modified
 timestamp and the if-none-match header and determine whether or not to send
 back the full response. With conditional-get support in rails this is a pretty
 easy task:
@@ -400,8 +471,8 @@ class ProductsController < ApplicationController
 end
 </ruby>
 
-If you don’t have any special response processing and are using the default
-rendering mechanism (i.e. you’re not using respond_to or calling render
+If you don't have any special response processing and are using the default
+rendering mechanism (i.e. you're not using respond_to or calling render
 yourself) then you’ve got an easy helper in fresh_when:
 
 <ruby>
@@ -421,9 +492,24 @@ h3. Advanced Caching
 
 Along with the built-in mechanisms outlined above, a number of excellent
 plugins exist to help with finer grained control over caching. These include
-Chris Wanstrath's excellent cache_fu plugin (more info here:
-http://errtheblog.com/posts/57-kickin-ass-w-cachefu) and Evan Weaver's
-interlock plugin (more info here:
-http://blog.evanweaver.com/articles/2007/12/13/better-rails-caching/). Both
+Chris Wanstrath's excellent cache_fu plugin (more info "here": http://errtheblog.com/posts/57-kickin-ass-w-cachefu) and Evan Weaver's
+interlock plugin (more info "here": http://blog.evanweaver.com/articles/2007/12/13/better-rails-caching/). Both
 of these plugins play nice with memcached and are a must-see for anyone
 seriously considering optimizing their caching needs.
+
+Also the new "Cache money":http://github.com/nkallen/cache-money/tree/master plugin is supposed to be mad cool. 
+
+h3. References
+ * "RailsEnvy, Rails Caching Tutorial, Part 1":http://www.railsenvy.com/2007/2/28/rails-caching-tutorial
+ * "RailsEnvy, Rails Caching Tutorial, Part 1":http://www.railsenvy.com/2007/3/20/ruby-on-rails-caching-tutorial-part-2
+ * "ActiveSupport::Cache documentation":http://api.rubyonrails.org/classes/ActiveSupport/Cache.html
+ * "Rails 2.1 integrated caching tutorial":http://thewebfellas.com/blog/2008/6/9/rails-2-1-now-with-better-integrated-caching
+
+
+h3. Changelog
+"Lighthouse ticket":http://rails.lighthouseapp.com/projects/16213-rails-guides/tickets/10-guide-to-caching
+
+February  22, 2009: Beefed up the section on cache_stores
+December  27, 2008: Typo fixes
+November  23, 2008: Incremental updates with various suggested changes and formatting cleanup
+September 15, 2008: Initial version by Aditya Chadha

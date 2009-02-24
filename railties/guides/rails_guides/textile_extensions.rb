@@ -25,6 +25,9 @@ module RailsGuides
       body.gsub!(/\+(.*?)\+/) do |m|
         "<notextile><tt>#{$1}</tt></notextile>"
       end
+
+      # The real plus sign
+      body.gsub!('<plus>', '+')
     end
 
     def code(body)

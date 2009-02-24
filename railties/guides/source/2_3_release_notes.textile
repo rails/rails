@@ -42,7 +42,7 @@ Here's a summary of the rack-related changes:
 
 h4. Renewed Support for Rails Engines
 
-After some versions without an upgrade, Rails 2.3 offers some new features for Rails Engines (Rails applications that can be embedded within other applications). First, routing files in engines are automatically loaded and reloaded now, just like your +routes.rb+ file (this also applies to routing files in other plugins). Second, if your plugin has an app folder, then app/[models|controllers|helpers] will automatically be added to the Rails load path. Engines also support adding view paths now.
+After some versions without an upgrade, Rails 2.3 offers some new features for Rails Engines (Rails applications that can be embedded within other applications). First, routing files in engines are automatically loaded and reloaded now, just like your +routes.rb+ file (this also applies to routing files in other plugins). Second, if your plugin has an app folder, then app/[models|controllers|helpers] will automatically be added to the Rails load path. Engines also support adding view paths now, and Action Mailer as well as Action View will use views from engines and other plugins.
 
 h3. Documentation
 
@@ -50,9 +50,13 @@ The "Ruby on Rails guides":http://guides.rubyonrails.org/ project has published 
 
 * More Information: "Rails Documentation Projects":http://weblog.rubyonrails.org/2009/1/15/rails-documentation-projects
 
+h3. Ruby 1.9.1 Support
+
+Rails 2.3 should pass all of its own tests whether you are running on Ruby 1.8 or the now-released Ruby 1.9.1. You should be aware, though, that moving to 1.9.1 entails checking all of the data adapters, plugins, and other code that you depend on for Ruby 1.9.1 compatibility, as well as Rails core. 
+
 h3. Active Record
 
-Active Record gets quite a number of new features and bug fixes in Rails 2.3. The highlights include nested attributes, nested transactions, dynamic scopes, and default scopes.
+Active Record gets quite a number of new features and bug fixes in Rails 2.3. The highlights include nested attributes, nested transactions, dynamic and default scopes, and batch processing.
 
 h4. Nested Attributes
 
@@ -68,6 +72,13 @@ end
 </ruby>
 
 Turning on nested attributes enables a number of things: automatic (and atomic) saving of a record together with its associated children, child-aware validations, and support for nested forms (discussed later).
+
+You can also specify requirements for any new records that are added via nested attributes using the +:reject_if+ option:
+
+<ruby>
+accepts_nested_attributes_for :author, 
+  :reject_if => proc { |attributes| attributes['name'].blank? }
+</ruby>
 
 * Lead Contributor: "Eloy Duran":http://www.superalloy.nl/blog/
 * More Information: "Nested Model Forms":http://weblog.rubyonrails.org/2009/1/26/nested-model-forms
@@ -114,6 +125,28 @@ Rails 2.3 will introduce the notion of _default scopes_ similar to named scopes,
 
 * Lead Contributor: Paweł Kondzior
 * More Information: "What's New in Edge Rails: Default Scoping":http://ryandaigle.com/articles/2008/11/18/what-s-new-in-edge-rails-default-scoping
+
+h4. Batch Processing
+
+You can now process large numbers of records from an ActiveRecord model with less pressure on memory by using +find_in_batches+:
+
+<ruby>
+Customer.find_in_batches(:conditions => {:active => true}) do |customer_group|
+  customer_group.each { |customer| customer.update_account_balance! }
+end
+</ruby>
+
+You can pass most of the +find+ options into +find_in_batches+. However, you cannot specify the order that records will be returned in (they will always be returned in ascending order of primary key, which must be an integer), or use the +:limit+ option. Instead, use the +:batch_size: option, which defaults to 1000, to set the number of records that will be returned in each batch.
+
+The new +each+ method provides a wrapper around +find_in_batches+ that returns individual records, with the find itself being done in batches (of 1000 by default):
+
+<ruby>
+Customer.each do |customer|
+  customer.update_account_balance!
+end
+</ruby>
+
+Note that you should only use this record for batch processing: for small numbers of records (less than 1000), you should just use the regular find methods with your own loop.
 
 h4. Multiple Conditions for Callbacks
 
@@ -268,6 +301,10 @@ h4. Localized Views
 
 Rails can now provide localized views, depending on the locale that you have set. For example, suppose you have a +Posts+ controller with a +show+ action. By default, this will render +app/views/posts/show.html.erb+. But if you set +I18n.locale = :da+, it will render +app/views/posts/show.da.html.erb+. If the localized template isn't present, the undecorated version will be used. Rails also includes +I18n#available_locales+ and +I18n::SimpleBackend#available_locales+, which return an array of the translations that are available in the current Rails project.
 
+h4. Partial Scoping for Translations
+
+A change to the translation API makes things easier and less repetitive to write key translations within partials. If you call +translate(".foo")+ from the +people/index.html.erb+ template, you'll actually be calling +I18n.translate("people.index.foo")+ If you don't prepend the key with a period, then the API doesn't scope, just as before.
+
 h4. Other Action Controller Changes
 
 * ETag handling has been cleaned up a bit: Rails will now skip sending an ETag header when there's no body to the response or when sending files with +send_file+.
@@ -399,6 +436,7 @@ h4. Other Action View Changes
 * Token generation for CSRF protection has been simplified; now Rails uses a simple random string generated by +ActiveSupport::SecureRandom+ rather than mucking around with session IDs.
 * +auto_link+ now properly applies options (such as +:target+ and +:class+) to generated e-mail links.
 * The +autolink+ helper has been refactored to make it a bit less messy and more intuitive.
+* +current_page?+ now works properly even when there are multiple query parameters in the URL.
 
 h3. Active Support
 
@@ -406,7 +444,7 @@ Active Support has a few interesting changes, including the introduction of +Obj
 
 h4. Object#try
 
-A lot of folks have adopted the notion of using try() to attempt operations on objects. It's especially helpful in views where you can avoid nil-checking by writing code like +<%= @person.try(:name) %>+. Well, now it's baked right into Rails. As implemented in Rails, it raises +NoMethodError+ on private methods and always returns +nil+ if the object is nil.
+A lot of folks have adopted the notion of using try() to attempt operations on objects. It's especially helpful in views where you can avoid nil-checking by writing code like +&lt;%= @person.try(:name) %&gt;+. Well, now it's baked right into Rails. As implemented in Rails, it raises +NoMethodError+ on private methods and always returns +nil+ if the object is nil.
 
 * More Information: "try()":http://ozmm.org/posts/try.html.
 
@@ -482,6 +520,9 @@ h4. Other Railties Changes
 * The dbconsole script now lets you use an all-numeric password without crashing.
 * +Rails.root+ now returns a +Pathname+ object, which means you can use it directly with the +join+ method to "clean up existing code":http://afreshcup.com/2008/12/05/a-little-rails_root-tidiness/ that uses +File.join+.
 * Various files in /public that deal with CGI and FCGI dispatching are no longer generated in every Rails application by default (you can still get them if you need them by adding +--with-dispatches+ when you run the +rails+ command, or add them later with +rake rails:generate_dispatchers+).
+* Rails Guides have been converted from AsciiDoc to Textile markup.
+* Scaffolded views and controllers have been cleaned up a bit.
+* +script/server+ now accepts a <tt>--path</tt> argument to mount a Rails application from a specific path.
 
 h3. Deprecated
 
@@ -495,7 +536,9 @@ A few pieces of older code are deprecated in this release:
 * The +:digest+ and +:secret+ options to +protect_from_forgery+ are deprecated and have no effect.
 * Some integration test helpers have been removed. +response.headers["Status"]+ and +headers["Status"]+ will no longer return anything. Rack does not allow "Status" in its return headers. However you can still use the +status+ and +status_message+ helpers. +response.headers["cookie"]+ and +headers["cookie"]+ will no longer return any CGI cookies. You can inspect +headers["Set-Cookie"]+ to see the raw cookie header or use the +cookies+ helper to get a hash of the cookies sent to the client.
 * +formatted_polymorphic_url+ is deprecated. Use +polymorphic_url+ with +:format+ instead.
+* The +:http_only+ option in +ActionController::Response#set_cookie+ has been renamed to +:httponly+.
+* The +:connector+ and +:skip_last_comma+ options of +to_sentence+ have been replaced by +:words_connnector+, +:two_words_connector+, and +:last_word_connector+ options.
 
 h3. Credits
 
-Release notes compiled by "Mike Gunderloy":http://afreshcup.com
+Release notes compiled by "Mike Gunderloy":http://afreshcup.com. This version of the Rails 2.3 release notes was compiled based on RC2 of Rails 2.3.

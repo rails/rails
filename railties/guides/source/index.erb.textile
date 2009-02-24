@@ -74,7 +74,7 @@ h3. Digging Deeper
 <dl>
 
 <% guide("Rails Internationalization API", 'i18n.html', :ticket => 23) do %>
-  This guide covers how to build a plugin to extend the functionality of Rails.
+  This guide covers how to add internationalization to your applications. Your application will be able to translate content to different languages, change pluralization rules, use correct date formats for each country and so on.
 <% end %>
 
 <% guide("Action Mailer Basics", 'action_mailer_basics.html', :ticket => 25) do %>
@@ -97,7 +97,7 @@ h3. Digging Deeper
   This guide covers the various ways of performance testing a Ruby on Rails application.
 <% end %>
 
-<% guide("The Basics of Creating Rails Plugins", 'plugins.html') do %>
+<% guide("The Basics of Creating Rails Plugins", 'plugins.html', :ticket => 32) do %>
   This guide covers how to build a plugin to extend the functionality of Rails.
 <% end %>
 
@@ -105,8 +105,12 @@ h3. Digging Deeper
   This guide covers the basic configuration settings for a Rails application.
 <% end %>
 
-<% guide("Rails Command Line Tools and Rake tasks", 'command_line.html') do %>
+<% guide("Rails Command Line Tools and Rake tasks", 'command_line.html', :ticket => 29) do %>
   This guide covers the command line tools and rake tasks provided by Rails.
+<% end %>
+
+<% guide("Rails on Rack", 'rails_on_rack.html', :ticket => 58) do %>
+  This guide covers Rails integration with Rack and interfacing with other Rack components.
 <% end %>
 
 </dl>

@@ -21,7 +21,7 @@ This guide is designed for beginners who want to get started with a Rails applic
 
 It is highly recommended that you *familiarize yourself with Ruby before diving into Rails*. You will find it much easier to follow what’s going on with a Rails application if you understand basic Ruby syntax. Rails isn’t going to magically revolutionize the way you write web applications if you have no experience with the language it uses. There are some good free resources on the internet for learning Ruby, including:
 
-* "Mr. Neigborly’s Humble Little Ruby Book":http://www.humblelittlerubybook.com
+* "Mr. Neighborly’s Humble Little Ruby Book":http://www.humblelittlerubybook.com
 * "Programming Ruby":http://www.rubycentral.com/book
 * "Why’s (Poignant) Guide to Ruby":http://poignantguide.net/ruby
 
@@ -163,7 +163,7 @@ $ cd blog
 
 In any case, Rails will create a folder in your working directory called <tt>blog</tt>. Open up that folder and explore its contents. Most of the work in this tutorial will happen in the <tt>app/</tt> folder, but here’s a basic rundown on the function of each folder that Rails creates in a new application by default:
 
-|File/Folder|Purpose|
+|_.File/Folder|_.Purpose|
 |README|This is a brief instruction manual for your application. Use it to tell others what your application does, how to set it up, and so on.|
 |Rakefile|This file contains batch jobs that can be run from the terminal.|
 |app/|Contains the controllers, models, and views for your application. You'll focus on this folder for the remainder of this guide.|
@@ -327,7 +327,7 @@ NOTE. While scaffolding will get you up and running quickly, the "one size fits 
 
 The scaffold generator will build 14 files in your application, along with some folders, and edit one more. Here's a quick overview of what it creates:
 
-|File                                          |Purpose|
+|_.File                                        |_.Purpose|
 |app/models/post.rb                            |The Post model|
 |db/migrate/20090113124235_create_posts.rb     |Migration to create the posts table in your database (your name will include a different timestamp)|
 |app/views/posts/index.html.erb                |A view to display an index of all posts |
@@ -387,7 +387,6 @@ To hook the posts up to the home page you've already created, you can add a link
 <code lang="ruby">
 <h1>Hello, Rails!</h1>
 <%= link_to "My Blog", posts_path %>
-
 </code>
 
 The +link_to+ method is one of Rails' built-in view helpers. It creates a hyperlink based on text to display and where to go - in this case, to the path for posts.

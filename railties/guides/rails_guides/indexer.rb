@@ -29,13 +29,17 @@ module RailsGuides
             return level_hash
           elsif level == current_level
             index = counters.join(".")
-            bookmark = '#' + title.gsub(/[^a-z0-9\-_\+]+/i, '').underscore.dasherize
+            bookmark = '#' + title.gsub(/[^a-z0-9\-_]+/i, '').underscore.dasherize
 
             raise "Parsing Fail" unless @result.sub!(matched, "h#{level}(#{bookmark}). #{index}#{title}")
 
+            key = {
+              :title => title,
+              :id => bookmark
+            }
             # Recurse
             counters << 1
-            level_hash[title.strip] = process(s.post_match, current_level + 1, counters)
+            level_hash[key] = process(s.post_match, current_level + 1, counters)
             counters.pop
 
             # Increment the current level

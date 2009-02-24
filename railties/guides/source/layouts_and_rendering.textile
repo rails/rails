@@ -130,7 +130,8 @@ render "/u/apps/warehouse_app/current/app/views/products/show"
 Rails determines that this is a file render because of the leading slash character. To be explicit, you can use the +:file+ option (which was required on Rails 2.2 and earlier):
 
 <ruby>
-render :file => "/u/apps/warehouse_app/current/app/views/products/show"
+render :file => 
+  "/u/apps/warehouse_app/current/app/views/products/show"
 </ruby>
 
 The +:file+ option takes an absolute file-system path. Of course, you need to have rights to the view that you're using to render the content.
@@ -144,7 +145,8 @@ h5. Using render with :inline
 The +render+ method can do without a view completely, if you're willing to use the +:inline+ option to supply ERB as part of the method call. This is perfectly valid:
 
 <ruby>
-render :inline => "<% products.each do |p| %><p><%= p.name %><p><% end %>"
+render :inline => 
+  "<% products.each do |p| %><p><%= p.name %><p><% end %>"
 </ruby>
 
 WARNING: There is seldom any good reason to use this option. Mixing ERB into your controllers defeats the MVC orientation of Rails and will make it harder for other developers to follow the logic of your project. Use a separate erb view instead.
@@ -152,7 +154,8 @@ WARNING: There is seldom any good reason to use this option. Mixing ERB into you
 By default, inline rendering uses ERb. You can force it to use Builder instead with the +:type+ option:
 
 <ruby>
-render :inline => "xml.p {'Horrid coding practice!'}", :type => :builder
+render :inline => 
+  "xml.p {'Horrid coding practice!'}", :type => :builder
 </ruby>
 
 h5. Using render with :update
@@ -165,7 +168,7 @@ render :update do |page|
 end
 </ruby>
 
-WARNING: Placing javascript updates in your controller may seem to streamline small updates, but it defeats the MVC orientation of Rails and will make it harder for other developers to follow the logic of your project. I recommend using a separate rjs template instead, no matter how small the update.
+WARNING: Placing javascript updates in your controller may seem to streamline small updates, but it defeats the MVC orientation of Rails and will make it harder for other developers to follow the logic of your project. We recommend using a separate rjs template instead, no matter how small the update.
 
 h5. Rendering Text
 
@@ -251,7 +254,7 @@ render :status => 500
 render :status => :forbidden
 </ruby>
 
-Rails understands either numeric status codes or symbols for status codes. You can find its list of status codes in +actionpack/lib/action_controller/status_codes.rb+. You can also see there how it maps symbols to status codes in that file.
+Rails understands either numeric status codes or symbols for status codes. You can find its list of status codes in +actionpack/lib/action_controller/status_codes.rb+. You can also see there how Rails maps symbols to status codes.
 
 h6. The :location Option
 
@@ -263,7 +266,7 @@ render :xml => photo, :location => photo_url(photo)
 
 h5. Finding Layouts
 
-To find the current layout, Rails first looks for a file in +app/views/layouts+ with the same base name as the controller. For example, rendering actions from the +PhotosController+ class will use +/app/views/layouts/photos.html.erb+. If there is no such controller-specific layout, Rails will use +/app/views/layouts/application.html.erb+. If there is no +.erb+ layout, Rails will use a +.builder+ layout if one exists. Rails also provides several ways to more precisely assign specific layouts to individual controllers and actions.
+To find the current layout, Rails first looks for a file in +app/views/layouts+ with the same base name as the controller. For example, rendering actions from the +PhotosController+ class will use +/app/views/layouts/photos.html.erb+ (or +app/views/layouts/photos.builder+). If there is no such controller-specific layout, Rails will use +/app/views/layouts/application.html.erb+ ot +/app/views/layouts/application.builder+. If there is no +.erb+ layout, Rails will use a +.builder+ layout if one exists. Rails also provides several ways to more precisely assign specific layouts to individual controllers and actions.
 
 h6. Specifying Layouts on a per-Controller Basis
 
@@ -416,7 +419,7 @@ end
 
 h4. Using redirect_to
 
-Another way to handle returning responses to a HTTP request is with +redirect_to+. As you've seen, +render+ tells Rails which view (or other asset) to use in constructing a response. The +redirect_to+ method does something completely different: it tells the browser to send a new request for a different URL. For example, you could redirect from wherever you are in your code to the index of photos in your application with this call:
+Another way to handle returning responses to an HTTP request is with +redirect_to+. As you've seen, +render+ tells Rails which view (or other asset) to use in constructing a response. The +redirect_to+ method does something completely different: it tells the browser to send a new request for a different URL. For example, you could redirect from wherever you are in your code to the index of photos in your application with this call:
 
 <ruby>
 redirect_to photos_path
@@ -440,7 +443,7 @@ Just like the +:status+ option for +render+, +:status+ for +redirect_to+ accepts
 
 h5. The Difference Between render and redirect
 
-Sometimes inexperienced developers conceive of +redirect_to+ as a sort of +goto+ command, moving execution from one place to another in your Rails code. This is _not_ correct. Your code stops running and waits for a new request for the browser. It just happens that you've told the browser what request it should make next, by sending back a HTTP 302 status code.
+Sometimes inexperienced developers conceive of +redirect_to+ as a sort of +goto+ command, moving execution from one place to another in your Rails code. This is _not_ correct. Your code stops running and waits for a new request for the browser. It just happens that you've told the browser what request it should make next, by sending back an HTTP 302 status code.
 
 Consider these actions to see the difference:
 
@@ -507,17 +510,18 @@ Asset tags provide methods for generating HTML that links views to assets like i
 * stylesheet_link_tag
 * image_tag
 
-You can use these tags in layouts or other views, although the tags other than +image_tag+ are most commonly used in the +<head>+ section of a layout.
+You can use these tags in layouts or other views, although the tags other than +image_tag+ are most commonly used in the +&lt;head&gt;+ section of a layout.
 
 WARNING: The asset tags do _not_ verify the existence of the assets at the specified locations; they simply assume that you know what you're doing and generate the link.
 
 h5. Linking to Feeds with auto_discovery_link_tag
 
-The +auto_discovery_link_tag helper builds HTML that most browsers and newsreaders can use to detect the presences of RSS or ATOM feeds. It takes the type of the link (+:rss+ or +:atom+), a hash of options that are passed through to url_for, and a hash of options for the tag:
+The +auto_discovery_link_tag+ helper builds HTML that most browsers and newsreaders can use to detect the presences of RSS or ATOM feeds. It takes the type of the link (+:rss+ or +:atom+), a hash of options that are passed through to url_for, and a hash of options for the tag:
 
-<ruby>
-<%= auto_discovery_link_tag(:rss, {:action => "feed"}, {:title => "RSS Feed"}) %>
-</ruby>
+<erb>
+<%= auto_discovery_link_tag(:rss, {:action => "feed"}, 
+  {:title => "RSS Feed"}) %>
+</erb>
 
 There are three tag options available for +auto_discovery_link_tag+:
 
@@ -529,137 +533,139 @@ h5. Linking to Javascript Files with javascript_include_tag
 
 The +javascript_include_tag+ helper returns an HTML +script+ tag for each source provided. Rails looks in +public/javascripts+ for these files by default, but you can specify a full path relative to the document root, or a URL, if you prefer. For example, to include +public/javascripts/main.js+:
 
-<ruby>
+<erb>
 <%= javascript_include_tag "main" %>
-</ruby>
+</erb>
 
 To include +public/javascripts/main.js+ and +public/javascripts/columns.js+:
 
-<ruby>
+<erb>
 <%= javascript_include_tag "main", "columns" %>
-</ruby>
+</erb>
 
 To include +public/javascripts/main.js+ and +public/photos/columns.js+:
 
-<ruby>
+<erb>
 <%= javascript_include_tag "main", "/photos/columns" %>
-</ruby>
+</erb>
 
 To include +http://example.com/main.js+:
 
-<ruby>
+<erb>
 <%= javascript_include_tag "http://example.com/main.js" %>
-</ruby>
+</erb>
 
 The +defaults+ option loads the Prototype and Scriptaculous libraries:
 
-<ruby>
+<erb>
 <%= javascript_include_tag :defaults %>
-</ruby>
+</erb>
 
 The +all+ option loads every javascript file in +public/javascripts+, starting with the Prototype and Scriptaculous libraries:
 
-<ruby>
+<erb>
 <%= javascript_include_tag :all %>
-</ruby>
+</erb>
 
 You can supply the +:recursive+ option to load files in subfolders of +public/javascripts+ as well:
 
-<ruby>
+<erb>
 <%= javascript_include_tag :all, :recursive => true %>
-</ruby>
+</erb>
 
 If you're loading multiple javascript files, you can create a better user experience by combining multiple files into a single download. To make this happen in production, specify +:cache => true+ in your +javascript_include_tag+:
 
-<ruby>
+<erb>
 <%= javascript_include_tag "main", "columns", :cache => true %>
-</ruby>
+</erb>
 
 By default, the combined file will be delivered as +javascripts/all.js+. You can specify a location for the cached asset file instead:
 
-<ruby>
-<%= javascript_include_tag "main", "columns", :cache => 'cache/main/display' %>
-</ruby>
+<erb>
+<%= javascript_include_tag "main", "columns", 
+  :cache => 'cache/main/display' %>
+</erb>
 
-You can even use dynamic paths such as "cache/#{current_site}/main/display"+.
+You can even use dynamic paths such as +cache/#{current_site}/main/display+.
 
 h5. Linking to CSS Files with stylesheet_link_tag
 
 The +stylesheet_link_tag+ helper returns an HTML +<link>+ tag for each source provided. Rails looks in +public/stylesheets+ for these files by default, but you can specify a full path relative to the document root, or a URL, if you prefer. For example, to include +public/stylesheets/main.cs+:
 
-<ruby>
+<erb>
 <%= stylesheet_link_tag "main" %>
-</ruby>
+</erb>
 
 To include +public/stylesheets/main.css+ and +public/stylesheets/columns.css+:
 
-<ruby>
+<erb>
 <%= stylesheet_link_tag "main", "columns" %>
-</ruby>
+</erb>
 
 To include +public/stylesheets/main.css+ and +public/photos/columns.css+:
 
-<ruby>
+<erb>
 <%= stylesheet_link_tag "main", "/photos/columns" %>
-</ruby>
+</erb>
 
 To include +http://example.com/main.cs+:
 
-<ruby>
+<erb>
 <%= stylesheet_link_tag "http://example.com/main.cs" %>
-</ruby>
+</erb>
 
 By default, +stylesheet_link_tag+ creates links with +media="screen" rel="stylesheet" type="text/css"+. You can override any of these defaults by specifying an appropriate option (:media, :rel, or :type):
 
-<ruby>
+<erb>
 <%= stylesheet_link_tag "main_print", media => "print" %>
-</ruby>
+</erb>
 
 The +all+ option links every CSS file in +public/stylesheets+:
 
-<ruby>
+<erb>
 <%= stylesheet_link_tag :all %>
-</ruby>
+</erb>
 
 You can supply the +:recursive+ option to link files in subfolders of +public/stylesheets+ as well:
 
-<ruby>
+<erb>
 <%= stylesheet_link_tag :all, :recursive => true %>
-</ruby>
+</erb>
 
 If you're loading multiple CSS files, you can create a better user experience by combining multiple files into a single download. To make this happen in production, specify +:cache => true+ in your +stylesheet_link_tag+:
 
-<ruby>
+<erb>
 <%= stylesheet_link_tag "main", "columns", :cache => true %>
-</ruby>
+</erb>
 
 By default, the combined file will be delivered as +stylesheets/all.css+. You can specify a location for the cached asset file instead:
 
-<ruby>
-<%= stylesheet_link_tag "main", "columns", :cache => 'cache/main/display' %>
-</ruby>
+<erb>
+<%= stylesheet_link_tag "main", "columns", 
+  :cache => 'cache/main/display' %>
+</erb>
 
-You can even use dynamic paths such as "cache/#{current_site}/main/display"+.
+You can even use dynamic paths such as +cache/#{current_site}/main/display+.
 
 h5. Linking to Images with image_tag
 
-The +image_tag+ helper builds an HTML +<image>+ tag to the specified file. By default, files are loaded from +public/images+. If you don't specify an extension, .png is assumed by default:
+The +image_tag+ helper builds an HTML +&lt;image&gt;+ tag to the specified file. By default, files are loaded from +public/images+. If you don't specify an extension, +.png+ is assumed by default:
 
-<ruby>
+<erb>
 <%= image_tag "header" %>
-</ruby>
+</erb>
 
 You can supply a path to the image if you like:
 
-<ruby>
+<erb>
 <%= image_tag "icons/delete.gif" %>
-</ruby>
+</erb>
 
 You can supply a hash of additional HTML options:
 
-<ruby>
+<erb>
 <%= image_tag "icons/delete.gif", :height => 45 %>
-</ruby>
+</erb>
 
 There are also three special options you can use with +image_tag+:
 
@@ -721,7 +727,7 @@ The result of rendering this page into the supplied layout would be this HTML:
 </html>
 </erb>
 
-The +content_for+ method is very helpful when your layout contains distinct regions such as sidebars and footers that should get their own blocks of content inserted. It's also useful for inserting tags that load page-specific javascript or css files into the header of an otherwise-generic layout.
+The +content_for+ method is very helpful when your layout contains distinct regions such as sidebars and footers that should get their own blocks of content inserted. It's also useful for inserting tags that load page-specific javascript or css files into the header of an otherwise generic layout.
 
 h4. Using Partials
 
@@ -781,7 +787,8 @@ You can also pass local variables into partials, making them even more powerful 
 <erb>
 <h1>New zone</h1>
 <%= error_messages_for :zone %>
-<%= render :partial => "form", :locals => { :button_label => "Create zone", :zone => @zone } %>
+<%= render :partial => "form", :locals => 
+  { :button_label => "Create zone", :zone => @zone } %>
 </erb>
 
 * +edit.html.erb+
@@ -789,7 +796,8 @@ You can also pass local variables into partials, making them even more powerful 
 <erb>
 <h1>Editing zone</h1>
 <%= error_messages_for :zone %>
-<%= render :partial => "form", :locals => { :button_label => "Update zone", :zone => @zone } %>
+<%= render :partial => "form", :locals => 
+  { :button_label => "Update zone", :zone => @zone } %>
 </erb>
 
 * +_form.html.erb+
@@ -856,7 +864,8 @@ TIP: Rails also makes a counter variable available within a partial called by th
 You can also specify a second partial to be rendered between instances of the main partial by using the +:spacer_template+ option:
 
 <erb>
-<%= render :partial => "product", :collection => @products, :spacer_template => "product_ruler" %>
+<%= render :partial => "product", :collection => @products, 
+  :spacer_template => "product_ruler" %>
 </erb>
 
 Rails will render the +_product_ruler+ partial (with no data passed in to it) between each pair of +_product+ partials.
@@ -882,7 +891,8 @@ Rails determines the name of the partial to use by looking at the model name in 
 
 <erb>
 <h1>Contacts</h1>
-<%= render :partial => [customer1, employee1, customer2, employee2] %>
+<%= render :partial => 
+  [customer1, employee1, customer2, employee2] %>
 </erb>
 
 * +_customer.html.erb+
@@ -910,14 +920,14 @@ Suppose you have the follow +ApplicationController+ layout:
 <erb>
 <html>
 <head>
-  <title><%= @page_title %><title>
-  <% stylesheet_tag 'layout' %>
+  <title><%= @page_title or 'Page Title' %></title>
+  <%= stylesheet_link_tag 'layout' %>
   <style type="text/css"><%= yield :stylesheets %></style>
-<head>
+</head>
 <body>
   <div id="top_menu">Top menu items here</div>
   <div id="menu">Menu items here</div>
-  <div id="main"><%= yield %></div>
+  <div id="content"><%= yield(:content) or yield %></div>
 </body>
 </html>
 </erb>
@@ -931,18 +941,16 @@ On pages generated by +NewsController+, you want to hide the top menu and add a 
   #top_menu {display: none}
   #right_menu {float: right; background-color: yellow; color: black}
 <% end -%>
-<% content_for :main %>
+<% content_for :content do %>
   <div id="right_menu">Right menu items here</div>
-  <%= yield %>
+  <%= yield(:news_content) or yield %>
   <% end -%>
 <% render :file => 'layouts/application' %>
 </erb>
 
-NOTE: In versions of Rails before Rails 2.3, you should use +render 'layouts/applications'+ instead of +render :file => 'layouts/applications'+
-
 That's it. The News views will use the new layout, hiding the top menu and adding a new right menu inside the "content" div.
 
-There are several ways of getting similar results with differents sub-templating schemes using this technique. Note that there is no limit in nesting levels. One can use the +ActionView::render+ method via +render 'layouts/news'+ to base a new layout on the News layout.
+There are several ways of getting similar results with different sub-templating schemes using this technique. Note that there is no limit in nesting levels. One can use the +ActionView::render+ method via +render :file => 'layouts/news'+ to base a new layout on the News layout. If one is sure she will not subtemplate the +News+ layout, she can ommit the +yield(:news_content) or + part.
 
 h3. Changelog
 

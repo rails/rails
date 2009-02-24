@@ -83,7 +83,7 @@ Usage: ./script/generate generator [options] [args]
 ...
 
 Installed Generators
-  Builtin: controller, integration_test, mailer, migration, model, observer, performance_test, plugin, resource, scaffold, session_migration
+  Built-in: controller, integration_test, mailer, migration, model, observer, performance_test, plugin, resource, scaffold, session_migration
 
 ...
 ...
@@ -126,10 +126,10 @@ Modules Example:
 Ah, the controller generator is expecting parameters in the form of +generate controller ControllerName action1 action2+. Let's make a +Greetings+ controller with an action of *hello*, which will say something nice to us.
 
 <shell>
-$ ./script/generate controller Greeting hello
+$ ./script/generate controller Greetings hello
      exists  app/controllers/
      exists  app/helpers/
-     create  app/views/greeting
+     create  app/views/greetings
      exists  test/functional/
      create  app/controllers/greetings_controller.rb
      create  test/functional/greetings_controller_test.rb
@@ -139,10 +139,10 @@ $ ./script/generate controller Greeting hello
 
 Look there! Now what all did this generate? It looks like it made sure a bunch of directories were in our application, and created a controller file, a functional test file, a helper for the view, and a view file.
 
-Let's check out the controller and modify it a little (in +app/controllers/greeting_controller.rb+):
+Let's check out the controller and modify it a little (in +app/controllers/greetings_controller.rb+):
 
 <ruby>
-class GreetingController < ApplicationController
+class GreetingsController < ApplicationController
   def hello
     @message = "Hello, how are you today? I am exuberant!"
   end
@@ -150,7 +150,7 @@ class GreetingController < ApplicationController
 end
 </ruby>
 
-Then the view, to display our nice message (in +app/views/greeting/hello.html.erb+):
+Then the view, to display our nice message (in +app/views/greetings/hello.html.erb+):
 
 <html>
 <h1>A Greeting for You!</h1>
@@ -163,6 +163,8 @@ Deal. Go check it out in your browser. Fire up your server. Remember? +./script/
 $ ./script/server
 => Booting WEBrick...
 </shell>
+
+WARNING: Make sure that you do not have any "tilde backup" files in +app/views/(controller)+, or else WEBrick will _not_ show the expected output. This seems to be a *bug* in Rails 2.3.0.
 
 The URL will be +http://localhost:3000/greetings/hello+. I'll wait for you to be suitably impressed.
 
@@ -356,8 +358,8 @@ $ rails . --git --database=postgresql
 add 'Rakefile'
       create  README
 add 'README'
-      create  app/controllers/application.rb
-add 'app/controllers/application.rb'
+      create  app/controllers/application_controller_.rb
+add 'app/controllers/application_controller_.rb'
       create  app/helpers/application_helper.rb
 ...
       create  log/test.log
@@ -464,7 +466,7 @@ We take whatever args are supplied, save them to an instance variable, and liter
 * Check there's a *public* directory. You bet there is.
 * Run the ERb template called "tutorial.erb".
 * Save it into "RAILS_ROOT/public/tutorial.txt".
-* Pass in the args we saved through the +:assign+ parameter.
+* Pass in the arguments we saved through the +:assign+ parameter.
 
 Next we'll build the template:
 
@@ -509,3 +511,76 @@ I got assigned some args:
 </shell>
 
 Tada!
+
+h4. Rake is Ruby Make
+
+Rake is a standalone Ruby utility that replaces the Unix utility 'make', and uses a 'Rakefile' and +.rake+ files to build up a list of tasks. In Rails, Rake is used for common administration tasks, especially sophisticated ones that build off of each other.
+
+You can get a list of Rake tasks available to you, which will often depend on your current directory, by typing +rake --tasks+. Each task has a description, and should help you find the thing you need.
+
+<shell>
+ rake --tasks
+(in /home/developer/commandsapp)
+rake db:abort_if_pending_migrations       # Raises an error if there are pending migrations
+rake db:charset                           # Retrieves the charset for the current environment's database
+rake db:collation                         # Retrieves the collation for the current environment's database
+rake db:create                            # Create the database defined in config/database.yml for the current RAILS_ENV
+...
+...
+rake tmp:pids:clear                       # Clears all files in tmp/pids
+rake tmp:sessions:clear                   # Clears all files in tmp/sessions
+rake tmp:sockets:clear                    # Clears all files in tmp/sockets
+</shell>
+
+Let's take a look at some of these 80 or so rake tasks.
+
+h5. db: Database
+
+The most common tasks of the +db:+ Rake namespace are +migrate+ and +create+, and it will pay off to try out all of the migration rake tasks (+up+, +down+, +redo+, +reset+). +rake db:version+ is useful when troubleshooting, telling you the current version of the database.
+
+h5. doc: Documentation
+
+If you want to strip out or rebuild any of the Rails documentation (including this guide!), the +doc:+ namespace has the tools. Stripping documentation is mainly useful for slimming your codebase, like if you're writing a Rails application for an embedded platform.
+
+h5. gems: Ruby gems
+
+You can specify which gems your application uses, and +rake gems:install+ will install them for you. Look at your environment.rb to learn how with the *config.gem* directive.
+
+NOTE: +gems:unpack+ will unpack, that is internalize your application's Gem dependencies by copying the Gem code into your vendor/gems directory. By doing this you increase your codebase size, but simplify installation on new hosts by eliminating the need to run +rake gems:install+, or finding and installing the gems your application uses.
+
+h5. notes: Code note enumeration
+
+These tasks will search through your code for commented lines beginning with "FIXME", "OPTIMIZE", "TODO", or any custom annotation (like XXX) and show you them.
+
+h5. rails: Rails-specific tasks
+
+In addition to the +gems:unpack+ task above, you can also unpack the Rails backend specific gems into vendor/rails by calling +rake rails:freeze:gems+, to unpack the version of Rails you are currently using, or +rake rails:freeze:edge+ to unpack the most recent (cutting, bleeding edge) version.
+
+When you have frozen the Rails gems, Rails will prefer to use the code in vendor/rails instead of the system Rails gems. You can "thaw" by running +rake rails:unfreeze+.
+
+After upgrading Rails, it is useful to run +rails:update+, which will update your config and scripts directories, and upgrade your Rails-specific javascript (like Scriptaculous).
+
+h5. test: Rails tests
+
+INFO: A good description of unit testing in Rails is given in "A Guide to Testing Rails Applications":testing.html
+
+Rails comes with a test suite called Test::Unit. It is through the use of tests that Rails itself is so stable, and the slew of people working on Rails can prove that everything works as it should. 
+
+The +test:+ namespace helps in running the different tests you will (hopefully!) write.
+
+h5. time: Timezones
+
+You can list all the timezones Rails knows about with +rake time:zones:all+, which is useful just in day-to-day life.
+
+h5. tmp: Temporary files
+
+The tmp directory is, like in the *nix /tmp directory, the holding place for temporary files like sessions (if you're using a file store for files), process id files, and cached actions. The +tmp:+ namespace tasks will help you clear them if you need to if they've become overgrown, or create them in case of an +rm -rf *+ gone awry.
+
+h5. Miscellaneous tasks
+
+ +rake stats+ is great for looking at statistics on your code, displaying things like KLOCs (thousands of lines of code) and your code to test ratio.
+
+ +rake secret+ will give you a psuedo-random key to use for your session secret.
+
+ +rake routes+ will list all of your defined routes, which is useful for tracking down routing problems in your app, or giving you a good overview of the URLs in an app you're trying to get familiar with.
+
