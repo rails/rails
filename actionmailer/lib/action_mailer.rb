@@ -58,4 +58,5 @@ module Net
 end
 
 autoload :MailHelper, 'action_mailer/mail_helper'
-autoload :TMail, 'action_mailer/vendor/tmail'
+
+require 'action_mailer/vendor/tmail'
