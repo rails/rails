@@ -1,3 +1,5 @@
+require 'erb'
+
 module ActionView
   module TemplateHandlers
     class ERB < TemplateHandler
