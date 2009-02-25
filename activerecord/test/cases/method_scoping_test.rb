@@ -597,7 +597,7 @@ class DefaultScopingTest < ActiveRecord::TestCase
   end
 
   def test_named_scope
-    expected = Developer.find(:all, :order => 'name DESC').collect { |dev| dev.salary }
+    expected = Developer.find(:all, :order => 'salary DESC, name DESC').collect { |dev| dev.salary }
     received = DeveloperOrderedBySalary.by_name.find(:all).collect { |dev| dev.salary }
     assert_equal expected, received
   end
