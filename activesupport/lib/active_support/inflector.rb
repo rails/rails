@@ -277,7 +277,7 @@ module ActiveSupport
 
     # The iconv transliteration code doesn't function correctly
     # on some platforms, but it's very fast where it does function.
-    if "foo" != Inflector.transliterate("föö")
+    if "foo" != (Inflector.transliterate("föö") rescue nil)
       undef_method :transliterate
       def transliterate(string)
         string.mb_chars.normalize(:kd). # Decompose accented characters

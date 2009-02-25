@@ -34,6 +34,10 @@ class ViewRenderTest < Test::Unit::TestCase
     assert_equal "Hello world!", @view.render(:file => template_path)
   end
 
+  def test_render_file_not_using_template_handler_extension
+    assert_equal "var greeting = 'Hallo World!';", @view.render(:file => 'test/hello_world.js')
+  end
+
   def test_render_file_with_instance_variables
     assert_deprecated do
       assert_equal "The secret is in the sauce\n", @view.render("test/render_file_with_ivar.erb")

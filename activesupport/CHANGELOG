@@ -1,5 +1,7 @@
 *2.2.3 (next release)*
 
+* Ruby 1.9.1p0 fix: URI.unescape can decode multibyte chars.  #2033 [MOROHASHI Kyosuke]
+
 * TimeWithZone#xmlschema accepts optional fraction_digits argument [#1725 state:resolved] [Nicholas Dainty]
 
 * TimeWithZone#- gives correct result with wrapped DateTime, and with DateTime argument [Geoff Buesing]

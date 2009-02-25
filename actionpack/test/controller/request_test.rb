@@ -471,6 +471,13 @@ class UrlEncodedRequestParameterParsingTest < Test::Unit::TestCase
     )
   end
 
+  def test_query_string_with_multiple_of_same_name
+    assert_equal(
+      { "action" => "update_order", "full_name" => "Lau Taarnskov", "products" => "4" },
+      ActionController::AbstractRequest.parse_query_parameters(@query_string_with_multiple_of_same_name)
+    )
+  end
+
   def test_query_string_with_many_equal
     assert_equal(
       { "action" => "create_customer", "full_name" => "abc=def=ghi"},
