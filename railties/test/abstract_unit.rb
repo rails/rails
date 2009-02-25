@@ -1,4 +1,5 @@
 $:.unshift File.dirname(__FILE__) + "/../../activesupport/lib"
+$:.unshift File.dirname(__FILE__) + "/../../activerecord/lib"
 $:.unshift File.dirname(__FILE__) + "/../../actionpack/lib"
 $:.unshift File.dirname(__FILE__) + "/../lib"
 $:.unshift File.dirname(__FILE__) + "/../builtin/rails_info"
