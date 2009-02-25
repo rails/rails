@@ -683,7 +683,7 @@ Within the context of a layout, +yield+ identifies a section where content from 
   </head>
   <body>
   <%= yield %>
-  <hbody>
+  </body>
 </html>
 </erb>
 
@@ -696,7 +696,7 @@ You can also create a layout with multiple yielding regions:
   </head>
   <body>
   <%= yield %>
-  <hbody>
+  </body>
 </html>
 </erb>
 
@@ -723,7 +723,7 @@ The result of rendering this page into the supplied layout would be this HTML:
   </head>
   <body>
   <p>Hello, Rails!</p>
-  <hbody>
+  </body>
 </html>
 </erb>
 
