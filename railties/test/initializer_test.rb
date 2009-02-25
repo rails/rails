@@ -2,6 +2,7 @@ require 'abstract_unit'
 require 'initializer'
 
 require 'action_view'
+require 'action_mailer'
 require 'active_record'
 
 # Mocks out the configuration
@@ -330,7 +331,7 @@ class InitializerDatabaseMiddlewareTest < Test::Unit::TestCase
     @config.frameworks = [:active_record, :action_controller, :action_view]
   end
 
-  def test_database_middleware_doesnt_perform_anything_when_active_record_in_frameworks
+  def test_initialize_database_middleware_doesnt_perform_anything_when_active_record_not_in_frameworks
     @config.frameworks.clear
     @config.expects(:middleware).never
     Rails::Initializer.run(:initialize_database_middleware, @config)
@@ -360,7 +361,30 @@ class InitializerDatabaseMiddlewareTest < Test::Unit::TestCase
 
     Rails::Initializer.run(:initialize_database_middleware, @config)
   ensure
-    ActionController::Base.session_store = store    
+    ActionController::Base.session_store = store
+  end
+end
+
+class InitializerViewPathsTest  < Test::Unit::TestCase
+  def setup
+    @config = Rails::Configuration.new
+    @config.frameworks = [:action_view, :action_controller, :action_mailer]
+    
+    ActionController::Base.stubs(:view_paths).returns(stub)
+    ActionMailer::Base.stubs(:view_paths).returns(stub)
+  end
+  
+  def test_load_view_paths_doesnt_perform_anything_when_action_view_not_in_frameworks
+    @config.frameworks -= [:action_view]
+    ActionController::Base.view_paths.expects(:load!).never
+    ActionMailer::Base.view_paths.expects(:load!).never
+    Rails::Initializer.run(:load_view_paths, @config)
+  end
+  
+  def test_load_view_paths_loads_view_paths
+    ActionController::Base.view_paths.expects(:load!)
+    ActionMailer::Base.view_paths.expects(:load!)
+    Rails::Initializer.run(:load_view_paths, @config)
   end
 end
 
