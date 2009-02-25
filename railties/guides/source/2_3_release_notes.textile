@@ -148,6 +148,10 @@ end
 
 Note that you should only use this record for batch processing: for small numbers of records (less than 1000), you should just use the regular find methods with your own loop.
 
+* More Information: 
+ - "Rails 2.3: Batch Finding":http://afreshcup.com/2009/02/23/rails-23-batch-finding/
+ - "What's New in Edge Rails: Batched Find":http://ryandaigle.com/articles/2009/2/23/what-s-new-in-edge-rails-batched-find
+
 h4. Multiple Conditions for Callbacks
 
 When using Active Record callbacks, you can now combine +:if+ and +:unless+ options on the same callback, and supply multiple conditions as an array:
@@ -313,6 +317,7 @@ h4. Other Action Controller Changes
 * Cookie sessions now have persistent session identifiers, with API compatibility with the server-side stores.
 * You can now use symbols for the +:type+ option of +send_file+ and +send_data+, like this: +send_file("fabulous.png", :type => :png)+.
 * The +:only+ and +:except+ options for +map.resources+ are no longer inherited by nested resources.
+* The bundled memcached client has been updated to version 1.6.4.99.
 
 h3. Action View
 
@@ -538,6 +543,7 @@ A few pieces of older code are deprecated in this release:
 * +formatted_polymorphic_url+ is deprecated. Use +polymorphic_url+ with +:format+ instead.
 * The +:http_only+ option in +ActionController::Response#set_cookie+ has been renamed to +:httponly+.
 * The +:connector+ and +:skip_last_comma+ options of +to_sentence+ have been replaced by +:words_connnector+, +:two_words_connector+, and +:last_word_connector+ options.
+* Posting a multipart form with an empty +file_field+ control used to submit an empty string to the controller. Now it submits a nil, due to differences between Rack's multipart parser and the old Rails one.
 
 h3. Credits
 
