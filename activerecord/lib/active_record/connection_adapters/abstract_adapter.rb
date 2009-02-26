@@ -54,6 +54,13 @@ module ActiveRecord
         false
       end
 
+      # Can this adapter determine the primary key for tables not attached
+      # to an ActiveRecord class, such as join tables?  Backend specific, as
+      # the abstract adapter always returns +false+.
+      def supports_primary_key?
+        false
+      end
+
       # Does this adapter support using DISTINCT within COUNT?  This is +true+
       # for all adapters except sqlite.
       def supports_count_distinct?
