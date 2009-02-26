@@ -13,9 +13,6 @@ require 'models/ship'
 require 'models/ship_part'
 require 'models/treasure'
 
-# TODO:
-# - add test case for new parent and children with invalid data and saving with validate = false
-
 class TestAutosaveAssociationsInGeneral < ActiveRecord::TestCase
   def test_autosave_should_be_a_valid_option_for_has_one
     assert base.valid_keys_for_has_one_association.include?(:autosave)
@@ -449,6 +446,14 @@ class TestDestroyAsPartOfAutosaveAssociation < ActiveRecord::TestCase
     assert_nil Ship.find_by_id(id)
   end
 
+  def test_should_skip_validation_on_a_child_association_if_marked_for_destruction
+    @pirate.ship.name = ''
+    assert !@pirate.valid?
+
+    @pirate.ship.mark_for_destruction
+    assert_difference('Ship.count', -1) { @pirate.save! }
+  end
+
   def test_should_rollback_destructions_if_an_exception_occurred_while_saving_a_child
     # Stub the save method of the @pirate.ship instance to destroy and then raise an exception
     class << @pirate.ship
@@ -476,6 +481,14 @@ class TestDestroyAsPartOfAutosaveAssociation < ActiveRecord::TestCase
     @ship.save
     assert_nil @ship.reload.pirate
     assert_nil Pirate.find_by_id(id)
+  end
+
+  def test_should_skip_validation_on_a_parent_association_if_marked_for_destruction
+    @ship.pirate.catchphrase = ''
+    assert !@ship.valid?
+
+    @ship.pirate.mark_for_destruction
+    assert_difference('Pirate.count', -1) { @ship.save! }
   end
 
   def test_should_rollback_destructions_if_an_exception_occurred_while_saving_a_parent
@@ -509,6 +522,17 @@ class TestDestroyAsPartOfAutosaveAssociation < ActiveRecord::TestCase
       @pirate.save
       assert @pirate.reload.send(association_name).empty?
       ids.each { |id| assert_nil klass.find_by_id(id) }
+    end
+
+    define_method("test_should_skip_validation_on_the_#{association_name}_association_if_marked_for_destruction") do
+      2.times { |i| @pirate.send(association_name).create!(:name => "#{association_name}_#{i}") }
+      children = @pirate.send(association_name)
+
+      children.each { |child| child.name = '' }
+      assert !@pirate.valid?
+
+      children.each { |child| child.mark_for_destruction }
+      assert_difference("#{association_name.classify}.count", -2) { @pirate.save! }
     end
 
     define_method("test_should_rollback_destructions_if_an_exception_occurred_while_saving_#{association_name}") do
