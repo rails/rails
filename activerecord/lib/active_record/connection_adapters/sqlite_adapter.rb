@@ -72,8 +72,27 @@ module ActiveRecord
     #
     # * <tt>:database</tt> - Path to the database file.
     class SQLiteAdapter < AbstractAdapter
+
+      class Version
+        include Comparable
+        def initialize(vs)
+          @v = vs.split('.').map(&:to_i)
+        end
+        def <=>(rhs)
+          @v <=> rhs.split('.').map(&:to_i)
+        end
+      end
+
       def adapter_name #:nodoc:
         'SQLite'
+      end
+
+      def supports_ddl_transactions?
+        sqlite_version >= '2.0.0'
+      end
+
+      def supports_savepoints?
+        sqlite_version >= '3.6.8'
       end
 
       def supports_migrations? #:nodoc:
@@ -380,7 +399,7 @@ module ActiveRecord
         end
 
         def sqlite_version
-          @sqlite_version ||= select_value('select sqlite_version(*)')
+          @sqlite_version ||= SQLiteAdapter::Version.new(select_value('select sqlite_version(*)'))
         end
 
         def default_primary_key_type
