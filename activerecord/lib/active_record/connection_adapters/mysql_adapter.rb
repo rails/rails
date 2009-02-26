@@ -208,6 +208,10 @@ module ActiveRecord
         true
       end
       
+      def supports_primary_key? #:nodoc:
+        true
+      end
+
       def supports_savepoints? #:nodoc:
         true
       end
@@ -548,6 +552,12 @@ module ActiveRecord
         end
         result.free
         keys.length == 1 ? [keys.first, nil] : nil
+      end
+
+      # Returns just a table's primary key
+      def primary_key(table)
+        pk_and_sequence = pk_and_sequence_for(table)
+        pk_and_sequence && pk_and_sequence.first
       end
 
       def case_sensitive_equality_operator

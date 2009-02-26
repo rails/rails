@@ -250,6 +250,11 @@ module ActiveRecord
         true
       end
 
+      # Does PostgreSQL support finding primary key on non-ActiveRecord tables?
+      def supports_primary_key? #:nodoc:
+        true
+      end
+
       # Does PostgreSQL support standard conforming strings?
       def supports_standard_conforming_strings?
         # Temporarily set the client message level above error to prevent unintentional
@@ -809,6 +814,12 @@ module ActiveRecord
         [result.first, result.last]
       rescue
         nil
+      end
+
+      # Returns just a table's primary key
+      def primary_key(table)
+        pk_and_sequence = pk_and_sequence_for(table)
+        pk_and_sequence && pk_and_sequence.first
       end
 
       # Renames a table.
