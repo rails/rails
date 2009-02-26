@@ -1,5 +1,7 @@
 *Edge*
 
+* Fixed that passing a custom form builder would be forwarded to nested fields_for calls #2023 [Eloy Duran/Nate Wiger]
+
 * Added partial scoping to TranslationHelper#translate, so if you call translate(".foo") from the people/index.html.erb template, you'll actually be calling I18n.translate("people.index.foo") [DHH]
 
 * Fix a syntax error in current_page?() that was prevent matches against URL's with multiple query parameters #1385, #1868 [chris finne/Andrew White]
