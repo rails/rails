@@ -22,7 +22,7 @@ module ActionController #:nodoc:
     attr_reader :allowed_methods
 
     def initialize(*allowed_methods)
-      super("Only #{allowed_methods.to_sentence} requests are allowed.")
+      super("Only #{allowed_methods.to_sentence(:locale => :en)} requests are allowed.")
       @allowed_methods = allowed_methods
     end
 
@@ -1298,7 +1298,7 @@ module ActionController #:nodoc:
           rescue ActionView::MissingTemplate => e
             # Was the implicit template missing, or was it another template?
             if e.path == default_template_name
-              raise UnknownAction, "No action responded to #{action_name}. Actions: #{action_methods.sort.to_sentence}", caller
+              raise UnknownAction, "No action responded to #{action_name}. Actions: #{action_methods.sort.to_sentence(:locale => :en)}", caller
             else
               raise e
             end
