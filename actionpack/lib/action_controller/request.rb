@@ -32,7 +32,7 @@ module ActionController
     # <tt>:get</tt>. If the request \method is not listed in the HTTP_METHODS
     # constant above, an UnknownHttpMethod exception is raised.
     def request_method
-      @request_method ||= HTTP_METHOD_LOOKUP[super] || raise(UnknownHttpMethod, "#{super}, accepted HTTP methods are #{HTTP_METHODS.to_sentence}")
+      @request_method ||= HTTP_METHOD_LOOKUP[super] || raise(UnknownHttpMethod, "#{super}, accepted HTTP methods are #{HTTP_METHODS.to_sentence(:locale => :en)}")
     end
 
     # Returns the HTTP request \method used for action processing as a

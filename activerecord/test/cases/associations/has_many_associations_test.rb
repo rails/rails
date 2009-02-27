@@ -317,81 +317,6 @@ class HasManyAssociationsTest < ActiveRecord::TestCase
     assert_equal 3, companies(:first_firm).clients_of_firm(true).size
   end
 
-  def test_adding_before_save
-    no_of_firms = Firm.count
-    no_of_clients = Client.count
-
-    new_firm = Firm.new("name" => "A New Firm, Inc")
-    c = Client.new("name" => "Apple")
-
-    new_firm.clients_of_firm.push Client.new("name" => "Natural Company")
-    assert_equal 1, new_firm.clients_of_firm.size
-    new_firm.clients_of_firm << c
-    assert_equal 2, new_firm.clients_of_firm.size
-
-    assert_equal no_of_firms, Firm.count      # Firm was not saved to database.
-    assert_equal no_of_clients, Client.count  # Clients were not saved to database.
-    assert new_firm.save
-    assert !new_firm.new_record?
-    assert !c.new_record?
-    assert_equal new_firm, c.firm
-    assert_equal no_of_firms+1, Firm.count      # Firm was saved to database.
-    assert_equal no_of_clients+2, Client.count  # Clients were saved to database.
-
-    assert_equal 2, new_firm.clients_of_firm.size
-    assert_equal 2, new_firm.clients_of_firm(true).size
-  end
-
-  def test_invalid_adding
-    firm = Firm.find(1)
-    assert !(firm.clients_of_firm << c = Client.new)
-    assert c.new_record?
-    assert !firm.valid?
-    assert !firm.save
-    assert c.new_record?
-  end
-
-  def test_invalid_adding_before_save
-    no_of_firms = Firm.count
-    no_of_clients = Client.count
-    new_firm = Firm.new("name" => "A New Firm, Inc")
-    new_firm.clients_of_firm.concat([c = Client.new, Client.new("name" => "Apple")])
-    assert c.new_record?
-    assert !c.valid?
-    assert !new_firm.valid?
-    assert !new_firm.save
-    assert c.new_record?
-    assert new_firm.new_record?
-  end
-
-  def test_invalid_adding_with_validate_false
-    firm = Firm.find(:first)
-    client = Client.new
-    firm.unvalidated_clients_of_firm << client
-
-    assert firm.valid?
-    assert !client.valid?
-    assert firm.save
-    assert client.new_record?
-  end
-
-  def test_valid_adding_with_validate_false
-    no_of_clients = Client.count
-
-    firm = Firm.find(:first)
-    client = Client.new("name" => "Apple")
-
-    assert firm.valid?
-    assert client.valid?
-    assert client.new_record?
-
-    firm.unvalidated_clients_of_firm << client
-
-    assert firm.save
-    assert !client.new_record?
-    assert_equal no_of_clients+1, Client.count
-  end
-
   def test_build
     company = companies(:first_firm)
     new_client = assert_no_queries { company.clients_of_firm.build("name" => "Another Client") }
@@ -400,10 +325,6 @@ class HasManyAssociationsTest < ActiveRecord::TestCase
     assert_equal "Another Client", new_client.name
     assert new_client.new_record?
     assert_equal new_client, company.clients_of_firm.last
-    company.name += '-changed'
-    assert_queries(2) { assert company.save }
-    assert !new_client.new_record?
-    assert_equal 2, company.clients_of_firm(true).size
   end
 
   def test_collection_size_after_building
@@ -428,11 +349,7 @@ class HasManyAssociationsTest < ActiveRecord::TestCase
   def test_build_many
     company = companies(:first_firm)
     new_clients = assert_no_queries { company.clients_of_firm.build([{"name" => "Another Client"}, {"name" => "Another Client II"}]) }
-
     assert_equal 2, new_clients.size
-    company.name += '-changed'
-    assert_queries(3) { assert company.save }
-    assert_equal 3, company.clients_of_firm(true).size
   end
 
   def test_build_followed_by_save_does_not_load_target
@@ -463,10 +380,6 @@ class HasManyAssociationsTest < ActiveRecord::TestCase
     assert_equal "Another Client", new_client.name
     assert new_client.new_record?
     assert_equal new_client, company.clients_of_firm.last
-    company.name += '-changed'
-    assert_queries(2) { assert company.save }
-    assert !new_client.new_record?
-    assert_equal 2, company.clients_of_firm(true).size
   end
 
   def test_build_many_via_block
@@ -480,10 +393,6 @@ class HasManyAssociationsTest < ActiveRecord::TestCase
     assert_equal 2, new_clients.size
     assert_equal "changed", new_clients.first.name
     assert_equal "changed", new_clients.last.name
-
-    company.name += '-changed'
-    assert_queries(3) { assert company.save }
-    assert_equal 3, company.clients_of_firm(true).size
   end
 
   def test_create_without_loading_association
@@ -499,16 +408,6 @@ class HasManyAssociationsTest < ActiveRecord::TestCase
     end
 
     assert_equal 2, first_firm.clients_of_firm.size
-  end
-
-  def test_invalid_build
-    new_client = companies(:first_firm).clients_of_firm.build
-    assert new_client.new_record?
-    assert !new_client.valid?
-    assert_equal new_client, companies(:first_firm).clients_of_firm.last
-    assert !companies(:first_firm).save
-    assert new_client.new_record?
-    assert_equal 1, companies(:first_firm).clients_of_firm(true).size
   end
 
   def test_create
@@ -843,15 +742,6 @@ class HasManyAssociationsTest < ActiveRecord::TestCase
     assert !firm.clients.include?(:first_client)
   end
 
-  def test_replace_on_new_object
-    firm = Firm.new("name" => "New Firm")
-    firm.clients = [companies(:second_client), Client.new("name" => "New Client")]
-    assert firm.save
-    firm.reload
-    assert_equal 2, firm.clients.length
-    assert firm.clients.include?(Client.find_by_name("New Client"))
-  end
-
   def test_get_ids
     assert_equal [companies(:first_client).id, companies(:second_client).id], companies(:first_firm).client_ids
   end
@@ -879,15 +769,6 @@ class HasManyAssociationsTest < ActiveRecord::TestCase
     assert company.clients_using_sql.loaded?
   end
 
-  def test_assign_ids
-    firm = Firm.new("name" => "Apple")
-    firm.client_ids = [companies(:first_client).id, companies(:second_client).id]
-    firm.save
-    firm.reload
-    assert_equal 2, firm.clients.length
-    assert firm.clients.include?(companies(:second_client))
-  end
-
   def test_assign_ids_ignoring_blanks
     firm = Firm.create!(:name => 'Apple')
     firm.client_ids = [companies(:first_client).id, nil, companies(:second_client).id, '']
@@ -908,16 +789,6 @@ class HasManyAssociationsTest < ActiveRecord::TestCase
       lambda { authors(:mary).comments << Comment.create!(:body => "Yay", :post_id => 424242) },
       lambda { authors(:mary).comments.delete(authors(:mary).comments.first) },
     ].each {|block| assert_raise(ActiveRecord::HasManyThroughCantAssociateThroughHasManyReflection, &block) }
-  end
-
-
-  def test_assign_ids_for_through_a_belongs_to
-    post = Post.new(:title => "Assigning IDs works!", :body => "You heared it here first, folks!")
-    post.person_ids = [people(:david).id, people(:michael).id]
-    post.save
-    post.reload
-    assert_equal 2, post.people.length
-    assert post.people.include?(people(:david))
   end
 
   def test_dynamic_find_should_respect_association_order_for_through

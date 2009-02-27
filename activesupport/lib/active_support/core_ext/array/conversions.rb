@@ -7,10 +7,9 @@ module ActiveSupport #:nodoc:
         # * <tt>:two_words_connector</tt> - The sign or word used to join the elements in arrays with two elements (default: " and ")
         # * <tt>:last_word_connector</tt> - The sign or word used to join the last element in arrays with three or more elements (default: ", and ")
         def to_sentence(options = {})
-   
-          default_words_connector = I18n.translate(:'support.array.words_connector', :locale => options[:locale])
+          default_words_connector     = I18n.translate(:'support.array.words_connector',     :locale => options[:locale])
           default_two_words_connector = I18n.translate(:'support.array.two_words_connector', :locale => options[:locale])
-          default_last_word_connector = I18n.translate(:'support.array.last_word_connector', :locale => options[:locale])          
+          default_last_word_connector = I18n.translate(:'support.array.last_word_connector', :locale => options[:locale])
 
           # Try to emulate to_senteces previous to 2.3
           if options.has_key?(:connector) || options.has_key?(:skip_last_comma)

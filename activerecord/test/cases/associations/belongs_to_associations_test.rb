@@ -190,19 +190,6 @@ class BelongsToAssociationsTest < ActiveRecord::TestCase
     assert_equal 1, Topic.find(topic.id).send(:read_attribute, "replies_count")
   end
 
-  def test_assignment_before_parent_saved
-    client = Client.find(:first)
-    apple = Firm.new("name" => "Apple")
-    client.firm = apple
-    assert_equal apple, client.firm
-    assert apple.new_record?
-    assert client.save
-    assert apple.save
-    assert !apple.new_record?
-    assert_equal apple, client.firm
-    assert_equal apple, client.firm(true)
-  end
-
   def test_assignment_before_child_saved
     final_cut = Client.new("name" => "Final Cut")
     firm = Firm.find(1)
@@ -213,19 +200,6 @@ class BelongsToAssociationsTest < ActiveRecord::TestCase
     assert !firm.new_record?
     assert_equal firm, final_cut.firm
     assert_equal firm, final_cut.firm(true)
-  end
-
-  def test_assignment_before_either_saved
-    final_cut = Client.new("name" => "Final Cut")
-    apple = Firm.new("name" => "Apple")
-    final_cut.firm = apple
-    assert final_cut.new_record?
-    assert apple.new_record?
-    assert final_cut.save
-    assert !final_cut.new_record?
-    assert !apple.new_record?
-    assert_equal apple, final_cut.firm
-    assert_equal apple, final_cut.firm(true)
   end
 
   def test_new_record_with_foreign_key_but_no_object
@@ -273,90 +247,6 @@ class BelongsToAssociationsTest < ActiveRecord::TestCase
     reply[:replies_count] = 17
     assert_equal 17, reply.replies.size
   end
-
-  def test_store_two_association_with_one_save
-    num_orders = Order.count
-    num_customers = Customer.count
-    order = Order.new
-
-    customer1 = order.billing = Customer.new
-    customer2 = order.shipping = Customer.new
-    assert order.save
-    assert_equal customer1, order.billing
-    assert_equal customer2, order.shipping
-
-    order.reload
-
-    assert_equal customer1, order.billing
-    assert_equal customer2, order.shipping
-
-    assert_equal num_orders +1, Order.count
-    assert_equal num_customers +2, Customer.count
-  end
-
-
-  def test_store_association_in_two_relations_with_one_save
-    num_orders = Order.count
-    num_customers = Customer.count
-    order = Order.new
-
-    customer = order.billing = order.shipping = Customer.new
-    assert order.save
-    assert_equal customer, order.billing
-    assert_equal customer, order.shipping
-
-    order.reload
-
-    assert_equal customer, order.billing
-    assert_equal customer, order.shipping
-
-    assert_equal num_orders +1, Order.count
-    assert_equal num_customers +1, Customer.count
-  end
-
-  def test_store_association_in_two_relations_with_one_save_in_existing_object
-    num_orders = Order.count
-    num_customers = Customer.count
-    order = Order.create
-
-    customer = order.billing = order.shipping = Customer.new
-    assert order.save
-    assert_equal customer, order.billing
-    assert_equal customer, order.shipping
-
-    order.reload
-
-    assert_equal customer, order.billing
-    assert_equal customer, order.shipping
-
-    assert_equal num_orders +1, Order.count
-    assert_equal num_customers +1, Customer.count
-  end
-
-  def test_store_association_in_two_relations_with_one_save_in_existing_object_with_values
-    num_orders = Order.count
-    num_customers = Customer.count
-    order = Order.create
-
-    customer = order.billing = order.shipping = Customer.new
-    assert order.save
-    assert_equal customer, order.billing
-    assert_equal customer, order.shipping
-
-    order.reload
-
-    customer = order.billing = order.shipping = Customer.new
-
-    assert order.save
-    order.reload
-
-    assert_equal customer, order.billing
-    assert_equal customer, order.shipping
-
-    assert_equal num_orders +1, Order.count
-    assert_equal num_customers +2, Customer.count
-  end
-
 
   def test_association_assignment_sticks
     post = Post.find(:first)
@@ -408,25 +298,6 @@ class BelongsToAssociationsTest < ActiveRecord::TestCase
     
     sponsor.sponsorable = new_member
     assert_equal nil, sponsor.sponsorable_id
-  end
-
-  def test_save_fails_for_invalid_belongs_to
-    assert log = AuditLog.create(:developer_id=>0,:message=>"")
-
-    log.developer = Developer.new
-    assert !log.developer.valid?
-    assert !log.valid?
-    assert !log.save
-    assert_equal "is invalid", log.errors.on("developer")
-  end
-
-  def test_save_succeeds_for_invalid_belongs_to_with_validate_false
-    assert log = AuditLog.create(:developer_id=>0,:message=>"")
-
-    log.unvalidated_developer = Developer.new
-    assert !log.unvalidated_developer.valid?
-    assert log.valid?
-    assert log.save
   end
 
   def test_belongs_to_proxy_should_not_respond_to_private_methods

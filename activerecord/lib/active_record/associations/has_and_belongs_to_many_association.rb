@@ -28,12 +28,12 @@ module ActiveRecord
           load_target.size
         end
 
-        def insert_record(record, force=true)
+        def insert_record(record, force = true, validate = true)
           if record.new_record?
             if force
               record.save!
             else
-              return false unless record.save
+              return false unless record.save(validate)
             end
           end
 
