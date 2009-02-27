@@ -1133,6 +1133,11 @@ module ActionController #:nodoc:
       # request is considered stale and should be generated from scratch. Otherwise,
       # it's fresh and we don't need to generate anything and a reply of "304 Not Modified" is sent.
       #
+      # Parameters:
+      # * <tt>:etag</tt>
+      # * <tt>:last_modified</tt> 
+      # * <tt>:public</tt> By default the Cache-Control header is private, set this to true if you want your application to be cachable by other devices (proxy caches).
+      #
       # Example:
       #
       #   def show
@@ -1153,20 +1158,34 @@ module ActionController #:nodoc:
       # Sets the etag, last_modified, or both on the response and renders a
       # "304 Not Modified" response if the request is already fresh.
       #
+      # Parameters:
+      # * <tt>:etag</tt>
+      # * <tt>:last_modified</tt> 
+      # * <tt>:public</tt> By default the Cache-Control header is private, set this to true if you want your application to be cachable by other devices (proxy caches).
+      #
       # Example:
       #
       #   def show
       #     @article = Article.find(params[:id])
-      #     fresh_when(:etag => @article, :last_modified => @article.created_at.utc)
+      #     fresh_when(:etag => @article, :last_modified => @article.created_at.utc, :public => true)
       #   end
       #
       # This will render the show template if the request isn't sending a matching etag or
       # If-Modified-Since header and just a "304 Not Modified" response if there's a match.
+      #
       def fresh_when(options)
-        options.assert_valid_keys(:etag, :last_modified)
+        options.assert_valid_keys(:etag, :last_modified, :public)
 
         response.etag          = options[:etag]          if options[:etag]
         response.last_modified = options[:last_modified] if options[:last_modified]
+        
+        if options[:public] 
+          cache_control = response.headers["Cache-Control"].split(",").map {|k| k.strip }
+          cache_control.delete("private")
+          cache_control.delete("no-cache")
+          cache_control << "public"
+          response.headers["Cache-Control"] = cache_control.join(', ')
+        end
 
         if request.fresh?(response)
           head :not_modified
@@ -1178,15 +1197,24 @@ module ActionController #:nodoc:
       #
       # Examples:
       #   expires_in 20.minutes
-      #   expires_in 3.hours, :private => false
-      #   expires in 3.hours, 'max-stale' => 5.hours, :private => nil, :public => true
+      #   expires_in 3.hours, :public => true
+      #   expires in 3.hours, 'max-stale' => 5.hours, :public => true
       #
       # This method will overwrite an existing Cache-Control header.
       # See http://www.w3.org/Protocols/rfc2616/rfc2616-sec14.html for more possibilities.
       def expires_in(seconds, options = {}) #:doc:
-        cache_options = { 'max-age' => seconds, 'private' => true }.symbolize_keys.merge!(options.symbolize_keys)
-        cache_options.delete_if { |k,v| v.nil? or v == false }
-        cache_control = cache_options.map{ |k,v| v == true ? k.to_s : "#{k.to_s}=#{v.to_s}"}
+        cache_control = response.headers["Cache-Control"].split(",").map {|k| k.strip }
+
+        cache_control << "max-age=#{seconds}"
+        if options[:public]
+          cache_control.delete("private")
+          cache_control.delete("no-cache")
+          cache_control << "public"
+        end
+        
+        # This allows for additional headers to be passed through like 'max-stale' => 5.hours
+        cache_control += options.symbolize_keys.reject{|k,v| k == :public || k == :private }.map{ |k,v| v == true ? k.to_s : "#{k.to_s}=#{v.to_s}"}
+        
         response.headers["Cache-Control"] = cache_control.join(', ')
       end
 
