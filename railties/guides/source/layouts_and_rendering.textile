@@ -822,7 +822,7 @@ Every partial also has a local variable with the same name as the partial (minus
 <%= render :partial => "customer", :object => @new_customer %>
 </erb>
 
-Within the +customer+ partial, the +@customer+ variable will refer to +@new_customer+ from the parent view.
+Within the +customer+ partial, the +customer+ variable will refer to +@new_customer+ from the parent view.
 
 WARNING: In previous versions of Rails, the default local variable would look for an instance variable with the same name as the partial in the parent. This behavior is deprecated in Rails 2.2 and will be removed in a future version.
 
