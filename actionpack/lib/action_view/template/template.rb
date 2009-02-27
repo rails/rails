@@ -62,7 +62,7 @@ module ActionView #:nodoc:
           template = find_template(extensioned_path) || find_template(path)
           break if template
         end
-        template
+        template || find_template(path)
       end
       
       private

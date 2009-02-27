@@ -3,8 +3,8 @@ module AbstractController
     
     attr_internal :response_body
     attr_internal :response_obj
-    cattr_accessor :logger
-        
+    attr_internal :action_name
+    
     def self.process(action)
       new.process(action)
     end
@@ -13,8 +13,9 @@ module AbstractController
       self.response_obj = {}
     end
     
-    def process(action)
-      send(action)
+    def process(action_name)
+      @_action_name = action_name
+      send(action_name)
       self.response_obj[:body] = self.response_body
       self
     end
