@@ -193,28 +193,6 @@ class HasOneAssociationsTest < ActiveRecord::TestCase
     assert_equal account, firm.account
   end
 
-  def test_build_before_child_saved
-    firm = Firm.find(1)
-
-    account = firm.account.build("credit_limit" => 1000)
-    assert_equal account, firm.account
-    assert account.new_record?
-    assert firm.save
-    assert_equal account, firm.account
-    assert !account.new_record?
-  end
-
-  def test_build_before_either_saved
-    firm = Firm.new("name" => "GlobalMegaCorp")
-
-    firm.account = account = Account.new("credit_limit" => 1000)
-    assert_equal account, firm.account
-    assert account.new_record?
-    assert firm.save
-    assert_equal account, firm.account
-    assert !account.new_record?
-  end
-
   def test_failing_build_association
     firm = Firm.new("name" => "GlobalMegaCorp")
     firm.save
@@ -253,16 +231,6 @@ class HasOneAssociationsTest < ActiveRecord::TestCase
     firm.destroy
   end
 
-  def test_assignment_before_parent_saved
-    firm = Firm.new("name" => "GlobalMegaCorp")
-    firm.account = a = Account.find(1)
-    assert firm.new_record?
-    assert_equal a, firm.account
-    assert firm.save
-    assert_equal a, firm.account
-    assert_equal a, firm.account(true)
-  end
-
   def test_finding_with_interpolated_condition
     firm = Firm.find(:first)
     superior = firm.clients.create(:name => 'SuperiorCo')
@@ -278,61 +246,6 @@ class HasOneAssociationsTest < ActiveRecord::TestCase
     assert_equal a, firm.account
     assert_equal a, firm.account
     assert_equal a, firm.account(true)
-  end
-  
-  def test_save_fails_for_invalid_has_one
-    firm = Firm.find(:first)
-    assert firm.valid?
-    
-    firm.account = Account.new
-    
-    assert !firm.account.valid?
-    assert !firm.valid?
-    assert !firm.save
-    assert_equal "is invalid", firm.errors.on("account")
-  end
-
-
-  def test_save_succeeds_for_invalid_has_one_with_validate_false
-    firm = Firm.find(:first)
-    assert firm.valid?
-
-    firm.unvalidated_account = Account.new
-
-    assert !firm.unvalidated_account.valid?
-    assert firm.valid?
-    assert firm.save
-  end
-
-  def test_assignment_before_either_saved
-    firm = Firm.new("name" => "GlobalMegaCorp")
-    firm.account = a = Account.new("credit_limit" => 1000)
-    assert firm.new_record?
-    assert a.new_record?
-    assert_equal a, firm.account
-    assert firm.save
-    assert !firm.new_record?
-    assert !a.new_record?
-    assert_equal a, firm.account
-    assert_equal a, firm.account(true)
-  end
-
-  def test_not_resaved_when_unchanged
-    firm = Firm.find(:first, :include => :account)
-    firm.name += '-changed'
-    assert_queries(1) { firm.save! }
-
-    firm = Firm.find(:first)
-    firm.account = Account.find(:first)
-    assert_queries(Firm.partial_updates? ? 0 : 1) { firm.save! }
-
-    firm = Firm.find(:first).clone
-    firm.account = Account.find(:first)
-    assert_queries(2) { firm.save! }
-
-    firm = Firm.find(:first).clone
-    firm.account = Account.find(:first).clone
-    assert_queries(2) { firm.save! }
   end
 
   def test_save_still_works_after_accessing_nil_has_one
