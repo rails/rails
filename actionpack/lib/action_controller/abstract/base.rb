@@ -15,9 +15,13 @@ module AbstractController
     
     def process(action_name)
       @_action_name = action_name
-      send(action_name)
+      process_action
       self.response_obj[:body] = self.response_body
       self
+    end
+    
+    def process_action
+      send(action_name)
     end
     
   end
