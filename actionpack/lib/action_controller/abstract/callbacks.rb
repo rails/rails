@@ -17,11 +17,11 @@ module AbstractController
     module ClassMethods
       def _normalize_callback_options(options)
         if only = options[:only]
-          only = Array(only).map {|o| "action_name == :#{o}"}.join(" && ")
+          only = Array(only).map {|o| "action_name == :#{o}"}.join(" || ")
           options[:per_key] = {:if => only}
         end
         if except = options[:except]
-          except = Array(except).map {|e| "action_name == :#{e}"}.join(" && ")          
+          except = Array(except).map {|e| "action_name == :#{e}"}.join(" || ")          
           options[:per_key] = {:unless => except}
         end
       end

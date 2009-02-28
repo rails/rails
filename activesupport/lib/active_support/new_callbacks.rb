@@ -349,7 +349,7 @@ module ActiveSupport
       # The _run_save_callbacks method can optionally take a key, which
       # will be used to compile an optimized callback method for each
       # key. See #define_callbacks for more information.
-      def _define_runner(symbol, str, options)
+      def _define_runner(symbol, str, options)        
         str = <<-RUBY_EVAL
           def _run_#{symbol}_callbacks(key = nil)
             if key
@@ -373,7 +373,7 @@ module ActiveSupport
         @_keyed_callbacks ||= {}
         @_keyed_callbacks[[kind, key]] ||= begin
           str = self.send("_#{kind}_callbacks").compile(key, :object => obj, :terminator => self.send("_#{kind}_terminator"))
-                              
+
           self.class_eval <<-RUBY_EVAL, __FILE__, __LINE__ + 1
             def _run__#{klass.split("::").last}__#{kind}__#{key}__callbacks
               #{str}
