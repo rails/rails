@@ -1,3 +1,5 @@
+require 'set'
+
 module RailsGuides
   class Generator
     attr_reader :output, :view_path, :view, :guides_dir
@@ -55,6 +57,7 @@ module RailsGuides
 
           result = view.render(:layout => 'layout', :text => textile(body))
           f.write result
+          warn_about_broken_links(result)
         end
       end
     end
@@ -109,6 +112,21 @@ module RailsGuides
       t = RedCloth.new(body)
       t.hard_breaks = false
       t.to_html(:notestuff, :plusplus, :code, :tip)
+    end
+    
+    def warn_about_broken_links(html)
+      # Textile generates headers with IDs computed from titles.
+      anchors  = Set.new(html.scan(/<h\d\s+id="([^"]+)/).flatten)
+      # Also, footnotes are rendered as paragraphs this way.
+      anchors += Set.new(html.scan(/<p\s+class="footnote"\s+id="([^"]+)/).flatten)
+      
+      # Check fragment identifiers.
+      html.scan(/<a\s+href="#([^"]+)/).flatten.each do |fragment_identifier|
+        next if fragment_identifier == 'mainCol' # in layout, jumps to some DIV
+        unless anchors.member?(fragment_identifier)
+          puts "BROKEN LINK: ##{fragment_identifier}"
+        end
+      end
     end
   end
 end
