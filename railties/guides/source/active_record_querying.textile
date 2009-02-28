@@ -314,7 +314,7 @@ This will find all clients created yesterday by using a +BETWEEN+ SQL statement:
 SELECT * FROM clients WHERE (clients.created_at BETWEEN '2008-12-21 00:00:00' AND '2008-12-22 00:00:00')
 </sql>
 
-This demonstrates a shorter syntax for the examples in "Array Conditions":#array-conditions
+This demonstrates a shorter syntax for the examples in "Array Conditions":#arrayconditions
 
 h5. Subset conditions
 
@@ -376,7 +376,7 @@ By default, <tt>Model.find</tt> selects all the fields from the result set using
 
 To select only a subset of fields from the result set, you can specify the subset via +:select+ option on the +find+.
 
-NOTE: If the +:select+ option is used, all the returning objects will be "read only":#read-only objects.
+NOTE: If the +:select+ option is used, all the returning objects will be "read only":#readonlyobjects.
 
 <br />
 

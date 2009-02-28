@@ -683,7 +683,7 @@ Within the context of a layout, +yield+ identifies a section where content from 
   </head>
   <body>
   <%= yield %>
-  <hbody>
+  </body>
 </html>
 </erb>
 
@@ -696,7 +696,7 @@ You can also create a layout with multiple yielding regions:
   </head>
   <body>
   <%= yield %>
-  <hbody>
+  </body>
 </html>
 </erb>
 
@@ -723,7 +723,7 @@ The result of rendering this page into the supplied layout would be this HTML:
   </head>
   <body>
   <p>Hello, Rails!</p>
-  <hbody>
+  </body>
 </html>
 </erb>
 
@@ -822,7 +822,7 @@ Every partial also has a local variable with the same name as the partial (minus
 <%= render :partial => "customer", :object => @new_customer %>
 </erb>
 
-Within the +customer+ partial, the +@customer+ variable will refer to +@new_customer+ from the parent view.
+Within the +customer+ partial, the +customer+ variable will refer to +@new_customer+ from the parent view.
 
 WARNING: In previous versions of Rails, the default local variable would look for an instance variable with the same name as the partial in the parent. This behavior is deprecated in Rails 2.2 and will be removed in a future version.
 

