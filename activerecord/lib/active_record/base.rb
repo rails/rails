@@ -1759,7 +1759,7 @@ module ActiveRecord #:nodoc:
             scope = scope(:find) if :auto == scope
             if scope && (scoped_group = scope[:group])
               sql << " GROUP BY #{scoped_group}"
-              sql << " HAVING #{scoped_having}" if (scoped_having = scope[:having])
+              sql << " HAVING #{scope[:having]}" if scope[:having]
             end
           end
         end

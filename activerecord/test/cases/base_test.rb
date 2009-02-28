@@ -1755,6 +1755,13 @@ class BasicsTest < ActiveRecord::TestCase
     end
   end
 
+  def test_scoped_find_with_group_and_having
+    developers = Developer.with_scope(:find => { :group => 'salary', :having => "SUM(salary) > 10000", :select => "SUM(salary) as salary" }) do
+      Developer.find(:all)
+    end
+    assert_equal 3, developers.size
+  end
+
   def test_find_last
     last  = Developer.find :last
     assert_equal last, Developer.find(:first, :order => 'id desc')
