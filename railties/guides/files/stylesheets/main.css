@@ -362,11 +362,7 @@ h6 {
 }
 
 tt {
-	background: #EEE;
-	border: 1px solid #CCC;
-	padding: 0 0.25em;
 	font-family: monaco, "Bitstream Vera Sans Mono", "Courier New", courier, monospace;
-	font-size: 0.9em;
 }
 
 div.code_container {
