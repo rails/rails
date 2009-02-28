@@ -188,7 +188,7 @@ module ActionView #:nodoc:
     cattr_accessor :cache_template_loading
 
     def self.cache_template_loading?
-      ActionController::Base.allow_concurrency || cache_template_loading || !ActiveSupport::Dependencies.load?
+      ActionController::Base.allow_concurrency || (cache_template_loading.nil? ? !ActiveSupport::Dependencies.load? : cache_template_loading)
     end
 
     attr_internal :request

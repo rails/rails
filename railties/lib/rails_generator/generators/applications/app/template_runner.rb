@@ -111,7 +111,7 @@ module Rails
             "#{match}\n  " << data
           end
         else
-          Array(options[:env]).each do|env|
+          Array.wrap(options[:env]).each do|env|
             append_file "config/environments/#{env}.rb", "\n#{data}"
           end
         end
