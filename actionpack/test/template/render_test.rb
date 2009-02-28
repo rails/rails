@@ -230,7 +230,7 @@ module RenderTestCases
     end
   end
 
-  def test_template_with_malformed_template_handler_is_reachable_trough_its_exact_filename
+  def test_template_with_malformed_template_handler_is_reachable_through_its_exact_filename
     assert_equal "Don't render me!", @view.render(:file => 'test/malformed/malformed.html.erb~')
   end
 
