@@ -320,6 +320,7 @@ h4. Other Action Controller Changes
 * You can now use symbols for the +:type+ option of +send_file+ and +send_data+, like this: +send_file("fabulous.png", :type => :png)+.
 * The +:only+ and +:except+ options for +map.resources+ are no longer inherited by nested resources.
 * The bundled memcached client has been updated to version 1.6.4.99.
+* The +expires_in+, +stale?+, and +fresh_when+ methods now accept a +:public+ option to make them work well with proxy caching.
 
 h3. Action View
 
@@ -448,7 +449,7 @@ In most cases, you'll want template caching to be turned on in production, which
 config.action_view.cache_template_loading = true
 </ruby>
 
-This line will be generated for you by default in a new Rails 2.3 application. But please note: if you've upgraded from an older version of Rails, you won't have this setting in your +production.rb+ and template caching will be off by default. Unless you really need the ability to update templates in production without restarting the server, you should be sure to add this setting when you upgrade.
+This line will be generated for you by default in a new Rails 2.3 application. If you've upgraded from an older version of Rails, Rails will default to caching templates in production and test but not in development.
 
 h4. Other Action View Changes
 

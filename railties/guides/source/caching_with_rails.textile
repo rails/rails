@@ -500,16 +500,17 @@ seriously considering optimizing their caching needs.
 Also the new "Cache money":http://github.com/nkallen/cache-money/tree/master plugin is supposed to be mad cool. 
 
 h3. References
- * "RailsEnvy, Rails Caching Tutorial, Part 1":http://www.railsenvy.com/2007/2/28/rails-caching-tutorial
- * "RailsEnvy, Rails Caching Tutorial, Part 1":http://www.railsenvy.com/2007/3/20/ruby-on-rails-caching-tutorial-part-2
- * "ActiveSupport::Cache documentation":http://api.rubyonrails.org/classes/ActiveSupport/Cache.html
- * "Rails 2.1 integrated caching tutorial":http://thewebfellas.com/blog/2008/6/9/rails-2-1-now-with-better-integrated-caching
 
+* "RailsEnvy, Rails Caching Tutorial, Part 1":http://www.railsenvy.com/2007/2/28/rails-caching-tutorial
+* "RailsEnvy, Rails Caching Tutorial, Part 1":http://www.railsenvy.com/2007/3/20/ruby-on-rails-caching-tutorial-part-2
+* "ActiveSupport::Cache documentation":http://api.rubyonrails.org/classes/ActiveSupport/Cache.html
+* "Rails 2.1 integrated caching tutorial":http://thewebfellas.com/blog/2008/6/9/rails-2-1-now-with-better-integrated-caching
 
 h3. Changelog
+
 "Lighthouse ticket":http://rails.lighthouseapp.com/projects/16213-rails-guides/tickets/10-guide-to-caching
 
-February  22, 2009: Beefed up the section on cache_stores
-December  27, 2008: Typo fixes
-November  23, 2008: Incremental updates with various suggested changes and formatting cleanup
-September 15, 2008: Initial version by Aditya Chadha
+* February  22, 2009: Beefed up the section on cache_stores
+* December  27, 2008: Typo fixes
+* November  23, 2008: Incremental updates with various suggested changes and formatting cleanup
+* September 15, 2008: Initial version by Aditya Chadha

@@ -91,7 +91,7 @@ This means, that in the +:en+ locale, the key _hello_ will map to _Hello world_ 
 
 The I18n library will use *English* as a *default locale*, ie. if you don't set a different locale, +:en+ will be used for looking up translations.
 
-NOTE: The i18n library takes *pragmatic approach* to locale keys (after "some discussion":http://groups.google.com/group/rails-i18n/browse_thread/thread/14dede2c7dbe9470/80eec34395f64f3c?hl=en), including only the _locale_ ("language") part, like +:en+, +:pl+, not the _region_ part, like +:en-US+ or +:en-UK+, which are traditionally used for separating "languages" and "regional setting" or "dialects". (For instance, in the +:en-US+ locale you would have $ as a currency symbol, while in +:en-UK+, you would have £. Also, insults would be different in American and British English :) Reason for this pragmatic approach is that most of the time, you usually care about making your application available in different "languages", and working with locales is much simpler this way. However, nothing stops you from separating regional and other settings in the traditional way. In this case, you could eg. inherit from the default +en+ locale and then provide UK specific settings in a +:en-UK+ dictionary.
+NOTE: The i18n library takes *pragmatic approach* to locale keys (after "some discussion":http://groups.google.com/group/rails-i18n/browse_thread/thread/14dede2c7dbe9470/80eec34395f64f3c?hl=en), including only the _locale_ ("language") part, like +:en+, +:pl+, not the _region_ part, like +:en-US+ or +:en-UK+, which are traditionally used for separating "languages" and "regional setting" or "dialects". Many international applications use only the "language" element of a locale such as +:cz+, +:th+ or +:es+ (for Czech, Thai and Spanish).  However, there are also regional differences within different language groups that may be important. For instance, in the +:en-US+ locale you would have $ as a currency symbol, while in +:en-UK+, you would have £. Nothing stops you from separating regional and other settings in this way: you just have to provide full "English - United Kingdom" locale in a +:en-UK+ dictionary. Various "Rails I18n plugins":http://rails-i18n.org/wiki such as "Globalize2":http://github.com/joshmh/globalize2 may help you implement it.
 
 The *translations load path* (+I18n.load_path+) is just a Ruby Array of paths to your translation files that will be loaded automatically and available in your application. You can pick whatever directory and translation file naming scheme makes sense for you.
 
@@ -414,9 +414,15 @@ So that would give you:
 
 TIP: Right now you might need to add some more date/time formats in order to make the I18n backend work as expected. Of course, there's a great chance that somebody already did all the work by *translating Rails's defaults for your locale*. See the "rails-i18n repository at Github":http://github.com/svenfuchs/rails-i18n/tree/master/rails/locale for an archive of various locale files. When you put such file(s) in +config/locale/+ directory, they will automatically ready for use.
 
+h4. Localized views
+
+Rails 2.3 brings one convenient feature: localized views (templates). Let's say you have a _BooksController_ in your application. Your _index_ action renders content in +app/views/books/index.html.erb+ template. When you put a _localized variant_ of this template: *+index.es.html.erb+* in the same directory, Rails will render content in this template, when the locale is set to +:es+. When the locale is set to the default locale, generic +index.html.erb+ view will be used. (Future Rails versions may well bring this _automagic_ localization to assets in +public+, etc.)
+
+You can make use this feature eg. when working with great amount of static content, which would be clumsy to put inside YAML or Ruby dictionaries. Bear in mind, though, that any change you would like to do later to the template must be propagated to all of them.
+
 h4. Organization of locale files
 
-When you are using the default SimpleStore, shipped with the i18n library, you store dictionaries in plain-text files on the disc. Putting translations for all parts of your application in one file per locale could be hard to manage. You can store these files in a hierarchy which makes sense to you.
+When you are using the default SimpleStore, shipped with the i18n library, dictionaries are stored in plain-text files on the disc. Putting translations for all parts of your application in one file per locale could be hard to manage. You can store these files in a hierarchy which makes sense to you.
 
 For example, your +config/locale+ directory could look like this:
 
@@ -443,9 +449,14 @@ For example, your +config/locale+ directory could look like this:
 |-----en.rb
 </pre>
 
-This way, you can separate model and model attribute names from text inside views, and all of this from the "defaults" (eg. date and time formats).
+This way, you can separate model and model attribute names from text inside views, and all of this from the "defaults" (eg. date and time formats). Other stores for the i18n library could provide different means of such separation.
 
-Other stores for the i18n library could provide different means of such separation.
+NOTE: The default locale loading mechanism in Rails does not load locale files in nested dictionaries, like we have here. So, for this to work, we must explicitely tell Rails to look further:
+
+<ruby>
+  # config/environment.rb
+  config.i18n.load_path += Dir[File.join(RAILS_ROOT, 'config', 'locales', '**', '*.{rb,yml}')]
+</ruby>
 
 Do check the "Rails i18n Wiki":http://rails-i18n.org/wiki for list of tools available for managing translations.
 
@@ -526,6 +537,23 @@ Also, a key can translate to a (potentially nested) hash as grouped translations
 <ruby>
 I18n.t 'active_record.error_messages'
 # => { :inclusion => "is not included in the list", :exclusion => ... }
+</ruby>
+
+h5. "Lazy" lookup
+
+Rails 2.3 implements convenient way to lookup locale inside _views_. When you have following dictionary:
+
+<yaml>
+es:
+  books:
+    index:
+      title: "Título"
+</yaml>
+
+you can lookup the +books.index.title+ value *inside* +app/views/books/index.html.erb+ template like this (note the dot): 
+
+<ruby>
+<%= t '.title' %>
 </ruby>
 
 h4. Interpolation
@@ -677,20 +705,20 @@ end
 The key for the error message in this case is +:blank+. Active Record will lookup this key in the namespaces:
 
 <ruby>
-activerecord.errors.messages.models.[model_name].attributes.[attribute_name]
-activerecord.errors.messages.models.[model_name]
+activerecord.errors.models.[model_name].attributes.[attribute_name]
+activerecord.errors.models.[model_name]
 activerecord.errors.messages
 </ruby>
 
 Thus, in our example it will try the following keys in this order and return the first result:
 
 <ruby>
-activerecord.errors.messages.models.user.attributes.name.blank
-activerecord.errors.messages.models.user.blank
+activerecord.errors.models.user.attributes.name.blank
+activerecord.errors.models.user.blank
 activerecord.errors.messages.blank
 </ruby>
 
-When your models are additionally using inheritance then the messages are looked up for the inherited model class names are looked up.
+When your models are additionally using inheritance then the messages are looked up in the inheritance chain.
 
 For example, you might have an Admin model inheriting from User:
 

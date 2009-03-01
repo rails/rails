@@ -73,6 +73,10 @@ h3. Digging Deeper
 
 <dl>
 
+<% guide("Rails on Rack", 'rails_on_rack.html') do %>
+  This guide covers Rails integration with Rack and interfacing with other Rack components.
+<% end %>
+
 <% guide("Rails Internationalization API", 'i18n.html', :ticket => 23) do %>
   This guide covers how to add internationalization to your applications. Your application will be able to translate content to different languages, change pluralization rules, use correct date formats for each country and so on.
 <% end %>
@@ -109,8 +113,8 @@ h3. Digging Deeper
   This guide covers the command line tools and rake tasks provided by Rails.
 <% end %>
 
-<% guide("Rails on Rack", 'rails_on_rack.html', :ticket => 58) do %>
-  This guide covers Rails integration with Rack and interfacing with other Rack components.
+<% guide("Caching with Rails", 'caching_with_rails.html', :ticket => 10) do %>
+  Various caching techniques provided by Rails.
 <% end %>
 
 </dl>
