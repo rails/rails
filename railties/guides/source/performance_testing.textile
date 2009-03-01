@@ -121,7 +121,7 @@ class PostPerformanceTest < ActionController::PerformanceTest
 end
 </ruby>
 
-You can find more details about the +get+ and +post+ methods in the link:../testing_rails_applications.html#mgunderloy[Testing Rails Applications] guide.
+You can find more details about the +get+ and +post+ methods in the "Testing Rails Applications":testing.html guide.
 
 h5. Model example
 
@@ -283,7 +283,7 @@ Graph output shows how long each method takes to run, which methods call it and 
 
 h6. Tree
 
-Tree output is profiling information in calltree format for use by http://kcachegrind.sourceforge.net/html/Home.html[kcachegrind] and similar tools.
+Tree output is profiling information in calltree format for use by "kcachegrind":http://kcachegrind.sourceforge.net/html/Home.html and similar tools.
 
 h4. Tuning test runs
 
