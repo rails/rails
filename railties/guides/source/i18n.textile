@@ -539,6 +539,23 @@ I18n.t 'active_record.error_messages'
 # => { :inclusion => "is not included in the list", :exclusion => ... }
 </ruby>
 
+h5. "Lazy" lookup
+
+Rails 2.3 implements convenient way to lookup locale inside _views_. When you have following dictionary:
+
+<yaml>
+es:
+  books:
+    index:
+      title: "Título"
+</yaml>
+
+you can lookup the +books.index.title+ value *inside* +app/views/books/index.html.erb+ template like this (note the dot): 
+
+<ruby>
+<%= t '.title' %>
+</ruby>
+
 h4. Interpolation
 
 In many cases you want to abstract your translations so that *variables can be interpolated into the translation*. For this reason the I18n API provides an interpolation feature.
