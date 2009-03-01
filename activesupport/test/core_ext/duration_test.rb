@@ -60,26 +60,6 @@ class DurationTest < ActiveSupport::TestCase
     assert_equal((7 * 24 * 1.7).hours.ago, 1.7.weeks.ago)
   end
 
-  def test_deprecated_fractional_years
-    years_re = /Fractional years are not respected\. Convert value to integer before calling #years\./
-    assert_deprecated(years_re){1.0.years}
-    assert_deprecated(years_re){1.5.years}
-    assert_not_deprecated{1.years}
-    assert_deprecated(years_re){1.0.year}
-    assert_deprecated(years_re){1.5.year}
-    assert_not_deprecated{1.year}
-  end
-
-  def test_deprecated_fractional_months
-    months_re = /Fractional months are not respected\. Convert value to integer before calling #months\./
-    assert_deprecated(months_re){1.5.months}
-    assert_deprecated(months_re){1.0.months}
-    assert_not_deprecated{1.months}
-    assert_deprecated(months_re){1.5.month}
-    assert_deprecated(months_re){1.0.month}
-    assert_not_deprecated{1.month}
-  end
-
   def test_since_and_ago_anchored_to_time_now_when_time_zone_default_not_set
     Time.zone_default = nil
     with_env_tz 'US/Eastern' do

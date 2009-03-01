@@ -1,9 +1,5 @@
 module ActiveSupport
-  if RUBY_VERSION >= '1.9'
-    FrozenObjectError = RuntimeError
-  else
-    FrozenObjectError = TypeError
-  end
+  FrozenObjectError = RUBY_VERSION < '1.9' ? TypeError : RuntimeError
 end
 
 # TODO: Turn all this into using the BacktraceCleaner.

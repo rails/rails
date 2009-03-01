@@ -29,14 +29,5 @@ class Time
   end
 end
 
-require 'active_support/core_ext/time/behavior'
-require 'active_support/core_ext/time/calculations'
-require 'active_support/core_ext/time/conversions'
-require 'active_support/core_ext/time/zones'
-
-class Time#:nodoc:
-  include ActiveSupport::CoreExtensions::Time::Behavior
-  include ActiveSupport::CoreExtensions::Time::Calculations
-  include ActiveSupport::CoreExtensions::Time::Conversions
-  include ActiveSupport::CoreExtensions::Time::Zones
-end
+require 'active_support/core_ext/util'
+ActiveSupport.core_ext Time, %w(behavior calculations conversions zones)
