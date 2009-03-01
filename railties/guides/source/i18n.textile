@@ -416,7 +416,7 @@ TIP: Right now you might need to add some more date/time formats in order to mak
 
 h4. Organization of locale files
 
-When you are using the default SimpleStore, shipped with the i18n library, you store dictionaries in plain-text files on the disc. Putting translations for all parts of your application in one file per locale could be hard to manage. You can store these files in a hierarchy which makes sense to you.
+When you are using the default SimpleStore, shipped with the i18n library, dictionaries are stored in plain-text files on the disc. Putting translations for all parts of your application in one file per locale could be hard to manage. You can store these files in a hierarchy which makes sense to you.
 
 For example, your +config/locale+ directory could look like this:
 
@@ -443,9 +443,14 @@ For example, your +config/locale+ directory could look like this:
 |-----en.rb
 </pre>
 
-This way, you can separate model and model attribute names from text inside views, and all of this from the "defaults" (eg. date and time formats).
+This way, you can separate model and model attribute names from text inside views, and all of this from the "defaults" (eg. date and time formats). Other stores for the i18n library could provide different means of such separation.
 
-Other stores for the i18n library could provide different means of such separation.
+NOTE: The default locale loading mechanism in Rails does not load locale files in nested dictionaries, like we have here. So, for this to work, we must explicitely tell Rails to look further:
+
+<ruby>
+  # config/environment.rb
+  config.i18n.load_path += Dir[File.join(RAILS_ROOT, 'config', 'locales', '**', '*.{rb,yml}')]
+</ruby>
 
 Do check the "Rails i18n Wiki":http://rails-i18n.org/wiki for list of tools available for managing translations.
 
