@@ -330,6 +330,7 @@ class ActionMailerTest < Test::Unit::TestCase
     assert_equal "multipart/mixed", created.content_type
     assert_equal "multipart/alternative", created.parts.first.content_type
     assert_equal "bar", created.parts.first.header['foo'].to_s
+    assert_nil created.parts.first.charset
     assert_equal "text/plain", created.parts.first.parts.first.content_type
     assert_equal "text/html", created.parts.first.parts[1].content_type
     assert_equal "application/octet-stream", created.parts[1].content_type
