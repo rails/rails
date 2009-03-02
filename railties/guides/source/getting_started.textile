@@ -115,6 +115,7 @@ If you’d like more details on REST as an architectural style, these resources 
 * "A Brief Introduction to REST":http://www.infoq.com/articles/rest-introduction by Stefan Tilkov
 * "An Introduction to REST":http://bitworking.org/news/373/An-Introduction-to-REST (video tutorial) by Joe Gregorio
 * "Representational State Transfer":http://en.wikipedia.org/wiki/Representational_State_Transfer article in Wikipedia
+* "How to GET a Cup of Coffee":http://www.infoq.com/articles/webber-rest-workflow by Jim Webber, Savas Parastatidis & Ian Robinson
 
 h3. Creating a New Rails Project
 

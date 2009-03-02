@@ -18,7 +18,7 @@ p. We'd like to thank the following people for their tireless contributions to t
 <% end %>
 
 <% author('Mike Gunderloy', 'mgunderloy') do %>
-  Mike Gunderloy is a consultant with "ActionRails":http://www.actionrails.com and also a member of the "Rails activism team":http://rubyonrails.org/activists . He brings 25 years of experience in a variety of languages to bear on his current work with Rails. His near-daily links and other blogging can be found at "A Fresh Cup":http://afreshcup.com and he "twitters":http://twitter.com/MikeG1 too much.
+  Mike Gunderloy is a consultant with "ActionRails":http://www.actionrails.com and "Lark Group":http://larkware.com and also a member of the "Rails activism team":http://rubyonrails.org/activists . He brings 25 years of experience in a variety of languages to bear on his current work with Rails. His near-daily links and other blogging can be found at "A Fresh Cup":http://afreshcup.com and he "twitters":http://twitter.com/MikeG1 too much.
 <% end %>
 
 <% author('Cássio Marques', 'cmarques') do %>

@@ -117,4 +117,8 @@ h3. Digging Deeper
   Various caching techniques provided by Rails.
 <% end %>
 
+<% guide("Contributing to Rails", 'contributing.html', :ticket => 64) do %>
+  Rails is not "somebody else's framework." This guide covers a variety of ways that you can get involved in the ongoing development of Rails.
+<% end %>
+
 </dl>
