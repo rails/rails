@@ -605,9 +605,9 @@ can be replaced with
 by defining a LabellingFormBuilder class similar to the following:
 
 <ruby>
-class LabellingFormBuilder < FormBuilder
+class LabellingFormBuilder < ActionView::Helpers::FormBuilder
   def text_field(attribute, options={})
-    label(attribute) + text_field(attribute, options)
+    label(attribute) + super
   end
 end
 </ruby>
