@@ -318,7 +318,7 @@ module ActionController
       end
     
       def regexp_chunk
-        '(\.[^/?\.]+)?'
+        '/|(\.[^/?\.]+)?'
       end
     
       def to_s
