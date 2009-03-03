@@ -559,6 +559,7 @@ Run `rake gems:install` to install the missing gems.
     end
 
     def initialize_metal
+      Rails::Rack::Metal.requested_metals = configuration.metals
       Rails::Rack::Metal.metal_paths += plugin_loader.engine_metal_paths
 
       configuration.middleware.insert_before(
@@ -714,6 +715,11 @@ Run `rake gems:install` to install the missing gems.
     def plugins=(plugins)
       @plugins = plugins.nil? ? nil : plugins.map { |p| p.to_sym }
     end
+
+    # The list of metals to load. If this is set to <tt>nil</tt>, all metals will
+    # be loaded in alphabetical order. If this is set to <tt>[]</tt>, no metals will
+    # be loaded. Otherwise metals will be loaded in the order specified
+    attr_accessor :metals
 
     # The path to the root of the plugins directory. By default, it is in
     # <tt>vendor/plugins</tt>.
