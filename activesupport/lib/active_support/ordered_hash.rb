@@ -54,7 +54,7 @@ module ActiveSupport
       end
 
       def to_hash
-        Hash.new(self)
+        self
       end
 
       def each_key

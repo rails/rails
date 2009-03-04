@@ -45,6 +45,10 @@ class OrderedHashTest < Test::Unit::TestCase
     assert_nil @ordered_hash.delete(bad_key)
   end
 
+  def test_to_hash
+    assert_same @ordered_hash, @ordered_hash.to_hash
+  end
+
   def test_has_key
     assert_equal true, @ordered_hash.has_key?('blue')
     assert_equal true, @ordered_hash.key?('blue')
