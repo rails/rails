@@ -188,7 +188,7 @@ class Class
   # @todo We need a style for class_eval <<-HEREDOC. I'd like to make it
   #   class_eval(<<-RUBY, __FILE__, __LINE__), but we should codify it somewhere.
   def extlib_inheritable_writer(*ivars)
-    instance_writer = ivars.pop[:instance_writer] if ivars.last.is_a?(Hash)
+    instance_writer = ivars.pop[:writer] if ivars.last.is_a?(Hash)
     ivars.each do |ivar|
       self.class_eval <<-RUBY, __FILE__, __LINE__ + 1
         def self.#{ivar}=(obj)
@@ -213,7 +213,7 @@ class Class
   #
   # @api public
   def extlib_inheritable_accessor(*syms)
-    class_inheritable_reader(*syms)
-    class_inheritable_writer(*syms)
+    extlib_inheritable_reader(*syms)
+    extlib_inheritable_writer(*syms)
   end
 end

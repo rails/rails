@@ -9,6 +9,9 @@ module AbstractController
       new.process(action)
     end
     
+    def self.inherited(klass)
+    end
+    
     def initialize
       self.response_obj = {}
     end
