@@ -20,7 +20,7 @@ module ActiveSupport
       alias_method :method_name, :name
     else
       # TODO: Figure out how to get the Rails::BacktraceFilter into minitest/unit
-      if defined?(Rails)
+      if defined?(Rails) && ENV['BACKTRACE'].nil?
         require 'rails/backtrace_cleaner'
         Test::Unit::Util::BacktraceFilter.module_eval { include Rails::BacktraceFilterForTestUnit }
       end
