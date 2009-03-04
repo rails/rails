@@ -27,7 +27,7 @@ class MetalTest < Test::Unit::TestCase
       assert_equal(["MetalB"], found_metals_as_string_array)
     end
   end
-p
+
   def test_metal_finding_should_work_with_subfolders
     use_appdir("subfolders") do
       assert_equal(["Folder::MetalA", "Folder::MetalB"], found_metals_as_string_array)
