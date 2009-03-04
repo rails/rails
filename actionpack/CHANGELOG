@@ -7,6 +7,8 @@
 
 * Fixed that redirection would just log the options, not the final url (which lead to "Redirected to #<Post:0x23150b8>") [DHH]
 
+* Don't check authenticity tokens for any AJAX requests [Ross Kaffenberger/Bryan Helmkamp]
+
 * Added ability to pass in :public => true to fresh_when, stale?, and expires_in to make the request proxy cachable #2095 [Gregg Pollack]
 
 * Fixed that passing a custom form builder would be forwarded to nested fields_for calls #2023 [Eloy Duran/Nate Wiger]
