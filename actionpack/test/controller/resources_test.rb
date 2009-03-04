@@ -750,9 +750,17 @@ class ResourcesTest < ActionController::TestCase
   end
 
   def test_with_path_segment
-    with_restful_routing :messages, :as => 'reviews' do
-      assert_simply_restful_for :messages, :as => 'reviews'
+    with_restful_routing :messages do
+      assert_simply_restful_for :messages
+      assert_recognizes({:controller => "messages", :action => "index"}, "/messages")
+      assert_recognizes({:controller => "messages", :action => "index"}, "/messages/")
     end
+
+     with_restful_routing :messages, :as => 'reviews' do
+       assert_simply_restful_for :messages, :as => 'reviews'
+      assert_recognizes({:controller => "messages", :action => "index"}, "/reviews")
+      assert_recognizes({:controller => "messages", :action => "index"}, "/reviews/")
+     end
   end
 
   def test_multiple_with_path_segment_and_controller

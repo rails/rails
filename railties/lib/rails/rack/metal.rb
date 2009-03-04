@@ -8,16 +8,26 @@ module Rails
 
       cattr_accessor :metal_paths
       self.metal_paths = ["#{Rails.root}/app/metal"]
+      cattr_accessor :requested_metals
 
       def self.metals
         matcher = /#{Regexp.escape('/app/metal/')}(.*)\.rb\Z/
         metal_glob = metal_paths.map{ |base| "#{base}/**/*.rb" }
+        all_metals = {}
 
         Dir[*metal_glob].sort.map do |file|
-          path = file.match(matcher)[1]
-          require path
-          path.classify.constantize
+          file = file.match(matcher)[1]
+          all_metals[file.classify] = file
         end
+
+        load_list = requested_metals || all_metals.keys
+
+        load_list.map do |requested_metal|
+          if metal = all_metals[requested_metal]
+            require metal
+            requested_metal.constantize
+          end
+        end.compact
       end
 
       def initialize(app)
