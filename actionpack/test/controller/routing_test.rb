@@ -2237,6 +2237,22 @@ class RouteSetTest < Test::Unit::TestCase
     )
   end
 
+  def test_format_is_not_inherit
+    set.draw do |map|
+      map.connect '/posts.:format', :controller => 'posts'
+    end
+
+    assert_equal '/posts', set.generate(
+      {:controller => 'posts'},
+      {:controller => 'posts', :action => 'index', :format => 'xml'}
+    )
+
+    assert_equal '/posts.xml', set.generate(
+      {:controller => 'posts', :format => 'xml'},
+      {:controller => 'posts', :action => 'index', :format => 'xml'}
+    )
+  end
+
   def test_expiry_determination_should_consider_values_with_to_param
     set.draw { |map| map.connect 'projects/:project_id/:controller/:action' }
     assert_equal '/projects/1/post/show', set.generate(

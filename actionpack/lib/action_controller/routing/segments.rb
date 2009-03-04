@@ -324,7 +324,11 @@ module ActionController
       def to_s
         '(.:format)?'
       end
-    
+
+      def extract_value
+        "#{local_name} = options[:#{key}] && options[:#{key}].to_s.downcase"
+      end
+
       #the value should not include the period (.)
       def match_extraction(next_capture)
         %[
