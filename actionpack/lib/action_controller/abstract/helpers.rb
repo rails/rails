@@ -14,8 +14,11 @@ module AbstractController
     end
     
     def _action_view
-      av = super
-      av.helpers.send(:include, master_helper_module)
+      @_action_view ||= begin
+        av = super
+        av.helpers.send(:include, master_helper_module)
+        av
+      end
     end
     
     module ClassMethods
