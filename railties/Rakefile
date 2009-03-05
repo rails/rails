@@ -344,9 +344,12 @@ task :pgem => [:gem] do
   `ssh gems.rubyonrails.org '/u/sites/gems/gemupdate.sh'`
 end
 
-desc "Publish the API documentation"
-task :pdoc => :rdoc do
-  # railties API isn't separately published
+desc "Publish the guides"
+task :pguides => :guides do
+  mkdir_p 'pkg'
+  `tar -czf pkg/guides.gz guides/output`
+  Rake::SshFilePublisher.new("web.rubyonrails.org", "/u/sites/guides.rubyonrails.org/public", "pkg", "guides.gz").upload
+  `ssh web.rubyonrails.org 'cd /u/sites/guides.rubyonrails.org/public/ && tar -xvzf guides.gz && mv guides/output/* . && rm -rf guides*'`
 end
 
 desc "Publish the release files to RubyForge."
