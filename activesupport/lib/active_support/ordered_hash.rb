@@ -93,7 +93,7 @@ module ActiveSupport
       end
 
       def inspect
-        "#<OrderedHash #{self.to_hash.inspect}>"
+        "#<OrderedHash #{super}>"
       end
 
     private
