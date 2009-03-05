@@ -2,6 +2,8 @@ module Rails
   class BacktraceCleaner < ActiveSupport::BacktraceCleaner
     ERB_METHOD_SIG = /:in `_run_erb_.*/
 
+    RAILS_GEMS   = %w( actionpack activerecord actionmailer activesupport activeresource rails )
+
     VENDOR_DIRS  = %w( vendor/gems vendor/rails )
     SERVER_DIRS  = %w( lib/mongrel bin/mongrel
                        lib/passenger bin/passenger-spawn-server
@@ -20,6 +22,7 @@ module Rails
       add_filter   { |line| line.sub('./', '/') } # for tests
       add_filter   { |line| line.sub(/(#{GEMS_DIR})\/gems\/([a-z]+)-([0-9.]+)\/(.*)/, '\2 (\3) \4')} # http://gist.github.com/30430
       add_silencer { |line| ALL_NOISE.any? { |dir| line.include?(dir) } }
+      add_silencer { |line| RAILS_GEMS.any? { |gem| line =~ /^#{gem} / } }
       add_silencer { |line| line =~ %r(vendor/plugins/[^\/]+/lib) }
     end
   end
