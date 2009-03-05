@@ -1,4 +1,4 @@
-*2.3.1 [RC2] (February ?, 2009)*
+*2.3.1 [RC2] (March 5, 2009)*
 
 * Added ActiveRecord::Base.each and ActiveRecord::Base.find_in_batches for batch processing [DHH/Jamis Buck]
 

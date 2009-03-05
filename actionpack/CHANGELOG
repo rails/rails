@@ -1,4 +1,4 @@
-*2.3.1 [RC2] (February ?, 2009)*
+*2.3.1 [RC2] (March 5, 2009)*
 
 * Added ability to pass in :public => true to fresh_when, stale?, and expires_in to make the request proxy cachable #2095 [Gregg Pollack]
 
