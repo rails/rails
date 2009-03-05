@@ -4,14 +4,12 @@ module Rails
 
     RAILS_GEMS   = %w( actionpack activerecord actionmailer activesupport activeresource rails )
 
-    VENDOR_DIRS  = %w( vendor/gems vendor/rails )
+    VENDOR_DIRS  = %w( vendor/rails )
     SERVER_DIRS  = %w( lib/mongrel bin/mongrel
                        lib/passenger bin/passenger-spawn-server
                        lib/rack )
     RAILS_NOISE  = %w( script/server )
     RUBY_NOISE   = %w( rubygems/custom_require benchmark.rb )
-
-    GEMS_DIR     = Gem.default_dir
 
     ALL_NOISE    = VENDOR_DIRS + SERVER_DIRS + RAILS_NOISE + RUBY_NOISE
 
@@ -20,11 +18,25 @@ module Rails
       add_filter   { |line| line.sub("#{RAILS_ROOT}/", '') }
       add_filter   { |line| line.sub(ERB_METHOD_SIG, '') }
       add_filter   { |line| line.sub('./', '/') } # for tests
-      add_filter   { |line| line.sub(/(#{GEMS_DIR})\/gems\/([a-z]+)-([0-9.]+)\/(.*)/, '\2 (\3) \4')} # http://gist.github.com/30430
+
+      add_gem_filters
+
       add_silencer { |line| ALL_NOISE.any? { |dir| line.include?(dir) } }
       add_silencer { |line| RAILS_GEMS.any? { |gem| line =~ /^#{gem} / } }
       add_silencer { |line| line =~ %r(vendor/plugins/[^\/]+/lib) }
     end
+    
+    
+    private
+      def add_gem_filters
+        Gem.path.each do |path|
+          # http://gist.github.com/30430
+          add_filter { |line| line.sub(/(#{path})\/gems\/([a-z]+)-([0-9.]+)\/(.*)/, '\2 (\3) \4')}
+        end
+
+        vendor_gems_path = Rails::GemDependency.unpacked_path.sub("#{RAILS_ROOT}/",'')
+        add_filter { |line| line.sub(/(#{vendor_gems_path})\/([a-z]+)-([0-9.]+)\/(.*)/, '\2 (\3) [v] \4')}
+      end
   end
 
   # For installing the BacktraceCleaner in the test/unit
