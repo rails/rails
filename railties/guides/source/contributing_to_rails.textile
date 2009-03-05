@@ -121,19 +121,23 @@ If your comment simply says "+1", then odds are that other reviewers aren't goin
 
 h3. Contributing to the Rails Documentation
 
-Another area where you can help out if you're not yet ready to take the plunge to writing Rails core code is with Rails documentation. You can help with the Rails wiki, the Rails API documentation, or the Rails Guides.
+Another area where you can help out if you're not yet ready to take the plunge to writing Rails core code is with Rails documentation. You can help with the Rails Guides or the Rails API documentation.
 
-h4. The Rails Wiki
-
-The "Rails wiki":http://wiki.rubyonrails.org/ is a collection of user-generated and freely-editable documentation about Rails. It covers everything from getting started to FAQs to how-tos and popular plugins. To contribute to the wiki, just find some useful information that isn't there already and add it. There are style guidelines to help keep the wiki a coherent resources; see the section on "contributing to the wiki":http://wiki.rubyonrails.org/#contributing_to_the_wiki for more details.
-
-h4. The Rails API Documentation
-
-The "Rails API documentation":http://api.rubyonrails.org/ is automatically generated from the Rails source code via "RDoc":http://rdoc.rubyforge.org/. If you find some part of the documentation to be incomplete, confusing, or just plain wrong, you can step in and fix it. Documentation changes are made as part of the "docrails":http://github.com/lifo/docrails/tree/master project, which is merged back to the Rails master code from time to time. To contribute an update to the API documentation, you can send it as a patch to the "Rails Guides Lighthouse":http://rails.lighthouseapp.com/projects/16213-rails-guides/tickets?q=all. Alternatively, you can contact "lifo":http://github.com/lifo on GitHub and ask for commit rights to the docrails repository.
+TIP: "docrails":http://github.com/lifo/docrails/tree/master is the documentation branch for Rails with an *open commit policy*. You can simply PM "lifo":http://github.com/lifo on Github and ask for the commit rights. Documentation changes made as part of the "docrails":http://github.com/lifo/docrails/tree/master project, are back to the Rails master code from time to time. Check out the "original announcement":http://weblog.rubyonrails.org/2008/5/2/help-improve-rails-documentation-on-git-branch for more details.
 
 h4. The Rails Guides
 
-The "Rails Guides":http://guides.rubyonrails.org/ are a set of online resources that are designed to make people productive with Rails and to understand how all of the pieces fit together. These guides (including this one!) are written as part of the docrails project. If you have an idea for a new guide, or improvements for an existing guide, you can refer to the "contribution page":http://guides.rails.info/contribute.html for instructions on getting involved.
+The "Rails Guides":http://guides.rubyonrails.org/ are a set of online resources that are designed to make people productive with Rails and to understand how all of the pieces fit together. These guides (including this one!) are written as part of the "docrails":http://github.com/lifo/docrails/tree/master project. If you have an idea for a new guide, or improvements for an existing guide, you can refer to the "contribution page":contribute.html for instructions on getting involved.
+
+h4. The Rails API Documentation
+
+The "Rails API documentation":http://api.rubyonrails.org/ is automatically generated from the Rails source code via "RDoc":http://rdoc.rubyforge.org/. If you find some part of the documentation to be incomplete, confusing, or just plain wrong, you can step in and fix it.
+
+To contribute an update to the API documentation, you can contact "lifo":http://github.com/lifo on GitHub and ask for commit rights to the docrails repository and push your changes to the docrails repository. Please follow the "docrails RDoc conventions":http://wiki.github.com/lifo/docrails/rails-api-documentation-conventions when contributing the changes.
+
+h3. The Rails Wiki
+
+The "Rails wiki":http://wiki.rubyonrails.org/ is a collection of user-generated and freely-editable information about Rails. It covers everything from getting started to FAQs to how-tos and popular plugins. To contribute to the wiki, just find some useful information that isn't there already and add it. There are style guidelines to help keep the wiki a coherent resources; see the section on "contributing to the wiki":http://wiki.rubyonrails.org/#contributing_to_the_wiki for more details.
 
 h3. Contributing to the Rails Code
 
