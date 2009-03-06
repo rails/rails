@@ -79,6 +79,24 @@ class HasOneAssociationsTest < ActiveRecord::TestCase
     assert_raises(ActiveRecord::RecordNotFound) { Account.find(old_account_id) }
   end
 
+  def test_nullification_on_association_change
+    firm = companies(:rails_core)
+    old_account_id = firm.account.id
+    firm.account = Account.new
+    # account is dependent with nullify, therefore its firm_id should be nil
+    assert_nil Account.find(old_account_id).firm_id
+  end
+
+  def test_association_changecalls_delete
+    companies(:first_firm).deletable_account = Account.new
+    assert_equal [], Account.destroyed_account_ids[companies(:first_firm).id]
+  end
+
+  def test_association_change_calls_destroy
+    companies(:first_firm).account = Account.new
+    assert_equal [companies(:first_firm).id], Account.destroyed_account_ids[companies(:first_firm).id]
+  end
+
   def test_natural_assignment_to_already_associated_record
     company = companies(:first_firm)
     account = accounts(:signals37)
