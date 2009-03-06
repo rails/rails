@@ -1057,6 +1057,14 @@ class FinderTest < ActiveRecord::TestCase
     assert_equal [0, 1, 1], posts.map(&:author_id).sort
   end
 
+  def test_finder_with_scoped_from
+    all_topics = Topic.all
+
+    Topic.with_scope(:find => { :from => 'fake_topics' }) do
+      assert_equal all_topics, Topic.all(:from => 'topics')
+    end
+  end
+
   protected
     def bind(statement, *vars)
       if vars.first.is_a?(Hash)
