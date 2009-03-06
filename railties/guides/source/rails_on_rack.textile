@@ -226,6 +226,8 @@ class Poller
 end
 </ruby>
 
+Metal applications within +app/metal+ folders in plugins will also be discovered and added to the list 
+
 Metal applications are an optimization. You should make sure to "understand the related performance implications":http://weblog.rubyonrails.org/2008/12/20/performance-of-rails-metal before using it.
 
 h4. Execution Order
@@ -244,7 +246,15 @@ def call(env)
 end
 </ruby>
 
-In the code above, +@metals+ is an ordered ( alphabetical ) hash of metal applications. Due to the alphabetical ordering, +aaa.rb+ will come before +bbb.rb+ in the metal chain.
+In the code above, +@metals+ is an ordered hash of metal applications. Due to the default alphabetical ordering, +aaa.rb+ will come before +bbb.rb+ in the metal chain.
+
+It is, however, possible to override the default ordering in your environment. Simply add a line like the following to +config/environment.rb+
+
+<ruby>
+config.metals = ["Bbb", "Aaa"]
+</ruby>
+
+Each string in the array should be the name of your metal class. If you do this then be warned that any metal applications not listed will not be loaded.
 
 WARNING: Metal applications cannot return the HTTP Status +404+ to a client, as it is used for continuing the Metal chain execution. Please use normal Rails controllers or a custom middleware if returning +404+ is a requirement.
 
