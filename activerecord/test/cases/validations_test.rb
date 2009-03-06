@@ -170,7 +170,7 @@ class ValidationsTest < ActiveRecord::TestCase
         assert_equal person.first_name, "Mary", "should be ok when no attributes are passed to create!"
       end
     end
- end
+  end
 
   def test_single_error_per_attr_iteration
     r = Reply.new
@@ -1428,6 +1428,17 @@ class ValidationsTest < ActiveRecord::TestCase
      t = Topic.new("title" => "")
      assert !t.valid?
      assert_equal "can't be blank", t.errors.on("title").first
+  end
+
+  def test_invalid_should_be_the_opposite_of_valid
+    Topic.validates_presence_of :title
+
+    t = Topic.new
+    assert t.invalid?
+    assert t.errors.invalid?(:title)
+
+    t.title = 'Things are going to change'
+    assert !t.invalid?
   end
 
   # previous implementation of validates_presence_of eval'd the

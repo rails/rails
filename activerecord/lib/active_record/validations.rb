@@ -1040,6 +1040,11 @@ module ActiveRecord
       errors.empty?
     end
 
+    # Performs the opposite of <tt>valid?</tt>. Returns true if errors were added, false otherwise.
+    def invalid?
+      !valid?
+    end
+
     # Returns the Errors object that holds all information about attribute error messages.
     def errors
       @errors ||= Errors.new(self)
