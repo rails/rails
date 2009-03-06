@@ -119,9 +119,7 @@ h5. Adding a Middleware
 
 You can add a new middleware to the middleware stack using any of the following methods:
 
-* +config.middleware.add(new_middleware, args)+ - Adds the new middleware at the bottom of the middleware stack.
-
-* +config.middleware.insert(index, new_middleware, args)+ - Adds the new middleware at the position specified by +index+ in the middleware stack.
+* +config.middleware.use(new_middleware, args)+ - Adds the new middleware at the bottom of the middleware stack.
 
 * +config.middleware.insert_before(existing_middleware, new_middleware, args)+ - Adds the new middleware before the specified existing middleware in the middleware stack.
 
@@ -151,6 +149,16 @@ You can swap an existing middleware in the middleware stack using +config.middle
 
 # Replace ActionController::Failsafe with Lifo::Failsafe
 config.middleware.swap ActionController::Failsafe, Lifo::Failsafe
+</ruby>
+
+h5. Middleware stack is an array
+
+The middleware stack behaves just like a normal +Array+. You can use any +Array+ methods to insert, reorder, or remove items from the stack. Methods described in the section above are just convenience methods.
+
+For example, the following removes the middleware matching the supplied class name:
+
+<ruby>
+config.middleware.delete(middleware)
 </ruby>
 
 h4. Internal Middleware Stack
@@ -196,6 +204,26 @@ use ActiveRecord::QueryCache
 use Rack::Head
 run ActionController::Dispatcher.new
 </shell>
+
+h4. Using Rack Builder
+
+The following shows how to replace use +Rack::Builder+ instead of the Rails supplied +MiddlewareStack+.
+
+<strong>Clear the existing Rails middleware stack</strong>
+
+<ruby>
+# environment.rb
+config.middleware.clear
+</ruby>
+
+<br />
+<strong>Add a +config.ru+ file to +RAILS_ROOT+</strong>
+
+<ruby>
+# config.ru
+use MyOwnStackFromStratch
+run ActionController::Dispatcher.new
+</ruby>
 
 h3. Rails Metal Applications
 
