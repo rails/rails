@@ -670,7 +670,12 @@ module ActionController
           when "show", "edit"; default_options.merge(add_conditions_for(resource.conditions, method || :get)).merge(resource.requirements(require_id))
           when "update";       default_options.merge(add_conditions_for(resource.conditions, method || :put)).merge(resource.requirements(require_id))
           when "destroy";      default_options.merge(add_conditions_for(resource.conditions, method || :delete)).merge(resource.requirements(require_id))
-          else                  default_options.merge(add_conditions_for(resource.conditions, method)).merge(resource.requirements)
+          else
+              if method.nil? || resource.member_methods.nil? || resource.member_methods[method.to_sym].nil?
+                default_options.merge(add_conditions_for(resource.conditions, method)).merge(resource.requirements)
+              else                 
+                resource.member_methods[method.to_sym].include?(action) ? default_options.merge(add_conditions_for(resource.conditions, method)).merge(resource.requirements(require_id)) : default_options.merge(add_conditions_for(resource.conditions, method)).merge(resource.requirements)
+              end
         end
       end
   end

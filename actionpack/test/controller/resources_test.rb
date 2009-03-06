@@ -209,6 +209,14 @@ class ResourcesTest < ActionController::TestCase
     end
   end
 
+  def test_with_member_action_and_requirement
+    expected_options = {:controller => 'messages', :action => 'mark', :id => '1.1.1'}
+
+    with_restful_routing(:messages, :requirements => {:id => /[0-9]\.[0-9]\.[0-9]/}, :member => { :mark => :get }) do
+      assert_recognizes(expected_options, :path => 'messages/1.1.1/mark', :method => :get)
+    end
+  end
+
   def test_member_when_override_paths_for_default_restful_actions_with
     [:put, :post].each do |method|
       with_restful_routing :messages, :member => { :mark => method }, :path_names => {:new => 'nuevo'} do
