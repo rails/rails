@@ -1205,10 +1205,12 @@ module ActionController #:nodoc:
         cache_control = response.headers["Cache-Control"].split(",").map {|k| k.strip }
 
         cache_control << "max-age=#{seconds}"
+        cache_control.delete("no-cache")
         if options[:public]
           cache_control.delete("private")
-          cache_control.delete("no-cache")
           cache_control << "public"
+        else
+          cache_control << "private"
         end
         
         # This allows for additional headers to be passed through like 'max-stale' => 5.hours

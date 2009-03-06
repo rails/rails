@@ -1509,7 +1509,7 @@ class ExpiresInRenderTest < ActionController::TestCase
     assert_equal "max-age=60, private", @response.headers["Cache-Control"]
   end
   
-  def test_expires_in_header
+  def test_expires_in_header_with_public
     get :conditional_hello_with_expires_in_with_public
     assert_equal "max-age=60, public", @response.headers["Cache-Control"]
   end
