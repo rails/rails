@@ -92,6 +92,14 @@ class CalculationsTest < ActiveRecord::TestCase
     assert_equal 60,  c[2]
   end
 
+  def test_should_group_by_summed_field_having_sanitized_condition
+    c = Account.sum(:credit_limit, :group => :firm_id,
+                                   :having => ['sum(credit_limit) > ?', 50])
+    assert_nil        c[1]
+    assert_equal 105, c[6]
+    assert_equal 60,  c[2]
+  end
+
   def test_should_group_by_summed_association
     c = Account.sum(:credit_limit, :group => :firm)
     assert_equal 50,   c[companies(:first_firm)]

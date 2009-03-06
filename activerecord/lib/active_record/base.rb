@@ -1754,12 +1754,12 @@ module ActiveRecord #:nodoc:
         def add_group!(sql, group, having, scope = :auto)
           if group
             sql << " GROUP BY #{group}"
-            sql << " HAVING #{having}" if having
+            sql << " HAVING #{sanitize_sql_for_conditions(having)}" if having
           else
             scope = scope(:find) if :auto == scope
             if scope && (scoped_group = scope[:group])
               sql << " GROUP BY #{scoped_group}"
-              sql << " HAVING #{scope[:having]}" if scope[:having]
+              sql << " HAVING #{sanitize_sql_for_conditions(scope[:having])}" if scope[:having]
             end
           end
         end

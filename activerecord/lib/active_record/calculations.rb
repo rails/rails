@@ -214,13 +214,15 @@ module ActiveRecord
           end
 
           if options[:group] && options[:having]
+            having = sanitize_sql_for_conditions(options[:having])
+
             # FrontBase requires identifiers in the HAVING clause and chokes on function calls
             if connection.adapter_name == 'FrontBase'
-              options[:having].downcase!
-              options[:having].gsub!(/#{operation}\s*\(\s*#{column_name}\s*\)/, aggregate_alias)
+              having.downcase!
+              having.gsub!(/#{operation}\s*\(\s*#{column_name}\s*\)/, aggregate_alias)
             end
 
-            sql << " HAVING #{options[:having]} "
+            sql << " HAVING #{having} "
           end
 
           sql << " ORDER BY #{options[:order]} "       if options[:order]
