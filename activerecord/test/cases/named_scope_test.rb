@@ -306,6 +306,10 @@ class NamedScopeTest < ActiveRecord::TestCase
     # Nested hash conditions with different keys
     assert_equal [posts(:sti_comments)], Post.with_special_comments.with_post(4).all.uniq
   end
+  
+  def test_methods_invoked_within_scopes_should_respect_scope
+    assert_equal [], Topic.approved.by_rejected_ids.proxy_options[:conditions][:id]
+  end
 end
 
 class DynamicScopeMatchTest < ActiveRecord::TestCase  

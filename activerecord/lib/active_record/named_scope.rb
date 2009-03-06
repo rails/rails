@@ -89,7 +89,12 @@ module ActiveRecord
             when Hash
               options
             when Proc
-              options.call(*args)
+              case parent_scope
+              when Scope
+                with_scope(:find => parent_scope.proxy_options) { options.call(*args) }
+              else
+                options.call(*args)
+              end
           end, &block)
         end
         (class << self; self end).instance_eval do
