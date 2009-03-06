@@ -15,9 +15,11 @@ module Rails
         metal_glob = metal_paths.map{ |base| "#{base}/**/*.rb" }
         all_metals = {}
 
-        Dir[*metal_glob].sort.map do |file|
-          file = file.match(matcher)[1]
-          all_metals[file.classify] = file
+        metal_glob.each do |glob|
+          Dir[glob].sort.map do |file|
+            file = file.match(matcher)[1]
+            all_metals[file.classify] = file
+          end
         end
 
         load_list = requested_metals || all_metals.keys

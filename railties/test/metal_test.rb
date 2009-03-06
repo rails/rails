@@ -41,6 +41,15 @@ class MetalTest < Test::Unit::TestCase
     end
   end
 
+  def test_metal_finding_should_work_with_multiple_metal_paths_in_185_and_below
+    use_appdir("singlemetal") do
+      engine_metal_path = "#{File.dirname(__FILE__)}/fixtures/plugins/engines/engine/app/metal" 
+      Rails::Rack::Metal.metal_paths << engine_metal_path
+      $LOAD_PATH << engine_metal_path
+      assert_equal(["FooMetal", "EngineMetal"], found_metals_as_string_array)
+    end
+  end
+
   private
 
   def use_appdir(root)
