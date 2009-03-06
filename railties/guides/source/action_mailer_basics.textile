@@ -262,6 +262,38 @@ class UserMailer < ActionMailer::Base
 end
 </ruby>
 
+h4. Sending multipart emails with attachments
+
+Once you use the +attachment+ method, ActionMailer will no longer automagically use the correct template based on the filename. You must declare which template you are using for each content type via the +part+ method.
+
+In the following example, there would be two template files, +welcome_email_html.erb+ and +welcome_email_plain.erb+ in the +app/views/user_mailer+ folder.
+
+<ruby>
+class UserMailer < ActionMailer::Base
+  def welcome_email(user)
+    recipients      user.email_address
+    subject         "New account information"
+    from            "system@example.com"
+    content_type    "multipart/alternative"
+
+    part "text/html" do |p|
+      p.body = render_message("welcome_email_html", :message => "<h1>HTML content</h1>")
+    end
+
+    part "text/plain" do |p|
+      p.body = render_message("welcome_email_plain", :message => "text content")
+    end
+
+    attachment :content_type => "image/jpeg",
+      :body => File.read("an-image.jpg")
+
+    attachment "application/pdf" do |a|
+      a.body = generate_your_pdf_here()
+    end
+  end
+end
+</ruby>
+
 h3. Receiving Emails
 
 Receiving and parsing emails with Action Mailer can be a rather complex endeavour. Before your email reaches your Rails app, you would have had to configure your system to somehow forward emails to your app, which needs to be listening for that. So, to receive emails in your Rails app you'll need:
