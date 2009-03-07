@@ -256,6 +256,11 @@ class AssertSelectTest < ActionController::TestCase
     assert_raises(Assertion) {assert_select_rjs :insert, :top, "test2"}
   end
 
+  def test_elect_with_xml_namespace_attributes
+    render_html %Q{<link xlink:href="http://nowhere.com"></link>}
+    assert_nothing_raised { assert_select "link[xlink:href=http://nowhere.com]" }
+  end
+
   #
   # Test css_select.
   #
