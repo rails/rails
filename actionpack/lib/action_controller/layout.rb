@@ -198,7 +198,7 @@ module ActionController #:nodoc:
     # is called and the return value is used. Likewise if the layout was specified as an inline method (through a proc or method
     # object). If the layout was defined without a directory, layouts is assumed. So <tt>layout "weblog/standard"</tt> will return
     # weblog/standard, but <tt>layout "standard"</tt> will return layouts/standard.
-    def active_layout(passed_layout = nil)
+    def active_layout(passed_layout = nil, options = {})
       layout = passed_layout || default_layout
       return layout if layout.respond_to?(:render)
 
@@ -208,7 +208,7 @@ module ActionController #:nodoc:
         else layout
       end
 
-      find_layout(active_layout, default_template_format) if active_layout
+      find_layout(active_layout, default_template_format, options[:html_fallback]) if active_layout
     end
 
     private
@@ -220,8 +220,8 @@ module ActionController #:nodoc:
         nil
       end
 
-      def find_layout(layout, format) #:nodoc:
-        view_paths.find_template(layout.to_s =~ /layouts\// ? layout : "layouts/#{layout}", format, false)
+      def find_layout(layout, format, html_fallback=false) #:nodoc:
+        view_paths.find_template(layout.to_s =~ /layouts\// ? layout : "layouts/#{layout}", format, html_fallback)
       rescue ActionView::MissingTemplate
         raise if Mime::Type.lookup_by_extension(format.to_s).html?
       end
@@ -234,7 +234,7 @@ module ActionController #:nodoc:
           when NilClass, TrueClass
             active_layout if action_has_layout? && candidate_for_layout?(:template => default_template_name)
           else
-            active_layout(layout)
+            active_layout(layout, :html_fallback => true)
           end
         else
           active_layout if action_has_layout? && candidate_for_layout?(options)
