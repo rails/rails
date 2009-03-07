@@ -720,20 +720,20 @@ module ActiveRecord
           # class (which has a database table to query from).
           finder_class = class_hierarchy.detect { |klass| !klass.abstract_class? }
 
-          is_text_column = finder_class.columns_hash[attr_name.to_s].text?
+          column = finder_class.columns_hash[attr_name.to_s]
 
           if value.nil?
             comparison_operator = "IS ?"
-          elsif is_text_column
+          elsif column.text?
             comparison_operator = "#{connection.case_sensitive_equality_operator} ?"
-            value = value.to_s
+            value = column.limit ? value.to_s[0, column.limit] : value.to_s
           else
             comparison_operator = "= ?"
           end
 
           sql_attribute = "#{record.class.quoted_table_name}.#{connection.quote_column_name(attr_name)}"
 
-          if value.nil? || (configuration[:case_sensitive] || !is_text_column)
+          if value.nil? || (configuration[:case_sensitive] || !column.text?)
             condition_sql = "#{sql_attribute} #{comparison_operator}"
             condition_params = [value]
           else

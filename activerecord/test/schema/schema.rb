@@ -155,6 +155,10 @@ ActiveRecord::Schema.define do
     t.integer :course_id, :null => false
   end
 
+  create_table :events, :force => true do |t|
+    t.string :title, :limit => 5
+  end
+
   create_table :funny_jokes, :force => true do |t|
     t.string :name
   end
