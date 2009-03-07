@@ -265,14 +265,16 @@ class CalculationsTest < ActiveRecord::TestCase
   end
 
   def test_should_count_scoped_select
-    Account.update_all("credit_limit = 50")
-    assert_equal 1, Account.scoped(:select => "DISTINCT credit_limit").count
+    Account.update_all("credit_limit = NULL")
+    assert_equal 0, Account.scoped(:select => "credit_limit").count
   end
 
   def test_should_count_scoped_select_with_options
-    Account.update_all("credit_limit = 50")
-    Account.first.update_attribute('credit_limit', 49)
-    assert_equal 1, Account.scoped(:select => "DISTINCT credit_limit").count(:conditions => [ 'credit_limit >= 50'] )
+    Account.update_all("credit_limit = NULL")
+    Account.last.update_attribute('credit_limit', 49)
+    Account.first.update_attribute('credit_limit', 51)
+
+    assert_equal 1, Account.scoped(:select => "credit_limit").count(:conditions => ['credit_limit >= 50'])
   end
 
   def test_should_count_manual_select_with_include
