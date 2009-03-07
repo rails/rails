@@ -71,7 +71,7 @@ module ActiveRecord
 
   # See ActiveRecord::Associations::ClassMethods for documentation.
   module Associations # :nodoc:
-    # These classes will be loaded when associatoins are created.
+    # These classes will be loaded when associations are created.
     # So there is no need to eager load them.
     autoload :AssociationCollection, 'active_record/associations/association_collection'
     autoload :AssociationProxy, 'active_record/associations/association_proxy'
