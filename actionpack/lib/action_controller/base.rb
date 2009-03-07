@@ -908,6 +908,9 @@ module ActionController #:nodoc:
           end
 
           options = extra_options
+        elsif !options.is_a?(Hash)
+          extra_options[:partial] = options
+          options = extra_options
         end
 
         layout = pick_layout(options)

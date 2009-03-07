@@ -682,6 +682,14 @@ class TestController < ActionController::Base
     render :partial => "hash_object", :object => {:first_name => "Sam"}
   end
 
+  def partial_with_nested_object
+    render :partial => "quiz/questions/question", :object => Quiz::Question.new("first")
+  end
+
+  def partial_with_nested_object_shorthand
+    render Quiz::Question.new("first")
+  end
+
   def partial_hash_collection
     render :partial => "hash_object", :collection => [ {:first_name => "Pratik"}, {:first_name => "Amy"} ]
   end
@@ -1477,6 +1485,16 @@ class RenderTest < ActionController::TestCase
   def test_partial_with_hash_object
     get :partial_with_hash_object
     assert_equal "Sam\nmaS\n", @response.body
+  end
+
+  def test_partial_with_nested_object
+    get :partial_with_nested_object
+    assert_equal "first", @response.body
+  end
+
+  def test_partial_with_nested_object_shorthand
+    get :partial_with_nested_object_shorthand
+    assert_equal "first", @response.body
   end
 
   def test_hash_partial_collection
