@@ -91,7 +91,7 @@ module ActionController
       end
 
       def shallow_path_prefix
-        @shallow_path_prefix ||= "#{path_prefix unless @options[:shallow]}"
+        @shallow_path_prefix ||= @options[:shallow] ? @options[:namespace].try(:sub, /\/$/, '') : path_prefix
       end
 
       def member_path
@@ -103,7 +103,7 @@ module ActionController
       end
 
       def shallow_name_prefix
-        @shallow_name_prefix ||= "#{name_prefix unless @options[:shallow]}"
+        @shallow_name_prefix ||= @options[:shallow] ? @options[:namespace].try(:gsub, /\//, '_') : name_prefix
       end
 
       def nesting_name_prefix

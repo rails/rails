@@ -414,6 +414,34 @@ class ResourcesTest < ActionController::TestCase
     end
   end
 
+  def test_shallow_nested_restful_routes_with_namespaces
+    with_routing do |set|
+      set.draw do |map|
+        map.namespace :backoffice do |map|
+          map.namespace :admin do |map|
+            map.resources :products, :shallow => true do |map|
+              map.resources :images
+            end
+          end
+        end
+      end
+
+      assert_simply_restful_for :products,
+        :controller => 'backoffice/admin/products',
+        :namespace => 'backoffice/admin/',
+        :name_prefix => 'backoffice_admin_',
+        :path_prefix => 'backoffice/admin/',
+        :shallow => true
+      assert_simply_restful_for :images,
+        :controller => 'backoffice/admin/images',
+        :namespace => 'backoffice/admin/',
+        :name_prefix => 'backoffice_admin_product_',
+        :path_prefix => 'backoffice/admin/products/1/',
+        :shallow => true,
+        :options => { :product_id => '1' }
+    end
+  end
+
   def test_restful_routes_dont_generate_duplicates
     with_restful_routing :messages do
       routes = ActionController::Routing::Routes.routes
@@ -1082,7 +1110,7 @@ class ResourcesTest < ActionController::TestCase
 
       path                       = "#{options[:as] || controller_name}"
       collection_path            = "/#{options[:path_prefix]}#{path}"
-      shallow_path               = "/#{options[:path_prefix] unless options[:shallow]}#{path}"
+      shallow_path               = "/#{options[:shallow] ? options[:namespace] : options[:path_prefix]}#{path}"
       member_path                = "#{shallow_path}/1"
       new_path                   = "#{collection_path}/#{new_action}"
       edit_member_path           = "#{member_path}/#{edit_action}"
@@ -1146,10 +1174,10 @@ class ResourcesTest < ActionController::TestCase
       options[:options].delete :action
 
       path = "#{options[:as] || controller_name}"
-      shallow_path = "/#{options[:path_prefix] unless options[:shallow]}#{path}"
+      shallow_path = "/#{options[:shallow] ? options[:namespace] : options[:path_prefix]}#{path}"
       full_path = "/#{options[:path_prefix]}#{path}"
       name_prefix = options[:name_prefix]
-      shallow_prefix = "#{options[:name_prefix] unless options[:shallow]}"
+      shallow_prefix = options[:shallow] ? options[:namespace].try(:gsub, /\//, '_') : options[:name_prefix]
 
       new_action  = "new"
       edit_action = "edit"
