@@ -141,22 +141,30 @@ module ActiveRecord
         def construct_count_options_from_args(*args)
           options     = {}
           column_name = :all
-          
+
           # We need to handle
           #   count()
           #   count(:column_name=:all)
           #   count(options={})
           #   count(column_name=:all, options={})
+          #   selects specified by scopes
           case args.size
+          when 0
+            column_name = scope(:find)[:select] if scope(:find)
           when 1
-            args[0].is_a?(Hash) ? options = args[0] : column_name = args[0]
+            if args[0].is_a?(Hash)
+              column_name = scope(:find)[:select] if scope(:find)
+              options = args[0]
+            else
+              column_name = args[0]
+            end
           when 2
             column_name, options = args
           else
             raise ArgumentError, "Unexpected parameters passed to count(): #{args.inspect}"
-          end if args.size > 0
-          
-          [column_name, options]
+          end
+
+          [column_name || :all, options]
         end
 
         def construct_calculation_sql(operation, column_name, options) #:nodoc:

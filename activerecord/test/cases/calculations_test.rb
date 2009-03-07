@@ -264,6 +264,17 @@ class CalculationsTest < ActiveRecord::TestCase
     assert_equal 4, Account.count(:distinct => true, :include => :firm, :select => :credit_limit)
   end
 
+  def test_should_count_scoped_select
+    Account.update_all("credit_limit = 50")
+    assert_equal 1, Account.scoped(:select => "DISTINCT credit_limit").count
+  end
+
+  def test_should_count_scoped_select_with_options
+    Account.update_all("credit_limit = 50")
+    Account.first.update_attribute('credit_limit', 49)
+    assert_equal 1, Account.scoped(:select => "DISTINCT credit_limit").count(:conditions => [ 'credit_limit >= 50'] )
+  end
+
   def test_should_count_manual_select_with_include
     assert_equal 6, Account.count(:select => "DISTINCT accounts.id", :include => :firm)
   end
