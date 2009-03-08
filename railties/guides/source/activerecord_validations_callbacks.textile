@@ -137,7 +137,11 @@ end
 => ActiveRecord::RecordInvalid: Validation failed: Name can't be blank
 </ruby>
 
-To verify whether or not a particular attribute of an object is valid, you can use the +invalid?+ method. This method is only useful _after_ validations have been run, because it only inspects the errors collection and does not trigger validations itself. It's different from the +valid?+ method because it doesn't verify the validity of the object as a whole, but only if there are errors found on an individual attribute of the object.
++Object#invalid?+ is simply the inverse of +Object#valid?+. +invalid?+ triggers your validations and returns true if any errors were added to the object, and false otherwise.
+
+h3. +errors.invalid?+
+
+To verify whether or not a particular attribute of an object is valid, you can use the +errors.invalid?+ method. This method is only useful _after_ validations have been run, because it only inspects the errors collection and does not trigger validations itself. It's different from the +valid?+ method because it doesn't verify the validity of the object as a whole, but only if there are errors found on an individual attribute of the object.
 
 <ruby>
 class Person < ActiveRecord::Base
