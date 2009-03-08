@@ -114,8 +114,8 @@ class ValidationsTest < ActiveRecord::TestCase
   end
 
   def test_invalid_record_exception
-    assert_raises(ActiveRecord::RecordInvalid) { Reply.create! }
-    assert_raises(ActiveRecord::RecordInvalid) { Reply.new.save! }
+    assert_raise(ActiveRecord::RecordInvalid) { Reply.create! }
+    assert_raise(ActiveRecord::RecordInvalid) { Reply.new.save! }
 
     begin
       r = Reply.new
@@ -127,13 +127,13 @@ class ValidationsTest < ActiveRecord::TestCase
   end
 
   def test_exception_on_create_bang_many
-    assert_raises(ActiveRecord::RecordInvalid) do
+    assert_raise(ActiveRecord::RecordInvalid) do
       Reply.create!([ { "title" => "OK" }, { "title" => "Wrong Create" }])
     end
   end
 
   def test_exception_on_create_bang_with_block
-    assert_raises(ActiveRecord::RecordInvalid) do
+    assert_raise(ActiveRecord::RecordInvalid) do
       Reply.create!({ "title" => "OK" }) do |r|
         r.content = nil
       end
@@ -141,7 +141,7 @@ class ValidationsTest < ActiveRecord::TestCase
   end
 
   def test_exception_on_create_bang_many_with_block
-    assert_raises(ActiveRecord::RecordInvalid) do
+    assert_raise(ActiveRecord::RecordInvalid) do
       Reply.create!([{ "title" => "OK" }, { "title" => "Wrong Create" }]) do |r|
         r.content = nil
       end
@@ -150,7 +150,7 @@ class ValidationsTest < ActiveRecord::TestCase
 
   def test_scoped_create_without_attributes
     Reply.with_scope(:create => {}) do
-      assert_raises(ActiveRecord::RecordInvalid) { Reply.create! }
+      assert_raise(ActiveRecord::RecordInvalid) { Reply.create! }
     end
   end
 

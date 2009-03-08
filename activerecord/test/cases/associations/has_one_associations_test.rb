@@ -59,8 +59,8 @@ class HasOneAssociationsTest < ActiveRecord::TestCase
   end
 
   def test_type_mismatch
-    assert_raises(ActiveRecord::AssociationTypeMismatch) { companies(:first_firm).account = 1 }
-    assert_raises(ActiveRecord::AssociationTypeMismatch) { companies(:first_firm).account = Project.find(1) }
+    assert_raise(ActiveRecord::AssociationTypeMismatch) { companies(:first_firm).account = 1 }
+    assert_raise(ActiveRecord::AssociationTypeMismatch) { companies(:first_firm).account = Project.find(1) }
   end
 
   def test_natural_assignment
@@ -76,7 +76,7 @@ class HasOneAssociationsTest < ActiveRecord::TestCase
     companies(:first_firm).save
     assert_nil companies(:first_firm).account
     # account is dependent, therefore is destroyed when reference to owner is lost
-    assert_raises(ActiveRecord::RecordNotFound) { Account.find(old_account_id) }
+    assert_raise(ActiveRecord::RecordNotFound) { Account.find(old_account_id) }
   end
 
   def test_nullification_on_association_change
@@ -281,8 +281,8 @@ class HasOneAssociationsTest < ActiveRecord::TestCase
   end
 
   def test_has_one_proxy_should_not_respond_to_private_methods
-    assert_raises(NoMethodError) { accounts(:signals37).private_method }
-    assert_raises(NoMethodError) { companies(:first_firm).account.private_method }
+    assert_raise(NoMethodError) { accounts(:signals37).private_method }
+    assert_raise(NoMethodError) { companies(:first_firm).account.private_method }
   end
 
   def test_has_one_proxy_should_respond_to_private_methods_via_send

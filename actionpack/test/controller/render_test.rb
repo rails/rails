@@ -937,11 +937,11 @@ class RenderTest < ActionController::TestCase
   end
 
   def test_attempt_to_access_object_method
-    assert_raises(ActionController::UnknownAction, "No action responded to [clone]") { get :clone }
+    assert_raise(ActionController::UnknownAction, "No action responded to [clone]") { get :clone }
   end
 
   def test_private_methods
-    assert_raises(ActionController::UnknownAction, "No action responded to [determine_layout]") { get :determine_layout }
+    assert_raise(ActionController::UnknownAction, "No action responded to [determine_layout]") { get :determine_layout }
   end
 
   def test_access_to_request_in_view
@@ -1173,7 +1173,7 @@ class RenderTest < ActionController::TestCase
   end
 
   def test_bad_render_to_string_still_throws_exception
-    assert_raises(ActionView::MissingTemplate) { get :render_to_string_with_exception }
+    assert_raise(ActionView::MissingTemplate) { get :render_to_string_with_exception }
   end
 
   def test_render_to_string_that_throws_caught_exception_doesnt_break_assigns
@@ -1198,15 +1198,15 @@ class RenderTest < ActionController::TestCase
   end
 
   def test_double_render
-    assert_raises(ActionController::DoubleRenderError) { get :double_render }
+    assert_raise(ActionController::DoubleRenderError) { get :double_render }
   end
 
   def test_double_redirect
-    assert_raises(ActionController::DoubleRenderError) { get :double_redirect }
+    assert_raise(ActionController::DoubleRenderError) { get :double_redirect }
   end
 
   def test_render_and_redirect
-    assert_raises(ActionController::DoubleRenderError) { get :render_and_redirect }
+    assert_raise(ActionController::DoubleRenderError) { get :render_and_redirect }
   end
 
   # specify the one exception to double render rule - render_to_string followed by render
@@ -1515,7 +1515,7 @@ class RenderTest < ActionController::TestCase
   end
 
   def test_render_missing_partial_template
-    assert_raises(ActionView::MissingTemplate) do
+    assert_raise(ActionView::MissingTemplate) do
       get :missing_partial
     end
   end

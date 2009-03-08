@@ -151,7 +151,7 @@ class FixturesTest < ActiveRecord::TestCase
   end
 
   def test_dirty_dirty_yaml_file
-    assert_raises(Fixture::FormatError) do
+    assert_raise(Fixture::FormatError) do
       Fixtures.new( Account.connection, "courses", 'Course', FIXTURES_ROOT + "/naked/yml/courses")
     end
   end
@@ -420,7 +420,7 @@ class InvalidTableNameFixturesTest < ActiveRecord::TestCase
   self.use_transactional_fixtures = false
 
   def test_raises_error
-    assert_raises FixtureClassNotFound do
+    assert_raise FixtureClassNotFound do
       funny_jokes(:a_joke)
     end
   end

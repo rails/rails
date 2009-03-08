@@ -31,7 +31,7 @@ class EventBeingFiredTest < ActiveModel::TestCase
   test 'should raise an AASM::InvalidTransition error if the transitions are empty' do
     event = ActiveModel::StateMachine::Event.new(nil, :event)
 
-    assert_raises ActiveModel::StateMachine::InvalidTransition do
+    assert_raise ActiveModel::StateMachine::InvalidTransition do
       event.fire(nil)
     end
   end

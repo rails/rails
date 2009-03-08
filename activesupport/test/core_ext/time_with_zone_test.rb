@@ -751,7 +751,7 @@ class TimeWithZoneMethodsForTimeAndDateTimeTest < Test::Unit::TestCase
 
   def test_use_zone_with_exception_raised
     Time.zone = 'Alaska'
-    assert_raises RuntimeError do
+    assert_raise RuntimeError do
       Time.use_zone('Hawaii') { raise RuntimeError }
     end
     assert_equal ActiveSupport::TimeZone['Alaska'], Time.zone

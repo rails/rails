@@ -212,7 +212,7 @@ class RedirectTest < ActionController::TestCase
   end
 
   def test_redirect_to_back_with_no_referer
-    assert_raises(ActionController::RedirectBackError) {
+    assert_raise(ActionController::RedirectBackError) {
       @request.env["HTTP_REFERER"] = nil
       get :redirect_to_back
     }
@@ -239,7 +239,7 @@ class RedirectTest < ActionController::TestCase
   end
 
   def test_redirect_to_nil
-    assert_raises(ActionController::ActionControllerError) do
+    assert_raise(ActionController::ActionControllerError) do
       get :redirect_to_nil
     end
   end

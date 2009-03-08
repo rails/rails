@@ -424,8 +424,8 @@ class BasicsTest < ActiveRecord::TestCase
   def test_non_attribute_access_and_assignment
     topic = Topic.new
     assert !topic.respond_to?("mumbo")
-    assert_raises(NoMethodError) { topic.mumbo }
-    assert_raises(NoMethodError) { topic.mumbo = 5 }
+    assert_raise(NoMethodError) { topic.mumbo }
+    assert_raise(NoMethodError) { topic.mumbo = 5 }
   end
 
   def test_preserving_date_objects
@@ -490,7 +490,7 @@ class BasicsTest < ActiveRecord::TestCase
   end
 
   def test_record_not_found_exception
-    assert_raises(ActiveRecord::RecordNotFound) { topicReloaded = Topic.find(99999) }
+    assert_raise(ActiveRecord::RecordNotFound) { topicReloaded = Topic.find(99999) }
   end
 
   def test_initialize_with_attributes
@@ -848,7 +848,7 @@ class BasicsTest < ActiveRecord::TestCase
     client.delete
     assert client.frozen?
     assert_kind_of Firm, client.firm
-    assert_raises(ActiveSupport::FrozenObjectError) { client.name = "something else" }
+    assert_raise(ActiveSupport::FrozenObjectError) { client.name = "something else" }
   end
 
   def test_destroy_new_record
@@ -862,7 +862,7 @@ class BasicsTest < ActiveRecord::TestCase
     client.destroy
     assert client.frozen?
     assert_kind_of Firm, client.firm
-    assert_raises(ActiveSupport::FrozenObjectError) { client.name = "something else" }
+    assert_raise(ActiveSupport::FrozenObjectError) { client.name = "something else" }
   end
 
   def test_update_attribute
@@ -910,8 +910,8 @@ class BasicsTest < ActiveRecord::TestCase
 
   def test_mass_assignment_should_raise_exception_if_accessible_and_protected_attribute_writers_are_both_used
     topic = TopicWithProtectedContentAndAccessibleAuthorName.new
-    assert_raises(RuntimeError) { topic.attributes = { "author_name" => "me" } }
-    assert_raises(RuntimeError) { topic.attributes = { "content" => "stuff" } }
+    assert_raise(RuntimeError) { topic.attributes = { "author_name" => "me" } }
+    assert_raise(RuntimeError) { topic.attributes = { "content" => "stuff" } }
   end
 
   def test_mass_assignment_protection
@@ -949,7 +949,7 @@ class BasicsTest < ActiveRecord::TestCase
   def test_mass_assigning_invalid_attribute
     firm = Firm.new
 
-    assert_raises(ActiveRecord::UnknownAttributeError) do
+    assert_raise(ActiveRecord::UnknownAttributeError) do
       firm.attributes = { "id" => 5, "type" => "Client", "i_dont_even_exist" => 20 }
     end
   end
@@ -1402,7 +1402,7 @@ class BasicsTest < ActiveRecord::TestCase
   end
 
   def test_sql_injection_via_find
-    assert_raises(ActiveRecord::RecordNotFound, ActiveRecord::StatementInvalid) do
+    assert_raise(ActiveRecord::RecordNotFound, ActiveRecord::StatementInvalid) do
       Topic.find("123456 OR id > 0")
     end
   end

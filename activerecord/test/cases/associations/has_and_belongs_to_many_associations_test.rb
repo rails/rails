@@ -616,7 +616,7 @@ class HasAndBelongsToManyAssociationsTest < ActiveRecord::TestCase
   def test_updating_attributes_on_rich_associations
     david = projects(:action_controller).developers.first
     david.name = "DHH"
-    assert_raises(ActiveRecord::ReadOnlyRecord) { david.save! }
+    assert_raise(ActiveRecord::ReadOnlyRecord) { david.save! }
   end
 
   def test_updating_attributes_on_rich_associations_with_limited_find_from_reflection

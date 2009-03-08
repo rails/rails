@@ -99,7 +99,7 @@ class ResourcesTest < ActionController::TestCase
     expected_options = {:controller => 'messages', :action => 'show', :id => '1.1.1'}
 
     with_restful_routing :messages do
-      assert_raises(ActionController::RoutingError) do
+      assert_raise(ActionController::RoutingError) do
         assert_recognizes(expected_options, :path => 'messages/1.1.1', :method => :get)
       end
     end
@@ -333,7 +333,7 @@ class ResourcesTest < ActionController::TestCase
     with_restful_routing :messages do
       assert_restful_routes_for :messages do |options|
         assert_recognizes(options.merge(:action => "new"), :path => "/messages/new", :method => :get)
-        assert_raises(ActionController::MethodNotAllowed) do
+        assert_raise(ActionController::MethodNotAllowed) do
           ActionController::Routing::Routes.recognize_path("/messages/new", :method => :post)
         end
       end
@@ -619,11 +619,11 @@ class ResourcesTest < ActionController::TestCase
       options = { :controller => controller_name.to_s }
       collection_path = "/#{controller_name}"
 
-      assert_raises(ActionController::MethodNotAllowed) do
+      assert_raise(ActionController::MethodNotAllowed) do
         assert_recognizes(options.merge(:action => 'update'), :path => collection_path, :method => :put)
       end
 
-      assert_raises(ActionController::MethodNotAllowed) do
+      assert_raise(ActionController::MethodNotAllowed) do
         assert_recognizes(options.merge(:action => 'destroy'), :path => collection_path, :method => :delete)
       end
     end
@@ -632,7 +632,7 @@ class ResourcesTest < ActionController::TestCase
   def test_should_not_allow_invalid_head_method_for_member_routes
     with_routing do |set|
       set.draw do |map|
-        assert_raises(ArgumentError) do
+        assert_raise(ArgumentError) do
           map.resources :messages, :member => {:something => :head}
         end
       end
@@ -642,7 +642,7 @@ class ResourcesTest < ActionController::TestCase
   def test_should_not_allow_invalid_http_methods_for_member_routes
     with_routing do |set|
       set.draw do |map|
-        assert_raises(ArgumentError) do
+        assert_raise(ArgumentError) do
           map.resources :messages, :member => {:something => :invalid}
         end
       end

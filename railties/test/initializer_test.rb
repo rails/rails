@@ -237,7 +237,7 @@ class InitializerPluginLoadingTests < Test::Unit::TestCase
 
   def test_registering_a_plugin_name_that_does_not_exist_raises_a_load_error
     only_load_the_following_plugins! [:stubby, :acts_as_a_non_existant_plugin]
-    assert_raises(LoadError) do
+    assert_raise(LoadError) do
       load_plugins!
     end
   end

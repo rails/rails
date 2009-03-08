@@ -176,7 +176,7 @@ class HasManyAssociationsTest < ActiveRecord::TestCase
   def test_find_ids
     firm = Firm.find(:first)
 
-    assert_raises(ActiveRecord::RecordNotFound) { firm.clients.find }
+    assert_raise(ActiveRecord::RecordNotFound) { firm.clients.find }
 
     client = firm.clients.find(2)
     assert_kind_of Client, client
@@ -190,7 +190,7 @@ class HasManyAssociationsTest < ActiveRecord::TestCase
     assert_equal 2, client_ary.size
     assert_equal client, client_ary.first
 
-    assert_raises(ActiveRecord::RecordNotFound) { firm.clients.find(2, 99) }
+    assert_raise(ActiveRecord::RecordNotFound) { firm.clients.find(2, 99) }
   end
 
   def test_find_string_ids_when_using_finder_sql
@@ -238,7 +238,7 @@ class HasManyAssociationsTest < ActiveRecord::TestCase
 
   def test_find_in_collection
     assert_equal Client.find(2).name, companies(:first_firm).clients.find(2).name
-    assert_raises(ActiveRecord::RecordNotFound) { companies(:first_firm).clients.find(6) }
+    assert_raise(ActiveRecord::RecordNotFound) { companies(:first_firm).clients.find(6) }
   end
 
   def test_find_grouped
@@ -278,36 +278,36 @@ class HasManyAssociationsTest < ActiveRecord::TestCase
   end
 
   def test_create_with_bang_on_has_many_when_parent_is_new_raises
-    assert_raises(ActiveRecord::RecordNotSaved) do
+    assert_raise(ActiveRecord::RecordNotSaved) do
       firm = Firm.new
       firm.plain_clients.create! :name=>"Whoever"
     end
   end
 
   def test_regular_create_on_has_many_when_parent_is_new_raises
-    assert_raises(ActiveRecord::RecordNotSaved) do
+    assert_raise(ActiveRecord::RecordNotSaved) do
       firm = Firm.new
       firm.plain_clients.create :name=>"Whoever"
     end
   end
 
   def test_create_with_bang_on_has_many_raises_when_record_not_saved
-    assert_raises(ActiveRecord::RecordInvalid) do
+    assert_raise(ActiveRecord::RecordInvalid) do
       firm = Firm.find(:first)
       firm.plain_clients.create!
     end
   end
 
   def test_create_with_bang_on_habtm_when_parent_is_new_raises
-    assert_raises(ActiveRecord::RecordNotSaved) do
+    assert_raise(ActiveRecord::RecordNotSaved) do
       Developer.new("name" => "Aredridel").projects.create!
     end
   end
 
   def test_adding_a_mismatch_class
-    assert_raises(ActiveRecord::AssociationTypeMismatch) { companies(:first_firm).clients_of_firm << nil }
-    assert_raises(ActiveRecord::AssociationTypeMismatch) { companies(:first_firm).clients_of_firm << 1 }
-    assert_raises(ActiveRecord::AssociationTypeMismatch) { companies(:first_firm).clients_of_firm << Topic.find(1) }
+    assert_raise(ActiveRecord::AssociationTypeMismatch) { companies(:first_firm).clients_of_firm << nil }
+    assert_raise(ActiveRecord::AssociationTypeMismatch) { companies(:first_firm).clients_of_firm << 1 }
+    assert_raise(ActiveRecord::AssociationTypeMismatch) { companies(:first_firm).clients_of_firm << Topic.find(1) }
   end
 
   def test_adding_a_collection
@@ -602,7 +602,7 @@ class HasManyAssociationsTest < ActiveRecord::TestCase
   end
 
   def test_invalid_belongs_to_dependent_option_raises_exception
-    assert_raises ArgumentError do
+    assert_raise ArgumentError do
       Author.belongs_to :special_author_address, :dependent => :nullify
     end
   end
@@ -628,13 +628,13 @@ class HasManyAssociationsTest < ActiveRecord::TestCase
   def test_deleting_type_mismatch
     david = Developer.find(1)
     david.projects.reload
-    assert_raises(ActiveRecord::AssociationTypeMismatch) { david.projects.delete(1) }
+    assert_raise(ActiveRecord::AssociationTypeMismatch) { david.projects.delete(1) }
   end
 
   def test_deleting_self_type_mismatch
     david = Developer.find(1)
     david.projects.reload
-    assert_raises(ActiveRecord::AssociationTypeMismatch) { david.projects.delete(Project.find(1).developers) }
+    assert_raise(ActiveRecord::AssociationTypeMismatch) { david.projects.delete(Project.find(1).developers) }
   end
 
   def test_destroy_all

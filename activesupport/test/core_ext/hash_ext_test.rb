@@ -234,7 +234,7 @@ class HashExtTest < Test::Unit::TestCase
       { :failure => "stuff", :funny => "business" }.assert_valid_keys(:failure, :funny)
     end
 
-    assert_raises(ArgumentError, "Unknown key(s): failore") do
+    assert_raise(ArgumentError, "Unknown key(s): failore") do
       { :failore => "stuff", :funny => "business" }.assert_valid_keys([ :failure, :funny ])
       { :failore => "stuff", :funny => "business" }.assert_valid_keys(:failure, :funny)
     end
@@ -884,7 +884,7 @@ class QueryTest < Test::Unit::TestCase
   end
 
   def test_expansion_count_is_limited
-    assert_raises RuntimeError do
+    assert_raise RuntimeError do
       attack_xml = <<-EOT
       <?xml version="1.0" encoding="UTF-8"?>
       <!DOCTYPE member [

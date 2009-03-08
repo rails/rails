@@ -1069,7 +1069,7 @@ class RespondToTest < Test::Unit::TestCase
   end
 
   def test_should_still_raise_exception_with_expected_message_when_calling_an_undefined_method
-    error = assert_raises NoMethodError do
+    error = assert_raise NoMethodError do
       RespondToMailer.not_a_method
     end
 
