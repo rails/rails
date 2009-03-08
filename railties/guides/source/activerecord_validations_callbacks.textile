@@ -399,7 +399,7 @@ class Person < ActiveRecord::Base
 end
 </ruby>
 
-WARNING. Note that some databases are configured perform case-insensitive searches anyway.
+WARNING. Note that some databases are configured to perform case-insensitive searches anyway.
 
 The default error message for +validates_uniqueness_of+ is "_has already been taken_".
 
