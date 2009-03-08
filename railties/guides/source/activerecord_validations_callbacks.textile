@@ -234,11 +234,11 @@ This helper validates that the attributes' values are not included in a given se
 <ruby>
 class Account < ActiveRecord::Base
   validates_exclusion_of :subdomain, :in => %w(www),
-    :message => "Subdomain %s is reserved."
+    :message => "Subdomain {{value}} is reserved."
 end
 </ruby>
 
-The +validates_exclusion_of+ helper has an option +:in+ that receives the set of values that will not be accepted for the validated attributes. The +:in+ option has an alias called +:within+  that you can use for the same purpose, if you'd like to. This example uses the +:message+ option to show how you can include the attribute's value using the +%s+ format specification.
+The +validates_exclusion_of+ helper has an option +:in+ that receives the set of values that will not be accepted for the validated attributes. The +:in+ option has an alias called +:within+  that you can use for the same purpose, if you'd like to. This example uses the +:message+ option to show how you can include the attribute's value.
 
 The default error message for +validates_exclusion_of+  is "_is not included in the list_".
 
@@ -262,11 +262,11 @@ This helper validates that the attributes' values are included in a given set. I
 <ruby>
 class Coffee < ActiveRecord::Base
   validates_inclusion_of :size, :in => %w(small medium large),
-    :message => "%s is not a valid size"
+    :message => "{{value}} is not a valid size"
 end
 </ruby>
 
-The +validates_inclusion_of+ helper has an option +:in+ that receives the set of values that will be accepted. The +:in+ option has an alias called +:within+ that you can use for the same purpose, if you'd like to. The previous example uses the +:message+ option to show how you can include the attribute's value using the +%s+ format specification.
+The +validates_inclusion_of+ helper has an option +:in+ that receives the set of values that will be accepted. The +:in+ option has an alias called +:within+ that you can use for the same purpose, if you'd like to. The previous example uses the +:message+ option to show how you can include the attribute's value.
 
 The default error message for +validates_inclusion_of+  is "_is not included in the list_".
 
@@ -428,7 +428,7 @@ The +:allow_nil+ option skips the validation when the value being validated is +
 <ruby>
 class Coffee < ActiveRecord::Base
   validates_inclusion_of :size, :in => %w(small medium large),
-    :message => "%s is not a valid size", :allow_nil => true
+    :message => "{{value}} is not a valid size", :allow_nil => true
 end
 </ruby>
 
