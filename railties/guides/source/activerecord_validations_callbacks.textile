@@ -16,7 +16,7 @@ endprologue.
 
 h3. The Object Lifecycle
 
-During the normal operation of a Rails application, objects may be created, updated, and destroyed. Active Record provides hooks into this <em>object lifecycle</em> so that you can control your application and its data. 
+During the normal operation of a Rails application objects may be created, updated, and destroyed. Active Record provides hooks into this <em>object lifecycle</em> so that you can control your application and its data. 
 
 Validations allow you to ensure that only valid data is stored in your database. Callbacks and observers allow you to trigger logic before or after an alteration of an object's state.
 
@@ -26,18 +26,18 @@ Before you dive into the detail of validations in Rails, you should understand a
 
 h4. Why Use Validations?
 
-Validations are used to ensure that only valid data is saved into your database. For example, it may be important to your application to ensure that every user provides a valid email address and mailing address
+Validations are used to ensure that only valid data is saved into your database. For example, it may be important to your application to ensure that every user provides a valid email address and mailing address.
 
 There are several ways to validate data before it is saved into your database, including native database constraints, client-side validations, controller-level validations, and model-level validations.
 
 * Database constraints and/or stored procedures make the validation mechanisms database-dependent and can make testing and maintenance more difficult. However, if your database is used by other applications, it may be a good idea to use some constraints at the database level. Additionally, database-level validations can safely handle some things (such as uniqueness in heavily-used tables) that can be difficult to implement otherwise.
-* Client-side validations can be useful, but are generally unreliable if used alone. If they are implemented using Javascript, they may be bypassed if Javascript is turned off in the user's browser. However, if combined with other techniques, client-side validation can be a convenient way to provide users with immediate feedback as they use your site.
+* Client-side validations can be useful, but are generally unreliable if used alone. If they are implemented using JavaScript, they may be bypassed if JavaScript is turned off in the user's browser. However, if combined with other techniques, client-side validation can be a convenient way to provide users with immediate feedback as they use your site.
 * Controller-level validations can be tempting to use, but often become unwieldy and difficult to test and maintain. Whenever possible, it's a good idea to "keep your controllers skinny":http://weblog.jamisbuck.org/2006/10/18/skinny-controller-fat-model, as it will make your application a pleasure to work with in the long run.
 * Model-level validations are the best way to ensure that only valid data is saved into your database. They are database agnostic, cannot be bypassed by end users, and are convenient to test and maintain. Rails makes them easy to use, provides built-in helpers for common needs, and allows you to create your own validation methods as well. 
 
 h4. When Does Validation Happen?
 
-There are two kinds of Active Record objects: those that correspond to a row inside your database and those that do not. When you create a fresh object, using the +new+ method, that object does not belong to the database yet. Once you call +save+ upon that object it will be saved into the appropriate database table. Active Record uses the +new_record?+ instance method to determine whether an object is already in the database or not. Consider the following simple Active Record class:
+There are two kinds of Active Record objects: those that correspond to a row inside your database and those that do not. When you create a fresh object, for example using the +new+ method, that object does not belong to the database yet. Once you call +save+ upon that object it will be saved into the appropriate database table. Active Record uses the +new_record?+ instance method to determine whether an object is already in the database or not. Consider the following simple Active Record class:
 
 <ruby>
 class Person < ActiveRecord::Base
@@ -61,7 +61,7 @@ Creating and saving a new record will send an SQL +INSERT+ operation to the data
 
 CAUTION: There are many ways to change the state of an object in the database. Some methods will trigger validations, but some will not. This means that it's possible to save an object in the database in an invalid state if you aren't careful.
 
-The following methods trigger validations, and will save the object to the database only if the object is valid. The bang versions (e.g. +save!+) will raise an exception if the record is invalid. The non-bang versions (e.g. +save+) simply return +false+.
+The following methods trigger validations, and will save the object to the database only if the object is valid:
 
 * +create+
 * +create!+
@@ -70,6 +70,8 @@ The following methods trigger validations, and will save the object to the datab
 * +update+
 * +update_attributes+
 * +update_attributes!+
+
+The bang versions (e.g. +save!+) raise an exception if the record is invalid. The non-bang versions don't: +save+ and +update_attributes+ return +false+, +create+ and +update+ just return the object/s.
 
 h4. Skipping Validations
 
@@ -84,11 +86,11 @@ The following methods skip validations, and will save the object to the database
 * +update_attribute+
 * +update_counters+
 
-Note that +save+ also has the ability to skip validations if passed +false+. This technique should be used with caution.
+Note that +save+ also has the ability to skip validations if passed +false+ as argument. This technique should be used with caution.
 
 * +save(false)+
 
-h4. Object#valid? and Object#invalid?
+h4. +Object#valid?+ and +Object#invalid?+
 
 To verify whether or not an object is valid, Rails uses the +valid?+ method. You can also use this method on your own. +valid?+ triggers your validations and returns true if no errors were added to the object, and false otherwise.
 
@@ -101,7 +103,7 @@ Person.create(:name => "John Doe").valid? # => true
 Person.create(:name => nil).valid? # => false
 </ruby>
 
-When Active Record is performing validations, any errors found are collected into an +errors+ instance variable and can be accessed through an +errors+ instance method. An object is considered invalid if it has errors, and calling +save+ or +save!+ will not save it to the database.
+When Active Record is performing validations, any errors found can be accessed through the +errors+ instance method. By definition an object is valid if this collection is empty after running validations.
 
 Note that an object instantiated with +new+ will not report errors even if it's technically invalid, because validations are not run when using +new+.
 
@@ -146,7 +148,7 @@ end
 >> Person.create.errors.invalid?(:name) # => true
 </ruby>
 
-We'll cover validation errors in greater depth in the *Working with Validation Errors* section. For now, let's turn to the built-in validation helpers that Rails provides by default.
+We'll cover validation errors in greater depth in the "Working with Validation Errors":#workingwith-validation-errors section. For now, let's turn to the built-in validation helpers that Rails provides by default.
 
 h3. Validation Helpers
 
