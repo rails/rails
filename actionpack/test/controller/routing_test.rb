@@ -1865,6 +1865,14 @@ class RouteSetTest < Test::Unit::TestCase
     end
   end
 
+  def test_route_requirements_with_options_method_condition_is_valid
+    assert_nothing_raised do
+      set.draw do |map|
+        map.connect 'valid/route', :controller => 'pages', :action => 'show', :conditions => {:method => :options}
+      end
+    end
+  end
+
   def test_route_requirements_with_head_method_condition_is_invalid
     assert_raises ArgumentError do
       set.draw do |map|
