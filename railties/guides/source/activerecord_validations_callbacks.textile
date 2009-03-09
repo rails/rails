@@ -419,11 +419,11 @@ The block receives the model, the attribute's name and the attribute's value. Yo
 
 h3. Common Validation Options
 
-There are some common options that all the validation helpers can use. Here they are, except for the +:if+ and +:unless+ options, which are discussed later in the conditional validation topic.
+There are some common options that all the validation helpers can use. Here they are, except for the +:if+ and +:unless+ options, which are discussed later in "Conditional Validation":#conditional-validation.
 
-h4. :allow_nil
+h4. +:allow_nil+
 
-The +:allow_nil+ option skips the validation when the value being validated is +nil+. You may be asking yourself if it makes any sense to use +:allow_nil+ and +validates_presence_of+ together. Well, it does. Remember, the validation will be skipped only for +nil+ attributes, but empty strings are not considered +nil+.
+The +:allow_nil+ option skips the validation when the value being validated is +nil+. Using +:allow_nil+ with +validates_presence_of+ allows for +nil+, but any other +blank?+ value will still be rejected.
 
 <ruby>
 class Coffee < ActiveRecord::Base
@@ -432,9 +432,9 @@ class Coffee < ActiveRecord::Base
 end
 </ruby>
 
-h4. :allow_blank
+h4. +:allow_blank+
 
-The +:allow_blank+ option is similar to the +:allow_nil+ option. This option will let validation pass if the attribute's value is +nil+ or an empty string, i.e., any value that returns +true+ for +blank?+.
+The +:allow_blank+ option is similar to the +:allow_nil+ option. This option will let validation pass if the attribute's value is +blank?+, like +nil+ or an empty string for example.
 
 <ruby>
 class Topic < ActiveRecord::Base
@@ -445,32 +445,32 @@ Topic.create("title" => "").valid? # => true
 Topic.create("title" => nil).valid? # => true
 </ruby>
 
-h4. :message
+h4. +:message+
 
-As you've already seen, the +:message+ option lets you specify the message that will be added to the +errors+ collection when validation fails. When this option is not used, Active Record will use the respective default error message for each validation helper, together with the attribute name.
+As you've already seen, the +:message+ option lets you specify the message that will be added to the +errors+ collection when validation fails. When this option is not used, Active Record will use the respective default error message for each validation helper.
 
-h4. :on
+h4. +:on+
 
 The +:on+ option lets you specify when the validation should happen. The default behavior for all the built-in validation helpers is to be ran on save (both when you're creating a new record and when you're updating it). If you want to change it, you can use +:on => :create+ to run the validation only when a new record is created or +:on => :update+ to run the validation only when a record is updated.
 
 <ruby>
 class Person < ActiveRecord::Base
-  # => it will be possible to update email with a duplicated value
+  # it will be possible to update email with a duplicated value
   validates_uniqueness_of :email, :on => :create
 
-  # => it will be possible to create the record with a 'non-numerical age'
+  # it will be possible to create the record with a non-numerical age
   validates_numericality_of :age, :on => :update
 
-  # => the default (validates on both create and update)
+  # the default (validates on both create and update)
   validates_presence_of :name, :on => :save
 end
 </ruby>
 
 h3. Conditional Validation
 
-Sometimes it will make sense to validate an object just when a given predicate is satisfied. You can do that by using the +:if+ and +:unless+ options, which can take a symbol, a string or a Ruby Proc. You may use the +:if+ option when you want to specify when the validation *should* happen. If you want to specify when the validation *should not* happen, then you may use the +:unless+ option.
+Sometimes it will make sense to validate an object just when a given predicate is satisfied. You can do that by using the +:if+ and +:unless+ options, which can take a symbol, a string or a +Proc+. You may use the +:if+ option when you want to specify when the validation *should* happen. If you want to specify when the validation *should not* happen, then you may use the +:unless+ option.
 
-h4. Using a Symbol with :if and :unless
+h4. Using a Symbol with +:if+ and +:unless+
 
 You can associate the +:if+ and +:unless+ options with a symbol corresponding to the name of a method that will get called right before validation happens. This is the most commonly used option.
 
@@ -484,9 +484,9 @@ class Order < ActiveRecord::Base
 end
 </ruby>
 
-h4. Using a String with :if and :unless
+h4. Using a String with +:if+ and +:unless+
 
-You can also use a string that will be evaluated using +:eval+ and needs to contain valid Ruby code. You should use this option only when the string represents a really short condition.
+You can also use a string that will be evaluated using +eval+ and needs to contain valid Ruby code. You should use this option only when the string represents a really short condition.
 
 <ruby>
 class Person < ActiveRecord::Base
@@ -494,9 +494,9 @@ class Person < ActiveRecord::Base
 end
 </ruby>
 
-h4. Using a Proc with :if and :unless
+h4. Using a Proc with +:if+ and +:unless+
 
-Finally, it's possible to associate +:if+ and +:unless+ with a Ruby Proc object which will be called. Using a Proc object can give you the ability to write a condition that will be executed only when the validation happens and not when your code is loaded by the Ruby interpreter. This option is best suited when writing short validation methods, usually one-liners.
+Finally, it's possible to associate +:if+ and +:unless+ with a +Proc+ object which will be called. Using a +Proc+ object gives you the ability to write an inline condition instead of a separate method. This option is best suited for one-liners.
 
 <ruby>
 class Account < ActiveRecord::Base
@@ -511,12 +511,12 @@ When the built-in validation helpers are not enough for your needs, you can writ
 
 Simply create methods that verify the state of your models and add messages to the +errors+ collection when they are invalid. You must then register these methods by using one or more of the +validate+, +validate_on_create+ or +validate_on_update+ class methods, passing in the symbols for the validation methods' names. 
 
-You can pass more than one symbol for each class method and the respective validations will be ran in the same order as they were registered.
+You can pass more than one symbol for each class method and the respective validations will be run in the same order as they were registered.
 
 <ruby>
 class Invoice < ActiveRecord::Base
   validate :expiration_date_cannot_be_in_the_past,
-    :discount_cannot_be_more_than_total_value
+    :discount_cannot_be_greater_than_total_value
 
   def expiration_date_cannot_be_in_the_past
     errors.add(:expiration_date, "can't be in the past") if
@@ -524,8 +524,8 @@ class Invoice < ActiveRecord::Base
   end
 
   def discount_cannot_be_greater_than_total_value
-    errors.add(:discount, "can't be greater than total value") unless
-      discount <= total_value
+    errors.add(:discount, "can't be greater than total value") if
+      discount > total_value
   end
 end
 </ruby>
@@ -533,25 +533,18 @@ end
 You can even create your own validation helpers and reuse them in several different models. Here is an example where we create a custom validation helper to validate the format of fields that represent email addresses:
 
 <ruby>
-module ActiveRecord
-  module Validations
-    module ClassMethods
-      def validates_email_format_of(value)
-        validates_format_of value,
-          :with => /\A[\w\._%-]+@[\w\.-]+\.[a-zA-Z]{2,4}\z/,
-          :if => Proc.new { |u| !u.email.blank? },
-          :message => "Invalid format for email address"
-      end
-    end
+ActiveRecord::Base.class_eval do
+  def self.validates_as_radio(attr_name, n, options={})
+    validates_inclusion_of attr_name, {:in => 1..n}.merge(options)
   end
 end
 </ruby>
 
-Simply create a new validation method inside the +ActiveRecord::Validations::ClassMethods+ module. You can put this code in a file inside your application's *lib* folder, and then requiring it from your *environment.rb* or any other file inside *config/initializers*. You can use this helper like this:
+Simply reopen +ActiveRecord::Base+ and define a class method like that. You'd typically put this code somewhere in +config/initializers+. You can use this helper like this:
 
 <ruby>
-class Person < ActiveRecord::Base
-  validates_email_format_of :email_address
+class Movie < ActiveRecord::Base
+  validates_as_radio :rating, 5
 end
 </ruby>
 
