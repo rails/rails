@@ -29,6 +29,7 @@ Here's a summary of the rack-related changes:
 * +ActionController::CGIHandler+ is a backwards compatible CGI wrapper around Rack. The +CGIHandler+ is meant to take an old CGI object and convert its environment information into a Rack compatible form.
 * +CgiRequest+ and +CgiResponse+ have been removed
 * Session stores are now lazy loaded. If you never access the session object during a request, it will never attempt to load the session data (parse the cookie, load the data from memcache, or lookup an Active Record object).
+* You no longer need to use +CGI::Cookie.new+ in your tests for setting a cookie value. Assigning a +String+ value to request.cookies["foo"] now sets the cookie as expected.
 * +CGI::Session::CookieStore+ has been replaced by +ActionController::Session::CookieStore+
 * +CGI::Session::MemCacheStore+ has been replaced by +ActionController::Session::MemCacheStore+
 * +CGI::Session::ActiveRecordStore+ has been replaced by +ActiveRecord::SessionStore+
