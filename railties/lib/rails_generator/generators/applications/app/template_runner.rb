@@ -316,7 +316,7 @@ module Rails
     #
     def ask(string)
       log '', string
-      gets.strip
+      STDIN.gets.strip
     end
 
     # Do something in the root of the Rails application or
