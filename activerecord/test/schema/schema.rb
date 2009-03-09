@@ -425,6 +425,11 @@ ActiveRecord::Schema.define do
     t.column :taggings_count, :integer, :default => 0
   end
 
+  create_table :toys, :primary_key => :toy_id ,:force => true do |t|
+    t.string :name
+    t.integer :pet_id, :integer
+  end
+
   create_table :treasures, :force => true do |t|
     t.column :name, :string
     t.column :looter_id, :integer

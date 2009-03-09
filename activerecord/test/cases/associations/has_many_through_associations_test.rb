@@ -8,9 +8,12 @@ require 'models/comment'
 require 'models/tag'
 require 'models/tagging'
 require 'models/author'
+require 'models/owner'
+require 'models/pet'
+require 'models/toy'
 
 class HasManyThroughAssociationsTest < ActiveRecord::TestCase
-  fixtures :posts, :readers, :people, :comments, :authors
+  fixtures :posts, :readers, :people, :comments, :authors, :owners, :pets, :toys
 
   def test_associate_existing
     assert_queries(2) { posts(:thinking);people(:david) }
@@ -250,5 +253,9 @@ class HasManyThroughAssociationsTest < ActiveRecord::TestCase
     author.author_favorites.create(:favorite_author_id => 2)
     author.author_favorites.create(:favorite_author_id => 3)
     assert_equal post.author.author_favorites, post.author_favorites
+  end
+
+  def test_has_many_association_through_a_has_many_association_with_nonstandard_primary_keys
+    assert_equal 1, owners(:blackbeard).toys.count
   end
 end

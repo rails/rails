@@ -150,7 +150,7 @@ module ActiveRecord
             end
           else
             reflection_primary_key = @reflection.source_reflection.primary_key_name
-            source_primary_key     = @reflection.klass.primary_key
+            source_primary_key     = @reflection.through_reflection.klass.primary_key
             if @reflection.source_reflection.options[:as]
               polymorphic_join = "AND %s.%s = %s" % [
                 @reflection.quoted_table_name, "#{@reflection.source_reflection.options[:as]}_type",
