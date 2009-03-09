@@ -8,7 +8,7 @@ class MyBook < ActiveRecord::Base
   has_and_belongs_to_many :my_readers
 end
 
-class JoinTableTest < ActiveRecord::TestCase
+class HabtmJoinTableTest < ActiveRecord::TestCase
   def setup
     ActiveRecord::Base.connection.create_table :my_books, :force => true do |t|
       t.string :name
@@ -40,6 +40,17 @@ class JoinTableTest < ActiveRecord::TestCase
         jaime = MyReader.create(:name=>"Jaime")
         jaime.my_books << MyBook.create(:name=>'Great Expectations')
       end
+    end
+  end
+
+  uses_transaction :test_should_cache_result_of_primary_key_check
+  def test_should_cache_result_of_primary_key_check
+    if ActiveRecord::Base.connection.supports_primary_key?
+      ActiveRecord::Base.connection.stubs(:primary_key).with('my_books_my_readers').returns(false).once
+      weaz = MyReader.create(:name=>'Weaz')
+
+      weaz.my_books << MyBook.create(:name=>'Great Expectations')
+      weaz.my_books << MyBook.create(:name=>'Greater Expectations')
     end
   end
 end
