@@ -1537,7 +1537,7 @@ module ActiveRecord #:nodoc:
         end
 
         def reverse_sql_order(order_query)
-          reversed_query = order_query.split(/,/).each { |s|
+          reversed_query = order_query.to_s.split(/,/).each { |s|
             if s.match(/\s(asc|ASC)$/)
               s.gsub!(/\s(asc|ASC)$/, ' DESC')
             elsif s.match(/\s(desc|DESC)$/)

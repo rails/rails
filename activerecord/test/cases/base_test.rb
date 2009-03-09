@@ -1790,6 +1790,11 @@ class BasicsTest < ActiveRecord::TestCase
     assert_equal last, Developer.find(:all, :order => 'developers.name, developers.salary DESC').last
   end
 
+  def test_find_symbol_ordered_last
+    last  = Developer.find :last, :order => :salary
+    assert_equal last, Developer.find(:all, :order => :salary).last
+  end
+
   def test_find_scoped_ordered_last
     last_developer = Developer.with_scope(:find => { :order => 'developers.salary ASC' }) do
       Developer.find(:last)
