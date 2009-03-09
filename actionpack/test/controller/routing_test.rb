@@ -955,6 +955,13 @@ class LegacyRouteSetTests < Test::Unit::TestCase
                  x.send(:page_url))
   end
 
+  def test_named_route_with_blank_path_prefix
+    rs.add_named_route :page, 'page', :controller => 'content', :action => 'show_page', :path_prefix => ''
+    x = setup_for_named_route
+    assert_equal("http://test.host/page",
+                 x.send(:page_url))
+  end
+
   def test_named_route_with_nested_controller
     rs.add_named_route :users, 'admin/user', :controller => 'admin/user', :action => 'index'
     x = setup_for_named_route
@@ -2130,14 +2137,30 @@ class RouteSetTest < Test::Unit::TestCase
     Object.const_set(:Api, Module.new { |m| m.const_set(:ProductsController, Class.new) })
 
     set.draw do |map|
-
       map.namespace 'api', :path_prefix => 'prefix' do |api|
         api.route 'inventory', :controller => "products", :action => 'inventory'
       end
-
     end
 
     request.path = "/prefix/inventory"
+    request.env["REQUEST_METHOD"] = "GET"
+    assert_nothing_raised { set.recognize(request) }
+    assert_equal("api/products", request.path_parameters[:controller])
+    assert_equal("inventory", request.path_parameters[:action])
+  ensure
+    Object.send(:remove_const, :Api)
+  end
+
+  def test_namespace_with_blank_path_prefix
+    Object.const_set(:Api, Module.new { |m| m.const_set(:ProductsController, Class.new) })
+
+    set.draw do |map|
+      map.namespace 'api', :path_prefix => '' do |api|
+        api.route 'inventory', :controller => "products", :action => 'inventory'
+      end
+    end
+
+    request.path = "/inventory"
     request.env["REQUEST_METHOD"] = "GET"
     assert_nothing_raised { set.recognize(request) }
     assert_equal("api/products", request.path_parameters[:controller])
@@ -2208,6 +2231,13 @@ class RouteSetTest < Test::Unit::TestCase
 
     args = { :controller => "foo", :action => "bar", :id => "7", :x => "y" }
     assert_equal "/my/foo/bar/7?x=y", set.generate(args)
+  end
+
+  def test_generate_with_blank_path_prefix
+    set.draw { |map| map.connect ':controller/:action/:id', :path_prefix => '' }
+
+    args = { :controller => "foo", :action => "bar", :id => "7", :x => "y" }
+    assert_equal "/foo/bar/7?x=y", set.generate(args)
   end
 
   def test_named_routes_are_never_relative_to_modules
