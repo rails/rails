@@ -70,6 +70,10 @@ class HasManyAssociationsTest < ActiveRecord::TestCase
     assert_equal 2, companies(:first_firm).limited_clients.find(:all, :limit => nil).size
   end
 
+  def test_dynamic_find_last_without_specified_order
+    assert_equal companies(:second_client), companies(:first_firm).unsorted_clients.find_last_by_type('Client')
+  end
+
   def test_dynamic_find_should_respect_association_order
     assert_equal companies(:second_client), companies(:first_firm).clients_sorted_desc.find(:first, :conditions => "type = 'Client'")
     assert_equal companies(:second_client), companies(:first_firm).clients_sorted_desc.find_by_type('Client')

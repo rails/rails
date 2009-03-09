@@ -2174,7 +2174,7 @@ module ActiveRecord #:nodoc:
         # Test whether the given method and optional key are scoped.
         def scoped?(method, key = nil) #:nodoc:
           if current_scoped_methods && (scope = current_scoped_methods[method])
-            !key || scope.has_key?(key)
+            !key || !scope[key].nil?
           end
         end
 
