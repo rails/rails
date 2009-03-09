@@ -1,5 +1,9 @@
 module ActiveSupport
   # = XmlMini
+  #
+  # To use the much faster libxml parser:
+  #   gem 'libxml-ruby', '=0.9.7'
+  #   XmlMini.backend = 'LibXML'
   module XmlMini
     extend self
     delegate :parse, :to => :@backend
@@ -10,10 +14,5 @@ module ActiveSupport
     end
   end
 
-  begin
-    gem 'libxml-ruby', '=0.9.4', '=0.9.7'
-    XmlMini.backend = 'LibXML'
-  rescue Gem::LoadError
-    XmlMini.backend = 'REXML'
-  end
+  XmlMini.backend = 'REXML'
 end
