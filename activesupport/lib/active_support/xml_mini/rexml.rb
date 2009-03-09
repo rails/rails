@@ -1,7 +1,9 @@
 # = XmlMini ReXML implementation
 module ActiveSupport
-  module XmlMini
+  module XmlMini_REXML #:nodoc:
     extend self
+
+    CONTENT_KEY = '__content__'.freeze
 
     # Parse an XML Document string into a simple hash
     #

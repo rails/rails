@@ -884,7 +884,8 @@ class QueryTest < Test::Unit::TestCase
   end
 
   def test_expansion_count_is_limited
-    assert_raise RuntimeError do
+    expected = defined?(LibXML) ? LibXML::XML::Error : RuntimeError
+    assert_raise expected do
       attack_xml = <<-EOT
       <?xml version="1.0" encoding="UTF-8"?>
       <!DOCTYPE member [

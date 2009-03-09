@@ -1,19 +1,19 @@
 # = XML Mini Libxml implementation
 module ActiveSupport
-  module XmlMini
+  module XmlMini_LibXML #:nodoc:
     extend self
 
     # Parse an XML Document string into a simple hash using libxml.
     # string::
     #   XML Document string to parse
     def parse(string)
-      require 'xml/libxml' unless defined? LibXML
-
-      string.strip!
       XML.default_keep_blanks = false
 
-      return {} if string.blank?
-      return XML::Parser.string(string).parse.to_hash
+      if string.blank?
+        {}
+      else
+        XML::Parser.string(string.strip).parse.to_hash
+      end
     end
 
   end
