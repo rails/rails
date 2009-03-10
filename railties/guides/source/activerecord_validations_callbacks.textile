@@ -637,7 +637,7 @@ p.errors.on(:name)
 
 h4. +errors.size+
 
-+size+ returns the total number of errors messages for the object.
++size+ returns the total number of error messages for the object.
 
 <ruby>
 class Person < ActiveRecord::Base
