@@ -536,8 +536,9 @@ module ActionView
           text.gsub(AUTO_LINK_RE) do
             href = $&
             punctuation = ''
-            # detect already linked URLs
-            if $` =~ /<a\s[^>]*href="$/
+            left, right = $`, $'
+            # detect already linked URLs and URLs in the middle of a tag
+            if left =~ /<[^>]+$/ && right =~ /^[^>]*>/
               # do not change string; URL is alreay linked
               href
             else

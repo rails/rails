@@ -375,6 +375,12 @@ class TextHelperTest < ActionView::TestCase
     assert_equal "{link: #{link3_result}}", auto_link("{link: #{link3_raw}}")
   end
 
+  def test_auto_link_in_tags
+    link_raw    = 'http://www.rubyonrails.org/images/rails.png'
+    link_result = %Q(<img src="#{link_raw}" />)
+    assert_equal link_result, auto_link(link_result)
+  end
+
   def test_auto_link_at_eol
     url1 = "http://api.rubyonrails.com/Foo.html"
     url2 = "http://www.ruby-doc.org/core/Bar.html"
