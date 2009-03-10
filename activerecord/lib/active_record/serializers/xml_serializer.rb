@@ -231,16 +231,22 @@ module ActiveRecord #:nodoc:
     def add_associations(association, records, opts)
       if records.is_a?(Enumerable)
         tag = reformat_name(association.to_s)
+        type = options[:skip_types] ? {} : {:type => "array"}
+
         if records.empty?
-          builder.tag!(tag, :type => :array)
+          builder.tag!(tag, type)
         else
-          builder.tag!(tag, :type => :array) do
+          builder.tag!(tag, type) do
             association_name = association.to_s.singularize
             records.each do |record|
-              record.to_xml opts.merge(
-                :root => association_name,
-                :type => (record.class.to_s.underscore == association_name ? nil : record.class.name)
-              )
+              if options[:skip_types]
+                record_type = {}
+              else
+                record_class = (record.class.to_s.underscore == association_name) ? nil : record.class.name
+                record_type = {:type => record_class}
+              end
+
+              record.to_xml opts.merge(:root => association_name).merge(record_type)
             end
           end
         end
