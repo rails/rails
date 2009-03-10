@@ -282,7 +282,7 @@ TIP: Depending on the other code in your application, you may prefer to add addi
 
 h5. Using :requirements
 
-You an use the +:requirements+ option in a RESTful route to impose a format on the implied +:id+ parameter in the singular routes. For example:
+You can use the +:requirements+ option in a RESTful route to impose a format on the implied +:id+ parameter in the singular routes. For example:
 
 <ruby>
 map.resources :photos, :requirements => {:id => /[A-Z][A-Z][0-9]+/}
