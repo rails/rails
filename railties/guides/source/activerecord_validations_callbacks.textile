@@ -552,11 +552,11 @@ h3. Working with Validation Errors
 
 In addition to the +valid?+ and +invalid?+ methods covered earlier, Rails provides a number of methods for working with the +errors+ collection and inquiring about the validity of objects. 
 
-The following is a list of the most commonly used methods. Please refer to the ActiveRecord::Errors documentation for an exhaustive list that covers all of the available methods.
+The following is a list of the most commonly used methods. Please refer to the +ActiveRecord::Errors+ documentation for a list of all the available methods.
 
-h4. errors.add_to_base
+h4. +errors.add_to_base+
 
-+add_to_base+ lets you add errors messages that are related to the object's state as a whole, instead of being related to a specific attribute. You can use this method when you want to say that the object is invalid, no matter the values of it's attributes. +add_to_base+ simply receives a string and uses this as the error message.
++add_to_base+ lets you add errors messages that are related to the object's state as a whole, instead of being related to a specific attribute. You can use this method when you want to say that the object is invalid, no matter the values of its attributes. +add_to_base+ simply receives a string and uses this as the error message.
 
 <ruby>
 class Person < ActiveRecord::Base
@@ -566,29 +566,29 @@ class Person < ActiveRecord::Base
 end
 </ruby>
 
-h4. errors.add
+h4. +errors.add+
 
-+add+ lets you manually add messages that are related to particular attributes. Note that Rails will prepend the name of the attribute to the error message you pass it. You can use the +full_messages+ method to view the messages in the form they might be displayed to a user. +add+ receives a symbol with the name of the attribute that you want to add the message to, and the message itself.
++add+ lets you manually add messages that are related to particular attributes. You can use the +full_messages+ method to view the messages in the form they might be displayed to a user. Those particular messages get the attribute name prepended (and capitalized). +add+ receives the name of the attribute you want to add the message to, and the message itself.
 
 <ruby>
 class Person < ActiveRecord::Base
   def a_method_used_for_validation_purposes
-    errors.add(:name, "cannot contain the characters !@#$%*()_-+=")
+    errors.add(:name, "cannot contain the characters !@#%*()_-+=")
   end
 end
 
-person = Person.create(:name => "!@#$")
+person = Person.create(:name => "!@#")
 
 person.errors.on(:name)
-# => "is too short (minimum is 3 characters)"
+# => "cannot contain the characters !@#%*()_-+="
 
 person.errors.full_messages
-# => ["Name is too short (minimum is 3 characters)"]
+# => ["Name cannot contain the characters !@#%*()_-+="]
 </ruby>
 
-h4. errors.on
+h4. +errors.on+
 
-+on+ is used when you want to check the error messages for a specific attribute. It will return different kinds of objects depending on the state of the +errors+ collection for the given attribute. If there are no errors related to the attribute, +on+ will return +nil+. If there is just one errors message for this attribute, +on+ will return a string with the message. When +errors+ holds two or more error messages for the attribute, +on+ will return an array of strings, each one with one error message.
++on+ is used when you want to check the error messages for a specific attribute. It returns different kinds of objects depending on the state of the +errors+ collection for the given attribute. If there are no errors related to the attribute +on+ returns +nil+. If there is just one error message for this attribute +on+ returns a string with the message. When +errors+ holds two or more error messages for the attribute, +on+ returns an array of strings, each one with one error message.
 
 <ruby>
 class Person < ActiveRecord::Base
@@ -611,7 +611,7 @@ person.errors.on(:name)
 # => ["can't be blank", "is too short (minimum is 3 characters)"]
 </ruby>
 
-h4. errors.clear
+h4. +errors.clear+
 
 +clear+ is used when you intentionally want to clear all the messages in the +errors+ collection. Of course, calling +errors.clear+ upon an invalid object won't actually make it valid: the +errors+ collection will now be empty, but the next time you call +valid?+ or any method that tries to save this object to the database, the validations will run again. If any of the validations fail, the +errors+ collection will be filled again.
 
@@ -635,19 +635,24 @@ p.errors.on(:name)
 # => ["can't be blank", "is too short (minimum is 3 characters)"]
 </ruby>
 
-h4. errors.size
+h4. +errors.size+
 
-+size+ returns the total number of errors added. Two errors added to the same object will be counted as such. 
++size+ returns the total number of errors messages for the object.
 
 <ruby>
 class Person < ActiveRecord::Base
   validates_presence_of :name
-  validates_length_of :name, :minimum => 3
+  validates_length_of   :name, :minimum => 3
+  validates_presence_of :email
 end
 
 person = Person.new
 person.valid? # => false
-person.errors.size # => 2
+person.errors.size # => 3
+
+person = Person.new(:name => "Andrea", :email => "andrea@example.com")
+person.valid? # => true
+person.errors.size # => 0
 </ruby>
 
 h3. Displaying Validation Errors in the View
