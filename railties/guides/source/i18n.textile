@@ -499,7 +499,7 @@ I18n.translate :"activerecord.errors.messages.invalid"
 Thus the following calls are equivalent:
 
 <ruby>
-I18n.t 'activerecord.errors,messages.invalid'
+I18n.t 'activerecord.errors.messages.invalid'
 I18n.t 'errors.messages.invalid', :scope => :active_record
 I18n.t :invalid, :scope => 'activerecord.errors.messages'
 I18n.t :invalid, :scope => [:activerecord, :errors, :messages]
