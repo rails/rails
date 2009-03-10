@@ -13,7 +13,6 @@ module ActionController
         end
 
         if defined?(ActiveRecord)
-          after_dispatch :checkin_connections
           to_prepare(:activerecord_instantiate_observers) { ActiveRecord::Base.instantiate_observers }
         end
 
@@ -114,12 +113,6 @@ module ActionController
 
     def flush_logger
       Base.logger.flush
-    end
-
-    def checkin_connections
-      # Don't return connection (and peform implicit rollback) if this request is a part of integration test
-      return if @env.key?("rack.test")
-      ActiveRecord::Base.clear_active_connections!
     end
   end
 end

@@ -47,8 +47,8 @@ namespace :gems do
     require 'rubygems'
     require 'rubygems/gem_runner'
     Rails.configuration.gems.each do |gem|
-      next unless !gem.frozen? && (ENV['GEM'].blank? || ENV['GEM'] == gem.name)
-      gem.unpack_to(Rails::GemDependency.unpacked_path) if gem.loaded?
+      next unless ENV['GEM'].blank? || ENV['GEM'] == gem.name
+      gem.unpack_to(Rails::GemDependency.unpacked_path)
     end
   end
 
@@ -59,8 +59,7 @@ namespace :gems do
       require 'rubygems/gem_runner'
       Rails.configuration.gems.each do |gem|
         next unless ENV['GEM'].blank? || ENV['GEM'] == gem.name
-        gem.dependencies.each do |dependency|
-          next if dependency.frozen?
+        gem.dependencies(:flatten => true).each do |dependency|
           dependency.unpack_to(Rails::GemDependency.unpacked_path)
         end
       end

@@ -17,9 +17,9 @@ module ActiveRecord
 
           # "Downgrade" deprecated sqlite API
           if SQLite.const_defined?(:Version)
-            ConnectionAdapters::SQLite2Adapter.new(db, logger)
+            ConnectionAdapters::SQLite2Adapter.new(db, logger, config)
           else
-            ConnectionAdapters::DeprecatedSQLiteAdapter.new(db, logger)
+            ConnectionAdapters::DeprecatedSQLiteAdapter.new(db, logger, config)
           end
         end
       end
@@ -72,6 +72,11 @@ module ActiveRecord
     #
     # * <tt>:database</tt> - Path to the database file.
     class SQLiteAdapter < AbstractAdapter
+      def initialize(connection, logger, config)
+        super(connection, logger)
+        @config = config
+      end
+
       def adapter_name #:nodoc:
         'SQLite'
       end

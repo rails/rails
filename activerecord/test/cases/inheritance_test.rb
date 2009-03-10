@@ -68,7 +68,7 @@ class InheritanceTest < ActiveRecord::TestCase
     if current_adapter?(:SybaseAdapter)
       Company.connection.execute "SET IDENTITY_INSERT companies OFF"
     end
-    assert_raises(ActiveRecord::SubclassNotFound) { Company.find(100) }
+    assert_raise(ActiveRecord::SubclassNotFound) { Company.find(100) }
   end
 
   def test_inheritance_find
@@ -124,7 +124,7 @@ class InheritanceTest < ActiveRecord::TestCase
   end
 
   def test_finding_incorrect_type_data
-    assert_raises(ActiveRecord::RecordNotFound) { Firm.find(2) }
+    assert_raise(ActiveRecord::RecordNotFound) { Firm.find(2) }
     assert_nothing_raised   { Firm.find(1) }
   end
 

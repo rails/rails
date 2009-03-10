@@ -8,6 +8,7 @@ require 'models/warehouse_thing'
 require 'models/guid'
 require 'models/owner'
 require 'models/pet'
+require 'models/event'
 
 # The following methods in Topic are used in test_conditional_validation_*
 class Topic
@@ -113,8 +114,8 @@ class ValidationsTest < ActiveRecord::TestCase
   end
 
   def test_invalid_record_exception
-    assert_raises(ActiveRecord::RecordInvalid) { Reply.create! }
-    assert_raises(ActiveRecord::RecordInvalid) { Reply.new.save! }
+    assert_raise(ActiveRecord::RecordInvalid) { Reply.create! }
+    assert_raise(ActiveRecord::RecordInvalid) { Reply.new.save! }
 
     begin
       r = Reply.new
@@ -126,13 +127,13 @@ class ValidationsTest < ActiveRecord::TestCase
   end
 
   def test_exception_on_create_bang_many
-    assert_raises(ActiveRecord::RecordInvalid) do
+    assert_raise(ActiveRecord::RecordInvalid) do
       Reply.create!([ { "title" => "OK" }, { "title" => "Wrong Create" }])
     end
   end
 
   def test_exception_on_create_bang_with_block
-    assert_raises(ActiveRecord::RecordInvalid) do
+    assert_raise(ActiveRecord::RecordInvalid) do
       Reply.create!({ "title" => "OK" }) do |r|
         r.content = nil
       end
@@ -140,7 +141,7 @@ class ValidationsTest < ActiveRecord::TestCase
   end
 
   def test_exception_on_create_bang_many_with_block
-    assert_raises(ActiveRecord::RecordInvalid) do
+    assert_raise(ActiveRecord::RecordInvalid) do
       Reply.create!([{ "title" => "OK" }, { "title" => "Wrong Create" }]) do |r|
         r.content = nil
       end
@@ -149,7 +150,7 @@ class ValidationsTest < ActiveRecord::TestCase
 
   def test_scoped_create_without_attributes
     Reply.with_scope(:create => {}) do
-      assert_raises(ActiveRecord::RecordInvalid) { Reply.create! }
+      assert_raise(ActiveRecord::RecordInvalid) { Reply.create! }
     end
   end
 
@@ -169,7 +170,7 @@ class ValidationsTest < ActiveRecord::TestCase
         assert_equal person.first_name, "Mary", "should be ok when no attributes are passed to create!"
       end
     end
- end
+  end
 
   def test_single_error_per_attr_iteration
     r = Reply.new
@@ -528,6 +529,14 @@ class ValidationsTest < ActiveRecord::TestCase
       g.key = "foo"
       assert_nothing_raised { !g.valid? }
     end
+  end
+
+  def test_validate_uniqueness_with_limit
+    # Event.title is limited to 5 characters
+    e1 = Event.create(:title => "abcde")
+    assert e1.valid?, "Could not create an event with a unique, 5 character title"
+    e2 = Event.create(:title => "abcdefgh")
+    assert !e2.valid?, "Created an event whose title, with limit taken into account, is not unique"
   end
 
   def test_validate_straight_inheritance_uniqueness
@@ -1421,6 +1430,17 @@ class ValidationsTest < ActiveRecord::TestCase
      assert_equal "can't be blank", t.errors.on("title").first
   end
 
+  def test_invalid_should_be_the_opposite_of_valid
+    Topic.validates_presence_of :title
+
+    t = Topic.new
+    assert t.invalid?
+    assert t.errors.invalid?(:title)
+
+    t.title = 'Things are going to change'
+    assert !t.invalid?
+  end
+
   # previous implementation of validates_presence_of eval'd the
   # string with the wrong binding, this regression test is to
   # ensure that it works correctly
@@ -1442,20 +1462,6 @@ class ValidationsTest < ActiveRecord::TestCase
     t.author_name = "Hubert J. Farnsworth"
     assert t.valid?, "A topic with an important title and author should be valid"
   end
-
-  private
-    def with_kcode(kcode)
-      if RUBY_VERSION < '1.9'
-        orig_kcode, $KCODE = $KCODE, kcode
-        begin
-          yield
-        ensure
-          $KCODE = orig_kcode
-        end
-      else
-        yield
-      end
-    end
 end
 
 

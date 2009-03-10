@@ -91,7 +91,7 @@ module ActionController
       end
 
       def shallow_path_prefix
-        @shallow_path_prefix ||= "#{path_prefix unless @options[:shallow]}"
+        @shallow_path_prefix ||= @options[:shallow] ? @options[:namespace].try(:sub, /\/$/, '') : path_prefix
       end
 
       def member_path
@@ -103,7 +103,7 @@ module ActionController
       end
 
       def shallow_name_prefix
-        @shallow_name_prefix ||= "#{name_prefix unless @options[:shallow]}"
+        @shallow_name_prefix ||= @options[:shallow] ? @options[:namespace].try(:gsub, /\//, '_') : name_prefix
       end
 
       def nesting_name_prefix
@@ -670,7 +670,12 @@ module ActionController
           when "show", "edit"; default_options.merge(add_conditions_for(resource.conditions, method || :get)).merge(resource.requirements(require_id))
           when "update";       default_options.merge(add_conditions_for(resource.conditions, method || :put)).merge(resource.requirements(require_id))
           when "destroy";      default_options.merge(add_conditions_for(resource.conditions, method || :delete)).merge(resource.requirements(require_id))
-          else                  default_options.merge(add_conditions_for(resource.conditions, method)).merge(resource.requirements)
+          else
+              if method.nil? || resource.member_methods.nil? || resource.member_methods[method.to_sym].nil?
+                default_options.merge(add_conditions_for(resource.conditions, method)).merge(resource.requirements)
+              else                 
+                resource.member_methods[method.to_sym].include?(action) ? default_options.merge(add_conditions_for(resource.conditions, method)).merge(resource.requirements(require_id)) : default_options.merge(add_conditions_for(resource.conditions, method)).merge(resource.requirements)
+              end
         end
       end
   end

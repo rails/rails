@@ -4,6 +4,7 @@ class NumberHelperTest < ActionView::TestCase
   tests ActionView::Helpers::NumberHelper
 
   def test_number_to_phone
+    assert_equal("555-1234", number_to_phone(5551234))
     assert_equal("800-555-1212", number_to_phone(8005551212))
     assert_equal("(800) 555-1212", number_to_phone(8005551212, {:area_code => true}))
     assert_equal("800 555 1212", number_to_phone(8005551212, {:delimiter => " "}))

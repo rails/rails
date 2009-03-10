@@ -75,7 +75,7 @@ class TestJSONEncoding < Test::Unit::TestCase
   def test_exception_raised_when_encoding_circular_reference
     a = [1]
     a << a
-    assert_raises(ActiveSupport::JSON::CircularReferenceError) { a.to_json }
+    assert_raise(ActiveSupport::JSON::CircularReferenceError) { a.to_json }
   end
 
   def test_hash_key_identifiers_are_always_quoted

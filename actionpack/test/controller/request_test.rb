@@ -59,7 +59,7 @@ class RequestTest < ActiveSupport::TestCase
     assert_equal '3.4.5.6', @request.remote_ip
 
     @request.env['HTTP_CLIENT_IP'] = '8.8.8.8'
-    e = assert_raises(ActionController::ActionControllerError) {
+    e = assert_raise(ActionController::ActionControllerError) {
       @request.remote_ip
     }
     assert_match /IP spoofing attack/, e.message
@@ -297,7 +297,7 @@ class RequestTest < ActiveSupport::TestCase
   end
 
   def test_invalid_http_method_raises_exception
-    assert_raises(ActionController::UnknownHttpMethod) do
+    assert_raise(ActionController::UnknownHttpMethod) do
       self.request_method = :random_method
       @request.request_method
     end
@@ -311,7 +311,7 @@ class RequestTest < ActiveSupport::TestCase
   end
 
   def test_invalid_method_hacking_on_post_raises_exception
-    assert_raises(ActionController::UnknownHttpMethod) do
+    assert_raise(ActionController::UnknownHttpMethod) do
       self.request_method = :_random_method
       @request.request_method
     end

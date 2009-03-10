@@ -1,4 +1,10 @@
-*Edge*
+*2.3.1 [RC2] (March 5, 2009)*
+
+* Fixed that redirection would just log the options, not the final url (which lead to "Redirected to #<Post:0x23150b8>") [DHH]
+
+* Added ability to pass in :public => true to fresh_when, stale?, and expires_in to make the request proxy cachable #2095 [Gregg Pollack]
+
+* Fixed that passing a custom form builder would be forwarded to nested fields_for calls #2023 [Eloy Duran/Nate Wiger]
 
 * Added partial scoping to TranslationHelper#translate, so if you call translate(".foo") from the people/index.html.erb template, you'll actually be calling I18n.translate("people.index.foo") [DHH]
 

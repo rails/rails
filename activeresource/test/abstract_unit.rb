@@ -5,6 +5,7 @@ gem 'mocha', '>= 0.9.5'
 require 'mocha'
 
 $:.unshift "#{File.dirname(__FILE__)}/../lib"
+$:.unshift "#{File.dirname(__FILE__)}/../../activesupport/lib"
 require 'active_resource'
 require 'active_resource/http_mock'
 

@@ -228,7 +228,7 @@ class DirtyTest < ActiveRecord::TestCase
 
     pirate = Pirate.new
     pirate.parrot_id = 1
-    assert_raises(ActiveRecord::RecordInvalid) { pirate.save! }
+    assert_raise(ActiveRecord::RecordInvalid) { pirate.save! }
     check_pirate_after_save_failure(pirate)
   end
 

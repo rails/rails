@@ -1,7 +1,7 @@
 Gem::Specification.new do |s|
   s.name = "i18n"
-  s.version = "0.1.1"
-  s.date = "2008-10-26"
+  s.version = "0.1.3"
+  s.date = "2009-01-09"
   s.summary = "Internationalization support for Ruby"
   s.email = "rails-i18n@googlegroups.com"
   s.homepage = "http://rails-i18n.org"

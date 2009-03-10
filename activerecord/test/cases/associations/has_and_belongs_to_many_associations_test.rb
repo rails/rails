@@ -616,7 +616,7 @@ class HasAndBelongsToManyAssociationsTest < ActiveRecord::TestCase
   def test_updating_attributes_on_rich_associations
     david = projects(:action_controller).developers.first
     david.name = "DHH"
-    assert_raises(ActiveRecord::ReadOnlyRecord) { david.save! }
+    assert_raise(ActiveRecord::ReadOnlyRecord) { david.save! }
   end
 
   def test_updating_attributes_on_rich_associations_with_limited_find_from_reflection
@@ -739,6 +739,14 @@ class HasAndBelongsToManyAssociationsTest < ActiveRecord::TestCase
     assert_equal 1, developer.projects.size
     assert_equal developer, project.developers.find(:first)
     assert_equal project, developer.projects.find(:first)
+  end
+  
+  def test_self_referential_habtm_without_foreign_key_set_should_raise_exception
+    assert_raise(ActiveRecord::HasAndBelongsToManyAssociationForeignKeyNeeded) {
+      Member.class_eval do
+        has_and_belongs_to_many :friends, :class_name => "Member", :join_table => "member_friends"
+      end
+    }
   end
 
   def test_dynamic_find_should_respect_association_include

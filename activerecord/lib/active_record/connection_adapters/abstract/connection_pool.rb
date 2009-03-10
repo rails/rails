@@ -351,5 +351,21 @@ module ActiveRecord
         retrieve_connection_pool klass.superclass
       end
     end
+
+    class ConnectionManagement
+      def initialize(app)
+        @app = app
+      end
+
+      def call(env)
+        @app.call(env)
+      ensure
+        # Don't return connection (and peform implicit rollback) if
+        # this request is a part of integration test
+        unless env.key?("rack.test")
+          ActiveRecord::Base.clear_active_connections!
+        end
+      end
+    end
   end
 end

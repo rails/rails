@@ -54,7 +54,7 @@ module ActiveSupport
       end
 
       def to_hash
-        Hash.new(self)
+        self
       end
 
       def each_key
@@ -93,7 +93,7 @@ module ActiveSupport
       end
 
       def inspect
-        "#<OrderedHash #{self.to_hash.inspect}>"
+        "#<OrderedHash #{super}>"
       end
 
     private

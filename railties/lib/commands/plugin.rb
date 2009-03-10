@@ -278,8 +278,8 @@ class Plugin
         base_cmd += " #{options[:revision]}" if options[:revision]
         puts base_cmd if $verbose
         if system(base_cmd)
-          puts "removing: .git" if $verbose
-          rm_rf ".git"
+          puts "removing: .git .gitignore" if $verbose
+          rm_rf %w(.git .gitignore)
         else
           rm_rf install_path
         end

@@ -1,4 +1,11 @@
+*2.3.1 [RC2] (March 5, 2009)*
+
+* Allow metal to live in plugins #2045 [Matthew Rudy]
+
+
 *2.3.0 [RC1] (February 1st, 2009)*
+
+* Added metal [Josh Peek]
 
 * Remove script/performance/request in favour of the performance integration tests. [Pratik Naik]
 

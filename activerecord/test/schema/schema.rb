@@ -155,6 +155,10 @@ ActiveRecord::Schema.define do
     t.integer :course_id, :null => false
   end
 
+  create_table :events, :force => true do |t|
+    t.string :title, :limit => 5
+  end
+
   create_table :funny_jokes, :force => true do |t|
     t.string :name
   end
@@ -419,6 +423,11 @@ ActiveRecord::Schema.define do
   create_table :tags, :force => true do |t|
     t.column :name, :string
     t.column :taggings_count, :integer, :default => 0
+  end
+
+  create_table :toys, :primary_key => :toy_id ,:force => true do |t|
+    t.string :name
+    t.integer :pet_id, :integer
   end
 
   create_table :treasures, :force => true do |t|

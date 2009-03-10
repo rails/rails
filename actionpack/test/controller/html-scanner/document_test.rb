@@ -134,7 +134,7 @@ HTML
   end
 
   def test_invalid_document_raises_exception_when_strict
-    assert_raises RuntimeError do
+    assert_raise RuntimeError do
       doc = HTML::Document.new("<html>
         <table>
           <tr>
