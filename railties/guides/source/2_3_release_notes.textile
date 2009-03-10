@@ -178,18 +178,6 @@ developers =  Developer.find(:all, :group => "salary",
 
 * Lead Contributor: "Emilio Tagua":http://github.com/miloops
 
-h4. Hash Conditions for has_many relationships
-
-You can once again use a hash in conditions for a +has_many+ relationship:
-
-<ruby>
-has_many :orders, :conditions => {:status => 'confirmed'}
-</ruby>
-
-That worked in Rails 2.1, fails in Rails 2.2, and will now work again in Rails 2.3 (if you're dealing with this issue in Rails 2.2, you can use a string rather than a hash to specify conditions).
-
-* Lead Contributor: "Frederick Cheung":http://www.spacevatican.org/
-
 h4. Reconnecting MySQL Connections
 
 MySQL supports a reconnect flag in its connections - if set to true, then the client will try reconnecting to the server before giving up in case of a lost connection. You can now set +reconnect = true+ for your MySQL connections in +database.yml+ to get this behavior from a Rails application. The default is +false+, so the behavior of existing applications doesn't change.
@@ -309,6 +297,8 @@ Rails now keeps a per-request local cache of requests, cutting down on unnecessa
 h4. Localized Views
 
 Rails can now provide localized views, depending on the locale that you have set. For example, suppose you have a +Posts+ controller with a +show+ action. By default, this will render +app/views/posts/show.html.erb+. But if you set +I18n.locale = :da+, it will render +app/views/posts/show.da.html.erb+. If the localized template isn't present, the undecorated version will be used. Rails also includes +I18n#available_locales+ and +I18n::SimpleBackend#available_locales+, which return an array of the translations that are available in the current Rails project.
+
+In addition, you can use the same scheme to localize the rescue files in the +public+ directory: +public/500.da.html+ or +public/404.en.html+ work, for example.
 
 h4. Partial Scoping for Translations
 
@@ -442,6 +432,34 @@ returns
 </optgroup>
 </ruby>
 
+h4. Disabled Option Tags for Form Select Helpers
+
+The form select helpers (such as +select+ and +options_for_select+) now support a +:disabled+ option, which can take a single value or an array of values to be disabled in the resulting tags:
+
+<ruby>
+select(:post, :category, Post::CATEGORIES, :disabled => ‘private‘)
+</ruby>
+
+returns
+
+<ruby>
+<select name=“post[category]“>
+<option>story</option>
+<option>joke</option>
+<option>poem</option>
+<option disabled=“disabled“>private</option>
+</select>	
+</ruby>
+
+You can also use an anonymous function to determine at runtime which options will be disabled:
+
+<ruby>
+options_from_collection_for_select(@product.sizes, :name, :id, :disabled => lambda{|size| size.out_of_stock?})
+</ruby>
+
+* Lead Contributor: "Tekin Suleyman":http://tekin.co.uk/
+* More Information: "New in rails 2.3 - disabled option tags and lambdas for selecting and disabling options from collections":http://tekin.co.uk/2009/03/new-in-rails-23-disabled-option-tags-and-lambdas-for-selecting-and-disabling-options-from-collections/
+
 h4. A Note About Template Loading
 
 Rails 2.3 includes the ability to enable or disable cached templates for any particular environment. Cached templates give you a speed boost because they don't check for a new template file when they're rendered - but they also mean that you can't replace a template "on the fly" without restarting the server.
@@ -546,6 +564,8 @@ h4. Other Railties Changes
 * Rails Guides have been converted from AsciiDoc to Textile markup.
 * Scaffolded views and controllers have been cleaned up a bit.
 * +script/server+ now accepts a <tt>--path</tt> argument to mount a Rails application from a specific path.
+* If any configured gems are missing, the gem rake tasks will skip loading much of the environment. This should solve many of the "chicken-and-egg" problems where rake gems:install couldn't run because gems were missing.
+* Gems are now unpacked exactly once. This fixes issues with gems (hoe, for instance) which are packed with read-only permissions on the files.
 
 h3. Deprecated
 
