@@ -304,7 +304,7 @@ Of course, in a production environment you would need much more robust code, and
 
 h5. Using GeoIP (or similar) database
 
-Another way of choosing the locale from client information would be to use a database for mapping the client IP to the region, such as "GeoIP Lite Country":http://www.maxmind.com/app/geolitecountry. The mechanics of the code would be very similar to the code above -- you would need to query the database for the user's IP, and lookup your prefered locale for the country/region/city returned.
+Another way of choosing the locale from client information would be to use a database for mapping the client IP to the region, such as "GeoIP Lite Country":http://www.maxmind.com/app/geolitecountry. The mechanics of the code would be very similar to the code above -- you would need to query the database for the user's IP, and look up your prefered locale for the country/region/city returned.
 
 h5. User profile
 
@@ -469,7 +469,7 @@ Covered are features like these:
 * looking up translations
 * interpolating data into translations
 * pluralizing translations
-* localizing dates, numbers, currency etc.
+* localizing dates, numbers, currency, etc.
 
 h4. Looking up translations
 
@@ -482,41 +482,41 @@ I18n.t :message
 I18n.t 'message'
 </ruby>
 
-+translate+ also takes a +:scope+ option which can contain one or many additional keys that will be used to specify a “namespace” or scope for a translation key:
++translate+ also takes a +:scope+ option which can contain one or more additional keys that will be used to specify a “namespace” or scope for a translation key:
 
 <ruby>
-I18n.t :invalid, :scope => [:active_record, :error_messages]
+I18n.t :invalid, :scope => [:activerecord, :errors, :messages]
 </ruby>
 
 This looks up the +:invalid+ message in the Active Record error messages.
 
-Additionally, both the key and scopes can be specified as dot separated keys as in:
+Additionally, both the key and scopes can be specified as dot-separated keys as in:
 
 <ruby>
-I18n.translate :"active_record.error_messages.invalid"
+I18n.translate :"activerecord.errors.messages.invalid"
 </ruby>
 
 Thus the following calls are equivalent:
 
 <ruby>
-I18n.t 'active_record.error_messages.invalid'
-I18n.t 'error_messages.invalid', :scope => :active_record
-I18n.t :invalid, :scope => 'active_record.error_messages'
-I18n.t :invalid, :scope => [:active_record, :error_messages]
+I18n.t 'activerecord.errors,messages.invalid'
+I18n.t 'errors.messages.invalid', :scope => :active_record
+I18n.t :invalid, :scope => 'activerecord.errors.messages'
+I18n.t :invalid, :scope => [:activerecord, :errors, :messages]
 </ruby>
 
 h5. Defaults
 
-When a default option is given its value will be returned if the translation is missing:
+When a +:default+ option is given, its value will be returned if the translation is missing:
 
 <ruby>
 I18n.t :missing, :default => 'Not here'
 # => 'Not here'
 </ruby>
 
-If the default value is a Symbol it will be used as a key and translated. One can provide multiple values as default. The first one that results in a value will be returned.
+If the +:default+ value is a Symbol, it will be used as a key and translated. One can provide multiple values as default. The first one that results in a value will be returned.
 
-E.g. the following first tries to translate the key +:missing+ and then the key +:also_missing.+ As both do not yield a result the string "Not here" will be returned:
+E.g., the following first tries to translate the key +:missing+ and then the key +:also_missing.+ As both do not yield a result, the string "Not here" will be returned:
 
 <ruby>
 I18n.t :missing, :default => [:also_missing, 'Not here']
@@ -525,23 +525,23 @@ I18n.t :missing, :default => [:also_missing, 'Not here']
 
 h5. Bulk and namespace lookup
 
-To lookup multiple translations at once an array of keys can be passed:
+To look up multiple translations at once, an array of keys can be passed:
 
 <ruby>
-I18n.t [:odd, :even], :scope => 'active_record.error_messages'
+I18n.t [:odd, :even], :scope => 'activerecord.errors.messages'
 # => ["must be odd", "must be even"]
 </ruby>
 
-Also, a key can translate to a (potentially nested) hash as grouped translations. E.g. one can receive all Active Record error messages as a Hash with:
+Also, a key can translate to a (potentially nested) hash of grouped translations. E.g., one can receive _all_ Active Record error messages as a Hash with:
 
 <ruby>
-I18n.t 'active_record.error_messages'
+I18n.t 'activerecord.errors.messages'
 # => { :inclusion => "is not included in the list", :exclusion => ... }
 </ruby>
 
 h5. "Lazy" lookup
 
-Rails 2.3 implements convenient way to lookup locale inside _views_. When you have following dictionary:
+Rails 2.3 implements a convenient way to look up the locale inside _views_. When you have the following dictionary:
 
 <yaml>
 es:
@@ -550,7 +550,7 @@ es:
       title: "Título"
 </yaml>
 
-you can lookup the +books.index.title+ value *inside* +app/views/books/index.html.erb+ template like this (note the dot): 
+you can look up the +books.index.title+ value *inside* +app/views/books/index.html.erb+ template like this (note the dot): 
 
 <ruby>
 <%= t '.title' %>
@@ -568,8 +568,7 @@ I18n.translate :thanks, :name => 'Jeremy'
 # => 'Thanks Jeremy!'
 </ruby>
 
-If a translation uses +:default+ or +:scope+ as a interpolation variable an I+18n::ReservedInterpolationKey+ exception is raised. If a translation expects an interpolation variable but it has not been passed to +#translate+ an +I18n::MissingInterpolationArgument+ exception is raised.
-
+If a translation uses +:default+ or +:scope+ as an interpolation variable, an I+18n::ReservedInterpolationKey+ exception is raised. If a translation expects an interpolation variable, but this has not been passed to +#translate+, an +I18n::MissingInterpolationArgument+ exception is raised.
 
 h4. Pluralization
 
@@ -594,13 +593,13 @@ entry[count == 1 ? 0 : 1]
 
 I.e. the translation denoted as +:one+ is regarded as singular, the other is used as plural (including the count being zero).
 
-If the lookup for the key does not return an Hash suitable for pluralization an +18n::InvalidPluralizationData+ exception is raised.
+If the lookup for the key does not return a Hash suitable for pluralization, an +18n::InvalidPluralizationData+ exception is raised.
 
 h4. Setting and passing a locale
 
 The locale can be either set pseudo-globally to +I18n.locale+ (which uses +Thread.current+ like, e.g., +Time.zone+) or can be passed as an option to +#translate+ and +#localize+.
 
-If no locale is passed +I18n.locale+ is used:
+If no locale is passed, +I18n.locale+ is used:
 
 <ruby>
 I18n.locale = :de
@@ -671,7 +670,7 @@ Generally we recommend using YAML as a format for storing translations. There ar
 
 h4. Translations for Active Record models
 
-You can use the methods +Model.human_name+ and +Model.human_attribute_name(attribute)+ to transparently lookup translations for your model and attribute names.
+You can use the methods +Model.human_name+ and +Model.human_attribute_name(attribute)+ to transparently look up translations for your model and attribute names.
 
 For example when you add the following translations:
 
@@ -702,7 +701,7 @@ class User < ActiveRecord::Base
 end
 </ruby>
 
-The key for the error message in this case is +:blank+. Active Record will lookup this key in the namespaces:
+The key for the error message in this case is +:blank+. Active Record will look up this key in the namespaces:
 
 <ruby>
 activerecord.errors.models.[model_name].attributes.[attribute_name]
