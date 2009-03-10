@@ -451,7 +451,7 @@ returns
 </select>	
 </ruby>
 
-You can also use an anonymous function to determine at runtime which options will be disabled:
+You can also use an anonymous function to determine at runtime which options from collections will be selected and/or disabled:
 
 <ruby>
 options_from_collection_for_select(@product.sizes, :name, :id, :disabled => lambda{|size| size.out_of_stock?})
