@@ -89,6 +89,8 @@ table { width:100%%; }
         type = stat.directory? ? 'directory' : Mime.mime_type(ext)
         size = stat.directory? ? '-' : filesize_format(size)
         mtime = stat.mtime.httpdate
+        url << '/'  if stat.directory?
+        basename << '/'  if stat.directory?
 
         @files << [ url, basename, size, type, mtime ]
       end

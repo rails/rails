@@ -35,7 +35,12 @@ module Rack
         env["HTTP_VERSION"] ||= env["SERVER_PROTOCOL"]
         env["QUERY_STRING"] ||= ""
         env["REQUEST_PATH"] ||= "/"
-        env.delete "PATH_INFO"  if env["PATH_INFO"] == ""
+        if env["PATH_INFO"] == ""
+          env.delete "PATH_INFO"
+        else
+          path, n = req.request_uri.path, env["SCRIPT_NAME"].length
+          env["PATH_INFO"] = path[n, path.length-n]
+        end
 
         status, headers, body = @app.call(env)
         begin

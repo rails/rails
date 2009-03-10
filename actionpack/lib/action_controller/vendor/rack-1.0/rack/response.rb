@@ -16,6 +16,8 @@ module Rack
   # Your application's +call+ should end returning Response#finish.
 
   class Response
+    attr_accessor :length
+
     def initialize(body=[], status=200, header={}, &block)
       @status = status
       @header = Utils::HeaderHash.new({"Content-Type" => "text/html"}.

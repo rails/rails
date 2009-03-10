@@ -21,7 +21,7 @@ module Rack
 
         attr_writer :passwords_hashed
 
-        def initialize(app)
+        def initialize(*args)
           super
           @passwords_hashed = nil
         end
