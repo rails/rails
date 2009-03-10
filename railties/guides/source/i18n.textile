@@ -12,7 +12,7 @@ So, in the process of _internationalizing_ your Rails application you have to:
 
 In the process of _localizing_ your application you'll probably want to do following three things:
 
-* Replace or supplement Rails' default locale -- e.g. date and time formats, month names, ActiveRecord model names, etc
+* Replace or supplement Rails' default locale -- e.g. date and time formats, month names, Active Record model names, etc
 * Abstract texts in your application into keyed dictionaries -- e.g. flash messages, static texts in your views, etc
 * Store the resulting dictionaries somewhere
 
@@ -622,7 +622,7 @@ I18n.default_locale = :de
 
 h3. How to store your custom translations
 
-The shipped Simple backend allows you to store translations in both plain Ruby and YAML format. [2]
+The Simple backend shipped with Active Support allows you to store translations in both plain Ruby and YAML format. [2]
 
 For example a Ruby Hash providing translations can look like this:
 
@@ -644,9 +644,9 @@ pt:
     bar: baz
 </ruby>
 
-As you see in both cases the toplevel key is the locale. +:foo+ is a namespace key and +:bar+ is the key for the translation "baz".
+As you see, in both cases the toplevel key is the locale. +:foo+ is a namespace key and +:bar+ is the key for the translation "baz".
 
-Here is a "real" example from the ActiveSupport +en.yml+ translations YAML file:
+Here is a "real" example from the Active Support +en.yml+ translations YAML file:
 
 <ruby>
 en:
@@ -666,7 +666,7 @@ I18n.t :short, :scope => 'date.formats'
 I18n.t :short, :scope => [:date, :formats]
 </ruby>
 
-Generally we recommend using YAML as a format for storing translations. There are cases though where you want to store Ruby lambdas as part of your locale data, e.g. for special date.
+Generally we recommend using YAML as a format for storing translations. There are cases, though, where you want to store Ruby lambdas as part of your locale data, e.g. for special date formats.
 
 h4. Translations for Active Record models
 
@@ -689,7 +689,7 @@ Then +User.human_name+ will return "Dude" and +User.human_attribute_name(:login)
 
 h5. Error message scopes
 
-Active Record validation error messages can also be translated easily. Active Record gives you a couple of namespaces where you can place your message translations in order to provide different messages and translation for certain models, attributes and/or validations. It also transparently takes single table inheritance into account.
+Active Record validation error messages can also be translated easily. Active Record gives you a couple of namespaces where you can place your message translations in order to provide different messages and translation for certain models, attributes, and/or validations. It also transparently takes single table inheritance into account.
 
 This gives you quite powerful means to flexibly adjust your messages to your application's needs.
 
@@ -737,7 +737,7 @@ activerecord.errors.models.user.blank
 activerecord.errors.messages.blank
 </ruby>
 
-This way you can provide special translations for various error messages at different points in your models inheritance chain and in the attributes, models or default scopes.
+This way you can provide special translations for various error messages at different points in your models inheritance chain and in the attributes, models, or default scopes.
 
 h5. Error message interpolation
 
@@ -772,7 +772,7 @@ So, for example, instead of the default error message +"can not be blank"+ you c
 
 h5. Translations for the Active Record error_messages_for helper
 
-If you are using the Active Record +error_messages_for+ helper you will want to add translations for it.
+If you are using the Active Record +error_messages_for+ helper, you will want to add translations for it.
 
 Rails ships with the following translations:
 
@@ -791,13 +791,13 @@ h4. Overview of other built-in methods that provide I18n support
 
 Rails uses fixed strings and other localizations, such as format strings and other format information in a couple of helpers. Here's a brief overview.
 
-h5. ActionView helper methods
+h5. Action View helper methods
 
-* +distance_of_time_in_words+ translates and pluralizes its result and interpolates the number of seconds, minutes, hours and so on. See "datetime.distance_in_words":http://github.com/rails/rails/blob/master/actionpack/lib/action_view/locale/en.yml#L51 translations.
+* +distance_of_time_in_words+ translates and pluralizes its result and interpolates the number of seconds, minutes, hours, and so on. See "datetime.distance_in_words":http://github.com/rails/rails/blob/master/actionpack/lib/action_view/locale/en.yml#L51 translations.
 
-* +datetime_select+ and +select_month+ use translated month names for populating the resulting select tag. See "date.month_names":http://github.com/rails/rails/blob/master/activesupport/lib/active_support/locale/en.yml#L15 for translations. +datetime_select+ also looks up the order option from "date.order":http://github.com/rails/rails/blob/master/activesupport/lib/active_support/locale/en.yml#L18 (unless you pass the option explicitely). All date select helpers translate the prompt using the translations in the "datetime.prompts":http://github.com/rails/rails/blob/master/actionpack/lib/action_view/locale/en.yml#L83 scope if applicable.
+* +datetime_select+ and +select_month+ use translated month names for populating the resulting select tag. See "date.month_names":http://github.com/rails/rails/blob/master/activesupport/lib/active_support/locale/en.yml#L15 for translations. +datetime_select+ also looks up the order option from "date.order":http://github.com/rails/rails/blob/master/activesupport/lib/active_support/locale/en.yml#L18 (unless you pass the option explicitely). All date selection helpers translate the prompt using the translations in the "datetime.prompts":http://github.com/rails/rails/blob/master/actionpack/lib/action_view/locale/en.yml#L83 scope if applicable.
 
-* The +number_to_currency+, +number_with_precision+, +number_to_percentage+, +number_with_delimiter+ and +humber_to_human_size+ helpers use the number format settings located in the "number":http://github.com/rails/rails/blob/master/actionpack/lib/action_view/locale/en.yml#L2 scope.
+* The +number_to_currency+, +number_with_precision+, +number_to_percentage+, +number_with_delimiter+, and +number_to_human_size+ helpers use the number format settings located in the "number":http://github.com/rails/rails/blob/master/actionpack/lib/action_view/locale/en.yml#L2 scope.
 
 h5. Active Record methods
 
@@ -805,9 +805,9 @@ h5. Active Record methods
 
 * +ActiveRecord::Errors#generate_message+ (which is used by Active Record validations but may also be used manually) uses +human_name+ and +human_attribute_name+ (see above). It also translates the error message and supports translations for inherited class names as explained above in "Error message scopes".
 
-*+ ActiveRecord::Errors#full_messages+ prepends the attribute name to the error message using a separator that will be looked up from "activerecord.errors.format.separator":http://github.com/rails/rails/blob/master/actionpack/lib/action_view/locale/en.yml#L91 (and defaults to +' '+).
+*+ ActiveRecord::Errors#full_messages+ prepends the attribute name to the error message using a separator that will be looked up from "activerecord.errors.format.separator":http://github.com/rails/rails/blob/master/actionpack/lib/action_view/locale/en.yml#L91 (and which defaults to +'&nbsp;'+).
 
-h5. ActiveSupport methods
+h5. Active Support methods
 
 * +Array#to_sentence+ uses format settings as given in the "support.array":http://github.com/rails/rails/blob/master/activesupport/lib/active_support/locale/en.yml#L30 scope.
 
@@ -816,9 +816,9 @@ h3. Customize your I18n setup
 
 h4. Using different backends
 
-For several reasons the shipped Simple backend only does the "simplest thing that ever could work" _for Ruby on Rails_ [3] ... which means that it is only guaranteed to work for English and, as a side effect, languages that are very similar to English. Also, the simple backend is only capable of reading translations but can not dynamically store them to any format.
+For several reasons the Simple backend shipped with Active Support only does the "simplest thing that ever could work" _for Ruby on Rails_ [3] ... which means that it is only guaranteed to work for English and, as a side effect, languages that are very similar to English. Also, the simple backend is only capable of reading translations but can not dynamically store them to any format.
 
-That does not mean you're stuck with these limitations though. The Ruby I18n gem makes it very easy to exchange the Simple backend implementation with something else that fits better for your needs. E.g. you could exchange it with Globalize's Static backend:
+That does not mean you're stuck with these limitations, though. The Ruby I18n gem makes it very easy to exchange the Simple backend implementation with something else that fits better for your needs. E.g. you could exchange it with Globalize's Static backend:
 
 <ruby>
 I18n.backend = Globalize::Backend::Static.new
@@ -837,11 +837,11 @@ ReservedInterpolationKey     # the translation contains a reserved interpolation
 UnknownFileType              # the backend does not know how to handle a file type that was added to I18n.load_path
 </ruby>
 
-The I18n API will catch all of these exceptions when they were thrown in the backend and pass them to the default_exception_handler method. This method will re-raise all exceptions except for +MissingTranslationData+ exceptions. When a +MissingTranslationData+ exception has been caught it will return the exception’s error message string containing the missing key/scope.
+The I18n API will catch all of these exceptions when they are thrown in the backend and pass them to the default_exception_handler method. This method will re-raise all exceptions except for +MissingTranslationData+ exceptions. When a +MissingTranslationData+ exception has been caught, it will return the exception’s error message string containing the missing key/scope.
 
 The reason for this is that during development you'd usually want your views to still render even though a translation is missing.
 
-In other contexts you might want to change this behaviour though. E.g. the default exception handling does not allow to catch missing translations during automated tests easily. For this purpose a different exception handler can be specified. The specified exception handler must be a method on the I18n module:
+In other contexts you might want to change this behaviour, though. E.g. the default exception handling does not allow to catch missing translations during automated tests easily. For this purpose a different exception handler can be specified. The specified exception handler must be a method on the I18n module:
 
 <ruby>
 module I18n
@@ -855,9 +855,9 @@ I18n.exception_handler = :just_raise_that_exception
 
 This would re-raise all caught exceptions including +MissingTranslationData+.
 
-Another example where the default behaviour is less desirable is the Rails TranslationHelper which provides the method +#t+ (as well as +#translate+). When a +MissingTranslationData+ exception occurs in this context the helper wraps the message into a span with the CSS class +translation_missing+.
+Another example where the default behaviour is less desirable is the Rails TranslationHelper which provides the method +#t+ (as well as +#translate+). When a +MissingTranslationData+ exception occurs in this context, the helper wraps the message into a span with the CSS class +translation_missing+.
 
-To do so the helper forces +I18n#translate+ to raise exceptions no matter what exception handler is defined by setting the +:raise+ option:
+To do so, the helper forces +I18n#translate+ to raise exceptions no matter what exception handler is defined by setting the +:raise+ option:
 
 <ruby>
 I18n.t :foo, :raise => true # always re-raises exceptions from the backend
@@ -872,7 +872,7 @@ If you find anything missing or wrong in this guide please file a ticket on "our
 
 h3. Contributing to Rails I18n
 
-I18n support in Ruby on Rails was introduced in the release 2.2 and is still evolving. The project follows the good Ruby on Rails development tradition of evolving solutions in plugins and real applications first and then cherry-picking the best bread of most widely useful features second for inclusion to the core.
+I18n support in Ruby on Rails was introduced in the release 2.2 and is still evolving. The project follows the good Ruby on Rails development tradition of evolving solutions in plugins and real applications first, and only then cherry-picking the best-of-bread of most widely useful features for inclusion in the core.
 
 Thus we encourage everybody to experiment with new ideas and features in plugins or other libraries and make them available to the community. (Don't forget to announce your work on our "mailinglist":http://groups.google.com/group/rails-i18n!)
 
@@ -903,7 +903,7 @@ fn1. Or, to quote "Wikipedia":http://en.wikipedia.org/wiki/Internationalization_
 
 fn2. Other backends might allow or require to use other formats, e.g. a GetText backend might allow to read GetText files.
 
-fn3. One of these reasons is that we don't want to any unnecessary load for applications that do not need any I18n capabilities, so we need to keep the I18n library as simple as possible for English. Another reason is that it is virtually impossible to implement a one-fits-all solution for all problems related to I18n for all existing languages. So a solution that allows us to exchange the entire implementation easily is appropriate anyway. This also makes it much easier to experiment with custom features and extensions.
+fn3. One of these reasons is that we don't want to imply any unnecessary load for applications that do not need any I18n capabilities, so we need to keep the I18n library as simple as possible for English. Another reason is that it is virtually impossible to implement a one-fits-all solution for all problems related to I18n for all existing languages. So a solution that allows us to exchange the entire implementation easily is appropriate anyway. This also makes it much easier to experiment with custom features and extensions.
 
 
 h3. Changelog
