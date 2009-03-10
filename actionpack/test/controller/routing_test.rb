@@ -219,7 +219,7 @@ class DynamicSegmentTest < Test::Unit::TestCase
     a_value = nil
 
     # Local jump because of return inside eval.
-    assert_raises(LocalJumpError) { eval(segment.extraction_code) }
+    assert_raise(LocalJumpError) { eval(segment.extraction_code) }
   end
 
   def test_extraction_code_should_return_on_mismatch
@@ -229,7 +229,7 @@ class DynamicSegmentTest < Test::Unit::TestCase
     a_value = nil
 
     # Local jump because of return inside eval.
-    assert_raises(LocalJumpError) { eval(segment.extraction_code) }
+    assert_raise(LocalJumpError) { eval(segment.extraction_code) }
   end
 
   def test_extraction_code_should_accept_value_and_set_local
@@ -494,7 +494,7 @@ class RouteBuilderTest < Test::Unit::TestCase
     defaults = {:action => 'buy', :person => nil, :car => nil}
     requirements = {:person => /\w+/, :car => /^\w+$/}
 
-    assert_raises ArgumentError do
+    assert_raise ArgumentError do
       route_requirements = builder.assign_route_options(segments, defaults, requirements)
     end
 
@@ -882,7 +882,7 @@ class LegacyRouteSetTests < Test::Unit::TestCase
     end
     assert_equal({:controller => "admin/accounts", :action => "index"}, rs.recognize_path("/admin/accounts"))
     assert_equal({:controller => "admin/users", :action => "index"}, rs.recognize_path("/admin/users"))
-    assert_raises(ActionController::RoutingError) { rs.recognize_path("/admin/products") }
+    assert_raise(ActionController::RoutingError) { rs.recognize_path("/admin/products") }
   end
 
   def test_route_with_regexp_and_dot
@@ -952,6 +952,13 @@ class LegacyRouteSetTests < Test::Unit::TestCase
     rs.add_named_route :page, 'page', :controller => 'content', :action => 'show_page', :path_prefix => 'my'
     x = setup_for_named_route
     assert_equal("http://test.host/my/page",
+                 x.send(:page_url))
+  end
+
+  def test_named_route_with_blank_path_prefix
+    rs.add_named_route :page, 'page', :controller => 'content', :action => 'show_page', :path_prefix => ''
+    x = setup_for_named_route
+    assert_equal("http://test.host/page",
                  x.send(:page_url))
   end
 
@@ -1060,11 +1067,11 @@ class LegacyRouteSetTests < Test::Unit::TestCase
     rs.draw do |map|
       map.connect ':controller/:action/:id'
     end
-    assert_raises(ActionController::RoutingError) { rs.recognize_path("/not_a/show/10") }
+    assert_raise(ActionController::RoutingError) { rs.recognize_path("/not_a/show/10") }
   end
 
   def test_paths_do_not_accept_defaults
-    assert_raises(ActionController::RoutingError) do
+    assert_raise(ActionController::RoutingError) do
       rs.draw do |map|
         map.path 'file/*path', :controller => 'content', :action => 'show_file', :path => %w(fake default)
         map.connect ':controller/:action/:id'
@@ -1197,7 +1204,7 @@ class LegacyRouteSetTests < Test::Unit::TestCase
 
     assert_equal '/post/10', rs.generate(:controller => 'post', :action => 'show', :id => 10)
 
-    assert_raises ActionController::RoutingError do
+    assert_raise ActionController::RoutingError do
       rs.generate(:controller => 'post', :action => 'show')
     end
   end
@@ -1407,7 +1414,7 @@ class LegacyRouteSetTests < Test::Unit::TestCase
     end
 
     x = setup_for_named_route
-    assert_raises(ActionController::RoutingError) do
+    assert_raise(ActionController::RoutingError) do
       x.send(:foo_with_requirement_url, "I am Against the requirements")
     end
   end
@@ -1539,7 +1546,7 @@ class RouteTest < Test::Unit::TestCase
   end
 
   def test_builder_complains_without_controller
-    assert_raises(ArgumentError) do
+    assert_raise(ArgumentError) do
       ROUTING::RouteBuilder.new.build '/contact', :contoller => "contact", :action => "index"
     end
   end
@@ -1822,27 +1829,27 @@ class RouteSetTest < Test::Unit::TestCase
   end
 
   def test_route_requirements_with_anchor_chars_are_invalid
-    assert_raises ArgumentError do
+    assert_raise ArgumentError do
       set.draw do |map|
         map.connect 'page/:id', :controller => 'pages', :action => 'show', :id => /^\d+/
       end
     end
-    assert_raises ArgumentError do
+    assert_raise ArgumentError do
       set.draw do |map|
         map.connect 'page/:id', :controller => 'pages', :action => 'show', :id => /\A\d+/
       end
     end
-    assert_raises ArgumentError do
+    assert_raise ArgumentError do
       set.draw do |map|
         map.connect 'page/:id', :controller => 'pages', :action => 'show', :id => /\d+$/
       end
     end
-    assert_raises ArgumentError do
+    assert_raise ArgumentError do
       set.draw do |map|
         map.connect 'page/:id', :controller => 'pages', :action => 'show', :id => /\d+\Z/
       end
     end
-    assert_raises ArgumentError do
+    assert_raise ArgumentError do
       set.draw do |map|
         map.connect 'page/:id', :controller => 'pages', :action => 'show', :id => /\d+\z/
       end
@@ -1851,22 +1858,30 @@ class RouteSetTest < Test::Unit::TestCase
       set.draw do |map|
         map.connect 'page/:id', :controller => 'pages', :action => 'show', :id => /\d+/, :name => /^(david|jamis)/
       end
-      assert_raises ActionController::RoutingError do
+      assert_raise ActionController::RoutingError do
         set.generate :controller => 'pages', :action => 'show', :id => 10
       end
     end
   end
 
   def test_route_requirements_with_invalid_http_method_is_invalid
-    assert_raises ArgumentError do
+    assert_raise ArgumentError do
       set.draw do |map|
         map.connect 'valid/route', :controller => 'pages', :action => 'show', :conditions => {:method => :invalid}
       end
     end
   end
 
+  def test_route_requirements_with_options_method_condition_is_valid
+    assert_nothing_raised do
+      set.draw do |map|
+        map.connect 'valid/route', :controller => 'pages', :action => 'show', :conditions => {:method => :options}
+      end
+    end
+  end
+
   def test_route_requirements_with_head_method_condition_is_invalid
-    assert_raises ArgumentError do
+    assert_raise ArgumentError do
       set.draw do |map|
         map.connect 'valid/route', :controller => 'pages', :action => 'show', :conditions => {:method => :head}
       end
@@ -1878,10 +1893,10 @@ class RouteSetTest < Test::Unit::TestCase
       map.connect 'page/37s', :controller => 'pages', :action => 'show', :name => /(jamis|david)/
     end
     assert_equal '/page/37s', set.generate(:controller => 'pages', :action => 'show', :name => 'jamis')
-    assert_raises ActionController::RoutingError do
+    assert_raise ActionController::RoutingError do
       set.generate(:controller => 'pages', :action => 'show', :name => 'not_jamis')
     end
-    assert_raises ActionController::RoutingError do
+    assert_raise ActionController::RoutingError do
       set.generate(:controller => 'pages', :action => 'show', :name => 'nor_jamis_and_david')
     end
   end
@@ -1924,7 +1939,7 @@ class RouteSetTest < Test::Unit::TestCase
     assert_equal("update", request.path_parameters[:action])
     request.recycle!
 
-    assert_raises(ActionController::UnknownHttpMethod) {
+    assert_raise(ActionController::UnknownHttpMethod) {
       request.env["REQUEST_METHOD"] = "BACON"
       set.recognize(request)
     }
@@ -2122,14 +2137,30 @@ class RouteSetTest < Test::Unit::TestCase
     Object.const_set(:Api, Module.new { |m| m.const_set(:ProductsController, Class.new) })
 
     set.draw do |map|
-
       map.namespace 'api', :path_prefix => 'prefix' do |api|
         api.route 'inventory', :controller => "products", :action => 'inventory'
       end
-
     end
 
     request.path = "/prefix/inventory"
+    request.env["REQUEST_METHOD"] = "GET"
+    assert_nothing_raised { set.recognize(request) }
+    assert_equal("api/products", request.path_parameters[:controller])
+    assert_equal("inventory", request.path_parameters[:action])
+  ensure
+    Object.send(:remove_const, :Api)
+  end
+
+  def test_namespace_with_blank_path_prefix
+    Object.const_set(:Api, Module.new { |m| m.const_set(:ProductsController, Class.new) })
+
+    set.draw do |map|
+      map.namespace 'api', :path_prefix => '' do |api|
+        api.route 'inventory', :controller => "products", :action => 'inventory'
+      end
+    end
+
+    request.path = "/inventory"
     request.env["REQUEST_METHOD"] = "GET"
     assert_nothing_raised { set.recognize(request) }
     assert_equal("api/products", request.path_parameters[:controller])
@@ -2202,6 +2233,13 @@ class RouteSetTest < Test::Unit::TestCase
     assert_equal "/my/foo/bar/7?x=y", set.generate(args)
   end
 
+  def test_generate_with_blank_path_prefix
+    set.draw { |map| map.connect ':controller/:action/:id', :path_prefix => '' }
+
+    args = { :controller => "foo", :action => "bar", :id => "7", :x => "y" }
+    assert_equal "/foo/bar/7?x=y", set.generate(args)
+  end
+
   def test_named_routes_are_never_relative_to_modules
     set.draw do |map|
       map.connect "/connection/manage/:action", :controller => 'connection/manage'
@@ -2234,6 +2272,22 @@ class RouteSetTest < Test::Unit::TestCase
     assert_equal '/post/edit?parameter=1', set.generate(
       {:action => 'edit', :parameter => 1},
       {:controller => 'post', :action => 'show', :parameter => 1}
+    )
+  end
+
+  def test_format_is_not_inherit
+    set.draw do |map|
+      map.connect '/posts.:format', :controller => 'posts'
+    end
+
+    assert_equal '/posts', set.generate(
+      {:controller => 'posts'},
+      {:controller => 'posts', :action => 'index', :format => 'xml'}
+    )
+
+    assert_equal '/posts.xml', set.generate(
+      {:controller => 'posts', :format => 'xml'},
+      {:controller => 'posts', :action => 'index', :format => 'xml'}
     )
   end
 
@@ -2293,7 +2347,7 @@ class RouteSetTest < Test::Unit::TestCase
   end
 
   def test_route_requirements_with_unsupported_regexp_options_must_error
-    assert_raises ArgumentError do
+    assert_raise ArgumentError do
       set.draw do |map|
         map.connect 'page/:name', :controller => 'pages',
           :action => 'show',
@@ -2331,7 +2385,7 @@ class RouteSetTest < Test::Unit::TestCase
         :requirements => {:name => /(david|jamis)/i}
     end
     assert_equal({:controller => 'pages', :action => 'show', :name => 'jamis'}, set.recognize_path('/page/jamis'))
-    assert_raises ActionController::RoutingError do
+    assert_raise ActionController::RoutingError do
       set.recognize_path('/page/davidjamis')
     end
     assert_equal({:controller => 'pages', :action => 'show', :name => 'DAVID'}, set.recognize_path('/page/DAVID'))
@@ -2345,7 +2399,7 @@ class RouteSetTest < Test::Unit::TestCase
     end
     url = set.generate({:controller => 'pages', :action => 'show', :name => 'david'})
     assert_equal "/page/david", url
-    assert_raises ActionController::RoutingError do
+    assert_raise ActionController::RoutingError do
       url = set.generate({:controller => 'pages', :action => 'show', :name => 'davidjamis'})
     end
     url = set.generate({:controller => 'pages', :action => 'show', :name => 'JAMIS'})
@@ -2365,10 +2419,10 @@ class RouteSetTest < Test::Unit::TestCase
     end
     assert_equal({:controller => 'pages', :action => 'show', :name => 'jamis'}, set.recognize_path('/page/jamis'))
     assert_equal({:controller => 'pages', :action => 'show', :name => 'david'}, set.recognize_path('/page/david'))
-    assert_raises ActionController::RoutingError do
+    assert_raise ActionController::RoutingError do
       set.recognize_path('/page/david #The Creator')
     end
-    assert_raises ActionController::RoutingError do
+    assert_raise ActionController::RoutingError do
       set.recognize_path('/page/David')
     end
   end
@@ -2386,10 +2440,10 @@ class RouteSetTest < Test::Unit::TestCase
     end
     url = set.generate({:controller => 'pages', :action => 'show', :name => 'david'})
     assert_equal "/page/david", url
-    assert_raises ActionController::RoutingError do
+    assert_raise ActionController::RoutingError do
       url = set.generate({:controller => 'pages', :action => 'show', :name => 'davidjamis'})
     end
-    assert_raises ActionController::RoutingError do
+    assert_raise ActionController::RoutingError do
       url = set.generate({:controller => 'pages', :action => 'show', :name => 'JAMIS'})
     end
   end

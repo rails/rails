@@ -102,8 +102,8 @@ module ActiveSupport #:nodoc:
         # 
         #   <%= link_to(@person.name, person_path %>
         #   # => <a href="/person/1-donald-e-knuth">Donald E. Knuth</a>
-        def parameterize
-          Inflector.parameterize(self)
+        def parameterize(sep = '-')
+          Inflector.parameterize(self, sep)
         end
 
         # Creates the name of a table like Rails does for models to table names. This method

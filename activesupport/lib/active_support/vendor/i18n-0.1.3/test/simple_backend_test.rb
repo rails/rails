@@ -155,7 +155,7 @@ class I18nSimpleBackendTranslateTest < Test::Unit::TestCase
   end
 
   def test_translate_given_an_array_of_inexistent_keys_it_raises_missing_translation_data
-    assert_raises I18n::MissingTranslationData do
+    assert_raise I18n::MissingTranslationData do
       @backend.translate('en', :does_not_exist, :scope => [:foo], :default => [:does_not_exist_2, :does_not_exist_3])
     end
   end
@@ -180,11 +180,11 @@ class I18nSimpleBackendTranslateTest < Test::Unit::TestCase
   end
 
   def test_translate_given_nil_as_a_locale_raises_an_argument_error
-    assert_raises(I18n::InvalidLocale){ @backend.translate nil, :bar }
+    assert_raise(I18n::InvalidLocale){ @backend.translate nil, :bar }
   end
 
   def test_translate_with_a_bogus_key_and_no_default_raises_missing_translation_data
-    assert_raises(I18n::MissingTranslationData){ @backend.translate 'de', :bogus }
+    assert_raise(I18n::MissingTranslationData){ @backend.translate 'de', :bogus }
   end
 end
 
@@ -230,15 +230,15 @@ class I18nSimpleBackendPluralizeTest < Test::Unit::TestCase
   end
 
   def test_interpolate_given_incomplete_pluralization_data_raises_invalid_pluralization_data
-    assert_raises(I18n::InvalidPluralizationData){ @backend.send(:pluralize, nil, {:one => 'bar'}, 2) }
+    assert_raise(I18n::InvalidPluralizationData){ @backend.send(:pluralize, nil, {:one => 'bar'}, 2) }
   end
 
   # def test_interpolate_given_a_string_raises_invalid_pluralization_data
-  #   assert_raises(I18n::InvalidPluralizationData){ @backend.send(:pluralize, nil, 'bar', 2) }
+  #   assert_raise(I18n::InvalidPluralizationData){ @backend.send(:pluralize, nil, 'bar', 2) }
   # end
   #
   # def test_interpolate_given_an_array_raises_invalid_pluralization_data
-  #   assert_raises(I18n::InvalidPluralizationData){ @backend.send(:pluralize, nil, ['bar'], 2) }
+  #   assert_raise(I18n::InvalidPluralizationData){ @backend.send(:pluralize, nil, ['bar'], 2) }
   # end
 end
 
@@ -251,6 +251,32 @@ class I18nSimpleBackendInterpolateTest < Test::Unit::TestCase
 
   def test_interpolate_given_a_value_hash_interpolates_into_unicode_string
     assert_equal 'Häi David!', @backend.send(:interpolate, nil, 'Häi {{name}}!', :name => 'David')
+  end
+
+  def test_interpolate_given_an_unicode_value_hash_interpolates_to_the_string
+    assert_equal 'Hi ゆきひろ!', @backend.send(:interpolate, nil, 'Hi {{name}}!', :name => 'ゆきひろ')
+  end
+
+  def test_interpolate_given_an_unicode_value_hash_interpolates_into_unicode_string
+    assert_equal 'こんにちは、ゆきひろさん!', @backend.send(:interpolate, nil, 'こんにちは、{{name}}さん!', :name => 'ゆきひろ')
+  end
+
+  if Kernel.const_defined?(:Encoding)
+    def test_interpolate_given_a_non_unicode_multibyte_value_hash_interpolates_into_a_string_with_the_same_encoding
+      assert_equal euc_jp('Hi ゆきひろ!'), @backend.send(:interpolate, nil, 'Hi {{name}}!', :name => euc_jp('ゆきひろ'))
+    end
+
+    def test_interpolate_given_an_unicode_value_hash_into_a_non_unicode_multibyte_string_raises_encoding_compatibility_error
+      assert_raise(Encoding::CompatibilityError) do
+        @backend.send(:interpolate, nil, euc_jp('こんにちは、{{name}}さん!'), :name => 'ゆきひろ')
+      end
+    end
+
+    def test_interpolate_given_a_non_unicode_multibyte_value_hash_into_an_unicode_string_raises_encoding_compatibility_error
+      assert_raise(Encoding::CompatibilityError) do
+        @backend.send(:interpolate, nil, 'こんにちは、{{name}}さん!', :name => euc_jp('ゆきひろ'))
+      end
+    end
   end
 
   def test_interpolate_given_nil_as_a_string_returns_nil
@@ -266,11 +292,17 @@ class I18nSimpleBackendInterpolateTest < Test::Unit::TestCase
   end
 
   def test_interpolate_given_an_empty_values_hash_raises_missing_interpolation_argument
-    assert_raises(I18n::MissingInterpolationArgument) { @backend.send(:interpolate, nil, 'Hi {{name}}!', {}) }
+    assert_raise(I18n::MissingInterpolationArgument) { @backend.send(:interpolate, nil, 'Hi {{name}}!', {}) }
   end
 
   def test_interpolate_given_a_string_containing_a_reserved_key_raises_reserved_interpolation_key
-    assert_raises(I18n::ReservedInterpolationKey) { @backend.send(:interpolate, nil, '{{default}}', {:default => nil}) }
+    assert_raise(I18n::ReservedInterpolationKey) { @backend.send(:interpolate, nil, '{{default}}', {:default => nil}) }
+  end
+  
+  private
+  
+  def euc_jp(string)
+    string.encode!(Encoding::EUC_JP)
   end
 end
 
@@ -320,11 +352,11 @@ class I18nSimpleBackendLocalizeDateTest < Test::Unit::TestCase
   end
 
   def test_localize_nil_raises_argument_error
-    assert_raises(I18n::ArgumentError) { @backend.localize 'de', nil }
+    assert_raise(I18n::ArgumentError) { @backend.localize 'de', nil }
   end
 
   def test_localize_object_raises_argument_error
-    assert_raises(I18n::ArgumentError) { @backend.localize 'de', Object.new }
+    assert_raise(I18n::ArgumentError) { @backend.localize 'de', Object.new }
   end
 end
 
@@ -454,7 +486,7 @@ class I18nSimpleBackendLoadTranslationsTest < Test::Unit::TestCase
   include I18nSimpleBackendTestSetup
 
   def test_load_translations_with_unknown_file_type_raises_exception
-    assert_raises(I18n::UnknownFileType) { @backend.load_translations "#{@locale_dir}/en.xml" }
+    assert_raise(I18n::UnknownFileType) { @backend.load_translations "#{@locale_dir}/en.xml" }
   end
 
   def test_load_translations_with_ruby_file_type_does_not_raise_exception
@@ -485,9 +517,21 @@ end
 class I18nSimpleBackendLoadPathTest < Test::Unit::TestCase
   include I18nSimpleBackendTestSetup
 
+  def teardown
+    I18n.load_path = []
+  end
+
   def test_nested_load_paths_do_not_break_locale_loading
     @backend = I18n::Backend::Simple.new
     I18n.load_path = [[File.dirname(__FILE__) + '/locale/en.yml']]
+    assert_nil backend_get_translations
+    assert_nothing_raised { @backend.send :init_translations }
+    assert_not_nil backend_get_translations
+  end
+
+  def test_adding_arrays_of_filenames_to_load_path_do_not_break_locale_loading
+    @backend = I18n::Backend::Simple.new
+    I18n.load_path << Dir[File.dirname(__FILE__) + '/locale/*.{rb,yml}']
     assert_nil backend_get_translations
     assert_nothing_raised { @backend.send :init_translations }
     assert_not_nil backend_get_translations

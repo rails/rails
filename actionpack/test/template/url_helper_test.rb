@@ -220,7 +220,7 @@ class UrlHelperTest < ActionView::TestCase
   end
 
   def test_link_tag_using_post_javascript_and_popup
-    assert_raises(ActionView::ActionViewError) { link_to("Hello", "http://www.example.com", :popup => true, :method => :post, :confirm => "Are you serious?") }
+    assert_raise(ActionView::ActionViewError) { link_to("Hello", "http://www.example.com", :popup => true, :method => :post, :confirm => "Are you serious?") }
   end
 
   def test_link_tag_using_block_in_erb

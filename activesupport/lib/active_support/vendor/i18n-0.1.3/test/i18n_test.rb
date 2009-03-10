@@ -116,10 +116,10 @@ class I18nTest < Test::Unit::TestCase
   end
 
   def test_localize_nil_raises_argument_error
-    assert_raises(I18n::ArgumentError) { I18n.l nil }
+    assert_raise(I18n::ArgumentError) { I18n.l nil }
   end
 
   def test_localize_object_raises_argument_error
-    assert_raises(I18n::ArgumentError) { I18n.l Object.new }
+    assert_raise(I18n::ArgumentError) { I18n.l Object.new }
   end
 end

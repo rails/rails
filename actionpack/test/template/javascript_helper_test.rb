@@ -45,11 +45,6 @@ class JavaScriptHelperTest < ActionView::TestCase
       link_to_function("Greeting", "alert('Hello world!')", :href => 'http://example.com/')
   end
 
-  def test_link_to_function_with_href
-    assert_dom_equal %(<a href="http://example.com/" onclick="alert('Hello world!'); return false;">Greeting</a>),
-      link_to_function("Greeting", "alert('Hello world!')", :href => 'http://example.com/')
-  end
-
   def test_button_to_function
     assert_dom_equal %(<input type="button" onclick="alert('Hello world!');" value="Greeting" />),
       button_to_function("Greeting", "alert('Hello world!')")

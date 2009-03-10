@@ -99,7 +99,7 @@ class UrlWriterTests < ActionController::TestCase
   end
 
   def test_exception_is_thrown_without_host
-    assert_raises RuntimeError do
+    assert_raise RuntimeError do
       W.new.url_for :controller => 'c', :action => 'a', :id => 'i'
     end
   end

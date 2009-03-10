@@ -88,7 +88,10 @@ module ActionMailer
           part.parts << prt
         end
         
-        part.set_content_type(real_content_type, nil, ctype_attrs) if real_content_type =~ /multipart/
+        if real_content_type =~ /multipart/
+          ctype_attrs.delete 'charset'
+          part.set_content_type(real_content_type, nil, ctype_attrs)
+        end
       end
 
       headers.each { |k,v| part[k] = v }

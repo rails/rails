@@ -19,6 +19,30 @@ class ActiveRecordHelperTest < ActionView::TestCase
     Column = Struct.new("Column", :type, :name, :human_name)
   end
 
+  class DirtyPost
+    class Errors
+      def empty?
+        false
+      end
+
+      def count
+        1
+      end
+
+      def full_messages
+        ["Author name can't be <em>empty</em>"]
+      end
+
+      def on(field)
+        "can't be <em>empty</em>"
+      end
+    end
+
+    def errors
+      Errors.new
+    end
+  end
+
   def setup_post
     @post = Post.new
     def @post.errors
@@ -195,8 +219,18 @@ class ActiveRecordHelperTest < ActionView::TestCase
     assert_equal %(<div class="errorDeathByClass"><h1>1 error prohibited this post from being saved</h1><p>There were problems with the following fields:</p><ul><li>Author name can't be empty</li></ul></div>), error_messages_for("post", :class => "errorDeathByClass", :id => nil, :header_tag => "h1")
   end
 
+  def test_error_messages_for_escapes_html
+    @dirty_post = DirtyPost.new
+    assert_dom_equal %(<div class="errorExplanation" id="errorExplanation"><h2>1 error prohibited this dirty post from being saved</h2><p>There were problems with the following fields:</p><ul><li>Author name can't be &lt;em&gt;empty&lt;/em&gt;</li></ul></div>), error_messages_for("dirty_post")
+  end
+
   def test_error_messages_for_handles_nil
     assert_equal "", error_messages_for("notthere")
+  end
+
+  def test_error_message_on_escapes_html
+    @dirty_post = DirtyPost.new
+    assert_dom_equal "<div class=\"formError\">can't be &lt;em&gt;empty&lt;/em&gt;</div>", error_message_on(:dirty_post, :author_name)
   end
 
   def test_error_message_on_handles_nil

@@ -24,6 +24,7 @@ end
 #reloads the environment
 def reload!
   puts "Reloading..."
+  Dispatcher.cleanup_application
   Dispatcher.reload_application
   true
 end

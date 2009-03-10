@@ -161,13 +161,13 @@ class InflectorTest < Test::Unit::TestCase
     assert_nothing_raised { assert_equal Ace::Base::Case, ActiveSupport::Inflector.constantize("::Ace::Base::Case") }
     assert_nothing_raised { assert_equal InflectorTest, ActiveSupport::Inflector.constantize("InflectorTest") }
     assert_nothing_raised { assert_equal InflectorTest, ActiveSupport::Inflector.constantize("::InflectorTest") }
-    assert_raises(NameError) { ActiveSupport::Inflector.constantize("UnknownClass") }
-    assert_raises(NameError) { ActiveSupport::Inflector.constantize("An invalid string") }
-    assert_raises(NameError) { ActiveSupport::Inflector.constantize("InvalidClass\n") }
+    assert_raise(NameError) { ActiveSupport::Inflector.constantize("UnknownClass") }
+    assert_raise(NameError) { ActiveSupport::Inflector.constantize("An invalid string") }
+    assert_raise(NameError) { ActiveSupport::Inflector.constantize("InvalidClass\n") }
   end
 
   def test_constantize_does_lexical_lookup
-    assert_raises(NameError) { ActiveSupport::Inflector.constantize("Ace::Base::InflectorTest") }
+    assert_raise(NameError) { ActiveSupport::Inflector.constantize("Ace::Base::InflectorTest") }
   end
 
   def test_ordinal

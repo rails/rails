@@ -98,7 +98,6 @@ module ActionController
           if Array === item
             i += 1
             start = (i == 1)
-            final = (i == list.size)
             tag, sub = item
             if tag == :dynamic
               body += padding + "#{start ? 'if' : 'elsif'} true\n"

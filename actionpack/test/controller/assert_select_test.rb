@@ -76,7 +76,7 @@ class AssertSelectTest < ActionController::TestCase
   end
 
   def assert_failure(message, &block)
-    e = assert_raises(Assertion, &block)
+    e = assert_raise(Assertion, &block)
     assert_match(message, e.message) if Regexp === message
     assert_equal(message, e.message) if String === message
   end
@@ -95,24 +95,24 @@ class AssertSelectTest < ActionController::TestCase
   def test_equality_true_false
     render_html %Q{<div id="1"></div><div id="2"></div>}
     assert_nothing_raised    { assert_select "div" }
-    assert_raises(Assertion) { assert_select "p" }
+    assert_raise(Assertion) { assert_select "p" }
     assert_nothing_raised    { assert_select "div", true }
-    assert_raises(Assertion) { assert_select "p", true }
-    assert_raises(Assertion) { assert_select "div", false }
+    assert_raise(Assertion) { assert_select "p", true }
+    assert_raise(Assertion) { assert_select "div", false }
     assert_nothing_raised    { assert_select "p", false }
   end
 
   def test_equality_string_and_regexp
     render_html %Q{<div id="1">foo</div><div id="2">foo</div>}
     assert_nothing_raised    { assert_select "div", "foo" }
-    assert_raises(Assertion) { assert_select "div", "bar" }
+    assert_raise(Assertion) { assert_select "div", "bar" }
     assert_nothing_raised    { assert_select "div", :text=>"foo" }
-    assert_raises(Assertion) { assert_select "div", :text=>"bar" }
+    assert_raise(Assertion) { assert_select "div", :text=>"bar" }
     assert_nothing_raised    { assert_select "div", /(foo|bar)/ }
-    assert_raises(Assertion) { assert_select "div", /foobar/ }
+    assert_raise(Assertion) { assert_select "div", /foobar/ }
     assert_nothing_raised    { assert_select "div", :text=>/(foo|bar)/ }
-    assert_raises(Assertion) { assert_select "div", :text=>/foobar/ }
-    assert_raises(Assertion) { assert_select "p", :text=>/foobar/ }
+    assert_raise(Assertion) { assert_select "div", :text=>/foobar/ }
+    assert_raise(Assertion) { assert_select "p", :text=>/foobar/ }
   end
 
   def test_equality_of_html
@@ -120,17 +120,17 @@ class AssertSelectTest < ActionController::TestCase
     text = "\"This is not a big problem,\" he said."
     html = "<em>\"This is <strong>not</strong> a big problem,\"</em> he said."
     assert_nothing_raised    { assert_select "p", text }
-    assert_raises(Assertion) { assert_select "p", html }
+    assert_raise(Assertion) { assert_select "p", html }
     assert_nothing_raised    { assert_select "p", :html=>html }
-    assert_raises(Assertion) { assert_select "p", :html=>text }
+    assert_raise(Assertion) { assert_select "p", :html=>text }
     # No stripping for pre.
     render_html %Q{<pre>\n<em>"This is <strong>not</strong> a big problem,"</em> he said.\n</pre>}
     text = "\n\"This is not a big problem,\" he said.\n"
     html = "\n<em>\"This is <strong>not</strong> a big problem,\"</em> he said.\n"
     assert_nothing_raised    { assert_select "pre", text }
-    assert_raises(Assertion) { assert_select "pre", html }
+    assert_raise(Assertion) { assert_select "pre", html }
     assert_nothing_raised    { assert_select "pre", :html=>html }
-    assert_raises(Assertion) { assert_select "pre", :html=>text }
+    assert_raise(Assertion) { assert_select "pre", :html=>text }
   end
 
   def test_counts
@@ -210,12 +210,12 @@ class AssertSelectTest < ActionController::TestCase
       assert_nothing_raised    { assert_select "div", "bar" }
       assert_nothing_raised    { assert_select "div", /\w*/ }
       assert_nothing_raised    { assert_select "div", /\w*/, :count=>2 }
-      assert_raises(Assertion) { assert_select "div", :text=>"foo", :count=>2 }
+      assert_raise(Assertion) { assert_select "div", :text=>"foo", :count=>2 }
       assert_nothing_raised    { assert_select "div", :html=>"<span>bar</span>" }
       assert_nothing_raised    { assert_select "div", :html=>"<span>bar</span>" }
       assert_nothing_raised    { assert_select "div", :html=>/\w*/ }
       assert_nothing_raised    { assert_select "div", :html=>/\w*/, :count=>2 }
-      assert_raises(Assertion) { assert_select "div", :html=>"<span>foo</span>", :count=>2 }
+      assert_raise(Assertion) { assert_select "div", :html=>"<span>foo</span>", :count=>2 }
     end
   end
 
@@ -253,7 +253,12 @@ class AssertSelectTest < ActionController::TestCase
       page.insert_html :top, "test1", "<div id=\"1\">foo</div>"
       page.insert_html :bottom, "test2", "<div id=\"2\">foo</div>"
     end
-    assert_raises(Assertion) {assert_select_rjs :insert, :top, "test2"}
+    assert_raise(Assertion) {assert_select_rjs :insert, :top, "test2"}
+  end
+
+  def test_elect_with_xml_namespace_attributes
+    render_html %Q{<link xlink:href="http://nowhere.com"></link>}
+    assert_nothing_raised { assert_select "link[xlink:href=http://nowhere.com]" }
   end
 
   #
@@ -331,7 +336,7 @@ class AssertSelectTest < ActionController::TestCase
   # Test that we fail if there is nothing to pick.
   def test_assert_select_rjs_fails_if_nothing_to_pick
     render_rjs { }
-    assert_raises(Assertion) { assert_select_rjs }
+    assert_raise(Assertion) { assert_select_rjs }
   end
 
   def test_assert_select_rjs_with_unicode
@@ -346,10 +351,10 @@ class AssertSelectTest < ActionController::TestCase
       if str.respond_to?(:force_encoding)
         str.force_encoding(Encoding::UTF_8)
         assert_select str, /\343\203\201..\343\203\210/u
-        assert_raises(Assertion) { assert_select str, /\343\203\201.\343\203\210/u }
+        assert_raise(Assertion) { assert_select str, /\343\203\201.\343\203\210/u }
       else
         assert_select str, Regexp.new("\343\203\201..\343\203\210",0,'U')
-        assert_raises(Assertion) { assert_select str, Regexp.new("\343\203\201.\343\203\210",0,'U') }
+        assert_raise(Assertion) { assert_select str, Regexp.new("\343\203\201.\343\203\210",0,'U') }
       end
     end
   end
@@ -373,7 +378,7 @@ class AssertSelectTest < ActionController::TestCase
       assert_select "div", 1
       assert_select "#3"
     end
-    assert_raises(Assertion) { assert_select_rjs "test4" }
+    assert_raise(Assertion) { assert_select_rjs "test4" }
   end
 
   def test_assert_select_rjs_for_replace
@@ -391,7 +396,7 @@ class AssertSelectTest < ActionController::TestCase
       assert_select "div", 1
       assert_select "#1"
     end
-    assert_raises(Assertion) { assert_select_rjs :replace, "test2" }
+    assert_raise(Assertion) { assert_select_rjs :replace, "test2" }
     # Replace HTML.
     assert_select_rjs :replace_html do
       assert_select "div", 1
@@ -401,7 +406,7 @@ class AssertSelectTest < ActionController::TestCase
       assert_select "div", 1
       assert_select "#2"
     end
-    assert_raises(Assertion) { assert_select_rjs :replace_html, "test1" }
+    assert_raise(Assertion) { assert_select_rjs :replace_html, "test1" }
   end
 
   def test_assert_select_rjs_for_chained_replace
@@ -419,7 +424,7 @@ class AssertSelectTest < ActionController::TestCase
       assert_select "div", 1
       assert_select "#1"
     end
-    assert_raises(Assertion) { assert_select_rjs :chained_replace, "test2" }
+    assert_raise(Assertion) { assert_select_rjs :chained_replace, "test2" }
     # Replace HTML.
     assert_select_rjs :chained_replace_html do
       assert_select "div", 1
@@ -429,7 +434,7 @@ class AssertSelectTest < ActionController::TestCase
       assert_select "div", 1
       assert_select "#2"
     end
-    assert_raises(Assertion) { assert_select_rjs :replace_html, "test1" }
+    assert_raise(Assertion) { assert_select_rjs :replace_html, "test1" }
   end
 
   # Simple remove
@@ -575,7 +580,7 @@ class AssertSelectTest < ActionController::TestCase
       assert_select "div", 1
       assert_select "#3"
     end
-    assert_raises(Assertion) { assert_select_rjs :insert_html, "test1" }
+    assert_raise(Assertion) { assert_select_rjs :insert_html, "test1" }
   end
 
   # Positioned insert.
@@ -608,8 +613,8 @@ class AssertSelectTest < ActionController::TestCase
   end
 
   def test_assert_select_rjs_raise_errors
-    assert_raises(ArgumentError) { assert_select_rjs(:destroy) }
-    assert_raises(ArgumentError) { assert_select_rjs(:insert, :left) }
+    assert_raise(ArgumentError) { assert_select_rjs(:destroy) }
+    assert_raise(ArgumentError) { assert_select_rjs(:insert, :left) }
   end
 
   # Simple selection from a single result.
@@ -701,7 +706,7 @@ EOF
   #
 
   def test_assert_select_email
-    assert_raises(Assertion) { assert_select_email {} }
+    assert_raise(Assertion) { assert_select_email {} }
     AssertSelectMailer.deliver_test "<div><p>foo</p><p>bar</p></div>"
     assert_select_email do
       assert_select "div:root" do

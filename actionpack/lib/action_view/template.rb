@@ -103,12 +103,12 @@ module ActionView #:nodoc:
       @@exempt_from_layout.merge(regexps)
     end
 
-    attr_accessor :filename, :load_path, :base_path
+    attr_accessor :template_path, :filename, :load_path, :base_path
     attr_accessor :locale, :name, :format, :extension
     delegate :to_s, :to => :path
 
     def initialize(template_path, load_path)
-      template_path = template_path.dup
+      @template_path = template_path.dup
       @load_path, @filename = load_path, File.join(load_path, template_path)
       @base_path, @name, @locale, @format, @extension = split(template_path)
       @base_path.to_s.gsub!(/\/$/, '') # Push to split method
@@ -119,13 +119,20 @@ module ActionView #:nodoc:
 
     def accessible_paths
       paths = []
-      paths << path
-      paths << path_without_extension
-      if multipart?
-        formats = format.split(".")
-        paths << "#{path_without_format_and_extension}.#{formats.first}"
-        paths << "#{path_without_format_and_extension}.#{formats.second}"
+
+      if valid_extension?(extension)
+        paths << path
+        paths << path_without_extension
+        if multipart?
+          formats = format.split(".")
+          paths << "#{path_without_format_and_extension}.#{formats.first}"
+          paths << "#{path_without_format_and_extension}.#{formats.second}"
+        end
+      else
+        # template without explicit template handler should only be reachable through its exact path
+        paths << template_path
       end
+
       paths
     end
 

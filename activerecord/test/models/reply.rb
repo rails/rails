@@ -37,3 +37,9 @@ end
 class SillyReply < Reply
   belongs_to :reply, :foreign_key => "parent_id", :counter_cache => :replies_count
 end
+
+module Web
+  class Reply < Web::Topic
+    belongs_to :topic, :foreign_key => "parent_id", :counter_cache => true, :class_name => 'Web::Topic'
+  end
+end

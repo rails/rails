@@ -396,7 +396,7 @@ There are a bunch of different types of assertions you can use. Here's the compl
 |+assert_no_match( regexp, string, [msg] )+                        |Ensures that a string doesn't matches the regular expression.|
 |+assert_in_delta( expecting, actual, delta, [msg] )+              |Ensures that the numbers +expecting+ and +actual+ are within +delta+ of each other.|
 |+assert_throws( symbol, [msg] ) { block }+                        |Ensures that the given block throws the symbol.|
-|+assert_raises( exception1, exception2, ... ) { block }+          |Ensures that the given block raises one of the given exceptions.|
+|+assert_raise( exception1, exception2, ... ) { block }+          |Ensures that the given block raises one of the given exceptions.|
 |+assert_nothing_raised( exception1, exception2, ... ) { block }+  |Ensures that the given block doesn't raise one of the given exceptions.|
 |+assert_instance_of( class, obj, [msg] )+                         |Ensures that +obj+ is of the +class+ type.|
 |+assert_kind_of( class, obj, [msg] )+                             |Ensures that +obj+ is or descends from +class+.|

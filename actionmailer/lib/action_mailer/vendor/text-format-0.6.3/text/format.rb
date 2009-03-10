@@ -1150,7 +1150,7 @@ if __FILE__ == $0
       assert_equal(Text::Format::JUSTIFY, @format_o.format_style)
       assert_match(/^of freedom, and that government of the people, by the  people,  for  the$/,
                    @format_o.format(GETTYSBURG).split("\n")[-3])
-      assert_raises(ArgumentError) { @format_o.format_style = 33 }
+      assert_raise(ArgumentError) { @format_o.format_style = 33 }
     end
 
     def test_tag_paragraph

@@ -145,6 +145,10 @@ module RenderTestCases
     assert_equal File.expand_path("#{FIXTURE_LOAD_PATH}/test/_raise.html.erb"), e.file_name
   end
 
+  def test_render_object
+    assert_equal "Hello: david", @view.render(:partial => "test/customer", :object => Customer.new("david"))
+  end
+
   def test_render_partial_collection
     assert_equal "Hello: davidHello: mary", @view.render(:partial => "test/customer", :collection => [ Customer.new("david"), Customer.new("mary") ])
   end
@@ -222,6 +226,16 @@ module RenderTestCases
   def test_render_legacy_handler_with_custom_type
     ActionView::Template.register_template_handler :foo, LegacyHandler
     assert_equal 'source: Hello, <%= name %>!; locals: {:name=>"Josh"}', @view.render(:inline => "Hello, <%= name %>!", :locals => { :name => "Josh" }, :type => :foo)
+  end
+
+  def test_render_ignores_templates_with_malformed_template_handlers
+    %w(malformed malformed.erb malformed.html.erb malformed.en.html.erb).each do |name|
+      assert_raise(ActionView::MissingTemplate) { @view.render(:file => "test/malformed/#{name}") }
+    end
+  end
+
+  def test_template_with_malformed_template_handler_is_reachable_through_its_exact_filename
+    assert_equal "Don't render me!", @view.render(:file => 'test/malformed/malformed.html.erb~')
   end
 
   def test_render_with_layout

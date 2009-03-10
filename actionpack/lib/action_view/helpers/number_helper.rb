@@ -15,6 +15,7 @@ module ActionView
       # * <tt>:country_code</tt>  - Sets the country code for the phone number.
       #
       # ==== Examples
+      #  number_to_phone(5551234)                                           # => 555-1234
       #  number_to_phone(1235551234)                                        # => 123-555-1234
       #  number_to_phone(1235551234, :area_code => true)                    # => (123) 555-1234
       #  number_to_phone(1235551234, :delimiter => " ")                     # => 123 555 1234
@@ -37,7 +38,8 @@ module ActionView
           str << if area_code
             number.gsub!(/([0-9]{1,3})([0-9]{3})([0-9]{4}$)/,"(\\1) \\2#{delimiter}\\3")
           else
-            number.gsub!(/([0-9]{1,3})([0-9]{3})([0-9]{4})$/,"\\1#{delimiter}\\2#{delimiter}\\3")
+            number.gsub!(/([0-9]{0,3})([0-9]{3})([0-9]{4})$/,"\\1#{delimiter}\\2#{delimiter}\\3")
+            number.starts_with?('-') ? number.slice!(1..-1) : number
           end
           str << " x #{extension}" unless extension.blank?
           str

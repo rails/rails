@@ -28,7 +28,8 @@ task :default => :test
 ## we can see the failures
 task :test do 
   Dir['test/**/*_test.rb'].all? do |file|
-    system("ruby -Itest #{file}")
+    ruby = File.join(*RbConfig::CONFIG.values_at('bindir', 'RUBY_INSTALL_NAME'))
+    system(ruby, '-Itest', file)
   end or raise "Failures"
 end
 
@@ -310,11 +311,11 @@ spec = Gem::Specification.new do |s|
   EOF
 
   s.add_dependency('rake', '>= 0.8.3')
-  s.add_dependency('activesupport',    '= 2.3.0' + PKG_BUILD)
-  s.add_dependency('activerecord',     '= 2.3.0' + PKG_BUILD)
-  s.add_dependency('actionpack',       '= 2.3.0' + PKG_BUILD)
-  s.add_dependency('actionmailer',     '= 2.3.0' + PKG_BUILD)
-  s.add_dependency('activeresource',   '= 2.3.0' + PKG_BUILD)
+  s.add_dependency('activesupport',    '= 2.3.1' + PKG_BUILD)
+  s.add_dependency('activerecord',     '= 2.3.1' + PKG_BUILD)
+  s.add_dependency('actionpack',       '= 2.3.1' + PKG_BUILD)
+  s.add_dependency('actionmailer',     '= 2.3.1' + PKG_BUILD)
+  s.add_dependency('activeresource',   '= 2.3.1' + PKG_BUILD)
 
   s.rdoc_options << '--exclude' << '.'
   s.has_rdoc = false
@@ -343,9 +344,12 @@ task :pgem => [:gem] do
   `ssh gems.rubyonrails.org '/u/sites/gems/gemupdate.sh'`
 end
 
-desc "Publish the API documentation"
-task :pdoc => :rdoc do
-  # railties API isn't separately published
+desc "Publish the guides"
+task :pguides => :guides do
+  mkdir_p 'pkg'
+  `tar -czf pkg/guides.gz guides/output`
+  Rake::SshFilePublisher.new("web.rubyonrails.org", "/u/sites/guides.rubyonrails.org/public", "pkg", "guides.gz").upload
+  `ssh web.rubyonrails.org 'cd /u/sites/guides.rubyonrails.org/public/ && tar -xvzf guides.gz && mv guides/output/* . && rm -rf guides*'`
 end
 
 desc "Publish the release files to RubyForge."

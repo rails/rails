@@ -107,10 +107,10 @@ class AuthorizationTest < Test::Unit::TestCase
   end
 
   def test_raises_invalid_request_on_unauthorized_requests
-    assert_raises(ActiveResource::InvalidRequestError) { @conn.post("/people/2.xml") }
-    assert_raises(ActiveResource::InvalidRequestError) { @conn.post("/people/2/addresses.xml") }
-    assert_raises(ActiveResource::InvalidRequestError) { @conn.put("/people/2.xml") }
-    assert_raises(ActiveResource::InvalidRequestError) { @conn.delete("/people/2.xml") }
+    assert_raise(ActiveResource::InvalidRequestError) { @conn.post("/people/2.xml") }
+    assert_raise(ActiveResource::InvalidRequestError) { @conn.post("/people/2/addresses.xml") }
+    assert_raise(ActiveResource::InvalidRequestError) { @conn.put("/people/2.xml") }
+    assert_raise(ActiveResource::InvalidRequestError) { @conn.delete("/people/2.xml") }
   end
 
   protected

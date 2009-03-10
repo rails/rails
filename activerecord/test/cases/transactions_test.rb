@@ -214,7 +214,7 @@ class TransactionTest < ActiveRecord::TestCase
   end
 
   def test_invalid_keys_for_transaction
-    assert_raises ArgumentError do
+    assert_raise ArgumentError do
       Topic.transaction :nested => true do
       end
     end
@@ -370,7 +370,7 @@ class TransactionTest < ActiveRecord::TestCase
 
     # Test now inside a transaction: add_column should raise a StatementInvalid
     Topic.transaction do
-      assert_raises(ActiveRecord::StatementInvalid) { Topic.connection.add_column('topics', 'stuff', :string) }
+      assert_raise(ActiveRecord::StatementInvalid) { Topic.connection.add_column('topics', 'stuff', :string) }
       raise ActiveRecord::Rollback
     end
   end
