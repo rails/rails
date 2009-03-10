@@ -1,3 +1,8 @@
+*Edge
+
+* Time.local instances: Adding 24.hours across the DST boundary adds 24 hours instead of one day #2066 [Michael Curtis]
+
+
 *2.3.2 [Final] (March 15, 2009)*
 
 * XmlMini supports LibXML and Nokogiri backends.  #2084, #2190 [Bart ten Brinke, Aaron Patterson]
