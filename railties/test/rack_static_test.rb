@@ -4,6 +4,14 @@ require 'action_controller'
 require 'rails/rack'
 
 class RackStaticTest < ActiveSupport::TestCase
+  def setup
+    FileUtils.cp_r "#{RAILS_ROOT}/fixtures/public", "#{RAILS_ROOT}/public"
+  end
+
+  def teardown
+    FileUtils.rm_rf "#{RAILS_ROOT}/public"
+  end
+
   DummyApp = lambda { |env|
     [200, {"Content-Type" => "text/plain"}, ["Hello, World!"]]
   }
