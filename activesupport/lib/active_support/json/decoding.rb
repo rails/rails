@@ -58,16 +58,8 @@ module ActiveSupport
             right_pos = marks << scanner.pos + scanner.rest_size
             output    = []
             left_pos.each_with_index do |left, i|
-              output << json[left.succ..right_pos[i]].gsub(/\\([\\\/]|u[[:xdigit:]]{4})/) do
-                ustr = $1
-                if ustr.starts_with?('u')
-                  [ustr[1..-1].to_i(16)].pack("U")
-                elsif ustr == '\\'
-                '\\\\'
-                else
-                  ustr
-                end
-              end
+              scanner.pos = left.succ
+              output << scanner.peek(right_pos[i] - scanner.pos + 1)
             end
             output = output * " "
             
