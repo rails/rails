@@ -247,7 +247,7 @@ class NamedScopeTest < ActiveRecord::TestCase
     topic = Topic.approved.create!({})
     assert topic.approved
   end
-  
+
   def test_should_build_with_proxy_options_chained
     topic = Topic.approved.by_lifo.build({})
     assert topic.approved
@@ -287,15 +287,21 @@ class NamedScopeTest < ActiveRecord::TestCase
     assert_equal post.comments.size, Post.scoped(:joins => join).scoped(:joins => join, :conditions => "posts.id = #{post.id}").size
   end
 
-  def test_chanining_should_use_latest_conditions_when_creating
-    post1 = Topic.rejected.approved.new
-    assert post1.approved?
+  def test_chaining_should_use_latest_conditions_when_creating
+    post = Topic.rejected.new
+    assert !post.approved?
 
-    post2 = Topic.approved.rejected.new
-    assert ! post2.approved?
+    post = Topic.rejected.approved.new
+    assert post.approved?
+
+    post = Topic.approved.rejected.new
+    assert !post.approved?
+
+    post = Topic.approved.rejected.approved.new
+    assert post.approved?
   end
 
-  def test_chanining_should_use_latest_conditions_when_searching
+  def test_chaining_should_use_latest_conditions_when_searching
     # Normal hash conditions
     assert_equal Topic.all(:conditions => {:approved => true}), Topic.rejected.approved.all
     assert_equal Topic.all(:conditions => {:approved => false}), Topic.approved.rejected.all
@@ -306,7 +312,7 @@ class NamedScopeTest < ActiveRecord::TestCase
     # Nested hash conditions with different keys
     assert_equal [posts(:sti_comments)], Post.with_special_comments.with_post(4).all.uniq
   end
-  
+
   def test_methods_invoked_within_scopes_should_respect_scope
     assert_equal [], Topic.approved.by_rejected_ids.proxy_options[:conditions][:id]
   end
