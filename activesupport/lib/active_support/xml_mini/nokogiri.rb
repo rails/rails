@@ -1,4 +1,4 @@
-# = XML Mini Nokogiri implementation
+# = XmlMini Nokogiri implementation
 module ActiveSupport
   module XmlMini_Nokogiri #:nodoc:
     extend self
@@ -7,8 +7,11 @@ module ActiveSupport
     # string::
     #   XML Document string to parse
     def parse(string)
-      return {} if string.blank?
-      doc = Nokogiri::XML(string).to_hash
+      if string.blank?
+        {}
+      else
+        Nokogiri::XML(string).to_hash
+      end
     end
 
     module Conversions

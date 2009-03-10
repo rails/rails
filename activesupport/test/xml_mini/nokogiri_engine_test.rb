@@ -1,8 +1,11 @@
 require 'abstract_unit'
 require 'active_support/xml_mini'
 
-
 begin
+  gem 'nokogiri', '>= 1.1.1'
+rescue Gem::LoadError
+  # Skip nokogiri tests
+else
 
 require 'nokogiri'
 
@@ -10,7 +13,7 @@ class NokogiriEngineTest < Test::Unit::TestCase
   include ActiveSupport
 
   def setup
-    @default_backend = XmlMini.backend.to_s.split('_').last
+    @default_backend = XmlMini.backend
     XmlMini.backend = 'Nokogiri'
   end
 
@@ -99,14 +102,9 @@ class NokogiriEngineTest < Test::Unit::TestCase
 
   private
   def assert_equal_rexml(xml)
-    XmlMini.backend = 'REXML'
-    hash = XmlMini.parse(xml)
-
-    XmlMini.backend = 'Nokogiri'
-
+    hash = XmlMini.with_backend('REXML') { XmlMini.parse(xml) }
     assert_equal(hash, XmlMini.parse(xml))
   end
 end
-rescue LoadError
-  # Yay, no errors
+
 end
