@@ -1,3 +1,5 @@
+require 'nokogiri'
+
 # = XmlMini Nokogiri implementation
 module ActiveSupport
   module XmlMini_Nokogiri #:nodoc:
@@ -10,7 +12,9 @@ module ActiveSupport
       if string.blank?
         {}
       else
-        Nokogiri::XML(string).to_hash
+        doc = Nokogiri::XML(string)
+        raise doc.errors.first if doc.errors.length > 0
+        doc.to_hash
       end
     end
 
@@ -31,8 +35,8 @@ module ActiveSupport
         def to_hash(hash = {})
           hash[name] ||= attributes_as_hash
 
-          walker = lambda { |child, memo, callback|
-            next if child.blank?
+          walker = lambda { |memo, parent, child, callback|
+            next if child.blank? && 'file' != parent['type']
 
             if child.text?
               (memo[CONTENT_ROOT] ||= '') << child.content
@@ -41,18 +45,21 @@ module ActiveSupport
 
             name = child.name
 
+            child_hash = child.attributes_as_hash
             if memo[name]
               memo[name] = [memo[name]].flatten
-              memo[name] << child.attributes_as_hash
+              memo[name] << child_hash
             else
-              memo[name] = child.attributes_as_hash
+              memo[name] = child_hash
             end
 
             # Recusively walk children
-            child.children.each { |c| callback.call(c, memo[name], callback) }
+            child.children.each { |c|
+              callback.call(child_hash, child, c, callback)
+            }
           }
 
-          children.each { |c| walker.call(c, hash[name], walker) }
+          children.each { |c| walker.call(hash[name], self, c, walker) }
           hash
         end
 

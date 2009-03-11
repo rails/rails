@@ -21,6 +21,42 @@ class NokogiriEngineTest < Test::Unit::TestCase
     XmlMini.backend = @default_backend
   end
 
+  def test_file_from_xml
+    hash = Hash.from_xml(<<-eoxml)
+      <blog>
+        <logo type="file" name="logo.png" content_type="image/png">
+        </logo>
+      </blog>
+    eoxml
+    assert hash.has_key?('blog')
+    assert hash['blog'].has_key?('logo')
+
+    file = hash['blog']['logo']
+    assert_equal 'logo.png', file.original_filename
+    assert_equal 'image/png', file.content_type
+  end
+
+  def test_exception_thrown_on_expansion_attack
+    assert_raise Nokogiri::XML::SyntaxError do
+      attack_xml = <<-EOT
+      <?xml version="1.0" encoding="UTF-8"?>
+      <!DOCTYPE member [
+        <!ENTITY a "&b;&b;&b;&b;&b;&b;&b;&b;&b;&b;">
+        <!ENTITY b "&c;&c;&c;&c;&c;&c;&c;&c;&c;&c;">
+        <!ENTITY c "&d;&d;&d;&d;&d;&d;&d;&d;&d;&d;">
+        <!ENTITY d "&e;&e;&e;&e;&e;&e;&e;&e;&e;&e;">
+        <!ENTITY e "&f;&f;&f;&f;&f;&f;&f;&f;&f;&f;">
+        <!ENTITY f "&g;&g;&g;&g;&g;&g;&g;&g;&g;&g;">
+        <!ENTITY g "xxxxxxxxxxxxxxxxxxxxxxxxxxxxxx">
+      ]>
+      <member>
+      &a;
+      </member>
+      EOT
+      Hash.from_xml(attack_xml)
+    end
+  end
+
   def test_setting_nokogiri_as_backend
     XmlMini.backend = 'Nokogiri'
     assert_equal XmlMini_Nokogiri, XmlMini.backend
@@ -29,6 +65,17 @@ class NokogiriEngineTest < Test::Unit::TestCase
   def test_blank_returns_empty_hash
     assert_equal({}, XmlMini.parse(nil))
     assert_equal({}, XmlMini.parse(''))
+  end
+
+  def test_array_type_makes_an_array
+    assert_equal_rexml(<<-eoxml)
+      <blog>
+        <posts type="array">
+          <post>a post</post>
+          <post>another post</post>
+        </posts>
+      </blog>
+    eoxml
   end
 
   def test_one_node_document_as_hash

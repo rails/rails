@@ -884,7 +884,12 @@ class QueryTest < Test::Unit::TestCase
   end
 
   def test_expansion_count_is_limited
-    expected = defined?(LibXML) ? LibXML::XML::Error : RuntimeError
+    expected = {
+      'ActiveSupport::XmlMini_REXML'    => 'RuntimeError',
+      'ActiveSupport::XmlMini_Nokogiri' => 'Nokogiri::XML::SyntaxError',
+      'ActiveSupport::XmlMini_LibXML'   => 'LibXML::XML::Error',
+    }[ActiveSupport::XmlMini.backend.name].constantize
+
     assert_raise expected do
       attack_xml = <<-EOT
       <?xml version="1.0" encoding="UTF-8"?>
