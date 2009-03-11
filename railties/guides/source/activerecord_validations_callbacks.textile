@@ -937,11 +937,11 @@ Post destroyed
 
 h3. Conditional Callbacks
 
-Like in validations, we can also make our callbacks conditional, calling then only when a given predicate is satisfied. You can do that by using the +:if+ and +:unless+ options, which can take a symbol, a string or a Ruby Proc. You may use the +:if+ option when you want to specify when the callback *should* get called. If you want to specify when the callback *should not* be called, then you may use the +:unless+ option.
+Like in validations, we can also make our callbacks conditional, calling them only when a given predicate is satisfied. You can do that by using the +:if+ and +:unless+ options, which can take a symbol, a string or a +Proc+. You may use the +:if+ option when you want to specify when the callback *should* get called. If you want to specify when the callback *should not* be called, then you may use the +:unless+ option.
 
-h4. Using :if and :unless with a Symbol
+h4. Using +:if+ and +:unless+ with a Symbol
 
-You can associate the +:if+ and +:unless+ options with a symbol corresponding to the name of a method that will get called right before the callback. If this method returns +false+ the callback won't be executed. This is the most common option. Using this form of registration it's also possible to register several different methods that should be called to check the if the callback should be executed.
+You can associate the +:if+ and +:unless+ options with a symbol corresponding to the name of a method that will get called right before the callback. If this method returns +false+ the callback won't be executed. This is the most common option. Using this form of registration it's also possible to register several different methods that should be called to check if the callback should be executed.
 
 <ruby>
 class Order < ActiveRecord::Base
@@ -949,9 +949,9 @@ class Order < ActiveRecord::Base
 end
 </ruby>
 
-h4. Using :if and :unless with a String
+h4. Using +:if+ and +:unless+ with a String
 
-You can also use a string that will be evaluated using +:eval+ and needs to contain valid Ruby code. You should use this option only when the string represents a really short condition.
+You can also use a string that will be evaluated using +eval+ and needs to contain valid Ruby code. You should use this option only when the string represents a really short condition.
 
 <ruby>
 class Order < ActiveRecord::Base
@@ -959,9 +959,9 @@ class Order < ActiveRecord::Base
 end
 </ruby>
 
-h4. Using :if and :unless with a Proc
+h4. Using +:if+ and +:unless+ with a Proc
 
-Finally, it's possible to associate +:if+ and +:unless+ with a Ruby Proc object. This option is best suited when writing short validation methods, usually one-liners.
+Finally, it's possible to associate +:if+ and +:unless+ with a +Proc+ object. This option is best suited when writing short validation methods, usually one-liners.
 
 <ruby>
 class Order < ActiveRecord::Base
@@ -983,9 +983,9 @@ end
 
 h3. Callback Classes
 
-Sometimes the callback methods that you'll write will be useful enough to be reused at other models. Active Record makes it possible to create classes that encapsulate the callback methods, so it becomes very easy to reuse them.
+Sometimes the callback methods that you'll write will be useful enough to be reused by other models. Active Record makes it possible to create classes that encapsulate the callback methods, so it becomes very easy to reuse them.
 
-Here's an example where we create a class with a after_destroy callback for a PictureFile model.
+Here's an example where we create a class with an +after_destroy+ callback for a +PictureFile+ model.
 
 <ruby>
 class PictureFileCallbacks
@@ -1003,7 +1003,7 @@ class PictureFile < ActiveRecord::Base
 end
 </ruby>
 
-Note that we needed to instantiate a new PictureFileCallbacks object, since we declared our callback as an instance method. Sometimes it will make more sense to have it as a class method.
+Note that we needed to instantiate a new +PictureFileCallbacks+ object, since we declared our callback as an instance method. Sometimes it will make more sense to have it as a class method.
 
 <ruby>
 class PictureFileCallbacks
@@ -1013,7 +1013,7 @@ class PictureFileCallbacks
 end
 </ruby>
 
-If the callback method is declared this way, it won't be necessary to instantiate a PictureFileCallbacks object.
+If the callback method is declared this way, it won't be necessary to instantiate a +PictureFileCallbacks+ object.
 
 <ruby>
 class PictureFile < ActiveRecord::Base
@@ -1025,7 +1025,7 @@ You can declare as many callbacks as you want inside your callback classes.
 
 h3. Observers
 
-Observers are similar to callbacks, but with important differences. Whereas callbacks can pollute a model with code that isn't directly related to its purpose, observers allow you to add functionality outside of a model. For example, it could be argued that a +User+ model should not include code to send registration confirmation emails. Whenever you use callbacks with code that isn't directly related to your model, you may want to consider creating an observer instead.
+Observers are similar to callbacks, but with important differences. Whereas callbacks can pollute a model with code that isn't directly related to its purpose, observers allow you to add the same functionality outside of a model. For example, it could be argued that a +User+ model should not include code to send registration confirmation emails. Whenever you use callbacks with code that isn't directly related to your model, you may want to consider creating an observer instead.
 
 h4. Creating observers
 
@@ -1043,18 +1043,18 @@ As with callback classes, the observer's methods receive the observed model as a
 
 h4. Registering Observers
 
-Observers should be placed inside of your *app/models* directory and registered in your application's *config/environment.rb* file. For example, the +UserObserver+ above would be saved as *app/models/user_observer.rb* and registered in *config/environment.rb*.
+Observers are conventionally placed inside of your +app/models+ directory and registered in your application's +config/environment.rb+ file. For example, the +UserObserver+ above would be saved as +app/models/user_observer.rb+ and registered in +config/environment.rb+ this way:
 
 <ruby>
 # Activate observers that should always be running
 config.active_record.observers = :user_observer
 </ruby>
 
-As usual, settings in *config/environments/* take precedence over those in *config/environment.rb*. So, if you prefer that an observer not run in all environments, you can simply register it in a specific environment instead.
+As usual, settings in +config/environments+ take precedence over those in +config/environment.rb+. So, if you prefer that an observer not run in all environments, you can simply register it in a specific environment instead.
 
 h4. Sharing Observers
 
-By default, Rails will simply strip 'observer' from an observer's name to find the model it should observe. However, observers can also be used to add behaviour to more than one model, and so it's possible to manually specify the models that our observer should observe.
+By default, Rails will simply strip "Observer" from an observer's name to find the model it should observe. However, observers can also be used to add behaviour to more than one model, and so it's possible to manually specify the models that our observer should observe.
 
 <ruby>
 class MailerObserver < ActiveRecord::Observer
@@ -1066,7 +1066,7 @@ class MailerObserver < ActiveRecord::Observer
 end
 </ruby>
 
-In this example, the +after_create+ method would be called whenever a +Registration+ or +User+ was created. Note that this new +MailerObserver+ would also need to be registered in *config/environment.rb* in order to take effect. 
+In this example, the +after_create+ method would be called whenever a +Registration+ or +User+ was created. Note that this new +MailerObserver+ would also need to be registered in +config/environment.rb+ in order to take effect.
 
 <ruby>
 # Activate observers that should always be running
