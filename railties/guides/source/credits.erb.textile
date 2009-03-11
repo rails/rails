@@ -19,6 +19,12 @@ p. We'd like to thank the following people for their tireless contributions to t
   Xavier Noria has been around dynamic languages since 2000. He fell in love with Rails back in 2005, and cofounded Rails-based software company <a href="http://www.aspgems.com">ASPgems</a> in mid-2006. Xavier is president of the <a href="http://www.srug.org/">Spanish Ruby Users Group</a> and has been involved in Rails in several ways. He enjoys combining his passion for Rails and his past life as a proofreader of math textbooks.
 <% end %>
 
+<h3 class="section">Rails Guides Designers</h3>
+
+<% author('Jason Zimdars', 'jz') do %>
+  Jason Zimdars is an experienced creative director and web designer who has lead UI and UX design for numerous websites and web applications. You can see more of his design and writing at <a href="http://www.thinkcage.com/">Thinkcage.com</a> or follow him on <a href="http://www.twitter.com/JZ">Twitter</a>.
+<% end %>
+
 <h3 class="section">Rails Guides Authors</h3>
 
 <% author('Frederick Cheung', 'fcheung') do %>
@@ -43,10 +49,4 @@ p. We'd like to thank the following people for their tireless contributions to t
 
 <% author('Heiko Webers', 'hawe') do %>
   Heiko Webers is the founder of "bauland42":http://www.bauland42.de, a German web application security consulting and development company focused on Ruby on Rails. He blogs at the "Ruby on Rails Security Project":http://www.rorsecurity.info. After 10 years of desktop application development, Heiko has rarely looked back.
-<% end %>
-
-<h3 class="section">Rails Guides Designers</h3>
-
-<% author('Jason Zimdars', 'jz') do %>
-  Jason Zimdars is an experienced creative director and web designer who has lead UI and UX design for numerous websites and web applications. You can see more of his design and writing at <a href="http://www.thinkcage.com/">Thinkcage.com</a> or follow him on <a href="http://www.twitter.com/JZ">Twitter</a>.
 <% end %>
