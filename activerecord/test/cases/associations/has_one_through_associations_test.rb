@@ -173,4 +173,20 @@ class HasOneThroughAssociationsTest < ActiveRecord::TestCase
     assert_not_nil assert_no_queries { @new_detail.member_type }
   end
 
+  def test_save_of_record_with_loaded_has_one_through
+    @club = @member.club
+    assert_not_nil @club.sponsored_member
+
+    assert_nothing_raised do
+      Club.find(@club.id).save!
+      Club.find(@club.id, :include => :sponsored_member).save!
+    end
+
+    @club.sponsor.destroy
+
+    assert_nothing_raised do
+      Club.find(@club.id).save!
+      Club.find(@club.id, :include => :sponsored_member).save!
+    end
+  end
 end

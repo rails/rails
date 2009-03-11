@@ -310,7 +310,7 @@ module ActiveRecord
     # This all happens inside a transaction, _if_ the Transactions module is included into
     # ActiveRecord::Base after the AutosaveAssociation module, which it does by default.
     def save_has_one_association(reflection)
-      if association = association_instance_get(reflection.name)
+      if (association = association_instance_get(reflection.name)) && !association.target.nil?
         if reflection.options[:autosave] && association.marked_for_destruction?
           association.destroy
         elsif new_record? || association.new_record? || association[reflection.primary_key_name] != id || reflection.options[:autosave]
