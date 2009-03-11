@@ -823,6 +823,8 @@ h4. Destroying an Object
 * DELETE OPERATION
 * +after_destroy+
 
+WARNING. +after_save+ runs both on create and update, but always _after_ the more specific callbacks +after_create+ and +after_update+, no matter the order in which the macro calls were executed.
+
 h4. +after_initialize+ and +after_find+
 
 The +after_initialize+ callback will be called whenever an Active Record object is instantiated, either by directly using +new+ or when a record is loaded from the database. It can be useful to avoid the need to directly override your Active Record +initialize+ method.
