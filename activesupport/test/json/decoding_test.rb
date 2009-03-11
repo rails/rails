@@ -30,7 +30,9 @@ class TestJSONDecoding < Test::Unit::TestCase
     %(false) => false,
     %q("http:\/\/test.host\/posts\/1") => "http://test.host/posts/1",
     %q("\u003cunicode\u0020escape\u003e") => "<unicode escape>",
-    %q("\\\\u0020skip double backslashes") => "\\u0020skip double backslashes"
+    %q("\\\\u0020skip double backslashes") => "\\u0020skip double backslashes",
+    %q({a: "\u003cbr /\u003e"}) => {'a' => "<br />"},
+    %q({b:["\u003ci\u003e","\u003cb\u003e","\u003cu\u003e"]}) => {'b' => ["<i>","<b>","<u>"]}
   }
   
   TESTS.each do |json, expected|
