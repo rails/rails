@@ -36,12 +36,12 @@ module Rack
         mtime = headers.key?("Last-Modified") ?
           Time.httpdate(headers["Last-Modified"]) : Time.now
         body = self.class.gzip(body, mtime)
-        size = body.respond_to?(:bytesize) ? body.bytesize : body.size
+        size = Rack::Utils.bytesize(body)
         headers = headers.merge("Content-Encoding" => "gzip", "Content-Length" => size.to_s)
         [status, headers, [body]]
       when "deflate"
         body = self.class.deflate(body)
-        size = body.respond_to?(:bytesize) ? body.bytesize : body.size
+        size = Rack::Utils.bytesize(body)
         headers = headers.merge("Content-Encoding" => "deflate", "Content-Length" => size.to_s)
         [status, headers, [body]]
       when "identity"

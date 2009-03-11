@@ -403,7 +403,7 @@ module Rack
               break
             end
 
-            bytes += (part.respond_to?(:bytesize) ? part.bytesize : part.size)
+            bytes += Rack::Utils.bytesize(part)
           }
 
           if env["REQUEST_METHOD"] == "HEAD"
