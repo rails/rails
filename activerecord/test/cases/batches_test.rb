@@ -11,7 +11,7 @@ class EachTest < ActiveRecord::TestCase
   
   def test_each_should_excecute_one_query_per_batch
     assert_queries(Post.count + 1) do
-      Post.each(:batch_size => 1) do |post| 
+      Post.find_each(:batch_size => 1) do |post|
         assert_kind_of Post, post
       end
     end
@@ -19,13 +19,13 @@ class EachTest < ActiveRecord::TestCase
 
   def test_each_should_raise_if_the_order_is_set
     assert_raise(RuntimeError) do
-      Post.each(:order => "title") { |post| post }
+      Post.find_each(:order => "title") { |post| post }
     end
   end
 
   def test_each_should_raise_if_the_limit_is_set
     assert_raise(RuntimeError) do
-      Post.each(:limit => 1) { |post| post }
+      Post.find_each(:limit => 1) { |post| post }
     end
   end
   

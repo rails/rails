@@ -11,14 +11,14 @@ module ActiveRecord
       #
       # Example:
       #
-      #   Person.each(:conditions => "age > 21") do |person|
+      #   Person.find_each(:conditions => "age > 21") do |person|
       #     person.party_all_night!
       #   end
       #
       # Note: This method is only intended to use for batch processing of large amounts of records that wouldn't fit in
       # memory all at once. If you just need to loop over less than 1000 records, it's probably better just to use the
       # regular find methods.
-      def each(options = {})
+      def find_each(options = {})
         find_in_batches(options) do |records|
           records.each { |record| yield record }
         end
