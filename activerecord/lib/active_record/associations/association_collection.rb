@@ -60,7 +60,7 @@ module ActiveRecord
           @reflection.klass.find(*args)
         end
       end
-      
+
       # Fetches the first one using SQL if possible.
       def first(*args)
         if fetch_first_or_last_using_find?(args)

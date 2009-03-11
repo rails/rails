@@ -219,6 +219,45 @@ class HasManyAssociationsTest < ActiveRecord::TestCase
     assert_equal 1, firm.clients.find(:all, :conditions => "name = 'Summit'").length
   end
 
+  def test_find_each
+    firm = companies(:first_firm)
+
+    assert ! firm.clients.loaded?
+
+    assert_queries(3) do
+      firm.clients.find_each(:batch_size => 1) {|c| assert_equal firm.id, c.firm_id }
+    end
+
+    assert ! firm.clients.loaded?
+  end
+
+  def test_find_each_with_conditions
+    firm = companies(:first_firm)
+
+    assert_queries(2) do
+      firm.clients.find_each(:batch_size => 1, :conditions => {:name => "Microsoft"}) do |c|
+        assert_equal firm.id, c.firm_id
+        assert_equal "Microsoft", c.name
+      end
+    end
+
+    assert ! firm.clients.loaded?
+  end
+
+  def test_find_in_batches
+    firm = companies(:first_firm)
+
+    assert ! firm.clients.loaded?
+
+    assert_queries(2) do
+      firm.clients.find_in_batches(:batch_size => 2) do |clients|
+        clients.each {|c| assert_equal firm.id, c.firm_id }
+      end
+    end
+
+    assert ! firm.clients.loaded?
+  end
+
   def test_find_all_sanitized
     firm = Firm.find(:first)
     summit = firm.clients.find(:all, :conditions => "name = 'Summit'")
