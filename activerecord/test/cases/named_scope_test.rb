@@ -324,7 +324,7 @@ class NamedScopeTest < ActiveRecord::TestCase
       Topic.approved.find_each(:batch_size => 1) {|t| assert t.approved? }
     end
 
-    assert_queries(3) do
+    assert_queries(2) do
       Topic.approved.find_in_batches(:batch_size => 2) do |group|
         group.each {|t| assert t.approved? }
       end

@@ -46,4 +46,16 @@ class EachTest < ActiveRecord::TestCase
       end
     end
   end
+
+  def test_find_in_batches_shouldnt_excute_query_unless_needed
+    post_count = Post.count
+
+    assert_queries(2) do
+      Post.find_in_batches(:batch_size => post_count) {|batch| assert_kind_of Array, batch }
+    end
+
+    assert_queries(1) do
+      Post.find_in_batches(:batch_size => post_count + 1) {|batch| assert_kind_of Array, batch }
+    end
+  end
 end
