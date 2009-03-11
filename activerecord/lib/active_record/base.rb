@@ -1678,7 +1678,9 @@ module ActiveRecord #:nodoc:
           scoped_order = scope[:order] if scope
           if order
             sql << " ORDER BY #{order}"
-            sql << ", #{scoped_order}" if scoped_order
+            if scoped_order && scoped_order != order
+              sql << ", #{scoped_order}"
+            end
           else
             sql << " ORDER BY #{scoped_order}" if scoped_order
           end
