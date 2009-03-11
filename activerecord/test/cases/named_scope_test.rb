@@ -15,7 +15,7 @@ class NamedScopeTest < ActiveRecord::TestCase
     assert_equal Topic.find(:all),   Topic.base
     assert_equal Topic.find(:all),   Topic.base.to_a
     assert_equal Topic.find(:first), Topic.base.first
-    assert_equal Topic.find(:all),   Topic.base.each { |i| i }
+    assert_equal Topic.find(:all),   Topic.base.map { |i| i }
   end
 
   def test_found_items_are_cached
@@ -315,6 +315,20 @@ class NamedScopeTest < ActiveRecord::TestCase
 
   def test_methods_invoked_within_scopes_should_respect_scope
     assert_equal [], Topic.approved.by_rejected_ids.proxy_options[:conditions][:id]
+  end
+
+  def test_named_scopes_batch_finders
+    assert_equal 3, Topic.approved.count
+
+    assert_queries(4) do
+      Topic.approved.find_each(:batch_size => 1) {|t| assert t.approved? }
+    end
+
+    assert_queries(3) do
+      Topic.approved.find_in_batches(:batch_size => 2) do |group|
+        group.each {|t| assert t.approved? }
+      end
+    end
   end
 end
 
