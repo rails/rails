@@ -495,7 +495,8 @@ module ActionView
       # Returns a label tag tailored for labelling an input field for a specified attribute (identified by +method+) on an object
       # assigned to the template (identified by +object+). The text of label will default to the attribute name unless you specify
       # it explicitly. Additional options on the label tag can be passed as a hash with +options+. These options will be tagged
-      # onto the HTML as an HTML element attribute as in the example shown.
+      # onto the HTML as an HTML element attribute as in the example shown, except for the <tt>:value</tt> option, which is designed to
+      # target labels for radio_button tags (where the value is used in the ID of the input tag).
       #
       # ==== Examples
       #   label(:post, :title)
@@ -506,6 +507,9 @@ module ActionView
       #
       #   label(:post, :title, "A short title", :class => "title_label")
       #   # => <label for="post_title" class="title_label">A short title</label>
+      #
+      #   label(:post, :privacy, "Public Post", :value => "public")
+      #   # => <label for="post_privacy_public">Public Post</label>
       #
       def label(object_name, method, text = nil, options = {})
         InstanceTag.new(object_name, method, self, options.delete(:object)).to_label_tag(text, options)
@@ -729,8 +733,9 @@ module ActionView
 
       def to_label_tag(text = nil, options = {})
         options = options.stringify_keys
+        tag_value = options.delete("value")
         name_and_id = options.dup
-        add_default_name_and_id(name_and_id)
+        add_default_name_and_id_for_value(tag_value, name_and_id)
         options.delete("index")
         options["for"] ||= name_and_id["id"]
         content = (text.blank? ? nil : text.to_s) || method_name.humanize
@@ -762,11 +767,7 @@ module ActionView
           checked = self.class.radio_button_checked?(value(object), tag_value)
         end
         options["checked"]  = "checked" if checked
-        pretty_tag_value    = tag_value.to_s.gsub(/\s/, "_").gsub(/\W/, "").downcase
-        options["id"]     ||= defined?(@auto_index) ?
-          "#{tag_id_with_index(@auto_index)}_#{pretty_tag_value}" :
-          "#{tag_id}_#{pretty_tag_value}"
-        add_default_name_and_id(options)
+        add_default_name_and_id_for_value(tag_value, options)
         tag("input", options)
       end
 
@@ -867,6 +868,17 @@ module ActionView
       end
 
       private
+        def add_default_name_and_id_for_value(tag_value, options)
+          if tag_value
+            pretty_tag_value    = tag_value.to_s.gsub(/\s/, "_").gsub(/\W/, "").downcase
+            specified_id = options["id"]
+            add_default_name_and_id(options)
+            options["id"] += "_#{pretty_tag_value}" unless specified_id
+          else
+            add_default_name_and_id(options)
+          end
+        end
+
         def add_default_name_and_id(options)
           if options.has_key?("index")
             options["name"] ||= tag_name_with_index(options["index"])
