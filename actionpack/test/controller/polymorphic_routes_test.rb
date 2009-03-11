@@ -18,6 +18,20 @@ class Tag < Article
   def response_id; 1 end
 end
 
+class Tax
+  attr_reader :id
+  def save; @id = 1 end
+  def new_record?; @id.nil? end
+  def name
+    model = self.class.name.downcase
+    @id.nil? ? "new #{model}" : "#{model} ##{@id}"
+  end
+end
+
+class Fax < Tax
+  def store_id; 1 end
+end
+
 # TODO: test nested models
 class Response::Nested < Response; end
 
@@ -27,6 +41,8 @@ class PolymorphicRoutesTest < ActiveSupport::TestCase
   def setup
     @article = Article.new
     @response = Response.new
+    @tax = Tax.new
+    @fax = Fax.new
   end
 
   def test_with_record
@@ -205,4 +221,73 @@ class PolymorphicRoutesTest < ActiveSupport::TestCase
       polymorphic_url(path)
     end
   end
+
+  # Tests for names where .plural.singular doesn't round-trip
+  def test_with_irregular_plural_record
+    @tax.save
+    expects(:taxis_url).with(@tax)
+    polymorphic_url(@tax)
+  end
+
+  def test_with_irregular_plural_new_record
+    expects(:taxes_url).with()
+    @tax.expects(:new_record?).returns(true)
+    polymorphic_url(@tax)
+  end
+
+  def test_with_irregular_plural_record_and_action
+    expects(:new_taxis_url).with()
+    @tax.expects(:new_record?).never
+    polymorphic_url(@tax, :action => 'new')
+  end
+
+  def test_irregular_plural_url_helper_prefixed_with_new
+    expects(:new_taxis_url).with()
+    new_polymorphic_url(@tax)
+  end
+
+  def test_irregular_plural_url_helper_prefixed_with_edit
+    @tax.save
+    expects(:edit_taxis_url).with(@tax)
+    edit_polymorphic_url(@tax)
+  end
+
+  def test_with_nested_irregular_plurals
+    @fax.save
+    expects(:taxis_faxis_url).with(@tax, @fax)
+    polymorphic_url([@tax, @fax])
+  end
+
+  def test_with_nested_unsaved_irregular_plurals
+    expects(:taxis_faxes_url).with(@tax)
+    polymorphic_url([@tax, @fax])
+  end
+
+  def test_new_with_irregular_plural_array_and_namespace
+    expects(:new_admin_taxis_url).with()
+    polymorphic_url([:admin, @tax], :action => 'new')
+  end
+
+  def test_unsaved_with_irregular_plural_array_and_namespace
+    expects(:admin_taxes_url).with()
+    polymorphic_url([:admin, @tax])
+  end
+
+  def test_nesting_with_irregular_plurals_and_array_ending_in_singleton_resource
+    expects(:taxis_faxis_url).with(@tax)
+    polymorphic_url([@tax, :faxis])
+  end
+
+  def test_with_array_containing_single_irregular_plural_object
+    @tax.save
+    expects(:taxis_url).with(@tax)
+    polymorphic_url([nil, @tax])
+  end
+
+  def test_with_array_containing_single_name_irregular_plural
+    @tax.save
+    expects(:taxes_url)
+    polymorphic_url([:taxes])
+  end
+
 end
