@@ -90,7 +90,7 @@ module Rails
       gems_code = "config.gem '#{name}'"
 
       if options.any?
-        opts = options.inject([]) {|result, h| result << [":#{h[0]} => '#{h[1]}'"] }.sort.join(", ")
+        opts = options.inject([]) {|result, h| result << [":#{h[0]} => #{h[1].inspect.gsub('"',"'")}"] }.sort.join(", ")
         gems_code << ", #{opts}"
       end
 
