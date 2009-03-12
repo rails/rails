@@ -99,6 +99,12 @@ class NamedScopeTest < ActiveRecord::TestCase
     assert_equal topics_written_before_the_second, Topic.written_before(topics(:second).written_on)
   end
 
+  def test_procedural_scopes_returning_nil
+    all_topics = Topic.find(:all)
+
+    assert_equal all_topics, Topic.written_before(nil)
+  end
+
   def test_scopes_with_joins
     address = author_addresses(:david_address)
     posts_with_authors_at_address = Post.find(

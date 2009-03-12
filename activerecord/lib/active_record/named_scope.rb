@@ -117,6 +117,7 @@ module ActiveRecord
       delegate :scopes, :with_scope, :to => :proxy_scope
 
       def initialize(proxy_scope, options, &block)
+        options ||= {}
         [options[:extend]].flatten.each { |extension| extend extension } if options[:extend]
         extend Module.new(&block) if block_given?
         unless Scope === proxy_scope
