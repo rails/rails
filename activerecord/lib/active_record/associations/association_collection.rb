@@ -20,7 +20,7 @@ module ActiveRecord
         super
         construct_sql
       end
-
+      
       def find(*args)
         options = args.extract_options!
 
@@ -41,7 +41,7 @@ module ActiveRecord
           if sanitized_conditions = sanitize_sql(options[:conditions])
             conditions << " AND (#{sanitized_conditions})"
           end
-
+          
           options[:conditions] = conditions
 
           if options[:order] && @reflection.options[:order]
@@ -49,12 +49,12 @@ module ActiveRecord
           elsif @reflection.options[:order]
             options[:order] = @reflection.options[:order]
           end
-
+          
           # Build options specific to association
           construct_find_options!(options)
-
+          
           merge_options_from_reflection!(options)
-
+          
           # Pass through args exactly as we received them.
           args << options
           @reflection.klass.find(*args)
@@ -142,6 +142,13 @@ module ActiveRecord
         end
       end
 
+      # Remove all records from this association
+      def delete_all
+        load_target
+        delete(@target)
+        reset_target!
+      end
+      
       # Calculate sum using SQL, not Enumerable
       def sum(*args)
         if block_given?
@@ -193,11 +200,11 @@ module ActiveRecord
         end
       end
 
-      # Destroy +records+ and remove them from this association calling
-      # +before_remove+ and +after_remove+ callbacks.
+      # Destroy +records+ and remove from this association calling +before_remove+
+      # and +after_remove+ callbacks.
       #
-      # Note that this method will _always_ remove records from the database
-      # ignoring the +:dependent+ option.
+      # Note this method will always remove records from database ignoring the
+      # +:dependent+ option.
       def destroy(*records)
         remove_records(records) do |records, old_records|
           old_records.each { |record| record.destroy }
@@ -212,25 +219,14 @@ module ActiveRecord
 
         if @reflection.options[:dependent] && @reflection.options[:dependent] == :destroy
           destroy_all
-        else
+        else          
           delete_all
         end
 
         self
       end
 
-      # Remove all records from this association.
-      #
-      # See delete for more info.
-      def delete_all
-        load_target
-        delete(@target)
-        reset_target!
-      end
-
-      # Destroy all the records from this association.
-      #
-      # See destroy for more info.
+      # Destory all the records from this association
       def destroy_all
         load_target
         destroy(@target)
@@ -361,7 +357,7 @@ module ActiveRecord
           loaded if target
           target
         end
-
+        
         def method_missing(method, *args)
           if @target.respond_to?(method) || (!@reflection.klass.respond_to?(method) && Class.respond_to?(method))
             if block_given?
@@ -371,7 +367,7 @@ module ActiveRecord
             end
           elsif @reflection.klass.scopes.include?(method)
             @reflection.klass.scopes[method].call(self, *args)
-          else
+          else          
             with_scope(construct_scope) do
               if block_given?
                 @reflection.klass.send(method, *args) { |*block_args| yield(*block_args) }
@@ -457,8 +453,8 @@ module ActiveRecord
         def callbacks_for(callback_name)
           full_callback_name = "#{callback_name}_for_#{@reflection.name}"
           @owner.class.read_inheritable_attribute(full_callback_name.to_sym) || []
-        end
-
+        end   
+        
         def ensure_owner_is_not_new
           if @owner.new_record?
             raise ActiveRecord::RecordNotSaved, "You cannot call create unless the parent is saved"
