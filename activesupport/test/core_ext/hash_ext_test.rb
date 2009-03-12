@@ -497,6 +497,15 @@ class HashToXmlTest < Test::Unit::TestCase
     assert xml.include?(%(<addresses type="array"><address><streets type="array"><street><name>))
   end
 
+  def test_timezoned_attributes
+    xml = {
+      :created_at => Time.utc(1999,2,2),
+      :local_created_at => Time.utc(1999,2,2).in_time_zone('Eastern Time (US & Canada)')
+    }.to_xml(@xml_options)
+    assert_match %r{<created-at type=\"datetime\">1999-02-02T00:00:00Z</created-at>}, xml
+    assert_match %r{<local-created-at type=\"datetime\">1999-02-01T19:00:00-05:00</local-created-at>}, xml
+  end
+
   def test_single_record_from_xml
     topic_xml = <<-EOT
       <topic>
