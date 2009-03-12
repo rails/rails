@@ -1856,9 +1856,10 @@ module ActiveRecord
             def construct(parent, associations, joins, row)
               case associations
                 when Symbol, String
-                  while (join = joins.shift).reflection.name.to_s != associations.to_s
-                    raise ConfigurationError, "Not Enough Associations" if joins.empty?
-                  end
+                  join = joins.detect{|j| j.reflection.name.to_s == associations.to_s && j.parent_table_name == parent.class.table_name }
+                  raise(ConfigurationError, "No such association") if join.nil?
+
+                  joins.delete(join)
                   construct_association(parent, join, row)
                 when Array
                   associations.each do |association|
@@ -1866,7 +1867,11 @@ module ActiveRecord
                   end
                 when Hash
                   associations.keys.sort{|a,b|a.to_s<=>b.to_s}.each do |name|
-                    association = construct_association(parent, joins.shift, row)
+                    join = joins.detect{|j| j.reflection.name.to_s == name.to_s && j.parent_table_name == parent.class.table_name }
+                    raise(ConfigurationError, "No such association") if join.nil?
+
+                    association = construct_association(parent, join, row)
+                    joins.delete(join)
                     construct(association, associations[name], joins, row) if association
                   end
                 else
