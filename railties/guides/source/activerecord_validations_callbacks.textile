@@ -316,9 +316,9 @@ The +validates_size_of+ helper is an alias for +validates_length_of+.
 
 h4. +validates_numericality_of+
 
-This helper validates that your attributes have only numeric values. By default, it will match an optional sign followed by an integral or floating point number. To specify that only integral numbers are allowed set +:integer_only+ to true.
+This helper validates that your attributes have only numeric values. By default, it will match an optional sign followed by an integral or floating point number. To specify that only integral numbers are allowed set +:only_integer+ to true.
 
-If you set +:integer_only+ to +true+, then it will use the
+If you set +:only_integer+ to +true+, then it will use the
 
 <ruby>
 /\A[+-]?\d+\Z/
