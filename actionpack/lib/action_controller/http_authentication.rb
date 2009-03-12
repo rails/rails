@@ -68,8 +68,11 @@ module ActionController
     #
     # Simple Digest example:
     #
+    #   require 'digest/md5'
     #   class PostsController < ApplicationController
-    #     USERS = {"dhh" => "secret"}
+    #     REALM = "SuperSecret"
+    #     USERS = {"dhh" => "secret", #plain text password
+    #              "dap" => Digest:MD5::hexdigest(["dap",REALM,"secret"].join(":"))  #ha1 digest password
     #
     #     before_filter :authenticate, :except => [:index]
     #
@@ -83,14 +86,18 @@ module ActionController
     #
     #     private
     #       def authenticate
-    #         authenticate_or_request_with_http_digest(realm) do |username|
+    #         authenticate_or_request_with_http_digest(REALM) do |username|
     #           USERS[username]
     #         end
     #       end
     #   end
     #
-    # NOTE: The +authenticate_or_request_with_http_digest+ block must return the user's password so the framework can appropriately
-    #       hash it to check the user's credentials. Returning +nil+ will cause authentication to fail.
+    # NOTE: The +authenticate_or_request_with_http_digest+ block must return the user's password or the ha1 digest hash so the framework can appropriately
+    #       hash to check the user's credentials. Returning +nil+ will cause authentication to fail.
+    #       Storing the ha1 hash: MD5(username:realm:password), is better than storing a plain password. If
+    #       the password file or database is compromised, the attacker would be able to use the ha1 hash to
+    #       authenticate as the user at this +realm+, but would not have the user's password to try using at
+    #       other sites.
     #
     # On shared hosts, Apache sometimes doesn't pass authentication headers to
     # FCGI instances. If your environment matches this description and you cannot
@@ -177,26 +184,37 @@ module ActionController
       end
 
       # Raises error unless the request credentials response value matches the expected value.
+      # First try the password as a ha1 digest password. If this fails, then try it as a plain
+      # text password.
       def validate_digest_response(request, realm, &password_procedure)
         credentials = decode_credentials_header(request)
         valid_nonce = validate_nonce(request, credentials[:nonce])
 
-        if valid_nonce && realm == credentials[:realm] && opaque(request.session.session_id) == credentials[:opaque]
+        if valid_nonce && realm == credentials[:realm] && opaque == credentials[:opaque]
           password = password_procedure.call(credentials[:username])
-          expected = expected_response(request.env['REQUEST_METHOD'], credentials[:uri], credentials, password)
-          expected == credentials[:response]
+
+         [true, false].any? do |password_is_ha1|
+           expected = expected_response(request.env['REQUEST_METHOD'], request.env['REQUEST_URI'], credentials, password, password_is_ha1)
+           expected == credentials[:response]
+         end
         end
       end
 
       # Returns the expected response for a request of +http_method+ to +uri+ with the decoded +credentials+ and the expected +password+
-      def expected_response(http_method, uri, credentials, password)
-        ha1 = ::Digest::MD5.hexdigest([credentials[:username], credentials[:realm], password].join(':'))
+      # Optional parameter +password_is_ha1+ is set to +true+ by default, since best practice is to store ha1 digest instead
+      # of a plain-text password.
+      def expected_response(http_method, uri, credentials, password, password_is_ha1=true)
+        ha1 = password_is_ha1 ? password : ha1(credentials, password)
         ha2 = ::Digest::MD5.hexdigest([http_method.to_s.upcase, uri].join(':'))
         ::Digest::MD5.hexdigest([ha1, credentials[:nonce], credentials[:nc], credentials[:cnonce], credentials[:qop], ha2].join(':'))
       end
 
-      def encode_credentials(http_method, credentials, password)
-        credentials[:response] = expected_response(http_method, credentials[:uri], credentials, password)
+      def ha1(credentials, password)
+        ::Digest::MD5.hexdigest([credentials[:username], credentials[:realm], password].join(':'))
+      end
+
+      def encode_credentials(http_method, credentials, password, password_is_ha1)
+        credentials[:response] = expected_response(http_method, credentials[:uri], credentials, password, password_is_ha1)
         "Digest " + credentials.sort_by {|x| x[0].to_s }.inject([]) {|a, v| a << "#{v[0]}='#{v[1]}'" }.join(', ')
       end
 
@@ -213,8 +231,7 @@ module ActionController
       end
 
       def authentication_header(controller, realm)
-        session_id = controller.request.session.session_id
-        controller.headers["WWW-Authenticate"] = %(Digest realm="#{realm}", qop="auth", algorithm=MD5, nonce="#{nonce(session_id)}", opaque="#{opaque(session_id)}")
+        controller.headers["WWW-Authenticate"] = %(Digest realm="#{realm}", qop="auth", algorithm=MD5, nonce="#{nonce}", opaque="#{opaque}")
       end
 
       def authentication_request(controller, realm, message = nil)
@@ -252,23 +269,36 @@ module ActionController
       # POST or PUT requests and a time-stamp for GET requests. For more details on the issues involved see Section 4
       # of this document.
       #
-      # The nonce is opaque to the client.
-      def nonce(session_id, time = Time.now)
+      # The nonce is opaque to the client. Composed of Time, and hash of Time with secret
+      # key from the Rails session secret generated upon creation of project. Ensures
+      # the time cannot be modifed by client.
+      def nonce(time = Time.now)
         t = time.to_i
-        hashed = [t, session_id]
+        hashed = [t, secret_key]
         digest = ::Digest::MD5.hexdigest(hashed.join(":"))
         Base64.encode64("#{t}:#{digest}").gsub("\n", '')
       end
 
-      def validate_nonce(request, value)
+      # Might want a shorter timeout depending on whether the request
+      # is a PUT or POST, and if client is browser or web service.
+      # Can be much shorter if the Stale directive is implemented. This would
+      # allow a user to use new nonce without prompting user again for their
+      # username and password.
+      def validate_nonce(request, value, seconds_to_timeout=5*60)
         t = Base64.decode64(value).split(":").first.to_i
-        nonce(request.session.session_id, t) == value && (t - Time.now.to_i).abs <= 10 * 60
+        nonce(t) == value && (t - Time.now.to_i).abs <= seconds_to_timeout
       end
 
-      # Opaque based on digest of session_id
-      def opaque(session_id)
-        Base64.encode64(::Digest::MD5::hexdigest(session_id)).gsub("\n", '')
+      # Opaque based on random generation - but changing each request?
+      def opaque()
+        ::Digest::MD5.hexdigest(secret_key)
       end
+
+      # Set in /initializers/session_store.rb, and loaded even if sessions are not in use.
+      def secret_key
+        ActionController::Base.session_options[:secret]
+      end
+
     end
   end
 end

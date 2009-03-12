@@ -5,7 +5,8 @@ class HttpDigestAuthenticationTest < ActionController::TestCase
     before_filter :authenticate, :only => :index
     before_filter :authenticate_with_request, :only => :display
 
-    USERS = { 'lifo' => 'world', 'pretty' => 'please' }
+    USERS = { 'lifo' => 'world', 'pretty' => 'please',
+              'dhh' => ::Digest::MD5::hexdigest(["dhh","SuperSecret","secret"].join(":"))}
 
     def index
       render :text => "Hello Secret"
@@ -107,8 +108,42 @@ class HttpDigestAuthenticationTest < ActionController::TestCase
     assert_equal 'Definitely Maybe', @response.body
   end
 
-   test "authentication request with relative URI" do
-    @request.env['HTTP_AUTHORIZATION'] = encode_credentials(:uri => "/", :username => 'pretty', :password => 'please')
+  test "authentication request with valid credential and nil session" do
+    @request.env['HTTP_AUTHORIZATION'] = encode_credentials(:username => 'pretty', :password => 'please')
+
+    # session_id = "" in functional test, but is +nil+ in real life
+    @request.session.session_id = nil
+    get :display
+
+    assert_response :success
+    assert assigns(:logged_in)
+    assert_equal 'Definitely Maybe', @response.body
+  end
+
+   test "authentication request with request-uri that doesn't match credentials digest-uri" do
+    @request.env['HTTP_AUTHORIZATION'] = encode_credentials(:username => 'pretty', :password => 'please')
+    @request.env['REQUEST_URI'] = "/http_digest_authentication_test/dummy_digest/altered/uri"
+    get :display
+
+    assert_response :unauthorized
+    assert_equal "Authentication Failed", @response.body
+  end
+
+   test "authentication request with absolute uri" do
+    @request.env['HTTP_AUTHORIZATION'] = encode_credentials(:uri => "http://test.host/http_digest_authentication_test/dummy_digest/display",
+                                                            :username => 'pretty', :password => 'please')
+    @request.env['REQUEST_URI'] = "http://test.host/http_digest_authentication_test/dummy_digest/display"
+    get :display
+
+    assert_response :success
+    assert assigns(:logged_in)
+    assert_equal 'Definitely Maybe', @response.body
+  end
+
+  test "authentication request with password stored as ha1 digest hash" do
+    @request.env['HTTP_AUTHORIZATION'] = encode_credentials(:username => 'dhh',
+                                           :password => ::Digest::MD5::hexdigest(["dhh","SuperSecret","secret"].join(":")),
+                                           :password_is_ha1 => true)
     get :display
 
     assert_response :success
@@ -119,18 +154,22 @@ class HttpDigestAuthenticationTest < ActionController::TestCase
   private
 
   def encode_credentials(options)
-    options.reverse_merge!(:nc => "00000001", :cnonce => "0a4f113b")
+    options.reverse_merge!(:nc => "00000001", :cnonce => "0a4f113b", :password_is_ha1 => false)
     password = options.delete(:password)
 
-    # Perform unautheticated get to retrieve digest parameters to use on subsequent request
+    # Set in /initializers/session_store.rb. Used as secret in generating nonce
+    # to prevent tampering of timestamp
+    ActionController::Base.session_options[:secret] = "session_options_secret"
+
+    # Perform unauthenticated GET to retrieve digest parameters to use on subsequent request
     get :index
 
     assert_response :unauthorized
 
     credentials = decode_credentials(@response.headers['WWW-Authenticate'])
     credentials.merge!(options)
-    credentials.reverse_merge!(:uri => "http://#{@request.host}#{@request.env['REQUEST_URI']}")
-    ActionController::HttpAuthentication::Digest.encode_credentials("GET", credentials, password)
+    credentials.reverse_merge!(:uri => "#{@request.env['REQUEST_URI']}")
+    ActionController::HttpAuthentication::Digest.encode_credentials("GET", credentials, password, options[:password_is_ha1])
   end
 
   def decode_credentials(header)
