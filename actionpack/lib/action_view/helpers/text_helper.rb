@@ -538,7 +538,7 @@ module ActionView
             punctuation = ''
             # detect already linked URLs
             if $` =~ /<a\s[^>]*href="$/
-              # do not change string; URL is alreay linked
+              # do not change string; URL is already linked
               href
             else
               # don't include trailing punctuation character as part of the URL

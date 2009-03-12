@@ -258,9 +258,9 @@ module ActiveSupport
     #   # => <a href="/person/1-donald-e-knuth">Donald E. Knuth</a>
     def parameterize(string, sep = '-')
       re_sep = Regexp.escape(sep)
-      # replace accented chars with ther ascii equivalents
+      # Replace accented chars with their ASCII equivalents.
       parameterized_string = transliterate(string)
-      # Turn unwanted chars into the seperator
+      # Turn unwanted chars into the separator.
       parameterized_string.gsub!(/[^a-z0-9\-_\+]+/i, sep)
       # No more than one of the separator in a row.
       parameterized_string.squeeze!(sep)
@@ -270,7 +270,7 @@ module ActiveSupport
     end
 
 
-    # Replaces accented characters with their ascii equivalents.
+    # Replaces accented characters with their ASCII equivalents.
     def transliterate(string)
       Iconv.iconv('ascii//ignore//translit', 'utf-8', string).to_s
     end
