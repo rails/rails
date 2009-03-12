@@ -92,6 +92,24 @@ class HasManyThroughAssociationsTest < ActiveRecord::TestCase
     assert posts(:welcome).reload.people(true).empty?
   end
 
+  def test_destroy_association
+    assert_difference "Person.count", -1 do
+      posts(:welcome).people.destroy(people(:michael))
+    end
+
+    assert posts(:welcome).reload.people.empty?
+    assert posts(:welcome).people(true).empty?
+  end
+
+  def test_destroy_all
+    assert_difference "Person.count", -1 do
+      posts(:welcome).people.destroy_all
+    end
+
+    assert posts(:welcome).reload.people.empty?
+    assert posts(:welcome).people(true).empty?
+  end
+
   def test_replace_association
     assert_queries(4){posts(:welcome);people(:david);people(:michael); posts(:welcome).people(true)}
     

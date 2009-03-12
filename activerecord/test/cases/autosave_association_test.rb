@@ -556,6 +556,41 @@ class TestDestroyAsPartOfAutosaveAssociation < ActiveRecord::TestCase
       assert_raise(RuntimeError) { assert !@pirate.save }
       assert_equal before, @pirate.reload.send(association_name)
     end
+
+    # Add and remove callbacks tests for association collections.
+    %w{ method proc }.each do |callback_type|
+      define_method("test_should_run_add_callback_#{callback_type}s_for_#{association_name}") do
+        association_name_with_callbacks = "#{association_name}_with_#{callback_type}_callbacks"
+
+        pirate = Pirate.new(:catchphrase => "Arr")
+        pirate.send(association_name_with_callbacks).build(:name => "Crowe the One-Eyed")
+
+        expected = [
+          "before_adding_#{callback_type}_#{association_name.singularize}_<new>",
+          "after_adding_#{callback_type}_#{association_name.singularize}_<new>"
+        ]
+
+        assert_equal expected, pirate.ship_log
+      end
+
+      define_method("test_should_run_remove_callback_#{callback_type}s_for_#{association_name}") do
+        association_name_with_callbacks = "#{association_name}_with_#{callback_type}_callbacks"
+
+        @pirate.send(association_name_with_callbacks).create!(:name => "Crowe the One-Eyed")
+        @pirate.send(association_name_with_callbacks).each { |c| c.mark_for_destruction }
+        child_id = @pirate.send(association_name_with_callbacks).first.id
+
+        @pirate.ship_log.clear
+        @pirate.save
+
+        expected = [
+          "before_removing_#{callback_type}_#{association_name.singularize}_#{child_id}",
+          "after_removing_#{callback_type}_#{association_name.singularize}_#{child_id}"
+        ]
+
+        assert_equal expected, @pirate.ship_log
+      end
+    end
   end
 end
 

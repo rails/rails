@@ -680,6 +680,30 @@ class HasManyAssociationsTest < ActiveRecord::TestCase
     assert_raise(ActiveRecord::AssociationTypeMismatch) { david.projects.delete(Project.find(1).developers) }
   end
 
+  def test_destroying
+    force_signal37_to_load_all_clients_of_firm
+
+    assert_difference "Client.count", -1 do
+      companies(:first_firm).clients_of_firm.destroy(companies(:first_firm).clients_of_firm.first)
+    end
+
+    assert_equal 0, companies(:first_firm).reload.clients_of_firm.size
+    assert_equal 0, companies(:first_firm).clients_of_firm(true).size
+  end
+
+  def test_destroying_a_collection
+    force_signal37_to_load_all_clients_of_firm
+    companies(:first_firm).clients_of_firm.create("name" => "Another Client")
+    assert_equal 2, companies(:first_firm).clients_of_firm.size
+
+    assert_difference "Client.count", -2 do
+      companies(:first_firm).clients_of_firm.destroy([companies(:first_firm).clients_of_firm[0], companies(:first_firm).clients_of_firm[1]])
+    end
+
+    assert_equal 0, companies(:first_firm).reload.clients_of_firm.size
+    assert_equal 0, companies(:first_firm).clients_of_firm(true).size
+  end
+
   def test_destroy_all
     force_signal37_to_load_all_clients_of_firm
     assert !companies(:first_firm).clients_of_firm.empty?, "37signals has clients after load"

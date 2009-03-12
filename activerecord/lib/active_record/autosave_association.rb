@@ -283,7 +283,7 @@ module ActiveRecord
         if records = associated_records_to_validate_or_save(association, @new_record_before_save, autosave)
           records.each do |record|
             if autosave && record.marked_for_destruction?
-              record.destroy
+              association.destroy(record)
             elsif @new_record_before_save || record.new_record?
               if autosave
                 association.send(:insert_record, record, false, false)
