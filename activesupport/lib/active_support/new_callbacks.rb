@@ -420,10 +420,10 @@ module ActiveSupport
       def define_callbacks(*symbols)
         terminator = symbols.pop if symbols.last.is_a?(String)
         symbols.each do |symbol|
-          self.class_inheritable_accessor("_#{symbol}_terminator")
+          self.extlib_inheritable_accessor("_#{symbol}_terminator")
           self.send("_#{symbol}_terminator=", terminator)
           self.class_eval <<-RUBY_EVAL, __FILE__, __LINE__ + 1
-            class_inheritable_accessor :_#{symbol}_callbacks
+            extlib_inheritable_accessor :_#{symbol}_callbacks
             self._#{symbol}_callbacks = CallbackChain.new(:#{symbol})
 
             def self.#{symbol}_callback(*filters, &blk)
