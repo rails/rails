@@ -8,7 +8,7 @@ module Rack
     module_function :parse_query_without_ajax_body_cleanup
 
     def parse_query(qs, d = '&;')
-      qs = qs.dup
+      qs = qs.to_s.dup
       qs.chop! if qs[-1] == 0
       qs.gsub!(/&_=$/, '')
       parse_query_without_ajax_body_cleanup(qs, d)
