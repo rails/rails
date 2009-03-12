@@ -293,6 +293,13 @@ if ActiveRecord::Base.connection.supports_migrations?
       Person.connection.drop_table table_name rescue nil
     end
 
+    def test_create_table_without_a_block
+      table_name = :testings
+      Person.connection.create_table table_name
+    ensure
+      Person.connection.drop_table table_name rescue nil
+    end
+
     # Sybase, and SQLite3 will not allow you to add a NOT NULL
     # column to a table without a default value.
     unless current_adapter?(:SybaseAdapter, :SQLiteAdapter)
