@@ -783,6 +783,47 @@ h3. select_all
 Client.connection.select_all("SELECT * FROM clients WHERE id = '1'")
 </ruby>
 
+h3. Working with Large Amounts of Data
+
+Sometimes you need to iterate over a large set of records. For example to send a newsletter to all users, to export some data, etc. That may seem pretty easy:
+
+<ruby>
+  # Careful!
+  LegacySurvey.all.each do |legacy_survey|
+    Survey.migrate_legacy_survey(legacy_survey)
+  end
+</ruby>
+
+But if the number of rows is big, say more than a thousand, that approach may vary from being underperformant to just plain impossible.
+
+Reason is a call like +LegacySurvey.all.each+ makes Active Record fetch _the entire table_, build a model per row, and build an array with all the models. Sometimes that is just too many objects, it demands too much memory.
+
+To be able to iterate over big sets of rows like that Active Record provides +find_each+:
+
+<ruby>
+  # No prob.
+  LegacySurvey.find_each do |legacy_survey|
+    Survey.migrate_legacy_survey(legacy_survey)
+  end
+</ruby>
+
+Behind the scenes +find_each+ fetches rows in batches of 1000 and yields them one by one. The size of the underlying batches is configurable via the +:batch_size+ option.
+
+The +:start+ option allows you to configure the first ID of the sequence if the lowest is not the one you need. This may be useful for example to be able to resume an interrupted batch process if it saves the last processed ID as a checkpoint.
+
+Apart from +:order+ and +:limit+, which are used by the method itself, +find_each+ accepts the same options supported by +find+.
+
+In addition, you can work by chunks instead of row by row using +find_in_batches+. This method is analogous to +find_each+, but it yields arrays of models instead:
+
+<ruby>
+  # Works in chunks of 1000 invoices at a time.
+  Invoice.find_in_batches(:include => :invoice_lines) do |invoices|
+    export.add_invoices(invoices)
+  end
+</ruby>
+
+In fact, +find_each+ is just a convenience wrapper over +find_in_batches+.
+
 h3. Existence of Objects
 
 If you simply want to check for the existence of the object there's a method called +exists?+. This method will query the database using the same query as +find+, but instead of returning an object or collection of objects it will return either +true+ or +false+.
