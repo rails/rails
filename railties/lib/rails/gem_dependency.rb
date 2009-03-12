@@ -236,7 +236,14 @@ module Rails
 
     private
       def gem_command
-        RUBY_PLATFORM =~ /win32/ ? 'gem.bat' : 'gem'
+        case RUBY_PLATFORM
+          when /win32/
+            'gem.bat'
+          when /java/
+            'jruby -S gem'
+          else
+            'gem'
+        end
       end
 
       def install_command
