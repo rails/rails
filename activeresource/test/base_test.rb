@@ -47,7 +47,7 @@ class BaseTest < Test::Unit::TestCase
                                           {:name => 'Milena',
                                            :children => []}]}]}.to_xml(:root => 'customer')
     # - resource with yaml array of strings; for ActiveRecords using serialize :bar, Array
-    @marty = <<-eof
+    @marty = <<-eof.strip
       <?xml version=\"1.0\" encoding=\"UTF-8\"?>
       <person>
         <id type=\"integer\">5</id>

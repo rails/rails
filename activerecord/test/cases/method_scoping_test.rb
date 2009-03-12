@@ -262,6 +262,15 @@ class NestedScopingTest < ActiveRecord::TestCase
     end
   end
 
+  def test_merge_inner_scope_has_priority
+    Developer.with_scope(:find => { :limit => 5 }) do
+      Developer.with_scope(:find => { :limit => 10 }) do
+        merged_option = Developer.instance_eval('current_scoped_methods')[:find]
+        assert_equal({ :limit => 10 }, merged_option)
+      end
+    end
+  end
+
   def test_replace_options
     Developer.with_scope(:find => { :conditions => "name = 'David'" }) do
       Developer.with_exclusive_scope(:find => { :conditions => "name = 'Jamis'" }) do
@@ -369,8 +378,10 @@ class NestedScopingTest < ActiveRecord::TestCase
   def test_merged_scoped_find
     poor_jamis = developers(:poor_jamis)
     Developer.with_scope(:find => { :conditions => "salary < 100000" }) do
-      Developer.with_scope(:find => { :offset => 1 }) do
-        assert_equal(poor_jamis, Developer.find(:first, :order => 'id asc'))
+      Developer.with_scope(:find => { :offset => 1, :order => 'id asc' }) do
+        assert_sql /ORDER BY id asc / do
+          assert_equal(poor_jamis, Developer.find(:first, :order => 'id asc'))
+        end
       end
     end
   end
@@ -398,6 +409,29 @@ class NestedScopingTest < ActiveRecord::TestCase
         assert_equal %w(David), Developer.find(:all).map { |d| d.name }
       end
     end
+  end
+
+  def test_nested_scoped_create
+    comment = nil
+    Comment.with_scope(:create => { :post_id => 1}) do
+      Comment.with_scope(:create => { :post_id => 2}) do
+        assert_equal({ :post_id => 2 }, Comment.send(:current_scoped_methods)[:create])
+        comment = Comment.create :body => "Hey guys, nested scopes are broken. Please fix!"
+      end
+    end
+    assert_equal 2, comment.post_id
+  end
+
+  def test_nested_exclusive_scope_for_create
+    comment = nil
+    Comment.with_scope(:create => { :body => "Hey guys, nested scopes are broken. Please fix!" }) do
+      Comment.with_exclusive_scope(:create => { :post_id => 1 }) do
+        assert_equal({ :post_id => 1 }, Comment.send(:current_scoped_methods)[:create])
+        comment = Comment.create :body => "Hey guys"
+      end
+    end
+    assert_equal 1, comment.post_id
+    assert_equal 'Hey guys', comment.body
   end
 
   def test_merged_scoped_find_on_blank_conditions
@@ -523,7 +557,6 @@ class HasManyScopingTest< ActiveRecord::TestCase
   end
 end
 
-
 class HasAndBelongsToManyScopingTest< ActiveRecord::TestCase
   fixtures :posts, :categories, :categories_posts
 
@@ -548,7 +581,6 @@ class HasAndBelongsToManyScopingTest< ActiveRecord::TestCase
     end
   end
 end
-
 
 class DefaultScopingTest < ActiveRecord::TestCase
   fixtures :developers
@@ -577,7 +609,7 @@ class DefaultScopingTest < ActiveRecord::TestCase
     # Scopes added on children should append to parent scope
     expected_klass_scope = [{ :create => {}, :find => { :order => 'salary DESC' }}, { :create => {}, :find => {} }]
     assert_equal expected_klass_scope, klass.send(:scoped_methods)
-    
+
     # Parent should still have the original scope
     assert_equal scope, DeveloperOrderedBySalary.send(:scoped_methods)
   end
@@ -620,7 +652,6 @@ end
 =begin
 # We disabled the scoping for has_one and belongs_to as we can't think of a proper use case
 
-
 class BelongsToScopingTest< ActiveRecord::TestCase
   fixtures :comments, :posts
 
@@ -639,7 +670,6 @@ class BelongsToScopingTest< ActiveRecord::TestCase
   end
 
 end
-
 
 class HasOneScopingTest< ActiveRecord::TestCase
   fixtures :comments, :posts

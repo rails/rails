@@ -70,7 +70,7 @@ table { width:100%%; }
       return unless @path_info.include? ".."
 
       body = "Forbidden\n"
-      size = body.respond_to?(:bytesize) ? body.bytesize : body.size
+      size = Rack::Utils.bytesize(body)
       return [403, {"Content-Type" => "text/plain","Content-Length" => size.to_s}, [body]]
     end
 
@@ -89,6 +89,8 @@ table { width:100%%; }
         type = stat.directory? ? 'directory' : Mime.mime_type(ext)
         size = stat.directory? ? '-' : filesize_format(size)
         mtime = stat.mtime.httpdate
+        url << '/'  if stat.directory?
+        basename << '/'  if stat.directory?
 
         @files << [ url, basename, size, type, mtime ]
       end
@@ -120,7 +122,7 @@ table { width:100%%; }
 
     def entity_not_found
       body = "Entity not found: #{@path_info}\n"
-      size = body.respond_to?(:bytesize) ? body.bytesize : body.size
+      size = Rack::Utils.bytesize(body)
       return [404, {"Content-Type" => "text/plain", "Content-Length" => size.to_s}, [body]]
     end
 

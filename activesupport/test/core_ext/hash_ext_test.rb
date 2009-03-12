@@ -174,6 +174,13 @@ class HashExtTest < Test::Unit::TestCase
     assert_equal 2, hash['b']
   end
 
+  def test_indifferent_reverse_merging
+    hash = HashWithIndifferentAccess.new('some' => 'value', 'other' => 'value')
+    hash.reverse_merge!(:some => 'noclobber', :another => 'clobber')
+    assert_equal 'value', hash[:some]
+    assert_equal 'clobber', hash[:another]
+  end
+
   def test_indifferent_deleting
     get_hash = proc{ { :a => 'foo' }.with_indifferent_access }
     hash = get_hash.call
@@ -884,7 +891,12 @@ class QueryTest < Test::Unit::TestCase
   end
 
   def test_expansion_count_is_limited
-    expected = defined?(LibXML) ? LibXML::XML::Error : RuntimeError
+    expected = {
+      'ActiveSupport::XmlMini_REXML'    => 'RuntimeError',
+      'ActiveSupport::XmlMini_Nokogiri' => 'Nokogiri::XML::SyntaxError',
+      'ActiveSupport::XmlMini_LibXML'   => 'LibXML::XML::Error',
+    }[ActiveSupport::XmlMini.backend.name].constantize
+
     assert_raise expected do
       attack_xml = <<-EOT
       <?xml version="1.0" encoding="UTF-8"?>

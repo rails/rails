@@ -219,6 +219,45 @@ class HasManyAssociationsTest < ActiveRecord::TestCase
     assert_equal 1, firm.clients.find(:all, :conditions => "name = 'Summit'").length
   end
 
+  def test_find_each
+    firm = companies(:first_firm)
+
+    assert ! firm.clients.loaded?
+
+    assert_queries(3) do
+      firm.clients.find_each(:batch_size => 1) {|c| assert_equal firm.id, c.firm_id }
+    end
+
+    assert ! firm.clients.loaded?
+  end
+
+  def test_find_each_with_conditions
+    firm = companies(:first_firm)
+
+    assert_queries(2) do
+      firm.clients.find_each(:batch_size => 1, :conditions => {:name => "Microsoft"}) do |c|
+        assert_equal firm.id, c.firm_id
+        assert_equal "Microsoft", c.name
+      end
+    end
+
+    assert ! firm.clients.loaded?
+  end
+
+  def test_find_in_batches
+    firm = companies(:first_firm)
+
+    assert ! firm.clients.loaded?
+
+    assert_queries(2) do
+      firm.clients.find_in_batches(:batch_size => 2) do |clients|
+        clients.each {|c| assert_equal firm.id, c.firm_id }
+      end
+    end
+
+    assert ! firm.clients.loaded?
+  end
+
   def test_find_all_sanitized
     firm = Firm.find(:first)
     summit = firm.clients.find(:all, :conditions => "name = 'Summit'")
@@ -639,6 +678,30 @@ class HasManyAssociationsTest < ActiveRecord::TestCase
     david = Developer.find(1)
     david.projects.reload
     assert_raise(ActiveRecord::AssociationTypeMismatch) { david.projects.delete(Project.find(1).developers) }
+  end
+
+  def test_destroying
+    force_signal37_to_load_all_clients_of_firm
+
+    assert_difference "Client.count", -1 do
+      companies(:first_firm).clients_of_firm.destroy(companies(:first_firm).clients_of_firm.first)
+    end
+
+    assert_equal 0, companies(:first_firm).reload.clients_of_firm.size
+    assert_equal 0, companies(:first_firm).clients_of_firm(true).size
+  end
+
+  def test_destroying_a_collection
+    force_signal37_to_load_all_clients_of_firm
+    companies(:first_firm).clients_of_firm.create("name" => "Another Client")
+    assert_equal 2, companies(:first_firm).clients_of_firm.size
+
+    assert_difference "Client.count", -2 do
+      companies(:first_firm).clients_of_firm.destroy([companies(:first_firm).clients_of_firm[0], companies(:first_firm).clients_of_firm[1]])
+    end
+
+    assert_equal 0, companies(:first_firm).reload.clients_of_firm.size
+    assert_equal 0, companies(:first_firm).clients_of_firm(true).size
   end
 
   def test_destroy_all

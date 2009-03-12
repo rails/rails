@@ -1,4 +1,6 @@
-# = XML Mini Libxml implementation
+require 'libxml'
+
+# = XmlMini LibXML implementation
 module ActiveSupport
   module XmlMini_LibXML #:nodoc:
     extend self
@@ -7,19 +9,19 @@ module ActiveSupport
     # string::
     #   XML Document string to parse
     def parse(string)
-      XML.default_keep_blanks = false
+      LibXML::XML.default_keep_blanks = false
 
       if string.blank?
         {}
       else
-        XML::Parser.string(string.strip).parse.to_hash
+        LibXML::XML::Parser.string(string.strip).parse.to_hash
       end
     end
 
   end
 end
 
-module XML
+module LibXML
   module Conversions
     module Document
       def to_hash
@@ -37,7 +39,7 @@ module XML
       #   Hash to merge the converted element into.
       def to_hash(hash={})
         if text?
-          raise RuntimeError if content.length >= LIB_XML_LIMIT
+          raise LibXML::XML::Error if content.length >= LIB_XML_LIMIT
           hash[CONTENT_ROOT] = content
         else
           sub_hash = insert_name_into_hash(hash, name)
@@ -127,5 +129,5 @@ module XML
   end
 end
 
-XML::Document.send(:include, XML::Conversions::Document)
-XML::Node.send(:include, XML::Conversions::Node)
+LibXML::XML::Document.send(:include, LibXML::Conversions::Document)
+LibXML::XML::Node.send(:include, LibXML::Conversions::Node)

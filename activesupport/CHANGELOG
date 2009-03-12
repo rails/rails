@@ -1,6 +1,7 @@
 *Edge*
 
-* XmlMini supports libxml if available.  #2084 [Bart ten Brinke]
+* XmlMini supports LibXML and Nokogiri backends.  #2084, #2190 [Bart ten Brinke, Aaron Patterson]
+    Example: XmlMini.backend = 'Nokogiri'
 
 
 *2.3.1 [RC2] (March 5, 2009)*

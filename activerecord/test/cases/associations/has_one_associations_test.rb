@@ -290,4 +290,20 @@ class HasOneAssociationsTest < ActiveRecord::TestCase
     companies(:first_firm).account.send(:private_method)
   end
 
+  def test_save_of_record_with_loaded_has_one
+    @firm = companies(:first_firm)
+    assert_not_nil @firm.account
+
+    assert_nothing_raised do
+      Firm.find(@firm.id).save!
+      Firm.find(@firm.id, :include => :account).save!
+    end
+
+    @firm.account.destroy
+
+    assert_nothing_raised do
+      Firm.find(@firm.id).save!
+      Firm.find(@firm.id, :include => :account).save!
+    end
+  end
 end

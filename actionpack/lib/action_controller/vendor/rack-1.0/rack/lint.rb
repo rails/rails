@@ -88,7 +88,9 @@ module Rack
       ##                      within the application. This may be an
       ##                      empty string, if the request URL targets
       ##                      the application root and does not have a
-      ##                      trailing slash.
+      ##                      trailing slash. This information should be
+      ##                      decoded by the server if it comes from a
+      ##                      URL.
 
       ## <tt>QUERY_STRING</tt>:: The portion of the request URL that
       ##                         follows the <tt>?</tt>, if any. May be
@@ -401,7 +403,7 @@ module Rack
               break
             end
 
-            bytes += (part.respond_to?(:bytesize) ? part.bytesize : part.size)
+            bytes += Rack::Utils.bytesize(part)
           }
 
           if env["REQUEST_METHOD"] == "HEAD"

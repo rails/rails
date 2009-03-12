@@ -416,7 +416,7 @@ module ActiveRecord #:nodoc:
     end
 
     @@subclasses = {}
-    
+
     ##
     # :singleton-method:
     # Contains the database configuration - as is typically stored in config/database.yml -
@@ -660,7 +660,6 @@ module ActiveRecord #:nodoc:
       def find_by_sql(sql)
         connection.select_all(sanitize_sql(sql), "#{name} Load").collect! { |record| instantiate(record) }
       end
-
 
       # Returns true if a record exists in the table that matches the +id+ or
       # conditions given, or false otherwise. The argument can take five forms:
@@ -1003,7 +1002,6 @@ module ActiveRecord #:nodoc:
         update_counters(id, counter_name => -1)
       end
 
-
       # Attributes named in this macro are protected from mass-assignment,
       # such as <tt>new(attributes)</tt>,
       # <tt>update_attributes(attributes)</tt>, or
@@ -1103,7 +1101,6 @@ module ActiveRecord #:nodoc:
       def serialized_attributes
         read_inheritable_attribute(:attr_serialized) or write_inheritable_attribute(:attr_serialized, {})
       end
-
 
       # Guesses the table name (in forced lower-case) based on the name of the class in the inheritance hierarchy descending
       # directly from ActiveRecord::Base. So if the hierarchy looks like: Reply < Message < ActiveRecord::Base, then Message is used
@@ -1417,7 +1414,6 @@ module ActiveRecord #:nodoc:
         end
       end
 
-
       def quote_value(value, column = nil) #:nodoc:
         connection.quote(value,column)
       end
@@ -1486,7 +1482,7 @@ module ActiveRecord #:nodoc:
         elsif match = DynamicScopeMatch.match(method_id)
           return true if all_attributes_exists?(match.attribute_names)
         end
-        
+
         super
       end
 
@@ -1745,7 +1741,9 @@ module ActiveRecord #:nodoc:
           scoped_order = scope[:order] if scope
           if order
             sql << " ORDER BY #{order}"
-            sql << ", #{scoped_order}" if scoped_order
+            if scoped_order && scoped_order != order
+              sql << ", #{scoped_order}"
+            end
           else
             sql << " ORDER BY #{scoped_order}" if scoped_order
           end
@@ -2014,7 +2012,6 @@ module ActiveRecord #:nodoc:
           end
         end
 
-
         # Defines an "attribute" method (like +inheritance_column+ or
         # +table_name+). A new (class) method will be created with the
         # given name. If a value is specified, the new method will
@@ -2111,7 +2108,7 @@ module ActiveRecord #:nodoc:
           end
 
           # Merge scopings
-          if action == :merge && current_scoped_methods
+          if [:merge, :reverse_merge].include?(action) && current_scoped_methods
             method_scoping = current_scoped_methods.inject(method_scoping) do |hash, (method, params)|
               case hash[method]
                 when Hash
@@ -2133,7 +2130,11 @@ module ActiveRecord #:nodoc:
                       end
                     end
                   else
-                    hash[method] = hash[method].merge(params)
+                    if action == :reverse_merge
+                      hash[method] = hash[method].merge(params)
+                    else
+                      hash[method] = params.merge(hash[method])
+                    end
                   end
                 else
                   hash[method] = params
@@ -2143,7 +2144,6 @@ module ActiveRecord #:nodoc:
           end
 
           self.scoped_methods << method_scoping
-
           begin
             yield
           ensure
@@ -2748,7 +2748,6 @@ module ActiveRecord #:nodoc:
 
         assign_multiparameter_attributes(multi_parameter_attributes)
       end
-
 
       # Returns a hash of all the attributes with their names as keys and the values of the attributes as values.
       def attributes

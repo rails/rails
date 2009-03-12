@@ -8,7 +8,7 @@ module Rack
       class Request < Auth::AbstractRequest
 
         def method
-          @env['REQUEST_METHOD']
+          @env['rack.methodoverride.original_method'] || @env['REQUEST_METHOD']
         end
 
         def digest?

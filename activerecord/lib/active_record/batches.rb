@@ -11,14 +11,14 @@ module ActiveRecord
       #
       # Example:
       #
-      #   Person.each(:conditions => "age > 21") do |person|
+      #   Person.find_each(:conditions => "age > 21") do |person|
       #     person.party_all_night!
       #   end
       #
       # Note: This method is only intended to use for batch processing of large amounts of records that wouldn't fit in
       # memory all at once. If you just need to loop over less than 1000 records, it's probably better just to use the
       # regular find methods.
-      def each(options = {})
+      def find_each(options = {})
         find_in_batches(options) do |records|
           records.each { |record| yield record }
         end
@@ -49,12 +49,15 @@ module ActiveRecord
         raise "You can't specify a limit, it's forced to be the batch_size"  if options[:limit]
 
         start = options.delete(:start).to_i
+        batch_size = options.delete(:batch_size) || 1000
 
-        with_scope(:find => options.merge(:order => batch_order, :limit => options.delete(:batch_size) || 1000)) do
+        with_scope(:find => options.merge(:order => batch_order, :limit => batch_size)) do
           records = find(:all, :conditions => [ "#{table_name}.#{primary_key} >= ?", start ])
 
           while records.any?
             yield records
+
+            break if records.size < batch_size
             records = find(:all, :conditions => [ "#{table_name}.#{primary_key} > ?", records.last.id ])
           end
         end

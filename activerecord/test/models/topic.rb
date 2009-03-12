@@ -1,7 +1,9 @@
 class Topic < ActiveRecord::Base
   named_scope :base
   named_scope :written_before, lambda { |time|
-    { :conditions => ['written_on < ?', time] }
+    if time
+      { :conditions => ['written_on < ?', time] }
+    end
   }
   named_scope :approved, :conditions => {:approved => true}
   named_scope :rejected, :conditions => {:approved => false}

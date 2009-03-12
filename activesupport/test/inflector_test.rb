@@ -116,6 +116,12 @@ class InflectorTest < Test::Unit::TestCase
     end
   end
 
+  def test_parameterize_with_multi_character_separator
+    StringToParameterized.each do |some_string, parameterized_string|
+      assert_equal(parameterized_string.gsub('-', '__sep__'), ActiveSupport::Inflector.parameterize(some_string, '__sep__'))
+    end
+  end
+
   def test_classify
     ClassNameToTableName.each do |class_name, table_name|
       assert_equal(class_name, ActiveSupport::Inflector.classify(table_name))

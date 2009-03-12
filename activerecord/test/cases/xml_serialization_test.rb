@@ -38,11 +38,15 @@ class XmlSerializationTest < ActiveRecord::TestCase
     assert_match %r{<CreatedAt},    @xml
   end
 
+  def test_should_allow_skipped_types
+    @xml = Contact.new(:age => 25).to_xml :skip_types => true
+    assert %r{<age>25</age>}.match(@xml)
+  end
+
   def test_should_include_yielded_additions
     @xml = Contact.new.to_xml do |xml|
       xml.creator "David"
     end
-
     assert_match %r{<creator>David</creator>}, @xml
   end
 end
@@ -143,6 +147,13 @@ class DatabaseConnectedXmlSerializationTest < ActiveRecord::TestCase
     assert_match %r{<hello-posts type="array">}, xml
     assert_match %r{<hello-post type="Post">}, xml
     assert_match %r{<hello-post type="StiPost">}, xml
+  end
+
+  def test_included_associations_should_skip_types
+    xml = authors(:david).to_xml :include=>:hello_posts, :indent => 0, :skip_types => true
+    assert_match %r{<hello-posts>}, xml
+    assert_match %r{<hello-post>}, xml
+    assert_match %r{<hello-post>}, xml
   end
 
   def test_methods_are_called_on_object

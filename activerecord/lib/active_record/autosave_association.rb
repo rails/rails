@@ -283,7 +283,7 @@ module ActiveRecord
         if records = associated_records_to_validate_or_save(association, @new_record_before_save, autosave)
           records.each do |record|
             if autosave && record.marked_for_destruction?
-              record.destroy
+              association.destroy(record)
             elsif @new_record_before_save || record.new_record?
               if autosave
                 association.send(:insert_record, record, false, false)
@@ -310,7 +310,7 @@ module ActiveRecord
     # This all happens inside a transaction, _if_ the Transactions module is included into
     # ActiveRecord::Base after the AutosaveAssociation module, which it does by default.
     def save_has_one_association(reflection)
-      if association = association_instance_get(reflection.name)
+      if (association = association_instance_get(reflection.name)) && !association.target.nil?
         if reflection.options[:autosave] && association.marked_for_destruction?
           association.destroy
         elsif new_record? || association.new_record? || association[reflection.primary_key_name] != id || reflection.options[:autosave]

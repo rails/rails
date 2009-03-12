@@ -6,11 +6,24 @@ module ActiveSupport
   #   XmlMini.backend = 'LibXML'
   module XmlMini
     extend self
-    delegate :parse, :to => :@backend
+
+    attr_reader :backend
+    delegate :parse, :to => :backend
 
     def backend=(name)
-      require "active_support/xml_mini/#{name.to_s.downcase}.rb"
-      @backend = ActiveSupport.const_get("XmlMini_#{name}")
+      if name.is_a?(Module)
+        @backend = name
+      else
+        require "active_support/xml_mini/#{name.to_s.downcase}.rb"
+        @backend = ActiveSupport.const_get("XmlMini_#{name}")
+      end
+    end
+
+    def with_backend(name)
+      old_backend, self.backend = backend, name
+      yield
+    ensure
+      self.backend = old_backend
     end
   end
 

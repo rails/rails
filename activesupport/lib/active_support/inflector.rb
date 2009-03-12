@@ -257,20 +257,22 @@ module ActiveSupport
     #   <%= link_to(@person.name, person_path(@person)) %>
     #   # => <a href="/person/1-donald-e-knuth">Donald E. Knuth</a>
     def parameterize(string, sep = '-')
-      re_sep = Regexp.escape(sep)
-      # Replace accented chars with their ASCII equivalents.
+      # replace accented chars with ther ascii equivalents
       parameterized_string = transliterate(string)
-      # Turn unwanted chars into the separator.
+      # Turn unwanted chars into the seperator
       parameterized_string.gsub!(/[^a-z0-9\-_\+]+/i, sep)
-      # No more than one of the separator in a row.
-      parameterized_string.squeeze!(sep)
-      # Remove leading/trailing separator.
-      parameterized_string.gsub!(/^#{re_sep}|#{re_sep}$/i, '')
+      unless sep.blank?
+        re_sep = Regexp.escape(sep)
+        # No more than one of the separator in a row.
+        parameterized_string.gsub!(/#{re_sep}{2,}/, sep)
+        # Remove leading/trailing separator.
+        parameterized_string.gsub!(/^#{re_sep}|#{re_sep}$/i, '')
+      end
       parameterized_string.downcase
     end
 
 
-    # Replaces accented characters with their ASCII equivalents.
+    # Replaces accented characters with their ascii equivalents.
     def transliterate(string)
       Iconv.iconv('ascii//ignore//translit', 'utf-8', string).to_s
     end

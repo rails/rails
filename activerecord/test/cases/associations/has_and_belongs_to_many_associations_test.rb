@@ -381,6 +381,33 @@ class HasAndBelongsToManyAssociationsTest < ActiveRecord::TestCase
     assert_date_from_db Date.new(2004, 10, 10), Developer.find(1).projects.first.joined_on.to_date
   end
 
+  def test_destroying
+    david = Developer.find(1)
+    active_record = Project.find(1)
+    david.projects.reload
+    assert_equal 2, david.projects.size
+    assert_equal 3, active_record.developers.size
+
+    assert_difference "Project.count", -1 do
+      david.projects.destroy(active_record)
+    end
+
+    assert_equal 1, david.reload.projects.size
+    assert_equal 1, david.projects(true).size
+  end
+
+  def test_destroying_array
+    david = Developer.find(1)
+    david.projects.reload
+
+    assert_difference "Project.count", -Project.count do
+      david.projects.destroy(Project.find(:all))
+    end
+
+    assert_equal 0, david.reload.projects.size
+    assert_equal 0, david.projects(true).size
+  end
+
   def test_destroy_all
     david = Developer.find(1)
     david.projects.reload

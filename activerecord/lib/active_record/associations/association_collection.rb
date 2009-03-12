@@ -60,7 +60,7 @@ module ActiveRecord
           @reflection.klass.find(*args)
         end
       end
-      
+
       # Fetches the first one using SQL if possible.
       def first(*args)
         if fetch_first_or_last_using_find?(args)
@@ -186,7 +186,6 @@ module ActiveRecord
         end
       end
 
-
       # Removes +records+ from this association calling +before_remove+ and
       # +after_remove+ callbacks.
       #
@@ -195,20 +194,23 @@ module ActiveRecord
       # are actually removed from the database, that depends precisely on
       # +delete_records+. They are in any case removed from the collection.
       def delete(*records)
-        records = flatten_deeper(records)
-        records.each { |record| raise_on_type_mismatch(record) }
-        
-        transaction do
-          records.each { |record| callback(:before_remove, record) }
-          
-          old_records = records.reject {|r| r.new_record? }
+        remove_records(records) do |records, old_records|
           delete_records(old_records) if old_records.any?
-          
-          records.each do |record|
-            @target.delete(record)
-            callback(:after_remove, record)
-          end
+          records.each { |record| @target.delete(record) }
         end
+      end
+
+      # Destroy +records+ and remove from this association calling +before_remove+
+      # and +after_remove+ callbacks.
+      #
+      # Note this method will always remove records from database ignoring the
+      # +:dependent+ option.
+      def destroy(*records)
+        remove_records(records) do |records, old_records|
+          old_records.each { |record| record.destroy }
+        end
+
+        load_target
       end
 
       # Removes all records from this association.  Returns +self+ so method calls may be chained.
@@ -223,15 +225,14 @@ module ActiveRecord
 
         self
       end
-      
-      def destroy_all
-        transaction do
-          each { |record| record.destroy }
-        end
 
+      # Destory all the records from this association
+      def destroy_all
+        load_target
+        destroy(@target)
         reset_target!
       end
-      
+
       def create(attrs = {})
         if attrs.is_a?(Array)
           attrs.collect { |attr| create(attr) }
@@ -429,6 +430,18 @@ module ActiveRecord
           @target << record unless @reflection.options[:uniq] && @target.include?(record)
           callback(:after_add, record)
           record
+        end
+
+        def remove_records(*records)
+          records = flatten_deeper(records)
+          records.each { |record| raise_on_type_mismatch(record) }
+
+          transaction do
+            records.each { |record| callback(:before_remove, record) }
+            old_records = records.reject { |r| r.new_record? }
+            yield(records, old_records)
+            records.each { |record| callback(:after_remove, record) }
+          end
         end
 
         def callback(method, record)

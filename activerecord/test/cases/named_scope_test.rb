@@ -15,7 +15,7 @@ class NamedScopeTest < ActiveRecord::TestCase
     assert_equal Topic.find(:all),   Topic.base
     assert_equal Topic.find(:all),   Topic.base.to_a
     assert_equal Topic.find(:first), Topic.base.first
-    assert_equal Topic.find(:all),   Topic.base.each { |i| i }
+    assert_equal Topic.find(:all),   Topic.base.map { |i| i }
   end
 
   def test_found_items_are_cached
@@ -97,6 +97,12 @@ class NamedScopeTest < ActiveRecord::TestCase
 
     assert_equal topics_written_before_the_third, Topic.written_before(topics(:third).written_on)
     assert_equal topics_written_before_the_second, Topic.written_before(topics(:second).written_on)
+  end
+
+  def test_procedural_scopes_returning_nil
+    all_topics = Topic.find(:all)
+
+    assert_equal all_topics, Topic.written_before(nil)
   end
 
   def test_scopes_with_joins
@@ -247,7 +253,7 @@ class NamedScopeTest < ActiveRecord::TestCase
     topic = Topic.approved.create!({})
     assert topic.approved
   end
-  
+
   def test_should_build_with_proxy_options_chained
     topic = Topic.approved.by_lifo.build({})
     assert topic.approved
@@ -287,15 +293,21 @@ class NamedScopeTest < ActiveRecord::TestCase
     assert_equal post.comments.size, Post.scoped(:joins => join).scoped(:joins => join, :conditions => "posts.id = #{post.id}").size
   end
 
-  def test_chanining_should_use_latest_conditions_when_creating
-    post1 = Topic.rejected.approved.new
-    assert post1.approved?
+  def test_chaining_should_use_latest_conditions_when_creating
+    post = Topic.rejected.new
+    assert !post.approved?
 
-    post2 = Topic.approved.rejected.new
-    assert ! post2.approved?
+    post = Topic.rejected.approved.new
+    assert post.approved?
+
+    post = Topic.approved.rejected.new
+    assert !post.approved?
+
+    post = Topic.approved.rejected.approved.new
+    assert post.approved?
   end
 
-  def test_chanining_should_use_latest_conditions_when_searching
+  def test_chaining_should_use_latest_conditions_when_searching
     # Normal hash conditions
     assert_equal Topic.all(:conditions => {:approved => true}), Topic.rejected.approved.all
     assert_equal Topic.all(:conditions => {:approved => false}), Topic.approved.rejected.all
@@ -306,9 +318,23 @@ class NamedScopeTest < ActiveRecord::TestCase
     # Nested hash conditions with different keys
     assert_equal [posts(:sti_comments)], Post.with_special_comments.with_post(4).all.uniq
   end
-  
+
   def test_methods_invoked_within_scopes_should_respect_scope
     assert_equal [], Topic.approved.by_rejected_ids.proxy_options[:conditions][:id]
+  end
+
+  def test_named_scopes_batch_finders
+    assert_equal 3, Topic.approved.count
+
+    assert_queries(4) do
+      Topic.approved.find_each(:batch_size => 1) {|t| assert t.approved? }
+    end
+
+    assert_queries(2) do
+      Topic.approved.find_in_batches(:batch_size => 2) do |group|
+        group.each {|t| assert t.approved? }
+      end
+    end
   end
 end
 
