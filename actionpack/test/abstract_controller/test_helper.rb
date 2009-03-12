@@ -15,8 +15,9 @@ rescue LoadError
   # Debugging disabled. `gem install ruby-debug` to enable.
 end
 
-require 'action_controller/abstract/base'
-require 'action_controller/abstract/renderer'
-require 'action_controller/abstract/layouts'
-require 'action_controller/abstract/callbacks'
-require 'action_controller/abstract/helpers'
+require 'action_controller/abstract'
+# require 'action_controller/abstract/base'
+# require 'action_controller/abstract/renderer'
+# require 'action_controller/abstract/layouts'
+# require 'action_controller/abstract/callbacks'
+# require 'action_controller/abstract/helpers'
