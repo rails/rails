@@ -811,7 +811,7 @@ Behind the scenes +find_each+ fetches rows in batches of 1000 and yields them on
 
 The +:start+ option allows you to configure the first ID of the sequence if the lowest is not the one you need. This may be useful for example to be able to resume an interrupted batch process if it saves the last processed ID as a checkpoint.
 
-Apart from +:order+ and +:limit+, which are used by the method itself, +find_each+ accepts the same options supported by +find+.
++find_each+ accepts the same options as +find+ except for +:order+ and +:limit+. Those two are needed internally and if the options argument include any of them an exception is raised.
 
 In addition, you can work by chunks instead of row by row using +find_in_batches+. This method is analogous to +find_each+, but it yields arrays of models instead:
 
