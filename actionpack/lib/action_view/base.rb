@@ -225,8 +225,8 @@ module ActionView #:nodoc:
       @helpers = ProxyModule.new(self)
       self.view_paths = view_paths
 
-      @_first_template = nil
-      @_current_template = nil
+      @_first_render = nil
+      @_current_render = nil
     end
 
     attr_reader :view_paths
@@ -288,12 +288,12 @@ module ActionView #:nodoc:
     # Access the current template being rendered.
     # Returns a ActionView::Template object.
     def template
-      @_current_template
+      @_current_render
     end
 
     def template=(template) #:nodoc:
-      @_first_template ||= template
-      @_current_template = template
+      @_first_render ||= template
+      @_current_render = template
     end
 
     def with_template(current_template)
