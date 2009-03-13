@@ -210,7 +210,11 @@ module ActionController # :nodoc:
 
       def nonempty_ok_response?
         ok = !status || status.to_s[0..2] == '200'
-        ok && !body_parts.respond_to?(:call) && body_parts.any?
+        ok && string_body?
+      end
+
+      def string_body?
+        !body_parts.respond_to?(:call) && body_parts.any? && body_parts.all? { |part| part.is_a?(String) }
       end
 
       def set_conditional_cache_control!
@@ -231,7 +235,7 @@ module ActionController # :nodoc:
           headers.delete('Content-Length')
         elsif length = headers['Content-Length']
           headers['Content-Length'] = length.to_s
-        elsif !body_parts.respond_to?(:call) && (!status || status.to_s[0..2] != '304')
+        elsif string_body? && (!status || status.to_s[0..2] != '304')
           headers["Content-Length"] = Rack::Utils.bytesize(body).to_s
         end
       end
