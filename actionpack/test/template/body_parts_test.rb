@@ -1,6 +1,6 @@
 require 'abstract_unit'
 require 'action_view/body_parts/queued'
-require 'action_view/body_parts/open_uri'
+require 'action_view/body_parts/threaded'
 
 class OutputBufferTest < ActionController::TestCase
   class TestController < ActionController::Base
@@ -73,7 +73,7 @@ class QueuedPartTest < ActionController::TestCase
 
   def test_queued_parts
     get :index
-    expected = %(oof rab zab).map { |receipt| EdgeSideInclude.redemption_tag(receipt) }
+    expected = %w(oof rab zab).map { |receipt| EdgeSideInclude.redemption_tag(receipt) }.join
     assert_equal expected, @response.body
   end
 end
@@ -125,7 +125,7 @@ end
 
 
 class OpenUriPartTest < ActionController::TestCase
-  class OpenUri < ActionView::BodyParts::Threaded
+  class OpenUriPart < ActionView::BodyParts::Threaded
     def initialize(url)
       url = URI::Generic === url ? url : URI.parse(url)
       super(true) { |parts| parts << url.read }
@@ -143,7 +143,7 @@ class OpenUriPartTest < ActionController::TestCase
     def render_url(url)
       url = URI.parse(url)
       def url.read; path end
-      response.template.punctuate_body! ActionView::BodyParts::OpenUri.new(url)
+      response.template.punctuate_body! OpenUriPart.new(url)
     end
   end
 
