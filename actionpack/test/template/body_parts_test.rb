@@ -36,28 +36,36 @@ class OutputBufferTest < ActionController::TestCase
   end
 end
 
+
 class QueuedPartTest < ActionController::TestCase
-  class SimpleQueued < ActionView::BodyParts::Queued
+  class EdgeSideInclude < ActionView::BodyParts::Queued
+    QUEUE_REDEMPTION_URL = 'http://queue/jobs/%s'
+    ESI_INCLUDE_TAG = '<esi:include src="%s" />'
+
+    def self.redemption_tag(receipt)
+      ESI_INCLUDE_TAG % QUEUE_REDEMPTION_URL % receipt
+    end
+
     protected
       def submit(job)
-        job
+        job.reverse
       end
 
       def redeem(receipt)
-        receipt.to_s.reverse
+        self.class.redemption_tag(receipt)
       end
   end
 
   class TestController < ActionController::Base
     def index
-      queued_render 'foo'
-      queued_render 'bar'
-      queued_render 'baz'
+      edge_side_include 'foo'
+      edge_side_include 'bar'
+      edge_side_include 'baz'
       @performed_render = true
     end
 
-    def queued_render(job)
-      response.template.punctuate_body! SimpleQueued.new(job)
+    def edge_side_include(job)
+      response.template.punctuate_body! EdgeSideInclude.new(job)
     end
   end
 
@@ -65,9 +73,11 @@ class QueuedPartTest < ActionController::TestCase
 
   def test_queued_parts
     get :index
-    assert_equal 'oofrabzab', @response.body
+    expected = %(oof rab zab).map { |receipt| EdgeSideInclude.redemption_tag(receipt) }
+    assert_equal expected, @response.body
   end
 end
+
 
 class ThreadedPartTest < ActionController::TestCase
   class TestController < ActionController::Base
@@ -113,7 +123,15 @@ class ThreadedPartTest < ActionController::TestCase
   end
 end
 
+
 class OpenUriPartTest < ActionController::TestCase
+  class OpenUri < ActionView::BodyParts::Threaded
+    def initialize(url)
+      url = URI::Generic === url ? url : URI.parse(url)
+      super(true) { |parts| parts << url.read }
+    end
+  end
+
   class TestController < ActionController::Base
     def index
       render_url 'http://localhost/foo'
