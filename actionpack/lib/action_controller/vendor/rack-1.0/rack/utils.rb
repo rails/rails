@@ -372,7 +372,7 @@ module Rack
               data = body
             end
 
-            Utils.normalize_params(params, name, data)
+            Utils.normalize_params(params, name, data) unless data.nil?
 
             break  if buf.empty? || content_length == -1
           }

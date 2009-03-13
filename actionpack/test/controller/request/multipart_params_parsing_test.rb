@@ -103,7 +103,7 @@ class MultipartParamsParsingTest < ActionController::IntegrationTest
 
   test "does not create tempfile if no file has been selected" do
     params = parse_multipart('none')
-    assert_equal %w(files submit-name), params.keys.sort
+    assert_equal %w(submit-name), params.keys.sort
     assert_equal 'Larry', params['submit-name']
     assert_equal nil, params['files']
   end
