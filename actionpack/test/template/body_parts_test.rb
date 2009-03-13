@@ -47,7 +47,7 @@ class QueuedPartTest < ActionController::TestCase
     end
 
     protected
-      def submit(job)
+      def enqueue(job)
         job.reverse
       end
 
@@ -114,12 +114,11 @@ class ThreadedPartTest < ActionController::TestCase
   def test_concurrent_threaded_parts
     get :index
 
-    before = Time.now.to_i
-    thread_ids = @response.body.split('-').map { |part| part.split('::').first.to_i }
-    elapsed = Time.now.to_i - before
-
-    assert_equal thread_ids.size, thread_ids.uniq.size
-    assert elapsed < 1.1
+    elapsed = Benchmark.ms do
+      thread_ids = @response.body.split('-').map { |part| part.split('::').first.to_i }
+      assert_equal thread_ids.size, thread_ids.uniq.size
+    end
+    assert (elapsed - 1000).abs < 100, elapsed
   end
 end
 
@@ -142,7 +141,7 @@ class OpenUriPartTest < ActionController::TestCase
 
     def render_url(url)
       url = URI.parse(url)
-      def url.read; path end
+      def url.read; sleep 1; path end
       response.template.punctuate_body! OpenUriPart.new(url)
     end
   end
@@ -155,6 +154,6 @@ class OpenUriPartTest < ActionController::TestCase
     elapsed = Benchmark.ms do
       assert_equal '/foo/bar/baz', @response.body
     end
-    assert elapsed < 1.1
+    assert (elapsed - 1000).abs < 100, elapsed
   end
 end

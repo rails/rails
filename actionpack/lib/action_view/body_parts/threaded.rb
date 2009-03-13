@@ -4,11 +4,22 @@ module ActionView
   module BodyParts
     class Threaded < Future
       def initialize(concurrent = false, &block)
-        super(&block)
+        @block = block
+        @parts = []
         concurrent ? start : work
       end
 
       protected
+        def work
+          @block.call(@parts)
+        end
+
+        def body
+          str = ''
+          @parts.each { |part| str << part.to_s }
+          str
+        end
+
         def start
           @worker = Thread.new { work }
         end
