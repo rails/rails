@@ -258,7 +258,7 @@ class RackResponseTest < BaseRackTest
     }, headers)
 
     parts = []
-    body.each { |part| parts << part }
+    body.each { |part| parts << part.to_s }
     assert_equal ["0", "1", "2", "3", "4"], parts
   end
 end

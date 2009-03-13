@@ -258,11 +258,11 @@ module ActionController #:nodoc:
 
     # Returns binary content (downloadable file), converted to a String
     def binary_content
-      raise "Response body is not a Proc: #{body.inspect}" unless body.kind_of?(Proc)
+      raise "Response body is not a Proc: #{body_parts.inspect}" unless body_parts.kind_of?(Proc)
       require 'stringio'
 
       sio = StringIO.new
-      body.call(self, sio)
+      body_parts.call(self, sio)
 
       sio.rewind
       sio.read
