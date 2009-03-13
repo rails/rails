@@ -4,8 +4,6 @@ Rails 2.3 delivers a variety of new and improved features, including pervasive R
 
 endprologue.
 
-WARNING: These release notes refer to RC2 of Rails 2.3. This is a release candidate, and not the final version of Rails 2.3. It's intended to be a stable testing release, and we urge you to test your own applications and report any issues to the "Rails Lighthouse":http://rails.lighthouseapp.com/projects/8994-ruby-on-rails/overview.
-
 h3. Application Architecture
 
 There are two major changes in the architecture of Rails applications: complete integration of the "Rack":http://rack.rubyforge.org/ modular web server interface, and renewed support for Rails Engines.
@@ -196,6 +194,8 @@ h4. Other Active Record Changes
 * A bug in canceling callbacks from +before_update+ or +before_create_ was fixed.
 * Rake tasks for testing databases via JDBC have been added.
 * +validates_length_of+ will use a custom error message with the +:in+ or +:within+ options (if one is supplied)
+* Counts on scoped selects now work properly, so you can do things like +Account.scoped(:select => "DISTINCT credit_limit").count+
+* +ActiveRecord::Base#invalid?+ now works as the opposite of +ActiveRecord::Base#valid?+.
 
 h3. Action Controller
 
@@ -288,7 +288,7 @@ In some of the first fruits of the Rails-Merb team merger, Rails 2.3 includes so
 
 h4. Improved Caching Performance
 
-Rails now keeps a per-request local cache of requests, cutting down on unnecessary reads and leading to better site performance. While this work was originally limited to +MemCacheStore+, it is available to any remote store than implements the required methods.
+Rails now keeps a per-request local cache of read from the remote cache stores, cutting down on unnecessary reads and leading to better site performance. While this work was originally limited to +MemCacheStore+, it is available to any remote store than implements the required methods.
 
 * Lead Contributor: "Nahum Wild":http://www.motionstandingstill.com/
 
@@ -312,6 +312,9 @@ h4. Other Action Controller Changes
 * The +:only+ and +:except+ options for +map.resources+ are no longer inherited by nested resources.
 * The bundled memcached client has been updated to version 1.6.4.99.
 * The +expires_in+, +stale?+, and +fresh_when+ methods now accept a +:public+ option to make them work well with proxy caching.
+* The +:requirements+ option now works properly with additional RESTful member routes.
+* Shallow routes now properly respect namespaces.
+* +polymorphic_url+ does a better job of handling objects with irregular plural names.
 
 h3. Action View
 
@@ -491,6 +494,17 @@ h4. Object#tap Backport
 
 +Object#tap+ is an addition to "Ruby 1.9":http://www.ruby-doc.org/core-1.9/classes/Object.html#M000309 and 1.8.7 that is similar to the +returning+ method that Rails has had for a while: it yields to a block, and then returns the object that was yielded. Rails now includes code to make this available under older versions of Ruby as well.
 
+h4. Swappable Parsers for XMLmini
+
+The support for XML parsing in ActiveSupport has been made more flexible by allowing you to swap in different parsers. By default, it uses the standard REXML implementation, but you can easily specify the faster LibXML or Nokogiri implementations for your own applications, provided you have the appropriate gems installed:
+
+<ruby>
+XmlMini.backend = 'LibXML'
+</ruby>
+
+* Lead Contributor: "Bart ten Brinke":http://www.movesonrails.com/ 
+* Lead Contributor: "Aaron Patterson":http://tenderlovemaking.com/
+
 h4. Fractional seconds for TimeWithZone
 
 The +Time+ and +TimeWithZone+ classes include an +xmlschema+ method to return the time in an XML-friendly string. As of Rails 2.3, +TimeWithZone+ supports the same argument for specifying the number of digits in the fractional second part of the returned string that +Time+ does:
@@ -513,6 +527,10 @@ h4. Other Active Support Changes
 * +ActiveSupport::OrderedHash+: now implements +each_key+ and +each_value+.
 * +ActiveSupport::MessageEncryptor+ provides a simple way to encrypt information for storage in an untrusted location (like cookies).
 * Active Support's +from_xml+ no longer depends on XmlSimple. Instead, Rails now includes its own XmlMini implementation, with just the functionality that it requires. This lets Rails dispense with the bundled copy of XmlSimple that it's been carting around.
+* If you memoize a private method, the result will now be private.
+* +String#parameterize+ accepts an optional separator: +"Quick Brown Fox".parameterize('_') => "quick_brown_fox"+.
+* +number_to_phone+ accepts 7-digit phone numbers now.
+* +ActiveSupport::Json.decode+ now handles +\u0000+ style escape sequences.
 
 h3. Railties
 
@@ -550,6 +568,12 @@ h4. Faster Boot Time in Development Mode with Lazy Loading/Autoload
 Quite a bit of work was done to make sure that bits of Rails (and its dependencies) are only brought into memory when they're actually needed. The core frameworks - Active Support, Active Record, Action Controller, Action Mailer and Action View - are now using +autoload+ to lazy-load their individual classes. This work should help keep the memory footprint down and improve overall Rails performance.
 
 You can also specify (by using the new +preload_frameworks+ option) whether the core libraries should be autoloaded at startup. This defaults to +false+ so that Rails autoloads itself piece-by-piece, but there are some circumstances where you still need to bring in everything at once - Passenger and JRuby both want to see all of Rails loaded together.
+
+h4. rake gem Task Rewrite
+
+The internals of the various <code>rake gem</code> tasks have been substantially revised, to make the system work better for a variety of cases. The gem system now knows the difference between development and runtime dependencies, has a more robust unpacking system, gives better information when querying for the status of gems, and is less prone to "chicken and egg" dependency issues when you're bringing things up from scratch. There are also fixes for using gem commands under JRuby and for dependencies that try to bring in external copies of gems that are already vendored.
+
+* Lead Contributor: "David Dollar":http://www.workingwithrails.com/person/12240-david-dollar
 
 h4. Other Railties Changes
 
