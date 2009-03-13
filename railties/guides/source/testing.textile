@@ -110,9 +110,9 @@ h5. Fixtures in Action
 
 Rails by default automatically loads all fixtures from the 'test/fixtures' folder for your unit and functional test. Loading involves three steps:
 
- * Remove any existing data from the table corresponding to the fixture
- * Load the fixture data into the table
- * Dump the fixture data into a variable in case you want to access it directly
+* Remove any existing data from the table corresponding to the fixture
+* Load the fixture data into the table
+* Dump the fixture data into a variable in case you want to access it directly
 
 h5. Hashes with Special Powers
 
