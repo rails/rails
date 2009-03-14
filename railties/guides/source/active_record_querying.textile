@@ -173,7 +173,7 @@ Sometimes you need to iterate over a large set of records. For example to send a
 The following may seem very straight forward at first:
 
 <ruby>
-# Very inefficient when users table has thousands of rows
+# Very inefficient when users table has thousands of rows.
 User.all.each do |user|
   NewsLetter.weekly_deliver(user)
 end
@@ -219,7 +219,7 @@ end
 
 *Additional options*
 
-+find_each+ accepts the same options as the regular +find+ method. However, +:order+ and +:limit+ are needed internally and hence not allowed to be passes explicitly.
++find_each+ accepts the same options as the regular +find+ method. However, +:order+ and +:limit+ are needed internally and hence not allowed to be passed explicitly.
 
 h5. +find_in_batches+
 
@@ -843,7 +843,7 @@ Client.find_by_sql("SELECT * FROM clients
 
 +find_by_sql+ provides you with a simple way of making custom calls to the database and retrieving instantiated objects.
 
-h3. select_all
+h3. +select_all+
 
 <tt>find_by_sql</tt> has a close relative called +connection#select_all+. +select_all+ will retrieve objects from the database using custom SQL just like +find_by_sql+ but will not instantiate them. Instead, you will get an array of hashes where each hash indicates a record.
 
