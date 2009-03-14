@@ -40,7 +40,7 @@ h3. Models
   This guide covers all the associations provided by Active Record.
 <% end %>
 
-<% guide("Active Record Query Interface", 'active_record_querying.html', :ticket => 16) do %>
+<% guide("Active Record Query Interface", 'active_record_querying.html') do %>
   This guide covers the database query interface provided by Active Record.
 <% end %>
 </dl>
