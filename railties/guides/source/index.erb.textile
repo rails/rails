@@ -32,7 +32,7 @@ h3. Models
   This guide covers how you can use Active Record migrations to alter your database in a structured and organized manner.
 <% end %>
 
-<% guide("Active Record Validations and Callbacks", 'activerecord_validations_callbacks.html', :ticket => 26) do %>
+<% guide("Active Record Validations and Callbacks", 'activerecord_validations_callbacks.html') do %>
   This guide covers how you can use Active Record validations and callbacks.
 <% end %>
 
