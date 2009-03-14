@@ -790,7 +790,7 @@ Post.all :include => [:category, :comments]
 
 This loads all the posts and the associated category and comments for each post.
 
-h5. Nested Assocaitions Hash
+h5. Nested Associations Hash
 
 <ruby>
 Category.find 1, :include => {:posts => [{:comments => :guest}, :tags]}
