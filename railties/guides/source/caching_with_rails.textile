@@ -424,11 +424,11 @@ ActionController::Base.cache_store = :compressed_mem_cache_store, "localhost"
 ActionController::Base.cache_store = MyOwnStore.new("parameter")
 </ruby>
 
-+Note: config.cache_store can be used in place of
-ActionController::Base.cache_store in your Rails::Initializer.run block in
-environment.rb+
+NOTE: +config.cache_store+ can be used in place of
++ActionController::Base.cache_store+ in the +Rails::Initializer.run+ block in
+environment.rb.
 
-In addition to all of this, Rails also adds the ActiveRecord::Base#cache_key
+In addition to all of this, Rails also adds the +ActiveRecord::Base#cache_key+
 method that generates a key using the class name, id and updated_at timestamp
 (if available).
 
@@ -442,7 +442,7 @@ Rails.cache.read("city")   # => "Duckburgh"
 
 h3. Conditional GET support
 
-Conditional GETs are a facility of the HTTP spec that provide a way for web
+Conditional GETs are a feature of the HTTP specification that provide a way for web
 servers to tell browsers that the response to a GET request hasn't changed
 since the last request and can be safely pulled from the browser cache.
 
