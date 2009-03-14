@@ -166,6 +166,74 @@ SELECT * FROM clients
 
 NOTE: +Model.find(:all, options)+ is equivalent to +Model.all(options)+
 
+h4. Retrieving multiple objects in batches
+
+Sometimes you need to iterate over a large set of records. For example to send a newsletter to all users, to export some data, etc. 
+
+The following may seem very straight forward at first:
+
+<ruby>
+# Very inefficient when users table has thousands of rows
+User.all.each do |user|
+  NewsLetter.weekly_deliver(user)
+end
+</ruby>
+
+But if the total number of rows in the table is very large, the above approach may vary from being under performant to just plain impossible.
+
+This is because +LegacySurvey.all+ makes Active Record fetch _the entire table_, build a model object per row, and keep the entire array in the memory. Sometimes that is just too many objects and demands too much memory.
+
+h5. +find_each+
+
+To efficiently iterate over a large table, Active Record provides a batch finder method called +find_each+:
+
+<ruby>
+User.find_each do |user|
+  NewsLetter.weekly_deliver(user)
+end
+</ruby>
+
+*Configuring the batch size*
+
+Behind the scenes +find_each+ fetches rows in batches of +1000+ and yields them one by one. The size of the underlying batches is configurable via the +:batch_size+ option.
+
+To fetch +User+ records in batch size of +5000+:
+
+<ruby>
+User.find_each(:batch_size => 5000) do |user|
+  NewsLetter.weekly_deliver(user)
+end
+</ruby>
+
+*Starting batch find from a specific primary key*
+
+Records are fetched in ascending order on the primary key, which must be an integer. The +:start+ option allows you to configure the first ID of the sequence if the lowest is not the one you need. This may be useful for example to be able to resume an interrupted batch process if it saves the last processed ID as a checkpoint.
+
+To send newsletters only to users with the primary key starting from +2000+:
+
+<ruby>
+User.find_each(:batch_size => 5000, :start => 2000) do |user|
+  NewsLetter.weekly_deliver(user)
+end
+</ruby>
+
+*Additional options*
+
++find_each+ accepts the same options as the regular +find+ method. However, +:order+ and +:limit+ are needed internally and hence not allowed to be passes explicitly.
+
+h5. +find_in_batches+
+
+You can also work by chunks instead of row by row using +find_in_batches+. This method is analogous to +find_each+, but it yields arrays of models instead:
+
+<ruby>
+# Works in chunks of 1000 invoices at a time.
+Invoice.find_in_batches(:include => :invoice_lines) do |invoices|
+  export.add_invoices(invoices)
+end
+</ruby>
+
+The above will yield the supplied block with +1000+ invoices every time.
+
 h3. Conditions
 
 The +find+ method allows you to specify conditions to limit the records returned, representing the WHERE-part of the SQL statement. Conditions can either be specified as a string, array, or hash.
@@ -782,47 +850,6 @@ h3. select_all
 <ruby>
 Client.connection.select_all("SELECT * FROM clients WHERE id = '1'")
 </ruby>
-
-h3. Working with Large Amounts of Data
-
-Sometimes you need to iterate over a large set of records. For example to send a newsletter to all users, to export some data, etc. That may seem pretty easy:
-
-<ruby>
-  # Careful!
-  LegacySurvey.all.each do |legacy_survey|
-    Survey.migrate_legacy_survey(legacy_survey)
-  end
-</ruby>
-
-But if the number of rows is big, say more than a thousand, that approach may vary from being underperformant to just plain impossible.
-
-Reason is a call like +LegacySurvey.all.each+ makes Active Record fetch _the entire table_, build a model per row, and build an array with all the models. Sometimes that is just too many objects, it demands too much memory.
-
-To be able to iterate over big sets of rows like that Active Record provides +find_each+:
-
-<ruby>
-  # No prob.
-  LegacySurvey.find_each do |legacy_survey|
-    Survey.migrate_legacy_survey(legacy_survey)
-  end
-</ruby>
-
-Behind the scenes +find_each+ fetches rows in batches of 1000 and yields them one by one. The size of the underlying batches is configurable via the +:batch_size+ option.
-
-Records are fetched in ascending order on the primary key, which must be an integer. The +:start+ option allows you to configure the first ID of the sequence if the lowest is not the one you need. This may be useful for example to be able to resume an interrupted batch process if it saves the last processed ID as a checkpoint.
-
-+find_each+ accepts the same options as +find+ except for +:order+ and +:limit+. Those two are needed internally and if the options argument include any of them an exception is raised.
-
-In addition, you can work by chunks instead of row by row using +find_in_batches+. This method is analogous to +find_each+, but it yields arrays of models instead:
-
-<ruby>
-  # Works in chunks of 1000 invoices at a time.
-  Invoice.find_in_batches(:include => :invoice_lines) do |invoices|
-    export.add_invoices(invoices)
-  end
-</ruby>
-
-In fact, +find_each+ is just a convenience wrapper over +find_in_batches+.
 
 h3. Existence of Objects
 
