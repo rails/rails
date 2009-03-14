@@ -1,5 +1,7 @@
 require 'mongrel'
 require 'stringio'
+require 'rack/content_length'
+require 'rack/chunked'
 
 module Rack
   module Handler
@@ -33,7 +35,7 @@ module Rack
       end
 
       def initialize(app)
-        @app = app
+        @app = Rack::Chunked.new(Rack::ContentLength.new(app))
       end
 
       def process(request, response)

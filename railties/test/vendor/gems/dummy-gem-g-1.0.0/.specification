@@ -9,7 +9,7 @@ date: 2008-10-03 00:00:00 -04:00
 dependencies:
 - !ruby/object:Gem::Dependency
   name: dummy-gem-f
-  type: :development
+  type: :runtime
   version_requirement:
   version_requirements: !ruby/object:Gem::Requirement
     requirements:

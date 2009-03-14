@@ -89,7 +89,7 @@ module ActiveRecord
 
       message, options[:default] = options[:default], message if options[:default].is_a?(Symbol)
 
-      defaults = @base.class.self_and_descendents_from_active_record.map do |klass| 
+      defaults = @base.class.self_and_descendants_from_active_record.map do |klass|
         [ :"models.#{klass.name.underscore}.attributes.#{attribute}.#{message}", 
           :"models.#{klass.name.underscore}.#{message}" ]
       end

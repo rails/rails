@@ -301,7 +301,9 @@ module Rails
     end
 
     def load_gems
-      @configuration.gems.each { |gem| gem.load }
+      unless $gems_build_rake_task
+        @configuration.gems.each { |gem| gem.load }
+      end
     end
 
     def check_gem_dependencies

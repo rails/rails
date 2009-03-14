@@ -46,31 +46,34 @@ class GemDependencyTest < Test::Unit::TestCase
   end
 
   def test_gem_adds_load_paths
-    @gem.expects(:gem).with(Gem::Dependency.new(@gem.name, nil))
+    @gem.expects(:gem).with(@gem)
     @gem.add_load_paths
   end
 
   def test_gem_with_version_adds_load_paths
-    @gem_with_version.expects(:gem).with(Gem::Dependency.new(@gem_with_version.name, @gem_with_version.requirement.to_s))
+    @gem_with_version.expects(:gem).with(@gem_with_version)
     @gem_with_version.add_load_paths
+    assert @gem_with_version.load_paths_added?
   end
 
   def test_gem_loading
-    @gem.expects(:gem).with(Gem::Dependency.new(@gem.name, nil))
+    @gem.expects(:gem).with(@gem)
     @gem.expects(:require).with(@gem.name)
     @gem.add_load_paths
     @gem.load
+    assert @gem.loaded?
   end
 
   def test_gem_with_lib_loading
-    @gem_with_lib.expects(:gem).with(Gem::Dependency.new(@gem_with_lib.name, nil))
+    @gem_with_lib.expects(:gem).with(@gem_with_lib)
     @gem_with_lib.expects(:require).with(@gem_with_lib.lib)
     @gem_with_lib.add_load_paths
     @gem_with_lib.load
+    assert @gem_with_lib.loaded?
   end
 
   def test_gem_without_lib_loading
-    @gem_without_load.expects(:gem).with(Gem::Dependency.new(@gem_without_load.name, nil))
+    @gem_without_load.expects(:gem).with(@gem_without_load)
     @gem_without_load.expects(:require).with(@gem_without_load.lib).never
     @gem_without_load.add_load_paths
     @gem_without_load.load
@@ -132,8 +135,8 @@ class GemDependencyTest < Test::Unit::TestCase
     dummy_gem = Rails::GemDependency.new "dummy-gem-g"
     dummy_gem.add_load_paths
     dummy_gem.load
-    assert dummy_gem.loaded?
-    assert_equal 2, dummy_gem.dependencies(:flatten => true).size
+    assert_equal 1, dummy_gem.dependencies.size
+    assert_equal 1, dummy_gem.dependencies.first.dependencies.size
     assert_nothing_raised do
       dummy_gem.dependencies.each do |g|
         g.dependencies

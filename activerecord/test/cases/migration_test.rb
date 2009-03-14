@@ -93,6 +93,30 @@ if ActiveRecord::Base.connection.supports_migrations?
       end
     end
 
+    def testing_table_with_only_foo_attribute
+      Person.connection.create_table :testings, :id => false do |t|
+        t.column :foo, :string
+      end
+
+      yield Person.connection
+    ensure
+      Person.connection.drop_table :testings rescue nil
+    end
+    protected :testing_table_with_only_foo_attribute
+
+    def test_create_table_without_id
+      testing_table_with_only_foo_attribute do |connection|
+        assert_equal connection.columns(:testings).size, 1
+      end
+    end
+
+    def test_add_column_with_primary_key_attribute
+      testing_table_with_only_foo_attribute do |connection|
+        assert_nothing_raised { connection.add_column :testings, :id, :primary_key }
+        assert_equal connection.columns(:testings).size, 2
+      end
+    end
+
     def test_create_table_adds_id
       Person.connection.create_table :testings do |t|
         t.column :foo, :string
@@ -928,7 +952,7 @@ if ActiveRecord::Base.connection.supports_migrations?
       assert_equal(0, ActiveRecord::Migrator.current_version)
     end
 
-    if current_adapter?(:PostgreSQLAdapter)
+    if ActiveRecord::Base.connection.supports_ddl_transactions?
       def test_migrator_one_up_with_exception_and_rollback
         assert !Person.column_methods_hash.include?(:last_name)
 

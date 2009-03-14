@@ -28,6 +28,7 @@ module Rack
 
   autoload :Builder, "rack/builder"
   autoload :Cascade, "rack/cascade"
+  autoload :Chunked, "rack/chunked"
   autoload :CommonLogger, "rack/commonlogger"
   autoload :ConditionalGet, "rack/conditionalget"
   autoload :ContentLength, "rack/content_length"
