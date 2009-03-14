@@ -236,7 +236,7 @@ The above will yield the supplied block with +1000+ invoices every time.
 
 h3. Conditions
 
-The +find+ method allows you to specify conditions to limit the records returned, representing the WHERE-part of the SQL statement. Conditions can either be specified as a string, array, or hash.
+The +find+ method allows you to specify conditions to limit the records returned, representing the +WHERE+-part of the SQL statement. Conditions can either be specified as a string, array, or hash.
 
 h4. Pure String Conditions
 
@@ -280,7 +280,7 @@ TIP: For more information on the dangers of SQL injection, see the "Ruby on Rail
 
 h5. Placeholder Conditions
 
-Similar to the +(?)+ replacement style of params, you can also specify keys/values hash in your Array conditions:
+Similar to the +(?)+ replacement style of params, you can also specify keys/values hash in your array conditions:
 
 <ruby>
 Client.all(:conditions =>
@@ -654,7 +654,7 @@ WARNING: This method only works with +INNER JOIN+,
 
 <br />
 
-Active Record lets you use the names of the "associations":association_basics.html defined on the Model, as a shortcut for specifying the +:joins+ option.
+Active Record lets you use the names of the "associations":association_basics.html defined on the model as a shortcut for specifying the +:joins+ option.
 
 For example, consider the following +Category+, +Post+, +Comments+ and +Guest+ models:
 
@@ -780,7 +780,7 @@ SELECT addresses.* FROM addresses
 
 h4. Eager Loading Multiple Associations
 
-Active Record lets you eager load any possible number of associations with a single +Model.find+ call by using Array, Hash or a nested Hash of Array/Hash with +:include+ find option.
+Active Record lets you eager load any possible number of associations with a single +Model.find+ call by using an array, hash, or a nested hash of array/hash with the +:include+ option.
 
 h5. Array of Multiple Associations 
 
@@ -804,11 +804,11 @@ Even though Active Record lets you specify conditions on the eager loaded associ
 
 h3. Dynamic Finders
 
-For every field (also known as an attribute) you define in your table, Active Record provides a finder method. If you have a field called +name+ on your Client model for example, you get +find_by_name+ and +find_all_by_name+ for free from Active Record. If you have also have a +locked+ field on the Client model, you also get +find_by_locked+ and +find_all_by_locked+.
+For every field (also known as an attribute) you define in your table, Active Record provides a finder method. If you have a field called +name+ on your +Client+ model for example, you get +find_by_name+ and +find_all_by_name+ for free from Active Record. If you have also have a +locked+ field on the +Client+ model, you also get +find_by_locked+ and +find_all_by_locked+.
 
 You can do +find_last_by_*+ methods too which will find the last record matching your argument.
 
-You can specify an exclamation point (!) on the end of the dynamic finders to get them to raise an ActiveRecord::RecordNotFound error if they do not return any records, like +Client.find_by_name!("Ryan")+
+You can specify an exclamation point (!) on the end of the dynamic finders to get them to raise an +ActiveRecord::RecordNotFound+ error if they do not return any records, like +Client.find_by_name!("Ryan")+
 
 If you want to find both by name and locked, you can chain these finders together by simply typing +and+ between the fields for example +Client.find_by_name_and_locked("Ryan", true)+.
 
@@ -829,9 +829,9 @@ COMMIT
 client = Client.find_or_initialize_by_name('Ryan')
 </ruby>
 
-will either assign an existing client object with the name 'Ryan' to the client local variable, or initialize a new object similar to calling +Client.new(:name => 'Ryan')+. From here, you can modify other fields in client by calling the attribute setters on it: +client.locked = true+ and when you want to write it to the database just call +save+ on it.
+will either assign an existing client object with the name "Ryan" to the client local variable, or initialize a new object similar to calling +Client.new(:name => 'Ryan')+. From here, you can modify other fields in client by calling the attribute setters on it: +client.locked = true+ and when you want to write it to the database just call +save+ on it.
 
-h3. Finding By SQL
+h3. Finding by SQL
 
 If you'd like to use your own SQL to find records in a table you can use +find_by_sql+. The +find_by_sql+ method will return an array of objects even the underlying query returns just a single record. For example you could run this query:
 
