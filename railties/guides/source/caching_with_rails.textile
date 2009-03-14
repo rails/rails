@@ -313,7 +313,7 @@ database again the second time that finder is called.
 Query caches are created at the start of an action and destroyed at the end of
 that action and thus persist only for the duration of the action.
 
-h4. Cache stores
+h4. Cache Stores
 
 Rails (as of 2.1) provides different stores for the cached data created by action and
 fragment caches. Page caches are always stored on disk.
@@ -440,7 +440,7 @@ Rails.cache.write("city", "Duckburgh")
 Rails.cache.read("city")   # => "Duckburgh"
 </ruby>
 
-h3. Conditional GET support
+h3. Conditional GET Support
 
 Conditional GETs are a feature of the HTTP specification that provide a way for web
 servers to tell browsers that the response to a GET request hasn't changed
