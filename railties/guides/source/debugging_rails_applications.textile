@@ -17,7 +17,7 @@ One common task is to inspect the contents of a variable. In Rails, you can do t
 * +to_yaml+
 * +inspect+
 
-h4. debug
+h4. +debug+
 
 The +debug+ helper will return a &lt;pre&gt;-tag that renders the object using the YAML format. This will generate human-readable data from any object. For example, if you have this code in a view:
 
@@ -46,7 +46,7 @@ attributes_cache: {}
 Title: Rails debugging guide
 </yaml>
 
-h4. to_yaml
+h4. +to_yaml+
 
 Displaying an instance variable, or any other object or method, in yaml format can be achieved this way:
 
@@ -76,7 +76,7 @@ attributes_cache: {}
 Title: Rails debugging guide
 </yaml>
 
-h4. inspect
+h4. +inspect+
 
 Another useful method for displaying object values is +inspect+, especially when working with arrays or hashes. This will print the object value as a string. For example:
 
@@ -96,7 +96,7 @@ Will be rendered as follows:
 Title: Rails debugging guide
 </pre>
 
-h4. Debugging Javascript
+h4. Debugging JavaScript
 
 Rails has built-in support to debug RJS, to active it, set +ActionView::Base.debug_rjs+ to _true_, this will specify whether RJS responses should be wrapped in a try/catch block that alert()s the caught exception (and then re-raises it).
 
@@ -118,7 +118,7 @@ h3. The Logger
 
 It can also be useful to save information to log files at runtime. Rails maintains a separate log file for each runtime environment.
 
-h4. What is The Logger?
+h4. What is the Logger?
 
 Rails makes use of Ruby's standard +logger+ to write log information. You can also substitute another logger such as +Log4R+ if you wish.
 
@@ -209,7 +209,7 @@ Completed in 0.01224 (81 reqs/sec) | DB: 0.00044 (3%) | 302 Found [http://localh
 
 Adding extra logging like this makes it easy to search for unexpected or unusual behavior in your logs. If you add extra logging, be sure to make sensible use of log levels, to avoid filling your production logs with useless trivia.
 
-h3. Debugging with ruby-debug
+h3. Debugging with +ruby-debug+
 
 When your code is behaving in unexpected ways, you can try printing to logs or the console to diagnose the problem. Unfortunately, there are times when this sort of error tracking is not effective in finding the root cause of a problem. When you actually need to journey into your running source code, the debugger is your best companion.
 
