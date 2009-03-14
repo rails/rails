@@ -57,7 +57,7 @@ We can see how it works by looking at some script/console output:
 => false
 </shell>
 
-Creating and saving a new record will send an SQL +INSERT+ operation to the database. Updating an existing record will send an SQL +UPDATE+ operation instead. Validations are typically run before these commands are sent to the database. If any validations fail, the object will be marked as invalid and Active Record will not trigger the +INSERT+ or +UPDATE+ operation. This helps to avoid storing an object in the database that's invalid. You can choose to have specific validations run when an object is created, saved, or updated.
+Creating and saving a new record will send an SQL +INSERT+ operation to the database. Updating an existing record will send an SQL +UPDATE+ operation instead. Validations are typically run before these commands are sent to the database. If any validations fail, the object will be marked as invalid and Active Record will not perform the +INSERT+ or +UPDATE+ operation. This helps to avoid storing an invalid object in the database. You can choose to have specific validations run when an object is created, saved, or updated.
 
 CAUTION: There are many ways to change the state of an object in the database. Some methods will trigger validations, but some will not. This means that it's possible to save an object in the database in an invalid state if you aren't careful.
 
@@ -141,7 +141,7 @@ end
 
 h4. +errors.invalid?+
 
-To verify whether or not a particular attribute of an object is valid, you can use the +errors.invalid?+ method. This method is only useful _after_ validations have been run, because it only inspects the errors collection and does not trigger validations itself. It's different from the +ActiveRecord::Base#invalid?+ method explained above because it doesn't verify the validity of the object as a whole, but only if there are errors found on an individual attribute of the object.
+To verify whether or not a particular attribute of an object is valid, you can use the +errors.invalid?+ method. This method is only useful _after_ validations have been run, because it only inspects the errors collection and does not trigger validations itself. It's different from the +ActiveRecord::Base#invalid?+ method explained above because it doesn't verify the validity of the object as a whole. It only checks to see whether there are errors found on an individual attribute of the object.
 
 <ruby>
 class Person < ActiveRecord::Base
@@ -164,7 +164,7 @@ All of them accept the +:on+ and +:message+ options, which define when the valid
 
 h4. +validates_acceptance_of+
 
-Validates that a checkbox on the user interface was checked when a form was submitted. This is typically used when the user needs to agree to your application's terms of service, confirm reading some text, or any similar concept. This validation is very specific to web applications and actually this 'acceptance' does not need to be recorded anywhere in your database (if you don't have a field for it, the helper will just create a virtual attribute).
+Validates that a checkbox on the user interface was checked when a form was submitted. This is typically used when the user needs to agree to your application's terms of service, confirm reading some text, or any similar concept. This validation is very specific to web applications and this 'acceptance' does not need to be recorded anywhere in your database (if you don't have a field for it, the helper will just create a virtual attribute).
 
 <ruby>
 class Person < ActiveRecord::Base
@@ -193,7 +193,7 @@ class Library < ActiveRecord::Base
 end
 </ruby>
 
-This validation will work with all the association types.
+This validation will work with all of the association types.
 
 CAUTION: Don't use +validates_associated+ on both ends of your associations, they would call each other in an infinite loop.
 
@@ -556,7 +556,7 @@ The following is a list of the most commonly used methods. Please refer to the +
 
 h4. +errors.add_to_base+
 
-+add_to_base+ lets you add errors messages that are related to the object's state as a whole, instead of being related to a specific attribute. You can use this method when you want to say that the object is invalid, no matter the values of its attributes. +add_to_base+ simply receives a string and uses this as the error message.
+The +add_to_base+ method lets you add errors messages that are related to the object's state as a whole, instead of being related to a specific attribute. You can use this method when you want to say that the object is invalid, no matter the values of its attributes. +add_to_base+ simply receives a string and uses this as the error message.
 
 <ruby>
 class Person < ActiveRecord::Base
@@ -568,7 +568,7 @@ end
 
 h4. +errors.add+
 
-+add+ lets you manually add messages that are related to particular attributes. You can use the +full_messages+ method to view the messages in the form they might be displayed to a user. Those particular messages get the attribute name prepended (and capitalized). +add+ receives the name of the attribute you want to add the message to, and the message itself.
+The +add+ method lets you manually add messages that are related to particular attributes. You can use the +full_messages+ method to view the messages in the form they might be displayed to a user. Those particular messages get the attribute name prepended (and capitalized). +add+ receives the name of the attribute you want to add the message to, and the message itself.
 
 <ruby>
 class Person < ActiveRecord::Base
@@ -580,15 +580,15 @@ end
 person = Person.create(:name => "!@#")
 
 person.errors.on(:name)
-# => "cannot contain the characters !@#%*()_-+="
+ # => "cannot contain the characters !@#%*()_-+="
 
 person.errors.full_messages
-# => ["Name cannot contain the characters !@#%*()_-+="]
+ # => ["Name cannot contain the characters !@#%*()_-+="]
 </ruby>
 
 h4. +errors.on+
 
-+on+ is used when you want to check the error messages for a specific attribute. It returns different kinds of objects depending on the state of the +errors+ collection for the given attribute. If there are no errors related to the attribute +on+ returns +nil+. If there is just one error message for this attribute +on+ returns a string with the message. When +errors+ holds two or more error messages for the attribute, +on+ returns an array of strings, each one with one error message.
+The +on+ method is used when you want to check the error messages for a specific attribute. It returns different kinds of objects depending on the state of the +errors+ collection for the given attribute. If there are no errors related to the attribute +on+ returns +nil+. If there is just one error message for this attribute +on+ returns a string with the message. When +errors+ holds two or more error messages for the attribute, +on+ returns an array of strings, each one with one error message.
 
 <ruby>
 class Person < ActiveRecord::Base
@@ -603,17 +603,17 @@ person.errors.on(:name) # => nil
 person = Person.new(:name => "JD")
 person.valid? # => false
 person.errors.on(:name)
-# => "is too short (minimum is 3 characters)"
+ # => "is too short (minimum is 3 characters)"
 
 person = Person.new
 person.valid? # => false
 person.errors.on(:name)
-# => ["can't be blank", "is too short (minimum is 3 characters)"]
+ # => ["can't be blank", "is too short (minimum is 3 characters)"]
 </ruby>
 
 h4. +errors.clear+
 
-+clear+ is used when you intentionally want to clear all the messages in the +errors+ collection. Of course, calling +errors.clear+ upon an invalid object won't actually make it valid: the +errors+ collection will now be empty, but the next time you call +valid?+ or any method that tries to save this object to the database, the validations will run again. If any of the validations fail, the +errors+ collection will be filled again.
+The +clear+ method is used when you intentionally want to clear all the messages in the +errors+ collection. Of course, calling +errors.clear+ upon an invalid object won't actually make it valid: the +errors+ collection will now be empty, but the next time you call +valid?+ or any method that tries to save this object to the database, the validations will run again. If any of the validations fail, the +errors+ collection will be filled again.
 
 <ruby>
 class Person < ActiveRecord::Base
@@ -624,7 +624,7 @@ end
 person = Person.new
 person.valid? # => false
 person.errors.on(:name)
-# => ["can't be blank", "is too short (minimum is 3 characters)"]
+ # => ["can't be blank", "is too short (minimum is 3 characters)"]
 
 person.errors.clear
 person.errors.empty? # => true
@@ -632,12 +632,12 @@ person.errors.empty? # => true
 p.save # => false
 
 p.errors.on(:name)
-# => ["can't be blank", "is too short (minimum is 3 characters)"]
+ # => ["can't be blank", "is too short (minimum is 3 characters)"]
 </ruby>
 
 h4. +errors.size+
 
-+size+ returns the total number of error messages for the object.
+The +size+ method returns the total number of error messages for the object.
 
 <ruby>
 class Person < ActiveRecord::Base
@@ -783,7 +783,8 @@ The macro-style class methods can also receive a block. Consider using this styl
 class User < ActiveRecord::Base
   validates_presence_of :login, :email
 
-  before_create {|user| user.name = user.login.capitalize if user.name.blank?}
+  before_create {|user| user.name = user.login.capitalize 
+	if user.name.blank?}
 end
 </ruby>
 
@@ -990,7 +991,8 @@ Here's an example where we create a class with an +after_destroy+ callback for a
 <ruby>
 class PictureFileCallbacks
   def after_destroy(picture_file)
-    File.delete(picture_file.filepath) if File.exists?(picture_file.filepath)
+    File.delete(picture_file.filepath) 
+      if File.exists?(picture_file.filepath)
   end
 end
 </ruby>
@@ -1008,7 +1010,8 @@ Note that we needed to instantiate a new +PictureFileCallbacks+ object, since we
 <ruby>
 class PictureFileCallbacks
   def self.after_destroy(picture_file)
-    File.delete(picture_file.filepath) if File.exists?(picture_file.filepath)
+    File.delete(picture_file.filepath) 
+      if File.exists?(picture_file.filepath)
   end
 end
 </ruby>
