@@ -181,7 +181,7 @@ end
 
 But if the total number of rows in the table is very large, the above approach may vary from being under performant to just plain impossible.
 
-This is because +LegacySurvey.all+ makes Active Record fetch _the entire table_, build a model object per row, and keep the entire array in the memory. Sometimes that is just too many objects and demands too much memory.
+This is because +User.all+ makes Active Record fetch _the entire table_, build a model object per row, and keep the entire array in the memory. Sometimes that is just too many objects and demands too much memory.
 
 h5. +find_each+
 
