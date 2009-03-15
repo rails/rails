@@ -639,7 +639,7 @@ h4. Using a String SQL Fragment
 You can just supply the raw SQL specifying the +JOIN+ clause to the +:joins+ option. For example:
 
 <ruby>
-Client.all(:joins => 'LEFT OUTER JOIN addresses ON addresses.client_id = client.id')
+Client.all(:joins => 'LEFT OUTER JOIN addresses ON addresses.client_id = clients.id')
 </ruby>
 
 This will result in the following SQL:
