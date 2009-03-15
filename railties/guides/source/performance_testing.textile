@@ -446,11 +446,11 @@ This benchmarks the code enclosed in the +Project.benchmark("Creating project") 
 Creating project (185.3ms)
 </ruby>
 
-Please refer to the "API docs":http://api.rubyonrails.com/classes/ActiveRecord/Base.html#M001336 for additional options to +benchmark()+
+Please refer to the "API docs":http://api.rubyonrails.org/classes/ActiveRecord/Base.html#M001336 for additional options to +benchmark()+
 
 h4. Controller
 
-Similarly, you could use this helper method inside "controllers":http://api.rubyonrails.com/classes/ActionController/Benchmarking/ClassMethods.html#M000715
+Similarly, you could use this helper method inside "controllers":http://api.rubyonrails.org/classes/ActionController/Benchmarking/ClassMethods.html#M000715
 
 <ruby>
 def process_projects
@@ -465,7 +465,7 @@ NOTE: +benchmark+ is a class method inside controllers
 
 h4. View
 
-And in "views":http://api.rubyonrails.com/classes/ActionController/Benchmarking/ClassMethods.html#M000715:
+And in "views":http://api.rubyonrails.org/classes/ActionController/Benchmarking/ClassMethods.html#M000715:
 
 <erb>
 <% benchmark("Showing projects partial") do %>
@@ -499,15 +499,15 @@ h3. Useful Links
 h4. Rails Plugins and Gems
 
 * "Rails Analyzer":http://rails-analyzer.rubyforge.org
-* "Palmist":http://www.flyingmachinestudios.com/projects
+* "Palmist":http://www.flyingmachinestudios.com/projects/
 * "Rails Footnotes":http://github.com/josevalim/rails-footnotes/tree/master
 * "Query Reviewer":http://github.com/dsboulder/query_reviewer/tree/master
 
 h4. Generic Tools
 
-* "httperf":http://www.hpl.hp.com/research/linux/httperf
+* "httperf":http://www.hpl.hp.com/research/linux/httperf/
 * "ab":http://httpd.apache.org/docs/2.2/programs/ab.html
-* "JMeter":http://jakarta.apache.org/jmeter
+* "JMeter":http://jakarta.apache.org/jmeter/
 * "kcachegrind":http://kcachegrind.sourceforge.net/html/Home.html
 
 h4. Tutorials and Documentation

@@ -20,7 +20,7 @@ For most conventional RESTful applications, the controller will receive the requ
 
 A controller can thus be thought of as a middle man between models and views. It makes the model data available to the view so it can display that data to the user, and it saves or updates data from the user to the model.
 
-NOTE: For more details on the routing process, see "Rails Routing from the Outside In":routing_outside_in.html.
+NOTE: For more details on the routing process, see "Rails Routing from the Outside In":routing.html.
 
 h3. Methods and Actions
 

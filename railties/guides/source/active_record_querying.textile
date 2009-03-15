@@ -276,7 +276,7 @@ Client.first(:conditions => "orders_count = #{params[:orders]}")
 
 is because of argument safety. Putting the variable directly into the conditions string will pass the variable to the database *as-is*. This means that it will be an unescaped variable directly from a user who may have malicious intent. If you do this, you put your entire database at risk because once a user finds out he or she can exploit your database they can do just about anything to it. Never ever put your arguments directly inside the conditions string.
 
-TIP: For more information on the dangers of SQL injection, see the "Ruby on Rails Security Guide":../security.html#_sql_injection.
+TIP: For more information on the dangers of SQL injection, see the "Ruby on Rails Security Guide":security.html#sql-injection.
 
 h5. Placeholder Conditions
 
@@ -348,7 +348,7 @@ Client.all(:conditions =>
   ["created_at >= ? AND created_at <= ?", params[:start_date], params[:end_date]])
 </ruby>
 
-Just like in Ruby. If you want a shorter syntax be sure to check out the "Hash Conditions":hash-conditions section later on in the guide.
+Just like in Ruby. If you want a shorter syntax be sure to check out the "Hash Conditions":#hash-conditions section later on in the guide.
 
 h4. Hash Conditions
 
