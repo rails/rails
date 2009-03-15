@@ -645,7 +645,7 @@ Client.all(:joins => 'LEFT OUTER JOIN addresses ON addresses.client_id = client.
 This will result in the following SQL:
 
 <sql>
-SELECT clients.* FROM clients INNER JOIN addresses ON addresses.client_id = clients.id
+SELECT clients.* FROM clients LEFT OUTER JOIN addresses ON addresses.client_id = clients.id
 </sql>
 
 h4. Using Array/Hash of Named Associations
