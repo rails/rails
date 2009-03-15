@@ -382,7 +382,7 @@ This will find all clients created yesterday by using a +BETWEEN+ SQL statement:
 SELECT * FROM clients WHERE (clients.created_at BETWEEN '2008-12-21 00:00:00' AND '2008-12-22 00:00:00')
 </sql>
 
-This demonstrates a shorter syntax for the examples in "Array Conditions":#arrayconditions
+This demonstrates a shorter syntax for the examples in "Array Conditions":#array-conditions
 
 h5. Subset Conditions
 
@@ -444,7 +444,7 @@ By default, <tt>Model.find</tt> selects all the fields from the result set using
 
 To select only a subset of fields from the result set, you can specify the subset via +:select+ option on the +find+.
 
-NOTE: If the +:select+ option is used, all the returning objects will be "read only":#readonlyobjects.
+NOTE: If the +:select+ option is used, all the returning objects will be "read only":#readonly-objects.
 
 <br />
 
@@ -722,7 +722,7 @@ Category.all :joins => {:posts => [{:comments => :guest}, :tags]}
 
 h4. Specifying Conditions on the Joined Tables
 
-You can specify conditions on the joined tables using the regular "Array":#arrayconditions and "String":#purestringconditions conditions. "Hash conditions":#hashconditions provides a special syntax for specifying conditions for the joined tables:
+You can specify conditions on the joined tables using the regular "Array":#array-conditions and "String":#pure-string-conditions conditions. "Hash conditions":#hash-conditions provides a special syntax for specifying conditions for the joined tables:
 
 <ruby>
 time_range = (Time.now.midnight - 1.day)..Time.now.midnight
@@ -800,7 +800,7 @@ The above code finds the category with id 1 and eager loads all the posts associ
 
 h4. Specifying Conditions on Eager Loaded Associations
 
-Even though Active Record lets you specify conditions on the eager loaded associations just like +:joins+, the recommended way is to use ":joins":#joiningtables instead. 
+Even though Active Record lets you specify conditions on the eager loaded associations just like +:joins+, the recommended way is to use ":joins":#joining-tables instead. 
 
 h3. Dynamic Finders
 
