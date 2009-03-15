@@ -137,12 +137,27 @@ module RailsGuides
     end
 
     def warn_about_broken_links(html)
+      anchors = extract_anchors(html)
+      check_fragment_identifiers(html, anchors)
+    end
+    
+    def extract_anchors(html)
       # Textile generates headers with IDs computed from titles.
-      anchors  = Set.new(html.scan(/<h\d\s+id="([^"]+)/).flatten)
+      anchors = Set.new
+      html.scan(/<h\d\s+id="([^"]+)/).flatten.each do |anchor|
+        if anchors.member?(anchor)
+          puts "*** DUPLICATE HEADER ID: #{anchor}, please consider rewording"
+        else
+          anchors << anchor
+        end
+      end
+
       # Also, footnotes are rendered as paragraphs this way.
       anchors += Set.new(html.scan(/<p\s+class="footnote"\s+id="([^"]+)/).flatten)
-      
-      # Check fragment identifiers.
+      return anchors
+    end
+    
+    def check_fragment_identifiers(html, anchors)
       html.scan(/<a\s+href="#([^"]+)/).flatten.each do |fragment_identifier|
         next if fragment_identifier == 'mainCol' # in layout, jumps to some DIV
         unless anchors.member?(fragment_identifier)
