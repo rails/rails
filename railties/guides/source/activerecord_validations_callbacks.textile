@@ -152,7 +152,7 @@ end
 >> Person.create.errors.invalid?(:name) # => true
 </ruby>
 
-We'll cover validation errors in greater depth in the "Working with Validation Errors":#workingwith-validation-errors section. For now, let's turn to the built-in validation helpers that Rails provides by default.
+We'll cover validation errors in greater depth in the "Working with Validation Errors":#working-with-validation-errors section. For now, let's turn to the built-in validation helpers that Rails provides by default.
 
 h3. Validation Helpers
 
