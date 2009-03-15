@@ -20,25 +20,25 @@ Rails has now broken with its CGI past, and uses Rack everywhere. This required 
 Here's a summary of the rack-related changes:
 
 * +script/server+ has been switched to use Rack, which means it supports any Rack compatible server. +script/server+ will also pick up a rackup configuration file if one exists. By default, it will look for a +config.ru+ file, but you can override this with the +-c+ switch.
-* The FCGI handler goes through Rack
-* +ActionController::Dispatcher+ maintains its own default middleware stack. Middlewares can be injected in, reordered, and removed. The stack is compiled into a chain on boot. You can configure the middleware stack in +environment.rb+
+* The FCGI handler goes through Rack.
+* +ActionController::Dispatcher+ maintains its own default middleware stack. Middlewares can be injected in, reordered, and removed. The stack is compiled into a chain on boot. You can configure the middleware stack in +environment.rb+.
 * The +rake middleware+ task has been added to inspect the middleware stack. This is useful for debugging the order of the middleware stack.
 * The integration test runner has been modified to execute the entire middleware and application stack. This makes integration tests perfect for testing Rack middleware.
 * +ActionController::CGIHandler+ is a backwards compatible CGI wrapper around Rack. The +CGIHandler+ is meant to take an old CGI object and convert its environment information into a Rack compatible form.
-* +CgiRequest+ and +CgiResponse+ have been removed
+* +CgiRequest+ and +CgiResponse+ have been removed.
 * Session stores are now lazy loaded. If you never access the session object during a request, it will never attempt to load the session data (parse the cookie, load the data from memcache, or lookup an Active Record object).
 * You no longer need to use +CGI::Cookie.new+ in your tests for setting a cookie value. Assigning a +String+ value to request.cookies["foo"] now sets the cookie as expected.
-* +CGI::Session::CookieStore+ has been replaced by +ActionController::Session::CookieStore+
-* +CGI::Session::MemCacheStore+ has been replaced by +ActionController::Session::MemCacheStore+
-* +CGI::Session::ActiveRecordStore+ has been replaced by +ActiveRecord::SessionStore+
-* You can still change your session store with +ActionController::Base.session_store = :active_record_store+
-* Default sessions options are still set with +ActionController::Base.session = { :key => "..." }+
-* The mutex that normally wraps your entire request has been moved into middleware, +ActionController::Lock+
+* +CGI::Session::CookieStore+ has been replaced by +ActionController::Session::CookieStore+.
+* +CGI::Session::MemCacheStore+ has been replaced by +ActionController::Session::MemCacheStore+.
+* +CGI::Session::ActiveRecordStore+ has been replaced by +ActiveRecord::SessionStore+.
+* You can still change your session store with +ActionController::Base.session_store = :active_record_store+.
+* Default sessions options are still set with +ActionController::Base.session = { :key => "..." }+.
+* The mutex that normally wraps your entire request has been moved into middleware, +ActionController::Lock+.
 * +ActionController::AbstractRequest+ and +ActionController::Request+ have been unified. The new +ActionController::Request+ inherits from +Rack::Request+. This affects access to +response.headers['type']+ in test requests. Use +response.content_type+ instead.
 * +ActiveRecord::QueryCache+ middleware is automatically inserted onto the middleware stack if +ActiveRecord+ has been loaded. This middleware sets up and flushes the per-request Active Record query cache.
 * The Rails router and controller classes follow the Rack spec. You can call a controller directly with +SomeController.call(env)+. The router stores the routing parameters in +rack.routing_args+.
-* +ActionController::Request+ inherits from +Rack::Request+
-* Instead of +config.action_controller.session = { :session_key => 'foo', ...+ use  +config.action_controller.session = { :key => 'foo', ...+
+* +ActionController::Request+ inherits from +Rack::Request+.
+* Instead of +config.action_controller.session = { :session_key => 'foo', ...+ use  +config.action_controller.session = { :key => 'foo', ...+.
 * Using the +ParamsParser+ middleware preprocesses any XML, JSON, or YAML requests so they can be read normally with any +Rack::Request+ object after it.
 
 h4. Renewed Support for Rails Engines
@@ -49,7 +49,7 @@ h3. Documentation
 
 The "Ruby on Rails guides":http://guides.rubyonrails.org/ project has published several additional guides for Rails 2.3. In addition, a "separate site":http://guides.rails.info/ maintains updated copies of the Guides for Edge Rails. Other documentation efforts include a relaunch of the "Rails wiki":http://newwiki.rubyonrails.org/ and early planning for a Rails Book.
 
-* More Information: "Rails Documentation Projects":http://weblog.rubyonrails.org/2009/1/15/rails-documentation-projects
+* More Information: "Rails Documentation Projects":http://weblog.rubyonrails.org/2009/1/15/rails-documentation-projects.
 
 h3. Ruby 1.9.1 Support
 
@@ -185,16 +185,16 @@ MySQL supports a reconnect flag in its connections - if set to true, then the cl
 
 h4. Other Active Record Changes
 
-* An extra +AS+ was removed from the generated SQL for has_and_belongs_to_many preloading, making it work better for some databases.
+* An extra +AS+ was removed from the generated SQL for +has_and_belongs_to_many+ preloading, making it work better for some databases.
 * +ActiveRecord::Base#new_record?+ now returns +false+ rather than +nil+ when confronted with an existing record.
 * A bug in quoting table names in some +has_many :through+ associations was fixed.
 * You can now specify a particular timestamp for +updated_at+ timestamps: +cust = Customer.create(:name => "ABC Industries", :updated_at => 1.day.ago)+
 * Better error messages on failed +find_by_attribute!+ calls.
 * Active Record's +to_xml+ support gets just a little bit more flexible with the addition of a +:camelize+ option.
-* A bug in canceling callbacks from +before_update+ or +before_create_ was fixed.
+* A bug in canceling callbacks from +before_update+ or +before_create+ was fixed.
 * Rake tasks for testing databases via JDBC have been added.
-* +validates_length_of+ will use a custom error message with the +:in+ or +:within+ options (if one is supplied)
-* Counts on scoped selects now work properly, so you can do things like +Account.scoped(:select => "DISTINCT credit_limit").count+
+* +validates_length_of+ will use a custom error message with the +:in+ or +:within+ options (if one is supplied).
+* Counts on scoped selects now work properly, so you can do things like +Account.scoped(:select => "DISTINCT credit_limit").count+.
 * +ActiveRecord::Base#invalid?+ now works as the opposite of +ActiveRecord::Base#valid?+.
 
 h3. Action Controller
