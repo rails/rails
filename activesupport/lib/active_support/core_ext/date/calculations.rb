@@ -1,7 +1,7 @@
 module ActiveSupport #:nodoc:
   module CoreExtensions #:nodoc:
     module Date #:nodoc:
-      # Enables the use of time calculations within Time itself
+      # Enables the use of time calculations within Date itself
       module Calculations
         def self.included(base) #:nodoc:
           base.extend ClassMethods

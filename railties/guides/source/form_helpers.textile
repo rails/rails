@@ -1,4 +1,4 @@
-h2. Rails form helpers
+h2. Rails Form helpers
 
 Forms in web applications are an essential interface for user input. However, form markup can quickly become tedious to write and maintain because of form control naming and their numerous attributes. Rails deals away with these complexities by providing view helpers for generating form markup. However, since they have different use-cases, developers are required to know all the differences between similar helper methods before putting them to use.
 
@@ -16,7 +16,7 @@ endprologue.
 NOTE: This guide is not intended to be a complete documentation of available form helpers and their arguments. Please visit "the Rails API documentation":http://api.rubyonrails.org/ for a complete reference.
 
 
-h3. Dealing With Basic Forms
+h3. Dealing with Basic Forms
 
 The most basic form helper is +form_tag+.
 
@@ -43,7 +43,7 @@ If you carefully observe this output, you can see that the helper generated some
 
 NOTE: Throughout this guide, this +div+ with the hidden input will be stripped away to have clearer code samples.
 
-h4. A Generic search form
+h4. A Generic Search Form
 
 Probably the most minimal form often seen on the web is a search form with a single text input for search terms. This form consists of:
 
@@ -82,7 +82,7 @@ Besides +text_field_tag+ and +submit_tag+, there is a similar helper for _every_
 
 TIP: For every form input, an ID attribute is generated from its name ("q" in the example). These IDs can be very useful for CSS styling or manipulation of form controls with JavaScript.
 
-h4. Multiple hashes in form helper calls
+h4. Multiple Hashes in Form Helper Calls
 
 By now you've seen that the +form_tag+ helper accepts 2 arguments: the path for the action and an options hash. This hash specifies the method of form submission and HTML options such as the form element's class.
 
@@ -104,7 +104,7 @@ This is a common pitfall when using form helpers, since many of them accept mult
 
 WARNING: Do not delimit the second hash without doing so with the first hash, otherwise your method invocation will result in an +expecting tASSOC+ syntax error.
 
-h4. Helpers for generating form elements
+h4. Helpers for Generating Form Elements
 
 Rails provides a series of helpers for generating form elements such as checkboxes, text fields, radio buttons, and so on. These basic helpers, with names ending in <notextile>_tag</notextile> such as +text_field_tag+, +check_box_tag+, etc., generate just a single +&lt;input&gt;+ element. The first parameter to these is always the name of the input. In the controller this name will be the key in the +params+ hash used to get the value entered by the user. For example, if the form contains
 
@@ -140,7 +140,7 @@ output:
 
 The second parameter to +check_box_tag+ is the value of the input. This is the value that will be submitted by the browser if the checkbox is ticked (i.e. the value that will be present in the +params+ hash). With the above form you would check the value of +params[:pet_dog]+ and +params[:pet_cat]+ to see which pets the user owns.
 
-h5. Radio buttons
+h5. Radio Buttons
 
 Radio buttons, while similar to checkboxes, are controls that specify a set of options in which they are mutually exclusive (i.e. the user can only pick one):
 
@@ -162,7 +162,7 @@ As with +check_box_tag+ the second parameter to +radio_button_tag+ is the value 
 
 IMPORTANT: Always use labels for each checkbox and radio button. They associate text with a specific option and provide a larger clickable region.
 
-h4. Other helpers of interest
+h4. Other Helpers of Interest
 
 Other form controls worth mentioning are the text area, password input and hidden input:
 
@@ -183,9 +183,9 @@ Hidden inputs are not shown to the user, but they hold data like any textual inp
 TIP: If you're using password input fields (for any purpose), you might want to prevent their values showing up in application logs by activating +filter_parameter_logging(:password)+ in your ApplicationController.
 
 
-h3. Dealing With Model Objects
+h3. Dealing with Model Objects
 
-h4. Model object helpers
+h4. Model Object Helpers
 
 A particularly common task for a form is editing or creating a model object. While the +*_tag+ helpers can certainly be used for this task they are somewhat verbose as for each tag you would have to ensure the correct parameter name is used and set the default value of the input appropriately. Rails provides helpers tailored to this task. These helpers lack the <notextile>_tag</notextile> suffix, for example +text_field+, +text_area+.
 
@@ -207,7 +207,7 @@ WARNING: You must pass the name of an instance variable, i.e. +:person+ or +"per
 
 Rails provides helpers for displaying the validation errors associated with a model object. These are covered in detail by the "Active Record Validations and Callbacks":./activerecord_validations_callbacks.html#_using_the_tt_errors_tt_collection_in_your_view_templates guide.
 
-h4. Binding a form to an object
+h4. Binding a Form to an Object
 
 While this is an increase in comfort it is far from perfect. If Person has many attributes to edit then we would be repeating the name of the edited object many times. What we want to do is somehow bind a form to a model object, which is exactly what +form_for+ does.
 
@@ -276,7 +276,7 @@ which produces the following output:
 
 The object yielded by +fields_for+ is a form builder like the one yielded by +form_for+ (in fact +form_for+ calls +fields_for+ internally).
 
-h4. Relying on record identification
+h4. Relying on Record Identification
 
 The Article model is directly available to users of the application, so -- following the best practices for developing with Rails -- you should declare it *a resource*.
 
@@ -302,7 +302,7 @@ Rails will also automatically set the +class+ and +id+ of the form appropriately
 
 WARNING: When you're using STI (single-table inheritance) with your models, you can't rely on record identification on a subclass if only their parent class is declared a resource. You will have to specify the model name, +:url+, and +:method+ explicitly.
 
-h5. Dealing with namespaces
+h5. Dealing with Namespaces
 
 If you have created namespaced routes, +form_for+ has a nifty shorthand for that too. If your application has an admin namespace then
 
@@ -343,7 +343,7 @@ output:
 When parsing POSTed data, Rails will take into account the special +_method+ parameter and acts as if the HTTP method was the one specified inside it ("PUT" in this example).
 
 
-h3. Making select boxes with ease
+h3. Making Select Boxes with Ease
 
 Select boxes in HTML require a significant amount of markup (one +OPTION+ element for each option to choose from), therefore it makes the most sense for them to be dynamically generated.
 
@@ -360,7 +360,7 @@ Here is what the markup might look like:
 
 Here you have a list of cities whose names are presented to the user. Internally the application only wants to handle their IDs so they are used as the options' value attribute. Let's see how Rails can help out here.
 
-h4. The select and options tag
+h4. The Select and Option Tags
 
 The most generic helper is +select_tag+, which -- as the name implies -- simply generates the +SELECT+ tag that encapsulates an options string:
 
@@ -404,7 +404,7 @@ Whenever Rails sees that the internal value of an option being generated matches
 
 TIP: The second argument to +options_for_select+ must be exactly equal to the desired internal value. In particular if the value is the integer 2 you cannot pass "2" to +options_for_select+ -- you must pass 2. Be aware of values extracted from the +params+ hash as they are all strings.
 
-h4. Select boxes for dealing with models
+h4. Select Boxes for Dealing with Models
 
 In most cases form controls will be tied to a specific database model and as you might expect Rails provides helpers tailored for that purpose. Consistent with other form helpers, when dealing with models you drop the +_tag+ suffix from +select_tag+:
 
@@ -429,7 +429,7 @@ As with other helpers, if you were to use the +select+ helper on a form builder 
 
 WARNING: If you are using +select+ (or similar helpers such as +collection_select+, +select_tag+) to set a +belongs_to+ association you must pass the name of the foreign key (in the example above +city_id+), not the name of association itself.  If you specify +city+ instead of +city_id+ Active Record will raise an error along the lines of <pre> ActiveRecord::AssociationTypeMismatch: City(#17815740) expected, got String(#1138750) </pre> when you pass the +params+ hash to +Person.new+ or +update_attributes+. Another way of looking at this is that form helpers only edit attributes.  You should also be aware of the potential security ramifications of allowing users to edit foreign keys directly. You may wish to consider the use of +attr_protected+ and +attr_accessible+. For further details on this, see the "Ruby On Rails Security Guide":security.html#_mass_assignment.
 
-h4. Option tags from a collection of arbitrary objects
+h4. Option Tags from a Collection of Arbitrary Objects
 
 Generating options tags with +options_for_select+ requires that you create an array containing the text and value for each option. But what if you had a City model (perhaps an Active Record one) and you wanted to generate option tags from a collection of those objects? One solution would be to make a nested array by iterating over them:
 
@@ -454,7 +454,7 @@ To recap, +options_from_collection_for_select+ is to +collection_select+ what +o
 
 NOTE: Pairs passed to +options_for_select+ should have the name first and the id second, however with +options_from_collection_for_select+ the first argument is the value method and the second the text method.
 
-h4. Time zone and country select
+h4. Time Zone and Country Select
 
 To leverage time zone support in Rails, you have to ask your users what time zone they are in. Doing so would require generating select options from a list of pre-defined TimeZone objects using +collection_select+, but you can simply use the +time_zone_select+ helper that already wraps this:
 
@@ -475,7 +475,7 @@ The date and time helpers differ from all the other form helpers in two importan
 
 Both of these families of helpers will create a series of select boxes for the different components (year, month, day etc.).
 
-h4. Barebones helpers
+h4. Barebones Helpers
 
 The +select_*+ family of helpers take as their first argument an instance of Date, Time or DateTime that is used as the currently selected value. You may omit this parameter, in which case the current date is used. For example
 
@@ -499,7 +499,7 @@ Date.civil(params[:start_date][:year].to_i, params[:start_date][:month].to_i, pa
 
 The +:prefix+ option is the key used to retrieve the hash of date components from the +params+ hash. Here it was set to +start_date+, if omitted it will default to +date+.
 
-h4. Model object helpers
+h4. Model Object Helpers
 
 +select_date+ does not work well with forms that update or create Active Record objects as Active Record expects each element of the +params+ hash to correspond to one attribute.
 The model object helpers for dates and times submit parameters with special names,  when Active Record sees parameters with such names it knows they must be combined with the other parameters and given to a constructor appropriate to the column type. For example:
@@ -524,7 +524,7 @@ which results in a +params+ hash like
 
 When this is passed to +Person.new+ (or +update_attributes+), Active Record spots that these parameters should all be used to construct the +birth_date+ attribute and uses the suffixed information to determine in which order it should pass these parameters to functions such as +Date.civil+.
 
-h4. Common options
+h4. Common Options
 
 Both families of helpers use the same core set of functions to generate the individual select tags and so both accept largely the same options. In particular, by default Rails will generate year options 5 years either side of the current year. If this is not an appropriate range, the +:start_year+ and +:end_year+ options override this. For an exhaustive list of the available options, refer to the "API documentation":http://api.rubyonrails.org/classes/ActionView/Helpers/DateHelper.html.
 
@@ -532,7 +532,7 @@ As a rule of thumb you should be using +date_select+ when working with model obj
 
 NOTE: In many cases the built-in date pickers are clumsy as they do not aid the user in working out the relationship between the date and the day of the week.
 
-h4. Individual components
+h4. Individual Components
 
 Occasionally you need to display just a single date component such as a year or a month. Rails provides a series of helpers for this, one for each component +select_year+, +select_month+, +select_day+, +select_hour+, +select_minute+, +select_second+. These helpers are fairly straightforward. By default they will generate an input field named after the time component (for example "year" for +select_year+, "month" for +select_month+ etc.) although this can be overriden with the  +:field_name+ option. The +:prefix+ option works in the same way that it does for +select_date+ and +select_time+ and has the same default value.
 
@@ -563,7 +563,7 @@ The following two forms both upload a file.
 
 Rails provides the usual pair of helpers: the barebones +file_field_tag+ and the model oriented +file_field+. The only difference with other helpers is that you cannot set a default value for file inputs as this would have no meaning. As you would expect in the first case the uploaded file is in +params[:picture]+ and in the second case in +params[:person][:picture]+.
 
-h4. What gets uploaded
+h4. What Gets Uploaded
 
 The object in the +params+ hash is an instance of a subclass of IO. Depending on the size of the uploaded file it may in fact be a StringIO or an instance of File backed by a temporary file. In both cases the object will have an +original_filename+ attribute containing the name the file had on the user's computer and a +content_type+ attribute containing the MIME type of the uploaded file. The following snippet saves the uploaded content in +#{Rails.root}/public/uploads+ under the same name as the original file (assuming the form was the one in the previous example).
 
@@ -605,9 +605,9 @@ can be replaced with
 by defining a LabellingFormBuilder class similar to the following:
 
 <ruby>
-class LabellingFormBuilder < FormBuilder
+class LabellingFormBuilder < ActionView::Helpers::FormBuilder
   def text_field(attribute, options={})
-    label(attribute) + text_field(attribute, options)
+    label(attribute) + super
   end
 end
 </ruby>
@@ -631,7 +631,7 @@ Fundamentally HTML forms don't know about any sort of structured data, all they 
 
 TIP: You may find you can try out examples in this section faster by using the console to directly invoke Rails' parameter parser. For example <pre> ActionController::UrlEncodedPairParser.parse_query_parameters "name=fred&phone=0123456789" # => {"name"=>"fred", "phone"=>"0123456789"} </pre>
 
-h4. Basic structures
+h4. Basic Structures
 
 The two basic structures are arrays and hashes. Hashes mirror the syntax used for accessing the value in +params+. For example if a form contains
 
@@ -669,7 +669,7 @@ Normally Rails ignores duplicate parameter names. If the parameter name contains
 
 This would result in +params[:person][:phone_number]+ being an array.
 
-h4. Combining them
+h4. Combining Them
 
 We can mix and match these two concepts. For example, one element of a hash might be an array as in the previous example, or you can have an array of hashes. For example a form might let you create any number of addresses by repeating the following form fragment
 
@@ -685,7 +685,7 @@ There's a restriction, however, while hashes can be nested arbitrarily, only one
 
 WARNING: Array parameters do not play well with the +check_box+ helper. According to the HTML specification unchecked checkboxes submit no value. However it is often convenient for a checkbox to always submit a value. The +check_box+ helper fakes this by creating a second hidden input with the same name. If the checkbox is unchecked only the hidden input is submitted and if it is checked then both are submitted but the value submitted by the checkbox takes precedence. When working with array parameters this duplicate submission will confuse Rails since duplicate input names are how it decides when to start a new array element. It is preferable to either use +check_box_tag+ or to use hashes instead of arrays.
 
-h4. Using form helpers
+h4. Using Form Helpers
 
 The previous sections did not use the Rails form helpers at all. While you can craft the input names yourself and pass them directly to helpers such as +text_field_tag+ Rails also provides higher level support. The two tools at your disposal here are the name parameter to +form_for+ and +fields_for+ and the +:index+ option that helpers take.
 
@@ -746,7 +746,7 @@ As a shortcut you can append [] to the name and omit the +:index+ option. This i
 
 produces exactly the same output as the previous example.
 
-h3. Building Complex forms
+h3. Building Complex Forms
 
 Many apps grow beyond simple forms editing a single object. For example when creating a Person you might want to allow the user to (on the same form) create multiple address records (home, work, etc.). When later editing that person the user should be able to add, remove or amend addresses as necessary. While this guide has shown you all the pieces necessary to handle this, Rails does not yet have a standard end-to-end way of accomplishing this, but many have come up with viable approaches. These include:
 

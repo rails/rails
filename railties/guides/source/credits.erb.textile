@@ -5,6 +5,28 @@ p. We'd like to thank the following people for their tireless contributions to t
 
 <% end %>
 
+<h3 class="section">Rails Documentation Team</h3>
+
+<% author('Mike Gunderloy', 'mgunderloy') do %>
+  Mike Gunderloy is a consultant with "ActionRails":http://www.actionrails.com and also a member of the "Rails activism team":http://rubyonrails.org/activists . He brings 25 years of experience in a variety of languages to bear on his current work with Rails. His near-daily links and other blogging can be found at "A Fresh Cup":http://afreshcup.com and he "twitters":http://twitter.com/MikeG1 too much.
+<% end %>
+
+<% author('Pratik Naik', 'lifo') do %>
+  Pratik Naik is a Ruby on Rails consultant with "ActionRails":http://www.actionrails.com and also a member of the "Rails core team":http://rubyonrails.org/core. He maintains a blog at "has_many :bugs, :through => :rails":http://m.onkey.org and has an active "twitter account":http://twitter.com/lifo.
+<% end %>
+
+<% author('Xavier Noria', 'fxn', 'fxn.jpg') do %>
+  Xavier Noria has been around dynamic languages since 2000. He fell in love with Rails in 2005, and cofounded Rails-based software company <a href="http://www.aspgems.com">ASPgems</a> in mid-2006. Xavier is president of the <a href="http://www.srug.org/">Spanish Ruby Users Group</a> and has been involved in Rails in several ways. He enjoys combining his passion for Rails and his past life as a proofreader of math textbooks. Oh, he also "tweets":http://twitter.com/fxn!
+<% end %>
+
+<h3 class="section">Rails Guides Designers</h3>
+
+<% author('Jason Zimdars', 'jz') do %>
+  Jason Zimdars is an experienced creative director and web designer who has lead UI and UX design for numerous websites and web applications. You can see more of his design and writing at <a href="http://www.thinkcage.com/">Thinkcage.com</a> or follow him on <a href="http://twitter.com/JZ">Twitter</a>.
+<% end %>
+
+<h3 class="section">Rails Guides Authors</h3>
+
 <% author('Frederick Cheung', 'fcheung') do %>
   Frederick Cheung is Chief Wizard at Texperts where he has been using Rails since 2006. He is based in Cambridge (UK) and when not consuming fine ales he blogs at "spacevatican.org":http://www.spacevatican.org.
 <% end %>
@@ -17,23 +39,14 @@ p. We'd like to thank the following people for their tireless contributions to t
   Jeff Dean is a software engineer with "Pivotal Labs":http://pivotallabs.com.
 <% end %>
 
-<% author('Mike Gunderloy', 'mgunderloy') do %>
-  Mike Gunderloy is a consultant with "ActionRails":http://www.actionrails.com and also a member of the "Rails activism team":http://rubyonrails.org/activists . He brings 25 years of experience in a variety of languages to bear on his current work with Rails. His near-daily links and other blogging can be found at "A Fresh Cup":http://afreshcup.com and he "twitters":http://twitter.com/MikeG1 too much.
-<% end %>
-
 <% author('Cássio Marques', 'cmarques') do %>
   Cássio Marques is a Brazilian software developer working with different programming languages such as Ruby, JavaScript, CPP and Java, as an independent consultant. He blogs at "/* CODIFICANDO */":http://cassiomarques.wordpress.com, which is mainly written in Portuguese, but will soon get a new section for posts with English translation.
 <% end %>
 
-<% author('Pratik Naik', 'lifo') do %>
-  Pratik Naik is a Ruby on Rails consultant with "ActionRails":http://www.actionrails.com and also a member of the "Rails core team":http://rubyonrails.com/core. He maintains a blog at "has_many :bugs, :through => :rails":http://m.onkey.org and has an active "twitter account":http://twitter.com/lifo.
-
 <% author('Emilio Tagua', 'miloops') do %>
-  Emilio Tagua -- a.k.a. miloops -- is an Argentinian entrepreneur, developer, open source contributor and Rails evangelist. Cofounder of "Eventioz":http://www.eventioz.com. He has been using Rails since 2006 and contributing since early 2008. Can be found at gmail, twitter, freenode, everywhere as miloops.
+  Emilio Tagua -- a.k.a. miloops -- is an Argentinian entrepreneur, developer, open source contributor and Rails evangelist. Cofounder of "Eventioz":http://eventioz.com. He has been using Rails since 2006 and contributing since early 2008. Can be found at gmail, twitter, freenode, everywhere as miloops.
 <% end %>
 
 <% author('Heiko Webers', 'hawe') do %>
   Heiko Webers is the founder of "bauland42":http://www.bauland42.de, a German web application security consulting and development company focused on Ruby on Rails. He blogs at the "Ruby on Rails Security Project":http://www.rorsecurity.info. After 10 years of desktop application development, Heiko has rarely looked back.
-<% end %>
-
 <% end %>

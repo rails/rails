@@ -1,4 +1,4 @@
-h2. Getting Started With Rails
+h2. Getting Started with Rails
 
 This guide covers getting up and running with Ruby on Rails. After reading it, you should be familiar with:
 
@@ -23,7 +23,7 @@ It is highly recommended that you *familiarize yourself with Ruby before diving 
 
 * "Mr. Neighborly’s Humble Little Ruby Book":http://www.humblelittlerubybook.com
 * "Programming Ruby":http://www.rubycentral.com/book
-* "Why’s (Poignant) Guide to Ruby":http://poignantguide.net/ruby
+* "Why’s (Poignant) Guide to Ruby":http://poignantguide.net/ruby/
 
 h3. What is Rails?
 
@@ -115,6 +115,7 @@ If you’d like more details on REST as an architectural style, these resources 
 * "A Brief Introduction to REST":http://www.infoq.com/articles/rest-introduction by Stefan Tilkov
 * "An Introduction to REST":http://bitworking.org/news/373/An-Introduction-to-REST (video tutorial) by Joe Gregorio
 * "Representational State Transfer":http://en.wikipedia.org/wiki/Representational_State_Transfer article in Wikipedia
+* "How to GET a Cup of Coffee":http://www.infoq.com/articles/webber-rest-workflow by Jim Webber, Savas Parastatidis & Ian Robinson
 
 h3. Creating a New Rails Project
 
@@ -174,7 +175,7 @@ In any case, Rails will create a folder in your working directory called <tt>blo
 |log/|Application log files.|
 |public/|The only folder seen to the world as-is.  This is where your images, javascript, stylesheets (CSS), and other static files go.|
 |script/|Scripts provided by Rails to do recurring tasks, such as benchmarking, plugin installation, and starting the console or the web server.|
-|test/|Unit tests, fixtures, and other test apparatus. These are covered in "Testing Rails Applications":testing_rails_applications.html|
+|test/|Unit tests, fixtures, and other test apparatus. These are covered in "Testing Rails Applications":testing.html|
 |tmp/|Temporary files|
 |vendor/|A place for third-party code. In a typical Rails application, this includes Ruby Gems, the Rails source code (if you install it into your project) and plugins containing additional prepackaged functionality.|
 
@@ -309,7 +310,7 @@ This line illustrates one tiny bit of the "convention over configuration" approa
 
 Now if you navigate to +http://localhost:3000+ in your browser, you'll see the +home/index+ view.
 
-NOTE. For more information about routing, refer to "Rails Routing from the Outside In":routing_outside_in.html.
+NOTE. For more information about routing, refer to "Rails Routing from the Outside In":routing.html.
 
 h3. Getting Up and Running Quickly With Scaffolding
 
@@ -471,7 +472,7 @@ end
 
 This code sets the +@posts+ instance variable to an array of all posts in the database. +Post.find(:all)+ or +Post.all+ calls the +Post+ model to return all of the posts that are currently in the database, with no limiting conditions.
 
-TIP: For more information on finding records with Active Record, see "Active Record Finders":finders.html.
+TIP: For more information on finding records with Active Record, see "Active Record Query Interface":active_record_querying.html.
 
 The +respond_to+ block handles both HTML and XML calls to this action. If you browse to +http://localhost:3000/posts.xml+, you'll see all of the posts in XML format. The HTML format looks for a view in +app/views/posts/+ with a name that corresponds to the action name. Rails makes all of the instance variables from the action available to the view. Here's +app/view/posts/index.html.erb+:
 
@@ -845,7 +846,7 @@ end
 
 Rails runs _before filters_ before any action in the controller. You can use the +:only+ clause to limit a before filter to only certain actions, or an +:except+ clause to specifically skip a before filter for certain actions. Rails also allows you to define _after filters_ that run after processing an action, as well as _around filters_ that surround the processing of actions. Filters can also be defined in external classes to make it easy to share them between controllers.
 
-For more information on filters, see the "Action Controller Basics":actioncontroller_basics.html guide.
+For more information on filters, see the "Action Controller Overview":action_controller_overview.html guide.
 
 h3. Adding a Second Model
 

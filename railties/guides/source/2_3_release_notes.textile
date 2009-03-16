@@ -1,7 +1,5 @@
 h2. Ruby on Rails 2.3 Release Notes
 
-NOTE: These release notes refer to RC2 of Rails 2.3. This is a release candidate, and not the final version of Rails 2.3. It's intended to be a stable testing release, and we urge you to test your own applications and report any issues to the "Rails Lighthouse":http://rails.lighthouseapp.com/projects/8994-ruby-on-rails/overview.
-
 Rails 2.3 delivers a variety of new and improved features, including pervasive Rack integration, refreshed support for Rails Engines, nested transactions for Active Record, dynamic and default scopes, unified rendering, more efficient routing, application templates, and quiet backtraces. This list covers the major upgrades, but doesn't include every little bug fix and change. If you want to see everything, check out the "list of commits":http://github.com/rails/rails/commits/master in the main Rails repository on GitHub or review the +CHANGELOG+ files for the individual Rails components.
 
 endprologue.
@@ -22,24 +20,25 @@ Rails has now broken with its CGI past, and uses Rack everywhere. This required 
 Here's a summary of the rack-related changes:
 
 * +script/server+ has been switched to use Rack, which means it supports any Rack compatible server. +script/server+ will also pick up a rackup configuration file if one exists. By default, it will look for a +config.ru+ file, but you can override this with the +-c+ switch.
-* The FCGI handler goes through Rack
-* +ActionController::Dispatcher+ maintains its own default middleware stack. Middlewares can be injected in, reordered, and removed. The stack is compiled into a chain on boot. You can configure the middleware stack in +environment.rb+
+* The FCGI handler goes through Rack.
+* +ActionController::Dispatcher+ maintains its own default middleware stack. Middlewares can be injected in, reordered, and removed. The stack is compiled into a chain on boot. You can configure the middleware stack in +environment.rb+.
 * The +rake middleware+ task has been added to inspect the middleware stack. This is useful for debugging the order of the middleware stack.
 * The integration test runner has been modified to execute the entire middleware and application stack. This makes integration tests perfect for testing Rack middleware.
 * +ActionController::CGIHandler+ is a backwards compatible CGI wrapper around Rack. The +CGIHandler+ is meant to take an old CGI object and convert its environment information into a Rack compatible form.
-* +CgiRequest+ and +CgiResponse+ have been removed
+* +CgiRequest+ and +CgiResponse+ have been removed.
 * Session stores are now lazy loaded. If you never access the session object during a request, it will never attempt to load the session data (parse the cookie, load the data from memcache, or lookup an Active Record object).
-* +CGI::Session::CookieStore+ has been replaced by +ActionController::Session::CookieStore+
-* +CGI::Session::MemCacheStore+ has been replaced by +ActionController::Session::MemCacheStore+
-* +CGI::Session::ActiveRecordStore+ has been replaced by +ActiveRecord::SessionStore+
-* You can still change your session store with +ActionController::Base.session_store = :active_record_store+
-* Default sessions options are still set with +ActionController::Base.session = { :key => "..." }+
-* The mutex that normally wraps your entire request has been moved into middleware, +ActionController::Lock+
+* You no longer need to use +CGI::Cookie.new+ in your tests for setting a cookie value. Assigning a +String+ value to request.cookies["foo"] now sets the cookie as expected.
+* +CGI::Session::CookieStore+ has been replaced by +ActionController::Session::CookieStore+.
+* +CGI::Session::MemCacheStore+ has been replaced by +ActionController::Session::MemCacheStore+.
+* +CGI::Session::ActiveRecordStore+ has been replaced by +ActiveRecord::SessionStore+.
+* You can still change your session store with +ActionController::Base.session_store = :active_record_store+.
+* Default sessions options are still set with +ActionController::Base.session = { :key => "..." }+.
+* The mutex that normally wraps your entire request has been moved into middleware, +ActionController::Lock+.
 * +ActionController::AbstractRequest+ and +ActionController::Request+ have been unified. The new +ActionController::Request+ inherits from +Rack::Request+. This affects access to +response.headers['type']+ in test requests. Use +response.content_type+ instead.
 * +ActiveRecord::QueryCache+ middleware is automatically inserted onto the middleware stack if +ActiveRecord+ has been loaded. This middleware sets up and flushes the per-request Active Record query cache.
 * The Rails router and controller classes follow the Rack spec. You can call a controller directly with +SomeController.call(env)+. The router stores the routing parameters in +rack.routing_args+.
-* +ActionController::Request+ inherits from +Rack::Request+
-* Instead of +config.action_controller.session = { :session_key => 'foo', ...+ use  +config.action_controller.session = { :key => 'foo', ...+
+* +ActionController::Request+ inherits from +Rack::Request+.
+* Instead of +config.action_controller.session = { :session_key => 'foo', ...+ use  +config.action_controller.session = { :key => 'foo', ...+.
 * Using the +ParamsParser+ middleware preprocesses any XML, JSON, or YAML requests so they can be read normally with any +Rack::Request+ object after it.
 
 h4. Renewed Support for Rails Engines
@@ -50,7 +49,7 @@ h3. Documentation
 
 The "Ruby on Rails guides":http://guides.rubyonrails.org/ project has published several additional guides for Rails 2.3. In addition, a "separate site":http://guides.rails.info/ maintains updated copies of the Guides for Edge Rails. Other documentation efforts include a relaunch of the "Rails wiki":http://newwiki.rubyonrails.org/ and early planning for a Rails Book.
 
-* More Information: "Rails Documentation Projects":http://weblog.rubyonrails.org/2009/1/15/rails-documentation-projects
+* More Information: "Rails Documentation Projects":http://weblog.rubyonrails.org/2009/1/15/rails-documentation-projects.
 
 h3. Ruby 1.9.1 Support
 
@@ -140,19 +139,19 @@ end
 
 You can pass most of the +find+ options into +find_in_batches+. However, you cannot specify the order that records will be returned in (they will always be returned in ascending order of primary key, which must be an integer), or use the +:limit+ option. Instead, use the +:batch_size+ option, which defaults to 1000, to set the number of records that will be returned in each batch.
 
-The new +each+ method provides a wrapper around +find_in_batches+ that returns individual records, with the find itself being done in batches (of 1000 by default):
+The new +find_each+ method provides a wrapper around +find_in_batches+ that returns individual records, with the find itself being done in batches (of 1000 by default):
 
 <ruby>
-Customer.each do |customer|
+Customer.find_each do |customer|
   customer.update_account_balance!
 end
 </ruby>
 
 Note that you should only use this method for batch processing: for small numbers of records (less than 1000), you should just use the regular find methods with your own loop.
 
-* More Information: 
- - "Rails 2.3: Batch Finding":http://afreshcup.com/2009/02/23/rails-23-batch-finding/
- - "What's New in Edge Rails: Batched Find":http://ryandaigle.com/articles/2009/2/23/what-s-new-in-edge-rails-batched-find
+* More Information (at that point the convenience method was called just +each+): 
+** "Rails 2.3: Batch Finding":http://afreshcup.com/2009/02/23/rails-23-batch-finding/
+** "What's New in Edge Rails: Batched Find":http://ryandaigle.com/articles/2009/2/23/what-s-new-in-edge-rails-batched-find
 
 h4. Multiple Conditions for Callbacks
 
@@ -175,18 +174,6 @@ developers =  Developer.find(:all, :group => "salary",
 
 * Lead Contributor: "Emilio Tagua":http://github.com/miloops
 
-h4. Hash Conditions for has_many relationships
-
-You can once again use a hash in conditions for a +has_many+ relationship:
-
-<ruby>
-has_many :orders, :conditions => {:status => 'confirmed'}
-</ruby>
-
-That worked in Rails 2.1, fails in Rails 2.2, and will now work again in Rails 2.3 (if you're dealing with this issue in Rails 2.2, you can use a string rather than a hash to specify conditions).
-
-* Lead Contributor: "Frederick Cheung":http://www.spacevatican.org/
-
 h4. Reconnecting MySQL Connections
 
 MySQL supports a reconnect flag in its connections - if set to true, then the client will try reconnecting to the server before giving up in case of a lost connection. You can now set +reconnect = true+ for your MySQL connections in +database.yml+ to get this behavior from a Rails application. The default is +false+, so the behavior of existing applications doesn't change.
@@ -198,15 +185,17 @@ MySQL supports a reconnect flag in its connections - if set to true, then the cl
 
 h4. Other Active Record Changes
 
-* An extra +AS+ was removed from the generated SQL for has_and_belongs_to_many preloading, making it work better for some databases.
+* An extra +AS+ was removed from the generated SQL for +has_and_belongs_to_many+ preloading, making it work better for some databases.
 * +ActiveRecord::Base#new_record?+ now returns +false+ rather than +nil+ when confronted with an existing record.
 * A bug in quoting table names in some +has_many :through+ associations was fixed.
 * You can now specify a particular timestamp for +updated_at+ timestamps: +cust = Customer.create(:name => "ABC Industries", :updated_at => 1.day.ago)+
 * Better error messages on failed +find_by_attribute!+ calls.
 * Active Record's +to_xml+ support gets just a little bit more flexible with the addition of a +:camelize+ option.
-* A bug in canceling callbacks from +before_update+ or +before_create_ was fixed.
+* A bug in canceling callbacks from +before_update+ or +before_create+ was fixed.
 * Rake tasks for testing databases via JDBC have been added.
-* +validates_length_of+ will use a custom error message with the +:in+ or +:within+ options (if one is supplied)
+* +validates_length_of+ will use a custom error message with the +:in+ or +:within+ options (if one is supplied).
+* Counts on scoped selects now work properly, so you can do things like +Account.scoped(:select => "DISTINCT credit_limit").count+.
+* +ActiveRecord::Base#invalid?+ now works as the opposite of +ActiveRecord::Base#valid?+.
 
 h3. Action Controller
 
@@ -299,13 +288,15 @@ In some of the first fruits of the Rails-Merb team merger, Rails 2.3 includes so
 
 h4. Improved Caching Performance
 
-Rails now keeps a per-request local cache of requests, cutting down on unnecessary reads and leading to better site performance. While this work was originally limited to +MemCacheStore+, it is available to any remote store than implements the required methods.
+Rails now keeps a per-request local cache of read from the remote cache stores, cutting down on unnecessary reads and leading to better site performance. While this work was originally limited to +MemCacheStore+, it is available to any remote store than implements the required methods.
 
 * Lead Contributor: "Nahum Wild":http://www.motionstandingstill.com/
 
 h4. Localized Views
 
 Rails can now provide localized views, depending on the locale that you have set. For example, suppose you have a +Posts+ controller with a +show+ action. By default, this will render +app/views/posts/show.html.erb+. But if you set +I18n.locale = :da+, it will render +app/views/posts/show.da.html.erb+. If the localized template isn't present, the undecorated version will be used. Rails also includes +I18n#available_locales+ and +I18n::SimpleBackend#available_locales+, which return an array of the translations that are available in the current Rails project.
+
+In addition, you can use the same scheme to localize the rescue files in the +public+ directory: +public/500.da.html+ or +public/404.en.html+ work, for example.
 
 h4. Partial Scoping for Translations
 
@@ -321,6 +312,9 @@ h4. Other Action Controller Changes
 * The +:only+ and +:except+ options for +map.resources+ are no longer inherited by nested resources.
 * The bundled memcached client has been updated to version 1.6.4.99.
 * The +expires_in+, +stale?+, and +fresh_when+ methods now accept a +:public+ option to make them work well with proxy caching.
+* The +:requirements+ option now works properly with additional RESTful member routes.
+* Shallow routes now properly respect namespaces.
+* +polymorphic_url+ does a better job of handling objects with irregular plural names.
 
 h3. Action View
 
@@ -439,6 +433,34 @@ returns
 </optgroup>
 </ruby>
 
+h4. Disabled Option Tags for Form Select Helpers
+
+The form select helpers (such as +select+ and +options_for_select+) now support a +:disabled+ option, which can take a single value or an array of values to be disabled in the resulting tags:
+
+<ruby>
+select(:post, :category, Post::CATEGORIES, :disabled => ‘private‘)
+</ruby>
+
+returns
+
+<ruby>
+<select name=“post[category]“>
+<option>story</option>
+<option>joke</option>
+<option>poem</option>
+<option disabled=“disabled“>private</option>
+</select>	
+</ruby>
+
+You can also use an anonymous function to determine at runtime which options from collections will be selected and/or disabled:
+
+<ruby>
+options_from_collection_for_select(@product.sizes, :name, :id, :disabled => lambda{|size| size.out_of_stock?})
+</ruby>
+
+* Lead Contributor: "Tekin Suleyman":http://tekin.co.uk/
+* More Information: "New in rails 2.3 - disabled option tags and lambdas for selecting and disabling options from collections":http://tekin.co.uk/2009/03/new-in-rails-23-disabled-option-tags-and-lambdas-for-selecting-and-disabling-options-from-collections/
+
 h4. A Note About Template Loading
 
 Rails 2.3 includes the ability to enable or disable cached templates for any particular environment. Cached templates give you a speed boost because they don't check for a new template file when they're rendered - but they also mean that you can't replace a template "on the fly" without restarting the server.
@@ -472,6 +494,17 @@ h4. Object#tap Backport
 
 +Object#tap+ is an addition to "Ruby 1.9":http://www.ruby-doc.org/core-1.9/classes/Object.html#M000309 and 1.8.7 that is similar to the +returning+ method that Rails has had for a while: it yields to a block, and then returns the object that was yielded. Rails now includes code to make this available under older versions of Ruby as well.
 
+h4. Swappable Parsers for XMLmini
+
+The support for XML parsing in ActiveSupport has been made more flexible by allowing you to swap in different parsers. By default, it uses the standard REXML implementation, but you can easily specify the faster LibXML or Nokogiri implementations for your own applications, provided you have the appropriate gems installed:
+
+<ruby>
+XmlMini.backend = 'LibXML'
+</ruby>
+
+* Lead Contributor: "Bart ten Brinke":http://www.movesonrails.com/ 
+* Lead Contributor: "Aaron Patterson":http://tenderlovemaking.com/
+
 h4. Fractional seconds for TimeWithZone
 
 The +Time+ and +TimeWithZone+ classes include an +xmlschema+ method to return the time in an XML-friendly string. As of Rails 2.3, +TimeWithZone+ supports the same argument for specifying the number of digits in the fractional second part of the returned string that +Time+ does:
@@ -494,6 +527,10 @@ h4. Other Active Support Changes
 * +ActiveSupport::OrderedHash+: now implements +each_key+ and +each_value+.
 * +ActiveSupport::MessageEncryptor+ provides a simple way to encrypt information for storage in an untrusted location (like cookies).
 * Active Support's +from_xml+ no longer depends on XmlSimple. Instead, Rails now includes its own XmlMini implementation, with just the functionality that it requires. This lets Rails dispense with the bundled copy of XmlSimple that it's been carting around.
+* If you memoize a private method, the result will now be private.
+* +String#parameterize+ accepts an optional separator: +"Quick Brown Fox".parameterize('_') => "quick_brown_fox"+.
+* +number_to_phone+ accepts 7-digit phone numbers now.
+* +ActiveSupport::Json.decode+ now handles +\u0000+ style escape sequences.
 
 h3. Railties
 
@@ -532,6 +569,12 @@ Quite a bit of work was done to make sure that bits of Rails (and its dependenci
 
 You can also specify (by using the new +preload_frameworks+ option) whether the core libraries should be autoloaded at startup. This defaults to +false+ so that Rails autoloads itself piece-by-piece, but there are some circumstances where you still need to bring in everything at once - Passenger and JRuby both want to see all of Rails loaded together.
 
+h4. rake gem Task Rewrite
+
+The internals of the various <code>rake gem</code> tasks have been substantially revised, to make the system work better for a variety of cases. The gem system now knows the difference between development and runtime dependencies, has a more robust unpacking system, gives better information when querying for the status of gems, and is less prone to "chicken and egg" dependency issues when you're bringing things up from scratch. There are also fixes for using gem commands under JRuby and for dependencies that try to bring in external copies of gems that are already vendored.
+
+* Lead Contributor: "David Dollar":http://www.workingwithrails.com/person/12240-david-dollar
+
 h4. Other Railties Changes
 
 * The instructions for updating a CI server to build Rails have been updated and expanded.
@@ -543,6 +586,8 @@ h4. Other Railties Changes
 * Rails Guides have been converted from AsciiDoc to Textile markup.
 * Scaffolded views and controllers have been cleaned up a bit.
 * +script/server+ now accepts a <tt>--path</tt> argument to mount a Rails application from a specific path.
+* If any configured gems are missing, the gem rake tasks will skip loading much of the environment. This should solve many of the "chicken-and-egg" problems where rake gems:install couldn't run because gems were missing.
+* Gems are now unpacked exactly once. This fixes issues with gems (hoe, for instance) which are packed with read-only permissions on the files.
 
 h3. Deprecated
 

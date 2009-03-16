@@ -15,7 +15,7 @@ h3. Introduction to Rack
 
 bq. Rack provides a minimal, modular and adaptable interface for developing web applications in Ruby. By wrapping HTTP requests and responses in the simplest way possible, it unifies and distills the API for web servers, web frameworks, and software in between (the so-called middleware) into a single method call.
 
-- "Rack API Documentation":http://rack.rubyforge.org/doc
+- "Rack API Documentation":http://rack.rubyforge.org/doc/
 
 Explaining Rack is not really in the scope of this guide. In case you are not familiar with Rack's basics, you should check out the following links:
 
@@ -30,7 +30,7 @@ h4. Rails Application's Rack Object
 
 <tt>ActionController::Dispatcher.new</tt> is the primary Rack application object of a Rails application. Any Rack compliant web server should be using +ActionController::Dispatcher.new+ object to serve a Rails application.</p>
 
-h4. script/server
+h4. +script/server+
 
 <tt>script/server</tt> does the basic job of creating a +Rack::Builder+ object and starting the webserver. This is Rails' equivalent of Rack's +rackup+ script.
 
@@ -55,7 +55,7 @@ Middlewares used in the code above are primarily useful only in the development 
 |Rails::Rack::Static|Serves static files inside +RAILS_ROOT/public+ directory|
 |Rails::Rack::Debugger|Starts Debugger|
 
-h4. rackup
+h4. +rackup+
 
 To use +rackup+ instead of Rails' +script/server+, you can put the following inside +config.ru+ of your Rails application's root directory:
 
@@ -119,9 +119,7 @@ h5. Adding a Middleware
 
 You can add a new middleware to the middleware stack using any of the following methods:
 
-* +config.middleware.add(new_middleware, args)+ - Adds the new middleware at the bottom of the middleware stack.
-
-* +config.middleware.insert(index, new_middleware, args)+ - Adds the new middleware at the position specified by +index+ in the middleware stack.
+* +config.middleware.use(new_middleware, args)+ - Adds the new middleware at the bottom of the middleware stack.
 
 * +config.middleware.insert_before(existing_middleware, new_middleware, args)+ - Adds the new middleware before the specified existing middleware in the middleware stack.
 
@@ -151,6 +149,16 @@ You can swap an existing middleware in the middleware stack using +config.middle
 
 # Replace ActionController::Failsafe with Lifo::Failsafe
 config.middleware.swap ActionController::Failsafe, Lifo::Failsafe
+</ruby>
+
+h5. Middleware Stack is an Array
+
+The middleware stack behaves just like a normal +Array+. You can use any +Array+ methods to insert, reorder, or remove items from the stack. Methods described in the section above are just convenience methods.
+
+For example, the following removes the middleware matching the supplied class name:
+
+<ruby>
+config.middleware.delete(middleware)
 </ruby>
 
 h4. Internal Middleware Stack
@@ -197,9 +205,31 @@ use Rack::Head
 run ActionController::Dispatcher.new
 </shell>
 
+h4. Using Rack Builder
+
+The following shows how to replace use +Rack::Builder+ instead of the Rails supplied +MiddlewareStack+.
+
+<strong>Clear the existing Rails middleware stack</strong>
+
+<ruby>
+# environment.rb
+config.middleware.clear
+</ruby>
+
+<br />
+<strong>Add a +config.ru+ file to +RAILS_ROOT+</strong>
+
+<ruby>
+# config.ru
+use MyOwnStackFromStratch
+run ActionController::Dispatcher.new
+</ruby>
+
 h3. Rails Metal Applications
 
 Rails Metal applications are minimal Rack applications specially designed for integrating with a typical Rails application. As Rails Metal Applications skip all of the Action Controller stack, serving a request has no overhead from the Rails framework itself. This is especially useful for infrequent cases where the performance of the full stack Rails framework is an issue.
+
+Ryan Bates' railscast on the "Rails Metal":http://railscasts.com/episodes/150-rails-metal provides a nice walkthrough generating and using Rails Metal.
 
 h4. Generating a Metal Application
 
@@ -226,6 +256,8 @@ class Poller
 end
 </ruby>
 
+Metal applications within +app/metal+ folders in plugins will also be discovered and added to the list 
+
 Metal applications are an optimization. You should make sure to "understand the related performance implications":http://weblog.rubyonrails.org/2008/12/20/performance-of-rails-metal before using it.
 
 h4. Execution Order
@@ -244,9 +276,30 @@ def call(env)
 end
 </ruby>
 
-In the code above, +@metals+ is an ordered ( alphabetical ) hash of metal applications. Due to the alphabetical ordering, +aaa.rb+ will come before +bbb.rb+ in the metal chain.
+In the code above, +@metals+ is an ordered hash of metal applications. Due to the default alphabetical ordering, +aaa.rb+ will come before +bbb.rb+ in the metal chain.
+
+It is, however, possible to override the default ordering in your environment. Simply add a line like the following to +config/environment.rb+
+
+<ruby>
+config.metals = ["Bbb", "Aaa"]
+</ruby>
+
+Each string in the array should be the name of your metal class. If you do this then be warned that any metal applications not listed will not be loaded.
 
 WARNING: Metal applications cannot return the HTTP Status +404+ to a client, as it is used for continuing the Metal chain execution. Please use normal Rails controllers or a custom middleware if returning +404+ is a requirement.
+
+h3. Resources
+
+h4. Learning Rack
+
+* "Official Rack Website":http://rack.github.com
+* "Introducing Rack":http://chneukirchen.org/blog/archive/2007/02/introducing-rack.html
+* "Ruby on Rack #1 - Hello Rack!":http://m.onkey.org/2008/11/17/ruby-on-rack-1
+* "Ruby on Rack #2 - The Builder":http://m.onkey.org/2008/11/18/ruby-on-rack-2-rack-builder
+
+h4. Understanding Middlewares
+
+* "Railscast on Rack Middlewares":http://railscasts.com/episodes/151-rack-middleware
 
 h3. Changelog
 

@@ -32,7 +32,7 @@ end
 
 This example is a simple performance test case for profiling a GET request to the application's homepage.
 
-h4. Generating performance tests
+h4. Generating Performance Tests
 
 Rails provides a generator called +performance_test+ for creating new performance tests:
 
@@ -95,7 +95,7 @@ class Post < ActiveRecord::Base
 end
 </ruby>
 
-h5. Controller example
+h5. Controller Example
 
 Because performance tests are a special kind of integration test, you can use the +get+ and +post+ methods in them.
 
@@ -121,9 +121,9 @@ class PostPerformanceTest < ActionController::PerformanceTest
 end
 </ruby>
 
-You can find more details about the +get+ and +post+ methods in the link:../testing_rails_applications.html#mgunderloy[Testing Rails Applications] guide.
+You can find more details about the +get+ and +post+ methods in the "Testing Rails Applications":testing.html guide.
 
-h5. Model example
+h5. Model Example
 
 Even though the performance tests are integration tests and hence closer to the request/response cycle by nature, you can still performance test pure model code.
 
@@ -173,13 +173,13 @@ h4. Metrics
 
 Benchmarking and profiling run performance tests in various modes described below.
 
-h5. Wall time
+h5. Wall Time
 
 Wall time measures the real world time elapsed during the test run. It is affected by any other processes concurrently running on the system.
 
 Mode: Benchmarking
 
-h5. Process time
+h5. Process Time
 
 Process time measures the time taken by the process. It is unaffected by any other processes running concurrently on the same system. Hence, process time is likely to be constant for any given performance test, irrespective of the machine load.
 
@@ -197,19 +197,19 @@ Objects measures the number of objects allocated for the performance test case.
 
 Mode: Benchmarking, Profiling "Requires GC Patched Ruby":#installing-gc-patched-ruby
 
-h5. GC runs
+h5. GC Runs
 
 GC Runs measures the number of times GC was invoked for the performance test case.
 
 Mode: Benchmarking "Requires GC Patched Ruby":#installing-gc-patched-ruby
 
-h5. GC time
+h5. GC Time
 
 GC Time measures the amount of time spent in GC for the performance test case.
 
 Mode: Benchmarking "Requires GC Patched Ruby":#installing-gc-patched-ruby
 
-h4. Understanding the output
+h4. Understanding the Output
 
 Performance tests generate different outputs inside +tmp/performance+ directory depending on their mode and metric.
 
@@ -217,7 +217,7 @@ h5. Benchmarking
 
 In benchmarking mode, performance tests generate two types of outputs:
 
-h6. Command line
+h6. Command Line
 
 This is the primary form of output in benchmarking mode. Example:
 
@@ -230,7 +230,7 @@ BrowsingTest#test_homepage (31 ms warmup)
              gc_time: 19 ms
 </shell>
 
-h6. CSV files
+h6. CSV Files
 
 Performance test results are also appended to +.csv+ files inside +tmp/performance+. For example, running the default +BrowsingTest#test_homepage+ will generate following five files:
 
@@ -262,7 +262,7 @@ h5. Profiling
 
 In profiling mode, you can choose from four types of output.
 
-h6. Command line
+h6. Command Line
 
 This is a very basic form of output in profiling mode:
 
@@ -283,15 +283,15 @@ Graph output shows how long each method takes to run, which methods call it and 
 
 h6. Tree
 
-Tree output is profiling information in calltree format for use by http://kcachegrind.sourceforge.net/html/Home.html[kcachegrind] and similar tools.
+Tree output is profiling information in calltree format for use by "kcachegrind":http://kcachegrind.sourceforge.net/html/Home.html and similar tools.
 
-h4. Tuning test runs
+h4. Tuning Test Runs
 
 By default, each performance test is run +4 times+ in benchmarking mode and +1 time+ in profiling. However, test runs can easily be configured.
 
 WARNING: Performance test configurability is not yet enabled in Rails. But it will be soon.
 
-h4. Performance test environment
+h4. Performance Test Environment
 
 Performance tests are run in the +development+ environment. But running performance tests will set the following configuration parameters:
 
@@ -303,7 +303,7 @@ Rails.logger.level = ActiveSupport::BufferedLogger::INFO
 
 As +ActionController::Base.perform_caching+ is set to +true+, performance tests will behave much as they do in the +production+ environment.
 
-h4. Installing GC-patched Ruby
+h4. Installing GC-Patched Ruby
 
 To get the best from Rails performance tests, you need to build a special Ruby binary with some super powers - "GC patch":http://rubyforge.org/tracker/download.php/1814/7062/17676/3291/ruby186gc.patch for measuring GC Runs/Time and memory/object allocation.
 
@@ -313,7 +313,7 @@ h5. Installation
 
 Compile Ruby and apply this "GC Patch":http://rubyforge.org/tracker/download.php/1814/7062/17676/3291/ruby186gc.patch.
 
-h5. Download and extract
+h5. Download and Extract
 
 <shell>
 [lifo@null ~]$ mkdir rubygc
@@ -322,13 +322,13 @@ h5. Download and extract
 [lifo@null ~]$ cd <ruby-version>
 </shell>
 
-h5. Apply the patch
+h5. Apply the Patch
 
 <shell>
 [lifo@null ruby-version]$ curl http://rubyforge.org/tracker/download.php/1814/7062/17676/3291/ruby186gc.patch | patch -p0
 </shell>
 
-h5. Configure and install
+h5. Configure and Install
 
 The following will install ruby in your home directory's +/rubygc+ directory. Make sure to replace +<homedir>+ with a full patch to your actual home directory.
 
@@ -337,7 +337,7 @@ The following will install ruby in your home directory's +/rubygc+ directory. Ma
 [lifo@null ruby-version]$ make && make install
 </shell>
 
-h5. Prepare aliases
+h5. Prepare Aliases
 
 For convenience, add the following lines in your +~/.profile+:
 
@@ -349,7 +349,7 @@ alias gcirb='~/rubygc/bin/irb'
 alias gcrails='~/rubygc/bin/rails'
 </shell>
 
-h5. Install Rubygems and dependency gems
+h5. Install Rubygems and Dependency Gems
 
 Download "Rubygems":http://rubyforge.org/projects/rubygems and install it from source. Rubygem's README file should have necessary installation instructions.
 
@@ -446,11 +446,11 @@ This benchmarks the code enclosed in the +Project.benchmark("Creating project") 
 Creating project (185.3ms)
 </ruby>
 
-Please refer to the "API docs":http://api.rubyonrails.com/classes/ActiveRecord/Base.html#M001336 for additional options to +benchmark()+
+Please refer to the "API docs":http://api.rubyonrails.org/classes/ActiveRecord/Base.html#M001336 for additional options to +benchmark()+
 
 h4. Controller
 
-Similarly, you could use this helper method inside "controllers":http://api.rubyonrails.com/classes/ActionController/Benchmarking/ClassMethods.html#M000715
+Similarly, you could use this helper method inside "controllers":http://api.rubyonrails.org/classes/ActionController/Benchmarking/ClassMethods.html#M000715
 
 <ruby>
 def process_projects
@@ -465,7 +465,7 @@ NOTE: +benchmark+ is a class method inside controllers
 
 h4. View
 
-And in "views":http://api.rubyonrails.com/classes/ActionController/Benchmarking/ClassMethods.html#M000715:
+And in "views":http://api.rubyonrails.org/classes/ActionController/Benchmarking/ClassMethods.html#M000715:
 
 <erb>
 <% benchmark("Showing projects partial") do %>
@@ -496,21 +496,21 @@ Michael Koziarski has an "interesting blog post":http://www.therailsway.com/2009
 
 h3. Useful Links
 
-h4. Rails plugins and gems
+h4. Rails Plugins and Gems
 
 * "Rails Analyzer":http://rails-analyzer.rubyforge.org
-* "Palmist":http://www.flyingmachinestudios.com/projects
+* "Palmist":http://www.flyingmachinestudios.com/projects/
 * "Rails Footnotes":http://github.com/josevalim/rails-footnotes/tree/master
 * "Query Reviewer":http://github.com/dsboulder/query_reviewer/tree/master
 
-h4. Generic tools
+h4. Generic Tools
 
-* "httperf":http://www.hpl.hp.com/research/linux/httperf
+* "httperf":http://www.hpl.hp.com/research/linux/httperf/
 * "ab":http://httpd.apache.org/docs/2.2/programs/ab.html
-* "JMeter":http://jakarta.apache.org/jmeter
+* "JMeter":http://jakarta.apache.org/jmeter/
 * "kcachegrind":http://kcachegrind.sourceforge.net/html/Home.html
 
-h4. Tutorials and documentation
+h4. Tutorials and Documentation
 
 * "ruby-prof API Documentation":http://ruby-prof.rubyforge.org
 * "Request Profiling Railscast":http://railscasts.com/episodes/98-request-profiling - Outdated, but useful for understanding call graphs

@@ -76,7 +76,7 @@ In Rails, an _association_ is a connection between two Active Record models. Ass
 
 In the remainder of this guide, you'll learn how to declare and use the various forms of associations. But first, a quick introduction to the situations where each association type is appropriate.
 
-h4. The +belongs_to+ association
+h4. The +belongs_to+ Association
 
 A +belongs_to+ association sets up a one-to-one connection with another model, such that each instance of the declaring model "belongs to" one instance of the other model. For example, if your application includes customers and orders, and each order can be assigned to exactly one customer, you'd declare the order model this way:
 
@@ -88,7 +88,7 @@ end
 
 !images/belongs_to.png(belongs_to Association Diagram)!
 
-h4. The +has_one+ association
+h4. The +has_one+ Association
 
 A +has_one+ association also sets up a one-to-one connection with another model, but with somewhat different semantics (and consequences). This association indicates that each instance of a model contains or possesses one instance of another model. For example, if each supplier in your application has only one account, you'd declare the supplier model like this:
 
@@ -100,7 +100,7 @@ end
 
 !images/has_one.png(has_one Association Diagram)!
 
-h4. The +has_many+ association
+h4. The +has_many+ Association
 
 A +has_many+ association indicates a one-to-many connection with another model. You'll often find this association on the "other side" of a +belongs_to+ association. This association indicates that each instance of the model has zero or more instances of another model. For example, in an application containing customers and orders, the customer model could be declared like this:
 
@@ -114,7 +114,7 @@ NOTE: The name of the other model is pluralized when declaring a +has_many+ asso
 
 !images/has_many.png(has_many Association Diagram)!
 
-h4. The +has_many :through+ association
+h4. The +has_many :through+ Association
 
 A +has_many :through+ association is often used to set up a many-to-many connection with another model. This association indicates that the declaring model can be matched with zero or more instances of another model by proceeding _through_ a third model. For example, consider a medical practice where patients make appointments to see physicians. The relevant association declarations could look like this:
 
@@ -155,7 +155,7 @@ class Paragraph < ActiveRecord::Base
 end
 </ruby>
 
-h4. The +has_one :through+ association
+h4. The +has_one :through+ Association
 
 A +has_one :through+ association sets up a one-to-one connection with another model. This association indicates that the declaring model can be matched with one instance of another model by proceeding _through_ a third model. For example, if each supplier has one account, and each account is associated with one account history, then the customer model could look like this:
 
@@ -177,7 +177,7 @@ end
 
 !images/has_one_through.png(has_one :through Association Diagram)!
 
-h4. The +has_and_belongs_to_many+ association
+h4. The +has_and_belongs_to_many+ Association
 
 A +has_and_belongs_to_many+ association creates a direct many-to-many connection with another model, with no intervening model. For example, if your application includes assemblies and parts, with each assembly having many parts and each part appearing in many assemblies, you could declare the models this way:
 
@@ -193,7 +193,7 @@ end
 
 !images/habtm.png(has_and_belongs_to_many Association Diagram)!
 
-h4. Choosing between +belongs_to+ and +has_one+
+h4. Choosing Between +belongs_to+ and +has_one+
 
 If you want to set up a 1–1 relationship between two models, you'll need to add +belongs_to+ to one, and +has_one+ to the other. How do you know which is which?
 
@@ -235,7 +235,7 @@ end
 
 NOTE: Using +t.integer :supplier_id+ makes the foreign key naming obvious and explicit. In current versions of Rails, you can abstract away this implementation detail by using +t.references :supplier+ instead.
 
-h4. Choosing between +has_many :through+ and +has_and_belongs_to_many+
+h4. Choosing Between +has_many :through+ and +has_and_belongs_to_many+
 
 Rails offers two different ways to declare a many-to-many relationship between models. The simpler way is to use +has_and_belongs_to_many+, which allows you to make the association directly:
 
@@ -272,7 +272,7 @@ The simplest rule of thumb is that you should set up a +has_many :through+ relat
 
 You should use +has_many :through+ if you need validations, callbacks, or extra attributes on the join model.
 
-h4. Polymorphic associations
+h4. Polymorphic Associations
 
 A slightly more advanced twist on associations is the _polymorphic association_. With polymorphic associations, a model can belong to more than one other model, on a single association. For example, you might have a picture model that belongs to either an employee model or a product model. Here's how this could be declared:
 
@@ -333,7 +333,7 @@ end
 
 !images/polymorphic.png(Polymorphic Association Diagram)!
 
-h4. Self joins
+h4. Self Joins
 
 In designing a data model, you will sometimes find a model that should have a relation to itself. For example, you may want to store all employees in a single database model, but be able to trace relationships such as between manager and subordinates. This situation can be modeled with self-joining associations:
 
@@ -356,7 +356,7 @@ Here are a few things you should know to make efficient use of Active Record ass
 * Updating the schema
 * Controlling association scope
 
-h4. Controlling caching
+h4. Controlling Caching
 
 All of the association methods are built around caching, which keeps the result of the most recent query available for further operations. The cache is even shared across methods. For example:
 
@@ -375,15 +375,15 @@ customer.orders(true).empty?    # discards the cached copy of orders
                                 # and goes back to the database
 </ruby>
 
-h4. Avoiding name collisions
+h4. Avoiding Name Collisions
 
 You are not free to use just any name for your associations. Because creating an association adds a method with that name to the model, it is a bad idea to give an association a name that is already used for an instance method of +ActiveRecord::Base+. The association method would override the base method and break things. For instance, +attributes+ or +connection+ are bad names for associations.
 
-h4. Updating the schema
+h4. Updating the Schema
 
 Associations are extremely useful, but they are not magic. You are responsible for maintaining your database schema to match your associations. In practice, this means two things, depending on what sort of associations you are creating. For +belongs_to+ associations you need to create foreign keys, and for +has_and_belongs_to_many+ associations you need to create the appropriate join table.
 
-h5. Creating foreign Keys for +belongs_to+ associations
+h5. Creating Foreign Keys for +belongs_to+ Associations
 
 When you declare a +belongs_to+ association, you need to create foreign keys as appropriate. For example, consider this model:
 
@@ -413,7 +413,7 @@ end
 
 If you create an association some time after you build the underlying model, you need to remember to create an +add_column+ migration to provide the necessary foreign key.
 
-h5. Creating join tables for +has_and_belongs_to_many+ associations
+h5. Creating Join Tables for +has_and_belongs_to_many+ Associations
 
 If you create a +has_and_belongs_to_many+ association, you need to explicitly create the joining table. Unless the name of the join table is explicitly specified by using the +:join_table+ option, Active Record creates the name by using the lexical order of the class names. So a join between customer and order models will give the default join table name of "customers_orders" because "c" outranks "o" in lexical ordering.
 
@@ -450,7 +450,7 @@ end
 
 We pass +:id => false+ to +create_table+ because that table does not represent a model. That's required for the association to work properly. If you observe any strange behaviour in a +has_and_belongs_to_many+ association like mangled models IDs, or exceptions about conflicting IDs chances are you forgot that bit.
 
-h4. Controlling association scope
+h4. Controlling Association Scope
 
 By default, associations look for objects only within the current module's scope. This can be important when you declare Active Record models within a module. For example:
 
@@ -510,11 +510,11 @@ h3. Detailed Association Reference
 
 The following sections give the details of each type of association, including the methods that they add and the options that you can use when declaring an association.
 
-h4. +belongs_to+ association reference
+h4. +belongs_to+ Association Reference
 
 The +belongs_to+ association creates a one-to-one match with another model. In database terms, this association says that this class contains the foreign key. If the other class contains the foreign key, then you should use +has_one+ instead.
 
-h5. Methods added by +belongs_to+
+h5. Methods Added by +belongs_to+
 
 When you declare a +belongs_to+ association, the declaring class automatically gains four methods related to the association:
 
@@ -724,7 +724,7 @@ NOTE: There's no need to use +:include+ for immediate associations - that is, if
 
 h6. +:polymorphic+
 
-Passing +true+ to the +:polymorphic+ option indicates that this is a polymorphic association. Polymorphic associations were discussed in detail <a href="#polymorphicassociations">earlier in this guide</a>.
+Passing +true+ to the +:polymorphic+ option indicates that this is a polymorphic association. Polymorphic associations were discussed in detail <a href="#polymorphic-associations">earlier in this guide</a>.
 
 h6. +:readonly+
 
@@ -740,7 +740,7 @@ h6. +:validate+
 
 If you set the +:validate+ option to +true+, then associated objects will be validated whenever you save this object. By default, this is +false+: associated objects will not be validated when this object is saved.
 
-h5. How to know whether there's an associated object?
+h5. How To Know Whether There's an Associated Object?
 
 To know whether there's and associated object just check <tt><em>association</em>.nil?</tt>:
 
@@ -750,15 +750,15 @@ if @order.customer.nil?
 end
 </ruby>
 
-h5. When are objects saved?
+h5. When are Objects Saved?
 
 Assigning an object to a +belongs_to+ association does _not_ automatically save the object. It does not save the associated object either.
 
-h4. +has_one+ association reference
+h4. +has_one+ Association Reference
 
 The +has_one+ association creates a one-to-one match with another model. In database terms, this association says that the other class contains the foreign key. If this class contains the foreign key, then you should use +belongs_to+ instead.
 
-h5. Methods added by +has_one+
+h5. Methods Added by +has_one+
 
 When you declare a +has_one+ association, the declaring class automatically gains four methods related to the association:
 
@@ -848,7 +848,7 @@ The +has_one+ association supports these options:
 
 h6. +:as+
 
-Setting the +:as+ option indicates that this is a polymorphic association. Polymorphic associations were discussed in detail <a href="#polymorphicassociations">earlier in this guide</a>.
+Setting the +:as+ option indicates that this is a polymorphic association. Polymorphic associations were discussed in detail <a href="#polymorphic-associations">earlier in this guide</a>.
 
 h6. +:autosave+
 
@@ -952,13 +952,13 @@ The +:source_type+ option specifies the source association type for a +has_one :
 
 h6. :through
 
-The +:through+ option specifies a join model through which to perform the query. +has_one :through+ associations were discussed in detail <a href="#thehas-onethroughassociation">earlier in this guide</a>.
+The +:through+ option specifies a join model through which to perform the query. +has_one :through+ associations were discussed in detail <a href="#the-has-one-through-association">earlier in this guide</a>.
 
 h6. +:validate+
 
 If you set the +:validate+ option to +true+, then associated objects will be validated whenever you save this object. By default, this is +false+: associated objects will not be validated when this object is saved.
 
-h5. How to know whether there's an associated object?
+h5. How To Know Whether There's an Associated Object?
 
 To know whether there's and associated object just check <tt><em>association</em>.nil?</tt>:
 
@@ -968,7 +968,7 @@ if @supplier.account.nil?
 end
 </ruby>
 
-h5. When are objects saved?
+h5. When are Objects Saved?
 
 When you assign an object to a +has_one+ association, that object is automatically saved (in order to update its foreign key). In addition, any object being replaced is also automatically saved, because its foreign key will change too.
 
@@ -978,11 +978,11 @@ If the parent object (the one declaring the +has_one+ association) is unsaved (t
 
 If you want to assign an object to a +has_one+ association without saving the object, use the <tt><em>association</em>.build</tt> method.
 
-h4. +has_many+ association reference
+h4. +has_many+ Association Reference
 
 The +has_many+ association creates a one-to-many relationship with another model. In database terms, this association says that the other class will have a foreign key that refers to instances of this class.
 
-h5. Methods added
+h5. Methods Added
 
 When you declare a +has_many+ association, the declaring class automatically gains 13 methods related to the association:
 
@@ -1158,7 +1158,7 @@ The +has_many+ association supports these options:
 
 h6. +:as+
 
-Setting the +:as+ option indicates that this is a polymorphic association, as discussed <a href="#polymorphicassociations">earlier in this guide</a>.
+Setting the +:as+ option indicates that this is a polymorphic association, as discussed <a href="#polymorphic-associations">earlier in this guide</a>.
 
 h6. +:autosave+
 
@@ -1210,7 +1210,7 @@ NOTE: This option is ignored when you use the +:through+ option on the associati
 
 h6. +:extend+
 
-The +:extend+ option specifies a named module to extend the association proxy. Association extensions are discussed in detail <a href="#associationextensions">later in this guide</a>.
+The +:extend+ option specifies a named module to extend the association proxy. Association extensions are discussed in detail <a href="#association-extensions">later in this guide</a>.
 
 h6. +:finder_sql+
 
@@ -1323,7 +1323,7 @@ The +:source_type+ option specifies the source association type for a +has_many 
 
 h6. +:through+
 
-The +:through+ option specifies a join model through which to perform the query. +has_many :through+ associations provide a way to implement many-to-many relationships, as discussed <a href="#thehas-manythroughassociation">earlier in this guide</a>.
+The +:through+ option specifies a join model through which to perform the query. +has_many :through+ associations provide a way to implement many-to-many relationships, as discussed <a href="#the-has-many-through-association">earlier in this guide</a>.
 
 h6. +:uniq+
 
@@ -1333,7 +1333,7 @@ h6. +:validate+
 
 If you set the +:validate+ option to +false+, then associated objects will not be validated whenever you save this object. By default, this is +true+: associated objects will be validated when this object is saved.
 
-h5. When are objects saved?
+h5. When are Objects Saved?
 
 When you assign an object to a +has_many+ association, that object is automatically saved (in order to update its foreign key). If you assign multiple objects in one statement, then they are all saved.
 
@@ -1343,11 +1343,11 @@ If the parent object (the one declaring the +has_many+ association) is unsaved (
 
 If you want to assign an object to a +has_many+ association without saving the object, use the <tt><em>collection</em>.build</tt> method.
 
-h4. +has_and_belongs_to_many+ association reference
+h4. +has_and_belongs_to_many+ Association Reference
 
 The +has_and_belongs_to_many+ association creates a many-to-many relationship with another model. In database terms, this associates two classes via an intermediate join table that includes foreign keys referring to each of the classes.
 
-h5. Methods added
+h5. Methods Added
 
 When you declare a +has_and_belongs_to_many+ association, the declaring class automatically gains 13 methods related to the association:
 
@@ -1391,7 +1391,7 @@ assemblies.build(attributes = {}, ...)
 assemblies.create(attributes = {})
 </ruby>
 
-h6. Additional column methods
+h6. Additional Column Methods
 
 If the join table for a +has_and_belongs_to_many+ association has additional columns beyond the two foreign keys, these columns will be added as attributes to records retrieved via that association. Records returned with additional attributes will always be read-only, because Rails cannot save changes to those attributes.
 
@@ -1589,7 +1589,7 @@ Normally Rails automatically generates the proper SQL to remove links between th
 
 h6. +:extend+
 
-The +:extend+ option specifies a named module to extend the association proxy. Association extensions are discussed in detail <a href="#associationextensions">later in this guide</a>.
+The +:extend+ option specifies a named module to extend the association proxy. Association extensions are discussed in detail <a href="#association-extensions">later in this guide</a>.
 
 h6. +:finder_sql+
 
@@ -1670,7 +1670,7 @@ h6. +:validate+
 
 If you set the +:validate+ option to +false+, then associated objects will not be validated whenever you save this object. By default, this is +true+: associated objects will be validated when this object is saved.
 
-h5. When are objects saved?
+h5. When are Objects Saved?
 
 When you assign an object to a +has_and_belongs_to_many+ association, that object is automatically saved (in order to update the join table). If you assign multiple objects in one statement, then they are all saved.
 
@@ -1680,7 +1680,7 @@ If the parent object (the one declaring the +has_and_belongs_to_many+ associatio
 
 If you want to assign an object to a +has_and_belongs_to_many+ association without saving the object, use the <tt><em>collection</em>.build</tt> method.
 
-h4. Association callbacks
+h4. Association Callbacks
 
 Normal callbacks hook into the lifecycle of Active Record objects, allowing you to work with those objects at various points. For example, you can use a +:before_save+ callback to cause something to happen just before an object is saved.
 
@@ -1724,7 +1724,7 @@ end
 
 If a +before_add+ callback throws an exception, the object does not get added to the collection. Similarly, if a +before_remove+ callback throws an exception, the object does not get removed from the collection.
 
-h4. Association extensions
+h4. Association Extensions
 
 You're not limited to the functionality that Rails automatically builds into association proxy objects. You can also extend these objects through anonymous modules, adding new finders, creators, or other methods. For example:
 

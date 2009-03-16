@@ -39,7 +39,7 @@ Rails will automatically render +app/views/books/show.html.erb+ after running th
 
 NOTE: The actual rendering is done by subclasses of +ActionView::TemplateHandlers+. This guide does not dig into that process, but it's important to know that the file extension on your view controls the choice of template handler. In Rails 2, the standard extensions are +.erb+ for ERB (HTML with embedded Ruby), +.rjs+ for RJS (javascript with embedded ruby) and +.builder+ for Builder (XML generator). You'll also find +.rhtml+ used for ERB templates and +.rxml+ for Builder templates, but those extensions are now formally deprecated and will be removed from a future version of Rails.
 
-h4. Using render
+h4. Using +render+
 
 In most cases, the +ActionController::Base#render+ method does the heavy lifting of rendering your application's content for use by a browser. There are a variety of ways to customize the behavior of +render+. You can render the default view for a Rails template, or a specific template, or a file, or inline code, or nothing at all. You can render text, JSON, or XML. You can specify the content type or HTTP status of the rendered response as well.
 
@@ -140,7 +140,7 @@ NOTE: By default, the file is rendered without using the current layout. If you 
 
 TIP: If you're running on Microsoft Windows, you should use the +:file+ option to render a file, because Windows filenames do not have the same format as Unix filenames.
 
-h5. Using render with :inline
+h5. Using +render+ with +:inline+
 
 The +render+ method can do without a view completely, if you're willing to use the +:inline+ option to supply ERB as part of the method call. This is perfectly valid:
 
@@ -158,7 +158,7 @@ render :inline =>
   "xml.p {'Horrid coding practice!'}", :type => :builder
 </ruby>
 
-h5. Using render with :update
+h5. Using +render+ with +:update+
 
 You can also render javascript-based page updates inline using the +:update+ option to +render+:
 
@@ -212,7 +212,7 @@ render :js => "alert('Hello Rails');"
 
 This will send the supplied string to the browser with a MIME type of +text/javascript+.
 
-h5. Options for render
+h5. Options for +render+
 
 Calls to the +render+ method generally accept four options:
 
@@ -221,7 +221,7 @@ Calls to the +render+ method generally accept four options:
 * +:status+
 * +:location+
 
-h6. The :content_type Option
+h6. The +:content_type+ Option
 
 By default, Rails will serve the results of a rendering operation with the MIME content-type of +text/html+ (or +application/json+ if you use the +:json+ option, or +application/xml+ for the +:xml+ option.). There are times when you might like to change this, and you can do so by setting the +:content_type+ option:
 
@@ -229,7 +229,7 @@ By default, Rails will serve the results of a rendering operation with the MIME 
 render :file => filename, :content_type => 'application/rss'
 </ruby>
 
-h6. The :layout Option
+h6. The +:layout+ Option
 
 With most of the options to +render+, the rendered content is displayed as part of the current layout. You'll learn more about layouts and how to use them later in this guide.
 
@@ -245,7 +245,7 @@ You can also tell Rails to render with no layout at all:
 render :layout => false
 </ruby>
 
-h6. The :status Option
+h6. The +:status+ Option
 
 Rails will automatically generate a response with the correct HTML status code (in most cases, this is +200 OK+). You can use the +:status+ option to change this:
 
@@ -256,7 +256,7 @@ render :status => :forbidden
 
 Rails understands either numeric status codes or symbols for status codes. You can find its list of status codes in +actionpack/lib/action_controller/status_codes.rb+. You can also see there how Rails maps symbols to status codes.
 
-h6. The :location Option
+h6. The +:location+ Option
 
 You can use the +:location+ option to set the HTTP +Location+ header:
 
@@ -316,7 +316,7 @@ Now, if the current user is a special user, they'll get a special layout when vi
 
 <ruby>
 class ProductsController < ApplicationController
-  layout proc{ |controller| controller.
+  layout proc { |controller| controller.request.xhr? ? 'popup' : 'application' }
   # ...
 end
 </ruby>
@@ -327,13 +327,12 @@ Layouts specified at the controller level support +:only+ and +:except+ options 
 
 <ruby>
 class ProductsController < ApplicationController
-  layout "inventory", :only => :index
   layout "product", :except => [:index, :rss]
   #...
 end
 </ruby>
 
-With those declarations, the +inventory+ layout would be used only for the +index+ method, the +product+ layout would be used for everything else except the +rss+ method, and the +rss+ method will have its layout determined by the automatic layout rules.
+With this declaration, the +product+ layout would be used for everything but the +rss+ and +index+ methods.
 
 h6. Layout Inheritance
 
@@ -403,6 +402,7 @@ def show
   if @book.special?
     render :action => "special_show"
   end
+  render :action => "regular_show"
 end
 </ruby>
 
@@ -414,10 +414,24 @@ def show
   if @book.special?
     render :action => "special_show" and return
   end
+  render :action => "regular_show"
 end
 </ruby>
 
-h4. Using redirect_to
+Note that the implicit render done by ActionController detects if +render+ has been called, and thus avoids this error. So this code will work with problems:
+
+<ruby>
+  def show
+    @book = Book.find(params[:id])
+    if @book.special?
+      render :action => "special_show"
+    end
+  end
+</ruby>
+
+This will render a book with +special?+ set with the +special_show+ template, while other books will render with the default +show+ template.
+
+h4. Using +redirect_to+
 
 Another way to handle returning responses to an HTTP request is with +redirect_to+. As you've seen, +render+ tells Rails which view (or other asset) to use in constructing a response. The +redirect_to+ method does something completely different: it tells the browser to send a new request for a different URL. For example, you could redirect from wherever you are in your code to the index of photos in your application with this call:
 
@@ -441,7 +455,7 @@ redirect_to photos_path, :status => 301
 
 Just like the +:status+ option for +render+, +:status+ for +redirect_to+ accepts both numeric and symbolic header designations.
 
-h5. The Difference Between render and redirect
+h5. The Difference Between +render+ and +redirect_to+
 
 Sometimes inexperienced developers conceive of +redirect_to+ as a sort of +goto+ command, moving execution from one place to another in your Rails code. This is _not_ correct. Your code stops running and waits for a new request for the browser. It just happens that you've told the browser what request it should make next, by sending back an HTTP 302 status code.
 
@@ -455,7 +469,7 @@ end
 def show
   @book = Book.find(params[:id])
   if @book.nil?
-    render :action => "index" and return
+    render :action => "index"
   end
 end
 </ruby>
@@ -470,14 +484,14 @@ end
 def show
   @book = Book.find(params[:id])
   if @book.nil?
-    redirect_to :action => "index" and return
+    redirect_to :action => "index"
   end
 end
 </ruby>
 
 With this code, the browser will make a fresh request for the index page, the code in the +index+ method will run, and all will be well.
 
-h4. Using head To Build Header-Only Responses
+h4. Using +head+ To Build Header-Only Responses
 
 The +head+ method exists to let you send back responses to the browser that have only headers. It provides a more obvious alternative to calling +render :nothing+. The +head+ method takes one response, which is interpreted as a hash of header names and values. For example, you can return only an error header:
 
@@ -514,7 +528,7 @@ You can use these tags in layouts or other views, although the tags other than +
 
 WARNING: The asset tags do _not_ verify the existence of the assets at the specified locations; they simply assume that you know what you're doing and generate the link.
 
-h5. Linking to Feeds with auto_discovery_link_tag
+h5. Linking to Feeds with +auto_discovery_link_tag+
 
 The +auto_discovery_link_tag+ helper builds HTML that most browsers and newsreaders can use to detect the presences of RSS or ATOM feeds. It takes the type of the link (+:rss+ or +:atom+), a hash of options that are passed through to url_for, and a hash of options for the tag:
 
@@ -529,7 +543,7 @@ There are three tag options available for +auto_discovery_link_tag+:
 * +:type+ specifies an explicit MIME type. Rails will generate an appropriate MIME type automatically
 * +:title+ specifies the title of the link
 
-h5. Linking to Javascript Files with javascript_include_tag
+h5. Linking to Javascript Files with +javascript_include_tag+
 
 The +javascript_include_tag+ helper returns an HTML +script+ tag for each source provided. Rails looks in +public/javascripts+ for these files by default, but you can specify a full path relative to the document root, or a URL, if you prefer. For example, to include +public/javascripts/main.js+:
 
@@ -588,7 +602,7 @@ By default, the combined file will be delivered as +javascripts/all.js+. You can
 
 You can even use dynamic paths such as +cache/#{current_site}/main/display+.
 
-h5. Linking to CSS Files with stylesheet_link_tag
+h5. Linking to CSS Files with +stylesheet_link_tag+
 
 The +stylesheet_link_tag+ helper returns an HTML +<link>+ tag for each source provided. Rails looks in +public/stylesheets+ for these files by default, but you can specify a full path relative to the document root, or a URL, if you prefer. For example, to include +public/stylesheets/main.cs+:
 
@@ -647,7 +661,7 @@ By default, the combined file will be delivered as +stylesheets/all.css+. You ca
 
 You can even use dynamic paths such as +cache/#{current_site}/main/display+.
 
-h5. Linking to Images with image_tag
+h5. Linking to Images with +image_tag+
 
 The +image_tag+ helper builds an HTML +&lt;image&gt;+ tag to the specified file. By default, files are loaded from +public/images+. If you don't specify an extension, +.png+ is assumed by default:
 
@@ -673,7 +687,7 @@ There are also three special options you can use with +image_tag+:
 * +:size+ specifies both width and height, in the format "{width}x{height}" (for example, "150x125")
 * +:mouseover+ sets an alternate image to be used when the onmouseover event is fired.
 
-h4. Understanding yield
+h4. Understanding +yield+
 
 Within the context of a layout, +yield+ identifies a section where content from the view should be inserted. The simplest way to use this is to have a single +yield+, into which the entire contents of the view currently being rendered is inserted:
 
@@ -702,7 +716,7 @@ You can also create a layout with multiple yielding regions:
 
 The main body of the view will always render into the unnamed +yield+. To render content into a named +yield+, you use the +content_for+ method.
 
-h4. Using content_for
+h4. Using +content_for+
 
 The +content_for+ method allows you to insert content into a +yield+ block in your layout. You only use +content_for+ to insert content in named yields. For example, this view would work with the layout that you just saw:
 
@@ -915,7 +929,7 @@ You may find that your application requires a layout that differs slightly from 
 
 Suppose you have the follow +ApplicationController+ layout:
 
-* +app/views/layouts/application.erb+
+* +app/views/layouts/application.html.erb+
 
 <erb>
 <html>
@@ -934,7 +948,7 @@ Suppose you have the follow +ApplicationController+ layout:
 
 On pages generated by +NewsController+, you want to hide the top menu and add a right menu:
 
-* +app/views/layouts/news.erb+
+* +app/views/layouts/news.html.erb+
 
 <erb>
 <% content_for :stylesheets do %>

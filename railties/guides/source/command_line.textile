@@ -24,7 +24,7 @@ There are a few commands that are absolutely critical to your everyday usage of 
 
 Let's create a simple Rails application to step through each of these commands in context.
 
-h4. rails
+h4. +rails+
 
 The first thing we'll want to do is create a new Rails application by running the +rails+ command after installing Rails.
 
@@ -48,7 +48,7 @@ Rails will set you up with what seems like a huge amount of stuff for such a tin
 
 INFO: This output will seem very familiar when we get to the +generate+ command. Creepy foreshadowing!
 
-h4. server
+h4. +server+
 
 Let's try it! The +server+ command launches a small web server named WEBrick which comes bundled with Ruby. You'll use this any time you want to view your work through a web browser.
 
@@ -71,7 +71,7 @@ WHOA. With just three commands we whipped up a Rails server listening on port 30
 
 See? Cool! It doesn't do much yet, but we'll change that.
 
-h4. generate
+h4. +generate+
 
 The +generate+ command uses templates to create a whole lot of things. You can always find out what's available by running +generate+ by itself. Let's do that:
 
@@ -248,15 +248,15 @@ Let's see the interface Rails created for us. ./script/server; http://localhost:
 
 We can create new high scores (55,160 on Space Invaders!)
 
-h4. console
+h4. +console+
 
 The +console+ command lets you interact with your Rails application from the command line. On the underside, +script/console+ uses IRB, so if you've ever used it, you'll be right at home. This is useful for testing out quick ideas with code and changing data server-side without touching the website.
 
-h4. dbconsole
+h4. +dbconsole+
 
 +dbconsole+ figures out which database you're using and drops you into whichever command line interface you would use with it (and figures out the command line parameters to give to it, too!). It supports MySQL, PostgreSQL, SQLite and SQLite3.
 
-h4. plugin
+h4. +plugin+
 
 The +plugin+ command simplifies plugin management; think a miniature version of the Gem utility. Let's walk through installing a plugin. You can call the sub-command *discover*, which sifts through repositories looking for plugins, or call *source* to add a specific repository of plugins, or you can specify the plugin location directly.
 
@@ -272,7 +272,7 @@ $ ./script/plugin install http://svn.techno-weenie.net/projects/plugins/acts_as_
 ...
 </shell>
 
-h4. runner
+h4. +runner+
 
 <tt>runner</tt> runs Ruby code in the context of Rails non-interactively. For instance:
 
@@ -280,7 +280,7 @@ h4. runner
 $ ./script/runner "Model.long_running_method"
 </shell>
 
-h4. destroy
+h4. +destroy+
 
 Think of +destroy+ as the opposite of +generate+. It'll figure out what generate did, and undo it. Believe you-me, the creation of this tutorial used this command many times!
 
@@ -309,7 +309,7 @@ $ ./script/destroy model Oops
     notempty  app
 </shell>
 
-h4. about
+h4. +about+
 
 Check it: Version numbers for Ruby, RubyGems, Rails, the Rails subcomponents, your application's folder, the current Rails environment name, your app's database adapter, and schema version! +about+ is useful when you need to ask for help, check if a security patch might affect you, or when you need some stats for an existing Rails installation.
 
@@ -335,7 +335,7 @@ h3. The Rails Advanced Command Line
 
 The more advanced uses of the command line are focused around finding useful (even surprising at times) options in the utilities, and fitting utilities to your needs and specific work flow. Listed here are some tricks up Rails' sleeve.
 
-h4. Rails with databases and SCM
+h4. Rails with Databases and SCM
 
 When creating a new Rails application, you have the option to specify what kind of database and what kind of source code management system your application is going to use. This will save you a few minutes, and certainly many keystrokes.
 
@@ -393,7 +393,7 @@ development:
 
 It also generated some lines in our database.yml configuration corresponding to our choice of PostgreSQL for database. The only catch with using the SCM options is that you have to make your application's directory first, then initialize your SCM, then you can run the +rails+ command to generate the basis of your app.
 
-h4. server with different backends
+h4. +server+ with Different Backends
 
 Many people have created a large number different web servers in Ruby, and many of them can be used to run Rails. Since version 2.3, Rails uses Rack to serve its webpages, which means that any webserver that implements a Rack handler can be used. This includes WEBrick, Mongrel, Thin, and Phusion Passenger (to name a few!).
 
@@ -534,25 +534,25 @@ rake tmp:sockets:clear                    # Clears all files in tmp/sockets
 
 Let's take a look at some of these 80 or so rake tasks.
 
-h5. db: Database
+h5. +db:+ Database
 
 The most common tasks of the +db:+ Rake namespace are +migrate+ and +create+, and it will pay off to try out all of the migration rake tasks (+up+, +down+, +redo+, +reset+). +rake db:version+ is useful when troubleshooting, telling you the current version of the database.
 
-h5. doc: Documentation
+h5. +doc:+ Documentation
 
 If you want to strip out or rebuild any of the Rails documentation (including this guide!), the +doc:+ namespace has the tools. Stripping documentation is mainly useful for slimming your codebase, like if you're writing a Rails application for an embedded platform.
 
-h5. gems: Ruby gems
+h5. +gems:+ Ruby gems
 
 You can specify which gems your application uses, and +rake gems:install+ will install them for you. Look at your environment.rb to learn how with the *config.gem* directive.
 
 NOTE: +gems:unpack+ will unpack, that is internalize your application's Gem dependencies by copying the Gem code into your vendor/gems directory. By doing this you increase your codebase size, but simplify installation on new hosts by eliminating the need to run +rake gems:install+, or finding and installing the gems your application uses.
 
-h5. notes: Code note enumeration
+h5. +notes:+ Code note enumeration
 
 These tasks will search through your code for commented lines beginning with "FIXME", "OPTIMIZE", "TODO", or any custom annotation (like XXX) and show you them.
 
-h5. rails: Rails-specific tasks
+h5. +rails:+ Rails-specific tasks
 
 In addition to the +gems:unpack+ task above, you can also unpack the Rails backend specific gems into vendor/rails by calling +rake rails:freeze:gems+, to unpack the version of Rails you are currently using, or +rake rails:freeze:edge+ to unpack the most recent (cutting, bleeding edge) version.
 
@@ -560,7 +560,7 @@ When you have frozen the Rails gems, Rails will prefer to use the code in vendor
 
 After upgrading Rails, it is useful to run +rails:update+, which will update your config and scripts directories, and upgrade your Rails-specific javascript (like Scriptaculous).
 
-h5. test: Rails tests
+h5. +test:+ Rails tests
 
 INFO: A good description of unit testing in Rails is given in "A Guide to Testing Rails Applications":testing.html
 
@@ -568,15 +568,15 @@ Rails comes with a test suite called Test::Unit. It is through the use of tests 
 
 The +test:+ namespace helps in running the different tests you will (hopefully!) write.
 
-h5. time: Timezones
+h5. +time:+ Timezones
 
 You can list all the timezones Rails knows about with +rake time:zones:all+, which is useful just in day-to-day life.
 
-h5. tmp: Temporary files
+h5. +tmp:+ Temporary files
 
 The tmp directory is, like in the *nix /tmp directory, the holding place for temporary files like sessions (if you're using a file store for files), process id files, and cached actions. The +tmp:+ namespace tasks will help you clear them if you need to if they've become overgrown, or create them in case of an +rm -rf *+ gone awry.
 
-h5. Miscellaneous tasks
+h5. Miscellaneous Tasks
 
  +rake stats+ is great for looking at statistics on your code, displaying things like KLOCs (thousands of lines of code) and your code to test ratio.
 
@@ -584,3 +584,6 @@ h5. Miscellaneous tasks
 
  +rake routes+ will list all of your defined routes, which is useful for tracking down routing problems in your app, or giving you a good overview of the URLs in an app you're trying to get familiar with.
 
+h3. Changelog
+
+"Lighthouse ticket":http://rails.lighthouseapp.com/projects/16213/tickets/29

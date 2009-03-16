@@ -32,7 +32,7 @@ h3. Models
   This guide covers how you can use Active Record migrations to alter your database in a structured and organized manner.
 <% end %>
 
-<% guide("Active Record Validations and Callbacks", 'activerecord_validations_callbacks.html', :ticket => 26) do %>
+<% guide("Active Record Validations and Callbacks", 'activerecord_validations_callbacks.html') do %>
   This guide covers how you can use Active Record validations and callbacks.
 <% end %>
 
@@ -40,7 +40,7 @@ h3. Models
   This guide covers all the associations provided by Active Record.
 <% end %>
 
-<% guide("Active Record Query Interface", 'active_record_querying.html', :ticket => 16) do %>
+<% guide("Active Record Query Interface", 'active_record_querying.html') do %>
   This guide covers the database query interface provided by Active Record.
 <% end %>
 </dl>
@@ -77,7 +77,7 @@ h3. Digging Deeper
   This guide covers Rails integration with Rack and interfacing with other Rack components.
 <% end %>
 
-<% guide("Rails Internationalization API", 'i18n.html', :ticket => 23) do %>
+<% guide("Rails Internationalization API", 'i18n.html') do %>
   This guide covers how to add internationalization to your applications. Your application will be able to translate content to different languages, change pluralization rules, use correct date formats for each country and so on.
 <% end %>
 
@@ -115,6 +115,10 @@ h3. Digging Deeper
 
 <% guide("Caching with Rails", 'caching_with_rails.html', :ticket => 10) do %>
   Various caching techniques provided by Rails.
+<% end %>
+
+<% guide("Contributing to Rails", 'contributing_to_rails.html') do %>
+  Rails is not "somebody else's framework." This guide covers a variety of ways that you can get involved in the ongoing development of Rails.
 <% end %>
 
 </dl>
