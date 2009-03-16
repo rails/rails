@@ -1,10 +1,8 @@
-*2.3.1 [RC2] (March 5, 2009)*
+*2.3.2 [Final] (March 15, 2009)*
 
 * Added ActiveRecord::Base.find_each and ActiveRecord::Base.find_in_batches for batch processing [DHH/Jamis Buck]
 
 * Added that ActiveRecord::Base.exists? can be called with no arguments #1817 [Scott Taylor]
-
-*2.3.0 [RC1] (February 1st, 2009)*
 
 * Add Support for updating deeply nested models from a single form. #1202 [Eloy Duran]
 

@@ -67,7 +67,7 @@ spec = Gem::Specification.new do |s|
     s.files = s.files + Dir.glob( "#{dir}/**/*" ).delete_if { |item| item.include?( "\.svn" ) }
   end
   
-  s.add_dependency('activesupport', '= 2.3.1' + PKG_BUILD)
+  s.add_dependency('activesupport', '= 2.3.2' + PKG_BUILD)
 
   s.require_path = 'lib'
   s.autorequire = 'active_resource'
