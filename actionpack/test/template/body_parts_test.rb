@@ -1,56 +1,26 @@
 require 'abstract_unit'
 require 'action_view/body_parts/concurrent_block'
 
-class BodyPartTest < ActionController::TestCase
-  module EdgeSideInclude
-    QUEUE_REDEMPTION_URL = 'http://render.farm/renderings/%s'
-    ESI_INCLUDE_TAG = '<esi:include src="%s" />'
-
-    def self.redemption_tag(receipt)
-      ESI_INCLUDE_TAG % QUEUE_REDEMPTION_URL % receipt
-    end
-
-    class BodyPart
-      def initialize(rendering)
-        @receipt = enqueue(rendering)
-      end
-
-      def to_s
-        EdgeSideInclude.redemption_tag(@receipt)
-      end
-
-      protected
-        # Pretend we sent this rendering off for processing.
-        def enqueue(rendering)
-          rendering.object_id.to_s
-        end
-    end
-  end
+class BodyPartsTest < ActionController::TestCase
+  RENDERINGS = [Object.new, Object.new, Object.new]
 
   class TestController < ActionController::Base
-    RENDERINGS = [Object.new, Object.new, Object.new]
-
     def index
       RENDERINGS.each do |rendering|
-        edge_side_include rendering
+        response.template.punctuate_body! rendering
       end
       @performed_render = true
-    end
-
-    def edge_side_include(rendering)
-      response.template.punctuate_body! EdgeSideInclude::BodyPart.new(rendering)
     end
   end
 
   tests TestController
 
-  def test_queued_parts
+  def test_body_parts
     get :index
-    expected = TestController::RENDERINGS.map { |rendering| EdgeSideInclude.redemption_tag(rendering.object_id) }.join
-    assert_equal expected, @response.body
+    assert_equal RENDERINGS, @response.body_parts
+    assert_equal RENDERINGS.join, @response.body
   end
 end
-
 
 class ConcurrentBlockPartTest < ActionController::TestCase
   class TestController < ActionController::Base
