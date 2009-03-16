@@ -389,9 +389,9 @@ class MetalTest < ActionController::IntegrationTest
   class Poller
     def self.call(env)
       if env["PATH_INFO"] =~ /^\/success/
-        [200, {"Content-Type" => "text/plain", "Content-Length" => "12"}, "Hello World!"]
+        [200, {"Content-Type" => "text/plain", "Content-Length" => "12"}, ["Hello World!"]]
       else
-        [404, {"Content-Type" => "text/plain", "Content-Length" => "0"}, '']
+        [404, {"Content-Type" => "text/plain", "Content-Length" => "0"}, []]
       end
     end
   end
