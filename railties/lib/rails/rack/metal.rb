@@ -18,7 +18,7 @@ module Rails
         metal_glob.each do |glob|
           Dir[glob].sort.map do |file|
             file = file.match(matcher)[1]
-            all_metals[file.classify] = file
+            all_metals[file.camelize] = file
           end
         end
 

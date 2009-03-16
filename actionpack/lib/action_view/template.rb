@@ -218,7 +218,7 @@ module ActionView #:nodoc:
       # Returns file split into an array
       #   [base_path, name, locale, format, extension]
       def split(file)
-        if m = file.match(/^(.*\/)?([^\.]+)\.(.*)$/)
+        if m = file.to_s.match(/^(.*\/)?([^\.]+)\.(.*)$/)
           base_path = m[1]
           name = m[2]
           extensions = m[3]

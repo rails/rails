@@ -85,6 +85,10 @@ module Rails
       Gem::RubyGemsVersion
     end
 
+    property 'Rack version' do
+      ::Rack.release
+    end
+
     # The Rails version.
     property 'Rails version' do
       Rails::VERSION::STRING
