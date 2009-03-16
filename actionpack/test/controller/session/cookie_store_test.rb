@@ -209,7 +209,8 @@ class CookieStoreTest < ActionController::IntegrationTest
       # expires header should not be changed
       get '/no_session_access'
       assert_response :success
-      assert_equal cookie, headers['Set-Cookie']
+      assert_equal cookie, headers['Set-Cookie'],
+        "#{unmarshal_session(cookie).inspect} expected but was #{unmarshal_session(headers['Set-Cookie']).inspect}"
     end
   end
 
@@ -223,5 +224,14 @@ class CookieStoreTest < ActionController::IntegrationTest
         end
         yield
       end
+    end
+
+    def unmarshal_session(cookie_string)
+      session = Rack::Utils.parse_query(cookie_string, ';,').inject({}) {|h,(k,v)|
+        h[k] = Array === v ? v.first : v
+        h
+      }[SessionKey]
+      verifier = ActiveSupport::MessageVerifier.new(SessionSecret, 'SHA1')
+      verifier.verify(session)
     end
 end
