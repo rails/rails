@@ -568,7 +568,7 @@ module ActionView
             when confirm && popup
               "if (#{confirm_javascript_function(confirm)}) { #{popup_javascript_function(popup)} };return false;"
             when confirm && method
-              "if (#{confirm_javascript_function(confirm)}) { #{method_javascript_function(method)} };return false;"
+              "if (#{confirm_javascript_function(confirm)}) { #{method_javascript_function(method, url, href)} };return false;"
             when confirm
               "return #{confirm_javascript_function(confirm)};"
             when method

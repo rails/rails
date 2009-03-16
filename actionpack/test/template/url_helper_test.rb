@@ -219,6 +219,14 @@ class UrlHelperTest < ActionView::TestCase
     )
   end
 
+  def test_link_tag_using_delete_javascript_and_href_and_confirm
+    assert_dom_equal(
+      "<a href='\#' onclick=\"if (confirm('Are you serious?')) { var f = document.createElement('form'); f.style.display = 'none'; this.parentNode.appendChild(f); f.method = 'POST'; f.action = 'http://www.example.com';var m = document.createElement('input'); m.setAttribute('type', 'hidden'); m.setAttribute('name', '_method'); m.setAttribute('value', 'delete'); f.appendChild(m);f.submit(); };return false;\">Destroy</a>",
+      link_to("Destroy", "http://www.example.com", :method => :delete, :href => '#', :confirm => "Are you serious?"),
+      "When specifying url, form should be generated with it, but not this.href"
+    )
+  end
+
   def test_link_tag_using_post_javascript_and_popup
     assert_raise(ActionView::ActionViewError) { link_to("Hello", "http://www.example.com", :popup => true, :method => :post, :confirm => "Are you serious?") }
   end
