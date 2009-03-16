@@ -199,29 +199,17 @@ class CookieStoreTest < ActionController::IntegrationTest
 
     with_test_route_set do
       # First request accesses the session
-      time = Time.local(2008, 4, 24)
-      Time.stubs(:now).returns(time)
-      expected_expiry = (time + 5.hours).gmtime.strftime("%a, %d-%b-%Y %H:%M:%S GMT")
-
       cookies[SessionKey] = SignedBar
 
       get '/set_session_value'
       assert_response :success
+      cookie = headers['Set-Cookie']
 
-      cookie_body = response.body
-      assert_equal "_myapp_session=#{cookie_body}; path=/; expires=#{expected_expiry}; HttpOnly",
-        headers['Set-Cookie']
-
-      # Second request does not access the session
-      time = Time.local(2008, 4, 25)
-      Time.stubs(:now).returns(time)
-      expected_expiry = (time + 5.hours).gmtime.strftime("%a, %d-%b-%Y %H:%M:%S GMT")
-
+      # Second request does not access the session so the
+      # expires header should not be changed
       get '/no_session_access'
       assert_response :success
-
-      assert_equal "_myapp_session=#{cookie_body}; path=/; expires=#{expected_expiry}; HttpOnly",
-        headers['Set-Cookie']
+      assert_equal cookie, headers['Set-Cookie']
     end
   end
 
