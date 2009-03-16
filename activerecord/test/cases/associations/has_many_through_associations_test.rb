@@ -93,7 +93,7 @@ class HasManyThroughAssociationsTest < ActiveRecord::TestCase
   end
 
   def test_destroy_association
-    assert_difference "Person.count", -1 do
+    assert_difference ["Person.count", "Reader.count"], -1 do
       posts(:welcome).people.destroy(people(:michael))
     end
 
@@ -102,12 +102,18 @@ class HasManyThroughAssociationsTest < ActiveRecord::TestCase
   end
 
   def test_destroy_all
-    assert_difference "Person.count", -1 do
+    assert_difference ["Person.count", "Reader.count"], -1 do
       posts(:welcome).people.destroy_all
     end
 
     assert posts(:welcome).reload.people.empty?
     assert posts(:welcome).people(true).empty?
+  end
+
+  def test_should_raise_exception_for_destroying_mismatching_records
+    assert_no_difference ["Person.count", "Reader.count"] do
+      assert_raise(ActiveRecord::AssociationTypeMismatch) { posts(:welcome).people.destroy(posts(:thinking)) }
+    end
   end
 
   def test_replace_association
