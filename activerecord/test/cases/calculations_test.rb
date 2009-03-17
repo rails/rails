@@ -2,6 +2,9 @@ require "cases/helper"
 require 'models/company'
 require 'models/topic'
 require 'models/edge'
+require 'models/owner'
+require 'models/pet'
+require 'models/toy'
 
 Company.has_many :accounts
 
@@ -10,7 +13,7 @@ class NumericData < ActiveRecord::Base
 end
 
 class CalculationsTest < ActiveRecord::TestCase
-  fixtures :companies, :accounts, :topics
+  fixtures :companies, :accounts, :topics, :owners, :pets, :toys
 
   def test_should_sum_field
     assert_equal 318, Account.sum(:credit_limit)
@@ -282,6 +285,10 @@ class CalculationsTest < ActiveRecord::TestCase
 
   def test_count_with_too_many_parameters_raises
     assert_raise(ArgumentError) { Account.count(1, 2, 3) }
+  end
+
+  def test_count_with_scoped_has_many_through_association
+    assert_equal 1, owners(:blackbeard).toys.with_name('bone').count
   end
 
   def test_should_sum_expression
