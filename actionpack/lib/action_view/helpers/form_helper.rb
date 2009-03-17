@@ -655,7 +655,11 @@ module ActionView
       #   <% end %>
       #
       # because parameter name repetition is precisely what Rails seeks to distinguish
-      # the elements of the array.
+      # the elements of the array. For each item with a checked check box you
+      # get an extra ghost item with only that attribute, assigned to "0".
+      #
+      # In that case it is preferable to either use +check_box_tag+ or to use
+      # hashes instead of arrays.
       #
       # ==== Examples
       #   # Let's say that @post.validated? is 1:
