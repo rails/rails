@@ -628,7 +628,7 @@ module ActionView
       #
       # The HTML specification says unchecked check boxes are not successful, and
       # thus web browsers do not send them. Unfortunately this introduces a gotcha:
-      # if an Invoice model has a +paid+ flag, and in the form that edits a paid
+      # if an +Invoice+ model has a +paid+ flag, and in the form that edits a paid
       # invoice the user unchecks its check box, no +paid+ parameter is sent. So,
       # any mass-assignment idiom like
       #
@@ -636,12 +636,15 @@ module ActionView
       #
       # wouldn't update the flag.
       #
-      # To prevent this the helper generates a hidden field with the same name as
-      # the checkbox after the very check box. So, the client either sends only the
-      # hidden field (representing the check box is unchecked), or both fields.
-      # Since the HTML specification says key/value pairs have to be sent in the
-      # same order they appear in the form and Rails parameters extraction always
-      # gets the first occurrence of any given key, that works in ordinary forms.
+      # To prevent this the helper generates an auxiliary hidden field before
+      # the very check box. The hidden field has the same name and its
+      # attributes mimick an unchecked check box.
+      #
+      # This way, the client either sends only the hidden field (representing
+      # the check box is unchecked), or both fields. Since the HTML specification
+      # says key/value pairs have to be sent in the same order they appear in the
+      # form, and parameters extraction gets the last occurrence of any repeated
+      # key in the query string, that works for ordinary forms.
       #
       # Unfortunately that workaround does not work when the check box goes
       # within an array-like parameter, as in
