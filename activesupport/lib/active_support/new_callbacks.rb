@@ -353,7 +353,15 @@ module ActiveSupport
         str = <<-RUBY_EVAL
           def _run_#{symbol}_callbacks(key = nil)
             if key
-              send("_run__\#{self.class.name.split("::").last}__#{symbol}__\#{key}__callbacks") { yield if block_given? }
+              name = "_run__\#{self.class.name.split("::").last}__#{symbol}__\#{key}__callbacks"
+              
+              if respond_to?(name)
+                send(name) { yield if block_given? }
+              else
+                self.class._create_and_run_keyed_callback(
+                  self.class.name.split("::").last,
+                  :#{symbol}, key, self) { yield if block_given? }
+              end
             else
               #{str}
             end
