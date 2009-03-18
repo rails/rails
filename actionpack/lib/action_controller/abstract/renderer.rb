@@ -22,8 +22,12 @@ module AbstractController
     end
     
     def render(template = action_name)
+      self.response_body = render_to_string(template)
+    end
+    
+    def render_to_string(template = action_name)
       tmp = view_paths.find_by_parts(template.to_s, formats, _prefix)
-      self.response_body = _render_template(tmp)
+      _render_template(tmp)
     end
 
     def _render_template(tmp)

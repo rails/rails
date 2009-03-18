@@ -1,82 +1,4 @@
-$:.unshift(File.dirname(__FILE__) + '/../../lib')
-$:.unshift(File.dirname(__FILE__) + '/../../../activesupport/lib')
-
-require 'test/unit'
-require 'active_support'
-require 'active_support/test_case'
-require 'action_controller'
-require 'action_view/base'
-
-begin
-  require 'ruby-debug'
-  Debugger.settings[:autoeval] = true
-  Debugger.start
-rescue LoadError
-  # Debugging disabled. `gem install ruby-debug` to enable.
-end
-
-require 'action_controller/abstract'
-require 'action_controller/new_base'
-require 'pp' # require 'pp' early to prevent hidden_methods from not picking up the pretty-print methods until too late
-
-require 'rubygems'
-require 'rack/test'
-
-module ActionController
-  class Base2 < AbstractBase
-    include AbstractController::Callbacks
-    include AbstractController::Renderer
-    include AbstractController::Helpers
-    include AbstractController::Layouts
-    include AbstractController::Logger
-    
-    include ActionController::HideActions
-    include ActionController::UrlFor
-    include ActionController::Renderer
-        
-    CORE_METHODS = self.public_instance_methods
-  end
-end
-
-# Temporary base class
-class Rack::TestCase < ActiveSupport::TestCase
-  
-  include Rack::Test::Methods
-  
-  setup do
-    ActionController::Base.session_options[:key] = "abc"
-    ActionController::Base.session_options[:secret] = ("*" * 30)
-    ActionController::Routing.use_controllers! %w(happy_path/simple_dispatch)
-  end
-  
-  def self.get(url)
-    setup do |test|
-      test.get url
-    end
-  end  
-  
-  def app
-    @app ||= ActionController::Dispatcher.new
-  end
-  
-  def assert_body(body)
-    assert_equal [body], last_response.body
-  end
-  
-  def assert_status(code)
-    assert_equal code, last_response.status
-  end
-  
-  def assert_content_type(type)
-    assert_equal type, last_response.headers["Content-Type"]
-  end
-  
-  def assert_header(name, value)
-    assert_equal value, last_response.headers[name]
-  end
-  
-end
-
+require File.join(File.expand_path(File.dirname(__FILE__)), "test_helper")
 
 # Tests the controller dispatching happy path
 module HappyPath
@@ -96,14 +18,6 @@ module HappyPath
     
     def modify_response_headers
       
-    end
-  end
-  
-  class SimpleRouteCase < Rack::TestCase
-    setup do
-      ActionController::Routing::Routes.draw do |map|
-        map.connect ':controller/:action'
-      end
     end
   end
   
