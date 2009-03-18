@@ -157,6 +157,11 @@ class TestController < ActionController::Base
     render :file => 'test/dot.directory/render_file_with_ivar'
   end
 
+  def render_file_using_pathname
+    @secret = 'in the sauce'
+    render :file => Pathname.new(File.dirname(__FILE__)).join('..', 'fixtures', 'test', 'dot.directory', 'render_file_with_ivar.erb')
+  end
+
   def render_file_from_template
     @secret = 'in the sauce'
     @path = File.expand_path(File.join(File.dirname(__FILE__), '../fixtures/test/render_file_with_ivar.erb'))
@@ -858,6 +863,11 @@ class RenderTest < ActionController::TestCase
 
   def test_render_file_not_using_full_path_with_dot_in_path
     get :render_file_not_using_full_path_with_dot_in_path
+    assert_equal "The secret is in the sauce\n", @response.body
+  end
+
+  def test_render_file_using_pathname
+    get :render_file_using_pathname
     assert_equal "The secret is in the sauce\n", @response.body
   end
 

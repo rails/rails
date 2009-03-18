@@ -1,5 +1,6 @@
 require 'webrick'
 require 'stringio'
+require 'rack/content_length'
 
 module Rack
   module Handler
@@ -14,7 +15,7 @@ module Rack
 
       def initialize(server, app)
         super server
-        @app = app
+        @app = Rack::ContentLength.new(app)
       end
 
       def service(req, res)

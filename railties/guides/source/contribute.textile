@@ -7,12 +7,12 @@ endprologue.
 h3. How to Contribute?
 
 * We have an open commit policy: anyone is welcome to contribute, but you'll need to ask for commit access.
-* PM lifo at "GitHub":http://github.om asking for "docrails":http://github.com/lifo/docrails commit access.
+* PM lifo at "GitHub":http://github.com asking for "docrails":http://github.com/lifo/docrails/tree/master commit access.
 * Guides are written in Textile, and reside at railties/guides/source in the docrails project.
 * All images are in the railties/guides/images directory.
 * Sample format : "Active Record Associations":http://github.com/lifo/docrails/blob/3e56a3832415476fdd1cb963980d0ae390ac1ed3/railties/guides/source/association_basics.textile
 * Sample output : "Active Record Associations":http://guides.rails.info/association_basics.html
-* You can build the Guides during testing by running railties/guides/rails_guides.rb.
+* You can build the Guides during testing by running +rake guides+ in the +railties+ directory.
 
 h3. What to Contribute?
 
@@ -44,25 +44,20 @@ For each completed guide, the lead contributor will receive all of the following
 
 h3. Rules
 
-* Guides are licensed under a Creative Commons Attribution-Noncommercial-Share Alike 3.0 License.
+* Guides are licensed under a Creative Commons Attribution-Share Alike 3.0 License.
 * If you're not sure whether a guide is actively being worked on, stop by IRC and ask.
 * If the same guide writer wants to write multiple guides, that's ideally the situation we'd love to be in! However, that guide writer will only receive the cash prize for all the subsequent guides (and not the GitHub or RPM prizes).
 * Our review team will have the final say on whether the guide is complete and of good enough quality.
-
-h3. Reviewers
-
-These are the main reviewers and editors for the guides:
-
-* Hongli Lai
-* Mike Gunderloy
-* Pratik Naik
-* Xavier Noria
 
 All authors should read and follow the "Rails Guides Conventions":http://wiki.github.com/lifo/docrails/rails-guides-conventions and the "Rails API Documentation Conventions":http://wiki.github.com/lifo/docrails/rails-api-documentation-conventions.
 
 h3. Translations
 
 The translation effort for the Rails Guides is just getting underway. We know about projects to translate the Guides into Spanish, Portuguese, Polish, and French. For more details or to get involved see the "Translating Rails Guides":http://wiki.github.com/lifo/docrails/translating-rails-guides page.
+
+h3. Mailing List
+
+"Ruby on Rails: Documentation":http://groups.google.com/group/rubyonrails-docs is the mailing list for all the guides/documentation related discussions.
 
 h3. IRC Channel
 
@@ -72,6 +67,5 @@ h3. Contact
 
 If you have any questions or need any clarification, feel free to contact:
 
-* IRC : lifo, mikeg1a, fxn, or FooBarWidget in #docrails
+* IRC : lifo, mikeg1a or fxn in #docrails
 * Email : pratiknaik aT gmail
-

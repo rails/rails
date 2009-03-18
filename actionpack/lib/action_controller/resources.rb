@@ -630,7 +630,7 @@ module ActionController
               action_path = resource.options[:path_names][action] if resource.options[:path_names].is_a?(Hash)
               action_path ||= Base.resources_path_names[action] || action
 
-              map_resource_routes(map, resource, action, "#{resource.member_path}#{resource.action_separator}#{action_path}", "#{action}_#{resource.shallow_name_prefix}#{resource.singular}", m)
+              map_resource_routes(map, resource, action, "#{resource.member_path}#{resource.action_separator}#{action_path}", "#{action}_#{resource.shallow_name_prefix}#{resource.singular}", m, { :force_id => true })
             end
           end
         end
@@ -641,9 +641,9 @@ module ActionController
         map_resource_routes(map, resource, :destroy, resource.member_path, route_path)
       end
 
-      def map_resource_routes(map, resource, action, route_path, route_name = nil, method = nil)
+      def map_resource_routes(map, resource, action, route_path, route_name = nil, method = nil, resource_options = {} )
         if resource.has_action?(action)
-          action_options = action_options_for(action, resource, method)
+          action_options = action_options_for(action, resource, method, resource_options)
           formatted_route_path = "#{route_path}.:format"
 
           if route_name && @set.named_routes[route_name.to_sym].nil?
@@ -660,9 +660,10 @@ module ActionController
         end
       end
 
-      def action_options_for(action, resource, method = nil)
+      def action_options_for(action, resource, method = nil, resource_options = {})
         default_options = { :action => action.to_s }
         require_id = !resource.kind_of?(SingletonResource)
+        force_id = resource_options[:force_id] && !resource.kind_of?(SingletonResource)
 
         case default_options[:action]
           when "index", "new"; default_options.merge(add_conditions_for(resource.conditions, method || :get)).merge(resource.requirements)
@@ -670,12 +671,7 @@ module ActionController
           when "show", "edit"; default_options.merge(add_conditions_for(resource.conditions, method || :get)).merge(resource.requirements(require_id))
           when "update";       default_options.merge(add_conditions_for(resource.conditions, method || :put)).merge(resource.requirements(require_id))
           when "destroy";      default_options.merge(add_conditions_for(resource.conditions, method || :delete)).merge(resource.requirements(require_id))
-          else
-              if method.nil? || resource.member_methods.nil? || resource.member_methods[method.to_sym].nil?
-                default_options.merge(add_conditions_for(resource.conditions, method)).merge(resource.requirements)
-              else                 
-                resource.member_methods[method.to_sym].include?(action) ? default_options.merge(add_conditions_for(resource.conditions, method)).merge(resource.requirements(require_id)) : default_options.merge(add_conditions_for(resource.conditions, method)).merge(resource.requirements)
-              end
+          else                 default_options.merge(add_conditions_for(resource.conditions, method)).merge(resource.requirements(force_id))
         end
       end
   end

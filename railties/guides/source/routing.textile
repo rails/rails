@@ -39,7 +39,7 @@ Then the routing engine is the piece that translates that to a link to a URL suc
 
 NOTE: Patient needs to be declared as a resource for this style of translation via a named route to be available.
 
-h3. Quick Tour of Routes.rb
+h3. Quick Tour of +routes.rb+
 
 There are two components to routing in Rails: the routing engine itself, which is supplied as part of Rails, and the file +config/routes.rb+, which contains the actual routes that will be used by your application. Learning exactly what you can put in +routes.rb+ is the main topic of this guide, but before we dig in let's get a quick overview.
 
@@ -221,7 +221,7 @@ Although the conventions of RESTful routing are likely to be sufficient for many
 
 You can also add additional routes via the +:member+ and +:collection+ options, which are discussed later in this guide.
 
-h5. Using :controller
+h5. Using +:controller+
 
 The +:controller+ option lets you use a controller name that is different from the public-facing resource name. For example, this routing entry:
 
@@ -270,7 +270,7 @@ end
 
 That would give you routing for +admin/photos+ and +admin/videos+ controllers.
 
-h5. Using :singular
+h5. Using +:singular+
 
 If for some reason Rails isn't doing what you want in converting the plural resource name to a singular name in member routes, you can override its judgment with the +:singular+ option:
 
@@ -280,9 +280,9 @@ map.resources :teeth, :singular => "tooth"
 
 TIP: Depending on the other code in your application, you may prefer to add additional rules to the +Inflector+ class instead.
 
-h5. Using :requirements
+h5. Using +:requirements+
 
-You an use the +:requirements+ option in a RESTful route to impose a format on the implied +:id+ parameter in the singular routes. For example:
+You can use the +:requirements+ option in a RESTful route to impose a format on the implied +:id+ parameter in the singular routes. For example:
 
 <ruby>
 map.resources :photos, :requirements => {:id => /[A-Z][A-Z][0-9]+/}
@@ -290,11 +290,11 @@ map.resources :photos, :requirements => {:id => /[A-Z][A-Z][0-9]+/}
 
 This declaration constrains the +:id+ parameter to match the supplied regular expression. So, in this case, +/photos/1+ would no longer be recognized by this route, but +/photos/RR27+ would.
 
-h5. Using :conditions
+h5. Using +:conditions+
 
 Conditions in Rails routing are currently used only to set the HTTP verb for individual routes. Although in theory you can set this for RESTful routes, in practice there is no good reason to do so. (You'll learn more about conditions in the discussion of classic routing later in this guide.)
 
-h5. Using :as
+h5. Using +:as+
 
 The +:as+ option lets you override the normal naming for the actual generated paths. For example:
 
@@ -315,7 +315,7 @@ will recognize incoming URLs containing +image+ but route the requests to the Ph
 
 NOTE: The helpers will be generated with the name of the resource, not the path name. So in this case, you'd still get +photos_path+, +new_photo_path+, and so on.
 
-h5. Using :path_names
+h5. Using +:path_names+
 
 The +:path_names+ option lets you override the automatically-generated "new" and "edit" segments in URLs:
 
@@ -338,7 +338,7 @@ TIP: If you find yourself wanting to change this option uniformly for all of you
 config.action_controller.resources_path_names = { :new => 'make', :edit => 'change' }
 </ruby>
 
-h5. Using :path_prefix
+h5. Using +:path_prefix+
 
 The +:path_prefix+ option lets you add additional parameters that will be prefixed to the recognized paths. For example, suppose each photo in your application belongs to a particular photographer. In that case, you might declare this route:
 
@@ -357,7 +357,7 @@ NOTE: In most cases, it's simpler to recognize URLs of this sort by creating nes
 
 NOTE: You can also use +:path_prefix+ with non-RESTful routes.
 
-h5. Using :name_prefix
+h5. Using +:name_prefix+
 
 You can use the :name_prefix option to avoid collisions between routes. This is most useful when you have two resources with the same name that use +:path_prefix+ to map differently. For example:
 
@@ -372,7 +372,7 @@ This combination will give you route helpers such as +photographer_photos_path+ 
 
 NOTE: You can also use +:name_prefix+ with non-RESTful routes.
 
-h5. Using :only and :except
+h5. Using +:only+ and +:except+
 
 By default, Rails creates routes for all seven of the default actions (index, show, new, create, edit, update, and destroy) for every RESTful route in your application. You can use the +:only+ and +:except+ options to fine-tune this behavior. The +:only+ option specifies that only certain routes should be generated:
 
@@ -432,7 +432,7 @@ In addition to the routes for magazines, this declaration will also create route
 
 This will also create routing helpers such as +magazine_ads_url+ and +edit_magazine_ad_path+.
 
-h5. Using :name_prefix
+h5. Using +:name_prefix+
 
 The +:name_prefix+ option overrides the automatically-generated prefix in nested route helpers. For example,
 
@@ -457,7 +457,7 @@ ads_url(@magazine)
 edit_ad_path(@magazine, @ad)
 </ruby>
 
-h5. Using :has_one and :has_many
+h5. Using +:has_one+ and +:has_many+
 
 The +:has_one+ and +:has_many+ options provide a succinct notation for simple nested routes. Use +:has_one+ to nest a singleton resource, or +:has_many+ to nest a plural resource:
 
@@ -748,7 +748,7 @@ end
 
 The importance of +map.with_options+ has declined with the introduction of RESTful routes.
 
-h3. Formats and respond_to
+h3. Formats and +respond_to+
 
 There's one more way in which routing can do different things depending on differences in the incoming HTTP request: by issuing a response that corresponds to what the request specifies that it will accept. In Rails routing, you can control this with the special +:format+ parameter in the route.
 
@@ -796,7 +796,7 @@ h3. The Empty Route
 
 Don't confuse the default routes with the empty route. The empty route has one specific purpose: to route requests that come in to the root of the web site. For example, if your site is example.com, then requests to +http://example.com+ or +http://example.com/+ will be handled by the empty route.
 
-h4. Using map.root
+h4. Using +map.root+
 
 The preferred way to set up the empty route is with the +map.root+ command:
 
@@ -829,7 +829,7 @@ h3. Inspecting and Testing Routes
 
 Routing in your application should not be a "black box" that you never open. Rails offers built-in tools for both inspecting and testing routes.
 
-h4. Seeing Existing Routes with rake
+h4. Seeing Existing Routes with +rake+
 
 If you want a complete list of all of the available routes in your application, run the +rake routes+ command. This will dump all of your routes to the console, in the same order that they appear in +routes.rb+. For each route, you'll see:
 
@@ -851,7 +851,7 @@ TIP: You'll find that the output from +rake routes+ is much more readable if you
 
 h4. Testing Routes
 
-Routes should be included in your testing strategy (just like the rest of your application). Rails offers three "built-in assertions":http://api.rubyonrails.com/classes/ActionController/Assertions/RoutingAssertions.html designed to make testing routes simpler:
+Routes should be included in your testing strategy (just like the rest of your application). Rails offers three "built-in assertions":http://api.rubyonrails.org/classes/ActionController/Assertions/RoutingAssertions.html designed to make testing routes simpler:
 
 * +assert_generates+
 * +assert_recognizes+

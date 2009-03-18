@@ -1,5 +1,7 @@
 require 'scgi'
 require 'stringio'
+require 'rack/content_length'
+require 'rack/chunked'
 
 module Rack
   module Handler
@@ -14,7 +16,7 @@ module Rack
       end
       
       def initialize(settings = {})
-        @app = settings[:app]
+        @app = Rack::Chunked.new(Rack::ContentLength.new(settings[:app]))
         @log = Object.new
         def @log.info(*args); end
         def @log.error(*args); end

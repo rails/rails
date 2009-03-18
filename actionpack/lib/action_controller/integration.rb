@@ -5,7 +5,7 @@ require 'active_support/test_case'
 module ActionController
   module Integration #:nodoc:
     # An integration Session instance represents a set of requests and responses
-    # performed sequentially by some virtual user. Becase you can instantiate
+    # performed sequentially by some virtual user. Because you can instantiate
     # multiple sessions and run them side-by-side, you can also mimic (to some
     # limited extent) multiple simultaneous users interacting with your system.
     #

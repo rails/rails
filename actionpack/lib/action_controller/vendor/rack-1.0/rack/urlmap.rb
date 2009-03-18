@@ -12,7 +12,11 @@ module Rack
   # first, since they are most specific.
 
   class URLMap
-    def initialize(map)
+    def initialize(map = {})
+      remap(map)
+    end
+
+    def remap(map)
       @mapping = map.map { |location, app|
         if location =~ %r{\Ahttps?://(.*?)(/.*)}
           host, location = $1, $2

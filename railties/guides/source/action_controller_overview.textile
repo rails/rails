@@ -20,7 +20,7 @@ For most conventional RESTful applications, the controller will receive the requ
 
 A controller can thus be thought of as a middle man between models and views. It makes the model data available to the view so it can display that data to the user, and it saves or updates data from the user to the model.
 
-NOTE: For more details on the routing process, see "Rails Routing from the Outside In":routing_outside_in.html.
+NOTE: For more details on the routing process, see "Rails Routing from the Outside In":routing.html.
 
 h3. Methods and Actions
 
@@ -83,7 +83,7 @@ class ClientsController < ActionController::Base
 end
 </ruby>
 
-h4. Hash and array parameters
+h4. Hash and Array Parameters
 
 The +params+ hash is not limited to one-dimensional keys and values. It can contain arrays and (nested) hashes. To send an array of values, append an empty pair of square brackets "[]" to the key name:
 
@@ -123,7 +123,7 @@ map.connect "/clients/:status",
 
 In this case, when a user opens the URL +/clients/active+, +params[:status]+ will be set to "active". When this route is used, +params[:foo]+ will also be set to "bar" just like it was passed in the query string. In the same way +params[:action]+ will contain "index".
 
-h4. default_url_options
+h4. +default_url_options+
 
 You can set global default parameters that will be used when generating URLs with +default_url_options+. To do this, define a method with that name in your controller:
 
@@ -180,7 +180,7 @@ ActionController::Base.session = {
 
 NOTE: Changing the secret when using the CookieStore will invalidate all existing sessions.
 
-h4. Accessing the session
+h4. Accessing the Session
 
 In your controller you can access the session through the +session+ instance method.
 
@@ -235,7 +235,7 @@ end
 
 To reset the entire session, use +reset_session+.
 
-h4. The flash
+h4. The Flash
 
 The flash is a special part of the session which is cleared with each request. This means that values stored there will only be available in the next request, which is useful for storing error messages etc. It is accessed in much the same way as the session, like a hash. Let's use the act of logging out as an example. The controller can send a message which will be displayed to the user on the next request:
 
@@ -288,7 +288,7 @@ class MainController < ApplicationController
 end
 </ruby>
 
-h5. flash.now
+h5. +flash.now+
 
 By default, adding values to the flash will make them available to the next request, but sometimes you may want to access those values in the same request. For example, if the +create+ action fails to save a resource and you render the +new+ template directly, that's not going to result in a new request, but you may still want to display a message using the flash. To do this, you can use +flash.now+ in the same way you use the normal +flash+:
 
@@ -381,7 +381,7 @@ end
 
 Now, the +LoginsController+'s +new+ and +create+ actions will work as before without requiring the user to be logged in. The +:only+ option is used to only skip this filter for these actions, and there is also an +:except+ option which works the other way. These options can be used when adding filters too, so you can add a filter which only runs for selected actions in the first place.
 
-h4. After filters and around filters
+h4. After Filters and Around Filters
 
 In addition to before filters, you can run filters after an action has run or both before and after. The after filter is similar to the before filter, but because the action has already been run it has access to the response data that's about to be sent to the client. Obviously, after filters can not stop the action from running.
 
@@ -403,7 +403,7 @@ private
 end
 </ruby>
 
-h4. Other ways to use filters
+h4. Other Ways to Use Filters
 
 While the most common way to use filters is by creating private methods and using *_filter to add them, there are two other ways to do the same thing.
 
@@ -517,7 +517,7 @@ h3. The Request and Response Objects
 
 In every controller there are two accessor methods pointing to the request and the response objects associated with the request cycle that is currently in execution. The +request+ method contains an instance of +AbstractRequest+ and the +response+ method returns a response object representing what is going to be sent back to the client.
 
-h4. The +request+ object
+h4. The +request+ Object
 
 The request object contains a lot of useful information about the request coming in from the client. To get a full list of the available methods, refer to the "API documentation":http://api.rubyonrails.org/classes/ActionController/AbstractRequest.html. Among the properties that you can access on this object are:
 
@@ -538,7 +538,7 @@ h5. +path_parameters+, +query_parameters+, and +request_parameters+
 
 Rails collects all of the parameters sent along with the request in the +params+ hash, whether they are sent as part of the query string or the post body. The request object has three accessors that give you access to these parameters depending on where they came from. The +query_parameters+ hash contains parameters that were sent as part of the query string while the +request_parameters+ hash contains parameters sent as part of the post body. The +path_parameters+ hash contains parameters that were recognized by the routing as being part of the path leading to this particular controller and action.
 
-h4. The response object
+h4. The +response+ Object
 
 The response object is not usually used directly, but is built up during the execution of the action and rendering of the data that is being sent back to the user, but sometimes - like in an after filter - it can be useful to access the response directly. Some of these accessor methods also have setters, allowing you to change their values.
 
@@ -550,7 +550,7 @@ The response object is not usually used directly, but is built up during the exe
 |charset|The character set being used for the response. Default is "utf-8".|
 |headers|Headers used for the response.|
 
-h5. Setting custom headers
+h5. Setting Custom Headers
 
 If you want to set custom headers for a response then +response.headers+ is the place to do it. The headers attribute is a hash which maps header names to their values, and Rails will set some of them automatically. If you want to add or change a header, just assign it to +response.headers+ this way:
 
@@ -565,7 +565,7 @@ Rails comes with two built-in HTTP authentication mechanisms:
 * Basic Authentication
 * Digest Authentication
 
-h4. HTTP basic authentication
+h4. HTTP Basic Authentication
 
 HTTP basic authentication is an authentication scheme that is supported by the majority of browsers and other HTTP clients. As an example, consider an administration section which will only be available by entering a username and a password into the browser's HTTP basic dialog window. Using the built-in authentication is quite easy and only requires you to use one method, +authenticate_or_request_with_http_basic+.
 
@@ -587,7 +587,7 @@ end
 
 With this in place, you can create namespaced controllers that inherit from +AdminController+. The before filter will thus be run for all actions in those controllers, protecting them with HTTP basic authentication.
 
-h4. HTTP digest authentication
+h4. HTTP Digest Authentication
 
 HTTP digest authentication is superior to the basic authentication as it does not require the client to send an unencrypted password over the network (though HTTP basic authentication is safe over HTTPS). Using digest authentication with Rails is quite easy and only requires using one method, +authenticate_or_request_with_http_digest+.
 
@@ -640,7 +640,7 @@ end
 
 The +download_pdf+ action in the example above will call a private method which actually generates the PDF document and returns it as a string. This string will then be streamed to the client as a file download and a filename will be suggested to the user. Sometimes when streaming files to the user, you may not want them to download the file. Take images, for example, which can be embedded into HTML pages. To tell the browser a file is not meant to be downloaded, you can set the +:disposition+ option to "inline". The opposite and default value for this option is "attachment".
 
-h4. Sending files
+h4. Sending Files
 
 If you want to send a file that already exists on disk, use the +send_file+ method.
 
@@ -662,7 +662,7 @@ WARNING: Be careful when using data coming from the client (params, cookies, etc
 
 TIP: It is not recommended that you stream static files through Rails if you can instead keep them in a public folder on your web server. It is much more efficient to let the user download the file directly using Apache or another web server, keeping the request from unnecessarily going through the whole Rails stack. Although if you do need the request to go through Rails for some reason, you can set the +:x_sendfile+ option to true, and Rails will let the web server handle sending the file to the user, freeing up the Rails process to do other things. Note that your web server needs to support the +X-Sendfile+ header for this to work.
 
-h4. RESTful downloads
+h4. RESTful Downloads
 
 While +send_data+ works just fine, if you are creating a RESTful application having separate actions for file downloads is usually not necessary. In REST terminology, the PDF file from the example above can be considered just another representation of the client resource. Rails provides an easy and quite sleek way of doing "RESTful downloads". Here's how you can rewrite the example so that the PDF download is a part of the +show+ action, without any streaming:
 
@@ -712,7 +712,7 @@ Most likely your application is going to contain bugs or otherwise throw an exce
 
 Rails' default exception handling displays a "500 Server Error" message for all exceptions. If the request was made locally, a nice traceback and some added information gets displayed so you can figure out what went wrong and deal with it. If the request was remote Rails will just display a simple "500 Server Error" message to the user, or a "404 Not Found" if there was a routing error or a record could not be found. Sometimes you might want to customize how these errors are caught and how they're displayed to the user. There are several levels of exception handling available in a Rails application:
 
-h4. The default 500 and 404 templates
+h4. The Default 500 and 404 Templates
 
 By default a production application will render either a 404 or a 500 error message. These messages are contained in static HTML files in the +public+ folder, in +404.html+ and +500.html+ respectively. You can customize these files to add some extra information and layout, but remember that they are static; i.e. you can't use RHTML or layouts in them, just plain HTML.
 

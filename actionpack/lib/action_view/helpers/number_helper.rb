@@ -140,7 +140,7 @@ module ActionView
       #  number_with_delimiter(12345678)                        # => 12,345,678
       #  number_with_delimiter(12345678.05)                     # => 12,345,678.05
       #  number_with_delimiter(12345678, :delimiter => ".")     # => 12.345.678
-      #  number_with_delimiter(12345678, :seperator => ",")     # => 12,345,678
+      #  number_with_delimiter(12345678, :separator => ",")     # => 12,345,678
       #  number_with_delimiter(98765432.98, :delimiter => " ", :separator => ",")
       #  # => 98 765 432,98
       #

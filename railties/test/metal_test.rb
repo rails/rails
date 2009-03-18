@@ -8,6 +8,12 @@ class MetalTest < Test::Unit::TestCase
     end
   end
 
+  def test_metals_should_respect_class_name_conventions
+    use_appdir("pluralmetal") do
+      assert_equal(["LegacyRoutes"], found_metals_as_string_array)
+    end
+  end
+
   def test_metals_should_return_alphabetical_list_of_found_metal_apps
     use_appdir("multiplemetals") do
       assert_equal(["MetalA", "MetalB"], found_metals_as_string_array)

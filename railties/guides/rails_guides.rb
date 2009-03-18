@@ -1,17 +1,28 @@
 pwd = File.dirname(__FILE__)
 $: << pwd
-$: << File.join(pwd, "../../activesupport/lib")
-$: << File.join(pwd, "../../actionpack/lib")
 
-require "action_controller"
-require "action_view"
-
-# Require rubygems after loading Action View
-require 'rubygems'
 begin
-  gem 'RedCloth', '>= 4.1.1'# Need exactly 4.1.1
+  as_lib = File.join(pwd, "../../activesupport/lib")
+  ap_lib = File.join(pwd, "../../actionpack/lib")
+
+  $: << as_lib if File.directory?(as_lib)
+  $: << ap_lib if File.directory?(ap_lib)
+  
+  require "action_controller"
+  require "action_view"
+rescue LoadError
+  require 'rubygems'
+  gem "actionpack", '>= 2.3'
+
+  require "action_controller"
+  require "action_view"
+end
+
+begin
+  require 'rubygems'
+  gem 'RedCloth', '>= 4.1.1'
 rescue Gem::LoadError
-  $stderr.puts %(Missing the RedCloth 4.1.1 gem.\nPlease `gem install -v=4.1.1 RedCloth` to generate the guides.)
+  $stderr.puts %(Generating Guides requires RedCloth 4.1.1+)
   exit 1
 end
 

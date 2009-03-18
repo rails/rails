@@ -175,6 +175,24 @@ class ResourcesTest < ActionController::TestCase
     end
   end
 
+  def test_with_collection_actions_and_name_prefix_and_member_action_with_same_name
+    actions = { 'a' => :get }
+
+    with_restful_routing :messages, :path_prefix => '/threads/:thread_id', :name_prefix => "thread_", :collection => actions, :member => actions do
+      assert_restful_routes_for :messages, :path_prefix => 'threads/1/', :name_prefix => 'thread_', :options => { :thread_id => '1' } do |options|
+        actions.each do |action, method|
+          assert_recognizes(options.merge(:action => action), :path => "/threads/1/messages/#{action}", :method => method)
+        end
+      end
+
+      assert_restful_named_routes_for :messages, :path_prefix => 'threads/1/', :name_prefix => 'thread_', :options => { :thread_id => '1' } do |options|
+        actions.keys.each do |action|
+          assert_named_route "/threads/1/messages/#{action}", "#{action}_thread_messages_path", :action => action
+        end
+      end
+    end
+  end
+
   def test_with_collection_action_and_name_prefix_and_formatted
     actions = { 'a' => :get, 'b' => :put, 'c' => :post, 'd' => :delete }
 
@@ -211,7 +229,7 @@ class ResourcesTest < ActionController::TestCase
 
   def test_with_member_action_and_requirement
     expected_options = {:controller => 'messages', :action => 'mark', :id => '1.1.1'}
-
+  
     with_restful_routing(:messages, :requirements => {:id => /[0-9]\.[0-9]\.[0-9]/}, :member => { :mark => :get }) do
       assert_recognizes(expected_options, :path => 'messages/1.1.1/mark', :method => :get)
     end
