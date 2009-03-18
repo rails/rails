@@ -3,6 +3,10 @@ require File.join(File.expand_path(File.dirname(__FILE__)), "test_helper")
 module AbstractController
   module Testing
   
+    # Test basic dispatching.
+    # ====
+    # * Call process
+    # * Test that the response_body is set correctly
     class SimpleController < AbstractController::Base
     end
     
@@ -20,6 +24,8 @@ module AbstractController
       end
     end
     
+    # Test Render mixin
+    # ====
     class RenderingController < AbstractController::Base
       include Renderer
             
@@ -58,6 +64,9 @@ module AbstractController
       end
     end
     
+    # Test rendering with prefixes
+    # ====
+    # * self._prefix is used when defined
     class PrefixedViews < RenderingController
       private
       def self.prefix
@@ -92,6 +101,9 @@ module AbstractController
       end
     end
     
+    # Test rendering with layouts
+    # ====
+    # self._layout is used when defined
     class WithLayouts < PrefixedViews
       include Layouts
       
@@ -133,6 +145,64 @@ module AbstractController
       test "it can fall back to the application layout" do
         result = Me5.process(:index)
         assert_equal "Application Enter : Hello from me5/index.erb : Exit", result.response_obj[:body]        
+      end
+    end
+    
+    # respond_to_action?(action_name)
+    # ====
+    # * A method can be used as an action only if this method
+    #   returns true when passed the method name as an argument
+    # * Defaults to true in AbstractController
+    class DefaultRespondToActionController < AbstractController::Base
+      def index() self.response_body = "success" end
+    end
+    
+    class ActionMissingRespondToActionController < AbstractController::Base
+      # No actions
+    private
+      def action_missing(action_name)
+        self.response_body = "success"
+      end
+    end
+    
+    class RespondToActionController < AbstractController::Base;
+      def index() self.response_body = "success" end
+        
+      def fail()  self.response_body = "fail"    end
+        
+    private
+      
+      def respond_to_action?(action_name)
+        action_name != :fail
+      end
+      
+    end
+    
+    class TestRespondToAction < ActiveSupport::TestCase
+      
+      def assert_dispatch(klass, body = "success", action = :index)
+        response = klass.process(action).response_obj[:body]
+        assert_equal body, response
+      end
+      
+      test "an arbitrary method is available as an action by default" do
+        assert_dispatch DefaultRespondToActionController, "success", :index
+      end
+      
+      test "raises ActionNotFound when method does not exist and action_missing is not defined" do
+        assert_raise(ActionNotFound) { DefaultRespondToActionController.process(:fail) }
+      end
+      
+      test "dispatches to action_missing when method does not exist and action_missing is defined" do
+        assert_dispatch ActionMissingRespondToActionController, "success", :ohai
+      end
+      
+      test "a method is available as an action if respond_to_action? returns true" do
+        assert_dispatch RespondToActionController, "success", :index
+      end
+      
+      test "raises ActionNotFound if method is defined but respond_to_action? returns false" do
+        assert_raise(ActionNotFound) { RespondToActionController.process(:fail) }
       end
     end
     

@@ -10,6 +10,12 @@ module ActionController
     
     def action_methods() self.class.action_names end
     def action_names() action_methods end    
+      
+  private
+  
+    def respond_to_action?(action_name)
+      !hidden_actions.include?(action_name) && (super || respond_to?(:method_missing))
+    end
     
     module ClassMethods
       def hide_action(*args)

@@ -17,14 +17,24 @@ module AbstractController
     end
     
     def process(action_name)
+      unless respond_to_action?(action_name)
+        raise ActionNotFound, "The action '#{action_name}' could not be found"
+      end
+      
       @_action_name = action_name
       process_action
       self.response_obj[:body] = self.response_body
       self
     end
     
+  private
+  
     def process_action
-      send(action_name)
+      respond_to?(action_name) ? send(action_name) : send(:action_missing, action_name)
+    end
+    
+    def respond_to_action?(action_name)
+      respond_to?(action_name) || respond_to?(:action_missing, true)
     end
     
   end
