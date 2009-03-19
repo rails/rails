@@ -4,12 +4,14 @@ module AbstractController
   module Renderer
     
     def self.included(klass)
-      klass.class_eval do
+      klass.class_eval do        
         extend ClassMethods
+        
         attr_internal :formats
-
-        extlib_inheritable_accessor :view_paths        
-        self.view_paths ||= ActionView::PathSet.new
+        
+        extlib_inheritable_accessor :_view_paths
+        
+        self._view_paths ||= ActionView::PathSet.new
         include AbstractController::Logger
       end
     end
@@ -17,26 +19,41 @@ module AbstractController
     def _action_view
       @_action_view ||= ActionView::Base.new(self.class.view_paths, {}, self)      
     end
-    
-    def _prefix
+        
+    def render(name = action_name, options = {})
+      self.response_body = render_to_string(name, options)
     end
     
-    def render(template = action_name)
-      self.response_body = render_to_string(template)
-    end
-    
-    def render_to_string(template = action_name, prefix = true)
-      tmp = view_paths.find_by_parts(template.to_s, formats, (_prefix if prefix))
-      _render_template(tmp)
+    # Raw rendering of a template.
+    # ====
+    # @option _prefix<String> The template's path prefix
+    # @option _layout<String> The relative path to the layout template to use
+    # 
+    # :api: plugin
+    def render_to_string(name = action_name, options = {})
+      template = view_paths.find_by_parts(name.to_s, formats, options[:_prefix])
+      _render_template(template, options)
     end
 
-    def _render_template(tmp)
-      _action_view._render_template_with_layout(tmp)
+    def _render_template(template, options)
+      _action_view._render_template_with_layout(template)
     end
+    
+    def view_paths() _view_paths end
 
     module ClassMethods
+      
       def append_view_path(path)
         self.view_paths << path
+      end
+      
+      def view_paths
+        self._view_paths
+      end
+      
+      def view_paths=(paths)
+        self._view_paths = paths.is_a?(ActionView::PathSet) ?
+                            paths : ActionView::Base.process_view_paths(paths)
       end
     end
   end

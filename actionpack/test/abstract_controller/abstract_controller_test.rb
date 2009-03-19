@@ -28,7 +28,14 @@ module AbstractController
     # ====
     class RenderingController < AbstractController::Base
       include Renderer
-            
+
+      def _prefix() end
+
+      def render(name = action_name, options = {})
+        options[:_prefix] = _prefix
+        super
+      end
+
       append_view_path File.expand_path(File.join(File.dirname(__FILE__), "views"))
     end
     
@@ -121,7 +128,12 @@ module AbstractController
       
       def _layout
         self.class.layout(formats)
-      end
+      end      
+      
+      def render_to_string(name = action_name, options = {})
+        options[:_layout] = options[:layout] || _layout
+        super
+      end  
     end
     
     class Me4 < WithLayouts

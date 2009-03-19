@@ -11,6 +11,11 @@ module ActionController
     #   end      
     # end
     
+    def initialize(*)
+      self.formats = [:html]
+      super
+    end
+    
     def render(action, options = {})
       # TODO: Move this into #render_to_string
       if action.is_a?(Hash)
@@ -23,22 +28,21 @@ module ActionController
       
       self.response_body = render_to_string(options)
     end
-    
-    def render_to_string(options)
-      self.formats = [:html]
 
+    def render_to_string(options)
       unless options.is_a?(Hash)
         options = {:action => options}
       end
-      
+
       if options.key?(:text)
         _render_text(options)
       elsif options.key?(:template)
         template = options.delete(:template)        
-        super(template, false)
+        super(template)
       elsif options.key?(:action)
         template = options.delete(:action).to_s
-        super(template)
+        options[:_prefix] = _prefix 
+        super(template, options)
       end
     end
     
