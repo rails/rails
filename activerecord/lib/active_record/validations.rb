@@ -65,3 +65,8 @@ module ActiveRecord
     end
   end
 end
+
+Dir[File.dirname(__FILE__) + "/validations/*.rb"].sort.each do |path|
+  filename = File.basename(path)
+  require "active_record/validations/#{filename}"
+end

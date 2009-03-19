@@ -1,4 +1,4 @@
-module ActiveModel
+module ActiveRecord
   module Validations
     module ClassMethods
       # Validates whether the value of the specified attributes are unique across the system. Useful for making sure that only one user

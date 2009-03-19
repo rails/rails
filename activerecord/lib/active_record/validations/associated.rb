@@ -1,4 +1,4 @@
-module ActiveModel
+module ActiveRecord
   module Validations
     module ClassMethods
       # Validates whether the associated object or objects are all valid themselves. Works with any kind of association.
