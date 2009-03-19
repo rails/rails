@@ -77,7 +77,23 @@ module HappyPath
   
   class RenderActionWithLayoutController < ActionController::Base2
     # Set the view path to an application view structure with layouts
-    self.view_paths = [File.join(File.dirname(__FILE__), 'views', 'with_layout')]
+    self.view_paths = [File.join(File.dirname(__FILE__), 'views', 'with_application_layout')]
+    
+    def hello_world
+      render :action => "hello_world"
+    end
+  end
+  
+  class RenderActionWithControllerLayoutController < ActionController::Base2
+    self.view_paths = [File.join(File.dirname(__FILE__), 'views', 'with_controller_layout')]
+    
+    def hello_world
+      render :action => "hello_world"
+    end
+  end
+  
+  class RenderActionWithControllerLayoutFirstController < ActionController::Base2
+    self.view_paths = [File.join(File.dirname(__FILE__), 'views', 'with_both_layouts')]
     
     def hello_world
       render :action => "hello_world"
@@ -94,5 +110,22 @@ module HappyPath
     assert_body   "OHAI Hello World! KTHXBAI"
     assert_status 200
   end
-
+  
+  class TestRenderActionWithControllerLayout < SimpleRouteCase
+    describe "Render hello_world and implicitly use <controller_path>.html.erb as a layout."
+      
+    get "/happy_path/render_action_with_controller_layout/hello_world"
+    assert_body   "With Controller Layout! Hello World! KTHXBAI"
+    assert_status 200
+  end
+  
+  class TestRenderActionWithControllerLayoutFirst < SimpleRouteCase
+    describe "Render hello_world and implicitly use <controller_path>.html.erb over application.html.erb as a layout"
+    
+    get "/happy_path/render_action_with_controller_layout_first/hello_world"
+    assert_body   "With Controller Layout! Hello World! KTHXBAI"
+    assert_status 200
+  end
+  
+  # TODO: Implement a FixtureViewPath
 end
