@@ -1,7 +1,24 @@
 module ActionController
   module Renderer
     
-    def render(options)
+    # def self.included(klass)
+    #   klass.extend ClassMethods
+    # end
+    # 
+    # module ClassMethods
+    #   def prefix
+    #     @prefix ||= name.underscore
+    #   end      
+    # end
+    
+    def render(action, options = {})
+      # TODO: Move this into #render_to_string
+      if action.is_a?(Hash)
+        options, action = action, nil 
+      else
+        options.merge! :action => action
+      end
+      
       _process_options(options)
       
       self.response_body = render_to_string(options)
@@ -9,22 +26,37 @@ module ActionController
     
     def render_to_string(options)
       self.formats = [:html]
+
+      unless options.is_a?(Hash)
+        options = {:action => options}
+      end
       
       if options.key?(:text)
-        text = options.delete(:text)
-
-        case text
-        when nil then " "
-        else          text.to_s
-        end
+        _render_text(options)
       elsif options.key?(:template)
-        template = options.delete(:template)
-        
+        template = options.delete(:template)        
+        super(template, false)
+      elsif options.key?(:action)
+        template = options.delete(:action).to_s
         super(template)
       end
     end
     
-    private
+  private
+  
+    def _prefix
+      controller_path
+    end  
+  
+    def _render_text(options)
+      text = options.delete(:text)
+
+      case text
+      when nil then " "
+      else          text.to_s
+      end
+    end
+  
     def _process_options(options)
       if status = options.delete(:status)
         response.status = status.to_i
