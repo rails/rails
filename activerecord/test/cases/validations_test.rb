@@ -149,15 +149,18 @@ class ValidationsTest < ActiveRecord::TestCase
   end
 
   def test_validates_length_with_globally_modified_error_message
-    ActiveSupport::Deprecation.silence do
-      ActiveRecord::Errors.default_error_messages[:too_short] = 'tu est trops petit hombre {{count}}'
-    end
+    defaults = ActiveSupport::Deprecation.silence { ActiveRecord::Errors.default_error_messages }
+    original_message = defaults[:too_short]
+    defaults[:too_short] = 'tu est trops petit hombre {{count}}'
 
     Topic.validates_length_of :title, :minimum => 10
     t = Topic.create(:title => 'too short')
     assert !t.valid?
 
     assert_equal ['tu est trops petit hombre 10'], t.errors[:title]
+
+  ensure
+    defaults[:too_short] = original_message
   end
 
   def test_validates_acceptance_of_as_database_column
