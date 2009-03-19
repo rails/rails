@@ -288,12 +288,12 @@ module ActionView #:nodoc:
     # Access the current template being rendered.
     # Returns a ActionView::Template object.
     def template
-      Thread.current[:_current_render]
+      @_current_render
     end
 
     def template=(template) #:nodoc:
       @_first_render ||= template
-      Thread.current[:_current_render] = template
+      @_current_render = template
     end
 
     def with_template(current_template)
