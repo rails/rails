@@ -1436,12 +1436,22 @@ class ValidationsTest < ActiveRecord::TestCase
   end
 
   def test_validation_order
-     Topic.validates_presence_of :title
-     Topic.validates_length_of :title, :minimum => 2
+    Topic.validates_presence_of :title, :author_name
+    Topic.validate {|topic| topic.errors.add('author_email_address', 'will never be valid')}
+    Topic.validates_length_of :title, :content, :minimum => 2
 
-     t = Topic.new("title" => "")
-     assert !t.valid?
-     assert_equal "can't be blank", t.errors.on("title").first
+    t = Topic.new :title => ''
+    t.valid?
+    e = t.errors.instance_variable_get '@errors'
+    assert_equal 'title', key = e.keys.first
+    assert_equal "can't be blank", t.errors.on(key).first
+    assert_equal 'is too short (minimum is 2 characters)', t.errors.on(key).second
+    assert_equal 'author_name', key = e.keys.second
+    assert_equal "can't be blank", t.errors.on(key)
+    assert_equal 'author_email_address', key = e.keys.third
+    assert_equal 'will never be valid', t.errors.on(key)
+    assert_equal 'content', key = e.keys.fourth
+    assert_equal 'is too short (minimum is 2 characters)', t.errors.on(key)
   end
 
   def test_invalid_should_be_the_opposite_of_valid

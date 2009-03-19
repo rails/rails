@@ -137,7 +137,8 @@ module ActiveRecord
     end
 
     def initialize(base) # :nodoc:
-      @base, @errors = base, {}
+      @base = base
+      clear
     end
 
     # Adds an error to the base object instead of any particular attribute. This is used
@@ -286,7 +287,7 @@ module ActiveRecord
 
     # Removes all errors that have been added.
     def clear
-      @errors = {}
+      @errors = ActiveSupport::OrderedHash.new
     end
 
     # Returns the total number of errors added. Two errors added to the same attribute will be counted as such.
