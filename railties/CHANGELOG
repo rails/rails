@@ -1,5 +1,7 @@
 *2.3.2 [Final] (March 15, 2009)*
 
+* Remove outdated script/plugin options [Pratik Naik]
+
 * Allow metal to live in plugins #2045 [Matthew Rudy]
 
 * Added metal [Josh Peek]
