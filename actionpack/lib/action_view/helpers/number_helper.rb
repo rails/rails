@@ -246,6 +246,11 @@ module ActionView
       #  number_to_human_size(483989, :precision => 0)                      # => 473 KB
       #  number_to_human_size(1234567, :precision => 2, :separator => ',')  # => 1,18 MB
       #
+      # Zeros after the decimal point are always stripped out, regardless of the
+      # specified precision:
+      #  helper.number_to_human_size(1234567890123, :precision => 5)        # => "1.12283 TB"
+      #  helper.number_to_human_size(524288000, :precision=>5)              # => "500 MB"
+      #
       # You can still use <tt>number_to_human_size</tt> with the old API that accepts the
       # +precision+ as its optional second parameter:
       #  number_to_human_size(1234567, 2)    # => 1.18 MB
@@ -291,7 +296,7 @@ module ActionView
               :precision => precision,
               :separator => separator,
               :delimiter => delimiter
-            ).sub(/(\d)(#{escaped_separator}[1-9]*)?0+\z/, '\1\2').sub(/#{escaped_separator}\z/, '')
+            ).sub(/(#{escaped_separator})(\d*[1-9])?0+\z/, '\1\2').sub(/#{escaped_separator}\z/, '')
             storage_units_format.gsub(/%n/, formatted_number).gsub(/%u/, unit)
           rescue
             number
