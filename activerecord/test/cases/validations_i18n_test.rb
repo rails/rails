@@ -39,8 +39,8 @@ class ActiveRecordValidationsI18nTests < ActiveSupport::TestCase
   end
 
   def test_default_error_messages_is_deprecated
-    assert_deprecated('ActiveRecord::Errors.default_error_messages') do
-      ActiveRecord::Errors.default_error_messages
+    assert_deprecated('Errors.default_error_messages') do
+      ActiveModel::Errors.default_error_messages
     end
   end
 
@@ -70,7 +70,7 @@ class ActiveRecordValidationsI18nTests < ActiveSupport::TestCase
     end
   end
 
-  # ActiveRecord::Errors
+  # ActiveModel::Errors
   def test_errors_generate_message_translates_custom_model_attribute_key
 
     I18n.expects(:translate).with(
@@ -161,7 +161,7 @@ class ActiveRecordValidationsI18nTests < ActiveSupport::TestCase
   end
 
   def test_errors_full_messages_translates_human_attribute_name_for_model_attributes
-    @topic.errors.instance_variable_set :@errors, { 'title' => ['empty'] }
+    @topic.errors.add('title', 'empty')
     I18n.expects(:translate).with(:"topic.title", :default => ['Title'], :scope => [:activerecord, :attributes], :count => 1).returns('Title')
     @topic.errors.full_messages :locale => 'en'
   end

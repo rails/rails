@@ -75,7 +75,7 @@ class ValidationsTest < ActiveRecord::TestCase
     r.title = "There's no content!"
     assert !r.valid?
     assert r.errors.invalid?("content"), "A reply without content should mark that attribute as invalid"
-    assert_equal "Empty", r.errors.on("content"), "A reply without content should contain an error"
+    assert_equal ["Empty"], r.errors["content"], "A reply without content should contain an error"
     assert_equal 1, r.errors.count
   end
 
@@ -84,10 +84,10 @@ class ValidationsTest < ActiveRecord::TestCase
     assert !r.valid?
 
     assert r.errors.invalid?("title"), "A reply without title should mark that attribute as invalid"
-    assert_equal "Empty", r.errors.on("title"), "A reply without title should contain an error"
+    assert_equal ["Empty"], r.errors["title"], "A reply without title should contain an error"
 
     assert r.errors.invalid?("content"), "A reply without content should mark that attribute as invalid"
-    assert_equal "Empty", r.errors.on("content"), "A reply without content should contain an error"
+    assert_equal ["Empty"], r.errors["content"], "A reply without content should contain an error"
 
     assert_equal 2, r.errors.count
   end
@@ -97,7 +97,7 @@ class ValidationsTest < ActiveRecord::TestCase
     r.title = "Wrong Create"
     assert !r.valid?
     assert r.errors.invalid?("title"), "A reply with a bad title should mark that attribute as invalid"
-    assert_equal "is Wrong Create", r.errors.on("title"), "A reply with a bad content should contain an error"
+    assert_equal "is Wrong Create", r.errors.on(:title), "A reply with a bad content should contain an error"
   end
 
   def test_error_on_update
@@ -110,7 +110,7 @@ class ValidationsTest < ActiveRecord::TestCase
     assert !r.save, "Second save should fail"
 
     assert r.errors.invalid?("title"), "A reply with a bad title should mark that attribute as invalid"
-    assert_equal "is Wrong Update", r.errors.on("title"), "A reply with a bad content should contain an error"
+    assert_equal "is Wrong Update", r.errors.on(:title), "A reply with a bad content should contain an error"
   end
 
   def test_invalid_record_exception
@@ -177,7 +177,7 @@ class ValidationsTest < ActiveRecord::TestCase
     r.save
 
     errors = []
-    r.errors.each { |attr, msg| errors << [attr, msg] }
+    r.errors.each {|attr, messages| errors << [attr.to_s, messages] }
 
     assert errors.include?(["title", "Empty"])
     assert errors.include?(["content", "Empty"])
@@ -189,8 +189,7 @@ class ValidationsTest < ActiveRecord::TestCase
     r.content = "Mismatch"
     r.save
 
-    errors = []
-    r.errors.each_full { |error| errors << error }
+    errors = r.errors.to_a
 
     assert_equal "Title is Wrong Create", errors[0]
     assert_equal "Title is Content Mismatch", errors[1]
@@ -234,8 +233,8 @@ class ValidationsTest < ActiveRecord::TestCase
     t = Topic.new("title" => "valid", "content" => "whatever")
     assert !t.save
     assert_equal 4, hits
-    assert_equal %w(gotcha gotcha), t.errors.on(:title)
-    assert_equal %w(gotcha gotcha), t.errors.on(:content)
+    assert_equal %w(gotcha gotcha), t.errors[:title]
+    assert_equal %w(gotcha gotcha), t.errors[:content]
   end
 
   def test_no_title_confirmation
@@ -277,7 +276,7 @@ class ValidationsTest < ActiveRecord::TestCase
 
     t = Topic.create("title" => "We should be confirmed","terms_of_service" => "")
     assert !t.save
-    assert_equal "must be accepted", t.errors.on(:terms_of_service)
+    assert_equal ["must be accepted"], t.errors[:terms_of_service]
 
     t.terms_of_service = "1"
     assert t.save
@@ -289,7 +288,7 @@ class ValidationsTest < ActiveRecord::TestCase
 
     t = Topic.create("title" => "We should be confirmed","eula" => "")
     assert !t.save
-    assert_equal "must be abided", t.errors.on(:eula)
+    assert_equal ["must be abided"], t.errors[:eula]
 
     t.eula = "1"
     assert t.save
@@ -300,7 +299,7 @@ class ValidationsTest < ActiveRecord::TestCase
 
     t = Topic.create("title" => "We should be confirmed", "terms_of_service" => "")
     assert !t.save
-    assert_equal "must be accepted", t.errors.on(:terms_of_service)
+    assert_equal ["must be accepted"], t.errors[:terms_of_service]
 
     t.terms_of_service = "I agree."
     assert t.save
@@ -328,14 +327,14 @@ class ValidationsTest < ActiveRecord::TestCase
 
     t = Topic.create
     assert !t.save
-    assert_equal "can't be blank", t.errors.on(:title)
-    assert_equal "can't be blank", t.errors.on(:content)
+    assert_equal ["can't be blank"], t.errors[:title]
+    assert_equal ["can't be blank"], t.errors[:content]
 
     t.title = "something"
     t.content  = "   "
 
     assert !t.save
-    assert_equal "can't be blank", t.errors.on(:content)
+    assert_equal ["can't be blank"], t.errors[:content]
 
     t.content = "like stuff"
 
@@ -354,7 +353,7 @@ class ValidationsTest < ActiveRecord::TestCase
     t2 = Topic.new("title" => "I'm unique!")
     assert !t2.valid?, "Shouldn't be valid"
     assert !t2.save, "Shouldn't save t2 as unique"
-    assert_equal "has already been taken", t2.errors.on(:title)
+    assert_equal ["has already been taken"], t2.errors[:title]
 
     t2.title = "Now Im really also unique"
     assert t2.save, "Should now save t2 as unique"
@@ -441,15 +440,15 @@ class ValidationsTest < ActiveRecord::TestCase
     t2 = Topic.new("title" => "I'm UNIQUE!", :parent_id => 1)
     assert !t2.valid?, "Shouldn't be valid"
     assert !t2.save, "Shouldn't save t2 as unique"
-    assert t2.errors.on(:title)
-    assert t2.errors.on(:parent_id)
-    assert_equal "has already been taken", t2.errors.on(:title)
+    assert t2.errors[:title].any?
+    assert t2.errors[:parent_id].any?
+    assert_equal ["has already been taken"], t2.errors[:title]
 
     t2.title = "I'm truly UNIQUE!"
     assert !t2.valid?, "Shouldn't be valid"
     assert !t2.save, "Shouldn't save t2 as unique"
-    assert_nil t2.errors.on(:title)
-    assert t2.errors.on(:parent_id)
+    assert t2.errors[:title].empty?
+    assert t2.errors[:parent_id].any?
 
     t2.parent_id = 4
     assert t2.save, "Should now save t2 as unique"
@@ -484,16 +483,16 @@ class ValidationsTest < ActiveRecord::TestCase
     t2 = Topic.new("title" => "I'M UNIQUE!")
     assert t2.valid?, "Should be valid"
     assert t2.save, "Should save t2 as unique"
-    assert !t2.errors.on(:title)
-    assert !t2.errors.on(:parent_id)
-    assert_not_equal "has already been taken", t2.errors.on(:title)
+    assert t2.errors[:title].empty?
+    assert t2.errors[:parent_id].empty?
+    assert_not_equal ["has already been taken"], t2.errors[:title]
 
     t3 = Topic.new("title" => "I'M uNiQUe!")
     assert t3.valid?, "Should be valid"
     assert t3.save, "Should save t2 as unique"
-    assert !t3.errors.on(:title)
-    assert !t3.errors.on(:parent_id)
-    assert_not_equal "has already been taken", t3.errors.on(:title)
+    assert t3.errors[:title].empty?
+    assert t3.errors[:parent_id].empty?
+    assert_not_equal ["has already been taken"], t3.errors[:title]
   end
 
   def test_validate_case_sensitive_uniqueness_with_attribute_passed_as_integer
@@ -502,13 +501,13 @@ class ValidationsTest < ActiveRecord::TestCase
 
     t2 = Topic.new('title' => 101)
     assert !t2.valid?
-    assert t2.errors.on(:title)
+    assert t2.errors[:title]
   end
 
   def test_validate_uniqueness_with_non_standard_table_names
     i1 = WarehouseThing.create(:value => 1000)
     assert !i1.valid?, "i1 should not be valid"
-    assert i1.errors.on(:value), "Should not be empty"
+    assert i1.errors[:value].any?, "Should not be empty"
   end
 
   def test_validates_uniqueness_inside_with_scope
@@ -546,26 +545,26 @@ class ValidationsTest < ActiveRecord::TestCase
     # Should use validation from base class (which is abstract)
     w2 = IneptWizard.new(:name => "Rincewind", :city => "Quirm")
     assert !w2.valid?, "w2 shouldn't be valid"
-    assert w2.errors.on(:name), "Should have errors for name"
-    assert_equal "has already been taken", w2.errors.on(:name), "Should have uniqueness message for name"
+    assert w2.errors[:name].any?, "Should have errors for name"
+    assert_equal ["has already been taken"], w2.errors[:name], "Should have uniqueness message for name"
 
     w3 = Conjurer.new(:name => "Rincewind", :city => "Quirm")
     assert !w3.valid?, "w3 shouldn't be valid"
-    assert w3.errors.on(:name), "Should have errors for name"
-    assert_equal "has already been taken", w3.errors.on(:name), "Should have uniqueness message for name"
+    assert w3.errors[:name].any?, "Should have errors for name"
+    assert_equal ["has already been taken"], w3.errors[:name], "Should have uniqueness message for name"
 
     w4 = Conjurer.create(:name => "The Amazing Bonko", :city => "Quirm")
     assert w4.valid?, "Saving w4"
 
     w5 = Thaumaturgist.new(:name => "The Amazing Bonko", :city => "Lancre")
     assert !w5.valid?, "w5 shouldn't be valid"
-    assert w5.errors.on(:name), "Should have errors for name"
-    assert_equal "has already been taken", w5.errors.on(:name), "Should have uniqueness message for name"
+    assert w5.errors[:name].any?, "Should have errors for name"
+    assert_equal ["has already been taken"], w5.errors[:name], "Should have uniqueness message for name"
 
     w6 = Thaumaturgist.new(:name => "Mustrum Ridcully", :city => "Quirm")
     assert !w6.valid?, "w6 shouldn't be valid"
-    assert w6.errors.on(:city), "Should have errors for city"
-    assert_equal "has already been taken", w6.errors.on(:city), "Should have uniqueness message for city"
+    assert w6.errors[:city].any?, "Should have errors for city"
+    assert_equal ["has already been taken"], w6.errors[:city], "Should have uniqueness message for city"
   end
 
   def test_validate_format
@@ -574,13 +573,13 @@ class ValidationsTest < ActiveRecord::TestCase
     t = Topic.create("title" => "i'm incorrect", "content" => "Validation macros rule!")
     assert !t.valid?, "Shouldn't be valid"
     assert !t.save, "Shouldn't save because it's invalid"
-    assert_equal "is bad data", t.errors.on(:title)
-    assert_nil t.errors.on(:content)
+    assert_equal ["is bad data"], t.errors[:title]
+    assert t.errors[:content].empty?
 
     t.title = "Validation macros rule!"
 
     assert t.save
-    assert_nil t.errors.on(:title)
+    assert t.errors[:title].empty?
 
     assert_raise(ArgumentError) { Topic.validates_format_of(:title, :content) }
   end
@@ -600,8 +599,8 @@ class ValidationsTest < ActiveRecord::TestCase
     t = Topic.create("title" => "72x", "content" => "6789")
     assert !t.valid?, "Shouldn't be valid"
     assert !t.save, "Shouldn't save because it's invalid"
-    assert_equal "is bad data", t.errors.on(:title)
-    assert_nil t.errors.on(:content)
+    assert_equal ["is bad data"], t.errors[:title]
+    assert t.errors[:content].empty?
 
     t.title = "-11"
     assert !t.valid?, "Shouldn't be valid"
@@ -618,7 +617,7 @@ class ValidationsTest < ActiveRecord::TestCase
     t.title = "1"
 
     assert t.save
-    assert_nil t.errors.on(:title)
+    assert t.errors[:title].empty?
   end
 
   def test_validate_format_with_formatted_message
@@ -639,7 +638,7 @@ class ValidationsTest < ActiveRecord::TestCase
     t.title = "uhoh"
     assert !t.valid?
     assert t.errors.on(:title)
-    assert_equal "is not included in the list", t.errors["title"]
+    assert_equal "is not included in the list", t.errors.on(:title)
 
     assert_raise(ArgumentError) { Topic.validates_inclusion_of( :title, :in => nil ) }
     assert_raise(ArgumentError) { Topic.validates_inclusion_of( :title, :in => 0) }
@@ -692,7 +691,7 @@ class ValidationsTest < ActiveRecord::TestCase
     t = Topic.create("title" => "uhoh", "content" => "abc")
     assert !t.valid?
     assert t.errors.on(:title)
-    assert_equal "option uhoh is not in the list", t.errors["title"]
+    assert_equal "option uhoh is not in the list", t.errors.on(:title)
   end
 
   def test_numericality_with_allow_nil_and_getter_method
@@ -719,7 +718,7 @@ class ValidationsTest < ActiveRecord::TestCase
     t = Topic.create("title" => "monkey")
     assert !t.valid?
     assert t.errors.on(:title)
-    assert_equal "option monkey is restricted", t.errors["title"]
+    assert_equal "option monkey is restricted", t.errors.on(:title)
   end
 
   def test_validates_length_of_using_minimum
@@ -731,17 +730,17 @@ class ValidationsTest < ActiveRecord::TestCase
     t.title = "not"
     assert !t.valid?
     assert t.errors.on(:title)
-    assert_equal "is too short (minimum is 5 characters)", t.errors["title"]
+    assert_equal "is too short (minimum is 5 characters)", t.errors.on(:title)
 
     t.title = ""
     assert !t.valid?
     assert t.errors.on(:title)
-    assert_equal "is too short (minimum is 5 characters)", t.errors["title"]
+    assert_equal "is too short (minimum is 5 characters)", t.errors.on(:title)
 
     t.title = nil
     assert !t.valid?
     assert t.errors.on(:title)
-    assert_equal "is too short (minimum is 5 characters)", t.errors["title"]
+    assert_equal ["is too short (minimum is 5 characters)"], t.errors["title"]
   end
 
   def test_optionally_validates_length_of_using_minimum
@@ -763,7 +762,7 @@ class ValidationsTest < ActiveRecord::TestCase
     t.title = "notvalid"
     assert !t.valid?
     assert t.errors.on(:title)
-    assert_equal "is too long (maximum is 5 characters)", t.errors["title"]
+    assert_equal "is too long (maximum is 5 characters)", t.errors.on(:title)
 
     t.title = ""
     assert t.valid?
@@ -817,7 +816,7 @@ class ValidationsTest < ActiveRecord::TestCase
     t = Topic.create("title" => "thisisnotvalid", "content" => "whatever")
     assert !t.save
     assert t.errors.on(:title)
-    assert_equal "my string is too long: 10", t.errors[:title]
+    assert_equal "my string is too long: 10", t.errors.on(:title)
 
     t.title = "butthisis"
     assert t.save
@@ -842,7 +841,7 @@ class ValidationsTest < ActiveRecord::TestCase
     t.title = "not"
     assert !t.save
     assert t.errors.on(:title)
-    assert_equal "my string is too short: 5", t.errors[:title]
+    assert_equal "my string is too short: 5", t.errors.on(:title)
 
     t.title = "valid"
     t.content = "andthisistoolong"
@@ -862,7 +861,7 @@ class ValidationsTest < ActiveRecord::TestCase
     t.title = "notvalid"
     assert !t.valid?
     assert t.errors.on(:title)
-    assert_equal "is the wrong length (should be 5 characters)", t.errors["title"]
+    assert_equal "is the wrong length (should be 5 characters)", t.errors.on(:title)
 
     t.title = ""
     assert !t.valid?
@@ -896,13 +895,13 @@ class ValidationsTest < ActiveRecord::TestCase
 
   def test_validates_length_with_globally_modified_error_message
     ActiveSupport::Deprecation.silence do
-      ActiveRecord::Errors.default_error_messages[:too_short] = 'tu est trops petit hombre {{count}}'
+      ActiveModel::Errors.default_error_messages[:too_short] = 'tu est trops petit hombre {{count}}'
     end
     Topic.validates_length_of :title, :minimum => 10
     t = Topic.create(:title => 'too short')
     assert !t.valid?
 
-    assert_equal 'tu est trops petit hombre 10', t.errors['title']
+    assert_equal 'tu est trops petit hombre 10', t.errors.on(:title)
   end
 
   def test_validates_size_of_association
@@ -948,7 +947,7 @@ class ValidationsTest < ActiveRecord::TestCase
     t = Topic.create("title" => "uhoh", "content" => "whatever")
     assert !t.valid?
     assert t.errors.on(:title)
-    assert_equal "boo 5", t.errors["title"]
+    assert_equal "boo 5", t.errors.on(:title)
   end
 
   def test_validates_length_of_custom_errors_for_minimum_with_too_short
@@ -956,7 +955,7 @@ class ValidationsTest < ActiveRecord::TestCase
     t = Topic.create("title" => "uhoh", "content" => "whatever")
     assert !t.valid?
     assert t.errors.on(:title)
-    assert_equal "hoo 5", t.errors["title"]
+    assert_equal "hoo 5", t.errors.on(:title)
   end
 
   def test_validates_length_of_custom_errors_for_maximum_with_message
@@ -964,44 +963,44 @@ class ValidationsTest < ActiveRecord::TestCase
     t = Topic.create("title" => "uhohuhoh", "content" => "whatever")
     assert !t.valid?
     assert t.errors.on(:title)
-    assert_equal "boo 5", t.errors["title"]
+    assert_equal ["boo 5"], t.errors[:title]
   end
 
   def test_validates_length_of_custom_errors_for_in
     Topic.validates_length_of(:title, :in => 10..20, :message => "hoo {{count}}")
     t = Topic.create("title" => "uhohuhoh", "content" => "whatever")
     assert !t.valid?
-    assert t.errors.on(:title)
-    assert_equal "hoo 10", t.errors["title"]
+    assert t.errors[:title].any?
+    assert_equal ["hoo 10"], t.errors["title"]
 
     t = Topic.create("title" => "uhohuhohuhohuhohuhohuhohuhohuhoh", "content" => "whatever")
     assert !t.valid?
-    assert t.errors.on(:title)
-    assert_equal "hoo 20", t.errors["title"]
+    assert t.errors[:title].any?
+    assert_equal ["hoo 20"], t.errors["title"]
   end
 
   def test_validates_length_of_custom_errors_for_maximum_with_too_long
     Topic.validates_length_of( :title, :maximum=>5, :too_long=>"hoo {{count}}" )
     t = Topic.create("title" => "uhohuhoh", "content" => "whatever")
     assert !t.valid?
-    assert t.errors.on(:title)
-    assert_equal "hoo 5", t.errors["title"]
+    assert t.errors[:title].any?
+    assert_equal ["hoo 5"], t.errors["title"]
   end
 
   def test_validates_length_of_custom_errors_for_is_with_message
     Topic.validates_length_of( :title, :is=>5, :message=>"boo {{count}}" )
     t = Topic.create("title" => "uhohuhoh", "content" => "whatever")
     assert !t.valid?
-    assert t.errors.on(:title)
-    assert_equal "boo 5", t.errors["title"]
+    assert t.errors[:title].any?
+    assert_equal ["boo 5"], t.errors["title"]
   end
 
   def test_validates_length_of_custom_errors_for_is_with_wrong_length
     Topic.validates_length_of( :title, :is=>5, :wrong_length=>"hoo {{count}}" )
     t = Topic.create("title" => "uhohuhoh", "content" => "whatever")
     assert !t.valid?
-    assert t.errors.on(:title)
-    assert_equal "hoo 5", t.errors["title"]
+    assert t.errors[:title].any?
+    assert_equal ["hoo 5"], t.errors["title"]
   end
 
   def test_validates_length_of_using_minimum_utf8
@@ -1013,8 +1012,8 @@ class ValidationsTest < ActiveRecord::TestCase
 
       t.title = "一二三四"
       assert !t.valid?
-      assert t.errors.on(:title)
-      assert_equal "is too short (minimum is 5 characters)", t.errors["title"]
+      assert t.errors[:title].any?
+      assert_equal ["is too short (minimum is 5 characters)"], t.errors["title"]
     end
   end
 
@@ -1027,8 +1026,8 @@ class ValidationsTest < ActiveRecord::TestCase
 
       t.title = "一二34五六"
       assert !t.valid?
-      assert t.errors.on(:title)
-      assert_equal "is too long (maximum is 5 characters)", t.errors["title"]
+      assert t.errors[:title].any?
+      assert_equal ["is too long (maximum is 5 characters)"], t.errors["title"]
     end
   end
 
@@ -1038,8 +1037,8 @@ class ValidationsTest < ActiveRecord::TestCase
 
       t = Topic.new("title" => "一二", "content" => "12三四五六七")
       assert !t.valid?
-      assert_equal "is too short (minimum is 3 characters)", t.errors.on(:title)
-      assert_equal "is too long (maximum is 5 characters)", t.errors.on(:content)
+      assert_equal ["is too short (minimum is 3 characters)"], t.errors[:title]
+      assert_equal ["is too long (maximum is 5 characters)"], t.errors[:content]
       t.title = "一二三"
       t.content  = "12三"
       assert t.valid?
@@ -1067,8 +1066,8 @@ class ValidationsTest < ActiveRecord::TestCase
 
       t = Topic.create("title" => "一二三四五六七八九十A", "content" => "whatever")
       assert !t.save
-      assert t.errors.on(:title)
-      assert_equal "長すぎます: 10", t.errors[:title]
+      assert t.errors[:title].any?
+      assert_equal "長すぎます: 10", t.errors[:title].first
 
       t.title = "一二三四五六七八九"
       assert t.save
@@ -1090,16 +1089,16 @@ class ValidationsTest < ActiveRecord::TestCase
 
       t = Topic.create("title" => "一二三4", "content" => "whatever")
       assert !t.save
-      assert t.errors.on(:title)
+      assert t.errors[:title].any?
 
       t.title = "1二三4"
       assert !t.save
-      assert t.errors.on(:title)
-      assert_equal "短すぎます: 5", t.errors[:title]
+      assert t.errors[:title].any?
+      assert_equal "短すぎます: 5", t.errors.on(:title)
 
       t.title = "一二三四五六七八九十A"
       assert !t.save
-      assert t.errors.on(:title)
+      assert t.errors[:title].any?
 
       t.title = "一二345"
       assert t.save
@@ -1115,8 +1114,8 @@ class ValidationsTest < ActiveRecord::TestCase
 
       t.title = "一二345六"
       assert !t.valid?
-      assert t.errors.on(:title)
-      assert_equal "is the wrong length (should be 5 characters)", t.errors["title"]
+      assert t.errors[:title].any?
+      assert_equal ["is the wrong length (should be 5 characters)"], t.errors["title"]
     end
   end
 
@@ -1128,8 +1127,8 @@ class ValidationsTest < ActiveRecord::TestCase
 
     t.content = "not long enough"
     assert !t.valid?
-    assert t.errors.on(:content)
-    assert_equal "Your essay must be at least 5 words.", t.errors[:content]
+    assert t.errors[:content].any?
+    assert_equal ["Your essay must be at least 5 words."], t.errors[:content]
   end
 
   def test_validates_size_of_association_utf8
@@ -1138,7 +1137,7 @@ class ValidationsTest < ActiveRecord::TestCase
         assert_nothing_raised { Owner.validates_size_of :pets, :minimum => 1 }
         o = Owner.new('name' => 'あいうえおかきくけこ')
         assert !o.save
-        assert o.errors.on(:pets)
+        assert o.errors[:pets].any?
         o.pets.build('name' => 'あいうえおかきくけこ')
         assert o.valid?
       end
@@ -1150,7 +1149,7 @@ class ValidationsTest < ActiveRecord::TestCase
     t = Topic.create("title" => "uhohuhoh", "content" => "whatever")
     t.replies << [r = Reply.new("title" => "A reply"), r2 = Reply.new("title" => "Another reply", "content" => "non-empty"), r3 = Reply.new("title" => "Yet another reply"), r4 = Reply.new("title" => "The last reply", "content" => "non-empty")]
     assert !t.valid?
-    assert t.errors.on(:replies)
+    assert t.errors[:replies].any?
     assert_equal 1, r.errors.count  # make sure all associated objects have been validated
     assert_equal 0, r2.errors.count
     assert_equal 1, r3.errors.count
@@ -1166,7 +1165,7 @@ class ValidationsTest < ActiveRecord::TestCase
       r = Reply.new("title" => "A reply", "content" => "with content!")
       r.topic = Topic.create("title" => "uhohuhoh")
       assert !r.valid?
-      assert r.errors.on(:topic)
+      assert r.errors[:topic].any?
       r.topic.content = "non-empty"
       assert r.valid?
     end
@@ -1176,8 +1175,8 @@ class ValidationsTest < ActiveRecord::TestCase
     Topic.validate { |topic| topic.errors.add("title", "will never be valid") }
     t = Topic.create("title" => "Title", "content" => "whatever")
     assert !t.valid?
-    assert t.errors.on(:title)
-    assert_equal "will never be valid", t.errors["title"]
+    assert t.errors[:title].any?
+    assert_equal ["will never be valid"], t.errors["title"]
   end
 
   def test_invalid_validator
@@ -1198,7 +1197,7 @@ class ValidationsTest < ActiveRecord::TestCase
       d = Developer.new
       d.salary = "0"
       assert !d.valid?
-      assert_equal "This string contains 'single' and \"double\" quotes", d.errors.on(:salary).last
+      assert_equal "This string contains 'single' and \"double\" quotes", d.errors[:salary].last
     end
   end
 
@@ -1209,7 +1208,7 @@ class ValidationsTest < ActiveRecord::TestCase
       d.name = "John"
       d.name_confirmation = "Johnny"
       assert !d.valid?
-      assert_equal "confirm 'single' and \"double\" quotes", d.errors.on(:name)
+      assert_equal ["confirm 'single' and \"double\" quotes"], d.errors[:name]
     end
   end
 
@@ -1219,7 +1218,7 @@ class ValidationsTest < ActiveRecord::TestCase
       d = Developer.new
       d.name = d.name_confirmation = "John 32"
       assert !d.valid?
-      assert_equal "format 'single' and \"double\" quotes", d.errors.on(:name)
+      assert_equal ["format 'single' and \"double\" quotes"], d.errors[:name]
     end
   end
 
@@ -1229,7 +1228,7 @@ class ValidationsTest < ActiveRecord::TestCase
       d = Developer.new
       d.salary = "90,000"
       assert !d.valid?
-      assert_equal "This string contains 'single' and \"double\" quotes", d.errors.on(:salary).last
+      assert_equal "This string contains 'single' and \"double\" quotes", d.errors[:salary].last
     end
   end
 
@@ -1239,7 +1238,7 @@ class ValidationsTest < ActiveRecord::TestCase
       d = Developer.new
       d.name = "Jeffrey"
       assert !d.valid?
-      assert_equal "This string contains 'single' and \"double\" quotes", d.errors.on(:name)
+      assert_equal ["This string contains 'single' and \"double\" quotes"], d.errors[:name]
     end
   end
 
@@ -1249,7 +1248,7 @@ class ValidationsTest < ActiveRecord::TestCase
       d = Developer.new
       d.name = "Joe"
       assert !d.valid?
-      assert_equal "This string contains 'single' and \"double\" quotes", d.errors.on(:name)
+      assert_equal ["This string contains 'single' and \"double\" quotes"], d.errors[:name]
     end
   end
 
@@ -1259,7 +1258,7 @@ class ValidationsTest < ActiveRecord::TestCase
       d = Developer.new
       d.name = "Joe"
       assert !d.valid?
-      assert_equal "This string contains 'single' and \"double\" quotes", d.errors.on(:name)
+      assert_equal ["This string contains 'single' and \"double\" quotes"], d.errors[:name]
     end
   end
 
@@ -1269,7 +1268,7 @@ class ValidationsTest < ActiveRecord::TestCase
       d = Developer.new
       d.name = "Joe"
       assert !d.valid?
-      assert_equal "This string contains 'single' and \"double\" quotes", d.errors.on(:non_existent)
+      assert_equal ["This string contains 'single' and \"double\" quotes"], d.errors[:non_existent]
     end
   end
 
@@ -1279,7 +1278,7 @@ class ValidationsTest < ActiveRecord::TestCase
       d = Developer.new
       d.name = "David"
       assert !d.valid?
-      assert_equal "This string contains 'single' and \"double\" quotes", d.errors.on(:name)
+      assert_equal ["This string contains 'single' and \"double\" quotes"], d.errors[:name]
     end
   end
 
@@ -1290,7 +1289,7 @@ class ValidationsTest < ActiveRecord::TestCase
       r = Reply.create("title" => "A reply", "content" => "with content!")
       r.topic = Topic.create("title" => "uhohuhoh")
       assert !r.valid?
-      assert_equal "This string contains 'single' and \"double\" quotes", r.errors.on(:topic)
+      assert_equal ["This string contains 'single' and \"double\" quotes"], r.errors[:topic]
     end
   end
 
@@ -1299,8 +1298,8 @@ class ValidationsTest < ActiveRecord::TestCase
     Topic.validates_length_of( :title, :maximum=>5, :too_long=>"hoo {{count}}", :if => :condition_is_true )
     t = Topic.create("title" => "uhohuhoh", "content" => "whatever")
     assert !t.valid?
-    assert t.errors.on(:title)
-    assert_equal "hoo 5", t.errors["title"]
+    assert t.errors[:title].any?
+    assert_equal ["hoo 5"], t.errors["title"]
   end
 
   def test_unless_validation_using_method_true
@@ -1308,7 +1307,7 @@ class ValidationsTest < ActiveRecord::TestCase
     Topic.validates_length_of( :title, :maximum=>5, :too_long=>"hoo {{count}}", :unless => :condition_is_true )
     t = Topic.create("title" => "uhohuhoh", "content" => "whatever")
     assert t.valid?
-    assert !t.errors.on(:title)
+    assert !t.errors[:title].any?
   end
 
   def test_if_validation_using_method_false
@@ -1316,7 +1315,7 @@ class ValidationsTest < ActiveRecord::TestCase
     Topic.validates_length_of( :title, :maximum=>5, :too_long=>"hoo {{count}}", :if => :condition_is_true_but_its_not )
     t = Topic.create("title" => "uhohuhoh", "content" => "whatever")
     assert t.valid?
-    assert !t.errors.on(:title)
+    assert t.errors[:title].empty?
   end
 
   def test_unless_validation_using_method_false
@@ -1324,8 +1323,8 @@ class ValidationsTest < ActiveRecord::TestCase
     Topic.validates_length_of( :title, :maximum=>5, :too_long=>"hoo {{count}}", :unless => :condition_is_true_but_its_not )
     t = Topic.create("title" => "uhohuhoh", "content" => "whatever")
     assert !t.valid?
-    assert t.errors.on(:title)
-    assert_equal "hoo 5", t.errors["title"]
+    assert t.errors[:title].any?
+    assert_equal ["hoo 5"], t.errors["title"]
   end
 
   def test_if_validation_using_string_true
@@ -1333,8 +1332,8 @@ class ValidationsTest < ActiveRecord::TestCase
     Topic.validates_length_of( :title, :maximum=>5, :too_long=>"hoo {{count}}", :if => "a = 1; a == 1" )
     t = Topic.create("title" => "uhohuhoh", "content" => "whatever")
     assert !t.valid?
-    assert t.errors.on(:title)
-    assert_equal "hoo 5", t.errors["title"]
+    assert t.errors[:title].any?
+    assert_equal ["hoo 5"], t.errors["title"]
   end
 
   def test_unless_validation_using_string_true
@@ -1342,7 +1341,7 @@ class ValidationsTest < ActiveRecord::TestCase
     Topic.validates_length_of( :title, :maximum=>5, :too_long=>"hoo {{count}}", :unless => "a = 1; a == 1" )
     t = Topic.create("title" => "uhohuhoh", "content" => "whatever")
     assert t.valid?
-    assert !t.errors.on(:title)
+    assert t.errors[:title].empty?
   end
 
   def test_if_validation_using_string_false
@@ -1350,7 +1349,7 @@ class ValidationsTest < ActiveRecord::TestCase
     Topic.validates_length_of( :title, :maximum=>5, :too_long=>"hoo {{count}}", :if => "false")
     t = Topic.create("title" => "uhohuhoh", "content" => "whatever")
     assert t.valid?
-    assert !t.errors.on(:title)
+    assert t.errors[:title].empty?
   end
 
   def test_unless_validation_using_string_false
@@ -1358,8 +1357,8 @@ class ValidationsTest < ActiveRecord::TestCase
     Topic.validates_length_of( :title, :maximum=>5, :too_long=>"hoo {{count}}", :unless => "false")
     t = Topic.create("title" => "uhohuhoh", "content" => "whatever")
     assert !t.valid?
-    assert t.errors.on(:title)
-    assert_equal "hoo 5", t.errors["title"]
+    assert t.errors[:title].any?
+    assert_equal ["hoo 5"], t.errors["title"]
   end
 
   def test_if_validation_using_block_true
@@ -1368,8 +1367,8 @@ class ValidationsTest < ActiveRecord::TestCase
       :if => Proc.new { |r| r.content.size > 4 } )
     t = Topic.create("title" => "uhohuhoh", "content" => "whatever")
     assert !t.valid?
-    assert t.errors.on(:title)
-    assert_equal "hoo 5", t.errors["title"]
+    assert t.errors[:title].any?
+    assert_equal ["hoo 5"], t.errors["title"]
   end
 
   def test_unless_validation_using_block_true
@@ -1378,7 +1377,7 @@ class ValidationsTest < ActiveRecord::TestCase
       :unless => Proc.new { |r| r.content.size > 4 } )
     t = Topic.create("title" => "uhohuhoh", "content" => "whatever")
     assert t.valid?
-    assert !t.errors.on(:title)
+    assert t.errors[:title].empty?
   end
 
   def test_if_validation_using_block_false
@@ -1387,7 +1386,7 @@ class ValidationsTest < ActiveRecord::TestCase
       :if => Proc.new { |r| r.title != "uhohuhoh"} )
     t = Topic.create("title" => "uhohuhoh", "content" => "whatever")
     assert t.valid?
-    assert !t.errors.on(:title)
+    assert t.errors[:title].empty?
   end
 
   def test_unless_validation_using_block_false
@@ -1396,8 +1395,8 @@ class ValidationsTest < ActiveRecord::TestCase
       :unless => Proc.new { |r| r.title != "uhohuhoh"} )
     t = Topic.create("title" => "uhohuhoh", "content" => "whatever")
     assert !t.valid?
-    assert t.errors.on(:title)
-    assert_equal "hoo 5", t.errors["title"]
+    assert t.errors[:title].any?
+    assert_equal ["hoo 5"], t.errors["title"]
   end
 
   def test_validates_associated_missing
@@ -1405,7 +1404,7 @@ class ValidationsTest < ActiveRecord::TestCase
       Reply.validates_presence_of(:topic)
       r = Reply.create("title" => "A reply", "content" => "with content!")
       assert !r.valid?
-      assert r.errors.on(:topic)
+      assert r.errors[:topic].any?
 
       r.topic = Topic.find :first
       assert r.valid?
@@ -1427,7 +1426,7 @@ class ValidationsTest < ActiveRecord::TestCase
 
      t = Topic.new("title" => "")
      assert !t.valid?
-     assert_equal "can't be blank", t.errors.on("title").first
+     assert_equal "can't be blank", t.errors["title"].first
   end
 
   def test_invalid_should_be_the_opposite_of_valid
@@ -1481,7 +1480,6 @@ class ValidatesNumericalityTest < ActiveRecord::TestCase
 
   def test_default_validates_numericality_of
     Topic.validates_numericality_of :approved
-
     invalid!(NIL + BLANK + JUNK)
     valid!(FLOATS + INTEGERS + BIGDECIMAL + INFINITY)
   end
@@ -1578,11 +1576,11 @@ class ValidatesNumericalityTest < ActiveRecord::TestCase
   end
 
   private
-    def invalid!(values, error=nil)
+    def invalid!(values, error = nil)
       with_each_topic_approved_value(values) do |topic, value|
         assert !topic.valid?, "#{value.inspect} not rejected as a number"
-        assert topic.errors.on(:approved)
-        assert_equal error, topic.errors.on(:approved) if error
+        assert topic.errors[:approved].any?, "FAILED for #{value.inspect}"
+        assert_equal error, topic.errors[:approved].first if error
       end
     end
 
@@ -1593,7 +1591,7 @@ class ValidatesNumericalityTest < ActiveRecord::TestCase
     end
 
     def with_each_topic_approved_value(values)
-      topic = Topic.new("title" => "numeric test", "content" => "whatever")
+      topic = Topic.new(:title => "numeric test", :content => "whatever")
       values.each do |value|
         topic.approved = value
         yield topic, value

@@ -38,7 +38,7 @@ module ActiveModel
       #   end
       #
       # This usage applies to +validate_on_create+ and +validate_on_update as well+.
-      #
+
       # Validates each attribute against a block.
       #
       #   class Person < ActiveRecord::Base
@@ -48,7 +48,7 @@ module ActiveModel
       #   end
       #
       # Options:
-      # * <tt>:on</tt> - Specifies when this validation is active (default is <tt>:save</tt>, other options <tt>:create</tt>, <tt>:update</tt>)
+      # * <tt>:on</tt> - Specifies when this validation is active (default is <tt>:save</tt>, other options <tt>:create</tt>, <tt>:update</tt>).
       # * <tt>:allow_nil</tt> - Skip validation if attribute is +nil+.
       # * <tt>:allow_blank</tt> - Skip validation if attribute is blank.
       # * <tt>:if</tt> - Specifies a method, proc or string to call to determine if the validation should
@@ -83,7 +83,7 @@ module ActiveModel
 
     # Returns the Errors object that holds all information about attribute error messages.
     def errors
-      @errors ||= Errors.new
+      @errors ||= Errors.new(self)
     end
 
     # Runs all the specified validations and returns true if no errors were added otherwise false.
@@ -92,30 +92,47 @@ module ActiveModel
 
       run_callbacks(:validate)
       
-      if responds_to?(:validate)
-        ActiveSupport::Deprecations.warn "Base#validate has been deprecated, please use Base.validate :method instead"
+      if respond_to?(:validate)
+        # ActiveSupport::Deprecation.warn "Base#validate has been deprecated, please use Base.validate :method instead"
         validate
       end
 
       if new_record?
         run_callbacks(:validate_on_create)
 
-        if responds_to?(:validate_on_create)
-          ActiveSupport::Deprecations.warn(
-            "Base#validate_on_create has been deprecated, please use Base.validate_on_create :method instead")
+        if respond_to?(:validate_on_create)
+          # ActiveSupport::Deprecation.warn "Base#validate_on_create has been deprecated, please use Base.validate_on_create :method instead"
           validate_on_create
         end
       else
         run_callbacks(:validate_on_update)
 
-        if responds_to?(:validate_on_update)
-          ActiveSupport::Deprecations.warn(
-            "Base#validate_on_update has been deprecated, please use Base.validate_on_update :method instead")
+        if respond_to?(:validate_on_update)
+          # ActiveSupport::Deprecation.warn "Base#validate_on_update has been deprecated, please use Base.validate_on_update :method instead"
           validate_on_update
         end
       end
 
       errors.empty?
+    end
+
+    # Performs the opposite of <tt>valid?</tt>. Returns true if errors were added, false otherwise.
+    def invalid?
+      !valid?
+    end
+
+    protected
+    
+    # Overwrite this method for validation checks on all saves and use <tt>Errors.add(field, msg)</tt> for invalid attributes.
+    def validate
+    end
+
+    # Overwrite this method for validation checks used only on creation.
+    def validate_on_create
+    end
+
+    # Overwrite this method for validation checks used only on updates.
+    def validate_on_update
     end
   end
 end

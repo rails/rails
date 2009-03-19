@@ -18,24 +18,84 @@ module ActiveModel
       # When the record is created, a check is performed to make sure that no record exists in the database with the given value for the specified
       # attribute (that maps to a column). When the record is updated, the same check is made but disregarding the record itself.
       #
-      # Because this check is performed outside the database there is still a chance that duplicate values
-      # will be inserted in two parallel transactions.  To guarantee against this you should create a 
-      # unique index on the field. See +add_index+ for more information.
-      #
       # Configuration options:
-      # * <tt>:message</tt> - Specifies a custom error message (default is: "has already been taken")
+      # * <tt>:message</tt> - Specifies a custom error message (default is: "has already been taken").
       # * <tt>:scope</tt> - One or more columns by which to limit the scope of the uniqueness constraint.
-      # * <tt>:case_sensitive</tt> - Looks for an exact match.  Ignored by non-text columns (+true+ by default).
-      # * <tt>:allow_nil</tt> - If set to +true+, skips this validation if the attribute is +nil+ (default is: +false+)
-      # * <tt>:allow_blank</tt> - If set to +true+, skips this validation if the attribute is blank (default is: +false+)
+      # * <tt>:case_sensitive</tt> - Looks for an exact match. Ignored by non-text columns (+true+ by default).
+      # * <tt>:allow_nil</tt> - If set to true, skips this validation if the attribute is +nil+ (default is +false+).
+      # * <tt>:allow_blank</tt> - If set to true, skips this validation if the attribute is blank (default is +false+).
       # * <tt>:if</tt> - Specifies a method, proc or string to call to determine if the validation should
       #   occur (e.g. <tt>:if => :allow_validation</tt>, or <tt>:if => Proc.new { |user| user.signup_step > 2 }</tt>).  The
       #   method, proc or string should return or evaluate to a true or false value.
       # * <tt>:unless</tt> - Specifies a method, proc or string to call to determine if the validation should
       #   not occur (e.g. <tt>:unless => :skip_validation</tt>, or <tt>:unless => Proc.new { |user| user.signup_step <= 2 }</tt>).  The
       #   method, proc or string should return or evaluate to a true or false value.
+      #
+      # === Concurrency and integrity
+      #
+      # Using this validation method in conjunction with ActiveRecord::Base#save
+      # does not guarantee the absence of duplicate record insertions, because
+      # uniqueness checks on the application level are inherently prone to race
+      # conditions. For example, suppose that two users try to post a Comment at
+      # the same time, and a Comment's title must be unique. At the database-level,
+      # the actions performed by these users could be interleaved in the following manner:
+      #
+      #               User 1                 |               User 2
+      #  ------------------------------------+--------------------------------------
+      #  # User 1 checks whether there's     |
+      #  # already a comment with the title  |
+      #  # 'My Post'. This is not the case.  |
+      #  SELECT * FROM comments              |
+      #  WHERE title = 'My Post'             |
+      #                                      |
+      #                                      | # User 2 does the same thing and also
+      #                                      | # infers that his title is unique.
+      #                                      | SELECT * FROM comments
+      #                                      | WHERE title = 'My Post'
+      #                                      |
+      #  # User 1 inserts his comment.       |
+      #  INSERT INTO comments                |
+      #  (title, content) VALUES             |
+      #  ('My Post', 'hi!')                  |
+      #                                      |
+      #                                      | # User 2 does the same thing.
+      #                                      | INSERT INTO comments
+      #                                      | (title, content) VALUES
+      #                                      | ('My Post', 'hello!')
+      #                                      |
+      #                                      | # ^^^^^^
+      #                                      | # Boom! We now have a duplicate
+      #                                      | # title!
+      #
+      # This could even happen if you use transactions with the 'serializable'
+      # isolation level. There are several ways to get around this problem:
+      # - By locking the database table before validating, and unlocking it after
+      #   saving. However, table locking is very expensive, and thus not
+      #   recommended.
+      # - By locking a lock file before validating, and unlocking it after saving.
+      #   This does not work if you've scaled your Rails application across
+      #   multiple web servers (because they cannot share lock files, or cannot
+      #   do that efficiently), and thus not recommended.
+      # - Creating a unique index on the field, by using
+      #   ActiveRecord::ConnectionAdapters::SchemaStatements#add_index. In the
+      #   rare case that a race condition occurs, the database will guarantee
+      #   the field's uniqueness.
+      #   
+      #   When the database catches such a duplicate insertion,
+      #   ActiveRecord::Base#save will raise an ActiveRecord::StatementInvalid
+      #   exception. You can either choose to let this error propagate (which
+      #   will result in the default Rails exception page being shown), or you
+      #   can catch it and restart the transaction (e.g. by telling the user
+      #   that the title already exists, and asking him to re-enter the title).
+      #   This technique is also known as optimistic concurrency control:
+      #   http://en.wikipedia.org/wiki/Optimistic_concurrency_control
+      #   
+      #   Active Record currently provides no way to distinguish unique
+      #   index constraint errors from other types of database errors, so you
+      #   will have to parse the (database-specific) exception message to detect
+      #   such a case.
       def validates_uniqueness_of(*attr_names)
-        configuration = { :message => ActiveRecord::Errors.default_error_messages[:taken] }
+        configuration = { :case_sensitive => true }
         configuration.update(attr_names.extract_options!)
 
         validates_each(attr_names,configuration) do |record, attr_name, value|
@@ -53,20 +113,31 @@ module ActiveModel
           # class (which has a database table to query from).
           finder_class = class_hierarchy.detect { |klass| !klass.abstract_class? }
 
-          if value.nil? || (configuration[:case_sensitive] || !finder_class.columns_hash[attr_name.to_s].text?)
-            condition_sql = "#{record.class.quoted_table_name}.#{attr_name} #{attribute_condition(value)}"
+          column = finder_class.columns_hash[attr_name.to_s]
+
+          if value.nil?
+            comparison_operator = "IS ?"
+          elsif column.text?
+            comparison_operator = "#{connection.case_sensitive_equality_operator} ?"
+            value = column.limit ? value.to_s[0, column.limit] : value.to_s
+          else
+            comparison_operator = "= ?"
+          end
+
+          sql_attribute = "#{record.class.quoted_table_name}.#{connection.quote_column_name(attr_name)}"
+
+          if value.nil? || (configuration[:case_sensitive] || !column.text?)
+            condition_sql = "#{sql_attribute} #{comparison_operator}"
             condition_params = [value]
           else
-            # sqlite has case sensitive SELECT query, while MySQL/Postgresql don't.
-            # Hence, this is needed only for sqlite.
-            condition_sql = "LOWER(#{record.class.quoted_table_name}.#{attr_name}) #{attribute_condition(value)}"
-            condition_params = [value.downcase]
+            condition_sql = "LOWER(#{sql_attribute}) #{comparison_operator}"
+            condition_params = [value.mb_chars.downcase]
           end
 
           if scope = configuration[:scope]
             Array(scope).map do |scope_item|
               scope_value = record.send(scope_item)
-              condition_sql << " AND #{record.class.quoted_table_name}.#{scope_item} #{attribute_condition(scope_value)}"
+              condition_sql << " AND " << attribute_condition("#{record.class.quoted_table_name}.#{scope_item}", scope_value)
               condition_params << scope_value
             end
           end
@@ -76,26 +147,10 @@ module ActiveModel
             condition_params << record.send(:id)
           end
 
-          results = finder_class.with_exclusive_scope do
-            connection.select_all(
-              construct_finder_sql(
-                :select     => attr_name,
-                :from       => finder_class.quoted_table_name,
-                :conditions => [condition_sql, *condition_params]
-              )
-            )
-          end
-
-          unless results.length.zero?
-            found = true
-
-            # As MySQL/Postgres don't have case sensitive SELECT queries, we try to find duplicate
-            # column in ruby when case sensitive option
-            if configuration[:case_sensitive] && finder_class.columns_hash[attr_name.to_s].text?
-              found = results.any? { |a| a[attr_name.to_s] == value }
+          finder_class.with_exclusive_scope do
+            if finder_class.exists?([condition_sql, *condition_params])
+              record.errors.add(attr_name, :taken, :default => configuration[:message], :value => value)
             end
-
-            record.errors.add(attr_name, configuration[:message]) if found
           end
         end
       end

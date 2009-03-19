@@ -713,8 +713,8 @@ class TestAutosaveAssociationOnABelongsToAssociation < ActiveRecord::TestCase
 
   def test_should_automatically_validate_the_associated_model
     @ship.pirate.catchphrase = ''
-    assert !@ship.valid?
-    assert !@ship.errors.on(:pirate_catchphrase).blank?
+    assert @ship.invalid?
+    assert @ship.errors[:pirate_catchphrase].any?
   end
 
   def test_should_merge_errors_on_the_associated_model_onto_the_parent_even_if_it_is_not_valid

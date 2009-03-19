@@ -3136,7 +3136,7 @@ module ActiveRecord #:nodoc:
 
   Base.class_eval do
     extend QueryCache::ClassMethods
-    include Validations
+    include ::ActiveModel::Validations, Validations
     include Locking::Optimistic, Locking::Pessimistic
     include AttributeMethods
     include Dirty

@@ -31,6 +31,15 @@ rescue LoadError
   end
 end
 
+begin
+  require 'active_model'
+rescue LoadError
+  $:.unshift "#{File.dirname(__FILE__)}/../../activemodel/lib"
+  require 'active_model'
+else
+  
+end
+
 module ActiveRecord
   # TODO: Review explicit loads to see if they will automatically be handled by the initilizer.
   def self.load_all!

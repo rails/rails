@@ -251,7 +251,7 @@ module ActiveRecord
           unless association.marked_for_destruction?
             association.errors.each do |attribute, message|
               attribute = "#{reflection.name}_#{attribute}"
-              errors.add(attribute, message) unless errors.on(attribute)
+              errors[attribute] << message if errors[attribute].empty?
             end
           end
         else
