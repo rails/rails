@@ -31,6 +31,13 @@ rescue LoadError
   end
 end
 
+begin
+  require 'active_model'
+rescue LoadError
+  $:.unshift "#{File.dirname(__FILE__)}/../../activemodel/lib"
+  require 'active_model'  
+end
+
 require 'active_resource/formats'
 require 'active_resource/base'
 require 'active_resource/validations'

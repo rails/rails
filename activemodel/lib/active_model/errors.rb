@@ -107,7 +107,12 @@ module ActiveModel
         if attribute == :base
           messages.each {|m| full_messages << m }
         else
-          attr_name = @base.class.human_attribute_name(attribute.to_s)
+          if @base.class.respond_to?(:human_attribute_name)
+            attr_name = @base.class.human_attribute_name(attribute.to_s)
+          else
+            attr_name = attribute.to_s.humanize
+          end
+
           prefix = attr_name + I18n.t('activerecord.errors.format.separator', :default => ' ')
           messages.each do |m|
             full_messages <<  "#{prefix}#{m}"

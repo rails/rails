@@ -35,9 +35,7 @@ begin
   require 'active_model'
 rescue LoadError
   $:.unshift "#{File.dirname(__FILE__)}/../../activemodel/lib"
-  require 'active_model'
-else
-  
+  require 'active_model'  
 end
 
 module ActiveRecord

@@ -28,7 +28,7 @@ class BaseErrorsTest < Test::Unit::TestCase
 
   def test_should_iterate_over_errors
     errors = []
-    @person.errors.each { |attribute, message| errors << [attribute, message] }
+    @person.errors.each { |attribute, message| errors << [attribute.to_s, message] }
     assert errors.include?(["name", "can't be blank"])
   end
 
