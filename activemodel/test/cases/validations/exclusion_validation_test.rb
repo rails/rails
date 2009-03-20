@@ -24,7 +24,7 @@ class ExclusionValidationTest < ActiveModel::TestCase
 
     t = Topic.create("title" => "monkey")
     assert !t.valid?
-    assert t.errors.on(:title)
-    assert_equal "option monkey is restricted", t.errors.on(:title)
+    assert t.errors[:title].any?
+    assert_equal ["option monkey is restricted"], t.errors[:title]
   end
 end

@@ -14,7 +14,7 @@ class AssociationValidationTest < ActiveRecord::TestCase
       assert_nothing_raised { Owner.validates_size_of :pets, :minimum => 1 }
       o = Owner.new('name' => 'nopets')
       assert !o.save
-      assert o.errors.on(:pets)
+      assert o.errors[:pets].any?
       pet = o.pets.build('name' => 'apet')
       assert o.valid?
     end
@@ -25,14 +25,14 @@ class AssociationValidationTest < ActiveRecord::TestCase
       assert_nothing_raised { Owner.validates_size_of :pets, :within => 1..2 }
       o = Owner.new('name' => 'nopets')
       assert !o.save
-      assert o.errors.on(:pets)
+      assert o.errors[:pets].any?
 
       pet = o.pets.build('name' => 'apet')
       assert o.valid?
 
       2.times { o.pets.build('name' => 'apet') }
       assert !o.save
-      assert o.errors.on(:pets)
+      assert o.errors[:pets].any?
     end
   end
 

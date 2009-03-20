@@ -389,7 +389,7 @@ class I18nValidationTest < ActiveModel::TestCase
     Topic.validates_confirmation_of :title
     @topic.title_confirmation = 'foo'
     @topic.valid?
-    assert_equal 'custom message', @topic.errors.on(:title)
+    assert_equal ['custom message'], @topic.errors[:title]
   end
 
   def test_validates_confirmation_of_finds_global_default_translation
@@ -398,7 +398,7 @@ class I18nValidationTest < ActiveModel::TestCase
     Topic.validates_confirmation_of :title
     @topic.title_confirmation = 'foo'
     @topic.valid?
-    assert_equal 'global message', @topic.errors.on(:title)
+    assert_equal ['global message'], @topic.errors[:title]
   end
 
   # validates_acceptance_of w/o mocha
@@ -409,7 +409,7 @@ class I18nValidationTest < ActiveModel::TestCase
 
     Topic.validates_acceptance_of :title, :allow_nil => false
     @topic.valid?
-    assert_equal 'custom message', @topic.errors.on(:title)
+    assert_equal ['custom message'], @topic.errors[:title]
   end
 
   def test_validates_acceptance_of_finds_global_default_translation
@@ -417,7 +417,7 @@ class I18nValidationTest < ActiveModel::TestCase
 
     Topic.validates_acceptance_of :title, :allow_nil => false
     @topic.valid?
-    assert_equal 'global message', @topic.errors.on(:title)
+    assert_equal ['global message'], @topic.errors[:title]
   end
 
   # validates_presence_of w/o mocha
@@ -428,7 +428,7 @@ class I18nValidationTest < ActiveModel::TestCase
 
     Topic.validates_presence_of :title
     @topic.valid?
-    assert_equal 'custom message', @topic.errors.on(:title)
+    assert_equal ['custom message'], @topic.errors[:title]
   end
 
   def test_validates_presence_of_finds_global_default_translation
@@ -436,7 +436,7 @@ class I18nValidationTest < ActiveModel::TestCase
 
     Topic.validates_presence_of :title
     @topic.valid?
-    assert_equal 'global message', @topic.errors.on(:title)
+    assert_equal ['global message'], @topic.errors[:title]
   end
 
   # validates_length_of :within w/o mocha
@@ -447,7 +447,7 @@ class I18nValidationTest < ActiveModel::TestCase
 
     Topic.validates_length_of :title, :within => 3..5
     @topic.valid?
-    assert_equal 'custom message', @topic.errors.on(:title)
+    assert_equal ['custom message'], @topic.errors[:title]
   end
 
   def test_validates_length_of_within_finds_global_default_translation
@@ -455,7 +455,7 @@ class I18nValidationTest < ActiveModel::TestCase
 
     Topic.validates_length_of :title, :within => 3..5
     @topic.valid?
-    assert_equal 'global message', @topic.errors.on(:title)
+    assert_equal ['global message'], @topic.errors[:title]
   end
 
   # validates_length_of :is w/o mocha
@@ -466,7 +466,7 @@ class I18nValidationTest < ActiveModel::TestCase
 
     Topic.validates_length_of :title, :is => 5
     @topic.valid?
-    assert_equal 'custom message', @topic.errors.on(:title)
+    assert_equal ['custom message'], @topic.errors[:title]
   end
 
   def test_validates_length_of_is_finds_global_default_translation
@@ -474,7 +474,7 @@ class I18nValidationTest < ActiveModel::TestCase
 
     Topic.validates_length_of :title, :is => 5
     @topic.valid?
-    assert_equal 'global message', @topic.errors.on(:title)
+    assert_equal ['global message'], @topic.errors[:title]
   end
 
   def test_validates_length_of_is_finds_custom_model_key_translation
@@ -483,7 +483,7 @@ class I18nValidationTest < ActiveModel::TestCase
 
     Topic.validates_length_of :title, :is => 5
     @topic.valid?
-    assert_equal 'custom message', @topic.errors.on(:title)
+    assert_equal ['custom message'], @topic.errors[:title]
   end
 
   def test_validates_length_of_is_finds_global_default_translation
@@ -491,7 +491,7 @@ class I18nValidationTest < ActiveModel::TestCase
 
     Topic.validates_length_of :title, :is => 5
     @topic.valid?
-    assert_equal 'global message', @topic.errors.on(:title)
+    assert_equal ['global message'], @topic.errors[:title]
   end
 
 
@@ -503,7 +503,7 @@ class I18nValidationTest < ActiveModel::TestCase
 
     Topic.validates_format_of :title, :with => /^[1-9][0-9]*$/
     @topic.valid?
-    assert_equal 'custom message', @topic.errors.on(:title)
+    assert_equal ['custom message'], @topic.errors[:title]
   end
 
   def test_validates_format_of_finds_global_default_translation
@@ -511,7 +511,7 @@ class I18nValidationTest < ActiveModel::TestCase
 
     Topic.validates_format_of :title, :with => /^[1-9][0-9]*$/
     @topic.valid?
-    assert_equal 'global message', @topic.errors.on(:title)
+    assert_equal ['global message'], @topic.errors[:title]
   end
 
   # validates_inclusion_of w/o mocha
@@ -522,7 +522,7 @@ class I18nValidationTest < ActiveModel::TestCase
 
     Topic.validates_inclusion_of :title, :in => %w(a b c)
     @topic.valid?
-    assert_equal 'custom message', @topic.errors.on(:title)
+    assert_equal ['custom message'], @topic.errors[:title]
   end
 
   def test_validates_inclusion_of_finds_global_default_translation
@@ -530,7 +530,7 @@ class I18nValidationTest < ActiveModel::TestCase
 
     Topic.validates_inclusion_of :title, :in => %w(a b c)
     @topic.valid?
-    assert_equal 'global message', @topic.errors.on(:title)
+    assert_equal ['global message'], @topic.errors[:title]
   end
 
   # validates_exclusion_of w/o mocha
@@ -542,7 +542,7 @@ class I18nValidationTest < ActiveModel::TestCase
     Topic.validates_exclusion_of :title, :in => %w(a b c)
     @topic.title = 'a'
     @topic.valid?
-    assert_equal 'custom message', @topic.errors.on(:title)
+    assert_equal ['custom message'], @topic.errors[:title]
   end
 
   def test_validates_exclusion_of_finds_global_default_translation
@@ -551,7 +551,7 @@ class I18nValidationTest < ActiveModel::TestCase
     Topic.validates_exclusion_of :title, :in => %w(a b c)
     @topic.title = 'a'
     @topic.valid?
-    assert_equal 'global message', @topic.errors.on(:title)
+    assert_equal ['global message'], @topic.errors[:title]
   end
 
   # validates_numericality_of without :only_integer w/o mocha
@@ -563,7 +563,7 @@ class I18nValidationTest < ActiveModel::TestCase
     Topic.validates_numericality_of :title
     @topic.title = 'a'
     @topic.valid?
-    assert_equal 'custom message', @topic.errors.on(:title)
+    assert_equal ['custom message'], @topic.errors[:title]
   end
 
   def test_validates_numericality_of_finds_global_default_translation
@@ -572,7 +572,7 @@ class I18nValidationTest < ActiveModel::TestCase
     Topic.validates_numericality_of :title, :only_integer => true
     @topic.title = 'a'
     @topic.valid?
-    assert_equal 'global message', @topic.errors.on(:title)
+    assert_equal ['global message'], @topic.errors[:title]
   end
 
   # validates_numericality_of with :only_integer w/o mocha
@@ -584,7 +584,7 @@ class I18nValidationTest < ActiveModel::TestCase
     Topic.validates_numericality_of :title, :only_integer => true
     @topic.title = 'a'
     @topic.valid?
-    assert_equal 'custom message', @topic.errors.on(:title)
+    assert_equal ['custom message'], @topic.errors[:title]
   end
 
   def test_validates_numericality_of_only_integer_finds_global_default_translation
@@ -593,7 +593,7 @@ class I18nValidationTest < ActiveModel::TestCase
     Topic.validates_numericality_of :title, :only_integer => true
     @topic.title = 'a'
     @topic.valid?
-    assert_equal 'global message', @topic.errors.on(:title)
+    assert_equal ['global message'], @topic.errors[:title]
   end
 
   # validates_numericality_of :odd w/o mocha
@@ -605,7 +605,7 @@ class I18nValidationTest < ActiveModel::TestCase
     Topic.validates_numericality_of :title, :only_integer => true, :odd => true
     @topic.title = 0
     @topic.valid?
-    assert_equal 'custom message', @topic.errors.on(:title)
+    assert_equal ['custom message'], @topic.errors[:title]
   end
 
   def test_validates_numericality_of_odd_finds_global_default_translation
@@ -614,7 +614,7 @@ class I18nValidationTest < ActiveModel::TestCase
     Topic.validates_numericality_of :title, :only_integer => true, :odd => true
     @topic.title = 0
     @topic.valid?
-    assert_equal 'global message', @topic.errors.on(:title)
+    assert_equal ['global message'], @topic.errors[:title]
   end
 
   # validates_numericality_of :less_than w/o mocha
@@ -626,7 +626,7 @@ class I18nValidationTest < ActiveModel::TestCase
     Topic.validates_numericality_of :title, :only_integer => true, :less_than => 0
     @topic.title = 1
     @topic.valid?
-    assert_equal 'custom message', @topic.errors.on(:title)
+    assert_equal ['custom message'], @topic.errors[:title]
   end
 
   def test_validates_numericality_of_less_than_finds_global_default_translation
@@ -635,7 +635,7 @@ class I18nValidationTest < ActiveModel::TestCase
     Topic.validates_numericality_of :title, :only_integer => true, :less_than => 0
     @topic.title = 1
     @topic.valid?
-    assert_equal 'global message', @topic.errors.on(:title)
+    assert_equal ['global message'], @topic.errors[:title]
   end
 
   def test_validations_with_message_symbol_must_translate
@@ -643,7 +643,7 @@ class I18nValidationTest < ActiveModel::TestCase
     Topic.validates_presence_of :title, :message => :custom_error
     @topic.title = nil
     @topic.valid?
-    assert_equal "I am a custom error", @topic.errors.on(:title)
+    assert_equal ["I am a custom error"], @topic.errors[:title]
   end
 
   def test_validates_with_message_symbol_must_translate_per_attribute
@@ -651,7 +651,7 @@ class I18nValidationTest < ActiveModel::TestCase
     Topic.validates_presence_of :title, :message => :custom_error
     @topic.title = nil
     @topic.valid?
-    assert_equal "I am a custom error", @topic.errors.on(:title)
+    assert_equal ["I am a custom error"], @topic.errors[:title]
   end
 
   def test_validates_with_message_symbol_must_translate_per_model
@@ -659,14 +659,14 @@ class I18nValidationTest < ActiveModel::TestCase
     Topic.validates_presence_of :title, :message => :custom_error
     @topic.title = nil
     @topic.valid?
-    assert_equal "I am a custom error", @topic.errors.on(:title)
+    assert_equal ["I am a custom error"], @topic.errors[:title]
   end
 
   def test_validates_with_message_string
     Topic.validates_presence_of :title, :message => "I am a custom error"
     @topic.title = nil
     @topic.valid?
-    assert_equal "I am a custom error", @topic.errors.on(:title)
+    assert_equal ["I am a custom error"], @topic.errors[:title]
   end
 
 end

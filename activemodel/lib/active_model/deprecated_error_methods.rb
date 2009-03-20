@@ -1,10 +1,10 @@
 module ActiveModel
   module DeprecatedErrorMethods
     def on(attribute)
-      # message = "Errors#on have been deprecated, use Errors#[] instead.\n"
-      # message << "Also note that the behaviour of Errors#[] has changed. Errors#[] now always returns an Array and an empty Array when "
-      # message << "there are not errors on the specified attribute."
-      # ActiveSupport::Deprecation.warn(message)
+      message = "Errors#on have been deprecated, use Errors#[] instead.\n"
+      message << "Also note that the behaviour of Errors#[] has changed. Errors#[] now always returns an Array and an empty Array when "
+      message << "there are not errors on the specified attribute."
+      ActiveSupport::Deprecation.warn(message)
 
       errors = self[attribute]
       errors.size < 2 ? errors.first : errors

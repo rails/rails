@@ -80,7 +80,7 @@ class ValidationsTest < ActiveModel::TestCase
     errors = []
     r.errors.each_full { |error| errors << error }
 
-    assert_equal "Reply is not dignifying", r.errors.on_base
+    assert_equal ["Reply is not dignifying"], r.errors[:base]
 
     assert errors.include?("Title Empty")
     assert errors.include?("Reply is not dignifying")
@@ -140,5 +140,29 @@ class ValidationsTest < ActiveModel::TestCase
 
     t.title = 'Things are going to change'
     assert !t.invalid?
+  end
+
+  def test_deprecated_error_messages_on
+    Topic.validates_presence_of :title
+
+    t = Topic.new
+    assert t.invalid?
+
+    [:title, "title"].each do |attribute|
+      assert_deprecated { assert_equal "can't be blank", t.errors.on(attribute) }
+    end
+
+    Topic.validates_each(:title) do |record, attribute|
+      record.errors[attribute] << "invalid"
+    end
+
+    assert t.invalid?
+
+    [:title, "title"].each do |attribute|
+      assert_deprecated do
+        assert t.errors.on(attribute).include?("invalid")
+        assert t.errors.on(attribute).include?("can't be blank")
+      end
+    end
   end
 end

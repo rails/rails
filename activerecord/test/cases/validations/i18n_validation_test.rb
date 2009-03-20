@@ -76,7 +76,7 @@ class I18nValidationTest < ActiveRecord::TestCase
 
     Topic.validates_associated :replies
     replied_topic.valid?
-    assert_equal 'custom message', replied_topic.errors.on(:replies)
+    assert_equal ['custom message'], replied_topic.errors[:replies]
   end
 
   def test_validates_associated_finds_global_default_translation
@@ -84,6 +84,6 @@ class I18nValidationTest < ActiveRecord::TestCase
 
     Topic.validates_associated :replies
     replied_topic.valid?
-    assert_equal 'global message', replied_topic.errors.on(:replies)
+    assert_equal ['global message'], replied_topic.errors[:replies]
   end
 end
