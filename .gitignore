@@ -8,6 +8,7 @@ activesupport/doc
 activeresource/pkg
 activerecord/pkg
 actionpack/pkg
+activemodel/test/fixtures/fixture_database.sqlite3
 actionmailer/pkg
 activesupport/pkg
 railties/pkg
