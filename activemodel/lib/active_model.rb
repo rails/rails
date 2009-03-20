@@ -32,10 +32,6 @@ rescue LoadError
 end
 
 module ActiveModel
-  def self.load_all!
-    [Base]
-  end
-
   autoload :Base, 'active_model/base'
   autoload :Observing, 'active_model/observing'
   autoload :Validations, 'active_model/validations'
