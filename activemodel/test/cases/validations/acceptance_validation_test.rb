@@ -1,13 +1,13 @@
 # encoding: utf-8
 require 'cases/helper'
-require 'cases/test_database'
+require 'cases/tests_database'
 
 require 'models/topic'
 require 'models/reply'
 require 'models/developer'
 
 class AcceptanceValidationTest < ActiveModel::TestCase
-  include ActiveModel::TestDatabase
+  include ActiveModel::TestsDatabase
   include ActiveModel::ValidationsRepairHelper
 
   repair_validations(Topic)

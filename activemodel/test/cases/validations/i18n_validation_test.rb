@@ -3,7 +3,7 @@ require 'models/topic'
 require 'models/reply'
 
 class I18nValidationTest < ActiveModel::TestCase
-  include ActiveModel::TestDatabase
+  include ActiveModel::TestsDatabase
 
   def setup
     reset_callbacks Topic

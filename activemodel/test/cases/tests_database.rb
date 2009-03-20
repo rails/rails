@@ -5,7 +5,7 @@ require 'active_record'
 require 'active_record/fixtures'
 
 module ActiveModel
-  module TestDatabase
+  module TestsDatabase
     def self.included(base)
       ActiveRecord::Base.logger = Logger.new("debug.log")
       ActiveRecord::Base.establish_connection(:adapter => 'sqlite3', :database => ':memory:')
