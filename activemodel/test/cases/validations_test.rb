@@ -10,8 +10,6 @@ class ValidationsTest < ActiveModel::TestCase
   include ActiveModel::TestsDatabase
   include ActiveModel::ValidationsRepairHelper
 
-  fixtures :topics, :developers
-
   # Most of the tests mess with the validations of Topic, so lets repair it all the time.
   # Other classes we mess with will be dealt with in the specific tests
   repair_validations(Topic)
