@@ -35,15 +35,16 @@ module ActionController
       end
 
       if options.key?(:text)
-        _render_text(options)
+        options[:_template] = ActionView::TextTemplate.new(_text(options))
+        template = nil
       elsif options.key?(:template)
-        template = options.delete(:template)        
-        super(template)
+        template = options.delete(:template)
       elsif options.key?(:action)
         template = options.delete(:action).to_s
         options[:_prefix] = _prefix 
-        super(template, options)
       end
+      
+      super(template, options)
     end
     
   private
@@ -52,12 +53,12 @@ module ActionController
       controller_path
     end  
   
-    def _render_text(options)
+    def _text(options)
       text = options.delete(:text)
 
       case text
       when nil then " "
-      else          text.to_s
+      else text.to_s
       end
     end
   

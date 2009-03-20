@@ -3,9 +3,13 @@ require File.join(File.expand_path(File.dirname(__FILE__)), "test_helper")
 module HappyPath
   
   class RenderTextController < ActionController::Base2
+    self.view_paths = [ActionView::FixtureTemplate::FixturePath.new(
+      "layouts/application.html.erb" => "<%= yield %>, I'm here!",
+      "layouts/greetings.html.erb"   => "<%= yield %>, I wish thee well."
+    )]
+    
     def render_hello_world_from_variable
-      @person = "david"
-      render :text => "hello #{@person}"
+      render :text => "hello david"
     end
     
     def render_custom_code
@@ -27,10 +31,18 @@ module HappyPath
     def render_text_with_false
       render :text => false
     end
+    
+    def render_text_with_layout
+      render :text => "hello world", :layout => true
+    end
+    
+    def render_text_with_custom_layout
+      render :text => "hello world", :layout => "greetings"
+    end
   end
   
   class TestSimpleTextRender < SimpleRouteCase    
-    describe "Rendering text from a action with default options"
+    describe "Rendering text from a action with default options renders the text without the layout"
     
     get "/happy_path/render_text/render_hello_world_from_variable"
     assert_body   "hello david"
@@ -66,6 +78,22 @@ module HappyPath
     
     get "/happy_path/render_text/render_text_with_false"
     assert_body   "false"
+    assert_status 200
+  end
+  
+  class TestTextRenderWithLayoutTrue < SimpleRouteCase
+    describe "Rendering text with :layout => true"
+    
+    get "/happy_path/render_text/render_text_with_layout"
+    assert_body "hello world, I'm here!"
+    assert_status 200
+  end
+  
+  class TestTextRenderWithCustomLayout < SimpleRouteCase
+    describe "Rendering text with :layout => 'greetings'"
+    
+    get "/happy_path/render_text/render_text_with_custom_layout"
+    assert_body "hello world, I wish thee well."
     assert_status 200
   end
 end

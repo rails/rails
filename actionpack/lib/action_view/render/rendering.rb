@@ -62,20 +62,18 @@ module ActionView
     end
 
     def _render_template(template, local_assigns = {})
-      template.compile(local_assigns)
-
       @_render_stack.push(template)
 
       _evaluate_assigns_and_ivars
       _set_controller_content_type(template.mime_type) if template.respond_to?(:mime_type)
 
-      result = send(template.method_name(local_assigns), local_assigns) do |*names|
+      result = template.render(self, local_assigns) do |*names|
         if !instance_variable_defined?(:"@content_for_#{names.first}") && 
         instance_variable_defined?(:@_proc_for_layout) && (proc = @_proc_for_layout)
           capture(*names, &proc)
         elsif instance_variable_defined?(ivar = :"@content_for_#{names.first || :layout}")
           instance_variable_get(ivar)
-        end
+        end        
       end
 
       @_render_stack.pop

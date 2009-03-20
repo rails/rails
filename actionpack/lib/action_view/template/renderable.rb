@@ -4,6 +4,13 @@ module ActionView
   module Renderable #:nodoc:
     extend ActiveSupport::Memoizable
 
+    def render(view, locals)
+      compile(locals)
+      view.send(method_name(locals), locals) {|*args| yield(*args) }
+    end
+    
+  private
+  
     def filename
       'compiled-template'
     end

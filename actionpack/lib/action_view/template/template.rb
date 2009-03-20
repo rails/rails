@@ -206,7 +206,7 @@ module ActionView #:nodoc:
 
     def load!
       @cached = true
-      freeze
+      # freeze
     end
 
     private

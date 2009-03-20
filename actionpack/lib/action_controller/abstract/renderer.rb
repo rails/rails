@@ -31,7 +31,7 @@ module AbstractController
     # 
     # :api: plugin
     def render_to_string(name = action_name, options = {})
-      template = view_paths.find_by_parts(name.to_s, formats, options[:_prefix])
+      template = options[:_template] || view_paths.find_by_parts(name.to_s, formats, options[:_prefix])
       _render_template(template, options)
     end
 

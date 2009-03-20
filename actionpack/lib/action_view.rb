@@ -50,6 +50,7 @@ module ActionView
   autoload :TemplateError, 'action_view/template/error'
   autoload :TemplateHandler, 'action_view/template/handler'
   autoload :TemplateHandlers, 'action_view/template/handlers'
+  autoload :TextTemplate, 'action_view/template/text'
   autoload :Helpers, 'action_view/helpers'
 end
 
