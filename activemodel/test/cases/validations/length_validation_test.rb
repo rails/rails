@@ -3,6 +3,8 @@ require 'cases/helper'
 require 'cases/tests_database'
 
 require 'models/topic'
+require 'models/developer'
+require 'models/person'
 
 class LengthValidationTest < ActiveModel::TestCase
   include ActiveModel::TestsDatabase
@@ -427,6 +429,21 @@ class LengthValidationTest < ActiveModel::TestCase
       d.name = "Joe"
       assert !d.valid?
       assert_equal ["This string contains 'single' and \"double\" quotes"], d.errors[:name]
+    end
+  end
+
+  def test_validates_length_of_for_ruby_class
+    repair_validations(Person) do
+      Person.validates_length_of :karma, :minimum => 5
+
+      p = Person.new
+      p.karma = "Pix"
+      assert p.invalid?
+
+      assert_equal ["is too short (minimum is 5 characters)"], p.errors[:karma]
+
+      p.karma = "The Smiths"
+      assert p.valid?
     end
   end
 end

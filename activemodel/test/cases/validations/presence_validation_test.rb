@@ -3,6 +3,8 @@ require 'cases/helper'
 require 'cases/tests_database'
 
 require 'models/topic'
+require 'models/developer'
+require 'models/person'
 
 class PresenceValidationTest < ActiveModel::TestCase
   include ActiveModel::TestsDatabase
@@ -36,6 +38,20 @@ class PresenceValidationTest < ActiveModel::TestCase
       d.name = "Joe"
       assert !d.valid?
       assert_equal ["This string contains 'single' and \"double\" quotes"], d.errors[:non_existent]
+    end
+  end
+
+  def test_validates_presence_of_for_ruby_class
+    repair_validations(Person) do
+      Person.validates_presence_of :karma
+
+      p = Person.new
+      assert p.invalid?
+
+      assert_equal ["can't be blank"], p.errors[:karma]
+
+      p.karma = "Cold"
+      assert p.valid?
     end
   end
 end

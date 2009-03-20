@@ -3,6 +3,8 @@ require 'cases/helper'
 require 'cases/tests_database'
 
 require 'models/topic'
+require 'models/developer'
+require 'models/person'
 
 class InclusionValidationTest < ActiveModel::TestCase
   include ActiveModel::TestsDatabase
@@ -58,6 +60,21 @@ class InclusionValidationTest < ActiveModel::TestCase
       d.salary = "90,000"
       assert !d.valid?
       assert_equal "This string contains 'single' and \"double\" quotes", d.errors[:salary].last
+    end
+  end
+
+  def test_validates_inclusion_of_for_ruby_class
+    repair_validations(Person) do
+      Person.validates_inclusion_of :karma, :in => %w( abe monkey )
+
+      p = Person.new
+      p.karma = "Lifo"
+      assert p.invalid?
+
+      assert_equal ["is not included in the list"], p.errors[:karma]
+
+      p.karma = "monkey"
+      assert p.valid?
     end
   end
 end

@@ -3,6 +3,8 @@ require 'cases/helper'
 require 'cases/tests_database'
 
 require 'models/topic'
+require 'models/developer'
+require 'models/person'
 
 class PresenceValidationTest < ActiveModel::TestCase
   include ActiveModel::TestsDatabase
@@ -76,6 +78,21 @@ class PresenceValidationTest < ActiveModel::TestCase
       d.name = d.name_confirmation = "John 32"
       assert !d.valid?
       assert_equal ["format 'single' and \"double\" quotes"], d.errors[:name]
+    end
+  end
+
+  def test_validates_format_of_for_ruby_class
+    repair_validations(Person) do
+      Person.validates_format_of :karma, :with => /\A\d+\Z/
+
+      p = Person.new
+      p.karma = "Pixies"
+      assert p.invalid?
+
+      assert_equal ["is invalid"], p.errors[:karma]
+
+      p.karma = "1234"
+      assert p.valid?
     end
   end
 end

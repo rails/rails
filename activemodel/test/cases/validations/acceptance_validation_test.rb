@@ -5,6 +5,7 @@ require 'cases/tests_database'
 require 'models/topic'
 require 'models/reply'
 require 'models/developer'
+require 'models/person'
 
 class AcceptanceValidationTest < ActiveModel::TestCase
   include ActiveModel::TestsDatabase
@@ -52,15 +53,6 @@ class AcceptanceValidationTest < ActiveModel::TestCase
     assert t.save
   end
 
-  def test_validates_acceptance_of_as_database_column
-    repair_validations(Reply) do
-      Reply.validates_acceptance_of(:author_name)
-
-      reply = Reply.create("author_name" => "Dan Brown")
-      assert_equal "Dan Brown", reply["author_name"]
-    end
-  end
-
   def test_validates_acceptance_of_with_custom_error_using_quotes
     repair_validations(Developer) do
       Developer.validates_acceptance_of :salary, :message=> "This string contains 'single' and \"double\" quotes"
@@ -68,6 +60,21 @@ class AcceptanceValidationTest < ActiveModel::TestCase
       d.salary = "0"
       assert !d.valid?
       assert_equal "This string contains 'single' and \"double\" quotes", d.errors[:salary].last
+    end
+  end
+
+  def test_validates_acceptance_of_for_ruby_class
+    repair_validations(Person) do
+      Person.validates_acceptance_of :karma
+
+      p = Person.new
+      p.karma = ""
+
+      assert p.invalid?
+      assert_equal ["must be accepted"], p.errors[:karma]
+
+      p.karma = "1"
+      assert p.valid?
     end
   end
 end

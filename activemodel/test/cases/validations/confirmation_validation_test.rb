@@ -4,6 +4,7 @@ require 'cases/tests_database'
 
 require 'models/topic'
 require 'models/developer'
+require 'models/person'
 
 class ConfirmationValidationTest < ActiveModel::TestCase
   include ActiveModel::TestsDatabase
@@ -48,4 +49,20 @@ class ConfirmationValidationTest < ActiveModel::TestCase
       assert_equal ["confirm 'single' and \"double\" quotes"], d.errors[:name]
     end
   end
+
+  def test_validates_confirmation_of_for_ruby_class
+    repair_validations(Person) do
+      Person.validates_confirmation_of :karma
+
+      p = Person.new
+      p.karma_confirmation = "None"
+      assert p.invalid?
+
+      assert_equal ["doesn't match confirmation"], p.errors[:karma]
+
+      p.karma = "None"
+      assert p.valid?
+    end
+  end
+
 end

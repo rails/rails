@@ -141,4 +141,13 @@ class ValidationsTest < ActiveRecord::TestCase
 
     assert_equal ['tu est trops petit hombre 10'], t.errors[:title]
   end
+
+  def test_validates_acceptance_of_as_database_column
+    repair_validations(Reply) do
+      Reply.validates_acceptance_of(:author_name)
+
+      reply = Reply.create("author_name" => "Dan Brown")
+      assert_equal "Dan Brown", reply["author_name"]
+    end
+  end
 end
