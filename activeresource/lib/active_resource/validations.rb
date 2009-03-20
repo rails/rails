@@ -4,7 +4,7 @@ module ActiveResource
 
   # Active Resource validation is reported to and from this object, which is used by Base#save
   # to determine whether the object in a valid state to be saved. See usage example in Validations.  
-  class Errors < ::ActiveModel::Errors
+  class Errors < ActiveModel::Errors
     # Grabs errors from the XML response.
     def from_xml(xml)
       clear
@@ -38,7 +38,7 @@ module ActiveResource
   #   person.errors.empty?          # => false
   #   person.errors.count           # => 1
   #   person.errors.full_messages   # => ["Last name can't be empty"]
-  #   person.errors.on(:last_name)  # => "can't be empty"
+  #   person.errors[:last_name]  # => ["can't be empty"]
   #   person.last_name = "Halpert"  
   #   person.save                   # => true (and person is now saved to the remote service)
   #
