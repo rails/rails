@@ -1,0 +1,51 @@
+# encoding: utf-8
+require 'cases/helper'
+require 'cases/test_database'
+
+require 'models/topic'
+require 'models/developer'
+
+class ConfirmationValidationTest < ActiveModel::TestCase
+  include ActiveModel::TestDatabase
+  include ActiveModel::ValidationsRepairHelper
+
+  repair_validations(Topic)
+
+  def test_no_title_confirmation
+    Topic.validates_confirmation_of(:title)
+
+    t = Topic.new(:author_name => "Plutarch")
+    assert t.valid?
+
+    t.title_confirmation = "Parallel Lives"
+    assert !t.valid?
+
+    t.title_confirmation = nil
+    t.title = "Parallel Lives"
+    assert t.valid?
+
+    t.title_confirmation = "Parallel Lives"
+    assert t.valid?
+  end
+
+  def test_title_confirmation
+    Topic.validates_confirmation_of(:title)
+
+    t = Topic.create("title" => "We should be confirmed","title_confirmation" => "")
+    assert !t.save
+
+    t.title_confirmation = "We should be confirmed"
+    assert t.save
+  end
+
+  def test_validates_confirmation_of_with_custom_error_using_quotes
+    repair_validations(Developer) do
+      Developer.validates_confirmation_of :name, :message=> "confirm 'single' and \"double\" quotes"
+      d = Developer.new
+      d.name = "John"
+      d.name_confirmation = "Johnny"
+      assert !d.valid?
+      assert_equal ["confirm 'single' and \"double\" quotes"], d.errors[:name]
+    end
+  end
+end
