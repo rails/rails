@@ -37,6 +37,7 @@ module ActiveModel
   end
 
   autoload :Base, 'active_model/base'
+  autoload :Observing, 'active_model/observing'
   autoload :Validations, 'active_model/validations'
   autoload :Errors, 'active_model/errors'
   autoload :DeprecatedErrorMethods, 'active_model/deprecated_error_methods'
