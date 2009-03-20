@@ -200,17 +200,6 @@ class LengthValidationTest < ActiveModel::TestCase
     end
   end
 
-  def test_validates_length_with_globally_modified_error_message
-    ActiveSupport::Deprecation.silence do
-      ActiveModel::Errors.default_error_messages[:too_short] = 'tu est trops petit hombre {{count}}'
-    end
-    Topic.validates_length_of :title, :minimum => 10
-    t = Topic.create(:title => 'too short')
-    assert !t.valid?
-
-    assert_equal ['tu est trops petit hombre 10'], t.errors[:title]
-  end
-
   def test_validates_length_of_nasty_params
     assert_raise(ArgumentError) { Topic.validates_length_of(:title, :minimum=>6, :maximum=>9) }
     assert_raise(ArgumentError) { Topic.validates_length_of(:title, :within=>6, :maximum=>9) }

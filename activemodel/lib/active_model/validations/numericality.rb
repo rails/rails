@@ -35,7 +35,6 @@ module ActiveModel
         configuration = { :on => :save, :only_integer => false, :allow_nil => false }
         configuration.update(attr_names.extract_options!)
 
-
         numericality_options = ALL_NUMERICALITY_CHECKS.keys & configuration.keys
 
         (numericality_options - [ :odd, :even ]).each do |option|
@@ -43,7 +42,13 @@ module ActiveModel
         end
 
         validates_each(attr_names,configuration) do |record, attr_name, value|
-          raw_value = record.send("#{attr_name}_before_type_cast") || value
+          before_type_cast = "#{attr_name}_before_type_cast"
+
+          if record.respond_to?(before_type_cast.to_sym)
+            raw_value = record.send("#{attr_name}_before_type_cast") || value
+          else
+            raw_value = value
+          end
 
           next if configuration[:allow_nil] and raw_value.nil?
 
@@ -64,14 +69,14 @@ module ActiveModel
 
           numericality_options.each do |option|
             case option
-              when :odd, :even
-                unless raw_value.to_i.method(ALL_NUMERICALITY_CHECKS[option])[]
-                  record.errors.add(attr_name, option, :value => raw_value, :default => configuration[:message]) 
-                end
-              else
-                unless raw_value.method(ALL_NUMERICALITY_CHECKS[option])[configuration[option]]
-                  record.errors.add(attr_name, option, :default => configuration[:message], :value => raw_value, :count => configuration[option])
-                end
+            when :odd, :even
+              unless raw_value.to_i.method(ALL_NUMERICALITY_CHECKS[option])[]
+                record.errors.add(attr_name, option, :value => raw_value, :default => configuration[:message]) 
+              end
+            else
+              unless raw_value.method(ALL_NUMERICALITY_CHECKS[option])[configuration[option]]
+                record.errors.add(attr_name, option, :default => configuration[:message], :value => raw_value, :count => configuration[option])
+              end
             end
           end
         end

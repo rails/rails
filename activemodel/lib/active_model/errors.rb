@@ -2,15 +2,6 @@ module ActiveModel
   class Errors < Hash
     include DeprecatedErrorMethods
 
-    class << self
-      def default_error_messages
-        message = "Errors.default_error_messages has been deprecated. Please use I18n.translate('activerecord.errors.messages')."
-        ActiveSupport::Deprecation.warn(message)
-
-        I18n.translate 'activerecord.errors.messages'
-      end
-    end
-
     def initialize(base)
       @base = base
       super()
@@ -74,7 +65,7 @@ module ActiveModel
     # Will add an error message to each of the attributes in +attributes+ that is empty.
     def add_on_empty(attributes, custom_message = nil)
       [attributes].flatten.each do |attribute|
-        value = @base.respond_to?(attribute.to_s) ? @base.send(attribute.to_s) : @base[attribute.to_s]
+        value = @base.get_attribute_value(attribute)
         is_empty = value.respond_to?(:empty?) ? value.empty? : false
         add(attribute, :empty, :default => custom_message) unless !value.nil? && !is_empty
       end
@@ -83,14 +74,14 @@ module ActiveModel
     # Will add an error message to each of the attributes in +attributes+ that is blank (using Object#blank?).
     def add_on_blank(attributes, custom_message = nil)
       [attributes].flatten.each do |attribute|
-        value = @base.respond_to?(attribute.to_sym) ? @base.send(attribute.to_sym) : @base[attribute.to_sym]
+        value = @base.get_attribute_value(attribute)
         add(attribute, :blank, :default => custom_message) if value.blank?
       end
     end
 
     # Returns all the full error messages in an array.
     #
-    #   class Company < ActiveRecord::Base
+    #   class Company
     #     validates_presence_of :name, :address, :email
     #     validates_length_of :name, :in => 5..30
     #   end
@@ -107,13 +98,8 @@ module ActiveModel
         if attribute == :base
           messages.each {|m| full_messages << m }
         else
-          if @base.class.respond_to?(:human_attribute_name)
-            attr_name = @base.class.human_attribute_name(attribute.to_s)
-          else
-            attr_name = attribute.to_s.humanize
-          end
-
-          prefix = attr_name + I18n.t('activerecord.errors.format.separator', :default => ' ')
+          attr_name = attribute.to_s.humanize
+          prefix = attr_name + I18n.t('activemodel.errors.format.separator', :default => ' ')
           messages.each do |m|
             full_messages <<  "#{prefix}#{m}"
           end
@@ -123,10 +109,10 @@ module ActiveModel
       full_messages
     end
 
-    # Translates an error message in it's default scope (<tt>activerecord.errrors.messages</tt>).
+    # Translates an error message in it's default scope (<tt>activemodel.errrors.messages</tt>).
     # Error messages are first looked up in <tt>models.MODEL.attributes.ATTRIBUTE.MESSAGE</tt>, if it's not there, 
     # it's looked up in <tt>models.MODEL.MESSAGE</tt> and if that is not there it returns the translation of the 
-    # default message (e.g. <tt>activerecord.errors.messages.MESSAGE</tt>). The translated model name, 
+    # default message (e.g. <tt>activemodel.errors.messages.MESSAGE</tt>). The translated model name, 
     # translated attribute name and the value are available for interpolation.
     #
     # When using inheritence in your models, it will check all the inherited models too, but only if the model itself
@@ -134,36 +120,38 @@ module ActiveModel
     # error +message+ for the <tt>title</tt> +attribute+, it looks for these translations:
     # 
     # <ol>
-    # <li><tt>activerecord.errors.models.admin.attributes.title.blank</tt></li>
-    # <li><tt>activerecord.errors.models.admin.blank</tt></li>
-    # <li><tt>activerecord.errors.models.user.attributes.title.blank</tt></li>
-    # <li><tt>activerecord.errors.models.user.blank</tt></li>
-    # <li><tt>activerecord.errors.messages.blank</tt></li>
-    # <li>any default you provided through the +options+ hash (in the activerecord.errors scope)</li>
+    # <li><tt>activemodel.errors.models.admin.attributes.title.blank</tt></li>
+    # <li><tt>activemodel.errors.models.admin.blank</tt></li>
+    # <li><tt>activemodel.errors.models.user.attributes.title.blank</tt></li>
+    # <li><tt>activemodel.errors.models.user.blank</tt></li>
+    # <li><tt>activemodel.errors.messages.blank</tt></li>
+    # <li>any default you provided through the +options+ hash (in the activemodel.errors scope)</li>
     # </ol>
     def generate_message(attribute, message = :invalid, options = {})
       message, options[:default] = options[:default], message if options[:default].is_a?(Symbol)
 
-      defaults = @base.class.self_and_descendants_from_active_record.map do |klass|
+      klass_ancestors = [@base.class]
+      klass_ancestors += @base.class.ancestors.reject {|x| x.is_a?(Module)}
+
+      defaults = klass_ancestors.map do |klass|
         [ :"models.#{klass.name.underscore}.attributes.#{attribute}.#{message}", 
           :"models.#{klass.name.underscore}.#{message}" ]
       end
-      
+
       defaults << options.delete(:default)
       defaults = defaults.compact.flatten << :"messages.#{message}"
 
       key = defaults.shift
-      value = @base.respond_to?(attribute) ? @base.send(attribute) : nil
+      value = @base.get_attribute_value(attribute)
 
       options = { :default => defaults,
-        :model => @base.class.human_name,
-        :attribute => @base.class.human_attribute_name(attribute.to_s),
+        :model => @base.class.name.humanize,
+        :attribute => attribute.to_s.humanize,
         :value => value,
-        :scope => [:activerecord, :errors]
+        :scope => [:activemodel, :errors]
       }.merge(options)
 
       I18n.translate(key, options)
     end
-
   end
 end

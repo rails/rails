@@ -48,12 +48,12 @@ module ActiveModel
         # Ensure that one and only one range option is specified.
         range_options = ALL_RANGE_OPTIONS & options.keys
         case range_options.size
-          when 0
-            raise ArgumentError, 'Range unspecified.  Specify the :within, :maximum, :minimum, or :is option.'
-          when 1
-            # Valid number of options; do nothing.
-          else
-            raise ArgumentError, 'Too many range options specified.  Choose only one.'
+        when 0
+          raise ArgumentError, 'Range unspecified.  Specify the :within, :maximum, :minimum, or :is option.'
+        when 1
+          # Valid number of options; do nothing.
+        else
+          raise ArgumentError, 'Too many range options specified.  Choose only one.'
         end
 
         # Get range option and value.

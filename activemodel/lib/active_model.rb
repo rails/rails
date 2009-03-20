@@ -41,3 +41,5 @@ module ActiveModel
   autoload :StateMachine, 'active_model/state_machine'
   autoload :ValidationsRepairHelper, 'active_model/validations_repair_helper'
 end
+
+I18n.load_path << File.dirname(__FILE__) + '/active_model/locale/en.yml'

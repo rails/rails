@@ -5,7 +5,7 @@ module ActiveModel
     def self.included(base) # :nodoc:
       base.extend(ClassMethods)
       base.__send__(:include, ActiveSupport::Callbacks)
-      base.define_callbacks :validate, :validate_on_create, :validate_on_update
+      base.define_callbacks :validate
     end
 
     module ClassMethods
@@ -64,7 +64,7 @@ module ActiveModel
         # Declare the validation.
         send(validation_method(options[:on] || :save), options) do |record|
           attrs.each do |attr|
-            value = record.send(attr)
+            value = record.get_attribute_value(attr)
             next if (value.nil? && options[:allow_nil]) || (value.blank? && options[:allow_blank])
             yield record, attr, value
           end
@@ -72,13 +72,14 @@ module ActiveModel
       end
 
       private
-        def validation_method(on)
-          case on
-            when :save   then :validate
-            when :create then :validate_on_create
-            when :update then :validate_on_update
-          end
+
+      def validation_method(on)
+        case on
+        when :save   then :validate
+        when :create then :validate_on_create
+        when :update then :validate_on_update
         end
+      end
     end
 
     # Returns the Errors object that holds all information about attribute error messages.
@@ -91,27 +92,7 @@ module ActiveModel
       errors.clear
 
       run_callbacks(:validate)
-      
-      if respond_to?(:validate)
-        # ActiveSupport::Deprecation.warn "Base#validate has been deprecated, please use Base.validate :method instead"
-        validate
-      end
-
-      if new_record?
-        run_callbacks(:validate_on_create)
-
-        if respond_to?(:validate_on_create)
-          # ActiveSupport::Deprecation.warn "Base#validate_on_create has been deprecated, please use Base.validate_on_create :method instead"
-          validate_on_create
-        end
-      else
-        run_callbacks(:validate_on_update)
-
-        if respond_to?(:validate_on_update)
-          # ActiveSupport::Deprecation.warn "Base#validate_on_update has been deprecated, please use Base.validate_on_update :method instead"
-          validate_on_update
-        end
-      end
+      validate if respond_to?(:validate)
 
       errors.empty?
     end
@@ -121,18 +102,14 @@ module ActiveModel
       !valid?
     end
 
+    def get_attribute_value(attribute)
+      respond_to?(attribute.to_sym) ? send(attribute.to_sym) : instance_variable_get(:"@#{attribute}")
+    end
+
     protected
     
     # Overwrite this method for validation checks on all saves and use <tt>Errors.add(field, msg)</tt> for invalid attributes.
     def validate
-    end
-
-    # Overwrite this method for validation checks used only on creation.
-    def validate_on_create
-    end
-
-    # Overwrite this method for validation checks used only on updates.
-    def validate_on_update
     end
   end
 end

@@ -129,4 +129,16 @@ class ValidationsTest < ActiveRecord::TestCase
     assert_equal 100, d.salary
     assert_equal "100,000", d.salary_before_type_cast
   end
+
+  def test_validates_length_with_globally_modified_error_message
+    ActiveSupport::Deprecation.silence do
+      ActiveRecord::Errors.default_error_messages[:too_short] = 'tu est trops petit hombre {{count}}'
+    end
+
+    Topic.validates_length_of :title, :minimum => 10
+    t = Topic.create(:title => 'too short')
+    assert !t.valid?
+
+    assert_equal ['tu est trops petit hombre 10'], t.errors[:title]
+  end
 end
