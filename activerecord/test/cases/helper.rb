@@ -57,7 +57,7 @@ end
 
 class ActiveSupport::TestCase
   include ActiveRecord::TestFixtures
-  include ActiveRecord::Testing::RepairHelper
+  include ActiveModel::ValidationsRepairHelper
 
   self.fixture_path = FIXTURES_ROOT
   self.use_instantiated_fixtures  = false

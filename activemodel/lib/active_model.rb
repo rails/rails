@@ -41,4 +41,7 @@ module ActiveModel
   autoload :Validations, 'active_model/validations'
   autoload :Errors, 'active_model/errors'
   autoload :DeprecatedErrorMethods, 'active_model/deprecated_error_methods'
+  autoload :TestCase, 'active_model/test_case'
+  autoload :StateMachine, 'active_model/state_machine'
+  autoload :ValidationsRepairHelper, 'active_model/validations_repair_helper'
 end

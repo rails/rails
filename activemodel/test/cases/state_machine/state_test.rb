@@ -1,4 +1,4 @@
-require 'test_helper'
+require 'cases/helper'
 
 class StateTestSubject
   include ActiveModel::StateMachine
