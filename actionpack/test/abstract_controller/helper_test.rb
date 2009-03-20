@@ -7,6 +7,10 @@ module AbstractController
       include Renderer
       include Helpers
       
+      def render(string)
+        super(:_template_name => string)
+      end
+      
       append_view_path File.expand_path(File.join(File.dirname(__FILE__), "views"))
     end
    

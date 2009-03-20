@@ -32,8 +32,8 @@ module ActionController
     
     include ActionController::HideActions
     include ActionController::UrlFor
-    include ActionController::Renderer
     include ActionController::Layouts
+    include ActionController::Renderer
     
     def self.inherited(klass)
       @subclasses ||= []

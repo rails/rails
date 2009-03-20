@@ -8,7 +8,7 @@ module HappyPath
       "layouts/greetings.html.erb"   => "<%= yield %>, I wish thee well."
     )]
     
-    def render_hello_world_from_variable
+    def render_hello_world
       render :text => "hello david"
     end
     
@@ -36,6 +36,14 @@ module HappyPath
       render :text => "hello world", :layout => true
     end
     
+    def render_text_with_layout_false
+      render :text => "hello world", :layout => false
+    end
+    
+    def render_text_with_layout_nil
+      render :text => "hello world", :layout => nil
+    end
+    
     def render_text_with_custom_layout
       render :text => "hello world", :layout => "greetings"
     end
@@ -44,7 +52,7 @@ module HappyPath
   class TestSimpleTextRender < SimpleRouteCase    
     describe "Rendering text from a action with default options renders the text without the layout"
     
-    get "/happy_path/render_text/render_hello_world_from_variable"
+    get "/happy_path/render_text/render_hello_world"
     assert_body   "hello david"
     assert_status 200
   end
@@ -94,6 +102,22 @@ module HappyPath
     
     get "/happy_path/render_text/render_text_with_custom_layout"
     assert_body "hello world, I wish thee well."
+    assert_status 200
+  end
+  
+  class TestTextRenderWithLayoutFalse < SimpleRouteCase
+    describe "Rendering text with :layout => false"
+    
+    get "/happy_path/render_text/render_text_with_layout_false"
+    assert_body "hello world"
+    assert_status 200
+  end
+  
+  class TestTextRenderWithLayoutNil < SimpleRouteCase
+    describe "Rendering text with :layout => nil"
+    
+    get "/happy_path/render_text/render_text_with_layout_nil"
+    assert_body "hello world"
     assert_status 200
   end
 end

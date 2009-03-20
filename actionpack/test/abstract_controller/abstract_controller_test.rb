@@ -31,7 +31,11 @@ module AbstractController
 
       def _prefix() end
 
-      def render(name = action_name, options = {})
+      def render(options = {})
+        if options.is_a?(String)
+          options = {:_template_name => options}
+        end
+        
         options[:_prefix] = _prefix
         super
       end
@@ -130,7 +134,7 @@ module AbstractController
         self.class.layout(formats)
       end      
       
-      def render_to_string(name = action_name, options = {})
+      def render_to_string(options = {})
         options[:_layout] = options[:layout] || _layout
         super
       end  

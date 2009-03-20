@@ -20,8 +20,8 @@ module AbstractController
       @_action_view ||= ActionView::Base.new(self.class.view_paths, {}, self)      
     end
         
-    def render(name = action_name, options = {})
-      self.response_body = render_to_string(name, options)
+    def render(options = {})
+      self.response_body = render_to_string(options)
     end
     
     # Raw rendering of a template.
@@ -30,7 +30,9 @@ module AbstractController
     # @option _layout<String> The relative path to the layout template to use
     # 
     # :api: plugin
-    def render_to_string(name = action_name, options = {})
+    def render_to_string(options = {})
+      name = options[:_template_name] || action_name
+      
       template = options[:_template] || view_paths.find_by_parts(name.to_s, formats, options[:_prefix])
       _render_template(template, options)
     end
