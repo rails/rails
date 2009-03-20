@@ -77,7 +77,10 @@ module HappyPath
   
   class RenderActionWithLayoutController < ActionController::Base2
     # Set the view path to an application view structure with layouts
-    self.view_paths = [File.join(File.dirname(__FILE__), 'views', 'with_application_layout')]
+    self.view_paths = self.view_paths = [ActionView::FixtureTemplate::FixturePath.new({
+      "happy_path/render_action_with_layout/hello_world.html.erb" => "Hello World!",
+      "layouts/application.html.erb"                              => "OHAI <%= yield %> KTHXBAI"
+    })]
     
     def hello_world
       render :action => "hello_world"
@@ -85,7 +88,10 @@ module HappyPath
   end
   
   class RenderActionWithControllerLayoutController < ActionController::Base2
-    self.view_paths = [File.join(File.dirname(__FILE__), 'views', 'with_controller_layout')]
+    self.view_paths = self.view_paths = [ActionView::FixtureTemplate::FixturePath.new({
+      "happy_path/render_action_with_controller_layout/hello_world.html.erb" => "Hello World!",
+      "layouts/happy_path/render_action_with_controller_layout.html.erb"     => "With Controller Layout! <%= yield %> KTHXBAI"
+    })]
     
     def hello_world
       render :action => "hello_world"
@@ -93,7 +99,11 @@ module HappyPath
   end
   
   class RenderActionWithControllerLayoutFirstController < ActionController::Base2
-    self.view_paths = [File.join(File.dirname(__FILE__), 'views', 'with_both_layouts')]
+    self.view_paths = self.view_paths = [ActionView::FixtureTemplate::FixturePath.new({
+      "happy_path/render_action_with_controller_layout_first/hello_world.html.erb" => "Hello World!",
+      "layouts/application.html.erb"                                               => "OHAI <%= yield %> KTHXBAI",
+      "layouts/happy_path/render_action_with_controller_layout_first.html.erb"     => "With Controller Layout! <%= yield %> KTHXBAI"
+    })]
     
     def hello_world
       render :action => "hello_world"
@@ -127,5 +137,4 @@ module HappyPath
     assert_status 200
   end
   
-  # TODO: Implement a FixtureViewPath
 end

@@ -18,30 +18,28 @@ module ActionView #:nodoc:
       end
     end
     
-    def initialize(body, template_path, load_paths = [])
+    def initialize(body, *args)
       @body = body
-    end
-    
-    def relative_path
-      "fail"
-    end
-    
-    def filename
-      "fail"
-    end
-    
-    def method_name_without_locals
-      "abc"
+      super(*args)
     end
     
     def source
       @body
     end
+  
+  private
+  
+    def find_full_path(path, load_paths)
+      return '/', path
+    end
+  
   end
 end
 
 OMG = {
-  "happy_path/render_action/hello_world.html.erb" => "Hello world!"
+  "happy_path/render_action/hello_world.html.erb"   => "Hello world!",
+  "happy_path/render_action/goodbye_world.html.erb" => "Goodbye world!",
+  "happy_path/sexy_time/borat.html.erb"             => "I LIKE!!!"
 }
 
 module HappyPath
@@ -55,9 +53,21 @@ module HappyPath
       render :action => "hello_world"
     end
     
+    def render_action_goodbye_world
+      render :action => "goodbye_world"
+    end
+    
   end
   
-  class TestRenderAction < SimpleRouteCase
+  class SexyTimeController < ActionController::Base2
+    self.view_paths = [ActionView::FixtureTemplate::FixturePath.new(OMG)]
+    
+    def borat
+      render "borat"
+    end
+  end
+  
+  class TestRenderHelloAction < SimpleRouteCase
 
     describe "Rendering an action using :action => <String>"
 
@@ -65,5 +75,20 @@ module HappyPath
     assert_body   "Hello world!"
     assert_status 200
 
+  end
+  
+  class TestRenderGoodbyeAction < SimpleRouteCase
+    describe "Goodbye"
+    
+    get "/happy_path/render_action/render_action_goodbye_world"
+    assert_body "Goodbye world!"
+    assert_status 200
+  end
+  
+  class TestRenderBorat < SimpleRouteCase
+    describe "Borat yo"
+    get "/happy_path/sexy_time/borat"
+    assert_body "I LIKE!!!"
+    assert_status 200
   end
 end
