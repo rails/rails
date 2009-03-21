@@ -9,8 +9,6 @@ module ActiveModel
     end
 
     module ClassMethods
-      DEFAULT_VALIDATION_OPTIONS = { :on => :save, :allow_nil => false, :allow_blank => false, :message => nil }.freeze
-
       # Adds a validation method or block to the class. This is useful when
       # overriding the +validate+ instance method becomes too unwieldly and
       # you're looking for more descriptive declaration of your validations.

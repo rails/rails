@@ -40,9 +40,7 @@ module ActiveModel
       #   Defaults to <tt>lambda{ |value| value.split(//) }</tt> which counts individual characters.
       def validates_length_of(*attrs)
         # Merge given options with defaults.
-        options = {
-          :tokenizer => lambda {|value| value.split(//)}
-        }.merge(DEFAULT_VALIDATION_OPTIONS)
+        options = { :tokenizer => lambda {|value| value.split(//)} }
         options.update(attrs.extract_options!.symbolize_keys)
 
         # Ensure that one and only one range option is specified.
