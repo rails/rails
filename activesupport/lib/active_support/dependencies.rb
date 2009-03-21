@@ -1,3 +1,5 @@
+require 'set'
+
 module ActiveSupport #:nodoc:
   module Dependencies #:nodoc:
     extend self
