@@ -25,7 +25,7 @@ module ActiveModel
       #   not occur (e.g. <tt>:unless => :skip_validation</tt>, or <tt>:unless => Proc.new { |user| user.signup_step <= 2 }</tt>).  The
       #   method, proc or string should return or evaluate to a true or false value.
       def validates_format_of(*attr_names)
-        configuration = { :on => :save, :with => nil }
+        configuration = { :with => nil }
         configuration.update(attr_names.extract_options!)
 
         raise(ArgumentError, "A regular expression must be supplied as the :with option of the configuration hash") unless configuration[:with].is_a?(Regexp)
