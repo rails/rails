@@ -9,6 +9,6 @@ class Integer
   #   1002.ordinalize # => "1002nd"
   #   1003.ordinalize # => "1003rd"
   def ordinalize
-    Inflector.ordinalize(self)
+    ActiveSupport::Inflector.ordinalize(self)
   end
 end
