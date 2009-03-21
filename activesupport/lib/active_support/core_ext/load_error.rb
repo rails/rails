@@ -24,15 +24,12 @@ class MissingSourceFile < LoadError #:nodoc:
   ] unless defined?(REGEXPS)
 end
 
-module ActiveSupport #:nodoc:
-  module CoreExtensions #:nodoc:
-    module LoadErrorExtensions #:nodoc:
-      module LoadErrorClassMethods #:nodoc:
-        def new(*args)
-          (self == LoadError && MissingSourceFile.from_message(args.first)) || super
-        end
-      end
-      ::LoadError.extend(LoadErrorClassMethods)
+class LoadError
+  def self.new(*args)
+    if self == LoadError
+      MissingSourceFile.from_message(args.first)
+    else
+      super
     end
   end
 end
