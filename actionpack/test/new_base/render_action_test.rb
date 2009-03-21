@@ -5,6 +5,10 @@ module HappyPath
   # This has no layout and it works
   class RenderActionController < ActionController::Base2
     
+    self.view_paths = [ActionView::FixtureTemplate::FixturePath.new(
+      "happy_path/render_action/hello_world.html.erb" => "Hello world!"
+    )]
+    
     def render_action_hello_world
       render :action => "hello_world"
     end
@@ -28,33 +32,27 @@ module HappyPath
   end
   
   class TestRenderAction < SimpleRouteCase
-    
     describe "Rendering an action using :action => <String>"
     
     get "/happy_path/render_action/render_action_hello_world"
     assert_body   "Hello world!"
     assert_status 200
-    
   end
   
   class TestRenderActionWithString < SimpleRouteCase
-    
     describe "Render an action using 'hello_world'"
     
     get "/happy_path/render_action/render_action_hello_world_as_string"
     assert_body   "Hello world!"
     assert_status 200
-    
   end
   
   class TestRenderActionWithStringAndOptions < SimpleRouteCase
-    
     describe "Render an action using 'hello_world'"
     
     get "/happy_path/render_action/render_action_hello_world_as_string_with_options"
     assert_body   "Hello world!"
     assert_status 404
-    
   end
   
   class TestRenderActionAsSymbol < SimpleRouteCase

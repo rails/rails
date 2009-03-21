@@ -44,7 +44,7 @@ module ActionController
       @subclasses
     end
     
-    append_view_path File.join(File.dirname(__FILE__), '..', 'fixtures')
+    # append_view_path File.join(File.dirname(__FILE__), '..', 'fixtures')
         
     CORE_METHODS = self.public_instance_methods
   end
@@ -53,7 +53,7 @@ end
 module ActionView #:nodoc:
   class FixtureTemplate < Template
     class FixturePath < Template::Path
-      def initialize(hash)
+      def initialize(hash = {})
         @hash = {}
         
         hash.each do |k, v|
