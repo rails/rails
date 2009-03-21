@@ -1,3 +1,6 @@
-require 'active_support/core_ext/util'
 require 'active_support/core_ext/array/wrap'
-ActiveSupport.core_ext Array, %w(access conversions extract_options grouping random_access)
+require 'active_support/core_ext/array/access'
+require 'active_support/core_ext/array/conversions'
+require 'active_support/core_ext/array/extract_options'
+require 'active_support/core_ext/array/grouping'
+require 'active_support/core_ext/array/random_access'
