@@ -1,5 +1,3 @@
-require 'active_model/core'
-
 module ActiveModel
   module Validations
     def self.included(base) # :nodoc:
