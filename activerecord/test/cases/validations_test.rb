@@ -16,6 +16,24 @@ class ProtectedPerson < ActiveRecord::Base
   attr_protected :first_name
 end
 
+class DeprecatedPerson < ActiveRecord::Base
+  set_table_name 'people'
+
+  protected
+
+  def validate
+    errors[:name] << "always invalid"
+  end
+
+  def validate_on_create
+    errors[:name] << "invalid on create"
+  end
+
+  def validate_on_update
+    errors[:name] << "invalid on update"
+  end
+end
+
 class ValidationsTest < ActiveRecord::TestCase
   fixtures :topics, :developers
 
@@ -148,6 +166,22 @@ class ValidationsTest < ActiveRecord::TestCase
 
       reply = Reply.create("author_name" => "Dan Brown")
       assert_equal "Dan Brown", reply["author_name"]
+    end
+  end
+
+  def test_deprecated_validation_instance_methods
+    tom = DeprecatedPerson.new
+
+    assert_deprecated do
+      assert tom.invalid?
+      assert_equal ["always invalid", "invalid on create"], tom.errors[:name]
+    end
+
+    tom.save(false)
+
+    assert_deprecated do
+      assert tom.invalid?
+      assert_equal ["always invalid", "invalid on update"], tom.errors[:name]
     end
   end
 end

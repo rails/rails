@@ -82,10 +82,7 @@ module ActiveModel
     # Runs all the specified validations and returns true if no errors were added otherwise false.
     def valid?
       errors.clear
-
       run_callbacks(:validate)
-      validate if respond_to?(:validate)
-
       errors.empty?
     end
 
@@ -96,12 +93,6 @@ module ActiveModel
 
     def get_attribute_value(attribute)
       respond_to?(attribute.to_sym) ? send(attribute.to_sym) : instance_variable_get(:"@#{attribute}")
-    end
-
-    protected
-    
-    # Overwrite this method for validation checks on all saves and use <tt>Errors.add(field, msg)</tt> for invalid attributes.
-    def validate
     end
   end
 end

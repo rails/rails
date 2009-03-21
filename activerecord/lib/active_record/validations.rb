@@ -164,14 +164,25 @@ module ActiveRecord
 
         run_callbacks(:validate)
 
-        validate if respond_to?(:validate)
+        if respond_to?(:validate)
+          ActiveSupport::Deprecation.warn("Base#validate has been deprecated, please use Base.validate :method instead")
+          validate
+        end
 
         if new_record?
           run_callbacks(:validate_on_create)
-          validate_on_create if respond_to?(:validate_on_create)
+
+          if respond_to?(:validate_on_create)
+            ActiveSupport::Deprecation.warn("Base#validate_on_create has been deprecated, please use Base.validate_on_create :method instead")
+            validate_on_create
+          end
         else
           run_callbacks(:validate_on_update)
-          validate_on_update if respond_to?(:validate_on_update)
+
+          if respond_to?(:validate_on_update)
+            ActiveSupport::Deprecation.warn("Base#validate_on_update has been deprecated, please use Base.validate_on_update :method instead")
+            validate_on_update
+          end
         end
 
         errors.empty?
@@ -184,16 +195,6 @@ module ActiveRecord
 
       def get_attribute_value(attribute)
         respond_to?(attribute.to_sym) ? send(attribute.to_sym) : self[attribute.to_sym]
-      end
-
-      protected
-
-      # Overwrite this method for validation checks used only on creation.
-      def validate_on_create
-      end
-
-      # Overwrite this method for validation checks used only on updates.
-      def validate_on_update
       end
     end
 
