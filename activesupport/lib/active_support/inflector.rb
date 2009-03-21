@@ -1,5 +1,4 @@
 # encoding: utf-8
-require 'singleton'
 require 'iconv'
 
 module ActiveSupport
@@ -30,7 +29,9 @@ module ActiveSupport
     # pluralization and singularization rules that is runs. This guarantees that your rules run before any of the rules that may
     # already have been loaded.
     class Inflections
-      include Singleton
+      def self.instance
+        @__instance__ ||= new
+      end
 
       attr_reader :plurals, :singulars, :uncountables, :humans
 
