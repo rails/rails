@@ -32,7 +32,7 @@ module ActiveModel
       #   not occur (e.g. <tt>:unless => :skip_validation</tt>, or <tt>:unless => Proc.new { |user| user.signup_step <= 2 }</tt>).  The
       #   method, proc or string should return or evaluate to a true or false value.
       def validates_numericality_of(*attr_names)
-        configuration = { :on => :save, :only_integer => false, :allow_nil => false }
+        configuration = { :only_integer => false, :allow_nil => false }
         configuration.update(attr_names.extract_options!)
 
         numericality_options = ALL_NUMERICALITY_CHECKS.keys & configuration.keys

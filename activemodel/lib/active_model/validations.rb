@@ -62,7 +62,7 @@ module ActiveModel
         attrs   = attrs.flatten
 
         # Declare the validation.
-        send(validation_method(options[:on] || :save), options) do |record|
+        send(validation_method(options[:on]), options) do |record|
           attrs.each do |attr|
             value = record.get_attribute_value(attr)
             next if (value.nil? && options[:allow_nil]) || (value.blank? && options[:allow_blank])
@@ -74,11 +74,7 @@ module ActiveModel
       private
 
       def validation_method(on)
-        case on
-        when :save   then :validate
-        when :create then :validate_on_create
-        when :update then :validate_on_update
-        end
+        :validate
       end
     end
 

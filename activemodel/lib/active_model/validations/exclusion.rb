@@ -21,8 +21,7 @@ module ActiveModel
       #   not occur (e.g. <tt>:unless => :skip_validation</tt>, or <tt>:unless => Proc.new { |user| user.signup_step <= 2 }</tt>).  The
       #   method, proc or string should return or evaluate to a true or false value.
       def validates_exclusion_of(*attr_names)
-        configuration = { :on => :save }
-        configuration.update(attr_names.extract_options!)
+        configuration = attr_names.extract_options!
 
         enum = configuration[:in] || configuration[:within]
 

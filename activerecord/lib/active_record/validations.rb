@@ -99,9 +99,8 @@ module ActiveRecord
 
   module Validations
     def self.included(base) # :nodoc:
-      base.extend ClassMethods
-
       base.send :include, ActiveModel::Validations
+      base.extend ClassMethods
       base.send :include, InstanceMethods
 
       base.define_callbacks :validate_on_create, :validate_on_update
@@ -123,6 +122,17 @@ module ActiveRecord
           yield(object) if block_given?
           object.save!
           object
+        end
+      end
+
+      def validation_method(on)
+        case on
+        when :create
+          :validate_on_create
+        when :update
+          :validate_on_update
+        else
+          :validate
         end
       end
     end

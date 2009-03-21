@@ -26,8 +26,7 @@ module ActiveModel
       #   The method, proc or string should return or evaluate to a true or false value.
       #
       def validates_presence_of(*attr_names)
-        configuration = { :on => :save }
-        configuration.update(attr_names.extract_options!)
+        configuration = attr_names.extract_options!
 
         # can't use validates_each here, because it cannot cope with nonexistent attributes,
         # while errors.add_on_empty can
