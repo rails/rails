@@ -27,7 +27,7 @@ class ValidationsTest < ActiveModel::TestCase
     r = Reply.new
     r.title = "There's no content!"
     assert !r.valid?
-    assert r.errors.invalid?("content"), "A reply without content should mark that attribute as invalid"
+    assert r.errors[:content].any?, "A reply without content should mark that attribute as invalid"
     assert_equal ["Empty"], r.errors["content"], "A reply without content should contain an error"
     assert_equal 1, r.errors.count
   end
@@ -36,10 +36,10 @@ class ValidationsTest < ActiveModel::TestCase
     r = Reply.new
     assert !r.valid?
 
-    assert r.errors.invalid?("title"), "A reply without title should mark that attribute as invalid"
+    assert r.errors[:title].any?, "A reply without title should mark that attribute as invalid"
     assert_equal ["Empty"], r.errors["title"], "A reply without title should contain an error"
 
-    assert r.errors.invalid?("content"), "A reply without content should mark that attribute as invalid"
+    assert r.errors[:content].any?, "A reply without content should mark that attribute as invalid"
     assert_equal ["Empty"], r.errors["content"], "A reply without content should contain an error"
 
     assert_equal 2, r.errors.count
@@ -73,10 +73,10 @@ class ValidationsTest < ActiveModel::TestCase
     r = Reply.new
     r.content = "Mismatch"
     r.save
-    r.errors.add_to_base "Reply is not dignifying"
+    r.errors[:base] << "Reply is not dignifying"
 
     errors = []
-    r.errors.each_full { |error| errors << error }
+    r.errors.to_a.each { |error| errors << error }
 
     assert_equal ["Reply is not dignifying"], r.errors[:base]
 
@@ -134,7 +134,7 @@ class ValidationsTest < ActiveModel::TestCase
 
     t = Topic.new
     assert t.invalid?
-    assert t.errors.invalid?(:title)
+    assert t.errors[:title].any?
 
     t.title = 'Things are going to change'
     assert !t.invalid?
@@ -162,5 +162,17 @@ class ValidationsTest < ActiveModel::TestCase
         assert t.errors.on(attribute).include?("can't be blank")
       end
     end
+  end
+
+  def test_deprecated_errors_on_base_and_each
+    t = Topic.new
+    assert t.valid?
+
+    assert_deprecated { t.errors.add_to_base "invalid topic" }
+    assert_deprecated { assert_equal "invalid topic", t.errors.on_base }
+    assert_deprecated { assert t.errors.invalid?(:base) }
+
+    all_errors = t.errors.to_a
+    assert_deprecated { assert_equal all_errors, t.errors.each_full{|err| err} }
   end
 end

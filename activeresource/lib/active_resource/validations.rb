@@ -17,7 +17,7 @@ module ActiveResource
           end
         end
         
-        add_to_base message if attr_message.nil?
+        self[:base] << message if attr_message.nil?
       end
     end
   end

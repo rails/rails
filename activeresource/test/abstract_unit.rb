@@ -14,6 +14,9 @@ require 'setter_trap'
 
 ActiveResource::Base.logger = Logger.new("#{File.dirname(__FILE__)}/debug.log")
 
+# Show backtraces for deprecated behavior for quicker cleanup.
+ActiveSupport::Deprecation.debug = true
+
 def uses_gem(gem_name, test_name, version = '> 0')
   gem gem_name.to_s, version
   require gem_name.to_s
