@@ -1,5 +1,6 @@
 require 'active_support/core_ext/object/blank'
 require 'active_support/core_ext/object/duplicable'
+require 'active_support/core_ext/object/try'
 
 require 'active_support/core_ext/object/conversions'
 require 'active_support/core_ext/object/extending'
