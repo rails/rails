@@ -146,7 +146,7 @@ module RailsGuides
       anchors = Set.new
       html.scan(/<h\d\s+id="([^"]+)/).flatten.each do |anchor|
         if anchors.member?(anchor)
-          puts "*** DUPLICATE HEADER ID: #{anchor}, please consider rewording"
+          puts "*** DUPLICATE HEADER ID: #{anchor}, please consider rewording" if ENV.key?("WARN_DUPLICATE_HEADERS")
         else
           anchors << anchor
         end
