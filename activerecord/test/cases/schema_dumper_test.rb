@@ -114,6 +114,11 @@ class SchemaDumperTest < ActiveRecord::TestCase
       assert_match %r{c_int_6.*:limit => 6}, output
       assert_match %r{c_int_7.*:limit => 7}, output
       assert_match %r{c_int_8.*:limit => 8}, output
+    elsif current_adapter?(:OracleAdapter)
+      assert_match %r{c_int_5.*:limit => 5}, output
+      assert_match %r{c_int_6.*:limit => 6}, output
+      assert_match %r{c_int_7.*:limit => 7}, output
+      assert_match %r{c_int_8.*:limit => 8}, output
     else
       assert_match %r{c_int_5.*:limit => 8}, output
       assert_match %r{c_int_6.*:limit => 8}, output
