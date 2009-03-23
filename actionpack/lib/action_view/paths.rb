@@ -42,6 +42,9 @@ module ActionView #:nodoc:
       end
 
       Template.new(path, self)
+    rescue ActionView::MissingTemplate => e
+      extension ||= []
+      raise ActionView::MissingTemplate.new(self, "#{prefix}/#{path}.{#{extension.join(",")}}")
     end
 
     def find_template(original_template_path, format = nil)

@@ -60,7 +60,7 @@ module ActionView #:nodoc:
           @hash[k.sub(/\.\w+$/, '')] = FixtureTemplate.new(v, k.split("/").last, self)
         end
         
-        super("")
+        super("fixtures://root")
       end
       
       def find_template(path)
