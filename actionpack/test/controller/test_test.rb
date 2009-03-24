@@ -515,6 +515,14 @@ XML
     assert_nil @request.instance_variable_get("@request_method")
   end
 
+  def test_params_reset_after_post_request
+    post :no_op, :foo => "bar"
+    assert_equal "bar", @request.params[:foo]
+    @request.recycle!
+    post :no_op
+    assert @request.params[:foo].blank?
+  end
+
   %w(controller response request).each do |variable|
     %w(get post put delete head process).each do |method|
       define_method("test_#{variable}_missing_for_#{method}_raises_error") do
