@@ -111,7 +111,6 @@ h5. +last+
 <tt>Model.last(options = nil)</tt> finds the last record matched by the supplied options. If no +options+ are supplied, the last matching record is returned. For example:
 
 <ruby>
-# Find the client with primary key (id) 10.
 client = Client.last
 => #<Client id: 221, name: => "Russel">
 </ruby>

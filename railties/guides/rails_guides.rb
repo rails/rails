@@ -33,6 +33,7 @@ module RailsGuides
   autoload :Indexer, "rails_guides/indexer"
   autoload :Helpers, "rails_guides/helpers"
   autoload :TextileExtensions, "rails_guides/textile_extensions"
+  autoload :Levenshtein, "rails_guides/levenshtein"
 end
 
 RedCloth.send(:include, RailsGuides::TextileExtensions)
