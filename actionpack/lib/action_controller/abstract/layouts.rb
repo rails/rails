@@ -6,7 +6,34 @@ module AbstractController
     end
     
     module ClassMethods
-      def _layout() end
+      def layout(layout)
+        unless [String, Symbol, FalseClass, NilClass].include?(layout.class)
+          raise ArgumentError, "Layouts must be specified as a String, Symbol, false, or nil"
+        end
+        
+        @layout = layout || false # Converts nil to false
+      end
+      
+      def _write_layout_method
+        case @layout
+        when String
+          self.class_eval %{def _layout() #{@layout.inspect} end}
+        when Symbol
+          self.class_eval %{def _layout() #{@layout} end}
+        when false
+          self.class_eval %{def _layout() end}
+        else
+          self.class_eval %{
+            def _layout
+              if view_paths.find_by_parts?("#{controller_path}", formats, "layouts")
+                "#{controller_path}"
+              else
+                super
+              end
+            end
+          }
+        end
+      end
     end
     
     def _render_template(template, options)
@@ -14,6 +41,8 @@ module AbstractController
     end
         
   private
+  
+    def _layout() end # This will be overwritten
     
     def _layout_for_option(name)
       case name
@@ -28,16 +57,7 @@ module AbstractController
     end
     
     def _default_layout(require_layout = false)
-      # begin
-      #   _layout_for_name(controller_path)
-      # rescue ActionView::MissingTemplate
-      #   begin
-      #     _layout_for_name("application")
-      #   rescue ActionView::MissingTemplate => e
-      #     raise e if require_layout
-      #   end
-      # end
-      _layout_for_option(self.class._layout)
+      _layout_for_option(_layout)
     end
   end
 end

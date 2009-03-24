@@ -1,5 +1,8 @@
 require File.join(File.expand_path(File.dirname(__FILE__)), "test_helper")
 
+class ApplicationController < ActionController::Base2
+end
+
 module HappyPath
   
   class RenderTextWithoutLayoutsController < ActionController::Base2
@@ -10,11 +13,11 @@ module HappyPath
     end
   end
   
-  class RenderTextWithLayoutsController < ActionController::Base2
+  class RenderTextWithLayoutsController < ::ApplicationController
     self.view_paths = [ActionView::FixtureTemplate::FixturePath.new(
       "layouts/application.html.erb" => "<%= yield %>, I'm here!",
       "layouts/greetings.html.erb"   => "<%= yield %>, I wish thee well."
-    )]
+    )]    
     
     def render_hello_world
       render :text => "hello david"
@@ -137,3 +140,5 @@ module HappyPath
     assert_status 200
   end
 end
+
+ActionController::Base2.app_loaded!

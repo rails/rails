@@ -46,6 +46,15 @@ module ActionView #:nodoc:
       extension ||= []
       raise ActionView::MissingTemplate.new(self, "#{prefix}/#{path}.{#{extension.join(",")}}")
     end
+    
+    def find_by_parts?(path, extension = nil, prefix = nil, partial = false)
+      template_path = path.sub(/^\//, '')
+
+      each do |load_path|
+        return true if template = load_path.find_by_parts(template_path, extension, prefix, partial)
+      end      
+      false
+    end
 
     def find_template(original_template_path, format = nil)
       return original_template_path if original_template_path.respond_to?(:render)

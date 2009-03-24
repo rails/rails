@@ -38,12 +38,18 @@ module ActionController
     include ActionController::Renderer
     
     def self.inherited(klass)
-      @subclasses ||= []
-      @subclasses << klass.to_s
+      ::ActionController::Base2.subclasses << klass.to_s
+      super
     end
     
     def self.subclasses
-      @subclasses
+      @subclasses ||= []
+    end
+    
+    def self.app_loaded!
+      @subclasses.each do |subclass|
+        subclass.constantize._write_layout_method
+      end
     end
     
     # append_view_path File.join(File.dirname(__FILE__), '..', 'fixtures')
