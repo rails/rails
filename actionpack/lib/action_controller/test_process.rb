@@ -13,6 +13,7 @@ module ActionController #:nodoc:
 
       @query_parameters   = {}
       @session            = TestSession.new
+      @session_options    ||= {}
 
       initialize_default_values
       initialize_containers

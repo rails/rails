@@ -130,6 +130,10 @@ XML
     ActionController::Routing::Routes.reload
   end
 
+  def test_test_request_has_session_options_initialized
+    assert @request.session_options
+  end
+
   def test_raw_post_handling
     params = {:page => {:name => 'page name'}, 'some key' => 123}
     post :render_raw_post, params.dup
