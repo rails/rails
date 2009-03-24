@@ -87,7 +87,7 @@ module ActiveSupport
     alias_method :gmtoff, :utc_offset
 
     def formatted_offset(colon = true, alternate_utc_string = nil)
-      utc? && alternate_utc_string || utc_offset.to_utc_offset_s(colon)
+      utc? && alternate_utc_string || TimeZone.seconds_to_utc_offset(utc_offset, colon)
     end
 
     # Time uses +zone+ to display the time zone abbreviation, so we're duck-typing it.

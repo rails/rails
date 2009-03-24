@@ -170,6 +170,20 @@ module ActiveSupport
       MAPPING.freeze
     end
 
+    UTC_OFFSET_WITH_COLON = '%+03d:%02d'
+    UTC_OFFSET_WITHOUT_COLON = UTC_OFFSET_WITH_COLON.sub(':', '')
+
+    # Assumes self represents an offset from UTC in seconds (as returned from Time#utc_offset)
+    # and turns this into an +HH:MM formatted string. Example:
+    #
+    #   TimeZone.seconds_to_utc_offset(-21_600) # => "-06:00"
+    def self.seconds_to_utc_offset(seconds, colon = true)
+      format = colon ? UTC_OFFSET_WITH_COLON : UTC_OFFSET_WITHOUT_COLON
+      hours = seconds / 3600
+      minutes = (seconds.abs % 3600) / 60
+      format % [hours, minutes]
+    end
+
     include Comparable
     attr_reader :name
 
@@ -190,7 +204,7 @@ module ActiveSupport
     # Returns the offset of this time zone as a formatted string, of the
     # format "+HH:MM".
     def formatted_offset(colon=true, alternate_utc_string = nil)
-      utc_offset == 0 && alternate_utc_string || utc_offset.to_utc_offset_s(colon)
+      utc_offset == 0 && alternate_utc_string || self.class.seconds_to_utc_offset(utc_offset, colon)
     end
 
     # Compare this time zone to the parameter. The two are comapred first on
