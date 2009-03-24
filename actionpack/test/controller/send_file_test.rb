@@ -44,12 +44,12 @@ class SendFileTest < ActionController::TestCase
     response = nil
     assert_nothing_raised { response = process('file') }
     assert_not_nil response
-    assert_kind_of Proc, response.body
+    assert_kind_of Proc, response.body_parts
 
     require 'stringio'
     output = StringIO.new
     output.binmode
-    assert_nothing_raised { response.body.call(response, output) }
+    assert_nothing_raised { response.body_parts.call(response, output) }
     assert_equal file_data, output.string
   end
 

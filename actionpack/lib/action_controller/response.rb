@@ -40,14 +40,28 @@ module ActionController # :nodoc:
     delegate :default_charset, :to => 'ActionController::Base'
 
     def initialize
-      @status = 200
+      super
       @header = Rack::Utils::HeaderHash.new(DEFAULT_HEADERS)
-
-      @writer = lambda { |x| @body << x }
-      @block = nil
-
-      @body = "",
       @session, @assigns = [], []
+    end
+
+    def body
+      str = ''
+      each { |part| str << part.to_s }
+      str
+    end
+
+    def body=(body)
+      @body =
+        if body.is_a?(String)
+          [body]
+        else
+          body
+        end
+    end
+
+    def body_parts
+      @body
     end
 
     def location; headers['Location'] end
@@ -152,7 +166,7 @@ module ActionController # :nodoc:
         @writer = lambda { |x| callback.call(x) }
         @body.call(self, self)
       elsif @body.is_a?(String)
-        @body.each_line(&callback)
+        callback.call(@body)
       else
         @body.each(&callback)
       end
@@ -162,7 +176,8 @@ module ActionController # :nodoc:
     end
 
     def write(str)
-      @writer.call str.to_s
+      str = str.to_s
+      @writer.call str
       str
     end
 
@@ -186,7 +201,7 @@ module ActionController # :nodoc:
 
           if request && request.etag_matches?(etag)
             self.status = '304 Not Modified'
-            self.body = ''
+            self.body = []
           end
 
           set_conditional_cache_control!
@@ -195,7 +210,11 @@ module ActionController # :nodoc:
 
       def nonempty_ok_response?
         ok = !status || status.to_s[0..2] == '200'
-        ok && body.is_a?(String) && !body.empty?
+        ok && string_body?
+      end
+
+      def string_body?
+        !body_parts.respond_to?(:call) && body_parts.any? && body_parts.all? { |part| part.is_a?(String) }
       end
 
       def set_conditional_cache_control!
@@ -216,8 +235,8 @@ module ActionController # :nodoc:
           headers.delete('Content-Length')
         elsif length = headers['Content-Length']
           headers['Content-Length'] = length.to_s
-        elsif !body.respond_to?(:call) && (!status || status.to_s[0..2] != '304')
-          headers["Content-Length"] = (body.respond_to?(:bytesize) ? body.bytesize : body.size).to_s
+        elsif string_body? && (!status || status.to_s[0..2] != '304')
+          headers["Content-Length"] = Rack::Utils.bytesize(body).to_s
         end
       end
 
