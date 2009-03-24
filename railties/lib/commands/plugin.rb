@@ -134,7 +134,8 @@ class RailsEnvironment
   def externals
     return [] unless use_externals?
     ext = `svn propget svn:externals "#{root}/vendor/plugins"`
-    ext.reject{ |line| line.strip == '' }.map do |line| 
+    lines = ext.respond_to?(:lines) ? ext.lines : ext
+    lines.reject{ |line| line.strip == '' }.map do |line|
       line.strip.split(/\s+/, 2) 
     end
   end
@@ -278,8 +279,8 @@ class Plugin
         base_cmd += " #{options[:revision]}" if options[:revision]
         puts base_cmd if $verbose
         if system(base_cmd)
-          puts "removing: .git" if $verbose
-          rm_rf ".git"
+          puts "removing: .git .gitignore" if $verbose
+          rm_rf %w(.git .gitignore)
         else
           rm_rf install_path
         end

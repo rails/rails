@@ -142,7 +142,7 @@ class SendFileTest < ActionController::TestCase
     }
 
     @controller.headers = {}
-    assert_raises(ArgumentError){ @controller.send(:send_file_headers!, options) }
+    assert_raise(ArgumentError){ @controller.send(:send_file_headers!, options) }
   end
 
   %w(file data).each do |method|

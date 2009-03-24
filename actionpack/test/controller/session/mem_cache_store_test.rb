@@ -17,11 +17,14 @@ class MemCacheStoreTest < ActionController::IntegrationTest
     end
 
     def get_session_id
-      render :text => "foo: #{session[:foo].inspect}; id: #{request.session_options[:id]}"
+      session[:foo]
+      render :text => "#{request.session_options[:id]}"
     end
 
     def call_reset_session
+      session[:bar]
       reset_session
+      session[:bar] = "baz"
       head :ok
     end
 
@@ -58,6 +61,27 @@ class MemCacheStoreTest < ActionController::IntegrationTest
       end
     end
 
+    def test_setting_session_value_after_session_reset
+      with_test_route_set do
+        get '/set_session_value'
+        assert_response :success
+        assert cookies['_session_id']
+        session_id = cookies['_session_id']
+
+        get '/call_reset_session'
+        assert_response :success
+        assert_not_equal [], headers['Set-Cookie']
+
+        get '/get_session_value'
+        assert_response :success
+        assert_equal 'foo: nil', response.body
+
+        get '/get_session_id'
+        assert_response :success
+        assert_not_equal session_id, response.body
+      end
+    end
+
     def test_getting_session_id
       with_test_route_set do
         get '/set_session_value'
@@ -67,7 +91,7 @@ class MemCacheStoreTest < ActionController::IntegrationTest
 
         get '/get_session_id'
         assert_response :success
-        assert_equal "foo: \"bar\"; id: #{session_id}", response.body
+        assert_equal session_id, response.body
       end
     end
 
@@ -83,22 +107,6 @@ class MemCacheStoreTest < ActionController::IntegrationTest
         get '/set_session_value', :_session_id => session_id
         assert_response :success
         assert_equal nil, cookies['_session_id']
-      end
-    end
-
-    def test_setting_session_value_after_session_reset
-      with_test_route_set do
-        get '/set_session_value'
-        assert_response :success
-        assert cookies['_session_id']
-
-        get '/call_reset_session'
-        assert_response :success
-        assert_not_equal [], headers['Set-Cookie']
-
-        get '/get_session_value'
-        assert_response :success
-        assert_equal 'foo: nil', response.body
       end
     end
   rescue LoadError, RuntimeError

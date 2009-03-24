@@ -6,15 +6,30 @@ module Rails
       NotFoundResponse = [404, {}, []].freeze
       NotFound = lambda { NotFoundResponse }
 
-      def self.metals
-        base = "#{Rails.root}/app/metal"
-        matcher = /\A#{Regexp.escape(base)}\/(.*)\.rb\Z/
+      cattr_accessor :metal_paths
+      self.metal_paths = ["#{Rails.root}/app/metal"]
+      cattr_accessor :requested_metals
 
-        Dir["#{base}/**/*.rb"].sort.map do |file|
-          file.sub!(matcher, '\1')
-          require file
-          file.classify.constantize
+      def self.metals
+        matcher = /#{Regexp.escape('/app/metal/')}(.*)\.rb\Z/
+        metal_glob = metal_paths.map{ |base| "#{base}/**/*.rb" }
+        all_metals = {}
+
+        metal_glob.each do |glob|
+          Dir[glob].sort.map do |file|
+            file = file.match(matcher)[1]
+            all_metals[file.camelize] = file
+          end
         end
+
+        load_list = requested_metals || all_metals.keys
+
+        load_list.map do |requested_metal|
+          if metal = all_metals[requested_metal]
+            require metal
+            requested_metal.constantize
+          end
+        end.compact
       end
 
       def initialize(app)

@@ -267,7 +267,7 @@ module ActionController
   module Routing
     SEPARATORS = %w( / . ? )
 
-    HTTP_METHODS = [:get, :head, :post, :put, :delete]
+    HTTP_METHODS = [:get, :head, :post, :put, :delete, :options]
 
     ALLOWED_REQUIREMENTS_FOR_OPTIMISATION = [:controller, :action].to_set
 

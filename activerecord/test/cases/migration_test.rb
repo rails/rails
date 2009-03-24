@@ -93,6 +93,30 @@ if ActiveRecord::Base.connection.supports_migrations?
       end
     end
 
+    def testing_table_with_only_foo_attribute
+      Person.connection.create_table :testings, :id => false do |t|
+        t.column :foo, :string
+      end
+
+      yield Person.connection
+    ensure
+      Person.connection.drop_table :testings rescue nil
+    end
+    protected :testing_table_with_only_foo_attribute
+
+    def test_create_table_without_id
+      testing_table_with_only_foo_attribute do |connection|
+        assert_equal connection.columns(:testings).size, 1
+      end
+    end
+
+    def test_add_column_with_primary_key_attribute
+      testing_table_with_only_foo_attribute do |connection|
+        assert_nothing_raised { connection.add_column :testings, :id, :primary_key }
+        assert_equal connection.columns(:testings).size, 2
+      end
+    end
+
     def test_create_table_adds_id
       Person.connection.create_table :testings do |t|
         t.column :foo, :string
@@ -111,7 +135,7 @@ if ActiveRecord::Base.connection.supports_migrations?
         end
       end
 
-      assert_raises(ActiveRecord::StatementInvalid) do
+      assert_raise(ActiveRecord::StatementInvalid) do
         Person.connection.execute "insert into testings (foo) values (NULL)"
       end
     ensure
@@ -278,7 +302,7 @@ if ActiveRecord::Base.connection.supports_migrations?
         end
         Person.connection.add_column :testings, :bar, :string, :null => false
 
-        assert_raises(ActiveRecord::StatementInvalid) do
+        assert_raise(ActiveRecord::StatementInvalid) do
           Person.connection.execute "insert into testings (foo, bar) values ('hello', NULL)"
         end
       ensure
@@ -297,7 +321,7 @@ if ActiveRecord::Base.connection.supports_migrations?
       Person.connection.enable_identity_insert("testings", false) if current_adapter?(:SybaseAdapter)
       assert_nothing_raised {Person.connection.add_column :testings, :bar, :string, :null => false, :default => "default" }
 
-      assert_raises(ActiveRecord::StatementInvalid) do
+      assert_raise(ActiveRecord::StatementInvalid) do
         unless current_adapter?(:OpenBaseAdapter)
           Person.connection.execute "insert into testings (#{con.quote_column_name('id')}, #{con.quote_column_name('foo')}, #{con.quote_column_name('bar')}) values (2, 'hello', NULL)"
         else
@@ -545,7 +569,7 @@ if ActiveRecord::Base.connection.supports_migrations?
       else
         ActiveRecord::ActiveRecordError
       end
-      assert_raises(exception) do
+      assert_raise(exception) do
         Person.connection.rename_column "hats", "nonexistent", "should_fail"
       end
     ensure
@@ -795,7 +819,7 @@ if ActiveRecord::Base.connection.supports_migrations?
       assert_equal "hello world", Reminder.find(:first).content
 
       WeNeedReminders.down
-      assert_raises(ActiveRecord::StatementInvalid) { Reminder.find(:first) }
+      assert_raise(ActiveRecord::StatementInvalid) { Reminder.find(:first) }
     end
 
     def test_add_table_with_decimals
@@ -856,7 +880,7 @@ if ActiveRecord::Base.connection.supports_migrations?
       end
 
       GiveMeBigNumbers.down
-      assert_raises(ActiveRecord::StatementInvalid) { BigNumber.find(:first) }
+      assert_raise(ActiveRecord::StatementInvalid) { BigNumber.find(:first) }
     end
 
     def test_migrator
@@ -876,7 +900,7 @@ if ActiveRecord::Base.connection.supports_migrations?
       assert_equal 0, ActiveRecord::Migrator.current_version
       Person.reset_column_information
       assert !Person.column_methods_hash.include?(:last_name)
-      assert_raises(ActiveRecord::StatementInvalid) { Reminder.find(:first) }
+      assert_raise(ActiveRecord::StatementInvalid) { Reminder.find(:first) }
     end
 
     def test_migrator_one_up
@@ -928,11 +952,11 @@ if ActiveRecord::Base.connection.supports_migrations?
       assert_equal(0, ActiveRecord::Migrator.current_version)
     end
 
-    if current_adapter?(:PostgreSQLAdapter)
+    if ActiveRecord::Base.connection.supports_ddl_transactions?
       def test_migrator_one_up_with_exception_and_rollback
         assert !Person.column_methods_hash.include?(:last_name)
 
-        e = assert_raises(StandardError) do
+        e = assert_raise(StandardError) do
           ActiveRecord::Migrator.up(MIGRATIONS_ROOT + "/broken", 100)
         end
 
@@ -945,20 +969,20 @@ if ActiveRecord::Base.connection.supports_migrations?
 
     def test_finds_migrations
       migrations = ActiveRecord::Migrator.new(:up, MIGRATIONS_ROOT + "/valid").migrations
-      [['1', 'people_have_last_names'],
-       ['2', 'we_need_reminders'],
-       ['3', 'innocent_jointable']].each_with_index do |pair, i|
-        migrations[i].version == pair.first
-        migrations[1].name    == pair.last
+
+      [[1, 'PeopleHaveLastNames'], [2, 'WeNeedReminders'], [3, 'InnocentJointable']].each_with_index do |pair, i|
+        assert_equal migrations[i].version, pair.first
+        assert_equal migrations[i].name, pair.last
       end
     end
 
     def test_finds_pending_migrations
       ActiveRecord::Migrator.up(MIGRATIONS_ROOT + "/interleaved/pass_2", 1)
       migrations = ActiveRecord::Migrator.new(:up, MIGRATIONS_ROOT + "/interleaved/pass_2").pending_migrations
+
       assert_equal 1, migrations.size
-      migrations[0].version == '3'
-      migrations[0].name    == 'innocent_jointable'
+      assert_equal migrations[0].version, 3
+      assert_equal migrations[0].name, 'InnocentJointable'
     end
 
     def test_only_loads_pending_migrations
@@ -1107,7 +1131,7 @@ if ActiveRecord::Base.connection.supports_migrations?
       assert_equal "hello world", Reminder.find(:first).content
 
       WeNeedReminders.down
-      assert_raises(ActiveRecord::StatementInvalid) { Reminder.find(:first) }
+      assert_raise(ActiveRecord::StatementInvalid) { Reminder.find(:first) }
     ensure
       ActiveRecord::Base.table_name_prefix = ''
       ActiveRecord::Base.table_name_suffix = ''
@@ -1137,13 +1161,13 @@ if ActiveRecord::Base.connection.supports_migrations?
     end
 
     def test_migrator_with_duplicates
-      assert_raises(ActiveRecord::DuplicateMigrationVersionError) do
+      assert_raise(ActiveRecord::DuplicateMigrationVersionError) do
         ActiveRecord::Migrator.migrate(MIGRATIONS_ROOT + "/duplicate", nil)
       end
     end
 
     def test_migrator_with_duplicate_names
-      assert_raises(ActiveRecord::DuplicateMigrationNameError, "Multiple migrations have the name Chunky") do
+      assert_raise(ActiveRecord::DuplicateMigrationNameError, "Multiple migrations have the name Chunky") do
         ActiveRecord::Migrator.migrate(MIGRATIONS_ROOT + "/duplicate_names", nil)
       end
     end
@@ -1159,7 +1183,7 @@ if ActiveRecord::Base.connection.supports_migrations?
 
       # table name is 29 chars, the standard sequence name will
       # be 33 chars and fail
-      assert_raises(ActiveRecord::StatementInvalid) do
+      assert_raise(ActiveRecord::StatementInvalid) do
         begin
           Person.connection.create_table :table_with_name_thats_just_ok do |t|
             t.column :foo, :string, :null => false
@@ -1186,7 +1210,7 @@ if ActiveRecord::Base.connection.supports_migrations?
       end
 
       # confirm the custom sequence got dropped
-      assert_raises(ActiveRecord::StatementInvalid) do
+      assert_raise(ActiveRecord::StatementInvalid) do
         Person.connection.execute("select suitably_short_seq.nextval from dual")
       end
     end

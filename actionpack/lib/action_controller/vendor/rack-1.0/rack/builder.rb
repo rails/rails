@@ -34,11 +34,7 @@ module Rack
     end
 
     def use(middleware, *args, &block)
-      @ins << if block_given?
-        lambda { |app| middleware.new(app, *args, &block) }
-      else
-        lambda { |app| middleware.new(app, *args) }
-      end
+      @ins << lambda { |app| middleware.new(app, *args, &block) }
     end
 
     def run(app)

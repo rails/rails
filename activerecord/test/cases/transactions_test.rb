@@ -214,7 +214,7 @@ class TransactionTest < ActiveRecord::TestCase
   end
 
   def test_invalid_keys_for_transaction
-    assert_raises ArgumentError do
+    assert_raise ArgumentError do
       Topic.transaction :nested => true do
       end
     end
@@ -349,7 +349,7 @@ class TransactionTest < ActiveRecord::TestCase
     end
   end
 
-  def test_sqlite_add_column_in_transaction_raises_statement_invalid
+  def test_sqlite_add_column_in_transaction
     return true unless current_adapter?(:SQLite3Adapter, :SQLiteAdapter)
 
     # Test first if column creation/deletion works correctly when no
@@ -368,10 +368,15 @@ class TransactionTest < ActiveRecord::TestCase
       assert !Topic.column_names.include?('stuff')
     end
 
-    # Test now inside a transaction: add_column should raise a StatementInvalid
-    Topic.transaction do
-      assert_raises(ActiveRecord::StatementInvalid) { Topic.connection.add_column('topics', 'stuff', :string) }
-      raise ActiveRecord::Rollback
+    if Topic.connection.supports_ddl_transactions?
+      assert_nothing_raised do
+        Topic.transaction { Topic.connection.add_column('topics', 'stuff', :string) }
+      end
+    else
+      Topic.transaction do
+        assert_raise(ActiveRecord::StatementInvalid) { Topic.connection.add_column('topics', 'stuff', :string) }
+        raise ActiveRecord::Rollback
+      end
     end
   end
 

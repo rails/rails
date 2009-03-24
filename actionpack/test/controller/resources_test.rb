@@ -99,7 +99,7 @@ class ResourcesTest < ActionController::TestCase
     expected_options = {:controller => 'messages', :action => 'show', :id => '1.1.1'}
 
     with_restful_routing :messages do
-      assert_raises(ActionController::RoutingError) do
+      assert_raise(ActionController::RoutingError) do
         assert_recognizes(expected_options, :path => 'messages/1.1.1', :method => :get)
       end
     end
@@ -175,6 +175,24 @@ class ResourcesTest < ActionController::TestCase
     end
   end
 
+  def test_with_collection_actions_and_name_prefix_and_member_action_with_same_name
+    actions = { 'a' => :get }
+
+    with_restful_routing :messages, :path_prefix => '/threads/:thread_id', :name_prefix => "thread_", :collection => actions, :member => actions do
+      assert_restful_routes_for :messages, :path_prefix => 'threads/1/', :name_prefix => 'thread_', :options => { :thread_id => '1' } do |options|
+        actions.each do |action, method|
+          assert_recognizes(options.merge(:action => action), :path => "/threads/1/messages/#{action}", :method => method)
+        end
+      end
+
+      assert_restful_named_routes_for :messages, :path_prefix => 'threads/1/', :name_prefix => 'thread_', :options => { :thread_id => '1' } do |options|
+        actions.keys.each do |action|
+          assert_named_route "/threads/1/messages/#{action}", "#{action}_thread_messages_path", :action => action
+        end
+      end
+    end
+  end
+
   def test_with_collection_action_and_name_prefix_and_formatted
     actions = { 'a' => :get, 'b' => :put, 'c' => :post, 'd' => :delete }
 
@@ -206,6 +224,14 @@ class ResourcesTest < ActionController::TestCase
           assert_named_route mark_path, :mark_message_path, mark_options
         end
       end
+    end
+  end
+
+  def test_with_member_action_and_requirement
+    expected_options = {:controller => 'messages', :action => 'mark', :id => '1.1.1'}
+  
+    with_restful_routing(:messages, :requirements => {:id => /[0-9]\.[0-9]\.[0-9]/}, :member => { :mark => :get }) do
+      assert_recognizes(expected_options, :path => 'messages/1.1.1/mark', :method => :get)
     end
   end
 
@@ -325,7 +351,7 @@ class ResourcesTest < ActionController::TestCase
     with_restful_routing :messages do
       assert_restful_routes_for :messages do |options|
         assert_recognizes(options.merge(:action => "new"), :path => "/messages/new", :method => :get)
-        assert_raises(ActionController::MethodNotAllowed) do
+        assert_raise(ActionController::MethodNotAllowed) do
           ActionController::Routing::Routes.recognize_path("/messages/new", :method => :post)
         end
       end
@@ -403,6 +429,34 @@ class ResourcesTest < ActionController::TestCase
         :path_prefix => 'messages/2/',
         :shallow => true,
         :options => { :message_id => '2' }
+    end
+  end
+
+  def test_shallow_nested_restful_routes_with_namespaces
+    with_routing do |set|
+      set.draw do |map|
+        map.namespace :backoffice do |map|
+          map.namespace :admin do |map|
+            map.resources :products, :shallow => true do |map|
+              map.resources :images
+            end
+          end
+        end
+      end
+
+      assert_simply_restful_for :products,
+        :controller => 'backoffice/admin/products',
+        :namespace => 'backoffice/admin/',
+        :name_prefix => 'backoffice_admin_',
+        :path_prefix => 'backoffice/admin/',
+        :shallow => true
+      assert_simply_restful_for :images,
+        :controller => 'backoffice/admin/images',
+        :namespace => 'backoffice/admin/',
+        :name_prefix => 'backoffice_admin_product_',
+        :path_prefix => 'backoffice/admin/products/1/',
+        :shallow => true,
+        :options => { :product_id => '1' }
     end
   end
 
@@ -583,11 +637,11 @@ class ResourcesTest < ActionController::TestCase
       options = { :controller => controller_name.to_s }
       collection_path = "/#{controller_name}"
 
-      assert_raises(ActionController::MethodNotAllowed) do
+      assert_raise(ActionController::MethodNotAllowed) do
         assert_recognizes(options.merge(:action => 'update'), :path => collection_path, :method => :put)
       end
 
-      assert_raises(ActionController::MethodNotAllowed) do
+      assert_raise(ActionController::MethodNotAllowed) do
         assert_recognizes(options.merge(:action => 'destroy'), :path => collection_path, :method => :delete)
       end
     end
@@ -596,7 +650,7 @@ class ResourcesTest < ActionController::TestCase
   def test_should_not_allow_invalid_head_method_for_member_routes
     with_routing do |set|
       set.draw do |map|
-        assert_raises(ArgumentError) do
+        assert_raise(ArgumentError) do
           map.resources :messages, :member => {:something => :head}
         end
       end
@@ -606,7 +660,7 @@ class ResourcesTest < ActionController::TestCase
   def test_should_not_allow_invalid_http_methods_for_member_routes
     with_routing do |set|
       set.draw do |map|
-        assert_raises(ArgumentError) do
+        assert_raise(ArgumentError) do
           map.resources :messages, :member => {:something => :invalid}
         end
       end
@@ -750,9 +804,17 @@ class ResourcesTest < ActionController::TestCase
   end
 
   def test_with_path_segment
-    with_restful_routing :messages, :as => 'reviews' do
-      assert_simply_restful_for :messages, :as => 'reviews'
+    with_restful_routing :messages do
+      assert_simply_restful_for :messages
+      assert_recognizes({:controller => "messages", :action => "index"}, "/messages")
+      assert_recognizes({:controller => "messages", :action => "index"}, "/messages/")
     end
+
+     with_restful_routing :messages, :as => 'reviews' do
+       assert_simply_restful_for :messages, :as => 'reviews'
+      assert_recognizes({:controller => "messages", :action => "index"}, "/reviews")
+      assert_recognizes({:controller => "messages", :action => "index"}, "/reviews/")
+     end
   end
 
   def test_multiple_with_path_segment_and_controller
@@ -1066,7 +1128,7 @@ class ResourcesTest < ActionController::TestCase
 
       path                       = "#{options[:as] || controller_name}"
       collection_path            = "/#{options[:path_prefix]}#{path}"
-      shallow_path               = "/#{options[:path_prefix] unless options[:shallow]}#{path}"
+      shallow_path               = "/#{options[:shallow] ? options[:namespace] : options[:path_prefix]}#{path}"
       member_path                = "#{shallow_path}/1"
       new_path                   = "#{collection_path}/#{new_action}"
       edit_member_path           = "#{member_path}/#{edit_action}"
@@ -1130,10 +1192,10 @@ class ResourcesTest < ActionController::TestCase
       options[:options].delete :action
 
       path = "#{options[:as] || controller_name}"
-      shallow_path = "/#{options[:path_prefix] unless options[:shallow]}#{path}"
+      shallow_path = "/#{options[:shallow] ? options[:namespace] : options[:path_prefix]}#{path}"
       full_path = "/#{options[:path_prefix]}#{path}"
       name_prefix = options[:name_prefix]
-      shallow_prefix = "#{options[:name_prefix] unless options[:shallow]}"
+      shallow_prefix = options[:shallow] ? options[:namespace].try(:gsub, /\//, '_') : options[:name_prefix]
 
       new_action  = "new"
       edit_action = "edit"

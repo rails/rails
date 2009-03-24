@@ -1,6 +1,10 @@
 require 'abstract_unit'
 require 'initializer'
 
+require 'action_view'
+require 'action_mailer'
+require 'active_record'
+
 # Mocks out the configuration
 module Rails
   def self.configuration
@@ -26,7 +30,6 @@ class Initializer_load_environment_Test < Test::Unit::TestCase
   ensure
     $initialize_test_set_from_env = nil
   end
-
 end
 
 class Initializer_eager_loading_Test < Test::Unit::TestCase
@@ -234,7 +237,7 @@ class InitializerPluginLoadingTests < Test::Unit::TestCase
 
   def test_registering_a_plugin_name_that_does_not_exist_raises_a_load_error
     only_load_the_following_plugins! [:stubby, :acts_as_a_non_existant_plugin]
-    assert_raises(LoadError) do
+    assert_raise(LoadError) do
       load_plugins!
     end
   end
@@ -268,7 +271,6 @@ class InitializerPluginLoadingTests < Test::Unit::TestCase
     assert $LOAD_PATH.include?(File.join(plugin_fixture_path('default/acts/acts_as_chunky_bacon'), 'lib'))
   end
 
-
   private
 
     def load_plugins!
@@ -288,7 +290,7 @@ class InitializerSetupI18nTests < Test::Unit::TestCase
     Dir.stubs(:[]).returns([ "my/test/locale.yml" ])
     assert_equal [ "my/test/locale.yml" ], Rails::Configuration.new.i18n.load_path
   end
-  
+
   def test_config_defaults_should_be_added_with_config_settings
     File.stubs(:exist?).returns(true)
     Dir.stubs(:[]).returns([ "my/test/locale.yml" ])
@@ -298,7 +300,7 @@ class InitializerSetupI18nTests < Test::Unit::TestCase
 
     assert_equal [ "my/test/locale.yml", "my/other/locale.yml" ], config.i18n.load_path
   end
-  
+
   def test_config_defaults_and_settings_should_be_added_to_i18n_defaults
     File.stubs(:exist?).returns(true)
     Dir.stubs(:[]).returns([ "my/test/locale.yml" ])
@@ -306,22 +308,83 @@ class InitializerSetupI18nTests < Test::Unit::TestCase
     config = Rails::Configuration.new
     config.i18n.load_path << "my/other/locale.yml"
 
-    # To bring in AV's i18n load path.
-    require 'action_view'
-
     Rails::Initializer.run(:initialize_i18n, config)
     assert_equal [ 
      File.expand_path(File.dirname(__FILE__) + "/../../activesupport/lib/active_support/locale/en.yml"),
      File.expand_path(File.dirname(__FILE__) + "/../../actionpack/lib/action_view/locale/en.yml"),
+     File.expand_path(File.dirname(__FILE__) + "/../../activerecord/lib/active_record/locale/en.yml"),
      "my/test/locale.yml",
      "my/other/locale.yml" ], I18n.load_path.collect { |path| path =~ /^\./ ? File.expand_path(path) : path }
   end
-  
+
   def test_setting_another_default_locale
     config = Rails::Configuration.new
     config.i18n.default_locale = :de
     Rails::Initializer.run(:initialize_i18n, config)
     assert_equal :de, I18n.default_locale
+  end
+end
+
+class InitializerDatabaseMiddlewareTest < Test::Unit::TestCase
+  def setup
+    @config = Rails::Configuration.new
+    @config.frameworks = [:active_record, :action_controller, :action_view]
+  end
+
+  def test_initialize_database_middleware_doesnt_perform_anything_when_active_record_not_in_frameworks
+    @config.frameworks.clear
+    @config.expects(:middleware).never
+    Rails::Initializer.run(:initialize_database_middleware, @config)
+  end
+
+  def test_database_middleware_initializes_when_session_store_is_active_record
+    store = ActionController::Base.session_store
+    ActionController::Base.session_store = ActiveRecord::SessionStore
+
+    @config.middleware.expects(:insert_before).with(:"ActiveRecord::SessionStore", ActiveRecord::ConnectionAdapters::ConnectionManagement)
+    @config.middleware.expects(:insert_before).with(:"ActiveRecord::SessionStore", ActiveRecord::QueryCache)
+
+    Rails::Initializer.run(:initialize_database_middleware, @config)
+  ensure
+    ActionController::Base.session_store = store
+  end
+
+  def test_database_middleware_doesnt_initialize_when_session_store_is_not_active_record
+    store = ActionController::Base.session_store
+    ActionController::Base.session_store = ActionController::Session::CookieStore
+
+    # Define the class, so we don't have to actually make it load
+    eval("class ActiveRecord::ConnectionAdapters::ConnectionManagement; end")
+
+    @config.middleware.expects(:use).with(ActiveRecord::ConnectionAdapters::ConnectionManagement)
+    @config.middleware.expects(:use).with(ActiveRecord::QueryCache)
+
+    Rails::Initializer.run(:initialize_database_middleware, @config)
+  ensure
+    ActionController::Base.session_store = store
+  end
+end
+
+class InitializerViewPathsTest  < Test::Unit::TestCase
+  def setup
+    @config = Rails::Configuration.new
+    @config.frameworks = [:action_view, :action_controller, :action_mailer]
+    
+    ActionController::Base.stubs(:view_paths).returns(stub)
+    ActionMailer::Base.stubs(:view_paths).returns(stub)
+  end
+  
+  def test_load_view_paths_doesnt_perform_anything_when_action_view_not_in_frameworks
+    @config.frameworks -= [:action_view]
+    ActionController::Base.view_paths.expects(:load!).never
+    ActionMailer::Base.view_paths.expects(:load!).never
+    Rails::Initializer.run(:load_view_paths, @config)
+  end
+  
+  def test_load_view_paths_loads_view_paths
+    ActionController::Base.view_paths.expects(:load!)
+    ActionMailer::Base.view_paths.expects(:load!)
+    Rails::Initializer.run(:load_view_paths, @config)
   end
 end
 

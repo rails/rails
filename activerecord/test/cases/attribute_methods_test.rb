@@ -100,7 +100,7 @@ class AttributeMethodsTest < ActiveRecord::TestCase
     %w(save create_or_update).each do |method|
       klass = Class.new ActiveRecord::Base
       klass.class_eval "def #{method}() 'defined #{method}' end"
-      assert_raises ActiveRecord::DangerousAttributeError do
+      assert_raise ActiveRecord::DangerousAttributeError do
         klass.instance_method_already_implemented?(method)
       end
     end

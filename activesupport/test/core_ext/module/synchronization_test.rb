@@ -28,14 +28,14 @@ class SynchronizationTest < Test::Unit::TestCase
   end
 
   def test_synchronize_with_no_mutex_raises_an_argument_error
-    assert_raises(ArgumentError) do
+    assert_raise(ArgumentError) do
       @target.synchronize :to_s
     end
   end
 
   def test_double_synchronize_raises_an_argument_error
     @target.synchronize :to_s, :with => :mutex
-    assert_raises(ArgumentError) do
+    assert_raise(ArgumentError) do
       @target.synchronize :to_s, :with => :mutex
     end
   end

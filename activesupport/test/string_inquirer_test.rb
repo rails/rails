@@ -10,6 +10,6 @@ class StringInquirerTest < Test::Unit::TestCase
   end
 
   def test_missing_question_mark
-    assert_raises(NoMethodError) { ActiveSupport::StringInquirer.new("production").production }
+    assert_raise(NoMethodError) { ActiveSupport::StringInquirer.new("production").production }
   end
 end

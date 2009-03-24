@@ -52,11 +52,11 @@ class PluginTest < Test::Unit::TestCase
       plugin_for(@valid_plugin_path).load_paths
     end
   
-    assert_raises(LoadError) do
+    assert_raise(LoadError) do
       plugin_for(@empty_plugin_path).load_paths
     end
   
-    assert_raises(LoadError) do
+    assert_raise(LoadError) do
       plugin_for('this_is_not_a_plugin_directory').load_paths
     end
   end
@@ -77,13 +77,13 @@ class PluginTest < Test::Unit::TestCase
     end
 
     # This is an empty path so it raises
-    assert_raises(LoadError) do
+    assert_raise(LoadError) do
       plugin = plugin_for(@empty_plugin_path)
       plugin.stubs(:evaluate_init_rb)      
       plugin.send(:load, @initializer)
     end
   
-    assert_raises(LoadError) do
+    assert_raise(LoadError) do
       plugin = plugin_for('this_is_not_a_plugin_directory')
       plugin.stubs(:evaluate_init_rb)
       plugin.send(:load, @initializer)
@@ -97,11 +97,11 @@ class PluginTest < Test::Unit::TestCase
     end
   
     # This is an empty path so it raises
-    assert_raises(LoadError) do
+    assert_raise(LoadError) do
       plugin_for(@empty_plugin_path).load_paths
     end
   
-    assert_raises(LoadError) do
+    assert_raise(LoadError) do
       plugin_for('this_is_not_a_plugin_directory').load_paths
     end
   end    

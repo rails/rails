@@ -183,12 +183,12 @@ module ActionView #:nodoc:
     cattr_accessor :debug_rjs
 
     # Specify whether templates should be cached. Otherwise the file we be read everytime it is accessed.
-    # Automaticaly reloading templates are not thread safe and should only be used in development mode.
-    @@cache_template_loading = false
+    # Automatically reloading templates are not thread safe and should only be used in development mode.
+    @@cache_template_loading = nil
     cattr_accessor :cache_template_loading
 
     def self.cache_template_loading?
-      ActionController::Base.allow_concurrency || cache_template_loading
+      ActionController::Base.allow_concurrency || (cache_template_loading.nil? ? !ActiveSupport::Dependencies.load? : cache_template_loading)
     end
 
     attr_internal :request
@@ -221,10 +221,12 @@ module ActionView #:nodoc:
     def initialize(view_paths = [], assigns_for_first_render = {}, controller = nil)#:nodoc:
       @assigns = assigns_for_first_render
       @assigns_added = nil
-      @_render_stack = []
       @controller = controller
       @helpers = ProxyModule.new(self)
       self.view_paths = view_paths
+
+      @_first_render = nil
+      @_current_render = nil
     end
 
     attr_reader :view_paths
@@ -286,7 +288,19 @@ module ActionView #:nodoc:
     # Access the current template being rendered.
     # Returns a ActionView::Template object.
     def template
-      @_render_stack.last
+      @_current_render
+    end
+
+    def template=(template) #:nodoc:
+      @_first_render ||= template
+      @_current_render = template
+    end
+
+    def with_template(current_template)
+      last_template, self.template = template, current_template
+      yield
+    ensure
+      self.template = last_template
     end
 
     private

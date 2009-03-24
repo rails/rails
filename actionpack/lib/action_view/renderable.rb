@@ -27,23 +27,19 @@ module ActionView
     def render(view, local_assigns = {})
       compile(local_assigns)
 
-      stack = view.instance_variable_get(:@_render_stack)
-      stack.push(self)
+      view.with_template self do
+        view.send(:_evaluate_assigns_and_ivars)
+        view.send(:_set_controller_content_type, mime_type) if respond_to?(:mime_type)
 
-      view.send(:_evaluate_assigns_and_ivars)
-      view.send(:_set_controller_content_type, mime_type) if respond_to?(:mime_type)
-
-      result = view.send(method_name(local_assigns), local_assigns) do |*names|
-        ivar = :@_proc_for_layout
-        if !view.instance_variable_defined?(:"@content_for_#{names.first}") && view.instance_variable_defined?(ivar) && (proc = view.instance_variable_get(ivar))
-          view.capture(*names, &proc)
-        elsif view.instance_variable_defined?(ivar = :"@content_for_#{names.first || :layout}")
-          view.instance_variable_get(ivar)
+        view.send(method_name(local_assigns), local_assigns) do |*names|
+          ivar = :@_proc_for_layout
+          if !view.instance_variable_defined?(:"@content_for_#{names.first}") && view.instance_variable_defined?(ivar) && (proc = view.instance_variable_get(ivar))
+            view.capture(*names, &proc)
+          elsif view.instance_variable_defined?(ivar = :"@content_for_#{names.first || :layout}")
+            view.instance_variable_get(ivar)
+          end
         end
       end
-
-      stack.pop
-      result
     end
 
     def method_name(local_assigns)

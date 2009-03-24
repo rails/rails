@@ -26,7 +26,7 @@ class MultibyteCharsTest < Test::Unit::TestCase
     assert_nothing_raised do
       @chars.__method_for_multibyte_testing
     end
-    assert_raises NoMethodError do
+    assert_raise NoMethodError do
       @chars.__unknown_method
     end
   end
@@ -71,7 +71,7 @@ class MultibyteCharsTest < Test::Unit::TestCase
   end
 
   def test_unpack_raises_encoding_error_on_broken_strings
-    assert_raises(ActiveSupport::Multibyte::EncodingError) do
+    assert_raise(ActiveSupport::Multibyte::EncodingError) do
       @proxy_class.u_unpack(BYTE_STRING)
     end
   end
@@ -123,7 +123,6 @@ class MultibyteCharsUTF8BehaviourTest < Test::Unit::TestCase
       [:rstrip!, :lstrip!, :strip!, :reverse!, :upcase!, :downcase!, :capitalize!].each do |method|
         assert_equal @chars.object_id, @chars.send(method).object_id
       end
-      assert_equal @chars.object_id, @chars.slice!(1).object_id
     end
 
     def test_overridden_bang_methods_change_wrapped_string
@@ -133,10 +132,6 @@ class MultibyteCharsUTF8BehaviourTest < Test::Unit::TestCase
         proxy.send(method)
         assert_not_equal original, proxy.to_s
       end
-      proxy = chars('Café')
-      proxy.slice!(3)
-      assert_equal 'é', proxy.to_s
-
       proxy = chars('òu')
       proxy.capitalize!
       assert_equal 'Òu', proxy.to_s
@@ -214,8 +209,8 @@ class MultibyteCharsUTF8BehaviourTest < Test::Unit::TestCase
   end
 
   def test_insert_throws_index_error
-    assert_raises(IndexError) { @chars.insert(-12, 'わ')}
-    assert_raises(IndexError) { @chars.insert(12, 'わ') }
+    assert_raise(IndexError) { @chars.insert(-12, 'わ')}
+    assert_raise(IndexError) { @chars.insert(12, 'わ') }
   end
 
   def test_should_know_if_one_includes_the_other
@@ -227,7 +222,7 @@ class MultibyteCharsUTF8BehaviourTest < Test::Unit::TestCase
   end
 
   def test_include_raises_type_error_when_nil_is_passed
-    assert_raises(TypeError) do
+    assert_raise(TypeError) do
       @chars.include?(nil)
     end
   end
@@ -262,22 +257,22 @@ class MultibyteCharsUTF8BehaviourTest < Test::Unit::TestCase
 
   def test_indexed_insert_should_raise_on_index_overflow
     before = @chars.to_s
-    assert_raises(IndexError) { @chars[10] = 'a' }
-    assert_raises(IndexError) { @chars[10, 4] = 'a' }
-    assert_raises(IndexError) { @chars[/ii/] = 'a' }
-    assert_raises(IndexError) { @chars[/()/, 10] = 'a' }
+    assert_raise(IndexError) { @chars[10] = 'a' }
+    assert_raise(IndexError) { @chars[10, 4] = 'a' }
+    assert_raise(IndexError) { @chars[/ii/] = 'a' }
+    assert_raise(IndexError) { @chars[/()/, 10] = 'a' }
     assert_equal before, @chars
   end
 
   def test_indexed_insert_should_raise_on_range_overflow
     before = @chars.to_s
-    assert_raises(RangeError) { @chars[10..12] = 'a' }
+    assert_raise(RangeError) { @chars[10..12] = 'a' }
     assert_equal before, @chars
   end
 
   def test_rjust_should_raise_argument_errors_on_bad_arguments
-    assert_raises(ArgumentError) { @chars.rjust(10, '') }
-    assert_raises(ArgumentError) { @chars.rjust }
+    assert_raise(ArgumentError) { @chars.rjust(10, '') }
+    assert_raise(ArgumentError) { @chars.rjust }
   end
 
   def test_rjust_should_count_characters_instead_of_bytes
@@ -294,8 +289,8 @@ class MultibyteCharsUTF8BehaviourTest < Test::Unit::TestCase
   end
 
   def test_ljust_should_raise_argument_errors_on_bad_arguments
-    assert_raises(ArgumentError) { @chars.ljust(10, '') }
-    assert_raises(ArgumentError) { @chars.ljust }
+    assert_raise(ArgumentError) { @chars.ljust(10, '') }
+    assert_raise(ArgumentError) { @chars.ljust }
   end
 
   def test_ljust_should_count_characters_instead_of_bytes
@@ -312,8 +307,8 @@ class MultibyteCharsUTF8BehaviourTest < Test::Unit::TestCase
   end
 
   def test_center_should_raise_argument_errors_on_bad_arguments
-    assert_raises(ArgumentError) { @chars.center(10, '') }
-    assert_raises(ArgumentError) { @chars.center }
+    assert_raise(ArgumentError) { @chars.center(10, '') }
+    assert_raise(ArgumentError) { @chars.center }
   end
 
   def test_center_should_count_charactes_instead_of_bytes
@@ -391,6 +386,15 @@ class MultibyteCharsUTF8BehaviourTest < Test::Unit::TestCase
     assert_equal nil, @chars.slice(7..6)
   end
 
+  def test_slice_bang_returns_sliced_out_substring
+    assert_equal 'にち', @chars.slice!(1..2)
+  end
+
+  def test_slice_bang_removes_the_slice_from_the_receiver
+    @chars.slice!(1..2)
+    assert_equal 'こわ', @chars
+  end
+
   def test_slice_should_throw_exceptions_on_invalid_arguments
     assert_raise(TypeError) { @chars.slice(2..3, 1) }
     assert_raise(TypeError) { @chars.slice(1, 2..3) }
@@ -436,7 +440,7 @@ class MultibyteCharsExtrasTest < Test::Unit::TestCase
 
   if RUBY_VERSION >= '1.9'
     def test_tidy_bytes_is_broken_on_1_9_0
-      assert_raises(ArgumentError) do
+      assert_raise(ArgumentError) do
         assert_equal_codepoints [0xfffd].pack('U'), chars("\xef\xbf\xbd").tidy_bytes
       end
     end

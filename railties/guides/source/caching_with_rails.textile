@@ -4,6 +4,13 @@ Everyone caches. This guide will teach you what you need to know about
 avoiding that expensive round-trip to your database and returning what you
 need to return to those hungry web clients in the shortest time possible.
 
+After reading this guide, you should be able to use and configure:
+
+* Page, action, and fragment caching
+* Sweepers
+* Alternative cache stores
+* Conditional GET support
+
 endprologue.
 
 h3. Basic Caching
@@ -13,8 +20,7 @@ provides by default without the use of any third party plugins.
 
 To get started make sure +config.action_controller.perform_caching+ is set
 to +true+ for your environment. This flag is normally set in the
-corresponding config/environments/*.rb and caching is disabled by default
-there for development and test, and enabled for production.
+corresponding config/environments/*.rb. By default, caching is disabled for development and test, and enabled for production.
 
 <ruby>
 config.action_controller.perform_caching = true
@@ -29,9 +35,9 @@ applied to every situation (such as pages that need authentication) and since
 the webserver is literally just serving a file from the filesystem, cache
 expiration is an issue that needs to be dealt with.
 
-So, how do you enable this super-fast cache behavior?  Simple, let's say you
-have a controller called ProductsController and a 'list' action that lists all
-the products
+So, how do you enable this super-fast cache behavior? Suppose you
+have a controller called +ProductsController+ and an +index+ action that lists all
+the products. You could enable caching for this action like this:
 
 <ruby>
 class ProductsController < ActionController
@@ -44,34 +50,33 @@ end
 </ruby>
 
 The first time anyone requests products/index, Rails will generate a file
-called +index.html+ and the webserver will then look for that file before it
-passes the next request for products/index to your Rails application.
+called +index.html+. If a web server see this file, it will be served in response to the
+next request for products/index, without your Rails application being called.
 
 By default, the page cache directory is set to Rails.public_path (which is
-usually set to +RAILS_ROOT + "/public"+) and this can be configured by
+usually set to +File.join(self.root, "public")+ - that is, the public directory under your Rails application's root). This can be configured by
 changing the configuration setting +config.action_controller.page_cache_directory+.
 Changing the default from /public helps avoid naming conflicts, since you may
 want to put other static html in /public, but changing this will require web
 server reconfiguration to let the web server know where to serve the cached
 files from.
 
-The Page Caching mechanism will automatically add a +.html+ extension to
+The page caching mechanism will automatically add a +.html+ extension to
 requests for pages that do not have an extension to make it easy for the
-webserver to find those pages and this can be configured by changing the
+webserver to find those pages. This can be configured by changing the
 configuration setting +config.action_controller.page_cache_extension+.
 
-In order to expire this page when a new product is added we could extend our
-example controller like this:
+In order to expire this page when a new product is added you could extend the products controller like this:
 
 <ruby>
 class ProductsController < ActionController
 
-  caches_page :list
+  caches_page :index
 
-  def list; end
+  def index; end
 
   def create
-    expire_page :action => :list
+    expire_page :action => :index
   end
 
 end
@@ -80,19 +85,19 @@ end
 If you want a more complicated expiration scheme, you can use cache sweepers
 to expire cached objects when things change. This is covered in the section on Sweepers.
 
-Note: Page caching ignores all parameters, so /products/list?page=1 will be written out to the filesystem as /products/list.html and if someone requests /products/list?page=2, they will be returned the same result as page=1, so be careful when page caching GET parameters in the URL!
+Note: Page caching ignores all parameters, so /products/list?page=1 will be written out to the filesystem as /products/list.html and if someone requests /products/list?page=2, they will be returned the same result as page=1. Be careful when page caching GET parameters in the URL!
 
 h4. Action Caching
 
-One of the issues with Page Caching is that you cannot use it for pages that
-require to restrict access somehow. This is where Action Caching comes in.
-Action Caching works like Page Caching except for the fact that the incoming
-web request does go from the webserver to the Rails stack and Action Pack so
-that before filters can be run on it before the cache is served, so that
-authentication and other restrictions can be used while still serving the
+One of the issues with page caching is that you cannot use it for pages that
+require checking code to determine whether the user should be permitted access. This is where Action Caching comes in.
+action caching works like page caching except for the fact that the incoming
+web request does go from the web server to the Rails stack and Action Pack so
+that before filters can be run on it before the cache is served. This allows you to use
+authentication and other restrictions while still serving the
 result of the output from a cached copy.
 
-Clearing the cache works in the exact same way as with Page Caching.
+Clearing the cache works in the exact same way as with page caching.
 
 Let's say you only wanted authenticated users to edit or create a Product
 object, but still cache those pages:
@@ -101,13 +106,13 @@ object, but still cache those pages:
 class ProductsController < ActionController
 
   before_filter :authenticate, :only => [ :edit, :create ]
-  caches_page :list
+  caches_page :index
   caches_action :edit
 
-  def list; end
+  def index; end
 
   def create
-    expire_page :action => :list
+    expire_page :action => :index
     expire_action :action => :edit
   end
 
@@ -116,19 +121,19 @@ class ProductsController < ActionController
 end
 </ruby>
 
-And you can also use +:if+ (or +:unless+) to pass a Proc that specifies when the
+You can also use +:if+ (or +:unless+) to pass a Proc that specifies when the
 action should be cached. Also, you can use +:layout => false+ to cache without
-layout so that dynamic information in the layout such as logged in user info
+layout so that dynamic information in the layout such as the name of the logged-in user
 or the number of items in the cart can be left uncached. This feature is
 available as of Rails 2.2.
 
 You can modify the default action cache path by passing a +:cache_path+ option.
-This will be passed directly to ActionCachePath.path_for.  This is handy for
+This will be passed directly to +ActionCachePath.path_for+.  This is handy for
 actions with multiple possible routes that should be cached differently.  If
 a block is given, it is called with the current controller instance.  
 
 Finally, if you are using memcached, you can also pass +:expires_in+. In fact,
-all parameters not used by caches_action are sent to the underlying cache
+all parameters not used by +caches_action+ are sent to the underlying cache
 store. 
 
 h4. Fragment Caching
@@ -162,52 +167,56 @@ could use this piece of code:
 </ruby>
 
 The cache block in our example will bind to the action that called it and is
-written out to the same place as the Action Cache, which means that if you
+written out to the same place as the action cache, which means that if you
 want to cache multiple fragments per action, you should provide an +action_suffix+ to the cache call:
 
 <ruby>
-<% cache(:action => 'recent', :action_suffix => 'all_products') do %>
+<% cache(:action => 'recent', :action_suffix => 'all_prods') do %>
   All available products:
 </ruby>
 
-and you can expire it using the +expire_fragment+ method, like so:
+You can expire the cache using the +expire_fragment+ method, like so:
 
 <ruby>
-expire_fragment(:controller => 'products', :action => 'recent', :action_suffix => 'all_products)
+expire_fragment(:controller => 'products', :action => 'recent', 
+  :action_suffix => 'all_prods)
 </ruby>
 
-If you don't want the cache block to bind to the action that called it, You can
-also use globally keyed fragments by calling the cache method with a key, like
+If you don't want the cache block to bind to the action that called it, you can
+also use globally keyed fragments. To do this, call the +cache+ method with a key, like
 so:
 
 <ruby>
-<% cache(:key => ['all_available_products', @latest_product.created_at].join(':')) do %>
+<% cache(:key => 
+  ['all_available_products', @latest_product.created_at].join(':')) do %>
   All available products:
 <% end %>
 </ruby>
 
-This fragment is then available to all actions in the ProductsController using
+This fragment is then available to all actions in the +ProductsController+ using
 the key and can be expired the same way:
 
 <ruby>
-expire_fragment(:key => ['all_available_products', @latest_product.created_at].join(':'))
+expire_fragment(:key => 
+  ['all_available_products', @latest_product.created_at].join(':'))
 </ruby>
 
 h4. Sweepers
 
 Cache sweeping is a mechanism which allows you to get around having a ton of
-expire_{page,action,fragment} calls in your code by moving all the work
-required to expire cached content into a +ActionController::Caching::Sweeper+
-class that is an Observer and looks for changes to an object via callbacks,
-and when a change occurs it expires the caches associated with that object n
++expire_{page,action,fragment}+ calls in your code. It does this by moving all the work
+required to expire cached content into na +ActionController::Caching::Sweeper+
+class. This class is an Observer that looks for changes to an object via callbacks,
+and when a change occurs it expires the caches associated with that object in
 an around or after filter.
 
 Continuing with our Product controller example, we could rewrite it with a
-sweeper such as the following:
+sweeper like this:
 
 <ruby>
 class StoreSweeper < ActionController::Caching::Sweeper
-  observe Product # This sweeper is going to keep an eye on the Product model
+  # This sweeper is going to keep an eye on the Product model
+  observe Product
 
   # If our sweeper detects that a Product was created call this
   def after_create(product)
@@ -230,13 +239,13 @@ class StoreSweeper < ActionController::Caching::Sweeper
     expire_page(:controller => '#{record}', :action => 'list')
 
     # Expire a fragment
-    expire_fragment(:controller => '#{record}', :action => 'recent', :action_suffix => 'all_products')
+    expire_fragment(:controller => '#{record}', 
+      :action => 'recent', :action_suffix => 'all_products')
   end
 end
 </ruby>
 
-Then we add it to our controller to tell it to call the sweeper when certain
-actions are called. So, if we wanted to expire the cached content for the
+The sweeper has to be added to the controller that will use it. So, if we wanted to expire the cached content for the
 list and edit actions when the create action was called, we could do the
 following:
 
@@ -263,9 +272,9 @@ end
 h4. SQL Caching
 
 Query caching is a Rails feature that caches the result set returned by each
-query so that if Rails encounters the same query again for that request, it
+query. If Rails encounters the same query again during the current request, it
 will used the cached result set as opposed to running the query against the
-database again.
+database.
 
 For example:
 
@@ -304,9 +313,9 @@ database again the second time that finder is called.
 Query caches are created at the start of an action and destroyed at the end of
 that action and thus persist only for the duration of the action.
 
-h4. Cache stores
+h4. Cache Stores
 
-Rails (as of 2.1) provides different stores for the cached data for action and
+Rails (as of 2.1) provides different stores for the cached data created by action and
 fragment caches. Page caches are always stored on disk.
 
 Rails 2.1 and above provide ActiveSupport::Cache::Store which can be used to
@@ -314,7 +323,7 @@ cache strings. Some cache store implementations, like MemoryStore, are able to
 cache arbitrary Ruby objects, but don't count on every cache store to be able
 to do that.
 
-The default cache stores provided include:
+The default cache stores provided with Rails include:
 
 1) ActiveSupport::Cache::MemoryStore: A cache store implementation which stores
 everything into memory in the same process. If you're running multiple Ruby on
@@ -335,12 +344,11 @@ need thread-safety.
 ActionController::Base.cache_store = :memory_store
 </ruby>
 
-2) ActiveSupport::Cache::FileStore: Cached data is stored on the disk, this is
+2) ActiveSupport::Cache::FileStore: Cached data is stored on the disk. This is
 the default store and the default path for this store is: /tmp/cache. Works
 well for all types of environments and allows all processes running from the
 same application directory to access the cached content. If /tmp/cache does not
 exist, the default store becomes MemoryStore.
-
 
 <ruby>
 ActionController::Base.cache_store = :file_store, "/path/to/cache/directory"
@@ -351,7 +359,6 @@ DRb process that all servers communicate with. This works for all environments
 and only keeps one cache around for all processes, but requires that you run
 and manage a separate DRb process.
 
-
 <ruby>
 ActionController::Base.cache_store = :drb_store, "druby://localhost:9192"
 </ruby>
@@ -361,27 +368,28 @@ Rails uses the bundled memcached-client gem by default. This is currently the
 most popular cache store for production websites.
 
 Special features:
- * Clustering and load balancing. One can specify multiple memcached servers,
+
+* Clustering and load balancing. One can specify multiple memcached servers,
    and MemCacheStore will load balance between all available servers. If a
    server goes down, then MemCacheStore will ignore it until it goes back
    online.
- * Time-based expiry support. See write and the +:expires_in+ option.
- * Per-request in memory cache for all communication with the MemCache server(s).
+* Time-based expiry support. See +write+ and the +:expires_in+ option.
+* Per-request in memory cache for all communication with the MemCache server(s).
 
 It also accepts a hash of additional options:
 
- * +:namespace+- specifies a string that will automatically be prepended to keys when accessing the memcached store.
- * +:readonly+- a boolean value that when set to true will make the store read-only, with an error raised on any attempt to write.
- * +:multithread+ - a boolean value that adds thread safety to read/write operations - it is unlikely you'll need to use this option as the Rails threadsafe! method offers the same functionality.
+* +:namespace+- specifies a string that will automatically be prepended to keys when accessing the memcached store.
+* +:readonly+- a boolean value that when set to true will make the store read-only, with an error raised on any attempt to write.
+* +:multithread+ - a boolean value that adds thread safety to read/write operations - it is unlikely you'll need to use this option as the Rails threadsafe! method offers the same functionality.
 
 The read and write methods of the MemCacheStore accept an options hash too.
 When reading you can specify +:raw => true+ to prevent the object being
 marshaled
 (by default this is false which means the raw value in the cache is passed to
-Marshal.load before being returned to you.)
++Marshal.load+ before being returned to you.)
 
-When writing to the cache it is also possible to specify +:raw => true+ means
-the value is not passed to Marshal.dump before being stored in the cache (by
+When writing to the cache it is also possible to specify +:raw => true+. This means
+that the value is not passed to +Marshal.dump+ before being stored in the cache (by
 default this is false). 
 
 The write method also accepts an +:unless_exist+ flag which determines whether
@@ -416,11 +424,11 @@ ActionController::Base.cache_store = :compressed_mem_cache_store, "localhost"
 ActionController::Base.cache_store = MyOwnStore.new("parameter")
 </ruby>
 
-+Note: config.cache_store can be used in place of
-ActionController::Base.cache_store in your Rails::Initializer.run block in
-environment.rb+
+NOTE: +config.cache_store+ can be used in place of
++ActionController::Base.cache_store+ in the +Rails::Initializer.run+ block in
+environment.rb.
 
-In addition to all of this, Rails also adds the ActiveRecord::Base#cache_key
+In addition to all of this, Rails also adds the +ActiveRecord::Base#cache_key+
 method that generates a key using the class name, id and updated_at timestamp
 (if available).
 
@@ -432,9 +440,9 @@ Rails.cache.write("city", "Duckburgh")
 Rails.cache.read("city")   # => "Duckburgh"
 </ruby>
 
-h3. Conditional GET support
+h3. Conditional GET Support
 
-Conditional GETs are a facility of the HTTP spec that provide a way for web
+Conditional GETs are a feature of the HTTP specification that provide a way for web
 servers to tell browsers that the response to a GET request hasn't changed
 since the last request and can be safely pulled from the browser cache.
 

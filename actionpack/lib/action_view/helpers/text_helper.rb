@@ -324,7 +324,7 @@ module ActionView
 
       # Turns all URLs and e-mail addresses into clickable links. The <tt>:link</tt> option
       # will limit what should be linked. You can add HTML attributes to the links using
-      # <tt>:href_options</tt>. Possible values for <tt>:link</tt> are <tt>:all</tt> (default),
+      # <tt>:html</tt>. Possible values for <tt>:link</tt> are <tt>:all</tt> (default),
       # <tt>:email_addresses</tt>, and <tt>:urls</tt>. If a block is given, each URL and
       # e-mail address is yielded and the result is used as the link text.
       #
@@ -341,7 +341,7 @@ module ActionView
       #   # => "Visit http://www.loudthinking.com/ or e-mail <a href=\"mailto:david@loudthinking.com\">david@loudthinking.com</a>"
       #
       #   post_body = "Welcome to my new blog at http://www.myblog.com/.  Please e-mail me at me@email.com."
-      #   auto_link(post_body, :href_options => { :target => '_blank' }) do |text|
+      #   auto_link(post_body, :html => { :target => '_blank' }) do |text|
       #     truncate(text, 15)
       #   end
       #   # => "Welcome to my new blog at <a href=\"http://www.myblog.com/\" target=\"_blank\">http://www.m...</a>.
@@ -359,7 +359,7 @@ module ActionView
       #   auto_link(post_body, :all, :target => "_blank")     # => Once upon\na time
       #   # => "Welcome to my new blog at <a href=\"http://www.myblog.com/\" target=\"_blank\">http://www.myblog.com</a>.
       #         Please e-mail me at <a href=\"mailto:me@email.com\">me@email.com</a>."
-      def auto_link(text, *args, &block)#link = :all, href_options = {}, &block)
+      def auto_link(text, *args, &block)#link = :all, html = {}, &block)
         return '' if text.blank?
 
         options = args.size == 2 ? {} : args.extract_options! # this is necessary because the old auto_link API has a Hash as its last parameter
@@ -536,8 +536,9 @@ module ActionView
           text.gsub(AUTO_LINK_RE) do
             href = $&
             punctuation = ''
-            # detect already linked URLs
-            if $` =~ /<a\s[^>]*href="$/
+            left, right = $`, $'
+            # detect already linked URLs and URLs in the middle of a tag
+            if left =~ /<[^>]+$/ && right =~ /^[^>]*>/
               # do not change string; URL is alreay linked
               href
             else

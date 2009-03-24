@@ -107,7 +107,7 @@ module ActionView
     # on the page in an Ajax response.
     module PrototypeHelper
       unless const_defined? :CALLBACKS
-        CALLBACKS    = Set.new([ :uninitialized, :loading, :loaded,
+        CALLBACKS    = Set.new([ :create, :uninitialized, :loading, :loaded,
                          :interactive, :complete, :failure, :success ] +
                          (100..599).to_a)
         AJAX_OPTIONS = Set.new([ :before, :after, :condition, :url,

@@ -556,7 +556,7 @@ module HTML
         end
 
         # Attribute value.
-        next if statement.sub!(/^\[\s*([[:alpha:]][\w\-]*)\s*((?:[~|^$*])?=)?\s*('[^']*'|"[^*]"|[^\]]*)\s*\]/) do |match|
+        next if statement.sub!(/^\[\s*([[:alpha:]][\w\-:]*)\s*((?:[~|^$*])?=)?\s*('[^']*'|"[^*]"|[^\]]*)\s*\]/) do |match|
           name, equality, value = $1, $2, $3
           if value == "?"
             value = values.shift

@@ -144,6 +144,19 @@ module Rack
     end
     module_function :select_best_encoding
 
+    # Return the bytesize of String; uses String#length under Ruby 1.8 and
+    # String#bytesize under 1.9.
+    if ''.respond_to?(:bytesize)
+      def bytesize(string)
+        string.bytesize
+      end
+    else
+      def bytesize(string)
+        string.size
+      end
+    end
+    module_function :bytesize
+
     # Context allows the use of a compatible middleware at different points
     # in a request handling stack. A compatible middleware must define
     # #context which should take the arguments env and app. The first of which
@@ -359,7 +372,7 @@ module Rack
               data = body
             end
 
-            Utils.normalize_params(params, name, data)
+            Utils.normalize_params(params, name, data) unless data.nil?
 
             break  if buf.empty? || content_length == -1
           }

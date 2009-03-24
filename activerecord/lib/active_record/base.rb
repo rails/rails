@@ -416,7 +416,7 @@ module ActiveRecord #:nodoc:
     end
 
     @@subclasses = {}
-    
+
     ##
     # :singleton-method:
     # Contains the database configuration - as is typically stored in config/database.yml -
@@ -660,7 +660,6 @@ module ActiveRecord #:nodoc:
       def find_by_sql(sql)
         connection.select_all(sanitize_sql(sql), "#{name} Load").collect! { |record| instantiate(record) }
       end
-
 
       # Returns true if a record exists in the table that matches the +id+ or
       # conditions given, or false otherwise. The argument can take five forms:
@@ -1006,7 +1005,6 @@ module ActiveRecord #:nodoc:
         update_counters(id, counter_name => -1)
       end
 
-
       # Attributes named in this macro are protected from mass-assignment,
       # such as <tt>new(attributes)</tt>,
       # <tt>update_attributes(attributes)</tt>, or
@@ -1106,7 +1104,6 @@ module ActiveRecord #:nodoc:
       def serialized_attributes
         read_inheritable_attribute(:attr_serialized) or write_inheritable_attribute(:attr_serialized, {})
       end
-
 
       # Guesses the table name (in forced lower-case) based on the name of the class in the inheritance hierarchy descending
       # directly from ActiveRecord::Base. So if the hierarchy looks like: Reply < Message < ActiveRecord::Base, then Message is used
@@ -1350,7 +1347,7 @@ module ActiveRecord #:nodoc:
         subclasses.each { |klass| klass.reset_inheritable_attributes; klass.reset_column_information }
       end
 
-      def self_and_descendents_from_active_record#nodoc:
+      def self_and_descendants_from_active_record#nodoc:
         klass = self
         classes = [klass]
         while klass != klass.base_class  
@@ -1370,7 +1367,7 @@ module ActiveRecord #:nodoc:
       # module now.
       # Specify +options+ with additional translating options.
       def human_attribute_name(attribute_key_name, options = {})
-        defaults = self_and_descendents_from_active_record.map do |klass|
+        defaults = self_and_descendants_from_active_record.map do |klass|
           :"#{klass.name.underscore}.#{attribute_key_name}"
         end
         defaults << options[:default] if options[:default]
@@ -1385,7 +1382,7 @@ module ActiveRecord #:nodoc:
       # Default scope of the translation is activerecord.models
       # Specify +options+ with additional translating options.
       def human_name(options = {})
-        defaults = self_and_descendents_from_active_record.map do |klass|
+        defaults = self_and_descendants_from_active_record.map do |klass|
           :"#{klass.name.underscore}"
         end 
         defaults << self.name.humanize
@@ -1419,7 +1416,6 @@ module ActiveRecord #:nodoc:
           "#{super}(Table doesn't exist)"
         end
       end
-
 
       def quote_value(value, column = nil) #:nodoc:
         connection.quote(value,column)
@@ -1489,7 +1485,7 @@ module ActiveRecord #:nodoc:
         elsif match = DynamicScopeMatch.match(method_id)
           return true if all_attributes_exists?(match.attribute_names)
         end
-        
+
         super
       end
 
@@ -1540,7 +1536,7 @@ module ActiveRecord #:nodoc:
         end
 
         def reverse_sql_order(order_query)
-          reversed_query = order_query.split(/,/).each { |s|
+          reversed_query = order_query.to_s.split(/,/).each { |s|
             if s.match(/\s(asc|ASC)$/)
               s.gsub!(/\s(asc|ASC)$/, ' DESC')
             elsif s.match(/\s(desc|DESC)$/)
@@ -1693,7 +1689,7 @@ module ActiveRecord #:nodoc:
         def construct_finder_sql(options)
           scope = scope(:find)
           sql  = "SELECT #{options[:select] || (scope && scope[:select]) || default_select(options[:joins] || (scope && scope[:joins]))} "
-          sql << "FROM #{(scope && scope[:from]) || options[:from] || quoted_table_name} "
+          sql << "FROM #{options[:from]  || (scope && scope[:from]) || quoted_table_name} "
 
           add_joins!(sql, options[:joins], scope)
           add_conditions!(sql, options[:conditions], scope)
@@ -1748,7 +1744,9 @@ module ActiveRecord #:nodoc:
           scoped_order = scope[:order] if scope
           if order
             sql << " ORDER BY #{order}"
-            sql << ", #{scoped_order}" if scoped_order
+            if scoped_order && scoped_order != order
+              sql << ", #{scoped_order}"
+            end
           else
             sql << " ORDER BY #{scoped_order}" if scoped_order
           end
@@ -1757,12 +1755,12 @@ module ActiveRecord #:nodoc:
         def add_group!(sql, group, having, scope = :auto)
           if group
             sql << " GROUP BY #{group}"
-            sql << " HAVING #{having}" if having
+            sql << " HAVING #{sanitize_sql_for_conditions(having)}" if having
           else
             scope = scope(:find) if :auto == scope
             if scope && (scoped_group = scope[:group])
               sql << " GROUP BY #{scoped_group}"
-              sql << " HAVING #{scoped_having}" if (scoped_having = scope[:having])
+              sql << " HAVING #{sanitize_sql_for_conditions(scope[:having])}" if scope[:having]
             end
           end
         end
@@ -2017,7 +2015,6 @@ module ActiveRecord #:nodoc:
           end
         end
 
-
         # Defines an "attribute" method (like +inheritance_column+ or
         # +table_name+). A new (class) method will be created with the
         # given name. If a value is specified, the new method will
@@ -2114,7 +2111,7 @@ module ActiveRecord #:nodoc:
           end
 
           # Merge scopings
-          if action == :merge && current_scoped_methods
+          if [:merge, :reverse_merge].include?(action) && current_scoped_methods
             method_scoping = current_scoped_methods.inject(method_scoping) do |hash, (method, params)|
               case hash[method]
                 when Hash
@@ -2136,7 +2133,11 @@ module ActiveRecord #:nodoc:
                       end
                     end
                   else
-                    hash[method] = hash[method].merge(params)
+                    if action == :reverse_merge
+                      hash[method] = hash[method].merge(params)
+                    else
+                      hash[method] = params.merge(hash[method])
+                    end
                   end
                 else
                   hash[method] = params
@@ -2146,7 +2147,6 @@ module ActiveRecord #:nodoc:
           end
 
           self.scoped_methods << method_scoping
-
           begin
             yield
           ensure
@@ -2177,7 +2177,7 @@ module ActiveRecord #:nodoc:
         # Test whether the given method and optional key are scoped.
         def scoped?(method, key = nil) #:nodoc:
           if current_scoped_methods && (scope = current_scoped_methods[method])
-            !key || scope.has_key?(key)
+            !key || !scope[key].nil?
           end
         end
 
@@ -2751,7 +2751,6 @@ module ActiveRecord #:nodoc:
 
         assign_multiparameter_attributes(multi_parameter_attributes)
       end
-
 
       # Returns a hash of all the attributes with their names as keys and the values of the attributes as values.
       def attributes

@@ -49,5 +49,18 @@ module ActiveRecord
       ActiveRecord::Base.clear_all_connections!
       ActiveRecord::Base.establish_connection(@connection)
     end
+
+    def with_kcode(kcode)
+      if RUBY_VERSION < '1.9'
+        orig_kcode, $KCODE = $KCODE, kcode
+        begin
+          yield
+        ensure
+          $KCODE = orig_kcode
+        end
+      else
+        yield
+      end
+    end
   end
 end

@@ -31,7 +31,7 @@ endprologue.
 
 h3. Setup
 
-h4. Create the basic app
+h4. Create the Basic Application
 
 The examples in this guide require that you have a working rails application.  To create a simple rails app execute:
 
@@ -49,7 +49,7 @@ Then navigate to http://localhost:3000/birds.  Make sure you have a functioning 
 NOTE: The aforementioned instructions will work for sqlite3.  For more detailed instructions on how to create a rails app for other databases see the API docs.
 
 
-h4. Generate the plugin skeleton
+h4. Generate the Plugin Skeleton
 
 Rails ships with a plugin generator which creates a basic plugin skeleton. Pass the plugin name, either 'CamelCased' or 'under_scored', as an argument. Pass +--with-generator+ to add an example generator also.
 
@@ -91,7 +91,7 @@ create  vendor/plugins/yaffle/generators/yaffle/yaffle_generator.rb
 create  vendor/plugins/yaffle/generators/yaffle/USAGE
 </pre>
 
-h4. Organize your files
+h4. Organize Your Files
 
 To make it easy to organize your files and to make the plugin more compatible with GemPlugins, start out by altering your file system to look like this:
 
@@ -211,7 +211,7 @@ end
 
 Now whenever you write a test that requires the database, you can call 'load_schema'.
 
-h4. Run the plugin tests
+h4. Run the Plugin Tests
 
 Once you have these files in place, you can write your first test to ensure that your plugin-testing setup is correct.  By default rails generates a file in 'vendor/plugins/yaffle/test/yaffle_test.rb' with a sample test.  Replace the contents of that file with:
 
@@ -275,7 +275,7 @@ rake DB=postgresql
 
 Now you are ready to test-drive your plugin!
 
-h3. Extending core classes
+h3. Extending Core Classes
 
 This section will explain how to add a method to String that will be available anywhere in your rails app.
 
@@ -339,7 +339,7 @@ $ ./script/console
 => "squawk! Hello World"
 </shell>
 
-h4. Working with init.rb
+h4. Working with +init.rb+
 
 When rails loads plugins it looks for the file named 'init.rb' or 'rails/init.rb'.  However, when the plugin is initialized, 'init.rb' is invoked via +eval+ (not +require+) so it has slightly different behavior.
 
@@ -369,7 +369,7 @@ class ::Hash
 end
 </ruby>
 
-h3. Add an 'acts_as' method to Active Record
+h3. Add an "acts_as" Method to Active Record
 
 A common pattern in plugins is to add a method called 'acts_as_something' to models.  In this case, you want to write a method called 'acts_as_yaffle' that adds a 'squawk' method to your models.
 
@@ -425,7 +425,7 @@ end
 
 With structure you can easily separate the methods that will be used for the class (like +Hickwall.some_method+) and the instance (like +@hickwell.some_method+).
 
-h4. Add a class method
+h4. Add a Class Method
 
 This plugin will expect that you've added a method to your model named 'last_squawk'.  However, the plugin users might have already defined a method on their model named 'last_squawk' that they use for something else.  This plugin will allow the name to be changed by adding a class method called 'yaffle_text_field'.
 
@@ -478,7 +478,7 @@ end
 ActiveRecord::Base.send :include, Yaffle
 </ruby>
 
-h4. Add an instance method
+h4. Add an Instance Method
 
 This plugin will add a method named 'squawk' to any Active Record objects that call 'acts_as_yaffle'.  The 'squawk' method will simply set the value of one of the fields in the database.
 
@@ -800,7 +800,7 @@ Many plugins ship with generators.  When you created the plugin above, you speci
 
 Building generators is a complex topic unto itself and this section will cover one small aspect of generators: generating a simple text file.
 
-h4. Testing generators
+h4. Testing Generators
 
 Many rails plugin authors do not test their generators, however testing generators is quite simple.  A typical generator test does the following:
 
@@ -864,7 +864,7 @@ class YaffleDefinitionGenerator < Rails::Generator::Base
 end
 </ruby>
 
-h4. The USAGE file
+h4. The +USAGE+ File
 
 If you plan to distribute your plugin, developers will expect at least a minimum of documentation.  You can add simple documentation to the generator by updating the USAGE file.
 
@@ -891,7 +891,7 @@ Description:
     Adds a file with the definition of a Yaffle to the app's main directory
 </shell>
 
-h3. Add a custom generator command
+h3. Add a Custom Generator Command
 
 You may have noticed above that you can used one of the built-in rails migration commands +migration_template+.  If your plugin needs to add and remove lines of text from existing files you will need to write your own generator methods.
 
@@ -1144,7 +1144,7 @@ end
 
 Here are a few possibilities for how to allow developers to use your plugin migrations:
 
-h4. Create a custom rake task
+h4. Create a Custom Rake Task
 
 * *vendor/plugins/yaffle/tasks/yaffle_tasks.rake:*
 
@@ -1165,7 +1165,7 @@ namespace :db do
 end
 </ruby>
 
-h4. Call migrations directly
+h4. Call Migrations Directly
 
 * *vendor/plugins/yaffle/lib/yaffle.rb:*
 
@@ -1191,7 +1191,7 @@ end
 
 NOTE: several plugin frameworks such as Desert and Engines provide more advanced plugin functionality.
 
-h4. Generate migrations
+h4. Generate Migrations
 
 Generating migrations has several advantages over other methods.  Namely, you can allow other developers to more easily customize the migration.  The flow looks like this:
 
@@ -1417,7 +1417,7 @@ h4. References
 * http://www.mbleigh.com/2008/6/11/gemplugins-a-brief-introduction-to-the-future-of-rails-plugins
 * http://weblog.jamisbuck.org/2006/10/26/monkey-patching-rails-extending-routes-2.
 
-h4. Contents of 'lib/yaffle.rb'
+h4. Contents of +lib/yaffle.rb+
 
 * *vendor/plugins/yaffle/lib/yaffle.rb:*
 
@@ -1440,7 +1440,7 @@ end
 # end
 </ruby>
 
-h4. Final plugin directory structure
+h4. Final Plugin Directory Structure
 
 The final plugin should have a directory structure that looks something like this:
 

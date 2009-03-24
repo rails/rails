@@ -89,7 +89,7 @@ module ActiveRecord
 
       message, options[:default] = options[:default], message if options[:default].is_a?(Symbol)
 
-      defaults = @base.class.self_and_descendents_from_active_record.map do |klass| 
+      defaults = @base.class.self_and_descendants_from_active_record.map do |klass|
         [ :"models.#{klass.name.underscore}.attributes.#{attribute}.#{message}", 
           :"models.#{klass.name.underscore}.#{message}" ]
       end
@@ -720,20 +720,20 @@ module ActiveRecord
           # class (which has a database table to query from).
           finder_class = class_hierarchy.detect { |klass| !klass.abstract_class? }
 
-          is_text_column = finder_class.columns_hash[attr_name.to_s].text?
+          column = finder_class.columns_hash[attr_name.to_s]
 
           if value.nil?
             comparison_operator = "IS ?"
-          elsif is_text_column
+          elsif column.text?
             comparison_operator = "#{connection.case_sensitive_equality_operator} ?"
-            value = value.to_s
+            value = column.limit ? value.to_s[0, column.limit] : value.to_s
           else
             comparison_operator = "= ?"
           end
 
           sql_attribute = "#{record.class.quoted_table_name}.#{connection.quote_column_name(attr_name)}"
 
-          if value.nil? || (configuration[:case_sensitive] || !is_text_column)
+          if value.nil? || (configuration[:case_sensitive] || !column.text?)
             condition_sql = "#{sql_attribute} #{comparison_operator}"
             condition_params = [value]
           else
@@ -1038,6 +1038,11 @@ module ActiveRecord
       end
 
       errors.empty?
+    end
+
+    # Performs the opposite of <tt>valid?</tt>. Returns true if errors were added, false otherwise.
+    def invalid?
+      !valid?
     end
 
     # Returns the Errors object that holds all information about attribute error messages.

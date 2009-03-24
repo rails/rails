@@ -29,7 +29,7 @@ h3. Object Relational Mapping
 
 The relation between databases and object-oriented software is called ORM, which is short for "Object Relational Mapping". The purpose of an ORM framework is to minimize the mismatch existent between relational databases and object-oriented software. In applications with a domain model, we have objects that represent both the state of the system and the behavior of the real world elements that were modeled through these objects. Since we need to store the system's state somehow, we can use relational databases, which are proven to be an excellent approach to data management. Usually this may become a very hard thing to do, since we need to create an object-oriented model of everything that lives in the database, from simple columns to complicated relations between different tables. Doing this kind of thing by hand is a tedious and error prone job. This is where an ORM framework comes in.
 
-h3. ActiveRecord as an ORM framework
+h3. ActiveRecord as an ORM Framework
 
 ActiveRecord gives us several mechanisms, being the most important ones the ability to:
 
@@ -41,7 +41,7 @@ ActiveRecord gives us several mechanisms, being the most important ones the abil
 
 It's easy to see that the Rails Active Record implementation goes way beyond the basic description of the Active Record Pattern.
 
-h3. Active Record inside the MVC model
+h3. Active Record Inside the MVC Model
 
 Active Record plays the role of model inside the MVC structure followed by Rails applications. Since model objects should encapsulate both state and logic of your applications, it's ActiveRecord responsibility to deliver you the easiest possible way to recover this data from the database.
 
@@ -81,7 +81,7 @@ There are also some optional column names that will create additional features t
 
 NOTE: While these column names are optional they are in fact reserved by ActiveRecord. Steer clear of reserved keywords unless you want the extra functionality. For example, "type" is a reserved keyword used to designate a table using Single Table Inheritance. If you are not using STI, try an analogous keyword like "context", that may still accurately describe the data you are modeling.
 
-h3. Creating ActiveRecord models
+h3. Creating ActiveRecord Models
 
 It's very easy to create ActiveRecord models. All you have to do is to subclass the ActiveRecord::Base class and you're good to go:
 
@@ -107,7 +107,7 @@ p.name = "Some Book"
 puts p.name # "Some Book"
 </ruby>
 
-h3. Overriding the naming conventions
+h3. Overriding the Naming Conventions
 
 What if you need to follow a different naming convention or need to use your Rails application with a legacy database? No problem, you can easily override the default conventions.
 

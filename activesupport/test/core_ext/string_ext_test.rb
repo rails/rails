@@ -77,6 +77,24 @@ class StringInflectionsTest < Test::Unit::TestCase
     end
   end
 
+  def test_string_parameterized_normal
+    StringToParameterized.each do |normal, slugged|
+      assert_equal(normal.parameterize, slugged)
+    end
+  end
+
+  def test_string_parameterized_no_separator
+    StringToParameterizeWithNoSeparator.each do |normal, slugged|
+      assert_equal(normal.parameterize(''), slugged)
+    end
+  end
+
+  def test_string_parameterized_underscore
+    StringToParameterizeWithUnderscore.each do |normal, slugged|
+      assert_equal(normal.parameterize('_'), slugged)
+    end
+  end
+
   def test_humanize
     UnderscoreToHuman.each do |underscore, human|
       assert_equal(human, underscore.humanize)

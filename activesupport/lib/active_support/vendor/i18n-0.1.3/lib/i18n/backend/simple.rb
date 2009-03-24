@@ -151,12 +151,7 @@ module I18n
         def interpolate(locale, string, values = {})
           return string unless string.is_a?(String)
 
-          if string.respond_to?(:force_encoding)
-            original_encoding = string.encoding
-            string.force_encoding(Encoding::BINARY)
-          end
-
-          result = string.gsub(MATCH) do
+          string.gsub(MATCH) do
             escaped, pattern, key = $1, $2, $2.to_sym
 
             if escaped
@@ -169,9 +164,6 @@ module I18n
               values[key].to_s
             end
           end
-
-          result.force_encoding(original_encoding) if original_encoding
-          result
         end
 
         # Loads a single translations file by delegating to #load_rb or

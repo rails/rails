@@ -1,4 +1,9 @@
 require 'cases/helper'
+require 'models/author'
+require 'models/post'
+require 'models/comment'
+require 'models/category'
+require 'models/categorization'
 
 module Remembered
   def self.included(base)
@@ -96,6 +101,30 @@ class EagerLoadPolyAssocsTest < ActiveRecord::TestCase
         assert_not_nil se.paint.non_poly, "this is the association that was loading incorrectly before the change"
         assert_not_nil se.shape, "just making sure other associations still work"
       end
+    end
+  end
+end
+
+class EagerLoadNestedIncludeWithMissingDataTest < ActiveRecord::TestCase
+  def setup
+    @davey_mcdave = Author.create(:name => 'Davey McDave')
+    @first_post = @davey_mcdave.posts.create(:title => 'Davey Speaks', :body => 'Expressive wordage')
+    @first_comment = @first_post.comments.create(:body => 'Inflamatory doublespeak')
+    @first_categorization = @davey_mcdave.categorizations.create(:category => Category.first, :post => @first_post)
+  end
+
+  def teardown
+    @davey_mcdave.destroy
+    @first_post.destroy
+    @first_comment.destroy
+    @first_categorization.destroy
+  end
+
+  def test_missing_data_in_a_nested_include_should_not_cause_errors_when_constructing_objects
+    assert_nothing_raised do
+      # @davey_mcdave doesn't have any author_favorites
+      includes = {:posts => :comments, :categorizations => :category, :author_favorites => :favorite_author }
+      Author.all :include => includes, :conditions => {:authors => {:name => @davey_mcdave.name}}, :order => 'categories.name'
     end
   end
 end

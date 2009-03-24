@@ -23,14 +23,16 @@ module Rack
 
   # Return the Rack release as a dotted string.
   def self.release
-    "0.4"
+    "1.0 bundled"
   end
 
   autoload :Builder, "rack/builder"
   autoload :Cascade, "rack/cascade"
+  autoload :Chunked, "rack/chunked"
   autoload :CommonLogger, "rack/commonlogger"
   autoload :ConditionalGet, "rack/conditionalget"
   autoload :ContentLength, "rack/content_length"
+  autoload :ContentType, "rack/content_type"
   autoload :File, "rack/file"
   autoload :Deflater, "rack/deflater"
   autoload :Directory, "rack/directory"

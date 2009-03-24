@@ -129,24 +129,23 @@ module ActionController #:nodoc:
         attr_reader :path, :extension
 
         class << self
-          def path_for(controller, options, infer_extension=true)
+          def path_for(controller, options, infer_extension = true)
             new(controller, options, infer_extension).path
           end
         end
         
         # When true, infer_extension will look up the cache path extension from the request's path & format.
-        # This is desirable when reading and writing the cache, but not when expiring the cache -  expire_action should expire the same files regardless of the request format.
-        def initialize(controller, options = {}, infer_extension=true)
-          if infer_extension and options.is_a? Hash
-            request_extension = extract_extension(controller.request)
-            options = options.reverse_merge(:format => request_extension)
+        # This is desirable when reading and writing the cache, but not when expiring the cache -
+        # expire_action should expire the same files regardless of the request format.
+        def initialize(controller, options = {}, infer_extension = true)
+          if infer_extension
+            extract_extension(controller.request)
+            options = options.reverse_merge(:format => @extension) if options.is_a?(Hash)
           end
+
           path = controller.url_for(options).split('://').last
           normalize!(path)
-          if infer_extension
-            @extension = request_extension
-            add_extension!(path, @extension)
-          end
+          add_extension!(path, @extension)
           @path = URI.unescape(path)
         end
 
@@ -162,13 +161,7 @@ module ActionController #:nodoc:
           def extract_extension(request)
             # Don't want just what comes after the last '.' to accommodate multi part extensions
             # such as tar.gz.
-            extension = request.path[/^[^.]+\.(.+)$/, 1]
-
-            # If there's no extension in the path, check request.format
-            if extension.nil?
-              extension = request.cache_format
-            end
-            extension
+            @extension = request.path[/^[^.]+\.(.+)$/, 1] || request.cache_format
           end
       end
     end

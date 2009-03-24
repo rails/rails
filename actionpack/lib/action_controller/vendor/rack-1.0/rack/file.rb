@@ -60,7 +60,7 @@ module Rack
         body = self
       else
         body = [F.read(@path)]
-        size = body.first.size
+        size = Utils.bytesize(body.first)
       end
 
       [200, {

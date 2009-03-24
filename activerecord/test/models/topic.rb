@@ -1,7 +1,9 @@
 class Topic < ActiveRecord::Base
   named_scope :base
   named_scope :written_before, lambda { |time|
-    { :conditions => ['written_on < ?', time] }
+    if time
+      { :conditions => ['written_on < ?', time] }
+    end
   }
   named_scope :approved, :conditions => {:approved => true}
   named_scope :rejected, :conditions => {:approved => false}
@@ -33,6 +35,8 @@ class Topic < ActiveRecord::Base
   end
   named_scope :named_extension, :extend => NamedExtension
   named_scope :multiple_extensions, :extend => [MultipleExtensionTwo, MultipleExtensionOne]
+  
+  named_scope :by_rejected_ids, lambda {{ :conditions => { :id => all(:conditions => {:approved => false}).map(&:id) } }}
 
   has_many :replies, :dependent => :destroy, :foreign_key => "parent_id"
   serialize :content
@@ -68,4 +72,10 @@ class Topic < ActiveRecord::Base
         self.author_email_address = 'test@test.com'
       end
     end
+end
+
+module Web
+  class Topic < ActiveRecord::Base
+    has_many :replies, :dependent => :destroy, :foreign_key => "parent_id", :class_name => 'Web::Reply'
+  end
 end

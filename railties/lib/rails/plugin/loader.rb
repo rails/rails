@@ -65,6 +65,9 @@ module Rails
         $LOAD_PATH.uniq!
       end
 
+      def engine_metal_paths
+        engines.collect(&:metal_path)
+      end
 
       protected
         def configure_engines
@@ -178,7 +181,7 @@ module Rails
           if explicit_plugin_loading_order?
             if configuration.plugins.detect {|plugin| plugin != :all && !loaded?(plugin) }
               missing_plugins = configuration.plugins - (plugins.map{|p| p.name.to_sym} + [:all])
-              raise LoadError, "Could not locate the following plugins: #{missing_plugins.to_sentence}"
+              raise LoadError, "Could not locate the following plugins: #{missing_plugins.to_sentence(:locale => :en)}"
             end
           end
         end
