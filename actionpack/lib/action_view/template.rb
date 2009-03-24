@@ -107,9 +107,8 @@ module ActionView #:nodoc:
     attr_accessor :locale, :name, :format, :extension
     delegate :to_s, :to => :path
 
-    def initialize(template_path, load_path)
-      @template_path = template_path.dup
-      @load_path, @filename = load_path, File.join(load_path, template_path)
+    def initialize(template_path, load_path = nil)
+      @template_path, @load_path = template_path.dup, load_path
       @base_path, @name, @locale, @format, @extension = split(template_path)
       @base_path.to_s.gsub!(/\/$/, '') # Push to split method
 
@@ -179,6 +178,12 @@ module ActionView #:nodoc:
     def exempt_from_layout?
       @@exempt_from_layout.any? { |exempted| path =~ exempted }
     end
+
+    def filename
+      # no load_path means this is an "absolute pathed" template
+      load_path ? File.join(load_path, template_path) : template_path
+    end
+    memoize :filename
 
     def source
       File.read(filename)
