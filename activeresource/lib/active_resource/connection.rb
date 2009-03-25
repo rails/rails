@@ -134,7 +134,7 @@ module ActiveResource
       def http
         http             = Net::HTTP.new(@site.host, @site.port)
         http.use_ssl     = @site.is_a?(URI::HTTPS)
-        http.verify_mode = OpenSSL::SSL::VERIFY_NONE if http.use_ssl
+        http.verify_mode = OpenSSL::SSL::VERIFY_NONE if http.use_ssl?
         http.read_timeout = @timeout if @timeout # If timeout is not set, the default Net::HTTP timeout (60s) is used.
         http
       end
