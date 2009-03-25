@@ -76,7 +76,7 @@ Active Record provides methods that perform common data definition tasks in a da
 * +add_index+
 * +remove_index+
 
-If you need to perform tasks specific to your database (for example create a "foreign key":#active-recordand-referential-integrity constraint) then the +execute+ function allows you to execute arbitrary SQL. A migration is just a regular Ruby class so you're not limited to these functions. For example after adding a column you could write code to set the value of that column for existing records (if necessary using your models).
+If you need to perform tasks specific to your database (for example create a "foreign key":#active-record-and-referential-integrity constraint) then the +execute+ function allows you to execute arbitrary SQL. A migration is just a regular Ruby class so you're not limited to these functions. For example after adding a column you could write code to set the value of that column for existing records (if necessary using your models).
 
 On databases that support transactions with statements that change the schema (such as PostgreSQL), migrations are wrapped in a transaction. If the database does not support this (for example MySQL and SQLite) then when a migration fails the parts of it that succeeded will not be rolled back. You will have to unpick the changes that were made by hand.
 
@@ -327,11 +327,11 @@ end
 </ruby>
 will add an +attachment_id+ column and a string +attachment_type+ column with a default value of 'Photo'.
 
-NOTE: The +references+ helper does not actually create foreign key constraints for you. You will need to use +execute+ for that or a plugin that adds "foreign key support":#active-recordand-referential-integrity.
+NOTE: The +references+ helper does not actually create foreign key constraints for you. You will need to use +execute+ for that or a plugin that adds "foreign key support":#active-record-and-referential-integrity.
 
 If the helpers provided by Active Record aren't enough you can use the +execute+ function to execute arbitrary SQL.
 
-For more details and examples of individual methods check the API documentation, in particular the documentation for "<tt>ActiveRecord::ConnectionAdapters::SchemaStatements</tt>":http://api.rubyonrails.com/classes/ActiveRecord/ConnectionAdapters/SchemaStatements.html (which provides the methods available in the +up+ and +down+ methods),  "<tt>ActiveRecord::ConnectionAdapters::TableDefinition</tt>":http://api.rubyonrails.com/classes/ActiveRecord/ConnectionAdapters/TableDefinition.html (which provides the methods available on the object yielded by +create_table+) and "<tt>ActiveRecord::ConnectionAdapters::Table</tt>":http://api.rubyonrails.com/classes/ActiveRecord/ConnectionAdapters/Table.html (which provides the methods available on the object yielded by +change_table+).
+For more details and examples of individual methods check the API documentation, in particular the documentation for "<tt>ActiveRecord::ConnectionAdapters::SchemaStatements</tt>":http://api.rubyonrails.org/classes/ActiveRecord/ConnectionAdapters/SchemaStatements.html (which provides the methods available in the +up+ and +down+ methods),  "<tt>ActiveRecord::ConnectionAdapters::TableDefinition</tt>":http://api.rubyonrails.org/classes/ActiveRecord/ConnectionAdapters/TableDefinition.html (which provides the methods available on the object yielded by +create_table+) and "<tt>ActiveRecord::ConnectionAdapters::Table</tt>":http://api.rubyonrails.org/classes/ActiveRecord/ConnectionAdapters/Table.html (which provides the methods available on the object yielded by +change_table+).
 
 h4. Writing Your +down+ Method
 
@@ -410,7 +410,7 @@ Neither of these Rake tasks do anything you could not do with +db:migrate+, they
 
 Lastly, the +db:reset+ task will drop the database, recreate it and load the current schema into it.
 
-NOTE: This is not the same as running all the migrations - see the section on "schema.rb":#schemadumpingandyou.
+NOTE: This is not the same as running all the migrations - see the section on "schema.rb":#schema-dumping-and-you.
 
 h4. Being Specific
 

@@ -1,10 +1,7 @@
-*Edge*
+*2.3.2 [Final] (March 15, 2009)*
 
 * XmlMini supports LibXML and Nokogiri backends.  #2084, #2190 [Bart ten Brinke, Aaron Patterson]
     Example: XmlMini.backend = 'Nokogiri'
-
-
-*2.3.1 [RC2] (March 5, 2009)*
 
 * Vendorize i18n 0.1.3 gem (fixes issues with incompatible character encodings in Ruby 1.9) #2038 [Akira Matsuda]
 
@@ -17,9 +14,6 @@
 * Make TimeWithZone#to_formatted_s an alias to TimeWithZone#to_s #1796 [Levin Alexander]
 
 * Introduce Array.wrap(foo) to wrap the argument in an array unless it's already an array. Wraps nil as an empty array. Use instead of Array(foo) and foo.to_a since they treat String as Enumerable.  [Jeremy Kemper]
-
-
-*2.3.0 [RC1] (February 1st, 2009)*
 
 * TimeWithZone#xmlschema accepts optional fraction_digits argument [#1725 state:resolved] [Nicholas Dainty]
 

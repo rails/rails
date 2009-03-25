@@ -40,7 +40,7 @@ Thus, the Ruby I18n gem is split into two parts:
 
 As a user you should always only access the public methods on the I18n module, but it is useful to know about the capabilities of the backend.
 
-NOTE: It is possible (or even desirable) to swap the shipped Simple backend with a more powerful one, which would store translation data in a relational database, GetText dictionary, or similar. See section "Using different backends":#usingdifferentbackends below.
+NOTE: It is possible (or even desirable) to swap the shipped Simple backend with a more powerful one, which would store translation data in a relational database, GetText dictionary, or similar. See section "Using different backends":#using-different-backends below.
 
 h4. The Public I18n API
 
@@ -91,7 +91,7 @@ This means, that in the +:en+ locale, the key _hello_ will map to the _Hello wor
 
 The I18n library will use *English* as a *default locale*, i.e. if you don't set a different locale, +:en+ will be used for looking up translations.
 
-NOTE: The i18n library takes a *pragmatic approach* to locale keys (after "some discussion":http://groups.google.com/group/rails-i18n/browse_thread/thread/14dede2c7dbe9470/80eec34395f64f3c?hl=en), including only the _locale_ ("language") part, like +:en+, +:pl+, not the _region_ part, like +:en-US+ or +:en-UK+, which are traditionally used for separating "languages" and "regional setting" or "dialects". Many international applications use only the "language" element of a locale such as +:cz+, +:th+ or +:es+ (for Czech, Thai and Spanish).  However, there are also regional differences within different language groups that may be important. For instance, in the +:en-US+ locale you would have $ as a currency symbol, while in +:en-UK+, you would have £. Nothing stops you from separating regional and other settings in this way: you just have to provide full "English - United Kingdom" locale in a +:en-UK+ dictionary. Various "Rails I18n plugins":http://rails-i18n.org/wiki such as "Globalize2":http://github.com/joshmh/globalize2 may help you implement it.
+NOTE: The i18n library takes a *pragmatic approach* to locale keys (after "some discussion":http://groups.google.com/group/rails-i18n/browse_thread/thread/14dede2c7dbe9470/80eec34395f64f3c?hl=en), including only the _locale_ ("language") part, like +:en+, +:pl+, not the _region_ part, like +:en-US+ or +:en-UK+, which are traditionally used for separating "languages" and "regional setting" or "dialects". Many international applications use only the "language" element of a locale such as +:cz+, +:th+ or +:es+ (for Czech, Thai and Spanish).  However, there are also regional differences within different language groups that may be important. For instance, in the +:en-US+ locale you would have $ as a currency symbol, while in +:en-UK+, you would have £. Nothing stops you from separating regional and other settings in this way: you just have to provide full "English - United Kingdom" locale in a +:en-UK+ dictionary. Various "Rails I18n plugins":http://rails-i18n.org/wiki such as "Globalize2":http://github.com/joshmh/globalize2/tree/master may help you implement it.
 
 The *translations load path* (+I18n.load_path+) is just a Ruby Array of paths to your translation files that will be loaded automatically and available in your application. You can pick whatever directory and translation file naming scheme makes sense for you.
 
@@ -146,7 +146,7 @@ This requires you to pass the locale as a URL query parameter as in +http://exam
 
 Of course, you probably don't want to manually include the locale in every URL all over your application, or want the URLs look differently, e.g. the usual +http://example.com/pt/books+ versus +http://example.com/en/books+. Let's discuss the different options you have.
 
-IMPORTANT: The following examples rely on having available locales loaded into your application as an array of strings like +["en", "es", "gr"]+. This is not included in the current version of Rails 2.2 -- the forthcoming Rails version 2.3 will contain the easy accessor +available_locales+. (See "this commit":http://github.com/svenfuchs/i18n/commit/411f8fe7 and background at "Rails I18n Wiki":http://rails-i18n.org/wiki/pages/i18n-available_locales.)
+IMPORTANT: The following examples rely on having available locales loaded into your application as an array of strings like +["en", "es", "gr"]+. This is not included in the current version of Rails 2.2 -- the forthcoming Rails version 2.3 will contain the easy accessor +available_locales+. (See "this commit":http://github.com/svenfuchs/i18n/commit/411f8fe7c8f3f89e9b6b921fa62ed66cb92f3af4 and background at "Rails I18n Wiki":http://rails-i18n.org/wiki/pages/i18n-available_locales.)
 
 So, for having available locales easily accessible in Rails 2.2, we have to include this support manually in an initializer, like this:
 
@@ -301,7 +301,7 @@ def extract_locale_from_accept_language_header
 end
 </ruby>
 
-Of course, in a production environment you would need much more robust code, and could use a plugin such as Iain Hecker's "http_accept_language":http://github.com/iain/http_accept_language or even Rack middleware such as Ryan Tomayko's "locale":http://github.com/rtomayko/rack-contrib/blob/master/lib/rack/locale.rb.
+Of course, in a production environment you would need much more robust code, and could use a plugin such as Iain Hecker's "http_accept_language":http://github.com/iain/http_accept_language/tree/master or even Rack middleware such as Ryan Tomayko's "locale":http://github.com/rtomayko/rack-contrib/blob/master/lib/rack/locale.rb.
 
 h5. Using GeoIP (or Similar) Database
 

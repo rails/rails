@@ -303,6 +303,12 @@ module ActionView #:nodoc:
       self.template = last_template
     end
 
+    def punctuate_body!(part)
+      flush_output_buffer
+      response.body_parts << part
+      nil
+    end
+
     private
       # Evaluates the local assigns and controller ivars, pushes them to the view.
       def _evaluate_assigns_and_ivars #:nodoc:

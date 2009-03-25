@@ -175,6 +175,8 @@ module ActiveRecord
     #     end                                                     # RELEASE savepoint active_record_1
     #                                                             # ^^^^ BOOM! database error!
     #   end
+    #
+    # Note that "TRUNCATE" is also a MySQL DDL statement!
     module ClassMethods
       # See ActiveRecord::Transactions::ClassMethods for detailed documentation.
       def transaction(options = {}, &block)

@@ -61,7 +61,7 @@ module ActionView #:nodoc:
         end
       end
 
-      return Template.new(original_template_path, original_template_path =~ /\A\// ? "" : ".") if File.file?(original_template_path)
+      return Template.new(original_template_path, original_template_path.to_s =~ /\A\// ? "" : ".") if File.file?(original_template_path)
 
       raise MissingTemplate.new(self, original_template_path, format)
     end
