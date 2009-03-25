@@ -119,9 +119,7 @@ module ActiveSupport
     end
 
     class DeprecationProxy #:nodoc:
-      silence_warnings do
-        instance_methods.each { |m| undef_method m unless m =~ /^__/ }
-      end
+      instance_methods.each { |m| undef_method m unless m =~ /^__/ }
 
       # Don't give a deprecation warning on inspect since test/unit and error
       # logs rely on it for diagnostics.
