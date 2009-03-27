@@ -333,7 +333,7 @@ module ActiveSupport #:nodoc:
 
     # Search for a file in load_paths matching the provided suffix.
     def search_for_file(path_suffix)
-      path_suffix = path_suffix + '.rb' unless path_suffix.ends_with? '.rb'
+      path_suffix = "#{path_suffix}.rb" unless path_suffix =~ /\.rb\Z/
       load_paths.each do |root|
         path = File.join(root, path_suffix)
         return path if File.file? path
