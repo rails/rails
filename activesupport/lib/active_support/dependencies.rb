@@ -21,7 +21,7 @@ module ActiveSupport #:nodoc:
 
     # Should we load files or require them?
     mattr_accessor :mechanism
-    self.mechanism = :load
+    self.mechanism = ENV['NO_RELOAD'] ? :require : :load
 
     # The set of directories from which we may automatically load files. Files
     # under these directories will be reloaded on each request in development mode,
