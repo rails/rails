@@ -582,7 +582,7 @@ To add a member route, use the +:member+ option:
 map.resources :photos, :member => { :preview => :get }
 </ruby>
 
-This will enable Rails to recognize URLs such as +/photos/1/preview+ using the GET HTTP verb, and route them to the preview action of the Photos controller. It will also create a +preview_photo+ route helper.
+This will enable Rails to recognize URLs such as +/photos/1/preview+ using the GET HTTP verb, and route them to the preview action of the Photos controller. It will also create the +preview_photo_url+ and +preview_photo_path+ route helpers.
 
 Within the hash of member routes, each route name specifies the HTTP verb that it will recognize. You can use +:get+, +:put+, +:post+, +:delete+, or +:any+ here. You can also specify an array of methods, if you need more than one but you don't want to allow just anything:
 
@@ -598,7 +598,7 @@ To add a collection route, use the +:collection+ option:
 map.resources :photos, :collection => { :search => :get }
 </ruby>
 
-This will enable Rails to recognize URLs such as +/photos/search+ using the GET HTTP verb, and route them to the search action of the Photos controller. It will also create a +search_photos+ route helper.
+This will enable Rails to recognize URLs such as +/photos/search+ using the GET HTTP verb, and route them to the search action of the Photos controller. It will also create the +search_photos_url+ and +search_photos_path+ route helpers.
 
 Just as with member routes, you can specify an array of methods for a collection route:
 
@@ -614,7 +614,7 @@ To add a new route (one that creates a new resource), use the +:new+ option:
 map.resources :photos, :new => { :upload => :post }
 </ruby>
 
-This will enable Rails to recognize URLs such as +/photos/upload+ using the POST HTTP verb, and route them to the upload action of the Photos controller. It will also create a +upload_photos+ route helper.
+This will enable Rails to recognize URLs such as +/photos/upload+ using the POST HTTP verb, and route them to the upload action of the Photos controller. It will also create the +upload_photos_path+ and +upload_photos_url+ route helpers.
 
 TIP: If you want to redefine the verbs accepted by one of the standard actions, you can do so by explicitly mapping that action. For example:<br/>+map.resources :photos, :new => { :new => :any }+<br/>This will allow the new action to be invoked by any request to +photos/new+, no matter what HTTP verb you use.
 
