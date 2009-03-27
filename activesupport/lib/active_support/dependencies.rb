@@ -1,5 +1,6 @@
 require 'set'
 require 'active_support/inflector'
+require 'active_support/core_ext/name_error'
 require 'active_support/core_ext/object/blank'
 
 module ActiveSupport #:nodoc:
