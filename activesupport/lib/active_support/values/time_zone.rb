@@ -1,7 +1,11 @@
 require 'active_support/core_ext/time/publicize_conversion_methods'
+require 'active_support/core_ext/time/acts_like'
 require 'active_support/core_ext/time/calculations'
 require 'active_support/core_ext/time/zones'
 
+require 'active_support/core_ext/date/acts_like'
+
+require 'active_support/core_ext/date_time/acts_like'
 require 'active_support/core_ext/date_time/calculations'
 require 'active_support/core_ext/date_time/zones'
 
