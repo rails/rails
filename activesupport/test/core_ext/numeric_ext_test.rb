@@ -1,5 +1,7 @@
 require 'abstract_unit'
 
+require 'active_support/core_ext/numeric/bytes'
+
 class NumericExtTimeAndDateTimeTest < Test::Unit::TestCase
   def setup
     @now = Time.local(2005,2,10,15,30,45)

@@ -1,4 +1,5 @@
 require 'abstract_unit'
+require 'active_support/cache'
 
 class CacheKeyTest < ActiveSupport::TestCase
   def test_expand_cache_key

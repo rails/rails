@@ -1,4 +1,5 @@
 require 'abstract_unit'
+require 'active_support/core_ext/object/misc'
 
 class OptionMergerTest < Test::Unit::TestCase
   def setup

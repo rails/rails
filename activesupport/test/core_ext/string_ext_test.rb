@@ -3,6 +3,9 @@ require 'date'
 require 'abstract_unit'
 require 'inflector_test_cases'
 
+require 'active_support/core_ext/string/conversions'
+require 'active_support/core_ext/string/filters'
+
 class StringInflectionsTest < Test::Unit::TestCase
   include InflectorTestCases
 

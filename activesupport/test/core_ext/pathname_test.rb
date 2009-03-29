@@ -1,4 +1,5 @@
 require 'abstract_unit'
+require 'active_support/core_ext/pathname'
 
 class TestPathname < Test::Unit::TestCase
   def test_clean_within

@@ -1,4 +1,5 @@
 require 'abstract_unit'
+require 'active_support/core_ext/kernel'
 
 class KernelTest < Test::Unit::TestCase
   def test_silence_warnings
@@ -39,5 +40,20 @@ class KernelTest < Test::Unit::TestCase
 
   def test_silence_stderr_with_return_value
     assert_equal 1, silence_stderr { 1 }
+  end
+end
+
+class KernelSupressTest < Test::Unit::TestCase
+  def test_reraise
+    assert_raise(LoadError) do
+      suppress(ArgumentError) { raise LoadError }
+    end
+  end
+
+  def test_supression
+    suppress(ArgumentError) { raise ArgumentError }
+    suppress(LoadError) { raise LoadError }
+    suppress(LoadError, ArgumentError) { raise LoadError }
+    suppress(LoadError, ArgumentError) { raise ArgumentError }
   end
 end
