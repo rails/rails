@@ -1,4 +1,7 @@
 require 'benchmark'
+require 'active_support/core_ext/benchmark'
+require 'active_support/core_ext/exception'
+require 'active_support/core_ext/class/attribute_accessors'
 
 module ActiveSupport
   # See ActiveSupport::Cache::Store for documentation.
