@@ -1,4 +1,4 @@
-require 'active_support/core_ext/file/atomic_write'
+require 'active_support/core_ext/file/atomic'
 
 module ActiveSupport
   module Cache
