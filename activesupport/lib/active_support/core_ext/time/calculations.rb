@@ -1,4 +1,5 @@
 require 'active_support/duration'
+require 'active_support/core_ext/date/calculations'
 
 class Time
   COMMON_YEAR_DAYS_IN_MONTH = [nil, 31, 28, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31]
