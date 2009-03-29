@@ -1,4 +1,10 @@
 require 'tzinfo'
+require 'active_support/duration'
+require 'active_support/core_ext/numeric/time'
+require 'active_support/core_ext/integer/time'
+require 'active_support/core_ext/time/conversions'
+require 'active_support/core_ext/date/conversions'
+require 'active_support/core_ext/date_time/conversions'
 
 module ActiveSupport
   # A Time-like class that can represent a time in any time zone. Necessary because standard Ruby Time instances are
@@ -148,8 +154,9 @@ module ActiveSupport
     # <tt>:db</tt> format outputs time in UTC; all others output time in local.
     # Uses TimeWithZone's +strftime+, so <tt>%Z</tt> and <tt>%z</tt> work correctly.
     def to_s(format = :default)
-      return utc.to_s(format) if format == :db
-      if formatter = ::Time::DATE_FORMATS[format]
+      if format == :db
+        utc.to_s(format)
+      elsif formatter = ::Time::DATE_FORMATS[format]
         formatter.respond_to?(:call) ? formatter.call(self).to_s : strftime(formatter)
       else
         "#{time.strftime("%Y-%m-%d %H:%M:%S")} #{formatted_offset(false, 'UTC')}" # mimicking Ruby 1.9 Time#to_s format
