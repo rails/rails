@@ -1,3 +1,5 @@
+require 'active_support/time_with_zone'
+
 class Time
   class << self
     attr_accessor :zone_default
