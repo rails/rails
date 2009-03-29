@@ -1,21 +1,24 @@
 class Range
-  if RUBY_VERSION < '1.9'
+  begin
+    (1..2).step
+  # Range#step doesn't return an Enumerator
+  rescue LocalJumpError
     # Return an array when step is called without a block.
-    def step_with_blockless(value = 1, &block)
+    def step_with_blockless(*args, &block)
       if block_given?
-        step_without_blockless(value, &block)
+        step_without_blockless(*args, &block)
       else
         array = []
-        step_without_blockless(value) { |step| array << step }
+        step_without_blockless(*args) { |step| array << step }
         array
       end
     end
   else
-    def step_with_blockless(value = 1, &block) #:nodoc:
+    def step_with_blockless(*args, &block) #:nodoc:
       if block_given?
-        step_without_blockless
+        step_without_blockless(*args, &block)
       else
-        step_without_blockless(value).to_a
+        step_without_blockless(*args).to_a
       end
     end
   end
