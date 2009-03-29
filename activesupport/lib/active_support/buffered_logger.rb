@@ -1,3 +1,5 @@
+require 'active_support/core_ext/class/attribute_accessors'
+
 module ActiveSupport
   # Inspired by the buffered logger idea by Ezra
   class BufferedLogger
