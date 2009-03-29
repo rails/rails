@@ -56,7 +56,9 @@ module ActiveSupport
           hash
         else
           # must use value to prevent double-escaping
-          merge!(hash, CONTENT_KEY, element.texts.sum(&:value))
+          texts = ''
+          element.texts.each { |t| texts << t.value }
+          merge!(hash, CONTENT_KEY, texts)
         end
       end
 
