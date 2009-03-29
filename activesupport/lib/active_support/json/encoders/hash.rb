@@ -1,3 +1,5 @@
+require 'active_support/core_ext/array/wrap'
+
 class Hash
   # Returns a JSON string representing the hash.
   #
