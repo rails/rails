@@ -312,7 +312,7 @@ Now if you navigate to +http://localhost:3000+ in your browser, you'll see the +
 
 NOTE. For more information about routing, refer to "Rails Routing from the Outside In":routing.html.
 
-h3. Getting Up and Running Quickly With Scaffolding
+h3. Getting Up and Running Quickly with Scaffolding
 
 Rails _scaffolding_ is a quick way to generate some of the major pieces of an application. If you want to create the models, views, and controllers for a new resource in a single operation, scaffolding is the tool for the job.
 
