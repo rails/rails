@@ -230,6 +230,8 @@ module ActionView
       #
       # NOTE: Only the option tags are returned, you have to wrap this call in a regular HTML select tag.
       def options_for_select(container, selected = nil)
+        return container if String === container
+
         container = container.to_a if Hash === container
         selected, disabled = extract_selected_and_disabled(selected)
 
