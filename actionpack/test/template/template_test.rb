@@ -19,6 +19,8 @@ class TemplateTest < Test::Unit::TestCase
       t.assert_parses_template_path 'abc',                    :extension => nil, :format => nil, :name => nil
       t.assert_parses_template_path 'abc.xxx',                :extension => nil, :format => 'xxx', :name => 'abc'
       t.assert_parses_template_path 'abc.html.xxx',           :extension => nil, :format => 'xxx', :name => 'abc'
+
+      t.assert_parses_template_path 'abc.html.erb.orig',      :format => 'orig', :extension => nil
     end
   end
 

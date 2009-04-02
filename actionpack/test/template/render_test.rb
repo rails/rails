@@ -255,6 +255,12 @@ module RenderTestCases
       assert_equal Encoding::UTF_8, result.encoding
     end
   end
+
+  def test_render_with_backup_files
+    result = @view.render :file => "/test/backup_files/item"
+    assert_equal "The correct item.erb was loaded.\n", result
+  end
+
 end
 
 module TemplatesSetupTeardown
