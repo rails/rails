@@ -42,7 +42,7 @@ the webserver is literally just serving a file from the filesystem, cache
 expiration is an issue that needs to be dealt with.
 
 So, how do you enable this super-fast cache behavior?  Simple, let's say you
-have a controller called ProductsController and a 'list' action that lists all
+have a controller called +ProductsController+ and a +list+ action that lists all
 the products
 
 <ruby>
@@ -57,15 +57,15 @@ class ProductsController < ActionController
 end
 </ruby>
 
-The first time anyone requests products/index, Rails will generate a file
-called +index.html+ and the webserver will then look for that file before it
-passes the next request for products/index to your Rails application.
+The first time anyone requests +/products+, Rails will generate a file
+called +products.html+ and the webserver will then look for that file before it
+passes the next request for +/products+ to your Rails application.
 
-By default, the page cache directory is set to Rails.public_path (which is
-usually set to "#{RAILS_ROOT}/public" and this can be configured by
+By default, the page cache directory is set to +Rails.public_path+ (which is
+usually set to the +public+ folder) and this can be configured by
 changing the configuration setting +config.action_controller.page_cache_directory+.
-Changing the default from /public helps avoid naming conflicts, since you may
-want to put other static html in /public, but changing this will require web
+Changing the default from +public+ helps avoid naming conflicts, since you may
+want to put other static html in +public+, but changing this will require web
 server reconfiguration to let the web server know where to serve the cached
 files from.
 
@@ -96,7 +96,7 @@ end
 If you want a more complicated expiration scheme, you can use cache sweepers
 to expire cached objects when things change. This is covered in the section on Sweepers.
 
-Note: Page caching ignores all parameters, so /products/list?page=1 will be written out to the filesystem as /products/list.html and if someone requests /products/list?page=2, they will be returned the same result as page=1, so be careful when page caching GET parameters in the URL!
+Note: Page caching ignores all parameters. For example +/products?page=1+ will be written out to the filesystem as +products.html+ with no reference to the +page+ parameter. Thus, if someone requests +/products?page=2+ later, they will get the cached first page. Be careful when page caching GET parameters in the URL!
 
 h4. Action Caching
 
@@ -110,7 +110,7 @@ result of the output from a cached copy.
 
 Clearing the cache works in the exact same way as with Page Caching.
 
-Let's say you only wanted authenticated users to call actions on the Products controller.
+Let's say you only wanted authenticated users to call actions on +ProductsController+.
 
 <ruby>
 class ProductsController < ActionController
@@ -136,12 +136,12 @@ or the number of items in the cart can be left uncached. This feature is
 available as of Rails 2.2.
 
 You can modify the default action cache path by passing a +:cache_path+ option.
-This will be passed directly to ActionCachePath.path_for.  This is handy for
+This will be passed directly to +ActionCachePath.path_for+.  This is handy for
 actions with multiple possible routes that should be cached differently.  If
 a block is given, it is called with the current controller instance.  
 
 Finally, if you are using memcached, you can also pass +:expires_in+. In fact,
-all parameters not used by caches_action are sent to the underlying cache
+all parameters not used by +caches_action+ are sent to the underlying cache
 store. 
 
 h4. Fragment Caching
@@ -419,15 +419,14 @@ ActionController::Base.cache_store = :compressed_mem_cache_store, "localhost"
 ActionController::Base.cache_store = MyOwnStore.new("parameter")
 </ruby>
 
-+Note: config.cache_store can be used in place of
-ActionController::Base.cache_store in your Rails::Initializer.run block in
-environment.rb+
++Note: +config.cache_store+ can be used in place of
++ActionController::Base.cache_store+ in your +Rails::Initializer.run+ block in
++environment.rb+
 
-In addition to all of this, Rails also adds the ActiveRecord::Base#cache_key
-method that generates a key using the class name, id and updated_at timestamp
-(if available).
+In addition to all of this, Rails also adds the +ActiveRecord::Base#cache_key+
+method that generates a key using the class name, +id+ and +updated_at+ timestamp (if available).
 
-You can access these cache stores at a low level for storing queries and other objects.  Here's an example:
+You can access these cache stores at a low level for storing queries and other objects. Here's an example:
 
 <ruby>
 Rails.cache.read("city")   # => nil
@@ -441,12 +440,12 @@ Conditional GETs are a feature of the HTTP specification that provide a way for 
 servers to tell browsers that the response to a GET request hasn't changed
 since the last request and can be safely pulled from the browser cache.
 
-They work by using the HTTP_IF_NONE_MATCH and HTTP_IF_MODIFIED_SINCE headers to
-pass back and forth both a unique content identifier and the timestamp of when
-the content was last changed. If the browser makes a request where the content
-identifier (etag) or last modified since timestamp matches the server’s version
-then the server only needs to send back an empty response with a not modified
-status.
+They work by using the +HTTP_IF_NONE_MATCH+ and +HTTP_IF_MODIFIED_SINCE+ headers
+to pass back and forth both a unique content identifier and the timestamp of
+when the content was last changed. If the browser makes a request where the
+content identifier (etag) or last modified since timestamp matches the server’s
+version then the server only needs to send back an empty response with a not
+modified status.
 
 It is the server's (i.e. our) responsibility to look for a last modified
 timestamp and the if-none-match header and determine whether or not to send
