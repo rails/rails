@@ -408,7 +408,7 @@ module ActionController #:nodoc:
 
       # Return an array containing the names of public methods that have been marked hidden from the action processor.
       # By default, all methods defined in ActionController::Base and included modules are hidden.
-      # More methods can be hidden using <tt>hide_actions</tt>.
+      # More methods can be hidden using <tt>hide_action</tt>.
       def hidden_actions
         read_inheritable_attribute(:hidden_actions) || write_inheritable_attribute(:hidden_actions, [])
       end
