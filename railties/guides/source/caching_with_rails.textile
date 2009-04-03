@@ -4,10 +4,6 @@ Everyone caches. This guide will teach you what you need to know about
 avoiding that expensive round-trip to your database and returning what you
 need to return to those hungry web clients in the shortest time possible. 
 
-If you prefer to watch screencasts to learn caching, Gregg Pollack produced
-the "Scaling Rails Screencasts":http://railslab.newrelic.com/scaling-rails 
-which step you through everything detailed in this guide plus more.  
-
 After reading this guide, you should be able to use and configure:
 
 * Page, action, and fragment caching
@@ -502,11 +498,12 @@ seriously considering optimizing their caching needs.
 Also the new "Cache money":http://github.com/nkallen/cache-money/tree/master plugin is supposed to be mad cool. 
 
 h3. References
- * "Scaling Rails Screencasts":http://railslab.newrelic.com/scaling-rails 
- * "RailsEnvy, Rails Caching Tutorial, Part 1":http://www.railsenvy.com/2007/2/28/rails-caching-tutorial
- * "RailsEnvy, Rails Caching Tutorial, Part 1":http://www.railsenvy.com/2007/3/20/ruby-on-rails-caching-tutorial-part-2
- * "ActiveSupport::Cache documentation":http://api.rubyonrails.org/classes/ActiveSupport/Cache.html
- * "Rails 2.1 integrated caching tutorial":http://thewebfellas.com/blog/2008/6/9/rails-2-1-now-with-better-integrated-caching
+
+* "Scaling Rails Screencasts":http://railslab.newrelic.com/scaling-rails 
+* "RailsEnvy, Rails Caching Tutorial, Part 1":http://www.railsenvy.com/2007/2/28/rails-caching-tutorial
+* "RailsEnvy, Rails Caching Tutorial, Part 1":http://www.railsenvy.com/2007/3/20/ruby-on-rails-caching-tutorial-part-2
+* "ActiveSupport::Cache documentation":http://api.rubyonrails.org/classes/ActiveSupport/Cache.html
+* "Rails 2.1 integrated caching tutorial":http://thewebfellas.com/blog/2008/6/9/rails-2-1-now-with-better-integrated-caching
 
 
 h3. Changelog
