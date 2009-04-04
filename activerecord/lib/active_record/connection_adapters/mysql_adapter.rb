@@ -266,7 +266,7 @@ module ActiveRecord
           update("SET FOREIGN_KEY_CHECKS = #{old}")
         end
       end
-        
+
       # CONNECTION MANAGEMENT ====================================
 
       def active?

@@ -1337,7 +1337,7 @@ module ActionController #:nodoc:
           end
         end
       end
-      
+
       # Returns true if a render or redirect has already been performed.
       def performed?
         @performed_render || @performed_redirect
@@ -1346,7 +1346,7 @@ module ActionController #:nodoc:
       def assign_names
         @action_name = (params['action'] || 'index')
       end
-      
+
       # Returns a set of the methods defined as actions in your controller
       def action_methods
         self.class.action_methods
@@ -1373,7 +1373,7 @@ module ActionController #:nodoc:
         # otherwise you'd get different results if calling it more than once
         @request_origin ||= "#{request.remote_ip} at #{Time.now.to_s(:db)}"
       end
-      
+
       # Returns the request URI used to get to the current location
       def complete_request_uri
         "#{request.protocol}#{request.host}#{request.request_uri}"
