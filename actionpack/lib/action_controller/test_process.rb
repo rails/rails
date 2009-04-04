@@ -13,6 +13,7 @@ module ActionController #:nodoc:
 
       @query_parameters   = {}
       @session            = TestSession.new
+      @session_options    ||= {}
 
       initialize_default_values
       initialize_containers
@@ -110,6 +111,7 @@ module ActionController #:nodoc:
     end
 
     def recycle!
+      @env["action_controller.request.request_parameters"] = {}
       self.query_parameters   = {}
       self.path_parameters    = {}
       @headers, @request_method, @accepts, @content_type = nil, nil, nil, nil

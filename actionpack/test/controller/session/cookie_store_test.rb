@@ -193,27 +193,6 @@ class CookieStoreTest < ActionController::IntegrationTest
     end
   end
 
-  def test_session_store_with_expire_after
-    app = ActionController::Session::CookieStore.new(DispatcherApp, :key => SessionKey, :secret => SessionSecret, :expire_after => 5.hours)
-    @integration_session = open_session(app)
-
-    with_test_route_set do
-      # First request accesses the session
-      cookies[SessionKey] = SignedBar
-
-      get '/set_session_value'
-      assert_response :success
-      cookie = headers['Set-Cookie']
-
-      # Second request does not access the session so the
-      # expires header should not be changed
-      get '/no_session_access'
-      assert_response :success
-      assert_equal cookie, headers['Set-Cookie'],
-        "#{unmarshal_session(cookie).inspect} expected but was #{unmarshal_session(headers['Set-Cookie']).inspect}"
-    end
-  end
-
   private
     def with_test_route_set
       with_routing do |set|

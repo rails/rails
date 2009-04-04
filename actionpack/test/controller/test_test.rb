@@ -130,6 +130,10 @@ XML
     ActionController::Routing::Routes.reload
   end
 
+  def test_test_request_has_session_options_initialized
+    assert @request.session_options
+  end
+
   def test_raw_post_handling
     params = {:page => {:name => 'page name'}, 'some key' => 123}
     post :render_raw_post, params.dup
@@ -513,6 +517,14 @@ XML
     get :test_params
     @request.recycle!
     assert_nil @request.instance_variable_get("@request_method")
+  end
+
+  def test_params_reset_after_post_request
+    post :no_op, :foo => "bar"
+    assert_equal "bar", @request.params[:foo]
+    @request.recycle!
+    post :no_op
+    assert @request.params[:foo].blank?
   end
 
   %w(controller response request).each do |variable|
