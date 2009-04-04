@@ -392,9 +392,28 @@ module ActiveRecord
         quote_string(s)
       end
 
+      # Checks the following cases:
+      #
+      # - table_name
+      # - "table.name"
+      # - schema_name.table_name
+      # - schema_name."table.name"
+      # - "schema.name".table_name
+      # - "schema.name"."table.name"
+      def quote_table_name(name)
+        schema, name_part = extract_pg_identifier_from_name(name.to_s)
+
+        unless name_part
+          quote_column_name(schema)
+        else
+          table_name, name_part = extract_pg_identifier_from_name(name_part)
+          "#{quote_column_name(schema)}.#{quote_column_name(table_name)}"
+        end
+      end
+
       # Quotes column names for use in SQL queries.
       def quote_column_name(name) #:nodoc:
-        %("#{name}")
+        PGconn.quote_ident(name.to_s)
       end
 
       # Quote date/time values for use in SQL input. Includes microseconds
@@ -1044,6 +1063,16 @@ module ActiveRecord
                AND a.attnum > 0 AND NOT a.attisdropped
              ORDER BY a.attnum
           end_sql
+        end
+
+        def extract_pg_identifier_from_name(name)
+          match_data = name[0,1] == '"' ? name.match(/\"([^\"]+)\"/) : name.match(/([^\.]+)/)
+
+          if match_data
+            rest = name[match_data[0].length..-1]
+            rest = rest[1..-1] if rest[0,1] == "."
+            [match_data[1], (rest.length > 0 ? rest : nil)]
+          end
         end
     end
   end
