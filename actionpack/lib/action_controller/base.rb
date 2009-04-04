@@ -1305,7 +1305,8 @@ module ActionController #:nodoc:
           end
         end
       end
-
+      
+      # Returns true if a render or redirect has already been performed.
       def performed?
         @performed_render || @performed_redirect
       end
