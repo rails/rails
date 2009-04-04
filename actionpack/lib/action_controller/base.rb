@@ -408,7 +408,7 @@ module ActionController #:nodoc:
 
       # Return an array containing the names of public methods that have been marked hidden from the action processor.
       # By default, all methods defined in ActionController::Base and included modules are hidden.
-      # More methods can be hidden using <tt>hide_actions</tt>.
+      # More methods can be hidden using <tt>hide_action</tt>.
       def hidden_actions
         read_inheritable_attribute(:hidden_actions) || write_inheritable_attribute(:hidden_actions, [])
       end
@@ -1338,6 +1338,7 @@ module ActionController #:nodoc:
         end
       end
 
+      # Returns true if a render or redirect has already been performed.
       def performed?
         @performed_render || @performed_redirect
       end
@@ -1346,6 +1347,7 @@ module ActionController #:nodoc:
         @action_name = (params['action'] || 'index')
       end
 
+      # Returns a set of the methods defined as actions in your controller
       def action_methods
         self.class.action_methods
       end
@@ -1372,6 +1374,7 @@ module ActionController #:nodoc:
         @request_origin ||= "#{request.remote_ip} at #{Time.now.to_s(:db)}"
       end
 
+      # Returns the request URI used to get to the current location
       def complete_request_uri
         "#{request.protocol}#{request.host}#{request.request_uri}"
       end

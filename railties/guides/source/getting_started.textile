@@ -312,7 +312,7 @@ Now if you navigate to +http://localhost:3000+ in your browser, you'll see the +
 
 NOTE. For more information about routing, refer to "Rails Routing from the Outside In":routing.html.
 
-h3. Getting Up and Running Quickly With Scaffolding
+h3. Getting Up and Running Quickly with Scaffolding
 
 Rails _scaffolding_ is a quick way to generate some of the major pieces of an application. If you want to create the models, views, and controllers for a new resource in a single operation, scaffolding is the tool for the job.
 
@@ -474,7 +474,7 @@ This code sets the +@posts+ instance variable to an array of all posts in the da
 
 TIP: For more information on finding records with Active Record, see "Active Record Query Interface":active_record_querying.html.
 
-The +respond_to+ block handles both HTML and XML calls to this action. If you browse to +http://localhost:3000/posts.xml+, you'll see all of the posts in XML format. The HTML format looks for a view in +app/views/posts/+ with a name that corresponds to the action name. Rails makes all of the instance variables from the action available to the view. Here's +app/view/posts/index.html.erb+:
+The +respond_to+ block handles both HTML and XML calls to this action. If you browse to +http://localhost:3000/posts.xml+, you'll see all of the posts in XML format. The HTML format looks for a view in +app/views/posts/+ with a name that corresponds to the action name. Rails makes all of the instance variables from the action available to the view. Here's +app/views/posts/index.html.erb+:
 
 <erb>
 <h1>Listing posts</h1>

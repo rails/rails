@@ -9,7 +9,7 @@ This guide covers Rails integration with Rack and interfacing with other Rack co
 
 endprologue.
 
-WARNING: This guide assumes a working knowledge of Rack protocol and Rack concepts such as middlewares, url maps and Rack::Builder.
+WARNING: This guide assumes a working knowledge of Rack protocol and Rack concepts such as middlewares, url maps and +Rack::Builder+.
 
 h3. Introduction to Rack
 
@@ -51,9 +51,9 @@ app = Rack::Builder.new {
 Middlewares used in the code above are primarily useful only in the development envrionment. The following table explains their usage:
 
 |_.Middleware|_.Purpose|
-|Rails::Rack::LogTailer|Appends log file output to console|
-|Rails::Rack::Static|Serves static files inside +RAILS_ROOT/public+ directory|
-|Rails::Rack::Debugger|Starts Debugger|
+|+Rails::Rack::LogTailer+|Appends log file output to console|
+|+Rails::Rack::Static+|Serves static files inside +RAILS_ROOT/public+ directory|
+|+Rails::Rack::Debugger+|Starts Debugger|
 
 h4. +rackup+
 
@@ -109,7 +109,7 @@ use ActiveRecord::QueryCache
 run ActionController::Dispatcher.new
 </ruby>
 
-Purpose of each of this middlewares is explained in "Internal Middlewares":#internal-middleware-stack section.
+Purpose of each of this middlewares is explained in the "Internal Middlewares":#internal-middleware-stack section.
 
 h4. Configuring Middleware Stack
 
@@ -128,7 +128,7 @@ You can add a new middleware to the middleware stack using any of the following 
 <strong>Example:</strong>
 
 <ruby>
-# environment.rb
+# config/environment.rb
 
 # Push Rack::BounceFavicon at the bottom
 config.middleware.use Rack::BounceFavicon
@@ -145,7 +145,7 @@ You can swap an existing middleware in the middleware stack using +config.middle
 <strong>Example:</strong>
 
 <ruby>
-# environment.rb
+# config/environment.rb
 
 # Replace ActionController::Failsafe with Lifo::Failsafe
 config.middleware.swap ActionController::Failsafe, Lifo::Failsafe
@@ -166,14 +166,14 @@ h4. Internal Middleware Stack
 Much of Action Controller's functionality is implemented as Middlewares. The following table explains the purpose of each of them:
 
 |_.Middleware|_.Purpose|
-|Rack::Lock|Sets +env["rack.multithread"]+ flag to +true+ and wraps the application within a Mutex.|
-|ActionController::Failsafe|Returns HTTP Status +500+ to the client if an exception gets raised while dispatching.|
-|ActiveRecord::QueryCache|Enable the Active Record query cache.|
-|ActionController::Session::CookieStore|Uses the cookie based session store.|
-|ActionController::Session::MemCacheStore|Uses the memcached based session store.|
-|ActiveRecord::SessionStore|Uses the database based session store.|
-|Rack::MethodOverride|Sets HTTP method based on +_method+ parameter or +env["HTTP_X_HTTP_METHOD_OVERRIDE"]+.|
-|Rack::Head|Discards the response body if the client sends a +HEAD+ request.|
+|+Rack::Lock+|Sets +env["rack.multithread"]+ flag to +true+ and wraps the application within a Mutex.|
+|+ActionController::Failsafe+|Returns HTTP Status +500+ to the client if an exception gets raised while dispatching.|
+|+ActiveRecord::QueryCache+|Enable the Active Record query cache.|
+|+ActionController::Session::CookieStore+|Uses the cookie based session store.|
+|+ActionController::Session::MemCacheStore+|Uses the memcached based session store.|
+|+ActiveRecord::SessionStore+|Uses the database based session store.|
+|+Rack::MethodOverride+|Sets HTTP method based on +_method+ parameter or +env["HTTP_X_HTTP_METHOD_OVERRIDE"]+.|
+|+Rack::Head+|Discards the response body if the client sends a +HEAD+ request.|
 
 TIP: It's possible to use any of the above middlewares in your custom Rack stack.
 
@@ -229,7 +229,7 @@ h3. Rails Metal Applications
 
 Rails Metal applications are minimal Rack applications specially designed for integrating with a typical Rails application. As Rails Metal Applications skip all of the Action Controller stack, serving a request has no overhead from the Rails framework itself. This is especially useful for infrequent cases where the performance of the full stack Rails framework is an issue.
 
-Ryan Bates' railscast on the "Rails Metal":http://railscasts.com/episodes/150-rails-metal provides a nice walkthrough generating and using Rails Metal.
+Ryan Bates' "railscast on Rails Metal":http://railscasts.com/episodes/150-rails-metal provides a nice walkthrough generating and using Rails Metal.
 
 h4. Generating a Metal Application
 
@@ -256,7 +256,7 @@ class Poller
 end
 </ruby>
 
-Metal applications within +app/metal+ folders in plugins will also be discovered and added to the list 
+Metal applications within +app/metal+ folders in plugins will also be discovered and added to the list.
 
 Metal applications are an optimization. You should make sure to "understand the related performance implications":http://weblog.rubyonrails.org/2008/12/20/performance-of-rails-metal before using it.
 
