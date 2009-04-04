@@ -88,7 +88,9 @@ module Rack
       ##                      within the application. This may be an
       ##                      empty string, if the request URL targets
       ##                      the application root and does not have a
-      ##                      trailing slash.
+      ##                      trailing slash. This information should be
+      ##                      decoded by the server if it comes from a
+      ##                      URL.
 
       ## <tt>QUERY_STRING</tt>:: The portion of the request URL that
       ##                         follows the <tt>?</tt>, if any. May be
@@ -372,59 +374,43 @@ module Rack
 
     ## === The Content-Length
     def check_content_length(status, headers, env)
-      chunked_response = false
-      headers.each { |key, value|
-        if key.downcase == 'transfer-encoding'
-          chunked_response = value.downcase != 'identity'
-        end
-      }
-
       headers.each { |key, value|
         if key.downcase == 'content-length'
-          ## There must be a <tt>Content-Length</tt>, except when the
-          ## +Status+ is 1xx, 204 or 304, in which case there must be none
-          ## given.
+          ## There must not be a <tt>Content-Length</tt> header when the
+          ## +Status+ is 1xx, 204 or 304.
           assert("Content-Length header found in #{status} response, not allowed") {
             not Rack::Utils::STATUS_WITH_NO_ENTITY_BODY.include? status.to_i
-          }
-
-          assert('Content-Length header should not be used if body is chunked') {
-            not chunked_response
           }
 
           bytes = 0
           string_body = true
 
-          @body.each { |part|
-            unless part.kind_of?(String)
-              string_body = false
-              break
-            end
+          if @body.respond_to?(:to_ary)
+            @body.each { |part|
+              unless part.kind_of?(String)
+                string_body = false
+                break
+              end
 
-            bytes += (part.respond_to?(:bytesize) ? part.bytesize : part.size)
-          }
-
-          if env["REQUEST_METHOD"] == "HEAD"
-            assert("Response body was given for HEAD request, but should be empty") {
-              bytes == 0
+              bytes += Rack::Utils.bytesize(part)
             }
-          else
-            if string_body
-              assert("Content-Length header was #{value}, but should be #{bytes}") {
-                value == bytes.to_s
+
+            if env["REQUEST_METHOD"] == "HEAD"
+              assert("Response body was given for HEAD request, but should be empty") {
+                bytes == 0
               }
+            else
+              if string_body
+                assert("Content-Length header was #{value}, but should be #{bytes}") {
+                  value == bytes.to_s
+                }
+              end
             end
           end
 
           return
         end
       }
-
-      if [ String, Array ].include?(@body.class) && !chunked_response
-        assert('No Content-Length header found') {
-          Rack::Utils::STATUS_WITH_NO_ENTITY_BODY.include? status.to_i
-        }
-      end
     end
 
     ## === The Body

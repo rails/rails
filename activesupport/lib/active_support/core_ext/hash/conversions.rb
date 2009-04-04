@@ -24,11 +24,12 @@ module ActiveSupport #:nodoc:
           "Bignum"     => "integer",
           "BigDecimal" => "decimal",
           "Float"      => "float",
+          "TrueClass"  => "boolean",
+          "FalseClass" => "boolean",
           "Date"       => "date",
           "DateTime"   => "datetime",
           "Time"       => "datetime",
-          "TrueClass"  => "boolean",
-          "FalseClass" => "boolean"
+          "ActiveSupport::TimeWithZone" => "datetime"
         } unless defined?(XML_TYPE_NAMES)
 
         XML_FORMATTING = {

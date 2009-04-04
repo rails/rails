@@ -197,7 +197,7 @@ module ActiveRecord
 
       def counter_cache_column
         if options[:counter_cache] == true
-          "#{active_record.name.underscore.pluralize}_count"
+          "#{active_record.name.demodulize.underscore.pluralize}_count"
         elsif options[:counter_cache]
           options[:counter_cache]
         end

@@ -159,7 +159,8 @@ module ActionController
         path = "/#{path}" unless path[0] == ?/
         path = "#{path}/" unless path[-1] == ?/
 
-        path = "/#{options[:path_prefix].to_s.gsub(/^\//,'')}#{path}" if options[:path_prefix]
+        prefix = options[:path_prefix].to_s.gsub(/^\//,'')
+        path = "/#{prefix}#{path}" unless prefix.blank?
 
         segments = segments_for_route_path(path)
         defaults, requirements, conditions = divide_route_options(segments, options)

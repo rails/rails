@@ -80,6 +80,10 @@ module Rails
       File.join(directory, 'app', 'controllers')
     end
 
+    def metal_path
+      File.join(directory, 'app', 'metal')
+    end
+
     def routing_file
       File.join(directory, 'config', 'routes.rb')
     end
@@ -100,7 +104,7 @@ module Rails
 
       
       def app_paths
-        [ File.join(directory, 'app', 'models'), File.join(directory, 'app', 'helpers'), controller_path ]
+        [ File.join(directory, 'app', 'models'), File.join(directory, 'app', 'helpers'), controller_path, metal_path ]
       end
       
       def lib_path

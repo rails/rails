@@ -1,5 +1,7 @@
 class Post < ActiveRecord::Base
   named_scope :containing_the_letter_a, :conditions => "body LIKE '%a%'"
+  named_scope :ranked_by_comments, :order => "comments_count DESC"
+  named_scope :limit, lambda {|limit| {:limit => limit} }
   named_scope :with_authors_at_address, lambda { |address| {
       :conditions => [ 'authors.author_address_id = ?', address.id ],
       :joins => 'JOIN authors ON authors.id = posts.author_id'
@@ -67,6 +69,10 @@ class Post < ActiveRecord::Base
               :after_add     => lambda {|owner, reader| log(:added,   :after,  reader.first_name) },
               :before_remove => lambda {|owner, reader| log(:removed, :before, reader.first_name) },
               :after_remove  => lambda {|owner, reader| log(:removed, :after,  reader.first_name) }
+
+  def self.top(limit)
+    ranked_by_comments.limit(limit)
+  end
 
   def self.reset_log
     @log = []

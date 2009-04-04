@@ -26,7 +26,7 @@ class TestHelperMailerTest < ActionMailer::TestCase
   end
 
   def test_determine_default_mailer_raises_correct_error
-    assert_raises(ActionMailer::NonInferrableMailerError) do
+    assert_raise(ActionMailer::NonInferrableMailerError) do
       self.class.determine_default_mailer("NotAMailerTest")
     end
   end
@@ -84,7 +84,7 @@ class TestHelperMailerTest < ActionMailer::TestCase
   end
   
   def test_assert_emails_too_few_sent
-    error = assert_raises ActiveSupport::TestCase::Assertion do
+    error = assert_raise ActiveSupport::TestCase::Assertion do
       assert_emails 2 do
         TestHelperMailer.deliver_test
       end
@@ -94,7 +94,7 @@ class TestHelperMailerTest < ActionMailer::TestCase
   end
   
   def test_assert_emails_too_many_sent
-    error = assert_raises ActiveSupport::TestCase::Assertion do
+    error = assert_raise ActiveSupport::TestCase::Assertion do
       assert_emails 1 do
         TestHelperMailer.deliver_test
         TestHelperMailer.deliver_test
@@ -105,7 +105,7 @@ class TestHelperMailerTest < ActionMailer::TestCase
   end
   
   def test_assert_no_emails_failure
-    error = assert_raises ActiveSupport::TestCase::Assertion do
+    error = assert_raise ActiveSupport::TestCase::Assertion do
       assert_no_emails do
         TestHelperMailer.deliver_test
       end

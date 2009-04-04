@@ -1,5 +1,6 @@
 require 'lsapi'
-#require 'cgi'
+require 'rack/content_length'
+
 module Rack
   module Handler
     class LSWS
@@ -9,11 +10,13 @@ module Rack
         end
       end
       def self.serve(app)
+        app = Rack::ContentLength.new(app)
+
         env = ENV.to_hash
         env.delete "HTTP_CONTENT_LENGTH"
         env["SCRIPT_NAME"] = "" if env["SCRIPT_NAME"] == "/"
         env.update({"rack.version" => [0,1],
-                     "rack.input" => $stdin,
+                     "rack.input" => StringIO.new($stdin.read.to_s),
                      "rack.errors" => $stderr,
                      "rack.multithread" => false,
                      "rack.multiprocess" => true,

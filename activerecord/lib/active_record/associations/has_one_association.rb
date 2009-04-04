@@ -29,8 +29,17 @@ module ActiveRecord
 
         unless @target.nil? || @target == obj
           if dependent? && !dont_save
-            @target.destroy unless @target.new_record?
-            @owner.clear_association_cache
+            case @reflection.options[:dependent]
+            when :delete
+              @target.delete unless @target.new_record?
+              @owner.clear_association_cache
+            when :destroy
+              @target.destroy unless @target.new_record?
+              @owner.clear_association_cache
+            when :nullify
+              @target[@reflection.primary_key_name] = nil
+              @target.save unless @owner.new_record? || @target.new_record?
+            end
           else
             @target[@reflection.primary_key_name] = nil
             @target.save unless @owner.new_record? || @target.new_record?

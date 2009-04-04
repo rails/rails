@@ -2,7 +2,7 @@ require 'plugin_test_helper'
 
 class PluginLocatorTest < Test::Unit::TestCase
   def test_should_require_subclasses_to_implement_the_plugins_method
-    assert_raises(RuntimeError) do
+    assert_raise(RuntimeError) do
       Rails::Plugin::Locator.new(nil).plugins
     end
   end

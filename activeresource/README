@@ -1,7 +1,7 @@
 = Active Resource
 
 Active Resource (ARes) connects business objects and Representational State Transfer (REST)
-web services.  It implements object-relational mapping for REST webservices to provide transparent 
+web services.  It implements object-relational mapping for REST web services to provide transparent
 proxying capabilities between a client (ActiveResource) and a RESTful service (which is provided by Simply RESTful routing
 in ActionController::Resources).
 
@@ -22,14 +22,14 @@ received and serialized into a usable Ruby object.
 
 === Configuration and Usage
 
-Putting ActiveResource to use is very similar to ActiveRecord.  It's as simple as creating a model class
+Putting Active Resource to use is very similar to Active Record.  It's as simple as creating a model class
 that inherits from ActiveResource::Base and providing a <tt>site</tt> class variable to it:
 
    class Person < ActiveResource::Base
      self.site = "http://api.people.com:3000/"
    end
 
-Now the Person class is REST enabled and can invoke REST services very similarly to how ActiveRecord invokes
+Now the Person class is REST enabled and can invoke REST services very similarly to how Active Record invokes
 lifecycle methods that operate against a persistent store.
 
    # Find a person with id = 1
@@ -42,7 +42,7 @@ records.  But rather than dealing directly with a database record, you're dealin
 ==== Protocol
 
 Active Resource is built on a standard XML format for requesting and submitting resources over HTTP.  It mirrors the RESTful routing 
-built into ActionController but will also work with any other REST service that properly implements the protocol. 
+built into Action Controller but will also work with any other REST service that properly implements the protocol.
 REST uses HTTP, but unlike "typical" web applications, it makes use of all the verbs available in the HTTP specification:
 
 * GET requests are used for finding and retrieving resources.
@@ -55,8 +55,8 @@ for more general information on REST web services, see the article here[http://e
 
 ==== Find
 
-GET Http requests expect the XML form of whatever resource/resources is/are being requested.  So,
-for a request for a single element - the XML of that item is expected in response:
+Find requests use the GET method and expect the XML form of whatever resource/resources is/are being requested.  So,
+for a request for a single element, the XML of that item is expected in response:
 
    # Expects a response of
    #
@@ -101,7 +101,7 @@ Collections can also be requested in a similar fashion
 
 ==== Create
 
-Creating a new resource submits the xml form of the resource as the body of the request and expects
+Creating a new resource submits the XML form of the resource as the body of the request and expects
 a 'Location' header in the response with the RESTful URL location of the newly created resource.  The
 id of the newly created resource is parsed out of the Location response header and automatically set
 as the id of the ARes object.

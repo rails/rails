@@ -18,7 +18,7 @@ class MessageVerifierTest < Test::Unit::TestCase
   end
   
   def assert_not_verified(message)
-    assert_raises(ActiveSupport::MessageVerifier::InvalidSignature) do
+    assert_raise(ActiveSupport::MessageVerifier::InvalidSignature) do
       @verifier.verify(message)
     end
   end

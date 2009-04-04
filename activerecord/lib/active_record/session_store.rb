@@ -287,8 +287,7 @@ module ActiveRecord
       def get_session(env, sid)
         Base.silence do
           sid ||= generate_sid
-          session = @@session_class.find_by_session_id(sid)
-          session ||= @@session_class.new(:session_id => sid, :data => {})
+          session = find_session(sid)
           env[SESSION_RECORD_KEY] = session
           [sid, session.data]
         end
@@ -296,7 +295,7 @@ module ActiveRecord
 
       def set_session(env, sid, session_data)
         Base.silence do
-          record = env[SESSION_RECORD_KEY]
+          record = env[SESSION_RECORD_KEY] ||= find_session(sid)
           record.data = session_data
           return false unless record.save
 
@@ -309,6 +308,11 @@ module ActiveRecord
         end
 
         return true
+      end
+
+      def find_session(id)
+        @@session_class.find_by_session_id(id) ||
+          @@session_class.new(:session_id => id, :data => {})
       end
   end
 end

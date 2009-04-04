@@ -19,7 +19,7 @@ module ActiveResource
   #   end
   #
   # Now the Person class is mapped to RESTful resources located at <tt>http://api.people.com:3000/people/</tt>, and
-  # you can now use Active Resource's lifecycles methods to manipulate resources. In the case where you already have
+  # you can now use Active Resource's lifecycle methods to manipulate resources. In the case where you already have
   # an existing model with the same name as the desired RESTful resource you can set the +element_name+ value.
   #
   #   class PersonResource < ActiveResource::Base
@@ -112,6 +112,7 @@ module ActiveResource
   #
   # Note: Some values cannot be provided in the URL passed to site.  e.g. email addresses
   # as usernames.  In those situations you should use the separate user and password option.
+  #
   # == Errors & Validation
   #
   # Error handling and validation is handled in much the same manner as you're used to seeing in
@@ -156,7 +157,7 @@ module ActiveResource
   #
   # === Validation errors
   #
-  # Active Resource supports validations on resources and will return errors if any these validations fail
+  # Active Resource supports validations on resources and will return errors if any of these validations fail
   # (e.g., "First name can not be blank" and so on).  These types of errors are denoted in the response by
   # a response code of <tt>422</tt> and an XML representation of the validation errors.  The save operation will
   # then fail (with a <tt>false</tt> return value) and the validation errors can be accessed on the resource in question.
@@ -413,7 +414,7 @@ module ActiveResource
       # will split from the +prefix_options+.
       #
       # ==== Options
-      # * +prefix_options+ - A hash to add a prefix to the request for nested URL's (e.g., <tt>:account_id => 19</tt>
+      # * +prefix_options+ - A hash to add a prefix to the request for nested URLs (e.g., <tt>:account_id => 19</tt>
       #   would yield a URL like <tt>/accounts/19/purchases.xml</tt>).
       # * +query_options+ - A hash to add items to the query string for the request.
       #
@@ -691,7 +692,7 @@ module ActiveResource
     end
 
 
-    # A method to determine if the resource a \new object (i.e., it has not been POSTed to the remote service yet).
+    # Returns +true+ if this object hasn't yet been saved, otherwise, returns +false+.
     #
     # ==== Examples
     #   not_new = Computer.create(:brand => 'Apple', :make => 'MacBook', :vendor => 'MacMall')
@@ -760,7 +761,7 @@ module ActiveResource
       id.hash
     end
 
-    # Duplicate the current resource without saving it.
+    # Duplicates the current resource without saving it.
     #
     # ==== Examples
     #   my_invoice = Invoice.create(:customer => 'That Company')
@@ -779,8 +780,8 @@ module ActiveResource
       end
     end
 
-    # A method to \save (+POST+) or \update (+PUT+) a resource.  It delegates to +create+ if a \new object, 
-    # +update+ if it is existing. If the response to the \save includes a body, it will be assumed that this body
+    # Saves (+POST+) or \updates (+PUT+) a resource.  Delegates to +create+ if the object is \new,
+    # +update+ if it exists. If the response to the \save includes a body, it will be assumed that this body
     # is XML for the final object as it looked after the \save (which would include attributes like +created_at+
     # that weren't part of the original submit).
     #
@@ -832,7 +833,7 @@ module ActiveResource
       !new? && self.class.exists?(to_param, :params => prefix_options)
     end
 
-    # A method to convert the the resource to an XML string.
+    # Converts the resource to an XML string representation.
     #
     # ==== Options
     # The +options+ parameter is handed off to the +to_xml+ method on each
@@ -861,8 +862,7 @@ module ActiveResource
       attributes.to_xml({:root => self.class.element_name}.merge(options))
     end
 
-    # Returns a JSON string representing the model. Some configuration is
-    # available through +options+.
+    # Converts the resource to a JSON string representation.
     #
     # ==== Options
     # The +options+ are passed to the +to_json+ method on each

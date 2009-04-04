@@ -92,6 +92,14 @@ class CalculationsTest < ActiveRecord::TestCase
     assert_equal 60,  c[2]
   end
 
+  def test_should_group_by_summed_field_having_sanitized_condition
+    c = Account.sum(:credit_limit, :group => :firm_id,
+                                   :having => ['sum(credit_limit) > ?', 50])
+    assert_nil        c[1]
+    assert_equal 105, c[6]
+    assert_equal 60,  c[2]
+  end
+
   def test_should_group_by_summed_association
     c = Account.sum(:credit_limit, :group => :firm)
     assert_equal 50,   c[companies(:first_firm)]
@@ -247,13 +255,26 @@ class CalculationsTest < ActiveRecord::TestCase
       Company.send(:validate_calculation_options, :count, :include => true)
     end
 
-    assert_raises(ArgumentError) { Company.send(:validate_calculation_options, :sum,   :foo => :bar) }
-    assert_raises(ArgumentError) { Company.send(:validate_calculation_options, :count, :foo => :bar) }
+    assert_raise(ArgumentError) { Company.send(:validate_calculation_options, :sum,   :foo => :bar) }
+    assert_raise(ArgumentError) { Company.send(:validate_calculation_options, :count, :foo => :bar) }
   end
 
   def test_should_count_selected_field_with_include
     assert_equal 6, Account.count(:distinct => true, :include => :firm)
     assert_equal 4, Account.count(:distinct => true, :include => :firm, :select => :credit_limit)
+  end
+
+  def test_should_count_scoped_select
+    Account.update_all("credit_limit = NULL")
+    assert_equal 0, Account.scoped(:select => "credit_limit").count
+  end
+
+  def test_should_count_scoped_select_with_options
+    Account.update_all("credit_limit = NULL")
+    Account.last.update_attribute('credit_limit', 49)
+    Account.first.update_attribute('credit_limit', 51)
+
+    assert_equal 1, Account.scoped(:select => "credit_limit").count(:conditions => ['credit_limit >= 50'])
   end
 
   def test_should_count_manual_select_with_include

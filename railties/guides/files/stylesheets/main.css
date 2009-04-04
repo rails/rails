@@ -337,7 +337,7 @@ h6 {
 	margin-top: 0.25em;
 }
 
-#mainCol dd.warning, #subCol dd.warning {
+#mainCol div.warning, #subCol dd.warning {
 	background: #f9d9d8 url(../../images/tab_red.gif) no-repeat left top;
 	border: none;
 	padding: 1.25em 1.25em 1.25em 48px;
@@ -427,3 +427,15 @@ code {
 * html .clearfix {height: 1%;}
 .clearfix {display: block;}
 .clear { clear:both; }
+
+/* Same bottom margin for special boxes than for regular paragraphs, this way
+intermediate whitespace looks uniform. */
+div.code_container, div.important, div.caution, div.warning, div.note, div.info {
+    margin-bottom: 1.5em;
+}
+
+/* Remove bottom margin of paragraphs in special boxes, otherwise they get a
+spurious blank area below with the box background. */
+div.important p, div.caution p, div.warning p, div.note p, div.info p {
+    margin-bottom: 0px;
+}

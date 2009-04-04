@@ -1,3 +1,5 @@
+require 'rack/content_length'
+
 module Rack
   module Handler
     class CGI
@@ -6,6 +8,8 @@ module Rack
       end
 
       def self.serve(app)
+        app = ContentLength.new(app)
+
         env = ENV.to_hash
         env.delete "HTTP_CONTENT_LENGTH"
 

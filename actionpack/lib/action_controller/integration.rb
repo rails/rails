@@ -5,7 +5,7 @@ require 'active_support/test_case'
 module ActionController
   module Integration #:nodoc:
     # An integration Session instance represents a set of requests and responses
-    # performed sequentially by some virtual user. Becase you can instantiate
+    # performed sequentially by some virtual user. Because you can instantiate
     # multiple sessions and run them side-by-side, you can also mimic (to some
     # limited extent) multiple simultaneous users interacting with your system.
     #
@@ -332,11 +332,13 @@ module ActionController
             @cookies[name] = value
           end
 
-          @body = ""
           if body.is_a?(String)
-            @body << body
+            @body_parts = [body]
+            @body = body
           else
-            body.each { |part| @body << part }
+            @body_parts = []
+            body.each { |part| @body_parts << part.to_s }
+            @body = @body_parts.join
           end
 
           if @controller = ActionController::Base.last_instantiation
@@ -349,7 +351,7 @@ module ActionController
             @response = Response.new
             @response.status = status.to_s
             @response.headers.replace(@headers)
-            @response.body = @body
+            @response.body = @body_parts
           end
 
           # Decorate the response with the standard behavior of the

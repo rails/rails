@@ -21,10 +21,12 @@ class AutoLayoutMailer < ActionMailer::Base
     body       render(:inline => "Hello, <%= @world %>", :layout => false, :body => { :world => "Earth" })
   end
 
-  def multipart(recipient)
+  def multipart(recipient, type = nil)
     recipients recipient
     subject    "You have a mail"
     from       "tester@example.com"
+
+    content_type(type) if type
   end
 end
 
@@ -64,6 +66,7 @@ class LayoutMailerTest < Test::Unit::TestCase
 
   def test_should_pickup_multipart_layout
     mail = AutoLayoutMailer.create_multipart(@recipient)
+    assert_equal "multipart/alternative", mail.content_type
     assert_equal 2, mail.parts.size
 
     assert_equal 'text/plain', mail.parts.first.content_type
@@ -72,6 +75,31 @@ class LayoutMailerTest < Test::Unit::TestCase
     assert_equal 'text/html', mail.parts.last.content_type
     assert_equal "Hello from layout text/html multipart", mail.parts.last.body
   end
+
+  def test_should_pickup_multipartmixed_layout
+    mail = AutoLayoutMailer.create_multipart(@recipient, "multipart/mixed")
+    assert_equal "multipart/mixed", mail.content_type
+    assert_equal 2, mail.parts.size
+
+    assert_equal 'text/plain', mail.parts.first.content_type
+    assert_equal "text/plain layout - text/plain multipart", mail.parts.first.body
+
+    assert_equal 'text/html', mail.parts.last.content_type
+    assert_equal "Hello from layout text/html multipart", mail.parts.last.body
+  end
+
+  def test_should_fix_multipart_layout
+    mail = AutoLayoutMailer.create_multipart(@recipient, "text/plain")
+    assert_equal "multipart/alternative", mail.content_type
+    assert_equal 2, mail.parts.size
+
+    assert_equal 'text/plain', mail.parts.first.content_type
+    assert_equal "text/plain layout - text/plain multipart", mail.parts.first.body
+
+    assert_equal 'text/html', mail.parts.last.content_type
+    assert_equal "Hello from layout text/html multipart", mail.parts.last.body
+  end
+
 
   def test_should_pickup_layout_given_to_render
     mail = AutoLayoutMailer.create_spam(@recipient)

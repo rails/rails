@@ -82,6 +82,22 @@ class RailsTemplateRunnerTest < GeneratorTestCase
     assert_rails_initializer_includes("config.gem 'mislav-will-paginate', :lib => 'will-paginate', :source => 'http://gems.github.com'")
   end
 
+  def test_gem_with_env_string_should_put_gem_dependency_in_specified_environment
+    run_template_method(:gem, 'rspec', :env => 'test')
+    assert_generated_file_with_data('config/environments/test.rb', "config.gem 'rspec'", 'test')
+  end
+
+  def test_gem_with_env_array_should_put_gem_dependency_in_specified_environments
+    run_template_method(:gem, 'quietbacktrace', :env => %w[ development test ])
+    assert_generated_file_with_data('config/environments/development.rb', "config.gem 'quietbacktrace'")
+    assert_generated_file_with_data('config/environments/test.rb', "config.gem 'quietbacktrace'")
+  end
+
+  def test_gem_with_lib_option_set_to_false_should_put_gem_dependency_in_enviroment_correctly
+    run_template_method(:gem, 'mislav-will-paginate', :lib => false, :source => 'http://gems.github.com')
+    assert_rails_initializer_includes("config.gem 'mislav-will-paginate', :lib => false, :source => 'http://gems.github.com'")
+  end
+
   def test_environment_should_include_data_in_environment_initializer_block
     load_paths = 'config.load_paths += %w["#{RAILS_ROOT}/app/extras"]'
     run_template_method(:environment, load_paths)

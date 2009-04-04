@@ -115,8 +115,8 @@ class HasOneThroughAssociationsTest < ActiveRecord::TestCase
   end
 
   def test_has_one_through_proxy_should_not_respond_to_private_methods
-    assert_raises(NoMethodError) { clubs(:moustache_club).private_method }
-    assert_raises(NoMethodError) { @member.club.private_method }
+    assert_raise(NoMethodError) { clubs(:moustache_club).private_method }
+    assert_raise(NoMethodError) { @member.club.private_method }
   end
 
   def test_has_one_through_proxy_should_respond_to_private_methods_via_send
@@ -173,4 +173,20 @@ class HasOneThroughAssociationsTest < ActiveRecord::TestCase
     assert_not_nil assert_no_queries { @new_detail.member_type }
   end
 
+  def test_save_of_record_with_loaded_has_one_through
+    @club = @member.club
+    assert_not_nil @club.sponsored_member
+
+    assert_nothing_raised do
+      Club.find(@club.id).save!
+      Club.find(@club.id, :include => :sponsored_member).save!
+    end
+
+    @club.sponsor.destroy
+
+    assert_nothing_raised do
+      Club.find(@club.id).save!
+      Club.find(@club.id, :include => :sponsored_member).save!
+    end
+  end
 end

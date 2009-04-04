@@ -352,13 +352,13 @@ class CallbacksTest < ActiveRecord::TestCase
     david = ImmutableDeveloper.find(1)
     assert david.valid?
     assert !david.save
-    assert_raises(ActiveRecord::RecordNotSaved) { david.save! }
+    assert_raise(ActiveRecord::RecordNotSaved) { david.save! }
 
     david = ImmutableDeveloper.find(1)
     david.salary = 10_000_000
     assert !david.valid?
     assert !david.save
-    assert_raises(ActiveRecord::RecordInvalid) { david.save! }
+    assert_raise(ActiveRecord::RecordInvalid) { david.save! }
 
     someone = CallbackCancellationDeveloper.find(1)
     someone.cancel_before_save = true

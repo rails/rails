@@ -182,15 +182,19 @@ HELP
             nesting = class_name.split('::')
             name = nesting.pop
 
+            # Hack to limit const_defined? to non-inherited on 1.9.
+            extra = []
+            extra << false unless Object.method(:const_defined?).arity == 1
+
             # Extract the last Module in the nesting.
             last = nesting.inject(Object) { |last, nest|
-              break unless last.const_defined?(nest)
+              break unless last.const_defined?(nest, *extra)
               last.const_get(nest)
             }
 
             # If the last Module exists, check whether the given
             # class exists and raise a collision if so.
-            if last and last.const_defined?(name.camelize)
+            if last and last.const_defined?(name.camelize, *extra)
               raise_class_collision(class_name)
             end
           end

@@ -1,11 +1,12 @@
 module ActiveRecord
   module NamedScope
-    # All subclasses of ActiveRecord::Base have two named \scopes:
-    # * <tt>all</tt> - which is similar to a <tt>find(:all)</tt> query, and
+    # All subclasses of ActiveRecord::Base have one named scope:
     # * <tt>scoped</tt> - which allows for the creation of anonymous \scopes, on the fly: <tt>Shirt.scoped(:conditions => {:color => 'red'}).scoped(:include => :washing_instructions)</tt>
     #
     # These anonymous \scopes tend to be useful when procedurally generating complex queries, where passing
     # intermediate values (scopes) around as first-class objects is convenient.
+    #
+    # You can define a scope that applies to all finders using ActiveRecord::Base.default_scope.
     def self.included(base)
       base.class_eval do
         extend ClassMethods
@@ -88,7 +89,12 @@ module ActiveRecord
             when Hash
               options
             when Proc
-              options.call(*args)
+              case parent_scope
+              when Scope
+                with_scope(:find => parent_scope.proxy_options) { options.call(*args) }
+              else
+                options.call(*args)
+              end
           end, &block)
         end
         (class << self; self end).instance_eval do
@@ -98,9 +104,9 @@ module ActiveRecord
         end
       end
     end
-    
+
     class Scope
-      attr_reader :proxy_scope, :proxy_options
+      attr_reader :proxy_scope, :proxy_options, :current_scoped_methods_when_defined
       NON_DELEGATE_METHODS = %w(nil? send object_id class extend find size count sum average maximum minimum paginate first last empty? any? respond_to?).to_set
       [].methods.each do |m|
         unless m =~ /^__/ || NON_DELEGATE_METHODS.include?(m.to_s)
@@ -111,8 +117,12 @@ module ActiveRecord
       delegate :scopes, :with_scope, :to => :proxy_scope
 
       def initialize(proxy_scope, options, &block)
+        options ||= {}
         [options[:extend]].flatten.each { |extension| extend extension } if options[:extend]
         extend Module.new(&block) if block_given?
+        unless Scope === proxy_scope
+          @current_scoped_methods_when_defined = proxy_scope.send(:current_scoped_methods)
+        end
         @proxy_scope, @proxy_options = proxy_scope, options.except(:extend)
       end
 
@@ -166,9 +176,15 @@ module ActiveRecord
         if scopes.include?(method)
           scopes[method].call(self, *args)
         else
-          with_scope :find => proxy_options, :create => proxy_options[:conditions].is_a?(Hash) ?  proxy_options[:conditions] : {} do
+          with_scope({:find => proxy_options, :create => proxy_options[:conditions].is_a?(Hash) ?  proxy_options[:conditions] : {}}, :reverse_merge) do
             method = :new if method == :build
-            proxy_scope.send(method, *args, &block)
+            if current_scoped_methods_when_defined
+              with_scope current_scoped_methods_when_defined do
+                proxy_scope.send(method, *args, &block)
+              end
+            else
+              proxy_scope.send(method, *args, &block)
+            end
           end
         end
       end
