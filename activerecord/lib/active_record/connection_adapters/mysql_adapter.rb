@@ -569,6 +569,8 @@ module ActiveRecord
           case exception.errno
           when 1062
             RecordNotUnique.new(message)
+          when 1452
+            InvalidForeignKey.new(message)
           else
             super
           end

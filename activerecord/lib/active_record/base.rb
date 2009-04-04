@@ -71,6 +71,10 @@ module ActiveRecord #:nodoc:
   class RecordNotUnique < StatementInvalid
   end
 
+  # Raised when a record cannot be inserted or updated because it references a non-existent record.
+  class InvalidForeignKey < StatementInvalid
+  end
+
   # Raised when number of bind variables in statement given to <tt>:condition</tt> key (for example, when using +find+ method)
   # does not match number of expected variables.
   #

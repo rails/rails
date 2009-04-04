@@ -137,4 +137,12 @@ class AdapterTest < ActiveRecord::TestCase
       @connection.execute "INSERT INTO subscribers(nick) VALUES('me')"
     end
   end
+
+  def test_foreign_key_violations_are_translated_to_specific_exception
+    unless @connection.adapter_name == 'SQLite'
+      assert_raises(ActiveRecord::InvalidForeignKey) do
+        @connection.execute "INSERT INTO fk_test_has_fk (fk_id) VALUES (0)"
+      end
+    end
+  end
 end

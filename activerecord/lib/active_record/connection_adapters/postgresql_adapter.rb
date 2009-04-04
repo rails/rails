@@ -945,6 +945,8 @@ module ActiveRecord
           case exception.message
           when /duplicate key value violates unique constraint/
             RecordNotUnique.new(message)
+          when /violates foreign key constraint/
+            InvalidForeignKey.new(message)
           else
             super
           end
