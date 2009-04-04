@@ -67,6 +67,10 @@ module ActiveRecord #:nodoc:
   class StatementInvalid < ActiveRecordError
   end
 
+  # Raised when a record cannot be inserted because it would violate a uniqueness constraint.
+  class RecordNotUnique < StatementInvalid
+  end
+
   # Raised when number of bind variables in statement given to <tt>:condition</tt> key (for example, when using +find+ method)
   # does not match number of expected variables.
   #

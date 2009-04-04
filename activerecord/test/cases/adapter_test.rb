@@ -130,4 +130,11 @@ class AdapterTest < ActiveRecord::TestCase
       assert_equal " LIMIT 1,7 OFFSET 7", @connection.add_limit_offset!("", :limit=>sql_inject, :offset=>7)
     end
   end
+
+  def test_uniqueness_violations_are_translated_to_specific_exception
+    @connection.execute "INSERT INTO subscribers(nick) VALUES('me')"
+    assert_raises(ActiveRecord::RecordNotUnique) do
+      @connection.execute "INSERT INTO subscribers(nick) VALUES('me')"
+    end
+  end
 end

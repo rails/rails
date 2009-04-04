@@ -941,6 +941,15 @@ module ActiveRecord
             end
         end
 
+        def translate_exception(exception, message)
+          case exception.message
+          when /duplicate key value violates unique constraint/
+            RecordNotUnique.new(message)
+          else
+            super
+          end
+        end
+
       private
         # The internal PostgreSQL identifier of the money data type.
         MONEY_COLUMN_TYPE_OID = 790 #:nodoc:
