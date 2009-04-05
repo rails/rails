@@ -194,11 +194,11 @@ class TimeExtCalculationsTest < Test::Unit::TestCase
     with_env_tz 'NZ' do
       # dt: New Zealand: 2006 October 1st 4:18am
       assert_equal Time.local(2006,9,30,3,18,0), Time.local(2006,10,1,4,18,0).ago(24.hours), 'dt-24.hours=>st'
-      assert_equal Time.local(2006,9,30,3,18,0), Time.local(2006,10,1,4,18,0).ago(86400.seconds), 'dt-86400.seconds=>st'
       assert_equal Time.local(2006,9,30,3,18,0), Time.local(2006,10,1,4,18,0).ago(86400), 'dt-86400=>st'
+      assert_equal Time.local(2006,9,30,3,18,0), Time.local(2006,10,1,4,18,0).ago(86400.seconds), 'dt-86400.seconds=>st'
       
-      assert_equal Time.local(2006,9,29,4,18,0), Time.local(2006,9,30,4,18,0).ago(86400), 'st-86400=>st'
       assert_equal Time.local(2006,9,29,4,18,0), Time.local(2006,9,30,4,18,0).ago(24.hours), 'st-24.hours=>st'
+      assert_equal Time.local(2006,9,29,4,18,0), Time.local(2006,9,30,4,18,0).ago(86400), 'st-86400=>st'
       assert_equal Time.local(2006,9,29,4,18,0), Time.local(2006,9,30,4,18,0).ago(86400.seconds), 'st-86400.seconds=>st'
     end
   end
@@ -268,7 +268,7 @@ class TimeExtCalculationsTest < Test::Unit::TestCase
       assert_equal Time.local(2005,4,3,20,27,0), Time.local(2005,4,2,19,27,0).since(86400), 'st+86400=>dt'
       assert_equal Time.local(2005,4,3,20,27,0), Time.local(2005,4,2,19,27,0).since(86400.seconds), 'st+86400.seconds=>dt'
       
-      assert_equal Time.local(2005,4,4,19,27,0), Time.local(2005,4,3,19,27,0).since(24.hours), 'dt+24.hoursy=>dt'
+      assert_equal Time.local(2005,4,4,19,27,0), Time.local(2005,4,3,19,27,0).since(24.hours), 'dt+24.hours=>dt'
       assert_equal Time.local(2005,4,4,19,27,0), Time.local(2005,4,3,19,27,0).since(86400), 'dt+86400=>dt'
       assert_equal Time.local(2005,4,4,19,27,0), Time.local(2005,4,3,19,27,0).since(86400.seconds), 'dt+86400.seconds=>dt'
     end
