@@ -48,7 +48,7 @@ module RailsGuides
 
         if guide =~ /\.erb\.textile/
           # Generate the erb pages with textile formatting - e.g. index/authors
-          result = view.render(:layout => 'layout', :file => name)
+          result = view.render(:layout => 'layout', :file => guide)
           f.write textile(result)
         else
           body = File.read(File.join(view_path, guide))
