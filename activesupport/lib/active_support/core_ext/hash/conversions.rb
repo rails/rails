@@ -28,8 +28,7 @@ module ActiveSupport #:nodoc:
           "FalseClass" => "boolean",
           "Date"       => "date",
           "DateTime"   => "datetime",
-          "Time"       => "datetime",
-          "ActiveSupport::TimeWithZone" => "datetime"
+          "Time"       => "datetime"
         } unless defined?(XML_TYPE_NAMES)
 
         XML_FORMATTING = {
