@@ -31,6 +31,11 @@ module ActiveSupport
   #   t.is_a?(Time)                         # => true
   #   t.is_a?(ActiveSupport::TimeWithZone)  # => true
   class TimeWithZone
+    
+    def self.name
+      'Time' # Report class name as 'Time' to thwart type checking
+    end
+    
     include Comparable
     attr_reader :time_zone
 
