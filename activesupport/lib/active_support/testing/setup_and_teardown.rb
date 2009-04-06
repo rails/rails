@@ -39,6 +39,14 @@ module ActiveSupport
         # For compatibility with Ruby < 1.8.6
         PASSTHROUGH_EXCEPTIONS = Test::Unit::TestCase::PASSTHROUGH_EXCEPTIONS rescue [NoMemoryError, SignalException, Interrupt, SystemExit]
 
+        def setup
+          run_callbacks :setup
+        end
+
+        def teardown
+          run_callbacks :teardown, :enumerator => :reverse_each
+        end
+
         # This redefinition is unfortunate but test/unit shows us no alternative.
         # Doubly unfortunate: hax to support Mocha's hax.
         def run(result)
@@ -52,7 +60,7 @@ module ActiveSupport
           @_result = result
           begin
             begin
-              run_callbacks :setup
+              # run_callbacks :setup
               setup
               __send__(@method_name)
               mocha_verify(assertion_counter) if using_mocha
@@ -66,7 +74,7 @@ module ActiveSupport
             ensure
               begin
                 teardown
-                run_callbacks :teardown, :enumerator => :reverse_each
+                # run_callbacks :teardown, :enumerator => :reverse_each
               rescue Test::Unit::AssertionFailedError => e
                 add_failure(e.message, e.backtrace)
               rescue Exception => e
