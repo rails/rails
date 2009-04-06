@@ -90,15 +90,15 @@ module ActiveSupport
         method_names.each do |method_name|
           alias_method_chain(method_name, :deprecation) do |target, punctuation|
             class_eval(<<-EOS, __FILE__, __LINE__)
-              def #{target}_with_deprecation#{punctuation}(*args, &block)   # def generate_secret_with_deprecation(*args, &block)
-                ::ActiveSupport::Deprecation.warn(                          #   ::ActiveSupport::Deprecation.warn(
-                  self.class.deprecated_method_warning(                     #     self.class.deprecated_method_warning(
-                    :#{method_name},                                        #       :generate_secret,
-                    #{options[method_name].inspect}),                       #       "You should use ActiveSupport::SecureRandom.hex(64)"),
-                  caller                                                    #     caller
-                )                                                           #   )
-                #{target}_without_deprecation#{punctuation}(*args, &block)  #   generate_secret_without_deprecation(*args, &block)
-              end                                                           # end
+              def #{target}_with_deprecation#{punctuation}(*args, &block)          # def generate_secret_with_deprecation(*args, &block)
+                ::ActiveSupport::Deprecation.warn(                                 #   ::ActiveSupport::Deprecation.warn(
+                  self.class.deprecated_method_warning(                            #     self.class.deprecated_method_warning(
+                    :#{method_name},                                               #       :generate_secret,
+                    #{options[method_name].inspect}),                              #       "You should use ActiveSupport::SecureRandom.hex(64)"),
+                  caller                                                           #     caller
+                )                                                                  #   )
+                send(:#{target}_without_deprecation#{punctuation}, *args, &block)  #   send(:generate_secret_without_deprecation, *args, &block)
+              end                                                                  # end
             EOS
           end
         end
