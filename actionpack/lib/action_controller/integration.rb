@@ -409,7 +409,7 @@ module ActionController
         def multipart_requestify(params, first=true)
           returning Hash.new do |p|
             params.each do |key, value|
-              k = first ? CGI.escape(key.to_s) : "[#{CGI.escape(key.to_s)}]"
+              k = first ? key.to_s : "[#{key.to_s}]"
               if Hash === value
                 multipart_requestify(value, false).each do |subkey, subvalue|
                   p[k + subkey] = subvalue
