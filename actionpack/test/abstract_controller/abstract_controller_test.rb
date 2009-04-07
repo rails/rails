@@ -27,7 +27,7 @@ module AbstractController
     # Test Render mixin
     # ====
     class RenderingController < AbstractController::Base
-      include Renderer
+      use Renderer
 
       def _prefix() end
 
@@ -116,7 +116,7 @@ module AbstractController
     # ====
     # self._layout is used when defined
     class WithLayouts < PrefixedViews
-      include Layouts
+      use Layouts
       
       private
       def self.layout(formats)

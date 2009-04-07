@@ -1,15 +1,6 @@
 module ActionController
   module Renderer
-    
-    # def self.included(klass)
-    #   klass.extend ClassMethods
-    # end
-    # 
-    # module ClassMethods
-    #   def prefix
-    #     @prefix ||= name.underscore
-    #   end      
-    # end
+    depends_on AbstractController::Renderer
     
     def initialize(*)
       self.formats = [:html]

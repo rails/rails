@@ -1,11 +1,8 @@
 module AbstractController
   module Callbacks
-    def self.included(klass)
-      klass.class_eval do
-        include ActiveSupport::NewCallbacks
-        define_callbacks :process_action
-        extend ClassMethods
-      end
+    setup do
+      include ActiveSupport::NewCallbacks
+      define_callbacks :process_action      
     end
     
     def process_action

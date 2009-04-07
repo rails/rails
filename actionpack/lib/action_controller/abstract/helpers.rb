@@ -1,17 +1,18 @@
 module AbstractController
   module Helpers
-  
-    def self.included(klass)
-      klass.class_eval do
-        extend ClassMethods
-        unless self < ::AbstractController::Renderer
-          raise "You need to include AbstractController::Renderer before including " \
-                "AbstractController::Helpers"
-        end
-        extlib_inheritable_accessor :master_helper_module
-        self.master_helper_module = Module.new
-      end
+    depends_on Renderer
+    
+    setup do
+      extlib_inheritable_accessor :master_helper_module
+      self.master_helper_module = Module.new
     end
+  
+    # def self.included(klass)
+    #   klass.class_eval do
+    #     extlib_inheritable_accessor :master_helper_module
+    #     self.master_helper_module = Module.new
+    #   end
+    # end
     
     def _action_view
       @_action_view ||= begin

@@ -26,16 +26,14 @@ require 'rack/test'
 
 module ActionController
   class Base2 < AbstractBase
-    include AbstractController::Callbacks
-    include AbstractController::Renderer
-    include AbstractController::Helpers
-    include AbstractController::Layouts
-    include AbstractController::Logger
-    
-    include ActionController::HideActions
-    include ActionController::UrlFor
-    include ActionController::Layouts
-    include ActionController::Renderer
+    use AbstractController::Callbacks
+    use AbstractController::Helpers
+    use AbstractController::Logger
+
+    use ActionController::HideActions
+    use ActionController::UrlFor
+    use ActionController::Renderer
+    use ActionController::Layouts
     
     def self.inherited(klass)
       ::ActionController::Base2.subclasses << klass.to_s

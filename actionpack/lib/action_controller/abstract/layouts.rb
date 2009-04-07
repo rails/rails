@@ -1,25 +1,24 @@
 module AbstractController
   module Layouts
     
-    def self.included(base)
-      base.extend ClassMethods
-    end
-    
+    depends_on Renderer
+        
     module ClassMethods
       def layout(layout)
         unless [String, Symbol, FalseClass, NilClass].include?(layout.class)
           raise ArgumentError, "Layouts must be specified as a String, Symbol, false, or nil"
         end
         
-        @layout = layout || false # Converts nil to false
+        @_layout = layout || false # Converts nil to false
+        _write_layout_method
       end
       
       def _write_layout_method
-        case @layout
+        case @_layout
         when String
-          self.class_eval %{def _layout() #{@layout.inspect} end}
+          self.class_eval %{def _layout() #{@_layout.inspect} end}
         when Symbol
-          self.class_eval %{def _layout() #{@layout} end}
+          self.class_eval %{def _layout() #{@_layout} end}
         when false
           self.class_eval %{def _layout() end}
         else
@@ -43,7 +42,7 @@ module AbstractController
   private
   
     def _layout() end # This will be overwritten
-    
+
     def _layout_for_option(name)
       case name
       when String then _layout_for_name(name)

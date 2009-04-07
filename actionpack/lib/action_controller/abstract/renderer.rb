@@ -2,20 +2,16 @@ require "action_controller/abstract/logger"
 
 module AbstractController
   module Renderer
+    depends_on AbstractController::Logger
     
-    def self.included(klass)
-      klass.class_eval do        
-        extend ClassMethods
-        
-        attr_internal :formats
-        
-        extlib_inheritable_accessor :_view_paths
-        
-        self._view_paths ||= ActionView::PathSet.new
-        include AbstractController::Logger
-      end
+    setup do
+      attr_internal :formats
+      
+      extlib_inheritable_accessor :_view_paths
+      
+      self._view_paths ||= ActionView::PathSet.new
     end
-    
+        
     def _action_view
       @_action_view ||= ActionView::Base.new(self.class.view_paths, {}, self)      
     end

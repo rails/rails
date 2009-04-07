@@ -5,8 +5,8 @@ module AbstractControllerTests
 
     # Base controller for these tests
     class Base < AbstractController::Base
-      include AbstractController::Renderer
-      include AbstractController::Layouts
+      use AbstractController::Renderer
+      use AbstractController::Layouts
       
       self.view_paths = [ActionView::FixtureTemplate::FixturePath.new(
         "layouts/hello.erb"              => "With String <%= yield %>",

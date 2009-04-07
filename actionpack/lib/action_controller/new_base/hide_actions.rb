@@ -1,11 +1,8 @@
 module ActionController
   module HideActions
-    def self.included(klass)
-      klass.class_eval do
-        extend ClassMethods
-        extlib_inheritable_accessor :hidden_actions
-        self.hidden_actions ||= Set.new
-      end
+    setup do
+      extlib_inheritable_accessor :hidden_actions
+      self.hidden_actions ||= Set.new      
     end
     
     def action_methods() self.class.action_names end
