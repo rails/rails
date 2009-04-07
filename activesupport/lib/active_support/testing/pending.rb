@@ -5,31 +5,34 @@ module ActiveSupport
   module Testing
     module Pending
 
-      @@pending_cases = []
-      @@at_exit = false
+      unless defined?(Spec)
 
-      def pending(description = "", &block)
-        if block_given?
-          failed = false
+        @@pending_cases = []
+        @@at_exit = false
 
-          begin
-            block.call
-          rescue
-            failed = true
+        def pending(description = "", &block)
+          if block_given?
+            failed = false
+
+            begin
+              block.call
+            rescue
+              failed = true
+            end
+
+            flunk("<#{description}> did not fail.") unless failed 
           end
 
-          flunk("<#{description}> did not fail.") unless failed 
-        end
-
-        caller[0] =~ (/(.*):(.*):in `(.*)'/)
-        @@pending_cases << "#{$3} at #{$1}, line #{$2}"
-        print "P"
-        
-        @@at_exit ||= begin
-          at_exit do
-            puts "\nPending Cases:"
-            @@pending_cases.each do |test_case|
-              puts test_case
+          caller[0] =~ (/(.*):(.*):in `(.*)'/)
+          @@pending_cases << "#{$3} at #{$1}, line #{$2}"
+          print "P"
+      
+          @@at_exit ||= begin
+            at_exit do
+              puts "\nPending Cases:"
+              @@pending_cases.each do |test_case|
+                puts test_case
+              end
             end
           end
         end

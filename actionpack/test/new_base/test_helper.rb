@@ -70,24 +70,7 @@ class Rack::TestCase < ActiveSupport::TestCase
     
     ActionController::Routing.use_controllers!(controllers)
   end
-  
-  unless method_defined?(:describe)
-    def self.describe(text)
-      class_eval <<-RUBY_EVAL
-        def self.name
-          "#{text}"
-        end
-      RUBY_EVAL
-    end
-  end
-
-  if defined?(Spec)
-    class << self
-      undef test
-      alias_method :test, :it
-    end
-  end
-  
+    
   def app
     @app ||= ActionController::Dispatcher.new
   end
