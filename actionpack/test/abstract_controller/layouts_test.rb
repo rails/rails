@@ -144,7 +144,6 @@ module AbstractControllerTests
     AbstractController::Base.subclasses.each do |klass|
       klass = klass.constantize
       next unless klass < AbstractController::Layouts
-      p klass
       klass.class_eval do
         _write_layout_method
       end
@@ -217,7 +216,17 @@ module AbstractControllerTests
         "parent has specified a layout, use the child controller layout" do
           result = WithChildOfImplied.process(:index)
           assert_equal "With Implied Hello string!", result.response_obj[:body]
-      end      
+      end
+      
+      test "raises an exception when specifying layout true" do
+        assert_raises ArgumentError do
+          Object.class_eval <<-RUBY_EVAL, __FILE__, __LINE__ + 1
+            class ::BadOmgFailLolLayout < AbstractControllerTests::Layouts::Base
+              layout true
+            end
+          RUBY_EVAL
+        end
+      end
     end
   end
 end

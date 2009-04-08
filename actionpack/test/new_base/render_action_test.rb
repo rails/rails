@@ -91,7 +91,9 @@ module RenderAction
     describe "rendering a normal template with full path with layout => true"
     
     test "raises an exception when requesting a layout and none exist" do
-      assert_raise(ActionView::MissingTemplate) { get "/render_action/basic/hello_world_with_layout" }
+      assert_raise(ArgumentError, /no default layout for RenderAction::BasicController in/) do 
+        get "/render_action/basic/hello_world_with_layout"
+      end
     end
   end
   
@@ -124,13 +126,13 @@ end
 module RenderActionWithApplicationLayout
   
   # # ==== Render actions with layouts ====
-  
-  class BasicController < ActionController::Base2
+
+  class BasicController < ::ApplicationController
     # Set the view path to an application view structure with layouts
     self.view_paths = self.view_paths = [ActionView::FixtureTemplate::FixturePath.new(
       "render_action_with_application_layout/basic/hello_world.html.erb" => "Hello World!",
-      "layouts/application.html.erb"                                           => "OHAI <%= yield %> KTHXBAI",
-      "layouts/greetings.html.erb"                                             => "Greetings <%= yield %> Bai"
+      "layouts/application.html.erb"                                     => "OHAI <%= yield %> KTHXBAI",
+      "layouts/greetings.html.erb"                                       => "Greetings <%= yield %> Bai"
     )]
     
     def hello_world

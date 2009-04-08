@@ -17,6 +17,16 @@ module AbstractController
         name.underscore
       end
       
+      # Takes the specified layout and creates a _layout method to be called
+      # by _default_layout
+      # 
+      # If the specified layout is a:
+      # String:: return the string
+      # Symbol:: call the method specified by the symbol
+      # false::  return nil
+      # none::   If a layout is found in the view paths with the controller's
+      #          name, return that string. Otherwise, use the superclass'
+      #          layout (which might also be implied)
       def _write_layout_method
         case @_layout
         when String
@@ -46,25 +56,23 @@ module AbstractController
   private
   
     def _layout() end # This will be overwritten
-
-    def _layout_for_option(name)
-      case name
-      when String     then _layout_for_name(name)
-      when true       then _default_layout(true)
-      when false, nil then nil
-      else
-        raise ArgumentError, 
-          "String, true, or false, expected for `layout'; you passed #{name.inspect}"        
-      end
-    end
     
     def _layout_for_name(name)
-      view_paths.find_by_parts(name, formats, "layouts")
+      unless [String, FalseClass, NilClass].include?(name.class)
+        raise ArgumentError, "String, false, or nil expected; you passed #{name.inspect}"
+      end
+      
+      name && view_paths.find_by_parts(name, formats, "layouts")
     end
     
     def _default_layout(require_layout = false)
+      if require_layout && !_layout
+        raise ArgumentError, 
+          "There was no default layout for #{self.class} in #{view_paths.inspect}"
+      end
+        
       begin
-        _layout_for_option(_layout)
+        layout = _layout_for_name(_layout)
       rescue NameError => e
         raise NoMethodError, 
           "You specified #{@_layout.inspect} as the layout, but no such method was found"

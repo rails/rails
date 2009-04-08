@@ -69,6 +69,15 @@ class Rack::TestCase < ActiveSupport::TestCase
     end
     
     ActionController::Routing.use_controllers!(controllers)
+    
+    # Move into a bootloader
+    AbstractController::Base.subclasses.each do |klass|
+      klass = klass.constantize
+      next unless klass < AbstractController::Layouts
+      klass.class_eval do
+        _write_layout_method
+      end
+    end    
   end
     
   def app
@@ -121,6 +130,9 @@ class Rack::TestCase < ActiveSupport::TestCase
     end
   end
   
+end
+
+class ::ApplicationController < ActionController::Base2
 end
 
 class SimpleRouteCase < Rack::TestCase

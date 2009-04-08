@@ -57,8 +57,8 @@ module HappyPath
     assert_body   "Elastica"
     assert_status 200
   end
-  
-  class RenderTemplateWithLayoutController < ActionController::Base2
+    
+  class RenderTemplateWithLayoutController < ::ApplicationController
     
     self.view_paths = [ActionView::FixtureTemplate::FixturePath.new(
       "test/basic.html.erb"          => "Hello from basic.html.erb",
