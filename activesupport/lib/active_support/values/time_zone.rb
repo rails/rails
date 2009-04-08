@@ -363,14 +363,13 @@ module ActiveSupport
                  "Wellington" ],
        [ 46_800, "Nuku'alofa" ]].
       each do |offset, *places|
-        places.each do |place|
+        places.sort.each do |place|
           place.freeze
           zone = new(place, offset)
           ZONES << zone
           ZONES_MAP[place] = zone
         end
       end
-      ZONES.sort!
       ZONES.freeze
       ZONES_MAP.freeze
 
