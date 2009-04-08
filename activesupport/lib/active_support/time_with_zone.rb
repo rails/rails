@@ -1,4 +1,3 @@
-require 'tzinfo'
 require 'active_support/duration'
 require 'active_support/core_ext/numeric/time'
 require 'active_support/core_ext/integer/time'
