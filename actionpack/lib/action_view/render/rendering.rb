@@ -79,7 +79,7 @@ module ActionView
       @_render_stack.pop
       result
     rescue Exception => e
-      raise e if !template.filename || template.is_a?(InlineTemplate)
+      raise e if template.is_a?(InlineTemplate) || !template.filename
       if TemplateError === e
         e.sub_template_of(template)
         raise e

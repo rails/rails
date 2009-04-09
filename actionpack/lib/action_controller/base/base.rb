@@ -832,7 +832,7 @@ module ActionController #:nodoc:
         begin
           default_render
         rescue ActionView::MissingTemplate => e
-          raise e unless e.path == action_name
+          raise e unless e.action_name == action_name
           # If the path is the same as the action_name, the action is completely missing
           raise UnknownAction, "No action responded to #{action_name}. Actions: " +
             "#{action_methods.sort.to_sentence}", caller

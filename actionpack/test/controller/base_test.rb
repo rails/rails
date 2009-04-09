@@ -170,6 +170,7 @@ class DefaultUrlOptionsTest < ActionController::TestCase
   tests DefaultUrlOptionsController
 
   def setup
+    super
     @request.host = 'www.example.com'
     rescue_action_in_public!
   end
@@ -193,6 +194,7 @@ class EmptyUrlOptionsTest < ActionController::TestCase
   tests NonEmptyController
 
   def setup
+    super
     @request.host = 'www.example.com'
     rescue_action_in_public!
   end

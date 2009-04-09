@@ -3,10 +3,11 @@ module ActionView #:nodoc:
   end
 
   class MissingTemplate < ActionViewError #:nodoc:
-    attr_reader :path
+    attr_reader :path, :action_name
 
     def initialize(paths, path, template_format = nil)
       @path = path
+      @action_name = path.split("/").last.split(".")[0...-1].join(".")
       full_template_path = path.include?('.') ? path : "#{path}.erb"
       display_paths = paths.compact.join(":")
       template_type = (path =~ /layouts/i) ? 'layout' : 'template'
