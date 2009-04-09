@@ -119,6 +119,7 @@ XML
   end
 
   def setup
+    super
     @controller = TestController.new
     @request    = ActionController::TestRequest.new
     @response   = ActionController::TestResponse.new
@@ -127,6 +128,7 @@ XML
   end
 
   def teardown
+    super
     ActionController::Routing::Routes.reload
   end
 

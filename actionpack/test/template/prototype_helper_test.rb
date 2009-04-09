@@ -28,6 +28,7 @@ class PrototypeHelperBaseTest < ActionView::TestCase
   attr_accessor :formats, :output_buffer
 
   def setup
+    super
     @template = self
     @controller = Class.new do
       def url_for(options)

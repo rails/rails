@@ -44,6 +44,7 @@ end
 
 class PageCachingTest < ActionController::TestCase
   def setup
+    super
     ActionController::Base.perform_caching = true
 
     ActionController::Routing::Routes.draw do |map|
@@ -224,6 +225,7 @@ end
 
 class ActionCacheTest < ActionController::TestCase
   def setup
+    super
     reset!
     FileUtils.mkdir_p(FILE_STORE_PATH)
     @path_class = ActionController::Caching::Actions::ActionCachePath
@@ -473,6 +475,7 @@ end
 
 class FragmentCachingTest < ActionController::TestCase
   def setup
+    super
     ActionController::Base.perform_caching = true
     @store = ActiveSupport::Cache::MemoryStore.new
     ActionController::Base.cache_store = @store
@@ -605,6 +608,7 @@ end
 
 class FunctionalFragmentCachingTest < ActionController::TestCase
   def setup
+    super
     ActionController::Base.perform_caching = true
     @store = ActiveSupport::Cache::MemoryStore.new
     ActionController::Base.cache_store = @store

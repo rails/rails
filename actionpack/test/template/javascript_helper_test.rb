@@ -6,6 +6,7 @@ class JavaScriptHelperTest < ActionView::TestCase
   attr_accessor :formats, :output_buffer
 
   def setup
+    super
     @template = self
   end
 

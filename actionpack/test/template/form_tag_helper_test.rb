@@ -4,6 +4,7 @@ class FormTagHelperTest < ActionView::TestCase
   tests ActionView::Helpers::FormTagHelper
 
   def setup
+    super
     @controller = Class.new do
       def url_for(options)
         "http://www.example.com"

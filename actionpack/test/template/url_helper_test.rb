@@ -7,6 +7,7 @@ class UrlHelperTest < ActionView::TestCase
   tests ActionView::Helpers::UrlHelper
 
   def setup
+    super
     @controller = Class.new do
       attr_accessor :url, :request
       def url_for(options)
@@ -347,6 +348,7 @@ class UrlHelperWithControllerTest < ActionView::TestCase
   tests ActionView::Helpers::UrlHelper
 
   def setup
+    super
     @request    = ActionController::TestRequest.new
     @response   = ActionController::TestResponse.new
     @controller = UrlHelperController.new
@@ -425,6 +427,7 @@ class LinkToUnlessCurrentWithControllerTest < ActionView::TestCase
   tests ActionView::Helpers::UrlHelper
 
   def setup
+    super
     @request    = ActionController::TestRequest.new
     @response   = ActionController::TestResponse.new
     @controller = TasksController.new
@@ -527,6 +530,7 @@ class PolymorphicControllerTest < ActionView::TestCase
   tests ActionView::Helpers::UrlHelper
 
   def setup
+    super
     @request    = ActionController::TestRequest.new
     @response   = ActionController::TestResponse.new
   end

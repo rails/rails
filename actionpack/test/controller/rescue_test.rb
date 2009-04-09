@@ -143,8 +143,11 @@ end
 class RescueControllerTest < ActionController::TestCase
   FIXTURE_PUBLIC = "#{File.dirname(__FILE__)}/../fixtures".freeze
 
-  setup :set_all_requests_local
-  setup :populate_exception_object
+  def setup
+    super
+    set_all_requests_local
+    populate_exception_object
+  end
 
   def set_all_requests_local
     RescueController.consider_all_requests_local = true

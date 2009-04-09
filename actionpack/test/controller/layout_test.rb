@@ -37,6 +37,7 @@ end
 
 class LayoutAutoDiscoveryTest < ActionController::TestCase
   def setup
+    super
     @request.host = "www.nextangle.com"
   end
 

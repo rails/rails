@@ -16,6 +16,7 @@ uses_mocha "FormOptionsHelperTest" do
     end
 
     def setup
+      super
       @fake_timezones = %w(A B C D E).inject([]) do |zones, id|
         tz = TZInfo::Timezone.loaded_zones[id] = stub(:name => id, :to_s => id)
         ActiveSupport::TimeZone.stubs(:[]).with(id).returns(tz)

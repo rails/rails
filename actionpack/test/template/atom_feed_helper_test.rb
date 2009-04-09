@@ -170,6 +170,7 @@ class AtomFeedTest < ActionController::TestCase
   tests ScrollsController
 
   def setup
+    super
     @request.host = "www.nextangle.com"
   end
 

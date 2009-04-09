@@ -168,11 +168,13 @@ end
 class ActionPackAssertionsControllerTest < ActionController::TestCase
   # let's get this party started
   def setup
+    super
     ActionController::Routing::Routes.reload
     ActionController::Routing.use_controllers!(%w(action_pack_assertions admin/inner_module user content admin/user))
   end
 
   def teardown
+    super
     ActionController::Routing::Routes.reload
   end
 

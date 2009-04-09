@@ -166,11 +166,13 @@ class MimeControllerTest < ActionController::TestCase
   tests RespondToController
 
   def setup
+    super
     ActionController::Base.use_accept_header = true
     @request.host = "www.example.com"
   end
 
   def teardown
+    super
     ActionController::Base.use_accept_header = false
   end
 
@@ -511,6 +513,7 @@ class MimeControllerLayoutsTest < ActionController::TestCase
   tests PostController
 
   def setup
+    super
     @request.host = "www.example.com"
   end
 

@@ -141,7 +141,9 @@ module ActionController
         end
     end
 
-    setup :setup_controller_request_and_response
+    def setup
+      setup_controller_request_and_response
+    end
 
     @@controller_class = nil
 
