@@ -370,7 +370,7 @@ module ActionController
     end
   
     def render_for_parts(parts, layout, options = {})
-      tmp = view_paths.find_by_parts(*parts)        
+      tmp = view_paths.find_by_parts(*parts)
       
       layout = _pick_layout(*layout) unless tmp.exempt_from_layout?
             

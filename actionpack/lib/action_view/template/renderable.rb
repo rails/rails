@@ -64,7 +64,7 @@ module ActionView
         end_src
 
         begin
-          ActionView::Base::CompiledTemplates.module_eval(source, filename, 0)
+          ActionView::Base::CompiledTemplates.module_eval(source, filename.to_s, 0)
         rescue Exception => e # errors from template code
           if logger = defined?(ActionController) && Base.logger
             logger.debug "ERROR: compiling #{render_symbol} RAISED #{e}"

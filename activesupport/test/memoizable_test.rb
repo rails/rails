@@ -1,6 +1,6 @@
 require 'abstract_unit'
 
-class MemoizableTest < Test::Unit::TestCase
+class MemoizableTest < ActiveSupport::TestCase
   class Person
     extend ActiveSupport::Memoizable
 

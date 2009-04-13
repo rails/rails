@@ -368,7 +368,8 @@ module ActiveSupport
           end
         RUBY_EVAL
   
-        class_eval str, __FILE__, __LINE__ + 1
+        undef_method "_run_#{symbol}_callbacks" if method_defined?("_run_#{symbol}_callbacks")
+        class_eval str, __FILE__, __LINE__
         
         before_name, around_name, after_name = 
           options.values_at(:before, :after, :around)

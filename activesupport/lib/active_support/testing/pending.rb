@@ -16,7 +16,7 @@ module ActiveSupport
 
             begin
               block.call
-            rescue
+            rescue Exception
               failed = true
             end
 

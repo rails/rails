@@ -174,7 +174,9 @@ module ActionController #:nodoc:
       end
 
       def default_layout(*args)
-        (@_memoized_default_layout ||= ::ActiveSupport::ConcurrentHash.new)[args] ||= memoized_default_layout(*args)
+        memoized_default_layout(*args)
+        @_memoized_default_layout ||= ::ActiveSupport::ConcurrentHash.new
+        @_memoized_default_layout[args] ||= memoized_default_layout(*args)
       end
 
       def memoized_find_layout(layout, formats) #:nodoc:
@@ -184,7 +186,8 @@ module ActionController #:nodoc:
       end
 
       def find_layout(*args)
-        (@_memoized_find_layout ||= ::ActiveSupport::ConcurrentHash.new)[args] ||= memoized_find_layout(*args)
+        @_memoized_find_layout ||= ::ActiveSupport::ConcurrentHash.new
+        @_memoized_find_layout[args] ||= memoized_find_layout(*args)
       end
 
       def layout_list #:nodoc:
@@ -222,7 +225,7 @@ module ActionController #:nodoc:
       self.class.find_layout(layout_name, formats)
     end
 
-    def _pick_layout(layout_name, implicit = false)
+    def _pick_layout(layout_name = nil, implicit = false)
       return unless layout_name || implicit
       layout_name = true if layout_name.nil?
       active_layout(layout_name) if action_has_layout? && layout_name

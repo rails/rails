@@ -9,6 +9,7 @@ module ActiveSupport
     def []=(k,v)
       @mutex.synchronize { @backup_cache[k] = v }
       @frozen_cache = @backup_cache.dup.freeze
+      v
     end
 
     def [](k)
