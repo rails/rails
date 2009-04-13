@@ -31,6 +31,11 @@ module ActiveSupport
   #   t.is_a?(Time)                         # => true
   #   t.is_a?(ActiveSupport::TimeWithZone)  # => true
   class TimeWithZone
+    
+    def self.name
+      'Time' # Report class name as 'Time' to thwart type checking
+    end
+    
     include Comparable
     attr_reader :time_zone
 
@@ -155,6 +160,7 @@ module ActiveSupport
         "#{time.strftime("%Y-%m-%d %H:%M:%S")} #{formatted_offset(false, 'UTC')}" # mimicking Ruby 1.9 Time#to_s format
       end
     end
+    alias_method :to_formatted_s, :to_s
 
     # Replaces <tt>%Z</tt> and <tt>%z</tt> directives with +zone+ and +formatted_offset+, respectively, before passing to
     # Time#strftime, so that zone information is correct
@@ -229,7 +235,7 @@ module ActiveSupport
     def advance(options)
       # If we're advancing a value of variable length (i.e., years, weeks, months, days), advance from #time,
       # otherwise advance from #utc, for accuracy when moving across DST boundaries
-      if options.detect {|k,v| [:years, :weeks, :months, :days].include? k}
+      if options.values_at(:years, :weeks, :months, :days).any?
         method_missing(:advance, options)
       else
         utc.advance(options).in_time_zone(time_zone)
@@ -327,7 +333,7 @@ module ActiveSupport
       end
 
       def duration_of_variable_length?(obj)
-        ActiveSupport::Duration === obj && obj.parts.flatten.detect {|p| [:years, :months, :days].include? p }
+        ActiveSupport::Duration === obj && obj.parts.any? {|p| [:years, :months, :days].include? p[0] }
       end
   end
 end

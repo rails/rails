@@ -876,8 +876,8 @@ module ActionView
           input_name_from_type(type).gsub(/([\[\(])|(\]\[)/, '_').gsub(/[\]\)]/, '')
         end
 
-        # Given an ordering of datetime components, create the selection html
-        # and join them with their appropriate seperators
+        # Given an ordering of datetime components, create the selection HTML
+        # and join them with their appropriate separators.
         def build_selects_from_types(order)
           select = ''
           order.reverse.each do |type|
@@ -931,7 +931,7 @@ module ActionView
         end
 
         def default_datetime(options)
-          return if options[:include_blank]
+          return if options[:include_blank] || options[:prompt]
 
           case options[:default]
             when nil

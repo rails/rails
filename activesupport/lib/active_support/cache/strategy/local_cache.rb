@@ -27,6 +27,11 @@ module ActiveSupport
                 Thread.current[:#{thread_local_key}] = nil
               end
             EOS
+
+            def klass.to_s
+              "ActiveSupport::Cache::Strategy::LocalCache"
+            end
+
             klass
           end
         end

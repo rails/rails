@@ -92,8 +92,8 @@ class ModuleTest < Test::Unit::TestCase
   end
 
   def test_missing_delegation_target
-    assert_raises(ArgumentError) { eval($nowhere) }
-    assert_raises(ArgumentError) { eval($noplace) }
+    assert_raise(ArgumentError) { eval($nowhere) }
+    assert_raise(ArgumentError) { eval($noplace) }
   end
 
   def test_delegation_prefix
@@ -141,7 +141,7 @@ class ModuleTest < Test::Unit::TestCase
 
   def test_delegation_without_allow_nil_and_nil_value
     david = Someone.new("David")
-    assert_raises(NoMethodError) { david.street }
+    assert_raise(NoMethodError) { david.street }
   end
 
   def test_parent
@@ -314,7 +314,7 @@ class MethodAliasingTest < Test::Unit::TestCase
       alias_method_chain :duck, :orange
     end
 
-    assert_raises NoMethodError do
+    assert_raise NoMethodError do
       @instance.duck
     end
 
@@ -330,7 +330,7 @@ class MethodAliasingTest < Test::Unit::TestCase
       alias_method_chain :duck, :orange
     end
 
-    assert_raises NoMethodError do
+    assert_raise NoMethodError do
       @instance.duck
     end
 

@@ -20,6 +20,7 @@ module ActionController
       end
     end
     
+    # Returns a set of the methods defined as actions in your controller
     def action_methods
       self.class.action_methods
     end

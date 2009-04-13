@@ -28,6 +28,8 @@ task :default => [ :test ]
 # Run the unit tests
 
 Rake::TestTask.new { |t|
+  activesupport_path = "#{File.dirname(__FILE__)}/../activesupport/lib"
+  t.libs << activesupport_path if File.directory?(activesupport_path)
   t.libs << "test"
   t.pattern = 'test/**/*_test.rb'
   t.verbose = true
@@ -65,7 +67,7 @@ spec = Gem::Specification.new do |s|
     s.files = s.files + Dir.glob( "#{dir}/**/*" ).delete_if { |item| item.include?( "\.svn" ) }
   end
   
-  s.add_dependency('activesupport', '= 2.3.0' + PKG_BUILD)
+  s.add_dependency('activesupport', '= 2.3.2' + PKG_BUILD)
 
   s.require_path = 'lib'
   s.autorequire = 'active_resource'

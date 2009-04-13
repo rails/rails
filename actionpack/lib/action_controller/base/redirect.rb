@@ -49,7 +49,6 @@ module ActionController
       end
 
       response.redirected_to = options
-      logger.info("Redirected to #{options}") if logger && logger.info?
 
       case options
         # The scheme name consist of a letter followed by any combination of
@@ -72,6 +71,7 @@ module ActionController
 
     def redirect_to_full_url(url, status)
       raise DoubleRenderError if performed?
+      logger.info("Redirected to #{url}") if logger && logger.info?
       response.redirect(url, interpret_status(status))
       @performed_redirect = true
     end

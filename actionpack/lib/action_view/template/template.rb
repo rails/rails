@@ -50,7 +50,7 @@ module ActionView #:nodoc:
       def find_by_parts(name, extensions = nil, prefix = nil, partial = nil)
         path = prefix ? "#{prefix}/" : ""
         
-        name = name.split("/")
+        name = name.to_s.split("/")
         name[-1] = "_#{name[-1]}" if partial
         
         path << name.join("/")
@@ -111,7 +111,7 @@ module ActionView #:nodoc:
       @@exempt_from_layout.merge(regexps)
     end
 
-    attr_accessor :filename, :load_path, :base_path
+    attr_accessor :template_path, :filename, :load_path, :base_path
     attr_accessor :locale, :name, :format, :extension
     delegate :to_s, :to => :path
 
@@ -127,13 +127,20 @@ module ActionView #:nodoc:
 
     def accessible_paths
       paths = []
-      paths << path
-      paths << path_without_extension
-      if multipart?
-        formats = format.split(".")
-        paths << "#{path_without_format_and_extension}.#{formats.first}"
-        paths << "#{path_without_format_and_extension}.#{formats.second}"
+
+      if valid_extension?(extension)
+        paths << path
+        paths << path_without_extension
+        if multipart?
+          formats = format.split(".")
+          paths << "#{path_without_format_and_extension}.#{formats.first}"
+          paths << "#{path_without_format_and_extension}.#{formats.second}"
+        end
+      else
+        # template without explicit template handler should only be reachable through its exact path
+        paths << template_path
       end
+
       paths
     end
 
@@ -151,7 +158,7 @@ module ActionView #:nodoc:
     end
 
     def mime_type
-      Mime::Type.lookup_by_extension(format) if format
+      Mime::Type.lookup_by_extension(format) if format && defined?(::Mime)
     end
     memoize :mime_type
 
@@ -230,7 +237,7 @@ module ActionView #:nodoc:
       # Returns file split into an array
       #   [base_path, name, locale, format, extension]
       def split(file)
-        if m = file.match(/^(.*\/)?([^\.]+)\.(.*)$/)
+        if m = file.to_s.match(/^(.*\/)?([^\.]+)\.(.*)$/)
           base_path = m[1]
           name = m[2]
           extensions = m[3]
@@ -242,24 +249,24 @@ module ActionView #:nodoc:
         format = nil
         extension = nil
 
-        if m = extensions.match(/^(\w+)?\.?(\w+)?\.?(\w+)?\.?/)
-          if valid_locale?(m[1]) && m[2] && valid_extension?(m[3]) # All three
-            locale = m[1]
-            format = m[2]
-            extension = m[3]
-          elsif m[1] && m[2] && valid_extension?(m[3]) # Multipart formats
-            format = "#{m[1]}.#{m[2]}"
-            extension = m[3]
-          elsif valid_locale?(m[1]) && valid_extension?(m[2]) # locale and extension
-            locale = m[1]
-            extension = m[2]
-          elsif valid_extension?(m[2]) # format and extension
+        if m = extensions.split(".")
+          if valid_locale?(m[0]) && m[1] && valid_extension?(m[2]) # All three
+            locale = m[0]
             format = m[1]
             extension = m[2]
-          elsif valid_extension?(m[1]) # Just extension
+          elsif m[0] && m[1] && valid_extension?(m[2]) # Multipart formats
+            format = "#{m[0]}.#{m[1]}"
+            extension = m[2]
+          elsif valid_locale?(m[0]) && valid_extension?(m[1]) # locale and extension
+            locale = m[0]
             extension = m[1]
+          elsif valid_extension?(m[1]) # format and extension
+            format = m[0]
+            extension = m[1]
+          elsif valid_extension?(m[0]) # Just extension
+            extension = m[0]
           else # No extension
-            format = m[1]
+            format = m[0]
           end
         end
 

@@ -1,7 +1,5 @@
 require 'abstract_unit'
 
-uses_mocha 'rescue' do
-
 class RescueController < ActionController::Base
   class NotAuthorized < StandardError
   end
@@ -200,6 +198,24 @@ class RescueControllerTest < ActionController::TestCase
     with_all_requests_local false do
       @controller.send :rescue_action, @exception
     end
+  end
+
+  def test_rescue_action_in_public_with_localized_error_file
+    # Change locale
+    old_locale = I18n.locale
+    I18n.locale = :da
+
+    with_rails_root FIXTURE_PUBLIC do
+      with_all_requests_local false do
+        get :raises
+      end
+    end
+
+    assert_response :internal_server_error
+    body = File.read("#{FIXTURE_PUBLIC}/public/500.da.html")
+    assert_equal body, @response.body
+  ensure
+    I18n.locale = old_locale
   end
 
   def test_rescue_action_in_public_with_error_file
@@ -521,4 +537,3 @@ class ControllerInheritanceRescueControllerTest < ActionController::TestCase
     assert_response :created
   end
 end
-end # uses_mocha

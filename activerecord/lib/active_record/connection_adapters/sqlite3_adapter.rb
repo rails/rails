@@ -18,7 +18,7 @@ module ActiveRecord
 
       db.busy_timeout(config[:timeout]) unless config[:timeout].nil?
 
-      ConnectionAdapters::SQLite3Adapter.new(db, logger)
+      ConnectionAdapters::SQLite3Adapter.new(db, logger, config)
     end
   end
 

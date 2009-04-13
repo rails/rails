@@ -93,6 +93,30 @@ if ActiveRecord::Base.connection.supports_migrations?
       end
     end
 
+    def testing_table_with_only_foo_attribute
+      Person.connection.create_table :testings, :id => false do |t|
+        t.column :foo, :string
+      end
+
+      yield Person.connection
+    ensure
+      Person.connection.drop_table :testings rescue nil
+    end
+    protected :testing_table_with_only_foo_attribute
+
+    def test_create_table_without_id
+      testing_table_with_only_foo_attribute do |connection|
+        assert_equal connection.columns(:testings).size, 1
+      end
+    end
+
+    def test_add_column_with_primary_key_attribute
+      testing_table_with_only_foo_attribute do |connection|
+        assert_nothing_raised { connection.add_column :testings, :id, :primary_key }
+        assert_equal connection.columns(:testings).size, 2
+      end
+    end
+
     def test_create_table_adds_id
       Person.connection.create_table :testings do |t|
         t.column :foo, :string
@@ -111,7 +135,7 @@ if ActiveRecord::Base.connection.supports_migrations?
         end
       end
 
-      assert_raises(ActiveRecord::StatementInvalid) do
+      assert_raise(ActiveRecord::StatementInvalid) do
         Person.connection.execute "insert into testings (foo) values (NULL)"
       end
     ensure
@@ -219,22 +243,20 @@ if ActiveRecord::Base.connection.supports_migrations?
       ActiveRecord::Base.primary_key_prefix_type = nil
     end
 
-    uses_mocha('test_create_table_with_force_true_does_not_drop_nonexisting_table') do
-      def test_create_table_with_force_true_does_not_drop_nonexisting_table
-        if Person.connection.table_exists?(:testings2)
-          Person.connection.drop_table :testings2
-        end
-
-        # using a copy as we need the drop_table method to
-        # continue to work for the ensure block of the test
-        temp_conn = Person.connection.dup
-        temp_conn.expects(:drop_table).never
-        temp_conn.create_table :testings2, :force => true do |t|
-          t.column :foo, :string
-        end
-      ensure
-        Person.connection.drop_table :testings2 rescue nil
+    def test_create_table_with_force_true_does_not_drop_nonexisting_table
+      if Person.connection.table_exists?(:testings2)
+        Person.connection.drop_table :testings2
       end
+
+      # using a copy as we need the drop_table method to
+      # continue to work for the ensure block of the test
+      temp_conn = Person.connection.dup
+      temp_conn.expects(:drop_table).never
+      temp_conn.create_table :testings2, :force => true do |t|
+        t.column :foo, :string
+      end
+    ensure
+      Person.connection.drop_table :testings2 rescue nil
     end
 
     def test_create_table_with_timestamps_should_create_datetime_columns
@@ -280,7 +302,7 @@ if ActiveRecord::Base.connection.supports_migrations?
         end
         Person.connection.add_column :testings, :bar, :string, :null => false
 
-        assert_raises(ActiveRecord::StatementInvalid) do
+        assert_raise(ActiveRecord::StatementInvalid) do
           Person.connection.execute "insert into testings (foo, bar) values ('hello', NULL)"
         end
       ensure
@@ -299,7 +321,7 @@ if ActiveRecord::Base.connection.supports_migrations?
       Person.connection.enable_identity_insert("testings", false) if current_adapter?(:SybaseAdapter)
       assert_nothing_raised {Person.connection.add_column :testings, :bar, :string, :null => false, :default => "default" }
 
-      assert_raises(ActiveRecord::StatementInvalid) do
+      assert_raise(ActiveRecord::StatementInvalid) do
         unless current_adapter?(:OpenBaseAdapter)
           Person.connection.execute "insert into testings (#{con.quote_column_name('id')}, #{con.quote_column_name('foo')}, #{con.quote_column_name('bar')}) values (2, 'hello', NULL)"
         else
@@ -547,7 +569,7 @@ if ActiveRecord::Base.connection.supports_migrations?
       else
         ActiveRecord::ActiveRecordError
       end
-      assert_raises(exception) do
+      assert_raise(exception) do
         Person.connection.rename_column "hats", "nonexistent", "should_fail"
       end
     ensure
@@ -797,7 +819,7 @@ if ActiveRecord::Base.connection.supports_migrations?
       assert_equal "hello world", Reminder.find(:first).content
 
       WeNeedReminders.down
-      assert_raises(ActiveRecord::StatementInvalid) { Reminder.find(:first) }
+      assert_raise(ActiveRecord::StatementInvalid) { Reminder.find(:first) }
     end
 
     def test_add_table_with_decimals
@@ -858,7 +880,7 @@ if ActiveRecord::Base.connection.supports_migrations?
       end
 
       GiveMeBigNumbers.down
-      assert_raises(ActiveRecord::StatementInvalid) { BigNumber.find(:first) }
+      assert_raise(ActiveRecord::StatementInvalid) { BigNumber.find(:first) }
     end
 
     def test_migrator
@@ -878,7 +900,7 @@ if ActiveRecord::Base.connection.supports_migrations?
       assert_equal 0, ActiveRecord::Migrator.current_version
       Person.reset_column_information
       assert !Person.column_methods_hash.include?(:last_name)
-      assert_raises(ActiveRecord::StatementInvalid) { Reminder.find(:first) }
+      assert_raise(ActiveRecord::StatementInvalid) { Reminder.find(:first) }
     end
 
     def test_migrator_one_up
@@ -930,11 +952,11 @@ if ActiveRecord::Base.connection.supports_migrations?
       assert_equal(0, ActiveRecord::Migrator.current_version)
     end
 
-    if current_adapter?(:PostgreSQLAdapter)
+    if ActiveRecord::Base.connection.supports_ddl_transactions?
       def test_migrator_one_up_with_exception_and_rollback
         assert !Person.column_methods_hash.include?(:last_name)
 
-        e = assert_raises(StandardError) do
+        e = assert_raise(StandardError) do
           ActiveRecord::Migrator.up(MIGRATIONS_ROOT + "/broken", 100)
         end
 
@@ -947,20 +969,20 @@ if ActiveRecord::Base.connection.supports_migrations?
 
     def test_finds_migrations
       migrations = ActiveRecord::Migrator.new(:up, MIGRATIONS_ROOT + "/valid").migrations
-      [['1', 'people_have_last_names'],
-       ['2', 'we_need_reminders'],
-       ['3', 'innocent_jointable']].each_with_index do |pair, i|
-        migrations[i].version == pair.first
-        migrations[1].name    == pair.last
+
+      [[1, 'PeopleHaveLastNames'], [2, 'WeNeedReminders'], [3, 'InnocentJointable']].each_with_index do |pair, i|
+        assert_equal migrations[i].version, pair.first
+        assert_equal migrations[i].name, pair.last
       end
     end
 
     def test_finds_pending_migrations
       ActiveRecord::Migrator.up(MIGRATIONS_ROOT + "/interleaved/pass_2", 1)
       migrations = ActiveRecord::Migrator.new(:up, MIGRATIONS_ROOT + "/interleaved/pass_2").pending_migrations
+
       assert_equal 1, migrations.size
-      migrations[0].version == '3'
-      migrations[0].name    == 'innocent_jointable'
+      assert_equal migrations[0].version, 3
+      assert_equal migrations[0].name, 'InnocentJointable'
     end
 
     def test_only_loads_pending_migrations
@@ -1109,7 +1131,7 @@ if ActiveRecord::Base.connection.supports_migrations?
       assert_equal "hello world", Reminder.find(:first).content
 
       WeNeedReminders.down
-      assert_raises(ActiveRecord::StatementInvalid) { Reminder.find(:first) }
+      assert_raise(ActiveRecord::StatementInvalid) { Reminder.find(:first) }
     ensure
       ActiveRecord::Base.table_name_prefix = ''
       ActiveRecord::Base.table_name_suffix = ''
@@ -1139,13 +1161,13 @@ if ActiveRecord::Base.connection.supports_migrations?
     end
 
     def test_migrator_with_duplicates
-      assert_raises(ActiveRecord::DuplicateMigrationVersionError) do
+      assert_raise(ActiveRecord::DuplicateMigrationVersionError) do
         ActiveRecord::Migrator.migrate(MIGRATIONS_ROOT + "/duplicate", nil)
       end
     end
 
     def test_migrator_with_duplicate_names
-      assert_raises(ActiveRecord::DuplicateMigrationNameError, "Multiple migrations have the name Chunky") do
+      assert_raise(ActiveRecord::DuplicateMigrationNameError, "Multiple migrations have the name Chunky") do
         ActiveRecord::Migrator.migrate(MIGRATIONS_ROOT + "/duplicate_names", nil)
       end
     end
@@ -1161,7 +1183,7 @@ if ActiveRecord::Base.connection.supports_migrations?
 
       # table name is 29 chars, the standard sequence name will
       # be 33 chars and fail
-      assert_raises(ActiveRecord::StatementInvalid) do
+      assert_raise(ActiveRecord::StatementInvalid) do
         begin
           Person.connection.create_table :table_with_name_thats_just_ok do |t|
             t.column :foo, :string, :null => false
@@ -1188,7 +1210,7 @@ if ActiveRecord::Base.connection.supports_migrations?
       end
 
       # confirm the custom sequence got dropped
-      assert_raises(ActiveRecord::StatementInvalid) do
+      assert_raise(ActiveRecord::StatementInvalid) do
         Person.connection.execute("select suitably_short_seq.nextval from dual")
       end
     end
@@ -1203,277 +1225,271 @@ if ActiveRecord::Base.connection.supports_migrations?
 
   end
   
-  uses_mocha 'Sexy migration tests' do
-    class SexyMigrationsTest < ActiveRecord::TestCase
-      def test_references_column_type_adds_id
-        with_new_table do |t|
-          t.expects(:column).with('customer_id', :integer, {})
-          t.references :customer
-        end
+  class SexyMigrationsTest < ActiveRecord::TestCase
+    def test_references_column_type_adds_id
+      with_new_table do |t|
+        t.expects(:column).with('customer_id', :integer, {})
+        t.references :customer
       end
+    end
 
-      def test_references_column_type_with_polymorphic_adds_type
-        with_new_table do |t|
-          t.expects(:column).with('taggable_type', :string, {})
-          t.expects(:column).with('taggable_id', :integer, {})
-          t.references :taggable, :polymorphic => true
-        end
+    def test_references_column_type_with_polymorphic_adds_type
+      with_new_table do |t|
+        t.expects(:column).with('taggable_type', :string, {})
+        t.expects(:column).with('taggable_id', :integer, {})
+        t.references :taggable, :polymorphic => true
       end
+    end
 
-      def test_references_column_type_with_polymorphic_and_options_null_is_false_adds_table_flag
-        with_new_table do |t|
-          t.expects(:column).with('taggable_type', :string, {:null => false})
-          t.expects(:column).with('taggable_id', :integer, {:null => false})
-          t.references :taggable, :polymorphic => true, :null => false
-        end
+    def test_references_column_type_with_polymorphic_and_options_null_is_false_adds_table_flag
+      with_new_table do |t|
+        t.expects(:column).with('taggable_type', :string, {:null => false})
+        t.expects(:column).with('taggable_id', :integer, {:null => false})
+        t.references :taggable, :polymorphic => true, :null => false
       end
+    end
 
-      def test_belongs_to_works_like_references
-        with_new_table do |t|
-          t.expects(:column).with('customer_id', :integer, {})
-          t.belongs_to :customer
-        end
+    def test_belongs_to_works_like_references
+      with_new_table do |t|
+        t.expects(:column).with('customer_id', :integer, {})
+        t.belongs_to :customer
       end
+    end
 
-      def test_timestamps_creates_updated_at_and_created_at
-        with_new_table do |t|
-          t.expects(:column).with(:created_at, :datetime, kind_of(Hash))
-          t.expects(:column).with(:updated_at, :datetime, kind_of(Hash))
-          t.timestamps
-        end
+    def test_timestamps_creates_updated_at_and_created_at
+      with_new_table do |t|
+        t.expects(:column).with(:created_at, :datetime, kind_of(Hash))
+        t.expects(:column).with(:updated_at, :datetime, kind_of(Hash))
+        t.timestamps
       end
+    end
 
-      def test_integer_creates_integer_column
-        with_new_table do |t|
-          t.expects(:column).with(:foo, 'integer', {})
-          t.expects(:column).with(:bar, 'integer', {})
-          t.integer :foo, :bar
-        end
+    def test_integer_creates_integer_column
+      with_new_table do |t|
+        t.expects(:column).with(:foo, 'integer', {})
+        t.expects(:column).with(:bar, 'integer', {})
+        t.integer :foo, :bar
       end
+    end
 
-      def test_string_creates_string_column
-        with_new_table do |t|
-          t.expects(:column).with(:foo, 'string', {})
-          t.expects(:column).with(:bar, 'string', {})
-          t.string :foo, :bar
-        end
+    def test_string_creates_string_column
+      with_new_table do |t|
+        t.expects(:column).with(:foo, 'string', {})
+        t.expects(:column).with(:bar, 'string', {})
+        t.string :foo, :bar
       end
+    end
 
-      protected
-      def with_new_table
-        Person.connection.create_table :delete_me, :force => true do |t|
-          yield t
-        end
-      ensure
-        Person.connection.drop_table :delete_me rescue nil
+    protected
+    def with_new_table
+      Person.connection.create_table :delete_me, :force => true do |t|
+        yield t
       end
+    ensure
+      Person.connection.drop_table :delete_me rescue nil
+    end
 
-    end # SexyMigrationsTest
-  end # uses_mocha
+  end # SexyMigrationsTest
 
-  uses_mocha 'ChangeTable migration tests' do
-    class ChangeTableMigrationsTest < ActiveRecord::TestCase
-      def setup
-        @connection = Person.connection
-        @connection.create_table :delete_me, :force => true do |t|
-        end
+  class ChangeTableMigrationsTest < ActiveRecord::TestCase
+    def setup
+      @connection = Person.connection
+      @connection.create_table :delete_me, :force => true do |t|
       end
+    end
 
-      def teardown
-        Person.connection.drop_table :delete_me rescue nil
+    def teardown
+      Person.connection.drop_table :delete_me rescue nil
+    end
+
+    def test_references_column_type_adds_id
+      with_change_table do |t|
+        @connection.expects(:add_column).with(:delete_me, 'customer_id', :integer, {})
+        t.references :customer
       end
+    end
 
-      def test_references_column_type_adds_id
-        with_change_table do |t|
-          @connection.expects(:add_column).with(:delete_me, 'customer_id', :integer, {})
-          t.references :customer
-        end
+    def test_remove_references_column_type_removes_id
+      with_change_table do |t|
+        @connection.expects(:remove_column).with(:delete_me, 'customer_id')
+        t.remove_references :customer
       end
+    end
 
-      def test_remove_references_column_type_removes_id
-        with_change_table do |t|
-          @connection.expects(:remove_column).with(:delete_me, 'customer_id')
-          t.remove_references :customer
-        end
+    def test_add_belongs_to_works_like_add_references
+      with_change_table do |t|
+        @connection.expects(:add_column).with(:delete_me, 'customer_id', :integer, {})
+        t.belongs_to :customer
       end
+    end
 
-      def test_add_belongs_to_works_like_add_references
-        with_change_table do |t|
-          @connection.expects(:add_column).with(:delete_me, 'customer_id', :integer, {})
-          t.belongs_to :customer
-        end
+    def test_remove_belongs_to_works_like_remove_references
+      with_change_table do |t|
+        @connection.expects(:remove_column).with(:delete_me, 'customer_id')
+        t.remove_belongs_to :customer
       end
+    end
 
-      def test_remove_belongs_to_works_like_remove_references
-        with_change_table do |t|
-          @connection.expects(:remove_column).with(:delete_me, 'customer_id')
-          t.remove_belongs_to :customer
-        end
+    def test_references_column_type_with_polymorphic_adds_type
+      with_change_table do |t|
+        @connection.expects(:add_column).with(:delete_me, 'taggable_type', :string, {})
+        @connection.expects(:add_column).with(:delete_me, 'taggable_id', :integer, {})
+        t.references :taggable, :polymorphic => true
       end
+    end
 
-      def test_references_column_type_with_polymorphic_adds_type
-        with_change_table do |t|
-          @connection.expects(:add_column).with(:delete_me, 'taggable_type', :string, {})
-          @connection.expects(:add_column).with(:delete_me, 'taggable_id', :integer, {})
-          t.references :taggable, :polymorphic => true
-        end
+    def test_remove_references_column_type_with_polymorphic_removes_type
+      with_change_table do |t|
+        @connection.expects(:remove_column).with(:delete_me, 'taggable_type')
+        @connection.expects(:remove_column).with(:delete_me, 'taggable_id')
+        t.remove_references :taggable, :polymorphic => true
       end
+    end
 
-      def test_remove_references_column_type_with_polymorphic_removes_type
-        with_change_table do |t|
-          @connection.expects(:remove_column).with(:delete_me, 'taggable_type')
-          @connection.expects(:remove_column).with(:delete_me, 'taggable_id')
-          t.remove_references :taggable, :polymorphic => true
-        end
+    def test_references_column_type_with_polymorphic_and_options_null_is_false_adds_table_flag
+      with_change_table do |t|
+        @connection.expects(:add_column).with(:delete_me, 'taggable_type', :string, {:null => false})
+        @connection.expects(:add_column).with(:delete_me, 'taggable_id', :integer, {:null => false})
+        t.references :taggable, :polymorphic => true, :null => false
       end
+    end
 
-      def test_references_column_type_with_polymorphic_and_options_null_is_false_adds_table_flag
-        with_change_table do |t|
-          @connection.expects(:add_column).with(:delete_me, 'taggable_type', :string, {:null => false})
-          @connection.expects(:add_column).with(:delete_me, 'taggable_id', :integer, {:null => false})
-          t.references :taggable, :polymorphic => true, :null => false
-        end
+    def test_remove_references_column_type_with_polymorphic_and_options_null_is_false_removes_table_flag
+      with_change_table do |t|
+        @connection.expects(:remove_column).with(:delete_me, 'taggable_type')
+        @connection.expects(:remove_column).with(:delete_me, 'taggable_id')
+        t.remove_references :taggable, :polymorphic => true, :null => false
       end
+    end
 
-      def test_remove_references_column_type_with_polymorphic_and_options_null_is_false_removes_table_flag
-        with_change_table do |t|
-          @connection.expects(:remove_column).with(:delete_me, 'taggable_type')
-          @connection.expects(:remove_column).with(:delete_me, 'taggable_id')
-          t.remove_references :taggable, :polymorphic => true, :null => false
-        end
+    def test_timestamps_creates_updated_at_and_created_at
+      with_change_table do |t|
+        @connection.expects(:add_timestamps).with(:delete_me)
+        t.timestamps
       end
+    end
 
-      def test_timestamps_creates_updated_at_and_created_at
-        with_change_table do |t|
-          @connection.expects(:add_timestamps).with(:delete_me)
-          t.timestamps
-        end
+    def test_remove_timestamps_creates_updated_at_and_created_at
+      with_change_table do |t|
+        @connection.expects(:remove_timestamps).with(:delete_me)
+        t.remove_timestamps
       end
+    end
 
-      def test_remove_timestamps_creates_updated_at_and_created_at
-        with_change_table do |t|
-          @connection.expects(:remove_timestamps).with(:delete_me)
-          t.remove_timestamps
-        end
+    def string_column
+      if current_adapter?(:PostgreSQLAdapter)
+        "character varying(255)"
+      else
+        'varchar(255)'
       end
+    end
 
-      def string_column
-        if current_adapter?(:PostgreSQLAdapter)
-          "character varying(255)"
-        else
-          'varchar(255)'
-        end
+    def integer_column
+      if current_adapter?(:MysqlAdapter)
+        'int(11)'
+      else
+        'integer'
       end
+    end
 
-      def integer_column
-        if current_adapter?(:MysqlAdapter)
-          'int(11)'
-        else
-          'integer'
-        end
+    def test_integer_creates_integer_column
+      with_change_table do |t|
+        @connection.expects(:add_column).with(:delete_me, :foo, integer_column, {})
+        @connection.expects(:add_column).with(:delete_me, :bar, integer_column, {})
+        t.integer :foo, :bar
       end
+    end
 
-      def test_integer_creates_integer_column
-        with_change_table do |t|
-          @connection.expects(:add_column).with(:delete_me, :foo, integer_column, {})
-          @connection.expects(:add_column).with(:delete_me, :bar, integer_column, {})
-          t.integer :foo, :bar
-        end
+    def test_string_creates_string_column
+      with_change_table do |t|
+        @connection.expects(:add_column).with(:delete_me, :foo, string_column, {})
+        @connection.expects(:add_column).with(:delete_me, :bar, string_column, {})
+        t.string :foo, :bar
       end
+    end
 
-      def test_string_creates_string_column
-        with_change_table do |t|
-          @connection.expects(:add_column).with(:delete_me, :foo, string_column, {})
-          @connection.expects(:add_column).with(:delete_me, :bar, string_column, {})
-          t.string :foo, :bar
-        end
+    def test_column_creates_column
+      with_change_table do |t|
+        @connection.expects(:add_column).with(:delete_me, :bar, :integer, {})
+        t.column :bar, :integer
       end
+    end
 
-      def test_column_creates_column
-        with_change_table do |t|
-          @connection.expects(:add_column).with(:delete_me, :bar, :integer, {})
-          t.column :bar, :integer
-        end
+    def test_column_creates_column_with_options
+      with_change_table do |t|
+        @connection.expects(:add_column).with(:delete_me, :bar, :integer, {:null => false})
+        t.column :bar, :integer, :null => false
       end
+    end
 
-      def test_column_creates_column_with_options
-        with_change_table do |t|
-          @connection.expects(:add_column).with(:delete_me, :bar, :integer, {:null => false})
-          t.column :bar, :integer, :null => false
-        end
+    def test_index_creates_index
+      with_change_table do |t|
+        @connection.expects(:add_index).with(:delete_me, :bar, {})
+        t.index :bar
       end
+    end
 
-      def test_index_creates_index
-        with_change_table do |t|
-          @connection.expects(:add_index).with(:delete_me, :bar, {})
-          t.index :bar
-        end
+    def test_index_creates_index_with_options
+      with_change_table do |t|
+        @connection.expects(:add_index).with(:delete_me, :bar, {:unique => true})
+        t.index :bar, :unique => true
       end
+    end
 
-      def test_index_creates_index_with_options
-        with_change_table do |t|
-          @connection.expects(:add_index).with(:delete_me, :bar, {:unique => true})
-          t.index :bar, :unique => true
-        end
+    def test_change_changes_column
+      with_change_table do |t|
+        @connection.expects(:change_column).with(:delete_me, :bar, :string, {})
+        t.change :bar, :string
       end
+    end
 
-      def test_change_changes_column
-        with_change_table do |t|
-          @connection.expects(:change_column).with(:delete_me, :bar, :string, {})
-          t.change :bar, :string
-        end
+    def test_change_changes_column_with_options
+      with_change_table do |t|
+        @connection.expects(:change_column).with(:delete_me, :bar, :string, {:null => true})
+        t.change :bar, :string, :null => true
       end
+    end
 
-      def test_change_changes_column_with_options
-        with_change_table do |t|
-          @connection.expects(:change_column).with(:delete_me, :bar, :string, {:null => true})
-          t.change :bar, :string, :null => true
-        end
+    def test_change_default_changes_column
+      with_change_table do |t|
+        @connection.expects(:change_column_default).with(:delete_me, :bar, :string)
+        t.change_default :bar, :string
       end
+    end
 
-      def test_change_default_changes_column
-        with_change_table do |t|
-          @connection.expects(:change_column_default).with(:delete_me, :bar, :string)
-          t.change_default :bar, :string
-        end
+    def test_remove_drops_single_column
+      with_change_table do |t|
+        @connection.expects(:remove_column).with(:delete_me, [:bar])
+        t.remove :bar
       end
+    end
 
-      def test_remove_drops_single_column
-        with_change_table do |t|
-          @connection.expects(:remove_column).with(:delete_me, [:bar])
-          t.remove :bar
-        end
+    def test_remove_drops_multiple_columns
+      with_change_table do |t|
+        @connection.expects(:remove_column).with(:delete_me, [:bar, :baz])
+        t.remove :bar, :baz
       end
+    end
 
-      def test_remove_drops_multiple_columns
-        with_change_table do |t|
-          @connection.expects(:remove_column).with(:delete_me, [:bar, :baz])
-          t.remove :bar, :baz
-        end
+    def test_remove_index_removes_index_with_options
+      with_change_table do |t|
+        @connection.expects(:remove_index).with(:delete_me, {:unique => true})
+        t.remove_index :unique => true
       end
+    end
 
-      def test_remove_index_removes_index_with_options
-        with_change_table do |t|
-          @connection.expects(:remove_index).with(:delete_me, {:unique => true})
-          t.remove_index :unique => true
-        end
+    def test_rename_renames_column
+      with_change_table do |t|
+        @connection.expects(:rename_column).with(:delete_me, :bar, :baz)
+        t.rename :bar, :baz
       end
+    end
 
-      def test_rename_renames_column
-        with_change_table do |t|
-          @connection.expects(:rename_column).with(:delete_me, :bar, :baz)
-          t.rename :bar, :baz
-        end
+    protected
+    def with_change_table
+      Person.connection.change_table :delete_me do |t|
+        yield t
       end
-
-      protected
-      def with_change_table
-        Person.connection.change_table :delete_me do |t|
-          yield t
-        end
-      end
-
-    end # ChangeTable test
-  end # uses_mocha
-
+    end
+  end
 end

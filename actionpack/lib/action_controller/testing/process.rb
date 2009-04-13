@@ -1,14 +1,21 @@
+require 'rack/session/abstract/id'
 module ActionController #:nodoc:
   class TestRequest < ActionDispatch::Request #:nodoc:
     attr_accessor :cookies, :session_options
     attr_accessor :query_parameters, :path, :session
     attr_accessor :host
 
-    def initialize
-      super(Rack::MockRequest.env_for("/"))
+    def self.new(env = {})
+      super
+    end
+
+    def initialize(env = {})
+      super(Rack::MockRequest.env_for("/").merge(env))
 
       @query_parameters   = {}
       @session            = TestSession.new
+      default_rack_options = Rack::Session::Abstract::ID::DEFAULT_OPTIONS
+      @session_options    ||= {:id => generate_sid(default_rack_options[:sidbits])}.merge(default_rack_options)
 
       initialize_default_values
       initialize_containers
@@ -106,6 +113,7 @@ module ActionController #:nodoc:
     end
 
     def recycle!
+      @env["action_controller.request.request_parameters"] = {}
       self.query_parameters   = {}
       self.path_parameters    = {}
       @headers, @request_method, @accepts, @content_type = nil, nil, nil, nil
@@ -116,6 +124,10 @@ module ActionController #:nodoc:
     end
 
     private
+      def generate_sid(sidbits)
+        "%0#{sidbits / 4}x" % rand(2**sidbits - 1)
+      end
+
       def initialize_containers
         @cookies = {}
       end
@@ -246,7 +258,7 @@ module ActionController #:nodoc:
     def cookies
       cookies = {}
       Array(headers['Set-Cookie']).each do |cookie|
-        key, value = cookie.split(";").first.split("=")
+        key, value = cookie.split(";").first.split("=").map {|val| Rack::Utils.unescape(val)}
         cookies[key] = value
       end
       cookies
@@ -254,11 +266,11 @@ module ActionController #:nodoc:
 
     # Returns binary content (downloadable file), converted to a String
     def binary_content
-      raise "Response body is not a Proc: #{body.inspect}" unless body.kind_of?(Proc)
+      raise "Response body is not a Proc: #{body_parts.inspect}" unless body_parts.kind_of?(Proc)
       require 'stringio'
 
       sio = StringIO.new
-      body.call(self, sio)
+      body_parts.call(self, sio)
 
       sio.rewind
       sio.read

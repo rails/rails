@@ -56,6 +56,18 @@ class AttributeMethodsTest < ActiveRecord::TestCase
     assert_equal myobj, topic.content
   end
 
+  def test_typecast_attribute_from_select_to_false
+    topic = Topic.create(:title => 'Budget')
+    topic = Topic.find(:first, :select => "topics.*, 1=2 as is_test")
+    assert !topic.is_test?
+  end
+
+  def test_typecast_attribute_from_select_to_true
+    topic = Topic.create(:title => 'Budget')
+    topic = Topic.find(:first, :select => "topics.*, 2=2 as is_test")
+    assert topic.is_test?
+  end
+
   def test_kernel_methods_not_implemented_in_activerecord
     %w(test name display y).each do |method|
       assert !ActiveRecord::Base.instance_method_already_implemented?(method), "##{method} is defined"
@@ -88,7 +100,7 @@ class AttributeMethodsTest < ActiveRecord::TestCase
     %w(save create_or_update).each do |method|
       klass = Class.new ActiveRecord::Base
       klass.class_eval "def #{method}() 'defined #{method}' end"
-      assert_raises ActiveRecord::DangerousAttributeError do
+      assert_raise ActiveRecord::DangerousAttributeError do
         klass.instance_method_already_implemented?(method)
       end
     end

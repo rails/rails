@@ -5,7 +5,7 @@ require 'active_support/test_case'
 module ActionController
   module Integration #:nodoc:
     # An integration Session instance represents a set of requests and responses
-    # performed sequentially by some virtual user. Becase you can instantiate
+    # performed sequentially by some virtual user. Because you can instantiate
     # multiple sessions and run them side-by-side, you can also mimic (to some
     # limited extent) multiple simultaneous users interacting with your system.
     #
@@ -25,6 +25,9 @@ module ActionController
 
       # The status message that accompanied the status code of the last request.
       attr_reader :status_message
+
+      # The body of the last request.
+      attr_reader :body
 
       # The URI of the last request.
       attr_reader :path
@@ -308,7 +311,11 @@ module ActionController
 
           ActionController::Base.clear_last_instantiation!
 
-          app = Rack::Lint.new(@application)
+          app = @application
+          # Rack::Lint doesn't accept String headers or bodies in Ruby 1.9
+          unless RUBY_VERSION >= '1.9.0' && Rack.release <= '0.9.0'
+            app = Rack::Lint.new(app)
+          end
 
           status, headers, body = app.call(env)
           @request_count += 1
@@ -320,13 +327,19 @@ module ActionController
 
           @headers = Rack::Utils::HeaderHash.new(headers)
 
-          (@headers['Set-Cookie'] || []).each do |cookie|
+          (@headers['Set-Cookie'] || "").split("\n").each do |cookie|
             name, value = cookie.match(/^([^=]*)=([^;]*);/)[1,2]
             @cookies[name] = value
           end
 
-          @body = ""
-          body.each { |part| @body << part }
+          if body.is_a?(String)
+            @body_parts = [body]
+            @body = body
+          else
+            @body_parts = []
+            body.each { |part| @body_parts << part.to_s }
+            @body = @body_parts.join
+          end
 
           if @controller = ActionController::Base.last_instantiation
             @request = @controller.request
@@ -338,7 +351,7 @@ module ActionController
             @response = ActionDispatch::Response.new
             @response.status = status.to_s
             @response.headers.replace(@headers)
-            @response.body = @body
+            @response.body = @body_parts
           end
 
           # Decorate the response with the standard behavior of the

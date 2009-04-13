@@ -1,0 +1,103 @@
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en" lang="en">
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8"/>
+
+<title><%= yield(:page_title) || 'Ruby on Rails guides' %></title>
+
+<link rel="stylesheet" type="text/css" href="files/stylesheets/style.css" />
+<link rel="stylesheet" type="text/css" href="files/stylesheets/syntax.css" />
+<link rel="stylesheet" type="text/css" href="files/stylesheets/print.css" media="print" />
+
+<script type="text/javascript" src="files/javascripts/guides.js"></script>
+<script type="text/javascript" src="files/javascripts/code_highlighter.js"></script>
+<script type="text/javascript" src="files/javascripts/highlighters.js"></script>
+
+</head>
+<body class="guide">
+  <div id="topNav">
+    <div class="wrapper">
+      <strong>More at <a href="http://rubyonrails.org/">rubyonrails.org:</a> </strong>
+      <a href="http://rubyonrails.org/">Overview</a> |
+      <a href="http://rubyonrails.org/download">Download</a> |
+      <a href="http://rubyonrails.org/deploy">Deploy</a> |
+      <a href="http://rails.lighthouseapp.com/projects/8994-ruby-on-rails/overview">Code</a> |
+      <a href="http://rubyonrails.org/screencasts">Screencasts</a> |
+      <a href="http://rubyonrails.org/documentation">Documentation</a> |
+      <a href="http://rubyonrails.org/ecosystem">Ecosystem</a> |
+      <a href="http://rubyonrails.org/community">Community</a> |
+      <a href="http://weblog.rubyonrails.org/">Blog</a>
+    </div>
+  </div>
+  <div id="header">
+    <div class="wrapper clearfix">
+      <h1><a href="index.html" title="Return to home page">Guides.rubyonrails.org</a></h1>
+      <p class="hide"><a href="#mainCol">Skip navigation</a>.</p>
+      <ul class="nav">
+        <li><a href="index.html">Home</a></li>
+        <li class="index"><a href="index.html" onclick="guideMenu(); return false;" id="guidesMenu">Guides Index</a>
+          <div id="guides" class="clearfix" style="display: none;">
+            <hr />
+            <dl class="L">
+              <dt>Start Here</dt>
+              <dd><a href="getting_started.html">Getting Started with Rails</a></dd>
+              <dt>Models</dt>
+              <dd><a href="migrations.html">Rails Database Migrations</a></dd>
+              <dd><a href="activerecord_validations_callbacks.html">Active Record Validations and Callbacks</a></dd>
+              <dd><a href="association_basics.html">Active Record Associations</a></dd>
+              <dd><a href="active_record_querying.html">Active Record Query Interface</a></dd>
+              <dt>Views</dt>
+              <dd><a href="layouts_and_rendering.html">Layouts and Rendering in Rails</a></dd>
+              <dd><a href="form_helpers.html">Action View Form Helpers</a></dd>
+              <dt>Controllers</dt>
+              <dd><a href="action_controller_overview.html">Action Controller Overview</a></dd>
+              <dd><a href="routing.html">Rails Routing from the Outside In</a></dd>
+            </dl>
+            <dl class="R">
+              <dt>Digging Deeper</dt>
+              <dd><a href="i18n.html">Rails Internationalization API</a></dd>
+              <dd><a href="action_mailer_basics.html">Action Mailer Basics</a></dd>
+              <dd><a href="testing.html">Testing Rails Applications</a></dd>
+              <dd><a href="security.html">Securing Rails Applications</a></dd>
+              <dd><a href="debugging_rails_applications.html">Debugging Rails Applications</a></dd>
+              <dd><a href="performance_testing.html">Performance Testing Rails Applications</a></dd>
+              <dd><a href="plugins.html">The Basics of Creating Rails Plugins</a></dd>
+              <dd><a href="configuring.html">Configuring Rails Applications</a></dd>
+              <dd><a href="rails_on_rack.html">Rails on Rack</a></dd>
+              <dd><a href="command_line.html">Rails Command Line Tools and Rake Tasks</a></dd>
+              <dd><a href="caching_with_rails.html">Caching with Rails</a></dd>
+              <dd><a href="contributing_to_rails.html">Contributing to Rails</a></dd>
+            </dl>
+          </div>
+        </li>
+        <li><a href="contribute.html">Contribute</a></li>
+        <li><a href="credits.html">Credits</a></li>
+      </ul>
+    </div>
+  </div>
+  <hr class="hide" />
+
+  <div id="feature">
+    <div class="wrapper">
+      <%= yield :header_section %>
+
+      <%= yield :index_section %>
+    </div>
+  </div>
+
+  <div id="container">
+    <div class="wrapper">
+      <div id="mainCol">
+        <%= yield %>
+      </div>
+    </div>
+  </div>
+
+  <hr class="hide" />
+  <div id="footer">
+    <div class="wrapper">
+      <p>This work is licensed under a <a href="http://creativecommons.org/licenses/by-sa/3.0/">Creative Commons Attribution-Share Alike 3.0</a> License</a></p>
+      <p>"Rails", "Ruby on Rails", and the Rails logo are trademarks of David Heinemeier Hansson. All rights reserved.</p>
+    </div>
+  </div>
+</body>
+</html>

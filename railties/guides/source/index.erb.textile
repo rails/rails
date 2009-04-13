@@ -1,0 +1,124 @@
+<% content_for :header_section do %>
+h2. Ruby on Rails guides
+
+These guides are designed to make you immediately productive with Rails, and to help you understand how all of the pieces fit together. There are two different versions of the Guides site, and you should be sure to use the one that applies to your situation:
+
+* "Current Release version":http://guides.rubyonrails.org - based on Rails 2.3
+* "Edge version":http://guides.rails.info - based on the current Rails "master branch":http://github.com/rails/rails/tree/master
+
+<% end %>
+
+<% content_for :index_section do %>
+<div id="subCol">
+  <dl>
+    <dd class="warning">Rails Guides are a result of the ongoing "Guides hackfest":http://hackfest.rubyonrails.org and a work in progress.</dd>
+    <dd class="ticket">Guides marked with this icon are currently being worked on. While they might still be useful to you, they may contain incomplete information and even errors. You can help by reviewing them and posting your comments and corrections at the respective Lighthouse ticket.</dd>
+  </dl>
+</div>
+<% end %>
+
+h3. Start Here
+
+<dl>
+<% guide('Getting Started with Rails', 'getting_started.html') do %>
+  Everything you need to know to install Rails and create your first application.
+<% end %>
+</dl>
+
+h3. Models
+
+<dl>
+<% guide("Rails Database Migrations", 'migrations.html') do %>
+  This guide covers how you can use Active Record migrations to alter your database in a structured and organized manner.
+<% end %>
+
+<% guide("Active Record Validations and Callbacks", 'activerecord_validations_callbacks.html') do %>
+  This guide covers how you can use Active Record validations and callbacks.
+<% end %>
+
+<% guide("Active Record Associations", 'association_basics.html') do %>
+  This guide covers all the associations provided by Active Record.
+<% end %>
+
+<% guide("Active Record Query Interface", 'active_record_querying.html') do %>
+  This guide covers the database query interface provided by Active Record.
+<% end %>
+</dl>
+
+h3. Views
+
+<dl>
+<% guide("Layouts and Rendering in Rails", 'layouts_and_rendering.html') do %>
+  This guide covers the basic layout features of Action Controller and Action View, including rendering and redirecting, using content_for blocks, and working with partials.
+<% end %>
+
+<% guide("Action View Form Helpers", 'form_helpers.html', :ticket => 1) do %>
+  Guide to using built in Form helpers.
+<% end %>
+</dl>
+
+h3. Controllers
+
+<dl>
+<% guide("Action Controller Overview", 'action_controller_overview.html') do %>
+  This guide covers how controllers work and how they fit into the request cycle in your application. It includes sessions, filters, and cookies, data streaming, and dealing with exceptions raised by a request, among other topics.
+<% end %>
+
+<% guide("Rails Routing from the Outside In", 'routing.html') do %>
+  This guide covers the user-facing features of Rails routing. If you want to understand how to use routing in your own Rails applications, start here.
+<% end %>
+</dl>
+
+h3. Digging Deeper
+
+<dl>
+
+<% guide("Rails on Rack", 'rails_on_rack.html') do %>
+  This guide covers Rails integration with Rack and interfacing with other Rack components.
+<% end %>
+
+<% guide("Rails Internationalization API", 'i18n.html') do %>
+  This guide covers how to add internationalization to your applications. Your application will be able to translate content to different languages, change pluralization rules, use correct date formats for each country and so on.
+<% end %>
+
+<% guide("Action Mailer Basics", 'action_mailer_basics.html', :ticket => 25) do %>
+  This guide describes how to use Action Mailer to send and receive emails.
+<% end %>
+
+<% guide("Testing Rails Applications", 'testing.html', :ticket => 8) do %>
+  This is a rather comprehensive guide to doing both unit and functional tests in Rails. It covers everything from “What is a test?” to the testing APIs. Enjoy.
+<% end %>
+
+<% guide("Securing Rails Applications", 'security.html') do %>
+  This guide describes common security problems in web applications and how to avoid them with Rails.
+<% end %>
+
+<% guide("Debugging Rails Applications", 'debugging_rails_applications.html') do %>
+  This guide describes how to debug Rails applications. It covers the different ways of achieving this and how to understand what is happening "behind the scenes" of your code.
+<% end %>
+
+<% guide("Performance Testing Rails Applications", 'performance_testing.html') do %>
+  This guide covers the various ways of performance testing a Ruby on Rails application.
+<% end %>
+
+<% guide("The Basics of Creating Rails Plugins", 'plugins.html', :ticket => 32) do %>
+  This guide covers how to build a plugin to extend the functionality of Rails.
+<% end %>
+
+<% guide("Configuring Rails Applications", 'configuring.html') do %>
+  This guide covers the basic configuration settings for a Rails application.
+<% end %>
+
+<% guide("Rails Command Line Tools and Rake tasks", 'command_line.html', :ticket => 29) do %>
+  This guide covers the command line tools and rake tasks provided by Rails.
+<% end %>
+
+<% guide("Caching with Rails", 'caching_with_rails.html', :ticket => 10) do %>
+  Various caching techniques provided by Rails.
+<% end %>
+
+<% guide("Contributing to Rails", 'contributing_to_rails.html') do %>
+  Rails is not "somebody else's framework." This guide covers a variety of ways that you can get involved in the ongoing development of Rails.
+<% end %>
+
+</dl>

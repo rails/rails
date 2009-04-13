@@ -40,14 +40,28 @@ module ActionDispatch # :nodoc:
     delegate :default_charset, :to => 'ActionController::Base'
 
     def initialize
-      @status = 200
-      @header = DEFAULT_HEADERS.dup
-
-      @writer = lambda { |x| @body << x }
-      @block = nil
-
-      @body = "",
+      super
+      @header = Rack::Utils::HeaderHash.new(DEFAULT_HEADERS)
       @session, @assigns = [], []
+    end
+
+    def body
+      str = ''
+      each { |part| str << part.to_s }
+      str
+    end
+
+    def body=(body)
+      @body =
+        if body.is_a?(String)
+          [body]
+        else
+          body
+        end
+    end
+
+    def body_parts
+      @body
     end
 
     def location; headers['Location'] end
@@ -144,7 +158,6 @@ module ActionDispatch # :nodoc:
       set_content_length!
       convert_content_type!
       convert_language!
-      convert_expires!
       convert_cookies!
     end
 
@@ -153,7 +166,7 @@ module ActionDispatch # :nodoc:
         @writer = lambda { |x| callback.call(x) }
         @body.call(self, self)
       elsif @body.is_a?(String)
-        @body.each_line(&callback)
+        callback.call(@body)
       else
         @body.each(&callback)
       end
@@ -163,37 +176,20 @@ module ActionDispatch # :nodoc:
     end
 
     def write(str)
-      @writer.call str.to_s
+      str = str.to_s
+      @writer.call str
       str
     end
 
-    # Over Rack::Response#set_cookie to add HttpOnly option
     def set_cookie(key, value)
-      case value
-      when Hash
-        domain  = "; domain="  + value[:domain]    if value[:domain]
-        path    = "; path="    + value[:path]      if value[:path]
-        # According to RFC 2109, we need dashes here.
-        # N.B.: cgi.rb uses spaces...
-        expires = "; expires=" + value[:expires].clone.gmtime.
-          strftime("%a, %d-%b-%Y %H:%M:%S GMT")    if value[:expires]
-        secure = "; secure"  if value[:secure]
-        httponly = "; HttpOnly" if value[:http_only]
-        value = value[:value]
+      if value.has_key?(:http_only)
+        ActiveSupport::Deprecation.warn(
+          "The :http_only option in ActionController::Response#set_cookie " +
+          "has been renamed. Please use :httponly instead.", caller)
+        value[:httponly] ||= value.delete(:http_only)
       end
-      value = [value]  unless Array === value
-      cookie = ::Rack::Utils.escape(key) + "=" +
-        value.map { |v| ::Rack::Utils.escape v }.join("&") +
-        "#{domain}#{path}#{expires}#{secure}#{httponly}"
 
-      case self["Set-Cookie"]
-      when Array
-        self["Set-Cookie"] << cookie
-      when String
-        self["Set-Cookie"] = [self["Set-Cookie"], cookie]
-      when nil
-        self["Set-Cookie"] = cookie
-      end
+      super(key, value)
     end
 
     private
@@ -205,7 +201,7 @@ module ActionDispatch # :nodoc:
 
           if request && request.etag_matches?(etag)
             self.status = '304 Not Modified'
-            self.body = ''
+            self.body = []
           end
 
           set_conditional_cache_control!
@@ -214,7 +210,11 @@ module ActionDispatch # :nodoc:
 
       def nonempty_ok_response?
         ok = !status || status.to_s[0..2] == '200'
-        ok && body.is_a?(String) && !body.empty?
+        ok && string_body?
+      end
+
+      def string_body?
+        !body_parts.respond_to?(:call) && body_parts.any? && body_parts.all? { |part| part.is_a?(String) }
       end
 
       def set_conditional_cache_control!
@@ -235,17 +235,13 @@ module ActionDispatch # :nodoc:
           headers.delete('Content-Length')
         elsif length = headers['Content-Length']
           headers['Content-Length'] = length.to_s
-        elsif !body.respond_to?(:call) && (!status || status.to_s[0..2] != '304')
-          headers["Content-Length"] = body.size.to_s
+        elsif string_body? && (!status || status.to_s[0..2] != '304')
+          headers["Content-Length"] = Rack::Utils.bytesize(body).to_s
         end
       end
 
       def convert_language!
         headers["Content-Language"] = headers.delete("language") if headers["language"]
-      end
-
-      def convert_expires!
-        headers["Expires"] = headers.delete("") if headers["expires"]
       end
 
       def convert_cookies!

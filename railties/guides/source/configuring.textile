@@ -1,0 +1,234 @@
+h2. Configuring Rails Applications
+
+This guide covers the configuration and initialization features available to Rails applications. By referring to this guide, you will be able to:
+
+* Adjust the behavior of your Rails applications
+* Add additional code to be run at application start time
+
+endprologue.
+
+
+h3. Locations for Initialization Code
+
+Rails offers (at least) five good spots to place initialization code:
+
+* Preinitializers
+* environment.rb
+* Environment-specific Configuration Files
+* Initializers (load_application_initializers)
+* After-Initializers
+
+h3. Using a Preinitializer
+
+Rails allows you to use a preinitializer to run code before the framework itself is loaded. If you save code in +RAILS_ROOT/config/preinitializer.rb+, that code will be the first thing loaded, before any of the framework components (Active Record, Action Pack, and so on.) If you want to change the behavior of one of the classes that is used in the initialization process, you can do so in this file.
+
+h3. Configuring Rails Components
+
+In general, the work of configuring Rails means configuring the components of Rails, as well as configuring Rails itself. The +environment.rb+ and environment-specific configuration files (such as +config/environments/production.rb+) allow you to specify the various settings that you want to pass down to all of the components. For example, the default Rails 2.3 +environment.rb+ file includes one setting:
+
+<ruby>
+config.time_zone = 'UTC'
+</ruby>
+
+This is a setting for Rails itself. If you want to pass settings to individual Rails components, you can do so via the same +config+ object:
+
+<ruby>
+config.active_record.colorize_logging = false
+</ruby>
+
+Rails will use that particular setting to configure Active Record.
+
+h4. Configuring Active Record
+
+<tt>ActiveRecord::Base</tt> includes a variety of configuration options:
+
+* +logger+ accepts a logger conforming to the interface of Log4r or the default Ruby 1.8.x Logger class, which is then passed on to any new database connections made. You can retrieve this logger by calling +logger+ on either an ActiveRecord model class or an ActiveRecord model instance. Set to nil to disable logging.
+
+* +primary_key_prefix_type+ lets you adjust the naming for primary key columns. By default, Rails assumes that primary key columns are named +id+ (and this configuration option doesn't need to be set.) There are two other choices:
+** +:table_name+ would make the primary key for the Customer class +customerid+
+** +:table_name_with_underscore+ would make the primary key for the Customer class +customer_id+
+
+* +table_name_prefix+ lets you set a global string to be prepended to table names. If you set this to +northwest_+, then the Customer class will look for +northwest_customers+ as its table. The default is an empty string.
+
+* +table_name_suffix+ lets you set a global string to be appended to table names. If you set this to +_northwest+, then the Customer class will look for +customers_northwest+ as its table. The default is an empty string.
+
+* +pluralize_table_names+ specifies whether Rails will look for singular or plural table names in the database. If set to +true+ (the default), then the Customer class will use the +customers+ table. If set to +false+, then the Customers class will use the +customer+ table.
+
+* +colorize_logging+ (true by default) specifies whether or not to use ANSI color codes when logging information from ActiveRecord.
+
+* +default_timezone+ determines whether to use +Time.local+ (if set to +:local+) or +Time.utc+ (if set to +:utc+) when pulling dates and times from the database. The default is +:local+.
+
+* +schema_format+ controls the format for dumping the database schema to a file. The options are +:ruby+ (the default) for a database-independent version that depends on migrations, or +:sql+ for a set of (potentially database-dependent) SQL statements.
+
+* +timestamped_migrations+ controls whether migrations are numbered with serial integers or with timestamps. The default is +true+, to use timestamps, which are preferred if there are multiple developers working on the same application.
+
+* +lock_optimistically+ controls whether ActiveRecord will use optimistic locking. By default this is +true+.
+
+The MySQL adapter adds one additional configuration option:
+
+* +ActiveRecord::ConnectionAdapters::MysqlAdapter.emulate_booleans+ controls whether ActiveRecord will consider all +tinyint(1)+ columns in a MySQL database to be booleans. By default this is +true+.
+
+The schema dumper adds one additional configuration option:
+
+* +ActiveRecord::SchemaDumper.ignore_tables+ accepts an array of tables that should _not_ be included in any generated schema file. This setting is ignored unless +ActiveRecord::Base.schema_format == :ruby+.
+
+h4. Configuring Action Controller
+
+<tt>ActionController::Base</tt> includes a number of configuration settings:
+
+* +asset_host+ provides a string that is prepended to all of the URL-generating helpers in +AssetHelper+. This is designed to allow moving all javascript, CSS, and image files to a separate asset host.
+
+* +consider_all_requests_local+ is generally set to +true+ during development and +false+ during production; if it is set to +true+, then any error will cause detailed debugging information to be dumped in the HTTP response. For finer-grained control, set this to +false+ and implement +local_request?+ to specify which requests should provide debugging information on errors.
+
+* +allow_concurrency+ should be set to +true+ to allow concurrent (threadsafe) action processing. Set to +false+ by default. You probably don't want to call this one directly, though, because a series of other adjustments need to be made for threadsafe mode to work properly. Instead, you should simply call +config.threadsafe!+ inside your +production.rb+ file, which makes all the necessary adjustments.
+
+WARNING: Threadsafe operation in incompatible with the normal workings of development mode Rails. In particular, automatic dependency loading and class reloading are automatically disabled when you call +config.threadsafe!+.
+
+* +param_parsers+ provides an array of handlers that can extract information from incoming HTTP requests and add it to the +params+ hash. By default, parsers for multipart forms, URL-encoded forms, XML, and JSON are active.
+
+* +default_charset+ specifies the default character set for all renders. The default is "utf-8".
+
+* +logger+ accepts a logger conforming to the interface of Log4r or the default Ruby 1.8+ Logger class, which is then used to log information from Action Controller. Set to nil to disable logging.
+
+* +resource_action_separator+ gives the token to be used between resources and actions when building or interpreting RESTful URLs. By default, this is "/".
+
+* +resource_path_names+ is a hash of default names for several RESTful actions. By default, the new action is named +new+ and the edit action is named +edit+.
+
+* +request_forgery_protection_token+ sets the token parameter name for RequestForgery. Calling +protect_from_forgery+ sets it to +:authenticity_token+ by default.
+
+* +optimise_named_routes+ turns on some optimizations in generating the routing table. It is set to +true+ by default.
+
+* +use_accept_header+ sets the rules for determining the response format. If this is set to +true+ (the default) then +respond_to+ and +Request#format+ will take the Accept header into account. If it is set to false then the request format will be determined solely by examining +params[:format]+. If there is no +format+ parameter, then the response format will be either HTML or Javascript depending on whether the request is an AJAX request.
+
+* +allow_forgery_protection+ enables or disables CSRF protection. By default this is +false+ in test mode and +true+ in all other modes.
+
+* +relative_url_root+ can be used to tell Rails that you are deploying to a subdirectory. The default is +ENV['RAILS_RELATIVE_URL_ROOT']+.
+
+The caching code adds two additional settings:
+
+* +ActionController::Caching::Pages.page_cache_directory+ sets the directory where Rails will create cached pages for your web server. The default is +Rails.public_path+ (which is usually set to +RAILS_ROOT + "/public"+).
+
+* +ActionController::Caching::Pages.page_cache_extension+ sets the extension to be used when generating pages for the cache (this is ignored if the incoming request already has an extension). The default is +.html+.
+
+The dispatcher includes one setting:
+
+* +ActionController::Dispatcher.error_file_path+ gives the path where Rails will look for error files such as +404.html+. The default is +Rails.public_path+.
+
+The Active Record session store can also be configured:
+
+* +CGI::Session::ActiveRecordStore::Session.data_column_name+ sets the name of the column to use to store session data. By default it is 'data'
+
+h4. Configuring Action View
+
+There are only a few configuration options for Action View, starting with four on +ActionView::Base+:
+
+* +debug_rjs+ specifies whether RJS responses should be wrapped in a try/catch block that alert()s the caught exception (and then re-raises it). The default is +false+.
+
+* +warn_cache_misses+ tells Rails to display a warning whenever an action results in a cache miss on your view paths. The default is +false+.
+
+* +field_error_proc+ provides an HTML generator for displaying errors that come from Active Record. The default is <tt>Proc.new{ |html_tag, instance| "<div class=\"fieldWithErrors\">#{html_tag}</div>" }</tt>
+
+* +default_form_builder+ tells Rails which form builder to use by default. The default is +ActionView::Helpers::FormBuilder+.
+
+The ERB template handler supplies one additional option:
+
+* +ActionView::TemplateHandlers::ERB.erb_trim_mode+ gives the trim mode to be used by ERB. It defaults to +'-'+. See the "ERB documentation":http://www.ruby-doc.org/stdlib/libdoc/erb/rdoc/ for more information.
+
+h4. Configuring Action Mailer
+
+There are a number of settings available on +ActionMailer::Base+:
+
+* +template_root+ gives the root folder for Action Mailer templates.
+
+* +logger+ accepts a logger conforming to the interface of Log4r or the default Ruby 1.8+ Logger class, which is then used to log information from Action Mailer. Set to nil to disable logging.
+
+* +smtp_settings+ allows detailed configuration for the +:smtp+ delivery method. It accepts a hash of options, which can include any of these options:
+** +:address+ - Allows you to use a remote mail server. Just change it from its default "localhost" setting.
+** +:port+ - On the off chance that your mail server doesn't run on port 25, you can change it.
+** +:domain+ - If you need to specify a HELO domain, you can do it here.
+** +:user_name+ - If your mail server requires authentication, set the username in this setting.
+** +:password+ - If your mail server requires authentication, set the password in this setting.
+** +:authentication+ - If your mail server requires authentication, you need to specify the authentication type here. This is a symbol and one of +:plain+, +:login+, +:cram_md5+.
+
+* +sendmail_settings+ allows detailed configuration for the +sendmail+ delivery method. It accepts a hash of options, which can include any of these options:
+** +:location+ - The location of the sendmail executable. Defaults to +/usr/sbin/sendmail+.
+** +:arguments+ - The command line arguments. Defaults to +-i -t+.
+
+* +raise_delivery_errors+ specifies whether to raise an error if email delivery cannot be completed. It defaults to +true+.
+
+* +delivery_method+ defines the delivery method. The allowed values are +:smtp+ (default), +:sendmail+, and +:test+.
+
+* +perform_deliveries+ specifies whether mail will actually be delivered. By default this is +true+; it can be convenient to set it to +false+ for testing.
+
+* +default_charset+ tells Action Mailer which character set to use for the body and for encoding the subject. It defaults to +utf-8+.
+
+* +default_content_type+ specifies the default content type used for the main part of the message. It defaults to "text/plain"
+
+* +default_mime_version+ is the default MIME version for the message. It defaults to +1.0+.
+
+* +default_implicit_parts_order+ - When a message is built implicitly (i.e. multiple parts are assembled from templates
+which specify the content type in their filenames) this variable controls how the parts are ordered. Defaults to +["text/html", "text/enriched", "text/plain"]+. Items that appear first in the array have higher priority in the mail client
+and appear last in the mime encoded message.
+
+h4. Configuring Active Resource
+
+There is a single configuration setting available on +ActiveResource::Base+:
+
+<tt>logger</tt> accepts a logger conforming to the interface of Log4r or the default Ruby 1.8+ Logger class, which is then used to log information from Active Resource. Set to nil to disable logging.
+
+h4. Configuring Active Support
+
+There are a few configuration options available in Active Support:
+
+* +ActiveSupport::BufferedLogger.silencer+ is set to +false+ to disable the ability to silence logging in a block. The default is +true+.
+
+* +ActiveSupport::Cache::Store.logger+ specifies the logger to use within cache store operations.
+
+* +ActiveSupport::Logger.silencer+ is set to +false+ to disable the ability to silence logging in a block. The default is +true+.
+
+h4. Configuring Active Model
+
+Active Model currently has a single configuration setting:
+
+* +ActiveModel::Errors.default_error_messages+ is an array containing all of the validation error messages.
+
+h3. Using Initializers
+
+After it loads the framework plus any gems and plugins in your application, Rails turns to loading initializers. An initializer is any file of ruby code stored under +/config/initializers+ in your application. You can use initializers to hold configuration settings that should be made after all of the frameworks and plugins are loaded.
+
+NOTE: You can use subfolders to organize your initializers if you like, because Rails will look into the whole file hierarchy from the +initializers+ folder on down.
+
+TIP: If you have any ordering dependency in your initializers, you can control the load order by naming. For example, +01_critical.rb+ will be loaded before +02_normal.rb+.
+
+h3. Using an After-Initializer
+
+After-initializers are run (as you might guess) after any initializers are loaded. You can supply an +after_initialize+ block (or an array of such blocks) by setting up +config.after_initialize+ in any of the Rails configuration files:
+
+<ruby>
+config.after_initialize do
+  SomeClass.init
+end
+</ruby>
+
+WARNING: Some parts of your application, notably observers and routing, are not yet set up at the point where the +after_initialize+ block is called.
+
+h3. Rails Environment Settings
+
+Some parts of Rails can also be configured externally by supplying environment variables. The following environment variables are recognized by various parts of Rails:
+
+* +ENV['RAILS_ENV']+ defines the Rails environment (production, development, test, and so on) that Rails will run under.
+
+* +ENV['RAILS_RELATIVE_URL_ROOT']+ is used by the routing code to recognize URLs when you deploy your application to a subdirectory.
+
+* +ENV["RAILS_ASSET_ID"]+ will override the default cache-busting timestamps that Rails generates for downloadable assets.
+
+* +ENV["RAILS_CACHE_ID"]+ and +ENV["RAILS_APP_VERSION"]+ are used to generate expanded cache keys in Rails' caching code. This allows you to have multiple separate caches from the same application.
+
+* +ENV['RAILS_GEM_VERSION']+ defines the version of the Rails gems to use, if +RAILS_GEM_VERSION+ is not defined in your +environment.rb+ file.
+
+h3. Changelog
+
+"Lighthouse ticket":http://rails.lighthouseapp.com/projects/16213-rails-guides/tickets/28
+
+* January 3, 2009: First reasonably complete draft by "Mike Gunderloy":credits.html#mgunderloy
+* November 5, 2008: Rough outline by "Mike Gunderloy":credits.html#mgunderloy

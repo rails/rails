@@ -1,9 +1,8 @@
 class SetterTrap < ActiveSupport::BasicObject
   class << self
     def rollback_sets(obj)
-      returning yield(setter_trap = new(obj)) do
-        setter_trap.rollback_sets
-      end
+      trapped = new(obj)
+      yield(trapped).tap { trapped.rollback_sets }
     end
   end
 

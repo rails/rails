@@ -109,7 +109,7 @@ end
 
 class ObjectTests < Test::Unit::TestCase
   def test_suppress_re_raises
-    assert_raises(LoadError) { suppress(ArgumentError) {raise LoadError} }
+    assert_raise(LoadError) { suppress(ArgumentError) {raise LoadError} }
   end
   def test_suppress_supresses
     suppress(ArgumentError) { raise ArgumentError }
@@ -256,7 +256,7 @@ class ObjectTryTest < Test::Unit::TestCase
   def test_nonexisting_method
     method = :undefined_method
     assert !@string.respond_to?(method)
-    assert_raises(NoMethodError) { @string.try(method) }
+    assert_raise(NoMethodError) { @string.try(method) }
   end
   
   def test_valid_method

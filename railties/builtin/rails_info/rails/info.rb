@@ -56,7 +56,12 @@ module Rails
         returning table = '<table>' do
           properties.each do |(name, value)|
             table << %(<tr><td class="name">#{CGI.escapeHTML(name.to_s)}</td>)
-            table << %(<td class="value">#{CGI.escapeHTML(value.to_s)}</td></tr>)
+            formatted_value = if value.kind_of?(Array)
+                  "<ul>" + value.map { |v| "<li>#{CGI.escapeHTML(v.to_s)}</li>" }.join + "</ul>"
+                else
+                  CGI.escapeHTML(value.to_s)
+                end
+            table << %(<td class="value">#{formatted_value}</td></tr>)
           end
           table << '</table>'
         end
@@ -85,6 +90,10 @@ module Rails
       Gem::RubyGemsVersion
     end
 
+    property 'Rack version' do
+      ::Rack.release
+    end
+
     # The Rails version.
     property 'Rails version' do
       Rails::VERSION::STRING
@@ -96,6 +105,10 @@ module Rails
       property "#{framework.titlecase} version" do
         framework_version(framework)
       end
+    end
+
+    property 'Middleware' do
+      ActionController::Dispatcher.middleware.active.map(&:inspect)
     end
 
     # The Rails Git revision, if it's checked out into vendor/rails.

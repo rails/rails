@@ -8,7 +8,7 @@ module ActiveSupport
           include ActiveSupport::Callbacks
           define_callbacks :setup, :teardown
 
-          if defined? MiniTest
+          if defined?(MiniTest::Assertions) && TestCase < MiniTest::Assertions
             include ForMiniTest
           elsif defined? Spec
             include ForRspec
@@ -47,7 +47,12 @@ module ActiveSupport
           return if @method_name.to_s == "default_test"
 
           if using_mocha = respond_to?(:mocha_verify)
-            assertion_counter = Mocha::TestCaseAdapter::AssertionCounter.new(result)
+            assertion_counter_klass = if defined?(Mocha::TestCaseAdapter::AssertionCounter)
+                                        Mocha::TestCaseAdapter::AssertionCounter
+                                      else
+                                        Mocha::Integration::TestUnit::AssertionCounter
+                                      end
+            assertion_counter = assertion_counter_klass.new(result)
           end
 
           yield(Test::Unit::TestCase::STARTED, name)

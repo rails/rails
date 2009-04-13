@@ -132,10 +132,10 @@ module Rails
       add_gem_load_paths
 
       require_frameworks
-      preload_frameworks
       set_autoload_paths
       add_plugin_load_paths
       load_environment
+      preload_frameworks
 
       initialize_encoding
       initialize_database
@@ -167,10 +167,17 @@ module Rails
       load_gems
       check_gem_dependencies
 
+      # bail out if gems are missing - note that check_gem_dependencies will have
+      # already called abort() unless $gems_rake_task is set
+      return unless gems_dependencies_loaded
+
       load_application_initializers
 
       # the framework is now fully initialized
       after_initialize
+
+      # Setup database middleware after initializers have run
+      initialize_database_middleware
 
       # Prepare dispatcher callbacks and run 'prepare' callbacks
       prepare_dispatcher
@@ -270,7 +277,7 @@ module Rails
         configuration.frameworks.each do |framework|
           # String#classify and #constantize aren't available yet.
           toplevel = Object.const_get(framework.to_s.gsub(/(?:^|_)(.)/) { $1.upcase })
-          toplevel.load_all!
+          toplevel.load_all! if toplevel.respond_to?(:load_all!)
         end
       end
     end
@@ -294,7 +301,9 @@ module Rails
     end
 
     def load_gems
-      @configuration.gems.each { |gem| gem.load }
+      unless $gems_build_rake_task
+        @configuration.gems.each { |gem| gem.load }
+      end
     end
 
     def check_gem_dependencies
@@ -302,7 +311,7 @@ module Rails
       if unloaded_gems.size > 0
         @gems_dependencies_loaded = false
         # don't print if the gems rake tasks are being run
-        unless $rails_rake_task
+        unless $gems_rake_task
           abort <<-end_error
 Missing these required gems:
   #{unloaded_gems.map { |gem| "#{gem.name}  #{gem.requirement}" } * "\n  "}
@@ -409,7 +418,18 @@ Run `rake gems:install` to install the missing gems.
       if configuration.frameworks.include?(:active_record)
         ActiveRecord::Base.configurations = configuration.database_configuration
         ActiveRecord::Base.establish_connection
-        configuration.middleware.use ActiveRecord::QueryCache
+      end
+    end
+
+    def initialize_database_middleware
+      if configuration.frameworks.include?(:active_record)
+        if ActionController::Base.session_store == ActiveRecord::SessionStore
+          configuration.middleware.insert_before :"ActiveRecord::SessionStore", ActiveRecord::ConnectionAdapters::ConnectionManagement
+          configuration.middleware.insert_before :"ActiveRecord::SessionStore", ActiveRecord::QueryCache
+        else
+          configuration.middleware.use ActiveRecord::ConnectionAdapters::ConnectionManagement
+          configuration.middleware.use ActiveRecord::QueryCache
+        end
       end
     end
 
@@ -481,9 +501,9 @@ Run `rake gems:install` to install the missing gems.
     # set to use Configuration#view_path.
     def initialize_framework_views
       if configuration.frameworks.include?(:action_view)
-        view_path = ActionView::Template::Path.new(configuration.view_path)
-        ActionMailer::Base.template_root ||= view_path if configuration.frameworks.include?(:action_mailer)
-        ActionController::Base.view_paths = view_path if configuration.frameworks.include?(:action_controller) && ActionController::Base.view_paths.empty?
+        view_path = ActionView::PathSet.type_cast(configuration.view_path)
+        ActionMailer::Base.template_root  = view_path if configuration.frameworks.include?(:action_mailer) && ActionMailer::Base.view_paths.blank?
+        ActionController::Base.view_paths = view_path if configuration.frameworks.include?(:action_controller) && ActionController::Base.view_paths.blank?
       end
     end
 
@@ -495,7 +515,7 @@ Run `rake gems:install` to install the missing gems.
 
       ActionController::Routing.controller_paths += configuration.controller_paths
       ActionController::Routing::Routes.add_configuration_file(configuration.routes_configuration_file)
-      ActionController::Routing::Routes.reload
+      ActionController::Routing::Routes.reload!
     end
 
     # Sets the dependency loading mechanism based on the value of
@@ -544,6 +564,9 @@ Run `rake gems:install` to install the missing gems.
     end
 
     def initialize_metal
+      Rails::Rack::Metal.requested_metals = configuration.metals
+      Rails::Rack::Metal.metal_paths += plugin_loader.engine_metal_paths
+
       configuration.middleware.insert_before(
         :"ActionController::RewindableInput",
         Rails::Rack::Metal, :if => Rails::Rack::Metal.metals.any?)
@@ -586,7 +609,7 @@ Run `rake gems:install` to install the missing gems.
       return unless configuration.frameworks.include?(:action_controller)
       require 'dispatcher' unless defined?(::Dispatcher)
       Dispatcher.define_dispatcher_callbacks(configuration.cache_classes)
-      Dispatcher.new(Rails.logger).send :run_callbacks, :prepare_dispatch
+      Dispatcher.run_prepare_callbacks
     end
 
     def disable_dependency_loading
@@ -697,6 +720,11 @@ Run `rake gems:install` to install the missing gems.
     def plugins=(plugins)
       @plugins = plugins.nil? ? nil : plugins.map { |p| p.to_sym }
     end
+
+    # The list of metals to load. If this is set to <tt>nil</tt>, all metals will
+    # be loaded in alphabetical order. If this is set to <tt>[]</tt>, no metals will
+    # be loaded. Otherwise metals will be loaded in the order specified
+    attr_accessor :metals
 
     # The path to the root of the plugins directory. By default, it is in
     # <tt>vendor/plugins</tt>.
@@ -837,7 +865,8 @@ Run `rake gems:install` to install the missing gems.
 
     # Enable threaded mode. Allows concurrent requests to controller actions and
     # multiple database connections. Also disables automatic dependency loading
-    # after boot
+    # after boot, and disables reloading code on every request, as these are 
+    # fundamentally incompatible with thread safety.
     def threadsafe!
       self.preload_frameworks = true
       self.cache_classes = true

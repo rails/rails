@@ -27,6 +27,7 @@ module ActiveRecord
       $queries_executed = []
       yield
     ensure
+      %w{ BEGIN COMMIT }.each { |x| $queries_executed.delete(x) }
       assert_equal num, $queries_executed.size, "#{$queries_executed.size} instead of #{num} queries were executed.#{$queries_executed.size == 0 ? '' : "\nQueries:\n#{$queries_executed.join("\n")}"}"
     end
 
@@ -47,6 +48,19 @@ module ActiveRecord
     def connection_allow_concurrency_teardown
       ActiveRecord::Base.clear_all_connections!
       ActiveRecord::Base.establish_connection(@connection)
+    end
+
+    def with_kcode(kcode)
+      if RUBY_VERSION < '1.9'
+        orig_kcode, $KCODE = $KCODE, kcode
+        begin
+          yield
+        ensure
+          $KCODE = orig_kcode
+        end
+      else
+        yield
+      end
     end
   end
 end

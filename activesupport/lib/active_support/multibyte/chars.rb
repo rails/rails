@@ -344,7 +344,19 @@ module ActiveSupport #:nodoc:
       end
       alias_method :[], :slice
 
-      # Converts first character in the string to Unicode value
+      # Like <tt>String#slice!</tt>, except instead of byte offsets you specify character offsets.
+      #
+      # Example:
+      #   s = 'こんにちは'
+      #   s.mb_chars.slice!(2..3).to_s #=> "にち"
+      #   s #=> "こんは"
+      def slice!(*args)
+        slice = self[*args]
+        self[*args] = ''
+        slice
+      end
+
+      # Returns the codepoint of the first character in the string.
       #
       # Example:
       #   'こんにちは'.mb_chars.ord #=> 12371
@@ -432,7 +444,7 @@ module ActiveSupport #:nodoc:
         chars(self.class.tidy_bytes(@wrapped_string))
       end
 
-      %w(lstrip rstrip strip reverse upcase downcase slice tidy_bytes capitalize).each do |method|
+      %w(lstrip rstrip strip reverse upcase downcase tidy_bytes capitalize).each do |method|
         define_method("#{method}!") do |*args|
           unless args.nil?
             @wrapped_string = send(method, *args).to_s
@@ -617,6 +629,8 @@ module ActiveSupport #:nodoc:
         # Replaces all ISO-8859-1 or CP1252 characters by their UTF-8 equivalent resulting in a valid UTF-8 string.
         def tidy_bytes(string)
           string.split(//u).map do |c|
+            c.force_encoding(Encoding::ASCII) if c.respond_to?(:force_encoding)
+
             if !UTF8_PAT.match(c)
               n = c.unpack('C')[0]
               n < 128 ? n.chr :

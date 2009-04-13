@@ -38,6 +38,8 @@ class RailsFCGIHandler
     # Safely install signal handlers.
     install_signal_handlers
 
+    @app = Dispatcher.new
+
     # Start error timestamp at 11 seconds ago.
     @last_error_on = Time.now - 11
   end
@@ -69,36 +71,36 @@ class RailsFCGIHandler
 
   protected
     def process_each_request(provider)
-      cgi = nil
+      request = nil
 
       catch :exit do
-        provider.each_cgi do |cgi|
-          process_request(cgi)
+        provider.each do |request|
+          process_request(request)
 
           case when_ready
             when :reload
               reload!
             when :restart
-              close_connection(cgi)
+              close_connection(request)
               restart!
             when :exit
-              close_connection(cgi)
+              close_connection(request)
               throw :exit
           end
         end
       end
     rescue SignalException => signal
       raise unless signal.message == 'SIGUSR1'
-      close_connection(cgi)
+      close_connection(request)
     end
 
-    def process_request(cgi)
+    def process_request(request)
       @processing, @when_ready = true, nil
       gc_countdown
 
       with_signal_handler 'USR1' do
         begin
-          ::Rack::Handler::FastCGI.serve(cgi, Dispatcher.new)
+          ::Rack::Handler::FastCGI.serve(request, @app)
         rescue SignalException, SystemExit
           raise
         rescue Exception => error
@@ -231,7 +233,7 @@ class RailsFCGIHandler
       end
     end
 
-    def close_connection(cgi)
-      cgi.instance_variable_get("@request").finish if cgi
+    def close_connection(request)
+      request.finish if request
     end
 end

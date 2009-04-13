@@ -1,3 +1,4 @@
+# encoding: utf-8
 require 'abstract_unit'
 require 'controller/fake_models'
 
@@ -9,9 +10,10 @@ module RenderTestCases
     # Reload and register danish language for testing
     I18n.reload!
     I18n.backend.store_translations 'da', {}
+    I18n.backend.store_translations 'pt-BR', {}
 
     # Ensure original are still the same since we are reindexing view paths
-    assert_equal ORIGINAL_LOCALES, I18n.available_locales
+    assert_equal ORIGINAL_LOCALES, I18n.available_locales.map(&:to_s).sort
   end
 
   def test_render_file
@@ -36,6 +38,39 @@ module RenderTestCases
         I18n.locale = old_locale
       end
     end
+  end
+
+  def test_render_file_with_dashed_locale
+    old_locale = I18n.locale
+    pending do
+      I18n.locale = :"pt-BR"
+      assert_equal "Ola mundo", @view.render(:file => "test/hello_world")
+    end
+  ensure
+    I18n.locale = old_locale
+  end
+
+  def test_render_implicit_html_template_from_xhr_request
+    old_format = @view.formats
+    pending do
+      @view.formats = [:js]
+      assert_equal "Hello HTML!", @view.render(:file => "test/render_implicit_html_template_from_xhr_request")
+    end
+  ensure
+    @view.formats = old_format
+  end
+
+  def test_render_implicit_html_template_from_xhr_request_with_localization
+    old_locale = I18n.locale
+    old_format = @view.formats
+    pending do
+      I18n.locale = :da
+      @view.formats = [:js]
+      assert_equal "Hey HTML!\n", @view.render(:file => "test/render_implicit_html_template_from_xhr_request")
+    end
+  ensure
+    I18n.locale = old_locale
+    @view.formats = old_format
   end
 
   def test_render_file_at_top_level
@@ -120,6 +155,10 @@ module RenderTestCases
     assert_equal File.expand_path("#{FIXTURE_LOAD_PATH}/test/_raise.html.erb"), e.file_name
   end
 
+  def test_render_object
+    assert_equal "Hello: david", @view.render(:partial => "test/customer", :object => Customer.new("david"))
+  end
+
   def test_render_partial_collection
     assert_equal "Hello: davidHello: mary", @view.render(:partial => "test/customer", :collection => [ Customer.new("david"), Customer.new("mary") ])
   end
@@ -199,6 +238,16 @@ module RenderTestCases
     assert_equal 'source: Hello, <%= name %>!; locals: {:name=>"Josh"}', @view.render(:inline => "Hello, <%= name %>!", :locals => { :name => "Josh" }, :type => :foo)
   end
 
+  def test_render_ignores_templates_with_malformed_template_handlers
+    %w(malformed malformed.erb malformed.html.erb malformed.en.html.erb).each do |name|
+      assert_raise(ActionView::MissingTemplate) { @view.render(:file => "test/malformed/#{name}") }
+    end
+  end
+
+  def test_template_with_malformed_template_handler_is_reachable_through_its_exact_filename
+    assert_equal "Don't render me!", @view.render(:file => 'test/malformed/malformed.html.erb~')
+  end
+
   def test_render_with_layout
     assert_equal %(<title></title>\nHello world!\n),
       @view.render(:file => "test/hello_world.erb", :layout => "layouts/yield")
@@ -207,6 +256,14 @@ module RenderTestCases
   def test_render_with_nested_layout
     assert_equal %(<title>title</title>\n<div id="column">column</div>\n<div id="content">content</div>\n),
       @view.render(:file => "test/nested_layout.erb", :layout => "layouts/yield")
+  end
+
+  if '1.9'.respond_to?(:force_encoding)
+    def test_render_utf8_template
+      result = @view.render(:file => "test/utf8.html.erb", :layouts => "layouts/yield")
+      assert_equal "Русский текст\n日本語のテキスト", result
+      assert_equal Encoding::UTF_8, result.encoding
+    end
   end
 end
 

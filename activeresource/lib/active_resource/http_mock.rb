@@ -59,7 +59,7 @@ module ActiveResource
         # end
         module_eval <<-EOE, __FILE__, __LINE__
           def #{method}(path, request_headers = {}, body = nil, status = 200, response_headers = {})
-            @responses[Request.new(:#{method}, path, nil, request_headers)] = Response.new(body || "", status, response_headers)
+            @responses << [Request.new(:#{method}, path, nil, request_headers), Response.new(body || "", status, response_headers)]
           end
         EOE
       end
@@ -91,21 +91,17 @@ module ActiveResource
         @@requests ||= []
       end
 
-      # Returns a hash of <tt>request => response</tt> pairs for all all responses this mock has delivered, where +request+
-      # is an instance of ActiveResource::Request and the response is, naturally, an instance of
-      # ActiveResource::Response.
+      # Returns the list of requests and their mocked responses. Look up a
+      # response for a request using responses.assoc(request).
       def responses
-        @@responses ||= {}
+        @@responses ||= []
       end
 
       # Accepts a block which declares a set of requests and responses for the HttpMock to respond to. See the main
       # ActiveResource::HttpMock description for a more detailed explanation.
       def respond_to(pairs = {}) #:yields: mock
         reset!
-        pairs.each do |(path, response)|
-          responses[path] = response
-        end
-
+        responses.concat pairs.to_a
         if block_given?
           yield Responder.new(responses)
         else
@@ -120,29 +116,23 @@ module ActiveResource
       end
     end
 
-    for method in [ :post, :put ]
-      # def post(path, body, headers)
-      #   request = ActiveResource::Request.new(:post, path, body, headers)
-      #   self.class.requests << request
-      #   self.class.responses[request] || raise(InvalidRequestError.new("No response recorded for #{request}"))
-      # end
-      module_eval <<-EOE, __FILE__, __LINE__
-        def #{method}(path, body, headers)
-          request = ActiveResource::Request.new(:#{method}, path, body, headers)
-          self.class.requests << request
-          self.class.responses[request] || raise(InvalidRequestError.new("No response recorded for \#{request}"))
-        end
-      EOE
-    end
-
-    for method in [ :get, :delete, :head ]
-      module_eval <<-EOE, __FILE__, __LINE__
-        def #{method}(path, headers)
-          request = ActiveResource::Request.new(:#{method}, path, nil, headers)
-          self.class.requests << request
-          self.class.responses[request] || raise(InvalidRequestError.new("No response recorded for \#{request}"))
-        end
-      EOE
+    # body?       methods
+    { true  => %w(post put),
+      false => %w(get delete head) }.each do |has_body, methods|
+      methods.each do |method|
+        # def post(path, body, headers)
+        #   request = ActiveResource::Request.new(:post, path, body, headers)
+        #   self.class.requests << request
+        #   self.class.responses.assoc(request).try(:second) || raise(InvalidRequestError.new("No response recorded for #{request}"))
+        # end
+        module_eval <<-EOE, __FILE__, __LINE__
+          def #{method}(path, #{'body, ' if has_body}headers)
+            request = ActiveResource::Request.new(:#{method}, path, #{has_body ? 'body, ' : 'nil, '}headers)
+            self.class.requests << request
+            self.class.responses.assoc(request).try(:second) || raise(InvalidRequestError.new("No response recorded for \#{request}"))
+          end
+        EOE
+      end
     end
 
     def initialize(site) #:nodoc:
@@ -157,20 +147,12 @@ module ActiveResource
       @method, @path, @body, @headers = method, path, body, headers.merge(ActiveResource::Connection::HTTP_FORMAT_HEADER_NAMES[method] => 'application/xml')
     end
 
-    def ==(other_request)
-      other_request.hash == hash
-    end
-
-    def eql?(other_request)
-      self == other_request
+    def ==(req)
+      path == req.path && method == req.method && headers == req.headers
     end
 
     def to_s
       "<#{method.to_s.upcase}: #{path} [#{headers}] (#{body})>"
-    end
-
-    def hash
-      "#{path}#{method}#{headers}".hash
     end
   end
 

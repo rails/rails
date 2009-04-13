@@ -197,7 +197,17 @@ module ActionController
       raise DoubleRenderError, "Can only render or redirect once per action" if performed?
 
       options = { :layout => true } if options.nil?
-      original, options = options, extra_options unless options.is_a?(Hash)
+
+      # This handles render "string", render :symbol, and render object
+      # render string and symbol are handled by render_for_name
+      # render object becomes render :partial => object
+      unless options.is_a?(Hash)
+        if options.is_a?(String) || options.is_a?(Symbol)
+          original, options = options, extra_options
+        else
+          extra_options[:partial], options = options, extra_options
+        end
+      end
       
       layout_name = options.delete(:layout)
 
@@ -300,6 +310,7 @@ module ActionController
     # of sending it as the response body to the browser.
     def render_to_string(options = nil, &block) #:doc:
       render(options, &block)
+      response.body
     ensure
       response.content_type = nil
       erase_render_results
@@ -308,7 +319,7 @@ module ActionController
     
     # Clears the rendered results, allowing for another render to be performed.
     def erase_render_results #:nodoc:
-      response.body = nil
+      response.body = []
       @performed_render = false
     end
 
@@ -360,8 +371,9 @@ module ActionController
   
     def render_for_parts(parts, layout, options = {})
       tmp = view_paths.find_by_parts(*parts)        
-      layout = _pick_layout(*layout) unless tmp.exempt_from_layout?
       
+      layout = _pick_layout(*layout) unless tmp.exempt_from_layout?
+            
       render_for_text(
         @template._render_template_with_layout(tmp, layout, options, parts[3]))
     end

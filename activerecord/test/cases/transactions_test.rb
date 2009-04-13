@@ -214,7 +214,7 @@ class TransactionTest < ActiveRecord::TestCase
   end
 
   def test_invalid_keys_for_transaction
-    assert_raises ArgumentError do
+    assert_raise ArgumentError do
       Topic.transaction :nested => true do
       end
     end
@@ -306,17 +306,15 @@ class TransactionTest < ActiveRecord::TestCase
     assert_equal "Three", @three
   end if Topic.connection.supports_savepoints?
 
-  uses_mocha 'mocking connection.commit_db_transaction' do
-    def test_rollback_when_commit_raises
-      Topic.connection.expects(:begin_db_transaction)
-      Topic.connection.expects(:commit_db_transaction).raises('OH NOES')
-      Topic.connection.expects(:outside_transaction?).returns(false)
-      Topic.connection.expects(:rollback_db_transaction)
+  def test_rollback_when_commit_raises
+    Topic.connection.expects(:begin_db_transaction)
+    Topic.connection.expects(:commit_db_transaction).raises('OH NOES')
+    Topic.connection.expects(:outside_transaction?).returns(false)
+    Topic.connection.expects(:rollback_db_transaction)
 
-      assert_raise RuntimeError do
-        Topic.transaction do
-          # do nothing
-        end
+    assert_raise RuntimeError do
+      Topic.transaction do
+        # do nothing
       end
     end
   end
@@ -330,14 +328,12 @@ class TransactionTest < ActiveRecord::TestCase
       assert Topic.connection.outside_transaction?
     end
     
-    uses_mocha 'mocking connection.rollback_db_transaction' do
-      def test_rollback_wont_be_executed_if_no_transaction_active
-        assert_raise RuntimeError do
-          Topic.transaction do
-            Topic.connection.rollback_db_transaction
-            Topic.connection.expects(:rollback_db_transaction).never
-            raise "Rails doesn't scale!"
-          end
+    def test_rollback_wont_be_executed_if_no_transaction_active
+      assert_raise RuntimeError do
+        Topic.transaction do
+          Topic.connection.rollback_db_transaction
+          Topic.connection.expects(:rollback_db_transaction).never
+          raise "Rails doesn't scale!"
         end
       end
     end
@@ -353,7 +349,7 @@ class TransactionTest < ActiveRecord::TestCase
     end
   end
 
-  def test_sqlite_add_column_in_transaction_raises_statement_invalid
+  def test_sqlite_add_column_in_transaction
     return true unless current_adapter?(:SQLite3Adapter, :SQLiteAdapter)
 
     # Test first if column creation/deletion works correctly when no
@@ -372,10 +368,15 @@ class TransactionTest < ActiveRecord::TestCase
       assert !Topic.column_names.include?('stuff')
     end
 
-    # Test now inside a transaction: add_column should raise a StatementInvalid
-    Topic.transaction do
-      assert_raises(ActiveRecord::StatementInvalid) { Topic.connection.add_column('topics', 'stuff', :string) }
-      raise ActiveRecord::Rollback
+    if Topic.connection.supports_ddl_transactions?
+      assert_nothing_raised do
+        Topic.transaction { Topic.connection.add_column('topics', 'stuff', :string) }
+      end
+    else
+      Topic.transaction do
+        assert_raise(ActiveRecord::StatementInvalid) { Topic.connection.add_column('topics', 'stuff', :string) }
+        raise ActiveRecord::Rollback
+      end
     end
   end
 

@@ -16,7 +16,7 @@ module Rails
       def initialize(initializer)
         @initializer = initializer
       end
-      
+
       # Returns the plugins to be loaded, in the order they should be loaded.
       def plugins
         @plugins ||= all_plugins.select { |plugin| should_load?(plugin) }.sort { |p1, p2| order_plugins(p1, p2) }
@@ -32,9 +32,9 @@ module Rails
         @all_plugins ||= locate_plugins
         @all_plugins
       end
-    
+
       def load_plugins
-        plugins.each do |plugin| 
+        plugins.each do |plugin|
           plugin.load(initializer)
           register_plugin_as_loaded(plugin)
         end
@@ -43,12 +43,12 @@ module Rails
 
         ensure_all_registered_plugins_are_loaded!
       end
-      
+
       # Adds the load paths for every plugin into the $LOAD_PATH. Plugin load paths are
       # added *after* the application's <tt>lib</tt> directory, to ensure that an application
       # can always override code within a plugin.
       #
-      # Plugin load paths are also added to Dependencies.load_paths, and Dependencies.load_once_paths.  
+      # Plugin load paths are also added to Dependencies.load_paths, and Dependencies.load_once_paths.
       def add_plugin_load_paths
         plugins.each do |plugin|
           plugin.load_paths.each do |path|
@@ -56,7 +56,7 @@ module Rails
 
             ActiveSupport::Dependencies.load_paths << path
 
-            unless Rails.configuration.reload_plugins?
+            unless configuration.reload_plugins?
               ActiveSupport::Dependencies.load_once_paths << path
             end
           end
@@ -64,8 +64,11 @@ module Rails
 
         $LOAD_PATH.uniq!
       end
-      
-      
+
+      def engine_metal_paths
+        engines.collect(&:metal_path)
+      end
+
       protected
         def configure_engines
           if engines.any?
@@ -74,20 +77,22 @@ module Rails
             add_engine_view_paths
           end
         end
-      
+
         def add_engine_routing_configurations
           engines.select(&:routed?).collect(&:routing_file).each do |routing_file|
             ActionController::Routing::Routes.add_configuration_file(routing_file)
           end
         end
-        
+
         def add_engine_controller_paths
           ActionController::Routing.controller_paths += engines.collect(&:controller_path)
         end
-        
+
         def add_engine_view_paths
           # reverse it such that the last engine can overwrite view paths from the first, like with routes
-          ActionController::Base.view_paths += ActionView::PathSet.new(engines.collect(&:view_path).reverse)
+          paths = ActionView::PathSet.new(engines.collect(&:view_path).reverse)
+          ActionController::Base.view_paths.concat(paths)
+          ActionMailer::Base.view_paths.concat(paths) if configuration.frameworks.include?(:action_mailer)
         end
 
         # The locate_plugins method uses each class in config.plugin_locators to
@@ -106,7 +111,7 @@ module Rails
         def configuration
           initializer.configuration
         end
-        
+
         def should_load?(plugin)
           # uses Plugin#name and Plugin#valid?
           enabled?(plugin) && plugin.valid?
@@ -120,21 +125,21 @@ module Rails
               plugin_a <=> plugin_b
             else
               effective_order_of(plugin_a) <=> effective_order_of(plugin_b)
-            end            
+            end
           end
         end
-        
+
         def effective_order_of(plugin)
           if explicitly_enabled?(plugin)
-            registered_plugin_names.index(plugin.name) 
+            registered_plugin_names.index(plugin.name)
           else
             registered_plugin_names.index('all')
-          end        
+          end
         end
 
         def application_lib_index
           $LOAD_PATH.index(File.join(RAILS_ROOT, 'lib')) || 0
-        end      
+        end
 
         def enabled?(plugin)
           !explicit_plugin_loading_order? || registered?(plugin)
@@ -155,32 +160,32 @@ module Rails
         def explicitly_registered?(plugin)
           explicit_plugin_loading_order? && registered_plugin_names.include?(plugin.name)
         end
-      
+
         def registered_plugins_names_plugin?(plugin)
           registered_plugin_names.include?(plugin.name) || registered_plugin_names.include?('all')
         end
-        
+
         # The plugins that have been explicitly listed with config.plugins. If this list is nil
-        # then it means the client does not care which plugins or in what order they are loaded, 
+        # then it means the client does not care which plugins or in what order they are loaded,
         # so we load all in alphabetical order. If it is an empty array, we load no plugins, if it is
         # non empty, we load the named plugins in the order specified.
         def registered_plugin_names
           configuration.plugins ? configuration.plugins.map(&:to_s) : nil
         end
-        
+
         def loaded?(plugin_name)
           initializer.loaded_plugins.detect { |plugin| plugin.name == plugin_name.to_s }
         end
-        
+
         def ensure_all_registered_plugins_are_loaded!
           if explicit_plugin_loading_order?
             if configuration.plugins.detect {|plugin| plugin != :all && !loaded?(plugin) }
-              missing_plugins = configuration.plugins - (plugins + [:all])
-              raise LoadError, "Could not locate the following plugins: #{missing_plugins.to_sentence}"
+              missing_plugins = configuration.plugins - (plugins.map{|p| p.name.to_sym} + [:all])
+              raise LoadError, "Could not locate the following plugins: #{missing_plugins.to_sentence(:locale => :en)}"
             end
           end
         end
-  
+
     end
   end
 end

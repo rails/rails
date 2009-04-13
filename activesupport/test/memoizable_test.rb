@@ -4,10 +4,12 @@ class MemoizableTest < Test::Unit::TestCase
   class Person
     extend ActiveSupport::Memoizable
 
-    attr_reader :name_calls, :age_calls
+    attr_reader :name_calls, :age_calls, :is_developer_calls
+
     def initialize
       @name_calls = 0
       @age_calls = 0
+      @is_developer_calls = 0
     end
 
     def name
@@ -31,6 +33,14 @@ class MemoizableTest < Test::Unit::TestCase
     end
 
     memoize :name, :age
+
+    private
+
+    def is_developer?
+      @is_developer_calls += 1
+      "Yes"
+    end
+    memoize :is_developer?
   end
 
   class Company
@@ -115,8 +125,13 @@ class MemoizableTest < Test::Unit::TestCase
   end
 
   def test_memorized_results_are_immutable
-    assert_equal "Josh", @person.name
-    assert_raise(ActiveSupport::FrozenObjectError) { @person.name.gsub!("Josh", "Gosh") }
+    # This is purely a performance enhancement that we can revisit once the rest of
+    # the code is in place. Ideally, we'd be able to do memoization in a freeze-friendly
+    # way without amc hacks
+    pending do
+      assert_equal "Josh", @person.name
+      assert_raise(ActiveSupport::FrozenObjectError) { @person.name.gsub!("Josh", "Gosh") }
+    end
   end
 
   def test_reloadable
@@ -223,4 +238,15 @@ class MemoizableTest < Test::Unit::TestCase
     company.memoize :name
     assert_raise(RuntimeError) { company.memoize :name }
   end
+
+  def test_private_method_memoization
+    person = Person.new
+
+    assert_raise(NoMethodError) { person.is_developer? }
+    assert_equal "Yes", person.send(:is_developer?)
+    assert_equal 1, person.is_developer_calls
+    assert_equal "Yes", person.send(:is_developer?)
+    assert_equal 1, person.is_developer_calls
+  end
+
 end

@@ -32,6 +32,13 @@ rescue LoadError
 end
 
 require File.join(File.dirname(__FILE__), "action_pack")
+$:.unshift "#{File.dirname(__FILE__)}/action_controller/vendor/rack-1.0"
+begin
+  gem 'rack', '~> 1.0.0'
+  require 'rack'
+rescue Gem::LoadError
+  require 'action_controller/vendor/rack-1.0/rack'
+end
 
 module ActionController
   # TODO: Review explicit to see if they will automatically be handled by
@@ -57,6 +64,7 @@ module ActionController
   autoload :PolymorphicRoutes, 'action_controller/routing/generation/polymorphic_routes'
   autoload :RecordIdentifier, 'action_controller/record_identifier'
   autoload :Redirector, 'action_controller/base/redirect'
+  autoload :Reloader, 'action_controller/reloader'
   autoload :Renderer, 'action_controller/base/render'
   autoload :RequestForgeryProtection, 'action_controller/base/request_forgery_protection'
   autoload :Rescue, 'action_controller/dispatch/rescue'
@@ -72,6 +80,9 @@ module ActionController
   autoload :UrlRewriter, 'action_controller/routing/generation/url_rewriter'
   autoload :UrlWriter, 'action_controller/routing/generation/url_rewriter'
   autoload :Verification, 'action_controller/base/verification'
+  autoload :UploadedFile, 'action_dispatch/utils/uploaded_file'
+  autoload :UploadedStringIO, 'action_dispatch/utils/uploaded_file'
+  autoload :UploadedTempfile, 'action_dispatch/utils/uploaded_file'
 
   module Assertions
     autoload :DomAssertions, 'action_controller/testing/assertions/dom'

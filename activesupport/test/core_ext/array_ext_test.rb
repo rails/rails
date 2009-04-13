@@ -48,6 +48,8 @@ class ArrayExtToParamTests < Test::Unit::TestCase
 end
 
 class ArrayExtToSentenceTests < Test::Unit::TestCase
+  include ActiveSupport::Testing::Deprecation
+  
   def test_plain_array_to_sentence
     assert_equal "", [].to_sentence
     assert_equal "one", ['one'].to_sentence
@@ -56,12 +58,28 @@ class ArrayExtToSentenceTests < Test::Unit::TestCase
   end
 
   def test_to_sentence_with_words_connector
+    assert_deprecated(":connector has been deprecated. Use :words_connector instead") do
+      assert_equal "one, two, three", ['one', 'two', 'three'].to_sentence(:connector => '')
+    end
+    
+    assert_deprecated(":connector has been deprecated. Use :words_connector instead") do
+      assert_equal "one, two, and three", ['one', 'two', 'three'].to_sentence(:connector => 'and ')
+    end
+    
     assert_equal "one two, and three", ['one', 'two', 'three'].to_sentence(:words_connector => ' ')
     assert_equal "one & two, and three", ['one', 'two', 'three'].to_sentence(:words_connector => ' & ')
     assert_equal "onetwo, and three", ['one', 'two', 'three'].to_sentence(:words_connector => nil)
   end
 
   def test_to_sentence_with_last_word_connector
+    assert_deprecated(":skip_last_comma has been deprecated. Use :last_word_connector instead") do
+      assert_equal "one, two and three", ['one', 'two', 'three'].to_sentence(:skip_last_comma => true)
+    end
+    
+    assert_deprecated(":skip_last_comma has been deprecated. Use :last_word_connector instead") do
+      assert_equal "one, two, and three", ['one', 'two', 'three'].to_sentence(:skip_last_comma => false)
+    end
+    
     assert_equal "one, two, and also three", ['one', 'two', 'three'].to_sentence(:last_word_connector => ', and also ')
     assert_equal "one, twothree", ['one', 'two', 'three'].to_sentence(:last_word_connector => nil)
     assert_equal "one, two three", ['one', 'two', 'three'].to_sentence(:last_word_connector => ' ')
@@ -300,5 +318,39 @@ class ArrayExtRandomTests < Test::Unit::TestCase
 
     Kernel.expects(:rand).with(3).returns(1)
     assert_equal 2, [1, 2, 3].rand
+  end
+end
+
+class ArrayWrapperTests < Test::Unit::TestCase
+  class FakeCollection
+    def to_ary
+      ["foo", "bar"]
+    end
+  end
+
+  def test_array
+    ary = %w(foo bar)
+    assert_same ary, Array.wrap(ary)
+  end
+
+  def test_nil
+    assert_equal [], Array.wrap(nil)
+  end
+
+  def test_object
+    o = Object.new
+    assert_equal [o], Array.wrap(o)
+  end
+
+  def test_string
+    assert_equal ["foo"], Array.wrap("foo")
+  end
+
+  def test_string_with_newline
+    assert_equal ["foo\nbar"], Array.wrap("foo\nbar")
+  end
+
+  def test_object_with_to_ary
+    assert_equal ["foo", "bar"], Array.wrap(FakeCollection.new)
   end
 end

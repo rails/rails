@@ -55,6 +55,11 @@ ActiveRecord::Schema.define do
     t.binary :data
   end
 
+  create_table :birds, :force => true do |t|
+    t.string :name
+    t.integer :pirate_id
+  end
+
   create_table :books, :force => true do |t|
     t.column :name, :string
   end
@@ -148,6 +153,10 @@ ActiveRecord::Schema.define do
   create_table :entrants, :force => true do |t|
     t.string  :name, :null => false
     t.integer :course_id, :null => false
+  end
+
+  create_table :events, :force => true do |t|
+    t.string :title, :limit => 5
   end
 
   create_table :funny_jokes, :force => true do |t|
@@ -356,10 +365,16 @@ ActiveRecord::Schema.define do
 
   create_table :ships, :force => true do |t|
     t.string :name
+    t.integer :pirate_id
     t.datetime :created_at
     t.datetime :created_on
     t.datetime :updated_at
     t.datetime :updated_on
+  end
+
+  create_table :ship_parts, :force => true do |t|
+    t.string :name
+    t.integer :ship_id
   end
 
   create_table :sponsors, :force => true do |t|
@@ -408,6 +423,11 @@ ActiveRecord::Schema.define do
   create_table :tags, :force => true do |t|
     t.column :name, :string
     t.column :taggings_count, :integer, :default => 0
+  end
+
+  create_table :toys, :primary_key => :toy_id ,:force => true do |t|
+    t.string :name
+    t.integer :pet_id, :integer
   end
 
   create_table :treasures, :force => true do |t|

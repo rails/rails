@@ -47,7 +47,7 @@ class BaseTest < Test::Unit::TestCase
                                           {:name => 'Milena',
                                            :children => []}]}]}.to_xml(:root => 'customer')
     # - resource with yaml array of strings; for ActiveRecords using serialize :bar, Array
-    @marty = <<-eof
+    @marty = <<-eof.strip
       <?xml version=\"1.0\" encoding=\"UTF-8\"?>
       <person>
         <id type=\"integer\">5</id>
@@ -564,14 +564,14 @@ class BaseTest < Test::Unit::TestCase
 
   def test_custom_header
     Person.headers['key'] = 'value'
-    assert_raises(ActiveResource::ResourceNotFound) { Person.find(4) }
+    assert_raise(ActiveResource::ResourceNotFound) { Person.find(4) }
   ensure
     Person.headers.delete('key')
   end
 
   def test_find_by_id_not_found
-    assert_raises(ActiveResource::ResourceNotFound) { Person.find(99) }
-    assert_raises(ActiveResource::ResourceNotFound) { StreetAddress.find(1) }
+    assert_raise(ActiveResource::ResourceNotFound) { Person.find(99) }
+    assert_raise(ActiveResource::ResourceNotFound) { StreetAddress.find(1) }
   end
 
   def test_find_all_by_from
@@ -689,7 +689,7 @@ class BaseTest < Test::Unit::TestCase
     ActiveResource::HttpMock.respond_to do |mock|
       mock.post   "/people.xml", {}, nil, 409
     end
-    assert_raises(ActiveResource::ResourceConflict) { Person.create(:name => 'Rick') }
+    assert_raise(ActiveResource::ResourceConflict) { Person.create(:name => 'Rick') }
   end
 
   def test_create_without_location
@@ -726,7 +726,7 @@ class BaseTest < Test::Unit::TestCase
     matz.non_ar_arr = ["not", "ARes"]
     matz_c = matz.clone
     assert matz_c.new?
-    assert_raises(NoMethodError) {matz_c.address}
+    assert_raise(NoMethodError) {matz_c.address}
     assert_equal matz.non_ar_hash, matz_c.non_ar_hash
     assert_equal matz.non_ar_arr, matz_c.non_ar_arr
 
@@ -764,7 +764,7 @@ class BaseTest < Test::Unit::TestCase
       mock.get "/people/2.xml", {}, @david
       mock.put "/people/2.xml", @default_request_headers, nil, 409
     end
-    assert_raises(ActiveResource::ResourceConflict) { Person.find(2).save }
+    assert_raise(ActiveResource::ResourceConflict) { Person.find(2).save }
   end
 
   def test_destroy
@@ -772,7 +772,7 @@ class BaseTest < Test::Unit::TestCase
     ActiveResource::HttpMock.respond_to do |mock|
       mock.get "/people/1.xml", {}, nil, 404
     end
-    assert_raises(ActiveResource::ResourceNotFound) { Person.find(1).destroy }
+    assert_raise(ActiveResource::ResourceNotFound) { Person.find(1).destroy }
   end
 
   def test_destroy_with_custom_prefix
@@ -780,7 +780,7 @@ class BaseTest < Test::Unit::TestCase
     ActiveResource::HttpMock.respond_to do |mock|
       mock.get "/people/1/addresses/1.xml", {}, nil, 404
     end
-    assert_raises(ActiveResource::ResourceNotFound) { StreetAddress.find(1, :params => { :person_id => 1 }) }
+    assert_raise(ActiveResource::ResourceNotFound) { StreetAddress.find(1, :params => { :person_id => 1 }) }
   end
 
   def test_delete
@@ -788,7 +788,7 @@ class BaseTest < Test::Unit::TestCase
     ActiveResource::HttpMock.respond_to do |mock|
       mock.get "/people/1.xml", {}, nil, 404
     end
-    assert_raises(ActiveResource::ResourceNotFound) { Person.find(1) }
+    assert_raise(ActiveResource::ResourceNotFound) { Person.find(1) }
   end
 
   def test_delete_with_custom_prefix
@@ -796,7 +796,7 @@ class BaseTest < Test::Unit::TestCase
     ActiveResource::HttpMock.respond_to do |mock|
       mock.get "/people/1/addresses/1.xml", {}, nil, 404
     end
-    assert_raises(ActiveResource::ResourceNotFound) { StreetAddress.find(1, :params => { :person_id => 1 }) }
+    assert_raise(ActiveResource::ResourceNotFound) { StreetAddress.find(1, :params => { :person_id => 1 }) }
   end
 
   def test_exists

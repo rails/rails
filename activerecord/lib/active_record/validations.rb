@@ -89,7 +89,7 @@ module ActiveRecord
 
       message, options[:default] = options[:default], message if options[:default].is_a?(Symbol)
 
-      defaults = @base.class.self_and_descendents_from_active_record.map do |klass| 
+      defaults = @base.class.self_and_descendants_from_active_record.map do |klass|
         [ :"models.#{klass.name.underscore}.attributes.#{attribute}.#{message}", 
           :"models.#{klass.name.underscore}.#{message}" ]
       end
@@ -575,6 +575,8 @@ module ActiveRecord
         # Get range option and value.
         option = range_options.first
         option_value = options[range_options.first]
+        key = {:is => :wrong_length, :minimum => :too_short, :maximum => :too_long}[option]
+        custom_message = options[:message] || options[key]
 
         case option
           when :within, :in
@@ -583,9 +585,9 @@ module ActiveRecord
             validates_each(attrs, options) do |record, attr, value|
               value = options[:tokenizer].call(value) if value.kind_of?(String)
               if value.nil? or value.size < option_value.begin
-                record.errors.add(attr, :too_short, :default => options[:too_short], :count => option_value.begin)
+                record.errors.add(attr, :too_short, :default => custom_message || options[:too_short], :count => option_value.begin)
               elsif value.size > option_value.end
-                record.errors.add(attr, :too_long, :default => options[:too_long], :count => option_value.end)
+                record.errors.add(attr, :too_long, :default => custom_message || options[:too_long], :count => option_value.end)
               end
             end
           when :is, :minimum, :maximum
@@ -593,13 +595,10 @@ module ActiveRecord
 
             # Declare different validations per option.
             validity_checks = { :is => "==", :minimum => ">=", :maximum => "<=" }
-            message_options = { :is => :wrong_length, :minimum => :too_short, :maximum => :too_long }
 
             validates_each(attrs, options) do |record, attr, value|
               value = options[:tokenizer].call(value) if value.kind_of?(String)
               unless !value.nil? and value.size.method(validity_checks[option])[option_value]
-                key = message_options[option]
-                custom_message = options[:message] || options[key]
                 record.errors.add(attr, key, :default => custom_message, :count => option_value) 
               end
             end
@@ -721,20 +720,20 @@ module ActiveRecord
           # class (which has a database table to query from).
           finder_class = class_hierarchy.detect { |klass| !klass.abstract_class? }
 
-          is_text_column = finder_class.columns_hash[attr_name.to_s].text?
+          column = finder_class.columns_hash[attr_name.to_s]
 
           if value.nil?
             comparison_operator = "IS ?"
-          elsif is_text_column
+          elsif column.text?
             comparison_operator = "#{connection.case_sensitive_equality_operator} ?"
-            value = value.to_s
+            value = column.limit ? value.to_s[0, column.limit] : value.to_s
           else
             comparison_operator = "= ?"
           end
 
           sql_attribute = "#{record.class.quoted_table_name}.#{connection.quote_column_name(attr_name)}"
 
-          if value.nil? || (configuration[:case_sensitive] || !is_text_column)
+          if value.nil? || (configuration[:case_sensitive] || !column.text?)
             condition_sql = "#{sql_attribute} #{comparison_operator}"
             condition_params = [value]
           else
@@ -745,7 +744,7 @@ module ActiveRecord
           if scope = configuration[:scope]
             Array(scope).map do |scope_item|
               scope_value = record.send(scope_item)
-              condition_sql << " AND #{record.class.quoted_table_name}.#{scope_item} #{attribute_condition(scope_value)}"
+              condition_sql << " AND " << attribute_condition("#{record.class.quoted_table_name}.#{scope_item}", scope_value)
               condition_params << scope_value
             end
           end
@@ -803,7 +802,7 @@ module ActiveRecord
       # Validates whether the value of the specified attribute is available in a particular enumerable object.
       #
       #   class Person < ActiveRecord::Base
-      #     validates_inclusion_of :gender, :in => %w( m f ), :message => "woah! what are you then!??!!"
+      #     validates_inclusion_of :gender, :in => %w( m f )
       #     validates_inclusion_of :age, :in => 0..99
       #     validates_inclusion_of :format, :in => %w( jpg gif png ), :message => "extension {{value}} is not included in the list"
       #   end
@@ -1039,6 +1038,11 @@ module ActiveRecord
       end
 
       errors.empty?
+    end
+
+    # Performs the opposite of <tt>valid?</tt>. Returns true if errors were added, false otherwise.
+    def invalid?
+      !valid?
     end
 
     # Returns the Errors object that holds all information about attribute error messages.

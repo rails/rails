@@ -1,7 +1,9 @@
 require 'plugin_test_helper'
 
 $:.unshift File.dirname(__FILE__) + "/../../actionpack/lib"
+$:.unshift File.dirname(__FILE__) + "/../../actionmailer/lib"
 require 'action_controller'
+require 'action_mailer'
 
 # Mocks out the configuration
 module Rails
@@ -118,21 +120,22 @@ class TestPluginLoader < Test::Unit::TestCase
 
     @loader.add_plugin_load_paths
 
-    %w( models controllers helpers ).each do |app_part|
+    %w( models controllers metal helpers ).each do |app_part|
       assert ActiveSupport::Dependencies.load_paths.include?(
         File.join(plugin_fixture_path('engines/engine'), 'app', app_part)
       ), "Couldn't find #{app_part} in load path"
     end
   end
   
-  def test_engine_controllers_should_have_their_view_path_set_when_loaded
+  def test_engine_controllers_and_action_mailers_should_have_their_view_path_set_when_loaded
     only_load_the_following_plugins!([ :engine ])
 
     @loader.send :add_engine_view_paths
     
     assert_equal [ File.join(plugin_fixture_path('engines/engine'), 'app', 'views') ], ActionController::Base.view_paths
+    assert_equal [ File.join(plugin_fixture_path('engines/engine'), 'app', 'views') ], ActionMailer::Base.view_paths
   end
-
+  
   def test_should_add_plugin_load_paths_to_Dependencies_load_once_paths
     only_load_the_following_plugins! [:stubby, :acts_as_chunky_bacon]
 

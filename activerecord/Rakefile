@@ -30,7 +30,9 @@ desc 'Run mysql, sqlite, and postgresql tests by default'
 task :default => :test
 
 desc 'Run mysql, sqlite, and postgresql tests'
-task :test => %w(test_mysql test_sqlite3 test_postgresql)
+task :test => defined?(JRUBY_VERSION) ?
+  %w(test_jdbcmysql test_jdbcsqlite3 test_jdbcpostgresql) :
+  %w(test_mysql test_sqlite3 test_postgresql)
 
 for adapter in %w( mysql postgresql sqlite sqlite3 firebird db2 oracle sybase openbase frontbase jdbcmysql jdbcpostgresql jdbcsqlite3 jdbcderby jdbch2 jdbchsqldb )
   Rake::TestTask.new("test_#{adapter}") { |t|
@@ -175,7 +177,7 @@ spec = Gem::Specification.new do |s|
     s.files = s.files + Dir.glob( "#{dir}/**/*" ).delete_if { |item| item.include?( "\.svn" ) }
   end
 
-  s.add_dependency('activesupport', '= 2.3.0' + PKG_BUILD)
+  s.add_dependency('activesupport', '= 2.3.2' + PKG_BUILD)
 
   s.files.delete FIXTURES_ROOT + "/fixture_database.sqlite"
   s.files.delete FIXTURES_ROOT + "/fixture_database_2.sqlite"

@@ -3,7 +3,7 @@ module ActiveResource
   end
 
   # Active Resource validation is reported to and from this object, which is used by Base#save
-  # to determine whether the object in a valid state to be saved. See usage example in Validations.  
+  # to determine whether the object is in a valid state to be saved. See usage example in Validations.
   class Errors
     include Enumerable
     attr_reader :errors
@@ -14,7 +14,10 @@ module ActiveResource
       @base, @errors = base, {}
     end
 
-    # Add an error to the base Active Resource object rather than an attribute.
+    # Adds an error to the base object instead of any particular attribute. This is used
+    # to report errors that don't tie to any specific attribute, but rather to the object
+    # as a whole. These error messages don't get prepended with any field name when iterating
+    # with +each_full+, so they should be complete sentences.
     #
     # ==== Examples
     #   my_folder = Folder.find(1)
@@ -68,9 +71,9 @@ module ActiveResource
       !@errors[attribute.to_s].nil?
     end
 
-    # A method to return the errors associated with +attribute+, which returns nil, if no errors are 
-    # associated with the specified +attribute+, the error message if one error is associated with the specified +attribute+,
-    # or an array of error messages if more than one error is associated with the specified +attribute+.
+    # Returns +nil+ if no errors are associated with the specified +attribute+.
+    # Returns the error message if one error is associated with the specified +attribute+.
+    # Returns an array of error messages if more than one error is associated with the specified +attribute+.
     #
     # ==== Examples
     #   my_person = Person.new(params[:person])
@@ -92,9 +95,7 @@ module ActiveResource
     
     alias :[] :on
 
-    # A method to return errors assigned to +base+ object through add_to_base, which returns nil, if no errors are 
-    # associated with the specified +attribute+, the error message if one error is associated with the specified +attribute+,
-    # or an array of error messages if more than one error is associated with the specified +attribute+.
+    # Returns errors assigned to the base object through +add_to_base+ according to the normal rules of <tt>on(attribute)</tt>.
     #
     # ==== Examples
     #   my_account = Account.find(1)
@@ -203,7 +204,7 @@ module ActiveResource
     def from_xml(xml)
       clear
       humanized_attributes = @base.attributes.keys.inject({}) { |h, attr_name| h.update(attr_name.humanize => attr_name) }
-      messages = Hash.from_xml(xml)['errors']['error'] rescue []
+      messages = Array.wrap(Hash.from_xml(xml)['errors']['error']) rescue []
       messages.each do |message|
         attr_message = humanized_attributes.keys.detect do |attr_name|
           if message[0, attr_name.size + 1] == "#{attr_name} "

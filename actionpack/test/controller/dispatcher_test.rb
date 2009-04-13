@@ -1,12 +1,15 @@
 require 'abstract_unit'
 
-uses_mocha 'dispatcher tests' do
-
 class DispatcherTest < Test::Unit::TestCase
   Dispatcher = ActionController::Dispatcher
 
   def setup
     ENV['REQUEST_METHOD'] = 'GET'
+
+    Dispatcher.middleware = ActionDispatch::MiddlewareStack.new do |middleware|
+      middlewares = File.expand_path(File.join(File.dirname(__FILE__), "../../lib/action_controller/dispatch/middlewares.rb"))
+      middleware.instance_eval(File.read(middlewares))
+    end
 
     # Clear callbacks as they are redefined by Dispatcher#define_dispatcher_callbacks
     Dispatcher.instance_variable_set("@prepare_dispatch_callbacks", ActiveSupport::Callbacks::CallbackChain.new)
@@ -14,8 +17,6 @@ class DispatcherTest < Test::Unit::TestCase
     Dispatcher.instance_variable_set("@after_dispatch_callbacks", ActiveSupport::Callbacks::CallbackChain.new)
 
     Dispatcher.stubs(:require_dependency)
-
-    @dispatcher = Dispatcher.new
   end
 
   def teardown
@@ -67,7 +68,7 @@ class DispatcherTest < Test::Unit::TestCase
     assert_nil a || b || c
 
     # Run callbacks
-    @dispatcher.send :run_callbacks, :prepare_dispatch
+    Dispatcher.run_prepare_callbacks
 
     assert_equal 1, a
     assert_equal 2, b
@@ -84,7 +85,7 @@ class DispatcherTest < Test::Unit::TestCase
     Dispatcher.to_prepare(:unique_id) { |*args| a = b = 1 }
     Dispatcher.to_prepare(:unique_id) { |*args| a = 2 }
 
-    @dispatcher.send :run_callbacks, :prepare_dispatch
+    Dispatcher.run_prepare_callbacks
     assert_equal 2, a
     assert_equal nil, b
   end
@@ -93,12 +94,10 @@ class DispatcherTest < Test::Unit::TestCase
     def dispatch(cache_classes = true)
       ActionController::Routing::RouteSet.any_instance.stubs(:call).returns([200, {}, 'response'])
       Dispatcher.define_dispatcher_callbacks(cache_classes)
-      @dispatcher.call({})
+      Dispatcher.new.call({})
     end
 
     def assert_subclasses(howmany, klass, message = klass.subclasses.inspect)
       assert_equal howmany, klass.subclasses.size, message
     end
-end
-
 end

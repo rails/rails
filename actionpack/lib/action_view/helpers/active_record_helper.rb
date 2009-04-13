@@ -121,7 +121,7 @@ module ActionView
         if (obj = (object.respond_to?(:errors) ? object : instance_variable_get("@#{object}"))) &&
           (errors = obj.errors.on(method))
           content_tag("div",
-            "#{options[:prepend_text]}#{errors.is_a?(Array) ? errors.first : errors}#{options[:append_text]}",
+            "#{options[:prepend_text]}#{ERB::Util.html_escape(errors.is_a?(Array) ? errors.first : errors)}#{options[:append_text]}",
             :class => options[:css_class]
           )
         else
@@ -194,11 +194,11 @@ module ActionView
               options[:header_message]
             else
               object_name = options[:object_name].to_s.gsub('_', ' ')
-              object_name = I18n.t(object_name, :default => object_name, :scope => [:activerecord, :models], :count => 1)
+              object_name = I18n.t(options[:object_name].to_s, :default => object_name, :scope => [:activerecord, :models], :count => 1)
               locale.t :header, :count => count, :model => object_name
             end
             message = options.include?(:message) ? options[:message] : locale.t(:body)
-            error_messages = objects.sum {|object| object.errors.full_messages.map {|msg| content_tag(:li, msg) } }.join
+            error_messages = objects.sum {|object| object.errors.full_messages.map {|msg| content_tag(:li, ERB::Util.html_escape(msg)) } }.join
 
             contents = ''
             contents << content_tag(options[:header_tag] || :h2, header_message) unless header_message.blank?

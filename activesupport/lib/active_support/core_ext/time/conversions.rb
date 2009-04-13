@@ -10,7 +10,7 @@ module ActiveSupport #:nodoc:
           :short        => "%d %b %H:%M",
           :long         => "%B %d, %Y %H:%M",
           :long_ordinal => lambda { |time| time.strftime("%B #{time.day.ordinalize}, %Y %H:%M") },
-          :rfc822       => "%a, %d %b %Y %H:%M:%S %z"
+          :rfc822       => lambda { |time| time.strftime("%a, %d %b %Y %H:%M:%S #{time.formatted_offset(false)}") }
         }
 
         def self.included(base) #:nodoc:

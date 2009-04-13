@@ -75,7 +75,7 @@ module Rails
         end
       elsif options[:git] || options[:svn]
         in_root do
-          run("script/plugin install #{options[:svn] || options[:git]}", false)
+          run_ruby_script("script/plugin install #{options[:svn] || options[:git]}", false)
         end
       else
         log "! no git or svn provided for #{name}.  skipping..."
@@ -85,26 +85,35 @@ module Rails
     # Adds an entry into config/environment.rb for the supplied gem :
     def gem(name, options = {})
       log 'gem', name
+      env = options.delete(:env)
 
       gems_code = "config.gem '#{name}'"
 
       if options.any?
-        opts = options.inject([]) {|result, h| result << [":#{h[0]} => '#{h[1]}'"] }.sort.join(", ")
+        opts = options.inject([]) {|result, h| result << [":#{h[0]} => #{h[1].inspect.gsub('"',"'")}"] }.sort.join(", ")
         gems_code << ", #{opts}"
       end
 
-      environment gems_code
+      environment gems_code, :env => env
     end
 
     # Adds a line inside the Initializer block for config/environment.rb. Used by #gem
-    def environment(data = nil, &block)
+    # If options :env is specified, the line is appended to the corresponding
+    # file in config/environments/#{env}.rb
+    def environment(data = nil, options = {}, &block)
       sentinel = 'Rails::Initializer.run do |config|'
 
       data = block.call if !data && block_given?
 
       in_root do
-        gsub_file 'config/environment.rb', /(#{Regexp.escape(sentinel)})/mi do |match|
-          "#{match}\n " << data
+        if options[:env].nil?
+          gsub_file 'config/environment.rb', /(#{Regexp.escape(sentinel)})/mi do |match|
+            "#{match}\n  " << data
+          end
+        else
+          Array.wrap(options[:env]).each do|env|
+            append_file "config/environments/#{env}.rb", "\n#{data}"
+          end
         end
       end
     end
@@ -220,7 +229,7 @@ module Rails
       log 'generating', what
       argument = args.map(&:to_s).flatten.join(" ")
 
-      in_root { run("script/generate #{what} #{argument}", false) }
+      in_root { run_ruby_script("script/generate #{what} #{argument}", false) }
     end
 
     # Executes a command
@@ -234,6 +243,12 @@ module Rails
     def run(command, log_action = true)
       log 'executing',  "#{command} from #{Dir.pwd}" if log_action
       `#{command}`
+    end
+
+    # Executes a ruby script (taking into account WIN32 platform quirks)
+    def run_ruby_script(command, log_action = true)
+      ruby_command = RUBY_PLATFORM=~ /win32/ ? 'ruby ' : ''
+      run("#{ruby_command}#{command}", log_action)
     end
 
     # Runs the supplied rake task
@@ -301,7 +316,7 @@ module Rails
     #
     def ask(string)
       log '', string
-      gets.strip
+      STDIN.gets.strip
     end
 
     # Do something in the root of the Rails application or
@@ -348,6 +363,17 @@ module Rails
       path = destination_path(relative_destination)
       content = File.read(path).gsub(regexp, *args, &block)
       File.open(path, 'wb') { |file| file.write(content) }
+    end
+
+    # Append text to a file
+    #
+    # ==== Example
+    #
+    #   append_file 'config/environments/test.rb', 'config.gem "rspec"'
+    #
+    def append_file(relative_destination, data)
+      path = destination_path(relative_destination)
+      File.open(path, 'ab') { |file| file.write(data) }
     end
 
     def destination_path(relative_destination)

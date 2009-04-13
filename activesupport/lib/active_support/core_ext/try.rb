@@ -1,6 +1,9 @@
 class Object
-  # Tries to send the method only if object responds to it. Return +nil+ otherwise.
-  # It will also forward any arguments and/or block like Object#send does.
+  # Invokes the method identified by the symbol +method+, passing it any arguments 
+  # and/or the block specified, just like the regular Ruby <tt>Object#send</tt> does.
+  #
+  # *Unlike* that method however, a +NoMethodError+ exception will *not* be raised 
+  # and +nil+ will be returned instead, if the receiving object is a +nil+ object or NilClass.
   #
   # ==== Examples
   #
@@ -12,14 +15,17 @@ class Object
   # With try
   #   @person.try(:name)
   #
-  # Try also accepts arguments/blocks for the method it is trying
+  # +try+ also accepts arguments and/or a block, for the method it is trying
   #   Person.try(:find, 1)
   #   @people.try(:collect) {|p| p.name}
   #--
-  # This method def is for rdoc only. The alias_method below overrides it as an optimization.
+  # This method definition below is for rdoc purposes only. The alias_method call 
+  # below overrides it as an optimization since +try+ behaves like +Object#send+,
+  # unless called on +NilClass+.
   def try(method, *args, &block)
     send(method, *args, &block)
   end
+  remove_method :try
   alias_method :try, :__send__
 end
 

@@ -1,5 +1,0 @@
-== Changelog ==
-
-http://rails.lighthouseapp.com/projects/16213-rails-guides/tickets/6[Lighthouse ticket]
-
-* September 14, 2008: initial version by link:../authors.html#fcheung[Frederick Cheung]

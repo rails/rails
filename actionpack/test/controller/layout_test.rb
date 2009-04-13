@@ -80,8 +80,19 @@ end
 class DefaultLayoutController < LayoutTest
 end
 
+class AbsolutePathLayoutController < LayoutTest
+  layout File.expand_path(File.expand_path(__FILE__) + '/../../fixtures/layout_tests/layouts/layout_test.rhtml')
+end
+
 class HasOwnLayoutController < LayoutTest
   layout 'item'
+end
+
+class PrependsViewPathController < LayoutTest
+  def hello
+    prepend_view_path File.dirname(__FILE__) + '/../fixtures/layout_tests/alt/'
+    render :layout => 'alt'
+  end
 end
 
 class OnlyLayoutController < LayoutTest
@@ -162,6 +173,20 @@ class LayoutSetInResponseTest < ActionController::TestCase
 
   ensure
     ActionController::Base.exempt_from_layout.delete(/\.rhtml$/)
+  end
+
+  def test_layout_is_picked_from_the_controller_instances_view_path
+    pending do
+      @controller = PrependsViewPathController.new
+      get :hello
+      assert_equal 'layouts/alt', @response.layout
+    end
+  end
+
+  def test_absolute_pathed_layout
+    @controller = AbsolutePathLayoutController.new
+    get :hello
+    assert_equal "layout_test.rhtml hello.rhtml", @response.body.strip
   end
 end
 
