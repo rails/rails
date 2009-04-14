@@ -31,9 +31,13 @@ rescue LoadError
   end
 end
 
-gem 'rack', '>= 0.9.0'
-require 'rack'
-require 'action_dispatch/rack'
+$:.unshift "#{File.dirname(__FILE__)}/action_dispatch/vendor/rack-1.0"
+begin
+  gem 'rack', '~> 1.0.0'
+  require 'rack'
+rescue Gem::LoadError
+  require 'action_dispatch/vendor/rack-1.0/rack'
+end
 
 module ActionDispatch
   autoload :Request, 'action_dispatch/http/request'
