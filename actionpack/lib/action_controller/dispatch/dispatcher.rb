@@ -66,8 +66,7 @@ module ActionController
     define_callbacks :prepare_dispatch, :before_dispatch, :after_dispatch
 
     def initialize
-      @app = @@middleware.build(lambda { |env| self._call(env) })
-      freeze
+      @app = @@middleware.build(lambda { |env| self.dup._call(env) })
     end
 
     def call(env)
@@ -75,18 +74,8 @@ module ActionController
     end
 
     def _call(env)
-      begin
-        run_callbacks :before_dispatch
-        Routing::Routes.call(env)
-      rescue Exception => exception
-        if controller ||= (::ApplicationController rescue Base)
-          controller.call_with_exception(env, exception).to_a
-        else
-          raise exception
-        end
-      ensure
-        run_callbacks :after_dispatch, :enumerator => :reverse_each
-      end
+      @env = env
+      dispatch
     end
 
     def flush_logger
