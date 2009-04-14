@@ -64,7 +64,7 @@ module ActionController
   autoload :Resources, 'action_controller/routing/resources'
   autoload :Responder, 'action_controller/base/responder'
   autoload :Routing, 'action_controller/routing'
-  autoload :SessionManagement, 'action_controller/session/management'
+  autoload :SessionManagement, 'action_controller/base/session_management'
   autoload :Streaming, 'action_controller/base/streaming'
   autoload :TestCase, 'action_controller/testing/test_case'
   autoload :TestProcess, 'action_controller/testing/process'
