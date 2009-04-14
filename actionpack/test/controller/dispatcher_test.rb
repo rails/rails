@@ -46,7 +46,7 @@ class DispatcherTest < Test::Unit::TestCase
   end
 
   def test_failsafe_response
-    Dispatcher.any_instance.expects(:dispatch).raises('b00m')
+    Dispatcher.any_instance.expects(:_call).raises('b00m')
     ActionDispatch::Failsafe.any_instance.expects(:log_failsafe_exception)
 
     assert_nothing_raised do
