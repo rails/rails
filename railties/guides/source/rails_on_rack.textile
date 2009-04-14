@@ -101,7 +101,7 @@ use Rack::Lock
 use ActionController::Failsafe
 use ActionController::Session::CookieStore, , {:secret=>"<secret>", :session_key=>"_<app>_session"}
 use Rails::Rack::Metal
-use ActionController::RewindableInput
+use ActionDispatch::RewindableInput
 use ActionController::ParamsParser
 use Rack::MethodOverride
 use Rack::Head
