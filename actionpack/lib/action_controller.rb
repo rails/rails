@@ -53,7 +53,7 @@ module ActionController
   autoload :Integration, 'action_controller/testing/integration'
   autoload :IntegrationTest, 'action_controller/testing/integration'
   autoload :Layout, 'action_controller/base/layout'
-  autoload :MimeResponds, 'action_controller/mime/responds'
+  autoload :MimeResponds, 'action_controller/base/mime_responds'
   autoload :PolymorphicRoutes, 'action_controller/routing/generation/polymorphic_routes'
   autoload :RecordIdentifier, 'action_controller/record_identifier'
   autoload :Redirector, 'action_controller/base/redirect'
