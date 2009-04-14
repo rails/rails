@@ -49,10 +49,6 @@ module ActionDispatch
   autoload :RewindableInput, 'action_dispatch/middleware/rewindable_input'
 
   autoload :MiddlewareStack, 'action_dispatch/utils/middleware_stack'
-  autoload :UploadedFile, 'action_dispatch/utils/uploaded_file'
-  autoload :UploadedStringIO, 'action_dispatch/utils/uploaded_file'
-  autoload :UploadedTempfile, 'action_dispatch/utils/uploaded_file'
-  autoload :UrlEncodedPairParser, 'action_dispatch/utils/url_encoded_pair_parser'
 
   module Http
     autoload :Headers, 'action_dispatch/http/headers'

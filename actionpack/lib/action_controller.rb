@@ -73,9 +73,6 @@ module ActionController
   autoload :UrlRewriter, 'action_controller/routing/generation/url_rewriter'
   autoload :UrlWriter, 'action_controller/routing/generation/url_rewriter'
   autoload :Verification, 'action_controller/base/verification'
-  autoload :UploadedFile, 'action_dispatch/utils/uploaded_file'
-  autoload :UploadedStringIO, 'action_dispatch/utils/uploaded_file'
-  autoload :UploadedTempfile, 'action_dispatch/utils/uploaded_file'
 
   module Assertions
     autoload :DomAssertions, 'action_controller/testing/assertions/dom'
