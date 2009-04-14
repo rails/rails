@@ -46,6 +46,7 @@ module ActionDispatch
 
   autoload :Failsafe, 'action_dispatch/middleware/failsafe'
   autoload :ParamsParser, 'action_dispatch/middleware/params_parser'
+  autoload :Reloader, 'action_dispatch/middleware/reloader'
   autoload :RewindableInput, 'action_dispatch/middleware/rewindable_input'
   autoload :MiddlewareStack, 'action_dispatch/middleware/stack'
 

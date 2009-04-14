@@ -57,7 +57,6 @@ module ActionController
   autoload :PolymorphicRoutes, 'action_controller/routing/generation/polymorphic_routes'
   autoload :RecordIdentifier, 'action_controller/record_identifier'
   autoload :Redirector, 'action_controller/base/redirect'
-  autoload :Reloader, 'action_controller/reloader'
   autoload :Renderer, 'action_controller/base/render'
   autoload :RequestForgeryProtection, 'action_controller/base/request_forgery_protection'
   autoload :Rescue, 'action_controller/dispatch/rescue'

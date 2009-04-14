@@ -1,14 +1,14 @@
-module ActionController
+module ActionDispatch
   class Reloader
     def initialize(app)
       @app = app
     end
 
     def call(env)
-      Dispatcher.reload_application
+      ActionController::Dispatcher.reload_application
       @app.call(env)
     ensure
-      Dispatcher.cleanup_application
+      ActionController::Dispatcher.cleanup_application
     end
   end
 end

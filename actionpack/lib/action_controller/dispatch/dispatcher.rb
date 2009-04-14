@@ -5,8 +5,8 @@ module ActionController
     class << self
       def define_dispatcher_callbacks(cache_classes)
         unless cache_classes
-          unless self.middleware.include?(Reloader)
-            self.middleware.insert_after(ActionDispatch::Failsafe, Reloader)
+          unless self.middleware.include?(ActionDispatch::Reloader)
+            self.middleware.insert_after(ActionDispatch::Failsafe, ActionDispatch::Reloader)
           end
 
           ActionView::Helpers::AssetTagHelper.cache_asset_timestamps = false
