@@ -1,3 +1,4 @@
+require 'action_controller/deprecated'
 require 'set'
 
 module ActionController #:nodoc:
