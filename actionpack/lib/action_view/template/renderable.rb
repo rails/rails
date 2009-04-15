@@ -11,6 +11,16 @@ module ActionView
       view.send(method_name(locals), locals) {|*args| yield(*args) }
     end
     
+    def load!
+      names = Base::CompiledTemplates.instance_methods.grep(/#{method_name_without_locals}/)
+      names.each do |name|
+        Base::CompiledTemplates.class_eval do
+          remove_method(name)
+        end
+      end
+      super
+    end
+    
   private
   
     def filename

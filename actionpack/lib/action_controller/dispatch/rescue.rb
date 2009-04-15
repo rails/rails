@@ -38,7 +38,7 @@ module ActionController #:nodoc:
       'ActionView::TemplateError'         => 'template_error'
     }
 
-    RESCUES_TEMPLATE_PATH = ActionView::Template::EagerPath.new(
+    RESCUES_TEMPLATE_PATH = ActionView::Template::FileSystemPath.new(
       File.join(File.dirname(__FILE__), "templates"))
 
     def self.included(base) #:nodoc:
@@ -165,7 +165,7 @@ module ActionController #:nodoc:
       end
 
       def rescues_path(template_name)
-        RESCUES_TEMPLATE_PATH.find_template("rescues/#{template_name}.erb")
+        RESCUES_TEMPLATE_PATH.find_by_parts("rescues/#{template_name}.erb")
       end
 
       def template_path_for_local_rescue(exception)

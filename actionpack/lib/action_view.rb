@@ -42,6 +42,7 @@ module ActionView
   autoload :Helpers, 'action_view/helpers'
   autoload :InlineTemplate, 'action_view/template/inline'
   autoload :Partials, 'action_view/render/partials'
+  autoload :Path, 'action_view/template/path'
   autoload :PathSet, 'action_view/paths'
   autoload :Rendering, 'action_view/render/rendering'
   autoload :Renderable, 'action_view/template/renderable'

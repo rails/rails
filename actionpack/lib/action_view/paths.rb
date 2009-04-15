@@ -2,11 +2,8 @@ module ActionView #:nodoc:
   class PathSet < Array #:nodoc:
     def self.type_cast(obj)
       if obj.is_a?(String)
-        if !Object.const_defined?(:Rails) || Rails.configuration.cache_classes
-          Template::EagerPath.new(obj)
-        else
-          Template::Path.new(obj)
-        end
+        cache = !Object.const_defined?(:Rails) || Rails.configuration.cache_classes
+        Template::FileSystemPath.new(obj, :cache => cache)
       else
         obj
       end

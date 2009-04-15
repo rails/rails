@@ -1,103 +1,18 @@
+require "action_view/template/path"
+
 module ActionView #:nodoc:
   class Template
-    class Path
-      attr_reader :path, :paths
-      delegate :hash, :inspect, :to => :path
-
-      def initialize(path)
-        raise ArgumentError, "path already is a Path class" if path.is_a?(Path)
-        @path = path.freeze
-      end
-
-      def to_s
-        if defined?(RAILS_ROOT)
-          path.to_s.sub(/^#{Regexp.escape(File.expand_path(RAILS_ROOT))}\//, '')
-        else
-          path.to_s
-        end
-      end
-
-      def to_str
-        path.to_str
-      end
-
-      def ==(path)
-        to_str == path.to_str
-      end
-
-      def eql?(path)
-        to_str == path.to_str
-      end
-
-      # Returns a ActionView::Template object for the given path string. The
-      # input path should be relative to the view path directory,
-      # +hello/index.html.erb+. This method also has a special exception to
-      # match partial file names without a handler extension. So
-      # +hello/index.html+ will match the first template it finds with a
-      # known template extension, +hello/index.html.erb+. Template extensions
-      # should not be confused with format extensions +html+, +js+, +xml+,
-      # etc. A format must be supplied to match a formated file. +hello/index+
-      # will never match +hello/index.html.erb+.
-      def find_template(path)
-        templates_in_path do |template|
-          if template.accessible_paths.include?(path)
-            return template
-          end
-        end
-        nil
-      end
-
-      def find_by_parts(name, extensions = nil, prefix = nil, partial = nil)
-        path = prefix ? "#{prefix}/" : ""
-        
-        name = name.to_s.split("/")
-        name[-1] = "_#{name[-1]}" if partial
-        
-        path << name.join("/")
-
-        template = nil
-
-        Array(extensions).each do |extension|
-          extensioned_path = extension ? "#{path}.#{extension}" : path
-          template = find_template(extensioned_path) || find_template(path)
-          break if template
-        end
-        template || find_template(path)
-      end
-      
-      private
-        def templates_in_path
-          (Dir.glob("#{@path}/**/*/**") | Dir.glob("#{@path}/**")).each do |file|
-            yield create_template(file) unless File.directory?(file)
-          end
-        end
-
-        def create_template(file)
-          Template.new(file.split("#{self}/").last, self)
-        end
-    end
-
-    class EagerPath < Path
-      def initialize(path)
-        super
-
-        @paths = {}
-        templates_in_path do |template|
-          template.load!
-          template.accessible_paths.each do |path|
-            @paths[path] = template
-          end
-        end
-        @paths.freeze
-      end
-
-      def find_template(path)
-        @paths[path]
-      end
-    end
-
     extend TemplateHandlers
     extend ActiveSupport::Memoizable
+    
+    module Loading
+      def load!
+        @cached = true
+        # freeze
+      end    
+    end
+    include Loading    
+    
     include Renderable
 
     # Templates that are exempt from layouts
@@ -124,11 +39,6 @@ module ActionView #:nodoc:
       # Extend with partial super powers
       extend RenderablePartial if @name =~ /^_/
     end
-    
-    def load!
-      @cached = true
-      # freeze
-    end    
     
     def accessible_paths
       paths = []

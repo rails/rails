@@ -273,7 +273,7 @@ class CachedViewRenderTest < ActiveSupport::TestCase
   # Ensure view path cache is primed
   def setup
     view_paths = ActionController::Base.view_paths
-    assert_equal ActionView::Template::EagerPath, view_paths.first.class
+    assert_equal ActionView::Template::FileSystemPath, view_paths.first.class
     setup_view(view_paths)
   end
 end
@@ -284,9 +284,9 @@ class LazyViewRenderTest < ActiveSupport::TestCase
   # Test the same thing as above, but make sure the view path
   # is not eager loaded
   def setup
-    path = ActionView::Template::Path.new(FIXTURE_LOAD_PATH)
+    path = ActionView::Template::FileSystemPath.new(FIXTURE_LOAD_PATH)
     view_paths = ActionView::Base.process_view_paths(path)
-    assert_equal ActionView::Template::Path, view_paths.first.class
+    assert_equal ActionView::Template::FileSystemPath, view_paths.first.class
     setup_view(view_paths)
   end
 end
