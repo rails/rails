@@ -549,24 +549,25 @@ module ActionView
           link_attributes = html_options.stringify_keys
           text.gsub(AUTO_LINK_RE) do
             scheme, href = $1, $&
-            punctuation = ''
+            punctuation = []
 
             if auto_linked?($`, $')
               # do not change string; URL is already linked
               href
             else
               # don't include trailing punctuation character as part of the URL
-              if href.sub!(/[^\w\/-]$/, '') and punctuation = $& and opening = BRACKETS[punctuation]
-                if href.scan(opening).size > href.scan(punctuation).size
-                  href << punctuation
-                  punctuation = ''
+              while href.sub!(/[^\w\/-]$/, '')
+                punctuation.push $&
+                if opening = BRACKETS[punctuation.last] and href.scan(opening).size > href.scan(punctuation.last).size
+                  href << punctuation.pop
+                  break
                 end
               end
 
               link_text = block_given?? yield(href) : href
               href = 'http://' + href unless scheme
 
-              content_tag(:a, h(link_text), link_attributes.merge('href' => href)) + punctuation
+              content_tag(:a, h(link_text), link_attributes.merge('href' => href)) + punctuation.reverse.join('')
             end
           end
         end
