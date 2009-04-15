@@ -401,6 +401,13 @@ class TextHelperTest < ActionView::TestCase
       auto_link("Welcome to my new blog at http://www.myblog.com/. Please e-mail me at me@email.com.",
                 :link => :all, :html => { :class => "menu", :target => "_blank" })
   end
+  
+  def test_auto_link_with_multiple_trailing_punctuations
+    url = "http://youtube.com"
+    url_result = generate_result(url)
+    assert_equal url_result, auto_link(url)
+    assert_equal "(link: #{url_result}).", auto_link("(link: #{url}).")
+  end
 
   def test_cycle_class
     value = Cycle.new("one", 2, "3")
