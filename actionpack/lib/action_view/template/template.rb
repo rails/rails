@@ -95,20 +95,20 @@ module ActionView #:nodoc:
     end
     memoize :mime_type      
     
+    def multipart?
+      format && format.include?('.')
+    end    
+    
+    def content_type
+      format.gsub('.', '/')
+    end    
+    
   private
     
     def format_and_extension
       (extensions = [format, extension].compact.join(".")).blank? ? nil : extensions
     end
     memoize :format_and_extension
-
-    def multipart?
-      format && format.include?('.')
-    end
-
-    def content_type
-      format.gsub('.', '/')
-    end
 
     def mtime
       File.mtime(filename)
