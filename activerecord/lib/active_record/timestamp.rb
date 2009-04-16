@@ -18,11 +18,21 @@ module ActiveRecord
     
     # Saves the record with the updated_at/on attributes set to the current time.
     # If the save fails because of validation errors, an ActiveRecord::RecordInvalid exception is raised.
-    def touch
+    # If an attribute name is passed, that attribute is used for the touch instead of the updated_at/on attributes.
+    #
+    # Examples:
+    #
+    #   product.touch               # updates updated_at
+    #   product.touch(:designed_at) # updates the designed_at attribute
+    def touch(attribute = nil)
       current_time = current_time_from_proper_timezone
 
-      write_attribute('updated_at', current_time) if respond_to?(:updated_at)
-      write_attribute('updated_on', current_time) if respond_to?(:updated_on)
+      if attribute
+        write_attribute(attribute, current_time)
+      else
+        write_attribute('updated_at', current_time) if respond_to?(:updated_at)
+        write_attribute('updated_on', current_time) if respond_to?(:updated_on)
+      end
 
       save!
     end
