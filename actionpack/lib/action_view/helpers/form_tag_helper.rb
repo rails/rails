@@ -406,7 +406,7 @@ module ActionView
       # <tt>legend</tt> will become the fieldset's title (optional as per W3C).
       # <tt>options</tt> accept the same values as tag.
       #
-      # === Examples
+      # ==== Examples
       #   <% field_set_tag do %>
       #     <p><%= text_field_tag 'name' %></p>
       #   <% end %>

@@ -1,0 +1,18 @@
+h2. Rails Application Templates
+
+This guide covers the Rails application templates, By referring to this guide, you will be able to:
+
+* Use existing templates to generate a customized Rails application
+* Write your own reusable Rails application templates
+
+endprologue.
+
+h3. Introduction
+
+Application templates are simple ruby files containing DSL for adding plugins/gems/initializers etc. to your freshly created Rails project or an existing Rails project.
+
+h3. Changelog
+
+"Lighthouse ticket":http://rails.lighthouseapp.com/projects/16213-rails-guides/tickets/78
+
+* April 17, 2009: Initial version by "Pratik":credits.html#lifo
