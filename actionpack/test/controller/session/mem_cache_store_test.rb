@@ -33,7 +33,7 @@ class MemCacheStoreTest < ActionController::IntegrationTest
 
   begin
     DispatcherApp = ActionController::Dispatcher.new
-    MemCacheStoreApp = ActionController::Session::MemCacheStore.new(
+    MemCacheStoreApp = ActionDispatch::Session::MemCacheStore.new(
                          DispatcherApp, :key => '_session_id')
 
 

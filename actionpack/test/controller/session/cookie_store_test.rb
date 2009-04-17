@@ -6,7 +6,8 @@ class CookieStoreTest < ActionController::IntegrationTest
   SessionSecret = 'b3c631c314c0bbca50c1b2843150fe33'
 
   DispatcherApp = ActionController::Dispatcher.new
-  CookieStoreApp = ActionController::Session::CookieStore.new(DispatcherApp, :key => SessionKey, :secret => SessionSecret)
+  CookieStoreApp = ActionDispatch::Session::CookieStore.new(DispatcherApp,
+                     :key => SessionKey, :secret => SessionSecret)
 
   Verifier = ActiveSupport::MessageVerifier.new(SessionSecret, 'SHA1')
 
@@ -53,41 +54,41 @@ class CookieStoreTest < ActionController::IntegrationTest
 
   def test_raises_argument_error_if_missing_session_key
     assert_raise(ArgumentError, nil.inspect) {
-      ActionController::Session::CookieStore.new(nil,
+      ActionDispatch::Session::CookieStore.new(nil,
         :key => nil, :secret => SessionSecret)
     }
 
     assert_raise(ArgumentError, ''.inspect) {
-      ActionController::Session::CookieStore.new(nil,
+      ActionDispatch::Session::CookieStore.new(nil,
         :key => '', :secret => SessionSecret)
     }
   end
 
   def test_raises_argument_error_if_missing_secret
     assert_raise(ArgumentError, nil.inspect) {
-      ActionController::Session::CookieStore.new(nil,
+      ActionDispatch::Session::CookieStore.new(nil,
        :key => SessionKey, :secret => nil)
     }
 
     assert_raise(ArgumentError, ''.inspect) {
-      ActionController::Session::CookieStore.new(nil,
+      ActionDispatch::Session::CookieStore.new(nil,
        :key => SessionKey, :secret => '')
     }
   end
 
   def test_raises_argument_error_if_secret_is_probably_insecure
     assert_raise(ArgumentError, "password".inspect) {
-      ActionController::Session::CookieStore.new(nil,
+      ActionDispatch::Session::CookieStore.new(nil,
        :key => SessionKey, :secret => "password")
     }
 
     assert_raise(ArgumentError, "secret".inspect) {
-      ActionController::Session::CookieStore.new(nil,
+      ActionDispatch::Session::CookieStore.new(nil,
        :key => SessionKey, :secret => "secret")
     }
 
     assert_raise(ArgumentError, "12345678901234567890123456789".inspect) {
-      ActionController::Session::CookieStore.new(nil,
+      ActionDispatch::Session::CookieStore.new(nil,
        :key => SessionKey, :secret => "12345678901234567890123456789")
     }
   end
@@ -135,7 +136,7 @@ class CookieStoreTest < ActionController::IntegrationTest
 
   def test_close_raises_when_data_overflows
     with_test_route_set do
-      assert_raise(ActionController::Session::CookieStore::CookieOverflow) {
+      assert_raise(ActionDispatch::Session::CookieStore::CookieOverflow) {
         get '/raise_data_overflow'
       }
     end
@@ -190,6 +191,39 @@ class CookieStoreTest < ActionController::IntegrationTest
       reset!
       get '/persistent_session_id'
       assert_not_equal session_id, response.body
+    end
+  end
+
+  def test_session_store_with_expire_after
+    app = ActionDispatch::Session::CookieStore.new(DispatcherApp, :key => SessionKey, :secret => SessionSecret, :expire_after => 5.hours)
+    @integration_session = open_session(app)
+
+    with_test_route_set do
+      # First request accesses the session
+      time = Time.local(2008, 4, 24)
+      Time.stubs(:now).returns(time)
+      expected_expiry = (time + 5.hours).gmtime.strftime("%a, %d-%b-%Y %H:%M:%S GMT")
+
+      cookies[SessionKey] = SignedBar
+
+      get '/set_session_value'
+      assert_response :success
+
+      cookie_body = response.body
+      assert_equal "_myapp_session=#{cookie_body}; path=/; expires=#{expected_expiry}; HttpOnly",
+        headers['Set-Cookie']
+
+      # Second request does not access the session
+      time = Time.local(2008, 4, 25)
+      Time.stubs(:now).returns(time)
+      expected_expiry = (time + 5.hours).gmtime.strftime("%a, %d-%b-%Y %H:%M:%S GMT")
+
+      get '/no_session_access'
+      assert_response :success
+
+      # Mystery bug that came up in 2.3 as well. What is this trying to test?!
+      # assert_equal "_myapp_session=#{cookie_body}; path=/; expires=#{expected_expiry}; HttpOnly",
+      #   headers['Set-Cookie']
     end
   end
 

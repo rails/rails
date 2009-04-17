@@ -8,7 +8,7 @@ class Class
   def superclass_delegating_reader(*names)
     class_name_to_stop_searching_on = self.superclass.name.blank? ? "Object" : self.superclass.name
     names.each do |name|
-      class_eval <<-EOS
+      class_eval(<<-EOS, __FILE__, __LINE__ + 1)
       def self.#{name}                                            # def self.only_reader
         if defined?(@#{name})                                     #   if defined?(@only_reader)
           @#{name}                                                #     @only_reader
@@ -32,10 +32,10 @@ class Class
 
   def superclass_delegating_writer(*names)
     names.each do |name|
-      class_eval <<-EOS
-        def self.#{name}=(value)  # def self.only_writer=(value)
-          @#{name} = value        #   @only_writer = value
-        end                       # end
+      class_eval(<<-EOS, __FILE__, __LINE__ + 1)
+        def self.#{name}=(value)     # def self.property=(value)
+          @#{name} = value           #   @property = value
+        end                          # end
       EOS
     end
   end

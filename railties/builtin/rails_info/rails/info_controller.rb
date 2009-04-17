@@ -3,7 +3,7 @@ class Rails::InfoController < ActionController::Base
     if consider_all_requests_local || local_request?
       render :inline => Rails::Info.to_html
     else
-      render :text => '<p>For security purposes, this information is only available to local requests.</p>', :status => 500
+      render :text => '<p>For security purposes, this information is only available to local requests.</p>', :status => :forbidden
     end
   end
 end

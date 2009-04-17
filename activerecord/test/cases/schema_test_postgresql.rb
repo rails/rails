@@ -18,9 +18,22 @@ class SchemaTest < ActiveRecord::TestCase
     'moment timestamp without time zone default now()'
   ]
 
+  class Thing1 < ActiveRecord::Base
+    set_table_name "test_schema.things"
+  end
+
+  class Thing2 < ActiveRecord::Base
+    set_table_name "test_schema2.things"
+  end
+
+  class Thing3 < ActiveRecord::Base
+    set_table_name 'test_schema."things.table"'
+  end
+
   def setup
     @connection = ActiveRecord::Base.connection
     @connection.execute "CREATE SCHEMA #{SCHEMA_NAME} CREATE TABLE #{TABLE_NAME} (#{COLUMNS.join(',')})"
+    @connection.execute "CREATE TABLE #{SCHEMA_NAME}.\"#{TABLE_NAME}.table\" (#{COLUMNS.join(',')})"
     @connection.execute "CREATE SCHEMA #{SCHEMA2_NAME} CREATE TABLE #{TABLE_NAME} (#{COLUMNS.join(',')})"
     @connection.execute "CREATE INDEX #{INDEX_A_NAME} ON #{SCHEMA_NAME}.#{TABLE_NAME}  USING btree (#{INDEX_A_COLUMN});"
     @connection.execute "CREATE INDEX #{INDEX_A_NAME} ON #{SCHEMA2_NAME}.#{TABLE_NAME}  USING btree (#{INDEX_A_COLUMN});"
@@ -45,6 +58,37 @@ class SchemaTest < ActiveRecord::TestCase
         assert_equal COLUMNS, columns(TABLE_NAME)
       end
     end
+  end
+
+
+  def test_proper_encoding_of_table_name
+    assert_equal '"table_name"', @connection.quote_table_name('table_name')
+    assert_equal '"table.name"', @connection.quote_table_name('"table.name"')
+    assert_equal '"schema_name"."table_name"', @connection.quote_table_name('schema_name.table_name')
+    assert_equal '"schema_name"."table.name"', @connection.quote_table_name('schema_name."table.name"')
+    assert_equal '"schema.name"."table_name"', @connection.quote_table_name('"schema.name".table_name')
+    assert_equal '"schema.name"."table.name"', @connection.quote_table_name('"schema.name"."table.name"')
+  end
+
+  def test_classes_with_qualified_schema_name
+    assert_equal 0, Thing1.count
+    assert_equal 0, Thing2.count
+    assert_equal 0, Thing3.count
+
+    Thing1.create(:id => 1, :name => "thing1", :email => "thing1@localhost", :moment => Time.now)
+    assert_equal 1, Thing1.count
+    assert_equal 0, Thing2.count
+    assert_equal 0, Thing3.count
+
+    Thing2.create(:id => 1, :name => "thing1", :email => "thing1@localhost", :moment => Time.now)
+    assert_equal 1, Thing1.count
+    assert_equal 1, Thing2.count
+    assert_equal 0, Thing3.count
+
+    Thing3.create(:id => 1, :name => "thing1", :email => "thing1@localhost", :moment => Time.now)
+    assert_equal 1, Thing1.count
+    assert_equal 1, Thing2.count
+    assert_equal 1, Thing3.count
   end
 
   def test_raise_on_unquoted_schema_name

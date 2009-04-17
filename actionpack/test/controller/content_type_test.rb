@@ -54,6 +54,7 @@ class ContentTypeTest < ActionController::TestCase
   tests ContentTypeController
 
   def setup
+    super
     # enable a logger so that (e.g.) the benchmarking stuff runs, so we can get
     # a more accurate simulation of what happens in "real life".
     @controller.logger = Logger.new(nil)
@@ -136,10 +137,12 @@ class AcceptBasedContentTypeTest < ActionController::TestCase
   tests ContentTypeController
 
   def setup
+    super
     ActionController::Base.use_accept_header = true
   end
 
   def teardown
+    super
     ActionController::Base.use_accept_header = false
   end
 

@@ -31,6 +31,11 @@ module ActiveSupport
   #   t.is_a?(Time)                         # => true
   #   t.is_a?(ActiveSupport::TimeWithZone)  # => true
   class TimeWithZone
+    
+    def self.name
+      'Time' # Report class name as 'Time' to thwart type checking
+    end
+    
     include Comparable
     attr_reader :time_zone
 
@@ -238,10 +243,10 @@ module ActiveSupport
     end
 
     %w(year mon month day mday wday yday hour min sec to_date).each do |method_name|
-      class_eval <<-EOV
-        def #{method_name}     # def year
-          time.#{method_name}  #   time.year
-        end                    # end
+      class_eval <<-EOV, __FILE__, __LINE__ + 1
+        def #{method_name}    # def month
+          time.#{method_name} #   time.month
+        end                   # end
       EOV
     end
 

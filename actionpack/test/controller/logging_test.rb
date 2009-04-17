@@ -18,7 +18,10 @@ class LoggingTest < ActionController::TestCase
     end
   end
 
-  setup :set_logger
+  def setup
+    super
+    set_logger
+  end
 
   def test_logging_without_parameters
     get :show

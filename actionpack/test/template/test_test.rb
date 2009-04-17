@@ -20,6 +20,7 @@ end
 
 class PeopleHelperTest < ActionView::TestCase
   def setup
+    super
     ActionController::Routing::Routes.draw do |map|
       map.people 'people', :controller => 'people', :action => 'index'
       map.connect ':controller/:action/:id'

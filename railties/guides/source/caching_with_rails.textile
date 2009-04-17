@@ -2,7 +2,7 @@ h2. Caching with Rails: An overview
 
 Everyone caches. This guide will teach you what you need to know about
 avoiding that expensive round-trip to your database and returning what you
-need to return to those hungry web clients in the shortest time possible. 
+need to return to those hungry web clients in the shortest time possible.
 
 After reading this guide, you should be able to use and configure:
 
@@ -18,7 +18,7 @@ h3. Basic Caching
 This is an introduction to the three types of caching techniques that Rails
 provides by default without the use of any third party plugins.
 
-To start playing with testing you'll want to ensure that 
+To start playing with testing you'll want to ensure that
 +config.action_controller.perform_caching+ is set
 to +true+ if you're running in development mode. This flag is normally set in the
 corresponding config/environments/*.rb and caching is disabled by default
@@ -244,7 +244,7 @@ class ProductSweeper < ActionController::Caching::Sweeper
 end
 </ruby>
 
-You may notice that the actual product gets passed to the sweeper, so if we 
+You may notice that the actual product gets passed to the sweeper, so if we
 were caching the edit action for each product, we could add a expire method
 which specifies the page we want to expire:
 
@@ -264,7 +264,7 @@ class ProductsController < ActionController
   caches_action :index
   cache_sweeper :product_sweeper
 
-  def index 
+  def index
     @products = Product.all
   end
 
@@ -296,12 +296,12 @@ class ProductsController < ActionController
 end
 </ruby>
 
-The second time the same query is run against the database, it's not actually 
+The second time the same query is run against the database, it's not actually
 going to hit the database.  The first time the result is returned from the query
 it is stored in the query cache (in memory) and the second time it's pulled from memory.
 
 However, it's important to note that query caches are created at the start of an action and destroyed at the end of
-that action and thus persist only for the duration of the action.  If you'd like to store query results in a more 
+that action and thus persist only for the duration of the action.  If you'd like to store query results in a more
 persistent fashion, you can in Rails by using low level caching.
 
 h4. Cache stores
@@ -499,7 +499,7 @@ Also the new "Cache money":http://github.com/nkallen/cache-money/tree/master plu
 
 h3. References
 
-* "Scaling Rails Screencasts":http://railslab.newrelic.com/scaling-rails 
+* "Scaling Rails Screencasts":http://railslab.newrelic.com/scaling-rails
 * "RailsEnvy, Rails Caching Tutorial, Part 1":http://www.railsenvy.com/2007/2/28/rails-caching-tutorial
 * "RailsEnvy, Rails Caching Tutorial, Part 1":http://www.railsenvy.com/2007/3/20/ruby-on-rails-caching-tutorial-part-2
 * "ActiveSupport::Cache documentation":http://api.rubyonrails.org/classes/ActiveSupport/Cache.html

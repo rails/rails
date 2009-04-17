@@ -1,52 +1,46 @@
 require 'abstract_unit'
 require 'action_controller'
-require 'action_controller/test_process'
+require 'action_controller/testing/process'
 
-module Rails; end
 require 'rails/info'
 require 'rails/info_controller'
-
-class Rails::InfoController < ActionController::Base
-  @local_request = false
-  class << self
-    cattr_accessor :local_request
-  end
-  
-  # Re-raise errors caught by the controller.
-  def rescue_action(e) raise e end;
-  
-protected
-  def local_request?
-    self.class.local_request
-  end
-end
 
 ActionController::Routing::Routes.draw do |map|
   map.connect ':controller/:action/:id'
 end
 
-class Rails::InfoControllerTest < ActionController::TestCase
-  def setup
-    @controller = Rails::InfoController.new
-    @request    = ActionController::TestRequest.new
-    @response   = ActionController::TestResponse.new
+class InfoControllerTest < ActionController::TestCase
+  tests Rails::InfoController
 
-    ActionController::Base.consider_all_requests_local = true
+  def setup
+    @controller.stubs(:consider_all_requests_local => false, :local_request? => true)
   end
 
-  def test_rails_info_properties_table_rendered_for_local_request
-    Rails::InfoController.local_request = true
+  test "info controller does not allow remote requests" do
+    @controller.stubs(:consider_all_requests_local => false, :local_request? => false)
     get :properties
-    assert_tag :tag => 'table'
+    assert_response :forbidden
+  end
+
+  test "info controller renders an error message when request was forbidden" do
+    @controller.stubs(:consider_all_requests_local => false, :local_request? => false)
+    get :properties
+    assert_select 'p'
+  end
+
+  test "info controller allows requests when all requests are considered local" do
+    @controller.stubs(:consider_all_requests_local => true, :local_request? => false)
+    get :properties
     assert_response :success
   end
-  
-  def test_rails_info_properties_error_rendered_for_non_local_request
-    Rails::InfoController.local_request = false
-    ActionController::Base.consider_all_requests_local = false
 
+  test "info controller allows local requests" do
     get :properties
-    assert_tag :tag => 'p'
-    assert_response 500
+    assert_response :success
+  end
+
+  test "info controller renders a table with properties" do
+    get :properties
+    assert_select 'table'
   end
 end

@@ -25,9 +25,10 @@ class Author::Nested < Author; end
 
 
 class PrototypeHelperBaseTest < ActionView::TestCase
-  attr_accessor :template_format, :output_buffer
+  attr_accessor :formats, :output_buffer
 
   def setup
+    super
     @template = self
     @controller = Class.new do
       def url_for(options)

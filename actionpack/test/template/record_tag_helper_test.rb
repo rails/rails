@@ -13,6 +13,7 @@ class RecordTagHelperTest < ActionView::TestCase
   tests ActionView::Helpers::RecordTagHelper
 
   def setup
+    super
     @post = Post.new
   end
 

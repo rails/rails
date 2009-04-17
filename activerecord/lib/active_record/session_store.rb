@@ -40,7 +40,7 @@ module ActiveRecord
   #
   # The example SqlBypass class is a generic SQL session store.  You may
   # use it as a basis for high-performance database-specific stores.
-  class SessionStore < ActionController::Session::AbstractStore
+  class SessionStore < ActionDispatch::Session::AbstractStore
     # The default Active Record class.
     class Session < ActiveRecord::Base
       ##
@@ -184,7 +184,7 @@ module ActiveRecord
 
         # Look up a session by id and unmarshal its data if found.
         def find_by_session_id(session_id)
-          if record = @@connection.select_one("SELECT * FROM #{@@table_name} WHERE #{@@session_id_column}=#{@@connection.quote(session_id)}")
+          if record = connection.select_one("SELECT * FROM #{@@table_name} WHERE #{@@session_id_column}=#{connection.quote(session_id)}")
             new(:session_id => session_id, :marshaled_data => record['data'])
           end
         end

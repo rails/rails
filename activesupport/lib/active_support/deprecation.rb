@@ -89,7 +89,7 @@ module ActiveSupport
         method_names = method_names + options.keys
         method_names.each do |method_name|
           alias_method_chain(method_name, :deprecation) do |target, punctuation|
-            class_eval(<<-EOS, __FILE__, __LINE__)
+            class_eval(<<-EOS, __FILE__, __LINE__ + 1)
               def #{target}_with_deprecation#{punctuation}(*args, &block)   # def generate_secret_with_deprecation(*args, &block)
                 ::ActiveSupport::Deprecation.warn(                          #   ::ActiveSupport::Deprecation.warn(
                   self.class.deprecated_method_warning(                     #     self.class.deprecated_method_warning(

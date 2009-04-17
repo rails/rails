@@ -3,10 +3,11 @@ module ActionView #:nodoc:
   end
 
   class MissingTemplate < ActionViewError #:nodoc:
-    attr_reader :path
+    attr_reader :path, :action_name
 
     def initialize(paths, path, template_format = nil)
       @path = path
+      @action_name = path.split("/").last.split(".")[0...-1].join(".")
       full_template_path = path.include?('.') ? path : "#{path}.erb"
       display_paths = paths.compact.join(":")
       template_type = (path =~ /layouts/i) ? 'layout' : 'template'
@@ -160,13 +161,12 @@ module ActionView #:nodoc:
   #
   # See the ActionView::Helpers::PrototypeHelper::GeneratorMethods documentation for more details.
   class Base
-    include Helpers, Partials, ::ERB::Util
+    include Helpers, Rendering, Partials, ::ERB::Util
+
     extend ActiveSupport::Memoizable
 
-    attr_accessor :base_path, :assigns, :template_extension
+    attr_accessor :base_path, :assigns, :template_extension, :formats
     attr_accessor :controller
-
-    attr_writer :template_format
 
     attr_accessor :output_buffer
 
@@ -193,8 +193,12 @@ module ActionView #:nodoc:
 
     attr_internal :request
 
+    delegate :controller_path, :to => :controller, :allow_nil => true
+
     delegate :request_forgery_protection_token, :template, :params, :session, :cookies, :response, :headers,
              :flash, :logger, :action_name, :controller_name, :to => :controller
+
+    delegate :find_by_parts, :to => :view_paths
 
     module CompiledTemplates #:nodoc:
       # holds compiled template code
@@ -218,7 +222,8 @@ module ActionView #:nodoc:
       end
     end
 
-    def initialize(view_paths = [], assigns_for_first_render = {}, controller = nil)#:nodoc:
+    def initialize(view_paths = [], assigns_for_first_render = {}, controller = nil, formats = nil)#:nodoc:
+      @formats = formats || [:html]
       @assigns = assigns_for_first_render
       @assigns_added = nil
       @controller = controller
@@ -233,56 +238,6 @@ module ActionView #:nodoc:
 
     def view_paths=(paths)
       @view_paths = self.class.process_view_paths(paths)
-      # we might be using ReloadableTemplates, so we need to let them know this a new request
-      @view_paths.load!
-    end
-
-    # Returns the result of a render that's dictated by the options hash. The primary options are:
-    #
-    # * <tt>:partial</tt> - See ActionView::Partials.
-    # * <tt>:update</tt> - Calls update_page with the block given.
-    # * <tt>:file</tt> - Renders an explicit template file (this used to be the old default), add :locals to pass in those.
-    # * <tt>:inline</tt> - Renders an inline template similar to how it's done in the controller.
-    # * <tt>:text</tt> - Renders the text passed in out.
-    #
-    # If no options hash is passed or :update specified, the default is to render a partial and use the second parameter
-    # as the locals hash.
-    def render(options = {}, local_assigns = {}, &block) #:nodoc:
-      local_assigns ||= {}
-
-      case options
-      when Hash
-        options = options.reverse_merge(:locals => {})
-        if options[:layout]
-          _render_with_layout(options, local_assigns, &block)
-        elsif options[:file]
-          template = self.view_paths.find_template(options[:file], template_format)
-          template.render_template(self, options[:locals])
-        elsif options[:partial]
-          render_partial(options)
-        elsif options[:inline]
-          InlineTemplate.new(options[:inline], options[:type]).render(self, options[:locals])
-        elsif options[:text]
-          options[:text]
-        end
-      when :update
-        update_page(&block)
-      else
-        render_partial(:partial => options, :locals => local_assigns)
-      end
-    end
-
-    # The format to be used when choosing between multiple templates with
-    # the same name but differing formats.  See +Request#template_format+
-    # for more details.
-    def template_format
-      if defined? @template_format
-        @template_format
-      elsif controller && controller.respond_to?(:request)
-        @template_format = controller.request.template_format.to_sym
-      else
-        @template_format = :html
-      end
     end
 
     # Access the current template being rendered.
@@ -330,33 +285,6 @@ module ActionView #:nodoc:
       def _set_controller_content_type(content_type) #:nodoc:
         if controller.respond_to?(:response)
           controller.response.content_type ||= content_type
-        end
-      end
-
-      def _render_with_layout(options, local_assigns, &block) #:nodoc:
-        partial_layout = options.delete(:layout)
-
-        if block_given?
-          begin
-            @_proc_for_layout = block
-            concat(render(options.merge(:partial => partial_layout)))
-          ensure
-            @_proc_for_layout = nil
-          end
-        else
-          begin
-            original_content_for_layout = @content_for_layout if defined?(@content_for_layout)
-            @content_for_layout = render(options)
-
-            if (options[:inline] || options[:file] || options[:text])
-              @cached_content_for_layout = @content_for_layout
-              render(:file => partial_layout, :locals => local_assigns)
-            else
-              render(options.merge(:partial => partial_layout))
-            end
-          ensure
-            @content_for_layout = original_content_for_layout
-          end
         end
       end
   end

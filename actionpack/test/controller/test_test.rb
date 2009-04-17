@@ -119,6 +119,7 @@ XML
   end
 
   def setup
+    super
     @controller = TestController.new
     @request    = ActionController::TestRequest.new
     @response   = ActionController::TestResponse.new
@@ -127,11 +128,8 @@ XML
   end
 
   def teardown
+    super
     ActionController::Routing::Routes.reload
-  end
-
-  def test_test_request_has_session_options_initialized
-    assert @request.session_options
   end
 
   def test_raw_post_handling
@@ -647,7 +645,7 @@ class CleanBacktraceTest < ActionController::TestCase
   end
 
   def test_should_clean_assertion_lines_from_backtrace
-    path = File.expand_path("#{File.dirname(__FILE__)}/../../lib/action_controller")
+    path = File.expand_path("#{File.dirname(__FILE__)}/../../lib/action_controller/testing")
     exception = ActiveSupport::TestCase::Assertion.new('message')
     exception.set_backtrace ["#{path}/abc", "#{path}/assertions/def"]
     clean_backtrace { raise exception }

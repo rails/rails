@@ -20,6 +20,7 @@ class BenchmarkTest < ActionController::TestCase
   end
 
   def setup
+    super
     # benchmark doesn't do anything unless a logger is set
     @controller.logger = MockLogger.new
     @request.host = "test.actioncontroller.i"

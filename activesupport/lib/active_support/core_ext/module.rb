@@ -8,6 +8,7 @@ require 'active_support/core_ext/module/loading'
 require 'active_support/core_ext/module/aliasing'
 require 'active_support/core_ext/module/model_naming'
 require 'active_support/core_ext/module/synchronization'
+require 'active_support/core_ext/module/setup'
 
 module ActiveSupport
   module CoreExtensions

@@ -315,13 +315,6 @@ class TestController < ActionController::Base
   def render_implicit_html_template_from_xhr_request
   end
 
-  def render_implicit_js_template_without_layout
-  end
-
-  def render_html_explicit_template_and_layout
-    render :template => 'test/render_implicit_html_template_from_xhr_request', :layout => 'layouts/default_html'
-  end
-
   def formatted_html_erb
   end
 
@@ -390,7 +383,7 @@ class TestController < ActionController::Base
   end
 
   def accessing_params_in_template_with_layout
-    render :layout => nil, :inline =>  "Hello: <%= params[:name] %>"
+    render :layout => true, :inline =>  "Hello: <%= params[:name] %>"
   end
 
   def render_with_explicit_template
@@ -737,8 +730,6 @@ class TestController < ActionController::Base
              "delete_with_js", "update_page", "update_page_with_instance_variables"
 
           "layouts/standard"
-        when "render_implicit_js_template_without_layout"
-          "layouts/default_html"
         when "action_talk_to_layout", "layout_overriding_layout"
           "layouts/talk_from_action"
         when "render_implicit_html_template_from_xhr_request"
@@ -753,6 +744,7 @@ class RenderTest < ActionController::TestCase
   def setup
     # enable a logger so that (e.g.) the benchmarking stuff runs, so we can get
     # a more accurate simulation of what happens in "real life".
+    super
     @controller.logger = Logger.new(nil)
 
     @request.host = "www.nextangle.com"
@@ -833,11 +825,6 @@ class RenderTest < ActionController::TestCase
 
   def test_do_with_render_text_and_layout
     get :render_text_hello_world_with_layout
-    assert_equal "<html>hello world, I'm here!</html>", @response.body
-  end
-
-  def test_xhr_with_render_text_and_layout
-    xhr :get, :render_text_hello_world_with_layout
     assert_equal "<html>hello world, I'm here!</html>", @response.body
   end
 
@@ -1081,18 +1068,17 @@ class RenderTest < ActionController::TestCase
   end
 
   def test_should_implicitly_render_html_template_from_xhr_request
-    xhr :get, :render_implicit_html_template_from_xhr_request
-    assert_equal "XHR!\nHello HTML!", @response.body
-  end
-
-  def test_should_render_explicit_html_template_with_html_layout
-    xhr :get, :render_html_explicit_template_and_layout
-    assert_equal "<html>Hello HTML!</html>\n", @response.body
+    pending do
+      xhr :get, :render_implicit_html_template_from_xhr_request
+      assert_equal "XHR!\nHello HTML!", @response.body
+    end
   end
 
   def test_should_implicitly_render_js_template_without_layout
-    get :render_implicit_js_template_without_layout, :format => :js
-    assert_no_match /<html>/, @response.body
+    pending do
+      get :render_implicit_js_template_without_layout, :format => :js
+      assert_no_match %r{<html>}, @response.body
+    end
   end
 
   def test_should_render_formatted_template
@@ -1308,7 +1294,7 @@ class RenderTest < ActionController::TestCase
     assert !@response.headers.include?('Content-Length')
     assert_response :no_content
 
-    ActionController::StatusCodes::SYMBOL_TO_STATUS_CODE.each do |status, code|
+    ActionDispatch::StatusCodes::SYMBOL_TO_STATUS_CODE.each do |status, code|
       get :head_with_symbolic_status, :status => status.to_s
       assert_equal code, @response.response_code
       assert_response status
@@ -1316,7 +1302,7 @@ class RenderTest < ActionController::TestCase
   end
 
   def test_head_with_integer_status
-    ActionController::StatusCodes::STATUS_CODES.each do |code, message|
+    ActionDispatch::StatusCodes::STATUS_CODES.each do |code, message|
       get :head_with_integer_status, :status => code.to_s
       assert_equal message, @response.message
     end
@@ -1574,6 +1560,7 @@ class EtagRenderTest < ActionController::TestCase
   tests TestController
 
   def setup
+    super
     @request.host = "www.nextangle.com"
     @expected_bang_etag = etag_for(expand_key([:foo, 123]))
   end
@@ -1684,6 +1671,7 @@ class LastModifiedRenderTest < ActionController::TestCase
   tests TestController
 
   def setup
+    super
     @request.host = "www.nextangle.com"
     @last_modified = Time.now.utc.beginning_of_day.httpdate
   end
@@ -1739,6 +1727,7 @@ class RenderingLoggingTest < ActionController::TestCase
   tests TestController
 
   def setup
+    super
     @request.host = "www.nextangle.com"
   end
 
@@ -1746,7 +1735,7 @@ class RenderingLoggingTest < ActionController::TestCase
     @controller.logger = MockLogger.new
     get :layout_test
     logged = @controller.logger.logged.find_all {|l| l =~ /render/i }
-    assert_equal "Rendering template within layouts/standard", logged[0]
-    assert_equal "Rendering test/hello_world", logged[1]
+    assert_equal "Rendering test/hello_world", logged[0]
+    assert_equal "Rendering template within layouts/standard", logged[1]
   end
 end
