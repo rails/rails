@@ -41,9 +41,15 @@ module ActiveSupport #:nodoc:
           #   "hello".first(2)  # => "he"
           #   "hello".first(10) # => "hello"
           def first(limit = 1)
-            mb_chars[0..(limit - 1)].to_s
+            if limit == 0
+              ''
+            elsif limit >= size
+              self
+            else
+              mb_chars[0...limit].to_s
+            end
           end
-          
+
           # Returns the last character of the string or the last +limit+ characters.
           #
           # Examples: 
@@ -51,7 +57,13 @@ module ActiveSupport #:nodoc:
           #   "hello".last(2)  # => "lo"
           #   "hello".last(10) # => "hello"
           def last(limit = 1)
-            (mb_chars[(-limit)..-1] || self).to_s
+            if limit == 0
+              ''
+            elsif limit >= size
+              self
+            else
+              mb_chars[(-limit)..-1].to_s
+            end
           end
         end
       else
