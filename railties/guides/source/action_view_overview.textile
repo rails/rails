@@ -1,0 +1,69 @@
+h2. Action View Overview
+
+In this guide you will learn:
+
+* What Action View is, and how to use it
+
+endprologue.
+
+h3. What is Action View?
+
+TODO...
+
+h3. Using Action View with Rails
+
+TODO...
+
+h3. Using Action View outside of Rails
+
+TODO...
+
+h3. Templates, Partials and Layouts
+
+TODO...
+
+h3. Using Templates, Partials and Layouts in "The Rails Way"
+
+TODO...
+
+h3. Partial Layouts
+
+TODO...
+
+h3. View Paths
+
+TODO...
+
+h3. Overview of all the helpers provided by AV
+
+TODO...
+
+h3. Localized Views
+
+Action View has the ability render different templates depending on the current locale.
+
+For example, suppose you have a Posts controller with a show action. By default, calling this action will render +app/views/posts/show.html.erb+. But if you set +I18n.locale = :de+, then +app/views/posts/show.de.html.erb+ will be rendered instead. If the localized template isn't present, the undecorated version will be used. This means you're not required to provide localized views for all cases, but they will be preferred and used if available. 
+
+TODO add full code example...
+
+You can use the same technique to localize the rescue files in your public directory. For example, setting +I18n.locale = :de+ and creating +public/500.de.html+ and +public/404.de.html+ would allow you to have localized rescue pages.
+
+Since Rails doesn't restrict the symbols that you use to set I18n.locale, you can leverage this system to display different content depending on anything you like. For example, suppose you have some "expert" users that should see different pages from "normal" users. You could add the following to +app/controllers/application.rb+: 
+
+<ruby>
+before_filter :set_expert_locale
+
+def set_expert_locale
+  I18n.locale = :expert if current_user.expert?
+end
+</ruby>
+
+Then you could create special views like +app/views/posts/show.expert.html.erb+, which would only be displayed to expert users.
+
+You can read more about the Rails Internationalization (I18n) API "here":i18n.html. 
+
+h3. Changelog
+
+"Lighthouse Ticket":http://rails.lighthouseapp.com/projects/16213-rails-guides/tickets/71
+
+* April 5, 2009: Starting work by Trevor Turk, leveraging Mike Gunderloy's docs
