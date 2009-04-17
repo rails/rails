@@ -132,10 +132,12 @@ class StringInflectionsTest < Test::Unit::TestCase
 
     assert_equal "h", s.first
     assert_equal "he", s.first(2)
+    assert_equal "", s.first(0)
 
     assert_equal "o", s.last
     assert_equal "llo", s.last(3)
     assert_equal "hello", s.last(10)
+    assert_equal "", s.last(0)
 
     assert_equal 'x', 'x'.first
     assert_equal 'x', 'x'.first(4)
