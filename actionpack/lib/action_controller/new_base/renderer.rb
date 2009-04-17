@@ -8,7 +8,7 @@ module ActionController
     end
     
     def render(action, options = {})
-      # TODO: Move this into #render_to_string
+      # TODO: Move this into #render_to_body
       if action.is_a?(Hash)
         options, action = action, nil 
       else
@@ -17,10 +17,10 @@ module ActionController
       
       _process_options(options)
       
-      self.response_body = render_to_string(options)
+      self.response_body = render_to_body(options)
     end
 
-    def render_to_string(options)
+    def render_to_body(options)
       unless options.is_a?(Hash)
         options = {:action => options}
       end

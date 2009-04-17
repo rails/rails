@@ -134,7 +134,7 @@ module AbstractController
         self.class.layout(formats)
       end      
       
-      def render_to_string(options = {})
+      def render_to_body(options = {})
         options[:_layout] = options[:layout] || _layout
         super
       end  

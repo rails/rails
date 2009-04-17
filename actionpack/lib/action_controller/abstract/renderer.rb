@@ -17,7 +17,7 @@ module AbstractController
     end
         
     def render(options = {})
-      self.response_body = render_to_string(options)
+      self.response_body = render_to_body(options)
     end
     
     # Raw rendering of a template.
@@ -26,7 +26,7 @@ module AbstractController
     # @option _layout<String> The relative path to the layout template to use
     # 
     # :api: plugin
-    def render_to_string(options = {})
+    def render_to_body(options = {})
       name = options[:_template_name] || action_name
       
       template = options[:_template] || view_paths.find_by_parts(name.to_s, formats, options[:_prefix])

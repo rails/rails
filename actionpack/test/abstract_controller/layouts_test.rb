@@ -23,7 +23,7 @@ module AbstractControllerTests
       
       def controller_path() self.class.controller_path end
       
-      def render_to_string(options)
+      def render_to_body(options)
         options[:_layout] = _default_layout
         super
       end
