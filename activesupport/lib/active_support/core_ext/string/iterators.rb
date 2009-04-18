@@ -1,4 +1,4 @@
-require 'strscan'
+autoload :StringScanner, 'strscan' unless defined? :StringScanner
 
 module ActiveSupport #:nodoc:
   module CoreExtensions #:nodoc:
