@@ -1,5 +1,5 @@
-require 'yaml'
-require 'strscan'
+autoload :YAML, 'yaml' unless defined? YAML
+autoload :StringScanner, 'strscan' unless defined? StringScanner
 
 require 'active_support/core_ext/string/starts_ends_with'
 
