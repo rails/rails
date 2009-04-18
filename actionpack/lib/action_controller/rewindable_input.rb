@@ -1,27 +1,18 @@
 module ActionController
   class RewindableInput
-    class RewindableIO < ActiveSupport::BasicObject
-      def initialize(io)
-        @io = io
-        @rewindable = io.is_a?(::StringIO)
-      end
-
-      def method_missing(method, *args, &block)
-        unless @rewindable
-          @io = ::StringIO.new(@io.read)
-          @rewindable = true
-        end
-
-        @io.__send__(method, *args, &block)
-      end
-    end
-
     def initialize(app)
       @app = app
     end
 
     def call(env)
-      env['rack.input'] = RewindableIO.new(env['rack.input'])
+      begin
+        env['rack.input'].rewind
+      rescue NoMethodError, Errno::ESPIPE
+        # Handles exceptions raised by input streams that cannot be rewound
+        # such as when using plain CGI under Apache
+        env['rack.input'] = StringIO.new(env['rack.input'].read)
+      end
+
       @app.call(env)
     end
   end

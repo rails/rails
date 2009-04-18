@@ -151,6 +151,7 @@ class UrlEncodedParamsParsingTest < ActionController::IntegrationTest
 
       def call(env)
         env['rack.input'].read
+        env['rack.input'].rewind
         @app.call(env)
       end
     end

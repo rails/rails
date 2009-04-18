@@ -94,7 +94,7 @@ class DispatcherTest < Test::Unit::TestCase
     def dispatch(cache_classes = true)
       ActionController::Routing::RouteSet.any_instance.stubs(:call).returns([200, {}, 'response'])
       Dispatcher.define_dispatcher_callbacks(cache_classes)
-      Dispatcher.new.call({})
+      Dispatcher.new.call({'rack.input' => StringIO.new('')})
     end
 
     def assert_subclasses(howmany, klass, message = klass.subclasses.inspect)
