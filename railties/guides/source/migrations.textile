@@ -78,7 +78,7 @@ Active Record provides methods that perform common data definition tasks in a da
 
 If you need to perform tasks specific to your database (for example create a "foreign key":#active-record-and-referential-integrity constraint) then the +execute+ function allows you to execute arbitrary SQL. A migration is just a regular Ruby class so you're not limited to these functions. For example after adding a column you could write code to set the value of that column for existing records (if necessary using your models).
 
-On databases that support transactions with statements that change the schema (such as PostgreSQL), migrations are wrapped in a transaction. If the database does not support this (for example MySQL and SQLite) then when a migration fails the parts of it that succeeded will not be rolled back. You will have to unpick the changes that were made by hand.
+On databases that support transactions with statements that change the schema (such as PostgreSQL or SQLite3), migrations are wrapped in a transaction. If the database does not support this (for example MySQL) then when a migration fails the parts of it that succeeded will not be rolled back. You will have to unpick the changes that were made by hand.
 
 h4. What's in a Name
 
