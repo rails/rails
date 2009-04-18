@@ -1,3 +1,8 @@
+*Edge*
+
+* Removed rarely-used DRb cache store.  [Jeremy Kemper]
+
+
 *2.3.2 [Final] (March 15, 2009)*
 
 * XmlMini supports LibXML and Nokogiri backends.  #2084, #2190 [Bart ten Brinke, Aaron Patterson]
