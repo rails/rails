@@ -167,31 +167,31 @@ module ActionView
       #
       # In addition to the <tt>:include_blank</tt> option documented above,
       # this method also supports a <tt>:model</tt> option, which defaults
-      # to TimeZone. This may be used by users to specify a different time
-      # zone model object. (See +time_zone_options_for_select+ for more
-      # information.)
+      # to ActiveSupport::TimeZone. This may be used by users to specify a
+      # different time zone model object. (See +time_zone_options_for_select+
+      # for more information.)
       #
-      # You can also supply an array of TimeZone objects
+      # You can also supply an array of ActiveSupport::TimeZone objects
       # as +priority_zones+, so that they will be listed above the rest of the
-      # (long) list. (You can use TimeZone.us_zones as a convenience for
-      # obtaining a list of the US time zones, or a Regexp to select the zones
+      # (long) list. (You can use ActiveSupport::TimeZone.us_zones as a convenience
+      # for obtaining a list of the US time zones, or a Regexp to select the zones
       # of your choice)
       #
       # Finally, this method supports a <tt>:default</tt> option, which selects
-      # a default TimeZone if the object's time zone is +nil+.
+      # a default ActiveSupport::TimeZone if the object's time zone is +nil+.
       #
       # Examples:
       #   time_zone_select( "user", "time_zone", nil, :include_blank => true)
       #
       #   time_zone_select( "user", "time_zone", nil, :default => "Pacific Time (US & Canada)" )
       #
-      #   time_zone_select( "user", 'time_zone', TimeZone.us_zones, :default => "Pacific Time (US & Canada)")
+      #   time_zone_select( "user", 'time_zone', ActiveSupport::TimeZone.us_zones, :default => "Pacific Time (US & Canada)")
       #
-      #   time_zone_select( "user", 'time_zone', [ TimeZone['Alaska'], TimeZone['Hawaii'] ])
+      #   time_zone_select( "user", 'time_zone', [ ActiveSupport::TimeZone['Alaska'], ActiveSupport::TimeZone['Hawaii'] ])
       #
       #   time_zone_select( "user", 'time_zone', /Australia/)
       #
-      #   time_zone_select( "user", "time_zone", TZInfo::Timezone.all.sort, :model => TZInfo::Timezone)
+      #   time_zone_select( "user", "time_zone", ActiveSupport::Timezone.all.sort, :model => ActiveSupport::Timezone)
       def time_zone_select(object, method, priority_zones = nil, options = {}, html_options = {})
         InstanceTag.new(object, method, self,  options.delete(:object)).to_time_zone_select_tag(priority_zones, options, html_options)
       end
@@ -391,20 +391,20 @@ module ActionView
       end
 
       # Returns a string of option tags for pretty much any time zone in the
-      # world. Supply a TimeZone name as +selected+ to have it marked as the
-      # selected option tag. You can also supply an array of TimeZone objects
-      # as +priority_zones+, so that they will be listed above the rest of the
-      # (long) list. (You can use TimeZone.us_zones as a convenience for
-      # obtaining a list of the US time zones, or a Regexp to select the zones
-      # of your choice)
+      # world. Supply a ActiveSupport::TimeZone name as +selected+ to have it
+      # marked as the selected option tag. You can also supply an array of
+      # ActiveSupport::TimeZone objects as +priority_zones+, so that they will
+      # be listed above the rest of the (long) list. (You can use
+      # ActiveSupport::TimeZone.us_zones as a convenience for obtaining a list
+      # of the US time zones, or a Regexp to select the zones of your choice)
       #
       # The +selected+ parameter must be either +nil+, or a string that names
-      # a TimeZone.
+      # a ActiveSupport::TimeZone.
       #
-      # By default, +model+ is the TimeZone constant (which can be obtained
-      # in Active Record as a value object). The only requirement is that the
-      # +model+ parameter be an object that responds to +all+, and returns
-      # an array of objects that represent time zones.
+      # By default, +model+ is the ActiveSupport::TimeZone constant (which can
+      # be obtained in Active Record as a value object). The only requirement
+      # is that the +model+ parameter be an object that responds to +all+, and
+      # returns an array of objects that represent time zones.
       #
       # NOTE: Only the option tags are returned, you have to wrap this call in
       # a regular HTML select tag.
