@@ -150,8 +150,7 @@ class UrlEncodedParamsParsingTest < ActionController::IntegrationTest
       end
 
       def call(env)
-        req = Rack::Request.new(env)
-        req.params # Parse params
+        env['rack.input'].read
         @app.call(env)
       end
     end
