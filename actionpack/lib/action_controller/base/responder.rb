@@ -5,18 +5,19 @@ module ActionController
     end
     
     private
-    def render_for_text(text = nil, append_response = false) #:nodoc:
+    def render_for_text(text) #:nodoc:
       @performed_render = true
 
-      if append_response
-        response.body ||= ''
-        response.body << text.to_s
-      else
-        response.body = case text
-          when Proc then text
-          when nil  then " " # Safari doesn't pass the headers of the return if the response is zero length
-          else           text.to_s
+      case text
+      when Proc
+        response.body = text
+      when nil
+        # Safari 2 doesn't pass response headers if the response is zero-length
+        if response.body_parts.empty?
+          response.body_parts << ' '
         end
+      else
+        response.body_parts << text
       end
     end
     
