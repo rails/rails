@@ -6,7 +6,6 @@ This guide covers different ways to retrieve data from the database using Active
 * Specify the order, retrieved attributes, grouping, and other properties of the found records
 * Use eager loading to reduce the number of database queries needed for data retrieval
 * Use dynamic finders methods
-* Create named scopes to add custom finding behavior to your models
 * Check for the existence of particular records
 * Perform various calculations on Active Record models
 
