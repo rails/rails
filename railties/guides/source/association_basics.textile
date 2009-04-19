@@ -600,6 +600,7 @@ The +belongs_to+ association supports these options:
 * +:polymorphic+
 * +:readonly+
 * +:select+
+* +:touch+
 * +:validate+
 
 h6. +:autosave+
@@ -735,6 +736,28 @@ h6. +:select+
 The +:select+ option lets you override the SQL +SELECT+ clause that is used to retrieve data about the associated object. By default, Rails retrieves all columns.
 
 TIP: If you set the +:select+ option on a +belongs_to+ association, you should also set the +foreign_key+ option to guarantee the correct results.
+
+h6. +:touch+
+
+If you set the +:touch+ option to +:true+, then the +updated_at+ or +updated_on+ timestamp on the associated object will be set to the current time whenever this object is saved or destroyed:
+
+<ruby>
+class Order < ActiveRecord::Base
+  belongs_to :customer, :touch => true
+end
+
+class Customer < ActiveRecord::Base
+  has_many :orders
+end
+</ruby>
+
+In this case, saving or destroying an order will update the timestamp on the associated customer. You can also specify a particular timestamp attribute to update:
+
+<ruby>
+class Order < ActiveRecord::Base
+  belongs_to :customer, :touch => :orders_updated_at
+end
+</ruby>
 
 h6. +:validate+
 
@@ -1775,6 +1798,7 @@ h3. Changelog
 
 "Lighthouse ticket":http://rails.lighthouseapp.com/projects/16213-rails-guides/tickets/11
 
+* April 19, 2009: Added +:touch+ option to +belongs_to+ associations by "Mike Gunderloy":credits.html#mgunderloy
 * February 1, 2009: Added +:autosave+ option "Mike Gunderloy":credits.html#mgunderloy
 * September 28, 2008: Corrected +has_many :through+ diagram, added polymorphic diagram, some reorganization by "Mike Gunderloy":credits.html#mgunderloy . First release version.
 * September 22, 2008: Added diagrams, misc. cleanup by "Mike Gunderloy":credits.html#mgunderloy (not yet approved for publication)
