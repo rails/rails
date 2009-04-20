@@ -68,6 +68,10 @@ ActiveRecord::Schema.define do
     t.boolean :value
   end
 
+  create_table "CamelCase", :force => true do |t|
+    t.string :name
+  end
+
   create_table :categories, :force => true do |t|
     t.string :name, :null => false
     t.string :type

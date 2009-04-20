@@ -22,6 +22,11 @@ class SchemaDumperTest < ActiveRecord::TestCase
     assert_no_match %r{create_table "sqlite_sequence"}, output
   end
 
+  def test_schema_dump_includes_camelcase_table_name
+    output = standard_dump
+    assert_match %r{create_table "CamelCase"}, output
+  end
+
   def assert_line_up(lines, pattern, required = false)
     return assert(true) if lines.empty?
     matches = lines.map { |line| line.match(pattern) }
