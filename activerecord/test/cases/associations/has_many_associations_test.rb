@@ -719,6 +719,12 @@ class HasManyAssociationsTest < ActiveRecord::TestCase
     assert Client.find(:all, :conditions => "firm_id=#{firm.id}").empty?
   end
 
+  def test_dependence_for_associations_with_hash_condition
+    david = authors(:david)
+    post = posts(:thinking).id
+    assert_difference('Post.count', -1) { assert david.destroy }
+  end
+
   def test_destroy_dependent_when_deleted_from_association
     firm = Firm.find(:first)
     assert_equal 2, firm.clients.size
