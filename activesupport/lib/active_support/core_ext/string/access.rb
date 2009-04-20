@@ -81,11 +81,23 @@ module ActiveSupport #:nodoc:
           end
 
           def first(limit = 1)
-            self[0..(limit - 1)]
+            if limit == 0
+              ''
+            elsif limit >= size
+              self
+            else
+              to(limit - 1)
+            end
           end
 
           def last(limit = 1)
-            from(-limit) || self
+            if limit == 0
+              ''
+            elsif limit >= size
+              self
+            else
+              from(-limit)
+            end
           end
         end
       end
