@@ -640,33 +640,36 @@ module ActiveRecord
       def indexes(table_name, name = nil)
          schemas = schema_search_path.split(/,/).map { |p| quote(p) }.join(',')
          result = query(<<-SQL, name)
-           SELECT distinct i.relname, d.indisunique, a.attname
-             FROM pg_class t, pg_class i, pg_index d, pg_attribute a
+           SELECT distinct i.relname, d.indisunique, d.indkey, t.oid
+             FROM pg_class t, pg_class i, pg_index d
            WHERE i.relkind = 'i'
              AND d.indexrelid = i.oid
              AND d.indisprimary = 'f'
              AND t.oid = d.indrelid
              AND t.relname = '#{table_name}'
              AND i.relnamespace IN (SELECT oid FROM pg_namespace WHERE nspname IN (#{schemas}) )
-             AND a.attrelid = t.oid
-             AND ( d.indkey[0]=a.attnum OR d.indkey[1]=a.attnum
-                OR d.indkey[2]=a.attnum OR d.indkey[3]=a.attnum
-                OR d.indkey[4]=a.attnum OR d.indkey[5]=a.attnum
-                OR d.indkey[6]=a.attnum OR d.indkey[7]=a.attnum
-                OR d.indkey[8]=a.attnum OR d.indkey[9]=a.attnum )
           ORDER BY i.relname
         SQL
 
-        current_index = nil
+
         indexes = []
 
-        result.each do |row|
-          if current_index != row[0]
-            indexes << IndexDefinition.new(table_name, row[0], row[1] == "t", [])
-            current_index = row[0]
-          end
+        indexes = result.map do |row|
+          index_name = row[0]
+          unique = row[1] == 't'
+          indkey = row[2].split(" ")
+          oid = row[3]
 
-          indexes.last.columns << row[2]
+          columns = query(<<-SQL, "Columns for index #{row[0]} on #{table_name}").inject({}) {|attlist, r| attlist[r[1]] = r[0]; attlist}
+          SELECT a.attname, a.attnum
+          FROM pg_attribute a
+          WHERE a.attrelid = #{oid}
+          AND a.attnum IN (#{indkey.join(",")})
+          SQL
+
+          column_names = indkey.map {|attnum| columns[attnum] }
+          IndexDefinition.new(table_name, index_name, unique, column_names)
+
         end
 
         indexes
