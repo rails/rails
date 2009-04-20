@@ -24,6 +24,8 @@ class Author < ActiveRecord::Base
   has_many :comments_with_order_and_conditions, :through => :posts, :source => :comments, :order => 'comments.body', :conditions => "comments.body like 'Thank%'"
   has_many :comments_with_include, :through => :posts, :source => :comments, :include => :post
 
+  has_many :thinking_posts, :class_name => 'Post', :conditions => { :title => 'So I was thinking' }
+  has_many :welcome_posts,  :class_name => 'Post', :conditions => { :title => 'Welcome to the weblog' }
 
   has_many :comments_desc, :through => :posts, :source => :comments, :order => 'comments.id DESC'
   has_many :limited_comments, :through => :posts, :source => :comments, :limit => 1

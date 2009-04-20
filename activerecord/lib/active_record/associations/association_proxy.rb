@@ -169,8 +169,8 @@ module ActiveRecord
         end
 
         # Forwards the call to the reflection class.
-        def sanitize_sql(sql)
-          @reflection.klass.send(:sanitize_sql, sql)
+        def sanitize_sql(sql, table_name = @reflection.klass.quoted_table_name)
+          @reflection.klass.send(:sanitize_sql, sql, table_name)
         end
 
         # Assigns the ID of the owner to the corresponding foreign key in +record+.
