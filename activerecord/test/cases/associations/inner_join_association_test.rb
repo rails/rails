@@ -29,6 +29,11 @@ class InnerJoinAssociationTest < ActiveRecord::TestCase
     assert_match /INNER JOIN .?categories.? ON.*AND.*.?General.?.*TERMINATING_MARKER/, sql
   end
 
+  def test_construct_finder_sql_applies_aliases_tables_on_association_conditions
+    result = Author.find(:all, :joins => [:thinking_posts, :welcome_posts])
+    assert_equal authors(:david), result.first
+  end
+
   def test_construct_finder_sql_unpacks_nested_joins
     sql = Author.send(:construct_finder_sql, :joins => {:posts => [[:comments]]})
     assert_no_match /inner join.*inner join.*inner join/i, sql, "only two join clauses should be present"
