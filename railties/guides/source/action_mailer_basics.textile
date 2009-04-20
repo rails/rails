@@ -264,9 +264,9 @@ end
 
 h4. Sending Multipart Emails with Attachments
 
-Once you use the +attachment+ method, ActionMailer will no longer automagically use the correct template based on the filename. You must declare which template you are using for each content type via the +part+ method.
+Once you use the +attachment+ method, ActionMailer will no longer automagically use the correct template based on the filename, nor will it properly order the alternative parts. You must declare which template you are using for each content type via the +part+ method.  And you must declare these templates in the proper order.
 
-In the following example, there would be two template files, +welcome_email_html.erb+ and +welcome_email_plain.erb+ in the +app/views/user_mailer+ folder.
+In the following example, there would be two template files, +welcome_email_html.erb+ and +welcome_email_plain.erb+ in the +app/views/user_mailer+ folder.  The +text/plain+ part must be listed first for full compatibility with email clients.  If +text/plain+ is listed after +text/html+, some clients may display both the HTML and plain text versions of the email.  The text alternatives alone must be enclosed in a +multipart/alternative+ part.  Do not set the entire message's +content_type+ to +multipart/alternative+ or some email clients may ignore the display of attachments such as PDF's.
 
 <ruby>
 class UserMailer < ActionMailer::Base
@@ -274,14 +274,15 @@ class UserMailer < ActionMailer::Base
     recipients      user.email_address
     subject         "New account information"
     from            "system@example.com"
-    content_type    "multipart/alternative"
 
-    part "text/html" do |p|
-      p.body = render_message("welcome_email_html", :message => "<h1>HTML content</h1>")
-    end
+    part "multipart/alternative" do |pt|
+      pt.part "text/plain" do |p|
+        p.body = render_message("welcome_email_plain", :message => "text content")
+      end
 
-    part "text/plain" do |p|
-      p.body = render_message("welcome_email_plain", :message => "text content")
+      pt.part "text/html" do |p|
+        p.body = render_message("welcome_email_html", :message => "<h1>HTML content</h1>")
+      end
     end
 
     attachment :content_type => "image/jpeg",
