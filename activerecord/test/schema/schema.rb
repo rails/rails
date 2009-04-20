@@ -118,6 +118,8 @@ ActiveRecord::Schema.define do
     t.integer :rating, :default => 1
   end
 
+  add_index :companies, [:firm_id, :type, :rating, :ruby_type], :name => "company_index"
+
   create_table :computers, :force => true do |t|
     t.integer :developer, :null => false
     t.integer :extendedWarranty, :null => false

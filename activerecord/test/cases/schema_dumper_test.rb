@@ -152,6 +152,11 @@ class SchemaDumperTest < ActiveRecord::TestCase
     end
   end
 
+  def test_schema_dumps_index_columns_in_right_order
+    index_definition = standard_dump.split(/\n/).grep(/add_index.*companies/).first.strip
+    assert_equal 'add_index "companies", ["firm_id", "type", "rating", "ruby_type"], :name => "company_index"', index_definition
+  end
+
   if current_adapter?(:MysqlAdapter)
     def test_schema_dump_should_not_add_default_value_for_mysql_text_field
       output = standard_dump
