@@ -116,12 +116,12 @@ module ActiveSupport
       end
       
       def normalize_options!(options)
-        options[:if] = Array(options[:if])
-        options[:unless] = Array(options[:unless])
+        options[:if] = Array.wrap(options[:if])
+        options[:unless] = Array.wrap(options[:unless])
 
         options[:per_key] ||= {}
-        options[:per_key][:if] = Array(options[:per_key][:if])
-        options[:per_key][:unless] = Array(options[:per_key][:unless])
+        options[:per_key][:if] = Array.wrap(options[:per_key][:if])
+        options[:per_key][:unless] = Array.wrap(options[:per_key][:unless])
       end
       
       def next_id
@@ -246,11 +246,11 @@ module ActiveSupport
         conditions = []
         
         unless options[:if].empty?
-          conditions << Array(_compile_filter(options[:if]))
+          conditions << Array.wrap(_compile_filter(options[:if]))
         end
         
         unless options[:unless].empty?
-          conditions << Array(_compile_filter(options[:unless])).map {|f| "!#{f}"}
+          conditions << Array.wrap(_compile_filter(options[:unless])).map {|f| "!#{f}"}
         end
         
         ["if #{conditions.flatten.join(" && ")}", "end"]
