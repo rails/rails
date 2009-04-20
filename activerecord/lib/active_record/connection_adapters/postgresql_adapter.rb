@@ -858,7 +858,7 @@ module ActiveRecord
 
       # Drops an index from a table.
       def remove_index(table_name, options = {})
-        execute "DROP INDEX #{index_name(table_name, options)}"
+        execute "DROP INDEX #{quote_table_name(index_name(table_name, options))}"
       end
 
       # Maps logical Rails types to PostgreSQL-specific data types.
