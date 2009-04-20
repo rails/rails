@@ -113,6 +113,16 @@ class SchemaTest < ActiveRecord::TestCase
     do_dump_index_tests_for_schema(SCHEMA2_NAME, INDEX_A_COLUMN, INDEX_B_COLUMN_S2)
   end
 
+  def test_with_uppercase_index_name
+    ActiveRecord::Base.connection.execute "CREATE INDEX \"things_Index\" ON #{SCHEMA_NAME}.things (name)"
+    assert_nothing_raised { ActiveRecord::Base.connection.remove_index :things, :name => "#{SCHEMA_NAME}.things_Index"}
+
+    ActiveRecord::Base.connection.execute "CREATE INDEX \"things_Index\" ON #{SCHEMA_NAME}.things (name)"
+    ActiveRecord::Base.connection.schema_search_path = SCHEMA_NAME
+    assert_nothing_raised { ActiveRecord::Base.connection.remove_index :things, :name => "things_Index"}
+    ActiveRecord::Base.connection.schema_search_path = "public"
+  end
+
   private
     def columns(table_name)
       @connection.send(:column_definitions, table_name).map do |name, type, default|
