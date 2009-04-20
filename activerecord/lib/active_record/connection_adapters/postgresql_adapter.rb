@@ -764,7 +764,7 @@ module ActiveRecord
             AND attr.attrelid     = cons.conrelid
             AND attr.attnum       = cons.conkey[1]
             AND cons.contype      = 'p'
-            AND dep.refobjid      = '#{table}'::regclass
+            AND dep.refobjid      = '#{quote_table_name(table)}'::regclass
         end_sql
 
         if result.nil? or result.empty?
@@ -783,7 +783,7 @@ module ActiveRecord
             JOIN pg_attribute   attr ON (t.oid = attrelid)
             JOIN pg_attrdef     def  ON (adrelid = attrelid AND adnum = attnum)
             JOIN pg_constraint  cons ON (conrelid = adrelid AND adnum = conkey[1])
-            WHERE t.oid = '#{table}'::regclass
+            WHERE t.oid = '#{quote_table_name(table)}'::regclass
               AND cons.contype = 'p'
               AND def.adsrc ~* 'nextval'
           end_sql
@@ -1059,7 +1059,7 @@ module ActiveRecord
             SELECT a.attname, format_type(a.atttypid, a.atttypmod), d.adsrc, a.attnotnull
               FROM pg_attribute a LEFT JOIN pg_attrdef d
                 ON a.attrelid = d.adrelid AND a.attnum = d.adnum
-             WHERE a.attrelid = '#{table_name}'::regclass
+             WHERE a.attrelid = '#{quote_table_name(table_name)}'::regclass
                AND a.attnum > 0 AND NOT a.attisdropped
              ORDER BY a.attnum
           end_sql
