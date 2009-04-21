@@ -20,7 +20,7 @@ module AbstractController
       self.response_body = render_to_body(options)
     end
     
-    # Raw rendering of a template.
+    # Raw rendering of a template to a Rack-compatible body.
     # ====
     # @option _prefix<String> The template's path prefix
     # @option _layout<String> The relative path to the layout template to use
@@ -31,6 +31,16 @@ module AbstractController
       
       template = options[:_template] || view_paths.find_by_parts(name.to_s, formats, options[:_prefix])
       _render_template(template, options)
+    end
+
+    # Raw rendering of a template to a string.
+    # ====
+    # @option _prefix<String> The template's path prefix
+    # @option _layout<String> The relative path to the layout template to use
+    # 
+    # :api: plugin
+    def render_to_string(options = {})
+      Rack::Utils.body_to_s(render_to_body(options)).to_ary.join
     end
 
     def _render_template(template, options)

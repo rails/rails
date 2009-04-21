@@ -306,9 +306,9 @@ module ActionController
       (name.is_a?(String) ? name.sub(/^#{controller_path}\//, '') : name).to_s
     end
 
-    # Renders according to the same rules as <tt>render</tt>, but returns the result in a string instead
-    # of sending it as the response body to the browser.
-    def render_to_string(options = nil, &block) #:doc:
+    # Same rules as <tt>render</tt>, but returns a Rack-compatible body
+    # instead of sending the response.
+    def render_to_body(options = nil, &block) #:doc:
       render(options, &block)
       response.body
     ensure
@@ -316,7 +316,11 @@ module ActionController
       erase_render_results
       reset_variables_added_to_assigns
     end
-    
+
+    def render_to_string(options = {})
+      Rack::Utils.body_to_s(render_to_body(options)).to_ary.join
+    end
+
     # Clears the rendered results, allowing for another render to be performed.
     def erase_render_results #:nodoc:
       response.body = []
