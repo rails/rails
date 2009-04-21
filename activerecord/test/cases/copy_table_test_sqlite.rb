@@ -10,7 +10,7 @@ class CopyTableTest < ActiveRecord::TestCase
     end
   end
 
-  def test_copy_table(from = 'companies', to = 'companies2', options = {})
+  def test_copy_table(from = 'customers', to = 'customers2', options = {})
     assert_nothing_raised {copy_table(from, to, options)}
     assert_equal row_count(from), row_count(to)
 
@@ -24,11 +24,11 @@ class CopyTableTest < ActiveRecord::TestCase
   end
 
   def test_copy_table_renaming_column
-    test_copy_table('companies', 'companies2',
-        :rename => {'client_of' => 'fan_of'}) do |from, to, options|
-      expected = column_values(from, 'client_of')
+    test_copy_table('customers', 'customers2',
+        :rename => {'name' => 'person_name'}) do |from, to, options|
+      expected = column_values(from, 'name')
       assert expected.any?, 'only nils in resultset; real values are needed'
-      assert_equal expected, column_values(to, 'fan_of')
+      assert_equal expected, column_values(to, 'person_name')
     end
   end
 
