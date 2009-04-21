@@ -137,9 +137,9 @@ Hence, if the method name starts with +deliver_+ followed by any combination of 
 
 h4. Complete List of Action Mailer User-Settable Attributes
 
-|bcc| The BCC addresses of the email|
+|bcc| The BCC addresses of the email, either as a string (for a single address) or an array of strings (for multiple addresses)|
 |body| The body of the email. This is either a hash (in which case it specifies the variables to pass to the template when it is rendered), or a string, in which case it specifies the actual body of the message|
-|cc| The CC addresses for the email|
+|cc| The CC addresses for the email, either as a string (for a single address) or an array of strings (for multiple addresses)|
 |charset| The charset to use for the email. This defaults to the +default_charset+ specified for ActionMailer::Base.|
 |content_type| The content type for the email. This defaults to "text/plain" but the filename may specify it|
 |from| The from address of the email|
