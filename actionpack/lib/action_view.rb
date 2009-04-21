@@ -31,6 +31,8 @@ rescue LoadError
   end
 end
 
+require File.join(File.dirname(__FILE__), "action_pack")
+
 module ActionView
   def self.load_all!
     [Base, InlineTemplate, TemplateError]
@@ -38,16 +40,18 @@ module ActionView
 
   autoload :Base, 'action_view/base'
   autoload :Helpers, 'action_view/helpers'
-  autoload :InlineTemplate, 'action_view/inline_template'
-  autoload :Partials, 'action_view/partials'
+  autoload :InlineTemplate, 'action_view/template/inline'
+  autoload :Partials, 'action_view/render/partials'
+  autoload :Path, 'action_view/template/path'
   autoload :PathSet, 'action_view/paths'
-  autoload :Renderable, 'action_view/renderable'
-  autoload :RenderablePartial, 'action_view/renderable_partial'
-  autoload :Template, 'action_view/template'
-  autoload :ReloadableTemplate, 'action_view/reloadable_template'
-  autoload :TemplateError, 'action_view/template_error'
-  autoload :TemplateHandler, 'action_view/template_handler'
-  autoload :TemplateHandlers, 'action_view/template_handlers'
+  autoload :Rendering, 'action_view/render/rendering'
+  autoload :Renderable, 'action_view/template/renderable'
+  autoload :RenderablePartial, 'action_view/template/partial'
+  autoload :Template, 'action_view/template/template'
+  autoload :TemplateError, 'action_view/template/error'
+  autoload :TemplateHandler, 'action_view/template/handler'
+  autoload :TemplateHandlers, 'action_view/template/handlers'
+  autoload :TextTemplate, 'action_view/template/text'
   autoload :Helpers, 'action_view/helpers'
 end
 

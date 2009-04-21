@@ -10,6 +10,8 @@ module ActiveSupport
 
           if defined?(MiniTest::Assertions) && TestCase < MiniTest::Assertions
             include ForMiniTest
+          elsif defined? Spec
+            include ForRspec
           else
             include ForClassicTestUnit
           end
@@ -34,7 +36,7 @@ module ActiveSupport
           result
         end
       end
-
+      
       module ForClassicTestUnit
         # For compatibility with Ruby < 1.8.6
         PASSTHROUGH_EXCEPTIONS = Test::Unit::TestCase::PASSTHROUGH_EXCEPTIONS rescue [NoMemoryError, SignalException, Interrupt, SystemExit]

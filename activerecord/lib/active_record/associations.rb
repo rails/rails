@@ -981,6 +981,9 @@ module ActiveRecord
       #   If false, don't validate the associated objects when saving the parent object. +false+ by default.
       # [:autosave]
       #   If true, always save the associated object or destroy it if marked for destruction, when saving the parent object. Off by default.
+      # [:touch]
+      #   If true, the associated object will be touched (the updated_at/on attributes set to now) when this record is either saved or
+      #   destroyed. If you specify a symbol, that attribute will be updated with the current time instead of the updated_at/on attribute.
       #
       # Option examples:
       #   belongs_to :firm, :foreign_key => "client_of"
@@ -990,6 +993,8 @@ module ActiveRecord
       #   belongs_to :attachable, :polymorphic => true
       #   belongs_to :project, :readonly => true
       #   belongs_to :post, :counter_cache => true
+      #   belongs_to :company, :touch => true
+      #   belongs_to :company, :touch => :employees_last_updated_at
       def belongs_to(association_id, options = {})
         reflection = create_belongs_to_reflection(association_id, options)
 
@@ -1001,28 +1006,8 @@ module ActiveRecord
           association_constructor_method(:create, reflection, BelongsToAssociation)
         end
 
-        # Create the callbacks to update counter cache
-        if options[:counter_cache]
-          cache_column = reflection.counter_cache_column
-
-          method_name = "belongs_to_counter_cache_after_create_for_#{reflection.name}".to_sym
-          define_method(method_name) do
-            association = send(reflection.name)
-            association.class.increment_counter(cache_column, send(reflection.primary_key_name)) unless association.nil?
-          end
-          after_create method_name
-
-          method_name = "belongs_to_counter_cache_before_destroy_for_#{reflection.name}".to_sym
-          define_method(method_name) do
-            association = send(reflection.name)
-            association.class.decrement_counter(cache_column, send(reflection.primary_key_name)) unless association.nil?
-          end
-          before_destroy method_name
-
-          module_eval(
-            "#{reflection.class_name}.send(:attr_readonly,\"#{cache_column}\".intern) if defined?(#{reflection.class_name}) && #{reflection.class_name}.respond_to?(:attr_readonly)"
-          )
-        end
+        add_counter_cache_callbacks(reflection)          if options[:counter_cache]
+        add_touch_callbacks(reflection, options[:touch]) if options[:touch]
 
         configure_dependency_for_belongs_to(reflection)
       end
@@ -1329,6 +1314,43 @@ module ActiveRecord
           end
         end
 
+        def add_counter_cache_callbacks(reflection)
+          cache_column = reflection.counter_cache_column
+
+          method_name = "belongs_to_counter_cache_after_create_for_#{reflection.name}".to_sym
+          define_method(method_name) do
+            association = send(reflection.name)
+            association.class.increment_counter(cache_column, send(reflection.primary_key_name)) unless association.nil?
+          end
+          after_create(method_name)
+
+          method_name = "belongs_to_counter_cache_before_destroy_for_#{reflection.name}".to_sym
+          define_method(method_name) do
+            association = send(reflection.name)
+            association.class.decrement_counter(cache_column, send(reflection.primary_key_name)) unless association.nil?
+          end
+          before_destroy(method_name)
+
+          module_eval(
+            "#{reflection.class_name}.send(:attr_readonly,\"#{cache_column}\".intern) if defined?(#{reflection.class_name}) && #{reflection.class_name}.respond_to?(:attr_readonly)"
+          )
+        end
+        
+        def add_touch_callbacks(reflection, touch_attribute)
+          method_name = "belongs_to_touch_after_save_or_destroy_for_#{reflection.name}".to_sym
+          define_method(method_name) do
+            association = send(reflection.name)
+            
+            if touch_attribute == true
+              association.touch unless association.nil?
+            else
+              association.touch(touch_attribute) unless association.nil?
+            end
+          end
+          after_save(method_name)
+          after_destroy(method_name)
+        end
+
         def find_with_associations(options = {})
           catch :invalid_query do
             join_dependency = JoinDependency.new(self, merge_includes(scope(:find, :include), options[:include]), options[:joins])
@@ -1499,7 +1521,7 @@ module ActiveRecord
         @@valid_keys_for_belongs_to_association = [
           :class_name, :foreign_key, :foreign_type, :remote, :select, :conditions,
           :include, :dependent, :counter_cache, :extend, :polymorphic, :readonly,
-          :validate
+          :validate, :touch
         ]
 
         def create_belongs_to_reflection(association_id, options)

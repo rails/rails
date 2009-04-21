@@ -155,7 +155,7 @@ class SendFileTest < ActionController::TestCase
     define_method "test_default_send_#{method}_status" do
       @controller.options = { :stream => false }
       assert_nothing_raised { assert_not_nil process(method) }
-      assert_equal ActionController::Base::DEFAULT_RENDER_STATUS_CODE, @response.status
+      assert_equal ActionController::DEFAULT_RENDER_STATUS_CODE, @response.status
     end
   end
 end

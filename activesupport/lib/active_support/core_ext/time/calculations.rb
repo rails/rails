@@ -101,19 +101,11 @@ class Time
     since(-seconds)
   end
 
-  # Returns a new Time representing the time a number of seconds since the instance time, this is basically a wrapper around
-  # the Numeric extension.
+  # Returns a new Time representing the time a number of seconds since the instance time
   def since(seconds)
-    f = seconds.since(self)
-    if ActiveSupport::Duration === seconds
-      f
-    else
-      initial_dst = dst? ? 1 : 0
-      final_dst   = f.dst? ? 1 : 0
-      (seconds.abs >= 86400 && initial_dst != final_dst) ? f + (initial_dst - final_dst).hours : f
-    end
+    self + seconds
   rescue
-    self.to_datetime.since(seconds)
+    to_datetime.since(seconds)
   end
   alias :in :since
 

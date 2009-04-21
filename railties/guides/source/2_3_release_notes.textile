@@ -32,7 +32,7 @@ Here's a summary of the rack-related changes:
 * +CGI::Session::MemCacheStore+ has been replaced by +ActionController::Session::MemCacheStore+.
 * +CGI::Session::ActiveRecordStore+ has been replaced by +ActiveRecord::SessionStore+.
 * You can still change your session store with +ActionController::Base.session_store = :active_record_store+.
-* Default sessions options are still set with +ActionController::Base.session = { :key => "..." }+.
+* Default sessions options are still set with +ActionController::Base.session = { :key => "..." }+. However, the +:session_domain+ option has been renamed to +:domain+.
 * The mutex that normally wraps your entire request has been moved into middleware, +ActionController::Lock+.
 * +ActionController::AbstractRequest+ and +ActionController::Request+ have been unified. The new +ActionController::Request+ inherits from +Rack::Request+. This affects access to +response.headers['type']+ in test requests. Use +response.content_type+ instead.
 * +ActiveRecord::QueryCache+ middleware is automatically inserted onto the middleware stack if +ActiveRecord+ has been loaded. This middleware sets up and flushes the per-request Active Record query cache.
@@ -582,7 +582,7 @@ h4. Other Railties Changes
 * The default +environment.rb+ file has been decluttered.
 * The dbconsole script now lets you use an all-numeric password without crashing.
 * +Rails.root+ now returns a +Pathname+ object, which means you can use it directly with the +join+ method to "clean up existing code":http://afreshcup.com/2008/12/05/a-little-rails_root-tidiness/ that uses +File.join+.
-* Various files in /public that deal with CGI and FCGI dispatching are no longer generated in every Rails application by default (you can still get them if you need them by adding +--with-dispatches+ when you run the +rails+ command, or add them later with +rake rails:generate_dispatchers+).
+* Various files in /public that deal with CGI and FCGI dispatching are no longer generated in every Rails application by default (you can still get them if you need them by adding +--with-dispatchers+ when you run the +rails+ command, or add them later with +rake rails:update:generate_dispatchers+).
 * Rails Guides have been converted from AsciiDoc to Textile markup.
 * Scaffolded views and controllers have been cleaned up a bit.
 * +script/server+ now accepts a <tt>--path</tt> argument to mount a Rails application from a specific path.

@@ -2,6 +2,10 @@
 
 * Removed rarely-used DRb cache store.  [Jeremy Kemper]
 
+* TimeWithZone.name returns 'Time', to further thwart type checking [Geoff Buesing]
+
+* Time.local instances: Adding 24.hours across the DST boundary adds 24 hours instead of one day #2066 [Michael Curtis]
+
 
 *2.3.2 [Final] (March 15, 2009)*
 

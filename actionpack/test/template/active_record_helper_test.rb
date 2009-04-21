@@ -112,6 +112,7 @@ class ActiveRecordHelperTest < ActionView::TestCase
   attr_accessor :request_forgery_protection_token, :form_authenticity_token
 
   def setup
+    super
     setup_post
     setup_user
 

@@ -141,8 +141,11 @@ end
 class RescueControllerTest < ActionController::TestCase
   FIXTURE_PUBLIC = "#{File.dirname(__FILE__)}/../fixtures".freeze
 
-  setup :set_all_requests_local
-  setup :populate_exception_object
+  def setup
+    super
+    set_all_requests_local
+    populate_exception_object
+  end
 
   def set_all_requests_local
     RescueController.consider_all_requests_local = true
@@ -409,7 +412,7 @@ class RescueControllerTest < ActionController::TestCase
   def test_rescue_dispatcher_exceptions_without_request_set
     @request.env['REQUEST_URI'] = '/no_way'
     response = RescueController.call_with_exception(@request.env, ActionController::RoutingError.new("Route not found"))
-    assert_kind_of ActionController::Response, response
+    assert_kind_of ActionDispatch::Response, response
     assert_equal "no way", response.body
   end
 

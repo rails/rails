@@ -1,4 +1,17 @@
 module ActiveSupport
+  module SafelyMemoizable
+    def safely_memoize(*symbols)
+      symbols.each do |symbol|
+        class_eval <<-RUBY, __FILE__, __LINE__ + 1
+          def #{symbol}(*args)
+            memoized = @_memoized_#{symbol} || ::ActiveSupport::ConcurrentHash.new
+            memoized[args] ||= memoized_#{symbol}(*args)
+          end
+        RUBY
+      end
+    end
+  end
+  
   module Memoizable
     def self.memoized_ivar_for(symbol)
       "@_memoized_#{symbol.to_s.sub(/\?\Z/, '_query').sub(/!\Z/, '_bang')}".to_sym
@@ -58,7 +71,7 @@ module ActiveSupport
         original_method = :"_unmemoized_#{symbol}"
         memoized_ivar = ActiveSupport::Memoizable.memoized_ivar_for(symbol)
 
-        class_eval <<-EOS, __FILE__, __LINE__
+        class_eval <<-EOS, __FILE__, __LINE__ + 1
           include InstanceMethods                                                  # include InstanceMethods
                                                                                    #
           if method_defined?(:#{original_method})                                  # if method_defined?(:_unmemoized_mime_type)
@@ -69,7 +82,7 @@ module ActiveSupport
           if instance_method(:#{symbol}).arity == 0                                # if instance_method(:mime_type).arity == 0
             def #{symbol}(reload = false)                                          #   def mime_type(reload = false)
               if reload || !defined?(#{memoized_ivar}) || #{memoized_ivar}.empty?  #     if reload || !defined?(@_memoized_mime_type) || @_memoized_mime_type.empty?
-                #{memoized_ivar} = [#{original_method}.freeze]                     #       @_memoized_mime_type = [_unmemoized_mime_type.freeze]
+                #{memoized_ivar} = [#{original_method}]                            #       @_memoized_mime_type = [_unmemoized_mime_type]
               end                                                                  #     end
               #{memoized_ivar}[0]                                                  #     @_memoized_mime_type[0]
             end                                                                    #   end
@@ -82,7 +95,7 @@ module ActiveSupport
                 if !reload && #{memoized_ivar}.has_key?(args)                      #       if !reload && @_memoized_mime_type.has_key?(args)
                   #{memoized_ivar}[args]                                           #         @_memoized_mime_type[args]
                 elsif #{memoized_ivar}                                             #       elsif @_memoized_mime_type
-                  #{memoized_ivar}[args] = #{original_method}(*args).freeze        #         @_memoized_mime_type[args] = _unmemoized_mime_type(*args).freeze
+                  #{memoized_ivar}[args] = #{original_method}(*args)               #         @_memoized_mime_type[args] = _unmemoized_mime_type(*args)
                 end                                                                #       end
               else                                                                 #     else
                 #{original_method}(*args)                                          #       _unmemoized_mime_type(*args)

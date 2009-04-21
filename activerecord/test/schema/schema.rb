@@ -281,6 +281,8 @@ ActiveRecord::Schema.define do
 
   create_table :owners, :primary_key => :owner_id ,:force => true do |t|
     t.string :name
+    t.column :updated_at, :datetime
+    t.column :happy_at,   :datetime
   end
 
 

@@ -810,25 +810,28 @@ module ActiveRecord #:nodoc:
 
       # Updates all records with details given if they match a set of conditions supplied, limits and order can
       # also be supplied. This method constructs a single SQL UPDATE statement and sends it straight to the
-      # database. It does not instantiate the involved models and it does not trigger Active Record callbacks.
+      # database. It does not instantiate the involved models and it does not trigger Active Record callbacks
+      # or validations.
       #
       # ==== Parameters
       #
-      # * +updates+ - A string of column and value pairs that will be set on any records that match conditions. This creates the SET clause of the generated SQL.
-      # * +conditions+ - An SQL fragment like "administrator = 1" or [ "user_name = ?", username ]. See conditions in the intro for more info.
+      # * +updates+ - A string, array, or hash representing the SET part of an SQL statement.
+      # * +conditions+ - A string, array, or hash representing the WHERE part of an SQL statement. See conditions in the intro.
       # * +options+ - Additional options are <tt>:limit</tt> and <tt>:order</tt>, see the examples for usage.
       #
       # ==== Examples
       #
-      #   # Update all billing objects with the 3 different attributes given
-      #   Billing.update_all( "category = 'authorized', approved = 1, author = 'David'" )
+      #   # Update all customers with the given attributes
+      #   Customer.update_all :wants_email => true
       #
-      #   # Update records that match our conditions
-      #   Billing.update_all( "author = 'David'", "title LIKE '%Rails%'" )
+      #   # Update all books with 'Rails' in their title
+      #   Book.update_all "author = 'David'", "title LIKE '%Rails%'"
       #
-      #   # Update records that match our conditions but limit it to 5 ordered by date
-      #   Billing.update_all( "author = 'David'", "title LIKE '%Rails%'",
-      #                         :order => 'created_at', :limit => 5 )
+      #   # Update all avatars migrated more than a week ago
+      #   Avatar.update_all ['migrated_at = ?, Time.now.utc], ['migrated_at > ?', 1.week.ago]
+      #
+      #   # Update all books that match our conditions, but limit it to 5 ordered by date
+      #   Book.update_all "author = 'David'", "title LIKE '%Rails%'", :order => 'created_at', :limit => 5
       def update_all(updates, conditions = nil, options = {})
         sql  = "UPDATE #{quoted_table_name} SET #{sanitize_sql_for_assignment(updates)} "
 

@@ -351,7 +351,7 @@ class InitializerDatabaseMiddlewareTest < Test::Unit::TestCase
 
   def test_database_middleware_doesnt_initialize_when_session_store_is_not_active_record
     store = ActionController::Base.session_store
-    ActionController::Base.session_store = ActionController::Session::CookieStore
+    ActionController::Base.session_store = ActionDispatch::Session::CookieStore
 
     # Define the class, so we don't have to actually make it load
     eval("class ActiveRecord::ConnectionAdapters::ConnectionManagement; end")
@@ -378,12 +378,6 @@ class InitializerViewPathsTest  < Test::Unit::TestCase
     @config.frameworks -= [:action_view]
     ActionController::Base.view_paths.expects(:load!).never
     ActionMailer::Base.view_paths.expects(:load!).never
-    Rails::Initializer.run(:load_view_paths, @config)
-  end
-  
-  def test_load_view_paths_loads_view_paths
-    ActionController::Base.view_paths.expects(:load!)
-    ActionMailer::Base.view_paths.expects(:load!)
     Rails::Initializer.run(:load_view_paths, @config)
   end
 end

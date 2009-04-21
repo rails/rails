@@ -378,8 +378,11 @@ Run `rake gems:install` to install the missing gems.
 
     def load_view_paths
       if configuration.frameworks.include?(:action_view)
-        ActionController::Base.view_paths.load! if configuration.frameworks.include?(:action_controller)
-        ActionMailer::Base.view_paths.load! if configuration.frameworks.include?(:action_mailer)
+        if configuration.cache_classes
+          view_path = ActionView::Template::FileSystemPath.new(configuration.view_path)
+          ActionController::Base.view_paths = view_path if configuration.frameworks.include?(:action_controller)
+          ActionMailer::Base.template_root = view_path if configuration.frameworks.include?(:action_mailer)
+        end
       end
     end
 
@@ -565,7 +568,7 @@ Run `rake gems:install` to install the missing gems.
       Rails::Rack::Metal.metal_paths += plugin_loader.engine_metal_paths
 
       configuration.middleware.insert_before(
-        :"ActionController::RewindableInput",
+        :"ActionDispatch::RewindableInput",
         Rails::Rack::Metal, :if => Rails::Rack::Metal.metals.any?)
     end
 

@@ -4,7 +4,7 @@ class Module
   def mattr_reader(*syms)
     syms.extract_options!
     syms.each do |sym|
-      class_eval(<<-EOS, __FILE__, __LINE__)
+      class_eval(<<-EOS, __FILE__, __LINE__ + 1)
         unless defined? @@#{sym}  # unless defined? @@pagination_options
           @@#{sym} = nil          #   @@pagination_options = nil
         end                       # end
@@ -23,7 +23,7 @@ class Module
   def mattr_writer(*syms)
     options = syms.extract_options!
     syms.each do |sym|
-      class_eval(<<-EOS, __FILE__, __LINE__)
+      class_eval(<<-EOS, __FILE__, __LINE__ + 1)
         unless defined? @@#{sym}                       # unless defined? @@pagination_options
           @@#{sym} = nil                               #   @@pagination_options = nil
         end                                            # end

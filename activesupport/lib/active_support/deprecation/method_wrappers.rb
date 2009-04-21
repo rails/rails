@@ -9,7 +9,7 @@ module ActiveSupport
 
       method_names.each do |method_name|
         target_module.alias_method_chain(method_name, :deprecation) do |target, punctuation|
-          target_module.module_eval(<<-end_eval, __FILE__, __LINE__)
+          target_module.module_eval(<<-end_eval, __FILE__, __LINE__ + 1)
             def #{target}_with_deprecation#{punctuation}(*args, &block)   # def generate_secret_with_deprecation(*args, &block)
               ::ActiveSupport::Deprecation.warn(                          #   ::ActiveSupport::Deprecation.warn(
                 ::ActiveSupport::Deprecation.deprecated_method_warning(   #     ::ActiveSupport::Deprecation.deprecated_method_warning(

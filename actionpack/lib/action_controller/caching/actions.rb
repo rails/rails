@@ -134,7 +134,7 @@ module ActionController #:nodoc:
           end
         end
         
-        # When true, infer_extension will look up the cache path extension from the request's path & format.
+        # If +infer_extension+ is true, the cache path extension is looked up from the request's path & format.
         # This is desirable when reading and writing the cache, but not when expiring the cache -
         # expire_action should expire the same files regardless of the request format.
         def initialize(controller, options = {}, infer_extension = true)
