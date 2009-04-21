@@ -33,7 +33,6 @@ module ActiveSupport
   autoload :Cache, 'active_support/cache'
   autoload :Callbacks, 'active_support/callbacks'
   autoload :Deprecation, 'active_support/deprecation'
-  autoload :Duration, 'active_support/duration'
   autoload :Gzip, 'active_support/gzip'
   autoload :Inflector, 'active_support/inflector'
   autoload :Memoizable, 'active_support/memoizable'
