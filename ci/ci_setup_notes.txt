@@ -54,12 +54,21 @@ ci      ALL=NOPASSWD: /usr/local/bin/geminstaller, /usr/local/bin/ruby, /usr/loc
 * Install/setup nginx:
 $ sudo aptitude install nginx
 $ sudo vi /etc/nginx/sites-available/default
+# Add the following entry at the top of the file above the 'server {' line:
+upstream mongrel {
+  server 127.0.0.1:3333;
+}
+
 # Change server_name entry to match server name
 
-# comment two lines and add one to proxy to ccrb:
-#               root   /var/www/nginx-default;
-#               index  index.html index.htm;
-                proxy_pass      http://127.0.0.1:3333;
+# replace the contents of the root 'location / {}' block with the following entries:
+    proxy_pass          http://mongrel;
+    proxy_redirect      off;
+    proxy_set_header    Host             $host;
+    proxy_set_header    X-Real-IP        $remote_addr;
+    proxy_set_header    X-Forwarded-For  $proxy_add_x_forwarded_for;
+    proxy_set_header    X-Client-Verify  SUCCESS;
+    proxy_read_timeout  65;
 
 # also comment default locations for /doc and /images
 $ sudo /etc/init.d/nginx start
