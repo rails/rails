@@ -1,7 +1,12 @@
-# This file is required by each major ActiveModel component for the core requirements.  This allows you to
-# load individual pieces of ActiveModel as needed.
-$LOAD_PATH << File.join(File.dirname(__FILE__), '..', '..', '..', 'activesupport', 'lib')
+begin
+  require 'active_support'
+rescue LoadError
+  activesupport_path = "#{File.dirname(__FILE__)}/../../activesupport/lib"
+  if File.directory?(activesupport_path)
+    $:.unshift activesupport_path
+    require 'active_support'
+  end
+end
 
-# premature optimization?
 # So far, we only need the string inflections and not the rest of ActiveSupport.
 require 'active_support/inflector'

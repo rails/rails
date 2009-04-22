@@ -1,3 +1,5 @@
+require 'active_support/core_ext/kernel/reporting'
+
 module Rails
   # The Plugin class should be an object which provides the following methods:
   #
@@ -35,10 +37,10 @@ module Rails
     def load_paths
       report_nonexistant_or_empty_plugin! unless valid?
       
-      returning [] do |load_paths|
-        load_paths << lib_path  if has_lib_directory?
-        load_paths << app_paths if has_app_directory?
-      end.flatten
+      load_paths = []
+      load_paths << lib_path  if has_lib_directory?
+      load_paths << app_paths if has_app_directory?
+      load_paths.flatten
     end
     
     # Evaluates a plugin's init.rb file.

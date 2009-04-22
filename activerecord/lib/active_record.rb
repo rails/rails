@@ -30,6 +30,7 @@ rescue LoadError
     require 'active_support'
   end
 end
+require 'active_support/core/all'
 
 module ActiveRecord
   # TODO: Review explicit loads to see if they will automatically be handled by the initilizer.

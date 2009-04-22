@@ -30,6 +30,7 @@ rescue LoadError
     require 'active_support'
   end
 end
+require 'active_support/core/all'
 
 require 'active_resource/formats'
 require 'active_resource/base'

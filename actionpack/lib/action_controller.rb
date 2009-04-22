@@ -30,6 +30,7 @@ rescue LoadError
     require 'active_support'
   end
 end
+require 'active_support/core/all'
 
 require File.join(File.dirname(__FILE__), "action_pack")
 
