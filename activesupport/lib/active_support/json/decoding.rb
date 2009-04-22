@@ -1,6 +1,3 @@
-autoload :YAML, 'yaml' unless defined? YAML
-autoload :StringScanner, 'strscan' unless defined? StringScanner
-
 require 'active_support/core_ext/string/starts_ends_with'
 
 module ActiveSupport
@@ -22,7 +19,8 @@ module ActiveSupport
 
         # Ensure that ":" and "," are always followed by a space
         def convert_json_to_yaml(json) #:nodoc:
-          scanner, quoting, marks, pos, times = StringScanner.new(json), false, [], nil, []
+          require 'strscan' unless defined? ::StringScanner
+          scanner, quoting, marks, pos, times = ::StringScanner.new(json), false, [], nil, []
           while scanner.scan_until(/(\\['"]|['":,\\]|\\.)/)
             case char = scanner[1]
             when '"', "'"
