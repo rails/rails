@@ -1,3 +1,5 @@
+require 'active_support/json'
+
 module ActiveRecord #:nodoc:
   module Serialization
     def self.included(base)
