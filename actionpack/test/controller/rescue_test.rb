@@ -522,6 +522,12 @@ class ControllerInheritanceRescueControllerTest < ActionController::TestCase
   end
 end
 
+class ApplicationController < ActionController::Base
+  rescue_from ActionController::RoutingError do
+    render :text => 'no way'
+  end
+end
+
 class RescueTest < ActionController::IntegrationTest
   class TestController < ActionController::Base
     class RecordInvalid < StandardError
@@ -549,16 +555,6 @@ class RescueTest < ActionController::IntegrationTest
       end
   end
 
-  def setup
-    ActionController::Base.rescue_from ActionController::RoutingError do
-      render :text => 'no way'
-    end
-  end
-
-  def teardown
-    ActionController::Base.rescue_handlers.clear
-  end
-
   test 'normal request' do
     with_test_routing do
       get '/foo'
@@ -574,9 +570,15 @@ class RescueTest < ActionController::IntegrationTest
   end
 
   test 'rescue routing exceptions' do
-    with_test_routing do
-      get '/no_way'
-      assert_equal 'no way', response.body
+    assert_equal 1, ApplicationController.rescue_handlers.length
+
+    begin
+      with_test_routing do
+        get '/no_way'
+        assert_equal 'no way', response.body
+      end
+    ensure
+      ActionController::Base.rescue_handlers.clear
     end
   end
 
