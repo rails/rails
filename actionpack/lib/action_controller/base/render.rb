@@ -1,3 +1,5 @@
+require 'action_controller/abstract/renderer'
+
 module ActionController
   DEFAULT_RENDER_STATUS_CODE = "200 OK"
   
@@ -318,7 +320,7 @@ module ActionController
     end
 
     def render_to_string(options = {})
-      Rack::Utils.body_to_s(render_to_body(options)).to_ary.join
+      AbstractController::Renderer.body_to_s(render_to_body(options))
     end
 
     # Clears the rendered results, allowing for another render to be performed.

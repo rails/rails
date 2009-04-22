@@ -40,7 +40,7 @@ module AbstractController
     # 
     # :api: plugin
     def render_to_string(options = {})
-      Rack::Utils.body_to_s(render_to_body(options)).to_ary.join
+      AbstractController::Renderer.body_to_s(render_to_body(options))
     end
 
     def _render_template(template, options)
@@ -48,6 +48,18 @@ module AbstractController
     end
     
     def view_paths() _view_paths end
+
+    # Return a string representation of a Rack-compatible response body.
+    def self.body_to_s(body)
+      if body.respond_to?(:to_str)
+        body
+      else
+        strings = []
+        body.each { |part| strings << part.to_s }
+        body.close if body.respond_to?(:close)
+        strings.join
+      end
+    end
 
     module ClassMethods
       
