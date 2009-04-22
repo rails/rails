@@ -413,7 +413,7 @@ h4. Rails Specific Assertions
 
 Rails adds some custom assertions of its own to the +test/unit+ framework:
 
-NOTE: +assert_valid(record)+ has been deprecated and is no longer available Rails 2.3. Please use +assert record.valid?+ instead.
+NOTE: +assert_valid(record)+ has been deprecated. Please use +assert(record.valid?)+ instead.
 
 |_.Assertion                                                                        |_.Purpose|
 |+assert_valid(record)+                                                             |Ensures that the passed record is valid by Active Record standards and returns any error messages if it is not.|
