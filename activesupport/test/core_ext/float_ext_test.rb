@@ -1,4 +1,5 @@
 require 'abstract_unit'
+require 'active_support/core_ext/float/rounding'
 
 class FloatExtRoundingTests < Test::Unit::TestCase
   def test_round_for_positive_number

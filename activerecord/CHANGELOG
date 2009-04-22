@@ -1,3 +1,10 @@
+*Edge*
+
+* Added :touch option to belongs_to associations that will touch the parent record when the current record is saved or destroyed [DHH]
+
+* Added ActiveRecord::Base#touch to update the updated_at/on attributes (or another specified timestamp) with the current time [DHH]
+
+
 *2.3.2 [Final] (March 15, 2009)*
 
 * Added ActiveRecord::Base.find_each and ActiveRecord::Base.find_in_batches for batch processing [DHH/Jamis Buck]

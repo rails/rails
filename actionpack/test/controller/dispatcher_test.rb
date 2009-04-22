@@ -6,8 +6,8 @@ class DispatcherTest < Test::Unit::TestCase
   def setup
     ENV['REQUEST_METHOD'] = 'GET'
 
-    Dispatcher.middleware = ActionController::MiddlewareStack.new do |middleware|
-      middlewares = File.expand_path(File.join(File.dirname(__FILE__), "../../lib/action_controller/middlewares.rb"))
+    Dispatcher.middleware = ActionDispatch::MiddlewareStack.new do |middleware|
+      middlewares = File.expand_path(File.join(File.dirname(__FILE__), "../../lib/action_controller/dispatch/middlewares.rb"))
       middleware.instance_eval(File.read(middlewares))
     end
 
@@ -46,8 +46,8 @@ class DispatcherTest < Test::Unit::TestCase
   end
 
   def test_failsafe_response
-    Dispatcher.any_instance.expects(:dispatch).raises('b00m')
-    ActionController::Failsafe.any_instance.expects(:log_failsafe_exception)
+    Dispatcher.any_instance.expects(:_call).raises('b00m')
+    ActionDispatch::Failsafe.any_instance.expects(:log_failsafe_exception)
 
     assert_nothing_raised do
       assert_equal [
@@ -94,7 +94,7 @@ class DispatcherTest < Test::Unit::TestCase
     def dispatch(cache_classes = true)
       ActionController::Routing::RouteSet.any_instance.stubs(:call).returns([200, {}, 'response'])
       Dispatcher.define_dispatcher_callbacks(cache_classes)
-      Dispatcher.new.call({})
+      Dispatcher.new.call({'rack.input' => StringIO.new('')})
     end
 
     def assert_subclasses(howmany, klass, message = klass.subclasses.inspect)

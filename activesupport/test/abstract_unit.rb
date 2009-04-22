@@ -4,16 +4,19 @@ require 'test/unit'
 gem 'mocha', '>= 0.9.5'
 require 'mocha'
 
+ENV['NO_RELOAD'] = '1'
 $:.unshift "#{File.dirname(__FILE__)}/../lib"
 require 'active_support'
 require 'active_support/test_case'
 
 def uses_memcached(test_name)
   require 'memcache'
-  MemCache.new('localhost').stats
-  yield
-rescue MemCache::MemCacheError
-  $stderr.puts "Skipping #{test_name} tests. Start memcached and try again."
+  begin
+    MemCache.new('localhost').stats
+    yield
+  rescue MemCache::MemCacheError
+    $stderr.puts "Skipping #{test_name} tests. Start memcached and try again."
+  end
 end
 
 def with_kcode(code)

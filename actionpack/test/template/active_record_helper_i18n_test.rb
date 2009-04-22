@@ -4,9 +4,12 @@ class ActiveRecordHelperI18nTest < Test::Unit::TestCase
   include ActionView::Helpers::ActiveRecordHelper
   
   attr_reader :request
+
   def setup
     @object = stub :errors => stub(:count => 1, :full_messages => ['full_messages'])
-    @object_name = 'book'
+    @object_name = 'book_seller'
+    @object_name_without_underscore = 'book seller'
+
     stubs(:content_tag).returns 'content_tag'
 
     I18n.stubs(:t).with(:'header', :locale => 'en', :scope => [:activerecord, :errors, :template], :count => 1, :model => '').returns "1 error prohibited this  from being saved"
@@ -37,8 +40,8 @@ class ActiveRecordHelperI18nTest < Test::Unit::TestCase
   end
   
   def test_error_messages_for_given_object_name_it_translates_object_name
-    I18n.expects(:t).with(:header, :locale => 'en', :scope => [:activerecord, :errors, :template], :count => 1, :model => @object_name).returns "1 error prohibited this #{@object_name} from being saved"
-    I18n.expects(:t).with(@object_name, :default => @object_name, :count => 1, :scope => [:activerecord, :models]).once.returns @object_name
+    I18n.expects(:t).with(:header, :locale => 'en', :scope => [:activerecord, :errors, :template], :count => 1, :model => @object_name_without_underscore).returns "1 error prohibited this #{@object_name_without_underscore} from being saved"
+    I18n.expects(:t).with(@object_name, :default => @object_name_without_underscore, :count => 1, :scope => [:activerecord, :models]).once.returns @object_name_without_underscore
     error_messages_for(:object => @object, :locale => 'en', :object_name => @object_name)
   end
 end

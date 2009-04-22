@@ -45,6 +45,7 @@ class FormHelperTest < ActionView::TestCase
   tests ActionView::Helpers::FormHelper
 
   def setup
+    super
     @post = Post.new
     @comment = Comment.new
     def @post.errors()

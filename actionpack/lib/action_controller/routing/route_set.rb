@@ -428,7 +428,7 @@ module ActionController
       end
 
       def call(env)
-        request = Request.new(env)
+        request = ActionDispatch::Request.new(env)
         app = Routing::Routes.recognize(request)
         app.call(env).to_a
       end

@@ -83,7 +83,9 @@ namespace :rails do
   desc "Applies the template supplied by LOCATION=/path/to/template"
   task :template do
     require 'rails_generator/generators/applications/app/template_runner'
-    Rails::TemplateRunner.new(ENV["LOCATION"])
+    template = ENV["LOCATION"]
+    template = File.expand_path(template) if template !~ %r{\A[A-Za-z][A-Za-z0-9+\-\.]*://}
+    Rails::TemplateRunner.new(template)
   end
 
   namespace :update do

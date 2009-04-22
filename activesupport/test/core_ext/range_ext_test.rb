@@ -1,4 +1,5 @@
 require 'abstract_unit'
+require 'active_support/core_ext/range'
 
 class RangeTest < Test::Unit::TestCase
   def test_to_s_from_dates

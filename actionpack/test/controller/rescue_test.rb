@@ -141,8 +141,11 @@ end
 class RescueControllerTest < ActionController::TestCase
   FIXTURE_PUBLIC = "#{File.dirname(__FILE__)}/../fixtures".freeze
 
-  setup :set_all_requests_local
-  setup :populate_exception_object
+  def setup
+    super
+    set_all_requests_local
+    populate_exception_object
+  end
 
   def set_all_requests_local
     RescueController.consider_all_requests_local = true
@@ -397,22 +400,6 @@ class RescueControllerTest < ActionController::TestCase
     assert_equal "RescueController::ResourceUnavailableToRescueAsString", @response.body
   end
 
-  def test_rescue_dispatcher_exceptions
-    env = @request.env
-    env["action_controller.rescue.request"] = @request
-    env["action_controller.rescue.response"] = @response
-
-    RescueController.call_with_exception(env, ActionController::RoutingError.new("Route not found"))
-    assert_equal "no way", @response.body
-  end
-
-  def test_rescue_dispatcher_exceptions_without_request_set
-    @request.env['REQUEST_URI'] = '/no_way'
-    response = RescueController.call_with_exception(@request.env, ActionController::RoutingError.new("Route not found"))
-    assert_kind_of ActionController::Response, response
-    assert_equal "no way", response.body
-  end
-
   protected
     def with_all_requests_local(local = true)
       old_local, ActionController::Base.consider_all_requests_local =
@@ -533,4 +520,84 @@ class ControllerInheritanceRescueControllerTest < ActionController::TestCase
     get :raise_parent_exception
     assert_response :created
   end
+end
+
+class ApplicationController < ActionController::Base
+  rescue_from ActionController::RoutingError do
+    render :text => 'no way'
+  end
+end
+
+class RescueTest < ActionController::IntegrationTest
+  class TestController < ActionController::Base
+    class RecordInvalid < StandardError
+      def message
+        'invalid'
+      end
+    end
+    rescue_from RecordInvalid, :with => :show_errors
+
+    def foo
+      render :text => "foo"
+    end
+
+    def invalid
+      raise RecordInvalid
+    end
+
+    def b00m
+      raise 'b00m'
+    end
+
+    protected
+      def show_errors(exception)
+        render :text => exception.message
+      end
+  end
+
+  test 'normal request' do
+    with_test_routing do
+      get '/foo'
+      assert_equal 'foo', response.body
+    end
+  end
+
+  test 'rescue exceptions inside controller' do
+    with_test_routing do
+      get '/invalid'
+      assert_equal 'invalid', response.body
+    end
+  end
+
+  test 'rescue routing exceptions' do
+    assert_equal 1, ApplicationController.rescue_handlers.length
+
+    begin
+      with_test_routing do
+        get '/no_way'
+        assert_equal 'no way', response.body
+      end
+    ensure
+      ActionController::Base.rescue_handlers.clear
+    end
+  end
+
+  test 'unrescued exception' do
+    with_test_routing do
+      get '/b00m'
+      assert_match(/Action Controller: Exception caught/, response.body)
+    end
+  end
+
+  private
+    def with_test_routing
+      with_routing do |set|
+        set.draw do |map|
+          map.connect 'foo', :controller => "rescue_test/test", :action => 'foo'
+          map.connect 'invalid', :controller => "rescue_test/test", :action => 'invalid'
+          map.connect 'b00m', :controller => "rescue_test/test", :action => 'b00m'
+        end
+        yield
+      end
+    end
 end

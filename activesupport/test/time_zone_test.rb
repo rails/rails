@@ -196,6 +196,18 @@ class TimeZoneTest < Test::Unit::TestCase
     assert_equal(-18_000, zone.utc_offset)
   end
 
+  def test_seconds_to_utc_offset_with_colon
+    assert_equal "-06:00", ActiveSupport::TimeZone.seconds_to_utc_offset(-21_600)
+    assert_equal "+00:00", ActiveSupport::TimeZone.seconds_to_utc_offset(0)
+    assert_equal "+05:00", ActiveSupport::TimeZone.seconds_to_utc_offset(18_000)
+  end
+
+  def test_seconds_to_utc_offset_without_colon
+    assert_equal "-0600", ActiveSupport::TimeZone.seconds_to_utc_offset(-21_600, false)
+    assert_equal "+0000", ActiveSupport::TimeZone.seconds_to_utc_offset(0, false)
+    assert_equal "+0500", ActiveSupport::TimeZone.seconds_to_utc_offset(18_000, false)
+  end
+
   def test_formatted_offset_positive
     zone = ActiveSupport::TimeZone['Moscow']
     assert_equal "+03:00", zone.formatted_offset

@@ -10,7 +10,7 @@ class Class
   def cattr_reader(*syms)
     syms.flatten.each do |sym|
       next if sym.is_a?(Hash)
-      class_eval(<<-EOS, __FILE__, __LINE__)
+      class_eval(<<-EOS, __FILE__, __LINE__ + 1)
         unless defined? @@#{sym}  # unless defined? @@hair_colors
           @@#{sym} = nil          #   @@hair_colors = nil
         end                       # end
@@ -29,7 +29,7 @@ class Class
   def cattr_writer(*syms)
     options = syms.extract_options!
     syms.flatten.each do |sym|
-      class_eval(<<-EOS, __FILE__, __LINE__)
+      class_eval(<<-EOS, __FILE__, __LINE__ + 1)
         unless defined? @@#{sym}                       # unless defined? @@hair_colors
           @@#{sym} = nil                               #   @@hair_colors = nil
         end                                            # end

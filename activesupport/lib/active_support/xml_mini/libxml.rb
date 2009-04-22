@@ -21,15 +21,15 @@ module ActiveSupport
   end
 end
 
-module LibXML
-  module Conversions
-    module Document
+module LibXML #:nodoc:
+  module Conversions #:nodoc:
+    module Document #:nodoc:
       def to_hash
         root.to_hash
       end
     end
 
-    module Node
+    module Node #:nodoc:
       CONTENT_ROOT = '__content__'
       LIB_XML_LIMIT = 30000000 # Hardcoded LibXML limit
 

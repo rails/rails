@@ -106,8 +106,8 @@ module ActionView
       alias_method :distance_of_time_in_words_to_now, :time_ago_in_words
 
       # Returns a set of select tags (one for year, month, and day) pre-selected for accessing a specified date-based
-      # attribute (identified by +method+) on an object assigned to the template (identified by +object+). You can
-      # the output in the +options+ hash.
+      # attribute (identified by +method+) on an object assigned to the template (identified by +object+).
+      #
       #
       # ==== Options
       # * <tt>:use_month_numbers</tt> - Set to true if you want to use month numbers rather than month names (e.g.
@@ -232,7 +232,7 @@ module ActionView
 
       # Returns a set of select tags (one for year, month, day, hour, and minute) pre-selected for accessing a
       # specified datetime-based attribute (identified by +method+) on an object assigned to the template (identified
-      # by +object+). Examples:
+      # by +object+).
       #
       # If anything is passed in the html_options hash it will be applied to every select tag in the set.
       #

@@ -1,5 +1,5 @@
 require 'abstract_unit'
-require 'builder'
+require 'active_support/core_ext/hash'
 
 class HashExtTest < Test::Unit::TestCase
   def setup

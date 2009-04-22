@@ -6,6 +6,7 @@ class TextHelperTest < ActionView::TestCase
   include TestingSandbox
 
   def setup
+    super
     # This simulates the fact that instance variables are reset every time
     # a view is rendered.  The cycle helper depends on this behavior.
     @_cycles = nil if (defined? @_cycles)

@@ -48,7 +48,7 @@ module RailsGuides
 
         if guide =~ /\.erb\.textile/
           # Generate the erb pages with textile formatting - e.g. index/authors
-          result = view.render(:layout => 'layout', :file => name)
+          result = view.render(:layout => 'layout', :file => guide)
           f.write textile(result)
         else
           body = File.read(File.join(view_path, guide))
@@ -57,6 +57,7 @@ module RailsGuides
 
           result = view.render(:layout => 'layout', :text => textile(body))
           f.write result
+          warn_about_broken_links(result) if ENV.key?("WARN_BROKEN_LINKS")
         end
       end
     end
@@ -132,6 +133,39 @@ module RailsGuides
       
       body.gsub(%r{<p>dirty_workaround_for_notextile_(\d+)</p>}) do |_|
         code_blocks[$1.to_i]
+      end
+    end
+
+    def warn_about_broken_links(html)
+      anchors = extract_anchors(html)
+      check_fragment_identifiers(html, anchors)
+    end
+    
+    def extract_anchors(html)
+      # Textile generates headers with IDs computed from titles.
+      anchors = Set.new
+      html.scan(/<h\d\s+id="([^"]+)/).flatten.each do |anchor|
+        if anchors.member?(anchor)
+          puts "*** DUPLICATE HEADER ID: #{anchor}, please consider rewording" if ENV.key?("WARN_DUPLICATE_HEADERS")
+        else
+          anchors << anchor
+        end
+      end
+
+      # Also, footnotes are rendered as paragraphs this way.
+      anchors += Set.new(html.scan(/<p\s+class="footnote"\s+id="([^"]+)/).flatten)
+      return anchors
+    end
+    
+    def check_fragment_identifiers(html, anchors)
+      html.scan(/<a\s+href="#([^"]+)/).flatten.each do |fragment_identifier|
+        next if fragment_identifier == 'mainCol' # in layout, jumps to some DIV
+        unless anchors.member?(fragment_identifier)
+          guess = anchors.min { |a, b|
+            Levenshtein.distance(fragment_identifier, a) <=> Levenshtein.distance(fragment_identifier, b)
+          }
+          puts "*** BROKEN LINK: ##{fragment_identifier}, perhaps you meant ##{guess}."
+        end
       end
     end
   end

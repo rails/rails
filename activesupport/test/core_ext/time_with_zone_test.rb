@@ -1,4 +1,5 @@
 require 'abstract_unit'
+require 'active_support/time_with_zone'
 
 class TimeWithZoneTest < Test::Unit::TestCase
 
@@ -316,6 +317,10 @@ class TimeWithZoneTest < Test::Unit::TestCase
     assert @twz.is_a?(Time)
     assert @twz.kind_of?(Time)
     assert @twz.is_a?(ActiveSupport::TimeWithZone)
+  end
+  
+  def test_class_name
+    assert_equal 'Time', ActiveSupport::TimeWithZone.name
   end
 
   def test_method_missing_with_time_return_value

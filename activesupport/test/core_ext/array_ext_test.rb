@@ -1,5 +1,6 @@
 require 'abstract_unit'
-require 'bigdecimal'
+require 'active_support/core_ext/array'
+require 'active_support/core_ext/big_decimal'
 
 class ArrayExtAccessTests < Test::Unit::TestCase
   def test_from

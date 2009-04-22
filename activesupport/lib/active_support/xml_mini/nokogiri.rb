@@ -18,14 +18,14 @@ module ActiveSupport
       end
     end
 
-    module Conversions
-      module Document
+    module Conversions #:nodoc:
+      module Document #:nodoc:
         def to_hash
           root.to_hash
         end
       end
 
-      module Node
+      module Node #:nodoc:
         CONTENT_ROOT = '__content__'
 
         # Convert XML document to hash

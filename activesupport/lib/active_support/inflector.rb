@@ -1,6 +1,7 @@
 # encoding: utf-8
-require 'singleton'
 require 'iconv'
+
+require 'active_support/core_ext/string/multibyte'
 
 module ActiveSupport
   # The Inflector transforms words from singular to plural, class names to table names, modularized class names to ones without,
@@ -30,7 +31,9 @@ module ActiveSupport
     # pluralization and singularization rules that is runs. This guarantees that your rules run before any of the rules that may
     # already have been loaded.
     class Inflections
-      include Singleton
+      def self.instance
+        @__instance__ ||= new
+      end
 
       attr_reader :plurals, :singulars, :uncountables, :humans
 
@@ -401,6 +404,3 @@ end
 # in case active_support/inflector is required without the rest of active_support
 require 'active_support/inflections'
 require 'active_support/core_ext/string/inflections'
-unless String.included_modules.include?(ActiveSupport::CoreExtensions::String::Inflections)
-  String.send :include, ActiveSupport::CoreExtensions::String::Inflections
-end

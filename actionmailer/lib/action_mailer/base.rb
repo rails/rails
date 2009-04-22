@@ -373,6 +373,14 @@ module ActionMailer #:nodoc:
     attr_reader :mail
     attr_reader :template_name, :default_template_name, :action_name
 
+    def controller_path
+      self.class.controller_path
+    end
+    
+    def formats
+      @template.formats
+    end
+
     class << self
       attr_writer :mailer_name
 
@@ -466,7 +474,7 @@ module ActionMailer #:nodoc:
         # have not already been specified manually.
         if @parts.empty?
           Dir.glob("#{template_path}/#{@template}.*").each do |path|
-            template = template_root["#{mailer_name}/#{File.basename(path)}"]
+            template = template_root.find_by_parts("#{mailer_name}/#{File.basename(path)}")
 
             # Skip unless template has a multipart format
             next unless template && template.multipart?
@@ -475,7 +483,7 @@ module ActionMailer #:nodoc:
               :content_type => template.content_type,
               :disposition => "inline",
               :charset => charset,
-              :body => render_message(template, @body)
+              :body => render_template(template, @body)
             )
           end
           unless @parts.empty?
@@ -489,7 +497,7 @@ module ActionMailer #:nodoc:
         # normal template exists (or if there were no implicit parts) we render
         # it.
         template_exists = @parts.empty?
-        template_exists ||= template_root["#{mailer_name}/#{@template}"]
+        template_exists ||= template_root.find_by_parts("#{mailer_name}/#{@template}")
         @body = render_message(@template, @body) if template_exists
 
         # Finally, if there are other message parts and a textual body exists,
@@ -514,6 +522,7 @@ module ActionMailer #:nodoc:
     # no alternate has been given as the parameter, this will fail.
     def deliver!(mail = @mail)
       raise "no mail object available for delivery!" unless mail
+      
       unless logger.nil?
         logger.info  "Sent mail to #{Array(recipients).join(', ')}"
         logger.debug "\n#{mail.encoded}"
@@ -545,27 +554,43 @@ module ActionMailer #:nodoc:
         @mime_version = @@default_mime_version.dup if @@default_mime_version
       end
 
-      def render_message(method_name, body)
-        if method_name.respond_to?(:content_type)
-          @current_template_content_type = method_name.content_type
+      def render_template(template, body)
+        if template.respond_to?(:content_type)
+          @current_template_content_type = template.content_type
         end
+        
+        @template = initialize_template_class(body)
+        layout = _pick_layout(layout, true) unless template.exempt_from_layout?
+        @template._render_template_with_layout(template, layout, {})
+      ensure
+        @current_template_content_type = nil
+      end
+
+      def render_message(method_name, body)
         render :file => method_name, :body => body
       ensure
         @current_template_content_type = nil
       end
 
       def render(opts)
-        body = opts.delete(:body)
-        if opts[:file] && (opts[:file] !~ /\// && !opts[:file].respond_to?(:render))
-          opts[:file] = "#{mailer_name}/#{opts[:file]}"
-        end
-
+        layout, file = opts.delete(:layout), opts[:file]
+        
         begin
-          old_template, @template = @template, initialize_template_class(body)
-          layout = respond_to?(:pick_layout, true) ? pick_layout(opts) : false
-          @template.render(opts.merge(:layout => layout))
-        ensure
-          @template = old_template
+          @template = initialize_template_class(opts.delete(:body))
+          
+          if file
+            prefix = mailer_name unless file =~ /\//
+            template = view_paths.find_by_parts(file, formats, prefix)
+          end
+
+          layout = _pick_layout(layout, 
+            !template || !template.exempt_from_layout?)
+
+          if template
+            @template._render_template_with_layout(template, layout, opts)
+          elsif inline = opts[:inline]
+            @template._render_inline(inline, layout, opts)
+          end
         end
       end
 
@@ -575,12 +600,6 @@ module ActionMailer #:nodoc:
         else
           :html
         end
-      end
-
-      def candidate_for_layout?(options)
-        !self.view_paths.find_template(default_template_name, default_template_format).exempt_from_layout?
-      rescue ActionView::MissingTemplate
-        return true
       end
 
       def template_root
@@ -597,7 +616,7 @@ module ActionMailer #:nodoc:
 
       def initialize_template_class(assigns)
         template = ActionView::Base.new(self.class.view_paths, assigns, self)
-        template.template_format = default_template_format
+        template.formats = [default_template_format]
         template
       end
 

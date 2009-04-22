@@ -166,11 +166,13 @@ class MimeControllerTest < ActionController::TestCase
   tests RespondToController
 
   def setup
+    super
     ActionController::Base.use_accept_header = true
     @request.host = "www.example.com"
   end
 
   def teardown
+    super
     ActionController::Base.use_accept_header = false
   end
 
@@ -437,15 +439,15 @@ class MimeControllerTest < ActionController::TestCase
         unless args.empty?
           @action = args.first[:action]
         end
-        response.body = "#{@action} - #{@template.template_format}"
+        response.body = "#{@action} - #{@template.formats}"
       end
     end
 
     get :using_defaults
-    assert_equal "using_defaults - html", @response.body
+    assert_equal "using_defaults - #{[:html].to_s}", @response.body
 
     get :using_defaults, :format => "xml"
-    assert_equal "using_defaults - xml", @response.body
+    assert_equal "using_defaults - #{[:xml].to_s}", @response.body
   end
 
   def test_format_with_custom_response_type
@@ -511,6 +513,7 @@ class MimeControllerLayoutsTest < ActionController::TestCase
   tests PostController
 
   def setup
+    super
     @request.host = "www.example.com"
   end
 

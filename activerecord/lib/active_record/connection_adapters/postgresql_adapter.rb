@@ -392,9 +392,28 @@ module ActiveRecord
         quote_string(s)
       end
 
+      # Checks the following cases:
+      #
+      # - table_name
+      # - "table.name"
+      # - schema_name.table_name
+      # - schema_name."table.name"
+      # - "schema.name".table_name
+      # - "schema.name"."table.name"
+      def quote_table_name(name)
+        schema, name_part = extract_pg_identifier_from_name(name.to_s)
+
+        unless name_part
+          quote_column_name(schema)
+        else
+          table_name, name_part = extract_pg_identifier_from_name(name_part)
+          "#{quote_column_name(schema)}.#{quote_column_name(table_name)}"
+        end
+      end
+
       # Quotes column names for use in SQL queries.
       def quote_column_name(name) #:nodoc:
-        %("#{name}")
+        PGconn.quote_ident(name.to_s)
       end
 
       # Quote date/time values for use in SQL input. Includes microseconds
@@ -621,33 +640,36 @@ module ActiveRecord
       def indexes(table_name, name = nil)
          schemas = schema_search_path.split(/,/).map { |p| quote(p) }.join(',')
          result = query(<<-SQL, name)
-           SELECT distinct i.relname, d.indisunique, a.attname
-             FROM pg_class t, pg_class i, pg_index d, pg_attribute a
+           SELECT distinct i.relname, d.indisunique, d.indkey, t.oid
+             FROM pg_class t, pg_class i, pg_index d
            WHERE i.relkind = 'i'
              AND d.indexrelid = i.oid
              AND d.indisprimary = 'f'
              AND t.oid = d.indrelid
              AND t.relname = '#{table_name}'
              AND i.relnamespace IN (SELECT oid FROM pg_namespace WHERE nspname IN (#{schemas}) )
-             AND a.attrelid = t.oid
-             AND ( d.indkey[0]=a.attnum OR d.indkey[1]=a.attnum
-                OR d.indkey[2]=a.attnum OR d.indkey[3]=a.attnum
-                OR d.indkey[4]=a.attnum OR d.indkey[5]=a.attnum
-                OR d.indkey[6]=a.attnum OR d.indkey[7]=a.attnum
-                OR d.indkey[8]=a.attnum OR d.indkey[9]=a.attnum )
           ORDER BY i.relname
         SQL
 
-        current_index = nil
+
         indexes = []
 
-        result.each do |row|
-          if current_index != row[0]
-            indexes << IndexDefinition.new(table_name, row[0], row[1] == "t", [])
-            current_index = row[0]
-          end
+        indexes = result.map do |row|
+          index_name = row[0]
+          unique = row[1] == 't'
+          indkey = row[2].split(" ")
+          oid = row[3]
 
-          indexes.last.columns << row[2]
+          columns = query(<<-SQL, "Columns for index #{row[0]} on #{table_name}").inject({}) {|attlist, r| attlist[r[1]] = r[0]; attlist}
+          SELECT a.attname, a.attnum
+          FROM pg_attribute a
+          WHERE a.attrelid = #{oid}
+          AND a.attnum IN (#{indkey.join(",")})
+          SQL
+
+          column_names = indkey.map {|attnum| columns[attnum] }
+          IndexDefinition.new(table_name, index_name, unique, column_names)
+
         end
 
         indexes
@@ -745,7 +767,7 @@ module ActiveRecord
             AND attr.attrelid     = cons.conrelid
             AND attr.attnum       = cons.conkey[1]
             AND cons.contype      = 'p'
-            AND dep.refobjid      = '#{table}'::regclass
+            AND dep.refobjid      = '#{quote_table_name(table)}'::regclass
         end_sql
 
         if result.nil? or result.empty?
@@ -764,7 +786,7 @@ module ActiveRecord
             JOIN pg_attribute   attr ON (t.oid = attrelid)
             JOIN pg_attrdef     def  ON (adrelid = attrelid AND adnum = attnum)
             JOIN pg_constraint  cons ON (conrelid = adrelid AND adnum = conkey[1])
-            WHERE t.oid = '#{table}'::regclass
+            WHERE t.oid = '#{quote_table_name(table)}'::regclass
               AND cons.contype = 'p'
               AND def.adsrc ~* 'nextval'
           end_sql
@@ -839,7 +861,7 @@ module ActiveRecord
 
       # Drops an index from a table.
       def remove_index(table_name, options = {})
-        execute "DROP INDEX #{index_name(table_name, options)}"
+        execute "DROP INDEX #{quote_table_name(index_name(table_name, options))}"
       end
 
       # Maps logical Rails types to PostgreSQL-specific data types.
@@ -1040,10 +1062,20 @@ module ActiveRecord
             SELECT a.attname, format_type(a.atttypid, a.atttypmod), d.adsrc, a.attnotnull
               FROM pg_attribute a LEFT JOIN pg_attrdef d
                 ON a.attrelid = d.adrelid AND a.attnum = d.adnum
-             WHERE a.attrelid = '#{table_name}'::regclass
+             WHERE a.attrelid = '#{quote_table_name(table_name)}'::regclass
                AND a.attnum > 0 AND NOT a.attisdropped
              ORDER BY a.attnum
           end_sql
+        end
+
+        def extract_pg_identifier_from_name(name)
+          match_data = name[0,1] == '"' ? name.match(/\"([^\"]+)\"/) : name.match(/([^\.]+)/)
+
+          if match_data
+            rest = name[match_data[0].length..-1]
+            rest = rest[1..-1] if rest[0,1] == "."
+            [match_data[1], (rest.length > 0 ? rest : nil)]
+          end
         end
     end
   end

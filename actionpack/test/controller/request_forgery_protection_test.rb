@@ -151,13 +151,9 @@ module RequestForgeryProtectionTests
       delete :index, :format => 'xml'
     end
   end
-
+  
   def test_should_allow_xhr_post_without_token
     assert_nothing_raised { xhr :post, :index }
-  end
-  def test_should_not_allow_xhr_post_with_html_without_token
-    @request.env['CONTENT_TYPE'] = Mime::URL_ENCODED_FORM.to_s
-    assert_raise(ActionController::InvalidAuthenticityToken) { xhr :post, :index }
   end
   
   def test_should_allow_xhr_put_without_token
@@ -166,6 +162,11 @@ module RequestForgeryProtectionTests
   
   def test_should_allow_xhr_delete_without_token
     assert_nothing_raised { xhr :delete, :index }
+  end
+  
+  def test_should_allow_xhr_post_with_encoded_form_content_type_without_token
+    @request.env['CONTENT_TYPE'] = Mime::URL_ENCODED_FORM.to_s
+    assert_nothing_raised { xhr :post, :index }
   end
   
   def test_should_allow_post_with_token

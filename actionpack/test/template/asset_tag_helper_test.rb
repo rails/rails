@@ -4,6 +4,7 @@ class AssetTagHelperTest < ActionView::TestCase
   tests ActionView::Helpers::AssetTagHelper
 
   def setup
+    super
     silence_warnings do
       ActionView::Helpers::AssetTagHelper.send(
         :const_set,
@@ -627,6 +628,7 @@ class AssetTagHelperNonVhostTest < ActionView::TestCase
   tests ActionView::Helpers::AssetTagHelper
 
   def setup
+    super
     ActionController::Base.relative_url_root = "/collaboration/hieraki"
 
     @controller = Class.new do
