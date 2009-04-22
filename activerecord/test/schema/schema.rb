@@ -68,6 +68,10 @@ ActiveRecord::Schema.define do
     t.boolean :value
   end
 
+  create_table "CamelCase", :force => true do |t|
+    t.string :name
+  end
+
   create_table :categories, :force => true do |t|
     t.string :name, :null => false
     t.string :type
@@ -113,6 +117,8 @@ ActiveRecord::Schema.define do
     t.integer :client_of
     t.integer :rating, :default => 1
   end
+
+  add_index :companies, [:firm_id, :type, :rating, :ruby_type], :name => "company_index"
 
   create_table :computers, :force => true do |t|
     t.integer :developer, :null => false
@@ -281,6 +287,8 @@ ActiveRecord::Schema.define do
 
   create_table :owners, :primary_key => :owner_id ,:force => true do |t|
     t.string :name
+    t.column :updated_at, :datetime
+    t.column :happy_at,   :datetime
   end
 
 

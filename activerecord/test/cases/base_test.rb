@@ -1756,7 +1756,7 @@ class BasicsTest < ActiveRecord::TestCase
   end
 
   def test_scoped_find_with_group_and_having
-    developers = Developer.with_scope(:find => { :group => 'salary', :having => "SUM(salary) > 10000", :select => "SUM(salary) as salary" }) do
+    developers = Developer.with_scope(:find => { :group => 'developers.salary', :having => "SUM(salary) > 10000", :select => "SUM(salary) as salary" }) do
       Developer.find(:all)
     end
     assert_equal 3, developers.size

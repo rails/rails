@@ -22,6 +22,11 @@ class SchemaDumperTest < ActiveRecord::TestCase
     assert_no_match %r{create_table "sqlite_sequence"}, output
   end
 
+  def test_schema_dump_includes_camelcase_table_name
+    output = standard_dump
+    assert_match %r{create_table "CamelCase"}, output
+  end
+
   def assert_line_up(lines, pattern, required = false)
     return assert(true) if lines.empty?
     matches = lines.map { |line| line.match(pattern) }
@@ -145,6 +150,11 @@ class SchemaDumperTest < ActiveRecord::TestCase
     assert_raise(StandardError) do
       ActiveRecord::SchemaDumper.dump(ActiveRecord::Base.connection, stream)
     end
+  end
+
+  def test_schema_dumps_index_columns_in_right_order
+    index_definition = standard_dump.split(/\n/).grep(/add_index.*companies/).first.strip
+    assert_equal 'add_index "companies", ["firm_id", "type", "rating", "ruby_type"], :name => "company_index"', index_definition
   end
 
   if current_adapter?(:MysqlAdapter)
