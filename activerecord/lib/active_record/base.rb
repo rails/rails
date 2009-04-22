@@ -1,5 +1,6 @@
 require 'yaml'
 require 'set'
+require 'active_support/dependencies'
 
 module ActiveRecord #:nodoc:
   # Generic Active Record exception class.
