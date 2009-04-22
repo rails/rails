@@ -20,7 +20,7 @@ module ActiveSupport
   #   Time.zone.now                                   # => Sun, 18 May 2008 13:07:55 EDT -04:00
   #   Time.utc(2007, 2, 10, 20, 30, 45).in_time_zone  # => Sat, 10 Feb 2007 15:30:45 EST -05:00
   #
-  # See TimeZone and ActiveSupport::CoreExtensions::Time::Zones for further documentation for these methods.
+  # See Time and TimeZone for further documentation of these methods.
   #
   # TimeWithZone instances implement the same API as Ruby Time instances, so that Time and TimeWithZone instances are interchangable. Examples:
   #
