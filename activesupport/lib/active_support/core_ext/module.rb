@@ -10,16 +10,3 @@ require 'active_support/core_ext/module/loading'
 require 'active_support/core_ext/module/model_naming'
 require 'active_support/core_ext/module/synchronization'
 require 'active_support/core_ext/module/setup'
-
-module ActiveSupport
-  module CoreExtensions
-    # Various extensions for the Ruby core Module class.
-    module Module
-      # Nothing here. Only defined for API documentation purposes.
-    end
-  end
-end
-
-class Module
-  include ActiveSupport::CoreExtensions::Module
-end
