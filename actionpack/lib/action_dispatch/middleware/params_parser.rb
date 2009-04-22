@@ -1,3 +1,5 @@
+require 'active_support/json'
+
 module ActionDispatch
   class ParamsParser
     ActionController::Base.param_parsers[Mime::XML] = :xml_simple

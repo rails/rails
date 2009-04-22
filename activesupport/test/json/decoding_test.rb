@@ -1,5 +1,6 @@
 # encoding: UTF-8
 require 'abstract_unit'
+require 'active_support/json'
 
 class TestJSONDecoding < ActiveSupport::TestCase
   TESTS = {
