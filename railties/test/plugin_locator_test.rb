@@ -42,12 +42,12 @@ class PluginFileSystemLocatorTest < Test::Unit::TestCase
   end
 
   def test_should_return_all_plugins_found_under_the_set_plugin_paths
-    assert_equal ["a", "acts_as_chunky_bacon", "engine", "gemlike", "plugin_with_no_lib_dir", "stubby"].sort, @locator.plugins.map(&:name).sort
+    assert_equal ["a", "acts_as_chunky_bacon", "engine", "gemlike", "plugin_with_no_lib_dir", "stubby"].sort, @locator.plugins.map { |p| p.name }.sort
   end
 
   def test_should_find_plugins_only_under_the_plugin_paths_set_in_configuration
     @configuration.plugin_paths = [File.join(plugin_fixture_root_path, "default")]
-    assert_equal ["acts_as_chunky_bacon", "gemlike", "plugin_with_no_lib_dir", "stubby"].sort, @locator.plugins.map(&:name).sort
+    assert_equal ["acts_as_chunky_bacon", "gemlike", "plugin_with_no_lib_dir", "stubby"].sort, @locator.plugins.map { |p| p.name }.sort
   
     @configuration.plugin_paths = [File.join(plugin_fixture_root_path, "alternate")]
     assert_equal ["a"], @locator.plugins.map(&:name)
