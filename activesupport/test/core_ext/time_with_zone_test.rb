@@ -1,4 +1,5 @@
 require 'abstract_unit'
+require 'active_support/time_with_zone'
 
 class TimeWithZoneTest < Test::Unit::TestCase
 

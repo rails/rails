@@ -42,7 +42,6 @@ module ActionController
     
     # :api: plugin
     def response_body=(body)
-      @_response["Content-Length"] = body.length
       @_response.body = body
     end
     

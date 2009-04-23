@@ -10,14 +10,12 @@ module ActiveSupport
       @partial_path = "#{@cache_key}/#{demodulize.underscore}".freeze
     end
   end
+end
 
-  module CoreExtensions
-    module Module
-      # Returns an ActiveSupport::ModelName object for module. It can be
-      # used to retrieve all kinds of naming-related information.
-      def model_name
-        @model_name ||= ModelName.new(name)
-      end
-    end
+class Module
+  # Returns an ActiveSupport::ModelName object for module. It can be
+  # used to retrieve all kinds of naming-related information.
+  def model_name
+    @model_name ||= ActiveSupport::ModelName.new(name)
   end
 end

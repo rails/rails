@@ -21,16 +21,18 @@
 # WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 #++
 
-$:.unshift(File.dirname(__FILE__))
-$:.unshift(File.dirname(__FILE__) + "/../../activesupport/lib")
-
 begin
-  require 'active_support'  
+  require 'active_support'
 rescue LoadError
-  require 'rubygems'
-  gem 'activesupport'
+  activesupport_path = "#{File.dirname(__FILE__)}/../../activesupport/lib"
+  if File.directory?(activesupport_path)
+    $:.unshift activesupport_path
+    require 'active_support'
+  end
 end
+require 'active_support/core/all'
 
+$:.unshift(File.dirname(__FILE__))
 require 'rails_generator/base'
 require 'rails_generator/lookup'
 require 'rails_generator/commands'

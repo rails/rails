@@ -56,6 +56,14 @@ module AbstractController
       def naked_render
         render
       end
+
+      def rendering_to_body
+        render_to_body "naked_render.erb"
+      end
+
+      def rendering_to_string
+        render_to_string "naked_render.erb"
+      end
     end
     
     class TestRenderer < ActiveSupport::TestCase
@@ -71,6 +79,16 @@ module AbstractController
       
       test "rendering with no template name" do
         result = Me2.process(:naked_render)
+        assert_equal "Hello from naked_render.erb", result.response_obj[:body]
+      end
+
+      test "rendering to a rack body" do
+        result = Me2.process(:rendering_to_body)
+        assert_equal "Hello from naked_render.erb", result.response_obj[:body]
+      end
+
+      test "rendering to a string" do
+        result = Me2.process(:rendering_to_string)
         assert_equal "Hello from naked_render.erb", result.response_obj[:body]
       end
     end
@@ -134,7 +152,7 @@ module AbstractController
         self.class.layout(formats)
       end      
       
-      def render_to_string(options = {})
+      def render_to_body(options = {})
         options[:_layout] = options[:layout] || _layout
         super
       end  

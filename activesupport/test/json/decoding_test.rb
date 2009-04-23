@@ -1,7 +1,8 @@
 # encoding: UTF-8
 require 'abstract_unit'
+require 'active_support/json'
 
-class TestJSONDecoding < Test::Unit::TestCase
+class TestJSONDecoding < ActiveSupport::TestCase
   TESTS = {
     %q({"returnTo":{"\/categories":"\/"}})        => {"returnTo" => {"/categories" => "/"}},
     %q({returnTo:{"\/categories":"\/"}})          => {"returnTo" => {"/categories" => "/"}},
@@ -36,7 +37,7 @@ class TestJSONDecoding < Test::Unit::TestCase
   }
   
   TESTS.each do |json, expected|
-    define_method :"test_json_decoding_#{json}" do
+    test "json decodes #{json}" do
       assert_nothing_raised do
         assert_equal expected, ActiveSupport::JSON.decode(json)
       end

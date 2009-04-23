@@ -1,5 +1,4 @@
-require 'yaml'
-require 'strscan'
+require 'active_support/core_ext/string/starts_ends_with'
 
 module ActiveSupport
   module JSON
@@ -20,7 +19,8 @@ module ActiveSupport
 
         # Ensure that ":" and "," are always followed by a space
         def convert_json_to_yaml(json) #:nodoc:
-          scanner, quoting, marks, pos, times = StringScanner.new(json), false, [], nil, []
+          require 'strscan' unless defined? ::StringScanner
+          scanner, quoting, marks, pos, times = ::StringScanner.new(json), false, [], nil, []
           while scanner.scan_until(/(\\['"]|['":,\\]|\\.)/)
             case char = scanner[1]
             when '"', "'"
@@ -45,7 +45,7 @@ module ActiveSupport
           if marks.empty?
             json.gsub(/\\([\\\/]|u[[:xdigit:]]{4})/) do
               ustr = $1
-              if ustr.starts_with?('u')
+              if ustr.start_with?('u')
                 [ustr[1..-1].to_i(16)].pack("U")
               elsif ustr == '\\'
                 '\\\\'
@@ -61,10 +61,10 @@ module ActiveSupport
               scanner.pos = left.succ
               output << scanner.peek(right_pos[i] - scanner.pos + 1).gsub(/\\([\\\/]|u[[:xdigit:]]{4})/) do
                 ustr = $1
-                if ustr.starts_with?('u')
+                if ustr.start_with?('u')
                   [ustr[1..-1].to_i(16)].pack("U")
                 elsif ustr == '\\'
-                '\\\\'
+                  '\\\\'
                 else
                   ustr
                 end

@@ -1,3 +1,4 @@
+#--
 # Authors::   Matt Aimonetti (http://railsontherun.com/),
 #             Sven Fuchs (http://www.artweb-design.de),
 #             Joshua Harvey (http://www.workingwithrails.com/person/759-joshua-harvey),
@@ -5,10 +6,14 @@
 #             Stephan Soller (http://www.arkanis-development.de/)
 # Copyright:: Copyright (c) 2008 The Ruby i18n Team
 # License::   MIT
-require 'i18n/backend/simple'
-require 'i18n/exceptions'
+#++
 
 module I18n
+  autoload :ArgumentError, 'i18n/exceptions'
+  module Backend
+    autoload :Simple, 'i18n/backend/simple'
+  end
+
   @@backend = nil
   @@load_path = nil
   @@default_locale = :'en'

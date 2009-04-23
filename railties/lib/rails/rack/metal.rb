@@ -1,4 +1,5 @@
 require 'active_support/ordered_hash'
+require 'active_support/core_ext/class/attribute_accessors'
 
 module Rails
   module Rack

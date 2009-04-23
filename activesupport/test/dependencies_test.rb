@@ -1,5 +1,6 @@
 require 'abstract_unit'
 require 'pp'
+require 'active_support/dependencies'
 
 module ModuleWithMissing
   mattr_accessor :missing_count

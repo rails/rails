@@ -17,20 +17,30 @@ module AbstractController
     end
         
     def render(options = {})
-      self.response_body = render_to_string(options)
+      self.response_body = render_to_body(options)
     end
     
-    # Raw rendering of a template.
+    # Raw rendering of a template to a Rack-compatible body.
+    # ====
+    # @option _prefix<String> The template's path prefix
+    # @option _layout<String> The relative path to the layout template to use
+    # 
+    # :api: plugin
+    def render_to_body(options = {})
+      name = options[:_template_name] || action_name
+      
+      template = options[:_template] || view_paths.find_by_parts(name.to_s, formats, options[:_prefix])
+      _render_template(template, options)
+    end
+
+    # Raw rendering of a template to a string.
     # ====
     # @option _prefix<String> The template's path prefix
     # @option _layout<String> The relative path to the layout template to use
     # 
     # :api: plugin
     def render_to_string(options = {})
-      name = options[:_template_name] || action_name
-      
-      template = options[:_template] || view_paths.find_by_parts(name.to_s, formats, options[:_prefix])
-      _render_template(template, options)
+      AbstractController::Renderer.body_to_s(render_to_body(options))
     end
 
     def _render_template(template, options)
@@ -38,6 +48,18 @@ module AbstractController
     end
     
     def view_paths() _view_paths end
+
+    # Return a string representation of a Rack-compatible response body.
+    def self.body_to_s(body)
+      if body.respond_to?(:to_str)
+        body
+      else
+        strings = []
+        body.each { |part| strings << part.to_s }
+        body.close if body.respond_to?(:close)
+        strings.join
+      end
+    end
 
     module ClassMethods
       

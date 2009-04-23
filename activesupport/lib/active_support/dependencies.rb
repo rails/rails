@@ -1,3 +1,12 @@
+require 'set'
+require 'thread'
+require 'active_support/inflector'
+require 'active_support/core_ext/name_error'
+require 'active_support/core_ext/object/blank'
+require 'active_support/core_ext/module/aliasing'
+require 'active_support/core_ext/module/attribute_accessors'
+require 'active_support/core_ext/module/introspection'
+
 module ActiveSupport #:nodoc:
   module Dependencies #:nodoc:
     extend self
@@ -16,7 +25,7 @@ module ActiveSupport #:nodoc:
 
     # Should we load files or require them?
     mattr_accessor :mechanism
-    self.mechanism = :load
+    self.mechanism = ENV['NO_RELOAD'] ? :require : :load
 
     # The set of directories from which we may automatically load files. Files
     # under these directories will be reloaded on each request in development mode,
@@ -328,7 +337,7 @@ module ActiveSupport #:nodoc:
 
     # Search for a file in load_paths matching the provided suffix.
     def search_for_file(path_suffix)
-      path_suffix = path_suffix + '.rb' unless path_suffix.ends_with? '.rb'
+      path_suffix = "#{path_suffix}.rb" unless path_suffix =~ /\.rb\Z/
       load_paths.each do |root|
         path = File.join(root, path_suffix)
         return path if File.file? path
@@ -410,7 +419,7 @@ module ActiveSupport #:nodoc:
       # If we have an anonymous module, all we can do is attempt to load from Object.
       from_mod = Object if from_mod.name.blank?
 
-      unless qualified_const_defined?(from_mod.name) && from_mod.name.constantize.object_id == from_mod.object_id
+      unless qualified_const_defined?(from_mod.name) && Inflector.constantize(from_mod.name).object_id == from_mod.object_id
         raise ArgumentError, "A copy of #{from_mod} has been removed from the module tree but is still active!"
       end
 
@@ -501,7 +510,7 @@ module ActiveSupport #:nodoc:
 
           # Handle the case where the module has yet to be defined.
           initial_constants = if qualified_const_defined?(mod_name)
-            mod_name.constantize.local_constant_names
+            Inflector.constantize(mod_name).local_constant_names
           else
             []
           end
@@ -526,7 +535,7 @@ module ActiveSupport #:nodoc:
           # Module still doesn't exist? Treat it as if it has no constants.
           next [] unless qualified_const_defined?(mod_name)
 
-          mod = mod_name.constantize
+          mod = Inflector.constantize(mod_name)
           next [] unless mod.is_a? Module
           new_constants = mod.local_constant_names - prior_constants
 
@@ -596,7 +605,7 @@ module ActiveSupport #:nodoc:
       if names.size == 1 # It's under Object
         parent = Object
       else
-        parent = (names[0..-2] * '::').constantize
+        parent = Inflector.constantize(names[0..-2] * '::')
       end
 
       log "removing constant #{const}"

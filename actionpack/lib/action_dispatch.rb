@@ -30,6 +30,7 @@ rescue LoadError
     require 'active_support'
   end
 end
+require 'active_support/core/all'
 
 $:.unshift "#{File.dirname(__FILE__)}/action_dispatch/vendor/rack-1.0"
 begin

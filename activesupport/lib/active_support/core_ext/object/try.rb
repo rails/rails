@@ -1,8 +1,8 @@
 class Object
-  # Invokes the method identified by the symbol +method+, passing it any arguments 
+  # Invokes the method identified by the symbol +method+, passing it any arguments
   # and/or the block specified, just like the regular Ruby <tt>Object#send</tt> does.
   #
-  # *Unlike* that method however, a +NoMethodError+ exception will *not* be raised 
+  # *Unlike* that method however, a +NoMethodError+ exception will *not* be raised
   # and +nil+ will be returned instead, if the receiving object is a +nil+ object or NilClass.
   #
   # ==== Examples
@@ -19,7 +19,7 @@ class Object
   #   Person.try(:find, 1)
   #   @people.try(:collect) {|p| p.name}
   #--
-  # This method definition below is for rdoc purposes only. The alias_method call 
+  # This method definition below is for rdoc purposes only. The alias_method call
   # below overrides it as an optimization since +try+ behaves like +Object#send+,
   # unless called on +NilClass+.
   def try(method, *args, &block)
@@ -29,7 +29,7 @@ class Object
   alias_method :try, :__send__
 end
 
-class NilClass
+class NilClass #:nodoc:
   def try(*args)
     nil
   end

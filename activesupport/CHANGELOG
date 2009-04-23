@@ -1,4 +1,8 @@
-*Edge
+*Edge*
+
+* require 'active_support' no longer orders the whole menu of core extensions. Ask for just what you need: e.g. require 'active_support/core/time' to use timezones, durations, and stdlib date/time extensions. [Jeremy Kemper]
+
+* Removed rarely-used DRb cache store.  [Jeremy Kemper]
 
 * TimeWithZone.name returns 'Time', to further thwart type checking [Geoff Buesing]
 

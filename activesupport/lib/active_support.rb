@@ -23,7 +23,7 @@
 
 module ActiveSupport
   def self.load_all!
-    [Dependencies, Deprecation, Gzip, MessageVerifier, Multibyte, SecureRandom, TimeWithZone]
+    [Dependencies, Deprecation, Gzip, MessageVerifier, Multibyte, SecureRandom] + Core.load_all!
   end
 
   autoload :BacktraceCleaner, 'active_support/backtrace_cleaner'
@@ -35,7 +35,6 @@ module ActiveSupport
   autoload :NewCallbacks, 'active_support/new_callbacks'
   autoload :ConcurrentHash, 'active_support/concurrent_hash'
   autoload :Deprecation, 'active_support/deprecation'
-  autoload :Duration, 'active_support/duration'
   autoload :Gzip, 'active_support/gzip'
   autoload :Inflector, 'active_support/inflector'
   autoload :Memoizable, 'active_support/memoizable'
@@ -48,14 +47,9 @@ module ActiveSupport
   autoload :Rescuable, 'active_support/rescuable'
   autoload :SecureRandom, 'active_support/secure_random'
   autoload :StringInquirer, 'active_support/string_inquirer'
-  autoload :TimeWithZone, 'active_support/time_with_zone'
-  autoload :TimeZone, 'active_support/values/time_zone'
   autoload :XmlMini, 'active_support/xml_mini'
 end
 
 require 'active_support/vendor'
-require 'active_support/core_ext'
-require 'active_support/dependencies'
-require 'active_support/json'
 
 I18n.load_path << "#{File.dirname(__FILE__)}/active_support/locale/en.yml"

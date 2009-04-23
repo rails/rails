@@ -1,4 +1,5 @@
 require 'abstract_unit'
+require 'active_support/core_ext/class/delegating_attributes'
 
 module DelegatingFixtures
   class Parent

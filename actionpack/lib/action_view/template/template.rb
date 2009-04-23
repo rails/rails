@@ -1,3 +1,4 @@
+require 'set'
 require "action_view/template/path"
 
 module ActionView #:nodoc:

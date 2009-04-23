@@ -287,6 +287,7 @@ module ActionController #:nodoc:
     include TestResponseBehavior
 
     def recycle!
+      body_parts.clear
       headers.delete('ETag')
       headers.delete('Last-Modified')
     end

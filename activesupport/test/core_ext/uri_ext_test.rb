@@ -1,5 +1,6 @@
 require 'abstract_unit'
 require 'uri'
+require 'active_support/core_ext/uri'
 
 class URIExtTest < Test::Unit::TestCase
   def test_uri_decode_handle_multibyte

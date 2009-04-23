@@ -9,7 +9,7 @@ module ActionController
       end
     end
     
-    def render_to_string(options)
+    def render_to_body(options)
       # render :text => ..., :layout => ...
       # or
       # render :anything_else

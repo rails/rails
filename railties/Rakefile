@@ -29,12 +29,12 @@ task :default => :test
 task :test do 
   Dir['test/**/*_test.rb'].all? do |file|
     ruby = File.join(*RbConfig::CONFIG.values_at('bindir', 'RUBY_INSTALL_NAME'))
-    system(ruby, '-Itest', file)
+    system(ruby, '-Itest', "-I#{File.dirname(__FILE__)}/../activesupport/lib", file)
   end or raise "Failures"
 end
 
 Rake::TestTask.new("regular_test") do |t|
-  t.libs << 'test'
+  t.libs << 'test' << "#{File.dirname(__FILE__)}/../activesupport/lib"
   t.pattern = 'test/**/*_test.rb'
   t.warning = true
   t.verbose = true

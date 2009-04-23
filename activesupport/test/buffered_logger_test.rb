@@ -1,6 +1,7 @@
 require 'abstract_unit'
 require 'stringio'
 require 'fileutils'
+require 'active_support/buffered_logger'
 
 class BufferedLoggerTest < Test::Unit::TestCase
   def setup

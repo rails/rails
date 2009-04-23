@@ -1,3 +1,5 @@
+require 'active_support/core_ext/file/atomic'
+
 module ActiveSupport
   module Cache
     # A cache store implementation which stores everything on the filesystem.

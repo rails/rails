@@ -7,12 +7,12 @@ require 'rexml/rexml'
 unless (defined?(REXML::VERSION) ? REXML::VERSION : REXML::Version) > "3.1.7.2"
   require 'rexml/document'
 
-  # REXML in 1.8.7 has the patch but didn't update Version from 3.1.7.2.
+  # REXML in 1.8.7 has the patch but early patchlevels didn't update Version from 3.1.7.2.
   unless REXML::Document.respond_to?(:entity_expansion_limit=)
     require 'rexml/entity'
 
-    module REXML
-      class Entity < Child
+    module REXML #:nodoc:
+      class Entity < Child #:nodoc:
         undef_method :unnormalized
         def unnormalized
           document.record_entity_expansion! if document
@@ -22,7 +22,7 @@ unless (defined?(REXML::VERSION) ? REXML::VERSION : REXML::Version) > "3.1.7.2"
           @unnormalized
         end
       end
-      class Document < Element
+      class Document < Element #:nodoc:
         @@entity_expansion_limit = 10_000
         def self.entity_expansion_limit= val
           @@entity_expansion_limit = val
