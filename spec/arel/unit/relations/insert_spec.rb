@@ -14,7 +14,7 @@ module Arel
         @insertion.to_sql.should be_like("
           INSERT
           INTO `users`
-          (`users`.`name`) VALUES ('nick'), ('bryan')
+          (`name`) VALUES ('nick'), ('bryan')
         ")
       end
 
@@ -24,7 +24,7 @@ module Arel
         @insertion.to_sql.should be_like("
           INSERT
           INTO `users`
-          (`users`.`id`, `users`.`name`) VALUES (1, 'nick')
+          (`id`, `name`) VALUES (1, 'nick')
         ")
       end
 
@@ -37,7 +37,7 @@ module Arel
           @insertion.to_sql.should be_like("
             INSERT
             INTO `users`
-            (`users`.`name`) VALUES ('nick')
+            (`name`) VALUES ('nick')
           ")
         end
       end
@@ -51,7 +51,7 @@ module Arel
           @insertion.to_sql.should be_like("
             INSERT
             INTO `users`
-            (`users`.`id`) VALUES (1)
+            (`id`) VALUES (1)
           ")
         end
       end

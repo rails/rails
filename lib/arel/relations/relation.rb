@@ -3,12 +3,16 @@ module Arel
     def session
       Session.new
     end
-    
+
+    def select_values
+      engine.select_values self.to_sql
+    end
+
     def to_sql(formatter = Sql::SelectStatement.new(self))
       formatter.select select_sql, self
     end
     alias_method :to_s, :to_sql
-    
+
     def select_sql
       [
         "SELECT     #{attributes.collect { |a| a.to_sql(Sql::SelectClause.new(self)) }.join(', ')}",
@@ -21,12 +25,12 @@ module Arel
         ("OFFSET    #{skipped}"                                                                         unless skipped.blank?     )
       ].compact.join("\n")
     end
-    
+
     def inclusion_predicate_sql
       "IN"
     end
-    
-    def call(connection = engine.connection)
+
+    def call(connection = engine)
       results = connection.execute(to_sql)
       rows = []
       results.each do |row|
@@ -34,19 +38,19 @@ module Arel
       end
       rows
     end
-    
+
     def bind(relation)
       self
     end
-    
+
     def root
       self
     end
-    
+
     def christener
       @christener ||= Sql::Christener.new
     end
-    
+
     module Enumerable
       include ::Enumerable
 
@@ -75,7 +79,7 @@ module Arel
       def outer_join(other_relation = nil)
         join(other_relation, "LEFT OUTER JOIN")
       end
-      
+
       [:where, :project, :order, :take, :skip, :group].each do |operation_name|
         operation = <<-OPERATION
           def #{operation_name}(*arguments, &block)
@@ -88,7 +92,7 @@ module Arel
       def alias
         Alias.new(self)
       end
-      
+
       module Writable
         def insert(record)
           session.create Insert.new(self, record); self
@@ -103,7 +107,7 @@ module Arel
         end
       end
       include Writable
-  
+
       JoinOperation = Struct.new(:join_sql, :relation1, :relation2) do
         def on(*predicates)
           Join.new(join_sql, relation1, relation2, *predicates)
@@ -111,7 +115,7 @@ module Arel
       end
     end
     include Operable
-    
+
     module AttributeAccessable
       def [](index)
         case index
@@ -123,17 +127,17 @@ module Arel
           index.collect { |i| self[i] }
         end
       end
-      
+
       def find_attribute_matching_name(name)
         attributes.detect { |a| a.named?(name) }
       end
-      
+
       def find_attribute_matching_attribute(attribute)
         matching_attributes(attribute).max do |a1, a2|
           (a1.original_attribute / attribute) <=> (a2.original_attribute / attribute)
         end
       end
-      
+
       private
       def matching_attributes(attribute)
         (@matching_attributes ||= attributes.inject({}) do |hash, a|
@@ -141,7 +145,7 @@ module Arel
           hash
         end)[attribute.root] || []
       end
-      
+
       def has_attribute?(attribute)
         !matching_attributes(attribute).empty?
       end

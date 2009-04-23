@@ -11,12 +11,12 @@ module Arel
       [
         "INSERT",
         "INTO #{table_sql}",
-        "(#{record.keys.collect(&:to_sql).join(', ')})",
-        "VALUES (#{record.collect { |key, value| key.format(value) }.join(', ')})"
+        "(#{record.keys.map { |key| engine.quote_column_name(key.name) }.join(', ')})",
+        "VALUES (#{record.map { |key, value| key.format(value) }.join(', ')})"
       ].join("\n")
     end
-    
-    def call(connection = engine.connection)
+
+    def call(connection = engine)
       connection.insert(to_sql)
     end
   end
