@@ -196,7 +196,9 @@ module ActionView #:nodoc:
     delegate :controller_path, :to => :controller, :allow_nil => true
 
     delegate :request_forgery_protection_token, :template, :params, :session, :cookies, :response, :headers,
-             :flash, :logger, :action_name, :controller_name, :to => :controller
+             :flash, :action_name, :controller_name, :to => :controller
+
+    delegate :logger, :to => :controller, :allow_nil => true
 
     delegate :find_by_parts, :to => :view_paths
 

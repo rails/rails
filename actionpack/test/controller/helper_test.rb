@@ -211,7 +211,7 @@ class IsolatedHelpersTest < Test::Unit::TestCase
   end
 
   def test_helper_in_a
-    assert_raise(NameError) { A.process(@request, @response) }
+    assert_raise(ActionView::TemplateError) { A.process(@request, @response) }
   end
 
   def test_helper_in_b

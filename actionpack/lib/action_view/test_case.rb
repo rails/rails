@@ -10,9 +10,10 @@ module ActionView
     
     alias_method :_render_template_without_template_tracking, :_render_template
     def _render_template(template, local_assigns = {})
-      if template.respond_to?(:path) && !template.is_a?(InlineTemplate)
-        @_rendered[:partials][template] += 1 if template.is_a?(RenderablePartial)
-        @_rendered[:template] ||= template
+      if template.respond_to?(:identifier)
+        @_rendered[:partials][template] += 1 if template.partial?
+        @_rendered[:template] ||= []
+        @_rendered[:template] << template
       end
       _render_template_without_template_tracking(template, local_assigns)
     end    

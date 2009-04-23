@@ -494,8 +494,18 @@ module ActionController #:nodoc:
         end
         protected :filter_parameters
       end
+      
+      @@exempt_from_layout = [ActionView::TemplateHandlers::RJS]
+      
+      def exempt_from_layout(*types)
+        types.each do |type|
+          @@exempt_from_layout << 
+            ActionView::Template.handler_class_for_extension(type)
+        end
+        
+        @@exempt_from_layout
+      end
 
-      delegate :exempt_from_layout, :to => 'ActionView::Template'
     end
 
     public
@@ -856,13 +866,13 @@ module ActionController #:nodoc:
         return (performed? ? ret : default_render) if called
         
         begin
-          default_render
-        rescue ActionView::MissingTemplate => e
-          raise e unless e.action_name == action_name
-          # If the path is the same as the action_name, the action is completely missing
+          view_paths.find_by_parts(action_name, {:formats => formats, :locales => [I18n.locale]}, controller_path)
+        rescue => e
           raise UnknownAction, "No action responded to #{action_name}. Actions: " +
             "#{action_methods.sort.to_sentence}", caller
         end
+        
+        default_render
       end
 
       # Returns true if a render or redirect has already been performed.

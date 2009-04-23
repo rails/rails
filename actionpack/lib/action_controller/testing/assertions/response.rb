@@ -98,22 +98,22 @@ module ActionController
         clean_backtrace do
           case options
            when NilClass, String
-            rendered = @controller.response.rendered[:template].to_s
+            rendered = (@controller.response.rendered[:template] || []).map { |t| t.identifier }
             msg = build_message(message,
                     "expecting <?> but rendering with <?>",
-                    options, rendered)
+                    options, rendered.join(', '))
             assert_block(msg) do
               if options.nil?
                 @controller.response.rendered[:template].blank?
               else
-                rendered.to_s.match(options)
+                rendered.any? { |t| t.match(options) }
               end
             end
           when Hash
             if expected_partial = options[:partial]
               partials = @controller.response.rendered[:partials]
               if expected_count = options[:count]
-                found = partials.detect { |p, _| p.to_s.match(expected_partial) }
+                found = partials.detect { |p, _| p.identifier.match(expected_partial) }
                 actual_count = found.nil? ? 0 : found.second
                 msg = build_message(message,
                         "expecting ? to be rendered ? time(s) but rendered ? time(s)",
@@ -123,7 +123,7 @@ module ActionController
                 msg = build_message(message,
                         "expecting partial <?> but action rendered <?>",
                         options[:partial], partials.keys)
-                assert(partials.keys.any? { |p| p.to_s.match(expected_partial) }, msg)
+                assert(partials.keys.any? { |p| p.identifier.match(expected_partial) }, msg)
               end
             else
               assert @controller.response.rendered[:partials].empty?,
