@@ -1,5 +1,3 @@
-require 'active_record/connection_adapters/abstract/quoting'
-
 module Fake
   class Engine
     def connection
