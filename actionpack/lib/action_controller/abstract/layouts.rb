@@ -38,7 +38,7 @@ module AbstractController
         else
           self.class_eval %{
             def _layout
-              if view_paths.find_by_parts?("#{_implied_layout_name}", formats, "layouts")
+              if view_paths.find_by_parts?("#{_implied_layout_name}", {:formats => formats}, "layouts")
                 "#{_implied_layout_name}"
               else
                 super
@@ -62,7 +62,7 @@ module AbstractController
         raise ArgumentError, "String, false, or nil expected; you passed #{name.inspect}"
       end
       
-      name && view_paths.find_by_parts(name, formats, "layouts")
+      name && view_paths.find_by_parts(name, {:formats => formats}, "layouts")
     end
     
     def _default_layout(require_layout = false)
