@@ -1,11 +1,11 @@
 require 'singleton'
 
 module Arel
-  class Session    
+  class Session
     class << self
       attr_accessor :instance
       alias_method :manufacture, :new
-      
+
       def start
         if @started
           yield
@@ -22,24 +22,24 @@ module Arel
         end
       end
     end
-    
+
     module CRUD
       def create(insert)
-        insert.call(insert.engine.connection)
+        insert.call(insert.engine)
       end
-      
+
       def read(select)
         (@read ||= Hash.new do |hash, select|
-          hash[select] = select.call(select.engine.connection)
+          hash[select] = select.call(select.engine)
         end)[select]
       end
-      
+
       def update(update)
-        update.call(update.engine.connection)
+        update.call(update.engine)
       end
-      
+
       def delete(delete)
-        delete.call(delete.engine.connection)
+        delete.call(delete.engine)
       end
     end
     include CRUD
