@@ -1,0 +1,3 @@
+[submodule "arel"]
+	path = arel
+	url = git@github.com:miloops/arel.git
