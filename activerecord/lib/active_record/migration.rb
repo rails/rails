@@ -413,7 +413,8 @@ module ActiveRecord
       end
 
       def get_all_versions
-        Base.connection.select_values("SELECT version FROM #{schema_migrations_table_name}").map(&:to_i).sort
+        table = Arel(schema_migrations_table_name)
+        table.project(table['version']).select_values.map(&:to_i).sort
       end
 
       def current_version
