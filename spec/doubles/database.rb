@@ -1,3 +1,5 @@
+require 'active_record/connection_adapters/abstract/quoting'
+
 module Fake
   class Engine
     def connection
@@ -7,7 +9,7 @@ module Fake
 
   class Connection
     include ActiveRecord::ConnectionAdapters::Quoting
-  
+
     def columns(table_name, comment)
       { "users" =>
         [
@@ -26,7 +28,7 @@ module Fake
     def execute(*args)
       []
     end
-  
+
     def quote_column_name(column_name)
       "`#{column_name}`"
     end
@@ -38,7 +40,7 @@ module Fake
 
   class Column
     attr_reader :name, :type
-  
+
     def initialize(name, type)
       @name = name
       @type = type

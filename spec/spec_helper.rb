@@ -11,7 +11,7 @@ require 'arel'
   Dir["#{dir}/#{helper}/*"].each { |m| require "#{dir}/#{helper}/#{File.basename(m)}" }
 end
 
-Spec::Runner.configure do |config|  
+Spec::Runner.configure do |config|
   config.include(BeLikeMatcher, HashTheSameAsMatcher, DisambiguateAttributesMatcher)
   config.mock_with :rr
   config.before do
