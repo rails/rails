@@ -24,6 +24,6 @@ class Test::Unit::TestCase
     end
     
     def assert_plugins(list_of_names, array_of_plugins, message=nil)
-      assert_equal list_of_names.map(&:to_s), array_of_plugins.map(&:name), message
+      assert_equal list_of_names.map { |n| n.to_s }, array_of_plugins.map { |p| p.name }, message
     end    
 end
