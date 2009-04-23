@@ -1,3 +1,5 @@
+require 'active_support/core_ext/object/duplicable'
+
 module ActiveSupport
   module Cache
     module Strategy

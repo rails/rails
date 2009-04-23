@@ -4,6 +4,8 @@ require 'active_support/multibyte/chars'
 require 'active_support/multibyte/exceptions'
 require 'active_support/multibyte/unicode_database'
 
+require 'active_support/core_ext/module/attribute_accessors'
+
 module ActiveSupport #:nodoc:
   module Multibyte
     # A list of all available normalization forms. See http://www.unicode.org/reports/tr15/tr15-29.html for more

@@ -1,4 +1,5 @@
 require 'active_support/core_ext/module/deprecation'
+require 'active_support/core_ext/module/aliasing'
 
 module ActiveSupport
   class << Deprecation

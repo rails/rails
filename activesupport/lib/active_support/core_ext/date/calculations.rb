@@ -1,3 +1,5 @@
+require 'active_support/duration'
+
 class Date
   class << self
     # Returns a new Date representing the date 1 day ago (i.e. yesterday's date).

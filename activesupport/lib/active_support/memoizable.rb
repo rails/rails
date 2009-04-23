@@ -1,3 +1,5 @@
+require 'active_support/core_ext/object/metaclass'
+
 module ActiveSupport
   module SafelyMemoizable
     def safely_memoize(*symbols)

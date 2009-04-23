@@ -1,6 +1,7 @@
 # encoding: utf-8
 require 'iconv'
-
+require 'active_support/core_ext/object/blank'
+require 'active_support/core_ext/string/access'
 require 'active_support/core_ext/string/multibyte'
 
 module ActiveSupport

@@ -1,4 +1,5 @@
 require 'abstract_unit'
+require 'active_support/core/time'
 
 class TimeZoneTest < Test::Unit::TestCase
   def test_utc_to_local

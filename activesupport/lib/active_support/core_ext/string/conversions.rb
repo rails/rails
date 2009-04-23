@@ -1,4 +1,5 @@
 require 'date'
+require 'active_support/core_ext/time/calculations'
 
 class String
   # 'a'.ord == 'a'[0] for Ruby 1.9 forward compatibility.
