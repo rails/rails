@@ -50,7 +50,7 @@ class PluginFileSystemLocatorTest < Test::Unit::TestCase
     assert_equal ["acts_as_chunky_bacon", "gemlike", "plugin_with_no_lib_dir", "stubby"].sort, @locator.plugins.map { |p| p.name }.sort
   
     @configuration.plugin_paths = [File.join(plugin_fixture_root_path, "alternate")]
-    assert_equal ["a"], @locator.plugins.map(&:name)
+    assert_equal ["a"], @locator.plugins.map { |p| p.name }
   end
 
   def test_should_not_raise_any_error_and_return_no_plugins_if_the_plugin_path_value_does_not_exist
