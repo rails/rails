@@ -21,6 +21,8 @@
 # WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 #++
 
+
+
 begin
   require 'active_support'
 rescue LoadError
@@ -31,6 +33,9 @@ rescue LoadError
   end
 end
 require 'active_support/core/all'
+
+$:.unshift(File.dirname(__FILE__) + '/../../arel/lib')
+require 'arel'
 
 module ActiveRecord
   # TODO: Review explicit loads to see if they will automatically be handled by the initilizer.
