@@ -1,4 +1,5 @@
 require 'abstract_unit'
+require 'active_support/core/time'
 
 class TimeExtCalculationsTest < Test::Unit::TestCase
   def test_seconds_since_midnight

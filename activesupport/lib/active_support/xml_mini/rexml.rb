@@ -1,3 +1,5 @@
+require 'active_support/core_ext/object/blank'
+
 # = XmlMini ReXML implementation
 module ActiveSupport
   module XmlMini_REXML #:nodoc:

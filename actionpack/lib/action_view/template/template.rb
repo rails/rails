@@ -101,7 +101,7 @@ module ActionView #:nodoc:
     end    
     
     def content_type
-      format.gsub('.', '/')
+      format && format.gsub('.', '/')
     end    
     
   private

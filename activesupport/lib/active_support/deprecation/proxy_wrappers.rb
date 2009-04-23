@@ -1,3 +1,5 @@
+require 'active_support/inflector'
+
 module ActiveSupport
   module Deprecation
     class DeprecationProxy #:nodoc:
@@ -61,7 +63,7 @@ module ActiveSupport
 
       private
         def target
-          @new_const.to_s.constantize
+          ActiveSupport::Inflector.constantize(@new_const.to_s)
         end
 
         def warn(callstack, called, args)

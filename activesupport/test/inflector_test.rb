@@ -1,4 +1,6 @@
 require 'abstract_unit'
+require 'active_support/inflector'
+
 require 'inflector_test_cases'
 
 module Ace

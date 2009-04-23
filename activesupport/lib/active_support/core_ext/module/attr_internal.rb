@@ -22,11 +22,11 @@ class Module
 
   alias_method :attr_internal, :attr_internal_accessor
 
-  private
-    mattr_accessor :attr_internal_naming_format
-    self.attr_internal_naming_format = '@_%s'
+  class << self; attr_accessor :attr_internal_naming_format end
+  self.attr_internal_naming_format = '@_%s'
 
+  private
     def attr_internal_ivar_name(attr)
-      attr_internal_naming_format % attr
+      Module.attr_internal_naming_format % attr
     end
 end

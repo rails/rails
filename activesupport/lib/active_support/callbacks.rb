@@ -1,3 +1,5 @@
+require 'active_support/core_ext/array/extract_options'
+
 module ActiveSupport
   # Callbacks are hooks into the lifecycle of an object that allow you to trigger logic
   # before or after an alteration of the object state.

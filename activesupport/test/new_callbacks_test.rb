@@ -19,11 +19,11 @@ module NewCallbacksTest
 
     class << self
       def callback_symbol(callback_method)
-        returning(:"#{callback_method}_method") do |method_name|
-          define_method(method_name) do
-            history << [callback_method, :symbol]
-          end
+        method_name = :"#{callback_method}_method"
+        define_method(method_name) do
+          history << [callback_method, :symbol]
         end
+        method_name
       end
 
       def callback_string(callback_method)

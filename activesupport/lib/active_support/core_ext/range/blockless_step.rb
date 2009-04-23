@@ -1,3 +1,5 @@
+require 'active_support/core_ext/module/aliasing'
+
 class Range
   begin
     (1..2).step

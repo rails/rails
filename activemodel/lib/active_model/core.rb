@@ -1,7 +1,7 @@
 begin
   require 'active_support'
 rescue LoadError
-  activesupport_path = "#{File.dirname(__FILE__)}/../../activesupport/lib"
+  activesupport_path = "#{File.dirname(__FILE__)}/../../../activesupport/lib"
   if File.directory?(activesupport_path)
     $:.unshift activesupport_path
     require 'active_support'

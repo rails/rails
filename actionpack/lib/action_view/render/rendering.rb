@@ -23,10 +23,10 @@ module ActionView
         return _render_partial_with_layout(layout, options) if options.key?(:partial)
         return _render_partial_with_block(layout, block, options) if block_given?
     
-        layout = find_by_parts(layout, formats) if layout
+        layout = find_by_parts(layout, {:formats => formats}) if layout
     
         if file = options[:file]
-          template = find_by_parts(file, formats)
+          template = find_by_parts(file, {:formats => formats})
           _render_template_with_layout(template, layout, :locals => options[:locals])
         elsif inline = options[:inline]
           _render_inline(inline, layout, options)

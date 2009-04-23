@@ -18,7 +18,7 @@ class GemDependencyTest < Test::Unit::TestCase
   def test_configuration_adds_gem_dependency
     config = Rails::Configuration.new
     config.gem "xaws-s3x", :lib => "aws/s3", :version => "0.4.0"
-    assert_equal [["install", "xaws-s3x", "--version", '"= 0.4.0"']], config.gems.collect(&:install_command)
+    assert_equal [["install", "xaws-s3x", "--version", '"= 0.4.0"']], config.gems.collect { |g| g.install_command }
   end
 
   def test_gem_creates_install_command

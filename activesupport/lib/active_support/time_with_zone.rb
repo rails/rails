@@ -130,13 +130,15 @@ module ActiveSupport
     #   # With ActiveSupport.use_standard_json_time_format = false
     #   Time.utc(2005,2,1,15,15,10).in_time_zone.to_json
     #   # => "2005/02/01 15:15:10 +0000"
-    def to_json(options = nil)
-      if ActiveSupport.use_standard_json_time_format
+    def rails_to_json(options = nil)
+      if !ActiveSupport.respond_to?(:use_standard_json_time_format) || ActiveSupport.use_standard_json_time_format
         xmlschema.inspect
       else
         %("#{time.strftime("%Y/%m/%d %H:%M:%S")} #{formatted_offset(false)}")
       end
     end
+
+    alias to_json rails_to_json
 
     def to_yaml(options = {})
       if options.kind_of?(YAML::Emitter)

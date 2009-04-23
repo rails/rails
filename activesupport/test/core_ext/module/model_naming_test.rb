@@ -1,4 +1,5 @@
 require 'abstract_unit'
+require 'active_support/core_ext/module/model_naming'
 
 class ModelNamingTest < Test::Unit::TestCase
   def setup

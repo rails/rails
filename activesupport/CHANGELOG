@@ -1,5 +1,20 @@
 *Edge*
 
+* Add ActiveSupport.parse_json_times to disable time parsing in JSON backends that don't support it or don't need it. [rick]
+
+* Add pluggable JSON backends with support for the JSON gem. [rick]
+    Example: ActiveSupport::JSON.backend = "JSONGem"
+
+ All internal Rails JSON encoding is now handled by ActiveSupport::JSON.encode().  Use of #to_json is not recommended, as it may clash with other libraries that overwrite it.  However, you can recover Rails specific functionality
+ if you really want to use #to_json.
+
+    gem 'json'
+    ActiveSupport::JSON.backend = "JSONGem"
+
+    class ActiveRecord::Base
+      alias to_json rails_to_json
+    end
+
 * require 'active_support' no longer orders the whole menu of core extensions. Ask for just what you need: e.g. require 'active_support/core/time' to use timezones, durations, and stdlib date/time extensions. [Jeremy Kemper]
 
 * Removed rarely-used DRb cache store.  [Jeremy Kemper]

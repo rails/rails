@@ -338,6 +338,7 @@ class ActionMailerTest < Test::Unit::TestCase
 
   def test_nested_parts_with_body
     created = nil
+    TestMailer.create_nested_multipart_with_body(@recipient)
     assert_nothing_raised { created = TestMailer.create_nested_multipart_with_body(@recipient)}
     assert_equal 1,created.parts.size
     assert_equal 2,created.parts.first.parts.size
@@ -351,8 +352,8 @@ class ActionMailerTest < Test::Unit::TestCase
 
   def test_attachment_with_custom_header
     created = nil
-    assert_nothing_raised { created = TestMailer.create_attachment_with_custom_header(@recipient)}
-    assert_equal "<test@test.com>", created.parts[1].header['content-id'].to_s
+    assert_nothing_raised { created = TestMailer.create_attachment_with_custom_header(@recipient) }
+    assert created.parts.any? { |p| p.header['content-id'].to_s == "<test@test.com>" }
   end
 
   def test_signed_up
@@ -824,7 +825,7 @@ EOF
     assert_equal 3, mail.parts.length
     assert_equal "1.0", mail.mime_version
     assert_equal "multipart/alternative", mail.content_type
-    assert_equal "text/yaml", mail.parts[0].content_type
+    assert_equal "application/x-yaml", mail.parts[0].content_type
     assert_equal "utf-8", mail.parts[0].sub_header("content-type", "charset")
     assert_equal "text/plain", mail.parts[1].content_type
     assert_equal "utf-8", mail.parts[1].sub_header("content-type", "charset")
@@ -835,11 +836,11 @@ EOF
   def test_implicitly_multipart_messages_with_custom_order
     assert ActionView::Template.template_handler_extensions.include?("bak"), "bak extension was not registered"
 
-    mail = TestMailer.create_implicitly_multipart_example(@recipient, nil, ["text/yaml", "text/plain"])
+    mail = TestMailer.create_implicitly_multipart_example(@recipient, nil, ["application/x-yaml", "text/plain"])
     assert_equal 3, mail.parts.length
     assert_equal "text/html", mail.parts[0].content_type
     assert_equal "text/plain", mail.parts[1].content_type
-    assert_equal "text/yaml", mail.parts[2].content_type
+    assert_equal "application/x-yaml", mail.parts[2].content_type
   end
 
   def test_implicitly_multipart_messages_with_charset
@@ -938,8 +939,7 @@ EOF
   def test_multipart_with_template_path_with_dots
     mail = FunkyPathMailer.create_multipart_with_template_path_with_dots(@recipient)
     assert_equal 2, mail.parts.length
-    assert_equal 'text/plain', mail.parts[0].content_type
-    assert_equal 'utf-8', mail.parts[0].charset
+    assert mail.parts.any? {|part| part.content_type == "text/plain" && part.charset == "utf-8"}
   end
 
   def test_custom_content_type_attributes

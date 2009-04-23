@@ -1,4 +1,5 @@
 require 'abstract_unit'
+require 'active_support/core_ext/module/attr_internal'
 
 class AttrInternalTest < Test::Unit::TestCase
   def setup
@@ -37,8 +38,8 @@ class AttrInternalTest < Test::Unit::TestCase
   end
 
   def test_naming_format
-    assert_equal '@_%s', @target.attr_internal_naming_format
-    assert_nothing_raised { @target.attr_internal_naming_format = '@abc%sdef' }
+    assert_equal '@_%s', Module.attr_internal_naming_format
+    assert_nothing_raised { Module.attr_internal_naming_format = '@abc%sdef' }
     @target.attr_internal :foo
 
     assert !@instance.instance_variable_defined?('@_foo')
@@ -47,6 +48,6 @@ class AttrInternalTest < Test::Unit::TestCase
     assert !@instance.instance_variable_defined?('@_foo')
     assert @instance.instance_variable_defined?('@abcfoodef')
   ensure
-    @target.attr_internal_naming_format = '@_%s'
+    Module.attr_internal_naming_format = '@_%s'
   end
 end

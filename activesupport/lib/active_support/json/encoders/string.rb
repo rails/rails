@@ -22,7 +22,7 @@ end
 ActiveSupport.escape_html_entities_in_json = true
 
 class String
-  def to_json(options = nil) #:nodoc:
+  def rails_to_json(options = nil) #:nodoc:
     json = '"' + gsub(ActiveSupport::JSON::Encoding.escape_regex) { |s|
       ActiveSupport::JSON::Encoding::ESCAPED_CHARS[s]
     }
@@ -33,4 +33,6 @@ class String
       s.unpack("U*").pack("n*").unpack("H*")[0].gsub(/.{4}/, '\\\\u\&')
     } + '"'
   end
+
+  alias to_json rails_to_json
 end

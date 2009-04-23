@@ -1,5 +1,6 @@
 require 'abstract_unit'
 require 'active_support/xml_mini'
+require 'active_support/core_ext/hash/conversions'
 
 begin
   gem 'nokogiri', '>= 1.1.1'

@@ -4,6 +4,7 @@ require 'abstract_unit'
 require 'inflector_test_cases'
 
 require 'active_support/core_ext/string'
+require 'active_support/core_ext/time'
 
 class StringInflectionsTest < Test::Unit::TestCase
   include InflectorTestCases
