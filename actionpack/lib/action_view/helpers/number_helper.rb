@@ -1,3 +1,5 @@
+require 'active_support/core_ext/float/rounding'
+
 module ActionView
   module Helpers #:nodoc:
     # Provides methods for converting numbers into formatted strings.

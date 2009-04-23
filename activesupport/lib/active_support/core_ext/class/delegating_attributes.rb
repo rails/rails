@@ -1,4 +1,4 @@
-require 'active_support/core_ext/blank'
+require 'active_support/core_ext/object/blank'
 
 class Class
   def superclass_delegating_reader(*names)
