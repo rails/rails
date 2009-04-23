@@ -973,7 +973,7 @@ module ActionView
             def loop_on_multiple_args(method, ids)
               record(ids.size>1 ?
                 "#{javascript_object_for(ids)}.each(#{method})" :
-                "#{method}(#{ids.first.to_json})")
+                "#{method}(#{ActiveSupport::JSON.encode(ids.first)})")
             end
 
             def page
@@ -997,7 +997,7 @@ module ActionView
             end
 
             def javascript_object_for(object)
-              object.respond_to?(:to_json) ? object.to_json : object.inspect
+              ActiveSupport::JSON.encode(object)
             end
 
             def arguments_for_call(arguments, block = nil)
@@ -1139,7 +1139,7 @@ module ActionView
     class JavaScriptElementProxy < JavaScriptProxy #:nodoc:
       def initialize(generator, id)
         @id = id
-        super(generator, "$(#{id.to_json})")
+        super(generator, "$(#{ActiveSupport::JSON.encode(id)})")
       end
 
       # Allows access of element attributes through +attribute+. Examples:
@@ -1184,9 +1184,11 @@ module ActionView
         true
       end
 
-      def to_json(options = nil)
+      def rails_to_json(options = nil)
         @variable
       end
+
+      alias to_json rails_to_json
 
       private
         def append_to_function_chain!(call)
@@ -1211,7 +1213,7 @@ module ActionView
           enumerate :eachSlice, :variable => variable, :method_args => [number], :yield_args => %w(value index), :return => true, &block
         else
           add_variable_assignment!(variable)
-          append_enumerable_function!("eachSlice(#{number.to_json});")
+          append_enumerable_function!("eachSlice(#{ActiveSupport::JSON.encode(number)});")
         end
       end
 
@@ -1232,7 +1234,7 @@ module ActionView
 
       def pluck(variable, property)
         add_variable_assignment!(variable)
-        append_enumerable_function!("pluck(#{property.to_json});")
+        append_enumerable_function!("pluck(#{ActiveSupport::JSON.encode(property)});")
       end
 
       def zip(variable, *arguments, &block)
@@ -1296,7 +1298,7 @@ module ActionView
 
     class JavaScriptElementCollectionProxy < JavaScriptCollectionProxy #:nodoc:\
       def initialize(generator, pattern)
-        super(generator, "$$(#{pattern.to_json})")
+        super(generator, "$$(#{ActiveSupport::JSON.encode(pattern)})")
       end
     end
   end

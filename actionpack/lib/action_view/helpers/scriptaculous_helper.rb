@@ -43,7 +43,7 @@ module ActionView
       # You can change the behaviour with various options, see
       # http://script.aculo.us for more documentation.
       def visual_effect(name, element_id = false, js_options = {})
-        element = element_id ? element_id.to_json : "element"
+        element = element_id ? ActiveSupport::JSON.encode(element_id) : "element"
         
         js_options[:queue] = if js_options[:queue].is_a?(Hash)
           '{' + js_options[:queue].map {|k, v| k == :limit ? "#{k}:#{v}" : "#{k}:'#{v}'" }.join(',') + '}'
@@ -138,7 +138,7 @@ module ActionView
       end
       
       def sortable_element_js(element_id, options = {}) #:nodoc:
-        options[:with]     ||= "Sortable.serialize(#{element_id.to_json})"
+        options[:with]     ||= "Sortable.serialize(#{ActiveSupport::JSON.encode(element_id)})"
         options[:onUpdate] ||= "function(){" + remote_function(options) + "}"
         options.delete_if { |key, value| PrototypeHelper::AJAX_OPTIONS.include?(key) }
   
@@ -149,7 +149,7 @@ module ActionView
         options[:containment] = array_or_string_for_javascript(options[:containment]) if options[:containment]
         options[:only] = array_or_string_for_javascript(options[:only]) if options[:only]
   
-        %(Sortable.create(#{element_id.to_json}, #{options_for_javascript(options)});)
+        %(Sortable.create(#{ActiveSupport::JSON.encode(element_id)}, #{options_for_javascript(options)});)
       end
 
       # Makes the element with the DOM ID specified by +element_id+ draggable.
@@ -164,7 +164,7 @@ module ActionView
       end
       
       def draggable_element_js(element_id, options = {}) #:nodoc:
-        %(new Draggable(#{element_id.to_json}, #{options_for_javascript(options)});)
+        %(new Draggable(#{ActiveSupport::JSON.encode(element_id)}, #{options_for_javascript(options)});)
       end
 
       # Makes the element with the DOM ID specified by +element_id+ receive
@@ -219,7 +219,7 @@ module ActionView
         # Confirmation happens during the onDrop callback, so it can be removed from the options
         options.delete(:confirm) if options[:confirm]
 
-        %(Droppables.add(#{element_id.to_json}, #{options_for_javascript(options)});)
+        %(Droppables.add(#{ActiveSupport::JSON.encode(element_id)}, #{options_for_javascript(options)});)
       end
     end
   end

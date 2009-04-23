@@ -8,7 +8,7 @@ module ActiveSupport
       seen = (options[:seen] ||= [])
       raise CircularReferenceError, 'object references itself' if seen.include?(value)
       seen << value
-      value.send(:to_json, options)
+      value.send(:rails_to_json, options)
     ensure
       seen.pop
     end
