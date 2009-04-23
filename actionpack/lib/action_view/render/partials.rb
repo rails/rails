@@ -187,6 +187,7 @@ module ActionView
           path = ActionController::RecordIdentifier.partial_path(object, controller_path)
         end
         _, _, prefix, object = parts = partial_parts(path, options)
+        parts[1] = {:formats => parts[1]}
         template = find_by_parts(*parts)
         _render_partial_object(template, options, (object unless object == true))
       end
@@ -225,7 +226,7 @@ module ActionView
       def _render_partial_with_layout(layout, options)
         if layout
           prefix = controller && !layout.include?("/") ? controller.controller_path : nil
-          layout = find_by_parts(layout, formats, prefix, true)
+          layout = find_by_parts(layout, {:formats => formats}, prefix, true)
         end
         content = _render_partial(options)
         return _render_content_with_layout(content, layout, options[:locals])
@@ -253,7 +254,7 @@ module ActionView
       def _render_partial_with_layout(layout, options)
         if layout
           prefix = controller && !layout.include?("/") ? controller.controller_path : nil
-          layout = find_by_parts(layout, formats, prefix, true)
+          layout = find_by_parts(layout, {:formats => formats}, prefix, true)
         end
         content = _render_partial(options)
         return _render_content_with_layout(content, layout, options[:locals])
@@ -321,7 +322,7 @@ module ActionView
 
       def _pick_partial_template(partial_path) #:nodoc:
         prefix = controller_path unless partial_path.include?('/')
-        find_by_parts(partial_path, formats, prefix, true)
+        find_by_parts(partial_path, {:formats => formats}, prefix, true)
       end
       memoize :_pick_partial_template
   end

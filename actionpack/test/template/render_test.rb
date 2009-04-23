@@ -29,23 +29,19 @@ module RenderTestCases
   end
 
   def test_render_file_with_localization
-    pending do
-      begin
-        old_locale = I18n.locale
-        I18n.locale = :da
-        assert_equal "Hey verden", @view.render(:file => "test/hello_world")
-      ensure
-        I18n.locale = old_locale
-      end
+    begin
+      old_locale = I18n.locale
+      I18n.locale = :da
+      assert_equal "Hey verden", @view.render(:file => "test/hello_world")
+    ensure
+      I18n.locale = old_locale
     end
   end
 
   def test_render_file_with_dashed_locale
     old_locale = I18n.locale
-    pending do
-      I18n.locale = :"pt-BR"
-      assert_equal "Ola mundo", @view.render(:file => "test/hello_world")
-    end
+    I18n.locale = :"pt-BR"
+    assert_equal "Ola mundo", @view.render(:file => "test/hello_world")
   ensure
     I18n.locale = old_locale
   end

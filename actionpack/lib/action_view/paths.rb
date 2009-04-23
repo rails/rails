@@ -33,18 +33,18 @@ module ActionView #:nodoc:
       super(*objs.map { |obj| self.class.type_cast(obj) })
     end
 
-    def find_by_parts(path, extension = nil, prefix = nil, partial = false)
+    def find_by_parts(path, details = {}, prefix = nil, partial = false)
       template_path = path.sub(/^\//, '')
 
       each do |load_path|
-        if template = load_path.find_by_parts(template_path, extension, prefix, partial)
+        if template = load_path.find_by_parts(template_path, details, prefix, partial)
           return template
         end
       end
 
       Template.new(path, self)
     rescue ActionView::MissingTemplate => e
-      extension ||= []
+      extension = details[:formats] || []
       raise ActionView::MissingTemplate.new(self, "#{prefix}/#{path}.{#{extension.join(",")}}")
     end
     
