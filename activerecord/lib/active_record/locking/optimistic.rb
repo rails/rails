@@ -90,18 +90,20 @@ module ActiveRecord
 
           begin
             table = Arel(self.class.table_name)
-            affected_rows = table.where(
-              table[self.class.primary_key].eq(quoted_id).and(
-                table[self.class.locking_column].eq(quote_value(previous_value))
-              )
-            )
 
             attributes = {}
             attributes_with_quotes(false, false, attribute_names).map { |k,v|
               attributes.merge!(table[k] => v)
             }
 
-            unless affected_rows.update(attributes) == 1
+            affected_rows = table.where(
+              table[self.class.primary_key].eq(quoted_id).and(
+                table[self.class.locking_column].eq(quote_value(previous_value))
+              )
+            ).update(attributes)
+
+
+            unless affected_rows == 1
               raise ActiveRecord::StaleObjectError, "Attempted to update a stale object"
             end
 
@@ -121,7 +123,7 @@ module ActiveRecord
       lock_col = self.class.locking_column
       previous_value = send(lock_col).to_i
 
-      table = Arel(self.class.table_name, connection)
+      table = Arel(self.class.table_name)
       affected_rows = table.where(
           table[self.class.primary_key].eq(quoted_id).and(
           table[self.class.locking_column].eq(quote_value(previous_value))
