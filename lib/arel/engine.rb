@@ -6,11 +6,11 @@ module Arel
     def initialize(ar = nil)
       @ar = ar
     end
-    
+
     def connection
       @ar.connection
     end
-    
+
     def method_missing(method, *args, &block)
       @ar.connection.send(method, *args, &block)
     end

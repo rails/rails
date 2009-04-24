@@ -11,8 +11,8 @@ module Arel
         ("LIMIT #{taken}"                                     unless taken.blank?    ),
       ].compact.join("\n")
     end
-    
-    def call(connection = engine.connection)
+
+    def call(connection = engine)
       connection.delete(to_sql)
     end
   end

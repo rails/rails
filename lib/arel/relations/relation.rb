@@ -99,11 +99,11 @@ module Arel
         end
 
         def update(assignments)
-          session.update Update.new(self, assignments); self
+          session.update Update.new(self, assignments)
         end
 
         def delete
-          session.delete Deletion.new(self); self
+          session.delete Deletion.new(self)
         end
       end
       include Writable
