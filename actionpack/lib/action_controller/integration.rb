@@ -292,9 +292,7 @@ module ActionController
             "rack.errors"       => StringIO.new,
             "rack.multithread"  => true,
             "rack.multiprocess" => true,
-            "rack.run_once"     => false,
-
-            "rack.test" => true
+            "rack.run_once"     => false
           )
 
           (headers || {}).each do |key, value|
