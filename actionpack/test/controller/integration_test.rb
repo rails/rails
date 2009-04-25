@@ -337,7 +337,7 @@ class IntegrationProcessTest < ActionController::IntegrationTest
       get '/get_with_params?foo=bar'
       assert_equal '/get_with_params?foo=bar', request.env["REQUEST_URI"]
       assert_equal '/get_with_params?foo=bar', request.request_uri
-      assert_equal "", request.env["QUERY_STRING"]
+      assert_equal "foo=bar", request.env["QUERY_STRING"]
       assert_equal 'foo=bar', request.query_string
       assert_equal 'bar', request.parameters['foo']
 

@@ -60,6 +60,11 @@ module ActionDispatch
     autoload :CookieStore, 'action_dispatch/middleware/session/cookie_store'
     autoload :MemCacheStore, 'action_dispatch/middleware/session/mem_cache_store'
   end
+
+  module Test
+    autoload :UploadedFile, 'action_dispatch/test/uploaded_file'
+    autoload :MockRequest, 'action_dispatch/test/mock'
+  end
 end
 
 autoload :Mime, 'action_dispatch/http/mime_type'
