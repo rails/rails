@@ -96,7 +96,7 @@ class MultipartParamsParsingTest < ActionController::IntegrationTest
 
     # Ruby CGI doesn't handle multipart/mixed for us.
     files = params['files']
-    assert_kind_of String, files
+    assert_kind_of Tempfile, files
     files.force_encoding('ASCII-8BIT') if files.respond_to?(:force_encoding)
     assert_equal 19756, files.size
   end
