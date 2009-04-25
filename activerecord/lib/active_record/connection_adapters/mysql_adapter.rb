@@ -211,7 +211,7 @@ module ActiveRecord
       def supports_migrations? #:nodoc:
         true
       end
-      
+
       def supports_savepoints? #:nodoc:
         true
       end

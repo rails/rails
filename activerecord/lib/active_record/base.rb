@@ -390,7 +390,7 @@ module ActiveRecord #:nodoc:
   # So it's possible to assign a logger to the class through <tt>Base.logger=</tt> which will then be used by all
   # instances in the current object space.
   class Base
-    ##  
+    ##
     # :singleton-method:
     # Accepts a logger conforming to the interface of Log4r or the default Ruby 1.8+ Logger class, which is then passed
     # on to any new database connections made and which can be retrieved on both a class and instance level by calling +logger+.
@@ -424,11 +424,11 @@ module ActiveRecord #:nodoc:
     # as a Hash.
     #
     # For example, the following database.yml...
-    # 
+    #
     #   development:
     #     adapter: sqlite3
     #     database: db/development.sqlite3
-    #   
+    #
     #   production:
     #     adapter: sqlite3
     #     database: db/production.sqlite3
@@ -1351,7 +1351,7 @@ module ActiveRecord #:nodoc:
       def self_and_descendants_from_active_record#nodoc:
         klass = self
         classes = [klass]
-        while klass != klass.base_class  
+        while klass != klass.base_class
           classes << klass = klass.superclass
         end
         classes
@@ -1385,7 +1385,7 @@ module ActiveRecord #:nodoc:
       def human_name(options = {})
         defaults = self_and_descendants_from_active_record.map do |klass|
           :"#{klass.name.underscore}"
-        end 
+        end
         defaults << self.name.humanize
         I18n.translate(defaults.shift, {:scope => [:activerecord, :models], :count => 1, :default => defaults}.merge(options))
       end
@@ -1689,18 +1689,83 @@ module ActiveRecord #:nodoc:
 
         def construct_finder_sql(options)
           scope = scope(:find)
-          sql  = "SELECT #{options[:select] || (scope && scope[:select]) || default_select(options[:joins] || (scope && scope[:joins]))} "
-          sql << "FROM #{options[:from]  || (scope && scope[:from]) || quoted_table_name} "
 
-          add_joins!(sql, options[:joins], scope)
-          add_conditions!(sql, options[:conditions], scope)
+          # TODO add lock to Arel
+          Arel(table_name).
+            join(construct_join(options[:joins], scope)).
+            where(construct_conditions(options[:conditions], scope)).
+            project(options[:select] || (scope && scope[:select]) || default_select(options[:joins] || (scope && scope[:joins]))).
+            group(construct_group(options[:group], options[:having], scope)).
+            order(construct_order(options[:order], scope)).
+            take(construct_limit(options, scope)).
+            skip(construct_offset(options, scope)
+          ).to_sql
+        end
 
-          add_group!(sql, options[:group], options[:having], scope)
-          add_order!(sql, options[:order], scope)
-          add_limit!(sql, options, scope)
-          add_lock!(sql, options, scope)
+        def construct_join(joins, scope = :auto)
+          scope = scope(:find) if :auto == scope
+          merged_joins = scope && scope[:joins] && joins ? merge_joins(scope[:joins], joins) : (joins || scope && scope[:joins])
+          case merged_joins
+          when Symbol, Hash, Array
+            if array_of_strings?(merged_joins)
+              merged_joins.join(' ') + " "
+            else
+              join_dependency = ActiveRecord::Associations::ClassMethods::InnerJoinDependency.new(self, merged_joins, nil)
+              " #{join_dependency.join_associations.collect { |assoc| assoc.association_join }.join} "
+            end
+          when String
+            " #{merged_joins} "
+          end
+        end
 
+        def construct_group(group, having, scope = :auto)
+          sql = ''
+          if group
+            sql << group.to_s
+            sql << " HAVING #{sanitize_sql_for_conditions(having)}" if having
+          else
+            scope = scope(:find) if :auto == scope
+            if scope && (scoped_group = scope[:group])
+              sql << scoped_group.to_s
+              sql << " HAVING #{sanitize_sql_for_conditions(scope[:having])}" if scope[:having]
+            end
+          end
           sql
+        end
+
+        def construct_order(order, scope = :auto)
+          sql = ''
+          scope = scope(:find) if :auto == scope
+          scoped_order = scope[:order] if scope
+          if order
+            sql << order.to_s
+            if scoped_order && scoped_order != order
+              sql << ", #{scoped_order}"
+            end
+          else
+            sql << scoped_order.to_s if scoped_order
+          end
+          sql
+        end
+
+        def construct_limit(options, scope = :auto)
+          scope = scope(:find) if :auto == scope
+          options[:limit] ||= scope[:limit] if scope
+          options[:limit]
+        end
+
+        def construct_offset(options, scope = :auto)
+          scope = scope(:find) if :auto == scope
+          options[:offset] ||= scope[:offset] if scope
+          options[:offset]
+        end
+
+        def construct_conditions(conditions, scope = :auto)
+          scope = scope(:find) if :auto == scope
+          conditions = [conditions]
+          conditions << scope[:conditions] if scope
+          conditions << type_condition if finder_needs_type_condition?
+          merge_conditions(*conditions)
         end
 
         # Merges includes so that the result is a valid +include+
@@ -1958,7 +2023,7 @@ module ActiveRecord #:nodoc:
                   attributes = construct_attributes_from_arguments( #   attributes = construct_attributes_from_arguments(
                     [:#{attribute_names.join(',:')}], args          #     [:user_name, :password], args
                   )                                                 #   )
-                                                                    # 
+                                                                    #
                   scoped(:conditions => attributes)                 #   scoped(:conditions => attributes)
                 end                                                 # end
               }, __FILE__, __LINE__
@@ -2478,7 +2543,7 @@ module ActiveRecord #:nodoc:
       #       name
       #     end
       #   end
-      #   
+      #
       #   user = User.find_by_name('Phusion')
       #   user_path(user)  # => "/users/Phusion"
       def to_param
@@ -2533,12 +2598,12 @@ module ActiveRecord #:nodoc:
       # If +perform_validation+ is true validations run. If any of them fail
       # the action is cancelled and +save+ returns +false+. If the flag is
       # false validations are bypassed altogether. See
-      # ActiveRecord::Validations for more information. 
+      # ActiveRecord::Validations for more information.
       #
       # There's a series of callbacks associated with +save+. If any of the
       # <tt>before_*</tt> callbacks return +false+ the action is cancelled and
       # +save+ returns +false+. See ActiveRecord::Callbacks for further
-      # details. 
+      # details.
       def save
         create_or_update
       end
@@ -2550,12 +2615,12 @@ module ActiveRecord #:nodoc:
       #
       # With <tt>save!</tt> validations always run. If any of them fail
       # ActiveRecord::RecordInvalid gets raised. See ActiveRecord::Validations
-      # for more information. 
+      # for more information.
       #
       # There's a series of callbacks associated with <tt>save!</tt>. If any of
       # the <tt>before_*</tt> callbacks return +false+ the action is cancelled
       # and <tt>save!</tt> raises ActiveRecord::RecordNotSaved. See
-      # ActiveRecord::Callbacks for further details. 
+      # ActiveRecord::Callbacks for further details.
       def save!
         create_or_update || raise(RecordNotSaved)
       end
@@ -2726,12 +2791,12 @@ module ActiveRecord #:nodoc:
       #   class User < ActiveRecord::Base
       #     attr_protected :is_admin
       #   end
-      #   
+      #
       #   user = User.new
       #   user.attributes = { :username => 'Phusion', :is_admin => true }
       #   user.username   # => "Phusion"
       #   user.is_admin?  # => false
-      #   
+      #
       #   user.send(:attributes=, { :username => 'Phusion', :is_admin => true }, false)
       #   user.is_admin?  # => true
       def attributes=(new_attributes, guard_protected_attributes = true)
