@@ -87,7 +87,7 @@ Action Mailer is a framework for building e-mail services. You can use Action Ma
 
 h5. Active Resource
 
-Active Resource provides a framework for managing the connection between business objects an RESTful web services. It implements a way to map web-based resources to local objects with CRUD semantics.
+Active Resource provides a framework for managing the connection between business objects and RESTful web services. It implements a way to map web-based resources to local objects with CRUD semantics.
 
 h5. Railties
 
@@ -461,7 +461,7 @@ The easiest place to start looking at functionality is with the code that lists 
 
 <ruby>
 def index
-  @posts = Post.find(:all)
+  @posts = Post.all
 
   respond_to do |format|
     format.html # index.html.erb
@@ -486,7 +486,7 @@ The +respond_to+ block handles both HTML and XML calls to this action. If you br
     <th>Content</th>
   </tr>
 
-<% for post in @posts %>
+<% @posts.each do |post| %>
   <tr>
     <td><%=h post.name %></td>
     <td><%=h post.title %></td>
@@ -582,7 +582,7 @@ The +new.html.erb+ view displays this empty Post to the user:
 <%= link_to 'Back', posts_path %>
 </erb>
 
-The +form_for+ block is used to create an HTML form. Within this block, you have access to methods to build various controls on the form. For example, +f.text_field :name+ tells Rails to create a text input on the form, and to hook it up to the +name+ attribute of the instance being displayed. You can only use these methods with attributes of the model that the form is based on (in this case +name+, +title+, and +content+). Rails uses +form_for+ in preference to having your write raw HTML because the code is more succinct, and because it explicitly ties the form to a particular model instance.
+The +form_for+ block is used to create an HTML form. Within this block, you have access to methods to build various controls on the form. For example, +f.text_field :name+ tells Rails to create a text input on the form, and to hook it up to the +name+ attribute of the instance being displayed. You can only use these methods with attributes of the model that the form is based on (in this case +name+, +title+, and +content+). Rails uses +form_for+ in preference to having you write raw HTML because the code is more succinct, and because it explicitly ties the form to a particular model instance.
 
 TIP: If you need to create an HTML form that displays arbitrary fields, not tied to a model, you should use the +form_tag+ method, which provides shortcuts for building forms that are not necessarily tied to a model instance.
 
@@ -609,7 +609,7 @@ end
 
 The +create+ action instantiates a new Post object from the data supplied by the user on the form, which Rails makes available in the +params+ hash. After saving the new post, it uses +flash[:notice]+ to create an informational message for the user, and redirects to the show action for the post. If there's any problem, the +create+ action just shows the +new+ view a second time, with any error messages.
 
-Rails provides the +flash+ hash (usually just called the Flash) so that messages can be carried over to another action, providing the user with useful information on the status of their request.  In the case of +create+, the user never actually sees any page rendered during the Post creation process, because it immediately redirects to the new Post as soon Rails saves the record. The Flash carries over a message to the next action, so that when the user is redirected back to the +show+ action, they are presented with a message saying "Post was successfully created."
+Rails provides the +flash+ hash (usually just called the Flash) so that messages can be carried over to another action, providing the user with useful information on the status of their request. In the case of +create+, the user never actually sees any page rendered during the Post creation process, because it immediately redirects to the new Post as soon Rails saves the record. The Flash carries over a message to the next action, so that when the user is redirected back to the +show+ action, they are presented with a message saying "Post was successfully created."
 
 h4. Showing an Individual Post
 
@@ -785,7 +785,7 @@ As you saw earlier, the scaffold-generated views for the +new+ and +edit+ action
 
 Now, when Rails renders the +new+ or +edit+ view, it will insert the +_form+ partial at the indicated point. Note the naming convention for partials: if you refer to a partial named +form+ inside of a view, the corresponding file is +_form.html.erb+, with a leading underscore.
 
-For more information on partials, refer to the "Layouts and Rending in Rails":layouts_and_rendering.html guide.
+For more information on partials, refer to the "Layouts and Rendering in Rails":layouts_and_rendering.html#using-partials guide.
 
 h4. Using Filters to Eliminate Controller Duplication
 
@@ -954,7 +954,7 @@ With the model in hand, you can turn your attention to creating a matching contr
 $ script/generate controller Comments index show new edit
 </shell>
 
-This creates seven files:
+This creates eight files:
 
 * +app/controllers/comments_controller.rb+ - The controller
 * +app/helpers/comments_helper.rb+ - A view helper file
@@ -963,6 +963,7 @@ This creates seven files:
 * +app/views/comments/new.html.erb+ - The view for the new action
 * +app/views/comments/edit.html.erb+ - The view for the edit action
 * +test/functional/comments_controller_test.rb+ - The functional tests for the controller
+* +test/unit/helpers/comments_helper_test.rb+ - The unit tests for the helper
 
 The controller will be generated with empty methods and views for each action that you specified in the call to +script/generate controller+:
 
@@ -1031,11 +1032,7 @@ class CommentsController < ApplicationController
     @post = Post.find(params[:post_id])
     @comment = Comment.find(params[:id])
     @comment.destroy
-
-    respond_to do |format|
-      format.html { redirect_to post_comments_path(@post) }
-      format.xml  { head :ok }
-    end
+    redirect_to post_comments_path(@post)
   end
 
 end
@@ -1198,6 +1195,22 @@ As a next step, I'll modify the +views/posts/show.html.erb+ view to show the com
 
 Note that each post has its own individual comments collection, accessible as +@post.comments+. That's a consequence of the declarative associations in the models. Path helpers such as +post_comments_path+ come from the nested route declaration in +config/routes.rb+.
 
+h4. Deleting Associated Objects
+
+If you decide at some point to delete a post, you likely want to delete the comments associated with that post as well. You can do so by taking advantage of the association option +dependent+. All you need to do is modify the +post.rb+ as follows:
+
+<ruby>
+class Post < ActiveRecord::Base
+  validates_presence_of :name, :title
+  validates_length_of :title, :minimum => 5
+  has_many :comments, :dependent => :destroy
+  has_many :tags
+
+  accepts_nested_attributes_for :tags, :allow_destroy => :true, 
+    :reject_if => proc { |attrs| attrs.all? { |k, v| v.blank? } }
+end
+</ruby> 
+
 h3. Building a Multi-Model Form
 
 Comments and posts are edited on two separate forms - which makes sense, given the flow of this mini-application. But what if you want to edit more than one thing on a single form? Rails 2.3 offers new support for nested forms. Let's add support for giving each post multiple tags, right in the form where you create the post. First, create a new model to hold the tags:
@@ -1221,7 +1234,7 @@ class Post < ActiveRecord::Base
   has_many :comments
   has_many :tags
 
-  accepts_nested_attributes_for :tags, :allow_destroy => :true  ,
+  accepts_nested_attributes_for :tags, :allow_destroy => :true,
     :reject_if => proc { |attrs| attrs.all? { |k, v| v.blank? } }
 end
 </ruby>
@@ -1240,7 +1253,7 @@ You'll also need to modify +views/posts/_form.html.erb+ to include the tags:
     <%= post_form.text_field :name %>
   </p>
   <p>
-    <%= post_form.label :title, "title" %><br />
+    <%= post_form.label :title, "Title" %><br />
     <%= post_form.text_field :title %>
   </p>
   <p>
@@ -1278,6 +1291,7 @@ Now that you've seen your first Rails application, you should feel free to updat
 * The "Ruby On Rails guides":http://guides.rubyonrails.org
 * The "Ruby on Rails mailing list":http://groups.google.com/group/rubyonrails-talk
 * The #rubyonrails channel on irc.freenode.net
+* The "Rails Wiki":http://wiki.rubyonrails.org/
 
 Rails also comes with built-in help that you can generate using the rake command-line utility:
 
