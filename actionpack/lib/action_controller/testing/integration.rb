@@ -278,9 +278,7 @@ module ActionController
             "HTTP_ACCEPT"    => accept,
             "HTTP_COOKIE"    => cookies.inject("") { |string, (name, value)|
               string << "#{name}=#{value}; "
-            },
-
-            "rack.test"      => true
+            }
           }
           env = ActionDispatch::Test::MockRequest.env_for(@path, opts)
 
