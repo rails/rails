@@ -93,7 +93,11 @@ module ActionDispatch
         end
       end
     end
-    
+
+    def media_type
+      content_type.to_s
+    end
+
     # Returns the accepted MIME type for the request.
     def accepts
       @accepts ||= begin
