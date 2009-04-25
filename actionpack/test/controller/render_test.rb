@@ -1,5 +1,6 @@
 require 'abstract_unit'
 require 'controller/fake_models'
+require 'pathname'
 
 module Fun
   class GamesController < ActionController::Base
