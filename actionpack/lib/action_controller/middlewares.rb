@@ -7,7 +7,6 @@ use "ActionController::Failsafe"
 use lambda { ActionController::Base.session_store },
     lambda { ActionController::Base.session_options }
 
-use "ActionController::RewindableInput"
 use "ActionController::ParamsParser"
 use "Rack::MethodOverride"
 use "Rack::Head"
