@@ -285,36 +285,27 @@ module ActionController
           app = Rack::Lint.new(@app)
           status, headers, body = app.call(env)
           response = ::Rack::MockResponse.new(status, headers, body)
+
           @request_count += 1
+          @request = Request.new(env)
 
-          @html_document = nil
+          @response = Response.new
+          @response.status  = @status  = response.status
+          @response.headers = @headers = response.headers
+          @response.body    = @body    = response.body
 
-          @status = response.status
           @status_message = ActionDispatch::StatusCodes::STATUS_CODES[@status]
-          @headers = response.headers
-          @body = response.body
-
-          (@headers['Set-Cookie'] || "").split("\n").each do |cookie|
-            name, value = cookie.match(/^([^=]*)=([^;]*);/)[1,2]
-            @cookies[name] = value
-          end
-
-          if @controller = ActionController::Base.last_instantiation
-            @request = @controller.request
-            @response = @controller.response
-            @controller.send(:set_test_assigns)
-          else
-            @request = Request.new(env)
-            @response = Response.new
-            @response.status = @status
-            @response.headers = @headers
-            @response.body = @body
-          end
+          @cookies.merge!(@response.cookies)
+          @html_document = nil
 
           # Decorate the response with the standard behavior of the
           # TestResponse so that things like assert_response can be
           # used in integration tests.
           @response.extend(TestResponseBehavior)
+
+          if @controller = ActionController::Base.last_instantiation
+            @controller.send(:set_test_assigns)
+          end
 
           return @status
         end
