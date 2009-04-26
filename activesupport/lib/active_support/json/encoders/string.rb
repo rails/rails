@@ -33,6 +33,4 @@ class String
       s.unpack("U*").pack("n*").unpack("H*")[0].gsub(/.{4}/, '\\\\u\&')
     } + '"'
   end
-
-  alias to_json rails_to_json
 end
