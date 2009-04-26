@@ -157,6 +157,7 @@ module ActionController #:nodoc:
   # to the "real" CgiResponse class in integration tests.
   module TestResponseBehavior #:nodoc:
     def redirect_url_match?(pattern)
+      ::ActiveSupport::Deprecation.warn("response.redirect_url_match? is deprecated. Use assert_match(/foo/, response.redirect_url) instead", caller)
       return false if redirect_url.nil?
       p = Regexp.new(pattern) if pattern.class == String
       p = pattern if pattern.class == Regexp
