@@ -18,6 +18,4 @@ class Time
       %("#{strftime("%Y/%m/%d %H:%M:%S")} #{formatted_offset(false)}")
     end
   end
-
-  alias to_json rails_to_json
 end

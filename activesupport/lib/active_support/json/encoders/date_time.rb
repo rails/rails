@@ -18,6 +18,4 @@ class DateTime
       strftime('"%Y/%m/%d %H:%M:%S %z"')
     end
   end
-
-  alias to_json rails_to_json
 end

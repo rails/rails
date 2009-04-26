@@ -18,6 +18,4 @@ class Date
       %("#{strftime("%Y/%m/%d")}")
     end
   end
-
-  alias to_json rails_to_json
 end

@@ -1188,8 +1188,6 @@ module ActionView
         @variable
       end
 
-      alias to_json rails_to_json
-
       private
         def append_to_function_chain!(call)
           @generator << @variable if @empty
