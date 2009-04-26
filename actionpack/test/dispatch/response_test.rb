@@ -80,4 +80,51 @@ class ResponseTest < ActiveSupport::TestCase
     status, headers, body = @response.to_a
     assert !headers.has_key?('Status')
   end
+
+  test "response code" do
+    @response.status = "200 OK"
+    assert_equal 200, @response.response_code
+
+    @response.status = "200"
+    assert_equal 200, @response.response_code
+
+    @response.status = 200
+    assert_equal 200, @response.response_code
+  end
+
+  test "code" do
+    @response.status = "200 OK"
+    assert_equal "200", @response.code
+
+    @response.status = "200"
+    assert_equal "200", @response.code
+
+    @response.status = 200
+    assert_equal "200", @response.code
+  end
+
+  test "message" do
+    @response.status = "200 OK"
+    assert_equal "OK", @response.message
+
+    @response.status = "200"
+    assert_equal "OK", @response.message
+
+    @response.status = 200
+    assert_equal "OK", @response.message
+  end
+
+  test "cookies" do
+    @response.set_cookie("user_name", :value => "david", :path => "/")
+    @response.prepare!
+    status, headers, body = @response.to_a
+    assert_equal "user_name=david; path=/", headers["Set-Cookie"]
+    assert_equal({"user_name" => "david"}, @response.cookies)
+
+    @response.set_cookie("login", :value => "foo&bar", :path => "/", :expires => Time.utc(2005, 10, 10,5))
+    @response.prepare!
+    status, headers, body = @response.to_a
+    assert_equal "user_name=david; path=/\nlogin=foo%26bar; path=/; expires=Mon, 10-Oct-2005 05:00:00 GMT", headers["Set-Cookie"]
+    assert_equal({"login" => "foo&bar", "user_name" => "david"}, @response.cookies)
+  end
 end

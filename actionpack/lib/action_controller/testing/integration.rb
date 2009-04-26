@@ -304,8 +304,11 @@ module ActionController
             @response = @controller.response
             @controller.send(:set_test_assigns)
           else
-            @request = ::Rack::Request.new(env)
-            @response = response
+            @request = Request.new(env)
+            @response = Response.new
+            @response.status = @status
+            @response.headers = @headers
+            @response.body = @body
           end
 
           # Decorate the response with the standard behavior of the

@@ -156,54 +156,7 @@ module ActionController #:nodoc:
   # A refactoring of TestResponse to allow the same behavior to be applied
   # to the "real" CgiResponse class in integration tests.
   module TestResponseBehavior #:nodoc:
-    # The response code of the request
-    def response_code
-      status.to_s[0,3].to_i rescue 0
-    end
-
-    # Returns a String to ensure compatibility with Net::HTTPResponse
-    def code
-      status.to_s.split(' ')[0]
-    end
-
-    def message
-      status.to_s.split(' ',2)[1]
-    end
-
-    # Was the response successful?
-    def success?
-      (200..299).include?(response_code)
-    end
-
-    # Was the URL not found?
-    def missing?
-      response_code == 404
-    end
-
-    # Were we redirected?
-    def redirect?
-      (300..399).include?(response_code)
-    end
-
-    # Was there a server-side error?
-    def error?
-      (500..599).include?(response_code)
-    end
-
-    alias_method :server_error?, :error?
-
-    # Was there a client client?
-    def client_error?
-      (400..499).include?(response_code)
-    end
-
-    # Returns the redirection location or nil
-    def redirect_url
-      headers['Location']
-    end
-
-    # Does the redirect location match this regexp pattern?
-    def redirect_url_match?( pattern )
+    def redirect_url_match?(pattern)
       return false if redirect_url.nil?
       p = Regexp.new(pattern) if pattern.class == String
       p = pattern if pattern.class == Regexp
@@ -250,18 +203,6 @@ module ActionController #:nodoc:
     # Does the specified template object exist?
     def has_template_object?(name=nil)
       !template_objects[name].nil?
-    end
-
-    # Returns the response cookies, converted to a Hash of (name => value) pairs
-    #
-    #   assert_equal 'AuthorOfNewPage', r.cookies['author']
-    def cookies
-      cookies = {}
-      Array(headers['Set-Cookie']).each do |cookie|
-        key, value = cookie.split(";").first.split("=").map {|val| Rack::Utils.unescape(val)}
-        cookies[key] = value
-      end
-      cookies
     end
 
     # Returns binary content (downloadable file), converted to a String
