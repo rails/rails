@@ -11,7 +11,7 @@ module ActionController
       @app.call(env)
     rescue Exception => exception
       # Reraise exception in test environment
-      if defined?(Rails) && Rails.test?
+      if defined?(Rails) && Rails.env.test?
         raise exception
       else
         failsafe_response(exception)
