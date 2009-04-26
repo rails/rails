@@ -686,7 +686,7 @@ module ActionView
           # Returns an object whose <tt>to_json</tt> evaluates to +code+. Use this to pass a literal JavaScript
           # expression as an argument to another JavaScriptGenerator method.
           def literal(code)
-            ActiveSupport::JSON::Variable.new(code.to_s)
+            ::ActiveSupport::JSON::Variable.new(code.to_s)
           end
 
           # Returns a collection reference by finding it through a CSS +pattern+ in the DOM. This collection can then be
@@ -973,7 +973,7 @@ module ActionView
             def loop_on_multiple_args(method, ids)
               record(ids.size>1 ?
                 "#{javascript_object_for(ids)}.each(#{method})" :
-                "#{method}(#{ActiveSupport::JSON.encode(ids.first)})")
+                "#{method}(#{::ActiveSupport::JSON.encode(ids.first)})")
             end
 
             def page
@@ -997,7 +997,7 @@ module ActionView
             end
 
             def javascript_object_for(object)
-              ActiveSupport::JSON.encode(object)
+              ::ActiveSupport::JSON.encode(object)
             end
 
             def arguments_for_call(arguments, block = nil)
@@ -1139,7 +1139,7 @@ module ActionView
     class JavaScriptElementProxy < JavaScriptProxy #:nodoc:
       def initialize(generator, id)
         @id = id
-        super(generator, "$(#{ActiveSupport::JSON.encode(id)})")
+        super(generator, "$(#{::ActiveSupport::JSON.encode(id)})")
       end
 
       # Allows access of element attributes through +attribute+. Examples:
@@ -1213,7 +1213,7 @@ module ActionView
           enumerate :eachSlice, :variable => variable, :method_args => [number], :yield_args => %w(value index), :return => true, &block
         else
           add_variable_assignment!(variable)
-          append_enumerable_function!("eachSlice(#{ActiveSupport::JSON.encode(number)});")
+          append_enumerable_function!("eachSlice(#{::ActiveSupport::JSON.encode(number)});")
         end
       end
 
@@ -1234,7 +1234,7 @@ module ActionView
 
       def pluck(variable, property)
         add_variable_assignment!(variable)
-        append_enumerable_function!("pluck(#{ActiveSupport::JSON.encode(property)});")
+        append_enumerable_function!("pluck(#{::ActiveSupport::JSON.encode(property)});")
       end
 
       def zip(variable, *arguments, &block)
@@ -1298,7 +1298,7 @@ module ActionView
 
     class JavaScriptElementCollectionProxy < JavaScriptCollectionProxy #:nodoc:\
       def initialize(generator, pattern)
-        super(generator, "$$(#{ActiveSupport::JSON.encode(pattern)})")
+        super(generator, "$$(#{::ActiveSupport::JSON.encode(pattern)})")
       end
     end
   end
