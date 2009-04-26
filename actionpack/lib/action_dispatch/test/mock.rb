@@ -21,10 +21,7 @@ module ActionDispatch
           if method == "POST" && !opts.has_key?(:input)
             opts["CONTENT_TYPE"] = "application/x-www-form-urlencoded"
 
-            multipart = (opts[:params] || {}).any? do |k, v|
-              UploadedFile === v
-            end
-
+            multipart = opts[:params].respond_to?(:any?) && opts[:params].any? { |k, v| UploadedFile === v }
             if multipart
               opts[:input] = multipart_body(opts.delete(:params))
               opts["CONTENT_LENGTH"] ||= opts[:input].length.to_s
