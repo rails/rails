@@ -134,6 +134,6 @@ class JsonOptionsTests < Test::Unit::TestCase
     ActiveSupport::JSON.expects(:encode).with(2, json_options)
     ActiveSupport::JSON.expects(:encode).with('foo', json_options)
 
-    [1, 2, 'foo'].rails_to_json(json_options)
+    [1, 2, 'foo'].send(:rails_to_json, json_options)
   end
 end

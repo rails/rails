@@ -1,5 +1,6 @@
 class Regexp
-  def rails_to_json(options = nil) #:nodoc:
-    inspect
-  end
+  private
+    def rails_to_json(options = nil)
+      inspect
+    end
 end
