@@ -34,12 +34,13 @@ module ActionDispatch # :nodoc:
     DEFAULT_HEADERS = { "Cache-Control" => "no-cache" }
     attr_accessor :request
 
-    attr_accessor :session, :assigns, :template, :layout
+    attr_accessor :assigns, :template, :layout
     attr_accessor :redirected_to, :redirected_to_method_params
 
     attr_writer :header
     alias_method :headers=, :header=
 
+    delegate :session, :to => :request
     delegate :default_charset, :to => 'ActionController::Base'
 
     def initialize

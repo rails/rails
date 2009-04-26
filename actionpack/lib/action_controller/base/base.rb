@@ -811,14 +811,8 @@ module ActionController #:nodoc:
       end
 
       def assign_shortcuts(request, response)
-        @_request, @_params = request, request.parameters
-
-        @_response         = response
-        @_response.session = request.session
-
-        @_session = @_response.session
-
-        @_headers = @_response.headers
+        @_request, @_response, @_params = request, response, request.parameters
+        @_session, @_headers = @_request.session, @_response.headers
       end
 
       def initialize_current_url

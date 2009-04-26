@@ -451,21 +451,13 @@ EOM
       @env['rack.input']
     end
 
-    def session
-      @env['rack.session'] ||= {}
+    def reset_session
+      self.session_options.delete(:id)
+      self.session = {}
     end
 
     def session=(session) #:nodoc:
       @env['rack.session'] = session
-    end
-
-    def reset_session
-      @env['rack.session.options'].delete(:id)
-      @env['rack.session'] = {}
-    end
-
-    def session_options
-      @env['rack.session.options'] ||= {}
     end
 
     def session_options=(options)

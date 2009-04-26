@@ -1,8 +1,9 @@
 require 'rack/session/abstract/id'
+
 module ActionController #:nodoc:
   class TestRequest < ActionDispatch::Request #:nodoc:
-    attr_accessor :cookies, :session_options
-    attr_accessor :query_parameters, :path, :session
+    attr_accessor :cookies
+    attr_accessor :query_parameters, :path
     attr_accessor :host
 
     def self.new(env = {})
@@ -13,16 +14,11 @@ module ActionController #:nodoc:
       super(Rack::MockRequest.env_for("/").merge(env))
 
       @query_parameters   = {}
-      @session            = TestSession.new
-      default_rack_options = Rack::Session::Abstract::ID::DEFAULT_OPTIONS
-      @session_options    ||= {:id => generate_sid(default_rack_options[:sidbits])}.merge(default_rack_options)
+      @env['rack.session'] = TestSession.new
+      @env['rack.session.options'] = TestSession::DEFAULT_OPTIONS.merge(:id => ActiveSupport::SecureRandom.hex(16))
 
       initialize_default_values
       initialize_containers
-    end
-
-    def reset_session
-      @session.reset
     end
 
     # Wraps raw_post in a StringIO.
@@ -124,10 +120,6 @@ module ActionController #:nodoc:
     end
 
     private
-      def generate_sid(sidbits)
-        "%0#{sidbits / 4}x" % rand(2**sidbits - 1)
-      end
-
       def initialize_containers
         @cookies = {}
       end
@@ -235,62 +227,12 @@ module ActionController #:nodoc:
     end
   end
 
-  class TestSession < Hash #:nodoc:
-    attr_accessor :session_id
+  class TestSession < ActionDispatch::Session::AbstractStore::SessionHash #:nodoc:
+    DEFAULT_OPTIONS = ActionDispatch::Session::AbstractStore::DEFAULT_OPTIONS
 
-    def initialize(attributes = nil)
-      reset_session_id
-      replace_attributes(attributes)
-    end
-
-    def reset
-      reset_session_id
-      replace_attributes({ })
-    end
-
-    def data
-      to_hash
-    end
-
-    def [](key)
-      super(key.to_s)
-    end
-
-    def []=(key, value)
-      super(key.to_s, value)
-    end
-
-    def update(hash = nil)
-      if hash.nil?
-        ActiveSupport::Deprecation.warn('use replace instead', caller)
-        replace({})
-      else
-        super(hash)
-      end
-    end
-
-    def delete(key = nil)
-      if key.nil?
-        ActiveSupport::Deprecation.warn('use clear instead', caller)
-        clear
-      else
-        super(key.to_s)
-      end
-    end
-
-    def close
-      ActiveSupport::Deprecation.warn('sessions should no longer be closed', caller)
-    end
-
-  private
-
-    def reset_session_id
-      @session_id = ''
-    end
-
-    def replace_attributes(attributes = nil)
-      attributes ||= {}
-      replace(attributes.stringify_keys)
+    def initialize(session = {})
+      replace(session.stringify_keys)
+      @loaded = true
     end
   end
 
