@@ -111,8 +111,6 @@ class HttpDigestAuthenticationTest < ActionController::TestCase
   test "authentication request with valid credential and nil session" do
     @request.env['HTTP_AUTHORIZATION'] = encode_credentials(:username => 'pretty', :password => 'please')
 
-    # session_id = "" in functional test, but is +nil+ in real life
-    @request.session.session_id = nil
     get :display
 
     assert_response :success

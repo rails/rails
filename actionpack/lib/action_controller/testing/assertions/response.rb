@@ -22,6 +22,8 @@ module ActionController
       #   assert_response 401
       #
       def assert_response(type, message = nil)
+        validate_response!
+
         clean_backtrace do
           if [ :success, :missing, :redirect, :error ].include?(type) && @response.send("#{type}?")
             assert_block("") { true } # to count the assertion
@@ -30,8 +32,8 @@ module ActionController
           elsif type.is_a?(Symbol) && @response.response_code == ActionDispatch::StatusCodes::SYMBOL_TO_STATUS_CODE[type]
             assert_block("") { true } # to count the assertion
           else
-            if @response.error?
-              exception = @response.template.instance_variable_get(:@exception)
+            if @controller && @response.error?
+              exception = @controller.response.template.instance_variable_get(:@exception)
               exception_message = exception && exception.message
               assert_block(build_message(message, "Expected response to be a <?>, but was <?>\n<?>", type, @response.response_code, exception_message.to_s)) { false }
             else
@@ -57,6 +59,8 @@ module ActionController
       #   assert_redirected_to @customer
       #
       def assert_redirected_to(options = {}, message=nil)
+        validate_response!
+
         clean_backtrace do
           assert_response(:redirect, message)
           return true if options == @response.redirected_to
@@ -89,23 +93,25 @@ module ActionController
       #   assert_template :partial => false
       #
       def assert_template(options = {}, message = nil)
+        validate_response!
+
         clean_backtrace do
           case options
            when NilClass, String
-            rendered = @response.rendered[:template].to_s
+            rendered = @controller.response.rendered[:template].to_s
             msg = build_message(message,
                     "expecting <?> but rendering with <?>",
                     options, rendered)
             assert_block(msg) do
               if options.nil?
-                @response.rendered[:template].blank?
+                @controller.response.rendered[:template].blank?
               else
                 rendered.to_s.match(options)
               end
             end
           when Hash
             if expected_partial = options[:partial]
-              partials = @response.rendered[:partials]
+              partials = @controller.response.rendered[:partials]
               if expected_count = options[:count]
                 found = partials.detect { |p, _| p.to_s.match(expected_partial) }
                 actual_count = found.nil? ? 0 : found.second
@@ -120,7 +126,7 @@ module ActionController
                 assert(partials.keys.any? { |p| p.to_s.match(expected_partial) }, msg)
               end
             else
-              assert @response.rendered[:partials].empty?,
+              assert @controller.response.rendered[:partials].empty?,
                 "Expected no partials to be rendered"
             end
           end
@@ -143,6 +149,12 @@ module ActionController
               after_routing = '/' + after_routing
             end
             @request.protocol + @request.host_with_port + after_routing
+          end
+        end
+
+        def validate_response!
+          unless @request.is_a?(ActionDispatch::Request)
+            raise ArgumentError, "@request must be an ActionDispatch::Request"
           end
         end
     end

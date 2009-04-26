@@ -126,45 +126,7 @@ class UrlEncodedParamsParsingTest < ActionController::IntegrationTest
     assert_parses expected, query
   end
 
-  test "passes through rack middleware and parses params" do
-    with_muck_middleware do
-      assert_parses({ "a" => { "b" => "c" } }, "a[b]=c")
-    end
-  end
-
-  # The lint wrapper is used in integration tests
-  # instead of a normal StringIO class
-  InputWrapper = Rack::Lint::InputWrapper
-
-  test "passes through rack middleware and parses params with unwindable input" do
-    InputWrapper.any_instance.stubs(:rewind).raises(Errno::ESPIPE)
-    with_muck_middleware do
-      assert_parses({ "a" => { "b" => "c" } }, "a[b]=c")
-    end
-  end
-
   private
-    class MuckMiddleware
-      def initialize(app)
-        @app = app
-      end
-
-      def call(env)
-        env['rack.input'].read
-        env['rack.input'].rewind
-        @app.call(env)
-      end
-    end
-
-    def with_muck_middleware
-      original_middleware = ActionController::Dispatcher.middleware
-      middleware = original_middleware.dup
-      middleware.insert_after ActionDispatch::RewindableInput, MuckMiddleware
-      ActionController::Dispatcher.middleware = middleware
-      yield
-      ActionController::Dispatcher.middleware = original_middleware
-    end
-
     def with_test_routing
       with_routing do |set|
         set.draw do |map|

@@ -378,10 +378,12 @@ class ActionPackAssertionsControllerTest < ActionController::TestCase
   def test_redirect_url_match
     process :redirect_external
     assert @response.redirect?
-    assert @response.redirect_url_match?("rubyonrails")
-    assert @response.redirect_url_match?(/rubyonrails/)
-    assert !@response.redirect_url_match?("phpoffrails")
-    assert !@response.redirect_url_match?(/perloffrails/)
+    assert_deprecated do
+      assert @response.redirect_url_match?("rubyonrails")
+      assert @response.redirect_url_match?(/rubyonrails/)
+      assert !@response.redirect_url_match?("phpoffrails")
+      assert !@response.redirect_url_match?(/perloffrails/)
+    end
   end
 
   # check for a redirection

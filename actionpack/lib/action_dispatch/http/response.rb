@@ -34,15 +34,60 @@ module ActionDispatch # :nodoc:
     DEFAULT_HEADERS = { "Cache-Control" => "no-cache" }
     attr_accessor :request
 
-    attr_accessor :session, :assigns, :template, :layout
+    attr_accessor :assigns, :template, :layout
     attr_accessor :redirected_to, :redirected_to_method_params
 
+    attr_writer :header
+    alias_method :headers=, :header=
+
+    delegate :session, :to => :request
     delegate :default_charset, :to => 'ActionController::Base'
 
     def initialize
       super
       @header = Rack::Utils::HeaderHash.new(DEFAULT_HEADERS)
       @session, @assigns = [], []
+    end
+
+    # The response code of the request
+    def response_code
+      status.to_s[0,3].to_i rescue 0
+    end
+
+    # Returns a String to ensure compatibility with Net::HTTPResponse
+    def code
+      status.to_s.split(' ')[0]
+    end
+
+    def message
+      status.to_s.split(' ',2)[1] || StatusCodes::STATUS_CODES[response_code]
+    end
+
+    # Was the response successful?
+    def success?
+      (200..299).include?(response_code)
+    end
+
+    # Was the URL not found?
+    def missing?
+      response_code == 404
+    end
+
+    # Were we redirected?
+    def redirect?
+      (300..399).include?(response_code)
+    end
+
+    # Was there a server-side error?
+    def error?
+      (500..599).include?(response_code)
+    end
+
+    alias_method :server_error?, :error?
+
+    # Was there a client client?
+    def client_error?
+      (400..499).include?(response_code)
     end
 
     def body
@@ -64,9 +109,14 @@ module ActionDispatch # :nodoc:
       @body
     end
 
-    def location; headers['Location'] end
-    def location=(url) headers['Location'] = url end
+    def location
+      headers['Location']
+    end
+    alias_method :redirect_url, :location
 
+    def location=(url)
+      headers['Location'] = url
+    end
 
     # Sets the HTTP response's content MIME type. For example, in the controller
     # you could write this:
@@ -190,6 +240,18 @@ module ActionDispatch # :nodoc:
       end
 
       super(key, value)
+    end
+
+    # Returns the response cookies, converted to a Hash of (name => value) pairs
+    #
+    #   assert_equal 'AuthorOfNewPage', r.cookies['author']
+    def cookies
+      cookies = {}
+      Array(headers['Set-Cookie']).each do |cookie|
+        key, value = cookie.split(";").first.split("=").map { |v| Rack::Utils.unescape(v) }
+        cookies[key] = value
+      end
+      cookies
     end
 
     private

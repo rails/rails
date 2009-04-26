@@ -143,7 +143,8 @@ module ActionDispatch
           request = Rack::Request.new(env)
           session_data = request.cookies[@key]
           data = unmarshal(session_data) || persistent_session_id!({})
-          [data[:session_id], data]
+          data.stringify_keys!
+          [data["session_id"], data]
         end
 
         # Marshal a session hash into safe cookie data. Include an integrity hash.
@@ -206,12 +207,12 @@ module ActionDispatch
         end
 
         def inject_persistent_session_id(data)
-          requires_session_id?(data) ? { :session_id => generate_sid } : {}
+          requires_session_id?(data) ? { "session_id" => generate_sid } : {}
         end
 
         def requires_session_id?(data)
           if data
-            data.respond_to?(:key?) && !data.key?(:session_id)
+            data.respond_to?(:key?) && !data.key?("session_id")
           else
             true
           end

@@ -10,8 +10,7 @@ class CookieStoreTest < ActionController::IntegrationTest
                      :key => SessionKey, :secret => SessionSecret)
 
   Verifier = ActiveSupport::MessageVerifier.new(SessionSecret, 'SHA1')
-
-  SignedBar = "BAh7BjoIZm9vIghiYXI%3D--fef868465920f415f2c0652d6910d3af288a0367"
+  SignedBar = Verifier.generate(:foo => "bar", :session_id => ActiveSupport::SecureRandom.hex(16))
 
   class TestController < ActionController::Base
     def no_session_access
