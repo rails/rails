@@ -565,7 +565,7 @@ Run `rake gems:install` to install the missing gems.
       Rails::Rack::Metal.metal_paths += plugin_loader.engine_metal_paths
 
       configuration.middleware.insert_before(
-        :"ActionController::RewindableInput",
+        :"ActionController::ParamsParser",
         Rails::Rack::Metal, :if => Rails::Rack::Metal.metals.any?)
     end
 
