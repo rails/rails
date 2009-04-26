@@ -98,7 +98,7 @@ module ActionDispatch # :nodoc:
 
     def body=(body)
       @body =
-        if body.is_a?(String)
+        if body.respond_to?(:to_str)
           [body]
         else
           body
@@ -215,8 +215,6 @@ module ActionDispatch # :nodoc:
       if @body.respond_to?(:call)
         @writer = lambda { |x| callback.call(x) }
         @body.call(self, self)
-      elsif @body.is_a?(String)
-        callback.call(@body)
       else
         @body.each(&callback)
       end
