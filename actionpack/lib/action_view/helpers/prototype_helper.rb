@@ -973,7 +973,7 @@ module ActionView
             def loop_on_multiple_args(method, ids)
               record(ids.size>1 ?
                 "#{javascript_object_for(ids)}.each(#{method})" :
-                "#{method}(#{::ActiveSupport::JSON.encode(ids.first)})")
+                "#{method}(#{javascript_object_for(ids.first)})")
             end
 
             def page
