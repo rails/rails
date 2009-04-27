@@ -686,7 +686,7 @@ en:
       # will translate User attribute "login" as "Handle"
 </ruby>
 
-Then +User.human_name+ will return "Dude" and +User.human_attribute_name(:login)+ will return "Handle".
+Then +User.human_name+ will return "Dude" and +User.human_attribute_name("login")+ will return "Handle".
 
 h5. Error Message Scopes
 

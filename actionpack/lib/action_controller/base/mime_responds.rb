@@ -94,6 +94,18 @@ module ActionController #:nodoc:
       # Note that you can define your own XML parameter parser which would allow you to describe multiple entities
       # in a single request (i.e., by wrapping them all in a single root node), but if you just go with the flow
       # and accept Rails' defaults, life will be much easier.
+      # 
+      # Further more, you may call the #any method on the block's object in order to run the same code for different responses.
+      #   def index
+      #
+      #     respond_to do |format|
+      #       format.html { @people = People.all(:limit => 10) }
+      #       format.any(:xml, :atom) { @people = People.all }
+      #     end
+      #   end
+      #
+      # This will limit the @people variable to 10 people records if we're requesting HTML, but will list all the
+      # people for any xml or atom request.
       #
       # If you need to use a MIME type which isn't supported by default, you can register your own handlers in
       # environment.rb as follows.
