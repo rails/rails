@@ -53,7 +53,7 @@ class DispatcherTest < Test::Unit::TestCase
       assert_equal [
         500,
         {"Content-Type" => "text/html"},
-        "<html><body><h1>500 Internal Server Error</h1></body></html>"
+        ["<html><body><h1>500 Internal Server Error</h1></body></html>"]
       ], dispatch
     end
   end
