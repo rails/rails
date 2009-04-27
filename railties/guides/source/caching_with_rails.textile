@@ -44,9 +44,9 @@ the products
 <ruby>
 class ProductsController < ActionController
 
-  caches_page :list
+  caches_page :index
 
-  def list
+  def index
     @products = Products.all
   end
 
@@ -76,9 +76,9 @@ example controller like this:
 <ruby>
 class ProductsController < ActionController
 
-  caches_page :list
+  caches_page :index
 
-  def list
+  def index
     @products = Products.all
   end
 
