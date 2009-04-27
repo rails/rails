@@ -245,9 +245,14 @@ module ActionDispatch # :nodoc:
     #   assert_equal 'AuthorOfNewPage', r.cookies['author']
     def cookies
       cookies = {}
-      Array(headers['Set-Cookie']).each do |cookie|
-        key, value = cookie.split(";").first.split("=").map { |v| Rack::Utils.unescape(v) }
-        cookies[key] = value
+      if header = headers['Set-Cookie']
+        header = header.split("\n") if header.respond_to?(:to_str)
+        header.each do |cookie|
+          if pair = cookie.split(';').first
+            key, value = pair.split("=").map { |v| Rack::Utils.unescape(v) }
+            cookies[key] = value
+          end
+        end
       end
       cookies
     end
@@ -305,7 +310,13 @@ module ActionDispatch # :nodoc:
       end
 
       def convert_cookies!
-        headers['Set-Cookie'] = Array(headers['Set-Cookie']).compact
+        headers['Set-Cookie'] =
+          if header = headers['Set-Cookie']
+            header = header.split("\n") if header.respond_to?(:to_str)
+            header.compact
+          else
+            []
+          end
       end
   end
 end
