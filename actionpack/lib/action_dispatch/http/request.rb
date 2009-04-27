@@ -451,14 +451,6 @@ EOM
       @env['rack.input']
     end
 
-    def session
-      @env['rack.session']
-    end
-
-    def session_options
-      @env['rack.session.options']
-    end
-
     def reset_session
       self.session_options.delete(:id)
       self.session = {}

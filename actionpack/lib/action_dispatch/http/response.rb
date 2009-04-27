@@ -40,7 +40,11 @@ module ActionDispatch # :nodoc:
     attr_writer :header
     alias_method :headers=, :header=
 
-    delegate :session, :to => :request
+    def session
+      ActiveSupport::Deprecation.warn("response.session has been deprecated. Use request.session instead", caller)
+      request.session
+    end
+
     delegate :default_charset, :to => 'ActionController::Base'
 
     def initialize

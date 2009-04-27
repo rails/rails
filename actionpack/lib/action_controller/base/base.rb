@@ -238,7 +238,7 @@ module ActionController #:nodoc:
     cattr_reader :protected_instance_variables
     # Controller specific instance variables which will not be accessible inside views.
     @@protected_instance_variables = %w(@assigns @performed_redirect @performed_render @variables_added @request_origin @url @parent_controller
-                                        @action_name @before_filter_chain_aborted @action_cache_path @_session @_headers @_params
+                                        @action_name @before_filter_chain_aborted @action_cache_path @_headers @_params
                                         @_flash @_response)
 
     # Prepends all the URL-generating helpers from AssetHelper. This makes it possible to easily move javascripts, stylesheets,
@@ -356,7 +356,9 @@ module ActionController #:nodoc:
 
     # Holds a hash of objects in the session. Accessed like <tt>session[:person]</tt> to get the object tied to the "person"
     # key. The session will hold any type of object as values, but the key should be a string or symbol.
-    attr_internal :session
+    def session
+      request.session
+    end
 
     # Holds a hash of header names and values. Accessed like <tt>headers["Cache-Control"]</tt> to get the value of the Cache-Control
     # directive. Values should always be specified as strings.
@@ -787,7 +789,6 @@ module ActionController #:nodoc:
       # Resets the session by clearing out all the objects stored within and initializing a new session object.
       def reset_session #:doc:
         request.reset_session
-        @_session = request.session
       end
 
     private
@@ -812,7 +813,7 @@ module ActionController #:nodoc:
 
       def assign_shortcuts(request, response)
         @_request, @_response, @_params = request, response, request.parameters
-        @_session, @_headers = @_request.session, @_response.headers
+        @_headers = @_response.headers
       end
 
       def initialize_current_url
@@ -888,10 +889,6 @@ module ActionController #:nodoc:
         "#{request.protocol}#{request.host}#{request.request_uri}"
       end
 
-      def close_session
-        # @_session.close if @_session && @_session.respond_to?(:close)
-      end
-
       def default_template(action_name = self.action_name)
         self.view_paths.find_template(default_template_name(action_name), default_template_format)
       end
@@ -915,7 +912,6 @@ module ActionController #:nodoc:
       end
 
       def process_cleanup
-        close_session
       end
   end
 
