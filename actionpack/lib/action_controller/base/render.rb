@@ -254,7 +254,7 @@ module ActionController
         render_for_text(js)
 
       elsif json = options[:json]
-        json = ActiveSupport::JSON.encode(json) unless json.is_a?(String)
+        json = ActiveSupport::JSON.encode(json) unless json.respond_to?(:to_str)
         json = "#{options[:callback]}(#{json})" unless options[:callback].blank?
         response.content_type ||= Mime::JSON
         render_for_text(json)
