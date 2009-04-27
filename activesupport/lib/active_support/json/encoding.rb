@@ -10,7 +10,7 @@ module ActiveSupport
         raise CircularReferenceError, 'object references itself'
       end
       seen << value
-      value.send(:rails_to_json, options, seen)
+      value.__send__(:rails_to_json, options, seen)
     ensure
       seen.pop
     end
