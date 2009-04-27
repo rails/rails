@@ -313,7 +313,7 @@ module ActiveSupport
       #   # With ActiveSupport.use_standard_json_time_format = false
       #   Time.utc(2005,2,1,15,15,10).in_time_zone.to_json
       #   # => "2005/02/01 15:15:10 +0000"
-      def rails_to_json(options = nil)
+      def rails_to_json(*)
         if !ActiveSupport.respond_to?(:use_standard_json_time_format) || ActiveSupport.use_standard_json_time_format
           xmlschema.inspect
         else

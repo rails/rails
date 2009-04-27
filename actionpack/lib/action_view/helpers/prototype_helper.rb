@@ -1180,11 +1180,11 @@ module ActionView
 
       # The JSON Encoder calls this to check for the +to_json+ method
       # Since it's a blank slate object, I suppose it responds to anything.
-      def respond_to?(method)
+      def respond_to?(*)
         true
       end
 
-      def rails_to_json(options = nil)
+      def rails_to_json(*)
         @variable
       end
 
