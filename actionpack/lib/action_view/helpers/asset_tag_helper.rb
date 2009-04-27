@@ -465,8 +465,8 @@ module ActionView
       #    <img src="/images/icon?1240376589" alt="Icon" />
       #  image_tag("icon.png")  # =>
       #    <img src="/images/icon.png" alt="Icon" />
-      #  image_tag("icon.png?1239667843", :size => "16x10", :alt => "Edit Entry")  # =>
-      #    <img src="/images/icon.png" width="16" height="10" alt="Edit Entry" />
+      #  image_tag("icon.png", :size => "16x10", :alt => "Edit Entry")  # =>
+      #    <img src="/images/icon.png?1239667843" width="16" height="10" alt="Edit Entry" />
       #  image_tag("/icons/icon.gif", :size => "16x16")  # =>
       #    <img src="/icons/icon.gif?1239622973" width="16" height="16" alt="Icon" />
       #  image_tag("/icons/icon.gif", :height => '32', :width => '32') # =>
