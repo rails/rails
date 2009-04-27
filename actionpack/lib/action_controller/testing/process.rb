@@ -14,8 +14,8 @@ module ActionController #:nodoc:
       super(Rack::MockRequest.env_for("/").merge(env))
 
       @query_parameters   = {}
-      @env['rack.session'] = TestSession.new
-      @env['rack.session.options'] = TestSession::DEFAULT_OPTIONS.merge(:id => ActiveSupport::SecureRandom.hex(16))
+      self.session = TestSession.new
+      self.session_options = TestSession::DEFAULT_OPTIONS.merge(:id => ActiveSupport::SecureRandom.hex(16))
 
       initialize_default_values
       initialize_containers
