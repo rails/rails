@@ -255,6 +255,26 @@ module NewCallbacksTest
     end
   end
 
+  class HyphenatedCallbacks
+    include ActiveSupport::NewCallbacks
+    define_callbacks :save
+    attr_reader :stuff
+    
+    save_callback :before, :omg, :per_key => {:if => :yes}
+    
+    def yes() true end
+      
+    def omg
+      @stuff = "OMG"
+    end
+    
+    def save
+      _run_save_callbacks("hyphen-ated") do
+        @stuff
+      end
+    end
+  end
+
   class AroundCallbacksTest < Test::Unit::TestCase
     def test_save_around
       around = AroundPerson.new
@@ -381,4 +401,12 @@ module NewCallbacksTest
       assert_equal ["first", "second", "third", "second", "first"], terminator.history
     end
   end
+  
+  class HyphenatedKeyTest < Test::Unit::TestCase
+    def test_save
+      obj = HyphenatedCallbacks.new
+      obj.save
+      assert_equal obj.stuff, "OMG"
+    end
+  end  
 end

@@ -356,6 +356,7 @@ module ActiveSupport
         str = <<-RUBY_EVAL
           def _run_#{symbol}_callbacks(key = nil)
             if key
+              key = key.hash.to_s.gsub(/-/, '_')
               name = "_run__\#{self.class.name.split("::").last}__#{symbol}__\#{key}__callbacks"
               
               if respond_to?(name)
