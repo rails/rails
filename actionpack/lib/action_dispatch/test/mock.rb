@@ -5,8 +5,6 @@ module ActionDispatch
 
       class << self
         def env_for(path, opts)
-          headers = opts.delete(:headers)
-
           method = (opts[:method] || opts["REQUEST_METHOD"]).to_s.upcase
           opts[:method] = opts["REQUEST_METHOD"] = method
 
@@ -48,15 +46,7 @@ module ActionDispatch
             uri.query = requestify(params)
           end
 
-          env = ::Rack::MockRequest.env_for(uri.to_s, opts)
-
-          (headers || {}).each do |key, value|
-            key = key.to_s.upcase.gsub(/-/, "_")
-            key = "HTTP_#{key}" unless env.has_key?(key) || key =~ /^HTTP_/
-            env[key] = value
-          end
-
-          env
+          ::Rack::MockRequest.env_for(uri.to_s, opts)
         end
 
         private

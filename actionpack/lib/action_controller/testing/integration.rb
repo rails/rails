@@ -263,7 +263,6 @@ module ActionController
           opts = {
             :method => method.to_s.upcase,
             :params => parameters,
-            :headers => headers,
 
             "SERVER_NAME"     => host,
             "SERVER_PORT"     => (https? ? "443" : "80"),
@@ -281,6 +280,12 @@ module ActionController
             }
           }
           env = ActionDispatch::Test::MockRequest.env_for(@path, opts)
+
+          (headers || {}).each do |key, value|
+            key = key.to_s.upcase.gsub(/-/, "_")
+            key = "HTTP_#{key}" unless env.has_key?(key) || key =~ /^HTTP_/
+            env[key] = value
+          end
 
           app = Rack::Lint.new(@app)
           status, headers, body = app.call(env)
