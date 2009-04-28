@@ -34,7 +34,7 @@ module ActionDispatch # :nodoc:
     DEFAULT_HEADERS = { "Cache-Control" => "no-cache" }
     attr_accessor :request
 
-    attr_accessor :assigns, :template, :layout
+    attr_accessor :template, :layout
     attr_accessor :redirected_to, :redirected_to_method_params
 
     attr_writer :header
@@ -45,12 +45,16 @@ module ActionDispatch # :nodoc:
       request.session
     end
 
+    def assigns
+      ActiveSupport::Deprecation.warn("response.assigns has been deprecated. Use controller.assigns instead", caller)
+      template.assigns
+    end
+
     delegate :default_charset, :to => 'ActionController::Base'
 
     def initialize
       super
       @header = Rack::Utils::HeaderHash.new(DEFAULT_HEADERS)
-      @session, @assigns = [], []
     end
 
     # The response code of the request
