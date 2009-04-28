@@ -447,7 +447,7 @@ redirect_to :back
 
 h5. Getting a Different Redirect Status Code
 
-Rails uses HTTP status code 302 (permanent redirect) when you call +redirect_to+. If you'd like to use a different status code (perhaps 301, temporary redirect), you can do so by using the +:status+ option:
+Rails uses HTTP status code 302 (temporary redirect) when you call +redirect_to+. If you'd like to use a different status code (perhaps 301, permanent redirect), you can do so by using the +:status+ option:
 
 <ruby>
 redirect_to photos_path, :status => 301
