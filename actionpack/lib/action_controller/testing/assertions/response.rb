@@ -22,7 +22,7 @@ module ActionController
       #   assert_response 401
       #
       def assert_response(type, message = nil)
-        validate_response!
+        validate_request!
 
         clean_backtrace do
           if [ :success, :missing, :redirect, :error ].include?(type) && @response.send("#{type}?")
@@ -59,7 +59,7 @@ module ActionController
       #   assert_redirected_to @customer
       #
       def assert_redirected_to(options = {}, message=nil)
-        validate_response!
+        validate_request!
 
         clean_backtrace do
           assert_response(:redirect, message)
@@ -93,7 +93,7 @@ module ActionController
       #   assert_template :partial => false
       #
       def assert_template(options = {}, message = nil)
-        validate_response!
+        validate_request!
 
         clean_backtrace do
           case options
@@ -152,7 +152,7 @@ module ActionController
           end
         end
 
-        def validate_response!
+        def validate_request!
           unless @request.is_a?(ActionDispatch::Request)
             raise ArgumentError, "@request must be an ActionDispatch::Request"
           end
