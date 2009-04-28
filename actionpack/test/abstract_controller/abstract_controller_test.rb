@@ -58,11 +58,11 @@ module AbstractController
       end
 
       def rendering_to_body
-        render_to_body "naked_render.erb"
+        self.response_body = render_to_body :_template_name => "naked_render.erb"
       end
 
       def rendering_to_string
-        render_to_string "naked_render.erb"
+        self.response_body = render_to_string :_template_name => "naked_render.erb"
       end
     end
     
@@ -136,6 +136,11 @@ module AbstractController
     class WithLayouts < PrefixedViews
       use Layouts
       
+      def self.inherited(klass)
+        klass._write_layout_method
+        super
+      end
+      
       private
       def self.layout(formats)
         begin
@@ -147,13 +152,9 @@ module AbstractController
           end
         end
       end
-      
-      def _layout
-        self.class.layout(formats)
-      end      
-      
+
       def render_to_body(options = {})
-        options[:_layout] = options[:layout] || _layout
+        options[:_layout] = options[:layout] || _default_layout
         super
       end  
     end
@@ -174,11 +175,6 @@ module AbstractController
       test "layouts are included" do
         result = Me4.process(:index)
         assert_equal "Me4 Enter : Hello from me4/index.erb : Exit", result.response_obj[:body]
-      end
-      
-      test "it can fall back to the application layout" do
-        result = Me5.process(:index)
-        assert_equal "Application Enter : Hello from me5/index.erb : Exit", result.response_obj[:body]        
       end
     end
     

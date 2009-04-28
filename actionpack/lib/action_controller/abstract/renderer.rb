@@ -27,9 +27,11 @@ module AbstractController
     # 
     # :api: plugin
     def render_to_body(options = {})
+      options = {:_template_name => options} if options.is_a?(String)
       name = options[:_template_name] || action_name
       
       template = options[:_template] || view_paths.find_by_parts(name.to_s, {:formats => formats}, options[:_prefix])
+      
       _render_template(template, options)
     end
 

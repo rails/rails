@@ -79,7 +79,7 @@ module ActionController
         run_callbacks :before_dispatch
         Routing::Routes.call(env)
       rescue Exception => exception
-        if controller ||= (::ApplicationController rescue Base)
+        if !env["rack.test"] && controller ||= (::ApplicationController rescue Base)
           controller.call_with_exception(env, exception).to_a
         else
           raise exception

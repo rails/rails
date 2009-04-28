@@ -3,7 +3,7 @@ require File.join(File.expand_path(File.dirname(__FILE__)), "test_helper")
 module ControllerLayouts
   class ImplicitController < ::ApplicationController
     
-    self.view_paths = [ActionView::FixtureTemplate::FixturePath.new(
+    self.view_paths = [ActionView::Template::FixturePath.new(
       "layouts/application.html.erb" => "OMG <%= yield %> KTHXBAI",
       "basic.html.erb" => "Hello world!"
     )]
@@ -23,7 +23,7 @@ module ControllerLayouts
   
   class ImplicitNameController < ::ApplicationController
     
-    self.view_paths = [ActionView::FixtureTemplate::FixturePath.new(
+    self.view_paths = [ActionView::Template::FixturePath.new(
       "layouts/controller_layouts/implicit_name.html.erb" => "OMGIMPLICIT <%= yield %> KTHXBAI",
       "basic.html.erb" => "Hello world!"
     )]

@@ -24,6 +24,14 @@ require 'pp' # require 'pp' early to prevent hidden_methods from not picking up 
 require 'rubygems'
 require 'rack/test'
 
+module Rails
+  def self.env
+    x = Object.new
+    def x.test?() true end
+    x
+  end
+end
+
 module ActionController
   class Base2 < AbstractBase
     use AbstractController::Callbacks
@@ -53,6 +61,10 @@ module ActionController
     # append_view_path File.join(File.dirname(__FILE__), '..', 'fixtures')
         
     CORE_METHODS = self.public_instance_methods
+  end
+  
+  class CompatibleBase2 < Base2
+    use ActionController::Rails2Compatibility
   end
 end
 
@@ -91,7 +103,7 @@ class Rack::TestCase < ActiveSupport::TestCase
   end
   
   def assert_body(body)
-    assert_equal [body], last_response.body
+    assert_equal body, last_response.body
   end
   
   def self.assert_body(body)

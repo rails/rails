@@ -755,6 +755,7 @@ class RenderTest < ActionController::TestCase
     @request.host = "www.nextangle.com"
   end
 
+  # :ported:
   def test_simple_show
     get :hello_world
     assert_response 200
@@ -763,11 +764,13 @@ class RenderTest < ActionController::TestCase
     assert_equal "<html>Hello world!</html>", @response.body
   end
 
+  # :ported:
   def test_renders_default_template_for_missing_action
     get :'hyphen-ated'
     assert_template 'test/hyphen-ated'
   end
 
+  # :ported:
   def test_render
     get :render_hello_world
     assert_template "test/hello_world"

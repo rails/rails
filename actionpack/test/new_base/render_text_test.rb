@@ -6,7 +6,7 @@ end
 module HappyPath
   
   class RenderTextWithoutLayoutsController < ActionController::Base2
-    self.view_paths = [ActionView::FixtureTemplate::FixturePath.new]
+    self.view_paths = [ActionView::Template::FixturePath.new]
     
     def render_hello_world
       render :text => "hello david"
@@ -14,7 +14,7 @@ module HappyPath
   end
   
   class RenderTextWithLayoutsController < ::ApplicationController
-    self.view_paths = [ActionView::FixtureTemplate::FixturePath.new(
+    self.view_paths = [ActionView::Template::FixturePath.new(
       "layouts/application.html.erb" => "<%= yield %>, I'm here!",
       "layouts/greetings.html.erb"   => "<%= yield %>, I wish thee well."
     )]    

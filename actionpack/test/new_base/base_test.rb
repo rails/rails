@@ -34,11 +34,11 @@ module HappyPath
     end
     
     test "sets the content type" do
-      assert_content_type Mime::HTML
+      assert_content_type "text/html; charset=utf-8"
     end
     
     test "sets the content length" do
-      assert_header "Content-Length", 7
+      assert_header "Content-Length", "7"
     end
         
   end
@@ -52,7 +52,7 @@ module HappyPath
     end
     
     test "setting the body manually sets the content length" do
-      assert_header "Content-Length", 7
+      assert_header "Content-Length", "7"
     end
   end
   
@@ -65,7 +65,7 @@ module HappyPath
     end
     
     test "updating the response body updates the content length" do
-      assert_header "Content-Length", 8
+      assert_header "Content-Length", "8"
     end
   end
 end

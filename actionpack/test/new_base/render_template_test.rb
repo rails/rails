@@ -4,17 +4,13 @@ module HappyPath
   
   class RenderTemplateWithoutLayoutController < ActionController::Base2
     
-    self.view_paths = [ActionView::FixtureTemplate::FixturePath.new(
+    self.view_paths = [ActionView::Template::FixturePath.new(
       "test/basic.html.erb" => "Hello from basic.html.erb",
       "shared.html.erb"     => "Elastica"
     )]
     
     def render_hello_world
       render :template => "test/basic"
-    end
-
-    def render_hello_world_with_forward_slash
-      render :template => "/test/basic"
     end
 
     def render_template_in_top_directory
@@ -30,14 +26,6 @@ module HappyPath
     describe "rendering a normal template with full path without layout"
     
     get "/happy_path/render_template_without_layout/render_hello_world"
-    assert_body   "Hello from basic.html.erb"
-    assert_status 200
-  end
-  
-  class TestTemplateRenderWithForwardSlash < SimpleRouteCase
-    describe "rendering a normal template with full path starting with a leading slash"
-    
-    get "/happy_path/render_template_without_layout/render_hello_world_with_forward_slash"
     assert_body   "Hello from basic.html.erb"
     assert_status 200
   end
@@ -60,7 +48,7 @@ module HappyPath
     
   class RenderTemplateWithLayoutController < ::ApplicationController
     
-    self.view_paths = [ActionView::FixtureTemplate::FixturePath.new(
+    self.view_paths = [ActionView::Template::FixturePath.new(
       "test/basic.html.erb"          => "Hello from basic.html.erb",
       "shared.html.erb"              => "Elastica",
       "layouts/application.html.erb" => "<%= yield %>, I'm here!",
@@ -127,7 +115,26 @@ module HappyPath
     assert_body   "Hello from basic.html.erb, I wish thee well."
     assert_status 200
   end
-  
-  
 
+end
+
+module Compatibility
+  class RenderTemplateWithoutLayoutController < ActionController::CompatibleBase2
+    self.view_paths = [ActionView::Template::FixturePath.new(
+      "test/basic.html.erb" => "Hello from basic.html.erb",
+      "shared.html.erb"     => "Elastica"
+    )]
+    
+    def render_hello_world_with_forward_slash
+      render :template => "/test/basic"
+    end
+  end
+  
+  class TestTemplateRenderWithForwardSlash < SimpleRouteCase
+    describe "rendering a normal template with full path starting with a leading slash"
+    
+    get "/compatibility/render_template_without_layout/render_hello_world_with_forward_slash"
+    assert_body   "Hello from basic.html.erb"
+    assert_status 200
+  end
 end

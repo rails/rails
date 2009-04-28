@@ -50,6 +50,8 @@ module ActionController
       @_request = ActionDispatch::Request.new(env)
       @_response = ActionDispatch::Response.new
       process(@_request.parameters[:action])
+      @_response.prepare!
+      self
     end
     
     # :api: private

@@ -50,6 +50,7 @@ module AbstractController
     end
     
     def _render_template(template, options)
+      # layout = options[:_layout].is_a?(ActionView::Template) ? options[:_layout] : _layout_for_name(options[:_layout])
       _action_view._render_template_with_layout(template, options[:_layout])
     end
         
@@ -67,10 +68,10 @@ module AbstractController
     
     def _default_layout(require_layout = false)
       if require_layout && !_layout
-        raise ArgumentError, 
+        raise ArgumentError,
           "There was no default layout for #{self.class} in #{view_paths.inspect}"
       end
-        
+
       begin
         layout = _layout_for_name(_layout)
       rescue NameError => e

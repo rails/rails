@@ -5,7 +5,7 @@ module RenderAction
   # This has no layout and it works
   class BasicController < ActionController::Base2
     
-    self.view_paths = [ActionView::FixtureTemplate::FixturePath.new(
+    self.view_paths = [ActionView::Template::FixturePath.new(
       "render_action/basic/hello_world.html.erb" => "Hello world!"
     )]
     
@@ -129,7 +129,7 @@ module RenderActionWithApplicationLayout
 
   class BasicController < ::ApplicationController
     # Set the view path to an application view structure with layouts
-    self.view_paths = self.view_paths = [ActionView::FixtureTemplate::FixturePath.new(
+    self.view_paths = self.view_paths = [ActionView::Template::FixturePath.new(
       "render_action_with_application_layout/basic/hello_world.html.erb" => "Hello World!",
       "layouts/application.html.erb"                                     => "OHAI <%= yield %> KTHXBAI",
       "layouts/greetings.html.erb"                                       => "Greetings <%= yield %> Bai"
@@ -204,7 +204,7 @@ end
 module RenderActionWithControllerLayout
   
   class BasicController < ActionController::Base2
-    self.view_paths = self.view_paths = [ActionView::FixtureTemplate::FixturePath.new(
+    self.view_paths = self.view_paths = [ActionView::Template::FixturePath.new(
       "render_action_with_controller_layout/basic/hello_world.html.erb" => "Hello World!",
       "layouts/render_action_with_controller_layout/basic.html.erb"     => "With Controller Layout! <%= yield %> KTHXBAI"
     )]
@@ -267,7 +267,7 @@ end
 module RenderActionWithBothLayouts
   
   class BasicController < ActionController::Base2
-    self.view_paths = [ActionView::FixtureTemplate::FixturePath.new({
+    self.view_paths = [ActionView::Template::FixturePath.new({
       "render_action_with_both_layouts/basic/hello_world.html.erb" => "Hello World!",
       "layouts/application.html.erb"                                => "OHAI <%= yield %> KTHXBAI",
       "layouts/render_action_with_both_layouts/basic.html.erb"      => "With Controller Layout! <%= yield %> KTHXBAI"
