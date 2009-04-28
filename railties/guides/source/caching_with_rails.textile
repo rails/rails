@@ -304,7 +304,7 @@ However, it's important to note that query caches are created at the start of an
 that action and thus persist only for the duration of the action.  If you'd like to store query results in a more
 persistent fashion, you can in Rails by using low level caching.
 
-h4. Cache stores
+h3. Cache stores
 
 Rails (as of 2.1) provides different stores for the cached data created by action and
 fragment caches. Page caches are always stored on disk.
@@ -316,7 +316,7 @@ to do that.
 
 The default cache stores provided with Rails include:
 
-1) ActiveSupport::Cache::MemoryStore: A cache store implementation which stores
+# ActiveSupport::Cache::MemoryStore: A cache store implementation which stores
 everything into memory in the same process. If you're running multiple Ruby on
 Rails server processes (which is the case if you're using mongrel_cluster or
 Phusion Passenger), then this means that your Rails server process instances
@@ -325,17 +325,15 @@ performs manual cache item expiry (e.g. when you‘re using generational cache
 keys), then using +MemoryStore+ is ok. Otherwise, consider carefully whether you
 should be using this cache store.  
 
-+MemoryStore+ is not only able to store strings, but also arbitrary Ruby objects.
++MemoryStore+  is not only able to store strings, but also arbitrary Ruby objects.
 
-+MemoryStore+ is not thread-safe. Use +SynchronizedMemoryStore+ instead if you
-need thread-safety.
++MemoryStore+  is not thread-safe. Use +SynchronizedMemoryStore+ instead if you need thread-safety.
                                       
-
 <ruby>
 ActionController::Base.cache_store = :memory_store
 </ruby>
 
-2) ActiveSupport::Cache::FileStore: Cached data is stored on the disk, this is
+# ActiveSupport::Cache::FileStore: Cached data is stored on the disk, this is
 the default store and the default path for this store is: /tmp/cache. Works
 well for all types of environments and allows all processes running from the
 same application directory to access the cached content. If /tmp/cache does not
@@ -346,7 +344,7 @@ exist, the default store becomes MemoryStore.
 ActionController::Base.cache_store = :file_store, "/path/to/cache/directory"
 </ruby>
 
-3) ActiveSupport::Cache::DRbStore: Cached data is stored in a separate shared
+# ActiveSupport::Cache::DRbStore: Cached data is stored in a separate shared
 DRb process that all servers communicate with. This works for all environments
 and only keeps one cache around for all processes, but requires that you run
 and manage a separate DRb process.
@@ -356,7 +354,7 @@ and manage a separate DRb process.
 ActionController::Base.cache_store = :drb_store, "druby://localhost:9192"
 </ruby>
 
-4) MemCached store: Works like DRbStore, but uses Danga's MemCache instead.
+# MemCached store: Works like DRbStore, but uses Danga's MemCache instead.
 Rails uses the bundled memcached-client gem by default. This is currently the
 most popular cache store for production websites.
 
@@ -393,14 +391,14 @@ for the cached item in seconds.
 ActionController::Base.cache_store = :mem_cache_store, "localhost"
 </ruby>
 
-5) ActiveSupport::Cache::SynchronizedMemoryStore: Like ActiveSupport::Cache::MemoryStore but thread-safe.
+# ActiveSupport::Cache::SynchronizedMemoryStore: Like ActiveSupport::Cache::MemoryStore but thread-safe.
 
 
 <ruby>
 ActionController::Base.cache_store = :synchronized_memory_store
 </ruby>
 
-6) ActiveSupport::Cache::CompressedMemCacheStore: Works just like the regular
+# ActiveSupport::Cache::CompressedMemCacheStore: Works just like the regular
 MemCacheStore but uses GZip to decompress/compress on read/write.
 
 
@@ -408,7 +406,7 @@ MemCacheStore but uses GZip to decompress/compress on read/write.
 ActionController::Base.cache_store = :compressed_mem_cache_store, "localhost"
 </ruby>
 
-7) Custom store: You can define your own cache store (new in Rails 2.1)
+# Custom store: You can define your own cache store (new in Rails 2.1)
 
 
 <ruby>
