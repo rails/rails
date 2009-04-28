@@ -829,7 +829,7 @@ module ActiveRecord #:nodoc:
       #   Book.update_all "author = 'David'", "title LIKE '%Rails%'"
       #
       #   # Update all avatars migrated more than a week ago
-      #   Avatar.update_all ['migrated_at = ?, Time.now.utc], ['migrated_at > ?', 1.week.ago]
+      #   Avatar.update_all ['migrated_at = ?', Time.now.utc], ['migrated_at > ?', 1.week.ago]
       #
       #   # Update all books that match our conditions, but limit it to 5 ordered by date
       #   Book.update_all "author = 'David'", "title LIKE '%Rails%'", :order => 'created_at', :limit => 5
