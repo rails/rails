@@ -4,6 +4,10 @@ module Arel
       Session.new
     end
 
+    def select_value
+      engine.select_value self.to_sql
+    end
+
     def select_values
       engine.select_values self.to_sql
     end
@@ -19,8 +23,8 @@ module Arel
         "FROM       #{table_sql(Sql::TableReference.new(self))}",
         (joins(self)                                                                                    unless joins(self).blank? ),
         ("WHERE     #{wheres   .collect { |w| w.to_sql(Sql::WhereClause.new(self)) }.join("\n\tAND ")}" unless wheres.blank?      ),
-        ("ORDER BY  #{orders   .collect { |o| o.to_sql(Sql::OrderClause.new(self)) }.join(', ')}"       unless orders.blank?      ),
         ("GROUP BY  #{groupings.collect { |g| g.to_sql(Sql::GroupClause.new(self)) }.join(', ')}"       unless groupings.blank?   ),
+        ("ORDER BY  #{orders   .collect { |o| o.to_sql(Sql::OrderClause.new(self)) }.join(', ')}"       unless orders.blank?      ),
         ("LIMIT     #{taken}"                                                                           unless taken.blank?       ),
         ("OFFSET    #{skipped}"                                                                         unless skipped.blank?     )
       ].compact.join("\n")

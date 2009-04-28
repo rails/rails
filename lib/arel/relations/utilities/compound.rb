@@ -5,7 +5,7 @@ module Arel
     delegate :joins, :join?, :inserts, :taken, :skipped, :name, :externalizable?,
              :column_for, :engine, :table, :table_sql,
              :to => :relation
-    
+
     [:attributes, :wheres, :groupings, :orders].each do |operation_name|
       operation = <<-OPERATION
         def #{operation_name}
