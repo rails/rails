@@ -5,7 +5,8 @@ module RenderTemplate
     
     self.view_paths = [ActionView::Template::FixturePath.new(
       "test/basic.html.erb" => "Hello from basic.html.erb",
-      "shared.html.erb"     => "Elastica"
+      "shared.html.erb"     => "Elastica",
+      "locals.html.erb"     => "The secret is <%= secret %>"
     )]
     
     def index
@@ -18,6 +19,10 @@ module RenderTemplate
 
     def in_top_directory_with_slash
       render :template => '/shared'
+    end
+    
+    def with_locals
+      render :template => "locals", :locals => { :secret => 'area51' }
     end
   end
   
@@ -42,6 +47,14 @@ module RenderTemplate
     
     get "/render_template/without_layout/in_top_directory_with_slash"
     assert_body   "Elastica"
+    assert_status 200
+  end
+  
+  class TestTemplateRenderWithLocals < SimpleRouteCase
+    describe "rendering a template with local variables"
+    
+    get "/render_template/without_layout/with_locals"
+    assert_body   "The secret is area51"
     assert_status 200
   end
     

@@ -58,6 +58,11 @@ module ActionController
       end
     end
     
+    def render_to_body(options = {})
+      options = {:template => options} if options.is_a?(String)
+      super
+    end
+    
     # append_view_path File.join(File.dirname(__FILE__), '..', 'fixtures')
         
     CORE_METHODS = self.public_instance_methods

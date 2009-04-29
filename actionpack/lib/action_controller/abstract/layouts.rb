@@ -50,8 +50,7 @@ module AbstractController
     end
     
     def _render_template(template, options)
-      # layout = options[:_layout].is_a?(ActionView::Template) ? options[:_layout] : _layout_for_name(options[:_layout])
-      _action_view._render_template_with_layout(template, options[:_layout])
+      _action_view._render_template_with_layout(template, options[:_layout], options)
     end
         
   private

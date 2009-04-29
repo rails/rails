@@ -80,6 +80,7 @@ class TestController < ActionController::Base
     fresh_when(:last_modified => Time.now.utc.beginning_of_day, :etag => [ :foo, 123 ])
   end
 
+  # :ported:
   def render_hello_world
     render :template => "test/hello_world"
   end
@@ -94,14 +95,17 @@ class TestController < ActionController::Base
     render :template => "test/hello_world"
   end
 
+  # :ported: compatibility
   def render_hello_world_with_forward_slash
     render :template => "/test/hello_world"
   end
 
+  # :ported:
   def render_template_in_top_directory
     render :template => 'shared'
   end
 
+  # :deprecated:
   def render_template_in_top_directory_with_slash
     render :template => '/shared'
   end
@@ -251,6 +255,10 @@ class TestController < ActionController::Base
     render :js => "alert('hello')"
   end
 
+  # This test is testing 3 things:
+  #   render :file in AV      :ported:
+  #   render :template in AC  :ported:
+  #   setting content type
   def render_xml_hello
     @name = "David"
     render :template => "test/hello"
@@ -399,6 +407,7 @@ class TestController < ActionController::Base
     render :layout => true, :inline =>  "Hello: <%= params[:name] %>"
   end
 
+  # :ported:
   def render_with_explicit_template
     render :template => "test/hello_world"
   end
@@ -407,6 +416,7 @@ class TestController < ActionController::Base
     render "test/hello_world"
   end
 
+  # :ported:
   def render_with_explicit_template_with_locals
     render :template => "test/render_file_with_locals", :locals => { :secret => 'area51' }
   end
@@ -443,10 +453,15 @@ class TestController < ActionController::Base
     render :action => "potential_conflicts"
   end
 
+  # :deprecated:
+  # Tests being able to pick a .builder template over a .erb
+  # For instance, being able to have hello.xml.builder and hello.xml.erb
+  # and select one via "hello.builder" or "hello.erb"
   def hello_world_from_rxml_using_action
     render :action => "hello_world_from_rxml.builder"
   end
 
+  # :deprecated:
   def hello_world_from_rxml_using_template
     render :template => "test/hello_world_from_rxml.builder"
   end
@@ -798,17 +813,20 @@ class RenderTest < ActionController::TestCase
     end
   end
 
+  # :ported: compatibility
   def test_render_with_forward_slash
     get :render_hello_world_with_forward_slash
     assert_template "test/hello_world"
   end
 
+  # :ported:
   def test_render_in_top_directory
     get :render_template_in_top_directory
     assert_template "shared"
     assert_equal "Elastica", @response.body
   end
 
+  # :ported:
   def test_render_in_top_directory_with_slash
     get :render_template_in_top_directory_with_slash
     assert_template "shared"
@@ -1259,6 +1277,7 @@ class RenderTest < ActionController::TestCase
     assert_equal "world", assigns["hello"]
   end
 
+  # :ported:
   def test_template_with_locals
     get :render_with_explicit_template_with_locals
     assert_equal "The secret is area51\n", @response.body

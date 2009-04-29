@@ -21,10 +21,6 @@ module ActionController
     end
 
     def render_to_body(options)
-      unless options.is_a?(Hash)
-        options = {:action => options}
-      end
-
       if options.key?(:text)
         options[:_template] = ActionView::TextTemplate.new(_text(options))
         template = nil
