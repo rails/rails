@@ -1,3 +1,4 @@
+require 'active_support'
 require 'active_support/core_ext/kernel/reporting'
 require 'active_support/core_ext/symbol'
 require 'active_support/dependencies'
