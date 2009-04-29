@@ -5,11 +5,8 @@ require 'pathname'
 $LOAD_PATH.unshift File.dirname(__FILE__)
 require 'railties_path'
 require 'rails/version'
-require 'rails/plugin/locator'
-require 'rails/plugin/loader'
 require 'rails/gem_dependency'
 require 'rails/rack'
-
 
 RAILS_ENV = (ENV['RAILS_ENV'] || 'development').dup unless defined?(RAILS_ENV)
 
@@ -244,6 +241,7 @@ module Rails
     # Set the paths from which Rails will automatically load source files, and
     # the load_once paths.
     def set_autoload_paths
+      require 'active_support/dependencies'
       ActiveSupport::Dependencies.load_paths = configuration.load_paths.uniq
       ActiveSupport::Dependencies.load_once_paths = configuration.load_once_paths.uniq
 
@@ -263,6 +261,8 @@ module Rails
     # list. By default, all frameworks (Active Record, Active Support,
     # Action Pack, Action Mailer, and Active Resource) are loaded.
     def require_frameworks
+      require 'active_support'
+      require 'active_support/core/all'
       configuration.frameworks.each { |framework| require(framework.to_s) }
     rescue LoadError => e
       # Re-raise as RuntimeError because Mongrel would swallow LoadError.
@@ -289,10 +289,12 @@ module Rails
     # Adds all load paths from plugins to the global set of load paths, so that
     # code from plugins can be required (explicitly or automatically via ActiveSupport::Dependencies).
     def add_plugin_load_paths
+      require 'active_support/dependencies'
       plugin_loader.add_plugin_load_paths
     end
 
     def add_gem_load_paths
+      require 'rails/gem_dependency'
       Rails::GemDependency.add_frozen_gem_path
       unless @configuration.gems.empty?
         require "rubygems"
@@ -1037,12 +1039,14 @@ Run `rake gems:install` to install the missing gems.
       end
 
       def default_plugin_locators
+        require 'rails/plugin/locator'
         locators = []
         locators << Plugin::GemLocator if defined? Gem
         locators << Plugin::FileSystemLocator
       end
 
       def default_plugin_loader
+        require 'rails/plugin/loader'
         Plugin::Loader
       end
 
