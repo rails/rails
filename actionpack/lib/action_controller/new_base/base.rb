@@ -1,5 +1,5 @@
 module ActionController
-  class AbstractBase < AbstractController::Base
+  class Http < AbstractController::Base
     
     # :api: public
     attr_internal :request, :response, :params

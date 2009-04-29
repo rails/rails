@@ -33,7 +33,7 @@ module Rails
 end
 
 module ActionController
-  class Base2 < AbstractBase
+  class Base2 < Http
     use AbstractController::Callbacks
     use AbstractController::Helpers
     use AbstractController::Logger
