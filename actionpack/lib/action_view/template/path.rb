@@ -1,3 +1,5 @@
+require "pathname"
+
 module ActionView
   class Template
   # Abstract super class
@@ -26,13 +28,6 @@ module ActionView
       def find_templates(name, details, prefix, partial)
         raise NotImplementedError
       end
-  
-      # TODO: Refactor this to abstract out the file system
-      def initialize_template(file)
-        t = Template.new(file.split("#{self}/").last, self)
-        t.load!
-        t
-      end
       
       def valid_handlers
         @valid_handlers ||= TemplateHandlers.extensions
@@ -44,10 +39,10 @@ module ActionView
           /\.(?:#{e})$/
         end
       end
-      
+       
       def handler_glob
-        e = TemplateHandlers.extensions.join(',')
-        ".{#{e}}"
+        e = TemplateHandlers.extensions.map{|h| ".#{h},"}.join
+        "{#{e}}"
       end
       
       def formats_glob
@@ -69,23 +64,19 @@ module ActionView
       def initialize(path, options = {})
         raise ArgumentError, "path already is a Path class" if path.is_a?(Path)
         super(options)
-        @path = path
+        @path = Pathname.new(path).expand_path
       end
-    
+
       # TODO: This is the currently needed API. Make this suck less
       # ==== <suck>
       attr_reader :path
     
       def to_s
-        if defined?(RAILS_ROOT)
-          path.to_s.sub(/^#{Regexp.escape(File.expand_path(RAILS_ROOT))}\//, '')
-        else
-          path.to_s
-        end
+        path.to_s
       end
 
       def to_str
-        path.to_str
+        path.to_s
       end
 
       def ==(path)
@@ -97,11 +88,15 @@ module ActionView
       end
       # ==== </suck>
     
-      def find_templates(name, details, prefix, partial)
-        if glob = parts_to_glob(name, details, prefix, partial)
+      def find_templates(name, details, prefix, partial, root = "#{@path}/")
+        if glob = details_to_glob(name, details, prefix, partial, root)
           cached(glob) do
             Dir[glob].map do |path|
-              initialize_template(path) unless File.directory?(path)
+              next if File.directory?(path)
+              source = File.read(path)
+              identifier = Pathname.new(path).expand_path.to_s
+              
+              Template.new(source, identifier, *path_to_details(path))
             end.compact
           end
         end
@@ -109,7 +104,8 @@ module ActionView
     
     private
   
-      def parts_to_glob(name, details, prefix, partial)
+      # :api: plugin
+      def details_to_glob(name, details, prefix, partial, root)
         path = ""
         path << "#{prefix}/" unless prefix.empty?
         path << (partial ? "_#{name}" : name)
@@ -123,8 +119,34 @@ module ActionView
           end
         end
         
-        "#{@path}/#{path}#{extensions}#{handler_glob}"
+        "#{root}#{path}#{extensions}#{handler_glob}"
       end
+      
+      # TODO: fix me
+      # :api: plugin
+      def path_to_details(path)
+        # [:erb, :format => :html, :locale => :en, :partial => true/false]
+        if m = path.match(%r'/(_)?[\w-]+(\.[\w-]+)*\.(\w+)$')
+          partial = m[1] == '_'
+          details = (m[2]||"").split('.').reject { |e| e.empty? }
+          handler = Template.handler_class_for_extension(m[3])
+
+          format  = Mime[details.last] && details.pop.to_sym
+          locale  = details.last && details.pop.to_sym
+          
+          return handler, :format => format, :locale => locale, :partial => partial
+        end
+      end
+    end
+
+    class FileSystemPathWithFallback < FileSystemPath
+      
+      def find_templates(name, details, prefix, partial)
+        templates = super
+        return super(name, details, prefix, partial, '') if templates.empty?
+        templates
+      end
+      
     end
   end
 end

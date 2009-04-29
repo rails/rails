@@ -1,5 +1,6 @@
 require 'abstract_unit'
 require 'controller/fake_models'
+require 'pathname'
 
 module Fun
   class GamesController < ActionController::Base
@@ -772,7 +773,7 @@ class RenderTest < ActionController::TestCase
     begin
       get :render_line_offset
       flunk "the action should have raised an exception"
-    rescue RuntimeError => exc
+    rescue StandardError => exc
       line = exc.backtrace.first
       assert(line =~ %r{:(\d+):})
       assert_equal "1", $1,
@@ -1735,7 +1736,7 @@ class RenderingLoggingTest < ActionController::TestCase
     @controller.logger = MockLogger.new
     get :layout_test
     logged = @controller.logger.logged.find_all {|l| l =~ /render/i }
-    assert_equal "Rendering test/hello_world", logged[0]
-    assert_equal "Rendering template within layouts/standard", logged[1]
+    assert logged[0] =~ %r{Rendering.*test/hello_world}
+    assert logged[1] =~ %r{Rendering template within.*layouts/standard}
   end
 end

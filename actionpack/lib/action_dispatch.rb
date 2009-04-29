@@ -32,13 +32,8 @@ rescue LoadError
 end
 require 'active_support/core/all'
 
-$:.unshift "#{File.dirname(__FILE__)}/action_dispatch/vendor/rack-1.0"
-begin
-  gem 'rack', '~> 1.0.0'
-  require 'rack'
-rescue Gem::LoadError
-  require 'action_dispatch/vendor/rack-1.0/rack'
-end
+gem 'rack', '~> 1.0.0'
+require 'rack'
 
 module ActionDispatch
   autoload :Request, 'action_dispatch/http/request'
@@ -48,7 +43,6 @@ module ActionDispatch
   autoload :Failsafe, 'action_dispatch/middleware/failsafe'
   autoload :ParamsParser, 'action_dispatch/middleware/params_parser'
   autoload :Reloader, 'action_dispatch/middleware/reloader'
-  autoload :RewindableInput, 'action_dispatch/middleware/rewindable_input'
   autoload :MiddlewareStack, 'action_dispatch/middleware/stack'
 
   module Http
@@ -59,6 +53,11 @@ module ActionDispatch
     autoload :AbstractStore, 'action_dispatch/middleware/session/abstract_store'
     autoload :CookieStore, 'action_dispatch/middleware/session/cookie_store'
     autoload :MemCacheStore, 'action_dispatch/middleware/session/mem_cache_store'
+  end
+
+  module Test
+    autoload :UploadedFile, 'action_dispatch/test/uploaded_file'
+    autoload :MockRequest, 'action_dispatch/test/mock'
   end
 end
 

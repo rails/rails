@@ -1,7 +1,6 @@
 class NilClass
-  def rails_to_json(options = nil) #:nodoc:
-    'null'
-  end
-
-  alias to_json rails_to_json
+  private
+    def rails_to_json(*)
+      'null'
+    end
 end

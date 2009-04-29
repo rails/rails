@@ -233,7 +233,7 @@ class CalculationsTest < ActiveRecord::TestCase
     assert_equal 8, c['Jadedpixel']
   end
 
-  def test_should_group_by_summed_field_with_conditions_and_having
+  def test_should_group_by_summed_field_through_association_and_having
     c = companies(:rails_core).companies.sum(:id, :group => :name,
                                                   :having => 'sum(id) > 7')
     assert_nil      c['Leetsoft']

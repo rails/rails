@@ -475,7 +475,7 @@ module ActionMailer #:nodoc:
         # if @parts.empty?
           template_root.find_all_by_parts(@template, {}, template_path).each do |template|
             @parts << Part.new(
-              :content_type => Mime::Type.lookup_by_extension(template.content_type || "text").to_s,
+              :content_type => template.mime_type ? template.mime_type.to_s : "text/plain",
               :disposition => "inline",
               :charset => charset,
               :body => render_template(template, @body)
@@ -555,12 +555,13 @@ module ActionMailer #:nodoc:
       end
 
       def render_template(template, body)
-        if template.respond_to?(:content_type)
-          @current_template_content_type = template.content_type
+        if template.respond_to?(:mime_type)
+          @current_template_content_type = template.mime_type && template.mime_type.to_sym.to_s
         end
         
         @template = initialize_template_class(body)
-        layout = _pick_layout(layout, true) unless template.exempt_from_layout?
+        layout = _pick_layout(layout, true) unless 
+          ActionController::Base.exempt_from_layout.include?(template.handler)
         @template._render_template_with_layout(template, layout, {})
       ensure
         @current_template_content_type = nil
@@ -584,7 +585,7 @@ module ActionMailer #:nodoc:
           end
 
           layout = _pick_layout(layout, 
-            !template || !template.exempt_from_layout?)
+            !template || ActionController::Base.exempt_from_layout.include?(template.handler))
 
           if template
             @template._render_template_with_layout(template, layout, opts)

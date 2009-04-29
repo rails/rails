@@ -13,6 +13,7 @@ class ActiveRecordStoreTest < ActionController::IntegrationTest
     end
 
     def set_session_value
+      raise "missing session!" unless session
       session[:foo] = params[:foo] || "bar"
       head :ok
     end

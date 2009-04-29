@@ -11,7 +11,7 @@ module ActionDispatch
       @app.call(env)
     rescue Exception => exception
       # Reraise exception in test environment
-      if env["rack.test"]
+      if defined?(Rails) && Rails.env.test?
         raise exception
       else
         failsafe_response(exception)
@@ -29,9 +29,9 @@ module ActionDispatch
       def failsafe_response_body
         error_path = "#{self.class.error_file_path}/500.html"
         if File.exist?(error_path)
-          File.read(error_path)
+          [File.read(error_path)]
         else
-          "<html><body><h1>500 Internal Server Error</h1></body></html>"
+          ["<html><body><h1>500 Internal Server Error</h1></body></html>"]
         end
       end
 

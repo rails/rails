@@ -1,8 +1,9 @@
 require 'rack/session/abstract/id'
+
 module ActionController #:nodoc:
   class TestRequest < ActionDispatch::Request #:nodoc:
-    attr_accessor :cookies, :session_options
-    attr_accessor :query_parameters, :path, :session
+    attr_accessor :cookies
+    attr_accessor :query_parameters, :path
     attr_accessor :host
 
     def self.new(env = {})
@@ -13,16 +14,11 @@ module ActionController #:nodoc:
       super(Rack::MockRequest.env_for("/").merge(env))
 
       @query_parameters   = {}
-      @session            = TestSession.new
-      default_rack_options = Rack::Session::Abstract::ID::DEFAULT_OPTIONS
-      @session_options    ||= {:id => generate_sid(default_rack_options[:sidbits])}.merge(default_rack_options)
+      self.session = TestSession.new
+      self.session_options = TestSession::DEFAULT_OPTIONS.merge(:id => ActiveSupport::SecureRandom.hex(16))
 
       initialize_default_values
       initialize_containers
-    end
-
-    def reset_session
-      @session.reset
     end
 
     # Wraps raw_post in a StringIO.
@@ -124,10 +120,6 @@ module ActionController #:nodoc:
     end
 
     private
-      def generate_sid(sidbits)
-        "%0#{sidbits / 4}x" % rand(2**sidbits - 1)
-      end
-
       def initialize_containers
         @cookies = {}
       end
@@ -156,54 +148,8 @@ module ActionController #:nodoc:
   # A refactoring of TestResponse to allow the same behavior to be applied
   # to the "real" CgiResponse class in integration tests.
   module TestResponseBehavior #:nodoc:
-    # The response code of the request
-    def response_code
-      status.to_s[0,3].to_i rescue 0
-    end
-
-    # Returns a String to ensure compatibility with Net::HTTPResponse
-    def code
-      status.to_s.split(' ')[0]
-    end
-
-    def message
-      status.to_s.split(' ',2)[1]
-    end
-
-    # Was the response successful?
-    def success?
-      (200..299).include?(response_code)
-    end
-
-    # Was the URL not found?
-    def missing?
-      response_code == 404
-    end
-
-    # Were we redirected?
-    def redirect?
-      (300..399).include?(response_code)
-    end
-
-    # Was there a server-side error?
-    def error?
-      (500..599).include?(response_code)
-    end
-
-    alias_method :server_error?, :error?
-
-    # Was there a client client?
-    def client_error?
-      (400..499).include?(response_code)
-    end
-
-    # Returns the redirection location or nil
-    def redirect_url
-      headers['Location']
-    end
-
-    # Does the redirect location match this regexp pattern?
-    def redirect_url_match?( pattern )
+    def redirect_url_match?(pattern)
+      ::ActiveSupport::Deprecation.warn("response.redirect_url_match? is deprecated. Use assert_match(/foo/, response.redirect_url) instead", caller)
       return false if redirect_url.nil?
       p = Regexp.new(pattern) if pattern.class == String
       p = pattern if pattern.class == Regexp
@@ -214,12 +160,13 @@ module ActionController #:nodoc:
     # Returns the template of the file which was used to
     # render this response (or nil)
     def rendered
-      template.instance_variable_get(:@_rendered)
+      ActiveSupport::Deprecation.warn("response.rendered has been deprecated. Use tempate.rendered instead", caller)
+      @template.instance_variable_get(:@_rendered)
     end
 
     # A shortcut to the flash. Returns an empty hash if no session flash exists.
     def flash
-      session['flash'] || {}
+      request.session['flash'] || {}
     end
 
     # Do we have a flash?
@@ -244,24 +191,14 @@ module ActionController #:nodoc:
 
     # A shortcut to the template.assigns
     def template_objects
-      template.assigns || {}
+      ActiveSupport::Deprecation.warn("response.template_objects has been deprecated. Use tempate.assigns instead", caller)
+      @template.assigns || {}
     end
 
     # Does the specified template object exist?
     def has_template_object?(name=nil)
+      ActiveSupport::Deprecation.warn("response.has_template_object? has been deprecated. Use tempate.assigns[name].nil? instead", caller)
       !template_objects[name].nil?
-    end
-
-    # Returns the response cookies, converted to a Hash of (name => value) pairs
-    #
-    #   assert_equal 'AuthorOfNewPage', r.cookies['author']
-    def cookies
-      cookies = {}
-      Array(headers['Set-Cookie']).each do |cookie|
-        key, value = cookie.split(";").first.split("=").map {|val| Rack::Utils.unescape(val)}
-        cookies[key] = value
-      end
-      cookies
     end
 
     # Returns binary content (downloadable file), converted to a String
@@ -293,62 +230,12 @@ module ActionController #:nodoc:
     end
   end
 
-  class TestSession < Hash #:nodoc:
-    attr_accessor :session_id
+  class TestSession < ActionDispatch::Session::AbstractStore::SessionHash #:nodoc:
+    DEFAULT_OPTIONS = ActionDispatch::Session::AbstractStore::DEFAULT_OPTIONS
 
-    def initialize(attributes = nil)
-      reset_session_id
-      replace_attributes(attributes)
-    end
-
-    def reset
-      reset_session_id
-      replace_attributes({ })
-    end
-
-    def data
-      to_hash
-    end
-
-    def [](key)
-      super(key.to_s)
-    end
-
-    def []=(key, value)
-      super(key.to_s, value)
-    end
-
-    def update(hash = nil)
-      if hash.nil?
-        ActiveSupport::Deprecation.warn('use replace instead', caller)
-        replace({})
-      else
-        super(hash)
-      end
-    end
-
-    def delete(key = nil)
-      if key.nil?
-        ActiveSupport::Deprecation.warn('use clear instead', caller)
-        clear
-      else
-        super(key.to_s)
-      end
-    end
-
-    def close
-      ActiveSupport::Deprecation.warn('sessions should no longer be closed', caller)
-    end
-
-  private
-
-    def reset_session_id
-      @session_id = ''
-    end
-
-    def replace_attributes(attributes = nil)
-      attributes ||= {}
-      replace(attributes.stringify_keys)
+    def initialize(session = {})
+      replace(session.stringify_keys)
+      @loaded = true
     end
   end
 
@@ -363,34 +250,7 @@ module ActionController #:nodoc:
   #
   # Pass a true third parameter to ensure the uploaded file is opened in binary mode (only required for Windows):
   #   post :change_avatar, :avatar => ActionController::TestUploadedFile.new(ActionController::TestCase.fixture_path + '/files/spongebob.png', 'image/png', :binary)
-  require 'tempfile'
-  class TestUploadedFile
-    # The filename, *not* including the path, of the "uploaded" file
-    attr_reader :original_filename
-
-    # The content type of the "uploaded" file
-    attr_accessor :content_type
-
-    def initialize(path, content_type = Mime::TEXT, binary = false)
-      raise "#{path} file does not exist" unless File.exist?(path)
-      @content_type = content_type
-      @original_filename = path.sub(/^.*#{File::SEPARATOR}([^#{File::SEPARATOR}]+)$/) { $1 }
-      @tempfile = Tempfile.new(@original_filename)
-      @tempfile.set_encoding(Encoding::BINARY) if @tempfile.respond_to?(:set_encoding)
-      @tempfile.binmode if binary
-      FileUtils.copy_file(path, @tempfile.path)
-    end
-
-    def path #:nodoc:
-      @tempfile.path
-    end
-
-    alias local_path path
-
-    def method_missing(method_name, *args, &block) #:nodoc:
-      @tempfile.__send__(method_name, *args, &block)
-    end
-  end
+  TestUploadedFile = ActionDispatch::Test::UploadedFile
 
   module TestProcess
     def self.included(base)
@@ -460,9 +320,9 @@ module ActionController #:nodoc:
 
     def assigns(key = nil)
       if key.nil?
-        @response.template.assigns
+        @controller.template.assigns
       else
-        @response.template.assigns[key.to_s]
+        @controller.template.assigns[key.to_s]
       end
     end
 
@@ -574,7 +434,7 @@ module ActionController #:nodoc:
         (instance_variable_names - self.class.protected_instance_variables).each do |var|
           name, value = var[1..-1], instance_variable_get(var)
           @assigns[name] = value
-          response.template.assigns[name] = value if response
+          @template.assigns[name] = value if response
         end
       end
   end

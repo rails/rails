@@ -20,7 +20,7 @@ class ViewLoadPathsTest < ActionController::TestCase
     layout 'test/sub'
     def hello_world; render(:template => 'test/hello_world'); end
   end
-
+  
   def setup
     TestController.view_paths = nil
 
@@ -42,30 +42,39 @@ class ViewLoadPathsTest < ActionController::TestCase
     ActiveSupport::Deprecation.behavior = @old_behavior
   end
 
+  def expand(array)
+    array.map {|x| File.expand_path(x)}
+  end
+
+  def assert_paths(*paths)
+    controller = paths.first.is_a?(Class) ? paths.shift : @controller
+    assert_equal expand(paths), controller.view_paths.map(&:to_s)
+  end
+
   def test_template_load_path_was_set_correctly
-    assert_equal [FIXTURE_LOAD_PATH], @controller.view_paths.map(&:to_s)
+    assert_paths FIXTURE_LOAD_PATH
   end
 
   def test_controller_appends_view_path_correctly
     @controller.append_view_path 'foo'
-    assert_equal [FIXTURE_LOAD_PATH, 'foo'], @controller.view_paths.map(&:to_s)
+    assert_paths(FIXTURE_LOAD_PATH, "foo")
 
     @controller.append_view_path(%w(bar baz))
-    assert_equal [FIXTURE_LOAD_PATH, 'foo', 'bar', 'baz'], @controller.view_paths.map(&:to_s)
-
+    assert_paths(FIXTURE_LOAD_PATH, "foo", "bar", "baz")
+    
     @controller.append_view_path(FIXTURE_LOAD_PATH)
-    assert_equal [FIXTURE_LOAD_PATH, 'foo', 'bar', 'baz', FIXTURE_LOAD_PATH], @controller.view_paths.map(&:to_s)
+    assert_paths(FIXTURE_LOAD_PATH, "foo", "bar", "baz", FIXTURE_LOAD_PATH)
   end
 
   def test_controller_prepends_view_path_correctly
     @controller.prepend_view_path 'baz'
-    assert_equal ['baz', FIXTURE_LOAD_PATH], @controller.view_paths.map(&:to_s)
+    assert_paths("baz", FIXTURE_LOAD_PATH)
 
     @controller.prepend_view_path(%w(foo bar))
-    assert_equal ['foo', 'bar', 'baz', FIXTURE_LOAD_PATH], @controller.view_paths.map(&:to_s)
+    assert_paths "foo", "bar", "baz", FIXTURE_LOAD_PATH
 
     @controller.prepend_view_path(FIXTURE_LOAD_PATH)
-    assert_equal [FIXTURE_LOAD_PATH, 'foo', 'bar', 'baz', FIXTURE_LOAD_PATH], @controller.view_paths.map(&:to_s)
+    assert_paths FIXTURE_LOAD_PATH, "foo", "bar", "baz", FIXTURE_LOAD_PATH
   end
 
   def test_template_appends_view_path_correctly
@@ -73,11 +82,11 @@ class ViewLoadPathsTest < ActionController::TestCase
     class_view_paths = TestController.view_paths
 
     @controller.append_view_path 'foo'
-    assert_equal [FIXTURE_LOAD_PATH, 'foo'], @controller.view_paths.map(&:to_s)
+    assert_paths FIXTURE_LOAD_PATH, "foo"
 
     @controller.append_view_path(%w(bar baz))
-    assert_equal [FIXTURE_LOAD_PATH, 'foo', 'bar', 'baz'], @controller.view_paths.map(&:to_s)
-    assert_equal class_view_paths, TestController.view_paths
+    assert_paths FIXTURE_LOAD_PATH, "foo", "bar", "baz"
+    assert_paths TestController, *class_view_paths
   end
 
   def test_template_prepends_view_path_correctly
@@ -85,11 +94,11 @@ class ViewLoadPathsTest < ActionController::TestCase
     class_view_paths = TestController.view_paths
 
     @controller.prepend_view_path 'baz'
-    assert_equal ['baz', FIXTURE_LOAD_PATH], @controller.view_paths.map(&:to_s)
+    assert_paths "baz", FIXTURE_LOAD_PATH
 
     @controller.prepend_view_path(%w(foo bar))
-    assert_equal ['foo', 'bar', 'baz', FIXTURE_LOAD_PATH], @controller.view_paths.map(&:to_s)
-    assert_equal class_view_paths, TestController.view_paths
+    assert_paths "foo", "bar", "baz", FIXTURE_LOAD_PATH
+    assert_paths TestController, *class_view_paths
   end
 
   def test_view_paths
@@ -130,12 +139,12 @@ class ViewLoadPathsTest < ActionController::TestCase
 
     A.view_paths = ['a/path']
 
-    assert_equal ['a/path'], A.view_paths.map(&:to_s)
-    assert_equal A.view_paths, B.view_paths
-    assert_equal original_load_paths, C.view_paths
-
+    assert_paths A, "a/path"
+    assert_paths A, *B.view_paths
+    assert_paths C, *original_load_paths
+    
     C.view_paths = []
     assert_nothing_raised { C.view_paths << 'c/path' }
-    assert_equal ['c/path'], C.view_paths.map(&:to_s)
+    assert_paths C, "c/path"
   end
 end

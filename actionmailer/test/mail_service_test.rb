@@ -994,13 +994,13 @@ end
 
 class InheritableTemplateRootTest < Test::Unit::TestCase
   def test_attr
-    expected = "#{File.dirname(__FILE__)}/fixtures/path.with.dots"
+    expected = File.expand_path("#{File.dirname(__FILE__)}/fixtures/path.with.dots")
     assert_equal expected, FunkyPathMailer.template_root.to_s
 
     sub = Class.new(FunkyPathMailer)
     sub.template_root = 'test/path'
 
-    assert_equal 'test/path', sub.template_root.to_s
+    assert_equal File.expand_path('test/path'), sub.template_root.to_s
     assert_equal expected, FunkyPathMailer.template_root.to_s
   end
 end

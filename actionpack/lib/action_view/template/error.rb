@@ -12,7 +12,7 @@ module ActionView
     end
 
     def file_name
-      @template.relative_path
+      @template.identifier
     end
 
     def message
@@ -30,7 +30,7 @@ module ActionView
     def sub_template_message
       if @sub_templates
         "Trace of template inclusion: " +
-        @sub_templates.collect { |template| template.relative_path }.join(", ")
+        @sub_templates.collect { |template| template.identifier }.join(", ")
       else
         ""
       end
