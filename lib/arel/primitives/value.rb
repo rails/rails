@@ -6,7 +6,11 @@ module Arel
 
 
     def to_sql(formatter = Sql::WhereCondition.new(relation))
-      formatter.value value
+      if value =~ /^\(.*\)$/
+        value
+      else
+        formatter.value value
+      end
     end
 
     def format(object)

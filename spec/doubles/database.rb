@@ -34,6 +34,10 @@ module Fake
     def quote_table_name(table_name)
       "`#{table_name}`"
     end
+
+    def supports_count_distinct?
+      true
+    end
   end
 
   class Column

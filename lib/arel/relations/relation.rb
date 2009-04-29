@@ -1,5 +1,7 @@
 module Arel
   class Relation
+    attr_reader :count
+
     def session
       Session.new
     end
@@ -12,6 +14,11 @@ module Arel
       engine.select_values self.to_sql
     end
 
+    def count
+      @count = "COUNT(*) AS count_all"
+      engine.select_value self.to_sql
+    end
+
     def to_sql(formatter = Sql::SelectStatement.new(self))
       formatter.select select_sql, self
     end
@@ -19,7 +26,7 @@ module Arel
 
     def select_sql
       [
-        "SELECT     #{attributes.collect { |a| a.to_sql(Sql::SelectClause.new(self)) }.join(', ')}",
+        "SELECT  #{@count} #{attributes.collect { |a| a.to_sql(Sql::SelectClause.new(self)) }.join(', ') unless @count}",
         "FROM       #{table_sql(Sql::TableReference.new(self))}",
         (joins(self)                                                                                    unless joins(self).blank? ),
         ("WHERE     #{wheres   .collect { |w| w.to_sql(Sql::WhereClause.new(self)) }.join("\n\tAND ")}" unless wheres.blank?      ),

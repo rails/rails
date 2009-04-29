@@ -120,8 +120,8 @@ module Arel
     include Predications
 
     module Expressions
-      def count
-        Expression.new(self, "COUNT")
+      def count(distinct = false)
+        distinct ?  Expression.new(self, "DISTINCT").count :  Expression.new(self, "COUNT")
       end
 
       def sum

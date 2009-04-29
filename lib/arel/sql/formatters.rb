@@ -15,14 +15,18 @@ module Arel
       def attribute(attribute)
         # FIXME this should check that the column exists
         if attribute.name.to_s =~ /^\w*$/
-        "#{quote_table_name(name_for(attribute.original_relation))}.#{quote_column_name(attribute.name)}" + (attribute.alias ? " AS #{quote(attribute.alias.to_s)}" : "")
+          "#{quote_table_name(name_for(attribute.original_relation))}.#{quote_column_name(attribute.name)}" + (attribute.alias ? " AS #{quote(attribute.alias.to_s)}" : "")
         else
           attribute.name.to_s + (attribute.alias ? " AS #{quote(attribute.alias.to_s)}" : "")
         end
       end
 
       def expression(expression)
-        "#{expression.function_sql}(#{expression.attribute.to_sql(self)})" + (expression.alias ? " AS #{quote_column_name(expression.alias)}" : '')
+        if expression.function_sql == "DISTINCT"
+          "#{expression.function_sql} #{expression.attribute.to_sql(self)}" + (expression.alias ? " AS #{quote_column_name(expression.alias)}" : '')
+        else
+          "#{expression.function_sql}(#{expression.attribute.to_sql(self)})" + (expression.alias ? " AS #{quote_column_name(expression.alias)}" : '')
+        end
       end
 
       def select(select_sql, table)
@@ -89,7 +93,11 @@ module Arel
       end
 
       def table(table)
-        quote_table_name(table.name) + (table.name != name_for(table) ? " AS " + quote_table_name(name_for(table)) : '')
+        if table.name =~ /^(\w|-)*$/
+          quote_table_name(table.name) + (table.name != name_for(table) ? " AS " + quote_table_name(name_for(table)) : '')
+        else
+          table.name + (table.name != name_for(table) ? " AS " + (name_for(table)) : '')
+        end
       end
     end
 
