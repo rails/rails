@@ -40,23 +40,19 @@ module ActionController
       controller.call(env).to_rack
     end
     
-    # :api: plugin
-    def response_body=(body)
-      @_response.body = body
-    end
-    
     # :api: private
     def call(env)
       @_request = ActionDispatch::Request.new(env)
       @_response = ActionDispatch::Response.new
       process(@_request.parameters[:action])
+      @_response.body = response_body
       @_response.prepare!
       self
     end
     
     # :api: private
     def to_rack
-      response.to_a
+      @_response.to_a
     end
   end
 end

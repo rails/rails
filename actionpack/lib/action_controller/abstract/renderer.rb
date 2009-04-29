@@ -1,6 +1,15 @@
 require "action_controller/abstract/logger"
 
 module AbstractController
+  class AbstractControllerError < StandardError; end
+  class DoubleRenderError < AbstractControllerError
+    DEFAULT_MESSAGE = "Render and/or redirect were called multiple times in this action. Please note that you may only call render OR redirect, and at most once per action. Also note that neither redirect nor render terminate execution of the action, so if you want to exit an action after redirecting, you need to do something like \"redirect_to(...) and return\"."
+
+    def initialize(message = nil)
+      super(message || DEFAULT_MESSAGE)
+    end
+  end  
+  
   module Renderer
     depends_on AbstractController::Logger
     
@@ -17,6 +26,10 @@ module AbstractController
     end
         
     def render(options = {})
+      unless response_body.nil?
+        raise AbstractController::DoubleRenderError, "OMG"
+      end
+      
       self.response_body = render_to_body(options)
     end
     

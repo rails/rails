@@ -129,6 +129,7 @@ class TestController < ActionController::Base
     render :text => "hello world"
   end
 
+  # :ported:
   def render_text_hello_world_with_layout
     @variable_for_layout = ", I'm here!"
     render :text => "hello world", :layout => true
@@ -220,6 +221,7 @@ class TestController < ActionController::Base
     render :json => {:hello => render_to_string(:partial => 'partial')}
   end
 
+  # :ported:
   def render_custom_code
     render :text => "hello world", :status => 404
   end
@@ -230,14 +232,17 @@ class TestController < ActionController::Base
     end
   end
 
+  # :ported:
   def render_text_with_nil
     render :text => nil
   end
 
+  # :ported:
   def render_text_with_false
     render :text => false
   end
 
+  # :ported:
   def render_nothing_with_appendix
     render :text => "appended"
   end
@@ -272,6 +277,7 @@ class TestController < ActionController::Base
     # let's just rely on the template
   end
 
+  # :ported:
   def blank_response
     render :text => ' '
   end
@@ -405,6 +411,7 @@ class TestController < ActionController::Base
     render :template => "test/render_file_with_locals", :locals => { :secret => 'area51' }
   end
 
+  # :ported:
   def double_render
     render :text => "hello"
     render :text => "world"
@@ -508,6 +515,7 @@ class TestController < ActionController::Base
     # Action template sets variable that's picked up by layout
   end
 
+  # :addressed:
   def render_text_with_assigns
     @hello = "world"
     render :text => "foo"
@@ -807,6 +815,7 @@ class RenderTest < ActionController::TestCase
     assert_equal "Elastica", @response.body
   end
 
+  # :ported:
   def test_render_from_variable
     get :render_hello_world_from_variable
     assert_equal "hello david", @response.body
@@ -828,16 +837,19 @@ class RenderTest < ActionController::TestCase
     assert_template "test/hello_world"
   end
 
+  # :ported:
   def test_render_text
     get :render_text_hello_world
     assert_equal "hello world", @response.body
   end
 
+  # :ported:
   def test_do_with_render_text_and_layout
     get :render_text_hello_world_with_layout
     assert_equal "<html>hello world, I'm here!</html>", @response.body
   end
 
+  # :ported:
   def test_do_with_render_action_and_layout_false
     get :hello_world_with_layout_false
     assert_equal 'Hello world!', @response.body
@@ -932,17 +944,20 @@ class RenderTest < ActionController::TestCase
     assert_equal %(Element.replace("foo", "partial html");), @response.body
   end
 
+  # :ported:
   def test_render_text_with_nil
     get :render_text_with_nil
     assert_response 200
     assert_equal ' ', @response.body
   end
 
+  # :ported:
   def test_render_text_with_false
     get :render_text_with_false
     assert_equal 'false', @response.body
   end
 
+  # :ported:
   def test_render_nothing_with_appendix
     get :render_nothing_with_appendix
     assert_response 200
@@ -1209,6 +1224,7 @@ class RenderTest < ActionController::TestCase
     assert_equal "<html>Hello world!</html>", @response.body
   end
 
+  # :ported:
   def test_double_render
     assert_raise(ActionController::DoubleRenderError) { get :double_render }
   end
@@ -1237,6 +1253,7 @@ class RenderTest < ActionController::TestCase
     assert_equal "<title>Talking to the layout</title>\nAction was here!", @response.body
   end
 
+  # :addressed:
   def test_render_text_with_assigns
     get :render_text_with_assigns
     assert_equal "world", assigns["hello"]

@@ -84,6 +84,6 @@ module Dispatching
     def test_controller_name
       assert_equal 'empty', EmptyController.controller_name
       assert_equal 'contained_empty', Submodule::ContainedEmptyController.controller_name
-   end
+    end
   end
 end

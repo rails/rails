@@ -17,7 +17,7 @@ module ActionController
       
       _process_options(options)
       
-      self.response_body = render_to_body(options)
+      super(options)
     end
 
     def render_to_body(options)
