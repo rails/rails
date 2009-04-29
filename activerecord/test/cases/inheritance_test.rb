@@ -30,7 +30,7 @@ class InheritanceTest < ActiveRecord::TestCase
   ensure
     ActiveRecord::Base.store_full_sti_class = old
   end
-  
+
   def test_should_store_full_class_name_with_store_full_sti_class_option_enabled
     old = ActiveRecord::Base.store_full_sti_class
     ActiveRecord::Base.store_full_sti_class = true
@@ -39,7 +39,7 @@ class InheritanceTest < ActiveRecord::TestCase
   ensure
     ActiveRecord::Base.store_full_sti_class = old
   end
-  
+
   def test_different_namespace_subclass_should_load_correctly_with_store_full_sti_class_option
     old = ActiveRecord::Base.store_full_sti_class
     ActiveRecord::Base.store_full_sti_class = true

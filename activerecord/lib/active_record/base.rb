@@ -904,9 +904,7 @@ module ActiveRecord #:nodoc:
       # Both calls delete the affected posts all at once with a single DELETE statement. If you need to destroy dependent
       # associations or call your <tt>before_*</tt> or +after_destroy+ callbacks, use the +destroy_all+ method instead.
       def delete_all(conditions = nil)
-        sql = "DELETE FROM #{quoted_table_name} "
-        add_conditions!(sql, conditions, scope(:find))
-        connection.delete(sql, "#{name} Delete all")
+        Arel(table_name).where(construct_conditions(conditions, scope(:find))).delete
       end
 
       # Returns the result of an SQL statement that should only include a COUNT(*) in the SELECT part.
@@ -1687,19 +1685,27 @@ module ActiveRecord #:nodoc:
           end
         end
 
-        def construct_finder_sql(options)
+        def arel_table(table)
+          Arel(table)
+        end
+
+        def construct_finder_arel(options)
           scope = scope(:find)
 
           # TODO add lock to Arel
-          Arel(table_name).
-            join(construct_join(options[:joins], scope)).
-            where(construct_conditions(options[:conditions], scope)).
+          arel_table(options[:from] || table_name).
+            join(options[:merged_joins] || construct_join(options[:joins], scope)).
+            where(options[:merged_conditions] || construct_conditions(options[:conditions], scope)).
             project(options[:select] || (scope && scope[:select]) || default_select(options[:joins] || (scope && scope[:joins]))).
             group(construct_group(options[:group], options[:having], scope)).
             order(construct_order(options[:order], scope)).
             take(construct_limit(options, scope)).
             skip(construct_offset(options, scope)
-          ).to_sql
+          )
+        end
+
+        def construct_finder_sql(options)
+          construct_finder_arel(options).to_sql
         end
 
         def construct_join(joins, scope = :auto)
@@ -1715,6 +1721,8 @@ module ActiveRecord #:nodoc:
             end
           when String
             " #{merged_joins} "
+          else
+            ""
           end
         end
 
@@ -2644,11 +2652,8 @@ module ActiveRecord #:nodoc:
       # be made (since they can't be persisted).
       def destroy
         unless new_record?
-          connection.delete(
-            "DELETE FROM #{self.class.quoted_table_name} " +
-            "WHERE #{connection.quote_column_name(self.class.primary_key)} = #{quoted_id}",
-            "#{self.class.name} Destroy"
-          )
+          table = Arel(self.class.table_name)
+          table.where(table[self.class.primary_key].eq(quoted_id)).delete
         end
 
         freeze

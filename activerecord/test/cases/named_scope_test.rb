@@ -338,7 +338,7 @@ class NamedScopeTest < ActiveRecord::TestCase
   end
 end
 
-class DynamicScopeMatchTest < ActiveRecord::TestCase  
+class DynamicScopeMatchTest < ActiveRecord::TestCase
   def test_scoped_by_no_match
     assert_nil ActiveRecord::DynamicScopeMatch.match("not_scoped_at_all")
   end
