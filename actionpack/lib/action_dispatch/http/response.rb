@@ -34,20 +34,30 @@ module ActionDispatch # :nodoc:
     DEFAULT_HEADERS = { "Cache-Control" => "no-cache" }
     attr_accessor :request
 
-    attr_accessor :template, :layout
     attr_accessor :redirected_to, :redirected_to_method_params
 
     attr_writer :header
     alias_method :headers=, :header=
 
+    def template
+      ActiveSupport::Deprecation.warn("response.template has been deprecated. Use controller.template instead", caller)
+      @template
+    end
+    attr_writer :template
+
     def session
       ActiveSupport::Deprecation.warn("response.session has been deprecated. Use request.session instead", caller)
-      request.session
+      @request.session
     end
 
     def assigns
       ActiveSupport::Deprecation.warn("response.assigns has been deprecated. Use controller.assigns instead", caller)
-      template.assigns
+      @template.controller.assigns
+    end
+
+    def layout
+      ActiveSupport::Deprecation.warn("response.layout has been deprecated. Use template.layout instead", caller)
+      @template.layout
     end
 
     delegate :default_charset, :to => 'ActionController::Base'

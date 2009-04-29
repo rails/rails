@@ -160,7 +160,8 @@ module ActionController #:nodoc:
     # Returns the template of the file which was used to
     # render this response (or nil)
     def rendered
-      template.instance_variable_get(:@_rendered)
+      ActiveSupport::Deprecation.warn("response.rendered has been deprecated. Use tempate.rendered instead", caller)
+      @template.instance_variable_get(:@_rendered)
     end
 
     # A shortcut to the flash. Returns an empty hash if no session flash exists.
@@ -190,11 +191,13 @@ module ActionController #:nodoc:
 
     # A shortcut to the template.assigns
     def template_objects
-      template.assigns || {}
+      ActiveSupport::Deprecation.warn("response.template_objects has been deprecated. Use tempate.assigns instead", caller)
+      @template.assigns || {}
     end
 
     # Does the specified template object exist?
     def has_template_object?(name=nil)
+      ActiveSupport::Deprecation.warn("response.has_template_object? has been deprecated. Use tempate.assigns[name].nil? instead", caller)
       !template_objects[name].nil?
     end
 
@@ -317,9 +320,9 @@ module ActionController #:nodoc:
 
     def assigns(key = nil)
       if key.nil?
-        @response.template.assigns
+        @controller.template.assigns
       else
-        @response.template.assigns[key.to_s]
+        @controller.template.assigns[key.to_s]
       end
     end
 
@@ -431,7 +434,7 @@ module ActionController #:nodoc:
         (instance_variable_names - self.class.protected_instance_variables).each do |var|
           name, value = var[1..-1], instance_variable_get(var)
           @assigns[name] = value
-          response.template.assigns[name] = value if response
+          @template.assigns[name] = value if response
         end
       end
   end

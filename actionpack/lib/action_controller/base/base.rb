@@ -367,6 +367,8 @@ module ActionController #:nodoc:
     # Returns the name of the action this controller is processing.
     attr_accessor :action_name
 
+    attr_reader :template
+
     class << self
       def call(env)
         # HACK: For global rescue to have access to the original request and response
@@ -816,7 +818,7 @@ module ActionController #:nodoc:
 
       def initialize_template_class(response)
         @template = response.template = ActionView::Base.new(self.class.view_paths, {}, self, formats)
-        response.template.helpers.send :include, self.class.master_helper_module
+        @template.helpers.send :include, self.class.master_helper_module
         response.redirected_to = nil
         @performed_render = @performed_redirect = false
       end

@@ -46,7 +46,7 @@ module ActionView
       locals ||= {}
 
       if controller && layout
-        response.layout = layout.identifier if controller.respond_to?(:response)
+        @_layout = layout.identifier
         logger.info("Rendering template within #{layout.identifier}") if logger
       end
   

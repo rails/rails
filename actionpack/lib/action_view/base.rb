@@ -191,7 +191,7 @@ module ActionView #:nodoc:
       ActionController::Base.allow_concurrency || (cache_template_loading.nil? ? !ActiveSupport::Dependencies.load? : cache_template_loading)
     end
 
-    attr_internal :request
+    attr_internal :request, :layout
 
     delegate :controller_path, :to => :controller, :allow_nil => true
 

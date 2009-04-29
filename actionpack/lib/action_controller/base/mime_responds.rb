@@ -127,7 +127,7 @@ module ActionController #:nodoc:
         @order << mime_type
 
         @responses[mime_type] ||= Proc.new do
-          @response.template.formats = [mime_type.to_sym]
+          @controller.template.formats = [mime_type.to_sym]
           @response.content_type = mime_type.to_s
           block_given? ? block.call : @controller.send(:render, :action => @controller.action_name)
         end
