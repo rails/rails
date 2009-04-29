@@ -106,6 +106,7 @@ class TestController < ActionController::Base
     render :template => '/shared'
   end
 
+  # :ported:
   def render_hello_world_from_variable
     @person = "david"
     render :text => "hello #{@person}"
@@ -123,6 +124,7 @@ class TestController < ActionController::Base
     render :action => :hello_world
   end
 
+  # :ported:
   def render_text_hello_world
     render :text => "hello world"
   end

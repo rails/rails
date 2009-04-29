@@ -1,31 +1,30 @@
 require File.join(File.expand_path(File.dirname(__FILE__)), "test_helper")
 
-module HappyPath
-  
-  class RenderTemplateWithoutLayoutController < ActionController::Base2
+module RenderTemplate
+  class WithoutLayoutController < ActionController::Base2
     
     self.view_paths = [ActionView::Template::FixturePath.new(
       "test/basic.html.erb" => "Hello from basic.html.erb",
       "shared.html.erb"     => "Elastica"
     )]
     
-    def render_hello_world
+    def index
       render :template => "test/basic"
     end
 
-    def render_template_in_top_directory
+    def in_top_directory
       render :template => 'shared'
     end
 
-    def render_template_in_top_directory_with_slash
+    def in_top_directory_with_slash
       render :template => '/shared'
     end
   end
   
-  class TestTemplateRenderWithoutLayout < SimpleRouteCase
+  class TestWithoutLayout < SimpleRouteCase
     describe "rendering a normal template with full path without layout"
     
-    get "/happy_path/render_template_without_layout/render_hello_world"
+    get "/render_template/without_layout"
     assert_body   "Hello from basic.html.erb"
     assert_status 200
   end
@@ -33,7 +32,7 @@ module HappyPath
   class TestTemplateRenderInTopDirectory < SimpleRouteCase
     describe "rendering a template not in a subdirectory"
     
-    get "/happy_path/render_template_without_layout/render_template_in_top_directory"
+    get "/render_template/without_layout/in_top_directory"
     assert_body   "Elastica"
     assert_status 200
   end
@@ -41,12 +40,12 @@ module HappyPath
   class TestTemplateRenderInTopDirectoryWithSlash < SimpleRouteCase
     describe "rendering a template not in a subdirectory with a leading slash"
     
-    get "/happy_path/render_template_without_layout/render_template_in_top_directory_with_slash"
+    get "/render_template/without_layout/in_top_directory_with_slash"
     assert_body   "Elastica"
     assert_status 200
   end
     
-  class RenderTemplateWithLayoutController < ::ApplicationController
+  class WithLayoutController < ::ApplicationController
     
     self.view_paths = [ActionView::Template::FixturePath.new(
       "test/basic.html.erb"          => "Hello from basic.html.erb",
@@ -55,23 +54,23 @@ module HappyPath
       "layouts/greetings.html.erb"   => "<%= yield %>, I wish thee well."
     )]
     
-    def render_hello_world
+    def index
       render :template => "test/basic"
     end
     
-    def render_hello_world_with_layout
+    def with_layout
       render :template => "test/basic", :layout => true
     end
     
-    def render_hello_world_with_layout_false
+    def with_layout_false
       render :template => "test/basic", :layout => false
     end
     
-    def render_hello_world_with_layout_nil
+    def with_layout_nil
       render :template => "test/basic", :layout => nil
     end
     
-    def render_hello_world_with_custom_layout
+    def with_custom_layout
       render :template => "test/basic", :layout => "greetings"
     end
   end
@@ -79,7 +78,7 @@ module HappyPath
   class TestTemplateRenderWithLayout < SimpleRouteCase
     describe "rendering a normal template with full path with layout"
     
-    get "/happy_path/render_template_with_layout/render_hello_world"
+    get "/render_template/with_layout"
     assert_body   "Hello from basic.html.erb, I'm here!"
     assert_status 200
   end
@@ -87,7 +86,7 @@ module HappyPath
   class TestTemplateRenderWithLayoutTrue < SimpleRouteCase
     describe "rendering a normal template with full path with layout => :true"
     
-    get "/happy_path/render_template_with_layout/render_hello_world_with_layout"
+    get "/render_template/with_layout/with_layout"
     assert_body   "Hello from basic.html.erb, I'm here!"
     assert_status 200
   end
@@ -95,7 +94,7 @@ module HappyPath
   class TestTemplateRenderWithLayoutFalse < SimpleRouteCase
     describe "rendering a normal template with full path with layout => :false"
     
-    get "/happy_path/render_template_with_layout/render_hello_world_with_layout_false"
+    get "/render_template/with_layout/with_layout_false"
     assert_body   "Hello from basic.html.erb"
     assert_status 200
   end
@@ -103,7 +102,7 @@ module HappyPath
   class TestTemplateRenderWithLayoutNil < SimpleRouteCase
     describe "rendering a normal template with full path with layout => :nil"
     
-    get "/happy_path/render_template_with_layout/render_hello_world_with_layout_nil"
+    get "/render_template/with_layout/with_layout_nil"
     assert_body   "Hello from basic.html.erb"
     assert_status 200
   end
@@ -111,30 +110,29 @@ module HappyPath
   class TestTemplateRenderWithCustomLayout < SimpleRouteCase
     describe "rendering a normal template with full path with layout => 'greetings'"
     
-    get "/happy_path/render_template_with_layout/render_hello_world_with_custom_layout"
+    get "/render_template/with_layout/with_custom_layout"
     assert_body   "Hello from basic.html.erb, I wish thee well."
     assert_status 200
   end
-
-end
-
-module Compatibility
-  class RenderTemplateWithoutLayoutController < ActionController::CompatibleBase2
-    self.view_paths = [ActionView::Template::FixturePath.new(
-      "test/basic.html.erb" => "Hello from basic.html.erb",
-      "shared.html.erb"     => "Elastica"
-    )]
-    
-    def render_hello_world_with_forward_slash
-      render :template => "/test/basic"
-    end
-  end
   
-  class TestTemplateRenderWithForwardSlash < SimpleRouteCase
-    describe "rendering a normal template with full path starting with a leading slash"
-    
-    get "/compatibility/render_template_without_layout/render_hello_world_with_forward_slash"
-    assert_body   "Hello from basic.html.erb"
-    assert_status 200
+  module Compatibility
+    class WithoutLayoutController < ActionController::CompatibleBase2
+      self.view_paths = [ActionView::Template::FixturePath.new(
+        "test/basic.html.erb" => "Hello from basic.html.erb",
+        "shared.html.erb"     => "Elastica"
+      )]
+
+      def with_forward_slash
+        render :template => "/test/basic"
+      end
+    end
+
+    class TestTemplateRenderWithForwardSlash < SimpleRouteCase
+      describe "rendering a normal template with full path starting with a leading slash"
+
+      get "/render_template/compatibility/without_layout/with_forward_slash"
+      assert_body   "Hello from basic.html.erb"
+      assert_status 200
+    end
   end
 end

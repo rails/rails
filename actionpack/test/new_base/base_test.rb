@@ -1,8 +1,8 @@
 require File.join(File.expand_path(File.dirname(__FILE__)), "test_helper")
 
 # Tests the controller dispatching happy path
-module HappyPath
-  class SimpleDispatchController < ActionController::Base2
+module Dispatching
+  class SimpleController < ActionController::Base2
     def index
       render :text => "success"
     end
@@ -23,7 +23,7 @@ module HappyPath
   
   class TestSimpleDispatch < SimpleRouteCase
     
-    get "/happy_path/simple_dispatch/index"
+    get "/dispatching/simple/index"
         
     test "sets the body" do
       assert_body "success"
@@ -45,7 +45,7 @@ module HappyPath
   
   # :api: plugin
   class TestDirectResponseMod < SimpleRouteCase
-    get "/happy_path/simple_dispatch/modify_response_body"
+    get "/dispatching/simple/modify_response_body"
         
     test "sets the body" do
       assert_body "success"
@@ -58,7 +58,7 @@ module HappyPath
   
   # :api: plugin
   class TestDirectResponseModTwice < SimpleRouteCase
-    get "/happy_path/simple_dispatch/modify_response_body_twice"
+    get "/dispatching/simple/modify_response_body_twice"
     
     test "self.response_body= returns the body being set" do
       assert_body "success!"
@@ -68,23 +68,22 @@ module HappyPath
       assert_header "Content-Length", "8"
     end
   end
-end
-
-
-class EmptyController < ActionController::Base2 ; end
-module Submodule
-  class ContainedEmptyController < ActionController::Base2 ; end
-end
-
-class ControllerClassTests < Test::Unit::TestCase
-  def test_controller_path
-    assert_equal 'empty', EmptyController.controller_path
-    assert_equal EmptyController.controller_path, EmptyController.new.controller_path
-    assert_equal 'submodule/contained_empty', Submodule::ContainedEmptyController.controller_path
-    assert_equal Submodule::ContainedEmptyController.controller_path, Submodule::ContainedEmptyController.new.controller_path
+  
+  class EmptyController < ActionController::Base2 ; end
+  module Submodule
+    class ContainedEmptyController < ActionController::Base2 ; end
   end
-  def test_controller_name
-    assert_equal 'empty', EmptyController.controller_name
-    assert_equal 'contained_empty', Submodule::ContainedEmptyController.controller_name
- end
+
+  class ControllerClassTests < Test::Unit::TestCase
+    def test_controller_path
+      assert_equal 'dispatching/empty', EmptyController.controller_path
+      assert_equal EmptyController.controller_path, EmptyController.new.controller_path
+      assert_equal 'dispatching/submodule/contained_empty', Submodule::ContainedEmptyController.controller_path
+      assert_equal Submodule::ContainedEmptyController.controller_path, Submodule::ContainedEmptyController.new.controller_path
+    end
+    def test_controller_name
+      assert_equal 'empty', EmptyController.controller_name
+      assert_equal 'contained_empty', Submodule::ContainedEmptyController.controller_name
+   end
+  end
 end
