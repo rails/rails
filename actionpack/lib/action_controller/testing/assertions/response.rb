@@ -22,7 +22,7 @@ module ActionController
       #   assert_response 401
       #
       def assert_response(type, message = nil)
-        validate_response!
+        validate_request!
 
         clean_backtrace do
           if [ :success, :missing, :redirect, :error ].include?(type) && @response.send("#{type}?")
@@ -33,7 +33,7 @@ module ActionController
             assert_block("") { true } # to count the assertion
           else
             if @controller && @response.error?
-              exception = @controller.response.template.instance_variable_get(:@exception)
+              exception = @controller.template.instance_variable_get(:@exception)
               exception_message = exception && exception.message
               assert_block(build_message(message, "Expected response to be a <?>, but was <?>\n<?>", type, @response.response_code, exception_message.to_s)) { false }
             else
@@ -59,7 +59,7 @@ module ActionController
       #   assert_redirected_to @customer
       #
       def assert_redirected_to(options = {}, message=nil)
-        validate_response!
+        validate_request!
 
         clean_backtrace do
           assert_response(:redirect, message)
@@ -93,25 +93,25 @@ module ActionController
       #   assert_template :partial => false
       #
       def assert_template(options = {}, message = nil)
-        validate_response!
+        validate_request!
 
         clean_backtrace do
           case options
            when NilClass, String
-            rendered = (@controller.response.rendered[:template] || []).map { |t| t.identifier }
+            rendered = (@controller.template.rendered[:template] || []).map { |t| t.identifier }
             msg = build_message(message,
                     "expecting <?> but rendering with <?>",
                     options, rendered.join(', '))
             assert_block(msg) do
               if options.nil?
-                @controller.response.rendered[:template].blank?
+                @controller.template.rendered[:template].blank?
               else
                 rendered.any? { |t| t.match(options) }
               end
             end
           when Hash
             if expected_partial = options[:partial]
-              partials = @controller.response.rendered[:partials]
+              partials = @controller.template.rendered[:partials]
               if expected_count = options[:count]
                 found = partials.detect { |p, _| p.identifier.match(expected_partial) }
                 actual_count = found.nil? ? 0 : found.second
@@ -126,7 +126,7 @@ module ActionController
                 assert(partials.keys.any? { |p| p.identifier.match(expected_partial) }, msg)
               end
             else
-              assert @controller.response.rendered[:partials].empty?,
+              assert @controller.template.rendered[:partials].empty?,
                 "Expected no partials to be rendered"
             end
           end
@@ -152,7 +152,7 @@ module ActionController
           end
         end
 
-        def validate_response!
+        def validate_request!
           unless @request.is_a?(ActionDispatch::Request)
             raise ArgumentError, "@request must be an ActionDispatch::Request"
           end

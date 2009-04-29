@@ -7,7 +7,8 @@ module ActionView
       @_rendered = { :template => nil, :partials => Hash.new(0) }
       initialize_without_template_tracking(*args)
     end
-    
+
+    attr_internal :rendered
     alias_method :_render_template_without_template_tracking, :_render_template
     def _render_template(template, local_assigns = {})
       if template.respond_to?(:identifier)
@@ -16,7 +17,7 @@ module ActionView
         @_rendered[:template] << template
       end
       _render_template_without_template_tracking(template, local_assigns)
-    end    
+    end
   end
 
   class TestCase < ActiveSupport::TestCase
