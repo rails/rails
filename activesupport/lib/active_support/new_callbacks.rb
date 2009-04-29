@@ -304,15 +304,6 @@ module ActiveSupport
       end
     end
 
-    # This method_missing is supplied to catch callbacks with keys and create
-    # the appropriate callback for future use.
-    def method_missing(meth, *args, &blk)
-      if meth.to_s =~ /_run__([\w:]+)__(\w+)__(\w+)__callbacks/
-        return self.class._create_and_run_keyed_callback($1, $2.to_sym, $3.to_sym, self, &blk)
-      end
-      super
-    end
-    
     # An Array with a compile method
     class CallbackChain < Array
       def initialize(symbol)
