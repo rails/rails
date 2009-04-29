@@ -145,6 +145,27 @@ class GemDependencyTest < Test::Unit::TestCase
     end
   end
 
+  def test_gem_ignores_development_dependencies
+    dummy_gem = Rails::GemDependency.new "dummy-gem-k"
+    dummy_gem.add_load_paths
+    dummy_gem.load
+    assert_equal 1, dummy_gem.dependencies.size
+  end
+
+  def test_gem_guards_against_duplicate_unpacks
+    dummy_gem = Rails::GemDependency.new "dummy-gem-a"
+    dummy_gem.stubs(:frozen?).returns(true)
+    dummy_gem.expects(:unpack_base).never
+    dummy_gem.unpack
+  end
+
+  def test_gem_does_not_unpack_framework_gems
+    dummy_gem = Rails::GemDependency.new "dummy-gem-a"
+    dummy_gem.stubs(:framework_gem?).returns(true)
+    dummy_gem.expects(:unpack_base).never
+    dummy_gem.unpack
+  end
+
   def test_gem_from_directory_name
     dummy_gem = Rails::GemDependency.from_directory_name('dummy-gem-1.1')
     assert_equal 'dummy-gem', dummy_gem.name
