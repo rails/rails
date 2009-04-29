@@ -144,4 +144,25 @@ class GemDependencyTest < Test::Unit::TestCase
     end
   end
 
+  def test_gem_from_directory_name
+    dummy_gem = Rails::GemDependency.from_directory_name('dummy-gem-1.1')
+    assert_equal 'dummy-gem', dummy_gem.name
+    assert_equal '= 1.1',     dummy_gem.version_requirements.to_s
+  end
+
+  def test_gem_from_invalid_directory_name
+    assert_raises RuntimeError do
+      dummy_gem = Rails::GemDependency.from_directory_name('dummy-gem')
+    end
+    assert_raises RuntimeError do
+      dummy_gem = Rails::GemDependency.from_directory_name('dummy')
+    end
+  end
+
+  def test_gem_determines_build_status
+    assert_equal true,  Rails::GemDependency.new("dummy-gem-a").built?
+    assert_equal true,  Rails::GemDependency.new("dummy-gem-i").built?
+    assert_equal false, Rails::GemDependency.new("dummy-gem-j").built?
+  end
+
 end

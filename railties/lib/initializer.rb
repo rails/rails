@@ -159,6 +159,8 @@ module Rails
 
       add_support_load_paths
 
+      check_for_unbuilt_gems
+
       load_gems
       load_plugins
 
@@ -303,6 +305,25 @@ module Rails
     def load_gems
       unless $gems_build_rake_task
         @configuration.gems.each { |gem| gem.load }
+      end
+    end
+
+    def check_for_unbuilt_gems
+      unbuilt_gems = @configuration.gems.select(&:frozen?).reject(&:built?)
+      if unbuilt_gems.size > 0
+        # don't print if the gems:build rake tasks are being run
+        unless $gems_build_rake_task
+          abort <<-end_error
+The following gems have native components that need to be built
+  #{unbuilt_gems.map { |gem| "#{gem.name}  #{gem.requirement}" } * "\n  "}
+
+You're running:
+  ruby #{Gem.ruby_version} at #{Gem.ruby}
+  rubygems #{Gem::RubyGemsVersion} at #{Gem.path * ', '}
+
+Run `rake gems:build` to build the unbuilt gems.
+          end_error
+        end
       end
     end
 

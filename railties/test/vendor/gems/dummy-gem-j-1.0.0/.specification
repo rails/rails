@@ -1,0 +1,41 @@
+--- !ruby/object:Gem::Specification
+name: dummy-gem-j
+version: !ruby/object:Gem::Version
+  version: 1.3.0
+platform: ruby
+authors:
+- "Nobody"
+date: 2008-10-03 00:00:00 -04:00
+dependencies:
+- !ruby/object:Gem::Dependency
+  name: dummy-gem-j
+  type: :runtime
+  version_requirement:
+  version_requirements: !ruby/object:Gem::Requirement
+    requirements:
+    - - ">="
+      - !ruby/object:Gem::Version
+        version: 1.0.0
+    version:
+extensions:
+- ext/dummy-gem-j/extconf.rb
+files:
+- lib
+- lib/dummy-gem-j.rb
+require_paths:
+- lib
+required_ruby_version: !ruby/object:Gem::Requirement
+  requirements:
+  - - ">="
+    - !ruby/object:Gem::Version
+      version: "0"
+  version:
+required_rubygems_version: !ruby/object:Gem::Requirement
+  requirements:
+  - - ">="
+    - !ruby/object:Gem::Version
+      version: "0"
+  version:
+requirements: []
+specification_version: 2
+summary: Dummy Gem G
