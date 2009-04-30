@@ -29,10 +29,21 @@ module AbstractController
     
   private
   
+    # It is possible for respond_to?(action_name) to be false and
+    # respond_to?(:action_missing) to be false if respond_to_action?
+    # is overridden in a subclass. For instance, ActionController::Base
+    # overrides it to include the case where a template matching the
+    # action_name is found.
     def process_action
-      respond_to?(action_name) ? send(action_name) : send(:action_missing, action_name)
+      if respond_to?(action_name) then send(action_name)
+      elsif respond_to?(:action_missing, true) then send(:action_missing, action_name)
+      end
     end
     
+    # Override this to change the conditions that will raise an
+    # ActionNotFound error. If you accept a difference case,
+    # you must handle it by also overriding process_action and
+    # handling the case.
     def respond_to_action?(action_name)
       respond_to?(action_name) || respond_to?(:action_missing, true)
     end

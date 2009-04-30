@@ -42,9 +42,9 @@ module AbstractController
     def render_to_body(options = {})
       name = options[:_template_name] || action_name
       
-      template = options[:_template] || view_paths.find_by_parts(name.to_s, {:formats => formats}, options[:_prefix])
+      options[:_template] ||= view_paths.find_by_parts(name.to_s, {:formats => formats}, options[:_prefix])
       
-      _render_template(template, options)
+      _render_template(options[:_template], options)
     end
 
     # Raw rendering of a template to a string.

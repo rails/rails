@@ -58,9 +58,29 @@ module ActionController
       end
     end
     
+    def render(action = action_name, options = {})
+      if action.is_a?(Hash)
+        options, action = action, nil 
+      else
+        options.merge! :action => action
+      end
+      
+      super(options)
+    end
+    
     def render_to_body(options = {})
       options = {:template => options} if options.is_a?(String)
       super
+    end
+    
+    def process_action
+      ret = super
+      render if response_body.nil?
+      ret
+    end
+    
+    def respond_to_action?(action_name)
+      super || view_paths.find_by_parts(action_name, {:formats => formats, :locales => [I18n.locale]}, controller_path)
     end
     
     # append_view_path File.join(File.dirname(__FILE__), '..', 'fixtures')

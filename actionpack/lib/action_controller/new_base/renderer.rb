@@ -7,14 +7,7 @@ module ActionController
       super
     end
     
-    def render(action, options = {})
-      # TODO: Move this into #render_to_body
-      if action.is_a?(Hash)
-        options, action = action, nil 
-      else
-        options.merge! :action => action
-      end
-      
+    def render(options = {})
       _process_options(options)
       
       super(options)
