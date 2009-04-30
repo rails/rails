@@ -49,9 +49,9 @@ The following sections outlines the primary methods provided by the API :
 
 h4. gem(name, options = {})
 
-Adds a +config.gem+ entry for the supplied gem to generated application’s +config/environment.rb+.
+Adds a +config.gem+ entry for the supplied gem to the generated application’s +config/environment.rb+.
 
-For example, if your application depends on +bj+ and +hpricot+ :
+For example, if your application depends on the gems +bj+ and +hpricot+ :
 
 <ruby>
 gem "bj"
