@@ -437,13 +437,13 @@ EOM
 
     # Override Rack's GET method to support indifferent access
     def GET
-      @env["action_controller.request.query_parameters"] ||= normalize_parameters(super)
+      @env["action_dispatch.request.query_parameters"] ||= normalize_parameters(super)
     end
     alias_method :query_parameters, :GET
 
     # Override Rack's POST method to support indifferent access
     def POST
-      @env["action_controller.request.request_parameters"] ||= normalize_parameters(super)
+      @env["action_dispatch.request.request_parameters"] ||= normalize_parameters(super)
     end
     alias_method :request_parameters, :POST
 

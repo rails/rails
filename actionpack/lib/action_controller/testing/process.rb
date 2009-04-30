@@ -109,7 +109,7 @@ module ActionController #:nodoc:
     end
 
     def recycle!
-      @env["action_controller.request.request_parameters"] = {}
+      @env["action_dispatch.request.request_parameters"] = {}
       self.query_parameters   = {}
       self.path_parameters    = {}
       @headers, @request_method, @accepts, @content_type = nil, nil, nil, nil

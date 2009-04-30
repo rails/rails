@@ -11,7 +11,7 @@ module ActionDispatch
 
     def call(env)
       if params = parse_formatted_parameters(env)
-        env["action_controller.request.request_parameters"] = params
+        env["action_dispatch.request.request_parameters"] = params
       end
 
       @app.call(env)
