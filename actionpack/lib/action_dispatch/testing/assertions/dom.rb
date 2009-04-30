@@ -1,4 +1,4 @@
-module ActionController
+module ActionDispatch
   module Assertions
     module DomAssertions
       # Test two HTML strings for equivalency (e.g., identical up to reordering of attributes)

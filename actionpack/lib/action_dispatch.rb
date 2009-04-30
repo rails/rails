@@ -45,6 +45,8 @@ module ActionDispatch
   autoload :Reloader, 'action_dispatch/middleware/reloader'
   autoload :MiddlewareStack, 'action_dispatch/middleware/stack'
 
+  autoload :Assertions, 'action_dispatch/testing/assertions'
+
   module Http
     autoload :Headers, 'action_dispatch/http/headers'
   end

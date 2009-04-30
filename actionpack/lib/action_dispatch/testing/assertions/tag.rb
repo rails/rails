@@ -1,4 +1,4 @@
-module ActionController
+module ActionDispatch
   module Assertions
     # Pair of assertions to testing elements in the HTML output of the response.
     module TagAssertions

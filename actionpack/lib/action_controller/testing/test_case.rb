@@ -105,12 +105,7 @@ module ActionController
   class TestCase < ActiveSupport::TestCase
     include TestProcess
 
-    module Assertions
-      %w(response selector tag dom routing model).each do |kind|
-        include ActionController::Assertions.const_get("#{kind.camelize}Assertions")
-      end
-    end
-    include Assertions
+    include ActionDispatch::Assertions
 
     # When the request.remote_addr remains the default for testing, which is 0.0.0.0, the exception is simply raised inline
     # (bystepping the regular exception handling from rescue_action). If the request.remote_addr is anything else, the regular

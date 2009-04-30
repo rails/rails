@@ -1,4 +1,4 @@
-module ActionController
+module ActionDispatch
   module Assertions
     module ModelAssertions
       # Ensures that the passed record is valid by Active Record standards and

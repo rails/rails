@@ -14,7 +14,7 @@ module ActionController
     # Integration::Session directly.
     class Session
       include Test::Unit::Assertions
-      include ActionController::TestCase::Assertions
+      include ActionDispatch::Assertions
       include ActionController::TestProcess
 
       # The integer HTTP status code of the last request.

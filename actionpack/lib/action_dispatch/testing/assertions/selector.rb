@@ -3,7 +3,7 @@
 # Under MIT and/or CC By license.
 #++
 
-module ActionController
+module ActionDispatch
   module Assertions
     unless const_defined?(:NO_STRIP)
       NO_STRIP = %w{pre script style textarea}
