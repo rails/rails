@@ -1,5 +1,6 @@
 module ActionController
   class Http < AbstractController::Base
+    abstract!
     
     # :api: public
     attr_internal :request, :response, :params
@@ -19,18 +20,15 @@ module ActionController
     
     # :api: public    
     def controller_path() self.class.controller_path end
-      
-    # :api: private      
-    def self.action_methods
-      @action_names ||= Set.new(self.public_instance_methods - self::CORE_METHODS)
+    
+    # :api: private
+    def self.internal_methods
+      ActionController::Http.public_instance_methods(true)
     end
     
     # :api: private    
     def self.action_names() action_methods end
     
-    # :api: private        
-    def action_methods() self.class.action_names end
-
     # :api: private
     def action_names() action_methods end
     
@@ -44,7 +42,7 @@ module ActionController
     def call(env)
       @_request = ActionDispatch::Request.new(env)
       @_response = ActionDispatch::Response.new
-      process(@_request.parameters[:action])
+      process(@_request.parameters[:action].to_sym)
       @_response.body = response_body
       @_response.prepare!
       self

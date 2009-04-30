@@ -35,4 +35,14 @@ module Render
       end
     end
   end
+  
+  class TestRenderObjectMethod < SimpleRouteCase
+    describe "Methods on Object are not actions"
+    
+    test "raises an exception" do
+      assert_raises(AbstractController::ActionNotFound) do
+        get "/render/blank_render/clone"
+      end
+    end
+  end
 end

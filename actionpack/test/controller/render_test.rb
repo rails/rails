@@ -4,6 +4,7 @@ require 'pathname'
 
 module Fun
   class GamesController < ActionController::Base
+    # :ported:
     def hello_world
     end
   end
@@ -116,6 +117,7 @@ class TestController < ActionController::Base
     render :text => "hello #{@person}"
   end
 
+  # :ported:
   def render_action_hello_world
     render :action => "hello_world"
   end
@@ -839,17 +841,20 @@ class RenderTest < ActionController::TestCase
     assert_equal "hello david", @response.body
   end
 
+  # :ported:
   def test_render_action
     get :render_action_hello_world
     assert_template "test/hello_world"
   end
 
+  # :ported:
   def test_render_action_hello_world_as_string
     get :render_action_hello_world_as_string
     assert_equal "Hello world!", @response.body
     assert_template "test/hello_world"
   end
 
+  # :ported:
   def test_render_action_with_symbol
     get :render_action_hello_world_with_symbol
     assert_template "test/hello_world"
@@ -949,6 +954,7 @@ class RenderTest < ActionController::TestCase
     assert_equal 'application/json', @response.content_type
   end
 
+  # :ported:
   def test_render_custom_code
     get :render_custom_code
     assert_response 404
@@ -1082,6 +1088,7 @@ class RenderTest < ActionController::TestCase
     assert_template "test/hello_world"
   end
 
+  # :ported:
   def test_nested_rendering
     @controller = Fun::GamesController.new
     get :hello_world

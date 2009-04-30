@@ -34,6 +34,8 @@ end
 
 module ActionController
   class Base2 < Http
+    abstract!
+    
     use AbstractController::Callbacks
     use AbstractController::Helpers
     use AbstractController::Logger
@@ -80,15 +82,13 @@ module ActionController
     end
     
     def respond_to_action?(action_name)
-      super || view_paths.find_by_parts(action_name, {:formats => formats, :locales => [I18n.locale]}, controller_path)
+      super || view_paths.find_by_parts?(action_name.to_s, {:formats => formats, :locales => [I18n.locale]}, controller_path)
     end
-    
-    # append_view_path File.join(File.dirname(__FILE__), '..', 'fixtures')
-        
-    CORE_METHODS = self.public_instance_methods
   end
   
   class CompatibleBase2 < Base2
+    abstract!
+    
     use ActionController::Rails2Compatibility
   end
 end

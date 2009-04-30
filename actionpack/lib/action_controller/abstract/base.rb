@@ -4,13 +4,44 @@ module AbstractController
     attr_internal :response_body
     attr_internal :response_obj
     attr_internal :action_name
-    
-    def self.process(action)
-      new.process(action)
+
+    class << self
+      attr_reader :abstract    
+      
+      def abstract!
+        @abstract = true
+      end
+      
+      alias_method :abstract?, :abstract
+      
+      def internal_methods
+        controller = self
+        controller = controller.superclass until controller.abstract?
+        controller.public_instance_methods(true)
+      end
+      
+      def process(action)
+        new.process(action)
+      end
+
+      def hidden_actions
+        []
+      end
+      
+      def action_methods
+        @action_methods ||=
+          # All public instance methods of this class, including ancestors
+          public_instance_methods(true).map { |m| m.to_sym }.to_set -
+          # Except for public instance methods of Base and its ancestors
+          internal_methods.map { |m| m.to_sym } +
+          # Be sure to include shadowed public instance methods of this class
+          public_instance_methods(false).map { |m| m.to_sym } -
+          # And always exclude explicitly hidden actions
+          hidden_actions
+      end
     end
     
-    def self.inherited(klass)
-    end
+    abstract!
     
     def initialize
       self.response_obj = {}
@@ -29,6 +60,10 @@ module AbstractController
     
   private
   
+    def action_methods
+      self.class.action_methods
+    end
+  
     # It is possible for respond_to?(action_name) to be false and
     # respond_to?(:action_missing) to be false if respond_to_action?
     # is overridden in a subclass. For instance, ActionController::Base
@@ -45,8 +80,7 @@ module AbstractController
     # you must handle it by also overriding process_action and
     # handling the case.
     def respond_to_action?(action_name)
-      respond_to?(action_name) || respond_to?(:action_missing, true)
+      action_methods.include?(action_name) || respond_to?(:action_missing, true)
     end
-    
   end
 end
