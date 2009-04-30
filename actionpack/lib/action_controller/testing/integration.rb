@@ -508,54 +508,5 @@ module ActionController
   #   end
   class IntegrationTest < ActiveSupport::TestCase
     include Integration::Runner
-
-    # Work around a bug in test/unit caused by the default test being named
-    # as a symbol (:default_test), which causes regex test filters
-    # (like "ruby test.rb -n /foo/") to fail because =~ doesn't work on
-    # symbols.
-    def initialize(name) #:nodoc:
-      super(name.to_s)
-    end
-
-    # Work around test/unit's requirement that every subclass of TestCase have
-    # at least one test method. Note that this implementation extends to all
-    # subclasses, as well, so subclasses of IntegrationTest may also exist
-    # without any test methods.
-    def run(*args) #:nodoc:
-      return if @method_name == "default_test"
-      super
-    end
-
-    # Because of how use_instantiated_fixtures and use_transactional_fixtures
-    # are defined, we need to treat them as special cases. Otherwise, users
-    # would potentially have to set their values for both Test::Unit::TestCase
-    # ActionController::IntegrationTest, since by the time the value is set on
-    # TestCase, IntegrationTest has already been defined and cannot inherit
-    # changes to those variables. So, we make those two attributes
-    # copy-on-write.
-
-    class << self
-      def use_transactional_fixtures=(flag) #:nodoc:
-        @_use_transactional_fixtures = true
-        @use_transactional_fixtures = flag
-      end
-
-      def use_instantiated_fixtures=(flag) #:nodoc:
-        @_use_instantiated_fixtures = true
-        @use_instantiated_fixtures = flag
-      end
-
-      def use_transactional_fixtures #:nodoc:
-        @_use_transactional_fixtures ?
-          @use_transactional_fixtures :
-          superclass.use_transactional_fixtures
-      end
-
-      def use_instantiated_fixtures #:nodoc:
-        @_use_instantiated_fixtures ?
-          @use_instantiated_fixtures :
-          superclass.use_instantiated_fixtures
-      end
-    end
   end
 end
