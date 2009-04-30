@@ -1077,7 +1077,7 @@ module ActiveRecord #:nodoc:
 
        # Returns an array of all the attributes that have been specified as readonly.
        def readonly_attributes
-         read_inheritable_attribute(:attr_readonly)
+         read_inheritable_attribute(:attr_readonly) || []
        end
 
       # If you have an attribute that needs to be saved to the database as an object, and retrieved as the same object,
@@ -2946,14 +2946,9 @@ module ActiveRecord #:nodoc:
       # Updates the associated record with values matching those of the instance attributes.
       # Returns the number of affected rows.
       def update(attribute_names = @attributes.keys)
-        quoted_attributes = attributes_with_quotes(false, false, attribute_names)
-        return 0 if quoted_attributes.empty?
-        connection.update(
-          "UPDATE #{self.class.quoted_table_name} " +
-          "SET #{quoted_comma_pair_list(connection, quoted_attributes)} " +
-          "WHERE #{connection.quote_column_name(self.class.primary_key)} = #{quote_value(id)}",
-          "#{self.class.name} Update"
-        )
+        attributes_with_values = arel_attributes_values(false, false, attribute_names)
+        return 0 if attributes_with_values.empty?
+        table.where(table[self.class.primary_key].eq(id)).update(attributes_with_values)
       end
 
       # Creates a record with values matching those of the instance attributes
@@ -3061,6 +3056,25 @@ module ActiveRecord #:nodoc:
           end
         end
         include_readonly_attributes ? quoted : remove_readonly_attributes(quoted)
+      end
+
+      def table
+        @arel_table ||= Arel(self.class.table_name)
+      end
+
+      def arel_attributes_values(include_primary_key = true, include_readonly_attributes = true, attribute_names = @attributes.keys)
+        attrs = {}
+        connection = self.class.connection
+        attribute_names.each do |name|
+          if (column = column_for_attribute(name)) && (include_primary_key || !column.primary)
+            value = read_attribute(name)
+
+            if include_readonly_attributes || (!include_readonly_attributes && !self.class.readonly_attributes.include?(name))
+              attrs[table[name]] = value
+            end
+          end
+        end
+        attrs
       end
 
       # Quote strings appropriately for SQL statements.

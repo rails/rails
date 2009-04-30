@@ -89,18 +89,11 @@ module ActiveRecord
           attribute_names.uniq!
 
           begin
-            table = Arel(self.class.table_name)
-
-            attributes = {}
-            attributes_with_quotes(false, false, attribute_names).map { |k,v|
-              attributes.merge!(table[k] => v)
-            }
-
             affected_rows = table.where(
               table[self.class.primary_key].eq(quoted_id).and(
                 table[self.class.locking_column].eq(quote_value(previous_value))
               )
-            ).update(attributes)
+            ).update(arel_attributes_values(false, false, attribute_names))
 
 
             unless affected_rows == 1
