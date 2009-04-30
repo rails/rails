@@ -4,7 +4,7 @@ module Arel
     deriving :==
 
     def initialize(relation, assignments)
-      @relation, @assignments = relation, assignments.bind(relation)
+      @relation, @assignments = relation, assignments
     end
 
     def to_sql(formatter = nil)
