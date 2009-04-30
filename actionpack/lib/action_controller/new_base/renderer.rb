@@ -24,7 +24,9 @@ module ActionController
         options[:_prefix] = _prefix 
       end
       
-      super(options)
+      ret = super(options)
+      response.content_type ||= options[:_template].mime_type
+      ret
     end
     
   private
@@ -43,9 +45,9 @@ module ActionController
     end
   
     def _process_options(options)
-      if status = options[:status]
-        response.status = status.to_i
-      end
+      status, content_type = options.values_at(:status, :content_type)
+      response.status = status.to_i if status
+      response.content_type = content_type if content_type
     end
   end
 end

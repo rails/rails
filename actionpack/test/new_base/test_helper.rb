@@ -42,7 +42,6 @@ module ActionController
     use ActionController::UrlFor
     use ActionController::Renderer
     use ActionController::Layouts
-    use ActionController::ContentType
     
     def self.inherited(klass)
       ::ActionController::Base2.subclasses << klass.to_s
