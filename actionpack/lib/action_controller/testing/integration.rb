@@ -263,7 +263,7 @@ module ActionController
               string << "#{name}=#{value}; "
             }
           }
-          env = ActionDispatch::Test::MockRequest.env_for(path, opts)
+          env = Rack::MockRequest.env_for(path, opts)
 
           (headers || {}).each do |key, value|
             key = key.to_s.upcase.gsub(/-/, "_")

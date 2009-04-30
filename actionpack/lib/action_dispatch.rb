@@ -34,6 +34,7 @@ require 'active_support/core/all'
 
 gem 'rack', '~> 1.0.0'
 require 'rack'
+require 'action_dispatch/extensions/rack'
 
 module ActionDispatch
   autoload :Request, 'action_dispatch/http/request'
@@ -55,11 +56,6 @@ module ActionDispatch
     autoload :AbstractStore, 'action_dispatch/middleware/session/abstract_store'
     autoload :CookieStore, 'action_dispatch/middleware/session/cookie_store'
     autoload :MemCacheStore, 'action_dispatch/middleware/session/mem_cache_store'
-  end
-
-  module Test
-    autoload :UploadedFile, 'action_dispatch/test/uploaded_file'
-    autoload :MockRequest, 'action_dispatch/test/mock'
   end
 end
 
