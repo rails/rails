@@ -83,7 +83,6 @@ module Rack
         end
       end
 
-      EOL = "\r\n"
       MULTIPART_BOUNDARY = "AaB03x"
 
       def self.parse_multipart(env)

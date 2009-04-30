@@ -245,7 +245,7 @@ module ActionController
           ActionController::Base.clear_last_instantiation!
 
           opts = {
-            :method => method.to_s.upcase,
+            :method => method,
             :params => parameters,
 
             "SERVER_NAME"     => host,
@@ -276,16 +276,11 @@ module ActionController
           mock_response = ::Rack::MockResponse.new(status, headers, body)
 
           @request_count += 1
-          @request  = Request.new(env)
-          @response = Response.from_response(mock_response)
+          @request  = ActionDispatch::Request.new(env)
+          @response = ActionDispatch::TestResponse.from_response(mock_response)
 
           @cookies.merge!(@response.cookies)
           @html_document = nil
-
-          # Decorate the response with the standard behavior of the
-          # TestResponse so that things like assert_response can be
-          # used in integration tests.
-          @response.extend(TestResponseBehavior)
 
           if @controller = ActionController::Base.last_instantiation
             @controller.send(:set_test_assigns)

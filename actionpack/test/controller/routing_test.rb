@@ -1923,7 +1923,7 @@ class RouteSetTest < Test::Unit::TestCase
       end
     end
 
-    request.path = "/people"
+    request.request_uri = "/people"
     request.env["REQUEST_METHOD"] = "GET"
     assert_nothing_raised { set.recognize(request) }
     assert_equal("index", request.path_parameters[:action])
@@ -1945,7 +1945,7 @@ class RouteSetTest < Test::Unit::TestCase
     }
     request.recycle!
 
-    request.path = "/people/5"
+    request.request_uri = "/people/5"
     request.env["REQUEST_METHOD"] = "GET"
     assert_nothing_raised { set.recognize(request) }
     assert_equal("show", request.path_parameters[:action])
@@ -2047,7 +2047,7 @@ class RouteSetTest < Test::Unit::TestCase
       end
     end
 
-    request.path = "/people/5"
+    request.request_uri = "/people/5"
     request.env["REQUEST_METHOD"] = "GET"
     assert_nothing_raised { set.recognize(request) }
     assert_equal("show", request.path_parameters[:action])
@@ -2059,7 +2059,7 @@ class RouteSetTest < Test::Unit::TestCase
     assert_equal("update", request.path_parameters[:action])
     request.recycle!
 
-    request.path = "/people/5.png"
+    request.request_uri = "/people/5.png"
     request.env["REQUEST_METHOD"] = "GET"
     assert_nothing_raised { set.recognize(request) }
     assert_equal("show", request.path_parameters[:action])

@@ -345,7 +345,7 @@ class ActionCacheTest < ActionController::TestCase
     cached_time = content_to_cache
     reset!
 
-    @request.set_REQUEST_URI "/action_caching_test/expire.xml"
+    @request.request_uri = "/action_caching_test/expire.xml"
     get :expire, :format => :xml
     reset!
 

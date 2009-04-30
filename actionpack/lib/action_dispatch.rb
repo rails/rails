@@ -47,6 +47,8 @@ module ActionDispatch
   autoload :MiddlewareStack, 'action_dispatch/middleware/stack'
 
   autoload :Assertions, 'action_dispatch/testing/assertions'
+  autoload :TestRequest, 'action_dispatch/testing/test_request'
+  autoload :TestResponse, 'action_dispatch/testing/test_response'
 
   module Http
     autoload :Headers, 'action_dispatch/http/headers'

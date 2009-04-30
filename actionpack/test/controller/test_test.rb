@@ -201,7 +201,7 @@ XML
   end
 
   def test_process_with_request_uri_with_params_with_explicit_uri
-    @request.set_REQUEST_URI "/explicit/uri"
+    @request.request_uri = "/explicit/uri"
     process :test_uri, :id => 7
     assert_equal "/explicit/uri", @response.body
   end
@@ -212,7 +212,7 @@ XML
   end
 
   def test_process_with_query_string_with_explicit_uri
-    @request.set_REQUEST_URI "/explicit/uri?q=test?extra=question"
+    @request.request_uri = "/explicit/uri?q=test?extra=question"
     process :test_query_string
     assert_equal "q=test?extra=question", @response.body
   end
