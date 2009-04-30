@@ -688,14 +688,9 @@ module ActiveRecord #:nodoc:
       #   Person.exists?(['name LIKE ?', "%#{query}%"])
       #   Person.exists?
       def exists?(id_or_conditions = {})
-        connection.select_all(
-          construct_finder_sql(
-            :select     => "#{quoted_table_name}.#{primary_key}",
-            :conditions => expand_id_conditions(id_or_conditions),
-            :limit      => 1
-          ),
-          "#{name} Exists"
-        ).size > 0
+        construct_finder_arel({
+          :conditions =>expand_id_conditions(id_or_conditions)
+        }).project(arel_table[primary_key]).take(1).count > 0
       end
 
       # Creates an object (or multiple objects) and saves it to the database, if validations pass.
@@ -1685,8 +1680,8 @@ module ActiveRecord #:nodoc:
           end
         end
 
-        def arel_table(table)
-          Arel(table)
+        def arel_table(table = table_name)
+          @arel_table = Arel(table)
         end
 
         def construct_finder_arel(options)
