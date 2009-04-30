@@ -3,7 +3,6 @@ module ActionView #:nodoc:
     
     def render(*) self end
     
-    def exempt_from_layout?() false end
-    
+    def mime_type() Mime::HTML end
   end
 end

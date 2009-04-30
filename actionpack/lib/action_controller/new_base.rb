@@ -1,4 +1,5 @@
 module ActionController
+  autoload :ContentType,          "action_controller/new_base/content_type"
   autoload :HideActions,          "action_controller/new_base/hide_actions"
   autoload :Http,                 "action_controller/new_base/base"
   autoload :Layouts,              "action_controller/new_base/layouts"
