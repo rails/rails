@@ -42,6 +42,7 @@ module ActionDispatch
               opts[:input] = params
             end
           else
+            params.stringify_keys!
             params.update(::Rack::Utils.parse_query(uri.query))
             uri.query = requestify(params)
           end
