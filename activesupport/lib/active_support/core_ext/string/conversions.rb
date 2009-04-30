@@ -5,7 +5,7 @@ class String
   # 'a'.ord == 'a'[0] for Ruby 1.9 forward compatibility.
   def ord
     self[0]
-  end if RUBY_VERSION < '1.9'
+  end unless method_defined?(:ord)
 
   # Form can be either :utc (default) or :local.
   def to_time(form = :utc)

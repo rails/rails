@@ -7,10 +7,10 @@ class Integer
   # Is the integer a multiple of 2?
   def even?
     multiple_of? 2
-  end if RUBY_VERSION < '1.9'
+  end unless method_defined?(:even?)
 
   # Is the integer not a multiple of 2?
   def odd?
     !even?
-  end if RUBY_VERSION < '1.9'
+  end unless method_defined?(:odd?)
 end

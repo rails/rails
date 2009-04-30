@@ -1,4 +1,5 @@
 require "cases/helper"
+require 'models/post'
 require 'models/author'
 require 'models/categorization'
 require 'models/comment'
@@ -7,7 +8,6 @@ require 'models/topic'
 require 'models/reply'
 require 'models/entrant'
 require 'models/developer'
-require 'models/post'
 require 'models/customer'
 require 'models/job'
 require 'models/categorization'
@@ -94,16 +94,16 @@ class FinderTest < ActiveRecord::TestCase
 
     assert_raise(NoMethodError) { Topic.exists?([1,2]) }
   end
-  
+
   def test_exists_returns_true_with_one_record_and_no_args
     assert Topic.exists?
   end
-  
+
   def test_does_not_exist_with_empty_table_and_no_args_given
     Topic.delete_all
     assert !Topic.exists?
   end
-  
+
   def test_exists_with_aggregate_having_three_mappings
     existing_address = customers(:david).address
     assert Customer.exists?(:address => existing_address)

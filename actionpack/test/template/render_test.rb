@@ -91,10 +91,6 @@ module RenderTestCases
     assert_equal "The secret is in the sauce\n", @view.render(:file => "test/dot.directory/render_file_with_ivar")
   end
 
-  def test_render_has_access_current_template
-    assert_equal "test/template.erb", @view.render(:file => "test/template.erb")
-  end
-
   def test_render_update
     # TODO: You should not have to stub out template because template is self!
     @view.instance_variable_set(:@template, @view)
@@ -240,10 +236,6 @@ module RenderTestCases
     end
   end
 
-  def test_template_with_malformed_template_handler_is_reachable_through_its_exact_filename
-    assert_equal "Don't render me!", @view.render(:file => 'test/malformed/malformed.html.erb~')
-  end
-
   def test_render_with_layout
     assert_equal %(<title></title>\nHello world!\n),
       @view.render(:file => "test/hello_world.erb", :layout => "layouts/yield")
@@ -269,7 +261,7 @@ class CachedViewRenderTest < ActiveSupport::TestCase
   # Ensure view path cache is primed
   def setup
     view_paths = ActionController::Base.view_paths
-    assert_equal ActionView::Template::FileSystemPath, view_paths.first.class
+    assert_equal ActionView::Template::FileSystemPathWithFallback, view_paths.first.class
     setup_view(view_paths)
   end
 end
@@ -280,9 +272,9 @@ class LazyViewRenderTest < ActiveSupport::TestCase
   # Test the same thing as above, but make sure the view path
   # is not eager loaded
   def setup
-    path = ActionView::Template::FileSystemPath.new(FIXTURE_LOAD_PATH)
+    path = ActionView::Template::FileSystemPathWithFallback.new(FIXTURE_LOAD_PATH)
     view_paths = ActionView::Base.process_view_paths(path)
-    assert_equal ActionView::Template::FileSystemPath, view_paths.first.class
+    assert_equal ActionView::Template::FileSystemPathWithFallback, view_paths.first.class
     setup_view(view_paths)
   end
 end

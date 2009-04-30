@@ -3,7 +3,7 @@ module ActionView #:nodoc:
     def self.type_cast(obj)
       if obj.is_a?(String)
         cache = !Object.const_defined?(:Rails) || Rails.configuration.cache_classes
-        Template::FileSystemPath.new(obj, :cache => cache)
+        Template::FileSystemPathWithFallback.new(obj, :cache => cache)
       else
         obj
       end
@@ -34,18 +34,18 @@ module ActionView #:nodoc:
     end
 
     def find_by_parts(path, details = {}, prefix = nil, partial = false)
-      template_path = path.sub(/^\//, '')
+      # template_path = path.sub(/^\//, '')
+      template_path = path
 
       each do |load_path|
         if template = load_path.find_by_parts(template_path, details, prefix, partial)
           return template
         end
       end
-
-      Template.new(path, self)
-    rescue ActionView::MissingTemplate => e
+      
+      # TODO: Have a fallback absolute path?
       extension = details[:formats] || []
-      raise ActionView::MissingTemplate.new(self, "#{prefix}/#{path}.{#{extension.join(",")}}")
+      raise ActionView::MissingTemplate.new(self, "#{prefix}/#{path} - #{details.inspect} - partial: #{!!partial}")
     end
     
     def find_by_parts?(path, extension = nil, prefix = nil, partial = false)

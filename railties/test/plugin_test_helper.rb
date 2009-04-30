@@ -3,6 +3,7 @@ $:.unshift File.dirname(__FILE__) + "/../../activesupport/lib"
 
 require 'test/unit'
 require 'active_support'
+require 'active_support/core/all'
 require 'initializer'
 require File.join(File.dirname(__FILE__), 'abstract_unit')
 
@@ -12,7 +13,7 @@ RAILS_ROOT = '.' unless defined?(RAILS_ROOT)
 class Test::Unit::TestCase
   private  
     def plugin_fixture_root_path
-      File.join(File.dirname(__FILE__), 'fixtures', 'plugins')
+      File.expand_path(File.join(File.dirname(__FILE__), 'fixtures', 'plugins'))
     end
   
     def only_load_the_following_plugins!(plugins)

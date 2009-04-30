@@ -3,7 +3,7 @@ require 'active_support/inflector'
 module ActiveSupport
   module Deprecation
     class DeprecationProxy #:nodoc:
-      instance_methods.each { |m| undef_method m unless m =~ /^__/ }
+      instance_methods.each { |m| undef_method m unless m =~ /^__|^object_id$/ }
 
       # Don't give a deprecation warning on inspect since test/unit and error
       # logs rely on it for diagnostics.

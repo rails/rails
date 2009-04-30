@@ -82,13 +82,16 @@ module ActiveRecord #:nodoc:
       end
     end
 
-    # For compatibility with ActiveSupport::JSON.encode
-    alias rails_to_json to_json
-
     def from_json(json)
       self.attributes = ActiveSupport::JSON.decode(json)
       self
     end
+
+    private
+      # For compatibility with ActiveSupport::JSON.encode
+      def rails_to_json(options, *args)
+        to_json(options)
+      end
 
     class JsonSerializer < ActiveRecord::Serialization::Serializer #:nodoc:
       def serialize

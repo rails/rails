@@ -20,8 +20,16 @@ namespace :gems do
   desc "Build any native extensions for unpacked gems"
   task :build do
     $gems_build_rake_task = true
-    Rake::Task['gems:unpack'].invoke
-    current_gems.each &:build
+    frozen_gems.each &:build
+  end
+
+  namespace :build do
+    desc "Force the build of all gems"
+    task :force do
+      $gems_build_rake_task = true
+      Rake::Task['gems:unpack'].invoke
+      current_gems.each { |gem| gem.build(:force => true) }
+    end
   end
 
   desc "Installs all required gems."
@@ -51,6 +59,12 @@ def current_gems
   gems = Rails.configuration.gems
   gems = gems.select { |gem| gem.name == ENV['GEM'] } unless ENV['GEM'].blank?
   gems
+end
+
+def frozen_gems
+  Dir[File.join(RAILS_ROOT, 'vendor', 'gems', '*-*')].map do |gem_dir|
+    Rails::GemDependency.from_directory_name(gem_dir)
+  end
 end
 
 def print_gem_status(gem, indent=1)
