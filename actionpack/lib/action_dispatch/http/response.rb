@@ -31,6 +31,14 @@ module ActionDispatch # :nodoc:
   #    end
   #  end
   class Response < Rack::Response
+    def self.from_response(response)
+      new.tap do |resp|
+        resp.status  = response.status
+        resp.headers = response.headers
+        resp.body    = response.body
+      end
+    end
+
     DEFAULT_HEADERS = { "Cache-Control" => "no-cache" }
     attr_accessor :request
 
@@ -80,6 +88,7 @@ module ActionDispatch # :nodoc:
     def message
       status.to_s.split(' ',2)[1] || StatusCodes::STATUS_CODES[response_code]
     end
+    alias_method :status_message, :message
 
     # Was the response successful?
     def success?

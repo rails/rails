@@ -4,168 +4,7 @@ require 'active_support/test_case'
 
 module ActionController
   module Integration #:nodoc:
-    # An integration Session instance represents a set of requests and responses
-    # performed sequentially by some virtual user. Because you can instantiate
-    # multiple sessions and run them side-by-side, you can also mimic (to some
-    # limited extent) multiple simultaneous users interacting with your system.
-    #
-    # Typically, you will instantiate a new session using
-    # IntegrationTest#open_session, rather than instantiating
-    # Integration::Session directly.
-    class Session
-      include Test::Unit::Assertions
-      include ActionDispatch::Assertions
-      include ActionController::TestProcess
-
-      # The integer HTTP status code of the last request.
-      attr_reader :status
-
-      # The status message that accompanied the status code of the last request.
-      attr_reader :status_message
-
-      # The body of the last request.
-      attr_reader :body
-
-      # The URI of the last request.
-      attr_reader :path
-
-      # The hostname used in the last request.
-      attr_accessor :host
-
-      # The remote_addr used in the last request.
-      attr_accessor :remote_addr
-
-      # The Accept header to send.
-      attr_accessor :accept
-
-      # A map of the cookies returned by the last response, and which will be
-      # sent with the next request.
-      attr_reader :cookies
-
-      # A map of the headers returned by the last response.
-      attr_reader :headers
-
-      # A reference to the controller instance used by the last request.
-      attr_reader :controller
-
-      # A reference to the request instance used by the last request.
-      attr_reader :request
-
-      # A reference to the response instance used by the last request.
-      attr_reader :response
-
-      # A running counter of the number of requests processed.
-      attr_accessor :request_count
-
-      # Create and initialize a new Session instance.
-      def initialize(app = nil)
-        @app = app || ActionController::Dispatcher.new
-        reset!
-      end
-
-      # Resets the instance. This can be used to reset the state information
-      # in an existing session instance, so it can be used from a clean-slate
-      # condition.
-      #
-      #   session.reset!
-      def reset!
-        @status = @path = @headers = nil
-        @result = @status_message = nil
-        @https = false
-        @cookies = {}
-        @controller = @request = @response = nil
-        @request_count = 0
-
-        self.host        = "www.example.com"
-        self.remote_addr = "127.0.0.1"
-        self.accept      = "text/xml,application/xml,application/xhtml+xml," +
-                           "text/html;q=0.9,text/plain;q=0.8,image/png," +
-                           "*/*;q=0.5"
-
-        unless defined? @named_routes_configured
-          # install the named routes in this session instance.
-          klass = class << self; self; end
-          Routing::Routes.install_helpers(klass)
-
-          # the helpers are made protected by default--we make them public for
-          # easier access during testing and troubleshooting.
-          klass.module_eval { public *Routing::Routes.named_routes.helpers }
-          @named_routes_configured = true
-        end
-      end
-
-      # Specify whether or not the session should mimic a secure HTTPS request.
-      #
-      #   session.https!
-      #   session.https!(false)
-      def https!(flag = true)
-        @https = flag
-      end
-
-      # Return +true+ if the session is mimicking a secure HTTPS request.
-      #
-      #   if session.https?
-      #     ...
-      #   end
-      def https?
-        @https
-      end
-
-      # Set the host name to use in the next request.
-      #
-      #   session.host! "www.example.com"
-      def host!(name)
-        @host = name
-      end
-
-      # Follow a single redirect response. If the last response was not a
-      # redirect, an exception will be raised. Otherwise, the redirect is
-      # performed on the location header.
-      def follow_redirect!
-        raise "not a redirect! #{@status} #{@status_message}" unless redirect?
-        get(interpret_uri(headers['location']))
-        status
-      end
-
-      # Performs a request using the specified method, following any subsequent
-      # redirect. Note that the redirects are followed until the response is
-      # not a redirect--this means you may run into an infinite loop if your
-      # redirect loops back to itself.
-      def request_via_redirect(http_method, path, parameters = nil, headers = nil)
-        send(http_method, path, parameters, headers)
-        follow_redirect! while redirect?
-        status
-      end
-
-      # Performs a GET request, following any subsequent redirect.
-      # See +request_via_redirect+ for more information.
-      def get_via_redirect(path, parameters = nil, headers = nil)
-        request_via_redirect(:get, path, parameters, headers)
-      end
-
-      # Performs a POST request, following any subsequent redirect.
-      # See +request_via_redirect+ for more information.
-      def post_via_redirect(path, parameters = nil, headers = nil)
-        request_via_redirect(:post, path, parameters, headers)
-      end
-
-      # Performs a PUT request, following any subsequent redirect.
-      # See +request_via_redirect+ for more information.
-      def put_via_redirect(path, parameters = nil, headers = nil)
-        request_via_redirect(:put, path, parameters, headers)
-      end
-
-      # Performs a DELETE request, following any subsequent redirect.
-      # See +request_via_redirect+ for more information.
-      def delete_via_redirect(path, parameters = nil, headers = nil)
-        request_via_redirect(:delete, path, parameters, headers)
-      end
-
-      # Returns +true+ if the last response was a redirect.
-      def redirect?
-        status/100 == 3
-      end
-
+    module RequestHelpers
       # Performs a GET request with the given parameters.
       #
       # - +path+: The URI (as a String) on which you want to perform a GET
@@ -229,6 +68,156 @@ module ActionController
       end
       alias xhr :xml_http_request
 
+      # Follow a single redirect response. If the last response was not a
+      # redirect, an exception will be raised. Otherwise, the redirect is
+      # performed on the location header.
+      def follow_redirect!
+        raise "not a redirect! #{status} #{status_message}" unless redirect?
+        get(response.location)
+        status
+      end
+
+      # Performs a request using the specified method, following any subsequent
+      # redirect. Note that the redirects are followed until the response is
+      # not a redirect--this means you may run into an infinite loop if your
+      # redirect loops back to itself.
+      def request_via_redirect(http_method, path, parameters = nil, headers = nil)
+        process(http_method, path, parameters, headers)
+        follow_redirect! while redirect?
+        status
+      end
+
+      # Performs a GET request, following any subsequent redirect.
+      # See +request_via_redirect+ for more information.
+      def get_via_redirect(path, parameters = nil, headers = nil)
+        request_via_redirect(:get, path, parameters, headers)
+      end
+
+      # Performs a POST request, following any subsequent redirect.
+      # See +request_via_redirect+ for more information.
+      def post_via_redirect(path, parameters = nil, headers = nil)
+        request_via_redirect(:post, path, parameters, headers)
+      end
+
+      # Performs a PUT request, following any subsequent redirect.
+      # See +request_via_redirect+ for more information.
+      def put_via_redirect(path, parameters = nil, headers = nil)
+        request_via_redirect(:put, path, parameters, headers)
+      end
+
+      # Performs a DELETE request, following any subsequent redirect.
+      # See +request_via_redirect+ for more information.
+      def delete_via_redirect(path, parameters = nil, headers = nil)
+        request_via_redirect(:delete, path, parameters, headers)
+      end
+    end
+
+    # An integration Session instance represents a set of requests and responses
+    # performed sequentially by some virtual user. Because you can instantiate
+    # multiple sessions and run them side-by-side, you can also mimic (to some
+    # limited extent) multiple simultaneous users interacting with your system.
+    #
+    # Typically, you will instantiate a new session using
+    # IntegrationTest#open_session, rather than instantiating
+    # Integration::Session directly.
+    class Session
+      include Test::Unit::Assertions
+      include ActionDispatch::Assertions
+      include ActionController::TestProcess
+      include RequestHelpers
+
+      %w( status status_message headers body redirect? ).each do |method|
+        delegate method, :to => :response, :allow_nil => true
+      end
+
+      %w( path ).each do |method|
+        delegate method, :to => :request, :allow_nil => true
+      end
+
+      # The hostname used in the last request.
+      attr_accessor :host
+
+      # The remote_addr used in the last request.
+      attr_accessor :remote_addr
+
+      # The Accept header to send.
+      attr_accessor :accept
+
+      # A map of the cookies returned by the last response, and which will be
+      # sent with the next request.
+      attr_reader :cookies
+
+      # A reference to the controller instance used by the last request.
+      attr_reader :controller
+
+      # A reference to the request instance used by the last request.
+      attr_reader :request
+
+      # A reference to the response instance used by the last request.
+      attr_reader :response
+
+      # A running counter of the number of requests processed.
+      attr_accessor :request_count
+
+      # Create and initialize a new Session instance.
+      def initialize(app = nil)
+        @app = app || ActionController::Dispatcher.new
+        reset!
+      end
+
+      # Resets the instance. This can be used to reset the state information
+      # in an existing session instance, so it can be used from a clean-slate
+      # condition.
+      #
+      #   session.reset!
+      def reset!
+        @https = false
+        @cookies = {}
+        @controller = @request = @response = nil
+        @request_count = 0
+
+        self.host        = "www.example.com"
+        self.remote_addr = "127.0.0.1"
+        self.accept      = "text/xml,application/xml,application/xhtml+xml," +
+                           "text/html;q=0.9,text/plain;q=0.8,image/png," +
+                           "*/*;q=0.5"
+
+        unless defined? @named_routes_configured
+          # install the named routes in this session instance.
+          klass = class << self; self; end
+          Routing::Routes.install_helpers(klass)
+
+          # the helpers are made protected by default--we make them public for
+          # easier access during testing and troubleshooting.
+          klass.module_eval { public *Routing::Routes.named_routes.helpers }
+          @named_routes_configured = true
+        end
+      end
+
+      # Specify whether or not the session should mimic a secure HTTPS request.
+      #
+      #   session.https!
+      #   session.https!(false)
+      def https!(flag = true)
+        @https = flag
+      end
+
+      # Return +true+ if the session is mimicking a secure HTTPS request.
+      #
+      #   if session.https?
+      #     ...
+      #   end
+      def https?
+        @https
+      end
+
+      # Set the host name to use in the next request.
+      #
+      #   session.host! "www.example.com"
+      def host!(name)
+        @host = name
+      end
+
       # Returns the URL for the given options, according to the rules specified
       # in the application's routes.
       def url_for(options)
@@ -238,19 +227,14 @@ module ActionController
       end
 
       private
-        # Tailors the session based on the given URI, setting the HTTPS value
-        # and the hostname.
-        def interpret_uri(path)
-          location = URI.parse(path)
-          https! URI::HTTPS === location if location.scheme
-          host! location.host if location.host
-          location.query ? "#{location.path}?#{location.query}" : location.path
-        end
-
         # Performs the actual request.
         def process(method, path, parameters = nil, headers = nil)
-          path = interpret_uri(path) if path =~ %r{://}
-          @path = path
+          if path =~ %r{://}
+            location = URI.parse(path)
+            https! URI::HTTPS === location if location.scheme
+            host! location.host if location.host
+            path = location.query ? "#{location.path}?#{location.query}" : location.path
+          end
 
           [ControllerCapture, ActionController::ProcessWithTest].each do |mod|
             unless ActionController::Base < mod
@@ -279,7 +263,7 @@ module ActionController
               string << "#{name}=#{value}; "
             }
           }
-          env = ActionDispatch::Test::MockRequest.env_for(@path, opts)
+          env = ActionDispatch::Test::MockRequest.env_for(path, opts)
 
           (headers || {}).each do |key, value|
             key = key.to_s.upcase.gsub(/-/, "_")
@@ -289,17 +273,12 @@ module ActionController
 
           app = Rack::Lint.new(@app)
           status, headers, body = app.call(env)
-          response = ::Rack::MockResponse.new(status, headers, body)
+          mock_response = ::Rack::MockResponse.new(status, headers, body)
 
           @request_count += 1
-          @request = Request.new(env)
+          @request  = Request.new(env)
+          @response = Response.from_response(mock_response)
 
-          @response = Response.new
-          @response.status  = @status  = response.status
-          @response.headers = @headers = response.headers
-          @response.body    = @body    = response.body
-
-          @status_message = ActionDispatch::StatusCodes::STATUS_CODES[@status]
           @cookies.merge!(@response.cookies)
           @html_document = nil
 
@@ -312,7 +291,7 @@ module ActionController
             @controller.send(:set_test_assigns)
           end
 
-          return @status
+          return response.status
         end
 
         # Get a temporary URL writer object

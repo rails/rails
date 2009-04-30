@@ -30,7 +30,7 @@ class SessionTest < Test::Unit::TestCase
 
   def test_request_via_redirect_uses_given_method
     path = "/somepath"; args = {:id => '1'}; headers = {"X-Test-Header" => "testvalue"}
-    @session.expects(:put).with(path, args, headers)
+    @session.expects(:process).with(:put, path, args, headers)
     @session.stubs(:redirect?).returns(false)
     @session.request_via_redirect(:put, path, args, headers)
   end
@@ -88,16 +88,6 @@ class SessionTest < Test::Unit::TestCase
     @session.stubs(:generic_url_rewriter).returns(mock_rewriter)
     @session.stubs(:controller).returns(nil)
     assert_equal '/show', @session.url_for(options)
-  end
-
-  def test_redirect_bool_with_status_in_300s
-    @session.stubs(:status).returns 301
-    assert @session.redirect?
-  end
-
-  def test_redirect_bool_with_status_in_200s
-    @session.stubs(:status).returns 200
-    assert !@session.redirect?
   end
 
   def test_get
