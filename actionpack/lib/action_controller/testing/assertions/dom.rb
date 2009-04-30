@@ -9,13 +9,11 @@ module ActionController
       #   assert_dom_equal '<a href="http://www.example.com">Apples</a>', link_to("Apples", "http://www.example.com")
       #
       def assert_dom_equal(expected, actual, message = "")
-        clean_backtrace do
-          expected_dom = HTML::Document.new(expected).root
-          actual_dom   = HTML::Document.new(actual).root
-          full_message = build_message(message, "<?> expected to be == to\n<?>.", expected_dom.to_s, actual_dom.to_s)
+        expected_dom = HTML::Document.new(expected).root
+        actual_dom   = HTML::Document.new(actual).root
+        full_message = build_message(message, "<?> expected to be == to\n<?>.", expected_dom.to_s, actual_dom.to_s)
 
-          assert_block(full_message) { expected_dom == actual_dom }
-        end
+        assert_block(full_message) { expected_dom == actual_dom }
       end
       
       # The negated form of +assert_dom_equivalent+.
@@ -26,13 +24,11 @@ module ActionController
       #   assert_dom_not_equal '<a href="http://www.example.com">Apples</a>', link_to("Oranges", "http://www.example.com")
       #
       def assert_dom_not_equal(expected, actual, message = "")
-        clean_backtrace do
-          expected_dom = HTML::Document.new(expected).root
-          actual_dom   = HTML::Document.new(actual).root
-          full_message = build_message(message, "<?> expected to be != to\n<?>.", expected_dom.to_s, actual_dom.to_s)
+        expected_dom = HTML::Document.new(expected).root
+        actual_dom   = HTML::Document.new(actual).root
+        full_message = build_message(message, "<?> expected to be != to\n<?>.", expected_dom.to_s, actual_dom.to_s)
 
-          assert_block(full_message) { expected_dom != actual_dom }
-        end
+        assert_block(full_message) { expected_dom != actual_dom }
       end
     end
   end

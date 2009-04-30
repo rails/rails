@@ -629,33 +629,6 @@ XML
     end
 end
 
-class CleanBacktraceTest < ActionController::TestCase
-  def test_should_reraise_the_same_object
-    exception = ActiveSupport::TestCase::Assertion.new('message')
-    clean_backtrace { raise exception }
-  rescue Exception => caught
-    assert_equal exception.object_id, caught.object_id
-    assert_equal exception.message, caught.message
-  end
-
-  def test_should_clean_assertion_lines_from_backtrace
-    path = File.expand_path("#{File.dirname(__FILE__)}/../../lib/action_controller/testing")
-    exception = ActiveSupport::TestCase::Assertion.new('message')
-    exception.set_backtrace ["#{path}/abc", "#{path}/assertions/def"]
-    clean_backtrace { raise exception }
-  rescue Exception => caught
-    assert_equal ["#{path}/abc"], caught.backtrace
-  end
-
-  def test_should_only_clean_assertion_failure_errors
-    clean_backtrace do
-      raise "can't touch this", [File.expand_path("#{File.dirname(__FILE__)}/../../lib/action_controller/assertions/abc")]
-    end
-  rescue => caught
-    assert !caught.backtrace.empty?
-  end
-end
-
 class InferringClassNameTest < ActionController::TestCase
   def test_determine_controller_class
     assert_equal ContentController, determine_class("ContentControllerTest")

@@ -109,14 +109,6 @@ module ActionController
       %w(response selector tag dom routing model).each do |kind|
         include ActionController::Assertions.const_get("#{kind.camelize}Assertions")
       end
-
-      def clean_backtrace(&block)
-        yield
-      rescue ActiveSupport::TestCase::Assertion => error
-        framework_path = Regexp.new(File.expand_path("#{File.dirname(__FILE__)}/assertions"))
-        error.backtrace.reject! { |line| File.expand_path(line) =~ framework_path }
-        raise
-      end
     end
     include Assertions
 

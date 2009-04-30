@@ -12,9 +12,7 @@ module ActionController
       #
       def assert_valid(record)
         ::ActiveSupport::Deprecation.warn("assert_valid is deprecated. Use assert record.valid? instead", caller)
-        clean_backtrace do
-          assert record.valid?, record.errors.full_messages.join("\n")
-        end
+        assert record.valid?, record.errors.full_messages.join("\n")
       end
     end
   end
