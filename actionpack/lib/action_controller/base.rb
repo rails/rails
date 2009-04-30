@@ -950,7 +950,8 @@ module ActionController #:nodoc:
             response.content_type ||= Mime::JS
             render_for_text(js, options[:status])
 
-          elsif json = options[:json]
+          elsif options.include?(:json)
+            json = options[:json]
             json = json.to_json unless json.is_a?(String)
             json = "#{options[:callback]}(#{json})" unless options[:callback].blank?
             response.content_type ||= Mime::JSON
