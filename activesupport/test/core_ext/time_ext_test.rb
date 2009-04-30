@@ -382,10 +382,10 @@ class TimeExtCalculationsTest < Test::Unit::TestCase
     assert_equal Time.local(2005,6,28,15,15,10), Time.local(2005,2,28,15,15,10).advance(:months => 4)
     assert_equal Time.local(2005,3,21,15,15,10), Time.local(2005,2,28,15,15,10).advance(:weeks => 3)
     assert_equal Time.local(2005,3,25,3,15,10), Time.local(2005,2,28,15,15,10).advance(:weeks => 3.5)
-    assert_equal Time.local(2005,3,26,12,51,10), Time.local(2005,2,28,15,15,10).advance(:weeks => 3.7)
+    assert_in_delta Time.local(2005,3,26,12,51,10), Time.local(2005,2,28,15,15,10).advance(:weeks => 3.7), 1
     assert_equal Time.local(2005,3,5,15,15,10), Time.local(2005,2,28,15,15,10).advance(:days => 5)
     assert_equal Time.local(2005,3,6,3,15,10), Time.local(2005,2,28,15,15,10).advance(:days => 5.5)
-    assert_equal Time.local(2005,3,6,8,3,10), Time.local(2005,2,28,15,15,10).advance(:days => 5.7)
+    assert_in_delta Time.local(2005,3,6,8,3,10), Time.local(2005,2,28,15,15,10).advance(:days => 5.7), 1
     assert_equal Time.local(2012,9,28,15,15,10), Time.local(2005,2,28,15,15,10).advance(:years => 7, :months => 7)
     assert_equal Time.local(2013,10,3,15,15,10), Time.local(2005,2,28,15,15,10).advance(:years => 7, :months => 19, :days => 5)
     assert_equal Time.local(2013,10,17,15,15,10), Time.local(2005,2,28,15,15,10).advance(:years => 7, :months => 19, :weeks => 2, :days => 5)
@@ -404,10 +404,10 @@ class TimeExtCalculationsTest < Test::Unit::TestCase
     assert_equal Time.utc(2005,6,22,15,15,10), Time.utc(2005,2,22,15,15,10).advance(:months => 4)
     assert_equal Time.utc(2005,3,21,15,15,10), Time.utc(2005,2,28,15,15,10).advance(:weeks => 3)
     assert_equal Time.utc(2005,3,25,3,15,10), Time.utc(2005,2,28,15,15,10).advance(:weeks => 3.5)
-    assert_equal Time.utc(2005,3,26,12,51,10), Time.utc(2005,2,28,15,15,10).advance(:weeks => 3.7)
+    assert_in_delta Time.utc(2005,3,26,12,51,10), Time.utc(2005,2,28,15,15,10).advance(:weeks => 3.7), 1
     assert_equal Time.utc(2005,3,5,15,15,10), Time.utc(2005,2,28,15,15,10).advance(:days => 5)
     assert_equal Time.utc(2005,3,6,3,15,10), Time.utc(2005,2,28,15,15,10).advance(:days => 5.5)
-    assert_equal Time.utc(2005,3,6,8,3,10), Time.utc(2005,2,28,15,15,10).advance(:days => 5.7)
+    assert_in_delta Time.utc(2005,3,6,8,3,10), Time.utc(2005,2,28,15,15,10).advance(:days => 5.7), 1
     assert_equal Time.utc(2012,9,22,15,15,10), Time.utc(2005,2,22,15,15,10).advance(:years => 7, :months => 7)
     assert_equal Time.utc(2013,10,3,15,15,10), Time.utc(2005,2,22,15,15,10).advance(:years => 7, :months => 19, :days => 11)
     assert_equal Time.utc(2013,10,17,15,15,10), Time.utc(2005,2,28,15,15,10).advance(:years => 7, :months => 19, :weeks => 2, :days => 5)
