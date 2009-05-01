@@ -32,9 +32,8 @@ rescue LoadError
 end
 require 'active_support/core/all'
 
-gem 'rack', '~> 1.0.0'
+gem 'rack', '~> 1.1.0'
 require 'rack'
-require 'action_dispatch/extensions/rack'
 
 module ActionDispatch
   autoload :Request, 'action_dispatch/http/request'
