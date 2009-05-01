@@ -15,8 +15,11 @@ require 'connection'
 
 require 'cases/repair_helper'
 
-# TODO remove the debugger
-require 'ruby-debug'
+# Expose the debugger if available
+begin
+  require 'ruby-debug'
+rescue LoadError
+end
 
 # Show backtraces for deprecated behavior for quicker cleanup.
 ActiveSupport::Deprecation.debug = true
