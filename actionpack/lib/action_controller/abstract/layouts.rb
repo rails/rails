@@ -57,6 +57,9 @@ module AbstractController
   
     def _layout() end # This will be overwritten
     
+    # :api: plugin
+    # ====
+    # Override this to mutate the inbound layout name
     def _layout_for_name(name)
       unless [String, FalseClass, NilClass].include?(name.class)
         raise ArgumentError, "String, false, or nil expected; you passed #{name.inspect}"

@@ -8,5 +8,10 @@ module ActionController
       super
     end
    
+   def _layout_for_name(name)
+     name &&= name.sub(%r{^/?layouts/}, '')
+     super
+   end
+   
   end
 end
