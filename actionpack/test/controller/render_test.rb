@@ -1,4 +1,4 @@
-require 'abstract_unit'
+require ENV['new_base'] ? 'abstract_unit2' : 'abstract_unit'
 require 'controller/fake_models'
 require 'pathname'
 

@@ -5,6 +5,8 @@ $:.unshift(File.dirname(__FILE__) + '/../lib')
 require 'test/unit'
 require 'active_support'
 require 'active_support/test_case'
+require 'action_controller/new_base/base'
+require 'action_controller/new_base/renderer'
 require 'action_controller'
 require 'action_view/base'
 require 'fixture_template'

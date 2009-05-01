@@ -53,4 +53,7 @@ module ActionController
       @_response.to_a
     end
   end
+  
+  class Base < Http
+  end
 end
