@@ -21,7 +21,7 @@ module AbstractController
       end
       
       def process(action)
-        new.process(action)
+        new.process(action.to_s)
       end
 
       def hidden_actions
@@ -31,11 +31,11 @@ module AbstractController
       def action_methods
         @action_methods ||=
           # All public instance methods of this class, including ancestors
-          public_instance_methods(true).map { |m| m.to_sym }.to_set -
+          public_instance_methods(true).map { |m| m.to_s }.to_set -
           # Except for public instance methods of Base and its ancestors
-          internal_methods.map { |m| m.to_sym } +
+          internal_methods.map { |m| m.to_s } +
           # Be sure to include shadowed public instance methods of this class
-          public_instance_methods(false).map { |m| m.to_sym } -
+          public_instance_methods(false).map { |m| m.to_s } -
           # And always exclude explicitly hidden actions
           hidden_actions
       end

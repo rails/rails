@@ -42,7 +42,7 @@ module ActionController
     def call(env)
       @_request = ActionDispatch::Request.new(env)
       @_response = ActionDispatch::Response.new
-      process(@_request.parameters[:action].to_sym)
+      process(@_request.parameters[:action])
       @_response.body = response_body
       @_response.prepare!
       self

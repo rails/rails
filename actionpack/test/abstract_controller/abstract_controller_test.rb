@@ -203,7 +203,7 @@ module AbstractController
     private
       
       def respond_to_action?(action_name)
-        action_name != :fail
+        action_name.to_s != "fail"
       end
       
     end
