@@ -132,7 +132,7 @@ module ActionController #:nodoc:
       build_request_uri(action, parameters)
 
       Base.class_eval { include ProcessWithTest } unless Base < ProcessWithTest
-      @controller.process_with_test(@request, @response)
+      @controller.process(@request, @response)
     end
 
     def xml_http_request(request_method, action, parameters = nil, session = nil, flash = nil)
@@ -248,11 +248,14 @@ module ActionController #:nodoc:
 
   module ProcessWithTest #:nodoc:
     def self.included(base)
-      base.class_eval { attr_reader :assigns }
+      base.class_eval {
+        attr_reader :assigns
+        alias_method_chain :process, :test
+      }
     end
 
     def process_with_test(*args)
-      process(*args).tap { set_test_assigns }
+      process_without_test(*args).tap { set_test_assigns }
     end
 
     private
