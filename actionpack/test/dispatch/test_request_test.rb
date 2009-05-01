@@ -27,4 +27,19 @@ class TestRequestTest < ActiveSupport::TestCase
 
     assert env.empty?, env.inspect
   end
+
+  test "cookie jar" do
+    req = ActionDispatch::TestRequest.new
+
+    assert_equal({}, req.cookies)
+    assert_equal nil, req.env["HTTP_COOKIE"]
+
+    req.cookies["user_name"] = "david"
+    assert_equal({"user_name" => "david"}, req.cookies)
+    assert_equal "user_name=david;", req.env["HTTP_COOKIE"]
+
+    req.cookies["login"] = "XJ-122"
+    assert_equal({"user_name" => "david", "login" => "XJ-122"}, req.cookies)
+    assert_equal "login=XJ-122; user_name=david;", req.env["HTTP_COOKIE"]
+  end
 end

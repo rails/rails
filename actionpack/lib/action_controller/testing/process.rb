@@ -2,7 +2,6 @@ require 'rack/session/abstract/id'
 
 module ActionController #:nodoc:
   class TestRequest < ActionDispatch::TestRequest #:nodoc:
-    attr_accessor :cookies
     attr_accessor :query_parameters
 
     def initialize(env = {})
@@ -13,7 +12,6 @@ module ActionController #:nodoc:
       self.session_options = TestSession::DEFAULT_OPTIONS.merge(:id => ActiveSupport::SecureRandom.hex(16))
 
       @request_uri = "/"
-      @cookies = {}
     end
 
     # Wraps raw_post in a StringIO.

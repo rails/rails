@@ -1,15 +1,22 @@
 module ActionDispatch
   class TestRequest < Request
+    DEFAULT_ENV = Rack::MockRequest.env_for('/')
+
     def self.new(env = {})
       super
     end
 
     def initialize(env = {})
-      super(Rack::MockRequest.env_for('/').merge(env))
+      super(DEFAULT_ENV.merge(env))
 
       self.host        = 'test.host'
       self.remote_addr = '0.0.0.0'
       self.user_agent  = 'Rails Testing'
+    end
+
+    def env
+      write_cookies!
+      super
     end
 
     def request_method=(method)
@@ -49,8 +56,19 @@ module ActionDispatch
     end
 
     def accept=(mime_types)
-      @env.delete("action_dispatch.request.accepts")
-      @env["HTTP_ACCEPT"] = Array(mime_types).collect { |mime_types| mime_types.to_s }.join(",")
+      @env.delete('action_dispatch.request.accepts')
+      @env['HTTP_ACCEPT'] = Array(mime_types).collect { |mime_types| mime_types.to_s }.join(",")
     end
+
+    def cookies
+      @cookies ||= super
+    end
+
+    private
+      def write_cookies!
+        unless @cookies.blank?
+          @env['HTTP_COOKIE'] = @cookies.map { |name, value| "#{name}=#{value};" }.join(' ')
+        end
+      end
   end
 end
