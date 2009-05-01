@@ -5,11 +5,20 @@ module ControllerLayouts
     
     self.view_paths = [ActionView::Template::FixturePath.new(
       "layouts/application.html.erb" => "OMG <%= yield %> KTHXBAI",
-      "basic.html.erb" => "Hello world!"
+      "layouts/override.html.erb"    => "Override! <%= yield %>",
+      "basic.html.erb"               => "Hello world!"
     )]
     
     def index
       render :template => "basic"
+    end
+    
+    def override
+      render :template => "basic", :layout => "override"
+    end
+    
+    def builder_override
+      
     end
   end
   
@@ -41,5 +50,10 @@ module ControllerLayouts
     assert_status 200
   end
   
-  
+  class TestOverridingImplicitLayout < SimpleRouteCase
+    describe "overriding an implicit layout with render :layout option"
+    
+    get "/controller_layouts/implicit/override"
+    assert_body "Override! Hello world!"
+  end
 end

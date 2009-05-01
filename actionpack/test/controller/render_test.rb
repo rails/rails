@@ -292,6 +292,7 @@ class TestController < ActionController::Base
     render :text => ' '
   end
 
+  # :ported:
   def layout_test
     render :action => "hello_world"
   end
@@ -299,7 +300,8 @@ class TestController < ActionController::Base
   def builder_layout_test
     render :action => "hello", :layout => "layouts/builder"
   end
-
+  
+  # :move: test this in ActionView
   def builder_partial_test
     render :action => "hello_world_container"
   end
@@ -988,14 +990,17 @@ class RenderTest < ActionController::TestCase
     assert_equal 'appended', @response.body
   end
 
+  # :ported:
   def test_attempt_to_access_object_method
     assert_raise(ActionController::UnknownAction, "No action responded to [clone]") { get :clone }
   end
 
+  # :ported:
   def test_private_methods
     assert_raise(ActionController::UnknownAction, "No action responded to [determine_layout]") { get :determine_layout }
   end
 
+  # :ported:
   def test_access_to_request_in_view
     get :accessing_request_in_template
     assert_equal "Hello: www.nextangle.com", @response.body
@@ -1006,11 +1011,13 @@ class RenderTest < ActionController::TestCase
     assert_equal "Logger", @response.body
   end
 
+  # :ported:
   def test_access_to_action_name_in_view
     get :accessing_action_name_in_template
     assert_equal "accessing_action_name_in_template", @response.body
   end
 
+  # :ported:
   def test_access_to_controller_name_in_view
     get :accessing_controller_name_in_template
     assert_equal "test", @response.body # name is explicitly set to 'test' inside the controller.
@@ -1022,6 +1029,7 @@ class RenderTest < ActionController::TestCase
     assert_equal "text/javascript", @response.content_type
   end
 
+  # :ported:
   def test_render_xml
     get :render_xml_hello
     assert_equal "<html>\n  <p>Hello David</p>\n<p>This is grand!</p>\n</html>\n", @response.body
@@ -1034,6 +1042,7 @@ class RenderTest < ActionController::TestCase
     assert_equal "application/xml", @response.content_type
   end
 
+  # :ported:
   def test_render_xml_with_default
     get :greeting
     assert_equal "<p>This is grand!</p>\n", @response.body
