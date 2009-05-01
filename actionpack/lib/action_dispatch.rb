@@ -33,9 +33,9 @@ end
 require 'active_support/core/all'
 
 begin
-  gem 'rack', '~> 1.1.0'
+  gem 'rack', '~> 1.1.pre'
 rescue Gem::LoadError
-  $:.unshift "#{File.dirname(__FILE__)}/action_dispatch/vendor/rack"
+  $:.unshift "#{File.dirname(__FILE__)}/action_dispatch/vendor/rack-1.1.pre"
 end
 
 require 'rack'
