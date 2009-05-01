@@ -690,7 +690,7 @@ module ActiveRecord #:nodoc:
       def exists?(id_or_conditions = {})
         construct_finder_arel({
           :conditions =>expand_id_conditions(id_or_conditions)
-        }).project(arel_table[primary_key]).take(1).count > 0
+        }).project(arel_table[primary_key]).take(1).count.to_i > 0
       end
 
       # Creates an object (or multiple objects) and saves it to the database, if validations pass.
