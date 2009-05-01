@@ -32,7 +32,12 @@ rescue LoadError
 end
 require 'active_support/core/all'
 
-gem 'rack', '~> 1.1.0'
+begin
+  gem 'rack', '~> 1.1.0'
+rescue Gem::LoadError
+  $:.unshift "#{File.dirname(__FILE__)}/action_dispatch/vendor/rack"
+end
+
 require 'rack'
 
 module ActionDispatch
