@@ -2,9 +2,11 @@ require "cases/helper"
 require 'models/developer'
 require 'models/project'
 require 'models/company'
+require 'models/sponsor'
+require 'models/organization'
 
 class HasOneAssociationsTest < ActiveRecord::TestCase
-  fixtures :accounts, :companies, :developers, :projects, :developers_projects
+  fixtures :accounts, :companies, :developers, :projects, :developers_projects, :organizations, :sponsors
 
   def setup
     Account.destroyed_account_ids.clear
@@ -305,5 +307,10 @@ class HasOneAssociationsTest < ActiveRecord::TestCase
       Firm.find(@firm.id).save!
       Firm.find(@firm.id, :include => :account).save!
     end
+  end
+
+  def test_polymorphic_sti
+    assert_equal organizations(:sponsorable), sponsors(:org_sponsor).sponsorable
+    assert_equal sponsors(:org_sponsor),      organizations(:sponsorable).sponsor
   end
 end

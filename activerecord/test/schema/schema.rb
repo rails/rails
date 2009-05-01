@@ -283,6 +283,7 @@ ActiveRecord::Schema.define do
 
   create_table :organizations, :force => true do |t|
     t.string :name
+    t.string :type
   end
 
   create_table :owners, :primary_key => :owner_id ,:force => true do |t|
@@ -388,7 +389,7 @@ ActiveRecord::Schema.define do
   create_table :sponsors, :force => true do |t|
     t.integer :club_id
     t.integer :sponsorable_id
-    t.string :sponsorable_type
+    t.string  :sponsorable_type
   end
 
   create_table :subscribers, :force => true, :id => false do |t|
