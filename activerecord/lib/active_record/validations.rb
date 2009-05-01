@@ -1,3 +1,5 @@
+require 'builder'
+
 module ActiveRecord
   # Raised by <tt>save!</tt> and <tt>create!</tt> when the record is invalid.  Use the
   # +record+ method to retrieve the record which did not validate.
