@@ -103,7 +103,7 @@ class PooledConnectionsTest < ActiveRecord::TestCase
       add_record('two')
       # Have another thread try to screw up the transaction
       Thread.new do
-        raise ActiveRecord::Rollback
+        ActiveRecord::Base.connection.rollback_db_transaction
         ActiveRecord::Base.connection_pool.release_connection
       end.join rescue nil
       add_record('three')
