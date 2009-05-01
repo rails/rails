@@ -10,8 +10,6 @@ module ActionController #:nodoc:
       @query_parameters = {}
       self.session = TestSession.new
       self.session_options = TestSession::DEFAULT_OPTIONS.merge(:id => ActiveSupport::SecureRandom.hex(16))
-
-      @request_uri = "/"
     end
 
     # Wraps raw_post in a StringIO.
