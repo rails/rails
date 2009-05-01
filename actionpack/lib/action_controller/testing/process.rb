@@ -12,21 +12,6 @@ module ActionController #:nodoc:
       self.session_options = TestSession::DEFAULT_OPTIONS.merge(:id => ActiveSupport::SecureRandom.hex(16))
     end
 
-    # Wraps raw_post in a StringIO.
-    def body_stream #:nodoc:
-      StringIO.new(raw_post)
-    end
-
-    # Either the RAW_POST_DATA environment variable or the URL-encoded request
-    # parameters.
-    def raw_post
-      @env['RAW_POST_DATA'] ||= begin
-        data = url_encoded_request_parameters
-        data.force_encoding(Encoding::BINARY) if data.respond_to?(:force_encoding)
-        data
-      end
-    end
-
     def action=(action_name)
       query_parameters.update({ "action" => action_name })
     end
@@ -48,7 +33,17 @@ module ActionController #:nodoc:
           path_parameters[key.to_s] = value
         end
       end
-      raw_post # populate env['RAW_POST_DATA']
+
+      params = self.request_parameters.dup
+
+      %w(controller action only_path).each do |k|
+        params.delete(k)
+        params.delete(k.to_sym)
+      end
+
+      data = params.to_query
+      @env['CONTENT_LENGTH'] = data.length
+      @env['rack.input'] = StringIO.new(data)
     end
 
     def recycle!
@@ -56,18 +51,6 @@ module ActionController #:nodoc:
       self.query_parameters = {}
       @headers = nil
     end
-
-    private
-      def url_encoded_request_parameters
-        params = self.request_parameters.dup
-
-        %w(controller action only_path).each do |k|
-          params.delete(k)
-          params.delete(k.to_sym)
-        end
-
-        params.to_query
-      end
   end
 
   # Integration test methods such as ActionController::Integration::Session#get
