@@ -39,6 +39,10 @@ module ActionDispatch
       @env['PATH_INFO'] = path
     end
 
+    def action=(action_name)
+      path_parameters["action"] = action_name.to_s
+    end
+
     def if_modified_since=(last_modified)
       @env['HTTP_IF_MODIFIED_SINCE'] = last_modified
     end

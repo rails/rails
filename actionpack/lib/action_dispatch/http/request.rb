@@ -351,7 +351,7 @@ EOM
 
     # Returns the query string, accounting for server idiosyncrasies.
     def query_string
-      @env['QUERY_STRING'].present? ? @env['QUERY_STRING'] : (@env['REQUEST_URI'].split('?', 2)[1] || '')
+      @env['QUERY_STRING'].present? ? @env['QUERY_STRING'] : (@env['REQUEST_URI'].to_s.split('?', 2)[1] || '')
     end
 
     # Returns the request URI, accounting for server idiosyncrasies.

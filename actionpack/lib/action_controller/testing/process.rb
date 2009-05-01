@@ -2,18 +2,11 @@ require 'rack/session/abstract/id'
 
 module ActionController #:nodoc:
   class TestRequest < ActionDispatch::TestRequest #:nodoc:
-    attr_accessor :query_parameters
-
     def initialize(env = {})
       super
 
-      @query_parameters = {}
       self.session = TestSession.new
       self.session_options = TestSession::DEFAULT_OPTIONS.merge(:id => ActiveSupport::SecureRandom.hex(16))
-    end
-
-    def action=(action_name)
-      query_parameters.update({ "action" => action_name })
     end
 
     def assign_parameters(controller_path, action, parameters)
@@ -47,9 +40,8 @@ module ActionController #:nodoc:
     end
 
     def recycle!
-      @env.delete_if { |k, v| k =~ /^action_dispatch\.request/ }
-      self.query_parameters = {}
-      @headers = nil
+      @env.delete_if { |k, v| k =~ /^(action_dispatch|rack)\.request/ }
+      @env['action_dispatch.request.query_parameters'] = {}
     end
   end
 
@@ -131,8 +123,6 @@ module ActionController #:nodoc:
 
       @html_document = nil
       @request.request_method = http_method
-
-      @request.action = action.to_s
 
       parameters ||= {}
       @request.assign_parameters(@controller.class.controller_path, action.to_s, parameters)
