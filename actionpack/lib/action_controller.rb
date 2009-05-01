@@ -31,8 +31,12 @@ rescue LoadError
   end
 end
 
-gem 'rack', '~> 1.0.0'
-require 'rack'
+begin
+  gem 'rack', '~> 1.1.0'
+  require 'rack'
+rescue Gem::LoadError
+  require 'action_controller/vendor/rack-1.1.pre/rack'
+end
 
 module ActionController
   # TODO: Review explicit to see if they will automatically be handled by
