@@ -13,13 +13,13 @@ require 'logger'
 ActiveRecord::Base.logger = Logger.new("debug.log")
 
 # Set these to your database connection strings
-db = ENV['ARUNIT_DB_NAME'] = 'XE'
+db = ENV['ARUNIT_DB_NAME'] = 'orcl'
 
 ActiveRecord::Base.configurations = {
   'arunit' => {
     :adapter  => 'oracle_enhanced',
     :database => db,
-    :host => "arunit", # used just by JRuby to construct JDBC connect string
+    :host => "localhost", # used just by JRuby to construct JDBC connect string
     :username => 'arunit',
     :password => 'arunit',
     :emulate_oracle_adapter => true
@@ -27,7 +27,7 @@ ActiveRecord::Base.configurations = {
   'arunit2' => {
     :adapter  => 'oracle_enhanced',
     :database => db,
-    :host => "arunit", # used just by JRuby to construct JDBC connect string
+    :host => "localhost", # used just by JRuby to construct JDBC connect string
     :username => 'arunit2',
     :password => 'arunit2',
     :emulate_oracle_adapter => true
