@@ -49,7 +49,7 @@ module ActionController
       @request.session = ActionController::TestSession.new(session) unless session.nil?
       @request.session["flash"] = ActionController::Flash::FlashHash.new.update(flash) if flash
       build_request_uri(action, parameters)
-
+      @controller.params.merge!(parameters)
       # Base.class_eval { include ProcessWithTest } unless Base < ProcessWithTest
       @controller.process_with_test(@request, @response)
     end

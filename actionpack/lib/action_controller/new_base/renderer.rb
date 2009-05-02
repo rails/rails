@@ -17,6 +17,10 @@ module ActionController
       if options.key?(:text)
         options[:_template] = ActionView::TextTemplate.new(_text(options))
         template = nil
+      elsif options.key?(:inline)
+        handler = ActionView::Template.handler_class_for_extension(options[:type] || "erb")
+        template = ActionView::Template.new(options[:inline], "inline #{options[:inline].inspect}", handler, {})
+        options[:_template] = template
       elsif options.key?(:template)
         options[:_template_name] = options[:template]
       elsif options.key?(:action)
