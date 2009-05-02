@@ -10,10 +10,14 @@ module ActionController
   
   # Ported modules
   # require 'action_controller/routing'
-  autoload :Dispatcher, 'action_controller/dispatch/dispatcher'
+  autoload :Dispatcher,        'action_controller/dispatch/dispatcher'
   autoload :PolymorphicRoutes, 'action_controller/routing/generation/polymorphic_routes'
-  autoload :Resources, 'action_controller/routing/resources'
+  autoload :RecordIdentifier,  'action_controller/record_identifier'
+  autoload :Resources,         'action_controller/routing/resources'
   autoload :SessionManagement, 'action_controller/base/session_management'
+  autoload :TestCase,          'action_controller/testing/test_case'
+  autoload :UrlRewriter,       'action_controller/routing/generation/url_rewriter'
+  autoload :UrlWriter,         'action_controller/routing/generation/url_rewriter'
   
   require 'action_controller/routing'
 end

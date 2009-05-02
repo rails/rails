@@ -1,7 +1,7 @@
 require "action_controller/testing/process"
 
 module ActionController
-  module TestProcess2
+  module TestProcess
     
     # Executes a request simulating GET HTTP method and set/volley the response
     def get(action, parameters = nil, session = nil, flash = nil)
@@ -60,7 +60,7 @@ module ActionController
         options.update(:only_path => true, :action => action)
 
         url = ActionController::UrlRewriter.new(@request, parameters)
-        @request.set_REQUEST_URI(url.rewrite(options))
+        @request.request_uri = url.rewrite(options)
       end
     end      
       

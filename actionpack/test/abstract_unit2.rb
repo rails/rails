@@ -2,14 +2,6 @@ $:.unshift(File.dirname(__FILE__) + '/../lib')
 $:.unshift(File.dirname(__FILE__) + '/../../activesupport/lib')
 $:.unshift(File.dirname(__FILE__) + '/lib')
 
-# HAX
-module ActionController
-
-end
-
-# TestCase
-#  include TestProcess2
-
 
 require 'test/unit'
 require 'active_support'
@@ -17,16 +9,13 @@ require 'active_support/core/all'
 require 'active_support/test_case'
 require 'action_controller/abstract'
 require 'action_controller/new_base'
-require 'action_controller/new_base/base'
-require 'action_controller/new_base/renderer' # HAX
-require 'action_controller'
 require 'fixture_template'
+require 'action_controller/testing/process2'
 require 'action_view/test_case'
 
 FIXTURE_LOAD_PATH = File.join(File.dirname(__FILE__), 'fixtures')
 
 module ActionController
-  autoload :TestProcess2, 'action_controller/testing/process2'
   
   class ActionControllerError < StandardError #:nodoc:
   end
@@ -158,7 +147,7 @@ module ActionController
   Base.view_paths = FIXTURE_LOAD_PATH
   
   class TestCase
-    include TestProcess2
+    include TestProcess
     setup do
       ActionController::Routing::Routes.draw do |map|
         map.connect ':controller/:action/:id'
