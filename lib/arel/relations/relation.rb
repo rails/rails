@@ -16,7 +16,7 @@ module Arel
 
     def count
       @count = "COUNT(*) AS count_all"
-      engine.select_value self.to_sql
+      engine.select_value(self.to_sql).to_i
     end
 
     def to_sql(formatter = Sql::SelectStatement.new(self))
