@@ -505,16 +505,10 @@ h3. References
 h3. Changelog
 "Lighthouse ticket":http://rails.lighthouseapp.com/projects/16213-rails-guides/tickets/10-guide-to-caching
 
-May       02, 2009: Formatting cleanups
-
-April     26, 2009: Clean up typos in submitted patch
-
-April      1, 2009: Made a bunch of small fixes
-
-February  22, 2009: Beefed up the section on cache_stores
-
-December  27, 2008: Typo fixes
-
-November  23, 2008: Incremental updates with various suggested changes and formatting cleanup
-
-September 15, 2008: Initial version by Aditya Chadha
+* May       02, 2009: Formatting cleanups
+* April     26, 2009: Clean up typos in submitted patch
+* April      1, 2009: Made a bunch of small fixes
+* February  22, 2009: Beefed up the section on cache_stores
+* December  27, 2008: Typo fixes
+* November  23, 2008: Incremental updates with various suggested changes and formatting cleanup
+* September 15, 2008: Initial version by Aditya Chadha
