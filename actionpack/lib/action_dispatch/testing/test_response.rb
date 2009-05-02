@@ -1,4 +1,10 @@
 module ActionDispatch
+  # Integration test methods such as ActionController::Integration::Session#get
+  # and ActionController::Integration::Session#post return objects of class
+  # TestResponse, which represent the HTTP response results of the requested
+  # controller actions.
+  #
+  # See Response for more information on controller response objects.
   class TestResponse < Response
     def self.from_response(response)
       new.tap do |resp|

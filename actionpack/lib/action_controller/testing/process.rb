@@ -45,17 +45,16 @@ module ActionController #:nodoc:
     end
   end
 
-  # Integration test methods such as ActionController::Integration::Session#get
-  # and ActionController::Integration::Session#post return objects of class
-  # TestResponse, which represent the HTTP response results of the requested
-  # controller actions.
-  #
-  # See Response for more information on controller response objects.
   class TestResponse < ActionDispatch::TestResponse
     def recycle!
-      body_parts.clear
-      headers.delete('ETag')
-      headers.delete('Last-Modified')
+      @status = 200
+      @header = Rack::Utils::HeaderHash.new(DEFAULT_HEADERS)
+      @writer = lambda { |x| @body << x }
+      @block = nil
+      @length = 0
+      @body = []
+
+      @request = @template = nil
     end
   end
 
@@ -132,6 +131,7 @@ module ActionController #:nodoc:
       build_request_uri(action, parameters)
 
       Base.class_eval { include ProcessWithTest } unless Base < ProcessWithTest
+
       @controller.process(@request, @response)
     end
 
