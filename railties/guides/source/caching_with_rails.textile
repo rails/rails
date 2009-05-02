@@ -360,21 +360,14 @@ most popular cache store for production websites.
 
 Special features:
 
-* Clustering and load balancing. One can specify multiple memcached servers,
-   and MemCacheStore will load balance between all available servers. If a
-   server goes down, then MemCacheStore will ignore it until it goes back
-   online.
-
+* Clustering and load balancing. One can specify multiple memcached servers, and MemCacheStore will load balance between all available servers. If a server goes down, then MemCacheStore will ignore it until it goes back online.
 * Time-based expiry support. See +write+ and the +:expires_in+ option.
-
 * Per-request in memory cache for all communication with the MemCache server(s).
 
 It also accepts a hash of additional options:
 
 * +:namespace+- specifies a string that will automatically be prepended to keys when accessing the memcached store.
-
 * +:readonly+- a boolean value that when set to true will make the store read-only, with an error raised on any attempt to write.
-
 * +:multithread+ - a boolean value that adds thread safety to read/write operations - it is unlikely you'll need to use this option as the Rails threadsafe! method offers the same functionality.
 
 The read and write methods of the MemCacheStore accept an options hash too.
