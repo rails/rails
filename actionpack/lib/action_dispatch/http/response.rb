@@ -34,8 +34,6 @@ module ActionDispatch # :nodoc:
     DEFAULT_HEADERS = { "Cache-Control" => "no-cache" }
     attr_accessor :request
 
-    attr_accessor :redirected_to, :redirected_to_method_params
-
     attr_writer :header
     alias_method :headers=, :header=
 
@@ -187,7 +185,7 @@ module ActionDispatch # :nodoc:
         @writer = lambda { |x| callback.call(x) }
         @body.call(self, self)
       else
-        @body.each(&callback)
+        @body.each { |part| callback.call(part.to_s) }
       end
 
       @writer = callback

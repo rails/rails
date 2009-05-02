@@ -603,7 +603,7 @@ class FilterTest < Test::Unit::TestCase
     %w(foo bar baz).each do |action|
       request = ActionController::TestRequest.new
       request.query_parameters[:choose] = action
-      response = DynamicDispatchController.process(request, ActionController::TestResponse.new)
+      response = Rack::MockResponse.new(*DynamicDispatchController.call(request.env))
       assert_equal action, response.body
     end
   end

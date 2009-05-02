@@ -62,7 +62,7 @@ module ActionController #:nodoc:
       def call_with_exception(env, exception) #:nodoc:
         request = env["action_controller.rescue.request"] ||= ActionDispatch::Request.new(env)
         response = env["action_controller.rescue.response"] ||= ActionDispatch::Response.new
-        new.process(request, response, :rescue_action, exception)
+        new.process(request, response, :rescue_action, exception).to_a
       end
     end
 

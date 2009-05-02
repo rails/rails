@@ -371,14 +371,12 @@ module ActionController #:nodoc:
 
     class << self
       def call(env)
-        # HACK: For global rescue to have access to the original request and response
-        request = env["action_controller.rescue.request"] ||= ActionDispatch::Request.new(env)
-        response = env["action_controller.rescue.response"] ||= ActionDispatch::Response.new
-        process(request, response)
+        new.call(env)
       end
 
       # Factory for the standard create, process loop where the controller is discarded after processing.
       def process(request, response) #:nodoc:
+        ActiveSupport::Deprecation.warn("Controller.process has been deprecated. Use Controller.call instead", caller)
         new.process(request, response)
       end
 
@@ -511,6 +509,13 @@ module ActionController #:nodoc:
     end
 
     public
+      def call(env)
+        # HACK: For global rescue to have access to the original request and response
+        request = env["action_dispatch.rescue.request"] ||= ActionDispatch::Request.new(env)
+        response = env["action_dispatch.rescue.response"] ||= ActionDispatch::Response.new
+        process(request, response).to_a
+      end
+
       # Extracts the action_name from the request parameters and performs that action.
       def process(request, response, method = :perform_action, *arguments) #:nodoc:
         response.request = request
@@ -820,7 +825,6 @@ module ActionController #:nodoc:
         @template = ActionView::Base.new(self.class.view_paths, {}, self, formats)
         response.template = @template if response.respond_to?(:template=)
         @template.helpers.send :include, self.class.master_helper_module
-        response.redirected_to = nil
         @performed_render = @performed_redirect = false
       end
 
