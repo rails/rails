@@ -102,19 +102,19 @@ class HelperTest < Test::Unit::TestCase
   end
 
   def test_helper_for_nested_controller
-    request  = ActionController::TestRequest.new
-    response = ActionController::TestResponse.new
+    request = ActionController::TestRequest.new
     request.action = 'render_hello_world'
 
-    assert_equal 'hello: Iz guuut!', Fun::GamesController.process(request, response).body
+    response = Rack::MockResponse.new(*Fun::GamesController.call(request.env))
+    assert_equal 'hello: Iz guuut!', response.body
   end
 
   def test_helper_for_acronym_controller
-    request  = ActionController::TestRequest.new
-    response = ActionController::TestResponse.new
+    request = ActionController::TestRequest.new
     request.action = 'test'
 
-    assert_equal 'test: baz', Fun::PdfController.process(request, response).body
+    response = Rack::MockResponse.new(*Fun::PdfController.call(request.env))
+    assert_equal 'test: baz', response.body
   end
 
   def test_all_helpers
@@ -211,14 +211,16 @@ class IsolatedHelpersTest < Test::Unit::TestCase
   end
 
   def test_helper_in_a
-    assert_raise(ActionView::TemplateError) { A.process(@request, @response) }
+    assert_raise(ActionView::TemplateError) { A.call(@request.env) }
   end
 
   def test_helper_in_b
-    assert_equal 'B', B.process(@request, @response).body
+    response = Rack::MockResponse.new(*B.call(@request.env))
+    assert_equal 'B', response.body
   end
 
   def test_helper_in_c
-    assert_equal 'C', C.process(@request, @response).body
+    response = Rack::MockResponse.new(*C.call(@request.env))
+    assert_equal 'C', response.body
   end
 end

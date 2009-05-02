@@ -376,6 +376,7 @@ module ActionController #:nodoc:
 
       # Factory for the standard create, process loop where the controller is discarded after processing.
       def process(request, response) #:nodoc:
+        ActiveSupport::Deprecation.warn("Controller.process has been deprecated. Use Controller.call instead", caller)
         new.process(request, response)
       end
 
