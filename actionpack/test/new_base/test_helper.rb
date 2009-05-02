@@ -66,7 +66,7 @@ class Rack::TestCase < ActiveSupport::TestCase
   end
   
   def assert_body(body)
-    assert_equal body, last_response.body
+    assert_equal body, Array.wrap(last_response.body).join
   end
   
   def self.assert_body(body)

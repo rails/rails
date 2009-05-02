@@ -39,13 +39,20 @@ module ActionController
     end
     
     # :api: private
-    def call(env)
+    def call(name, env)
       @_request = ActionDispatch::Request.new(env)
       @_response = ActionDispatch::Response.new
-      process(@_request.parameters[:action])
+      process(name)
       @_response.body = response_body
       @_response.prepare!
-      self
+      to_rack
+    end
+    
+    def self.action(name)
+      @actions ||= {}
+      @actions[name] ||= proc do |env| 
+        new.call(name, env)
+      end
     end
     
     # :api: private
