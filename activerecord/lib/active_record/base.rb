@@ -899,7 +899,7 @@ module ActiveRecord #:nodoc:
       # Both calls delete the affected posts all at once with a single DELETE statement. If you need to destroy dependent
       # associations or call your <tt>before_*</tt> or +after_destroy+ callbacks, use the +destroy_all+ method instead.
       def delete_all(conditions = nil)
-        Arel(table_name).where(construct_conditions(conditions, scope(:find))).delete
+        arel_table.where(construct_conditions(conditions, scope(:find))).delete
       end
 
       # Returns the result of an SQL statement that should only include a COUNT(*) in the SELECT part.
@@ -2647,8 +2647,7 @@ module ActiveRecord #:nodoc:
       # be made (since they can't be persisted).
       def destroy
         unless new_record?
-          table = Arel(self.class.table_name)
-          table.where(table[self.class.primary_key].eq(quoted_id)).delete
+          arel_table.where(arel_table[self.class.primary_key].eq(id)).delete
         end
 
         freeze
@@ -2943,7 +2942,7 @@ module ActiveRecord #:nodoc:
       def update(attribute_names = @attributes.keys)
         attributes_with_values = arel_attributes_values(false, false, attribute_names)
         return 0 if attributes_with_values.empty?
-        table.where(table[self.class.primary_key].eq(id)).update(attributes_with_values)
+        arel_table.where(arel_table[self.class.primary_key].eq(id)).update(attributes_with_values)
       end
 
       # Creates a record with values matching those of the instance attributes
@@ -3053,7 +3052,7 @@ module ActiveRecord #:nodoc:
         include_readonly_attributes ? quoted : remove_readonly_attributes(quoted)
       end
 
-      def table
+      def arel_table
         @arel_table ||= Arel(self.class.table_name)
       end
 
@@ -3065,7 +3064,7 @@ module ActiveRecord #:nodoc:
             value = read_attribute(name)
 
             if include_readonly_attributes || (!include_readonly_attributes && !self.class.readonly_attributes.include?(name))
-              attrs[table[name]] = value
+              attrs[arel_table[name]] = value
             end
           end
         end

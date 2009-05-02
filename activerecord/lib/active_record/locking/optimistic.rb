@@ -89,9 +89,9 @@ module ActiveRecord
           attribute_names.uniq!
 
           begin
-            affected_rows = table.where(
-              table[self.class.primary_key].eq(quoted_id).and(
-                table[self.class.locking_column].eq(quote_value(previous_value))
+            affected_rows = arel_table.where(
+              arel_table[self.class.primary_key].eq(quoted_id).and(
+                arel_table[self.class.locking_column].eq(quote_value(previous_value))
               )
             ).update(arel_attributes_values(false, false, attribute_names))
 
@@ -116,9 +116,9 @@ module ActiveRecord
       lock_col = self.class.locking_column
       previous_value = send(lock_col).to_i
 
-      affected_rows = table.where(
-          table[self.class.primary_key].eq(quoted_id).and(
-          table[self.class.locking_column].eq(quote_value(previous_value))
+      affected_rows = arel_table.where(
+          arel_table[self.class.primary_key].eq(quoted_id).and(
+          arel_table[self.class.locking_column].eq(quote_value(previous_value))
         )
       ).delete
 

@@ -124,6 +124,7 @@ module ActiveRecord
       #   Person.sum("2 * age")
       def calculate(operation, column_name, options = {})
         validate_calculation_options(operation, options)
+        operation = operation.to_s.downcase
 
         scope = scope(:find)
 
@@ -135,7 +136,7 @@ module ActiveRecord
           joins << join_dependency.join_associations.collect{|join| join.association_join }.join
         end
 
-        if operation == :count
+        if operation == "count"
           if merged_includes.any?
             distinct = true
             column_name = options[:select] || primary_key
@@ -162,7 +163,7 @@ module ActiveRecord
 
       def execute_simple_calculation(operation, column_name, options) #:nodoc:
         table = options[:from] || table_name
-        value = if operation == :count
+        value = if operation == 'count'
           if column_name == :all && options[:select].blank?
             column_name = "*"
           elsif !options[:select].blank?
@@ -187,17 +188,15 @@ module ActiveRecord
         options[:group] = connection.adapter_name == 'FrontBase' ?  group_alias : group_field
 
         aggregate_alias = column_alias_for(operation, column_name)
-        if operation == :count && column_name == :all
+
+        if operation == 'count' && column_name == :all
           options[:select] = "COUNT(*) AS count_all, #{group_field} AS #{group_alias}"
         else
-          arel_column = Arel::Attribute.new(Arel(table_name), column_name).send(operation)
+          arel_column = Arel::Attribute.new(arel_table, column_name).send(operation)
           options[:select] = "#{arel_column.as(aggregate_alias).to_sql}, #{group_field} AS #{group_alias}"
         end
 
-
-        sql = construct_finder_arel(options)
-
-        calculated_data = connection.select_all(sql.to_sql)
+        calculated_data = connection.select_all(construct_finder_sql(options))
 
         if association
           key_ids     = calculated_data.collect { |row| row[group_alias] }
@@ -275,7 +274,6 @@ module ActiveRecord
         end
 
         def type_cast_calculated_value(value, column, operation = nil)
-          operation = operation.to_s.downcase
           case operation
             when 'count' then value.to_i
             when 'sum'   then type_cast_using_column(value || '0', column)
