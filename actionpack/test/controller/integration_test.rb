@@ -297,7 +297,7 @@ class IntegrationProcessTest < ActionController::IntegrationTest
       assert_response 410
       assert_response :gone
       assert_equal "cookie_1=; path=/\ncookie_3=chocolate; path=/", headers["Set-Cookie"]
-      assert_equal({"cookie_1"=>"", "cookie_2"=>"oatmeal", "cookie_3"=>"chocolate"}, cookies)
+      assert_equal({"cookie_1"=>nil, "cookie_2"=>"oatmeal", "cookie_3"=>"chocolate"}, cookies)
       assert_equal "Gone", response.body
     end
   end
@@ -337,7 +337,7 @@ class IntegrationProcessTest < ActionController::IntegrationTest
       get '/get_with_params?foo=bar'
       assert_equal '/get_with_params?foo=bar', request.env["REQUEST_URI"]
       assert_equal '/get_with_params?foo=bar', request.request_uri
-      assert_equal "", request.env["QUERY_STRING"]
+      assert_equal "foo=bar", request.env["QUERY_STRING"]
       assert_equal 'foo=bar', request.query_string
       assert_equal 'bar', request.parameters['foo']
 

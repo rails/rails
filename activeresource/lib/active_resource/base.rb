@@ -890,9 +890,6 @@ module ActiveResource
       ActiveSupport::JSON.encode(attributes, options)
     end
 
-    # For compatibility with ActiveSupport::JSON.encode
-    alias rails_to_json to_json
-
     # Returns the serialized string representation of the resource in the configured
     # serialization format specified in ActiveResource::Base.format. The options
     # applicable depend on the configured encoding format.
@@ -1062,6 +1059,11 @@ module ActiveResource
 
       def split_options(options = {})
         self.class.__send__(:split_options, options)
+      end
+
+      # For compatibility with ActiveSupport::JSON.encode
+      def rails_to_json(options, *args)
+        to_json(options)
       end
 
       def method_missing(method_symbol, *arguments) #:nodoc:

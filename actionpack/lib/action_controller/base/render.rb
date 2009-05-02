@@ -254,7 +254,7 @@ module ActionController
         render_for_text(js)
 
       elsif json = options[:json]
-        json = ActiveSupport::JSON.encode(json) unless json.is_a?(String)
+        json = ActiveSupport::JSON.encode(json) unless json.respond_to?(:to_str)
         json = "#{options[:callback]}(#{json})" unless options[:callback].blank?
         response.content_type ||= Mime::JSON
         render_for_text(json)
@@ -378,13 +378,14 @@ module ActionController
     # ==== Arguments
     # parts<Array[String, Array[Symbol*], String, Boolean]>::
     #     Example: ["show", [:html, :xml], "users", false]
-    def render_for_parts(parts, layout, options = {})
+    def render_for_parts(parts, layout_details, options = {})
       parts[1] = {:formats => parts[1], :locales => [I18n.locale]}
       
       tmp = view_paths.find_by_parts(*parts)
       
-      layout = _pick_layout(*layout) unless tmp.exempt_from_layout?
-            
+      layout = _pick_layout(*layout_details) unless 
+        self.class.exempt_from_layout.include?(tmp.handler)
+      
       render_for_text(
         @template._render_template_with_layout(tmp, layout, options, parts[3]))
     end

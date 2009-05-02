@@ -238,7 +238,7 @@ module ActionController #:nodoc:
     cattr_reader :protected_instance_variables
     # Controller specific instance variables which will not be accessible inside views.
     @@protected_instance_variables = %w(@assigns @performed_redirect @performed_render @variables_added @request_origin @url @parent_controller
-                                        @action_name @before_filter_chain_aborted @action_cache_path @_session @_headers @_params
+                                        @action_name @before_filter_chain_aborted @action_cache_path @_headers @_params
                                         @_flash @_response)
 
     # Prepends all the URL-generating helpers from AssetHelper. This makes it possible to easily move javascripts, stylesheets,
@@ -356,7 +356,9 @@ module ActionController #:nodoc:
 
     # Holds a hash of objects in the session. Accessed like <tt>session[:person]</tt> to get the object tied to the "person"
     # key. The session will hold any type of object as values, but the key should be a string or symbol.
-    attr_internal :session
+    def session
+      request.session
+    end
 
     # Holds a hash of header names and values. Accessed like <tt>headers["Cache-Control"]</tt> to get the value of the Cache-Control
     # directive. Values should always be specified as strings.
@@ -364,6 +366,8 @@ module ActionController #:nodoc:
 
     # Returns the name of the action this controller is processing.
     attr_accessor :action_name
+
+    attr_reader :template
 
     class << self
       def call(env)
@@ -492,8 +496,18 @@ module ActionController #:nodoc:
         end
         protected :filter_parameters
       end
+      
+      @@exempt_from_layout = [ActionView::TemplateHandlers::RJS]
+      
+      def exempt_from_layout(*types)
+        types.each do |type|
+          @@exempt_from_layout << 
+            ActionView::Template.handler_class_for_extension(type)
+        end
+        
+        @@exempt_from_layout
+      end
 
-      delegate :exempt_from_layout, :to => 'ActionView::Template'
     end
 
     public
@@ -787,7 +801,6 @@ module ActionController #:nodoc:
       # Resets the session by clearing out all the objects stored within and initializing a new session object.
       def reset_session #:doc:
         request.reset_session
-        @_session = request.session
       end
 
     private
@@ -805,19 +818,13 @@ module ActionController #:nodoc:
 
       def initialize_template_class(response)
         @template = response.template = ActionView::Base.new(self.class.view_paths, {}, self, formats)
-        response.template.helpers.send :include, self.class.master_helper_module
+        @template.helpers.send :include, self.class.master_helper_module
         response.redirected_to = nil
         @performed_render = @performed_redirect = false
       end
 
       def assign_shortcuts(request, response)
-        @_request, @_params = request, request.parameters
-
-        @_response         = response
-        @_response.session = request.session
-
-        @_session = @_response.session
-
+        @_request, @_response, @_params = request, response, request.parameters
         @_headers = @_response.headers
       end
 
@@ -861,13 +868,13 @@ module ActionController #:nodoc:
         return (performed? ? ret : default_render) if called
         
         begin
-          default_render
-        rescue ActionView::MissingTemplate => e
-          raise e unless e.action_name == action_name
-          # If the path is the same as the action_name, the action is completely missing
+          view_paths.find_by_parts(action_name, {:formats => formats, :locales => [I18n.locale]}, controller_path)
+        rescue => e
           raise UnknownAction, "No action responded to #{action_name}. Actions: " +
             "#{action_methods.sort.to_sentence}", caller
         end
+        
+        default_render
       end
 
       # Returns true if a render or redirect has already been performed.
@@ -894,10 +901,6 @@ module ActionController #:nodoc:
         "#{request.protocol}#{request.host}#{request.request_uri}"
       end
 
-      def close_session
-        # @_session.close if @_session && @_session.respond_to?(:close)
-      end
-
       def default_template(action_name = self.action_name)
         self.view_paths.find_template(default_template_name(action_name), default_template_format)
       end
@@ -921,7 +924,6 @@ module ActionController #:nodoc:
       end
 
       def process_cleanup
-        close_session
       end
   end
 

@@ -184,12 +184,6 @@ XML
     assert_equal Hash.new, @controller.session.to_hash
   end
 
-  def test_session_is_cleared_from_response_after_reset_session
-    process :set_session
-    process :reset_the_session
-    assert_equal Hash.new, @response.session.to_hash
-  end
-
   def test_session_is_cleared_from_request_after_reset_session
     process :set_session
     process :reset_the_session

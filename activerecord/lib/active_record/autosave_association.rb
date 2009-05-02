@@ -311,11 +311,13 @@ module ActiveRecord
     # ActiveRecord::Base after the AutosaveAssociation module, which it does by default.
     def save_has_one_association(reflection)
       if (association = association_instance_get(reflection.name)) && !association.target.nil?
-        if reflection.options[:autosave] && association.marked_for_destruction?
+        autosave = reflection.options[:autosave]
+
+        if autosave && association.marked_for_destruction?
           association.destroy
-        elsif new_record? || association.new_record? || association[reflection.primary_key_name] != id || reflection.options[:autosave]
+        elsif new_record? || association.new_record? || association[reflection.primary_key_name] != id || autosave
           association[reflection.primary_key_name] = id
-          association.save(false)
+          association.save(!autosave)
         end
       end
     end
@@ -330,10 +332,12 @@ module ActiveRecord
     # ActiveRecord::Base after the AutosaveAssociation module, which it does by default.
     def save_belongs_to_association(reflection)
       if association = association_instance_get(reflection.name)
-        if reflection.options[:autosave] && association.marked_for_destruction?
+        autosave = reflection.options[:autosave]
+
+        if autosave && association.marked_for_destruction?
           association.destroy
         else
-          association.save(false) if association.new_record? || reflection.options[:autosave]
+          association.save(!autosave) if association.new_record? || autosave
 
           if association.updated?
             self[reflection.primary_key_name] = association.id

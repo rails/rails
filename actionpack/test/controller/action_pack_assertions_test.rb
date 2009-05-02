@@ -292,14 +292,14 @@ class ActionPackAssertionsControllerTest < ActionController::TestCase
   # make sure that the template objects exist
   def test_template_objects_alive
     process :assign_this
-    assert !@response.has_template_object?('hi')
-    assert @response.has_template_object?('howdy')
+    assert !@controller.template.assigns['hi']
+    assert @controller.template.assigns['howdy']
   end
 
   # make sure we don't have template objects when we shouldn't
   def test_template_object_missing
     process :nothing
-    assert_nil @response.template_objects['howdy']
+    assert_nil @controller.template.assigns['howdy']
   end
 
   # check the empty flashing
@@ -328,11 +328,11 @@ class ActionPackAssertionsControllerTest < ActionController::TestCase
   # check if we were rendered by a file-based template?
   def test_rendered_action
     process :nothing
-    assert_nil @response.rendered[:template]
+    assert_nil @controller.template.rendered[:template]
 
     process :hello_world
-    assert @response.rendered[:template]
-    assert 'hello_world', @response.rendered[:template].to_s
+    assert @controller.template.rendered[:template]
+    assert 'hello_world', @controller.template.rendered[:template].to_s
   end
 
   # check the redirection location
@@ -378,10 +378,12 @@ class ActionPackAssertionsControllerTest < ActionController::TestCase
   def test_redirect_url_match
     process :redirect_external
     assert @response.redirect?
-    assert @response.redirect_url_match?("rubyonrails")
-    assert @response.redirect_url_match?(/rubyonrails/)
-    assert !@response.redirect_url_match?("phpoffrails")
-    assert !@response.redirect_url_match?(/perloffrails/)
+    assert_deprecated do
+      assert @response.redirect_url_match?("rubyonrails")
+      assert @response.redirect_url_match?(/rubyonrails/)
+      assert !@response.redirect_url_match?("phpoffrails")
+      assert !@response.redirect_url_match?(/perloffrails/)
+    end
   end
 
   # check for a redirection

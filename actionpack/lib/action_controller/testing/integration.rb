@@ -17,9 +17,6 @@ module ActionController
       include ActionController::TestCase::Assertions
       include ActionController::TestProcess
 
-      # Rack application to use
-      attr_accessor :application
-
       # The integer HTTP status code of the last request.
       attr_reader :status
 
@@ -60,12 +57,9 @@ module ActionController
       # A running counter of the number of requests processed.
       attr_accessor :request_count
 
-      class MultiPartNeededException < Exception
-      end
-
       # Create and initialize a new Session instance.
       def initialize(app = nil)
-        @application = app || ActionController::Dispatcher.new
+        @app = app || ActionController::Dispatcher.new
         reset!
       end
 
@@ -255,53 +249,8 @@ module ActionController
 
         # Performs the actual request.
         def process(method, path, parameters = nil, headers = nil)
-          data = requestify(parameters)
           path = interpret_uri(path) if path =~ %r{://}
-          path = "/#{path}" unless path[0] == ?/
           @path = path
-          env = {}
-
-          if method == :get
-            env["QUERY_STRING"] = data
-            data = nil
-          end
-
-          env["QUERY_STRING"] ||= ""
-
-          data = data.is_a?(IO) ? data : StringIO.new(data || '')
-
-          env.update(
-            "REQUEST_METHOD"  => method.to_s.upcase,
-            "SERVER_NAME"     => host,
-            "SERVER_PORT"     => (https? ? "443" : "80"),
-            "HTTPS"           => https? ? "on" : "off",
-            "rack.url_scheme" => https? ? "https" : "http",
-            "SCRIPT_NAME"     => "",
-
-            "REQUEST_URI"    => path,
-            "PATH_INFO"      => path,
-            "HTTP_HOST"      => host,
-            "REMOTE_ADDR"    => remote_addr,
-            "CONTENT_TYPE"   => "application/x-www-form-urlencoded",
-            "CONTENT_LENGTH" => data ? data.length.to_s : nil,
-            "HTTP_COOKIE"    => encode_cookies,
-            "HTTP_ACCEPT"    => accept,
-
-            "rack.version"      => [0,1],
-            "rack.input"        => data,
-            "rack.errors"       => StringIO.new,
-            "rack.multithread"  => true,
-            "rack.multiprocess" => true,
-            "rack.run_once"     => false,
-
-            "rack.test" => true
-          )
-
-          (headers || {}).each do |key, value|
-            key = key.to_s.upcase.gsub(/-/, "_")
-            key = "HTTP_#{key}" unless env.has_key?(key) || key =~ /^HTTP_/
-            env[key] = value
-          end
 
           [ControllerCapture, ActionController::ProcessWithTest].each do |mod|
             unless ActionController::Base < mod
@@ -311,70 +260,59 @@ module ActionController
 
           ActionController::Base.clear_last_instantiation!
 
-          app = @application
-          # Rack::Lint doesn't accept String headers or bodies in Ruby 1.9
-          unless RUBY_VERSION >= '1.9.0' && Rack.release <= '0.9.0'
-            app = Rack::Lint.new(app)
+          opts = {
+            :method => method.to_s.upcase,
+            :params => parameters,
+
+            "SERVER_NAME"     => host,
+            "SERVER_PORT"     => (https? ? "443" : "80"),
+            "HTTPS"           => https? ? "on" : "off",
+            "rack.url_scheme" => https? ? "https" : "http",
+
+            "REQUEST_URI"    => path,
+            "PATH_INFO"      => path,
+            "HTTP_HOST"      => host,
+            "REMOTE_ADDR"    => remote_addr,
+            "CONTENT_TYPE"   => "application/x-www-form-urlencoded",
+            "HTTP_ACCEPT"    => accept,
+            "HTTP_COOKIE"    => cookies.inject("") { |string, (name, value)|
+              string << "#{name}=#{value}; "
+            }
+          }
+          env = ActionDispatch::Test::MockRequest.env_for(@path, opts)
+
+          (headers || {}).each do |key, value|
+            key = key.to_s.upcase.gsub(/-/, "_")
+            key = "HTTP_#{key}" unless env.has_key?(key) || key =~ /^HTTP_/
+            env[key] = value
           end
 
+          app = Rack::Lint.new(@app)
           status, headers, body = app.call(env)
+          response = ::Rack::MockResponse.new(status, headers, body)
+
           @request_count += 1
+          @request = Request.new(env)
 
-          @html_document = nil
+          @response = Response.new
+          @response.status  = @status  = response.status
+          @response.headers = @headers = response.headers
+          @response.body    = @body    = response.body
 
-          @status = status.to_i
           @status_message = ActionDispatch::StatusCodes::STATUS_CODES[@status]
-
-          @headers = Rack::Utils::HeaderHash.new(headers)
-
-          (@headers['Set-Cookie'] || "").split("\n").each do |cookie|
-            name, value = cookie.match(/^([^=]*)=([^;]*);/)[1,2]
-            @cookies[name] = value
-          end
-
-          if body.is_a?(String)
-            @body_parts = [body]
-            @body = body
-          else
-            @body_parts = []
-            body.each { |part| @body_parts << part.to_s }
-            @body = @body_parts.join
-          end
-
-          if @controller = ActionController::Base.last_instantiation
-            @request = @controller.request
-            @response = @controller.response
-            @controller.send(:set_test_assigns)
-          else
-            # Decorate responses from Rack Middleware and Rails Metal
-            # as an Response for the purposes of integration testing
-            @response = ActionDispatch::Response.new
-            @response.status = status.to_s
-            @response.headers.replace(@headers)
-            @response.body = @body_parts
-          end
+          @cookies.merge!(@response.cookies)
+          @html_document = nil
 
           # Decorate the response with the standard behavior of the
           # TestResponse so that things like assert_response can be
           # used in integration tests.
           @response.extend(TestResponseBehavior)
 
-          return @status
-        rescue MultiPartNeededException
-          boundary = "----------XnJLe9ZIbbGUYtzPQJ16u1"
-          status = process(method, path,
-            multipart_body(parameters, boundary),
-            (headers || {}).merge(
-              {"CONTENT_TYPE" => "multipart/form-data; boundary=#{boundary}"}))
-          return status
-        end
-
-        # Encode the cookies hash in a format suitable for passing to a
-        # request.
-        def encode_cookies
-          cookies.inject("") do |string, (name, value)|
-            string << "#{name}=#{value}; "
+          if @controller = ActionController::Base.last_instantiation
+            @controller.send(:set_test_assigns)
           end
+
+          return @status
         end
 
         # Get a temporary URL writer object
@@ -388,72 +326,6 @@ module ActionController
             "HTTPS"          => https? ? "on" : "off"
           }
           UrlRewriter.new(ActionDispatch::Request.new(env), {})
-        end
-
-        def name_with_prefix(prefix, name)
-          prefix ? "#{prefix}[#{name}]" : name.to_s
-        end
-
-        # Convert the given parameters to a request string. The parameters may
-        # be a string, +nil+, or a Hash.
-        def requestify(parameters, prefix=nil)
-          if TestUploadedFile === parameters
-            raise MultiPartNeededException
-          elsif Hash === parameters
-            return nil if parameters.empty?
-            parameters.map { |k,v|
-              requestify(v, name_with_prefix(prefix, k))
-            }.join("&")
-          elsif Array === parameters
-            parameters.map { |v|
-              requestify(v, name_with_prefix(prefix, ""))
-            }.join("&")
-          elsif prefix.nil?
-            parameters
-          else
-            "#{CGI.escape(prefix)}=#{CGI.escape(parameters.to_s)}"
-          end
-        end
-
-        def multipart_requestify(params, first=true)
-          returning Hash.new do |p|
-            params.each do |key, value|
-              k = first ? CGI.escape(key.to_s) : "[#{CGI.escape(key.to_s)}]"
-              if Hash === value
-                multipart_requestify(value, false).each do |subkey, subvalue|
-                  p[k + subkey] = subvalue
-                end
-              else
-                p[k] = value
-              end
-            end
-          end
-        end
-
-        def multipart_body(params, boundary)
-          multipart_requestify(params).map do |key, value|
-            if value.respond_to?(:original_filename)
-              File.open(value.path, "rb") do |f|
-                f.set_encoding(Encoding::BINARY) if f.respond_to?(:set_encoding)
-
-                <<-EOF
---#{boundary}\r
-Content-Disposition: form-data; name="#{key}"; filename="#{CGI.escape(value.original_filename)}"\r
-Content-Type: #{value.content_type}\r
-Content-Length: #{File.stat(value.path).size}\r
-\r
-#{f.read}\r
-EOF
-              end
-            else
-<<-EOF
---#{boundary}\r
-Content-Disposition: form-data; name="#{key}"\r
-\r
-#{value}\r
-EOF
-            end
-          end.join("")+"--#{boundary}--\r"
         end
     end
 
@@ -513,8 +385,8 @@ EOF
       # By default, a single session is automatically created for you, but you
       # can use this method to open multiple sessions that ought to be tested
       # simultaneously.
-      def open_session(application = nil)
-        session = Integration::Session.new(application)
+      def open_session(app = nil)
+        session = Integration::Session.new(app)
 
         # delegate the fixture accessors back to the test instance
         extras = Module.new { attr_accessor :delegate, :test_result }

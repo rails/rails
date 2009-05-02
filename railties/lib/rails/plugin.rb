@@ -1,6 +1,3 @@
-require 'active_support/core_ext/kernel/reporting'
-require 'active_support/dependencies'
-
 module Rails
   # The Plugin class should be an object which provides the following methods:
   #

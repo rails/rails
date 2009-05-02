@@ -34,15 +34,78 @@ module ActionDispatch # :nodoc:
     DEFAULT_HEADERS = { "Cache-Control" => "no-cache" }
     attr_accessor :request
 
-    attr_accessor :session, :assigns, :template, :layout
     attr_accessor :redirected_to, :redirected_to_method_params
+
+    attr_writer :header
+    alias_method :headers=, :header=
+
+    def template
+      ActiveSupport::Deprecation.warn("response.template has been deprecated. Use controller.template instead", caller)
+      @template
+    end
+    attr_writer :template
+
+    def session
+      ActiveSupport::Deprecation.warn("response.session has been deprecated. Use request.session instead", caller)
+      @request.session
+    end
+
+    def assigns
+      ActiveSupport::Deprecation.warn("response.assigns has been deprecated. Use controller.assigns instead", caller)
+      @template.controller.assigns
+    end
+
+    def layout
+      ActiveSupport::Deprecation.warn("response.layout has been deprecated. Use template.layout instead", caller)
+      @template.layout
+    end
 
     delegate :default_charset, :to => 'ActionController::Base'
 
     def initialize
       super
       @header = Rack::Utils::HeaderHash.new(DEFAULT_HEADERS)
-      @session, @assigns = [], []
+    end
+
+    # The response code of the request
+    def response_code
+      status.to_s[0,3].to_i rescue 0
+    end
+
+    # Returns a String to ensure compatibility with Net::HTTPResponse
+    def code
+      status.to_s.split(' ')[0]
+    end
+
+    def message
+      status.to_s.split(' ',2)[1] || StatusCodes::STATUS_CODES[response_code]
+    end
+
+    # Was the response successful?
+    def success?
+      (200..299).include?(response_code)
+    end
+
+    # Was the URL not found?
+    def missing?
+      response_code == 404
+    end
+
+    # Were we redirected?
+    def redirect?
+      (300..399).include?(response_code)
+    end
+
+    # Was there a server-side error?
+    def error?
+      (500..599).include?(response_code)
+    end
+
+    alias_method :server_error?, :error?
+
+    # Was there a client client?
+    def client_error?
+      (400..499).include?(response_code)
     end
 
     def body
@@ -53,7 +116,7 @@ module ActionDispatch # :nodoc:
 
     def body=(body)
       @body =
-        if body.is_a?(String)
+        if body.respond_to?(:to_str)
           [body]
         else
           body
@@ -64,9 +127,14 @@ module ActionDispatch # :nodoc:
       @body
     end
 
-    def location; headers['Location'] end
-    def location=(url) headers['Location'] = url end
+    def location
+      headers['Location']
+    end
+    alias_method :redirect_url, :location
 
+    def location=(url)
+      headers['Location'] = url
+    end
 
     # Sets the HTTP response's content MIME type. For example, in the controller
     # you could write this:
@@ -165,8 +233,6 @@ module ActionDispatch # :nodoc:
       if @body.respond_to?(:call)
         @writer = lambda { |x| callback.call(x) }
         @body.call(self, self)
-      elsif @body.is_a?(String)
-        callback.call(@body)
       else
         @body.each(&callback)
       end
@@ -190,6 +256,23 @@ module ActionDispatch # :nodoc:
       end
 
       super(key, value)
+    end
+
+    # Returns the response cookies, converted to a Hash of (name => value) pairs
+    #
+    #   assert_equal 'AuthorOfNewPage', r.cookies['author']
+    def cookies
+      cookies = {}
+      if header = headers['Set-Cookie']
+        header = header.split("\n") if header.respond_to?(:to_str)
+        header.each do |cookie|
+          if pair = cookie.split(';').first
+            key, value = pair.split("=").map { |v| Rack::Utils.unescape(v) }
+            cookies[key] = value
+          end
+        end
+      end
+      cookies
     end
 
     private
@@ -245,7 +328,13 @@ module ActionDispatch # :nodoc:
       end
 
       def convert_cookies!
-        headers['Set-Cookie'] = Array(headers['Set-Cookie']).compact
+        headers['Set-Cookie'] =
+          if header = headers['Set-Cookie']
+            header = header.split("\n") if header.respond_to?(:to_str)
+            header.compact
+          else
+            []
+          end
       end
   end
 end

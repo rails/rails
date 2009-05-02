@@ -79,64 +79,64 @@ class FlashTest < ActionController::TestCase
     get :set_flash
 
     get :use_flash
-    assert_equal "hello", @response.template.assigns["flash_copy"]["that"]
-    assert_equal "hello", @response.template.assigns["flashy"]
+    assert_equal "hello", @controller.template.assigns["flash_copy"]["that"]
+    assert_equal "hello", @controller.template.assigns["flashy"]
 
     get :use_flash
-    assert_nil @response.template.assigns["flash_copy"]["that"], "On second flash"
+    assert_nil @controller.template.assigns["flash_copy"]["that"], "On second flash"
   end
 
   def test_keep_flash
     get :set_flash
     
     get :use_flash_and_keep_it
-    assert_equal "hello", @response.template.assigns["flash_copy"]["that"]
-    assert_equal "hello", @response.template.assigns["flashy"]
+    assert_equal "hello", @controller.template.assigns["flash_copy"]["that"]
+    assert_equal "hello", @controller.template.assigns["flashy"]
 
     get :use_flash
-    assert_equal "hello", @response.template.assigns["flash_copy"]["that"], "On second flash"
+    assert_equal "hello", @controller.template.assigns["flash_copy"]["that"], "On second flash"
 
     get :use_flash
-    assert_nil @response.template.assigns["flash_copy"]["that"], "On third flash"
+    assert_nil @controller.template.assigns["flash_copy"]["that"], "On third flash"
   end
   
   def test_flash_now
     get :set_flash_now
-    assert_equal "hello", @response.template.assigns["flash_copy"]["that"]
-    assert_equal "bar"  , @response.template.assigns["flash_copy"]["foo"]
-    assert_equal "hello", @response.template.assigns["flashy"]
+    assert_equal "hello", @controller.template.assigns["flash_copy"]["that"]
+    assert_equal "bar"  , @controller.template.assigns["flash_copy"]["foo"]
+    assert_equal "hello", @controller.template.assigns["flashy"]
 
     get :attempt_to_use_flash_now
-    assert_nil @response.template.assigns["flash_copy"]["that"]
-    assert_nil @response.template.assigns["flash_copy"]["foo"]
-    assert_nil @response.template.assigns["flashy"]
+    assert_nil @controller.template.assigns["flash_copy"]["that"]
+    assert_nil @controller.template.assigns["flash_copy"]["foo"]
+    assert_nil @controller.template.assigns["flashy"]
   end 
   
   def test_update_flash
     get :set_flash
     get :use_flash_and_update_it
-    assert_equal "hello",       @response.template.assigns["flash_copy"]["that"]
-    assert_equal "hello again", @response.template.assigns["flash_copy"]["this"]
+    assert_equal "hello",       @controller.template.assigns["flash_copy"]["that"]
+    assert_equal "hello again", @controller.template.assigns["flash_copy"]["this"]
     get :use_flash
-    assert_nil                  @response.template.assigns["flash_copy"]["that"], "On second flash"
-    assert_equal "hello again", @response.template.assigns["flash_copy"]["this"], "On second flash"
+    assert_nil                  @controller.template.assigns["flash_copy"]["that"], "On second flash"
+    assert_equal "hello again", @controller.template.assigns["flash_copy"]["this"], "On second flash"
   end
   
   def test_flash_after_reset_session
     get :use_flash_after_reset_session
-    assert_equal "hello",    @response.template.assigns["flashy_that"]
-    assert_equal "good-bye", @response.template.assigns["flashy_this"]
-    assert_nil   @response.template.assigns["flashy_that_reset"]
+    assert_equal "hello",    @controller.template.assigns["flashy_that"]
+    assert_equal "good-bye", @controller.template.assigns["flashy_this"]
+    assert_nil   @controller.template.assigns["flashy_that_reset"]
   end 
 
   def test_sweep_after_halted_filter_chain
     get :std_action
-    assert_nil @response.template.assigns["flash_copy"]["foo"]
+    assert_nil @controller.template.assigns["flash_copy"]["foo"]
     get :filter_halting_action
-    assert_equal "bar", @response.template.assigns["flash_copy"]["foo"]
+    assert_equal "bar", @controller.template.assigns["flash_copy"]["foo"]
     get :std_action # follow redirection
-    assert_equal "bar", @response.template.assigns["flash_copy"]["foo"]
+    assert_equal "bar", @controller.template.assigns["flash_copy"]["foo"]
     get :std_action
-    assert_nil @response.template.assigns["flash_copy"]["foo"]
+    assert_nil @controller.template.assigns["flash_copy"]["foo"]
   end
 end

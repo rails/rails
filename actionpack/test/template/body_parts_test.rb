@@ -6,7 +6,7 @@ class BodyPartsTest < ActionController::TestCase
   class TestController < ActionController::Base
     def index
       RENDERINGS.each do |rendering|
-        response.template.punctuate_body! rendering
+        @template.punctuate_body! rendering
       end
       @performed_render = true
     end
