@@ -316,7 +316,7 @@ to do that.
 
 The default cache stores provided with Rails include:
 
-# ActiveSupport::Cache::MemoryStore: A cache store implementation which stores
+1) ActiveSupport::Cache::MemoryStore: A cache store implementation which stores
 everything into memory in the same process. If you're running multiple Ruby on
 Rails server processes (which is the case if you're using mongrel_cluster or
 Phusion Passenger), then this means that your Rails server process instances
@@ -333,7 +333,7 @@ should be using this cache store.
 ActionController::Base.cache_store = :memory_store
 </ruby>
 
-# ActiveSupport::Cache::FileStore: Cached data is stored on the disk, this is
+2) ActiveSupport::Cache::FileStore: Cached data is stored on the disk, this is
 the default store and the default path for this store is: /tmp/cache. Works
 well for all types of environments and allows all processes running from the
 same application directory to access the cached content. If /tmp/cache does not
@@ -344,7 +344,7 @@ exist, the default store becomes MemoryStore.
 ActionController::Base.cache_store = :file_store, "/path/to/cache/directory"
 </ruby>
 
-# ActiveSupport::Cache::DRbStore: Cached data is stored in a separate shared
+3) ActiveSupport::Cache::DRbStore: Cached data is stored in a separate shared
 DRb process that all servers communicate with. This works for all environments
 and only keeps one cache around for all processes, but requires that you run
 and manage a separate DRb process.
@@ -354,23 +354,28 @@ and manage a separate DRb process.
 ActionController::Base.cache_store = :drb_store, "druby://localhost:9192"
 </ruby>
 
-# MemCached store: Works like DRbStore, but uses Danga's MemCache instead.
+4) MemCached store: Works like DRbStore, but uses Danga's MemCache instead.
 Rails uses the bundled memcached-client gem by default. This is currently the
 most popular cache store for production websites.
 
 Special features:
- * Clustering and load balancing. One can specify multiple memcached servers,
+
+* Clustering and load balancing. One can specify multiple memcached servers,
    and MemCacheStore will load balance between all available servers. If a
    server goes down, then MemCacheStore will ignore it until it goes back
    online.
- * Time-based expiry support. See +write+ and the +:expires_in+ option.
- * Per-request in memory cache for all communication with the MemCache server(s).
+
+* Time-based expiry support. See +write+ and the +:expires_in+ option.
+
+* Per-request in memory cache for all communication with the MemCache server(s).
 
 It also accepts a hash of additional options:
 
- * +:namespace+- specifies a string that will automatically be prepended to keys when accessing the memcached store.
- * +:readonly+- a boolean value that when set to true will make the store read-only, with an error raised on any attempt to write.
- * +:multithread+ - a boolean value that adds thread safety to read/write operations - it is unlikely you'll need to use this option as the Rails threadsafe! method offers the same functionality.
+* +:namespace+- specifies a string that will automatically be prepended to keys when accessing the memcached store.
+
+* +:readonly+- a boolean value that when set to true will make the store read-only, with an error raised on any attempt to write.
+
+* +:multithread+ - a boolean value that adds thread safety to read/write operations - it is unlikely you'll need to use this option as the Rails threadsafe! method offers the same functionality.
 
 The read and write methods of the MemCacheStore accept an options hash too.
 When reading you can specify +:raw => true+ to prevent the object being marshaled
@@ -391,14 +396,14 @@ for the cached item in seconds.
 ActionController::Base.cache_store = :mem_cache_store, "localhost"
 </ruby>
 
-# ActiveSupport::Cache::SynchronizedMemoryStore: Like ActiveSupport::Cache::MemoryStore but thread-safe.
+5) ActiveSupport::Cache::SynchronizedMemoryStore: Like ActiveSupport::Cache::MemoryStore but thread-safe.
 
 
 <ruby>
 ActionController::Base.cache_store = :synchronized_memory_store
 </ruby>
 
-# ActiveSupport::Cache::CompressedMemCacheStore: Works just like the regular
+6) ActiveSupport::Cache::CompressedMemCacheStore: Works just like the regular
 MemCacheStore but uses GZip to decompress/compress on read/write.
 
 
@@ -406,7 +411,7 @@ MemCacheStore but uses GZip to decompress/compress on read/write.
 ActionController::Base.cache_store = :compressed_mem_cache_store, "localhost"
 </ruby>
 
-# Custom store: You can define your own cache store (new in Rails 2.1)
+7) Custom store: You can define your own cache store (new in Rails 2.1)
 
 
 <ruby>
@@ -507,9 +512,16 @@ h3. References
 h3. Changelog
 "Lighthouse ticket":http://rails.lighthouseapp.com/projects/16213-rails-guides/tickets/10-guide-to-caching
 
+May       02, 2009: Formatting cleanups
+
 April     26, 2009: Clean up typos in submitted patch
+
 April      1, 2009: Made a bunch of small fixes
+
 February  22, 2009: Beefed up the section on cache_stores
+
 December  27, 2008: Typo fixes
+
 November  23, 2008: Incremental updates with various suggested changes and formatting cleanup
+
 September 15, 2008: Initial version by Aditya Chadha
