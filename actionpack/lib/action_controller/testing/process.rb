@@ -132,7 +132,10 @@ module ActionController #:nodoc:
 
       Base.class_eval { include ProcessWithTest } unless Base < ProcessWithTest
 
-      @controller.process(@request, @response)
+      response = Rack::MockResponse.new(*@controller.process(@request, ActionDispatch::Response.new).to_a)
+      @response.request, @response.template = @request, @controller.template
+      @response.status, @response.headers, @response.body = response.status, response.headers, response.body
+      @response
     end
 
     def xml_http_request(request_method, action, parameters = nil, session = nil, flash = nil)

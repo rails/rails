@@ -93,6 +93,12 @@ module ActionDispatch
         ActiveSupport::Deprecation.warn("response.has_template_object? has been deprecated. Use tempate.assigns[name].nil? instead", caller)
         !template_objects[name].nil?
       end
+
+      # Returns binary content (downloadable file), converted to a String
+      def binary_content
+        ActiveSupport::Deprecation.warn("response.binary_content has been deprecated. Use response.body instead", caller)
+        body
+      end
     end
     include DeprecatedHelpers
 
@@ -120,18 +126,6 @@ module ActionDispatch
     # Was there a client client?
     def client_error?
       (400..499).include?(response_code)
-    end
-
-    # Returns binary content (downloadable file), converted to a String
-    def binary_content
-      raise "Response body is not a Proc: #{body_parts.inspect}" unless body_parts.kind_of?(Proc)
-      require 'stringio'
-
-      sio = StringIO.new
-      body_parts.call(self, sio)
-
-      sio.rewind
-      sio.read
     end
   end
 end

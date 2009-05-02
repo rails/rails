@@ -44,12 +44,12 @@ class SendFileTest < ActionController::TestCase
     response = nil
     assert_nothing_raised { response = process('file') }
     assert_not_nil response
-    assert_kind_of Proc, response.body_parts
+    assert_kind_of Array, response.body_parts
 
     require 'stringio'
     output = StringIO.new
     output.binmode
-    assert_nothing_raised { response.body_parts.call(response, output) }
+    assert_nothing_raised { response.body_parts.each { |part| output << part.to_s } }
     assert_equal file_data, output.string
   end
 
@@ -149,13 +149,13 @@ class SendFileTest < ActionController::TestCase
     define_method "test_send_#{method}_status" do
       @controller.options = { :stream => false, :status => 500 }
       assert_nothing_raised { assert_not_nil process(method) }
-      assert_equal '500 Internal Server Error', @response.status
+      assert_equal 500, @response.status
     end
 
     define_method "test_default_send_#{method}_status" do
       @controller.options = { :stream => false }
       assert_nothing_raised { assert_not_nil process(method) }
-      assert_equal ActionController::DEFAULT_RENDER_STATUS_CODE, @response.status
+      assert_equal 200, @response.status
     end
   end
 end

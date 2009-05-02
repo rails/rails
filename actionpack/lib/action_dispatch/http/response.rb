@@ -185,7 +185,7 @@ module ActionDispatch # :nodoc:
         @writer = lambda { |x| callback.call(x) }
         @body.call(self, self)
       else
-        @body.each(&callback)
+        @body.each { |part| callback.call(part.to_s) }
       end
 
       @writer = callback
