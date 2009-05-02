@@ -3,7 +3,7 @@ require File.join(File.expand_path(File.dirname(__FILE__)), "test_helper")
 module RenderAction
   
   # This has no layout and it works
-  class BasicController < ActionController::Base2
+  class BasicController < ActionController::Base
     
     self.view_paths = [ActionView::Template::FixturePath.new(
       "render_action/basic/hello_world.html.erb" => "Hello world!"
@@ -203,7 +203,7 @@ end
 
 module RenderActionWithControllerLayout
   
-  class BasicController < ActionController::Base2
+  class BasicController < ActionController::Base
     self.view_paths = self.view_paths = [ActionView::Template::FixturePath.new(
       "render_action_with_controller_layout/basic/hello_world.html.erb" => "Hello World!",
       "layouts/render_action_with_controller_layout/basic.html.erb"     => "With Controller Layout! <%= yield %> KTHXBAI"
@@ -266,7 +266,7 @@ end
 
 module RenderActionWithBothLayouts
   
-  class BasicController < ActionController::Base2
+  class BasicController < ActionController::Base
     self.view_paths = [ActionView::Template::FixturePath.new({
       "render_action_with_both_layouts/basic/hello_world.html.erb" => "Hello World!",
       "layouts/application.html.erb"                                => "OHAI <%= yield %> KTHXBAI",

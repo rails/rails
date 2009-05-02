@@ -1,7 +1,7 @@
 require File.join(File.expand_path(File.dirname(__FILE__)), "test_helper")
 
 module RenderTemplate
-  class WithoutLayoutController < ActionController::Base2
+  class WithoutLayoutController < ActionController::Base
     
     self.view_paths = [ActionView::Template::FixturePath.new(
       "test/basic.html.erb" => "Hello from basic.html.erb",
@@ -129,7 +129,7 @@ module RenderTemplate
   end
   
   module Compatibility
-    class WithoutLayoutController < ActionController::CompatibleBase2
+    class WithoutLayoutController < ActionController::Base
       self.view_paths = [ActionView::Template::FixturePath.new(
         "test/basic.html.erb" => "Hello from basic.html.erb",
         "shared.html.erb"     => "Elastica"

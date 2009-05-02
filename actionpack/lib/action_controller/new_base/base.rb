@@ -1,59 +1,60 @@
 module ActionController
-  class Http < AbstractController::Base
+  class Base < Http
     abstract!
     
-    # :api: public
-    attr_internal :request, :response, :params
+    use AbstractController::Callbacks
+    use AbstractController::Helpers
+    use AbstractController::Logger
 
-    # :api: public
-    def self.controller_name
-      @controller_name ||= controller_path.split("/").last
-    end
-
-    # :api: public
-    def controller_name() self.class.controller_name end
-
-    # :api: public    
-    def self.controller_path
-      @controller_path ||= self.name.sub(/Controller$/, '').underscore
-    end
+    use ActionController::HideActions
+    use ActionController::UrlFor
+    use ActionController::Renderer
+    use ActionController::Layouts
     
-    # :api: public    
-    def controller_path() self.class.controller_path end
+    # Legacy modules
+    include SessionManagement
     
-    # :api: private
-    def self.internal_methods
-      ActionController::Http.public_instance_methods(true)
+    # Rails 2.x compatibility
+    use ActionController::Rails2Compatibility
+    
+    def self.inherited(klass)
+      ::ActionController::Base.subclasses << klass.to_s
+      super
     end
     
-    # :api: private    
-    def self.action_names() action_methods end
-    
-    # :api: private
-    def action_names() action_methods end
-    
-    # :api: plugin
-    def self.call(env)
-      controller = new
-      controller.call(env).to_rack
+    def self.subclasses
+      @subclasses ||= []
     end
     
-    # :api: private
-    def call(env)
-      @_request = ActionDispatch::Request.new(env)
-      @_response = ActionDispatch::Response.new
-      process(@_request.parameters[:action])
-      @_response.body = response_body
-      @_response.prepare!
-      self
+    def self.app_loaded!
+      @subclasses.each do |subclass|
+        subclass.constantize._write_layout_method
+      end
     end
     
-    # :api: private
-    def to_rack
-      @_response.to_a
+    def render(action = action_name, options = {})
+      if action.is_a?(Hash)
+        options, action = action, nil 
+      else
+        options.merge! :action => action
+      end
+      
+      super(options)
     end
-  end
-  
-  class Base < Http
+    
+    def render_to_body(options = {})
+      options = {:template => options} if options.is_a?(String)
+      super
+    end
+    
+    def process_action
+      ret = super
+      render if response_body.nil?
+      ret
+    end
+    
+    def respond_to_action?(action_name)
+      super || view_paths.find_by_parts?(action_name.to_s, {:formats => formats, :locales => [I18n.locale]}, controller_path)
+    end
   end
 end

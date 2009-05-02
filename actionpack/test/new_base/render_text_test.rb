@@ -1,10 +1,10 @@
 require File.join(File.expand_path(File.dirname(__FILE__)), "test_helper")
 
-class ApplicationController < ActionController::Base2
+class ApplicationController < ActionController::Base
 end
 
 module RenderText
-  class SimpleController < ActionController::Base2
+  class SimpleController < ActionController::Base
     self.view_paths = [ActionView::Template::FixturePath.new]
     
     def index
@@ -146,4 +146,4 @@ module RenderText
   end
 end
 
-ActionController::Base2.app_loaded!
+ActionController::Base.app_loaded!

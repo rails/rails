@@ -1,7 +1,7 @@
 require File.join(File.expand_path(File.dirname(__FILE__)), "test_helper")
 
 module ContentType
-  class BaseController < ActionController::Base2
+  class BaseController < ActionController::Base
     def index
       render :text => "Hello world!"
     end
@@ -40,7 +40,7 @@ module ContentType
     assert_header "Content-Type", "application/rss+xml; charset=utf-8"
   end
   
-  class ImpliedController < ActionController::Base2
+  class ImpliedController < ActionController::Base
     self.view_paths = [ActionView::Template::FixturePath.new(
       "content_type/implied/i_am_html_erb.html.erb"         => "Hello world!",
       "content_type/implied/i_am_xml_erb.xml.erb"          => "<xml>Hello world!</xml>",
@@ -81,7 +81,7 @@ module ContentType
 end
 
 module Charset
-  class BaseController < ActionController::Base2
+  class BaseController < ActionController::Base
     def set_on_response_obj
       response.charset = "utf-16"
       render :text => "Hello world!"

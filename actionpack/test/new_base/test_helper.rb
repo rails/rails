@@ -5,10 +5,7 @@ $:.unshift(File.dirname(__FILE__) + '/../lib')
 require 'test/unit'
 require 'active_support'
 require 'active_support/test_case'
-require 'action_controller/new_base/base'
-require 'action_controller/new_base/renderer'
-require 'action_controller'
-require 'action_view/base'
+require 'action_view'
 require 'fixture_template'
 
 begin
@@ -34,67 +31,6 @@ module Rails
   end
 end
 
-module ActionController
-  class Base2 < Http
-    abstract!
-    
-    use AbstractController::Callbacks
-    use AbstractController::Helpers
-    use AbstractController::Logger
-
-    use ActionController::HideActions
-    use ActionController::UrlFor
-    use ActionController::Renderer
-    use ActionController::Layouts
-    
-    def self.inherited(klass)
-      ::ActionController::Base2.subclasses << klass.to_s
-      super
-    end
-    
-    def self.subclasses
-      @subclasses ||= []
-    end
-    
-    def self.app_loaded!
-      @subclasses.each do |subclass|
-        subclass.constantize._write_layout_method
-      end
-    end
-    
-    def render(action = action_name, options = {})
-      if action.is_a?(Hash)
-        options, action = action, nil 
-      else
-        options.merge! :action => action
-      end
-      
-      super(options)
-    end
-    
-    def render_to_body(options = {})
-      options = {:template => options} if options.is_a?(String)
-      super
-    end
-    
-    def process_action
-      ret = super
-      render if response_body.nil?
-      ret
-    end
-    
-    def respond_to_action?(action_name)
-      super || view_paths.find_by_parts?(action_name.to_s, {:formats => formats, :locales => [I18n.locale]}, controller_path)
-    end
-  end
-  
-  class CompatibleBase2 < Base2
-    abstract!
-    
-    use ActionController::Rails2Compatibility
-  end
-end
-
 # Temporary base class
 class Rack::TestCase < ActiveSupport::TestCase
   include Rack::Test::Methods
@@ -103,7 +39,7 @@ class Rack::TestCase < ActiveSupport::TestCase
     ActionController::Base.session_options[:key] = "abc"
     ActionController::Base.session_options[:secret] = ("*" * 30)
     
-    controllers = ActionController::Base2.subclasses.map do |k| 
+    controllers = ActionController::Base.subclasses.map do |k| 
       k.underscore.sub(/_controller$/, '')
     end
     
@@ -171,7 +107,7 @@ class Rack::TestCase < ActiveSupport::TestCase
   
 end
 
-class ::ApplicationController < ActionController::Base2
+class ::ApplicationController < ActionController::Base
 end
 
 class SimpleRouteCase < Rack::TestCase

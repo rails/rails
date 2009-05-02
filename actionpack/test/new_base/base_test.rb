@@ -2,7 +2,7 @@ require File.join(File.expand_path(File.dirname(__FILE__)), "test_helper")
 
 # Tests the controller dispatching happy path
 module Dispatching
-  class SimpleController < ActionController::Base2
+  class SimpleController < ActionController::Base
     def index
       render :text => "success"
     end
@@ -69,9 +69,9 @@ module Dispatching
     end
   end
   
-  class EmptyController < ActionController::Base2 ; end
+  class EmptyController < ActionController::Base ; end
   module Submodule
-    class ContainedEmptyController < ActionController::Base2 ; end
+    class ContainedEmptyController < ActionController::Base ; end
   end
 
   class ControllerClassTests < Test::Unit::TestCase

@@ -1,7 +1,7 @@
 require File.join(File.expand_path(File.dirname(__FILE__)), "test_helper")
 
 module Render
-  class BlankRenderController < ActionController::Base2
+  class BlankRenderController < ActionController::Base
     self.view_paths = [ActionView::Template::FixturePath.new(
       "render/blank_render/index.html.erb"                  => "Hello world!",
       "render/blank_render/access_request.html.erb"         => "The request: <%= request.method.to_s.upcase %>",
@@ -36,7 +36,7 @@ module Render
     assert_status 200
   end  
   
-  class DoubleRenderController < ActionController::Base2
+  class DoubleRenderController < ActionController::Base
     def index
       render :text => "hello"
       render :text => "world"
