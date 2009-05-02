@@ -21,15 +21,10 @@
 # WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 #++
 
-begin
-  require 'active_support'
-rescue LoadError
-  activesupport_path = "#{File.dirname(__FILE__)}/../../activesupport/lib"
-  if File.directory?(activesupport_path)
-    $:.unshift activesupport_path
-    require 'active_support'
-  end
+"#{File.dirname(__FILE__)}/../../activesupport/lib".tap do |path|
+  $:.unshift(path) if File.directory?(path)
 end
+require 'active_support'
 require 'active_support/core/all'
 
 module ActiveRecord
