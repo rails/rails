@@ -80,7 +80,7 @@ module ActionController
         Routing::Routes.call(env)
       rescue Exception => exception
         if controller ||= (::ApplicationController rescue Base)
-          controller.call_with_exception(env, exception).to_a
+          controller.call_with_exception(env, exception)
         else
           raise exception
         end

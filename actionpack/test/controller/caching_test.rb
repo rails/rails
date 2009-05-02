@@ -111,7 +111,7 @@ class PageCachingTest < ActionController::TestCase
   end
 
   def test_should_cache_ok_at_custom_path
-    @request.stubs(:path).returns("/index.html")
+    @request.request_uri = "/index.html"
     get :ok
     assert_response :ok
     assert File.exist?("#{FILE_STORE_PATH}/index.html")

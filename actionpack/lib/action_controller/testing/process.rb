@@ -35,12 +35,13 @@ module ActionController #:nodoc:
       end
 
       data = params.to_query
-      @env['CONTENT_LENGTH'] = data.length
+      @env['CONTENT_LENGTH'] = data.length.to_s
       @env['rack.input'] = StringIO.new(data)
     end
 
     def recycle!
       @env.delete_if { |k, v| k =~ /^(action_dispatch|rack)\.request/ }
+      @env.delete_if { |k, v| k =~ /^action_dispatch\.rescue/ }
       @env['action_dispatch.request.query_parameters'] = {}
     end
   end
@@ -132,7 +133,15 @@ module ActionController #:nodoc:
 
       Base.class_eval { include ProcessWithTest } unless Base < ProcessWithTest
 
-      response = Rack::MockResponse.new(*@controller.process(@request, ActionDispatch::Response.new).to_a)
+      env = @request.env
+      app = @controller
+
+      # TODO: Enable Lint
+      # app = Rack::Lint.new(app)
+
+      status, headers, body = app.call(env)
+      response = Rack::MockResponse.new(status, headers, body)
+
       @response.request, @response.template = @request, @controller.template
       @response.status, @response.headers, @response.body = response.status, response.headers, response.body
       @response
