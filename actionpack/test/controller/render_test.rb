@@ -194,6 +194,10 @@ class TestController < ActionController::Base
     render :inline =>  "<%= controller_name %>"
   end
 
+  def render_json_nil
+    render :json => nil
+  end
+
   def render_json_hello_world
     render :json => ActiveSupport::JSON.encode(:hello => 'world')
   end
@@ -872,6 +876,12 @@ class RenderTest < ActionController::TestCase
   def test_render_file_from_template
     get :render_file_from_template
     assert_equal "The secret is in the sauce\n", @response.body
+  end
+
+  def test_render_json_nil
+    get :render_json_nil
+    assert_equal 'null', @response.body
+    assert_equal 'application/json', @response.content_type
   end
 
   def test_render_json

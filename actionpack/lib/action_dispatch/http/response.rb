@@ -39,27 +39,6 @@ module ActionDispatch # :nodoc:
     attr_writer :header
     alias_method :headers=, :header=
 
-    def template
-      ActiveSupport::Deprecation.warn("response.template has been deprecated. Use controller.template instead", caller)
-      @template
-    end
-    attr_writer :template
-
-    def session
-      ActiveSupport::Deprecation.warn("response.session has been deprecated. Use request.session instead", caller)
-      @request.session
-    end
-
-    def assigns
-      ActiveSupport::Deprecation.warn("response.assigns has been deprecated. Use controller.assigns instead", caller)
-      @template.controller.assigns
-    end
-
-    def layout
-      ActiveSupport::Deprecation.warn("response.layout has been deprecated. Use template.layout instead", caller)
-      @template.layout
-    end
-
     delegate :default_charset, :to => 'ActionController::Base'
 
     def initialize
@@ -80,33 +59,7 @@ module ActionDispatch # :nodoc:
     def message
       status.to_s.split(' ',2)[1] || StatusCodes::STATUS_CODES[response_code]
     end
-
-    # Was the response successful?
-    def success?
-      (200..299).include?(response_code)
-    end
-
-    # Was the URL not found?
-    def missing?
-      response_code == 404
-    end
-
-    # Were we redirected?
-    def redirect?
-      (300..399).include?(response_code)
-    end
-
-    # Was there a server-side error?
-    def error?
-      (500..599).include?(response_code)
-    end
-
-    alias_method :server_error?, :error?
-
-    # Was there a client client?
-    def client_error?
-      (400..499).include?(response_code)
-    end
+    alias_method :status_message, :message
 
     def body
       str = ''

@@ -114,7 +114,7 @@ module ActiveRecord
         end
       end
 
-      delegate :scopes, :with_scope, :to => :proxy_scope
+      delegate :scopes, :with_scope, :scoped_methods, :to => :proxy_scope
 
       def initialize(proxy_scope, options, &block)
         options ||= {}
@@ -178,7 +178,7 @@ module ActiveRecord
         else
           with_scope({:find => proxy_options, :create => proxy_options[:conditions].is_a?(Hash) ?  proxy_options[:conditions] : {}}, :reverse_merge) do
             method = :new if method == :build
-            if current_scoped_methods_when_defined
+            if current_scoped_methods_when_defined && !scoped_methods.include?(current_scoped_methods_when_defined)
               with_scope current_scoped_methods_when_defined do
                 proxy_scope.send(method, *args, &block)
               end
