@@ -48,6 +48,8 @@ module ActionDispatch
   autoload :Failsafe, 'action_dispatch/middleware/failsafe'
   autoload :ParamsParser, 'action_dispatch/middleware/params_parser'
   autoload :Reloader, 'action_dispatch/middleware/reloader'
+  autoload :Rescue, 'action_dispatch/middleware/rescue'
+  autoload :ShowExceptions, 'action_dispatch/middleware/show_exceptions'
   autoload :MiddlewareStack, 'action_dispatch/middleware/stack'
 
   autoload :Assertions, 'action_dispatch/testing/assertions'

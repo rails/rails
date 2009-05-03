@@ -75,18 +75,10 @@ module ActionController
     end
 
     def _call(env)
-      begin
-        run_callbacks :before_dispatch
-        Routing::Routes.call(env)
-      rescue Exception => exception
-        if controller ||= (::ApplicationController rescue Base)
-          controller.call_with_exception(env, exception)
-        else
-          raise exception
-        end
-      ensure
-        run_callbacks :after_dispatch, :enumerator => :reverse_each
-      end
+      run_callbacks :before_dispatch
+      Routing::Routes.call(env)
+    ensure
+      run_callbacks :after_dispatch, :enumerator => :reverse_each
     end
 
     def flush_logger
