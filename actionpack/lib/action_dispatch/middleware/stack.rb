@@ -61,7 +61,7 @@ module ActionDispatch
 
       def inspect
         str = klass.to_s
-        args.each { |arg| str += ", #{arg.inspect}" }
+        args.each { |arg| str += ", #{build_args.inspect}" }
         str
       end
 
@@ -74,7 +74,6 @@ module ActionDispatch
       end
 
       private
-
         def build_args
           Array(args).map { |arg| arg.respond_to?(:call) ? arg.call : arg }
         end
