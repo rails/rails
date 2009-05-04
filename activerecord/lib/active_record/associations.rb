@@ -1665,17 +1665,29 @@ module ActiveRecord
           string.scan(/([\.a-zA-Z_]+).?\./).flatten
         end
 
+        def tables_in_hash(hash)
+          return [] if hash.blank?
+          tables = hash.map do |key, value|
+            if value.is_a?(Hash)
+              key.to_s
+            else
+              tables_in_string(key) if key.is_a?(String)
+            end
+          end
+          tables.flatten.compact
+        end
+
         def conditions_tables(options)
           # look in both sets of conditions
           conditions = [scope(:find, :conditions), options[:conditions]].inject([]) do |all, cond|
             case cond
               when nil   then all
-              when Array then all << cond.first
-              when Hash  then all << cond.keys
-              else            all << cond
+              when Array then all << tables_in_string(cond.first)
+              when Hash  then all << tables_in_hash(cond)
+              else            all << tables_in_string(cond)
             end
           end
-          tables_in_string(conditions.join(' '))
+          conditions.flatten
         end
 
         def order_tables(options)
