@@ -1,6 +1,6 @@
 <h1>
   <%=h @exception.original_exception.class.to_s %> in
-  <%=h request.parameters["controller"].capitalize if request.parameters["controller"]%>#<%=h request.parameters["action"] %>
+  <%=h @request.parameters["controller"].capitalize if @request.parameters["controller"]%>#<%=h @request.parameters["action"] %>
 </h1>
 
 <p>
@@ -15,7 +15,7 @@
 
 <% @real_exception = @exception
    @exception = @exception.original_exception || @exception %>
-<%= render :file => @rescues_path["rescues/_trace.erb"] %>
+<%= render :file => "rescues/_trace.erb" %>
 <% @exception = @real_exception %>
 
-<%= render :file => @rescues_path["rescues/_request_and_response.erb"] %>
+<%= render :file => "rescues/_request_and_response.erb" %>

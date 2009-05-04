@@ -111,7 +111,7 @@ class PageCachingTest < ActionController::TestCase
   end
 
   def test_should_cache_ok_at_custom_path
-    @request.stubs(:path).returns("/index.html")
+    @request.request_uri = "/index.html"
     get :ok
     assert_response :ok
     assert File.exist?("#{FILE_STORE_PATH}/index.html")
@@ -149,6 +149,9 @@ class PageCachingTest < ActionController::TestCase
 end
 
 class ActionCachingTestController < ActionController::Base
+  rescue_from(Exception) { head 500 }
+  rescue_from(ActiveRecord::RecordNotFound) { head :not_found }
+
   caches_action :index, :redirected, :forbidden, :if => Proc.new { |c| !c.request.format.json? }, :expires_in => 1.hour
   caches_action :show, :cache_path => 'http://test.host/custom/show'
   caches_action :edit, :cache_path => Proc.new { |c| c.params[:id] ? "http://test.host/#{c.params[:id]};edit" : "http://test.host/edit" }

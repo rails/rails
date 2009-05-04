@@ -1293,15 +1293,15 @@ class RenderTest < ActionController::TestCase
 
   def test_head_with_symbolic_status
     get :head_with_symbolic_status, :status => "ok"
-    assert_equal "200 OK", @response.status
+    assert_equal 200, @response.status
     assert_response :ok
 
     get :head_with_symbolic_status, :status => "not_found"
-    assert_equal "404 Not Found", @response.status
+    assert_equal 404, @response.status
     assert_response :not_found
 
     get :head_with_symbolic_status, :status => "no_content"
-    assert_equal "204 No Content", @response.status
+    assert_equal 204, @response.status
     assert !@response.headers.include?('Content-Length')
     assert_response :no_content
 
@@ -1322,7 +1322,7 @@ class RenderTest < ActionController::TestCase
   def test_head_with_string_status
     get :head_with_string_status, :status => "404 Eat Dirt"
     assert_equal 404, @response.response_code
-    assert_equal "Eat Dirt", @response.message
+    assert_equal "Not Found", @response.message
     assert_response :not_found
   end
 
@@ -1590,7 +1590,7 @@ class EtagRenderTest < ActionController::TestCase
   def test_render_against_etag_request_should_304_when_match
     @request.if_none_match = etag_for("hello david")
     get :render_hello_world_from_variable
-    assert_equal "304 Not Modified", @response.status
+    assert_equal 304, @response.status
     assert @response.body.empty?
   end
 
@@ -1603,13 +1603,13 @@ class EtagRenderTest < ActionController::TestCase
   def test_render_against_etag_request_should_200_when_no_match
     @request.if_none_match = etag_for("hello somewhere else")
     get :render_hello_world_from_variable
-    assert_equal "200 OK", @response.status
+    assert_equal 200, @response.status
     assert !@response.body.empty?
   end
 
   def test_render_should_not_set_etag_when_last_modified_has_been_specified
     get :render_hello_world_with_last_modified_set
-    assert_equal "200 OK", @response.status
+    assert_equal 200, @response.status
     assert_not_nil @response.last_modified
     assert_nil @response.etag
     assert @response.body.present?
@@ -1623,11 +1623,11 @@ class EtagRenderTest < ActionController::TestCase
 
     @request.if_none_match = expected_etag
     get :render_hello_world_from_variable
-    assert_equal "304 Not Modified", @response.status
+    assert_equal 304, @response.status
 
     @request.if_none_match = "\"diftag\""
     get :render_hello_world_from_variable
-    assert_equal "200 OK", @response.status
+    assert_equal 200, @response.status
   end
 
   def render_with_404_shouldnt_have_etag
@@ -1695,7 +1695,7 @@ class LastModifiedRenderTest < ActionController::TestCase
   def test_request_not_modified
     @request.if_modified_since = @last_modified
     get :conditional_hello
-    assert_equal "304 Not Modified", @response.status
+    assert_equal 304, @response.status
     assert @response.body.blank?, @response.body
     assert_equal @last_modified, @response.headers['Last-Modified']
   end
@@ -1710,7 +1710,7 @@ class LastModifiedRenderTest < ActionController::TestCase
   def test_request_modified
     @request.if_modified_since = 'Thu, 16 Jul 2008 00:00:00 GMT'
     get :conditional_hello
-    assert_equal "200 OK", @response.status
+    assert_equal 200, @response.status
     assert !@response.body.blank?
     assert_equal @last_modified, @response.headers['Last-Modified']
   end

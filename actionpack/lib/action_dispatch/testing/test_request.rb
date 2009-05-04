@@ -16,6 +16,7 @@ module ActionDispatch
 
     def env
       write_cookies!
+      delete_nil_values!
       super
     end
 
@@ -73,6 +74,10 @@ module ActionDispatch
         unless @cookies.blank?
           @env['HTTP_COOKIE'] = @cookies.map { |name, value| "#{name}=#{value};" }.join(' ')
         end
+      end
+
+      def delete_nil_values!
+        @env.delete_if { |k, v| v.nil? }
       end
   end
 end
