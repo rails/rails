@@ -695,7 +695,7 @@ Regular routes need not use the +connect+ method. You can use any other name her
 map.logout '/logout', :controller => 'sessions', :action => 'destroy'
 </ruby>
 
-This will do two things. First, requests to +/logout+ will be sent to the +destroy+ method of the +Sessions+ controller. Second, Rails will maintain the +logout_path+ and +logout_url+ helpers for use within your code.
+This will do two things. First, requests to +/logout+ will be sent to the +destroy+ action of the +Sessions+ controller. Second, Rails will maintain the +logout_path+ and +logout_url+ helpers for use within your code.
 
 h4. Route Requirements
 
