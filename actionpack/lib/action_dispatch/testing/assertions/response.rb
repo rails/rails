@@ -31,13 +31,7 @@ module ActionDispatch
         elsif type.is_a?(Symbol) && @response.response_code == ActionDispatch::StatusCodes::SYMBOL_TO_STATUS_CODE[type]
           assert_block("") { true } # to count the assertion
         else
-          if @controller && @response.error?
-            exception = @controller.template.instance_variable_get(:@exception)
-            exception_message = exception && exception.message
-            assert_block(build_message(message, "Expected response to be a <?>, but was <?>\n<?>", type, @response.response_code, exception_message.to_s)) { false }
-          else
-            assert_block(build_message(message, "Expected response to be a <?>, but was <?>", type, @response.response_code)) { false }
-          end
+          assert_block(build_message(message, "Expected response to be a <?>, but was <?>", type, @response.response_code)) { false }
         end
       end
 

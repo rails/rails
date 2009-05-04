@@ -30,10 +30,6 @@ module ActionController #:nodoc:
     def allowed_methods_header
       allowed_methods.map { |method_symbol| method_symbol.to_s.upcase } * ', '
     end
-
-    def handle_response!(response)
-      response.headers['Allow'] ||= allowed_methods_header
-    end
   end
 
   class NotImplemented < MethodNotAllowed #:nodoc:
@@ -510,9 +506,8 @@ module ActionController #:nodoc:
 
     public
       def call(env)
-        # HACK: For global rescue to have access to the original request and response
-        request = env["action_dispatch.rescue.request"] ||= ActionDispatch::Request.new(env)
-        response = env["action_dispatch.rescue.response"] ||= ActionDispatch::Response.new
+        request = ActionDispatch::Request.new(env)
+        response = ActionDispatch::Response.new
         process(request, response).to_a
       end
 

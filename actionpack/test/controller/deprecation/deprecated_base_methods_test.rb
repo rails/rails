@@ -15,12 +15,6 @@ class DeprecatedBaseMethodsTest < ActionController::TestCase
 
   tests Target
 
-  def test_log_error_silences_deprecation_warnings
-    get :raises_name_error
-  rescue => e
-    assert_not_deprecated { @controller.send :log_error, e }
-  end
-
   if defined? Test::Unit::Error
     def test_assertion_failed_error_silences_deprecation_warnings
       get :raises_name_error

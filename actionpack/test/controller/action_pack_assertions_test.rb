@@ -489,7 +489,7 @@ class ActionPackAssertionsControllerTest < ActionController::TestCase
     get :index
     assert_response :success
     flunk 'Expected non-success response'
-  rescue ActiveSupport::TestCase::Assertion => e
+  rescue RuntimeError => e
     assert e.message.include?('FAIL')
   end
 

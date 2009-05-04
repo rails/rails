@@ -169,6 +169,7 @@ class FilterTest < Test::Unit::TestCase
     end
 
     def public
+      render :text => 'ok'
     end
   end
 
@@ -176,6 +177,10 @@ class FilterTest < Test::Unit::TestCase
     skip_before_filter :ensure_login
     before_filter :find_record
     before_filter :ensure_login
+
+    def index
+      render :text => 'ok'
+    end
 
     private
       def find_record
