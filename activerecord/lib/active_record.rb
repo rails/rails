@@ -21,9 +21,8 @@
 # WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 #++
 
-"#{File.dirname(__FILE__)}/../../activesupport/lib".tap do |path|
-  $:.unshift(path) if File.directory?(path)
-end
+activesupport_path = "#{File.dirname(__FILE__)}/../../activesupport/lib"
+$:.unshift(activesupport_path) if File.directory?(activesupport_path)
 require 'active_support'
 require 'active_support/core/all'
 
