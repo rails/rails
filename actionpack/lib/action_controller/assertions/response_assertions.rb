@@ -63,7 +63,10 @@ module ActionController
 
           # Support partial arguments for hash redirections
           if options.is_a?(Hash) && @response.redirected_to.is_a?(Hash)
-            return true if options.all? {|(key, value)| @response.redirected_to[key] == value}
+            if options.all? {|(key, value)| @response.redirected_to[key] == value}
+              ::ActiveSupport::Deprecation.warn("Using assert_redirected_to with partial hash arguments is deprecated. Specify the full set arguments instead", caller)
+              return true
+            end
           end
 
           redirected_to_after_normalisation = normalize_argument_to_redirection(@response.redirected_to)
