@@ -27,7 +27,7 @@ module ActionController #:nodoc:
     autoload :Actions, 'action_controller/caching/actions'
     autoload :Fragments, 'action_controller/caching/fragments'
     autoload :Pages, 'action_controller/caching/pages'
-    autoload :Sweeper, 'action_controller/caching/sweeping'
+    autoload :Sweeper, 'action_controller/caching/sweeper'
     autoload :Sweeping, 'action_controller/caching/sweeping'
 
     def self.included(base) #:nodoc:
