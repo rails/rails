@@ -153,9 +153,9 @@ module ActiveRecord
           conditions << construct_limited_ids_condition(conditions, options, join_dependency) if join_dependency && !using_limitable_reflections?(join_dependency.reflections) && ((scope && scope[:limit]) || options[:limit])
 
           if options[:group]
-            return execute_grouped_calculation(operation, column_name, options.merge(:merged_conditions => conditions, :merged_joins => joins, :distinct => distinct))
+            return execute_grouped_calculation(operation, column_name, options.merge(:conditions => conditions, :joins => joins, :distinct => distinct))
           else
-            return execute_simple_calculation(operation, column_name, options.merge(:merged_conditions => conditions, :merged_joins => joins, :distinct => distinct))
+            return execute_simple_calculation(operation, column_name, options.merge(:conditions => conditions, :joins => joins, :distinct => distinct))
           end
         end
         0
@@ -163,15 +163,16 @@ module ActiveRecord
 
       def execute_simple_calculation(operation, column_name, options) #:nodoc:
         table = options[:from] || table_name
+
         value = if operation == 'count'
           if column_name == :all && options[:select].blank?
             column_name = "*"
           elsif !options[:select].blank?
             column_name = options[:select]
           end
-          construct_finder_arel(options.merge(:select =>  Arel::Attribute.new(Arel(table), column_name).count(options[:distinct]))).select_value
+          construct_calculation_arel(options.merge(:select =>  Arel::Attribute.new(Arel(table), column_name).count(options[:distinct]))).select_value
         else
-          construct_finder_arel(options.merge(:select =>  Arel::Attribute.new(Arel(table), column_name).send(operation))).select_value
+          construct_calculation_arel(options.merge(:select =>  Arel::Attribute.new(Arel(table), column_name).send(operation))).select_value
         end
 
         type_cast_calculated_value(value, column_for(column_name), operation)
@@ -196,7 +197,7 @@ module ActiveRecord
           options[:select] = "#{arel_column.as(aggregate_alias).to_sql}, #{group_field} AS #{group_alias}"
         end
 
-        calculated_data = connection.select_all(construct_finder_sql(options))
+        calculated_data = connection.select_all(construct_calculation_arel(options).to_sql)
 
         if association
           key_ids     = calculated_data.collect { |row| row[group_alias] }
@@ -213,7 +214,22 @@ module ActiveRecord
         end
       end
 
-      protected
+     protected
+
+        def construct_calculation_arel(options)
+          scope = scope(:find)
+
+          arel_table(options[:from] || table_name).
+            join(options[:joins]).
+            where(options[:conditions]).
+            project(options[:select]).
+            group(construct_group(options[:group], options[:having], scope)).
+            order(options[:order].to_s).
+            take(construct_limit(options, scope)).
+            skip(construct_offset(options, scope)
+          )
+        end
+
         def construct_count_options_from_args(*args)
           options     = {}
           column_name = :all

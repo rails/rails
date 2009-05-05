@@ -688,9 +688,9 @@ module ActiveRecord #:nodoc:
       #   Person.exists?(['name LIKE ?', "%#{query}%"])
       #   Person.exists?
       def exists?(id_or_conditions = {})
-        construct_finder_arel({
-          :conditions =>expand_id_conditions(id_or_conditions)
-        }).project(arel_table[primary_key]).take(1).count > 0
+        connection.select_all(construct_finder_arel({
+          :conditions => expand_id_conditions(id_or_conditions)
+        }).project(arel_table[primary_key]).take(1).to_sql).size > 0
       end
 
       # Creates an object (or multiple objects) and saves it to the database, if validations pass.
@@ -1688,9 +1688,9 @@ module ActiveRecord #:nodoc:
           scope = scope(:find)
 
           # TODO add lock to Arel
-          arel_table(options[:from] || table_name).
-            join(options[:merged_joins] || construct_join(options[:joins], scope)).
-            where(options[:merged_conditions] || construct_conditions(options[:conditions], scope)).
+          arel_table(table_name).
+            join(construct_join(options[:joins], scope)).
+            where(construct_conditions(options[:conditions], scope)).
             project(options[:select] || (scope && scope[:select]) || default_select(options[:joins] || (scope && scope[:joins]))).
             group(construct_group(options[:group], options[:having], scope)).
             order(construct_order(options[:order], scope)).
@@ -1704,7 +1704,6 @@ module ActiveRecord #:nodoc:
         end
 
         def construct_join(joins, scope = :auto)
-          scope = scope(:find) if :auto == scope
           merged_joins = scope && scope[:joins] && joins ? merge_joins(scope[:joins], joins) : (joins || scope && scope[:joins])
           case merged_joins
           when Symbol, Hash, Array
@@ -1738,7 +1737,6 @@ module ActiveRecord #:nodoc:
 
         def construct_order(order, scope = :auto)
           sql = ''
-          scope = scope(:find) if :auto == scope
           scoped_order = scope[:order] if scope
           if order
             sql << order.to_s
@@ -1752,19 +1750,16 @@ module ActiveRecord #:nodoc:
         end
 
         def construct_limit(options, scope = :auto)
-          scope = scope(:find) if :auto == scope
           options[:limit] ||= scope[:limit] if scope
           options[:limit]
         end
 
         def construct_offset(options, scope = :auto)
-          scope = scope(:find) if :auto == scope
           options[:offset] ||= scope[:offset] if scope
           options[:offset]
         end
 
         def construct_conditions(conditions, scope = :auto)
-          scope = scope(:find) if :auto == scope
           conditions = [conditions]
           conditions << scope[:conditions] if scope
           conditions << type_condition if finder_needs_type_condition?
