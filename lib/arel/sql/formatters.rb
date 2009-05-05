@@ -25,7 +25,7 @@ module Arel
         if expression.function_sql == "DISTINCT"
           "#{expression.function_sql} #{expression.attribute.to_sql(self)}" + (expression.alias ? " AS #{quote_column_name(expression.alias)}" : '')
         else
-          "#{expression.function_sql}(#{expression.attribute.to_sql(self)})" + (expression.alias ? " AS #{quote_column_name(expression.alias)}" : '')
+          "#{expression.function_sql}(#{expression.attribute.to_sql(self)})" + (expression.alias ? " AS #{quote_column_name(expression.alias)}" : " AS #{expression.function_sql.to_s.downcase}_id")
         end
       end
 
@@ -69,7 +69,7 @@ module Arel
       end
 
       def value(value)
-        value.to_sql(self)
+        quote value.to_sql(self)
       end
 
       def scalar(value, column = nil)
