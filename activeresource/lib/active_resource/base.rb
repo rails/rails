@@ -1,5 +1,4 @@
 require 'active_resource/connection'
-require 'cgi'
 require 'set'
 
 module ActiveResource
