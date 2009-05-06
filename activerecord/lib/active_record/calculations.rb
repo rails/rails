@@ -170,12 +170,12 @@ module ActiveRecord
           elsif !options[:select].blank?
             column_name = options[:select]
           end
-          construct_calculation_arel(options.merge(:select =>  Arel::Attribute.new(Arel(table), column_name).count(options[:distinct]))).select_value
+          construct_calculation_arel(options.merge(:select =>  Arel::Attribute.new(Arel(table), column_name).count(options[:distinct])))
         else
-          construct_calculation_arel(options.merge(:select =>  Arel::Attribute.new(Arel(table), column_name).send(operation))).select_value
+          construct_calculation_arel(options.merge(:select =>  Arel::Attribute.new(Arel(table), column_name).send(operation)))
         end
 
-        type_cast_calculated_value(value, column_for(column_name), operation)
+        type_cast_calculated_value(connection.select_value(value.to_sql), column_for(column_name), operation)
       end
 
       def execute_grouped_calculation(operation, column_name, options) #:nodoc:
@@ -190,12 +190,11 @@ module ActiveRecord
 
         aggregate_alias = column_alias_for(operation, column_name)
 
-        if operation == 'count' && column_name == :all
-          options[:select] = "COUNT(*) AS count_all, #{group_field} AS #{group_alias}"
-        else
-          arel_column = Arel::Attribute.new(arel_table, column_name).send(operation)
-          options[:select] = "#{arel_column.as(aggregate_alias).to_sql}, #{group_field} AS #{group_alias}"
-        end
+        options[:select] = (operation == 'count' && column_name == :all) ?
+          "COUNT(*) AS count_all" :
+          Arel::Attribute.new(arel_table, column_name).send(operation).as(aggregate_alias).to_sql
+
+        options[:select] <<  ", #{group_field} AS #{group_alias}"
 
         calculated_data = connection.select_all(construct_calculation_arel(options).to_sql)
 

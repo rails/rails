@@ -410,7 +410,7 @@ module ActiveRecord
 
       def get_all_versions
         table = Arel(schema_migrations_table_name)
-        table.project(table['version']).select_values.map(&:to_i).sort
+        Base.connection.select_values(table.project(table['version']).to_sql).map(&:to_i).sort
       end
 
       def current_version
@@ -535,11 +535,11 @@ module ActiveRecord
 
         @migrated_versions ||= []
         if down?
-          @migrated_versions.delete(version.to_i)
-          table.where(table["version"].eq(version)).delete
+          @migrated_versions.delete(version)
+          table.where(table["version"].eq(version.to_s)).delete
         else
-          @migrated_versions.push(version.to_i).sort!
-          table.insert table["version"] => version
+          @migrated_versions.push(version).sort!
+          table.insert table["version"] => version.to_s
         end
       end
 
