@@ -3,6 +3,7 @@ require 'active_support/core_ext/class/inheritable_attributes'
 require 'active_support/core_ext/module/attr_accessor_with_default'
 require 'active_support/core_ext/module/delegation'
 require 'active_support/core_ext/module/aliasing'
+require 'active_support/core_ext/object/misc'
 require 'set'
 
 module ActiveResource
