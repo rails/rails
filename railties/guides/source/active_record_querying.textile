@@ -538,7 +538,7 @@ This will return single order objects for each day, but only for the last month.
 
 h4. Readonly Objects
 
-To explicitly disallow modification/destroyal of the matching records returned by +Model.find+, you could specify the +:readonly+ option as +true+ to the find call.
+To explicitly disallow modification/destruction of the matching records returned by +Model.find+, you could specify the +:readonly+ option as +true+ to the find call.
 
 Any attempt to alter or destroy the readonly records will not succeed, raising an +ActiveRecord::ReadOnlyRecord+ exception. To set this option, specify it like this:
 
