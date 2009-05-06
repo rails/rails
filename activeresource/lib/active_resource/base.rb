@@ -1,7 +1,14 @@
-require 'active_resource/connection'
+require 'active_support/core_ext/class/attribute_accessors'
+require 'active_support/core_ext/class/inheritable_attributes'
+require 'active_support/core_ext/module/attr_accessor_with_default'
+require 'active_support/core_ext/module/delegation'
+require 'active_support/core_ext/module/aliasing'
 require 'set'
 
 module ActiveResource
+  autoload :Formats, 'active_resource/formats'
+  autoload :Connection, 'active_resource/connection'
+
   # ActiveResource::Base is the main class for mapping RESTful resources as models in a Rails application.
   #
   # For an outline of what Active Resource is capable of, see link:files/vendor/rails/activeresource/README.html.
@@ -297,7 +304,7 @@ module ActiveResource
 
       # Returns the current format, default is ActiveResource::Formats::XmlFormat.
       def format
-        read_inheritable_attribute(:format) || ActiveResource::Formats[:xml]
+        read_inheritable_attribute(:format) || ActiveResource::Formats::XmlFormat
       end
 
       # Sets the number of seconds after which requests to the REST API should time out.
@@ -894,7 +901,7 @@ module ActiveResource
     # applicable depend on the configured encoding format.
     def encode(options={})
       case self.class.format
-        when ActiveResource::Formats[:xml]
+        when ActiveResource::Formats::XmlFormat
           self.class.format.encode(attributes, {:root => self.class.element_name}.merge(options))
         else
           self.class.format.encode(attributes, options)
@@ -1079,3 +1086,6 @@ module ActiveResource
       end
   end
 end
+
+require 'active_resource/validations'
+require 'active_resource/custom_methods'

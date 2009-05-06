@@ -24,16 +24,7 @@
 activesupport_path = "#{File.dirname(__FILE__)}/../../activesupport/lib"
 $:.unshift(activesupport_path) if File.directory?(activesupport_path)
 require 'active_support'
-require 'active_support/core/all'
-
-require 'active_resource/formats'
-require 'active_resource/base'
-require 'active_resource/validations'
-require 'active_resource/custom_methods'
 
 module ActiveResource
-  Base.class_eval do
-    include Validations
-    include CustomMethods
-  end
+  autoload :Base, 'active_resource/base'
 end
