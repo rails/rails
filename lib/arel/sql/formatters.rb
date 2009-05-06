@@ -69,7 +69,7 @@ module Arel
       end
 
       def value(value)
-        quote value.to_sql(self)
+        value.to_sql(self)
       end
 
       def scalar(value, column = nil)

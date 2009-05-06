@@ -7,14 +7,14 @@ module Arel
       @relation2 = Arel(:photos)
       @predicate = @relation1[:id].eq(@relation2[:user_id])
     end
-    
+
     describe 'when joining aggregated relations' do
       before do
         @aggregation = @relation2                                           \
           .group(@relation2[:user_id])                                      \
           .project(@relation2[:user_id], @relation2[:id].count.as(:cnt))    \
       end
-      
+
       describe '#to_sql' do
         # CLEANUP
         it '' do
@@ -25,7 +25,7 @@ module Arel
               ON `users`.`id` = `photos_external`.`user_id`
           ")
         end
-        
+
         describe 'with the aggregation on the right' do
           it 'manufactures sql joining the left table to a derived table' do
             @relation1.join(@aggregation).on(@predicate).to_sql.should be_like("
@@ -47,7 +47,7 @@ module Arel
             ")
           end
         end
-        
+
         describe 'with the aggregation on both sides' do
           it 'it properly aliases the aggregations' do
             aggregation2 = @aggregation.alias
@@ -71,7 +71,7 @@ module Arel
               ")
             end
           end
-          
+
           describe 'with the aggregation on the right' do
             it "manufactures sql keeping wheres on the aggregation within the derived table" do
               @aggregation.where(@aggregation[:user_id].eq(1)).join(@relation1).on(@predicate).to_sql.should be_like("

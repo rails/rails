@@ -7,7 +7,7 @@ module Arel
       @relation2 = @relation1.alias
       @predicate = @relation1[:id].eq(@relation2[:id])
     end
-    
+
     describe 'when joining a relation to itself' do
       describe '#to_sql' do
         it 'manufactures sql aliasing the table and attributes properly in the join predicate and the where clause' do
@@ -18,7 +18,7 @@ module Arel
                 ON `users`.`id` = `users_2`.`id`
           ")
         end
-        
+
         describe 'when joining with a where on the same relation' do
           it 'manufactures sql aliasing the tables properly' do
             @relation1                                                      \
@@ -31,7 +31,7 @@ module Arel
                   ON `users`.`id` = `users_2`.`id` AND `users_2`.`id` = 1
             ")
           end
-          
+
           describe 'when the where occurs before the alias' do
             it 'manufactures sql aliasing the predicates properly' do
               relation2 = @relation1.where(@relation1[:id].eq(1)).alias
@@ -47,12 +47,12 @@ module Arel
             end
           end
         end
-        
+
         describe 'when joining the relation to itself multiple times' do
           before do
             @relation3 = @relation1.alias
           end
-          
+
           describe 'when joining left-associatively' do
             it 'manufactures sql aliasing the tables properly' do
               @relation1                                      \
@@ -70,7 +70,7 @@ module Arel
               ")
             end
           end
-          
+
           describe 'when joining right-associatively' do
             it 'manufactures sql aliasing the tables properly' do
               @relation1                                                    \
@@ -88,7 +88,7 @@ module Arel
           end
         end
       end
-        
+
       describe '[]' do
         describe 'when given an attribute belonging to both sub-relations' do
           it 'disambiguates the relation that serves as the ancestor to the attribute' do
@@ -108,7 +108,7 @@ module Arel
               .should disambiguate_attributes(compound1[:id], compound2[:id])
             end
           end
-          
+
           describe 'when the left relation is extremely compound' do
             it 'disambiguates the relation that serves as the ancestor to the attribute' do
               @relation1            \
@@ -119,7 +119,7 @@ module Arel
               .should disambiguate_attributes(@relation1[:id], @relation2[:id])
             end
           end
-          
+
           describe 'when the right relation is extremely compound' do
             it 'disambiguates the relation that serves as the ancestor to the attribute' do
               @relation1                  \

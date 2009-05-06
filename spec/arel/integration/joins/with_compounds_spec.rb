@@ -7,7 +7,7 @@ module Arel
       @relation2 = Arel(:photos)
       @predicate = @relation1[:id].eq(@relation2[:user_id])
     end
-    
+
     describe '#to_sql' do
       describe 'when the join contains a where' do
         describe 'and the where is given a string' do
@@ -24,7 +24,7 @@ module Arel
           end
         end
       end
-    
+
       describe 'when a compound contains a join' do
         describe 'and the compound is a where' do
           it 'manufactures sql disambiguating the tables' do
@@ -43,7 +43,7 @@ module Arel
             ")
           end
         end
-        
+
         describe 'and the compound is a group' do
           it 'manufactures sql disambiguating the tables' do
             @relation1                \

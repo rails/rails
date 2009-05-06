@@ -6,17 +6,8 @@ module Arel
       Session.new
     end
 
-    def select_value
-      engine.select_value self.to_sql
-    end
-
-    def select_values
-      engine.select_values self.to_sql
-    end
-
     def count
       @count = "COUNT(*) AS count_all"
-      engine.select_value(self.to_sql).to_i
     end
 
     def to_sql(formatter = Sql::SelectStatement.new(self))

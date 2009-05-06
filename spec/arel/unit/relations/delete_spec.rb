@@ -5,7 +5,7 @@ module Arel
     before do
       @relation = Table.new(:users)
     end
-  
+
     describe '#to_sql' do
       it 'manufactures sql deleting a table relation' do
         Deletion.new(@relation).to_sql.should be_like("
@@ -13,7 +13,7 @@ module Arel
           FROM `users`
         ")
       end
-    
+
       it 'manufactures sql deleting a where relation' do
         Deletion.new(@relation.where(@relation[:id].eq(1))).to_sql.should be_like("
           DELETE
@@ -21,7 +21,7 @@ module Arel
           WHERE `users`.`id` = 1
         ")
       end
-      
+
       it "manufactures sql deleting a ranged relation" do
         Deletion.new(@relation.take(1)).to_sql.should be_like("
           DELETE
@@ -30,7 +30,7 @@ module Arel
         ")
       end
     end
-    
+
     describe '#call' do
       it 'executes a delete on the connection' do
         deletion = Deletion.new(@relation)

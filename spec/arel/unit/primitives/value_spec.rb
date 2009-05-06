@@ -5,7 +5,7 @@ module Arel
     before do
       @relation = Table.new(:users)
     end
-    
+
     describe '#to_sql' do
       it "appropriately quotes the value" do
         Value.new(1, @relation).to_sql.should be_like('1')

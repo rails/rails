@@ -50,14 +50,14 @@ module Arel
       describe 'when given an expression' do
         it 'manufactures sql with expressions' do
           @relation.project(@attribute.count).to_sql.should be_like("
-            SELECT COUNT(`users`.`id`)
+            SELECT COUNT(`users`.`id`) AS count_id
             FROM `users`
           ")
         end
 
         it 'manufactures sql with distinct expressions' do
           @relation.project(@attribute.count(true)).to_sql.should be_like("
-            SELECT COUNT(DISTINCT `users`.`id`)
+            SELECT COUNT(DISTINCT `users`.`id`) AS count_id
             FROM `users`
           ")
         end
