@@ -162,4 +162,10 @@ class OrderedHashTest < Test::Unit::TestCase
   def test_inspect
     assert @ordered_hash.inspect.include?(@hash.inspect)
   end
+
+  def test_alternate_initialization
+    alternate = ActiveSupport::OrderedHash[1,2,3,4]
+    assert_kind_of ActiveSupport::OrderedHash, alternate
+    assert_equal [1, 3], alternate.keys
+  end
 end
