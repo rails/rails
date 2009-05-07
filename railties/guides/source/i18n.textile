@@ -142,7 +142,7 @@ def set_locale
 end
 </ruby>
 
-This requires you to pass the locale as a URL query parameter as in +http://example.com/books?locale=pt+. (This is, for example, Google's approach.) So +http://localhost:3000?locale=pt+ will load the Portugese localization, whereas +http://localhost:3000?locale=de+ would load the German localization, and so on. You may skip the next section and head over to the *Internationalize your application* section, if you want to try things out by manually placing the locale in the URL and reloading the page.
+This requires you to pass the locale as a URL query parameter as in +http://example.com/books?locale=pt+. (This is, for example, Google's approach.) So +http://localhost:3000?locale=pt+ will load the Portuguese localization, whereas +http://localhost:3000?locale=de+ would load the German localization, and so on. You may skip the next section and head over to the *Internationalize your application* section, if you want to try things out by manually placing the locale in the URL and reloading the page.
 
 Of course, you probably don't want to manually include the locale in every URL all over your application, or want the URLs look differently, e.g. the usual +http://example.com/pt/books+ versus +http://example.com/en/books+. Let's discuss the different options you have.
 
@@ -276,11 +276,11 @@ map.dashboard '/:locale', :controller => "dashboard"
 
 Do take special care about the *order of your routes*, so this route declaration does not "eat" other ones. (You may want to add it directly before the +map.root+ declaration.)
 
-IMPORTANT: This solution has currently one rather big *downside*. Due to the _default_url_options_ implementation, you have to pass the +:id+ option explicitely, like this: +link_to 'Show', book_url(:id => book)+ and not depend on Rails' magic in code like +link_to 'Show', book+. If this should be a problem, have a look at two plugins which simplify work with routes in this way: Sven Fuchs's "routing_filter":http://github.com/svenfuchs/routing-filter/tree/master and Raul Murciano's "translate_routes":http://github.com/raul/translate_routes/tree/master. See also the page "How to encode the current locale in the URL":http://rails-i18n.org/wiki/pages/how-to-encode-the-current-locale-in-the-url in the Rails i18n Wiki.
+IMPORTANT: This solution has currently one rather big *downside*. Due to the _default_url_options_ implementation, you have to pass the +:id+ option explicitly, like this: +link_to 'Show', book_url(:id => book)+ and not depend on Rails' magic in code like +link_to 'Show', book+. If this should be a problem, have a look at two plugins which simplify work with routes in this way: Sven Fuchs's "routing_filter":http://github.com/svenfuchs/routing-filter/tree/master and Raul Murciano's "translate_routes":http://github.com/raul/translate_routes/tree/master. See also the page "How to encode the current locale in the URL":http://rails-i18n.org/wiki/pages/how-to-encode-the-current-locale-in-the-url in the Rails i18n Wiki.
 
 h4. Setting the Locale from the Client Supplied Information
 
-In specific cases, it would make sense to set the locale from client-supplied information, i.e. not from the URL. This information may come for example from the users' prefered language (set in their browser), can be based on the users' geographical location inferred from their IP, or users can provide it simply by choosing the locale in your application interface and saving it to their profile. This approach is more suitable for web-based applications or services, not for websites -- see the box about _sessions_, _cookies_ and RESTful architecture above.
+In specific cases, it would make sense to set the locale from client-supplied information, i.e. not from the URL. This information may come for example from the users' preferred language (set in their browser), can be based on the users' geographical location inferred from their IP, or users can provide it simply by choosing the locale in your application interface and saving it to their profile. This approach is more suitable for web-based applications or services, not for websites -- see the box about _sessions_, _cookies_ and RESTful architecture above.
 
 
 h5. Using +Accept-Language+
@@ -305,7 +305,7 @@ Of course, in a production environment you would need much more robust code, and
 
 h5. Using GeoIP (or Similar) Database
 
-Another way of choosing the locale from client information would be to use a database for mapping the client IP to the region, such as "GeoIP Lite Country":http://www.maxmind.com/app/geolitecountry. The mechanics of the code would be very similar to the code above -- you would need to query the database for the user's IP, and look up your prefered locale for the country/region/city returned.
+Another way of choosing the locale from client information would be to use a database for mapping the client IP to the region, such as "GeoIP Lite Country":http://www.maxmind.com/app/geolitecountry. The mechanics of the code would be very similar to the code above -- you would need to query the database for the user's IP, and look up your preferred locale for the country/region/city returned.
 
 h5. User Profile
 
@@ -315,7 +315,7 @@ h3. Internationalizing your Application
 
 OK! Now you've initialized I18n support for your Ruby on Rails application and told it which locale to use and how to preserve it between requests. With that in place, you're now ready for the really interesting stuff.
 
-Let's _internationalize_ our application, i.e. abstract every locale-specific parts, and then _localize_ it, i.e. provide neccessary translations for these abstracts.
+Let's _internationalize_ our application, i.e. abstract every locale-specific parts, and then _localize_ it, i.e. provide necessary translations for these abstracts.
 
 You most probably have something like this in one of your applications:
 
@@ -378,7 +378,7 @@ pirate:
 
 There you go. Because you haven't changed the default_locale, I18n will use English. Your application now shows:
 
-!images/i18n/demo_translated_en.png(rails i18n demo translated to english)!
+!images/i18n/demo_translated_en.png(rails i18n demo translated to English)!
 
 And when you change the URL to pass the pirate locale (+http://localhost:3000?locale=pirate+), you'll get:
 
@@ -386,7 +386,7 @@ And when you change the URL to pass the pirate locale (+http://localhost:3000?lo
 
 NOTE: You need to restart the server when you add new locale files.
 
-You may use YAML (+.yml+) or plain Ruby (+.rb+) files for storing your translations in SimpleStore. YAML is the prefered option among Rails developers. However, it has one big disadvantage. YAML is very sensitive to whitespace and special characters, so the application may not load your dictionary properly. Ruby files will crash your application on first request, so you may easily find what's wrong. (If you encounter any "weird issues" with YAML dictionaries, try putting the relevant portion of your dictionary into a Ruby file.)
+You may use YAML (+.yml+) or plain Ruby (+.rb+) files for storing your translations in SimpleStore. YAML is the preferred option among Rails developers. However, it has one big disadvantage. YAML is very sensitive to whitespace and special characters, so the application may not load your dictionary properly. Ruby files will crash your application on first request, so you may easily find what's wrong. (If you encounter any "weird issues" with YAML dictionaries, try putting the relevant portion of your dictionary into a Ruby file.)
 
 h4. Adding Date/Time Formats
 
@@ -463,7 +463,7 @@ Do check the "Rails i18n Wiki":http://rails-i18n.org/wiki for list of tools avai
 
 h3. Overview of the I18n API Features
 
-You should have good understanding of using the i18n library now, knowing all neccessary aspects of internationalizing a basic Rails application.  In the following chapters, we'll cover it's features in more depth.
+You should have good understanding of using the i18n library now, knowing all necessary aspects of internationalizing a basic Rails application.  In the following chapters, we'll cover it's features in more depth.
 
 Covered are features like these:
 

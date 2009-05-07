@@ -48,7 +48,7 @@ app = Rack::Builder.new {
 }.to_app
 </ruby>
 
-Middlewares used in the code above are primarily useful only in the development envrionment. The following table explains their usage:
+Middlewares used in the code above are primarily useful only in the development environment. The following table explains their usage:
 
 |_.Middleware|_.Purpose|
 |+Rails::Rack::LogTailer+|Appends log file output to console|

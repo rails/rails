@@ -736,7 +736,7 @@ will create inputs like
 
 As a general rule the final input name is the concatenation of the name given to +fields_for+/+form_for+, the index value and the name of the attribute. You can also pass an +:index+ option directly to helpers such as +text_field+, but it is usually less repetitive to specify this at the form builder level rather than on individual input controls.
 
-As a shortcut you can append [] to the name and omit the +:index+ option. This is the same as specifing +:index => address+ so
+As a shortcut you can append [] to the name and omit the +:index+ option. This is the same as specifying +:index => address+ so
 
 <erb>
 <% fields_for 'person[address][primary][]', address do |address_form| %>
