@@ -1,10 +1,13 @@
 module AbstractController
   module Callbacks
-    setup do
-      include ActiveSupport::NewCallbacks
-      define_callbacks :process_action      
+    extend ActiveSupport::DependencyModule
+
+    depends_on ActiveSupport::NewCallbacks
+
+    included do
+      define_callbacks :process_action
     end
-    
+
     def process_action
       _run_process_action_callbacks(action_name) do
         super

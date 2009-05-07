@@ -1,18 +1,18 @@
 module ActiveSupport
   module DependencyModule
-    def setup(&blk)
-      @_setup_block = blk
-    end
-
     def append_features(base)
       return if base < self
       (@_dependencies ||= []).each { |dep| base.send(:include, dep) }
       super
     end
 
-    def included(base)
-      base.extend const_get("ClassMethods") if const_defined?("ClassMethods")
-      base.class_eval(&@_setup_block) if instance_variable_defined?("@_setup_block")
+    def included(base = nil, &block)
+      if base.nil? && block_given?
+        @_included_block = block
+      else
+        base.extend const_get("ClassMethods") if const_defined?("ClassMethods")
+        base.class_eval(&@_included_block) if instance_variable_defined?("@_included_block")
+      end
     end
 
     def depends_on(mod)

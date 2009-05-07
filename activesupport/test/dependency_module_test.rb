@@ -10,17 +10,17 @@ class DependencyModuleTest < Test::Unit::TestCase
         "baz"
       end
 
-      def setup=(value)
-        @@setup = value
+      def included_ran=(value)
+        @@included_ran = value
       end
 
-      def setup
-        @@setup
+      def included_ran
+        @@included_ran
       end
     end
 
-    setup do
-      self.setup = true
+    included do
+      self.included_ran = true
     end
 
     def baz
@@ -62,9 +62,9 @@ class DependencyModuleTest < Test::Unit::TestCase
     assert_equal DependencyModuleTest::Baz::ClassMethods, (class << @klass; self.included_modules; end)[0]
   end
 
-  def test_setup_block_is_ran
+  def test_included_block_is_ran
     @klass.send(:include, Baz)
-    assert_equal true, @klass.setup
+    assert_equal true, @klass.included_ran
   end
 
   def test_modules_dependencies_are_met

@@ -2,7 +2,7 @@ module AbstractController
   module Logger
     extend ActiveSupport::DependencyModule
 
-    setup do
+    included do
       cattr_accessor :logger
     end
   end

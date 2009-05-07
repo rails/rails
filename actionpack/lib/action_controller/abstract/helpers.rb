@@ -3,8 +3,8 @@ module AbstractController
     extend ActiveSupport::DependencyModule
 
     depends_on Renderer
-    
-    setup do
+
+    included do
       extlib_inheritable_accessor :master_helper_module
       self.master_helper_module = Module.new
     end

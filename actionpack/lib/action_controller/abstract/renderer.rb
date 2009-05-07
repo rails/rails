@@ -5,15 +5,15 @@ module AbstractController
     extend ActiveSupport::DependencyModule
 
     depends_on AbstractController::Logger
-    
-    setup do
+
+    included do
       attr_internal :formats
-      
+
       extlib_inheritable_accessor :_view_paths
-      
+
       self._view_paths ||= ActionView::PathSet.new
     end
-        
+
     def _action_view
       @_action_view ||= ActionView::Base.new(self.class.view_paths, {}, self)      
     end
