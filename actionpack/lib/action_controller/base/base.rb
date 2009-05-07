@@ -330,7 +330,7 @@ module ActionController #:nodoc:
     cattr_accessor :use_accept_header
     self.use_accept_header = true
 
-    # Controls whether request forgergy protection is turned on or not. Turned off by default only in test mode.
+    # Controls whether request forgery protection is turned on or not. Turned off by default only in test mode.
     class_inheritable_accessor :allow_forgery_protection
     self.allow_forgery_protection = true
 

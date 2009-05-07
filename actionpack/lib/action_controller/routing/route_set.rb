@@ -155,7 +155,7 @@ module ActionController
 
           def define_url_helper(route, name, kind, options)
             selector = url_helper_name(name, kind)
-            # The segment keys used for positional paramters
+            # The segment keys used for positional parameters
 
             hash_access_method = hash_access_name(name, kind)
 

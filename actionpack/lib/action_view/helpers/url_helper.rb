@@ -116,7 +116,7 @@ module ActionView
       # * <tt>:popup => true || array of window options</tt> - This will force the
       #   link to open in a popup window. By passing true, a default browser window
       #   will be opened with the URL. You can also specify an array of options
-      #   that are passed-thru to JavaScripts window.open method.
+      #   that are passed through to JavaScripts window.open method.
       # * <tt>:method => symbol of HTTP verb</tt> - This modifier will dynamically
       #   create an HTML form and immediately submit the form for processing using
       #   the HTTP verb specified. Useful for having links perform a POST operation

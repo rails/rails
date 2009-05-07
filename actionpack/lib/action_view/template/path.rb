@@ -23,7 +23,7 @@ module ActionView
     private
       
       # This is what child classes implement. No defaults are needed
-      # because Path guarentees that the arguments are present and
+      # because Path guarantees that the arguments are present and
       # normalized.
       def find_templates(name, details, prefix, partial)
         raise NotImplementedError

@@ -36,7 +36,7 @@ require File.join(File.dirname(__FILE__), "action_pack")
 
 module ActionController
   # TODO: Review explicit to see if they will automatically be handled by
-  # the initilizer if they are really needed.
+  # the initializer if they are really needed.
   def self.load_all!
     [Base, Request, Response, UrlRewriter, UrlWriter]
     [ActionDispatch::Http::Headers]

@@ -431,7 +431,7 @@ module ActionView
       end
 
       # Returns the current cycle string after a cycle has been started. Useful
-      # for complex table highlighing or any other design need which requires
+      # for complex table highlighting or any other design need which requires
       # the current cycle string in more than one place.
       #
       # ==== Example
@@ -539,7 +539,7 @@ module ActionView
             left, right = $`, $'
             # detect already linked URLs and URLs in the middle of a tag
             if left =~ /<[^>]+$/ && right =~ /^[^>]*>/
-              # do not change string; URL is alreay linked
+              # do not change string; URL is already linked
               href
             else
               # don't include trailing punctuation character as part of the URL

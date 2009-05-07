@@ -271,7 +271,7 @@ module ActionController
       #
       # The nonce is opaque to the client. Composed of Time, and hash of Time with secret
       # key from the Rails session secret generated upon creation of project. Ensures
-      # the time cannot be modifed by client.
+      # the time cannot be modified by client.
       def nonce(time = Time.now)
         t = time.to_i
         hashed = [t, secret_key]

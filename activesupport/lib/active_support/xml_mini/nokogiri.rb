@@ -53,7 +53,7 @@ module ActiveSupport
               memo[name] = child_hash
             end
 
-            # Recusively walk children
+            # Recursively walk children
             child.children.each { |c|
               callback.call(child_hash, child, c, callback)
             }

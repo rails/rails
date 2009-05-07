@@ -93,7 +93,7 @@ module ActionController
     #
     # * <tt>:only_path</tt> - If true, the relative url is returned. Defaults to +false+.
     # * <tt>:protocol</tt> - The protocol to connect to. Defaults to 'http'.
-    # * <tt>:host</tt> - Specifies the host the link should be targetted at.
+    # * <tt>:host</tt> - Specifies the host the link should be targeted at.
     #   If <tt>:only_path</tt> is false, this option must be
     #   provided either explicitly, or via +default_url_options+.
     # * <tt>:port</tt> - Optionally specify the port to connect to.
