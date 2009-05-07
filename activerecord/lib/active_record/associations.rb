@@ -1192,7 +1192,7 @@ module ActiveRecord
 
       private
         # Generates a join table name from two provided table names.
-        # The names in the join table namesme end up in lexicographic order.
+        # The names in the join table names end up in lexicographic order.
         #
         #   join_table_name("members", "clubs")         # => "clubs_members"
         #   join_table_name("members", "special_clubs") # => "members_special_clubs"

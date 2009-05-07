@@ -33,7 +33,7 @@ end
 require 'active_support/core/all'
 
 module ActiveRecord
-  # TODO: Review explicit loads to see if they will automatically be handled by the initilizer.
+  # TODO: Review explicit loads to see if they will automatically be handled by the initializer.
   def self.load_all!
     [Base, DynamicFinderMatch, ConnectionAdapters::AbstractAdapter]
   end

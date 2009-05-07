@@ -1357,14 +1357,14 @@ module ActiveRecord #:nodoc:
         classes
       rescue
         # OPTIMIZE this rescue is to fix this test: ./test/cases/reflection_test.rb:56:in `test_human_name_for_column'
-        # Appearantly the method base_class causes some trouble.
+        # Apparently the method base_class causes some trouble.
         # It now works for sure.
         [self]
       end
 
       # Transforms attribute key names into a more humane format, such as "First name" instead of "first_name". Example:
       #   Person.human_attribute_name("first_name") # => "First name"
-      # This used to be depricated in favor of humanize, but is now preferred, because it automatically uses the I18n
+      # This used to be deprecated in favor of humanize, but is now preferred, because it automatically uses the I18n
       # module now.
       # Specify +options+ with additional translating options.
       def human_attribute_name(attribute_key_name, options = {})
