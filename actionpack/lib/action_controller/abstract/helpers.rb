@@ -1,5 +1,7 @@
 module AbstractController
   module Helpers
+    extend ActiveSupport::DependencyModule
+
     depends_on Renderer
     
     setup do

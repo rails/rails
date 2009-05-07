@@ -2,6 +2,8 @@ require "action_controller/abstract/logger"
 
 module AbstractController
   module Renderer
+    extend ActiveSupport::DependencyModule
+
     depends_on AbstractController::Logger
     
     setup do

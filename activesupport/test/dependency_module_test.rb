@@ -1,9 +1,10 @@
 require 'abstract_unit'
-require 'active_support/core/time'
-require 'active_support/core_ext/module/setup'
+require 'active_support/dependency_module'
 
-class SetupTest < Test::Unit::TestCase
+class DependencyModuleTest < Test::Unit::TestCase
   module Baz
+    extend ActiveSupport::DependencyModule
+
     module ClassMethods
       def baz
         "baz"
@@ -28,6 +29,8 @@ class SetupTest < Test::Unit::TestCase
   end
 
   module Bar
+    extend ActiveSupport::DependencyModule
+
     depends_on Baz
 
     def bar
@@ -44,31 +47,31 @@ class SetupTest < Test::Unit::TestCase
   end
 
   def test_module_is_included_normally
-    @klass.use(Baz)
+    @klass.send(:include, Baz)
     assert_equal "baz", @klass.new.baz
-    assert_equal SetupTest::Baz, @klass.included_modules[0]
+    assert_equal DependencyModuleTest::Baz, @klass.included_modules[0]
 
-    @klass.use(Baz)
+    @klass.send(:include, Baz)
     assert_equal "baz", @klass.new.baz
-    assert_equal SetupTest::Baz, @klass.included_modules[0]
+    assert_equal DependencyModuleTest::Baz, @klass.included_modules[0]
   end
 
   def test_class_methods_are_extended
-    @klass.use(Baz)
+    @klass.send(:include, Baz)
     assert_equal "baz", @klass.baz
-    assert_equal SetupTest::Baz::ClassMethods, (class << @klass; self.included_modules; end)[0]
+    assert_equal DependencyModuleTest::Baz::ClassMethods, (class << @klass; self.included_modules; end)[0]
   end
 
   def test_setup_block_is_ran
-    @klass.use(Baz)
+    @klass.send(:include, Baz)
     assert_equal true, @klass.setup
   end
 
   def test_modules_dependencies_are_met
-    @klass.use(Bar)
+    @klass.send(:include, Bar)
     assert_equal "bar", @klass.new.bar
     assert_equal "bar+baz", @klass.new.baz
     assert_equal "baz", @klass.baz
-    assert_equal [SetupTest::Bar, SetupTest::Baz], @klass.included_modules[0..1]
+    assert_equal [DependencyModuleTest::Bar, DependencyModuleTest::Baz], @klass.included_modules[0..1]
   end
 end

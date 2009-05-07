@@ -1,8 +1,9 @@
 module AbstractController
   module Layouts
-    
+    extend ActiveSupport::DependencyModule
+
     depends_on Renderer
-        
+
     module ClassMethods
       def layout(layout)
         unless [String, Symbol, FalseClass, NilClass].include?(layout.class)

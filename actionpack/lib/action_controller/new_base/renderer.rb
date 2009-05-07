@@ -1,5 +1,7 @@
 module ActionController
   module Renderer
+    extend ActiveSupport::DependencyModule
+
     depends_on AbstractController::Renderer
     
     def initialize(*)

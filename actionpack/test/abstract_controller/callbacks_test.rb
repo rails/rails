@@ -4,7 +4,7 @@ module AbstractController
   module Testing
   
     class ControllerWithCallbacks < AbstractController::Base
-      use AbstractController::Callbacks
+      include AbstractController::Callbacks
     end
     
     class Callback1 < ControllerWithCallbacks
