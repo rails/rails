@@ -832,7 +832,7 @@ module ActiveResource
       !new? && self.class.exists?(to_param, :params => prefix_options)
     end
 
-    # A method to convert the the resource to an XML string.
+     # Converts the resource to an XML string representation.
     #
     # ==== Options
     # The +options+ parameter is handed off to the +to_xml+ method on each
@@ -841,7 +841,14 @@ module ActiveResource
     #
     # * <tt>:indent</tt> - Set the indent level for the XML output (default is +2+).
     # * <tt>:dasherize</tt> - Boolean option to determine whether or not element names should
-    #   replace underscores with dashes (default is <tt>false</tt>).
+    #   replace underscores with dashes. Default is <tt>true</tt>. The default can be set to <tt>false</tt>
+    #   by setting the module attribute <tt>ActiveSupport.dasherize_xml = false</tt> in an initializer. Because save
+    #   uses this method, and there are no options on save, then you will have to set the default if you don't
+    #   want underscores in element names to become dashes when the resource is saved. This is important when
+    #   integrating with non-Rails applications.
+    # * <tt>:camelize</tt> - Boolean option to determine whether or not element names should be converted
+    #   to camel case, e.g some_name to SomeName. Default is <tt>false</tt>. Like <tt>:dasherize</tt> you can
+    #   change the default by setting the module attribute <tt>ActiveSupport.camelise_xml = true</tt> in an initializer.
     # * <tt>:skip_instruct</tt> - Toggle skipping the +instruct!+ call on the XML builder
     #   that generates the XML declaration (default is <tt>false</tt>).
     #

@@ -403,29 +403,87 @@ class HashToXmlTest < Test::Unit::TestCase
     @xml_options = { :root => :person, :skip_instruct => true, :indent => 0 }
   end
 
+ def test_default_values_for_rename_keys
+   assert_equal true,ActiveSupport.dasherize_xml
+   assert_equal false,ActiveSupport.camelize_xml
+  end
+
   def test_one_level
     xml = { :name => "David", :street => "Paulina" }.to_xml(@xml_options)
     assert_equal "<person>", xml.first(8)
     assert xml.include?(%(<street>Paulina</street>))
     assert xml.include?(%(<name>David</name>))
   end
-
+  # we add :camelize => false because otherwise we'd be accidentally testing the default value for :camelize
   def test_one_level_dasherize_false
-    xml = { :name => "David", :street_name => "Paulina" }.to_xml(@xml_options.merge(:dasherize => false))
+    xml = { :name => "David", :street_name => "Paulina" }.to_xml(@xml_options.merge(:dasherize => false,:camelize=>false))
     assert_equal "<person>", xml.first(8)
     assert xml.include?(%(<street_name>Paulina</street_name>))
     assert xml.include?(%(<name>David</name>))
   end
 
   def test_one_level_dasherize_true
-    xml = { :name => "David", :street_name => "Paulina" }.to_xml(@xml_options.merge(:dasherize => true))
+    xml = { :name => "David", :street_name => "Paulina" }.to_xml(@xml_options.merge(:dasherize => true,:camelize=>false))
     assert_equal "<person>", xml.first(8)
     assert xml.include?(%(<street-name>Paulina</street-name>))
     assert xml.include?(%(<name>David</name>))
   end
 
+  def test_one_level_dasherize_default_false
+    current_default = ActiveSupport.dasherize_xml
+    ActiveSupport.dasherize_xml = false
+    xml = { :name => "David", :street_name => "Paulina" }.to_xml(@xml_options.merge(:camelize=>false))
+    assert_equal "<person>", xml.first(8)
+    assert xml.include?(%(<street_name>Paulina</street_name>))
+    assert xml.include?(%(<name>David</name>))
+    ensure
+    ActiveSupport.dasherize_xml = current_default
+  end
+
+  def test_one_level_dasherize_default_true
+    current_default = ActiveSupport.dasherize_xml
+    ActiveSupport.dasherize_xml = true
+    xml = { :name => "David", :street_name => "Paulina" }.to_xml(@xml_options.merge(:camelize=>false))
+    assert_equal "<person>", xml.first(8)
+    assert xml.include?(%(<street-name>Paulina</street-name>))
+    assert xml.include?(%(<name>David</name>))
+    ensure
+    ActiveSupport.dasherize_xml = current_default
+  end
+
   def test_one_level_camelize_true
-    xml = { :name => "David", :street_name => "Paulina" }.to_xml(@xml_options.merge(:camelize => true))
+    xml = { :name => "David", :street_name => "Paulina" }.to_xml(@xml_options.merge(:camelize => true,:dasherize => false))
+    assert_equal "<Person>", xml.first(8)
+    assert xml.include?(%(<StreetName>Paulina</StreetName>))
+    assert xml.include?(%(<Name>David</Name>))
+  end
+
+  #camelize=>false is already tested above
+
+  def test_one_level_camelize_default_false
+    current_default = ActiveSupport.camelize_xml
+    ActiveSupport.camelize_xml = false
+    xml = { :name => "David", :street_name => "Paulina" }.to_xml(@xml_options.merge(:dasherize => false))
+    assert_equal "<person>", xml.first(8)
+    assert xml.include?(%(<street_name>Paulina</street_name>))
+    assert xml.include?(%(<name>David</name>))
+    ensure
+    ActiveSupport.camelize_xml = current_default
+  end
+
+  def test_one_level_camelize_default_true
+    current_default = ActiveSupport.camelize_xml
+    ActiveSupport.camelize_xml = true
+    xml = { :name => "David", :street_name => "Paulina" }.to_xml(@xml_options.merge(:dasherize => false))
+    assert_equal "<Person>", xml.first(8)
+    assert xml.include?(%(<StreetName>Paulina</StreetName>))
+    assert xml.include?(%(<Name>David</Name>))
+    ensure
+    ActiveSupport.camelize_xml = current_default
+  end
+
+  def test_one_level_camelize_true_dasherize_true
+    xml = { :name => "David", :street_name => "Paulina" }.to_xml(@xml_options.merge(:dasherize => true,:camelize=>true))
     assert_equal "<Person>", xml.first(8)
     assert xml.include?(%(<StreetName>Paulina</StreetName>))
     assert xml.include?(%(<Name>David</Name>))
