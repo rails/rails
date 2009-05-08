@@ -132,7 +132,7 @@ class Date
   # Short-hand for years_since(1)
   def next_year
     years_since(1)
-  end
+  end unless method_defined?(:next_year)
 
   # Short-hand for months_ago(1)
   def last_month
@@ -142,7 +142,7 @@ class Date
   # Short-hand for months_since(1)
   def next_month
     months_since(1)
-  end
+  end unless method_defined?(:next_month)
 
   # Returns a new Date/DateTime representing the "start" of this week (i.e, Monday; DateTime objects will have time set to 0:00)
   def beginning_of_week

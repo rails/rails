@@ -69,7 +69,7 @@ class Time
   # In this case, it simply returns +self+.
   def to_time
     self
-  end
+  end unless method_defined?(:to_time)
 
   # Converts a Time instance to a Ruby DateTime instance, preserving UTC offset.
   #
