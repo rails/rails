@@ -152,7 +152,7 @@ module ActionController # :nodoc:
         @writer = lambda { |x| callback.call(x) }
         @body.call(self, self)
       elsif @body.is_a?(String)
-        @body.each_line(&callback)
+        yield @body
       else
         @body.each(&callback)
       end
