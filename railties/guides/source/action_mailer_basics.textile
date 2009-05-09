@@ -169,6 +169,7 @@ class UserMailer < ActionMailer::Base
     content_type  "text/html"
     # use some_other_template.text.(html|plain).erb instead
     template "some_other_template"
+  end
 end
 </ruby>
 
