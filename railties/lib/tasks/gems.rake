@@ -27,8 +27,7 @@ namespace :gems do
     desc "Force the build of all gems"
     task :force do
       $gems_build_rake_task = true
-      Rake::Task['gems:unpack'].invoke
-      current_gems.each { |gem| gem.build(:force => true) }
+      frozen_gems.each { |gem| gem.build(:force => true) }
     end
   end
 
