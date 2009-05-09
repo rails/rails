@@ -22,7 +22,6 @@ TIP: All of the following models uses +id+ as the primary key, unless specified 
 <ruby>
 class Client < ActiveRecord::Base
   has_one :address
-  has_one :mailing_address
   has_many :orders
   has_and_belongs_to_many :roles
 end
@@ -31,11 +30,6 @@ end
 <ruby>
 class Address < ActiveRecord::Base
   belongs_to :client
-end
-</ruby>
-
-<ruby>
-class MailingAddress < Address
 end
 </ruby>
 
