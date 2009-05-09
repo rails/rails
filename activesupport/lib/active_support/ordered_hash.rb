@@ -57,6 +57,10 @@ module ActiveSupport
         self
       end
 
+      def to_a
+        @keys.map { |key| [ key, self[key] ] }
+      end
+
       def each_key
         @keys.each { |key| yield key }
       end
