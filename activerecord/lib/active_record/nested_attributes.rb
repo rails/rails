@@ -217,6 +217,8 @@ module ActiveRecord
       # Examples:
       #   # creates avatar_attributes=
       #   accepts_nested_attributes_for :avatar, :reject_if => proc { |attributes| attributes['name'].blank? }
+      #   # creates avatar_attributes=
+      #   accepts_nested_attributes_for :avatar, :reject_if => :all_blank
       #   # creates avatar_attributes= and posts_attributes=
       #   accepts_nested_attributes_for :avatar, :posts, :allow_destroy => true
       def accepts_nested_attributes_for(*attr_names)
@@ -236,6 +238,10 @@ module ActiveRecord
             reflection.options[:autosave] = true
             add_autosave_association_callbacks(reflection)
             self.nested_attributes_options[association_name.to_sym] = options
+ 
+            if options[:reject_if] == :all_blank
+              self.nested_attributes_options[association_name.to_sym][:reject_if] = proc { |attributes| attributes.all? {|k,v| v.blank?} }
+            end
 
             # def pirate_attributes=(attributes)
             #   assign_nested_attributes_for_one_to_one_association(:pirate, attributes)

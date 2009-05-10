@@ -58,6 +58,7 @@ ActiveRecord::Schema.define do
 
   create_table :birds, :force => true do |t|
     t.string :name
+    t.string :color
     t.integer :pirate_id
   end
 

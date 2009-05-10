@@ -33,9 +33,25 @@ class TestNestedAttributesInGeneral < ActiveRecord::TestCase
   end
 
   def test_should_add_a_proc_to_nested_attributes_options
-    [:parrots, :birds].each do |name|
+    [:parrots, :birds, :birds_with_reject_all_blank].each do |name|
       assert_instance_of Proc, Pirate.nested_attributes_options[name][:reject_if]
     end
+  end
+
+  def test_should_not_build_a_new_record_if_reject_all_blank_returns_false
+    pirate = Pirate.create!(:catchphrase => "Don' botharrr talkin' like one, savvy?")
+    pirate.birds_with_reject_all_blank_attributes = [{:name => '', :color => ''}]
+    pirate.save!
+
+    assert pirate.birds_with_reject_all_blank.empty?
+  end
+
+  def test_should_build_a_new_record_if_reject_all_blank_does_not_return_false
+    pirate = Pirate.create!(:catchphrase => "Don' botharrr talkin' like one, savvy?")
+    pirate.birds_with_reject_all_blank_attributes = [{:name => 'Tweetie', :color => ''}]
+    pirate.save!
+
+    assert_equal 1, pirate.birds_with_reject_all_blank.count
   end
 
   def test_should_raise_an_ArgumentError_for_non_existing_associations
