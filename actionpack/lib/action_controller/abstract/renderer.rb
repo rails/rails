@@ -20,13 +20,13 @@ module AbstractController
       
       self._view_paths ||= ActionView::PathSet.new
     end
-        
+    
     def _action_view
       @_action_view ||= ActionView::Base.new(self.class.view_paths, {}, self)      
     end
         
     def render(options = {})
-      unless response_body.nil?
+      if response_body
         raise AbstractController::DoubleRenderError, "OMG"
       end
       

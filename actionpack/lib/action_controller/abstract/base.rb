@@ -54,7 +54,6 @@ module AbstractController
       
       @_action_name = action_name
       process_action
-      self.response_obj[:body] = self.response_body
       self
     end
     
@@ -71,7 +70,7 @@ module AbstractController
     # action_name is found.
     def process_action
       if respond_to?(action_name) then send(action_name)
-      elsif respond_to?(:action_missing, true) then send(:action_missing, action_name)
+      elsif respond_to?(:action_missing, true) then action_missing(action_name)
       end
     end
     

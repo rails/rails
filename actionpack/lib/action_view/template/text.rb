@@ -1,5 +1,7 @@
 module ActionView #:nodoc:
   class TextTemplate < String #:nodoc:
+
+    def identifier() self end
     
     def render(*) self end
     
