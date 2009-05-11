@@ -42,6 +42,7 @@ module ActionController
     def call(name, env)
       @_request = ActionDispatch::Request.new(env)
       @_response = ActionDispatch::Response.new
+      @_response.request = request
       process(name)
       @_response.body = response_body
       @_response.prepare!

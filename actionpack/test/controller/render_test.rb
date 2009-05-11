@@ -1660,13 +1660,13 @@ class EtagRenderTest < ActionController::TestCase
   def test_render_against_etag_request_should_200_when_no_match
     @request.if_none_match = etag_for("hello somewhere else")
     get :render_hello_world_from_variable
-    assert_equal "200 OK", @response.status
+    assert_equal 200, @response.status.to_i
     assert !@response.body.empty?
   end
 
   def test_render_should_not_set_etag_when_last_modified_has_been_specified
     get :render_hello_world_with_last_modified_set
-    assert_equal "200 OK", @response.status
+    assert_equal 200, @response.status.to_i
     assert_not_nil @response.last_modified
     assert_nil @response.etag
     assert @response.body.present?
@@ -1752,7 +1752,7 @@ class LastModifiedRenderTest < ActionController::TestCase
   def test_request_not_modified
     @request.if_modified_since = @last_modified
     get :conditional_hello
-    assert_equal "304 Not Modified", @response.status
+    assert_equal 304, @response.status.to_i
     assert @response.body.blank?, @response.body
     assert_equal @last_modified, @response.headers['Last-Modified']
   end
@@ -1767,7 +1767,7 @@ class LastModifiedRenderTest < ActionController::TestCase
   def test_request_modified
     @request.if_modified_since = 'Thu, 16 Jul 2008 00:00:00 GMT'
     get :conditional_hello
-    assert_equal "200 OK", @response.status
+    assert_equal 200, @response.status.to_i
     assert !@response.body.blank?
     assert_equal @last_modified, @response.headers['Last-Modified']
   end

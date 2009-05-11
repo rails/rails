@@ -5,6 +5,7 @@ module ActionController
     def process_with_test(request, response)
       @_request = request
       @_response = response
+      @_response.request = request
       ret = process(request.parameters[:action])
       @_response.body = self.response_body
       @_response.prepare!

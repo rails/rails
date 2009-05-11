@@ -26,6 +26,9 @@ module ActionController
       if options.is_a?(Hash) && options.key?(:template)
         options[:template].sub!(/^\//, '')
       end
+      
+      options[:text] = nil if options[:nothing] == true
+
       super
     end
    
