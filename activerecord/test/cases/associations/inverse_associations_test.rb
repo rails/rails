@@ -94,6 +94,25 @@ class InverseHasOneTests < ActiveRecord::TestCase
     assert_equal m.name, f.man.name, "Name of man should be the same after changes to child-owned instance"
   end
 
+
+  def test_parent_instance_should_be_shared_with_eager_loaded_child_on_find
+    m = Man.find(:first, :include => :face)
+    f = m.face
+    assert_equal m.name, f.man.name, "Name of man should be the same before changes to parent instance"
+    m.name = 'Bongo'
+    assert_equal m.name, f.man.name, "Name of man should be the same after changes to parent instance"
+    f.man.name = 'Mungo'
+    assert_equal m.name, f.man.name, "Name of man should be the same after changes to child-owned instance"
+
+    m = Man.find(:first, :include => :face, :order => 'faces.id')
+    f = m.face
+    assert_equal m.name, f.man.name, "Name of man should be the same before changes to parent instance"
+    m.name = 'Bongo'
+    assert_equal m.name, f.man.name, "Name of man should be the same after changes to parent instance"
+    f.man.name = 'Mungo'
+    assert_equal m.name, f.man.name, "Name of man should be the same after changes to child-owned instance"
+  end
+
   def test_parent_instance_should_be_shared_with_newly_built_child
     m = Man.find(:first)
     f = m.build_face(:description => 'haunted')
@@ -134,6 +153,29 @@ class InverseHasManyTests < ActiveRecord::TestCase
       i.man.name = 'Mungo'
       assert_equal m.name, i.man.name, "Name of man should be the same after changes to child-owned instance"
     end
+  end
+
+  def test_parent_instance_should_be_shared_with_eager_loaded_children
+    m = Man.find(:first, :include => :interests)
+    is = m.interests
+    is.each do |i|
+      assert_equal m.name, i.man.name, "Name of man should be the same before changes to parent instance"
+      m.name = 'Bongo'
+      assert_equal m.name, i.man.name, "Name of man should be the same after changes to parent instance"
+      i.man.name = 'Mungo'
+      assert_equal m.name, i.man.name, "Name of man should be the same after changes to child-owned instance"
+    end
+
+    m = Man.find(:first, :include => :interests, :order => 'interests.id')
+    is = m.interests
+    is.each do |i|
+      assert_equal m.name, i.man.name, "Name of man should be the same before changes to parent instance"
+      m.name = 'Bongo'
+      assert_equal m.name, i.man.name, "Name of man should be the same after changes to parent instance"
+      i.man.name = 'Mungo'
+      assert_equal m.name, i.man.name, "Name of man should be the same after changes to child-owned instance"
+    end
+
   end
 
   def test_parent_instance_should_be_shared_with_newly_built_child
@@ -180,6 +222,25 @@ class InverseBelongsToTests < ActiveRecord::TestCase
 
   def test_child_instance_should_be_shared_with_parent_on_find
     f = Face.find(:first)
+    m = f.man
+    assert_equal f.description, m.face.description, "Description of face should be the same before changes to child instance"
+    f.description = 'gormless'
+    assert_equal f.description, m.face.description, "Description of face should be the same after changes to child instance"
+    m.face.description = 'pleasing'
+    assert_equal f.description, m.face.description, "Description of face should be the same after changes to parent-owned instance"
+  end
+
+  def test_eager_loaded_child_instance_should_be_shared_with_parent_on_find
+    f = Face.find(:first, :include => :man)
+    m = f.man
+    assert_equal f.description, m.face.description, "Description of face should be the same before changes to child instance"
+    f.description = 'gormless'
+    assert_equal f.description, m.face.description, "Description of face should be the same after changes to child instance"
+    m.face.description = 'pleasing'
+    assert_equal f.description, m.face.description, "Description of face should be the same after changes to parent-owned instance"
+
+
+    f = Face.find(:first, :include => :man, :order => 'men.id')
     m = f.man
     assert_equal f.description, m.face.description, "Description of face should be the same before changes to child instance"
     f.description = 'gormless'

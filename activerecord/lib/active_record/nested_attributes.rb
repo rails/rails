@@ -180,10 +180,14 @@ module ActiveRecord
       #   and the Proc should return either +true+ or +false+. When no Proc
       #   is specified a record will be built for all attribute hashes that
       #   do not have a <tt>_delete</tt> that evaluates to true.
+      #   Passing <tt>:all_blank</tt> instead of a Proc will create a proc
+      #   that will reject a record where all the attributes are blank.
       #
       # Examples:
       #   # creates avatar_attributes=
       #   accepts_nested_attributes_for :avatar, :reject_if => proc { |attributes| attributes['name'].blank? }
+      #   # creates avatar_attributes=
+      #   accepts_nested_attributes_for :avatar, :reject_if => :all_blank
       #   # creates avatar_attributes= and posts_attributes=
       #   accepts_nested_attributes_for :avatar, :posts, :allow_destroy => true
       def accepts_nested_attributes_for(*attr_names)
@@ -201,7 +205,12 @@ module ActiveRecord
             end
 
             reflection.options[:autosave] = true
-            self.reject_new_nested_attributes_procs[association_name.to_sym] = options[:reject_if]
+
+            self.reject_new_nested_attributes_procs[association_name.to_sym] = if options[:reject_if] == :all_blank
+              proc { |attributes| attributes.all? {|k,v| v.blank?} }
+            else
+              options[:reject_if]
+            end
 
             # def pirate_attributes=(attributes)
             #   assign_nested_attributes_for_one_to_one_association(:pirate, attributes, false)
