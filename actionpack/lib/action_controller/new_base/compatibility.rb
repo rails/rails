@@ -23,6 +23,15 @@ module ActionController
       
       cattr_accessor :default_charset
       self.send(:class_variable_set, "@@default_charset", "utf-8")
+      
+      cattr_reader :protected_instance_variables
+      self.send(:class_variable_set, "@@protected_instance_variables", %w(@assigns @performed_redirect @performed_render @variables_added @request_origin @url @parent_controller
+                                          @action_name @before_filter_chain_aborted @action_cache_path @_headers @_params
+                                          @_flash @_response))
+    end
+    
+    module ClassMethods
+      def protect_from_forgery() end
     end
   
     def render_to_body(options)

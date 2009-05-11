@@ -23,8 +23,8 @@ module ActionController
         options[:_template] = template
       elsif options.key?(:template)
         options[:_template_name] = options[:template]
-      elsif options.key?(:action)
-        options[:_template_name] = options[:action].to_s
+      else
+        options[:_template_name] = (options[:action] || action_name).to_s
         options[:_prefix] = _prefix 
       end
       

@@ -74,71 +74,8 @@ module ActionController
   class UnknownHttpMethod < ActionControllerError #:nodoc:
   end
   
-  class Base < Http
-    abstract!
-    # <HAX>
-    cattr_accessor :relative_url_root
-    self.relative_url_root = ENV['RAILS_RELATIVE_URL_ROOT']
-    
-    cattr_reader :protected_instance_variables
-    # Controller specific instance variables which will not be accessible inside views.
-    @@protected_instance_variables = %w(@assigns @performed_redirect @performed_render @variables_added @request_origin @url @parent_controller
-                                        @action_name @before_filter_chain_aborted @action_cache_path @_headers @_params
-                                        @_flash @_response)    
-    # </HAX>
-    
-    use AbstractController::Callbacks
-    use AbstractController::Helpers
-    use AbstractController::Logger
-
-    use ActionController::HideActions
-    use ActionController::UrlFor
-    use ActionController::Renderer
-    use ActionController::Layouts
-    use ActionController::Rails2Compatibility
+  class Base
     use ActionController::Testing
-    
-    def self.protect_from_forgery() end
-    
-    def self.inherited(klass)
-      ::ActionController::Base.subclasses << klass.to_s
-      super
-    end
-    
-    def self.subclasses
-      @subclasses ||= []
-    end
-    
-    def self.app_loaded!
-      @subclasses.each do |subclass|
-        subclass.constantize._write_layout_method
-      end
-    end
-    
-    def render(action = action_name, options = {})
-      if action.is_a?(Hash)
-        options, action = action, nil 
-      else
-        options.merge! :action => action
-      end
-      
-      super(options)
-    end
-    
-    def render_to_body(options = {})
-      options = {:template => options} if options.is_a?(String)
-      super
-    end
-    
-    def process_action
-      ret = super
-      render if response_body.nil?
-      ret
-    end
-    
-    def respond_to_action?(action_name)
-      super || view_paths.find_by_parts?(action_name.to_s, {:formats => formats, :locales => [I18n.locale]}, controller_path)
-    end
   end
   
   Base.view_paths = FIXTURE_LOAD_PATH
