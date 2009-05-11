@@ -7,6 +7,7 @@ module ActionController
       @_response = response
       ret = process(request.parameters[:action])
       @_response.body = self.response_body
+      @_response.prepare!
       set_test_assigns
       ret
     end

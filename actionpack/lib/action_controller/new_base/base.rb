@@ -10,6 +10,7 @@ module ActionController
     use ActionController::UrlFor
     use ActionController::Renderer
     use ActionController::Layouts
+    use ActionController::ConditionalGet
     
     # Legacy modules
     include SessionManagement

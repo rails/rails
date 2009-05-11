@@ -1,5 +1,6 @@
 module ActionController
   autoload :Base,                 "action_controller/new_base/base"
+  autoload :ConditionalGet,       "action_controller/new_base/conditional_get"
   autoload :HideActions,          "action_controller/new_base/hide_actions"
   autoload :Http,                 "action_controller/new_base/http"
   autoload :Layouts,              "action_controller/new_base/layouts"
