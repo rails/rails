@@ -1680,11 +1680,12 @@ class EtagRenderTest < ActionController::TestCase
 
     @request.if_none_match = expected_etag
     get :render_hello_world_from_variable
-    assert_equal "304 Not Modified", @response.status
+    assert_equal 304, @response.status.to_i
 
+    @response = ActionController::TestResponse.new
     @request.if_none_match = "\"diftag\""
     get :render_hello_world_from_variable
-    assert_equal "200 OK", @response.status
+    assert_equal 200, @response.status.to_i
   end
 
   def render_with_404_shouldnt_have_etag

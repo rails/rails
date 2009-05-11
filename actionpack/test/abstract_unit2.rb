@@ -57,9 +57,6 @@ module ActionController
   class UnknownController < ActionControllerError #:nodoc:
   end
 
-  class UnknownAction < ActionControllerError #:nodoc:
-  end
-
   class MissingFile < ActionControllerError #:nodoc:
   end
 

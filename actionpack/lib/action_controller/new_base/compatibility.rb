@@ -3,6 +3,9 @@ module ActionController
   
     # Temporary hax
     setup do
+      ::ActionController::UnknownAction = ::AbstractController::ActionNotFound
+      ::ActionController::DoubleRenderError = ::AbstractController::DoubleRenderError
+      
       cattr_accessor :session_options
       self.send(:class_variable_set, "@@session_options", {})
       
@@ -31,11 +34,11 @@ module ActionController
 
       super
     end
-   
-   def _layout_for_name(name)
-     name &&= name.sub(%r{^/?layouts/}, '')
-     super
-   end
+      
+    def _layout_for_name(name)
+      name &&= name.sub(%r{^/?layouts/}, '')
+      super
+    end
    
   end
 end
