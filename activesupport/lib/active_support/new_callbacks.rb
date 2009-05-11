@@ -316,7 +316,7 @@ module ActiveSupport
         each do |callback|
           method << callback.start(key, options)
         end
-        method << "yield self if block_given?"
+        method << "yield self if block_given? && !halted"
         reverse_each do |callback|
           method << callback.end(key, options)
         end

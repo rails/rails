@@ -2,7 +2,7 @@ module AbstractController
   module Callbacks
     setup do
       include ActiveSupport::NewCallbacks
-      define_callbacks :process_action      
+      define_callbacks :process_action, "response_body"
     end
     
     def process_action

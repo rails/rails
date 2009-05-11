@@ -365,7 +365,7 @@ module NewCallbacksTest
     save_callback :after, :third
 
   
-    attr_reader :history
+    attr_reader :history, :saved
     def initialize
       @history = []
     end
@@ -390,7 +390,9 @@ module NewCallbacksTest
     end
   
     def save
-      _run_save_callbacks
+      _run_save_callbacks do
+        @saved = true
+      end
     end
   end
 
@@ -400,6 +402,12 @@ module NewCallbacksTest
       terminator.save
       assert_equal ["first", "second", "third", "second", "first"], terminator.history
     end
+    
+    def test_block_never_called_if_terminated
+      obj = CallbackTerminator.new
+      obj.save
+      assert !obj.saved
+    end    
   end
   
   class HyphenatedKeyTest < Test::Unit::TestCase
@@ -407,6 +415,6 @@ module NewCallbacksTest
       obj = HyphenatedCallbacks.new
       obj.save
       assert_equal obj.stuff, "OMG"
-    end
+    end    
   end  
 end
