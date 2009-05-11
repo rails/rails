@@ -3,22 +3,22 @@ module ActionController
     extend ActiveSupport::DependencyModule
 
     depends_on AbstractController::Renderer
-
+    
     def initialize(*)
       self.formats = [:html]
       super
     end
-
+    
     def render(action, options = {})
       # TODO: Move this into #render_to_body
       if action.is_a?(Hash)
-        options, action = action, nil
+        options, action = action, nil 
       else
         options.merge! :action => action
       end
-
+      
       _process_options(options)
-
+      
       self.response_body = render_to_body(options)
     end
 
@@ -34,17 +34,18 @@ module ActionController
         options[:_template_name] = options[:template]
       elsif options.key?(:action)
         options[:_template_name] = options[:action].to_s
-        options[:_prefix] = _prefix
+        options[:_prefix] = _prefix 
       end
-
+      
       super(options)
     end
-
+    
   private
+  
     def _prefix
       controller_path
-    end
-
+    end  
+  
     def _text(options)
       text = options[:text]
 
@@ -53,7 +54,7 @@ module ActionController
       else text.to_s
       end
     end
-
+  
     def _process_options(options)
       if status = options[:status]
         response.status = status.to_i
