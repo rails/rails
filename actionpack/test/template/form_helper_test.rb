@@ -21,6 +21,9 @@ silence_warnings do
 
     attr_accessor :comments
     def comments_attributes=(attributes); end
+
+    attr_accessor :tags
+    def tags_attributes=(attributes); end
   end
 
   class Comment
@@ -31,6 +34,50 @@ silence_warnings do
     def new_record?; @id.nil? end
     def to_param; @id; end
     def name
+      @id.nil? ? "new #{self.class.name.downcase}" : "#{self.class.name.downcase} ##{@id}"
+    end
+
+    attr_accessor :relevances
+    def relevances_attributes=(attributes); end
+
+  end
+
+  class Tag
+    attr_reader :id
+    attr_reader :post_id
+    def initialize(id = nil, post_id = nil); @id, @post_id = id, post_id end
+    def save; @id = 1; @post_id = 1 end
+    def new_record?; @id.nil? end
+    def to_param; @id; end
+    def value
+      @id.nil? ? "new #{self.class.name.downcase}" : "#{self.class.name.downcase} ##{@id}"
+    end
+
+    attr_accessor :relevances
+    def relevances_attributes=(attributes); end
+
+  end
+
+  class CommentRelevance
+    attr_reader :id
+    attr_reader :comment_id
+    def initialize(id = nil, comment_id = nil); @id, @comment_id = id, comment_id end
+    def save; @id = 1; @comment_id = 1 end
+    def new_record?; @id.nil? end
+    def to_param; @id; end
+    def value
+      @id.nil? ? "new #{self.class.name.downcase}" : "#{self.class.name.downcase} ##{@id}"
+    end
+  end
+
+  class TagRelevance
+    attr_reader :id
+    attr_reader :tag_id
+    def initialize(id = nil, tag_id = nil); @id, @tag_id = id, tag_id end
+    def save; @id = 1; @tag_id = 1 end
+    def new_record?; @id.nil? end
+    def to_param; @id; end
+    def value
       @id.nil? ? "new #{self.class.name.downcase}" : "#{self.class.name.downcase} ##{@id}"
     end
   end
@@ -734,6 +781,51 @@ class FormHelperTest < ActionView::TestCase
     expected = '<form action="http://www.example.com" method="post">' +
                '<input id="post_comments_attributes_abc_id" name="post[comments_attributes][abc][id]" type="hidden" value="321" />' +
                '<input id="post_comments_attributes_abc_name" name="post[comments_attributes][abc][name]" size="30" type="text" value="comment #321" />' +
+               '</form>'
+
+    assert_dom_equal expected, output_buffer
+  end
+
+  def test_nested_fields_uses_unique_indices_for_different_collection_associations
+    @post.comments = [Comment.new(321)]
+    @post.tags = [Tag.new(123), Tag.new(456)]
+    @post.comments[0].relevances = []
+    @post.tags[0].relevances = []
+    @post.tags[1].relevances = []
+    form_for(:post, @post) do |f|
+      f.fields_for(:comments, @post.comments[0]) do |cf|
+        concat cf.text_field(:name)
+        cf.fields_for(:relevances, CommentRelevance.new(314)) do |crf|
+          concat crf.text_field(:value)
+        end
+      end
+      f.fields_for(:tags, @post.tags[0]) do |tf|
+        concat tf.text_field(:value)
+        tf.fields_for(:relevances, TagRelevance.new(3141)) do |trf|
+          concat trf.text_field(:value)
+        end
+      end
+      f.fields_for('tags', @post.tags[1]) do |tf|
+        concat tf.text_field(:value)
+        tf.fields_for(:relevances, TagRelevance.new(31415)) do |trf|
+          concat trf.text_field(:value)
+        end
+      end
+    end
+
+    expected = '<form action="http://www.example.com" method="post">' +
+               '<input id="post_comments_attributes_0_id" name="post[comments_attributes][0][id]" type="hidden" value="321" />' +
+               '<input id="post_comments_attributes_0_name" name="post[comments_attributes][0][name]" size="30" type="text" value="comment #321" />' +
+               '<input id="post_comments_attributes_0_relevances_attributes_0_id" name="post[comments_attributes][0][relevances_attributes][0][id]" type="hidden" value="314" />' +
+               '<input id="post_comments_attributes_0_relevances_attributes_0_value" name="post[comments_attributes][0][relevances_attributes][0][value]" size="30" type="text" value="commentrelevance #314" />' +
+               '<input id="post_tags_attributes_0_id" name="post[tags_attributes][0][id]" type="hidden" value="123" />' +
+               '<input id="post_tags_attributes_0_value" name="post[tags_attributes][0][value]" size="30" type="text" value="tag #123" />' +
+               '<input id="post_tags_attributes_0_relevances_attributes_0_id" name="post[tags_attributes][0][relevances_attributes][0][id]" type="hidden" value="3141" />' +
+               '<input id="post_tags_attributes_0_relevances_attributes_0_value" name="post[tags_attributes][0][relevances_attributes][0][value]" size="30" type="text" value="tagrelevance #3141" />' +
+               '<input id="post_tags_attributes_1_id" name="post[tags_attributes][1][id]" type="hidden" value="456" />' +
+               '<input id="post_tags_attributes_1_value" name="post[tags_attributes][1][value]" size="30" type="text" value="tag #456" />' +
+               '<input id="post_tags_attributes_1_relevances_attributes_0_id" name="post[tags_attributes][1][relevances_attributes][0][id]" type="hidden" value="31415" />' +
+               '<input id="post_tags_attributes_1_relevances_attributes_0_value" name="post[tags_attributes][1][relevances_attributes][0][value]" size="30" type="text" value="tagrelevance #31415" />' +
                '</form>'
 
     assert_dom_equal expected, output_buffer

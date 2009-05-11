@@ -917,6 +917,7 @@ module ActionView
       attr_accessor :object_name, :object, :options
 
       def initialize(object_name, object, template, options, proc)
+        @nested_child_index = {}
         @object_name, @object, @template, @options, @proc = object_name, object, template, options, proc
         @default_options = @options ? @options.slice(:index) : {}
         if @object_name.to_s.match(/\[\]$/)
@@ -1019,7 +1020,7 @@ module ActionView
             explicit_child_index = args.last[:child_index] if args.last.is_a?(Hash)
 
             children.map do |child|
-              fields_for_nested_model("#{name}[#{explicit_child_index || nested_child_index}]", child, args, block)
+              fields_for_nested_model("#{name}[#{explicit_child_index || nested_child_index(name)}]", child, args, block)
             end.join
           else
             fields_for_nested_model(name, explicit_object || association, args, block)
@@ -1037,9 +1038,9 @@ module ActionView
           end
         end
 
-        def nested_child_index
-          @nested_child_index ||= -1
-          @nested_child_index += 1
+        def nested_child_index(name)
+          @nested_child_index[name] ||= -1
+          @nested_child_index[name] += 1
         end
     end
   end
