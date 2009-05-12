@@ -1,5 +1,7 @@
 module ActionController
   module Layouts
+    extend ActiveSupport::DependencyModule
+
     depends_on ActionController::Renderer
     depends_on AbstractController::Layouts
     

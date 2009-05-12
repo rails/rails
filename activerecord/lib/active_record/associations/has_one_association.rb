@@ -74,13 +74,15 @@ module ActiveRecord
 
       private
         def find_target
-          @reflection.klass.find(:first, 
+          the_target = @reflection.klass.find(:first,
             :conditions => @finder_sql,
             :select     => @reflection.options[:select],
             :order      => @reflection.options[:order], 
             :include    => @reflection.options[:include],
             :readonly   => @reflection.options[:readonly]
           )
+          set_inverse_instance(the_target, @owner)
+          the_target
         end
 
         def construct_sql
@@ -88,7 +90,7 @@ module ActiveRecord
             when @reflection.options[:as]
               @finder_sql = 
                 "#{@reflection.quoted_table_name}.#{@reflection.options[:as]}_id = #{owner_quoted_id} AND " +
-                "#{@reflection.quoted_table_name}.#{@reflection.options[:as]}_type = #{@owner.class.quote_value(@owner.class.name.to_s)}"
+                "#{@reflection.quoted_table_name}.#{@reflection.options[:as]}_type = #{@owner.class.quote_value(@owner.class.base_class.name.to_s)}"
             else
               @finder_sql = "#{@reflection.quoted_table_name}.#{@reflection.primary_key_name} = #{owner_quoted_id}"
           end
@@ -117,7 +119,14 @@ module ActiveRecord
             self.target = record
           end
 
+          set_inverse_instance(record, @owner)
+
           record
+        end
+
+        def we_can_set_the_inverse_on_this?(record)
+          inverse = @reflection.inverse_of
+          return !inverse.nil?
         end
     end
   end

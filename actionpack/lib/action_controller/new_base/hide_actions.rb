@@ -1,10 +1,12 @@
 module ActionController
   module HideActions
-    setup do
+    extend ActiveSupport::DependencyModule
+
+    included do
       extlib_inheritable_accessor :hidden_actions
-      self.hidden_actions ||= Set.new      
+      self.hidden_actions ||= Set.new
     end
-    
+
     def action_methods() self.class.action_names end
     def action_names() action_methods end    
       

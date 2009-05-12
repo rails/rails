@@ -309,10 +309,13 @@ module ActionController
       def self.included(base)
         base.extend(ClassMethods)
         base.class_eval do
-          class << self
-            alias_method_chain :new, :capture
-          end
+          alias_method_chain :initialize, :capture
         end
+      end
+
+      def initialize_with_capture(*args)
+        initialize_without_capture
+        self.class.last_instantiation ||= self
       end
 
       module ClassMethods #:nodoc:
@@ -320,12 +323,6 @@ module ActionController
 
         def clear_last_instantiation!
           self.last_instantiation = nil
-        end
-
-        def new_with_capture(*args)
-          controller = new_without_capture(*args)
-          self.last_instantiation ||= controller
-          controller
         end
       end
     end

@@ -1,3 +1,6 @@
+require 'active_resource/exceptions'
+require 'active_support/core_ext/array/wrap'
+
 module ActiveResource
   class ResourceInvalid < ClientError  #:nodoc:
   end
@@ -271,5 +274,9 @@ module ActiveResource
     def errors
       @errors ||= Errors.new(self)
     end
+  end
+
+  class Base
+    include Validations
   end
 end

@@ -4,8 +4,8 @@ module AbstractController
   module Testing
   
     class ControllerWithHelpers < AbstractController::Base
-      use Renderer
-      use Helpers
+      include Renderer
+      include Helpers
       
       def render(string)
         super(:_template_name => string)

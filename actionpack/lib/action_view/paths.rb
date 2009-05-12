@@ -2,7 +2,7 @@ module ActionView #:nodoc:
   class PathSet < Array #:nodoc:
     def self.type_cast(obj)
       if obj.is_a?(String)
-        cache = !Object.const_defined?(:Rails) || Rails.configuration.cache_classes
+        cache = !defined?(Rails) || !Rails.respond_to?(:configuration) || Rails.configuration.cache_classes
         Template::FileSystemPathWithFallback.new(obj, :cache => cache)
       else
         obj

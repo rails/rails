@@ -1350,15 +1350,15 @@ class RenderTest < ActionController::TestCase
 
   def test_head_with_symbolic_status
     get :head_with_symbolic_status, :status => "ok"
-    assert_equal "200 OK", @response.status
+    assert_equal 200, @response.status
     assert_response :ok
 
     get :head_with_symbolic_status, :status => "not_found"
-    assert_equal "404 Not Found", @response.status
+    assert_equal 404, @response.status
     assert_response :not_found
 
     get :head_with_symbolic_status, :status => "no_content"
-    assert_equal "204 No Content", @response.status
+    assert_equal 204, @response.status
     assert !@response.headers.include?('Content-Length')
     assert_response :no_content
 
@@ -1379,7 +1379,7 @@ class RenderTest < ActionController::TestCase
   def test_head_with_string_status
     get :head_with_string_status, :status => "404 Eat Dirt"
     assert_equal 404, @response.response_code
-    assert_equal "Eat Dirt", @response.message
+    assert_equal "Not Found", @response.message
     assert_response :not_found
   end
 
@@ -1647,7 +1647,7 @@ class EtagRenderTest < ActionController::TestCase
   def test_render_against_etag_request_should_304_when_match
     @request.if_none_match = etag_for("hello david")
     get :render_hello_world_from_variable
-    assert_equal "304 Not Modified", @response.status
+    assert_equal 304, @response.status
     assert @response.body.empty?
   end
 

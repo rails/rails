@@ -60,7 +60,7 @@ module ActionController
   autoload :Redirector, 'action_controller/base/redirect'
   autoload :Renderer, 'action_controller/base/render'
   autoload :RequestForgeryProtection, 'action_controller/base/request_forgery_protection'
-  autoload :Rescue, 'action_controller/dispatch/rescue'
+  autoload :Rescue, 'action_controller/base/rescue'
   autoload :Resources, 'action_controller/routing/resources'
   autoload :Responder, 'action_controller/base/responder'
   autoload :Routing, 'action_controller/routing'

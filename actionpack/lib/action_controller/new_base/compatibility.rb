@@ -1,8 +1,9 @@
 module ActionController
   module Rails2Compatibility
+    extend ActiveSupport::DependencyModule
   
     # Temporary hax
-    setup do
+    included do
       ::ActionController::UnknownAction = ::AbstractController::ActionNotFound
       ::ActionController::DoubleRenderError = ::AbstractController::DoubleRenderError
       
@@ -32,6 +33,10 @@ module ActionController
     
     module ClassMethods
       def protect_from_forgery() end
+      def consider_all_requests_local() end
+      def rescue_action(env)
+        raise env["action_dispatch.rescue.exception"]
+      end
     end
   
     def render_to_body(options)

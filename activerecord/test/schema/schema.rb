@@ -57,6 +57,7 @@ ActiveRecord::Schema.define do
 
   create_table :birds, :force => true do |t|
     t.string :name
+    t.string :color
     t.integer :pirate_id
   end
 
@@ -283,7 +284,6 @@ ActiveRecord::Schema.define do
 
   create_table :organizations, :force => true do |t|
     t.string :name
-    t.string :type
   end
 
   create_table :owners, :primary_key => :owner_id ,:force => true do |t|
@@ -389,7 +389,7 @@ ActiveRecord::Schema.define do
   create_table :sponsors, :force => true do |t|
     t.integer :club_id
     t.integer :sponsorable_id
-    t.string  :sponsorable_type
+    t.string :sponsorable_type
   end
 
   create_table :subscribers, :force => true, :id => false do |t|
@@ -466,6 +466,26 @@ ActiveRecord::Schema.define do
     (1..8).each do |i|
       t.integer :"c_int_#{i}", :limit => i
     end
+  end
+
+  # NOTE - the following 4 tables are used by models that have :inverse_of options on the associations
+  create_table :men, :force => true do |t|
+    t.string  :name
+  end
+
+  create_table :faces, :force => true do |t|
+    t.string  :description
+    t.integer :man_id
+  end
+
+  create_table :interests, :force => true do |t|
+    t.string :topic
+    t.integer :man_id
+    t.integer :zine_id
+  end
+
+  create_table :zines, :force => true do |t|
+    t.string :title
   end
 
   except 'SQLite' do

@@ -1,6 +1,7 @@
 require 'abstract_unit'
 require "fixtures/person"
 require "fixtures/street_address"
+require 'active_support/core_ext/symbol'
 
 module Highrise
   class Note < ActiveResource::Base

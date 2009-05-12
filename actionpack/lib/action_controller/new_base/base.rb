@@ -2,22 +2,22 @@ module ActionController
   class Base < Http
     abstract!
     
-    use AbstractController::Callbacks
-    use AbstractController::Helpers
-    use AbstractController::Logger
-
-    use ActionController::HideActions
-    use ActionController::UrlFor
-    use ActionController::Renderer
-    use ActionController::Layouts
-    use ActionController::ConditionalGet
+    include AbstractController::Callbacks
+    include AbstractController::Helpers
+    include AbstractController::Logger
+    
+    include ActionController::HideActions
+    include ActionController::UrlFor
+    include ActionController::Renderer
+    include ActionController::Layouts
+    include ActionController::ConditionalGet
     
     # Legacy modules
     include SessionManagement
     include ActionDispatch::StatusCodes
     
     # Rails 2.x compatibility
-    use ActionController::Rails2Compatibility
+    include ActionController::Rails2Compatibility
     
     def self.inherited(klass)
       ::ActionController::Base.subclasses << klass.to_s

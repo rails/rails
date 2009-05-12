@@ -8,6 +8,8 @@ require 'active_support/core/all'
 require 'active_support/test_case'
 require 'action_controller/abstract'
 require 'action_view'
+require 'action_view/base'
+require 'action_dispatch'
 require 'fixture_template'
 
 begin

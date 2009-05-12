@@ -3,6 +3,11 @@ use "Rack::Lock", :if => lambda {
 }
 
 use "ActionDispatch::Failsafe"
+use "ActionDispatch::ShowExceptions", lambda { ActionController::Base.consider_all_requests_local }
+use "ActionDispatch::Rescue", lambda {
+  controller = (::ApplicationController rescue ActionController::Base)
+  controller.method(:rescue_action)
+}
 
 use lambda { ActionController::Base.session_store },
     lambda { ActionController::Base.session_options }

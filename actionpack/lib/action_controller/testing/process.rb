@@ -35,27 +35,27 @@ module ActionController #:nodoc:
       end
 
       data = params.to_query
-      @env['CONTENT_LENGTH'] = data.length
+      @env['CONTENT_LENGTH'] = data.length.to_s
       @env['rack.input'] = StringIO.new(data)
     end
 
     def recycle!
       @env.delete_if { |k, v| k =~ /^(action_dispatch|rack)\.request/ }
+      @env.delete_if { |k, v| k =~ /^action_dispatch\.rescue/ }
       @env['action_dispatch.request.query_parameters'] = {}
     end
   end
 
-  # Integration test methods such as ActionController::Integration::Session#get
-  # and ActionController::Integration::Session#post return objects of class
-  # TestResponse, which represent the HTTP response results of the requested
-  # controller actions.
-  #
-  # See Response for more information on controller response objects.
   class TestResponse < ActionDispatch::TestResponse
     def recycle!
-      body_parts.clear
-      headers.delete('ETag')
-      headers.delete('Last-Modified')
+      @status = 200
+      @header = Rack::Utils::HeaderHash.new(DEFAULT_HEADERS)
+      @writer = lambda { |x| @body << x }
+      @block = nil
+      @length = 0
+      @body = []
+
+      @request = @template = nil
     end
   end
 
@@ -132,11 +132,22 @@ module ActionController #:nodoc:
       build_request_uri(action, parameters)
 
       @request.env["action_controller.rescue.request"] = @request
-      @request.env["action_controller.rescue.request"] = @response
+      @request.env["action_controller.rescue.response"] = @response
 
       Base.class_eval { include ProcessWithTest } unless Base < ProcessWithTest
-      @controller.action_name = action.to_s
-      @controller.process(@request, @response)
+
+      env = @request.env
+      app = @controller
+
+      # TODO: Enable Lint
+      # app = Rack::Lint.new(app)
+
+      status, headers, body = app.action(action, env)
+      response = Rack::MockResponse.new(status, headers, body)
+
+      @response.request, @response.template = @request, @controller.template
+      @response.status, @response.headers, @response.body = response.status, response.headers, response.body
+      @response
     end
 
     def xml_http_request(request_method, action, parameters = nil, session = nil, flash = nil)

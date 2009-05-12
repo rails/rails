@@ -30,10 +30,6 @@ module ActionController #:nodoc:
     def allowed_methods_header
       allowed_methods.map { |method_symbol| method_symbol.to_s.upcase } * ', '
     end
-
-    def handle_response!(response)
-      response.headers['Allow'] ||= allowed_methods_header
-    end
   end
 
   class NotImplemented < MethodNotAllowed #:nodoc:
@@ -369,16 +365,20 @@ module ActionController #:nodoc:
 
     attr_reader :template
 
+    def action(name, env)
+      # HACK: For global rescue to have access to the original request and response
+      request = env["action_controller.rescue.request"] ||= ActionDispatch::Request.new(env)
+      response = env["action_controller.rescue.response"] ||= ActionDispatch::Response.new
+      self.action_name = name && name.to_s
+      process(request, response).to_a
+    end
+
+
     class << self
       def action(name = nil)
         @actions ||= {}
-        @actions[name] ||= proc do |env| 
-          controller = new
-          # HACK: For global rescue to have access to the original request and response
-          request = env["action_controller.rescue.request"] ||= ActionDispatch::Request.new(env)
-          response = env["action_controller.rescue.response"] ||= ActionDispatch::Response.new
-          controller.action_name = name && name.to_s
-          controller.process(request, response).to_a
+        @actions[name] ||= proc do |env|
+          new.action(name, env)
         end
       end
       
@@ -511,6 +511,12 @@ module ActionController #:nodoc:
     end
 
     public
+      def call(env)
+        request = ActionDispatch::Request.new(env)
+        response = ActionDispatch::Response.new
+        process(request, response).to_a
+      end
+
       # Extracts the action_name from the request parameters and performs that action.
       def process(request, response, method = :perform_action, *arguments) #:nodoc:
         response.request = request
@@ -819,7 +825,6 @@ module ActionController #:nodoc:
         @template = ActionView::Base.new(self.class.view_paths, {}, self, formats)
         response.template = @template if response.respond_to?(:template=)
         @template.helpers.send :include, self.class.master_helper_module
-        response.redirected_to = nil
         @performed_render = @performed_redirect = false
       end
 

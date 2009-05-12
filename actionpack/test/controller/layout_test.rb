@@ -205,8 +205,7 @@ end
 class LayoutExceptionRaised < ActionController::TestCase
   def test_exception_raised_when_layout_file_not_found
     @controller = SetsNonExistentLayoutFile.new
-    get :hello
-    assert_kind_of ActionView::MissingTemplate, @controller.template.instance_eval { @exception }
+    assert_raise(ActionView::MissingTemplate) { get :hello }
   end
 end
 
