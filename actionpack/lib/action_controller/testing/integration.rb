@@ -249,8 +249,6 @@ module ActionController
             end
           end
 
-          ActionController::Base.clear_last_instantiation!
-
           opts = {
             :method => method,
             :params => parameters,
@@ -273,17 +271,14 @@ module ActionController
             env[key] = value
           end
 
-          @mock_session.request(URI.parse(path), env)
+          @controller = ActionController::Base.capture_instantiation do
+            @mock_session.request(URI.parse(path), env)
+          end
 
           @request_count += 1
           @request  = ActionDispatch::Request.new(env)
           @response = ActionDispatch::TestResponse.from_response(@mock_session.last_response)
-
           @html_document = nil
-
-          if @controller = ActionController::Base.last_instantiation
-            @controller.send(:set_test_assigns)
-          end
 
           return response.status
         end
@@ -305,11 +300,10 @@ module ActionController
     # A module used to extend ActionController::Base, so that integration tests
     # can capture the controller used to satisfy a request.
     module ControllerCapture #:nodoc:
-      def self.included(base)
-        base.extend(ClassMethods)
-        base.class_eval do
-          alias_method_chain :initialize, :capture
-        end
+      extend ActiveSupport::DependencyModule
+
+      included do
+        alias_method_chain :initialize, :capture
       end
 
       def initialize_with_capture(*args)
@@ -320,8 +314,10 @@ module ActionController
       module ClassMethods #:nodoc:
         mattr_accessor :last_instantiation
 
-        def clear_last_instantiation!
+        def capture_instantiation
           self.last_instantiation = nil
+          yield
+          return last_instantiation
         end
       end
     end
