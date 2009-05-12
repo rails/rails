@@ -1,6 +1,8 @@
 require 'stringio'
 require 'uri'
 require 'active_support/test_case'
+require 'rack/test'
+require 'rack/mock_session'
 
 module ActionController
   module Integration #:nodoc:
@@ -121,6 +123,8 @@ module ActionController
     # IntegrationTest#open_session, rather than instantiating
     # Integration::Session directly.
     class Session
+      DEFAULT_HOST = "www.example.com"
+
       include Test::Unit::Assertions
       include ActionDispatch::Assertions
       include ActionController::TestProcess
@@ -145,7 +149,9 @@ module ActionController
 
       # A map of the cookies returned by the last response, and which will be
       # sent with the next request.
-      attr_reader :cookies
+      def cookies
+        @mock_session.cookie_jar
+      end
 
       # A reference to the controller instance used by the last request.
       attr_reader :controller
@@ -172,11 +178,11 @@ module ActionController
       #   session.reset!
       def reset!
         @https = false
-        @cookies = {}
+        @mock_session = Rack::MockSession.new(@app, DEFAULT_HOST)
         @controller = @request = @response = nil
         @request_count = 0
 
-        self.host        = "www.example.com"
+        self.host        = DEFAULT_HOST
         self.remote_addr = "127.0.0.1"
         self.accept      = "text/xml,application/xml,application/xhtml+xml," +
                            "text/html;q=0.9,text/plain;q=0.8,image/png," +
@@ -227,6 +233,7 @@ module ActionController
       end
 
       private
+
         # Performs the actual request.
         def process(method, path, parameters = nil, rack_environment = nil)
           if path =~ %r{://}
@@ -258,10 +265,7 @@ module ActionController
             "HTTP_HOST"      => host,
             "REMOTE_ADDR"    => remote_addr,
             "CONTENT_TYPE"   => "application/x-www-form-urlencoded",
-            "HTTP_ACCEPT"    => accept,
-            "HTTP_COOKIE"    => cookies.inject("") { |string, (name, value)|
-              string << "#{name}=#{value}; "
-            }
+            "HTTP_ACCEPT"    => accept
           }
           env = Rack::MockRequest.env_for(path, opts)
 
@@ -269,15 +273,12 @@ module ActionController
             env[key] = value
           end
 
-          app = Rack::Lint.new(@app)
-          status, headers, body = app.call(env)
-          mock_response = ::Rack::MockResponse.new(status, headers, body)
+          @mock_session.request(URI.parse(path), env)
 
           @request_count += 1
           @request  = ActionDispatch::Request.new(env)
-          @response = ActionDispatch::TestResponse.from_response(mock_response)
+          @response = ActionDispatch::TestResponse.from_response(@mock_session.last_response)
 
-          @cookies.merge!(@response.cookies)
           @html_document = nil
 
           if @controller = ActionController::Base.last_instantiation
