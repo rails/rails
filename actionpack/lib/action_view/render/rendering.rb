@@ -95,6 +95,11 @@ module ActionView
       layout ? _render_content_with_layout(text, layout, options[:locals]) : text
     end
 
+    def _render_template_from_controller(*args)
+      @assigns_added = nil
+      _render_template_with_layout(*args)
+    end
+
     def _render_template_with_layout(template, layout = nil, options = {}, partial = false)
       if controller && logger
         logger.info("Rendering #{template.identifier}" + 

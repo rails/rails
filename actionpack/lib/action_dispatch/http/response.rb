@@ -156,12 +156,6 @@ module ActionDispatch # :nodoc:
       end
     end
 
-    def redirect(url, status)
-      self.status = status
-      self.location = url.gsub(/[\r\n]/, '')
-      self.body = "<html><body>You are being <a href=\"#{CGI.escapeHTML(url)}\">redirected</a>.</body></html>"
-    end
-
     def sending_file?
       headers["Content-Transfer-Encoding"] == "binary"
     end

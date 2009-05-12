@@ -1,4 +1,4 @@
-require ENV['new_base'] ? 'abstract_unit2' : 'abstract_unit'
+require 'abstract_unit'
 require 'controller/fake_models'
 require 'pathname'
 
@@ -1647,7 +1647,7 @@ class EtagRenderTest < ActionController::TestCase
   def test_render_against_etag_request_should_304_when_match
     @request.if_none_match = etag_for("hello david")
     get :render_hello_world_from_variable
-    assert_equal 304, @response.status
+    assert_equal 304, @response.status.to_i
     assert @response.body.empty?
   end
 

@@ -38,6 +38,12 @@ module ActionController
       controller.call(env).to_rack
     end
     
+    delegate :headers, :to => "@_response"
+    
+    def params
+      @_params ||= @_request.parameters
+    end
+    
     # :api: private
     def call(name, env)
       @_request = ActionDispatch::Request.new(env)

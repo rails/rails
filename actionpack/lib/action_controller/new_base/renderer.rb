@@ -9,13 +9,9 @@ module ActionController
       super
     end
     
-    def render(options = {})
+    def render_to_body(options)
       _process_options(options)
       
-      super(options)
-    end
-
-    def render_to_body(options)
       if options.key?(:text)
         options[:_template] = ActionView::TextTemplate.new(_text(options))
         template = nil
@@ -25,12 +21,18 @@ module ActionController
         options[:_template] = template
       elsif options.key?(:template)
         options[:_template_name] = options[:template]
+      elsif options.key?(:file)
+        options[:_template_name] = options[:file]
+      elsif options.key?(:partial)
+        _render_partial(options[:partial], options)
       else
         options[:_template_name] = (options[:action] || action_name).to_s
         options[:_prefix] = _prefix 
       end
       
       ret = super(options)
+      
+      options[:_template] ||= _action_view._partial
       response.content_type ||= options[:_template].mime_type
       ret
     end
@@ -48,6 +50,21 @@ module ActionController
       when nil then " "
       else text.to_s
       end
+    end
+    
+    def _render_partial(partial, options)
+      case partial
+      when true
+        options[:_prefix] = _prefix
+      when String
+        options[:_prefix] = _prefix unless partial.index('/')
+        options[:_template_name] = partial
+      else
+        options[:_partial_object] = true
+        return
+      end
+      
+      options[:_partial] = options[:object] || true
     end
   
     def _process_options(options)

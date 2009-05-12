@@ -75,7 +75,7 @@ module ActionController
   end
   
   class Base
-    use ActionController::Testing
+    include ActionController::Testing
   end
   
   Base.view_paths = FIXTURE_LOAD_PATH
@@ -89,43 +89,42 @@ module ActionController
     end
     
     def assert_template(options = {}, message = nil)
-      validate_response!
+      validate_request!
 
-      clean_backtrace do
-        case options
-         when NilClass, String
-          hax = @controller._action_view.instance_variable_get(:@_rendered)
-          rendered = (hax[:template] || []).map { |t| t.identifier }
-          msg = build_message(message,
-                  "expecting <?> but rendering with <?>",
-                  options, rendered.join(', '))
-          assert_block(msg) do
-            if options.nil?
-              hax[:template].blank?
-            else
-              rendered.any? { |t| t.match(options) }
-            end
-          end
-        when Hash
-          if expected_partial = options[:partial]
-            partials = hax[:partials]
-            if expected_count = options[:count]
-              found = partials.detect { |p, _| p.identifier.match(expected_partial) }
-              actual_count = found.nil? ? 0 : found.second
-              msg = build_message(message,
-                      "expecting ? to be rendered ? time(s) but rendered ? time(s)",
-                       expected_partial, expected_count, actual_count)
-              assert(actual_count == expected_count.to_i, msg)
-            else
-              msg = build_message(message,
-                      "expecting partial <?> but action rendered <?>",
-                      options[:partial], partials.keys)
-              assert(partials.keys.any? { |p| p.identifier.match(expected_partial) }, msg)
-            end
+      hax = @controller._action_view.instance_variable_get(:@_rendered)
+
+      case options
+       when NilClass, String
+        rendered = (hax[:template] || []).map { |t| t.identifier }
+        msg = build_message(message,
+                "expecting <?> but rendering with <?>",
+                options, rendered.join(', '))
+        assert_block(msg) do
+          if options.nil?
+            hax[:template].blank?
           else
-            assert hax[:partials].empty?,
-              "Expected no partials to be rendered"
+            rendered.any? { |t| t.match(options) }
           end
+        end
+      when Hash
+        if expected_partial = options[:partial]
+          partials = hax[:partials]
+          if expected_count = options[:count]
+            found = partials.detect { |p, _| p.identifier.match(expected_partial) }
+            actual_count = found.nil? ? 0 : found.second
+            msg = build_message(message,
+                    "expecting ? to be rendered ? time(s) but rendered ? time(s)",
+                     expected_partial, expected_count, actual_count)
+            assert(actual_count == expected_count.to_i, msg)
+          else
+            msg = build_message(message,
+                    "expecting partial <?> but action rendered <?>",
+                    options[:partial], partials.keys)
+            assert(partials.keys.any? { |p| p.identifier.match(expected_partial) }, msg)
+          end
+        else
+          assert hax[:partials].empty?,
+            "Expected no partials to be rendered"
         end
       end
     end    

@@ -161,11 +161,13 @@ module ActionController #:nodoc:
     alias xhr :xml_http_request
 
     def assigns(key = nil)
-      if key.nil?
-        @controller.template.assigns
-      else
-        @controller.template.assigns[key.to_s]
+      assigns = {}
+      @controller.instance_variable_names.each do |ivar|
+        next if ActionController::Base.protected_instance_variables.include?(ivar)
+        assigns[ivar[1..-1]] = @controller.instance_variable_get(ivar)
       end
+      
+      key.nil? ? assigns : assigns[key.to_s]
     end
 
     def session
