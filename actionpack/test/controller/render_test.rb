@@ -1,9 +1,10 @@
-require 'abstract_unit'
+require ENV['new_base'] ? 'abstract_unit2' : 'abstract_unit'
 require 'controller/fake_models'
 require 'pathname'
 
 module Fun
   class GamesController < ActionController::Base
+    # :ported:
     def hello_world
     end
   end
@@ -80,6 +81,7 @@ class TestController < ActionController::Base
     fresh_when(:last_modified => Time.now.utc.beginning_of_day, :etag => [ :foo, 123 ])
   end
 
+  # :ported:
   def render_hello_world
     render :template => "test/hello_world"
   end
@@ -94,23 +96,28 @@ class TestController < ActionController::Base
     render :template => "test/hello_world"
   end
 
+  # :ported: compatibility
   def render_hello_world_with_forward_slash
     render :template => "/test/hello_world"
   end
 
+  # :ported:
   def render_template_in_top_directory
     render :template => 'shared'
   end
 
+  # :deprecated:
   def render_template_in_top_directory_with_slash
     render :template => '/shared'
   end
 
+  # :ported:
   def render_hello_world_from_variable
     @person = "david"
     render :text => "hello #{@person}"
   end
 
+  # :ported:
   def render_action_hello_world
     render :action => "hello_world"
   end
@@ -123,10 +130,12 @@ class TestController < ActionController::Base
     render :action => :hello_world
   end
 
+  # :ported:
   def render_text_hello_world
     render :text => "hello world"
   end
 
+  # :ported:
   def render_text_hello_world_with_layout
     @variable_for_layout = ", I'm here!"
     render :text => "hello world", :layout => true
@@ -218,6 +227,7 @@ class TestController < ActionController::Base
     render :json => {:hello => render_to_string(:partial => 'partial')}
   end
 
+  # :ported:
   def render_custom_code
     render :text => "hello world", :status => 404
   end
@@ -228,14 +238,17 @@ class TestController < ActionController::Base
     end
   end
 
+  # :ported:
   def render_text_with_nil
     render :text => nil
   end
 
+  # :ported:
   def render_text_with_false
     render :text => false
   end
 
+  # :ported:
   def render_nothing_with_appendix
     render :text => "appended"
   end
@@ -244,6 +257,10 @@ class TestController < ActionController::Base
     render :js => "alert('hello')"
   end
 
+  # This test is testing 3 things:
+  #   render :file in AV      :ported:
+  #   render :template in AC  :ported:
+  #   setting content type
   def render_xml_hello
     @name = "David"
     render :template => "test/hello"
@@ -270,10 +287,12 @@ class TestController < ActionController::Base
     # let's just rely on the template
   end
 
+  # :ported:
   def blank_response
     render :text => ' '
   end
 
+  # :ported:
   def layout_test
     render :action => "hello_world"
   end
@@ -281,7 +300,8 @@ class TestController < ActionController::Base
   def builder_layout_test
     render :action => "hello", :layout => "layouts/builder"
   end
-
+  
+  # :move: test this in ActionView
   def builder_partial_test
     render :action => "hello_world_container"
   end
@@ -391,6 +411,7 @@ class TestController < ActionController::Base
     render :layout => true, :inline =>  "Hello: <%= params[:name] %>"
   end
 
+  # :ported:
   def render_with_explicit_template
     render :template => "test/hello_world"
   end
@@ -399,10 +420,12 @@ class TestController < ActionController::Base
     render "test/hello_world"
   end
 
+  # :ported:
   def render_with_explicit_template_with_locals
     render :template => "test/render_file_with_locals", :locals => { :secret => 'area51' }
   end
 
+  # :ported:
   def double_render
     render :text => "hello"
     render :text => "world"
@@ -434,10 +457,15 @@ class TestController < ActionController::Base
     render :action => "potential_conflicts"
   end
 
+  # :deprecated:
+  # Tests being able to pick a .builder template over a .erb
+  # For instance, being able to have hello.xml.builder and hello.xml.erb
+  # and select one via "hello.builder" or "hello.erb"
   def hello_world_from_rxml_using_action
     render :action => "hello_world_from_rxml.builder"
   end
 
+  # :deprecated:
   def hello_world_from_rxml_using_template
     render :template => "test/hello_world_from_rxml.builder"
   end
@@ -506,6 +534,7 @@ class TestController < ActionController::Base
     # Action template sets variable that's picked up by layout
   end
 
+  # :addressed:
   def render_text_with_assigns
     @hello = "world"
     render :text => "foo"
@@ -755,6 +784,7 @@ class RenderTest < ActionController::TestCase
     @request.host = "www.nextangle.com"
   end
 
+  # :ported:
   def test_simple_show
     get :hello_world
     assert_response 200
@@ -763,11 +793,13 @@ class RenderTest < ActionController::TestCase
     assert_equal "<html>Hello world!</html>", @response.body
   end
 
+  # :ported:
   def test_renders_default_template_for_missing_action
     get :'hyphen-ated'
     assert_template 'test/hyphen-ated'
   end
 
+  # :ported:
   def test_render
     get :render_hello_world
     assert_template "test/hello_world"
@@ -785,54 +817,64 @@ class RenderTest < ActionController::TestCase
     end
   end
 
+  # :ported: compatibility
   def test_render_with_forward_slash
     get :render_hello_world_with_forward_slash
     assert_template "test/hello_world"
   end
 
+  # :ported:
   def test_render_in_top_directory
     get :render_template_in_top_directory
     assert_template "shared"
     assert_equal "Elastica", @response.body
   end
 
+  # :ported:
   def test_render_in_top_directory_with_slash
     get :render_template_in_top_directory_with_slash
     assert_template "shared"
     assert_equal "Elastica", @response.body
   end
 
+  # :ported:
   def test_render_from_variable
     get :render_hello_world_from_variable
     assert_equal "hello david", @response.body
   end
 
+  # :ported:
   def test_render_action
     get :render_action_hello_world
     assert_template "test/hello_world"
   end
 
+  # :ported:
   def test_render_action_hello_world_as_string
     get :render_action_hello_world_as_string
     assert_equal "Hello world!", @response.body
     assert_template "test/hello_world"
   end
 
+  # :ported:
   def test_render_action_with_symbol
     get :render_action_hello_world_with_symbol
     assert_template "test/hello_world"
   end
 
+  # :ported:
   def test_render_text
     get :render_text_hello_world
     assert_equal "hello world", @response.body
   end
 
+  # :ported:
   def test_do_with_render_text_and_layout
     get :render_text_hello_world_with_layout
     assert_equal "<html>hello world, I'm here!</html>", @response.body
   end
 
+  # :ported:
   def test_do_with_render_action_and_layout_false
     get :hello_world_with_layout_false
     assert_equal 'Hello world!', @response.body
@@ -914,6 +956,7 @@ class RenderTest < ActionController::TestCase
     assert_equal 'application/json', @response.content_type
   end
 
+  # :ported:
   def test_render_custom_code
     get :render_custom_code
     assert_response 404
@@ -927,31 +970,37 @@ class RenderTest < ActionController::TestCase
     assert_equal %(Element.replace("foo", "partial html");), @response.body
   end
 
+  # :ported:
   def test_render_text_with_nil
     get :render_text_with_nil
     assert_response 200
     assert_equal ' ', @response.body
   end
 
+  # :ported:
   def test_render_text_with_false
     get :render_text_with_false
     assert_equal 'false', @response.body
   end
 
+  # :ported:
   def test_render_nothing_with_appendix
     get :render_nothing_with_appendix
     assert_response 200
     assert_equal 'appended', @response.body
   end
 
+  # :ported:
   def test_attempt_to_access_object_method
     assert_raise(ActionController::UnknownAction, "No action responded to [clone]") { get :clone }
   end
 
+  # :ported:
   def test_private_methods
     assert_raise(ActionController::UnknownAction, "No action responded to [determine_layout]") { get :determine_layout }
   end
 
+  # :ported:
   def test_access_to_request_in_view
     get :accessing_request_in_template
     assert_equal "Hello: www.nextangle.com", @response.body
@@ -962,11 +1011,13 @@ class RenderTest < ActionController::TestCase
     assert_equal "Logger", @response.body
   end
 
+  # :ported:
   def test_access_to_action_name_in_view
     get :accessing_action_name_in_template
     assert_equal "accessing_action_name_in_template", @response.body
   end
 
+  # :ported:
   def test_access_to_controller_name_in_view
     get :accessing_controller_name_in_template
     assert_equal "test", @response.body # name is explicitly set to 'test' inside the controller.
@@ -978,6 +1029,7 @@ class RenderTest < ActionController::TestCase
     assert_equal "text/javascript", @response.content_type
   end
 
+  # :ported:
   def test_render_xml
     get :render_xml_hello
     assert_equal "<html>\n  <p>Hello David</p>\n<p>This is grand!</p>\n</html>\n", @response.body
@@ -990,6 +1042,7 @@ class RenderTest < ActionController::TestCase
     assert_equal "application/xml", @response.content_type
   end
 
+  # :ported:
   def test_render_xml_with_default
     get :greeting
     assert_equal "<p>This is grand!</p>\n", @response.body
@@ -1044,6 +1097,7 @@ class RenderTest < ActionController::TestCase
     assert_template "test/hello_world"
   end
 
+  # :ported:
   def test_nested_rendering
     @controller = Fun::GamesController.new
     get :hello_world
@@ -1204,6 +1258,7 @@ class RenderTest < ActionController::TestCase
     assert_equal "<html>Hello world!</html>", @response.body
   end
 
+  # :ported:
   def test_double_render
     assert_raise(ActionController::DoubleRenderError) { get :double_render }
   end
@@ -1232,11 +1287,13 @@ class RenderTest < ActionController::TestCase
     assert_equal "<title>Talking to the layout</title>\nAction was here!", @response.body
   end
 
+  # :addressed:
   def test_render_text_with_assigns
     get :render_text_with_assigns
     assert_equal "world", assigns["hello"]
   end
 
+  # :ported:
   def test_template_with_locals
     get :render_with_explicit_template_with_locals
     assert_equal "The secret is area51\n", @response.body
@@ -1603,13 +1660,13 @@ class EtagRenderTest < ActionController::TestCase
   def test_render_against_etag_request_should_200_when_no_match
     @request.if_none_match = etag_for("hello somewhere else")
     get :render_hello_world_from_variable
-    assert_equal 200, @response.status
+    assert_equal 200, @response.status.to_i
     assert !@response.body.empty?
   end
 
   def test_render_should_not_set_etag_when_last_modified_has_been_specified
     get :render_hello_world_with_last_modified_set
-    assert_equal 200, @response.status
+    assert_equal 200, @response.status.to_i
     assert_not_nil @response.last_modified
     assert_nil @response.etag
     assert @response.body.present?
@@ -1623,11 +1680,12 @@ class EtagRenderTest < ActionController::TestCase
 
     @request.if_none_match = expected_etag
     get :render_hello_world_from_variable
-    assert_equal 304, @response.status
+    assert_equal 304, @response.status.to_i
 
+    @response = ActionController::TestResponse.new
     @request.if_none_match = "\"diftag\""
     get :render_hello_world_from_variable
-    assert_equal 200, @response.status
+    assert_equal 200, @response.status.to_i
   end
 
   def render_with_404_shouldnt_have_etag
@@ -1695,7 +1753,7 @@ class LastModifiedRenderTest < ActionController::TestCase
   def test_request_not_modified
     @request.if_modified_since = @last_modified
     get :conditional_hello
-    assert_equal 304, @response.status
+    assert_equal 304, @response.status.to_i
     assert @response.body.blank?, @response.body
     assert_equal @last_modified, @response.headers['Last-Modified']
   end
@@ -1710,7 +1768,7 @@ class LastModifiedRenderTest < ActionController::TestCase
   def test_request_modified
     @request.if_modified_since = 'Thu, 16 Jul 2008 00:00:00 GMT'
     get :conditional_hello
-    assert_equal 200, @response.status
+    assert_equal 200, @response.status.to_i
     assert !@response.body.blank?
     assert_equal @last_modified, @response.headers['Last-Modified']
   end

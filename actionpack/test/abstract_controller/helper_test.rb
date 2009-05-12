@@ -4,8 +4,8 @@ module AbstractController
   module Testing
   
     class ControllerWithHelpers < AbstractController::Base
-      use Renderer
-      use Helpers
+      include Renderer
+      include Helpers
       
       def render(string)
         super(:_template_name => string)
@@ -35,7 +35,7 @@ module AbstractController
     class TestHelpers < ActiveSupport::TestCase
       def test_helpers
         result = MyHelpers1.process(:index)
-        assert_equal "Hello World : Included", result.response_obj[:body]
+        assert_equal "Hello World : Included", result.response_body
       end
     end
     

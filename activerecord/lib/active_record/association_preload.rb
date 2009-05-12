@@ -1,9 +1,7 @@
 module ActiveRecord
   # See ActiveRecord::AssociationPreload::ClassMethods for documentation.
   module AssociationPreload #:nodoc:
-    def self.included(base)
-      base.extend(ClassMethods)
-    end
+    extend ActiveSupport::DependencyModule
 
     # Implements the details of eager loading of ActiveRecord associations.
     # Application developers should not use this module directly.
@@ -126,6 +124,7 @@ module ActiveRecord
           association_proxy = parent_record.send(reflection_name)
           association_proxy.loaded
           association_proxy.target.push(*[associated_record].flatten)
+          association_proxy.__send__(:set_inverse_instance, associated_record, parent_record)
         end
       end
 
@@ -152,7 +151,8 @@ module ActiveRecord
           seen_keys[associated_record[key].to_s] = true
           mapped_records = id_to_record_map[associated_record[key].to_s]
           mapped_records.each do |mapped_record|
-            mapped_record.send("set_#{reflection_name}_target", associated_record)
+            association_proxy = mapped_record.send("set_#{reflection_name}_target", associated_record)
+            association_proxy.__send__(:set_inverse_instance, associated_record, mapped_record)
           end
         end
       end

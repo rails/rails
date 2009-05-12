@@ -48,7 +48,7 @@ module ActionController
     cattr_accessor :middleware
     self.middleware = ActionDispatch::MiddlewareStack.new do |middleware|
       middlewares = File.join(File.dirname(__FILE__), "middlewares.rb")
-      middleware.instance_eval(File.read(middlewares))
+      middleware.instance_eval(File.read(middlewares), middlewares, 1)
     end
 
     include ActiveSupport::Callbacks

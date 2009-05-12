@@ -1,59 +1,62 @@
 module ActionController
-  class AbstractBase < AbstractController::Base
-    # :api: public
-    attr_internal :request, :response, :params
-
-    # :api: public
-    def self.controller_name
-      @controller_name ||= controller_path.split("/").last
+  class Base < Http
+    abstract!
+    
+    include AbstractController::Callbacks
+    include AbstractController::Helpers
+    include AbstractController::Logger
+    
+    include ActionController::HideActions
+    include ActionController::UrlFor
+    include ActionController::Renderer
+    include ActionController::Layouts
+    include ActionController::ConditionalGet
+    
+    # Legacy modules
+    include SessionManagement
+    include ActionDispatch::StatusCodes
+    
+    # Rails 2.x compatibility
+    include ActionController::Rails2Compatibility
+    
+    def self.inherited(klass)
+      ::ActionController::Base.subclasses << klass.to_s
+      super
     end
-
-    # :api: public
-    def controller_name() self.class.controller_name end
-
-    # :api: public
-    def self.controller_path
-      @controller_path ||= self.name.sub(/Controller$/, '').underscore
+    
+    def self.subclasses
+      @subclasses ||= []
     end
-
-    # :api: public
-    def controller_path() self.class.controller_path end
-
-    # :api: private
-    def self.action_methods
-      @action_names ||= Set.new(self.public_instance_methods - self::CORE_METHODS)
+    
+    def self.app_loaded!
+      @subclasses.each do |subclass|
+        subclass.constantize._write_layout_method
+      end
     end
-
-    # :api: private
-    def self.action_names() action_methods end
-
-    # :api: private
-    def action_methods() self.class.action_names end
-
-    # :api: private
-    def action_names() action_methods end
-
-    # :api: plugin
-    def self.call(env)
-      controller = new
-      controller.call(env).to_rack
+    
+    def render(action = action_name, options = {})
+      if action.is_a?(Hash)
+        options, action = action, nil 
+      else
+        options.merge! :action => action
+      end
+      
+      super(options)
     end
-
-    # :api: plugin
-    def response_body=(body)
-      @_response.body = body
+    
+    def render_to_body(options = {})
+      options = {:template => options} if options.is_a?(String)
+      super
     end
-
-    # :api: private
-    def call(env)
-      @_request = ActionDispatch::Request.new(env)
-      @_response = ActionDispatch::Response.new
-      process(@_request.parameters[:action])
+    
+    def process_action
+      ret = super
+      render if response_body.nil?
+      ret
     end
-
-    # :api: private
-    def to_rack
-      response.to_a
+    
+    def respond_to_action?(action_name)
+      super || view_paths.find_by_parts?(action_name.to_s, {:formats => formats, :locales => [I18n.locale]}, controller_path)
     end
   end
 end

@@ -365,17 +365,23 @@ module ActionController #:nodoc:
 
     attr_reader :template
 
+    def action(name, env)
+      # HACK: For global rescue to have access to the original request and response
+      request = env["action_controller.rescue.request"] ||= ActionDispatch::Request.new(env)
+      response = env["action_controller.rescue.response"] ||= ActionDispatch::Response.new
+      self.action_name = name && name.to_s
+      process(request, response).to_a
+    end
+
+
     class << self
-      def call(env)
-        new.call(env)
+      def action(name = nil)
+        @actions ||= {}
+        @actions[name] ||= proc do |env|
+          new.action(name, env)
+        end
       end
-
-      # Factory for the standard create, process loop where the controller is discarded after processing.
-      def process(request, response) #:nodoc:
-        ActiveSupport::Deprecation.warn("Controller.process has been deprecated. Use Controller.call instead", caller)
-        new.process(request, response)
-      end
-
+      
       # Converts the class name from something like "OneModule::TwoModule::NeatController" to "NeatController".
       def controller_class_name
         @controller_class_name ||= name.demodulize
@@ -518,7 +524,6 @@ module ActionController #:nodoc:
         assign_shortcuts(request, response)
         initialize_template_class(response)
         initialize_current_url
-        assign_names
 
         log_processing
         send(method, *arguments)
@@ -880,10 +885,6 @@ module ActionController #:nodoc:
       # Returns true if a render or redirect has already been performed.
       def performed?
         @performed_render || @performed_redirect
-      end
-
-      def assign_names
-        @action_name = (params['action'] || 'index')
       end
 
       def reset_variables_added_to_assigns

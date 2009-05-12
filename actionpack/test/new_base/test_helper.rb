@@ -5,8 +5,7 @@ $:.unshift(File.dirname(__FILE__) + '/../lib')
 require 'test/unit'
 require 'active_support'
 require 'active_support/test_case'
-require 'action_controller'
-require 'action_view/base'
+require 'action_view'
 require 'fixture_template'
 
 begin
@@ -24,35 +23,11 @@ require 'pp' # require 'pp' early to prevent hidden_methods from not picking up 
 require 'rubygems'
 require 'rack/test'
 
-module ActionController
-  class Base2 < AbstractBase
-    include AbstractController::Callbacks
-    include AbstractController::Helpers
-    include AbstractController::Logger
-
-    include ActionController::HideActions
-    include ActionController::UrlFor
-    include ActionController::Renderer
-    include ActionController::Layouts
-    
-    def self.inherited(klass)
-      ::ActionController::Base2.subclasses << klass.to_s
-      super
-    end
-    
-    def self.subclasses
-      @subclasses ||= []
-    end
-    
-    def self.app_loaded!
-      @subclasses.each do |subclass|
-        subclass.constantize._write_layout_method
-      end
-    end
-    
-    # append_view_path File.join(File.dirname(__FILE__), '..', 'fixtures')
-        
-    CORE_METHODS = self.public_instance_methods
+module Rails
+  def self.env
+    x = Object.new
+    def x.test?() true end
+    x
   end
 end
 
@@ -64,7 +39,7 @@ class Rack::TestCase < ActiveSupport::TestCase
     ActionController::Base.session_options[:key] = "abc"
     ActionController::Base.session_options[:secret] = ("*" * 30)
     
-    controllers = ActionController::Base2.subclasses.map do |k| 
+    controllers = ActionController::Base.subclasses.map do |k| 
       k.underscore.sub(/_controller$/, '')
     end
     
@@ -91,7 +66,7 @@ class Rack::TestCase < ActiveSupport::TestCase
   end
   
   def assert_body(body)
-    assert_equal [body], last_response.body
+    assert_equal body, Array.wrap(last_response.body).join
   end
   
   def self.assert_body(body)
@@ -132,7 +107,7 @@ class Rack::TestCase < ActiveSupport::TestCase
   
 end
 
-class ::ApplicationController < ActionController::Base2
+class ::ApplicationController < ActionController::Base
 end
 
 class SimpleRouteCase < Rack::TestCase

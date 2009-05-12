@@ -10,6 +10,16 @@ module ActiveSupport
         @keys = []
       end
 
+      def self.[](*args)
+        ordered_hash = new
+        args.each_with_index { |val,ind|
+          # Only every second value is a key.
+          next if ind % 2 != 0
+          ordered_hash[val] = args[ind + 1]
+        }
+        ordered_hash
+      end
+
       def initialize_copy(other)
         super
         # make a deep copy of keys
@@ -55,6 +65,10 @@ module ActiveSupport
 
       def to_hash
         self
+      end
+
+      def to_a
+        @keys.map { |key| [ key, self[key] ] }
       end
 
       def each_key

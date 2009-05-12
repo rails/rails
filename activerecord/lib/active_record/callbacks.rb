@@ -211,21 +211,23 @@ module ActiveRecord
   # needs to be aware of it because an ordinary +save+ will raise such exception
   # instead of quietly returning +false+.
   module Callbacks
+    extend ActiveSupport::DependencyModule
+
     CALLBACKS = %w(
       after_find after_initialize before_save after_save before_create after_create before_update after_update before_validation
       after_validation before_validation_on_create after_validation_on_create before_validation_on_update
       after_validation_on_update before_destroy after_destroy
     )
 
-    def self.included(base) #:nodoc:
-      base.extend Observable
+    included do
+      extend Observable
 
       [:create_or_update, :valid?, :create, :update, :destroy].each do |method|
-        base.send :alias_method_chain, method, :callbacks
+        alias_method_chain method, :callbacks
       end
 
-      base.send :include, ActiveSupport::Callbacks
-      base.define_callbacks *CALLBACKS
+      include ActiveSupport::Callbacks
+      define_callbacks *CALLBACKS
     end
 
     # Is called when the object was instantiated by one of the finders, like <tt>Base.find</tt>.

@@ -28,11 +28,13 @@ class Pirate < ActiveRecord::Base
     :after_add      => proc {|p,b| p.ship_log << "after_adding_proc_bird_#{b.id || '<new>'}"},
     :before_remove  => proc {|p,b| p.ship_log << "before_removing_proc_bird_#{b.id}"},
     :after_remove   => proc {|p,b| p.ship_log << "after_removing_proc_bird_#{b.id}"}
+  has_many :birds_with_reject_all_blank, :class_name => "Bird"
 
   accepts_nested_attributes_for :parrots, :birds, :allow_destroy => true, :reject_if => proc { |attributes| attributes.empty? }
   accepts_nested_attributes_for :ship, :allow_destroy => true, :reject_if => proc { |attributes| attributes.empty? }
   accepts_nested_attributes_for :parrots_with_method_callbacks, :parrots_with_proc_callbacks,
     :birds_with_method_callbacks, :birds_with_proc_callbacks, :allow_destroy => true
+  accepts_nested_attributes_for :birds_with_reject_all_blank, :reject_if => :all_blank
 
   validates_presence_of :catchphrase
 

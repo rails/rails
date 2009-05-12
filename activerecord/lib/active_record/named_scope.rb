@@ -1,5 +1,7 @@
 module ActiveRecord
   module NamedScope
+    extend ActiveSupport::DependencyModule
+
     # All subclasses of ActiveRecord::Base have one named scope:
     # * <tt>scoped</tt> - which allows for the creation of anonymous \scopes, on the fly: <tt>Shirt.scoped(:conditions => {:color => 'red'}).scoped(:include => :washing_instructions)</tt>
     #
@@ -7,11 +9,8 @@ module ActiveRecord
     # intermediate values (scopes) around as first-class objects is convenient.
     #
     # You can define a scope that applies to all finders using ActiveRecord::Base.default_scope.
-    def self.included(base)
-      base.class_eval do
-        extend ClassMethods
-        named_scope :scoped, lambda { |scope| scope }
-      end
+    included do
+      named_scope :scoped, lambda { |scope| scope }
     end
 
     module ClassMethods

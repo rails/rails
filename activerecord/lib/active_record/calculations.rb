@@ -1,9 +1,8 @@
 module ActiveRecord
   module Calculations #:nodoc:
+    extend ActiveSupport::DependencyModule
+
     CALCULATIONS_OPTIONS = [:conditions, :joins, :order, :select, :group, :having, :distinct, :limit, :offset, :include, :from]
-    def self.included(base)
-      base.extend(ClassMethods)
-    end
 
     module ClassMethods
       # Count operates using three different approaches.

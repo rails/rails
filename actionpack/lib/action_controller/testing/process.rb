@@ -131,6 +131,9 @@ module ActionController #:nodoc:
       @request.session["flash"] = ActionController::Flash::FlashHash.new.update(flash) if flash
       build_request_uri(action, parameters)
 
+      @request.env["action_controller.rescue.request"] = @request
+      @request.env["action_controller.rescue.response"] = @response
+
       Base.class_eval { include ProcessWithTest } unless Base < ProcessWithTest
 
       env = @request.env
@@ -139,7 +142,7 @@ module ActionController #:nodoc:
       # TODO: Enable Lint
       # app = Rack::Lint.new(app)
 
-      status, headers, body = app.call(env)
+      status, headers, body = app.action(action, env)
       response = Rack::MockResponse.new(status, headers, body)
 
       @response.request, @response.template = @request, @controller.template

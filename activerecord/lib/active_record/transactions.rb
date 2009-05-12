@@ -3,16 +3,14 @@ require 'thread'
 module ActiveRecord
   # See ActiveRecord::Transactions::ClassMethods for documentation.
   module Transactions
+    extend ActiveSupport::DependencyModule
+
     class TransactionError < ActiveRecordError # :nodoc:
     end
 
-    def self.included(base)
-      base.extend(ClassMethods)
-
-      base.class_eval do
-        [:destroy, :save, :save!].each do |method|
-          alias_method_chain method, :transactions
-        end
+    included do
+      [:destroy, :save, :save!].each do |method|
+        alias_method_chain method, :transactions
       end
     end
 

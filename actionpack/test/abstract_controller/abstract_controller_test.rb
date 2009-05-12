@@ -20,14 +20,14 @@ module AbstractController
     class TestBasic < ActiveSupport::TestCase
       test "dispatching works" do
         result = Me.process(:index)
-        assert_equal "Hello world", result.response_obj[:body]
+        assert_equal "Hello world", result.response_body
       end
     end
     
     # Test Render mixin
     # ====
     class RenderingController < AbstractController::Base
-      use Renderer
+      include Renderer
 
       def _prefix() end
 
@@ -58,38 +58,38 @@ module AbstractController
       end
 
       def rendering_to_body
-        render_to_body "naked_render.erb"
+        self.response_body = render_to_body :_template_name => "naked_render.erb"
       end
 
       def rendering_to_string
-        render_to_string "naked_render.erb"
+        self.response_body = render_to_string :_template_name => "naked_render.erb"
       end
     end
     
     class TestRenderer < ActiveSupport::TestCase
       test "rendering templates works" do
         result = Me2.process(:index)
-        assert_equal "Hello from index.erb", result.response_obj[:body]
+        assert_equal "Hello from index.erb", result.response_body
       end
       
       test "rendering passes ivars to the view" do
         result = Me2.process(:action_with_ivars)
-        assert_equal "Hello from index_with_ivars.erb", result.response_obj[:body]
+        assert_equal "Hello from index_with_ivars.erb", result.response_body
       end
       
       test "rendering with no template name" do
         result = Me2.process(:naked_render)
-        assert_equal "Hello from naked_render.erb", result.response_obj[:body]
+        assert_equal "Hello from naked_render.erb", result.response_body
       end
 
       test "rendering to a rack body" do
         result = Me2.process(:rendering_to_body)
-        assert_equal "Hello from naked_render.erb", result.response_obj[:body]
+        assert_equal "Hello from naked_render.erb", result.response_body
       end
 
       test "rendering to a string" do
         result = Me2.process(:rendering_to_string)
-        assert_equal "Hello from naked_render.erb", result.response_obj[:body]
+        assert_equal "Hello from naked_render.erb", result.response_body
       end
     end
     
@@ -121,12 +121,12 @@ module AbstractController
     class TestPrefixedViews < ActiveSupport::TestCase
       test "templates are located inside their 'prefix' folder" do
         result = Me3.process(:index)
-        assert_equal "Hello from me3/index.erb", result.response_obj[:body]
+        assert_equal "Hello from me3/index.erb", result.response_body
       end
 
       test "templates included their format" do
         result = Me3.process(:formatted)
-        assert_equal "Hello from me3/formatted.html.erb", result.response_obj[:body]
+        assert_equal "Hello from me3/formatted.html.erb", result.response_body
       end
     end
     
@@ -134,7 +134,12 @@ module AbstractController
     # ====
     # self._layout is used when defined
     class WithLayouts < PrefixedViews
-      use Layouts
+      include Layouts
+      
+      def self.inherited(klass)
+        klass._write_layout_method
+        super
+      end
       
       private
       def self.layout(formats)
@@ -147,13 +152,9 @@ module AbstractController
           end
         end
       end
-      
-      def _layout
-        self.class.layout(formats)
-      end      
-      
+
       def render_to_body(options = {})
-        options[:_layout] = options[:layout] || _layout
+        options[:_layout] = options[:layout] || _default_layout
         super
       end  
     end
@@ -173,12 +174,7 @@ module AbstractController
     class TestLayouts < ActiveSupport::TestCase
       test "layouts are included" do
         result = Me4.process(:index)
-        assert_equal "Me4 Enter : Hello from me4/index.erb : Exit", result.response_obj[:body]
-      end
-      
-      test "it can fall back to the application layout" do
-        result = Me5.process(:index)
-        assert_equal "Application Enter : Hello from me5/index.erb : Exit", result.response_obj[:body]        
+        assert_equal "Me4 Enter : Hello from me4/index.erb : Exit", result.response_body
       end
     end
     
@@ -207,7 +203,7 @@ module AbstractController
     private
       
       def respond_to_action?(action_name)
-        action_name != :fail
+        action_name.to_s != "fail"
       end
       
     end
@@ -215,7 +211,7 @@ module AbstractController
     class TestRespondToAction < ActiveSupport::TestCase
       
       def assert_dispatch(klass, body = "success", action = :index)
-        response = klass.process(action).response_obj[:body]
+        response = klass.process(action).response_body
         assert_equal body, response
       end
       

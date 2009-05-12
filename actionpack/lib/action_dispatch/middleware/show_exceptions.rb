@@ -43,6 +43,8 @@ module ActionDispatch
     def call(env)
       @app.call(env)
     rescue Exception => exception
+      raise exception if env['rack.test']
+
       log_error(exception) if logger
 
       request = Request.new(env)

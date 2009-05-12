@@ -125,16 +125,15 @@ module ActiveRecord
   #   post.author.name = ''
   #   post.save(false) # => true
   module AutosaveAssociation
+    extend ActiveSupport::DependencyModule
+
     ASSOCIATION_TYPES = %w{ has_one belongs_to has_many has_and_belongs_to_many }
 
-    def self.included(base)
-      base.class_eval do
-        base.extend(ClassMethods)
-        alias_method_chain :reload, :autosave_associations
+    included do
+      alias_method_chain :reload, :autosave_associations
 
-        ASSOCIATION_TYPES.each do |type|
-          base.send("valid_keys_for_#{type}_association") << :autosave
-        end
+      ASSOCIATION_TYPES.each do |type|
+        send("valid_keys_for_#{type}_association") << :autosave
       end
     end
 

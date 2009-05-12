@@ -101,20 +101,30 @@ class HelperTest < Test::Unit::TestCase
     assert master_helper_methods.include?('delegate_attr=')
   end
 
-  def test_helper_for_nested_controller
-    request = ActionController::TestRequest.new
-    request.action = 'render_hello_world'
+  def call_controller(klass, action)
+    request  = ActionController::TestRequest.new
+    request.env["action_controller.rescue.request"] = request
+    klass.action(action).call(request.env)    
+  end
 
-    response = Rack::MockResponse.new(*Fun::GamesController.call(request.env))
-    assert_equal 'hello: Iz guuut!', response.body
+  def test_helper_for_nested_controller
+    assert_equal 'hello: Iz guuut!', 
+      call_controller(Fun::GamesController, "render_hello_world").last.body
+    # request  = ActionController::TestRequest.new
+    # request.env["action_controller.rescue.request"] = request
+    # 
+    # resp = Fun::GamesController.action(:render_hello_world).call(request.env)
+    # assert_equal 'hello: Iz guuut!', resp.last.body
   end
 
   def test_helper_for_acronym_controller
-    request = ActionController::TestRequest.new
-    request.action = 'test'
-
-    response = Rack::MockResponse.new(*Fun::PdfController.call(request.env))
-    assert_equal 'test: baz', response.body
+    assert_equal "test: baz", call_controller(Fun::PdfController, "test").last.body
+    # 
+    # request  = ActionController::TestRequest.new
+    # response = ActionController::TestResponse.new
+    # request.action = 'test'
+    # 
+    # assert_equal 'test: baz', Fun::PdfController.process(request, response).body
   end
 
   def test_all_helpers
@@ -204,6 +214,12 @@ class IsolatedHelpersTest < Test::Unit::TestCase
     end
   end
 
+  def call_controller(klass, action)
+    request  = ActionController::TestRequest.new
+    request.env["action_controller.rescue.request"] = request
+    klass.action(action).call(request.env)    
+  end
+
   def setup
     @request    = ActionController::TestRequest.new
     @response   = ActionController::TestResponse.new
@@ -211,16 +227,14 @@ class IsolatedHelpersTest < Test::Unit::TestCase
   end
 
   def test_helper_in_a
-    assert_raise(ActionView::TemplateError) { A.call(@request.env) }
+    assert_raise(ActionView::TemplateError) { call_controller(A, "index") }
   end
 
   def test_helper_in_b
-    response = Rack::MockResponse.new(*B.call(@request.env))
-    assert_equal 'B', response.body
+    assert_equal 'B', call_controller(B, "index").last.body
   end
 
   def test_helper_in_c
-    response = Rack::MockResponse.new(*C.call(@request.env))
-    assert_equal 'C', response.body
+    assert_equal 'C', call_controller(C, "index").last.body
   end
 end

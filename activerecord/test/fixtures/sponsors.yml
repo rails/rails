@@ -7,5 +7,3 @@ boring_club_sponsor_for_groucho:
 crazy_club_sponsor_for_groucho:
   sponsor_club: crazy_club
   sponsorable: some_other_guy (Member)
-org_sponsor:
-  sponsorable: sponsorable (SponsorableOrganization)

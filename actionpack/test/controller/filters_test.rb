@@ -607,8 +607,9 @@ class FilterTest < Test::Unit::TestCase
   def test_dynamic_dispatch
     %w(foo bar baz).each do |action|
       request = ActionController::TestRequest.new
+      request.env["action_controller.rescue.request"] = request
       request.query_parameters[:choose] = action
-      response = Rack::MockResponse.new(*DynamicDispatchController.call(request.env))
+      response = DynamicDispatchController.action.call(request.env).last
       assert_equal action, response.body
     end
   end
