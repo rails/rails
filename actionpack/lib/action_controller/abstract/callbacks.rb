@@ -5,7 +5,7 @@ module AbstractController
     depends_on ActiveSupport::NewCallbacks
 
     included do
-      define_callbacks :process_action
+      define_callbacks :process_action, "response_body"
     end
 
     def process_action
