@@ -301,17 +301,16 @@ module ActiveRecord
   #
   # An Errors object is automatically created for every Active Record.
   module Validations
+    extend ActiveSupport::DependencyModule
+
     VALIDATIONS = %w( validate validate_on_create validate_on_update )
 
-    def self.included(base) # :nodoc:
-      base.extend ClassMethods
-      base.class_eval do
-        alias_method_chain :save, :validation
-        alias_method_chain :save!, :validation
-      end
+    included do
+      alias_method_chain :save, :validation
+      alias_method_chain :save!, :validation
 
-      base.send :include, ActiveSupport::Callbacks
-      base.define_callbacks *VALIDATIONS
+      include ActiveSupport::Callbacks
+      define_callbacks *VALIDATIONS
     end
 
     # Active Record classes can implement validations in several ways. The highest level, easiest to read,

@@ -1,9 +1,10 @@
 module ActiveRecord
   module NestedAttributes #:nodoc:
-    def self.included(base)
-      base.extend(ClassMethods)
-      base.class_inheritable_accessor :reject_new_nested_attributes_procs, :instance_writer => false
-      base.reject_new_nested_attributes_procs = {}
+    extend ActiveSupport::DependencyModule
+
+    included do
+      class_inheritable_accessor :reject_new_nested_attributes_procs, :instance_writer => false
+      self.reject_new_nested_attributes_procs = {}
     end
 
     # == Nested Attributes

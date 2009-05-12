@@ -2,9 +2,10 @@ require 'active_support/json'
 
 module ActiveRecord #:nodoc:
   module Serialization
-    def self.included(base)
-      base.cattr_accessor :include_root_in_json, :instance_writer => false
-      base.extend ClassMethods
+    extend ActiveSupport::DependencyModule
+
+    included do
+      cattr_accessor :include_root_in_json, :instance_writer => false
     end
 
     # Returns a JSON string representing the model. Some configuration is

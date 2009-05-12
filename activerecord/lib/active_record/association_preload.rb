@@ -1,9 +1,7 @@
 module ActiveRecord
   # See ActiveRecord::AssociationPreload::ClassMethods for documentation.
   module AssociationPreload #:nodoc:
-    def self.included(base)
-      base.extend(ClassMethods)
-    end
+    extend ActiveSupport::DependencyModule
 
     # Implements the details of eager loading of ActiveRecord associations.
     # Application developers should not use this module directly.

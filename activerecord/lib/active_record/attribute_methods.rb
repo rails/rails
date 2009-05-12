@@ -1,17 +1,21 @@
 module ActiveRecord
   module AttributeMethods #:nodoc:
+    extend ActiveSupport::DependencyModule
+
     DEFAULT_SUFFIXES = %w(= ? _before_type_cast)
     ATTRIBUTE_TYPES_CACHED_BY_DEFAULT = [:datetime, :timestamp, :time, :date]
 
-    def self.included(base)
-      base.extend ClassMethods
-      base.attribute_method_suffix(*DEFAULT_SUFFIXES)
-      base.cattr_accessor :attribute_types_cached_by_default, :instance_writer => false
-      base.attribute_types_cached_by_default = ATTRIBUTE_TYPES_CACHED_BY_DEFAULT
-      base.cattr_accessor :time_zone_aware_attributes, :instance_writer => false
-      base.time_zone_aware_attributes = false
-      base.class_inheritable_accessor :skip_time_zone_conversion_for_attributes, :instance_writer => false
-      base.skip_time_zone_conversion_for_attributes = []
+    included do
+      attribute_method_suffix(*DEFAULT_SUFFIXES)
+
+      cattr_accessor :attribute_types_cached_by_default, :instance_writer => false
+      self.attribute_types_cached_by_default = ATTRIBUTE_TYPES_CACHED_BY_DEFAULT
+
+      cattr_accessor :time_zone_aware_attributes, :instance_writer => false
+      self.time_zone_aware_attributes = false
+
+      class_inheritable_accessor :skip_time_zone_conversion_for_attributes, :instance_writer => false
+      self.skip_time_zone_conversion_for_attributes = []
     end
 
     # Declare and check for suffixed attribute methods.

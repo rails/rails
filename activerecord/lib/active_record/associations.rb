@@ -77,6 +77,8 @@ module ActiveRecord
 
   # See ActiveRecord::Associations::ClassMethods for documentation.
   module Associations # :nodoc:
+    extend ActiveSupport::DependencyModule
+
     # These classes will be loaded when associations are created.
     # So there is no need to eager load them.
     autoload :AssociationCollection, 'active_record/associations/association_collection'
@@ -88,10 +90,6 @@ module ActiveRecord
     autoload :HasManyThroughAssociation, 'active_record/associations/has_many_through_association'
     autoload :HasOneAssociation, 'active_record/associations/has_one_association'
     autoload :HasOneThroughAssociation, 'active_record/associations/has_one_through_association'
-
-    def self.included(base)
-      base.extend(ClassMethods)
-    end
 
     # Clears out the association cache
     def clear_association_cache #:nodoc:

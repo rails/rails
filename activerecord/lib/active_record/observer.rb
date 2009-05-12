@@ -3,9 +3,7 @@ require 'set'
 
 module ActiveRecord
   module Observing # :nodoc:
-    def self.included(base)
-      base.extend ClassMethods
-    end
+    extend ActiveSupport::DependencyModule
 
     module ClassMethods
       # Activates the observers assigned. Examples:
