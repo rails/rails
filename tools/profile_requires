@@ -1,7 +1,7 @@
 #!/usr/bin/env ruby
 # Example:
-#   ruby -Iactivesupport/lib tools/profile_requires.rb active_support
-#   ruby -Iactionpack/lib tools/profile_requires.rb action_controller
+#   tools/profile_requires activesupport/lib/active_support.rb
+#   tools/profile_requires activeresource/examples/simple.rb
 abort 'Use REE so you can profile memory and object allocation' unless GC.respond_to?(:enable_stats)
 
 GC.enable_stats
