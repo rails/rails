@@ -24,6 +24,7 @@ require 'models/club'
 require 'models/member'
 require 'models/membership'
 require 'models/sponsor'
+require 'active_support/core_ext/string/conversions'
 
 class ProjectWithAfterCreateHook < ActiveRecord::Base
   set_table_name 'projects'

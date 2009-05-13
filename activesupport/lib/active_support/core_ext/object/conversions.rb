@@ -1,3 +1,6 @@
+require 'active_support/core_ext/array/conversions'
+require 'active_support/core_ext/hash/conversions'
+
 class Object
   # Alias of <tt>to_s</tt>.
   def to_param

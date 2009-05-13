@@ -1,6 +1,15 @@
 require 'yaml'
 require 'set'
 require 'active_support/dependencies'
+require 'active_support/core_ext/class/attribute_accessors'
+require 'active_support/core_ext/class/delegating_attributes'
+require 'active_support/core_ext/class/inheritable_attributes'
+require 'active_support/core_ext/array/extract_options'
+require 'active_support/core_ext/hash/deep_merge'
+require 'active_support/core_ext/hash/indifferent_access'
+require 'active_support/core_ext/hash/slice'
+require 'active_support/core_ext/string/behavior'
+require 'active_support/core/time'
 
 module ActiveRecord #:nodoc:
   # Generic Active Record exception class.
@@ -1888,7 +1897,7 @@ module ActiveRecord #:nodoc:
                   else
                     find(:#{finder}, options.merge(finder_options))
                   end
-                  #{'result || raise(RecordNotFound, "Couldn\'t find #{name} with #{attributes.to_a.collect {|pair| "#{pair.first} = #{pair.second}"}.join(\', \')}")' if bang}
+                  #{'result || raise(RecordNotFound, "Couldn\'t find #{name} with #{attributes.to_a.collect { |pair| pair.join(\' = \') }.join(\', \')}")' if bang}
                 end
               }, __FILE__, __LINE__
               send(method_id, *arguments)
@@ -2610,11 +2619,11 @@ module ActiveRecord #:nodoc:
       # Note: The new instance will share a link to the same attributes as the original class. So any change to the attributes in either
       # instance will affect the other.
       def becomes(klass)
-        returning klass.new do |became|
-          became.instance_variable_set("@attributes", @attributes)
-          became.instance_variable_set("@attributes_cache", @attributes_cache)
-          became.instance_variable_set("@new_record", new_record?)
-        end
+        became = klass.new
+        became.instance_variable_set("@attributes", @attributes)
+        became.instance_variable_set("@attributes_cache", @attributes_cache)
+        became.instance_variable_set("@new_record", new_record?)
+        became
       end
 
       # Updates a single attribute and saves the record without going through the normal validation procedure.

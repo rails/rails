@@ -1,4 +1,5 @@
 require 'rack/session/abstract/id'
+require 'active_support/core_ext/object/conversions'
 
 module ActionController #:nodoc:
   class TestRequest < ActionDispatch::TestRequest #:nodoc:

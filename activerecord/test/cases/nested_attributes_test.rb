@@ -4,6 +4,7 @@ require "models/ship"
 require "models/bird"
 require "models/parrot"
 require "models/treasure"
+require 'active_support/hash_with_indifferent_access'
 
 module AssertRaiseWithMessage
   def assert_raise_with_message(expected_exception, expected_message)

@@ -1,4 +1,4 @@
-require 'benchmark'
+require 'active_support/core_ext/benchmark'
 
 module ActionController #:nodoc:
   # The benchmarking module times the performance of actions and reports to the logger. If the Active Record

@@ -1,5 +1,7 @@
 require 'action_controller/deprecated'
 require 'set'
+require 'active_support/core_ext/class/inheritable_attributes'
+require 'active_support/core_ext/module/attr_internal'
 
 module ActionController #:nodoc:
   class ActionControllerError < StandardError #:nodoc:

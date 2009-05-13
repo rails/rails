@@ -1,3 +1,6 @@
+require 'active_support/core_ext/array'
+require 'active_support/core_ext/hash/except'
+
 module ActiveRecord
   module NamedScope
     extend ActiveSupport::DependencyModule

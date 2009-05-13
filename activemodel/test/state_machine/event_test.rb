@@ -1,4 +1,5 @@
 require 'test_helper'
+require 'active_model/state_machine/event'
 
 class EventTest < ActiveModel::TestCase
   def setup

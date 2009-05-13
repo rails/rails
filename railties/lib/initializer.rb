@@ -264,8 +264,8 @@ module Rails
     # Action Pack, Action Mailer, and Active Resource) are loaded.
     def require_frameworks
       require 'active_support'
-      require 'active_support/core/all'
       configuration.frameworks.each { |framework| require(framework.to_s) }
+      require 'active_support/core/all'
     rescue LoadError => e
       # Re-raise as RuntimeError because Mongrel would swallow LoadError.
       raise e.to_s

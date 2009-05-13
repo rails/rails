@@ -3,7 +3,6 @@ $:.unshift File.dirname(__FILE__) + "/../../activesupport/lib"
 
 require 'test/unit'
 require 'active_support'
-require 'active_support/core/all'
 require 'initializer'
 require File.join(File.dirname(__FILE__), 'abstract_unit')
 

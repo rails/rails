@@ -1,5 +1,3 @@
-require 'builder'
-
 module ActiveRecord
   # Raised by <tt>save!</tt> and <tt>create!</tt> when the record is invalid.  Use the
   # +record+ method to retrieve the record which did not validate.
@@ -247,9 +245,10 @@ module ActiveRecord
     #   #       <error>Address can't be blank</error>
     #   #     </errors>
     def to_xml(options={})
+      require 'builder' unless defined? ::Builder
       options[:root] ||= "errors"
       options[:indent] ||= 2
-      options[:builder] ||= Builder::XmlMarkup.new(:indent => options[:indent])
+      options[:builder] ||= ::Builder::XmlMarkup.new(:indent => options[:indent])
 
       options[:builder].instruct! unless options.delete(:skip_instruct)
       options[:builder].errors do |e|

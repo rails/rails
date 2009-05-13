@@ -2,6 +2,7 @@ require 'cgi'
 require 'action_view/helpers/date_helper'
 require 'action_view/helpers/tag_helper'
 require 'action_view/helpers/form_tag_helper'
+require 'active_support/core_ext/class/inheritable_attributes'
 
 module ActionView
   module Helpers
@@ -1039,8 +1040,8 @@ module ActionView
     end
   end
 
-  class Base
-    cattr_accessor :default_form_builder
-    self.default_form_builder = ::ActionView::Helpers::FormBuilder
+  class << Base
+    attr_accessor :default_form_builder
   end
+  Base.default_form_builder = ::ActionView::Helpers::FormBuilder
 end

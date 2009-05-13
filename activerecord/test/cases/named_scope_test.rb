@@ -1,4 +1,5 @@
 require "cases/helper"
+require 'active_support/core_ext/array/random_access'
 require 'models/post'
 require 'models/topic'
 require 'models/comment'
@@ -265,7 +266,7 @@ class NamedScopeTest < ActiveRecord::TestCase
   end
 
   def test_rand_should_select_a_random_object_from_proxy
-    assert Topic.approved.rand.is_a?(Topic)
+    assert_kind_of Topic, Topic.approved.rand
   end
 
   def test_should_use_where_in_query_for_named_scope

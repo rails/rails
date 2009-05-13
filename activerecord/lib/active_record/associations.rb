@@ -1,3 +1,5 @@
+require 'active_support/core_ext/module/delegation'
+
 module ActiveRecord
   class InverseOfAssociationNotFoundError < ActiveRecordError #:nodoc:
     def initialize(reflection)

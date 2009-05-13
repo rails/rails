@@ -1,3 +1,7 @@
+require 'active_support/core_ext/enumerable'
+require 'active_support/core_ext/class/delegating_attributes'
+require 'active_support/core_ext/class/inheritable_attributes'
+
 module ActionController #:nodoc:
   module Layout #:nodoc:
     def self.included(base)

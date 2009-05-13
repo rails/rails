@@ -3,6 +3,7 @@ require 'yaml'
 require 'csv'
 require 'active_support/dependencies'
 require 'active_support/test_case'
+require 'active_support/core_ext/logger'
 
 if RUBY_VERSION < '1.9'
   module YAML #:nodoc:

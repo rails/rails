@@ -4,6 +4,7 @@ require 'models/author'
 require 'models/comment'
 require 'models/category'
 require 'models/categorization'
+require 'active_support/core_ext/array/random_access'
 
 module Remembered
   extend ActiveSupport::DependencyModule

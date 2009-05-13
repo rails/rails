@@ -1,4 +1,5 @@
 require 'active_record/connection_adapters/abstract_adapter'
+require 'active_support/core_ext/kernel/requires'
 
 module ActiveRecord
   class Base

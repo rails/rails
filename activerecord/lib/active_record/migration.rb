@@ -511,11 +511,11 @@ module ActiveRecord
             raise DuplicateMigrationNameError.new(name.camelize) 
           end
           
-          klasses << returning(MigrationProxy.new) do |migration|
-            migration.name     = name.camelize
-            migration.version  = version
-            migration.filename = file
-          end
+          migration = MigrationProxy.new
+          migration.name     = name.camelize
+          migration.version  = version
+          migration.filename = file
+          klasses << migration
         end
         
         migrations = migrations.sort_by(&:version)

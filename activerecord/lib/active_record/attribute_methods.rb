@@ -1,3 +1,5 @@
+require 'active_support/core_ext/enumerable'
+
 module ActiveRecord
   module AttributeMethods #:nodoc:
     extend ActiveSupport::DependencyModule

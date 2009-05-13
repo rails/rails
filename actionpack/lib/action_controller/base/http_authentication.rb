@@ -1,3 +1,5 @@
+require 'active_support/base64'
+
 module ActionController
   module HttpAuthentication
     # Makes it dead easy to do HTTP Basic authentication.
@@ -276,7 +278,7 @@ module ActionController
         t = time.to_i
         hashed = [t, secret_key]
         digest = ::Digest::MD5.hexdigest(hashed.join(":"))
-        Base64.encode64("#{t}:#{digest}").gsub("\n", '')
+        ActiveSupport::Base64.encode64("#{t}:#{digest}").gsub("\n", '')
       end
 
       # Might want a shorter timeout depending on whether the request
@@ -285,7 +287,7 @@ module ActionController
       # allow a user to use new nonce without prompting user again for their
       # username and password.
       def validate_nonce(request, value, seconds_to_timeout=5*60)
-        t = Base64.decode64(value).split(":").first.to_i
+        t = ActiveSupport::Base64.decode64(value).split(":").first.to_i
         nonce(t) == value && (t - Time.now.to_i).abs <= seconds_to_timeout
       end
 

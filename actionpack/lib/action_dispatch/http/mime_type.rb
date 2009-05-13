@@ -1,4 +1,5 @@
 require 'set'
+require 'active_support/core_ext/class/attribute_accessors'
 
 module Mime
   SET              = []

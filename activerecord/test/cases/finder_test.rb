@@ -485,8 +485,9 @@ class FinderTest < ActiveRecord::TestCase
     assert_equal "foo in (#{quoted_nil})", bind('foo in (?)', [])
   end
 
-  def test_bind_string
-    assert_equal ActiveRecord::Base.connection.quote(''), bind('?', '')
+  def test_bind_empty_string
+    quoted_empty = ActiveRecord::Base.connection.quote('')
+    assert_equal quoted_empty, bind('?', '')
   end
 
   def test_bind_chars
