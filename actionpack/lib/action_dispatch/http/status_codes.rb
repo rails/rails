@@ -1,3 +1,5 @@
+require 'active_support/inflector'
+
 module ActionDispatch
   module StatusCodes #:nodoc:
     STATUS_CODES = Rack::Utils::HTTP_STATUS_CODES.merge({
@@ -16,7 +18,7 @@ module ActionDispatch
     # :created or :not_implemented) into its corresponding HTTP status
     # code (like 200 or 501).
     SYMBOL_TO_STATUS_CODE = STATUS_CODES.inject({}) { |hash, (code, message)|
-      hash[message.gsub(/ /, "").underscore.to_sym] = code
+      hash[ActiveSupport::Inflector.underscore(message.gsub(/ /, "")).to_sym] = code
       hash
     }.freeze
 
