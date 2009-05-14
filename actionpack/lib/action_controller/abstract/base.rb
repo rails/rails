@@ -1,3 +1,5 @@
+require 'active_support/core_ext/module/attr_internal'
+
 module AbstractController
   class Error < StandardError; end
   
@@ -89,7 +91,7 @@ module AbstractController
     # you must handle it by also overriding process_action and
     # handling the case.
     def respond_to_action?(action_name)
-      action_methods.include?(action_name) || respond_to?(:action_missing, true)
+      action_methods.include?(action_name.to_s) || respond_to?(:action_missing, true)
     end
   end
 end
