@@ -23,6 +23,15 @@ module AbstractController
       end
       
       alias_method :abstract?, :abstract
+
+      def inherited(klass)
+        ::AbstractController::Base.subclasses << klass.to_s
+        super
+      end
+
+      def subclasses
+        @subclasses ||= []
+      end
       
       def internal_methods
         controller = self

@@ -131,8 +131,10 @@ module RenderActionWithApplicationLayout
     # Set the view path to an application view structure with layouts
     self.view_paths = self.view_paths = [ActionView::Template::FixturePath.new(
       "render_action_with_application_layout/basic/hello_world.html.erb" => "Hello World!",
+      "render_action_with_application_layout/basic/hello.html.builder"   => "xml.p 'Omg'",
       "layouts/application.html.erb"                                     => "OHAI <%= yield %> KTHXBAI",
-      "layouts/greetings.html.erb"                                       => "Greetings <%= yield %> Bai"
+      "layouts/greetings.html.erb"                                       => "Greetings <%= yield %> Bai",
+      "layouts/builder.html.builder"                                     => "xml.html do\n  xml << yield\nend"
     )]
     
     def hello_world
@@ -153,6 +155,10 @@ module RenderActionWithApplicationLayout
     
     def hello_world_with_custom_layout
       render :action => "hello_world", :layout => "greetings"
+    end
+    
+    def with_builder_and_layout
+      render :action => "hello", :layout => "builder"
     end
   end
   
@@ -197,6 +203,15 @@ module RenderActionWithApplicationLayout
     get "/render_action_with_application_layout/basic/hello_world_with_custom_layout"
     assert_body   "Greetings Hello World! Bai"
     assert_status 200
+  end
+  
+  class TestLayout < SimpleRouteCase
+    testing BasicController
+    
+    test "builder works with layouts" do
+      get :with_builder_and_layout
+      assert_response "<html>\n<p>Omg</p>\n</html>\n"
+    end
   end
   
 end

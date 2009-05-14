@@ -4,13 +4,18 @@ module RenderTemplate
   class WithoutLayoutController < ActionController::Base
     
     self.view_paths = [ActionView::Template::FixturePath.new(
-      "test/basic.html.erb" => "Hello from basic.html.erb",
-      "shared.html.erb"     => "Elastica",
-      "locals.html.erb"     => "The secret is <%= secret %>"
+      "test/basic.html.erb"      => "Hello from basic.html.erb",
+      "shared.html.erb"          => "Elastica",
+      "locals.html.erb"          => "The secret is <%= secret %>",
+      "xml_template.xml.builder" => "xml.html do\n  xml.p 'Hello'\nend"
     )]
     
     def index
       render :template => "test/basic"
+    end
+    
+    def index_without_key
+      render "test/basic"
     end
 
     def in_top_directory
@@ -21,41 +26,56 @@ module RenderTemplate
       render :template => '/shared'
     end
     
+    def in_top_directory_with_slash_without_key
+      render '/shared'
+    end
+    
     def with_locals
       render :template => "locals", :locals => { :secret => 'area51' }
+    end
+    
+    def builder_template
+      render :template => "xml_template"
     end
   end
   
   class TestWithoutLayout < SimpleRouteCase
-    describe "rendering a normal template with full path without layout"
+    testing RenderTemplate::WithoutLayoutController
     
-    get "/render_template/without_layout"
-    assert_body   "Hello from basic.html.erb"
-    assert_status 200
-  end
-  
-  class TestTemplateRenderInTopDirectory < SimpleRouteCase
-    describe "rendering a template not in a subdirectory"
+    test "rendering a normal template with full path without layout" do
+      get :index
+      assert_response "Hello from basic.html.erb"
+    end
     
-    get "/render_template/without_layout/in_top_directory"
-    assert_body   "Elastica"
-    assert_status 200
-  end
-
-  class TestTemplateRenderInTopDirectoryWithSlash < SimpleRouteCase
-    describe "rendering a template not in a subdirectory with a leading slash"
+    test "rendering a normal template with full path without layout without key" do
+      get :index_without_key
+      assert_response "Hello from basic.html.erb"
+    end
     
-    get "/render_template/without_layout/in_top_directory_with_slash"
-    assert_body   "Elastica"
-    assert_status 200
-  end
-  
-  class TestTemplateRenderWithLocals < SimpleRouteCase
-    describe "rendering a template with local variables"
+    test "rendering a template not in a subdirectory" do
+      get :in_top_directory
+      assert_response "Elastica"
+    end
     
-    get "/render_template/without_layout/with_locals"
-    assert_body   "The secret is area51"
-    assert_status 200
+    test "rendering a template not in a subdirectory with a leading slash" do
+      get :in_top_directory_with_slash
+      assert_response "Elastica"
+    end
+    
+    test "rendering a template not in a subdirectory with a leading slash without key" do
+      get :in_top_directory_with_slash_without_key
+      assert_response "Elastica"
+    end
+    
+    test "rendering a template with local variables" do
+      get :with_locals
+      assert_response "The secret is area51"
+    end
+    
+    test "rendering a builder template" do
+      get :builder_template
+      assert_response "<html>\n  <p>Hello</p>\n</html>\n"
+    end
   end
     
   class WithLayoutController < ::ApplicationController

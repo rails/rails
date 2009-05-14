@@ -9,7 +9,7 @@ module ActionView
       include ERB::Util
 
       BOOLEAN_ATTRIBUTES = %w(disabled readonly multiple checked).to_set
-      BOOLEAN_ATTRIBUTES.merge(BOOLEAN_ATTRIBUTES.map(&:to_sym))
+      BOOLEAN_ATTRIBUTES.merge(BOOLEAN_ATTRIBUTES.map {|attr| attr.to_sym })
 
       # Returns an empty HTML tag of type +name+ which by default is XHTML
       # compliant. Set +open+ to true to create an open tag compatible

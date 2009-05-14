@@ -46,7 +46,7 @@ class Rack::TestCase < ActiveSupport::TestCase
     ActionController::Routing.use_controllers!(controllers)
     
     # Move into a bootloader
-    AbstractController::Base.subclasses.each do |klass|
+    ActionController::Base.subclasses.each do |klass|
       klass = klass.constantize
       next unless klass < AbstractController::Layouts
       klass.class_eval do
