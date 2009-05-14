@@ -154,7 +154,7 @@ And if you’re using PostgreSQL for data storage, run this command:
 $ rails blog -d postgresql
 </shell>
 
-TIP. You can see all of the switches that the Rails application builder accepts by running <tt>rails -h</tt>.
+TIP: You can see all of the switches that the Rails application builder accepts by running <tt>rails -h</tt>.
 
 After you create the blog application, switch to its folder to continue work directly in that application:
 
@@ -259,7 +259,7 @@ One of the traditional places to start with a new language is by getting some te
 $ script/generate controller home index
 </shell>
 
-TIP. If you're on Windows, or your Ruby is set up in some non-standard fashion, you may need to explicitly pass Rails +script+ commands to Ruby: +ruby script/generate controller home index+.
+TIP: If you're on Windows, or your Ruby is set up in some non-standard fashion, you may need to explicitly pass Rails +script+ commands to Ruby: +ruby script/generate controller home index+.
 
 Rails will create several files for you, including +app/views/home/index.html.erb+. This is the template that will be used to display the results of the +index+ action (method) in the +home+ controller. Open this file in your text editor and edit it to contain a single line of code:
 
@@ -279,7 +279,7 @@ This will fire up an instance of the Mongrel web server by default (Rails can al
 
 !images/rails_welcome.png(Welcome Aboard screenshot)!
 
-TIP. To stop the web server, hit Ctrl+C in the terminal window where it's running. In development mode, Rails does not generally require you to stop the server; changes you make in files will be automatically picked up by the server.
+TIP: To stop the web server, hit Ctrl+C in the terminal window where it's running. In development mode, Rails does not generally require you to stop the server; changes you make in files will be automatically picked up by the server.
 
 The "Welcome Aboard" page is the _smoke test_ for a new Rails application: it makes sure that you have your software configured correctly enough to serve a page. To view the page you just created, navigate to +http://localhost:3000/home/index+.
 
@@ -400,7 +400,7 @@ Now you're ready to start working with posts. To do that, navigate to +http://lo
 
 This is the result of Rails rendering the +index+ view of your posts. There aren't currently any posts in the database, but if you click the +New Post+ link you can create one. After that, you'll find that you can edit posts, look at their details, or destroy them. All of the logic and HTML to handle this was built by the single +script/generate scaffold+ command.
 
-TIP. In development mode (which is what you're working in by default), Rails reloads your application with every browser request, so there's no need to stop and restart the web server.
+TIP: In development mode (which is what you're working in by default), Rails reloads your application with every browser request, so there's no need to stop and restart the web server.
 
 Congratulations, you're riding the rails! Now it's time to see how it all works.
 
@@ -510,7 +510,7 @@ This view iterates over the contents of the +@posts+ array to display content an
 * +link_to+ builds a hyperlink to a particular destination
 * +edit_post_path+ is a helper that Rails provides as part of RESTful routing. You’ll see a variety of these helpers for the different actions that the controller includes.
 
-TIP. For more details on the rendering process, see "Layouts and Rendering in Rails":layouts_and_rendering.html.
+TIP: For more details on the rendering process, see "Layouts and Rendering in Rails":layouts_and_rendering.html.
 
 h4. Customizing the Layout
 
