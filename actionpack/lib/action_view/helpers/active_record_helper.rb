@@ -1,5 +1,6 @@
 require 'cgi'
 require 'action_view/helpers/form_helper'
+require 'active_support/core_ext/class/attribute_accessors'
 
 module ActionView
   class Base
