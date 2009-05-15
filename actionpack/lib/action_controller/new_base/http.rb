@@ -1,3 +1,6 @@
+require 'action_controller/abstract'
+require 'active_support/core_ext/module/delegation'
+
 module ActionController
   class Http < AbstractController::Base
     abstract!
@@ -52,7 +55,7 @@ module ActionController
     
     def self.action(name)
       @actions ||= {}
-      @actions[name] ||= proc do |env| 
+      @actions[name.to_s] ||= proc do |env|
         new.call(name, env)
       end
     end
