@@ -34,20 +34,21 @@ module ActiveRecord
   #   person.name << 'by'
   #   person.name_change    # => ['uncle bob', 'uncle bobby']
   module Dirty
+    extend ActiveSupport::DependencyModule
+
     DIRTY_SUFFIXES = ['_changed?', '_change', '_will_change!', '_was']
 
-    def self.included(base)
-      base.attribute_method_suffix *DIRTY_SUFFIXES
-      base.alias_method_chain :write_attribute, :dirty
-      base.alias_method_chain :save,            :dirty
-      base.alias_method_chain :save!,           :dirty
-      base.alias_method_chain :update,          :dirty
-      base.alias_method_chain :reload,          :dirty
+    included do
+      attribute_method_suffix *DIRTY_SUFFIXES
 
-      base.superclass_delegating_accessor :partial_updates
-      base.partial_updates = true
+      alias_method_chain :write_attribute, :dirty
+      alias_method_chain :save,            :dirty
+      alias_method_chain :save!,           :dirty
+      alias_method_chain :update,          :dirty
+      alias_method_chain :reload,          :dirty
 
-      base.send(:extend, ClassMethods)
+      superclass_delegating_accessor :partial_updates
+      self.partial_updates = true
     end
 
     # Do any attributes have unsaved changes?
@@ -167,7 +168,9 @@ module ActiveRecord
 
     module ClassMethods
       def self.extended(base)
-        base.metaclass.alias_method_chain(:alias_attribute, :dirty)
+        class << base
+          alias_method_chain :alias_attribute, :dirty
+        end
       end
 
       def alias_attribute_with_dirty(new_name, old_name)

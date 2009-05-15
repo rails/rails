@@ -21,7 +21,7 @@ module ActionView
   end
 
   class TestCase < ActiveSupport::TestCase
-    include ActionController::TestCase::Assertions
+    include ActionDispatch::Assertions
     include ActionController::TestProcess
 
     class_inheritable_accessor :helper_class

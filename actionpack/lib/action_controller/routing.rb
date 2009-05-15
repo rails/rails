@@ -1,5 +1,9 @@
 require 'cgi'
 require 'uri'
+require 'set'
+
+require 'active_support/core_ext/module/aliasing'
+require 'active_support/core_ext/module/attribute_accessors'
 require 'action_controller/routing/optimisations'
 require 'action_controller/routing/routing_ext'
 require 'action_controller/routing/route'

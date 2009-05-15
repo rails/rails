@@ -34,6 +34,7 @@ module ActiveSupport
   autoload :Callbacks, 'active_support/callbacks'
   autoload :NewCallbacks, 'active_support/new_callbacks'
   autoload :ConcurrentHash, 'active_support/concurrent_hash'
+  autoload :DependencyModule, 'active_support/dependency_module'
   autoload :Deprecation, 'active_support/deprecation'
   autoload :Gzip, 'active_support/gzip'
   autoload :Inflector, 'active_support/inflector'

@@ -2,6 +2,7 @@ require 'cgi'
 require 'action_view/helpers/date_helper'
 require 'action_view/helpers/tag_helper'
 require 'action_view/helpers/form_tag_helper'
+require 'active_support/core_ext/class/inheritable_attributes'
 
 module ActionView
   module Helpers
@@ -246,7 +247,7 @@ module ActionView
       # <tt>labelling_form</tt>.
       #
       # The custom FormBuilder class is automatically merged with the options
-      # of a nested fields_for call, unless it's explicitly set.
+      # of a nested fields_for call, unless it's explicitely set.
       #
       # In many cases you will want to wrap the above in another helper, so you
       # could do something like the following:
@@ -620,8 +621,8 @@ module ActionView
 
       # Returns a checkbox tag tailored for accessing a specified attribute (identified by +method+) on an object
       # assigned to the template (identified by +object+). This object must be an instance object (@object) and not a local object.
-      # It's intended that +method+ returns an integer and if that integer is above zero, then the checkbox is checked.
-      # Additional options on the input tag can be passed as a hash with +options+. The +checked_value+ defaults to 1
+      # It's intended that +method+ returns an integer and if that integer is above zero, then the checkbox is checked. 
+      # Additional options on the input tag can be passed as a hash with +options+. The +checked_value+ defaults to 1 
       # while the default +unchecked_value+ is set to 0 which is convenient for boolean values.
       #
       # ==== Gotcha
@@ -1039,8 +1040,8 @@ module ActionView
     end
   end
 
-  class Base
-    cattr_accessor :default_form_builder
-    self.default_form_builder = ::ActionView::Helpers::FormBuilder
+  class << Base
+    attr_accessor :default_form_builder
   end
+  Base.default_form_builder = ::ActionView::Helpers::FormBuilder
 end

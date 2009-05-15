@@ -1,5 +1,7 @@
 require 'action_controller/deprecated'
 require 'set'
+require 'active_support/core_ext/class/inheritable_attributes'
+require 'active_support/core_ext/module/attr_internal'
 
 module ActionController #:nodoc:
   class ActionControllerError < StandardError #:nodoc:
@@ -29,10 +31,6 @@ module ActionController #:nodoc:
 
     def allowed_methods_header
       allowed_methods.map { |method_symbol| method_symbol.to_s.upcase } * ', '
-    end
-
-    def handle_response!(response)
-      response.headers['Allow'] ||= allowed_methods_header
     end
   end
 
@@ -369,19 +367,23 @@ module ActionController #:nodoc:
 
     attr_reader :template
 
+    def action(name, env)
+      # HACK: For global rescue to have access to the original request and response
+      request = env["action_controller.rescue.request"] ||= ActionDispatch::Request.new(env)
+      response = env["action_controller.rescue.response"] ||= ActionDispatch::Response.new
+      self.action_name = name && name.to_s
+      process(request, response).to_a
+    end
+
+
     class << self
-      def call(env)
-        # HACK: For global rescue to have access to the original request and response
-        request = env["action_controller.rescue.request"] ||= ActionDispatch::Request.new(env)
-        response = env["action_controller.rescue.response"] ||= ActionDispatch::Response.new
-        process(request, response)
+      def action(name = nil)
+        @actions ||= {}
+        @actions[name] ||= proc do |env|
+          new.action(name, env)
+        end
       end
-
-      # Factory for the standard create, process loop where the controller is discarded after processing.
-      def process(request, response) #:nodoc:
-        new.process(request, response)
-      end
-
+      
       # Converts the class name from something like "OneModule::TwoModule::NeatController" to "NeatController".
       def controller_class_name
         @controller_class_name ||= name.demodulize
@@ -511,6 +513,12 @@ module ActionController #:nodoc:
     end
 
     public
+      def call(env)
+        request = ActionDispatch::Request.new(env)
+        response = ActionDispatch::Response.new
+        process(request, response).to_a
+      end
+
       # Extracts the action_name from the request parameters and performs that action.
       def process(request, response, method = :perform_action, *arguments) #:nodoc:
         response.request = request
@@ -518,7 +526,6 @@ module ActionController #:nodoc:
         assign_shortcuts(request, response)
         initialize_template_class(response)
         initialize_current_url
-        assign_names
 
         log_processing
         send(method, *arguments)
@@ -817,9 +824,9 @@ module ActionController #:nodoc:
       end
 
       def initialize_template_class(response)
-        @template = response.template = ActionView::Base.new(self.class.view_paths, {}, self, formats)
+        @template = ActionView::Base.new(self.class.view_paths, {}, self, formats)
+        response.template = @template if response.respond_to?(:template=)
         @template.helpers.send :include, self.class.master_helper_module
-        response.redirected_to = nil
         @performed_render = @performed_redirect = false
       end
 
@@ -880,10 +887,6 @@ module ActionController #:nodoc:
       # Returns true if a render or redirect has already been performed.
       def performed?
         @performed_render || @performed_redirect
-      end
-
-      def assign_names
-        @action_name = (params['action'] || 'index')
       end
 
       def reset_variables_added_to_assigns

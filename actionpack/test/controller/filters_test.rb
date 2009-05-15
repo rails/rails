@@ -2,6 +2,8 @@ require 'abstract_unit'
 
 # FIXME: crashes Ruby 1.9
 class FilterTest < Test::Unit::TestCase
+  include ActionController::TestProcess
+
   class TestController < ActionController::Base
     before_filter :ensure_login
     after_filter  :clean_up
@@ -167,6 +169,7 @@ class FilterTest < Test::Unit::TestCase
     end
 
     def public
+      render :text => 'ok'
     end
   end
 
@@ -174,6 +177,10 @@ class FilterTest < Test::Unit::TestCase
     skip_before_filter :ensure_login
     before_filter :find_record
     before_filter :ensure_login
+
+    def index
+      render :text => 'ok'
+    end
 
     private
       def find_record
@@ -600,8 +607,9 @@ class FilterTest < Test::Unit::TestCase
   def test_dynamic_dispatch
     %w(foo bar baz).each do |action|
       request = ActionController::TestRequest.new
+      request.env["action_controller.rescue.request"] = request
       request.query_parameters[:choose] = action
-      response = DynamicDispatchController.process(request, ActionController::TestResponse.new)
+      response = DynamicDispatchController.action.call(request.env).last
       assert_equal action, response.body
     end
   end
@@ -669,12 +677,11 @@ class FilterTest < Test::Unit::TestCase
 
   private
     def test_process(controller, action = "show")
-      ActionController::Base.class_eval { include ActionController::ProcessWithTest } unless ActionController::Base < ActionController::ProcessWithTest
-      request = ActionController::TestRequest.new
-      request.action = action
-      controller = controller.new if controller.is_a?(Class)
-      @controller = controller
-      @controller.process_with_test(request, ActionController::TestResponse.new)
+      @controller = controller.is_a?(Class) ? controller.new : controller
+      @request    = ActionController::TestRequest.new
+      @response   = ActionController::TestResponse.new
+
+      process(action)
     end
 end
 
@@ -810,6 +817,7 @@ end
 
 class YieldingAroundFiltersTest < Test::Unit::TestCase
   include PostsController::AroundExceptions
+  include ActionController::TestProcess
 
   def test_filters_registering
     assert_equal 1, ControllerWithFilterMethod.filter_chain.size
@@ -912,11 +920,10 @@ class YieldingAroundFiltersTest < Test::Unit::TestCase
 
   protected
     def test_process(controller, action = "show")
-      ActionController::Base.class_eval { include ActionController::ProcessWithTest } unless ActionController::Base < ActionController::ProcessWithTest
-      request = ActionController::TestRequest.new
-      request.action = action
-      controller = controller.new if controller.is_a?(Class)
-      @controller = controller
-      @controller.process_with_test(request, ActionController::TestResponse.new)
+      @controller = controller.is_a?(Class) ? controller.new : controller
+      @request    = ActionController::TestRequest.new
+      @response   = ActionController::TestResponse.new
+
+      process(action)
     end
 end

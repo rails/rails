@@ -5,9 +5,9 @@ module ActionController
     class << self
       def define_dispatcher_callbacks(cache_classes)
         unless cache_classes
-          unless self.middleware.include?(ActionDispatch::Reloader)
-            self.middleware.insert_after(ActionDispatch::Failsafe, ActionDispatch::Reloader)
-          end
+          # Development mode callbacks
+          before_dispatch :reload_application
+          after_dispatch :cleanup_application
 
           ActionView::Helpers::AssetTagHelper.cache_asset_timestamps = false
         end
@@ -40,53 +40,44 @@ module ActionController
       def run_prepare_callbacks
         new.send :run_callbacks, :prepare_dispatch
       end
-
-      def reload_application
-        # Run prepare callbacks before every request in development mode
-        run_prepare_callbacks
-
-        Routing::Routes.reload
-      end
-
-      def cleanup_application
-        # Cleanup the application before processing the current request.
-        ActiveRecord::Base.reset_subclasses if defined?(ActiveRecord)
-        ActiveSupport::Dependencies.clear
-        ActiveRecord::Base.clear_reloadable_connections! if defined?(ActiveRecord)
-      end
     end
+
+    cattr_accessor :router
+    self.router = Routing::Routes
 
     cattr_accessor :middleware
     self.middleware = ActionDispatch::MiddlewareStack.new do |middleware|
       middlewares = File.join(File.dirname(__FILE__), "middlewares.rb")
-      middleware.instance_eval(File.read(middlewares))
+      middleware.instance_eval(File.read(middlewares), middlewares, 1)
     end
 
     include ActiveSupport::Callbacks
     define_callbacks :prepare_dispatch, :before_dispatch, :after_dispatch
 
     def initialize
-      @app = @@middleware.build(lambda { |env| self._call(env) })
+      @app = @@middleware.build(@@router)
       freeze
     end
 
     def call(env)
+      run_callbacks :before_dispatch
       @app.call(env)
+    ensure
+      run_callbacks :after_dispatch, :enumerator => :reverse_each
     end
 
-    def _call(env)
-      begin
-        run_callbacks :before_dispatch
-        Routing::Routes.call(env)
-      rescue Exception => exception
-        if controller ||= (::ApplicationController rescue Base)
-          controller.call_with_exception(env, exception).to_a
-        else
-          raise exception
-        end
-      ensure
-        run_callbacks :after_dispatch, :enumerator => :reverse_each
-      end
+    def reload_application
+      # Run prepare callbacks before every request in development mode
+      run_callbacks :prepare_dispatch
+
+      @@router.reload
+    end
+
+    def cleanup_application
+      # Cleanup the application before processing the current request.
+      ActiveRecord::Base.reset_subclasses if defined?(ActiveRecord)
+      ActiveSupport::Dependencies.clear
+      ActiveRecord::Base.clear_reloadable_connections! if defined?(ActiveRecord)
     end
 
     def flush_logger

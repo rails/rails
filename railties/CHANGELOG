@@ -1,3 +1,8 @@
+*Edge*
+
+* Added db/seeds.rb as a default file for storing seed data for the database. Can be loaded with rake db:seed (or created alongside the db with db:setup). (This is also known as the "Stop Putting Gawd Damn Seed Data In Your Migrations" feature) [DHH]
+
+
 *2.3.2 [Final] (March 15, 2009)*
 
 * Remove outdated script/plugin options [Pratik Naik]

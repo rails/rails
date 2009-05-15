@@ -45,19 +45,6 @@ class DispatcherTest < Test::Unit::TestCase
     def log_failsafe_exception(status, exception); end
   end
 
-  def test_failsafe_response
-    Dispatcher.any_instance.expects(:_call).raises('b00m')
-    ActionDispatch::Failsafe.any_instance.expects(:log_failsafe_exception)
-
-    assert_nothing_raised do
-      assert_equal [
-        500,
-        {"Content-Type" => "text/html"},
-        ["<html><body><h1>500 Internal Server Error</h1></body></html>"]
-      ], dispatch
-    end
-  end
-
   def test_prepare_callbacks
     a = b = c = nil
     Dispatcher.to_prepare { |*args| a = b = c = 1 }

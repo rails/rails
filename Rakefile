@@ -1,6 +1,5 @@
 require 'rake'
 require 'rake/rdoctask'
-require 'rake/contrib/sshpublisher'
 
 env = %(PKG_BUILD="#{ENV['PKG_BUILD']}") if ENV['PKG_BUILD']
 
@@ -13,7 +12,7 @@ end
 desc 'Run all tests by default'
 task :default => :test
 
-%w(test rdoc pgem package release).each do |task_name|
+%w(test isolated_test rdoc pgem package release).each do |task_name|
   desc "Run #{task_name} task for all projects"
   task task_name do
     PROJECTS.each do |project|
@@ -74,6 +73,7 @@ end
 
 desc "Publish API docs for Rails as a whole and for each component"
 task :pdoc => :rdoc do
+  require 'rake/contrib/sshpublisher'
   Rake::SshDirPublisher.new("wrath.rubyonrails.org", "public_html/api", "doc/rdoc").upload
   PROJECTS.each do |project|
     system %(cd #{project} && #{env} #{$0} pdoc)

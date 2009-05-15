@@ -1,8 +1,6 @@
 module ActiveRecord
   module Reflection # :nodoc:
-    def self.included(base)
-      base.extend(ClassMethods)
-    end
+    extend ActiveSupport::DependencyModule
 
     # Reflection allows you to interrogate Active Record classes and objects about their associations and aggregations.
     # This information can, for example, be used in a form builder that took an Active Record object and created input
@@ -212,6 +210,13 @@ module ActiveRecord
       end
 
       def check_validity!
+        check_validity_of_inverse!
+      end
+
+      def check_validity_of_inverse!
+        if has_inverse? && inverse_of.nil?
+          raise InverseOfAssociationNotFoundError.new(self)
+        end
       end
 
       def through_reflection
@@ -223,6 +228,18 @@ module ActiveRecord
 
       def source_reflection
         nil
+      end
+
+      def has_inverse?
+        !@options[:inverse_of].nil?
+      end
+
+      def inverse_of
+        if has_inverse?
+          @inverse_of ||= klass.reflect_on_association(options[:inverse_of])
+        else
+          nil
+        end
       end
 
       private
@@ -300,6 +317,8 @@ module ActiveRecord
         unless [:belongs_to, :has_many].include?(source_reflection.macro) && source_reflection.options[:through].nil?
           raise HasManyThroughSourceAssociationMacroError.new(self)
         end
+
+        check_validity_of_inverse!
       end
 
       def through_reflection_primary_key

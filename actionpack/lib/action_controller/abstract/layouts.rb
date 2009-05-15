@@ -1,8 +1,9 @@
 module AbstractController
   module Layouts
-    
+    extend ActiveSupport::DependencyModule
+
     depends_on Renderer
-        
+
     module ClassMethods
       def layout(layout)
         unless [String, Symbol, FalseClass, NilClass].include?(layout.class)
@@ -50,13 +51,16 @@ module AbstractController
     end
     
     def _render_template(template, options)
-      _action_view._render_template_with_layout(template, options[:_layout])
+      _action_view._render_template_from_controller(template, options[:_layout], options, options[:_partial])
     end
         
   private
   
     def _layout() end # This will be overwritten
     
+    # :api: plugin
+    # ====
+    # Override this to mutate the inbound layout name
     def _layout_for_name(name)
       unless [String, FalseClass, NilClass].include?(name.class)
         raise ArgumentError, "String, false, or nil expected; you passed #{name.inspect}"
@@ -67,10 +71,10 @@ module AbstractController
     
     def _default_layout(require_layout = false)
       if require_layout && !_layout
-        raise ArgumentError, 
+        raise ArgumentError,
           "There was no default layout for #{self.class} in #{view_paths.inspect}"
       end
-        
+
       begin
         layout = _layout_for_name(_layout)
       rescue NameError => e

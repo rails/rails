@@ -1,4 +1,6 @@
 require "cases/helper"
+require "models/project"
+require "timeout"
 
 class PooledConnectionsTest < ActiveRecord::TestCase
   def setup
@@ -88,6 +90,33 @@ class PooledConnectionsTest < ActiveRecord::TestCase
     assert_equal false, ActiveRecord::Base.connected?
   ensure
     ActiveRecord::Base.connection_handler = old_handler
+  end
+
+  def test_with_connection_nesting_safety
+    ActiveRecord::Base.establish_connection(@connection.merge({:pool => 1, :wait_timeout => 0.1}))
+
+    before_count = Project.count
+
+    add_record('one')
+
+    ActiveRecord::Base.connection.transaction do
+      add_record('two')
+      # Have another thread try to screw up the transaction
+      Thread.new do
+        ActiveRecord::Base.connection.rollback_db_transaction
+        ActiveRecord::Base.connection_pool.release_connection
+      end.join rescue nil
+      add_record('three')
+    end
+
+    after_count = Project.count
+    assert_equal 3, after_count - before_count
+  end
+
+  private
+
+  def add_record(name)
+    ActiveRecord::Base.connection_pool.with_connection { Project.create! :name => name }
   end
 end unless %w(FrontBase).include? ActiveRecord::Base.connection.adapter_name
 

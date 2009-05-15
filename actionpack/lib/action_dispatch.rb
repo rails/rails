@@ -21,18 +21,16 @@
 # WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 #++
 
-begin
-  require 'active_support'
-rescue LoadError
-  activesupport_path = "#{File.dirname(__FILE__)}/../../activesupport/lib"
-  if File.directory?(activesupport_path)
-    $:.unshift activesupport_path
-    require 'active_support'
-  end
-end
-require 'active_support/core/all'
+activesupport_path = "#{File.dirname(__FILE__)}/../../activesupport/lib"
+$:.unshift activesupport_path if File.directory?(activesupport_path)
+require 'active_support'
 
-gem 'rack', '~> 1.0.0'
+begin
+  gem 'rack', '~> 1.1.pre'
+rescue Gem::LoadError
+  $:.unshift "#{File.dirname(__FILE__)}/action_dispatch/vendor/rack-1.1.pre"
+end
+
 require 'rack'
 
 module ActionDispatch
@@ -42,8 +40,13 @@ module ActionDispatch
 
   autoload :Failsafe, 'action_dispatch/middleware/failsafe'
   autoload :ParamsParser, 'action_dispatch/middleware/params_parser'
-  autoload :Reloader, 'action_dispatch/middleware/reloader'
+  autoload :Rescue, 'action_dispatch/middleware/rescue'
+  autoload :ShowExceptions, 'action_dispatch/middleware/show_exceptions'
   autoload :MiddlewareStack, 'action_dispatch/middleware/stack'
+
+  autoload :Assertions, 'action_dispatch/testing/assertions'
+  autoload :TestRequest, 'action_dispatch/testing/test_request'
+  autoload :TestResponse, 'action_dispatch/testing/test_response'
 
   module Http
     autoload :Headers, 'action_dispatch/http/headers'
@@ -53,11 +56,6 @@ module ActionDispatch
     autoload :AbstractStore, 'action_dispatch/middleware/session/abstract_store'
     autoload :CookieStore, 'action_dispatch/middleware/session/cookie_store'
     autoload :MemCacheStore, 'action_dispatch/middleware/session/mem_cache_store'
-  end
-
-  module Test
-    autoload :UploadedFile, 'action_dispatch/test/uploaded_file'
-    autoload :MockRequest, 'action_dispatch/test/mock'
   end
 end
 

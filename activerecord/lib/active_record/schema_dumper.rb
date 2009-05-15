@@ -1,5 +1,5 @@
 require 'stringio'
-require 'bigdecimal'
+require 'active_support/core_ext/big_decimal'
 
 module ActiveRecord
   # This class is used to dump the database schema for some connection to some

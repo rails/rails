@@ -119,6 +119,12 @@ class FinderTest < ActiveRecord::TestCase
       Address.new(existing_address.street + "1", existing_address.city, existing_address.country))
   end
 
+  def test_exists_with_scoped_include
+    Developer.with_scope(:find => { :include => :projects, :order => "projects.name" }) do
+      assert Developer.exists?
+    end
+  end
+
   def test_find_by_array_of_one_id
     assert_kind_of(Array, Topic.find([ 1 ]))
     assert_equal(1, Topic.find([ 1 ]).length)
@@ -485,8 +491,9 @@ class FinderTest < ActiveRecord::TestCase
     assert_equal "foo in (#{quoted_nil})", bind('foo in (?)', [])
   end
 
-  def test_bind_string
-    assert_equal ActiveRecord::Base.connection.quote(''), bind('?', '')
+  def test_bind_empty_string
+    quoted_empty = ActiveRecord::Base.connection.quote('')
+    assert_equal quoted_empty, bind('?', '')
   end
 
   def test_bind_chars

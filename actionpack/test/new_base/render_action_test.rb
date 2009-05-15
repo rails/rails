@@ -3,9 +3,9 @@ require File.join(File.expand_path(File.dirname(__FILE__)), "test_helper")
 module RenderAction
   
   # This has no layout and it works
-  class BasicController < ActionController::Base2
+  class BasicController < ActionController::Base
     
-    self.view_paths = [ActionView::FixtureTemplate::FixturePath.new(
+    self.view_paths = [ActionView::Template::FixturePath.new(
       "render_action/basic/hello_world.html.erb" => "Hello world!"
     )]
     
@@ -129,10 +129,12 @@ module RenderActionWithApplicationLayout
 
   class BasicController < ::ApplicationController
     # Set the view path to an application view structure with layouts
-    self.view_paths = self.view_paths = [ActionView::FixtureTemplate::FixturePath.new(
+    self.view_paths = self.view_paths = [ActionView::Template::FixturePath.new(
       "render_action_with_application_layout/basic/hello_world.html.erb" => "Hello World!",
+      "render_action_with_application_layout/basic/hello.html.builder"   => "xml.p 'Omg'",
       "layouts/application.html.erb"                                     => "OHAI <%= yield %> KTHXBAI",
-      "layouts/greetings.html.erb"                                       => "Greetings <%= yield %> Bai"
+      "layouts/greetings.html.erb"                                       => "Greetings <%= yield %> Bai",
+      "layouts/builder.html.builder"                                     => "xml.html do\n  xml << yield\nend"
     )]
     
     def hello_world
@@ -153,6 +155,10 @@ module RenderActionWithApplicationLayout
     
     def hello_world_with_custom_layout
       render :action => "hello_world", :layout => "greetings"
+    end
+    
+    def with_builder_and_layout
+      render :action => "hello", :layout => "builder"
     end
   end
   
@@ -199,12 +205,21 @@ module RenderActionWithApplicationLayout
     assert_status 200
   end
   
+  class TestLayout < SimpleRouteCase
+    testing BasicController
+    
+    test "builder works with layouts" do
+      get :with_builder_and_layout
+      assert_response "<html>\n<p>Omg</p>\n</html>\n"
+    end
+  end
+  
 end
 
 module RenderActionWithControllerLayout
   
-  class BasicController < ActionController::Base2
-    self.view_paths = self.view_paths = [ActionView::FixtureTemplate::FixturePath.new(
+  class BasicController < ActionController::Base
+    self.view_paths = self.view_paths = [ActionView::Template::FixturePath.new(
       "render_action_with_controller_layout/basic/hello_world.html.erb" => "Hello World!",
       "layouts/render_action_with_controller_layout/basic.html.erb"     => "With Controller Layout! <%= yield %> KTHXBAI"
     )]
@@ -266,8 +281,8 @@ end
 
 module RenderActionWithBothLayouts
   
-  class BasicController < ActionController::Base2
-    self.view_paths = [ActionView::FixtureTemplate::FixturePath.new({
+  class BasicController < ActionController::Base
+    self.view_paths = [ActionView::Template::FixturePath.new({
       "render_action_with_both_layouts/basic/hello_world.html.erb" => "Hello World!",
       "layouts/application.html.erb"                                => "OHAI <%= yield %> KTHXBAI",
       "layouts/render_action_with_both_layouts/basic.html.erb"      => "With Controller Layout! <%= yield %> KTHXBAI"

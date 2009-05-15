@@ -1,17 +1,23 @@
+require 'active_support/core_ext/enumerable'
+
 module ActiveRecord
   module AttributeMethods #:nodoc:
+    extend ActiveSupport::DependencyModule
+
     DEFAULT_SUFFIXES = %w(= ? _before_type_cast)
     ATTRIBUTE_TYPES_CACHED_BY_DEFAULT = [:datetime, :timestamp, :time, :date]
 
-    def self.included(base)
-      base.extend ClassMethods
-      base.attribute_method_suffix(*DEFAULT_SUFFIXES)
-      base.cattr_accessor :attribute_types_cached_by_default, :instance_writer => false
-      base.attribute_types_cached_by_default = ATTRIBUTE_TYPES_CACHED_BY_DEFAULT
-      base.cattr_accessor :time_zone_aware_attributes, :instance_writer => false
-      base.time_zone_aware_attributes = false
-      base.class_inheritable_accessor :skip_time_zone_conversion_for_attributes, :instance_writer => false
-      base.skip_time_zone_conversion_for_attributes = []
+    included do
+      attribute_method_suffix(*DEFAULT_SUFFIXES)
+
+      cattr_accessor :attribute_types_cached_by_default, :instance_writer => false
+      self.attribute_types_cached_by_default = ATTRIBUTE_TYPES_CACHED_BY_DEFAULT
+
+      cattr_accessor :time_zone_aware_attributes, :instance_writer => false
+      self.time_zone_aware_attributes = false
+
+      class_inheritable_accessor :skip_time_zone_conversion_for_attributes, :instance_writer => false
+      self.skip_time_zone_conversion_for_attributes = []
     end
 
     # Declare and check for suffixed attribute methods.
@@ -99,8 +105,8 @@ module ActiveRecord
       def instance_method_already_implemented?(method_name)
         method_name = method_name.to_s
         return true if method_name =~ /^id(=$|\?$|$)/
-        @_defined_class_methods         ||= ancestors.first(ancestors.index(ActiveRecord::Base)).sum([]) { |m| m.public_instance_methods(false) | m.private_instance_methods(false) | m.protected_instance_methods(false) }.map(&:to_s).to_set
-        @@_defined_activerecord_methods ||= (ActiveRecord::Base.public_instance_methods(false) | ActiveRecord::Base.private_instance_methods(false) | ActiveRecord::Base.protected_instance_methods(false)).map(&:to_s).to_set
+        @_defined_class_methods         ||= ancestors.first(ancestors.index(ActiveRecord::Base)).sum([]) { |m| m.public_instance_methods(false) | m.private_instance_methods(false) | m.protected_instance_methods(false) }.map {|m| m.to_s }.to_set
+        @@_defined_activerecord_methods ||= (ActiveRecord::Base.public_instance_methods(false) | ActiveRecord::Base.private_instance_methods(false) | ActiveRecord::Base.protected_instance_methods(false)).map{|m| m.to_s }.to_set
         raise DangerousAttributeError, "#{method_name} is defined by ActiveRecord" if @@_defined_activerecord_methods.include?(method_name)
         @_defined_class_methods.include?(method_name)
       end
@@ -118,7 +124,7 @@ module ActiveRecord
       # with datatype <tt>:datetime, :timestamp, :time, :date</tt> are cached.
       def cached_attributes
         @cached_attributes ||=
-          columns.select{|c| attribute_types_cached_by_default.include?(c.type)}.map(&:name).to_set
+          columns.select{|c| attribute_types_cached_by_default.include?(c.type)}.map{|col| col.name}.to_set
       end
 
       # Returns +true+ if the provided attribute is being cached.

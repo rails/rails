@@ -1,19 +1,14 @@
 module AbstractController
   module Helpers
+    extend ActiveSupport::DependencyModule
+
     depends_on Renderer
-    
-    setup do
+
+    included do
       extlib_inheritable_accessor :master_helper_module
       self.master_helper_module = Module.new
     end
-  
-    # def self.included(klass)
-    #   klass.class_eval do
-    #     extlib_inheritable_accessor :master_helper_module
-    #     self.master_helper_module = Module.new
-    #   end
-    # end
-    
+
     def _action_view
       @_action_view ||= begin
         av = super

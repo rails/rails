@@ -117,4 +117,8 @@ module ActiveResource
         end
     end
   end
+
+  class Base
+    include CustomMethods
+  end
 end

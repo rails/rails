@@ -1,3 +1,5 @@
+require 'active_support/core_ext/object/misc'
+
 module ActionController
   module Routing
     class Route #:nodoc:
@@ -65,7 +67,7 @@ module ActionController
       #   map.connect '/page/:id', :controller => 'pages', :action => 'show', :id => /\d+/
       #
       def parameter_shell
-        @parameter_shell ||= returning({}) do |shell|
+        @parameter_shell ||= {}.tap do |shell|
           requirements.each do |key, requirement|
             shell[key] = requirement unless requirement.is_a? Regexp
           end
@@ -76,7 +78,7 @@ module ActionController
       # includes keys that appear inside the path, and keys that have requirements
       # placed upon them.
       def significant_keys
-        @significant_keys ||= returning([]) do |sk|
+        @significant_keys ||= [].tap do |sk|
           segments.each { |segment| sk << segment.key if segment.respond_to? :key }
           sk.concat requirements.keys
           sk.uniq!
@@ -86,7 +88,7 @@ module ActionController
       # Return a hash of key/value pairs representing the keys in the route that
       # have defaults, or which are specified by non-regexp requirements.
       def defaults
-        @defaults ||= returning({}) do |hash|
+        @defaults ||= {}.tap do |hash|
           segments.each do |segment|
             next unless segment.respond_to? :default
             hash[segment.key] = segment.default unless segment.default.nil?

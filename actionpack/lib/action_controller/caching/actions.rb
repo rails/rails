@@ -61,7 +61,9 @@ module ActionController #:nodoc:
           filter_options = { :only => actions, :if => options.delete(:if), :unless => options.delete(:unless) }
 
           cache_filter = ActionCacheFilter.new(:layout => options.delete(:layout), :cache_path => options.delete(:cache_path), :store_options => options)
-          around_filter(cache_filter, filter_options)
+          around_filter(filter_options) do |controller, action|
+            cache_filter.filter(controller, action)
+          end
         end
       end
 
@@ -81,6 +83,12 @@ module ActionController #:nodoc:
       class ActionCacheFilter #:nodoc:
         def initialize(options, &block)
           @options = options
+        end
+
+        def filter(controller, action)
+          should_continue = before(controller)
+          action.call if should_continue
+          after(controller)
         end
 
         def before(controller)

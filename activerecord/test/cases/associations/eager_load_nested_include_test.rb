@@ -4,15 +4,15 @@ require 'models/author'
 require 'models/comment'
 require 'models/category'
 require 'models/categorization'
+require 'active_support/core_ext/array/random_access'
 
 module Remembered
-  def self.included(base)
-    base.extend ClassMethods
-    base.class_eval do
-      after_create :remember
-    protected
-      def remember; self.class.remembered << self; end
-    end
+  extend ActiveSupport::DependencyModule
+
+  included do
+    after_create :remember
+  protected
+    def remember; self.class.remembered << self; end
   end
 
   module ClassMethods

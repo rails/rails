@@ -21,16 +21,9 @@
 # WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 #++
 
-begin
-  require 'active_support'
-rescue LoadError
-  activesupport_path = "#{File.dirname(__FILE__)}/../../activesupport/lib"
-  if File.directory?(activesupport_path)
-    $:.unshift activesupport_path
-    require 'active_support'
-  end
-end
-require 'active_support/core/all'
+activesupport_path = "#{File.dirname(__FILE__)}/../../activesupport/lib"
+$:.unshift activesupport_path if File.directory?(activesupport_path)
+require 'active_support'
 
 require File.join(File.dirname(__FILE__), "action_pack")
 
@@ -60,7 +53,7 @@ module ActionController
   autoload :Redirector, 'action_controller/base/redirect'
   autoload :Renderer, 'action_controller/base/render'
   autoload :RequestForgeryProtection, 'action_controller/base/request_forgery_protection'
-  autoload :Rescue, 'action_controller/dispatch/rescue'
+  autoload :Rescue, 'action_controller/base/rescue'
   autoload :Resources, 'action_controller/routing/resources'
   autoload :Responder, 'action_controller/base/responder'
   autoload :Routing, 'action_controller/routing'

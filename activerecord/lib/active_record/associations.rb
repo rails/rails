@@ -1,4 +1,12 @@
+require 'active_support/core_ext/module/delegation'
+
 module ActiveRecord
+  class InverseOfAssociationNotFoundError < ActiveRecordError #:nodoc:
+    def initialize(reflection)
+      super("Could not find the inverse association for #{reflection.name} (#{reflection.options[:inverse_of].inspect} in #{reflection.class_name})")
+    end
+  end
+
   class HasManyThroughAssociationNotFoundError < ActiveRecordError #:nodoc:
     def initialize(owner_class_name, reflection)
       super("Could not find the association #{reflection.options[:through].inspect} in model #{owner_class_name}")
@@ -71,6 +79,8 @@ module ActiveRecord
 
   # See ActiveRecord::Associations::ClassMethods for documentation.
   module Associations # :nodoc:
+    extend ActiveSupport::DependencyModule
+
     # These classes will be loaded when associations are created.
     # So there is no need to eager load them.
     autoload :AssociationCollection, 'active_record/associations/association_collection'
@@ -82,10 +92,6 @@ module ActiveRecord
     autoload :HasManyThroughAssociation, 'active_record/associations/has_many_through_association'
     autoload :HasOneAssociation, 'active_record/associations/has_one_association'
     autoload :HasOneThroughAssociation, 'active_record/associations/has_one_through_association'
-
-    def self.included(base)
-      base.extend(ClassMethods)
-    end
 
     # Clears out the association cache
     def clear_association_cache #:nodoc:
@@ -1488,7 +1494,7 @@ module ActiveRecord
           :finder_sql, :counter_sql,
           :before_add, :after_add, :before_remove, :after_remove,
           :extend, :readonly,
-          :validate
+          :validate, :inverse_of
         ]
 
         def create_has_many_reflection(association_id, options, &extension)
@@ -1502,7 +1508,7 @@ module ActiveRecord
         @@valid_keys_for_has_one_association = [
           :class_name, :foreign_key, :remote, :select, :conditions, :order,
           :include, :dependent, :counter_cache, :extend, :as, :readonly,
-          :validate, :primary_key
+          :validate, :primary_key, :inverse_of
         ]
 
         def create_has_one_reflection(association_id, options)
@@ -1521,7 +1527,7 @@ module ActiveRecord
         @@valid_keys_for_belongs_to_association = [
           :class_name, :foreign_key, :foreign_type, :remote, :select, :conditions,
           :include, :dependent, :counter_cache, :extend, :polymorphic, :readonly,
-          :validate, :touch
+          :validate, :touch, :inverse_of
         ]
 
         def create_belongs_to_reflection(association_id, options)
@@ -1665,17 +1671,29 @@ module ActiveRecord
           string.scan(/([\.a-zA-Z_]+).?\./).flatten
         end
 
+        def tables_in_hash(hash)
+          return [] if hash.blank?
+          tables = hash.map do |key, value|
+            if value.is_a?(Hash)
+              key.to_s
+            else
+              tables_in_string(key) if key.is_a?(String)
+            end
+          end
+          tables.flatten.compact
+        end
+
         def conditions_tables(options)
           # look in both sets of conditions
           conditions = [scope(:find, :conditions), options[:conditions]].inject([]) do |all, cond|
             case cond
               when nil   then all
-              when Array then all << cond.first
-              when Hash  then all << cond.keys
-              else            all << cond
+              when Array then all << tables_in_string(cond.first)
+              when Hash  then all << tables_in_hash(cond)
+              else            all << tables_in_string(cond)
             end
           end
-          tables_in_string(conditions.join(' '))
+          conditions.flatten
         end
 
         def order_tables(options)
@@ -1910,19 +1928,25 @@ module ActiveRecord
                   return nil if record.id.to_s != join.parent.record_id(row).to_s or row[join.aliased_primary_key].nil?
                   association = join.instantiate(row)
                   collection.target.push(association)
+                  collection.__send__(:set_inverse_instance, association, record)
                 when :has_one
                   return if record.id.to_s != join.parent.record_id(row).to_s
                   return if record.instance_variable_defined?("@#{join.reflection.name}")
                   association = join.instantiate(row) unless row[join.aliased_primary_key].nil?
-                  record.send("set_#{join.reflection.name}_target", association)
+                  set_target_and_inverse(join, association, record)
                 when :belongs_to
                   return if record.id.to_s != join.parent.record_id(row).to_s or row[join.aliased_primary_key].nil?
                   association = join.instantiate(row)
-                  record.send("set_#{join.reflection.name}_target", association)
+                  set_target_and_inverse(join, association, record)
                 else
                   raise ConfigurationError, "unknown macro: #{join.reflection.macro}"
               end
               return association
+            end
+
+            def set_target_and_inverse(join, association, record)
+              association_proxy = record.send("set_#{join.reflection.name}_target", association)
+              association_proxy.__send__(:set_inverse_instance, association, record)
             end
 
           class JoinBase # :nodoc:

@@ -4,7 +4,7 @@ module AbstractController
   module Testing
   
     class ControllerWithCallbacks < AbstractController::Base
-      use AbstractController::Callbacks
+      include AbstractController::Callbacks
     end
     
     class Callback1 < ControllerWithCallbacks
@@ -22,7 +22,7 @@ module AbstractController
     class TestCallbacks < ActiveSupport::TestCase
       test "basic callbacks work" do
         result = Callback1.process(:index)
-        assert_equal "Hello world", result.response_obj[:body]
+        assert_equal "Hello world", result.response_body
       end
     end
 
@@ -53,7 +53,7 @@ module AbstractController
     class TestCallbacks < ActiveSupport::TestCase
       test "before_filter works" do
         result = Callback2.process(:index)
-        assert_equal "Hello world", result.response_obj[:body]
+        assert_equal "Hello world", result.response_body
       end
       
       test "after_filter works" do
@@ -84,7 +84,7 @@ module AbstractController
     class TestCallbacks < ActiveSupport::TestCase
       test "before_filter works with procs" do
         result = Callback3.process(:index)
-        assert_equal "Hello world", result.response_obj[:body]
+        assert_equal "Hello world", result.response_body
       end
       
       test "after_filter works with procs" do
@@ -119,12 +119,12 @@ module AbstractController
     class TestCallbacks < ActiveSupport::TestCase
       test "when :only is specified, a before filter is triggered on that action" do
         result = CallbacksWithConditions.process(:index)
-        assert_equal "Hello, World", result.response_obj[:body]
+        assert_equal "Hello, World", result.response_body
       end
       
       test "when :only is specified, a before filter is not triggered on other actions" do
         result = CallbacksWithConditions.process(:sekrit_data)
-        assert_equal "true", result.response_obj[:body]
+        assert_equal "true", result.response_body
       end
       
       test "when :except is specified, an after filter is not triggered on that action" do
@@ -159,12 +159,12 @@ module AbstractController
     class TestCallbacks < ActiveSupport::TestCase
       test "when :only is specified with an array, a before filter is triggered on that action" do
         result = CallbacksWithArrayConditions.process(:index)
-        assert_equal "Hello, World", result.response_obj[:body]
+        assert_equal "Hello, World", result.response_body
       end
       
       test "when :only is specified with an array, a before filter is not triggered on other actions" do
         result = CallbacksWithArrayConditions.process(:sekrit_data)
-        assert_equal "true", result.response_obj[:body]
+        assert_equal "true", result.response_body
       end
       
       test "when :except is specified with an array, an after filter is not triggered on that action" do
@@ -184,12 +184,31 @@ module AbstractController
     class TestCallbacks < ActiveSupport::TestCase
       test "when a callback is modified in a child with :only, it works for the :only action" do
         result = ChangedConditions.process(:index)
-        assert_equal "Hello world", result.response_obj[:body]
+        assert_equal "Hello world", result.response_body
       end
       
       test "when a callback is modified in a child with :only, it does not work for other actions" do
         result = ChangedConditions.process(:not_index)
-        assert_equal "", result.response_obj[:body]        
+        assert_equal "", result.response_body        
+      end
+    end
+    
+    class SetsResponseBody < ControllerWithCallbacks
+      before_filter :set_body
+      
+      def index
+        self.response_body = "Fail"
+      end
+      
+      def set_body
+        self.response_body = "Success"
+      end
+    end
+    
+    class TestHalting < ActiveSupport::TestCase
+      test "when a callback sets the response body, the action should not be invoked" do
+        result = SetsResponseBody.process(:index)
+        assert_equal "Success", result.response_body
       end
     end
     

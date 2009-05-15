@@ -3,6 +3,7 @@ require 'stringio'
 require 'strscan'
 
 require 'active_support/memoizable'
+require 'active_support/core_ext/hash/indifferent_access'
 
 module ActionDispatch
   class Request < Rack::Request
@@ -31,7 +32,7 @@ module ActionDispatch
     # <tt>:get</tt>. If the request \method is not listed in the HTTP_METHODS
     # constant above, an UnknownHttpMethod exception is raised.
     def request_method
-      @request_method ||= HTTP_METHOD_LOOKUP[super] || raise(ActionController::UnknownHttpMethod, "#{super}, accepted HTTP methods are #{HTTP_METHODS.to_sentence(:locale => :en)}")
+      HTTP_METHOD_LOOKUP[super] || raise(ActionController::UnknownHttpMethod, "#{super}, accepted HTTP methods are #{HTTP_METHODS.to_sentence(:locale => :en)}")
     end
 
     # Returns the HTTP request \method used for action processing as a
@@ -85,7 +86,7 @@ module ActionDispatch
     # For backward compatibility, the post \format is extracted from the
     # X-Post-Data-Format HTTP header if present.
     def content_type
-      @content_type ||= begin
+      @env["action_dispatch.request.content_type"] ||= begin
         if @env['CONTENT_TYPE'] =~ /^([^,\;]*)/
           Mime::Type.lookup($1.strip.downcase)
         else
@@ -100,7 +101,7 @@ module ActionDispatch
 
     # Returns the accepted MIME type for the request.
     def accepts
-      @accepts ||= begin
+      @env["action_dispatch.request.accepts"] ||= begin
         header = @env['HTTP_ACCEPT'].to_s.strip
 
         fallback = xhr? ? Mime::JS : Mime::HTML
@@ -160,7 +161,7 @@ module ActionDispatch
     #   GET /posts/5       | request.format => Mime::HTML or MIME::JS, or request.accepts.first depending on the value of <tt>ActionController::Base.use_accept_header</tt>
 
     def format(view_path = [])
-      @format ||=
+      @env["action_dispatch.request.format"] ||=
         if parameters[:format]
                         Mime[parameters[:format]]
         elsif ActionController::Base.use_accept_header && !(accepts == ONLY_ALL)
@@ -171,12 +172,11 @@ module ActionDispatch
     end
 
     def formats
-      @formats = 
-        if ActionController::Base.use_accept_header
-          Array(Mime[parameters[:format]] || accepts)
-        else
-          [format]
-        end
+      if ActionController::Base.use_accept_header
+        Array(Mime[parameters[:format]] || accepts)
+      else
+        [format]
+      end
     end
 
     # Sets the \format by string extension, which can be used to force custom formats
@@ -192,7 +192,7 @@ module ActionDispatch
     #   end
     def format=(extension)
       parameters[:format] = extension.to_s
-      @format = Mime::Type.lookup_by_extension(parameters[:format])
+      @env["action_dispatch.request.format"] = Mime::Type.lookup_by_extension(parameters[:format])
     end
 
     # Returns a symbolized version of the <tt>:format</tt> parameter of the request.
@@ -328,6 +328,10 @@ EOM
       port == standard_port ? '' : ":#{port}"
     end
 
+    def server_port
+      @env['SERVER_PORT'].to_i
+    end
+
     # Returns the \domain part of a \host, such as "rubyonrails.org" in "www.rubyonrails.org". You can specify
     # a different <tt>tld_length</tt>, such as 2 to catch rubyonrails.co.uk in "www.rubyonrails.co.uk".
     def domain(tld_length = 1)
@@ -348,7 +352,7 @@ EOM
 
     # Returns the query string, accounting for server idiosyncrasies.
     def query_string
-      @env['QUERY_STRING'].present? ? @env['QUERY_STRING'] : (@env['REQUEST_URI'].split('?', 2)[1] || '')
+      @env['QUERY_STRING'].present? ? @env['QUERY_STRING'] : (@env['REQUEST_URI'].to_s.split('?', 2)[1] || '')
     end
 
     # Returns the request URI, accounting for server idiosyncrasies.
@@ -396,18 +400,19 @@ EOM
 
     # Returns both GET and POST \parameters in a single hash.
     def parameters
-      @parameters ||= request_parameters.merge(query_parameters).update(path_parameters).with_indifferent_access
+      @env["action_dispatch.request.parameters"] ||= request_parameters.merge(query_parameters).update(path_parameters).with_indifferent_access
     end
     alias_method :params, :parameters
 
     def path_parameters=(parameters) #:nodoc:
+      @env.delete("action_dispatch.request.symbolized_path_parameters")
+      @env.delete("action_dispatch.request.parameters")
       @env["action_dispatch.request.path_parameters"] = parameters
-      @symbolized_path_parameters = @parameters = nil
     end
 
     # The same as <tt>path_parameters</tt> with explicitly symbolized keys.
     def symbolized_path_parameters
-      @symbolized_path_parameters ||= path_parameters.symbolize_keys
+      @env["action_dispatch.request.symbolized_path_parameters"] ||= path_parameters.symbolize_keys
     end
 
     # Returns a hash with the \parameters used to form the \path of the request.
@@ -437,13 +442,13 @@ EOM
 
     # Override Rack's GET method to support indifferent access
     def GET
-      @env["action_controller.request.query_parameters"] ||= normalize_parameters(super)
+      @env["action_dispatch.request.query_parameters"] ||= normalize_parameters(super)
     end
     alias_method :query_parameters, :GET
 
     # Override Rack's POST method to support indifferent access
     def POST
-      @env["action_controller.request.request_parameters"] ||= normalize_parameters(super)
+      @env["action_dispatch.request.request_parameters"] ||= normalize_parameters(super)
     end
     alias_method :request_parameters, :POST
 
@@ -464,8 +469,8 @@ EOM
       @env['rack.session.options'] = options
     end
 
-    def server_port
-      @env['SERVER_PORT'].to_i
+    def flash
+      session['flash'] || {}
     end
 
     private

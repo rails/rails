@@ -1,5 +1,6 @@
 require 'fileutils'
 require 'abstract_unit'
+require 'active_record_unit'
 
 CACHE_DIR = 'test_cache'
 # Don't change '/../temp/' cavalierly or you might hose something you don't want hosed
@@ -110,7 +111,7 @@ class PageCachingTest < ActionController::TestCase
   end
 
   def test_should_cache_ok_at_custom_path
-    @request.stubs(:path).returns("/index.html")
+    @request.request_uri = "/index.html"
     get :ok
     assert_response :ok
     assert File.exist?("#{FILE_STORE_PATH}/index.html")
@@ -148,11 +149,15 @@ class PageCachingTest < ActionController::TestCase
 end
 
 class ActionCachingTestController < ActionController::Base
+  rescue_from(Exception) { head 500 }
+  rescue_from(ActiveRecord::RecordNotFound) { head :not_found }
+
   caches_action :index, :redirected, :forbidden, :if => Proc.new { |c| !c.request.format.json? }, :expires_in => 1.hour
   caches_action :show, :cache_path => 'http://test.host/custom/show'
   caches_action :edit, :cache_path => Proc.new { |c| c.params[:id] ? "http://test.host/#{c.params[:id]};edit" : "http://test.host/edit" }
   caches_action :with_layout
   caches_action :layout_false, :layout => false
+  caches_action :record_not_found, :four_oh_four, :simple_runtime_error
 
   layout 'talk_from_action.erb'
 
@@ -173,6 +178,18 @@ class ActionCachingTestController < ActionController::Base
   def with_layout
     @cache_this = MockTime.now.to_f.to_s
     render :text => @cache_this, :layout => true
+  end
+
+  def record_not_found
+    raise ActiveRecord::RecordNotFound, "oops!"
+  end
+
+  def four_oh_four
+    render :text => "404'd!", :status => 404
+  end
+
+  def simple_runtime_error
+    raise "oops!"
   end
 
   alias_method :show, :index
@@ -345,7 +362,7 @@ class ActionCacheTest < ActionController::TestCase
     cached_time = content_to_cache
     reset!
 
-    @request.set_REQUEST_URI "/action_caching_test/expire.xml"
+    @request.request_uri = "/action_caching_test/expire.xml"
     get :expire, :format => :xml
     reset!
 
@@ -456,6 +473,27 @@ class ActionCacheTest < ActionController::TestCase
     get :index, :id => 'kitten.jpg'
 
     assert_response :success
+  end
+
+  def test_record_not_found_returns_404_for_multiple_requests
+    get :record_not_found
+    assert_response 404
+    get :record_not_found
+    assert_response 404
+  end
+
+  def test_four_oh_four_returns_404_for_multiple_requests
+    get :four_oh_four
+    assert_response 404
+    get :four_oh_four
+    assert_response 404
+  end
+
+  def test_simple_runtime_error_returns_500_for_multiple_requests
+    get :simple_runtime_error
+    assert_response 500
+    get :simple_runtime_error
+    assert_response 500
   end
 
   private

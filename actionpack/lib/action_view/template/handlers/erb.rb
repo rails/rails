@@ -1,4 +1,5 @@
 require 'erb'
+require 'active_support/core_ext/class/attribute_accessors'
 
 module ActionView
   module TemplateHandlers

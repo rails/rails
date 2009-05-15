@@ -3,6 +3,7 @@ require 'yaml'
 require 'csv'
 require 'active_support/dependencies'
 require 'active_support/test_case'
+require 'active_support/core_ext/logger'
 
 if RUBY_VERSION < '1.9'
   module YAML #:nodoc:
@@ -805,27 +806,25 @@ end
 
 module ActiveRecord
   module TestFixtures
-    def self.included(base)
-      base.class_eval do
-        setup :setup_fixtures
-        teardown :teardown_fixtures
+    extend ActiveSupport::DependencyModule
 
-        superclass_delegating_accessor :fixture_path
-        superclass_delegating_accessor :fixture_table_names
-        superclass_delegating_accessor :fixture_class_names
-        superclass_delegating_accessor :use_transactional_fixtures
-        superclass_delegating_accessor :use_instantiated_fixtures   # true, false, or :no_instances
-        superclass_delegating_accessor :pre_loaded_fixtures
+    included do
+      setup :setup_fixtures
+      teardown :teardown_fixtures
 
-        self.fixture_table_names = []
-        self.use_transactional_fixtures = false
-        self.use_instantiated_fixtures = true
-        self.pre_loaded_fixtures = false
+      superclass_delegating_accessor :fixture_path
+      superclass_delegating_accessor :fixture_table_names
+      superclass_delegating_accessor :fixture_class_names
+      superclass_delegating_accessor :use_transactional_fixtures
+      superclass_delegating_accessor :use_instantiated_fixtures   # true, false, or :no_instances
+      superclass_delegating_accessor :pre_loaded_fixtures
 
-        self.fixture_class_names = {}
-      end
+      self.fixture_table_names = []
+      self.use_transactional_fixtures = false
+      self.use_instantiated_fixtures = true
+      self.pre_loaded_fixtures = false
 
-      base.extend ClassMethods
+      self.fixture_class_names = {}
     end
 
     module ClassMethods

@@ -1,3 +1,5 @@
+require 'active_support/core_ext/hash/conversions'
+
 module ActiveResource
   module Formats
     module XmlFormat
