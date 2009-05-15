@@ -117,7 +117,7 @@ class PerformActionTest < ActionController::TestCase
     end
 
     def method_missing(method, *args)
-      @logged << args.first
+      @logged << args.first.to_s
     end
   end
 

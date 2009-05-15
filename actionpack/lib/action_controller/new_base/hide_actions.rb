@@ -12,8 +12,8 @@ module ActionController
       
   private
   
-    def respond_to_action?(action_name)
-      !hidden_actions.include?(action_name) && (super || respond_to?(:method_missing))
+    def action_method?(action_name)
+      !hidden_actions.include?(action_name) && super
     end
     
     module ClassMethods

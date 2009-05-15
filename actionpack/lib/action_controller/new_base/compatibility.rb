@@ -42,6 +42,9 @@ module ActionController
       # Controls the resource action separator
       cattr_accessor :resource_action_separator
       self.resource_action_separator = "/"
+      
+      cattr_accessor :use_accept_header
+      self.use_accept_header = true
     end
     
     module ClassMethods
@@ -66,6 +69,18 @@ module ActionController
 
       super
     end
+    
+    def respond_to_action?(action_name)
+      if respond_to?(:method_missing) && !respond_to?(:action_missing)
+        self.class.class_eval do
+          private
+          def action_missing(name, *args)
+            method_missing(name.to_sym, *args)
+          end
+        end
+      end
+      super
+    end    
       
     def _layout_for_name(name)
       name &&= name.sub(%r{^/?layouts/}, '')

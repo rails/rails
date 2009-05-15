@@ -1,5 +1,6 @@
 require 'cgi'
 require 'uri'
+require 'set'
 require 'action_controller/routing/optimisations'
 require 'action_controller/routing/routing_ext'
 require 'action_controller/routing/route'

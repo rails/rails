@@ -67,6 +67,8 @@ module AbstractController
     end
     
     def process(action_name)
+      action_name = action_name.to_s
+
       unless respond_to_action?(action_name)
         raise ActionNotFound, "The action '#{action_name}' could not be found"
       end
@@ -82,13 +84,17 @@ module AbstractController
       self.class.action_methods
     end
   
+    def action_method?(action)
+      action_methods.include?(action)
+    end
+  
     # It is possible for respond_to?(action_name) to be false and
     # respond_to?(:action_missing) to be false if respond_to_action?
     # is overridden in a subclass. For instance, ActionController::Base
     # overrides it to include the case where a template matching the
     # action_name is found.
     def process_action
-      if respond_to?(action_name) then send(action_name)
+      if action_method?(action_name) then send(action_name)
       elsif respond_to?(:action_missing, true) then action_missing(action_name)
       end
     end
@@ -98,7 +104,7 @@ module AbstractController
     # you must handle it by also overriding process_action and
     # handling the case.
     def respond_to_action?(action_name)
-      action_methods.include?(action_name) || respond_to?(:action_missing, true)
+      action_method?(action_name) || respond_to?(:action_missing, true)
     end
   end
 end

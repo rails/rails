@@ -21,11 +21,6 @@ module ActionController
     # :api: public    
     def controller_path() self.class.controller_path end
     
-    # :api: private
-    def self.internal_methods
-      ActionController::Http.public_instance_methods(true)
-    end
-    
     # :api: private    
     def self.action_names() action_methods end
     
