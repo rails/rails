@@ -69,17 +69,13 @@ module ActionController
 
       super
     end
-    
-    def respond_to_action?(action_name)
-      if respond_to?(:method_missing) && !respond_to?(:action_missing)
-        self.class.class_eval do
-          private
-          def action_missing(name, *args)
-            method_missing(name.to_sym, *args)
-          end
-        end
-      end
-      super
+
+    def _handle_method_missing
+      method_missing(@_action_name.to_sym)
+    end
+
+    def method_for_action(action_name)
+      super || (respond_to?(:method_missing) && "_handle_method_missing")
     end    
       
     def _layout_for_name(name)

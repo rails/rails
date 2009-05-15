@@ -201,11 +201,10 @@ module AbstractController
       def fail()  self.response_body = "fail"    end
         
     private
-      
-      def respond_to_action?(action_name)
-        action_name.to_s != "fail"
+
+      def method_for_action(action_name)
+        action_name.to_s != "fail" && action_name
       end
-      
     end
     
     class TestRespondToAction < ActiveSupport::TestCase

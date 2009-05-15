@@ -8,8 +8,8 @@ module AbstractController
       define_callbacks :process_action, "response_body"
     end
 
-    def process_action
-      _run_process_action_callbacks(action_name) do
+    def process_action(method_name)
+      _run_process_action_callbacks(method_name) do
         super
       end
     end
