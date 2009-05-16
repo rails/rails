@@ -48,8 +48,6 @@ module ActionController
       @_response = ActionDispatch::Response.new
       @_response.request = request
       process(name)
-      @_response.body = response_body
-      @_response.prepare!
       to_rack
     end
     
@@ -62,6 +60,8 @@ module ActionController
     
     # :api: private
     def to_rack
+      @_response.body = response_body
+      @_response.prepare!
       @_response.to_a
     end
   end

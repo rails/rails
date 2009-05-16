@@ -7,6 +7,7 @@ module ActionController
   autoload :Rails2Compatibility,  "action_controller/new_base/compatibility"
   autoload :Redirector,           "action_controller/new_base/redirector"
   autoload :Renderer,             "action_controller/new_base/renderer"
+  autoload :Rescue,               "action_controller/new_base/rescuable"
   autoload :Testing,              "action_controller/new_base/testing"
   autoload :UrlFor,               "action_controller/new_base/url_for"
   

@@ -11,11 +11,19 @@ require 'action_controller/new_base'
 require 'fixture_template'
 require 'action_controller/testing/process2'
 require 'action_view/test_case'
+require 'action_controller/testing/integration'
+require 'active_support/dependencies'
+
+ActiveSupport::Dependencies.hook!
 
 FIXTURE_LOAD_PATH = File.join(File.dirname(__FILE__), 'fixtures')
 
 module ActionController
-  
+  Base.session = {
+  :key         => '_testing_session',
+  :secret      => '8273f16463985e2b3747dc25e30f2528'
+}
+
   class ActionControllerError < StandardError #:nodoc:
   end
 
@@ -126,6 +134,6 @@ module ActionController
             "Expected no partials to be rendered"
         end
       end
-    end    
+    end
   end
 end

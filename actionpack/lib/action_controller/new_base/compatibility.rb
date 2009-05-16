@@ -45,6 +45,14 @@ module ActionController
       
       cattr_accessor :use_accept_header
       self.use_accept_header = true
+
+      cattr_accessor :page_cache_directory
+      self.page_cache_directory = defined?(Rails.public_path) ? Rails.public_path : ""
+
+      cattr_reader :cache_store
+
+      cattr_accessor :consider_all_requests_local
+      self.consider_all_requests_local = true
     end
     
     module ClassMethods
@@ -52,6 +60,11 @@ module ActionController
       def consider_all_requests_local() end
       def rescue_action(env)
         raise env["action_dispatch.rescue.exception"]
+      end
+
+      # Defines the storage option for cached fragments
+      def cache_store=(store_option)
+        @@cache_store = ActiveSupport::Cache.lookup_store(store_option)
       end
     end
     
@@ -69,17 +82,13 @@ module ActionController
 
       super
     end
-    
-    def respond_to_action?(action_name)
-      if respond_to?(:method_missing) && !respond_to?(:action_missing)
-        self.class.class_eval do
-          private
-          def action_missing(name, *args)
-            method_missing(name.to_sym, *args)
-          end
-        end
-      end
-      super
+
+    def _handle_method_missing
+      method_missing(@_action_name.to_sym)
+    end
+
+    def method_for_action(action_name)
+      super || (respond_to?(:method_missing) && "_handle_method_missing")
     end    
       
     def _layout_for_name(name)
