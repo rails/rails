@@ -246,7 +246,7 @@ def copy_with_rewritten_ruby_path(src_file, dest_file)
 end
 
 desc 'Generate guides (for authors), use ONLY=foo to process just "foo.textile"'
-task :guides do
+task :generate_guides do
   ruby "guides/rails_guides.rb"
 end
 
@@ -294,6 +294,7 @@ PKG_FILES = FileList[
   'doc/**/*', 
   'dispatches/**/*', 
   'environments/**/*', 
+  'guides/**/*', 
   'helpers/**/*', 
   'generators/**/*', 
   'html/**/*', 
@@ -320,7 +321,7 @@ spec = Gem::Specification.new do |s|
   s.rdoc_options << '--exclude' << '.'
   s.has_rdoc = false
 
-  s.files = PKG_FILES.to_a.delete_if {|f| f.include?('.svn')}
+  s.files = PKG_FILES.to_a.delete_if {|f| f =~ %r{\.svn|guides/output}}
   s.require_path = 'lib'
   s.bindir = "bin"                               # Use these for applications.
   s.executables = ["rails"]
@@ -345,7 +346,7 @@ task :pgem => [:gem] do
 end
 
 desc "Publish the guides"
-task :pguides => :guides do
+task :pguides => :generate_guides do
   mkdir_p 'pkg'
   `tar -czf pkg/guides.gz guides/output`
   Rake::SshFilePublisher.new("web.rubyonrails.org", "/u/sites/guides.rubyonrails.org/public", "pkg", "guides.gz").upload
