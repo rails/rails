@@ -1,0 +1,94 @@
+h2. AJAX on Rails
+
+This guide covers the built-in Ajax/Javascript functionality of Rails (and more); it will enable you to create rich and dynamic AJAX applications with ease! We will cover the following topics:
+
+* Quick introduction to AJAX and related technologies
+* Handling Javascript the Rails way: Rails helpers, RJS, Prototype and script.aculo.us  
+* Testing Javascript functionality
+* Becoming an Ajax Master on Rails: Plugins, Best Practices, Tips and Tricks
+
+endprologue.
+
+h3. Hello AJAX - a Quick Intro
+
+If you are a 'show me the code' type of person, you might want to skip this part and jump to the RJS section right away. However, I would really recommend to read it - you'll need the basics of DOM, http requests and other topics discussed here to really understand Ajax on Rails.
+
+h4. Asynchronous Javascript + XML
+
+Basic terminology, new style of creating web apps
+
+h4. The DOM
+
+basics of the DOM, how is it built, properties, features, why is it central to AJAX
+
+h4. Standard HTML communication vs AJAX
+
+How do 'standard' and AJAX requests differ, why does this matter for understanding AJAX on Rails (tie in for *_remote helpers, the next section)
+
+
+
+
+
+
+h3. Built-in Rails Helpers 
+
+Mostly a reference to standard JS helpers like link_to_remote, remote_form_for etc + some explanation
+
+
+
+h3. Responding to AJAX the Rails way: RJS
+
+In the last section we sent some AJAX requests to the server; now we need to respond, and the standard Rails way to this is using RJS; RJS intro, function reference
+
+
+
+h3. I Want my Yellow Thingy: Prototype and Script.aculo.us
+
+Walk through prototype and script.aculo.us, most important functionality, method reference etc.
+
+
+
+h3. Testing Javascript
+
+Javascript testing reminds me the definition of the world 'classic' by Mark Twain: "A classic is something that everybody wants to have read and nobody wants to read." It's similar with Javascript testing: everyone would like to have it, yet it's not done by too much developers as it is tedious, complicated, there is a proliferation of tools and no consensus/accepted best practices, but we will nevertheless take a stab at it:
+
+* (Fire)Watir
+* Selenium
+* Celerity/Culerity
+* Cucumber+Webrat
+* Mention stuff like screw.unit/jsSpec
+
+Note to self: check out the RailsConf JS testing video
+
+h3. Useful Plugins
+
+This was in the ticket description, but at the moment I don't really have clue what to add here, so please tell me
+
+
+
+h3. Tips and Tricks
+
+* Unobtrusive Javascript (Prototype events, maybe the jQuery way (esp. jQeury.live()))
+
+* Minimize communication with the server - there does not have to be a communication at all!
+** If you absolutely don't have to, don't use Rails observers
+** Cache stuff on the client side, e.g. with auto-complete
+
+* Using AJAX to load stuff asynchronously
+** To avoid page blocking
+** Tricking page caching 
+*** inserting user-specific info into a cached page
+*** anti-CSFR bit
+
+* Jumping to the top? Try event.stopPropagation
+
+* Performance 
+** pack your javascript (minify, asset packager)
+** require your JS at the end of the file
+** other perf tricks and optimization
+
+* Don't overuse AJAX
+** Usability first, cool effects second
+** situations where AJAX is discouraged
+
+* Last but not least: Javascript is your friend :)
