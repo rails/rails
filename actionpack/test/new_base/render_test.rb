@@ -48,7 +48,7 @@ module Render
     
     test "raises an exception" do
       assert_raises(AbstractController::DoubleRenderError) do
-        get "/render/double_render"
+        get "/render/double_render", {}, "rails.raise_exceptions" => true
       end
     end
   end
@@ -58,13 +58,13 @@ module Render
     
     test "raises an exception when a method of Object is called" do
       assert_raises(AbstractController::ActionNotFound) do
-        get "/render/blank_render/clone"
+        get "/render/blank_render/clone", {}, "rails.raise_exceptions" => true
       end
     end
     
     test "raises an exception when a private method is called" do
       assert_raises(AbstractController::ActionNotFound) do
-        get "/render/blank_render/secretz"
+        get "/render/blank_render/secretz", {}, "rails.raise_exceptions" => true
       end
     end
   end

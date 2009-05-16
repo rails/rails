@@ -10,9 +10,8 @@ module ActionDispatch
     def call(env)
       @app.call(env)
     rescue Exception => exception
-      # Reraise exception in test environment
-      if defined?(Rails) && Rails.env.test?
-        raise exception
+      if env["rails.raise_exceptions"]
+        raise
       else
         failsafe_response(exception)
       end
