@@ -160,7 +160,7 @@ module ActionController #:nodoc:
         def convert_only_and_except_options_to_sets_of_strings(opts)
           [:only, :except].each do |key|
             if values = opts[key]
-              opts[key] = Array(values).map(&:to_s).to_set
+              opts[key] = Array(values).map {|val| val.to_s }.to_set
             end
           end
         end
