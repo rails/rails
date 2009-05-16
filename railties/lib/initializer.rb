@@ -311,7 +311,7 @@ module Rails
     end
 
     def check_for_unbuilt_gems
-      unbuilt_gems = @configuration.gems.select(&:frozen?).reject(&:built?)
+      unbuilt_gems = @configuration.gems.select {|gem| gem.frozen? && !gem.built? }
       if unbuilt_gems.size > 0
         # don't print if the gems:build rake tasks are being run
         unless $gems_build_rake_task

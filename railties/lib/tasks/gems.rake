@@ -20,7 +20,7 @@ namespace :gems do
   desc "Build any native extensions for unpacked gems"
   task :build do
     $gems_build_rake_task = true
-    frozen_gems.each &:build
+    frozen_gems.each {|gem| gem.build }
   end
 
   namespace :build do
@@ -33,12 +33,12 @@ namespace :gems do
 
   desc "Installs all required gems."
   task :install => :base do
-    current_gems.each &:install
+    current_gems.each {|gem| gem.install }
   end
 
   desc "Unpacks all required gems into vendor/gems."
   task :unpack => :install do
-    current_gems.each &:unpack
+    current_gems.each {|gem| gem.unpack }
   end
 
   namespace :unpack do
@@ -50,7 +50,7 @@ namespace :gems do
 
   desc "Regenerate gem specifications in correct format."
   task :refresh_specs => :base do
-    current_gems.each &:refresh
+    current_gems.each {|gem| gem.refresh }
   end
 end
 
