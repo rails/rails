@@ -9,10 +9,6 @@ module Arel
       @attribute, @function_sql, @alias, @ancestor = attribute, function_sql, aliaz, ancestor
     end
 
-    def to_sql(formatter = Sql::SelectClause.new(relation))
-      formatter.expression self
-    end
-
     def aggregation?
       true
     end

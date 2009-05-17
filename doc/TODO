@@ -1,5 +1,5 @@
 todo:
-
+- expressions should be class-based, and joins too, anything _sql should be renamed
 - refactor adapter pattern
 - implement in memory adapter
 - implement mnesia adapter

@@ -30,6 +30,6 @@ Spec::Runner.configure do |config|
   config.include AdapterGuards
   config.mock_with :rr
   config.before do
-    Arel::Table.engine = Arel::Engine.new(ActiveRecord::Base)
+    Arel::Table.engine = Arel::Sql::Engine.new(ActiveRecord::Base)
   end
 end

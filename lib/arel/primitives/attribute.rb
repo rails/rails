@@ -18,18 +18,6 @@ module Arel
       false
     end
 
-    def column
-      original_relation.column_for(self)
-    end
-
-    def format(object)
-      object.to_sql(Sql::Attribute.new(self))
-    end
-
-    def to_sql(formatter = Sql::WhereCondition.new(relation))
-      formatter.attribute self
-    end
-
     module Transformations
       def self.included(klass)
         klass.send :alias_method, :eql?, :==

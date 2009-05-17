@@ -1,0 +1,5 @@
+require 'arel/engines/sql/relations/utilities'
+require 'arel/engines/sql/relations/relation'
+require 'arel/engines/sql/relations/operations'
+require 'arel/engines/sql/relations/writes'
+require 'arel/engines/sql/relations/table'

@@ -9,7 +9,7 @@ module Arel
 
     describe '#to_sql' do
       it "manufactures sql with limit and offset" do
-        sql = Take.new(@relation, @taken).to_s
+        sql = Take.new(@relation, @taken).to_sql
 
         adapter_is :mysql do
           sql.should be_like(%Q{
