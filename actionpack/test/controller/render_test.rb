@@ -198,19 +198,19 @@ class TestController < ActionController::Base
   end
 
   def render_json_hello_world
-    render :json => {:hello => 'world'}.to_json
+    render :json => ActiveSupport::JSON.encode(:hello => 'world')
   end
 
   def render_json_hello_world_with_callback
-    render :json => {:hello => 'world'}.to_json, :callback => 'alert'
+    render :json => ActiveSupport::JSON.encode(:hello => 'world'), :callback => 'alert'
   end
 
   def render_json_with_custom_content_type
-    render :json => {:hello => 'world'}.to_json, :content_type => 'text/javascript'
+    render :json => ActiveSupport::JSON.encode(:hello => 'world'), :content_type => 'text/javascript'
   end
 
   def render_symbol_json
-    render :json => {:hello => 'world'}.to_json
+    render :json => ActiveSupport::JSON.encode(:hello => 'world')
   end
 
   def render_json_with_render_to_string
@@ -898,31 +898,31 @@ class RenderTest < ActionController::TestCase
 
   def test_render_json
     get :render_json_hello_world
-    assert_equal '{"hello": "world"}', @response.body
+    assert_equal '{"hello":"world"}', @response.body
     assert_equal 'application/json', @response.content_type
   end
 
   def test_render_json_with_callback
     get :render_json_hello_world_with_callback
-    assert_equal 'alert({"hello": "world"})', @response.body
+    assert_equal 'alert({"hello":"world"})', @response.body
     assert_equal 'application/json', @response.content_type
   end
 
   def test_render_json_with_custom_content_type
     get :render_json_with_custom_content_type
-    assert_equal '{"hello": "world"}', @response.body
+    assert_equal '{"hello":"world"}', @response.body
     assert_equal 'text/javascript', @response.content_type
   end
 
   def test_render_symbol_json
     get :render_symbol_json
-    assert_equal '{"hello": "world"}', @response.body
+    assert_equal '{"hello":"world"}', @response.body
     assert_equal 'application/json', @response.content_type
   end
 
   def test_render_json_with_render_to_string
     get :render_json_with_render_to_string
-    assert_equal '{"hello": "partial html"}', @response.body
+    assert_equal '{"hello":"partial html"}', @response.body
     assert_equal 'application/json', @response.content_type
   end
 

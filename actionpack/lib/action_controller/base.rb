@@ -952,7 +952,7 @@ module ActionController #:nodoc:
 
           elsif options.include?(:json)
             json = options[:json]
-            json = json.to_json unless json.is_a?(String)
+            json = ActiveSupport::JSON.encode(json) unless json.is_a?(String)
             json = "#{options[:callback]}(#{json})" unless options[:callback].blank?
             response.content_type ||= Mime::JSON
             render_for_text(json, options[:status])

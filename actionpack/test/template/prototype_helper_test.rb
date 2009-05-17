@@ -327,28 +327,28 @@ class JavaScriptGeneratorTest < PrototypeHelperBaseTest
   def test_remove
     assert_equal 'Element.remove("foo");',
       @generator.remove('foo')
-    assert_equal '["foo", "bar", "baz"].each(Element.remove);',
+    assert_equal '["foo","bar","baz"].each(Element.remove);',
       @generator.remove('foo', 'bar', 'baz')
   end
 
   def test_show
     assert_equal 'Element.show("foo");',
       @generator.show('foo')
-    assert_equal '["foo", "bar", "baz"].each(Element.show);',
+    assert_equal '["foo","bar","baz"].each(Element.show);',
       @generator.show('foo', 'bar', 'baz')
   end
 
   def test_hide
     assert_equal 'Element.hide("foo");',
       @generator.hide('foo')
-    assert_equal '["foo", "bar", "baz"].each(Element.hide);',
+    assert_equal '["foo","bar","baz"].each(Element.hide);',
       @generator.hide('foo', 'bar', 'baz')
   end
 
   def test_toggle
     assert_equal 'Element.toggle("foo");',
       @generator.toggle('foo')
-    assert_equal '["foo", "bar", "baz"].each(Element.toggle);',
+    assert_equal '["foo","bar","baz"].each(Element.toggle);',
       @generator.toggle('foo', 'bar', 'baz')
   end
 
@@ -385,7 +385,7 @@ class JavaScriptGeneratorTest < PrototypeHelperBaseTest
     assert_equal <<-EOS.chomp, @generator.to_s
 Element.insert("element", { top: "\\u003Cp\\u003EThis is a test\\u003C/p\\u003E" });
 Element.insert("element", { bottom: "\\u003Cp\\u003EThis is a test\\u003C/p\\u003E" });
-["foo", "bar"].each(Element.remove);
+["foo","bar"].each(Element.remove);
 Element.update("baz", "\\u003Cp\\u003EThis is a test\\u003C/p\\u003E");
     EOS
   end
@@ -554,8 +554,8 @@ return (value.className == "welcome");
     end
 
     assert_equal <<-EOS.strip, @generator.to_s
-var a = [1, 2, 3].zip([4, 5, 6], [7, 8, 9]);
-var b = [1, 2, 3].zip([4, 5, 6], [7, 8, 9], function(array) {
+var a = [1, 2, 3].zip([4,5,6], [7,8,9]);
+var b = [1, 2, 3].zip([4,5,6], [7,8,9], function(array) {
 return array.reverse();
 });
     EOS
@@ -606,7 +606,7 @@ return value.reverse();
 
   def test_literal
     literal = @generator.literal("function() {}")
-    assert_equal "function() {}", literal.to_json
+    assert_equal "function() {}", ActiveSupport::JSON.encode(literal)
     assert_equal "", @generator.to_s
   end
 

@@ -1,5 +1,7 @@
 class Numeric
-  def to_json(options = nil) #:nodoc:
+  def rails_to_json(options = nil) #:nodoc:
     to_s
   end
+
+  alias to_json rails_to_json
 end
