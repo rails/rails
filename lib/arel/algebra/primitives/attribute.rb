@@ -17,6 +17,10 @@ module Arel
     def aggregation?
       false
     end
+    
+    def inspect
+      "<Attribute #{name}>"
+    end
 
     module Transformations
       def self.included(klass)
@@ -129,5 +133,18 @@ module Arel
       end
     end
     include Expressions
+    
+    module Orderings
+      def asc
+        Ascending.new(self)
+      end
+      
+      def desc
+        Descending.new(self)
+      end
+      
+      alias_method :to_ordering, :asc
+    end
+    include Orderings
   end
 end

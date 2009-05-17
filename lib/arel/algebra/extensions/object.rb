@@ -12,4 +12,9 @@ class Object
       self
     end
   end
+
+  def let
+    yield(self)
+  end
 end
+

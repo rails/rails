@@ -30,7 +30,7 @@ module Arel
               FROM `users`
               WHERE `users`.`id` = 1
               GROUP BY `users`.`id`
-              ORDER BY `users`.`id`
+              ORDER BY `users`.`id` ASC
             })
           end
 
@@ -40,7 +40,7 @@ module Arel
               FROM "users"
               WHERE "users"."id" = 1
               GROUP BY "users"."id"
-              ORDER BY "users"."id"
+              ORDER BY "users"."id" ASC
             })
           end
         end

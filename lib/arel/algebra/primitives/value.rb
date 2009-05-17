@@ -7,12 +7,8 @@ module Arel
       Value.new(value, relation)
     end
 
-    def aggregation?
-      false
-    end
-
-    def to_attribute
-      value
+    def to_ordering
+      self
     end
   end
 end

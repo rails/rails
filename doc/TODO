@@ -1,6 +1,9 @@
 todo:
-- expressions should be class-based, and joins too, anything _sql should be renamed
+- projection is by definition distincting
+- union/intersection
 - refactor adapter pattern
+- result sets to attr correlation too
+  - result sets should be array relations
 - clean up block_given stuff
 - reorganize sql tests
 - audit unit coverage of algebra
@@ -10,6 +13,7 @@ todo:
 - blocks for joins
 - implement in memory adapter
 - implement mnesia adapter
+- test ordering
 - joins become subselects in writes:
 users.delete().where( 
     addresses.c.user_id== 
@@ -18,7 +22,6 @@ users.delete().where(
     ) 
 - rename externalize to derived.
 - and/or w/ predicates
-- result sets to attr correlation too
 - cache expiry on write
 - transactions
 - scoped writes
@@ -89,6 +92,7 @@ done:
 - rename all ion classes
 - joining with LIMIT is like aggregations!!
 - blocks for non-joins
+- expressions should be class-based, and joins too, anything _sql should be renamed
 
 icebox:
 - #bind in Attribute and Expression should be doing a descend?
