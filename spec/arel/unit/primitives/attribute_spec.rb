@@ -139,31 +139,31 @@ module Arel
 
       describe '#count' do
         it "manufactures a count Expression" do
-          @attribute.count.should == Expression.new(@attribute, "COUNT")
+          @attribute.count.should == Count.new(@attribute)
         end
       end
 
       describe '#sum' do
         it "manufactures a sum Expression" do
-          @attribute.sum.should == Expression.new(@attribute, "SUM")
+          @attribute.sum.should == Sum.new(@attribute)
         end
       end
 
       describe '#maximum' do
         it "manufactures a maximum Expression" do
-          @attribute.maximum.should == Expression.new(@attribute, "MAX")
+          @attribute.maximum.should == Maximum.new(@attribute)
         end
       end
 
       describe '#minimum' do
         it "manufactures a minimum Expression" do
-          @attribute.minimum.should == Expression.new(@attribute, "MIN")
+          @attribute.minimum.should == Minimum.new(@attribute)
         end
       end
 
       describe '#average' do
         it "manufactures an average Expression" do
-          @attribute.average.should == Expression.new(@attribute, "AVG")
+          @attribute.average.should == Average.new(@attribute)
         end
       end
     end

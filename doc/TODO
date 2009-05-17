@@ -1,6 +1,13 @@
 todo:
 - expressions should be class-based, and joins too, anything _sql should be renamed
 - refactor adapter pattern
+- clean up block_given stuff
+- reorganize sql tests
+- audit unit coverage of algebra
+- break out adapters into sep modules
+- data objects
+- remove all explicit aliasing
+- blocks for joins
 - implement in memory adapter
 - implement mnesia adapter
 - joins become subselects in writes:
@@ -11,10 +18,8 @@ users.delete().where(
     ) 
 - rename externalize to derived.
 - and/or w/ predicates
-- blocks for all operations
 - result sets to attr correlation too
 - cache expiry on write
-  - rewrite of arecord querycache test in light of this
 - transactions
 - scoped writes
 - asc/desc for orderings
@@ -83,6 +88,7 @@ done:
 - rename select to where
 - rename all ion classes
 - joining with LIMIT is like aggregations!!
+- blocks for non-joins
 
 icebox:
 - #bind in Attribute and Expression should be doing a descend?

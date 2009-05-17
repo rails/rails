@@ -9,13 +9,13 @@ module Arel
 
     describe Expression::Transformations do
       before do
-        @expression = Expression.new(@attribute, "COUNT")
+        @expression = Count.new(@attribute)
       end
 
       describe '#bind' do
         it "manufactures an attribute with a rebound relation and self as the ancestor" do
           derived_relation = @relation.where(@relation[:id].eq(1))
-          @expression.bind(derived_relation).should == Expression.new(@attribute.bind(derived_relation), "COUNT", nil, @expression)
+          @expression.bind(derived_relation).should == Count.new(@attribute.bind(derived_relation), nil, @expression)
         end
 
         it "returns self if the substituting to the same relation" do
@@ -25,7 +25,7 @@ module Arel
 
       describe '#as' do
         it "manufactures an aliased expression" do
-          @expression.as(:alias).should == Expression.new(@attribute, "COUNT", :alias, @expression)
+          @expression.as(:alias).should == Expression.new(@attribute, :alias, @expression)
         end
       end
 
@@ -38,7 +38,7 @@ module Arel
 
     describe '#to_sql' do
       it "manufactures sql with the expression and alias" do
-        sql = Expression.new(@attribute, "COUNT", :alias).to_sql
+        sql = Count.new(@attribute, :alias).to_sql
 
         adapter_is :mysql do
           sql.should be_like(%Q{COUNT(`users`.`id`) AS `alias`})
