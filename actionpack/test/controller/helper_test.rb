@@ -104,7 +104,6 @@ class HelperTest < Test::Unit::TestCase
 
   def call_controller(klass, action)
     request  = ActionController::TestRequest.new
-    request.env["action_controller.rescue.request"] = request
     klass.action(action).call(request.env)    
   end
 
@@ -112,7 +111,6 @@ class HelperTest < Test::Unit::TestCase
     assert_equal 'hello: Iz guuut!', 
       call_controller(Fun::GamesController, "render_hello_world").last.body
     # request  = ActionController::TestRequest.new
-    # request.env["action_controller.rescue.request"] = request
     # 
     # resp = Fun::GamesController.action(:render_hello_world).call(request.env)
     # assert_equal 'hello: Iz guuut!', resp.last.body
@@ -217,7 +215,6 @@ class IsolatedHelpersTest < Test::Unit::TestCase
 
   def call_controller(klass, action)
     request  = ActionController::TestRequest.new
-    request.env["action_controller.rescue.request"] = request
     klass.action(action).call(request.env)    
   end
 
