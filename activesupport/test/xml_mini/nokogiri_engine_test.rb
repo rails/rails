@@ -148,6 +148,19 @@ class NokogiriEngineTest < Test::Unit::TestCase
     eoxml
   end
 
+  def test_parse_from_io
+    io = StringIO.new(<<-eoxml)
+    <root>
+      good
+      <products>
+        hello everyone
+      </products>
+      morning
+    </root>
+    eoxml
+    XmlMini.parse(io)
+  end
+
   private
   def assert_equal_rexml(xml)
     hash = XmlMini.with_backend('REXML') { XmlMini.parse(xml) }
