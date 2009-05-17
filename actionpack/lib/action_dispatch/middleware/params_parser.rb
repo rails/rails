@@ -34,7 +34,7 @@ module ActionDispatch
           when :xml_simple, :xml_node
             request.body.size == 0 ? {} : Hash.from_xml(request.body).with_indifferent_access
           when :yaml
-            YAML.load(request.raw_post)
+            YAML.load(request.body)
           when :json
             if request.body.size == 0
               {}
