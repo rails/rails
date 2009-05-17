@@ -29,3 +29,8 @@ task :spec => ["spec:sqlite3", "spec:mysql"]
 
 desc "Default task is to run specs"
 task :default => :spec
+
+desc 'Removes trailing whitespace'
+task :whitespace do
+  sh %{find . -name '*.rb' -exec sed -i '' 's/ *$//g' {} \\;}
+end
