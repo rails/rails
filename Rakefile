@@ -8,8 +8,12 @@ Spec::Rake::SpecTask.new(:coverage) do |t|
   t.spec_files =
     ["spec/connections/mysql_connection.rb"] +
     spec_file_list
+
   t.rcov = true
-  t.rcov_opts = ['-x', 'spec,gems']
+  t.rcov_opts << '--exclude' << "spec,gems"
+  t.rcov_opts << '--text-summary'
+  t.rcov_opts << '--sort' << 'coverage' << '--sort-reverse'
+  t.rcov_opts << '--only-uncovered'
 end
 
 namespace :spec do
