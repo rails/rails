@@ -1,3 +1,4 @@
 coverage/*
 config/database.yml
+spec/fixtures/*database*
 *.DS_Store

@@ -9,23 +9,43 @@ module Arel
       @operand1 = Equality.new(@attribute1, 1)
       @operand2 = Equality.new(@attribute2, "name")
     end
-    
+
     describe "when being combined with another predicate with AND logic" do
       describe "#to_sql" do
         it "manufactures sql with an AND operation" do
-          @operand1.and(@operand2).to_sql.should be_like("
-            (`users`.`id` = 1 AND `users`.`name` = 'name')
-          ")
+          sql = @operand1.and(@operand2).to_sql
+
+          adapter_is :mysql do
+            sql.should be_like(%Q{
+              (`users`.`id` = 1 AND `users`.`name` = 'name')
+            })
+          end
+
+          adapter_is_not :mysql do
+            sql.should be_like(%Q{
+              ("users"."id" = 1 AND "users"."name" = 'name')
+            })
+          end
         end
       end
     end
-    
+
     describe "when being combined with another predicate with OR logic" do
       describe "#to_sql" do
         it "manufactures sql with an OR operation" do
-          @operand1.or(@operand2).to_sql.should be_like("
-            (`users`.`id` = 1 OR `users`.`name` = 'name')
-          ")
+          sql = @operand1.or(@operand2).to_sql
+
+          adapter_is :mysql do
+            sql.should be_like(%Q{
+              (`users`.`id` = 1 OR `users`.`name` = 'name')
+            })
+          end
+
+          adapter_is_not :mysql do
+            sql.should be_like(%Q{
+              ("users"."id" = 1 OR "users"."name" = 'name')
+            })
+          end
         end
       end
     end

@@ -11,39 +11,79 @@ module Arel
     describe 'when joining a relation to itself' do
       describe '#to_sql' do
         it 'manufactures sql aliasing the table and attributes properly in the join predicate and the where clause' do
-          @relation1.join(@relation2).on(@predicate).to_sql.should be_like("
-            SELECT `users`.`id`, `users`.`name`, `users_2`.`id`, `users_2`.`name`
-            FROM `users`
-              INNER JOIN `users` AS `users_2`
-                ON `users`.`id` = `users_2`.`id`
-          ")
+          sql = @relation1.join(@relation2).on(@predicate).to_sql
+
+          adapter_is :mysql do
+            sql.should be_like(%Q{
+              SELECT `users`.`id`, `users`.`name`, `users_2`.`id`, `users_2`.`name`
+              FROM `users`
+                INNER JOIN `users` AS `users_2`
+                  ON `users`.`id` = `users_2`.`id`
+            })
+          end
+
+          adapter_is_not :mysql do
+            sql.should be_like(%Q{
+              SELECT "users"."id", "users"."name", "users_2"."id", "users_2"."name"
+              FROM "users"
+                INNER JOIN "users" AS "users_2"
+                  ON "users"."id" = "users_2"."id"
+            })
+          end
         end
 
         describe 'when joining with a where on the same relation' do
           it 'manufactures sql aliasing the tables properly' do
-            @relation1                                                      \
-              .join(@relation2.where(@relation2[:id].eq(1)))               \
-                .on(@predicate)                                             \
-            .to_sql.should be_like("
-              SELECT `users`.`id`, `users`.`name`, `users_2`.`id`, `users_2`.`name`
-              FROM `users`
-                INNER JOIN `users` AS `users_2`
-                  ON `users`.`id` = `users_2`.`id` AND `users_2`.`id` = 1
-            ")
+            sql = @relation1                                 \
+              .join(@relation2.where(@relation2[:id].eq(1))) \
+                .on(@predicate)                              \
+            .to_sql
+
+            adapter_is :mysql do
+              sql.should be_like(%Q{
+                SELECT `users`.`id`, `users`.`name`, `users_2`.`id`, `users_2`.`name`
+                FROM `users`
+                  INNER JOIN `users` AS `users_2`
+                    ON `users`.`id` = `users_2`.`id` AND `users_2`.`id` = 1
+              })
+            end
+
+            adapter_is_not :mysql do
+              sql.should be_like(%Q{
+                SELECT "users"."id", "users"."name", "users_2"."id", "users_2"."name"
+                FROM "users"
+                  INNER JOIN "users" AS "users_2"
+                    ON "users"."id" = "users_2"."id" AND "users_2"."id" = 1
+              })
+            end
           end
 
           describe 'when the where occurs before the alias' do
             it 'manufactures sql aliasing the predicates properly' do
               relation2 = @relation1.where(@relation1[:id].eq(1)).alias
-              @relation1                                  \
+
+              sql = @relation1                            \
                 .join(relation2)                          \
                   .on(relation2[:id].eq(@relation1[:id])) \
-              .to_sql.should be_like("
-                SELECT `users`.`id`, `users`.`name`, `users_2`.`id`, `users_2`.`name`
-                FROM `users`
-                INNER JOIN `users` AS `users_2`
-                  ON `users_2`.`id` = `users`.`id` AND `users_2`.`id` = 1
-              ")
+              .to_sql
+
+              adapter_is :mysql do
+                sql.should be_like(%Q{
+                  SELECT `users`.`id`, `users`.`name`, `users_2`.`id`, `users_2`.`name`
+                  FROM `users`
+                  INNER JOIN `users` AS `users_2`
+                    ON `users_2`.`id` = `users`.`id` AND `users_2`.`id` = 1
+                })
+              end
+
+              adapter_is_not :mysql do
+                sql.should be_like(%Q{
+                  SELECT "users"."id", "users"."name", "users_2"."id", "users_2"."name"
+                  FROM "users"
+                  INNER JOIN "users" AS "users_2"
+                    ON "users_2"."id" = "users"."id" AND "users_2"."id" = 1
+                })
+              end
             end
           end
         end
@@ -55,35 +95,65 @@ module Arel
 
           describe 'when joining left-associatively' do
             it 'manufactures sql aliasing the tables properly' do
-              @relation1                                      \
+              sql = @relation1                                \
                 .join(@relation2                              \
                   .join(@relation3)                           \
                     .on(@relation2[:id].eq(@relation3[:id]))) \
                   .on(@relation1[:id].eq(@relation2[:id]))                                 \
-              .to_sql.should be_like("
-                SELECT `users`.`id`, `users`.`name`, `users_2`.`id`, `users_2`.`name`, `users_3`.`id`, `users_3`.`name`
-                FROM `users`
-                  INNER JOIN `users` AS `users_2`
-                    ON `users`.`id` = `users_2`.`id`
-                  INNER JOIN `users` AS `users_3`
-                    ON `users_2`.`id` = `users_3`.`id`
-              ")
+              .to_sql
+
+              adapter_is :mysql do
+                sql.should be_like(%Q{
+                  SELECT `users`.`id`, `users`.`name`, `users_2`.`id`, `users_2`.`name`, `users_3`.`id`, `users_3`.`name`
+                  FROM `users`
+                    INNER JOIN `users` AS `users_2`
+                      ON `users`.`id` = `users_2`.`id`
+                    INNER JOIN `users` AS `users_3`
+                      ON `users_2`.`id` = `users_3`.`id`
+                })
+              end
+
+              adapter_is_not :mysql do
+                sql.should be_like(%Q{
+                  SELECT "users"."id", "users"."name", "users_2"."id", "users_2"."name", "users_3"."id", "users_3"."name"
+                  FROM "users"
+                    INNER JOIN "users" AS "users_2"
+                      ON "users"."id" = "users_2"."id"
+                    INNER JOIN "users" AS "users_3"
+                      ON "users_2"."id" = "users_3"."id"
+                })
+              end
             end
           end
 
           describe 'when joining right-associatively' do
             it 'manufactures sql aliasing the tables properly' do
-              @relation1                                                    \
+              sql = @relation1                                              \
                 .join(@relation2).on(@relation1[:id].eq(@relation2[:id]))   \
                 .join(@relation3).on(@relation2[:id].eq(@relation3[:id]))   \
-              .to_sql.should be_like("
-                SELECT `users`.`id`, `users`.`name`, `users_2`.`id`, `users_2`.`name`, `users_3`.`id`, `users_3`.`name`
-                FROM `users`
-                  INNER JOIN `users` AS `users_2`
-                    ON `users`.`id` = `users_2`.`id`
-                  INNER JOIN `users` AS `users_3`
-                    ON `users_2`.`id` = `users_3`.`id`
-              ")
+              .to_sql
+
+              adapter_is :mysql do
+                sql.should be_like(%Q{
+                  SELECT `users`.`id`, `users`.`name`, `users_2`.`id`, `users_2`.`name`, `users_3`.`id`, `users_3`.`name`
+                  FROM `users`
+                    INNER JOIN `users` AS `users_2`
+                      ON `users`.`id` = `users_2`.`id`
+                    INNER JOIN `users` AS `users_3`
+                      ON `users_2`.`id` = `users_3`.`id`
+                })
+              end
+
+              adapter_is_not :mysql do
+                sql.should be_like(%Q{
+                  SELECT "users"."id", "users"."name", "users_2"."id", "users_2"."name", "users_3"."id", "users_3"."name"
+                  FROM "users"
+                    INNER JOIN "users" AS "users_2"
+                      ON "users"."id" = "users_2"."id"
+                    INNER JOIN "users" AS "users_3"
+                      ON "users_2"."id" = "users_3"."id"
+                })
+              end
             end
           end
         end

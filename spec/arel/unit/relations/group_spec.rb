@@ -6,25 +6,49 @@ module Arel
       @relation = Table.new(:users)
       @attribute = @relation[:id]
     end
-    
+
     describe '#to_sql' do
       describe 'when given a predicate' do
         it "manufactures sql with where clause conditions" do
-          Group.new(@relation, @attribute).to_sql.should be_like("
-            SELECT `users`.`id`, `users`.`name`
-            FROM `users`
-            GROUP BY `users`.`id`
-          ")
+          sql = Group.new(@relation, @attribute).to_sql
+
+          adapter_is :mysql do
+            sql.should be_like(%Q{
+              SELECT `users`.`id`, `users`.`name`
+              FROM `users`
+              GROUP BY `users`.`id`
+            })
+          end
+
+          adapter_is_not :mysql do
+            sql.should be_like(%Q{
+              SELECT "users"."id", "users"."name"
+              FROM "users"
+              GROUP BY "users"."id"
+            })
+          end
         end
       end
-      
+
       describe 'when given a string' do
         it "passes the string through to the where clause" do
-          Group.new(@relation, 'asdf').to_sql.should be_like("
-            SELECT `users`.`id`, `users`.`name`
-            FROM `users`
-            GROUP BY asdf
-          ")
+          sql = Group.new(@relation, 'asdf').to_sql
+
+          adapter_is :mysql do
+            sql.should be_like(%Q{
+              SELECT `users`.`id`, `users`.`name`
+              FROM `users`
+              GROUP BY asdf
+            })
+          end
+
+          adapter_is_not :mysql do
+            sql.should be_like(%Q{
+              SELECT "users"."id", "users"."name"
+              FROM "users"
+              GROUP BY asdf
+            })
+          end
         end
       end
     end

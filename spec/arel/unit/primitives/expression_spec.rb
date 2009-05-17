@@ -38,7 +38,15 @@ module Arel
 
     describe '#to_sql' do
       it "manufactures sql with the expression and alias" do
-        Expression.new(@attribute, "COUNT", :alias).to_sql.should == "COUNT(`users`.`id`) AS `alias`"
+        sql = Expression.new(@attribute, "COUNT", :alias).to_sql
+
+        adapter_is :mysql do
+          sql.should be_like(%Q{COUNT(`users`.`id`) AS `alias`})
+        end
+
+        adapter_is_not :mysql do
+          sql.should be_like(%Q{COUNT("users"."id") AS "alias"})
+        end
       end
     end
   end

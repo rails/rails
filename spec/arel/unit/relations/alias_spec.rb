@@ -16,19 +16,33 @@ module Arel
     describe '#to_sql' do
       describe 'when there is no ambiguity' do
         it 'does not alias table names anywhere a table name can appear' do
-          @relation                       \
+          sql = @relation                 \
             .where(@relation[:id].eq(1))  \
             .order(@relation[:id])        \
             .project(@relation[:id])      \
             .group(@relation[:id])        \
             .alias                        \
-          .to_sql.should be_like("
-            SELECT `users`.`id`
-            FROM `users`
-            WHERE `users`.`id` = 1
-            GROUP BY `users`.`id`
-            ORDER BY `users`.`id`
-          ")
+          .to_sql
+
+          adapter_is :mysql do
+            sql.should be_like(%Q{
+              SELECT `users`.`id`
+              FROM `users`
+              WHERE `users`.`id` = 1
+              GROUP BY `users`.`id`
+              ORDER BY `users`.`id`
+            })
+          end
+
+          adapter_is_not :mysql do
+            sql.should be_like(%Q{
+              SELECT "users"."id"
+              FROM "users"
+              WHERE "users"."id" = 1
+              GROUP BY "users"."id"
+              ORDER BY "users"."id"
+            })
+          end
         end
       end
     end

@@ -9,11 +9,23 @@ module Arel
 
     describe '#to_sql' do
       it "manufactures sql with limit and offset" do
-        Take.new(@relation, @taken).to_s.should be_like("
-          SELECT `users`.`id`, `users`.`name`
-          FROM `users`
-          LIMIT #{@taken}
-        ")
+        sql = Take.new(@relation, @taken).to_s
+
+        adapter_is :mysql do
+          sql.should be_like(%Q{
+            SELECT `users`.`id`, `users`.`name`
+            FROM `users`
+            LIMIT 4
+          })
+        end
+
+        adapter_is_not :mysql do
+          sql.should be_like(%Q{
+            SELECT "users"."id", "users"."name"
+            FROM "users"
+            LIMIT 4
+          })
+        end
       end
     end
   end

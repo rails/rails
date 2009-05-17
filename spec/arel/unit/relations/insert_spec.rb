@@ -8,24 +8,35 @@ module Arel
 
     describe '#to_sql' do
       it 'manufactures sql inserting data when given multiple rows' do
-        pending 'it should insert multiple rows'
-        @insertion = Insert.new(@relation, [@relation[:name] => "nick", @relation[:name] => "bryan"])
+        pending 'it should insert multiple rows' do
+          @insertion = Insert.new(@relation, [@relation[:name] => "nick", @relation[:name] => "bryan"])
 
-        @insertion.to_sql.should be_like("
-          INSERT
-          INTO `users`
-          (`name`) VALUES ('nick'), ('bryan')
-        ")
+          @insertion.to_sql.should be_like("
+            INSERT
+            INTO `users`
+            (`name`) VALUES ('nick'), ('bryan')
+          ")
+        end
       end
 
       it 'manufactures sql inserting data when given multiple values' do
         @insertion = Insert.new(@relation, @relation[:id] => "1", @relation[:name] => "nick")
 
-        @insertion.to_sql.should be_like("
-          INSERT
-          INTO `users`
-          (`id`, `name`) VALUES (1, 'nick')
-        ")
+        adapter_is :mysql do
+          @insertion.to_sql.should be_like(%Q{
+            INSERT
+            INTO `users`
+            (`id`, `name`) VALUES (1, 'nick')
+          })
+        end
+
+        adapter_is_not :mysql do
+          @insertion.to_sql.should be_like(%Q{
+            INSERT
+            INTO "users"
+            ("id", "name") VALUES (1, 'nick')
+          })
+        end
       end
 
       describe 'when given values whose types correspond to the types of the attributes' do
@@ -34,11 +45,21 @@ module Arel
         end
 
         it 'manufactures sql inserting data' do
-          @insertion.to_sql.should be_like("
-            INSERT
-            INTO `users`
-            (`name`) VALUES ('nick')
-          ")
+          adapter_is :mysql do
+            @insertion.to_sql.should be_like(%Q{
+              INSERT
+              INTO `users`
+              (`name`) VALUES ('nick')
+            })
+          end
+
+          adapter_is_not :mysql do
+            @insertion.to_sql.should be_like(%Q{
+              INSERT
+              INTO "users"
+              ("name") VALUES ('nick')
+            })
+          end
         end
       end
 
@@ -48,11 +69,21 @@ module Arel
         end
 
         it 'manufactures sql inserting data' do
-          @insertion.to_sql.should be_like("
-            INSERT
-            INTO `users`
-            (`id`) VALUES (1)
-          ")
+          adapter_is :mysql do
+            @insertion.to_sql.should be_like(%Q{
+              INSERT
+              INTO `users`
+              (`id`) VALUES (1)
+            })
+          end
+
+          adapter_is_not :mysql do
+            @insertion.to_sql.should be_like(%Q{
+              INSERT
+              INTO "users"
+              ("id") VALUES (1)
+            })
+          end
         end
       end
     end

@@ -9,11 +9,23 @@ module Arel
 
     describe '#to_sql' do
       it "manufactures sql with limit and offset" do
-        Skip.new(@relation, @skipped).to_s.should be_like("
-          SELECT `users`.`id`, `users`.`name`
-          FROM `users`
-          OFFSET #{@skipped}
-        ")
+        sql = Skip.new(@relation, @skipped).to_s
+
+        adapter_is :mysql do
+          sql.should be_like(%Q{
+            SELECT `users`.`id`, `users`.`name`
+            FROM `users`
+            OFFSET 4
+          })
+        end
+
+        adapter_is_not :mysql do
+          sql.should be_like(%Q{
+            SELECT "users"."id", "users"."name"
+            FROM "users"
+            OFFSET 4
+          })
+        end
       end
     end
   end
