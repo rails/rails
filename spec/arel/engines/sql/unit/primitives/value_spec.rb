@@ -18,11 +18,5 @@ module Arel
         Value.new(1, @relation).format(@relation[:id]).should == @relation[:id].to_sql
       end
     end
-
-    describe '#bind' do
-      it "manufactures a new value whose relation is the provided relation" do
-        Value.new(1, @relation).bind(another_relation = Table.new(:photos)).should == Value.new(1, another_relation)
-      end
-    end
   end
 end
