@@ -1,4 +1,3 @@
-
 ActiveRecord::Schema.define do
   def except(adapter_names_to_exclude)
     unless [adapter_names_to_exclude].flatten.include?(adapter_name)
@@ -499,4 +498,8 @@ ActiveRecord::Schema.define do
 
     execute "ALTER TABLE fk_test_has_fk ADD CONSTRAINT fk_name FOREIGN KEY (#{quote_column_name 'fk_id'}) REFERENCES #{quote_table_name 'fk_test_has_pk'} (#{quote_column_name 'id'})"
   end
+end
+
+Course.connection.create_table :courses, :force => true do |t|
+  t.column :name, :string, :null => false
 end
