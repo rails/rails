@@ -1,5 +1,12 @@
 module Arel
   class Predicate
+    def or(other_predicate)
+      Or.new(self, other_predicate)
+    end
+
+    def and(other_predicate)
+      And.new(self, other_predicate)
+    end
   end
 
   class Binary < Predicate
@@ -25,21 +32,10 @@ module Arel
     end
   end
 
-  class GreaterThanOrEqualTo < Binary
-  end
-
-  class GreaterThan < Binary
-  end
-
-  class LessThanOrEqualTo < Binary
-  end
-
-  class LessThan < Binary
-  end
-
-  class Match < Binary
-  end
-
-  class In < Binary
-  end
+  class GreaterThanOrEqualTo  < Binary; end
+  class GreaterThan           < Binary; end
+  class LessThanOrEqualTo     < Binary; end
+  class LessThan              < Binary; end
+  class Match                 < Binary; end
+  class In                    < Binary; end
 end

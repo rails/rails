@@ -73,14 +73,14 @@ module Arel
       describe '#reset' do
         it "reloads columns from the database" do
           lambda { stub(@relation.engine).columns { [] } }.should_not change { @relation.attributes }
-          lambda { @relation.reset }.should change { @relation.attributes }
+          lambda { @relation.reset                       }.should     change { @relation.attributes }
         end
       end
     end
 
     describe 'hashing' do
       it "implements hash equality" do
-        Table.new(:users).should hash_the_same_as(Table.new(:users))
+        Table.new(:users).should     hash_the_same_as(Table.new(:users))
         Table.new(:users).should_not hash_the_same_as(Table.new(:photos))
       end
     end

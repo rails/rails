@@ -1,13 +1,4 @@
 module Arel
-  class Predicate
-    def or(other_predicate)
-      Or.new(self, other_predicate)
-    end
-
-    def and(other_predicate)
-      And.new(self, other_predicate)
-    end
-  end
 
   class Binary < Predicate
     def eval(row)
@@ -30,11 +21,6 @@ module Arel
   end
 
   class Equality < Binary
-    def ==(other)
-      Equality === other and
-        ((operand1 == other.operand1 and operand2 == other.operand2) or
-         (operand1 == other.operand2 and operand2 == other.operand1))
-    end
   end
 
   class GreaterThanOrEqualTo < Binary

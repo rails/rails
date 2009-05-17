@@ -1,2 +1,3 @@
 require 'arel/engines/memory/relations/array'
-require 'arel/engines/memory/relations/operations/where'
+require 'arel/engines/memory/relations/operations'
+
