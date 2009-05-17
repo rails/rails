@@ -8,12 +8,6 @@ module Arel
       bind(relation)
     end
 
-    def metaclass
-      class << self
-        self
-      end
-    end
-
     def let
       yield(self)
     end
