@@ -11,7 +11,7 @@ module Arel
       @relation2 = @relation1.alias
       @relation3 = @relation1.alias
     end
-    
+
     describe InnerJoin do
       describe '#call' do
         it 'combines the two tables where the predicate obtains' do

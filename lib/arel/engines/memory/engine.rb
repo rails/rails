@@ -5,7 +5,7 @@ module Arel
         def read(relation)
           relation.eval
         end
-        
+
         def create(relation)
           relation.eval
         end

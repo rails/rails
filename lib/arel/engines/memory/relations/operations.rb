@@ -4,7 +4,7 @@ module Arel
       unoperated_rows.select { |row| predicate.eval(row) }
     end
   end
-  
+
   class Order < Compound
     def eval
       unoperated_rows.sort do |row1, row2|
@@ -13,37 +13,37 @@ module Arel
       end
     end
   end
-  
+
   class Project < Compound
     def eval
       unoperated_rows.collect { |r| r.slice(*projections) }
     end
   end
-  
+
   class Take < Compound
     def eval
       unoperated_rows[0, taken]
     end
   end
-  
+
   class Skip < Compound
     def eval
       unoperated_rows[skipped..-1]
     end
   end
-  
+
   class Group < Compound
     def eval
       raise NotImplementedError
     end
   end
-  
+
   class Alias < Compound
     def eval
       unoperated_rows
     end
   end
-  
+
   class Join < Relation
     def eval
       result = []

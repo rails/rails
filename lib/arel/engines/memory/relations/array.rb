@@ -3,7 +3,7 @@ module Arel
     attributes :array,  :attribute_names
     include Recursion::BaseCase
     deriving :==, :initialize
-    
+
     def engine
       @engine ||= Memory::Engine.new
     end
@@ -17,7 +17,7 @@ module Arel
     def format(attribute, value)
       value
     end
-    
+
     def eval
       @array.collect { |r| Row.new(self, r) }
     end

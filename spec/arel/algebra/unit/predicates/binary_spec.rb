@@ -9,19 +9,19 @@ module Arel
       class ConcreteBinary < Binary
       end
     end
-  
+
     describe '#bind' do
       before do
         @another_relation = @relation.alias
       end
-      
+
       describe 'when both operands are attributes' do
         it "manufactures an expression with the attributes bound to the relation" do
           ConcreteBinary.new(@attribute1, @attribute2).bind(@another_relation). \
             should == ConcreteBinary.new(@another_relation[@attribute1], @another_relation[@attribute2])
         end
       end
-      
+
       describe 'when an operand is a value' do
         it "manufactures an expression with unmodified values" do
           ConcreteBinary.new(@attribute1, "asdf").bind(@another_relation). \

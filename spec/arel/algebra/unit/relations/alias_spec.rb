@@ -5,7 +5,7 @@ module Arel
     before do
       @relation = Table.new(:users)
     end
-    
+
     describe '==' do
       it "obtains if the objects are the same" do
         Alias.new(@relation).should_not == Alias.new(@relation)

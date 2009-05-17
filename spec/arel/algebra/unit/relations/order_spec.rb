@@ -8,4 +8,4 @@ module Arel
     end
   end
 end
-  
+

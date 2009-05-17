@@ -3,4 +3,4 @@ module Arel
     delegate :table, :table_sql, :to => :relation
   end
 end
-    
+

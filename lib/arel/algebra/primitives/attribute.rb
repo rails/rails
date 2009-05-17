@@ -17,7 +17,7 @@ module Arel
     def aggregation?
       false
     end
-    
+
     def inspect
       "<Attribute #{name}>"
     end
@@ -133,16 +133,16 @@ module Arel
       end
     end
     include Expressions
-    
+
     module Orderings
       def asc
         Ascending.new(self)
       end
-      
+
       def desc
         Descending.new(self)
       end
-      
+
       alias_method :to_ordering, :asc
     end
     include Orderings

@@ -7,14 +7,14 @@ module Arel
       @attribute1 = @relation[:id]
       @attribute2 = @relation[:name]
     end
-  
+
     describe '[]' do
       describe 'when given an', Attribute do
         it "return the attribute congruent to the provided attribute" do
           @relation[@attribute1].should == @attribute1
         end
       end
-      
+
       describe 'when given a', Symbol, String do
         it "returns the attribute with the same name, if it exists" do
           @relation[:id].should == @attribute1
@@ -23,13 +23,13 @@ module Arel
         end
       end
     end
-      
+
     describe Relation::Operable do
       describe 'joins' do
         before do
           @predicate = @relation[:id].eq(@relation[:id])
         end
-      
+
         describe '#join' do
           describe 'when given a relation' do
             it "manufactures an inner join operation between those two relations" do
@@ -37,13 +37,13 @@ module Arel
                 should == InnerJoin.new(@relation, @relation, @predicate)
             end
           end
-          
+
           describe "when given a string" do
             it "manufactures a join operation with the string passed through" do
-              @relation.join(arbitrary_string = "ASDF").should == StringJoin.new(@relation, arbitrary_string) 
+              @relation.join(arbitrary_string = "ASDF").should == StringJoin.new(@relation, arbitrary_string)
             end
           end
-          
+
           describe "when given something blank" do
             it "returns self" do
               @relation.join.should == @relation
@@ -64,7 +64,7 @@ module Arel
           @relation.project(@attribute1, @attribute2). \
             should == Project.new(@relation, @attribute1, @attribute2)
         end
-        
+
         describe "when given blank attributes" do
           it "returns self" do
             @relation.project.should == @relation
@@ -97,36 +97,36 @@ module Arel
           end
         end
       end
-  
+
       describe '#order' do
         it "manufactures an order relation" do
           @relation.order(@attribute1, @attribute2).should == Order.new(@relation, @attribute1, @attribute2)
         end
-        
+
         describe 'when given a blank ordering' do
           it 'returns self' do
             @relation.order.should == @relation
           end
         end
       end
-      
+
       describe '#take' do
         it "manufactures a take relation" do
           @relation.take(5).should == Take.new(@relation, 5)
         end
-        
+
         describe 'when given a blank number of items' do
           it 'returns self' do
             @relation.take.should == @relation
           end
         end
       end
-      
+
       describe '#skip' do
         it "manufactures a skip relation" do
           @relation.skip(4).should == Skip.new(@relation, 4)
         end
-        
+
         describe 'when given a blank number of items' do
           it 'returns self' do
             @relation.skip.should == @relation
@@ -138,14 +138,14 @@ module Arel
         it 'manufactures a group relation' do
           @relation.group(@attribute1, @attribute2).should == Group.new(@relation, @attribute1, @attribute2)
         end
-        
+
         describe 'when given blank groupings' do
           it 'returns self' do
             @relation.group.should == @relation
           end
         end
       end
-      
+
       describe Relation::Operable::Writable do
         describe '#delete' do
           it 'manufactures a deletion relation' do
@@ -177,7 +177,7 @@ module Arel
         end
       end
     end
-      
+
     describe Relation::Enumerable do
       it "implements enumerable" do
         @relation.collect.should == @relation.session.read(@relation).collect

@@ -47,7 +47,7 @@ module Arel
     class WhereClause < PassThrough
     end
 
-    class OrderClause < PassThrough      
+    class OrderClause < PassThrough
       def ordering(ordering)
         "#{quote_table_name(name_for(ordering.attribute.original_relation))}.#{quote_column_name(ordering.attribute.name)} #{ordering.direction_sql}"
       end

@@ -9,7 +9,7 @@ module Arel
         [3, 'goose']
       ], [:id, :name])
     end
-    
+
     describe '#call' do
       it "manufactures an array of hashes of attributes to values" do
         @relation                                                         \

@@ -12,7 +12,7 @@ module Arel
         @attribute.column.should == @relation.column_for(@attribute)
       end
     end
-    
+
     describe '#to_sql' do
       describe 'for a simple attribute' do
         it "manufactures sql with an alias" do

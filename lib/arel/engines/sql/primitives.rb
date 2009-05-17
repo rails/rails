@@ -7,7 +7,7 @@ module Arel
     def type_cast(value)
       root.relation.format(self, value)
     end
-        
+
     def format(object)
       object.to_sql(Sql::Attribute.new(self))
     end
@@ -28,17 +28,17 @@ module Arel
       object.to_sql(Sql::Value.new(relation))
     end
   end
-  
+
   class Ordering
     def to_sql(formatter = Sql::OrderClause.new(relation))
       formatter.ordering self
     end
   end
-  
+
   class Ascending < Ordering
     def direction_sql; 'ASC' end
   end
-  
+
   class Descending < Ordering
     def direction_sql; 'DESC' end
   end

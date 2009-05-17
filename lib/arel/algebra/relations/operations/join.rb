@@ -31,7 +31,7 @@ module Arel
     def join?
       true
     end
-    
+
     def engine
       relation1.engine != relation2.engine ? Memory::Engine.new : relation1.engine
     end
@@ -43,7 +43,7 @@ module Arel
     def attributes
       relation1.externalize.attributes
     end
-    
+
     def engine
       relation1.engine
     end

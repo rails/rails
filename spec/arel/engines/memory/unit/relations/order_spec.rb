@@ -9,7 +9,7 @@ module Arel
         [3, 'goose']
       ], [:id, :name])
     end
-    
+
     describe '#call' do
       it 'sorts the relation with the provided ordering' do
         @relation                     \

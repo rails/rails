@@ -9,7 +9,7 @@ module Arel
         [3, 'goose']
       ], [:id, :name])
     end
-    
+
     describe '#call' do
       it 'filters the relation with the provided predicate' do
         @relation                       \
@@ -21,7 +21,7 @@ module Arel
           ]
         end
       end
-      
+
       describe 'when filtering a where relation' do
         it 'further filters the already-filtered relation with the provided predicate' do
           @relation                       \

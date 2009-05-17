@@ -2,7 +2,7 @@ module Arel
   class Deletion < Compound
     attributes :relation
     deriving :initialize, :==
-    
+
     def call
       engine.delete(self)
     end
@@ -15,7 +15,7 @@ module Arel
     def initialize(relation, record)
       @relation, @record = relation, record.bind(relation)
     end
-    
+
     def call
       engine.create(self)
     end
@@ -24,11 +24,11 @@ module Arel
   class Update < Compound
     attributes :relation, :assignments
     deriving :==
-    
+
     def initialize(relation, assignments)
       @relation, @assignments = relation, assignments.bind(relation)
     end
-    
+
     def call
       engine.update(self)
     end

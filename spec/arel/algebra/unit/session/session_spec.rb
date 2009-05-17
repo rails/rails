@@ -6,7 +6,7 @@ module Arel
       @relation = Table.new(:users)
       @session = Session.new
     end
-    
+
     describe '::start' do
       describe '::instance' do
         it "it is a singleton within the started session" do
@@ -23,13 +23,13 @@ module Arel
             end
           end
         end
-      
+
         it "manufactures new sessions outside of the started session" do
           Session.new.should_not == Session.new
         end
       end
     end
-    
+
     describe Session::CRUD do
       before do
         @insert = Insert.new(@relation, @relation[:name] => 'nick')
@@ -37,34 +37,34 @@ module Arel
         @delete = Deletion.new(@relation)
         @read = @relation
       end
-      
+
       describe '#create' do
         it "executes an insertion on the connection" do
           mock(@insert).call
           @session.create(@insert)
         end
       end
-      
+
       describe '#read' do
         it "executes an selection on the connection" do
           mock(@read).call
           @session.read(@read)
         end
-        
+
         it "is memoized" do
           mock(@read).call.once
           @session.read(@read)
           @session.read(@read)
         end
       end
-      
+
       describe '#update' do
         it "executes an update on the connection" do
           mock(@update).call
           @session.update(@update)
         end
       end
-      
+
       describe '#delete' do
         it "executes a delete on the connection" do
           mock(@delete).call
@@ -72,11 +72,11 @@ module Arel
         end
       end
     end
-    
+
     describe 'Transactions' do
       describe '#begin' do
       end
-    
+
       describe '#end' do
       end
     end

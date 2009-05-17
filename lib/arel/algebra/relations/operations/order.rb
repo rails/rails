@@ -2,7 +2,7 @@ module Arel
   class Order < Compound
     attributes :relation, :orderings
     deriving :==
-    
+
     def initialize(relation, *orderings, &block)
       @relation = relation
       @orderings = (orderings + arguments_from_block(relation, &block)) \

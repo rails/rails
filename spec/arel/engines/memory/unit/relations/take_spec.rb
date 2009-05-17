@@ -9,7 +9,7 @@ module Arel
         [3, 'goose']
       ], [:id, :name])
     end
-    
+
     describe '#call' do
       it 'removes the rows after the first n' do
         @relation   \

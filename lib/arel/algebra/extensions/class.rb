@@ -3,11 +3,11 @@ class Class
     @attributes = attrs
     attr_reader *attrs
   end
-  
+
   def deriving(*methods)
     methods.each { |m| derive m }
   end
-  
+
   def derive(method_name)
     methods = {
       :initialize => "
@@ -24,12 +24,12 @@ class Class
     }
     class_eval methods[method_name], __FILE__, __LINE__
   end
-  
+
   def hash_on(delegatee)
     define_method :eql? do |other|
       self == other
     end
-    
+
     define_method :hash do
       @hash ||= delegatee.hash
     end
