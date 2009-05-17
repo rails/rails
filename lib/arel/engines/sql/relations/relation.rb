@@ -5,7 +5,7 @@ module Arel
     end
 
     def select_sql
-      [
+      build_query \
         "SELECT     #{select_clauses.join(', ')}",
         "FROM       #{table_sql(Sql::TableReference.new(self))}",
         (joins(self)                                   unless joins(self).blank? ),
@@ -14,9 +14,7 @@ module Arel
         ("ORDER BY  #{order_clauses.join(', ')}"       unless orders.blank?      ),
         ("LIMIT     #{taken}"                          unless taken.blank?       ),
         ("OFFSET    #{skipped}"                        unless skipped.blank?     )
-      ].compact.join("\n")
     end
-
 
     def inclusion_predicate_sql
       "IN"
@@ -27,6 +25,10 @@ module Arel
     end
 
   protected
+
+    def build_query(*parts)
+      parts.compact.join("\n")
+    end
 
     def select_clauses
       attributes.collect { |a| a.to_sql(Sql::SelectClause.new(self)) }
