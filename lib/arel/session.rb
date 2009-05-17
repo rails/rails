@@ -24,6 +24,7 @@ module Arel
     module CRUD
       def create(insert)
         insert.call
+        insert
       end
 
       def read(select)
@@ -34,10 +35,12 @@ module Arel
 
       def update(update)
         update.call
+        update
       end
 
       def delete(delete)
         delete.call
+        delete
       end
     end
     include CRUD

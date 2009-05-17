@@ -1,11 +1,12 @@
 todo:
-- fix AR
+- insertions for in memory
 - cross-engine joins
 - blocks for joins
-- deal with table tests in algebra
+- test sql insertions 
 - implement mnesia adapter
-- rename externalize to derived.
 
+- rename externalize to derived.
+- deal with table tests in algebra
 - fix grouping
 - audit unit coverage of algebra
 - data objects
@@ -92,6 +93,7 @@ done:
 - result sets to attr correlation too
 - implement joins in memory
 - result sets should be array relations
+- fix AR
 
 icebox:
 - #bind in Attribute and Expression should be doing a descend?
