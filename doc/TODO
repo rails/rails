@@ -1,13 +1,12 @@
 todo:
-- recursive memory operations
 - reorganize memory tests
-- deal with table tests in algebra
 - implement joins in memory
 - result sets should be array relations
+- deal with table tests in algebra
 - cross-engine joins
 - blocks for joins
-- fix grouping
 - implement mnesia adapter
+- fix grouping
 - fix AR
 - rename externalize to derived.
 
@@ -15,7 +14,6 @@ todo:
 - audit unit coverage of algebra
 - data objects
 - remove all explicit aliasing
-- and/or w/ predicates
 - scoped writes
 - refactor adapter pattern
 - break out adapters into sep modules
@@ -26,7 +24,6 @@ todo:
 
 done:
 - and/or w/ predicates
-- mock out database
 . Relation <=> Relation -> InnerJoinOperation
 . Relation << Relation -> LeftOuterJoinOperation
 . InnerJoinOperation.on(*Predicate) -> InnerJoinRelation
@@ -77,6 +74,7 @@ done:
 - test Value, in particular bind.
 - test blank checks in relation.rb
 - rename active_relation to arel
+- mock out database
 - fix complex joining cases:
 - active record query adapter
 - anonymous table names
@@ -93,6 +91,7 @@ done:
 - implement in memory adapter
 - clean up block_given stuff
 - reorganize sql tests
+- recursive memory operations
 
 icebox:
 - #bind in Attribute and Expression should be doing a descend?
