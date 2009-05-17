@@ -6,6 +6,11 @@ module ActionDispatch
       def public_path
         "#{FIXTURE_LOAD_PATH}/public"
       end
+
+      # Silence logger
+      def logger
+        nil
+      end
   end
 end
 

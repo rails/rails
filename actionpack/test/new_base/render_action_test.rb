@@ -92,7 +92,7 @@ module RenderAction
     
     test "raises an exception when requesting a layout and none exist" do
       assert_raise(ArgumentError, /no default layout for RenderAction::BasicController in/) do 
-        get "/render_action/basic/hello_world_with_layout", {}, "rails.raise_exceptions" => true
+        get "/render_action/basic/hello_world_with_layout", {}, "action_dispatch.show_exceptions" => false
       end
     end
   end
@@ -118,7 +118,7 @@ module RenderAction
     
     test "raises an exception when requesting a layout that does not exist" do
       assert_raise(ActionView::MissingTemplate) do
-        get "/render_action/basic/hello_world_with_custom_layout", {}, "rails.raise_exceptions" => true
+        get "/render_action/basic/hello_world_with_custom_layout", {}, "action_dispatch.show_exceptions" => false
       end
     end
   end
