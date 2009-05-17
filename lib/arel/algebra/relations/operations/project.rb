@@ -5,7 +5,8 @@ module Arel
 
     def initialize(relation, *projections, &block)
       @relation = relation
-      @projections = (projections + (block_given?? [yield(relation)] : [])).collect { |p| p.bind(relation) }
+      @projections = (projections + arguments_from_block(relation, &block)) \
+        .collect { |p| p.bind(relation) }
     end
 
     def attributes

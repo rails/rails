@@ -5,7 +5,8 @@ module Arel
 
     def initialize(relation, *groupings, &block)
       @relation = relation
-      @groupings = (groupings + (block_given?? [yield(relatoin)] : [])).collect { |g| g.bind(relation) }
+      @groupings = (groupings + arguments_from_block(relation, &block)) \
+        .collect { |g| g.bind(relation) }
     end
 
     def externalizable?

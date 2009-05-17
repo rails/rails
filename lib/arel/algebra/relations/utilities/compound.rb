@@ -13,5 +13,10 @@ module Arel
         end
       OPERATION
     end
+    
+    private
+    def arguments_from_block(relation, &block)
+      block_given?? [yield(relation)] : []
+    end
   end
 end

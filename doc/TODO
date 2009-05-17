@@ -1,31 +1,24 @@
 todo:
-- projection is by definition distincting
-- union/intersection
-- refactor adapter pattern
 - result sets to attr correlation too
   - result sets should be array relations
+- fix AR
 - clean up block_given stuff
 - reorganize sql tests
 - audit unit coverage of algebra
-- break out adapters into sep modules
+- implement mnesia adapter
 - data objects
 - remove all explicit aliasing
 - blocks for joins
-- implement in memory adapter
-- implement mnesia adapter
-- test ordering
-- joins become subselects in writes:
-users.delete().where( 
-    addresses.c.user_id== 
-         select([users.c.id]). 
-         where(users.c.name=='jack') 
-    ) 
 - rename externalize to derived.
 - and/or w/ predicates
+- scoped writes
+- refactor adapter pattern
+- break out adapters into sep modules
+- projection is by definition distincting?
+- union/intersection
+- test ordering
 - cache expiry on write
 - transactions
-- scoped writes
-- asc/desc for orderings
 
 done:
 - and/or w/ predicates
@@ -93,6 +86,7 @@ done:
 - joining with LIMIT is like aggregations!!
 - blocks for non-joins
 - expressions should be class-based, and joins too, anything _sql should be renamed
+- implement in memory adapter
 
 icebox:
 - #bind in Attribute and Expression should be doing a descend?
@@ -107,3 +101,9 @@ icebox:
   @reflection.options[:counter_sql] = @reflection.options[:finder_sql].sub(/SELECT (\/\*.*?\*\/ )?(.*)\bFROM\b/im) { "SELECT #{$1}COUNT(*) FROM" }
 - lock
   - SELECT suchandsuch FOR UPDATE
+- joins become subselects in writes:
+users.delete().where( 
+    addresses.c.user_id== 
+         select([users.c.id]). 
+         where(users.c.name=='jack') 
+    )

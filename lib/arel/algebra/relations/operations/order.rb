@@ -5,7 +5,8 @@ module Arel
     
     def initialize(relation, *orderings, &block)
       @relation = relation
-      @orderings = (orderings + (block_given?? [yield(relation)] : [])).collect { |o| o.bind(relation) }
+      @orderings = (orderings + arguments_from_block(relation, &block)) \
+        .collect { |o| o.bind(relation) }
     end
 
     # TESTME
