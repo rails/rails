@@ -1,7 +1,5 @@
 module Arel
   class Ordering
-    attributes :attribute
-    deriving :initialize, :==
     delegate :relation, :to => :attribute
 
     def bind(relation)
@@ -13,6 +11,13 @@ module Arel
     end
   end
 
-  class Ascending  < Ordering; end
-  class Descending < Ordering; end
+  class Ascending  < Ordering
+    attributes :attribute
+    deriving :initialize, :==
+  end
+  
+  class Descending < Ordering
+    attributes :attribute
+    deriving :initialize, :==
+  end
 end

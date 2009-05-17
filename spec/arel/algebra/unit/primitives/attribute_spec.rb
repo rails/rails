@@ -169,13 +169,13 @@ module Arel
     describe Attribute::Orderings do
       describe '#asc' do
         it 'manufactures an ascending ordering' do
-          pending
+          @attribute.asc.should == Ascending.new(@attribute)
         end
       end
 
       describe '#desc' do
         it 'manufactures a descending ordering' do
-          pending
+          @attribute.desc.should == Descending.new(@attribute)
         end
       end
     end
