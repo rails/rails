@@ -1,9 +1,11 @@
 module Arel
   class Array < Relation
+    attributes :array,  :attribute_names
+    deriving :initialize
     include Recursion::BaseCase
-
-    def initialize(array, attribute_names)
-      @array, @attribute_names = array, attribute_names
+    
+    def engine
+      @engine ||= Memory::Engine.new
     end
 
     def attributes
@@ -12,7 +14,7 @@ module Arel
       end
     end
 
-    def call(connection = nil)
+    def eval
       @array.collect { |row| attributes.zip(row).to_hash }
     end
   end

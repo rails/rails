@@ -3,8 +3,8 @@ require File.join(File.dirname(__FILE__), '..', '..', '..', 'spec_helper')
 module Arel
   describe Join do
     before do
-      @relation1 = Arel(:users)
-      @relation2 = Arel(:photos)
+      @relation1 = Table(:users)
+      @relation2 = Table(:photos)
       @predicate = @relation1[:id].eq(@relation2[:user_id])
     end
 

@@ -18,7 +18,7 @@ Generating a query with ARel is simple. For example, in order to produce
    
 you construct a table relation and convert it to sql:
 
-    users = Arel(:users)
+    users = Table(:users)
     users.to_sql
    
 In fact, you will probably never call `#to_sql`. Rather, you'll work with data from the table directly. You can iterate through all rows in the `users` table like this:
@@ -81,7 +81,7 @@ The `AND` operator will behave similarly.
 
 Finally, most operations take a block form. For example:
 
-    Arel(:users)                    \
+    Table(:users)                    \
       .where   { |u| u[:id].eq(1) } \
       .project { |u| u[:id] }
 
@@ -95,7 +95,7 @@ The examples above are fairly simple and other libraries match or come close to 
 
 Where Arel really shines in its ability to handle complex joins and aggregations. As a first example, let's consider an "adjacency list", a tree represented in a table. Suppose we have a table `comments`, representing a threaded discussion:
 
-    comments = Arel(:comments)
+    comments = Table(:comments)
     
 And this table has the following attributes:
 

@@ -1,1 +1,0 @@
-require 'arel/engines/array/relations/array'

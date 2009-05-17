@@ -10,17 +10,8 @@ module Arel
   end
 
   class Binary < Predicate
-    attributes :operand1, :operand2
-    deriving :initialize
-
-    def ==(other)
-      self.class === other          and
-      @operand1  ==  other.operand1 and
-      @operand2  ==  other.operand2
-    end
-
-    def bind(relation)
-      self.class.new(operand1.find_correlate_in(relation), operand2.find_correlate_in(relation))
+    def eval(row)
+      operand1.eval(row).send(operator, operand2.eval(row))
     end
   end
 
@@ -56,6 +47,7 @@ module Arel
   end
 
   class LessThan < Binary
+    def operator; :< end
   end
 
   class Match < Binary

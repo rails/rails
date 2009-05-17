@@ -3,7 +3,7 @@ module Arel
     attr_reader :relation
     hash_on :relation
     delegate :joins, :join?, :inserts, :taken, :skipped, :name, :externalizable?,
-             :column_for, :engine, :table, :table_sql,
+             :column_for, :engine, :table, :table_sql, :array,
              :to => :relation
 
     [:attributes, :wheres, :groupings, :orders].each do |operation_name|

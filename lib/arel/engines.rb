@@ -1,2 +1,2 @@
-require 'arel/engines/sql/sql'
-require 'arel/engines/array/array'
+require 'arel/engines/sql'
+require 'arel/engines/memory'

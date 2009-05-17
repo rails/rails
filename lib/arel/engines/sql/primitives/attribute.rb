@@ -1,5 +1,3 @@
-require 'set'
-
 module Arel
   class Attribute
     def column

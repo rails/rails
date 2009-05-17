@@ -1,5 +1,3 @@
-require 'singleton'
-
 module Arel
   class Session
     class << self

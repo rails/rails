@@ -22,6 +22,13 @@ module Arel
           { @relation[:id] => 3 }
         ]
       end
+
+      it '' do
+        @relation.where(@relation[:id].lt(3)).call.should == [
+          { @relation[:id] => 1 },
+          { @relation[:id] => 2 }
+        ]
+      end
     end
   end
 end
