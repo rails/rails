@@ -30,11 +30,19 @@ module Arel
           })
         end
 
-        adapter_is_not :mysql do
+        adapter_is :sqlite3 do
           @insertion.to_sql.should be_like(%Q{
             INSERT
             INTO "users"
             ("id", "name") VALUES (1, 'nick')
+          })
+        end
+
+        adapter_is :postgresql do
+          @insertion.to_sql.should be_like(%Q{
+            INSERT
+            INTO "users"
+            ("id", "name") VALUES (1, E'nick')
           })
         end
       end
@@ -53,11 +61,19 @@ module Arel
             })
           end
 
-          adapter_is_not :mysql do
+          adapter_is :sqlite3 do
             @insertion.to_sql.should be_like(%Q{
               INSERT
               INTO "users"
               ("name") VALUES ('nick')
+            })
+          end
+
+          adapter_is :postgresql do
+            @insertion.to_sql.should be_like(%Q{
+              INSERT
+              INTO "users"
+              ("name") VALUES (E'nick')
             })
           end
         end

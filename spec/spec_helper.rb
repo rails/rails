@@ -13,15 +13,27 @@ end
 
 module AdapterGuards
   def adapter_is(name)
+    verify_adapter_name(name)
     yield if name.to_s == adapter_name
   end
 
   def adapter_is_not(name)
+    verify_adapter_name(name)
     yield if name.to_s != adapter_name
   end
 
   def adapter_name
-    Arel::Table.engine.connection.class.name.underscore.split("/").last.gsub(/_adapter/, '')
+    name = ActiveRecord::Base.configurations["unit"][:adapter]
+    verify_adapter_name(name)
+    name
+  end
+
+  def verify_adapter_name(name)
+    raise "Invalid adapter name: #{name}" unless valid_adapters.include?(name.to_s)
+  end
+
+  def valid_adapters
+    %w[mysql postgresql sqlite3]
   end
 end
 

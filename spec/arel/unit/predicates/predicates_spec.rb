@@ -21,9 +21,15 @@ module Arel
             })
           end
 
-          adapter_is_not :mysql do
+          adapter_is :sqlite3 do
             sql.should be_like(%Q{
               ("users"."id" = 1 AND "users"."name" = 'name')
+            })
+          end
+
+          adapter_is :postgresql do
+            sql.should be_like(%Q{
+              ("users"."id" = 1 AND "users"."name" = E'name')
             })
           end
         end
@@ -41,9 +47,15 @@ module Arel
             })
           end
 
-          adapter_is_not :mysql do
+          adapter_is :sqlite3 do
             sql.should be_like(%Q{
               ("users"."id" = 1 OR "users"."name" = 'name')
+            })
+          end
+
+          adapter_is :postgresql do
+            sql.should be_like(%Q{
+              ("users"."id" = 1 OR "users"."name" = E'name')
             })
           end
         end

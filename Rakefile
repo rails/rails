@@ -17,7 +17,7 @@ Spec::Rake::SpecTask.new(:coverage) do |t|
 end
 
 namespace :spec do
-  for adapter in %w[mysql sqlite3]
+  for adapter in %w[mysql sqlite3 postgresql]
     desc "Run specs with the #{adapter} database adapter"
     Spec::Rake::SpecTask.new(adapter) do |t|
       t.spec_files =
@@ -29,7 +29,7 @@ namespace :spec do
 end
 
 desc "Run specs with mysql and sqlite3 database adapters (default)"
-task :spec => ["spec:sqlite3", "spec:mysql"]
+task :spec => ["spec:sqlite3", "spec:mysql", "spec:postgresql"]
 
 desc "Default task is to run specs"
 task :default => :spec
