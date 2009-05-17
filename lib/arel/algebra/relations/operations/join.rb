@@ -2,7 +2,7 @@ module Arel
   class Join < Relation
     attributes :relation1, :relation2, :predicates
     deriving :==
-    delegate :engine, :name, :to => :relation1
+    delegate :name, :to => :relation1
     hash_on :relation1
 
     def initialize(relation1, relation2 = Nil.instance, *predicates)
@@ -31,6 +31,10 @@ module Arel
     def join?
       true
     end
+    
+    def engine
+      relation1.engine != relation2.engine ? Memory::Engine.new : relation1.engine
+    end
   end
 
   class InnerJoin  < Join; end
@@ -38,6 +42,10 @@ module Arel
   class StringJoin < Join
     def attributes
       relation1.externalize.attributes
+    end
+    
+    def engine
+      relation1.engine
     end
   end
 

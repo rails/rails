@@ -1,9 +1,10 @@
 todo:
-- cross-engine joins
+- fix AR again
 - blocks for joins
 - fix sql insertions 
 - implement mnesia adapter
 
+- CLEANUP!!!!!
 - rename externalize to derived.
 - deal with table tests in algebra
 - fix grouping
@@ -94,6 +95,7 @@ done:
 - result sets should be array relations
 - fix AR
 - insertions for in memory
+- cross-engine joins
 
 icebox:
 - #bind in Attribute and Expression should be doing a descend?
