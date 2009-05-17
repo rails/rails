@@ -14,6 +14,10 @@ module Arel
       end
     end
 
+    def format(attribute, value)
+      value
+    end
+    
     def eval
       @array.collect { |r| Row.new(self, r) }
     end

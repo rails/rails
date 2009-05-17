@@ -3,7 +3,7 @@ module Arel
     delegate :array, :to => :relation
     
     def unoperated_rows
-      relation.eval.collect { |row| row.bind(self) }
+      relation.call.collect { |row| row.bind(self) }
     end
   end
 end

@@ -1,8 +1,7 @@
 todo:
-- insertions for in memory
 - cross-engine joins
 - blocks for joins
-- test sql insertions 
+- fix sql insertions 
 - implement mnesia adapter
 
 - rename externalize to derived.
@@ -94,6 +93,7 @@ done:
 - implement joins in memory
 - result sets should be array relations
 - fix AR
+- insertions for in memory
 
 icebox:
 - #bind in Attribute and Expression should be doing a descend?

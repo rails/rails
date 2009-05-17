@@ -4,6 +4,10 @@ module Arel
       original_relation.column_for(self)
     end
 
+    def type_cast(value)
+      root.relation.format(self, value)
+    end
+        
     def format(object)
       object.to_sql(Sql::Attribute.new(self))
     end

@@ -47,8 +47,8 @@ module Arel
   class Join < Relation
     def eval
       result = []
-      relation1.eval.each do |row1|
-        relation2.eval.each do |row2|
+      relation1.call.each do |row1|
+        relation2.call.each do |row2|
           combined_row = row1.combine(row2, self)
           if predicates.all? { |p| p.eval(combined_row) }
             result << combined_row

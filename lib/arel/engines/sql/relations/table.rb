@@ -16,6 +16,10 @@ module Arel
       end
     end
 
+    def format(attribute, value)
+      attribute.column.type_cast(value)
+    end
+    
     def column_for(attribute)
       has_attribute?(attribute) and columns.detect { |c| c.name == attribute.name.to_s }
     end

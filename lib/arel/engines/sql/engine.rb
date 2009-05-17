@@ -20,7 +20,9 @@ module Arel
 
         def read(relation)
           # FIXME
-          class << rows = connection.execute(relation.to_sql)
+          rows = connection.select_rows(relation.to_sql)
+          
+          class << rows
             include Enumerable
           end
           
