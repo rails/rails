@@ -18,8 +18,8 @@ module Arel
       ].join("\n")
     end
 
-    def call(connection = engine)
-      connection.update(to_sql)
+    def call
+      engine.update(self)
     end
   end
 end

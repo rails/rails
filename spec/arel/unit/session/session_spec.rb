@@ -40,19 +40,19 @@ module Arel
 
       describe '#create' do
         it "executes an insertion on the connection" do
-          mock(@insert).call(@insert.engine)
+          mock(@insert).call
           @session.create(@insert)
         end
       end
 
       describe '#read' do
         it "executes an selection on the connection" do
-          mock(@read).call(@read.engine)
+          mock(@read).call
           @session.read(@read)
         end
 
         it "is memoized" do
-          mock(@read).call(@read.engine).once
+          mock(@read).call.once
           @session.read(@read)
           @session.read(@read)
         end
@@ -60,14 +60,14 @@ module Arel
 
       describe '#update' do
         it "executes an update on the connection" do
-          mock(@update).call(@update.engine)
+          mock(@update).call
           @session.update(@update)
         end
       end
 
       describe '#delete' do
         it "executes a delete on the connection" do
-          mock(@delete).call(@delete.engine)
+          mock(@delete).call
           @session.delete(@delete)
         end
       end

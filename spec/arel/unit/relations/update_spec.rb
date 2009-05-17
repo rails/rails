@@ -117,16 +117,5 @@ module Arel
       end
     end
 
-    describe '#call' do
-      before do
-        @update = Update.new(@relation, @relation[:name] => "nick")
-      end
-
-      it 'executes an update on the connection' do
-        mock(connection = Object.new).update(@update.to_sql)
-        @update.call(connection)
-      end
-    end
-
   end
 end

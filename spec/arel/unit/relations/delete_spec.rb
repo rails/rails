@@ -59,13 +59,5 @@ module Arel
         end
       end
     end
-
-    describe '#call' do
-      it 'executes a delete on the connection' do
-        deletion = Deletion.new(@relation)
-        mock(connection = Object.new).delete(deletion.to_sql)
-        deletion.call(connection)
-      end
-    end
   end
 end

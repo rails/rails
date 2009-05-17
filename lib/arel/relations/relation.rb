@@ -32,13 +32,8 @@ module Arel
       "IN"
     end
 
-    def call(connection = engine)
-      results = connection.execute(to_sql)
-      rows = []
-      results.each do |row|
-        rows << attributes.zip(row).to_hash
-      end
-      rows
+    def call
+      engine.read(self)
     end
 
     def bind(relation)

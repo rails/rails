@@ -12,8 +12,8 @@ module Arel
       ].compact.join("\n")
     end
 
-    def call(connection = engine)
-      connection.delete(to_sql)
+    def call
+      engine.delete(self)
     end
   end
 end
