@@ -295,7 +295,7 @@ module ActiveRecord
 
       def set_session(env, sid, session_data)
         Base.silence do
-          record = env[SESSION_RECORD_KEY] ||= find_session(sid)
+          record = get_session_model(env, sid)
           record.data = session_data
           return false unless record.save
 
@@ -308,6 +308,14 @@ module ActiveRecord
         end
 
         return true
+      end
+      
+      def get_session_model(env, sid)
+        if env[ENV_SESSION_OPTIONS_KEY][:id].nil?
+          env[SESSION_RECORD_KEY] = find_session(sid)
+        else
+          env[SESSION_RECORD_KEY] ||= find_session(sid)
+        end
       end
 
       def find_session(id)
