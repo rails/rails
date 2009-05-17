@@ -8,9 +8,5 @@ module Arel
       @groupings = (groupings + arguments_from_block(relation, &block)) \
         .collect { |g| g.bind(relation) }
     end
-
-    def externalizable?
-      true
-    end
   end
 end
