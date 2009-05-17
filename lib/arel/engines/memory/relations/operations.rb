@@ -1,13 +1,13 @@
 module Arel
   class Where < Compound
     def eval
-      relation.eval.select { |row| predicate.eval(row) }
+      unoperated_rows.select { |row| predicate.eval(row) }
     end
   end
   
   class Order < Compound
     def eval
-      relation.eval.sort do |row1, row2|
+      unoperated_rows.sort do |row1, row2|
         ordering = orderings.detect { |o| o.eval(row1, row2) != 0 } || orderings.last
         ordering.eval(row1, row2)
       end
@@ -16,19 +16,19 @@ module Arel
   
   class Project < Compound
     def eval
-      relation.eval.collect { |r| r.slice(*projections) }
+      unoperated_rows.collect { |r| r.slice(*projections) }
     end
   end
   
   class Take < Compound
     def eval
-      relation.eval[0, taken]
+      unoperated_rows[0, taken]
     end
   end
   
   class Skip < Compound
     def eval
-      relation.eval[skipped..-1]
+      unoperated_rows[skipped..-1]
     end
   end
   

@@ -22,61 +22,92 @@ module Arel
     describe '#call' do
       it "manufactures an array of hashes of attributes to values" do
         @relation.call.should == [
-          { @relation[:id] => 1, @relation[:name] => 'duck'  },
-          { @relation[:id] => 2, @relation[:name] => 'duck'  },
-          { @relation[:id] => 3, @relation[:name] => 'goose' }
+          Row.new(@relation, [1, 'duck']),
+          Row.new(@relation, [2, 'duck']),
+          Row.new(@relation, [3, 'goose'])
         ]
       end
       
       describe 'where' do
+        xit 'filters the relation with the provided predicate' do
+          @relation                       \
+            .where(@relation[:id].lt(3))  \
+          .let do |relation|
+            relation.call.should == [
+              Row.new(relation, [1, 'duck']),
+              Row.new(relation, [2, 'duck']),
+            ]
+          end
+        end
+        
         it 'filters the relation with the provided predicate' do
-          @relation.where(@relation[:id].lt(3)).call.should == [
-            { @relation[:id] => 1, @relation[:name] => 'duck' },
-            { @relation[:id] => 2, @relation[:name] => 'duck' }
-          ]
+          @relation                       \
+            .where(@relation[:id].gt(1))  \
+            .where(@relation[:id].lt(3))  \
+          .let do |relation|
+            relation.call.should == [
+              Row.new(relation, [2, 'duck'])
+            ]
+          end
         end
       end
       
       describe 'group' do
-        it 'sorts the relation with the provided ordering' do
+        xit 'sorts the relation with the provided ordering' do
         end
       end
       
       describe 'order' do
         it 'sorts the relation with the provided ordering' do
-          @relation.order(@relation[:id].desc).call.should == [
-            { @relation[:id] => 3, @relation[:name] => 'goose' },
-            { @relation[:id] => 2, @relation[:name] => 'duck'  },
-            { @relation[:id] => 1, @relation[:name] => 'duck'  }
-          ]
+          @relation                     \
+            .order(@relation[:id].desc) \
+          .let do |relation|
+            relation.call.should == [
+              Row.new(relation, [3, 'goose']),
+              Row.new(relation, [2, 'duck']),
+              Row.new(relation, [1, 'duck'])
+            ]
+          end
         end
       end
       
       describe 'project' do
         it 'projects' do
-          @relation.project(@relation[:id]).call.should == [
-            { @relation[:id] => 1 },
-            { @relation[:id] => 2 },
-            { @relation[:id] => 3 }
-          ]
+          @relation                   \
+            .project(@relation[:id])  \
+          .let do |relation|
+            relation.call.should == [
+              Row.new(relation, [1]),
+              Row.new(relation, [2]),
+              Row.new(relation, [3])
+            ]
+          end
         end
       end
       
       describe 'skip' do
         it 'slices' do
-          @relation.skip(1).call.should == [
-            { @relation[:id] => 2, @relation[:name] => 'duck'  },
-            { @relation[:id] => 3, @relation[:name] => 'goose' }
-          ]
+          @relation   \
+            .skip(1)  \
+          .let do |relation|
+            relation.call.should == [
+              Row.new(relation, [2, 'duck']),
+              Row.new(relation, [3, 'goose']),
+            ]
+          end
         end
       end
       
       describe 'take' do
         it 'dices' do
-          @relation.take(2).call.should == [
-            { @relation[:id] => 1, @relation[:name] => 'duck' },
-            { @relation[:id] => 2, @relation[:name] => 'duck' }
-          ]
+          @relation   \
+            .take(2)  \
+          .let do |relation|
+            relation.call.should == [
+              Row.new(relation, [1, 'duck']),
+              Row.new(relation, [2, 'duck']),
+            ]
+          end
         end
       end
       

@@ -15,7 +15,7 @@ module Arel
     end
 
     def eval
-      @array.collect { |row| attributes.zip(row).to_hash }
+      @array.collect { |r| Row.new(self, r) }
     end
   end
 end

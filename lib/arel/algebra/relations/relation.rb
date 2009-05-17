@@ -14,10 +14,6 @@ module Arel
       self
     end
 
-    def root
-      self
-    end
-
     module Enumerable
       include ::Enumerable
 

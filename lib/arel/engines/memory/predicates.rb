@@ -21,15 +21,19 @@ module Arel
   end
 
   class Equality < Binary
+    def operator; :== end
   end
 
   class GreaterThanOrEqualTo < Binary
+    def operator; :>= end
   end
 
   class GreaterThan < Binary
+    def operator; :> end
   end
 
   class LessThanOrEqualTo < Binary
+    def operator; :<= end
   end
 
   class LessThan < Binary
@@ -37,8 +41,10 @@ module Arel
   end
 
   class Match < Binary
+    def operator; :=~ end
   end
 
   class In < Binary
+    def operator; :include? end
   end
 end

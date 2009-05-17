@@ -1,11 +1,11 @@
 todo:
-- reorganize sql tests
-- reorganize memory tests
-- blocks for joins
-- implement joins in memory
 - recursive memory operations
+- reorganize memory tests
+- deal with table tests in algebra
+- implement joins in memory
 - result sets should be array relations
 - cross-engine joins
+- blocks for joins
 - fix grouping
 - implement mnesia adapter
 - fix AR
@@ -92,6 +92,7 @@ done:
 - expressions should be class-based, and joins too, anything _sql should be renamed
 - implement in memory adapter
 - clean up block_given stuff
+- reorganize sql tests
 
 icebox:
 - #bind in Attribute and Expression should be doing a descend?
