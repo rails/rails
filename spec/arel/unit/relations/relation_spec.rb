@@ -34,7 +34,7 @@ module Arel
           describe 'when given a relation' do
             it "manufactures an inner join operation between those two relations" do
               @relation.join(@relation).on(@predicate). \
-                should == Join.new("INNER JOIN", @relation, @relation, @predicate)
+                should == InnerJoin.new(@relation, @relation, @predicate)
             end
           end
 
@@ -54,7 +54,7 @@ module Arel
         describe '#outer_join' do
           it "manufactures a left outer join operation between those two relations" do
             @relation.outer_join(@relation).on(@predicate). \
-              should == Join.new("LEFT OUTER JOIN", @relation, @relation, @predicate)
+              should == OuterJoin.new(@relation, @relation, @predicate)
           end
         end
       end

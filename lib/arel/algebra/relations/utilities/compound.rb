@@ -7,12 +7,11 @@ module Arel
              :to => :relation
 
     [:attributes, :wheres, :groupings, :orders].each do |operation_name|
-      operation = <<-OPERATION
+      class_eval <<-OPERATION, __FILE__, __LINE__
         def #{operation_name}
           @#{operation_name} ||= relation.#{operation_name}.collect { |o| o.bind(self) }
         end
       OPERATION
-      class_eval operation, __FILE__, __LINE__
     end
   end
 end

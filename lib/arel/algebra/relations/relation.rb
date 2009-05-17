@@ -32,28 +32,27 @@ module Arel
     include Enumerable
 
     module Operable
-      def join(other_relation = nil, join_type = "INNER JOIN")
+      def join(other_relation = nil, join_class = InnerJoin)
         case other_relation
         when String
-          Join.new(other_relation, self)
+          StringJoin.new(other_relation, self)
         when Relation
-          JoinOperation.new(join_type, self, other_relation)
+          JoinOperation.new(join_class, self, other_relation)
         else
           self
         end
       end
 
       def outer_join(other_relation = nil)
-        join(other_relation, "LEFT OUTER JOIN")
+        join(other_relation, OuterJoin)
       end
 
       [:where, :project, :order, :take, :skip, :group].each do |operation_name|
-        operation = <<-OPERATION
+        class_eval <<-OPERATION, __FILE__, __LINE__
           def #{operation_name}(*arguments, &block)
             arguments.all?(&:blank?) && !block_given?? self : #{operation_name.to_s.classify}.new(self, *arguments, &block)
           end
         OPERATION
-        class_eval operation, __FILE__, __LINE__
       end
 
       def alias
@@ -75,9 +74,9 @@ module Arel
       end
       include Writable
 
-      JoinOperation = Struct.new(:join_sql, :relation1, :relation2) do
+      JoinOperation = Struct.new(:join_class, :relation1, :relation2) do
         def on(*predicates)
-          Join.new(join_sql, relation1, relation2, *predicates)
+          join_class.new(relation1, relation2, *predicates)
         end
       end
     end

@@ -1,12 +1,12 @@
 module Arel
   class Join < Relation
-    attributes :join_sql, :relation1, :relation2, :predicates
+    attributes :relation1, :relation2, :predicates
     deriving :==
     delegate :engine, :name, :to => :relation1
     hash_on :relation1
 
-    def initialize(join_sql, relation1, relation2 = Nil.instance, *predicates)
-      @join_sql, @relation1, @relation2, @predicates = join_sql, relation1, relation2, predicates
+    def initialize(relation1, relation2 = Nil.instance, *predicates)
+      @relation1, @relation2, @predicates = relation1, relation2, predicates
     end
 
     def attributes
@@ -30,6 +30,14 @@ module Arel
 
     def join?
       true
+    end
+  end
+
+  class InnerJoin  < Join; end
+  class OuterJoin  < Join; end
+  class StringJoin < Join
+    def attributes
+      relation1.externalize.attributes
     end
   end
 
