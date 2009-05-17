@@ -26,8 +26,7 @@ end
 #reloads the environment
 def reload!
   puts "Reloading..."
-  dispatcher = ActionController::Dispatcher.new
-  dispatcher.cleanup_application
-  dispatcher.reload_application
+  ActionController::Dispatcher.new
+  ActionController::Dispatcher.router.reload
   true
 end

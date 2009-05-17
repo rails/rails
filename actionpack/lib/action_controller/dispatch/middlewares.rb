@@ -3,6 +3,7 @@ use "Rack::Lock", :if => lambda {
 }
 
 use "ActionDispatch::ShowExceptions", lambda { ActionController::Base.consider_all_requests_local }
+use "ActionDispatch::Callbacks", lambda { ActionController::Dispatcher.prepare_each_request }
 use "ActionDispatch::Rescue", lambda {
   controller = (::ApplicationController rescue ActionController::Base)
   # TODO: Replace with controller.action(:_rescue_action)
