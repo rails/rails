@@ -14,18 +14,17 @@ module Arel
     class SelectClause < Formatter
       def attribute(attribute)
         # FIXME this should check that the column exists
-        if attribute.name.to_s =~ /^\w*$/
-          "#{quote_table_name(name_for(attribute.original_relation))}.#{quote_column_name(attribute.name)}" + (attribute.alias ? " AS #{quote(attribute.alias.to_s)}" : "")
-        else
-          attribute.name.to_s + (attribute.alias ? " AS #{quote(attribute.alias.to_s)}" : "")
-        end
+        "#{quote_table_name(name_for(attribute.original_relation))}.#{quote_column_name(attribute.name)}" +
+        (attribute.alias ? " AS #{quote(attribute.alias.to_s)}" : "")
       end
 
       def expression(expression)
         if expression.function_sql == "DISTINCT"
-          "#{expression.function_sql} #{expression.attribute.to_sql(self)}" + (expression.alias ? " AS #{quote_column_name(expression.alias)}" : '')
+          "#{expression.function_sql} #{expression.attribute.to_sql(self)}" +
+          (expression.alias ? " AS #{quote_column_name(expression.alias)}" : '')
         else
-          "#{expression.function_sql}(#{expression.attribute.to_sql(self)})" + (expression.alias ? " AS #{quote_column_name(expression.alias)}" : " AS #{expression.function_sql.to_s.downcase}_id")
+          "#{expression.function_sql}(#{expression.attribute.to_sql(self)})" +
+          (expression.alias ? " AS #{quote_column_name(expression.alias)}" : " AS #{expression.function_sql.to_s.downcase}_id")
         end
       end
 
@@ -93,21 +92,14 @@ module Arel
       end
 
       def table(table)
-        if table.name =~ /^(\w|-)*$/
-          quote_table_name(table.name) + (table.name != name_for(table) ? " AS " + quote_table_name(name_for(table)) : '')
-        else
-          table.name + (table.name != name_for(table) ? " AS " + (name_for(table)) : '')
-        end
+        quote_table_name(table.name) +
+        (table.name != name_for(table) ? " AS " + quote_table_name(name_for(table)) : '')
       end
     end
 
     class Attribute < WhereCondition
       def scalar(scalar)
         quote(scalar, environment.column)
-      end
-
-      def array(array)
-        "(" + array.collect { |e| e.to_sql(self) }.join(', ') + ")"
       end
 
       def range(left, right)
