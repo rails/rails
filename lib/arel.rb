@@ -1,7 +1,8 @@
 $LOAD_PATH.unshift(File.dirname(__FILE__))
 
 require 'rubygems'
-require 'activesupport'
+require 'active_support'
+require 'active_support/core_ext'
 require 'activerecord'
 require 'active_record/connection_adapters/abstract/quoting'
 
