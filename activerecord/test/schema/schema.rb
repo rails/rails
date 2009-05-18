@@ -324,6 +324,7 @@ ActiveRecord::Schema.define do
     t.string     :first_name, :null => false
     t.references :primary_contact
     t.string     :gender, :limit => 1
+    t.references :number1_fan
     t.integer    :lock_version, :null => false, :default => 0
   end
 
