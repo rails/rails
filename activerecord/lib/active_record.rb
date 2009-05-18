@@ -25,9 +25,6 @@ activesupport_path = "#{File.dirname(__FILE__)}/../../activesupport/lib"
 $:.unshift(activesupport_path) if File.directory?(activesupport_path)
 require 'active_support'
 
-# TODO: Figure out what parts of AS are *actually* required and use those
-require 'active_support/core_ext'
-
 module ActiveRecord
   # TODO: Review explicit loads to see if they will automatically be handled by the initilizer.
   def self.load_all!
