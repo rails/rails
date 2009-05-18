@@ -49,6 +49,9 @@ class TextHelperTest < ActionView::TestCase
     assert_equal "This is a string that wil[...]", truncate("This is a string that will go longer then the default truncate length of 30", :omission => "[...]")
     assert_equal "Hello W...", truncate("Hello World!", :length => 10)
     assert_equal "Hello[...]", truncate("Hello World!", :omission => "[...]", :length => 10)
+    assert_equal "Hello[...]", truncate("Hello Big World!", :omission => "[...]", :length => 13, :separator => ' ')
+    assert_equal "Hello Big[...]", truncate("Hello Big World!", :omission => "[...]", :length => 14, :separator => ' ')
+    assert_equal "Hello Big[...]", truncate("Hello Big World!", :omission => "[...]", :length => 15, :separator => ' ')
   end
 
   if RUBY_VERSION < '1.9.0'

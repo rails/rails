@@ -43,6 +43,11 @@ module ActiveSupport
         extend Strategy::LocalCache
       end
 
+      # Reads multiple keys from the cache.
+      def read_multi(*keys)
+        @data.get_multi keys
+      end
+
       def read(key, options = nil) # :nodoc:
         super
         @data.get(key, raw?(options))

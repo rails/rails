@@ -251,6 +251,15 @@ uses_memcached 'memcached backed store' do
       end
     end
 
+    def test_multi_get
+      @cache.with_local_cache do
+        @cache.write('foo', 1)
+        @cache.write('goo', 2)
+        result = @cache.read_multi('foo', 'goo')
+        assert_equal({'foo' => 1, 'goo' => 2}, result)
+      end
+    end
+
     def test_middleware
       app = lambda { |env|
         result = @cache.write('foo', 'bar')

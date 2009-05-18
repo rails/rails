@@ -9,6 +9,7 @@ require 'active_support/core_ext/hash/deep_merge'
 require 'active_support/core_ext/hash/indifferent_access'
 require 'active_support/core_ext/hash/slice'
 require 'active_support/core_ext/string/behavior'
+require 'active_support/core_ext/symbol'
 require 'active_support/core/time'
 
 module ActiveRecord #:nodoc:
@@ -1539,12 +1540,12 @@ module ActiveRecord #:nodoc:
         end
 
         def reverse_sql_order(order_query)
-          reversed_query = order_query.to_s.split(/,/).each { |s|
+          order_query.to_s.split(/,/).each { |s|
             if s.match(/\s(asc|ASC)$/)
               s.gsub!(/\s(asc|ASC)$/, ' DESC')
             elsif s.match(/\s(desc|DESC)$/)
               s.gsub!(/\s(desc|DESC)$/, ' ASC')
-            elsif !s.match(/\s(asc|ASC|desc|DESC)$/)
+            else
               s.concat(' DESC')
             end
           }.join(',')
@@ -2244,7 +2245,7 @@ module ActiveRecord #:nodoc:
         #     default_scope :order => 'last_name, first_name'
         #   end
         def default_scope(options = {})
-          self.default_scoping << { :find => options, :create => (options.is_a?(Hash) && options.has_key?(:conditions)) ? options[:conditions] : {} }
+          self.default_scoping << { :find => options, :create => options[:conditions].is_a?(Hash) ? options[:conditions] : {} }
         end
 
         # Test whether the given method and optional key are scoped.
