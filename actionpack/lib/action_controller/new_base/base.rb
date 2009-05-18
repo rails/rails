@@ -2,6 +2,7 @@ module ActionController
   class Base < Http
     abstract!
     
+    include AbstractController::Benchmarker
     include AbstractController::Callbacks
     include AbstractController::Helpers
     include AbstractController::Logger

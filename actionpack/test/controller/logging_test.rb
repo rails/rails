@@ -11,6 +11,11 @@ class LoggingTest < ActionController::TestCase
 
   class MockLogger
     attr_reader :logged
+    attr_accessor :level
+    
+    def initialize
+      @level = Logger::DEBUG
+    end
     
     def method_missing(method, *args)
       @logged ||= []
