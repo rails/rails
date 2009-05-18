@@ -9,7 +9,6 @@ module Arel
         [3, 'goose']
       ], [:id, :name])
       @relation2 = @relation1.alias
-      @relation3 = @relation1.alias
     end
 
     describe InnerJoin do
