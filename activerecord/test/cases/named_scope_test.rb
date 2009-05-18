@@ -373,7 +373,7 @@ class NamedScopeTest < ActiveRecord::TestCase
   end
 end
 
-class DynamicScopeMatchTest < ActiveRecord::TestCase  
+class DynamicScopeMatchTest < ActiveRecord::TestCase
   def test_scoped_by_no_match
     assert_nil ActiveRecord::DynamicScopeMatch.match("not_scoped_at_all")
   end
@@ -387,6 +387,8 @@ class DynamicScopeMatchTest < ActiveRecord::TestCase
 end
 
 class DynamicScopeTest < ActiveRecord::TestCase
+  fixtures :posts
+
   def test_dynamic_scope
     assert_equal Post.scoped_by_author_id(1).find(1), Post.find(1)
     assert_equal Post.scoped_by_author_id_and_title(1, "Welcome to the weblog").first, Post.find(:first, :conditions => { :author_id => 1, :title => "Welcome to the weblog"})
