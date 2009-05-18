@@ -13,6 +13,10 @@ module Arel
       true
     end
 
+    def inspect
+      "<#{self.class.name} #{attribute.inspect}>"
+    end
+
     module Transformations
       def as(aliaz)
         self.class.new(attribute, aliaz, self)

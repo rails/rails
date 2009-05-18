@@ -7,6 +7,12 @@ module Arel
       @attribute = @relation[:id]
     end
 
+    describe "#inspect" do
+      it "returns a simple, short inspect string" do
+        @attribute.count.inspect.should == "<Arel::Count <Attribute id>>"
+      end
+    end
+
     describe Expression::Transformations do
       before do
         @expression = Count.new(@attribute)
