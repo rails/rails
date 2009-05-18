@@ -34,11 +34,15 @@ module ActionView
 
       # Truncates a given +text+ after a given <tt>:length</tt> if +text+ is longer than <tt>:length</tt>
       # (defaults to 30). The last characters will be replaced with the <tt>:omission</tt> (defaults to "...").
+      # Pass a <tt>:separator</tt> to truncate +text+ at a natural break.
       #
       # ==== Examples
       #
       #   truncate("Once upon a time in a world far far away")
       #   # => Once upon a time in a world f...
+      #
+      #   truncate("Once upon a time in a world far far away", :separator => ' ')
+      #   # => Once upon a time in a world...
       #
       #   truncate("Once upon a time in a world far far away", :length => 14)
       #   # => Once upon a...
@@ -71,7 +75,8 @@ module ActionView
         if text
           l = options[:length] - options[:omission].mb_chars.length
           chars = text.mb_chars
-          (chars.length > options[:length] ? chars[0...l] + options[:omission] : text).to_s
+          stop = options[:separator] ? (chars.rindex(options[:separator].mb_chars, l) || l) : l
+          (chars.length > options[:length] ? chars[0...stop] + options[:omission] : text).to_s
         end
       end
 
