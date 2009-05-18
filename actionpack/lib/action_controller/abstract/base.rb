@@ -25,6 +25,15 @@ module AbstractController
       end
       
       alias_method :abstract?, :abstract
+
+      def inherited(klass)
+        ::AbstractController::Base.subclasses << klass.to_s
+        super
+      end
+
+      def subclasses
+        @subclasses ||= []
+      end
       
       def internal_methods
         controller = self
@@ -60,12 +69,13 @@ module AbstractController
     end
     
     def process(action_name)
-      unless respond_to_action?(action_name)
+      @_action_name = action_name = action_name.to_s
+
+      unless action_name = method_for_action(action_name)
         raise ActionNotFound, "The action '#{action_name}' could not be found"
       end
-      
-      @_action_name = action_name
-      process_action
+
+      process_action(action_name)
       self
     end
     
@@ -75,23 +85,31 @@ module AbstractController
       self.class.action_methods
     end
   
+    def action_method?(action)
+      action_methods.include?(action)
+    end
+  
     # It is possible for respond_to?(action_name) to be false and
     # respond_to?(:action_missing) to be false if respond_to_action?
     # is overridden in a subclass. For instance, ActionController::Base
     # overrides it to include the case where a template matching the
     # action_name is found.
-    def process_action
-      if respond_to?(action_name) then send(action_name)
-      elsif respond_to?(:action_missing, true) then action_missing(action_name)
-      end
+    def process_action(method_name)
+      send(method_name)
     end
-    
+
+    def _handle_action_missing
+      action_missing(@_action_name)
+    end
+
     # Override this to change the conditions that will raise an
     # ActionNotFound error. If you accept a difference case,
     # you must handle it by also overriding process_action and
     # handling the case.
-    def respond_to_action?(action_name)
-      action_methods.include?(action_name.to_s) || respond_to?(:action_missing, true)
+    def method_for_action(action_name)
+      if action_method?(action_name) then action_name
+      elsif respond_to?(:action_missing, true) then "_handle_action_missing"
+      end
     end
   end
 end

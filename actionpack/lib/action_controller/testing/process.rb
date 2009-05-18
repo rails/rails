@@ -132,9 +132,6 @@ module ActionController #:nodoc:
       @request.session["flash"] = ActionController::Flash::FlashHash.new.update(flash) if flash
       build_request_uri(action, parameters)
 
-      @request.env["action_controller.rescue.request"] = @request
-      @request.env["action_controller.rescue.response"] = @response
-
       Base.class_eval { include ProcessWithTest } unless Base < ProcessWithTest
 
       env = @request.env

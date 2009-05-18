@@ -24,7 +24,7 @@ module Rails
 
       # Returns the plugins that are in engine-form (have an app/ directory)
       def engines
-        @engines ||= plugins.select(&:engine?)
+        @engines ||= plugins.select {|plugin| plugin.engine? }
       end
 
       # Returns all the plugins that could be found by the current locators.
@@ -66,7 +66,7 @@ module Rails
       end
 
       def engine_metal_paths
-        engines.collect(&:metal_path)
+        engines.collect {|engine| engine.metal_path }
       end
 
       protected
@@ -79,18 +79,18 @@ module Rails
         end
 
         def add_engine_routing_configurations
-          engines.select(&:routed?).collect(&:routing_file).each do |routing_file|
+          engines.select {|engine| engine.routed? }.map {|engine| engine.routing_file }.each do |routing_file|
             ActionController::Routing::Routes.add_configuration_file(routing_file)
           end
         end
 
         def add_engine_controller_paths
-          ActionController::Routing.controller_paths += engines.collect(&:controller_path)
+          ActionController::Routing.controller_paths += engines.collect {|engine| engine.controller_path }
         end
 
         def add_engine_view_paths
           # reverse it such that the last engine can overwrite view paths from the first, like with routes
-          paths = ActionView::PathSet.new(engines.collect(&:view_path).reverse)
+          paths = ActionView::PathSet.new(engines.collect {|engine| engine.view_path }.reverse)
           ActionController::Base.view_paths.concat(paths)
           ActionMailer::Base.view_paths.concat(paths) if configuration.frameworks.include?(:action_mailer)
         end
@@ -170,7 +170,7 @@ module Rails
         # so we load all in alphabetical order. If it is an empty array, we load no plugins, if it is
         # non empty, we load the named plugins in the order specified.
         def registered_plugin_names
-          configuration.plugins ? configuration.plugins.map(&:to_s) : nil
+          configuration.plugins ? configuration.plugins.map {|plugin| plugin.to_s } : nil
         end
 
         def loaded?(plugin_name)

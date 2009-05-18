@@ -24,11 +24,6 @@ module ActionController
     # :api: public    
     def controller_path() self.class.controller_path end
     
-    # :api: private
-    def self.internal_methods
-      ActionController::Http.public_instance_methods(true)
-    end
-    
     # :api: private    
     def self.action_names() action_methods end
     
@@ -53,8 +48,6 @@ module ActionController
       @_response = ActionDispatch::Response.new
       @_response.request = request
       process(name)
-      @_response.body = response_body
-      @_response.prepare!
       to_rack
     end
     
@@ -67,6 +60,8 @@ module ActionController
     
     # :api: private
     def to_rack
+      @_response.body = response_body
+      @_response.prepare!
       @_response.to_a
     end
   end

@@ -1,13 +1,18 @@
+require 'json' unless defined?(JSON)
+
 module ActiveSupport
   module JSON
-    ParseError = ::JSON::ParserError
+    ParseError = ::JSON::ParserError unless const_defined?(:ParseError)
 
     module Backends
       module JSONGem
         extend self
 
-        # Converts a JSON string into a Ruby object.
+        # Parses a JSON string or IO and convert it into an object
         def decode(json)
+          if json.respond_to?(:read)
+            json = json.read
+          end
           data = ::JSON.parse(json)
           if ActiveSupport.parse_json_times
             convert_dates_from(data)

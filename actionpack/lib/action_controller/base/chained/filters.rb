@@ -160,7 +160,7 @@ module ActionController #:nodoc:
         def convert_only_and_except_options_to_sets_of_strings(opts)
           [:only, :except].each do |key|
             if values = opts[key]
-              opts[key] = Array(values).map(&:to_s).to_set
+              opts[key] = Array(values).map {|val| val.to_s }.to_set
             end
           end
         end
@@ -571,12 +571,7 @@ module ActionController #:nodoc:
 
       # Returns an array of Filter objects for this controller.
       def filter_chain
-        if chain = read_inheritable_attribute('filter_chain')
-          return chain
-        else
-          write_inheritable_attribute('filter_chain', FilterChain.new)
-          return filter_chain
-        end
+        read_inheritable_attribute('filter_chain') || write_inheritable_attribute('filter_chain', FilterChain.new)
       end
 
       # Returns all the before filters for this class and all its ancestors.

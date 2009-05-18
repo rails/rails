@@ -12,14 +12,40 @@ module ActionController
     include ActionController::Renderer
     include ActionController::Layouts
     include ActionController::ConditionalGet
-    
+
     # Legacy modules
     include SessionManagement
     include ActionDispatch::StatusCodes
-    
+
     # Rails 2.x compatibility
     include ActionController::Rails2Compatibility
-    
+
+    # TODO: Extract into its own module
+    # This should be moved together with other normalizing behavior
+    module ImplicitRender
+      def process_action(method_name)
+        ret = super
+        render if response_body.nil?
+        ret
+      end
+
+      def _implicit_render
+        render
+      end
+
+      def method_for_action(action_name)
+        super || begin
+          if view_paths.find_by_parts?(action_name.to_s, {:formats => formats, :locales => [I18n.locale]}, controller_path)
+            "_implicit_render"
+          end
+        end
+      end
+    end
+
+    include ImplicitRender
+
+    include ActionController::Rescue
+
     def self.inherited(klass)
       ::ActionController::Base.subclasses << klass.to_s
       super
@@ -112,16 +138,6 @@ module ActionController
       end
       
       super(url, status)
-    end
-    
-    def process_action
-      ret = super
-      render if response_body.nil?
-      ret
-    end
-    
-    def respond_to_action?(action_name)
-      super || view_paths.find_by_parts?(action_name.to_s, {:formats => formats, :locales => [I18n.locale]}, controller_path)
     end
   end
 end

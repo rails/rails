@@ -262,6 +262,7 @@ class TestController < ActionController::Base
     render :action => "hello_world"
   end
 
+  # :ported:
   def builder_layout_test
     render :action => "hello", :layout => "layouts/builder"
   end
@@ -271,6 +272,7 @@ class TestController < ActionController::Base
     render :action => "hello_world_container"
   end
 
+  # :ported:
   def partials_list
     @test_unchanged = 'hello'
     @customers = [ Customer.new("david"), Customer.new("mary") ]
@@ -860,6 +862,7 @@ class RenderTest < ActionController::TestCase
     assert_equal "application/xml", @response.content_type
   end
 
+  # :ported:
   def test_render_xml_as_string_template
     get :render_xml_hello_as_string_template
     assert_equal "<html>\n  <p>Hello David</p>\n<p>This is grand!</p>\n</html>\n", @response.body
@@ -872,11 +875,13 @@ class RenderTest < ActionController::TestCase
     assert_equal "<p>This is grand!</p>\n", @response.body
   end
 
+  # :move: test in AV
   def test_render_xml_with_partial
     get :builder_partial_test
     assert_equal "<test>\n  <hello/>\n</test>\n", @response.body
   end
 
+  # :ported:
   def test_layout_rendering
     get :layout_test
     assert_equal "<html>Hello world!</html>", @response.body

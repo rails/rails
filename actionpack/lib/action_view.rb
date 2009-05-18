@@ -24,6 +24,7 @@
 activesupport_path = "#{File.dirname(__FILE__)}/../../activesupport/lib"
 $:.unshift activesupport_path if File.directory?(activesupport_path)
 require 'active_support'
+require 'active_support/core_ext/class/attribute_accessors'
 
 require File.join(File.dirname(__FILE__), "action_pack")
 

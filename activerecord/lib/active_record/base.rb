@@ -1035,7 +1035,7 @@ module ActiveRecord #:nodoc:
       # To start from an all-closed default and enable attributes as needed,
       # have a look at +attr_accessible+.
       def attr_protected(*attributes)
-        write_inheritable_attribute(:attr_protected, Set.new(attributes.map(&:to_s)) + (protected_attributes || []))
+        write_inheritable_attribute(:attr_protected, Set.new(attributes.map {|a| a.to_s}) + (protected_attributes || []))
       end
 
       # Returns an array of all the attributes that have been protected from mass-assignment.

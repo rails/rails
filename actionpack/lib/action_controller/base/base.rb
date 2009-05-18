@@ -368,9 +368,8 @@ module ActionController #:nodoc:
     attr_reader :template
 
     def action(name, env)
-      # HACK: For global rescue to have access to the original request and response
-      request = env["action_controller.rescue.request"] ||= ActionDispatch::Request.new(env)
-      response = env["action_controller.rescue.response"] ||= ActionDispatch::Response.new
+      request  = ActionDispatch::Request.new(env)
+      response = ActionDispatch::Response.new
       self.action_name = name && name.to_s
       process(request, response).to_a
     end

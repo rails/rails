@@ -227,7 +227,7 @@ module Rails
     #
     def generate(what, *args)
       log 'generating', what
-      argument = args.map(&:to_s).flatten.join(" ")
+      argument = args.map {|arg| arg.to_s }.flatten.join(" ")
 
       in_root { run_ruby_script("script/generate #{what} #{argument}", false) }
     end

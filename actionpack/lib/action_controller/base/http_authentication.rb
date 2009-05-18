@@ -194,9 +194,10 @@ module ActionController
 
         if valid_nonce && realm == credentials[:realm] && opaque == credentials[:opaque]
           password = password_procedure.call(credentials[:username])
+          method = request.env['rack.methodoverride.original_method'] || request.env['REQUEST_METHOD']
 
          [true, false].any? do |password_is_ha1|
-           expected = expected_response(request.env['REQUEST_METHOD'], request.env['REQUEST_URI'], credentials, password, password_is_ha1)
+           expected = expected_response(method, request.env['REQUEST_URI'], credentials, password, password_is_ha1)
            expected == credentials[:response]
          end
         end

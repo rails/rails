@@ -1,3 +1,6 @@
+require "active_support/core_ext/module/attr_internal"
+require "active_support/core_ext/module/delegation"
+
 module AbstractController
   autoload :Base,           "action_controller/abstract/base"
   autoload :Callbacks,      "action_controller/abstract/callbacks"

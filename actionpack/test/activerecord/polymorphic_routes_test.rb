@@ -1,4 +1,5 @@
 require 'active_record_unit'
+require 'fixtures/project'
 
 class Task < ActiveRecord::Base
   set_table_name 'projects'

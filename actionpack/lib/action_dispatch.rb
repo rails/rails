@@ -38,7 +38,7 @@ module ActionDispatch
   autoload :Response, 'action_dispatch/http/response'
   autoload :StatusCodes, 'action_dispatch/http/status_codes'
 
-  autoload :Failsafe, 'action_dispatch/middleware/failsafe'
+  autoload :Callbacks, 'action_dispatch/middleware/callbacks'
   autoload :ParamsParser, 'action_dispatch/middleware/params_parser'
   autoload :Rescue, 'action_dispatch/middleware/rescue'
   autoload :ShowExceptions, 'action_dispatch/middleware/show_exceptions'

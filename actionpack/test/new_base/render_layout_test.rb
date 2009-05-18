@@ -22,8 +22,6 @@ module ControllerLayouts
       render :layout => false
     end
     
-    
-    
     def builder_override
       
     end
