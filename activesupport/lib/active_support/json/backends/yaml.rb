@@ -2,7 +2,9 @@ require 'active_support/core_ext/string/starts_ends_with'
 
 module ActiveSupport
   module JSON
-    class ParseError < StandardError
+    unless const_defined?(:ParseError)
+      class ParseError < StandardError
+      end
     end
 
     module Backends

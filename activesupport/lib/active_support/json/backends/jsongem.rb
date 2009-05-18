@@ -1,6 +1,8 @@
+require 'json' unless defined?(JSON)
+
 module ActiveSupport
   module JSON
-    ParseError = ::JSON::ParserError
+    ParseError = ::JSON::ParserError unless const_defined?(:ParseError)
 
     module Backends
       module JSONGem
