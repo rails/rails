@@ -70,7 +70,7 @@ module ActiveResource
       :delete => 'Accept'
     }
 
-    attr_reader :site, :user, :password, :timeout
+    attr_reader :site, :user, :password, :timeout, :proxy
     attr_accessor :format
 
     class << self
@@ -95,7 +95,12 @@ module ActiveResource
       @password = URI.decode(@site.password) if @site.password
     end
 
-    # Set user for remote service.
+    # Set the proxy for remote service.
+    def proxy=(proxy)
+      @proxy = proxy.is_a?(URI) ? proxy : URI.parse(proxy)
+    end
+
+    # Set the user for remote service.
     def user=(user)
       @user = user
     end
@@ -186,8 +191,13 @@ module ActiveResource
       # Creates new Net::HTTP instance for communication with
       # remote service and resources.
       def http
-        http             = Net::HTTP.new(@site.host, @site.port)
-        http.use_ssl     = @site.is_a?(URI::HTTPS)
+        http =
+          if @proxy
+            Net::HTTP.new(@site.host, @site.port, @proxy.host, @proxy.port, @proxy.user, @proxy.password)
+          else
+            Net::HTTP.new(@site.host, @site.port)
+          end
+        http.use_ssl = @site.is_a?(URI::HTTPS)
         http.verify_mode = OpenSSL::SSL::VERIFY_NONE if http.use_ssl?
         http.read_timeout = @timeout if @timeout # If timeout is not set, the default Net::HTTP timeout (60s) is used.
         http

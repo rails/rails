@@ -1,6 +1,12 @@
+*2.3.4 (pending)*
+
+* HTTP proxy support.  #2133 [Marshall Huss, Sébastien Dabet]
+
+
 *2.3.3 (July 12, 2009)*
 
 * No changes, just a version bump.
+
 
 *2.3.2 [Final] (March 15, 2009)*
 
