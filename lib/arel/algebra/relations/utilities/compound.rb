@@ -1,7 +1,6 @@
 module Arel
   class Compound < Relation
     attr_reader :relation
-    hash_on :relation
     delegate :joins, :join?, :inserts, :taken, :skipped, :name, :externalizable?,
              :column_for, :engine,
              :to => :relation
@@ -14,7 +13,16 @@ module Arel
       OPERATION
     end
 
-    private
+    def hash
+      @hash ||= :relation.hash
+    end
+
+    def eql?(other)
+      self == other
+    end
+
+  private
+
     def arguments_from_block(relation, &block)
       block_given?? [yield(relation)] : []
     end

@@ -4,7 +4,6 @@ module Arel
 
     cattr_accessor :engine
     attr_reader :name, :engine
-    hash_on :name
 
     def initialize(name, engine = Table.engine)
       @name, @engine = name.to_s, engine
@@ -14,6 +13,14 @@ module Arel
       @attributes ||= columns.collect do |column|
         Attribute.new(self, column.name.to_sym)
       end
+    end
+
+    def eql?(other)
+      self == other
+    end
+
+    def hash
+      @hash ||= :name.hash
     end
 
     def format(attribute, value)

@@ -3,10 +3,17 @@ module Arel
     attributes :relation1, :relation2, :predicates
     deriving :==
     delegate :name, :to => :relation1
-    hash_on :relation1
 
     def initialize(relation1, relation2 = Nil.instance, *predicates)
       @relation1, @relation2, @predicates = relation1, relation2, predicates
+    end
+
+    def hash
+      @hash ||= :relation1.hash
+    end
+
+    def eql?(other)
+      self == other
     end
 
     def attributes
