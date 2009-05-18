@@ -151,6 +151,16 @@ class HttpDigestAuthenticationTest < ActionController::TestCase
     assert_equal 'Definitely Maybe', @response.body
   end
 
+  test "authentication request with _method" do
+    @request.env['HTTP_AUTHORIZATION'] = encode_credentials(:username => 'pretty', :password => 'please', :method => :post)
+    @request.env['rack.methodoverride.original_method'] = 'POST'
+    put :display
+
+    assert_response :success
+    assert assigns(:logged_in)
+    assert_equal 'Definitely Maybe', @response.body
+  end
+
   private
 
   def encode_credentials(options)
@@ -161,15 +171,22 @@ class HttpDigestAuthenticationTest < ActionController::TestCase
     # to prevent tampering of timestamp
     ActionController::Base.session_options[:secret] = "session_options_secret"
 
-    # Perform unauthenticated GET to retrieve digest parameters to use on subsequent request
-    get :index
+    # Perform unauthenticated request to retrieve digest parameters to use on subsequent request
+    method = options.delete(:method) || 'GET'
+
+    case method.to_s.upcase
+    when 'GET'
+      get :index
+    when 'POST'
+      post :index
+    end
 
     assert_response :unauthorized
 
     credentials = decode_credentials(@response.headers['WWW-Authenticate'])
     credentials.merge!(options)
     credentials.reverse_merge!(:uri => "#{@request.env['REQUEST_URI']}")
-    ActionController::HttpAuthentication::Digest.encode_credentials("GET", credentials, password, options[:password_is_ha1])
+    ActionController::HttpAuthentication::Digest.encode_credentials(method, credentials, password, options[:password_is_ha1])
   end
 
   def decode_credentials(header)
