@@ -8,27 +8,51 @@ module ActionController
       ::ActionController::DoubleRenderError = ::AbstractController::DoubleRenderError
       
       cattr_accessor :session_options
-      self.send(:class_variable_set, "@@session_options", {})
+      self.session_options = {}
       
       cattr_accessor :allow_concurrency
-      self.send(:class_variable_set, "@@allow_concurrency", false)
+      self.allow_concurrency = false
       
       cattr_accessor :param_parsers
-      self.send(:class_variable_set, "@@param_parsers", { Mime::MULTIPART_FORM   => :multipart_form,
-                          Mime::URL_ENCODED_FORM => :url_encoded_form,
-                          Mime::XML              => :xml_simple,
-                          Mime::JSON             => :json })
+      self.param_parsers = { Mime::MULTIPART_FORM   => :multipart_form,
+                             Mime::URL_ENCODED_FORM => :url_encoded_form,
+                             Mime::XML              => :xml_simple,
+                             Mime::JSON             => :json }
                           
       cattr_accessor :relative_url_root
-      self.send(:class_variable_set, "@@relative_url_root", ENV['RAILS_RELATIVE_URL_ROOT'])
+      self.relative_url_root = ENV['RAILS_RELATIVE_URL_ROOT']
       
       cattr_accessor :default_charset
-      self.send(:class_variable_set, "@@default_charset", "utf-8")
+      self.default_charset = "utf-8"
       
-      cattr_reader :protected_instance_variables
-      self.send(:class_variable_set, "@@protected_instance_variables", %w(@assigns @performed_redirect @performed_render @variables_added @request_origin @url @parent_controller
+      # cattr_reader :protected_instance_variables
+      cattr_accessor :protected_instance_variables
+      self.protected_instance_variables = %w(@assigns @performed_redirect @performed_render @variables_added @request_origin @url @parent_controller
                                           @action_name @before_filter_chain_aborted @action_cache_path @_headers @_params
-                                          @_flash @_response))
+                                          @_flash @_response)
+                                          
+      # Indicates whether or not optimise the generated named
+      # route helper methods
+      cattr_accessor :optimise_named_routes
+      self.optimise_named_routes = true
+      
+      cattr_accessor :resources_path_names
+      self.resources_path_names = { :new => 'new', :edit => 'edit' }
+      
+      # Controls the resource action separator
+      cattr_accessor :resource_action_separator
+      self.resource_action_separator = "/"
+      
+      cattr_accessor :use_accept_header
+      self.use_accept_header = true
+
+      cattr_accessor :page_cache_directory
+      self.page_cache_directory = defined?(Rails.public_path) ? Rails.public_path : ""
+
+      cattr_reader :cache_store
+
+      cattr_accessor :consider_all_requests_local
+      self.consider_all_requests_local = true
     end
     
     module ClassMethods
@@ -37,8 +61,18 @@ module ActionController
       def rescue_action(env)
         raise env["action_dispatch.rescue.exception"]
       end
+
+      # Defines the storage option for cached fragments
+      def cache_store=(store_option)
+        @@cache_store = ActiveSupport::Cache.lookup_store(store_option)
+      end
     end
-  
+    
+    def initialize(*)
+      super
+      @template = _action_view
+    end
+    
     def render_to_body(options)
       if options.is_a?(Hash) && options.key?(:template)
         options[:template].sub!(/^\//, '')
@@ -48,6 +82,14 @@ module ActionController
 
       super
     end
+
+    def _handle_method_missing
+      method_missing(@_action_name.to_sym)
+    end
+
+    def method_for_action(action_name)
+      super || (respond_to?(:method_missing) && "_handle_method_missing")
+    end    
       
     def _layout_for_name(name)
       name &&= name.sub(%r{^/?layouts/}, '')

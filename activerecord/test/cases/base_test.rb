@@ -18,6 +18,7 @@ require 'models/minimalistic'
 require 'models/warehouse_thing'
 require 'models/parrot'
 require 'rexml/document'
+require 'active_support/core_ext/exception'
 
 class Category < ActiveRecord::Base; end
 class Categorization < ActiveRecord::Base; end

@@ -3,6 +3,7 @@ require "fixtures/person"
 require "fixtures/customer"
 require "fixtures/street_address"
 require "fixtures/beast"
+require 'active_support/core_ext/hash/conversions'
 
 class BaseTest < Test::Unit::TestCase
   def setup

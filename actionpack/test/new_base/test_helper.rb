@@ -46,7 +46,7 @@ class Rack::TestCase < ActiveSupport::TestCase
     ActionController::Routing.use_controllers!(controllers)
     
     # Move into a bootloader
-    AbstractController::Base.subclasses.each do |klass|
+    ActionController::Base.subclasses.each do |klass|
       klass = klass.constantize
       next unless klass < AbstractController::Layouts
       klass.class_eval do
@@ -59,9 +59,25 @@ class Rack::TestCase < ActiveSupport::TestCase
     @app ||= ActionController::Dispatcher.new
   end
   
+  def self.testing(klass = nil)
+    if klass
+      @testing = "/#{klass.name.underscore}".sub!(/_controller$/, '')
+    else
+      @testing
+    end
+  end
+  
   def self.get(url)
     setup do |test|
       test.get url
+    end
+  end
+  
+  def get(thing, *args)
+    if thing.is_a?(Symbol)
+      super("#{self.class.testing}/#{thing}")
+    else
+      super
     end
   end
   
@@ -82,6 +98,14 @@ class Rack::TestCase < ActiveSupport::TestCase
   def self.assert_status(code)
     test "status code is set to #{code}" do
       assert_status code
+    end
+  end
+  
+  def assert_response(body, status = 200, headers = {})
+    assert_body   body
+    assert_status status
+    headers.each do |header, value|
+      assert_header header, value
     end
   end
   

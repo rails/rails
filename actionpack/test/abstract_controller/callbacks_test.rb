@@ -193,5 +193,24 @@ module AbstractController
       end
     end
     
+    class SetsResponseBody < ControllerWithCallbacks
+      before_filter :set_body
+      
+      def index
+        self.response_body = "Fail"
+      end
+      
+      def set_body
+        self.response_body = "Success"
+      end
+    end
+    
+    class TestHalting < ActiveSupport::TestCase
+      test "when a callback sets the response body, the action should not be invoked" do
+        result = SetsResponseBody.process(:index)
+        assert_equal "Success", result.response_body
+      end
+    end
+    
   end
 end

@@ -1,4 +1,5 @@
 require 'abstract_unit'
+require 'logger'
 require 'pp' # require 'pp' early to prevent hidden_methods from not picking up the pretty-print methods until too late
 
 # Provide some controller to run the tests on.
@@ -116,7 +117,7 @@ class PerformActionTest < ActionController::TestCase
     end
 
     def method_missing(method, *args)
-      @logged << args.first
+      @logged << args.first.to_s
     end
   end
 

@@ -1,4 +1,5 @@
 require 'rack/session/abstract/id'
+require 'active_support/core_ext/object/conversions'
 
 module ActionController #:nodoc:
   class TestRequest < ActionDispatch::TestRequest #:nodoc:
@@ -131,9 +132,6 @@ module ActionController #:nodoc:
       @request.session["flash"] = ActionController::Flash::FlashHash.new.update(flash) if flash
       build_request_uri(action, parameters)
 
-      @request.env["action_controller.rescue.request"] = @request
-      @request.env["action_controller.rescue.response"] = @response
-
       Base.class_eval { include ProcessWithTest } unless Base < ProcessWithTest
 
       env = @request.env
@@ -161,11 +159,13 @@ module ActionController #:nodoc:
     alias xhr :xml_http_request
 
     def assigns(key = nil)
-      if key.nil?
-        @controller.template.assigns
-      else
-        @controller.template.assigns[key.to_s]
+      assigns = {}
+      @controller.instance_variable_names.each do |ivar|
+        next if ActionController::Base.protected_instance_variables.include?(ivar)
+        assigns[ivar[1..-1]] = @controller.instance_variable_get(ivar)
       end
+      
+      key.nil? ? assigns : assigns[key.to_s]
     end
 
     def session

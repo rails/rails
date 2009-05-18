@@ -1,3 +1,5 @@
+require 'active_support/core_ext/hash/conversions'
+
 module ActiveRecord #:nodoc:
   module Serialization
     # Builds an XML document to represent the model. Some configuration is
@@ -165,8 +167,9 @@ module ActiveRecord #:nodoc:
   class XmlSerializer < ActiveRecord::Serialization::Serializer #:nodoc:
     def builder
       @builder ||= begin
+        require 'builder' unless defined? ::Builder
         options[:indent] ||= 2
-        builder = options[:builder] ||= Builder::XmlMarkup.new(:indent => options[:indent])
+        builder = options[:builder] ||= ::Builder::XmlMarkup.new(:indent => options[:indent])
 
         unless options[:skip_instruct]
           builder.instruct!

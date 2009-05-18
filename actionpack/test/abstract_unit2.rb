@@ -5,18 +5,25 @@ $:.unshift(File.dirname(__FILE__) + '/lib')
 
 require 'test/unit'
 require 'active_support'
-require 'active_support/core/all'
 require 'active_support/test_case'
 require 'action_controller/abstract'
 require 'action_controller/new_base'
 require 'fixture_template'
 require 'action_controller/testing/process2'
 require 'action_view/test_case'
+require 'action_controller/testing/integration'
+require 'active_support/dependencies'
+
+ActiveSupport::Dependencies.hook!
 
 FIXTURE_LOAD_PATH = File.join(File.dirname(__FILE__), 'fixtures')
 
 module ActionController
-  
+  Base.session = {
+  :key         => '_testing_session',
+  :secret      => '8273f16463985e2b3747dc25e30f2528'
+}
+
   class ActionControllerError < StandardError #:nodoc:
   end
 
@@ -75,7 +82,7 @@ module ActionController
   end
   
   class Base
-    use ActionController::Testing
+    include ActionController::Testing
   end
   
   Base.view_paths = FIXTURE_LOAD_PATH
@@ -89,45 +96,44 @@ module ActionController
     end
     
     def assert_template(options = {}, message = nil)
-      validate_response!
+      validate_request!
 
-      clean_backtrace do
-        case options
-         when NilClass, String
-          hax = @controller._action_view.instance_variable_get(:@_rendered)
-          rendered = (hax[:template] || []).map { |t| t.identifier }
-          msg = build_message(message,
-                  "expecting <?> but rendering with <?>",
-                  options, rendered.join(', '))
-          assert_block(msg) do
-            if options.nil?
-              hax[:template].blank?
-            else
-              rendered.any? { |t| t.match(options) }
-            end
-          end
-        when Hash
-          if expected_partial = options[:partial]
-            partials = hax[:partials]
-            if expected_count = options[:count]
-              found = partials.detect { |p, _| p.identifier.match(expected_partial) }
-              actual_count = found.nil? ? 0 : found.second
-              msg = build_message(message,
-                      "expecting ? to be rendered ? time(s) but rendered ? time(s)",
-                       expected_partial, expected_count, actual_count)
-              assert(actual_count == expected_count.to_i, msg)
-            else
-              msg = build_message(message,
-                      "expecting partial <?> but action rendered <?>",
-                      options[:partial], partials.keys)
-              assert(partials.keys.any? { |p| p.identifier.match(expected_partial) }, msg)
-            end
+      hax = @controller._action_view.instance_variable_get(:@_rendered)
+
+      case options
+       when NilClass, String
+        rendered = (hax[:template] || []).map { |t| t.identifier }
+        msg = build_message(message,
+                "expecting <?> but rendering with <?>",
+                options, rendered.join(', '))
+        assert_block(msg) do
+          if options.nil?
+            hax[:template].blank?
           else
-            assert hax[:partials].empty?,
-              "Expected no partials to be rendered"
+            rendered.any? { |t| t.match(options) }
           end
         end
+      when Hash
+        if expected_partial = options[:partial]
+          partials = hax[:partials]
+          if expected_count = options[:count]
+            found = partials.detect { |p, _| p.identifier.match(expected_partial) }
+            actual_count = found.nil? ? 0 : found.second
+            msg = build_message(message,
+                    "expecting ? to be rendered ? time(s) but rendered ? time(s)",
+                     expected_partial, expected_count, actual_count)
+            assert(actual_count == expected_count.to_i, msg)
+          else
+            msg = build_message(message,
+                    "expecting partial <?> but action rendered <?>",
+                    options[:partial], partials.keys)
+            assert(partials.keys.any? { |p| p.identifier.match(expected_partial) }, msg)
+          end
+        else
+          assert hax[:partials].empty?,
+            "Expected no partials to be rendered"
+        end
       end
-    end    
+    end
   end
 end

@@ -21,16 +21,9 @@
 # WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 #++
 
-begin
-  require 'active_support'
-rescue LoadError
-  activesupport_path = "#{File.dirname(__FILE__)}/../../activesupport/lib"
-  if File.directory?(activesupport_path)
-    $:.unshift activesupport_path
-    require 'active_support'
-  end
-end
-require 'active_support/core/all'
+activesupport_path = "#{File.dirname(__FILE__)}/../../activesupport/lib"
+$:.unshift activesupport_path if File.directory?(activesupport_path)
+require 'active_support'
 
 begin
   gem 'rack', '~> 1.1.pre'
@@ -45,7 +38,7 @@ module ActionDispatch
   autoload :Response, 'action_dispatch/http/response'
   autoload :StatusCodes, 'action_dispatch/http/status_codes'
 
-  autoload :Failsafe, 'action_dispatch/middleware/failsafe'
+  autoload :Callbacks, 'action_dispatch/middleware/callbacks'
   autoload :ParamsParser, 'action_dispatch/middleware/params_parser'
   autoload :Rescue, 'action_dispatch/middleware/rescue'
   autoload :ShowExceptions, 'action_dispatch/middleware/show_exceptions'

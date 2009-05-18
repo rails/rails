@@ -1,5 +1,6 @@
 require 'monitor'
 require 'set'
+require 'active_support/core_ext/module/synchronization'
 
 module ActiveRecord
   # Raised when a connection could not be obtained within the connection

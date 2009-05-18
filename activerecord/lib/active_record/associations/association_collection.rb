@@ -302,6 +302,15 @@ module ActiveRecord
         end
       end
 
+      # Returns true if the collection has more than 1 record. Equivalent to collection.size > 1.
+      def many?
+        if block_given?
+          method_missing(:many?) { |*block_args| yield(*block_args) }
+        else
+          size > 1
+        end
+      end
+
       def uniq(collection = self)
         seen = Set.new
         collection.inject([]) do |kept, record|

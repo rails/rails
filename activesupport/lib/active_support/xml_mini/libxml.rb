@@ -5,16 +5,20 @@ module ActiveSupport
   module XmlMini_LibXML #:nodoc:
     extend self
 
-    # Parse an XML Document string into a simple hash using libxml.
-    # string::
-    #   XML Document string to parse
-    def parse(string)
+    # Parse an XML Document string or IO into a simple hash using libxml.
+    # data::
+    #   XML Document string or IO to parse
+    def parse(data)
+      if data.respond_to?(:read)
+        data = data.read
+      end
+
       LibXML::XML.default_keep_blanks = false
 
-      if string.blank?
+      if data.blank?
         {}
       else
-        LibXML::XML::Parser.string(string.strip).parse.to_hash
+        LibXML::XML::Parser.string(data.strip).parse.to_hash
       end
     end
 

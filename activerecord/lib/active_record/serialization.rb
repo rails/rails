@@ -1,5 +1,3 @@
-require 'active_support/json'
-
 module ActiveRecord #:nodoc:
   module Serialization
     class Serializer #:nodoc:
@@ -73,16 +71,19 @@ module ActiveRecord #:nodoc:
       end
 
       def serializable_record
-        returning(serializable_record = {}) do
-          serializable_names.each { |name| serializable_record[name] = @record.send(name) }
-          add_includes do |association, records, opts|
+        record = {}
+        serializable_names.each { |name| record[name] = @record.send(name) }
+
+        add_includes do |association, records, opts|
+          record[association] =
             if records.is_a?(Enumerable)
-              serializable_record[association] = records.collect { |r| self.class.new(r, opts).serializable_record }
+              records.collect { |r| self.class.new(r, opts).serializable_record }
             else
-              serializable_record[association] = self.class.new(records, opts).serializable_record
+              self.class.new(records, opts).serializable_record
             end
-          end
         end
+
+        record
       end
 
       def serialize

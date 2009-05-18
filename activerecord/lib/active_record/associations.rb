@@ -1,3 +1,5 @@
+require 'active_support/core_ext/module/delegation'
+
 module ActiveRecord
   class InverseOfAssociationNotFoundError < ActiveRecordError #:nodoc:
     def initialize(reflection)
@@ -1674,7 +1676,7 @@ module ActiveRecord
 
         def tables_in_string(string)
           return [] if string.blank?
-          string.scan(/([\.a-zA-Z_]+).?\./).flatten
+          string.scan(/([a-zA-Z_][\.\w]+).?\./).flatten
         end
 
         def tables_in_hash(hash)

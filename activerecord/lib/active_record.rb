@@ -24,7 +24,9 @@
 activesupport_path = "#{File.dirname(__FILE__)}/../../activesupport/lib"
 $:.unshift(activesupport_path) if File.directory?(activesupport_path)
 require 'active_support'
-require 'active_support/core/all'
+
+# TODO: Figure out what parts of AS are *actually* required and use those
+require 'active_support/core_ext'
 
 $:.unshift(File.dirname(__FILE__) + '/../../arel/lib')
 require 'arel'
@@ -78,5 +80,4 @@ module ActiveRecord
   end
 end
 
-require 'active_record/i18n_interpolation_deprecation'
 I18n.load_path << File.dirname(__FILE__) + '/active_record/locale/en.yml'

@@ -1,4 +1,5 @@
 require "cases/helper"
+require 'active_support/core_ext/array/random_access'
 require 'models/post'
 require 'models/topic'
 require 'models/comment'
@@ -234,6 +235,40 @@ class NamedScopeTest < ActiveRecord::TestCase
     assert_no_queries { assert topics.any? }
   end
 
+  def test_many_should_not_load_results
+    topics = Topic.base
+    assert_queries(2) do
+      topics.many?   # use count query
+      topics.collect # force load
+      topics.many?   # use loaded (no query)
+    end
+  end
+
+  def test_many_should_call_proxy_found_if_using_a_block
+    topics = Topic.base
+    assert_queries(1) do
+      topics.expects(:size).never
+      topics.many? { true }
+    end
+  end
+
+  def test_many_should_not_fire_query_if_named_scope_loaded
+    topics = Topic.base
+    topics.collect # force load
+    assert_no_queries { assert topics.many? }
+  end
+
+  def test_many_should_return_false_if_none_or_one
+    topics = Topic.base.scoped(:conditions => {:id => 0})
+    assert !topics.many?
+    topics = Topic.base.scoped(:conditions => {:id => 1})
+    assert !topics.many?
+  end
+
+  def test_many_should_return_true_if_more_than_one
+    assert Topic.base.many?
+  end
+
   def test_should_build_with_proxy_options
     topic = Topic.approved.build({})
     assert topic.approved
@@ -265,7 +300,7 @@ class NamedScopeTest < ActiveRecord::TestCase
   end
 
   def test_rand_should_select_a_random_object_from_proxy
-    assert Topic.approved.rand.is_a?(Topic)
+    assert_kind_of Topic, Topic.approved.rand
   end
 
   def test_should_use_where_in_query_for_named_scope

@@ -12,6 +12,8 @@ require 'active_record/connection_adapters/abstract/connection_pool'
 require 'active_record/connection_adapters/abstract/connection_specification'
 require 'active_record/connection_adapters/abstract/query_cache'
 
+require 'active_support/core_ext/benchmark'
+
 module ActiveRecord
   module ConnectionAdapters # :nodoc:
     # ActiveRecord supports multiple database systems. AbstractAdapter and

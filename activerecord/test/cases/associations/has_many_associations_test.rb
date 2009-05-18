@@ -1023,6 +1023,45 @@ class HasManyAssociationsTest < ActiveRecord::TestCase
     assert firm.clients.loaded?
   end
 
+  def test_calling_many_should_count_instead_of_loading_association
+    firm = companies(:first_firm)
+    assert_queries(1) do
+      firm.clients.many?  # use count query
+    end
+    assert !firm.clients.loaded?
+  end
+
+  def test_calling_many_on_loaded_association_should_not_use_query
+    firm = companies(:first_firm)
+    firm.clients.collect  # force load
+    assert_no_queries { assert firm.clients.many? }
+  end
+
+  def test_calling_many_should_defer_to_collection_if_using_a_block
+    firm = companies(:first_firm)
+    assert_queries(1) do
+      firm.clients.expects(:size).never
+      firm.clients.many? { true }
+    end
+    assert firm.clients.loaded?
+  end
+
+  def test_calling_many_should_return_false_if_none_or_one
+    firm = companies(:another_firm)
+    assert !firm.clients_like_ms.many?
+    assert_equal 0, firm.clients_like_ms.size
+
+    firm = companies(:first_firm)
+    assert !firm.limited_clients.many?
+    assert_equal 1, firm.limited_clients.size
+  end
+
+  def test_calling_many_should_return_true_if_more_than_one
+    firm = companies(:first_firm)
+    assert firm.clients.many?
+    assert_equal 2, firm.clients.size
+  end
+
   def test_joins_with_namespaced_model_should_use_correct_type
     old = ActiveRecord::Base.store_full_sti_class
     ActiveRecord::Base.store_full_sti_class = true

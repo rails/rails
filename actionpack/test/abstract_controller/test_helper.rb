@@ -4,7 +4,7 @@ $:.unshift(File.dirname(__FILE__) + '/../lib')
 
 require 'rubygems'
 require 'test/unit'
-require 'active_support/core/all'
+require 'active_support'
 require 'active_support/test_case'
 require 'action_controller/abstract'
 require 'action_view'

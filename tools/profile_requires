@@ -1,7 +1,7 @@
 #!/usr/bin/env ruby
 # Example:
-#   ruby -Iactivesupport/lib tools/profile_requires.rb active_support
-#   ruby -Iactionpack/lib tools/profile_requires.rb action_controller
+#   tools/profile_requires activesupport/lib/active_support.rb
+#   tools/profile_requires activeresource/examples/simple.rb
 abort 'Use REE so you can profile memory and object allocation' unless GC.respond_to?(:enable_stats)
 
 GC.enable_stats
@@ -18,12 +18,14 @@ module TrackHeapGrowth
   self.stats = []
 
   def track_growth(file)
+    TrackHeapGrowth.stats << [file, TrackHeapGrowth.indent]
     TrackHeapGrowth.indent += 1
     heap_before, objects_before = GC.allocated_size, ObjectSpace.allocated_objects
     result = nil
     elapsed = Benchmark.realtime { result = yield }
     heap_after, objects_after = GC.allocated_size, ObjectSpace.allocated_objects
     TrackHeapGrowth.indent -= 1
+    TrackHeapGrowth.stats.pop if TrackHeapGrowth.stats.last.first == file
     TrackHeapGrowth.stats << [file, TrackHeapGrowth.indent, elapsed, heap_after - heap_before, objects_after - objects_before] if result
     result
   end
@@ -69,7 +71,11 @@ if mode
   end
 end
 
-TrackHeapGrowth.stats.reverse_each do |file, indent, sec, bytes, objects|
-  puts "%10.2f KB %10d obj %8.1f ms  %s%s" % [bytes / 1024.0, objects, sec * 1000, ' ' * indent, file]
+TrackHeapGrowth.stats.each do |file, indent, sec, bytes, objects|
+  if sec
+    puts "%10.2f KB %10d obj %8.1f ms  %s%s" % [bytes / 1024.0, objects, sec * 1000, ' ' * indent, file]
+  else
+    puts "#{' ' * (42 + indent)}#{file}"
+  end
 end
 puts "%10.2f KB %10d obj %8.1f ms  %d KB RSS" % [usage, after_live_objects - before_live_objects, elapsed * 1000, after_rss - before_rss]

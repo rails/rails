@@ -14,6 +14,8 @@ unless defined?(Rails) && defined?(Rails::Info)
   end
 end
 
+require "active_support/core_ext/kernel/reporting"
+
 class InfoTest < ActiveSupport::TestCase
   def setup
     Rails.send :remove_const, :Info

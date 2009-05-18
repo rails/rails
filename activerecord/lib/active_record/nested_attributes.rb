@@ -1,3 +1,6 @@
+require 'active_support/core_ext/hash/except'
+require 'active_support/core_ext/object/try'
+
 module ActiveRecord
   module NestedAttributes #:nodoc:
     extend ActiveSupport::DependencyModule

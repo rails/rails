@@ -32,21 +32,32 @@ desc 'Run mysql, sqlite, and postgresql tests'
 task :test => defined?(JRUBY_VERSION) ?
   %w(test_jdbcmysql test_jdbcsqlite3 test_jdbcpostgresql) :
   %w(test_mysql test_sqlite3 test_postgresql)
+task :isolated_test => defined?(JRUBY_VERSION) ?
+  %w(isolated_test_jdbcmysql isolated_test_jdbcsqlite3 isolated_test_jdbcpostgresql) :
+  %w(isolated_test_mysql isolated_test_sqlite3 isolated_test_postgresql)
 
-for adapter in %w( mysql postgresql sqlite sqlite3 firebird db2 oracle sybase openbase frontbase jdbcmysql jdbcpostgresql jdbcsqlite3 jdbcderby jdbch2 jdbchsqldb )
+%w( mysql postgresql sqlite sqlite3 firebird db2 oracle sybase openbase frontbase jdbcmysql jdbcpostgresql jdbcsqlite3 jdbcderby jdbch2 jdbchsqldb ).each do |adapter|
   Rake::TestTask.new("test_#{adapter}") { |t|
-    if adapter =~ /jdbc/
-      t.libs << "test" << "test/connections/jdbc_#{adapter}"
-    else
-      t.libs << "test" << "test/connections/native_#{adapter}"
-    end
+    connection_path = "test/connections/#{adapter =~ /jdbc/ ? 'jdbc' : 'native'}_#{adapter}"
     adapter_short = adapter == 'db2' ? adapter : adapter[/^[a-z]+/]
+    t.libs << "test" << connection_path
     t.test_files=Dir.glob( "test/cases/**/*_test{,_#{adapter_short}}.rb" ).sort
     t.verbose = true
   }
 
+  task "isolated_test_#{adapter}" do
+    connection_path = "test/connections/#{adapter =~ /jdbc/ ? 'jdbc' : 'native'}_#{adapter}"
+    adapter_short = adapter == 'db2' ? adapter : adapter[/^[a-z]+/]
+    puts [adapter, adapter_short, connection_path].inspect
+    ruby = File.join(*RbConfig::CONFIG.values_at('bindir', 'RUBY_INSTALL_NAME'))
+    Dir["test/cases/**/*_test{,_#{adapter_short}}.rb"].all? do |file|
+      system(ruby, "-Ilib:test:#{connection_path}", file)
+    end or raise "Failures"
+  end
+
   namespace adapter do
     task :test => "test_#{adapter}"
+    task :isolated_test => "isolated_test_#{adapter}"
   end
 end
 

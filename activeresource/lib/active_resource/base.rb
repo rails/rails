@@ -1,8 +1,10 @@
+require 'active_support'
 require 'active_support/core_ext/class/attribute_accessors'
 require 'active_support/core_ext/class/inheritable_attributes'
 require 'active_support/core_ext/module/attr_accessor_with_default'
 require 'active_support/core_ext/module/delegation'
 require 'active_support/core_ext/module/aliasing'
+require 'active_support/core_ext/object/blank'
 require 'active_support/core_ext/object/misc'
 require 'set'
 
@@ -1027,7 +1029,7 @@ module ActiveResource
     private
       # Tries to find a resource for a given collection name; if it fails, then the resource is created
       def find_or_create_resource_for_collection(name)
-        find_or_create_resource_for(name.to_s.singularize)
+        find_or_create_resource_for(ActiveSupport::Inflector.singularize(name.to_s))
       end
 
       # Tries to find a resource in a non empty list of nested modules

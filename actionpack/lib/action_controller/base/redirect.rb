@@ -70,7 +70,9 @@ module ActionController
     def redirect_to_full_url(url, status)
       raise DoubleRenderError if performed?
       logger.info("Redirected to #{url}") if logger && logger.info?
-      response.redirect(url, interpret_status(status))
+      response.status = interpret_status(status)
+      response.location = url.gsub(/[\r\n]/, '')
+      response.body = "<html><body>You are being <a href=\"#{CGI.escapeHTML(url)}\">redirected</a>.</body></html>"      
       @performed_redirect = true
     end
     
