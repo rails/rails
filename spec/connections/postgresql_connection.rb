@@ -1,6 +1,8 @@
 require "activerecord"
 puts "Using native PostgreSQL"
 
+ActiveRecord::Base.logger = Logger.new("debug.log")
+
 ActiveRecord::Base.configurations = {
   'unit' => {
     :adapter  => 'postgresql',

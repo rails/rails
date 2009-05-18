@@ -1,6 +1,8 @@
 require "activerecord"
 puts "Using native MySQL"
 
+ActiveRecord::Base.logger = Logger.new("debug.log")
+
 ActiveRecord::Base.configurations = {
   'unit' => {
     :adapter  => 'mysql',

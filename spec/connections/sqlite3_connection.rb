@@ -1,6 +1,8 @@
 require "activerecord"
 puts "Using native SQLite3"
 
+ActiveRecord::Base.logger = Logger.new("debug.log")
+
 db_file = "spec/fixtures/fixture_database.sqlite3"
 
 ActiveRecord::Base.configurations = {
