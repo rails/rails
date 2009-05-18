@@ -302,6 +302,13 @@ class ArrayToXmlTests < Test::Unit::TestCase
     xml = [].to_xml
     assert_match(/type="array"\/>/, xml)
   end
+
+  def test_to_xml_dups_options
+    options = {:skip_instruct => true}
+    [].to_xml(options)
+    # :builder, etc, shouldn't be added to options
+    assert_equal({:skip_instruct => true}, options)
+  end
 end
 
 class ArrayExtractOptionsTests < Test::Unit::TestCase

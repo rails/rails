@@ -880,6 +880,13 @@ class HashToXmlTest < Test::Unit::TestCase
     assert_equal 30,    alert_at.min
     assert_equal 45,    alert_at.sec
   end
+
+  def test_to_xml_dups_options
+    options = {:skip_instruct => true}
+    {}.to_xml(options)
+    # :builder, etc, shouldn't be added to options
+    assert_equal({:skip_instruct => true}, options)
+  end
 end
 
 class QueryTest < Test::Unit::TestCase
