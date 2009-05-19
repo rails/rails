@@ -20,22 +20,28 @@ class CacheStoreSettingTest < ActiveSupport::TestCase
   end
 
   def test_mem_cache_fragment_cache_store
+    MemCache.expects(:new).with(%w[localhost], {})
     store = ActiveSupport::Cache.lookup_store :mem_cache_store, "localhost"
     assert_kind_of(ActiveSupport::Cache::MemCacheStore, store)
-    assert_equal %w(localhost), store.addresses
+  end
+
+  def test_mem_cache_fragment_cache_store_with_given_mem_cache
+    mem_cache = MemCache.new
+    MemCache.expects(:new).never
+    store = ActiveSupport::Cache.lookup_store :mem_cache_store, mem_cache
+    assert_kind_of(ActiveSupport::Cache::MemCacheStore, store)
   end
 
   def test_mem_cache_fragment_cache_store_with_multiple_servers
+    MemCache.expects(:new).with(%w[localhost 192.168.1.1], {})
     store = ActiveSupport::Cache.lookup_store :mem_cache_store, "localhost", '192.168.1.1'
     assert_kind_of(ActiveSupport::Cache::MemCacheStore, store)
-    assert_equal %w(localhost 192.168.1.1), store.addresses
   end
 
   def test_mem_cache_fragment_cache_store_with_options
+    MemCache.expects(:new).with(%w[localhost 192.168.1.1], { :namespace => "foo" })
     store = ActiveSupport::Cache.lookup_store :mem_cache_store, "localhost", '192.168.1.1', :namespace => 'foo'
     assert_kind_of(ActiveSupport::Cache::MemCacheStore, store)
-    assert_equal %w(localhost 192.168.1.1), store.addresses
-    assert_equal 'foo', store.instance_variable_get('@data').instance_variable_get('@namespace')
   end
 
   def test_object_assigned_fragment_cache_store

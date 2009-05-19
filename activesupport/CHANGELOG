@@ -1,3 +1,8 @@
+*2.3.3 (pending)*
+
+* Allow MemCacheStore to be initialized with a MemCache object instead of addresses and options [Bryan Helmkamp]
+
+
 *2.3.2 [Final] (March 15, 2009)*
 
 * XmlMini supports LibXML and Nokogiri backends.  #2084, #2190 [Bart ten Brinke, Aaron Patterson]
