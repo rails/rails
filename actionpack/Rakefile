@@ -21,7 +21,7 @@ task :default => [ :test ]
 
 # Run the unit tests
 
-desc "Run all unit tests" # Do not remove :test_new_base
+desc "Run all unit tests"
 task :test => [:test_action_pack, :test_active_record_integration, :test_new_base]
 
 Rake::TestTask.new(:test_action_pack) do |t|
