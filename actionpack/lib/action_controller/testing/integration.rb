@@ -62,8 +62,8 @@ module ActionController
       # with 'HTTP_' if not already.
       def xml_http_request(request_method, path, parameters = nil, headers = nil)
         headers ||= {}
-        headers['X-Requested-With'] = 'XMLHttpRequest'
-        headers['Accept'] ||= [Mime::JS, Mime::HTML, Mime::XML, 'text/xml', Mime::ALL].join(', ')
+        headers['HTTP_X_REQUESTED_WITH'] = 'XMLHttpRequest'
+        headers['HTTP_ACCEPT'] ||= [Mime::JS, Mime::HTML, Mime::XML, 'text/xml', Mime::ALL].join(', ')
         process(request_method, path, parameters, headers)
       end
       alias xhr :xml_http_request
@@ -228,7 +228,7 @@ module ActionController
 
       private
         # Performs the actual request.
-        def process(method, path, parameters = nil, headers = nil)
+        def process(method, path, parameters = nil, rack_environment = nil)
           if path =~ %r{://}
             location = URI.parse(path)
             https! URI::HTTPS === location if location.scheme
@@ -265,9 +265,7 @@ module ActionController
           }
           env = Rack::MockRequest.env_for(path, opts)
 
-          (headers || {}).each do |key, value|
-            key = key.to_s.upcase.gsub(/-/, "_")
-            key = "HTTP_#{key}" unless env.has_key?(key) || key =~ /^HTTP_/
+          (rack_environment || {}).each do |key, value|
             env[key] = value
           end
 

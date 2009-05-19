@@ -13,7 +13,7 @@ require 'models/pet'
 require 'models/toy'
 
 class HasManyThroughAssociationsTest < ActiveRecord::TestCase
-  fixtures :posts, :readers, :people, :comments, :authors, :owners, :pets, :toys
+  fixtures :posts, :readers, :people, :comments, :authors, :owners, :pets, :toys, :jobs, :references
 
   def test_associate_existing
     assert_queries(2) { posts(:thinking);people(:david) }

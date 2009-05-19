@@ -1,5 +1,3 @@
-require 'active_support/core_ext/kernel/reporting'
-
 module Rails
   # The Plugin class should be an object which provides the following methods:
   #
@@ -141,6 +139,7 @@ module Rails
 
       def evaluate_init_rb(initializer)
         if has_init_file?
+          require 'active_support/core_ext/kernel/reporting'
           silence_warnings do
             # Allow plugins to reference the current configuration object
             config = initializer.configuration

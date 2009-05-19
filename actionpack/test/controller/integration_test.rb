@@ -123,8 +123,8 @@ class SessionTest < Test::Unit::TestCase
   def test_xml_http_request_get
     path = "/index"; params = "blah"; headers = {:location => 'blah'}
     headers_after_xhr = headers.merge(
-      "X-Requested-With" => "XMLHttpRequest",
-      "Accept"           => "text/javascript, text/html, application/xml, text/xml, */*"
+      "HTTP_X_REQUESTED_WITH" => "XMLHttpRequest",
+      "HTTP_ACCEPT"           => "text/javascript, text/html, application/xml, text/xml, */*"
     )
     @session.expects(:process).with(:get,path,params,headers_after_xhr)
     @session.xml_http_request(:get,path,params,headers)
@@ -133,8 +133,8 @@ class SessionTest < Test::Unit::TestCase
   def test_xml_http_request_post
     path = "/index"; params = "blah"; headers = {:location => 'blah'}
     headers_after_xhr = headers.merge(
-      "X-Requested-With" => "XMLHttpRequest",
-      "Accept"           => "text/javascript, text/html, application/xml, text/xml, */*"
+      "HTTP_X_REQUESTED_WITH" => "XMLHttpRequest",
+      "HTTP_ACCEPT"           => "text/javascript, text/html, application/xml, text/xml, */*"
     )
     @session.expects(:process).with(:post,path,params,headers_after_xhr)
     @session.xml_http_request(:post,path,params,headers)
@@ -143,8 +143,8 @@ class SessionTest < Test::Unit::TestCase
   def test_xml_http_request_put
     path = "/index"; params = "blah"; headers = {:location => 'blah'}
     headers_after_xhr = headers.merge(
-      "X-Requested-With" => "XMLHttpRequest",
-      "Accept"           => "text/javascript, text/html, application/xml, text/xml, */*"
+      "HTTP_X_REQUESTED_WITH" => "XMLHttpRequest",
+      "HTTP_ACCEPT"           => "text/javascript, text/html, application/xml, text/xml, */*"
     )
     @session.expects(:process).with(:put,path,params,headers_after_xhr)
     @session.xml_http_request(:put,path,params,headers)
@@ -153,8 +153,8 @@ class SessionTest < Test::Unit::TestCase
   def test_xml_http_request_delete
     path = "/index"; params = "blah"; headers = {:location => 'blah'}
     headers_after_xhr = headers.merge(
-      "X-Requested-With" => "XMLHttpRequest",
-      "Accept"           => "text/javascript, text/html, application/xml, text/xml, */*"
+      "HTTP_X_REQUESTED_WITH" => "XMLHttpRequest",
+      "HTTP_ACCEPT"           => "text/javascript, text/html, application/xml, text/xml, */*"
     )
     @session.expects(:process).with(:delete,path,params,headers_after_xhr)
     @session.xml_http_request(:delete,path,params,headers)
@@ -163,17 +163,17 @@ class SessionTest < Test::Unit::TestCase
   def test_xml_http_request_head
     path = "/index"; params = "blah"; headers = {:location => 'blah'}
     headers_after_xhr = headers.merge(
-      "X-Requested-With" => "XMLHttpRequest",
-      "Accept"           => "text/javascript, text/html, application/xml, text/xml, */*"
+      "HTTP_X_REQUESTED_WITH" => "XMLHttpRequest",
+      "HTTP_ACCEPT"           => "text/javascript, text/html, application/xml, text/xml, */*"
     )
     @session.expects(:process).with(:head,path,params,headers_after_xhr)
     @session.xml_http_request(:head,path,params,headers)
   end
 
   def test_xml_http_request_override_accept
-    path = "/index"; params = "blah"; headers = {:location => 'blah', "Accept" => "application/xml"}
+    path = "/index"; params = "blah"; headers = {:location => 'blah', "HTTP_ACCEPT" => "application/xml"}
     headers_after_xhr = headers.merge(
-      "X-Requested-With" => "XMLHttpRequest"
+      "HTTP_X_REQUESTED_WITH" => "XMLHttpRequest"
     )
     @session.expects(:process).with(:post,path,params,headers_after_xhr)
     @session.xml_http_request(:post,path,params,headers)

@@ -20,8 +20,8 @@ require 'action_controller/abstract'
 require 'action_controller/new_base'
 require 'pp' # require 'pp' early to prevent hidden_methods from not picking up the pretty-print methods until too late
 
-require 'rubygems'
-require 'rack/test'
+require 'action_controller/testing/process'
+require 'action_controller/testing/integration'
 
 module Rails
   def self.env
@@ -32,9 +32,7 @@ module Rails
 end
 
 # Temporary base class
-class Rack::TestCase < ActiveSupport::TestCase
-  include Rack::Test::Methods
-  
+class Rack::TestCase < ActionController::IntegrationTest
   setup do
     ActionController::Base.session_options[:key] = "abc"
     ActionController::Base.session_options[:secret] = ("*" * 30)
@@ -82,7 +80,7 @@ class Rack::TestCase < ActiveSupport::TestCase
   end
   
   def assert_body(body)
-    assert_equal body, Array.wrap(last_response.body).join
+    assert_equal body, Array.wrap(response.body).join
   end
   
   def self.assert_body(body)
@@ -92,7 +90,7 @@ class Rack::TestCase < ActiveSupport::TestCase
   end
   
   def assert_status(code)
-    assert_equal code, last_response.status
+    assert_equal code, response.status
   end
   
   def self.assert_status(code)
@@ -110,7 +108,7 @@ class Rack::TestCase < ActiveSupport::TestCase
   end
   
   def assert_content_type(type)
-    assert_equal type, last_response.headers["Content-Type"]
+    assert_equal type, response.headers["Content-Type"]
   end
   
   def self.assert_content_type(type)
@@ -120,7 +118,7 @@ class Rack::TestCase < ActiveSupport::TestCase
   end
   
   def assert_header(name, value)
-    assert_equal value, last_response.headers[name]
+    assert_equal value, response.headers[name]
   end
   
   def self.assert_header(name, value)

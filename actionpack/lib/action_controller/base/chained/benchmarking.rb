@@ -21,7 +21,7 @@ module ActionController #:nodoc:
       # easy to include benchmarking statements in production software that will remain inexpensive because the benchmark
       # will only be conducted if the log level is low enough.
       def benchmark(title, log_level = Logger::DEBUG, use_silence = true)
-        if logger && logger.level == log_level
+        if logger && logger.level >= log_level
           result = nil
           ms = Benchmark.ms { result = use_silence ? silence { yield } : yield }
           logger.add(log_level, "#{title} (#{('%.1f' % ms)}ms)")
