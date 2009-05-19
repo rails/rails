@@ -27,6 +27,12 @@ class CacheStoreSettingTest < ActiveSupport::TestCase
     assert_kind_of(ActiveSupport::Cache::MemCacheStore, store)
   end
 
+  def test_mem_cache_fragment_cache_store_with_given_mem_cache_like_object
+    MemCache.expects(:new).never
+    store = ActiveSupport::Cache.lookup_store :mem_cache_store, stub("memcache", :get => true)
+    assert_kind_of(ActiveSupport::Cache::MemCacheStore, store)
+  end
+
   def test_mem_cache_fragment_cache_store_with_multiple_servers
     MemCache.expects(:new).with(%w[localhost 192.168.1.1], {})
     store = ActiveSupport::Cache.lookup_store :mem_cache_store, "localhost", '192.168.1.1'
