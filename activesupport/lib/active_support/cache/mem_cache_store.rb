@@ -39,7 +39,7 @@ module ActiveSupport
       # If no addresses are specified, then MemCacheStore will connect to
       # localhost port 11211 (the default memcached port).
       def initialize(*addresses)
-        if addresses.first.is_a?(MemCache)
+        if addresses.first.respond_to?(:get)
           @data = addresses.first
         else
           @data = self.class.build_mem_cache(*addresses)
