@@ -47,7 +47,7 @@ $ sudo aptitude update
 * If you did not configure no-root-gem installation via ~/.gemrc as shown above, then allow no-password sudo for gem installation:
 $ sudo visudo
 # add this line to bottom:
-ci      ALL=NOPASSWD: /usr/local/bin/geminstaller, /usr/local/bin/ruby, /usr/local/bin/gem
+ci      ALL=(ALL) NOPASSWD: ALL
 
 * Start ccrb via init script and check for default homepage at port 3333
 
