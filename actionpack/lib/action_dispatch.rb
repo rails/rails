@@ -27,7 +27,7 @@ require 'active_support'
 
 begin
   gem 'rack', '~> 1.1.pre'
-rescue Gem::LoadError
+rescue Gem::LoadError, ArgumentError
   $:.unshift "#{File.dirname(__FILE__)}/action_dispatch/vendor/rack-1.1.pre"
 end
 
