@@ -37,7 +37,7 @@ module ActionController
     end
     
     delegate :headers, :to => "@_response"
-    
+
     def params
       @_params ||= @_request.parameters
     end

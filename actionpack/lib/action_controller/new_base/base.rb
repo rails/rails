@@ -14,6 +14,9 @@ module ActionController
     include ActionController::Layouts
     include ActionController::ConditionalGet
 
+    include ActionController::Session
+    include ActionController::Flash
+
     # Legacy modules
     include SessionManagement
     include ActionDispatch::StatusCodes

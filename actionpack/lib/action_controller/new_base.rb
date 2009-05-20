@@ -10,7 +10,8 @@ module ActionController
   autoload :Rescue,               "action_controller/new_base/rescuable"
   autoload :Testing,              "action_controller/new_base/testing"
   autoload :UrlFor,               "action_controller/new_base/url_for"
-  
+  autoload :Session,              "action_controller/new_base/session"
+
   # Ported modules
   # require 'action_controller/routing'
   autoload :Caching,           'action_controller/caching'
@@ -23,6 +24,8 @@ module ActionController
   autoload :TestCase,          'action_controller/testing/test_case'
   autoload :UrlRewriter,       'action_controller/routing/generation/url_rewriter'
   autoload :UrlWriter,         'action_controller/routing/generation/url_rewriter'
+
+  autoload :Flash, 'action_controller/base/chained/flash'
   
   require 'action_controller/routing'
 end

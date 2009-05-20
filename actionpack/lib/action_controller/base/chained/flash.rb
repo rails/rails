@@ -26,9 +26,18 @@ module ActionController #:nodoc:
   #
   # See docs on the FlashHash class for more details about the flash.
   module Flash
-    def self.included(base)
-      base.class_eval do
-        include InstanceMethods
+    extend ActiveSupport::DependencyModule
+
+    # TODO : Remove the defined? check when new base is the main base
+    depends_on Session if defined?(ActionController::Http)
+    
+    included do
+      # TODO : Remove the defined? check when new base is the main base
+      if defined?(ActionController::Http)
+        include InstanceMethodsForNewBase
+      else
+        include InstanceMethodsForBase
+
         alias_method_chain :perform_action, :flash
         alias_method_chain :reset_session,  :flash
       end
@@ -135,29 +144,50 @@ module ActionController #:nodoc:
         end
     end
 
-    module InstanceMethods #:nodoc:
+    module InstanceMethodsForBase #:nodoc:
       protected
-        def perform_action_with_flash
-          perform_action_without_flash
-          remove_instance_variable(:@_flash) if defined? @_flash
-        end
 
-        def reset_session_with_flash
-          reset_session_without_flash
-          remove_instance_variable(:@_flash) if defined? @_flash
-        end
+      def perform_action_with_flash
+        perform_action_without_flash
+        remove_instance_variable(:@_flash) if defined?(@_flash)
+      end
 
-        # Access the contents of the flash. Use <tt>flash["notice"]</tt> to
-        # read a notice you put there or <tt>flash["notice"] = "hello"</tt>
-        # to put a new one.
-        def flash #:doc:
-          unless defined? @_flash
-            @_flash = session["flash"] ||= FlashHash.new
-            @_flash.sweep
-          end
+      def reset_session_with_flash
+        reset_session_without_flash
+        remove_instance_variable(:@_flash) if defined?(@_flash)
+      end
+    end
 
-          @_flash
-        end
+    module InstanceMethodsForNewBase #:nodoc:
+      protected
+
+      def reset_session
+        super
+        remove_flash_instance_variable
+      end
+
+      def process_action(method_name)
+        super
+        remove_flash_instance_variable
+      end
+      
+      def remove_flash_instance_variable
+        remove_instance_variable(:@_flash) if defined?(@_flash)
+      end
+    end
+
+    protected
+
+    # Access the contents of the flash. Use <tt>flash["notice"]</tt> to
+    # read a notice you put there or <tt>flash["notice"] = "hello"</tt>
+    # to put a new one.
+    def flash #:doc:
+      unless defined?(@_flash)
+        @_flash = session["flash"] ||= FlashHash.new
+        @_flash.sweep
+      end
+
+      @_flash
     end
   end
 end
