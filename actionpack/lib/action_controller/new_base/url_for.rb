@@ -1,5 +1,10 @@
 module ActionController
   module UrlFor
+    def process_action(*)
+      initialize_current_url
+      super
+    end
+
     def initialize_current_url
       @url = UrlRewriter.new(request, params.clone)
     end

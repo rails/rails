@@ -55,6 +55,10 @@ module ActionController
       self.consider_all_requests_local = true
     end
     
+    # For old tests
+    def initialize_template_class(*) end
+    def assign_shortcuts(*) end
+
     module ClassMethods
       def protect_from_forgery() end
       def consider_all_requests_local() end

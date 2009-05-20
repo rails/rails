@@ -60,7 +60,6 @@ module ActionController
     
     # :api: private
     def to_rack
-      @_response.body = response_body
       @_response.prepare!
       @_response.to_a
     end
