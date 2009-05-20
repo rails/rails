@@ -102,7 +102,7 @@ module ActionDispatch
       end
 
       def render(status, body)
-        [status, {'Content-Type' => 'text/html', 'Content-Length' => body.length.to_s}, body]
+        [status, {'Content-Type' => 'text/html', 'Content-Length' => body.length.to_s}, [body]]
       end
 
       def public_path
