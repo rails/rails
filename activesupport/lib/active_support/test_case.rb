@@ -32,6 +32,11 @@ module ActiveSupport
       include ActiveSupport::Testing::Default
     end
 
+    $tags = {}
+    def self.for_tag(tag)
+      yield if $tags[tag]
+    end
+
     include ActiveSupport::Testing::SetupAndTeardown
     include ActiveSupport::Testing::Assertions
     include ActiveSupport::Testing::Deprecation

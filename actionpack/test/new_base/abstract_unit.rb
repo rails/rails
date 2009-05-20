@@ -16,6 +16,9 @@ require 'action_view/test_case'
 require 'action_controller/testing/integration'
 require 'active_support/dependencies'
 
+$tags[:new_base] = true
+
+
 ActiveSupport::Dependencies.hook!
 
 FIXTURE_LOAD_PATH = File.join(File.dirname(__FILE__), '../fixtures')

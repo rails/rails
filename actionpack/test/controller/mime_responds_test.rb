@@ -375,9 +375,11 @@ class MimeControllerTest < ActionController::TestCase
   end
 
   def test_rjs_type_skips_layout
-    @request.accept = "text/javascript"
-    get :all_types_with_layout
-    assert_equal 'RJS for all_types_with_layout', @response.body
+    pending(:new_base) do
+      @request.accept = "text/javascript"
+      get :all_types_with_layout
+      assert_equal 'RJS for all_types_with_layout', @response.body
+    end
   end
 
   def test_html_type_with_layout
@@ -510,7 +512,7 @@ class SuperPostController < PostController
   end
 end
 
-if ENV["new_base"]
+if defined?(ActionController::Http)
   PostController._write_layout_method
   SuperPostController._write_layout_method
 end
@@ -532,14 +534,16 @@ class MimeControllerLayoutsTest < ActionController::TestCase
     assert_equal 'Hello iPhone', @response.body
   end
 
-  def test_format_with_inherited_layouts
-    @controller = SuperPostController.new
+  for_tag(:old_base) do
+    def test_format_with_inherited_layouts
+      @controller = SuperPostController.new
 
-    get :index
-    assert_equal 'Super Firefox', @response.body
+      get :index
+      assert_equal 'Super Firefox', @response.body
 
-    @request.accept = "text/iphone"
-    get :index
-    assert_equal '<html><div id="super_iphone">Super iPhone</div></html>', @response.body
+      @request.accept = "text/iphone"
+      get :index
+      assert_equal '<html><div id="super_iphone">Super iPhone</div></html>', @response.body
+    end
   end
 end
