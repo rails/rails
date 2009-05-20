@@ -59,6 +59,11 @@ module ActionController
     def initialize_template_class(*) end
     def assign_shortcuts(*) end
 
+    # TODO: Remove this after we flip
+    def template
+      _action_view
+    end
+
     module ClassMethods
       def protect_from_forgery() end
       def consider_all_requests_local() end
@@ -95,10 +100,8 @@ module ActionController
       super || (respond_to?(:method_missing) && "_handle_method_missing")
     end    
       
-    def _layout_for_name(name)
-      name &&= name.sub(%r{^/?layouts/}, '')
-      super
+    def _layout_prefix(name)
+      super unless name =~ /\blayouts/
     end
-   
   end
 end

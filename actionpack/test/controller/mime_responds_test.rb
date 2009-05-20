@@ -437,7 +437,7 @@ class MimeControllerTest < ActionController::TestCase
     @controller.instance_eval do
       def render(*args)
         unless args.empty?
-          @action = args.first[:action]
+          @action = args.first[:action] || action_name
         end
         response.body = "#{@action} - #{@template.formats}"
       end
@@ -490,14 +490,15 @@ class PostController < AbstractPostController
     end
   end
 
-  protected
-    def with_iphone
-      Mime::Type.register_alias("text/html", :iphone)
-      request.format = "iphone" if request.env["HTTP_ACCEPT"] == "text/iphone"
-      yield
-    ensure
-      Mime.module_eval { remove_const :IPHONE if const_defined?(:IPHONE) }
-    end
+protected
+
+  def with_iphone
+    Mime::Type.register_alias("text/html", :iphone)
+    request.format = "iphone" if request.env["HTTP_ACCEPT"] == "text/iphone"
+    yield
+  ensure
+    Mime.module_eval { remove_const :IPHONE if const_defined?(:IPHONE) }
+  end
 end
 
 class SuperPostController < PostController
@@ -507,6 +508,11 @@ class SuperPostController < PostController
       type.iphone
     end
   end
+end
+
+if ENV["new_base"]
+  PostController._write_layout_method
+  SuperPostController._write_layout_method
 end
 
 class MimeControllerLayoutsTest < ActionController::TestCase

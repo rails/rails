@@ -66,7 +66,12 @@ module AbstractController
         raise ArgumentError, "String, false, or nil expected; you passed #{name.inspect}"
       end
       
-      name && view_paths.find_by_parts(name, {:formats => formats}, "layouts")
+      name && view_paths.find_by_parts(name, {:formats => formats}, _layout_prefix(name))
+    end
+
+    # TODO: Decide if this is the best hook point for the feature
+    def _layout_prefix(name)
+      "layouts"
     end
     
     def _default_layout(require_layout = false)

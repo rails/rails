@@ -18,6 +18,7 @@ module ActionController
     include SessionManagement
     include ActionDispatch::StatusCodes
     include ActionController::Caching
+    include ActionController::MimeResponds
 
     # Rails 2.x compatibility
     include ActionController::Rails2Compatibility

@@ -41,6 +41,7 @@ module ActionController #:nodoc:
     end
 
     def recycle!
+      @formats = nil
       @env.delete_if { |k, v| k =~ /^(action_dispatch|rack)\.request/ }
       @env.delete_if { |k, v| k =~ /^action_dispatch\.rescue/ }
       @env['action_dispatch.request.query_parameters'] = {}

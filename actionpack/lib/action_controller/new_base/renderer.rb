@@ -18,7 +18,7 @@ module ActionController
       _process_options(options)
       
       if options.key?(:text)
-        options[:_template] = ActionView::TextTemplate.new(_text(options))
+        options[:_template] = ActionView::TextTemplate.new(_text(options), formats.first)
         template = nil
       elsif options.key?(:inline)
         handler = ActionView::Template.handler_class_for_extension(options[:type] || "erb")
