@@ -36,13 +36,13 @@ class Rack::TestCase < ActionController::IntegrationTest
   setup do
     ActionController::Base.session_options[:key] = "abc"
     ActionController::Base.session_options[:secret] = ("*" * 30)
-    
+
     controllers = ActionController::Base.subclasses.map do |k| 
       k.underscore.sub(/_controller$/, '')
     end
-    
+
     ActionController::Routing.use_controllers!(controllers)
-    
+
     # Move into a bootloader
     ActionController::Base.subclasses.each do |klass|
       klass = klass.constantize
@@ -50,13 +50,13 @@ class Rack::TestCase < ActionController::IntegrationTest
       klass.class_eval do
         _write_layout_method
       end
-    end    
+    end
   end
-    
+
   def app
     @app ||= ActionController::Dispatcher.new
   end
-  
+
   def self.testing(klass = nil)
     if klass
       @testing = "/#{klass.name.underscore}".sub!(/_controller$/, '')
@@ -64,13 +64,7 @@ class Rack::TestCase < ActionController::IntegrationTest
       @testing
     end
   end
-  
-  def self.get(url)
-    setup do |test|
-      test.get url
-    end
-  end
-  
+
   def get(thing, *args)
     if thing.is_a?(Symbol)
       super("#{self.class.testing}/#{thing}")
@@ -78,27 +72,15 @@ class Rack::TestCase < ActionController::IntegrationTest
       super
     end
   end
-  
+
   def assert_body(body)
     assert_equal body, Array.wrap(response.body).join
   end
-  
-  def self.assert_body(body)
-    test "body is set to '#{body}'" do
-      assert_body body
-    end
-  end
-  
+
   def assert_status(code)
     assert_equal code, response.status
   end
-  
-  def self.assert_status(code)
-    test "status code is set to #{code}" do
-      assert_status code
-    end
-  end
-  
+
   def assert_response(body, status = 200, headers = {})
     assert_body   body
     assert_status status
@@ -106,27 +88,14 @@ class Rack::TestCase < ActionController::IntegrationTest
       assert_header header, value
     end
   end
-  
+
   def assert_content_type(type)
     assert_equal type, response.headers["Content-Type"]
   end
-  
-  def self.assert_content_type(type)
-    test "content type is set to #{type}" do
-      assert_content_type(type)
-    end
-  end
-  
+
   def assert_header(name, value)
     assert_equal value, response.headers[name]
   end
-  
-  def self.assert_header(name, value)
-    test "'#{name}' header is set to #{value.inspect}" do
-      assert_header(name, value)
-    end
-  end
-  
 end
 
 class ::ApplicationController < ActionController::Base

@@ -79,7 +79,6 @@ module RenderTemplate
   end
     
   class WithLayoutController < ::ApplicationController
-    
     self.view_paths = [ActionView::Template::FixturePath.new(
       "test/basic.html.erb"          => "Hello from basic.html.erb",
       "shared.html.erb"              => "Elastica",
@@ -108,46 +107,45 @@ module RenderTemplate
     end
   end
   
-  class TestTemplateRenderWithLayout < SimpleRouteCase
-    describe "rendering a normal template with full path with layout"
-    
-    get "/render_template/with_layout"
-    assert_body   "Hello from basic.html.erb, I'm here!"
-    assert_status 200
+  class TestWithLayout < SimpleRouteCase
+    describe "Rendering with :template using implicit or explicit layout"
+
+    test "rendering with implicit layout" do
+      get "/render_template/with_layout"
+
+      assert_body "Hello from basic.html.erb, I'm here!"
+      assert_status 200
+    end
+
+    test "rendering with layout => :true" do
+      get "/render_template/with_layout/with_layout"
+
+      assert_body "Hello from basic.html.erb, I'm here!"
+      assert_status 200
+    end
+
+    test "rendering with layout => :false" do
+      get "/render_template/with_layout/with_layout_false"
+
+      assert_body "Hello from basic.html.erb"
+      assert_status 200
+    end
+
+    test "rendering with layout => :nil" do
+      get "/render_template/with_layout/with_layout_nil"
+
+      assert_body "Hello from basic.html.erb"
+      assert_status 200
+    end
+
+    test "rendering layout => 'greetings'" do
+      get "/render_template/with_layout/with_custom_layout"
+
+      assert_body "Hello from basic.html.erb, I wish thee well."
+      assert_status 200
+    end
   end
-  
-  class TestTemplateRenderWithLayoutTrue < SimpleRouteCase
-    describe "rendering a normal template with full path with layout => :true"
-    
-    get "/render_template/with_layout/with_layout"
-    assert_body   "Hello from basic.html.erb, I'm here!"
-    assert_status 200
-  end
-  
-  class TestTemplateRenderWithLayoutFalse < SimpleRouteCase
-    describe "rendering a normal template with full path with layout => :false"
-    
-    get "/render_template/with_layout/with_layout_false"
-    assert_body   "Hello from basic.html.erb"
-    assert_status 200
-  end
-  
-  class TestTemplateRenderWithLayoutNil < SimpleRouteCase
-    describe "rendering a normal template with full path with layout => :nil"
-    
-    get "/render_template/with_layout/with_layout_nil"
-    assert_body   "Hello from basic.html.erb"
-    assert_status 200
-  end
-  
-  class TestTemplateRenderWithCustomLayout < SimpleRouteCase
-    describe "rendering a normal template with full path with layout => 'greetings'"
-    
-    get "/render_template/with_layout/with_custom_layout"
-    assert_body   "Hello from basic.html.erb, I wish thee well."
-    assert_status 200
-  end
-  
+
   module Compatibility
     class WithoutLayoutController < ActionController::Base
       self.view_paths = [ActionView::Template::FixturePath.new(
@@ -161,11 +159,12 @@ module RenderTemplate
     end
 
     class TestTemplateRenderWithForwardSlash < SimpleRouteCase
-      describe "rendering a normal template with full path starting with a leading slash"
+      test "rendering a normal template with full path starting with a leading slash" do
+        get "/render_template/compatibility/without_layout/with_forward_slash"
 
-      get "/render_template/compatibility/without_layout/with_forward_slash"
-      assert_body   "Hello from basic.html.erb"
-      assert_status 200
+        assert_body "Hello from basic.html.erb"
+        assert_status 200
+      end
     end
   end
 end
