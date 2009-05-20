@@ -17,6 +17,7 @@ module ActionController
     # Legacy modules
     include SessionManagement
     include ActionDispatch::StatusCodes
+    include ActionController::Caching
 
     # Rails 2.x compatibility
     include ActionController::Rails2Compatibility

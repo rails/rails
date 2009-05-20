@@ -13,6 +13,7 @@ module ActionController
   
   # Ported modules
   # require 'action_controller/routing'
+  autoload :Caching,           'action_controller/caching'
   autoload :Dispatcher,        'action_controller/dispatch/dispatcher'
   autoload :PolymorphicRoutes, 'action_controller/routing/generation/polymorphic_routes'
   autoload :RecordIdentifier,  'action_controller/record_identifier'
