@@ -1,4 +1,14 @@
 module Arel
+  class SqlLiteral < String
+    def relation
+      nil
+    end
+    
+    def to_sql(formatter = nil)
+      self
+    end
+  end
+
   class Attribute
     def column
       original_relation.column_for(self)
