@@ -57,8 +57,7 @@ end
 
 desc 'Old Controller Tests on New Base'
 Rake::TestTask.new(:test_new_base_on_old_tests) do |t|
-  ENV['new_base'] = "true"
-  t.libs << "test"
+  t.libs << "test/new_base" << "test"
   # content_type mime_responds layout
   t.test_files = %w(
     addresses_render base benchmark caching capture dispatcher record_identifier

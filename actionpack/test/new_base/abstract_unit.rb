@@ -1,7 +1,9 @@
+$:.unshift(File.dirname(__FILE__) + '/../../lib')
+$:.unshift(File.dirname(__FILE__) + '/../../../activesupport/lib')
 $:.unshift(File.dirname(__FILE__) + '/../lib')
-$:.unshift(File.dirname(__FILE__) + '/../../activesupport/lib')
-$:.unshift(File.dirname(__FILE__) + '/lib')
 
+ENV['new_base'] = "true"
+$stderr.puts "Running old tests on new_base"
 
 require 'test/unit'
 require 'active_support'
@@ -16,7 +18,7 @@ require 'active_support/dependencies'
 
 ActiveSupport::Dependencies.hook!
 
-FIXTURE_LOAD_PATH = File.join(File.dirname(__FILE__), 'fixtures')
+FIXTURE_LOAD_PATH = File.join(File.dirname(__FILE__), '../fixtures')
 
 module ActionController
   Base.session = {
