@@ -33,6 +33,8 @@ end
 
 require 'rack'
 
+$:.unshift "#{File.dirname(__FILE__)}/action_dispatch/vendor/rack-test"
+
 module ActionDispatch
   autoload :Request, 'action_dispatch/http/request'
   autoload :Response, 'action_dispatch/http/response'

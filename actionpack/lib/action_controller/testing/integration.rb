@@ -1,8 +1,9 @@
 require 'stringio'
 require 'uri'
 require 'active_support/test_case'
-require 'rack/test'
+
 require 'rack/mock_session'
+require 'rack/test/cookie_jar'
 
 module ActionController
   module Integration #:nodoc:
