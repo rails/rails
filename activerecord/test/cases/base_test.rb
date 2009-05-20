@@ -627,6 +627,16 @@ class BasicsTest < ActiveRecord::TestCase
     assert_equal -2, Topic.find(2).replies_count
   end
 
+  def test_reset_counter_cache
+    assert_equal 1, Topic.find(1).replies_count
+
+    Topic.increment_counter("replies_count", 1)
+    assert_equal 2, Topic.find(1).replies_count
+
+    Topic.reset_counter_cache(:replies)
+    assert_equal 1, Topic.find(1).replies_count
+  end
+
   def test_update_counter
     category = categories(:general)
     assert_nil category.categorizations_count
