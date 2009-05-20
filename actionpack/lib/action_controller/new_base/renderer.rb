@@ -9,6 +9,11 @@ module ActionController
       super
     end
     
+    def response_body=(body)
+      response.body = body if response
+      super
+    end
+
     def render_to_body(options)
       _process_options(options)
       

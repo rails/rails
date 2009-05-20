@@ -61,8 +61,14 @@ module ActionController #:nodoc:
           filter_options = { :only => actions, :if => options.delete(:if), :unless => options.delete(:unless) }
 
           cache_filter = ActionCacheFilter.new(:layout => options.delete(:layout), :cache_path => options.delete(:cache_path), :store_options => options)
-          around_filter(filter_options) do |controller, action|
-            cache_filter.filter(controller, action)
+
+          # TODO: Remove this once new base is swapped in.
+          if defined?(Http)
+            around_filter cache_filter, filter_options
+          else
+            around_filter(filter_options) do |controller, action|
+              cache_filter.filter(controller, action)
+            end
           end
         end
       end
@@ -85,14 +91,22 @@ module ActionController #:nodoc:
           @options = options
         end
 
+        # TODO: Remove once New Base is merged
         def filter(controller, action)
           should_continue = before(controller)
           action.call if should_continue
           after(controller)
         end
 
+        def around_process_action(controller)
+          should_continue = before(controller)
+          yield if should_continue
+          after(controller)
+        end
+
         def before(controller)
           cache_path = ActionCachePath.new(controller, path_options_for(controller, @options.slice(:cache_path)))
+
           if cache = controller.read_fragment(cache_path.path, @options[:store_options])
             controller.rendered_action_cache = true
             set_content_type!(controller, cache_path.extension)
@@ -129,7 +143,9 @@ module ActionController #:nodoc:
           end
 
           def content_for_layout(controller)
-            controller.template.layout && controller.template.instance_variable_get('@cached_content_for_layout')
+            # TODO: Remove this when new base is merged in
+            template = controller.respond_to?(:template) ? controller.template : controller._action_view
+            template.layout && template.instance_variable_get('@cached_content_for_layout')
           end
       end
 
