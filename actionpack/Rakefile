@@ -22,7 +22,7 @@ task :default => [ :test ]
 # Run the unit tests
 
 desc "Run all unit tests"
-task :test => [:test_action_pack, :test_active_record_integration, :test_new_base]
+task :test => [:test_action_pack, :test_active_record_integration, :test_new_base, :test_new_base_on_old_tests]
 
 Rake::TestTask.new(:test_action_pack) do |t|
   t.libs << "test"
@@ -53,6 +53,17 @@ Rake::TestTask.new(:test_new_base) do |t|
   t.libs << "test"
   t.test_files = Dir.glob("test/{abstract_controller,new_base}/*_test.rb")
   t.verbose = true
+end
+
+desc 'Old Controller Tests on New Base'
+Rake::TestTask.new(:test_new_base_on_old_tests) do |t|
+  ENV['new_base'] = "true"
+  t.libs << "test"
+  # content_type mime_responds layout
+  t.test_files = %w(
+    addresses_render base benchmark caching capture dispatcher record_identifier
+    redirect render rescue url_rewriter webservice
+  ).map { |name| "test/controller/#{name}_test.rb" }
 end
 
 
