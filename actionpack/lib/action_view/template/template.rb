@@ -7,13 +7,19 @@ require "action_view/template/path"
 module ActionView
   class Template
     extend TemplateHandlers
-    attr_reader :source, :identifier, :handler
+    attr_reader :source, :identifier, :handler, :mime_type
     
     def initialize(source, identifier, handler, details)
       @source     = source
       @identifier = identifier
       @handler    = handler
       @details    = details
+
+      format = details[:format] || begin
+        # TODO: Clean this up
+        handler.respond_to?(:default_format) ? handler.default_format.to_sym.to_s : "html"
+      end
+      @mime_type = Mime::Type.lookup_by_extension(format.to_s)
     end
     
     def render(view, locals, &blk)
@@ -35,12 +41,7 @@ module ActionView
     def partial?
       @details[:partial]
     end
-    
-    # TODO: Move out of Template
-    def mime_type
-      Mime::Type.lookup_by_extension(@details[:format].to_s) if @details[:format]
-    end
-    
+
   private
 
     def compile(locals, view)

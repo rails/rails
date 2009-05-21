@@ -122,11 +122,10 @@ module ActionController #:nodoc:
           # TODO: Remove this when new base is merged in
           if defined?(Http)
             @controller.formats = [mime_type.to_sym]
-            @controller.template.formats = [mime_type.to_sym]
-          else
-            @controller.template.formats = [mime_type.to_sym]
-            @response.content_type = mime_type.to_s
           end
+
+          @controller.template.formats = [mime_type.to_sym]
+          @response.content_type = mime_type.to_s
 
           block_given? ? block.call : @controller.send(:render, :action => @controller.action_name)
         end

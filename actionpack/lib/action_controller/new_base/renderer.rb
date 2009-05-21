@@ -14,6 +14,16 @@ module ActionController
       super
     end
 
+    def render(options)
+      super
+      options[:_template] ||= _action_view._partial
+      response.content_type ||= begin
+        mime = options[:_template].mime_type
+        formats.include?(mime && mime.to_sym) || formats.include?(:all) ? mime : Mime::Type.lookup_by_extension(formats.first)
+      end
+      response_body
+    end
+
     def render_to_body(options)
       _process_options(options)
       
@@ -35,15 +45,7 @@ module ActionController
         options[:_prefix] = _prefix 
       end
       
-      ret = super(options)
-      
-      options[:_template] ||= _action_view._partial
-      response.content_type ||= begin
-        mime = options[:_template].mime_type
-        mime &&= mime.to_sym
-        formats.include?(mime) ? mime : formats.first
-      end
-      ret
+      super
     end
     
   private

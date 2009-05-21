@@ -175,7 +175,7 @@ module ActionDispatch
       if ActionController::Base.use_accept_header
         Array(Mime[parameters[:format]] || accepts)
       else
-        [format]
+        [format, Mime[:all]]
       end
     end
 

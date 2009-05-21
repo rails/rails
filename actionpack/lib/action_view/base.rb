@@ -288,8 +288,11 @@ module ActionView #:nodoc:
       end
 
       def _set_controller_content_type(content_type) #:nodoc:
-        if controller.respond_to?(:response)
-          controller.response.content_type ||= content_type
+        # TODO: Remove this method when new base is switched
+        unless defined?(ActionController::Http)
+          if controller.respond_to?(:response)
+            controller.response.content_type ||= content_type
+          end
         end
       end
   end

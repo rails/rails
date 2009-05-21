@@ -70,7 +70,7 @@ module ActionController
       end
     end
     
-    def render_to_body(action = nil, options = {})
+    def _normalize_options(action = nil, options = {})
       if action.is_a?(Hash)
         options, action = action, nil 
       elsif action.is_a?(String) || action.is_a?(Symbol)
@@ -87,9 +87,21 @@ module ActionController
       if options.key?(:action) && options[:action].to_s.index("/")
         options[:template] = options.delete(:action)
       end
-      
-      # options = {:template => options.to_s} if options.is_a?(String) || options.is_a?(Symbol)
-      super(options) || " "
+      options
+    end
+
+    def render(action = nil, options = {})
+      options = _normalize_options(action, options)
+      super(options)
+    end
+
+    def render_to_string(action = nil, options = {})
+      options = _normalize_options(action, options)
+      super(options)
+    end
+    
+    def render_to_body(options)
+      super || [" "]
     end
     
     # Redirects the browser to the target specified in +options+. This parameter can take one of three forms:
