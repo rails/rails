@@ -269,15 +269,16 @@ module ActionView #:nodoc:
       nil
     end
 
-    private
-      # Evaluates the local assigns and controller ivars, pushes them to the view.
-      def _evaluate_assigns_and_ivars #:nodoc:
-        unless @assigns_added
-          @assigns.each { |key, value| instance_variable_set("@#{key}", value) }
-          _copy_ivars_from_controller
-          @assigns_added = true
-        end
+    # Evaluates the local assigns and controller ivars, pushes them to the view.
+    def _evaluate_assigns_and_ivars #:nodoc:
+      unless @assigns_added
+        @assigns.each { |key, value| instance_variable_set("@#{key}", value) }
+        _copy_ivars_from_controller
+        @assigns_added = true
       end
+    end
+
+    private
 
       def _copy_ivars_from_controller #:nodoc:
         if @controller

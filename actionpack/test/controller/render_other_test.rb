@@ -103,6 +103,14 @@ class TestController < ActionController::Base
   end  
   
 private
+  def default_render
+    if @alternate_default_render
+      @alternate_default_render.call
+    else
+      super
+    end
+  end
+
   def determine_layout
     case action_name
       when "render_js_with_explicit_template",

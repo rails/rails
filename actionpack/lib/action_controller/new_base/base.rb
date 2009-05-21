@@ -13,6 +13,7 @@ module ActionController
     include ActionController::Renderer
     include ActionController::Renderers::Json
     include ActionController::Renderers::Xml
+    include ActionController::Renderers::Rjs
     include ActionController::Layouts
     include ActionController::ConditionalGet
 
@@ -74,7 +75,7 @@ module ActionController
       end
     end
     
-    def _normalize_options(action = nil, options = {})
+    def _normalize_options(action = nil, options = {}, &blk)
       if action.is_a?(Hash)
         options, action = action, nil 
       elsif action.is_a?(String) || action.is_a?(Symbol)
@@ -93,19 +94,20 @@ module ActionController
       end
 
       if options[:status]
-        options[:status] = interpret_status(options.delete(:status)).to_i
+        options[:status] = interpret_status(options[:status]).to_i
       end
 
+      options[:update] = blk if block_given?
       options
     end
 
-    def render(action = nil, options = {})
-      options = _normalize_options(action, options)
+    def render(action = nil, options = {}, &blk)
+      options = _normalize_options(action, options, &blk)
       super(options)
     end
 
-    def render_to_string(action = nil, options = {})
-      options = _normalize_options(action, options)
+    def render_to_string(action = nil, options = {}, &blk)
+      options = _normalize_options(action, options, &blk)
       super(options)
     end
     

@@ -1,4 +1,5 @@
 require "active_support/core_ext/class/inheritable_attributes"
+require "action_dispatch/http/mime_type"
 
 # Legacy TemplateHandler stub
 module ActionView

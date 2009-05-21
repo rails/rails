@@ -1,5 +1,6 @@
 require 'set'
 require 'active_support/json'
+require 'active_support/core_ext/object/extending'
 
 module ActionView
   module Helpers
@@ -572,6 +573,7 @@ module ActionView
       # #include_helpers_from_context has nothing to overwrite.
       class JavaScriptGenerator #:nodoc:
         def initialize(context, &block) #:nodoc:
+          context._evaluate_assigns_and_ivars
           @context, @lines = context, []
           include_helpers_from_context
           @context.with_output_buffer(@lines) do

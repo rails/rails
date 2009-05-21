@@ -71,5 +71,16 @@ module ActionController
         self.response_body  = xml.respond_to?(:to_xml) ? xml.to_xml : xml
       end
     end
+
+    module Rjs
+      include RenderOption
+      register_renderer :update
+
+      def _render_update(proc, options)
+        generator = ActionView::Helpers::PrototypeHelper::JavaScriptGenerator.new(_action_view, &proc)
+        response.content_type = Mime::JS
+        self.response_body = generator.to_s
+      end
+    end
   end
 end

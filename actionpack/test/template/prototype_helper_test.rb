@@ -61,6 +61,8 @@ class PrototypeHelperBaseTest < ActionView::TestCase
 end
 
 class PrototypeHelperTest < PrototypeHelperBaseTest
+  def _evaluate_assigns_and_ivars() end
+
   def setup
     @record = @author = Author.new
     @article = Article.new
@@ -303,6 +305,8 @@ class JavaScriptGeneratorTest < PrototypeHelperBaseTest
     super
     @generator = create_generator
   end
+
+  def _evaluate_assigns_and_ivars() end
 
   def test_insert_html_with_string
     assert_equal 'Element.insert("element", { top: "\\u003Cp\\u003EThis is a test\\u003C/p\\u003E" });',
