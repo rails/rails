@@ -1,6 +1,7 @@
 require 'yaml'
 require 'set'
 require 'active_support/dependencies'
+require 'active_support/time'
 require 'active_support/core_ext/class/attribute_accessors'
 require 'active_support/core_ext/class/delegating_attributes'
 require 'active_support/core_ext/class/inheritable_attributes'
@@ -10,7 +11,6 @@ require 'active_support/core_ext/hash/indifferent_access'
 require 'active_support/core_ext/hash/slice'
 require 'active_support/core_ext/string/behavior'
 require 'active_support/core_ext/symbol'
-require 'active_support/core/time'
 
 module ActiveRecord #:nodoc:
   # Generic Active Record exception class.

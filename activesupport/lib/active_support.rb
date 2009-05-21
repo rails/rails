@@ -22,8 +22,15 @@
 #++
 
 module ActiveSupport
-  def self.load_all!
-    [Dependencies, Deprecation, Gzip, MessageVerifier, Multibyte, SecureRandom] + Core.load_all!
+  class << self
+    attr_accessor :load_all_hooks
+    def on_load_all(&hook) load_all_hooks << hook end
+    def load_all!; load_all_hooks.each { |hook| hook.call } end
+  end
+  self.load_all_hooks = []
+
+  on_load_all do
+    [Dependencies, Deprecation, Gzip, MessageVerifier, Multibyte, SecureRandom]
   end
 
   autoload :BacktraceCleaner, 'active_support/backtrace_cleaner'

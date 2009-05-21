@@ -1,7 +1,7 @@
 require 'abstract_unit'
+require 'active_support/time'
 require 'active_support/core_ext/numeric'
 require 'active_support/core_ext/integer'
-require 'active_support/core/time'
 
 class NumericExtTimeAndDateTimeTest < Test::Unit::TestCase
   def setup
