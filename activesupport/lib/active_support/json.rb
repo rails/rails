@@ -43,10 +43,10 @@ module ActiveSupport
       delegate :decode, :to => :backend
 
       def backend
-        @backend || begin
+        unless defined? @backend
           self.backend = defined?(::JSON) ? "JSONGem" : "Yaml"
-          @backend
         end
+        @backend
       end
 
       def backend=(name)
