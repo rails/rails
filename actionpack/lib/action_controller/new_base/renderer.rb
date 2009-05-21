@@ -79,9 +79,10 @@ module ActionController
     end
   
     def _process_options(options)
-      status, content_type = options.values_at(:status, :content_type)
+      status, content_type, location = options.values_at(:status, :content_type, :location)
       response.status = status.to_i if status
       response.content_type = content_type if content_type
+      response.headers["Location"] = url_for(location) if location
     end
   end
 end

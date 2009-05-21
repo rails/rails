@@ -18,15 +18,23 @@ module ActionController
     end
   end
   
+  module RenderOption
+    extend ActiveSupport::DependencyModule
+
+    included do
+      extend ActiveSupport::DependencyModule
+      depends_on RenderOptions
+
+      def self.register_renderer(name)
+        included { _renderers << name }
+      end
+    end
+  end
+
   module Renderers
     module Json
-      extend ActiveSupport::DependencyModule
-      
-      depends_on RenderOptions
-      
-      included do
-        _renderers << :json
-      end
+      include RenderOption
+      register_renderer :json
       
       def _render_json(json, options)
         json = ActiveSupport::JSON.encode(json) unless json.respond_to?(:to_str)
@@ -34,6 +42,16 @@ module ActionController
         response.content_type ||= Mime::JSON
         self.response_body = json
       end      
+    end
+
+    module Xml
+      include RenderOption
+      register_renderer :xml
+
+      def _render_xml(xml, options)
+        response.content_type ||= Mime::XML
+        self.response_body  = xml.respond_to?(:to_xml) ? xml.to_xml : xml
+      end
     end
   end
 end
