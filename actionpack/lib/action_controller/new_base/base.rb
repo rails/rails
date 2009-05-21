@@ -16,6 +16,7 @@ module ActionController
 
     include ActionController::Session
     include ActionController::Flash
+    include ActionController::Verification
 
     # Legacy modules
     include SessionManagement

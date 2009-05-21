@@ -103,17 +103,15 @@ class VerificationTest < ActionController::TestCase
     end
 
     protected
-      def rescue_action(e) raise end
 
-      def unconditional_redirect
-        redirect_to :action => "unguarded"
-      end
+    def unconditional_redirect
+      redirect_to :action => "unguarded"
+    end
   end
 
-  def setup
-    @controller = TestController.new
-    @request    = ActionController::TestRequest.new
-    @response   = ActionController::TestResponse.new
+  tests TestController
+
+  setup do
     ActionController::Routing::Routes.add_named_route :foo, '/foo', :controller => 'test', :action => 'foo'
   end
 

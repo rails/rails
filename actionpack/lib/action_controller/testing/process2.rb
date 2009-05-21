@@ -53,7 +53,7 @@ module ActionController
       @controller.request = @request
       @controller.params.merge!(parameters)
       # Base.class_eval { include ProcessWithTest } unless Base < ProcessWithTest
-      @controller.process_with_test(@request, @response)
+      @controller.process_with_new_base_test(@request, @response)
     end
     
     def build_request_uri(action, parameters)

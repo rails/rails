@@ -103,5 +103,9 @@ module ActionController
     def _layout_prefix(name)
       super unless name =~ /\blayouts/
     end
+
+    def performed?
+      response_body
+    end
   end
 end
