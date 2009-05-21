@@ -40,17 +40,19 @@ class SendFileTest < ActionController::TestCase
     assert_equal file_data, response.body
   end
 
-  def test_file_stream
-    response = nil
-    assert_nothing_raised { response = process('file') }
-    assert_not_nil response
-    assert_kind_of Array, response.body_parts
+  for_tag(:old_base) do
+    def test_file_stream
+      response = nil
+      assert_nothing_raised { response = process('file') }
+      assert_not_nil response
+      assert_kind_of Array, response.body_parts
 
-    require 'stringio'
-    output = StringIO.new
-    output.binmode
-    assert_nothing_raised { response.body_parts.each { |part| output << part.to_s } }
-    assert_equal file_data, output.string
+      require 'stringio'
+      output = StringIO.new
+      output.binmode
+      assert_nothing_raised { response.body_parts.each { |part| output << part.to_s } }
+      assert_equal file_data, output.string
+    end
   end
 
   def test_file_url_based_filename

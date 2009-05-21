@@ -88,6 +88,7 @@ module ActionController #:nodoc:
           head options[:status], X_SENDFILE_HEADER => path
         else
           if options[:stream]
+            # TODO : Make render :text => proc {} work with the new base
             render :status => options[:status], :text => Proc.new { |response, output|
               logger.info "Streaming file #{path}" unless logger.nil?
               len = options[:buffer_size] || 4096

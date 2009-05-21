@@ -27,6 +27,7 @@ module ActionController
     include ActionController::Flash
     include ActionController::Verification
     include ActionController::RequestForgeryProtection
+    include ActionController::Streaming
 
     # TODO: Extract into its own module
     # This should be moved together with other normalizing behavior

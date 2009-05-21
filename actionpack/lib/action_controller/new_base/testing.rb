@@ -1,6 +1,6 @@
 module ActionController
   module Testing
-    
+
     # OMG MEGA HAX
     def process_with_new_base_test(request, response)
       @_request = request
@@ -20,6 +20,11 @@ module ActionController
         @assigns[name] = value
       end
     end
-    
+
+    # TODO : Rewrite tests using controller.headers= to use Rack env
+    def headers=(new_headers)
+      @_response ||= ActionDispatch::Response.new
+      @_response.headers.replace(new_headers)
+    end
   end
 end

@@ -28,7 +28,7 @@ module ActionController
   autoload :Verification,             'action_controller/base/verification'
   autoload :Flash,                    'action_controller/base/chained/flash'
   autoload :RequestForgeryProtection, 'action_controller/base/request_forgery_protection'
-
+  autoload :Streaming,                'action_controller/base/streaming'
   require 'action_controller/routing'
 end
 
