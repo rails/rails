@@ -4,8 +4,8 @@ module ActionController
 
     depends_on AbstractController::Renderer
     
-    def initialize(*)
-      self.formats = [:html]
+    def process_action(*)
+      self.formats = request.formats.map {|x| x.to_sym}
       super
     end
     

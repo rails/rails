@@ -12,7 +12,7 @@ module Etags
     end
 
     def with_layout
-      render :action => "base", :layout => "etag"
+      render :action => "base", :layout => "etags"
     end
   end
 
