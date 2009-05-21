@@ -38,18 +38,18 @@ module ActionController
     module ImplicitRender
       def process_action(method_name)
         ret = super
-        render if response_body.nil?
+        default_render if response_body.nil?
         ret
       end
 
-      def _implicit_render
+      def default_render
         render
       end
 
       def method_for_action(action_name)
         super || begin
           if view_paths.find_by_parts?(action_name.to_s, {:formats => formats, :locales => [I18n.locale]}, controller_path)
-            "_implicit_render"
+            "default_render"
           end
         end
       end
