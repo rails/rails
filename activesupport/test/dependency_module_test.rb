@@ -42,6 +42,12 @@ class DependencyModuleTest < Test::Unit::TestCase
     end
   end
 
+  module Foo
+    extend ActiveSupport::DependencyModule
+
+    depends_on Bar, Baz
+  end
+
   def setup
     @klass = Class.new
   end
@@ -73,5 +79,10 @@ class DependencyModuleTest < Test::Unit::TestCase
     assert_equal "bar+baz", @klass.new.baz
     assert_equal "baz", @klass.baz
     assert_equal [DependencyModuleTest::Bar, DependencyModuleTest::Baz], @klass.included_modules[0..1]
+  end
+
+  def test_depends_on_with_multiple_modules
+    @klass.send(:include, Foo)
+    assert_equal [DependencyModuleTest::Foo, DependencyModuleTest::Bar, DependencyModuleTest::Baz], @klass.included_modules[0..2]
   end
 end
