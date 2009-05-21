@@ -46,6 +46,7 @@ module ActionDispatch
   autoload :ShowExceptions, 'action_dispatch/middleware/show_exceptions'
   autoload :MiddlewareStack, 'action_dispatch/middleware/stack'
 
+  autoload :HTML, 'action_controller/vendor/html-scanner'
   autoload :Assertions, 'action_dispatch/testing/assertions'
   autoload :TestRequest, 'action_dispatch/testing/test_request'
   autoload :TestResponse, 'action_dispatch/testing/test_response'

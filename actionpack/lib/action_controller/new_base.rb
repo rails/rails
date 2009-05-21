@@ -25,8 +25,9 @@ module ActionController
   autoload :UrlRewriter,       'action_controller/routing/generation/url_rewriter'
   autoload :UrlWriter,         'action_controller/routing/generation/url_rewriter'
 
-  autoload :Verification, 'action_controller/base/verification'
-  autoload :Flash,        'action_controller/base/chained/flash'
+  autoload :Verification,             'action_controller/base/verification'
+  autoload :Flash,                    'action_controller/base/chained/flash'
+  autoload :RequestForgeryProtection, 'action_controller/base/request_forgery_protection'
 
   require 'action_controller/routing'
 end

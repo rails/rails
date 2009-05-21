@@ -1,7 +1,10 @@
 module ActionController
   module Rails2Compatibility
     extend ActiveSupport::DependencyModule
-  
+
+    class ::ActionController::ActionControllerError < StandardError #:nodoc:
+    end
+
     # Temporary hax
     included do
       ::ActionController::UnknownAction = ::AbstractController::ActionNotFound
@@ -65,7 +68,6 @@ module ActionController
     end
 
     module ClassMethods
-      def protect_from_forgery() end
       def consider_all_requests_local() end
       def rescue_action(env)
         raise env["action_dispatch.rescue.exception"]

@@ -14,10 +14,6 @@ module ActionController
     include ActionController::Layouts
     include ActionController::ConditionalGet
 
-    include ActionController::Session
-    include ActionController::Flash
-    include ActionController::Verification
-
     # Legacy modules
     include SessionManagement
     include ActionDispatch::StatusCodes
@@ -26,6 +22,11 @@ module ActionController
 
     # Rails 2.x compatibility
     include ActionController::Rails2Compatibility
+
+    include ActionController::Session
+    include ActionController::Flash
+    include ActionController::Verification
+    include ActionController::RequestForgeryProtection
 
     # TODO: Extract into its own module
     # This should be moved together with other normalizing behavior
