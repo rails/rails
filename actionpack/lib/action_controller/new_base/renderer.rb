@@ -38,7 +38,11 @@ module ActionController
       ret = super(options)
       
       options[:_template] ||= _action_view._partial
-      response.content_type ||= options[:_template].mime_type
+      response.content_type ||= begin
+        mime = options[:_template].mime_type
+        mime &&= mime.to_sym
+        formats.include?(mime) ? mime : formats.first
+      end
       ret
     end
     

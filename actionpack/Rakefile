@@ -58,11 +58,12 @@ end
 desc 'Old Controller Tests on New Base'
 Rake::TestTask.new(:test_new_base_on_old_tests) do |t|
   t.libs << "test/new_base" << "test"
-  # content_type layout
+  # layout
   # Dir.glob( "test/{dispatch,template}/**/*_test.rb" ).sort +
   t.test_files = %w(
-    addresses_render base benchmark caching capture dispatcher flash mime_responds
-    record_identifier redirect render rescue url_rewriter webservice
+    addresses_render base benchmark caching capture content_type dispatcher
+    flash mime_responds record_identifier redirect render rescue url_rewriter
+    webservice
   ).map { |name| "test/controller/#{name}_test.rb" }
 end
 
