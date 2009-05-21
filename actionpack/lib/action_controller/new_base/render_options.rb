@@ -7,14 +7,32 @@ module ActionController
       self._renderers = []
     end
     
-    def render_to_body(options)
-      _renderers.each do |renderer|
-        if options.key?(renderer)
-          _process_options(options)
-          return send("_render_#{renderer}", options[renderer], options)
+    module ClassMethods
+      def _write_render_options
+        renderers = _renderers.map do |r|
+          <<-RUBY_EVAL
+            if options.key?(:#{r})
+              _process_options(options)
+              return _render_#{r}(options[:#{r}], options)
+            end
+          RUBY_EVAL
         end
+        
+        class_eval <<-RUBY_EVAL, __FILE__, __LINE__ + 1
+          def _handle_render_options(options)
+            #{renderers.join}
+          end
+        RUBY_EVAL
       end
-      super
+      
+      def _add_render_option(name)
+        _renderers << name
+        _write_render_options
+      end
+    end
+    
+    def render_to_body(options)
+      _handle_render_options(options) || super
     end
   end
   
@@ -26,7 +44,7 @@ module ActionController
       depends_on RenderOptions
 
       def self.register_renderer(name)
-        included { _renderers << name }
+        included { _add_render_option(name) }
       end
     end
   end
