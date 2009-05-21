@@ -11,6 +11,8 @@ module ActionController
     include ActionController::UrlFor
     include ActionController::Redirector
     include ActionController::Renderer
+    include ActionController::RenderOptions
+    include ActionController::Renderers::Json
     include ActionController::Layouts
     include ActionController::ConditionalGet
 
