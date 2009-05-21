@@ -31,6 +31,8 @@ module ActionController
   autoload :Flash,                    'action_controller/base/chained/flash'
   autoload :RequestForgeryProtection, 'action_controller/base/request_forgery_protection'
   autoload :Streaming,                'action_controller/base/streaming'
+  autoload :HttpAuthentication,       'action_controller/base/http_authentication'
+
   require 'action_controller/routing'
 end
 

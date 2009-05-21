@@ -57,7 +57,7 @@ module ActionController
         raise ArgumentError, "too few arguments to head"
       end
       options = args.extract_options!
-      status = interpret_status(args.shift || options.delete(:status) || :ok)
+      status = args.shift || options.delete(:status) || :ok
 
       options.each do |key, value|
         headers[key.to_s.dasherize.split(/-/).map { |v| v.capitalize }.join("-")] = value.to_s

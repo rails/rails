@@ -11,12 +11,17 @@ class SendFileController < ActionController::Base
   layout "layouts/standard" # to make sure layouts don't interfere
 
   attr_writer :options
-  def options() @options ||= {} end
+  def options
+    @options ||= {}
+  end
 
-  def file() send_file(file_path, options) end
-  def data() send_data(file_data, options) end
+  def file
+    send_file(file_path, options)
+  end
 
-  def rescue_action(e) raise end
+  def data
+    send_data(file_data, options)
+  end
 end
 
 class SendFileTest < ActionController::TestCase

@@ -30,6 +30,8 @@ module ActionController
     include ActionController::Verification
     include ActionController::RequestForgeryProtection
     include ActionController::Streaming
+    include ActionController::HttpAuthentication::Basic::ControllerMethods
+    include ActionController::HttpAuthentication::Digest::ControllerMethods
 
     # TODO: Extract into its own module
     # This should be moved together with other normalizing behavior
@@ -89,6 +91,11 @@ module ActionController
       if options.key?(:action) && options[:action].to_s.index("/")
         options[:template] = options.delete(:action)
       end
+
+      if options[:status]
+        options[:status] = interpret_status(options.delete(:status)).to_i
+      end
+
       options
     end
 
