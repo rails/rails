@@ -18,6 +18,13 @@ require 'active_support/dependencies'
 
 $tags[:new_base] = true
 
+begin
+  require 'ruby-debug'
+  Debugger.settings[:autoeval] = true
+  Debugger.start
+rescue LoadError
+  # Debugging disabled. `gem install ruby-debug` to enable.
+end
 
 ActiveSupport::Dependencies.hook!
 
