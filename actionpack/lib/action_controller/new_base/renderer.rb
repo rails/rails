@@ -27,6 +27,20 @@ module ActionController
     def render_to_body(options)
       _process_options(options)
       
+      if options.key?(:partial)
+        _render_partial(options[:partial], options)
+      end
+
+      super
+    end
+
+  private
+
+    def _prefix
+      controller_path
+    end
+
+    def _determine_template(options)
       if options.key?(:text)
         options[:_template] = ActionView::TextTemplate.new(options[:text], formats.first)
       elsif options.key?(:inline)
@@ -37,20 +51,12 @@ module ActionController
         options[:_template_name] = options[:template]
       elsif options.key?(:file)
         options[:_template_name] = options[:file]
-      elsif options.key?(:partial)
-        _render_partial(options[:partial], options)
-      else
+      elsif !options.key?(:partial)
         options[:_template_name] = (options[:action] || action_name).to_s
         options[:_prefix] = _prefix 
       end
       
       super
-    end
-    
-  private
-  
-    def _prefix
-      controller_path
     end
 
     def _render_partial(partial, options)

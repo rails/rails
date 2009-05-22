@@ -57,10 +57,6 @@ module AbstractController
         end
       end
     end
-    
-    def _render_template(template, options)
-      _action_view._render_template_from_controller(template, options[:_layout], options, options[:_partial])
-    end
         
   private
   
