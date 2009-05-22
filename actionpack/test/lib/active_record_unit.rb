@@ -16,7 +16,7 @@ if defined?(ActiveRecord) && defined?(Fixtures)
 else
   $stderr.print 'Attempting to load Active Record... '
   begin
-    PATH_TO_AR = "#{File.dirname(__FILE__)}/../../activerecord/lib"
+    PATH_TO_AR = "#{File.dirname(__FILE__)}/../../../activerecord/lib"
     raise LoadError, "#{PATH_TO_AR} doesn't exist" unless File.directory?(PATH_TO_AR)
     $LOAD_PATH.unshift PATH_TO_AR
     require 'active_record'
@@ -72,13 +72,13 @@ class ActiveRecordTestConnector
 
       # Load actionpack sqlite tables
       def load_schema
-        File.read(File.dirname(__FILE__) + "/fixtures/db_definitions/sqlite.sql").split(';').each do |sql|
+        File.read(File.dirname(__FILE__) + "/../fixtures/db_definitions/sqlite.sql").split(';').each do |sql|
           ActiveRecord::Base.connection.execute(sql) unless sql.blank?
         end
       end
 
       def require_fixture_models
-        Dir.glob(File.dirname(__FILE__) + "/fixtures/*.rb").each {|f| require f}
+        Dir.glob(File.dirname(__FILE__) + "/../fixtures/*.rb").each {|f| require f}
       end
   end
 end
