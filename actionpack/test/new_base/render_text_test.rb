@@ -88,14 +88,14 @@ module RenderText
       assert_status 404
     end
 
-    test "rendering text with nil returns a single space character" do
+    test "rendering text with nil returns an empty body padded for Safari" do
       get "/render_text/with_layout/with_nil"
 
       assert_body " "
       assert_status 200
     end
 
-    test "Rendering text with nil and custom status code returns a single space character with the status" do
+    test "Rendering text with nil and custom status code returns an empty body padded for Safari and the status" do
       get "/render_text/with_layout/with_nil_and_status"
 
       assert_body " "

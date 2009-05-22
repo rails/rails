@@ -34,7 +34,7 @@ class WebServiceTest < ActionController::IntegrationTest
   def test_check_parameters
     with_test_route_set do
       get "/"
-      assert_equal '', @controller.response.body
+      assert @controller.response.body.blank?
     end
   end
 
@@ -163,7 +163,7 @@ class WebServiceTest < ActionController::IntegrationTest
     with_test_route_set do
       ActionController::Base.param_parsers[Mime::XML] = :xml_simple
       assert_nothing_raised { post "/", "", {'CONTENT_TYPE' => 'application/xml'} }
-      assert_equal "", @controller.response.body
+      assert @controller.response.body.blank?
     end
   end
 

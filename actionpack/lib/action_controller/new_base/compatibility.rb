@@ -91,7 +91,9 @@ module ActionController
       
       options[:text] = nil if options[:nothing] == true
 
-      super
+      body = super
+      body = [' '] if body.blank?
+      body
     end
 
     def _handle_method_missing

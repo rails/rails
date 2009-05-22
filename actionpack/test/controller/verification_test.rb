@@ -182,7 +182,7 @@ class VerificationTest < ActionController::TestCase
 
   def test_unguarded_without_params
     get :unguarded
-    assert_equal "", @response.body
+    assert @response.body.blank?
   end
 
   def test_guarded_in_session_with_prereqs

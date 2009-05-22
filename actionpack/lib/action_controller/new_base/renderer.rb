@@ -28,7 +28,7 @@ module ActionController
       _process_options(options)
       
       if options.key?(:text)
-        options[:_template] = ActionView::TextTemplate.new(_text(options), formats.first)
+        options[:_template] = ActionView::TextTemplate.new(options[:text], formats.first)
       elsif options.key?(:inline)
         handler = ActionView::Template.handler_class_for_extension(options[:type] || "erb")
         template = ActionView::Template.new(options[:inline], "inline #{options[:inline].inspect}", handler, {})
@@ -51,17 +51,8 @@ module ActionController
   
     def _prefix
       controller_path
-    end  
-  
-    def _text(options)
-      text = options[:text]
-
-      case text
-      when nil then " "
-      else text.to_s
-      end
     end
-    
+
     def _render_partial(partial, options)
       case partial
       when true
