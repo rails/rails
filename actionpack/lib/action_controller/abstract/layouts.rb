@@ -4,11 +4,19 @@ module AbstractController
 
     depends_on Renderer
 
+    included do
+      extlib_inheritable_accessor :_layout_conditions
+      self._layout_conditions = {}
+    end
+
     module ClassMethods
-      def layout(layout)
+      def layout(layout, conditions = {})
         unless [String, Symbol, FalseClass, NilClass].include?(layout.class)
           raise ArgumentError, "Layouts must be specified as a String, Symbol, false, or nil"
         end
+
+        conditions.each {|k, v| conditions[k] = Array(v).map {|a| a.to_s} }
+        self._layout_conditions = conditions
         
         @_layout = layout || false # Converts nil to false
         _write_layout_method
@@ -75,16 +83,27 @@ module AbstractController
     end
     
     def _default_layout(require_layout = false)
-      if require_layout && !_layout
+      if require_layout && _action_has_layout? && !_layout
         raise ArgumentError,
           "There was no default layout for #{self.class} in #{view_paths.inspect}"
       end
 
       begin
-        layout = _layout_for_name(_layout)
+        _layout_for_name(_layout) if _action_has_layout?
       rescue NameError => e
         raise NoMethodError, 
           "You specified #{@_layout.inspect} as the layout, but no such method was found"
+      end
+    end
+
+    def _action_has_layout?
+      conditions = _layout_conditions
+      if only = conditions[:only]
+        only.include?(action_name)
+      elsif except = conditions[:except]
+        !except.include?(action_name)
+      else
+        true
       end
     end
   end
