@@ -1,4 +1,4 @@
-require 'action_view/helpers/javascript_helper'
+#require 'action_view/helpers/javascript_helper'
 
 module ActionView
   module Helpers #:nodoc:

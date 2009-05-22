@@ -11,7 +11,7 @@ module ActionView #:nodoc:
     autoload :FormHelper, 'action_view/helpers/form_helper'
     autoload :FormOptionsHelper, 'action_view/helpers/form_options_helper'
     autoload :FormTagHelper, 'action_view/helpers/form_tag_helper'
-    autoload :JavascriptHelper, 'action_view/helpers/javascript_helper'
+    autoload :JavaScriptHelper, 'action_view/helpers/javascript_helper'
     autoload :NumberHelper, 'action_view/helpers/number_helper'
     autoload :PrototypeHelper, 'action_view/helpers/prototype_helper'
     autoload :RecordIdentificationHelper, 'action_view/helpers/record_identification_helper'
