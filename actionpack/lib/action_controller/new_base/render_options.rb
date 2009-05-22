@@ -41,7 +41,7 @@ module ActionController
 
     included do
       extend ActiveSupport::DependencyModule
-      depends_on RenderOptions
+      depends_on ::ActionController::RenderOptions
 
       def self.register_renderer(name)
         included { _add_render_option(name) }
