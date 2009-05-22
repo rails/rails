@@ -26,6 +26,7 @@ module ActionController
     # Rails 2.x compatibility
     include ActionController::Rails2Compatibility
 
+    include ActionController::Cookies
     include ActionController::Session
     include ActionController::Flash
     include ActionController::Verification

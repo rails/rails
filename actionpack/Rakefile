@@ -63,7 +63,6 @@ Rake::TestTask.new(:test_new_base_on_old_tests) do |t|
   # Dir.glob( "test/{dispatch,template}/**/*_test.rb" ).sort +
 
   # ==== Not ported
-  # * cookie
   # * filters
   # * integration
   # * render_js
@@ -73,7 +72,7 @@ Rake::TestTask.new(:test_new_base_on_old_tests) do |t|
   # * view_paths
   t.test_files = %w(
     action_pack_assertions addresses_render assert_select
-    base benchmark caching capture content_type dispatcher
+    base benchmark caching capture content_type cookie dispatcher
     filter_params flash helper http_basic_authentication
     http_digest_authentication layout logging mime_responds
     record_identifier redirect render render_json render_other render_xml

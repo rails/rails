@@ -35,6 +35,7 @@ module ActionController
   autoload :HttpAuthentication,       'action_controller/base/http_authentication'
   autoload :FilterParameterLogging,   'action_controller/base/filter_parameter_logging'
   autoload :Translation,              'action_controller/translation'
+  autoload :Cookies,                  'action_controller/base/cookies'
 
   require 'action_controller/routing'
 end
