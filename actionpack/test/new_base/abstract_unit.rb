@@ -113,7 +113,7 @@ module ActionController
       hax = @controller._action_view.instance_variable_get(:@_rendered)
 
       case options
-       when NilClass, String
+      when NilClass, String
         rendered = (hax[:template] || []).map { |t| t.identifier }
         msg = build_message(message,
                 "expecting <?> but rendering with <?>",

@@ -41,6 +41,7 @@ module ActionController
       @response.recycle!
       @controller.response_body = nil
       @controller.formats = nil
+      @controller.params = nil
 
       @html_document = nil
       @request.env['REQUEST_METHOD'] = http_method
