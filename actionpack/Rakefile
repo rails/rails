@@ -61,12 +61,13 @@ Rake::TestTask.new(:test_new_base_on_old_tests) do |t|
   # layout
   # Dir.glob( "test/{dispatch,template}/**/*_test.rb" ).sort +
   t.test_files = %w(
-    addresses_render base benchmark caching capture content_type dispatcher
-    flash mime_responds record_identifier redirect
-    render render_json render_xml
-    send_file request_forgery_protection rescue url_rewriter verification webservice
-    http_basic_authentication http_digest_authentication
-    action_pack_assertions assert_select filter_params helper
+    action_pack_assertions addresses_render assert_select
+    base benchmark caching capture content_type dispatcher
+    filter_params flash helper http_basic_authentication
+    http_digest_authentication layout mime_responds
+    record_identifier redirect render render_json render_xml
+    send_file request_forgery_protection rescue url_rewriter
+    verification webservice
   ).map { |name| "test/controller/#{name}_test.rb" }
 end
 

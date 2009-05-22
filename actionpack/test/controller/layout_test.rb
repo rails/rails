@@ -174,15 +174,18 @@ class LayoutSetInResponseTest < ActionController::TestCase
     assert_nil @controller.template.layout
   end
 
-  def test_exempt_from_layout_honored_by_render_template
-    ActionController::Base.exempt_from_layout :erb
-    @controller = RenderWithTemplateOptionController.new
+  for_tag(:old_base) do
+    # exempt_from_layout is deprecated
+    def test_exempt_from_layout_honored_by_render_template
+      ActionController::Base.exempt_from_layout :erb
+      @controller = RenderWithTemplateOptionController.new
 
-    get :hello
-    assert_equal "alt/hello.rhtml", @response.body.strip
+      get :hello
+      assert_equal "alt/hello.rhtml", @response.body.strip
 
-  ensure
-    ActionController::Base.exempt_from_layout.delete(ERB)
+    ensure
+      ActionController::Base.exempt_from_layout.delete(ERB)
+    end
   end
 
   def test_layout_is_picked_from_the_controller_instances_view_path

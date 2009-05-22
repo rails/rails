@@ -65,12 +65,12 @@ module AbstractController
     # :api: plugin
     # ====
     # Override this to mutate the inbound layout name
-    def _layout_for_name(name)
+    def _layout_for_name(name, details = {:formats => formats})
       unless [String, FalseClass, NilClass].include?(name.class)
         raise ArgumentError, "String, false, or nil expected; you passed #{name.inspect}"
       end
       
-      name && view_paths.find_by_parts(name, {:formats => formats}, _layout_prefix(name))
+      name && view_paths.find_by_parts(name, details, _layout_prefix(name))
     end
 
     # TODO: Decide if this is the best hook point for the feature
@@ -78,7 +78,7 @@ module AbstractController
       "layouts"
     end
     
-    def _default_layout(require_layout = false)
+    def _default_layout(require_layout = false, details = {:formats => formats})
       if require_layout && _action_has_layout? && !_layout
         raise ArgumentError,
           "There was no default layout for #{self.class} in #{view_paths.inspect}"

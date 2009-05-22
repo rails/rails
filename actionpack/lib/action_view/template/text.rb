@@ -6,6 +6,10 @@ module ActionView #:nodoc:
       @content_type = Mime[content_type]
     end
 
+    def details
+      {:formats => [@content_type.to_sym]}
+    end
+
     def identifier() self end
     
     def render(*) self end

@@ -7,7 +7,7 @@ require "action_view/template/path"
 module ActionView
   class Template
     extend TemplateHandlers
-    attr_reader :source, :identifier, :handler, :mime_type
+    attr_reader :source, :identifier, :handler, :mime_type, :details
     
     def initialize(source, identifier, handler, details)
       @source     = source
