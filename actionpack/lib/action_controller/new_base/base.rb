@@ -34,6 +34,7 @@ module ActionController
     include ActionController::HttpAuthentication::Basic::ControllerMethods
     include ActionController::HttpAuthentication::Digest::ControllerMethods
     include ActionController::FilterParameterLogging
+    include ActionController::Translation
 
     # TODO: Extract into its own module
     # This should be moved together with other normalizing behavior

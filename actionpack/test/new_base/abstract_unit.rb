@@ -10,7 +10,10 @@ $stderr.puts "Running old tests on new_base"
 
 require 'test/unit'
 require 'active_support'
+
+# TODO : Revisit requiring all the core extensions here
 require 'active_support/core_ext'
+
 require 'active_support/test_case'
 require 'action_controller/abstract'
 require 'action_controller/new_base'

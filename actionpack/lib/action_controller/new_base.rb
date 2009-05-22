@@ -34,6 +34,7 @@ module ActionController
   autoload :Streaming,                'action_controller/base/streaming'
   autoload :HttpAuthentication,       'action_controller/base/http_authentication'
   autoload :FilterParameterLogging,   'action_controller/base/filter_parameter_logging'
+  autoload :Translation,              'action_controller/translation'
 
   require 'action_controller/routing'
 end
