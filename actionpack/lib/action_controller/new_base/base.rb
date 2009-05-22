@@ -4,9 +4,9 @@ module ActionController
     
     include AbstractController::Benchmarker
     include AbstractController::Callbacks
-    include AbstractController::Helpers
     include AbstractController::Logger
-    
+
+    include ActionController::Helpers
     include ActionController::HideActions
     include ActionController::UrlFor
     include ActionController::Redirector

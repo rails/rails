@@ -27,7 +27,7 @@ module Fun
   end
 end
 
-class ApplicationController < ActionController::Base
+class AllHelpersController < ActionController::Base
   helper :all
 end
 
@@ -127,7 +127,7 @@ class HelperTest < Test::Unit::TestCase
   end
 
   def test_all_helpers
-    methods = ApplicationController.master_helper_module.instance_methods.map(&:to_s)
+    methods = AllHelpersController.master_helper_module.instance_methods.map(&:to_s)
 
     # abc_helper.rb
     assert methods.include?('bare_a')
@@ -154,7 +154,7 @@ class HelperTest < Test::Unit::TestCase
   end
 
   def test_helper_proxy
-    methods = ApplicationController.helpers.methods.map(&:to_s)
+    methods = AllHelpersController.helpers.methods.map(&:to_s)
 
     # ActionView
     assert methods.include?('pluralize')

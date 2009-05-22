@@ -1,8 +1,5 @@
 require File.join(File.expand_path(File.dirname(__FILE__)), "test_helper")
 
-class ApplicationController < ActionController::Base
-end
-
 module RenderText
   class SimpleController < ActionController::Base
     self.view_paths = [ActionView::Template::FixturePath.new]

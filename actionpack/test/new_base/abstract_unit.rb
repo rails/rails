@@ -2,6 +2,9 @@ $:.unshift(File.dirname(__FILE__) + '/../../lib')
 $:.unshift(File.dirname(__FILE__) + '/../../../activesupport/lib')
 $:.unshift(File.dirname(__FILE__) + '/../lib')
 
+$:.unshift(File.dirname(__FILE__) + '/../fixtures/helpers')
+$:.unshift(File.dirname(__FILE__) + '/../fixtures/alternate_helpers')
+
 ENV['new_base'] = "true"
 $stderr.puts "Running old tests on new_base"
 

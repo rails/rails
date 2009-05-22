@@ -13,6 +13,7 @@ module ActionController
   autoload :Testing,              "action_controller/new_base/testing"
   autoload :UrlFor,               "action_controller/new_base/url_for"
   autoload :Session,              "action_controller/new_base/session"
+  autoload :Helpers,              "action_controller/new_base/helpers"
 
   # Ported modules
   # require 'action_controller/routing'
