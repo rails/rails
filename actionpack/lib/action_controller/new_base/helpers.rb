@@ -16,8 +16,6 @@ module ActionController
 
     module ClassMethods
       def inherited(klass)
-        # klass.master_helper_module = Module.new
-        # klass.master_helper_module.__send__ :include, master_helper_module
         klass.__send__ :default_helper_module!
         super
       end
@@ -78,10 +76,9 @@ module ActionController
               end
             end
 
-            add_template_helper(class_name.constantize)
+            super class_name.constantize
           else
-            # Explcit 'return' here so that the supplied block ( if any ) doesn't get included twice
-            return super
+            super args
           end
         end
 
