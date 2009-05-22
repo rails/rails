@@ -1,3 +1,7 @@
+if ENV['new_base']
+  puts *caller
+  raise 'new_base/abstract_unit already loaded'
+end
 $:.unshift(File.dirname(__FILE__) + '/../lib')
 $:.unshift(File.dirname(__FILE__) + '/../../activesupport/lib')
 $:.unshift(File.dirname(__FILE__) + '/fixtures/helpers')
