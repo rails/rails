@@ -61,14 +61,24 @@ Rake::TestTask.new(:test_new_base_on_old_tests) do |t|
   t.libs << "test/new_base" << "test/lib"
   # layout
   # Dir.glob( "test/{dispatch,template}/**/*_test.rb" ).sort +
+
+  # ==== Not ported
+  # * cookie
+  # * filters
+  # * integration
+  # * render_js
+  # * selector
+  # * test
+  # * translation
+  # * view_paths
   t.test_files = %w(
     action_pack_assertions addresses_render assert_select
     base benchmark caching capture content_type dispatcher
     filter_params flash helper http_basic_authentication
-    http_digest_authentication layout mime_responds
-    record_identifier redirect render render_json render_xml
-    send_file request_forgery_protection rescue url_rewriter
-    verification webservice logging resources routing
+    http_digest_authentication layout logging mime_responds
+    record_identifier redirect render render_json render_other render_xml
+    request_forgery_protection rescue resources routing send_file
+    url_rewriter verification webservice  
   ).map { |name| "test/controller/#{name}_test.rb" }
   t.verbose = true
 end
