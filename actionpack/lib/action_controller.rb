@@ -66,6 +66,7 @@ module ActionController
   autoload :UrlRewriter, 'action_controller/routing/generation/url_rewriter'
   autoload :UrlWriter, 'action_controller/routing/generation/url_rewriter'
   autoload :Verification, 'action_controller/base/verification'
+  autoload :FilterParameterLogging, 'action_controller/base/filter_parameter_logging'
 
   module Assertions
     autoload :DomAssertions, 'action_controller/testing/assertions/dom'

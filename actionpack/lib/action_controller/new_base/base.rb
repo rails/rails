@@ -33,6 +33,7 @@ module ActionController
     include ActionController::Streaming
     include ActionController::HttpAuthentication::Basic::ControllerMethods
     include ActionController::HttpAuthentication::Digest::ControllerMethods
+    include ActionController::FilterParameterLogging
 
     # TODO: Extract into its own module
     # This should be moved together with other normalizing behavior

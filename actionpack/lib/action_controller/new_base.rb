@@ -32,6 +32,7 @@ module ActionController
   autoload :RequestForgeryProtection, 'action_controller/base/request_forgery_protection'
   autoload :Streaming,                'action_controller/base/streaming'
   autoload :HttpAuthentication,       'action_controller/base/http_authentication'
+  autoload :FilterParameterLogging,   'action_controller/base/filter_parameter_logging'
 
   require 'action_controller/routing'
 end
