@@ -9,7 +9,7 @@ class BaseController < ActionController::Base
   end
 end
 
-n = (ENV['N'] || 10000).to_i
+n = (ENV['N'] || 1000).to_i
 input = StringIO.new('')
 
 def call_index(controller, input, n)
