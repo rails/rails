@@ -71,7 +71,7 @@ module ActionController
 
         if logger
           parameters = respond_to?(:filter_parameters) ? filter_parameters(params) : params.dup
-          parameters = parameters.except!(:controller, :action, :format, :_method)
+          parameters = parameters.except!(:controller, :action, :format, :_method, :only_path)
 
           unless parameters.empty?
             # TODO : Move DelayedLog to AS

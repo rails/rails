@@ -68,7 +68,7 @@ Rake::TestTask.new(:test_new_base_on_old_tests) do |t|
     http_digest_authentication layout mime_responds
     record_identifier redirect render render_json render_xml
     send_file request_forgery_protection rescue url_rewriter
-    verification webservice
+    verification webservice logging
   ).map { |name| "test/controller/#{name}_test.rb" }
   t.verbose = true
 end
