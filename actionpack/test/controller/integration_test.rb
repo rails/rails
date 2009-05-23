@@ -1,4 +1,5 @@
 require 'abstract_unit'
+require 'action_controller/vendor/html-scanner'
 
 class SessionTest < Test::Unit::TestCase
   StubApp = lambda { |env|
