@@ -1,5 +1,13 @@
 require 'abstract_unit'
 
+class << ActionController::Base
+  %w(append_around_filter prepend_after_filter prepend_around_filter prepend_before_filter skip_after_filter skip_before_filter skip_filter).each do |pending|
+    define_method(pending) do |*args|
+      $stderr.puts "#{pending} unimplemented: #{args.inspect}"
+    end unless method_defined?(pending)
+  end
+end
+
 class FilterTest < Test::Unit::TestCase
   include ActionController::TestProcess
 
