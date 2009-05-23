@@ -67,7 +67,7 @@ class Rack::TestCase < ActionController::IntegrationTest
 
   def get(thing, *args)
     if thing.is_a?(Symbol)
-      super("#{self.class.testing}/#{thing}")
+      super("#{self.class.testing}/#{thing}", *args)
     else
       super
     end

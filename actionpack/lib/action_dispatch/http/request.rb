@@ -173,9 +173,15 @@ module ActionDispatch
 
     def formats
       if ActionController::Base.use_accept_header
-        Array(Mime[parameters[:format]] || accepts)
+        ret = Array(Mime[parameters[:format]] || accepts)
+        if defined?(ActionController::Http)
+          if all = ret.index(Mime::ALL)
+            ret.delete(Mime::ALL) && ret.insert(all, *Mime::SET)
+          end
+        end
+        ret
       else
-        [format, Mime[:all]]
+        [format]  + Mime::SET
       end
     end
 

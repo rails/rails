@@ -39,15 +39,15 @@ module AbstractController
       def _write_layout_method
         case @_layout
         when String
-          self.class_eval %{def _layout() #{@_layout.inspect} end}
+          self.class_eval %{def _layout(details) #{@_layout.inspect} end}
         when Symbol
-          self.class_eval %{def _layout() #{@_layout} end}
+          self.class_eval %{def _layout(details) #{@_layout} end}
         when false
-          self.class_eval %{def _layout() end}
+          self.class_eval %{def _layout(details) end}
         else
           self.class_eval %{
-            def _layout
-              if view_paths.find_by_parts?("#{_implied_layout_name}", {:formats => formats}, "layouts")
+            def _layout(details)
+              if view_paths.find_by_parts?("#{_implied_layout_name}", details, "layouts")
                 "#{_implied_layout_name}"
               else
                 super
@@ -60,7 +60,7 @@ module AbstractController
         
   private
   
-    def _layout() end # This will be overwritten
+    def _layout(details) end # This will be overwritten
     
     # :api: plugin
     # ====
@@ -79,13 +79,13 @@ module AbstractController
     end
     
     def _default_layout(require_layout = false, details = {:formats => formats})
-      if require_layout && _action_has_layout? && !_layout
+      if require_layout && _action_has_layout? && !_layout(details)
         raise ArgumentError,
           "There was no default layout for #{self.class} in #{view_paths.inspect}"
       end
 
       begin
-        _layout_for_name(_layout, details) if _action_has_layout?
+        _layout_for_name(_layout(details), details) if _action_has_layout?
       rescue NameError => e
         raise NoMethodError, 
           "You specified #{@_layout.inspect} as the layout, but no such method was found"

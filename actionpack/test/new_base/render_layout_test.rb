@@ -66,4 +66,36 @@ module ControllerLayouts
       assert_response "hai(layout_false.html.erb)"
     end
   end
+
+  class MismatchFormatController < ::ApplicationController
+    self.view_paths = [ActionView::Template::FixturePath.new(
+      "layouts/application.html.erb" => "<html><%= yield %></html>",
+      "controller_layouts/mismatch_format/index.js.rjs" => "page[:test].omg",
+      "controller_layouts/mismatch_format/implicit.rjs" => "page[:test].omg"      
+    )]
+
+    def explicit
+      render :layout => "application"
+    end
+  end
+
+  class MismatchFormatTest < SimpleRouteCase
+    testing ControllerLayouts::MismatchFormatController
+
+    test "if JS is selected, an HTML template is not also selected" do
+      get :index
+      assert_response "$(\"test\").omg();"
+    end
+
+    test "if JS is implicitly selected, an HTML template is not also selected" do
+      get :implicit
+      assert_response "$(\"test\").omg();"
+    end
+
+    test "if an HTML template is explicitly provides for a JS template, an error is raised" do
+      assert_raises ActionView::MissingTemplate do
+        get :explicit, {}, "action_dispatch.show_exceptions" => false
+      end
+    end
+  end
 end
