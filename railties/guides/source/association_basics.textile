@@ -30,7 +30,7 @@ Now, suppose we wanted to add a new order for an existing customer. We'd need to
 Or consider deleting a customer, and ensuring that all of its orders get deleted as well:
 
 <ruby>
-@orders = Order.find_by_customer_id(@customer.id)
+@orders = Order.find_all_by_customer_id(@customer.id)
 @orders.each do |order|
   order.destroy
 end
