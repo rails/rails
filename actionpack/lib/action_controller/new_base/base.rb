@@ -12,6 +12,7 @@ module ActionController
     include ActionController::Redirector
     include ActionController::Renderer
     include ActionController::Renderers::Json
+    include ActionController::Renderers::Js
     include ActionController::Renderers::Xml
     include ActionController::Renderers::Rjs
     include ActionController::Layouts

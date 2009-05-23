@@ -62,6 +62,16 @@ module ActionController
       end      
     end
 
+    module Js
+      include RenderOption
+      register_renderer :js
+
+      def _render_js(js, options)
+        response.content_type ||= Mime::JS
+        self.response_body = js
+      end
+    end
+
     module Xml
       include RenderOption
       register_renderer :xml

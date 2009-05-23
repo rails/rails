@@ -65,7 +65,6 @@ Rake::TestTask.new(:test_new_base_on_old_tests) do |t|
   # ==== Not ported
   # * filters
   # * integration
-  # * render_js
   # * test
   # * view_paths
   t.test_files = %w(
@@ -73,9 +72,9 @@ Rake::TestTask.new(:test_new_base_on_old_tests) do |t|
     base benchmark caching capture content_type cookie dispatcher
     filter_params flash helper http_basic_authentication
     http_digest_authentication layout logging mime_responds
-    record_identifier redirect render render_json render_other render_xml
-    request_forgery_protection rescue resources routing selector send_file
-    translation url_rewriter verification webservice
+    record_identifier redirect render render_js render_json
+    render_other render_xml request_forgery_protection rescue
+    resources routing selector send_file url_rewriter verification webservice
   ).map { |name| "test/controller/#{name}_test.rb" }
   t.verbose = true
 end
