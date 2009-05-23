@@ -92,5 +92,16 @@ module ActionController
         self.response_body = generator.to_s
       end
     end
+
+    module All
+      extend ActiveSupport::DependencyModule
+
+      included do
+        include ::ActionController::Renderers::Json
+        include ::ActionController::Renderers::Js
+        include ::ActionController::Renderers::Xml
+        include ::ActionController::Renderers::Rjs
+      end
+    end
   end
 end

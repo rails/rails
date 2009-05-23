@@ -11,10 +11,7 @@ module ActionController
     include ActionController::UrlFor
     include ActionController::Redirector
     include ActionController::Renderer
-    include ActionController::Renderers::Json
-    include ActionController::Renderers::Js
-    include ActionController::Renderers::Xml
-    include ActionController::Renderers::Rjs
+    include ActionController::Renderers::All
     include ActionController::Layouts
     include ActionController::ConditionalGet
 
