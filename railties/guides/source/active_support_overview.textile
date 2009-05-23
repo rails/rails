@@ -23,7 +23,77 @@ h3. Extensions to +Module+
 
 h3. Extensions to +Class+
 
-...
+h4. Class Attribute Accessors
+
+The macros +cattr_reader+, +cattr_writer+, and +cattr_accessor+ are analogous to their +attr_*+ counterparts but for classes. They initialize a class variable to +nil+ unless it already exists, and generate the corresponding class methods to access it:
+
+<ruby>
+class MysqlAdapter < AbstractAdapter
+  # Generates class methods to access @@emulate_booleans.
+  cattr_accessor :emulate_booleans
+  self.emulate_booleans = true
+end
+</ruby>
+
+Instance methods are created as well for convenience. For example given
+
+<ruby>
+module ActionController
+  class Base
+    cattr_accessor :logger
+  end
+end
+</ruby>
+
+we can access +logger+ in actions. The generation of the writer instance method can be prevented setting +:instance_writer+ to +false+ (not any false value, but exactly +false+):
+
+<ruby>
+module ActiveRecord
+  class Base
+    # No pluralize_table_names= instance writer is generated.
+    cattr_accessor :pluralize_table_names, :instance_writer => false
+  end
+end
+</ruby>
+
+h4. Class Inheritable Attributes
+
+Class variables are shared down the inheritance tree. Class instance variables are not shared, but they are not inherited either. The macros +class_inheritable_reader+, +class_inheritable_writer+, and +class_inheritable_accessor+ provide accesors for class-level data which is inherited but not shared with children:
+
+<ruby>
+module ActionController
+  class Base
+    # The value of allow_forgery_protection is inherited,
+    # but its value in a particular class does not affect
+    # the value in the rest of the controllers hierarchy.
+    class_inheritable_accessor :allow_forgery_protection
+  end
+end
+</ruby>
+
+They accomplish this with class instance variables and cloning on subclassing, there are no class variables involved. Cloning is performed with +dup+ as long as the value is duplicable.
+
+There are some variants specialised in arrays and hashes:
+
+<ruby>
+class_inheritable_array_writer
+class_inheritable_array
+
+class_inheritable_hash_writer
+class_inheritable_hash
+</ruby>
+
+Those writers take any inherited array or hash into account and extend them rather than overwrite them.
+
+As with vanilla class attribute accessors these macros create convenience instance methods for reading and writing. The generation of the writer instance method can be prevented setting +:instance_writer+ to +false+ (not any false value, but exactly +false+):
+
+<ruby>
+module ActiveRecord
+  class Base
+    class_inheritable_accessor :default_scoping, :instance_writer => false
+  end
+end
+</ruby>
 
 h3. Extensions to +NilClass+
 
