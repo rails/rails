@@ -248,7 +248,7 @@ module ActionView
       # using the link_to method with the <tt>:method</tt> modifier as described in
       # the link_to documentation.
       #
-      # The generated FORM element has a class name of <tt>button-to</tt>
+      # The generated form element has a class name of <tt>button-to</tt>
       # to allow styling of the form itself and its children. You can control
       # the form submission and input element behavior using +html_options+.
       # This method accepts the <tt>:method</tt> and <tt>:confirm</tt> modifiers
@@ -259,7 +259,7 @@ module ActionView
       # to change the HTTP verb used to submit the form.
       #
       # ==== Options
-      # The +options+ hash accepts the same options at url_for.
+      # The +options+ hash accepts the same options as url_for.
       #
       # There are a few special +html_options+:
       # * <tt>:method</tt> - Specifies the anchor name to be appended to the path.
