@@ -4,5 +4,7 @@ class Object
     ActiveSupport::JSON.encode(instance_values, options)
   end
 
-  alias to_json rails_to_json
+  def to_json(*args)
+    rails_to_json(*args)
+  end
 end
