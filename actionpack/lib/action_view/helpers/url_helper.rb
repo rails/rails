@@ -11,11 +11,11 @@ module ActionView
 
       # Returns the URL for the set of +options+ provided. This takes the
       # same options as +url_for+ in Action Controller (see the
-      # documentation for ActionController::Base#url_for). Note that by default
-      # <tt>:only_path</tt> is <tt>true</tt> so you'll get the relative /controller/action
-      # instead of the fully qualified URL like http://example.com/controller/action.
+      # documentation for <tt>ActionController::Base#url_for</tt>). Note that by default
+      # <tt>:only_path</tt> is <tt>true</tt> so you'll get the relative "/controller/action"
+      # instead of the fully qualified URL like "http://example.com/controller/action".
       #
-      # When called from a view, url_for returns an HTML escaped url. If you
+      # When called from a view, +url_for+ returns an HTML escaped url. If you
       # need an unescaped url, pass <tt>:escape => false</tt> in the +options+.
       #
       # ==== Options
@@ -33,8 +33,8 @@ module ActionView
       #
       # If you instead of a hash pass a record (like an Active Record or Active Resource) as the options parameter,
       # you'll trigger the named route for that record. The lookup will happen on the name of the class. So passing
-      # a Workshop object will attempt to use the workshop_path route. If you have a nested route, such as
-      # admin_workshop_path you'll have to call that explicitly (it's impossible for url_for to guess that route).
+      # a Workshop object will attempt to use the +workshop_path+ route. If you have a nested route, such as
+      # +admin_workshop_path+ you'll have to call that explicitly (it's impossible for +url_for+ to guess that route).
       #
       # ==== Examples
       #   <%= url_for(:action => 'index') %>
@@ -96,10 +96,10 @@ module ActionView
 
       # Creates a link tag of the given +name+ using a URL created by the set
       # of +options+. See the valid options in the documentation for
-      # url_for. It's also possible to pass a string instead
+      # +url_for+. It's also possible to pass a string instead
       # of an options hash to get a link tag that uses the value of the string as the
       # href for the link, or use <tt>:back</tt> to link to the referrer - a JavaScript back
-      # link will be used in place of a referrer if none exists. If nil is passed as
+      # link will be used in place of a referrer if none exists. If +nil+ is passed as
       # a name, the link itself will become the name.
       #
       # ==== Signatures
@@ -116,27 +116,22 @@ module ActionView
       # * <tt>:popup => true || array of window options</tt> - This will force the
       #   link to open in a popup window. By passing true, a default browser window
       #   will be opened with the URL. You can also specify an array of options
-      #   that are passed through to JavaScripts window.open method.
+      #   that are passed to the <tt>window.open</tt> JavaScript call.
       # * <tt>:method => symbol of HTTP verb</tt> - This modifier will dynamically
       #   create an HTML form and immediately submit the form for processing using
       #   the HTTP verb specified. Useful for having links perform a POST operation
       #   in dangerous actions like deleting a record (which search bots can follow
       #   while spidering your site). Supported verbs are <tt>:post</tt>, <tt>:delete</tt> and <tt>:put</tt>.
       #   Note that if the user has JavaScript disabled, the request will fall back
-      #   to using GET. If you are relying on the POST behavior, you should check
-      #   for it in your controller's action by using the request object's methods
-      #   for <tt>post?</tt>, <tt>delete?</tt> or <tt>put?</tt>.
+      #   to using GET. If <tt>:href => '#'</tt> is used and the user has JavaScript
+      #   disabled clicking the link will have no effect. If you are relying on the
+      #   POST behavior, you should check for it in your controller's action by using
+      #   the request object's methods for <tt>post?</tt>, <tt>delete?</tt> or <tt>put?</tt>.
       # * The +html_options+ will accept a hash of html attributes for the link tag.
       #
-      # Note that if the user has JavaScript disabled, the request will fall back
-      # to using GET. If <tt>:href => '#'</tt> is used and the user has JavaScript disabled
-      # clicking the link will have no effect. If you are relying on the POST
-      # behavior, your should check for it in your controller's action by using the
-      # request object's methods for <tt>post?</tt>, <tt>delete?</tt> or <tt>put?</tt>.
-      #
       # You can mix and match the +html_options+ with the exception of
-      # <tt>:popup</tt> and <tt>:method</tt> which will raise an ActionView::ActionViewError
-      # exception.
+      # <tt>:popup</tt> and <tt>:method</tt> which will raise an
+      # <tt>ActionView::ActionViewError</tt> exception.
       #
       # ==== Examples
       # Because it relies on +url_for+, +link_to+ supports both older-style controller/action/id arguments
@@ -169,9 +164,11 @@ module ActionView
       # You can use a block as well if your link target is hard to fit into the name parameter. ERb example:
       #
       #   <% link_to(@profile) do %>
-      #     <strong><%= @profile.name %></strong> -- <span>Check it out!!</span>
+      #     <strong><%= @profile.name %></strong> -- <span>Check it out!</span>
       #   <% end %>
-      #   # => <a href="/profiles/1"><strong>David</strong> -- <span>Check it out!!</span></a>
+      #   # => <a href="/profiles/1">
+      #          <strong>David</strong> -- <span>Check it out!</span>
+      #        </a>
       #
       # Classes and ids for CSS are easy to produce:
       #
@@ -214,7 +211,9 @@ module ActionView
       #   # => <a href="/images/9" onclick="if (confirm('Are you sure?')) { var f = document.createElement('form');
       #        f.style.display = 'none'; this.parentNode.appendChild(f); f.method = 'POST'; f.action = this.href;
       #        var m = document.createElement('input'); m.setAttribute('type', 'hidden'); m.setAttribute('name', '_method');
-      #        m.setAttribute('value', 'delete'); f.appendChild(m);f.submit(); };return false;">Delete Image</a>
+      #        m.setAttribute('value', 'delete');var s = document.createElement('input'); s.setAttribute('type', 'hidden');
+      #        s.setAttribute('name', 'authenticity_token'); s.setAttribute('value', 'Q/ttlxPYZ6R77B+vZ1sBkhj21G2isO9dpE6UtOHBApg=');
+      #        f.appendChild(s)f.appendChild(m);f.submit(); };return false;">Delete Image</a>
       def link_to(*args, &block)
         if block_given?
           options      = args.first || {}
@@ -245,14 +244,14 @@ module ActionView
       # by the set of +options+. This is the safest method to ensure links that
       # cause changes to your data are not triggered by search bots or accelerators.
       # If the HTML button does not work with your layout, you can also consider
-      # using the link_to method with the <tt>:method</tt> modifier as described in
-      # the link_to documentation.
+      # using the +link_to+ method with the <tt>:method</tt> modifier as described in
+      # the +link_to+ documentation.
       #
       # The generated form element has a class name of <tt>button-to</tt>
       # to allow styling of the form itself and its children. You can control
       # the form submission and input element behavior using +html_options+.
       # This method accepts the <tt>:method</tt> and <tt>:confirm</tt> modifiers
-      # described in the link_to documentation. If no <tt>:method</tt> modifier
+      # described in the +link_to+ documentation. If no <tt>:method</tt> modifier
       # is given, it will default to performing a POST operation. You can also
       # disable the button by passing <tt>:disabled => true</tt> in +html_options+.
       # If you are using RESTful routes, you can pass the <tt>:method</tt>
@@ -316,7 +315,7 @@ module ActionView
       # Creates a link tag of the given +name+ using a URL created by the set of
       # +options+ unless the current request URI is the same as the links, in
       # which case only the name is returned (or the given block is yielded, if
-      # one exists).  You can give link_to_unless_current a block which will
+      # one exists).  You can give +link_to_unless_current+ a block which will
       # specialize the default behavior (e.g., show a "Start Here" link rather
       # than the link's text).
       #
@@ -342,7 +341,7 @@ module ActionView
       #     <li><a href="/controller/about">About Us</a></li>
       #   </ul>
       #
-      # The implicit block given to link_to_unless_current is evaluated if the current
+      # The implicit block given to +link_to_unless_current+ is evaluated if the current
       # action is the action given.  So, if we had a comments page and wanted to render a
       # "Go Back" link instead of a link to the comments page, we could do something like this...
       #
@@ -359,7 +358,7 @@ module ActionView
       # +options+ unless +condition+ is true, in which case only the name is
       # returned. To specialize the default behavior (i.e., show a login link rather
       # than just the plaintext link text), you can pass a block that
-      # accepts the name or the full argument list for link_to_unless.
+      # accepts the name or the full argument list for +link_to_unless+.
       #
       # ==== Examples
       #   <%= link_to_unless(@current_user.nil?, "Reply", { :action => "reply" }) %>
@@ -390,8 +389,8 @@ module ActionView
       # Creates a link tag of the given +name+ using a URL created by the set of
       # +options+ if +condition+ is true, in which case only the name is
       # returned. To specialize the default behavior, you can pass a block that
-      # accepts the name or the full argument list for link_to_unless (see the examples
-      # in link_to_unless).
+      # accepts the name or the full argument list for +link_to_unless+ (see the examples
+      # in +link_to_unless+).
       #
       # ==== Examples
       #   <%= link_to_if(@current_user.nil?, "Login", { :controller => "sessions", :action => "new" }) %>
@@ -415,27 +414,27 @@ module ActionView
       # also used as the name of the link unless +name+ is specified. Additional
       # HTML attributes for the link can be passed in +html_options+.
       #
-      # mail_to has several methods for hindering email harvesters and customizing
+      # +mail_to+ has several methods for hindering email harvesters and customizing
       # the email itself by passing special keys to +html_options+.
       #
       # ==== Options
-      # * <tt>:encode</tt>  - This key will accept the strings "javascript" or "hex".
-      #   Passing "javascript" will dynamically create and encode the mailto: link then
+      # * <tt>:encode</tt> - This key will accept the strings "javascript" or "hex".
+      #   Passing "javascript" will dynamically create and encode the mailto link then
       #   eval it into the DOM of the page. This method will not show the link on
       #   the page if the user has JavaScript disabled. Passing "hex" will hex
-      #   encode the +email_address+ before outputting the mailto: link.
-      # * <tt>:replace_at</tt>  - When the link +name+ isn't provided, the
+      #   encode the +email_address+ before outputting the mailto link.
+      # * <tt>:replace_at</tt> - When the link +name+ isn't provided, the
       #   +email_address+ is used for the link label. You can use this option to
       #   obfuscate the +email_address+ by substituting the @ sign with the string
       #   given as the value.
-      # * <tt>:replace_dot</tt>  - When the link +name+ isn't provided, the
+      # * <tt>:replace_dot</tt> - When the link +name+ isn't provided, the
       #   +email_address+ is used for the link label. You can use this option to
       #   obfuscate the +email_address+ by substituting the . in the email with the
       #   string given as the value.
-      # * <tt>:subject</tt>  - Preset the subject line of the email.
+      # * <tt>:subject</tt> - Preset the subject line of the email.
       # * <tt>:body</tt> - Preset the body of the email.
-      # * <tt>:cc</tt>  - Carbon Copy addition recipients on the email.
-      # * <tt>:bcc</tt>  - Blind Carbon Copy additional recipients on the email.
+      # * <tt>:cc</tt> - Carbon Copy addition recipients on the email.
+      # * <tt>:bcc</tt> - Blind Carbon Copy additional recipients on the email.
       #
       # ==== Examples
       #   mail_to "me@domain.com"
@@ -606,23 +605,23 @@ module ActionView
           submit_function << "f.submit();"
         end
 
-        # Processes the _html_options_ hash, converting the boolean
+        # Processes the +html_options+ hash, converting the boolean
         # attributes from true/false form into the form required by
         # HTML/XHTML.  (An attribute is considered to be boolean if
-        # its name is listed in the given _bool_attrs_ array.)
+        # its name is listed in the given +bool_attrs+ array.)
         #
-        # More specifically, for each boolean attribute in _html_options_
+        # More specifically, for each boolean attribute in +html_options+
         # given as:
         #
-        #     "attr" => bool_value
+        #   "attr" => bool_value
         #
-        # if the associated _bool_value_ evaluates to true, it is
+        # if the associated +bool_value+ evaluates to true, it is
         # replaced with the attribute's name; otherwise the attribute is
-        # removed from the _html_options_ hash.  (See the XHTML 1.0 spec,
+        # removed from the +html_options+ hash.  (See the XHTML 1.0 spec,
         # section 4.5 "Attribute Minimization" for more:
         # http://www.w3.org/TR/xhtml1/#h-4.5)
         #
-        # Returns the updated _html_options_ hash, which is also modified
+        # Returns the updated +html_options+ hash, which is also modified
         # in place.
         #
         # Example:
