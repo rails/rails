@@ -48,6 +48,8 @@ class PageCachingTest < ActionController::TestCase
     super
     ActionController::Base.perform_caching = true
 
+    ActionController::Routing::Routes.clear!
+
     ActionController::Routing::Routes.draw do |map|
       map.main '', :controller => 'posts'
       map.formatted_posts 'posts.:format', :controller => 'posts'

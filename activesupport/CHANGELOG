@@ -1,5 +1,7 @@
 *Edge*
 
+* Allow MemCacheStore to be initialized with a MemCache-like object instead of addresses and options [Bryan Helmkamp]
+
 * Change spelling of Kyev timezone to Kyiv #2613 [Alexander Dymo]
 
 * Add ActiveSupport.parse_json_times to disable time parsing in JSON backends that don't support it or don't need it. [rick]

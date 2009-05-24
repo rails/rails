@@ -40,6 +40,8 @@ module ActionController
       @request.recycle!
       @response.recycle!
       @controller.response_body = nil
+      @controller.formats = nil
+      @controller.params = nil
 
       @html_document = nil
       @request.env['REQUEST_METHOD'] = http_method
@@ -53,7 +55,8 @@ module ActionController
       @controller.request = @request
       @controller.params.merge!(parameters)
       # Base.class_eval { include ProcessWithTest } unless Base < ProcessWithTest
-      @controller.process_with_test(@request, @response)
+      @controller.process_with_new_base_test(@request, @response)
+      @response
     end
     
     def build_request_uri(action, parameters)

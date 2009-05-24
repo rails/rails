@@ -1,4 +1,5 @@
 require File.join(File.expand_path(File.dirname(__FILE__)), "test_helper")
+require 'active_support/core_ext/class/removal'
 
 module AbstractControllerTests
   module Layouts

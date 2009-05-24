@@ -1,3 +1,7 @@
+# Pass NEW=1 to run with the new Base
+ENV['RAILS_ENV'] ||= 'production'
+ENV['NO_RELOAD'] ||= '1'
+
 $LOAD_PATH.unshift "#{File.dirname(__FILE__)}/../lib"
 require 'action_controller'
 require 'action_controller/new_base' if ENV['NEW']
@@ -9,26 +13,30 @@ class BaseController < ActionController::Base
   end
 end
 
-n = (ENV['N'] || 10000).to_i
-input = StringIO.new('')
-
-def call_index(controller, input, n)
-  n.times do
-    controller.action(:index).call({ 'rack.input' => input })
+class Runner
+  def initialize(app)
+    @app = app
   end
 
-  puts controller.name
-  status, headers, body = controller.action(:index).call({ 'rack.input' => input })
-
-  puts status
-  puts headers.to_yaml
-  puts '---'
-  body.each do |part|
-    puts part
+  def call(env)
+    env['n'].to_i.times { @app.call(env) }
+    @app.call(env).tap { |response| report(env, response) }
   end
-  puts '---'
+
+  def report(env, response)
+    out = env['rack.errors']
+    out.puts response[0], response[1].to_yaml, '---'
+    response[2].each { |part| out.puts part }
+    out.puts '---'
+  end
 end
 
-elapsed = Benchmark.realtime { call_index BaseController, input, n }
+n = (ENV['N'] || 1000).to_i
+input = StringIO.new('')
 
-puts "%dms elapsed, %d requests/sec" % [1000 * elapsed, n / elapsed]
+elapsed = Benchmark.realtime do
+  Runner.new(BaseController.action(:index)).
+    call('n' => n, 'rack.input' => input, 'rack.errors' => $stdout)
+end
+puts "%dms elapsed, %d req/sec, %.2f msec/req" %
+  [1000 * elapsed, n / elapsed, 1000 * elapsed / n]

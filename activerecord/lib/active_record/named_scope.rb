@@ -109,7 +109,7 @@ module ActiveRecord
 
     class Scope
       attr_reader :proxy_scope, :proxy_options, :current_scoped_methods_when_defined
-      NON_DELEGATE_METHODS = %w(nil? send object_id class extend find size count sum average maximum minimum paginate first last empty? any? respond_to?).to_set
+      NON_DELEGATE_METHODS = %w(nil? send object_id class extend find size count sum average maximum minimum paginate first last empty? any? many? respond_to?).to_set
       [].methods.each do |m|
         unless m =~ /^__/ || NON_DELEGATE_METHODS.include?(m.to_s)
           delegate m, :to => :proxy_found
@@ -165,6 +165,15 @@ module ActiveRecord
           proxy_found.any? { |*block_args| yield(*block_args) }
         else
           !empty?
+        end
+      end
+
+      # Returns true if the named scope has more than 1 matching record.
+      def many?
+        if block_given?
+          proxy_found.many? { |*block_args| yield(*block_args) }
+        else
+          size > 1
         end
       end
 

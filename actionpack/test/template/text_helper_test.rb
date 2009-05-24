@@ -49,6 +49,9 @@ class TextHelperTest < ActionView::TestCase
     assert_equal "This is a string that wil[...]", truncate("This is a string that will go longer then the default truncate length of 30", :omission => "[...]")
     assert_equal "Hello W...", truncate("Hello World!", :length => 10)
     assert_equal "Hello[...]", truncate("Hello World!", :omission => "[...]", :length => 10)
+    assert_equal "Hello[...]", truncate("Hello Big World!", :omission => "[...]", :length => 13, :separator => ' ')
+    assert_equal "Hello Big[...]", truncate("Hello Big World!", :omission => "[...]", :length => 14, :separator => ' ')
+    assert_equal "Hello Big[...]", truncate("Hello Big World!", :omission => "[...]", :length => 15, :separator => ' ')
   end
 
   if RUBY_VERSION < '1.9.0'
@@ -400,6 +403,13 @@ class TextHelperTest < ActionView::TestCase
     assert_dom_equal 'Welcome to my new blog at <a href="http://www.myblog.com/" class="menu" target="_blank">http://www.myblog.com/</a>. Please e-mail me at <a href="mailto:me@email.com" class="menu" target="_blank">me@email.com</a>.',
       auto_link("Welcome to my new blog at http://www.myblog.com/. Please e-mail me at me@email.com.",
                 :link => :all, :html => { :class => "menu", :target => "_blank" })
+  end
+  
+  def test_auto_link_with_multiple_trailing_punctuations
+    url = "http://youtube.com"
+    url_result = generate_result(url)
+    assert_equal url_result, auto_link(url)
+    assert_equal "(link: #{url_result}).", auto_link("(link: #{url}).")
   end
 
   def test_cycle_class

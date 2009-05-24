@@ -1,6 +1,13 @@
 require 'abstract_unit'
 
-# FIXME: crashes Ruby 1.9
+class << ActionController::Base
+  %w(append_around_filter prepend_after_filter prepend_around_filter prepend_before_filter skip_after_filter skip_before_filter skip_filter).each do |pending|
+    define_method(pending) do |*args|
+      $stderr.puts "#{pending} unimplemented: #{args.inspect}"
+    end unless method_defined?(pending)
+  end
+end
+
 class FilterTest < Test::Unit::TestCase
   include ActionController::TestProcess
 
@@ -139,14 +146,6 @@ class FilterTest < Test::Unit::TestCase
   class ConditionalOptionsFilter < ConditionalFilterController
     before_filter :ensure_login, :if => Proc.new { |c| true }
     before_filter :clean_up_tmp, :if => Proc.new { |c| false }
-  end
-
-  class EmptyFilterChainController < TestController
-    self.filter_chain.clear
-    def show
-      @action_executed = true
-      render :text => "yawp!"
-    end
   end
 
   class PrependingController < TestController
@@ -455,12 +454,6 @@ class FilterTest < Test::Unit::TestCase
     assert_equal ["filter_one", "zomg it didn't yield"], controller.assigns['filters']
   end
 
-  def test_empty_filter_chain
-    assert_equal 0, EmptyFilterChainController.filter_chain.size
-    test_process(EmptyFilterChainController)
-    assert @controller.template.assigns['action_executed']
-  end
-
   def test_added_filter_to_inheritance_graph
     assert_equal [ :ensure_login ], TestController.before_filters
   end
@@ -607,7 +600,6 @@ class FilterTest < Test::Unit::TestCase
   def test_dynamic_dispatch
     %w(foo bar baz).each do |action|
       request = ActionController::TestRequest.new
-      request.env["action_controller.rescue.request"] = request
       request.query_parameters[:choose] = action
       response = DynamicDispatchController.action.call(request.env).last
       assert_equal action, response.body
@@ -615,7 +607,6 @@ class FilterTest < Test::Unit::TestCase
   end
 
   def test_running_prepended_before_and_after_filter
-    assert_equal 3, PrependingBeforeAndAfterController.filter_chain.length
     test_process(PrependingBeforeAndAfterController)
     assert_equal %w( before_all between_before_all_and_after_all after_all ), @controller.template.assigns["ran_filter"]
   end
@@ -818,15 +809,6 @@ end
 class YieldingAroundFiltersTest < Test::Unit::TestCase
   include PostsController::AroundExceptions
   include ActionController::TestProcess
-
-  def test_filters_registering
-    assert_equal 1, ControllerWithFilterMethod.filter_chain.size
-    assert_equal 1, ControllerWithFilterClass.filter_chain.size
-    assert_equal 1, ControllerWithFilterInstance.filter_chain.size
-    assert_equal 3, ControllerWithSymbolAsFilter.filter_chain.size
-    assert_equal 6, ControllerWithNestedFilters.filter_chain.size
-    assert_equal 4, ControllerWithAllTypesOfFilters.filter_chain.size
-  end
 
   def test_base
     controller = PostsController

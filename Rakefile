@@ -15,9 +15,11 @@ task :default => :test
 %w(test isolated_test rdoc pgem package release).each do |task_name|
   desc "Run #{task_name} task for all projects"
   task task_name do
+    errors = []
     PROJECTS.each do |project|
-      system %(cd #{project} && #{env} #{$0} #{task_name})
+      system(%(cd #{project} && #{env} #{$0} #{task_name})) || errors << project
     end
+    fail("Errors in #{errors.join(', ')}") unless errors.empty?
   end
 end
 

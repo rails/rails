@@ -296,9 +296,13 @@ module ActiveSupport
           method_name
         else
           kind, name = @kind, @name
-          @klass.send(:define_method, method_name) do
-            filter.send("#{kind}_#{name}", self)
-          end
+          @klass.send(:define_method, "#{method_name}_object") { filter }
+
+          @klass.class_eval <<-RUBY_EVAL, __FILE__, __LINE__ + 1
+            def #{method_name}(&blk)
+              #{method_name}_object.send("#{kind}_#{name}", self, &blk)
+            end
+          RUBY_EVAL
           method_name
         end
       end

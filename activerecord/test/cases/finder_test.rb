@@ -7,10 +7,10 @@ require 'models/company'
 require 'models/topic'
 require 'models/reply'
 require 'models/entrant'
+require 'models/project'
 require 'models/developer'
 require 'models/customer'
 require 'models/job'
-require 'models/categorization'
 
 class DynamicFinderMatchTest < ActiveRecord::TestCase
   def test_find_no_match
@@ -64,7 +64,7 @@ class DynamicFinderMatchTest < ActiveRecord::TestCase
 end
 
 class FinderTest < ActiveRecord::TestCase
-  fixtures :companies, :topics, :entrants, :developers, :developers_projects, :posts, :comments, :accounts, :authors, :customers
+  fixtures :companies, :topics, :entrants, :developers, :developers_projects, :posts, :comments, :accounts, :authors, :customers, :categories, :categorizations
 
   def test_find
     assert_equal(topics(:first).title, Topic.find(1).title)

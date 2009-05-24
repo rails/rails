@@ -13,6 +13,8 @@ module ActionView
       cattr_accessor :erb_trim_mode
       self.erb_trim_mode = '-'
 
+      self.default_format = Mime::HTML
+
       def compile(template)
         src = ::ERB.new("<% __in_erb_template=true %>#{template.source}", nil, erb_trim_mode, '@output_buffer').src
 

@@ -3,12 +3,16 @@ require 'abstract_unit'
 class JavaScriptHelperTest < ActionView::TestCase
   tests ActionView::Helpers::JavaScriptHelper
 
+  def _evaluate_assigns_and_ivars() end
+
   attr_accessor :formats, :output_buffer
 
   def setup
     super
     @template = self
   end
+
+  def _evaluate_assigns_and_ivars() end
 
   def test_escape_javascript
     assert_equal '', escape_javascript(nil)

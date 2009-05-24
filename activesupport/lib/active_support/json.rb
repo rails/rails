@@ -40,9 +40,15 @@ module ActiveSupport
     end
 
     class << self
-      attr_reader :backend
       delegate :decode, :to => :backend
-    
+
+      def backend
+        unless defined? @backend
+          self.backend = defined?(::JSON) ? "JSONGem" : "Yaml"
+        end
+        @backend
+      end
+
       def backend=(name)
         if name.is_a?(Module)
           @backend = name
@@ -77,6 +83,5 @@ module ActiveSupport
 end
 
 ActiveSupport.escape_html_entities_in_json = true
-ActiveSupport::JSON.backend = 'Yaml'
 
 require 'active_support/json/encoding'

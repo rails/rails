@@ -41,6 +41,7 @@ module ActionController #:nodoc:
     end
 
     def recycle!
+      @formats = nil
       @env.delete_if { |k, v| k =~ /^(action_dispatch|rack)\.request/ }
       @env.delete_if { |k, v| k =~ /^action_dispatch\.rescue/ }
       @env['action_dispatch.request.query_parameters'] = {}
@@ -131,9 +132,6 @@ module ActionController #:nodoc:
       @request.session = ActionController::TestSession.new(session) unless session.nil?
       @request.session["flash"] = ActionController::Flash::FlashHash.new.update(flash) if flash
       build_request_uri(action, parameters)
-
-      @request.env["action_controller.rescue.request"] = @request
-      @request.env["action_controller.rescue.response"] = @response
 
       Base.class_eval { include ProcessWithTest } unless Base < ProcessWithTest
 

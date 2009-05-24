@@ -3,7 +3,9 @@ require 'stringio'
 require 'strscan'
 
 require 'active_support/memoizable'
+require 'active_support/core_ext/array/wrap'
 require 'active_support/core_ext/hash/indifferent_access'
+require 'active_support/core_ext/object/tap'
 
 module ActionDispatch
   class Request < Rack::Request
@@ -173,9 +175,21 @@ module ActionDispatch
 
     def formats
       if ActionController::Base.use_accept_header
-        Array(Mime[parameters[:format]] || accepts)
+        if param = parameters[:format]
+          Array.wrap(Mime[param])
+        else
+          accepts.dup
+        end.tap do |ret|
+          if defined?(ActionController::Http)
+            if ret == ONLY_ALL
+              ret.replace Mime::SET
+            elsif all = ret.index(Mime::ALL)
+              ret.delete_at(all) && ret.insert(all, *Mime::SET)
+            end
+          end
+        end
       else
-        [format]
+        [format] + Mime::SET
       end
     end
 

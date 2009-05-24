@@ -1,5 +1,6 @@
 require 'abstract_unit'
 require 'controller/fake_controllers'
+require 'active_support/dependencies'
 
 class MilestonesController < ActionController::Base
   def index() head :ok end

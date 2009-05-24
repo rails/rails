@@ -4,8 +4,11 @@ module ActionDispatch
 
     LOCALHOST = '127.0.0.1'.freeze
 
-    DEFAULT_RESCUE_RESPONSE = :internal_server_error
-    DEFAULT_RESCUE_RESPONSES = {
+    RESCUES_TEMPLATE_PATH = File.join(File.dirname(__FILE__), 'templates')
+
+    cattr_accessor :rescue_responses
+    @@rescue_responses = Hash.new(:internal_server_error)
+    @@rescue_responses.update({
       'ActionController::RoutingError'             => :not_found,
       'ActionController::UnknownAction'            => :not_found,
       'ActiveRecord::RecordNotFound'               => :not_found,
@@ -15,25 +18,19 @@ module ActionDispatch
       'ActionController::MethodNotAllowed'         => :method_not_allowed,
       'ActionController::NotImplemented'           => :not_implemented,
       'ActionController::InvalidAuthenticityToken' => :unprocessable_entity
-    }
+    })
 
-    DEFAULT_RESCUE_TEMPLATE = 'diagnostics'
-    DEFAULT_RESCUE_TEMPLATES = {
+    cattr_accessor :rescue_templates
+    @@rescue_templates = Hash.new('diagnostics')
+    @@rescue_templates.update({
       'ActionView::MissingTemplate'       => 'missing_template',
       'ActionController::RoutingError'    => 'routing_error',
       'ActionController::UnknownAction'   => 'unknown_action',
       'ActionView::TemplateError'         => 'template_error'
-    }
+    })
 
-    RESCUES_TEMPLATE_PATH = File.join(File.dirname(__FILE__), 'templates')
-
-    cattr_accessor :rescue_responses
-    @@rescue_responses = Hash.new(DEFAULT_RESCUE_RESPONSE)
-    @@rescue_responses.update DEFAULT_RESCUE_RESPONSES
-
-    cattr_accessor :rescue_templates
-    @@rescue_templates = Hash.new(DEFAULT_RESCUE_TEMPLATE)
-    @@rescue_templates.update DEFAULT_RESCUE_TEMPLATES
+    FAILSAFE_RESPONSE = [500, {'Content-Type' => 'text/html'},
+      ['<html><body><h1>500 Internal Server Error</h1></body></html>']]
 
     def initialize(app, consider_all_requests_local = false)
       @app = app
@@ -43,34 +40,35 @@ module ActionDispatch
     def call(env)
       @app.call(env)
     rescue Exception => exception
-      raise exception if env['rack.test']
-
-      log_error(exception) if logger
-
-      request = Request.new(env)
-      if @consider_all_requests_local || local_request?(request)
-        rescue_action_locally(request, exception)
-      else
-        rescue_action_in_public(exception)
-      end
+      raise exception if env['action_dispatch.show_exceptions'] == false
+      render_exception(env, exception)
     end
 
     private
+      def render_exception(env, exception)
+        log_error(exception)
+
+        request = Request.new(env)
+        if @consider_all_requests_local || local_request?(request)
+          rescue_action_locally(request, exception)
+        else
+          rescue_action_in_public(exception)
+        end
+      rescue Exception => failsafe_error
+        $stderr.puts "Error during failsafe response: #{failsafe_error}"
+        FAILSAFE_RESPONSE
+      end
+
       # Render detailed diagnostics for unhandled exceptions rescued from
       # a controller action.
       def rescue_action_locally(request, exception)
         template = ActionView::Base.new([RESCUES_TEMPLATE_PATH],
-          :template => template,
           :request => request,
           :exception => exception
         )
         file = "rescues/#{@@rescue_templates[exception.class.name]}.erb"
         body = template.render(:file => file, :layout => 'rescues/layout.erb')
-
-        headers = {'Content-Type' => 'text/html', 'Content-Length' => body.length.to_s}
-        status = status_code(exception)
-
-        [status, headers, body]
+        render(status_code(exception), body)
       end
 
       # Attempts to render a static error page based on the
@@ -86,11 +84,11 @@ module ActionDispatch
         path = "#{public_path}/#{status}.html"
 
         if locale_path && File.exist?(locale_path)
-          render_public_file(status, locale_path)
+          render(status, File.read(locale_path))
         elsif File.exist?(path)
-          render_public_file(status, path)
+          render(status, File.read(path))
         else
-          [status, {'Content-Type' => 'text/html', 'Content-Length' => '0'}, []]
+          render(status, '')
         end
       end
 
@@ -99,24 +97,21 @@ module ActionDispatch
         request.remote_addr == LOCALHOST && request.remote_ip == LOCALHOST
       end
 
-      def render_public_file(status, path)
-        body = File.read(path)
-        [status, {'Content-Type' => 'text/html', 'Content-Length' => body.length.to_s}, body]
-      end
-
       def status_code(exception)
         interpret_status(@@rescue_responses[exception.class.name]).to_i
       end
 
-      def public_path
-        if defined?(Rails)
-          Rails.public_path
-        else
-          "public"
-        end
+      def render(status, body)
+        [status, {'Content-Type' => 'text/html', 'Content-Length' => body.length.to_s}, [body]]
       end
 
-      def log_error(exception) #:doc:
+      def public_path
+        defined?(Rails.public_path) ? Rails.public_path : 'public_path'
+      end
+
+      def log_error(exception)
+        return unless logger
+
         ActiveSupport::Deprecation.silence do
           if ActionView::TemplateError === exception
             logger.fatal(exception.to_s)
@@ -136,9 +131,7 @@ module ActionDispatch
       end
 
       def logger
-        if defined?(Rails.logger)
-          Rails.logger
-        end
+        defined?(Rails.logger) ? Rails.logger : Logger.new($stderr)
       end
   end
 end

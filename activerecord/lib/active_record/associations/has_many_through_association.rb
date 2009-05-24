@@ -17,6 +17,13 @@ module ActiveRecord
         end
       end
 
+      def destroy(*records)
+        transaction do
+          delete_records(flatten_deeper(records))
+          super
+        end
+      end
+
       # Returns the size of the collection by executing a SELECT COUNT(*) query if the collection hasn't been loaded and
       # calling collection.size if it has. If it's more likely than not that the collection does have a size larger than zero,
       # and you need to fetch that collection afterwards, it'll take one fewer SELECT query if you use #length.

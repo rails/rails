@@ -3,12 +3,26 @@ module ActionController #:nodoc:
   end
 
   module RequestForgeryProtection
-    def self.included(base)
-      base.class_eval do
-        helper_method :form_authenticity_token
-        helper_method :protect_against_forgery?
+    extend ActiveSupport::DependencyModule
+
+    # TODO : Remove the defined? check when new base is the main base
+    if defined?(ActionController::Http)
+      depends_on AbstractController::Helpers, Session
+    end
+
+    included do
+      if defined?(ActionController::Http)
+        # Sets the token parameter name for RequestForgery. Calling +protect_from_forgery+
+        # sets it to <tt>:authenticity_token</tt> by default.
+        cattr_accessor :request_forgery_protection_token
+
+        # Controls whether request forgergy protection is turned on or not. Turned off by default only in test mode.
+        class_inheritable_accessor :allow_forgery_protection
+        self.allow_forgery_protection = true
       end
-      base.extend(ClassMethods)
+
+      helper_method :form_authenticity_token
+      helper_method :protect_against_forgery?
     end
     
     # Protecting controller actions from CSRF attacks by ensuring that all forms are coming from the current web application, not a

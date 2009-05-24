@@ -1,8 +1,7 @@
-require 'date'
+require 'active_support/time'
 require 'active_support/core_ext/object/conversions'
 require 'active_support/core_ext/array/conversions'
 require 'active_support/core_ext/hash/reverse_merge'
-require 'active_support/core/time'
 
 class Hash
   # This module exists to decorate files deserialized using Hash.from_xml with

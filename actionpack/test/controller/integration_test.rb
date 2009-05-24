@@ -1,4 +1,5 @@
 require 'abstract_unit'
+require 'action_controller/vendor/html-scanner'
 
 class SessionTest < Test::Unit::TestCase
   StubApp = lambda { |env|
@@ -123,8 +124,8 @@ class SessionTest < Test::Unit::TestCase
   def test_xml_http_request_get
     path = "/index"; params = "blah"; headers = {:location => 'blah'}
     headers_after_xhr = headers.merge(
-      "X-Requested-With" => "XMLHttpRequest",
-      "Accept"           => "text/javascript, text/html, application/xml, text/xml, */*"
+      "HTTP_X_REQUESTED_WITH" => "XMLHttpRequest",
+      "HTTP_ACCEPT"           => "text/javascript, text/html, application/xml, text/xml, */*"
     )
     @session.expects(:process).with(:get,path,params,headers_after_xhr)
     @session.xml_http_request(:get,path,params,headers)
@@ -133,8 +134,8 @@ class SessionTest < Test::Unit::TestCase
   def test_xml_http_request_post
     path = "/index"; params = "blah"; headers = {:location => 'blah'}
     headers_after_xhr = headers.merge(
-      "X-Requested-With" => "XMLHttpRequest",
-      "Accept"           => "text/javascript, text/html, application/xml, text/xml, */*"
+      "HTTP_X_REQUESTED_WITH" => "XMLHttpRequest",
+      "HTTP_ACCEPT"           => "text/javascript, text/html, application/xml, text/xml, */*"
     )
     @session.expects(:process).with(:post,path,params,headers_after_xhr)
     @session.xml_http_request(:post,path,params,headers)
@@ -143,8 +144,8 @@ class SessionTest < Test::Unit::TestCase
   def test_xml_http_request_put
     path = "/index"; params = "blah"; headers = {:location => 'blah'}
     headers_after_xhr = headers.merge(
-      "X-Requested-With" => "XMLHttpRequest",
-      "Accept"           => "text/javascript, text/html, application/xml, text/xml, */*"
+      "HTTP_X_REQUESTED_WITH" => "XMLHttpRequest",
+      "HTTP_ACCEPT"           => "text/javascript, text/html, application/xml, text/xml, */*"
     )
     @session.expects(:process).with(:put,path,params,headers_after_xhr)
     @session.xml_http_request(:put,path,params,headers)
@@ -153,8 +154,8 @@ class SessionTest < Test::Unit::TestCase
   def test_xml_http_request_delete
     path = "/index"; params = "blah"; headers = {:location => 'blah'}
     headers_after_xhr = headers.merge(
-      "X-Requested-With" => "XMLHttpRequest",
-      "Accept"           => "text/javascript, text/html, application/xml, text/xml, */*"
+      "HTTP_X_REQUESTED_WITH" => "XMLHttpRequest",
+      "HTTP_ACCEPT"           => "text/javascript, text/html, application/xml, text/xml, */*"
     )
     @session.expects(:process).with(:delete,path,params,headers_after_xhr)
     @session.xml_http_request(:delete,path,params,headers)
@@ -163,17 +164,17 @@ class SessionTest < Test::Unit::TestCase
   def test_xml_http_request_head
     path = "/index"; params = "blah"; headers = {:location => 'blah'}
     headers_after_xhr = headers.merge(
-      "X-Requested-With" => "XMLHttpRequest",
-      "Accept"           => "text/javascript, text/html, application/xml, text/xml, */*"
+      "HTTP_X_REQUESTED_WITH" => "XMLHttpRequest",
+      "HTTP_ACCEPT"           => "text/javascript, text/html, application/xml, text/xml, */*"
     )
     @session.expects(:process).with(:head,path,params,headers_after_xhr)
     @session.xml_http_request(:head,path,params,headers)
   end
 
   def test_xml_http_request_override_accept
-    path = "/index"; params = "blah"; headers = {:location => 'blah', "Accept" => "application/xml"}
+    path = "/index"; params = "blah"; headers = {:location => 'blah', "HTTP_ACCEPT" => "application/xml"}
     headers_after_xhr = headers.merge(
-      "X-Requested-With" => "XMLHttpRequest"
+      "HTTP_X_REQUESTED_WITH" => "XMLHttpRequest"
     )
     @session.expects(:process).with(:post,path,params,headers_after_xhr)
     @session.xml_http_request(:post,path,params,headers)
@@ -253,7 +254,7 @@ class IntegrationProcessTest < ActionController::IntegrationTest
       assert_response 200
       assert_response :success
       assert_response :ok
-      assert_equal({}, cookies)
+      assert_equal({}, cookies.to_hash)
       assert_equal "OK", body
       assert_equal "OK", response.body
       assert_kind_of HTML::Document, html_document
@@ -269,7 +270,7 @@ class IntegrationProcessTest < ActionController::IntegrationTest
       assert_response 201
       assert_response :success
       assert_response :created
-      assert_equal({}, cookies)
+      assert_equal({}, cookies.to_hash)
       assert_equal "Created", body
       assert_equal "Created", response.body
       assert_kind_of HTML::Document, html_document
@@ -287,7 +288,7 @@ class IntegrationProcessTest < ActionController::IntegrationTest
       assert_response 410
       assert_response :gone
       assert_equal "cookie_1=; path=/\ncookie_3=chocolate; path=/", headers["Set-Cookie"]
-      assert_equal({"cookie_1"=>nil, "cookie_2"=>"oatmeal", "cookie_3"=>"chocolate"}, cookies)
+      assert_equal({"cookie_1"=>"", "cookie_2"=>"oatmeal", "cookie_3"=>"chocolate"}, cookies.to_hash)
       assert_equal "Gone", response.body
     end
   end

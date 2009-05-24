@@ -1,5 +1,12 @@
 *Edge*
 
+* Change integration test helpers to accept Rack environment instead of just HTTP Headers [Pratik Naik]
+
+  Before :  get '/path', {}, 'Accept' => 'text/javascript'
+  After  :  get '/path', {}, 'HTTP_ACCEPT' => 'text/javascript'
+
+* Instead of checking Rails.env.test? in Failsafe middleware, check env["rails.raise_exceptions"] [Bryan Helmkamp]
+
 * Fixed that TestResponse.cookies was returning cookies unescaped #1867 [Doug McInnes]
 
 

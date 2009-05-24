@@ -242,7 +242,6 @@ module ActionController #:nodoc:
     # Prepends all the URL-generating helpers from AssetHelper. This makes it possible to easily move javascripts, stylesheets,
     # and images to a dedicated asset server away from the main web server. Example:
     #   ActionController::Base.asset_host = "http://assets.example.com"
-    @@asset_host = ""
     cattr_accessor :asset_host
 
     # All requests are considered local by default, so everyone will be exposed to detailed debugging screens on errors.
@@ -368,9 +367,8 @@ module ActionController #:nodoc:
     attr_reader :template
 
     def action(name, env)
-      # HACK: For global rescue to have access to the original request and response
-      request = env["action_controller.rescue.request"] ||= ActionDispatch::Request.new(env)
-      response = env["action_controller.rescue.response"] ||= ActionDispatch::Response.new
+      request  = ActionDispatch::Request.new(env)
+      response = ActionDispatch::Response.new
       self.action_name = name && name.to_s
       process(request, response).to_a
     end
@@ -448,55 +446,6 @@ module ActionController #:nodoc:
       def append_view_path(path)
         @view_paths = superclass.view_paths.dup if @view_paths.nil?
         @view_paths.push(*path)
-      end
-
-      # Replace sensitive parameter data from the request log.
-      # Filters parameters that have any of the arguments as a substring.
-      # Looks in all subhashes of the param hash for keys to filter.
-      # If a block is given, each key and value of the parameter hash and all
-      # subhashes is passed to it, the value or key
-      # can be replaced using String#replace or similar method.
-      #
-      # Examples:
-      #   filter_parameter_logging
-      #   => Does nothing, just slows the logging process down
-      #
-      #   filter_parameter_logging :password
-      #   => replaces the value to all keys matching /password/i with "[FILTERED]"
-      #
-      #   filter_parameter_logging :foo, "bar"
-      #   => replaces the value to all keys matching /foo|bar/i with "[FILTERED]"
-      #
-      #   filter_parameter_logging { |k,v| v.reverse! if k =~ /secret/i }
-      #   => reverses the value to all keys matching /secret/i
-      #
-      #   filter_parameter_logging(:foo, "bar") { |k,v| v.reverse! if k =~ /secret/i }
-      #   => reverses the value to all keys matching /secret/i, and
-      #      replaces the value to all keys matching /foo|bar/i with "[FILTERED]"
-      def filter_parameter_logging(*filter_words, &block)
-        parameter_filter = Regexp.new(filter_words.collect{ |s| s.to_s }.join('|'), true) if filter_words.length > 0
-
-        define_method(:filter_parameters) do |unfiltered_parameters|
-          filtered_parameters = {}
-
-          unfiltered_parameters.each do |key, value|
-            if key =~ parameter_filter
-              filtered_parameters[key] = '[FILTERED]'
-            elsif value.is_a?(Hash)
-              filtered_parameters[key] = filter_parameters(value)
-            elsif block_given?
-              key = key.dup
-              value = value.dup if value
-              yield key, value
-              filtered_parameters[key] = value
-            else
-              filtered_parameters[key] = value
-            end
-          end
-
-          filtered_parameters
-        end
-        protected :filter_parameters
       end
       
       @@exempt_from_layout = [ActionView::TemplateHandlers::RJS]
@@ -854,13 +803,6 @@ module ActionController #:nodoc:
         logger.info(request_id)
       end
 
-      def log_processing_for_parameters
-        parameters = respond_to?(:filter_parameters) ? filter_parameters(params) : params.dup
-        parameters = parameters.except!(:controller, :action, :format, :_method)
-
-        logger.info "  Parameters: #{parameters.inspect}" unless parameters.empty?
-      end
-
       def default_render #:nodoc:
         render
       end
@@ -934,7 +876,7 @@ module ActionController #:nodoc:
     [ Filters, Layout, Renderer, Redirector, Responder, Benchmarking, Rescue, Flash, MimeResponds, Helpers,
       Cookies, Caching, Verification, Streaming, SessionManagement,
       HttpAuthentication::Basic::ControllerMethods, HttpAuthentication::Digest::ControllerMethods, RecordIdentifier,
-      RequestForgeryProtection, Translation
+      RequestForgeryProtection, Translation, FilterParameterLogging
     ].each do |mod|
       include mod
     end

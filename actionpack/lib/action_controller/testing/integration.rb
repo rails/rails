@@ -2,6 +2,9 @@ require 'stringio'
 require 'uri'
 require 'active_support/test_case'
 
+require 'rack/mock_session'
+require 'rack/test/cookie_jar'
+
 module ActionController
   module Integration #:nodoc:
     module RequestHelpers
@@ -62,8 +65,8 @@ module ActionController
       # with 'HTTP_' if not already.
       def xml_http_request(request_method, path, parameters = nil, headers = nil)
         headers ||= {}
-        headers['X-Requested-With'] = 'XMLHttpRequest'
-        headers['Accept'] ||= [Mime::JS, Mime::HTML, Mime::XML, 'text/xml', Mime::ALL].join(', ')
+        headers['HTTP_X_REQUESTED_WITH'] = 'XMLHttpRequest'
+        headers['HTTP_ACCEPT'] ||= [Mime::JS, Mime::HTML, Mime::XML, 'text/xml', Mime::ALL].join(', ')
         process(request_method, path, parameters, headers)
       end
       alias xhr :xml_http_request
@@ -121,6 +124,8 @@ module ActionController
     # IntegrationTest#open_session, rather than instantiating
     # Integration::Session directly.
     class Session
+      DEFAULT_HOST = "www.example.com"
+
       include Test::Unit::Assertions
       include ActionDispatch::Assertions
       include ActionController::TestProcess
@@ -145,7 +150,9 @@ module ActionController
 
       # A map of the cookies returned by the last response, and which will be
       # sent with the next request.
-      attr_reader :cookies
+      def cookies
+        @mock_session.cookie_jar
+      end
 
       # A reference to the controller instance used by the last request.
       attr_reader :controller
@@ -172,11 +179,11 @@ module ActionController
       #   session.reset!
       def reset!
         @https = false
-        @cookies = {}
+        @mock_session = Rack::MockSession.new(@app, DEFAULT_HOST)
         @controller = @request = @response = nil
         @request_count = 0
 
-        self.host        = "www.example.com"
+        self.host        = DEFAULT_HOST
         self.remote_addr = "127.0.0.1"
         self.accept      = "text/xml,application/xml,application/xhtml+xml," +
                            "text/html;q=0.9,text/plain;q=0.8,image/png," +
@@ -227,8 +234,9 @@ module ActionController
       end
 
       private
+
         # Performs the actual request.
-        def process(method, path, parameters = nil, headers = nil)
+        def process(method, path, parameters = nil, rack_environment = nil)
           if path =~ %r{://}
             location = URI.parse(path)
             https! URI::HTTPS === location if location.scheme
@@ -241,8 +249,6 @@ module ActionController
               ActionController::Base.class_eval { include mod }
             end
           end
-
-          ActionController::Base.clear_last_instantiation!
 
           opts = {
             :method => method,
@@ -258,33 +264,22 @@ module ActionController
             "HTTP_HOST"      => host,
             "REMOTE_ADDR"    => remote_addr,
             "CONTENT_TYPE"   => "application/x-www-form-urlencoded",
-            "HTTP_ACCEPT"    => accept,
-            "HTTP_COOKIE"    => cookies.inject("") { |string, (name, value)|
-              string << "#{name}=#{value}; "
-            }
+            "HTTP_ACCEPT"    => accept
           }
           env = Rack::MockRequest.env_for(path, opts)
 
-          (headers || {}).each do |key, value|
-            key = key.to_s.upcase.gsub(/-/, "_")
-            key = "HTTP_#{key}" unless env.has_key?(key) || key =~ /^HTTP_/
+          (rack_environment || {}).each do |key, value|
             env[key] = value
           end
 
-          app = Rack::Lint.new(@app)
-          status, headers, body = app.call(env)
-          mock_response = ::Rack::MockResponse.new(status, headers, body)
+          @controller = ActionController::Base.capture_instantiation do
+            @mock_session.request(URI.parse(path), env)
+          end
 
           @request_count += 1
           @request  = ActionDispatch::Request.new(env)
-          @response = ActionDispatch::TestResponse.from_response(mock_response)
-
-          @cookies.merge!(@response.cookies)
+          @response = ActionDispatch::TestResponse.from_response(@mock_session.last_response)
           @html_document = nil
-
-          if @controller = ActionController::Base.last_instantiation
-            @controller.send(:set_test_assigns)
-          end
 
           return response.status
         end
@@ -306,11 +301,10 @@ module ActionController
     # A module used to extend ActionController::Base, so that integration tests
     # can capture the controller used to satisfy a request.
     module ControllerCapture #:nodoc:
-      def self.included(base)
-        base.extend(ClassMethods)
-        base.class_eval do
-          alias_method_chain :initialize, :capture
-        end
+      extend ActiveSupport::DependencyModule
+
+      included do
+        alias_method_chain :initialize, :capture
       end
 
       def initialize_with_capture(*args)
@@ -321,8 +315,10 @@ module ActionController
       module ClassMethods #:nodoc:
         mattr_accessor :last_instantiation
 
-        def clear_last_instantiation!
+        def capture_instantiation
           self.last_instantiation = nil
+          yield
+          return last_instantiation
         end
       end
     end

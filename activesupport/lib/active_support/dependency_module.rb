@@ -16,10 +16,12 @@ module ActiveSupport
       end
     end
 
-    def depends_on(mod)
-      return if self < mod
-      @_dependencies ||= []
-      @_dependencies << mod
+    def depends_on(*mods)
+      mods.each do |mod|
+        next if self < mod
+        @_dependencies ||= []
+        @_dependencies << mod
+      end
     end
   end
 end

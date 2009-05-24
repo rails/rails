@@ -1,4 +1,4 @@
-require File.dirname(__FILE__) + '/abstract_unit'
+require 'abstract_unit'
 require 'action_mailer/adv_attr_accessor'
 
 class AdvAttrTest < Test::Unit::TestCase
@@ -15,6 +15,4 @@ class AdvAttrTest < Test::Unit::TestCase
 
     assert_raise(ArgumentError) {bob.name 'x', 'y'}
   end
-
-
 end

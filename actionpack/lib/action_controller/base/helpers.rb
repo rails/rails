@@ -3,23 +3,19 @@ require 'active_support/dependencies'
 # FIXME: helper { ... } is broken on Ruby 1.9
 module ActionController #:nodoc:
   module Helpers #:nodoc:
-    def self.included(base)
+    extend ActiveSupport::DependencyModule
+
+    included do
       # Initialize the base module to aggregate its helpers.
-      base.class_inheritable_accessor :master_helper_module
-      base.master_helper_module = Module.new
+      class_inheritable_accessor :master_helper_module
+      self.master_helper_module = Module.new
 
       # Set the default directory for helpers
-      base.class_inheritable_accessor :helpers_dir
-      base.helpers_dir = (defined?(RAILS_ROOT) ? "#{RAILS_ROOT}/app/helpers" : "app/helpers")
+      class_inheritable_accessor :helpers_dir
+      self.helpers_dir = (defined?(RAILS_ROOT) ? "#{RAILS_ROOT}/app/helpers" : "app/helpers")
 
-      # Extend base with class methods to declare helpers.
-      base.extend(ClassMethods)
-
-      base.class_eval do
-        # Wrap inherited to create a new master helper module for subclasses.
-        class << self
-          alias_method_chain :inherited, :helper
-        end
+      class << self
+        alias_method_chain :inherited, :helper
       end
     end
 

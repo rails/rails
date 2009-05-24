@@ -46,7 +46,7 @@ class Template
         end
       end
       
-      %r'#{Regexp.escape(path)}#{extensions}#{handler_regexp}'
+      %r'^#{Regexp.escape(path)}#{extensions}#{handler_regexp}$'
     end
     
     # TODO: fix me

@@ -27,7 +27,7 @@ module Fun
   end
 end
 
-class ApplicationController < ActionController::Base
+class AllHelpersController < ActionController::Base
   helper :all
 end
 
@@ -104,7 +104,6 @@ class HelperTest < Test::Unit::TestCase
 
   def call_controller(klass, action)
     request  = ActionController::TestRequest.new
-    request.env["action_controller.rescue.request"] = request
     klass.action(action).call(request.env)    
   end
 
@@ -112,7 +111,6 @@ class HelperTest < Test::Unit::TestCase
     assert_equal 'hello: Iz guuut!', 
       call_controller(Fun::GamesController, "render_hello_world").last.body
     # request  = ActionController::TestRequest.new
-    # request.env["action_controller.rescue.request"] = request
     # 
     # resp = Fun::GamesController.action(:render_hello_world).call(request.env)
     # assert_equal 'hello: Iz guuut!', resp.last.body
@@ -129,7 +127,7 @@ class HelperTest < Test::Unit::TestCase
   end
 
   def test_all_helpers
-    methods = ApplicationController.master_helper_module.instance_methods.map(&:to_s)
+    methods = AllHelpersController.master_helper_module.instance_methods.map(&:to_s)
 
     # abc_helper.rb
     assert methods.include?('bare_a')
@@ -156,7 +154,7 @@ class HelperTest < Test::Unit::TestCase
   end
 
   def test_helper_proxy
-    methods = ApplicationController.helpers.methods.map(&:to_s)
+    methods = AllHelpersController.helpers.methods.map(&:to_s)
 
     # ActionView
     assert methods.include?('pluralize')
@@ -217,7 +215,6 @@ class IsolatedHelpersTest < Test::Unit::TestCase
 
   def call_controller(klass, action)
     request  = ActionController::TestRequest.new
-    request.env["action_controller.rescue.request"] = request
     klass.action(action).call(request.env)    
   end
 

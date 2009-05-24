@@ -269,15 +269,16 @@ module ActionView #:nodoc:
       nil
     end
 
-    private
-      # Evaluates the local assigns and controller ivars, pushes them to the view.
-      def _evaluate_assigns_and_ivars #:nodoc:
-        unless @assigns_added
-          @assigns.each { |key, value| instance_variable_set("@#{key}", value) }
-          _copy_ivars_from_controller
-          @assigns_added = true
-        end
+    # Evaluates the local assigns and controller ivars, pushes them to the view.
+    def _evaluate_assigns_and_ivars #:nodoc:
+      unless @assigns_added
+        @assigns.each { |key, value| instance_variable_set("@#{key}", value) }
+        _copy_ivars_from_controller
+        @assigns_added = true
       end
+    end
+
+    private
 
       def _copy_ivars_from_controller #:nodoc:
         if @controller
@@ -288,8 +289,11 @@ module ActionView #:nodoc:
       end
 
       def _set_controller_content_type(content_type) #:nodoc:
-        if controller.respond_to?(:response)
-          controller.response.content_type ||= content_type
+        # TODO: Remove this method when new base is switched
+        unless defined?(ActionController::Http)
+          if controller.respond_to?(:response)
+            controller.response.content_type ||= content_type
+          end
         end
       end
   end

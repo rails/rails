@@ -263,9 +263,8 @@ module Rails
     # list. By default, all frameworks (Active Record, Active Support,
     # Action Pack, Action Mailer, and Active Resource) are loaded.
     def require_frameworks
-      require 'active_support'
+      require 'active_support/all'
       configuration.frameworks.each { |framework| require(framework.to_s) }
-      require 'active_support/core/all'
     rescue LoadError => e
       # Re-raise as RuntimeError because Mongrel would swallow LoadError.
       raise e.to_s
@@ -311,7 +310,7 @@ module Rails
     end
 
     def check_for_unbuilt_gems
-      unbuilt_gems = @configuration.gems.select(&:frozen?).reject(&:built?)
+      unbuilt_gems = @configuration.gems.select {|gem| gem.frozen? && !gem.built? }
       if unbuilt_gems.size > 0
         # don't print if the gems:build rake tasks are being run
         unless $gems_build_rake_task
@@ -462,7 +461,7 @@ Run `rake gems:install` to install the missing gems.
 
         if RAILS_CACHE.respond_to?(:middleware)
           # Insert middleware to setup and teardown local cache for each request
-          configuration.middleware.insert_after(:"ActionDispatch::Failsafe", RAILS_CACHE.middleware)
+          configuration.middleware.insert_after(:"Rack::Lock", RAILS_CACHE.middleware)
         end
       end
     end
@@ -632,7 +631,6 @@ Run `rake gems:install` to install the missing gems.
       return unless configuration.frameworks.include?(:action_controller)
       require 'dispatcher' unless defined?(::Dispatcher)
       Dispatcher.define_dispatcher_callbacks(configuration.cache_classes)
-      Dispatcher.run_prepare_callbacks
     end
 
     def disable_dependency_loading

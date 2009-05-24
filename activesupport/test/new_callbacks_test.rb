@@ -396,6 +396,68 @@ module NewCallbacksTest
     end
   end
 
+  class CallbackObject
+    def before_save(caller)
+      caller.record << "before"
+    end
+    
+    def around_save(caller)
+      caller.record << "around before"
+      yield
+      caller.record << "around after"
+    end
+  end
+
+  class UsingObjectBefore
+    include ActiveSupport::NewCallbacks
+    
+    define_callbacks :save
+    save_callback :before, CallbackObject.new
+    
+    attr_accessor :record
+    def initialize
+      @record = []
+    end
+    
+    def save
+      _run_save_callbacks do
+        @record << "yielded"
+      end
+    end 
+  end
+
+  class UsingObjectAround
+    include ActiveSupport::NewCallbacks
+    
+    define_callbacks :save
+    save_callback :around, CallbackObject.new
+    
+    attr_accessor :record
+    def initialize
+      @record = []
+    end
+    
+    def save
+      _run_save_callbacks do
+        @record << "yielded"
+      end
+    end 
+  end
+  
+  class UsingObjectTest < Test::Unit::TestCase
+    def test_before_object
+      u = UsingObjectBefore.new
+      u.save
+      assert_equal ["before", "yielded"], u.record
+    end
+    
+    def test_around_object
+      u = UsingObjectAround.new
+      u.save
+      assert_equal ["around before", "yielded", "around after"], u.record
+    end    
+  end
+
   class CallbackTerminatorTest < Test::Unit::TestCase
     def test_termination
       terminator = CallbackTerminator.new

@@ -36,6 +36,17 @@ module AbstractController
               process_action_callback(:#{filter}, name, options)
             end
           end
+
+          def skip_#{filter}_filter(*names, &blk)
+            options = names.last.is_a?(Hash) ? names.pop : {}
+            _normalize_callback_options(options)
+            names.push(blk) if block_given?
+            names.each do |name|
+              skip_process_action_callback(:#{filter}, name, options)
+            end
+          end
+
+          alias_method :append_#{filter}_filter, :#{filter}_filter
         RUBY_EVAL
       end
     end

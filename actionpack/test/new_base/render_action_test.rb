@@ -1,26 +1,24 @@
 require File.join(File.expand_path(File.dirname(__FILE__)), "test_helper")
 
 module RenderAction
-  
   # This has no layout and it works
   class BasicController < ActionController::Base
-    
     self.view_paths = [ActionView::Template::FixturePath.new(
       "render_action/basic/hello_world.html.erb" => "Hello world!"
     )]
-    
+
     def hello_world
       render :action => "hello_world"
     end
-    
+
     def hello_world_as_string
       render "hello_world"
     end
-    
+
     def hello_world_as_string_with_options
       render "hello_world", :status => 404
     end
-    
+
     def hello_world_as_symbol
       render :hello_world
     end
@@ -28,105 +26,95 @@ module RenderAction
     def hello_world_with_symbol
       render :action => :hello_world
     end
-    
+
     def hello_world_with_layout
       render :action => "hello_world", :layout => true
     end
-    
+
     def hello_world_with_layout_false
       render :action => "hello_world", :layout => false
     end
-    
+
     def hello_world_with_layout_nil
       render :action => "hello_world", :layout => nil
     end
-    
+
     def hello_world_with_custom_layout
       render :action => "hello_world", :layout => "greetings"
     end
-    
+
   end
-  
-  class TestBasic < SimpleRouteCase
-    describe "Rendering an action using :action => <String>"
-    
-    get "/render_action/basic/hello_world"
-    assert_body   "Hello world!"
-    assert_status 200
+
+  class RenderActionTest < SimpleRouteCase
+    test "rendering an action using :action => <String>" do
+      get "/render_action/basic/hello_world"
+
+      assert_body "Hello world!"
+      assert_status 200
+    end
+
+    test "rendering an action using '<action>'" do
+      get "/render_action/basic/hello_world_as_string"
+
+      assert_body "Hello world!"
+      assert_status 200
+    end
+
+    test "rendering an action using '<action>' and options" do
+      get "/render_action/basic/hello_world_as_string_with_options"
+
+      assert_body "Hello world!"
+      assert_status 404
+    end
+
+    test "rendering an action using :action" do
+      get "/render_action/basic/hello_world_as_symbol"
+
+      assert_body "Hello world!"
+      assert_status 200
+    end
+
+    test "rendering an action using :action => :hello_world" do
+      get "/render_action/basic/hello_world_with_symbol"
+
+      assert_body "Hello world!"
+      assert_status 200
+    end
   end
-  
-  class TestWithString < SimpleRouteCase
-    describe "Render an action using 'hello_world'"
-    
-    get "/render_action/basic/hello_world_as_string"
-    assert_body   "Hello world!"
-    assert_status 200
-  end
-  
-  class TestWithStringAndOptions < SimpleRouteCase
-    describe "Render an action using 'hello_world'"
-    
-    get "/render_action/basic/hello_world_as_string_with_options"
-    assert_body   "Hello world!"
-    assert_status 404
-  end
-  
-  class TestAsSymbol < SimpleRouteCase
-    describe "Render an action using :hello_world"
-    
-    get "/render_action/basic/hello_world_as_symbol"
-    assert_body   "Hello world!"
-    assert_status 200
-  end
-  
-  class TestWithSymbol < SimpleRouteCase
-    describe "Render an action using :action => :hello_world"
-    
-    get "/render_action/basic/hello_world_with_symbol"
-    assert_body   "Hello world!"
-    assert_status 200
-  end
-  
-  class TestLayoutTrue < SimpleRouteCase
-    describe "rendering a normal template with full path with layout => true"
-    
-    test "raises an exception when requesting a layout and none exist" do
-      assert_raise(ArgumentError, /no default layout for RenderAction::BasicController in/) do 
-        get "/render_action/basic/hello_world_with_layout"
+
+  class RenderLayoutTest < SimpleRouteCase
+    describe "Both <controller_path>.html.erb and application.html.erb are missing"
+
+    test "rendering with layout => true" do
+      assert_raise(ArgumentError, /no default layout for RenderAction::BasicController in/) do
+        get "/render_action/basic/hello_world_with_layout", {}, "action_dispatch.show_exceptions" => false
+      end
+    end
+
+    test "rendering with layout => false" do
+      get "/render_action/basic/hello_world_with_layout_false"
+
+      assert_body "Hello world!"
+      assert_status 200
+    end
+
+    test "rendering with layout => :nil" do
+      get "/render_action/basic/hello_world_with_layout_nil"
+
+      assert_body "Hello world!"
+      assert_status 200
+    end
+
+    test "rendering with layout => 'greetings'" do
+      assert_raise(ActionView::MissingTemplate) do
+        get "/render_action/basic/hello_world_with_custom_layout", {}, "action_dispatch.show_exceptions" => false
       end
     end
   end
-  
-  class TestLayoutFalse < SimpleRouteCase
-    describe "rendering a normal template with full path with layout => false"
-    
-    get "/render_action/basic/hello_world_with_layout_false"
-    assert_body   "Hello world!"
-    assert_status 200
-  end
-  
-  class TestLayoutNil < SimpleRouteCase
-    describe "rendering a normal template with full path with layout => :nil"
-    
-    get "/render_action/basic/hello_world_with_layout_nil"
-    assert_body   "Hello world!"
-    assert_status 200
-  end
-  
-  class TestCustomLayout < SimpleRouteCase
-    describe "rendering a normal template with full path with layout => 'greetings'"
-    
-    test "raises an exception when requesting a layout that does not exist" do
-      assert_raise(ActionView::MissingTemplate) { get "/render_action/basic/hello_world_with_custom_layout" }
-    end
-  end
-  
 end
 
 module RenderActionWithApplicationLayout
-  
   # # ==== Render actions with layouts ====
-
   class BasicController < ::ApplicationController
     # Set the view path to an application view structure with layouts
     self.view_paths = self.view_paths = [ActionView::Template::FixturePath.new(
@@ -136,205 +124,197 @@ module RenderActionWithApplicationLayout
       "layouts/greetings.html.erb"                                       => "Greetings <%= yield %> Bai",
       "layouts/builder.html.builder"                                     => "xml.html do\n  xml << yield\nend"
     )]
-    
+
     def hello_world
       render :action => "hello_world"
     end
-    
+
     def hello_world_with_layout
       render :action => "hello_world", :layout => true
     end
-    
+
     def hello_world_with_layout_false
       render :action => "hello_world", :layout => false
     end
-    
+
     def hello_world_with_layout_nil
       render :action => "hello_world", :layout => nil
     end
-    
+
     def hello_world_with_custom_layout
       render :action => "hello_world", :layout => "greetings"
     end
-    
+
     def with_builder_and_layout
       render :action => "hello", :layout => "builder"
     end
   end
-  
-  class TestDefaultLayout < SimpleRouteCase
-    describe %(
-      Render hello_world and implicitly use application.html.erb as a layout if 
-      no layout is specified and no controller layout is present
-    )
-      
-    get "/render_action_with_application_layout/basic/hello_world"
-    assert_body   "OHAI Hello World! KTHXBAI"
-    assert_status 200
+
+  class LayoutTest < SimpleRouteCase
+    describe "Only application.html.erb is present and <controller_path>.html.erb is missing"
+
+    test "rendering implicit application.html.erb as layout" do
+      get "/render_action_with_application_layout/basic/hello_world"
+
+      assert_body "OHAI Hello World! KTHXBAI"
+      assert_status 200
+    end
+
+    test "rendering with layout => true" do
+      get "/render_action_with_application_layout/basic/hello_world_with_layout"
+
+      assert_body "OHAI Hello World! KTHXBAI"
+      assert_status 200
+    end
+
+    test "rendering with layout => false" do
+      get "/render_action_with_application_layout/basic/hello_world_with_layout_false"
+
+      assert_body "Hello World!"
+      assert_status 200
+    end
+
+    test "rendering with layout => :nil" do
+      get "/render_action_with_application_layout/basic/hello_world_with_layout_nil"
+
+      assert_body "Hello World!"
+      assert_status 200
+    end
+
+    test "rendering with layout => 'greetings'" do
+      get "/render_action_with_application_layout/basic/hello_world_with_custom_layout"
+
+      assert_body "Greetings Hello World! Bai"
+      assert_status 200
+    end
   end
-  
-  class TestLayoutTrue < SimpleRouteCase
-    describe "rendering a normal template with full path with layout => true"
-    
-    get "/render_action_with_application_layout/basic/hello_world_with_layout"
-    assert_body   "OHAI Hello World! KTHXBAI"
-    assert_status 200
-  end
-  
-  class TestLayoutFalse < SimpleRouteCase
-    describe "rendering a normal template with full path with layout => false"
-    
-    get "/render_action_with_application_layout/basic/hello_world_with_layout_false"
-    assert_body   "Hello World!"
-    assert_status 200
-  end
-  
-  class TestLayoutNil < SimpleRouteCase
-    describe "rendering a normal template with full path with layout => :nil"
-    
-    get "/render_action_with_application_layout/basic/hello_world_with_layout_nil"
-    assert_body   "Hello World!"
-    assert_status 200
-  end
-  
-  class TestCustomLayout < SimpleRouteCase
-    describe "rendering a normal template with full path with layout => 'greetings'"
-    
-    get "/render_action_with_application_layout/basic/hello_world_with_custom_layout"
-    assert_body   "Greetings Hello World! Bai"
-    assert_status 200
-  end
-  
+
   class TestLayout < SimpleRouteCase
     testing BasicController
-    
+
     test "builder works with layouts" do
       get :with_builder_and_layout
       assert_response "<html>\n<p>Omg</p>\n</html>\n"
     end
   end
-  
+
 end
 
 module RenderActionWithControllerLayout
-  
   class BasicController < ActionController::Base
     self.view_paths = self.view_paths = [ActionView::Template::FixturePath.new(
       "render_action_with_controller_layout/basic/hello_world.html.erb" => "Hello World!",
       "layouts/render_action_with_controller_layout/basic.html.erb"     => "With Controller Layout! <%= yield %> KTHXBAI"
     )]
-    
+
     def hello_world
       render :action => "hello_world"
     end
-    
+
     def hello_world_with_layout
       render :action => "hello_world", :layout => true
     end
-    
+
     def hello_world_with_layout_false
       render :action => "hello_world", :layout => false
     end
-    
+
     def hello_world_with_layout_nil
       render :action => "hello_world", :layout => nil
     end
-    
+
     def hello_world_with_custom_layout
       render :action => "hello_world", :layout => "greetings"
     end
   end
-  
-  class TestControllerLayout < SimpleRouteCase
-    describe "Render hello_world and implicitly use <controller_path>.html.erb as a layout."
 
-    get "/render_action_with_controller_layout/basic/hello_world"
-    assert_body   "With Controller Layout! Hello World! KTHXBAI"
-    assert_status 200
+  class ControllerLayoutTest < SimpleRouteCase
+    describe "Only <controller_path>.html.erb is present and application.html.erb is missing"
+
+    test "render hello_world and implicitly use <controller_path>.html.erb as a layout." do
+      get "/render_action_with_controller_layout/basic/hello_world"
+
+      assert_body "With Controller Layout! Hello World! KTHXBAI"
+      assert_status 200
+    end
+
+    test "rendering with layout => true" do
+      get "/render_action_with_controller_layout/basic/hello_world_with_layout"
+
+      assert_body "With Controller Layout! Hello World! KTHXBAI"
+      assert_status 200
+    end
+
+    test "rendering with layout => false" do
+      get "/render_action_with_controller_layout/basic/hello_world_with_layout_false"
+
+      assert_body "Hello World!"
+      assert_status 200
+    end
+
+    test "rendering with layout => :nil" do
+      get "/render_action_with_controller_layout/basic/hello_world_with_layout_nil"
+
+      assert_body "Hello World!"
+      assert_status 200
+    end
   end
-  
-  class TestLayoutTrue < SimpleRouteCase
-    describe "rendering a normal template with full path with layout => true"
-    
-    get "/render_action_with_controller_layout/basic/hello_world_with_layout"
-    assert_body   "With Controller Layout! Hello World! KTHXBAI"
-    assert_status 200
-  end
-  
-  class TestLayoutFalse < SimpleRouteCase
-    describe "rendering a normal template with full path with layout => false"
-    
-    get "/render_action_with_controller_layout/basic/hello_world_with_layout_false"
-    assert_body   "Hello World!"
-    assert_status 200
-  end
-  
-  class TestLayoutNil < SimpleRouteCase
-    describe "rendering a normal template with full path with layout => :nil"
-    
-    get "/render_action_with_controller_layout/basic/hello_world_with_layout_nil"
-    assert_body   "Hello World!"
-    assert_status 200
-  end
-  
 end
 
 module RenderActionWithBothLayouts
-  
   class BasicController < ActionController::Base
     self.view_paths = [ActionView::Template::FixturePath.new({
       "render_action_with_both_layouts/basic/hello_world.html.erb" => "Hello World!",
       "layouts/application.html.erb"                                => "OHAI <%= yield %> KTHXBAI",
       "layouts/render_action_with_both_layouts/basic.html.erb"      => "With Controller Layout! <%= yield %> KTHXBAI"
     })]
-    
+
     def hello_world
       render :action => "hello_world"
     end
-    
+
     def hello_world_with_layout
       render :action => "hello_world", :layout => true
     end
-    
+
     def hello_world_with_layout_false
       render :action => "hello_world", :layout => false
     end
-    
+
     def hello_world_with_layout_nil
       render :action => "hello_world", :layout => nil
     end
   end
-  
-  class TestControllerLayoutFirst < SimpleRouteCase
-    describe "Render hello_world and implicitly use <controller_path>.html.erb over application.html.erb as a layout"
 
-    get "/render_action_with_both_layouts/basic/hello_world"
-    assert_body   "With Controller Layout! Hello World! KTHXBAI"
-    assert_status 200
+  class ControllerLayoutTest < SimpleRouteCase
+    describe "Both <controller_path>.html.erb and application.html.erb are present"
+
+    test "rendering implicitly use <controller_path>.html.erb over application.html.erb as a layout" do
+      get "/render_action_with_both_layouts/basic/hello_world"
+
+      assert_body   "With Controller Layout! Hello World! KTHXBAI"
+      assert_status 200
+    end
+
+    test "rendering with layout => true" do
+      get "/render_action_with_both_layouts/basic/hello_world_with_layout"
+
+      assert_body "With Controller Layout! Hello World! KTHXBAI"
+      assert_status 200
+    end
+
+    test "rendering with layout => false" do
+      get "/render_action_with_both_layouts/basic/hello_world_with_layout_false"
+
+      assert_body "Hello World!"
+      assert_status 200
+    end
+
+    test "rendering with layout => :nil" do
+      get "/render_action_with_both_layouts/basic/hello_world_with_layout_nil"
+
+      assert_body "Hello World!"
+      assert_status 200
+    end
   end
-  
-  class TestLayoutTrue < SimpleRouteCase
-    describe "rendering a normal template with full path with layout => true"
-    
-    get "/render_action_with_both_layouts/basic/hello_world_with_layout"
-    assert_body   "With Controller Layout! Hello World! KTHXBAI"
-    assert_status 200
-  end
-  
-  class TestLayoutFalse < SimpleRouteCase
-    describe "rendering a normal template with full path with layout => false"
-    
-    get "/render_action_with_both_layouts/basic/hello_world_with_layout_false"
-    assert_body   "Hello World!"
-    assert_status 200
-  end
-  
-  class TestLayoutNil < SimpleRouteCase
-    describe "rendering a normal template with full path with layout => :nil"
-    
-    get "/render_action_with_both_layouts/basic/hello_world_with_layout_nil"
-    assert_body   "Hello World!"
-    assert_status 200
-  end
-  
 end

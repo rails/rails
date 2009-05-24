@@ -591,6 +591,16 @@ class DefaultScopingTest < ActiveRecord::TestCase
     assert_equal expected, received
   end
 
+  def test_default_scope_with_conditions_string
+    assert_equal Developer.find_all_by_name('David').map(&:id).sort, DeveloperCalledDavid.all.map(&:id).sort
+    assert_equal nil, DeveloperCalledDavid.create!.name
+  end
+
+  def test_default_scope_with_conditions_hash
+    assert_equal Developer.find_all_by_name('Jamis').map(&:id).sort, DeveloperCalledJamis.all.map(&:id).sort
+    assert_equal 'Jamis', DeveloperCalledJamis.create!.name
+  end
+
   def test_default_scoping_with_threads
     scope = [{ :create => {}, :find => { :order => 'salary DESC' } }]
 

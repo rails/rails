@@ -1,7 +1,10 @@
 module ActionController
   module Rails2Compatibility
     extend ActiveSupport::DependencyModule
-  
+
+    class ::ActionController::ActionControllerError < StandardError #:nodoc:
+    end
+
     # Temporary hax
     included do
       ::ActionController::UnknownAction = ::AbstractController::ActionNotFound
@@ -53,10 +56,23 @@ module ActionController
 
       cattr_accessor :consider_all_requests_local
       self.consider_all_requests_local = true
+
+      # Prepends all the URL-generating helpers from AssetHelper. This makes it possible to easily move javascripts, stylesheets,
+      # and images to a dedicated asset server away from the main web server. Example:
+      #   ActionController::Base.asset_host = "http://assets.example.com"
+      cattr_accessor :asset_host
     end
     
+    # For old tests
+    def initialize_template_class(*) end
+    def assign_shortcuts(*) end
+
+    # TODO: Remove this after we flip
+    def template
+      _action_view
+    end
+
     module ClassMethods
-      def protect_from_forgery() end
       def consider_all_requests_local() end
       def rescue_action(env)
         raise env["action_dispatch.rescue.exception"]
@@ -80,7 +96,9 @@ module ActionController
       
       options[:text] = nil if options[:nothing] == true
 
-      super
+      body = super
+      body = [' '] if body.blank?
+      body
     end
 
     def _handle_method_missing
@@ -91,10 +109,12 @@ module ActionController
       super || (respond_to?(:method_missing) && "_handle_method_missing")
     end    
       
-    def _layout_for_name(name)
-      name &&= name.sub(%r{^/?layouts/}, '')
-      super
+    def _layout_prefix(name)
+      super unless name =~ /\blayouts/
     end
-   
+
+    def performed?
+      response_body
+    end
   end
 end

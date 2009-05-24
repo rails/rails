@@ -12,6 +12,7 @@ require 'models/reader'
 require 'models/ship'
 require 'models/ship_part'
 require 'models/treasure'
+require 'models/company'
 
 class TestAutosaveAssociationsInGeneral < ActiveRecord::TestCase
   def test_autosave_should_be_a_valid_option_for_has_one
@@ -38,6 +39,8 @@ class TestAutosaveAssociationsInGeneral < ActiveRecord::TestCase
 end
 
 class TestDefaultAutosaveAssociationOnAHasOneAssociation < ActiveRecord::TestCase
+  fixtures :companies, :accounts
+
   def test_should_save_parent_but_not_invalid_child
     firm = Firm.new(:name => 'GlobalMegaCorp')
     assert firm.valid?
@@ -137,6 +140,8 @@ class TestDefaultAutosaveAssociationOnAHasOneAssociation < ActiveRecord::TestCas
 end
 
 class TestDefaultAutosaveAssociationOnABelongsToAssociation < ActiveRecord::TestCase
+  fixtures :companies
+
   def test_should_save_parent_but_not_invalid_child
     client = Client.new(:name => 'Joe (the Plumber)')
     assert client.valid?

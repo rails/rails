@@ -1,4 +1,5 @@
 require 'abstract_unit'
+require 'action_controller/vendor/html-scanner'
 
 # a controller class to facilitate the tests
 class ActionPackAssertionsController < ActionController::Base
@@ -11,6 +12,9 @@ class ActionPackAssertionsController < ActionController::Base
 
   # a standard template
   def hello_xml_world() render :template => "test/hello_xml_world"; end
+
+  # a standard partial
+  def partial() render :partial => 'test/partial'; end
 
   # a redirect to an internal location
   def redirect_internal() redirect_to "/nothing"; end
@@ -292,8 +296,8 @@ class ActionPackAssertionsControllerTest < ActionController::TestCase
   # make sure that the template objects exist
   def test_template_objects_alive
     process :assign_this
-    assert !@controller.template.assigns['hi']
-    assert @controller.template.assigns['howdy']
+    assert !@controller.template.instance_variable_get(:"@hi")
+    assert @controller.template.instance_variable_get(:"@howdy")
   end
 
   # make sure we don't have template objects when we shouldn't
@@ -329,6 +333,26 @@ class ActionPackAssertionsControllerTest < ActionController::TestCase
       assert !@response.has_flash_with_contents?
       assert_nil @response.flash['hello']
     end
+  end
+
+  def test_assert_template_with_partial
+    get :partial
+    assert_template :partial => '_partial'
+  end
+
+  def test_assert_template_with_nil
+    get :nothing
+    assert_template nil
+  end
+
+  def test_assert_template_with_string
+    get :hello_world
+    assert_template 'hello_world'
+  end
+
+  def test_assert_template_with_symbol
+    get :hello_world
+    assert_template :hello_world
   end
 
   # check if we were rendered by a file-based template?
@@ -420,7 +444,6 @@ class ActionPackAssertionsControllerTest < ActionController::TestCase
     process :render_based_on_parameters, "name" => "David"
     assert_equal "Mr. David", @response.body
   end
-
 
   def test_assert_redirection_fails_with_incorrect_controller
     process :redirect_to_controller

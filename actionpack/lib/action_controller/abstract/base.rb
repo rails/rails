@@ -68,11 +68,11 @@ module AbstractController
       self.response_obj = {}
     end
     
-    def process(action_name)
-      @_action_name = action_name = action_name.to_s
+    def process(action)
+      @_action_name = action_name = action.to_s
 
       unless action_name = method_for_action(action_name)
-        raise ActionNotFound, "The action '#{action_name}' could not be found"
+        raise ActionNotFound, "The action '#{action}' could not be found"
       end
 
       process_action(action_name)

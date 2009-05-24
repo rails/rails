@@ -118,6 +118,10 @@ class NumberHelperTest < ActionView::TestCase
     assert_equal '1.01 KB',   number_to_human_size(1.0123.kilobytes, :precision => 2)
     assert_equal '1.01 KB',   number_to_human_size(1.0100.kilobytes, :precision => 4)
     assert_equal '10 KB',     number_to_human_size(10.000.kilobytes, :precision => 4)
+    assert_equal '1 TB', number_to_human_size(1234567890123, :precision => 0)
+    assert_equal '500 MB', number_to_human_size(524288000, :precision=>0)
+    assert_equal '40 KB', number_to_human_size(41010, :precision => 0)
+    assert_equal '40 KB', number_to_human_size(41100, :precision => 0)
   end
 
   def test_number_to_human_size_with_custom_delimiter_and_separator

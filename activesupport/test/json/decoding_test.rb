@@ -36,6 +36,9 @@ class TestJSONDecoding < ActiveSupport::TestCase
     %q({"b":["\u003ci\u003e","\u003cb\u003e","\u003cu\u003e"]}) => {'b' => ["<i>","<b>","<u>"]}
   }
 
+  # load the default JSON backend
+  ActiveSupport::JSON.backend
+
   backends = %w(Yaml)
   begin
     gem 'json', '>= 1.1'
