@@ -22,7 +22,7 @@ module ActionView
     # For example, you'd define <tt>assets.example.com</tt> to be your asset
     # host this way:
     #
-    #   ActionController::Base.asset_host = "assets.example.com"
+    #   config.action_controller.asset_host = "assets.example.com"
     #
     # Helpers take that into account:
     #
@@ -55,7 +55,7 @@ module ActionView
     # Alternatively, you can exert more control over the asset host by setting
     # +asset_host+ to a proc like this:
     #
-    #   ActionController::Base.asset_host = Proc.new { |source|
+    #   config.action_controller.asset_host = Proc.new { |source|
     #     "http://assets#{rand(2) + 1}.example.com"
     #   }
     #   image_tag("rails.png")
@@ -71,7 +71,7 @@ module ActionView
     # absolute path of the asset with any extensions and timestamps in place,
     # for example "/images/rails.png?1230601161".
     #
-    #    ActionController::Base.asset_host = Proc.new { |source|
+    #    config.action_controller.asset_host = Proc.new { |source|
     #      if source.starts_with?('/images')
     #        "http://images.example.com"
     #      else
@@ -90,7 +90,7 @@ module ActionView
     # have SSL certificates for each of the asset hosts this technique allows you
     # to avoid warnings in the client about mixed media.
     #
-    #   ActionController::Base.asset_host = Proc.new { |source, request|
+    #   config.action_controller.asset_host = Proc.new { |source, request|
     #     if request.ssl?
     #       "#{request.protocol}#{request.host_with_port}"
     #     else
