@@ -121,7 +121,7 @@ class String
   #
   # Singular names are not handled correctly.
   #
-  #   "business".classify # => "Business"
+  #   "business".classify # => "Busines"
   def classify
     ActiveSupport::Inflector.classify(self)
   end
