@@ -83,7 +83,7 @@ module ActionController
         @@cache_store = ActiveSupport::Cache.lookup_store(store_option)
       end
     end
-    
+
     def initialize(*)
       super
       @template = _action_view
