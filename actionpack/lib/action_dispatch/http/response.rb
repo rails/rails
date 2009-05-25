@@ -41,7 +41,8 @@ module ActionDispatch # :nodoc:
     delegate :default_charset, :to => 'ActionController::Base'
 
     def initialize
-      super([], 200, DEFAULT_HEADERS)
+      super
+      @header = Rack::Utils::HeaderHash.new(DEFAULT_HEADERS)
     end
 
     # The response code of the request
@@ -161,7 +162,7 @@ module ActionDispatch # :nodoc:
     end
 
     def assign_default_content_type_and_charset!
-      if type = headers['Content-Type']
+      if type = headers['Content-Type'] || headers['type']
         unless type =~ /charset=/ || sending_file?
           headers['Content-Type'] = "#{type}; charset=#{default_charset}"
         end
