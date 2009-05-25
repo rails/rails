@@ -5,6 +5,9 @@ class CookieStoreTest < ActionController::IntegrationTest
   SessionKey = '_myapp_session'
   SessionSecret = 'b3c631c314c0bbca50c1b2843150fe33'
 
+  # Make sure Session middleware doesnt get included in the middleware stack
+  ActionController::Base.session_store = nil
+
   DispatcherApp = ActionController::Dispatcher.new
   CookieStoreApp = ActionDispatch::Session::CookieStore.new(DispatcherApp,
                      :key => SessionKey, :secret => SessionSecret)
