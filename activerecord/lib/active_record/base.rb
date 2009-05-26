@@ -1035,6 +1035,21 @@ module ActiveRecord #:nodoc:
       #
       # To start from an all-closed default and enable attributes as needed,
       # have a look at +attr_accessible+.
+      #
+      # If the access logic of your application is richer you can use <tt>Hash#except</tt>
+      # or <tt>Hash#slice</tt> to sanitize the hash of parameters before they are
+      # passed to Active Record.
+      # 
+      # For example, it could be the case that the list of protected attributes
+      # for a given model depends on the role of the user:
+      #
+      #   # Assumes plan_id is not protected because it depends on the role.
+      #   params[:account] = params[:account].except(:plan_id) unless admin?
+      #   @account.update_attributes(params[:account])
+      #
+      # Note that +attr_protected+ is still applied to the received hash. Thus,
+      # with this technique you can at most _extend_ the list of protected
+      # attributes for a particular mass-assignment call.
       def attr_protected(*attributes)
         write_inheritable_attribute(:attr_protected, Set.new(attributes.map {|a| a.to_s}) + (protected_attributes || []))
       end
@@ -1068,6 +1083,21 @@ module ActiveRecord #:nodoc:
       #
       #   customer.credit_rating = "Average"
       #   customer.credit_rating # => "Average"
+      #
+      # If the access logic of your application is richer you can use <tt>Hash#except</tt>
+      # or <tt>Hash#slice</tt> to sanitize the hash of parameters before they are
+      # passed to Active Record.
+      # 
+      # For example, it could be the case that the list of accessible attributes
+      # for a given model depends on the role of the user:
+      #
+      #   # Assumes plan_id is accessible because it depends on the role.
+      #   params[:account] = params[:account].except(:plan_id) unless admin?
+      #   @account.update_attributes(params[:account])
+      #
+      # Note that +attr_accessible+ is still applied to the received hash. Thus,
+      # with this technique you can at most _narrow_ the list of accessible
+      # attributes for a particular mass-assignment call.
       def attr_accessible(*attributes)
         write_inheritable_attribute(:attr_accessible, Set.new(attributes.map(&:to_s)) + (accessible_attributes || []))
       end
