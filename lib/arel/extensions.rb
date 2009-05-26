@@ -1,6 +1,0 @@
-require 'arel/extensions/object'
-require 'arel/extensions/class'
-require 'arel/extensions/array'
-require 'arel/extensions/hash'
-require 'arel/extensions/range'
-require 'arel/extensions/nil_class'
