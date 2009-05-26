@@ -69,7 +69,12 @@ module ActionController
 
     # TODO: Remove this after we flip
     def template
-      _action_view
+      @template ||= _action_view
+    end
+
+    def process_action(*)
+      template
+      super
     end
 
     module ClassMethods
@@ -82,11 +87,6 @@ module ActionController
       def cache_store=(store_option)
         @@cache_store = ActiveSupport::Cache.lookup_store(store_option)
       end
-    end
-
-    def initialize(*)
-      super
-      @template = _action_view
     end
     
     def render_to_body(options)
