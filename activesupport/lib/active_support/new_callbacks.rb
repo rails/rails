@@ -287,6 +287,14 @@ module ActiveSupport
         when Proc
           @klass.send(:define_method, method_name, &filter)
           method_name << (filter.arity == 1 ? "(self)" : "")
+        when Method
+          @klass.send(:define_method, "#{method_name}_method") { filter }
+          @klass.class_eval <<-RUBY_EVAL, __FILE__, __LINE__ + 1
+            def #{method_name}(&blk)
+              #{method_name}_method.call(self, &blk)
+            end
+          RUBY_EVAL
+          method_name
         when String
           @klass.class_eval <<-RUBY_EVAL
             def #{method_name}
