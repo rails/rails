@@ -1,29 +1,26 @@
 todo:
-- joining with LIMIT is like aggregations!!
+- fix AR again
+- blocks for joins
+- fix sql insertions 
+- implement mnesia adapter
 
-users.delete().where( 
-    addresses.c.user_id== 
-         select([users.c.id]). 
-         where(users.c.name=='jack') 
-    ) 
-
-    SELECT id, name, 
-      (select count(*) FROM addresses WHERE 
-    user_id=users.id) 
-    FROM users 
-
-    SELECT users.*, (SELECT count(id) FROM addresses WHERE 
-    addresses.user_id=users.id) FROM users
-- blocks for all operations
-- result sets to attr correlation too
-- cache expiry on write
-  - rewrite of arecord querycache test in light of this
-- transactions
+- CLEANUP!!!!!
+- rename externalize to derived.
+- deal with table tests in algebra
+- fix grouping
+- audit unit coverage of algebra
+- data objects
+- remove all explicit aliasing
 - scoped writes
+- refactor adapter pattern
+- break out adapters into sep modules
+- projection is by definition distincting?
+- union/intersection
+- cache expiry on write
+- transactions
 
 done:
 - and/or w/ predicates
-- mock out database
 . Relation <=> Relation -> InnerJoinOperation
 . Relation << Relation -> LeftOuterJoinOperation
 . InnerJoinOperation.on(*Predicate) -> InnerJoinRelation
@@ -74,6 +71,7 @@ done:
 - test Value, in particular bind.
 - test blank checks in relation.rb
 - rename active_relation to arel
+- mock out database
 - fix complex joining cases:
 - active record query adapter
 - anonymous table names
@@ -84,6 +82,20 @@ done:
 - test: find_attribute_given_attribute and all @attribute ||= everywhere and memoization of table class.
 - rename select to where
 - rename all ion classes
+- joining with LIMIT is like aggregations!!
+- blocks for non-joins
+- expressions should be class-based, and joins too, anything _sql should be renamed
+- implement in memory adapter
+- clean up block_given stuff
+- reorganize sql tests
+- recursive memory operations
+- reorganize memory tests
+- result sets to attr correlation too
+- implement joins in memory
+- result sets should be array relations
+- fix AR
+- insertions for in memory
+- cross-engine joins
 
 icebox:
 - #bind in Attribute and Expression should be doing a descend?
@@ -98,3 +110,9 @@ icebox:
   @reflection.options[:counter_sql] = @reflection.options[:finder_sql].sub(/SELECT (\/\*.*?\*\/ )?(.*)\bFROM\b/im) { "SELECT #{$1}COUNT(*) FROM" }
 - lock
   - SELECT suchandsuch FOR UPDATE
+- joins become subselects in writes:
+users.delete().where( 
+    addresses.c.user_id== 
+         select([users.c.id]). 
+         where(users.c.name=='jack') 
+    )
