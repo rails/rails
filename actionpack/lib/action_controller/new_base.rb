@@ -40,5 +40,7 @@ module ActionController
   require 'action_controller/routing'
 end
 
+autoload :HTML, 'action_controller/vendor/html-scanner'
+
 require 'action_dispatch'
 require 'action_view'
