@@ -64,12 +64,11 @@ Rake::TestTask.new(:test_new_base_on_old_tests) do |t|
 
   # ==== Not ported
   # * filters
-  # * integration
   t.test_files = %w(
     action_pack_assertions addresses_render assert_select
     base benchmark caching capture content_type cookie dispatcher
     filter_params flash helper http_basic_authentication
-    http_digest_authentication layout logging mime_responds
+    http_digest_authentication integration layout logging mime_responds
     record_identifier redirect render render_js render_json
     render_other render_xml request_forgery_protection rescue
     resources routing selector send_file test url_rewriter
