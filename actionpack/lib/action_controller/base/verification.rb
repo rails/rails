@@ -1,7 +1,10 @@
 module ActionController #:nodoc:
   module Verification #:nodoc:
-    def self.included(base) #:nodoc:
-      base.extend(ClassMethods)
+    extend ActiveSupport::DependencyModule
+
+    # TODO : Remove the defined? check when new base is the main base
+    if defined?(ActionController::Http)
+      depends_on AbstractController::Callbacks, Session, Flash, Renderer
     end
 
     # This module provides a class-level method for specifying that certain
@@ -102,7 +105,7 @@ module ActionController #:nodoc:
     end
  
     def verify_presence_of_keys_in_hash_flash_or_params(options) # :nodoc:
-      [*options[:params] ].find { |v| params[v].nil?  } ||
+      [*options[:params] ].find { |v| v && params[v.to_sym].nil?  } ||
       [*options[:session]].find { |v| session[v].nil? } ||
       [*options[:flash]  ].find { |v| flash[v].nil?   }
     end

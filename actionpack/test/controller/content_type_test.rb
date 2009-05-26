@@ -148,12 +148,13 @@ class AcceptBasedContentTypeTest < ActionController::TestCase
 
   def setup
     super
+    @_old_accept_header = ActionController::Base.use_accept_header
     ActionController::Base.use_accept_header = true
   end
 
   def teardown
     super
-    ActionController::Base.use_accept_header = false
+    ActionController::Base.use_accept_header = @_old_accept_header
   end
 
 

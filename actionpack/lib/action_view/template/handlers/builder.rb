@@ -5,6 +5,8 @@ module ActionView
     class Builder < TemplateHandler
       include Compilable
 
+      self.default_format = Mime::XML
+
       def compile(template)
         "_set_controller_content_type(Mime::XML);" +
           "xml = ::Builder::XmlMarkup.new(:indent => 2);" +

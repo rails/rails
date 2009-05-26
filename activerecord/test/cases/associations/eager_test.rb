@@ -590,7 +590,7 @@ class EagerAssociationTest < ActiveRecord::TestCase
   end
 
   def test_limited_eager_with_numeric_in_association
-    assert_equal people(:david, :susan), Person.find(:all, :include => [:readers, :primary_contact, :number1_fan], :conditions => "number1_fans_people.first_name like 'M%'", :order => 'readers.id', :limit => 2, :offset => 0)
+    assert_equal people(:david, :susan), Person.find(:all, :include => [:readers, :primary_contact, :number1_fan], :conditions => "number1_fans_people.first_name like 'M%'", :order => 'people.id', :limit => 2, :offset => 0)
   end
 
   def test_preload_with_interpolation

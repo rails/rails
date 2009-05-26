@@ -1,10 +1,19 @@
+$:.unshift(File.dirname(__FILE__) + '/../../lib')
+$:.unshift(File.dirname(__FILE__) + '/../../../activesupport/lib')
 $:.unshift(File.dirname(__FILE__) + '/../lib')
-$:.unshift(File.dirname(__FILE__) + '/../../activesupport/lib')
-$:.unshift(File.dirname(__FILE__) + '/lib')
 
+$:.unshift(File.dirname(__FILE__) + '/../fixtures/helpers')
+$:.unshift(File.dirname(__FILE__) + '/../fixtures/alternate_helpers')
+
+ENV['new_base'] = "true"
+$stderr.puts "Running old tests on new_base"
 
 require 'test/unit'
 require 'active_support'
+
+# TODO : Revisit requiring all the core extensions here
+require 'active_support/core_ext'
+
 require 'active_support/test_case'
 require 'action_controller/abstract'
 require 'action_controller/new_base'
@@ -14,9 +23,27 @@ require 'action_view/test_case'
 require 'action_controller/testing/integration'
 require 'active_support/dependencies'
 
+$tags[:new_base] = true
+
+begin
+  require 'ruby-debug'
+  Debugger.settings[:autoeval] = true
+  Debugger.start
+rescue LoadError
+  # Debugging disabled. `gem install ruby-debug` to enable.
+end
+
 ActiveSupport::Dependencies.hook!
 
-FIXTURE_LOAD_PATH = File.join(File.dirname(__FILE__), 'fixtures')
+# Show backtraces for deprecated behavior for quicker cleanup.
+ActiveSupport::Deprecation.debug = true
+
+# Register danish language for testing
+I18n.backend.store_translations 'da', {}
+I18n.backend.store_translations 'pt-BR', {}
+ORIGINAL_LOCALES = I18n.available_locales.map {|locale| locale.to_s }.sort
+
+FIXTURE_LOAD_PATH = File.join(File.dirname(__FILE__), '../fixtures')
 
 module ActionController
   Base.session = {
@@ -101,7 +128,7 @@ module ActionController
       hax = @controller._action_view.instance_variable_get(:@_rendered)
 
       case options
-       when NilClass, String
+      when NilClass, String
         rendered = (hax[:template] || []).map { |t| t.identifier }
         msg = build_message(message,
                 "expecting <?> but rendering with <?>",

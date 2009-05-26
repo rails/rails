@@ -1,5 +1,5 @@
 require 'abstract_unit'
-require 'active_support/core/time'
+require 'active_support/time'
 
 class DurationTest < ActiveSupport::TestCase
   def test_inspect

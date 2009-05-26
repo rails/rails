@@ -11,6 +11,11 @@ module ActiveSupport
         @@at_exit = false
 
         def pending(description = "", &block)
+          if description.is_a?(Symbol)
+            is_pending = $tags[description]
+            return block.call unless is_pending
+          end
+
           if block_given?
             failed = false
 

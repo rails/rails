@@ -33,16 +33,12 @@ module AbstractController
     # 
     # :api: plugin
     def render_to_body(options = {})
-      name = options[:_template_name] || action_name
-
       # TODO: Refactor so we can just use the normal template logic for this
       if options[:_partial_object]
         _action_view._render_partial_from_controller(options)
-      else 
-        options[:_template] ||= view_paths.find_by_parts(name.to_s, {:formats => formats}, 
-        options[:_prefix], options[:_partial])
-
-        _render_template(options[:_template], options)
+      else
+        _determine_template(options)
+        _render_template(options)
       end
     end
 
@@ -56,8 +52,8 @@ module AbstractController
       AbstractController::Renderer.body_to_s(render_to_body(options))
     end
 
-    def _render_template(template, options)
-      _action_view._render_template_from_controller(template, nil, options, options[:_partial])
+    def _render_template(options)
+      _action_view._render_template_from_controller(options[:_template], options[:_layout], options, options[:_partial])
     end
     
     def view_paths() _view_paths end
@@ -72,6 +68,16 @@ module AbstractController
         body.close if body.respond_to?(:close)
         strings.join
       end
+    end
+
+  private
+
+    def _determine_template(options)
+      name = (options[:_template_name] || action_name).to_s
+
+      options[:_template] ||= view_paths.find_by_parts(
+        name, { :formats => formats }, options[:_prefix], options[:_partial]
+      )
     end
 
     module ClassMethods

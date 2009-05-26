@@ -21,16 +21,9 @@
 # WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 #++
 
-begin
-  require 'active_support'
-rescue LoadError
-  activesupport_path = "#{File.dirname(__FILE__)}/../../activesupport/lib"
-  if File.directory?(activesupport_path)
-    $:.unshift activesupport_path
-    require 'active_support'
-  end
-end
-require 'active_support/core/all'
+activesupport_path = "#{File.dirname(__FILE__)}/../../activesupport/lib"
+$:.unshift(activesupport_path) if File.directory?(activesupport_path)
+require 'active_support/all'
 
 $:.unshift(File.dirname(__FILE__))
 require 'rails_generator/base'

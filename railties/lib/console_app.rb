@@ -1,5 +1,4 @@
-require 'active_support'
-require 'active_support/core/all'
+require 'active_support/all'
 require 'active_support/test_case'
 require 'action_controller'
 

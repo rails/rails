@@ -625,9 +625,7 @@ class TestController < ActionController::Base
              "accessing_params_in_template_with_layout",
              "render_with_explicit_template",
              "render_with_explicit_string_template",
-             "render_js_with_explicit_template",
-             "render_js_with_explicit_action_template",
-             "delete_with_js", "update_page", "update_page_with_instance_variables"
+             "update_page", "update_page_with_instance_variables"
 
           "layouts/standard"
         when "action_talk_to_layout", "layout_overriding_layout"

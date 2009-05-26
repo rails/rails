@@ -4,6 +4,7 @@ require 'pathname'
 
 class TestController < ActionController::Base
   protect_from_forgery
+  layout :determine_layout
 
   module RenderTestHelper
     def rjs_helper_method_from_module
@@ -103,11 +104,26 @@ class TestController < ActionController::Base
   end  
   
 private
+  def default_render
+    if @alternate_default_render
+      @alternate_default_render.call
+    else
+      super
+    end
+  end
+
   def determine_layout
     case action_name
-      when "render_js_with_explicit_template",
-           "render_js_with_explicit_action_template",
-           "delete_with_js", "update_page", "update_page_with_instance_variables"
+      when "hello_world", "layout_test", "rendering_without_layout",
+           "rendering_nothing_on_layout", "render_text_hello_world",
+           "render_text_hello_world_with_layout",
+           "hello_world_with_layout_false",
+           "partial_only", "partial_only_with_layout",
+           "accessing_params_in_template",
+           "accessing_params_in_template_with_layout",
+           "render_with_explicit_template",
+           "render_with_explicit_string_template",
+           "update_page", "update_page_with_instance_variables"
 
         "layouts/standard"
       when "action_talk_to_layout", "layout_overriding_layout"

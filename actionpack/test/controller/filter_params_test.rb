@@ -1,12 +1,29 @@
 require 'abstract_unit'
 
 class FilterParamController < ActionController::Base
+  def payment
+    head :ok
+  end
 end
 
-class FilterParamTest < Test::Unit::TestCase
-  def setup
-    @controller = FilterParamController.new
+class FilterParamTest < ActionController::TestCase
+  tests FilterParamController
+
+  class MockLogger
+    attr_reader :logged
+    attr_accessor :level
+    
+    def initialize
+      @level = Logger::DEBUG
+    end
+    
+    def method_missing(method, *args)
+      @logged ||= []
+      @logged << args.first
+    end
   end
+
+  setup :set_logger
 
   def test_filter_parameters
     assert FilterParamController.respond_to?(:filter_parameter_logging)
@@ -45,5 +62,27 @@ class FilterParamTest < Test::Unit::TestCase
     FilterParamController.filter_parameter_logging(:foo)
     assert !FilterParamController.action_methods.include?('filter_parameters')
     assert_raise(NoMethodError) { @controller.filter_parameters([{'password' => '[FILTERED]'}]) }
+  end
+
+  def test_filter_parameters_inside_logs
+    FilterParamController.filter_parameter_logging(:lifo, :amount)
+
+    get :payment, :lifo => 'Pratik', :amount => '420', :step => '1'
+
+    filtered_params_logs = logs.detect {|l| l =~ /\AParameters/ }
+
+    assert filtered_params_logs.index('"amount"=>"[FILTERED]"')
+    assert filtered_params_logs.index('"lifo"=>"[FILTERED]"')
+    assert filtered_params_logs.index('"step"=>"1"')
+  end
+
+  private
+
+  def set_logger
+    @controller.logger = MockLogger.new
+  end
+  
+  def logs
+    @logs ||= @controller.logger.logged.compact.map {|l| l.to_s.strip}
   end
 end

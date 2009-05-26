@@ -1,4 +1,5 @@
 require 'abstract_unit'
+require 'action_controller/vendor/html-scanner'
 
 # a controller class to facilitate the tests
 class ActionPackAssertionsController < ActionController::Base
@@ -295,8 +296,8 @@ class ActionPackAssertionsControllerTest < ActionController::TestCase
   # make sure that the template objects exist
   def test_template_objects_alive
     process :assign_this
-    assert !@controller.template.assigns['hi']
-    assert @controller.template.assigns['howdy']
+    assert !@controller.template.instance_variable_get(:"@hi")
+    assert @controller.template.instance_variable_get(:"@howdy")
   end
 
   # make sure we don't have template objects when we shouldn't
@@ -443,7 +444,6 @@ class ActionPackAssertionsControllerTest < ActionController::TestCase
     process :render_based_on_parameters, "name" => "David"
     assert_equal "Mr. David", @response.body
   end
-
 
   def test_assert_redirection_fails_with_incorrect_controller
     process :redirect_to_controller

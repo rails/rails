@@ -375,9 +375,11 @@ class MimeControllerTest < ActionController::TestCase
   end
 
   def test_rjs_type_skips_layout
-    @request.accept = "text/javascript"
-    get :all_types_with_layout
-    assert_equal 'RJS for all_types_with_layout', @response.body
+    pending(:new_base) do
+      @request.accept = "text/javascript"
+      get :all_types_with_layout
+      assert_equal 'RJS for all_types_with_layout', @response.body
+    end
   end
 
   def test_html_type_with_layout
@@ -437,7 +439,7 @@ class MimeControllerTest < ActionController::TestCase
     @controller.instance_eval do
       def render(*args)
         unless args.empty?
-          @action = args.first[:action]
+          @action = args.first[:action] || action_name
         end
         response.body = "#{@action} - #{@template.formats}"
       end
@@ -490,14 +492,15 @@ class PostController < AbstractPostController
     end
   end
 
-  protected
-    def with_iphone
-      Mime::Type.register_alias("text/html", :iphone)
-      request.format = "iphone" if request.env["HTTP_ACCEPT"] == "text/iphone"
-      yield
-    ensure
-      Mime.module_eval { remove_const :IPHONE if const_defined?(:IPHONE) }
-    end
+protected
+
+  def with_iphone
+    Mime::Type.register_alias("text/html", :iphone)
+    request.format = "iphone" if request.env["HTTP_ACCEPT"] == "text/iphone"
+    yield
+  ensure
+    Mime.module_eval { remove_const :IPHONE if const_defined?(:IPHONE) }
+  end
 end
 
 class SuperPostController < PostController
@@ -507,6 +510,11 @@ class SuperPostController < PostController
       type.iphone
     end
   end
+end
+
+if defined?(ActionController::Http)
+  PostController._write_layout_method
+  SuperPostController._write_layout_method
 end
 
 class MimeControllerLayoutsTest < ActionController::TestCase
@@ -526,14 +534,16 @@ class MimeControllerLayoutsTest < ActionController::TestCase
     assert_equal 'Hello iPhone', @response.body
   end
 
-  def test_format_with_inherited_layouts
-    @controller = SuperPostController.new
+  for_tag(:old_base) do
+    def test_format_with_inherited_layouts
+      @controller = SuperPostController.new
 
-    get :index
-    assert_equal 'Super Firefox', @response.body
+      get :index
+      assert_equal 'Super Firefox', @response.body
 
-    @request.accept = "text/iphone"
-    get :index
-    assert_equal '<html><div id="super_iphone">Super iPhone</div></html>', @response.body
+      @request.accept = "text/iphone"
+      get :index
+      assert_equal '<html><div id="super_iphone">Super iPhone</div></html>', @response.body
+    end
   end
 end

@@ -2,6 +2,13 @@ module ActionController #:nodoc:
   # Methods for sending arbitrary data and for streaming files to the browser,
   # instead of rendering.
   module Streaming
+    extend ActiveSupport::DependencyModule
+
+    # TODO : Remove the defined? check when new base is the main base
+    if defined?(ActionController::Http)
+      depends_on ActionController::Renderer
+    end
+
     DEFAULT_SEND_FILE_OPTIONS = {
       :type         => 'application/octet-stream'.freeze,
       :disposition  => 'attachment'.freeze,
@@ -88,6 +95,7 @@ module ActionController #:nodoc:
           head options[:status], X_SENDFILE_HEADER => path
         else
           if options[:stream]
+            # TODO : Make render :text => proc {} work with the new base
             render :status => options[:status], :text => Proc.new { |response, output|
               logger.info "Streaming file #{path}" unless logger.nil?
               len = options[:buffer_size] || 4096

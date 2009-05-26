@@ -1,4 +1,5 @@
 require 'abstract_unit'
+require 'action_controller/vendor/html-scanner'
 
 class SessionTest < Test::Unit::TestCase
   StubApp = lambda { |env|
@@ -253,7 +254,7 @@ class IntegrationProcessTest < ActionController::IntegrationTest
       assert_response 200
       assert_response :success
       assert_response :ok
-      assert_equal({}, cookies)
+      assert_equal({}, cookies.to_hash)
       assert_equal "OK", body
       assert_equal "OK", response.body
       assert_kind_of HTML::Document, html_document
@@ -269,7 +270,7 @@ class IntegrationProcessTest < ActionController::IntegrationTest
       assert_response 201
       assert_response :success
       assert_response :created
-      assert_equal({}, cookies)
+      assert_equal({}, cookies.to_hash)
       assert_equal "Created", body
       assert_equal "Created", response.body
       assert_kind_of HTML::Document, html_document
@@ -287,7 +288,7 @@ class IntegrationProcessTest < ActionController::IntegrationTest
       assert_response 410
       assert_response :gone
       assert_equal "cookie_1=; path=/\ncookie_3=chocolate; path=/", headers["Set-Cookie"]
-      assert_equal({"cookie_1"=>nil, "cookie_2"=>"oatmeal", "cookie_3"=>"chocolate"}, cookies)
+      assert_equal({"cookie_1"=>"", "cookie_2"=>"oatmeal", "cookie_3"=>"chocolate"}, cookies.to_hash)
       assert_equal "Gone", response.body
     end
   end

@@ -35,7 +35,7 @@ class LoggingTest < ActionController::TestCase
   end
 
   def test_logging_with_parameters
-    get :show, :id => 10
+    get :show, :id => '10'
     assert_equal 3, logs.size
 
     params = logs.detect {|l| l =~ /Parameters/ }
@@ -49,6 +49,6 @@ class LoggingTest < ActionController::TestCase
   end
   
   def logs
-    @logs ||= @controller.logger.logged.compact.map {|l| l.strip}
+    @logs ||= @controller.logger.logged.compact.map {|l| l.to_s.strip}
   end
 end

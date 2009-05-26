@@ -3,7 +3,7 @@ require 'active_support/core_ext/class/attribute_accessors'
 
 module Mime
   SET              = []
-  EXTENSION_LOOKUP = Hash.new { |h, k| h[k] = Type.new(k) unless k.blank? }
+  EXTENSION_LOOKUP = {}
   LOOKUP           = Hash.new { |h, k| h[k] = Type.new(k) unless k.blank? }
 
   def self.[](type)

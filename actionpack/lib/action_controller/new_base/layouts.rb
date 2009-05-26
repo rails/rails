@@ -11,23 +11,20 @@ module ActionController
       end
     end
     
-    def render_to_body(options)
-      # render :text => ..., :layout => ...
-      # or
-      # render :anything_else
-      if (!options.key?(:text) && !options.key?(:inline) && !options.key?(:partial)) || options.key?(:layout)
-        options[:_layout] = options.key?(:layout) ? _layout_for_option(options[:layout]) : _default_layout
-      end
-      
-      super
-    end
-    
   private
+
+    def _determine_template(options)
+      super
+      if (!options.key?(:text) && !options.key?(:inline) && !options.key?(:partial)) || options.key?(:layout)
+        options[:_layout] = _layout_for_option(options.key?(:layout) ? options[:layout] : :none, options[:_template].details)
+      end
+    end
   
-    def _layout_for_option(name)
+    def _layout_for_option(name, details)
       case name
-      when String     then _layout_for_name(name)
-      when true       then _default_layout(true)
+      when String     then _layout_for_name(name, details)
+      when true       then _default_layout(true, details)
+      when :none      then _default_layout(false, details)
       when false, nil then nil
       else
         raise ArgumentError, 

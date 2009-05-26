@@ -19,6 +19,8 @@ class TestController < ActionController::Base
 end
 
 class RenderTest < ActionController::TestCase
+  tests TestController
+
   def test_render_vanilla_js
     get :render_vanilla_js_hello
     assert_equal "alert('hello')", @response.body

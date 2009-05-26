@@ -287,6 +287,14 @@ module ActiveSupport
         when Proc
           @klass.send(:define_method, method_name, &filter)
           method_name << (filter.arity == 1 ? "(self)" : "")
+        when Method
+          @klass.send(:define_method, "#{method_name}_method") { filter }
+          @klass.class_eval <<-RUBY_EVAL, __FILE__, __LINE__ + 1
+            def #{method_name}(&blk)
+              #{method_name}_method.call(self, &blk)
+            end
+          RUBY_EVAL
+          method_name
         when String
           @klass.class_eval <<-RUBY_EVAL
             def #{method_name}
@@ -296,8 +304,24 @@ module ActiveSupport
           method_name
         else
           kind, name = @kind, @name
-          @klass.send(:define_method, method_name) do
-            filter.send("#{kind}_#{name}", self)
+          @klass.send(:define_method, "#{method_name}_object") { filter }
+
+          if kind == :around
+            @klass.class_eval <<-RUBY_EVAL, __FILE__, __LINE__ + 1
+              def #{method_name}(&blk)
+                if :#{kind} == :around && #{method_name}_object.respond_to?(:filter)
+                  #{method_name}_object.send("filter", self, &blk)
+                else
+                  #{method_name}_object.send("#{kind}_#{name}", self, &blk)
+                end
+              end
+            RUBY_EVAL
+          else
+            @klass.class_eval <<-RUBY_EVAL, __FILE__, __LINE__ + 1
+              def #{method_name}(&blk)
+                #{method_name}_object.send("#{kind}_#{name}", self, &blk)
+              end
+            RUBY_EVAL
           end
           method_name
         end
