@@ -59,12 +59,13 @@ end
 desc 'Old Controller Tests on New Base'
 Rake::TestTask.new(:test_new_base_on_old_tests) do |t|
   t.libs << "test/new_base" << "test/lib"
-  # layout
-  # Dir.glob( "test/{dispatch,template}/**/*_test.rb" ).sort +
 
+  t.verbose = true
   # ==== Not ported
   # * filters
-  t.test_files = %w(
+
+  # Dir.glob( "test/{dispatch,template}/**/*_test.rb" ).sort +
+  t.test_files = Dir.glob( "test/{dispatch}/**/*_test.rb" ).sort + %w(
     action_pack_assertions addresses_render assert_select
     base benchmark caching capture content_type cookie dispatcher
     filter_params flash helper http_basic_authentication
@@ -74,7 +75,6 @@ Rake::TestTask.new(:test_new_base_on_old_tests) do |t|
     resources routing selector send_file test url_rewriter
     verification view_paths webservice
   ).map { |name| "test/controller/#{name}_test.rb" }
-  t.verbose = true
 end
 
 # Genereate the RDoc documentation

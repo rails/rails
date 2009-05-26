@@ -61,6 +61,9 @@ module ActionController
       # and images to a dedicated asset server away from the main web server. Example:
       #   ActionController::Base.asset_host = "http://assets.example.com"
       cattr_accessor :asset_host
+
+      cattr_accessor :ip_spoofing_check
+      self.ip_spoofing_check = true
     end
     
     # For old tests
