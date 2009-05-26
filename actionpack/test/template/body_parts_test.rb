@@ -4,6 +4,9 @@ class BodyPartsTest < ActionController::TestCase
   RENDERINGS = [Object.new, Object.new, Object.new]
 
   class TestController < ActionController::Base
+    def performed?
+      defined?(ActionController::Http) ? true : super
+    end
     def index
       RENDERINGS.each do |rendering|
         @template.punctuate_body! rendering
@@ -16,7 +19,7 @@ class BodyPartsTest < ActionController::TestCase
 
   def test_body_parts
     get :index
-    pending do
+    pending(:old_base) do
       # TestProcess buffers body_parts into body
       # TODO: Rewrite test w/o going through process
       assert_equal RENDERINGS, @response.body_parts

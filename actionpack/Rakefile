@@ -64,8 +64,7 @@ Rake::TestTask.new(:test_new_base_on_old_tests) do |t|
   # ==== Not ported
   # * filters
 
-  # Dir.glob( "test/{dispatch,template}/**/*_test.rb" ).sort +
-  t.test_files = Dir.glob( "test/{dispatch}/**/*_test.rb" ).sort + %w(
+  t.test_files = Dir.glob( "test/{dispatch,template}/**/*_test.rb" ).sort + %w(
     action_pack_assertions addresses_render assert_select
     base benchmark caching capture content_type cookie dispatcher
     filter_params flash helper http_basic_authentication
