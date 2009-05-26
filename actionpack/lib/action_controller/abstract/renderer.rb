@@ -86,6 +86,10 @@ module AbstractController
         self.view_paths << path
       end
       
+      def prepend_view_path(path)
+        self.view_paths.unshift(path)
+      end
+
       def view_paths
         self._view_paths
       end
