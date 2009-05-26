@@ -185,7 +185,7 @@ module ActionController
         request.env['REDIRECT_X_HTTP_AUTHORIZATION']
       end
 
-      # Raises error unless the request credentials response value matches the expected value.
+      # Returns false unless the request credentials response value matches the expected value.
       # First try the password as a ha1 digest password. If this fails, then try it as a plain
       # text password.
       def validate_digest_response(request, realm, &password_procedure)
@@ -194,6 +194,8 @@ module ActionController
 
         if valid_nonce && realm == credentials[:realm] && opaque == credentials[:opaque]
           password = password_procedure.call(credentials[:username])
+          return false unless password
+
           method = request.env['rack.methodoverride.original_method'] || request.env['REQUEST_METHOD']
 
          [true, false].any? do |password_is_ha1|
