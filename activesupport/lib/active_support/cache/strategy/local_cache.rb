@@ -38,7 +38,7 @@ module ActiveSupport
           elsif value.nil?
             value = super
             local_cache.write(key, value || NULL) if local_cache
-            value
+            value.duplicable? ? value.dup : value
           else
             # forcing the value to be immutable
             value.duplicable? ? value.dup : value
