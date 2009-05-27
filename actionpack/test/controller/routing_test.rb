@@ -90,6 +90,11 @@ class StaticSegmentTest < Test::Unit::TestCase
     assert_equal 'Hello World', s.interpolation_chunk
   end
 
+  def test_value_should_not_be_double_unescaped
+    s = ROUTING::StaticSegment.new('%D0%9A%D0%B0%D1%80%D1%82%D0%B0') # Карта
+    assert_equal '%D0%9A%D0%B0%D1%80%D1%82%D0%B0', s.interpolation_chunk
+  end
+
   def test_regexp_chunk_should_escape_specials
     s = ROUTING::StaticSegment.new('Hello*World')
     assert_equal 'Hello\*World', s.regexp_chunk
