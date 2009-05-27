@@ -2,6 +2,8 @@ module ActionController
   module Testing
     extend ActiveSupport::DependencyModule
 
+    depends_on RackConvenience
+
     # OMG MEGA HAX
     def process_with_new_base_test(request, response)
       @_request = request

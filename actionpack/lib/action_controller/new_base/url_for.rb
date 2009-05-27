@@ -1,5 +1,9 @@
 module ActionController
   module UrlFor
+    extend ActiveSupport::DependencyModule
+
+    depends_on RackConvenience
+
     def process_action(*)
       initialize_current_url
       super

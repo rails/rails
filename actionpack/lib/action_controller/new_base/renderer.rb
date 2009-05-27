@@ -8,16 +8,11 @@ module ActionController
       self.formats = request.formats.map {|x| x.to_sym}
       super
     end
-    
-    def response_body=(body)
-      response.body = body if response
-      super
-    end
 
     def render(options)
       super
       options[:_template] ||= _action_view._partial
-      response.content_type ||= begin
+      self.content_type ||= begin
         mime = options[:_template].mime_type
         formats.include?(mime && mime.to_sym) || formats.include?(:all) ? mime : Mime::Type.lookup_by_extension(formats.first)
       end
@@ -76,9 +71,9 @@ module ActionController
   
     def _process_options(options)
       status, content_type, location = options.values_at(:status, :content_type, :location)
-      response.status = status if status
-      response.content_type = content_type if content_type
-      response.headers["Location"] = url_for(location) if location
+      self.status = status if status
+      self.content_type = content_type if content_type
+      self.headers["Location"] = url_for(location) if location
     end
   end
 end

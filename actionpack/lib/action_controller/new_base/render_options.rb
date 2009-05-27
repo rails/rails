@@ -57,7 +57,7 @@ module ActionController
       def _render_json(json, options)
         json = ActiveSupport::JSON.encode(json) unless json.respond_to?(:to_str)
         json = "#{options[:callback]}(#{json})" unless options[:callback].blank?
-        response.content_type ||= Mime::JSON
+        self.content_type ||= Mime::JSON
         self.response_body = json
       end      
     end
@@ -67,7 +67,7 @@ module ActionController
       register_renderer :js
 
       def _render_js(js, options)
-        response.content_type ||= Mime::JS
+        self.content_type ||= Mime::JS
         self.response_body = js
       end
     end
@@ -77,7 +77,7 @@ module ActionController
       register_renderer :xml
 
       def _render_xml(xml, options)
-        response.content_type ||= Mime::XML
+        self.content_type ||= Mime::XML
         self.response_body  = xml.respond_to?(:to_xml) ? xml.to_xml : xml
       end
     end
@@ -88,7 +88,7 @@ module ActionController
 
       def _render_update(proc, options)
         generator = ActionView::Helpers::PrototypeHelper::JavaScriptGenerator.new(_action_view, &proc)
-        response.content_type = Mime::JS
+        self.content_type = Mime::JS
         self.response_body = generator.to_s
       end
     end
