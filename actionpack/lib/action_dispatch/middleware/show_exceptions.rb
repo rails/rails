@@ -31,7 +31,10 @@ module ActionDispatch
     })
 
     FAILSAFE_RESPONSE = [500, {'Content-Type' => 'text/html'},
-      ['<html><body><h1>500 Internal Server Error</h1></body></html>']]
+      ["<html><body><h1>500 Internal Server Error</h1>" <<
+       "If you are the administrator of this website, then please read this web " <<
+       "application's log file and/or the web server's log file to find out what " <<
+       "went wrong.</body></html>"]]
 
     def initialize(app, consider_all_requests_local = false)
       @app = app
