@@ -338,7 +338,7 @@ end
 Besides +:only_integer+, the +validates_numericality_of+ helper also accepts the following options to add constraints to acceptable values:
 
 * +:greater_than+ - Specifies the value must be greater than the supplied value. The default error message for this option is "_must be greater than {{count}}_".
-* +:greater_than_or_equal_to+ - Specifies the value must be greater than or equal to the supplied value. The default error message for this option is "_must be greater than or equal to {{count}}".
+* +:greater_than_or_equal_to+ - Specifies the value must be greater than or equal to the supplied value. The default error message for this option is "_must be greater than or equal to {{count}}_".
 * +:equal_to+ - Specifies the value must be equal to the supplied value. The default error message for this option is "_must be equal to {{count}}_".
 * +:less_than+ - Specifies the value must be less than the supplied value. The default error message for this option is "_must be less than {{count}}_".
 * +:less_than_or_equal_to+ - Specifies the value must be less than or equal the supplied value. The default error message for this option is "_must be less or equal to {{count}}_".
