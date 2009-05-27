@@ -49,13 +49,14 @@ class DispatcherTest < Test::Unit::TestCase
     Dispatcher.any_instance.expects(:dispatch).raises('b00m')
     ActionController::Failsafe.any_instance.expects(:log_failsafe_exception)
 
+    response = nil
     assert_nothing_raised do
-      assert_equal [
-        500,
-        {"Content-Type" => "text/html"},
-        "<html><body><h1>500 Internal Server Error</h1></body></html>"
-      ], dispatch
+      response = dispatch
     end
+    assert_equal 3, response.size
+    assert_equal 500, response[0]
+    assert_equal({"Content-Type" => "text/html"}, response[1])
+    assert_match /500 Internal Server Error/, response[2]
   end
 
   def test_prepare_callbacks
