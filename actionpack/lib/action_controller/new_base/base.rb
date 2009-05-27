@@ -39,7 +39,7 @@ module ActionController
     # TODO: Extract into its own module
     # This should be moved together with other normalizing behavior
     module ImplicitRender
-      def process_action(method_name)
+      def send_action(method_name)
         ret = super
         default_render unless performed?
         ret

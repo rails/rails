@@ -95,8 +95,10 @@ module AbstractController
     # overrides it to include the case where a template matching the
     # action_name is found.
     def process_action(method_name)
-      send(method_name)
+      send_action(method_name)
     end
+
+    alias send_action send
 
     def _handle_action_missing
       action_missing(@_action_name)
