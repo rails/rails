@@ -140,4 +140,19 @@ class FlashTest < ActionController::TestCase
     get :std_action
     assert_nil assigns["flash_copy"]["foo"]
   end
+
+  def test_keep_and_discard_return_values
+    flash = ActionController::Flash::FlashHash.new
+    flash.update(:foo => :foo_indeed, :bar => :bar_indeed)
+
+    assert_equal(:foo_indeed, flash.discard(:foo)) # valid key passed
+    assert_nil flash.discard(:unknown) # non existant key passed
+    assert_equal({:foo => :foo_indeed, :bar => :bar_indeed}, flash.discard()) # nothing passed
+    assert_equal({:foo => :foo_indeed, :bar => :bar_indeed}, flash.discard(nil)) # nothing passed      
+
+    assert_equal(:foo_indeed, flash.keep(:foo)) # valid key passed
+    assert_nil flash.keep(:unknown) # non existant key passed
+    assert_equal({:foo => :foo_indeed, :bar => :bar_indeed}, flash.keep()) # nothing passed
+    assert_equal({:foo => :foo_indeed, :bar => :bar_indeed}, flash.keep(nil)) # nothing passed     
+  end
 end

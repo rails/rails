@@ -135,12 +135,11 @@ module ActionController #:nodoc:
         #     use('msg')          # marks the "msg" entry as used
         #     use(nil, false)     # marks the entire flash as unused (keeps it around for one more action)
         #     use('msg', false)   # marks the "msg" entry as unused (keeps it around for one more action)
-        def use(k=nil, v=true)
-          unless k.nil?
-            @used[k] = v
-          else
-            keys.each{ |key| use(key, v) }
-          end
+        # Returns the single value for the key you asked to be marked (un)used or the FlashHash itself
+        # if no key is passed.
+        def use(key = nil, used = true)
+          Array(key || keys).each { |k| @used[k] = used }
+          return key ? self[key] : self
         end
     end
 
