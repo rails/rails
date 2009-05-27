@@ -441,7 +441,8 @@ Run `rake gems:install` to install the missing gems.
 
     def initialize_database_middleware
       if configuration.frameworks.include?(:active_record)
-        if ActionController::Base.session_store == ActiveRecord::SessionStore
+        if configuration.frameworks.include?(:action_controller) &&
+            ActionController::Base.session_store == ActiveRecord::SessionStore
           configuration.middleware.insert_before :"ActiveRecord::SessionStore", ActiveRecord::ConnectionAdapters::ConnectionManagement
           configuration.middleware.insert_before :"ActiveRecord::SessionStore", ActiveRecord::QueryCache
         else
@@ -883,7 +884,7 @@ Run `rake gems:install` to install the missing gems.
 
     # Enable threaded mode. Allows concurrent requests to controller actions and
     # multiple database connections. Also disables automatic dependency loading
-    # after boot, and disables reloading code on every request, as these are 
+    # after boot, and disables reloading code on every request, as these are
     # fundamentally incompatible with thread safety.
     def threadsafe!
       self.preload_frameworks = true
@@ -1124,3 +1125,4 @@ class Rails::OrderedOptions < Array #:nodoc:
       return false
     end
 end
+

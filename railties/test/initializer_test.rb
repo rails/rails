@@ -309,7 +309,7 @@ class InitializerSetupI18nTests < Test::Unit::TestCase
     config.i18n.load_path << "my/other/locale.yml"
 
     Rails::Initializer.run(:initialize_i18n, config)
-    assert_equal [ 
+    assert_equal [
      File.expand_path(File.dirname(__FILE__) + "/../../activesupport/lib/active_support/locale/en.yml"),
      File.expand_path(File.dirname(__FILE__) + "/../../actionpack/lib/action_view/locale/en.yml"),
      File.expand_path(File.dirname(__FILE__) + "/../../activerecord/lib/active_record/locale/en.yml"),
@@ -363,17 +363,31 @@ class InitializerDatabaseMiddlewareTest < Test::Unit::TestCase
   ensure
     ActionController::Base.session_store = store
   end
+
+  def test_ensure_database_middleware_doesnt_use_action_controller_on_initializing
+    @config.frameworks -= [:action_controller]
+    store = ActionController::Base.session_store
+    ActionController::Base.session_store = ActiveRecord::SessionStore
+
+    @config.middleware.expects(:use).with(ActiveRecord::ConnectionAdapters::ConnectionManagement)
+    @config.middleware.expects(:use).with(ActiveRecord::QueryCache)
+
+    Rails::Initializer.run(:initialize_database_middleware, @config)
+  ensure
+    ActionController::Base.session_store = store
+    @config.frameworks += [:action_controller]
+  end
 end
 
 class InitializerViewPathsTest  < Test::Unit::TestCase
   def setup
     @config = Rails::Configuration.new
     @config.frameworks = [:action_view, :action_controller, :action_mailer]
-    
+
     ActionController::Base.stubs(:view_paths).returns(stub)
     ActionMailer::Base.stubs(:view_paths).returns(stub)
   end
-  
+
   def test_load_view_paths_doesnt_perform_anything_when_action_view_not_in_frameworks
     @config.frameworks -= [:action_view]
     ActionController::Base.view_paths.expects(:load!).never
@@ -397,3 +411,4 @@ class RailsRootTest < Test::Unit::TestCase
     assert_equal File.join(RAILS_ROOT, 'app', 'controllers'), Rails.root.join('app', 'controllers').to_s
   end
 end
+
