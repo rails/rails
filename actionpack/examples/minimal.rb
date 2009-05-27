@@ -24,10 +24,12 @@ class Runner
     out.puts '---'
   end
 
-  def self.run(app, n)
+  def self.run(app, n, label = nil)
+    puts '=' * label.size, label, '=' * label.size if label
     env = { 'n' => n, 'rack.input' => StringIO.new(''), 'rack.errors' => $stdout }
     t = Benchmark.realtime { new(app).call(env) }
-    puts "%d ms / %d req = %d usec/req" % [10**3 * t, n, 10**6 * t / n]
+    puts "%d ms / %d req = %.1f usec/req" % [10**3 * t, n, 10**6 * t / n]
+    puts
   end
 end
 
@@ -38,16 +40,19 @@ class BasePostController < ActionController::Base
   def index
     render :text => ''
   end
-
-  Runner.run(action(:index), N)
 end
+
+OK = [200, {}, []]
+MetalPostController = lambda { OK }
 
 if ActionController.const_defined?(:Http)
   class HttpPostController < ActionController::Http
     def index
       self.response_body = ''
     end
-
-    Runner.run(action(:index), N)
   end
 end
+
+Runner.run(MetalPostController, N, 'metal')
+Runner.run(HttpPostController.action(:index), N, 'http') if defined? HttpPostController
+Runner.run(BasePostController.action(:index), N, 'base')
