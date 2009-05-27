@@ -311,6 +311,11 @@ module ActiveSupport
               def #{method_name}(&blk)
                 if :#{kind} == :around && #{method_name}_object.respond_to?(:filter)
                   #{method_name}_object.send("filter", self, &blk)
+                # TODO: Deprecate this
+                elsif #{method_name}_object.respond_to?(:before) && #{method_name}_object.respond_to?(:after)
+                  #{method_name}_object.before(self)
+                  yield
+                  #{method_name}_object.after(self)
                 else
                   #{method_name}_object.send("#{kind}_#{name}", self, &blk)
                 end
