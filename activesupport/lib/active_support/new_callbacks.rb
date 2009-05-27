@@ -324,7 +324,11 @@ module ActiveSupport
           else
             @klass.class_eval <<-RUBY_EVAL, __FILE__, __LINE__ + 1
               def #{method_name}(&blk)
-                #{method_name}_object.send("#{kind}_#{name}", self, &blk)
+                if #{method_name}_object.respond_to?(:#{kind})
+                  #{method_name}_object.#{kind}(self, &blk)
+                else
+                  #{method_name}_object.send("#{kind}_#{name}", self, &blk)
+                end
               end
             RUBY_EVAL
           end
