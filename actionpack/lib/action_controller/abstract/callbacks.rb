@@ -37,6 +37,15 @@ module AbstractController
             end
           end
 
+          def prepend_#{filter}_filter(*names, &blk)
+            options = names.last.is_a?(Hash) ? names.pop : {}
+            _normalize_callback_options(options)
+            names.push(blk) if block_given?
+            names.each do |name|
+              process_action_callback(:#{filter}, name, options.merge(:prepend => true))
+            end
+          end
+
           def skip_#{filter}_filter(*names, &blk)
             options = names.last.is_a?(Hash) ? names.pop : {}
             _normalize_callback_options(options)

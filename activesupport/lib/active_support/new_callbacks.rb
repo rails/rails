@@ -464,7 +464,9 @@ module ActiveSupport
                 self._#{symbol}_callbacks.delete_if {|c| c.matches?(type, :#{symbol}, filter)}
                 Callback.new(filter, type, options.dup, self, :#{symbol})
               end
-              self._#{symbol}_callbacks.push(*filters)
+              options[:prepend] ?
+                self._#{symbol}_callbacks.unshift(*filters) :
+                self._#{symbol}_callbacks.push(*filters)
               _define_runner(:#{symbol}, 
                 self._#{symbol}_callbacks.compile(nil, :terminator => _#{symbol}_terminator), 
                 options)
