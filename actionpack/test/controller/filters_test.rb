@@ -1,10 +1,32 @@
 require 'abstract_unit'
+require 'active_support/core_ext/symbol'
 
-class << ActionController::Base
-  %w(append_around_filter prepend_after_filter prepend_around_filter prepend_before_filter skip_after_filter skip_before_filter skip_filter).each do |pending|
-    define_method(pending) do |*args|
-      $stderr.puts "#{pending} unimplemented: #{args.inspect}"
-    end unless method_defined?(pending)
+class ActionController::Base
+  class << self
+    %w(append_around_filter prepend_after_filter prepend_around_filter prepend_before_filter skip_after_filter skip_before_filter skip_filter).each do |pending|
+      define_method(pending) do |*args|
+        $stderr.puts "#{pending} unimplemented: #{args.inspect}"
+      end unless method_defined?(pending)
+    end
+
+    if defined?(ActionController::Http)
+      def before_filters
+        filters = _process_action_callbacks.select { |c| c.kind == :before }
+        filters.map! { |c| c.instance_variable_get(:@raw_filter) }
+      end
+    end
+  end
+
+  if defined?(ActionController::Http)
+    def assigns(key = nil)
+      assigns = {}
+      instance_variable_names.each do |ivar|
+        next if ActionController::Base.protected_instance_variables.include?(ivar)
+        assigns[ivar[1..-1]] = instance_variable_get(ivar)
+      end
+
+      key.nil? ? assigns : assigns[key.to_s]
+    end
   end
 end
 
