@@ -1,4 +1,7 @@
-*Edge*
+*2.3.6 (unreleased)*
+
+* Ruby 1.9: ERB template encoding using a magic comment at the top of the file.  [Jeremy Kemper]
+    <%# encoding: utf-8 %>
 
 * Fixed that default locale templates should be used if the current locale template is missing [DHH]
 
