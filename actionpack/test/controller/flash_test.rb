@@ -121,7 +121,7 @@ class FlashTest < ActionController::TestCase
     assert_nil                  @response.template.assigns["flash_copy"]["that"], "On second flash"
     assert_equal "hello again", @response.template.assigns["flash_copy"]["this"], "On second flash"
   end
-  
+
   def test_flash_after_reset_session
     get :use_flash_after_reset_session
     assert_equal "hello",    @response.template.assigns["flashy_that"]
@@ -138,5 +138,10 @@ class FlashTest < ActionController::TestCase
     assert_equal "bar", @response.template.assigns["flash_copy"]["foo"]
     get :std_action
     assert_nil @response.template.assigns["flash_copy"]["foo"]
+  end
+
+  def test_does_not_set_the_session_if_the_flash_is_empty
+    get :std_action
+    assert_nil session["flash"]
   end
 end

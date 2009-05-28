@@ -120,6 +120,11 @@ module ActionController #:nodoc:
         (@used.keys - keys).each{ |k| @used.delete(k) }
       end
 
+      def store(session, key = "flash")
+        return if self.empty?
+        session[key] = self
+      end
+
       private
         # Used internally by the <tt>keep</tt> and <tt>discard</tt> methods
         #     use()               # marks the entire flash as used
@@ -139,7 +144,10 @@ module ActionController #:nodoc:
       protected
         def perform_action_with_flash
           perform_action_without_flash
-          remove_instance_variable(:@_flash) if defined? @_flash
+          if defined? @_flash
+            @_flash.store(session)
+            remove_instance_variable(:@_flash)
+          end
         end
 
         def reset_session_with_flash
@@ -151,8 +159,8 @@ module ActionController #:nodoc:
         # read a notice you put there or <tt>flash["notice"] = "hello"</tt>
         # to put a new one.
         def flash #:doc:
-          unless defined? @_flash
-            @_flash = session["flash"] ||= FlashHash.new
+          if !defined?(@_flash)
+            @_flash = session["flash"] || FlashHash.new
             @_flash.sweep
           end
 
