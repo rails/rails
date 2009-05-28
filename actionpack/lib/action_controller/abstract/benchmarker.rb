@@ -1,6 +1,6 @@
 module AbstractController
   module Benchmarker
-    extend ActiveSupport::DependencyModule
+    extend ActiveSupport::Concern
 
     depends_on Logger
 

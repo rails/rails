@@ -15,7 +15,7 @@ module ActionController #:nodoc:
   # behavior is achieved by overriding the <tt>rescue_action_in_public</tt>
   # and <tt>rescue_action_locally</tt> methods.
   module Rescue
-    extend ActiveSupport::DependencyModule
+    extend ActiveSupport::Concern
 
     included do
       include ActiveSupport::Rescuable

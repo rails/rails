@@ -1,6 +1,6 @@
 module ActionController
   module UrlFor
-    extend ActiveSupport::DependencyModule
+    extend ActiveSupport::Concern
 
     depends_on RackConvenience
 

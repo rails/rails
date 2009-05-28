@@ -1,6 +1,6 @@
 module ActionController
   module ConditionalGet
-    extend ActiveSupport::DependencyModule
+    extend ActiveSupport::Concern
 
     depends_on RackConvenience
 

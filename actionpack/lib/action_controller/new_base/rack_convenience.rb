@@ -1,6 +1,6 @@
 module ActionController
   module RackConvenience
-    extend ActiveSupport::DependencyModule
+    extend ActiveSupport::Concern
 
     included do
       delegate :headers, :status=, :location=,

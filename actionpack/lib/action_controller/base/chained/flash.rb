@@ -26,7 +26,7 @@ module ActionController #:nodoc:
   #
   # See docs on the FlashHash class for more details about the flash.
   module Flash
-    extend ActiveSupport::DependencyModule
+    extend ActiveSupport::Concern
 
     # TODO : Remove the defined? check when new base is the main base
     depends_on Session if defined?(ActionController::Http)

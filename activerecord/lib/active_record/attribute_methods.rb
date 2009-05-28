@@ -2,7 +2,7 @@ require 'active_support/core_ext/enumerable'
 
 module ActiveRecord
   module AttributeMethods #:nodoc:
-    extend ActiveSupport::DependencyModule
+    extend ActiveSupport::Concern
 
     DEFAULT_SUFFIXES = %w(= ? _before_type_cast)
     ATTRIBUTE_TYPES_CACHED_BY_DEFAULT = [:datetime, :timestamp, :time, :date]

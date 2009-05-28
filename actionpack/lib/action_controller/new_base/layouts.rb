@@ -1,6 +1,6 @@
 module ActionController
   module Layouts
-    extend ActiveSupport::DependencyModule
+    extend ActiveSupport::Concern
 
     depends_on ActionController::Renderer
     depends_on AbstractController::Layouts

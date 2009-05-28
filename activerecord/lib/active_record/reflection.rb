@@ -1,6 +1,6 @@
 module ActiveRecord
   module Reflection # :nodoc:
-    extend ActiveSupport::DependencyModule
+    extend ActiveSupport::Concern
 
     # Reflection allows you to interrogate Active Record classes and objects about their associations and aggregations.
     # This information can, for example, be used in a form builder that took an Active Record object and created input

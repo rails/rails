@@ -1,6 +1,6 @@
 module ActionController
   module HideActions
-    extend ActiveSupport::DependencyModule
+    extend ActiveSupport::Concern
 
     included do
       extlib_inheritable_accessor :hidden_actions

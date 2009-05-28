@@ -302,7 +302,7 @@ module ActiveRecord
   #
   # An Errors object is automatically created for every Active Record.
   module Validations
-    extend ActiveSupport::DependencyModule
+    extend ActiveSupport::Concern
 
     VALIDATIONS = %w( validate validate_on_create validate_on_update )
 

@@ -1,6 +1,6 @@
 module ActiveRecord
   module Batches # :nodoc:
-    extend ActiveSupport::DependencyModule
+    extend ActiveSupport::Concern
 
     # When processing large numbers of records, it's often a good idea to do
     # so in batches to prevent memory ballooning.

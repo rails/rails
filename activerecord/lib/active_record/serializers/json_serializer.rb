@@ -2,7 +2,7 @@ require 'active_support/json'
 
 module ActiveRecord #:nodoc:
   module Serialization
-    extend ActiveSupport::DependencyModule
+    extend ActiveSupport::Concern
 
     included do
       cattr_accessor :include_root_in_json, :instance_writer => false

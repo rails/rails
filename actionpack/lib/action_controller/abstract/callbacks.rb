@@ -1,6 +1,6 @@
 module AbstractController
   module Callbacks
-    extend ActiveSupport::DependencyModule
+    extend ActiveSupport::Concern
 
     depends_on ActiveSupport::NewCallbacks
 

@@ -125,7 +125,7 @@ module ActiveRecord
   #   post.author.name = ''
   #   post.save(false) # => true
   module AutosaveAssociation
-    extend ActiveSupport::DependencyModule
+    extend ActiveSupport::Concern
 
     ASSOCIATION_TYPES = %w{ has_one belongs_to has_many has_and_belongs_to_many }
 

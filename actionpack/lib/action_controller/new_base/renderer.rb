@@ -1,6 +1,6 @@
 module ActionController
   module Renderer
-    extend ActiveSupport::DependencyModule
+    extend ActiveSupport::Concern
 
     depends_on AbstractController::Renderer
 

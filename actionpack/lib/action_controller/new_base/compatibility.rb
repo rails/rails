@@ -1,6 +1,6 @@
 module ActionController
   module Rails2Compatibility
-    extend ActiveSupport::DependencyModule
+    extend ActiveSupport::Concern
 
     class ::ActionController::ActionControllerError < StandardError #:nodoc:
     end

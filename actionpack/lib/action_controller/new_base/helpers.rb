@@ -4,7 +4,7 @@ require 'active_support/dependencies'
 
 module ActionController
   module Helpers
-    extend ActiveSupport::DependencyModule
+    extend ActiveSupport::Concern
 
     depends_on AbstractController::Helpers
 

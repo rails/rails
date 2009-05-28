@@ -1,6 +1,6 @@
 module AbstractController
   module Layouts
-    extend ActiveSupport::DependencyModule
+    extend ActiveSupport::Concern
 
     depends_on Renderer
 

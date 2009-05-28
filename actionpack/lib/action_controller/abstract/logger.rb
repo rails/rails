@@ -3,7 +3,7 @@ require 'active_support/core_ext/logger'
 
 module AbstractController
   module Logger
-    extend ActiveSupport::DependencyModule
+    extend ActiveSupport::Concern
 
     class DelayedLog
       def initialize(&blk)

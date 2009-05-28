@@ -1,6 +1,6 @@
 module ActionController #:nodoc:
   module Verification #:nodoc:
-    extend ActiveSupport::DependencyModule
+    extend ActiveSupport::Concern
 
     # TODO : Remove the defined? check when new base is the main base
     if defined?(ActionController::Http)

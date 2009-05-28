@@ -24,7 +24,7 @@ module ActionController #:nodoc:
   #   ActionController::Base.cache_store = :mem_cache_store, "localhost"
   #   ActionController::Base.cache_store = MyOwnStore.new("parameter")
   module Caching
-    extend ActiveSupport::DependencyModule
+    extend ActiveSupport::Concern
 
     autoload :Actions, 'action_controller/caching/actions'
     autoload :Fragments, 'action_controller/caching/fragments'

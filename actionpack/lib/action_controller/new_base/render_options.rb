@@ -1,6 +1,6 @@
 module ActionController
   module RenderOptions
-    extend ActiveSupport::DependencyModule
+    extend ActiveSupport::Concern
 
     included do
       extlib_inheritable_accessor :_renderers
@@ -36,14 +36,12 @@ module ActionController
     end
   end
 
-  module RenderOption
-    extend ActiveSupport::DependencyModule
+  module RenderOption #:nodoc:
+    def self.extended(base)
+      base.extend ActiveSupport::Concern
+      base.depends_on ::ActionController::RenderOptions
 
-    included do
-      extend ActiveSupport::DependencyModule
-      depends_on ::ActionController::RenderOptions
-
-      def self.register_renderer(name)
+      def base.register_renderer(name)
         included { _add_render_option(name) }
       end
     end
@@ -51,7 +49,7 @@ module ActionController
 
   module Renderers
     module Json
-      include RenderOption
+      extend RenderOption
       register_renderer :json
 
       def _render_json(json, options)
@@ -63,7 +61,7 @@ module ActionController
     end
 
     module Js
-      include RenderOption
+      extend RenderOption
       register_renderer :js
 
       def _render_js(js, options)
@@ -73,7 +71,7 @@ module ActionController
     end
 
     module Xml
-      include RenderOption
+      extend RenderOption
       register_renderer :xml
 
       def _render_xml(xml, options)
@@ -82,8 +80,8 @@ module ActionController
       end
     end
 
-    module Rjs
-      include RenderOption
+    module RJS
+      extend RenderOption
       register_renderer :update
 
       def _render_update(proc, options)
@@ -94,14 +92,12 @@ module ActionController
     end
 
     module All
-      extend ActiveSupport::DependencyModule
+      extend ActiveSupport::Concern
 
-      included do
-        include ::ActionController::Renderers::Json
-        include ::ActionController::Renderers::Js
-        include ::ActionController::Renderers::Xml
-        include ::ActionController::Renderers::Rjs
-      end
+      depends_on ActionController::Renderers::Json
+      depends_on ActionController::Renderers::Js
+      depends_on ActionController::Renderers::Xml
+      depends_on ActionController::Renderers::RJS
     end
   end
 end

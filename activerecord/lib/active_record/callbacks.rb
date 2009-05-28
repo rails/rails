@@ -211,7 +211,7 @@ module ActiveRecord
   # needs to be aware of it because an ordinary +save+ will raise such exception
   # instead of quietly returning +false+.
   module Callbacks
-    extend ActiveSupport::DependencyModule
+    extend ActiveSupport::Concern
 
     CALLBACKS = %w(
       after_find after_initialize before_save after_save before_create after_create before_update after_update before_validation

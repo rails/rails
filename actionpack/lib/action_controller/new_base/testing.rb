@@ -1,6 +1,6 @@
 module ActionController
   module Testing
-    extend ActiveSupport::DependencyModule
+    extend ActiveSupport::Concern
 
     depends_on RackConvenience
 
