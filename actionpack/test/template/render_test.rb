@@ -249,7 +249,7 @@ module RenderTestCases
   if '1.9'.respond_to?(:force_encoding)
     def test_render_utf8_template
       result = @view.render(:file => "test/utf8.html.erb", :layouts => "layouts/yield")
-      assert_equal "Русский текст\n日本語のテキスト", result
+      assert_equal "Русский текст\nUTF-8\nUTF-8\nUTF-8\n", result
       assert_equal Encoding::UTF_8, result.encoding
     end
   end
