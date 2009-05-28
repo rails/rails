@@ -17,7 +17,7 @@ options = {
   :config      => RAILS_ROOT + "/config.ru",
   :detach      => false,
   :debugger    => false,
-  :path        => '/'
+  :path        => nil
 }
 
 ARGV.clone.options do |opts|
