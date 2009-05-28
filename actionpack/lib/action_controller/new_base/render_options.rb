@@ -1,12 +1,12 @@
 module ActionController
   module RenderOptions
     extend ActiveSupport::DependencyModule
-    
+
     included do
       extlib_inheritable_accessor :_renderers
       self._renderers = []
     end
-    
+
     module ClassMethods
       def _write_render_options
         renderers = _renderers.map do |r|
@@ -17,25 +17,25 @@ module ActionController
             end
           RUBY_EVAL
         end
-        
+
         class_eval <<-RUBY_EVAL, __FILE__, __LINE__ + 1
           def _handle_render_options(options)
             #{renderers.join}
           end
         RUBY_EVAL
       end
-      
+
       def _add_render_option(name)
         _renderers << name
         _write_render_options
       end
     end
-    
+
     def render_to_body(options)
       _handle_render_options(options) || super
     end
   end
-  
+
   module RenderOption
     extend ActiveSupport::DependencyModule
 
@@ -53,13 +53,13 @@ module ActionController
     module Json
       include RenderOption
       register_renderer :json
-      
+
       def _render_json(json, options)
         json = ActiveSupport::JSON.encode(json) unless json.respond_to?(:to_str)
         json = "#{options[:callback]}(#{json})" unless options[:callback].blank?
         self.content_type ||= Mime::JSON
         self.response_body = json
-      end      
+      end
     end
 
     module Js

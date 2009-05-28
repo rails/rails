@@ -4,7 +4,7 @@ require 'active_support/core_ext/module/delegation'
 module ActionController
   class Http < AbstractController::Base
     abstract!
-    
+
     # :api: public
     attr_internal :params, :env
 
@@ -14,28 +14,36 @@ module ActionController
     end
 
     # :api: public
-    def controller_name() self.class.controller_name end
+    def controller_name
+      self.class.controller_name
+    end
 
-    # :api: public    
+    # :api: public
     def self.controller_path
       @controller_path ||= self.name.sub(/Controller$/, '').underscore
     end
-    
-    # :api: public    
-    def controller_path() self.class.controller_path end
-    
-    # :api: private    
-    def self.action_names() action_methods end
-    
+
+    # :api: public
+    def controller_path
+      self.class.controller_path
+    end
+
     # :api: private
-    def action_names() action_methods end
-    
+    def self.action_names
+      action_methods
+    end
+
+    # :api: private
+    def action_names
+      action_methods
+    end
+
     # :api: plugin
     def self.call(env)
       controller = new
       controller.call(env).to_rack
     end
-    
+
     # The details below can be overridden to support a specific
     # Request and Response object. The default ActionController::Base
     # implementation includes RackConvenience, which makes a request
@@ -60,14 +68,14 @@ module ActionController
     def location=(url)
       headers["Location"] = url
     end
-    
+
     # :api: private
     def call(name, env)
       @_env = env
       process(name)
       to_rack
     end
-    
+
     # :api: private
     def to_rack
       [status, headers, response_body]

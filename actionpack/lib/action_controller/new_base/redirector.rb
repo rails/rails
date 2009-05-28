@@ -6,7 +6,7 @@ module ActionController
       super(message || DEFAULT_MESSAGE)
     end
   end
-  
+
   module Redirector
     def redirect_to(url, status) #:doc:
       raise AbstractController::DoubleRenderError if response_body

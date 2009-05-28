@@ -32,22 +32,21 @@ module ActionController #:nodoc:
 
     attr_internal :rescued_exception
 
-  private
+    private
+      def method_for_action(action_name)
+        return action_name if self.rescued_exception = request.env.delete("action_dispatch.rescue.exception")
+        super
+      end
 
-    def method_for_action(action_name)
-      return action_name if self.rescued_exception = request.env.delete("action_dispatch.rescue.exception")
-      super
-    end
+      def _rescue_action
+        rescue_with_handler(rescued_exception) || raise(rescued_exception)
+      end
 
-    def _rescue_action
-      rescue_with_handler(rescued_exception) || raise(rescued_exception)
-    end
-
-    def process_action(*)
-      super
-    rescue Exception => exception
-      self.rescued_exception = exception
-      _rescue_action
-    end
+      def process_action(*)
+        super
+      rescue Exception => exception
+        self.rescued_exception = exception
+        _rescue_action
+      end
   end
 end

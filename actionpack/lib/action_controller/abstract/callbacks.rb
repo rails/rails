@@ -13,7 +13,7 @@ module AbstractController
         super
       end
     end
-    
+
     module ClassMethods
       def _normalize_callback_options(options)
         if only = options[:only]
@@ -21,11 +21,11 @@ module AbstractController
           options[:per_key] = {:if => only}
         end
         if except = options[:except]
-          except = Array(except).map {|e| "action_name == '#{e}'"}.join(" || ")          
+          except = Array(except).map {|e| "action_name == '#{e}'"}.join(" || ")
           options[:per_key] = {:unless => except}
         end
       end
-      
+
       [:before, :after, :around].each do |filter|
         class_eval <<-RUBY_EVAL, __FILE__, __LINE__ + 1
           def #{filter}_filter(*names, &blk)
