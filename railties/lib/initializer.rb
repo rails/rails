@@ -426,10 +426,14 @@ Run `rake gems:install` to install the missing gems.
     # should override this behaviour and set the relevant +default_charset+
     # on ActionController::Base.
     #
-    # For Ruby 1.9, this does nothing. Specify the default encoding in the Ruby
-    # shebang line if you don't want UTF-8.
+    # For Ruby 1.9, UTF-8 is the default internal and external encoding.
     def initialize_encoding
-      $KCODE='u' if RUBY_VERSION < '1.9'
+      if RUBY_VERSION < '1.9'
+        $KCODE='u'
+      else
+        Encoding.default_internal = Encoding::UTF_8
+        Encoding.default_external = Encoding::UTF_8
+      end
     end
 
     # This initialization routine does nothing unless <tt>:active_record</tt>
