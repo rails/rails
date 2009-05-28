@@ -91,8 +91,12 @@ module Arel
       end
 
       def table(table)
-        quote_table_name(table.name) +
-        (table.name != name_for(table) ? " AS " + quote_table_name(name_for(table)) : '')
+        if table.name =~ /\s/
+          table.name
+        else
+          quote_table_name(table.name) +
+            (table.name != name_for(table) ? " AS " + quote_table_name(name_for(table)) : '')
+        end
       end
     end
 
