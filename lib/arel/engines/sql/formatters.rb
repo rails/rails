@@ -13,7 +13,6 @@ module Arel
 
     class SelectClause < Formatter
       def attribute(attribute)
-        # FIXME this should check that the column exists
         "#{quote_table_name(name_for(attribute.original_relation))}.#{quote_column_name(attribute.name)}" +
         (attribute.alias ? " AS #{quote(attribute.alias.to_s)}" : "")
       end
