@@ -15,6 +15,7 @@ module ActionController
           @by = by
           @env = env
           @loaded = false
+          @updated = false
         end
 
         def session_id
@@ -32,6 +33,7 @@ module ActionController
         def []=(key, value)
           load! unless @loaded
           super
+          @updated = true
         end
 
         def to_hash
@@ -55,6 +57,10 @@ module ActionController
         private
           def loaded?
             @loaded
+          end
+
+          def updated?
+            @updated
           end
 
           def load!
@@ -125,7 +131,10 @@ module ActionController
         options = env[ENV_SESSION_OPTIONS_KEY]
 
         if !session_data.is_a?(AbstractStore::SessionHash) || session_data.send(:loaded?) || options[:expire_after]
-          session_data.send(:load!) if session_data.is_a?(AbstractStore::SessionHash) && !session_data.send(:loaded?)
+          if session_data.is_a?(AbstractStore::SessionHash)
+            session_data.send(:load!) if !session_data.send(:loaded?)
+            return response if !session_data.send(:updated?)
+          end
 
           sid = options[:id] || generate_sid
 
