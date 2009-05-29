@@ -194,7 +194,7 @@ Active Model currently has a single configuration setting:
 
 h3. Using Initializers
 
-After it loads the framework plus any gems and plugins in your application, Rails turns to loading initializers. An initializer is any file of ruby code stored under +/config/initializers+ in your application. You can use initializers to hold configuration settings that should be made after all of the frameworks and plugins are loaded.
+After it loads the framework plus any gems and plugins in your application, Rails turns to loading initializers. An initializer is any file of ruby code stored under +config/initializers+ in your application. You can use initializers to hold configuration settings that should be made after all of the frameworks and plugins are loaded.
 
 NOTE: You can use subfolders to organize your initializers if you like, because Rails will look into the whole file hierarchy from the +initializers+ folder on down.
 
