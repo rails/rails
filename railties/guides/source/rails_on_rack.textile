@@ -229,7 +229,7 @@ h3. Rails Metal Applications
 
 Rails Metal applications are minimal Rack applications specially designed for integrating with a typical Rails application. As Rails Metal Applications skip all of the Action Controller stack, serving a request has no overhead from the Rails framework itself. This is especially useful for infrequent cases where the performance of the full stack Rails framework is an issue.
 
-Ryan Bates' "railscast on Rails Metal":http://railscasts.com/episodes/150-rails-metal provides a nice walkthrough generating and using Rails Metal.
+Ryan Bates' "Railscast on Rails Metal":http://railscasts.com/episodes/150-rails-metal provides a nice walkthrough generating and using Rails Metal.
 
 h4. Generating a Metal Application
 
