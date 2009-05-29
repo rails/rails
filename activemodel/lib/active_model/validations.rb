@@ -1,9 +1,10 @@
 module ActiveModel
   module Validations
-    def self.included(base) # :nodoc:
-      base.extend(ClassMethods)
-      base.__send__(:include, ActiveSupport::Callbacks)
-      base.define_callbacks :validate
+    extend ActiveSupport::Concern
+    include ActiveSupport::Callbacks
+
+    included do
+      define_callbacks :validate
     end
 
     module ClassMethods
