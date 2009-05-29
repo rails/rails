@@ -7,6 +7,7 @@ module ActiveSupport
     def append_features(base)
       if super
         base.extend const_get("ClassMethods") if const_defined?("ClassMethods")
+        base.send :include, const_get("InstanceMethods") if const_defined?("InstanceMethods")
         base.class_eval(&@_included_block) if instance_variable_defined?("@_included_block")
       end
     end

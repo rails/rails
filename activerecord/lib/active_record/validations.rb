@@ -106,8 +106,6 @@ module ActiveRecord
     depends_on ActiveModel::Validations
 
     included do
-      include Validations::InstanceMethods
-
       alias_method_chain :save, :validation
       alias_method_chain :save!, :validation
 
