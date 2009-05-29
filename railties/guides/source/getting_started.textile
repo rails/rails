@@ -1290,7 +1290,7 @@ Now that you've seen your first Rails application, you should feel free to updat
 
 * The "Ruby On Rails guides":http://guides.rubyonrails.org
 * The "Ruby on Rails mailing list":http://groups.google.com/group/rubyonrails-talk
-* The #rubyonrails channel on irc.freenode.net
+* The "#rubyonrails":irc://irc.freenode.net/#rubyonrails channel on irc.freenode.net
 * The "Rails Wiki":http://wiki.rubyonrails.org/
 
 Rails also comes with built-in help that you can generate using the rake command-line utility:
