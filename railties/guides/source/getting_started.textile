@@ -383,7 +383,7 @@ NOTE: Because you're working in the development environment by default, this com
 
 h4. Adding a Link
 
-To hook the posts up to the home page you've already created, you can add a link to the home page. Open +/app/views/home/index.html.erb+ and modify it as follows:
+To hook the posts up to the home page you've already created, you can add a link to the home page. Open +app/views/home/index.html.erb+ and modify it as follows:
 
 <code lang="ruby">
 <h1>Hello, Rails!</h1>
@@ -1295,8 +1295,8 @@ Now that you've seen your first Rails application, you should feel free to updat
 
 Rails also comes with built-in help that you can generate using the rake command-line utility:
 
-* Running +rake doc:guides+ will put a full copy of the Rails Guides in the +/doc/guides+ folder of your application. Open +/doc/guides/index.html+ in your web browser to explore the Guides.
-* Running +rake doc:rails+ will put a full copy of the API documentation for Rails in the +/doc/api+ folder of your application. Open +/doc/api/index.html+ in your web browser to explore the API documentation.
+* Running +rake doc:guides+ will put a full copy of the Rails Guides in the +doc/guides+ folder of your application. Open +doc/guides/index.html+ in your web browser to explore the Guides.
+* Running +rake doc:rails+ will put a full copy of the API documentation for Rails in the +doc/api+ folder of your application. Open +doc/api/index.html+ in your web browser to explore the API documentation.
 
 h3. Changelog
 
