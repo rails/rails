@@ -2,7 +2,6 @@ require 'rake'
 require 'rake/testtask'
 require 'rake/rdoctask'
 require 'rake/gempackagetask'
-require 'rake/contrib/rubyforgepublisher'
 
 require 'date'
 require 'rbconfig'
@@ -29,12 +28,13 @@ task :default => :test
 task :test do 
   Dir['test/**/*_test.rb'].all? do |file|
     ruby = File.join(*RbConfig::CONFIG.values_at('bindir', 'RUBY_INSTALL_NAME'))
-    system(ruby, '-Itest', file)
+    system(ruby, '-Itest', "-I#{File.dirname(__FILE__)}/../activesupport/lib", file)
   end or raise "Failures"
 end
+task :isolated_test => :test
 
 Rake::TestTask.new("regular_test") do |t|
-  t.libs << 'test'
+  t.libs << 'test' << "#{File.dirname(__FILE__)}/../activesupport/lib"
   t.pattern = 'test/**/*_test.rb'
   t.warning = true
   t.verbose = true
@@ -200,11 +200,14 @@ task :copy_configs do
 
   cp "configs/locales/en.yml", "#{PKG_DESTINATION}/config/locales/en.yml"
 
+  cp "configs/seeds.rb", "#{PKG_DESTINATION}/db/seeds.rb"
+
   cp "environments/boot.rb",        "#{PKG_DESTINATION}/config/boot.rb"
   cp "environments/environment.rb", "#{PKG_DESTINATION}/config/environment.rb"
   cp "environments/production.rb",  "#{PKG_DESTINATION}/config/environments/production.rb"
   cp "environments/development.rb", "#{PKG_DESTINATION}/config/environments/development.rb"
   cp "environments/test.rb",        "#{PKG_DESTINATION}/config/environments/test.rb"
+
 end
 
 task :copy_binfiles do
@@ -246,7 +249,7 @@ def copy_with_rewritten_ruby_path(src_file, dest_file)
 end
 
 desc 'Generate guides (for authors), use ONLY=foo to process just "foo.textile"'
-task :guides do
+task :generate_guides do
   ENV["WARN_BROKEN_LINKS"] = "1" # authors can't disable this
   ruby "guides/rails_guides.rb"
 end
@@ -295,6 +298,7 @@ PKG_FILES = FileList[
   'doc/**/*', 
   'dispatches/**/*', 
   'environments/**/*', 
+  'guides/**/*',
   'helpers/**/*', 
   'generators/**/*', 
   'html/**/*', 
@@ -321,7 +325,7 @@ spec = Gem::Specification.new do |s|
   s.rdoc_options << '--exclude' << '.'
   s.has_rdoc = false
 
-  s.files = PKG_FILES.to_a.delete_if {|f| f.include?('.svn')}
+  s.files = PKG_FILES.to_a.delete_if {|f| f =~ %r{\.svn|guides/output}}
   s.require_path = 'lib'
   s.bindir = "bin"                               # Use these for applications.
   s.executables = ["rails"]
@@ -341,12 +345,14 @@ end
 # Publishing -------------------------------------------------------
 desc "Publish the rails gem"
 task :pgem => [:gem] do 
+  require 'rake/contrib/sshpublisher'
   Rake::SshFilePublisher.new("gems.rubyonrails.org", "/u/sites/gems/gems", "pkg", "#{PKG_FILE_NAME}.gem").upload
   `ssh gems.rubyonrails.org '/u/sites/gems/gemupdate.sh'`
 end
 
 desc "Publish the guides"
-task :pguides => :guides do
+task :pguides => :generate_guides do
+  require 'rake/contrib/sshpublisher'
   mkdir_p 'pkg'
   `tar -czf pkg/guides.gz guides/output`
   Rake::SshFilePublisher.new("web.rubyonrails.org", "/u/sites/guides.rubyonrails.org/public", "pkg", "guides.gz").upload
@@ -355,6 +361,7 @@ end
 
 desc "Publish the release files to RubyForge."
 task :release => [ :package ] do
+  require 'rake/contrib/rubyforgepublisher'
   require 'rubyforge'
 
   packages = %w( gem ).collect{ |ext| "pkg/#{PKG_NAME}-#{PKG_VERSION}.#{ext}" }

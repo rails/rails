@@ -1,4 +1,6 @@
 require 'active_support/ordered_hash'
+require 'active_support/core_ext/class/attribute_accessors'
+require 'active_support/dependencies'
 
 module Rails
   module Rack
@@ -26,7 +28,7 @@ module Rails
 
         load_list.map do |requested_metal|
           if metal = all_metals[requested_metal]
-            require metal
+            require_dependency metal
             requested_metal.constantize
           end
         end.compact

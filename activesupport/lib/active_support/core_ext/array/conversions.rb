@@ -1,3 +1,7 @@
+require 'active_support/core_ext/hash/keys'
+require 'active_support/core_ext/hash/reverse_merge'
+require 'active_support/inflector'
+
 class Array
   # Converts the array to a comma-separated sentence where the last element is joined by the connector word. Options:
   # * <tt>:words_connector</tt> - The sign or word used to join the elements in arrays with two or more elements (default: ", ")
@@ -155,7 +159,7 @@ class Array
     raise "Not all elements respond to to_xml" unless all? { |e| e.respond_to? :to_xml }
     require 'builder' unless defined?(Builder)
 
-    options[:root]     ||= all? { |e| e.is_a?(first.class) && first.class.to_s != "Hash" } ? first.class.to_s.underscore.pluralize : "records"
+    options[:root]     ||= all? { |e| e.is_a?(first.class) && first.class.to_s != "Hash" } ? ActiveSupport::Inflector.pluralize(ActiveSupport::Inflector.underscore(first.class.name)) : "records"
     options[:children] ||= options[:root].singularize
     options[:indent]   ||= 2
     options[:builder]  ||= Builder::XmlMarkup.new(:indent => options[:indent])

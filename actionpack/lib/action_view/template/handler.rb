@@ -1,3 +1,6 @@
+require "active_support/core_ext/class/inheritable_attributes"
+require "action_dispatch/http/mime_type"
+
 # Legacy TemplateHandler stub
 module ActionView
   module TemplateHandlers #:nodoc:
@@ -19,6 +22,9 @@ module ActionView
   end
 
   class TemplateHandler
+    extlib_inheritable_accessor :default_format
+    self.default_format = Mime::HTML
+
     def self.call(template)
       "#{name}.new(self).render(template, local_assigns)"
     end

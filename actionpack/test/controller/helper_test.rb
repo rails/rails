@@ -1,4 +1,5 @@
 require 'abstract_unit'
+require 'active_support/core_ext/kernel/reporting'
 
 ActionController::Base.helpers_dir = File.dirname(__FILE__) + '/../fixtures/helpers'
 
@@ -26,7 +27,7 @@ module Fun
   end
 end
 
-class ApplicationController < ActionController::Base
+class AllHelpersController < ActionController::Base
   helper :all
 end
 
@@ -101,24 +102,32 @@ class HelperTest < Test::Unit::TestCase
     assert master_helper_methods.include?('delegate_attr=')
   end
 
-  def test_helper_for_nested_controller
+  def call_controller(klass, action)
     request  = ActionController::TestRequest.new
-    response = ActionController::TestResponse.new
-    request.action = 'render_hello_world'
+    klass.action(action).call(request.env)    
+  end
 
-    assert_equal 'hello: Iz guuut!', Fun::GamesController.process(request, response).body
+  def test_helper_for_nested_controller
+    assert_equal 'hello: Iz guuut!', 
+      call_controller(Fun::GamesController, "render_hello_world").last.body
+    # request  = ActionController::TestRequest.new
+    # 
+    # resp = Fun::GamesController.action(:render_hello_world).call(request.env)
+    # assert_equal 'hello: Iz guuut!', resp.last.body
   end
 
   def test_helper_for_acronym_controller
-    request  = ActionController::TestRequest.new
-    response = ActionController::TestResponse.new
-    request.action = 'test'
-
-    assert_equal 'test: baz', Fun::PdfController.process(request, response).body
+    assert_equal "test: baz", call_controller(Fun::PdfController, "test").last.body
+    # 
+    # request  = ActionController::TestRequest.new
+    # response = ActionController::TestResponse.new
+    # request.action = 'test'
+    # 
+    # assert_equal 'test: baz', Fun::PdfController.process(request, response).body
   end
 
   def test_all_helpers
-    methods = ApplicationController.master_helper_module.instance_methods.map(&:to_s)
+    methods = AllHelpersController.master_helper_module.instance_methods.map(&:to_s)
 
     # abc_helper.rb
     assert methods.include?('bare_a')
@@ -145,7 +154,7 @@ class HelperTest < Test::Unit::TestCase
   end
 
   def test_helper_proxy
-    methods = ApplicationController.helpers.methods.map(&:to_s)
+    methods = AllHelpersController.helpers.methods.map(&:to_s)
 
     # ActionView
     assert methods.include?('pluralize')
@@ -204,6 +213,11 @@ class IsolatedHelpersTest < Test::Unit::TestCase
     end
   end
 
+  def call_controller(klass, action)
+    request  = ActionController::TestRequest.new
+    klass.action(action).call(request.env)    
+  end
+
   def setup
     @request    = ActionController::TestRequest.new
     @response   = ActionController::TestResponse.new
@@ -211,14 +225,14 @@ class IsolatedHelpersTest < Test::Unit::TestCase
   end
 
   def test_helper_in_a
-    assert_raise(NameError) { A.process(@request, @response) }
+    assert_raise(ActionView::TemplateError) { call_controller(A, "index") }
   end
 
   def test_helper_in_b
-    assert_equal 'B', B.process(@request, @response).body
+    assert_equal 'B', call_controller(B, "index").last.body
   end
 
   def test_helper_in_c
-    assert_equal 'C', C.process(@request, @response).body
+    assert_equal 'C', call_controller(C, "index").last.body
   end
 end

@@ -1,3 +1,5 @@
+require 'active_support/core_ext/object/misc'
+
 module MyApplication
   module Business
     class Company < ActiveRecord::Base

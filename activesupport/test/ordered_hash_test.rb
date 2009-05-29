@@ -51,6 +51,10 @@ class OrderedHashTest < Test::Unit::TestCase
     assert_same @ordered_hash, @ordered_hash.to_hash
   end
 
+  def test_to_a
+    assert_equal @keys.zip(@values), @ordered_hash.to_a
+  end
+
   def test_has_key
     assert_equal true, @ordered_hash.has_key?('blue')
     assert_equal true, @ordered_hash.key?('blue')
@@ -157,5 +161,11 @@ class OrderedHashTest < Test::Unit::TestCase
 
   def test_inspect
     assert @ordered_hash.inspect.include?(@hash.inspect)
+  end
+
+  def test_alternate_initialization
+    alternate = ActiveSupport::OrderedHash[1,2,3,4]
+    assert_kind_of ActiveSupport::OrderedHash, alternate
+    assert_equal [1, 3], alternate.keys
   end
 end

@@ -12,10 +12,10 @@ end
 
 desc 'Generate a crytographically secure secret key. This is typically used to generate a secret for cookie sessions.'
 task :secret do
+  require 'active_support/secure_random'
   puts ActiveSupport::SecureRandom.hex(64)
 end
 
-require 'active_support'
 namespace :time do
   namespace :zones do
     desc 'Displays names of all time zones recognized by the Rails TimeZone class, grouped by offset. Results can be filtered with optional OFFSET parameter, e.g., OFFSET=-6'
@@ -30,6 +30,8 @@ namespace :time do
     
     desc 'Displays names of time zones recognized by the Rails TimeZone class with the same offset as the system local time'
     task :local do
+      require 'active_support'
+      require 'active_support/time'
       jan_offset = Time.now.beginning_of_year.utc_offset
       jul_offset = Time.now.beginning_of_year.change(:month => 7).utc_offset
       offset = jan_offset < jul_offset ? jan_offset : jul_offset
@@ -38,6 +40,8 @@ namespace :time do
     
     # to find UTC -06:00 zones, OFFSET can be set to either -6, -6:00 or 21600
     def build_time_zone_list(method, offset = ENV['OFFSET'])
+      require 'active_support'
+      require 'active_support/time'
       if offset
         offset = if offset.to_s.match(/(\+|-)?(\d+):(\d+)/)
           sign = $1 == '-' ? -1 : 1

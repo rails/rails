@@ -1,4 +1,5 @@
 require 'abstract_unit'
+require 'logger'
 
 class CaptureController < ActionController::Base
   def self.controller_name; "test"; end

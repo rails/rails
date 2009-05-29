@@ -1,6 +1,7 @@
-require 'date'
+require 'active_support/time'
 require 'active_support/core_ext/object/conversions'
 require 'active_support/core_ext/array/conversions'
+require 'active_support/core_ext/hash/reverse_merge'
 
 class Hash
   # This module exists to decorate files deserialized using Hash.from_xml with
@@ -215,7 +216,7 @@ class Hash
         case params.class.to_s
           when "Hash"
             params.inject({}) do |h,(k,v)|
-              h[k.to_s.underscore.tr("-", "_")] = unrename_keys(v)
+              h[k.to_s.tr("-", "_")] = unrename_keys(v)
               h
             end
           when "Array"

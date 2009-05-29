@@ -2,176 +2,12 @@ require 'stringio'
 require 'uri'
 require 'active_support/test_case'
 
+require 'rack/mock_session'
+require 'rack/test/cookie_jar'
+
 module ActionController
   module Integration #:nodoc:
-    # An integration Session instance represents a set of requests and responses
-    # performed sequentially by some virtual user. Because you can instantiate
-    # multiple sessions and run them side-by-side, you can also mimic (to some
-    # limited extent) multiple simultaneous users interacting with your system.
-    #
-    # Typically, you will instantiate a new session using
-    # IntegrationTest#open_session, rather than instantiating
-    # Integration::Session directly.
-    class Session
-      include Test::Unit::Assertions
-      include ActionController::TestCase::Assertions
-      include ActionController::TestProcess
-
-      # Rack application to use
-      attr_accessor :application
-
-      # The integer HTTP status code of the last request.
-      attr_reader :status
-
-      # The status message that accompanied the status code of the last request.
-      attr_reader :status_message
-
-      # The body of the last request.
-      attr_reader :body
-
-      # The URI of the last request.
-      attr_reader :path
-
-      # The hostname used in the last request.
-      attr_accessor :host
-
-      # The remote_addr used in the last request.
-      attr_accessor :remote_addr
-
-      # The Accept header to send.
-      attr_accessor :accept
-
-      # A map of the cookies returned by the last response, and which will be
-      # sent with the next request.
-      attr_reader :cookies
-
-      # A map of the headers returned by the last response.
-      attr_reader :headers
-
-      # A reference to the controller instance used by the last request.
-      attr_reader :controller
-
-      # A reference to the request instance used by the last request.
-      attr_reader :request
-
-      # A reference to the response instance used by the last request.
-      attr_reader :response
-
-      # A running counter of the number of requests processed.
-      attr_accessor :request_count
-
-      class MultiPartNeededException < Exception
-      end
-
-      # Create and initialize a new Session instance.
-      def initialize(app = nil)
-        @application = app || ActionController::Dispatcher.new
-        reset!
-      end
-
-      # Resets the instance. This can be used to reset the state information
-      # in an existing session instance, so it can be used from a clean-slate
-      # condition.
-      #
-      #   session.reset!
-      def reset!
-        @status = @path = @headers = nil
-        @result = @status_message = nil
-        @https = false
-        @cookies = {}
-        @controller = @request = @response = nil
-        @request_count = 0
-
-        self.host        = "www.example.com"
-        self.remote_addr = "127.0.0.1"
-        self.accept      = "text/xml,application/xml,application/xhtml+xml," +
-                           "text/html;q=0.9,text/plain;q=0.8,image/png," +
-                           "*/*;q=0.5"
-
-        unless defined? @named_routes_configured
-          # install the named routes in this session instance.
-          klass = class << self; self; end
-          Routing::Routes.install_helpers(klass)
-
-          # the helpers are made protected by default--we make them public for
-          # easier access during testing and troubleshooting.
-          klass.module_eval { public *Routing::Routes.named_routes.helpers }
-          @named_routes_configured = true
-        end
-      end
-
-      # Specify whether or not the session should mimic a secure HTTPS request.
-      #
-      #   session.https!
-      #   session.https!(false)
-      def https!(flag = true)
-        @https = flag
-      end
-
-      # Return +true+ if the session is mimicking a secure HTTPS request.
-      #
-      #   if session.https?
-      #     ...
-      #   end
-      def https?
-        @https
-      end
-
-      # Set the host name to use in the next request.
-      #
-      #   session.host! "www.example.com"
-      def host!(name)
-        @host = name
-      end
-
-      # Follow a single redirect response. If the last response was not a
-      # redirect, an exception will be raised. Otherwise, the redirect is
-      # performed on the location header.
-      def follow_redirect!
-        raise "not a redirect! #{@status} #{@status_message}" unless redirect?
-        get(interpret_uri(headers['location']))
-        status
-      end
-
-      # Performs a request using the specified method, following any subsequent
-      # redirect. Note that the redirects are followed until the response is
-      # not a redirect--this means you may run into an infinite loop if your
-      # redirect loops back to itself.
-      def request_via_redirect(http_method, path, parameters = nil, headers = nil)
-        send(http_method, path, parameters, headers)
-        follow_redirect! while redirect?
-        status
-      end
-
-      # Performs a GET request, following any subsequent redirect.
-      # See +request_via_redirect+ for more information.
-      def get_via_redirect(path, parameters = nil, headers = nil)
-        request_via_redirect(:get, path, parameters, headers)
-      end
-
-      # Performs a POST request, following any subsequent redirect.
-      # See +request_via_redirect+ for more information.
-      def post_via_redirect(path, parameters = nil, headers = nil)
-        request_via_redirect(:post, path, parameters, headers)
-      end
-
-      # Performs a PUT request, following any subsequent redirect.
-      # See +request_via_redirect+ for more information.
-      def put_via_redirect(path, parameters = nil, headers = nil)
-        request_via_redirect(:put, path, parameters, headers)
-      end
-
-      # Performs a DELETE request, following any subsequent redirect.
-      # See +request_via_redirect+ for more information.
-      def delete_via_redirect(path, parameters = nil, headers = nil)
-        request_via_redirect(:delete, path, parameters, headers)
-      end
-
-      # Returns +true+ if the last response was a redirect.
-      def redirect?
-        status/100 == 3
-      end
-
+    module RequestHelpers
       # Performs a GET request with the given parameters.
       #
       # - +path+: The URI (as a String) on which you want to perform a GET
@@ -229,11 +65,165 @@ module ActionController
       # with 'HTTP_' if not already.
       def xml_http_request(request_method, path, parameters = nil, headers = nil)
         headers ||= {}
-        headers['X-Requested-With'] = 'XMLHttpRequest'
-        headers['Accept'] ||= [Mime::JS, Mime::HTML, Mime::XML, 'text/xml', Mime::ALL].join(', ')
+        headers['HTTP_X_REQUESTED_WITH'] = 'XMLHttpRequest'
+        headers['HTTP_ACCEPT'] ||= [Mime::JS, Mime::HTML, Mime::XML, 'text/xml', Mime::ALL].join(', ')
         process(request_method, path, parameters, headers)
       end
       alias xhr :xml_http_request
+
+      # Follow a single redirect response. If the last response was not a
+      # redirect, an exception will be raised. Otherwise, the redirect is
+      # performed on the location header.
+      def follow_redirect!
+        raise "not a redirect! #{status} #{status_message}" unless redirect?
+        get(response.location)
+        status
+      end
+
+      # Performs a request using the specified method, following any subsequent
+      # redirect. Note that the redirects are followed until the response is
+      # not a redirect--this means you may run into an infinite loop if your
+      # redirect loops back to itself.
+      def request_via_redirect(http_method, path, parameters = nil, headers = nil)
+        process(http_method, path, parameters, headers)
+        follow_redirect! while redirect?
+        status
+      end
+
+      # Performs a GET request, following any subsequent redirect.
+      # See +request_via_redirect+ for more information.
+      def get_via_redirect(path, parameters = nil, headers = nil)
+        request_via_redirect(:get, path, parameters, headers)
+      end
+
+      # Performs a POST request, following any subsequent redirect.
+      # See +request_via_redirect+ for more information.
+      def post_via_redirect(path, parameters = nil, headers = nil)
+        request_via_redirect(:post, path, parameters, headers)
+      end
+
+      # Performs a PUT request, following any subsequent redirect.
+      # See +request_via_redirect+ for more information.
+      def put_via_redirect(path, parameters = nil, headers = nil)
+        request_via_redirect(:put, path, parameters, headers)
+      end
+
+      # Performs a DELETE request, following any subsequent redirect.
+      # See +request_via_redirect+ for more information.
+      def delete_via_redirect(path, parameters = nil, headers = nil)
+        request_via_redirect(:delete, path, parameters, headers)
+      end
+    end
+
+    # An integration Session instance represents a set of requests and responses
+    # performed sequentially by some virtual user. Because you can instantiate
+    # multiple sessions and run them side-by-side, you can also mimic (to some
+    # limited extent) multiple simultaneous users interacting with your system.
+    #
+    # Typically, you will instantiate a new session using
+    # IntegrationTest#open_session, rather than instantiating
+    # Integration::Session directly.
+    class Session
+      DEFAULT_HOST = "www.example.com"
+
+      include Test::Unit::Assertions
+      include ActionDispatch::Assertions
+      include ActionController::TestProcess
+      include RequestHelpers
+
+      %w( status status_message headers body redirect? ).each do |method|
+        delegate method, :to => :response, :allow_nil => true
+      end
+
+      %w( path ).each do |method|
+        delegate method, :to => :request, :allow_nil => true
+      end
+
+      # The hostname used in the last request.
+      attr_accessor :host
+
+      # The remote_addr used in the last request.
+      attr_accessor :remote_addr
+
+      # The Accept header to send.
+      attr_accessor :accept
+
+      # A map of the cookies returned by the last response, and which will be
+      # sent with the next request.
+      def cookies
+        @mock_session.cookie_jar
+      end
+
+      # A reference to the controller instance used by the last request.
+      attr_reader :controller
+
+      # A reference to the request instance used by the last request.
+      attr_reader :request
+
+      # A reference to the response instance used by the last request.
+      attr_reader :response
+
+      # A running counter of the number of requests processed.
+      attr_accessor :request_count
+
+      # Create and initialize a new Session instance.
+      def initialize(app = nil)
+        @app = app || ActionController::Dispatcher.new
+        reset!
+      end
+
+      # Resets the instance. This can be used to reset the state information
+      # in an existing session instance, so it can be used from a clean-slate
+      # condition.
+      #
+      #   session.reset!
+      def reset!
+        @https = false
+        @mock_session = Rack::MockSession.new(@app, DEFAULT_HOST)
+        @controller = @request = @response = nil
+        @request_count = 0
+
+        self.host        = DEFAULT_HOST
+        self.remote_addr = "127.0.0.1"
+        self.accept      = "text/xml,application/xml,application/xhtml+xml," +
+                           "text/html;q=0.9,text/plain;q=0.8,image/png," +
+                           "*/*;q=0.5"
+
+        unless defined? @named_routes_configured
+          # install the named routes in this session instance.
+          klass = class << self; self; end
+          Routing::Routes.install_helpers(klass)
+
+          # the helpers are made protected by default--we make them public for
+          # easier access during testing and troubleshooting.
+          klass.module_eval { public *Routing::Routes.named_routes.helpers }
+          @named_routes_configured = true
+        end
+      end
+
+      # Specify whether or not the session should mimic a secure HTTPS request.
+      #
+      #   session.https!
+      #   session.https!(false)
+      def https!(flag = true)
+        @https = flag
+      end
+
+      # Return +true+ if the session is mimicking a secure HTTPS request.
+      #
+      #   if session.https?
+      #     ...
+      #   end
+      def https?
+        @https
+      end
+
+      # Set the host name to use in the next request.
+      #
+      #   session.host! "www.example.com"
+      def host!(name)
+        @host = name
+      end
 
       # Returns the URL for the given options, according to the rules specified
       # in the application's routes.
@@ -244,63 +234,14 @@ module ActionController
       end
 
       private
-        # Tailors the session based on the given URI, setting the HTTPS value
-        # and the hostname.
-        def interpret_uri(path)
-          location = URI.parse(path)
-          https! URI::HTTPS === location if location.scheme
-          host! location.host if location.host
-          location.query ? "#{location.path}?#{location.query}" : location.path
-        end
 
         # Performs the actual request.
-        def process(method, path, parameters = nil, headers = nil)
-          data = requestify(parameters)
-          path = interpret_uri(path) if path =~ %r{://}
-          path = "/#{path}" unless path[0] == ?/
-          @path = path
-          env = {}
-
-          if method == :get
-            env["QUERY_STRING"] = data
-            data = nil
-          end
-
-          env["QUERY_STRING"] ||= ""
-
-          data = data.is_a?(IO) ? data : StringIO.new(data || '')
-
-          env.update(
-            "REQUEST_METHOD"  => method.to_s.upcase,
-            "SERVER_NAME"     => host,
-            "SERVER_PORT"     => (https? ? "443" : "80"),
-            "HTTPS"           => https? ? "on" : "off",
-            "rack.url_scheme" => https? ? "https" : "http",
-            "SCRIPT_NAME"     => "",
-
-            "REQUEST_URI"    => path,
-            "PATH_INFO"      => path,
-            "HTTP_HOST"      => host,
-            "REMOTE_ADDR"    => remote_addr,
-            "CONTENT_TYPE"   => "application/x-www-form-urlencoded",
-            "CONTENT_LENGTH" => data ? data.length.to_s : nil,
-            "HTTP_COOKIE"    => encode_cookies,
-            "HTTP_ACCEPT"    => accept,
-
-            "rack.version"      => [0,1],
-            "rack.input"        => data,
-            "rack.errors"       => StringIO.new,
-            "rack.multithread"  => true,
-            "rack.multiprocess" => true,
-            "rack.run_once"     => false,
-
-            "rack.test" => true
-          )
-
-          (headers || {}).each do |key, value|
-            key = key.to_s.upcase.gsub(/-/, "_")
-            key = "HTTP_#{key}" unless env.has_key?(key) || key =~ /^HTTP_/
-            env[key] = value
+        def process(method, path, parameters = nil, rack_environment = nil)
+          if path =~ %r{://}
+            location = URI.parse(path)
+            https! URI::HTTPS === location if location.scheme
+            host! location.host if location.host
+            path = location.query ? "#{location.path}?#{location.query}" : location.path
           end
 
           [ControllerCapture, ActionController::ProcessWithTest].each do |mod|
@@ -309,72 +250,38 @@ module ActionController
             end
           end
 
-          ActionController::Base.clear_last_instantiation!
+          opts = {
+            :method => method,
+            :params => parameters,
 
-          app = @application
-          # Rack::Lint doesn't accept String headers or bodies in Ruby 1.9
-          unless RUBY_VERSION >= '1.9.0' && Rack.release <= '0.9.0'
-            app = Rack::Lint.new(app)
+            "SERVER_NAME"     => host,
+            "SERVER_PORT"     => (https? ? "443" : "80"),
+            "HTTPS"           => https? ? "on" : "off",
+            "rack.url_scheme" => https? ? "https" : "http",
+
+            "REQUEST_URI"    => path,
+            "PATH_INFO"      => path,
+            "HTTP_HOST"      => host,
+            "REMOTE_ADDR"    => remote_addr,
+            "CONTENT_TYPE"   => "application/x-www-form-urlencoded",
+            "HTTP_ACCEPT"    => accept
+          }
+          env = Rack::MockRequest.env_for(path, opts)
+
+          (rack_environment || {}).each do |key, value|
+            env[key] = value
           end
 
-          status, headers, body = app.call(env)
-          @request_count += 1
+          @controller = ActionController::Base.capture_instantiation do
+            @mock_session.request(URI.parse(path), env)
+          end
 
+          @request_count += 1
+          @request  = ActionDispatch::Request.new(env)
+          @response = ActionDispatch::TestResponse.from_response(@mock_session.last_response)
           @html_document = nil
 
-          @status = status.to_i
-          @status_message = ActionDispatch::StatusCodes::STATUS_CODES[@status]
-
-          @headers = Rack::Utils::HeaderHash.new(headers)
-
-          (@headers['Set-Cookie'] || "").split("\n").each do |cookie|
-            name, value = cookie.match(/^([^=]*)=([^;]*);/)[1,2]
-            @cookies[name] = value
-          end
-
-          if body.is_a?(String)
-            @body_parts = [body]
-            @body = body
-          else
-            @body_parts = []
-            body.each { |part| @body_parts << part.to_s }
-            @body = @body_parts.join
-          end
-
-          if @controller = ActionController::Base.last_instantiation
-            @request = @controller.request
-            @response = @controller.response
-            @controller.send(:set_test_assigns)
-          else
-            # Decorate responses from Rack Middleware and Rails Metal
-            # as an Response for the purposes of integration testing
-            @response = ActionDispatch::Response.new
-            @response.status = status.to_s
-            @response.headers.replace(@headers)
-            @response.body = @body_parts
-          end
-
-          # Decorate the response with the standard behavior of the
-          # TestResponse so that things like assert_response can be
-          # used in integration tests.
-          @response.extend(TestResponseBehavior)
-
-          return @status
-        rescue MultiPartNeededException
-          boundary = "----------XnJLe9ZIbbGUYtzPQJ16u1"
-          status = process(method, path,
-            multipart_body(parameters, boundary),
-            (headers || {}).merge(
-              {"CONTENT_TYPE" => "multipart/form-data; boundary=#{boundary}"}))
-          return status
-        end
-
-        # Encode the cookies hash in a format suitable for passing to a
-        # request.
-        def encode_cookies
-          cookies.inject("") do |string, (name, value)|
-            string << "#{name}=#{value}; "
-          end
+          return response.status
         end
 
         # Get a temporary URL writer object
@@ -389,97 +296,29 @@ module ActionController
           }
           UrlRewriter.new(ActionDispatch::Request.new(env), {})
         end
-
-        def name_with_prefix(prefix, name)
-          prefix ? "#{prefix}[#{name}]" : name.to_s
-        end
-
-        # Convert the given parameters to a request string. The parameters may
-        # be a string, +nil+, or a Hash.
-        def requestify(parameters, prefix=nil)
-          if TestUploadedFile === parameters
-            raise MultiPartNeededException
-          elsif Hash === parameters
-            return nil if parameters.empty?
-            parameters.map { |k,v|
-              requestify(v, name_with_prefix(prefix, k))
-            }.join("&")
-          elsif Array === parameters
-            parameters.map { |v|
-              requestify(v, name_with_prefix(prefix, ""))
-            }.join("&")
-          elsif prefix.nil?
-            parameters
-          else
-            "#{CGI.escape(prefix)}=#{CGI.escape(parameters.to_s)}"
-          end
-        end
-
-        def multipart_requestify(params, first=true)
-          returning Hash.new do |p|
-            params.each do |key, value|
-              k = first ? CGI.escape(key.to_s) : "[#{CGI.escape(key.to_s)}]"
-              if Hash === value
-                multipart_requestify(value, false).each do |subkey, subvalue|
-                  p[k + subkey] = subvalue
-                end
-              else
-                p[k] = value
-              end
-            end
-          end
-        end
-
-        def multipart_body(params, boundary)
-          multipart_requestify(params).map do |key, value|
-            if value.respond_to?(:original_filename)
-              File.open(value.path, "rb") do |f|
-                f.set_encoding(Encoding::BINARY) if f.respond_to?(:set_encoding)
-
-                <<-EOF
---#{boundary}\r
-Content-Disposition: form-data; name="#{key}"; filename="#{CGI.escape(value.original_filename)}"\r
-Content-Type: #{value.content_type}\r
-Content-Length: #{File.stat(value.path).size}\r
-\r
-#{f.read}\r
-EOF
-              end
-            else
-<<-EOF
---#{boundary}\r
-Content-Disposition: form-data; name="#{key}"\r
-\r
-#{value}\r
-EOF
-            end
-          end.join("")+"--#{boundary}--\r"
-        end
     end
 
     # A module used to extend ActionController::Base, so that integration tests
     # can capture the controller used to satisfy a request.
     module ControllerCapture #:nodoc:
-      def self.included(base)
-        base.extend(ClassMethods)
-        base.class_eval do
-          class << self
-            alias_method_chain :new, :capture
-          end
-        end
+      extend ActiveSupport::Concern
+
+      included do
+        alias_method_chain :initialize, :capture
+      end
+
+      def initialize_with_capture(*args)
+        initialize_without_capture
+        self.class.last_instantiation ||= self
       end
 
       module ClassMethods #:nodoc:
         mattr_accessor :last_instantiation
 
-        def clear_last_instantiation!
+        def capture_instantiation
           self.last_instantiation = nil
-        end
-
-        def new_with_capture(*args)
-          controller = new_without_capture(*args)
-          self.last_instantiation ||= controller
-          controller
+          yield
+          return last_instantiation
         end
       end
     end
@@ -513,8 +352,8 @@ EOF
       # By default, a single session is automatically created for you, but you
       # can use this method to open multiple sessions that ought to be tested
       # simultaneously.
-      def open_session(application = nil)
-        session = Integration::Session.new(application)
+      def open_session(app = nil)
+        session = Integration::Session.new(app)
 
         # delegate the fixture accessors back to the test instance
         extras = Module.new { attr_accessor :delegate, :test_result }
@@ -636,54 +475,5 @@ EOF
   #   end
   class IntegrationTest < ActiveSupport::TestCase
     include Integration::Runner
-
-    # Work around a bug in test/unit caused by the default test being named
-    # as a symbol (:default_test), which causes regex test filters
-    # (like "ruby test.rb -n /foo/") to fail because =~ doesn't work on
-    # symbols.
-    def initialize(name) #:nodoc:
-      super(name.to_s)
-    end
-
-    # Work around test/unit's requirement that every subclass of TestCase have
-    # at least one test method. Note that this implementation extends to all
-    # subclasses, as well, so subclasses of IntegrationTest may also exist
-    # without any test methods.
-    def run(*args) #:nodoc:
-      return if @method_name == "default_test"
-      super
-    end
-
-    # Because of how use_instantiated_fixtures and use_transactional_fixtures
-    # are defined, we need to treat them as special cases. Otherwise, users
-    # would potentially have to set their values for both Test::Unit::TestCase
-    # ActionController::IntegrationTest, since by the time the value is set on
-    # TestCase, IntegrationTest has already been defined and cannot inherit
-    # changes to those variables. So, we make those two attributes
-    # copy-on-write.
-
-    class << self
-      def use_transactional_fixtures=(flag) #:nodoc:
-        @_use_transactional_fixtures = true
-        @use_transactional_fixtures = flag
-      end
-
-      def use_instantiated_fixtures=(flag) #:nodoc:
-        @_use_instantiated_fixtures = true
-        @use_instantiated_fixtures = flag
-      end
-
-      def use_transactional_fixtures #:nodoc:
-        @_use_transactional_fixtures ?
-          @use_transactional_fixtures :
-          superclass.use_transactional_fixtures
-      end
-
-      def use_instantiated_fixtures #:nodoc:
-        @_use_instantiated_fixtures ?
-          @use_instantiated_fixtures :
-          superclass.use_instantiated_fixtures
-      end
-    end
   end
 end

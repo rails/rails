@@ -1,3 +1,5 @@
+require 'active_support/core_ext/object/duplicable'
+
 # Retain for backward compatibility.  Methods are now included in Class.
 module ClassInheritableAttributes # :nodoc:
 end

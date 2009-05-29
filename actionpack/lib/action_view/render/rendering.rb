@@ -23,10 +23,10 @@ module ActionView
         return _render_partial_with_layout(layout, options) if options.key?(:partial)
         return _render_partial_with_block(layout, block, options) if block_given?
     
-        layout = find_by_parts(layout, formats) if layout
+        layout = find_by_parts(layout, {:formats => formats}) if layout
     
         if file = options[:file]
-          template = find_by_parts(file, formats)
+          template = find_by_parts(file, {:formats => formats})
           _render_template_with_layout(template, layout, :locals => options[:locals])
         elsif inline = options[:inline]
           _render_inline(inline, layout, options)
@@ -46,8 +46,8 @@ module ActionView
       locals ||= {}
 
       if controller && layout
-        response.layout = layout.path_without_format_and_extension if controller.respond_to?(:response)
-        logger.info("Rendering template within #{layout.path_without_format_and_extension}") if logger
+        @_layout = layout.identifier
+        logger.info("Rendering template within #{layout.identifier}") if logger
       end
   
       begin
@@ -76,7 +76,6 @@ module ActionView
         end
       end
     rescue Exception => e
-      raise e if template.is_a?(InlineTemplate) || !template.filename
       if TemplateError === e
         e.sub_template_of(template)
         raise e
@@ -86,7 +85,9 @@ module ActionView
     end
 
     def _render_inline(inline, layout, options)
-      content = _render_template(InlineTemplate.new(options[:inline], options[:type]), options[:locals] || {})
+      handler = Template.handler_class_for_extension(options[:type] || "erb")
+      template = Template.new(options[:inline], "inline #{options[:inline].inspect}", handler, {})
+      content = _render_template(template, options[:locals] || {})
       layout ? _render_content_with_layout(content, layout, options[:locals]) : content
     end
 
@@ -94,9 +95,14 @@ module ActionView
       layout ? _render_content_with_layout(text, layout, options[:locals]) : text
     end
 
+    def _render_template_from_controller(*args)
+      @assigns_added = nil
+      _render_template_with_layout(*args)
+    end
+
     def _render_template_with_layout(template, layout = nil, options = {}, partial = false)
       if controller && logger
-        logger.info("Rendering #{template.path_without_extension}" + 
+        logger.info("Rendering #{template.identifier}" + 
           (options[:status] ? " (#{options[:status]})" : ''))
       end
   
@@ -107,7 +113,7 @@ module ActionView
         _render_template(template, options[:locals] || {})
       end
   
-      return content unless layout && !template.exempt_from_layout?
+      return content unless layout
       _render_content_with_layout(content, layout, options[:locals] || {})
     end
   end

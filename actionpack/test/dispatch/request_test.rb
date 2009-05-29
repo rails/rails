@@ -307,7 +307,7 @@ class RequestTest < ActiveSupport::TestCase
   test "restrict method hacking" do
     [:get, :put, :delete].each do |method|
       request = stub_request 'REQUEST_METHOD' => method.to_s.upcase,
-        'action_controller.request.request_parameters' => { :_method => 'put' }
+        'action_dispatch.request.request_parameters' => { :_method => 'put' }
       assert_equal method, request.method
     end
   end

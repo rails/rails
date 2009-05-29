@@ -1,3 +1,5 @@
+require 'active_support/core_ext/integer/even_odd'
+
 module ActiveRecord
   # Raised by <tt>save!</tt> and <tt>create!</tt> when the record is invalid.  Use the
   # +record+ method to retrieve the record which did not validate.
@@ -98,17 +100,18 @@ module ActiveRecord
   end
 
   module Validations
-    def self.included(base) # :nodoc:
-      base.send :include, ActiveModel::Validations
-      base.extend ClassMethods
-      base.send :include, InstanceMethods
+    extend ActiveSupport::Concern
 
-      base.define_callbacks :validate_on_create, :validate_on_update
+    depends_on ActiveSupport::Callbacks
+    depends_on ActiveModel::Validations
 
-      base.class_eval do
-        alias_method_chain :save, :validation
-        alias_method_chain :save!, :validation
-      end
+    included do
+      include Validations::InstanceMethods
+
+      alias_method_chain :save, :validation
+      alias_method_chain :save!, :validation
+
+      define_callbacks :validate_on_create, :validate_on_update
     end
 
     module ClassMethods
@@ -197,7 +200,6 @@ module ActiveRecord
         respond_to?(attribute.to_sym) ? send(attribute.to_sym) : self[attribute.to_sym]
       end
     end
-
   end
 end
 

@@ -1,3 +1,5 @@
+require 'active_support/base64'
+
 module ActionController
   module HttpAuthentication
     # Makes it dead easy to do HTTP Basic authentication.
@@ -192,9 +194,10 @@ module ActionController
 
         if valid_nonce && realm == credentials[:realm] && opaque == credentials[:opaque]
           password = password_procedure.call(credentials[:username])
+          method = request.env['rack.methodoverride.original_method'] || request.env['REQUEST_METHOD']
 
          [true, false].any? do |password_is_ha1|
-           expected = expected_response(request.env['REQUEST_METHOD'], request.env['REQUEST_URI'], credentials, password, password_is_ha1)
+           expected = expected_response(method, request.env['REQUEST_URI'], credentials, password, password_is_ha1)
            expected == credentials[:response]
          end
         end
@@ -276,7 +279,7 @@ module ActionController
         t = time.to_i
         hashed = [t, secret_key]
         digest = ::Digest::MD5.hexdigest(hashed.join(":"))
-        Base64.encode64("#{t}:#{digest}").gsub("\n", '')
+        ActiveSupport::Base64.encode64("#{t}:#{digest}").gsub("\n", '')
       end
 
       # Might want a shorter timeout depending on whether the request
@@ -285,7 +288,7 @@ module ActionController
       # allow a user to use new nonce without prompting user again for their
       # username and password.
       def validate_nonce(request, value, seconds_to_timeout=5*60)
-        t = Base64.decode64(value).split(":").first.to_i
+        t = ActiveSupport::Base64.decode64(value).split(":").first.to_i
         nonce(t) == value && (t - Time.now.to_i).abs <= seconds_to_timeout
       end
 

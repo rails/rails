@@ -1,5 +1,7 @@
 require 'abstract_unit'
 require 'active_support/core_ext/hash'
+require 'bigdecimal'
+require 'active_support/core_ext/string/access'
 
 class HashExtTest < Test::Unit::TestCase
   def setup
@@ -644,6 +646,22 @@ class HashToXmlTest < Test::Unit::TestCase
     assert_equal expected_topic_hash, Hash.from_xml(topic_xml)["rsp"]["photos"]["photo"]
   end
   
+  def test_all_caps_key_from_xml
+    test_xml = <<-EOT
+      <ABC3XYZ>
+        <TEST>Lorem Ipsum</TEST>
+      </ABC3XYZ>
+    EOT
+
+    expected_hash = {
+      "ABC3XYZ" => {
+        "TEST" => "Lorem Ipsum"
+      }
+    }
+
+    assert_equal expected_hash, Hash.from_xml(test_xml)
+  end
+
   def test_empty_array_from_xml
     blog_xml = <<-XML
       <blog>

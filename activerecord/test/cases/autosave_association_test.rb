@@ -12,6 +12,7 @@ require 'models/reader'
 require 'models/ship'
 require 'models/ship_part'
 require 'models/treasure'
+require 'models/company'
 
 class TestAutosaveAssociationsInGeneral < ActiveRecord::TestCase
   def test_autosave_should_be_a_valid_option_for_has_one
@@ -38,6 +39,19 @@ class TestAutosaveAssociationsInGeneral < ActiveRecord::TestCase
 end
 
 class TestDefaultAutosaveAssociationOnAHasOneAssociation < ActiveRecord::TestCase
+  fixtures :companies, :accounts
+
+  def test_should_save_parent_but_not_invalid_child
+    firm = Firm.new(:name => 'GlobalMegaCorp')
+    assert firm.valid?
+
+    firm.build_account_using_primary_key
+    assert !firm.build_account_using_primary_key.valid?
+
+    assert firm.save
+    assert firm.account_using_primary_key.new_record?
+  end
+
   def test_save_fails_for_invalid_has_one
     firm = Firm.find(:first)
     assert firm.valid?
@@ -126,6 +140,19 @@ class TestDefaultAutosaveAssociationOnAHasOneAssociation < ActiveRecord::TestCas
 end
 
 class TestDefaultAutosaveAssociationOnABelongsToAssociation < ActiveRecord::TestCase
+  fixtures :companies
+
+  def test_should_save_parent_but_not_invalid_child
+    client = Client.new(:name => 'Joe (the Plumber)')
+    assert client.valid?
+
+    client.build_firm
+    assert !client.firm.valid?
+
+    assert client.save
+    assert client.firm.new_record?
+  end
+
   def test_save_fails_for_invalid_belongs_to
     assert log = AuditLog.create(:developer_id => 0, :message => "")
 

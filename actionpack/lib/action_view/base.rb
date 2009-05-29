@@ -1,3 +1,6 @@
+require 'active_support/core_ext/module/attr_internal'
+require 'active_support/core_ext/module/delegation'
+
 module ActionView #:nodoc:
   class ActionViewError < StandardError #:nodoc:
   end
@@ -191,12 +194,14 @@ module ActionView #:nodoc:
       ActionController::Base.allow_concurrency || (cache_template_loading.nil? ? !ActiveSupport::Dependencies.load? : cache_template_loading)
     end
 
-    attr_internal :request
+    attr_internal :request, :layout
 
     delegate :controller_path, :to => :controller, :allow_nil => true
 
     delegate :request_forgery_protection_token, :template, :params, :session, :cookies, :response, :headers,
-             :flash, :logger, :action_name, :controller_name, :to => :controller
+             :flash, :action_name, :controller_name, :to => :controller
+
+    delegate :logger, :to => :controller, :allow_nil => true
 
     delegate :find_by_parts, :to => :view_paths
 
@@ -264,15 +269,16 @@ module ActionView #:nodoc:
       nil
     end
 
-    private
-      # Evaluates the local assigns and controller ivars, pushes them to the view.
-      def _evaluate_assigns_and_ivars #:nodoc:
-        unless @assigns_added
-          @assigns.each { |key, value| instance_variable_set("@#{key}", value) }
-          _copy_ivars_from_controller
-          @assigns_added = true
-        end
+    # Evaluates the local assigns and controller ivars, pushes them to the view.
+    def _evaluate_assigns_and_ivars #:nodoc:
+      unless @assigns_added
+        @assigns.each { |key, value| instance_variable_set("@#{key}", value) }
+        _copy_ivars_from_controller
+        @assigns_added = true
       end
+    end
+
+    private
 
       def _copy_ivars_from_controller #:nodoc:
         if @controller
@@ -283,8 +289,11 @@ module ActionView #:nodoc:
       end
 
       def _set_controller_content_type(content_type) #:nodoc:
-        if controller.respond_to?(:response)
-          controller.response.content_type ||= content_type
+        # TODO: Remove this method when new base is switched
+        unless defined?(ActionController::Http)
+          if controller.respond_to?(:response)
+            controller.response.content_type ||= content_type
+          end
         end
       end
   end

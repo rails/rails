@@ -1,4 +1,5 @@
 require "cases/helper"
+require 'models/post'
 require 'models/author'
 require 'models/categorization'
 require 'models/comment'
@@ -6,11 +7,10 @@ require 'models/company'
 require 'models/topic'
 require 'models/reply'
 require 'models/entrant'
+require 'models/project'
 require 'models/developer'
-require 'models/post'
 require 'models/customer'
 require 'models/job'
-require 'models/categorization'
 
 class DynamicFinderMatchTest < ActiveRecord::TestCase
   def test_find_no_match
@@ -64,7 +64,7 @@ class DynamicFinderMatchTest < ActiveRecord::TestCase
 end
 
 class FinderTest < ActiveRecord::TestCase
-  fixtures :companies, :topics, :entrants, :developers, :developers_projects, :posts, :comments, :accounts, :authors, :customers
+  fixtures :companies, :topics, :entrants, :developers, :developers_projects, :posts, :comments, :accounts, :authors, :customers, :categories, :categorizations
 
   def test_find
     assert_equal(topics(:first).title, Topic.find(1).title)
@@ -94,16 +94,16 @@ class FinderTest < ActiveRecord::TestCase
 
     assert_raise(NoMethodError) { Topic.exists?([1,2]) }
   end
-  
+
   def test_exists_returns_true_with_one_record_and_no_args
     assert Topic.exists?
   end
-  
+
   def test_does_not_exist_with_empty_table_and_no_args_given
     Topic.delete_all
     assert !Topic.exists?
   end
-  
+
   def test_exists_with_aggregate_having_three_mappings
     existing_address = customers(:david).address
     assert Customer.exists?(:address => existing_address)
@@ -117,6 +117,12 @@ class FinderTest < ActiveRecord::TestCase
       Address.new(existing_address.street, existing_address.city + "1", existing_address.country))
     assert !Customer.exists?(:address =>
       Address.new(existing_address.street + "1", existing_address.city, existing_address.country))
+  end
+
+  def test_exists_with_scoped_include
+    Developer.with_scope(:find => { :include => :projects, :order => "projects.name" }) do
+      assert Developer.exists?
+    end
   end
 
   def test_find_by_array_of_one_id
@@ -485,8 +491,9 @@ class FinderTest < ActiveRecord::TestCase
     assert_equal "foo in (#{quoted_nil})", bind('foo in (?)', [])
   end
 
-  def test_bind_string
-    assert_equal ActiveRecord::Base.connection.quote(''), bind('?', '')
+  def test_bind_empty_string
+    quoted_empty = ActiveRecord::Base.connection.quote('')
+    assert_equal quoted_empty, bind('?', '')
   end
 
   def test_bind_chars

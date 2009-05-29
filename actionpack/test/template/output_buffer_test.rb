@@ -9,27 +9,52 @@ class OutputBufferTest < ActionController::TestCase
 
   tests TestController
 
-  def test_flush_output_buffer
-    # Start with the default body parts
+  def setup
     get :index
-    assert_equal ['foo'], @response.body_parts
-    assert_nil @response.template.output_buffer
-
-    # Nil output buffer is skipped
-    @response.template.flush_output_buffer
-    assert_nil @response.template.output_buffer
-    assert_equal ['foo'], @response.body_parts
-
-    # Empty output buffer is skipped
-    @response.template.output_buffer = ''
-    @response.template.flush_output_buffer
-    assert_equal '', @response.template.output_buffer
-    assert_equal ['foo'], @response.body_parts
-
-    # Flushing appends the output buffer to the body parts
-    @response.template.output_buffer = 'bar'
-    @response.template.flush_output_buffer
-    assert_equal '', @response.template.output_buffer
-    assert_equal ['foo', 'bar'], @response.body_parts
+    assert_equal ['foo'], body_parts
   end
+
+  test 'output buffer is nil after rendering' do
+    assert_nil output_buffer
+  end
+
+  test 'flushing ignores nil output buffer' do
+    @controller.template.flush_output_buffer
+    assert_nil output_buffer
+    assert_equal ['foo'], body_parts
+  end
+
+  test 'flushing ignores empty output buffer' do
+    @controller.template.output_buffer = ''
+    @controller.template.flush_output_buffer
+    assert_equal '', output_buffer
+    assert_equal ['foo'], body_parts
+  end
+
+  test 'flushing appends the output buffer to the body parts' do
+    @controller.template.output_buffer = 'bar'
+    @controller.template.flush_output_buffer
+    assert_equal '', output_buffer
+    assert_equal ['foo', 'bar'], body_parts
+  end
+
+  if '1.9'.respond_to?(:force_encoding)
+    test 'flushing preserves output buffer encoding' do
+      original_buffer = ' '.force_encoding(Encoding::EUC_JP)
+      @controller.template.output_buffer = original_buffer
+      @controller.template.flush_output_buffer
+      assert_equal ['foo', original_buffer], body_parts
+      assert_not_equal original_buffer, output_buffer
+      assert_equal Encoding::EUC_JP, output_buffer.encoding
+    end
+  end
+
+  protected
+    def output_buffer
+      @controller.template.output_buffer
+    end
+
+    def body_parts
+      @controller.template.response.body_parts
+    end
 end

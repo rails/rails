@@ -1,5 +1,6 @@
 require 'abstract_unit'
 require 'controller/fake_controllers'
+require 'active_support/dependencies'
 
 class MilestonesController < ActionController::Base
   def index() head :ok end
@@ -87,6 +88,11 @@ class StaticSegmentTest < Test::Unit::TestCase
     s = ROUTING::StaticSegment.new('Hello World', :raw => true)
     assert s.raw?
     assert_equal 'Hello World', s.interpolation_chunk
+  end
+
+  def test_value_should_not_be_double_unescaped
+    s = ROUTING::StaticSegment.new('%D0%9A%D0%B0%D1%80%D1%82%D0%B0') # Карта
+    assert_equal '%D0%9A%D0%B0%D1%80%D1%82%D0%B0', s.interpolation_chunk
   end
 
   def test_regexp_chunk_should_escape_specials
@@ -1923,7 +1929,7 @@ class RouteSetTest < Test::Unit::TestCase
       end
     end
 
-    request.path = "/people"
+    request.request_uri = "/people"
     request.env["REQUEST_METHOD"] = "GET"
     assert_nothing_raised { set.recognize(request) }
     assert_equal("index", request.path_parameters[:action])
@@ -1945,7 +1951,7 @@ class RouteSetTest < Test::Unit::TestCase
     }
     request.recycle!
 
-    request.path = "/people/5"
+    request.request_uri = "/people/5"
     request.env["REQUEST_METHOD"] = "GET"
     assert_nothing_raised { set.recognize(request) }
     assert_equal("show", request.path_parameters[:action])
@@ -2047,7 +2053,7 @@ class RouteSetTest < Test::Unit::TestCase
       end
     end
 
-    request.path = "/people/5"
+    request.request_uri = "/people/5"
     request.env["REQUEST_METHOD"] = "GET"
     assert_nothing_raised { set.recognize(request) }
     assert_equal("show", request.path_parameters[:action])
@@ -2059,7 +2065,7 @@ class RouteSetTest < Test::Unit::TestCase
     assert_equal("update", request.path_parameters[:action])
     request.recycle!
 
-    request.path = "/people/5.png"
+    request.request_uri = "/people/5.png"
     request.env["REQUEST_METHOD"] = "GET"
     assert_nothing_raised { set.recognize(request) }
     assert_equal("show", request.path_parameters[:action])

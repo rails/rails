@@ -12,4 +12,18 @@ class REXMLEngineTest < Test::Unit::TestCase
     XmlMini.backend = 'REXML'
     assert_equal XmlMini_REXML, XmlMini.backend
   end
+
+  def test_parse_from_io
+    XmlMini.backend = 'REXML'
+    io = StringIO.new(<<-eoxml)
+    <root>
+      good
+      <products>
+        hello everyone
+      </products>
+      morning
+    </root>
+    eoxml
+    XmlMini.parse(io)
+  end
 end

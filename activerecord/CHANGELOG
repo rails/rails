@@ -1,5 +1,7 @@
 *Edge*
 
+* Implement #many? for NamedScope and AssociationCollection using #size. #1500 [Chris Kampmeier]
+
 * Added :touch option to belongs_to associations that will touch the parent record when the current record is saved or destroyed [DHH]
 
 * Added ActiveRecord::Base#touch to update the updated_at/on attributes (or another specified timestamp) with the current time [DHH]

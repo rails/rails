@@ -12,7 +12,7 @@ RAILS_ROOT = '.' unless defined?(RAILS_ROOT)
 class Test::Unit::TestCase
   private  
     def plugin_fixture_root_path
-      File.join(File.dirname(__FILE__), 'fixtures', 'plugins')
+      File.expand_path(File.join(File.dirname(__FILE__), 'fixtures', 'plugins'))
     end
   
     def only_load_the_following_plugins!(plugins)
@@ -24,6 +24,6 @@ class Test::Unit::TestCase
     end
     
     def assert_plugins(list_of_names, array_of_plugins, message=nil)
-      assert_equal list_of_names.map(&:to_s), array_of_plugins.map(&:name), message
+      assert_equal list_of_names.map { |n| n.to_s }, array_of_plugins.map { |p| p.name }, message
     end    
 end

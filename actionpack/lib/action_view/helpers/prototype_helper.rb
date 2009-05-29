@@ -1,5 +1,6 @@
 require 'set'
 require 'active_support/json'
+require 'active_support/core_ext/object/extending'
 
 module ActionView
   module Helpers
@@ -572,6 +573,7 @@ module ActionView
       # #include_helpers_from_context has nothing to overwrite.
       class JavaScriptGenerator #:nodoc:
         def initialize(context, &block) #:nodoc:
+          context._evaluate_assigns_and_ivars
           @context, @lines = context, []
           include_helpers_from_context
           @context.with_output_buffer(@lines) do
@@ -686,7 +688,7 @@ module ActionView
           # Returns an object whose <tt>to_json</tt> evaluates to +code+. Use this to pass a literal JavaScript
           # expression as an argument to another JavaScriptGenerator method.
           def literal(code)
-            ActiveSupport::JSON::Variable.new(code.to_s)
+            ::ActiveSupport::JSON::Variable.new(code.to_s)
           end
 
           # Returns a collection reference by finding it through a CSS +pattern+ in the DOM. This collection can then be
@@ -973,7 +975,7 @@ module ActionView
             def loop_on_multiple_args(method, ids)
               record(ids.size>1 ?
                 "#{javascript_object_for(ids)}.each(#{method})" :
-                "#{method}(#{ids.first.to_json})")
+                "#{method}(#{javascript_object_for(ids.first)})")
             end
 
             def page
@@ -997,7 +999,7 @@ module ActionView
             end
 
             def javascript_object_for(object)
-              object.respond_to?(:to_json) ? object.to_json : object.inspect
+              ::ActiveSupport::JSON.encode(object)
             end
 
             def arguments_for_call(arguments, block = nil)
@@ -1139,7 +1141,7 @@ module ActionView
     class JavaScriptElementProxy < JavaScriptProxy #:nodoc:
       def initialize(generator, id)
         @id = id
-        super(generator, "$(#{id.to_json})")
+        super(generator, "$(#{::ActiveSupport::JSON.encode(id)})")
       end
 
       # Allows access of element attributes through +attribute+. Examples:
@@ -1180,11 +1182,11 @@ module ActionView
 
       # The JSON Encoder calls this to check for the +to_json+ method
       # Since it's a blank slate object, I suppose it responds to anything.
-      def respond_to?(method)
+      def respond_to?(*)
         true
       end
 
-      def to_json(options = nil)
+      def rails_to_json(*)
         @variable
       end
 
@@ -1211,7 +1213,7 @@ module ActionView
           enumerate :eachSlice, :variable => variable, :method_args => [number], :yield_args => %w(value index), :return => true, &block
         else
           add_variable_assignment!(variable)
-          append_enumerable_function!("eachSlice(#{number.to_json});")
+          append_enumerable_function!("eachSlice(#{::ActiveSupport::JSON.encode(number)});")
         end
       end
 
@@ -1232,7 +1234,7 @@ module ActionView
 
       def pluck(variable, property)
         add_variable_assignment!(variable)
-        append_enumerable_function!("pluck(#{property.to_json});")
+        append_enumerable_function!("pluck(#{::ActiveSupport::JSON.encode(property)});")
       end
 
       def zip(variable, *arguments, &block)
@@ -1296,7 +1298,7 @@ module ActionView
 
     class JavaScriptElementCollectionProxy < JavaScriptCollectionProxy #:nodoc:\
       def initialize(generator, pattern)
-        super(generator, "$$(#{pattern.to_json})")
+        super(generator, "$$(#{::ActiveSupport::JSON.encode(pattern)})")
       end
     end
   end

@@ -16,6 +16,10 @@ module ActionView #:nodoc:
 
     @@template_handlers = {}
     @@default_template_handlers = nil
+    
+    def self.extensions
+      @@template_handlers.keys
+    end
 
     # Register a class that knows how to handle template files with the given
     # extension. This can be used to implement new template types.
@@ -29,7 +33,7 @@ module ActionView #:nodoc:
     end
 
     def template_handler_extensions
-      @@template_handlers.keys.map(&:to_s).sort
+      @@template_handlers.keys.map {|key| key.to_s }.sort
     end
 
     def registered_template_handler(extension)
@@ -42,7 +46,7 @@ module ActionView #:nodoc:
     end
 
     def handler_class_for_extension(extension)
-      registered_template_handler(extension) || @@default_template_handlers
+      (extension && registered_template_handler(extension.to_sym)) || @@default_template_handlers
     end
   end
 end

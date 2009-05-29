@@ -4,7 +4,6 @@ require 'rake/testtask'
 require 'rake/rdoctask'
 require 'rake/packagetask'
 require 'rake/gempackagetask'
-require 'rake/contrib/sshpublisher'
 
 require File.join(File.dirname(__FILE__), 'lib', 'active_resource', 'version')
 
@@ -35,6 +34,13 @@ Rake::TestTask.new { |t|
   t.verbose = true
   t.warning = true
 }
+task :isolated_test do
+  ruby = File.join(*RbConfig::CONFIG.values_at('bindir', 'RUBY_INSTALL_NAME'))
+  activesupport_path = "#{File.dirname(__FILE__)}/../activesupport/lib"
+  Dir.glob("test/**/*_test.rb").all? do |file|
+    system(ruby, "-Ilib:test:#{activesupport_path}", file)
+  end or raise "Failures"
+end
 
 
 # Generate the RDoc documentation
@@ -117,12 +123,14 @@ end
 
 desc "Publish the beta gem"
 task :pgem => [:package] do 
+  require 'rake/contrib/sshpublisher'
   Rake::SshFilePublisher.new("gems.rubyonrails.org", "/u/sites/gems/gems", "pkg", "#{PKG_FILE_NAME}.gem").upload
   `ssh gems.rubyonrails.org '/u/sites/gems/gemupdate.sh'`
 end
 
 desc "Publish the API documentation"
 task :pdoc => [:rdoc] do 
+  require 'rake/contrib/sshpublisher'
   Rake::SshDirPublisher.new("wrath.rubyonrails.org", "public_html/ar", "doc").upload
 end
 

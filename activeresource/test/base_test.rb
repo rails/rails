@@ -3,6 +3,7 @@ require "fixtures/person"
 require "fixtures/customer"
 require "fixtures/street_address"
 require "fixtures/beast"
+require 'active_support/core_ext/hash/conversions'
 
 class BaseTest < Test::Unit::TestCase
   def setup
@@ -853,7 +854,7 @@ class BaseTest < Test::Unit::TestCase
   def test_to_xml
     matz = Person.find(1)
     xml = matz.encode
-    assert xml.starts_with?('<?xml version="1.0" encoding="UTF-8"?>')
+    assert xml.include?('<?xml version="1.0" encoding="UTF-8"?>')
     assert xml.include?('<name>Matz</name>')
     assert xml.include?('<id type="integer">1</id>')
   end

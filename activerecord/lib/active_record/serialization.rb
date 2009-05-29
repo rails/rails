@@ -1,5 +1,3 @@
-require 'active_support/json'
-
 module ActiveRecord #:nodoc:
   module Serialization
     class Serializer #:nodoc:
@@ -20,9 +18,9 @@ module ActiveRecord #:nodoc:
 
         if options[:only]
           options.delete(:except)
-          attribute_names = attribute_names & Array(options[:only]).collect { |n| n.to_s }
+          attribute_names = attribute_names & Array.wrap(options[:only]).collect { |n| n.to_s }
         else
-          options[:except] = Array(options[:except]) | Array(@record.class.inheritance_column)
+          options[:except] = Array.wrap(options[:except]) | Array.wrap(@record.class.inheritance_column)
           attribute_names = attribute_names - options[:except].collect { |n| n.to_s }
         end
 
@@ -30,7 +28,7 @@ module ActiveRecord #:nodoc:
       end
 
       def serializable_method_names
-        Array(options[:methods]).inject([]) do |method_attributes, name|
+        Array.wrap(options[:methods]).inject([]) do |method_attributes, name|
           method_attributes << name if @record.respond_to?(name.to_s)
           method_attributes
         end
@@ -51,7 +49,7 @@ module ActiveRecord #:nodoc:
                                   :only => options[:only] }
 
           include_has_options = include_associations.is_a?(Hash)
-          associations = include_has_options ? include_associations.keys : Array(include_associations)
+          associations = include_has_options ? include_associations.keys : Array.wrap(include_associations)
 
           for association in associations
             records = case @record.class.reflect_on_association(association).macro
@@ -73,16 +71,19 @@ module ActiveRecord #:nodoc:
       end
 
       def serializable_record
-        returning(serializable_record = {}) do
-          serializable_names.each { |name| serializable_record[name] = @record.send(name) }
-          add_includes do |association, records, opts|
+        record = {}
+        serializable_names.each { |name| record[name] = @record.send(name) }
+
+        add_includes do |association, records, opts|
+          record[association] =
             if records.is_a?(Enumerable)
-              serializable_record[association] = records.collect { |r| self.class.new(r, opts).serializable_record }
+              records.collect { |r| self.class.new(r, opts).serializable_record }
             else
-              serializable_record[association] = self.class.new(records, opts).serializable_record
+              self.class.new(records, opts).serializable_record
             end
-          end
         end
+
+        record
       end
 
       def serialize

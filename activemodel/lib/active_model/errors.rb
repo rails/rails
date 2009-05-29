@@ -41,9 +41,10 @@ module ActiveModel
     end
 
     def to_xml(options={})
+      require 'builder' unless defined? ::Builder
       options[:root]    ||= "errors"
       options[:indent]  ||= 2
-      options[:builder] ||= Builder::XmlMarkup.new(:indent => options[:indent])
+      options[:builder] ||= ::Builder::XmlMarkup.new(:indent => options[:indent])
 
       options[:builder].instruct! unless options.delete(:skip_instruct)
       options[:builder].errors do |e|

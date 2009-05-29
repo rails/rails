@@ -1,8 +1,6 @@
 module ActiveRecord
   module Batches # :nodoc:
-    def self.included(base)
-      base.extend(ClassMethods)
-    end
+    extend ActiveSupport::Concern
 
     # When processing large numbers of records, it's often a good idea to do
     # so in batches to prevent memory ballooning.

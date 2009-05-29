@@ -42,17 +42,17 @@ module ActiveRecord
     # To override the name of the lock_version column, invoke the <tt>set_locking_column</tt> method.
     # This method uses the same syntax as <tt>set_table_name</tt>
     module Optimistic
-      def self.included(base) #:nodoc:
-        base.extend ClassMethods
+      extend ActiveSupport::Concern
 
-        base.cattr_accessor :lock_optimistically, :instance_writer => false
-        base.lock_optimistically = true
+      included do
+        cattr_accessor :lock_optimistically, :instance_writer => false
+        self.lock_optimistically = true
 
-        base.alias_method_chain :update, :lock
-        base.alias_method_chain :destroy, :lock
-        base.alias_method_chain :attributes_from_column_definition, :lock
+        alias_method_chain :update, :lock
+        alias_method_chain :destroy, :lock
+        alias_method_chain :attributes_from_column_definition, :lock
 
-        class << base
+        class << self
           alias_method :locking_column=, :set_locking_column
         end
       end

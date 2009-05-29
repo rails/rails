@@ -1,9 +1,13 @@
+require "active_support/core_ext/object/misc"
+require "cgi"
+require "active_support/core_ext/cgi"
+
 module Rails
   module Info
     mattr_accessor :properties
     class << (@@properties = [])
       def names
-        map &:first
+        map {|val| val.first }
       end
 
       def value_for(property_name)
@@ -53,7 +57,7 @@ module Rails
       alias inspect to_s
 
       def to_html
-        returning table = '<table>' do
+        (table = '<table>').tap do
           properties.each do |(name, value)|
             table << %(<tr><td class="name">#{CGI.escapeHTML(name.to_s)}</td>)
             formatted_value = if value.kind_of?(Array)
@@ -108,7 +112,7 @@ module Rails
     end
 
     property 'Middleware' do
-      ActionController::Dispatcher.middleware.active.map(&:inspect)
+      ActionController::Dispatcher.middleware.active.map {|middle| middle.inspect }
     end
 
     # The Rails Git revision, if it's checked out into vendor/rails.

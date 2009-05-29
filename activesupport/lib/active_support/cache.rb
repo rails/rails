@@ -2,6 +2,7 @@ require 'benchmark'
 require 'active_support/core_ext/benchmark'
 require 'active_support/core_ext/exception'
 require 'active_support/core_ext/class/attribute_accessors'
+require 'active_support/core_ext' # FIXME: pulling in all to_param extensions
 
 module ActiveSupport
   # See ActiveSupport::Cache::Store for documentation.

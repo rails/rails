@@ -1,3 +1,6 @@
+require 'active_support/core_ext/array/wrap'
+require 'active_support/core_ext/class/inheritable_attributes'
+
 module ActiveSupport
   # Callbacks are hooks into the lifecycle of an object that allow you to trigger logic
   # before or after an alteration of the object state.
@@ -284,6 +287,14 @@ module ActiveSupport
         when Proc
           @klass.send(:define_method, method_name, &filter)
           method_name << (filter.arity == 1 ? "(self)" : "")
+        when Method
+          @klass.send(:define_method, "#{method_name}_method") { filter }
+          @klass.class_eval <<-RUBY_EVAL, __FILE__, __LINE__ + 1
+            def #{method_name}(&blk)
+              #{method_name}_method.call(self, &blk)
+            end
+          RUBY_EVAL
+          method_name
         when String
           @klass.class_eval <<-RUBY_EVAL
             def #{method_name}
@@ -293,23 +304,39 @@ module ActiveSupport
           method_name
         else
           kind, name = @kind, @name
-          @klass.send(:define_method, method_name) do
-            filter.send("#{kind}_#{name}", self)
+          @klass.send(:define_method, "#{method_name}_object") { filter }
+
+          if kind == :around
+            @klass.class_eval <<-RUBY_EVAL, __FILE__, __LINE__ + 1
+              def #{method_name}(&blk)
+                if :#{kind} == :around && #{method_name}_object.respond_to?(:filter)
+                  #{method_name}_object.send("filter", self, &blk)
+                # TODO: Deprecate this
+                elsif #{method_name}_object.respond_to?(:before) && #{method_name}_object.respond_to?(:after)
+                  should_continue = #{method_name}_object.before(self)
+                  yield if should_continue
+                  #{method_name}_object.after(self)
+                else
+                  #{method_name}_object.send("#{kind}_#{name}", self, &blk)
+                end
+              end
+            RUBY_EVAL
+          else
+            @klass.class_eval <<-RUBY_EVAL, __FILE__, __LINE__ + 1
+              def #{method_name}(&blk)
+                if #{method_name}_object.respond_to?(:#{kind})
+                  #{method_name}_object.#{kind}(self, &blk)
+                else
+                  #{method_name}_object.send("#{kind}_#{name}", self, &blk)
+                end
+              end
+            RUBY_EVAL
           end
           method_name
         end
       end
     end
 
-    # This method_missing is supplied to catch callbacks with keys and create
-    # the appropriate callback for future use.
-    def method_missing(meth, *args, &blk)
-      if meth.to_s =~ /_run__([\w:]+)__(\w+)__(\w+)__callbacks/
-        return self.class._create_and_run_keyed_callback($1, $2.to_sym, $3.to_sym, self, &blk)
-      end
-      super
-    end
-    
     # An Array with a compile method
     class CallbackChain < Array
       def initialize(symbol)
@@ -322,7 +349,7 @@ module ActiveSupport
         each do |callback|
           method << callback.start(key, options)
         end
-        method << "yield self if block_given?"
+        method << "yield self if block_given? && !halted"
         reverse_each do |callback|
           method << callback.end(key, options)
         end
@@ -353,6 +380,7 @@ module ActiveSupport
         str = <<-RUBY_EVAL
           def _run_#{symbol}_callbacks(key = nil)
             if key
+              key = key.hash.to_s.gsub(/-/, '_')
               name = "_run__\#{self.class.name.split("::").last}__#{symbol}__\#{key}__callbacks"
               
               if respond_to?(name)
@@ -445,7 +473,9 @@ module ActiveSupport
                 self._#{symbol}_callbacks.delete_if {|c| c.matches?(type, :#{symbol}, filter)}
                 Callback.new(filter, type, options.dup, self, :#{symbol})
               end
-              self._#{symbol}_callbacks.push(*filters)
+              options[:prepend] ?
+                self._#{symbol}_callbacks.unshift(*filters) :
+                self._#{symbol}_callbacks.push(*filters)
               _define_runner(:#{symbol}, 
                 self._#{symbol}_callbacks.compile(nil, :terminator => _#{symbol}_terminator), 
                 options)

@@ -120,6 +120,14 @@ class ResourcesTest < ActionController::TestCase
     end
   end
 
+  def test_irregular_id_requirements_should_get_passed_to_member_actions
+    expected_options = {:controller => 'messages', :action => 'custom', :id => '1.1.1'}
+
+    with_restful_routing(:messages, :member => {:custom => :get}, :requirements => {:id => /[0-9]\.[0-9]\.[0-9]/}) do
+      assert_recognizes(expected_options, :path => 'messages/1.1.1/custom', :method => :get)
+    end
+  end
+
   def test_with_path_prefix
     with_restful_routing :messages, :path_prefix => '/thread/:thread_id' do
       assert_simply_restful_for :messages, :path_prefix => 'thread/5/', :options => { :thread_id => '5' }

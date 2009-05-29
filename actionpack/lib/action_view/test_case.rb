@@ -7,19 +7,21 @@ module ActionView
       @_rendered = { :template => nil, :partials => Hash.new(0) }
       initialize_without_template_tracking(*args)
     end
-    
+
+    attr_internal :rendered
     alias_method :_render_template_without_template_tracking, :_render_template
     def _render_template(template, local_assigns = {})
-      if template.respond_to?(:path) && !template.is_a?(InlineTemplate)
-        @_rendered[:partials][template] += 1 if template.is_a?(RenderablePartial)
-        @_rendered[:template] ||= template
+      if template.respond_to?(:identifier) && template.present?
+        @_rendered[:partials][template] += 1 if template.partial?
+        @_rendered[:template] ||= []
+        @_rendered[:template] << template
       end
       _render_template_without_template_tracking(template, local_assigns)
-    end    
+    end
   end
 
   class TestCase < ActiveSupport::TestCase
-    include ActionController::TestCase::Assertions
+    include ActionDispatch::Assertions
     include ActionController::TestProcess
 
     class_inheritable_accessor :helper_class

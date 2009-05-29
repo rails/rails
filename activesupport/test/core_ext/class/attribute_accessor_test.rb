@@ -1,4 +1,5 @@
 require 'abstract_unit'
+require 'active_support/core_ext/class/attribute_accessors'
 
 class ClassAttributeAccessorTest < Test::Unit::TestCase
   def setup

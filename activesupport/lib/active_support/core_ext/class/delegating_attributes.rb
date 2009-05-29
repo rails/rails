@@ -1,3 +1,5 @@
+require 'active_support/core_ext/object/blank'
+
 class Class
   def superclass_delegating_reader(*names)
     class_name_to_stop_searching_on = superclass.name.blank? ? "Object" : superclass.name

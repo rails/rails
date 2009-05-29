@@ -1,5 +1,6 @@
 class FalseClass
-  def to_json(options = nil) #:nodoc:
-    'false'
-  end
+  private
+    def rails_to_json(*)
+      'false'
+    end
 end

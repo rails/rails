@@ -1,4 +1,5 @@
 require 'erb'
+require 'active_support/core_ext/class/attribute_accessors'
 
 module ActionView
   module TemplateHandlers
@@ -12,12 +13,10 @@ module ActionView
       cattr_accessor :erb_trim_mode
       self.erb_trim_mode = '-'
 
-      def compile(template)
-        src = ::ERB.new("<% __in_erb_template=true %>#{template.source}", nil, erb_trim_mode, '@output_buffer').src
+      self.default_format = Mime::HTML
 
-        # Ruby 1.9 prepends an encoding to the source. However this is
-        # useless because you can only set an encoding on the first line
-        RUBY_VERSION >= '1.9' ? src.sub(/\A#coding:.*\n/, '') : src
+      def compile(template)
+        ::ERB.new("<% __in_erb_template=true %>#{template.source}", nil, erb_trim_mode, '@output_buffer').src
       end
     end
   end

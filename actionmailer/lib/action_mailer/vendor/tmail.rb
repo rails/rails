@@ -12,6 +12,7 @@ end
 
 require 'tmail'
 
+require 'active_support/core_ext/kernel/reporting'
 silence_warnings do
   TMail::Encoder.const_set("MAX_LINE_LEN", 200)
 end

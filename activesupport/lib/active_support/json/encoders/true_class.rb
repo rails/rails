@@ -1,5 +1,6 @@
 class TrueClass
-  def to_json(options = nil) #:nodoc:
-    'true'
-  end
+  private
+    def rails_to_json(*)
+      'true'
+    end
 end

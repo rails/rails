@@ -5,13 +5,15 @@ class CookieStoreTest < ActionController::IntegrationTest
   SessionKey = '_myapp_session'
   SessionSecret = 'b3c631c314c0bbca50c1b2843150fe33'
 
+  # Make sure Session middleware doesnt get included in the middleware stack
+  ActionController::Base.session_store = nil
+
   DispatcherApp = ActionController::Dispatcher.new
   CookieStoreApp = ActionDispatch::Session::CookieStore.new(DispatcherApp,
                      :key => SessionKey, :secret => SessionSecret)
 
   Verifier = ActiveSupport::MessageVerifier.new(SessionSecret, 'SHA1')
-
-  SignedBar = "BAh7BjoIZm9vIghiYXI%3D--fef868465920f415f2c0652d6910d3af288a0367"
+  SignedBar = Verifier.generate(:foo => "bar", :session_id => ActiveSupport::SecureRandom.hex(16))
 
   class TestController < ActionController::Base
     def no_session_access

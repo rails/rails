@@ -6,20 +6,20 @@ class DispatcherTest < Test::Unit::TestCase
   def setup
     ENV['REQUEST_METHOD'] = 'GET'
 
-    Dispatcher.middleware = ActionDispatch::MiddlewareStack.new do |middleware|
-      middlewares = File.expand_path(File.join(File.dirname(__FILE__), "../../lib/action_controller/dispatch/middlewares.rb"))
-      middleware.instance_eval(File.read(middlewares))
-    end
-
     # Clear callbacks as they are redefined by Dispatcher#define_dispatcher_callbacks
-    Dispatcher.instance_variable_set("@prepare_dispatch_callbacks", ActiveSupport::Callbacks::CallbackChain.new)
-    Dispatcher.instance_variable_set("@before_dispatch_callbacks", ActiveSupport::Callbacks::CallbackChain.new)
-    Dispatcher.instance_variable_set("@after_dispatch_callbacks", ActiveSupport::Callbacks::CallbackChain.new)
+    ActionDispatch::Callbacks.instance_variable_set("@prepare_callbacks", ActiveSupport::Callbacks::CallbackChain.new)
+    ActionDispatch::Callbacks.instance_variable_set("@before_callbacks", ActiveSupport::Callbacks::CallbackChain.new)
+    ActionDispatch::Callbacks.instance_variable_set("@after_callbacks", ActiveSupport::Callbacks::CallbackChain.new)
 
+    @old_router, Dispatcher.router = Dispatcher.router, mock()
+    Dispatcher.router.stubs(:call).returns([200, {}, 'response'])
+    Dispatcher.router.stubs(:reload)
     Dispatcher.stubs(:require_dependency)
   end
 
   def teardown
+    Dispatcher.router = @old_router
+    @dispatcher = nil
     ENV.delete 'REQUEST_METHOD'
   end
 
@@ -29,12 +29,12 @@ class DispatcherTest < Test::Unit::TestCase
   end
 
   def test_reloads_routes_before_dispatch_if_in_loading_mode
-    ActionController::Routing::Routes.expects(:reload).once
+    Dispatcher.router.expects(:reload).once
     dispatch(false)
   end
 
   def test_leaves_dependencies_after_dispatch_if_not_in_loading_mode
-    ActionController::Routing::Routes.expects(:reload).never
+    Dispatcher.router.expects(:reload).never
     ActiveSupport::Dependencies.expects(:clear).never
 
     dispatch
@@ -43,19 +43,6 @@ class DispatcherTest < Test::Unit::TestCase
   # Stub out dispatch error logger
   class << Dispatcher
     def log_failsafe_exception(status, exception); end
-  end
-
-  def test_failsafe_response
-    Dispatcher.any_instance.expects(:_call).raises('b00m')
-    ActionDispatch::Failsafe.any_instance.expects(:log_failsafe_exception)
-
-    assert_nothing_raised do
-      assert_equal [
-        500,
-        {"Content-Type" => "text/html"},
-        "<html><body><h1>500 Internal Server Error</h1></body></html>"
-      ], dispatch
-    end
   end
 
   def test_prepare_callbacks
@@ -68,7 +55,7 @@ class DispatcherTest < Test::Unit::TestCase
     assert_nil a || b || c
 
     # Run callbacks
-    Dispatcher.run_prepare_callbacks
+    dispatch
 
     assert_equal 1, a
     assert_equal 2, b
@@ -85,16 +72,22 @@ class DispatcherTest < Test::Unit::TestCase
     Dispatcher.to_prepare(:unique_id) { |*args| a = b = 1 }
     Dispatcher.to_prepare(:unique_id) { |*args| a = 2 }
 
-    Dispatcher.run_prepare_callbacks
+    dispatch
     assert_equal 2, a
     assert_equal nil, b
   end
 
   private
     def dispatch(cache_classes = true)
-      ActionController::Routing::RouteSet.any_instance.stubs(:call).returns([200, {}, 'response'])
+      ActionController::Dispatcher.prepare_each_request = false
       Dispatcher.define_dispatcher_callbacks(cache_classes)
-      Dispatcher.new.call({'rack.input' => StringIO.new('')})
+      Dispatcher.middleware = ActionDispatch::MiddlewareStack.new do |middleware|
+        middlewares = File.expand_path(File.join(File.dirname(__FILE__), "../../lib/action_controller/dispatch/middlewares.rb"))
+        middleware.instance_eval(File.read(middlewares))
+      end
+
+      @dispatcher ||= Dispatcher.new
+      @dispatcher.call({'rack.input' => StringIO.new(''), 'action_dispatch.show_exceptions' => false})
     end
 
     def assert_subclasses(howmany, klass, message = klass.subclasses.inspect)

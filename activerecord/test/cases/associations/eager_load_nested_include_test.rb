@@ -1,18 +1,18 @@
 require 'cases/helper'
-require 'models/author'
 require 'models/post'
+require 'models/author'
 require 'models/comment'
 require 'models/category'
 require 'models/categorization'
+require 'active_support/core_ext/array/random_access'
 
 module Remembered
-  def self.included(base)
-    base.extend ClassMethods
-    base.class_eval do
-      after_create :remember
-    protected
-      def remember; self.class.remembered << self; end
-    end
+  extend ActiveSupport::Concern
+
+  included do
+    after_create :remember
+  protected
+    def remember; self.class.remembered << self; end
   end
 
   module ClassMethods
@@ -66,13 +66,13 @@ class EagerLoadPolyAssocsTest < ActiveRecord::TestCase
   def setup
     generate_test_object_graphs
   end
-  
+
   def teardown
-    [Circle, Square, Triangle, PaintColor, PaintTexture, 
+    [Circle, Square, Triangle, PaintColor, PaintTexture,
      ShapeExpression, NonPolyOne, NonPolyTwo].each do |c|
       c.delete_all
     end
-    
+
   end
 
 

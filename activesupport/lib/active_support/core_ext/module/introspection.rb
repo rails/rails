@@ -1,3 +1,5 @@
+require 'active_support/inflector'
+
 class Module
   # Returns the name of the module containing this one.
   #
@@ -26,7 +28,7 @@ class Module
   #   p Module.new.parent # => Object
   #
   def parent
-    parent_name ? parent_name.constantize : Object
+    parent_name ? ActiveSupport::Inflector.constantize(parent_name) : Object
   end
 
   # Returns all the parents of this module according to its name, ordered from
@@ -47,7 +49,7 @@ class Module
     if parent_name
       parts = parent_name.split('::')
       until parts.empty?
-        parents << (parts * '::').constantize
+        parents << ActiveSupport::Inflector.constantize(parts * '::')
         parts.pop
       end
     end

@@ -1,11 +1,6 @@
 module ActiveRecord
   module Associations
     class HasManyThroughAssociation < HasManyAssociation #:nodoc:
-      def initialize(owner, reflection)
-        reflection.check_validity!
-        super
-      end
-
       alias_method :new, :build
 
       def create!(attrs = nil)
@@ -19,6 +14,13 @@ module ActiveRecord
         transaction do
           self << (object = attrs ? @reflection.klass.send(:with_scope, :create => attrs) { @reflection.create_association } : @reflection.create_association)
           object
+        end
+      end
+
+      def destroy(*records)
+        transaction do
+          delete_records(flatten_deeper(records))
+          super
         end
       end
 
@@ -250,6 +252,11 @@ module ActiveRecord
 
         def cached_counter_attribute_name
           "#{@reflection.name}_count"
+        end
+
+        # NOTE - not sure that we can actually cope with inverses here
+        def we_can_set_the_inverse_on_this?(record)
+          false
         end
     end
   end

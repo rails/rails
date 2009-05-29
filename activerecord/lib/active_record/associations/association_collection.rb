@@ -302,6 +302,15 @@ module ActiveRecord
         end
       end
 
+      # Returns true if the collection has more than 1 record. Equivalent to collection.size > 1.
+      def many?
+        if block_given?
+          method_missing(:many?) { |*block_args| yield(*block_args) }
+        else
+          size > 1
+        end
+      end
+
       def uniq(collection = self)
         seen = Set.new
         collection.inject([]) do |kept, record|
@@ -399,11 +408,14 @@ module ActiveRecord
               find(:all)
             end
 
-          @reflection.options[:uniq] ? uniq(records) : records
+          records = @reflection.options[:uniq] ? uniq(records) : records
+          records.each do |record|
+            set_inverse_instance(record, @owner)
+          end
+          records
         end
 
       private
-
         def create_record(attrs)
           attrs.update(@reflection.options[:conditions]) if @reflection.options[:conditions].is_a?(Hash)
           ensure_owner_is_not_new
@@ -433,6 +445,7 @@ module ActiveRecord
           @target ||= [] unless loaded?
           @target << record unless @reflection.options[:uniq] && @target.include?(record)
           callback(:after_add, record)
+          set_inverse_instance(record, @owner)
           record
         end
 

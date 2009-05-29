@@ -29,23 +29,19 @@ module RenderTestCases
   end
 
   def test_render_file_with_localization
-    pending do
-      begin
-        old_locale = I18n.locale
-        I18n.locale = :da
-        assert_equal "Hey verden", @view.render(:file => "test/hello_world")
-      ensure
-        I18n.locale = old_locale
-      end
+    begin
+      old_locale = I18n.locale
+      I18n.locale = :da
+      assert_equal "Hey verden", @view.render(:file => "test/hello_world")
+    ensure
+      I18n.locale = old_locale
     end
   end
 
   def test_render_file_with_dashed_locale
     old_locale = I18n.locale
-    pending do
-      I18n.locale = :"pt-BR"
-      assert_equal "Ola mundo", @view.render(:file => "test/hello_world")
-    end
+    I18n.locale = :"pt-BR"
+    assert_equal "Ola mundo", @view.render(:file => "test/hello_world")
   ensure
     I18n.locale = old_locale
   end
@@ -93,10 +89,6 @@ module RenderTestCases
 
   def test_render_file_not_using_full_path_with_dot_in_path
     assert_equal "The secret is in the sauce\n", @view.render(:file => "test/dot.directory/render_file_with_ivar")
-  end
-
-  def test_render_has_access_current_template
-    assert_equal "test/template.erb", @view.render(:file => "test/template.erb")
   end
 
   def test_render_update
@@ -244,10 +236,6 @@ module RenderTestCases
     end
   end
 
-  def test_template_with_malformed_template_handler_is_reachable_through_its_exact_filename
-    assert_equal "Don't render me!", @view.render(:file => 'test/malformed/malformed.html.erb~')
-  end
-
   def test_render_with_layout
     assert_equal %(<title></title>\nHello world!\n),
       @view.render(:file => "test/hello_world.erb", :layout => "layouts/yield")
@@ -261,7 +249,7 @@ module RenderTestCases
   if '1.9'.respond_to?(:force_encoding)
     def test_render_utf8_template
       result = @view.render(:file => "test/utf8.html.erb", :layouts => "layouts/yield")
-      assert_equal "Русский текст\n日本語のテキスト", result
+      assert_equal "Русский текст\nUTF-8\nUTF-8\nUTF-8\n", result
       assert_equal Encoding::UTF_8, result.encoding
     end
   end
@@ -273,7 +261,7 @@ class CachedViewRenderTest < ActiveSupport::TestCase
   # Ensure view path cache is primed
   def setup
     view_paths = ActionController::Base.view_paths
-    assert_equal ActionView::Template::FileSystemPath, view_paths.first.class
+    assert_equal ActionView::Template::FileSystemPathWithFallback, view_paths.first.class
     setup_view(view_paths)
   end
 end
@@ -284,9 +272,9 @@ class LazyViewRenderTest < ActiveSupport::TestCase
   # Test the same thing as above, but make sure the view path
   # is not eager loaded
   def setup
-    path = ActionView::Template::FileSystemPath.new(FIXTURE_LOAD_PATH)
+    path = ActionView::Template::FileSystemPathWithFallback.new(FIXTURE_LOAD_PATH)
     view_paths = ActionView::Base.process_view_paths(path)
-    assert_equal ActionView::Template::FileSystemPath, view_paths.first.class
+    assert_equal ActionView::Template::FileSystemPathWithFallback, view_paths.first.class
     setup_view(view_paths)
   end
 end

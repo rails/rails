@@ -1,5 +1,7 @@
 require 'action_controller/deprecated'
 require 'set'
+require 'active_support/core_ext/class/inheritable_attributes'
+require 'active_support/core_ext/module/attr_internal'
 
 module ActionController #:nodoc:
   class ActionControllerError < StandardError #:nodoc:
@@ -29,10 +31,6 @@ module ActionController #:nodoc:
 
     def allowed_methods_header
       allowed_methods.map { |method_symbol| method_symbol.to_s.upcase } * ', '
-    end
-
-    def handle_response!(response)
-      response.headers['Allow'] ||= allowed_methods_header
     end
   end
 
@@ -238,13 +236,12 @@ module ActionController #:nodoc:
     cattr_reader :protected_instance_variables
     # Controller specific instance variables which will not be accessible inside views.
     @@protected_instance_variables = %w(@assigns @performed_redirect @performed_render @variables_added @request_origin @url @parent_controller
-                                        @action_name @before_filter_chain_aborted @action_cache_path @_session @_headers @_params
+                                        @action_name @before_filter_chain_aborted @action_cache_path @_headers @_params
                                         @_flash @_response)
 
     # Prepends all the URL-generating helpers from AssetHelper. This makes it possible to easily move javascripts, stylesheets,
     # and images to a dedicated asset server away from the main web server. Example:
     #   ActionController::Base.asset_host = "http://assets.example.com"
-    @@asset_host = ""
     cattr_accessor :asset_host
 
     # All requests are considered local by default, so everyone will be exposed to detailed debugging screens on errors.
@@ -356,7 +353,9 @@ module ActionController #:nodoc:
 
     # Holds a hash of objects in the session. Accessed like <tt>session[:person]</tt> to get the object tied to the "person"
     # key. The session will hold any type of object as values, but the key should be a string or symbol.
-    attr_internal :session
+    def session
+      request.session
+    end
 
     # Holds a hash of header names and values. Accessed like <tt>headers["Cache-Control"]</tt> to get the value of the Cache-Control
     # directive. Values should always be specified as strings.
@@ -365,19 +364,24 @@ module ActionController #:nodoc:
     # Returns the name of the action this controller is processing.
     attr_accessor :action_name
 
+    attr_reader :template
+
+    def action(name, env)
+      request  = ActionDispatch::Request.new(env)
+      response = ActionDispatch::Response.new
+      self.action_name = name && name.to_s
+      process(request, response).to_a
+    end
+
+
     class << self
-      def call(env)
-        # HACK: For global rescue to have access to the original request and response
-        request = env["action_controller.rescue.request"] ||= ActionDispatch::Request.new(env)
-        response = env["action_controller.rescue.response"] ||= ActionDispatch::Response.new
-        process(request, response)
+      def action(name = nil)
+        @actions ||= {}
+        @actions[name] ||= proc do |env|
+          new.action(name, env)
+        end
       end
-
-      # Factory for the standard create, process loop where the controller is discarded after processing.
-      def process(request, response) #:nodoc:
-        new.process(request, response)
-      end
-
+      
       # Converts the class name from something like "OneModule::TwoModule::NeatController" to "NeatController".
       def controller_class_name
         @controller_class_name ||= name.demodulize
@@ -443,60 +447,27 @@ module ActionController #:nodoc:
         @view_paths = superclass.view_paths.dup if @view_paths.nil?
         @view_paths.push(*path)
       end
-
-      # Replace sensitive parameter data from the request log.
-      # Filters parameters that have any of the arguments as a substring.
-      # Looks in all subhashes of the param hash for keys to filter.
-      # If a block is given, each key and value of the parameter hash and all
-      # subhashes is passed to it, the value or key
-      # can be replaced using String#replace or similar method.
-      #
-      # Examples:
-      #   filter_parameter_logging
-      #   => Does nothing, just slows the logging process down
-      #
-      #   filter_parameter_logging :password
-      #   => replaces the value to all keys matching /password/i with "[FILTERED]"
-      #
-      #   filter_parameter_logging :foo, "bar"
-      #   => replaces the value to all keys matching /foo|bar/i with "[FILTERED]"
-      #
-      #   filter_parameter_logging { |k,v| v.reverse! if k =~ /secret/i }
-      #   => reverses the value to all keys matching /secret/i
-      #
-      #   filter_parameter_logging(:foo, "bar") { |k,v| v.reverse! if k =~ /secret/i }
-      #   => reverses the value to all keys matching /secret/i, and
-      #      replaces the value to all keys matching /foo|bar/i with "[FILTERED]"
-      def filter_parameter_logging(*filter_words, &block)
-        parameter_filter = Regexp.new(filter_words.collect{ |s| s.to_s }.join('|'), true) if filter_words.length > 0
-
-        define_method(:filter_parameters) do |unfiltered_parameters|
-          filtered_parameters = {}
-
-          unfiltered_parameters.each do |key, value|
-            if key =~ parameter_filter
-              filtered_parameters[key] = '[FILTERED]'
-            elsif value.is_a?(Hash)
-              filtered_parameters[key] = filter_parameters(value)
-            elsif block_given?
-              key = key.dup
-              value = value.dup if value
-              yield key, value
-              filtered_parameters[key] = value
-            else
-              filtered_parameters[key] = value
-            end
-          end
-
-          filtered_parameters
+      
+      @@exempt_from_layout = [ActionView::TemplateHandlers::RJS]
+      
+      def exempt_from_layout(*types)
+        types.each do |type|
+          @@exempt_from_layout << 
+            ActionView::Template.handler_class_for_extension(type)
         end
-        protected :filter_parameters
+        
+        @@exempt_from_layout
       end
 
-      delegate :exempt_from_layout, :to => 'ActionView::Template'
     end
 
     public
+      def call(env)
+        request = ActionDispatch::Request.new(env)
+        response = ActionDispatch::Response.new
+        process(request, response).to_a
+      end
+
       # Extracts the action_name from the request parameters and performs that action.
       def process(request, response, method = :perform_action, *arguments) #:nodoc:
         response.request = request
@@ -504,7 +475,6 @@ module ActionController #:nodoc:
         assign_shortcuts(request, response)
         initialize_template_class(response)
         initialize_current_url
-        assign_names
 
         log_processing
         send(method, *arguments)
@@ -787,7 +757,6 @@ module ActionController #:nodoc:
       # Resets the session by clearing out all the objects stored within and initializing a new session object.
       def reset_session #:doc:
         request.reset_session
-        @_session = request.session
       end
 
     private
@@ -804,20 +773,14 @@ module ActionController #:nodoc:
       end
 
       def initialize_template_class(response)
-        @template = response.template = ActionView::Base.new(self.class.view_paths, {}, self, formats)
-        response.template.helpers.send :include, self.class.master_helper_module
-        response.redirected_to = nil
+        @template = ActionView::Base.new(self.class.view_paths, {}, self, formats)
+        response.template = @template if response.respond_to?(:template=)
+        @template.helpers.send :include, self.class.master_helper_module
         @performed_render = @performed_redirect = false
       end
 
       def assign_shortcuts(request, response)
-        @_request, @_params = request, request.parameters
-
-        @_response         = response
-        @_response.session = request.session
-
-        @_session = @_response.session
-
+        @_request, @_response, @_params = request, response, request.parameters
         @_headers = @_response.headers
       end
 
@@ -840,13 +803,6 @@ module ActionController #:nodoc:
         logger.info(request_id)
       end
 
-      def log_processing_for_parameters
-        parameters = respond_to?(:filter_parameters) ? filter_parameters(params) : params.dup
-        parameters = parameters.except!(:controller, :action, :format, :_method)
-
-        logger.info "  Parameters: #{parameters.inspect}" unless parameters.empty?
-      end
-
       def default_render #:nodoc:
         render
       end
@@ -861,22 +817,18 @@ module ActionController #:nodoc:
         return (performed? ? ret : default_render) if called
         
         begin
-          default_render
-        rescue ActionView::MissingTemplate => e
-          raise e unless e.action_name == action_name
-          # If the path is the same as the action_name, the action is completely missing
+          view_paths.find_by_parts(action_name, {:formats => formats, :locales => [I18n.locale]}, controller_path)
+        rescue => e
           raise UnknownAction, "No action responded to #{action_name}. Actions: " +
             "#{action_methods.sort.to_sentence}", caller
         end
+        
+        default_render
       end
 
       # Returns true if a render or redirect has already been performed.
       def performed?
         @performed_render || @performed_redirect
-      end
-
-      def assign_names
-        @action_name = (params['action'] || 'index')
       end
 
       def reset_variables_added_to_assigns
@@ -892,10 +844,6 @@ module ActionController #:nodoc:
       # Returns the request URI used to get to the current location
       def complete_request_uri
         "#{request.protocol}#{request.host}#{request.request_uri}"
-      end
-
-      def close_session
-        # @_session.close if @_session && @_session.respond_to?(:close)
       end
 
       def default_template(action_name = self.action_name)
@@ -921,7 +869,6 @@ module ActionController #:nodoc:
       end
 
       def process_cleanup
-        close_session
       end
   end
 
@@ -929,7 +876,7 @@ module ActionController #:nodoc:
     [ Filters, Layout, Renderer, Redirector, Responder, Benchmarking, Rescue, Flash, MimeResponds, Helpers,
       Cookies, Caching, Verification, Streaming, SessionManagement,
       HttpAuthentication::Basic::ControllerMethods, HttpAuthentication::Digest::ControllerMethods, RecordIdentifier,
-      RequestForgeryProtection, Translation
+      RequestForgeryProtection, Translation, FilterParameterLogging
     ].each do |mod|
       include mod
     end

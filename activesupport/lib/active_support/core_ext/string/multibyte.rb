@@ -1,4 +1,5 @@
 # encoding: utf-8
+require 'active_support/multibyte'
 
 class String
   unless '1.9'.respond_to?(:force_encoding)

@@ -1,4 +1,5 @@
 require 'abstract_unit'
+require 'action_controller/vendor/html-scanner'
 
 # a controller class to facilitate the tests
 class ActionPackAssertionsController < ActionController::Base
@@ -11,6 +12,9 @@ class ActionPackAssertionsController < ActionController::Base
 
   # a standard template
   def hello_xml_world() render :template => "test/hello_xml_world"; end
+
+  # a standard partial
+  def partial() render :partial => 'test/partial'; end
 
   # a redirect to an internal location
   def redirect_internal() redirect_to "/nothing"; end
@@ -292,47 +296,73 @@ class ActionPackAssertionsControllerTest < ActionController::TestCase
   # make sure that the template objects exist
   def test_template_objects_alive
     process :assign_this
-    assert !@response.has_template_object?('hi')
-    assert @response.has_template_object?('howdy')
+    assert !@controller.template.instance_variable_get(:"@hi")
+    assert @controller.template.instance_variable_get(:"@howdy")
   end
 
   # make sure we don't have template objects when we shouldn't
   def test_template_object_missing
     process :nothing
-    assert_nil @response.template_objects['howdy']
+    assert_nil @controller.template.assigns['howdy']
   end
 
   # check the empty flashing
   def test_flash_me_naked
     process :flash_me_naked
-    assert !@response.has_flash?
-    assert !@response.has_flash_with_contents?
+    assert_deprecated do
+      assert !@response.has_flash?
+      assert !@response.has_flash_with_contents?
+    end
   end
 
   # check if we have flash objects
   def test_flash_haves
     process :flash_me
-    assert @response.has_flash?
-    assert @response.has_flash_with_contents?
-    assert @response.has_flash_object?('hello')
+    assert_deprecated do
+      assert @response.has_flash?
+      assert @response.has_flash_with_contents?
+      assert @response.has_flash_object?('hello')
+    end
   end
 
   # ensure we don't have flash objects
   def test_flash_have_nots
     process :nothing
-    assert !@response.has_flash?
-    assert !@response.has_flash_with_contents?
-    assert_nil @response.flash['hello']
+    assert_deprecated do
+      assert !@response.has_flash?
+      assert !@response.has_flash_with_contents?
+      assert_nil @response.flash['hello']
+    end
+  end
+
+  def test_assert_template_with_partial
+    get :partial
+    assert_template :partial => '_partial'
+  end
+
+  def test_assert_template_with_nil
+    get :nothing
+    assert_template nil
+  end
+
+  def test_assert_template_with_string
+    get :hello_world
+    assert_template 'hello_world'
+  end
+
+  def test_assert_template_with_symbol
+    get :hello_world
+    assert_template :hello_world
   end
 
   # check if we were rendered by a file-based template?
   def test_rendered_action
     process :nothing
-    assert_nil @response.rendered[:template]
+    assert_nil @controller.template.rendered[:template]
 
     process :hello_world
-    assert @response.rendered[:template]
-    assert 'hello_world', @response.rendered[:template].to_s
+    assert @controller.template.rendered[:template]
+    assert 'hello_world', @controller.template.rendered[:template].to_s
   end
 
   # check the redirection location
@@ -378,10 +408,12 @@ class ActionPackAssertionsControllerTest < ActionController::TestCase
   def test_redirect_url_match
     process :redirect_external
     assert @response.redirect?
-    assert @response.redirect_url_match?("rubyonrails")
-    assert @response.redirect_url_match?(/rubyonrails/)
-    assert !@response.redirect_url_match?("phpoffrails")
-    assert !@response.redirect_url_match?(/perloffrails/)
+    assert_deprecated do
+      assert @response.redirect_url_match?("rubyonrails")
+      assert @response.redirect_url_match?(/rubyonrails/)
+      assert !@response.redirect_url_match?("phpoffrails")
+      assert !@response.redirect_url_match?(/perloffrails/)
+    end
   end
 
   # check for a redirection
@@ -412,7 +444,6 @@ class ActionPackAssertionsControllerTest < ActionController::TestCase
     process :render_based_on_parameters, "name" => "David"
     assert_equal "Mr. David", @response.body
   end
-
 
   def test_assert_redirection_fails_with_incorrect_controller
     process :redirect_to_controller
@@ -481,7 +512,7 @@ class ActionPackAssertionsControllerTest < ActionController::TestCase
     get :index
     assert_response :success
     flunk 'Expected non-success response'
-  rescue ActiveSupport::TestCase::Assertion => e
+  rescue RuntimeError => e
     assert e.message.include?('FAIL')
   end
 
@@ -506,9 +537,11 @@ class ActionPackHeaderTest < ActionController::TestCase
   end
 
   def test_rendering_xml_respects_content_type
-    @response.headers['type'] = 'application/pdf'
-    process :hello_xml_world
-    assert_equal('application/pdf; charset=utf-8', @response.headers['Content-Type'])
+    pending do
+      @response.headers['type'] = 'application/pdf'
+      process :hello_xml_world
+      assert_equal('application/pdf; charset=utf-8', @response.headers['Content-Type'])
+    end
   end
 
   def test_render_text_with_custom_content_type

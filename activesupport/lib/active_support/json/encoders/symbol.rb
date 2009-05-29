@@ -1,5 +1,6 @@
 class Symbol
-  def to_json(options = {}) #:nodoc:
-    ActiveSupport::JSON.encode(to_s, options)
-  end
+  private
+    def rails_to_json(*args)
+      ActiveSupport::JSON.encode(to_s, *args)
+    end
 end

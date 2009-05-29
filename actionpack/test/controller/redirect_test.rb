@@ -233,11 +233,6 @@ class RedirectTest < ActionController::TestCase
     assert_redirected_to Workshop.new(5, true)
   end
 
-  def test_redirect_with_partial_params
-    get :module_redirect
-    assert_redirected_to :action => 'hello_world'
-  end
-
   def test_redirect_to_nil
     assert_raise(ActionController::ActionControllerError) do
       get :redirect_to_nil

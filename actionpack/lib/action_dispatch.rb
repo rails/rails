@@ -21,34 +21,35 @@
 # WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 #++
 
+activesupport_path = "#{File.dirname(__FILE__)}/../../activesupport/lib"
+$:.unshift activesupport_path if File.directory?(activesupport_path)
+require 'active_support'
+
 begin
-  require 'active_support'
-rescue LoadError
-  activesupport_path = "#{File.dirname(__FILE__)}/../../activesupport/lib"
-  if File.directory?(activesupport_path)
-    $:.unshift activesupport_path
-    require 'active_support'
-  end
+  gem 'rack', '~> 1.1.pre'
+rescue Gem::LoadError, ArgumentError
+  $:.unshift "#{File.dirname(__FILE__)}/action_dispatch/vendor/rack-1.1.pre"
 end
 
-$:.unshift "#{File.dirname(__FILE__)}/action_dispatch/vendor/rack-1.0"
-begin
-  gem 'rack', '~> 1.0.0'
-  require 'rack'
-rescue Gem::LoadError
-  require 'action_dispatch/vendor/rack-1.0/rack'
-end
+require 'rack'
+
+$:.unshift "#{File.dirname(__FILE__)}/action_dispatch/vendor/rack-test"
 
 module ActionDispatch
   autoload :Request, 'action_dispatch/http/request'
   autoload :Response, 'action_dispatch/http/response'
   autoload :StatusCodes, 'action_dispatch/http/status_codes'
 
-  autoload :Failsafe, 'action_dispatch/middleware/failsafe'
+  autoload :Callbacks, 'action_dispatch/middleware/callbacks'
   autoload :ParamsParser, 'action_dispatch/middleware/params_parser'
-  autoload :Reloader, 'action_dispatch/middleware/reloader'
-  autoload :RewindableInput, 'action_dispatch/middleware/rewindable_input'
+  autoload :Rescue, 'action_dispatch/middleware/rescue'
+  autoload :ShowExceptions, 'action_dispatch/middleware/show_exceptions'
   autoload :MiddlewareStack, 'action_dispatch/middleware/stack'
+
+  autoload :HTML, 'action_controller/vendor/html-scanner'
+  autoload :Assertions, 'action_dispatch/testing/assertions'
+  autoload :TestRequest, 'action_dispatch/testing/test_request'
+  autoload :TestResponse, 'action_dispatch/testing/test_response'
 
   module Http
     autoload :Headers, 'action_dispatch/http/headers'

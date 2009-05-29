@@ -1,4 +1,5 @@
 require 'abstract_unit'
+require 'logger'
 
 class Address
   def Address.count(conditions = nil, join = nil)

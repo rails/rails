@@ -13,7 +13,7 @@ require 'models/pet'
 require 'models/toy'
 
 class HasManyThroughAssociationsTest < ActiveRecord::TestCase
-  fixtures :posts, :readers, :people, :comments, :authors, :owners, :pets, :toys
+  fixtures :posts, :readers, :people, :comments, :authors, :owners, :pets, :toys, :jobs, :references
 
   def test_associate_existing
     assert_queries(2) { posts(:thinking);people(:david) }
@@ -23,49 +23,49 @@ class HasManyThroughAssociationsTest < ActiveRecord::TestCase
     assert_queries(1) do
       posts(:thinking).people << people(:david)
     end
-    
+
     assert_queries(1) do
       assert posts(:thinking).people.include?(people(:david))
     end
-    
+
     assert posts(:thinking).reload.people(true).include?(people(:david))
   end
 
   def test_associating_new
     assert_queries(1) { posts(:thinking) }
     new_person = nil # so block binding catches it
-    
+
     assert_queries(0) do
       new_person = Person.new :first_name => 'bob'
     end
-    
+
     # Associating new records always saves them
     # Thus, 1 query for the new person record, 1 query for the new join table record
     assert_queries(2) do
       posts(:thinking).people << new_person
     end
-    
+
     assert_queries(1) do
       assert posts(:thinking).people.include?(new_person)
     end
-    
+
     assert posts(:thinking).reload.people(true).include?(new_person)
   end
 
   def test_associate_new_by_building
     assert_queries(1) { posts(:thinking) }
-    
+
     assert_queries(0) do
       posts(:thinking).people.build(:first_name=>"Bob")
       posts(:thinking).people.new(:first_name=>"Ted")
     end
-    
+
     # Should only need to load the association once
     assert_queries(1) do
       assert posts(:thinking).people.collect(&:first_name).include?("Bob")
       assert posts(:thinking).people.collect(&:first_name).include?("Ted")
     end
-    
+
     # 2 queries for each new record (1 to save the record itself, 1 for the join model)
     #    * 2 new records = 4
     # + 1 query to save the actual post = 5
@@ -73,27 +73,27 @@ class HasManyThroughAssociationsTest < ActiveRecord::TestCase
       posts(:thinking).body += '-changed'
       posts(:thinking).save
     end
-    
+
     assert posts(:thinking).reload.people(true).collect(&:first_name).include?("Bob")
     assert posts(:thinking).reload.people(true).collect(&:first_name).include?("Ted")
   end
 
   def test_delete_association
     assert_queries(2){posts(:welcome);people(:michael); }
-    
+
     assert_queries(1) do
       posts(:welcome).people.delete(people(:michael))
     end
-    
+
     assert_queries(1) do
       assert posts(:welcome).people.empty?
     end
-    
+
     assert posts(:welcome).reload.people(true).empty?
   end
 
   def test_destroy_association
-    assert_difference "Person.count", -1 do
+    assert_difference ["Person.count", "Reader.count"], -1 do
       posts(:welcome).people.destroy(people(:michael))
     end
 
@@ -102,7 +102,7 @@ class HasManyThroughAssociationsTest < ActiveRecord::TestCase
   end
 
   def test_destroy_all
-    assert_difference "Person.count", -1 do
+    assert_difference ["Person.count", "Reader.count"], -1 do
       posts(:welcome).people.destroy_all
     end
 
@@ -110,38 +110,44 @@ class HasManyThroughAssociationsTest < ActiveRecord::TestCase
     assert posts(:welcome).people(true).empty?
   end
 
+  def test_should_raise_exception_for_destroying_mismatching_records
+    assert_no_difference ["Person.count", "Reader.count"] do
+      assert_raise(ActiveRecord::AssociationTypeMismatch) { posts(:welcome).people.destroy(posts(:thinking)) }
+    end
+  end
+
   def test_replace_association
     assert_queries(4){posts(:welcome);people(:david);people(:michael); posts(:welcome).people(true)}
-    
+
     # 1 query to delete the existing reader (michael)
     # 1 query to associate the new reader (david)
     assert_queries(2) do
       posts(:welcome).people = [people(:david)]
     end
-    
+
     assert_queries(0){
       assert posts(:welcome).people.include?(people(:david))
       assert !posts(:welcome).people.include?(people(:michael))
     }
-    
+
     assert posts(:welcome).reload.people(true).include?(people(:david))
     assert !posts(:welcome).reload.people(true).include?(people(:michael))
   end
 
   def test_associate_with_create
     assert_queries(1) { posts(:thinking) }
-    
+
     # 1 query for the new record, 1 for the join table record
     # No need to update the actual collection yet!
     assert_queries(2) do
       posts(:thinking).people.create(:first_name=>"Jeb")
     end
-    
+
     # *Now* we actually need the collection so it's loaded
     assert_queries(1) do
       assert posts(:thinking).people.collect(&:first_name).include?("Jeb")
     end
-    
+
     assert posts(:thinking).reload.people(true).collect(&:first_name).include?("Jeb")
   end
 
@@ -159,15 +165,15 @@ class HasManyThroughAssociationsTest < ActiveRecord::TestCase
 
   def test_clear_associations
     assert_queries(2) { posts(:welcome);posts(:welcome).people(true) }
-    
+
     assert_queries(1) do
       posts(:welcome).people.clear
     end
-    
+
     assert_queries(0) do
       assert posts(:welcome).people.empty?
     end
-    
+
     assert posts(:welcome).reload.people(true).empty?
   end
 

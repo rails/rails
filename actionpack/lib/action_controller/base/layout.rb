@@ -1,3 +1,7 @@
+require 'active_support/core_ext/enumerable'
+require 'active_support/core_ext/class/delegating_attributes'
+require 'active_support/core_ext/class/inheritable_attributes'
+
 module ActionController #:nodoc:
   module Layout #:nodoc:
     def self.included(base)
@@ -182,7 +186,7 @@ module ActionController #:nodoc:
       def memoized_find_layout(layout, formats) #:nodoc:
         return layout if layout.nil? || layout.respond_to?(:render)
         prefix = layout.to_s =~ /layouts\// ? nil : "layouts"
-        view_paths.find_by_parts(layout.to_s, formats, prefix)
+        view_paths.find_by_parts(layout.to_s, {:formats => formats}, prefix)
       end
 
       def find_layout(*args)

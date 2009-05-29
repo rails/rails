@@ -13,11 +13,17 @@ class ActiveRecordStoreTest < ActionController::IntegrationTest
     end
 
     def set_session_value
+      raise "missing session!" unless session
       session[:foo] = params[:foo] || "bar"
       head :ok
     end
 
     def get_session_value
+      render :text => "foo: #{session[:foo].inspect}"
+    end
+
+    def set_cookie_and_get_session_value
+      cookies["kittens"] = { :value => "fluffy" }
       render :text => "foo: #{session[:foo].inspect}"
     end
 
@@ -27,9 +33,9 @@ class ActiveRecordStoreTest < ActionController::IntegrationTest
     end
 
     def call_reset_session
-      session[:bar]
+      session[:foo]
       reset_session
-      session[:bar] = "baz"
+      session[:foo] = "baz"
       head :ok
     end
 
@@ -77,6 +83,23 @@ class ActiveRecordStoreTest < ActionController::IntegrationTest
     end
   end
 
+  def test_getting_session_value_does_not_set_cookie
+    with_test_route_set do
+      get '/get_session_value'
+      assert_response :success
+      assert_equal "", headers["Set-Cookie"]
+    end
+  end
+
+  def test_getting_session_value_and_setting_a_cookie_doesnt_delete_all_cookies
+    with_test_route_set do
+      get '/set_cookie_and_get_session_value'
+      assert_response :success
+      assert_equal 'foo: nil', response.body
+      assert_equal({"kittens" => "fluffy"}, response.cookies)
+    end
+  end
+
   def test_setting_session_value_after_session_reset
     with_test_route_set do
       get '/set_session_value'
@@ -90,7 +113,7 @@ class ActiveRecordStoreTest < ActionController::IntegrationTest
 
       get '/get_session_value'
       assert_response :success
-      assert_equal 'foo: nil', response.body
+      assert_equal 'foo: "baz"', response.body
 
       get '/get_session_id'
       assert_response :success

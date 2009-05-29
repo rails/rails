@@ -1,4 +1,6 @@
 require 'abstract_unit'
+require 'bigdecimal'
+require 'active_support/core_ext/object/duplicable'
 
 class DuplicableTest < Test::Unit::TestCase
   NO  = [nil, false, true, :symbol, 1, 2.3, BigDecimal.new('4.56'), Class.new]

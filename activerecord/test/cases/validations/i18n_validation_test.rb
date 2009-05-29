@@ -38,12 +38,21 @@ class I18nValidationTest < ActiveRecord::TestCase
     end
   end
 
-  def test_default_error_messages_is_deprecated
-    assert_deprecated('Errors.default_error_messages') do
-      ActiveRecord::Errors.default_error_messages
+  def test_percent_s_interpolation_syntax_in_error_messages_was_deprecated
+    assert_not_deprecated do
+      default = "%s interpolation syntax was deprecated"
+      assert_equal default, I18n.t(:does_not_exist, :default => default, :value => 'this')
     end
   end
 
+  def test_percent_d_interpolation_syntax_in_error_messages_was_deprecated
+    assert_not_deprecated do
+      default = "%d interpolation syntaxes are deprecated"
+      assert_equal default, I18n.t(:does_not_exist, :default => default, :count => 2)
+    end
+  end
+
+  # ActiveRecord::Errors
   def test_errors_generate_message_translates_custom_model_attribute_key
     I18n.expects(:translate).with(
       :topic,

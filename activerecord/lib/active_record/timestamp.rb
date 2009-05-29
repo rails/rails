@@ -8,12 +8,14 @@ module ActiveRecord
   # Timestamps are in the local timezone by default but you can use UTC by setting
   #   <tt>ActiveRecord::Base.default_timezone = :utc</tt>
   module Timestamp
-    def self.included(base) #:nodoc:
-      base.alias_method_chain :create, :timestamps
-      base.alias_method_chain :update, :timestamps
+    extend ActiveSupport::Concern
 
-      base.class_inheritable_accessor :record_timestamps, :instance_writer => false
-      base.record_timestamps = true
+    included do
+      alias_method_chain :create, :timestamps
+      alias_method_chain :update, :timestamps
+
+      class_inheritable_accessor :record_timestamps, :instance_writer => false
+      self.record_timestamps = true
     end
     
     # Saves the record with the updated_at/on attributes set to the current time.

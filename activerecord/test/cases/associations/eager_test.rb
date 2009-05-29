@@ -223,6 +223,18 @@ class EagerAssociationTest < ActiveRecord::TestCase
     end
   end
 
+  def test_eager_association_loading_with_belongs_to_and_conditions_hash
+    comments = []
+    assert_nothing_raised do
+      comments = Comment.find(:all, :include => :post, :conditions => {:posts => {:id => 4}}, :limit => 3, :order => 'comments.id')
+    end
+    assert_equal 3, comments.length
+    assert_equal [5,6,7], comments.collect { |c| c.id }
+    assert_no_queries do
+      comments.first.post
+    end
+  end
+
   def test_eager_association_loading_with_belongs_to_and_conditions_string_with_quoted_table_name
     quoted_posts_id= Comment.connection.quote_table_name('posts') + '.' + Comment.connection.quote_column_name('id')
     assert_nothing_raised do
@@ -575,6 +587,10 @@ class EagerAssociationTest < ActiveRecord::TestCase
   def test_limited_eager_with_multiple_order_columns
     assert_equal posts(:thinking, :sti_comments), Post.find(:all, :include => [:author, :comments], :conditions => "authors.name = 'David'", :order => 'UPPER(posts.title), posts.id', :limit => 2, :offset => 1)
     assert_equal posts(:sti_post_and_comments, :sti_comments), Post.find(:all, :include => [:author, :comments], :conditions => "authors.name = 'David'", :order => 'UPPER(posts.title) DESC, posts.id', :limit => 2, :offset => 1)
+  end
+
+  def test_limited_eager_with_numeric_in_association
+    assert_equal people(:david, :susan), Person.find(:all, :include => [:readers, :primary_contact, :number1_fan], :conditions => "number1_fans_people.first_name like 'M%'", :order => 'people.id', :limit => 2, :offset => 0)
   end
 
   def test_preload_with_interpolation
