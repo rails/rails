@@ -39,7 +39,7 @@ module ActionController
   module RenderOption #:nodoc:
     def self.extended(base)
       base.extend ActiveSupport::Concern
-      base.depends_on ::ActionController::RenderOptions
+      base.send :include, ::ActionController::RenderOptions
 
       def base.register_renderer(name)
         included { _add_render_option(name) }
@@ -94,10 +94,10 @@ module ActionController
     module All
       extend ActiveSupport::Concern
 
-      depends_on ActionController::Renderers::Json
-      depends_on ActionController::Renderers::Js
-      depends_on ActionController::Renderers::Xml
-      depends_on ActionController::Renderers::RJS
+      include ActionController::Renderers::Json
+      include ActionController::Renderers::Js
+      include ActionController::Renderers::Xml
+      include ActionController::Renderers::RJS
     end
   end
 end

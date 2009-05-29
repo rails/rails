@@ -2,7 +2,7 @@ module AbstractController
   module Callbacks
     extend ActiveSupport::Concern
 
-    depends_on ActiveSupport::NewCallbacks
+    include ActiveSupport::NewCallbacks
 
     included do
       define_callbacks :process_action, "response_body"

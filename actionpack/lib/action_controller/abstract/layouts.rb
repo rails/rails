@@ -2,7 +2,7 @@ module AbstractController
   module Layouts
     extend ActiveSupport::Concern
 
-    depends_on Renderer
+    include Renderer
 
     included do
       extlib_inheritable_accessor :_layout_conditions

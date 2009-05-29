@@ -2,7 +2,7 @@ module ActionController
   module Renderer
     extend ActiveSupport::Concern
 
-    depends_on AbstractController::Renderer
+    include AbstractController::Renderer
 
     def process_action(*)
       self.formats = request.formats.map {|x| x.to_sym}

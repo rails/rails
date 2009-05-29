@@ -2,7 +2,7 @@ module ActionController
   module ConditionalGet
     extend ActiveSupport::Concern
 
-    depends_on RackConvenience
+    include RackConvenience
 
     # Sets the etag, last_modified, or both on the response and renders a
     # "304 Not Modified" response if the request is already fresh.

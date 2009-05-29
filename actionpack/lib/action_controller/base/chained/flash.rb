@@ -29,7 +29,7 @@ module ActionController #:nodoc:
     extend ActiveSupport::Concern
 
     # TODO : Remove the defined? check when new base is the main base
-    depends_on Session if defined?(ActionController::Http)
+    include Session if defined?(ActionController::Http)
 
     included do
       # TODO : Remove the defined? check when new base is the main base

@@ -7,7 +7,7 @@ module ActionController #:nodoc:
 
     # TODO : Remove the defined? check when new base is the main base
     if defined?(ActionController::Http)
-      depends_on AbstractController::Helpers, Session
+      include AbstractController::Helpers, Session
     end
 
     included do

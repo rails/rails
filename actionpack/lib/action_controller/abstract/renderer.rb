@@ -4,7 +4,7 @@ module AbstractController
   module Renderer
     extend ActiveSupport::Concern
 
-    depends_on AbstractController::Logger
+    include AbstractController::Logger
 
     included do
       attr_internal :formats

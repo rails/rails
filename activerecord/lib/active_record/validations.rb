@@ -102,8 +102,8 @@ module ActiveRecord
   module Validations
     extend ActiveSupport::Concern
 
-    depends_on ActiveSupport::Callbacks
-    depends_on ActiveModel::Validations
+    include ActiveSupport::Callbacks
+    include ActiveModel::Validations
 
     included do
       alias_method_chain :save, :validation

@@ -6,7 +6,7 @@ module ActionController #:nodoc:
 
     # TODO : Remove the defined? check when new base is the main base
     if defined?(ActionController::Http)
-      depends_on ActionController::Renderer
+      include ActionController::Renderer
     end
 
     DEFAULT_SEND_FILE_OPTIONS = {

@@ -2,7 +2,7 @@ module ActionController
   module Session
     extend ActiveSupport::Concern
 
-    depends_on RackConvenience
+    include RackConvenience
 
     def session
       @_request.session

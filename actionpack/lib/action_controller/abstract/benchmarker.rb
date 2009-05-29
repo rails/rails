@@ -2,7 +2,7 @@ module AbstractController
   module Benchmarker
     extend ActiveSupport::Concern
 
-    depends_on Logger
+    include Logger
 
     module ClassMethods
       def benchmark(title, log_level = ::Logger::DEBUG, use_silence = true)

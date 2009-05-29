@@ -34,7 +34,7 @@ class ConcernTest < Test::Unit::TestCase
   module Bar
     extend ActiveSupport::Concern
 
-    depends_on Baz
+    include Baz
 
     def bar
       "bar"
@@ -48,7 +48,7 @@ class ConcernTest < Test::Unit::TestCase
   module Foo
     extend ActiveSupport::Concern
 
-    depends_on Bar, Baz
+    include Bar, Baz
   end
 
   def setup
@@ -90,7 +90,7 @@ class ConcernTest < Test::Unit::TestCase
     assert @klass.included_modules.include?(ConcernTest::Bar)
   end
 
-  def test_depends_on_with_multiple_modules
+  def test_dependencies_with_multiple_modules
     @klass.send(:include, Foo)
     assert_equal [ConcernTest::Foo, ConcernTest::Bar, ConcernTest::Baz::InstanceMethods, ConcernTest::Baz], @klass.included_modules[0..3]
   end

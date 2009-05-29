@@ -6,7 +6,7 @@ module ActionController
   module Helpers
     extend ActiveSupport::Concern
 
-    depends_on AbstractController::Helpers
+    include AbstractController::Helpers
 
     included do
       # Set the default directory for helpers

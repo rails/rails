@@ -2,7 +2,7 @@ module AbstractController
   module Helpers
     extend ActiveSupport::Concern
 
-    depends_on Renderer
+    include Renderer
 
     included do
       extlib_inheritable_accessor :master_helper_module

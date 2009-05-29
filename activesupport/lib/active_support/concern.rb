@@ -19,5 +19,7 @@ module ActiveSupport
         super
       end
     end
+
+    alias_method :include, :depends_on
   end
 end

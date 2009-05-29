@@ -2,7 +2,7 @@ module ActionController
   module UrlFor
     extend ActiveSupport::Concern
 
-    depends_on RackConvenience
+    include RackConvenience
 
     def process_action(*)
       initialize_current_url

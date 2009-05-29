@@ -4,13 +4,11 @@ module ActionController
 
     # TODO : Remove the defined? check when new base is the main base
     if defined?(ActionController::Http)
-      depends_on AbstractController::Logger
+      include AbstractController::Logger
     end
 
     included do
-      if defined?(ActionController::Http)
-        include InstanceMethodsForNewBase
-      end
+      include InstanceMethodsForNewBase
     end
 
     module ClassMethods

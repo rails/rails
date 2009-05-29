@@ -2,8 +2,8 @@ module ActionController
   module Layouts
     extend ActiveSupport::Concern
 
-    depends_on ActionController::Renderer
-    depends_on AbstractController::Layouts
+    include ActionController::Renderer
+    include AbstractController::Layouts
 
     module ClassMethods
       def _implied_layout_name
