@@ -238,7 +238,7 @@ WARNING: Building your own conditions as pure strings can leave you vulnerable t
 
 h4. Array Conditions
 
-Now what if that number could vary, say as a argument from somewhere, or perhaps from the user's level status somewhere? The find then becomes something like:
+Now what if that number could vary, say as an argument from somewhere, or perhaps from the user's level status somewhere? The find then becomes something like:
 
 <ruby>
 Client.first(:conditions => ["orders_count = ?", params[:orders]])

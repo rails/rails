@@ -69,7 +69,7 @@ h4. Schema Conventions
 ActiveRecord uses naming conventions for the columns in database tables, depending on the purpose of these columns.
 
 * *Foreign keys* - These fields should be named following the pattern table_id i.e. (item_id, order_id). These are the fields that ActiveRecord will look for when you create associations between your models.
-* *Primary keys* - By default, ActiveRecord will use a integer column named "id" as the table's primary key. When using "Rails Migrations":http://guides.rails.info/migrations.html to create your tables, this column will be automatically created.
+* *Primary keys* - By default, ActiveRecord will use an integer column named "id" as the table's primary key. When using "Rails Migrations":http://guides.rails.info/migrations.html to create your tables, this column will be automatically created.
 
 There are also some optional column names that will create additional features to ActiveRecord instances:
 

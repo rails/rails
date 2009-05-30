@@ -236,7 +236,7 @@ will recognize incoming URLs containing +photo+ but route the requests to the Im
 |GET        |/photos/new     |Images      |new      |return an HTML form for creating a new image|
 |POST       |/photos         |Images      |create   |create a new image|
 |GET        |/photos/1       |Images      |show     |display a specific image|
-|GET        |/photos/1/edit  |Images      |edit     |return an HTML form for editing a image|
+|GET        |/photos/1/edit  |Images      |edit     |return an HTML form for editing an image|
 |PUT        |/photos/1       |Images      |update   |update a specific image|
 |DELETE     |/photos/1       |Images      |destroy  |delete a specific image|
 

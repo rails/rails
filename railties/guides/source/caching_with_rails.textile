@@ -182,7 +182,7 @@ class ProductSweeper < ActionController::Caching::Sweeper
 end
 </ruby>
 
-You may notice that the actual product gets passed to the sweeper, so if we were caching the edit action for each product, we could add a expire method which specifies the page we want to expire:
+You may notice that the actual product gets passed to the sweeper, so if we were caching the edit action for each product, we could add an expire method which specifies the page we want to expire:
 
 <ruby>
   expire_action(:controller => 'products', :action => 'edit', :id => product)
