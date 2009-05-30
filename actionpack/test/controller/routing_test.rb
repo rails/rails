@@ -649,9 +649,8 @@ class RoutingTest < Test::Unit::TestCase
 
     ActionController::Routing.use_controllers! nil
 
-    silence_warnings do
-      Object.send(:const_set, :RAILS_ROOT, File.dirname(__FILE__) + '/controller_fixtures')
-    end
+    Object.send(:remove_const, :RAILS_ROOT) if defined?(::RAILS_ROOT)
+    Object.const_set(:RAILS_ROOT, File.dirname(__FILE__) + '/controller_fixtures')
 
     ActionController::Routing.controller_paths = [
       RAILS_ROOT, RAILS_ROOT + '/app/controllers', RAILS_ROOT + '/vendor/plugins/bad_plugin/lib'
@@ -2487,7 +2486,8 @@ end
 class RouteLoadingTest < Test::Unit::TestCase
   def setup
     routes.instance_variable_set '@routes_last_modified', nil
-    silence_warnings { Object.const_set :RAILS_ROOT, '.' }
+    Object.remove_const(:RAILS_ROOT) if defined?(::RAILS_ROOT)
+    Object.const_set :RAILS_ROOT, '.'
     routes.add_configuration_file(File.join(RAILS_ROOT, 'config', 'routes.rb'))
 
     @stat = stub_everything
