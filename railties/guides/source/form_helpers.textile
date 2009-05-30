@@ -274,7 +274,13 @@ The object yielded by +fields_for+ is a form builder like the one yielded by +fo
 
 h4. Relying on Record Identification
 
-The Article model is directly available to users of the application, so -- following the best practices for developing with Rails -- you should declare it *a resource*.
+The Article model is directly available to users of the application, so -- following the best practices for developing with Rails -- you should declare it *a resource*:
+
+<ruby>
+map.resources :articles
+</ruby>
+
+TIP: Declaring a resource has a number of side-affects. See "Rails Routing From the Outside In":routing.html#restful-routing-the-rails-default for more information on setting up and using resources.
 
 When dealing with RESTful resources, calls to +form_for+ can get significantly easier if you rely on *record identification*. In short, you can just pass the model instance and have Rails figure out model name and the rest:
 
@@ -291,8 +297,6 @@ form_for(:article, @article, :url => article_path(@article), :method => "put")
 # short-style:
 form_for(@article)
 </ruby>
-
-TIP: Declaring a resource will automatically generate the +*_path+ functions above.  The short syntax expects such a function to exist based on the model of the object it is acting on. To declare a model as a resource, add the model to the resources list in the routes file +config/routes.rb+ like so: <pre>map.resources :articles</pre>  Declaring a resource has a number of side-affects. See "Rails Routing From the Outside In":routing.html#restful-routing-the-rails-default for more information on setting up and using resources.
 
 Notice how the short-style +form_for+ invocation is conveniently the same, regardless of the record being new or existing. Record identification is smart enough to figure out if the record is new by asking +record.new_record?+. It also selects the correct path to submit to and the name based on the class of the object.
 
