@@ -95,7 +95,7 @@ end
 
 Since values are copied when a subclass is defined, if the base class changes the attribute after that, the subclass does not see the new value. That's the point. 
 
-There's a related macro called +superclass_delegating_accessor+, however, that does not copy the value when the base class is subclassed. Instead, it delegates reading to the superclass as long as the attribute is not set via its own writer. For example, +ActionMailer::Base+ defined +delivery_method+ this way:
+There's a related macro called +superclass_delegating_accessor+, however, that does not copy the value when the base class is subclassed. Instead, it delegates reading to the superclass as long as the attribute is not set via its own writer. For example, +ActionMailer::Base+ defines +delivery_method+ this way:
 
 <ruby>
 module ActionMailer
