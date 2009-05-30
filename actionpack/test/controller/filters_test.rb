@@ -622,7 +622,7 @@ class FilterTest < ActionController::TestCase
     %w(foo bar baz).each do |action|
       request = ActionController::TestRequest.new
       request.query_parameters[:choose] = action
-      response = DynamicDispatchController.action.call(request.env).last
+      response = DynamicDispatchController.action(action).call(request.env).last
       assert_equal action, response.body
     end
   end
