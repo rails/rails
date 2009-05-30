@@ -211,9 +211,7 @@ h4. Binding a Form to an Object
 
 While this is an increase in comfort it is far from perfect. If Person has many attributes to edit then we would be repeating the name of the edited object many times. What we want to do is somehow bind a form to a model object, which is exactly what +form_for+ does.
 
-Assume we have a controller for dealing with articles:
-
-articles_controller.rb:
+Assume we have a controller for dealing with articles +app/controllers/articles_controller.rb+:
 
 <ruby>
 def new
@@ -221,9 +219,7 @@ def new
 end
 </ruby>
 
-The corresponding view using +form_for+ looks like this
-
-articles/new.html.erb:
+The corresponding view +app/views/articles/new.html.erb+ using +form_for+ looks like this:
 
 <erb>
 <% form_for :article, @article, :url => { :action => "create" }, :html => {:class => "nifty_form"} do |f| %>
@@ -584,7 +580,7 @@ h4. Dealing with Ajax
 
 Unlike other forms making an asynchronous file upload form is not as simple as replacing +form_for+ with +remote_form_for+. With an Ajax form the serialization is done by JavaScript running inside the browser and since JavaScript cannot read files from your hard drive the file cannot be uploaded. The most common workaround is to use an invisible iframe that serves as the target for the form submission.
 
-h3. Customising Form Builders
+h3. Customizing Form Builders
 
 As mentioned previously the object yielded by +form_for+ and +fields_for+ is an instance of FormBuilder (or a subclass thereof). Form builders encapsulate the notion of displaying form elements for a single object. While you can of course write helpers for your forms in the usual way you can also subclass FormBuilder and add the helpers there. For example
 
