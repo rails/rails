@@ -326,6 +326,8 @@ module ActiveSupport
               def #{method_name}(&blk)
                 if #{method_name}_object.respond_to?(:#{kind})
                   #{method_name}_object.#{kind}(self, &blk)
+                elsif #{method_name}_object.respond_to?(:filter)
+                  #{method_name}_object.send("filter", self, &blk)
                 else
                   #{method_name}_object.send("#{kind}_#{name}", self, &blk)
                 end
