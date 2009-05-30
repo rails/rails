@@ -41,7 +41,7 @@ def new
 end
 </ruby>
 
-The "Layouts & rendering guide":layouts_and_rendering.html explains this in more detail.
+The "Layouts & Rendering Guide":layouts_and_rendering.html explains this in more detail.
 
 +ApplicationController+ inherits from +ActionController::Base+, which defines a number of helpful methods. This guide will cover some of these, but if you're curious to see what's in there, you can see all of them in the API documentation or in the source itself.
 
