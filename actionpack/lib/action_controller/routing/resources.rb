@@ -1,3 +1,6 @@
+require 'active_support/core_ext/hash/slice'
+require 'active_support/core_ext/object/try'
+
 module ActionController
   # == Overview
   #
