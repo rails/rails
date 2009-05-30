@@ -15,7 +15,6 @@ module ActionDispatch
           @by = by
           @env = env
           @loaded = false
-          @updated = false
         end
 
         def session_id
@@ -33,7 +32,6 @@ module ActionDispatch
         def []=(key, value)
           load! unless @loaded
           super(key.to_s, value)
-          @updated = true
         end
 
         def to_hash
@@ -79,10 +77,6 @@ module ActionDispatch
         private
           def loaded?
             @loaded
-          end
-
-          def updated?
-            @updated
           end
 
           def load!
@@ -153,10 +147,7 @@ module ActionDispatch
         options = env[ENV_SESSION_OPTIONS_KEY]
 
         if !session_data.is_a?(AbstractStore::SessionHash) || session_data.send(:loaded?) || options[:expire_after]
-          if session_data.is_a?(AbstractStore::SessionHash)
-            session_data.send(:load!) if !session_data.send(:loaded?)
-            return response if !session_data.send(:updated?)
-          end
+          session_data.send(:load!) if session_data.is_a?(AbstractStore::SessionHash) && !session_data.send(:loaded?)
 
           sid = options[:id] || generate_sid
 

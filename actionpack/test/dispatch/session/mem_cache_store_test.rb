@@ -61,14 +61,6 @@ class MemCacheStoreTest < ActionController::IntegrationTest
       end
     end
 
-    def test_getting_session_value_does_not_set_cookie
-      with_test_route_set do
-        get '/get_session_value'
-        assert_response :success
-        assert_equal "", headers["Set-Cookie"]
-      end
-    end
-
     def test_setting_session_value_after_session_reset
       with_test_route_set do
         get '/set_session_value'
