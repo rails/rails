@@ -190,4 +190,9 @@ class SchemaDumperTest < ActiveRecord::TestCase
     output = stream.string
     assert_match %r{:precision => 3,[[:space:]]+:scale => 2,[[:space:]]+:default => 2.78}, output
   end
+
+  def test_schema_dump_keeps_large_precision_integer_columns_as_decimal
+    output = standard_dump
+    assert_match %r{t.decimal\s+"atoms_in_universe",\s+:precision => 55,\s+:scale => 0}, output
+  end
 end

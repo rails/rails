@@ -99,8 +99,15 @@ HEADER
             next if column.name == pk
             spec = {}
             spec[:name]      = column.name.inspect
-            spec[:type]      = column.type.to_s
-            spec[:limit]     = column.limit.inspect if column.limit != @types[column.type][:limit] && column.type != :decimal
+            
+            # AR has an optimisation which handles zero-scale decimals as integers.  This
+            # code ensures that the dumper still dumps the column as a decimal.
+            spec[:type]      = if column.type == :integer && [/^numeric/, /^decimal/].any? { |e| e.match(column.sql_type) }
+                                 'decimal'
+                               else
+                                 column.type.to_s
+                               end
+            spec[:limit]     = column.limit.inspect if column.limit != @types[column.type][:limit] && spec[:type] != 'decimal'
             spec[:precision] = column.precision.inspect if !column.precision.nil?
             spec[:scale]     = column.scale.inspect if !column.scale.nil?
             spec[:null]      = 'false' if !column.null
