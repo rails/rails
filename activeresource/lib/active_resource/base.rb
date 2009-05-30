@@ -386,7 +386,7 @@ module ActiveResource
         end_code
         silence_warnings { instance_eval code, __FILE__, __LINE__ }
       rescue
-        logger.error "Couldn't set prefix: #{$!}\n  #{code}"
+        logger.error "Couldn't set prefix: #{$!}\n  #{code}" if logger
         raise
       end
 
