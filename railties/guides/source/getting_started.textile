@@ -944,7 +944,7 @@ map.resources :posts, :has_many => :comments
 
 This creates +comments+ as a _nested resource_ within +posts+. This is another part of capturing the hierarchical relationship that exists between posts and comments.
 
-TIP: For more information on routing, see the "Rails Routing from the Outside In":routing_outside_in.html guide.
+TIP: For more information on routing, see the "Rails Routing from the Outside In":routing.html guide.
 
 h4. Generating a Controller
 

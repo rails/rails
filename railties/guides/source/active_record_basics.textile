@@ -69,7 +69,7 @@ h4. Schema Conventions
 ActiveRecord uses naming conventions for the columns in database tables, depending on the purpose of these columns.
 
 * *Foreign keys* - These fields should be named following the pattern table_id i.e. (item_id, order_id). These are the fields that ActiveRecord will look for when you create associations between your models.
-* *Primary keys* - By default, ActiveRecord will use an integer column named "id" as the table's primary key. When using "Rails Migrations":http://guides.rails.info/migrations.html to create your tables, this column will be automatically created.
+* *Primary keys* - By default, ActiveRecord will use an integer column named "id" as the table's primary key. When using "Rails Migrations":migrations.html to create your tables, this column will be automatically created.
 
 There are also some optional column names that will create additional features to ActiveRecord instances:
 
@@ -127,9 +127,9 @@ end
 
 h3. Validations
 
-ActiveRecord gives the ability to validate the state of your models before they get recorded into the database. There are several methods that you can use to hook into the life-cycle of your models and validate that an attribute value is not empty or follow a specific format and so on. You can learn more about validations in the "Active Record Validations and Callbacks guide":http://guides.rails.info/activerecord_validations_callbacks.html#_overview_of_activerecord_validation.
+ActiveRecord gives the ability to validate the state of your models before they get recorded into the database. There are several methods that you can use to hook into the life-cycle of your models and validate that an attribute value is not empty or follow a specific format and so on. You can learn more about validations in the "Active Record Validations and Callbacks guide":activerecord_validations_callbacks.html#validations-overview.
 
 h3. Callbacks
 
-ActiveRecord callbacks allow you to attach code to certain events in the life-cycle of your models. This way you can add behavior to your models by transparently executing code when those events occur, like when you create a new record, update it, destroy it and so on. You can learn more about callbacks in the "Active Record Validations and Callbacks guide":http://guides.rails.info/activerecord_validations_callbacks.html#_callbacks.
+ActiveRecord callbacks allow you to attach code to certain events in the life-cycle of your models. This way you can add behavior to your models by transparently executing code when those events occur, like when you create a new record, update it, destroy it and so on. You can learn more about callbacks in the "Active Record Validations and Callbacks guide":activerecord_validations_callbacks.html#callbacks-overview.
 
