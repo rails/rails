@@ -63,6 +63,7 @@ Class variables are shared down the inheritance tree. Class instance variables a
 <ruby>
 module ActionController
   class Base
+    # FIXME: REVISE/SIMPLIFY THIS COMMENT.
     # The value of allow_forgery_protection is inherited,
     # but its value in a particular class does not affect
     # the value in the rest of the controllers hierarchy.
@@ -76,10 +77,7 @@ They accomplish this with class instance variables and cloning on subclassing, t
 There are some variants specialised in arrays and hashes:
 
 <ruby>
-class_inheritable_array_writer
 class_inheritable_array
-
-class_inheritable_hash_writer
 class_inheritable_hash
 </ruby>
 
@@ -94,6 +92,21 @@ module ActiveRecord
   end
 end
 </ruby>
+
+Since values are copied when a subclass is defined, if the base class changes the attribute after that, the subclass does not see the new value. That's the point. 
+
+There's a related macro called +superclass_delegating_accessor+, however, that does not copy the value when the base class is subclassed. Instead, it delegates reading to the superclass as long as the attribute is not set via its own writer. For example, +ActionMailer::Base+ defined +delivery_method+ this way:
+
+<ruby>
+module ActionMailer
+  class Base
+    superclass_delegating_accessor :delivery_method
+    self.delivery_method = :smtp
+  end
+end
+</ruby>
+
+If for whatever reason an application loads the definition of a mailer class and after that sets +ActionMailer::Base.delivery_method+, the mailer class will still see the new value. In addition, the mailer class is able to change the +delivery_method+ without affecting the value in the parent using its own inherited class attribute writer.
 
 h3. Extensions to +NilClass+
 
