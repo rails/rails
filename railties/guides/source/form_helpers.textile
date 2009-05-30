@@ -292,7 +292,7 @@ form_for(:article, @article, :url => article_path(@article), :method => "put")
 form_for(@article)
 </ruby>
 
-TIP: Declaring a resource will automatically generate the +*_path+ functions above.  The short syntax expects such a function to exist based on the model of the object it is acting on. To declare a model as a resource, add the model to the resources list in the routes file +config/routes.rb+ like so: <pre>map.resources :articles</pre>  Declaring a resource has a number of side-affects. See "Rails Routing From the Outside In":http://guides.rubyonrails.org/routing.html#restful-routing-the-rails-default for more information on setting up and using resources.
+TIP: Declaring a resource will automatically generate the +*_path+ functions above.  The short syntax expects such a function to exist based on the model of the object it is acting on. To declare a model as a resource, add the model to the resources list in the routes file +config/routes.rb+ like so: <pre>map.resources :articles</pre>  Declaring a resource has a number of side-affects. See "Rails Routing From the Outside In":routing.html#restful-routing-the-rails-default for more information on setting up and using resources.
 
 Notice how the short-style +form_for+ invocation is conveniently the same, regardless of the record being new or existing. Record identification is smart enough to figure out if the record is new by asking +record.new_record?+. It also selects the correct path to submit to and the name based on the class of the object.
 
@@ -314,7 +314,7 @@ will create a form that submits to the articles controller inside the admin name
 form_for [:admin, :management, @article]
 </ruby>
 
-For more information on Rails' routing system and the associated conventions, please see the "routing guide":./routing_outside_in.html.
+For more information on Rails' routing system and the associated conventions, please see the "routing guide":routing.html.
 
 
 h4. How do forms with PUT or DELETE methods work?
