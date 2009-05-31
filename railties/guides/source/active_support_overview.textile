@@ -106,9 +106,9 @@ end
 
 If for whatever reason an application loads the definition of a mailer class and after that sets +ActionMailer::Base.delivery_method+, the mailer class will still see the new value. In addition, the mailer class is able to change the +delivery_method+ without affecting the value in the parent using its own inherited class attribute writer.
 
-h4. Descendants
+h4. Subclasses
 
-The method +Class#subclasses+ returns the names of all subclasses of a given class as an array of strings. That comprises not only direct subclasses, but all descendants down the hierarchy:
+The +subclasses+ method returns the names of all subclasses of a given class as an array of strings. That comprises not only direct subclasses, but all descendants down the hierarchy:
 
 <ruby>
 class C; end
@@ -133,6 +133,48 @@ The order in which these class names are returned is unspecified.
 
 See also +Object#subclasses_of+ in "Extensions to All Objects FIX THIS LINK":FIXME.
 
+h4. Class Removal
+
+Roughly speaking, the +remove_class+ method removes the class objects passed as arguments:
+
+<ruby>
+Class.remove_class(Hash, Dir) # => [Hash, Dir]
+Hash # => NameError: uninitialized constant Hash
+Dir  # => NameError: uninitialized constant Dir
+</ruby>
+
+More specifically, +remove_class+ attempts to remove constants with the same name as the passed class objects from their parent modules. So technically this method does not guarantee the class objects themselves are not indeed valid and still alive somewhere:
+
+<ruby>
+module M
+  class A; end
+  class B < A; end
+end
+
+A2 = M::A
+
+M::A.object_id            # => 13053950
+Class.remove_class(M::A)
+
+M::B.superclass.object_id # => 13053950 (same object as before)
+A2.name                   # => "M::A" (name is hard-coded in object)
+</ruby>
+
+WARNING: Removing fundamental classes like +String+ can result in really funky behaviour.
+
+The method +remove_subclasses+ provides a shortcut for removing all descendants of a given class, where "removing" has the meaning explained above:
+
+<ruby>
+class A; end
+class B1 < A; end
+class B2 < A; end
+class C < A; end
+
+A.subclasses        # => ["C", "B2", "B1"]
+A.remove_subclasses
+A.subclasses        # => []
+C                   # => NameError: uninitialized constant C
+</ruby>
 
 h3. Extensions to +NilClass+
 
