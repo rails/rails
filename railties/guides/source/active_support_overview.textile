@@ -220,7 +220,30 @@ h3. Extensions to +Enumerable+
 
 h3. Extensions to +Array+
 
-...
+h4. Accessing
+
+Active Support augments the API of arrays to ease certain ways of accessing them or subsets of them. For example, +to+ returns the subarray of elements up to the one at the passed index:
+
+<ruby>
+%w(a b c d).to(2) # => %w(a b c)
+[].to(7)          # => []
+</ruby>
+
+Similarly, +from+ returns the tail from the element at the passed index on:
+
+<ruby>
+%w(a b c d).from(2)  # => %w(c d)
+%w(a b c d).from(10) # => nil
+[].from(0)           # => nil
+</ruby>
+
+The methods +second+, +third+, +fourth+, and +fifth+ return the corresponding element (+first+ is builtin). Thanks to social wisdom and positive constructiveness all around, +forty_two+ is also available.
+
+You can pick a random element with +rand+:
+
+<ruby>
+shape_type = [Circle, Square, Triangle].rand
+</ruby>
 
 h3. Extensions to +Hash+
 
