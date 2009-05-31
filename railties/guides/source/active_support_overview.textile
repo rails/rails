@@ -9,13 +9,11 @@ By referring to this guide you will learn:
 
 endprologue.
 
-h3. Extensions to +Kernel+
+h3. Extensions to All Objects
 
-...
+h4. +blank?+ and +present?+
 
-h3. Extensions to +Object+
 
-...
 
 h3. Extensions to +Module+
 
@@ -107,6 +105,34 @@ end
 </ruby>
 
 If for whatever reason an application loads the definition of a mailer class and after that sets +ActionMailer::Base.delivery_method+, the mailer class will still see the new value. In addition, the mailer class is able to change the +delivery_method+ without affecting the value in the parent using its own inherited class attribute writer.
+
+h4. Descendants
+
+The method +Class#subclasses+ returns the names of all subclasses of a given class as an array of strings. That comprises not only direct subclasses, but all descendants down the hierarchy:
+
+<ruby>
+class C; end
+C.subclasses # => []
+
+Integer.subclasses # => ["Bignum", "Fixnum"]
+
+module M
+  class A; end
+  class B1 < A; end
+  class B2 < A; end
+end
+
+module N
+  class C < M::B1; end
+end
+
+M::A.subclasses # => ["N::C", "M::B2", "M::B1"]
+</ruby>
+
+The order in which these class names are returned is unespecified.
+
+See also +Object#subclasses_of+ in "Extensions to All Objects FIX THIS LINK":FIXME.
+
 
 h3. Extensions to +NilClass+
 
