@@ -143,7 +143,7 @@ Hash # => NameError: uninitialized constant Hash
 Dir  # => NameError: uninitialized constant Dir
 </ruby>
 
-More specifically, +remove_class+ attempts to remove constants with the same name as the passed class objects from their parent modules. So technically this method does not guarantee the class objects themselves are not indeed valid and still alive somewhere:
+More specifically, +remove_class+ attempts to remove constants with the same name as the passed class objects from their parent modules. So technically this method does not guarantee the class objects themselves are not still valid and alive somewhere after the method call:
 
 <ruby>
 module M
