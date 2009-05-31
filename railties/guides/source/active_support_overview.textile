@@ -106,7 +106,7 @@ end
 
 If for whatever reason an application loads the definition of a mailer class and after that sets +ActionMailer::Base.delivery_method+, the mailer class will still see the new value. In addition, the mailer class is able to change the +delivery_method+ without affecting the value in the parent using its own inherited class attribute writer.
 
-h4. Descendants
+h4. Subclasses
 
 The method +Class#subclasses+ returns the names of all subclasses of a given class as an array of strings. That comprises not only direct subclasses, but all descendants down the hierarchy:
 
