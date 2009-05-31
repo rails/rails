@@ -129,7 +129,7 @@ end
 M::A.subclasses # => ["N::C", "M::B2", "M::B1"]
 </ruby>
 
-The order in which these class names are returned is unespecified.
+The order in which these class names are returned is unspecified.
 
 See also +Object#subclasses_of+ in "Extensions to All Objects FIX THIS LINK":FIXME.
 
