@@ -222,7 +222,7 @@ h3. Extensions to +Array+
 
 h4. Accessing
 
-Active Support augments the API of arrays to ease certain ways of accessing them or subsets of them. For example, +to+ returns the subarray of elements up to the one at the passed index:
+Active Support augments the API of arrays to ease certain ways of accessing them. For example, +to+ returns the subarray of elements up to the one at the passed index:
 
 <ruby>
 %w(a b c d).to(2) # => %w(a b c)
