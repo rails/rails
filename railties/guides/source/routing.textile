@@ -614,7 +614,7 @@ To add a new route (one that creates a new resource), use the +:new+ option:
 map.resources :photos, :new => { :upload => :post }
 </ruby>
 
-This will enable Rails to recognize URLs such as +/photos/upload+ using the POST HTTP verb, and route them to the upload action of the Photos controller. It will also create the +upload_photos_path+ and +upload_photos_url+ route helpers.
+This will enable Rails to recognize URLs such as +/photos/new/upload+ using the POST HTTP verb, and route them to the upload action of the Photos controller. It will also create the +upload_new_photos_path+ and +upload_new_photos_url+ route helpers.
 
 TIP: If you want to redefine the verbs accepted by one of the standard actions, you can do so by explicitly mapping that action. For example:<br/>+map.resources :photos, :new => { :new => :any }+<br/>This will allow the new action to be invoked by any request to +photos/new+, no matter what HTTP verb you use.
 
