@@ -176,6 +176,8 @@ A.subclasses        # => []
 C                   # => NameError: uninitialized constant C
 </ruby>
 
+See also +Object#remove_subclasses_of+ in "Extensions to All Objects FIX THIS LINK":FIXME.
+
 h3. Extensions to +NilClass+
 
 ...
