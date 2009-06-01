@@ -288,7 +288,7 @@ class CalculationsTest < ActiveRecord::TestCase
   end
 
   def test_count_with_scoped_has_many_through_association
-    assert_equal 1, owners(:blackbeard).toys.with_name('bone').count
+    assert_equal 1, owners(:blackbeard).toys.with_name('Bone').count
   end
 
   def test_should_sum_expression
