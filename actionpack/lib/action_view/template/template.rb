@@ -53,7 +53,11 @@ module ActionView
       locals_code = locals.keys.map! { |key| "#{key} = local_assigns[:#{key}];" }.join
 
       code = @handler.call(self)
-      encoding_comment = $1 if code.sub!(/\A(#.*coding.*)\n/, '')
+      if code.sub!(/\A(#.*coding.*)\n/, '')
+        encoding_comment = $1
+      elsif defined?(Encoding) && Encoding.respond_to?(:default_external)
+        encoding_comment = "#coding:#{Encoding.default_external}"
+      end
 
       source = <<-end_src
         def #{method_name}(local_assigns)
