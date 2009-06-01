@@ -245,6 +245,98 @@ You can pick a random element with +rand+:
 shape_type = [Circle, Square, Triangle].rand
 </ruby>
 
+h4. Grouping
+
+h5. +in_groups_of(number, fill_with = nil)+
+
+The method +in_groups_of+ splits an array into consecutive groups of a certain size. It returns an array with the groups:
+
+<ruby>
+[1, 2, 3].in_groups_of(2) # => [[1, 2], [3, nil]]
+</ruby>
+
+or yields them in turn if a block is passed:
+
+<ruby>
+<% sample.in_groups_of(3) do |a, b, c| %>
+  <tr>
+    <td><%=h a %></td>
+    <td><%=h b %></td>
+    <td><%=h c %></td>
+  </tr>
+<% end %>
+</ruby>
+
+The first example shows +in_groups_of+ fills the last group with as many +nil+ elements as needed to have the requested size. You can change this padding value using the second optional argument:
+
+<ruby>
+[1, 2, 3].in_groups_of(2, 0) # => [[1, 2], [3, 0]]
+</ruby>
+
+And you can tell the method not to fill the last group passing +false+:
+
+<ruby>
+[1, 2, 3].in_groups_of(2, false) # => [[1, 2], [3]]
+</ruby>
+
+As a consequence +false+ can't be a used as a padding value.
+
+h5. +in_groups(number, fill_with = nil)+
+
+The method +in_groups+ splits an array into a certain number of groups. The method returns and array with the groups:
+
+<ruby>
+%w(1 2 3 4 5 6 7).in_groups(3)
+# => [["1", "2", "3"], ["4", "5", nil], ["6", "7", nil]]
+</ruby>
+
+or yields them in turn if a block is passed:
+
+<ruby>
+%w(1 2 3 4 5 6 7).in_groups(3) {|group| p group}
+["1", "2", "3"]
+["4", "5", nil]
+["6", "7", nil]
+</ruby>
+
+The examples above show that +in_groups+ fills some groups with a trailing +nil+ element as needed. A group can get at most one of these extra elements, the rightmost one if any. And the groups that have them are always the last ones.
+
+You can change this padding value using the second optional argument:
+
+<ruby>
+%w(1 2 3 4 5 6 7).in_groups(3, "0")
+# => [["1", "2", "3"], ["4", "5", "0"], ["6", "7", "0"]]
+</ruby>
+
+And you can tell the method not to fill the smaller groups passing +false+:
+
+<ruby>
+%w(1 2 3 4 5 6 7).in_groups(3, false)
+# => [["1", "2", "3"], ["4", "5"], ["6", "7"]]
+</ruby>
+
+As a consequence +false+ can't be a used as a padding value.
+
+h5. +split(value = nil)+
+
+The method +split+ divides an array by a separator and returns the resulting chunks.
+
+If a block is passed the separators are those elements of the array for which the block returns true:
+
+<ruby>
+(-5..5).to_a.split { |i| i.multiple_of?(4) }
+# => [[-5], [-3, -2, -1], [1, 2, 3], [5]]
+</ruby>
+
+Otherwise, the value received as argument, which defaults to +nil+, is the separator:
+
+<ruby>
+[0, 1, -5, 1, 1, "foo", "bar"].split(1)
+# => [[0], [-5], [], ["foo", "bar"]]
+</ruby>
+
+NOTE: Observe in the previous example that consecutive separators result in empty arrays.
+
 h3. Extensions to +Hash+
 
 ...
