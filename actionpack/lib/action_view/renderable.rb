@@ -66,7 +66,11 @@ module ActionView
         locals_code = local_assigns.keys.map { |key| "#{key} = local_assigns[:#{key}];" }.join
 
         code = compiled_source
-        encoding_comment = $1 if code.sub!(/\A(#.*coding.*)\n/, '')
+        if code.sub!(/\A(#.*coding.*)\n/, '')
+          encoding_comment = $1
+        elsif defined?(Encoding) && Encoding.respond_to?(:default_external)
+          encoding_comment = "#coding:#{Encoding.default_external}"
+        end
 
         source = <<-end_src
           def #{render_symbol}(local_assigns)
