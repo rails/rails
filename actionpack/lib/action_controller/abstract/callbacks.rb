@@ -26,6 +26,12 @@ module AbstractController
         end
       end
 
+      def skip_filter(*names, &blk)
+        skip_before_filter(*names, &blk)
+        skip_after_filter(*names, &blk)
+        skip_around_filter(*names, &blk)
+      end
+
       [:before, :after, :around].each do |filter|
         class_eval <<-RUBY_EVAL, __FILE__, __LINE__ + 1
           def #{filter}_filter(*names, &blk)

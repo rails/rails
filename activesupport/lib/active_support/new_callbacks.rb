@@ -286,7 +286,14 @@ module ActiveSupport
           filter
         when Proc
           @klass.send(:define_method, method_name, &filter)
-          method_name << (filter.arity == 1 ? "(self)" : "")
+          method_name << case filter.arity
+          when 1
+            "(self)"
+          when 2
+            " self, Proc.new "
+          else
+            ""
+          end
         when Method
           @klass.send(:define_method, "#{method_name}_method") { filter }
           @klass.class_eval <<-RUBY_EVAL, __FILE__, __LINE__ + 1
@@ -378,7 +385,7 @@ module ActiveSupport
       # The _run_save_callbacks method can optionally take a key, which
       # will be used to compile an optimized callback method for each
       # key. See #define_callbacks for more information.
-      def _define_runner(symbol, str, options)        
+      def _define_runner(symbol, str, options)
         str = <<-RUBY_EVAL
           def _run_#{symbol}_callbacks(key = nil)
             if key
@@ -492,7 +499,7 @@ module ActiveSupport
                 
                 filter = self._#{symbol}_callbacks.find {|c| c.matches?(type, :#{symbol}, filter) }
                 per_key = options[:per_key] || {}
-                if filter
+                if filter && options.any?
                   filter.recompile!(options, per_key)
                 else
                   self._#{symbol}_callbacks.delete(filter)

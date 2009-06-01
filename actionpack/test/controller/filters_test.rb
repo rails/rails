@@ -231,24 +231,29 @@ class FilterTest < ActionController::TestCase
   end
 
   class ConditionalParentOfConditionalSkippingController < ConditionalFilterController
-    before_filter :conditional_in_parent, :only => [:show, :another_action]
-    after_filter  :conditional_in_parent, :only => [:show, :another_action]
+    before_filter :conditional_in_parent_before, :only => [:show, :another_action]
+    after_filter  :conditional_in_parent_after, :only => [:show, :another_action]
 
     private
 
-      def conditional_in_parent
+      def conditional_in_parent_before
         @ran_filter ||= []
-        @ran_filter << 'conditional_in_parent'
+        @ran_filter << 'conditional_in_parent_before'
+      end
+
+      def conditional_in_parent_after
+        @ran_filter ||= []
+        @ran_filter << 'conditional_in_parent_after'
       end
   end
 
   class ChildOfConditionalParentController < ConditionalParentOfConditionalSkippingController
-    skip_before_filter :conditional_in_parent, :only => :another_action
-    skip_after_filter  :conditional_in_parent, :only => :another_action
+    skip_before_filter :conditional_in_parent_before, :only => :another_action
+    skip_after_filter  :conditional_in_parent_after, :only => :another_action
   end
 
   class AnotherChildOfConditionalParentController < ConditionalParentOfConditionalSkippingController
-    skip_before_filter :conditional_in_parent, :only => :show
+    skip_before_filter :conditional_in_parent_before, :only => :show
   end
 
   class ProcController < PrependingController
@@ -593,11 +598,22 @@ class FilterTest < ActionController::TestCase
     assert_equal "before and after", assigns["execution_log"]
   end
 
-  def test_prepending_and_appending_around_filter
-    controller = test_process(MixedFilterController)
-    assert_equal " before aroundfilter  before procfilter  before appended aroundfilter " +
-                 " after appended aroundfilter  after aroundfilter  after procfilter ",
-                 MixedFilterController.execution_log
+  for_tag(:old_base) do
+    def test_prepending_and_appending_around_filter
+      controller = test_process(MixedFilterController)
+      assert_equal " before aroundfilter  before procfilter  before appended aroundfilter " +
+                   " after appended aroundfilter  after aroundfilter  after procfilter ",
+                   MixedFilterController.execution_log
+    end
+  end
+
+  for_tag(:new_base) do
+    def test_prepending_and_appending_around_filter
+      controller = test_process(MixedFilterController)
+      assert_equal " before aroundfilter  before procfilter  before appended aroundfilter " +
+                   " after appended aroundfilter  after procfilter  after aroundfilter ",
+                   MixedFilterController.execution_log
+    end
   end
 
   def test_rendering_breaks_filtering_chain
@@ -658,18 +674,18 @@ class FilterTest < ActionController::TestCase
 
   def test_conditional_skipping_of_filters_when_parent_filter_is_also_conditional
     test_process(ChildOfConditionalParentController)
-    assert_equal %w( conditional_in_parent conditional_in_parent ), assigns['ran_filter']
+    assert_equal %w( conditional_in_parent_before conditional_in_parent_after ), assigns['ran_filter']
     test_process(ChildOfConditionalParentController, 'another_action')
     assert_nil assigns['ran_filter']
   end
 
   def test_condition_skipping_of_filters_when_siblings_also_have_conditions
     test_process(ChildOfConditionalParentController)
-    assert_equal %w( conditional_in_parent conditional_in_parent ), assigns['ran_filter'], "1"
+    assert_equal %w( conditional_in_parent_before conditional_in_parent_after ), assigns['ran_filter']
     test_process(AnotherChildOfConditionalParentController)
-    assert_equal nil, assigns['ran_filter']
+    assert_equal %w( conditional_in_parent_after ), assigns['ran_filter']
     test_process(ChildOfConditionalParentController)
-    assert_equal %w( conditional_in_parent conditional_in_parent ), assigns['ran_filter']
+    assert_equal %w( conditional_in_parent_before conditional_in_parent_after ), assigns['ran_filter']
   end
 
   def test_changing_the_requirements
@@ -823,7 +839,9 @@ class ControllerWithAllTypesOfFilters < PostsController
 end
 
 class ControllerWithTwoLessFilters < ControllerWithAllTypesOfFilters
+  $vbf = true
   skip_filter :around_again
+  $vbf = false
   skip_filter :after
 end
 
@@ -886,9 +904,18 @@ class YieldingAroundFiltersTest < ActionController::TestCase
     end
   end
 
-  def test_filter_order_with_all_filter_types
-    test_process(ControllerWithAllTypesOfFilters,'no_raise')
-    assert_equal 'before around (before yield) around_again (before yield) around_again (after yield) around (after yield) after', assigns['ran_filter'].join(' ')
+  for_tag(:old_base) do
+    def test_filter_order_with_all_filter_types
+      test_process(ControllerWithAllTypesOfFilters,'no_raise')
+      assert_equal 'before around (before yield) around_again (before yield) around_again (after yield) around (after yield) after', assigns['ran_filter'].join(' ')
+    end
+  end
+
+  for_tag(:new_base) do
+    def test_filter_order_with_all_filter_types
+      test_process(ControllerWithAllTypesOfFilters,'no_raise')
+      assert_equal 'before around (before yield) around_again (before yield) around_again (after yield) after around (after yield)', assigns['ran_filter'].join(' ')
+    end
   end
 
   def test_filter_order_with_skip_filter_method
@@ -901,7 +928,6 @@ class YieldingAroundFiltersTest < ActionController::TestCase
     response = test_process(controller, 'fail_1')
     assert_equal ' ', response.body
     assert_equal 1, controller.instance_variable_get(:@try)
-    assert controller.instance_variable_get(:@before_filter_chain_aborted)
   end
 
   def test_second_filter_in_multiple_before_filter_chain_halts
@@ -909,7 +935,6 @@ class YieldingAroundFiltersTest < ActionController::TestCase
     response = test_process(controller, 'fail_2')
     assert_equal ' ', response.body
     assert_equal 2, controller.instance_variable_get(:@try)
-    assert controller.instance_variable_get(:@before_filter_chain_aborted)
   end
 
   def test_last_filter_in_multiple_before_filter_chain_halts
@@ -917,7 +942,6 @@ class YieldingAroundFiltersTest < ActionController::TestCase
     response = test_process(controller, 'fail_3')
     assert_equal ' ', response.body
     assert_equal 3, controller.instance_variable_get(:@try)
-    assert controller.instance_variable_get(:@before_filter_chain_aborted)
   end
 
   protected
