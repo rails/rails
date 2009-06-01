@@ -34,4 +34,10 @@ class DateTimeTest < ActiveRecord::TestCase
     topic.bonus_time = ''
     assert_nil topic.bonus_time
   end
+
+  def test_two_digit_year
+    topic = Topic.new
+    topic.last_read = '1/1/09'
+    assert_equal Date.new(2009,1,1), topic.last_read
+  end
 end
