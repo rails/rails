@@ -191,7 +191,7 @@ Session values are stored using key/value pairs like a hash:
 <ruby>
 class ApplicationController < ActionController::Base
 
-private
+  private
 
   # Finds the User with the ID stored in the session with the key
   # :current_user_id This is a common way to handle user login in
@@ -350,7 +350,8 @@ Before filters may halt the request cycle. A common before filter is one which r
 class ApplicationController < ActionController::Base
   before_filter :require_login
 
-private
+  private
+
   def require_login
     unless logged_in?
       flash[:error] = "You must be logged in to access this section"
@@ -390,10 +391,11 @@ Around filters are responsible for running the action, but they can choose not t
 <ruby>
 # Example taken from the Rails API filter documentation:
 # http://api.rubyonrails.org/classes/ActionController/Filters/ClassMethods.html
-class ApplicationController < Application
+class ApplicationController < ActionController::Base
   around_filter :catch_exceptions
 
-private
+  private
+
   def catch_exceptions
     yield
   rescue => exception
@@ -575,7 +577,8 @@ class AdminController < ApplicationController
 
   before_filter :authenticate
 
-private
+  private
+
   def authenticate
     authenticate_or_request_with_http_basic do |username, password|
       username == USERNAME &&
@@ -597,7 +600,8 @@ class AdminController < ApplicationController
 
   before_filter :authenticate
 
-private
+  private
+
   def authenticate
     authenticate_or_request_with_http_digest do |username|
       USERS[username]
@@ -626,7 +630,7 @@ class ClientsController < ApplicationController
               :type => "application/pdf")
   end
 
-private
+  private
 
   def generate_pdf(client)
     Prawn::Document.new do
@@ -728,7 +732,8 @@ Here's how you can use +rescue_from+ to intercept all +ActiveRecord::RecordNotFo
 class ApplicationController < ActionController::Base
   rescue_from ActiveRecord::RecordNotFound, :with => :record_not_found
 
-private
+  private
+
   def record_not_found
     render :text => "404 Not Found", :status => 404
   end
@@ -741,7 +746,8 @@ Of course, this example is anything but elaborate and doesn't improve on the def
 class ApplicationController < ActionController::Base
   rescue_from User::NotAuthorized, :with => :user_not_authorized
 
-private
+  private
+
   def user_not_authorized
     flash[:error] = "You don't have access to this section."
     redirect_to :back
@@ -757,7 +763,8 @@ class ClientsController < ApplicationController
     @client = Client.find(params[:id])
   end
 
-private
+  private
+
   # If the user is not authorized, just throw the exception.
   def check_authorization
     raise User::NotAuthorized unless current_user.admin?
