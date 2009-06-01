@@ -180,6 +180,15 @@ uses_memcached 'memcached backed store' do
       end
     end
 
+    def test_stored_objects_should_not_be_frozen
+      @cache.with_local_cache do
+        @cache.write('foo', 'bar')
+      end
+      @cache.with_local_cache do
+        assert !@cache.read('foo').frozen?
+      end
+    end
+
     def test_write_should_return_true_on_success
       @cache.with_local_cache do
         result = @cache.write('foo', 'bar')

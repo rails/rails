@@ -1,5 +1,4 @@
-require 'test_helper'
-require 'active_model/state_machine/state_transition'
+require 'cases/helper'
 
 class StateTransitionTest < ActiveModel::TestCase
   test 'should set from, to, and opts attr readers' do

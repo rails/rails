@@ -7,12 +7,6 @@ require 'action_controller'
 require 'action_controller/new_base' if ENV['NEW']
 require 'benchmark'
 
-class BaseController < ActionController::Base
-  def index
-    render :text => ''
-  end
-end
-
 class Runner
   def initialize(app)
     @app = app
@@ -29,14 +23,36 @@ class Runner
     response[2].each { |part| out.puts part }
     out.puts '---'
   end
+
+  def self.run(app, n, label = nil)
+    puts '=' * label.size, label, '=' * label.size if label
+    env = { 'n' => n, 'rack.input' => StringIO.new(''), 'rack.errors' => $stdout }
+    t = Benchmark.realtime { new(app).call(env) }
+    puts "%d ms / %d req = %.1f usec/req" % [10**3 * t, n, 10**6 * t / n]
+    puts
+  end
 end
 
-n = (ENV['N'] || 1000).to_i
-input = StringIO.new('')
 
-elapsed = Benchmark.realtime do
-  Runner.new(BaseController.action(:index)).
-    call('n' => n, 'rack.input' => input, 'rack.errors' => $stdout)
+N = (ENV['N'] || 1000).to_i
+
+class BasePostController < ActionController::Base
+  def index
+    render :text => ''
+  end
 end
-puts "%dms elapsed, %d req/sec, %.2f msec/req" %
-  [1000 * elapsed, n / elapsed, 1000 * elapsed / n]
+
+OK = [200, {}, []]
+MetalPostController = lambda { OK }
+
+if ActionController.const_defined?(:Http)
+  class HttpPostController < ActionController::Http
+    def index
+      self.response_body = ''
+    end
+  end
+end
+
+Runner.run(MetalPostController, N, 'metal')
+Runner.run(HttpPostController.action(:index), N, 'http') if defined? HttpPostController
+Runner.run(BasePostController.action(:index), N, 'base')

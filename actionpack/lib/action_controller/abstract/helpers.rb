@@ -1,8 +1,8 @@
 module AbstractController
   module Helpers
-    extend ActiveSupport::DependencyModule
+    extend ActiveSupport::Concern
 
-    depends_on Renderer
+    include Renderer
 
     included do
       extlib_inheritable_accessor :master_helper_module
@@ -16,12 +16,12 @@ module AbstractController
         av
       end
     end
-    
+
     module ClassMethods
       def inherited(klass)
         klass.master_helper_module = Module.new
         klass.master_helper_module.__send__ :include, master_helper_module
-        
+
         super
       end
 
@@ -57,7 +57,7 @@ module AbstractController
           ruby_eval
         end
       end
-      
+
       def helper(*args, &block)
         args.flatten.each do |arg|
           case arg
@@ -68,6 +68,5 @@ module AbstractController
         master_helper_module.module_eval(&block) if block_given?
       end
     end
-    
   end
 end

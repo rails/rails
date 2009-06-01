@@ -3,7 +3,7 @@ require 'active_support/core_ext/object/try'
 
 module ActiveRecord
   module NestedAttributes #:nodoc:
-    extend ActiveSupport::DependencyModule
+    extend ActiveSupport::Concern
 
     included do
       class_inheritable_accessor :reject_new_nested_attributes_procs, :instance_writer => false

@@ -1,15 +1,36 @@
 require 'abstract_unit'
+require 'active_support/core_ext/symbol'
 
-class << ActionController::Base
-  %w(append_around_filter prepend_after_filter prepend_around_filter prepend_before_filter skip_after_filter skip_before_filter skip_filter).each do |pending|
-    define_method(pending) do |*args|
-      $stderr.puts "#{pending} unimplemented: #{args.inspect}"
-    end unless method_defined?(pending)
+class ActionController::Base
+  class << self
+    %w(append_around_filter prepend_after_filter prepend_around_filter prepend_before_filter skip_after_filter skip_before_filter skip_filter).each do |pending|
+      define_method(pending) do |*args|
+        $stderr.puts "#{pending} unimplemented: #{args.inspect}"
+      end unless method_defined?(pending)
+    end
+
+    if defined?(ActionController::Http)
+      def before_filters
+        filters = _process_action_callbacks.select { |c| c.kind == :before }
+        filters.map! { |c| c.instance_variable_get(:@raw_filter) }
+      end
+    end
+  end
+
+  if defined?(ActionController::Http)
+    def assigns(key = nil)
+      assigns = {}
+      instance_variable_names.each do |ivar|
+        next if ActionController::Base.protected_instance_variables.include?(ivar)
+        assigns[ivar[1..-1]] = instance_variable_get(ivar)
+      end
+
+      key.nil? ? assigns : assigns[key.to_s]
+    end
   end
 end
 
-class FilterTest < Test::Unit::TestCase
-  include ActionController::TestProcess
+class FilterTest < ActionController::TestCase
 
   class TestController < ActionController::Base
     before_filter :ensure_login
@@ -468,108 +489,108 @@ class FilterTest < Test::Unit::TestCase
 
   def test_running_filters
     test_process(PrependingController)
-    assert_equal %w( wonderful_life ensure_login ), @controller.template.assigns["ran_filter"]
+    assert_equal %w( wonderful_life ensure_login ), assigns["ran_filter"]
   end
 
   def test_running_filters_with_proc
     test_process(ProcController)
-    assert @controller.template.assigns["ran_proc_filter"]
+    assert assigns["ran_proc_filter"]
   end
 
   def test_running_filters_with_implicit_proc
     test_process(ImplicitProcController)
-    assert @controller.template.assigns["ran_proc_filter"]
+    assert assigns["ran_proc_filter"]
   end
 
   def test_running_filters_with_class
     test_process(AuditController)
-    assert @controller.template.assigns["was_audited"]
+    assert assigns["was_audited"]
   end
 
   def test_running_anomolous_yet_valid_condition_filters
     test_process(AnomolousYetValidConditionController)
-    assert_equal %w( ensure_login ), @controller.template.assigns["ran_filter"]
-    assert @controller.template.assigns["ran_class_filter"]
-    assert @controller.template.assigns["ran_proc_filter1"]
-    assert @controller.template.assigns["ran_proc_filter2"]
+    assert_equal %w( ensure_login ), assigns["ran_filter"]
+    assert assigns["ran_class_filter"]
+    assert assigns["ran_proc_filter1"]
+    assert assigns["ran_proc_filter2"]
 
     test_process(AnomolousYetValidConditionController, "show_without_filter")
-    assert_equal nil, @controller.template.assigns["ran_filter"]
-    assert !@controller.template.assigns["ran_class_filter"]
-    assert !@controller.template.assigns["ran_proc_filter1"]
-    assert !@controller.template.assigns["ran_proc_filter2"]
+    assert_equal nil, assigns["ran_filter"]
+    assert !assigns["ran_class_filter"]
+    assert !assigns["ran_proc_filter1"]
+    assert !assigns["ran_proc_filter2"]
   end
 
   def test_running_conditional_options
     test_process(ConditionalOptionsFilter)
-    assert_equal %w( ensure_login ), @controller.template.assigns["ran_filter"]
+    assert_equal %w( ensure_login ), assigns["ran_filter"]
   end
 
   def test_running_collection_condition_filters
     test_process(ConditionalCollectionFilterController)
-    assert_equal %w( ensure_login ), @controller.template.assigns["ran_filter"]
+    assert_equal %w( ensure_login ), assigns["ran_filter"]
     test_process(ConditionalCollectionFilterController, "show_without_filter")
-    assert_equal nil, @controller.template.assigns["ran_filter"]
+    assert_equal nil, assigns["ran_filter"]
     test_process(ConditionalCollectionFilterController, "another_action")
-    assert_equal nil, @controller.template.assigns["ran_filter"]
+    assert_equal nil, assigns["ran_filter"]
   end
 
   def test_running_only_condition_filters
     test_process(OnlyConditionSymController)
-    assert_equal %w( ensure_login ), @controller.template.assigns["ran_filter"]
+    assert_equal %w( ensure_login ), assigns["ran_filter"]
     test_process(OnlyConditionSymController, "show_without_filter")
-    assert_equal nil, @controller.template.assigns["ran_filter"]
+    assert_equal nil, assigns["ran_filter"]
 
     test_process(OnlyConditionProcController)
-    assert @controller.template.assigns["ran_proc_filter"]
+    assert assigns["ran_proc_filter"]
     test_process(OnlyConditionProcController, "show_without_filter")
-    assert !@controller.template.assigns["ran_proc_filter"]
+    assert !assigns["ran_proc_filter"]
 
     test_process(OnlyConditionClassController)
-    assert @controller.template.assigns["ran_class_filter"]
+    assert assigns["ran_class_filter"]
     test_process(OnlyConditionClassController, "show_without_filter")
-    assert !@controller.template.assigns["ran_class_filter"]
+    assert !assigns["ran_class_filter"]
   end
 
   def test_running_except_condition_filters
     test_process(ExceptConditionSymController)
-    assert_equal %w( ensure_login ), @controller.template.assigns["ran_filter"]
+    assert_equal %w( ensure_login ), assigns["ran_filter"]
     test_process(ExceptConditionSymController, "show_without_filter")
-    assert_equal nil, @controller.template.assigns["ran_filter"]
+    assert_equal nil, assigns["ran_filter"]
 
     test_process(ExceptConditionProcController)
-    assert @controller.template.assigns["ran_proc_filter"]
+    assert assigns["ran_proc_filter"]
     test_process(ExceptConditionProcController, "show_without_filter")
-    assert !@controller.template.assigns["ran_proc_filter"]
+    assert !assigns["ran_proc_filter"]
 
     test_process(ExceptConditionClassController)
-    assert @controller.template.assigns["ran_class_filter"]
+    assert assigns["ran_class_filter"]
     test_process(ExceptConditionClassController, "show_without_filter")
-    assert !@controller.template.assigns["ran_class_filter"]
+    assert !assigns["ran_class_filter"]
   end
 
   def test_running_before_and_after_condition_filters
     test_process(BeforeAndAfterConditionController)
-    assert_equal %w( ensure_login clean_up_tmp), @controller.template.assigns["ran_filter"]
+    assert_equal %w( ensure_login clean_up_tmp), assigns["ran_filter"]
     test_process(BeforeAndAfterConditionController, "show_without_filter")
-    assert_equal nil, @controller.template.assigns["ran_filter"]
+    assert_equal nil, assigns["ran_filter"]
   end
 
   def test_around_filter
     test_process(AroundFilterController)
-    assert @controller.template.assigns["before_ran"]
-    assert @controller.template.assigns["after_ran"]
+    assert assigns["before_ran"]
+    assert assigns["after_ran"]
   end
 
   def test_before_after_class_filter
     test_process(BeforeAfterClassFilterController)
-    assert @controller.template.assigns["before_ran"]
-    assert @controller.template.assigns["after_ran"]
+    assert assigns["before_ran"]
+    assert assigns["after_ran"]
   end
 
   def test_having_properties_in_around_filter
     test_process(AroundFilterController)
-    assert_equal "before and after", @controller.template.assigns["execution_log"]
+    assert_equal "before and after", assigns["execution_log"]
   end
 
   def test_prepending_and_appending_around_filter
@@ -582,7 +603,7 @@ class FilterTest < Test::Unit::TestCase
   def test_rendering_breaks_filtering_chain
     response = test_process(RenderingController)
     assert_equal "something else", response.body
-    assert !@controller.template.assigns["ran_action"]
+    assert !assigns["ran_action"]
   end
 
   def test_filters_with_mixed_specialization_run_in_order
@@ -601,33 +622,33 @@ class FilterTest < Test::Unit::TestCase
     %w(foo bar baz).each do |action|
       request = ActionController::TestRequest.new
       request.query_parameters[:choose] = action
-      response = DynamicDispatchController.action.call(request.env).last
+      response = DynamicDispatchController.action(action).call(request.env).last
       assert_equal action, response.body
     end
   end
 
   def test_running_prepended_before_and_after_filter
     test_process(PrependingBeforeAndAfterController)
-    assert_equal %w( before_all between_before_all_and_after_all after_all ), @controller.template.assigns["ran_filter"]
+    assert_equal %w( before_all between_before_all_and_after_all after_all ), assigns["ran_filter"]
   end
 
   def test_skipping_and_limiting_controller
     test_process(SkippingAndLimitedController, "index")
-    assert_equal %w( ensure_login ), @controller.template.assigns["ran_filter"]
+    assert_equal %w( ensure_login ), assigns["ran_filter"]
     test_process(SkippingAndLimitedController, "public")
-    assert_nil @controller.template.assigns["ran_filter"]
+    assert_nil assigns["ran_filter"]
   end
 
   def test_skipping_and_reordering_controller
     test_process(SkippingAndReorderingController, "index")
-    assert_equal %w( find_record ensure_login ), @controller.template.assigns["ran_filter"]
+    assert_equal %w( find_record ensure_login ), assigns["ran_filter"]
   end
 
   def test_conditional_skipping_of_filters
     test_process(ConditionalSkippingController, "login")
-    assert_nil @controller.template.assigns["ran_filter"]
+    assert_nil assigns["ran_filter"]
     test_process(ConditionalSkippingController, "change_password")
-    assert_equal %w( ensure_login find_user ), @controller.template.assigns["ran_filter"]
+    assert_equal %w( ensure_login find_user ), assigns["ran_filter"]
 
     test_process(ConditionalSkippingController, "login")
     assert_nil @controller.template.controller.instance_variable_get("@ran_after_filter")
@@ -637,23 +658,23 @@ class FilterTest < Test::Unit::TestCase
 
   def test_conditional_skipping_of_filters_when_parent_filter_is_also_conditional
     test_process(ChildOfConditionalParentController)
-    assert_equal %w( conditional_in_parent conditional_in_parent ), @controller.template.assigns['ran_filter']
+    assert_equal %w( conditional_in_parent conditional_in_parent ), assigns['ran_filter']
     test_process(ChildOfConditionalParentController, 'another_action')
-    assert_nil @controller.template.assigns['ran_filter']
+    assert_nil assigns['ran_filter']
   end
 
   def test_condition_skipping_of_filters_when_siblings_also_have_conditions
     test_process(ChildOfConditionalParentController)
-    assert_equal %w( conditional_in_parent conditional_in_parent ), @controller.template.assigns['ran_filter'], "1"
+    assert_equal %w( conditional_in_parent conditional_in_parent ), assigns['ran_filter'], "1"
     test_process(AnotherChildOfConditionalParentController)
-    assert_equal nil, @controller.template.assigns['ran_filter']
+    assert_equal nil, assigns['ran_filter']
     test_process(ChildOfConditionalParentController)
-    assert_equal %w( conditional_in_parent conditional_in_parent ), @controller.template.assigns['ran_filter']
+    assert_equal %w( conditional_in_parent conditional_in_parent ), assigns['ran_filter']
   end
 
   def test_changing_the_requirements
     test_process(ChangingTheRequirementsController, "go_wild")
-    assert_equal nil, @controller.template.assigns['ran_filter']
+    assert_equal nil, assigns['ran_filter']
   end
 
   def test_a_rescuing_around_filter
@@ -806,9 +827,8 @@ class ControllerWithTwoLessFilters < ControllerWithAllTypesOfFilters
   skip_filter :after
 end
 
-class YieldingAroundFiltersTest < Test::Unit::TestCase
+class YieldingAroundFiltersTest < ActionController::TestCase
   include PostsController::AroundExceptions
-  include ActionController::TestProcess
 
   def test_base
     controller = PostsController
@@ -846,8 +866,8 @@ class YieldingAroundFiltersTest < Test::Unit::TestCase
 
   def test_with_proc
     test_process(ControllerWithProcFilter,'no_raise')
-    assert @controller.template.assigns['before']
-    assert @controller.template.assigns['after']
+    assert assigns['before']
+    assert assigns['after']
   end
 
   def test_nested_filters
@@ -868,12 +888,12 @@ class YieldingAroundFiltersTest < Test::Unit::TestCase
 
   def test_filter_order_with_all_filter_types
     test_process(ControllerWithAllTypesOfFilters,'no_raise')
-    assert_equal 'before around (before yield) around_again (before yield) around_again (after yield) around (after yield) after', @controller.template.assigns['ran_filter'].join(' ')
+    assert_equal 'before around (before yield) around_again (before yield) around_again (after yield) around (after yield) after', assigns['ran_filter'].join(' ')
   end
 
   def test_filter_order_with_skip_filter_method
     test_process(ControllerWithTwoLessFilters,'no_raise')
-    assert_equal 'before around (before yield) around (after yield)', @controller.template.assigns['ran_filter'].join(' ')
+    assert_equal 'before around (before yield) around (after yield)', assigns['ran_filter'].join(' ')
   end
 
   def test_first_filter_in_multiple_before_filter_chain_halts
@@ -903,9 +923,6 @@ class YieldingAroundFiltersTest < Test::Unit::TestCase
   protected
     def test_process(controller, action = "show")
       @controller = controller.is_a?(Class) ? controller.new : controller
-      @request    = ActionController::TestRequest.new
-      @response   = ActionController::TestResponse.new
-
       process(action)
     end
 end

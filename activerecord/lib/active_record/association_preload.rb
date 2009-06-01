@@ -1,7 +1,7 @@
 module ActiveRecord
   # See ActiveRecord::AssociationPreload::ClassMethods for documentation.
   module AssociationPreload #:nodoc:
-    extend ActiveSupport::DependencyModule
+    extend ActiveSupport::Concern
 
     # Implements the details of eager loading of ActiveRecord associations.
     # Application developers should not use this module directly.

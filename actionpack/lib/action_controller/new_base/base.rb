@@ -1,7 +1,7 @@
 module ActionController
   class Base < Http
     abstract!
-    
+
     include AbstractController::Benchmarker
     include AbstractController::Callbacks
     include AbstractController::Logger
@@ -14,6 +14,7 @@ module ActionController
     include ActionController::Renderers::All
     include ActionController::Layouts
     include ActionController::ConditionalGet
+    include ActionController::RackConvenience
 
     # Legacy modules
     include SessionManagement
@@ -38,9 +39,9 @@ module ActionController
     # TODO: Extract into its own module
     # This should be moved together with other normalizing behavior
     module ImplicitRender
-      def process_action(method_name)
+      def send_action(method_name)
         ret = super
-        default_render if response_body.nil?
+        default_render unless performed?
         ret
       end
 
@@ -65,31 +66,31 @@ module ActionController
       ::ActionController::Base.subclasses << klass.to_s
       super
     end
-    
+
     def self.subclasses
       @subclasses ||= []
     end
-    
+
     def self.app_loaded!
       @subclasses.each do |subclass|
         subclass.constantize._write_layout_method
       end
     end
-    
+
     def _normalize_options(action = nil, options = {}, &blk)
       if action.is_a?(Hash)
-        options, action = action, nil 
+        options, action = action, nil
       elsif action.is_a?(String) || action.is_a?(Symbol)
         key = case action = action.to_s
         when %r{^/} then :file
         when %r{/}  then :template
         else             :action
-        end        
+        end
         options.merge! key => action
       elsif action
         options.merge! :partial => action
       end
-      
+
       if options.key?(:action) && options[:action].to_s.index("/")
         options[:template] = options.delete(:action)
       end
@@ -139,7 +140,7 @@ module ActionController
     #
     # When using <tt>redirect_to :back</tt>, if there is no referrer,
     # RedirectBackError will be raised. You may specify some fallback
-    # behavior for this case by rescuing RedirectBackError.    
+    # behavior for this case by rescuing RedirectBackError.
     def redirect_to(options = {}, response_status = {}) #:doc:
       raise ActionControllerError.new("Cannot redirect to nil!") if options.nil?
 
@@ -165,7 +166,7 @@ module ActionController
       else
         url_for(options)
       end
-      
+
       super(url, status)
     end
   end

@@ -1,3 +1,3 @@
 module AbstractController
-  class ActionNotFound < StandardError ; end
+  class ActionNotFound < StandardError; end
 end

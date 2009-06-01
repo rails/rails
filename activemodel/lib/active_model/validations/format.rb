@@ -13,11 +13,11 @@ module ActiveModel
       # A regular expression must be provided or else an exception will be raised.
       #
       # Configuration options:
-      # * <tt>:message</tt> - A custom error message (default is: "is invalid")
-      # * <tt>:allow_nil</tt> - If set to +true+, skips this validation if the attribute is +nil+ (default is: +false+)
-      # * <tt>:allow_blank</tt> - If set to +true+, skips this validation if the attribute is blank (default is: +false+)
-      # * <tt>:with</tt> - The regular expression used to validate the format with (note: must be supplied!)
-      # * <tt>:on</tt> - Specifies when this validation is active (default is <tt>:save</tt>, other options <tt>:create</tt>, <tt>:update</tt>)
+      # * <tt>:message</tt> - A custom error message (default is: "is invalid").
+      # * <tt>:allow_nil</tt> - If set to true, skips this validation if the attribute is +nil+ (default is +false+).
+      # * <tt>:allow_blank</tt> - If set to true, skips this validation if the attribute is blank (default is +false+).
+      # * <tt>:with</tt> - The regular expression used to validate the format with (note: must be supplied!).
+      # * <tt>:on</tt> - Specifies when this validation is active (default is <tt>:save</tt>, other options <tt>:create</tt>, <tt>:update</tt>).
       # * <tt>:if</tt> - Specifies a method, proc or string to call to determine if the validation should
       #   occur (e.g. <tt>:if => :allow_validation</tt>, or <tt>:if => Proc.new { |user| user.signup_step > 2 }</tt>).  The
       #   method, proc or string should return or evaluate to a true or false value.
@@ -25,13 +25,15 @@ module ActiveModel
       #   not occur (e.g. <tt>:unless => :skip_validation</tt>, or <tt>:unless => Proc.new { |user| user.signup_step <= 2 }</tt>).  The
       #   method, proc or string should return or evaluate to a true or false value.
       def validates_format_of(*attr_names)
-        configuration = { :message => ActiveRecord::Errors.default_error_messages[:invalid], :on => :save, :with => nil }
+        configuration = { :with => nil }
         configuration.update(attr_names.extract_options!)
 
         raise(ArgumentError, "A regular expression must be supplied as the :with option of the configuration hash") unless configuration[:with].is_a?(Regexp)
 
         validates_each(attr_names, configuration) do |record, attr_name, value|
-          record.errors.add(attr_name, configuration[:message]) unless value.to_s =~ configuration[:with]
+          unless value.to_s =~ configuration[:with]
+            record.errors.add(attr_name, :invalid, :default => configuration[:message], :value => value) 
+          end
         end
       end
     end

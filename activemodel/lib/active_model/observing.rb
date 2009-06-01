@@ -1,6 +1,5 @@
 require 'observer'
 require 'singleton'
-require 'active_model/core'
 
 module ActiveModel
   module Observing

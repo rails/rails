@@ -3,7 +3,7 @@ require 'thread'
 module ActiveRecord
   # See ActiveRecord::Transactions::ClassMethods for documentation.
   module Transactions
-    extend ActiveSupport::DependencyModule
+    extend ActiveSupport::Concern
 
     class TransactionError < ActiveRecordError # :nodoc:
     end

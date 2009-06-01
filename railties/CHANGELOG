@@ -1,5 +1,7 @@
 *Edge*
 
+* Ruby 1.9: use UTF-8 for default internal and external encodings.  [Jeremy Kemper]
+
 * Added db/seeds.rb as a default file for storing seed data for the database. Can be loaded with rake db:seed (or created alongside the db with db:setup). (This is also known as the "Stop Putting Gawd Damn Seed Data In Your Migrations" feature) [DHH]
 
 

@@ -1,5 +1,9 @@
 module ActionController
   module UrlFor
+    extend ActiveSupport::Concern
+
+    include RackConvenience
+
     def process_action(*)
       initialize_current_url
       super
@@ -21,7 +25,7 @@ module ActionController
     # by this method.
     def default_url_options(options = nil)
     end
-    
+
     def rewrite_options(options) #:nodoc:
       if defaults = default_url_options(options)
         defaults.merge(options)
@@ -29,7 +33,7 @@ module ActionController
         options
       end
     end
-    
+
     def url_for(options = {})
       options ||= {}
       case options

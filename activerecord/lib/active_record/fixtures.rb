@@ -807,7 +807,7 @@ end
 
 module ActiveRecord
   module TestFixtures
-    extend ActiveSupport::DependencyModule
+    extend ActiveSupport::Concern
 
     included do
       setup :setup_fixtures

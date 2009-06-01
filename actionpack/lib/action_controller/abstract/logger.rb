@@ -3,13 +3,13 @@ require 'active_support/core_ext/logger'
 
 module AbstractController
   module Logger
-    extend ActiveSupport::DependencyModule
+    extend ActiveSupport::Concern
 
     class DelayedLog
       def initialize(&blk)
         @blk = blk
       end
-      
+
       def to_s
         @blk.call
       end
@@ -19,10 +19,10 @@ module AbstractController
     included do
       cattr_accessor :logger
     end
-    
+
     def process(action)
       ret = super
-      
+
       if logger
         log = DelayedLog.new do
           "\n\nProcessing #{self.class.name}\##{action_name} " \
@@ -32,14 +32,14 @@ module AbstractController
 
         logger.info(log)
       end
-      
+
       ret
     end
-    
+
     def request_origin
       # this *needs* to be cached!
       # otherwise you'd get different results if calling it more than once
       @request_origin ||= "#{request.remote_ip} at #{Time.now.to_s(:db)}"
-    end    
+    end
   end
 end

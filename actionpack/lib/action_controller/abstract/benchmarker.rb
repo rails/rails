@@ -1,9 +1,9 @@
 module AbstractController
   module Benchmarker
-    extend ActiveSupport::DependencyModule
-  
-    depends_on Logger
-  
+    extend ActiveSupport::Concern
+
+    include Logger
+
     module ClassMethods
       def benchmark(title, log_level = ::Logger::DEBUG, use_silence = true)
         if logger && logger.level >= log_level

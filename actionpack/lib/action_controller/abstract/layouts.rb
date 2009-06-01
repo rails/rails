@@ -1,8 +1,8 @@
 module AbstractController
   module Layouts
-    extend ActiveSupport::DependencyModule
+    extend ActiveSupport::Concern
 
-    depends_on Renderer
+    include Renderer
 
     included do
       extlib_inheritable_accessor :_layout_conditions
@@ -17,18 +17,18 @@ module AbstractController
 
         conditions.each {|k, v| conditions[k] = Array(v).map {|a| a.to_s} }
         self._layout_conditions = conditions
-        
+
         @_layout = layout || false # Converts nil to false
         _write_layout_method
       end
-      
+
       def _implied_layout_name
         name.underscore
       end
-      
+
       # Takes the specified layout and creates a _layout method to be called
       # by _default_layout
-      # 
+      #
       # If the specified layout is a:
       # String:: return the string
       # Symbol:: call the method specified by the symbol
@@ -57,11 +57,12 @@ module AbstractController
         end
       end
     end
-        
+
   private
-  
-    def _layout(details) end # This will be overwritten
-    
+    # This will be overwritten
+    def _layout(details)
+    end
+
     # :api: plugin
     # ====
     # Override this to mutate the inbound layout name
@@ -69,7 +70,7 @@ module AbstractController
       unless [String, FalseClass, NilClass].include?(name.class)
         raise ArgumentError, "String, false, or nil expected; you passed #{name.inspect}"
       end
-      
+
       name && view_paths.find_by_parts(name, details, _layout_prefix(name))
     end
 
@@ -77,7 +78,7 @@ module AbstractController
     def _layout_prefix(name)
       "layouts"
     end
-    
+
     def _default_layout(require_layout = false, details = {:formats => formats})
       if require_layout && _action_has_layout? && !_layout(details)
         raise ArgumentError,
@@ -87,7 +88,7 @@ module AbstractController
       begin
         _layout_for_name(_layout(details), details) if _action_has_layout?
       rescue NameError => e
-        raise NoMethodError, 
+        raise NoMethodError,
           "You specified #{@_layout.inspect} as the layout, but no such method was found"
       end
     end

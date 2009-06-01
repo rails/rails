@@ -52,16 +52,26 @@ module ActionView
       
       locals_code = locals.keys.map! { |key| "#{key} = local_assigns[:#{key}];" }.join
 
+      code = @handler.call(self)
+      encoding_comment = $1 if code.sub!(/\A(#.*coding.*)\n/, '')
+
       source = <<-end_src
         def #{method_name}(local_assigns)
-          old_output_buffer = output_buffer;#{locals_code};#{@handler.call(self)}
+          old_output_buffer = output_buffer;#{locals_code};#{code}
         ensure
           self.output_buffer = old_output_buffer
         end
       end_src
 
+      if encoding_comment
+        source = "#{encoding_comment}\n#{source}"
+        line = -1
+      else
+        line = 0
+      end
+
       begin
-        ActionView::Base::CompiledTemplates.module_eval(source, identifier, 0)
+        ActionView::Base::CompiledTemplates.module_eval(source, identifier, line)
         method_name
       rescue Exception => e # errors from template code
         if logger = (view && view.logger)

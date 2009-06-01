@@ -1,9 +1,9 @@
 require 'abstract_unit'
-require 'active_support/dependency_module'
+require 'active_support/concern'
 
-class DependencyModuleTest < Test::Unit::TestCase
+class ConcernTest < Test::Unit::TestCase
   module Baz
-    extend ActiveSupport::DependencyModule
+    extend ActiveSupport::Concern
 
     module ClassMethods
       def baz
@@ -19,6 +19,9 @@ class DependencyModuleTest < Test::Unit::TestCase
       end
     end
 
+    module InstanceMethods
+    end
+
     included do
       self.included_ran = true
     end
@@ -29,9 +32,9 @@ class DependencyModuleTest < Test::Unit::TestCase
   end
 
   module Bar
-    extend ActiveSupport::DependencyModule
+    extend ActiveSupport::Concern
 
-    depends_on Baz
+    include Baz
 
     def bar
       "bar"
@@ -43,9 +46,9 @@ class DependencyModuleTest < Test::Unit::TestCase
   end
 
   module Foo
-    extend ActiveSupport::DependencyModule
+    extend ActiveSupport::Concern
 
-    depends_on Bar, Baz
+    include Bar, Baz
   end
 
   def setup
@@ -55,17 +58,23 @@ class DependencyModuleTest < Test::Unit::TestCase
   def test_module_is_included_normally
     @klass.send(:include, Baz)
     assert_equal "baz", @klass.new.baz
-    assert_equal DependencyModuleTest::Baz, @klass.included_modules[0]
+    assert @klass.included_modules.include?(ConcernTest::Baz)
 
     @klass.send(:include, Baz)
     assert_equal "baz", @klass.new.baz
-    assert_equal DependencyModuleTest::Baz, @klass.included_modules[0]
+    assert @klass.included_modules.include?(ConcernTest::Baz)
   end
 
   def test_class_methods_are_extended
     @klass.send(:include, Baz)
     assert_equal "baz", @klass.baz
-    assert_equal DependencyModuleTest::Baz::ClassMethods, (class << @klass; self.included_modules; end)[0]
+    assert_equal ConcernTest::Baz::ClassMethods, (class << @klass; self.included_modules; end)[0]
+  end
+
+  def test_instance_methods_are_included
+    @klass.send(:include, Baz)
+    assert_equal "baz", @klass.new.baz
+    assert @klass.included_modules.include?(ConcernTest::Baz::InstanceMethods)
   end
 
   def test_included_block_is_ran
@@ -78,11 +87,11 @@ class DependencyModuleTest < Test::Unit::TestCase
     assert_equal "bar", @klass.new.bar
     assert_equal "bar+baz", @klass.new.baz
     assert_equal "baz", @klass.baz
-    assert_equal [DependencyModuleTest::Bar, DependencyModuleTest::Baz], @klass.included_modules[0..1]
+    assert @klass.included_modules.include?(ConcernTest::Bar)
   end
 
-  def test_depends_on_with_multiple_modules
+  def test_dependencies_with_multiple_modules
     @klass.send(:include, Foo)
-    assert_equal [DependencyModuleTest::Foo, DependencyModuleTest::Bar, DependencyModuleTest::Baz], @klass.included_modules[0..2]
+    assert_equal [ConcernTest::Foo, ConcernTest::Bar, ConcernTest::Baz::InstanceMethods, ConcernTest::Baz], @klass.included_modules[0..3]
   end
 end

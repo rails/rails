@@ -1,10 +1,10 @@
 module ActionController #:nodoc:
   module Verification #:nodoc:
-    extend ActiveSupport::DependencyModule
+    extend ActiveSupport::Concern
 
     # TODO : Remove the defined? check when new base is the main base
     if defined?(ActionController::Http)
-      depends_on AbstractController::Callbacks, Session, Flash, Renderer
+      include AbstractController::Callbacks, Session, Flash, Renderer
     end
 
     # This module provides a class-level method for specifying that certain

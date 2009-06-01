@@ -21,8 +21,8 @@ module ActiveModel
       #   validates_presence_of :password_confirmation, :if => :password_changed?
       #
       # Configuration options:
-      # * <tt>:message</tt> - A custom error message (default is: "doesn't match confirmation")
-      # * <tt>:on</tt> - Specifies when this validation is active (default is <tt>:save</tt>, other options <tt>:create</tt>, <tt>:update</tt>)
+      # * <tt>:message</tt> - A custom error message (default is: "doesn't match confirmation").
+      # * <tt>:on</tt> - Specifies when this validation is active (default is <tt>:save</tt>, other options <tt>:create</tt>, <tt>:update</tt>).
       # * <tt>:if</tt> - Specifies a method, proc or string to call to determine if the validation should
       #   occur (e.g. <tt>:if => :allow_validation</tt>, or <tt>:if => Proc.new { |user| user.signup_step > 2 }</tt>).  The
       #   method, proc or string should return or evaluate to a true or false value.
@@ -30,13 +30,14 @@ module ActiveModel
       #   not occur (e.g. <tt>:unless => :skip_validation</tt>, or <tt>:unless => Proc.new { |user| user.signup_step <= 2 }</tt>).  The
       #   method, proc or string should return or evaluate to a true or false value.
       def validates_confirmation_of(*attr_names)
-        configuration = { :message => ActiveRecord::Errors.default_error_messages[:confirmation], :on => :save }
-        configuration.update(attr_names.extract_options!)
+        configuration = attr_names.extract_options!
 
         attr_accessor(*(attr_names.map { |n| "#{n}_confirmation" }))
 
         validates_each(attr_names, configuration) do |record, attr_name, value|
-          record.errors.add(attr_name, configuration[:message]) unless record.send("#{attr_name}_confirmation").nil? or value == record.send("#{attr_name}_confirmation")
+          unless record.send("#{attr_name}_confirmation").nil? or value == record.send("#{attr_name}_confirmation")
+            record.errors.add(attr_name, :confirmation, :default => configuration[:message]) 
+          end
         end
       end
     end

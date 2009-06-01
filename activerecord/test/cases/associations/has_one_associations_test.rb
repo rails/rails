@@ -183,7 +183,7 @@ class HasOneAssociationsTest < ActiveRecord::TestCase
 
     account = firm.build_account
     assert !account.save
-    assert_equal "can't be empty", account.errors.on("credit_limit")
+    assert_equal ["can't be empty"], account.errors["credit_limit"]
   end
 
   def test_build_association_twice_without_saving_affects_nothing
@@ -219,7 +219,7 @@ class HasOneAssociationsTest < ActiveRecord::TestCase
     assert_equal account, firm.account
     assert !account.save
     assert_equal account, firm.account
-    assert_equal "can't be empty", account.errors.on("credit_limit")
+    assert_equal ["can't be empty"], account.errors["credit_limit"]
   end
 
   def test_create

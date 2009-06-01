@@ -171,7 +171,7 @@ module ActionView
   #   <% end %>
   module Partials
     extend ActiveSupport::Memoizable
-    extend ActiveSupport::DependencyModule
+    extend ActiveSupport::Concern
     
     included do
       attr_accessor :_partial      

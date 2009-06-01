@@ -125,7 +125,7 @@ module ActiveRecord
   #   post.author.name = ''
   #   post.save(false) # => true
   module AutosaveAssociation
-    extend ActiveSupport::DependencyModule
+    extend ActiveSupport::Concern
 
     ASSOCIATION_TYPES = %w{ has_one belongs_to has_many has_and_belongs_to_many }
 
@@ -250,7 +250,7 @@ module ActiveRecord
           unless association.marked_for_destruction?
             association.errors.each do |attribute, message|
               attribute = "#{reflection.name}_#{attribute}"
-              errors.add(attribute, message) unless errors.on(attribute)
+              errors[attribute] << message if errors[attribute].empty?
             end
           end
         else

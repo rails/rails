@@ -1,40 +1,18 @@
 module ActiveModel
   class Errors < Hash
     include DeprecatedErrorMethods
-    
-    @@default_error_messages = {
-      :inclusion                => "is not included in the list",
-      :exclusion                => "is reserved",
-      :invalid                  => "is invalid",
-      :confirmation             => "doesn't match confirmation",
-      :accepted                 => "must be accepted",
-      :empty                    => "can't be empty",
-      :blank                    => "can't be blank",
-      :too_long                 => "is too long (maximum is %d characters)",
-      :too_short                => "is too short (minimum is %d characters)",
-      :wrong_length             => "is the wrong length (should be %d characters)",
-      :taken                    => "has already been taken",
-      :not_a_number             => "is not a number",
-      :greater_than             => "must be greater than %d",
-      :greater_than_or_equal_to => "must be greater than or equal to %d",
-      :equal_to                 => "must be equal to %d",
-      :less_than                => "must be less than %d",
-      :less_than_or_equal_to    => "must be less than or equal to %d",
-      :odd                      => "must be odd",
-      :even                     => "must be even"
-    }
-  
-    ##
-    # :singleton-method:
-    # Holds a hash with all the default error messages that can be replaced by your own copy or localizations.
-    cattr_accessor :default_error_messages
+
+    def initialize(base)
+      @base = base
+      super()
+    end
 
     alias_method :get, :[]
     alias_method :set, :[]=
 
     def [](attribute)
       if errors = get(attribute.to_sym)
-        errors.size == 1 ? errors.first : errors
+        errors
       else
         set(attribute.to_sym, [])
       end
@@ -55,28 +33,126 @@ module ActiveModel
     end
 
     def to_a
-      inject([]) do |errors_with_attributes, (attribute, errors)|
-        if error.blank?
-          errors_with_attributes
-        else
-          if attr == :base
-            errors_with_attributes << error
-          else
-            errors_with_attributes << (attribute.to_s.humanize + " " + error)
-          end
-        end
-      end
+      full_messages
+    end
+
+    def count
+      to_a.size
     end
 
     def to_xml(options={})
+      require 'builder' unless defined? ::Builder
       options[:root]    ||= "errors"
       options[:indent]  ||= 2
-      options[:builder] ||= Builder::XmlMarkup.new(:indent => options[:indent])
+      options[:builder] ||= ::Builder::XmlMarkup.new(:indent => options[:indent])
 
       options[:builder].instruct! unless options.delete(:skip_instruct)
       options[:builder].errors do |e|
         to_a.each { |error| e.error(error) }
       end
+    end
+
+    # Adds an error message (+messsage+) to the +attribute+, which will be returned on a call to <tt>on(attribute)</tt>
+    # for the same attribute and ensure that this error object returns false when asked if <tt>empty?</tt>. More than one
+    # error can be added to the same +attribute+ in which case an array will be returned on a call to <tt>on(attribute)</tt>.
+    # If no +messsage+ is supplied, :invalid is assumed.
+    # If +message+ is a Symbol, it will be translated, using the appropriate scope (see translate_error).
+    def add(attribute, message = nil, options = {})
+      message ||= :invalid
+      message = generate_message(attribute, message, options) if message.is_a?(Symbol)
+      self[attribute] << message
+    end
+
+    # Will add an error message to each of the attributes in +attributes+ that is empty.
+    def add_on_empty(attributes, custom_message = nil)
+      [attributes].flatten.each do |attribute|
+        value = @base.get_attribute_value(attribute)
+        is_empty = value.respond_to?(:empty?) ? value.empty? : false
+        add(attribute, :empty, :default => custom_message) unless !value.nil? && !is_empty
+      end
+    end
+
+    # Will add an error message to each of the attributes in +attributes+ that is blank (using Object#blank?).
+    def add_on_blank(attributes, custom_message = nil)
+      [attributes].flatten.each do |attribute|
+        value = @base.get_attribute_value(attribute)
+        add(attribute, :blank, :default => custom_message) if value.blank?
+      end
+    end
+
+    # Returns all the full error messages in an array.
+    #
+    #   class Company
+    #     validates_presence_of :name, :address, :email
+    #     validates_length_of :name, :in => 5..30
+    #   end
+    #
+    #   company = Company.create(:address => '123 First St.')
+    #   company.errors.full_messages # =>
+    #     ["Name is too short (minimum is 5 characters)", "Name can't be blank", "Address can't be blank"]
+    def full_messages(options = {})
+      full_messages = []
+
+      each do |attribute, messages|
+        next if messages.empty?
+
+        if attribute == :base
+          messages.each {|m| full_messages << m }
+        else
+          attr_name = attribute.to_s.humanize
+          prefix = attr_name + I18n.t('activemodel.errors.format.separator', :default => ' ')
+          messages.each do |m|
+            full_messages <<  "#{prefix}#{m}"
+          end
+        end
+      end
+
+      full_messages
+    end
+
+    # Translates an error message in it's default scope (<tt>activemodel.errrors.messages</tt>).
+    # Error messages are first looked up in <tt>models.MODEL.attributes.ATTRIBUTE.MESSAGE</tt>, if it's not there, 
+    # it's looked up in <tt>models.MODEL.MESSAGE</tt> and if that is not there it returns the translation of the 
+    # default message (e.g. <tt>activemodel.errors.messages.MESSAGE</tt>). The translated model name, 
+    # translated attribute name and the value are available for interpolation.
+    #
+    # When using inheritence in your models, it will check all the inherited models too, but only if the model itself
+    # hasn't been found. Say you have <tt>class Admin < User; end</tt> and you wanted the translation for the <tt>:blank</tt>
+    # error +message+ for the <tt>title</tt> +attribute+, it looks for these translations:
+    # 
+    # <ol>
+    # <li><tt>activemodel.errors.models.admin.attributes.title.blank</tt></li>
+    # <li><tt>activemodel.errors.models.admin.blank</tt></li>
+    # <li><tt>activemodel.errors.models.user.attributes.title.blank</tt></li>
+    # <li><tt>activemodel.errors.models.user.blank</tt></li>
+    # <li><tt>activemodel.errors.messages.blank</tt></li>
+    # <li>any default you provided through the +options+ hash (in the activemodel.errors scope)</li>
+    # </ol>
+    def generate_message(attribute, message = :invalid, options = {})
+      message, options[:default] = options[:default], message if options[:default].is_a?(Symbol)
+
+      klass_ancestors = [@base.class]
+      klass_ancestors += @base.class.ancestors.reject {|x| x.is_a?(Module)}
+
+      defaults = klass_ancestors.map do |klass|
+        [ :"models.#{klass.name.underscore}.attributes.#{attribute}.#{message}", 
+          :"models.#{klass.name.underscore}.#{message}" ]
+      end
+
+      defaults << options.delete(:default)
+      defaults = defaults.compact.flatten << :"messages.#{message}"
+
+      key = defaults.shift
+      value = @base.get_attribute_value(attribute)
+
+      options = { :default => defaults,
+        :model => @base.class.name.humanize,
+        :attribute => attribute.to_s.humanize,
+        :value => value,
+        :scope => [:activemodel, :errors]
+      }.merge(options)
+
+      I18n.translate(key, options)
     end
   end
 end

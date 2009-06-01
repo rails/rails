@@ -63,7 +63,7 @@ module ActionController #:nodoc:
           cache_filter = ActionCacheFilter.new(:layout => options.delete(:layout), :cache_path => options.delete(:cache_path), :store_options => options)
 
           # TODO: Remove this once new base is swapped in.
-          if defined?(Http)
+          if defined?(ActionController::Http)
             around_filter cache_filter, filter_options
           else
             around_filter(filter_options) do |controller, action|
@@ -92,16 +92,18 @@ module ActionController #:nodoc:
         end
 
         # TODO: Remove once New Base is merged
-        def filter(controller, action)
-          should_continue = before(controller)
-          action.call if should_continue
-          after(controller)
-        end
-
-        def around_process_action(controller)
-          should_continue = before(controller)
-          yield if should_continue
-          after(controller)
+        if defined?(ActionController::Http)
+          def filter(controller)
+            should_continue = before(controller)
+            yield if should_continue
+            after(controller)
+          end
+        else
+          def filter(controller, action)
+            should_continue = before(controller)
+            action.call if should_continue
+            after(controller)
+          end
         end
 
         def before(controller)

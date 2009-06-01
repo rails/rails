@@ -122,13 +122,18 @@ class FlashTest < ActionController::TestCase
     assert_nil                  assigns["flash_copy"]["that"], "On second flash"
     assert_equal "hello again", assigns["flash_copy"]["this"], "On second flash"
   end
-  
+
   def test_flash_after_reset_session
     get :use_flash_after_reset_session
     assert_equal "hello",    assigns["flashy_that"]
     assert_equal "good-bye", assigns["flashy_this"]
     assert_nil   assigns["flashy_that_reset"]
   end 
+
+  def test_does_not_set_the_session_if_the_flash_is_empty
+    get :std_action
+    assert_nil session["flash"]
+  end
 
   def test_sweep_after_halted_filter_chain
     get :std_action
@@ -139,5 +144,20 @@ class FlashTest < ActionController::TestCase
     assert_equal "bar", assigns["flash_copy"]["foo"]
     get :std_action
     assert_nil assigns["flash_copy"]["foo"]
+  end
+
+  def test_keep_and_discard_return_values
+    flash = ActionController::Flash::FlashHash.new
+    flash.update(:foo => :foo_indeed, :bar => :bar_indeed)
+
+    assert_equal(:foo_indeed, flash.discard(:foo)) # valid key passed
+    assert_nil flash.discard(:unknown) # non existant key passed
+    assert_equal({:foo => :foo_indeed, :bar => :bar_indeed}, flash.discard()) # nothing passed
+    assert_equal({:foo => :foo_indeed, :bar => :bar_indeed}, flash.discard(nil)) # nothing passed      
+
+    assert_equal(:foo_indeed, flash.keep(:foo)) # valid key passed
+    assert_nil flash.keep(:unknown) # non existant key passed
+    assert_equal({:foo => :foo_indeed, :bar => :bar_indeed}, flash.keep()) # nothing passed
+    assert_equal({:foo => :foo_indeed, :bar => :bar_indeed}, flash.keep(nil)) # nothing passed     
   end
 end

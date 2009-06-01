@@ -3,7 +3,7 @@ require 'active_support/core_ext/hash/except'
 
 module ActiveRecord
   module NamedScope
-    extend ActiveSupport::DependencyModule
+    extend ActiveSupport::Concern
 
     # All subclasses of ActiveRecord::Base have one named scope:
     # * <tt>scoped</tt> - which allows for the creation of anonymous \scopes, on the fly: <tt>Shirt.scoped(:conditions => {:color => 'red'}).scoped(:include => :washing_instructions)</tt>

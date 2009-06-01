@@ -10,7 +10,8 @@ module ActionDispatch
     @@rescue_responses = Hash.new(:internal_server_error)
     @@rescue_responses.update({
       'ActionController::RoutingError'             => :not_found,
-      'ActionController::UnknownAction'            => :not_found,
+      # TODO: Clean this up after the switch
+      ActionController::UnknownAction.name         => :not_found,
       'ActiveRecord::RecordNotFound'               => :not_found,
       'ActiveRecord::StaleObjectError'             => :conflict,
       'ActiveRecord::RecordInvalid'                => :unprocessable_entity,
@@ -23,14 +24,17 @@ module ActionDispatch
     cattr_accessor :rescue_templates
     @@rescue_templates = Hash.new('diagnostics')
     @@rescue_templates.update({
-      'ActionView::MissingTemplate'       => 'missing_template',
-      'ActionController::RoutingError'    => 'routing_error',
-      'ActionController::UnknownAction'   => 'unknown_action',
-      'ActionView::TemplateError'         => 'template_error'
+      'ActionView::MissingTemplate'         => 'missing_template',
+      'ActionController::RoutingError'      => 'routing_error',
+      ActionController::UnknownAction.name  => 'unknown_action',
+      'ActionView::TemplateError'           => 'template_error'
     })
 
     FAILSAFE_RESPONSE = [500, {'Content-Type' => 'text/html'},
-      ['<html><body><h1>500 Internal Server Error</h1></body></html>']]
+      ["<html><body><h1>500 Internal Server Error</h1>" <<
+       "If you are the administrator of this website, then please read this web " <<
+       "application's log file and/or the web server's log file to find out what " <<
+       "went wrong.</body></html>"]]
 
     def initialize(app, consider_all_requests_local = false)
       @app = app

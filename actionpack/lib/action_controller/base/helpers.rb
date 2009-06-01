@@ -3,7 +3,7 @@ require 'active_support/dependencies'
 # FIXME: helper { ... } is broken on Ruby 1.9
 module ActionController #:nodoc:
   module Helpers #:nodoc:
-    extend ActiveSupport::DependencyModule
+    extend ActiveSupport::Concern
 
     included do
       # Initialize the base module to aggregate its helpers.
