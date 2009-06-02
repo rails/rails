@@ -35,12 +35,10 @@ module Arel
 
       def update(update)
         update.call
-        update
       end
 
       def delete(delete)
         delete.call
-        delete
       end
     end
     include CRUD
