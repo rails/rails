@@ -409,7 +409,7 @@ module ActiveRecord
       end
 
       def get_all_versions
-        table = Arel::Table.new(schema_migrations_table_name, Base.connection)
+        table = Arel::Table.new(schema_migrations_table_name)
         Base.connection.select_values(table.project(table['version']).to_sql).map(&:to_i).sort
       end
 
@@ -531,7 +531,7 @@ module ActiveRecord
 
     private
       def record_version_state_after_migrating(version)
-        table = Arel::Table.new(self.class.schema_migrations_table_name, Base.connection)
+        table = Arel::Table.new(self.class.schema_migrations_table_name)
 
         @migrated_versions ||= []
         if down?
