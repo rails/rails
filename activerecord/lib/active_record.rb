@@ -77,4 +77,5 @@ module ActiveRecord
   end
 end
 
+Arel::Table.engine = Arel::Sql::Engine.new(ActiveRecord::Base)
 I18n.load_path << File.dirname(__FILE__) + '/active_record/locale/en.yml'

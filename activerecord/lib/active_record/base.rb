@@ -1695,7 +1695,7 @@ module ActiveRecord #:nodoc:
         end
 
         def arel_table(table = table_name)
-          @arel_table = Arel::Table.new(table, ActiveRecord::Base.connection)
+          @arel_table = Arel::Table.new(table)
         end
 
         def construct_finder_arel(options)
@@ -3062,7 +3062,7 @@ module ActiveRecord #:nodoc:
       end
 
       def arel_table
-        @arel_table ||= Arel::Table.new(self.class.table_name, ActiveRecord::Base.connection)
+        @arel_table = Arel::Table.new(self.class.table_name)
       end
 
       def arel_attributes_values(include_primary_key = true, include_readonly_attributes = true, attribute_names = @attributes.keys)
