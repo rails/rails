@@ -161,18 +161,17 @@ module ActiveRecord
       end
 
       def execute_simple_calculation(operation, column_name, options) #:nodoc:
-        table = options[:from] || table_name
-
-        value = if operation == 'count'
-          if column_name == :all && options[:select].blank?
-            column_name = "*"
-          elsif !options[:select].blank?
-            column_name = options[:select]
-          end
-          construct_calculation_arel(options.merge(:select =>  Arel::Attribute.new(Arel(table), column_name).count(options[:distinct])))
+        column = if column_names.include?(column_name.to_s)
+          Arel::Attribute.new(arel_table(options[:from] || table_name),
+                              options[:select] || column_name)
         else
-          construct_calculation_arel(options.merge(:select =>  Arel::Attribute.new(Arel(table), column_name).send(operation)))
+          Arel::SqlLiteral.new(options[:select] ||
+                               (column_name == :all ? "*" : column_name.to_s))
         end
+
+        value = construct_calculation_arel(options.merge(
+          :select => operation == 'count' ? column.count(options[:distinct]) : column.send(operation)
+        ))
 
         type_cast_calculated_value(connection.select_value(value.to_sql), column_for(column_name), operation)
       end

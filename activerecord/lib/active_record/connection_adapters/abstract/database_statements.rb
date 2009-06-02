@@ -53,7 +53,7 @@ module ActiveRecord
       def delete(sql, name = nil)
         delete_sql(sql, name)
       end
-      
+
       # Checks whether there is currently no transaction active. This is done
       # by querying the database driver, and does not use the transaction
       # house-keeping information recorded by #increment_open_transactions and
@@ -170,7 +170,7 @@ module ActiveRecord
           end
         end
       end
-      
+
       # Begins the transaction (and turns off auto-committing).
       def begin_db_transaction()    end
 

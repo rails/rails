@@ -486,6 +486,7 @@ module ActiveRecord
           end
         end
       end
+      alias :create :insert
 
       # create a 2D array representing the result set
       def result_as_array(res) #:nodoc:

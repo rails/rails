@@ -909,7 +909,11 @@ module ActiveRecord #:nodoc:
       # Both calls delete the affected posts all at once with a single DELETE statement. If you need to destroy dependent
       # associations or call your <tt>before_*</tt> or +after_destroy+ callbacks, use the +destroy_all+ method instead.
       def delete_all(conditions = nil)
-        arel_table.where(construct_conditions(conditions, scope(:find))).delete
+        if conditions
+          arel_table.where(Arel::SqlLiteral.new(construct_conditions(conditions, scope(:find)))).delete
+        else
+          arel_table.delete
+        end
       end
 
       # Returns the result of an SQL statement that should only include a COUNT(*) in the SELECT part.
@@ -1691,7 +1695,7 @@ module ActiveRecord #:nodoc:
         end
 
         def arel_table(table = table_name)
-          @arel_table = Arel(table)
+          @arel_table = Arel::Table.new(table, ActiveRecord::Base.connection)
         end
 
         def construct_finder_arel(options)
@@ -3058,7 +3062,7 @@ module ActiveRecord #:nodoc:
       end
 
       def arel_table
-        @arel_table ||= Arel(self.class.table_name)
+        @arel_table ||= Arel::Table.new(self.class.table_name, ActiveRecord::Base.connection)
       end
 
       def arel_attributes_values(include_primary_key = true, include_readonly_attributes = true, attribute_names = @attributes.keys)
@@ -3069,7 +3073,7 @@ module ActiveRecord #:nodoc:
             value = read_attribute(name)
 
             if include_readonly_attributes || (!include_readonly_attributes && !self.class.readonly_attributes.include?(name))
-              attrs[arel_table[name]] = value
+              attrs[arel_table[name]] = value.is_a?(Hash) ? value.to_yaml : value
             end
           end
         end
