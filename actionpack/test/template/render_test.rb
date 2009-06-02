@@ -247,10 +247,27 @@ module RenderTestCases
   end
 
   if '1.9'.respond_to?(:force_encoding)
-    def test_render_utf8_template
-      result = @view.render(:file => "test/utf8.html.erb", :layouts => "layouts/yield")
-      assert_equal "Русский текст\n日本語のテキスト", result
-      assert_equal Encoding::UTF_8, result.encoding
+    def test_render_utf8_template_with_magic_comment
+      with_external_encoding Encoding::ASCII_8BIT do
+        result = @view.render(:file => "test/utf8_magic.html.erb", :layouts => "layouts/yield")
+        assert_equal "Русский текст\nUTF-8\nUTF-8\nUTF-8\n", result
+        assert_equal Encoding::UTF_8, result.encoding
+      end
+    end
+
+    def test_render_utf8_template_with_default_external_encoding
+      with_external_encoding Encoding::UTF_8 do
+        result = @view.render(:file => "test/utf8.html.erb", :layouts => "layouts/yield")
+        assert_equal "Русский текст\nUTF-8\nUTF-8\nUTF-8\n", result
+        assert_equal Encoding::UTF_8, result.encoding
+      end
+    end
+
+    def with_external_encoding(encoding)
+      old, Encoding.default_external = Encoding.default_external, encoding
+      yield
+    ensure
+      Encoding.default_external = old
     end
   end
 end

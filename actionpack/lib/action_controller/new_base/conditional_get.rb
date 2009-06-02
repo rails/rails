@@ -1,12 +1,15 @@
 module ActionController
   module ConditionalGet
-    
+    extend ActiveSupport::Concern
+
+    include RackConvenience
+
     # Sets the etag, last_modified, or both on the response and renders a
     # "304 Not Modified" response if the request is already fresh.
     #
     # Parameters:
     # * <tt>:etag</tt>
-    # * <tt>:last_modified</tt> 
+    # * <tt>:last_modified</tt>
     # * <tt>:public</tt> By default the Cache-Control header is private, set this to true if you want your application to be cachable by other devices (proxy caches).
     #
     # Example:
@@ -18,14 +21,14 @@ module ActionController
     #
     # This will render the show template if the request isn't sending a matching etag or
     # If-Modified-Since header and just a "304 Not Modified" response if there's a match.
-    #    
+    #
     def fresh_when(options)
       options.assert_valid_keys(:etag, :last_modified, :public)
 
       response.etag          = options[:etag]          if options[:etag]
       response.last_modified = options[:last_modified] if options[:last_modified]
-      
-      if options[:public] 
+
+      if options[:public]
         cache_control = response.headers["Cache-Control"].split(",").map {|k| k.strip }
         cache_control.delete("private")
         cache_control.delete("no-cache")
@@ -36,8 +39,8 @@ module ActionController
       if request.fresh?(response)
         head :not_modified
       end
-    end 
-    
+    end
+
     # Return a response that has no content (merely headers). The options
     # argument is interpreted to be a hash of header names and values.
     # This allows you to easily return a response that consists only of
@@ -64,8 +67,8 @@ module ActionController
       end
 
       render :nothing => true, :status => status
-    end   
-    
+    end
+
     # Sets the etag and/or last_modified on the response and checks it against
     # the client request. If the request doesn't match the options provided, the
     # request is considered stale and should be generated from scratch. Otherwise,
@@ -73,7 +76,7 @@ module ActionController
     #
     # Parameters:
     # * <tt>:etag</tt>
-    # * <tt>:last_modified</tt> 
+    # * <tt>:last_modified</tt>
     # * <tt>:public</tt> By default the Cache-Control header is private, set this to true if you want your application to be cachable by other devices (proxy caches).
     #
     # Example:
@@ -92,7 +95,7 @@ module ActionController
       fresh_when(options)
       !request.fresh?(response)
     end
-    
+
     # Sets a HTTP 1.1 Cache-Control header. Defaults to issuing a "private" instruction, so that
     # intermediate caches shouldn't cache the response.
     #
@@ -114,10 +117,10 @@ module ActionController
       else
         cache_control << "private"
       end
-      
+
       # This allows for additional headers to be passed through like 'max-stale' => 5.hours
       cache_control += options.symbolize_keys.reject{|k,v| k == :public || k == :private }.map{ |k,v| v == true ? k.to_s : "#{k.to_s}=#{v.to_s}"}
-      
+
       response.headers["Cache-Control"] = cache_control.join(', ')
     end
 
@@ -126,6 +129,5 @@ module ActionController
     def expires_now #:doc:
       response.headers["Cache-Control"] = "no-cache"
     end
-    
   end
 end

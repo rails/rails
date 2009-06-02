@@ -301,7 +301,7 @@ module ActionController
     # A module used to extend ActionController::Base, so that integration tests
     # can capture the controller used to satisfy a request.
     module ControllerCapture #:nodoc:
-      extend ActiveSupport::DependencyModule
+      extend ActiveSupport::Concern
 
       included do
         alias_method_chain :initialize, :capture

@@ -1,11 +1,6 @@
 module ActionController #:nodoc:
   module Filters #:nodoc:
-    def self.included(base)
-      base.class_eval do
-        extend ClassMethods
-        include ActionController::Filters::InstanceMethods
-      end
-    end
+    extend ActiveSupport::Concern
 
     class FilterChain < ActiveSupport::Callbacks::CallbackChain #:nodoc:
       def append_filter_to_chain(filters, filter_type, &block)

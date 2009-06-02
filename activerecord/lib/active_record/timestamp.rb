@@ -8,7 +8,7 @@ module ActiveRecord
   # Timestamps are in the local timezone by default but you can use UTC by setting
   #   <tt>ActiveRecord::Base.default_timezone = :utc</tt>
   module Timestamp
-    extend ActiveSupport::DependencyModule
+    extend ActiveSupport::Concern
 
     included do
       alias_method_chain :create, :timestamps

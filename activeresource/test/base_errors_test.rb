@@ -20,21 +20,21 @@ class BaseErrorsTest < Test::Unit::TestCase
   end
 
   def test_should_parse_errors_to_individual_attributes
-    assert @person.errors.invalid?(:name)    
-    assert_equal "can't be blank", @person.errors.on(:age)
+    assert @person.errors[:name].any?
+    assert_equal ["can't be blank"], @person.errors[:age]
     assert_equal ["can't be blank", "must start with a letter"], @person.errors[:name]
-    assert_equal "Person quota full for today.", @person.errors.on_base
+    assert_equal ["Person quota full for today."], @person.errors[:base]
   end
 
   def test_should_iterate_over_errors
     errors = []
-    @person.errors.each { |attribute, message| errors << [attribute, message] }
+    @person.errors.each { |attribute, message| errors << [attribute.to_s, message] }
     assert errors.include?(["name", "can't be blank"])
   end
 
   def test_should_iterate_over_full_errors
     errors = []
-    @person.errors.each_full { |message| errors << message }
+    @person.errors.to_a.each { |message| errors << message }
     assert errors.include?("Name can't be blank")
   end
 

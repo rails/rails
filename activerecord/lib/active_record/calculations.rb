@@ -1,6 +1,6 @@
 module ActiveRecord
   module Calculations #:nodoc:
-    extend ActiveSupport::DependencyModule
+    extend ActiveSupport::Concern
 
     CALCULATIONS_OPTIONS = [:conditions, :joins, :order, :select, :group, :having, :distinct, :limit, :offset, :include, :from]
 

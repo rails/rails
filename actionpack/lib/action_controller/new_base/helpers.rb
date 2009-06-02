@@ -4,9 +4,9 @@ require 'active_support/dependencies'
 
 module ActionController
   module Helpers
-    extend ActiveSupport::DependencyModule
+    extend ActiveSupport::Concern
 
-    depends_on AbstractController::Helpers
+    include AbstractController::Helpers
 
     included do
       # Set the default directory for helpers
@@ -24,10 +24,10 @@ module ActionController
       #
       # * <tt>*args</tt>: One or more modules, strings or symbols, or the special symbol <tt>:all</tt>.
       # * <tt>&block</tt>: A block defining helper methods.
-      # 
+      #
       # ==== Examples
-      # When the argument is a string or symbol, the method will provide the "_helper" suffix, require the file 
-      # and include the module in the template class.  The second form illustrates how to include custom helpers 
+      # When the argument is a string or symbol, the method will provide the "_helper" suffix, require the file
+      # and include the module in the template class.  The second form illustrates how to include custom helpers
       # when working with namespaced controllers, or other cases where the file containing the helper definition is not
       # in one of Rails' standard load paths:
       #   helper :foo             # => requires 'foo_helper' and includes FooHelper
@@ -40,17 +40,17 @@ module ActionController
       # <tt>ActionController::Base.helpers_dir</tt> (defaults to <tt>app/helpers/**/*.rb</tt> under RAILS_ROOT).
       #   helper :all
       #
-      # Additionally, the +helper+ class method can receive and evaluate a block, making the methods defined available 
+      # Additionally, the +helper+ class method can receive and evaluate a block, making the methods defined available
       # to the template.
       #   # One line
       #   helper { def hello() "Hello, world!" end }
       #   # Multi-line
       #   helper do
-      #     def foo(bar) 
-      #       "#{bar} is the very best" 
+      #     def foo(bar)
+      #       "#{bar} is the very best"
       #     end
       #   end
-      # 
+      #
       # Finally, all the above styles can be mixed together, and the +helper+ method can be invoked with a mix of
       # +symbols+, +strings+, +modules+ and blocks.
       #   helper(:three, BlindHelper) { def mice() 'mice' end }
@@ -106,25 +106,24 @@ module ActionController
       end
 
       private
-
-      def default_helper_module!
-        unless name.blank?
-          module_name = name.sub(/Controller$|$/, 'Helper')
-          module_path = module_name.split('::').map { |m| m.underscore }.join('/')
-          require_dependency module_path
-          helper module_name.constantize
+        def default_helper_module!
+          unless name.blank?
+            module_name = name.sub(/Controller$|$/, 'Helper')
+            module_path = module_name.split('::').map { |m| m.underscore }.join('/')
+            require_dependency module_path
+            helper module_name.constantize
+          end
+        rescue MissingSourceFile => e
+          raise unless e.is_missing? module_path
+        rescue NameError => e
+          raise unless e.missing_name? module_name
         end
-      rescue MissingSourceFile => e
-        raise unless e.is_missing? module_path
-      rescue NameError => e
-        raise unless e.missing_name? module_name
-      end
 
-      # Extract helper names from files in app/helpers/**/*.rb
-      def all_application_helpers
-        extract = /^#{Regexp.quote(helpers_dir)}\/?(.*)_helper.rb$/
-        Dir["#{helpers_dir}/**/*_helper.rb"].map { |file| file.sub extract, '\1' }
-      end
-    end # ClassMethods
+        # Extract helper names from files in app/helpers/**/*.rb
+        def all_application_helpers
+          extract = /^#{Regexp.quote(helpers_dir)}\/?(.*)_helper.rb$/
+          Dir["#{helpers_dir}/**/*_helper.rb"].map { |file| file.sub extract, '\1' }
+        end
+    end
   end
 end

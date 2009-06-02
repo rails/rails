@@ -123,6 +123,12 @@ class CookieTest < ActionController::TestCase
     assert_cookie_header "user_name=; path=/beaten; expires=Thu, 01-Jan-1970 00:00:00 GMT"
   end
 
+  def test_cookies_persist_throughout_request
+    get :authenticate
+    cookies = @controller.send(:cookies)
+    assert_equal 'david', cookies['user_name']
+  end
+  
   private
     def assert_cookie_header(expected)
       header = @response.headers["Set-Cookie"]

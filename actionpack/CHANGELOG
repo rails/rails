@@ -1,5 +1,8 @@
 *Edge*
 
+* Ruby 1.9: ERB template encoding using a magic comment at the top of the file.  [Jeremy Kemper]
+    <%# encoding: utf-8 %>
+
 * Change integration test helpers to accept Rack environment instead of just HTTP Headers [Pratik Naik]
 
   Before :  get '/path', {}, 'Accept' => 'text/javascript'

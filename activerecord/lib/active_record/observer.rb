@@ -3,7 +3,7 @@ require 'set'
 
 module ActiveRecord
   module Observing # :nodoc:
-    extend ActiveSupport::DependencyModule
+    extend ActiveSupport::Concern
 
     module ClassMethods
       # Activates the observers assigned. Examples:

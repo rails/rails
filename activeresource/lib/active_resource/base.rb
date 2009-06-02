@@ -1,12 +1,14 @@
 require 'active_support'
 require 'active_support/core_ext/class/attribute_accessors'
 require 'active_support/core_ext/class/inheritable_attributes'
+require 'active_support/core_ext/kernel/reporting'
 require 'active_support/core_ext/module/attr_accessor_with_default'
 require 'active_support/core_ext/module/delegation'
 require 'active_support/core_ext/module/aliasing'
 require 'active_support/core_ext/object/blank'
 require 'active_support/core_ext/object/misc'
 require 'set'
+require 'uri'
 
 module ActiveResource
   autoload :Formats, 'active_resource/formats'
@@ -346,9 +348,9 @@ module ActiveResource
 
       # Do not include any modules in the default element name. This makes it easier to seclude ARes objects
       # in a separate namespace without having to set element_name repeatedly.
-      attr_accessor_with_default(:element_name)    { to_s.split("::").last.underscore } #:nodoc:
+      attr_accessor_with_default(:element_name)    { ActiveSupport::Inflector.underscore(to_s.split("::").last) } #:nodoc:
 
-      attr_accessor_with_default(:collection_name) { element_name.pluralize } #:nodoc:
+      attr_accessor_with_default(:collection_name) { ActiveSupport::Inflector.pluralize(element_name) } #:nodoc:
       attr_accessor_with_default(:primary_key, 'id') #:nodoc:
       
       # Gets the \prefix for a resource's nested URL (e.g., <tt>prefix/collectionname/1.xml</tt>)
@@ -384,7 +386,7 @@ module ActiveResource
         end_code
         silence_warnings { instance_eval code, __FILE__, __LINE__ }
       rescue
-        logger.error "Couldn't set prefix: #{$!}\n  #{code}"
+        logger.error "Couldn't set prefix: #{$!}\n  #{code}" if logger
         raise
       end
 

@@ -1,5 +1,9 @@
 module ActionController
   module Session
+    extend ActiveSupport::Concern
+
+    include RackConvenience
+
     def session
       @_request.session
     end

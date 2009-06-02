@@ -16,11 +16,9 @@ module ActionView
       self.default_format = Mime::HTML
 
       def compile(template)
-        src = ::ERB.new("<% __in_erb_template=true %>#{template.source}", nil, erb_trim_mode, '@output_buffer').src
-
-        # Ruby 1.9 prepends an encoding to the source. However this is
-        # useless because you can only set an encoding on the first line
-        RUBY_VERSION >= '1.9' ? src.sub(/\A#coding:.*\n/, '') : src
+        magic = $1 if template.source =~ /\A(<%#.*coding:\s*(\S+)\s*-?%>)/
+        erb = "#{magic}<% __in_erb_template=true %>#{template.source}"
+        ::ERB.new(erb, nil, erb_trim_mode, '@output_buffer').src
       end
     end
   end

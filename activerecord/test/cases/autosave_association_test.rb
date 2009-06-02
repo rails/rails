@@ -61,7 +61,7 @@ class TestDefaultAutosaveAssociationOnAHasOneAssociation < ActiveRecord::TestCas
     assert !firm.account.valid?
     assert !firm.valid?
     assert !firm.save
-    assert_equal "is invalid", firm.errors.on("account")
+    assert_equal ["is invalid"], firm.errors["account"]
   end
 
   def test_save_succeeds_for_invalid_has_one_with_validate_false
@@ -160,7 +160,7 @@ class TestDefaultAutosaveAssociationOnABelongsToAssociation < ActiveRecord::Test
     assert !log.developer.valid?
     assert !log.valid?
     assert !log.save
-    assert_equal "is invalid", log.errors.on("developer")
+    assert_equal ["is invalid"], log.errors["developer"]
   end
 
   def test_save_succeeds_for_invalid_belongs_to_with_validate_false
@@ -650,16 +650,16 @@ class TestAutosaveAssociationOnAHasOneAssociation < ActiveRecord::TestCase
 
   def test_should_automatically_validate_the_associated_model
     @pirate.ship.name = ''
-    assert !@pirate.valid?
-    assert !@pirate.errors.on(:ship_name).blank?
+    assert @pirate.invalid?
+    assert @pirate.errors[:ship_name].any?
   end
 
   def test_should_merge_errors_on_the_associated_models_onto_the_parent_even_if_it_is_not_valid
     @pirate.ship.name   = nil
     @pirate.catchphrase = nil
-    assert !@pirate.valid?
-    assert !@pirate.errors.on(:ship_name).blank?
-    assert !@pirate.errors.on(:catchphrase).blank?
+    assert @pirate.invalid?
+    assert @pirate.errors[:ship_name].any?
+    assert @pirate.errors[:catchphrase].any?
   end
 
   def test_should_still_allow_to_bypass_validations_on_the_associated_model
@@ -740,16 +740,16 @@ class TestAutosaveAssociationOnABelongsToAssociation < ActiveRecord::TestCase
 
   def test_should_automatically_validate_the_associated_model
     @ship.pirate.catchphrase = ''
-    assert !@ship.valid?
-    assert !@ship.errors.on(:pirate_catchphrase).blank?
+    assert @ship.invalid?
+    assert @ship.errors[:pirate_catchphrase].any?
   end
 
   def test_should_merge_errors_on_the_associated_model_onto_the_parent_even_if_it_is_not_valid
     @ship.name = nil
     @ship.pirate.catchphrase = nil
-    assert !@ship.valid?
-    assert !@ship.errors.on(:name).blank?
-    assert !@ship.errors.on(:pirate_catchphrase).blank?
+    assert @ship.invalid?
+    assert @ship.errors[:name].any?
+    assert @ship.errors[:pirate_catchphrase].any?
   end
 
   def test_should_still_allow_to_bypass_validations_on_the_associated_model
@@ -811,16 +811,16 @@ module AutosaveAssociationOnACollectionAssociationTests
     @pirate.send(@association_name).each { |child| child.name = '' }
 
     assert !@pirate.valid?
-    assert_equal "can't be blank", @pirate.errors.on("#{@association_name}_name")
-    assert @pirate.errors.on(@association_name).blank?
+    assert_equal ["can't be blank"], @pirate.errors["#{@association_name}_name"]
+    assert @pirate.errors[@association_name].empty?
   end
 
   def test_should_not_use_default_invalid_error_on_associated_models
     @pirate.send(@association_name).build(:name => '')
 
     assert !@pirate.valid?
-    assert_equal "can't be blank", @pirate.errors.on("#{@association_name}_name")
-    assert @pirate.errors.on(@association_name).blank?
+    assert_equal ["can't be blank"], @pirate.errors["#{@association_name}_name"]
+    assert @pirate.errors[@association_name].empty?
   end
 
   def test_should_merge_errors_on_the_associated_models_onto_the_parent_even_if_it_is_not_valid
@@ -828,8 +828,8 @@ module AutosaveAssociationOnACollectionAssociationTests
     @pirate.catchphrase = nil
 
     assert !@pirate.valid?
-    assert_equal "can't be blank", @pirate.errors.on("#{@association_name}_name")
-    assert !@pirate.errors.on(:catchphrase).blank?
+    assert_equal ["can't be blank"], @pirate.errors["#{@association_name}_name"]
+    assert @pirate.errors[:catchphrase].any?
   end
 
   def test_should_allow_to_bypass_validations_on_the_associated_models_on_update

@@ -1,0 +1,13 @@
+Description:
+    Create a model subclass of parent, used for Single Table Inheritance.
+
+    Both subclass and parent name can be either CamelCased or under_scored.
+
+    This generates a model class in app/models and a unit test in test/unit.
+
+Examples:
+    `./script/generate model_subclass admin user`
+
+        creates an Admin model, which will inheritate from User model, test:
+            Model:      app/models/admin.rb
+            Test:       test/unit/admin_test.rb

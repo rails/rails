@@ -426,10 +426,14 @@ Run `rake gems:install` to install the missing gems.
     # should override this behaviour and set the relevant +default_charset+
     # on ActionController::Base.
     #
-    # For Ruby 1.9, this does nothing. Specify the default encoding in the Ruby
-    # shebang line if you don't want UTF-8.
+    # For Ruby 1.9, UTF-8 is the default internal and external encoding.
     def initialize_encoding
-      $KCODE='u' if RUBY_VERSION < '1.9'
+      if RUBY_VERSION < '1.9'
+        $KCODE='u'
+      else
+        Encoding.default_internal = Encoding::UTF_8
+        Encoding.default_external = Encoding::UTF_8
+      end
     end
 
     # This initialization routine does nothing unless <tt>:active_record</tt>
@@ -445,7 +449,8 @@ Run `rake gems:install` to install the missing gems.
 
     def initialize_database_middleware
       if configuration.frameworks.include?(:active_record)
-        if ActionController::Base.session_store == ActiveRecord::SessionStore
+        if configuration.frameworks.include?(:action_controller) &&
+            ActionController::Base.session_store.name == 'ActiveRecord::SessionStore'
           configuration.middleware.insert_before :"ActiveRecord::SessionStore", ActiveRecord::ConnectionAdapters::ConnectionManagement
           configuration.middleware.insert_before :"ActiveRecord::SessionStore", ActiveRecord::QueryCache
         else
@@ -886,7 +891,7 @@ Run `rake gems:install` to install the missing gems.
 
     # Enable threaded mode. Allows concurrent requests to controller actions and
     # multiple database connections. Also disables automatic dependency loading
-    # after boot, and disables reloading code on every request, as these are 
+    # after boot, and disables reloading code on every request, as these are
     # fundamentally incompatible with thread safety.
     def threadsafe!
       self.preload_frameworks = true
@@ -1129,3 +1134,4 @@ class Rails::OrderedOptions < Array #:nodoc:
       return false
     end
 end
+

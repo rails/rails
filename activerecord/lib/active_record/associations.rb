@@ -79,7 +79,7 @@ module ActiveRecord
 
   # See ActiveRecord::Associations::ClassMethods for documentation.
   module Associations # :nodoc:
-    extend ActiveSupport::DependencyModule
+    extend ActiveSupport::Concern
 
     # These classes will be loaded when associations are created.
     # So there is no need to eager load them.

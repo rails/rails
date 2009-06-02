@@ -1,6 +1,6 @@
 module ActiveRecord
   module Aggregations # :nodoc:
-    extend ActiveSupport::DependencyModule
+    extend ActiveSupport::Concern
 
     def clear_aggregation_cache #:nodoc:
       self.class.reflect_on_all_aggregations.to_a.each do |assoc|

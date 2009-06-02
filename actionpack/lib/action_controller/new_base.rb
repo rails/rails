@@ -4,6 +4,7 @@ module ActionController
   autoload :HideActions,          "action_controller/new_base/hide_actions"
   autoload :Http,                 "action_controller/new_base/http"
   autoload :Layouts,              "action_controller/new_base/layouts"
+  autoload :RackConvenience,      "action_controller/new_base/rack_convenience"
   autoload :Rails2Compatibility,  "action_controller/new_base/compatibility"
   autoload :Redirector,           "action_controller/new_base/redirector"
   autoload :Renderer,             "action_controller/new_base/renderer"
@@ -39,6 +40,8 @@ module ActionController
 
   require 'action_controller/routing'
 end
+
+autoload :HTML, 'action_controller/vendor/html-scanner'
 
 require 'action_dispatch'
 require 'action_view'

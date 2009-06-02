@@ -34,7 +34,7 @@ module ActiveRecord
   #   person.name << 'by'
   #   person.name_change    # => ['uncle bob', 'uncle bobby']
   module Dirty
-    extend ActiveSupport::DependencyModule
+    extend ActiveSupport::Concern
 
     DIRTY_SUFFIXES = ['_changed?', '_change', '_will_change!', '_was']
 

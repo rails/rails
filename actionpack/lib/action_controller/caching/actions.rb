@@ -93,7 +93,7 @@ module ActionController #:nodoc:
 
         # TODO: Remove once New Base is merged
         if defined?(ActionController::Http)
-          def around_process_action(controller)
+          def filter(controller)
             should_continue = before(controller)
             yield if should_continue
             after(controller)

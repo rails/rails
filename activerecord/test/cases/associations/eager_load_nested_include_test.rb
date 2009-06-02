@@ -7,7 +7,7 @@ require 'models/categorization'
 require 'active_support/core_ext/array/random_access'
 
 module Remembered
-  extend ActiveSupport::DependencyModule
+  extend ActiveSupport::Concern
 
   included do
     after_create :remember

@@ -1,7 +1,7 @@
 module ActiveRecord
   module Testing
     module RepairHelper
-      extend ActiveSupport::DependencyModule
+      extend ActiveSupport::Concern
 
       module Toolbox
         def self.record_validations(*model_classes)

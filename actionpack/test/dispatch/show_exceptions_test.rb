@@ -61,7 +61,7 @@ class ShowExceptionsTest < ActionController::IntegrationTest
 
     get "/not_found"
     assert_response 404
-    assert_match /ActionController::UnknownAction/, body
+    assert_match /#{ActionController::UnknownAction.name}/, body
 
     get "/method_not_allowed"
     assert_response 405
@@ -99,7 +99,7 @@ class ShowExceptionsTest < ActionController::IntegrationTest
 
     get "/not_found"
     assert_response 404
-    assert_match /ActionController::UnknownAction/, body
+    assert_match /#{ActionController::UnknownAction.name}/, body
 
     get "/method_not_allowed"
     assert_response 405

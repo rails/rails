@@ -6,13 +6,13 @@ module ActionController
       super(message || DEFAULT_MESSAGE)
     end
   end
-  
+
   module Redirector
     def redirect_to(url, status) #:doc:
       raise AbstractController::DoubleRenderError if response_body
       logger.info("Redirected to #{url}") if logger && logger.info?
-      response.status = status
-      response.location = url.gsub(/[\r\n]/, '')
+      self.status = status
+      self.location = url.gsub(/[\r\n]/, '')
       self.response_body = "<html><body>You are being <a href=\"#{CGI.escapeHTML(url)}\">redirected</a>.</body></html>"
     end
   end

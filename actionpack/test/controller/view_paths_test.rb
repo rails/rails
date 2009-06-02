@@ -22,7 +22,7 @@ class ViewLoadPathsTest < ActionController::TestCase
   end
   
   def setup
-    TestController.view_paths = nil
+    # TestController.view_paths = nil
 
     @request  = ActionController::TestRequest.new
     @response = ActionController::TestResponse.new
@@ -48,7 +48,7 @@ class ViewLoadPathsTest < ActionController::TestCase
 
   def assert_paths(*paths)
     controller = paths.first.is_a?(Class) ? paths.shift : @controller
-    assert_equal expand(paths), controller.view_paths.map(&:to_s)
+    assert_equal expand(paths), controller.view_paths.map { |p| p.to_s }
   end
 
   def test_template_load_path_was_set_correctly

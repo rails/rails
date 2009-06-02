@@ -1,6 +1,8 @@
 module ActionController
   module Testing
-    extend ActiveSupport::DependencyModule
+    extend ActiveSupport::Concern
+
+    include RackConvenience
 
     # OMG MEGA HAX
     def process_with_new_base_test(request, response)
@@ -13,7 +15,7 @@ module ActionController
       set_test_assigns
       ret
     end
-    
+
     def set_test_assigns
       @assigns = {}
       (instance_variable_names - self.class.protected_instance_variables).each do |var|
@@ -33,6 +35,5 @@ module ActionController
         _process_action_callbacks.find_all{|x| x.kind == :before}.map{|x| x.name}
       end
     end
-
   end
 end
