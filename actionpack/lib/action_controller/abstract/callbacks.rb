@@ -32,32 +32,32 @@ module AbstractController
         skip_around_filter(*names, &blk)
       end
 
+      def _insert_callbacks(names, block)
+        options = names.last.is_a?(Hash) ? names.pop : {}
+        _normalize_callback_options(options)
+        names.push(block) if block
+        names.each do |name|
+          yield name, options
+        end
+      end
+
       [:before, :after, :around].each do |filter|
         class_eval <<-RUBY_EVAL, __FILE__, __LINE__ + 1
           def #{filter}_filter(*names, &blk)
-            options = names.last.is_a?(Hash) ? names.pop : {}
-            _normalize_callback_options(options)
-            names.push(blk) if block_given?
-            names.each do |name|
-              process_action_callback(:#{filter}, name, options)
+            _insert_callbacks(names, blk) do |name, options|
+              _set_callback(:process_action, :#{filter}, name, options)
             end
           end
 
           def prepend_#{filter}_filter(*names, &blk)
-            options = names.last.is_a?(Hash) ? names.pop : {}
-            _normalize_callback_options(options)
-            names.push(blk) if block_given?
-            names.each do |name|
-              process_action_callback(:#{filter}, name, options.merge(:prepend => true))
+            _insert_callbacks(names, blk) do |name, options|
+              _set_callback(:process_action, :#{filter}, name, options.merge(:prepend => true))
             end
           end
 
           def skip_#{filter}_filter(*names, &blk)
-            options = names.last.is_a?(Hash) ? names.pop : {}
-            _normalize_callback_options(options)
-            names.push(blk) if block_given?
-            names.each do |name|
-              skip_process_action_callback(:#{filter}, name, options)
+            _insert_callbacks(names, blk) do |name, options|
+              _skip_callback(:process_action, :#{filter}, name, options)
             end
           end
 

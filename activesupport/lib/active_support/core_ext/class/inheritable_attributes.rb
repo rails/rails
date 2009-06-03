@@ -202,6 +202,8 @@ class Class
           def #{ivar}=(obj) self.class.#{ivar} = obj end
         RUBY
       end
+
+      self.send("#{ivar}=", yield) if block_given?
     end
   end
 
@@ -214,8 +216,8 @@ class Class
   # @return <Array[#to_s]> An Array of attributes turned into inheritable accessors.
   #
   # @api public
-  def extlib_inheritable_accessor(*syms)
+  def extlib_inheritable_accessor(*syms, &block)
     extlib_inheritable_reader(*syms)
-    extlib_inheritable_writer(*syms)
+    extlib_inheritable_writer(*syms, &block)
   end
 end

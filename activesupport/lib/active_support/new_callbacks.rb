@@ -385,8 +385,10 @@ module ActiveSupport
       # The _run_save_callbacks method can optionally take a key, which
       # will be used to compile an optimized callback method for each
       # key. See #define_callbacks for more information.
-      def _define_runner(symbol, str, options)
-        str = <<-RUBY_EVAL
+      def _define_runner(symbol, callbacks, options)
+        body = callbacks.compile(nil, :terminator => send("_#{symbol}_terminator"))
+
+        body = <<-RUBY_EVAL
           def _run_#{symbol}_callbacks(key = nil)
             if key
               key = key.hash.to_s.gsub(/-/, '_')
@@ -400,13 +402,13 @@ module ActiveSupport
                   :#{symbol}, key, self) { yield if block_given? }
               end
             else
-              #{str}
+              #{body}
             end
           end
         RUBY_EVAL
   
         undef_method "_run_#{symbol}_callbacks" if method_defined?("_run_#{symbol}_callbacks")
-        class_eval str, __FILE__, __LINE__
+        class_eval body, __FILE__, __LINE__
         
         before_name, around_name, after_name = 
           options.values_at(:before, :after, :around)
@@ -463,60 +465,62 @@ module ActiveSupport
       # In that case, each action_name would get its own compiled callback
       # method that took into consideration the per_key conditions. This
       # is a speed improvement for ActionPack.
+      def _update_callbacks(name, filters = CallbackChain.new(name), block = nil)
+        type = [:before, :after, :around].include?(filters.first) ? filters.shift : :before
+        options = filters.last.is_a?(Hash) ? filters.pop : {}
+        filters.unshift(block) if block
+
+        callbacks = send("_#{name}_callbacks")
+        yield callbacks, type, filters, options if block_given?
+
+        _define_runner(name, callbacks, options)
+      end
+
+      def _set_callback(name, *filters, &block)
+        _update_callbacks(name, filters, block) do |callbacks, type, filters, options|        
+          filters.map! do |filter|
+            # overrides parent class
+            callbacks.delete_if do |c|
+              c.matches?(type, name, filter)
+            end
+            Callback.new(filter, type, options.dup, self, name)
+          end
+
+          options[:prepend] ? callbacks.unshift(*filters) : callbacks.push(*filters)
+        end
+      end
+
+      def _skip_callback(name, *filters, &block)
+        _update_callbacks(name, filters, block) do |callbacks, type, filters, options|
+          filters.each do |filter|
+            callbacks = send("_#{name}_callbacks=", callbacks.clone(self))
+
+            filter = callbacks.find {|c| c.matches?(type, name, filter) }
+            per_key = options[:per_key] || {}
+            if filter && options.any?
+              filter.recompile!(options, per_key)
+            else
+              callbacks.delete(filter)
+            end
+          end
+        end
+      end
+
       def define_callbacks(*symbols)
         terminator = symbols.pop if symbols.last.is_a?(String)
         symbols.each do |symbol|
-          self.extlib_inheritable_accessor("_#{symbol}_terminator")
-          self.send("_#{symbol}_terminator=", terminator)
-          self.class_eval <<-RUBY_EVAL, __FILE__, __LINE__ + 1
-            extlib_inheritable_accessor :_#{symbol}_callbacks
-            self._#{symbol}_callbacks = CallbackChain.new(:#{symbol})
+          extlib_inheritable_accessor("_#{symbol}_terminator") { terminator }
 
-            def self.#{symbol}_callback(*filters, &blk)
-              type = [:before, :after, :around].include?(filters.first) ? filters.shift : :before
-              options = filters.last.is_a?(Hash) ? filters.pop : {}
-              filters.unshift(blk) if block_given?
-              
-              filters.map! do |filter| 
-                # overrides parent class
-                self._#{symbol}_callbacks.delete_if {|c| c.matches?(type, :#{symbol}, filter)}
-                Callback.new(filter, type, options.dup, self, :#{symbol})
-              end
-              options[:prepend] ?
-                self._#{symbol}_callbacks.unshift(*filters) :
-                self._#{symbol}_callbacks.push(*filters)
-              _define_runner(:#{symbol}, 
-                self._#{symbol}_callbacks.compile(nil, :terminator => _#{symbol}_terminator), 
-                options)
-            end
-            
-            def self.skip_#{symbol}_callback(*filters, &blk)
-              type = [:before, :after, :around].include?(filters.first) ? filters.shift : :before
-              options = filters.last.is_a?(Hash) ? filters.pop : {}
-              filters.unshift(blk) if block_given?
-              filters.each do |filter|
-                self._#{symbol}_callbacks = self._#{symbol}_callbacks.clone(self)
-                
-                filter = self._#{symbol}_callbacks.find {|c| c.matches?(type, :#{symbol}, filter) }
-                per_key = options[:per_key] || {}
-                if filter && options.any?
-                  filter.recompile!(options, per_key)
-                else
-                  self._#{symbol}_callbacks.delete(filter)
-                end
-                _define_runner(:#{symbol}, 
-                  self._#{symbol}_callbacks.compile(nil, :terminator => _#{symbol}_terminator), 
-                  options)
-              end
-              
-            end
-            
+          extlib_inheritable_accessor("_#{symbol}_callbacks") do
+            CallbackChain.new(symbol)
+          end
+
+          self.class_eval <<-RUBY_EVAL, __FILE__, __LINE__ + 1
             def self.reset_#{symbol}_callbacks
-              self._#{symbol}_callbacks = CallbackChain.new(:#{symbol})
-              _define_runner(:#{symbol}, self._#{symbol}_callbacks.compile, {})
+              _update_callbacks(:#{symbol})
             end
             
-            self.#{symbol}_callback(:before)
+            self._set_callback(:#{symbol}, :before)
           RUBY_EVAL
         end
       end
