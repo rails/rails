@@ -180,9 +180,10 @@ module ActiveSupport
             filter = <<-RUBY_EVAL
               unless halted
                 result = #{@filter}
-                halted ||= (#{terminator})
+                halted = (#{terminator})
               end
             RUBY_EVAL
+            
             [@compiled_options[0], filter, @compiled_options[1]].compact.join("\n")
           else
             # Compile around filters with conditions into proxy methods
@@ -201,7 +202,7 @@ module ActiveSupport
             # end
             
             name = "_conditional_callback_#{@kind}_#{next_id}"
-            txt = <<-RUBY_EVAL
+            txt, line = <<-RUBY_EVAL, __LINE__
               def #{name}(halted)
                 #{@compiled_options[0] || "if true"} && !halted
                   #{@filter} do
@@ -212,7 +213,7 @@ module ActiveSupport
                 end
               end
             RUBY_EVAL
-            @klass.class_eval(txt)
+            @klass.class_eval(txt, __FILE__, line)
             "#{name}(halted) do"
           end
         end
@@ -291,15 +292,7 @@ module ActiveSupport
             " self, Proc.new "
           else
             ""
-          end
-        when Method
-          @klass.send(:define_method, "#{method_name}_method") { filter }
-          @klass.class_eval <<-RUBY_EVAL, __FILE__, __LINE__ + 1
-            def #{method_name}(&blk)
-              #{method_name}_method.call(self, &blk)
-            end
-          RUBY_EVAL
-          method_name
+          end          
         when String
           @klass.class_eval <<-RUBY_EVAL
             def #{method_name}
