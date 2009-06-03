@@ -3,6 +3,7 @@ require 'action_view/helpers/date_helper'
 require 'action_view/helpers/tag_helper'
 require 'action_view/helpers/form_tag_helper'
 require 'active_support/core_ext/class/inheritable_attributes'
+require 'active_support/core_ext/hash/slice'
 
 module ActionView
   module Helpers

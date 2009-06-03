@@ -1,5 +1,6 @@
 require 'cgi'
 require 'action_view/helpers/tag_helper'
+require 'active_support/core_ext/object/returning'
 
 module ActionView
   module Helpers
