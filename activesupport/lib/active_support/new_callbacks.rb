@@ -283,25 +283,14 @@ module ActiveSupport
           filter.map {|f| _compile_filter(f)}
         when Symbol
           filter
+        when String
+          "(#{filter})"
         when Proc
           @klass.send(:define_method, method_name, &filter)
-          method_name << case filter.arity
-          when 1
-            "(self)"
-          when 2
-            " self, Proc.new "
-          else
-            ""
-          end          
-        when String
-          @klass.class_eval <<-RUBY_EVAL
-            def #{method_name}
-              #{filter}
-            end
-          RUBY_EVAL
-          method_name
+          return method_name if filter.arity == 0
+
+          method_name << (filter.arity == 1 ? "(self)" : " self, Proc.new ")
         else
-          kind = @kind
           @klass.send(:define_method, "#{method_name}_object") { filter }
 
           _normalize_legacy_filter(kind, filter)
