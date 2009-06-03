@@ -202,7 +202,7 @@ module ActiveSupport
             # end
             
             name = "_conditional_callback_#{@kind}_#{next_id}"
-            txt, line = <<-RUBY_EVAL, __LINE__
+            txt, line = <<-RUBY_EVAL, __LINE__ + 1
               def #{name}(halted)
                 #{@compiled_options[0] || "if true"} && !halted
                   #{@filter} do
