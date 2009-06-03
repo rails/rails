@@ -91,9 +91,8 @@ module ActiveSupport
       @@_callback_sequence = 0
       
       attr_accessor :filter, :kind, :name, :options, :per_key, :klass
-      def initialize(filter, kind, options, klass, name)
+      def initialize(filter, kind, options, klass)
         @kind, @klass = kind, klass
-        @name         = name
         
         normalize_options!(options)
 
@@ -131,9 +130,8 @@ module ActiveSupport
         @@_callback_sequence += 1
       end
       
-      def matches?(_kind, _name, _filter)
+      def matches?(_kind, _filter)
         @kind   == _kind &&
-        @name   == _name &&
         @filter == _filter
       end
 
@@ -310,40 +308,35 @@ module ActiveSupport
           RUBY_EVAL
           method_name
         else
-          kind, name = @kind, @name
+          kind = @kind
           @klass.send(:define_method, "#{method_name}_object") { filter }
 
-          if kind == :around
-            @klass.class_eval <<-RUBY_EVAL, __FILE__, __LINE__ + 1
-              def #{method_name}(&blk)
-                if :#{kind} == :around && #{method_name}_object.respond_to?(:filter)
-                  #{method_name}_object.send("filter", self, &blk)
-                # TODO: Deprecate this
-                elsif #{method_name}_object.respond_to?(:before) && #{method_name}_object.respond_to?(:after)
-                  should_continue = #{method_name}_object.before(self)
-                  yield if should_continue
-                  #{method_name}_object.after(self)
-                else
-                  #{method_name}_object.send("#{kind}_#{name}", self, &blk)
-                end
-              end
-            RUBY_EVAL
-          else
-            @klass.class_eval <<-RUBY_EVAL, __FILE__, __LINE__ + 1
-              def #{method_name}(&blk)
-                if #{method_name}_object.respond_to?(:#{kind})
-                  #{method_name}_object.#{kind}(self, &blk)
-                elsif #{method_name}_object.respond_to?(:filter)
-                  #{method_name}_object.send("filter", self, &blk)
-                else
-                  #{method_name}_object.send("#{kind}_#{name}", self, &blk)
-                end
-              end
-            RUBY_EVAL
-          end
+          _normalize_legacy_filter(kind, filter)
+
+          @klass.class_eval <<-RUBY_EVAL, __FILE__, __LINE__ + 1
+            def #{method_name}(&blk)
+              #{method_name}_object.send(:#{kind}, self, &blk)
+            end
+          RUBY_EVAL
+
           method_name
         end
       end
+
+      def _normalize_legacy_filter(kind, filter)
+        if !filter.respond_to?(kind) && filter.respond_to?(:filter)
+          filter.metaclass.class_eval(
+            "def #{kind}(context, &block) filter(context, &block) end",
+            __FILE__, __LINE__ - 1)
+        elsif filter.respond_to?(:before) && filter.respond_to?(:after) && kind == :around
+          def filter.around(context)
+            should_continue = before(context)
+            yield if should_continue
+            after(context)
+          end
+        end
+      end
+
     end
 
     # An Array with a compile method
@@ -385,22 +378,19 @@ module ActiveSupport
       # The _run_save_callbacks method can optionally take a key, which
       # will be used to compile an optimized callback method for each
       # key. See #define_callbacks for more information.
-      def _define_runner(symbol, callbacks, options)
+      def _define_runner(symbol, callbacks)
         body = callbacks.compile(nil, :terminator => send("_#{symbol}_terminator"))
 
-        body = <<-RUBY_EVAL
-          def _run_#{symbol}_callbacks(key = nil)
+        body, line = <<-RUBY_EVAL, __LINE__
+          def _run_#{symbol}_callbacks(key = nil, &blk)
             if key
-              key = key.hash.to_s.gsub(/-/, '_')
-              name = "_run__\#{self.class.name.split("::").last}__#{symbol}__\#{key}__callbacks"
+              name = "_run__\#{self.class.name.hash.abs}__#{symbol}__\#{key.hash.abs}__callbacks"
               
-              if respond_to?(name)
-                send(name) { yield if block_given? }
-              else
-                self.class._create_and_run_keyed_callback(
-                  self.class.name.split("::").last,
-                  :#{symbol}, key, self) { yield if block_given? }
+              unless respond_to?(name)
+                self.class._create_keyed_callback(name, :#{symbol}, self, &blk)
               end
+
+              send(name, &blk)
             else
               #{body}
             end
@@ -408,30 +398,22 @@ module ActiveSupport
         RUBY_EVAL
   
         undef_method "_run_#{symbol}_callbacks" if method_defined?("_run_#{symbol}_callbacks")
-        class_eval body, __FILE__, __LINE__
-        
-        before_name, around_name, after_name = 
-          options.values_at(:before, :after, :around)
+        class_eval body, __FILE__, line
       end
       
       # This is called the first time a callback is called with a particular
       # key. It creates a new callback method for the key, calculating
       # which callbacks can be omitted because of per_key conditions.
-      def _create_and_run_keyed_callback(klass, kind, key, obj, &blk)
+      def _create_keyed_callback(name, kind, obj, &blk)
         @_keyed_callbacks ||= {}
-        @_keyed_callbacks[[kind, key]] ||= begin
-          str = self.send("_#{kind}_callbacks").compile(key, :object => obj, :terminator => self.send("_#{kind}_terminator"))
+        @_keyed_callbacks[name] ||= begin
+          str = send("_#{kind}_callbacks").
+            compile(name, :object => obj, :terminator => send("_#{kind}_terminator"))
 
-          self.class_eval <<-RUBY_EVAL, __FILE__, __LINE__ + 1
-            def _run__#{klass.split("::").last}__#{kind}__#{key}__callbacks
-              #{str}
-            end
-          RUBY_EVAL
+          class_eval "def #{name}() #{str} end", __FILE__, __LINE__
                     
           true
         end
-                                  
-        obj.send("_run__#{klass.split("::").last}__#{kind}__#{key}__callbacks", &blk)
       end
       
       # Define callbacks.
@@ -473,32 +455,30 @@ module ActiveSupport
         callbacks = send("_#{name}_callbacks")
         yield callbacks, type, filters, options if block_given?
 
-        _define_runner(name, callbacks, options)
+        _define_runner(name, callbacks)
       end
 
-      def _set_callback(name, *filters, &block)
+      def set_callback(name, *filters, &block)
         _update_callbacks(name, filters, block) do |callbacks, type, filters, options|        
           filters.map! do |filter|
             # overrides parent class
-            callbacks.delete_if do |c|
-              c.matches?(type, name, filter)
-            end
-            Callback.new(filter, type, options.dup, self, name)
+            callbacks.delete_if {|c| c.matches?(type, filter) }
+            Callback.new(filter, type, options.dup, self)
           end
 
           options[:prepend] ? callbacks.unshift(*filters) : callbacks.push(*filters)
         end
       end
 
-      def _skip_callback(name, *filters, &block)
+      def skip_callback(name, *filters, &block)
         _update_callbacks(name, filters, block) do |callbacks, type, filters, options|
           filters.each do |filter|
             callbacks = send("_#{name}_callbacks=", callbacks.clone(self))
 
-            filter = callbacks.find {|c| c.matches?(type, name, filter) }
-            per_key = options[:per_key] || {}
+            filter = callbacks.find {|c| c.matches?(type, filter) }
+
             if filter && options.any?
-              filter.recompile!(options, per_key)
+              filter.recompile!(options, options[:per_key] || {})
             else
               callbacks.delete(filter)
             end
@@ -520,7 +500,7 @@ module ActiveSupport
               _update_callbacks(:#{symbol})
             end
             
-            self._set_callback(:#{symbol}, :before)
+            self.set_callback(:#{symbol}, :before)
           RUBY_EVAL
         end
       end

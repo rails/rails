@@ -8,7 +8,7 @@ module AbstractController
     end
     
     class Callback1 < ControllerWithCallbacks
-      _set_callback :process_action, :before, :first
+      set_callback :process_action, :before, :first
       
       def first
         @text = "Hello world"

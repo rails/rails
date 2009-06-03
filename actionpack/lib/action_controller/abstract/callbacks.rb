@@ -45,19 +45,19 @@ module AbstractController
         class_eval <<-RUBY_EVAL, __FILE__, __LINE__ + 1
           def #{filter}_filter(*names, &blk)
             _insert_callbacks(names, blk) do |name, options|
-              _set_callback(:process_action, :#{filter}, name, options)
+              set_callback(:process_action, :#{filter}, name, options)
             end
           end
 
           def prepend_#{filter}_filter(*names, &blk)
             _insert_callbacks(names, blk) do |name, options|
-              _set_callback(:process_action, :#{filter}, name, options.merge(:prepend => true))
+              set_callback(:process_action, :#{filter}, name, options.merge(:prepend => true))
             end
           end
 
           def skip_#{filter}_filter(*names, &blk)
             _insert_callbacks(names, blk) do |name, options|
-              _skip_callback(:process_action, :#{filter}, name, options)
+              skip_callback(:process_action, :#{filter}, name, options)
             end
           end
 
