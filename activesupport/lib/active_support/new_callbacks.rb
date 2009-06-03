@@ -360,8 +360,9 @@ module ActiveSupport
       # The _run_save_callbacks method can optionally take a key, which
       # will be used to compile an optimized callback method for each
       # key. See #define_callbacks for more information.
-      def _define_runner(symbol, callbacks)
-        body = callbacks.compile(nil, :terminator => send("_#{symbol}_terminator"))
+      def _define_runner(symbol)
+        body = send("_#{symbol}_callbacks").
+          compile(nil, :terminator => send("_#{symbol}_terminator"))
 
         body, line = <<-RUBY_EVAL, __LINE__
           def _run_#{symbol}_callbacks(key = nil, &blk)
@@ -437,8 +438,10 @@ module ActiveSupport
         callbacks = send("_#{name}_callbacks")
         yield callbacks, type, filters, options if block_given?
 
-        _define_runner(name, callbacks)
+        _define_runner(name)
       end
+
+      alias_method :_reset_callbacks, :_update_callbacks
 
       def set_callback(name, *filters, &block)
         _update_callbacks(name, filters, block) do |callbacks, type, filters, options|        
@@ -477,13 +480,7 @@ module ActiveSupport
             CallbackChain.new(symbol)
           end
 
-          self.class_eval <<-RUBY_EVAL, __FILE__, __LINE__ + 1
-            def self.reset_#{symbol}_callbacks
-              _update_callbacks(:#{symbol})
-            end
-            
-            self.set_callback(:#{symbol}, :before)
-          RUBY_EVAL
+          _define_runner(symbol)
         end
       end
     end
