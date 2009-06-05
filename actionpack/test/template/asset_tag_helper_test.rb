@@ -317,9 +317,17 @@ class AssetTagHelperTest < ActionView::TestCase
 
     assert File.exist?(File.join(ActionView::Helpers::AssetTagHelper::JAVASCRIPTS_DIR, 'money.js'))
 
+    assert_dom_equal(
+      %(<script src="http://a0.example.com/absolute/test.js" type="text/javascript"></script>),
+      javascript_include_tag(:all, :cache => "/absolute/test")
+    )
+
+    assert File.exist?(File.join(ActionView::Helpers::AssetTagHelper::ASSETS_DIR, 'absolute', 'test.js'))
+
   ensure
     FileUtils.rm_f(File.join(ActionView::Helpers::AssetTagHelper::JAVASCRIPTS_DIR, 'all.js'))
     FileUtils.rm_f(File.join(ActionView::Helpers::AssetTagHelper::JAVASCRIPTS_DIR, 'money.js'))
+    FileUtils.rm_f(File.join(ActionView::Helpers::AssetTagHelper::ASSETS_DIR, 'absolute'))
   end
 
   def test_caching_javascript_include_tag_when_caching_on_with_proc_asset_host
@@ -547,9 +555,17 @@ class AssetTagHelperTest < ActionView::TestCase
     )
 
     assert File.exist?(File.join(ActionView::Helpers::AssetTagHelper::STYLESHEETS_DIR, 'money.css'))
+
+    assert_dom_equal(
+      %(<link href="http://a0.example.com/absolute/test.css" media="screen" rel="stylesheet" type="text/css" />),
+      stylesheet_link_tag(:all, :cache => "/absolute/test")
+    )
+
+    assert File.exist?(File.join(ActionView::Helpers::AssetTagHelper::ASSETS_DIR, 'absolute', 'test.css'))
   ensure
     FileUtils.rm_f(File.join(ActionView::Helpers::AssetTagHelper::STYLESHEETS_DIR, 'all.css'))
     FileUtils.rm_f(File.join(ActionView::Helpers::AssetTagHelper::STYLESHEETS_DIR, 'money.css'))
+    FileUtils.rm_f(File.join(ActionView::Helpers::AssetTagHelper::ASSETS_DIR, 'absolute'))
   end
 
   def test_caching_stylesheet_link_tag_when_caching_on_with_proc_asset_host
