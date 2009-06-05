@@ -35,7 +35,7 @@ module ActionController #:nodoc:
     end
 
     def cookies
-      @response.cookies
+      @request.cookies.merge(@response.cookies)
     end
 
     def redirect_to_url
