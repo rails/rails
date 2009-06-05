@@ -112,12 +112,12 @@ module ActionView
       # ==== Options
       # * <tt>:use_month_numbers</tt> - Set to true if you want to use month numbers rather than month names (e.g.
       #   "2" instead of "February").
-      # * <tt>:use_short_month</tt>   - Set to true if you want to use the abbreviated month name instead of the full
-      #   name (e.g. "Feb" instead of "February").
-      # * <tt>:add_month_numbers</tt>  - Set to true if you want to show both, the month's number and name (e.g.
+      # * <tt>:use_short_month</tt>   - Set to true if you want to use abbreviated month names instead of full
+      #   month names (e.g. "Feb" instead of "February").
+      # * <tt>:add_month_numbers</tt>  - Set to true if you want to use both month numbers and month names (e.g.
       #   "2 - February" instead of "February").
       # * <tt>:use_month_names</tt>   - Set to an array with 12 month names if you want to customize month names.
-      #   Note: You can also use Rails' new i18n functionality for this.
+      #   Note: You can also use Rails' i18n functionality for this.
       # * <tt>:date_separator</tt>    - Specifies a string to separate the date fields. Default is "" (i.e. nothing).
       # * <tt>:start_year</tt>        - Set the start year for the year select. Default is <tt>Time.now.year - 5</tt>.
       # * <tt>:end_year</tt>          - Set the end year for the year select. Default is <tt>Time.now.year + 5</tt>.
@@ -128,7 +128,7 @@ module ActionView
       #   as a hidden field instead of showing a select field. Also note that this implicitly sets :discard_day to true.
       # * <tt>:discard_year</tt>      - Set to true if you don't want to show a year select. This includes the year
       #   as a hidden field instead of showing a select field.
-      # * <tt>:order</tt>             - Set to an array containing <tt>:day</tt>, <tt>:month</tt> and <tt>:year</tt> do
+      # * <tt>:order</tt>             - Set to an array containing <tt>:day</tt>, <tt>:month</tt> and <tt>:year</tt> to
       #   customize the order in which the select fields are shown. If you leave out any of the symbols, the respective
       #   select will not be shown (like when you set <tt>:discard_xxx => true</tt>. Defaults to the order defined in
       #   the respective locale (e.g. [:year, :month, :day] in the en locale that ships with Rails).
