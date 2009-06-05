@@ -1,5 +1,7 @@
 *Edge*
 
+* String #to_time and #to_datetime: handle fractional seconds #864 [Jason Frey]
+
 * Update bundled TZInfo to v0.3.13 [Geoff Buesing]
 
 * Allow MemCacheStore to be initialized with a MemCache-like object instead of addresses and options [Bryan Helmkamp]
