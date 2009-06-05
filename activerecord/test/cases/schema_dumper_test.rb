@@ -198,6 +198,11 @@ class SchemaDumperTest < ActiveRecord::TestCase
 
   def test_schema_dump_keeps_large_precision_integer_columns_as_decimal
     output = standard_dump
-    assert_match %r{t.decimal\s+"atoms_in_universe",\s+:precision => 55,\s+:scale => 0}, output
+    # Oracle supports precision up to 38 and it identifies decimals with scale 0 as integers
+    if current_adapter?(:OracleAdapter)
+      assert_match %r{t.integer\s+"atoms_in_universe",\s+:precision => 38,\s+:scale => 0}, output
+    else
+      assert_match %r{t.decimal\s+"atoms_in_universe",\s+:precision => 55,\s+:scale => 0}, output
+    end
   end
 end
