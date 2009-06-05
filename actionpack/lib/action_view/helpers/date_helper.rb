@@ -114,7 +114,7 @@ module ActionView
       #   "2" instead of "February").
       # * <tt>:use_short_month</tt>   - Set to true if you want to use the abbreviated month name instead of the full
       #   name (e.g. "Feb" instead of "February").
-      # * <tt>:add_month_number</tt>  - Set to true if you want to show both, the month's number and name (e.g.
+      # * <tt>:add_month_numbers</tt>  - Set to true if you want to show both, the month's number and name (e.g.
       #   "2 - February" instead of "February").
       # * <tt>:use_month_names</tt>   - Set to an array with 12 month names if you want to customize month names.
       #   Note: You can also use Rails' new i18n functionality for this.
