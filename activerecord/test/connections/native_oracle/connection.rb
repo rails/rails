@@ -1,8 +1,13 @@
 # gem "rsim-activerecord-oracle_enhanced-adapter"
-gem "activerecord-oracle_enhanced-adapter", ">=1.2.0"
+# gem "activerecord-oracle_enhanced-adapter", ">=1.2.1"
 # uses local copy of oracle_enhanced adapter
-# $:.unshift("../../oracle-enhanced/lib")
-# require 'active_record/connection_adapters/oracle_enhanced_adapter'
+$:.unshift("../../oracle-enhanced/lib")
+require 'active_record/connection_adapters/oracle_enhanced_adapter'
+# gem "activerecord-jdbc-adapter"
+# require 'active_record/connection_adapters/jdbc_adapter'
+
+# otherwise failed with silence_warnings method missing exception
+require 'active_support/core_ext/kernel/reporting'
 
 print "Using Oracle\n"
 require_dependency 'models/course'
@@ -20,6 +25,9 @@ ActiveRecord::Base.configurations = {
     :adapter  => 'oracle_enhanced',
     :database => db,
     :host => "localhost", # used just by JRuby to construct JDBC connect string
+    # :adapter => "jdbc",
+    # :driver => "oracle.jdbc.driver.OracleDriver",
+    # :url => "jdbc:oracle:thin:@localhost:1521:#{db}",
     :username => 'arunit',
     :password => 'arunit',
     :emulate_oracle_adapter => true
@@ -28,6 +36,9 @@ ActiveRecord::Base.configurations = {
     :adapter  => 'oracle_enhanced',
     :database => db,
     :host => "localhost", # used just by JRuby to construct JDBC connect string
+    # :adapter => "jdbc",
+    # :driver => "oracle.jdbc.driver.OracleDriver",
+    # :url => "jdbc:oracle:thin:@localhost:1521:#{db}",
     :username => 'arunit2',
     :password => 'arunit2',
     :emulate_oracle_adapter => true
@@ -36,6 +47,9 @@ ActiveRecord::Base.configurations = {
 
 ActiveRecord::Base.establish_connection 'arunit'
 Course.establish_connection 'arunit2'
+
+# ActiveRecord::Base.connection.execute %q{alter session set nls_date_format = 'YYYY-MM-DD HH24:MI:SS'}
+# ActiveRecord::Base.connection.execute %q{alter session set nls_timestamp_format = 'YYYY-MM-DD HH24:MI:SS'} rescue nil
 
 # for assert_queries test helper
 ActiveRecord::Base.connection.class.class_eval do
