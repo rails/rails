@@ -873,7 +873,7 @@ module ActiveResource
       attributes.to_xml({:root => self.class.element_name}.merge(options))
     end
 
-    # Converts the resource to a JSON string representation.
+    # Coerces to a hash for JSON encoding.
     #
     # ==== Options
     # The +options+ are passed to the +to_json+ method on each
@@ -897,8 +897,8 @@ module ActiveResource
     #
     #   person.to_json(:except => ["first_name"])
     #   # => {"last_name": "Smith"}
-    def to_json(options={})
-      ActiveSupport::JSON.encode(attributes, options)
+    def as_json(options = nil)
+      attributes.as_json(options)
     end
 
     # Returns the serialized string representation of the resource in the configured
@@ -1070,11 +1070,6 @@ module ActiveResource
 
       def split_options(options = {})
         self.class.__send__(:split_options, options)
-      end
-
-      # For compatibility with ActiveSupport::JSON.encode
-      def rails_to_json(options, *args)
-        to_json(options)
       end
 
       def method_missing(method_symbol, *arguments) #:nodoc:
