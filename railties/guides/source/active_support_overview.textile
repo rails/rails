@@ -13,7 +13,43 @@ h3. Extensions to All Objects
 
 h4. +blank?+ and +present?+
 
+The following values are considered to be blank in a Rails application:
 
+* +nil+ and +false+,
+
+* strings composed only of whitespace, i.e. matching +/\A\s*\z/+,
+
+* empty arrays and hashes, and
+
+* any other object that responds to +empty?+ and it is empty.
+
+WARNING: Note that numbers are not mentioned, in particular 0 and 0.0 are *not* blank.
+
+For example, this method from +ActionDispatch::Response+ uses +blank?+ to easily be robust to +nil+ and whitespace strings in one shot:
+
+<ruby>
+def charset
+  charset = String(headers["Content-Type"] || headers["type"]).split(";")[1]
+  charset.blank? ? nil : charset.strip.split("=")[1]
+end
+</ruby>
+
+That's a typical use case for +blank?+.
+
+Here, the method +instantiate_observers+ of Active Record has nothing to do if there are no observers:
+
+<ruby>
+def instantiate_observers
+  return if @observers.blank?
+  # ...
+end
+</ruby>
+
+The method +present?+ is equivalent to +!blank?+:
+
+<ruby>
+assert @response.body.present? # same as !@response.body.blank?
+</ruby>
 
 h3. Extensions to +Module+
 
