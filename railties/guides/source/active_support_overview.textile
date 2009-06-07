@@ -36,7 +36,7 @@ end
 
 That's a typical use case for +blank?+.
 
-Here, the method +instantiate_observers+ of Active Record has nothing to do if there are no observers:
+Here, the method Rails runs to instantiate observers upon initialization has nothing to do if there are none:
 
 <ruby>
 def instantiate_observers
