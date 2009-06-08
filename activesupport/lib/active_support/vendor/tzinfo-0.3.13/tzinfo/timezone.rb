@@ -82,7 +82,7 @@ module TZInfo
         identifier = identifier.gsub(/-/, '__m__').gsub(/\+/, '__p__')
         begin
           # Use a temporary variable to avoid an rdoc warning
-          file = "tzinfo/definitions/#{identifier}"
+          file = "tzinfo/definitions/#{identifier}".untaint
           require file
           
           m = Definitions

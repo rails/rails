@@ -1,5 +1,7 @@
 *Edge*
 
+* Update bundled TZInfo to v0.3.13 [Geoff Buesing]
+
 * Allow MemCacheStore to be initialized with a MemCache-like object instead of addresses and options [Bryan Helmkamp]
 
 * Change spelling of Kyev timezone to Kyiv #2613 [Alexander Dymo]
