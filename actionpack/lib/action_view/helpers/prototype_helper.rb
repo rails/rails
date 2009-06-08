@@ -1184,7 +1184,7 @@ module ActionView
         true
       end
 
-      def rails_to_json(options = nil)
+      def to_json(options = nil)
         @variable
       end
 

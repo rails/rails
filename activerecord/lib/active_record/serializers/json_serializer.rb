@@ -80,9 +80,6 @@ module ActiveRecord #:nodoc:
       end
     end
 
-    # For compatibility with ActiveSupport::JSON.encode
-    alias rails_to_json to_json
-
     def from_json(json)
       self.attributes = ActiveSupport::JSON.decode(json)
       self

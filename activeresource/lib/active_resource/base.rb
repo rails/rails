@@ -896,9 +896,6 @@ module ActiveResource
       attributes.as_json(options)
     end
 
-    # For compatibility with ActiveSupport::JSON.encode
-    alias rails_to_json to_json
-
     # Returns the serialized string representation of the resource in the configured
     # serialization format specified in ActiveResource::Base.format. The options
     # applicable depend on the configured encoding format.
