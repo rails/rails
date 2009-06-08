@@ -1176,7 +1176,7 @@ module ActionView
 
     class JavaScriptVariableProxy < JavaScriptProxy #:nodoc:
       def initialize(generator, variable)
-        @variable = ActiveSupport::JSON::Variable.new(variable)
+        @variable = ::ActiveSupport::JSON::Variable.new(variable)
         @empty    = true # only record lines if we have to.  gets rid of unnecessary linebreaks
         super(generator)
       end
