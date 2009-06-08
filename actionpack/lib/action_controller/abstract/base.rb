@@ -13,7 +13,6 @@ module AbstractController
 
   class Base
     attr_internal :response_body
-    attr_internal :response_obj
     attr_internal :action_name
 
     class << self
@@ -62,10 +61,6 @@ module AbstractController
     end
 
     abstract!
-
-    def initialize
-      self.response_obj = {}
-    end
 
     def process(action)
       @_action_name = action_name = action.to_s
