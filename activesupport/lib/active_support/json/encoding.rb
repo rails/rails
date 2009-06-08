@@ -1,3 +1,4 @@
+# encoding: binary
 require 'active_support/core_ext/array/wrap'
 require 'active_support/core_ext/module/delegation'
 require 'active_support/core_ext/object/instance_variables'
@@ -88,8 +89,8 @@ module ActiveSupport
         end
 
         def escape(string)
+          string = string.dup.force_encoding(::Encoding::BINARY) if string.respond_to?(:force_encoding)
           json = '"' + string.gsub(escape_regex) { |s| ESCAPED_CHARS[s] }
-          json.force_encoding('ascii-8bit') if respond_to?(:force_encoding)
           json.gsub(/([\xC0-\xDF][\x80-\xBF]|
                    [\xE0-\xEF][\x80-\xBF]{2}|
                    [\xF0-\xF7][\x80-\xBF]{3})+/nx) { |s|
