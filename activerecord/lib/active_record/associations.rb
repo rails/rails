@@ -519,13 +519,13 @@ module ActiveRecord
     #  
     #   Post.find(:all, :include => [ :author, :comments ], :conditions => ['comments.approved = ?', true])
     #
-    # will result in a single SQL query with joins along the lines of: <tt>LEFT OUTER JOIN comments ON comments.post_id = posts.id</tt> and
+    # This will result in a single SQL query with joins along the lines of: <tt>LEFT OUTER JOIN comments ON comments.post_id = posts.id</tt> and
     # <tt>LEFT OUTER JOIN authors ON authors.id = posts.author_id</tt>. Note that using conditions like this can have unintended consequences.
     # In the above example posts with no approved comments are not returned at all, because the conditions apply to the SQL statement as a whole
     # and not just to the association. You must disambiguate column references for this fallback to happen, for example
     # <tt>:order => "author.name DESC"</tt> will work but <tt>:order => "name DESC"</tt> will not. 
     #
-    # If you do want eagerload only some members of an association it is usually more natural to <tt>:include</tt> an association
+    # If you do want eager load only some members of an association it is usually more natural to <tt>:include</tt> an association
     # which has conditions defined on it:
     #
     #   class Post < ActiveRecord::Base
@@ -534,7 +534,7 @@ module ActiveRecord
     #
     #   Post.find(:all, :include => :approved_comments)
     #
-    # will load posts and eager load the +approved_comments+ association, which contains only those comments that have been approved.
+    # This will load posts and eager load the +approved_comments+ association, which contains only those comments that have been approved.
     #
     # If you eager load an association with a specified <tt>:limit</tt> option, it will be ignored, returning all the associated objects:
     #
@@ -557,7 +557,7 @@ module ActiveRecord
     #
     #   Address.find(:all, :include => :addressable)
     #
-    # will execute one query to load the addresses and load the addressables with one query per addressable type. 
+    # This will execute one query to load the addresses and load the addressables with one query per addressable type.
     # For example if all the addressables are either of class Person or Company then a total of 3 queries will be executed. The list of
     # addressable types to load is determined on the back of the addresses loaded. This is not supported if Active Record has to fallback
     # to the previous implementation of eager loading and will raise ActiveRecord::EagerLoadPolymorphicError. The reason is that the parent 
