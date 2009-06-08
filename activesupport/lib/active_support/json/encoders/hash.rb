@@ -1,3 +1,5 @@
+require 'active_support/core_ext/array/wrapper'
+
 class Hash
   # Returns a JSON string representing the hash.
   #
@@ -29,20 +31,26 @@ class Hash
   # allowing the posts association in the User model to be converted to JSON
   # as well.
   def to_json(options = nil) #:nodoc:
-    hash_keys = self.keys
-
-    if options
-      if except = options[:except]
-        hash_keys = hash_keys - Array.wrap(except)
-      elsif only = options[:only]
-        hash_keys = hash_keys & Array.wrap(only)
-      end
-    end
+    hash = as_json(options)
 
     result = '{'
-    result << hash_keys.map do |key|
-      "#{ActiveSupport::JSON.encode(key.to_s)}:#{ActiveSupport::JSON.encode(self[key], options)}"
+    result << hash.map do |key, value|
+      "#{ActiveSupport::JSON.encode(key.to_s)}:#{ActiveSupport::JSON.encode(value, options)}"
     end * ','
     result << '}'
+  end
+
+  def as_json(options = nil) #:nodoc:
+    if options
+      if attrs = options[:except]
+        except(*Array.wrap(attrs))
+      elsif attrs = options[:only]
+        slice(*Array.wrap(attrs))
+      else
+        self
+      end
+    else
+      self
+    end
   end
 end

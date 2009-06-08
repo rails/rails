@@ -1,5 +1,7 @@
 *2.3.3 (pending)*
 
+* JSON: +Object#to_json+ calls +as_json+ to coerce itself into something natively encodable like +Hash+, +Integer+, or +String+. Override +as_json+ instead of +to_json+ so you're JSON-library-agnostic.  [Jeremy Kemper]
+
 * Allow MemCacheStore to be initialized with a MemCache-like object instead of addresses and options [Bryan Helmkamp]
 
 

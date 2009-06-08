@@ -1,18 +1,17 @@
 module Enumerable
-  # Returns a JSON string representing the enumerable. Any +options+
-  # given will be passed on to its elements. For example:
-  #
-  #   users = User.find(:all)
-  #   # => users.to_json(:only => :name)
-  #
-  # will pass the <tt>:only => :name</tt> option to each user.
-  def to_json(options = nil) #:nodoc:
-    to_a.to_json(options)
+  # Coerces the enumerable to an array for JSON encoding.
+  def as_json(options = nil) #:nodoc:
+    to_a
   end
 end
 
 class Array
+  # Returns a JSON string representing the Array. +options+ are passed to each element.
   def to_json(options = nil) #:nodoc:
     "[#{map { |value| ActiveSupport::JSON.encode(value, options) } * ','}]"
+  end
+
+  def as_json(options = nil) #:nodoc:
+    self
   end
 end
