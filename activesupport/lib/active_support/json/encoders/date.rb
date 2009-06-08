@@ -11,7 +11,7 @@ class Date
   #   # With ActiveSupport.use_standard_json_time_format = false
   #   Date.new(2005,2,1).to_json
   #   # => "2005/02/01"
-  def rails_to_json(options = nil)
+  def to_json(options = nil)
     if ActiveSupport.use_standard_json_time_format
       %("#{strftime("%Y-%m-%d")}")
     else

@@ -28,7 +28,7 @@ class Hash
   # would pass the <tt>:include => :posts</tt> option to <tt>users</tt>,
   # allowing the posts association in the User model to be converted to JSON
   # as well.
-  def rails_to_json(options = nil) #:nodoc:
+  def to_json(options = nil) #:nodoc:
     hash_keys = self.keys
 
     if options

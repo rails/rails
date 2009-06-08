@@ -11,7 +11,7 @@ class DateTime
   #   # With ActiveSupport.use_standard_json_time_format = false
   #   DateTime.civil(2005,2,1,15,15,10).to_json
   #   # => "2005/02/01 15:15:10 +0000"
-  def rails_to_json(options = nil)
+  def to_json(options = nil)
     if ActiveSupport.use_standard_json_time_format
       xmlschema.inspect
     else

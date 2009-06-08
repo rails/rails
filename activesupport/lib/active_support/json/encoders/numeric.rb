@@ -1,5 +1,17 @@
 class Numeric
-  def rails_to_json(options = nil) #:nodoc:
+  def to_json(options = nil) #:nodoc:
+    to_s
+  end
+end
+
+class Float
+  def to_json(options = nil) #:nodoc:
+    to_s
+  end
+end
+
+class Integer
+  def to_json(options = nil) #:nodoc:
     to_s
   end
 end

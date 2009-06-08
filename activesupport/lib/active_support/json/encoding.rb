@@ -1,3 +1,9 @@
+# Hack to load json gem first so we can overwrite its to_json.
+begin
+  require 'json'
+rescue LoadError
+end
+
 module ActiveSupport
   module JSON
     class CircularReferenceError < StandardError
@@ -5,11 +11,11 @@ module ActiveSupport
 
     # Converts a Ruby object into a JSON string.
     def self.encode(value, options = nil)
-      options ||= {}
+      options = {} unless Hash === options
       seen = (options[:seen] ||= [])
       raise CircularReferenceError, 'object references itself' if seen.include?(value)
       seen << value
-      value.rails_to_json(options)
+      value.to_json(options)
     ensure
       seen.pop
     end

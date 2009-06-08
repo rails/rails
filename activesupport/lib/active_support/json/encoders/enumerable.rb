@@ -6,7 +6,13 @@ module Enumerable
   #   # => users.to_json(:only => :name)
   #
   # will pass the <tt>:only => :name</tt> option to each user.
-  def rails_to_json(options = nil) #:nodoc:
+  def to_json(options = nil) #:nodoc:
+    to_a.to_json(options)
+  end
+end
+
+class Array
+  def to_json(options = nil) #:nodoc:
     "[#{map { |value| ActiveSupport::JSON.encode(value, options) } * ','}]"
   end
 end
