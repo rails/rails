@@ -1,4 +1,4 @@
-require 'benchmark'
+require 'active_support/core_ext/benchmark'
 
 module ActionView
   module Helpers

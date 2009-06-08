@@ -221,9 +221,9 @@ module ActionView
           html_options = args.second
           concat(link_to(capture(&block), options, html_options))
         else
-          name         = args.first
-          options      = args.second || {}
-          html_options = args.third
+          name         = args[0]
+          options      = args[1] || {}
+          html_options = args[2]
 
           url = url_for(options)
 
