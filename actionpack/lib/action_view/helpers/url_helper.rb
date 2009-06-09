@@ -1,4 +1,5 @@
 require 'action_view/helpers/javascript_helper'
+require 'active_support/core_ext/hash/keys'
 
 module ActionView
   module Helpers #:nodoc:
