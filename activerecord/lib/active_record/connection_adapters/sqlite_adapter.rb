@@ -1,3 +1,4 @@
+# encoding: binary
 require 'active_record/connection_adapters/abstract_adapter'
 
 module ActiveRecord
@@ -46,6 +47,7 @@ module ActiveRecord
     class SQLiteColumn < Column #:nodoc:
       class <<  self
         def string_to_binary(value)
+          value = value.dup.force_encoding(Encoding::BINARY) if value.respond_to?(:force_encoding)
           value.gsub(/\0|\%/n) do |b|
             case b
               when "\0" then "%00"
@@ -55,6 +57,7 @@ module ActiveRecord
         end
 
         def binary_to_string(value)
+          value = value.dup.force_encoding(Encoding::BINARY) if value.respond_to?(:force_encoding)
           value.gsub(/%00|%25/n) do |b|
             case b
               when "%00" then "\0"
