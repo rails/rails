@@ -10,10 +10,9 @@ require 'active_support/core_ext/object/misc'
 require 'set'
 require 'uri'
 
-module ActiveResource
-  autoload :Formats, 'active_resource/formats'
-  autoload :Connection, 'active_resource/connection'
+require 'active_resource/exceptions'
 
+module ActiveResource
   # ActiveResource::Base is the main class for mapping RESTful resources as models in a Rails application.
   #
   # For an outline of what Active Resource is capable of, see link:files/vendor/rails/activeresource/README.html.
@@ -1085,7 +1084,8 @@ module ActiveResource
         end
       end
   end
-end
 
-require 'active_resource/validations'
-require 'active_resource/custom_methods'
+  class Base
+    include CustomMethods, Validations
+  end
+end

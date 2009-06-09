@@ -1,4 +1,3 @@
-require 'active_resource/connection'
 require 'active_support/core_ext/kernel/reporting'
 
 module ActiveResource
