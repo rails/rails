@@ -154,7 +154,7 @@ module AbstractController
       end
 
       def render_to_body(options = {})
-        options[:_layout] = options[:layout] || _default_layout
+        options[:_layout] = options[:layout] || _default_layout({})
         super
       end  
     end

@@ -25,7 +25,7 @@ module AbstractControllerTests
       def controller_path() self.class.controller_path end
       
       def render_to_body(options)
-        options[:_layout] = _default_layout
+        options[:_layout] = _default_layout({})
         super
       end
     end
@@ -221,11 +221,11 @@ module AbstractControllerTests
       
       test "raises an exception when specifying layout true" do
         assert_raises ArgumentError do
-          Object.class_eval <<-RUBY_EVAL, __FILE__, __LINE__ + 1
+          Object.class_eval do
             class ::BadOmgFailLolLayout < AbstractControllerTests::Layouts::Base
               layout true
             end
-          RUBY_EVAL
+          end
         end
       end
     end
