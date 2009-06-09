@@ -34,7 +34,7 @@ module Rails
       name    = directory_name_parts[0..-2].join('-')
       version = directory_name_parts.last
       result = self.new(name, :version => version)
-      spec_filename = File.join(unpacked_path, directory_name, '.specification')
+      spec_filename = File.join(directory_name, '.specification')
       if load_spec
         raise "Missing specification file in #{File.dirname(spec_filename)}. Perhaps you need to do a 'rake gems:refresh_specs'?" unless File.exists?(spec_filename)
         spec = YAML::load_file(spec_filename)
