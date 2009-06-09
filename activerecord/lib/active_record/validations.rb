@@ -40,6 +40,7 @@ module ActiveRecord
       full_messages = []
 
       each do |attribute, messages|
+        messages = Array.wrap(messages)
         next if messages.empty?
 
         if attribute == :base
