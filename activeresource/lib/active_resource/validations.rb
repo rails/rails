@@ -45,10 +45,10 @@ module ActiveResource
   #   person.save                   # => true (and person is now saved to the remote service)
   #
   module Validations
-    def self.included(base) # :nodoc:
-      base.class_eval do
-        alias_method_chain :save, :validation
-      end
+    extend ActiveSupport::Concern
+
+    included do
+      alias_method_chain :save, :validation
     end
 
     # Validate a resource and save (POST) it to the remote web service.

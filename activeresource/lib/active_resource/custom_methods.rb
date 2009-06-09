@@ -31,47 +31,44 @@ module ActiveResource
   #   # => [{:id => 1, :name => 'Ryan'}, {:id => 2, :name => 'Joe'}]
   #
   module CustomMethods
-    def self.included(base)
-      base.class_eval do
-        extend ActiveResource::CustomMethods::ClassMethods
-        include ActiveResource::CustomMethods::InstanceMethods
+    extend ActiveSupport::Concern
 
-        class << self
-          alias :orig_delete :delete
+    included do
+      class << self
+        alias :orig_delete :delete
 
-          # Invokes a GET to a given custom REST method. For example:
-          #
-          #   Person.get(:active)  # GET /people/active.xml
-          #   # => [{:id => 1, :name => 'Ryan'}, {:id => 2, :name => 'Joe'}]
-          #
-          #   Person.get(:active, :awesome => true)  # GET /people/active.xml?awesome=true
-          #   # => [{:id => 1, :name => 'Ryan'}]
-          #
-          # Note: the objects returned from this method are not automatically converted
-          # into ActiveResource::Base instances - they are ordinary Hashes. If you are expecting
-          # ActiveResource::Base instances, use the <tt>find</tt> class method with the
-          # <tt>:from</tt> option. For example:
-          #
-          #   Person.find(:all, :from => :active)
-          def get(custom_method_name, options = {})
-            connection.get(custom_method_collection_url(custom_method_name, options), headers)
-          end
+        # Invokes a GET to a given custom REST method. For example:
+        #
+        #   Person.get(:active)  # GET /people/active.xml
+        #   # => [{:id => 1, :name => 'Ryan'}, {:id => 2, :name => 'Joe'}]
+        #
+        #   Person.get(:active, :awesome => true)  # GET /people/active.xml?awesome=true
+        #   # => [{:id => 1, :name => 'Ryan'}]
+        #
+        # Note: the objects returned from this method are not automatically converted
+        # into ActiveResource::Base instances - they are ordinary Hashes. If you are expecting
+        # ActiveResource::Base instances, use the <tt>find</tt> class method with the
+        # <tt>:from</tt> option. For example:
+        #
+        #   Person.find(:all, :from => :active)
+        def get(custom_method_name, options = {})
+          connection.get(custom_method_collection_url(custom_method_name, options), headers)
+        end
 
-          def post(custom_method_name, options = {}, body = '')
-            connection.post(custom_method_collection_url(custom_method_name, options), body, headers)
-          end
+        def post(custom_method_name, options = {}, body = '')
+          connection.post(custom_method_collection_url(custom_method_name, options), body, headers)
+        end
 
-          def put(custom_method_name, options = {}, body = '')
-            connection.put(custom_method_collection_url(custom_method_name, options), body, headers)
-          end
+        def put(custom_method_name, options = {}, body = '')
+          connection.put(custom_method_collection_url(custom_method_name, options), body, headers)
+        end
 
-          def delete(custom_method_name, options = {})
-            # Need to jump through some hoops to retain the original class 'delete' method
-            if custom_method_name.is_a?(Symbol)
-              connection.delete(custom_method_collection_url(custom_method_name, options), headers)
-            else
-              orig_delete(custom_method_name, options)
-            end
+        def delete(custom_method_name, options = {})
+          # Need to jump through some hoops to retain the original class 'delete' method
+          if custom_method_name.is_a?(Symbol)
+            connection.delete(custom_method_collection_url(custom_method_name, options), headers)
+          else
+            orig_delete(custom_method_name, options)
           end
         end
       end
