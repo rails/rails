@@ -1,8 +1,10 @@
+require 'active_support/json'
+require 'active_support/core_ext/module/model_naming'
+
 module ActiveRecord #:nodoc:
   module Serialization
     def self.included(base)
       base.cattr_accessor :include_root_in_json, :instance_writer => false
-      base.extend ClassMethods
     end
 
     # Returns a JSON string representing the model. Some configuration is
@@ -72,29 +74,16 @@ module ActiveRecord #:nodoc:
     #                   {"comments": [{"body": "Don't think too hard"}],
     #                    "title": "So I was thinking"}]}
     def to_json(options = {})
-      json = JsonSerializer.new(self, options).to_s
-      if include_root_in_json
-        "{#{self.class.json_class_name}:#{json}}"
-      else
-        json
-      end
+      hash = Serializer.new(self, options).serializable_record
+      hash = { self.class.model_name.element => hash } if include_root_in_json
+      ActiveSupport::JSON.encode(hash)
     end
+
+    def as_json(options = nil) self end #:nodoc:
 
     def from_json(json)
       self.attributes = ActiveSupport::JSON.decode(json)
       self
-    end
-
-    class JsonSerializer < ActiveRecord::Serialization::Serializer #:nodoc:
-      def serialize
-        ActiveSupport::JSON.encode(serializable_record)
-      end
-    end
-
-    module ClassMethods
-      def json_class_name
-        @json_class_name ||= name.demodulize.underscore.inspect
-      end
     end
   end
 end
