@@ -83,7 +83,7 @@ module ActionController
         end
 
         # Evaluate block in template class if given.
-        master_helper_module.module_eval(&block) if block_given?
+        _helpers.module_eval(&block) if block_given?
       end
 
       # Declares helper accessors for controller attributes. For example, the
@@ -99,7 +99,7 @@ module ActionController
       def helpers
         unless @helper_proxy
           @helper_proxy = ActionView::Base.new
-          @helper_proxy.extend master_helper_module
+          @helper_proxy.extend _helpers
         else
           @helper_proxy
         end
