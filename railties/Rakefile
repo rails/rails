@@ -2,7 +2,6 @@ require 'rake'
 require 'rake/testtask'
 require 'rake/rdoctask'
 require 'rake/gempackagetask'
-require 'rake/contrib/rubyforgepublisher'
 
 require 'date'
 require 'rbconfig'
@@ -355,6 +354,7 @@ end
 
 desc "Publish the release files to RubyForge."
 task :release => [ :package ] do
+  require 'rake/contrib/rubyforgepublisher'
   require 'rubyforge'
 
   packages = %w( gem ).collect{ |ext| "pkg/#{PKG_NAME}-#{PKG_VERSION}.#{ext}" }
