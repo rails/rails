@@ -170,18 +170,18 @@ class DatabaseConnectedJsonEncodingTest < ActiveRecord::TestCase
   def test_should_allow_only_option_for_list_of_authors
     authors = [@david, @mary]
 
-    assert_equal %([{"name":"David"},{"name":"Mary"}]), authors.to_json(:only => :name)
+    assert_equal %([{"name":"David"},{"name":"Mary"}]), ActiveSupport::JSON.encode(authors, :only => :name)
   end
 
   def test_should_allow_except_option_for_list_of_authors
     authors = [@david, @mary]
 
-    assert_equal %([{"id":1},{"id":2}]), authors.to_json(:except => [:name, :author_address_id, :author_address_extra_id])
+    assert_equal %([{"id":1},{"id":2}]), ActiveSupport::JSON.encode(authors, :except => [:name, :author_address_id, :author_address_extra_id])
   end
 
   def test_should_allow_includes_for_list_of_authors
     authors = [@david, @mary]
-    json = authors.to_json(
+    json = ActiveSupport::JSON.encode(authors,
       :only => :name,
       :include => {
         :posts => { :only => :id }
@@ -200,6 +200,6 @@ class DatabaseConnectedJsonEncodingTest < ActiveRecord::TestCase
       2 => @mary
     }
 
-    assert_equal %({"1":{"name":"David"}}), authors_hash.to_json(:only => [1, :name])
+    assert_equal %({"1":{"name":"David"}}), ActiveSupport::JSON.encode(authors_hash, :only => [1, :name])
   end
 end
