@@ -154,6 +154,11 @@ class FormTagHelperTest < ActionView::TestCase
     assert_dom_equal expected, actual
   end
 
+  def test_text_area_tag_id_sanitized
+    input_elem = root_elem(text_area_tag("item[][description]"))
+    assert_match VALID_HTML_ID, input_elem['id']
+  end
+
   def test_text_field_tag
     actual = text_field_tag "title", "Hello!"
     expected = %(<input id="title" name="title" type="text" value="Hello!" />)

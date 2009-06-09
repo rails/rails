@@ -1,3 +1,4 @@
+require "active_support/core_ext/kernel/requires"
 begin
   require_library_or_gem 'memcache'
 

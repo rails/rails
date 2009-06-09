@@ -99,6 +99,11 @@ class FormHelperTest < ActionView::TestCase
     assert_dom_equal('<label for="my_for">Title</label>', label(:post, :title, nil, "for" => "my_for"))
   end
 
+  def test_label_for_radio_buttons_with_value
+    assert_dom_equal('<label for="post_title_great_title">The title goes here</label>', label("post", "title", "The title goes here", :value => "great_title"))
+    assert_dom_equal('<label for="post_title_great_title">The title goes here</label>', label("post", "title", "The title goes here", :value => "great title"))
+  end
+
   def test_text_field
     assert_dom_equal(
       '<input id="post_title" name="post[title]" size="30" type="text" value="Hello World" />', text_field("post", "title")
@@ -527,6 +532,20 @@ class FormHelperTest < ActionView::TestCase
 
     expected = "<form action='http://www.example.com' method='post'>" +
                "<input name='post[123][comment][title]' size='30' type='text' id='post_123_comment_title' value='Hello World' />" +
+               "</form>"
+
+    assert_dom_equal expected, output_buffer
+  end
+
+  def test_nested_fields_for_with_index_radio_button
+    form_for(:post, @post) do |f|
+      f.fields_for(:comment, @post, :index => 5) do |c|
+        concat c.radio_button(:title, "hello")
+      end
+    end
+
+    expected = "<form action='http://www.example.com' method='post'>" +
+               "<input name='post[comment][5][title]' type='radio' id='post_comment_5_title_hello' value='hello' />" +
                "</form>"
 
     assert_dom_equal expected, output_buffer

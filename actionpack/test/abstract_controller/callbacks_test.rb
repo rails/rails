@@ -8,7 +8,7 @@ module AbstractController
     end
     
     class Callback1 < ControllerWithCallbacks
-      process_action_callback :before, :first
+      set_callback :process_action, :before, :first
       
       def first
         @text = "Hello world"
@@ -21,7 +21,7 @@ module AbstractController
     
     class TestCallbacks < ActiveSupport::TestCase
       test "basic callbacks work" do
-        result = Callback1.process(:index)
+        result = Callback1.new.process(:index)
         assert_equal "Hello world", result.response_body
       end
     end
@@ -52,17 +52,17 @@ module AbstractController
     
     class TestCallbacks < ActiveSupport::TestCase
       test "before_filter works" do
-        result = Callback2.process(:index)
+        result = Callback2.new.process(:index)
         assert_equal "Hello world", result.response_body
       end
       
       test "after_filter works" do
-        result = Callback2.process(:index)
+        result = Callback2.new.process(:index)
         assert_equal "Goodbye", result.instance_variable_get("@second")
       end
       
       test "around_filter works" do
-        result = Callback2.process(:index)
+        result = Callback2.new.process(:index)
         assert_equal "FIRSTSECOND", result.instance_variable_get("@aroundz")
       end
     end
@@ -83,12 +83,12 @@ module AbstractController
 
     class TestCallbacks < ActiveSupport::TestCase
       test "before_filter works with procs" do
-        result = Callback3.process(:index)
+        result = Callback3.new.process(:index)
         assert_equal "Hello world", result.response_body
       end
       
       test "after_filter works with procs" do
-        result = Callback3.process(:index)
+        result = Callback3.new.process(:index)
         assert_equal "Goodbye", result.instance_variable_get("@second")
       end      
     end
@@ -118,17 +118,17 @@ module AbstractController
     
     class TestCallbacks < ActiveSupport::TestCase
       test "when :only is specified, a before filter is triggered on that action" do
-        result = CallbacksWithConditions.process(:index)
+        result = CallbacksWithConditions.new.process(:index)
         assert_equal "Hello, World", result.response_body
       end
       
       test "when :only is specified, a before filter is not triggered on other actions" do
-        result = CallbacksWithConditions.process(:sekrit_data)
+        result = CallbacksWithConditions.new.process(:sekrit_data)
         assert_equal "true", result.response_body
       end
       
       test "when :except is specified, an after filter is not triggered on that action" do
-        result = CallbacksWithConditions.process(:index)
+        result = CallbacksWithConditions.new.process(:index)
         assert_nil result.instance_variable_get("@authenticated")
       end
     end
@@ -158,17 +158,17 @@ module AbstractController
     
     class TestCallbacks < ActiveSupport::TestCase
       test "when :only is specified with an array, a before filter is triggered on that action" do
-        result = CallbacksWithArrayConditions.process(:index)
+        result = CallbacksWithArrayConditions.new.process(:index)
         assert_equal "Hello, World", result.response_body
       end
       
       test "when :only is specified with an array, a before filter is not triggered on other actions" do
-        result = CallbacksWithArrayConditions.process(:sekrit_data)
+        result = CallbacksWithArrayConditions.new.process(:sekrit_data)
         assert_equal "true", result.response_body
       end
       
       test "when :except is specified with an array, an after filter is not triggered on that action" do
-        result = CallbacksWithArrayConditions.process(:index)
+        result = CallbacksWithArrayConditions.new.process(:index)
         assert_nil result.instance_variable_get("@authenticated")
       end
     end    
@@ -183,12 +183,12 @@ module AbstractController
     
     class TestCallbacks < ActiveSupport::TestCase
       test "when a callback is modified in a child with :only, it works for the :only action" do
-        result = ChangedConditions.process(:index)
+        result = ChangedConditions.new.process(:index)
         assert_equal "Hello world", result.response_body
       end
       
       test "when a callback is modified in a child with :only, it does not work for other actions" do
-        result = ChangedConditions.process(:not_index)
+        result = ChangedConditions.new.process(:not_index)
         assert_equal "", result.response_body        
       end
     end
@@ -207,7 +207,7 @@ module AbstractController
     
     class TestHalting < ActiveSupport::TestCase
       test "when a callback sets the response body, the action should not be invoked" do
-        result = SetsResponseBody.process(:index)
+        result = SetsResponseBody.new.process(:index)
         assert_equal "Success", result.response_body
       end
     end

@@ -1,5 +1,11 @@
 *Edge*
 
+* JSON: +Object#to_json+ calls +as_json+ to coerce itself into something natively encodable like +Hash+, +Integer+, or +String+. Override +as_json+ instead of +to_json+ so you're JSON library agnostic.  [Jeremy Kemper]
+
+* String #to_time and #to_datetime: handle fractional seconds #864 [Jason Frey]
+
+* Update bundled TZInfo to v0.3.13 [Geoff Buesing]
+
 * Allow MemCacheStore to be initialized with a MemCache-like object instead of addresses and options [Bryan Helmkamp]
 
 * Change spelling of Kyev timezone to Kyiv #2613 [Alexander Dymo]

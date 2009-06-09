@@ -29,7 +29,7 @@ module ActiveModel
 
         validates_each(attr_names, configuration) do |record, attr_name, value|
           unless enum.include?(value)
-            record.errors.add(attr_name, :inclusion, :default => configuration[:message], :value => value) 
+            record.errors.add(attr_name, :inclusion, :default => configuration[:message], :value => value)
           end
         end
       end

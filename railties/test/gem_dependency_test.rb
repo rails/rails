@@ -166,8 +166,14 @@ class GemDependencyTest < Test::Unit::TestCase
     dummy_gem.unpack
   end
 
+  def test_gem_from_directory_name_attempts_to_load_specification
+    assert_raises RuntimeError do
+      dummy_gem = Rails::GemDependency.from_directory_name('dummy-gem-1.1')
+    end
+  end
+
   def test_gem_from_directory_name
-    dummy_gem = Rails::GemDependency.from_directory_name('dummy-gem-1.1')
+    dummy_gem = Rails::GemDependency.from_directory_name('dummy-gem-1.1', false)
     assert_equal 'dummy-gem', dummy_gem.name
     assert_equal '= 1.1',     dummy_gem.version_requirements.to_s
   end
@@ -185,6 +191,14 @@ class GemDependencyTest < Test::Unit::TestCase
     assert_equal true,  Rails::GemDependency.new("dummy-gem-a").built?
     assert_equal true,  Rails::GemDependency.new("dummy-gem-i").built?
     assert_equal false, Rails::GemDependency.new("dummy-gem-j").built?
+  end
+
+  def test_gem_build_passes_options_to_dependencies
+    start_gem = Rails::GemDependency.new("dummy-gem-g")
+    dep_gem = Rails::GemDependency.new("dummy-gem-f")
+    start_gem.stubs(:dependencies).returns([dep_gem])
+    dep_gem.expects(:build).with({ :force => true }).once
+    start_gem.build(:force => true)
   end
 
 end

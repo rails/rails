@@ -2,14 +2,16 @@ require 'active_support/inflector'
 
 module ActiveSupport
   class ModelName < String
-    attr_reader :singular, :plural, :cache_key, :partial_path
+    attr_reader :singular, :plural, :element, :collection, :partial_path
+    alias_method :cache_key, :collection
 
     def initialize(name)
       super
       @singular = ActiveSupport::Inflector.underscore(self).tr('/', '_').freeze
       @plural = ActiveSupport::Inflector.pluralize(@singular).freeze
-      @cache_key = tableize.freeze
-      @partial_path = "#{@cache_key}/#{ActiveSupport::Inflector.underscore(ActiveSupport::Inflector.demodulize(self))}".freeze
+      @element = ActiveSupport::Inflector.underscore(ActiveSupport::Inflector.demodulize(self)).freeze
+      @collection = ActiveSupport::Inflector.tableize(self).freeze
+      @partial_path = "#{@collection}/#{@element}".freeze
     end
   end
 end

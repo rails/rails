@@ -125,7 +125,7 @@ module ActiveSupport
         "Kolkata"                      => "Asia/Kolkata",
         "Mumbai"                       => "Asia/Kolkata",
         "New Delhi"                    => "Asia/Kolkata",
-        "Kathmandu"                    => "Asia/Katmandu",
+        "Kathmandu"                    => "Asia/Kathmandu",
         "Astana"                       => "Asia/Dhaka",
         "Dhaka"                        => "Asia/Dhaka",
         "Sri Jayawardenepura"          => "Asia/Colombo",

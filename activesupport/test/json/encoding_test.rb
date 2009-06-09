@@ -9,6 +9,12 @@ class TestJSONEncoding < Test::Unit::TestCase
     end
   end
 
+  class Custom
+    def as_json(options)
+      'custom'
+    end
+  end
+
   TrueTests     = [[ true,  %(true)  ]]
   FalseTests    = [[ false, %(false) ]]
   NilTests      = [[ nil,   %(null)  ]]
@@ -27,6 +33,7 @@ class TestJSONEncoding < Test::Unit::TestCase
                    [ :"a b", %("a b")  ]]
 
   ObjectTests   = [[ Foo.new(1, 2), %({\"a\":1,\"b\":2}) ]]
+  CustomTests   = [[ Custom.new, '"custom"' ]]
 
   VariableTests = [[ ActiveSupport::JSON::Variable.new('foo'), 'foo'],
                    [ ActiveSupport::JSON::Variable.new('alert("foo")'), 'alert("foo")']]
@@ -76,7 +83,7 @@ class TestJSONEncoding < Test::Unit::TestCase
   def test_exception_raised_when_encoding_circular_reference
     a = [1]
     a << a
-    assert_raise(ActiveSupport::JSON::CircularReferenceError) { ActiveSupport::JSON.encode(a) }
+    assert_raise(ActiveSupport::JSON::Encoding::CircularReferenceError) { ActiveSupport::JSON.encode(a) }
   end
 
   def test_hash_key_identifiers_are_always_quoted
@@ -129,11 +136,9 @@ end
 
 class JsonOptionsTests < Test::Unit::TestCase
   def test_enumerable_should_passthrough_options_to_elements
-    json_options = { :include => :posts }
-    ActiveSupport::JSON.expects(:encode).with(1, json_options)
-    ActiveSupport::JSON.expects(:encode).with(2, json_options)
-    ActiveSupport::JSON.expects(:encode).with('foo', json_options)
-
-    [1, 2, 'foo'].send(:rails_to_json, json_options)
+    value, options = Object.new, Object.new
+    def value.as_json(options) options end
+    def options.encode_json(encoder) self end
+    assert_equal options, ActiveSupport::JSON.encode(value, options)
   end
 end

@@ -1,3 +1,5 @@
+require 'active_support/core_ext/object/blank'
+
 module ActiveModel
   module Validations
     module ClassMethods
@@ -16,7 +18,7 @@ module ActiveModel
       #
       # Configuration options:
       # * <tt>message</tt> - A custom error message (default is: "can't be blank").
-      # * <tt>on</tt> - Specifies when this validation is active (default is <tt>:save</tt>, other options <tt>:create</tt>, 
+      # * <tt>on</tt> - Specifies when this validation is active (default is <tt>:save</tt>, other options <tt>:create</tt>,
       #   <tt>:update</tt>).
       # * <tt>if</tt> - Specifies a method, proc or string to call to determine if the validation should
       #   occur (e.g. <tt>:if => :allow_validation</tt>, or <tt>:if => Proc.new { |user| user.signup_step > 2 }</tt>).

@@ -32,7 +32,7 @@ module ActiveModel
 
         validates_each(attr_names, configuration) do |record, attr_name, value|
           unless value.to_s =~ configuration[:with]
-            record.errors.add(attr_name, :invalid, :default => configuration[:message], :value => value) 
+            record.errors.add(attr_name, :invalid, :default => configuration[:message], :value => value)
           end
         end
       end

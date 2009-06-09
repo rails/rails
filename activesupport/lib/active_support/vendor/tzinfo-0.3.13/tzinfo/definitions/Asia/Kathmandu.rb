@@ -3,10 +3,10 @@ require 'tzinfo/timezone_definition'
 module TZInfo
   module Definitions
     module Asia
-      module Katmandu
+      module Kathmandu
         include TimezoneDefinition
         
-        timezone 'Asia/Katmandu' do |tz|
+        timezone 'Asia/Kathmandu' do |tz|
           tz.offset :o0, 20476, 0, :LMT
           tz.offset :o1, 19800, 0, :IST
           tz.offset :o2, 20700, 0, :NPT

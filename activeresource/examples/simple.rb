@@ -1,6 +1,5 @@
 $LOAD_PATH.unshift "#{File.dirname(__FILE__)}/../lib"
 require 'active_resource'
-require 'active_resource/http_mock'
 require 'active_support/core_ext/hash/conversions'
 
 ActiveSupport::XmlMini.backend = ENV['XMLMINI'] || 'REXML'

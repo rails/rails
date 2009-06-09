@@ -1,1 +1,1 @@
-<%= local_assigns.keys.map(&:to_s).sort.join(",") -%>
+<%= local_assigns.keys.map {|k| k.to_s }.sort.join(",") -%>

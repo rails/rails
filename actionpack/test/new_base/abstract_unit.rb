@@ -11,9 +11,6 @@ $stderr.puts "Running old tests on new_base"
 require 'test/unit'
 require 'active_support'
 
-# TODO : Revisit requiring all the core extensions here
-require 'active_support/core_ext'
-
 require 'active_support/test_case'
 require 'action_controller/abstract'
 require 'action_controller/new_base'
@@ -44,6 +41,16 @@ I18n.backend.store_translations 'pt-BR', {}
 ORIGINAL_LOCALES = I18n.available_locales.map {|locale| locale.to_s }.sort
 
 FIXTURE_LOAD_PATH = File.join(File.dirname(__FILE__), '../fixtures')
+
+module ActionView
+  class TestCase
+    setup do
+      ActionController::Routing::Routes.draw do |map|
+        map.connect ':controller/:action/:id'
+      end
+    end
+  end
+end
 
 module ActionController
   Base.session = {

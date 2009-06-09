@@ -1,5 +1,6 @@
 require 'cgi'
 require 'action_view/helpers/tag_helper'
+require 'active_support/core_ext/object/returning'
 
 module ActionView
   module Helpers
@@ -257,7 +258,7 @@ module ActionView
           options["cols"], options["rows"] = size.split("x") if size.respond_to?(:split)
         end
 
-        content_tag :textarea, content, { "name" => name, "id" => name }.update(options.stringify_keys)
+        content_tag :textarea, content, { "name" => name, "id" => sanitize_to_id(name) }.update(options.stringify_keys)
       end
 
       # Creates a check box form input tag.

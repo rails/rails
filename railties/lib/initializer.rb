@@ -304,7 +304,7 @@ module Rails
     end
 
     def load_gems
-      unless $gems_build_rake_task
+      unless $gems_rake_task
         @configuration.gems.each { |gem| gem.load }
       end
     end

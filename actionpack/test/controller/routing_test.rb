@@ -1623,13 +1623,13 @@ class RouteSetTest < Test::Unit::TestCase
     set.draw { |m| m.connect ':controller/:action/:id' }
     path, extras = set.generate_extras(:controller => "foo", :action => "bar", :id => 15, :this => "hello", :that => "world")
     assert_equal "/foo/bar/15", path
-    assert_equal %w(that this), extras.map(&:to_s).sort
+    assert_equal %w(that this), extras.map { |e| e.to_s }.sort
   end
 
   def test_extra_keys
     set.draw { |m| m.connect ':controller/:action/:id' }
     extras = set.extra_keys(:controller => "foo", :action => "bar", :id => 15, :this => "hello", :that => "world")
-    assert_equal %w(that this), extras.map(&:to_s).sort
+    assert_equal %w(that this), extras.map { |e| e.to_s }.sort
   end
 
   def test_generate_extras_not_first
@@ -1639,7 +1639,7 @@ class RouteSetTest < Test::Unit::TestCase
     end
     path, extras = set.generate_extras(:controller => "foo", :action => "bar", :id => 15, :this => "hello", :that => "world")
     assert_equal "/foo/bar/15", path
-    assert_equal %w(that this), extras.map(&:to_s).sort
+    assert_equal %w(that this), extras.map { |e| e.to_s }.sort
   end
 
   def test_generate_not_first
@@ -1656,7 +1656,7 @@ class RouteSetTest < Test::Unit::TestCase
       map.connect ':controller/:action/:id'
     end
     extras = set.extra_keys(:controller => "foo", :action => "bar", :id => 15, :this => "hello", :that => "world")
-    assert_equal %w(that this), extras.map(&:to_s).sort
+    assert_equal %w(that this), extras.map { |e| e.to_s }.sort
   end
 
   def test_draw

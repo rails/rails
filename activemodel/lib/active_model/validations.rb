@@ -1,3 +1,6 @@
+require 'active_support/core_ext/array/extract_options'
+require 'active_support/core_ext/hash/keys'
+
 module ActiveModel
   module Validations
     extend ActiveSupport::Concern
@@ -69,10 +72,9 @@ module ActiveModel
       end
 
       private
-
-      def validation_method(on)
-        :validate
-      end
+        def validation_method(on)
+          :validate
+        end
     end
 
     # Returns the Errors object that holds all information about attribute error messages.

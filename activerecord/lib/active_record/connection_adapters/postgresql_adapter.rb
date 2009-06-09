@@ -288,7 +288,13 @@ module ActiveRecord
 
       # Escapes binary strings for bytea input to the database.
       def escape_bytea(value)
-        if PGconn.respond_to?(:escape_bytea)
+        if @connection.respond_to?(:escape_bytea)
+          self.class.instance_eval do
+            define_method(:escape_bytea) do |value|
+              @connection.escape_bytea(value) if value
+            end
+          end
+        elsif PGconn.respond_to?(:escape_bytea)
           self.class.instance_eval do
             define_method(:escape_bytea) do |value|
               PGconn.escape_bytea(value) if value
@@ -377,7 +383,13 @@ module ActiveRecord
 
       # Quotes strings for use in SQL input in the postgres driver for better performance.
       def quote_string(s) #:nodoc:
-        if PGconn.respond_to?(:escape)
+        if @connection.respond_to?(:escape)
+          self.class.instance_eval do
+            define_method(:quote_string) do |s|
+              @connection.escape(s)
+            end
+          end
+        elsif PGconn.respond_to?(:escape)
           self.class.instance_eval do
             define_method(:quote_string) do |s|
               PGconn.escape(s)

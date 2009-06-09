@@ -876,10 +876,12 @@ class YieldingAroundFiltersTest < ActionController::TestCase
     assert_raise(After) { test_process(controller,'raises_after') }
   end
 
-  def test_with_method
-    controller = ControllerWithFilterMethod
-    assert_nothing_raised { test_process(controller,'no_raise') }
-    assert_raise(After) { test_process(controller,'raises_after') }
+  for_tag(:old_base) do
+    def test_with_method
+      controller = ControllerWithFilterMethod
+      assert_nothing_raised { test_process(controller,'no_raise') }
+      assert_raise(After) { test_process(controller,'raises_after') }
+    end
   end
 
   def test_with_proc

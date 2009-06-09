@@ -127,7 +127,7 @@ class HelperTest < Test::Unit::TestCase
   end
 
   def test_all_helpers
-    methods = AllHelpersController.master_helper_module.instance_methods.map(&:to_s)
+    methods = AllHelpersController.master_helper_module.instance_methods.map {|m| m.to_s}
 
     # abc_helper.rb
     assert methods.include?('bare_a')
@@ -171,11 +171,11 @@ class HelperTest < Test::Unit::TestCase
 
   private
     def expected_helper_methods
-      TestHelper.instance_methods.map(&:to_s)
+      TestHelper.instance_methods.map {|m| m.to_s }
     end
 
     def master_helper_methods
-      @controller_class.master_helper_module.instance_methods.map(&:to_s)
+      @controller_class.master_helper_module.instance_methods.map {|m| m.to_s }
     end
 
     def missing_methods
