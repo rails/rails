@@ -36,7 +36,7 @@ module ActionController
     private
       def failsafe_response(exception)
         log_failsafe_exception(exception)
-        [500, {'Content-Type' => 'text/html'}, failsafe_response_body]
+        [500, {'Content-Type' => 'text/html'}, [failsafe_response_body]]
       rescue Exception => failsafe_error # Logger or IO errors
         $stderr.puts "Error during failsafe response: #{failsafe_error}"
       end

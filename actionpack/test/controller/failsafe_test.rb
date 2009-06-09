@@ -46,7 +46,7 @@ class FailsafeTest < ActionController::TestCase
     app_will_raise_error!
     response = @failsafe.call({})
     assert_equal 500, response[0]
-    assert_equal "hello my world", response[2]
+    assert_equal "hello my world", response[2].join
   end
   
   def test_returns_a_default_message_if_erb_rendering_failed
@@ -54,7 +54,7 @@ class FailsafeTest < ActionController::TestCase
     @failsafe.expects(:render_template).raises(RuntimeError.new("Harddisk is crashing"))
     response = @failsafe.call({})
     assert_equal 500, response[0]
-    assert_match /500 Internal Server Error/, response[2]
-    assert_match %r(please read this web application's log file), response[2]
+    assert_match /500 Internal Server Error/, response[2].join
+    assert_match %r(please read this web application's log file), response[2].join
   end
 end

@@ -56,7 +56,7 @@ class DispatcherTest < Test::Unit::TestCase
     assert_equal 3, response.size
     assert_equal 500, response[0]
     assert_equal({"Content-Type" => "text/html"}, response[1])
-    assert_match /500 Internal Server Error/, response[2]
+    assert_match /500 Internal Server Error/, response[2].join
   end
 
   def test_prepare_callbacks
