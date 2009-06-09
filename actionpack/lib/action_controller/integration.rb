@@ -326,7 +326,7 @@ module ActionController
           end
 
           @body = ""
-          if body.is_a?(String)
+          if body.respond_to?(:to_str)
             @body << body
           else
             body.each { |part| @body << part }
