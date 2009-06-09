@@ -36,7 +36,7 @@ module ActiveModel
 
         validates_each(attr_names, configuration) do |record, attr_name, value|
           unless record.send("#{attr_name}_confirmation").nil? or value == record.send("#{attr_name}_confirmation")
-            record.errors.add(attr_name, :confirmation, :default => configuration[:message]) 
+            record.errors.add(attr_name, :confirmation, :default => configuration[:message])
           end
         end
       end
