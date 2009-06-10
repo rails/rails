@@ -28,16 +28,6 @@ module ActionController
       self.class.controller_path
     end
 
-    # :api: private
-    def self.action_names
-      action_methods
-    end
-
-    # :api: private
-    def action_names
-      action_methods
-    end
-
     # :api: plugin
     def self.call(env)
       controller = new

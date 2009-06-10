@@ -1,39 +1,34 @@
 module ActionController
+  # ActionController::HideActions adds the ability to prevent public methods on a controller
+  # to be called as actions.
   module HideActions
     extend ActiveSupport::Concern
 
     included do
-      extlib_inheritable_accessor :hidden_actions
-      self.hidden_actions ||= Set.new
+      extlib_inheritable_accessor(:hidden_actions) { Set.new }
     end
 
     def action_methods
-      self.class.action_names
+      self.class.action_methods
     end
 
-    def action_names
-      action_methods
+  private
+
+    def action_method?(action_name)
+      !hidden_actions.include?(action_name) && super
     end
 
-    private
-      def action_method?(action_name)
-        !hidden_actions.include?(action_name) && super
-      end
-
-      module ClassMethods
-        def hide_action(*args)
-          args.each do |arg|
-            self.hidden_actions << arg.to_s
-          end
-        end
-
-        def action_methods
-          @action_names ||= Set.new(super.reject {|name| self.hidden_actions.include?(name.to_s)})
-        end
-
-        def self.action_names
-          action_methods
+    module ClassMethods
+      # Sets
+      def hide_action(*args)
+        args.each do |arg|
+          self.hidden_actions << arg.to_s
         end
       end
+
+      def action_methods
+        @action_methods ||= Set.new(super.reject {|name| self.hidden_actions.include?(name.to_s)})
+      end
+    end
   end
 end
