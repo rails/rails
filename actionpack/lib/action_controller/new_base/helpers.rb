@@ -56,34 +56,7 @@ module ActionController
       #   helper(:three, BlindHelper) { def mice() 'mice' end }
       #
       def helper(*args, &block)
-        args.flatten.each do |arg|
-          case arg
-          when :all
-            helper all_application_helpers
-          when String, Symbol
-            file_name  = arg.to_s.underscore + '_helper'
-            class_name = file_name.camelize
-
-            begin
-              require_dependency(file_name)
-            rescue LoadError => load_error
-              requiree = / -- (.*?)(\.rb)?$/.match(load_error.message).to_a[1]
-              if requiree == file_name
-                msg = "Missing helper file helpers/#{file_name}.rb"
-                raise LoadError.new(msg).copy_blame!(load_error)
-              else
-                raise
-              end
-            end
-
-            super class_name.constantize
-          else
-            super args
-          end
-        end
-
-        # Evaluate block in template class if given.
-        _helpers.module_eval(&block) if block_given?
+        super(*_modules_for_helpers(args), &block)
       end
 
       # Declares helper accessors for controller attributes. For example, the
@@ -97,33 +70,45 @@ module ActionController
 
       # Provides a proxy to access helpers methods from outside the view.
       def helpers
-        unless @helper_proxy
-          @helper_proxy = ActionView::Base.new
-          @helper_proxy.extend _helpers
-        else
-          @helper_proxy
+        @helper_proxy ||= ActionView::Base.new.extend(_helpers)
+      end
+
+    private
+      def _modules_for_helpers(args)
+        args.flatten.map! do |arg|
+          case arg
+          when :all
+            _modules_for_helpers all_application_helpers
+          when String, Symbol
+            file_name = "#{arg.to_s.underscore}_helper"
+            require_dependency(file_name, "Missing helper file helpers/%s.rb")
+            file_name.camelize.constantize
+          when Module
+            arg
+          else
+            raise ArgumentError, "helper must be a String, Symbol, or Module"
+          end
         end
       end
 
-      private
-        def default_helper_module!
-          unless name.blank?
-            module_name = name.sub(/Controller$|$/, 'Helper')
-            module_path = module_name.split('::').map { |m| m.underscore }.join('/')
-            require_dependency module_path
-            helper module_name.constantize
-          end
-        rescue MissingSourceFile => e
-          raise unless e.is_missing? module_path
-        rescue NameError => e
-          raise unless e.missing_name? module_name
+      def default_helper_module!
+        unless name.blank?
+          module_name = name.sub(/Controller$|$/, 'Helper')
+          module_path = module_name.split('::').map { |m| m.underscore }.join('/')
+          require_dependency module_path
+          helper module_name.constantize
         end
+      rescue MissingSourceFile => e
+        raise e unless e.is_missing? module_path
+      rescue NameError => e
+        raise e unless e.missing_name? module_name
+      end
 
-        # Extract helper names from files in app/helpers/**/*.rb
-        def all_application_helpers
-          extract = /^#{Regexp.quote(helpers_dir)}\/?(.*)_helper.rb$/
-          Dir["#{helpers_dir}/**/*_helper.rb"].map { |file| file.sub extract, '\1' }
-        end
+      # Extract helper names from files in app/helpers/**/*.rb
+      def all_application_helpers
+        extract = /^#{Regexp.quote(helpers_dir)}\/?(.*)_helper.rb$/
+        Dir["#{helpers_dir}/**/*_helper.rb"].map { |file| file.sub extract, '\1' }
+      end
     end
   end
 end
