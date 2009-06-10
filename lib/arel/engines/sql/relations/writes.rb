@@ -31,9 +31,13 @@ module Arel
   protected
 
     def assignment_sql
-      assignments.collect do |attribute, value|
-        "#{engine.quote_column_name(attribute.name)} = #{attribute.format(value)}"
-      end.join(",\n")
+      if assignments.respond_to?(:collect)
+        assignments.collect do |attribute, value|
+          "#{engine.quote_column_name(attribute.name)} = #{attribute.format(value)}"
+        end.join(",\n")
+      else
+        assignments.value
+      end
     end
   end
 end
