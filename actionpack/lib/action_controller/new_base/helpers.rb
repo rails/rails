@@ -16,7 +16,7 @@ module ActionController
 
     module ClassMethods
       def inherited(klass)
-        klass.__send__ :default_helper_module!
+        klass.class_eval { default_helper_module! unless name.blank? }
         super
       end
 
@@ -92,16 +92,13 @@ module ActionController
       end
 
       def default_helper_module!
-        unless name.blank?
-          module_name = name.sub(/Controller$|$/, 'Helper')
-          module_path = module_name.split('::').map { |m| m.underscore }.join('/')
-          require_dependency module_path
-          helper module_name.constantize
-        end
+        module_name = name.sub(/Controller$/, '')
+        module_path = module_name.underscore
+        helper module_path
       rescue MissingSourceFile => e
-        raise e unless e.is_missing? module_path
+        raise e unless e.is_missing? "#{module_path}_helper"
       rescue NameError => e
-        raise e unless e.missing_name? module_name
+        raise e unless e.missing_name? "#{module_name}Helper"
       end
 
       # Extract helper names from files in app/helpers/**/*.rb
