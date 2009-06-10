@@ -114,8 +114,9 @@ module ActionController
       super || (respond_to?(:method_missing) && "_handle_method_missing")
     end
 
-    def _layout_prefix(name)
-      super unless name =~ /\blayouts/
+    def _find_by_parts(name, details)
+      details[:prefix] = nil if name =~ /\blayouts/
+      super
     end
 
     def performed?

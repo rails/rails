@@ -95,11 +95,6 @@ module AbstractController
     end
 
   private
-    # See AbstractController::Base.action_methods
-    def action_methods
-      self.class.action_methods
-    end
-
     # Returns true if the name can be considered an action. This can
     # be overridden in subclasses to modify the semantics of what
     # can be considered an action.
@@ -110,7 +105,7 @@ module AbstractController
     # ==== Returns
     # TrueClass, FalseClass
     def action_method?(name)
-      action_methods.include?(name)
+      self.class.action_methods.include?(name)
     end
 
     # Call the action. Override this in a subclass to modify the

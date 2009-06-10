@@ -178,6 +178,13 @@ class GemDependencyTest < Test::Unit::TestCase
     assert_equal '= 1.1',     dummy_gem.version_requirements.to_s
   end
 
+  def test_gem_from_directory_name_loads_specification_successfully
+    assert_nothing_raised do
+      dummy_gem = Rails::GemDependency.from_directory_name(File.join(Rails::GemDependency.unpacked_path, 'dummy-gem-g-1.0.0'))
+      assert_not_nil dummy_gem.specification
+    end
+  end
+
   def test_gem_from_invalid_directory_name
     assert_raises RuntimeError do
       dummy_gem = Rails::GemDependency.from_directory_name('dummy-gem')

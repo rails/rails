@@ -15,13 +15,19 @@ module ActiveSupport
     # data::
     #   XML Document string or IO to parse
     def parse(data)
-      if data.respond_to?(:read)
-        data = data.read
+      if !data.respond_to?(:read)
+        data = StringIO.new(data || '')
       end
-
-      require 'rexml/document' unless defined?(REXML::Document)
-      doc = REXML::Document.new(data)
-      merge_element!({}, doc.root)
+      
+      char = data.getc
+      if char.nil?
+        {}
+      else
+        data.ungetc(char)
+        require 'rexml/document' unless defined?(REXML::Document)
+        doc = REXML::Document.new(data)
+        merge_element!({}, doc.root)
+      end
     end
 
     private

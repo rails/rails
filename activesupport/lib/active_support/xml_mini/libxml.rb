@@ -9,16 +9,18 @@ module ActiveSupport
     # data::
     #   XML Document string or IO to parse
     def parse(data)
-      if data.respond_to?(:read)
-        data = data.read
+      if !data.respond_to?(:read)
+        data = StringIO.new(data || '')
       end
-
+      
       LibXML::XML.default_keep_blanks = false
-
-      if data.blank?
+      
+      char = data.getc
+      if char.nil?
         {}
       else
-        LibXML::XML::Parser.string(data.strip).parse.to_hash
+        data.ungetc(char)
+        LibXML::XML::Parser.io(data).parse.to_hash
       end
     end
 

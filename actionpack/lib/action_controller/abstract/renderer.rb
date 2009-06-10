@@ -29,6 +29,9 @@ module AbstractController
     #   partial<Boolean>:: Whether or not the template to render is a partial
     # _partial:: If a partial, rather than a template, was rendered, return
     #   the partial.
+    # helpers:: A module containing the helpers to be used in the view. This
+    #   module should respond_to include.
+    # controller:: The controller that initialized the ActionView
     #
     # Override this method in a to change the default behavior.
     def _action_view
