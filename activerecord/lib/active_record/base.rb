@@ -839,44 +839,26 @@ module ActiveRecord #:nodoc:
       #   # Update all books that match our conditions, but limit it to 5 ordered by date
       #   Book.update_all "author = 'David'", "title LIKE '%Rails%'", :order => 'created_at', :limit => 5
       def update_all(updates, conditions = nil, options = {})
-        # sql  = "UPDATE #{quoted_table_name} SET #{sanitize_sql_for_assignment(updates)} "
+        sql  = "UPDATE #{quoted_table_name} SET #{sanitize_sql_for_assignment(updates)} "
 
-        # scope = scope(:find)
-
-        # select_sql = ""
-        # add_conditions!(select_sql, conditions, scope)
-
-        # if options.has_key?(:limit) || (scope && scope[:limit])
-        #   # Only take order from scope if limit is also provided by scope, this
-        #   # is useful for updating a has_many association with a limit.
-        #   add_order!(select_sql, options[:order], scope)
-
-        #   add_limit!(select_sql, options, scope)
-        #   sql.concat(connection.limited_update_conditions(select_sql, quoted_table_name, connection.quote_column_name(primary_key)))
-        # else
-        #   add_order!(select_sql, options[:order], nil)
-        #   sql.concat(select_sql)
-        # end
-
-        # connection.update(sql, "#{name} Update")
         scope = scope(:find)
 
-        arel = arel_table
-        arel = arel.where(Arel::SqlLiteral.new(construct_conditions(conditions, scope))) if conditions || scope
+        select_sql = ""
+        add_conditions!(select_sql, conditions, scope)
+
         if options.has_key?(:limit) || (scope && scope[:limit])
           # Only take order from scope if limit is also provided by scope, this
           # is useful for updating a has_many association with a limit.
-          arel = arel.order(construct_order(options[:order], scope))
+          add_order!(select_sql, options[:order], scope)
 
-          arel = arel.take(construct_limit(options, scope))
-          #arel = arel.where(connection.limited_update_conditions(select_sql, quoted_table_name, connection.quote_column_name(primary_key)))
-          #sql.concat(connection.limited_update_conditions(select_sql, quoted_table_name, connection.quote_column_name(primary_key)))
+          add_limit!(select_sql, options, scope)
+          sql.concat(connection.limited_update_conditions(select_sql, quoted_table_name, connection.quote_column_name(primary_key)))
         else
-          arel = arel.order(construct_order(options[:order], nil))
-          #sql.concat(select_sql)
+          add_order!(select_sql, options[:order], nil)
+          sql.concat(select_sql)
         end
 
-        arel.update(sanitize_sql_for_assignment(updates))
+        connection.update(sql, "#{name} Update")
       end
 
       # Destroys the records matching +conditions+ by instantiating each
