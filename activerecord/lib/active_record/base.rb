@@ -1750,17 +1750,15 @@ module ActiveRecord #:nodoc:
         end
 
         def construct_order(order, scope = :auto)
-          sql = ''
+          orders = []
           scoped_order = scope[:order] if scope
           if order
-            sql << order.to_s
-            if scoped_order && scoped_order != order
-              sql << ", #{scoped_order}"
-            end
+            orders << order
+            orders << scoped_order if scoped_order && scoped_order != order
           else
-            sql << scoped_order.to_s if scoped_order
+            orders << scoped_order if scoped_order
           end
-          sql
+          orders
         end
 
         def construct_limit(options, scope = :auto)
