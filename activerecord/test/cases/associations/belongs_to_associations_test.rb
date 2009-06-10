@@ -215,6 +215,10 @@ class BelongsToAssociationsTest < ActiveRecord::TestCase
 
     r1.topic = Topic.find(t2.id)
 
+    assert_no_queries do
+      r1.topic = t2
+    end
+
     assert r1.save
     assert_equal 0, Topic.find(t1.id).replies.size
     assert_equal 1, Topic.find(t2.id).replies.size
