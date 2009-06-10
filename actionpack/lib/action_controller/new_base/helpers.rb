@@ -3,6 +3,51 @@ require 'active_support/core_ext/name_error'
 require 'active_support/dependencies'
 
 module ActionController
+  # The Rails framework provides a large number of helpers for working with +assets+, +dates+, +forms+,
+  # +numbers+ and model objects, to name a few. These helpers are available to all templates
+  # by default.
+  #
+  # In addition to using the standard template helpers provided in the Rails framework, creating custom helpers to
+  # extract complicated logic or reusable functionality is strongly encouraged. By default, the controller will
+  # include a helper whose name matches that of the controller, e.g., <tt>MyController</tt> will automatically
+  # include <tt>MyHelper</tt>.
+  #
+  # Additional helpers can be specified using the +helper+ class method in <tt>ActionController::Base</tt> or any
+  # controller which inherits from it.
+  #
+  # ==== Examples
+  # The +to_s+ method from the Time class can be wrapped in a helper method to display a custom message if
+  # the Time object is blank:
+  #
+  #   module FormattedTimeHelper
+  #     def format_time(time, format=:long, blank_message="&nbsp;")
+  #       time.blank? ? blank_message : time.to_s(format)
+  #     end
+  #   end
+  #
+  # FormattedTimeHelper can now be included in a controller, using the +helper+ class method:
+  #
+  #   class EventsController < ActionController::Base
+  #     helper FormattedTimeHelper
+  #     def index
+  #       @events = Event.find(:all)
+  #     end
+  #   end
+  #
+  # Then, in any view rendered by <tt>EventController</tt>, the <tt>format_time</tt> method can be called:
+  #
+  #   <% @events.each do |event| -%>
+  #     <p>
+  #       <% format_time(event.time, :short, "N/A") %> | <%= event.name %>
+  #     </p>
+  #   <% end -%>
+  #
+  # Finally, assuming we have two event instances, one which has a time and one which does not,
+  # the output might look like this:
+  #
+  #   23 Aug 11:30 | Carolina Railhawks Soccer Match
+  #   N/A | Carolina Railhaws Training Workshop
+  #
   module Helpers
     extend ActiveSupport::Concern
 
@@ -10,8 +55,9 @@ module ActionController
 
     included do
       # Set the default directory for helpers
-      class_inheritable_accessor :helpers_dir
-      self.helpers_dir = (defined?(RAILS_ROOT) ? "#{RAILS_ROOT}/app/helpers" : "app/helpers")
+      extlib_inheritable_accessor(:helpers_dir) do
+        defined?(RAILS_ROOT) ? "#{RAILS_ROOT}/app/helpers" : "app/helpers"
+      end
     end
 
     module ClassMethods
@@ -22,8 +68,9 @@ module ActionController
 
       # The +helper+ class method can take a series of helper module names, a block, or both.
       #
-      # * <tt>*args</tt>: One or more modules, strings or symbols, or the special symbol <tt>:all</tt>.
-      # * <tt>&block</tt>: A block defining helper methods.
+      # ==== Parameters
+      # *args<Array[Module, Symbol, String, :all]>
+      # block<Block>:: A block defining helper methods
       #
       # ==== Examples
       # When the argument is a string or symbol, the method will provide the "_helper" suffix, require the file
@@ -64,6 +111,10 @@ module ActionController
       # controller and makes them available to the view:
       #   helper_attr :name
       #   attr_accessor :name
+      #
+      # ==== Parameters
+      # *attrs<Array[String, Symbol]>:: Names of attributes to be converted
+      #   into helpers.
       def helper_attr(*attrs)
         attrs.flatten.each { |attr| helper_method(attr, "#{attr}=") }
       end
@@ -74,6 +125,22 @@ module ActionController
       end
 
     private
+      # Returns a list of modules, normalized from the acceptable kinds of
+      # helpers with the following behavior:
+      # String or Symbol:: :FooBar or "FooBar" becomes "foo_bar_helper",
+      #   and "foo_bar_helper.rb" is loaded using require_dependency.
+      # :all:: Loads all modules in the #helpers_dir
+      # Module:: No further processing
+      #
+      # After loading the appropriate files, the corresponding modules
+      # are returned.
+      #
+      # ==== Parameters
+      # args<Array[String, Symbol, Module, all]>:: A list of helpers
+      #
+      # ==== Returns
+      # Array[Module]:: A normalized list of modules for the list of
+      #   helpers provided.
       def _modules_for_helpers(args)
         args.flatten.map! do |arg|
           case arg
