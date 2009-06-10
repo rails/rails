@@ -1590,19 +1590,23 @@ module ActiveRecord
 
         def construct_finder_sql_with_included_associations(options, join_dependency)
           scope = scope(:find)
-          sql = "SELECT #{column_aliases(join_dependency)} FROM #{(scope && scope[:from]) || options[:from] || quoted_table_name} "
-          sql << join_dependency.join_associations.collect{|join| join.association_join }.join
 
-          add_joins!(sql, options[:joins], scope)
-          add_conditions!(sql, options[:conditions], scope)
-          add_limited_ids_condition!(sql, options, join_dependency) if !using_limitable_reflections?(join_dependency.reflections) && ((scope && scope[:limit]) || options[:limit])
+          joins = join_dependency.join_associations.collect{|join| join.association_join }.join
+          joins << construct_join(options[:joins], scope)
 
-          add_group!(sql, options[:group], options[:having], scope)
-          add_order!(sql, options[:order], scope)
-          add_limit!(sql, options, scope) if using_limitable_reflections?(join_dependency.reflections)
-          add_lock!(sql, options, scope)
+          conditions = construct_conditions(options[:conditions], scope) || ''
+          conditions << construct_limited_ids_condition(conditions, options, join_dependency) if !using_limitable_reflections?(join_dependency.reflections) && ((scope && scope[:limit]) || options[:limit])
 
-          return sanitize_sql(sql)
+          arel = arel_table((scope && scope[:from]) || options[:from] || table_name).
+            join(joins).
+            where(conditions).
+            project(column_aliases(join_dependency)).
+            group(construct_group(options[:group], options[:having], scope)).
+            order(construct_order(options[:order], scope))
+
+          arel = arel.take(construct_limit(options, scope)) if using_limitable_reflections?(join_dependency.reflections)
+
+          return sanitize_sql(arel.to_sql)
         end
 
         def add_limited_ids_condition!(sql, options, join_dependency)
@@ -1615,7 +1619,7 @@ module ActiveRecord
 
          def construct_limited_ids_condition(where, options, join_dependency)
           unless (id_list = select_limited_ids_list(options, join_dependency)).empty?
-            "#{where.blank? ? 'WHERE ' : ' AND '} #{connection.quote_table_name table_name}.#{primary_key} IN (#{id_list}) "
+            "#{where.blank? ? '' : ' AND '} #{connection.quote_table_name table_name}.#{primary_key} IN (#{id_list}) "
           else
             throw :invalid_query
           end

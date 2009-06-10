@@ -32,7 +32,7 @@ module ActiveRecord
         return @target.size if loaded?
         return count
       end
-      
+
       protected
         def target_reflection_has_associated_record?
           if @reflection.through_reflection.macro == :belongs_to && @owner[@reflection.through_reflection.primary_key_name].blank?
@@ -48,7 +48,7 @@ module ActiveRecord
           options[:joins]   = construct_joins(options[:joins])
           options[:include] = @reflection.source_reflection.options[:include] if options[:include].nil?
         end
-        
+
         def insert_record(record, force = true, validate = true)
           if record.new_record?
             if force
@@ -131,7 +131,7 @@ module ActiveRecord
         end
 
         def construct_from
-          @reflection.quoted_table_name
+          @reflection.table_name
         end
 
         def construct_select(custom_select = nil)
@@ -239,7 +239,7 @@ module ActiveRecord
             interpolate_sql(sanitize_sql(conditions))
           end
         end
-        
+
         def build_sti_condition
           @reflection.through_reflection.klass.send(:type_condition)
         end
