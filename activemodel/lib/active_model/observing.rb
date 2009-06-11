@@ -58,6 +58,12 @@ module ActiveModel
           notify_observers :observed_class_inherited, subclass
         end
     end
+
+    private
+      def notify(method) #:nodoc:
+        self.class.changed
+        self.class.notify_observers(method, self)
+      end
   end
 
   class Observer
