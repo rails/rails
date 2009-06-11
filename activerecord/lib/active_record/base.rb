@@ -3149,7 +3149,7 @@ module ActiveRecord #:nodoc:
     include Locking::Optimistic, Locking::Pessimistic
     include AttributeMethods
     include Dirty
-    include Callbacks, Observing, Timestamp
+    include Callbacks, ActiveModel::Observing, Timestamp
     include Associations, AssociationPreload, NamedScope
 
     # AutosaveAssociation needs to be included before Transactions, because we want

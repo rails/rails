@@ -59,7 +59,7 @@ module ActiveRecord
   autoload :Migrator, 'active_record/migration'
   autoload :NamedScope, 'active_record/named_scope'
   autoload :NestedAttributes, 'active_record/nested_attributes'
-  autoload :Observing, 'active_record/observer'
+  autoload :Observer, 'active_record/observer'
   autoload :QueryCache, 'active_record/query_cache'
   autoload :Reflection, 'active_record/reflection'
   autoload :Schema, 'active_record/schema'
