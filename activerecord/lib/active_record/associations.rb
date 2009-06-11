@@ -1269,7 +1269,11 @@ module ActiveRecord
 
             if association_proxy_class == HasOneThroughAssociation
               association.create_through_record(new_value)
-              self.send(reflection.name, new_value)
+              if new_record?
+                association_instance_set(reflection.name, new_value.nil? ? nil : association)
+              else
+                self.send(reflection.name, new_value)
+              end
             else
               association.replace(new_value)
               association_instance_set(reflection.name, new_value.nil? ? nil : association)

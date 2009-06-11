@@ -9,8 +9,14 @@ module ActiveRecord
 
         if current_object
           new_value ? current_object.update_attributes(construct_join_attributes(new_value)) : current_object.destroy
-        else
-          @owner.send(@reflection.through_reflection.name,  klass.send(:create, construct_join_attributes(new_value))) if new_value
+        elsif new_value
+          if @owner.new_record?
+            self.target = new_value
+            through_association = @owner.send(:association_instance_get, @reflection.through_reflection.name)
+            through_association.build(construct_join_attributes(new_value))
+          else
+            @owner.send(@reflection.through_reflection.name, klass.create(construct_join_attributes(new_value)))
+          end
         end
       end
 
