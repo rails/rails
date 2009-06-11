@@ -1,5 +1,7 @@
 require 'observer'
 require 'singleton'
+require 'active_support/core_ext/string/inflections'
+require 'active_support/core_ext/array/wrap'
 
 module ActiveModel
   module Observing
