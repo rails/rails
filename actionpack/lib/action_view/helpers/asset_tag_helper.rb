@@ -277,7 +277,7 @@ module ActionView
 
         if ActionController::Base.perform_caching && cache
           joined_javascript_name = (cache == true ? "all" : cache) + ".js"
-          joined_javascript_path = File.join(JAVASCRIPTS_DIR, joined_javascript_name)
+          joined_javascript_path = File.join(joined_javascript_name[/^#{File::SEPARATOR}/] ? ASSETS_DIR : JAVASCRIPTS_DIR, joined_javascript_name)
 
           write_asset_file_contents(joined_javascript_path, compute_javascript_paths(sources, recursive)) unless File.exists?(joined_javascript_path)
           javascript_src_tag(joined_javascript_name, options)
@@ -417,7 +417,7 @@ module ActionView
 
         if ActionController::Base.perform_caching && cache
           joined_stylesheet_name = (cache == true ? "all" : cache) + ".css"
-          joined_stylesheet_path = File.join(STYLESHEETS_DIR, joined_stylesheet_name)
+          joined_stylesheet_path = File.join(joined_stylesheet_name[/^#{File::SEPARATOR}/] ? ASSETS_DIR : STYLESHEETS_DIR, joined_stylesheet_name)
 
           write_asset_file_contents(joined_stylesheet_path, compute_stylesheet_paths(sources, recursive)) unless File.exists?(joined_stylesheet_path)
           stylesheet_tag(joined_stylesheet_name, options)

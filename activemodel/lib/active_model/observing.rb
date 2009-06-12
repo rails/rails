@@ -1,69 +1,90 @@
 require 'observer'
 require 'singleton'
+require 'active_support/core_ext/string/inflections'
+require 'active_support/core_ext/array/wrap'
 
 module ActiveModel
   module Observing
+    extend ActiveSupport::Concern
+
+    included do
+      extend Observable
+    end
+
     module ClassMethods
-      def observers
-        @observers ||= []
-      end
-      
+      # Activates the observers assigned. Examples:
+      #
+      #   # Calls PersonObserver.instance
+      #   ActiveRecord::Base.observers = :person_observer
+      #
+      #   # Calls Cacher.instance and GarbageCollector.instance
+      #   ActiveRecord::Base.observers = :cacher, :garbage_collector
+      #
+      #   # Same as above, just using explicit class references
+      #   ActiveRecord::Base.observers = Cacher, GarbageCollector
+      #
+      # Note: Setting this does not instantiate the observers yet. +instantiate_observers+ is
+      # called during startup, and before each development request.
       def observers=(*values)
         @observers = values.flatten
       end
-      
+
+      # Gets the current observers.
+      def observers
+        @observers ||= []
+      end
+
+      # Instantiate the global Active Record observers.
       def instantiate_observers
         observers.each { |o| instantiate_observer(o) }
       end
-    
-    protected
-      def instantiate_observer(observer)
-        # string/symbol
-        if observer.respond_to?(:to_sym)
-          observer = observer.to_s.camelize.constantize.instance
-        elsif observer.respond_to?(:instance)
-          observer.instance
-        else
-          raise ArgumentError, "#{observer} must be a lowercase, underscored class name (or an instance of the class itself) responding to the instance method. Example: Person.observers = :big_brother # calls BigBrother.instance"
+
+      protected
+        def instantiate_observer(observer)
+          # string/symbol
+          if observer.respond_to?(:to_sym)
+            observer = observer.to_s.camelize.constantize.instance
+          elsif observer.respond_to?(:instance)
+            observer.instance
+          else
+            raise ArgumentError, "#{observer} must be a lowercase, underscored class name (or an instance of the class itself) responding to the instance method. Example: Person.observers = :big_brother # calls BigBrother.instance"
+          end
         end
-      end
-      
-      # Notify observers when the observed class is subclassed.
-      def inherited(subclass)
-        super
-        changed
-        notify_observers :observed_class_inherited, subclass
-      end
+
+        # Notify observers when the observed class is subclassed.
+        def inherited(subclass)
+          super
+          changed
+          notify_observers :observed_class_inherited, subclass
+        end
     end
-    
-    def self.included(receiver)
-      receiver.extend Observable, ClassMethods
-    end
+
+    private
+      def notify(method) #:nodoc:
+        self.class.changed
+        self.class.notify_observers(method, self)
+      end
   end
 
   class Observer
     include Singleton
-    attr_writer :observed_classes
 
     class << self
-      attr_accessor :models
       # Attaches the observer to the supplied model classes.
       def observe(*models)
-        @models = models.flatten
-        @models.collect! { |model| model.respond_to?(:to_sym) ? model.to_s.camelize.constantize : model }
+        models.flatten!
+        models.collect! { |model| model.respond_to?(:to_sym) ? model.to_s.camelize.constantize : model }
+        define_method(:observed_classes) { models }
       end
 
-      def observed_class_name
-        @observed_class_name ||= 
-          if guessed_name = name.scan(/(.*)Observer/)[0]
-            @observed_class_name = guessed_name[0]
-          end
+      def observed_classes
+        Array.wrap(observed_class)
       end
 
       # The class observed by default is inferred from the observer's class name:
-      #   assert_equal [Person], PersonObserver.observed_class
+      #   assert_equal Person, PersonObserver.observed_class
       def observed_class
-        if observed_class_name
+        if observed_class_name = name[/(.*)Observer/, 1]
           observed_class_name.constantize
         else
           nil
@@ -73,8 +94,11 @@ module ActiveModel
 
     # Start observing the declared classes and their subclasses.
     def initialize
-      self.observed_classes = self.class.models if self.class.models
-      observed_classes.each { |klass| klass.add_observer(self) }
+      observed_classes.each { |klass| add_observer!(klass) }
+    end
+
+    def observed_classes
+      self.class.observed_classes
     end
 
     # Send observed_method(object) if the method exists.
@@ -86,12 +110,12 @@ module ActiveModel
     # Passes the new subclass.
     def observed_class_inherited(subclass) #:nodoc:
       self.class.observe(observed_classes + [subclass])
-      subclass.add_observer(self)
+      add_observer!(subclass)
     end
 
-  protected
-    def observed_classes
-      @observed_classes ||= [self.class.observed_class]
-    end
+    protected
+      def add_observer!(klass)
+        klass.add_observer(self)
+      end
   end
 end
