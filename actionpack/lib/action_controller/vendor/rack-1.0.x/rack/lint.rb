@@ -291,9 +291,9 @@ module Rack
             args[1].kind_of?(String)
           }
         end
-
+        
         v = @input.read(*args)
-
+        
         assert("rack.input#read didn't return nil or a String") {
           v.nil? or v.instance_of? String
         }
@@ -302,7 +302,7 @@ module Rack
             !v.nil?
           }
         end
-
+        
         v
       end
 
@@ -316,7 +316,7 @@ module Rack
           yield line
         }
       end
-
+      
       ## * +rewind+ must be called without arguments. It rewinds the input
       ##   stream back to the beginning. It must not raise Errno::ESPIPE:
       ##   that is, it may not be a pipe or a socket. Therefore, handler

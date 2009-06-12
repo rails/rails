@@ -4,31 +4,36 @@ module Rack
   # status codes).
 
   class Cascade
+    NotFound = [404, {}, []]
+
     attr_reader :apps
 
     def initialize(apps, catch=404)
-      @apps = apps
-      @catch = [*catch]
+      @apps = []; @has_app = {}
+      apps.each { |app| add app }
+
+      @catch = {}
+      [*catch].each { |status| @catch[status] = true }
     end
 
     def call(env)
-      status = headers = body = nil
-      raise ArgumentError, "empty cascade"  if @apps.empty?
-      @apps.each { |app|
-        begin
-          status, headers, body = app.call(env)
-          break  unless @catch.include?(status.to_i)
-        end
-      }
-      [status, headers, body]
+      result = NotFound
+
+      @apps.each do |app|
+        result = app.call(env)
+        break unless @catch.include?(result[0].to_i)
+      end
+
+      result
     end
 
     def add app
+      @has_app[app] = true
       @apps << app
     end
 
     def include? app
-      @apps.include? app
+      @has_app.include? app
     end
 
     alias_method :<<, :add

@@ -31,7 +31,7 @@ module Rack
         env.delete "HTTP_CONTENT_LENGTH"
 
         env["SCRIPT_NAME"] = ""  if env["SCRIPT_NAME"] == "/"
-
+        
         rack_input = RewindableInput.new(request.in)
 
         env.update({"rack.version" => [1,0],

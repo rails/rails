@@ -6,6 +6,7 @@ module Rack
   module Handler
     class WEBrick < ::WEBrick::HTTPServlet::AbstractServlet
       def self.run(app, options={})
+        options[:BindAddress] = options.delete(:Host) if options[:Host]
         server = ::WEBrick::HTTPServer.new(options)
         server.mount "/", Rack::Handler::WEBrick, app
         trap(:INT) { server.shutdown }

@@ -70,7 +70,7 @@ module Rack
           next if file =~ /\.(so|bundle)$/ # cannot reload compiled files
 
           found, stat = figure_path(file, paths)
-          next unless found and stat and mtime = stat.mtime
+          next unless found && stat && mtime = stat.mtime
 
           @cache[file] = found
 
@@ -87,7 +87,7 @@ module Rack
         found, stat = safe_stat(found)
         return found, stat if found
 
-        paths.each do |possible_path|
+        paths.find do |possible_path|
           path = ::File.join(possible_path, file)
           found, stat = safe_stat(path)
           return ::File.expand_path(found), stat if found

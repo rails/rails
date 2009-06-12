@@ -1,13 +1,14 @@
-# AUTHOR: blink <blinketje@gmail.com>; blink#ruby-lang@irc.freenode.net
+# AUTHOR: Scytrin dai Kinthra <scytrin@gmail.com>; blink#ruby-lang@irc.freenode.net
 
 gem 'ruby-openid', '~> 2' if defined? Gem
 require 'rack/request'
 require 'rack/utils'
 require 'rack/auth/abstract/handler'
+
 require 'uri'
-require 'openid' #gem
-require 'openid/extension' #gem
-require 'openid/store/memory' #gem
+require 'openid'
+require 'openid/extension'
+require 'openid/store/memory'
 
 module Rack
   class Request
@@ -45,108 +46,111 @@ module Rack
     #
     # NOTE: Due to the amount of data that this library stores in the
     # session, Rack::Session::Cookie may fault.
+    #
+    # == Examples
+    #
+    #   simple_oid = OpenID.new('http://mysite.com/')
+    #
+    #   return_oid = OpenID.new('http://mysite.com/', {
+    #     :return_to => 'http://mysite.com/openid'
+    #   })
+    #
+    #   complex_oid = OpenID.new('http://mysite.com/',
+    #     :immediate => true,
+    #     :extensions => {
+    #       ::OpenID::SReg => [['email'],['nickname']]
+    #     }
+    #   )
+    #
+    # = Advanced
+    #
+    # Most of the functionality of this library is encapsulated such that
+    # expansion and overriding functions isn't difficult nor tricky.
+    # Alternately, to avoid opening up singleton objects or subclassing, a
+    # wrapper rack middleware can be composed to act upon Auth::OpenID's
+    # responses. See #check and #finish for locations of pertinent data.
+    #
+    # == Responses
+    #
+    # To change the responses that Auth::OpenID returns, override the methods
+    # #redirect, #bad_request, #unauthorized, #access_denied, and
+    # #foreign_server_failure.
+    #
+    # Additionally #confirm_post_params is used when the URI would exceed
+    # length limits on a GET request when doing the initial verification
+    # request.
+    #
+    # == Processing
+    #
+    # To change methods of processing completed transactions, override the
+    # methods #success, #setup_needed, #cancel, and #failure. Please ensure
+    # the returned object is a rack compatible response.
+    #
+    # The first argument is an OpenID::Response, the second is a
+    # Rack::Request of the current request, the last is the hash used in
+    # ruby-openid handling, which can be found manually at
+    # env['rack.session'][:openid].
+    #
+    # This is useful if you wanted to expand the processing done, such as
+    # setting up user accounts.
+    #
+    #   oid_app = Rack::Auth::OpenID.new realm, :return_to => return_to
+    #   def oid_app.success oid, request, session
+    #     user = Models::User[oid.identity_url]
+    #     user ||= Models::User.create_from_openid oid
+    #     request['rack.session'][:user] = user.id
+    #     redirect MyApp.site_home
+    #   end
+    #
+    #   site_map['/openid'] = oid_app
+    #   map = Rack::URLMap.new site_map
+    #   ...
 
     class OpenID
-
+      # Raised if an incompatible session is being used.
       class NoSession < RuntimeError; end
+      # Raised if an extension not matching specifications is provided.
       class BadExtension < RuntimeError; end
-      # Required for ruby-openid
-      ValidStatus = [:success, :setup_needed, :cancel, :failure]
+      # Possible statuses returned from consumer responses. See definitions
+      # in the ruby-openid library.
+      ValidStatus = [
+        ::OpenID::Consumer::SUCCESS,
+        ::OpenID::Consumer::FAILURE,
+        ::OpenID::Consumer::CANCEL,
+        ::OpenID::Consumer::SETUP_NEEDED
+      ]
 
-      # = Arguments
-      #
       # The first argument is the realm, identifying the site they are trusting
       # with their identity. This is required, also treated as the trust_root
       # in OpenID 1.x exchanges.
       #
-      # The optional second argument is a hash of options.
-      #
-      # == Options
+      # The lits of acceptable options include :return_to, :session_key,
+      # :openid_param, :store, :immediate, :extensions.
       #
       # <tt>:return_to</tt> defines the url to return to after the client
       # authenticates with the openid service provider. This url should point
-      # to where Rack::Auth::OpenID is mounted. If <tt>:return_to</tt> is not
-      # provided, return_to will be the current url which allows flexibility
-      # with caveats.
+      # to where Rack::Auth::OpenID is mounted. If unprovided, the url of
+      # the current request is used.
       #
       # <tt>:session_key</tt> defines the key to the session hash in the env.
-      # It defaults to 'rack.session'.
+      # The default is 'rack.session'.
       #
       # <tt>:openid_param</tt> defines at what key in the request parameters to
       # find the identifier to resolve. As per the 2.0 spec, the default is
       # 'openid_identifier'.
       #
       # <tt>:store</tt> defined what OpenID Store to use for persistant
-      # information. By default a Store::Memory will be used.
+      # information. By default a Store::Memory is used.
       #
       # <tt>:immediate</tt> as true will make initial requests to be of an
       # immediate type. This is false by default. See OpenID specification
       # documentation.
       #
       # <tt>:extensions</tt> should be a hash of openid extension
-      # implementations. The key should be the extension main module, the value
-      # should be an array of arguments for extension::Request.new.
+      # implementations. The key should be the extension module, the value
+      # should be an array of arguments for extension::Request.new().
       # The hash is iterated over and passed to #add_extension for processing.
       # Please see #add_extension for further documentation.
-      #
-      # == Examples
-      #
-      #   simple_oid = OpenID.new('http://mysite.com/')
-      #
-      #   return_oid = OpenID.new('http://mysite.com/', {
-      #     :return_to => 'http://mysite.com/openid'
-      #   })
-      #
-      #   complex_oid = OpenID.new('http://mysite.com/',
-      #     :immediate => true,
-      #     :extensions => {
-      #       ::OpenID::SReg => [['email'],['nickname']]
-      #     }
-      #   )
-      #
-      # = Advanced
-      #
-      # Most of the functionality of this library is encapsulated such that
-      # expansion and overriding functions isn't difficult nor tricky.
-      # Alternately, to avoid opening up singleton objects or subclassing, a
-      # wrapper rack middleware can be composed to act upon Auth::OpenID's
-      # responses. See #check and #finish for locations of pertinent data.
-      #
-      # == Responses
-      #
-      # To change the responses that Auth::OpenID returns, override the methods
-      # #redirect, #bad_request, #unauthorized, #access_denied, and
-      # #foreign_server_failure.
-      #
-      # Additionally #confirm_post_params is used when the URI would exceed
-      # length limits on a GET request when doing the initial verification
-      # request.
-      #
-      # == Processing
-      #
-      # To change methods of processing completed transactions, override the
-      # methods #success, #setup_needed, #cancel, and #failure. Please ensure
-      # the returned object is a rack compatible response.
-      #
-      # The first argument is an OpenID::Response, the second is a
-      # Rack::Request of the current request, the last is the hash used in
-      # ruby-openid handling, which can be found manually at
-      # env['rack.session'][:openid].
-      #
-      # This is useful if you wanted to expand the processing done, such as
-      # setting up user accounts.
-      #
-      #   oid_app = Rack::Auth::OpenID.new realm, :return_to => return_to
-      #   def oid_app.success oid, request, session
-      #     user = Models::User[oid.identity_url]
-      #     user ||= Models::User.create_from_openid oid
-      #     request['rack.session'][:user] = user.id
-      #     redirect MyApp.site_home
-      #   end
-      #
-      #   site_map['/openid'] = oid_app
-      #   map = Rack::URLMap.new site_map
-      #   ...
 
       def initialize(realm, options={})
         realm = URI(realm)
@@ -162,7 +166,7 @@ module Rack
           ruri = URI(ruri)
           raise ArgumentError, "Invalid return_to: #{ruri}" \
             unless ruri.absolute? \
-            and ruri.scheme  =~ /^https?$/ \
+            and ruri.scheme =~ /^https?$/ \
             and ruri.fragment.nil?
           raise ArgumentError, "return_to #{ruri} not within realm #{realm}" \
             unless self.within_realm?(ruri)
@@ -174,10 +178,10 @@ module Rack
         @store        = options[:store]         || ::OpenID::Store::Memory.new
         @immediate    = !!options[:immediate]
 
-        @extensions = {}
-        if extensions = options.delete(:extensions)
+        @extensions   = {}
+        if extensions = options[:extensions]
           extensions.each do |ext, args|
-            add_extension ext, *args
+            add_extension(ext, *args)
           end
         end
 
@@ -199,33 +203,29 @@ module Rack
       # If the parameter specified by <tt>options[:openid_param]</tt> is
       # present, processing is passed to #check and the result is returned.
       #
-      # If neither of these conditions are met, #unauthorized is called.
+      # If neither of these conditions are met, #bad_request is called.
 
       def call(env)
         env['rack.auth.openid'] = self
         env_session = env[@session_key]
         unless env_session and env_session.is_a?(Hash)
-          raise NoSession, 'No compatible session'
+          raise NoSession, 'No compatible session.'
         end
         # let us work in our own namespace...
         session = (env_session[:openid] ||= {})
         unless session and session.is_a?(Hash)
-          raise NoSession, 'Incompatible openid session'
+          raise NoSession, 'Incompatible openid session.'
         end
 
         request = Rack::Request.new(env)
         consumer = ::OpenID::Consumer.new(session, @store)
 
         if mode = request.GET['openid.mode']
-          if session.key?(:openid_param)
-            finish(consumer, session, request)
-          else
-            bad_request
-          end
+          finish(consumer, session, request)
         elsif request.GET[@openid_param]
           check(consumer, session, request)
         else
-          unauthorized
+          bad_request
         end
       end
 
@@ -263,14 +263,13 @@ module Rack
         immediate = session.key?(:setup_needed) ? false : immediate
 
         if oid.send_redirect?(realm, return_to_uri, immediate)
-          uri = oid.redirect_url(realm, return_to_uri, immediate)
-          redirect(uri)
+          redirect(oid.redirect_url(realm, return_to_uri, immediate))
         else
           confirm_post_params(oid, realm, return_to_uri, immediate)
         end
       rescue ::OpenID::DiscoveryFailure => e
         # thrown from inside OpenID::Consumer#begin by yadis stuff
-        req.env['rack.errors'].puts([e.message, *e.backtrace]*"\n")
+        req.env['rack.errors'].puts( [e.message, *e.backtrace]*"\n" )
         return foreign_server_failure
       end
 
@@ -290,21 +289,24 @@ module Rack
         req.env['rack.errors'].puts(oid.message)
         p oid if $DEBUG
 
-        raise unless ValidStatus.include?(oid.status)
-        __send__(oid.status, oid, req, session)
+        if ValidStatus.include?(oid.status)
+          __send__(oid.status, oid, req, session)
+        else
+          invalid_status(oid, req, session)
+        end
       end
 
       # The first argument should be the main extension module.
       # The extension module should contain the constants:
-      #   * class Request, should have OpenID::Extension as an ancestor
-      #   * class Response, should have OpenID::Extension as an ancestor
-      #   * string NS_URI, which defining the namespace of the extension
+      # * class Request, should have OpenID::Extension as an ancestor
+      # * class Response, should have OpenID::Extension as an ancestor
+      # * string NS_URI, which defining the namespace of the extension
       #
       # All trailing arguments will be passed to extension::Request.new in
       # #check.
       # The openid response will be passed to
-      # extension::Response#from_success_response, #get_extension_args will be
-      # called on the result to attain the gathered data.
+      # extension::Response#from_success_response, oid#get_extension_args will
+      # be called on the result to attain the gathered data.
       #
       # This method returns the key at which the response data will be found in
       # the session, which is the namespace uri by default.
@@ -344,28 +346,27 @@ module Rack
         return false unless uri.host.match(realm_match)
         return true
       end
+
       alias_method :include?, :within_realm?
 
       protected
-
-      ### These methods define some of the boilerplate responses.
 
       # Returns an html form page for posting to an Identity Provider if the
       # GET request would exceed the upper URI length limit.
 
       def confirm_post_params(oid, realm, return_to, immediate)
-        Rack::Response.new.finish do |r|
-          r.write '<html><head><title>Confirm...</title></head><body>'
-          r.write oid.form_markup(realm, return_to, immediate)
-          r.write '</body></html>'
-        end
+        response = Rack::Response.new '<html>'+
+          '<head><title>Confirm...</title></head>'+
+          '<body>'+oid.form_markup(realm, return_to, immediate)+'</body>'+
+          '</html>'
+        response.finish
       end
 
       # Returns a 303 redirect with the destination of that provided by the
       # argument.
 
       def redirect(uri)
-        [ 303, {'Content-Length'=>'0', 'Content-Type'=>'text/plain',
+        [ 303, {'Content-Type'=>'text/plain', 'Content-Length'=>'0',
           'Location' => uri},
           [] ]
       end
@@ -401,10 +402,6 @@ module Rack
 
       private
 
-      ### These methods are called after a transaction is completed, depending
-      # on its outcome. These should all return a rack compatible response.
-      # You'd want to override these to provide additional functionality.
-
       # Called to complete processing on a successful transaction.
       # Within the openid session, :openid_identity and :openid_identifier are
       # set to the user friendly and the standard representation of the
@@ -430,7 +427,7 @@ module Rack
       def setup_needed(oid, request, session)
         identifier = session[:openid_param]
         session[:setup_needed] = true
-        redirect req.script_name + '?' + openid_param + '=' + identifier
+        redirect(req.script_name + '?' + openid_param + '=' + identifier)
       end
 
       # Called if the user indicates they wish to cancel identification.
@@ -447,6 +444,16 @@ module Rack
 
       def failure(oid, request, session)
         unauthorized
+      end
+
+      # To be called if there is no method for handling the OpenID response
+      # status.
+
+      def invalid_status(oid, request, session)
+        msg = 'Invalid status returned by the OpenID authorization reponse.'
+        [ 500,
+          {'Content-Type'=>'text/plain','Content-Length'=>msg.length.to_s},
+          [msg] ]
       end
     end
 
@@ -472,8 +479,8 @@ module Rack
       end
 
       def call(env)
-        to = auth.call(env) ? @app : @oid
-        to.call env
+        to = @authenticator.call(env) ? @app : @oid
+        to.call(env)
       end
     end
   end

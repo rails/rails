@@ -26,16 +26,18 @@ module Rack
     end
     module_function :unescape
 
+    DEFAULT_SEP = /[&;] */n
+    
     # Stolen from Mongrel, with some small modifications:
     # Parses a query string by breaking it up at the '&'
     # and ';' characters.  You can also use this to parse
     # cookies by changing the characters used in the second
     # parameter (which defaults to '&;').
-    def parse_query(qs, d = '&;')
+    def parse_query(qs, d = nil)
       params = {}
 
-      (qs || '').split(/[#{d}] */n).each do |p|
-        k, v = unescape(p).split('=', 2)
+      (qs || '').split(d ? /[#{d}] */n : DEFAULT_SEP).each do |p|
+        k, v = p.split('=', 2).map { |x| unescape(x) }
 
         if cur = params[k]
           if cur.class == Array
@@ -52,10 +54,10 @@ module Rack
     end
     module_function :parse_query
 
-    def parse_nested_query(qs, d = '&;')
+    def parse_nested_query(qs, d = nil)
       params = {}
 
-      (qs || '').split(/[#{d}] */n).each do |p|
+      (qs || '').split(d ? /[#{d}] */n : DEFAULT_SEP).each do |p|
         k, v = unescape(p).split('=', 2)
         normalize_params(params, k, v)
       end
@@ -101,7 +103,7 @@ module Rack
         if v.class == Array
           build_query(v.map { |x| [k, x] })
         else
-          escape(k) + "=" + escape(v)
+          "#{escape(k)}=#{escape(v)}"
         end
       }.join("&")
     end
@@ -225,21 +227,23 @@ module Rack
       end
 
       def [](k)
-        super @names[k.downcase]
+        super(@names[k] ||= @names[k.downcase])
       end
 
       def []=(k, v)
         delete k
-        @names[k.downcase] = k
+        @names[k] = @names[k.downcase] = k
         super k, v
       end
 
       def delete(k)
-        super @names.delete(k.downcase)
+        canonical = k.downcase
+        super @names.delete(canonical)
+        @names.delete_if { |name,| name.downcase == canonical }
       end
 
       def include?(k)
-        @names.has_key? k.downcase
+        @names.include?(k) || @names.include?(k.downcase)
       end
 
       alias_method :has_key?, :include?

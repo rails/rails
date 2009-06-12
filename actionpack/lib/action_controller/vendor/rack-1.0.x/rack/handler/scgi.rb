@@ -7,14 +7,14 @@ module Rack
   module Handler
     class SCGI < ::SCGI::Processor
       attr_accessor :app
-
+      
       def self.run(app, options=nil)
         new(options.merge(:app=>app,
                           :host=>options[:Host],
                           :port=>options[:Port],
                           :socket=>options[:Socket])).listen
       end
-
+      
       def initialize(settings = {})
         @app = Rack::Chunked.new(Rack::ContentLength.new(settings[:app]))
         @log = Object.new
@@ -22,7 +22,7 @@ module Rack
         def @log.error(*args); end
         super(settings)
       end
-
+        
       def process_request(request, input_body, socket)
         env = {}.replace(request)
         env.delete "HTTP_CONTENT_TYPE"

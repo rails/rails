@@ -10,7 +10,7 @@ module Rack
         server = ::Mongrel::HttpServer.new(options[:Host] || '0.0.0.0',
                                            options[:Port] || 8080)
         # Acts like Rack::URLMap, utilizing Mongrel's own path finding methods.
-        # Use is similar to #run, replacing the app argument with a hash of
+        # Use is similar to #run, replacing the app argument with a hash of 
         # { path=>app, ... } or an instance of Rack::URLMap.
         if options[:map]
           if app.is_a? Hash
