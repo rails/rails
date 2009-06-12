@@ -51,6 +51,33 @@ The method +present?+ is equivalent to +!blank?+:
 assert @response.body.present? # same as !@response.body.blank?
 </ruby>
 
+h4. +metaclass+
+
+The method +metaclass+ returns the singleton class on any object:
+
+<ruby>
+String.metaclass # => #<Class:String>
+</ruby>
+
+h4. +class_eval(*args, &block)+
+
+You can evaluate code in the context of any object's singleton class using +class_eval+:
+
+<ruby>
+class Proc
+  def bind(object)
+    block, time = self, Time.now
+    object.class_eval do
+      method_name = "__bind_#{time.to_i}_#{time.usec}"
+      define_method(method_name, &block)
+      method = instance_method(method_name)
+      remove_method(method_name)
+      method
+    end.bind(object)
+  end
+end
+</ruby>
+
 h3. Extensions to +Module+
 
 ...
