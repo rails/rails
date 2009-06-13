@@ -112,7 +112,7 @@ The return value of +to_param+ should *not* be escaped:
 "Tom & Jerry".to_param # => "Tom & Jerry"
 </ruby>
 
-Several classes in Rails overwrite these method.
+Several classes in Rails overwrite this method.
 
 For example +nil+, +true+, and +false+ return themselves. +Array#to_param+ calls +to_param+ on the elements and joins the result with "/":
 
