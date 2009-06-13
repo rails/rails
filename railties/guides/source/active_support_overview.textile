@@ -96,6 +96,42 @@ some_klass.acts_like?(:string)
 
 Rails has classes that act like +Date+ or +Time+ and follow this contract.
 
+h4. +to_param+
+
+All objects in Rails respond to the method +to_param+, which is meant to return a value that represents them as value in a query string, or as a URL fragment.
+
+By default +to_param+ just calls +to_s+:
+
+<ruby>
+7.to_param # => "7"
+</ruby>
+
+and some classes in Rails overwrite it.
+
+For example +nil+, +true+, and +false+ return themselves. +Array#to_param+ calls +to_param+ on the elements and joins the result with "/":
+
+<ruby>
+[0, true, String].to_param # => "0/true/String"
+</ruby>
+
+Notably, the Rails routing system calls +to_param+ on models to get a value for the +:id+ placeholder. +ActiveRecord::Base#to_param+ returns the +id+ of a model, but you can redefine that method in your models. For example, given
+
+<ruby>
+class User
+  def to_param
+    "#{id}-#{name.parameterize}"
+  end
+end
+</ruby>
+
+you get:
+
+<ruby>
+user_path(@user) # => "/users/357-john-smith"
+</ruby>
+
+WARNING. Controllers need to be aware of any redifinition of +to_param+ because when a request like that comes in "357-john-smith" is the value of +params[:id]+.
+
 h3. Extensions to +Module+
 
 ...
