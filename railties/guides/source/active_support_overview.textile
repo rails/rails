@@ -159,7 +159,7 @@ current_user.to_query('user') # => user=357-john-smith
 This method escapes whatever is needed, both for the key and the value:
 
 <ruby>
-u.to_query('company[name]')
+account.to_query('company[name]')
 # => "company%5Bname%5D=Johnson+%26+Johnson"
 </ruby>
 
