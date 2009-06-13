@@ -56,7 +56,8 @@ h4. +metaclass+
 The method +metaclass+ returns the singleton class on any object:
 
 <ruby>
-String.metaclass # => #<Class:String>
+String.metaclass     # => #<Class:String>
+String.new.metaclass # => #<Class:#<String:0x17a1d1c>>
 </ruby>
 
 h4. +class_eval(*args, &block)+
