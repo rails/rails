@@ -1,3 +1,5 @@
+require "active_support/core_ext/class"
+
 module ActionMailer #:nodoc:
   # Action Mailer allows you to send email from your application using a mailer model and views.
   #
@@ -248,7 +250,7 @@ module ActionMailer #:nodoc:
     include AdvAttrAccessor, PartContainer, Quoting, Utils
     if Object.const_defined?(:ActionController)
       include ActionController::UrlWriter
-      include ActionController::Layout
+      include ActionController::Layouts
     end
 
     private_class_method :new #:nodoc:
