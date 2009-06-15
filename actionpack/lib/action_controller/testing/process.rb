@@ -56,6 +56,8 @@ module ActionController #:nodoc:
       @block = nil
       @length = 0
       @body = []
+      @charset = nil
+      @content_type = nil
 
       @request = @template = nil
     end
