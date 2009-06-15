@@ -1,8 +1,16 @@
 require 'active_support/core_ext/enumerable'
+require 'active_support/core_ext/class'
 require 'active_support/core_ext/class/delegating_attributes'
 require 'active_support/core_ext/class/inheritable_attributes'
 
 module ActionController #:nodoc:
+  # MegasuperultraHAX
+  # plz refactor ActionMailer
+  class Base
+    @@exempt_from_layout = [ActionView::TemplateHandlers::RJS]
+    cattr_accessor :exempt_from_layout
+  end
+
   module Layout #:nodoc:
     def self.included(base)
       base.extend(ClassMethods)

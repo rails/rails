@@ -1,4 +1,6 @@
 require "active_support/core_ext/class"
+# Use the old layouts until actionmailer gets refactored
+require "action_controller/old_base/layout"
 
 module ActionMailer #:nodoc:
   # Action Mailer allows you to send email from your application using a mailer model and views.
@@ -250,7 +252,7 @@ module ActionMailer #:nodoc:
     include AdvAttrAccessor, PartContainer, Quoting, Utils
     if Object.const_defined?(:ActionController)
       include ActionController::UrlWriter
-      include ActionController::Layouts
+      include ActionController::Layout
     end
 
     private_class_method :new #:nodoc:

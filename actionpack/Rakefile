@@ -22,7 +22,7 @@ task :default => [ :test ]
 # Run the unit tests
 
 desc "Run all unit tests"
-task :test => [:test_action_pack, :test_active_record_integration, :test_new_base, :test_new_base_on_old_tests]
+task :test => [:test_action_pack, :test_active_record_integration, :test_new_base]
 
 test_lib_dirs = ENV["NEW"] ? ["test/new_base"] : []
 test_lib_dirs.push "test", "test/lib"

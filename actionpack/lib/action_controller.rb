@@ -42,6 +42,7 @@ module ActionController
 end
 
 autoload :HTML, 'action_controller/vendor/html-scanner'
+autoload :AbstractController, 'action_controller/abstract'
 
 require 'action_dispatch'
 require 'action_view'
