@@ -307,7 +307,7 @@ module ActiveSupport
 
       def _normalize_legacy_filter(kind, filter)
         if !filter.respond_to?(kind) && filter.respond_to?(:filter)
-          filter.class_eval(
+          filter.metaclass.class_eval(
             "def #{kind}(context, &block) filter(context, &block) end",
             __FILE__, __LINE__ - 1)
         elsif filter.respond_to?(:before) && filter.respond_to?(:after) && kind == :around
