@@ -16,8 +16,7 @@ rescue LoadError
   # Debugging disabled. `gem install ruby-debug` to enable.
 end
 
-require 'action_controller/abstract'
-require 'action_controller/new_base'
+require 'action_controller'
 require 'pp' # require 'pp' early to prevent hidden_methods from not picking up the pretty-print methods until too late
 
 require 'action_controller/testing/process'
