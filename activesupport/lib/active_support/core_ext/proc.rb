@@ -1,3 +1,5 @@
+require "active_support/core_ext/object"
+
 class Proc #:nodoc:
   def bind(object)
     block, time = self, Time.now
