@@ -40,7 +40,7 @@ I18n.backend.store_translations 'da', {}
 I18n.backend.store_translations 'pt-BR', {}
 ORIGINAL_LOCALES = I18n.available_locales.map {|locale| locale.to_s }.sort
 
-FIXTURE_LOAD_PATH = File.join(File.dirname(__FILE__), '../fixtures')
+FIXTURE_LOAD_PATH = File.join(File.dirname(__FILE__), 'fixtures')
 
 module ActionView
   class TestCase
