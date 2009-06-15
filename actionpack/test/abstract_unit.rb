@@ -54,9 +54,10 @@ end
 
 module ActionController
   Base.session = {
-  :key         => '_testing_session',
-  :secret      => '8273f16463985e2b3747dc25e30f2528'
-}
+    :key         => '_testing_session',
+    :secret      => '8273f16463985e2b3747dc25e30f2528'
+  }
+  Base.session_store = nil
 
   class ActionControllerError < StandardError #:nodoc:
   end
