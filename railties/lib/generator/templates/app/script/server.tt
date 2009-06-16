@@ -1,0 +1,3 @@
+<%= shebang %>
+require File.dirname(__FILE__) + '/../config/boot'
+require 'commands/server'
