@@ -1,4 +1,7 @@
 require 'rbconfig'
+require 'digest/md5' 
+require 'active_support/secure_random'
+require 'rails/version'
 
 class App < Thor::Group
   include Thor::Actions
@@ -45,8 +48,33 @@ class App < Thor::Group
     directory "app"
   end
 
+  def create_config_files
+    empty_directory "config"
+
+    inside "config" do
+      copy_file "boot.rb"
+      copy_file "routes.rb"
+
+      template "databases/#{options[:database]}.yml", "database.yml"
+      template "environment.rb"
+
+      directory "environments"
+      directory "initializers"
+      directory "locales"
+    end
+  end
+
+  def create_db_files
+    directory "db"
+  end
+
   def create_doc_files
     directory "doc"
+  end
+
+  def create_lib_files
+    empty_directory "lib"
+    empty_directory "lib/tasks"
   end
 
   def create_log_files
@@ -60,35 +88,83 @@ class App < Thor::Group
     end
   end
 
-#  def directories
-#    %w(
-#      config/environments
-#      config/initializers
-#      config/locales
-#      db
-#      lib
-#      lib/tasks
-#      public/images
-#      public/javascripts
-#      public/stylesheets
-#      script/performance
-#      test/fixtures
-#      test/functional
-#      test/integration
-#      test/performance
-#      test/unit
-#      vendor
-#      vendor/plugins
-#      tmp/sessions
-#      tmp/sockets
-#      tmp/cache
-#      tmp/pids
-#    ).each { |path| empty_directory(path) }
-#  end
+  def create_public_files
+    directory "public"
+  end
+
+  def create_dispatch_files
+    return unless options.with_dispatchers?
+
+    copy_file "dispatchers/config.ru", "config.ru"
+
+    template "dispatchers/dispatch.rb", "public/dispatch.rb"
+    chmod "public/dispatch.rb", 0755, false
+
+    template "dispatchers/dispatch.rb", "public/dispatch.cgi"
+    chmod "public/dispatch.cgi", 0755, false
+
+    template "dispatchers/dispatch.fcgi", "public/dispatch.fcgi"
+    chmod "public/dispatch.fcgi", 0755, false
+  end
+
+  def create_javascript_files
+    %w( prototype effects dragdrop controls application ).each do |javascript|
+      copy_file "prototype/#{javascript}.js", "public/javascripts/#{javascript}.js"
+    end
+  end
+
+  def create_script_files
+    directory "script"
+    chmod "script", 0755, false
+  end
+
+  def create_test_files
+    directory "test"
+  end
+
+  def create_tmp_files
+    empty_directory "tmp"
+
+    inside "tmp" do
+      %w(sessions sockets cache pids).each do |dir|
+        empty_directory dir
+      end
+    end
+  end
+
+  def create_vendor_files
+    empty_directory "vendor/plugins"
+  end
 
   protected
 
     def app_name
       @app_name ||= File.basename(root)
+    end
+
+    def app_secret
+      ActiveSupport::SecureRandom.hex(64)
+    end
+
+    def freeze
+      options[:freeze]
+    end
+
+    def shebang
+      options[:ruby] || "#!/usr/bin/env ruby"
+    end
+
+    def mysql_socket
+      @mysql_socket ||= [
+        "/tmp/mysql.sock",                        # default
+        "/var/run/mysqld/mysqld.sock",            # debian/gentoo
+        "/var/tmp/mysql.sock",                    # freebsd
+        "/var/lib/mysql/mysql.sock",              # fedora
+        "/opt/local/lib/mysql/mysql.sock",        # fedora
+        "/opt/local/var/run/mysqld/mysqld.sock",  # mac + darwinports + mysql
+        "/opt/local/var/run/mysql4/mysqld.sock",  # mac + darwinports + mysql4
+        "/opt/local/var/run/mysql5/mysqld.sock",  # mac + darwinports + mysql5
+        "/opt/lampp/var/mysql/mysql.sock"         # xampp for linux
+      ].find { |f| File.exist?(f) } unless RUBY_PLATFORM =~ /(:?mswin|mingw)/
     end
 end
