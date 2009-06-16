@@ -467,14 +467,6 @@ class MimeControllerTest < ActionController::TestCase
     assert_equal '<html><div id="iphone">Hello iPhone future from iPhone!</div></html>', @response.body
     assert_equal "text/html", @response.content_type
   end
-
-  def test_format_with_custom_response_type_and_request_headers_with_only_one_layout_present
-    get :iphone_with_html_response_type_without_layout
-    assert_equal '<html><div id="html_missing">Hello future from Firefox!</div></html>', @response.body
-
-    @request.accept = "text/iphone"
-    assert_raise(ActionView::MissingTemplate) { get :iphone_with_html_response_type_without_layout }
-  end
 end
 
 class AbstractPostController < ActionController::Base
