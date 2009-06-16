@@ -13,6 +13,18 @@ class ActionPackAssertionsController < ActionController::Base
   # a standard template
   def hello_xml_world() render :template => "test/hello_xml_world"; end
 
+  # a standard template rendering PDF
+  def hello_xml_world_pdf
+    self.content_type = "application/pdf"
+    render :template => "test/hello_xml_world"
+  end
+
+  # a standard template rendering PDF
+  def hello_xml_world_pdf_header
+    response.headers["Content-Type"] = "application/pdf; charset=utf-8"
+    render :template => "test/hello_xml_world"
+  end
+
   # a standard partial
   def partial() render :partial => 'test/partial'; end
 
@@ -537,11 +549,13 @@ class ActionPackHeaderTest < ActionController::TestCase
   end
 
   def test_rendering_xml_respects_content_type
-    pending do
-      @response.headers['type'] = 'application/pdf'
-      process :hello_xml_world
-      assert_equal('application/pdf; charset=utf-8', @response.headers['Content-Type'])
-    end
+    process :hello_xml_world_pdf
+    assert_equal('application/pdf; charset=utf-8', @response.headers['Content-Type'])
+  end
+
+  def test_rendering_xml_respects_content_type_when_set_in_the_header
+    process :hello_xml_world_pdf_header
+    assert_equal('application/pdf; charset=utf-8', @response.headers['Content-Type'])
   end
 
   def test_render_text_with_custom_content_type
