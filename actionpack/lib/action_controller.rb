@@ -40,6 +40,18 @@ module ActionController
   autoload :Translation,              'action_controller/translation'
   autoload :Cookies,                  'action_controller/base/cookies'
 
+  autoload :ActionControllerError,    'action_controller/base/exceptions'
+  autoload :SessionRestoreError,      'action_controller/base/exceptions'
+  autoload :RenderError,              'action_controller/base/exceptions'
+  autoload :RoutingError,             'action_controller/base/exceptions'
+  autoload :MethodNotAllowed,         'action_controller/base/exceptions'
+  autoload :NotImplemented,           'action_controller/base/exceptions'
+  autoload :UnknownController,        'action_controller/base/exceptions'
+  autoload :MissingFile,              'action_controller/base/exceptions'
+  autoload :RenderError,              'action_controller/base/exceptions'
+  autoload :SessionOverflowError,     'action_controller/base/exceptions'
+  autoload :UnknownHttpMethod,        'action_controller/base/exceptions'
+
   require 'action_controller/routing'
 end
 
