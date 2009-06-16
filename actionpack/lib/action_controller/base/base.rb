@@ -71,12 +71,6 @@ module ActionController
       @subclasses ||= []
     end
 
-    def self.app_loaded!
-      @subclasses.each do |subclass|
-        subclass.constantize._write_layout_method
-      end
-    end
-
     def _normalize_options(action = nil, options = {}, &blk)
       if action.is_a?(Hash)
         options, action = action, nil

@@ -41,15 +41,6 @@ class Rack::TestCase < ActionController::IntegrationTest
     end
 
     ActionController::Routing.use_controllers!(controllers)
-
-    # Move into a bootloader
-    ActionController::Base.subclasses.each do |klass|
-      klass = klass.constantize
-      next unless klass < AbstractController::Layouts
-      klass.class_eval do
-        _write_layout_method
-      end
-    end
   end
 
   def app

@@ -9,6 +9,11 @@ module AbstractController
     end
 
     module ClassMethods
+      def inherited(klass)
+        super
+        klass._write_layout_method
+      end
+
       # Specify the layout to use for this class.
       #
       # If the specified layout is a:
@@ -78,6 +83,7 @@ module AbstractController
             end
           ruby_eval
         end
+        self.class_eval { private :_layout }
       end
     end
 
