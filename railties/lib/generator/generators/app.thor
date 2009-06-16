@@ -42,43 +42,49 @@ class App < Thor::Group
   end
 
   def create_app_files
-    %w(
-      app/controllers
-      app/helpers
-      app/models
-      app/views/layouts
-    ).each { |path| empty_directory(path) }
-
     directory "app"
   end
 
-  def directories
-    %w(
-      config/environments
-      config/initializers
-      config/locales
-      db
-      doc
-      lib
-      lib/tasks
-      log
-      public/images
-      public/javascripts
-      public/stylesheets
-      script/performance
-      test/fixtures
-      test/functional
-      test/integration
-      test/performance
-      test/unit
-      vendor
-      vendor/plugins
-      tmp/sessions
-      tmp/sockets
-      tmp/cache
-      tmp/pids
-    ).each { |path| empty_directory(path) }
+  def create_doc_files
+    directory "doc"
   end
+
+  def create_log_files
+    empty_directory "log"
+
+    inside "log" do
+      %w( server production development test ).each do |file|
+        create_file "#{file}.log"
+        chmod "#{file}.log", 0666, false
+      end
+    end
+  end
+
+#  def directories
+#    %w(
+#      config/environments
+#      config/initializers
+#      config/locales
+#      db
+#      lib
+#      lib/tasks
+#      public/images
+#      public/javascripts
+#      public/stylesheets
+#      script/performance
+#      test/fixtures
+#      test/functional
+#      test/integration
+#      test/performance
+#      test/unit
+#      vendor
+#      vendor/plugins
+#      tmp/sessions
+#      tmp/sockets
+#      tmp/cache
+#      tmp/pids
+#    ).each { |path| empty_directory(path) }
+#  end
 
   protected
 
