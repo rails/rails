@@ -23,7 +23,7 @@ class App < Thor::Group
                           :desc => "Preconfigure for selected database (options: #{DATABASES.join('/')})"
 
   class_option :with_dispatchers, :type => :boolean, :aliases => "-D", :default => false,
-                                  :desc => "Add CGI/FastCGI/mod_ruby dispatches code"
+                                  :desc => "Add CGI/FastCGI/mod_ruby dispatchers code"
 
   class_option :freeze, :type => :boolean, :aliases => "-f", :default => false,
                         :desc => "Freeze Rails in vendor/rails from the gems"
@@ -108,9 +108,7 @@ class App < Thor::Group
   end
 
   def create_javascript_files
-    %w( prototype effects dragdrop controls application ).each do |javascript|
-      copy_file "prototype/#{javascript}.js", "public/javascripts/#{javascript}.js"
-    end
+    directory "javascripts/prototype", "public/javascripts"
   end
 
   def create_script_files
