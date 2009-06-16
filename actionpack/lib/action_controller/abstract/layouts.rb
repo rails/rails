@@ -140,8 +140,6 @@ module AbstractController
       rescue NameError => e
         raise NoMethodError,
           "You specified #{@_layout.inspect} as the layout, but no such method was found"
-      rescue ActionView::MissingTemplate
-        _find_by_parts(_layout({}), {})
       end
     end
 
