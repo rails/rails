@@ -1,6 +1,7 @@
 require 'stringio'
 require 'uri'
 require 'active_support/test_case'
+require 'active_support/core_ext/object/metaclass'
 
 require 'rack/mock_session'
 require 'rack/test/cookie_jar'
@@ -191,7 +192,7 @@ module ActionController
 
         unless defined? @named_routes_configured
           # install the named routes in this session instance.
-          klass = class << self; self; end
+          klass = metaclass
           Routing::Routes.install_helpers(klass)
 
           # the helpers are made protected by default--we make them public for
@@ -244,7 +245,7 @@ module ActionController
             path = location.query ? "#{location.path}?#{location.query}" : location.path
           end
 
-          [ControllerCapture, ActionController::ProcessWithTest].each do |mod|
+          [ControllerCapture, ActionController::Testing].each do |mod|
             unless ActionController::Base < mod
               ActionController::Base.class_eval { include mod }
             end

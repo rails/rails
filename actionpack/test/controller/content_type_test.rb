@@ -83,14 +83,14 @@ class ContentTypeTest < ActionController::TestCase
   # :ported:
   def test_content_type_from_body
     get :render_content_type_from_body
-    assert_equal "application/rss+xml", @response.content_type
+    assert_equal Mime::RSS, @response.content_type
     assert_equal "utf-8", @response.charset
   end
 
   # :ported:
   def test_content_type_from_render
     get :render_content_type_from_render
-    assert_equal "application/rss+xml", @response.content_type
+    assert_equal Mime::RSS, @response.content_type
     assert_equal "utf-8", @response.charset
   end
 

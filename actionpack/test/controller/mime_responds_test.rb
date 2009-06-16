@@ -512,11 +512,6 @@ class SuperPostController < PostController
   end
 end
 
-if defined?(ActionController::Http)
-  PostController._write_layout_method
-  SuperPostController._write_layout_method
-end
-
 class MimeControllerLayoutsTest < ActionController::TestCase
   tests PostController
 

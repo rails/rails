@@ -3,7 +3,7 @@ module ActionController
     extend ActiveSupport::Concern
 
     included do
-      delegate :headers, :status=, :location=,
+      delegate :headers, :status=, :location=, :content_type=,
                :status, :location, :content_type, :to => "@_response"
       attr_internal :request, :response
     end

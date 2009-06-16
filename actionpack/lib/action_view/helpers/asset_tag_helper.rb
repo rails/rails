@@ -272,14 +272,17 @@ module ActionView
       #   javascript_include_tag :all, :cache => true, :recursive => true
       def javascript_include_tag(*sources)
         options = sources.extract_options!.stringify_keys
-        cache   = options.delete("cache")
+        concat  = options.delete("concat")
+        cache   = concat || options.delete("cache")
         recursive = options.delete("recursive")
 
-        if ActionController::Base.perform_caching && cache
+        if concat || (ActionController::Base.perform_caching && cache)
           joined_javascript_name = (cache == true ? "all" : cache) + ".js"
           joined_javascript_path = File.join(joined_javascript_name[/^#{File::SEPARATOR}/] ? ASSETS_DIR : JAVASCRIPTS_DIR, joined_javascript_name)
 
-          write_asset_file_contents(joined_javascript_path, compute_javascript_paths(sources, recursive)) unless File.exists?(joined_javascript_path)
+          unless ActionController::Base.perform_caching && File.exists?(joined_javascript_path)
+            write_asset_file_contents(joined_javascript_path, compute_javascript_paths(sources, recursive))
+          end
           javascript_src_tag(joined_javascript_name, options)
         else
           expand_javascript_sources(sources, recursive).collect { |source| javascript_src_tag(source, options) }.join("\n")
@@ -410,16 +413,25 @@ module ActionView
       # The <tt>:recursive</tt> option is also available for caching:
       #
       #   stylesheet_link_tag :all, :cache => true, :recursive => true
+      #
+      # To force concatenation (even in development mode) set <tt>:concat</tt> to true. This is useful if
+      # you have too many stylesheets for IE to load.
+      #
+      #   stylesheet_link_tag :all, :concat => true
+      #
       def stylesheet_link_tag(*sources)
         options = sources.extract_options!.stringify_keys
-        cache   = options.delete("cache")
+        concat  = options.delete("concat")
+        cache   = concat || options.delete("cache")
         recursive = options.delete("recursive")
 
-        if ActionController::Base.perform_caching && cache
+        if concat || (ActionController::Base.perform_caching && cache)
           joined_stylesheet_name = (cache == true ? "all" : cache) + ".css"
           joined_stylesheet_path = File.join(joined_stylesheet_name[/^#{File::SEPARATOR}/] ? ASSETS_DIR : STYLESHEETS_DIR, joined_stylesheet_name)
 
-          write_asset_file_contents(joined_stylesheet_path, compute_stylesheet_paths(sources, recursive)) unless File.exists?(joined_stylesheet_path)
+          unless ActionController::Base.perform_caching && File.exists?(joined_stylesheet_path)
+            write_asset_file_contents(joined_stylesheet_path, compute_stylesheet_paths(sources, recursive))
+          end
           stylesheet_tag(joined_stylesheet_name, options)
         else
           expand_stylesheet_sources(sources, recursive).collect { |source| stylesheet_tag(source, options) }.join("\n")

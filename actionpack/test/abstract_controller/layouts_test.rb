@@ -141,15 +141,6 @@ module AbstractControllerTests
       end
     end
     
-    # TODO Move to bootloader
-    AbstractController::Base.descendants.each do |klass|
-      klass = klass.constantize
-      next unless klass < AbstractController::Layouts
-      klass.class_eval do
-        _write_layout_method
-      end
-    end
-    
     class TestBase < ActiveSupport::TestCase
       test "when no layout is specified, and no default is available, render without a layout" do
         result = Blank.new.process(:index)

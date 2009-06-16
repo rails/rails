@@ -11,6 +11,7 @@ require 'active_support/core_ext/hash/indifferent_access'
 require 'active_support/core_ext/hash/slice'
 require 'active_support/core_ext/string/behavior'
 require 'active_support/core_ext/symbol'
+require 'active_support/core_ext/object/metaclass'
 
 module ActiveRecord #:nodoc:
   # Generic Active Record exception class.
@@ -2128,7 +2129,7 @@ module ActiveRecord #:nodoc:
         #     end
         #   end
         def define_attr_method(name, value=nil, &block)
-          sing = class << self; self; end
+          sing = metaclass
           sing.send :alias_method, "original_#{name}", name
           if block_given?
             sing.send :define_method, name, &block

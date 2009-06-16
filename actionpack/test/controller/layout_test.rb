@@ -38,15 +38,6 @@ end
 class MultipleExtensions < LayoutTest
 end
 
-if defined?(ActionController::Http)
-  LayoutTest._write_layout_method
-  ProductController._write_layout_method
-  ItemController._write_layout_method
-  ThirdPartyTemplateLibraryController._write_layout_method
-  MultipleExtensions._write_layout_method
-  ControllerNameSpace::NestedController._write_layout_method
-end
-
 class LayoutAutoDiscoveryTest < ActionController::TestCase
   def setup
     super

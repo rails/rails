@@ -136,11 +136,6 @@ module AbstractController
     class WithLayouts < PrefixedViews
       include Layouts
       
-      def self.inherited(klass)
-        klass._write_layout_method
-        super
-      end
-      
       private
       def self.layout(formats)
         begin

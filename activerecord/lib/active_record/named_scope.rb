@@ -1,5 +1,6 @@
 require 'active_support/core_ext/array'
 require 'active_support/core_ext/hash/except'
+require 'active_support/core_ext/object/metaclass'
 
 module ActiveRecord
   module NamedScope
@@ -99,7 +100,7 @@ module ActiveRecord
               end
           end, &block)
         end
-        (class << self; self end).instance_eval do
+        metaclass.instance_eval do
           define_method name do |*args|
             scopes[name].call(self, *args)
           end

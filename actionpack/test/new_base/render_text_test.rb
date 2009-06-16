@@ -135,5 +135,3 @@ module RenderText
     end
   end
 end
-
-ActionController::Base.app_loaded!
