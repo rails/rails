@@ -245,7 +245,7 @@ module ActionController
             path = location.query ? "#{location.path}?#{location.query}" : location.path
           end
 
-          [ControllerCapture, ActionController::ProcessWithTest].each do |mod|
+          [ControllerCapture, ActionController::Testing].each do |mod|
             unless ActionController::Base < mod
               ActionController::Base.class_eval { include mod }
             end
