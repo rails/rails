@@ -519,16 +519,14 @@ class MimeControllerLayoutsTest < ActionController::TestCase
     assert_equal 'Hello iPhone', @response.body
   end
 
-  for_tag(:old_base) do
-    def test_format_with_inherited_layouts
-      @controller = SuperPostController.new
+  def test_format_with_inherited_layouts
+    @controller = SuperPostController.new
 
-      get :index
-      assert_equal 'Super Firefox', @response.body
+    get :index
+    assert_equal '<html><div id="html">Super Firefox</div></html>', @response.body
 
-      @request.accept = "text/iphone"
-      get :index
-      assert_equal '<html><div id="super_iphone">Super iPhone</div></html>', @response.body
-    end
+    @request.accept = "text/iphone"
+    get :index
+    assert_equal '<html><div id="super_iphone">Super iPhone</div></html>', @response.body
   end
 end

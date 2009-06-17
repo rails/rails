@@ -48,6 +48,7 @@ module ActionView
   autoload :TemplateHandlers,  'action_view/template/handlers'
   autoload :TextTemplate,      'action_view/template/text'
   autoload :Helpers,           'action_view/helpers'
+  autoload :FileSystemResolverWithFallback, 'action_view/template/resolver'
 end
 
 class ERB

@@ -45,8 +45,8 @@ class SendFileTest < ActionController::TestCase
     assert_equal file_data, response.body
   end
 
-  for_tag(:old_base) do
-    def test_file_stream
+  def test_file_stream
+    pending do
       response = nil
       assert_nothing_raised { response = process('file') }
       assert_not_nil response

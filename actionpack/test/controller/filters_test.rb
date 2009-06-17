@@ -9,24 +9,20 @@ class ActionController::Base
       end unless method_defined?(pending)
     end
 
-    if defined?(ActionController::Http)
-      def before_filters
-        filters = _process_action_callbacks.select { |c| c.kind == :before }
-        filters.map! { |c| c.instance_variable_get(:@raw_filter) }
-      end
+    def before_filters
+      filters = _process_action_callbacks.select { |c| c.kind == :before }
+      filters.map! { |c| c.instance_variable_get(:@raw_filter) }
     end
   end
 
-  if defined?(ActionController::Http)
-    def assigns(key = nil)
-      assigns = {}
-      instance_variable_names.each do |ivar|
-        next if ActionController::Base.protected_instance_variables.include?(ivar)
-        assigns[ivar[1..-1]] = instance_variable_get(ivar)
-      end
-
-      key.nil? ? assigns : assigns[key.to_s]
+  def assigns(key = nil)
+    assigns = {}
+    instance_variable_names.each do |ivar|
+      next if ActionController::Base.protected_instance_variables.include?(ivar)
+      assigns[ivar[1..-1]] = instance_variable_get(ivar)
     end
+
+    key.nil? ? assigns : assigns[key.to_s]
   end
 end
 
@@ -598,22 +594,11 @@ class FilterTest < ActionController::TestCase
     assert_equal "before and after", assigns["execution_log"]
   end
 
-  for_tag(:old_base) do
-    def test_prepending_and_appending_around_filter
-      controller = test_process(MixedFilterController)
-      assert_equal " before aroundfilter  before procfilter  before appended aroundfilter " +
-                   " after appended aroundfilter  after aroundfilter  after procfilter ",
-                   MixedFilterController.execution_log
-    end
-  end
-
-  for_tag(:new_base) do
-    def test_prepending_and_appending_around_filter
-      controller = test_process(MixedFilterController)
-      assert_equal " before aroundfilter  before procfilter  before appended aroundfilter " +
-                   " after appended aroundfilter  after procfilter  after aroundfilter ",
-                   MixedFilterController.execution_log
-    end
+  def test_prepending_and_appending_around_filter
+    controller = test_process(MixedFilterController)
+    assert_equal " before aroundfilter  before procfilter  before appended aroundfilter " +
+                 " after appended aroundfilter  after procfilter  after aroundfilter ",
+                 MixedFilterController.execution_log
   end
 
   def test_rendering_breaks_filtering_chain
@@ -876,14 +861,6 @@ class YieldingAroundFiltersTest < ActionController::TestCase
     assert_raise(After) { test_process(controller,'raises_after') }
   end
 
-  for_tag(:old_base) do
-    def test_with_method
-      controller = ControllerWithFilterMethod
-      assert_nothing_raised { test_process(controller,'no_raise') }
-      assert_raise(After) { test_process(controller,'raises_after') }
-    end
-  end
-
   def test_with_proc
     test_process(ControllerWithProcFilter,'no_raise')
     assert assigns['before']
@@ -906,18 +883,9 @@ class YieldingAroundFiltersTest < ActionController::TestCase
     end
   end
 
-  for_tag(:old_base) do
-    def test_filter_order_with_all_filter_types
-      test_process(ControllerWithAllTypesOfFilters,'no_raise')
-      assert_equal 'before around (before yield) around_again (before yield) around_again (after yield) around (after yield) after', assigns['ran_filter'].join(' ')
-    end
-  end
-
-  for_tag(:new_base) do
-    def test_filter_order_with_all_filter_types
-      test_process(ControllerWithAllTypesOfFilters,'no_raise')
-      assert_equal 'before around (before yield) around_again (before yield) around_again (after yield) after around (after yield)', assigns['ran_filter'].join(' ')
-    end
+  def test_filter_order_with_all_filter_types
+    test_process(ControllerWithAllTypesOfFilters,'no_raise')
+    assert_equal 'before around (before yield) around_again (before yield) around_again (after yield) after around (after yield)', assigns['ran_filter'].join(' ')
   end
 
   def test_filter_order_with_skip_filter_method
