@@ -258,9 +258,11 @@ module ActionView #:nodoc:
 
     def with_template(current_template)
       last_template, self.template = template, current_template
+      old_formats, self.formats = formats, [current_template.mime_type.to_sym] + Mime::SET.symbols
       yield
     ensure
       self.template = last_template
+      self.formats = old_formats
     end
 
     def punctuate_body!(part)

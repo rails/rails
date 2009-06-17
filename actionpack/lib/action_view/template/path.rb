@@ -47,8 +47,7 @@ module ActionView
       
       def formats_glob
         @formats_glob ||= begin
-          formats = Mime::SET.map { |m| m.symbol }
-          '{' + formats.map { |l| ".#{l}," }.join + '}'
+          '{' + Mime::SET.symbols.map { |l| ".#{l}," }.join + '}'
         end
       end
       

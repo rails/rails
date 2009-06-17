@@ -22,7 +22,7 @@ class Template
   
     def formats_regexp
       @formats_regexp ||= begin
-        formats = Mime::SET.map { |m| m.symbol }
+        formats = Mime::SET.symbols
         '(?:' + formats.map { |l| "\\.#{Regexp.escape(l.to_s)}" }.join('|') + ')?'
       end
     end
