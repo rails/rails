@@ -47,9 +47,7 @@ module Rails::Generators
       self.root = File.expand_path(app_path, root)
       empty_directory '.'
 
-      app_name    # Sets the app name
-      source_root # Sets the source root
-
+      app_name # Sets the app name
       FileUtils.cd(root)
     end
 
