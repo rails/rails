@@ -185,12 +185,8 @@ module Rails::Generators
         ActiveSupport::SecureRandom.hex(64)
       end
 
-      def freeze
-        options[:freeze]
-      end
-
       def shebang
-        options[:ruby] || "#!/usr/bin/env ruby"
+        "#!#{options[:ruby] || "/usr/bin/env ruby"}"
       end
 
       def mysql_socket
