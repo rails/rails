@@ -120,10 +120,7 @@ module ActionController #:nodoc:
 
         @responses[mime_type] ||= Proc.new do
           # TODO: Remove this when new base is merged in
-          if defined?(Http)
-            @controller.formats = [mime_type.to_sym]
-          end
-
+          @controller.formats = [mime_type.to_sym]
           @controller.content_type = mime_type
           @controller.template.formats = [mime_type.to_sym]
 

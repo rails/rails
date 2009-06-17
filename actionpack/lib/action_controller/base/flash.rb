@@ -33,14 +33,7 @@ module ActionController #:nodoc:
 
     included do
       # TODO : Remove the defined? check when new base is the main base
-      if defined?(ActionController::Http)
-        include InstanceMethodsForNewBase
-      else
-        include InstanceMethodsForBase
-
-        alias_method_chain :perform_action, :flash
-        alias_method_chain :reset_session,  :flash
-      end
+      include InstanceMethods
     end
 
     class FlashNow #:nodoc:
@@ -148,23 +141,7 @@ module ActionController #:nodoc:
         end
     end
 
-    module InstanceMethodsForBase #:nodoc:
-      protected
-        def perform_action_with_flash
-          perform_action_without_flash
-          if defined? @_flash
-            @_flash.store(session)
-            remove_instance_variable(:@_flash)
-          end
-        end
-
-        def reset_session_with_flash
-          reset_session_without_flash
-          remove_instance_variable(:@_flash) if defined?(@_flash)
-        end
-    end
-
-    module InstanceMethodsForNewBase #:nodoc:
+    module InstanceMethods #:nodoc:
       protected
         def process_action(method_name)
           super

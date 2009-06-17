@@ -62,14 +62,7 @@ module ActionController #:nodoc:
 
           cache_filter = ActionCacheFilter.new(:layout => options.delete(:layout), :cache_path => options.delete(:cache_path), :store_options => options)
 
-          # TODO: Remove this once new base is swapped in.
-          if defined?(ActionController::Http)
-            around_filter cache_filter, filter_options
-          else
-            around_filter(filter_options) do |controller, action|
-              cache_filter.filter(controller, action)
-            end
-          end
+          around_filter cache_filter, filter_options
         end
       end
 
