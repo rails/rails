@@ -2,7 +2,6 @@ require File.dirname(__FILE__) + '/../base'
 require 'rbconfig'
 require 'digest/md5' 
 require 'active_support/secure_random'
-require 'rails/version'
 
 module Rails::Generators
   class App < Base
@@ -48,7 +47,9 @@ module Rails::Generators
       self.root = File.expand_path(app_path, root)
       empty_directory '.'
 
-      app_name # Sets the app name
+      app_name    # Sets the app name
+      source_root # Sets the source root
+
       FileUtils.cd(root)
     end
 

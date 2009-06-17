@@ -27,7 +27,7 @@ module Rails
           klass_name.gsub!(/^Rails::Generators::/, '')
           klass_name.gsub!(/([A-Z]+)([A-Z][a-z])/,'\1_\2')
           klass_name.gsub!(/([a-z\d])([A-Z])/,'\1_\2')
-          File.join(File.dirname(__FILE__), 'templates', klass_name.downcase)
+          File.expand_path(File.join(File.dirname(__FILE__), 'templates', klass_name.downcase))
         end
       end
 
