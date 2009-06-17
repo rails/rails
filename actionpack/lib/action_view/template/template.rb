@@ -2,7 +2,7 @@
 # This is so that templates compiled in this file are UTF-8
 
 require 'set'
-require "action_view/template/path"
+require "action_view/template/resolver"
 
 module ActionView
   class Template
