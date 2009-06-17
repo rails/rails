@@ -81,12 +81,12 @@ module Rails
 
         in_root do
           if options[:env].nil?
-            gsub_file 'config/environment.rb', /(#{Regexp.escape(sentinel)})/mi do |match|
+            gsub_file 'config/environment.rb', /(#{Regexp.escape(sentinel)})/mi, false do |match|
               "#{match}\n  " << data
             end
           else
             Array.wrap(options[:env]).each do|env|
-              append_file "config/environments/#{env}.rb", "\n#{data}"
+              append_file "config/environments/#{env}.rb", "\n#{data}", false
             end
           end
         end
@@ -252,7 +252,7 @@ module Rails
         sentinel = 'ActionController::Routing::Routes.draw do |map|'
 
         in_root do
-          gsub_file 'config/routes.rb', /(#{Regexp.escape(sentinel)})/mi do |match|
+          gsub_file 'config/routes.rb', /(#{Regexp.escape(sentinel)})/mi, false do |match|
             "#{match}\n  #{routing_code}\n"
           end
         end
