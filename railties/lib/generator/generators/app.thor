@@ -12,7 +12,7 @@ module Rails::Generators
 
     argument :app_path, :type => :string
 
-    class_option :ruby, :type => :string, :aliases => "-d", :default => DEFAULT_SHEBANG,
+    class_option :ruby, :type => :string, :aliases => "-r", :default => DEFAULT_SHEBANG,
                         :desc => "Path to the Ruby binary of your choice"
 
     class_option :database, :type => :string, :aliases => "-d", :default => DEFAULT_DATABASE,
@@ -21,6 +21,7 @@ module Rails::Generators
     class_option :with_dispatchers, :type => :boolean, :aliases => "-D", :default => false,
                                     :desc => "Add CGI/FastCGI/mod_ruby dispatchers code"
 
+    # TODO Make use of this option
     class_option :freeze, :type => :boolean, :aliases => "-f", :default => false,
                           :desc => "Freeze Rails in vendor/rails from the gems"
 
