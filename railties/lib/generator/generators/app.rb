@@ -5,6 +5,8 @@ require 'active_support/secure_random'
 
 module Rails::Generators
   class App < Base
+    namespace :rails
+
     DEFAULT_SHEBANG  = File.join(Config::CONFIG['bindir'], Config::CONFIG['ruby_install_name'])
     DATABASES        = %w( mysql oracle postgresql sqlite2 sqlite3 frontbase ibm_db )
     DEFAULT_DATABASE = 'sqlite3'
