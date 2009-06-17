@@ -1736,7 +1736,7 @@ module ActiveRecord #:nodoc:
           construct_finder_arel(options).to_sql
         end
 
-        def construct_join(joins, scope = :auto)
+        def construct_join(joins, scope)
           merged_joins = scope && scope[:joins] && joins ? merge_joins(scope[:joins], joins) : (joins || scope && scope[:joins])
           case merged_joins
           when Symbol, Hash, Array
@@ -1753,13 +1753,12 @@ module ActiveRecord #:nodoc:
           end
         end
 
-        def construct_group(group, having, scope = :auto)
+        def construct_group(group, having, scope)
           sql = ''
           if group
             sql << group.to_s
             sql << " HAVING #{sanitize_sql_for_conditions(having)}" if having
           else
-            scope = scope(:find) if :auto == scope
             if scope && (scoped_group = scope[:group])
               sql << scoped_group.to_s
               sql << " HAVING #{sanitize_sql_for_conditions(scope[:having])}" if scope[:having]
@@ -1768,7 +1767,7 @@ module ActiveRecord #:nodoc:
           sql
         end
 
-        def construct_order(order, scope = :auto)
+        def construct_order(order, scope)
           orders = []
           scoped_order = scope[:order] if scope
           if order
@@ -1780,17 +1779,17 @@ module ActiveRecord #:nodoc:
           orders
         end
 
-        def construct_limit(options, scope = :auto)
+        def construct_limit(options, scope)
           options[:limit] ||= scope[:limit] if scope
           options[:limit]
         end
 
-        def construct_offset(options, scope = :auto)
+        def construct_offset(options, scope)
           options[:offset] ||= scope[:offset] if scope
           options[:offset]
         end
 
-        def construct_conditions(conditions, scope = :auto)
+        def construct_conditions(conditions, scope)
           conditions = [conditions]
           conditions << scope[:conditions] if scope
           conditions << type_condition if finder_needs_type_condition?
