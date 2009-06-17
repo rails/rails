@@ -7,6 +7,9 @@ require 'thor'
 
 module Rails
   module Generators
+    class Error < Thor::Error
+    end
+
     class Base < Thor::Group
       include Rails::Generators::Actions
       include Thor::Actions

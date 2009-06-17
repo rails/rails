@@ -45,6 +45,13 @@ module Rails::Generators
     class_option :help, :type => :boolean, :aliases => "-h", :group => :rails,
                         :desc => "Show this help message and quit"
 
+    def initialize(*args)
+      super
+      if !options[:no_activerecord] && !DATABASES.include?(options[:database])
+        raise Error, "Invalid value for --database option. Supported for preconfiguration are: #{DATABASES.join(", ")}."
+      end
+    end
+
     def create_root
       self.root = File.expand_path(app_path, root)
       empty_directory '.'
