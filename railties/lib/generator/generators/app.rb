@@ -167,6 +167,10 @@ module Rails::Generators
       empty_directory "vendor/plugins"
     end
 
+    def apply_rails_template
+      apply options[:template] if options[:template]
+    end
+
     def freeze?
       freeze! if options[:freeze]
     end
