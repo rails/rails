@@ -19,7 +19,6 @@ module Rails::Generators
     class_option :database, :type => :string, :aliases => "-d", :default => DEFAULT_DATABASE,
                             :desc => "Preconfigure for selected database (options: #{DATABASES.join('/')})"
 
-    # TODO Make use of this option
     class_option :freeze, :type => :boolean, :aliases => "-f", :default => false,
                           :desc => "Freeze Rails in vendor/rails from the gems"
 
@@ -166,6 +165,10 @@ module Rails::Generators
 
     def create_vendor_files
       empty_directory "vendor/plugins"
+    end
+
+    def freeze?
+      freeze! if options[:freeze]
     end
 
     protected

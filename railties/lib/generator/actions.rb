@@ -226,7 +226,7 @@ module Rails
       #   capify!
       #
       def capify!
-        log :capify
+        log :capify, ""
         in_root { run('capify .', false) }
       end
 
@@ -237,7 +237,7 @@ module Rails
       #   freeze!
       #
       def freeze!(args = {})
-        log :freeze
+        log :vendor, "rails"
         in_root { run('rake rails:freeze:edge', false) }
       end
 
