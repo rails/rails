@@ -1,7 +1,7 @@
 require 'active_support/inflector'
 
-module ActiveSupport
-  class ModelName < String
+module ActiveModel
+  class Name < String
     attr_reader :singular, :plural, :element, :collection, :partial_path
     alias_method :cache_key, :collection
 
@@ -14,12 +14,12 @@ module ActiveSupport
       @partial_path = "#{@collection}/#{@element}".freeze
     end
   end
-end
 
-class Module
-  # Returns an ActiveSupport::ModelName object for module. It can be
-  # used to retrieve all kinds of naming-related information.
-  def model_name
-    @model_name ||= ActiveSupport::ModelName.new(name)
+  module Naming
+    # Returns an ActiveModel::Name object for module. It can be
+    # used to retrieve all kinds of naming-related information.
+    def model_name
+      @_model_name ||= ActiveModel::Name.new(name)
+    end
   end
 end

@@ -29,6 +29,8 @@ module ActiveModel
   autoload :Base, 'active_model/base'
   autoload :DeprecatedErrorMethods, 'active_model/deprecated_error_methods'
   autoload :Errors, 'active_model/errors'
+  autoload :Name, 'active_model/naming'
+  autoload :Naming, 'active_model/naming'
   autoload :Observer, 'active_model/observing'
   autoload :Observing, 'active_model/observing'
   autoload :StateMachine, 'active_model/state_machine'

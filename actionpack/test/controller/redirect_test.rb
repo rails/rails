@@ -4,6 +4,7 @@ class WorkshopsController < ActionController::Base
 end
 
 class Workshop
+  extend ActiveModel::Naming
   attr_accessor :id, :new_record
 
   def initialize(id, new_record)
