@@ -50,14 +50,16 @@ module Rails::Generators
       inside "config" do
         copy_file "boot.rb"
         copy_file "routes.rb"
-
-        template "databases/#{options[:database]}.yml", "database.yml"
-        template "environment.rb"
+        template  "environment.rb"
 
         directory "environments"
         directory "initializers"
         directory "locales"
       end
+    end
+
+    def craete_db_config_files
+      template "config/databases/#{options[:database]}.yml", "config/database.yml"
     end
 
     def create_db_files
@@ -85,7 +87,19 @@ module Rails::Generators
     end
 
     def create_public_files
-      directory "public"
+      directory "public", "public", false # Non-recursive. Do small steps, so anyone can overwrite it.
+    end
+
+    def create_public_image_files
+      directory "public/images"
+    end
+
+    def create_public_stylesheets_files
+      directory "public/stylesheets"
+    end
+
+    def create_public_javascripts_files
+      directory "public/javascripts"
     end
 
     def create_dispatch_files
@@ -101,10 +115,6 @@ module Rails::Generators
 
       template "dispatchers/dispatch.fcgi", "public/dispatch.fcgi"
       chmod "public/dispatch.fcgi", 0755, false
-    end
-
-    def create_javascript_files
-      directory "javascripts/prototype", "public/javascripts"
     end
 
     def create_script_files
