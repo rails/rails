@@ -18,15 +18,24 @@ module Rails::Generators
     class_option :database, :type => :string, :aliases => "-d", :default => DEFAULT_DATABASE,
                             :desc => "Preconfigure for selected database (options: #{DATABASES.join('/')})"
 
-    class_option :with_dispatchers, :type => :boolean, :aliases => "-D", :default => false,
-                                    :desc => "Add CGI/FastCGI/mod_ruby dispatchers code"
-
     # TODO Make use of this option
     class_option :freeze, :type => :boolean, :aliases => "-f", :default => false,
                           :desc => "Freeze Rails in vendor/rails from the gems"
 
     class_option :template, :type => :string, :aliases => "-m",
-                            :desc => "Use an application template that lives at path (can be a filesystem path or URL)."
+                            :desc => "Path to an application template (can be a filesystem path or URL)."
+
+    class_option :with_dispatchers, :type => :boolean, :aliases => "-D", :default => false,
+                                    :desc => "Add CGI/FastCGI/mod_ruby dispatchers code"
+
+    class_option :no_activerecord, :type => :boolean, :aliases => "-A", :default => false,
+                                   :desc => "Do not generate ActiveRecord files"
+
+    class_option :no_testunit, :type => :boolean, :aliases => "-U", :default => false,
+                               :desc => "Do not generate TestUnit files"
+
+    class_option :no_prototype, :type => :boolean, :aliases => "-P", :default => false,
+                                :desc => "Do not generate Prototype files"
 
     def create_root
       self.root = File.expand_path(app_path, root)
@@ -59,7 +68,8 @@ module Rails::Generators
       end
     end
 
-    def craete_db_config_files
+    def create_activerecord_files
+      return if options[:no_activerecord]
       template "config/databases/#{options[:database]}.yml", "config/database.yml"
     end
 
@@ -91,20 +101,8 @@ module Rails::Generators
       directory "public", "public", false # Non-recursive. Do small steps, so anyone can overwrite it.
     end
 
-    def create_public_image_files
-      directory "public/images"
-    end
-
-    def create_public_stylesheets_files
-      directory "public/stylesheets"
-    end
-
-    def create_public_javascripts_files
-      directory "public/javascripts"
-    end
-
     def create_dispatch_files
-      return unless options.with_dispatchers?
+      return unless options[:with_dispatchers]
 
       copy_file "dispatchers/config.ru", "config.ru"
 
@@ -118,12 +116,26 @@ module Rails::Generators
       chmod "public/dispatch.fcgi", 0755, false
     end
 
+    def create_public_image_files
+      directory "public/images"
+    end
+
+    def create_public_stylesheets_files
+      directory "public/stylesheets"
+    end
+
+    def create_prototype_files
+      return if options[:no_prototype]
+      directory "public/javascripts"
+    end
+
     def create_script_files
       directory "script"
       chmod "script", 0755, false
     end
 
     def create_test_files
+      return if options[:no_testunit]
       directory "test"
     end
 
