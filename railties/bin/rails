@@ -7,5 +7,7 @@ if %w(--version -v).include? ARGV.first
   exit(0)
 end
 
+ARGV << "--help" if ARGV.empty?
+
 require File.dirname(__FILE__) + '/../lib/generator/generators/app'
 Rails::Generators::App.start
