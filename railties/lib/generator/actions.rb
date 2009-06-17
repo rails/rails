@@ -7,8 +7,6 @@ module Rails
       # ==== Parameters
       # path<String>:: The path to the file to execute. Can be a web address or
       #                a relative path from the source root.
-      # log_status<Boolean>:: if false, does not log the status. True by default.
-      #                       If a symbol is given, uses it as the output color.
       #
       # ==== Examples
       #
@@ -18,9 +16,10 @@ module Rails
       #
       def apply(path, log_status=true)
         path = File.expand_path(path, source_root) unless path =~ /^http\:\/\//
-        say_status_if_log :applying, path, log_status
+
+        log :apply, path, log_status
         instance_eval(open(path).read)
-        say_status_if_log :applied, path, log_status
+        log :applied, path, log_status
       end
 
       # Install a plugin. You must provide either a Subversion url or Git url.
@@ -33,24 +32,31 @@ module Rails
       #   plugin 'restful-authentication', :svn => 'svn://svnhub.com/technoweenie/restful-authentication/trunk'
       #
       def plugin(name, options)
-        log 'plugin', name
+        log :plugin, name
 
         if options[:git] && options[:submodule]
           in_root do
-            Git.run("submodule add #{options[:git]} vendor/plugins/#{name}")
+            run "git submodule add #{options[:git]} vendor/plugins/#{name}", false
           end
         elsif options[:git] || options[:svn]
           in_root do
-            run_ruby_script("script/plugin install #{options[:svn] || options[:git]}", false)
+            run_ruby_script "script/plugin install #{options[:svn] || options[:git]}", false
           end
         else
-          log "! no git or svn provided for #{name}.  skipping..."
+          log "! no git or svn provided for #{name}. Skipping..."
         end
       end
 
-      # Adds an entry into config/environment.rb for the supplied gem :
+      # Adds an entry into config/environment.rb for the supplied gem. If env
+      # is specified, add the gem to the given environment.
+      #
+      # ==== Example
+      #
+      #   gem "rspec", :env => :test
+      #   gem "technoweenie-restful-authentication", :lib => "restful-authentication", :source => "http://gems.github.com/"
+      #
       def gem(name, options = {})
-        log 'gem', name
+        log :gem, name
         env = options.delete(:env)
 
         gems_code = "config.gem '#{name}'"
@@ -63,10 +69,12 @@ module Rails
         environment gems_code, :env => env
       end
 
-      # Adds a line inside the Initializer block for config/environment.rb. Used by #gem
+      # Adds a line inside the Initializer block for config/environment.rb.
+      #
       # If options :env is specified, the line is appended to the corresponding
-      # file in config/environments/#{env}.rb
-      def environment(data = nil, options = {}, &block)
+      # file in config/environments.
+      #
+      def environment(data=nil, options={}, &block)
         sentinel = 'Rails::Initializer.run do |config|'
 
         data = block.call if !data && block_given?
@@ -95,12 +103,10 @@ module Rails
       def git(command = {})
         in_root do
           if command.is_a?(Symbol)
-            log 'running', "git #{command}"
-            Git.run(command.to_s)
+            run "git #{command}"
           else
             command.each do |command, options|
-              log 'running', "git #{command} #{options}"
-              Git.run("#{command} #{options}")
+              run "git #{command} #{options}"
             end
           end
         end
@@ -118,9 +124,9 @@ module Rails
       #
       #   vendor("foreign.rb", "# Foreign code is fun")
       #
-      def vendor(filename, data = nil, &block)
-        log 'vendoring', filename
-        file("vendor/#{filename}", data, false, &block)
+      def vendor(filename, data=nil, &block)
+        log :vendor, filename
+        create_file("vendor/#{filename}", data, false, &block)
       end
 
       # Create a new file in the lib/ directory. Code can be specified
@@ -134,9 +140,9 @@ module Rails
       #
       #   lib("foreign.rb", "# Foreign code is fun")
       #
-      def lib(filename, data = nil, &block)
-        log 'lib', filename
-        file("lib/#{filename}", data, false, &block)
+      def lib(filename, data=nil, &block)
+        log :lib, filename
+        create_file("lib/#{filename}", data, false, &block)
       end
 
       # Create a new Rakefile with the provided code (either in a block or a string).
@@ -157,9 +163,9 @@ module Rails
       #
       #   rakefile("seed.rake", "puts 'im plantin ur seedz'")
       #
-      def rakefile(filename, data = nil, &block)
-        log 'rakefile', filename
-        file("lib/tasks/#{filename}", data, false, &block)
+      def rakefile(filename, data=nil, &block)
+        log :rakefile, filename
+        create_file("lib/tasks/#{filename}", data, false, &block)
       end
 
       # Create a new initializer with the provided code (either in a block or a string).
@@ -178,9 +184,9 @@ module Rails
       #
       #   initializer("api.rb", "API_KEY = '123456'")
       #
-      def initializer(filename, data = nil, &block)
-        log 'initializer', filename
-        file("config/initializers/#{filename}", data, false, &block)
+      def initializer(filename, data=nil, &block)
+        log :initializer, filename
+        create_file("config/initializers/#{filename}", data, false, &block)
       end
 
       # Generate something using a generator from Rails or a plugin.
@@ -192,7 +198,7 @@ module Rails
       #   generate(:authenticated, "user session")
       #
       def generate(what, *args)
-        log 'generating', what
+        log :generate, what
         argument = args.map {|arg| arg.to_s }.flatten.join(" ")
 
         in_root { run_ruby_script("script/generate #{what} #{argument}", false) }
@@ -206,8 +212,8 @@ module Rails
       #   rake("db:migrate", :env => "production")
       #   rake("gems:install", :sudo => true)
       #
-      def rake(command, options = {})
-        log 'rake', command
+      def rake(command, options={})
+        log :rake, command
         env = options[:env] || 'development'
         sudo = options[:sudo] ? 'sudo ' : ''
         in_root { run("#{sudo}rake #{command} RAILS_ENV=#{env}", false) }
@@ -220,7 +226,7 @@ module Rails
       #   capify!
       #
       def capify!
-        log 'capifying'
+        log :capify
         in_root { run('capify .', false) }
       end
 
@@ -231,7 +237,7 @@ module Rails
       #   freeze!
       #
       def freeze!(args = {})
-        log 'vendor', 'rails edge'
+        log :freeze
         in_root { run('rake rails:freeze:edge', false) }
       end
 
@@ -242,7 +248,7 @@ module Rails
       #   route "map.root :controller => :welcome"
       #
       def route(routing_code)
-        log 'route', routing_code
+        log :route, routing_code
         sentinel = 'ActionController::Routing::Routes.draw do |map|'
 
         in_root do
@@ -251,6 +257,25 @@ module Rails
           end
         end
       end
+
+      protected
+
+        # Define file as an alias to create_file for backwards compatibility.
+        #
+        def file(*args)
+          create_file(*args)
+        end
+
+        # Define log for backwards compatibility. If just one argument is sent,
+        # invoke say, otherwise invoke say_status.
+        #
+        def log(*args)
+          if args.size == 1
+            say args.first.to_s
+          else
+            say_status *args
+          end
+        end
 
     end
   end

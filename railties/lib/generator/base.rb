@@ -7,20 +7,13 @@ require 'thor'
 
 module Rails
   module Generators
+
     class Error < Thor::Error
     end
 
     class Base < Thor::Group
       include Rails::Generators::Actions
       include Thor::Actions
-
-      # Make aliases for backwards compatibily. Usa no_tasks to avoid aliases
-      # from becoming tasks.
-      #
-      no_tasks {
-        alias :file :create_file
-        alias :log  :say_status
-      }
 
       # Automatically sets the source root based on the class name.
       #
@@ -33,7 +26,7 @@ module Rails
           File.expand_path(File.join(File.dirname(__FILE__), 'templates', klass_name.downcase))
         end
       end
-
     end
+
   end
 end
