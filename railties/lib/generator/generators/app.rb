@@ -1,22 +1,17 @@
 require File.dirname(__FILE__) + '/../base'
-require 'rbconfig'
 require 'digest/md5' 
 require 'active_support/secure_random'
 
 module Rails::Generators
   class App < Base
-    namespace :rails
+    DATABASES = %w( mysql oracle postgresql sqlite2 sqlite3 frontbase ibm_db )
 
-    DEFAULT_SHEBANG  = File.join(Config::CONFIG['bindir'], Config::CONFIG['ruby_install_name'])
-    DATABASES        = %w( mysql oracle postgresql sqlite2 sqlite3 frontbase ibm_db )
-    DEFAULT_DATABASE = 'sqlite3'
+    namespace :rails
+    add_shebang_option!
 
     argument :app_path, :type => :string
 
-    class_option :ruby, :type => :string, :aliases => "-r", :default => DEFAULT_SHEBANG,
-                        :desc => "Path to the Ruby binary of your choice"
-
-    class_option :database, :type => :string, :aliases => "-d", :default => DEFAULT_DATABASE,
+    class_option :database, :type => :string, :aliases => "-d", :default => "sqlite3",
                             :desc => "Preconfigure for selected database (options: #{DATABASES.join('/')})"
 
     class_option :freeze, :type => :boolean, :aliases => "-F", :default => false,
@@ -38,6 +33,7 @@ module Rails::Generators
                                 :desc => "Do not generate Prototype files"
 
     # Add Rails options
+    #
     class_option :version, :type => :boolean, :aliases => "-v", :group => :rails,
                            :desc => "Show Rails version number and quit"
 
@@ -183,10 +179,6 @@ module Rails::Generators
 
       def app_secret
         ActiveSupport::SecureRandom.hex(64)
-      end
-
-      def shebang
-        "#!#{options[:ruby] || "/usr/bin/env ruby"}"
       end
 
       def mysql_socket

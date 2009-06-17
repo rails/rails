@@ -7,7 +7,6 @@ require 'thor'
 
 module Rails
   module Generators
-
     class Error < Thor::Error
     end
 
@@ -26,7 +25,25 @@ module Rails
           File.expand_path(File.join(File.dirname(__FILE__), 'templates', klass_name.downcase))
         end
       end
-    end
 
+      # Small macro to ruby as an option to the generator with proper default
+      # value plus an instance helper method.
+      #
+      def self.add_shebang_option!
+        require 'rbconfig'
+        default = File.join(Config::CONFIG['bindir'], Config::CONFIG['ruby_install_name'])
+
+        class_option :ruby, :type => :string, :aliases => "-r", :default => default,
+                            :desc => "Path to the Ruby binary of your choice"
+
+        class_eval do
+          protected
+          def shebang
+            "#!#{options[:ruby] || "/usr/bin/env ruby"}"
+          end
+        end
+      end
+
+    end
   end
 end
