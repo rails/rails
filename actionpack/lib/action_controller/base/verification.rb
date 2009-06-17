@@ -2,7 +2,6 @@ module ActionController #:nodoc:
   module Verification #:nodoc:
     extend ActiveSupport::Concern
 
-    # TODO : Remove the defined? check when new base is the main base
     include AbstractController::Callbacks, Session, Flash, Renderer
 
     # This module provides a class-level method for specifying that certain

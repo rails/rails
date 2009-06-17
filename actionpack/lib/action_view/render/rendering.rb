@@ -64,7 +64,6 @@ module ActionView
     def _render_template(template, local_assigns = {})
       with_template(template) do
         _evaluate_assigns_and_ivars
-        _set_controller_content_type(template.mime_type) if template.respond_to?(:mime_type)
 
         template.render(self, local_assigns) do |*names|
           if !instance_variable_defined?(:"@content_for_#{names.first}") && 

@@ -84,19 +84,10 @@ module ActionController #:nodoc:
           @options = options
         end
 
-        # TODO: Remove once New Base is merged
-        if defined?(ActionController::Http)
-          def filter(controller)
-            should_continue = before(controller)
-            yield if should_continue
-            after(controller)
-          end
-        else
-          def filter(controller, action)
-            should_continue = before(controller)
-            action.call if should_continue
-            after(controller)
-          end
+        def filter(controller)
+          should_continue = before(controller)
+          yield if should_continue
+          after(controller)
         end
 
         def before(controller)
