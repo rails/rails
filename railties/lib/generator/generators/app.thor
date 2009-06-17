@@ -37,6 +37,13 @@ module Rails::Generators
     class_option :no_prototype, :type => :boolean, :aliases => "-P", :default => false,
                                 :desc => "Do not generate Prototype files"
 
+    # Add Rails options
+    class_option :version, :type => :boolean, :aliases => "-v", :group => :rails,
+                           :desc => "Show Rails version number and quit"
+
+    class_option :help, :type => :boolean, :aliases => "-h", :group => :rails,
+                        :desc => "Show this help message and quit"
+
     def create_root
       self.root = File.expand_path(app_path, root)
       empty_directory '.'
