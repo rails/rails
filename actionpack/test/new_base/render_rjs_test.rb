@@ -4,7 +4,7 @@ module RenderRjs
 
   class BasicController < ActionController::Base
 
-    self.view_paths = [ActionView::Template::FixturePath.new(
+    self.view_paths = [ActionView::FixtureResolver.new(
       "render_rjs/basic/index.js.rjs"          => "page[:customer].replace_html render(:partial => 'customer')",
       "render_rjs/basic/index_html.js.rjs"     => "page[:customer].replace_html :partial => 'customer'",
       "render_rjs/basic/_customer.js.erb"      => "JS Partial",

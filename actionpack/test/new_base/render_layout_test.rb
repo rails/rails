@@ -2,7 +2,7 @@ require File.join(File.expand_path(File.dirname(__FILE__)), "test_helper")
 
 module ControllerLayouts
   class ImplicitController < ::ApplicationController
-    self.view_paths = [ActionView::Template::FixturePath.new(
+    self.view_paths = [ActionView::FixtureResolver.new(
       "layouts/application.html.erb" => "OMG <%= yield %> KTHXBAI",
       "layouts/override.html.erb"    => "Override! <%= yield %>",
       "basic.html.erb"               => "Hello world!",
@@ -26,7 +26,7 @@ module ControllerLayouts
   end
 
   class ImplicitNameController < ::ApplicationController
-    self.view_paths = [ActionView::Template::FixturePath.new(
+    self.view_paths = [ActionView::FixtureResolver.new(
       "layouts/controller_layouts/implicit_name.html.erb" => "OMGIMPLICIT <%= yield %> KTHXBAI",
       "basic.html.erb" => "Hello world!"
     )]
@@ -68,7 +68,7 @@ module ControllerLayouts
   end
 
   class MismatchFormatController < ::ApplicationController
-    self.view_paths = [ActionView::Template::FixturePath.new(
+    self.view_paths = [ActionView::FixtureResolver.new(
       "layouts/application.html.erb" => "<html><%= yield %></html>",
       "controller_layouts/mismatch_format/index.js.rjs" => "page[:test].omg",
       "controller_layouts/mismatch_format/implicit.rjs" => "page[:test].omg"      

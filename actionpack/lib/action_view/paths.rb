@@ -3,7 +3,7 @@ module ActionView #:nodoc:
     def self.type_cast(obj)
       if obj.is_a?(String)
         cache = !defined?(Rails) || !Rails.respond_to?(:configuration) || Rails.configuration.cache_classes
-        Template::FileSystemPathWithFallback.new(obj, :cache => cache)
+        FileSystemResolverWithFallback.new(obj, :cache => cache)
       else
         obj
       end

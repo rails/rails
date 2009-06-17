@@ -4,7 +4,7 @@ module RenderPartial
   
   class BasicController < ActionController::Base
     
-    self.view_paths = [ActionView::Template::FixturePath.new(
+    self.view_paths = [ActionView::FixtureResolver.new(
       "render_partial/basic/_basic.html.erb"    => "OMG!",
       "render_partial/basic/basic.html.erb"      => "<%= @test_unchanged = 'goodbye' %><%= render :partial => 'basic' %><%= @test_unchanged %>"
     )]
