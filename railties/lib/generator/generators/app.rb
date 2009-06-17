@@ -19,7 +19,7 @@ module Rails::Generators
     class_option :database, :type => :string, :aliases => "-d", :default => DEFAULT_DATABASE,
                             :desc => "Preconfigure for selected database (options: #{DATABASES.join('/')})"
 
-    class_option :freeze, :type => :boolean, :aliases => "-f", :default => false,
+    class_option :freeze, :type => :boolean, :aliases => "-F", :default => false,
                           :desc => "Freeze Rails in vendor/rails from the gems"
 
     class_option :template, :type => :string, :aliases => "-m",
