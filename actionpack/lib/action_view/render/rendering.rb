@@ -51,13 +51,12 @@ module ActionView
       end
   
       begin
-        original_content_for_layout = @content_for_layout if defined?(@content_for_layout)
-        @content_for_layout = content
+        old_content, @_content_for[:layout] = @_content_for[:layout], content
 
-        @cached_content_for_layout = @content_for_layout
+        @cached_content_for_layout = @_content_for[:layout]
         _render_template(layout, locals)
       ensure
-        @content_for_layout = original_content_for_layout
+        @_content_for[:layout] = old_content
       end
     end
 
@@ -66,12 +65,11 @@ module ActionView
         _evaluate_assigns_and_ivars
 
         template.render(self, local_assigns) do |*names|
-          if !instance_variable_defined?(:"@content_for_#{names.first}") && 
-          instance_variable_defined?(:@_proc_for_layout) && (proc = @_proc_for_layout)
-            capture(*names, &proc)
-          elsif instance_variable_defined?(ivar = :"@content_for_#{names.first || :layout}")
-            instance_variable_get(ivar)
-          end        
+          if !@_content_for.key?(names.first) && @_proc_for_layout
+            capture(*names, &@_proc_for_layout)
+          elsif content = @_content_for[names.first || :layout]
+            content
+          end
         end
       end
     rescue Exception => e
@@ -100,20 +98,18 @@ module ActionView
     end
 
     def _render_template_with_layout(template, layout = nil, options = {}, partial = false)
-      if controller && logger
-        logger.info("Rendering #{template.identifier}" + 
-          (options[:status] ? " (#{options[:status]})" : ''))
-      end
-  
+      logger && logger.info("Rendering #{template.identifier}#{' (#{options[:status]})' if options[:status]}")
+
+      locals = options[:locals] || {}
+
       content = if partial
         object = partial unless partial == true
         _render_partial_object(template, options, object)
       else
-        _render_template(template, options[:locals] || {})
+        _render_template(template, locals)
       end
   
-      return content unless layout
-      _render_content_with_layout(content, layout, options[:locals] || {})
+      layout ? _render_content_with_layout(content, layout, locals) : content
     end
   end
 end

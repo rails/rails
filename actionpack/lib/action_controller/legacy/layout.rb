@@ -44,9 +44,6 @@ module ActionController #:nodoc:
     #   hello world
     #   // The footer part of this layout
     #
-    # NOTE: The old notation for rendering the view from a layout was to expose the magic <tt>@content_for_layout</tt> instance
-    # variable. The preferred notation now is to use <tt>yield</tt>, as documented above.
-    #
     # == Accessing shared variables
     #
     # Layouts have access to variables specified in the content pages and vice versa. This allows you to have layouts with

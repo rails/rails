@@ -170,12 +170,13 @@ module ActionView #:nodoc:
 
     attr_accessor :base_path, :assigns, :template_extension, :formats
     attr_accessor :controller
+    attr_internal :captures
 
     attr_accessor :output_buffer
 
     class << self
       delegate :erb_trim_mode=, :to => 'ActionView::TemplateHandlers::ERB'
-      delegate :logger, :to => 'ActionController::Base'
+      delegate :logger, :to => 'ActionController::Base', :allow_nil => true
     end
 
     @@debug_rjs = false
@@ -232,6 +233,7 @@ module ActionView #:nodoc:
       @assigns = assigns_for_first_render
       @controller = controller
       @helpers = ProxyModule.new(self)
+      @_content_for = Hash.new {|h,k| h[k] = "" }
       self.view_paths = view_paths
     end
 
