@@ -60,16 +60,49 @@ module ActionView
       end
     end
 
+    # You can think of a layout as a method that is called with a block. This method
+    # returns the block that the layout is called with. If the user calls yield :some_name,
+    # the block, by default, returns content_for(:some_name). If the user calls yield,
+    # the default block returns content_for(:layout).
+    #
+    # The user can override this default by passing a block to the layout.
+    #
+    # ==== Example
+    #
+    #   # The template
+    #   <% render :layout => "my_layout" do %>Content<% end %>
+    #
+    #   # The layout
+    #   <html><% yield %></html>
+    #
+    # In this case, instead of the default block, which would return content_for(:layout),
+    # this method returns the block that was passed in to render layout, and the response
+    # would be <html>Content</html>.
+    #
+    # Finally, the block can take block arguments, which can be passed in by yield.
+    #
+    # ==== Example
+    #
+    #   # The template
+    #   <% render :layout => "my_layout" do |name| %>Hello <%= customer.name %><% end %>
+    #
+    #   # The layout
+    #   <html><% yield Struct.new(:name).new("David") %></html>
+    #
+    # In this case, the layout would receive the block passed into <tt>render :layout</tt>,
+    # and the Struct specified in the layout would be passed into the block. The result
+    # would be <html>Hello David</html>.
+    def layout_proc(name)
+      @_default_layout ||= proc { |*names| @_content_for[names.first || :layout] }
+      !@_content_for.key?(name) && @_proc_for_layout || @_default_layout
+    end
+
     def _render_template(template, local_assigns = {})
       with_template(template) do
         _evaluate_assigns_and_ivars
 
         template.render(self, local_assigns) do |*names|
-          if !@_content_for.key?(names.first) && @_proc_for_layout
-            capture(*names, &@_proc_for_layout)
-          elsif content = @_content_for[names.first || :layout]
-            content
-          end
+          capture(*names, &layout_proc(names.first))
         end
       end
     rescue Exception => e
