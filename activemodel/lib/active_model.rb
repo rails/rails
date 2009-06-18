@@ -38,6 +38,10 @@ module ActiveModel
   autoload :TestCase, 'active_model/test_case'
   autoload :Validations, 'active_model/validations'
   autoload :ValidationsRepairHelper, 'active_model/validations_repair_helper'
+
+  module Serializers
+    autoload :JSON, 'active_model/serializers/json'
+  end
 end
 
 I18n.load_path << File.dirname(__FILE__) + '/active_model/locale/en.yml'
