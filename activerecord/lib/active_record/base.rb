@@ -236,6 +236,12 @@ module ActiveRecord #:nodoc:
   #
   #   Student.find(:all, :conditions => { :grade => [9,11,12] })
   #
+  # When joining tables, nested hashes or keys written in the form 'table_name.column_name' can be used to qualify the table name of a
+  # particular condition. For instance:
+  #
+  #   Student.find(:all, :conditions => { :schools => { :type => 'public' }}, :joins => :schools)
+  #   Student.find(:all, :conditions => { 'schools.type' => 'public' }, :joins => :schools)
+  #
   # == Overwriting default accessors
   #
   # All column values are automatically available through basic accessors on the Active Record object, but sometimes you
