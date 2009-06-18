@@ -11,20 +11,15 @@ module Rails
       end
       
       def add(name, options = {}, &block)
-        if other = options[:before] || options[:after] and !@names[other]
-          raise Error, "The #{other.inspect} initializer does not exist"
+        # If :before or :after is specified, set the index to the right spot
+        if other = options[:before] || options[:after]
+          raise Error, "The #{other.inspect} initializer does not exist" unless @names[other]
+          index = @initializers.index(@names[other])
+          index += 1 if options[:after]
         end
         
         Class.new(Initializer, &block).new.tap do |initializer|
-          index = if options[:before]
-            @initializers.index(@names[other])
-          elsif options[:after]
-            @initializers.index(@names[other]) + 1
-          else
-            -1
-          end
-          
-          @initializers.insert(index, initializer)
+          @initializers.insert(index || -1, initializer)
           @names[name] = initializer
         end
       end
