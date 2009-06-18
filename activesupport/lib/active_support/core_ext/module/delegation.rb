@@ -110,8 +110,11 @@ class Module
 
     allow_nil = options[:allow_nil] && "#{to} && "
 
+    file, line = caller.first.split(':', 2)
+    line = line.to_i
+
     methods.each do |method|
-      module_eval(<<-EOS, "(__DELEGATION__)", 1)
+      module_eval(<<-EOS, file, line)
         def #{prefix}#{method}(*args, &block)                           # def customer_name(*args, &block)
           #{allow_nil}#{to}.__send__(#{method.inspect}, *args, &block)  #   client && client.__send__(:name, *args, &block)
         end                                                             # end
