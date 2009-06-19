@@ -165,6 +165,8 @@ module Rails::Generators
 
     def apply_rails_template
       apply options[:template] if options[:template]
+    rescue LoadError, Errno::ENOENT => e
+      raise "The template [#{template}] could not be loaded. Error: #{e}"
     end
 
     def freeze?
