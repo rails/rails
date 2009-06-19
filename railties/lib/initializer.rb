@@ -1,10 +1,12 @@
+require "pathname"
+
 module Rails
   class Configuration
     attr_accessor :cache_classes, :load_paths, :eager_load_paths, :framework_paths,
                   :load_once_paths, :gems_dependencies_loaded, :after_initialize_blocks,
                   :frameworks, :framework_root_path, :root_path, :plugin_paths, :plugins,
                   :plugin_loader, :plugin_locators, :gems, :loaded_plugins, :reload_plugins,
-                  :i18n
+                  :i18n, :gems
 
     def initialize
       @framework_paths         = []
@@ -66,6 +68,21 @@ module Rails
       end
 
       i18n
+    end
+
+    # Adds a single Gem dependency to the rails application. By default, it will require
+    # the library with the same name as the gem. Use :lib to specify a different name.
+    #
+    #   # gem 'aws-s3', '>= 0.4.0'
+    #   # require 'aws/s3'
+    #   config.gem 'aws-s3', :lib => 'aws/s3', :version => '>= 0.4.0', \
+    #     :source => "http://code.whytheluckystiff.net"
+    #
+    # To require a library be installed, but not attempt to load it, pass :lib => false
+    #
+    #   config.gem 'qrp', :version => '0.4.1', :lib => false
+    def gem(name, options = {})
+      @gems << Rails::GemDependency.new(name, options)
     end
 
     def default_gems
@@ -656,11 +673,63 @@ end
 # TODO: w0t?
 module Rails
   class << self
+    # The Configuration instance used to configure the Rails environment
+    def configuration
+      @@configuration
+    end
+
+    def configuration=(configuration)
+      @@configuration = configuration
+    end
+
+    def initialized?
+      @initialized || false
+    end
+
+    def initialized=(initialized)
+      @initialized ||= initialized
+    end
+
+    def logger
+      if defined?(RAILS_DEFAULT_LOGGER)
+        RAILS_DEFAULT_LOGGER
+      else
+        nil
+      end
+    end
+
+    def backtrace_cleaner
+      @@backtrace_cleaner ||= begin
+        # Relies on ActiveSupport, so we have to lazy load to postpone definition until AS has been loaded
+        require 'rails/backtrace_cleaner'
+        Rails::BacktraceCleaner.new
+      end
+    end
+
     def root
       Pathname.new(RAILS_ROOT) if defined?(RAILS_ROOT)
     end
-  end
 
+    def env
+      @_env ||= ActiveSupport::StringInquirer.new(RAILS_ENV)
+    end
+
+    def cache
+      RAILS_CACHE
+    end
+
+    def version
+      VERSION::STRING
+    end
+
+    def public_path
+      @@public_path ||= self.root ? File.join(self.root, "public") : "public"
+    end
+
+    def public_path=(path)
+      @@public_path = path
+    end
+  end
   class OrderedOptions < Array #:nodoc:
     def []=(key, value)
       key = key.to_sym
