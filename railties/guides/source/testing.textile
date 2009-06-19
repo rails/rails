@@ -439,7 +439,7 @@ You should test for things such as:
 * was the user redirected to the right page?
 * was the user successfully authenticated?
 * was the correct object stored in the response template?
-* was the appropriate message displayed to the user in the view
+* was the appropriate message displayed to the user in the view?
 
 Now that we have used Rails scaffold generator for our +Post+ resource, it has already created the controller code and functional tests. You can take look at the file +posts_controller_test.rb+ in the +test/functional+ directory.
 
@@ -592,7 +592,7 @@ There are more assertions that are primarily used in testing views:
 
 |_.Assertion                                                                        |_.Purpose|
 |+assert_select_email+                                                              |Allows you to make assertions on the body of an e-mail. |
-|+assert_select_rjs+                                                                |Allows you to make assertions on RJS response. +assert_select_rjs+ has variants which allow you to narrow down on the updated element or even a particular operation on an element.|
+|+assert_select_rjs+                                                                |Allows you to make assertions on an RJS response. +assert_select_rjs+ has variants which allow you to narrow down on the updated element or even a particular operation on an element.|
 |+assert_select_encoded+                                                            |Allows you to make assertions on encoded HTML. It does this by un-encoding the contents of each element and then calling the block with all the un-encoded elements.|
 |+css_select(selector)+  or +css_select(element, selector)+                         |Returns an array of all the elements selected by the _selector_. In the second variant it first matches the base _element_ and tries to match the _selector_ expression on any of its children. If there are no matches both variants return an empty array.|
 
@@ -701,7 +701,7 @@ class UserFlowsTest < ActionController::IntegrationTest
 
     # User avs can browse site
     avs.browses_site
-    # User guest can browse site aswell
+    # User guest can browse site as well
     guest.browses_site
 
     # Continue with other assertions
@@ -732,7 +732,7 @@ end
 
 h3. Rake Tasks for Running your Tests
 
-You don't need to set up and run your tests by hand on a test-by-test basis. Rails comes with a number of rake tasks to help in testing. The table below lists all rake tasks that come along in the default Rakefile when you initiate a Rail project.
+You don't need to set up and run your tests by hand on a test-by-test basis. Rails comes with a number of rake tasks to help in testing. The table below lists all rake tasks that come along in the default Rakefile when you initiate a Rails project.
 
 |_.Tasks                         |_.Description|
 |+rake test+                     |Runs all unit, functional and integration tests. You can also simply run +rake+ as the _test_ target is the default.|
@@ -838,7 +838,7 @@ end
 
 h3. Testing Routes
 
-Like everything else in you Rails application, it's recommended to test you routes. An example test for a route in the default +show+ action of +Posts+ controller above should look like:
+Like everything else in your Rails application, it is recommended that you test your routes. An example test for a route in the default +show+ action of +Posts+ controller above should look like:
 
 <ruby>
 def test_should_route_to_post
@@ -862,7 +862,7 @@ The goals of testing your +ActionMailer+ classes are to ensure that:
 
 h5. From All Sides
 
-There are two aspects of testing your mailer, the unit tests and the functional tests. In the unit tests, you run the mailer in isolation with tightly controlled inputs and compare the output to a knownvalue (a fixture -- yay! more fixtures!). In the functional tests you don't so much test the minute details produced by the mailer Instead we test that our controllers and models are using the mailer in the right way. You test to prove that the right email was sent at the right time.
+There are two aspects of testing your mailer, the unit tests and the functional tests. In the unit tests, you run the mailer in isolation with tightly controlled inputs and compare the output to a known value (a fixture -- yay! more fixtures!). In the functional tests you don't so much test the minute details produced by the mailer Instead we test that our controllers and models are using the mailer in the right way. You test to prove that the right email was sent at the right time.
 
 h4. Unit Testing
 
