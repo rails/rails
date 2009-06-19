@@ -10,7 +10,7 @@ class GeneratorTestCase < Test::Unit::TestCase
   include FileUtils
 
   def destination_root
-    "#{File.dirname(__FILE__)}/../fixtures/tmp"
+    @destinartion_root ||= File.expand_path("#{File.dirname(__FILE__)}/../fixtures/tmp")
   end
 
   def setup
@@ -35,4 +35,16 @@ class GeneratorTestCase < Test::Unit::TestCase
     result
   end
   alias :silence :capture
+
+  def assert_file(relative, content=nil)
+    absolute = File.join(destination_root, relative)
+    assert File.exists?(absolute)
+
+    case content
+      when String
+        assert_equal content, File.read(absolute)
+      when Regexp
+        assert_match content, File.read(absolute)
+    end
+  end
 end
