@@ -46,29 +46,6 @@ module RenderTestCases
     I18n.locale = old_locale
   end
 
-  def test_render_implicit_html_template_from_xhr_request
-    old_format = @view.formats
-    pending do
-      @view.formats = [:js]
-      assert_equal "Hello HTML!", @view.render(:file => "test/render_implicit_html_template_from_xhr_request")
-    end
-  ensure
-    @view.formats = old_format
-  end
-
-  def test_render_implicit_html_template_from_xhr_request_with_localization
-    old_locale = I18n.locale
-    old_format = @view.formats
-    pending do
-      I18n.locale = :da
-      @view.formats = [:js]
-      assert_equal "Hey HTML!\n", @view.render(:file => "test/render_implicit_html_template_from_xhr_request")
-    end
-  ensure
-    I18n.locale = old_locale
-    @view.formats = old_format
-  end
-
   def test_render_file_at_top_level
     assert_equal 'Elastica', @view.render(:file => '/shared')
   end
@@ -278,7 +255,7 @@ class CachedViewRenderTest < ActiveSupport::TestCase
   # Ensure view path cache is primed
   def setup
     view_paths = ActionController::Base.view_paths
-    assert_equal ActionView::Template::FileSystemPathWithFallback, view_paths.first.class
+    assert_equal ActionView::FileSystemResolverWithFallback, view_paths.first.class
     setup_view(view_paths)
   end
 end
@@ -289,9 +266,9 @@ class LazyViewRenderTest < ActiveSupport::TestCase
   # Test the same thing as above, but make sure the view path
   # is not eager loaded
   def setup
-    path = ActionView::Template::FileSystemPathWithFallback.new(FIXTURE_LOAD_PATH)
+    path = ActionView::FileSystemResolverWithFallback.new(FIXTURE_LOAD_PATH)
     view_paths = ActionView::Base.process_view_paths(path)
-    assert_equal ActionView::Template::FileSystemPathWithFallback, view_paths.first.class
+    assert_equal ActionView::FileSystemResolverWithFallback, view_paths.first.class
     setup_view(view_paths)
   end
 end

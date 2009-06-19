@@ -111,15 +111,10 @@ module ActionView
       #
       # WARNING: content_for is ignored in caches. So you shouldn't use it
       # for elements that will be fragment cached.
-      #
-      # The deprecated way of accessing a content_for block is to use an instance variable
-      # named <tt>@content_for_#{name_of_the_content_block}</tt>. The preferred usage is now
-      # <tt><%= yield :footer %></tt>.
       def content_for(name, content = nil, &block)
-        ivar = "@content_for_#{name}"
         content = capture(&block) if block_given?
-        instance_variable_set(ivar, "#{instance_variable_get(ivar)}#{content}")
-        nil
+        return @_content_for[name] << content if content
+        @_content_for[name]
       end
 
       # Use an alternate output buffer for the duration of the block.

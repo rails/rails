@@ -2,7 +2,7 @@ require File.join(File.expand_path(File.dirname(__FILE__)), "test_helper")
 
 module Etags
   class BasicController < ActionController::Base
-    self.view_paths = [ActionView::Template::FixturePath.new(
+    self.view_paths = [ActionView::FixtureResolver.new(
       "etags/basic/base.html.erb" => "Hello from without_layout.html.erb",
       "layouts/etags.html.erb"    => "teh <%= yield %> tagz"
     )]

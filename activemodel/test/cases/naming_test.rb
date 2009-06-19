@@ -1,9 +1,8 @@
-require 'abstract_unit'
-require 'active_support/core_ext/module/model_naming'
+require 'cases/helper'
 
-class ModelNamingTest < Test::Unit::TestCase
+class NamingTest < Test::Unit::TestCase
   def setup
-    @model_name = ActiveSupport::ModelName.new('Post::TrackBack')
+    @model_name = ActiveModel::Name.new('Post::TrackBack')
   end
 
   def test_singular

@@ -50,7 +50,7 @@ class FormHelperTest < ActionView::TestCase
     @comment = Comment.new
     def @post.errors()
       Class.new{
-        def on(field); "can't be empty" if field == "author_name"; end
+        def [](field); field == "author_name" ? ["can't be empty"] : [] end
         def empty?() false end
         def count() 1 end
         def full_messages() [ "Author name can't be empty" ] end

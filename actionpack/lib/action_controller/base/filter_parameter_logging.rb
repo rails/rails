@@ -2,10 +2,7 @@ module ActionController
   module FilterParameterLogging
     extend ActiveSupport::Concern
 
-    # TODO : Remove the defined? check when new base is the main base
-    if defined?(ActionController::Http)
-      include AbstractController::Logger
-    end
+    include AbstractController::Logger
 
     included do
       include InstanceMethodsForNewBase

@@ -1,6 +1,8 @@
 require 'abstract_unit'
 
 class Comment
+  extend ActiveModel::Naming
+
   attr_reader :id
   def save; @id = 1 end
   def new_record?; @id.nil? end

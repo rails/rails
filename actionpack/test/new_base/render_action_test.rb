@@ -3,7 +3,7 @@ require File.join(File.expand_path(File.dirname(__FILE__)), "test_helper")
 module RenderAction
   # This has no layout and it works
   class BasicController < ActionController::Base
-    self.view_paths = [ActionView::Template::FixturePath.new(
+    self.view_paths = [ActionView::FixtureResolver.new(
       "render_action/basic/hello_world.html.erb" => "Hello world!"
     )]
 
@@ -117,7 +117,7 @@ module RenderActionWithApplicationLayout
   # # ==== Render actions with layouts ====
   class BasicController < ::ApplicationController
     # Set the view path to an application view structure with layouts
-    self.view_paths = self.view_paths = [ActionView::Template::FixturePath.new(
+    self.view_paths = self.view_paths = [ActionView::FixtureResolver.new(
       "render_action_with_application_layout/basic/hello_world.html.erb" => "Hello World!",
       "render_action_with_application_layout/basic/hello.html.builder"   => "xml.p 'Omg'",
       "layouts/application.html.erb"                                     => "OHAI <%= yield %> KTHXBAI",
@@ -202,7 +202,7 @@ end
 
 module RenderActionWithControllerLayout
   class BasicController < ActionController::Base
-    self.view_paths = self.view_paths = [ActionView::Template::FixturePath.new(
+    self.view_paths = self.view_paths = [ActionView::FixtureResolver.new(
       "render_action_with_controller_layout/basic/hello_world.html.erb" => "Hello World!",
       "layouts/render_action_with_controller_layout/basic.html.erb"     => "With Controller Layout! <%= yield %> KTHXBAI"
     )]
@@ -263,7 +263,7 @@ end
 
 module RenderActionWithBothLayouts
   class BasicController < ActionController::Base
-    self.view_paths = [ActionView::Template::FixturePath.new({
+    self.view_paths = [ActionView::FixtureResolver.new({
       "render_action_with_both_layouts/basic/hello_world.html.erb" => "Hello World!",
       "layouts/application.html.erb"                                => "OHAI <%= yield %> KTHXBAI",
       "layouts/render_action_with_both_layouts/basic.html.erb"      => "With Controller Layout! <%= yield %> KTHXBAI"

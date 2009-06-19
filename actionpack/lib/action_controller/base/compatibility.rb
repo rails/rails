@@ -124,6 +124,7 @@ module ActionController
       super
     rescue ActionView::MissingTemplate
       _find_by_parts(_layout({}), {})
+      nil
     end
 
     def performed?
