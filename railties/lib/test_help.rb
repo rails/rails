@@ -29,7 +29,10 @@ end
 begin
   require_library_or_gem 'ruby-debug'
   Debugger.start
-  Debugger.settings[:autoeval] = true if Debugger.respond_to?(:settings)
+  if Debugger.respond_to?(:settings)
+    Debugger.settings[:autoeval] = true
+    Debugger.settings[:autolist] = 1
+  end
 rescue LoadError
   # ruby-debug wasn't available so neither can the debugging be
 end
