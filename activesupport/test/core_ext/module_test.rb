@@ -141,7 +141,7 @@ class ModuleTest < Test::Unit::TestCase
 
   def test_delegation_without_allow_nil_and_nil_value
     david = Someone.new("David")
-    assert_raise(NoMethodError) { david.street }
+    assert_raise(RuntimeError) { david.street }
   end
 
   def test_parent
