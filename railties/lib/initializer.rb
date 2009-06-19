@@ -4,6 +4,8 @@ require 'rails/version'
 require 'rails/gem_dependency'
 require 'rails/rack'
 
+RAILS_ENV = (ENV['RAILS_ENV'] || 'development').dup unless defined?(RAILS_ENV)
+
 module Rails
   class Configuration
     attr_accessor :cache_classes, :load_paths, :eager_load_paths, :framework_paths,
@@ -13,11 +15,13 @@ module Rails
                   :i18n, :gems
 
     def initialize
+      set_root_path!
+
       @framework_paths         = []
       @load_once_paths         = []
       @after_initialize_blocks = []
-      @plugin_paths            = []
       @loaded_plugins          = []
+      @plugin_paths            = default_plugin_paths
       @frameworks              = default_frameworks
       @plugin_loader           = default_plugin_loader
       @plugin_locators         = default_plugin_locators
@@ -27,6 +31,24 @@ module Rails
 
     def after_initialize(&blk)
       @after_initialize_blocks << blk if blk
+    end
+
+    def set_root_path!
+      raise 'RAILS_ROOT is not set' unless defined?(RAILS_ROOT)
+      raise 'RAILS_ROOT is not a directory' unless File.directory?(RAILS_ROOT)
+
+      self.root_path =
+        # Pathname is incompatible with Windows, but Windows doesn't have
+        # real symlinks so File.expand_path is safe.
+        if RUBY_PLATFORM =~ /(:?mswin|mingw)/
+          File.expand_path(RAILS_ROOT)
+
+        # Otherwise use Pathname#realpath which respects symlinks.
+        else
+          Pathname.new(RAILS_ROOT).realpath.to_s
+        end
+
+      RAILS_ROOT.replace self.root_path
     end
 
     def framework_paths
@@ -52,6 +74,10 @@ module Rails
 
     def default_frameworks
       [ :active_record, :action_controller, :action_view, :action_mailer, :active_resource ]
+    end
+
+    def default_plugin_paths
+      ["#{root_path}/vendor/plugins"]
     end
 
     def default_plugin_loader

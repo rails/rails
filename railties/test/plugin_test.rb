@@ -2,7 +2,8 @@ require 'plugin_test_helper'
 
 class PluginTest < Test::Unit::TestCase
   def setup
-    @initializer         = Rails::Initializer.new(Rails::Configuration.new)
+    @initializer         = Rails::Initializer.default
+    @initializer.config  = Rails::Configuration.new
     @valid_plugin_path   = plugin_fixture_path('default/stubby')
     @empty_plugin_path   = plugin_fixture_path('default/empty')
     @gemlike_plugin_path = plugin_fixture_path('default/gemlike')
