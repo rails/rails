@@ -1,6 +1,6 @@
 require 'abstract_unit'
 require 'initializer'
-require "#{File.dirname(__FILE__)}/../environments/boot"
+require "#{File.dirname(__FILE__)}/../lib/generator/templates/app/config/boot"
 require 'rails/gem_dependency'
 
 class BootTest < Test::Unit::TestCase
