@@ -1,4 +1,6 @@
 require "pathname"
+
+$LOAD_PATH.unshift File.dirname(__FILE__)
 require 'railties_path'
 require 'rails/version'
 require 'rails/gem_dependency'
@@ -7,26 +9,143 @@ require 'rails/rack'
 RAILS_ENV = (ENV['RAILS_ENV'] || 'development').dup unless defined?(RAILS_ENV)
 
 module Rails
+  # Needs to be duplicated from Active Support since its needed before Active
+  # Support is available. Here both Options and Hash are namespaced to prevent
+  # conflicts with other implementations AND with the classes residing in Active Support.
+  # ---
+  # TODO: w0t?
+  class << self
+    # The Configuration instance used to configure the Rails environment
+    def configuration
+      @@configuration
+    end
+
+    def configuration=(configuration)
+      @@configuration = configuration
+    end
+
+    def initialized?
+      @initialized || false
+    end
+
+    def initialized=(initialized)
+      @initialized ||= initialized
+    end
+
+    def logger
+      if defined?(RAILS_DEFAULT_LOGGER)
+        RAILS_DEFAULT_LOGGER
+      else
+        nil
+      end
+    end
+
+    def backtrace_cleaner
+      @@backtrace_cleaner ||= begin
+        # Relies on ActiveSupport, so we have to lazy load to postpone definition until AS has been loaded
+        require 'rails/backtrace_cleaner'
+        Rails::BacktraceCleaner.new
+      end
+    end
+
+    def root
+      Pathname.new(RAILS_ROOT) if defined?(RAILS_ROOT)
+    end
+
+    def env
+      @_env ||= ActiveSupport::StringInquirer.new(RAILS_ENV)
+    end
+
+    def cache
+      RAILS_CACHE
+    end
+
+    def version
+      VERSION::STRING
+    end
+
+    def public_path
+      @@public_path ||= self.root ? File.join(self.root, "public") : "public"
+    end
+
+    def public_path=(path)
+      @@public_path = path
+    end
+  end
+
+  class OrderedOptions < Array #:nodoc:
+    def []=(key, value)
+      key = key.to_sym
+
+      if pair = find_pair(key)
+        pair.pop
+        pair << value
+      else
+        self << [key, value]
+      end
+    end
+
+    def [](key)
+      pair = find_pair(key.to_sym)
+      pair ? pair.last : nil
+    end
+
+    def method_missing(name, *args)
+      if name.to_s =~ /(.*)=$/
+        self[$1.to_sym] = args.first
+      else
+        self[name]
+      end
+    end
+
+  private
+    def find_pair(key)
+      self.each { |i| return i if i.first == key }
+      return false
+    end
+  end
+
   class Configuration
     attr_accessor :cache_classes, :load_paths, :eager_load_paths, :framework_paths,
                   :load_once_paths, :gems_dependencies_loaded, :after_initialize_blocks,
                   :frameworks, :framework_root_path, :root_path, :plugin_paths, :plugins,
                   :plugin_loader, :plugin_locators, :gems, :loaded_plugins, :reload_plugins,
-                  :i18n, :gems
+                  :i18n, :gems, :whiny_nils, :consider_all_requests_local,
+                  :action_controller, :active_record, :action_view, :active_support,
+                  :action_mailer, :active_resource,
+                  :log_path, :log_level, :logger, :preload_frameworks,
+                  :database_configuration_file, :cache_store, :time_zone,
+                  :view_path, :metals, :controller_paths, :routes_configuration_file,
+                  :eager_load_paths, :dependency_loading
 
     def initialize
       set_root_path!
 
-      @framework_paths         = []
-      @load_once_paths         = []
-      @after_initialize_blocks = []
-      @loaded_plugins          = []
-      @plugin_paths            = default_plugin_paths
-      @frameworks              = default_frameworks
-      @plugin_loader           = default_plugin_loader
-      @plugin_locators         = default_plugin_locators
-      @gems                    = default_gems
-      @i18n                    = default_i18n
+      @framework_paths              = []
+      @load_once_paths              = []
+      @after_initialize_blocks      = []
+      @loaded_plugins               = []
+      @dependency_loading           = true
+      @eager_load_paths             = default_eager_load_paths
+      @load_paths                   = default_load_paths
+      @plugin_paths                 = default_plugin_paths
+      @frameworks                   = default_frameworks
+      @plugin_loader                = default_plugin_loader
+      @plugin_locators              = default_plugin_locators
+      @gems                         = default_gems
+      @i18n                         = default_i18n
+      @log_path                     = default_log_path
+      @log_level                    = default_log_level
+      @cache_store                  = default_cache_store
+      @view_path                    = default_view_path
+      @controller_paths             = default_controller_paths
+      @routes_configuration_file    = default_routes_configuration_file
+      @database_configuration_file  = default_database_configuration_file
+
+      for framework in default_frameworks
+        self.send("#{framework}=", Rails::OrderedOptions.new)
+      end
+      self.active_support = Rails::OrderedOptions.new
     end
 
     def after_initialize(&blk)
@@ -70,6 +189,86 @@ module Rails
     def middleware
       require 'action_controller'
       ActionController::Dispatcher.middleware
+    end
+
+    # Loads and returns the contents of the #database_configuration_file. The
+    # contents of the file are processed via ERB before being sent through
+    # YAML::load.
+    def database_configuration
+      require 'erb'
+      YAML::load(ERB.new(IO.read(database_configuration_file)).result)
+    end
+
+    def default_routes_configuration_file
+      File.join(root_path, 'config', 'routes.rb')
+    end
+
+    def default_controller_paths
+      paths = [File.join(root_path, 'app', 'controllers')]
+      paths.concat builtin_directories
+      paths
+    end
+
+    def default_cache_store
+      if File.exist?("#{root_path}/tmp/cache/")
+        [ :file_store, "#{root_path}/tmp/cache/" ]
+      else
+        :memory_store
+      end
+    end
+
+    def default_database_configuration_file
+      File.join(root_path, 'config', 'database.yml')
+    end
+
+    def default_view_path
+      File.join(root_path, 'app', 'views')
+    end
+
+    def default_eager_load_paths
+      %w(
+        app/metal
+        app/models
+        app/controllers
+        app/helpers
+      ).map { |dir| "#{root_path}/#{dir}" }.select { |dir| File.directory?(dir) }
+    end
+
+    def default_load_paths
+      paths = []
+
+      # Add the old mock paths only if the directories exists
+      paths.concat(Dir["#{root_path}/test/mocks/#{RAILS_ENV}"]) if File.exists?("#{root_path}/test/mocks/#{RAILS_ENV}")
+
+      # Add the app's controller directory
+      paths.concat(Dir["#{root_path}/app/controllers/"])
+
+      # Followed by the standard includes.
+      paths.concat %w(
+        app
+        app/metal
+        app/models
+        app/controllers
+        app/helpers
+        app/services
+        lib
+        vendor
+      ).map { |dir| "#{root_path}/#{dir}" }.select { |dir| File.directory?(dir) }
+
+      paths.concat builtin_directories
+    end
+
+    def builtin_directories
+      # Include builtins only in the development environment.
+      (RAILS_ENV == 'development') ? Dir["#{RAILTIES_PATH}/builtin/*/"] : []
+    end
+
+    def default_log_path
+      File.join(root_path, 'log', "#{RAILS_ENV}.log")
+    end
+
+    def default_log_level
+      RAILS_ENV == 'production' ? :info : :debug
     end
 
     def default_frameworks
@@ -121,6 +320,10 @@ module Rails
 
     def default_gems
       []
+    end
+
+    def environment_path
+      "#{root_path}/config/environments/#{RAILS_ENV}.rb"
     end
 
     def reload_plugins?
@@ -201,7 +404,7 @@ module Rails
       end
 
       def run(initializer = nil)
-        Base.config = @config
+        Rails.configuration = Base.config = @config
 
         if initializer
           run_initializer(initializer)
@@ -217,6 +420,7 @@ module Rails
 
     def self.run(initializer = nil, config = nil)
       default.config = config if config
+      default.config ||= Configuration.new
       default.run(initializer)
     end
   end
@@ -281,9 +485,9 @@ module Rails
   Initializer.default.add :add_gem_load_paths do
     require 'rails/gem_dependency'
     Rails::GemDependency.add_frozen_gem_path
-    unless @configuration.gems.empty?
+    unless config.gems.empty?
       require "rubygems"
-      @configuration.gems.each { |gem| gem.add_load_paths }
+      config.gems.each { |gem| gem.add_load_paths }
     end
   end
 
@@ -330,7 +534,7 @@ module Rails
   # is typically one of development, test, or production.
   Initializer.default.add :load_environment do
     silence_warnings do
-      return if @environment_loaded
+      next if @environment_loaded
       @environment_loaded = true
 
       config = configuration
@@ -408,7 +612,7 @@ module Rails
       begin
         logger = ActiveSupport::BufferedLogger.new(configuration.log_path)
         logger.level = ActiveSupport::BufferedLogger.const_get(configuration.log_level.to_s.upcase)
-        if configuration.environment == "production"
+        if RAILS_ENV == "production"
           logger.auto_flushing = false
         end
       rescue StandardError => e
@@ -525,7 +729,7 @@ module Rails
   end
 
   Initializer.default.add :check_for_unbuilt_gems do
-    unbuilt_gems = @configuration.gems.select {|gem| gem.frozen? && !gem.built? }
+    unbuilt_gems = config.gems.select {|gem| gem.frozen? && !gem.built? }
     if unbuilt_gems.size > 0
       # don't print if the gems:build rake tasks are being run
       unless $gems_build_rake_task
@@ -545,7 +749,7 @@ Run `rake gems:build` to build the unbuilt gems.
 
   Initializer.default.add :load_gems do
     unless $gems_rake_task
-      @configuration.gems.each { |gem| gem.load }
+      config.gems.each { |gem| gem.load }
     end
   end
 
@@ -574,9 +778,9 @@ Run `rake gems:build` to build the unbuilt gems.
   Initializer.default.add :add_gem_load_paths do
     require 'rails/gem_dependency'
     Rails::GemDependency.add_frozen_gem_path
-    unless @configuration.gems.empty?
+    unless config.gems.empty?
       require "rubygems"
-      @configuration.gems.each { |gem| gem.add_load_paths }
+      config.gems.each { |gem| gem.add_load_paths }
     end
   end
 
@@ -584,7 +788,7 @@ Run `rake gems:build` to build the unbuilt gems.
   # load_gems
 
   Initializer.default.add :check_gem_dependencies do
-    unloaded_gems = @configuration.gems.reject { |g| g.loaded? }
+    unloaded_gems = config.gems.reject { |g| g.loaded? }
     if unloaded_gems.size > 0
       configuration.gems_dependencies_loaded = false
       # don't print if the gems rake tasks are being run
@@ -643,7 +847,7 @@ Run `rake gems:install` to install the missing gems.
 
   # # Prepare dispatcher callbacks and run 'prepare' callbacks
   Initializer.default.add :prepare_dispatcher do
-    return unless configuration.frameworks.include?(:action_controller)
+    next unless configuration.frameworks.include?(:action_controller)
     require 'dispatcher' unless defined?(::Dispatcher)
     Dispatcher.define_dispatcher_callbacks(configuration.cache_classes)
   end
@@ -654,7 +858,7 @@ Run `rake gems:install` to install the missing gems.
   # this does nothing. Otherwise, it loads the routing definitions and sets up
   # loading module used to lazily load controllers (Configuration#controller_paths).
   Initializer.default.add :initialize_routing do
-    return unless configuration.frameworks.include?(:action_controller)
+    next unless configuration.frameworks.include?(:action_controller)
 
     ActionController::Routing.controller_paths += configuration.controller_paths
     ActionController::Routing::Routes.add_configuration_file(configuration.routes_configuration_file)
@@ -681,7 +885,7 @@ Run `rake gems:install` to install the missing gems.
 
   # Eager load application classes
   Initializer.default.add :load_application_classes do
-    return if $rails_rake_task
+    next if $rails_rake_task
     if configuration.cache_classes
       configuration.eager_load_paths.each do |load_path|
         matcher = /\A#{Regexp.escape(load_path)}(.*)\.rb\Z/
@@ -696,103 +900,6 @@ Run `rake gems:install` to install the missing gems.
   Initializer.default.add :disable_dependency_loading do
     if configuration.cache_classes && !configuration.dependency_loading
       ActiveSupport::Dependencies.unhook!
-    end
-  end
-end
-
-# Needs to be duplicated from Active Support since its needed before Active
-# Support is available. Here both Options and Hash are namespaced to prevent
-# conflicts with other implementations AND with the classes residing in Active Support.
-# ---
-# TODO: w0t?
-module Rails
-  class << self
-    # The Configuration instance used to configure the Rails environment
-    def configuration
-      @@configuration
-    end
-
-    def configuration=(configuration)
-      @@configuration = configuration
-    end
-
-    def initialized?
-      @initialized || false
-    end
-
-    def initialized=(initialized)
-      @initialized ||= initialized
-    end
-
-    def logger
-      if defined?(RAILS_DEFAULT_LOGGER)
-        RAILS_DEFAULT_LOGGER
-      else
-        nil
-      end
-    end
-
-    def backtrace_cleaner
-      @@backtrace_cleaner ||= begin
-        # Relies on ActiveSupport, so we have to lazy load to postpone definition until AS has been loaded
-        require 'rails/backtrace_cleaner'
-        Rails::BacktraceCleaner.new
-      end
-    end
-
-    def root
-      Pathname.new(RAILS_ROOT) if defined?(RAILS_ROOT)
-    end
-
-    def env
-      @_env ||= ActiveSupport::StringInquirer.new(RAILS_ENV)
-    end
-
-    def cache
-      RAILS_CACHE
-    end
-
-    def version
-      VERSION::STRING
-    end
-
-    def public_path
-      @@public_path ||= self.root ? File.join(self.root, "public") : "public"
-    end
-
-    def public_path=(path)
-      @@public_path = path
-    end
-  end
-  class OrderedOptions < Array #:nodoc:
-    def []=(key, value)
-      key = key.to_sym
-
-      if pair = find_pair(key)
-        pair.pop
-        pair << value
-      else
-        self << [key, value]
-      end
-    end
-
-    def [](key)
-      pair = find_pair(key.to_sym)
-      pair ? pair.last : nil
-    end
-
-    def method_missing(name, *args)
-      if name.to_s =~ /(.*)=$/
-        self[$1.to_sym] = args.first
-      else
-        self[name]
-      end
-    end
-
-  private
-    def find_pair(key)
-      self.each { |i| return i if i.first == key }
-      return false
     end
   end
 end
