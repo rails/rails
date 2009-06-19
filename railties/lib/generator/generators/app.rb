@@ -1,3 +1,4 @@
+require File.dirname(__FILE__) + '/../../rails/version'
 require File.dirname(__FILE__) + '/../base'
 require 'digest/md5' 
 require 'active_support/secure_random'
