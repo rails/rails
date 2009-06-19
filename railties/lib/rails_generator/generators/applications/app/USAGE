@@ -1,9 +1,0 @@
-Description:
-    The 'rails' command creates a new Rails application with a default
-    directory structure and configuration at the path you specify.
-
-Example:
-    rails ~/Code/Ruby/weblog
-
-    This generates a skeletal Rails installation in ~/Code/Ruby/weblog.
-    See the README in the newly created application to get going.
