@@ -194,20 +194,20 @@ class InitializerPluginLoadingTests < Test::Unit::TestCase
   def test_no_plugins_are_loaded_if_the_configuration_has_an_empty_plugin_list
     only_load_the_following_plugins! []
     @initializer.run :load_plugins
-    assert_equal [], @initializer.loaded_plugins
+    assert_equal [], @configuration.loaded_plugins
   end
 
   def test_only_the_specified_plugins_are_located_in_the_order_listed
     plugin_names = [:plugin_with_no_lib_dir, :acts_as_chunky_bacon]
     only_load_the_following_plugins! plugin_names
     load_plugins!
-    assert_plugins plugin_names, @initializer.loaded_plugins
+    assert_plugins plugin_names, @configuration.loaded_plugins
   end
 
   def test_all_plugins_are_loaded_when_registered_plugin_list_is_untouched
     failure_tip = "It's likely someone has added a new plugin fixture without updating this list"
     load_plugins!
-    assert_plugins [:a, :acts_as_chunky_bacon, :engine, :gemlike, :plugin_with_no_lib_dir, :stubby], @initializer.loaded_plugins, failure_tip
+    assert_plugins [:a, :acts_as_chunky_bacon, :engine, :gemlike, :plugin_with_no_lib_dir, :stubby], @configuration.loaded_plugins, failure_tip
   end
 
   def test_all_plugins_loaded_when_all_is_used
@@ -215,7 +215,7 @@ class InitializerPluginLoadingTests < Test::Unit::TestCase
     only_load_the_following_plugins! plugin_names
     load_plugins!
     failure_tip = "It's likely someone has added a new plugin fixture without updating this list"
-    assert_plugins [:stubby, :acts_as_chunky_bacon, :a, :engine, :gemlike, :plugin_with_no_lib_dir], @initializer.loaded_plugins, failure_tip
+    assert_plugins [:stubby, :acts_as_chunky_bacon, :a, :engine, :gemlike, :plugin_with_no_lib_dir], @configuration.loaded_plugins, failure_tip
   end
 
   def test_all_plugins_loaded_after_all
@@ -223,7 +223,7 @@ class InitializerPluginLoadingTests < Test::Unit::TestCase
     only_load_the_following_plugins! plugin_names
     load_plugins!
     failure_tip = "It's likely someone has added a new plugin fixture without updating this list"
-    assert_plugins [:stubby, :a, :engine, :gemlike, :plugin_with_no_lib_dir, :acts_as_chunky_bacon], @initializer.loaded_plugins, failure_tip
+    assert_plugins [:stubby, :a, :engine, :gemlike, :plugin_with_no_lib_dir, :acts_as_chunky_bacon], @configuration.loaded_plugins, failure_tip
   end
 
   def test_plugin_names_may_be_strings
@@ -231,7 +231,7 @@ class InitializerPluginLoadingTests < Test::Unit::TestCase
     only_load_the_following_plugins! plugin_names
     load_plugins!
     failure_tip = "It's likely someone has added a new plugin fixture without updating this list"
-    assert_plugins plugin_names, @initializer.loaded_plugins, failure_tip
+    assert_plugins plugin_names, @configuration.loaded_plugins, failure_tip
   end
 
   def test_registering_a_plugin_name_that_does_not_exist_raises_a_load_error
@@ -250,7 +250,7 @@ class InitializerPluginLoadingTests < Test::Unit::TestCase
       flunk "Expected a LoadError but did not get one"
     rescue LoadError => e
       failure_tip = "It's likely someone renamed or deleted plugin fixtures without updating this test"
-      assert_plugins valid_plugin_names, @initializer.loaded_plugins, failure_tip
+      assert_plugins valid_plugin_names, @configuration.loaded_plugins, failure_tip
       invalid_plugin_names.each do |plugin|
         assert_match(/#{plugin.to_s}/, e.message, "LoadError message should mention plugin '#{plugin}'")
       end
@@ -264,7 +264,7 @@ class InitializerPluginLoadingTests < Test::Unit::TestCase
   def test_should_ensure_all_loaded_plugins_load_paths_are_added_to_the_load_path
     only_load_the_following_plugins! [:stubby, :acts_as_chunky_bacon]
 
-    @initializer.add_plugin_load_paths
+    @initializer.run(:add_plugin_load_paths)
 
     assert $LOAD_PATH.include?(File.join(plugin_fixture_path('default/stubby'), 'lib'))
     assert $LOAD_PATH.include?(File.join(plugin_fixture_path('default/acts/acts_as_chunky_bacon'), 'lib'))
@@ -273,8 +273,8 @@ class InitializerPluginLoadingTests < Test::Unit::TestCase
   private
 
     def load_plugins!
-      @initializer.add_plugin_load_paths
-      @initializer.load_plugins
+      @initializer.run(:add_plugin_load_paths)
+      @initializer.run(:load_plugins)
     end
 end
 
@@ -314,7 +314,7 @@ class InitializerSetupI18nTests < Test::Unit::TestCase
      File.expand_path(File.dirname(__FILE__) + "/../../activemodel/lib/active_model/locale/en.yml"),
      File.expand_path(File.dirname(__FILE__) + "/../../activerecord/lib/active_record/locale/en.yml"),
      "my/test/locale.yml",
-     "my/other/locale.yml" ], I18n.load_path.collect { |path| path =~ /^\./ ? File.expand_path(path) : path }
+     "my/other/locale.yml" ], I18n.load_path.collect { |path| path =~ /\.\./ ? File.expand_path(path) : path }
   end
 
   def test_setting_another_default_locale

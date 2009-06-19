@@ -2,13 +2,21 @@ module Rails
   class Configuration
     attr_accessor :cache_classes, :load_paths, :eager_load_paths, :framework_paths,
                   :load_once_paths, :gems_dependencies_loaded, :after_initialize_blocks,
-                  :frameworks, :framework_root_path, :root_path
+                  :frameworks, :framework_root_path, :root_path, :plugin_paths, :plugins,
+                  :plugin_loader, :plugin_locators, :gems, :loaded_plugins, :reload_plugins,
+                  :i18n
 
     def initialize
       @framework_paths         = []
       @load_once_paths         = []
       @after_initialize_blocks = []
       @frameworks              = []
+      @plugin_paths            = []
+      @loaded_plugins          = []
+      @plugin_loader           = default_plugin_loader
+      @plugin_locators         = default_plugin_locators
+      @gems                    = default_gems
+      @i18n                    = default_i18n
     end
 
     def after_initialize(&blk)
@@ -28,6 +36,44 @@ module Rails
 
     def framework_root_path
       defined?(::RAILS_FRAMEWORK_ROOT) ? ::RAILS_FRAMEWORK_ROOT : "#{root_path}/vendor/rails"
+    end
+
+    # TODO: Fix this when there is an application object
+    def middleware
+      require 'action_controller'
+      ActionController::Dispatcher.middleware
+    end
+
+    def default_plugin_loader
+      require 'rails/plugin/loader'
+      Plugin::Loader
+    end
+
+    def default_plugin_locators
+      require 'rails/plugin/locator'
+      locators = []
+      locators << Plugin::GemLocator if defined? Gem
+      locators << Plugin::FileSystemLocator
+    end
+
+    def default_i18n
+      i18n = Rails::OrderedOptions.new
+      i18n.load_path = []
+
+      if File.exist?(File.join(RAILS_ROOT, 'config', 'locales'))
+        i18n.load_path << Dir[File.join(RAILS_ROOT, 'config', 'locales', '*.{rb,yml}')]
+        i18n.load_path.flatten!
+      end
+
+      i18n
+    end
+
+    def default_gems
+      []
+    end
+
+    def reload_plugins?
+      @reload_plugins
     end
   end
 
@@ -52,21 +98,26 @@ module Rails
         def gems_dependencies_loaded
           config.gems_dependencies_loaded
         end
-      end
 
-      def plugin_loader
-        @plugin_loader ||= configuration.plugin_loader.new(self)
+        def plugin_loader
+          @plugin_loader ||= configuration.plugin_loader.new(self)
+        end
       end
 
       def gems_dependencies_loaded
         self.class.gems_dependencies_loaded
+      end
+
+      def plugin_loader
+        self.class.plugin_loader
       end
     end
 
     class Runner
 
       attr_reader :names, :initializers
-      attr_writer :config
+      attr_accessor :config
+      alias configuration config
 
       def initialize(parent = nil)
         @names        = parent ? parent.names.dup        : {}
@@ -594,6 +645,51 @@ Run `rake gems:install` to install the missing gems.
   Initializer.default.add :disable_dependency_loading do
     if configuration.cache_classes && !configuration.dependency_loading
       ActiveSupport::Dependencies.unhook!
+    end
+  end
+end
+
+# Needs to be duplicated from Active Support since its needed before Active
+# Support is available. Here both Options and Hash are namespaced to prevent
+# conflicts with other implementations AND with the classes residing in Active Support.
+# ---
+# TODO: w0t?
+module Rails
+  class << self
+    def root
+      Pathname.new(RAILS_ROOT) if defined?(RAILS_ROOT)
+    end
+  end
+
+  class OrderedOptions < Array #:nodoc:
+    def []=(key, value)
+      key = key.to_sym
+
+      if pair = find_pair(key)
+        pair.pop
+        pair << value
+      else
+        self << [key, value]
+      end
+    end
+
+    def [](key)
+      pair = find_pair(key.to_sym)
+      pair ? pair.last : nil
+    end
+
+    def method_missing(name, *args)
+      if name.to_s =~ /(.*)=$/
+        self[$1.to_sym] = args.first
+      else
+        self[name]
+      end
+    end
+
+  private
+    def find_pair(key)
+      self.each { |i| return i if i.first == key }
+      return false
     end
   end
 end
