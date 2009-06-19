@@ -1,4 +1,8 @@
 require "pathname"
+require 'railties_path'
+require 'rails/version'
+require 'rails/gem_dependency'
+require 'rails/rack'
 
 module Rails
   class Configuration
@@ -12,9 +16,9 @@ module Rails
       @framework_paths         = []
       @load_once_paths         = []
       @after_initialize_blocks = []
-      @frameworks              = []
       @plugin_paths            = []
       @loaded_plugins          = []
+      @frameworks              = default_frameworks
       @plugin_loader           = default_plugin_loader
       @plugin_locators         = default_plugin_locators
       @gems                    = default_gems
@@ -44,6 +48,10 @@ module Rails
     def middleware
       require 'action_controller'
       ActionController::Dispatcher.middleware
+    end
+
+    def default_frameworks
+      [ :active_record, :action_controller, :action_view, :action_mailer, :active_resource ]
     end
 
     def default_plugin_loader
