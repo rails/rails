@@ -4,12 +4,11 @@ require 'generator/generator_test_helper'
 class ActionsTest < GeneratorTestCase
   def setup
     super
-
     @git_plugin_uri = 'git://github.com/technoweenie/restful-authentication.git'
     @svn_plugin_uri = 'svn://svnhub.com/technoweenie/restful-authentication/trunk'
   end
 
-  def test_apply_loads_a_template_and_evaluates_it
+  def test_apply_loads_and_evaluates_a_template
     template = <<-TEMPLATE
       @foo = "FOO"
     TEMPLATE
