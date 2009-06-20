@@ -47,4 +47,9 @@ class GeneratorTestCase < Test::Unit::TestCase
         assert_match content, File.read(absolute)
     end
   end
+
+  def assert_no_file(relative, content=nil)
+    absolute = File.join(destination_root, relative)
+    assert !File.exists?(absolute)
+  end
 end

@@ -26,7 +26,7 @@ Rails::Initializer.run do |config|
 
   # Skip frameworks you're not going to use. To use Rails without a database,
   # you must remove the Active Record framework.
-<%- if options[:no_activerecord] -%>
+<%- if options[:skip_activerecord] -%>
   config.frameworks -= [ :active_record ]
 <%- else -%>
   # config.frameworks -= [ :active_record, :active_resource, :action_mailer ]

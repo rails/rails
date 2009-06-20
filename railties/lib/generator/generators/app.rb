@@ -24,14 +24,14 @@ module Rails::Generators
     class_option :with_dispatchers, :type => :boolean, :aliases => "-D", :default => false,
                                     :desc => "Add CGI/FastCGI/mod_ruby dispatchers code"
 
-    class_option :no_activerecord, :type => :boolean, :aliases => "-A", :default => false,
-                                   :desc => "Do not generate ActiveRecord files"
+    class_option :skip_activerecord, :type => :boolean, :aliases => "-A", :default => false,
+                                   :desc => "Skip ActiveRecord files"
 
-    class_option :no_testunit, :type => :boolean, :aliases => "-U", :default => false,
-                               :desc => "Do not generate TestUnit files"
+    class_option :skip_testunit, :type => :boolean, :aliases => "-U", :default => false,
+                               :desc => "Skip TestUnit files"
 
-    class_option :no_prototype, :type => :boolean, :aliases => "-P", :default => false,
-                                :desc => "Do not generate Prototype files"
+    class_option :skip_prototype, :type => :boolean, :aliases => "-P", :default => false,
+                                :desc => "Skip Prototype files"
 
     # Add Rails options
     #
@@ -79,8 +79,8 @@ module Rails::Generators
       end
     end
 
+    conditions :skip_activerecord => false
     def create_activerecord_files
-      return if options[:no_activerecord]
       template "config/databases/#{options[:database]}.yml", "config/database.yml"
     end
 
@@ -112,9 +112,8 @@ module Rails::Generators
       directory "public", "public", false # Non-recursive. Do small steps, so anyone can overwrite it.
     end
 
+    conditions :with_dispatchers => true
     def create_dispatch_files
-      return unless options[:with_dispatchers]
-
       copy_file "dispatchers/config.ru", "config.ru"
 
       template "dispatchers/dispatch.rb", "public/dispatch.rb"
@@ -135,8 +134,8 @@ module Rails::Generators
       directory "public/stylesheets"
     end
 
+    conditions :skip_prototype => false
     def create_prototype_files
-      return if options[:no_prototype]
       directory "public/javascripts"
     end
 
@@ -145,8 +144,8 @@ module Rails::Generators
       chmod "script", 0755, false
     end
 
+    conditions :skip_testunit => false
     def create_test_files
-      return if options[:no_testunit]
       directory "test"
     end
 
@@ -170,8 +169,9 @@ module Rails::Generators
       raise Error, "The template [#{options[:template]}] could not be loaded. Error: #{e}"
     end
 
-    def freeze?
-      freeze! if options[:freeze]
+    conditions :freeze => true
+    def vendorize_rails
+      freeze!
     end
 
     protected
