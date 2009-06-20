@@ -79,8 +79,8 @@ module Rails::Generators
       end
     end
 
-    conditions :skip_activerecord => false
     def create_activerecord_files
+      return if options[:skip_activerecord]
       template "config/databases/#{options[:database]}.yml", "config/database.yml"
     end
 
@@ -112,8 +112,8 @@ module Rails::Generators
       directory "public", "public", false # Non-recursive. Do small steps, so anyone can overwrite it.
     end
 
-    conditions :with_dispatchers => true
     def create_dispatch_files
+      return unless options[:with_dispatchers]
       copy_file "dispatchers/config.ru", "config.ru"
 
       template "dispatchers/dispatch.rb", "public/dispatch.rb"
@@ -134,8 +134,8 @@ module Rails::Generators
       directory "public/stylesheets"
     end
 
-    conditions :skip_prototype => false
     def create_prototype_files
+      return if options[:skip_prototype]
       directory "public/javascripts"
     end
 
@@ -144,8 +144,8 @@ module Rails::Generators
       chmod "script", 0755, false
     end
 
-    conditions :skip_testunit => false
     def create_test_files
+      return if options[:skip_testunit]
       directory "test"
     end
 
@@ -169,9 +169,8 @@ module Rails::Generators
       raise Error, "The template [#{options[:template]}] could not be loaded. Error: #{e}"
     end
 
-    conditions :freeze => true
-    def vendorize_rails
-      freeze!
+    def freeze?
+      freeze! if options[:freeze]
     end
 
     protected

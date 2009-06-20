@@ -98,9 +98,10 @@ class AppTest < GeneratorTestCase
     ).each { |path| assert_file "script/#{path}", /#!foo\/bar\/baz/ }
   end
 
-  def test_rails_is_vendorized_if_freeze_is_supplied
+  def test_rails_is_frozen
     generator(:freeze => true, :database => "sqlite3").expects(:run).with("rake rails:freeze:edge", false)
     silence(:stdout){ generator.invoke(:all) }
+    assert_file 'config/environment.rb', /# RAILS_GEM_VERSION/
   end
 
   def test_template_raises_an_error_with_invalid_path
