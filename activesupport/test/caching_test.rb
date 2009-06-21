@@ -146,6 +146,16 @@ class FileStoreTest < ActiveSupport::TestCase
   end
 
   include CacheStoreBehavior
+
+  def test_expires_in
+    @cache.write('foo', 'bar')
+    cache_read = lambda { @cache.read('foo', :expires_in => 2) }
+    assert_equal 'bar', cache_read.call
+    sleep(1)
+    assert_equal 'bar', cache_read.call
+    sleep(1)
+    assert_nil cache_read.call
+  end
 end
 
 class MemoryStoreTest < ActiveSupport::TestCase
