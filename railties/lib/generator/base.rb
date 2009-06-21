@@ -1,9 +1,15 @@
-require File.dirname(__FILE__) + '/actions'
+# Load ActiveSupport mini
+activesupport_path = "#{File.dirname(__FILE__)}/../../../activesupport/lib"
+$:.unshift(activesupport_path) if File.directory?(activesupport_path)
+require 'active_support/all'
 
 # TODO Use vendored Thor
 require 'rubygems'
 gem 'josevalim-thor'
 require 'thor'
+
+require File.dirname(__FILE__) + '/../rails/version' unless defined?(Rails::VERSION)
+require File.dirname(__FILE__) + '/actions'
 
 module Rails
   module Generators
@@ -18,11 +24,8 @@ module Rails
       #
       def self.source_root
         @source_root ||= begin
-          klass_name = self.name
-          klass_name.gsub!(/^Rails::Generators::/, '')
-          klass_name.gsub!(/([A-Z]+)([A-Z][a-z])/,'\1_\2')
-          klass_name.gsub!(/([a-z\d])([A-Z])/,'\1_\2')
-          File.expand_path(File.join(File.dirname(__FILE__), 'templates', klass_name.downcase))
+          klass_name = self.name.gsub(/^Rails::Generators::/, '')
+          File.expand_path(File.join(File.dirname(__FILE__), 'generators', klass_name.underscore, 'templates'))
         end
       end
 
@@ -31,7 +34,7 @@ module Rails
       # Use Rails default banner.
       #
       def self.banner
-        "#{$0} #{self.arguments.map{ |a| a.usage }.join(' ')} [options]"
+        "#{$0} #{self.arguments.map(&:usage).join(' ')} [options]"
       end
 
       # Small macro to ruby as an option to the generator with proper default

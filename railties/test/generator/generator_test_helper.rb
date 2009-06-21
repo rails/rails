@@ -4,13 +4,13 @@ require 'fileutils'
 $LOAD_PATH.unshift "#{File.dirname(__FILE__)}/../../lib"
 
 # For this while, let's load all generators by hand
-require 'generator/generators/app'
+require 'generator/generators/app/app_generator'
 
 class GeneratorTestCase < Test::Unit::TestCase
   include FileUtils
 
   def destination_root
-    @destinartion_root ||= File.expand_path("#{File.dirname(__FILE__)}/../fixtures/tmp")
+    @destination_root ||= File.expand_path("#{File.dirname(__FILE__)}/../fixtures/tmp")
   end
 
   def setup
