@@ -26,6 +26,14 @@ module Rails
         end
       end
 
+    protected
+
+      # Use Rails default banner.
+      #
+      def self.banner
+        "#{$0} #{self.arguments.map{ |a| a.usage }.join(' ')} [options]"
+      end
+
       # Small macro to ruby as an option to the generator with proper default
       # value plus an instance helper method.
       #

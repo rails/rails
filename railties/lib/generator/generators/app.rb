@@ -7,7 +7,7 @@ module Rails::Generators
   class App < Base
     DATABASES = %w( mysql oracle postgresql sqlite2 sqlite3 frontbase ibm_db )
 
-    namespace :rails
+    namespace "rails:app"
     add_shebang_option!
 
     argument :app_path, :type => :string
