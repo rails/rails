@@ -112,8 +112,7 @@ module ActionController
     # Returns the path component of a URL for the given record. It uses
     # <tt>polymorphic_url</tt> with <tt>:routing_type => :path</tt>.
     def polymorphic_path(record_or_hash_or_array, options = {})
-      options[:routing_type] = :path
-      polymorphic_url(record_or_hash_or_array, options)
+      polymorphic_url(record_or_hash_or_array, options.merge(:routing_type => :path))
     end
 
     %w(edit new).each do |action|
