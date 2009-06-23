@@ -3,10 +3,8 @@ require 'digest/md5'
 require 'active_support/secure_random'
 
 module Rails::Generators
-  class App < Base
+  class AppGenerator < Base
     DATABASES = %w( mysql oracle postgresql sqlite2 sqlite3 frontbase ibm_db )
-
-    namespace "rails:app"
     add_shebang_option!
 
     argument :app_path, :type => :string
@@ -180,6 +178,10 @@ module Rails::Generators
 
       def app_secret
         ActiveSupport::SecureRandom.hex(64)
+      end
+
+      def self.banner
+        "#{$0} #{self.arguments.map(&:usage).join(' ')} [options]"
       end
 
       def mysql_socket

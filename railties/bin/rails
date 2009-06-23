@@ -10,4 +10,4 @@ end
 ARGV << "--help" if ARGV.empty?
 
 require File.dirname(__FILE__) + '/../lib/generator/generators/app/app_generator'
-Rails::Generators::App.start
+Rails::Generators::AppGenerator.start

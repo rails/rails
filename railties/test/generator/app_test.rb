@@ -122,11 +122,11 @@ class AppTest < GeneratorTestCase
   protected
 
     def run_generator(args=[])
-      silence(:stdout) { Rails::Generators::App.start [destination_root].concat(args) }
+      silence(:stdout) { Rails::Generators::AppGenerator.start [destination_root].concat(args) }
     end
 
     def generator(options={})
-      @generator ||= Rails::Generators::App.new([destination_root], options, :root => destination_root)
+      @generator ||= Rails::Generators::AppGenerator.new([destination_root], options, :root => destination_root)
     end
 
 end

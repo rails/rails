@@ -23,9 +23,16 @@ module Rails
       # Automatically sets the source root based on the class name.
       #
       def self.source_root
-        @source_root ||= begin
-          klass_name = self.name.gsub(/^Rails::Generators::/, '')
-          File.expand_path(File.join(File.dirname(__FILE__), 'generators', klass_name.underscore, 'templates'))
+        @source_root ||= File.expand_path(File.join(File.dirname(__FILE__), 'generators', generator_name, 'templates'))
+      end
+
+      # Convenience method to get the namespace from the class name.
+      #
+      def self.namespace(name=nil)
+        if name
+          super
+        else
+          @namespace ||= "rails:generators:#{generator_name}"
         end
       end
 
@@ -34,11 +41,26 @@ module Rails
       # Use Rails default banner.
       #
       def self.banner
-        "#{$0} #{self.arguments.map(&:usage).join(' ')} [options]"
+        "#{$0} #{generator_name} #{self.arguments.map(&:usage).join(' ')} [options]"
       end
 
-      # Small macro to ruby as an option to the generator with proper default
-      # value plus an instance helper method.
+      # Removes the namespaces and get the generator name. For example,
+      # Rails::Generators::MetalGenerator will return "metal" as generator name.
+      #
+      # The name is used to set the namespace (in this case "rails:generators:metal")
+      # and to set the source root ("generators/metal/templates").
+      #
+      def self.generator_name
+        @generator_name ||= begin
+          klass_name = self.name
+          klass_name.gsub!(/^Rails::Generators::/, '')
+          klass_name.gsub!(/Generator$/, '')
+          klass_name.underscore
+        end
+      end
+
+      # Small macro to add ruby as an option to the generator with proper
+      # default value plus an instance helper method called shebang.
       #
       def self.add_shebang_option!
         require 'rbconfig'
