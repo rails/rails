@@ -1,8 +1,10 @@
 require 'generators/actions'
-require 'generators/error'
 
 module Rails
   module Generators
+    class Error < Thor::Error
+    end
+
     class Base < Thor::Group
       include Rails::Generators::Actions
       include Thor::Actions
@@ -45,7 +47,7 @@ module Rails
         #
         def self.generator_name
           @generator_name ||= begin
-            klass_name = self.name.gsub(/^Rails::Generators::/, '')
+            klass_name = self.name.split('::').last
             klass_name.gsub!(/Generator$/, '')
             klass_name.underscore
           end
@@ -71,7 +73,8 @@ module Rails
         # Small macro to add test_framework option and invoke it.
         #
         def self.add_test_framework_option!
-          class_option :test_framework, :type => :string, :aliases => "-t", :default => "testunit",
+          # TODO Reduce the example name
+          class_option :test_framework, :type => :string, :aliases => "-t", :default => "test_unit",
                                         :desc => "Test framework to be invoked by this generator"
 
           define_method :invoke_test_framework do
@@ -80,7 +83,7 @@ module Rails
 
             begin
               invoke name
-            rescue Thor::UndefinedTaskError
+            rescue Thor::UndefinedTaskError # TODO Ensure this message is called.
               say "Could not find and/or invoke #{name}."
             end
           end

@@ -1,0 +1,2 @@
+class <%= class_name %>Generator < Rails::Generators::NamedBase
+end

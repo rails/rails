@@ -1,8 +1,8 @@
 require 'generators/named_base'
 
-module Rails
+module TestUnit
   module Generators
-    class TestUnit < NamedBase
+    class Base < Rails::Generators::NamedBase
       protected
         def self.base_name
           'test_unit'

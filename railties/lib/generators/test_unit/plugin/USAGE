@@ -1,0 +1,13 @@
+Description:
+    Stubs out a new plugin at vendor/plugins. Pass the plugin name, either
+    CamelCased or under_scored, as an argument. 
+
+Example:
+    `./script/generate plugin BrowserFilters`
+
+    creates a standard browser_filters plugin:
+        vendor/plugins/browser_filters/README
+        vendor/plugins/browser_filters/init.rb
+        vendor/plugins/browser_filters/install.rb
+        vendor/plugins/browser_filters/lib/browser_filters.rb
+        vendor/plugins/browser_filters/test/browser_filters_test.rb
