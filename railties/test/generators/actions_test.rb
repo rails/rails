@@ -1,5 +1,5 @@
 require 'abstract_unit'
-require 'generator/generator_test_helper'
+require 'generators/generator_test_helper'
 
 class ActionsTest < GeneratorTestCase
   def setup
@@ -170,7 +170,7 @@ class ActionsTest < GeneratorTestCase
   protected
 
     def run_generator
-      silence(:stdout) { Rails::Generators::App.start [destination_root] }
+      silence(:stdout) { Rails::Generators::AppGenerator.start [destination_root] }
     end
 
     def generator(config={})

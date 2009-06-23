@@ -1,4 +1,4 @@
-require 'generator/actions'
+require 'generators/actions'
 
 module Rails
   module Generators
@@ -12,7 +12,7 @@ module Rails
       # Automatically sets the source root based on the class name.
       #
       def self.source_root
-        @source_root ||= File.expand_path(File.join(File.dirname(__FILE__), 'generators', generator_name, 'templates'))
+        @source_root ||= File.expand_path(File.join(File.dirname(__FILE__), 'rails', generator_name, 'templates'))
       end
 
       # Convenience method to get the namespace from the class name.

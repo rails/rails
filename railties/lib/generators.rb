@@ -10,15 +10,16 @@ require 'thor'
 $:.unshift(File.dirname(__FILE__))
 require 'rails/version' unless defined?(Rails::VERSION)
 
-require 'generator/base'
-require 'generator/named_base'
+require 'generators/base'
+require 'generators/named_base'
 
 module Rails
   module Generators
     def self.builtin
-      Dir[File.dirname(__FILE__) + '/generator/generators/*'].collect do |file|
-        File.basename(file)
+      Dir[File.dirname(__FILE__) + '/generators/*/*'].collect do |file|
+        file.split('/')[-2, 2]
       end
     end
   end
 end
+

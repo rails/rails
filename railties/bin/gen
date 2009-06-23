@@ -14,15 +14,17 @@ else ARGV.size == 1
   ARGV << "--help"
 end
 
-require File.dirname(__FILE__) + '/../lib/generator'
+require File.dirname(__FILE__) + '/../lib/generators'
 
-Rails::Generators.builtin.each do |name|
-  require "generator/generators/#{name}/#{name}_generator"
+Rails::Generators.builtin.each do |group, name|
+  require "generators/#{group}/#{name}/#{name}_generator"
 end
 
 name = ARGV.shift
 
 if klass = Thor::Util.find_by_namespace("rails:generators:#{name}")
+  klass.start
+elsif klass = Thor::Util.find_by_namespace(name)
   klass.start
 else
   puts "Could not find generator #{name}."

@@ -1,5 +1,5 @@
-require 'generator/base'
-require 'generator/generated_attribute'
+require 'generators/base'
+require 'generators/generated_attribute'
 
 module Rails
   module Generators

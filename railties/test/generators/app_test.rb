@@ -1,5 +1,5 @@
 require 'abstract_unit'
-require 'generator/generator_test_helper'
+require 'generators/generator_test_helper'
 
 class AppTest < GeneratorTestCase
 
