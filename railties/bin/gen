@@ -22,7 +22,7 @@ end
 
 name = ARGV.shift
 
-if klass = Thor::Util.find_by_namespace("rails:generators:#{name}")
+if klass = Thor::Util.find_by_namespace("rails:#{name}")
   klass.start
 elsif klass = Thor::Util.find_by_namespace(name)
   klass.start
