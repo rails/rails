@@ -1,5 +1,3 @@
-require File.dirname(__FILE__) + '/../../base'
-
 module Rails::Generators
   class MetalGenerator < Base
     argument :file_name, :type => :string

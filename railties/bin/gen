@@ -14,8 +14,10 @@ else ARGV.size == 1
   ARGV << "--help"
 end
 
-Dir[File.dirname(__FILE__) + '/../lib/generator/generators/*/*_generator.rb'].each do |file|
-  require file
+require File.dirname(__FILE__) + '/../lib/generator'
+
+Rails::Generators.builtin.each do |name|
+  require "generator/generators/#{name}/#{name}_generator"
 end
 
 name = ARGV.shift

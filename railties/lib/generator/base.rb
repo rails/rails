@@ -1,15 +1,4 @@
-# Load ActiveSupport mini
-activesupport_path = "#{File.dirname(__FILE__)}/../../../activesupport/lib"
-$:.unshift(activesupport_path) if File.directory?(activesupport_path)
-require 'active_support/all'
-
-# TODO Use vendored Thor
-require 'rubygems'
-gem 'josevalim-thor'
-require 'thor'
-
-require File.dirname(__FILE__) + '/../rails/version' unless defined?(Rails::VERSION)
-require File.dirname(__FILE__) + '/actions'
+require 'generator/actions'
 
 module Rails
   module Generators
