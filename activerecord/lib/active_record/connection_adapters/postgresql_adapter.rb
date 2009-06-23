@@ -911,20 +911,6 @@ module ActiveRecord
         sql << order_columns * ', '
       end
 
-      # Returns an ORDER BY clause for the passed order option.
-      #
-      # PostgreSQL does not allow arbitrary ordering when using DISTINCT ON, so we work around this
-      # by wrapping the +sql+ string as a sub-select and ordering in that query.
-      def add_order_by_for_association_limiting!(sql, options) #:nodoc:
-        return sql if options[:order].blank?
-
-        order = options[:order].split(',').collect { |s| s.strip }.reject(&:blank?)
-        order.map! { |s| 'DESC' if s =~ /\bdesc$/i }
-        order = order.zip((0...order.size).to_a).map { |s,i| "id_list.alias_#{i} #{s}" }.join(', ')
-
-        sql.replace "SELECT * FROM (#{sql}) AS id_list ORDER BY #{order}"
-      end
-
       protected
         # Returns the version of the connected PostgreSQL version.
         def postgresql_version

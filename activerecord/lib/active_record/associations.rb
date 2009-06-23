@@ -1604,14 +1604,6 @@ module ActiveRecord
           return sanitize_sql(arel.to_sql)
         end
 
-        def add_limited_ids_condition!(sql, options, join_dependency)
-          unless (id_list = select_limited_ids_list(options, join_dependency)).empty?
-            sql << "#{condition_word(sql)} #{connection.quote_table_name table_name}.#{primary_key} IN (#{id_list}) "
-          else
-            throw :invalid_query
-          end
-        end
-
          def construct_limited_ids_condition(where, options, join_dependency)
           unless (id_list = select_limited_ids_list(options, join_dependency)).empty?
             "#{where.blank? ? '' : ' AND '} #{connection.quote_table_name table_name}.#{primary_key} IN (#{id_list}) "
@@ -1630,47 +1622,18 @@ module ActiveRecord
         end
 
         def construct_finder_sql_for_association_limiting(options, join_dependency)
-          scope       = scope(:find)
-
           # Only join tables referenced in order or conditions since this is particularly slow on the pre-query.
           tables_from_conditions = conditions_tables(options)
           tables_from_order      = order_tables(options)
           all_tables             = tables_from_conditions + tables_from_order
-          distinct_join_associations = all_tables.uniq.map{|table|
+          options[:joins] = all_tables.uniq.map {|table|
             join_dependency.joins_for_table_name(table)
-          }.flatten.compact.uniq
+          }.flatten.compact.uniq.collect { |assoc| assoc.association_join }.join
 
-          order = options[:order]
-          if scoped_order = (scope && scope[:order])
-            order = order ? "#{order}, #{scoped_order}" : scoped_order
-          end
-
-          is_distinct = !options[:joins].blank? || include_eager_conditions?(options, tables_from_conditions) || include_eager_order?(options, tables_from_order)
-          sql = "SELECT "
-          if is_distinct
-            sql << connection.distinct("#{connection.quote_table_name table_name}.#{primary_key}", order)
-          else
-            sql << primary_key
-          end
-          sql << " FROM #{connection.quote_table_name table_name} "
-
-          if is_distinct
-            sql << distinct_join_associations.collect { |assoc| assoc.association_join }.join
-            add_joins!(sql, options[:joins], scope)
-          end
-
-          add_conditions!(sql, options[:conditions], scope)
-          add_group!(sql, options[:group], options[:having], scope)
-
-          if order && is_distinct
-            connection.add_order_by_for_association_limiting!(sql, :order => order)
-          else
-            add_order!(sql, options[:order], scope)
-          end
-
-          add_limit!(sql, options, scope)
-
-          return sanitize_sql(sql)
+          construct_finder_sql(options.merge(
+            :select => connection.distinct("#{connection.quote_table_name table_name}.#{primary_key}", construct_order(options[:order], scope(:find)).join(","))
+            )
+          )
         end
 
         def tables_in_string(string)
@@ -1772,10 +1735,6 @@ module ActiveRecord
               write_inheritable_attribute(full_callback_name.to_sym, [])
             end
           end
-        end
-
-        def condition_word(sql)
-          sql =~ /where/i ? " AND " : "WHERE "
         end
 
         def create_extension_modules(association_id, block_extension, extensions)
