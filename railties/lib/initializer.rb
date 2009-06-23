@@ -170,6 +170,18 @@ module Rails
       RAILS_ROOT.replace self.root_path
     end
 
+    # Enable threaded mode. Allows concurrent requests to controller actions and
+    # multiple database connections. Also disables automatic dependency loading
+    # after boot, and disables reloading code on every request, as these are
+    # fundamentally incompatible with thread safety.
+    def threadsafe!
+      self.preload_frameworks = true
+      self.cache_classes = true
+      self.dependency_loading = false
+      self.action_controller.allow_concurrency = true
+      self
+    end
+
     def framework_paths
       paths = %w(railties railties/lib activesupport/lib)
       paths << 'actionpack/lib' if frameworks.include?(:action_controller) || frameworks.include?(:action_view)
