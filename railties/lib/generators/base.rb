@@ -1,11 +1,8 @@
 require 'generators/actions'
+require 'generators/error'
 
 module Rails
   module Generators
-
-    class Error < Thor::Error
-    end
-
     class Base < Thor::Group
       include Rails::Generators::Actions
       include Thor::Actions
@@ -64,21 +61,30 @@ module Rails
           class_option :ruby, :type => :string, :aliases => "-r", :default => default,
                               :desc => "Path to the Ruby binary of your choice"
 
-          class_eval do
-            protected
-            def shebang
+          no_tasks do
+            define_method :shebang do
               "#!#{options[:ruby] || "/usr/bin/env ruby"}"
             end
           end
         end
-    end
 
-    class TestUnit < Base
-      protected
-        def self.base_name
-          'testunit'
+        # Small macro to add test_framework option and invoke it.
+        #
+        def self.add_test_framework_option!
+          class_option :test_framework, :type => :string, :aliases => "-t", :default => "testunit",
+                                        :desc => "Test framework to be invoked by this generator"
+
+          define_method :invoke_test_framework do
+            return unless options[:test_framework]
+            name = "#{options[:test_framework]}:#{self.class.generator_name}"
+
+            begin
+              invoke name
+            rescue Thor::UndefinedTaskError
+              say "Could not find and/or invoke #{name}."
+            end
+          end
         end
     end
-
   end
 end
