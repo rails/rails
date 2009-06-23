@@ -194,10 +194,6 @@ module ActiveRecord
       def errors
         @errors ||= Errors.new(self)
       end
-
-      def get_attribute_value(attribute)
-        respond_to?(attribute.to_sym) ? send(attribute.to_sym) : self[attribute.to_sym]
-      end
     end
   end
 end

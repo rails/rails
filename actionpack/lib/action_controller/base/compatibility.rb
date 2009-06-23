@@ -118,6 +118,14 @@ module ActionController
       details[:prefix] = nil if name =~ /\blayouts/
       super
     end
+    
+    # Move this into a "don't run in production" module
+    def _default_layout(details, require_layout = false)
+      super
+    rescue ActionView::MissingTemplate
+      _find_by_parts(_layout({}), {})
+      nil
+    end
 
     def performed?
       response_body

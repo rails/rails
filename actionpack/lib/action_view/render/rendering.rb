@@ -51,32 +51,60 @@ module ActionView
       end
   
       begin
-        original_content_for_layout = @content_for_layout if defined?(@content_for_layout)
-        @content_for_layout = content
+        old_content, @_content_for[:layout] = @_content_for[:layout], content
 
-        @cached_content_for_layout = @content_for_layout
+        @cached_content_for_layout = @_content_for[:layout]
         _render_template(layout, locals)
       ensure
-        @content_for_layout = original_content_for_layout
+        @_content_for[:layout] = old_content
       end
+    end
+
+    # You can think of a layout as a method that is called with a block. This method
+    # returns the block that the layout is called with. If the user calls yield :some_name,
+    # the block, by default, returns content_for(:some_name). If the user calls yield,
+    # the default block returns content_for(:layout).
+    #
+    # The user can override this default by passing a block to the layout.
+    #
+    # ==== Example
+    #
+    #   # The template
+    #   <% render :layout => "my_layout" do %>Content<% end %>
+    #
+    #   # The layout
+    #   <html><% yield %></html>
+    #
+    # In this case, instead of the default block, which would return content_for(:layout),
+    # this method returns the block that was passed in to render layout, and the response
+    # would be <html>Content</html>.
+    #
+    # Finally, the block can take block arguments, which can be passed in by yield.
+    #
+    # ==== Example
+    #
+    #   # The template
+    #   <% render :layout => "my_layout" do |customer| %>Hello <%= customer.name %><% end %>
+    #
+    #   # The layout
+    #   <html><% yield Struct.new(:name).new("David") %></html>
+    #
+    # In this case, the layout would receive the block passed into <tt>render :layout</tt>,
+    # and the Struct specified in the layout would be passed into the block. The result
+    # would be <html>Hello David</html>.
+    def layout_proc(name)
+      @_default_layout ||= proc { |*names| @_content_for[names.first || :layout] }
+      !@_content_for.key?(name) && @_proc_for_layout || @_default_layout
     end
 
     def _render_template(template, local_assigns = {})
       with_template(template) do
-        _evaluate_assigns_and_ivars
-        _set_controller_content_type(template.mime_type) if template.respond_to?(:mime_type)
-
         template.render(self, local_assigns) do |*names|
-          if !instance_variable_defined?(:"@content_for_#{names.first}") && 
-          instance_variable_defined?(:@_proc_for_layout) && (proc = @_proc_for_layout)
-            capture(*names, &proc)
-          elsif instance_variable_defined?(ivar = :"@content_for_#{names.first || :layout}")
-            instance_variable_get(ivar)
-          end        
+          capture(*names, &layout_proc(names.first))
         end
       end
     rescue Exception => e
-      if TemplateError === e
+      if e.is_a?(TemplateError)
         e.sub_template_of(template)
         raise e
       else
@@ -101,20 +129,18 @@ module ActionView
     end
 
     def _render_template_with_layout(template, layout = nil, options = {}, partial = false)
-      if controller && logger
-        logger.info("Rendering #{template.identifier}" + 
-          (options[:status] ? " (#{options[:status]})" : ''))
-      end
-  
+      logger && logger.info("Rendering #{template.identifier}#{' (#{options[:status]})' if options[:status]}")
+
+      locals = options[:locals] || {}
+
       content = if partial
         object = partial unless partial == true
         _render_partial_object(template, options, object)
       else
-        _render_template(template, options[:locals] || {})
+        _render_template(template, locals)
       end
   
-      return content unless layout
-      _render_content_with_layout(content, layout, options[:locals] || {})
+      layout ? _render_content_with_layout(content, layout, locals) : content
     end
   end
 end

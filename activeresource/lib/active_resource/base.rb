@@ -1086,6 +1086,7 @@ module ActiveResource
   end
 
   class Base
+    extend ActiveModel::Naming
     include CustomMethods, Validations
   end
 end

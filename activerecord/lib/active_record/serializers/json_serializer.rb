@@ -1,5 +1,5 @@
 require 'active_support/json'
-require 'active_support/core_ext/module/model_naming'
+require 'active_model/naming'
 
 module ActiveRecord #:nodoc:
   module Serialization

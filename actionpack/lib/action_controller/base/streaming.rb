@@ -4,10 +4,7 @@ module ActionController #:nodoc:
   module Streaming
     extend ActiveSupport::Concern
 
-    # TODO : Remove the defined? check when new base is the main base
-    if defined?(ActionController::Http)
-      include ActionController::Renderer
-    end
+    include ActionController::Renderer
 
     DEFAULT_SEND_FILE_OPTIONS = {
       :type         => 'application/octet-stream'.freeze,

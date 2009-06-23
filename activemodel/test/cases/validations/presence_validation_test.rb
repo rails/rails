@@ -31,15 +31,15 @@ class PresenceValidationTest < ActiveModel::TestCase
     assert t.save
   end
 
-  def test_validates_presence_of_with_custom_message_using_quotes
-    repair_validations(Developer) do
-      Developer.validates_presence_of :non_existent, :message=> "This string contains 'single' and \"double\" quotes"
-      d = Developer.new
-      d.name = "Joe"
-      assert !d.valid?
-      assert_equal ["This string contains 'single' and \"double\" quotes"], d.errors[:non_existent]
-    end
-  end
+  # def test_validates_presence_of_with_custom_message_using_quotes
+  #   repair_validations(Developer) do
+  #     Developer.validates_presence_of :non_existent, :message=> "This string contains 'single' and \"double\" quotes"
+  #     d = Developer.new
+  #     d.name = "Joe"
+  #     assert !d.valid?
+  #     assert_equal ["This string contains 'single' and \"double\" quotes"], d.errors[:non_existent]
+  #   end
+  # end
 
   def test_validates_presence_of_for_ruby_class
     repair_validations(Person) do

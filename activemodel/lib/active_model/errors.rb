@@ -68,7 +68,7 @@ module ActiveModel
     # Will add an error message to each of the attributes in +attributes+ that is empty.
     def add_on_empty(attributes, custom_message = nil)
       [attributes].flatten.each do |attribute|
-        value = @base.get_attribute_value(attribute)
+        value = @base.send(attribute)
         is_empty = value.respond_to?(:empty?) ? value.empty? : false
         add(attribute, :empty, :default => custom_message) unless !value.nil? && !is_empty
       end
@@ -77,7 +77,7 @@ module ActiveModel
     # Will add an error message to each of the attributes in +attributes+ that is blank (using Object#blank?).
     def add_on_blank(attributes, custom_message = nil)
       [attributes].flatten.each do |attribute|
-        value = @base.get_attribute_value(attribute)
+        value = @base.send(attribute)
         add(attribute, :blank, :default => custom_message) if value.blank?
       end
     end
@@ -146,7 +146,7 @@ module ActiveModel
       defaults = defaults.compact.flatten << :"messages.#{message}"
 
       key = defaults.shift
-      value = @base.get_attribute_value(attribute)
+      value = @base.send(attribute)
 
       options = { :default => defaults,
         :model => @base.class.name.humanize,

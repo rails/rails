@@ -127,11 +127,7 @@ class HelperTest < Test::Unit::TestCase
   end
 
   def test_all_helpers
-    methods = if defined?(ActionController::Http)
-      AllHelpersController._helpers.instance_methods.map {|m| m.to_s}
-    else
-      AllHelpersController.master_helper_module.instance_methods.map {|m| m.to_s}
-    end
+    methods = AllHelpersController._helpers.instance_methods.map {|m| m.to_s}
 
     # abc_helper.rb
     assert methods.include?('bare_a')
@@ -147,12 +143,7 @@ class HelperTest < Test::Unit::TestCase
     @controller_class.helpers_dir = File.dirname(__FILE__) + '/../fixtures/alternate_helpers'
 
     # Reload helpers
-    if defined?(ActionController::Http)
-      @controller_class._helpers = Module.new
-    else
-      @controller_class.master_helper_module = Module.new
-    end
-
+    @controller_class._helpers = Module.new
     @controller_class.helper :all
 
     # helpers/abc_helper.rb should not be included
@@ -184,11 +175,7 @@ class HelperTest < Test::Unit::TestCase
     end
 
     def master_helper_methods
-      if defined?(ActionController::Http)
-        @controller_class._helpers.instance_methods.map {|m| m.to_s }
-      else
-        @controller_class.master_helper_module.instance_methods.map {|m| m.to_s }
-      end
+      @controller_class._helpers.instance_methods.map {|m| m.to_s }
     end
 
     def missing_methods

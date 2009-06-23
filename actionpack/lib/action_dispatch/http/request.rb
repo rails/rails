@@ -180,12 +180,10 @@ module ActionDispatch
         else
           accepts.dup
         end.tap do |ret|
-          if defined?(ActionController::Http)
-            if ret == ONLY_ALL
-              ret.replace Mime::SET
-            elsif all = ret.index(Mime::ALL)
-              ret.delete_at(all) && ret.insert(all, *Mime::SET)
-            end
+          if ret == ONLY_ALL
+            ret.replace Mime::SET
+          elsif all = ret.index(Mime::ALL)
+            ret.delete_at(all) && ret.insert(all, *Mime::SET)
           end
         end
       else

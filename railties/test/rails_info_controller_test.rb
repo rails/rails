@@ -1,6 +1,6 @@
 require 'abstract_unit'
 require 'action_controller'
-require 'action_controller/testing/process2'
+require 'action_controller/testing/process'
 
 require 'rails/info'
 require 'rails/info_controller'

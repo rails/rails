@@ -245,13 +245,6 @@ module ActionView
         end
       end
 
-      def _render_partial_with_block(layout, block, options)
-        @_proc_for_layout = block
-        concat(_render_partial(options.merge(:partial => layout)))
-      ensure
-        @_proc_for_layout = nil
-      end
-  
       def _render_partial_with_layout(layout, options)
         if layout
           prefix = controller && !layout.include?("/") ? controller.controller_path : nil

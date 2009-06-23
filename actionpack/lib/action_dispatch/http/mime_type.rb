@@ -2,7 +2,19 @@ require 'set'
 require 'active_support/core_ext/class/attribute_accessors'
 
 module Mime
-  SET              = []
+  class Mimes < Array
+    def symbols
+      @symbols ||= map {|m| m.to_sym }
+    end
+
+    %w(<< concat shift unshift push pop []= clear compact! collect!
+    delete delete_at delete_if flatten! map! insert reject! reverse!
+    replace slice! sort! uniq!).each do |method|
+      define_method(method) {|*args| @symbols = nil; super(*args) }
+    end
+  end
+
+  SET              = Mimes.new
   EXTENSION_LOOKUP = {}
   LOOKUP           = Hash.new { |h, k| h[k] = Type.new(k) unless k.blank? }
 

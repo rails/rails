@@ -33,8 +33,8 @@ class ActiveRecordHelperTest < ActionView::TestCase
         ["Author name can't be <em>empty</em>"]
       end
 
-      def on(field)
-        "can't be <em>empty</em>"
+      def [](field)
+        ["can't be <em>empty</em>"]
       end
     end
 
@@ -47,14 +47,14 @@ class ActiveRecordHelperTest < ActionView::TestCase
     @post = Post.new
     def @post.errors
       Class.new {
-        def on(field)
+        def [](field)
           case field.to_s
           when "author_name"
-            "can't be empty"
+            ["can't be empty"]
           when "body"
-            true
+            ['foo']
           else
-            false
+            []
           end
         end
         def empty?() false end
@@ -85,7 +85,7 @@ class ActiveRecordHelperTest < ActionView::TestCase
     @user = User.new
     def @user.errors
       Class.new {
-        def on(field) field == "email" end
+        def [](field) field == "email" ? ['nonempty'] : [] end
         def empty?() false end
         def count() 1 end
         def full_messages() [ "User email can't be empty" ] end

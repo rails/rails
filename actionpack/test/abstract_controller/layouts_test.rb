@@ -9,7 +9,7 @@ module AbstractControllerTests
       include AbstractController::Renderer
       include AbstractController::Layouts
 
-      self.view_paths = [ActionView::Template::FixturePath.new(
+      self.view_paths = [ActionView::FixtureResolver.new(
         "layouts/hello.erb"                     => "With String <%= yield %>",
         "layouts/hello_override.erb"            => "With Override <%= yield %>",
         "layouts/abstract_controller_tests/layouts/with_string_implied_child.erb" =>

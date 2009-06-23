@@ -146,11 +146,7 @@ class PerformActionTest < ActionController::TestCase
   def test_method_missing_is_not_an_action_name
     use_controller MethodMissingController
 
-    if defined?(ActionController::Http)
-      assert ! @controller.__send__(:action_method?, 'method_missing')
-    else
-      assert ! @controller.__send__(:action_methods).include?('method_missing')
-    end
+    assert ! @controller.__send__(:action_method?, 'method_missing')
     
     get :method_missing
     assert_response :success

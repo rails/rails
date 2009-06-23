@@ -26,9 +26,6 @@ module ActionController
   #   hello world
   #   // The footer part of this layout
   #
-  # NOTE: The old notation for rendering the view from a layout was to expose the magic <tt>@content_for_layout</tt> instance
-  # variable. The preferred notation now is to use <tt>yield</tt>, as documented above.
-  #
   # == Accessing shared variables
   #
   # Layouts have access to variables specified in the content pages and vice versa. This allows you to have layouts with
@@ -176,7 +173,7 @@ module ActionController
         super
 
         return if (options.key?(:text) || options.key?(:inline) || options.key?(:partial)) && !options.key?(:layout)
-        layout = options.key?(:layout) ? options[:layout] : :none
+        layout = options.key?(:layout) ? options[:layout] : :default
         options[:_layout] = _layout_for_option(layout, options[:_template].details)
       end
 
@@ -184,7 +181,7 @@ module ActionController
         case name
         when String     then _layout_for_name(name, details)
         when true       then _default_layout(details, true)
-        when :none      then _default_layout(details, false)
+        when :default   then _default_layout(details, false)
         when false, nil then nil
         else
           raise ArgumentError,

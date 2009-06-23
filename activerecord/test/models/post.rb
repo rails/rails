@@ -69,6 +69,8 @@ class Post < ActiveRecord::Base
               :after_add     => lambda {|owner, reader| log(:added,   :after,  reader.first_name) },
               :before_remove => lambda {|owner, reader| log(:removed, :before, reader.first_name) },
               :after_remove  => lambda {|owner, reader| log(:removed, :after,  reader.first_name) }
+  has_many :skimmers, :class_name => 'Reader', :conditions => { :skimmer => true }
+  has_many :impatient_people, :through => :skimmers, :source => :person
 
   def self.top(limit)
     ranked_by_comments.limit(limit)

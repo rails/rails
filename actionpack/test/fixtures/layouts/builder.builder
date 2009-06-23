@@ -1,3 +1,3 @@
 xml.wrapper do
-  xml << @content_for_layout
+  xml << yield
 end

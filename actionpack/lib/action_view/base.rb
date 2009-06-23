@@ -170,12 +170,13 @@ module ActionView #:nodoc:
 
     attr_accessor :base_path, :assigns, :template_extension, :formats
     attr_accessor :controller
+    attr_internal :captures
 
     attr_accessor :output_buffer
 
     class << self
       delegate :erb_trim_mode=, :to => 'ActionView::TemplateHandlers::ERB'
-      delegate :logger, :to => 'ActionController::Base'
+      delegate :logger, :to => 'ActionController::Base', :allow_nil => true
     end
 
     @@debug_rjs = false
@@ -229,38 +230,27 @@ module ActionView #:nodoc:
 
     def initialize(view_paths = [], assigns_for_first_render = {}, controller = nil, formats = nil)#:nodoc:
       @formats = formats || [:html]
-      @assigns = assigns_for_first_render
-      @assigns_added = nil
+      @assigns = assigns_for_first_render.each { |key, value| instance_variable_set("@#{key}", value) }
       @controller = controller
       @helpers = ProxyModule.new(self)
+      @_content_for = Hash.new {|h,k| h[k] = "" }
       self.view_paths = view_paths
-
-      @_first_render = nil
-      @_current_render = nil
     end
 
+    attr_internal :template
     attr_reader :view_paths
 
     def view_paths=(paths)
       @view_paths = self.class.process_view_paths(paths)
     end
 
-    # Access the current template being rendered.
-    # Returns a ActionView::Template object.
-    def template
-      @_current_render
-    end
-
-    def template=(template) #:nodoc:
-      @_first_render ||= template
-      @_current_render = template
-    end
-
     def with_template(current_template)
+      _evaluate_assigns_and_ivars
       last_template, self.template = template, current_template
+      last_formats, self.formats = formats, [current_template.mime_type.to_sym] + Mime::SET.symbols
       yield
     ensure
-      self.template = last_template
+      self.template, self.formats = last_template, last_formats
     end
 
     def punctuate_body!(part)
@@ -271,30 +261,19 @@ module ActionView #:nodoc:
 
     # Evaluates the local assigns and controller ivars, pushes them to the view.
     def _evaluate_assigns_and_ivars #:nodoc:
-      unless @assigns_added
-        @assigns.each { |key, value| instance_variable_set("@#{key}", value) }
-        _copy_ivars_from_controller
-        @assigns_added = true
-      end
+      @assigns_added ||= _copy_ivars_from_controller
     end
 
-    private
+  private
 
-      def _copy_ivars_from_controller #:nodoc:
-        if @controller
-          variables = @controller.instance_variable_names
-          variables -= @controller.protected_instance_variables if @controller.respond_to?(:protected_instance_variables)
-          variables.each { |name| instance_variable_set(name, @controller.instance_variable_get(name)) }
-        end
+    def _copy_ivars_from_controller #:nodoc:
+      if @controller
+        variables = @controller.instance_variable_names
+        variables -= @controller.protected_instance_variables if @controller.respond_to?(:protected_instance_variables)
+        variables.each { |name| instance_variable_set(name, @controller.instance_variable_get(name)) }
       end
+      true
+    end
 
-      def _set_controller_content_type(content_type) #:nodoc:
-        # TODO: Remove this method when new base is switched
-        unless defined?(ActionController::Http)
-          if controller.respond_to?(:response)
-            controller.response.content_type ||= content_type
-          end
-        end
-      end
   end
 end
