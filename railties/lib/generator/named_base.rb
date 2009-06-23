@@ -1,4 +1,5 @@
 require 'generator/base'
+require 'generator/generated_attribute'
 
 module Rails
   module Generators
@@ -7,11 +8,13 @@ module Rails
 
       attr_reader :class_name, :singular_name, :plural_name, :table_name,
                   :class_path, :file_path, :class_nesting, :class_nesting_depth
+
       alias :file_name :singular_name
 
       def initialize(*args)
         super
         assign_names!
+        parse_attributes! if respond_to?(:attributes)
       end
 
       protected
@@ -32,6 +35,14 @@ module Rails
           else
             @table_name = @class_nesting.underscore << "_" << @table_name
             @class_name = "#{@class_nesting}::#{@class_name_without_nesting}"
+          end
+        end
+
+        # Convert attributes hash into an array with GeneratedAttribute objects.
+        #
+        def parse_attributes!
+          attributes.map! do |name, type|
+            Rails::Generator::GeneratedAttribute.new(name, type)
           end
         end
 
