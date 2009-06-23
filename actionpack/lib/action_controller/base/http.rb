@@ -36,7 +36,7 @@ module ActionController
     # ==== Returns
     # String
     def self.controller_path
-      @controller_path ||= self.name.sub(/Controller$/, '').underscore
+      @controller_path ||= name && name.sub(/Controller$/, '').underscore
     end
 
     # Delegates to the class' #controller_path
