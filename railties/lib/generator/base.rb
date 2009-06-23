@@ -41,8 +41,7 @@ module Rails
       #
       def self.generator_name
         @generator_name ||= begin
-          klass_name = self.name
-          klass_name.gsub!(/^Rails::Generators::/, '')
+          klass_name = self.name.gsub(/^Rails::Generators::/, '')
           klass_name.gsub!(/Generator$/, '')
           klass_name.underscore
         end
