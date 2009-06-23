@@ -169,11 +169,11 @@ module ActiveRecord
                                (column_name == :all ? "*" : column_name.to_s))
         end
 
-        value = construct_calculation_arel(options.merge(
+        value = construct_finder_sql(options.merge(
           :select => operation == 'count' ? column.count(options[:distinct]) : column.send(operation)
-        ))
+        ), nil)
 
-        type_cast_calculated_value(connection.select_value(value.to_sql), column_for(column_name), operation)
+        type_cast_calculated_value(connection.select_value(value), column_for(column_name), operation)
       end
 
       def execute_grouped_calculation(operation, column_name, options) #:nodoc:
@@ -194,7 +194,7 @@ module ActiveRecord
 
         options[:select] <<  ", #{group_field} AS #{group_alias}"
 
-        calculated_data = connection.select_all(construct_calculation_arel(options).to_sql)
+        calculated_data = connection.select_all(construct_finder_sql(options, nil))
 
         if association
           key_ids     = calculated_data.collect { |row| row[group_alias] }
@@ -212,21 +212,6 @@ module ActiveRecord
       end
 
      protected
-
-        def construct_calculation_arel(options)
-          scope = scope(:find)
-
-          arel_table(options[:from] || table_name).
-            join(options[:joins]).
-            where(options[:conditions]).
-            project(options[:select]).
-            group(construct_group(options[:group], options[:having], scope)).
-            order(options[:order].to_s).
-            take(construct_limit(options, scope)).
-            skip(construct_offset(options, scope)
-          )
-        end
-
         def construct_count_options_from_args(*args)
           options     = {}
           column_name = :all

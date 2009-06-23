@@ -1696,11 +1696,9 @@ module ActiveRecord #:nodoc:
           @arel_table = Arel::Table.new(table)
         end
 
-        def construct_finder_arel(options)
-          scope = scope(:find)
-
+        def construct_finder_arel(options, scope = scope(:find))
           # TODO add lock to Arel
-          arel_table(table_name).
+          arel_table(options[:from] || table_name).
             join(construct_join(options[:joins], scope)).
             where(construct_conditions(options[:conditions], scope)).
             project(options[:select] || (scope && scope[:select]) || default_select(options[:joins] || (scope && scope[:joins]))).
@@ -1711,8 +1709,8 @@ module ActiveRecord #:nodoc:
           )
         end
 
-        def construct_finder_sql(options)
-          construct_finder_arel(options).to_sql
+        def construct_finder_sql(options, scope = scope(:find))
+          construct_finder_arel(options, scope).to_sql
         end
 
         def construct_join(joins, scope)
