@@ -181,33 +181,6 @@ module ActiveRecord
       # done if the transaction block raises an exception or returns false.
       def rollback_db_transaction() end
 
-      # Alias for <tt>add_limit_offset!</tt>.
-      def add_limit!(sql, options)
-        add_limit_offset!(sql, options) if options
-      end
-
-      # Appends +LIMIT+ and +OFFSET+ options to an SQL statement, or some SQL
-      # fragment that has the same semantics as LIMIT and OFFSET.
-      #
-      # +options+ must be a Hash which contains a +:limit+ option (required)
-      # and an +:offset+ option (optional).
-      #
-      # This method *modifies* the +sql+ parameter.
-      #
-      # ===== Examples
-      #  add_limit_offset!('SELECT * FROM suppliers', {:limit => 10, :offset => 50})
-      # generates
-      #  SELECT * FROM suppliers LIMIT 10 OFFSET 50
-      def add_limit_offset!(sql, options)
-        if limit = options[:limit]
-          sql << " LIMIT #{sanitize_limit(limit)}"
-          if offset = options[:offset]
-            sql << " OFFSET #{offset.to_i}"
-          end
-        end
-        sql
-      end
-
       # Appends a locking clause to an SQL statement.
       # This method *modifies* the +sql+ parameter.
       #   # SELECT * FROM suppliers FOR UPDATE

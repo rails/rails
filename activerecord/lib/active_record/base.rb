@@ -1812,44 +1812,6 @@ module ActiveRecord #:nodoc:
           o.is_a?(Array) && o.all?{|obj| obj.is_a?(String)}
         end
 
-        def add_order!(sql, order, scope = :auto)
-          scope = scope(:find) if :auto == scope
-          scoped_order = scope[:order] if scope
-          if order
-            sql << " ORDER BY #{order}"
-            if scoped_order && scoped_order != order
-              sql << ", #{scoped_order}"
-            end
-          else
-            sql << " ORDER BY #{scoped_order}" if scoped_order
-          end
-        end
-
-        def add_group!(sql, group, having, scope = :auto)
-          if group
-            sql << " GROUP BY #{group}"
-            sql << " HAVING #{sanitize_sql_for_conditions(having)}" if having
-          else
-            scope = scope(:find) if :auto == scope
-            if scope && (scoped_group = scope[:group])
-              sql << " GROUP BY #{scoped_group}"
-              sql << " HAVING #{sanitize_sql_for_conditions(scope[:having])}" if scope[:having]
-            end
-          end
-        end
-
-        # The optional scope argument is for the current <tt>:find</tt> scope.
-        def add_limit!(sql, options, scope = :auto)
-          scope = scope(:find) if :auto == scope
-
-          if scope
-            options[:limit] ||= scope[:limit]
-            options[:offset] ||= scope[:offset]
-          end
-
-          connection.add_limit_offset!(sql, options)
-        end
-
         # The optional scope argument is for the current <tt>:find</tt> scope.
         # The <tt>:lock</tt> option has precedence over a scoped <tt>:lock</tt>.
         def add_lock!(sql, options, scope = :auto)
@@ -1858,38 +1820,10 @@ module ActiveRecord #:nodoc:
           connection.add_lock!(sql, options)
         end
 
-        # The optional scope argument is for the current <tt>:find</tt> scope.
-        def add_joins!(sql, joins, scope = :auto)
-          scope = scope(:find) if :auto == scope
-          merged_joins = scope && scope[:joins] && joins ? merge_joins(scope[:joins], joins) : (joins || scope && scope[:joins])
-          case merged_joins
-          when Symbol, Hash, Array
-            if array_of_strings?(merged_joins)
-              sql << merged_joins.join(' ') + " "
-            else
-              join_dependency = ActiveRecord::Associations::ClassMethods::InnerJoinDependency.new(self, merged_joins, nil)
-              sql << " #{join_dependency.join_associations.collect { |assoc| assoc.association_join }.join} "
-            end
-          when String
-            sql << " #{merged_joins} "
-          end
-        end
-
-        # Adds a sanitized version of +conditions+ to the +sql+ string. Note that the passed-in +sql+ string is changed.
-        # The optional scope argument is for the current <tt>:find</tt> scope.
-        def add_conditions!(sql, conditions, scope = :auto)
-          scope = scope(:find) if :auto == scope
-          conditions = [conditions]
-          conditions << scope[:conditions] if scope
-          conditions << type_condition if finder_needs_type_condition?
-          merged_conditions = merge_conditions(*conditions)
-          sql << "WHERE #{merged_conditions} " unless merged_conditions.blank?
-        end
-
         def type_condition(table_alias=nil)
           quoted_table_alias = self.connection.quote_table_name(table_alias || table_name)
           quoted_inheritance_column = connection.quote_column_name(inheritance_column)
-          type_condition = subclasses.inject("#{quoted_table_alias}.#{quoted_inheritance_column} = '#{sti_name}' ") do |condition, subclass|
+          type_condition = subclasses.inject("#{quoted_table_alias}.#{quoted_inheritance_column} = '#{sti_name}' " ) do |condition, subclass|
             condition << "OR #{quoted_table_alias}.#{quoted_inheritance_column} = '#{subclass.sti_name}' "
           end
 
